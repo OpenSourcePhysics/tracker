@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<title>Tracker Help: Offset Origin</title>
+    	<link href="help.css" rel="stylesheet" type="text/css">
+	</head>
+
+	<body>
+		<h1>Offset Origin</h1>
+		<p align="center">
+			<img src="../help_images/offset_origin.gif">
+		</p>
+		<p>An <strong>offset origin</strong> is a point with user-setttable world coordinates whose image position on the screen is determined by the video coordinate system. This is the opposite of a point mass step, which has a user-defined image position with world coordinates determined by the coordinate system.</p>
+		<p>When an offset origin is dragged in the main video view, the origin of the coordinate system moves with it in order to maintain the offset origin's assigned world coordinates. This makes it useful for remotely setting the position of the origin, particularly when the origin is outside the video image.</p>
+        
+		<h3>1. Creating an offset origin</h3>
+		<p>Click the arrow on the <strong>Calibration</strong> button on the toolbar and select <strong>New|Offset Origin</strong> to create a new offset origin. If desired, you can create more than one. Show or hide the offset origins (along with other calibration tools, if any) by clicking the main part of the Calibration button.</p>
+		<p align="center"><img src="../help_images/calibration_tools_menu.gif"></p>
+		<p>The offset origin is initially umarked and the toolbar indicates this status in red. Shift-click the video to mark the offset point.  The x- and y-components (world coordinates) of the newly marked point is displayed on the toolbar.</p>
+		<p align="center"><img src="../help_images/offset_origin_fields0.gif"></p>
+		<p align="center"><img src="../help_images/offset_origin_fields.gif"></p>
+		<p>Once the offset origin is created and marked, you can <a href="#remark">re-mark it</a>, <a href="#change">change its world coordinates</a> or <a href="#move">move it</a> to a new image position as described below.</p>
+        
+	<h3><a id="remark" name="remark"></a>2. Re-marking the point</h3>
+    <p>Select the offset origin and shift-click again to move it to a new location without changing the coordinate system.</p>
+
+    <h3><a id="change" name="change"></a>3. Changing the world coordinates (moves the origin)</h3>
+		<p align="center">
+			<img src="../help_images/x_field_selected.gif">
+	</p>
+		<p>Select the offset origin and enter the desired values in the x and y fields on the toolbar to change its world coordinates.</p>
+		<p><strong>Note:</strong> changing the world coordinates of an offset origin moves the coordinate system origin so that the offset origin's image position remains unchanged.</p>
+        
+		<h3><a id="move" name="move"></a>4. Moving the offset origin (moves the origin)</h3>
+		<p>Select and drag or nudge the offset origin to a desired location in the main video view.</p>
+		<p><strong>Note:</strong> moving an offset origin moves the actual coordinate system origin with it so that the offset origin's world coordinates remain unchanged.</p>
+        
+		<h3>5. Locking the offset origin</h3>
+		<p>Locking the offset origin prevents it from making any changes to the origin. Lock the offset origin by turning on the <strong>Locked</strong> property in its <a href="tracks.html#trackmenu">track menu</a>.</p>
+        
+	</body>
+
+</html>

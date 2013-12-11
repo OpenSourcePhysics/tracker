@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<title>Tracker Help: Autotracker</title>
+    	<link href="help.css" rel="stylesheet" type="text/css">
+	</head>
+
+	<body>
+		<h1>Autotracker</h1>
+		<p align="center">
+			<img src="../help_images/autotracked.gif">
+		</p>
+		<p>When a video feature of interest has a consistent shape, size, color and orientation in all video frames, it can be tracked automatically using <strong>autotracker</strong>. This eliminates the need to mark each frame manually with the mouse, thus speeding up the tracking process and producing more consistent data.</p>
+		<p><strong>Tip:</strong> an excellent way to obtain videos suitable for autotracking is to stick colored circular markers on the objects of interest (a white ring around a colored center is even better). Multiple objects can be autotracked if a different color is used for each.</p>
+        <p>Click the autotracker button <img src="../help_images/autotracker_button.gif" align="absmiddle"> on the toolbar to show or hide autotracker.</p>
+        
+		<h3>1. How autotracker works</h3>
+		<p>Autotracker works by creating one or more <strong>template</strong> images of a feature of interest and then searching each frame for the best<strong> match</strong> to that template. The best match is the one with the highest <strong>match score</strong>, a number that is inversely proportional to the sum of the squares of the RGB differences between the template and match pixels. Once the best match is found, it is compared with nearby match scores to determine an interpolated <strong>sub-pixel best match</strong> position.</p>
+		<p>By default, the template <strong>evolves</strong> to adapt to shape and color changes over time. Higher <strong>evolution rates</strong> track more rapid changes, but may result in template &quot;drift&quot; over many frames.</p>
+      	<p>A <strong>target</strong> defines the position at which  points are marked relative to the template when matches are found. The target may be offset from the template. The specific <strong>track</strong> and <strong>point</strong> marked at the target position must be selected prior to autotracking.</p>
+		<p>A video frame in which a  template and its associated target are defined is called a <strong>key frame</strong>. Autotracking requires at least one key frame, but additional key frames may be defined to track sudden or extreme changes in the object, background or illumination.</p>
+	    <p>When the best match score is high (a good match), a point is automatically marked at the target position. But when the match score is only moderate (a possible match) then the user is asked to review the match and accept or override it. The <strong>automark level</strong> for automatic marking may be set by the user.</p>
+		<p>Autotracker limits its search for a match in each frame to a user-defined rectangular <strong>search area.</strong> When at least two steps have been marked, the velocity and acceleration of the point mass is used by default to predict the location of future matches and the search area is moved accordingly. However, you can turn off this <strong>look ahead</strong> feature and/or reposition or resize the search area at any time.</p>
+		<p>You can also limit the search to the <strong>x-axis only</strong> for <strong>1D</strong> autotracking. Set the axis origin and tilt angle to search along any desired line.</p>
+		<p>After autotracker has completed the marking process, you may modify the steps at will. In other words, autotracker helps you mark the steps but does not limit your control over them.</p>
+                   
+		<h3>2. Preparing to use autotracker</h3>
+		<p>Before using autotracker, scan through the video and verify that the feature of interest is visible and reasonably consistent (shape, size, color and orientation) in all frames. If not, adjust the <a href="videos.html#videoclip">video clip</a> start frame, end frame and/or step size until this condition is met. Then reset the video to the start frame.</p>
+		<p>If planning to autotrack a very long video, it is useful to turn off auto-refresh in order to speed up the marking process. To turn off auto-refresh, click the Refresh button on the toolbar and uncheck the <strong>Auto-refresh</strong> item in the popup menu. When done marking, turn auto-refresh back on or refresh the data manually by choosing the <strong>Refresh</strong> item in the popup menu.</p>
+	<p align="center"><img src="../help_images/refresh_menu.gif" alt="Refresh menu"></p>
+<h3>3. Using autotracker</h3>
+		<ol>
+            <li>Select the target track.</li>
+            <li>Shift-control-click the video feature of interest to create a key frame. This will display autotracker if it is not already visible.</li>
+            <li>Change the default settings if desired.</li>
+            <li>Click the Search button.</li>
+    	</ol>
+		<p>Figure 1 shows autotracker after creating a key frame. The template is outlined on the video and shown at 2x magnification in autotracker along with the (perfect) match found. The target point is indicated by a bold cross on the video and the search area is outlined with a dashed line.</p>
+		<p align="center">
+        	<img src="../help_images/autotracker_video_keyframe.gif" alt="autotracker key frame" align="middle">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/autotracker_keyframe.gif" alt="autotracker key frame" align="middle">
+        </p>
+        <h5><strong>Fig. 1 Autotracker</strong></h5>
+        
+ 		<h3>4. Settings and controls</h3>
+		<p>Controls are organized into the following categories. To learn more about a specific control or setting, simply move the mouse over it.</p>
+		<p><strong>Search buttons:</strong></p>
+		<ol>
+            <li>The <strong>Search</strong> button steps through the video, searching and marking each frame as it goes.</li>
+            <li>The <strong>Search This</strong> button is used to search the current frame only. It is often used to repeat a search after adjusting the search area if a match is not found on the first pass.</li>
+            <li>The <strong>Search Next</strong> button makes a single step forward, searches that frame, and stops. It is useful when you want to review each match before moving on to the next.</li>
+		</ol>
+		<p><strong>Template:</strong> The template is the image to be matched.</p>
+		<ol>
+            <li>Move or resize the template by dragging its center or handle (small solid square), respectively. <strong>Tip:</strong> the template need not be large nor include the whole object. A feature that is unique and includes high-contrast edges generally works best.</li>
+            <li>Set the <strong>evolution rate</strong> to define how the template adapts to shape and color changes. An evolution rate of 0% does not evolve at all (constant template image) while an evolution rate of 100% completely replaces the template with the match image after each frame. Intermediate evolution rates overlay the match image onto the current template with the indicated opacity. <strong>Note:</strong> higher evolution rates track more rapid changes, but may result in template &quot;drift&quot; over many frames.</li>
+            <li>Set the <strong>automark</strong> level to define the minimum match score needed for automatic marking. The default level of 4 is recommended as a good starting point. <strong>Tip:</strong> low automark levels can result in false matches--try increasing the evolution rate or defining additional key frames instead.</li>
+		</ol>
+		<p><strong>Search:</strong> The search area defines the region that is searched for the best match.</p>
+        <ol>
+            <li> Move or resize the search area by dragging its center or handle (small solid square), respectively. <strong>Tip:</strong> The search area need not be large. For many motions the look-ahead feature does a good job of predicting match positions and searching in the right place.</li>
+            <li>Check the <strong>X-axis Only</strong> checkbox to limit the search to the x-axis only.  The coordinate system origin will automatically be set to the center of the template. Tilt the axes to search in the desired direction. <strong>Note:</strong> if the x-axis does not pass through or near the center of the search area, no matches will be found.</li>
+            <li>Check the <strong>Look Ahead</strong> checkbox to automatically move the search area to predicted match positions using a look-ahead algorithm that assumes constant acceleration. When this option is unchecked, the search area is moved to the previous match position.</li>
+        </ol>
+		<p><strong>Target:</strong> The target defines both the track and point to be marked and the position of the mark relative to the template.</p>
+        <ol>
+            <li>Select the target track and point from the drop-down lists.</li>
+            <li>Move the target by dragging it.</li>
+        </ol>
+		<p><strong>Other buttons:</strong></p>
+        <ol>
+            <li>The <strong>Help</strong> button shows this help file.</li>
+            <li>The <strong>Show Key Frame</strong> button enables you to quickly jump to a key frame to review and/or change the template or target.</li>
+            <li>The <strong>Delete</strong> button enables you to easily delete incorrectly marked points.</li>
+            <li>The <strong>Close</strong> button closes autotracker.</li>
+        </ol>
+		<h3>5. Search results</h3>
+		<p>After searching a frame, autotracker will display one of the following search results and, in some cases, present options for solving problems.</p>
+        <ol>
+            <li>A <strong>good match</strong> was found (match score above the automark level) and marked automatically (Figure 2).</li>
+            <li>A <strong>possible match</strong> was found. Options include accepting the match, marking the point manually (shift-click), making changes and repeating the search, or moving on to the next frame (Figure 3).</li>
+            <li><strong>No match</strong> was found. Options include marking the point manually (shift-click), making changes and repeating the search, or moving on to the next frame.</li>
+            <li><strong>Unable to search</strong>. This can happen if the search area falls outside the video image or, for 1D tracking, the x-axis does not pass through the search area. Options include marking the point manually (shift-click), making changes and repeating the search, or moving on to the next frame.</li>
+        </ol>
+		<p align="center">
+        	<img src="../help_images/autotracker_video_success.gif" alt="successful search" align="middle">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/autotracker_success.gif" alt="successful search" align="middle">
+        </p>
+		<h5><strong>Fig. 2 Search results: good match</strong></h5>
+		<p align="center">
+        	<img src="../help_images/autotracker_video_possible.gif" alt="possible match" align="middle">
+            <img src="../help_images/spacer.gif">
+      		<img src="../help_images/autotracker_possible.gif" alt="possible match" align="middle">
+        </p>
+        <h5><strong>Fig. 3 Search results: possible match (false match in this case)</strong></h5>
+       
+	</body>
+
+</html>

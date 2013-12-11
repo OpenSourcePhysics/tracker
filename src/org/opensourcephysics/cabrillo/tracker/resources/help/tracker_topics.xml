@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object class="org.opensourcephysics.tools.LaunchNode">
+    <property name="name" type="string">Tracker Help</property>
+    <property name="description" type="string">Tracker Help
+</property>
+    <property name="html" type="array" class="[[Ljava.lang.String;">
+        <property name="[0]" type="array" class="[Ljava.lang.String;">
+            <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/intro.html</property>
+        </property>
+    </property>
+    <property name="keywords" type="string">help</property>
+    <property name="child_nodes" type="collection" class="java.util.ArrayList">
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Getting Started</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/gettingstarted.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">gettingstarted</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Installation</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/install.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">install</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">User Interface</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/interface.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">GUI</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Videos</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/videos.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">video</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Video Filters</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/video_filters.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">filters</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Tracks</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/tracks.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">tracks</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Coordinate System</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/coords.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">coords</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Axes</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/axes.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">axes</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Calibration Stick</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/stick.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">stick</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Offset Origin</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/offset_origin.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">offset</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Calibration Points</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/calibration.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">calibration</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Point Mass</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/pointmass.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">pointmass</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Autotracker</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/autotracker.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">autotracker</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Center of Mass</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/cm.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">cm</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Vector</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/vector.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">vector</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Vector Sum</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/vectorsum.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">vectorsum</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Line Profile</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/lineprofile.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">profile</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">RGB Region</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/rgbregion.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">rgbregion</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Particle Models</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/particles.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">particle</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Two-Body System</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/systems.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">system</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Tape Measure</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/tape.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">tape</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Protractor</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/protractor.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">protractor</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Plot View</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/plotview.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">plot</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Datatable View</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/tableview.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">datatable</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Page View</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/pageview.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">pageview</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Tracker Files</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/datafile.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">xml</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Tracker ZIP Files</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/zip_resource.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">zip</property>
+        </object>
+        </property>
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Digital Library Browser</property>
+            <property name="html" type="array" class="[[Ljava.lang.String;">
+                <property name="[0]" type="array" class="[Ljava.lang.String;">
+                    <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/library_browser.html</property>
+                </property>
+            </property>
+            <property name="keywords" type="string">library</property>
+        </object>
+        </property>
+    </property>
+</object>

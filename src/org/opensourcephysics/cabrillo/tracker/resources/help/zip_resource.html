@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<title>Tracker Help: Tracker Files</title>
+    	<link href="help.css" rel="stylesheet" type="text/css">
+	</head>
+
+	<body>
+		<h1>Tracker ZIP Files</h1>
+		<p>A   <strong>Tracker ZIP file</strong> is a zip file  with extension <strong>.trz</strong> that contains an entire Tracker experiment, including tracker file, video clip, HTML/PDF documentation and metadata. Like a traditional Tracker file (<strong>.trk</strong>), a Tracker ZIP file can be opened in Tracker just by double-clicking it. </p>
+		<p>Since they are self-contained and self-documenting, Tracker ZIP files are the easiest and most convenient way to package and share Tracker experiments, especially when browsing and searching with the <a href="library_browser.html">Digital Library Browser</a> (&quot;DL browser&quot;).</p>
+	<p>The figure below shows a typical Tracker ZIP file (&quot;loop2.trz&quot;) open in the DL browser. The left pane shows a tree node with the  icon and  name of the experiment, and the right pane (HTML) displays information about the experiment. </p>
+	<p>Tracker ZIP files  define searchable keywords and other metadata which enable the DL browser to find them readily. The metadata is displayed in a tooltip when   the mouse hovers over a tree node as shown. </p>
+    <p align="center"><a name="browser_image"></a><img src="../help_images/zip_resource_in_browser.gif" alt="ZIP resource open in Digital Library Browser"></p>
+    <h3><a name="anatomy"></a>1. Anatomy of a Tracker ZIP file</h3>
+<p>A Tracker ZIP file is a compressed zip file containing resource files that share a common naming scheme and define all data and metadata used by the DL browser. For example, the file &quot;loop2.trz&quot; contains the following:</p>
+<ol>
+  <li>A tracker data file &quot;loop2.trk&quot;</li>
+  <li>A video file &quot;loop2.flv&quot;</li>
+  <li>An HTML information file  &quot;loop2_info.html&quot; (described below)</li>
+  <li>A thumbnnail image file &quot;loop2_thumbnail.png&quot;</li>
+</ol>
+<p>Tracker ZIP files may also contain  supplemental HTML and/or PDF files with associated images. These may be displayed in Tracker itself (see <a href="pageview.html">page views</a>) or in separate HTML and/or PDF viewers. They do not have to conform to the naming conventions above..</p>
+<p>An <strong>HTML information </strong>file uses standard HTML code in the &lt;head&gt; section to define the title (tree node name) and metadata for the Tracker ZIP. For example, the HTML information file &quot;loop2_info.html&quot; includes the following:</p>
+<blockquote>
+  <p> <em>&lt;meta name=&quot;author&quot; content=&quot;Douglas Brown&quot;&gt;<br>
+    &lt;meta name=&quot;contact&quot; content=&quot;Cabrillo College&quot;&gt;<br>
+    &lt;meta name=&quot;keywords&quot; content=&quot;circular motion, centripetal acceleration, toy truck, Newton's second law&quot;&gt;<br>
+    &lt;title&gt;Modeling a Hot Wheels Loop&lt;/title&gt;</em></p>
+</blockquote>
+<p>Tracker ZIP files can  be created with any HTML editor and zip utility, but it is much easier to export them from Tracker in a single step as described below.</p>
+<h3>2. Exporting a Tracker ZIP file</h3>
+	<p>Click the <strong>Export Tracker ZIP</strong> button on the toolbar or choose the <strong>File|Export Tracker ZIP</strong> menu item to open a dialog with fields and controls for defining and saving a ZIP file for the currently selected tab. </p>
+		<p align="center">
+		    <img src="../help_images/export_zip_button.gif" alt="Export ZIP toolbar button" align="top">
+       	  <img src="../help_images/spacer.gif">
+            <img src="../help_images/export_zip_menuitem.gif" alt="Export ZIP menu item" align="top">
+</p>
+		<p> The figure below shows the Export Tracker ZIP dialog with fields completed prior to exporting the file &quot;loop2.trz&quot; open in the DL browser above.</p>
+	<p align="center"><img src="../help_images/export_zip_dialog.gif" alt="Export ZIP dialog" align="top"></p>
+	<h3>3. Dialog fields and controls</h3>
+    <p> The Export Tracker ZIP dialog fields and controls are organized into the following sections.</p>
+    <p><strong>HTML Documentation:</strong> This defines the HTML &quot;info&quot; file displayed in the DL browser.</p>
+    <ol>
+      <li>The <strong>HTML Source</strong> field allows you to copy an existing HTML document for use as the HTML info. The appearance of the HTML information file will be identical to the HTML source, but the title and metadata will be defined by the other fields in this section. If no HTML source is specified, the HTML information file is created from scratch using the format seen in the DL browser image above.</li>
+      <li>The <strong>Name</strong> field defines the display name of the experiment (NOT the zip file name). It is shown in the tree (always) and HTML information (unless a separate HTML source is specified) in the DL browser.</li>
+      <li>The <strong>Description</strong> field defines a brief description of the experiment. It is ignored if a separate HTML source is specified. <strong>Note</strong>: lab instructions and other  documentation should be in separate HTML and/or PDF files as described below.</li>
+      <li>The <strong>Authors</strong> field defines the authors of the experiment. Authors are shown in the HTML information (unless a separate HTML source is specified) and included in the searchable metadata.</li>
+      <li>The <strong>Contact</strong> field defines the contact information for the authors (e.g. institution, email, etc.). Contact information is shown in the HTML information (unless a separate HTML source is specified) and included in the searchable metadata.</li>
+      <li>The <strong>Keywords</strong> field defines searchable keywords and phrases. It is common, but not required, to separate key phrases with commas. Keywords are not shown in the HTML information but are included in the searchable metadata.</li>
+      <li>The <strong>External Link</strong> field defines a web URL with more information about the experiment or authors. It is shown as a hyperlink in the HTML information file unless a separate HTML source is specified.</li>
+    </ol>
+    <p><strong>Video:</strong> This controls the video added to the ZIP file and opened in Tracker.</p>
+    <ol>
+      <li>The <strong>Trim to Clip</strong> checkbox determines whether the original video  (untrimmed) or a new video (trimmed to the video clip) is used in the Tracker ZIP. Trimming the video to the video clip may reduce the file size significantly and also has the advantage that any video filters (e.g. brightness/contrast, resize, deinterlace, etc.) are applied to the new video. On the other hand, the original video may be preferred if it contains multiple clips of interest.</li>
+      <li>The <strong>Format</strong> dropdown determines the file type of the trimmed video. The JPEG image format (image sequence) is selected by default and recommended for general use because it can be opened by Tracker even without  a video engine.</li>
+    </ol>
+    <p><strong>Thumbnail:</strong> This displays and controls the thumbnail image shown in the HTML information file.</p>
+    <ol>
+      <li>The <strong>Thumbnail Options</strong> button opens a separate dialog that enables you to set the source, size and format of the thumbnail image.</li>
+    </ol>
+    <p align="center"><img src="../help_images/thumbnail_dialog.gif" alt="Thumbnail dialog" align="top"></p>
+<p><strong>Button bar:</strong></p>
+    <ol>
+      <li>The <strong>Add Files</strong> button opens a file browser that lets you add supplemental files to the Tracker ZIP. There is no limit to the number of supplemental files. Most supplemental files are HTML and/or PDF documents, but you can also add  tracker and video files if desired. <strong>Note</strong>: it is NOT necessary to add HTML files displayed in a Tracker <a href="pageview.html">page view</a>--these will be included automatically in the Tracker ZIP.</li>
+      <li>The <strong>Save As</strong> button opens a file browser that lets you name and save the ZIP file. The base zip file name is also used for the tracker file, video file (if trimmed to clip), HTML information file and thumbnail file as described in  <a href="#anatomy">Anatomy of a Tracker ZIP file</a> above.</li>
+      <li>The <strong>Cancel</strong> button closes the dialog. It does not clear the fields, so when you  reopen the dalog you do not need to re-enter the information.</li>
+    </ol>
+    <h3><a name="zip_sharing"></a>4. Sharing Tracker ZIP files</h3>
+    <p>You can share your Tracker ZIP files directly or on the web. </p>
+    <p><strong>Direct &quot;live&quot; sharing</strong> is perfect for sharing with peers in a classroom or  turning in as homework and lab reports. It couldn't be much easier:</p>
+    <ol>
+      <li>Save the Tracker ZIP file in a shared local directory. All others with access to that directory can open individual files or the entire directory in the DL browser using the File|Open menu item. The  <a href="#browser_image">figure at the top of this page</a> shows what the file &quot;loop2.trz&quot; looks like when open in the DL browser.</li>
+      <li>Email the Tracker ZIP files directly to colleagues or friends. Since they are fully self-contained, copies have  full functionality without requiring links to the original.</li>
+    </ol>
+    <p><strong>Sharing on the web</strong> makes your Tracker ZIP experiments available to  Tracker users worldwide.  There are two ways to do this:</p>
+    <ol>
+      <li>Create a <strong>&quot;live&quot; web collection</strong> by uploading the ZIP files to a server along with the <strong>OSP  Digital Library PHP script</strong>. See <a href="library_browser.html #create_live">Digital Library Browser</a> for more information.</li>
+  <li>Use the DL browser to create, edit and upload an<strong>  XML collection</strong>. This gives you the greatest control over the content and organization of your collection. See <a href="library_browser.html #create_xml">Digital Library Browser</a> for more information.</li>
+</ol>
+
+<p><strong>To open a web collection in the DL browser</strong>, you need to load its URL path (e.g.  &quot;http://www.my_institution.edu/my_shared_experiments/library_collection.php&quot; or &quot;http://www.my_institution.edu/my_shared_experiments/my_collection.xml&quot;). There are several ways to do this:</p>
+  	      <ol>
+          <li>Enter the URL path directly into the <strong>URL</strong> field of the DL browser and click the <strong>Load</strong> button. See <a href="library_browser.html">Digital Library Browser</a> for more information.</li>
+          <li>Add the URL path to your personal library (&quot;My Library&quot;) and select its menu item in the <strong>Collections|My Library</strong> menu. See <a href="library_browser.html">Digital Library Browser</a> for more information.</li>
+          <li>Email the URL path to Douglas Brown (dobrown at cabrillo dot edu) who can (if approved) add it to the <strong>Collections|Shared Library</strong> menu visible to all Tracker users.</li> 
+          </ol>
+</body>
+
+</html>

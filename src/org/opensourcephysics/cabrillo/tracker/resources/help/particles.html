@@ -1,0 +1,106 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<title>Tracker Help: Particle Models</title>
+    	<link href="help.css" rel="stylesheet" type="text/css">
+	</head>
+
+	<body>
+		<h1>Particle Models</h1>
+		<p align="center">
+			<img src="../help_images/particle.gif">
+        </p>
+		<p>A <strong>particle model</strong> track is a mathematical model of a point mass. The step positions of the particle are determined by the parameters of the model rather than being marked with the mouse.</p>
+		<p>There are two types of models: <strong>analytic</strong> and <strong>dynamic</strong>. An analytic model defines position functions of time (<a href="#fig4">Figure 4</a>), while a dynamic model defines force functions and initial conditions for numerical ODE solvers (<a href="#fig1">Figure 1</a>). Dynamic models may be defined in either <strong>cartesian</strong> or <strong>polar</strong> coordinates.</p>
+		<p>Models have a <strong>start</strong> and <strong>end</strong> frame that define the frames of the video in which they are drawn. This makes it possible to define multiple models that apply at different times in the same video.</p>
+		<p>A particle model has a settable mass and generates motion data and vectors just like any other point mass. See <a href="pointmass.html">point mass</a> for additional information.</p>
+        
+		<h3><a id="model_builder" name="model_builder"></a>1. Building models</h3>
+		<p>Particle model properties are displayed and edited using the Model Builder tool. To use the builder, choose <strong>Model Builder...</strong> from the model's track menu.</p>
+		<p align="center">
+			<a id="fig1" name="fig1"></a><img src="../help_images/model_builder.gif">
+        </p>						
+        <h5>Fig. 1 Model Builder with a dynamic model of a simple projectile</h5>
+		<p>Functions and parameters are defined by entering expressions that are &quot;parsed&quot; (interpreted) by the OSP parser. The values of parameters are constants while those of functions depend on input variables such as x, y, t, etc. The parser recognizes the following elements:</p>
+		<ul>
+            <li><strong>Numbers </strong>in decimal or scientific notation (e.g., 1.0E-3)
+            <li><strong>Names</strong> of parameters, functions and other input variables 
+            <li><strong>Constants</strong> e and pi
+            <li><strong>Arithmetic operators</strong> + - * / ^ 
+            <li><strong>Boolean operators</strong> = &gt; &lt; &lt;= &gt;= &lt;&gt; &amp; | ! 
+            <li><strong>Parentheses</strong> to control order of operation
+            <li><strong>Mathematical functions</strong> shown in Table 1
+            <li><strong>If statements</strong> in the form <em>if(conditional statement, expression1, expression2)</em>. Expression1 is evaluated if the conditional statement is true and expression2 is evaluated if it is false. For example, if (x &lt; 0, x^2, -x^2) is a valid function expression.
+        </ul>
+        <div align="center">
+            <table width="236" border="1" cellspacing="0" cellpadding="2">
+                <tr>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">abs(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">acos(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">acosh(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">asin(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">asinh(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">atan(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">atanh(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">atan2(x,y)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">ceil(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">cos(x)</td>
+                </tr>
+                <tr>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">cosh(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">exp(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">frac(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">floor(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">int(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">log(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">max(x,y)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">min(x,y)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">mod(x,y)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">random(x)</td>
+                </tr>
+                <tr>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">round(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sign(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sin(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sinh(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sqr(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sqrt(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">step(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">tan(x)</td>
+                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">tanh(x)</td>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+		<h5>Table 1 Mathematical functions recognized by the OSP Parser</h5>
+		<p>Model Builder displays model functions along with associated parameters and initial conditions in tables with <strong>Name</strong> and <strong>Expression</strong> columns as shown in Fig. 1. The name of the model is shown in a spinner field above the tables.</p>
+		<p>To edit a name or expression, double-click its table cell (gray cells cannot be edited). Names must be unique and can contain no spaces or mathematical symbols. Expressions must be valid mathematical expressions parsable by the OSP parser.</p>
+		<p>To create a new parameter or support function, click the appropriate <strong>Add</strong> button.</p>
+		<p>When editing an expression, the names of all available variables are listed in blue directly under the popup editor as shown in Fig. 2. To insert a variable directly from the list, move the mouse cursor over it until it turns red and then click.</p>
+		<p>Variables for parameter expressions include only other parameters, while variables for function expressions include independent variables (e.g., x, y, t, etc), parameters and support function names. In the example shown, the &quot;fy&quot; function may depend on any or all of the variables x, vx, y, vy, t, m, g. The entry &quot;-m*g&quot; is thus a valid expression.</p>
+		<p align="center">
+        	<img src="../help_images/model_builder_edit.gif">
+        </p>
+		<h5>Fig. 2 Editing an expression</h5>
+		<p>If an invalid expression is entered into a cell the cell turns red and an error message is displayed in the status bar. In Figure 3, the expression &quot;-mg&quot; is invalid since the multiplication operator (*) has been omitted. Circular references also result in an error condition.</p>
+		<p align="center">
+			<img src="../help_images/model_builder_error.gif">
+        </p>
+		<h5>Fig. 3 Invalid expression</h5>
+		<p>Model Builder includes several features designed to help build, modify and compare models quickly:</p>
+		<ol>
+            <li>Complex expressions can be simplified by defining one or more <strong>support functions</strong>. For example, the analytic model of a damped oscillator shown in Fig. 4 defines the support function &quot;amp&quot; that represents the exponentially decaying amplitude. This makes the y-position function easier to write and understand.
+            <li>All edits are <strong>undoable</strong> and <strong>redoable</strong> making it easy to quickly flip back and forth between two function expressions or parameter values.            
+            <li>Single or multiple table rows can be copied or cut to the clipboard for <strong>pasting</strong> into other Model Builder tables. 
+        </ol>
+		<p align="center">
+			<a id="fig4" name="fig4"></a><img src="../help_images/model_builder_support.gif">
+</p>
+		<h5>Fig. 4 Using a support function to simplify expressions</h5>
+
+	</body>
+
+</html>

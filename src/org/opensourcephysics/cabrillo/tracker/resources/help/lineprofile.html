@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<title>Tracker Help: Line Profile</title>
+    	<link href="help.css" rel="stylesheet" type="text/css">
+	</head>
+
+	<body>
+		<h1>Line Profile</h1>
+		<p align="center">
+			<img src="../help_images/line_profile.gif">
+		</p>
+		<p>A <strong>line profile</strong> track is a tool for measuring brightness and rgb data along a line on a video image. If the line width is increased by adding <strong>spread</strong>, image pixels above and below the line are averaged in order to reduce noise and/or increase sensitivity.</p>
+        
+		<h3>1. Marking the line</h3>
+		<p align="center">
+			<img src="../help_images/line_profile_end.gif">
+		</p>
+		<p>Shift-drag the mouse to mark a line profile. The line is drawn as a narrow rectangle that surrounds the pixel points analyzed by the line profile tool.</p>
+		<p>Drag either end of the line to change its length. Drag the center of the line to position it.</p>
+
+		<h3>2. Adding spread</h3>
+		<p align="center">
+			<img src="../help_images/line_profile_spread.gif">
+		</p>
+		<p>To increase the number of pixels sampled for a smoother average you can give the line profile a <strong>spread</strong>. Select the line and enter the desired spread in pixels in the field on the toolbar.</p>
+		<p>The spread pixels extend to both sides of the line. Thus, for a given data point on the line, the total number of pixels sampled (i.e., width of the line profile) is 1 + 2*spread. The outline of the line profile shows all pixels included in the average.</p>
+		<p align="center">
+			<img src="../help_images/line_profile_outline.gif">
+        </p>
+                    
+		<h3>3. Line orientation</h3>
+		<p>By default, a line profile has a <strong>horizontal orientation</strong>--that is, parallel to the top or bottom edge of the video image. Setting an <strong>x-axis orientation</strong> by selecting the <strong>Along X-Axis</strong> item in its track menu will instead cause the line to remain parallel to the x-axis. This is useful when measuring spectra that have been inadvertently captured with a tilted camera, for example.</p>
+		<p align="center">
+			<img src="../help_images/line_profile_orientation.gif" align="top">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/line_profile_rotated.gif" align="top">
+        </p>
+
+		<h3>4. Unfixing the line</h3>
+		<p>By default, the line profile has a <strong>fixed position</strong>--that is, its center position and length are the same in all frames. Uncheck the <strong>Fixed Position</strong> checkbox in its <a href="tracks.html#trackmenu">track menu</a> to allow these properties to vary independently from frame to frame. </p>
+	</body>
+
+</html>

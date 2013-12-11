@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<title>Tracker Help: Point Mass</title>
+    	<link href="help.css" rel="stylesheet" type="text/css">
+	</head>
+
+	<body>
+		<h1>Point Mass</h1>
+		<p align="center"><img src="../help_images/pointmass.gif" alt="Point mass track"></p>
+		<p>A <strong>point mass</strong> track represents a mass moving as a point-like object. It is the most fundamental model of a moving inertial object. Point masses are the building blocks with which more complex and realistic models of physical systems are constructed in classical physics.</p>
+		<h3>1. Marking and editing the steps</h3>
+		<ol>
+			<li type="A"><strong>Manual tracking:</strong> shift-click once to mark a step at the mouse position, or shift-enter to mark a step at the exact location of the previous step. The video will autoadvance for easy and fast marking. It is wise to set the <a href="videos.html#videoclip">video clip</a> properties first so you don't mark unnecessary video frames. Zoom in for accuracy.</li>
+			<li type="A"><strong>Autotracking:</strong> point mass tracks can be automatically marked as long as the feature of interest has a consistent shape, size, color and orientation. Please see <a href="autotracker.html">Autotracker</a> for more information.</li>
+		</ol>
+		<p>Point masses have visible trails by default. Hide or shorten the trails if desired using the <strong>trails</strong> button <img src="../help_images/trails_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a>.</p>
+		<p>To edit a marked step, select it and drag or use the arrow keys on the keyboard to nudge it one pixel at a time. Very fine control is possible at a high zoom level. You can also enter world coordinates directly in the toolbar fields to assign a known position.</p>
+		<p align="center"><img src="../help_images/pointmass_fields.gif"></p>
+        
+		<h3>2. Setting the mass</strong></h3>
+		<p align="center"><img src="../help_images/pointmass_setting_mass.gif" alt="Setting the mass"></p>
+		<p>A newly created point mass is given a default mass of 1.0 (arbitrary units). Enter a new mass (m &gt;= 0) in the mass field on the toolbar to change it.</p>
+        
+		<h3>3. Displaying motion vectors</strong></h3>
+		<p>Toggle the vector visibility for all point masses by clicking the <strong>velocity</strong> button <img src="../help_images/veloc_button.gif" align="absmiddle"> or <strong>acceleration</strong> button <img src="../help_images/accel_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a>. The vectors are initially <strong>attached</strong> to their positions (i.e. the tail of the velocity vector for step n is at the step n position).</p>
+		<p align="center"><img src="../help_images/veloc_home.gif" alt="Velocities at home positions"></p>
+		<p><strong>Note:</strong> Some motion vectors, especially accelerations, may be very short. You can artificially &quot;stretch&quot; them by clicking on the <strong>stretch</strong> button <img src="../help_images/stretch_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a> and selecting a stretch factor from the dropdown menu.</p>
+		<p>You can change the footprint of a point mass motion vector using the <strong>footprint</strong> item on its <a href="tracks.html#trackmenu">track button</a>. The &rdquo;big arrow&rdquo; footprint is particularly useful for large classroom presentations.</p>
+        
+		<h3>4. Analyzing motion vectors</h3>
+		<p>Select a vector by clicking near its center to display its components on the toolbar.</p>
+		<p align="center"><img src="../help_images/veloc_components.gif" alt="Vector component fields"></p>
+		<p>Drag a vector to detach it from its position and move it around. Drop the vector with its tail near its position to reattach--it will <strong>snap</strong> to the position. </p>
+		<p align="center">
+        	<img src="../help_images/vector_snap_position.gif" alt="Dropping velocity near position">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/vector_at_position.gif" alt="Velocities at home positions">
+        </p>
+		<p>A vector will also snap and attach to the origin when the axes are visible. This is useful for estimating and visualizing its components.</p>
+		<p align="center"><img src="../help_images/vector_snap_origin.gif" alt="Vector tail at origin"></p>
+		<p>Attach all vectors quickly to the origin or positions with the <strong>Tails to Origin</strong> or <strong>Tails to Position</strong> items in the point mass track menu.</p>
+        
+		<h3>5. Displaying momentum and net force vectors</h3>
+		<p>Click the <strong>dynamics</strong> button <img src="../help_images/dynamics_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a> to multiply all velocity and acceleration vectors by their mass. This changes them to momentum and net force vectors, respectively.</p>
+        
+		<h3>6. Linking motion vectors</h3>
+		<p align="center">
+        	<img src="../help_images/vector_snap_link.gif" alt="Linking vectors">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/vector_linked.gif" alt="Vectors linked"> 
+        </p>
+		<p>Vectors can be linked tip-to-tail to visually determine their vector sum. To link vectors, drag and drop one with its tail near the tip of the other. The dropped vector will snap to the tip when it links. You may continue to link additional vectors in the same way to form a chain.</p>
+		<p align="center"><img src="../help_images/vector_chain.gif" alt="Chain of vectors"></p>
+		<p><strong>Note:</strong> Tracker makes no attempt to check whether it is mathematically appropriate or physically meaningful to link a given set of vectors--it simply makes it possible.</p>
+		<p>When you drag the first vector (i.e. the vector with the unlinked tail) in a chain, the chain moves as a unit and the vectors remain linked. When you drag any vector further up the chain, however, it detaches and &quot;breaks&quot; the chain.</p>
+		<p align="center">
+            <img src="../help_images/vector_chain_dragging.gif" alt="Dragging a vector chain">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/vector_chain_broken.gif" alt="Broken vector chain">
+     	</p>
+	</body>
+
+</html>

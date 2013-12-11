@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<title>Tracker Help: Two-Body Systems</title>
+    	<link href="help.css" rel="stylesheet" type="text/css">
+	</head>
+
+	<body>
+		<h1>Two-Body System</h1>
+		<p align="center"><img src="../help_images/twobody.gif" alt="Two-body system"></p>
+		<p>A <strong>two-body system</strong> track models a system of two <a href="particles.html">dynamic particles</a> that interact with each other via <strong>internal</strong> radial and tangential forces. The mass of the system is the sum of the particle masses, and the position of the system is the center of mass of the particles.</p>
+		<p>The internal forces are functions of the distance r between the particles and the angle theta from particle 1 to particle 2. Internal forces act on <strong>both</strong> particles in the system but in opposite directions (as required by Newton's third law). Internal forces are defined using the Model Builder as shown in <a href="#fig4">Figure 4</a>.</p>
+		<p>Each of the particles in the system can also experience independent <strong>external</strong> forces. External forces are also defined using the Model Builder as shown in <a href="#fig5">Figure 5</a>.</p>
+		<p>A two-body system generates motion data and vectors just like any other point mass. See <a href="pointmass.html">point mass</a> for additional information.</p>
+        
+		<h3>1. Defining the particles in a system</h3>
+		<p>When a two-body system is first created, a dialog is displayed that identifies the particles in the system and provides buttons to change them. The dialog can be recalled at any time by choosing <strong>Select Particles...</strong> from the system's track menu.</p>
+		<p align="center"><img src="../help_images/twobody_empty.gif"></p>
+		<p align="center">Fig. 1 Empty two-body system</p>
+		<p>A new system is initially empty.  To add a particle to the system, click the button and create a new particle model (you can also choose a previously created particle as shown in Figure 3).</p>
+		<p align="center">
+        	<img src="../help_images/twobody_create.gif">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/twobody_created.gif">
+        </p>
+        
+		<h3>Fig. 2 Adding a new particle to the system</h3>
+		<p>Repeat the above to add a second particle. You can also replace a system particle with another new or existing particle as shown in Figure 3.</p>
+		<p align="center"><img src="../help_images/twobody_replace.gif"></p>
+		<p align="center">Fig. 3 Replacing a particle in the system</p>
+
+		<h3>2. Defining the internal forces for a system</h3>
+		<p>The internal forces and other properties of a two-body system are displayed and edited using the Model Builder tool. See <a href="particles.html#model_builder">building models</a> for detailed information on the Model Builder.</p>
+		<p>Select the two-body system from the Model Builder drop-down list to display its properties. Note that the masses of the system particles are included in the parameter list, so they are available for use in force expressions. The masses and initial relative positions and velocities are not editable since they are determined by the particles themselves.</p>
+		<p align="center"><a id="fig4" name="fig4"></a><img src="../help_images/twobody_model_builder.gif"></p>
+		<p align="center">Fig. 4 Model Builder for a two-body system with an internal elastic force</p>
+
+		<h3>3. Defining the external forces on the particles</h3>
+		<p>The external forces and other properties of the individual particles in a system are also displayed and edited using the Model Builder tool. See <a href="particles.html#model_builder">building models</a> for detailed information on the Model Builder.</p>
+		<p>Select a particle of interest from the Model Builder drop-down list to display its properties. Note that all properties, including the mass and initial positions and velocities, are editable.</p>
+		<p align="center"><a id="fig5" name="fig5"></a><img src="../help_images/twobody_particle_model.gif"></p>
+		<p align="center">Fig. 5 Model Builder showing a particle model with non-zero initial position and velocity but no external forces</p>
+        
+	</body>
+
+</html>

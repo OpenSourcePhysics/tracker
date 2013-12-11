@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<title>Tracker Help: Videos</title>
+    	<link href="help.css" rel="stylesheet" type="text/css">
+	</head>
+
+	<body>
+		<h1>Videos</h1>
+		<p>Tracker can analyze three different <strong>video types</strong>:</p>
+		<ol>
+			<li><strong>digital video</strong> files (.mov, .avi, .mp4, .flv, .wmv, .ogg, etc.) which require a <strong>video engine</strong> (see below).</li>
+			<li><strong>animated GIF</strong> files (.gif).</li>
+			<li><strong>image sequences</strong> consisting of one or more digital images (.jpg, .png or pasted from the clipboard).</li>
+		</ol>
+		<p>In addition, two different <strong>video engines</strong> are now supported:</p>
+		<ol>
+			<li><strong>Xuggle</strong> (Windows, Mac, Linux) opens most digital video files including .mov, .avi and .mp4.</li>
+			<li><strong>QuickTime</strong> (Windows, Mac) opens .mov, .avi and .mp4 files only.</li>
+		</ol>
+		<p>If both Xuggle and QuickTime are installed you can specify a preferred video engine in the Video tab of the <a href="interface.html#prefs">preferences dialog</a>. Xuggle is preferred by default.</p>
+        
+<h3>1. Opening or importing a video from a local drive</h3>
+		<p>To open a video into a new tab, use the <strong>Open</strong> button or <strong>File|Open File </strong>menu item. To import a video into an existing tab, use the <strong>Video|Import</strong>, <strong>Video|Replace </strong>or <strong>File|Import|Video </strong>menu item.</p>
+		<p align="center">
+			<img src="../help_images/open_button.gif" alt="Open button" align="top">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/open_menu.gif" alt="File|Open menu item" align="top">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/video_menu_basic.gif" alt="Video menu" align="top">
+</p>
+		<p>Select the desired video in the file chooser to open it.  If the file can be opened with both Xuggle and QuickTime you will be given a choice as shown.</p>
+		<p align="center"><img src="../help_images/open_dialog.gif" alt="Open dialog"></p>
+        
+		<h3>2. Opening a video from the web</h3>
+        <p>Choose the <strong>File|Open URL</strong> menu item and enter a known URL in the dialog to open a video directly from the web.</p>
+		<p align="center">
+          	<img src="../help_images/open_URL_menu.gif" alt="File/Open URL menu item" align="top">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/open_URL.gif" alt="Open URL dialog" align="top">
+        </p>
+        <p>Another option is the <strong>OSP Digital Library Browser</strong> (DL browser). Open the DL browser by clicking the <strong>Open Library Browser</strong> button or choosing the <strong>File|Open Library Browser</strong> menu item. The DL browser enables you to browse and access collections of digital library resources including videos and tracker files.  For help using the DL browser, see <a href="#browse">Digital Library Browser</a>.</p>
+        <p align="center"><img src="../help_images/library_browser.gif" alt="OSP Digital Library Browser"></p>
+
+		<h3>3. Opening numbered image sequences (&quot;image videos&quot;)</h3>
+		<p>Tracker will automatically open a sequence of up to 1000 JPG or PNG images that are numbered sequentially. To open a sequence, select only the first image in the sequence.</p>
+		<p>Image sequence numbering must have a fixed format. For example, selecting the first image in a sequence numbered image00.jpg to image14.jpg will open all 15 images, but if the sequence is numbered image0.jpg to image14.jpg then only the first 10 images will be opened (i.e., up to image9.jpg).</p>
+		<p>Image videos loaded from files are initially <strong>read-only</strong>--each image file is loaded only when displayed. For faster response and editing capabilities, you can load all images into memory by checking the &quot;Load All Images&quot; checkbox in the Video menu. <strong>Note</strong>: loading all images may require a great deal of memory; you can increase your available memory in the <a href="interface.html#prefs">preferences dialog</a>.</p>
+        
+<h3>4. Pasting images from the clipboard</h3>
+		<p>Images that have been copied to the clipboard may be pasted directly into Tracker for analysis. Choose the <strong>Video|Paste Image</strong> or <strong>Video|Paste Image|Replace Video</strong> menu item to create a new image video.</p>
+		<p align="center"><img src="../help_images/video_menu_paste.gif"></p>
+        
+		<h3>5. Adding and removing images from an image video</h3>
+		<p>Once an image video has been created, you can paste or import additional images using the <strong>Video|Paste Image</strong> or <strong>Video|Import Images</strong> menu choices <strong>Before This Frame</strong> or <strong>After This Frame</strong>.</p>
+		<p align="left">To remove images from an image video use the <strong>Video|Remove This Frame </strong>item.</p>
+		<p align="left">When importing images you can select multiple images in the file chooser by control-clicking or shift-clicking.</p>
+		<p align="center"><img src="../help_images/import_images_dialog.gif" alt="Importing images"></p>
+        
+		<h3>6. Saving pasted images</h3>
+		<p>When closing or saving an image video that contains pasted images, a warning dialog prompts you to save the images as files if desired. You must save the images if you wish to reopen them at a later time.</p>
+		<p align="center"><img src="../help_images/save_images_dialog.gif" alt="Saving images"></p>
+        
+		<h3><a id="videoclip" name="videoclip"></a>7. Video clips</h3>
+		<p>A <strong>video clip</strong> is a subset of frames in a video defined by:</p>
+		<ol>
+			<li><strong>start frame</strong></li>
+			<li><strong>step size</strong> (number of frames per step)</li>
+			<li><strong>end frame</strong></li>
+		</ol>
+		<p>The start frame is the frame number of the first step, the step size is the frame increment between successive steps, and the end frame is the frame number of the last step. For example, a clip with start frame 3, step size 2 and end frame 11 would consist of step numbers 0, 1, 2, 3 and 4 that map to video frame numbers 3, 5, 7, 9 and 11, respectively. (Note: the end frame must be an integer number of steps downstream from the start frame.)</p>
+		<p>A clip is defined for every video and even for null videos. For single-frame and null videos the clip settings apply to tracks but every step maps to the same video image.</p>
+		<p>Video clip properties are set with the <a href="#player">video player</a> and/or the <a href="#inspector">clip inspector</a>.</p>
+		<p><strong>Note:</strong></p>
+		<ul>
+			<li>Clip properties should be set and/or reviewed <i>before</i> creating and marking tracks.</li>
+			<li>Tracks should be marked on all frames in the clip so that v and a can be determined.</li>
+			<li>Changing the step size after marking can result in gaps in the data until missing frames are marked.</li>
+		</ul>
+        
+		<h3><a id="inspector" name="inspector"></a>8. Clip inspector</h3>
+		<p>To display the clip inspector, click the <strong>Clip Settings</strong> button on the toolbar.</p>
+		<p align="center"><img src="../help_images/toolbar_clip_settings_button.gif" alt="Clip settings button"></p>
+		<p>The clip inspector shows the current video clip settings and also provides fields for setting a <strong>start time</strong> (time assigned to step 0), the true <strong>frame rate</strong> (important for high-speed or time-lapse videos) and the time interval <strong>dt</strong> between frames (inverse of the frame rate).</p>
+		<p align="center"><img src="../help_images/clip_inspector.gif" alt="Clip inspector dialog"></p>
+        
+		<h3><a id="player" name="player"></a>9. Using the video player</h3>
+		<p>The video player is normally attached to the video view, but you can drag the entire player by the left end to convert it to a floating window if desired.</p>
+		<p align="center"><img src="../help_images/player_floating.gif" alt="Floating video player"></p>
+		<p>The player includes (from left to right):</p>
+		<ul>
+			<li>time/step/frame readout</li>
+			<li>play rate field and control</li>
+			<li>reset button</li>
+			<li>play/pause button</li>
+			<li>scan slider with start and end frame controls</li>
+			<li>back button</li>
+			<li>step size control</li>
+			<li>step button</li>
+			<li>loop button</li>
+		</ul>
+		<p>Click the readout and select the display type: frame number (measured from the beginning of the video), time in seconds (measured from the start time) or step number (measured from the start frame). The readout displays frame number by default.</p>
+		<p align="center"><img src="../help_images/player_readout.gif" alt="Player readout options"></p>
+		<p>Click the readout and renumber or set the time at the current frame by choosing the appropriate item from the dropdown menu. Note: both of these actions change the frame numbers or times at all frames in the video.</p>
+		<p align="center"><img src="../help_images/player_readout2.gif"></p>
+	<p>Use the rate spinner <img src="../help_images/play_rate_spinner.gif" align="absmiddle"> to set the play rate (% of normal) or enter a desired rate directly in the field.</p>
+		<p>Click the reset button <img src="../help_images/reset_button.gif" align="absmiddle"> to reset the video to step 0, or use the keyboard shortcut HOME.  To move immediately to the end of the video, use the keyboard shortcut END.</p>
+<p>Click the play/pause button <img src="../help_images/play_button.gif" align="absmiddle"> to play the video; click again to pause.</p>
+		<p>Drag the slider to scan a video or move quickly to a desired frame.</p>
+		<p align="center"><img src="../help_images/player_slider.gif"></p>
+		<p>Drag the black in- and out-point markers to set the start and end frames.</p>
+		<p align="center"><img src="../help_images/player_inpoint.gif" alt="Setting in point"></p>
+		<p>Right-click the slider to access many of these actions in a popup menu.</p>
+		<p align="center"><img src="../help_images/player_slider_popup.gif" alt="Setting in point"></p>
+		<p>Click the step button <img src="../help_images/step_button.gif" align="absmiddle"> to step forward one step, or use the keyboard shortcut PageDown. Click the back button <img src="../help_images/back_button.gif" align="absmiddle"> to step back one step, or use the keyboard shortcut PageUp. Hold down the shift key with these actions to step by 5 steps instead of 1.</p>
+		<p>Click the step size control to set the step size in frames per step.</p>
+		<p align="center"><img src="../help_images/player_stepsize.gif"></p>
+		<p>Click the <strong>loop</strong> button <img src="../help_images/loop_button.gif" align="absmiddle"> to toggle looping (continuous play).</p>
+
+    	<h3><a id="zoom" name="zoom"></a>10. Magnifying (zooming) a video </h3>
+        <p>There are four ways to change the magnification of the video for more accurate marking:</p>
+        <ol>
+            <li>Click the <strong>zoom</strong> button on the toolbar <img src="../help_images/zoom_button.gif" align="absmiddle"> and choose the desired zoom level from the dropdown menu as shown in below. <strong>Tip:</strong> Double-click the zoom button to set the zoom level <strong>To Fit</strong> so the video image fits exactly in the main video view.</li>
+            <li>Position the cursor over a region of interest and roll the mouse wheel forward to zoom in, back to zoom out.</li>
+            <li>Right-click on a region of interest and choose <strong>Zoom In</strong>, <strong>Zoom Out</strong> or <strong>Zoom To Fit</strong> from the popup menu.</li>
+            <li>Drag a zoom box using the right button and choose <strong>Zoom In</strong> to zoom to the box as shown below.</li>
+            <li>Press the <strong>Z key</strong> (mouse cursor displays a zoom icon) and click or drag the mouse to zoom in. Hold down the Alt key at the same time to zoom out.</li>
+        </ol>
+        <p align="center">
+            <img src="../help_images/zoom_menu.gif" align="top">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/video_popup.gif" align="top">
+    </p>
+        <p align="center">Zoom button dropdown (left) and right-click popup (right) menus</p>
+        <p align="center"><img src="../help_images/zoom_in_menu.gif"></p>
+        <p align="center">Right-drag and zoom to the box</p>
+			
+		<h3>11. Video filters</h3>
+		<p>Video filters allow you to modify the video image. See <a href="video_filters.html">video filters</a> for complete filter descriptions.</p>
+        
+		<h3>12. Hiding and closing a video</h3>
+		<p>Uncheck the <strong>Video|Visible</strong> menu item to hide the video image and display the tracks on a white background. Choose <strong>Video|Close</strong> to remove the video permanently.</p>
+		<p><strong>Note:</strong> when removing or replacing a video, a new video clip is created. This may result in some tracks having existing steps that are no longer included in the clip or unmarked steps that are newly included. If this happens, correct the problem by resetting the start frame, step size and end frame for the new clip.</p>
+        
+		<h3>13. Exporting a video clip</h3>
+		<p>Tracker can export the current video clip as a digital video file, animated GIF or image sequence, thus serving as a simple video editor and transcoder. But exported videos can also include track overlays, video filters, and additional views like world views and plots, making them useful for documenting the video modeling or analysis results. Interlaced 30 fps videos can also be exported as 60 fps deinterlaced videos, which doubles the temporal resolution while halving the vertical resolution.</p>
+		<p><strong>Note:</strong> the exported video contains only frames in the current video clip (determined by start frame, step size and end frame), not the entire video.</p>
+		<p align="center"><img src="../help_images/export_clip_menu.gif" alt="Export video clip menu item"></p>
+		<p>To export a video clip, select the <strong>File|Export|Video Clip...</strong> menu. This will bring up the Export Video Clip dialog.</p>
+		<p align="center"><img src="../help_images/export_clip_dialog.gif" alt="Exporting a video clip"></p>
+		<p>Select the view, content, size and format of the exported video from the dropdown lists. The content choices depend on the selected view as follows:</p>
+        <ol>
+            <li>Main view: <strong>Video and graphics</strong>, <strong>Video only</strong>, <strong>Graphics only</strong> or <strong>Deinterlaced Video</strong></li>
+            <li>World view: <strong>Video and graphics</strong> or <strong>Graphics only</strong></li>
+            <li>Other views: <strong>Graphics only</strong></li>
+        </ol>
+		<p align="center"><img src="../help_images/export_clip_content.gif"></p>
+	</body>
+
+</html>

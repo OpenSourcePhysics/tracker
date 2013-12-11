@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<title>Tracker Help: Tracker Files</title>
+    	<link href="help.css" rel="stylesheet" type="text/css">
+	</head>
+
+	<body>
+		<h1>Tracker Files</h1>
+		<p>Tracker saves the state of individual tabs (video clip, coordinate system, tracks and views) in xml-based<strong> tracker files</strong> with the extension &quot;<strong>trk</strong>&quot;. When a saved tracker file is opened, the saved state is reproduced in a new tab.</p>
+		<p>You can also save a <strong><a href="#tabset">tabset</a></strong> that references several tabs (individual tabs must be saved first). The tabset is a separate tracker (.trk) file that, when opened, loads all the tabs at once.</p>
+		<p>Step positions saved in tracker files are in image (pixel) coordinates, so they are not suitable for direct analysis. To access the world data associated with a track, use a <a href="tableview.html">datatable view</a> or export the data to a <a href="#datafile">delimited text file</a>.</p>
+        
+		<h3>1. Opening a tracker file from a local drive</h3>
+		<p>Bring up the open dialog with the <strong>Open</strong> button or <strong>File|Open File</strong> menu item, select the desired file, and click Open.</p>
+		<p align="center">
+		    <img src="../help_images/open_button.gif" align="top">
+          <img src="../help_images/spacer.gif">
+            <img src="../help_images/open_menu.gif" align="top">
+        </p>
+	<p align="center"> 
+        	<img src="../help_images/open_data_dialog.gif">
+    </p>
+		<p>Tracker opens the file in a new tab that displays the file name.</p>
+		<p align="center">
+			<img src="../help_images/tab_title.gif">
+		</p>
+        
+		<h3>2. Opening a tracker file from the web</h3>
+        <p>Choose the <strong>File|Open URL </strong>menu item and enter a known URL in the dialog to open a tracker file directly from the web.</p>
+        <p align="center">
+            <img src="../help_images/open_URL_menu.gif" align="top">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/open_URL.gif" align="top">
+        </p>
+        <p>Another option is to open the <strong>OSP Digital Library Browser</strong> by clicking the <strong>Open Library Browser</strong> button or choosing the <strong>File|Open Library Browser </strong>menu item. The library browser enables you to browse and access collections of digital library resources including videos and tracker files.  For help using the OSP Digital Library Browser, choose its <strong>Help|Library Browser Help</strong> menu item.</p>
+        <p align="center">
+            <img src="../help_images/library_browser.gif" alt="OSP Digital Library Browser">
+        </p>
+        
+        <h3>3. Saving a tab</h3>
+		<p>Save changes to an open tab by clicking the <strong>Save</strong> button <img src="../help_images/save_button.gif" align="absmiddle"><img src="../help_images/spacer_thin.gif">or <strong>File|Save Tab &quot;filename&quot; </strong>menu item.</p>
+		<p>Save a new tracker file by choosing the <strong>File|Save Tab As...</strong> menu item. Tracker will automatically assign the file a &quot;<strong>trk</strong>&quot; extension.</p>
+		<p align="center">
+			<img src="../help_images/saveas_dialog.gif">
+        </p>
+        
+		<h3><a id="tabset" name="tabset"></a>4. Saving a tabset</h3>
+		<p>Save a tabset by choosing the <strong>File|Save Tabset As...</strong> menu item. You will first be prompted to save open tabs that have not previously been saved. All currently open tabs will be included in the tabset tracker file.</p>
+        
+		<h3><a id="_import" name="_import"></a>5. Importing from a tracker file</h3>
+		<p>Videos, tracks and/or the coordinate system from a tracker file can be imported into an existing tab using the <strong>Import|Tracker File</strong> menu item from the File menu.</p>
+		<p align="center">
+			<img src="../help_images/import_menu.gif">
+        </p>
+		<p>When importing from a tracker file, the available elements are displayed in a dialog that allows the user to select those desired.</p>
+		<p align="center">
+			<img src="../help_images/import_choices.gif">
+        </p>
+        
+		<h3>6. Editing a tracker file directly</h3>
+		<p>A tracker file is easily human-read and edited with any text editor. The xml format conforms to the doctype specification defined in osp10.dtd.</p>
+        
+		<h3><a id="datafile" name="datafile"></a>7. Saving data in a text file</h3>
+		<p>Save the data displayed in a data table by choosing the <strong>Export|Data File...</strong> item. This will bring up the <strong>Export Data dialog</strong> as shown.</p>
+		<p align="center">
+			<img src="../help_images/export_data_dialog.gif">
+        </p>
+		<p>In the dialog, select the <strong>data table</strong> and <strong>cells</strong> to export, the <strong>number format</strong> desired (full precision or as formatted in the table), and the <strong>delimiter</strong> used for separating columns. The file is saved in a plain delimited text format readable by spreadsheets, word processors and many other applications.</p>
+	</body>
+
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<title>Tracker Help: Calibration Points</title>
+    	<link href="help.css" rel="stylesheet" type="text/css">
+	</head>
+
+	<body>
+		<h1>Calibration Point Pair</h1>
+		<p align="center">
+			<img src="../help_images/calibration_points.gif">
+    	</p>
+		<p>A <strong>calibration point pair</strong> track is similar to an <a href="offset_origin.html">offset origin</a> except that it defines <strong>two points</strong> with fixed (settable) world coordinates. World coordinates may consist of an x-component, y-component or both. For a given coordinate system, these world coordinates uniquely determine the scale, origin, and/or angle at each step. When either of the calibration points is dragged in the main video view, the properties of the coordinate system are modified in order to maintain the assigned world coordinates. Calibration points are the easiest way to set coordinate system properties when two features with known world coordinates are visible in all video frames.</p>
+		<p><strong>Note:</strong> Calibration points are very powerful. It is strongly recommended to &quot;play&quot; with some calibration points while both the axes and calibration stick are visible to see how they work together to control the coordinate system.</p>
+        
+	<h3>1. Creating calibration points</h3>
+		<p>Click the arrow on the <strong>Calibration</strong> button on the toolbar and select <strong>New|Calibration Points</strong> to create a new calibration point pair. If desired, you can create more than one pair. Show or hide the calibration points (along with other calibration tools, if any) by clicking the main part of the Calibration button.</p>
+		<p align="center"><img src="../help_images/calibration_tools_menu.gif"></p>
+		<p>The calibration points are initially umarked and the toolbar indicates this status in red. Shift-click the video to mark the first point, then do the same for the second.  The x- and y-components (world coordinates) of the newly marked points are displayed on the toolbar.</p>
+		<p align="center"><img src="../help_images/calibration_points_fields0.gif"></p>
+		<p align="center"><img src="../help_images/calibration_points_fields1.gif"></p>
+		<p align="center"><img src="../help_images/calibration_points_fields.gif"></p>
+<p>Once the calibration points are created and marked, you can <a href="#remark">re-mark them</a>, <a href="#change">change their world coordinates</a> or <a href="#move">move them</a> to  new image positions as described below.</p>
+        
+	<h3>2. Axis options</h3>
+		<p align="center">
+			<img src="../help_images/calibration_xonly.gif">
+	</p>
+		<p>The &quot;Axes&quot; spinner determines whether the calibration points control both x- and y-axes or only a single axis. When a single axis is selected (here &quot;X Only&quot;), moving a calibration point along that axis changes the scale and translates the origin without changing the angle. Moving a calibration point perpendicular to the selected axis has no effect. This is very useful when one axis is unknown or unimportant--for example, with vertical motion studies or optical spectrum analysis using a <a href="lineprofile.html">line profile</a> track.</p>
+        
+		<h3><a id="remark" name="remark"></a>3. Re-marking a calibration point</h3>
+        <p>Select either calibration point and shift-click again to move it to a new location without changing the coordinate system.        </p>
+        <h3><a id="change" name="change"></a>4. Changing the world coordinates of a calibration point</h3>
+		<p align="center">
+			<img src="../help_images/x_field_selected.gif">
+		</p>
+	<p>Enter the desired values in the x and/or y fields on the toolbar to change the world coordinates of the selected calibration point.</p>
+		<p><strong>Note:</strong> Changing the world coordinates changes the coordinate system scale, origin and/or angle so that the image positions of both points remain unchanged.</p>
+        
+		<h3><a id="move" name="move"></a>5. Moving a calibration point</h3>
+		<p>Select and drag or nudge either calibration point to a desired location in the main video view.</p>
+		<p><strong>Note:</strong> Moving a calibration point changes the coordinate system scale, origin and/or angle so that the world coordinates of both points and the image position of the unselected point remain unchanged.</p>
+        
+	<h3>6. Locking the calibration points</h3>
+		<p>Locking the calibration points track prevents it from making any changes to the coordinate system. Lock the calibration points track by turning on the <strong>Locked</strong> property in its <a href="tracks.html#trackmenu">track menu</a>.</p>
+        
+</body>
+
+</html>

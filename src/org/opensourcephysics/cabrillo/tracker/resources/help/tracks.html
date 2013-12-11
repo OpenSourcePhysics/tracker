@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
+		<title>Tracker Help: Tracks</title>
+    	<link href="help.css" rel="stylesheet" type="text/css">
+	</head>
+
+	<body>
+		<h1>Tracks</h1>
+		<p>A track represents a video feature that evolves over time. All interactive elements in Tracker, including the axes, measuring tools and calibration tools, are tracks.</p>
+		<p>The position or shape of the feature in a single video frame is known as a <strong>step</strong>; thus, a track is a series of steps. Each step can be selected and manipulated with the mouse or keyboard. Some steps, like those for point mass tracks, have only a single moveable point, but others, like vector steps, have two end points plus a center handle point.</p>
+		<p>There are several types of user-defined tracks and two measuring tools. For detailed information on a specific type, see its corresponding help topic: <a href="pointmass.html">point mass</a>, <a href="cm.html">center of mass</a>, <a href="vector.html">vector</a>, <a href="vectorsum.html">vector sum</a>, <a href="lineprofile.html">line profile</a>, <a href="rgbregion.html">rgb region</a>, <a href="particles.html">analytic particle model</a>, <a href="particles.html">dynamic particle model</a> (cartesian, polar or <a href="systems.html">two-body system</a>), <a href="tape.html">tape measure</a> and <a href="protractor.html">protractor</a>.</p>
+        
+		<h3>1. Creating a track</h3>
+		<p align="center">
+			<img src="../help_images/track_list.gif">
+		</p>
+		<p>Create a new track by selecting the desired track type from the <strong>Create</strong> button menu on the toolbar or the <strong>Track|New</strong> menu on the menu bar. A newly created track is automatically selected for marking.</p>
+		
+        <h3>2. Marking a track</h3>
+		<p align="center">
+			<img src="../help_images/crosshair_large.gif">
+		</p>
+		<p>Marking a track refers to the process of defining its position on each frame in the video clip. Point mass tracks are special in that they can be marked either manually or automatically using <a href="autotracker.html">autotracker</a>. All other tracks must be marked manually using the <strong>crosshair cursor</strong> (shown above at twice actual size). To mark manually, hold down the <strong>shift key</strong> and click the mouse on the feature of interest as the video automatically steps through the video clip. Don't skip frames--if you do, velocities and accelerations cannot be determined.</p>
+		<p>When marking point mass and vector tracks, you can hit the <strong>enter key</strong> instead of clicking the mouse to mark a step at the exact location of the previous step. This can be useful when marking an object at rest.</p>
+		<p>Marking is done in the main video view. For more accurate marking, magnify the image up to 8x using the <a href="videos.html#zoom">zoom tool</a> or by right-clicking on the video and choosing the desired zoom level.</p>
+		<p align="center">
+			<img src="../help_images/video_popup.gif">
+		</p>
+		<p>There is some variability in marking requirements for the various track types. Vector and line profile tracks require dragging rather than clicking. Point mass and vector tracks expect every step to be marked, but offset origin, calibration point pair, line profile and rgb region tracks require marking only a single frame. Center of mass, vector sum, particle model and two-body system tracks are marked automatically.</p>
+		<p>In rare circumstances you may wish to control the marking process in more detail. If you prefer that the video not automatically step forward while marking you can uncheck the <strong>Autostep</strong> option.</p>
+        
+		<h3><a name="trackmenu"></a>3. Track buttons and menus</h3>
+		<p align="center">
+			<img src="../help_images/pointmass_menu.gif">
+		</p>
+		<p>Every track has a <strong>track button</strong> that shows its name, color and footprint, and a <strong>track menu</strong> with items for setting its properties. Track buttons are displayed on both the <a href="interface.html#toolbar">toolbar</a> and the <a href="#trackControl">track control</a>. Track menus can be accessed by (a) clicking the track button, (b) choosing the track from the <strong>Tracks</strong> menu on the menu bar, or (c) right-clicking the main video view and choosing the track from the <strong>Tracks</strong> popup menu.</p>
+
+		<h3><a name="trackControl"></a>4. Track control</h3>
+		<p align="center">
+			<img src="../help_images/track_control.gif">
+        </p>
+		<p>The <strong>track control</strong> displays a track button for each user-created track. This makes it easy to select tracks and provides ready access to all track menus.</p>
+		<p>To show the track control, click the track control button <img src="../help_images/track_control_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a>.</p>
+
+		<h3>5. Selecting a track</h3>
+		<p>Tracks can be marked or edited only when they are selected. The track button of the currently selected track is displayed on the lower tier of the <a href="interface.html#toolbar">toolbar</a>.</p>
+		<p align="center">
+			<img src="../help_images/name_footprint1.gif">
+        </p>
+        <p>To select a different track, click its track button on the <a href="#trackControl">track control</a> or select one of its steps in the video view.</p>
+		<p align="center">
+        	<img src="../help_images/track_control_select.gif" align="top">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/select_track.gif" align="top">
+        </p>
+		<p>To deselect all tracks, double-click the video or background mat.</p>
+			
+        <h3>6. Cloning, copying and importing tracks</h3>
+		<p>Make a duplicate copy of an existing track using the <strong>Clone</strong> item in the <strong>Create</strong> menu or the <strong>Track|New</strong> menu.</p>
+		<p align="center">
+        	<img src="../help_images/clone.gif">
+        </p>
+		<p>Copy a track from one tab to another by selecting the track and copying it to the clipboard using the <strong>Edit|Copy</strong> menu item, then pasting using the <strong>Edit|Paste</strong> item.</p>
+		<p>Since the tape measure and axes are tracks, they can also be copied. When pasted, they replace the existing tape or axes in the tab. When no track is selected, the entire tracker panel (video clip, coordinate system and tracks) is copied.</p>
+		<p>Tracks can also be imported directly from saved tracker files into an open tab using the <strong>File|Import</strong> menu item. For more information see <a href="datafile.html#_import">tracker files</a>.</p>
+		
+        <h3>7. Customizing and documenting a track</h3>
+		<p>Every track is identified by its <strong>name</strong>, <strong>color</strong>, <strong>footprint</strong> (visible shape) and<strong> notes</strong> (descriptive comments). Newly created tracks are assigned default values for the first three properties that depend on the type of track. For example, a point mass might initially be named &rdquo;mass A&rdquo; and be drawn as a red diamond.</p>
+		<p align="center">
+			<img src="../help_images/name_footprint1.gif" alt="Toolbar track name and footprint" border="0">
+		</p>
+		<p>A track button showing the name, footprint and color of the track are displayed on the toolbar when the track is selected. To change the default values, click the track button and choose the <strong>Name...</strong>, <strong>Color..</strong>. or <strong>Footprint</strong> item from the track menu.</p>
+		<p align="center">
+			<img src="../help_images/pointmass_menu.gif">
+        </p>		
+        <p><a id="notes" name="notes"></a>To enter notes for a track, open the <strong>notes window</strong> by clicking the notes button <img src="../help_images/description_button.gif" align="absmiddle"> at the right end of the <a href="interface.html#toolbar">toolbar</a>. or choosing <strong>Notes...</strong> from the <a href="#trackmenu">track menu</a>. As you enter information, the field turns yellow to indicate the changes have not yet been saved. To save the notes, click anywhere outside the window. To discard the changes, click the Cancel button.</p>
+		<p align="center">
+            <img src="../help_images/description_entering.gif">
+        </p>
+        
+		<h3>8. Controlling visibility</h3>
+		<p>Hide a track by turning off the <strong>Visible</strong> property in its <a href="#trackmenu">track menu</a>. Or use the <strong>trails</strong>, <strong>labels</strong>, <strong>paths</strong>, <strong>positions</strong>, <strong>velocities</strong> and <strong>accelerations</strong> buttons on the <a href="interface.html#toolbar">toolbar</a> to toggle the visibility of these features on all tracks.</p>
+		
+        <h3>9. Selecting and identifying points</h3>
+		<p align="center">
+			<img src="../help_images/hand_pointer.gif">
+            <img src="../help_images/selected_point.gif" border="1">
+        </p>
+		<p>To select a point, move the mouse cursor over it in the main video view. The cursor will become a hand pointer and the point will be identified in the bottom right message box. Click to select it. <strong>Note:</strong> To select a point while marking, release the shift key.</p>
+		<p>When a single point is selected, its track is selected, its editable properties (position, etc) are displayed on the toolbar, and it is identified with a square selection icon.</p>
+		<p>You can also select multiple points (Point Mass positions) for simultaneous dragging or deleting. Select multiple points by (a) control-clicking additional points or (b) right-dragging a box and choosing <strong>Select Points</strong> from the popup menu. Deselect previously selected points by (a) control-clicking them or (b) right-dragging a box and choosing <strong>Deselect Points</strong> from the popup menu.</p>
+		
+<h3>10. Editing a step</h3>
+		<p>To edit a step, select and drag one of its points. A selected point can also be nudged one pixel at a time with the arrow keys on the keyboard. Holding down the shift key increases the nudge distance.</p>
+		<p>Many tracks also provide input fields on the toolbar for setting positions or other properties of the selected step.</p>
+		
+        <h3>11. Deleting</h3>
+		<p>Delete a single or multiple steps by selecting them and hitting the <strong>delete key</strong> on the keyboard. Delete all steps for a track by choosing the <strong>Clear Steps</strong> item from its <a href="#trackmenu">track menu</a>.</p>
+		<p>Delete an entire track by name in the <strong>Edit|Delete</strong> menu or by choosing the <strong>Delete</strong> item in its <a href="#trackmenu">track menu</a>.</p>
+		<p>Clear all tracks in the current tab by choosing the <strong>Edit|Clear</strong> menu item.</p>
+		<p align="center">
+			<img src="../help_images/edit_menu.gif">
+		</p>
+        
+		<h3>12. Locking a track</h3>
+		<p>Locking a track prevents any changes to its steps. Lock a track by turning on the <strong>Locked</strong> property in its track menu.</p>
+        
+</body>
+
+</html>
