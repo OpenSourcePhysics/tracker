@@ -618,7 +618,7 @@ public class TrackerStarter {
     writeLog();
     
   	// start the Tracker process and exit when it is finished
-		final Process process = builder.start();  	
+//		final Process process = builder.start();  	
 //  	Runnable runner = new Runnable() {
 //      public void run() {
 //        try {
@@ -631,7 +631,10 @@ public class TrackerStarter {
 //      }
 //  	};
 //  	new Thread(runner).start();
-    System.exit(0);
+    
+    // start the process and exit immediately
+	builder.start();
+	System.exit(0);
   }
   
   private static void writeLog() {
