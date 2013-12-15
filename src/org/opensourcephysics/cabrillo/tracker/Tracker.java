@@ -1099,48 +1099,6 @@ public class Tracker {
     if (args == null || args.length == 0) tracker = new Tracker();
     else tracker = new Tracker(args, true);
     
-  	if (OSPRuntime.isMac()) {
-//  		// set up socket communication with TrackerStarter
-//    	String portStr = System.getenv("TRACKER_PORT"); //$NON-NLS-1$
-//		  final TFrame frame = tracker.getFrame();
-//    	try {
-//  			int port = Integer.parseInt(portStr);
-//  			OSPSocket socketClient = new OSPSocket(port, false);
-//  			socketClient.addPropertyChangeListener(new PropertyChangeListener() {
-//  				public void propertyChange(PropertyChangeEvent e) {
-//  					String data = (String)e.getNewValue();
-//  					if (data!=null && data.startsWith(OSPSocket.OPEN)) {
-//  						data = data.substring(OSPSocket.OPEN.length());
-//  				    String separator = System.getProperty("path.separator"); //$NON-NLS-1$
-//  				    int n = data.indexOf(separator);
-//  				    while(n>-1) {
-//  				    	String path = data.substring(0, n);
-//  				    	data = data.substring(n+separator.length());
-//    		        // set default root path to path of first .trk file opened
-//    		        if ((path.endsWith(".trk") || path.endsWith(".trz")) //$NON-NLS-1$ //$NON-NLS-2$
-//    		        		&& path.indexOf("/") != -1 //$NON-NLS-1$
-//    		            && Tracker.rootXMLPath.equals("")) { //$NON-NLS-1$
-//    		        	Tracker.rootXMLPath = path.substring(0, path.lastIndexOf("/") + 1); //$NON-NLS-1$
-//    		          OSPLog.fine("Setting rootPath: " + Tracker.rootXMLPath); //$NON-NLS-1$
-//    		        }
-//    		        TrackerIO.open(path, frame);	  
-//  				    }
-//  					}
-//  				}
-//  			});
-//  		} catch (NumberFormatException e) {
-//  		}
-
-  		// instantiate the OSXServices class by reflection
-  		String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
-      try {
-				Class<?> OSXClass = Class.forName(className);
-				Constructor<?> constructor = OSXClass.getConstructor(Tracker.class);
-				constructor.newInstance(tracker);
-			} catch (Exception ex) {
-			}
-  	}
-   
     TFrame frame = tracker.getFrame();
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

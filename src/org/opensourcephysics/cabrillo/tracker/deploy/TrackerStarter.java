@@ -564,17 +564,6 @@ public class TrackerStarter {
    */
   private static void startTracker(String jarPath, String[] args) 
   		throws Exception {
-//  	if (OSPRuntime.isMac()) {
-//			OSPSocket socketServer = new OSPSocket(port, true);
-//  		// instantiate the OSXServices class by reflection
-//  		String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
-//      try {
-//				Class<?> OSXClass = Class.forName(className);
-//				Constructor<?> constructor = OSXClass.getConstructor(OSPSocket.class);
-//				constructor.newInstance(socketServer);
-//			} catch (Exception ex) {
-//			}
-//  	}
   	
   	// assemble the command
     final ArrayList<String> cmd = new ArrayList<String>();
