@@ -667,10 +667,8 @@ public class Tracker {
   /**
    * Attempts to relaunch Tracker with specified runtime parameters.
    *
-   * @param frame the existing TFrame
    * @param memorySize the desired memory size in MB
    * @param javaPath the java executable path
-   * @param trackerJar the Tracker jar filename
    */
   protected static void relaunch(int memorySize, String javaPath) {
 //    try {
@@ -693,8 +691,8 @@ public class Tracker {
 //				}
 //			}
 //		}
-		final int prevSize = Tracker.preferredMemorySize;
-		int newSize = memorySize>minimumMemorySize? memorySize: -1;
+	final int prevSize = Tracker.preferredMemorySize;
+	int newSize = memorySize>minimumMemorySize? memorySize: -1;
 //		Tracker.preferredMemorySize = newSize;
 //		Tracker.savePreferences();
 		

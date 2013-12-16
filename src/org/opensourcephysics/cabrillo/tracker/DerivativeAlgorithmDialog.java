@@ -55,7 +55,6 @@ public class DerivativeAlgorithmDialog extends JDialog {
    * Constructor.
    *
    * @param panel a tracker panel
-   * @param pm a point mass
    */
   public DerivativeAlgorithmDialog(TrackerPanel panel) {
     super(panel.getTFrame(), false);

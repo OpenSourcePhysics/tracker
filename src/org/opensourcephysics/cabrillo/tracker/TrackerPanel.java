@@ -1465,7 +1465,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   /**
    * Gets the Algorithms dialog.
    *
-   * @param trackerPanel 
    * @return the properties dialog
    */
   protected DerivativeAlgorithmDialog getAlgorithmDialog() {
