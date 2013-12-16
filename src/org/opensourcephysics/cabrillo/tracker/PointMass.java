@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
@@ -90,11 +89,12 @@ public class PointMass extends TTrack {
   protected JLabel massLabel;
   protected NumberField massField;
   protected Component mSeparator;
-  protected JMenu positionFootprintMenu;
-  protected JMenu velocFootprintMenu;
-  protected JMenu accelFootprintMenu;
   protected JMenu velocityMenu;
   protected JMenu accelerationMenu;
+  protected JMenuItem vColorItem;
+  protected JMenuItem aColorItem;
+  protected JMenu vFootprintMenu;
+  protected JMenu aFootprintMenu;
   protected JMenuItem vTailsToOriginItem;
   protected JMenuItem vTailsToPositionItem;
   protected JMenuItem aTailsToOriginItem;
@@ -170,13 +170,31 @@ public class PointMass extends TTrack {
    * @param color the desired color
    */
   public void setColor(Color color) {
+	setVelocityColor(color);
+	setAccelerationColor(color);
+    super.setColor(color);
+  }
+
+  /**
+   * Sets the velocity color.
+   *
+   * @param color the desired color
+   */
+  public void setVelocityColor(Color color) {
     for (int i = 0; i < vFootprints.length; i++) {
       vFootprints[i].setColor(color);
     }
+  }
+
+  /**
+   * Sets the acceleration color.
+   *
+   * @param color the desired color
+   */
+  public void setAccelerationColor(Color color) {
     for (int i = 0; i < aFootprints.length; i++) {
       aFootprints[i].setColor(color);
     }
-    super.setColor(color);
   }
 
   /**
@@ -1769,15 +1787,10 @@ public class PointMass extends TTrack {
 	        menu.remove(menu.getItemCount()-1); // remove separator
 	    }
     }
-    // prepare footprint menu
-    positionFootprintMenu.setText(TrackerRes.getString("PointMass.MenuItem.Position")); //$NON-NLS-1$
-    velocFootprintMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
-    accelFootprintMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
-    positionFootprintMenu.removeAll();
-    for (Component next: footprintMenu.getMenuComponents()) {
-    	positionFootprintMenu.add(next);
-    }
-    velocFootprintMenu.removeAll();
+    // prepare vector footprint menus
+    vFootprintMenu.setText(TrackerRes.getString("TTrack.MenuItem.Footprint")); //$NON-NLS-1$
+    aFootprintMenu.setText(TrackerRes.getString("TTrack.MenuItem.Footprint")); //$NON-NLS-1$
+    vFootprintMenu.removeAll();
     final ActionListener vFootprintListener = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         String footprintName = e.getActionCommand();
@@ -1799,10 +1812,10 @@ public class PointMass extends TTrack {
       }
       item.setActionCommand(fp[i].getName());
       item.addActionListener(vFootprintListener);
-      velocFootprintMenu.add(item);
+      vFootprintMenu.add(item);
       fp[i].setStroke(stroke);
     }
-    accelFootprintMenu.removeAll();
+    aFootprintMenu.removeAll();
     final ActionListener aFootprintListener = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         String footprintName = e.getActionCommand();
@@ -1823,12 +1836,9 @@ public class PointMass extends TTrack {
       }
       item.setActionCommand(fp[i].getName());
       item.addActionListener(aFootprintListener);
-      accelFootprintMenu.add(item);
+      aFootprintMenu.add(item);
       fp[i].setStroke(stroke);
     }
-    footprintMenu.add(positionFootprintMenu);
-    footprintMenu.add(velocFootprintMenu);
-    footprintMenu.add(accelFootprintMenu);
     // if video is not null, add autotrack item just above dataColumnsItem item
     if (trackerPanel.isEnabled("track.autotrack")) { //$NON-NLS-1$
 	    autotrackItem.setText(TrackerRes.getString("PointMass.MenuItem.Autotrack")); //$NON-NLS-1$	    
@@ -1858,6 +1868,8 @@ public class PointMass extends TTrack {
       menu.addSeparator();
     velocityMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
     accelerationMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
+    vColorItem.setText(TrackerRes.getString("TTrack.MenuItem.Color")); //$NON-NLS-1$
+    aColorItem.setText(TrackerRes.getString("TTrack.MenuItem.Color")); //$NON-NLS-1$
     vTailsToOriginItem.setText(TrackerRes.getString("Vector.MenuItem.ToOrigin")); //$NON-NLS-1$
     aTailsToOriginItem.setText(TrackerRes.getString("Vector.MenuItem.ToOrigin")); //$NON-NLS-1$
     vTailsToPositionItem.setText(TrackerRes.getString("PointMass.MenuItem.VectorsToPosition")); //$NON-NLS-1$
@@ -2002,6 +2014,21 @@ public class PointMass extends TTrack {
       control.setValue("mass", p.getMass()); //$NON-NLS-1$
       // save track data
       XML.getLoader(TTrack.class).saveObject(control, obj);
+      // save velocity and acceleration footprint and color if not default
+      Footprint fp = p.getVelocityFootprint();
+      if (!fp.getColor().equals(p.getColor())) {
+    	  control.setValue("velocity_color", fp.getColor()); //$NON-NLS-1$
+      }
+      if (!fp.getName().equals(p.getVelocityFootprints()[0].getName())) {
+    	  control.setValue("velocity_footprint", fp.getName()); //$NON-NLS-1$
+      }
+      fp = p.getAccelerationFootprint();
+      if (!fp.getColor().equals(p.getColor())) {
+    	  control.setValue("acceleration_color", fp.getColor()); //$NON-NLS-1$
+      }
+      if (!fp.getName().equals(p.getAccelerationFootprints()[0].getName())) {
+    	  control.setValue("acceleration_footprint", fp.getName()); //$NON-NLS-1$
+      }
       // save step data if not dependent
       if (!p.isDependent()) {
 	      Step[] steps = p.getSteps();
@@ -2029,6 +2056,21 @@ public class PointMass extends TTrack {
       if (m != Double.NaN) {
         p.setMass(m);
       }
+      // load velocity and acceleration footprint and color
+      Color c = (Color)control.getObject("velocity_color");
+      if (c!=null) p.setVelocityColor(c);
+      else p.setVelocityColor(p.getColor());
+      String s = control.getString("velocity_footprint");
+      if (s!=null) p.setVelocityFootprint(s);
+      else p.setVelocityFootprint(p.getVelocityFootprints()[0].getName());
+      
+      c = (Color)control.getObject("acceleration_color");
+      if (c!=null) p.setAccelerationColor(c);
+      else p.setAccelerationColor(p.getColor());
+      s = control.getString("acceleration_footprint");
+      if (s!=null) p.setAccelerationFootprint(s);
+      else p.setAccelerationFootprint(p.getAccelerationFootprints()[0].getName());
+      
       // load step data
       FrameData[] data = (FrameData[])control.getObject("framedata"); //$NON-NLS-1$
       if (data != null) {
@@ -2132,19 +2174,59 @@ public class PointMass extends TTrack {
         trackerPanel.repaint();
       }
     });
-    positionFootprintMenu = new JMenu();
-    velocFootprintMenu = new JMenu();
-    accelFootprintMenu = new JMenu();
+    vFootprintMenu = new JMenu();
+    aFootprintMenu = new JMenu();
     velocityMenu = new JMenu();
     accelerationMenu = new JMenu();
+    vColorItem = new JMenuItem();
+    vColorItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        // show color chooser dialog with color of velocity footprint
+    	Color c = getVelocityFootprint().getColor();
+        Color newColor = JColorChooser.showDialog(
+            null, TrackerRes.getString("Velocity.Dialog.Color.Title"), c); //$NON-NLS-1$
+        if (newColor != null) {
+        	XMLControl control = new XMLControlElement(PointMass.this);
+        	for (Footprint footprint: getVelocityFootprints()) {
+	        	footprint.setColor(newColor);        		
+        	}
+        	Undo.postTrackEdit(PointMass.this, control);
+        	repaint();
+        }
+      }
+    });
+    aColorItem = new JMenuItem();
+    aColorItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        // show color chooser dialog with color of acceleration footprint
+    	Color c = getAccelerationFootprint().getColor();
+        Color newColor = JColorChooser.showDialog(
+            null, TrackerRes.getString("Velocity.Dialog.Color.Title"), c); //$NON-NLS-1$
+        if (newColor != null) {
+        	XMLControl control = new XMLControlElement(PointMass.this);
+        	for (Footprint footprint: getAccelerationFootprints()) {
+	        	footprint.setColor(newColor);        		
+        	}
+        	Undo.postTrackEdit(PointMass.this, control);
+        	repaint();
+        }
+      }
+    });
+
     vTailsToOriginItem = new JMenuItem();
     aTailsToOriginItem = new JMenuItem();
     vTailsToPositionItem = new JMenuItem();
     aTailsToPositionItem = new JMenuItem();
     vVisibleItem = new JCheckBoxMenuItem();
     aVisibleItem = new JCheckBoxMenuItem();
+    velocityMenu.add(vColorItem); 
+    velocityMenu.add(vFootprintMenu);
+    velocityMenu.addSeparator();
     velocityMenu.add(vTailsToOriginItem);
     velocityMenu.add(vTailsToPositionItem);
+    accelerationMenu.add(aColorItem); 
+    accelerationMenu.add(aFootprintMenu);
+    accelerationMenu.addSeparator();
     accelerationMenu.add(aTailsToOriginItem);
     accelerationMenu.add(aTailsToPositionItem);
     vVisibleItem.addItemListener(new ItemListener() {
