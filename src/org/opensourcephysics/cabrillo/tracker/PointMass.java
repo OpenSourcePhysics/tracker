@@ -2057,17 +2057,17 @@ public class PointMass extends TTrack {
         p.setMass(m);
       }
       // load velocity and acceleration footprint and color
-      Color c = (Color)control.getObject("velocity_color");
+      Color c = (Color)control.getObject("velocity_color"); //$NON-NLS-1$
       if (c!=null) p.setVelocityColor(c);
       else p.setVelocityColor(p.getColor());
-      String s = control.getString("velocity_footprint");
+      String s = control.getString("velocity_footprint"); //$NON-NLS-1$
       if (s!=null) p.setVelocityFootprint(s);
       else p.setVelocityFootprint(p.getVelocityFootprints()[0].getName());
       
-      c = (Color)control.getObject("acceleration_color");
+      c = (Color)control.getObject("acceleration_color"); //$NON-NLS-1$
       if (c!=null) p.setAccelerationColor(c);
       else p.setAccelerationColor(p.getColor());
-      s = control.getString("acceleration_footprint");
+      s = control.getString("acceleration_footprint"); //$NON-NLS-1$
       if (s!=null) p.setAccelerationFootprint(s);
       else p.setAccelerationFootprint(p.getAccelerationFootprints()[0].getName());
       
