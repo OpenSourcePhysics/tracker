@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2013  Douglas Brown
+ * Copyright (c) 2014  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,12 +28,12 @@ import java.beans.*;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.awt.datatransfer.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
 import javax.swing.event.*;
+
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.OSPRuntime;
@@ -1246,7 +1246,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       }
     });
     diagMenu.add(logItem);
+    // startLog item
+    if (Tracker.startLogAction!=null) 
+    	diagMenu.add(Tracker.startLogAction);
     diagMenu.addSeparator();
+    
     if (Tracker.aboutJavaAction != null) 
     	diagMenu.add(Tracker.aboutJavaAction);
     if (Tracker.aboutQTAction != null)
