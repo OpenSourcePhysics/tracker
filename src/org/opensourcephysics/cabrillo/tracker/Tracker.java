@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2013  Douglas Brown
+ * Copyright (c) 2014  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,9 +34,9 @@ import java.util.*;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 import java.text.SimpleDateFormat;
-
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
@@ -113,19 +113,19 @@ public class Tracker {
   static Icon trackerLogoIcon, ospLogoIcon;
   static JLabel tipOfTheDayLabel;
   static JProgressBar progressBar;
-  static String version = "4.82"; //$NON-NLS-1$
+  static String version = "4.82131216"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
-  static String copyright = "Copyright (c) 2013 Douglas Brown"; //$NON-NLS-1$
+  static String copyright = "Copyright (c) 2014 Douglas Brown"; //$NON-NLS-1$
   static String trackerWebsite = "www.cabrillo.edu/~dbrown/tracker"; //$NON-NLS-1$
   static String author = "Douglas Brown"; //$NON-NLS-1$
   static String osp = "Open Source Physics"; //$NON-NLS-1$
   static AbstractAction aboutQTAction, aboutXuggleAction, aboutThreadsAction;
   static Action aboutTrackerAction, readmeAction;
-  static Action aboutJavaAction;
+  static Action aboutJavaAction, startLogAction;
   private static Tracker tracker;
   static Process rmiProc;
   static String readmeFileName = "tracker_README.txt"; //$NON-NLS-1$
-  static JDialog readmeDialog;
+  static JDialog readmeDialog, startLogDialog;
   static String prefsFileName = ".tracker.prefs"; //$NON-NLS-1$
   static String prefsPath;
   @SuppressWarnings("javadoc")
@@ -137,7 +137,7 @@ public class Tracker {
   static JButton pdfHelpButton;
   static ArrayList<String> recentFiles = new ArrayList<String>();
   static int minimumMemorySize = 32;
-  static int requestedMemorySize = -1;
+  static int requestedMemorySize = -1, originalMemoryRequest = 0;
   static long lastMillisChecked;
 	static boolean is64BitVM;
   protected static Locale[] locales;
@@ -196,7 +196,7 @@ public class Tracker {
 			Locale.FRENCH,
 			Locale.ITALIAN,
 			new Locale("ko"), // korean //$NON-NLS-1$
-			new Locale("nl", "NL", ""), // dutch //$NON-NLS-1$
+			new Locale("nl", "NL", ""), // dutch //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			new Locale("pt", "PT", ""), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			new Locale("pt", "BR", ""), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 //			new Locale("sk"), // slovak //$NON-NLS-1$
@@ -641,6 +641,44 @@ public class Tracker {
       }
     };
 
+    // Start log
+		final String startLogPath = System.getenv("START_LOG"); //$NON-NLS-1$
+		if (startLogPath!=null) {
+	    startLogAction = new AbstractAction(
+	        TrackerRes.getString("Tracker.StartLog")+"...", null) { //$NON-NLS-1$ //$NON-NLS-2$
+				public void actionPerformed(ActionEvent e) {
+					if (startLogDialog==null) {
+		        String s = ResourceLoader.getString(startLogPath);
+		        if (s==null || "".equals(s)) { //$NON-NLS-1$
+		        	s = TrackerRes.getString("Tracker.StartLog.NotFound")+": "+startLogPath; //$NON-NLS-1$ //$NON-NLS-2$
+		          JOptionPane.showMessageDialog(null, s,
+		          TrackerRes.getString("Tracker.startLogPath.NotFound"), //$NON-NLS-1$
+		          JOptionPane.WARNING_MESSAGE);
+		          return;
+		        }
+		        startLogDialog = new JDialog((Frame)null, true);
+		        startLogDialog.setTitle(TrackerRes.getString("Tracker.StartLog")); //$NON-NLS-1$
+		        JTextArea textPane = new JTextArea();
+		        textPane.setEditable(false);
+		        textPane.setTabSize(2);
+		        textPane.setLineWrap(true);
+		        textPane.setWrapStyleWord(true);
+		        JScrollPane scroller = new JScrollPane(textPane);
+		        startLogDialog.setContentPane(scroller);
+		        textPane.setText(s);
+		        textPane.setCaretPosition(0);
+		        startLogDialog.setSize(600, 600);
+		        // center on screen
+		        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		        int x = (dim.width - startLogDialog.getBounds().width) / 2;
+		        int y = (dim.height - startLogDialog.getBounds().height) / 2;
+		        startLogDialog.setLocation(x, y);
+					}
+					startLogDialog.setVisible(true);
+	      }
+	    };
+		}
+
     // about Java
     aboutJavaAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutJava"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
@@ -1069,6 +1107,14 @@ public class Tracker {
 	    boolean needsJavaVM = javaPath!=null && !javaCommand.equals(javaPath);
 			// update resources like QuickTime and Xuggle
 			boolean updated = updateResources();
+			
+			// compare memory with requested size(s)
+	    String mem = System.getenv("MEMORY_SIZE"); //$NON-NLS-1$
+	    if (mem!=null) {
+	    	originalMemoryRequest = requestedMemorySize;
+	    	requestedMemorySize = Integer.parseInt(mem);
+	    }
+
 	    boolean needsMemory = requestedMemorySize>10 &&
 					(size<9*requestedMemorySize/10 || size>11*requestedMemorySize/10);
 	    // attempt to relaunch if needed
@@ -1105,6 +1151,16 @@ public class Tracker {
       frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
     }
     TTrackBar.refreshMemoryButton();
+    
+    // inform user if memory size was reduced
+  	if (originalMemoryRequest>requestedMemorySize) {
+    	JOptionPane.showMessageDialog(frame, 
+    			TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message1")+" "+originalMemoryRequest+"MB\n"+  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    			TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message2")+" "+requestedMemorySize+"MB.\n\n"+  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    			TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message3"),  //$NON-NLS-1$
+    			TrackerRes.getString("Tracker.Dialog.MemoryReduced.Title"),  //$NON-NLS-1$
+    			JOptionPane.INFORMATION_MESSAGE);
+  	}
 
 //    warnNoVideoEngine = false; // for PLATO
     if (warnNoVideoEngine && (VideoIO.guessXuggleVersion()==5.4 
@@ -1506,7 +1562,7 @@ public class Tracker {
     		Tracker.preferredJRE32 = control.getString("java_vm_32"); //$NON-NLS-1$
     		Tracker.preferredJRE64 = control.getString("java_vm_64"); //$NON-NLS-1$
       	Tracker.use32BitMode = control.getBoolean("32-bit"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("memory_size")) //$NON-NLS-1$
+  	    if (control.getPropertyNames().contains("memory_size")) //$NON-NLS-1$
       		Tracker.requestedMemorySize = control.getInt("memory_size"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("look_feel")) //$NON-NLS-1$
       		Tracker.lookAndFeel = control.getString("look_feel"); //$NON-NLS-1$
