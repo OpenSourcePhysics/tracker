@@ -55,31 +55,24 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 	// instance fields
   protected TTrack track;
+  protected DatasetManager data;
+  protected HighlightableDataset dataset = new HighlightableDataset();
   protected ArrayList<TTrack> guests = new ArrayList<TTrack>();
   protected HashMap<TTrack, HighlightableDataset> guestDatasets 
   		= new HashMap<TTrack, HighlightableDataset>();
-  protected DatasetManager data;
   protected JRadioButtonMenuItem[] xChoices, yChoices;
-  protected ButtonGroup xGroup;
-  protected ButtonGroup yGroup;
+  protected ButtonGroup xGroup, yGroup;
   protected int xIndex = -1, yIndex = 0;
-  protected HighlightableDataset dataset = new HighlightableDataset();
   protected JPopupMenu xPopup, yPopup, popup;
   protected Action dataFunctionListener, guestListener;
-  protected JMenuItem copyImageItem;
-  protected JMenuItem dataBuilderItem;
-  protected JMenuItem dataToolItem;
-  protected JMenuItem algorithmItem;
-  protected JMenuItem printItem;
-  protected JMenuItem helpItem;
-  protected JCheckBoxMenuItem linesItem;
-  protected JCheckBoxMenuItem pointsItem;
-  protected JMenuItem mergeYScalesItem;
+  protected JMenuItem copyImageItem, dataBuilderItem, dataToolItem;
+  protected JMenuItem showXZeroItem, showYZeroItem;
+  protected JMenuItem algorithmItem, printItem, helpItem, mergeYScalesItem;
+  protected JCheckBoxMenuItem linesItem, pointsItem;
   protected JMenu guestMenu;
   protected String xLabel, yLabel, title;
   protected int highlightIndex; // dataset index of highlighted point, or -1
-  protected ItemListener xListener;
-  protected ItemListener yListener;
+  protected ItemListener xListener, yListener;
   protected PlotTrackView plotTrackView;
   protected boolean isCustom;
   protected Font font = new JTextField().getFont();
@@ -349,7 +342,22 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     }
     else
     	popupmenu.remove(mergeYScalesItem);
-    
+    // include showXZeroItem and showYZeroItem only when they can change the scale
+    popupmenu.remove(showXZeroItem);
+    popupmenu.remove(showYZeroItem);
+    if (getXMin()*getXMax()>0) {
+	    String s = TeXParser.removeSubscripting(dataset.getColumnName(0));
+	    s = TrackerRes.getString("TrackPlottingPanel.Popup.MenuItem.ShowZero")+" "+s+"=0"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	  	showXZeroItem.setText(s);
+	    popupmenu.insert(showXZeroItem, popupmenu.getComponentIndex(scaleItem));    	
+    }
+    if (getYMin()*getYMax()>0) {
+	    String s = TeXParser.removeSubscripting(dataset.getColumnName(1));
+	    s = TrackerRes.getString("TrackPlottingPanel.Popup.MenuItem.ShowZero")+" "+s+"=0"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	  	showYZeroItem.setText(s);
+	    popupmenu.insert(showYZeroItem, popupmenu.getComponentIndex(scaleItem));    	
+    }
+
     // refresh guest menu
     Class<? extends TTrack> type = track instanceof PointMass? PointMass.class:
     	track instanceof Vector? Vector.class: track.getClass();
@@ -445,6 +453,19 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	        }
 	        isCustom = true;
 	        repaint();
+	      }
+	    });
+	    // showZero menu items
+	    showXZeroItem = new JMenuItem();
+	    showXZeroItem.addActionListener(new ActionListener() {
+	      public void actionPerformed(ActionEvent e) {
+	        showZeroOnAxis("x"); //$NON-NLS-1$
+	      }
+	    });
+	    showYZeroItem = new JMenuItem();
+	    showYZeroItem.addActionListener(new ActionListener() {
+	      public void actionPerformed(ActionEvent e) {
+	        showZeroOnAxis("y"); //$NON-NLS-1$
 	      }
 	    });
 	    printItem = new JMenuItem();
@@ -664,6 +685,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     popupmenu.add(zoomInItem);
     popupmenu.add(zoomOutItem);
     popupmenu.add(autoscaleItem);
+    popupmenu.add(showYZeroItem);
+    popupmenu.add(showXZeroItem);
     popupmenu.add(scaleItem);
     popupmenu.addSeparator();    
     popupmenu.add(pointsItem);
@@ -716,6 +739,31 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
       parent = parent.getParent();
     }
     return rect;
+  }
+  
+  /**
+   * Rescales this plot so the zero value is included in the range ymin-ymax.
+   * @return true if the plot scale is changed.
+   */
+  protected void showZeroOnAxis(String axis) {
+  	if (axis.equals("x")) { //$NON-NLS-1$
+	    if (xmin*xmax>0) { // either both pos or both neg
+	    	if (xmax>0) xmin = 0;
+	    	else xmax = 0;
+		    setPreferredMinMax(xmin, xmax, ymin, ymax);
+		    repaint(); // repaint the panel with the new scale
+	  		isCustom = true;
+	    }
+  	}
+  	else {
+	    if (ymin*ymax>0) { // either both pos or both neg
+	    	if (ymax>0) ymin = 0;
+	    	else ymax = 0;
+		    setPreferredMinMax(xmin, xmax, ymin, ymax);
+		    repaint(); // repaint the panel with the new scale
+	  		isCustom = true;
+	    }
+  	}
   }
 
   /**
