@@ -324,6 +324,8 @@ public class Undo {
   	  control.loadObject(track);
   	  track.erase();
   	  track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+  	  // TrackEdit is also used for text column edits
+  	  track.firePropertyChange("text_column", null, null); //$NON-NLS-1$
     }
   }
 

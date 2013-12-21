@@ -34,6 +34,8 @@ import java.beans.PropertyChangeEvent;
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import org.opensourcephysics.controls.*;
@@ -70,13 +72,10 @@ public class TableTrackView extends TrackView {
   protected JMenu setDelimiterMenu;
   ButtonGroup delimiterButtonGroup = new ButtonGroup();
   protected JMenuItem addDelimiterItem, removeDelimiterItem;
-  protected JMenuItem copyImageItem;
-  protected JMenuItem snapshotItem;
-  protected JMenuItem printItem;
-  protected JMenuItem helpItem;
-  protected JMenuItem dataToolItem;
-  protected JMenuItem dataBuilderItem;
-  protected JMenuItem deleteDataFunctionItem;
+  protected JMenuItem copyImageItem, snapshotItem, printItem, helpItem;
+  protected JMenuItem dataToolItem, dataBuilderItem, deleteDataFunctionItem;
+  protected JMenuItem createTextColumnItem;
+  protected JMenu textColumnMenu, deleteTextColumnMenu, renameTextColumnMenu;
   protected String xVar, yVar;
   protected boolean refresh = true;
   protected boolean highlightVisible = true;
@@ -87,6 +86,10 @@ public class TableTrackView extends TrackView {
   		= new TreeSet<Double>();
   protected Map<String, TableCellRenderer> degreeRenderers
   		= new HashMap<String, TableCellRenderer>();
+  protected TextColumnTableModel textColumnModel;
+  protected TextColumnEditor textColumnEditor;
+  protected Set<String> textColumnsVisible = new TreeSet<String>();
+  protected ArrayList<String> textColumnNames = new ArrayList<String>();
 
   /**
    * Constructs a TrackTableView of the specified track on the specified tracker panel.
@@ -98,7 +101,13 @@ public class TableTrackView extends TrackView {
   public TableTrackView(TTrack track, TrackerPanel panel, TableTView view) {
     super(track, panel);
     parentView = view;
+    track.addPropertyChangeListener("text_column", this); //$NON-NLS-1$
+    textColumnNames.addAll(track.getTextColumnNames());
+    for (String name: track.getTextColumnNames()) {
+  		textColumnsVisible.add(name);
+    }
     // create the DataTable
+    textColumnEditor = new TextColumnEditor();
     dataTable = new DataTable() {
       public void refreshTable() {
         // save selected rows and columns
@@ -116,11 +125,24 @@ public class TableTrackView extends TrackView {
         		addColumnSelectionInterval(cols[i], cols[i]);
         }
       }
-    };    
+      public TableCellEditor getCellEditor(int row, int column) {
+      	// only text columns are editable, so always return textColumnEditor
+        return textColumnEditor;
+      }
+      public boolean isCellEditable(int row, int col) {
+      	// true only for text (String) columns
+        int i = dataTable.convertColumnIndexToModel(col);
+        return dataTable.getModel().getColumnClass(i).equals(String.class);
+      }
+
+    };   
+    
     data = track.getData(trackerPanel);
     tableData = new DatasetManager();
     tableData.setXPointsLinked(true);
     dataTable.add(tableData);
+    textColumnModel = new TextColumnTableModel();
+    dataTable.add(textColumnModel);
     setViewportView(dataTable);
     dataTable.setPreferredScrollableViewportSize(new Dimension(160, 200));
     addMouseListener(new MouseAdapter() {
@@ -136,6 +158,25 @@ public class TableTrackView extends TrackView {
       	dataTable.requestFocusInWindow();
       }
     });
+    // add key listener to start editing text column cells with space key
+    dataTable.addKeyListener(new KeyAdapter() {
+      public void keyPressed(KeyEvent e) {
+        if(e.getKeyCode()==KeyEvent.VK_SPACE) {
+        	int row = dataTable.getSelectedRow();
+        	int col = dataTable.getSelectedColumn();
+          dataTable.editCellAt(row, col);
+          textColumnEditor.field.selectAll();
+          Runnable runner = new Runnable() {
+            public synchronized void run() {
+              textColumnEditor.field.requestFocusInWindow();
+            }
+          };
+          SwingUtilities.invokeLater(runner);
+        }
+      }
+
+    });
+
     ListSelectionModel selectionModel = dataTable.getSelectionModel();
     selectionModel.addListSelectionListener(new ListSelectionListener() {
       public void valueChanged(ListSelectionEvent e) {
@@ -184,7 +225,8 @@ public class TableTrackView extends TrackView {
 	  int colCount = 0;
 	  ArrayList<Dataset> datasets = data.getDatasets();
 		dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
-    for (int i = 0; i < checkBoxes.length; i++) {
+		int count = datasets.size();
+    for (int i = 0; i < count; i++) {
       if (checkBoxes[i].isSelected()) {
       	Dataset in = datasets.get(i);
 	    	String xTitle = in.getXColumnName();
@@ -267,7 +309,7 @@ public class TableTrackView extends TrackView {
     columnsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SelectTableData.ToolTip")); //$NON-NLS-1$
     track.dataValid = false; // triggers data refresh
     track.getData(trackerPanel); // load the current data
-    refreshColumnList();    
+    refreshColumnCheckboxes();    
     refresh(trackerPanel.getFrameNumber());
   }
 
@@ -309,11 +351,18 @@ public class TableTrackView extends TrackView {
    * @return true if in a custom state, false if in the default state
    */
   public boolean isCustomState() {
-  	for (int i = 0; i < checkBoxes.length; i++) {
+  	// check displayed data columns--default is columns 0 and 1 only
+  	int n = data.getDatasets().size();
+  	for (int i = 0; i < n; i++) {
   		boolean selected = checkBoxes[i].isSelected();
   		boolean shouldBe = i < 2;
   		if ((shouldBe && !selected) || (!shouldBe && selected)) return true;
   	}
+  	// check displayed text columns--default is all are displayed
+  	for (String name: track.getTextColumnNames()) {
+  		if (!textColumnsVisible.contains(name)) return true;
+  	}
+  	// check for formatting--default is no formatting
   	if (dataTable.getFormattedColumnNames().length>0)
   		return true;
   	return false;
@@ -322,20 +371,26 @@ public class TableTrackView extends TrackView {
   /**
    * Sets the visibility of a dataset specified by index
    *
-   * @param index the index of the dataset
+   * @param index the index of the column
    * @param visible <code>true</code> to show the dataset column in the table
    */
   public void setVisible(int index, boolean visible) {
-    if (index < checkBoxes.length)
+    if (index < checkBoxes.length) {
       checkBoxes[index].setSelected(visible);
+    }
+    int n = data.getDatasets().size();
+    if (index>=n) {
+    	String name = track.getTextColumnNames().get(index-n);
+    	textColumnsVisible.add(name);
+    }
     refresh(trackerPanel.getFrameNumber());
   }
 
   /**
-   * Sets the visibility of a dataset specified by name
+   * Sets the visibility of a data or text column specified by name
    *
-   * @param name the name of the dataset
-   * @param visible <code>true</code> to show the dataset column in the table
+   * @param name the name of the column
+   * @param visible <code>true</code> to show the column in the table
    */
   public void setVisible(String name, boolean visible) {
     for (int i = 0; i < checkBoxes.length; i++) {
@@ -436,6 +491,44 @@ public class TableTrackView extends TrackView {
     			&& e.getPropertyName().equals("track") //$NON-NLS-1$
     			&& e.getNewValue() == track) {
       parentView.showColumnsDialog(getTrack());
+    }
+    if (e.getPropertyName().equals("text_column")) { //$NON-NLS-1$
+  		// look for added and removed column names
+  		String added = null;
+  		for (String name: track.getTextColumnNames()) {
+  			if (!textColumnNames.contains(name)) added = name;
+  		}
+  		String removed = null;
+  		for (String name: textColumnNames) {
+  			if (!track.getTextColumnNames().contains(name)) removed = name;
+  		}
+  		if (added!=null && removed!=null) {
+  			// name changed    			
+    		if (textColumnsVisible.contains(removed)) {
+	    		textColumnsVisible.remove(removed);
+	    		textColumnsVisible.add(added);
+    		}
+  		}
+  		else if (added!=null) {
+  			// new column is visible by default
+    		textColumnsVisible.add(added);    			
+  		}
+  		else if (removed!=null) {
+    		textColumnsVisible.remove(removed);    			
+  		}
+    	// else a text entry was changed    		
+    	// refresh table and column visibility dialog, if visible
+    	dataTable.refreshTable();
+    	if (getParent() instanceof TableTView) {
+    		TableTView view = (TableTView)getParent();
+    		if (view.dialogVisible) {
+    			view.showColumnsDialog(track);
+    		}
+    	}
+    	// update local list of names
+    	textColumnNames.clear();
+      textColumnNames.addAll(track.getTextColumnNames());
+
     }
     else super.propertyChange(e);
   }
@@ -587,7 +680,7 @@ public class TableTrackView extends TrackView {
       }
     });
     // create column list
-    refreshColumnList();
+    refreshColumnCheckboxes();
     // create popup and add menu items
     popup = new JPopupMenu();
     
@@ -606,7 +699,7 @@ public class TableTrackView extends TrackView {
     formatDialogItem = new JMenuItem();
     formatDialogItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        String[] cols = getColumnNames();
+        String[] cols = getDataColumnNames();
         int[] selected = dataTable.getSelectedColumns();
         String[] selectedNames = new String[selected.length];
         for (int i=0; i<selectedNames.length; i++) {
@@ -690,6 +783,18 @@ public class TableTrackView extends TrackView {
         snapshot();
       }
     };
+    // add and remove text column items
+    createTextColumnItem = new JMenuItem();
+    createTextColumnItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        String name = getUniqueColumnName(null, false);
+        track.addTextColumn(name);
+      }
+    });
+    textColumnMenu = new JMenu();
+    deleteTextColumnMenu = new JMenu();
+    renameTextColumnMenu = new JMenu();
+
     snapshotItem = new JMenuItem(snapshotAction);
     // add dataBuilder item
     dataBuilderItem = new JMenuItem();
@@ -719,7 +824,11 @@ public class TableTrackView extends TrackView {
 	    	next.setMarkerShape(Dataset.NO_MARKER);
         for (int i = 0; i < checkBoxes.length; i++) {
           if (checkBoxes[i].isSelected()) {
-          	next = datasets.get(i);
+          	if (i>=datasets.size()) {
+          		next = track.convertTextToDataColumn(checkBoxes[i].getActionCommand());
+          		if (next==null)	continue;
+          	}
+          	else next = datasets.get(i);
           	control = new XMLControlElement(next);
           	next = toSend.getDataset(colCount++);
     	    	control.loadObject(next, true, true);
@@ -919,6 +1028,10 @@ public class TableTrackView extends TrackView {
     snapshotItem.setText(DisplayRes.getString("DisplayPanel.Snapshot_menu_item")); //$NON-NLS-1$
     printItem.setText(TrackerRes.getString("TActions.Action.Print")); //$NON-NLS-1$
     helpItem.setText(TrackerRes.getString("Tracker.Popup.MenuItem.Help")); //$NON-NLS-1$
+    createTextColumnItem.setText(TrackerRes.getString("TableTrackView.Action.CreateTextColumn.Text")); //$NON-NLS-1$
+    textColumnMenu.setText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Text")); //$NON-NLS-1$
+    deleteTextColumnMenu.setText(TrackerRes.getString("TableTrackView.Action.DeleteTextColumn.Text")); //$NON-NLS-1$
+    renameTextColumnMenu.setText(TrackerRes.getString("TableTrackView.Action.RenameTextColumn.Text")); //$NON-NLS-1$
     dataBuilderItem.setText(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
     dataToolItem.setText(TrackerRes.getString("TableTrackView.Popup.MenuItem.Analyze")); //$NON-NLS-1$
   	refreshCopyDataMenu(copyDataMenu);
@@ -933,6 +1046,44 @@ public class TableTrackView extends TrackView {
 	    popup.addSeparator();
 	    popup.add(copyDataMenu);
     }
+    popup.addSeparator();
+    // textColumnMenu
+    textColumnMenu.removeAll();
+    popup.add(textColumnMenu);
+    textColumnMenu.add(createTextColumnItem);
+    if (track.getTextColumnNames().size()>0) {
+    	deleteTextColumnMenu.removeAll();
+    	textColumnMenu.add(deleteTextColumnMenu);
+    	for (String next: track.getTextColumnNames()) {
+    		JMenuItem item = new JMenuItem(next);
+    		deleteTextColumnMenu.add(item);
+    		item.setActionCommand(next);
+    		item.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            track.removeTextColumn(e.getActionCommand());
+          }
+        });
+    	}
+    	renameTextColumnMenu.removeAll();
+    	textColumnMenu.add(renameTextColumnMenu);
+    	for (String next: track.getTextColumnNames()) {
+    		JMenuItem item = new JMenuItem(next);
+    		renameTextColumnMenu.add(item);
+    		item.setActionCommand(next);
+    		item.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+          	String prev = e.getActionCommand();
+            String name = getUniqueColumnName(prev, false);
+            if (name!=null && !name.equals("") && !name.equals(prev)) { //$NON-NLS-1$
+            	// name has changed
+            	track.renameTextColumn(prev, name);            	
+            }
+          }
+        });
+    	}
+    }
+    textColumnMenu.setEnabled(!track.isLocked());
+    
     if (track!=null && track.trackerPanel!=null
     		&& track.trackerPanel.isEnabled("edit.copyImage")) { //$NON-NLS-1$
 	    popup.addSeparator();
@@ -956,6 +1107,53 @@ public class TableTrackView extends TrackView {
     popup.addSeparator();
     popup.add(helpItem);
     return popup;
+  }
+  
+  /**
+   * Gets a unique new name for a text column.
+   *
+   * @param previous the previous name (may be null)
+   * @return the new name
+   */
+  protected String getUniqueColumnName(String previous, boolean tryAgain) {
+  	if (previous==null) previous = ""; //$NON-NLS-1$
+  	Object input = null;
+  	if (tryAgain) {
+	    input = JOptionPane.showInputDialog(track.trackerPanel.getTFrame(), 
+	    		TrackerRes.getString("TableTrackView.Dialog.NameColumn.TryAgain")+"\n"+ //$NON-NLS-1$ //$NON-NLS-2$
+	    		TrackerRes.getString("TableTrackView.Dialog.NameColumn.Message"), //$NON-NLS-1$
+	    		TrackerRes.getString("TableTrackView.Dialog.NameColumn.Title"),         //$NON-NLS-1$
+	        JOptionPane.WARNING_MESSAGE, null, null, previous);  		
+  	}
+  	else {
+	    input = JOptionPane.showInputDialog(track.trackerPanel.getTFrame(), 
+	    		TrackerRes.getString("TableTrackView.Dialog.NameColumn.Message"), //$NON-NLS-1$
+	    		TrackerRes.getString("TableTrackView.Dialog.NameColumn.Title"),         //$NON-NLS-1$
+	        JOptionPane.QUESTION_MESSAGE, null, null, previous);
+  	}
+    if(input==null) {
+      return null;
+    }
+    String name = ((String)input).trim();
+    if (name.equals(previous)) return name;
+    // check name for uniqueness
+    boolean  unique = true;
+    for (String next: getDataColumnNames()) {
+    	if (next.equals(name)) {
+    		unique = false;
+    		break;
+    	}
+    }
+    if (unique) {
+	    for (String next: track.getTextColumnNames()) {
+	    	if (next.equals(name)) {
+	    		unique = false;
+	    		break;
+	    	}
+	    }   	
+    }
+    if (!unique) return getUniqueColumnName(previous, true);
+    return name;
   }
 
   /**
@@ -1023,7 +1221,12 @@ public class TableTrackView extends TrackView {
   	return menu;
   }
 
-  protected String[] getColumnNames() {
+  /**
+   * Gets an array of all column names.
+   *
+   * @return the column names
+   */
+  protected String[] getDataColumnNames() {
   	ArrayList<String> names = new ArrayList<String>();
   	// first add independent variable
     Dataset dataset = data.getDataset(0);
@@ -1050,11 +1253,16 @@ public class TableTrackView extends TrackView {
     return names.toArray(new String[0]);
   }
 
-  
-  protected JScrollPane refreshColumnList() {
+  /**
+   * Refreshes the column visibility checkboxes.
+   *
+   * @return a JScrollPane with the refreshed column checkboxes
+   */
+  protected JScrollPane refreshColumnCheckboxes() {
   	JCheckBox[] prev = checkBoxes;
-    // create check box array: one item per dataset
+    // create check box array: one item per dataset plus one per textColumn
     int datasetCount = data.getDatasets().size();
+    int textColumnCount = track.getTextColumnNames().size();
     // keep selected column names
     ArrayList<String> names = new ArrayList<String>();
     if (prev != null) {
@@ -1062,7 +1270,8 @@ public class TableTrackView extends TrackView {
     		if (prev[i].isSelected()) names.add(prev[i].getText());
     	}
     }
-    checkBoxes = new JCheckBox[datasetCount];
+    checkBoxes = new JCheckBox[datasetCount+textColumnCount];
+    // data column checkboxes
     for (int i = 0; i < datasetCount; i++) {
       Dataset dataset = data.getDataset(i);
       String name = dataset.getYColumnName();
@@ -1085,6 +1294,31 @@ public class TableTrackView extends TrackView {
       });
       checkBoxes[i].setOpaque(false);
     }
+    // text column checkboxes
+    for (int i = datasetCount; i < datasetCount+textColumnCount; i++) {
+    	String name = track.getTextColumnNames().get(i-datasetCount);
+      String s = TeXParser.removeSubscripting(name);
+      checkBoxes[i] = new JCheckBox(s);
+      checkBoxes[i].setBackground(Color.white);
+      checkBoxes[i].setFont(font);
+      checkBoxes[i].setSelected(textColumnsVisible.contains(name));
+      checkBoxes[i].setBorder(BorderFactory.createEmptyBorder(1, 5, 1, 0));
+      checkBoxes[i].setActionCommand(name);
+      checkBoxes[i].addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+        	JCheckBox item = (JCheckBox)e.getSource();
+        	if (item.isSelected()) {
+        		textColumnsVisible.add(e.getActionCommand());
+        	}
+        	else {
+        		textColumnsVisible.remove(e.getActionCommand());
+        	}
+        	dataTable.refreshTable();
+        	trackerPanel.changed = true;
+        }
+      });
+      checkBoxes[i].setOpaque(false);
+    }
     columnsPanel.removeAll();
     ArrayList<Integer> dataOrder = track.getPreferredDataOrder();
     ArrayList<JCheckBox> added = new ArrayList<JCheckBox>();
@@ -1101,5 +1335,140 @@ public class TableTrackView extends TrackView {
 		}    	
     return columnsScroller;
   }
+  
+  /**
+   * A class to provide textColumn data for the dataTable.
+   */
+  class TextColumnTableModel extends AbstractTableModel {
+    public String getColumnName(int col) {    	
+    	int i = 0;    	
+    	for (String name: track.getTextColumnNames()) {
+    		if (textColumnsVisible.contains(name)) {
+    			if (i==col) return name;
+    			i++;
+    		}
+    	}
+      return "unknown"; //$NON-NLS-1$
+    }
+
+    public int getRowCount() {
+      return tableData.getRowCount();
+    }
+
+    public int getColumnCount() {
+      return textColumnsVisible.size();
+    }
+
+    public Object getValueAt(int row, int col) {
+      String columnName = getColumnName(col);
+      // convert row to frame number
+      DatasetManager data = track.getData(track.trackerPanel);
+      int index = data.getDatasetIndex("frame"); //$NON-NLS-1$
+      if (index>-1) {
+      	double frame = data.getDataset(index).getYPoints()[row];
+	      return track.getTextColumnEntry(columnName, (int)frame);      	
+      }
+      // if no frame numbers defined (eg line profile), use row number
+	    return track.getTextColumnEntry(columnName, row);
+    }
+    
+    /**
+     * Sets the value at the given cell.
+     *
+     * @param value the value
+     * @param row the row index
+     * @param col the column index
+     */
+    public void setValueAt(Object value, int row, int col) {
+      String columnName = getColumnName(col);
+      // convert row to frame number
+      DatasetManager data = track.getData(track.trackerPanel);
+      int index = data.getDatasetIndex("frame"); //$NON-NLS-1$
+      if (index>-1) {
+      	double frame = data.getDataset(index).getYPoints()[row];
+	      if (track.setTextColumnEntry(columnName, (int)frame, (String)value)) {
+	      	trackerPanel.changed = true;
+	      }
+	      return;
+      }
+      // if no frame numbers defined (eg line profile), use row number
+      if (track.setTextColumnEntry(columnName, row, (String)value)) {
+      	trackerPanel.changed = true;
+      }
+    }
+
+
+    public boolean isCellEditable(int row, int col) {
+      return !track.isLocked();
+    }
+
+    public Class<?> getColumnClass(int col) {
+      return String.class;
+    }
+
+  }
+
+  /**
+   * A cell editor for textColumn cells.
+   */
+  class TextColumnEditor extends AbstractCellEditor implements TableCellEditor {
+  	Color defaultEditingColor;
+    JPanel panel = new JPanel(new BorderLayout());
+    JTextField field = new JTextField();
+
+    // Constructor.
+    TextColumnEditor() {
+      defaultEditingColor = field.getSelectionColor();
+      panel.add(field, BorderLayout.CENTER);
+      panel.setOpaque(false);
+      field.setBorder(BorderFactory.createEmptyBorder(0, 1, 1, 0));
+      field.addKeyListener(new KeyAdapter() {
+        public void keyPressed(KeyEvent e) {
+          if(e.getKeyCode()==KeyEvent.VK_ENTER) {
+            stopCellEditing();
+          } else if(field.isEnabled()) {
+            field.setBackground(Color.yellow);
+          }
+        }
+
+      });
+      field.addFocusListener(new FocusAdapter() {
+        public void focusLost(FocusEvent e) {
+        	// request focus immediately to keep it
+          field.requestFocusInWindow();
+        }
+      });
+    }
+
+    // Gets the component to be displayed while editing.
+    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+      field.setBackground(Color.white);
+      field.setSelectionColor(defaultEditingColor);
+      field.setEditable(true);
+      if (value==null) value = ""; //$NON-NLS-1$
+      field.setText(value.toString());
+      return panel;
+    }
+    
+    // Determines when editing starts.
+    public boolean isCellEditable(EventObject e) {
+      if(e==null || e instanceof MouseEvent) {
+      	return !track.isLocked();
+      }
+      return false;
+    }
+
+    // Called when editing is completed.
+    public Object getCellEditorValue() {
+      dataTable.requestFocusInWindow();
+      if(field.getBackground()!=Color.white) {
+        field.setBackground(Color.white);
+      }
+      return field.getText();
+    }
+
+  }
+
+
 
 }

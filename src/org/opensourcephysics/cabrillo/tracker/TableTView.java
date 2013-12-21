@@ -46,8 +46,7 @@ public class TableTView extends TrackChooserTView {
   protected Icon icon;
   protected JDialog columnsDialog;
   protected JLabel trackLabel;
-  protected JButton defineButton;
-  protected JButton closeButton;
+  protected JButton defineButton, closeButton, textColumnButton;
   protected JPanel buttonPanel;
   protected boolean dialogVisible;
 
@@ -131,7 +130,7 @@ public class TableTView extends TrackChooserTView {
     trackLabel.setText(track.getName());
     contentPane.add(trackLabel);
     TableTrackView trackView = (TableTrackView)getTrackView(track);
-    trackView.refreshColumnList();
+    trackView.refreshColumnCheckboxes();
     contentPane.add(trackView.columnsScroller);
 	  contentPane.add(buttonPanel);
     contentPane.setPreferredSize(null);
@@ -148,6 +147,7 @@ public class TableTView extends TrackChooserTView {
       columnsDialog.setLocation(x, y);
     }
     if (!columnsDialog.isVisible()) columnsDialog.setVisible(true);
+    else columnsDialog.repaint();
   }
 
   /**
@@ -218,8 +218,27 @@ public class TableTView extends TrackChooserTView {
       defineButton = new JButton(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
       defineButton.addActionListener(dataFunctionListener);
       defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
+      // create text column button
+      textColumnButton = new JButton(TrackerRes.getString("TableTrackView.Menu.TextColumn.Text")); //$NON-NLS-1$
+      textColumnButton.setToolTipText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Tooltip")); //$NON-NLS-1$
+      textColumnButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+        	// show popup menu
+  		    JPopupMenu popup = new JPopupMenu();
+          TableTrackView trackView = (TableTrackView)getTrackView(getSelectedTrack());
+          trackView.getPopup(); // refreshes menu items
+  		    popup.add(trackView.createTextColumnItem);
+  		    if (trackView.deleteTextColumnMenu.getMenuComponentCount()>0) {
+	  		    popup.add(trackView.deleteTextColumnMenu);
+	  		    popup.add(trackView.renameTextColumnMenu);
+  		    }
+  		    popup.show(textColumnButton, 0, textColumnButton.getHeight());
+        }
+      });
+
       buttonPanel = new JPanel();
 	    buttonPanel.add(defineButton);
+	    buttonPanel.add(textColumnButton);
 	    buttonPanel.add(closeButton);
 	    // create track label
 	    trackLabel = new JLabel();
@@ -325,6 +344,11 @@ public class TableTView extends TrackChooserTView {
             trackView.refresh = false; // prevents refreshes
           	for (int j = 0; j < trackView.checkBoxes.length; j++) {
           		trackView.checkBoxes[j].setSelected(false);
+          		int n = trackView.data.getDatasets().size();
+              if (j>=n) {
+              	String name = track.getTextColumnNames().get(j-n);
+              	trackView.textColumnsVisible.remove(name);
+              }
           	}
           	for (int j = 1; j < columns.length; j++) {          		
             	if (columns[j].equals("theta") && track instanceof PointMass)  //$NON-NLS-1$
