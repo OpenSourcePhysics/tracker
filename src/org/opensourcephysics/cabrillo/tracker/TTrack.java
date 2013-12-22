@@ -126,6 +126,9 @@ public abstract class TTrack implements Interactive,
   protected int targetIndex;
   // attached tracks--used by AttachmentDialog with TapeMeasure and Protractor tracks
   protected TTrack[] attachments;
+  // user-editable text columns shown in DataTable view
+  protected Map<String, String[]> textColumnEntries = new TreeMap<String, String[]>();
+  protected ArrayList<String> textColumnNames = new ArrayList<String>();
 
   /**
    * Constructs a TTrack.
@@ -1106,7 +1109,14 @@ public abstract class TTrack implements Interactive,
       // check for newly loaded dataFunctions
       if (dataProp != null) {
       	XMLControl[] children = dataProp.getChildControls();
-      	for (int i = 0; i < children.length; i++) {
+      	outer: for (int i = 0; i < children.length; i++) {
+      		// compare function name with existing datasets to avoid duplications
+      		String name = children[i].getString("function_name"); //$NON-NLS-1$
+      		for (Dataset next: data.getDatasets()) {
+      			if (next instanceof DataFunction && next.getYColumnName().equals(name)) {
+      				continue outer;
+      			}
+      		}
       		DataFunction f = new DataFunction(data);
       		children[i].loadObject(f);
         	f.setXColumnVisible(false);
@@ -1251,7 +1261,148 @@ public abstract class TTrack implements Interactive,
   	}
     return -1;
   }
+  
+  /**
+   * Gets the text column names. 
+   * 
+   * @return list of column names.
+   */
+  public ArrayList<String> getTextColumnNames() {
+  	return textColumnNames;
+  }
+  
+  /**
+   * Adds a new text column.
+   * 
+   * @param name the name
+   * @return true if a new column was added
+   */
+  public boolean addTextColumn(String name) {
+  	// only add new, non-null names
+  	if (name==null || name.trim().equals("")) return false; //$NON-NLS-1$
+  	name = name.trim();
+  	for (String next: textColumnNames) {
+  		if (next.equals(name)) return false;
+  	}
+		XMLControl control = new XMLControlElement(this);
+  	textColumnNames.add(name);
+  	textColumnEntries.put(name, new String[0]);
+    Undo.postTrackEdit(this, control);
+  	trackerPanel.changed = true;
+  	this.firePropertyChange("text_column", null, name); //$NON-NLS-1$
+  	return true;
+  }
 
+  /**
+   * Removes a named text column.
+   * 
+   * @param name the name
+   * @return true if the column was removed
+   */
+  public boolean removeTextColumn(String name) {
+  	if (name==null) return false;
+  	name = name.trim();
+  	for (String next: textColumnNames) {
+  		if (next.equals(name)) {
+  			XMLControl control = new XMLControlElement(this);
+  			textColumnEntries.remove(name);
+		  	textColumnNames.remove(name);
+        Undo.postTrackEdit(this, control);
+		  	trackerPanel.changed = true;
+		  	firePropertyChange("text_column", name, null); //$NON-NLS-1$
+  			return true;
+  		}
+  	}
+  	return false;
+  }
+
+  /**
+   * Renames a text column.
+   * 
+   * @param name the existing name
+   * @param newName the new name
+   * @return true if renamed
+   */
+  public boolean renameTextColumn(String name, String newName) {
+  	if (name==null) return false;
+  	name = name.trim();
+  	if (newName==null || newName.trim().equals("")) return false; //$NON-NLS-1$
+  	newName = newName.trim();
+  	for (String next: textColumnNames) {
+  		if (next.equals(newName)) return false;
+  	}
+  	for (int i=0; i<textColumnNames.size(); i++) {
+  		String next = textColumnNames.get(i);
+  		if (name.equals(next)) {
+		  	// found column to change
+  			XMLControl control = new XMLControlElement(this);
+  			textColumnNames.remove(name);
+  			textColumnNames.add(i, newName);
+  			String[] entries = textColumnEntries.remove(name);
+  			textColumnEntries.put(newName, entries);
+        Undo.postTrackEdit(this, control);
+  		}
+  	}
+  	trackerPanel.changed = true;
+  	this.firePropertyChange("text_column", name, newName); //$NON-NLS-1$
+  	return true;
+  }
+
+  /**
+   * Gets the entry in a text column for a specified frame. 
+   * 
+   * @param columnName the column name
+   * @param frameNumber the frame number
+   * @return the text entry (may be null)
+   */
+  public String getTextColumnEntry(String columnName, int frameNumber) {
+  	// return null if frame number out of bounds
+  	if (frameNumber<0) return null;
+  	String[] entries = textColumnEntries.get(columnName);
+  	// return null if text column or entry index not defined
+  	if (entries==null) return null;
+	  if (frameNumber>entries.length-1) return null;
+	  return entries[frameNumber];
+  }
+  
+  /**
+   * Sets the text in a text column for a specified frame.
+   * 
+   * @param columnName the column name
+   * @param frameNumber the frame number
+   * @param text the text (may be null)
+   * @return true if the text was changed
+   */
+  public boolean setTextColumnEntry(String columnName, int frameNumber, String text) {
+  	if (isLocked()) return false;
+  	// return if frame number out of bounds
+  	if (frameNumber<0) return false;
+  	String[] entries = textColumnEntries.get(columnName);
+  	// return if text column not defined
+  	if (entries==null) return false;
+  	
+	  if (text.trim().equals("")) text = null;  //$NON-NLS-1$
+	  else text = text.trim();
+	  
+		XMLControl control = new XMLControlElement(this);
+	  if (frameNumber>entries.length-1) {
+  		// increase size of entries array
+  		String[] newEntries = new String[frameNumber+1];
+  		System.arraycopy(entries, 0, newEntries, 0, entries.length);
+  		entries = newEntries;
+  		textColumnEntries.put(columnName, entries);
+  	}
+	  
+	  String prev = entries[frameNumber];
+	  if (prev==text || (prev!=null && prev.equals(text))) return false;
+	  // change text entry and fire property change
+	  entries[frameNumber] = text;
+    Undo.postTrackEdit(this, control);
+  	trackerPanel.changed = true;
+	  firePropertyChange("text_column", null, null); //$NON-NLS-1$
+	  return true;
+  }
+  
   /**
    * Prepares menu items and returns a new menu.
    * Subclasses should override this method and add track-specific menu items.
@@ -1281,6 +1432,8 @@ public abstract class TTrack implements Interactive,
     autoAdvanceItem.setSelected(isAutoAdvance());
     lockedItem.setEnabled(true);
     deleteTrackItem.setEnabled(!(isLocked() && !isDependent()));
+    clearStepsItem.setEnabled(!(isLocked() && !isDependent()));
+    nameItem.setEnabled(!isLocked());
     footprintMenu.removeAll();
     Footprint[] fp = getFootprints();
     JMenuItem item;
@@ -1989,6 +2142,36 @@ public abstract class TTrack implements Interactive,
   	return skippedStepWarningDialog;
   }
   
+  protected Dataset convertTextToDataColumn(String textColumnName) {
+  	if (textColumnName==null || trackerPanel==null) return null;
+  	// find named text column
+  	String[] entries = this.textColumnEntries.get(textColumnName);
+  	if (entries!=null && entries.length>0) {
+  		DatasetManager data = getData(trackerPanel);
+  		double[] x = data.getXPoints(0);
+  		double[] values = new double[x.length];
+  		for (int i=0; i<values.length; i++) {
+  			if (entries.length>i) {
+  				if (entries[i]==null) {
+  					values[i] = Double.NaN;
+  				}
+  				else try {
+  					values[i] = Double.parseDouble(entries[i]);
+  				} catch(Exception ex) {
+  					return null;
+  				}
+  			}
+  			else values[i] = Double.NaN;
+  		}
+  		Dataset dataset = new Dataset();
+  		dataset.append(x, values);
+  		dataset.setXYColumnNames(data.getDataset(0).getXColumnName(), textColumnName, getName());
+  		dataset.setMarkerColor(getColor());
+  		return dataset;
+  	}
+  	return null;
+  }
+  
 //______________________ inner StepArray class _______________________
 
   protected class StepArray {
@@ -2184,6 +2367,16 @@ public abstract class TTrack implements Interactive,
       control.setValue("trail", track.isTrailVisible()); //$NON-NLS-1$
       // locked
       if (track.isLocked()) control.setValue("locked", track.isLocked()); //$NON-NLS-1$
+      // text columns
+      if (!track.getTextColumnNames().isEmpty()) {
+      	String[] names = track.getTextColumnNames().toArray(new String[0]);
+      	control.setValue("text_column_names", names); //$NON-NLS-1$
+      	String[][] entries = new String[names.length][];
+      	for (int i=0; i< names.length; i++) {
+      		entries[i] = track.textColumnEntries.get(names[i]);
+      	}
+      	control.setValue("text_column_entries", entries); //$NON-NLS-1$
+      }
       // data functions
       if (track.trackerPanel != null) {
 	      DatasetManager data = track.getData(track.trackerPanel);
@@ -2247,6 +2440,19 @@ public abstract class TTrack implements Interactive,
       // visible and trail
       track.setVisible(control.getBoolean("visible")); //$NON-NLS-1$
       track.setTrailVisible(control.getBoolean("trail")); //$NON-NLS-1$
+      // text columns
+  		track.textColumnNames.clear();
+  		track.textColumnEntries.clear();
+      String[] columnNames = (String[])control.getObject("text_column_names"); //$NON-NLS-1$
+      if (columnNames!=null) {
+      	String[][] columnEntries = (String[][])control.getObject("text_column_entries"); //$NON-NLS-1$
+      	if (columnEntries!=null) {
+      		for (int i=0; i< columnNames.length; i++) {
+      			track.textColumnNames.add(columnNames[i]);
+      			track.textColumnEntries.put(columnNames[i], columnEntries[i]);
+      		}
+      	}
+      }
       // data functions and constants
       track.constantsLoadedFromXML = (Object[][])control.getObject("constants"); //$NON-NLS-1$
       Iterator<Object> it = control.getPropertyContent().iterator();
