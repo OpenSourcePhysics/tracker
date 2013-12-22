@@ -1109,7 +1109,14 @@ public abstract class TTrack implements Interactive,
       // check for newly loaded dataFunctions
       if (dataProp != null) {
       	XMLControl[] children = dataProp.getChildControls();
-      	for (int i = 0; i < children.length; i++) {
+      	outer: for (int i = 0; i < children.length; i++) {
+      		// compare function name with existing datasets to avoid duplications
+      		String name = children[i].getString("function_name"); //$NON-NLS-1$
+      		for (Dataset next: data.getDatasets()) {
+      			if (next instanceof DataFunction && next.getYColumnName().equals(name)) {
+      				continue outer;
+      			}
+      		}
       		DataFunction f = new DataFunction(data);
       		children[i].loadObject(f);
         	f.setXColumnVisible(false);
@@ -1277,8 +1284,10 @@ public abstract class TTrack implements Interactive,
   	for (String next: textColumnNames) {
   		if (next.equals(name)) return false;
   	}
+		XMLControl control = new XMLControlElement(this);
   	textColumnNames.add(name);
   	textColumnEntries.put(name, new String[0]);
+    Undo.postTrackEdit(this, control);
   	trackerPanel.changed = true;
   	this.firePropertyChange("text_column", null, name); //$NON-NLS-1$
   	return true;
@@ -1326,10 +1335,12 @@ public abstract class TTrack implements Interactive,
   		String next = textColumnNames.get(i);
   		if (name.equals(next)) {
 		  	// found column to change
+  			XMLControl control = new XMLControlElement(this);
   			textColumnNames.remove(name);
   			textColumnNames.add(i, newName);
   			String[] entries = textColumnEntries.remove(name);
   			textColumnEntries.put(newName, entries);
+        Undo.postTrackEdit(this, control);
   		}
   	}
   	trackerPanel.changed = true;
@@ -1373,6 +1384,7 @@ public abstract class TTrack implements Interactive,
 	  if (text.trim().equals("")) text = null;  //$NON-NLS-1$
 	  else text = text.trim();
 	  
+		XMLControl control = new XMLControlElement(this);
 	  if (frameNumber>entries.length-1) {
   		// increase size of entries array
   		String[] newEntries = new String[frameNumber+1];
@@ -1385,6 +1397,8 @@ public abstract class TTrack implements Interactive,
 	  if (prev==text || (prev!=null && prev.equals(text))) return false;
 	  // change text entry and fire property change
 	  entries[frameNumber] = text;
+    Undo.postTrackEdit(this, control);
+  	trackerPanel.changed = true;
 	  firePropertyChange("text_column", null, null); //$NON-NLS-1$
 	  return true;
   }
@@ -2427,12 +2441,12 @@ public abstract class TTrack implements Interactive,
       track.setVisible(control.getBoolean("visible")); //$NON-NLS-1$
       track.setTrailVisible(control.getBoolean("trail")); //$NON-NLS-1$
       // text columns
+  		track.textColumnNames.clear();
+  		track.textColumnEntries.clear();
       String[] columnNames = (String[])control.getObject("text_column_names"); //$NON-NLS-1$
       if (columnNames!=null) {
       	String[][] columnEntries = (String[][])control.getObject("text_column_entries"); //$NON-NLS-1$
       	if (columnEntries!=null) {
-      		track.textColumnNames.clear();
-      		track.textColumnEntries.clear();
       		for (int i=0; i< columnNames.length; i++) {
       			track.textColumnNames.add(columnNames[i]);
       			track.textColumnEntries.put(columnNames[i], columnEntries[i]);

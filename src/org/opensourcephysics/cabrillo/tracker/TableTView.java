@@ -114,7 +114,10 @@ public class TableTView extends TrackChooserTView {
   	if (columnsDialog == null) return;
 		closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
 		defineButton.setText(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
+		defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
     columnsDialog.setTitle(TrackerRes.getString("TableTView.Dialog.TableColumns.Title")); //$NON-NLS-1$
+    textColumnButton.setText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Text")); //$NON-NLS-1$
+    textColumnButton.setToolTipText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Tooltip")); //$NON-NLS-1$
   }
   
   /**
@@ -146,6 +149,7 @@ public class TableTView extends TrackChooserTView {
       int y = (dim.height - columnsDialog.getBounds().height) / 2;
       columnsDialog.setLocation(x, y);
     }
+    textColumnButton.setEnabled(!track.isLocked());
     if (!columnsDialog.isVisible()) columnsDialog.setVisible(true);
     else columnsDialog.repaint();
   }
