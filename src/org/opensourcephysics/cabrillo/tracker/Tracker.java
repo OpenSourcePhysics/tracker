@@ -199,7 +199,7 @@ public class Tracker {
 			new Locale("nl", "NL", ""), // dutch //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			new Locale("pt", "PT", ""), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			new Locale("pt", "BR", ""), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-//			new Locale("sk"), // slovak //$NON-NLS-1$
+			new Locale("sk"), // slovak //$NON-NLS-1$
 			new Locale("sl"), // slovenian //$NON-NLS-1$
 			new Locale("sv"), // swedish //$NON-NLS-1$
 			Locale.TAIWAN,
@@ -595,7 +595,6 @@ public class Tracker {
    * Creates the actions.
    */
   protected static void createActions() {
-  	if (aboutTrackerAction != null) return;
     // about Tracker
     aboutTrackerAction = new AbstractAction(
         TrackerRes.getString("Tracker.Action.AboutTracker"), null) { //$NON-NLS-1$
@@ -603,7 +602,6 @@ public class Tracker {
 				showAboutTracker();
       }
     };
-
     // Tracker README
     readmeAction = new AbstractAction(
         TrackerRes.getString("Tracker.Readme")+"...", null) { //$NON-NLS-1$ //$NON-NLS-2$
