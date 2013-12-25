@@ -472,6 +472,7 @@ public class TrackerIO extends VideoIO {
   	OSPLog.finer("opening "+path); //$NON-NLS-1$
   	String rawPath = path;
   	path = ResourceLoader.getURIPath(path);
+
   	isffmpegError  = false;
   	theFrame = frame;
 		VideoIO.setCanceled(false);
@@ -496,6 +497,7 @@ public class TrackerIO extends VideoIO {
   	monitorDialog.setVisible(true);
   	monitors.add(monitorDialog);
     
+  	String xmlPath = null;
     if(videoFileFilter.accept(testFile)) { 
     	OSPLog.finest("opening video path "+path); //$NON-NLS-1$
 			// download web videos to the OSP cache
@@ -742,7 +744,7 @@ public class TrackerIO extends VideoIO {
     	}
     	// load data from trk file
       XMLControlElement control = new XMLControlElement();
-      control.read(path);
+      xmlPath = control.read(path);
       if (VideoIO.isCanceled()) return;
       monitorDialog.stop();
     	if (monitorDialog.isVisible()) 
@@ -812,7 +814,13 @@ public class TrackerIO extends VideoIO {
     }
     
     monitorDialog.close();
-  	rawPath = XML.forwardSlash(rawPath); 
+  	rawPath = XML.forwardSlash(rawPath);
+  	if (xmlPath!=null && 
+  			(xmlPath.contains(".zip!") ||   //$NON-NLS-1$
+  			xmlPath.contains(".trz!") ||   //$NON-NLS-1$
+  			xmlPath.contains(".jar!"))) { //$NON-NLS-1$
+  		rawPath = XML.forwardSlash(xmlPath);
+  	}
     Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
     TMenuBar.getMenuBar(trackerPanel).refresh();
     TTrackBar.refreshMemoryButton();
