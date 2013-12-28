@@ -217,7 +217,8 @@ public class PrefsDialog extends JDialog {
   				}
   			}
   			String[] args = filenames.isEmpty()? null: filenames.toArray(new String[0]);
-      	TrackerStarter.main(args);
+      	TrackerStarter.relaunch(args);
+      	// TrackerStarter exits current VM after relaunching new one
       }
     });
     
