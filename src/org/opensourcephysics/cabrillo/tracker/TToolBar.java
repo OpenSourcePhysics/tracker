@@ -668,18 +668,24 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	        }
         }
         if (getComponentCount()>0)
-        	add(getSeparator());
-        if (trackerPanel.isEnabled("button.clipSettings")) //$NON-NLS-1$
+        	add(getSeparator()); // first separator
+        boolean addSecondSeparator = false;
+        if (trackerPanel.isEnabled("button.clipSettings")) {//$NON-NLS-1$
         	add(clipSettingsButton);
+        	addSecondSeparator = true;
+        }
         if (trackerPanel.isEnabled("calibration.stick") //$NON-NLS-1$
         		|| trackerPanel.isEnabled("calibration.tape") //$NON-NLS-1$
         		|| trackerPanel.isEnabled("calibration.points") //$NON-NLS-1$
         		|| trackerPanel.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
         	add(calibrationButton);
+        	addSecondSeparator = true;
         }
-        if (trackerPanel.isEnabled("button.axes")) //$NON-NLS-1$
+        if (trackerPanel.isEnabled("button.axes")) {//$NON-NLS-1$
         	add(axesButton);
-        if (getComponentCount()>0)
+        	addSecondSeparator = true;
+        }
+        if (addSecondSeparator)
         	add(getSeparator());
         if (trackerPanel.isCreateTracksEnabled()) {
         	add(newTrackButton);

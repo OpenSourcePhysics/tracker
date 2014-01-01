@@ -1156,7 +1156,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     // help menu
     int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     final JMenu helpMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Help")); //$NON-NLS-1$
-    // help item
+    
+    // Tracker help items
     JMenuItem startItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.GettingStarted")); //$NON-NLS-1$
     startItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -1167,8 +1168,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         }
       }
     });
-    helpMenu.add(startItem);
-    
+    helpMenu.add(startItem);    
     JMenuItem helpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerHelp")); //$NON-NLS-1$
     helpItem.setAccelerator(KeyStroke.getKeyStroke('H', keyMask));
     helpItem.addActionListener(new ActionListener() {
@@ -1226,9 +1226,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     
     //diagnostics menu
     JMenu diagMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Diagnostics")); //$NON-NLS-1$
-    helpMenu.add(diagMenu);    
-    
-    // log item
+    helpMenu.add(diagMenu);        
     JMenuItem logItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.MessageLog")); //$NON-NLS-1$
     logItem.setAccelerator(KeyStroke.getKeyStroke('L', keyMask));
     logItem.addActionListener(new ActionListener() {
@@ -1246,24 +1244,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       }
     });
     diagMenu.add(logItem);
-    // startLog item
-    if (Tracker.startLogAction!=null) 
-    	diagMenu.add(Tracker.startLogAction);
-    diagMenu.addSeparator();
-    
-    if (Tracker.aboutJavaAction != null) 
-    	diagMenu.add(Tracker.aboutJavaAction);
-    if (Tracker.aboutQTAction != null)
-    	diagMenu.add(Tracker.aboutQTAction);
-    if (Tracker.aboutXuggleAction != null)
-    	diagMenu.add(Tracker.aboutXuggleAction);
-    if (Tracker.aboutThreadsAction != null)
-    	diagMenu.add(Tracker.aboutThreadsAction);
+    if (Tracker.startLogAction!=null) diagMenu.add(Tracker.startLogAction);
+    diagMenu.addSeparator();    
+    if (Tracker.aboutJavaAction != null) diagMenu.add(Tracker.aboutJavaAction);
+    if (Tracker.aboutQTAction != null) diagMenu.add(Tracker.aboutQTAction);
+    if (Tracker.aboutXuggleAction != null) diagMenu.add(Tracker.aboutXuggleAction);
+    if (Tracker.aboutThreadsAction != null) diagMenu.add(Tracker.aboutThreadsAction);
     // end diagnostics menu
     
     helpMenu.addSeparator();
-    if (Tracker.aboutTrackerAction != null) 
-    	helpMenu.add(Tracker.aboutTrackerAction);
+    if (Tracker.aboutTrackerAction != null) helpMenu.add(Tracker.aboutTrackerAction);
     return helpMenu;
   }
 

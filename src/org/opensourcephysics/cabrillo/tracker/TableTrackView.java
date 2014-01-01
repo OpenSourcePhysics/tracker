@@ -296,6 +296,16 @@ public class TableTrackView extends TrackView {
     for (int i = colCount; i < tableData.getDatasets().size(); i++) {
     	tableData.setYColumnVisible(i, false);
     }
+    if (colCount==0) {
+    	// show independent variable
+    	Dataset in = datasets.get(0);
+    	String xTitle = in.getXColumnName();
+    	Dataset local = tableData.getDataset(colCount++);
+    	double[] x = in.getXPoints();
+    	local.append(x, x);
+    	local.setXYColumnNames(xTitle, xTitle);
+    	local.setYColumnVisible(false);
+    }
     // display the table
     dataTable.refreshTable();
     setHighlighted(frameNumber);
@@ -1313,7 +1323,7 @@ public class TableTrackView extends TrackView {
         	else {
         		textColumnsVisible.remove(e.getActionCommand());
         	}
-        	dataTable.refreshTable();
+        	if (refresh) refresh(trackerPanel.getFrameNumber());
         	trackerPanel.changed = true;
         }
       });

@@ -121,12 +121,25 @@ public class TrackerStarter {
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
 		}
 	}
+	
+	/**
+	 * Relaunches a new instance of Tracker.
+	 * @param args array of filenames
+	 */
+	public static void relaunch(final String[] args) {
+		Runnable runner = new Runnable() {
+			public void run() {
+				TrackerStarter.main(args);
+			}
+		};
+		new Thread(runner).start();
+	}
 
 	/**
-	 * @param args
+	 * Main entry point when used as executable
+	 * @param args array of filenames
 	 */
 	public static void main(String[] args) {
-
 		String argString = null;
 		if (args != null && args.length > 0) {
 			argString = ""; //$NON-NLS-1$
@@ -637,7 +650,7 @@ public class TrackerStarter {
 
 		// set up timer to exit after short delay
 		if (timer==null) {
-			timer = new Timer(5000, new ActionListener() {
+			timer = new Timer(1000, new ActionListener() {
 				 public void actionPerformed(ActionEvent e) {
 					 System.exit(0);
 				 }
@@ -652,7 +665,7 @@ public class TrackerStarter {
 		
 		// start the Tracker process and wait for it to finish
 		// note that successful process should not return until Tracker is exited
-		final Process process = builder.start();				
+		final Process process = builder.start();
 		int result = process.waitFor();
 		
 		// if process returns immediately with exit code 1, log it's error and input streams
