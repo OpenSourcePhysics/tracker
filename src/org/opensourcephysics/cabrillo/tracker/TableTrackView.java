@@ -25,6 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
+import java.lang.reflect.Constructor;
 import java.rmi.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -41,7 +42,6 @@ import javax.swing.table.TableCellRenderer;
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.display.DataTable.NumberFormatDialog;
-import org.opensourcephysics.frames.ImageFrame;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.*;
 
@@ -564,7 +564,25 @@ public class TableTrackView extends TrackView {
       return;
     }
     MeasuredImage mi = new MeasuredImage(image, 0, w, h, 0);
-    ImageFrame frame = new ImageFrame(mi);
+    
+    // create ImageFrame using reflection
+    OSPFrame frame = null;
+    try {
+			Class<?> type = Class.forName("org.opensourcephysics.frames.ImageFrame"); //$NON-NLS-1$
+			Constructor<?>[] constructors = type.getConstructors();
+			for(int i = 0; i<constructors.length; i++) {
+			  Class<?>[] parameters = constructors[i].getParameterTypes();
+			  if(parameters.length==1 && parameters[0]==MeasuredImage.class) {
+			    frame = (OSPFrame) constructors[i].newInstance(new Object[] {mi});
+			    break;
+			  }
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+    if (frame==null) return;
+    
+//    ImageFrame frame = new ImageFrame(mi);
     frame.setTitle(DisplayRes.getString("Snapshot.Title")); //$NON-NLS-1$
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setKeepHidden(false);    

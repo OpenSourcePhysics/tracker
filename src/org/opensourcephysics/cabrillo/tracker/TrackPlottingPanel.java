@@ -26,13 +26,14 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
+import java.lang.reflect.Constructor;
 import java.rmi.RemoteException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+
 import javax.swing.*;
 import javax.swing.event.MouseInputAdapter;
 
@@ -40,7 +41,6 @@ import org.opensourcephysics.display.*;
 import org.opensourcephysics.tools.*;
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.axes.*;
-import org.opensourcephysics.frames.ImageFrame;
 import org.opensourcephysics.media.core.*;
 
 /**
@@ -398,7 +398,25 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
       return;
     }
     MeasuredImage mi = new MeasuredImage(image, 0, w, h, 0);
-    ImageFrame frame = new ImageFrame(mi);
+    
+    // create ImageFrame using reflection
+    OSPFrame frame = null;
+    try {
+			Class<?> type = Class.forName("org.opensourcephysics.frames.ImageFrame"); //$NON-NLS-1$
+			Constructor<?>[] constructors = type.getConstructors();
+			for(int i = 0; i<constructors.length; i++) {
+			  Class<?>[] parameters = constructors[i].getParameterTypes();
+			  if(parameters.length==1 && parameters[0]==MeasuredImage.class) {
+			    frame = (OSPFrame) constructors[i].newInstance(new Object[] {mi});
+			    break;
+			  }
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+    if (frame==null) return;
+    
+//    ImageFrame frame = new ImageFrame(mi);
     frame.setTitle(DisplayRes.getString("Snapshot.Title")); //$NON-NLS-1$
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setKeepHidden(false);    
