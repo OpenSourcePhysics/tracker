@@ -45,7 +45,18 @@ public class TrackerJarFilter implements FilenameFilter {
     	try {
 				Double.parseDouble(version);
       	return true;
-			} catch (Exception e) {
+			} catch (Exception ex1) {
+	    	try {
+	    		String snapshot = "-snapshot"; //$NON-NLS-1$
+	    		int n = version.indexOf(snapshot);
+	    		if (n>-1) {
+	    			version = version.substring(0, n);
+						Double.parseDouble(version);
+		      	return true;
+	    		}
+				} catch (Exception ex2) {
+				}
+
 			}
     }
     return false;

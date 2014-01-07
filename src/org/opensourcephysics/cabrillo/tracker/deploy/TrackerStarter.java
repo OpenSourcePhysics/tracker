@@ -77,6 +77,7 @@ public class TrackerStarter {
 	static String logText = ""; //$NON-NLS-1$
 	static String javaCommand = "java"; //$NON-NLS-1$
 	static String preferredVM;
+	static String snapshot = "-snapshot"; //$NON-NLS-1$
 	// static String preferredEngine;
 	static boolean debug = false;
 	static boolean log = true;
@@ -388,10 +389,15 @@ public class TrackerStarter {
 				if (!jar.equals("tracker.jar")) { //$NON-NLS-1$
 					int dot = jar.indexOf(".jar"); //$NON-NLS-1$
 					String ver = jar.substring(8, dot);
+					String versionStr = ver;
+	    		int n = ver.toLowerCase().indexOf(snapshot);
+	    		if (n>-1) {
+	    			ver = ver.substring(0, n);
+	    		}
 					try {
 						launchVersionNumber = Double.parseDouble(ver);
-						launchVersionString = ver;
-						showDebugMessage("preferred version: " + launchVersionNumber); //$NON-NLS-1$
+						launchVersionString = versionStr;
+						showDebugMessage("preferred version: " + launchVersionString); //$NON-NLS-1$
 					} catch (Exception ex) {
 						showDebugMessage("version number could not be parsed: " + ver); //$NON-NLS-1$
 					}
@@ -453,7 +459,6 @@ public class TrackerStarter {
 		// if no prefs found in tracker prefs, look for deprecated starterPrefsFile
 		if (userHome != null) {
 			prefsFile = new File(userHome, starterPrefsFileName);
-			;
 		}
 		// if not found in user home, check TRACKER_HOME
 		if (prefsFile == null || !prefsFile.exists()) {
@@ -496,7 +501,7 @@ public class TrackerStarter {
 					try {
 						launchVersionNumber = Double.parseDouble(ver);
 						launchVersionString = ver;
-						showDebugMessage("preferred version: " + launchVersionNumber); //$NON-NLS-1$
+						showDebugMessage("preferred version: " + launchVersionString); //$NON-NLS-1$
 					} catch (Exception ex) {
 						showDebugMessage("version number could not be parsed: " + ver); //$NON-NLS-1$
 					}
@@ -557,8 +562,14 @@ public class TrackerStarter {
 					try {
 						String vers = fileNames[i].substring(8);
 						vers = vers.substring(0, vers.length() - 4);
+						String versionStr = vers;
+		    		int n = vers.toLowerCase().indexOf(snapshot);
+		    		if (n>-1) {
+		    			vers = vers.substring(0, n);
+		    		}
+
 						double nextVersion = Double.parseDouble(vers);
-						if (nextVersion == launchVersionNumber) {
+						if (nextVersion == launchVersionNumber && versionStr.equals(launchVersionString)) {
 							File file = new File(jarHome, fileNames[i]);
 							showDebugMessage("using tracker jar: " + file.getAbsolutePath()); //$NON-NLS-1$
 							return file.getAbsolutePath();
