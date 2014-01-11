@@ -1657,7 +1657,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       marking = markable
                 && (selectedTrack.isMarkByDefault() != invert);
     }
-    Interactive iad = getTracks().isEmpty()? null: getInteractive();
+    Interactive iad = getTracks().isEmpty() || mouseEvent==null? null: getInteractive();
     if (marking) {
       setMouseCursor(selectedTrack.getMarkingCursor(e));
       if (Tracker.showHints) {
