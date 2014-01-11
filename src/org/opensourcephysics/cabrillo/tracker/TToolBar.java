@@ -1167,9 +1167,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       for (TTrack track: trackerPanel.calibrationTools) {
 		  	toolsVisible = toolsVisible || track.isVisible();
       }
-//      this.setSelected(toolsVisible);
-      if (notYetCalibrated && toolsVisible)
+      if (notYetCalibrated && toolsVisible) {
       	notYetCalibrated = false;
+	      setSelected(true);
+      }
     }
     
   }
