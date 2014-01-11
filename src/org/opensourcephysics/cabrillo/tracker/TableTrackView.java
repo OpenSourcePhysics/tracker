@@ -448,9 +448,13 @@ public class TableTrackView extends TrackView {
       		dataTable.clearSelection();
       		return;
       	}
-        dataTable.setRowSelectionInterval(highlightRow, highlightRow);
-        int cols = dataTable.getColumnCount();
-        dataTable.setColumnSelectionInterval(0, cols-1);
+        try {
+					dataTable.setRowSelectionInterval(highlightRow, highlightRow);
+				} catch (Exception e) {
+					// occasionally throws exception during loading!
+				}
+				int cols = dataTable.getColumnCount();
+				dataTable.setColumnSelectionInterval(0, cols-1);
       }
     };
     if(SwingUtilities.isEventDispatchThread()) runner.run();
