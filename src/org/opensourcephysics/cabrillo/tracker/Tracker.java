@@ -184,7 +184,8 @@ public class Tracker {
     grabbedCursor = Toolkit.getDefaultToolkit().createCustomCursor(
     		im, new Point(12, 8), "Grabbed"); //$NON-NLS-1$  	
   	// create static objects AFTER they are defined above
-	locales = new Locale[] { Locale.ENGLISH, 
+    locales = new Locale[] { 
+			Locale.ENGLISH, 
 			new Locale("ar"), // arabic //$NON-NLS-1$
 			new Locale("cs"), // czech //$NON-NLS-1$
 			new Locale("in"), // indonesian //$NON-NLS-1$
@@ -194,16 +195,17 @@ public class Tracker {
 			new Locale("es"), // spanish //$NON-NLS-1$
 			new Locale("fi"), // finnish //$NON-NLS-1$
 			Locale.FRENCH,
+//			new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
 			Locale.ITALIAN,
 			new Locale("ko"), // korean //$NON-NLS-1$
-//			new Locale("nl", "NL", ""), // dutch //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			new Locale("pt", "PT", ""), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			new Locale("pt", "BR", ""), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+//			new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
+			new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
+			new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("sk"), // slovak //$NON-NLS-1$
 			new Locale("sl"), // slovenian //$NON-NLS-1$
 			new Locale("sv"), // swedish //$NON-NLS-1$
-			Locale.TAIWAN,
-			Locale.CHINA};
+			Locale.TAIWAN, // traditional chinese
+			Locale.CHINA}; // simplified chinese
   	setDefaultConfig(getFullConfig());
   	loadPreferences();
   	loadCurrentVersion(false);

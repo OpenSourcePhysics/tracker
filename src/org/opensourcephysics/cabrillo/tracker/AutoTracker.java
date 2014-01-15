@@ -2023,6 +2023,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         			break;
         	}
         }
+        public void keyReleased(KeyEvent e) {
+        	// handle shift key release when wizard takes focus from TrackerPanel
+        	if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
+        		trackerPanel.isShiftKeyDown = false;
+        	}
+        }
       };
       
       int delay = 500; // 1/2 second delay for mouseover action 
