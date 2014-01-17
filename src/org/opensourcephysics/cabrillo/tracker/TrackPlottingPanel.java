@@ -574,7 +574,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			    	}			    	
 		      }
 		      // if this plot has guests, send their data too
-		    	int subscript = 1;
 		      for (TTrack guest: guests) {
 		      	DatasetManager guestData = guest.getData(guest.trackerPanel);
 		      	refresher.addData(guestData);
@@ -594,7 +593,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		  	    		}
 		  	    	}
 		  	    	else {
-		  	    		String newName = nextOut.getYColumnName()+"_{"+subscript+"}"; //$NON-NLS-1$ //$NON-NLS-2$
+		  	    		String newName = nextOut.getYColumnName()+"_{"+guest.getName()+"}"; //$NON-NLS-1$ //$NON-NLS-2$
 	  	    			nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
 		  	    	}
 			      	// pad nextOut with NaNs
@@ -616,13 +615,12 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		  	    		}
 		  	    	}
 		  	    	else {
-		  	    		String newName = nextOut.getYColumnName()+"_{"+subscript+"}"; //$NON-NLS-1$ //$NON-NLS-2$
+		  	    		String newName = nextOut.getYColumnName()+"_{"+guest.getName()+"}"; //$NON-NLS-1$ //$NON-NLS-2$
 	  	    			nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
 		  	    	}
 			      	// pad nextOut with NaNs
 			      	padDataset(nextOut, tArray);
 			      }		      	
-		      	subscript++;
 		      }
 	        // get data tool and send it the job
 	        try {
