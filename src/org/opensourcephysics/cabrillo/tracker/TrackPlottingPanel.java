@@ -585,12 +585,16 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		  	    	nextOut.setMarkerColor(guest.getColor());
 		  	    	nextOut.setLineColor(guest.getColor().darker());
 		  	    	nextOut.setConnected(true);
-		  	    	nextOut.setXColumnVisible(false);
+		  	    	nextOut.setXColumnVisible(false);		  	    	
 		  	    	if (tab!=null) {
 		  	    		String newName = tab.getColumnName(nextOut.getID());
 		  	    		if (newName!=null) {
 		  	    			nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
 		  	    		}
+		  	    	}
+		  	    	else {
+		  	    		String newName = nextOut.getYColumnName()+"_{"+guest.getName()+"}"; //$NON-NLS-1$ //$NON-NLS-2$
+	  	    			nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
 		  	    	}
 			      	// pad nextOut with NaNs
 			      	padDataset(nextOut, tArray);
@@ -609,6 +613,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		  	    		if (newName!=null) {
 		  	    			nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
 		  	    		}
+		  	    	}
+		  	    	else {
+		  	    		String newName = nextOut.getYColumnName()+"_{"+guest.getName()+"}"; //$NON-NLS-1$ //$NON-NLS-2$
+	  	    			nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
 		  	    	}
 			      	// pad nextOut with NaNs
 			      	padDataset(nextOut, tArray);
