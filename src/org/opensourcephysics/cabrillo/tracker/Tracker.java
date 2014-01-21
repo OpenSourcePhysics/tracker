@@ -155,7 +155,8 @@ public class Tracker {
   static String preferredTrackerJar;
   static int checkForUpgradeInterval = 0;
   static boolean isRadians, isXuggleFast, engineKnown=true;
-  static boolean warnXuggleError=true, warnNoVideoEngine=true, use32BitMode=false, warnVariableDuration=true;
+  static boolean warnXuggleError=true, warnNoVideoEngine=true, use32BitMode=false;
+  static boolean warnXuggleVersion=true, warnVariableDuration=true;
   static String[] prelaunchExecutables = new String[0];
   static Collection<String> dataFunctionControls = new HashSet<String>();
 
@@ -195,7 +196,7 @@ public class Tracker {
 			new Locale("es"), // spanish //$NON-NLS-1$
 			new Locale("fi"), // finnish //$NON-NLS-1$
 			Locale.FRENCH,
-//			new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
+			new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
 			Locale.ITALIAN,
 			new Locale("ko"), // korean //$NON-NLS-1$
 //			new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
@@ -1205,60 +1206,45 @@ public class Tracker {
   	}
 
 //    warnNoVideoEngine = false; // for PLATO
-    if (warnNoVideoEngine && (VideoIO.guessXuggleVersion()==5.4 
-    		|| VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE))) {    	
+    if (warnNoVideoEngine && VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {    	
+    	// warn user that no video engine is active
     	boolean xuggleInstalled = VideoIO.guessXuggleVersion()!=0;
     	boolean qtInstalled = ExtensionsManager.getManager().getQTJavaZip()!=null;
-    	// warn user that no video engine is active
-    	final JCheckBox checkbox = new JCheckBox(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
-    	checkbox.addActionListener(new ActionListener() {
-    		public void actionPerformed(ActionEvent e) {
-    			warnNoVideoEngine = !checkbox.isSelected();
-    		}
-    	});
-    	ArrayList<String> message = new ArrayList<String>();
     	
+    	ArrayList<String> message = new ArrayList<String>();    	
 			boolean showRelaunchDialog = false;
-  		if (VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {
-	    	// no video engines are available
 	    	
-	    	// no engine installed
-	    	if (!xuggleInstalled && !qtInstalled) {
-	    		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message1")); //$NON-NLS-1$
-	    		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message2")); //$NON-NLS-1$
-	    		message.add(" "); //$NON-NLS-1$
-	    		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message3")); //$NON-NLS-1$
-	    	}
-	    	
-	    	// engines installed but no 32-bit VM
-	    	else if (ExtensionsManager.getManager().getDefaultJRE(32)==null) {
-	    		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message1")); //$NON-NLS-1$
-	    		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message2")); //$NON-NLS-1$
-	    		message.add(" "); //$NON-NLS-1$
-	    		message.add(TrackerRes.getString("Tracker.Dialog.Install32BitVM.Message")); //$NON-NLS-1$	    		
-	    		message.add(TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message")); //$NON-NLS-1$	    		
-	    	}
-	    	
-	    	// engines installed but running in 64-bit VM
-	    	else if (OSPRuntime.getVMBitness()==64) {
-	    		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message1")); //$NON-NLS-1$
-	    		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message2")); //$NON-NLS-1$
-	    		message.add(" "); //$NON-NLS-1$
-	    		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Question")); //$NON-NLS-1$	    			    		
-	    		showRelaunchDialog = true;
-	    	}
-	    	
-	    	// engines installed but not working
-	    	else {
-	    		message.add(TrackerRes.getString("Tracker.Dialog.EngineProblems.Message1")); //$NON-NLS-1$
-	    		message.add(TrackerRes.getString("Tracker.Dialog.EngineProblems.Message2")); //$NON-NLS-1$
-	    	}
-  		}
-  		else if (VideoIO.guessXuggleVersion()==5.4) {
-    		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message1")); //$NON-NLS-1$
-    		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message2")); //$NON-NLS-1$
-    		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
-  		}
+    	// no engine installed
+    	if (!xuggleInstalled && !qtInstalled) {
+    		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message1")); //$NON-NLS-1$
+    		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message2")); //$NON-NLS-1$
+    		message.add(" "); //$NON-NLS-1$
+    		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message3")); //$NON-NLS-1$
+    	}
+    	
+    	// engines installed but no 32-bit VM
+    	else if (ExtensionsManager.getManager().getDefaultJRE(32)==null) {
+    		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message1")); //$NON-NLS-1$
+    		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message2")); //$NON-NLS-1$
+    		message.add(" "); //$NON-NLS-1$
+    		message.add(TrackerRes.getString("Tracker.Dialog.Install32BitVM.Message")); //$NON-NLS-1$	    		
+    		message.add(TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message")); //$NON-NLS-1$	    		
+    	}
+    	
+    	// engines installed but running in 64-bit VM
+    	else if (OSPRuntime.getVMBitness()==64) {
+    		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message1")); //$NON-NLS-1$
+    		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message2")); //$NON-NLS-1$
+    		message.add(" "); //$NON-NLS-1$
+    		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Question")); //$NON-NLS-1$	    			    		
+    		showRelaunchDialog = true;
+    	}
+    	
+    	// engines installed but not working
+    	else {
+    		message.add(TrackerRes.getString("Tracker.Dialog.EngineProblems.Message1")); //$NON-NLS-1$
+    		message.add(TrackerRes.getString("Tracker.Dialog.EngineProblems.Message2")); //$NON-NLS-1$
+    	}
   		
     	Box box = Box.createVerticalBox();
   		for (String line: message) {    			
@@ -1267,6 +1253,12 @@ public class Tracker {
     	
     	// add "don't show again" checkbox
     	box.add(new JLabel("  ")); //$NON-NLS-1$
+    	final JCheckBox checkbox = new JCheckBox(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
+    	checkbox.addActionListener(new ActionListener() {
+    		public void actionPerformed(ActionEvent e) {
+    			warnNoVideoEngine = !checkbox.isSelected();
+    		}
+    	});   	
     	box.add(checkbox);
     	box.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
     	
@@ -1297,6 +1289,36 @@ public class Tracker {
 	    			TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Title"),  //$NON-NLS-1$
 	    			JOptionPane.INFORMATION_MESSAGE);
     	}
+    		
+    }
+    
+//  	warnXuggleVersion = false; // for PLATO
+    if (warnXuggleVersion && VideoIO.guessXuggleVersion()==5.4) {    	
+    	// warn user that xuggle 5.4 is not recommended
+    	ArrayList<String> message = new ArrayList<String>();
+  		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message1")); //$NON-NLS-1$
+  		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message2")); //$NON-NLS-1$
+  		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
+  		
+    	Box box = Box.createVerticalBox();
+  		for (String line: message) {    			
+  			box.add(new JLabel(line));
+  		}
+    	
+    	// add "don't show again" checkbox
+    	box.add(new JLabel("  ")); //$NON-NLS-1$
+    	final JCheckBox checkbox = new JCheckBox(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
+    	checkbox.addActionListener(new ActionListener() {
+    		public void actionPerformed(ActionEvent e) {
+    			warnXuggleVersion = !checkbox.isSelected();
+    		}
+    	});
+    	box.add(checkbox);
+    	box.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+    	
+    	JOptionPane.showMessageDialog(frame, box,
+    			TrackerRes.getString("PrefsDialog.Checkbox.WarnXuggleVersion"),  //$NON-NLS-1$
+    			JOptionPane.INFORMATION_MESSAGE);
     		
     }
     testPanel = frame.getTrackerPanel(0);
@@ -1500,6 +1522,8 @@ public class Tracker {
       		control.setValue("warn_no_engine", Tracker.warnNoVideoEngine); //$NON-NLS-1$
       	if (!Tracker.warnVariableDuration) // true by default
       		control.setValue("warn_variable_frame_duration", Tracker.warnVariableDuration); //$NON-NLS-1$
+      	if (!Tracker.warnXuggleVersion) // true by default
+      		control.setValue("warn_xuggle_version", Tracker.warnXuggleVersion); //$NON-NLS-1$
       	if (!Tracker.warnXuggleError) // true by default
       		control.setValue("warn_xuggle_error", Tracker.warnXuggleError); //$NON-NLS-1$
       	// always save preferred tracker.jar
@@ -1592,6 +1616,8 @@ public class Tracker {
       		Tracker.warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_xuggle_error")) //$NON-NLS-1$
       		Tracker.warnXuggleError = control.getBoolean("warn_xuggle_error"); //$NON-NLS-1$
+      	if (control.getPropertyNames().contains("warn_xuggle_version")) //$NON-NLS-1$
+      		Tracker.warnXuggleVersion = control.getBoolean("warn_xuggle_version"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_variable_frame_duration")) //$NON-NLS-1$
       		Tracker.warnVariableDuration = control.getBoolean("warn_variable_frame_duration"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("show_hints")) { //$NON-NLS-1$

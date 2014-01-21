@@ -82,7 +82,7 @@ public class PrefsDialog extends JDialog {
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
   		versionLabel, runLabel;
   protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, 
-  		xuggleErrorCheckbox, variableDurationCheckBox;
+  		xuggleErrorCheckbox, xuggleVersionCheckbox, variableDurationCheckBox;
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
   protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, 
@@ -100,7 +100,7 @@ public class PrefsDialog extends JDialog {
   protected int prevMemory, prevRecentCount, prevUpgradeInterval;
   protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine;
   protected boolean prevHints, prevRadians, prevFastXuggle, 
-  		prevWarnNoVideoEngine, prevWarnXuggleError, prevClearCacheOnExit, prevUse32BitVM;
+  		prevWarnNoVideoEngine, prevWarnXuggleError, prevWarnXuggleVersion, prevClearCacheOnExit, prevUse32BitVM;
   protected File prevCache;
   protected String[] prevExecutables;
 
@@ -834,6 +834,7 @@ public class PrefsDialog extends JDialog {
         xuggleFastButton.setEnabled(xuggleButton.isSelected());
         xuggleSlowButton.setEnabled(xuggleButton.isSelected());
         xuggleErrorCheckbox.setEnabled(xuggleButton.isSelected());
+        xuggleVersionCheckbox.setEnabled(xuggleButton.isSelected());
     		if (!xuggleButton.isSelected()) return;
   			Tracker.engineKnown = true;
   			// OSX: if 32-bit, set preferred VM to 64-bit and inform user
@@ -963,6 +964,14 @@ public class PrefsDialog extends JDialog {
       	Tracker.warnXuggleError = xuggleErrorCheckbox.isSelected();
       }
     });
+    xuggleVersionCheckbox = new JCheckBox();
+    xuggleVersionCheckbox.setOpaque(false);
+    xuggleVersionCheckbox.setSelected(Tracker.warnXuggleVersion);
+    xuggleVersionCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	Tracker.warnXuggleVersion = xuggleVersionCheckbox.isSelected();
+      }
+    });
     variableDurationCheckBox = new JCheckBox();
     variableDurationCheckBox.setOpaque(false);
     variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
@@ -985,8 +994,9 @@ public class PrefsDialog extends JDialog {
     warningsSubPanel.add(warningsCenterPanel, BorderLayout.CENTER);
 
     warningsNorthPanel.add(vidWarningCheckbox);
-    warningsNorthPanel.add(xuggleErrorCheckbox);
-    warningsCenterPanel.add(variableDurationCheckBox);
+    warningsNorthPanel.add(variableDurationCheckBox);
+    warningsCenterPanel.add(xuggleErrorCheckbox);
+    warningsCenterPanel.add(xuggleVersionCheckbox);
     
     // set selected states of engine buttons AFTER creating the xugglefast, xuggleslow and warnxuggle buttons
     if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)
@@ -1280,6 +1290,7 @@ public class PrefsDialog extends JDialog {
     xuggleFastButton.setEnabled(xuggleButton.isSelected());
     xuggleSlowButton.setEnabled(xuggleButton.isSelected());
     xuggleErrorCheckbox.setEnabled(xuggleButton.isSelected());
+    xuggleVersionCheckbox.setEnabled(xuggleButton.isSelected());
     if (OSPRuntime.isWindows()) {
 	    vm32Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(32).isEmpty());
 	    vm64Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(64).isEmpty());
@@ -1307,6 +1318,7 @@ public class PrefsDialog extends JDialog {
 		prevExecutables = Tracker.prelaunchExecutables;
 		prevWarnNoVideoEngine = Tracker.warnNoVideoEngine;
 		prevWarnXuggleError = Tracker.warnXuggleError;
+		prevWarnXuggleVersion = Tracker.warnXuggleVersion;
 		prevCache = ResourceLoader.getOSPCache();
 		prevUpgradeInterval = Tracker.checkForUpgradeInterval;
 		prevUse32BitVM = Tracker.use32BitMode;
@@ -1327,6 +1339,7 @@ public class PrefsDialog extends JDialog {
 		Tracker.prelaunchExecutables = prevExecutables;
 		Tracker.warnNoVideoEngine = prevWarnNoVideoEngine;
 		Tracker.warnXuggleError = prevWarnXuggleError;
+		Tracker.warnXuggleVersion = prevWarnXuggleVersion;
 		ResourceLoader.setOSPCache(prevCache);
 		Tracker.checkForUpgradeInterval = prevUpgradeInterval;
 		Tracker.use32BitMode = prevUse32BitVM;
@@ -1392,6 +1405,7 @@ public class PrefsDialog extends JDialog {
     vidWarningCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfNoEngine")); //$NON-NLS-1$    
     variableDurationCheckBox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnVariableDuration")); //$NON-NLS-1$    
     xuggleErrorCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfXuggleError")); //$NON-NLS-1$    
+    xuggleVersionCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnXuggleVersion")); //$NON-NLS-1$    
     setTabTitle(configPanel, TrackerRes.getString("PrefsDialog.Tab.Configuration.Title")); //$NON-NLS-1$
     setTabTitle(runtimePanel, TrackerRes.getString("PrefsDialog.Tab.Runtime.Title")); //$NON-NLS-1$
     setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
@@ -1573,6 +1587,7 @@ public class PrefsDialog extends JDialog {
     vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
     variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
     xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
+    xuggleVersionCheckbox.setSelected(Tracker.warnXuggleVersion);
     // locale
     for (Locale next: Tracker.locales) {
     	if (next.equals(Locale.getDefault())) {
