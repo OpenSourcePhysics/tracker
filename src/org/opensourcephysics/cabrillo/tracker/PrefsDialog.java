@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
 import java.util.logging.Level;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -82,7 +81,7 @@ public class PrefsDialog extends JDialog {
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
   		versionLabel, runLabel;
   protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, 
-  		xuggleErrorCheckbox, xuggleVersionCheckbox, variableDurationCheckBox;
+  		xuggleErrorCheckbox, xuggleVersionCheckbox, variableDurationCheckBox, copyFailedCheckbox;
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
   protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, 
@@ -100,7 +99,8 @@ public class PrefsDialog extends JDialog {
   protected int prevMemory, prevRecentCount, prevUpgradeInterval;
   protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine;
   protected boolean prevHints, prevRadians, prevFastXuggle, 
-  		prevWarnNoVideoEngine, prevWarnXuggleError, prevWarnXuggleVersion, prevClearCacheOnExit, prevUse32BitVM;
+  		prevWarnNoVideoEngine, prevWarnXuggleError, prevWarnXuggleVersion,
+  		prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed;
   protected File prevCache;
   protected String[] prevExecutables;
 
@@ -972,6 +972,14 @@ public class PrefsDialog extends JDialog {
       	Tracker.warnXuggleVersion = xuggleVersionCheckbox.isSelected();
       }
     });
+    copyFailedCheckbox = new JCheckBox();
+    copyFailedCheckbox.setOpaque(false);
+    copyFailedCheckbox.setSelected(Tracker.warnCopyFailed);
+    copyFailedCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	Tracker.warnCopyFailed = copyFailedCheckbox.isSelected();
+      }
+    });
     variableDurationCheckBox = new JCheckBox();
     variableDurationCheckBox.setOpaque(false);
     variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
@@ -991,12 +999,18 @@ public class PrefsDialog extends JDialog {
     warningsSubPanel.add(warningsNorthPanel, BorderLayout.NORTH);
     JPanel warningsCenterPanel = new JPanel();
     warningsCenterPanel.setBackground(color);
-    warningsSubPanel.add(warningsCenterPanel, BorderLayout.CENTER);
+    JPanel warningsSouthPanel = new JPanel();
+    warningsSouthPanel.setBackground(color);
+    JPanel centerSouthPanel = new JPanel(new BorderLayout());
+    centerSouthPanel.add(warningsCenterPanel, BorderLayout.NORTH);
+    centerSouthPanel.add(warningsSouthPanel, BorderLayout.CENTER);
+    warningsSubPanel.add(centerSouthPanel, BorderLayout.CENTER);
 
     warningsNorthPanel.add(vidWarningCheckbox);
     warningsNorthPanel.add(variableDurationCheckBox);
     warningsCenterPanel.add(xuggleErrorCheckbox);
     warningsCenterPanel.add(xuggleVersionCheckbox);
+    warningsSouthPanel.add(copyFailedCheckbox);
     
     // set selected states of engine buttons AFTER creating the xugglefast, xuggleslow and warnxuggle buttons
     if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)
@@ -1319,6 +1333,7 @@ public class PrefsDialog extends JDialog {
 		prevWarnNoVideoEngine = Tracker.warnNoVideoEngine;
 		prevWarnXuggleError = Tracker.warnXuggleError;
 		prevWarnXuggleVersion = Tracker.warnXuggleVersion;
+		prevWarnCopyFailed = Tracker.warnCopyFailed;
 		prevCache = ResourceLoader.getOSPCache();
 		prevUpgradeInterval = Tracker.checkForUpgradeInterval;
 		prevUse32BitVM = Tracker.use32BitMode;
@@ -1340,6 +1355,7 @@ public class PrefsDialog extends JDialog {
 		Tracker.warnNoVideoEngine = prevWarnNoVideoEngine;
 		Tracker.warnXuggleError = prevWarnXuggleError;
 		Tracker.warnXuggleVersion = prevWarnXuggleVersion;
+		Tracker.warnCopyFailed = prevWarnCopyFailed;
 		ResourceLoader.setOSPCache(prevCache);
 		Tracker.checkForUpgradeInterval = prevUpgradeInterval;
 		Tracker.use32BitMode = prevUse32BitVM;
@@ -1406,6 +1422,7 @@ public class PrefsDialog extends JDialog {
     variableDurationCheckBox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnVariableDuration")); //$NON-NLS-1$    
     xuggleErrorCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfXuggleError")); //$NON-NLS-1$    
     xuggleVersionCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnXuggleVersion")); //$NON-NLS-1$    
+    copyFailedCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnCopyFailed")); //$NON-NLS-1$    
     setTabTitle(configPanel, TrackerRes.getString("PrefsDialog.Tab.Configuration.Title")); //$NON-NLS-1$
     setTabTitle(runtimePanel, TrackerRes.getString("PrefsDialog.Tab.Runtime.Title")); //$NON-NLS-1$
     setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
@@ -1588,6 +1605,7 @@ public class PrefsDialog extends JDialog {
     variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
     xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
     xuggleVersionCheckbox.setSelected(Tracker.warnXuggleVersion);
+    copyFailedCheckbox.setSelected(Tracker.warnCopyFailed);
     // locale
     for (Locale next: Tracker.locales) {
     	if (next.equals(Locale.getDefault())) {
