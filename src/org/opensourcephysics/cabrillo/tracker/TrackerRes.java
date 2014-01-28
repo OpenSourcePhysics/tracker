@@ -58,7 +58,7 @@ public class TrackerRes {
 	 * @param key the string to localize
 	 * @return the localized string
 	 */
-	static String getString(String key) {
+	public static String getString(String key) {
 		try {
 			return res.getString(key);
 		}
