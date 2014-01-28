@@ -85,7 +85,7 @@ public class TrackerStarter {
 	static boolean log = true;
 	static boolean use32BitMode = false;
 	// static boolean qtPreferred = false;
-	static String version = "4.831"; //$NON-NLS-1$
+	static String version = "4.84"; //$NON-NLS-1$
 	static XMLControlElement prefsXMLControl = new XMLControlElement();
 	static int port = 12321;
 	static Timer timer;
