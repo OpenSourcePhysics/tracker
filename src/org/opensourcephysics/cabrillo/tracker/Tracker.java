@@ -1026,6 +1026,13 @@ public class Tracker {
   	// save prefs file in current preferences path
   	XMLControl control = new XMLControlElement(new Preferences());
 		control.write(prefsPath);
+		
+		// also write prefs to current directory if it already exists and is writable
+    File file = new File(prefsFileName);
+    if (file.exists() && file.canWrite()) {
+    	control.write(file.getAbsolutePath());
+    }
+    
 		return prefsPath;
   }
 
