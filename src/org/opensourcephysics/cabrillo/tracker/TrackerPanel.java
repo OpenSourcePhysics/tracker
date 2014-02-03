@@ -2094,14 +2094,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   		modelBuilder.setTitle(title);
     }
     else if (name.equals("model_start")) { //$NON-NLS-1$
-    	startFrameSpinner.setValue(e.getNewValue());
+    	ParticleModel model = (ParticleModel)e.getSource();
+    	if (model.getName().equals(getModelBuilder().getSelectedName())) {
+    		startFrameSpinner.setValue(e.getNewValue());
+    	}
     }
     else if (name.equals("model_end")) { //$NON-NLS-1$
-  		int end = (Integer)e.getNewValue();
-  		if (end==Integer.MAX_VALUE) {
-  			end = getPlayer().getVideoClip().getFrameCount()-1;
-  		}
-    	endFrameSpinner.setValue(end);
+    	ParticleModel model = (ParticleModel)e.getSource();
+    	if (model.getName().equals(getModelBuilder().getSelectedName())) {
+	  		int end = (Integer)e.getNewValue();
+	  		if (end==Integer.MAX_VALUE) {
+	  			end = getPlayer().getVideoClip().getFrameCount()-1;
+	  		}
+	    	endFrameSpinner.setValue(end);
+    	}
     }
     else if (name.equals("radian_angles")) { // angle format has changed //$NON-NLS-1$
       firePropertyChange("radian_angles", null, e.getNewValue()); // to tracks //$NON-NLS-1$    	
