@@ -49,6 +49,7 @@ public class PointMass extends TTrack {
 	// static constants
 	protected static final int FINITE_DIFF = 0;
 	protected static final int BOUNCE_DETECT = 1;
+	protected static final double MINIMUM_MASS = 1E-30;
 	
 	// static fields
   protected static Derivative vDeriv = new FirstDerivative();
@@ -548,7 +549,9 @@ public class PointMass extends TTrack {
    */
   public void setMass(double mass) {
   	if (mass==this.mass) return;
-    this.mass = Math.abs(mass);
+  	mass = Math.abs(mass);
+  	mass = Math.max(mass, MINIMUM_MASS);
+    this.mass = mass;
     dataValid = false;
     firePropertyChange("mass", null, new Double(mass)); //$NON-NLS-1$
     firePropertyChange("data", null, PointMass.this); // to views //$NON-NLS-1$
@@ -2121,7 +2124,7 @@ public class PointMass extends TTrack {
         massField.setValue(getMass());
       }
     });
-    massField.setMinValue(1E-30);
+    massField.setMinValue(MINIMUM_MASS);
     massField.setBorder(xField.getBorder());
     ChangeListener xyListener = new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
