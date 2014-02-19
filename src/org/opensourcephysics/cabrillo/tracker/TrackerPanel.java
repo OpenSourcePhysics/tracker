@@ -541,8 +541,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       m.addPropertyChangeListener("mass", new PropertyChangeListener() { //$NON-NLS-1$
   		  public void propertyChange(PropertyChangeEvent e) {
   		  	Parameter param = (Parameter)paramEditor.getObject("m"); //$NON-NLS-1$
-  		    if (m.getMass() != param.getValue()) {
-  		    	paramEditor.setExpression("m", String.valueOf(m.getMass()), false); //$NON-NLS-1$
+  		  	double newMass = (Double)e.getNewValue();
+  		    if (newMass != param.getValue()) {
+  		    	paramEditor.setExpression("m", String.valueOf(newMass), false); //$NON-NLS-1$
   		  	}
   		  }
   		});

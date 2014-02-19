@@ -2112,7 +2112,7 @@ public class PointMass extends TTrack {
     massField = new NumberField(5);
     massField.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        setMass(massField.getValue());
+	      setMass(massField.getValue());
         massField.setValue(getMass());
         massField.requestFocusInWindow();
       }
