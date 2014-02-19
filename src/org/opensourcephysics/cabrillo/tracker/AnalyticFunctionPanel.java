@@ -7,8 +7,6 @@
 
 package org.opensourcephysics.cabrillo.tracker;
 
-import javax.swing.BorderFactory;
-
 import org.opensourcephysics.tools.*;
 
 /**
@@ -42,8 +40,7 @@ public class AnalyticFunctionPanel extends ModelFunctionPanel {
 	 */
   protected void refreshGUI() {
   	super.refreshGUI();
-  	functionEditor.setBorder(BorderFactory.createTitledBorder(TrackerRes.getString(
-				"AnalyticFunctionPanel.FunctionEditor.Border.Title"))); //$NON-NLS-1$
+  	functionEditor.setBorderTitle(TrackerRes.getString("AnalyticFunctionPanel.FunctionEditor.Border.Title")); //$NON-NLS-1$
   }
 
 }
