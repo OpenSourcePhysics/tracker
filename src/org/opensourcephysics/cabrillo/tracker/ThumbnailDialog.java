@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
@@ -42,6 +41,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoType;
+import org.opensourcephysics.tools.FontSizer;
 
 import java.io.File;
 
@@ -296,7 +296,7 @@ public class ThumbnailDialog extends JDialog {
   /**
    * Refreshes the visible components of this dialog.
    */
-  private void refreshGUI() {
+  protected void refreshGUI() {
   	// refresh strings
   	String resource = settingsOnly? "ThumbnailDialog.Settings.Title": "ThumbnailDialog.Title"; //$NON-NLS-1$ //$NON-NLS-2$
   	String title = TrackerRes.getString(resource);
@@ -306,12 +306,16 @@ public class ThumbnailDialog extends JDialog {
   	title = TrackerRes.getString("ExportVideoDialog.Subtitle.Size"); //$NON-NLS-1$
     Border space = BorderFactory.createEmptyBorder(0, 4, 6, 4);
     Border titled = BorderFactory.createTitledBorder(title);
+  	int fontLevel = FontSizer.getLevel();
+    FontSizer.setFonts(titled, fontLevel);
     sizePanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
     title = TrackerRes.getString("ThumbnailDialog.Subtitle.Image"); //$NON-NLS-1$
     titled = BorderFactory.createTitledBorder(title);
+    FontSizer.setFonts(titled, fontLevel);
     viewPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
     title = TrackerRes.getString("ExportVideoDialog.Subtitle.Format"); //$NON-NLS-1$
     titled = BorderFactory.createTitledBorder(title);
+    FontSizer.setFonts(titled, fontLevel);
     formatPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
     
     // buttons

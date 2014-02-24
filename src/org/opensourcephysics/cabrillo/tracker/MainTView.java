@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -35,6 +34,7 @@ import javax.swing.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is the main video view for Tracker. It puts the tracker panel in a zoomable
@@ -279,6 +279,8 @@ public class MainTView extends JPanel implements TView {
 	          if(inspector.isVisible()) {
 	            return;
 	          }
+	          FontSizer.setFonts(inspector, FontSizer.getLevel());	          
+	          inspector.pack();
 	          Point p0 = new Frame().getLocation();
 	          Point loc = inspector.getLocation();
 	          if((loc.x==p0.x)&&(loc.y==p0.y)) {
@@ -426,6 +428,7 @@ public class MainTView extends JPanel implements TView {
       });
       popup.add(helpItem);
     }
+    FontSizer.setFonts(popup, FontSizer.getLevel());
   	return popup;
   }
   

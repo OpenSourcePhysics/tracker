@@ -34,6 +34,7 @@ import java.util.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -420,6 +421,18 @@ public class CoordAxes extends TTrack {
     else super.propertyChange(e);
   }
   
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{originLabel};
+    FontSizer.setFonts(objectsToSize, level);
+  }
+
   /**
    * Overrides Object toString method.
    *

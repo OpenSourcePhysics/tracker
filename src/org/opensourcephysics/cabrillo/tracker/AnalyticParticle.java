@@ -148,7 +148,7 @@ public class AnalyticParticle
 	    traceY = new double[] {point.getY()};
 	    step.getPosition().setPosition(point); // this method is fast
 	    lastValidFrame = firstFrameInClip;
-	    support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+	    support.firePropertyChange("step", null, firstFrameInClip); //$NON-NLS-1$
 	  }
   }
 

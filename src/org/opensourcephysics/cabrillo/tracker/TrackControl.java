@@ -26,13 +26,14 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
 import javax.swing.*;
+
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is a dialog containing buttons for all user tracks.
@@ -213,6 +214,7 @@ public class TrackControl extends JDialog
       track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
       // make the track buttons
       TButton button = new TButton(track);
+    	FontSizer.setFonts(button, FontSizer.getLevel());
       button.addKeyListener(shiftKeyListener);
       trackBars[barIndex].add(button);
       trackCount++;
@@ -226,7 +228,6 @@ public class TrackControl extends JDialog
       frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
       frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
     }
-
   }
 
 }

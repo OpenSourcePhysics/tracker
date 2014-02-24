@@ -95,8 +95,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem deleteSelectedPointItem;
   protected JMenuItem clearTracksItem;
   protected JMenuItem configItem;
-  protected JMenu sizeMenu;
-  protected ButtonGroup sizeGroup;
+  protected JMenu matSizeMenu;
+  protected JMenu fontSizeMenu;
+  protected ButtonGroup matSizeGroup;
   protected JRadioButtonMenuItem videoSizeItem;
   protected JMenu languageMenu;
   protected JMenuItem[] languageItems;
@@ -443,6 +444,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           }
         }
         copyImageMenu.add(copyFrameImageItem);
+      	FontSizer.setFonts(editMenu, FontSizer.getLevel());        
         editMenu.revalidate();
       }
     });
@@ -622,14 +624,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     // config item
     configItem = editMenu.add(actions.get("config")); //$NON-NLS-1$
     // size menu
-    sizeMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.MatSize")); //$NON-NLS-1$
+    matSizeMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.MatSize")); //$NON-NLS-1$
     final String[] sizes = new String[] {"320x240", //$NON-NLS-1$
                                          "480x360", //$NON-NLS-1$
                                          "640x480", //$NON-NLS-1$
                                          "800x600", //$NON-NLS-1$
                                          "960x720", //$NON-NLS-1$
                                          "1280x960"}; //$NON-NLS-1$
-    Action sizeAction = new AbstractAction() {
+    Action matSizeAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
         String theSize = e.getActionCommand();
         int i = theSize.indexOf("x"); //$NON-NLS-1$
@@ -638,16 +640,36 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         trackerPanel.setImageSize(w, h);
       }
     };
-    sizeGroup = new ButtonGroup();
+    matSizeGroup = new ButtonGroup();
+    fontSizeMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.FontSize")); //$NON-NLS-1$
+    ButtonGroup fontGroup = new ButtonGroup();
+    Action fontSizeAction = new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        int i = Integer.parseInt(e.getActionCommand());
+      	FontSizer.setLevel(i);
+      }
+
+    };
+    for(int i = 0; i<4; i++) {
+    	String s = i==0? TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"): "+"+i; //$NON-NLS-1$ //$NON-NLS-2$
+      JMenuItem item = new JRadioButtonMenuItem(s);
+      item.addActionListener(fontSizeAction);
+      item.setActionCommand(String.valueOf(i)); 
+      fontSizeMenu.add(item);
+      fontGroup.add(item);
+      if(i==FontSizer.getLevel()) {
+        item.setSelected(true);
+      }
+    }
     videoSizeItem = new JRadioButtonMenuItem();
     videoSizeItem.setActionCommand("0x0"); //$NON-NLS-1$
-    videoSizeItem.addActionListener(sizeAction);
-    sizeGroup.add(videoSizeItem);
+    videoSizeItem.addActionListener(matSizeAction);
+    matSizeGroup.add(videoSizeItem);
     for (int i = 0; i < sizes.length; i++) {
       JMenuItem item = new JRadioButtonMenuItem(sizes[i]);
       item.setActionCommand(sizes[i]);
-      item.addActionListener(sizeAction);
-      sizeGroup.add(item);
+      item.addActionListener(matSizeAction);
+      matSizeGroup.add(item);
     }
     // language menu
 		languageMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Language")); //$NON-NLS-1$
@@ -665,6 +687,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     };
     ButtonGroup languageGroup = new ButtonGroup();
     languageItems = new JMenuItem[Tracker.locales.length];
+    String currentLocale = TrackerRes.locale.toString();
+    if (currentLocale.startsWith("en_")) { //$NON-NLS-1$
+    	// strip country from english so english language item will be recognized below
+    	currentLocale = "en"; //$NON-NLS-1$
+    }
     for (int i = 0; i < languageItems.length; i++) {
     	String lang = OSPRuntime.getDisplayLanguage(Tracker.locales[i]);
     	// special handling for portuguese BR and PT
@@ -675,7 +702,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       languageItems[i].setActionCommand(Tracker.locales[i].toString());
       languageItems[i].addActionListener(languageAction);
       languageGroup.add(languageItems[i]);
-      if (Tracker.locales[i].toString().equals(TrackerRes.locale.toString()))
+      if (Tracker.locales[i].toString().equals(currentLocale))
       	languageItems[i].setSelected(true);
     }
     for (int i = 0; i < languageItems.length; i++) {
@@ -1002,6 +1029,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       public void mouseEntered(MouseEvent e) {mousePressed(e);}
       public void mousePressed(MouseEvent e) {
       	trackerPanel.getTFrame().refreshWindowMenu(trackerPanel);
+      	FontSizer.setFonts(windowMenu, FontSizer.getLevel());
       }
     });
     add(windowMenu);
@@ -1233,6 +1261,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       public void actionPerformed(ActionEvent e) {
       	Point p = new Frame().getLocation(); // default location of new frame or dialog
         OSPLog log = OSPLog.getOSPLog();
+    		FontSizer.setFonts(log, FontSizer.getLevel()); // pig OSPLog needs setFontLevel method
         if (log.getLocation().x==p.x && log.getLocation().y==p.y) {
           // center on screen
           Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -1292,6 +1321,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       axesVisibleItem.setSelected(track.isVisible());
       menu.insert(axesVisibleItem, i);
     }
+  	FontSizer.setFonts(menu, FontSizer.getLevel());
     return menu;
   }
 
@@ -1623,8 +1653,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           // add size menu
         if (trackerPanel.isEnabled("edit.matSize")) { //$NON-NLS-1$
           if (editMenu.getItemCount() > 0) editMenu.addSeparator();
-        	editMenu.add(sizeMenu);
+        	editMenu.add(matSizeMenu);
         }
+        if (editMenu.getItemCount() > 0) editMenu.addSeparator();
+      	editMenu.add(fontSizeMenu);
         refreshMatSizes(video);
         for (int i = 0; i < Tracker.locales.length; i++) {
           languageMenu.add(languageItems[i]);
@@ -1806,6 +1838,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         if (coordsMenu.getItemCount()==0) {
         	coordsMenu.add(emptyCoordsItem);
         }
+        FontSizer.setFonts(TMenuBar.this, FontSizer.getLevel());
         refreshing = false;
       }
     };
@@ -1891,11 +1924,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected void refreshMatSizes(Video video) {
   	// determine if default size is being used
   	boolean videoSizeItemShown = false;
-  	for (Component c: sizeMenu.getMenuComponents()) {
+  	for (Component c: matSizeMenu.getMenuComponents()) {
   		videoSizeItemShown = videoSizeItemShown || c==videoSizeItem;
   	}
   	boolean isDefaultSize = !videoSizeItemShown || videoSizeItem.isSelected();
-    sizeMenu.removeAll();
+    matSizeMenu.removeAll();
     int vidWidth = 1;
     int vidHeight = 1;
     if (video!=null) {
@@ -1915,17 +1948,17 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     else videoSizeItem.setActionCommand("0x0"); //$NON-NLS-1$
     int imageWidth = (int)trackerPanel.getImageWidth();
     int imageHeight = (int)trackerPanel.getImageHeight();
-    for (Enumeration<AbstractButton> e = sizeGroup.getElements(); e.hasMoreElements();) {
+    for (Enumeration<AbstractButton> e = matSizeGroup.getElements(); e.hasMoreElements();) {
       JRadioButtonMenuItem next = (JRadioButtonMenuItem)e.nextElement();
       String s = next.getActionCommand();
       int i = s.indexOf("x"); //$NON-NLS-1$
       int w = Integer.parseInt(s.substring(0, i));
       int h = Integer.parseInt(s.substring(i + 1));
       if (w >= vidWidth & h >= vidHeight) {
-        sizeMenu.add(next);
+        matSizeMenu.add(next);
         if (next != videoSizeItem &&
             next.getActionCommand().equals(videoSizeItem.getActionCommand())) {
-          sizeMenu.remove(next);
+          matSizeMenu.remove(next);
         }
       }
       if (w==vidWidth && h==vidHeight) {

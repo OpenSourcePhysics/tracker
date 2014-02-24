@@ -31,7 +31,7 @@ import org.opensourcephysics.tools.UserFunctionEditor;
 import org.opensourcephysics.controls.*;
 
 /**
- * DynamicParticlePolar models a particle using Newton'w 2nd law in polar coordinates.
+ * DynamicParticlePolar models a particle using Newton's 2nd law in polar coordinates.
  *
  * @author D. Brown
  * @version 1.0
@@ -124,7 +124,7 @@ public class DynamicParticlePolar extends DynamicParticle {
 		w.setDescription(TrackerRes.getString("DynamicParticle.Parameter.InitialOmega.Description")); //$NON-NLS-1$
 		getInitEditor().setParameters(new Parameter[] {t, r, th, v, w});
 	}
-
+	
   /**
 	 * Converts a cartesian state {x, vx, y, vy, t} to polar {r, vr, theta, omega, t},
 	 * both relative to the origin.

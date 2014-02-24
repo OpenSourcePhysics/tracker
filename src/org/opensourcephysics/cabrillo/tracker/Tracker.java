@@ -75,7 +75,7 @@ public class Tracker {
   
   // for testing
   static boolean timeLogEnabled = false;
-  static boolean testOn = false;
+  static boolean testOn = true;
   static TrackerPanel testPanel;
   
   // define static fields
@@ -113,7 +113,7 @@ public class Tracker {
   static Icon trackerLogoIcon, ospLogoIcon;
   static JLabel tipOfTheDayLabel;
   static JProgressBar progressBar;
-  static String version = "4.84"; //$NON-NLS-1$
+  static String version = "4.84140222"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
   static String copyright = "Copyright (c) 2014 Douglas Brown"; //$NON-NLS-1$
   static String trackerWebsite = "www.cabrillo.edu/~dbrown/tracker"; //$NON-NLS-1$
@@ -632,6 +632,7 @@ public class Tracker {
 	        textPane.setText(s);
 	        textPane.setCaretPosition(0);
 	        readmeDialog.setSize(600, 600);
+	    		FontSizer.setFonts(readmeDialog, FontSizer.getLevel());
 	        // center on screen
 	        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 	        int x = (dim.width - readmeDialog.getBounds().width) / 2;
@@ -668,6 +669,7 @@ public class Tracker {
 		        startLogDialog.setContentPane(scroller);
 		        textPane.setText(s);
 		        textPane.setCaretPosition(0);
+		    		FontSizer.setFonts(startLogDialog, FontSizer.getLevel());
 		        startLogDialog.setSize(600, 600);
 		        // center on screen
 		        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();

@@ -29,7 +29,6 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.rmi.RemoteException;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.FontRenderContext;
@@ -304,8 +303,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
           }
         }
       });
+  		int fontLevel = FontSizer.getLevel();
+  		modelBuilder.setFontLevel(fontLevel);
 			Dimension dim = modelBuilder.getSize();
-			modelBuilder.setSize(dim.width, 496);
+			int height = Toolkit.getDefaultToolkit().getScreenSize().height;
+			height = Math.min(height, (int)(496*(1+fontLevel/4.0)));
+			modelBuilder.setSize(dim.width, height);
 			modelBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
 			try {
 				Point p = getLocationOnScreen();
@@ -495,6 +498,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     int len = track.getSteps().length;
     len = Math.max(len, getCoords().getLength());
     getCoords().setLength(len);
+    
+    // set font level
+    track.setFontLevel(FontSizer.getLevel());
     
     // notify views
     firePropertyChange("track", null, track); // to views //$NON-NLS-1$
@@ -1459,6 +1465,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   		dataBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
   		dataBuilder.addPropertyChangeListener("function", this); //$NON-NLS-1$
   		dataBuilder.addPropertyChangeListener("visible", this); //$NON-NLS-1$
+  		dataBuilder.setFontLevel(FontSizer.getLevel());
   	}
   	return dataBuilder;
   }
@@ -2221,6 +2228,53 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	super.setMouseCursor(cursor);
   }
 
+	/**
+	* Sets the font level.
+	*
+	* @param level the desired font level
+	*/
+	public void setFontLevel(int level) {
+		super.setFontLevel(level);
+		if (frame==null) return;
+		// refresh views
+    TView[][] views = frame.getTViews(this);
+    if (views==null) return;
+    for (TView[] viewset: views) {
+    	if (viewset==null) continue;
+    	for (TView view: viewset) {
+    		view.refresh();
+    	}
+    }
+    TTrackBar trackbar = TTrackBar.getTrackbar(this);
+    trackbar.setFontLevel(level);
+    trackbar.refresh();
+    for (TTrack track: getTracks()) {
+    	track.setFontLevel(level);      	
+    }
+    TrackControl.getControl(this).refresh();
+    if (modelBuilder!=null) {
+    	modelBuilder.setFontLevel(level);
+    }
+    if (dataBuilder!=null) {
+    	dataBuilder.setFontLevel(level);
+    }
+    if (autoTracker!=null) {
+    	autoTracker.getWizard().setFontLevel(level);
+    }
+    Video video = getVideo();
+    if (video!=null) {
+    	FilterStack filterStack = video.getFilterStack();
+    	for (Filter filter: filterStack.getFilters()) {
+        JDialog inspector = filter.getInspector();
+        if (inspector != null) {
+          FontSizer.setFonts(inspector, FontSizer.getLevel());
+          inspector.pack();
+        }
+    	}
+    }
+
+	}
+
   /**
    * Returns true if an event starts or ends a zoom operation. Used by
    * OptionController. Overrides DrawingPanel method.
@@ -2467,6 +2521,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected AutoTracker getAutoTracker() {
   	if (autoTracker==null) {
   		autoTracker = new AutoTracker(this);
+  		autoTracker.getWizard().setFontLevel(FontSizer.getLevel());
   	}
   	return autoTracker;
   }

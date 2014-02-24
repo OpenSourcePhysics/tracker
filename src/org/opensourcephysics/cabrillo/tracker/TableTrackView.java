@@ -593,6 +593,15 @@ public class TableTrackView extends TrackView {
     frame.setVisible(true);
   }
   
+  @Override
+  public void setFont(Font font) {
+    super.setFont(font);
+    if (dataTable!=null) {
+    	dataTable.setRowHeight(font.getSize()+4);
+    	dataTable.getTableHeader().setFont(font);
+    }
+  }
+ 
   /**
    * Gets the TViewChooser that owns (displays) this view.
    * @return the TViewChooser
@@ -739,6 +748,8 @@ public class TableTrackView extends TrackView {
         	selectedNames[i] = name;
         }
         NumberFormatDialog dialog = dataTable.getFormatDialog(cols, selectedNames);
+        FontSizer.setFonts(dialog, FontSizer.getLevel());
+        dialog.pack();     
   	    dialog.setVisible(true);
   	  }	
     });
@@ -1138,6 +1149,7 @@ public class TableTrackView extends TrackView {
     }
     popup.addSeparator();
     popup.add(helpItem);
+    FontSizer.setFonts(popup, FontSizer.getLevel());
     return popup;
   }
   

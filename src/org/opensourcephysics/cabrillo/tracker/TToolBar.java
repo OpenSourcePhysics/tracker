@@ -27,7 +27,6 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.beans.*;
 import java.text.NumberFormat;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
@@ -41,6 +40,7 @@ import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is the main toolbar for Tracker.
@@ -202,6 +202,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
           inspector.setVisible(false);
           return;
         }
+        FontSizer.setFonts(inspector, FontSizer.getLevel());
+        inspector.pack();
         Point p0 = new Frame().getLocation();
         Point loc = inspector.getLocation();
         if((loc.x==p0.x)&&(loc.y==p0.y)) {
@@ -260,6 +262,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     }
     zoomButton = new TButton(zoomIcon) {
     	protected JPopupMenu getPopup() {
+      	FontSizer.setFonts(zoomPopup, FontSizer.getLevel());
         return zoomPopup;       		
     	}
     };
@@ -371,6 +374,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       	item.addActionListener(listener);
       	popup.add(item);
       	group.add(item);
+      	FontSizer.setFonts(popup, FontSizer.getLevel());
       	return popup;
       }
     };
@@ -453,6 +457,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       	popup.add(aStretchMenu);
       	popup.addSeparator();
       	popup.add(stretchOffItem);
+      	FontSizer.setFonts(popup, FontSizer.getLevel());
       	return popup;
       }
     };
@@ -529,6 +534,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       		}
       	});
       	popup.add(item);
+      	FontSizer.setFonts(popup, FontSizer.getLevel());
       	return popup;
       }
 
@@ -1015,6 +1021,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       		popup.addSeparator();
 	      popup.add(newToolsMenu);
       }
+      FontSizer.setFonts(popup, FontSizer.getLevel());	          
     	return popup;
     }
     

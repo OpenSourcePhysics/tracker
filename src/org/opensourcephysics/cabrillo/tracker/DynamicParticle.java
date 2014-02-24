@@ -26,6 +26,8 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.Graphics;
 import java.awt.geom.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 
 import org.opensourcephysics.media.core.*;
@@ -34,10 +36,12 @@ import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.UserFunction;
 import org.opensourcephysics.tools.UserFunctionEditor;
 import org.opensourcephysics.controls.*;
+import org.opensourcephysics.display.Dataset;
+import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
 
 /**
- * DynamicParticle models a particle using Newton'w 2nd law.
+ * DynamicParticle models a particle using Newton's 2nd law.
  *
  * @author W. Christian, D. Brown
  * @version 1.0
@@ -46,6 +50,7 @@ public class DynamicParticle
     extends ParticleModel implements ODE {
 	
 	// instance fields
+	protected boolean inSystem; // used only when loading
   protected double[] state = new double[5]; // {x, vx, y, vy, t}
   protected double[] initialState = new double[5]; // {x, vx, y, vy, t}
   protected ODESolver solver = new RK4(this);
@@ -53,7 +58,7 @@ public class DynamicParticle
   protected DynamicSystem system;
   protected Point2D[] points;
   protected HashMap<Integer, double[]> frameStates = new HashMap<Integer, double[]>();
-  boolean inSystem; // used only when loading
+  protected InitializeFromTargetListener targetListener;
   
   /**
    * Constructor
@@ -203,7 +208,7 @@ public class DynamicParticle
 		    models[i].traceX = new double[] {points[i].getX()};
 		    models[i].traceY = new double[] {points[i].getY()};
 		    step.getPosition().setPosition(points[i]); // this method is fast
-		    models[i].support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+		    models[i].support.firePropertyChange("step", null, firstFrameInClip); //$NON-NLS-1$
 			}
 	  }
   }
@@ -313,6 +318,9 @@ public class DynamicParticle
 		if (system!=null)
 			system.setStartFrame(n);
 		else super.setStartFrame(n);
+		if (targetListener!=null) {
+			targetListener.setTarget(targetListener.target);
+		}
 	}
 	
   /**
@@ -429,6 +437,107 @@ public class DynamicParticle
 	}
 	
   /**
+	 * Sets the initial conditions to those of a PointMass.
+	 * 
+	 * @param target the PointMass
+	 */
+	protected void initializeFromTarget(PointMass target) {
+		DatasetManager data = target.getData(trackerPanel);
+		int frameNumber = getStartFrame();
+		
+		// determine the dataset index from frame number
+		Dataset ds = data.getDataset(data.getDatasetIndex("frame")); //$NON-NLS-1$
+		int index = -1;
+		double[] frames = ds.getYPoints();
+		for (int i=0; i<frames.length; i++) {
+			if (frames[i]==frameNumber) {
+				index = i;
+				break;
+			}
+		}
+		if (index==-1) return;
+		
+		// for each parameter except t, get target value for frame number
+		Parameter[] params = getInitEditor().getParameters();
+		for (int i = 0; i < params.length; i++) {
+			Parameter param = params[i];
+			String name = param.getName();
+			Double value = null; // default
+			if (name.equals("x")) { //$NON-NLS-1$
+				ds = data.getDataset(data.getDatasetIndex("x")); //$NON-NLS-1$
+				value = (Double)ds.getValueAt(index, 1);
+			}
+			else if (name.equals("y")) { //$NON-NLS-1$
+				ds = data.getDataset(data.getDatasetIndex("y")); //$NON-NLS-1$
+				value = (Double)ds.getValueAt(index, 1);
+			}
+			else if (name.equals("vx")) { //$NON-NLS-1$
+				ds = data.getDataset(data.getDatasetIndex("v_{x}")); //$NON-NLS-1$
+				value = (Double)ds.getValueAt(index, 1);
+			}
+			else if (name.equals("vy")) { //$NON-NLS-1$
+				ds = data.getDataset(data.getDatasetIndex("v_{y}")); //$NON-NLS-1$
+				value = (Double)ds.getValueAt(index, 1);
+			}
+			// replace parameter with new one if not null
+			if (value!=null) {
+				Parameter newParam = new Parameter(name, String.valueOf(value));
+				newParam.setDescription(param.getDescription());
+				newParam.setNameEditable(false);
+				params[i] = newParam;
+			}
+		}
+		getInitEditor().setParameters(params);
+		reset();
+		repaint();
+	}
+	
+	protected InitializeFromTargetListener getTargetListener() {
+		if (targetListener==null) {
+			targetListener = new InitializeFromTargetListener();
+		}
+		return targetListener;
+	}
+	
+  /**
+   * A PropertyChangeListener to set initial values of this model to those of
+   * a target PointMass at the current startFrame. Setting the target
+   * automatically handles the add/removePropertyChangeListener actions.
+   */
+  class InitializeFromTargetListener implements PropertyChangeListener {
+  	
+  	PointMass target;
+  	
+  	public void setTarget(PointMass pm) {
+  		if (target!=null) {
+  			target.removePropertyChangeListener(this);
+  		}
+  		target = pm;
+  		if (target!=null) {
+				initializeFromTarget(target);
+				target.addPropertyChangeListener(this);  			
+  		}
+  	}
+  	
+		public void propertyChange(PropertyChangeEvent e) {
+			if (target==null) return;
+			
+			String s = e.getPropertyName();
+			if (!(s.contains("step") || s.equals("data"))) { //$NON-NLS-1$ //$NON-NLS-2$
+				return; 
+			}
+			
+			if (e.getPropertyName().equals("steps") && target instanceof ParticleModel) { //$NON-NLS-1$
+				DatasetManager data = target.getData(trackerPanel);
+				target.refreshData(data, trackerPanel);
+			}
+			
+			initializeFromTarget(target);
+		}
+  	
+  }
+
+  /**
    * Returns an ObjectLoader to save and load data for this class.
    *
    * @return the object loader
@@ -505,5 +614,5 @@ public class DynamicParticle
       return obj;
     }
   }
-
+  
 }

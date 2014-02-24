@@ -56,6 +56,7 @@ import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.core.VideoType;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.JarTool;
 import org.opensourcephysics.tools.LaunchBuilder;
 import org.opensourcephysics.tools.LibraryResource;
@@ -146,10 +147,10 @@ public class ExportZipDialog extends JDialog {
    * @param panel a TrackerPanel
    */
   private ExportZipDialog(TrackerPanel panel) {
-    super(panel.getTFrame(), true);
+    super(panel.getTFrame(), false);
     trackerPanel = panel;
     videoExporter = ExportVideoDialog.getDialog(panel);
-    setResizable(false);
+//    setResizable(false);
     createGUI();
     refreshGUI();
     // center dialog on the screen
@@ -159,7 +160,45 @@ public class ExportZipDialog extends JDialog {
     setLocation(x, y);
   }
 
-//_____________________________ private methods ____________________________
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+		FontSizer.setFonts(this, level);
+		// refresh the dropdowns
+		int n = formatDropdown.getSelectedIndex();
+		Object[] items = new Object[formatDropdown.getItemCount()];
+		for (int i=0; i<items.length; i++) {
+			items[i] = formatDropdown.getItemAt(i);
+		}
+		DefaultComboBoxModel model = new DefaultComboBoxModel(items);
+		formatDropdown.setModel(model);
+		formatDropdown.setSelectedItem(n);
+    // reset label sizes
+    FontRenderContext frc = new FontRenderContext(null, false, false); 
+    Font font = titleLabel.getFont();
+    int w = 0;
+    for(Iterator<JLabel> it = labels.iterator(); it.hasNext(); ) {
+      JLabel next = it.next();
+      Rectangle2D rect = font.getStringBounds(next.getText()+" ", frc); //$NON-NLS-1$
+      w = Math.max(w, (int) rect.getWidth()+1);
+    }
+    int h = titleField.getMinimumSize().height;
+    Dimension labelSize = new Dimension(w, h);
+    for(Iterator<JLabel> it = labels.iterator(); it.hasNext(); ) {
+      JLabel next = it.next();
+      next.setPreferredSize(labelSize);
+    }
+		pack();
+		
+    // set font level of addedFilesDialog
+		FontSizer.setFonts(addedFilesDialog, level);
+		addedFilesDialog.pack();
+  }
+  
+  //_____________________________ private methods ____________________________
 
   /**
    * Creates the visible components of this dialog.

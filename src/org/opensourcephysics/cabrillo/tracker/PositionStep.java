@@ -52,7 +52,7 @@ public class PositionStep extends Step {
   		= new HashMap<TrackerPanel, TextLayout>();
   protected Map<TrackerPanel, Rectangle> layoutBounds 
   		= new HashMap<TrackerPanel, Rectangle>();
-  protected Font font;
+//  protected Font font;
 
   /**
    * Constructs a PositionStep with specified image coordinates.
@@ -68,7 +68,6 @@ public class PositionStep extends Step {
     p.setTrackEditTrigger(true);
     points = new TPoint[] {p};
     screenPoints = new Point[getLength()];
-    font = track.xField.getFont();
   }
 
   /**
@@ -138,7 +137,7 @@ public class PositionStep extends Step {
         Paint gpaint = g.getPaint();
         Font gfont = g.getFont();
         g.setPaint(footprint.getColor());
-        g.setFont(font);
+        g.setFont(textLayoutFont);
         layout.draw(g, p.x, p.y);
         g.setPaint(gpaint);
         g.setFont(gfont);
@@ -243,7 +242,7 @@ public class PositionStep extends Step {
         s += clip.frameToStep(getFrameNumber());
       }
       if (s.length() == 0) s = " "; //$NON-NLS-1$
-      TextLayout layout = new TextLayout(s, font, frc);
+      TextLayout layout = new TextLayout(s, textLayoutFont, frc);
       textLayouts.put(trackerPanel, layout);
       // get layout position (bottom left corner of text)
       p = getLayoutPosition(trackerPanel);
@@ -369,7 +368,7 @@ public class PositionStep extends Step {
    */
   protected Point getLayoutPosition(TrackerPanel trackerPanel) {
     Point pt = p.getScreenPosition(trackerPanel);
-    pt.setLocation(pt.x - 4 - font.getSize(), pt.y - 6);
+    pt.setLocation(pt.x - 4 - textLayoutFont.getSize(), pt.y - 6);
     return pt;
   }
 

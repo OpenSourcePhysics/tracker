@@ -34,6 +34,7 @@ import javax.swing.*;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This displays plot track views selected from a dropdown list.
@@ -87,7 +88,9 @@ public class TableTView extends TrackChooserTView {
    * @return the view of the track
    */
   protected TrackView createTrackView(TTrack track) {
-    return new TableTrackView(track, trackerPanel, this);
+  	TableTrackView trackView = new TableTrackView(track, trackerPanel, this);
+    FontSizer.setFonts(trackView, FontSizer.getLevel());
+    return trackView;
   }
 
   /**
@@ -112,6 +115,7 @@ public class TableTView extends TrackChooserTView {
   public void refresh() {
   	super.refresh();
   	if (columnsDialog == null) return;
+    FontSizer.setFonts(columnsDialog, FontSizer.getLevel());      
 		closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
 		defineButton.setText(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
 		defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
@@ -136,6 +140,7 @@ public class TableTView extends TrackChooserTView {
     trackView.refreshColumnCheckboxes();
     contentPane.add(trackView.columnsScroller);
 	  contentPane.add(buttonPanel);
+    FontSizer.setFonts(contentPane, FontSizer.getLevel());      
     contentPane.setPreferredSize(null);
     Dimension dim = contentPane.getPreferredSize();
     dim.height = Math.min(dim.height, 300);

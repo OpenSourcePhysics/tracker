@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -35,6 +34,7 @@ import javax.swing.*;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.*;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This displays plot views of a track.
@@ -357,6 +357,7 @@ public class PlotTrackView extends TrackView {
 	    
 	    // override getPopup method to return plotcount popup
 	    public JPopupMenu getPopup() {
+        FontSizer.setFonts(popup, FontSizer.getLevel());
 	    	return popup;
 	    }
     };

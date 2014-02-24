@@ -26,15 +26,12 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.controls.*;
@@ -528,11 +525,6 @@ public class Vector extends TTrack {
    */
   public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
                                              TPoint point) {
-    Border empty = BorderFactory.createEmptyBorder(0, 1, 0, 2);
-    xLabel = new JLabel("x"); //$NON-NLS-1$
-    xLabel.setBorder(empty);
-    yLabel = new JLabel("y"); //$NON-NLS-1$
-    yLabel.setBorder(empty);
     ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
     list.add(stepLabel);
     list.add(stepValueLabel);

@@ -26,11 +26,11 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
@@ -38,6 +38,7 @@ import javax.swing.event.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.DataTool;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -222,10 +223,9 @@ public abstract class TTrack implements Interactive,
     colorItem = new JMenuItem();
     colorItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        // show color chooser dialog with color of this track
-        Color newColor = JColorChooser.showDialog(
-            null, TrackerRes.getString("TTrack.Dialog.Color.Title"), getColor()); //$NON-NLS-1$
-        if (newColor != null) {
+      	Color color = getColor();
+      	Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
+        if (newColor!=color) {
         	XMLControl control = new XMLControlElement(TTrack.this);
           setColor(newColor);
           Undo.postTrackEdit(TTrack.this, control);
@@ -589,6 +589,28 @@ public abstract class TTrack implements Interactive,
     String letter = TrackerPanel.alphabet.substring(i, i+1);
     setName(name+connector+letter);
     setColorToDefault(i);
+  }
+  
+  /**
+   * Displays a JColorChooser and returns the selected color.
+   *
+   * @param color the initial color to select
+   * @param title the title for the dialog
+   * @return the newly selected color. or initial color if cancelled
+   */
+  public Color chooseColor(final Color color, String title) {
+  	final JColorChooser chooser = new JColorChooser();
+  	chooser.setColor(color);
+  	ActionListener cancelListener = new ActionListener() {
+  		public void actionPerformed(ActionEvent e) {
+  			chooser.setColor(color);
+  		}
+  	};
+  	JDialog dialog = JColorChooser.createDialog(null, title, true, 
+  			chooser, null, cancelListener);
+  	FontSizer.setFonts(dialog, FontSizer.getLevel());
+  	dialog.setVisible(true);
+  	return chooser.getColor();
   }
   
   /**
@@ -1087,6 +1109,18 @@ public abstract class TTrack implements Interactive,
     for (int n = 0; n < array.length; n++)
       if (array[n] != null) return false;
     return true;
+  }
+  
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	Object[] objectsToSize = new Object[]
+  			{tLabel, xLabel, yLabel, magLabel, angleLabel, stepLabel, tValueLabel, stepValueLabel,
+  			tField, xField, yField, magField, angleField};
+    FontSizer.setFonts(objectsToSize, level);
   }
 
   /**

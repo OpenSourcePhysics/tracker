@@ -28,6 +28,8 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import org.opensourcephysics.tools.FontSizer;
+
 /**
  * A button based on VideoPlayer.PlayerButton that is used throughout Tracker.
  *
@@ -210,7 +212,9 @@ public class TButton extends JButton {
    */
   protected JPopupMenu getPopup() {
   	if (track!=null && track.trackerPanel!=null) {
-  		return track.getMenu(track.trackerPanel).getPopupMenu();
+    	JMenu trackMenu = track.getMenu(track.trackerPanel);
+    	FontSizer.setFonts(trackMenu, FontSizer.getLevel());
+  		return trackMenu.getPopupMenu();
   	}
   	return null;
   }

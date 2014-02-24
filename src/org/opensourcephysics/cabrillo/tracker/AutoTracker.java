@@ -48,6 +48,7 @@ import javax.swing.event.ChangeListener;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
@@ -1977,6 +1978,32 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       refreshGUI();
     }
 
+  	/**
+  	* Sets the font level.
+  	*
+  	* @param level the desired font level
+  	*/
+  	public void setFontLevel(int level) {
+      FontSizer.setFonts(this, FontSizer.getLevel());
+      Object[] buttons = new Object[] {acceptButton, skipButton};
+      FontSizer.setFonts(buttons, FontSizer.getLevel());   
+      //  	private JComboBox trackDropdown, pointDropdown;
+  		JComboBox[] dropdowns = new JComboBox[] {trackDropdown, pointDropdown};
+  		for (JComboBox next: dropdowns) {
+  			int n = next.getSelectedIndex();
+  			Object[] items = new Object[next.getItemCount()];
+  			for (int i=0; i<items.length; i++) {
+  				items[i] = next.getItemAt(i);
+  			}
+  			DefaultComboBoxModel model = new DefaultComboBoxModel(items);
+  			next.setModel(model);
+  			next.setSelectedItem(n);
+  		}
+  		refreshStrings(); // also resets label sizes
+  		pack();
+
+  	}
+
   //_____________________________ protected methods ____________________________
 
     protected void setAlphaFromRate(int evolveRate) {
@@ -1995,7 +2022,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       if (frame != null) {
         frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
       }
-      setResizable(false);
+//      setResizable(false);
       KeyListener kl = new KeyAdapter() {
         public void keyPressed(KeyEvent e) {
     			if (!trackerPanel.getPlayer().isEnabled()) return;
@@ -2611,6 +2638,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	          popup.add(item);
 	          item.addActionListener(deleteAllAction);         	
           }
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
           popup.show(deleteButton, 0, deleteButton.getHeight());       		
         }
       });
@@ -2642,6 +2670,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	          item.setActionCommand(String.valueOf(i));
 	          popup.add(item);
           }
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
           popup.show(keyFrameButton, 0, keyFrameButton.getHeight());       		     			
         }
       });

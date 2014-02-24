@@ -31,11 +31,11 @@ import java.awt.event.*;
 import java.awt.geom.*;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.event.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -560,6 +560,18 @@ public class PointMass extends TTrack {
       Double m = getMass();
       data.setConstant("m", m, m.toString()); //$NON-NLS-1$
     }
+  }
+
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{massLabel, massField};
+    FontSizer.setFonts(objectsToSize, level);
   }
 
   /**
@@ -1931,29 +1943,29 @@ public class PointMass extends TTrack {
       if (isVelocity(step)) {
         if (xMass) {
         	stepValueLabel.setText("p " + n); //$NON-NLS-1$
-          xLabel = new JLabel("px"); //$NON-NLS-1$
-          yLabel = new JLabel("py"); //$NON-NLS-1$
-          magLabel = new JLabel("p"); //$NON-NLS-1$
+        	xLabel.setText("px"); //$NON-NLS-1$
+        	yLabel.setText("py"); //$NON-NLS-1$
+        	magLabel.setText("p"); //$NON-NLS-1$
         }
         else {
         	stepValueLabel.setText("v " + n); //$NON-NLS-1$
-          xLabel = new JLabel("vx"); //$NON-NLS-1$
-          yLabel = new JLabel("vy"); //$NON-NLS-1$
-          magLabel = new JLabel("v"); //$NON-NLS-1$
+        	xLabel.setText("vx"); //$NON-NLS-1$
+        	yLabel.setText("vy"); //$NON-NLS-1$
+        	magLabel.setText("v"); //$NON-NLS-1$
         }
       }
       else if (isAcceleration(step)) {
         if (xMass) {
         	stepValueLabel.setText("F " + n); //$NON-NLS-1$
-          xLabel = new JLabel("Fx"); //$NON-NLS-1$
-          yLabel = new JLabel("Fy"); //$NON-NLS-1$
-          magLabel = new JLabel("F"); //$NON-NLS-1$
+        	xLabel.setText("Fx"); //$NON-NLS-1$
+        	yLabel.setText("Fy"); //$NON-NLS-1$
+        	magLabel.setText("F"); //$NON-NLS-1$
         }
         else {
         	stepValueLabel.setText("a " + n); //$NON-NLS-1$
-          xLabel = new JLabel("ax"); //$NON-NLS-1$
-          yLabel = new JLabel("ay"); //$NON-NLS-1$
-          magLabel = new JLabel("a"); //$NON-NLS-1$
+        	xLabel.setText("ax"); //$NON-NLS-1$
+        	yLabel.setText("ay"); //$NON-NLS-1$
+        	magLabel.setText("a"); //$NON-NLS-1$
         }
       }
       xField.setEnabled(false);
@@ -1963,18 +1975,15 @@ public class PointMass extends TTrack {
     }
     else {
     	stepValueLabel.setText("" + n); //$NON-NLS-1$
-      xLabel = new JLabel("x"); //$NON-NLS-1$
-      yLabel = new JLabel("y"); //$NON-NLS-1$
-      magLabel = new JLabel("r"); //$NON-NLS-1$
+    	xLabel.setText("x"); //$NON-NLS-1$
+    	yLabel.setText("y"); //$NON-NLS-1$
+    	magLabel.setText("r"); //$NON-NLS-1$
       xField.setEnabled(!isLocked());
       yField.setEnabled(!isLocked());
       magField.setEnabled(!isLocked());
       angleField.setEnabled(!isLocked());
     }
-    Border empty = BorderFactory.createEmptyBorder(0, 1, 0, 2);
-    xLabel.setBorder(empty);
-    yLabel.setBorder(empty);
-    magLabel.setBorder(empty);
+
     list.add(stepLabel);
     list.add(stepValueLabel);
     list.add(tValueLabel);
@@ -2185,9 +2194,8 @@ public class PointMass extends TTrack {
     vColorItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // show color chooser dialog with color of velocity footprint
-    	Color c = getVelocityFootprint().getColor();
-        Color newColor = JColorChooser.showDialog(
-            null, TrackerRes.getString("Velocity.Dialog.Color.Title"), c); //$NON-NLS-1$
+	    	Color c = getVelocityFootprint().getColor();
+	    	Color newColor = chooseColor(c, TrackerRes.getString("Velocity.Dialog.Color.Title")); //$NON-NLS-1$
         if (newColor != null) {
         	XMLControl control = new XMLControlElement(PointMass.this);
         	for (Footprint footprint: getVelocityFootprints()) {
@@ -2202,9 +2210,8 @@ public class PointMass extends TTrack {
     aColorItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // show color chooser dialog with color of acceleration footprint
-    	Color c = getAccelerationFootprint().getColor();
-        Color newColor = JColorChooser.showDialog(
-            null, TrackerRes.getString("Velocity.Dialog.Color.Title"), c); //$NON-NLS-1$
+      	Color c = getAccelerationFootprint().getColor();
+	    	Color newColor = chooseColor(c, TrackerRes.getString("Acceleration.Dialog.Color.Title")); //$NON-NLS-1$
         if (newColor != null) {
         	XMLControl control = new XMLControlElement(PointMass.this);
         	for (Footprint footprint: getAccelerationFootprints()) {

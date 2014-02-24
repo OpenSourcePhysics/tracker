@@ -29,7 +29,6 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
@@ -230,6 +229,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     }
     setViews(trackerPanel, views);
     initialize(trackerPanel);
+  	FontSizer.setFonts(panel, FontSizer.getLevel());
     // inform all tracks of current angle display format
     for (TTrack track: trackerPanel.getTracks()) {
     	track.setAnglesInRadians(anglesInRadians);
@@ -1078,6 +1078,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	    	menu.add(item);
 	    }
   	}
+    FontSizer.setFonts(menu, FontSizer.getLevel());
   }
 
   /**
@@ -1172,6 +1173,64 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     }
     menubar.windowMenu.revalidate();
   }
+  
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);  	
+  	if (tabbedPane==null) return;
+  	
+  	Step.textLayoutFont = FontSizer.getResizedFont(Step.textLayoutFont, level);
+  	ExportZipDialog zipDialog = null;
+  	ExportVideoDialog videoDialog = null;
+  	ThumbnailDialog thumbnailDialog = null;
+  	for (int i=0; i<getTabCount(); i++) {
+  		TrackerPanel trackerPanel = getTrackerPanel(i);
+  		trackerPanel.setFontLevel(level);
+  		if (zipDialog==null) zipDialog = ExportZipDialog.getDialog(trackerPanel);
+  		if (videoDialog==null) videoDialog = ExportVideoDialog.getDialog(trackerPanel);
+  		if (thumbnailDialog==null) thumbnailDialog = ThumbnailDialog.getDialog(trackerPanel, true);
+  	}
+  	if (zipDialog!=null) {
+  		zipDialog.setFontLevel(level);
+  	}
+  	if (videoDialog!=null) {
+  		videoDialog.setFontLevel(level);
+  	}
+  	if (thumbnailDialog!=null) {
+  		FontSizer.setFonts(thumbnailDialog, level);
+  		thumbnailDialog.refreshGUI();
+  	}
+
+  	if (prefsDialog!=null) {
+  		prefsDialog.refreshGUI();
+  	}
+  	if (libraryBrowser!=null) {
+  		FontSizer.setFonts(libraryBrowser, level);
+  		 // pig need libraryBrowser.setFontLevel() method
+  	}
+  	if (helpLauncher!=null) {
+  		FontSizer.setFonts(helpLauncher, level);
+  	}
+  	FontSizer.setFonts(notesDialog, level);
+    OSPLog log = OSPLog.getOSPLog();
+		FontSizer.setFonts(log, level); // pig OSPLog needs setFontLevel method
+  	if (Tracker.readmeDialog!=null) {
+  		FontSizer.setFonts(Tracker.readmeDialog, level);
+  	}
+  	if (Tracker.startLogDialog!=null) {
+  		FontSizer.setFonts(Tracker.startLogDialog, level);
+  	}
+
+		
+    FontSizer.setFonts(defaultMenuBar, level);
+    javax.swing.UIManager.put("OptionPane.messageFont", Step.textLayoutFont); //$NON-NLS-1$
+  	Font buttonFont= FontSizer.getResizedFont(cancelNotesDialogButton.getFont(), level);    
+    javax.swing.UIManager.put("OptionPane.buttonFont", buttonFont); //$NON-NLS-1$
+  }
 
   /**
    * Gets the library browser.
@@ -1244,6 +1303,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	  			showHelp("library", 0); //$NON-NLS-1$
 	  		}
 	  	});
+  		FontSizer.setFonts(libraryBrowser, FontSizer.getLevel()); // pig need libraryBrowser.setFontLevel() method
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - dialog.getBounds().width) / 2;
       int y = (dim.height - dialog.getBounds().height) / 2;
@@ -1289,6 +1349,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       Component[] comps = new Component[] {Tracker.pdfHelpButton};
       helpLauncher.setNavbarRightEndComponents(comps);
       helpDialog.setContentPane(helpLauncher.getContentPane());
+  		FontSizer.setFonts(helpDialog, FontSizer.getLevel());
       helpDialog.pack();
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - helpDialog.getBounds().width) / 2;
