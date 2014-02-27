@@ -96,8 +96,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem clearTracksItem;
   protected JMenuItem configItem;
   protected JMenu matSizeMenu;
-  protected JMenu fontSizeMenu;
   protected ButtonGroup matSizeGroup;
+  protected JMenu fontSizeMenu;
+  protected ButtonGroup fontSizeGroup;
   protected JRadioButtonMenuItem videoSizeItem;
   protected JMenu languageMenu;
   protected JMenuItem[] languageItems;
@@ -642,7 +643,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     };
     matSizeGroup = new ButtonGroup();
     fontSizeMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.FontSize")); //$NON-NLS-1$
-    ButtonGroup fontGroup = new ButtonGroup();
+    fontSizeGroup = new ButtonGroup();
     Action fontSizeAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
         int i = Integer.parseInt(e.getActionCommand());
@@ -656,7 +657,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       item.addActionListener(fontSizeAction);
       item.setActionCommand(String.valueOf(i)); 
       fontSizeMenu.add(item);
-      fontGroup.add(item);
+      fontSizeGroup.add(item);
       if(i==FontSizer.getLevel()) {
         item.setSelected(true);
       }
@@ -1261,7 +1262,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       public void actionPerformed(ActionEvent e) {
       	Point p = new Frame().getLocation(); // default location of new frame or dialog
         OSPLog log = OSPLog.getOSPLog();
-    		FontSizer.setFonts(log, FontSizer.getLevel()); // pig OSPLog needs setFontLevel method
+    		FontSizer.setFonts(log, FontSizer.getLevel());
         if (log.getLocation().x==p.x && log.getLocation().y==p.y) {
           // center on screen
           Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();

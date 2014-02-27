@@ -31,6 +31,8 @@ import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
+import org.opensourcephysics.tools.FontSizer;
+
 import java.util.ArrayList;
 
 /**
@@ -77,7 +79,6 @@ public class DerivativeAlgorithmDialog extends JDialog {
     setContentPane(contentPane);
     
     textPane = new JTextPane();
-    textPane.setPreferredSize(new Dimension(400, 100));
     JScrollPane scroller = new JScrollPane(textPane);
     contentPane.add(scroller, BorderLayout.CENTER);
 
@@ -197,6 +198,19 @@ public class DerivativeAlgorithmDialog extends JDialog {
   public void setVisible(boolean vis) {
   	initialize();
   	super.setVisible(vis);
+  }
+  
+  protected void setFontLevel(int level) {
+    FontSizer.setFonts(this, level);
+    FontSizer.setFonts(choiceBorder, level);
+    int w = (int)(400*(1+level*.5));
+    int h = (int)(100*(1+level*.35));
+    textPane.setPreferredSize(new Dimension(w, h));
+    pack();
+    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+    int x = (dim.width - getBounds().width) / 2;
+    int y = (dim.height - getBounds().height) / 2;
+    setLocation(x, y);
   }
   
 }

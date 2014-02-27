@@ -110,6 +110,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		                  item.setSelected(true);
 		                }
 		              }
+		            	FontSizer.setFonts(popup, FontSizer.getLevel());
 		              popup.show(testButton, 0, testButton.getHeight());   
 		    	      	
 		    	      	

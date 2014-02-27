@@ -586,10 +586,11 @@ public class TableTrackView extends TrackView {
 		}
     if (frame==null) return;
     
-//    ImageFrame frame = new ImageFrame(mi);
     frame.setTitle(DisplayRes.getString("Snapshot.Title")); //$NON-NLS-1$
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
     frame.setKeepHidden(false);    
+    FontSizer.setFonts(frame, FontSizer.getLevel());
+    frame.pack();
     frame.setVisible(true);
   }
   
@@ -704,10 +705,12 @@ public class TableTrackView extends TrackView {
     	// override getMaximumSize method so has same height as chooser button
 	    public Dimension getMaximumSize() {
 	      Dimension dim = super.getMaximumSize();
+	      Dimension min = getMinimumSize();
 	    	Container c = getParent();
 	    	while (c!=null) {
 	  			if (c instanceof TViewChooser) {
-		  			dim.height = ((TViewChooser)c).chooserButton.getHeight();
+		  			int h = ((TViewChooser)c).chooserButton.getHeight();
+		  			dim.height = Math.max(h, min.height);
 	  				break;
 	  			}
 	  			c = c.getParent();

@@ -26,11 +26,13 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
 import java.beans.*;
-
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
+
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This displays and sets VectorSum properties.
@@ -85,6 +87,10 @@ public class VectorSumInspector extends JDialog
    * @param vis true to show this inspector
    */
   public void setVisible(boolean vis) {
+  	if (vis) {
+	  	FontSizer.setFonts(this, FontSizer.getLevel());
+	  	pack();
+  	}
     super.setVisible(vis);
     isVisible = vis;
   }
@@ -166,6 +172,7 @@ public class VectorSumInspector extends JDialog
       checkbox.addActionListener(listener);
       checkboxPanel.add(checkbox);
     }
+  	FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
     pack();
     repaint();
   }

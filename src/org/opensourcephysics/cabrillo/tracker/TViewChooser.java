@@ -112,6 +112,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
             }
           });
           popup.add(helpItem);
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
           popup.show(toolbar, e.getX(), e.getY());
       	}
       }

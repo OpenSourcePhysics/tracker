@@ -29,7 +29,6 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.event.ActionEvent;
@@ -49,6 +48,7 @@ import org.opensourcephysics.controls.*;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
@@ -1566,6 +1566,7 @@ public class TrackerIO extends VideoIO {
     	java.awt.print.Book book = new java.awt.print.Book();
     	book.append(this, format);      	
       printerJob.setPageable(book);
+      FontSizer.setFonts(printerJob, FontSizer.getLevel());
       if (printerJob.printDialog()) {
         try {
           printerJob.print();

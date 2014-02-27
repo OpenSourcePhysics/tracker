@@ -1182,6 +1182,7 @@ public class PrefsDialog extends JDialog {
           popup.add(item);
           item.addActionListener(clearAction);
         }
+      	FontSizer.setFonts(popup, FontSizer.getLevel());
         popup.show(clearHostButton, 0, clearHostButton.getHeight());       		
       }
     });
@@ -1718,6 +1719,7 @@ public class PrefsDialog extends JDialog {
 	    chooser.setAcceptAllFileFilterUsed(false);
 	    chooser.addChoosableFileFilter(folderFilter);
 		}
+  	FontSizer.setFonts(chooser, FontSizer.getLevel());
     return chooser;
   }
 

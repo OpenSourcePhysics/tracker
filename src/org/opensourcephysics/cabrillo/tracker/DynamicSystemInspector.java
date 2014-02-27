@@ -25,11 +25,13 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
+
+import org.opensourcephysics.tools.FontSizer;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
@@ -246,6 +248,7 @@ public class DynamicSystemInspector extends JDialog
   	    newMenu.add(polarItem);
   	    if (cloneMenu.getItemCount() > 0)
   	    	popup.add(cloneMenu);
+      	FontSizer.setFonts(popup, FontSizer.getLevel());
         popup.show(button, 0, button.getHeight());
       }
     };

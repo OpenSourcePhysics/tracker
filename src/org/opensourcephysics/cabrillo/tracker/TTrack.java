@@ -192,6 +192,7 @@ public abstract class TTrack implements Interactive,
       				TrackerRes.getString("TTrack.AngleField.Popup.Degrees"): //$NON-NLS-1$
       				TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
       		popup.add(item);
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
       		popup.show(angleField, 0, angleField.getHeight());
       	}
       }
@@ -265,6 +266,7 @@ public abstract class TTrack implements Interactive,
     nameAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
         // show dialog with name of this track selected
+    		FontSizer.setFonts(nameDialog, FontSizer.getLevel());
       	nameDialog.setTitle(TrackerRes.getString("TTrack.Dialog.Name.Title")); //$NON-NLS-1$
       	nameLabel.setText(TrackerRes.getString("TTrack.Dialog.Name.Label")); //$NON-NLS-1$
       	nameField.setText(getName());

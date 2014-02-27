@@ -1209,27 +1209,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   		prefsDialog.refreshGUI();
   	}
   	if (libraryBrowser!=null) {
-  		FontSizer.setFonts(libraryBrowser, level);
-  		 // pig need libraryBrowser.setFontLevel() method
+  		libraryBrowser.setFontLevel(level);
   	}
   	if (helpLauncher!=null) {
   		FontSizer.setFonts(helpLauncher, level);
   	}
   	FontSizer.setFonts(notesDialog, level);
-    OSPLog log = OSPLog.getOSPLog();
-		FontSizer.setFonts(log, level); // pig OSPLog needs setFontLevel method
+		FontSizer.setFonts(OSPLog.getOSPLog(), level);
   	if (Tracker.readmeDialog!=null) {
   		FontSizer.setFonts(Tracker.readmeDialog, level);
   	}
   	if (Tracker.startLogDialog!=null) {
   		FontSizer.setFonts(Tracker.startLogDialog, level);
   	}
-
 		
-    FontSizer.setFonts(defaultMenuBar, level);
-    javax.swing.UIManager.put("OptionPane.messageFont", Step.textLayoutFont); //$NON-NLS-1$
-  	Font buttonFont= FontSizer.getResizedFont(cancelNotesDialogButton.getFont(), level);    
-    javax.swing.UIManager.put("OptionPane.buttonFont", buttonFont); //$NON-NLS-1$
+    FontSizer.setFonts(defaultMenuBar, level);    
   }
 
   /**
@@ -1303,7 +1297,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	  			showHelp("library", 0); //$NON-NLS-1$
 	  		}
 	  	});
-  		FontSizer.setFonts(libraryBrowser, FontSizer.getLevel()); // pig need libraryBrowser.setFontLevel() method
+  		libraryBrowser.setFontLevel(FontSizer.getLevel());
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - dialog.getBounds().width) / 2;
       int y = (dim.height - dialog.getBounds().height) / 2;
@@ -1693,6 +1687,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       	if (OSPRuntime.isPopupTrigger(e)) {
           closeItem.setText(TrackerRes.getString("TActions.Action.Close") + " \"" //$NON-NLS-1$ //$NON-NLS-2$
                             + tabbedPane.getTitleAt(getSelectedTab()) + "\""); //$NON-NLS-1$
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
           popup.show(tabbedPane, e.getX(), e.getY());
         }
       }

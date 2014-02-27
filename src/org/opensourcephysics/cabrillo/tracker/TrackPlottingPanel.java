@@ -373,6 +373,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     	}
     }
     guestMenu.setEnabled(guestMenu.getItemCount()>0);
+    FontSizer.setFonts(popup, FontSizer.getLevel());
     return popupmenu;
   }
 
@@ -416,10 +417,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		}
     if (frame==null) return;
     
-//    ImageFrame frame = new ImageFrame(mi);
     frame.setTitle(DisplayRes.getString("Snapshot.Title")); //$NON-NLS-1$
     frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
-    frame.setKeepHidden(false);    
+    frame.setKeepHidden(false);
+    FontSizer.setFonts(frame, FontSizer.getLevel());
+    frame.pack();
     frame.setVisible(true);
   }
   
@@ -639,6 +641,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	    algorithmItem.addActionListener(new ActionListener() {
 	      public void actionPerformed(ActionEvent e) {
 	      	DerivativeAlgorithmDialog dialog = track.trackerPanel.getAlgorithmDialog();
+	      	FontSizer.setFonts(dialog, FontSizer.getLevel());
+	      	dialog.pack();
 	      	dialog.setVisible(true);
 	      }
 	    });
@@ -1361,12 +1365,20 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     }
     
     // Overrides CartesianInteractive method
+    public ScaleSetter getScaleSetter() {
+    	ScaleSetter setter = super.getScaleSetter();
+    	FontSizer.setFonts(setter, FontSizer.getLevel());
+    	return setter;
+    }
+    
+    // Overrides CartesianInteractive method
     protected boolean hasHorzVariablesPopup() {
     	return true;
     }
     
     // Overrides CartesianInteractive method
     protected javax.swing.JPopupMenu getHorzVariablesPopup() {
+      FontSizer.setFonts(xPopup, FontSizer.getLevel());
     	return xPopup;
     }
     
@@ -1377,6 +1389,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     
     // Overrides CartesianInteractive method
     protected javax.swing.JPopupMenu getVertVariablesPopup() {
+      FontSizer.setFonts(yPopup, FontSizer.getLevel());
     	return yPopup;
     }
     

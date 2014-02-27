@@ -241,6 +241,7 @@ public class TableTView extends TrackChooserTView {
 	  		    popup.add(trackView.deleteTextColumnMenu);
 	  		    popup.add(trackView.renameTextColumnMenu);
   		    }
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
   		    popup.show(textColumnButton, 0, textColumnButton.getHeight());
         }
       });

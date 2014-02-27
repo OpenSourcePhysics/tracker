@@ -1478,10 +1478,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected DerivativeAlgorithmDialog getAlgorithmDialog() {
   	if (algorithmDialog==null) {
   		algorithmDialog = new DerivativeAlgorithmDialog(this);
-	    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-	    int x = (dim.width - algorithmDialog.getBounds().width) / 2;
-	    int y = (dim.height - algorithmDialog.getBounds().height) / 2;
-	    algorithmDialog.setLocation(x, y);
+  		algorithmDialog.setFontLevel(FontSizer.getLevel());
   	}
     return algorithmDialog;
   }
@@ -2248,6 +2245,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     TTrackBar trackbar = TTrackBar.getTrackbar(this);
     trackbar.setFontLevel(level);
     trackbar.refresh();
+    // select the correct fontSize menu radiobutton
+    TMenuBar menubar = TMenuBar.getMenuBar(this);
+    if (menubar.fontSizeGroup!=null) {
+	    Enumeration<AbstractButton> e = menubar.fontSizeGroup.getElements();
+	    for (; e.hasMoreElements();) {
+	      AbstractButton button = e.nextElement();
+	      int i = Integer.parseInt(button.getActionCommand());
+	      if(i==FontSizer.getLevel()) {
+	        button.setSelected(true);
+	      }
+	    }
+    }
+    
     for (TTrack track: getTracks()) {
     	track.setFontLevel(level);      	
     }
@@ -2261,16 +2271,22 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     if (autoTracker!=null) {
     	autoTracker.getWizard().setFontLevel(level);
     }
+    if (autoTracker!=null) {
+    	autoTracker.getWizard().setFontLevel(level);
+    }
     Video video = getVideo();
     if (video!=null) {
     	FilterStack filterStack = video.getFilterStack();
     	for (Filter filter: filterStack.getFilters()) {
         JDialog inspector = filter.getInspector();
         if (inspector != null) {
-          FontSizer.setFonts(inspector, FontSizer.getLevel());
+          FontSizer.setFonts(inspector, level);
           inspector.pack();
         }
     	}
+    }
+    if (algorithmDialog!=null) {
+    	algorithmDialog.setFontLevel(level);
     }
 
 	}

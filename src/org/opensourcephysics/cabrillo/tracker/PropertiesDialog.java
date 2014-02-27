@@ -96,7 +96,9 @@ public class PropertiesDialog extends JDialog {
 
 		Font font = cellRenderer.getFont();
 		font = FontSizer.getResizedFont(font, level);
-		videoTable.setRowHeight(font.getSize()+4);
+		if (videoTable!=null) {
+			videoTable.setRowHeight(font.getSize()+4);
+		}
 		trkTable.setRowHeight(font.getSize()+4);
   }
   

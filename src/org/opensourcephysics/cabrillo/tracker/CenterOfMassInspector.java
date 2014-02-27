@@ -25,11 +25,14 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
+
+import org.opensourcephysics.tools.FontSizer;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 
@@ -108,6 +111,10 @@ public class CenterOfMassInspector extends JDialog
    * @param vis true to show this inspector
    */
   public void setVisible(boolean vis) {
+  	if (vis) {
+	  	FontSizer.setFonts(this, FontSizer.getLevel());
+	  	pack();
+  	}
     super.setVisible(vis);
     isVisible = vis;
   }
@@ -225,6 +232,7 @@ public class CenterOfMassInspector extends JDialog
       checkbox.addActionListener(listener);
       checkboxPanel.add(checkbox);
     }
+  	FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
     pack();
     repaint();
   }

@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -58,6 +57,7 @@ import javax.swing.undo.UndoableEditSupport;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LaunchBuilder;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
@@ -120,6 +120,8 @@ public class PageTView extends JPanel implements TView {
     else {
     	add(tabbedPane, BorderLayout.CENTER);
     }
+		FontSizer.setFonts(this, FontSizer.getLevel());
+
     validate();
     repaint();
   }
@@ -289,9 +291,11 @@ public class PageTView extends JPanel implements TView {
     	// override getMaximumSize method so has same height as chooser button
 	    public Dimension getMaximumSize() {
 	      Dimension dim = super.getMaximumSize();
+	      Dimension min = getMinimumSize();
 	    	Container c = getParent().getParent();
 	  		if (c instanceof TViewChooser) {
-	  			dim.height = ((TViewChooser)c).chooserButton.getHeight();
+	  			int h = ((TViewChooser)c).chooserButton.getHeight();
+	  			dim.height = Math.max(h, min.height);
 	  		}
 	      return dim;
 	    } 
@@ -302,6 +306,7 @@ public class PageTView extends JPanel implements TView {
 	        JMenuItem item = new JMenuItem(TrackerRes.getString("TTrack.MenuItem.Locked")); //$NON-NLS-1$
 	        item.setEnabled(false);
 	        popup.add(item);
+	    		FontSizer.setFonts(popup, FontSizer.getLevel());
 	    		return popup;
 	    	}
         JMenuItem item = new JMenuItem(TrackerRes.getString("TextTView.Button.NewTab")); //$NON-NLS-1$
@@ -348,6 +353,7 @@ public class PageTView extends JPanel implements TView {
         });
         item.setSelected(locked);
         popup.add(item);
+    		FontSizer.setFonts(popup, FontSizer.getLevel());
         return popup;
 	    }
     };
@@ -405,6 +411,7 @@ public class PageTView extends JPanel implements TView {
             }
           });
           popup.add(helpItem);
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
           popup.show(noTab, e.getX(), e.getY());
       	}
       }
@@ -521,6 +528,7 @@ public class PageTView extends JPanel implements TView {
       }
     });
     popup.add(helpItem);
+		FontSizer.setFonts(popup, FontSizer.getLevel());
     return popup;
   }
   
@@ -561,6 +569,7 @@ public class PageTView extends JPanel implements TView {
 	    int y = (dim.height - nameDialog.getBounds().height) / 2;
 	    nameDialog.setLocation(x, y);
   	}
+		FontSizer.setFonts(nameDialog, FontSizer.getLevel());
     return nameDialog;
   }
  
