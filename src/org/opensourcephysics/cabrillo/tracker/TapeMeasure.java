@@ -27,7 +27,6 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.text.*;
 import java.util.ArrayList;
 import java.util.TreeSet;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;

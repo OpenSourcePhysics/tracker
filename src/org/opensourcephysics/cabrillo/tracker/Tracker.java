@@ -75,7 +75,7 @@ public class Tracker {
   
   // for testing
   static boolean timeLogEnabled = false;
-  static boolean testOn = true;
+  static boolean testOn = false;
   static TrackerPanel testPanel;
   
   // define static fields
@@ -113,7 +113,7 @@ public class Tracker {
   static Icon trackerLogoIcon, ospLogoIcon;
   static JLabel tipOfTheDayLabel;
   static JProgressBar progressBar;
-  static String version = "4.84140222"; //$NON-NLS-1$
+  static String version = "4.84140226"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
   static String copyright = "Copyright (c) 2014 Douglas Brown"; //$NON-NLS-1$
   static String trackerWebsite = "www.cabrillo.edu/~dbrown/tracker"; //$NON-NLS-1$
@@ -154,6 +154,7 @@ public class Tracker {
   static String preferredJRE, preferredJRE32, preferredJRE64;
   static String preferredTrackerJar;
   static int checkForUpgradeInterval = 0;
+  static int preferredFontLevel = 0;
   static boolean isRadians, isXuggleFast, engineKnown=true;
   static boolean warnXuggleError=true, warnNoVideoEngine=true, use32BitMode=false;
   static boolean warnXuggleVersion=true, warnVariableDuration=true, warnCopyFailed=true;
@@ -1195,7 +1196,8 @@ public class Tracker {
 			}
 		}
  
-    TFrame frame = tracker.getFrame();
+  	FontSizer.setLevel(preferredFontLevel);
+  	TFrame frame = tracker.getFrame();
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     LaunchNode node = Launcher.activeNode;
@@ -1610,6 +1612,8 @@ public class Tracker {
       		control.setValue("run", Tracker.prelaunchExecutables); //$NON-NLS-1$
       	if (Tracker.preferredLocale!=null)
       		control.setValue("locale", Tracker.preferredLocale); //$NON-NLS-1$
+      	if (Tracker.preferredFontLevel>0)
+      		control.setValue("font_size", Tracker.preferredFontLevel); //$NON-NLS-1$
       	if (ResourceLoader.getOSPCache()!=null) {
       		File cache = ResourceLoader.getOSPCache();
       		control.setValue("cache", cache.getPath()); //$NON-NLS-1$
@@ -1704,6 +1708,8 @@ public class Tracker {
       		Tracker.prelaunchExecutables = (String[])control.getObject("run"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("locale")) //$NON-NLS-1$
       		Tracker.setPreferredLocale(control.getString("locale")); //$NON-NLS-1$
+      	if (control.getPropertyNames().contains("font_size")) //$NON-NLS-1$
+      		Tracker.preferredFontLevel = control.getInt("font_size"); //$NON-NLS-1$
       	// set cache only if it has not yet been set
       	if (ResourceLoader.getOSPCache()==null) {
       		Tracker.setCache(control.getString("cache")); //$NON-NLS-1$

@@ -1279,6 +1279,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   public AttachmentDialog getAttachmentDialog(TTrack track) {
     if (attachmentDialog == null) {
     	attachmentDialog = new AttachmentDialog(track);
+    	attachmentDialog.setFontLevel(FontSizer.getLevel());
       // center on screen
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - attachmentDialog.getBounds().width) / 2;
@@ -1286,6 +1287,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       attachmentDialog.setLocation(x, y);
     }
     else {
+    	attachmentDialog.setFontLevel(FontSizer.getLevel());
     	attachmentDialog.setMeasuringTool(track);
     }
     return attachmentDialog;
@@ -2271,8 +2273,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     if (autoTracker!=null) {
     	autoTracker.getWizard().setFontLevel(level);
     }
-    if (autoTracker!=null) {
-    	autoTracker.getWizard().setFontLevel(level);
+    if (attachmentDialog!=null) {
+    	attachmentDialog.setFontLevel(level);
     }
     Video video = getVideo();
     if (video!=null) {

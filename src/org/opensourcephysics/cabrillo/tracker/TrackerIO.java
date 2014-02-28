@@ -1566,7 +1566,6 @@ public class TrackerIO extends VideoIO {
     	java.awt.print.Book book = new java.awt.print.Book();
     	book.append(this, format);      	
       printerJob.setPageable(book);
-      FontSizer.setFonts(printerJob, FontSizer.getLevel());
       if (printerJob.printDialog()) {
         try {
           printerJob.print();
@@ -1665,6 +1664,7 @@ class MonitorDialog extends JDialog {
     contentPane.add(labelbar, BorderLayout.NORTH);
     contentPane.add(progressPanel, BorderLayout.CENTER);
     contentPane.add(buttonbar, BorderLayout.SOUTH);
+    FontSizer.setFonts(contentPane, FontSizer.getLevel());
     pack();
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
     int x = (dim.width - getBounds().width) / 2;

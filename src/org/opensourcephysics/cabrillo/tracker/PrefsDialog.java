@@ -81,7 +81,7 @@ public class PrefsDialog extends JDialog {
   protected TitledBorder checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
   	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
   	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
-  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder;
+  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder;
 
   protected IntegerField memoryField;
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
@@ -91,7 +91,7 @@ public class PrefsDialog extends JDialog {
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
   protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, 
-  		checkForUpgradeDropdown, versionDropdown, logLevelDropdown;
+  		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown;
   protected JRadioButton vm32Button, vm64Button;
   protected JRadioButton xuggleButton, qtButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
@@ -102,7 +102,7 @@ public class PrefsDialog extends JDialog {
   
   // previous values
   protected Set<String> prevEnabled = new TreeSet<String>();
-  protected int prevMemory, prevRecentCount, prevUpgradeInterval;
+  protected int prevMemory, prevRecentCount, prevUpgradeInterval, prevFontLevel;
   protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine;
   protected boolean prevHints, prevRadians, prevFastXuggle, 
   		prevWarnNoVideoEngine, prevWarnXuggleError, prevWarnXuggleVersion,
@@ -155,7 +155,7 @@ public class PrefsDialog extends JDialog {
 		  checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
 	  	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
 	  	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
-	  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder};
+	  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder};
 		FontSizer.setFonts(borders, level); 
 		JComboBox[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, 
 				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown};
@@ -391,6 +391,30 @@ public class PrefsDialog extends JDialog {
     	}
     });
     langSubPanel.add(languageDropdown);    
+
+    // font level subpanel
+    JPanel fontSubPanel = new JPanel();
+    box.add(fontSubPanel);
+    fontSubPanel.setBackground(color);
+    fontSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
+    fontSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, fontSubPanelBorder));
+    
+    // create font size dropdown
+    fontSizeDropdown = new JComboBox();
+    String defaultLevel = TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"); //$NON-NLS-1$
+    fontSizeDropdown.addItem(defaultLevel);
+    for (int i=1; i<4; i++) {
+    	String s = "+"+i; //$NON-NLS-1$
+    	fontSizeDropdown.addItem(s);
+    }
+    fontSizeDropdown.setSelectedIndex(Tracker.preferredFontLevel);
+    fontSizeDropdown.addItemListener(new ItemListener() {
+    	public void itemStateChanged(ItemEvent e) {
+        Tracker.preferredFontLevel = fontSizeDropdown.getSelectedIndex();
+    	}
+    });
+    fontSubPanel.add(fontSizeDropdown);
 
     // hints subpanel
     hintsCheckbox = new JCheckBox();
@@ -1234,7 +1258,7 @@ public class PrefsDialog extends JDialog {
       }
     });
     logLevelDropdown = new JComboBox();
-    String defaultLevel = TrackerRes.getString("PrefsDialog.Version.Default").toUpperCase(); //$NON-NLS-1$
+    defaultLevel = TrackerRes.getString("PrefsDialog.Version.Default").toUpperCase(); //$NON-NLS-1$
     selected = defaultLevel;
     logLevelDropdown.addItem(defaultLevel);
     for (int i=OSPLog.levels.length-1; i>=0; i--) {
@@ -1354,6 +1378,7 @@ public class PrefsDialog extends JDialog {
 		prevLookFeel = Tracker.lookAndFeel;
 		prevRecentCount = Tracker.recentFilesSize;
 		prevLocaleName = Tracker.preferredLocale;
+		prevFontLevel = Tracker.preferredFontLevel;
 		prevHints = Tracker.showHintsByDefault;
 		prevRadians = Tracker.isRadians;
 		prevFastXuggle = Tracker.isXuggleFast;
@@ -1376,6 +1401,7 @@ public class PrefsDialog extends JDialog {
 		Tracker.lookAndFeel = prevLookFeel;
 		Tracker.recentFilesSize = prevRecentCount;
 		Tracker.setPreferredLocale(prevLocaleName);
+		Tracker.preferredFontLevel = prevFontLevel;
 		Tracker.showHintsByDefault = prevHints;
 		Tracker.isRadians = prevRadians;
 		Tracker.isXuggleFast = prevFastXuggle;
@@ -1549,12 +1575,13 @@ public class PrefsDialog extends JDialog {
    * Applies and saves the current preferences.
    */
   private void applyPrefs() {
-    // look/feel, language, video, hints are set directly by components
+    // look/feel, language, video, hints, fontlevel are set directly by components
   	// update configuration
     updateConfig();
     // update recent menu
     Integer val = (Integer)recentSizeSpinner.getValue();
     Tracker.setRecentSize(val);
+    
     if (trackerPanel!=null) TMenuBar.getMenuBar(trackerPanel).refresh();
   	// update preferred memory size
     if (defaultMemoryCheckbox.isSelected())
