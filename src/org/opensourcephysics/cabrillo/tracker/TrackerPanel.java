@@ -2290,7 +2290,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     if (algorithmDialog!=null) {
     	algorithmDialog.setFontLevel(level);
     }
-
 	}
 
   /**

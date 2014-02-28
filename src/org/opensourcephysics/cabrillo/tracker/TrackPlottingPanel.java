@@ -1362,6 +1362,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     
     ClickableAxes(PlottingPanel panel) {
       super(panel);
+      setDefaultGutters(defaultLeftGutter, 30, defaultRightGutter, defaultBottomGutter);
     }
     
     // Overrides CartesianInteractive method
