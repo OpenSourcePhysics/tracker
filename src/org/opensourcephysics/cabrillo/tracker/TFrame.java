@@ -105,9 +105,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
     Rectangle screenRect = e.getMaximumWindowBounds();
     setMaximizedBounds(screenRect);
-    Dimension dim = new Dimension(1024, 768);
-    dim.height = Math.min(screenRect.height, dim.height);
-    dim.width = Math.min(screenRect.width, dim.width);
+    double extra = FontSizer.getFactor(Tracker.preferredFontLevel)-1;
+    int w = Math.min(screenRect.width, (int)(1024+extra*800));
+    int h = Math.min(screenRect.height, 3*w/4);
+    Dimension dim = new Dimension(w, h);
     setSize(dim);
     // center frame on the screen
     int x = (screenRect.width-dim.width)/2;
