@@ -38,6 +38,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableColumnModel;
 
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.*;
@@ -103,9 +104,6 @@ public class TableTrackView extends TrackView {
     parentView = view;
     track.addPropertyChangeListener("text_column", this); //$NON-NLS-1$
     textColumnNames.addAll(track.getTextColumnNames());
-    for (String name: track.getTextColumnNames()) {
-  		textColumnsVisible.add(name);
-    }
     // create the DataTable
     textColumnEditor = new TextColumnEditor();
     dataTable = new DataTable() {
@@ -362,19 +360,26 @@ public class TableTrackView extends TrackView {
    */
   public boolean isCustomState() {
   	// check displayed data columns--default is columns 0 and 1 only
-  	int n = data.getDatasets().size();
+  	int n = checkBoxes.length;
   	for (int i = 0; i < n; i++) {
   		boolean selected = checkBoxes[i].isSelected();
   		boolean shouldBe = i < 2;
   		if ((shouldBe && !selected) || (!shouldBe && selected)) return true;
   	}
-  	// check displayed text columns--default is all are displayed
-  	for (String name: track.getTextColumnNames()) {
-  		if (!textColumnsVisible.contains(name)) return true;
-  	}
   	// check for formatting--default is no formatting
   	if (dataTable.getFormattedColumnNames().length>0)
   		return true;
+  	// check for reordered columns
+		TableColumnModel model = dataTable.getColumnModel();
+		int count = model.getColumnCount();
+		if (count==0) return true; // should never happen...
+		int index = model.getColumn(0).getModelIndex();
+  	for (int i=1; i<count; i++) {
+  		if (model.getColumn(i).getModelIndex()<index) {
+  			return true;
+  		}
+  		index = model.getColumn(i).getModelIndex();
+  	}
   	return false;
   }
 
@@ -463,7 +468,7 @@ public class TableTrackView extends TrackView {
   }
 
   /**
-   * Gets an array of visible column names. Used for saving/loading xml
+   * Gets an array of visible column names.
    *
    * @return the visible columns
    */
@@ -478,6 +483,35 @@ public class TableTrackView extends TrackView {
     	}
     }
     return list.toArray(new String[0]);
+  }
+
+  /**
+   * Returns the visible column names in the order displayed in the table. 
+   * Used for saving/loading xml.
+   *
+   * @return the visible columns in order
+   */
+  String[] getOrderedVisibleColumns() {
+  	// get array of column model indexes in table order
+		TableColumnModel model = dataTable.getColumnModel();
+		Integer[] modelIndexes = new Integer[model.getColumnCount()];
+  	for (int i=0; i<modelIndexes.length; i++) {
+  		modelIndexes[i] = model.getColumn(i).getModelIndex();
+  	}
+  	// get array of visible (dependent variable) column names
+  	String[] dependentVars = getVisibleColumns();
+  	// expand array to include independent variable 
+  	String[] columnNames = new String[dependentVars.length+1];
+  	columnNames[0] = track.getDataName(0);
+  	System.arraycopy(dependentVars, 0, columnNames, 1, dependentVars.length);
+  	// create array of names in table order
+  	String[] ordered = new String[columnNames.length];
+  	for (int i=0; i<ordered.length; i++) {
+  		if (i>=modelIndexes.length || modelIndexes[i]>=columnNames.length)
+  			continue;
+  		ordered[i] = columnNames[modelIndexes[i]];
+  	}
+    return ordered;
   }
 
   /**
@@ -501,10 +535,10 @@ public class TableTrackView extends TrackView {
    * @param e the property change event
    */
   public void propertyChange(PropertyChangeEvent e) {
-    if (parentView.columnsDialog != null && parentView.columnsDialog.isVisible() 
+    if (parentView.columnsDialog != null 
     			&& e.getPropertyName().equals("track") //$NON-NLS-1$
-    			&& e.getNewValue() == track) {
-      parentView.showColumnsDialog(getTrack());
+    			&& e.getNewValue()==track) {
+      parentView.refreshColumnsDialog(getTrack());
     }
     if (e.getPropertyName().equals("text_column")) { //$NON-NLS-1$
   		// look for added and removed column names
@@ -523,21 +557,19 @@ public class TableTrackView extends TrackView {
 	    		textColumnsVisible.add(added);
     		}
   		}
-  		else if (added!=null) {
-  			// new column is visible by default
-    		textColumnsVisible.add(added);    			
-  		}
+//  		else if (added!=null) {
+//  			// new column is visible by default
+//    		textColumnsVisible.add(added);    			
+//  		}
   		else if (removed!=null) {
     		textColumnsVisible.remove(removed);    			
   		}
     	// else a text entry was changed    		
-    	// refresh table and column visibility dialog, if visible
+    	// refresh table and column visibility dialog
     	dataTable.refreshTable();
     	if (getParent() instanceof TableTView) {
     		TableTView view = (TableTView)getParent();
-    		if (view.dialogVisible) {
-    			view.showColumnsDialog(track);
-    		}
+    		view.refreshColumnsDialog(track);
     	}
     	// update local list of names
     	textColumnNames.clear();
@@ -835,6 +867,14 @@ public class TableTrackView extends TrackView {
       public void actionPerformed(ActionEvent e) {
         String name = getUniqueColumnName(null, false);
         track.addTextColumn(name);
+        // new column is visible by default
+        textColumnsVisible.add(name);
+      	// refresh table and column visibility dialog
+      	dataTable.refreshTable();
+      	if (getParent() instanceof TableTView) {
+      		TableTView view = (TableTView)getParent();
+      		view.refreshColumnsDialog(track);
+      	}
       }
     });
     textColumnMenu = new JMenu();
@@ -919,11 +959,10 @@ public class TableTrackView extends TrackView {
   	dataTable.getTableHeader().setToolTipText(TrackerRes.getString("TableTrackView.Header.Tooltip"));          //$NON-NLS-1$
     dataTable.getTableHeader().addMouseListener(new MouseAdapter() {
       public void mousePressed(MouseEvent e) {
-      	if (dataTable.getRowCount()==0) return;        	
         java.awt.Point mousePt = e.getPoint();
         int col = dataTable.columnAtPoint(mousePt);
         if (OSPRuntime.isPopupTrigger(e)) {
-        	if (dataTable.getSelectedRowCount()==0) {
+        	if (dataTable.getRowCount()>0 && dataTable.getSelectedRowCount()==0) {
 	          dataTable.setColumnSelectionInterval(col, col);
 	          dataTable.setRowSelectionInterval(0, dataTable.getRowCount()-1);
         	}
@@ -1325,8 +1364,8 @@ public class TableTrackView extends TrackView {
       String s = TeXParser.removeSubscripting(name);
       checkBoxes[i] = new JCheckBox(s);
       boolean selected = names.contains(s) 
-		  		|| (prev != null && datasetCount >= prev.length 
-		  		&& i < prev.length && prev[i].isSelected());
+		  		|| (prev != null && datasetCount >= prev.length-textColumnCount 
+		  		&& i < prev.length-textColumnCount && prev[i].isSelected());
       checkBoxes[i].setBackground(Color.white);
       checkBoxes[i].setFont(font);
       checkBoxes[i].setSelected(selected);
