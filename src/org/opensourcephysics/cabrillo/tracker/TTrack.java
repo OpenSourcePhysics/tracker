@@ -359,6 +359,9 @@ public abstract class TTrack implements Interactive,
     		for (int n = 0; n < getSteps().length; n++) {
           steps.setStep(n, null);
     		}
+        for (String columnName: textColumnNames) {
+        	textColumnEntries.put(columnName, new String[0]);
+        }
         Undo.postTrackEdit(TTrack.this, control);
     		if (TTrack.this instanceof PointMass) {
     			((PointMass)TTrack.this).updateDerivatives();
@@ -889,6 +892,12 @@ public abstract class TTrack implements Interactive,
     if (step != null) {
       XMLControl control = new XMLControlElement(this);
       steps.setStep(n, null);
+      for (String columnName: textColumnNames) {
+      	String[] entries = textColumnEntries.get(columnName);
+      	if (entries.length>n) {
+      		entries[n] = null;
+      	}
+      }
       Undo.postTrackEdit(this, control);
       support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
     }

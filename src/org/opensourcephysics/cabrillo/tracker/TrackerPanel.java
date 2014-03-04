@@ -2446,6 +2446,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		   		else {
 			    	int n = step.getFrameNumber();
 			      track.steps.setStep(n, null);
+			      for (String columnName: track.textColumnNames) {
+			      	String[] entries = track.textColumnEntries.get(columnName);
+			      	if (entries.length>n) {
+			      		entries[n] = null;
+			      	}
+			      }
 			      isChanged = true;
 		   		}
 		   	}
