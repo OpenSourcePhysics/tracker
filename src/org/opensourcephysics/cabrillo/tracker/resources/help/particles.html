@@ -1,10 +1,11 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html>
 
 <html>
 
 	<head>
 		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
 		<title>Tracker Help: Particle Models</title>
+		<link href="help.css" rel="stylesheet" type="text/css">
 	</head>
 
 	<body>
@@ -13,7 +14,7 @@
 			<img src="../help_images/particle.gif">
         </p>
 		<p>A <strong>particle model</strong> track is a mathematical model of a point mass. The step positions of the particle are determined by the parameters of the model rather than being marked with the mouse.</p>
-		<p>There are two types of models: <strong>analytic</strong> and <strong>dynamic</strong>. An analytic model defines position functions of time (<a href="#fig4">Figure 4</a>), while a dynamic model defines force functions and initial conditions for numerical ODE solvers (<a href="#fig1">Figure 1</a>). Dynamic models may be defined in either <strong>cartesian</strong> or <strong>polar</strong> coordinates.</p>
+		<p>There are two types of models: <strong>analytic</strong> and <strong>dynamic</strong>. An analytic model defines position functions of time (<a href="particles.html#fig4">Figure 4</a>), while a dynamic model defines force functions and initial conditions for numerical ODE solvers (<a href="particles.html#fig1">Figure 1</a>). Dynamic models may be defined in either <strong>cartesian</strong> or <strong>polar</strong> coordinates.</p>
 		<p>Models have a <strong>start</strong> and <strong>end</strong> frame that define the frames of the video in which they are drawn. This makes it possible to define multiple models that apply at different times in the same video.</p>
 		<p>A particle model has a settable mass and generates motion data and vectors just like any other point mass. See <a href="pointmass.html">point mass</a> for additional information.</p>
         
@@ -35,41 +36,41 @@
             <li><strong>If statements</strong> in the form <em>if(conditional statement, expression1, expression2)</em>. Expression1 is evaluated if the conditional statement is true and expression2 is evaluated if it is false. For example, if (x &lt; 0, x^2, -x^2) is a valid function expression.
         </ul>
         <div align="center">
-            <table width="236" border="1" cellspacing="0" cellpadding="2">
+            <table border="1">
                 <tr>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">abs(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">acos(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">acosh(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">asin(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">asinh(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">atan(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">atanh(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">atan2(x,y)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">ceil(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">cos(x)</td>
+                    <td>abs(x)</td>
+                    <td>acos(x)</td>
+                    <td>acosh(x)</td>
+                    <td>asin(x)</td>
+                    <td>asinh(x)</td>
+                    <td>atan(x)</td>
+                    <td>atanh(x)</td>
+                    <td>atan2(x,y)</td>
+                    <td>ceil(x)</td>
+                    <td>cos(x)</td>
                 </tr>
                 <tr>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">cosh(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">exp(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">frac(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">floor(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">int(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">log(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">max(x,y)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">min(x,y)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">mod(x,y)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">random(x)</td>
+                    <td>cosh(x)</td>
+                    <td>exp(x)</td>
+                    <td>frac(x)</td>
+                    <td>floor(x)</td>
+                    <td>int(x)</td>
+                    <td>log(x)</td>
+                    <td>max(x,y)</td>
+                    <td>min(x,y)</td>
+                    <td>mod(x,y)</td>
+                    <td>random(x)</td>
                 </tr>
                 <tr>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">round(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sign(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sin(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sinh(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sqr(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sqrt(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">step(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">tan(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">tanh(x)</td>
+                    <td>round(x)</td>
+                    <td>sign(x)</td>
+                    <td>sin(x)</td>
+                    <td>sinh(x)</td>
+                    <td>sqr(x)</td>
+                    <td>sqrt(x)</td>
+                    <td>step(x)</td>
+                    <td>tan(x)</td>
+                    <td>tanh(x)</td>
                     <td></td>
                 </tr>
             </table>

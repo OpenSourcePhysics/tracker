@@ -36,11 +36,13 @@ import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.text.Document;
 
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.*;
+import org.opensourcephysics.tools.Launcher.HTMLPane;
 
 /**
  * This is the main frame for Tracker.
@@ -1222,9 +1224,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   	}
   	if (Tracker.startLogDialog!=null) {
   		FontSizer.setFonts(Tracker.startLogDialog, level);
-  	}
-		
-    FontSizer.setFonts(defaultMenuBar, level);    
+  	}		
+    FontSizer.setFonts(defaultMenuBar, level);
+    if (helpLauncher!=null && helpLauncher.getTabCount()>0) {
+	    LaunchPanel tab = helpLauncher.getTab(0);
+	    if (level>0) {
+	    	String newValue = "help"+level+".css"; //$NON-NLS-1$ //$NON-NLS-2$
+	    	tab.getHTMLSubstitutionMap().put("help.css", newValue); //$NON-NLS-1$
+	    }
+	    else {
+	    	tab.getHTMLSubstitutionMap().remove("help.css"); //$NON-NLS-1$
+	    }
+	    for (int i=0; i<helpLauncher.getHTMLTabCount(); i++) {
+	    	HTMLPane pane = helpLauncher.getHTMLTab(i);
+	    	pane.editorPane.getDocument().putProperty(Document.StreamDescriptionProperty, null);
+	    }
+	    helpLauncher.setDivider((int)(175*(1.0+0.36*level)));
+	    helpLauncher.refreshSelectedTab();
+    }
   }
 
   /**
@@ -1340,20 +1357,38 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //      }
 //      System.out.println(help_path);
       helpLauncher = new Launcher(help_path, false);
+      int level = FontSizer.getLevel();
+      if (helpLauncher.getTabCount()>0) {
+		    LaunchPanel tab = helpLauncher.getTab(0);
+		    if (level>0) {
+		    	String newValue = "help"+level+".css"; //$NON-NLS-1$ //$NON-NLS-2$
+		    	tab.getHTMLSubstitutionMap().put("help.css", newValue); //$NON-NLS-1$
+		    }
+		    else {
+		    	tab.getHTMLSubstitutionMap().remove("help.css"); //$NON-NLS-1$
+		    }
+      }
+	    helpLauncher.setDivider((int)(175*(1.0+0.36*level)));
       helpLauncher.setNavigationVisible(true);
       Component[] comps = new Component[] {Tracker.pdfHelpButton};
       helpLauncher.setNavbarRightEndComponents(comps);
+      Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+      Dimension dim = helpLauncher.getSize();
+      dim.width = Math.min((9*screen.width)/10, (int)((1+level*0.35)*dim.width));    
+      dim.height = Math.min((9*screen.height)/10, (int)((1+level*0.35)*dim.height)); 
+      helpLauncher.setSize(dim);
+
       helpDialog.setContentPane(helpLauncher.getContentPane());
   		FontSizer.setFonts(helpDialog, FontSizer.getLevel());
+
       helpDialog.pack();
-      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-      int x = (dim.width - helpDialog.getBounds().width) / 2;
-      int y = (dim.height - helpDialog.getBounds().height) / 2;
+      int x = (screen.width - helpDialog.getBounds().width) / 2;
+      int y = (screen.height - helpDialog.getBounds().height) / 2;
       helpDialog.setLocation(x, y);
     }
     return helpDialog;
   }
-
+  
   /**
    * Shows a specified help topic.
    *

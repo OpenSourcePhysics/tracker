@@ -1,10 +1,11 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html>
 
 <html>
 
 	<head>
 		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
 		<title>Tracker Help: User Interface</title>
+		<link href="help.css" rel="stylesheet" type="text/css">
 	</head>
 
 	<body>
@@ -17,9 +18,9 @@
 		<ul>
 			<li>A <strong>main video view</strong> that displays video images with track overlays. The video view has a fixed, stable video image. Tracks are marked and edited in the video view.
 			<li>A <strong>menu bar</strong> that offers access to most program commands and settings. Some menu items include icons showing which toolbar buttons perform identical actions.
-			<li>A two-tiered <strong><a href="#toolbar">toolbar</a></strong>, displayed directly below the menu bar, that offers quick access to frequently used controls, tools, track settings and data fields.
+			<li>A two-tiered <strong><a href="interface.html#toolbar">toolbar</a></strong>, displayed directly below the menu bar, that offers quick access to frequently used controls, tools, track settings and data fields.
 			<li>A <strong><a href="videos.html#player">player</a></strong> that controls the video playback and video clip settings. 
-			<li><strong><a href="#views">Additional views</a></strong> in attached view panes. Open, close or resize a view by clicking or dragging the thin dividers between panes or by selecting the desired view from the Window menu. Maximize or restore a view by clicking its Maximize button <img src="../help_images/maximize_button.gif" align="absmiddle"> or double-clicking its toolbar.
+			<li><strong><a href="interface.html#views">Additional views</a></strong> in attached view panes. Open, close or resize a view by clicking or dragging the thin dividers between panes or by selecting the desired view from the Window menu. Maximize or restore a view by clicking its Maximize button <img src="../help_images/maximize_button.gif" align="absmiddle"> or double-clicking its toolbar.
 		</ul>
         
 		<h3><a id="toolbar" name="toolbar"></a>2. Toolbar</h3>
@@ -50,7 +51,7 @@
 		    <li><strong>Documents</strong> button displays supplemental HTML and/or PDF documents associated with a <a href="calibration.html">Tracker ZIP resource</a>
 	                  <li><strong>Refresh</strong> button refreshes track data and views and turns auto-refresh on and off
     </ul>
-<p>The lower tier of the toolbar is used mainly for selected track data and input fields, but also contains a <strong>memory manager</strong> button that manages and monitors Tracker's memory status. See <a href="#memory">memory management</a> for more information.</p>
+<p>The lower tier of the toolbar is used mainly for selected track data and input fields, but also contains a <strong>memory manager</strong> button that manages and monitors Tracker's memory status. See <a href="interface.html#memory">memory management</a> for more information.</p>
 
 		<h3><a id="views" name="views"></a>3. Additional views</h3>
 		<p align="center">
@@ -70,13 +71,13 @@
         </p>
         
 		<h3>4. Hints</h3>
-		<p>By default, Tracker displays <strong>hints</strong> in a yellow box at the bottom right corner of the main view. Hints are very useful for new and occasional users of Tracker. Experienced users can turn off hints by unchecking the <strong>Show Hints</strong> checkbox in the Help menu or in the Display tab of the <a href="#prefs">preferences dialog</a>.</p>
+		<p>By default, Tracker displays <strong>hints</strong> in a yellow box at the bottom right corner of the main view. Hints are very useful for new and occasional users of Tracker. Experienced users can turn off hints by unchecking the <strong>Show Hints</strong> checkbox in the Help menu or in the Display tab of the <a href="interface.html#prefs">preferences dialog</a>.</p>
 		<p align="center">
         	<img src="../help_images/hints_checkbox.gif">
         </p>
         
 		<h3>5. Font level</h3>
-		<p>The Font Level determines the size of the fonts displayed by Tracker. In most cases, the default font level is best, but larger fonts are often useful when making a presentation or using a high screen resolution. To change the font level choose the desired level from the <strong>Edit|Font Level</strong> menu. You can also set a preferred font level in the Display tab of the <a href="#prefs">preferences dialog</a>.</p>
+		<p>The Font Level determines the size of the fonts displayed by Tracker. In most cases, the default font level is best, but larger fonts are often useful when making a presentation or using a high screen resolution. To change the font level choose the desired level from the <strong>Edit|Font Level</strong> menu. You can also set a preferred font level in the Display tab of the <a href="interface.html#prefs">preferences dialog</a>.</p>
 		<p align="center">
         	<img src="../help_images/font_level_menu.gif">
         </p>
@@ -85,15 +86,15 @@
 <p>The background mat is a white area normally hidden behind the video. It is never smaller than the video, but may be made larger if desired by choosing from the <strong>Edit|Mat Size</strong> menu. A larger mat size increases the area that is drawn in the video and world views. This is useful when some of a track's steps, or the axes, would otherwise be drawn offscreen--a common situation when using <a href="particles.html">particle model</a> tracks, <a href="calibration.html">calibration point pairs</a> or <a href="offset_origin.html">offset origins</a>.</p>
         
 		<h3>7. Languages</h3>
-		<p>Select a language other than that of the default locale by choosing from the <strong>Edit|Language</strong> menu or in the Display tab of the <a href="#prefs">preferences dialog</a>.</p>
+		<p>Select a language other than that of the default locale by choosing from the <strong>Edit|Language</strong> menu or in the Display tab of the <a href="interface.html#prefs">preferences dialog</a>.</p>
 		<p>If your preferred language is not available, and you wish to provide a translation, please contact Douglas Brown at dobrown at cabrillo dot edu.</p>
         
 		<h3>8. Undo and redo</h3>
 		<p>Most operations in Tracker can be undone and redone using the <strong>Undo</strong> and <strong>Redo</strong> items in the <strong>Edit</strong> menu. There is no limit to the number of undo actions.</p>
         
 		<h3><a id="memory" name="memory"></a>9. Memory management</h3>
-		<p>By default Tracker has at least 64MB of memory available (machine-dependent), enough to handle most moderate-sized videos. But when analyzing large or multiple videos, or long image sequences, additional memory will likely be needed. The <strong>memory manager</strong> button on the lower tier of the <a href="#toolbar">toolbar</a> displays information about the current memory status. The button text turns red when the current memory limit is approached.</p>
-		<p>Larger memory sizes are set in the Runtime tab of the <a href="#prefs">preferences dialog</a>. Clicking the memory manager button pops up a menu item that provides easy access to this tab.</p>
+		<p>By default Tracker has at least 64MB of memory available (machine-dependent), enough to handle most moderate-sized videos. But when analyzing large or multiple videos, or long image sequences, additional memory will likely be needed. The <strong>memory manager</strong> button on the lower tier of the <a href="interface.html#toolbar">toolbar</a> displays information about the current memory status. The button text turns red when the current memory limit is approached.</p>
+		<p>Larger memory sizes are set in the Runtime tab of the <a href="interface.html#prefs">preferences dialog</a>. Clicking the memory manager button pops up a menu item that provides easy access to this tab.</p>
 		<p align="center">
         	<img src="../help_images/memory.gif">
         </p>
