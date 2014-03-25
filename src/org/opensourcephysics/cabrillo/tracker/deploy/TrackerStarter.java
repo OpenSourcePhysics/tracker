@@ -937,6 +937,9 @@ public class TrackerStarter {
 					showDebugMessage("QTJava.zip not found"); //$NON-NLS-1$
 	    	}
 	    	else {
+	    		// Windows Vista special case--fails to launch Tracker if qtJavaWarning code is executed...
+	    		if (System.getProperty("os.name", "").toLowerCase().contains("vista")) return; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	    		
 	    		// failed to copy QTJava to ext directory--permissions problem?
 					showDebugMessage("unable to copy "+qtSource.getAbsolutePath()+" to "+extDir.getAbsolutePath());  //$NON-NLS-1$ //$NON-NLS-2$
 					
