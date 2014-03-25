@@ -2177,6 +2177,7 @@ public abstract class TTrack implements Interactive,
   	skippedStepWarningTextpane.setText(m1+"  "+m3); //$NON-NLS-1$
   	skippedStepWarningCheckbox.setText(TrackerRes.getString("TTrack.Dialog.SkippedStepWarning.Checkbox")); //$NON-NLS-1$
   	closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+  	FontSizer.setFonts(skippedStepWarningDialog, FontSizer.getLevel());
   	skippedStepWarningDialog.pack();
   	// center on screen
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();

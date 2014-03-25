@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
@@ -35,6 +34,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -487,6 +487,14 @@ public class LineProfile extends TTrack {
     spreadField.setEnabled(!isLocked());
     list.add(spreadField);
     return list;
+  }
+
+  @Override
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{spreadLabel};
+    FontSizer.setFonts(objectsToSize, level);
   }
 
   /**

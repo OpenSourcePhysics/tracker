@@ -111,9 +111,9 @@ public class TrackControl extends JDialog
 		TFrame frame = trackerPanel.getTFrame();
 		if (!positioned && vis) {
 			if (frame.isVisible()) {
-		  	TTrackBar trackbar = frame.getTrackBar(trackerPanel);
-		  	Point p = trackbar.getLocationOnScreen();
-		    setLocation(p.x+4, p.y+30);
+				MainTView view = frame.getMainView(trackerPanel);
+				Point p = view.getLocationOnScreen();
+		    setLocation(p.x, p.y);
 		    positioned = true;
 			}
 			else return;

@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
@@ -36,6 +35,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -649,6 +649,14 @@ public class RGBRegion extends TTrack {
     list.add(yField);
     list.add(ySeparator);
     return list;
+  }
+
+  @Override
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{radiusLabel};
+    FontSizer.setFonts(objectsToSize, level);
   }
 
   /**

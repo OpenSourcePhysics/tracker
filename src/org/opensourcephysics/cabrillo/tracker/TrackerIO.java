@@ -130,6 +130,7 @@ public class TrackerIO extends VideoIO {
     		    buttonbar.add(closeButton);
     		    buttonbar.setBorder(BorderFactory.createEtchedBorder());
     				contentPane.add(buttonbar, BorderLayout.SOUTH);
+    				FontSizer.setFonts(dialog, FontSizer.getLevel());
     				dialog.pack();
     				dialog.setTitle(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Title")); //$NON-NLS-1$
     		    // center dialog on the screen

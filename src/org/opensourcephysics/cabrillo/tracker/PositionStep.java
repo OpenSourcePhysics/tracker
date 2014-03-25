@@ -358,6 +358,18 @@ public class PositionStep extends Step {
       this.x = point.getX();    	
       this.y = point.getY();    	
     }
+    
+    /**
+     * Sets the adjusting flag.
+     *
+     * @param adjusting true if being dragged
+     */
+    @Override
+    public void setAdjusting(boolean adjusting) {
+    	super.setAdjusting(adjusting);
+      track.support.firePropertyChange("adjusting", null, adjusting); //$NON-NLS-1$    	
+    }
+
   }
 
   /**
