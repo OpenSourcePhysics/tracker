@@ -72,6 +72,7 @@ public class DynamicSystem extends DynamicParticlePolar {
   protected StepArray noSteps;
   protected int systemInspectorX = Integer.MIN_VALUE, systemInspectorY;
   protected TreeMap<Integer,double[]> relativeStates = new TreeMap<Integer,double[]>();
+  protected boolean refreshing = false;
 
 	/**
 	 * No-arg constructor.
@@ -291,12 +292,40 @@ public class DynamicSystem extends DynamicParticlePolar {
    * @return true if particles accepted
    */
   public boolean setParticles(DynamicParticle[] newParticles) {
-  	if (newParticles==null || newParticles.length>2)
+  	if (newParticles==null || newParticles.length>2) {
   		return false;
-  	for (DynamicParticle next: newParticles) {
-  		if (next==null) 
-  			return false;
   	}
+  	for (DynamicParticle next: newParticles) {
+  		if (next==null) {
+  			return false;
+  		}
+  	}
+  	if (newParticles.length==2) {
+  		DynamicParticle problem = null;
+  		if (newParticles[0].isBoostedBy(newParticles[1])) {
+  			problem = newParticles[0];
+  		}
+  		else if (newParticles[1].isBoostedBy(newParticles[0])) {
+  			problem = newParticles[1];
+  		}
+  		if (problem!=null) {
+      	String message = TrackerRes.getString("DynamicSystem.Dialog.RemoveBooster.Message1")+"\n" //$NON-NLS-1$ //$NON-NLS-2$
+      			+TrackerRes.getString("DynamicSystem.Dialog.RemoveBooster.Message2")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      			+problem.getName()+"\n" //$NON-NLS-1$
+      			+TrackerRes.getString("DynamicSystem.Dialog.RemoveBooster.Message3"); //$NON-NLS-1$ 
+      	int response = javax.swing.JOptionPane.showConfirmDialog(
+      			trackerPanel.getTFrame(), 
+      			message,
+      			TrackerRes.getString("DynamicSystem.Dialog.RemoveBooster.Title"), //$NON-NLS-1$ 
+      			javax.swing.JOptionPane.OK_CANCEL_OPTION, 
+      			javax.swing.JOptionPane.WARNING_MESSAGE);
+      	if (response == javax.swing.JOptionPane.YES_OPTION) {
+      		problem.setBooster(null);
+      	}
+      	else return false;
+  		}
+  	}
+  	
   	// clean up particles that will be removed
   	for (DynamicParticle particle: particles) {
   		boolean cleanMe = true;
@@ -329,13 +358,18 @@ public class DynamicSystem extends DynamicParticlePolar {
     		systemInspector.isVisible()) {
     	systemInspector.updateDisplay();
     }
+    // make new points arrary
 		points = new Point2D[particles.length+1];
+		for (int i = 0; i < particles.length; i++) {
+			points[i] = new Point2D.Double();
+		}		
+		points[points.length-1] = point;
+		
 		for (int i = 0; i < particles.length; i++) {
 			particles[i].removePropertyChangeListener(this);
 			particles[i].addPropertyChangeListener(this);
 			particles[i].system = this;
 			particles[i].refreshInitialTime();
-			points[i] = new Point2D.Double();
 			if (systemInspector!=null) {
 				particles[i].removePropertyChangeListener("name", systemInspector); //$NON-NLS-1$
 				particles[i].removePropertyChangeListener("color", systemInspector); //$NON-NLS-1$
@@ -345,7 +379,6 @@ public class DynamicSystem extends DynamicParticlePolar {
 				particles[i].addPropertyChangeListener("footprint", systemInspector); //$NON-NLS-1$
 			}
 		}
-		points[points.length-1] = point;
     refreshSystemParameters();
     if (inspector != null)
     	inspector.refreshDropdown(null);
@@ -661,6 +694,8 @@ public class DynamicSystem extends DynamicParticlePolar {
 	 * based on the values for the particles in this system.
 	 */
 	protected void refreshSystemParameters() {
+		if (refreshing) return;
+		refreshing = true;
   	double[] polarState; // polar state is {r, vr, theta, omega, t}
   	if (particles.length==2) {
   		polarState = getRelativePolarState(getInitialState());
@@ -697,8 +732,18 @@ public class DynamicSystem extends DynamicParticlePolar {
 		Parameter m2 = (Parameter)getParamEditor().getObject("m2"); //$NON-NLS-1$
 		desc = TrackerRes.getString("DynamicSystem.Parameter.ParticleMass.Description"); //$NON-NLS-1$
 		if (particles.length==0) {
-			getParamEditor().removeObject(m1, false);
-			getParamEditor().removeObject(m2, false);
+			if (m1!=null) {
+				// must set name and expression editable before removing parameter
+				m1.setNameEditable(true);
+				m1.setExpressionEditable(true);
+				getParamEditor().removeObject(m1, false);
+			}
+			if (m2!=null) {
+				// must set name and expression editable before removing parameter
+				m2.setNameEditable(true);
+				m2.setExpressionEditable(true);
+				getParamEditor().removeObject(m2, false);
+			}
 		}
 		else {
 			String value = FunctionEditor.format(particles[0].getMass(), 0);
@@ -717,8 +762,19 @@ public class DynamicSystem extends DynamicParticlePolar {
 				else 
 					getParamEditor().setExpression("m2", value, false); //$NON-NLS-1$
 			}
-			else 			
-				getParamEditor().removeObject(m2, false);
+			else {			
+				if (m2!=null) {
+					// must set name and expression editable before removing parameter
+					m2.setNameEditable(true);
+					m2.setExpressionEditable(true);
+					getParamEditor().removeObject(m2, false);
+				}
+			}
+		}
+		for (DynamicParticle particle: particles) {
+			if (particle.modelBooster!=null) {
+				particle.modelBooster.setBooster(particle.modelBooster.booster);
+			}
 		}
 		// initial values
 		Parameter t = (Parameter)getInitEditor().getObject("t"); //$NON-NLS-1$
@@ -735,6 +791,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		desc = TrackerRes.getString("DynamicParticle.Parameter.InitialOmega.Description"); //$NON-NLS-1$
 		Parameter omega = createParameter(FunctionEditor.OMEGA+relative, value, desc+particleNames);
 		getInitEditor().setParameters(new Parameter[] {t, r, theta, vr, omega});
+		refreshing = false;
 	}
 	
   /**

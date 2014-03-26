@@ -281,7 +281,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	          if(item!=null) {
 	          	Object[] array = (Object[])item;
 	          	PointMass target = (PointMass)array[1]; // null if "none" selected
-		      		model.getBoosterSeat().setBooster(target);
+		      		model.setBooster(target);
 		      		if (target!=null) {
 			      		Step step = getSelectedStep();
 			      		if (step!=null && step instanceof PositionStep) {
@@ -2953,9 +2953,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	   	      Object[] item = new Object[] {next.getFootprint().getIcon(21, 16), next, name};
 	   	      
 	   	      // check that next is not a dynamic particle being boosted by selected model
+	   	      // or part of a system being boosted by selected model
   	  	  	if (next instanceof DynamicParticle) {
   	  	  		DynamicParticle dynamic = (DynamicParticle)next;
   	  	  		if (dynamic.isBoostedBy(model)) continue;
+  	  	  		if (dynamic.system!=null) {
+  	  	  			for (DynamicParticle part: dynamic.system.particles) {
+  	  	  	  		if (part.isBoostedBy(model)) continue outer;
+  	  	  			}
+  	  	  		}
   	  	  	}
 	   	      
 	  	    	if (dynamicModel!=null) {	
@@ -2967,8 +2973,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	  	  	  		}
 	  	    		}
 	  	    		// check if next is selected model's booster
-		  	    	if (dynamicModel.boosterseat!=null) {
-		  	    		PointMass booster = dynamicModel.boosterseat.booster;
+		  	    	if (dynamicModel.modelBooster!=null) {
+		  	    		PointMass booster = dynamicModel.modelBooster.booster;
 		  	    		// check if next pointmass is the current booster
 			  	  		if (booster==next) {
 			  	  			selected = item;
@@ -2981,7 +2987,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		      boosterDropdown.addItem(none);
 		      boosterDropdown.setSelectedItem(selected);
 		      if (dynamicModel!=null && !targetExists) {
-		      	dynamicModel.getBoosterSeat().setBooster(null);
+		      	dynamicModel.setBooster(null);
 		      }
 	  	  	boolean enable = dynamicModel!=null && !(dynamicModel instanceof DynamicSystem);
 	    	  boosterLabel.setEnabled(enable);
