@@ -375,6 +375,7 @@ abstract public class ParticleModel extends PointMass {
 		});
 		// assemble the menu
 		JMenu menu = super.getMenu(trackerPanel);
+
 		// remove unwanted menu items and separators
 		menu.remove(lockedItem);
 		menu.remove(autoAdvanceItem);

@@ -353,7 +353,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         // ignore when menu is about to close
         if (!editMenu.isPopupMenuVisible()) return;
         // enable deleteSelectedPoint item if a selection exists
-        deleteSelectedPointItem.setEnabled(trackerPanel.getSelectedPoint() != null);
+        Step step = trackerPanel.getSelectedStep();
+        TTrack track = trackerPanel.getSelectedTrack();
+        boolean cantDeleteSteps = track==null || track.isLocked() || track.isDependent();
+        deleteSelectedPointItem.setEnabled(!cantDeleteSteps && step!=null);
         // enable and refresh pasteXML item if clipboard contains xml string data
         String paste = actions.get("pastexml").getValue(Action.NAME).toString(); //$NON-NLS-1$
       	pasteXMLItem.setText(paste);

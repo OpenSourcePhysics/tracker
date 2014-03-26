@@ -1476,9 +1476,14 @@ public abstract class TTrack implements Interactive,
     markByDefaultItem.setSelected(isMarkByDefault());
     autoAdvanceItem.setSelected(isAutoAdvance());
     lockedItem.setEnabled(true);
+    boolean cantDeleteSteps = isLocked() || isDependent();
+    TPoint p = trackerPanel.getSelectedPoint();
+    Step step = getStep(p, trackerPanel);
+
+    deleteStepItem.setEnabled(!cantDeleteSteps && step!=null);
+    clearStepsItem.setEnabled(!cantDeleteSteps);
     deleteTrackItem.setEnabled(!(isLocked() && !isDependent()));
-    clearStepsItem.setEnabled(!(isLocked() && !isDependent()));
-    nameItem.setEnabled(!isLocked());
+    nameItem.setEnabled(!(isLocked() && !isDependent()));
     footprintMenu.removeAll();
     Footprint[] fp = getFootprints();
     JMenuItem item;

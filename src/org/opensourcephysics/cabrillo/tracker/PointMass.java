@@ -1897,9 +1897,6 @@ public class PointMass extends TTrack {
     if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
       if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount()-1) != null)
         menu.addSeparator();
-      TPoint p = trackerPanel.getSelectedPoint();
-      Step step = getStep(p, trackerPanel);
-      deleteStepItem.setEnabled(step!=null);
       menu.add(deleteStepItem);
       menu.add(clearStepsItem);
       menu.add(deleteTrackItem);
