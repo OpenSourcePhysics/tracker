@@ -35,11 +35,8 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
-import org.opensourcephysics.display.Dataset;
-import org.opensourcephysics.display.DatasetManager;
 
 /**
  * This is a toolbar that display selected track properties 
@@ -70,7 +67,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   static {
   	smallSelectIcon =  new ImageIcon(Tracker.class.getResource("resources/images/small_select.gif")); //$NON-NLS-1$
     if (Tracker.testOn) {
-	  	testButton = new JButton("Font Level"); //$NON-NLS-1$
+	  	testButton = new JButton("Test"); //$NON-NLS-1$
 	  	testButton.addActionListener(new ActionListener() {
 	  		public void actionPerformed(ActionEvent e) {
 	    		final TFrame frame = (TFrame)testButton.getTopLevelAncestor();
@@ -79,61 +76,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-//		    	      	JFileChooser chooser = new JFileChooser() {
-//			    	      	protected JDialog createDialog(Component parent) throws HeadlessException {
-//	                     JDialog dialog = super.createDialog(parent);
-//	                     FontSizer.setFonts(dialog, 2);
-//	                     dialog.pack();
-//	                     return dialog;
-//	                  }
-//		    	      	};
-//		    	      	chooser.showOpenDialog(null);
-		    	      	
-		    	      	
-		    	      	
-		              JPopupMenu popup = new JPopupMenu();
-		              ButtonGroup group = new ButtonGroup();
-		              Action fontSizeAction = new AbstractAction() {
-		                public void actionPerformed(ActionEvent e) {
-		                  int i = Integer.parseInt(e.getActionCommand());
-				    	      	FontSizer.setLevel(i);
-		                }
-
-		              };
-		              for(int i = 0; i<4; i++) {
-		                JMenuItem item = new JRadioButtonMenuItem("+"+i); //$NON-NLS-1$
-		                item.addActionListener(fontSizeAction);
-		                item.setActionCommand(""+i);                      //$NON-NLS-1$
-		                popup.add(item);
-		                group.add(item);
-		                if(i==FontSizer.getLevel()) {
-		                  item.setSelected(true);
-		                }
-		              }
-		            	FontSizer.setFonts(popup, FontSizer.getLevel());
-		              popup.show(testButton, 0, testButton.getHeight());   
-		    	      	
-		    	      	
-		    	      	
-		    	      	
-//		    	      	int level = FontSizer.getLevel();
-//		    	      	FontSizer.setLevel(level==1? 0: 1);
-//		    	      	frame.setFontLevel(level==3? 0: level+1);
-		    	      	
-//		    	      	final TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-//		    	      	if (trackerPanel!=null) {
-//		    	      		
-//		    	      		DynamicParticle model = (DynamicParticle)trackerPanel.getTrack("model A");
-//		    	      		
-//		    	      		Step step = trackerPanel.getSelectedStep();
-//		    	      		if (step!=null && step instanceof PositionStep) {
-////		    	      			int frameNum = step.getFrameNumber();
-//		    	      			PointMass pm = (PointMass)((PositionStep)step).track;
-//			    	      		model.getTargetListener().setTarget(pm);
-//		    	      		}
-//		    	      		else model.getTargetListener().setTarget(null);
-//		    	      		
-//		    	        }	    	      	
+		    	      	final TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 		    	      	
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
