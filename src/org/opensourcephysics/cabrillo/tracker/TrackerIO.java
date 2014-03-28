@@ -493,6 +493,7 @@ public class TrackerIO extends VideoIO {
   	String fileName = XML.getName(path);
   	File testFile = new File(fileName);
     TrackerPanel trackerPanel = existingPanel==null? new TrackerPanel(): existingPanel;
+    boolean panelChanged = trackerPanel.changed;
   	// create progress monitor
   	MonitorDialog monitorDialog = new MonitorDialog(frame, path);
   	monitorDialog.setVisible(true);
@@ -595,6 +596,8 @@ public class TrackerIO extends VideoIO {
         pane.setDividerLocation(frame.defaultRightDivider);
         TMenuBar.getMenuBar(trackerPanel).refresh();
         trackerPanel.setVideo(video);
+        // panel is changed if video imported into existing trackerPanel
+        panelChanged = existingPanel!=null;
         if (video.getFrameCount() == 1) {
           trackerPanel.getPlayer().getVideoClip().setStepCount(10);
         }
@@ -825,7 +828,7 @@ public class TrackerIO extends VideoIO {
     Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
     TMenuBar.getMenuBar(trackerPanel).refresh();
     TTrackBar.refreshMemoryButton();
-    trackerPanel.changed = false;
+    trackerPanel.changed = panelChanged;
   }
 
   /**

@@ -77,7 +77,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   protected TrackerPanel prevPanel;
   protected double defaultRightDivider = 0.7;
   protected double defaultBottomDivider = 0.5;
-  protected TransferHandler fileDropHandler;
+  protected FileDropHandler fileDropHandler;
   protected Action openRecentAction;
   protected boolean splashing=true;
   protected ArrayList<String> loadedFiles = new ArrayList<String>();
@@ -100,9 +100,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     createGUI();    
     // size and position this frame
     pack();
-    fileDropHandler = new FileDropHandler(this);
+    
     // set transfer handler on tabbedPane
+    fileDropHandler = new FileDropHandler(this);
     tabbedPane.setTransferHandler(fileDropHandler);
+
     // set size and limit maximized size so taskbar not covered
     GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
     Rectangle screenRect = e.getMaximumWindowBounds();
@@ -1899,6 +1901,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     // set mouse handler
     TMouseHandler handler = new TMouseHandler();
     trackerPanel.setInteractiveMouseHandler(handler);
+    // set file drop handler
+    trackerPanel.setTransferHandler(fileDropHandler);
     // set divider locations
     validate(); // in advance of setting divider locations
     if (trackerPanel.dividerLocs != null) {
