@@ -628,7 +628,7 @@ public class DynamicParticle
 				DatasetManager data = booster.getData(trackerPanel);
 				booster.refreshData(data, trackerPanel);
 			}
-			
+
 			boost();
 		}
 		

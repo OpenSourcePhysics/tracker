@@ -1760,11 +1760,15 @@ public class PointMass extends TTrack {
   public void propertyChange(PropertyChangeEvent e) {
     if (e.getSource() instanceof TrackerPanel) {
       String name = e.getPropertyName();
-      if (name.equals("transform")) //$NON-NLS-1$
+      if (name.equals("transform")) { //$NON-NLS-1$
+      	dataValid = false;
         updateDerivatives();
+	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
+      }
       else if (name.equals("stepsize")) { //$NON-NLS-1$
         dataValid = false;
         updateDerivatives();
+	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
         int stepSize = trackerPanel.getPlayer().getVideoClip().getStepSize();
         if (skippedStepWarningOn
         		&& stepSizeWhenFirstMarked>1
