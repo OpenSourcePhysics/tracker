@@ -557,7 +557,7 @@ public class CoordAxes extends TTrack {
   public void setFontLevel(int level) {
   	super.setFontLevel(level);
   	Object[] objectsToSize = new Object[]
-  			{originLabel, gridButton};
+  			{originLabel, gridCheckbox};
     FontSizer.setFonts(objectsToSize, level);
   }
 
