@@ -663,6 +663,13 @@ public class TrackerStarter {
 		if (xuggleWarning!=null) env.put("XUGGLE_WARNING", xuggleWarning); //$NON-NLS-1$ 
 		if (qtJavaWarning!=null) env.put("QTJAVA_WARNING", qtJavaWarning); //$NON-NLS-1$ 
 		
+		// on OS X, add DYLD_LIBRARY_PATH to environment here
+		// note TRACKER_HOME, XUGGLE_HOME must be in environment BEFORE running this
+		if (OSPRuntime.isMac()
+				&& xuggleHome!=null && new File(xuggleHome+"/lib").exists()) { //$NON-NLS-1$
+			env.put("DYLD_LIBRARY_PATH", xuggleHome+"/lib"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		
 		// assemble command message for log
 		String message = ""; //$NON-NLS-1$
 		for (String next: cmd) {
