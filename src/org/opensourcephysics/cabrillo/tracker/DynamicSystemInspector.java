@@ -25,11 +25,13 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
+
+import org.opensourcephysics.tools.FontSizer;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
@@ -197,8 +199,7 @@ public class DynamicSystemInspector extends JDialog
   	    	item.addActionListener(new ActionListener() {
 			      public void actionPerformed(ActionEvent e) {
 	          	selectedParticles[n] = getParticle(item.getText());
-	          	newParticle = selectedParticles[n];
-			      	updateSystem();
+	          	updateSystem();
 			      }
 			    });
   	    	popup.add(item);
@@ -246,6 +247,19 @@ public class DynamicSystemInspector extends JDialog
   	    newMenu.add(polarItem);
   	    if (cloneMenu.getItemCount() > 0)
   	    	popup.add(cloneMenu);
+  	    JMenuItem noneItem = new JMenuItem(
+  	    		TrackerRes.getString("DynamicSystemInspector.ParticleName.None")); //$NON-NLS-1$
+  	    noneItem.addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent e) {
+		      	newParticle = null;
+          	selectedParticles[n] = null;
+		      	updateSystem();
+		      }
+		    });
+  	    popup.addSeparator();
+  	    popup.add(noneItem); 	    
+  	    
+      	FontSizer.setFonts(popup, FontSizer.getLevel());
         popup.show(button, 0, button.getHeight());
       }
     };
@@ -332,9 +346,10 @@ public class DynamicSystemInspector extends JDialog
    * Updates the system to reflect the current particle selection.
    */
   private void updateSystem() {
-  	if (selectedParticles[0]==null && selectedParticles[1]==null)
-  		return;
-  	if (selectedParticles[0]==null)
+  	if (selectedParticles[0]==null && selectedParticles[1]==null) {
+    	system.setParticles(new DynamicParticle[0]);
+  	}
+  	else if (selectedParticles[0]==null)
     	system.setParticles(new DynamicParticle[] {selectedParticles[1]});
   	else if (selectedParticles[1]==null)
     	system.setParticles(new DynamicParticle[] {selectedParticles[0]});  	

@@ -26,14 +26,15 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
 
@@ -66,7 +67,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   static {
   	smallSelectIcon =  new ImageIcon(Tracker.class.getResource("resources/images/small_select.gif")); //$NON-NLS-1$
     if (Tracker.testOn) {
-	  	testButton = new JButton("test"); //$NON-NLS-1$
+	  	testButton = new JButton("Test"); //$NON-NLS-1$
 	  	testButton.addActionListener(new ActionListener() {
 	  		public void actionPerformed(ActionEvent e) {
 	    		final TFrame frame = (TFrame)testButton.getTopLevelAncestor();
@@ -75,10 +76,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-		    	      	
-//		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-//		    	      	if (trackerPanel!=null && trackerPanel.getVideo()!=null) {
-//		    	        }	    	      	
+		    	      	final TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 		    	      	
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
@@ -186,6 +184,16 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     return trackbar;
   }
 
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	Object[] objectsToSize = new Object[]
+  			{trackButton};
+    FontSizer.setFonts(objectsToSize, level);
+  }
   
   /**
    * TTrackBar constructor.
@@ -210,6 +218,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
    */
   protected JPopupMenu getPopup(TTrack track) {
     JMenu trackMenu = track.getMenu(trackerPanel);
+  	FontSizer.setFonts(trackMenu, FontSizer.getLevel());
     return trackMenu.getPopupMenu();
   }
 
@@ -301,6 +310,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
       	selectPopup.add(item);
     	}
     }
+    FontSizer.setFonts(selectPopup, FontSizer.getLevel());
     return selectPopup;
   }
   

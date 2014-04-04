@@ -26,9 +26,9 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 import org.opensourcephysics.display.*;
@@ -201,6 +201,15 @@ public class CenterOfMass extends PointMass {
   	return ia;
   }
   
+  @Override
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	if (inspector!=null && inspector.isVisible()) {
+  		// call setVisible to force inspector to resize itself
+  		inspector.setVisible(true);
+  	}
+  }
+
   /**
    * Overrides TTrack setLocked method. CenterOfMass is always locked.
    *

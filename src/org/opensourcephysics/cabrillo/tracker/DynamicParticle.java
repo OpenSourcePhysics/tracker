@@ -26,6 +26,8 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.Graphics;
 import java.awt.geom.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.HashMap;
 
 import org.opensourcephysics.media.core.*;
@@ -34,10 +36,12 @@ import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.UserFunction;
 import org.opensourcephysics.tools.UserFunctionEditor;
 import org.opensourcephysics.controls.*;
+import org.opensourcephysics.display.Dataset;
+import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
 
 /**
- * DynamicParticle models a particle using Newton'w 2nd law.
+ * DynamicParticle models a particle using Newton's 2nd law.
  *
  * @author W. Christian, D. Brown
  * @version 1.0
@@ -46,6 +50,8 @@ public class DynamicParticle
     extends ParticleModel implements ODE {
 	
 	// instance fields
+	protected boolean inSystem; // used only when loading
+	protected String boosterName; // used only when loading
   protected double[] state = new double[5]; // {x, vx, y, vy, t}
   protected double[] initialState = new double[5]; // {x, vx, y, vy, t}
   protected ODESolver solver = new RK4(this);
@@ -53,7 +59,7 @@ public class DynamicParticle
   protected DynamicSystem system;
   protected Point2D[] points;
   protected HashMap<Integer, double[]> frameStates = new HashMap<Integer, double[]>();
-  boolean inSystem; // used only when loading
+  protected ModelBooster modelBooster = new ModelBooster();
   
   /**
    * Constructor
@@ -71,6 +77,16 @@ public class DynamicParticle
 	 * @param _g the graphics context on which to draw
 	 */
 	public void draw(DrawingPanel panel, Graphics _g) {
+		// if a booster is named, set the booster to the named point mass
+		if (boosterName!=null && panel instanceof TrackerPanel) {
+			for (PointMass track: ((TrackerPanel)panel).getDrawables(PointMass.class)) {
+				if (track.getName().equals(boosterName)) {
+					setBooster(track);
+					boosterName = null;
+					break;
+				}
+			}
+		}
 		// if this is part of a system, then the system draws it
 		if (system==null && !inSystem)
 			super.draw(panel, _g);
@@ -203,7 +219,7 @@ public class DynamicParticle
 		    models[i].traceX = new double[] {points[i].getX()};
 		    models[i].traceY = new double[] {points[i].getY()};
 		    step.getPosition().setPosition(points[i]); // this method is fast
-		    models[i].support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+		    models[i].support.firePropertyChange("step", null, firstFrameInClip); //$NON-NLS-1$
 			}
 	  }
   }
@@ -310,9 +326,16 @@ public class DynamicParticle
    * @param n the desired start frame
    */
 	public void setStartFrame(int n) {
-		if (system!=null)
+		if (system!=null) {
 			system.setStartFrame(n);
-		else super.setStartFrame(n);
+			system.refreshSystemParameters();
+		}
+		else {
+			super.setStartFrame(n);
+			if (modelBooster!=null) {
+				modelBooster.setBooster(modelBooster.booster);
+			}
+		}
 	}
 	
   /**
@@ -429,6 +452,189 @@ public class DynamicParticle
 	}
 	
   /**
+	 * Gets the cartesian state {x, vx, y, vy, t} of a PointMass at a specified frame number.
+	 * 
+	 * @param target the PointMass
+	 * @param frameNumber the frame number
+	 * @return the state, or null if the point mass is not marked at the frame number
+	 */
+	protected double[] getCartesianState(PointMass target, int frameNumber) {
+		DatasetManager data = target.getData(trackerPanel);
+		
+		// determine the dataset index for the specified frame number
+		Dataset ds = data.getDataset(data.getDatasetIndex("frame")); //$NON-NLS-1$
+		int index = -1;
+		double[] frames = ds.getYPoints();
+		for (int i=0; i<frames.length; i++) {
+			if (frames[i]==frameNumber) {
+				index = i;
+				break;
+			}
+		}
+		if (index==-1) return null;
+		
+		double[] state = new double[5]; // {x, vx, y, vy, t}
+		// x
+		ds = data.getDataset(data.getDatasetIndex("x")); //$NON-NLS-1$
+		Object val = ds.getValueAt(index, 1);	
+		state[0] = val==null? Double.NaN: (Double)val;		
+		// vx
+		ds = data.getDataset(data.getDatasetIndex("v_{x}")); //$NON-NLS-1$
+		val = ds.getValueAt(index, 1);	
+		state[1] = val==null? Double.NaN: (Double)val;		
+		// y
+		ds = data.getDataset(data.getDatasetIndex("y")); //$NON-NLS-1$
+		val = ds.getValueAt(index, 1);	
+		state[2] = val==null? Double.NaN: (Double)val;		
+		// vy
+		ds = data.getDataset(data.getDatasetIndex("v_{y}")); //$NON-NLS-1$
+		val = ds.getValueAt(index, 1);
+		state[3] = val==null? Double.NaN: (Double)val;		
+		// t
+		val = ds.getValueAt(index, 0);	
+		state[4] = val==null? Double.NaN: (Double)val;		
+		
+		return state;		
+	}
+	
+  /**
+	 * Sets the booster point mass.
+	 * 
+	 * @param booster the new booster (may be null)
+	 */
+	protected PointMass getBooster() {
+		return modelBooster.booster;
+	}
+	
+  /**
+	 * Sets the booster point mass.
+	 * 
+	 * @param booster the new booster (may be null)
+	 */
+	protected void setBooster(PointMass booster) {
+		modelBooster.setBooster(booster);
+	}
+	
+  /**
+	 * Determines if a specified point mass is a booster of this particle
+	 * (or a booster of a booster, etc).
+	 * 
+	 * @param target a point mass
+	 * @return true if the target is a booster
+	 */
+	protected boolean isBoostedBy(PointMass target) {
+		if (modelBooster==null || modelBooster.booster==null)
+			return false;
+		if (modelBooster.booster==target)
+			return true;
+		if (modelBooster.booster instanceof DynamicParticle) {
+			DynamicParticle dp = (DynamicParticle)modelBooster.booster;
+			return dp.isBoostedBy(target);
+		}
+		return false;
+	}
+	
+  /**
+	 * Sets the initial conditions to those of the booster at the current start frame.
+	 */
+	protected void boost() {
+		if (modelBooster==null || modelBooster.booster==null)
+			return;
+		
+		int frameNumber = getStartFrame();
+  	double[] state = getCartesianState(modelBooster.booster, frameNumber); // {x, vx, y, vy, t}		
+  	if (state==null) return;
+		
+		Parameter[] params = getInitEditor().getParameters();
+		for (int i = 0; i < params.length; i++) {
+			Parameter param = params[i];
+			String name = param.getName();
+			double value = Double.NaN; // default
+			
+			if (name.equals("x")) value = state[0]; //$NON-NLS-1$
+			else if (name.equals("vx")) value = state[1]; //$NON-NLS-1$
+			else if (name.equals("y")) value = state[2]; //$NON-NLS-1$
+			else if (name.equals("vy")) value = state[3]; //$NON-NLS-1$
+			
+			// replace parameter with new one if not null
+			if (!Double.isNaN(value)) {
+				Parameter newParam = new Parameter(name, String.valueOf(value));
+				newParam.setDescription(param.getDescription());
+				newParam.setNameEditable(false);
+				params[i] = newParam;
+			}
+		}
+		getInitEditor().setParameters(params);
+		if (system!=null) {
+			system.refreshSystemParameters();
+			system.lastValidFrame = -1;				
+			system.refreshSteps();
+		}
+		else {
+			reset();
+		}
+		repaint();
+
+	}
+  /**
+   * A ModelBooster manages a "booster" PointMass used to set initial values of this model.
+   * To use the booster, call the DynamicParticle boost() method.
+   */
+  class ModelBooster implements PropertyChangeListener {
+  	
+  	PointMass booster;
+  	boolean adjusting = false;
+  	
+    /**
+     * Sets the booster PointMass.
+     * 
+     * @param pm the point mass (may be null)
+     */
+  	public void setBooster(PointMass pm) {
+  		if (booster!=null) {
+  			booster.removePropertyChangeListener(this);
+  		}
+  		booster = pm;
+  		if (booster!=null) {
+				boost();
+				booster.addPropertyChangeListener(this);  			
+  		}
+  	}
+  	
+    /**
+     * Implements PropertyChangeListener.
+     * 
+     * @param e the event
+     */
+		public void propertyChange(PropertyChangeEvent e) {
+			if (booster==null) return;
+			
+			String propName = e.getPropertyName();
+			
+			if (propName.equals("adjusting")) { //$NON-NLS-1$
+				adjusting = (Boolean)e.getNewValue();
+				// change property to "steps" so update will be triggered below when adjusting is false
+				propName = "steps"; //$NON-NLS-1$
+			}
+			if (adjusting) {
+				return;
+			}
+
+			if (!(propName.contains("step") || propName.equals("data"))) { //$NON-NLS-1$ //$NON-NLS-2$
+				return; 
+			}
+			
+			if (e.getPropertyName().equals("steps") && booster instanceof ParticleModel) { //$NON-NLS-1$
+				DatasetManager data = booster.getData(trackerPanel);
+				booster.refreshData(data, trackerPanel);
+			}
+
+			boost();
+		}
+		
+  }
+
+  /**
    * Returns an ObjectLoader to save and load data for this class.
    *
    * @return the object loader
@@ -453,6 +659,9 @@ public class DynamicParticle
     	DynamicParticle p = (DynamicParticle)obj;
       XML.getLoader(ParticleModel.class).saveObject(control, obj);
       if (p.system!=null) control.setValue("in_system", true); //$NON-NLS-1$
+      if (p.modelBooster!=null && p.modelBooster.booster!=null) {
+      	control.setValue("booster", p.modelBooster.booster.getName()); //$NON-NLS-1$
+      }
     }
 
     /**
@@ -477,6 +686,7 @@ public class DynamicParticle
     	try {
     		XML.getLoader(ParticleModel.class).loadObject(control, obj);
     		p.inSystem = control.getBoolean("in_system"); //$NON-NLS-1$
+    		p.boosterName = control.getString("booster"); //$NON-NLS-1$
     	} catch(Exception ex) {
     		// load legacy xml
 	    	String solver = control.getString("solver"); //$NON-NLS-1$
@@ -505,5 +715,5 @@ public class DynamicParticle
       return obj;
     }
   }
-
+  
 }

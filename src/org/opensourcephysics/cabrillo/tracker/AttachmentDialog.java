@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
@@ -33,21 +32,22 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
+
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.tools.FontSizer;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 
 /**
- * This displays and sets DynamicSystem properties.
+ * This displays and sets point attachments.
  *
  * @author Douglas Brown
  */
 public class AttachmentDialog extends JDialog
     implements PropertyChangeListener {
 	
-	static int rowHeight = 24;
 
   // instance fields
   protected TTrack measuringTool;
@@ -61,9 +61,13 @@ public class AttachmentDialog extends JDialog
   protected ArrayList<? extends TTrack> masses;
   protected PointMass dummyMass;
   protected JTable table;
+	protected int cellheight = 28; // depends on font level
   protected JComboBox rendererDropdown, editorDropdown, measuringToolDropdown;
   protected Icon dummyIcon = new ShapeIcon(null, 21, 16);
   protected JScrollPane scrollPane;
+  protected AttachmentCellRenderer attachmentCellRenderer = new AttachmentCellRenderer();
+  protected TTrackRenderer trackRenderer = new TTrackRenderer();
+
   
   /**
    * Constructs an AttachmentControl.
@@ -166,7 +170,7 @@ public class AttachmentDialog extends JDialog
     JPanel north = new JPanel();
     north.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
     measuringToolDropdown = new JComboBox();
-    measuringToolDropdown.setRenderer(new TTrackRenderer());
+    measuringToolDropdown.setRenderer(trackRenderer);
     measuringToolDropdown.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         TTrack tool = (TTrack)measuringToolDropdown.getSelectedItem();
@@ -180,26 +184,33 @@ public class AttachmentDialog extends JDialog
     dummyMass = new PointMass();
     		
     rendererDropdown = new JComboBox(new AttachmentComboBoxModel());
-    rendererDropdown.setRenderer(new TTrackRenderer());
+    rendererDropdown.setRenderer(trackRenderer);
     editorDropdown = new JComboBox(new AttachmentComboBoxModel());
-    editorDropdown.setRenderer(new TTrackRenderer());
+    editorDropdown.setRenderer(trackRenderer);
 
-    table = new JTable(new AttachmentTableModel());
-//    table.setFillsViewportHeight(true);
-    TableCellRenderer renderer = new AttachmentCellRenderer();
-    table.setDefaultRenderer(PointMass.class, renderer);
-    table.setDefaultRenderer(String.class, renderer);
-    table.setRowHeight(rowHeight);
-    table.getColumnModel().getColumn(0).setPreferredWidth(60);
-    table.getColumnModel().getColumn(1).setPreferredWidth(180);
-    table.getTableHeader().setPreferredSize(new Dimension(60, rowHeight));
+    table = new JTable(new AttachmentTableModel()) {
+    	@Override
+    	public void setFont(Font font) {
+    		super.setFont(font);
+	      cellheight = font.getSize()+16;
+    		setRowHeight(cellheight);
+    		int w = (int)(60*(1+FontSizer.getLevel()*0.3));
+	      getColumnModel().getColumn(0).setPreferredWidth(w);
+	      getColumnModel().getColumn(1).setPreferredWidth(2*w);
+    		getTableHeader().setPreferredSize(new Dimension(w, cellheight));
+      }
+    };
+    attachmentCellRenderer = new AttachmentCellRenderer();
+    table.setDefaultRenderer(PointMass.class, attachmentCellRenderer);
+    table.setDefaultRenderer(String.class, attachmentCellRenderer);
+    table.setRowHeight(cellheight);
     
     TableCellEditor editor = new AttachmentCellEditor();
     table.getColumnModel().getColumn(1).setCellEditor(editor);
     scrollPane = new JScrollPane(table) {
     	public Dimension getPreferredSize() {
     		Dimension dim = super.getPreferredSize();
-    		dim.height = 4*rowHeight+12;
+    		dim.height = 3*cellheight+8;
     		dim.width= table.getPreferredSize().width;
     		return dim;
     	}
@@ -299,9 +310,12 @@ public class AttachmentDialog extends JDialog
       p.addPropertyChangeListener("color", this); //$NON-NLS-1$
       p.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
     }
+		FontSizer.setFonts(rendererDropdown, FontSizer.getLevel());
 		rendererDropdown.setModel(new AttachmentComboBoxModel());
+		FontSizer.setFonts(editorDropdown, FontSizer.getLevel());
 		editorDropdown.setModel(new AttachmentComboBoxModel());
     
+		FontSizer.setFonts(measuringToolDropdown, FontSizer.getLevel());
     Object tool = measuringToolDropdown.getSelectedItem();
 		java.util.Vector<TTrack> tools = new java.util.Vector<TTrack>();
     for (TTrack track: trackerPanel.getTracks()) {
@@ -334,7 +348,7 @@ public class AttachmentDialog extends JDialog
   protected void refreshDisplay() {
     setTitle(TrackerRes.getString("AttachmentInspector.Title")); //$NON-NLS-1$
     helpButton.setText(TrackerRes.getString("Dialog.Button.Help")); //$NON-NLS-1$  
-    closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+    closeButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
     dummyMass.setName(TrackerRes.getString("DynamicSystemInspector.ParticleName.None")); //$NON-NLS-1$
     if (endPointCount>0 && measuringTool!=null) {
 	    if (measuringTool instanceof Protractor) {
@@ -351,6 +365,16 @@ public class AttachmentDialog extends JDialog
     pack();
     repaint();
   }
+  
+  public void setFontLevel(int level) {
+		FontSizer.setFonts(this, level);
+		FontSizer.setFonts(attachmentCellRenderer.label, level);
+		FontSizer.setFonts(table, level);
+		refreshDropdowns();
+		pack();
+  }
+  
+
   
   /**
    * A class to provide model data for the attachment table.
@@ -393,6 +417,7 @@ public class AttachmentDialog extends JDialog
     	
     	if (col==0) {
     		label.setText((String)val);
+    		label.validate();
     		return label;
     	}
     	
@@ -420,6 +445,7 @@ public class AttachmentDialog extends JDialog
   	public Object getCellEditorValue() {
       Object obj = super.getCellEditorValue();
 			int row = table.getSelectedRow();
+			if (row<0) return null;
 			attachedMass[row] = obj==dummyMass? null: (PointMass)obj;				
     	refreshMeasuringTool();
       return obj;

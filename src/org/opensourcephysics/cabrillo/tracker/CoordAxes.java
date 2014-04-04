@@ -27,6 +27,8 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.*;
 
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -34,6 +36,7 @@ import java.util.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -44,11 +47,23 @@ import org.opensourcephysics.controls.*;
  */
 public class CoordAxes extends TTrack {
 	
+	protected static Icon gridOptionsIcon;
+	
 	protected boolean notyetShown = true;
   protected JLabel originLabel;
+  protected WorldGrid grid;
+  protected JCheckBox gridCheckbox;
+  protected TButton gridButton;
+  protected Component gridSeparator;
+  protected boolean gridVisible;
+  
+  static {
+  	gridOptionsIcon = new ImageIcon(
+        Tracker.class.getResource("resources/images/restore.gif")); //$NON-NLS-1$
+  }
 	
   /**
-   * Constructs a CoordAxes for the specified tracker panel.
+   * Constructs a CoordAxes.
    */
   public CoordAxes() {
 		defaultColors = new Color[] {new Color(200, 0, 200)};
@@ -138,6 +153,91 @@ public class CoordAxes extends TTrack {
       	setOriginAction.actionPerformed(null);
       }
     });
+    
+    // grid items
+  	grid = new WorldGrid();
+  	grid.setVisible(gridVisible);
+
+    gridSeparator = Box.createRigidArea(new Dimension(4, 4));
+    gridCheckbox = new JCheckBox();
+    gridCheckbox.setBorder(BorderFactory.createEmptyBorder());
+    gridCheckbox.setOpaque(false);
+    gridCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	setGridVisible(gridCheckbox.isSelected());
+      }
+    });
+
+  	gridButton = new TButton(gridOptionsIcon) {
+    	
+    	public Dimension getMaximumSize() {
+    		Dimension dim = super.getMaximumSize();
+    		dim.height = TTrackBar.getTrackbar(trackerPanel).toolbarComponentHeight;
+    		return dim;
+    	}
+    	
+    	@Override
+      protected JPopupMenu getPopup() {
+      	JPopupMenu popup = new JPopupMenu();
+      	JMenuItem colorItem = new JMenuItem(TrackerRes.getString("CoordAxes.MenuItem.GridColor")); //$NON-NLS-1$
+        colorItem.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            // show the grid if not visible
+            if (!grid.isVisible()) {
+            	gridCheckbox.doClick(0);
+            }
+
+          	Color color = grid.getColor();
+          	Color newColor = chooseColor(color, TrackerRes.getString("CoordAxes.Dialog.GridColor.Title")); //$NON-NLS-1$
+            if (newColor!=color) {
+              grid.setColor(newColor);
+              for (TrackerPanel next: panels) {
+              	next.repaint();
+              }
+            }
+          }
+        });
+      	popup.add(colorItem);
+      	JMenuItem transparencyItem = new JMenuItem(TrackerRes.getString("CoordAxes.MenuItem.GridOpacity")); //$NON-NLS-1$
+      	transparencyItem.addActionListener(new ActionListener() {
+          public void actionPerformed(ActionEvent e) {
+            // show the grid if not visible
+            if (!grid.isVisible()) {
+            	gridCheckbox.doClick(0);
+            }
+
+          	// show a dialog with a transparency slider
+          	int alpha = grid.getAlpha();
+            final JSlider slider = new JSlider(0, 255, alpha);
+            slider.setMaximum(255);
+            slider.setMinimum(0);
+            slider.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
+            slider.addChangeListener(new ChangeListener() {
+              public void stateChanged(ChangeEvent e) {
+                grid.setAlpha(slider.getValue());
+                for (TrackerPanel next: panels) {
+                	next.repaint();
+                }
+              }
+            });
+            
+          	int response = JOptionPane.showConfirmDialog(trackerPanel, slider, 
+          			TrackerRes.getString("CoordAxes.Dialog.GridOpacity.Title"),  //$NON-NLS-1$
+          			JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+          	if (response==JOptionPane.CANCEL_OPTION) {
+              grid.setAlpha(alpha);
+              for (TrackerPanel next: panels) {
+              	next.repaint();
+              }
+          	}
+           }
+        });
+      	popup.add(transparencyItem);
+      	FontSizer.setFonts(popup, FontSizer.getLevel());
+      	return popup;
+      }
+    	
+    };
   }
 
   /**
@@ -163,13 +263,34 @@ public class CoordAxes extends TTrack {
   }
 
   /**
-   * Overrides TTrack setVisible method to change neverVisible flag.
+   * Overrides TTrack setVisible method to change notyetShown flag.
    *
    * @param visible <code>true</code> to show this track
    */
   public void setVisible(boolean visible) {
   	super.setVisible(visible);
-  	if (visible) notyetShown = false;
+  	if (visible) {
+  		notyetShown = false;
+  		if (grid!=null) grid.setVisible(gridVisible);
+  	}
+  	else if (grid!=null) {
+  		grid.setVisible(false);
+  	}
+  }
+
+  /**
+   * Sets the grid visibility.
+   *
+   * @param visible <code>true</code> to show the grid
+   */
+  public void setGridVisible(boolean visible) {
+  	if (gridVisible==visible) return;
+  	gridVisible = visible;
+    grid.setVisible(gridVisible);
+    gridCheckbox.setSelected(gridVisible);
+    for (TrackerPanel next: panels) {
+    	next.repaint();
+    }
   }
 
   /**
@@ -262,6 +383,12 @@ public class CoordAxes extends TTrack {
   	}
 		return TrackerRes.getString("CoordAxes.Handle.Name"); //$NON-NLS-1$
 //  	return null;
+  }
+  
+  @Override
+  protected void setTrackerPanel(TrackerPanel panel) {
+	  super.setTrackerPanel(panel);
+  	trackerPanel.addDrawable(grid);
   }
 
   /**
@@ -375,10 +502,16 @@ public class CoordAxes extends TTrack {
     ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     int n = trackerPanel.getFrameNumber();
     ImageCoordSystem coords = trackerPanel.getCoords();
-    list.add(magSeparator);
     originLabel.setText(TrackerRes.getString("CoordAxes.Origin.Label")); //$NON-NLS-1$
     xField.setToolTipText(TrackerRes.getString("CoordAxes.Origin.Field.Tooltip")); //$NON-NLS-1$
     yField.setToolTipText(TrackerRes.getString("CoordAxes.Origin.Field.Tooltip")); //$NON-NLS-1$
+    gridCheckbox.setText(TrackerRes.getString("CoordAxes.Checkbox.Grid")); //$NON-NLS-1$
+    gridCheckbox.setToolTipText(TrackerRes.getString("CoordAxes.Checkbox.Grid.Tooltip")); //$NON-NLS-1$
+    gridButton.setToolTipText(TrackerRes.getString("CoordAxes.Button.Grid.Tooltip")); //$NON-NLS-1$
+    list.add(gridSeparator);
+    list.add(gridCheckbox);
+    list.add(gridButton);
+    list.add(magSeparator);
     list.add(originLabel);
     list.add(xSeparator);
     list.add(xLabel);
@@ -420,6 +553,14 @@ public class CoordAxes extends TTrack {
     else super.propertyChange(e);
   }
   
+  @Override
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{originLabel, gridCheckbox};
+    FontSizer.setFonts(objectsToSize, level);
+  }
+
   /**
    * Overrides Object toString method.
    *
@@ -491,6 +632,14 @@ public class CoordAxes extends TTrack {
     public void saveObject(XMLControl control, Object obj) {
       // save track data
       XML.getLoader(TTrack.class).saveObject(control, obj);
+      CoordAxes axes = (CoordAxes)obj;
+      if (axes.gridVisible) {
+      	control.setValue("grid_visible", true); //$NON-NLS-1$
+      }
+      if (axes.grid.isCustom()) {
+      	control.setValue("grid_alpha", axes.grid.getAlpha()); //$NON-NLS-1$
+      	control.setValue("grid_RGB", axes.grid.getColor().getRGB()); //$NON-NLS-1$
+      }
     }
 
     /**
@@ -515,6 +664,17 @@ public class CoordAxes extends TTrack {
       XML.getLoader(TTrack.class).loadObject(control, obj);
       CoordAxes axes = (CoordAxes)obj;
       axes.notyetShown = false;
+      
+      if (control.getPropertyNames().contains("grid_visible")) { //$NON-NLS-1$
+      	axes.setGridVisible(control.getBoolean("grid_visible")); //$NON-NLS-1$
+      }
+      if (control.getPropertyNames().contains("grid_alpha")) { //$NON-NLS-1$
+      	axes.grid.setAlpha(control.getInt("grid_alpha")); //$NON-NLS-1$
+      }
+      if (control.getPropertyNames().contains("grid_RGB")) { //$NON-NLS-1$
+      	Color color = new Color(control.getInt("grid_RGB")); //$NON-NLS-1$
+      	axes.grid.setColor(color);
+      }
       return obj;
     }
   }

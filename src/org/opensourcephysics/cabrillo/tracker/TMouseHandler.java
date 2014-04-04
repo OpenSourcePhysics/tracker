@@ -314,7 +314,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
         TTrack track = trackerPanel.getSelectedTrack();
         if (p != null) {
         	int dx=0, dy=0;
-        	if (track!=null && track.isLocked()) {
+        	if (track!=null && track.isLocked() && !(track instanceof VectorSum)) {
         		Toolkit.getDefaultToolkit().beep();
         		return;
         	}

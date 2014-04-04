@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
@@ -35,6 +34,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is a panel with a toolbar for selecting and controlling TViews.
@@ -112,6 +112,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
             }
           });
           popup.add(helpItem);
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
           popup.show(toolbar, e.getX(), e.getY());
       	}
       }
@@ -141,6 +142,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
           item.addActionListener(listener);
           popup.add(item);
         }
+        FontSizer.setFonts(popup, FontSizer.getLevel());
     		return popup;
     	}
     };
@@ -452,10 +454,13 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
     toolbar.add(chooserButton);
     ArrayList<Component> list = selectedView.getToolBarComponents();
     if (list != null) {
-      for (Component c: list) toolbar.add(c);
+      for (Component c: list) {
+      	toolbar.add(c);
+      }
     }
     toolbar.add(toolbarFiller);
     toolbar.add(maximizeButton);
+    FontSizer.setFonts(toolbar, FontSizer.getLevel());
     toolbar.repaint();
   }
 

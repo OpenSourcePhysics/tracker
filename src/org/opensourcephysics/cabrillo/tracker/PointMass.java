@@ -31,11 +31,11 @@ import java.awt.event.*;
 import java.awt.geom.*;
 
 import javax.swing.*;
-import javax.swing.border.Border;
 import javax.swing.event.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -49,6 +49,7 @@ public class PointMass extends TTrack {
 	// static constants
 	protected static final int FINITE_DIFF = 0;
 	protected static final int BOUNCE_DETECT = 1;
+	protected static final double MINIMUM_MASS = 1E-30;
 	
 	// static fields
   protected static Derivative vDeriv = new FirstDerivative();
@@ -548,7 +549,9 @@ public class PointMass extends TTrack {
    */
   public void setMass(double mass) {
   	if (mass==this.mass) return;
-    this.mass = Math.abs(mass);
+  	mass = Math.abs(mass);
+  	mass = Math.max(mass, MINIMUM_MASS);
+    this.mass = mass;
     dataValid = false;
     firePropertyChange("mass", null, new Double(mass)); //$NON-NLS-1$
     firePropertyChange("data", null, PointMass.this); // to views //$NON-NLS-1$
@@ -557,6 +560,18 @@ public class PointMass extends TTrack {
       Double m = getMass();
       data.setConstant("m", m, m.toString()); //$NON-NLS-1$
     }
+  }
+
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{massLabel, massField};
+    FontSizer.setFonts(objectsToSize, level);
   }
 
   /**
@@ -1745,11 +1760,15 @@ public class PointMass extends TTrack {
   public void propertyChange(PropertyChangeEvent e) {
     if (e.getSource() instanceof TrackerPanel) {
       String name = e.getPropertyName();
-      if (name.equals("transform")) //$NON-NLS-1$
+      if (name.equals("transform")) { //$NON-NLS-1$
+      	dataValid = false;
         updateDerivatives();
+	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
+      }
       else if (name.equals("stepsize")) { //$NON-NLS-1$
         dataValid = false;
         updateDerivatives();
+	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
         int stepSize = trackerPanel.getPlayer().getVideoClip().getStepSize();
         if (skippedStepWarningOn
         		&& stepSizeWhenFirstMarked>1
@@ -1882,9 +1901,6 @@ public class PointMass extends TTrack {
     if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
       if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount()-1) != null)
         menu.addSeparator();
-      TPoint p = trackerPanel.getSelectedPoint();
-      Step step = getStep(p, trackerPanel);
-      deleteStepItem.setEnabled(step!=null);
       menu.add(deleteStepItem);
       menu.add(clearStepsItem);
       menu.add(deleteTrackItem);
@@ -1928,29 +1944,29 @@ public class PointMass extends TTrack {
       if (isVelocity(step)) {
         if (xMass) {
         	stepValueLabel.setText("p " + n); //$NON-NLS-1$
-          xLabel = new JLabel("px"); //$NON-NLS-1$
-          yLabel = new JLabel("py"); //$NON-NLS-1$
-          magLabel = new JLabel("p"); //$NON-NLS-1$
+        	xLabel.setText("px"); //$NON-NLS-1$
+        	yLabel.setText("py"); //$NON-NLS-1$
+        	magLabel.setText("p"); //$NON-NLS-1$
         }
         else {
         	stepValueLabel.setText("v " + n); //$NON-NLS-1$
-          xLabel = new JLabel("vx"); //$NON-NLS-1$
-          yLabel = new JLabel("vy"); //$NON-NLS-1$
-          magLabel = new JLabel("v"); //$NON-NLS-1$
+        	xLabel.setText("vx"); //$NON-NLS-1$
+        	yLabel.setText("vy"); //$NON-NLS-1$
+        	magLabel.setText("v"); //$NON-NLS-1$
         }
       }
       else if (isAcceleration(step)) {
         if (xMass) {
         	stepValueLabel.setText("F " + n); //$NON-NLS-1$
-          xLabel = new JLabel("Fx"); //$NON-NLS-1$
-          yLabel = new JLabel("Fy"); //$NON-NLS-1$
-          magLabel = new JLabel("F"); //$NON-NLS-1$
+        	xLabel.setText("Fx"); //$NON-NLS-1$
+        	yLabel.setText("Fy"); //$NON-NLS-1$
+        	magLabel.setText("F"); //$NON-NLS-1$
         }
         else {
         	stepValueLabel.setText("a " + n); //$NON-NLS-1$
-          xLabel = new JLabel("ax"); //$NON-NLS-1$
-          yLabel = new JLabel("ay"); //$NON-NLS-1$
-          magLabel = new JLabel("a"); //$NON-NLS-1$
+        	xLabel.setText("ax"); //$NON-NLS-1$
+        	yLabel.setText("ay"); //$NON-NLS-1$
+        	magLabel.setText("a"); //$NON-NLS-1$
         }
       }
       xField.setEnabled(false);
@@ -1960,18 +1976,15 @@ public class PointMass extends TTrack {
     }
     else {
     	stepValueLabel.setText("" + n); //$NON-NLS-1$
-      xLabel = new JLabel("x"); //$NON-NLS-1$
-      yLabel = new JLabel("y"); //$NON-NLS-1$
-      magLabel = new JLabel("r"); //$NON-NLS-1$
+    	xLabel.setText("x"); //$NON-NLS-1$
+    	yLabel.setText("y"); //$NON-NLS-1$
+    	magLabel.setText("r"); //$NON-NLS-1$
       xField.setEnabled(!isLocked());
       yField.setEnabled(!isLocked());
       magField.setEnabled(!isLocked());
       angleField.setEnabled(!isLocked());
     }
-    Border empty = BorderFactory.createEmptyBorder(0, 1, 0, 2);
-    xLabel.setBorder(empty);
-    yLabel.setBorder(empty);
-    magLabel.setBorder(empty);
+
     list.add(stepLabel);
     list.add(stepValueLabel);
     list.add(tValueLabel);
@@ -2109,7 +2122,7 @@ public class PointMass extends TTrack {
     massField = new NumberField(5);
     massField.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        setMass(massField.getValue());
+	      setMass(massField.getValue());
         massField.setValue(getMass());
         massField.requestFocusInWindow();
       }
@@ -2121,7 +2134,7 @@ public class PointMass extends TTrack {
         massField.setValue(getMass());
       }
     });
-    massField.setMinValue(1E-30);
+    massField.setMinValue(MINIMUM_MASS);
     massField.setBorder(xField.getBorder());
     ChangeListener xyListener = new ChangeListener() {
       public void stateChanged(ChangeEvent e) {
@@ -2182,9 +2195,8 @@ public class PointMass extends TTrack {
     vColorItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // show color chooser dialog with color of velocity footprint
-    	Color c = getVelocityFootprint().getColor();
-        Color newColor = JColorChooser.showDialog(
-            null, TrackerRes.getString("Velocity.Dialog.Color.Title"), c); //$NON-NLS-1$
+	    	Color c = getVelocityFootprint().getColor();
+	    	Color newColor = chooseColor(c, TrackerRes.getString("Velocity.Dialog.Color.Title")); //$NON-NLS-1$
         if (newColor != null) {
         	XMLControl control = new XMLControlElement(PointMass.this);
         	for (Footprint footprint: getVelocityFootprints()) {
@@ -2199,9 +2211,8 @@ public class PointMass extends TTrack {
     aColorItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         // show color chooser dialog with color of acceleration footprint
-    	Color c = getAccelerationFootprint().getColor();
-        Color newColor = JColorChooser.showDialog(
-            null, TrackerRes.getString("Velocity.Dialog.Color.Title"), c); //$NON-NLS-1$
+      	Color c = getAccelerationFootprint().getColor();
+	    	Color newColor = chooseColor(c, TrackerRes.getString("Acceleration.Dialog.Color.Title")); //$NON-NLS-1$
         if (newColor != null) {
         	XMLControl control = new XMLControlElement(PointMass.this);
         	for (Footprint footprint: getAccelerationFootprints()) {

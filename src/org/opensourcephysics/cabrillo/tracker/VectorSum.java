@@ -26,9 +26,9 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 
 import org.opensourcephysics.display.*;
@@ -218,6 +218,15 @@ public class VectorSum extends Vector {
       return getStep(n);
     }
     return super.createStep(n, x, y, xc, yc);
+  }
+
+  @Override
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	if (inspector!=null && inspector.isVisible()) {
+  		// call setVisible to force inspector to resize itself
+  		inspector.setVisible(true);
+  	}
   }
 
   /**

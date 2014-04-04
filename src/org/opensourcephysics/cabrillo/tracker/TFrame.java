@@ -29,7 +29,6 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
@@ -37,11 +36,13 @@ import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.text.Document;
 
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.*;
+import org.opensourcephysics.tools.Launcher.HTMLPane;
 
 /**
  * This is the main frame for Tracker.
@@ -76,7 +77,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   protected TrackerPanel prevPanel;
   protected double defaultRightDivider = 0.7;
   protected double defaultBottomDivider = 0.5;
-  protected TransferHandler fileDropHandler;
+  protected FileDropHandler fileDropHandler;
   protected Action openRecentAction;
   protected boolean splashing=true;
   protected ArrayList<String> loadedFiles = new ArrayList<String>();
@@ -99,16 +100,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     createGUI();    
     // size and position this frame
     pack();
-    fileDropHandler = new FileDropHandler(this);
+    
     // set transfer handler on tabbedPane
+    fileDropHandler = new FileDropHandler(this);
     tabbedPane.setTransferHandler(fileDropHandler);
+
     // set size and limit maximized size so taskbar not covered
     GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
     Rectangle screenRect = e.getMaximumWindowBounds();
     setMaximizedBounds(screenRect);
-    Dimension dim = new Dimension(1024, 768);
-    dim.height = Math.min(screenRect.height, dim.height);
-    dim.width = Math.min(screenRect.width, dim.width);
+    double extra = FontSizer.getFactor(Tracker.preferredFontLevel)-1;
+    int w = Math.min(screenRect.width, (int)(1024+extra*800));
+    int h = Math.min(screenRect.height, 3*w/4);
+    Dimension dim = new Dimension(w, h);
     setSize(dim);
     // center frame on the screen
     int x = (screenRect.width-dim.width)/2;
@@ -230,6 +234,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     }
     setViews(trackerPanel, views);
     initialize(trackerPanel);
+  	FontSizer.setFonts(panel, FontSizer.getLevel());
     // inform all tracks of current angle display format
     for (TTrack track: trackerPanel.getTracks()) {
     	track.setAnglesInRadians(anglesInRadians);
@@ -1078,6 +1083,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	    	menu.add(item);
 	    }
   	}
+    FontSizer.setFonts(menu, FontSizer.getLevel());
   }
 
   /**
@@ -1172,6 +1178,73 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     }
     menubar.windowMenu.revalidate();
   }
+  
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);  	
+  	if (tabbedPane==null) return;
+  	
+  	Step.textLayoutFont = FontSizer.getResizedFont(Step.textLayoutFont, level);
+  	ExportZipDialog zipDialog = null;
+  	ExportVideoDialog videoDialog = null;
+  	ThumbnailDialog thumbnailDialog = null;
+  	for (int i=0; i<getTabCount(); i++) {
+  		TrackerPanel trackerPanel = getTrackerPanel(i);
+  		trackerPanel.setFontLevel(level);
+  		if (zipDialog==null) zipDialog = ExportZipDialog.getDialog(trackerPanel);
+  		if (videoDialog==null) videoDialog = ExportVideoDialog.getDialog(trackerPanel);
+  		if (thumbnailDialog==null) thumbnailDialog = ThumbnailDialog.getDialog(trackerPanel, true);
+  	}
+  	if (zipDialog!=null) {
+  		zipDialog.setFontLevel(level);
+  	}
+  	if (videoDialog!=null) {
+  		videoDialog.setFontLevel(level);
+  	}
+  	if (thumbnailDialog!=null) {
+  		FontSizer.setFonts(thumbnailDialog, level);
+  		thumbnailDialog.refreshGUI();
+  	}
+
+  	if (prefsDialog!=null) {
+  		prefsDialog.refreshGUI();
+  	}
+  	if (libraryBrowser!=null) {
+  		libraryBrowser.setFontLevel(level);
+  	}
+  	if (helpLauncher!=null) {
+  		FontSizer.setFonts(helpLauncher, level);
+  	}
+  	FontSizer.setFonts(notesDialog, level);
+		FontSizer.setFonts(OSPLog.getOSPLog(), level);
+  	if (Tracker.readmeDialog!=null) {
+  		FontSizer.setFonts(Tracker.readmeDialog, level);
+  	}
+  	if (Tracker.startLogDialog!=null) {
+  		FontSizer.setFonts(Tracker.startLogDialog, level);
+  	}		
+    FontSizer.setFonts(defaultMenuBar, level);
+    if (helpLauncher!=null && helpLauncher.getTabCount()>0) {
+	    LaunchPanel tab = helpLauncher.getTab(0);
+	    if (level>0) {
+	    	String newValue = "help"+level+".css"; //$NON-NLS-1$ //$NON-NLS-2$
+	    	tab.getHTMLSubstitutionMap().put("help.css", newValue); //$NON-NLS-1$
+	    }
+	    else {
+	    	tab.getHTMLSubstitutionMap().remove("help.css"); //$NON-NLS-1$
+	    }
+	    for (int i=0; i<helpLauncher.getHTMLTabCount(); i++) {
+	    	HTMLPane pane = helpLauncher.getHTMLTab(i);
+	    	pane.editorPane.getDocument().putProperty(Document.StreamDescriptionProperty, null);
+	    }
+	    helpLauncher.setDivider((int)(175*(1.0+0.36*level)));
+	    helpLauncher.refreshSelectedTab();
+    }
+  }
 
   /**
    * Gets the library browser.
@@ -1244,6 +1317,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	  			showHelp("library", 0); //$NON-NLS-1$
 	  		}
 	  	});
+  		libraryBrowser.setFontLevel(FontSizer.getLevel());
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - dialog.getBounds().width) / 2;
       int y = (dim.height - dialog.getBounds().height) / 2;
@@ -1285,19 +1359,38 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //      }
 //      System.out.println(help_path);
       helpLauncher = new Launcher(help_path, false);
+      int level = FontSizer.getLevel();
+      if (helpLauncher.getTabCount()>0) {
+		    LaunchPanel tab = helpLauncher.getTab(0);
+		    if (level>0) {
+		    	String newValue = "help"+level+".css"; //$NON-NLS-1$ //$NON-NLS-2$
+		    	tab.getHTMLSubstitutionMap().put("help.css", newValue); //$NON-NLS-1$
+		    }
+		    else {
+		    	tab.getHTMLSubstitutionMap().remove("help.css"); //$NON-NLS-1$
+		    }
+      }
+	    helpLauncher.setDivider((int)(175*(1.0+0.36*level)));
       helpLauncher.setNavigationVisible(true);
       Component[] comps = new Component[] {Tracker.pdfHelpButton};
       helpLauncher.setNavbarRightEndComponents(comps);
+      Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+      Dimension dim = helpLauncher.getSize();
+      dim.width = Math.min((9*screen.width)/10, (int)((1+level*0.35)*dim.width));    
+      dim.height = Math.min((9*screen.height)/10, (int)((1+level*0.35)*dim.height)); 
+      helpLauncher.setSize(dim);
+
       helpDialog.setContentPane(helpLauncher.getContentPane());
+  		FontSizer.setFonts(helpDialog, FontSizer.getLevel());
+
       helpDialog.pack();
-      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-      int x = (dim.width - helpDialog.getBounds().width) / 2;
-      int y = (dim.height - helpDialog.getBounds().height) / 2;
+      int x = (screen.width - helpDialog.getBounds().width) / 2;
+      int y = (screen.height - helpDialog.getBounds().height) / 2;
       helpDialog.setLocation(x, y);
     }
     return helpDialog;
   }
-
+  
   /**
    * Shows a specified help topic.
    *
@@ -1632,6 +1725,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       	if (OSPRuntime.isPopupTrigger(e)) {
           closeItem.setText(TrackerRes.getString("TActions.Action.Close") + " \"" //$NON-NLS-1$ //$NON-NLS-2$
                             + tabbedPane.getTitleAt(getSelectedTab()) + "\""); //$NON-NLS-1$
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
           popup.show(tabbedPane, e.getX(), e.getY());
         }
       }
@@ -1807,6 +1901,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     // set mouse handler
     TMouseHandler handler = new TMouseHandler();
     trackerPanel.setInteractiveMouseHandler(handler);
+    // set file drop handler
+    trackerPanel.setTransferHandler(fileDropHandler);
     // set divider locations
     validate(); // in advance of setting divider locations
     if (trackerPanel.dividerLocs != null) {

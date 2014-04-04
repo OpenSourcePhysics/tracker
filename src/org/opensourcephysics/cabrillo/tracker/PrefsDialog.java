@@ -46,6 +46,7 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.IntegerField;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.ExtensionsManager;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
@@ -77,6 +78,11 @@ public class PrefsDialog extends JDialog {
   protected JTabbedPane tabbedPane;
   protected JPanel configPanel, runtimePanel, videoPanel, generalPanel, 
   		displayPanel;
+  protected TitledBorder checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
+  	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
+  	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
+  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder;
+
   protected IntegerField memoryField;
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
   		versionLabel, runLabel;
@@ -85,7 +91,7 @@ public class PrefsDialog extends JDialog {
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
   protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, 
-  		checkForUpgradeDropdown, versionDropdown, logLevelDropdown;
+  		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown;
   protected JRadioButton vm32Button, vm64Button;
   protected JRadioButton xuggleButton, qtButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
@@ -96,7 +102,7 @@ public class PrefsDialog extends JDialog {
   
   // previous values
   protected Set<String> prevEnabled = new TreeSet<String>();
-  protected int prevMemory, prevRecentCount, prevUpgradeInterval;
+  protected int prevMemory, prevRecentCount, prevUpgradeInterval, prevFontLevel;
   protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine;
   protected boolean prevHints, prevRadians, prevFastXuggle, 
   		prevWarnNoVideoEngine, prevWarnXuggleError, prevWarnXuggleVersion,
@@ -141,6 +147,28 @@ public class PrefsDialog extends JDialog {
   		findTrackerJars();
       refreshGUI();
   	}
+  }
+  
+  public void setFontLevel(int level) {
+		FontSizer.setFonts(this, level);
+		Object[] borders = new Object[] {
+		  checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
+	  	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
+	  	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
+	  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder};
+		FontSizer.setFonts(borders, level); 
+		JComboBox[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, 
+				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown};
+		for (JComboBox next: dropdowns) {
+			int n = next.getSelectedIndex();
+			Object[] items = new Object[next.getItemCount()];
+			for (int i=0; i<items.length; i++) {
+				items[i] = next.getItemAt(i);
+			}
+			DefaultComboBoxModel model = new DefaultComboBoxModel(items);
+			next.setModel(model);
+			next.setSelectedItem(n);
+		}
   }
   
 //_____________________________ private methods ____________________________
@@ -230,9 +258,9 @@ public class PrefsDialog extends JDialog {
     int n = 1+Tracker.getFullConfig().size()/2;
     checkPanel = new JPanel(new GridLayout(n, 2));
     checkPanel.setBackground(color);
-    TitledBorder title = BorderFactory.createTitledBorder(
+    checkPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("ConfigInspector.Border.Title")); //$NON-NLS-1$
-    checkPanel.setBorder(title);
+    checkPanel.setBorder(checkPanelBorder);
     // config checkboxes
     Iterator<String> it = Tracker.getFullConfig().iterator();
     while (it.hasNext()) {
@@ -300,9 +328,10 @@ public class PrefsDialog extends JDialog {
     JPanel lfSubPanel = new JPanel();
     box.add(lfSubPanel);
     lfSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+
+    lfSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.LookFeel.BorderTitle")); //$NON-NLS-1$
-    lfSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    lfSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, lfSubPanelBorder));
     lookFeelDropdown = new JComboBox();
   	lookFeelDropdown.addItem(OSPRuntime.DEFAULT_LF.toLowerCase());
     Object selectedItem = OSPRuntime.DEFAULT_LF;
@@ -332,9 +361,9 @@ public class PrefsDialog extends JDialog {
     JPanel langSubPanel = new JPanel();
     box.add(langSubPanel);
     langSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    langSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Language.BorderTitle")); //$NON-NLS-1$
-    langSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    langSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, langSubPanelBorder));
     languageDropdown = new JComboBox();
     Object selected = TrackerRes.getString("PrefsDialog.Language.Default"); //$NON-NLS-1$
   	languageDropdown.addItem(selected);
@@ -363,6 +392,30 @@ public class PrefsDialog extends JDialog {
     });
     langSubPanel.add(languageDropdown);    
 
+    // font level subpanel
+    JPanel fontSubPanel = new JPanel();
+    box.add(fontSubPanel);
+    fontSubPanel.setBackground(color);
+    fontSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
+    fontSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, fontSubPanelBorder));
+    
+    // create font size dropdown
+    fontSizeDropdown = new JComboBox();
+    String defaultLevel = TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"); //$NON-NLS-1$
+    fontSizeDropdown.addItem(defaultLevel);
+    for (int i=1; i<4; i++) {
+    	String s = "+"+i; //$NON-NLS-1$
+    	fontSizeDropdown.addItem(s);
+    }
+    fontSizeDropdown.setSelectedIndex(Tracker.preferredFontLevel);
+    fontSizeDropdown.addItemListener(new ItemListener() {
+    	public void itemStateChanged(ItemEvent e) {
+        Tracker.preferredFontLevel = fontSizeDropdown.getSelectedIndex();
+    	}
+    });
+    fontSubPanel.add(fontSizeDropdown);
+
     // hints subpanel
     hintsCheckbox = new JCheckBox();
     hintsCheckbox.setOpaque(false);
@@ -375,18 +428,18 @@ public class PrefsDialog extends JDialog {
     JPanel hintsSubPanel = new JPanel();
     box.add(hintsSubPanel);
     hintsSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    hintsSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Hints.BorderTitle")); //$NON-NLS-1$
-    hintsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    hintsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, hintsSubPanelBorder));
     hintsSubPanel.add(hintsCheckbox);
     
     // angle units subpanel
     JPanel unitsSubPanel = new JPanel();
     box.add(unitsSubPanel);
     unitsSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    unitsSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("TMenuBar.Menu.AngleUnits")); //$NON-NLS-1$
-    unitsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    unitsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, unitsSubPanelBorder));
 
     ButtonGroup buttonGroup = new ButtonGroup();
     radiansButton = new JRadioButton();
@@ -412,9 +465,9 @@ public class PrefsDialog extends JDialog {
     JPanel versionSubPanel = new JPanel();
     box.add(versionSubPanel);
     versionSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    versionSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Version.BorderTitle")); //$NON-NLS-1$
-    versionSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    versionSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, versionSubPanelBorder));
     int preferred = 0;
     versionDropdown = new JComboBox();
     for (int i = 0; i<trackerVersions.length; i++) {
@@ -452,9 +505,9 @@ public class PrefsDialog extends JDialog {
     JPanel jreSubPanel = new JPanel(new BorderLayout());
     box.add(jreSubPanel);
     jreSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    jreSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.JRE.BorderTitle")); //$NON-NLS-1$
-    jreSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    jreSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, jreSubPanelBorder));
     
     JPanel jreNorthPanel = new JPanel();
     jreNorthPanel.setBackground(color);
@@ -656,9 +709,9 @@ public class PrefsDialog extends JDialog {
     JPanel memorySubPanel = new JPanel();
     box.add(memorySubPanel);
     memorySubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    memorySubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Memory.BorderTitle")); //$NON-NLS-1$
-    memorySubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    memorySubPanel.setBorder(BorderFactory.createCompoundBorder(etched, memorySubPanelBorder));
     memorySubPanel.addMouseListener(new MouseAdapter() {
     	public void mousePressed(MouseEvent e) {
   			requestFocusInWindow();
@@ -722,9 +775,9 @@ public class PrefsDialog extends JDialog {
     JPanel runSubPanel = new JPanel();
     box.add(runSubPanel);
     runSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    runSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Run.BorderTitle")); //$NON-NLS-1$
-    runSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    runSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, runSubPanelBorder));
     
     final Action setRunAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
@@ -821,9 +874,9 @@ public class PrefsDialog extends JDialog {
     JPanel videoTypeSubPanel = new JPanel();
     box.add(videoTypeSubPanel);
     videoTypeSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    videoTypeSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
-    videoTypeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));    
+    videoTypeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoTypeSubPanelBorder));    
     boolean xuggleInstalled = VideoIO.isEngineInstalled(VideoIO.ENGINE_XUGGLE);
 
     xuggleButton = new JRadioButton();
@@ -928,11 +981,11 @@ public class PrefsDialog extends JDialog {
     JPanel xuggleSpeedSubPanel = new JPanel();
     box.add(xuggleSpeedSubPanel);
     xuggleSpeedSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    xuggleSpeedSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Xuggle.Speed.BorderTitle")); //$NON-NLS-1$
     if (!xuggleInstalled)
-    	title.setTitleColor(new Color(153, 153, 153));
-    xuggleSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));    
+    	xuggleSpeedSubPanelBorder.setTitleColor(new Color(153, 153, 153));
+    xuggleSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, xuggleSpeedSubPanelBorder));    
     buttonGroup = new ButtonGroup();
     xuggleFastButton = new JRadioButton();
     xuggleFastButton.setOpaque(false);
@@ -991,9 +1044,9 @@ public class PrefsDialog extends JDialog {
     JPanel warningsSubPanel = new JPanel(new BorderLayout());
     box.add(warningsSubPanel);
     warningsSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    warningsSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.NoVideoWarning.BorderTitle")); //$NON-NLS-1$
-    warningsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    warningsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, warningsSubPanelBorder));
     JPanel warningsNorthPanel = new JPanel();
     warningsNorthPanel.setBackground(color);
     warningsSubPanel.add(warningsNorthPanel, BorderLayout.NORTH);
@@ -1035,9 +1088,9 @@ public class PrefsDialog extends JDialog {
     JPanel recentSubPanel = new JPanel();
     box.add(recentSubPanel);
     recentSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    recentSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.RecentFiles.BorderTitle")); //$NON-NLS-1$
-    recentSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    recentSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, recentSubPanelBorder));
     // create clear recent button
     clearRecentButton = new JButton();
     clearRecentButton.setEnabled(!Tracker.recentFiles.isEmpty());
@@ -1069,9 +1122,9 @@ public class PrefsDialog extends JDialog {
     JPanel cacheSubPanel = new JPanel(new BorderLayout());
     box.add(cacheSubPanel);
     cacheSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    cacheSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.CacheFiles.BorderTitle")); //$NON-NLS-1$
-    cacheSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    cacheSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, cacheSubPanelBorder));
     
     // cacheNorthPanel: label, field and browse cache button
     JPanel cacheNorthPanel = new JPanel();
@@ -1153,6 +1206,7 @@ public class PrefsDialog extends JDialog {
           popup.add(item);
           item.addActionListener(clearAction);
         }
+      	FontSizer.setFonts(popup, FontSizer.getLevel());
         popup.show(clearHostButton, 0, clearHostButton.getHeight());       		
       }
     });
@@ -1204,7 +1258,7 @@ public class PrefsDialog extends JDialog {
       }
     });
     logLevelDropdown = new JComboBox();
-    String defaultLevel = TrackerRes.getString("PrefsDialog.Version.Default").toUpperCase(); //$NON-NLS-1$
+    defaultLevel = TrackerRes.getString("PrefsDialog.Version.Default").toUpperCase(); //$NON-NLS-1$
     selected = defaultLevel;
     logLevelDropdown.addItem(defaultLevel);
     for (int i=OSPLog.levels.length-1; i>=0; i--) {
@@ -1227,9 +1281,9 @@ public class PrefsDialog extends JDialog {
     JPanel logLevelSubPanel = new JPanel();
     box.add(logLevelSubPanel);
     logLevelSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    logLevelSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.LogLevel.BorderTitle")); //$NON-NLS-1$
-    logLevelSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    logLevelSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, logLevelSubPanelBorder));
     logLevelSubPanel.add(logLevelDropdown);
     
     checkForUpgradeDropdown = new JComboBox();
@@ -1260,9 +1314,9 @@ public class PrefsDialog extends JDialog {
     JPanel upgradeSubPanel = new JPanel();
     box.add(upgradeSubPanel);
     upgradeSubPanel.setBackground(color);
-    title = BorderFactory.createTitledBorder(
+    upgradeSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Upgrades.BorderTitle")); //$NON-NLS-1$
-    upgradeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, title));
+    upgradeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, upgradeSubPanelBorder));
     upgradeSubPanel.add(checkForUpgradeButton);
     dropdownPanel.add(checkForUpgradeDropdown);
     upgradeSubPanel.add(dropdownPanel);
@@ -1324,6 +1378,7 @@ public class PrefsDialog extends JDialog {
 		prevLookFeel = Tracker.lookAndFeel;
 		prevRecentCount = Tracker.recentFilesSize;
 		prevLocaleName = Tracker.preferredLocale;
+		prevFontLevel = Tracker.preferredFontLevel;
 		prevHints = Tracker.showHintsByDefault;
 		prevRadians = Tracker.isRadians;
 		prevFastXuggle = Tracker.isXuggleFast;
@@ -1346,6 +1401,7 @@ public class PrefsDialog extends JDialog {
 		Tracker.lookAndFeel = prevLookFeel;
 		Tracker.recentFilesSize = prevRecentCount;
 		Tracker.setPreferredLocale(prevLocaleName);
+		Tracker.preferredFontLevel = prevFontLevel;
 		Tracker.showHintsByDefault = prevHints;
 		Tracker.isRadians = prevRadians;
 		Tracker.isXuggleFast = prevFastXuggle;
@@ -1429,6 +1485,7 @@ public class PrefsDialog extends JDialog {
     setTabTitle(displayPanel, TrackerRes.getString("PrefsDialog.Tab.Display.Title")); //$NON-NLS-1$
     setTabTitle(generalPanel, TrackerRes.getString("PrefsDialog.Tab.General.Title")); //$NON-NLS-1$
     refreshTextFields();
+    setFontLevel(FontSizer.getLevel());
     pack();
     updateDisplay();
   }
@@ -1518,12 +1575,13 @@ public class PrefsDialog extends JDialog {
    * Applies and saves the current preferences.
    */
   private void applyPrefs() {
-    // look/feel, language, video, hints are set directly by components
+    // look/feel, language, video, hints, fontlevel are set directly by components
   	// update configuration
     updateConfig();
     // update recent menu
     Integer val = (Integer)recentSizeSpinner.getValue();
     Tracker.setRecentSize(val);
+    
     if (trackerPanel!=null) TMenuBar.getMenuBar(trackerPanel).refresh();
   	// update preferred memory size
     if (defaultMemoryCheckbox.isSelected())
@@ -1688,6 +1746,7 @@ public class PrefsDialog extends JDialog {
 	    chooser.setAcceptAllFileFilterUsed(false);
 	    chooser.addChoosableFileFilter(folderFilter);
 		}
+  	FontSizer.setFonts(chooser, FontSizer.getLevel());
     return chooser;
   }
 

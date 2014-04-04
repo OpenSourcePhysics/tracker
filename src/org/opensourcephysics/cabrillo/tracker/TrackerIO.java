@@ -29,7 +29,6 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.event.ActionEvent;
@@ -49,6 +48,7 @@ import org.opensourcephysics.controls.*;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
@@ -130,6 +130,7 @@ public class TrackerIO extends VideoIO {
     		    buttonbar.add(closeButton);
     		    buttonbar.setBorder(BorderFactory.createEtchedBorder());
     				contentPane.add(buttonbar, BorderLayout.SOUTH);
+    				FontSizer.setFonts(dialog, FontSizer.getLevel());
     				dialog.pack();
     				dialog.setTitle(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Title")); //$NON-NLS-1$
     		    // center dialog on the screen
@@ -492,6 +493,7 @@ public class TrackerIO extends VideoIO {
   	String fileName = XML.getName(path);
   	File testFile = new File(fileName);
     TrackerPanel trackerPanel = existingPanel==null? new TrackerPanel(): existingPanel;
+    boolean panelChanged = trackerPanel.changed;
   	// create progress monitor
   	MonitorDialog monitorDialog = new MonitorDialog(frame, path);
   	monitorDialog.setVisible(true);
@@ -594,6 +596,8 @@ public class TrackerIO extends VideoIO {
         pane.setDividerLocation(frame.defaultRightDivider);
         TMenuBar.getMenuBar(trackerPanel).refresh();
         trackerPanel.setVideo(video);
+        // panel is changed if video imported into existing trackerPanel
+        panelChanged = existingPanel!=null;
         if (video.getFrameCount() == 1) {
           trackerPanel.getPlayer().getVideoClip().setStepCount(10);
         }
@@ -824,7 +828,7 @@ public class TrackerIO extends VideoIO {
     Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
     TMenuBar.getMenuBar(trackerPanel).refresh();
     TTrackBar.refreshMemoryButton();
-    trackerPanel.changed = false;
+    trackerPanel.changed = panelChanged;
   }
 
   /**
@@ -1664,6 +1668,7 @@ class MonitorDialog extends JDialog {
     contentPane.add(labelbar, BorderLayout.NORTH);
     contentPane.add(progressPanel, BorderLayout.CENTER);
     contentPane.add(buttonbar, BorderLayout.SOUTH);
+    FontSizer.setFonts(contentPane, FontSizer.getLevel());
     pack();
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
     int x = (dim.width - getBounds().width) / 2;

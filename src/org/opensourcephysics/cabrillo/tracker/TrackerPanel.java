@@ -29,7 +29,6 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.rmi.RemoteException;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.FontRenderContext;
@@ -102,9 +101,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected JLabel[] noDataLabels = new JLabel[2];
   protected boolean isEmpty;
   protected String defaultSavePath, openedFromPath;
-  protected FunctionTool modelBuilder;
-  protected JLabel startFrameLabel, endFrameLabel;
+  protected ModelBuilder modelBuilder;
+  protected JLabel startFrameLabel, endFrameLabel, boosterLabel;
   protected ModelFrameSpinner startFrameSpinner, endFrameSpinner;
+  protected JComboBox boosterDropdown;
   protected TrackControl trackControl;
   protected boolean isModelBuilderVisible;
   protected boolean isShiftKeyDown, isControlKeyDown;
@@ -188,7 +188,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     if (state != null) Undo.postVideoReplace(this, state);
     TMat mat = getMat();
     if (mat != null) mat.refresh();
-    refreshModelBuilderSpinners();
+    if (modelBuilder!=null) {
+    	modelBuilder.refreshSpinners();
+    }
     firePropertyChange("image", null, null);  // to tracks & views //$NON-NLS-1$
   }
 
@@ -242,6 +244,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   public FunctionTool getModelBuilder() {
   	if (modelBuilder == null) {
+  		// create start and end frame spinners
   	  Font font = new JSpinner().getFont();
   	  int n = getPlayer().getVideoClip().getFrameCount()-1;
   	  FontRenderContext frc = new FontRenderContext(null, false, false);
@@ -259,54 +262,46 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   		model = new SpinnerNumberModel(n, 0, n, 1); // init, min, max, step
   		endFrameSpinner = new ModelFrameSpinner(model);
   		endFrameSpinner.prefWidth = w;
-  		modelBuilder = new FunctionTool(this, new Component[] 
-  		    {startFrameLabel, startFrameSpinner, endFrameLabel, endFrameSpinner}) {
-  		  protected void refreshGUI() {
-  		  	super.refreshGUI();
-  		  	dropdown.setToolTipText(TrackerRes.getString
-		  				("TrackerPanel.ModelBuilder.Spinner.Tooltip")); //$NON-NLS-1$
-  	  		String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$  
-  	    	FunctionPanel panel = getSelectedPanel();
-  	    	if (panel!=null) {
-  	    		TTrack track = getTrack(panel.getName());
-  	    		if (track != null) {
-  	    			String type = track.getClass().getSimpleName();
-  	    			title += ": "+TrackerRes.getString(type+".Builder.Title"); //$NON-NLS-1$ //$NON-NLS-2$
-  	    		}
-  	    	}
-  	  		setTitle(title);
-  	  		startFrameLabel.setText(TrackerRes.getString
-  	  				("TrackerPanel.Label.ModelStart")); //$NON-NLS-1$
-  	  		endFrameLabel.setText(TrackerRes.getString
-  	  				("TrackerPanel.Label.ModelEnd")); //$NON-NLS-1$
-  	  		startFrameSpinner.setToolTipText(TrackerRes.getString
-  	  				("TrackerPanel.Spinner.ModelStart.Tooltip")); //$NON-NLS-1$
-  	  		endFrameSpinner.setToolTipText(TrackerRes.getString
-  	  				("TrackerPanel.Spinner.ModelEnd.Tooltip")); //$NON-NLS-1$
-  		  }
-  		  
-  		  public void setVisible(boolean vis) {
-  		  	super.setVisible(vis);
-  		  	isModelBuilderVisible = vis;
-  		  }
-  		};
-  		modelBuilder.setHelpAction(new ActionListener() {
+  		
+  		// create booster label and dropdown
+      boosterLabel = new JLabel();
+      boosterLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
+      boosterDropdown = new JComboBox();
+      boosterDropdown.setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 0));
+      boosterDropdown.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-          TFrame frame = getTFrame();
-          if (frame != null) {
-          	ModelFunctionPanel panel = (ModelFunctionPanel)modelBuilder.getSelectedPanel();
-          	if (panel.model instanceof DynamicSystem) {
-          		frame.showHelp("system", 0); //$NON-NLS-1$
-          	}
-          	else {
-          		frame.showHelp("particle", 0); //$NON-NLS-1$
-          	}
-          }
+        	if (!boosterDropdown.isEnabled()) return;
+      	  FunctionPanel panel = modelBuilder.getSelectedPanel();
+      	  if (panel!=null) {
+      	  	ParticleModel part = ((ModelFunctionPanel)panel).model;
+      	  	if (!(part instanceof DynamicParticle)) return;
+      	  	DynamicParticle model = (DynamicParticle)part;
+      	  	
+      	  	Object item = boosterDropdown.getSelectedItem();
+	          if(item!=null) {
+	          	Object[] array = (Object[])item;
+	          	PointMass target = (PointMass)array[1]; // null if "none" selected
+		      		model.setBooster(target);
+		      		if (target!=null) {
+			      		Step step = getSelectedStep();
+			      		if (step!=null && step instanceof PositionStep) {
+			      			PointMass pm = (PointMass)((PositionStep)step).track;
+			      			if (pm==target) {
+			      				model.setStartFrame(step.getFrameNumber());
+			      			}
+			      		}
+		      		}
+	          }
+      	  }
         }
       });
-			Dimension dim = modelBuilder.getSize();
-			modelBuilder.setSize(dim.width, 496);
+      
+  		// create and size model builder
+  		modelBuilder = new ModelBuilder(this);  			
+  		modelBuilder.setFontLevel(FontSizer.getLevel());
+  		modelBuilder.refreshLayout();
 			modelBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
+			// show model builder
 			try {
 				Point p = getLocationOnScreen();
 				TFrame frame = getTFrame();
@@ -314,53 +309,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					MainTView view = frame.getMainView(this);
 					p = view.getLocationOnScreen();
 				}
-				modelBuilder.setLocation(p.x+4, p.y+102);
+				modelBuilder.setLocation(p.x+160, p.y);
 			}
 			catch(Exception ex) {/** empty block */}
   	}
   	return modelBuilder;
   }
   
-  /**
-   * Refreshes the model builder spinners.
-   */
-  protected void refreshModelBuilderSpinners() {
-    if (modelBuilder!=null) {
-		  int n = getPlayer().getVideoClip().getFrameCount()-1;
-  	  FunctionPanel panel = modelBuilder.getSelectedPanel();
-  	  startFrameSpinner.setEnabled(panel!=null);
-  	  endFrameSpinner.setEnabled(panel!=null);
-  	  startFrameLabel.setEnabled(panel!=null);
-  	  endFrameLabel.setEnabled(panel!=null);
-  	  int end = n;
-  	  ParticleModel model = null;
-  	  if (panel!=null) {
-  	  	model = ((ModelFunctionPanel)panel).model;
-  	  	end = Math.min(n, model.getEndFrame());
-  	  }
-  	  // following two lines trigger change events
-  	  ((SpinnerNumberModel)startFrameSpinner.getModel()).setMaximum(n);
-  	  ((SpinnerNumberModel)endFrameSpinner.getModel()).setMaximum(n);
-  	  if (model!=null) {
-  	  	startFrameSpinner.setValue(model.getStartFrame());
-  	  	endFrameSpinner.setValue(end);
-  	  }
-  	  else {
-  	  	startFrameSpinner.setValue(0);
-  	  	endFrameSpinner.setValue(n);
-  	  }
-		  Font font = startFrameSpinner.getFont();
-		  FontRenderContext frc = new FontRenderContext(null, false, false);
-  	  String s = String.valueOf(Math.max(n, 200));
-  	  TextLayout layout = new TextLayout(s, font, frc);
-  	  int w = (int)layout.getBounds().getWidth()+1;
-  	  if (n>1000) w+=3;
-	  	startFrameSpinner.prefWidth = w;
-	  	endFrameSpinner.prefWidth = w;
-  	  modelBuilder.validate();
-    }
-  }
-
   /**
    * Adds the specified rectangle to the dirty region. The dirty region
    * is repainted when repaintDirtyRegion is called. A null dirtyRect
@@ -444,9 +399,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       	removeDrawable(getAxes()); // only one axes at a time
       super.addDrawable(track);
       moveToBack(track);
+      WorldGrid grid = getGrid();
+      if (grid != null) {
+        moveToBack(grid); // put grid behind axes
+      }
       TMat mat = getMat();
       if (mat != null) {
-        moveToBack(mat); // put mat behind axes
+        moveToBack(mat); // put mat behind grid
       }
     }
     // special case: same calibration tool added again?
@@ -496,6 +455,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     len = Math.max(len, getCoords().getLength());
     getCoords().setLength(len);
     
+    // set font level
+    track.setFontLevel(FontSizer.getLevel());
+    
     // notify views
     firePropertyChange("track", null, track); // to views //$NON-NLS-1$
     changed = true;
@@ -541,8 +503,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       m.addPropertyChangeListener("mass", new PropertyChangeListener() { //$NON-NLS-1$
   		  public void propertyChange(PropertyChangeEvent e) {
   		  	Parameter param = (Parameter)paramEditor.getObject("m"); //$NON-NLS-1$
-  		    if (m.getMass() != param.getValue()) {
-  		    	paramEditor.setExpression("m", String.valueOf(m.getMass()), false); //$NON-NLS-1$
+  		  	double newMass = (Double)e.getNewValue();
+  		    if (newMass != param.getValue()) {
+  		    	paramEditor.setExpression("m", String.valueOf(newMass), false); //$NON-NLS-1$
   		  	}
   		  }
   		});
@@ -882,6 +845,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   public TMat getMat() {
     ArrayList<TMat> list = getDrawables(TMat.class);
+    if (!list.isEmpty()) return list.get(0);
+    return null;
+  }
+
+  /**
+   * Gets the grid.
+   *
+   * @return the first Grid in the drawable list
+   */
+  public WorldGrid getGrid() {
+    ArrayList<WorldGrid> list = getDrawables(WorldGrid.class);
     if (!list.isEmpty()) return list.get(0);
     return null;
   }
@@ -1272,6 +1246,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   public AttachmentDialog getAttachmentDialog(TTrack track) {
     if (attachmentDialog == null) {
     	attachmentDialog = new AttachmentDialog(track);
+    	attachmentDialog.setFontLevel(FontSizer.getLevel());
       // center on screen
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - attachmentDialog.getBounds().width) / 2;
@@ -1279,6 +1254,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       attachmentDialog.setLocation(x, y);
     }
     else {
+    	attachmentDialog.setFontLevel(FontSizer.getLevel());
     	attachmentDialog.setMeasuringTool(track);
     }
     return attachmentDialog;
@@ -1458,6 +1434,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   		dataBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
   		dataBuilder.addPropertyChangeListener("function", this); //$NON-NLS-1$
   		dataBuilder.addPropertyChangeListener("visible", this); //$NON-NLS-1$
+  		dataBuilder.setFontLevel(FontSizer.getLevel());
   	}
   	return dataBuilder;
   }
@@ -1470,10 +1447,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected DerivativeAlgorithmDialog getAlgorithmDialog() {
   	if (algorithmDialog==null) {
   		algorithmDialog = new DerivativeAlgorithmDialog(this);
-	    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-	    int x = (dim.width - algorithmDialog.getBounds().width) / 2;
-	    int y = (dim.height - algorithmDialog.getBounds().height) / 2;
-	    algorithmDialog.setLocation(x, y);
+  		algorithmDialog.setFontLevel(FontSizer.getLevel());
   	}
     return algorithmDialog;
   }
@@ -2036,7 +2010,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
              name.equals("adjusting") ||                // from videoClip //$NON-NLS-1$
              name.equals("frameduration")) {            // from clipControl //$NON-NLS-1$
       changed = true;
-      refreshModelBuilderSpinners();
+  		if (modelBuilder!=null) modelBuilder.refreshSpinners();
       if (getMat() != null) {
         getMat().isValidMeasure = false;
       }
@@ -2060,7 +2034,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       repaint();
     }
     else if (getVideo()==null && name.equals("framecount")) { //$NON-NLS-1$
-  		refreshModelBuilderSpinners();
+  		if (modelBuilder!=null) modelBuilder.refreshSpinners();
     }
     else if (name.equals("function")) {  // from DataBuilder //$NON-NLS-1$
     	changed = true;
@@ -2081,7 +2055,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       		endFrameSpinner.setValue(end);
     		}
     	}
-  		refreshModelBuilderSpinners();
+  		modelBuilder.refreshSpinners();
   		String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$  
     	panel = modelBuilder.getSelectedPanel();
     	if (panel!=null) {
@@ -2094,14 +2068,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   		modelBuilder.setTitle(title);
     }
     else if (name.equals("model_start")) { //$NON-NLS-1$
-    	startFrameSpinner.setValue(e.getNewValue());
+    	ParticleModel model = (ParticleModel)e.getSource();
+    	if (model.getName().equals(getModelBuilder().getSelectedName())) {
+    		startFrameSpinner.setValue(e.getNewValue());
+    	}
     }
     else if (name.equals("model_end")) { //$NON-NLS-1$
-  		int end = (Integer)e.getNewValue();
-  		if (end==Integer.MAX_VALUE) {
-  			end = getPlayer().getVideoClip().getFrameCount()-1;
-  		}
-    	endFrameSpinner.setValue(end);
+    	ParticleModel model = (ParticleModel)e.getSource();
+    	if (model.getName().equals(getModelBuilder().getSelectedName())) {
+	  		int end = (Integer)e.getNewValue();
+	  		if (end==Integer.MAX_VALUE) {
+	  			end = getPlayer().getVideoClip().getFrameCount()-1;
+	  		}
+	    	endFrameSpinner.setValue(end);
+    	}
     }
     else if (name.equals("radian_angles")) { // angle format has changed //$NON-NLS-1$
       firePropertyChange("radian_angles", null, e.getNewValue()); // to tracks //$NON-NLS-1$    	
@@ -2213,6 +2193,71 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     		&& getCursor() != Tracker.zoomInCursor)
     	super.setMouseCursor(cursor);
   }
+
+	/**
+	* Sets the font level.
+	*
+	* @param level the desired font level
+	*/
+	public void setFontLevel(int level) {
+		super.setFontLevel(level);
+		if (frame==null) return;
+		// refresh views
+    TView[][] views = frame.getTViews(this);
+    if (views==null) return;
+    for (TView[] viewset: views) {
+    	if (viewset==null) continue;
+    	for (TView view: viewset) {
+    		view.refresh();
+    	}
+    }
+    TTrackBar trackbar = TTrackBar.getTrackbar(this);
+    trackbar.setFontLevel(level);
+    trackbar.refresh();
+    // select the correct fontSize menu radiobutton
+    TMenuBar menubar = TMenuBar.getMenuBar(this);
+    if (menubar.fontSizeGroup!=null) {
+	    Enumeration<AbstractButton> e = menubar.fontSizeGroup.getElements();
+	    for (; e.hasMoreElements();) {
+	      AbstractButton button = e.nextElement();
+	      int i = Integer.parseInt(button.getActionCommand());
+	      if(i==FontSizer.getLevel()) {
+	        button.setSelected(true);
+	      }
+	    }
+    }
+    
+    for (TTrack track: getTracks()) {
+    	track.setFontLevel(level);      	
+    }
+    TrackControl.getControl(this).refresh();
+    if (modelBuilder!=null) {
+    	modelBuilder.setFontLevel(level);
+    }
+    if (dataBuilder!=null) {
+    	dataBuilder.setFontLevel(level);
+    }
+    if (autoTracker!=null) {
+    	autoTracker.getWizard().setFontLevel(level);
+    }
+    if (attachmentDialog!=null) {
+    	attachmentDialog.setFontLevel(level);
+    }
+    Video video = getVideo();
+    if (video!=null) {
+    	FilterStack filterStack = video.getFilterStack();
+    	for (Filter filter: filterStack.getFilters()) {
+        JDialog inspector = filter.getInspector();
+        if (inspector != null) {
+          FontSizer.setFonts(inspector, level);
+          inspector.pack();
+        }
+    	}
+    }
+    if (algorithmDialog!=null) {
+    	algorithmDialog.setFontLevel(level);
+    }
+	}
 
   /**
    * Returns true if an event starts or ends a zoom operation. Used by
@@ -2368,6 +2413,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		   		else {
 			    	int n = step.getFrameNumber();
 			      track.steps.setStep(n, null);
+			      for (String columnName: track.textColumnNames) {
+			      	String[] entries = track.textColumnEntries.get(columnName);
+			      	if (entries.length>n) {
+			      		entries[n] = null;
+			      	}
+			      }
 			      isChanged = true;
 		   		}
 		   	}
@@ -2460,6 +2511,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected AutoTracker getAutoTracker() {
   	if (autoTracker==null) {
   		autoTracker = new AutoTracker(this);
+  		autoTracker.getWizard().setFontLevel(FontSizer.getLevel());
   	}
   	return autoTracker;
   }
@@ -2736,6 +2788,215 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	  }
 	  
 	};
+	
+  /**
+   * Inner ModelBuilder class.
+   */
+	class ModelBuilder extends FunctionTool {
+		
+		protected ModelBuilder(TrackerPanel trackerPanel) {
+			super(trackerPanel, new Component[] 
+  		    {startFrameLabel, startFrameSpinner, endFrameLabel, endFrameSpinner, boosterLabel, boosterDropdown});
+			
+      DropdownRenderer renderer= new DropdownRenderer();
+      boosterDropdown.setRenderer(renderer);
+  		refreshBoosterDropdown();
+
+      trackerPanel.addPropertyChangeListener("track", new PropertyChangeListener() { //$NON-NLS-1$
+      	public void propertyChange(PropertyChangeEvent e) {
+      		refreshBoosterDropdown();
+      		refreshLayout();
+      	}
+      });
+
+      setHelpAction(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+          TFrame frame = getTFrame();
+          if (frame != null) {
+          	ModelFunctionPanel panel = (ModelFunctionPanel)modelBuilder.getSelectedPanel();
+          	if (panel.model instanceof DynamicSystem) {
+          		frame.showHelp("system", 0); //$NON-NLS-1$
+          	}
+          	else {
+          		frame.showHelp("particle", 0); //$NON-NLS-1$
+          	}
+          }
+        }
+      });
+		}
+		
+		@Override
+		protected void refreshGUI() {
+	  	super.refreshGUI();
+	  	dropdown.setToolTipText(TrackerRes.getString
+  				("TrackerPanel.ModelBuilder.Spinner.Tooltip")); //$NON-NLS-1$
+	  	boosterDropdown.setToolTipText(TrackerRes.getString
+  				("TrackerPanel.Dropdown.Booster.Tooltip")); //$NON-NLS-1$
+  		String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$  
+    	FunctionPanel panel = getSelectedPanel();
+    	if (panel!=null) {
+    		TTrack track = getTrack(panel.getName());
+    		if (track != null) {
+    			String type = track.getClass().getSimpleName();
+    			title += ": "+TrackerRes.getString(type+".Builder.Title"); //$NON-NLS-1$ //$NON-NLS-2$
+    		}
+    	}
+  		setTitle(title);
+  		boosterLabel.setText(TrackerRes.getString
+  				("TrackerPanel.Label.Booster")); //$NON-NLS-1$
+  		startFrameLabel.setText(TrackerRes.getString
+  				("TrackerPanel.Label.ModelStart")); //$NON-NLS-1$
+  		endFrameLabel.setText(TrackerRes.getString
+  				("TrackerPanel.Label.ModelEnd")); //$NON-NLS-1$
+  		startFrameSpinner.setToolTipText(TrackerRes.getString
+  				("TrackerPanel.Spinner.ModelStart.Tooltip")); //$NON-NLS-1$
+  		endFrameSpinner.setToolTipText(TrackerRes.getString
+  				("TrackerPanel.Spinner.ModelEnd.Tooltip")); //$NON-NLS-1$  	  		
+  		refreshBoosterDropdown();
+	  }
+	  
+		@Override
+	  public void setVisible(boolean vis) {
+	  	super.setVisible(vis);
+	  	isModelBuilderVisible = vis;
+	  }
+		
+		@Override
+	  public void setFontLevel(int level) {
+			super.setFontLevel(level);
+			refreshBoosterDropdown();
+			refreshLayout();
+		}
+		
+		/**
+	   * Refreshes the layout to ensure the booster dropdown is fully displayed.
+	   */
+		protected void refreshLayout() {
+    	SwingUtilities.invokeLater(new Runnable() {
+    		public void run() {
+      		validate();
+      		refreshGUI();
+      		Dimension dim = getSize();
+    			int height = Toolkit.getDefaultToolkit().getScreenSize().height;
+    			height = Math.min((int)(0.95*height), (int)(550*(1+fontLevel/4.0)));
+    			dim.height = height;
+    			setSize(dim); 
+      		repaint();
+    		}
+    	});
+
+		}
+
+		/**
+	   * Refreshes the start and end frame spinners.
+	   */
+	  protected void refreshSpinners() {
+		  int n = getPlayer().getVideoClip().getFrameCount()-1;
+  	  FunctionPanel panel = modelBuilder.getSelectedPanel();
+  	  startFrameSpinner.setEnabled(panel!=null);
+  	  endFrameSpinner.setEnabled(panel!=null);
+  	  startFrameLabel.setEnabled(panel!=null);
+  	  endFrameLabel.setEnabled(panel!=null);
+  	  int end = n;
+  	  ParticleModel model = null;
+  	  if (panel!=null) {
+  	  	model = ((ModelFunctionPanel)panel).model;
+  	  	end = Math.min(n, model.getEndFrame());
+  	  }
+  	  // following two lines trigger change events
+  	  ((SpinnerNumberModel)startFrameSpinner.getModel()).setMaximum(n);
+  	  ((SpinnerNumberModel)endFrameSpinner.getModel()).setMaximum(n);
+  	  if (model!=null) {
+  	  	startFrameSpinner.setValue(model.getStartFrame());
+  	  	endFrameSpinner.setValue(end);
+  	  }
+  	  else {
+  	  	startFrameSpinner.setValue(0);
+  	  	endFrameSpinner.setValue(n);
+  	  }
+		  Font font = startFrameSpinner.getFont();
+		  FontRenderContext frc = new FontRenderContext(null, false, false);
+  	  String s = String.valueOf(Math.max(n, 200));
+  	  TextLayout layout = new TextLayout(s, font, frc);
+  	  int w = (int)layout.getBounds().getWidth()+1;
+  	  if (n>1000) w+=3;
+	  	startFrameSpinner.prefWidth = w;
+	  	endFrameSpinner.prefWidth = w;
+	  	
+  	  validate();
+	  }
+
+	  /**
+	   * Refreshes the booster dropdown.
+	   */
+	  protected void refreshBoosterDropdown() {
+	  	  FunctionPanel panel = getSelectedPanel();
+	  	  DynamicParticle dynamicModel = null;
+	  	  if (panel!=null) {
+	  	  	ParticleModel model = ((ModelFunctionPanel)panel).model;  	  	
+	  	  	if (model instanceof DynamicParticle) {
+	  	  		dynamicModel = (DynamicParticle)model;
+	  	  	}
+	    	  boosterDropdown.setEnabled(false);  // disabled during refresh to prevent action
+	    		// refresh boosterDropdown
+	  	  	String s = TrackerRes.getString("TrackerPanel.Booster.None"); //$NON-NLS-1$
+	  	    Object[] none = new Object[] {new ShapeIcon(new Rectangle(), 21, 16), null, s};
+	  	  	Object[] selected = none;
+	  	  	boolean targetExists = false;
+	  	    boosterDropdown.removeAllItems();
+	  	    ArrayList<PointMass> masses = TrackerPanel.this.getDrawables(PointMass.class);
+	  	    outer: for (PointMass next: masses) {
+	  	    	if (next==model) continue;
+	  	    	if (next instanceof DynamicSystem) continue;
+	  	    	
+	  	    	String name = next.getName();
+	   	      Object[] item = new Object[] {next.getFootprint().getIcon(21, 16), next, name};
+	   	      
+	   	      // check that next is not a dynamic particle being boosted by selected model
+	   	      // or part of a system being boosted by selected model
+  	  	  	if (next instanceof DynamicParticle) {
+  	  	  		DynamicParticle dynamic = (DynamicParticle)next;
+  	  	  		if (dynamic.isBoostedBy(model)) continue;
+  	  	  		if (dynamic.system!=null) {
+  	  	  			for (DynamicParticle part: dynamic.system.particles) {
+  	  	  	  		if (part.isBoostedBy(model)) continue outer;
+  	  	  			}
+  	  	  		}
+  	  	  	}
+	   	      
+	  	    	if (dynamicModel!=null) {	
+	  	    		// check that next is not in same dynamic system as selected model
+	  	    		if (dynamicModel.system!=null && next instanceof DynamicParticle) {
+	  	  	  		DynamicParticle dynamicNext = (DynamicParticle)next;
+	  	  	  		if (dynamicNext.system==dynamicModel.system) {
+	  	  	  			continue outer;
+	  	  	  		}
+	  	    		}
+	  	    		// check if next is selected model's booster
+		  	    	if (dynamicModel.modelBooster!=null) {
+		  	    		PointMass booster = dynamicModel.modelBooster.booster;
+		  	    		// check if next pointmass is the current booster
+			  	  		if (booster==next) {
+			  	  			selected = item;
+			  	  			targetExists = true;
+			  	  		}
+		  	    	}
+	  	    	}
+	  	      boosterDropdown.addItem(item);
+	  	    }
+		      boosterDropdown.addItem(none);
+		      boosterDropdown.setSelectedItem(selected);
+		      if (dynamicModel!=null && !targetExists) {
+		      	dynamicModel.setBooster(null);
+		      }
+	  	  	boolean enable = dynamicModel!=null && !(dynamicModel instanceof DynamicSystem);
+	    	  boosterLabel.setEnabled(enable);
+	    	  boosterDropdown.setEnabled(enable);
+	  	  }
+	  	  validate();
+	  }
+	  		
+	} // end ModelBuilder class
 
   /**
    * Returns an XML.ObjectLoader to save and load object data.

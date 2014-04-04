@@ -26,11 +26,11 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.FontRenderContext;
 import java.awt.geom.*;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.event.*;
@@ -38,6 +38,7 @@ import javax.swing.event.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.DataTool;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -191,6 +192,7 @@ public abstract class TTrack implements Interactive,
       				TrackerRes.getString("TTrack.AngleField.Popup.Degrees"): //$NON-NLS-1$
       				TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
       		popup.add(item);
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
       		popup.show(angleField, 0, angleField.getHeight());
       	}
       }
@@ -222,10 +224,9 @@ public abstract class TTrack implements Interactive,
     colorItem = new JMenuItem();
     colorItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        // show color chooser dialog with color of this track
-        Color newColor = JColorChooser.showDialog(
-            null, TrackerRes.getString("TTrack.Dialog.Color.Title"), getColor()); //$NON-NLS-1$
-        if (newColor != null) {
+      	Color color = getColor();
+      	Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
+        if (newColor!=color) {
         	XMLControl control = new XMLControlElement(TTrack.this);
           setColor(newColor);
           Undo.postTrackEdit(TTrack.this, control);
@@ -265,6 +266,7 @@ public abstract class TTrack implements Interactive,
     nameAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
         // show dialog with name of this track selected
+    		FontSizer.setFonts(nameDialog, FontSizer.getLevel());
       	nameDialog.setTitle(TrackerRes.getString("TTrack.Dialog.Name.Title")); //$NON-NLS-1$
       	nameLabel.setText(TrackerRes.getString("TTrack.Dialog.Name.Label")); //$NON-NLS-1$
       	nameField.setText(getName());
@@ -357,6 +359,9 @@ public abstract class TTrack implements Interactive,
     		for (int n = 0; n < getSteps().length; n++) {
           steps.setStep(n, null);
     		}
+        for (String columnName: textColumnNames) {
+        	textColumnEntries.put(columnName, new String[0]);
+        }
         Undo.postTrackEdit(TTrack.this, control);
     		if (TTrack.this instanceof PointMass) {
     			((PointMass)TTrack.this).updateDerivatives();
@@ -589,6 +594,28 @@ public abstract class TTrack implements Interactive,
     String letter = TrackerPanel.alphabet.substring(i, i+1);
     setName(name+connector+letter);
     setColorToDefault(i);
+  }
+  
+  /**
+   * Displays a JColorChooser and returns the selected color.
+   *
+   * @param color the initial color to select
+   * @param title the title for the dialog
+   * @return the newly selected color. or initial color if cancelled
+   */
+  public Color chooseColor(final Color color, String title) {
+  	final JColorChooser chooser = new JColorChooser();
+  	chooser.setColor(color);
+  	ActionListener cancelListener = new ActionListener() {
+  		public void actionPerformed(ActionEvent e) {
+  			chooser.setColor(color);
+  		}
+  	};
+  	JDialog dialog = JColorChooser.createDialog(null, title, true, 
+  			chooser, null, cancelListener);
+  	FontSizer.setFonts(dialog, FontSizer.getLevel());
+  	dialog.setVisible(true);
+  	return chooser.getColor();
   }
   
   /**
@@ -865,6 +892,12 @@ public abstract class TTrack implements Interactive,
     if (step != null) {
       XMLControl control = new XMLControlElement(this);
       steps.setStep(n, null);
+      for (String columnName: textColumnNames) {
+      	String[] entries = textColumnEntries.get(columnName);
+      	if (entries.length>n) {
+      		entries[n] = null;
+      	}
+      }
       Undo.postTrackEdit(this, control);
       support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
     }
@@ -1087,6 +1120,18 @@ public abstract class TTrack implements Interactive,
     for (int n = 0; n < array.length; n++)
       if (array[n] != null) return false;
     return true;
+  }
+  
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	Object[] objectsToSize = new Object[]
+  			{tLabel, xLabel, yLabel, magLabel, angleLabel, stepLabel, tValueLabel, stepValueLabel,
+  			tField, xField, yField, magField, angleField};
+    FontSizer.setFonts(objectsToSize, level);
   }
 
   /**
@@ -1431,9 +1476,14 @@ public abstract class TTrack implements Interactive,
     markByDefaultItem.setSelected(isMarkByDefault());
     autoAdvanceItem.setSelected(isAutoAdvance());
     lockedItem.setEnabled(true);
+    boolean cantDeleteSteps = isLocked() || isDependent();
+    TPoint p = trackerPanel.getSelectedPoint();
+    Step step = getStep(p, trackerPanel);
+
+    deleteStepItem.setEnabled(!cantDeleteSteps && step!=null);
+    clearStepsItem.setEnabled(!cantDeleteSteps);
     deleteTrackItem.setEnabled(!(isLocked() && !isDependent()));
-    clearStepsItem.setEnabled(!(isLocked() && !isDependent()));
-    nameItem.setEnabled(!isLocked());
+    nameItem.setEnabled(!(isLocked() && !isDependent()));
     footprintMenu.removeAll();
     Footprint[] fp = getFootprints();
     JMenuItem item;
@@ -2132,6 +2182,7 @@ public abstract class TTrack implements Interactive,
   	skippedStepWarningTextpane.setText(m1+"  "+m3); //$NON-NLS-1$
   	skippedStepWarningCheckbox.setText(TrackerRes.getString("TTrack.Dialog.SkippedStepWarning.Checkbox")); //$NON-NLS-1$
   	closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+  	FontSizer.setFonts(skippedStepWarningDialog, FontSizer.getLevel());
   	skippedStepWarningDialog.pack();
   	// center on screen
     Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();

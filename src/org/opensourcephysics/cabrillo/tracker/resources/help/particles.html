@@ -1,11 +1,11 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE html>
 
 <html>
 
 	<head>
 		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
 		<title>Tracker Help: Particle Models</title>
-    	<link href="help.css" rel="stylesheet" type="text/css">
+		<link href="help.css" rel="stylesheet" type="text/css">
 	</head>
 
 	<body>
@@ -14,16 +14,17 @@
 			<img src="../help_images/particle.gif">
         </p>
 		<p>A <strong>particle model</strong> track is a mathematical model of a point mass. The step positions of the particle are determined by the parameters of the model rather than being marked with the mouse.</p>
-		<p>There are two types of models: <strong>analytic</strong> and <strong>dynamic</strong>. An analytic model defines position functions of time (<a href="#fig4">Figure 4</a>), while a dynamic model defines force functions and initial conditions for numerical ODE solvers (<a href="#fig1">Figure 1</a>). Dynamic models may be defined in either <strong>cartesian</strong> or <strong>polar</strong> coordinates.</p>
-		<p>Models have a <strong>start</strong> and <strong>end</strong> frame that define the frames of the video in which they are drawn. This makes it possible to define multiple models that apply at different times in the same video.</p>
-		<p>A particle model has a settable mass and generates motion data and vectors just like any other point mass. See <a href="pointmass.html">point mass</a> for additional information.</p>
+		<p>There are two types of particle models: <strong>kinematic</strong> and <strong>dynamic</strong>. A kinematic particle defines position functions of time (<a href="particles.html#fig4">Figure 4</a>), while a dynamic particle defines force functions and initial conditions for numerical ODE solvers (<a href="particles.html#fig1">Figure 1</a>). Dynamic particles may be defined in either <strong>cartesian</strong> or <strong>polar</strong> coordinates.</p>
+		<p>Model particles have a <strong>start</strong> and <strong>end</strong> frame that define the frames of the video in which they are drawn. This makes it possible to define multiple models that apply at different times in the same video.</p>
+		<p>A dynamic particle may use a <strong>booster</strong> point mass to set its initial position and velocity. Boosters can be quite powerful--for more information, see <a href="#boosting">Boosting dynamic particles</a>.</p>
+<p>A particle model has a settable mass and generates motion data and vectors just like any other point mass. See <a href="pointmass.html">point mass</a> for additional information.</p>
         
-		<h3><a id="model_builder" name="model_builder"></a>1. Building models</h3>
+		<h3><a id="model_builder" name="model_builder"></a>1. Building particle models</h3>
 		<p>Particle model properties are displayed and edited using the Model Builder tool. To use the builder, choose <strong>Model Builder...</strong> from the model's track menu.</p>
 		<p align="center">
 			<a id="fig1" name="fig1"></a><img src="../help_images/model_builder.gif">
-        </p>						
-        <h5>Fig. 1 Model Builder with a dynamic model of a simple projectile</h5>
+</p>						
+        <h5>Fig. 1 Model Builder with a dynamic particle model of a simple projectile</h5>
 		<p>Functions and parameters are defined by entering expressions that are &quot;parsed&quot; (interpreted) by the OSP parser. The values of parameters are constants while those of functions depend on input variables such as x, y, t, etc. The parser recognizes the following elements:</p>
 		<ul>
             <li><strong>Numbers </strong>in decimal or scientific notation (e.g., 1.0E-3)
@@ -36,41 +37,41 @@
             <li><strong>If statements</strong> in the form <em>if(conditional statement, expression1, expression2)</em>. Expression1 is evaluated if the conditional statement is true and expression2 is evaluated if it is false. For example, if (x &lt; 0, x^2, -x^2) is a valid function expression.
         </ul>
         <div align="center">
-            <table width="236" border="1" cellspacing="0" cellpadding="2">
+            <table border="1">
                 <tr>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">abs(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">acos(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">acosh(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">asin(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">asinh(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">atan(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">atanh(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">atan2(x,y)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">ceil(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">cos(x)</td>
+                    <td>abs(x)</td>
+                    <td>acos(x)</td>
+                    <td>acosh(x)</td>
+                    <td>asin(x)</td>
+                    <td>asinh(x)</td>
+                    <td>atan(x)</td>
+                    <td>atanh(x)</td>
+                    <td>atan2(x,y)</td>
+                    <td>ceil(x)</td>
+                    <td>cos(x)</td>
                 </tr>
                 <tr>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">cosh(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">exp(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">frac(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">floor(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">int(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">log(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">max(x,y)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">min(x,y)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">mod(x,y)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">random(x)</td>
+                    <td>cosh(x)</td>
+                    <td>exp(x)</td>
+                    <td>frac(x)</td>
+                    <td>floor(x)</td>
+                    <td>int(x)</td>
+                    <td>log(x)</td>
+                    <td>max(x,y)</td>
+                    <td>min(x,y)</td>
+                    <td>mod(x,y)</td>
+                    <td>random(x)</td>
                 </tr>
                 <tr>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">round(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sign(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sin(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sinh(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sqr(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">sqrt(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">step(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">tan(x)</td>
-                    <td><font face="Arial, Helvetica, Geneva, Swiss, SunSans-Regular">tanh(x)</td>
+                    <td>round(x)</td>
+                    <td>sign(x)</td>
+                    <td>sin(x)</td>
+                    <td>sinh(x)</td>
+                    <td>sqr(x)</td>
+                    <td>sqrt(x)</td>
+                    <td>step(x)</td>
+                    <td>tan(x)</td>
+                    <td>tanh(x)</td>
                     <td></td>
                 </tr>
             </table>
@@ -83,16 +84,16 @@
 		<p>Variables for parameter expressions include only other parameters, while variables for function expressions include independent variables (e.g., x, y, t, etc), parameters and support function names. In the example shown, the &quot;fy&quot; function may depend on any or all of the variables x, vx, y, vy, t, m, g. The entry &quot;-m*g&quot; is thus a valid expression.</p>
 		<p align="center">
         	<img src="../help_images/model_builder_edit.gif">
-        </p>
+</p>
 		<h5>Fig. 2 Editing an expression</h5>
 		<p>If an invalid expression is entered into a cell the cell turns red and an error message is displayed in the status bar. In Figure 3, the expression &quot;-mg&quot; is invalid since the multiplication operator (*) has been omitted. Circular references also result in an error condition.</p>
 		<p align="center">
 			<img src="../help_images/model_builder_error.gif">
-        </p>
+</p>
 		<h5>Fig. 3 Invalid expression</h5>
 		<p>Model Builder includes several features designed to help build, modify and compare models quickly:</p>
 		<ol>
-            <li>Complex expressions can be simplified by defining one or more <strong>support functions</strong>. For example, the analytic model of a damped oscillator shown in Fig. 4 defines the support function &quot;amp&quot; that represents the exponentially decaying amplitude. This makes the y-position function easier to write and understand.
+            <li>Complex expressions can be simplified by defining one or more <strong>support functions</strong>. For example, the kinematic model of a damped oscillator shown in Fig. 4 defines the support function &quot;amp&quot; that represents the exponentially decaying amplitude. This makes the y-position function easier to write and understand.
             <li>All edits are <strong>undoable</strong> and <strong>redoable</strong> making it easy to quickly flip back and forth between two function expressions or parameter values.            
             <li>Single or multiple table rows can be copied or cut to the clipboard for <strong>pasting</strong> into other Model Builder tables. 
         </ol>
@@ -100,7 +101,21 @@
 			<a id="fig4" name="fig4"></a><img src="../help_images/model_builder_support.gif">
 </p>
 		<h5>Fig. 4 Using a support function to simplify expressions</h5>
-
-	</body>
+        
+	<h3><a id="boosting" name="boosting"></a>2. Boosting dynamic particles</h3>
+		<p>A <strong>booster</strong> is a separate point mass that sets the position and velocity of a particle model to those of the booster at the particle's start frame. If the booster's position or velocity changes, the particle's initial conditions are automatically updated. <strong>Note</strong>: if the booster's position is not defined at the particle's start frame, it has no effect. If the booster's position is defined but not its velocity, then only the particle's position is set.</p>
+		<p>There are at least 2 convenient ways to use boosters:</p>
+		<ol>
+		  <li>A booster can be a standard point mass that acts as a &quot;launcher&quot; of the particle model. This makes it easy to adjust the launch speed, angle and position by simply dragging the booster's steps.</li>
+		  <li>A booster can be another particle model. This enables 2 (or more) different models to effectively link together and behave as one. For example, a model of a rocket fired from the ground could boost a second model of a payload in freefall. Or a model mass on a spring could boost a second model of the same mass swinging on a pendulum.</li>
+    </ol>
+		<p>To define a booster for a dynamic particle, select it from the dropdown Booster list in the model builder as shown in Fig. 5. The particle's initial conditions are automatically updated to match the motion of the booster at the particle's start frame.</p>
+		<p align="center">
+			<img src="../help_images/model_builder_booster.gif">
+			<img src="../help_images/spacer.gif">
+			<img src="../help_images/model_builder_boosted.gif">
+		</p>
+		<h5>Fig. 5 Defining a booster to set initial conditions</h5>
+    </body>
 
 </html>

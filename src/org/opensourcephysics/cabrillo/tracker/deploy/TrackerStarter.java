@@ -85,7 +85,7 @@ public class TrackerStarter {
 	static boolean log = true;
 	static boolean use32BitMode = false;
 	// static boolean qtPreferred = false;
-	static String version = "4.84"; //$NON-NLS-1$
+	static String version = "4.85"; //$NON-NLS-1$
 	static XMLControlElement prefsXMLControl = new XMLControlElement();
 	static int port = 12321;
 	static Timer timer;
@@ -359,7 +359,7 @@ public class TrackerStarter {
 			}
 
 		}
-		writeLog();
+		writeUserLog();
 		System.exit(0);
 	}
 
@@ -474,6 +474,11 @@ public class TrackerStarter {
 		}
 		if (prefsFile.exists())
 			showDebugMessage("loading starter preferences from " + prefsFile.getAbsolutePath()); //$NON-NLS-1$
+		else {
+			showDebugMessage("no starter preferences found"); //$NON-NLS-1$      		
+			return;		
+		}
+		
 		StringBuffer buffer = new StringBuffer();
 		ArrayList<String> runPaths = new ArrayList<String>();
 		Charset charset = Charset.forName(encoding);
@@ -658,6 +663,13 @@ public class TrackerStarter {
 		if (xuggleWarning!=null) env.put("XUGGLE_WARNING", xuggleWarning); //$NON-NLS-1$ 
 		if (qtJavaWarning!=null) env.put("QTJAVA_WARNING", qtJavaWarning); //$NON-NLS-1$ 
 		
+		// on OS X, add DYLD_LIBRARY_PATH to environment here
+		// note TRACKER_HOME, XUGGLE_HOME must be in environment BEFORE running this
+		if (OSPRuntime.isMac()
+				&& xuggleHome!=null && new File(xuggleHome+"/lib").exists()) { //$NON-NLS-1$
+			env.put("DYLD_LIBRARY_PATH", xuggleHome+"/lib"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		
 		// assemble command message for log
 		String message = ""; //$NON-NLS-1$
 		for (String next: cmd) {
@@ -665,11 +677,14 @@ public class TrackerStarter {
 		}
 		showDebugMessage("executing command: " + message); //$NON-NLS-1$ 
 
+		// write codeBase tracker_start log
+		writeCodeBaseLog();
+
 		// write the tracker_start log and set environment variable
-		startLogPath = writeLog();
+		startLogPath = writeUserLog();
 		if (startLogPath!=null)
 			env.put("START_LOG", startLogPath); //$NON-NLS-1$
-
+		
 		// set up timer to exit after short delay
 		if (timer==null) {
 			timer = new Timer(1000, new ActionListener() {
@@ -735,7 +750,7 @@ public class TrackerStarter {
 		}
 	}
 
-	private static String writeLog() {
+	private static String writeUserLog() {
 		if ("".equals(logText)) //$NON-NLS-1$
 			return null;
 
@@ -752,14 +767,9 @@ public class TrackerStarter {
 		}
 		
 		if (file==null) return null;
+		
+		addLogHeader();
 		showDebugMessage("writing start log to "+file.getAbsolutePath()); //$NON-NLS-1$
-
-		if (!logText.startsWith("TrackerStarter")) { //$NON-NLS-1$
-			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
-			Calendar cal = Calendar.getInstance();
-			logText = "TrackerStarter version " + version + "  " //$NON-NLS-1$ //$NON-NLS-2$
-					+ sdf.format(cal.getTime()) + newline + newline + logText;
-		}
 
 		try {
 			FileOutputStream stream = new FileOutputStream(file);
@@ -773,6 +783,34 @@ public class TrackerStarter {
 			return null;
 		}
 		return file.getAbsolutePath();
+	}
+	
+	private static void addLogHeader() {
+		if (!logText.startsWith("TrackerStarter")) { //$NON-NLS-1$
+			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
+			Calendar cal = Calendar.getInstance();
+			logText = "TrackerStarter version " + version + "  " //$NON-NLS-1$ //$NON-NLS-2$
+					+ sdf.format(cal.getTime()) + newline + newline + logText;
+		}		
+	}
+
+	private static void writeCodeBaseLog() {
+		// writes log file to codeBaseDir 
+		if (codeBaseDir!=null && codeBaseDir.canWrite()) {
+			addLogHeader();
+			File file = new File(codeBaseDir, LOG_FILE_NAME);
+			showDebugMessage("writing start log to "+file.getAbsolutePath()); //$NON-NLS-1$
+			try {
+				FileOutputStream stream = new FileOutputStream(file);
+				Charset charset = Charset.forName(encoding);
+				OutputStreamWriter out = new OutputStreamWriter(stream, charset);
+				BufferedWriter writer = new BufferedWriter(out);
+				writer.write(logText);
+				writer.flush();
+				writer.close();
+			} catch (IOException ex) {
+			}
+		}
 	}
 
 	/**
@@ -906,6 +944,9 @@ public class TrackerStarter {
 					showDebugMessage("QTJava.zip not found"); //$NON-NLS-1$
 	    	}
 	    	else {
+	    		// Windows Vista special case--fails to launch Tracker if qtJavaWarning code is executed...
+	    		if (System.getProperty("os.name", "").toLowerCase().contains("vista")) return; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	    		
 	    		// failed to copy QTJava to ext directory--permissions problem?
 					showDebugMessage("unable to copy "+qtSource.getAbsolutePath()+" to "+extDir.getAbsolutePath());  //$NON-NLS-1$ //$NON-NLS-2$
 					

@@ -62,7 +62,6 @@ public class TapeStep extends Step {
   protected Map<TrackerPanel, Shape> shaftShapes = new HashMap<TrackerPanel, Shape>();
   protected Map<TrackerPanel, TextLayout> textLayouts = new HashMap<TrackerPanel, TextLayout>();
   protected Map<TrackerPanel, Rectangle> layoutBounds = new HashMap<TrackerPanel, Rectangle>();
-  protected Font font;
 
   /**
    * Constructs a TapeStep with specified end point coordinates in image space.
@@ -87,8 +86,6 @@ public class TapeStep extends Step {
     handle.setTrackEditTrigger(true);
     points = new TPoint[] {end1, end2, handle, middle};
     screenPoints = new Point[getLength()];
-    NumberField inputField = tape.inputField;
-    font = inputField.getFont();
   }
 
   /**
@@ -210,7 +207,7 @@ public class TapeStep extends Step {
       TextLayout layout = textLayouts.get(trackerPanel);
       Point p = getLayoutPosition(trackerPanel, layout);
       Font gfont = g.getFont();
-      g.setFont(font);
+      g.setFont(textLayoutFont);
       layout.draw(g, p.x, p.y);
       g.setFont(gfont);
       if (drawLayoutBounds && tape.isFieldsEnabled()) {
@@ -290,7 +287,7 @@ public class TapeStep extends Step {
       // get new text layout
       double tapeLength = getTapeLength(!tape.isStickMode());
       String s = tape.getFormattedLength(tapeLength);
-      TextLayout layout = new TextLayout(s, font, frc);
+      TextLayout layout = new TextLayout(s, textLayoutFont, frc);
       textLayouts.put(trackerPanel, layout);
       // get layout position (bottom left corner of text)
       p = getLayoutPosition(trackerPanel, layout);

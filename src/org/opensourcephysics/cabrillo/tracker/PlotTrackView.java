@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -35,6 +34,7 @@ import javax.swing.*;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.*;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This displays plot views of a track.
@@ -99,7 +99,7 @@ public class PlotTrackView extends TrackView {
    *
    * @param frameNumber the frame number
    */
-  public void refresh(int frameNumber){
+  public void refresh(int frameNumber) {
   	if (!isRefreshEnabled()) return;
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh "+frameNumber); //$NON-NLS-1$
     
@@ -348,15 +348,18 @@ public class PlotTrackView extends TrackView {
     	// override getMaximumSize method so has same height as chooser button
 	    public Dimension getMaximumSize() {
 	      Dimension dim = super.getMaximumSize();
+	      Dimension min = getMinimumSize();
 	    	Container c = getParent().getParent();
 	  		if (c instanceof TViewChooser) {
-	  			dim.height = ((TViewChooser)c).chooserButton.getHeight();
+	  			int h = ((TViewChooser)c).chooserButton.getHeight();
+	  			dim.height = Math.max(h, min.height);
 	  		}
 	      return dim;
 	    } 
 	    
 	    // override getPopup method to return plotcount popup
 	    public JPopupMenu getPopup() {
+        FontSizer.setFonts(popup, FontSizer.getLevel());
 	    	return popup;
 	    }
     };

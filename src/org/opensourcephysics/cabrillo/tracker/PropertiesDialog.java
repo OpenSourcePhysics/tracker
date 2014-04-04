@@ -41,6 +41,7 @@ import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoType;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 
 import java.text.NumberFormat;
@@ -64,6 +65,7 @@ public class PropertiesDialog extends JDialog {
   protected JTabbedPane tabbedPane;
   protected JPanel metaPanel, videoPanel, trkPanel;
   protected JTable videoTable, trkTable;
+  protected PropertyCellRenderer cellRenderer = new PropertyCellRenderer();
   protected String[] vidProps = new String[6], vidValues = new String[6];
   protected ArrayList<String> trkProps = new ArrayList<String>(), 
   		trkValues = new ArrayList<String>();
@@ -78,10 +80,28 @@ public class PropertiesDialog extends JDialog {
     super(panel.getTFrame(), true);
     trackerPanel = panel;
     createGUI();
+    setFontLevel(FontSizer.getLevel());
+    setLabelSizes();
     pack();
     okButton.requestFocusInWindow();
   }
 
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+		FontSizer.setFonts(this, level);
+
+		Font font = cellRenderer.getFont();
+		font = FontSizer.getResizedFont(font, level);
+		if (videoTable!=null) {
+			videoTable.setRowHeight(font.getSize()+4);
+		}
+		trkTable.setRowHeight(font.getSize()+4);
+  }
+  
 //_____________________________ private methods ____________________________
 
   /**
@@ -107,7 +127,7 @@ public class PropertiesDialog extends JDialog {
     TableModel model = new TRKTableModel();
     trkTable = new JTable(model);
     trkTable.setBackground(trkPanel.getBackground());
-    trkTable.setDefaultRenderer(String.class, new PropertyCellRenderer());
+    trkTable.setDefaultRenderer(String.class, cellRenderer);
     trkTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     trkTable.setColumnSelectionAllowed(true);
     trkTable.getColumnModel().getColumn(0).setPreferredWidth(50);
@@ -202,7 +222,7 @@ public class PropertiesDialog extends JDialog {
 	    model = new VideoTableModel();
 	    videoTable = new JTable(model);
 	    videoTable.setBackground(videoPanel.getBackground());
-	    videoTable.setDefaultRenderer(String.class, new PropertyCellRenderer());
+	    videoTable.setDefaultRenderer(String.class, cellRenderer);
 	    videoTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	    videoTable.setColumnSelectionAllowed(true);
 	    videoTable.getColumnModel().getColumn(0).setPreferredWidth(50);
@@ -251,7 +271,6 @@ public class PropertiesDialog extends JDialog {
 	  contactbar.add(contactLabel);
 	  contactbar.add(contactField);
   
-    setLabelSizes();
 	  Box box = Box.createVerticalBox();
     box.add(authorbar);
     box.add(contactbar);

@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.TextLayout;
@@ -39,6 +38,7 @@ import javax.swing.event.ChangeListener;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -415,6 +415,7 @@ public class Calibration extends TTrack {
     longest = x.length()>longest.length()? x: longest;
     longest = y.length()>longest.length()? y: longest;
 		Font font = axisSpinner.getFont().deriveFont(Font.PLAIN);
+    FontSizer.setFonts(axisSpinner, FontSizer.getLevel());		
     TextLayout layout = new TextLayout(longest, font, frc);
     spinnerTextWidth = (int)layout.getBounds().getWidth();
     // set correct value
@@ -530,6 +531,19 @@ public class Calibration extends TTrack {
       step.worldY1 = keyStep.worldY1;
     }
     step.erase();
+  }
+
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{point1Label, point2Label, x1Label, y1Label, x1Field, y1Field, axisLabel,
+  			fixedCoordinatesItem};
+    FontSizer.setFonts(objectsToSize, level);
   }
 
   /**

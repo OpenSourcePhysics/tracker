@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -37,6 +36,7 @@ import javax.swing.*;
 
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
@@ -323,6 +323,8 @@ public class TActions {
             filter.setVideoPanel(trackerPanel);
             JDialog inspector = filter.getInspector();
             if (inspector != null) {
+              FontSizer.setFonts(inspector, FontSizer.getLevel());
+              inspector.pack();
               inspector.setVisible(true);
             }
           }

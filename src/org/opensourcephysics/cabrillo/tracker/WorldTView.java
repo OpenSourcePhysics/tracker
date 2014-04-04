@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
@@ -36,7 +35,9 @@ import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.*;
 import org.opensourcephysics.controls.XMLControlElement;
+
 import java.rmi.RemoteException;
+
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 
@@ -120,6 +121,7 @@ public class WorldTView extends TrackerPanel implements TView {
           helpItem.setText(TrackerRes.getString("Tracker.Popup.MenuItem.Help")); //$NON-NLS-1$                	
           popup.add(helpItem);
       		
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
           popup.show(WorldTView.this, e.getX(), e.getY());
         }
       }

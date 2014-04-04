@@ -31,9 +31,11 @@ import java.beans.PropertyChangeEvent;
 import java.util.*;
 
 import javax.swing.*;
+import javax.swing.table.TableColumnModel;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This displays plot track views selected from a dropdown list.
@@ -87,7 +89,9 @@ public class TableTView extends TrackChooserTView {
    * @return the view of the track
    */
   protected TrackView createTrackView(TTrack track) {
-    return new TableTrackView(track, trackerPanel, this);
+  	TableTrackView trackView = new TableTrackView(track, trackerPanel, this);
+    FontSizer.setFonts(trackView, FontSizer.getLevel());
+    return trackView;
   }
 
   /**
@@ -112,6 +116,7 @@ public class TableTView extends TrackChooserTView {
   public void refresh() {
   	super.refresh();
   	if (columnsDialog == null) return;
+    FontSizer.setFonts(columnsDialog, FontSizer.getLevel());      
 		closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
 		defineButton.setText(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
 		defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
@@ -127,6 +132,26 @@ public class TableTView extends TrackChooserTView {
    */
   protected void showColumnsDialog(TTrack track) {
   	if (getColumnsDialog() == null) return;
+  	// refresh dialog
+  	refreshColumnsDialog(track);
+    Point p0 = new Frame().getLocation();
+    if (columnsDialog.getLocation().x == p0.x) {
+      // center dialog on the screen
+      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+      int x = (dim.width - columnsDialog.getBounds().width) / 2;
+      int y = (dim.height - columnsDialog.getBounds().height) / 2;
+      columnsDialog.setLocation(x, y);
+    }
+    if (!columnsDialog.isVisible()) columnsDialog.setVisible(true);
+  }
+
+  /**
+   * Displays the dialog box for selecting data columns.
+   *
+   * @param track the track
+   */
+  protected void refreshColumnsDialog(TTrack track) {
+  	if (getColumnsDialog() == null) return;
     Container contentPane = columnsDialog.getContentPane();
     contentPane.removeAll();
     trackLabel.setIcon(track.getFootprint().getIcon(21, 16));
@@ -136,22 +161,14 @@ public class TableTView extends TrackChooserTView {
     trackView.refreshColumnCheckboxes();
     contentPane.add(trackView.columnsScroller);
 	  contentPane.add(buttonPanel);
+    FontSizer.setFonts(contentPane, FontSizer.getLevel());      
     contentPane.setPreferredSize(null);
     Dimension dim = contentPane.getPreferredSize();
     dim.height = Math.min(dim.height, 300);
     contentPane.setPreferredSize(dim);
     columnsDialog.pack();
-    Point p0 = new Frame().getLocation();
-    if (columnsDialog.getLocation().x == p0.x) {
-      // center dialog on the screen
-      dim = Toolkit.getDefaultToolkit().getScreenSize();
-      int x = (dim.width - columnsDialog.getBounds().width) / 2;
-      int y = (dim.height - columnsDialog.getBounds().height) / 2;
-      columnsDialog.setLocation(x, y);
-    }
     textColumnButton.setEnabled(!track.isLocked());
-    if (!columnsDialog.isVisible()) columnsDialog.setVisible(true);
-    else columnsDialog.repaint();
+    columnsDialog.repaint();
   }
 
   /**
@@ -174,8 +191,8 @@ public class TableTView extends TrackChooserTView {
     else if (e.getPropertyName().equals("function")) { //$NON-NLS-1$
       super.propertyChange(e);
       TTrack track = getSelectedTrack();
-      if (columnsDialog != null && columnsDialog.isVisible()) {
-        showColumnsDialog(track);      	
+      if (columnsDialog != null) {
+        refreshColumnsDialog(track);      	
   	    JViewport port = ((TableTrackView)getTrackView(track)).
   	    		columnsScroller.getViewport();
   	    Dimension dim = port.getViewSize();
@@ -236,6 +253,7 @@ public class TableTView extends TrackChooserTView {
 	  		    popup.add(trackView.deleteTextColumnMenu);
 	  		    popup.add(trackView.renameTextColumnMenu);
   		    }
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
   		    popup.show(textColumnButton, 0, textColumnButton.getHeight());
         }
       });
@@ -293,7 +311,7 @@ public class TableTView extends TrackChooserTView {
 	        	i++;
 	        	track = it.next();
 	          TableTrackView trackView = (TableTrackView)view.getTrackView(track);
-	          String[] columns = trackView.getVisibleColumns();
+	          String[] columns = trackView.getOrderedVisibleColumns();
 	          data[i] = new String[columns.length+1];
 	          System.arraycopy(columns, 0, data[i], 1, columns.length);
 	          data[i][0] = track.getName();
@@ -346,14 +364,17 @@ public class TableTView extends TrackChooserTView {
             String[] columns = data[i];
             if (!columns[0].equals(track.getName())) continue;
             trackView.refresh = false; // prevents refreshes
+            // start by unchecking all checkboxes
           	for (int j = 0; j < trackView.checkBoxes.length; j++) {
           		trackView.checkBoxes[j].setSelected(false);
+          		// check for text columns--not managed by the track DatasetManager
           		int n = trackView.data.getDatasets().size();
               if (j>=n) {
               	String name = track.getTextColumnNames().get(j-n);
               	trackView.textColumnsVisible.remove(name);
               }
           	}
+          	// then select checkboxes specified in track_columns
           	for (int j = 1; j < columns.length; j++) {          		
             	if (columns[j].equals("theta") && track instanceof PointMass)  //$NON-NLS-1$
             		columns[j] = "\u03b8"+"r"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -379,6 +400,43 @@ public class TableTView extends TrackChooserTView {
             		columns[j] = "ytail"; //$NON-NLS-1$
           		trackView.setVisible(columns[j], true);
           	}
+          	// move columns so the table column order matches the saved track_columns order
+          	// get list of checked boxes--doesn't include independent variable
+          	String[] checkedBoxes = trackView.getVisibleColumns();
+          	// expand to include independent variable 
+          	String[] visibleColumns = new String[checkedBoxes.length+1];
+          	visibleColumns[0] = track.getDataName(0);
+          	System.arraycopy(checkedBoxes, 0, visibleColumns, 1, checkedBoxes.length);
+          	// create desiredOrder from track_columns array by omitting track name
+          	String[] desiredOrder = new String[columns.length-1];
+          	System.arraycopy(columns, 1, desiredOrder, 0, desiredOrder.length);
+          	// convert desiredOrder names to desiredIndexes
+          	final int[] desiredIndexes = new int[desiredOrder.length];
+          	for (int k=0; k<desiredOrder.length; k++) {
+          		String name = desiredOrder[k];
+          		for (int g=0; g<visibleColumns.length; g++) {
+          			if (visibleColumns[g].equals(name)) {
+          				desiredIndexes[k] = g;
+          			}
+          		}
+          	}
+           	// move table columns after table is fully constructed
+        		final TableColumnModel model = trackView.dataTable.getColumnModel();
+        		Runnable runner = new Runnable() {
+        			public void run() {
+                outer: for (int targetIndex=0; targetIndex<desiredIndexes.length; targetIndex++) {
+                	// find column with modelIndex and move to targetIndex
+                	for (int k=0; k<desiredIndexes.length; k++) {
+                		if (model.getColumn(k).getModelIndex()==desiredIndexes[targetIndex]) {
+                    	model.moveColumn(k, targetIndex);
+                			continue outer;
+                		}
+                	}
+                }
+        				
+        			}
+        		};
+        		SwingUtilities.invokeLater(runner);
             trackView.refresh = true;
           }
         }

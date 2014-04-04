@@ -113,7 +113,7 @@ public class Tracker {
   static Icon trackerLogoIcon, ospLogoIcon;
   static JLabel tipOfTheDayLabel;
   static JProgressBar progressBar;
-  static String version = "4.84"; //$NON-NLS-1$
+  static String version = "4.85"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
   static String copyright = "Copyright (c) 2014 Douglas Brown"; //$NON-NLS-1$
   static String trackerWebsite = "www.cabrillo.edu/~dbrown/tracker"; //$NON-NLS-1$
@@ -154,6 +154,7 @@ public class Tracker {
   static String preferredJRE, preferredJRE32, preferredJRE64;
   static String preferredTrackerJar;
   static int checkForUpgradeInterval = 0;
+  static int preferredFontLevel = 0;
   static boolean isRadians, isXuggleFast, engineKnown=true;
   static boolean warnXuggleError=true, warnNoVideoEngine=true, use32BitMode=false;
   static boolean warnXuggleVersion=true, warnVariableDuration=true, warnCopyFailed=true;
@@ -632,6 +633,7 @@ public class Tracker {
 	        textPane.setText(s);
 	        textPane.setCaretPosition(0);
 	        readmeDialog.setSize(600, 600);
+	    		FontSizer.setFonts(readmeDialog, FontSizer.getLevel());
 	        // center on screen
 	        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 	        int x = (dim.width - readmeDialog.getBounds().width) / 2;
@@ -668,6 +670,7 @@ public class Tracker {
 		        startLogDialog.setContentPane(scroller);
 		        textPane.setText(s);
 		        textPane.setCaretPosition(0);
+		    		FontSizer.setFonts(startLogDialog, FontSizer.getLevel());
 		        startLogDialog.setSize(600, 600);
 		        // center on screen
 		        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
@@ -1026,6 +1029,13 @@ public class Tracker {
   	// save prefs file in current preferences path
   	XMLControl control = new XMLControlElement(new Preferences());
 		control.write(prefsPath);
+		
+		// also write prefs to current directory if it already exists and is writable
+    File file = new File(prefsFileName);
+    if (file.exists() && file.canWrite()) {
+    	control.write(file.getAbsolutePath());
+    }
+    
 		return prefsPath;
   }
 
@@ -1067,7 +1077,7 @@ public class Tracker {
    * @param args array of tracker or video file names
    */
   public static void main(String[] args) {
-//		String[] vars = {"TRACKER_HOME", "XUGGLE_HOME", "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH", "Path"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+//		String[] vars = {"TRACKER_HOME", "XUGGLE_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 //		for (String next: vars) {
 //			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
 //		}
@@ -1186,7 +1196,8 @@ public class Tracker {
 			}
 		}
  
-    TFrame frame = tracker.getFrame();
+  	FontSizer.setLevel(preferredFontLevel);
+  	TFrame frame = tracker.getFrame();
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     LaunchNode node = Launcher.activeNode;
@@ -1601,6 +1612,8 @@ public class Tracker {
       		control.setValue("run", Tracker.prelaunchExecutables); //$NON-NLS-1$
       	if (Tracker.preferredLocale!=null)
       		control.setValue("locale", Tracker.preferredLocale); //$NON-NLS-1$
+      	if (Tracker.preferredFontLevel>0)
+      		control.setValue("font_size", Tracker.preferredFontLevel); //$NON-NLS-1$
       	if (ResourceLoader.getOSPCache()!=null) {
       		File cache = ResourceLoader.getOSPCache();
       		control.setValue("cache", cache.getPath()); //$NON-NLS-1$
@@ -1695,6 +1708,8 @@ public class Tracker {
       		Tracker.prelaunchExecutables = (String[])control.getObject("run"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("locale")) //$NON-NLS-1$
       		Tracker.setPreferredLocale(control.getString("locale")); //$NON-NLS-1$
+      	if (control.getPropertyNames().contains("font_size")) //$NON-NLS-1$
+      		Tracker.preferredFontLevel = control.getInt("font_size"); //$NON-NLS-1$
       	// set cache only if it has not yet been set
       	if (ResourceLoader.getOSPCache()==null) {
       		Tracker.setCache(control.getString("cache")); //$NON-NLS-1$

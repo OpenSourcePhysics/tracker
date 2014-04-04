@@ -214,9 +214,16 @@ abstract public class ParticleModel extends PointMass {
 					&& !inspector.getSelectedName().equals(getName())) {
 			inspector.setSelectedPanel(getName());
 		}
+		if (name.equals("function") //$NON-NLS-1$
+				|| name.equals("transform") //$NON-NLS-1$
+				|| name.equals("starttime") //$NON-NLS-1$
+				|| name.equals("frameduration") //$NON-NLS-1$
+				|| name.equals("startframe") //$NON-NLS-1$
+				|| name.equals("stepsize")) { //$NON-NLS-1$
+			lastValidFrame = -1;							
+		}
 		if (!refreshing && isModelsVisible()) {
 			if (name.equals("function")) { //$NON-NLS-1$
-				lastValidFrame = -1;				
 				repaint();
 			}
 			else if (name.equals("adjusting")) { //$NON-NLS-1$
@@ -230,7 +237,6 @@ abstract public class ParticleModel extends PointMass {
 	      ImageCoordSystem coords = trackerPanel.getCoords();
 				if (!(coords instanceof ReferenceFrame && 
 	    				((ReferenceFrame)coords).getOriginTrack() == this)) {
-					lastValidFrame = -1;				
 					refreshSteps();
 				}
 			}
@@ -238,11 +244,9 @@ abstract public class ParticleModel extends PointMass {
 					|| name.equals("frameduration") //$NON-NLS-1$
 					|| name.equals("startframe")) { //$NON-NLS-1$
 				refreshInitialTime();
-				lastValidFrame = -1;				
 				refreshSteps();
 			}
 			else if (name.equals("stepsize")) { //$NON-NLS-1$
-				lastValidFrame = -1;				
 				refreshSteps();
 			}
 		}
@@ -271,7 +275,7 @@ abstract public class ParticleModel extends PointMass {
 		// refresh mass parameter in paramPanel if changed
 		Parameter massParam = (Parameter)getParamEditor().getObject("m"); //$NON-NLS-1$
 		if (massParam.getValue() != mass) {
-			functionPanel.getParamEditor().setExpression("m", String.valueOf(mass), true); //$NON-NLS-1$
+			functionPanel.getParamEditor().setExpression("m", String.valueOf(mass), false); //$NON-NLS-1$
 			refreshSteps();
 		}
 	}
@@ -371,6 +375,7 @@ abstract public class ParticleModel extends PointMass {
 		});
 		// assemble the menu
 		JMenu menu = super.getMenu(trackerPanel);
+
 		// remove unwanted menu items and separators
 		menu.remove(lockedItem);
 		menu.remove(autoAdvanceItem);
@@ -538,7 +543,7 @@ abstract public class ParticleModel extends PointMass {
 	 * Most of the work in this method must be done by subclasses.
 	 */
 	protected void reset() {
-		invalidWarningShown = false;	
+//		invalidWarningShown = false;	
 	}
 
   /**
@@ -644,6 +649,7 @@ abstract public class ParticleModel extends PointMass {
         		invalidWarningShown = true;
             Runnable runner = new Runnable() { // avoids deadlock?
             	public void run() {
+//            		if (invalidWarningShown) return;
             		JOptionPane.showMessageDialog(trackerPanel, 
             				TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message1")+XML.NEW_LINE  //$NON-NLS-1$
             				+ TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message2"),  //$NON-NLS-1$
@@ -722,7 +728,7 @@ abstract public class ParticleModel extends PointMass {
 	
 	/**
 	 * Refreshes the derivatives if they have not been refreshed in the
-	 * refreshSteps() method (ie if the variable "refreshDerivs" is false).
+	 * refreshSteps() method (ie if the variable "refreshDerivsLater" is false).
 	 */
 	protected void refreshDerivsIfNeeded() {
 		if (!refreshDerivsLater) return;

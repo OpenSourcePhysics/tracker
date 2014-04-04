@@ -42,7 +42,6 @@ import org.opensourcephysics.controls.*;
 public class ProtractorStep extends Step {
 	
   protected static AffineTransform transform = new AffineTransform();
-	protected static Font font;
 	protected static TPoint endPoint1 = new TPoint(); // used for layout position
   protected static TPoint endPoint2 = new TPoint(); // used for layout position
   protected static TPoint middle = new TPoint(); // used for layout position
@@ -94,8 +93,6 @@ public class ProtractorStep extends Step {
     rotator = new Rotator();
     points = new TPoint[] {vertex, end1, end2, handle, rotator};
     screenPoints = new Point[getLength()];
-    if (font==null)
-    	font = protractor.angleField.getFont();
   }
 
   /**
@@ -244,7 +241,7 @@ public class ProtractorStep extends Step {
     Paint gpaint = g.getPaint();
     g.setPaint(footprint.getColor());
     Font gfont = g.getFont();
-    g.setFont(font);
+    g.setFont(textLayoutFont);
     // draw the text layout if not editing
     if (!protractor.editing) {
 	    TextLayout layout = textLayouts.get(trackerPanel);
@@ -345,7 +342,7 @@ public class ProtractorStep extends Step {
       rotatorShapes.put(trackerPanel, shapes[5]);
       // get new text layouts
       String s = protractor.angleField.getText();
-      TextLayout layout = new TextLayout(s, font, frc);
+      TextLayout layout = new TextLayout(s, textLayoutFont, frc);
       textLayouts.put(trackerPanel, layout);
       // get layout position (bottom left corner of text)
       p = getLayoutPosition(trackerPanel, layout, vertex);
@@ -364,7 +361,7 @@ public class ProtractorStep extends Step {
       	Map<TrackerPanel, TextLayout> layouts = k==0? textLayouts1: textLayouts2;
         Map<TrackerPanel, Rectangle> lBounds = k==0? layout1Bounds: layout2Bounds;
 	      s = getFormattedLength(getArmLength(end));
-	      layout = new TextLayout(s, font, frc);
+	      layout = new TextLayout(s, textLayoutFont, frc);
 	      layouts.put(trackerPanel, layout);
 	      p = getLayoutPosition(trackerPanel, layout, end);
 	      bounds = lBounds.get(trackerPanel);

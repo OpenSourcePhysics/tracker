@@ -31,7 +31,7 @@ import org.opensourcephysics.tools.UserFunctionEditor;
 import org.opensourcephysics.controls.*;
 
 /**
- * DynamicParticlePolar models a particle using Newton'w 2nd law in polar coordinates.
+ * DynamicParticlePolar models a particle using Newton's 2nd law in polar coordinates.
  *
  * @author D. Brown
  * @version 1.0
@@ -124,7 +124,7 @@ public class DynamicParticlePolar extends DynamicParticle {
 		w.setDescription(TrackerRes.getString("DynamicParticle.Parameter.InitialOmega.Description")); //$NON-NLS-1$
 		getInitEditor().setParameters(new Parameter[] {t, r, th, v, w});
 	}
-
+	
   /**
 	 * Converts a cartesian state {x, vx, y, vy, t} to polar {r, vr, theta, omega, t},
 	 * both relative to the origin.
@@ -153,6 +153,55 @@ public class DynamicParticlePolar extends DynamicParticle {
     return polarState;
   }
 
+  /**
+	 * Sets the initial conditions to those of the booster.
+	 */
+  @Override
+	protected void boost() {
+  	if (this instanceof DynamicSystem) {
+  		return;
+  	}
+		if (modelBooster==null || modelBooster.booster==null)
+			return;
+		
+		int frameNumber = getStartFrame();
+  	double[] state = getCartesianState(modelBooster.booster, frameNumber); // {x, vx, y, vy, t}		
+  	
+  	if (state==null) return;
+  	double[] polarState = getPolarState(state);
+  	// polar is {r, vr, theta, omega, t}
+		
+		Parameter[] params = getInitEditor().getParameters();
+		for (int i = 0; i < params.length; i++) {
+			Parameter param = params[i];
+			String name = param.getName();
+			double value = Double.NaN; // default
+			
+			if (name.equals("r")) value = polarState[0]; //$NON-NLS-1$
+			else if (name.equals("vr")) value = polarState[1]; //$NON-NLS-1$
+			else if (name.equals(FunctionEditor.THETA)) value = polarState[2];
+			else if (name.equals(FunctionEditor.OMEGA)) value = polarState[3];
+			
+			// replace parameter with new one if not null
+			if (!Double.isNaN(value)) {
+				Parameter newParam = new Parameter(name, String.valueOf(value));
+				newParam.setDescription(param.getDescription());
+				newParam.setNameEditable(false);
+				params[i] = newParam;
+			}
+		}
+		getInitEditor().setParameters(params);
+		if (system!=null) {
+			system.refreshSystemParameters();
+			system.lastValidFrame = -1;				
+			system.refreshSteps();
+		}
+		else {
+			reset();
+		}
+		repaint();
+	}
+	
   /**
    * Returns an ObjectLoader to save and load data for this class.
    *

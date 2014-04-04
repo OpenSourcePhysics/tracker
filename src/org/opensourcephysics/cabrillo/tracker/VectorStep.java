@@ -72,7 +72,6 @@ public class VectorStep extends Step
   protected boolean valid;
   protected Map<TrackerPanel, TextLayout> textLayouts = new HashMap<TrackerPanel, TextLayout>();
   protected Map<TrackerPanel, Rectangle> layoutBounds = new HashMap<TrackerPanel, Rectangle>();
-  protected Font font;
 
   /**
    * Constructs a VectorStep with specified imagespace tail
@@ -102,7 +101,6 @@ public class VectorStep extends Step
     points = new TPoint[] {tip, tail, handle, hinge, middle};
     screenPoints = new Point[getLength()];
     tip.setLocation(x + xc, y + yc);
-    font = track.xField.getFont();
   }
 
   /**
@@ -404,7 +402,7 @@ public class VectorStep extends Step
         Paint gpaint = g.getPaint();
         Font gfont = g.getFont();
         g.setPaint(footprint.getColor());
-        g.setFont(font);
+        g.setFont(textLayoutFont);
         layout.draw(g, p.x, p.y);
         g.setPaint(gpaint);
         g.setFont(gfont);
@@ -516,7 +514,7 @@ public class VectorStep extends Step
       if (clip.getStepCount() != 1) {
         s += clip.frameToStep(getFrameNumber());
       }
-      TextLayout layout = new TextLayout(s, font, frc);
+      TextLayout layout = new TextLayout(s, textLayoutFont, frc);
       textLayouts.put(trackerPanel, layout);
       // get layout position (bottom left corner of text)
       Point lp = getLayoutPosition(trackerPanel, layout);

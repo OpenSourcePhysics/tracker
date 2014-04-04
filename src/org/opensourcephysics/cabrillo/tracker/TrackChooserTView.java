@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 
@@ -34,6 +33,7 @@ import javax.swing.*;
 
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This displays track views selected from a dropdown list. This is an abstract
@@ -71,9 +71,11 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	      Dimension dim = super.getMaximumSize();
 	      Dimension preferred = getPreferredSize();
 	      dim.width = preferred.width;
+	      Dimension min = getMinimumSize();
 	    	Container c = getParent().getParent();
 	  		if (c instanceof TViewChooser) {
-	  			dim.height = ((TViewChooser)c).chooserButton.getHeight();
+	  			int h = ((TViewChooser)c).chooserButton.getHeight();
+	  			dim.height = Math.max(h, min.height);
 	  		}
 	      return dim;
 	    }    	
@@ -167,6 +169,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
             }
           });
           popup.add(helpItem);
+        	FontSizer.setFonts(popup, FontSizer.getLevel());
           popup.show(noData, e.getX(), e.getY());
       	}
       }

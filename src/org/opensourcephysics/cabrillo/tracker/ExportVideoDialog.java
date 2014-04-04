@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.AffineTransform;
@@ -50,6 +49,7 @@ import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.core.VideoRecorder;
 import org.opensourcephysics.media.core.VideoType;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * A dialog for exporting videos from a TrackerPanel.
@@ -326,15 +326,20 @@ public class ExportVideoDialog extends JDialog {
   	title = TrackerRes.getString("ExportVideoDialog.Subtitle.Size"); //$NON-NLS-1$
     Border space = BorderFactory.createEmptyBorder(0, 4, 6, 4);
     Border titled = BorderFactory.createTitledBorder(title);
+  	int fontLevel = FontSizer.getLevel();
+    FontSizer.setFonts(titled, fontLevel);
     sizePanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
     title = TrackerRes.getString("ExportVideoDialog.Subtitle.View"); //$NON-NLS-1$
     titled = BorderFactory.createTitledBorder(title);
+    FontSizer.setFonts(titled, fontLevel);
     viewPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
     title = TrackerRes.getString("ExportVideoDialog.Subtitle.Content"); //$NON-NLS-1$
     titled = BorderFactory.createTitledBorder(title);
+    FontSizer.setFonts(titled, fontLevel);
     contentPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
     title = TrackerRes.getString("ExportVideoDialog.Subtitle.Format"); //$NON-NLS-1$
     titled = BorderFactory.createTitledBorder(title);
+    FontSizer.setFonts(titled, fontLevel);
     formatPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
     // buttons
     saveAsButton.setText(TrackerRes.getString("ExportVideoDialog.Button.SaveAs")); //$NON-NLS-1$
@@ -518,6 +523,30 @@ public class ExportVideoDialog extends JDialog {
 //    else setFormat(preferred);
   }
 
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+		FontSizer.setFonts(this, level);
+		// refresh the dropdowns
+		JComboBox[] dropdowns = new JComboBox[] {formatDropdown, viewDropdown, 
+				sizeDropdown, contentDropdown};
+		for (JComboBox next: dropdowns) {
+			int n = next.getSelectedIndex();
+			Object[] items = new Object[next.getItemCount()];
+			for (int i=0; i<items.length; i++) {
+				items[i] = next.getItemAt(i);
+			}
+			DefaultComboBoxModel model = new DefaultComboBoxModel(items);
+			next.setModel(model);
+			next.setSelectedItem(n);
+		}
+		refreshGUI();
+		pack();
+  }
+  
   /**
    * Gets the smallest acceptable dimension >= a specified width and height.
    * This is a work-around to avoid image artifacts introduced by the converter 
