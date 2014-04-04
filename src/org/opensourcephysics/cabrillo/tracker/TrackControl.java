@@ -214,11 +214,11 @@ public class TrackControl extends JDialog
       track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
       // make the track buttons
       TButton button = new TButton(track);
-    	FontSizer.setFonts(button, FontSizer.getLevel());
       button.addKeyListener(shiftKeyListener);
       trackBars[barIndex].add(button);
       trackCount++;
     }
+  	FontSizer.setFonts(this, FontSizer.getLevel());
     pack();
     repaint();
     if (trackCount==0)

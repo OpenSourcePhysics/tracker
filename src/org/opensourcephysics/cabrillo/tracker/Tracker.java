@@ -1077,7 +1077,7 @@ public class Tracker {
    * @param args array of tracker or video file names
    */
   public static void main(String[] args) {
-//		String[] vars = {"TRACKER_HOME", "XUGGLE_HOME", "LD_LIBRARY_PATH", "DYLD_LIBRARY_PATH", "Path"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+//		String[] vars = {"TRACKER_HOME", "XUGGLE_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 //		for (String next: vars) {
 //			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
 //		}

@@ -598,6 +598,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         		next.setSelected(true);
         	}
         }
+
         vStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
         aStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
         openButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Open.Tooltip")); //$NON-NLS-1$
@@ -705,11 +706,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         }
         TPoint pt = trackerPanel.getSelectedPoint();
         if (pt != null) pt.showCoordinates(trackerPanel);
-//        // set stretch icon
-//        for (int i=0; i< stretchValues.length; i++) {
-//        	if (vStretch==stretchValues[i])
-//        		stretchButton.setIcon(stretchIcons[i]);
-//        }
+
         // set trails icon
         for (int i = 0; i < trailLengths.length; i++) {
           if (trailLength == trailLengths[i]) {
@@ -717,6 +714,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
           	trailButton.setSelectedIcon(trailIcons[i]);
           }
         }
+
         // assemble buttons
         removeAll();
         if ( org.opensourcephysics.display.OSPRuntime.applet == null) {
@@ -800,6 +798,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         add(desktopButton);
         desktopButton.setEnabled(!trackerPanel.desktopFiles.isEmpty());
         add(refreshButton);
+        
+        FontSizer.setFonts(newTrackButton, FontSizer.getLevel());
+        FontSizer.setFonts(zoomButton, FontSizer.getLevel());
+        
         validate();
         repaint();
         refreshing = false;
