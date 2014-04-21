@@ -122,7 +122,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem removeImageItem;
   protected JMenuItem editVideoItem;
   protected JMenuItem playAllStepsItem;
-  protected JMenuItem playXuggleSmoothlyItem;
+  protected JMenuItem playVideoSmoothlyItem;
   protected JMenuItem aboutVideoItem;
   protected JMenuItem checkDurationsItem;
   protected JMenuItem emptyVideoItem;
@@ -858,22 +858,34 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         }
       }
     });
-    // play xuggle smoothly item
-    playXuggleSmoothlyItem = new JCheckBoxMenuItem(TrackerRes.getString("XuggleVideo.MenuItem.SmoothPlay")); //$NON-NLS-1$
-    playXuggleSmoothlyItem.addItemListener(new ItemListener() {
+    // play ffmpeg smoothly item
+    playVideoSmoothlyItem = new JCheckBoxMenuItem(TrackerRes.getString("Video.MenuItem.SmoothPlay")); //$NON-NLS-1$
+    playVideoSmoothlyItem.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         Video video = trackerPanel.getVideo();
-  			String xuggleName = "org.opensourcephysics.media.xuggle.XuggleVideo"; //$NON-NLS-1$
-        if (video==null || !(video.getClass().getName().equals(xuggleName))) return;
+        if (video==null) return;
+        boolean xuggleVideo = video.getClass().getName().equals("org.opensourcephysics.media.xuggle.XuggleVideo");
+        boolean ffmpegVideo = video.getClass().getName().equals("org.opensourcephysics.media.ffmpeg.FFMPegVideo");
+        if(!xuggleVideo && !ffmpegVideo) return;
         if (e.getStateChange() == ItemEvent.SELECTED ||
             e.getStateChange() == ItemEvent.DESELECTED) {
-          boolean smooth = playXuggleSmoothlyItem.isSelected();
-        	try {
-      			Class<?> xuggleClass = Class.forName(xuggleName);
-      			Method method = xuggleClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
-      			method.invoke(video, new Object[] {smooth});
-      		} catch (Exception ex) {
-      		}    
+          boolean smooth = playVideoSmoothlyItem.isSelected();
+          if(ffmpegVideo) {
+           	try {
+        			Class<?> ffmpegClass = Class.forName("org.opensourcephysics.media.ffmpeg.FFMPegVideo");
+        			Method method = ffmpegClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
+        			method.invoke(video, new Object[] {smooth});
+        		} catch (Exception ex) {
+        		}    
+          }
+          else {
+             	try {
+          			Class<?> xuggleClass = Class.forName("org.opensourcephysics.media.xuggle.XuggleVideo");
+          			Method method = xuggleClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
+          			method.invoke(video, new Object[] {smooth});
+          		} catch (Exception ex) {
+          		}    
+          }
         }
       }
     });
@@ -1277,15 +1289,17 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       }
     });
     diagMenu.add(logItem);
-    if (Tracker.startLogAction!=null) {
-    	JMenuItem item = diagMenu.add(Tracker.startLogAction);
-    	item.setToolTipText(System.getenv("START_LOG")); //$NON-NLS-1$
-    }
-    diagMenu.addSeparator();    
-    if (Tracker.aboutJavaAction != null) diagMenu.add(Tracker.aboutJavaAction);
-    if (Tracker.aboutQTAction != null) diagMenu.add(Tracker.aboutQTAction);
-    if (Tracker.aboutXuggleAction != null) diagMenu.add(Tracker.aboutXuggleAction);
-    if (Tracker.aboutThreadsAction != null) diagMenu.add(Tracker.aboutThreadsAction);
+    diagMenu.addSeparator();
+    if (Tracker.aboutJavaAction != null) 
+    	diagMenu.add(Tracker.aboutJavaAction);
+    if (Tracker.aboutQTAction != null)
+    	diagMenu.add(Tracker.aboutQTAction);
+    if (Tracker.aboutFFMPegAction != null)
+    	diagMenu.add(Tracker.aboutFFMPegAction);
+    if (Tracker.aboutXuggleAction != null)
+    	diagMenu.add(Tracker.aboutXuggleAction);
+    if (Tracker.aboutThreadsAction != null)
+    	diagMenu.add(Tracker.aboutThreadsAction);
     // end diagnostics menu
     
     helpMenu.addSeparator();
@@ -1395,18 +1409,31 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           VideoClip clip = trackerPanel.getPlayer().getVideoClip();
           playAllStepsItem.setSelected(clip.isPlayAllSteps());
           videoMenu.add(playAllStepsItem);
-          // smooth play item for xuggle videos
+          // smooth play item for ffmpeg/xuggle videos
           VideoType videoType = (VideoType)video.getProperty("video_type"); //$NON-NLS-1$
-          if (videoType!=null && videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_XUGGLE)) {
+          if (videoType!=null) {
+        	if(videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_FFMPEG)) {
+      			String ffmpegName = "org.opensourcephysics.media.ffmpeg.FFMPegVideo"; //$NON-NLS-1$
+              	try {
+            			Class<?> ffmpegClass = Class.forName(ffmpegName);
+            			Method method = ffmpegClass.getMethod("isSmoothPlay", (Class[])null);  //$NON-NLS-1$
+            			Boolean smooth = (Boolean)method.invoke(video, (Object[])null);
+                	playVideoSmoothlyItem.setSelected(smooth);
+                  videoMenu.add(playVideoSmoothlyItem);
+            		} catch (Exception ex) {
+            		}              	
+        	}
+        	else if(videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_XUGGLE)) {
       			String xuggleName = "org.opensourcephysics.media.xuggle.XuggleVideo"; //$NON-NLS-1$
-          	try {
-        			Class<?> xuggleClass = Class.forName(xuggleName);
-        			Method method = xuggleClass.getMethod("isSmoothPlay", (Class[])null);  //$NON-NLS-1$
-        			Boolean smooth = (Boolean)method.invoke(video, (Object[])null);
-            	playXuggleSmoothlyItem.setSelected(smooth);
-              videoMenu.add(playXuggleSmoothlyItem);
-        		} catch (Exception ex) {
-        		}              	
+              	try {
+            			Class<?> xuggleClass = Class.forName(xuggleName);
+            			Method method = xuggleClass.getMethod("isSmoothPlay", (Class[])null);  //$NON-NLS-1$
+            			Boolean smooth = (Boolean)method.invoke(video, (Object[])null);
+                	playVideoSmoothlyItem.setSelected(smooth);
+                  videoMenu.add(playVideoSmoothlyItem);
+            		} catch (Exception ex) {
+            		}              	
+        	}
           }
           // video filters menu
           if (trackerPanel.isEnabled("video.filters")) { //$NON-NLS-1$
