@@ -639,8 +639,12 @@ public abstract class TTrack implements Interactive,
       this.repaint();
       if (trackerPanel != null) {
       	trackerPanel.changed = true;
-      	if (trackerPanel.dataBuilder != null)
+      	if (trackerPanel.dataBuilder != null) {
       		trackerPanel.dataBuilder.renamePanel(prevName, newName);
+      	}
+      	if (trackerPanel.modelBuilder != null) {
+        	trackerPanel.modelBuilder.refreshBoosterDropdown();
+        }
       }
       support.firePropertyChange("name", prevName, name); //$NON-NLS-1$
     }
