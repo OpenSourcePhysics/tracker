@@ -498,9 +498,9 @@ public class DynamicParticle
 	}
 	
   /**
-	 * Sets the booster point mass.
+	 * Gets the booster point mass.
 	 * 
-	 * @param booster the new booster (may be null)
+	 * @return the booster
 	 */
 	protected PointMass getBooster() {
 		return modelBooster.booster;

@@ -16,7 +16,7 @@
 		<p>A <strong>particle model</strong> track is a mathematical model of a point mass. The step positions of the particle are determined by the parameters of the model rather than being marked with the mouse.</p>
 		<p>There are two types of particle models: <strong>kinematic</strong> and <strong>dynamic</strong>. A kinematic particle defines position functions of time (<a href="particles.html#fig4">Figure 4</a>), while a dynamic particle defines force functions and initial conditions for numerical ODE solvers (<a href="particles.html#fig1">Figure 1</a>). Dynamic particles may be defined in either <strong>cartesian</strong> or <strong>polar</strong> coordinates.</p>
 		<p>Model particles have a <strong>start</strong> and <strong>end</strong> frame that define the frames of the video in which they are drawn. This makes it possible to define multiple models that apply at different times in the same video.</p>
-		<p>A dynamic particle may use a <strong>booster</strong> point mass to set its initial position and velocity. Boosters can be quite powerful--for more information, see <a href="#boosting">Boosting dynamic particles</a>.</p>
+		<p>A dynamic particle may use a <strong>launcher</strong> (point mass) to set its initial position and velocity. Launchers can be quite powerful--for more information, see <a href="#launching">Launching dynamic particles</a>.</p>
 <p>A particle model has a settable mass and generates motion data and vectors just like any other point mass. See <a href="pointmass.html">point mass</a> for additional information.</p>
         
 		<h3><a id="model_builder" name="model_builder"></a>1. Building particle models</h3>
@@ -102,20 +102,30 @@
 </p>
 		<h5>Fig. 4 Using a support function to simplify expressions</h5>
         
-	<h3><a id="boosting" name="boosting"></a>2. Boosting dynamic particles</h3>
-		<p>A <strong>booster</strong> is a separate point mass that sets the position and velocity of a particle model to those of the booster at the particle's start frame. If the booster's position or velocity changes, the particle's initial conditions are automatically updated. <strong>Note</strong>: if the booster's position is not defined at the particle's start frame, it has no effect. If the booster's position is defined but not its velocity, then only the particle's position is set.</p>
-		<p>There are at least 2 convenient ways to use boosters:</p>
+	<h3>2. Adjusting numerical values</h3>
+		<p>Numerical values can be easily adjusted by clicking in a green control area and dragging the mouse to the right or left. The control area is displayed below the list of variables in the popup editor whenever the expression is a number as shown in Fig. 5.</p>
+		<p align="center">
+			<img src="../help_images/model_builder_adjust.gif">
+		</p>
+		<h5>Fig. 5 Adjusting a numerical value by dragging the mouse</h5>
+		<p>Both coarse and fine adjustments are possible. To make coarse adjustments, click the mouse near the left end of the control area and drag. For finer adjustments, click  near the right end. The highlighted digit shows the adjustment increment. For example, clicking and dragging at the point shown in Fig. 5 will adjust the value of "g" in increments of 0.1.</p>
+
+
+	<h3><a id="launching" name="launching"></a>3. Launching dynamic particles</h3>
+<p>A <strong>launcher</strong> is a separate point mass that sets the position and velocity of a particle model to those of the launcher at the model's start frame. If the launcher's position or velocity changes, the model's initial conditions are automatically updated. <strong>Note</strong>: if the launcher's position is not defined at the model's start frame, it has no effect. If the launcher's position is defined but not its velocity, then only the model's position is set.</p>
+		<p>There are at least 3 ways to use launchers:</p>
 		<ol>
-		  <li>A booster can be a standard point mass that acts as a &quot;launcher&quot; of the particle model. This makes it easy to adjust the launch speed, angle and position by simply dragging the booster's steps.</li>
-		  <li>A booster can be another particle model. This enables 2 (or more) different models to effectively link together and behave as one. For example, a model of a rocket fired from the ground could boost a second model of a payload in freefall. Or a model mass on a spring could boost a second model of the same mass swinging on a pendulum.</li>
+		  <li>A launcher can be a previously marked point mass that tracks a video object of interest. The model runs in parallel with the marked track (starting from the model's start frame) for easy comparison.</li>
+		  <li>A launcher can be a new point mass used for control purposes only.  Mark the launcher point mass at (a) the desired start frame and (b) 1 step before and after the start frame. The  launcher's start frame step controls the model's initial position while the other 2 steps control the model's initial speed and angle.</li>
+		  <li>A launcher can be another particle model. This enables 2 (or more) different models to effectively link together and behave as one. For example, a model of a skydiver in freefall could launch a second model of the skydiver with a parachute.</li>
     </ol>
-		<p>To define a booster for a dynamic particle, select it from the dropdown Booster list in the model builder as shown in Fig. 5. The particle's initial conditions are automatically updated to match the motion of the booster at the particle's start frame.</p>
+	<p>To define a launcher for a dynamic particle model, select it from the dropdown Launcher list in the model builder as shown in Fig. 6. The model's initial conditions are automatically updated to match the motion of the launcher at the model's start frame.</p>
 		<p align="center">
 			<img src="../help_images/model_builder_booster.gif">
 			<img src="../help_images/spacer.gif">
 			<img src="../help_images/model_builder_boosted.gif">
 		</p>
-		<h5>Fig. 5 Defining a booster to set initial conditions</h5>
+		<h5>Fig. 6 Defining a launcher to set initial conditions</h5>
     </body>
 
 </html>
