@@ -539,14 +539,36 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       }
 
     };
-    desktopButton = new TButton(htmlIcon);
-    desktopButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        for (String path: trackerPanel.desktopFiles) {
-        	OSPDesktop.displayURL(path);
+    desktopButton = new TButton(htmlIcon) {
+      protected JPopupMenu getPopup() {
+      	JPopupMenu popup = new JPopupMenu();
+        for (String title: trackerPanel.desktopFiles.keySet()) {
+        	String path = trackerPanel.desktopFiles.get(title);
+        	JMenuItem item = new JMenuItem(title.equals(path)? XML.getName(title): title);
+        	item.setActionCommand(path);
+        	item.setToolTipText(path);
+        	item.addActionListener(new ActionListener() {
+        		public void actionPerformed(ActionEvent e) {
+        			String path = e.getActionCommand();
+            	OSPDesktop.displayURL(path);
+        		}
+        	});
+        	popup.add(item);
         }
+      	FontSizer.setFonts(popup, FontSizer.getLevel());
+      	return popup;
       }
-    });
+
+    };
+
+//    desktopButton.addActionListener(new ActionListener() {
+//      public void actionPerformed(ActionEvent e) {
+//      	// popup menu with file names or page titles
+//        for (String path: trackerPanel.desktopFiles) {
+//        	OSPDesktop.displayURL(path);
+//        }
+//      }
+//    });
     // create menu items
     cloneMenu = new JMenu();
     showTrackControlItem = new JCheckBoxMenuItem();
@@ -794,8 +816,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		        add(xMassButton);
         }
         add(toolbarFiller);
-        add(notesButton);
         add(desktopButton);
+        add(notesButton);
         desktopButton.setEnabled(!trackerPanel.desktopFiles.isEmpty());
         add(refreshButton);
         
