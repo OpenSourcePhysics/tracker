@@ -872,13 +872,13 @@ public class Tracker {
   protected static void setPreferredLocale(String localeName) {
   	if (localeName==null) {
     	Locale.setDefault(defaultLocale);
-    	TrackerRes.setLocale(defaultLocale);
+//    	TrackerRes.setLocale(defaultLocale);
     	preferredLocale = null;
   	}
   	else for (Locale locale: locales) {
     	if (locale.toString().equals(localeName)) {
       	Locale.setDefault(locale);
-      	TrackerRes.setLocale(locale);
+//      	TrackerRes.setLocale(locale);
       	preferredLocale = localeName;
     		break;
     	}

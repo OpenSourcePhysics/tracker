@@ -116,7 +116,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected AttachmentDialog attachmentDialog;
   protected boolean isAutoRefresh = true;
 	private JButton loadDataFunctionsButton, saveDataFunctionsButton, autoloadDataFunctionsButton;
-	protected TreeMap<String, String> desktopFiles = new TreeMap<String, String>(); // html/pdf path mapped to title
+	protected TreeSet<String> supplementalFilePaths = new TreeSet<String>(); // HTML/PDF URI paths
+	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
   protected StepSet selectedSteps = new StepSet(this);
 
   /**

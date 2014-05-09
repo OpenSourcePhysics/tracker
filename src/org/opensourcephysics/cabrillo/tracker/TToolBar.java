@@ -32,6 +32,7 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import org.opensourcephysics.cabrillo.tracker.PageTView.TabView;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;
@@ -101,6 +102,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   protected boolean notYetCalibrated = true;
   protected ComponentListener clipSettingsDialogListener;
   protected JPopupMenu zoomPopup = new JPopupMenu();
+  protected ArrayList<PageTView.TabData> pageViewTabs = new ArrayList<PageTView.TabData>();
   
   static {
   	newTrackIcon =  new ImageIcon(Tracker.class.getResource("resources/images/poof.gif")); //$NON-NLS-1$
@@ -542,19 +544,46 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     desktopButton = new TButton(htmlIcon) {
       protected JPopupMenu getPopup() {
       	JPopupMenu popup = new JPopupMenu();
-        for (String title: trackerPanel.desktopFiles.keySet()) {
-        	String path = trackerPanel.desktopFiles.get(title);
-        	JMenuItem item = new JMenuItem(title.equals(path)? XML.getName(title): title);
-        	item.setActionCommand(path);
-        	item.setToolTipText(path);
-        	item.addActionListener(new ActionListener() {
-        		public void actionPerformed(ActionEvent e) {
-        			String path = e.getActionCommand();
-            	OSPDesktop.displayURL(path);
-        		}
-        	});
-        	popup.add(item);
-        }
+      	if (!trackerPanel.supplementalFilePaths.isEmpty()) {
+	      	JMenu fileMenu = new JMenu(TrackerRes.getString("TToolbar.Button.Desktop.Menu.OpenFile")); //$NON-NLS-1$
+	      	popup.add(fileMenu);
+	        for (String next: trackerPanel.supplementalFilePaths) {
+	        	String title = XML.getName(next);
+	        	String path = next;
+	        	JMenuItem item = new JMenuItem(title);
+	        	item.setActionCommand(path);
+	        	item.setToolTipText(path);
+	        	item.addActionListener(new ActionListener() {
+	        		public void actionPerformed(ActionEvent e) {
+	        			String path = e.getActionCommand();
+	            	OSPDesktop.displayURL(path);
+	        		}
+	        	});
+	        	fileMenu.add(item);
+	        }
+      	}
+      	if (!pageViewTabs.isEmpty()) {
+	      	JMenu pageMenu = new JMenu(TrackerRes.getString("TToolbar.Button.Desktop.Menu.OpenPage")); //$NON-NLS-1$
+	      	popup.add(pageMenu);
+	        for (PageTView.TabData next: pageViewTabs) {
+	        	if (next.url==null) continue;
+	        	String title = next.title;
+	        	String path = trackerPanel.pageViewFilePaths.get(next.text);
+	        	if (path==null) {
+	        		path = next.url.toExternalForm();
+	        	}
+	        	JMenuItem item = new JMenuItem(title);
+	        	item.setActionCommand(path);
+	        	item.setToolTipText(path);
+	        	item.addActionListener(new ActionListener() {
+	        		public void actionPerformed(ActionEvent e) {
+	        			String path = e.getActionCommand();
+	            	OSPDesktop.displayURL(path);
+	        		}
+	        	});
+	        	pageMenu.add(item);
+	        }
+      	}
       	FontSizer.setFonts(popup, FontSizer.getLevel());
       	return popup;
       }
@@ -736,6 +765,28 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
           	trailButton.setSelectedIcon(trailIcons[i]);
           }
         }
+        
+        // refresh pageViewTabs list
+        pageViewTabs.clear();
+        TFrame frame = trackerPanel.getTFrame();
+        if (frame!=null) {
+        TView[][] views = frame.getTViews(trackerPanel);
+	        for (TView[] next: views) {
+	        	if (next==null) continue;
+	        	for (TView view: next) {
+	        		if (view==null) continue;
+	        		if (view instanceof PageTView) {
+	        			PageTView page = (PageTView)view;
+	        			for (TabView tab: page.tabs) {
+	        				if (tab.data.url!=null) {
+	        					pageViewTabs.add(tab.data);
+	        				}
+	        			}
+	        		}
+	        	}
+	        }
+	        sortPageViewTabs();
+        }
 
         // assemble buttons
         removeAll();
@@ -818,7 +869,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         add(toolbarFiller);
         add(desktopButton);
         add(notesButton);
-        desktopButton.setEnabled(!trackerPanel.desktopFiles.isEmpty());
+        boolean hasPageURLs = !pageViewTabs.isEmpty();
+        desktopButton.setEnabled(hasPageURLs || !trackerPanel.supplementalFilePaths.isEmpty());
         add(refreshButton);
         
         FontSizer.setFonts(newTrackButton, FontSizer.getLevel());
@@ -907,6 +959,14 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   	b.setOpaque(false);
   	b.setContentAreaFilled(false);
   	return b;
+  }
+  
+  private void sortPageViewTabs() {
+  	Collections.sort(pageViewTabs, new Comparator<PageTView.TabData> () {
+      public int compare(PageTView.TabData one, PageTView.TabData two) {
+        return (one.title.toLowerCase().compareTo(two.title.toLowerCase()));
+      }
+  	});    
   }
   
   /**

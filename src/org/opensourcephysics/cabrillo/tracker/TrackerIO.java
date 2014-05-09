@@ -618,7 +618,7 @@ public class TrackerIO extends VideoIO {
       } 
     } 
     else { // load data from zip, trz or trk file
-			HashSet<String[]> pageViewTabs = new HashSet<String[]>(); // pageView tabs that display html files
+			Map<String, String> pageViewTabs = new HashMap<String, String>(); // pageView tabs that display html files
 
     	if (zipFileFilter.accept(testFile) || trzFileFilter.accept(testFile)) {
     		monitorDialog.stop();
@@ -648,7 +648,7 @@ public class TrackerIO extends VideoIO {
 						trkFiles.add(s);
 					}
 					else if (next.endsWith(".pdf")) { //$NON-NLS-1$
-						pdfFiles.add(XML.getName(next));
+						pdfFiles.add(next);
 					}
 					else if (next.endsWith(".html") || next.endsWith(".htm")) { //$NON-NLS-1$ //$NON-NLS-2$
 						// exclude HTML info files (name "<zipname>_info")
@@ -657,7 +657,7 @@ public class TrackerIO extends VideoIO {
 						if (XML.stripExtension(nextName).equals(baseName+"_info"))  //$NON-NLS-1$
 							continue;
 						
-						htmlFiles.add(nextName);
+						htmlFiles.add(next);
 					}
 				}
 				if (trkFiles.isEmpty() && pdfFiles.isEmpty() && htmlFiles.isEmpty()) {
@@ -688,18 +688,16 @@ public class TrackerIO extends VideoIO {
 						// remove page view HTML files
 						String[] paths = htmlFiles.toArray(new String[htmlFiles.size()]);
 						for (String htmlPath: paths) {
-							String htmlName = XML.getName(htmlPath); // name of html file
 							boolean isPageView = false;
-							for (String[] tabs: pageViewTabs) {
-								// each tab is {title, path}
-								isPageView = isPageView || tabs[1].endsWith(htmlName);
+							for (String page: pageViewTabs.keySet()) {
+								isPageView = isPageView || htmlPath.endsWith(page);
 							}
 							if (isPageView) {
 								htmlFiles.remove(htmlPath);
 							}
 							// discard HTML <trkname>_info files
 							for (String trkName: trkNames) {
-								if (htmlName.contains(trkName+"_info.")) { //$NON-NLS-1$
+								if (htmlPath.contains(trkName+"_info.")) { //$NON-NLS-1$
 									htmlFiles.remove(htmlPath);
 								}								
 							}
@@ -719,7 +717,8 @@ public class TrackerIO extends VideoIO {
 					for (File next : files) {
 						next.deleteOnExit();
 		        // add PDF and HTML files to tempFiles
-						if (pdfFiles.contains(next.getName()) || htmlFiles.contains(next.getName())) {
+						String relPath = XML.getPathRelativeTo(next.getPath(), temp.getPath());
+						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath)) {
 							String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());
 							tempFiles.add(tempPath);
 						}
@@ -772,16 +771,12 @@ public class TrackerIO extends VideoIO {
         trackerPanel.defaultFileName = XML.getName(path);
         trackerPanel.openedFromPath = path;
 
-        // find page view files and add to TrackerPanel.deskTopFiles
-				findPageViewFiles(control, pageViewTabs);
-				for (String[] tab: pageViewTabs) {
-					// tab is {title, path}
-      		trackerPanel.desktopFiles.put(tab[0], tab[1]); // path title to path
-				}
+        // find page view files and add to TrackerPanel.pageViewFilePaths
+				findPageViewFiles(control, trackerPanel.pageViewFilePaths);
         
         if (desktopFiles!=null) {
         	for (String s: desktopFiles) {
-        		trackerPanel.desktopFiles.put(s, s);
+        		trackerPanel.supplementalFilePaths.add(s);
         	}
         }
         trackerPanel.setDataFile(new File(ResourceLoader.getNonURIPath(path)));
@@ -1536,7 +1531,13 @@ public class TrackerIO extends VideoIO {
   		customDelimiters.remove(selected);
   }
   
-  private static void findPageViewFiles(XMLControl control, Collection<String[]> pageViewFiles) {
+  /**
+   * Finds page view file paths in an XMLControl and maps the page view path to the URL path
+   * of the file. If the page view path refers to a file inside a trk, zip or jar file, then 
+   * the file is extracted and the URL path points to the extracted file. This ensures that
+   * the URL path can be opened on the desktop.
+   */
+  private static void findPageViewFiles(XMLControl control, Map<String, String> pageViewFiles) {
 		// extract page view filenames from control xml
 		String xml = control.toXML();
 		// basic unit is a tab with title and text
@@ -1553,38 +1554,28 @@ public class TrackerIO extends VideoIO {
 			if (path.endsWith(".html") || path.endsWith(".htm")) { //$NON-NLS-1$ //$NON-NLS-2$
 				Resource res = ResourceLoader.getResource(path);
 				if (res!=null) {
-					// found an HTML file, so add it to the collection
-					// get title
-					token = "<property name=\"title\" type=\"string\">"; //$NON-NLS-1$
-					j = xml.indexOf(token);
-					String title = xml.substring(j+token.length());
-					j = title.indexOf("</property>"); //$NON-NLS-1$
-					title = title.substring(0, j);
-					// add title and path
-					String absPath = res.getAbsolutePath();
-					int n = absPath.indexOf("trz!"); //$NON-NLS-1$
-					n = n>0? n: absPath.indexOf("zip!"); //$NON-NLS-1$
-					n = n>0? n: absPath.indexOf("jar!"); //$NON-NLS-1$
+					// found an HTML file, so add it to the map
+					String urlPath = res.getURL().toExternalForm();
+					int n = urlPath.indexOf("trz!"); //$NON-NLS-1$
+					n = n>0? n: urlPath.indexOf("zip!"); //$NON-NLS-1$
+					n = n>0? n: urlPath.indexOf("jar!"); //$NON-NLS-1$
 					// extract files from jar, zip or trz files into temp directory
 					if (n>0) {
 						File target = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
 						target = new File(target, path);
 						if (!target.exists()) {
-							target = JarTool.extract(absPath, target);
+							target = JarTool.extract(urlPath, target);
 						}
 						if (target!=null && target.exists()) {
 							res = ResourceLoader.getResource(target.getAbsolutePath());
-							path = res.getURL().toExternalForm();
+							urlPath = res.getURL().toExternalForm();
 						}
 						else {
 							path = null;
 						}
 					}
-					else {
-						path = res.getURL().toExternalForm();
-					}
 					if (path!=null) {
-						pageViewFiles.add(new String[] {title, path});
+						pageViewFiles.put(path, urlPath);
 					}
 				}				
 			}
