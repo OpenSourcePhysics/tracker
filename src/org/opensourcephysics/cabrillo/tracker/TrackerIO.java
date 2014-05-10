@@ -49,7 +49,6 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.JarTool;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -1534,8 +1533,8 @@ public class TrackerIO extends VideoIO {
   /**
    * Finds page view file paths in an XMLControl and maps the page view path to the URL path
    * of the file. If the page view path refers to a file inside a trk, zip or jar file, then 
-   * the file is extracted and the URL path points to the extracted file. This ensures that
-   * the URL path can be opened on the desktop.
+   * all files in the jar are extracted and the URL path points to the extracted HTML file.
+   * This ensures that the HTML page can be opened on the desktop.
    */
   private static void findPageViewFiles(XMLControl control, Map<String, String> pageViewFiles) {
 		// extract page view filenames from control xml
@@ -1556,16 +1555,14 @@ public class TrackerIO extends VideoIO {
 				if (res!=null) {
 					// found an HTML file, so add it to the map
 					String urlPath = res.getURL().toExternalForm();
-					int n = urlPath.indexOf("trz!"); //$NON-NLS-1$
-					n = n>0? n: urlPath.indexOf("zip!"); //$NON-NLS-1$
-					n = n>0? n: urlPath.indexOf("jar!"); //$NON-NLS-1$
+					String zipPath = ResourceLoader.getNonURIPath(res.getAbsolutePath());
+					int n = zipPath.indexOf("!/"); //$NON-NLS-1$
 					// extract files from jar, zip or trz files into temp directory
 					if (n>0) {
 						File target = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
+						zipPath = zipPath.substring(0, n);
+						ResourceLoader.unzip(zipPath, target, false); // don't overwrite
 						target = new File(target, path);
-						if (!target.exists()) {
-							target = JarTool.extract(urlPath, target);
-						}
 						if (target!=null && target.exists()) {
 							res = ResourceLoader.getResource(target.getAbsolutePath());
 							urlPath = res.getURL().toExternalForm();
