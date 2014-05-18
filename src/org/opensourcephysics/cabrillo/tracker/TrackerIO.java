@@ -712,7 +712,7 @@ public class TrackerIO extends VideoIO {
 				final ArrayList<String> tempFiles = new ArrayList<String>();		
 				if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty()) {
 					File temp = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$			
-					Set<File> files = ResourceLoader.unzip(path, temp, false);
+					Set<File> files = ResourceLoader.unzip(path, temp, true);
 					for (File next : files) {
 						next.deleteOnExit();
 		        // add PDF and HTML files to tempFiles
@@ -1561,7 +1561,7 @@ public class TrackerIO extends VideoIO {
 					if (n>0) {
 						File target = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
 						zipPath = zipPath.substring(0, n);
-						ResourceLoader.unzip(zipPath, target, false); // don't overwrite
+						ResourceLoader.unzip(zipPath, target, true); // overwrite
 						target = new File(target, path);
 						if (target!=null && target.exists()) {
 							res = ResourceLoader.getResource(target.getAbsolutePath());
