@@ -366,9 +366,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	if (!lookAhead || prevPoints[0]==null)
   		return null;
   	
-  	// set predictedTarget to prev position if no recent velocity data
+  	// set predictedTarget to prev position
+		predictedTarget.setLocation(prevPoints[0].getX(), prevPoints[0].getY());
   	if (prevPoints[1]==null) {
-  		predictedTarget.setLocation(prevPoints[0].getX(), prevPoints[0].getY());
+  		// no recent velocity or acceleration data available
     	success = true;    		
   	}
   	
@@ -420,28 +421,66 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			jxmean = Math.abs(jxmean/n);
 			jymean = Math.abs(jymean/n);
 			
-			boolean velocValid = prevPoints[2]==null || (accel[0][0]<vxmean && accel[0][1]<vymean);
-			boolean accelValid = prevPoints[2]!=null && (prevPoints[3]==null || (jerk[0][0]<axmean && jerk[0][1]<aymean));
+			boolean xVelocValid = prevPoints[2]==null || Math.abs(accel[0][0])<vxmean;
+			boolean yVelocValid = prevPoints[2]==null || Math.abs(accel[0][1])<vymean;
+			boolean xAccelValid = prevPoints[2]!=null && (prevPoints[3]==null || Math.abs(jerk[0][0])<axmean);
+			boolean yAccelValid = prevPoints[2]!=null && (prevPoints[3]==null || Math.abs(jerk[0][1])<aymean);
+//			boolean velocValid = prevPoints[2]==null || (accel[0][0]<vxmean && accel[0][1]<vymean);
+//			boolean accelValid = prevPoints[2]!=null && (prevPoints[3]==null || (jerk[0][0]<axmean && jerk[0][1]<aymean));
 			
-			if (accelValid) {
-				// base prediction on acceleration
+			if (xAccelValid) {
+				// base x-coordinate prediction on acceleration
 				TPoint loc0 = prevPoints[2];
 				TPoint loc1 = prevPoints[1];
 				TPoint loc2 = prevPoints[0];
 				double x = 3*loc2.getX() - 3*loc1.getX() + loc0.getX();
-				double y = 3*loc2.getY() - 3*loc1.getY() + loc0.getY();
-	  		predictedTarget.setLocation(x, y);
+	  		predictedTarget.setLocation(x, predictedTarget.y);
 	    	success = true;			
 			}
-			else if (velocValid) {
-				// else base prediction on velocity
+			else if (xVelocValid) {
+				// else base x-coordinate prediction on velocity
 				TPoint loc0 = prevPoints[1];
 				TPoint loc1 = prevPoints[0];
 				double x = 2*loc1.getX() -loc0.getX();
-				double y = 2*loc1.getY() -loc0.getY();
-	  		predictedTarget.setLocation(x, y);
+	  		predictedTarget.setLocation(x, predictedTarget.y);
 	    	success = true;		
 			}
+			if (yAccelValid) {
+				// base y-coordinate prediction on acceleration
+				TPoint loc0 = prevPoints[2];
+				TPoint loc1 = prevPoints[1];
+				TPoint loc2 = prevPoints[0];
+				double y = 3*loc2.getY() - 3*loc1.getY() + loc0.getY();
+	  		predictedTarget.setLocation(predictedTarget.x, y);
+	    	success = true;			
+			}
+			else if (yVelocValid) {
+				// else base y-coordinate prediction on velocity
+				TPoint loc0 = prevPoints[1];
+				TPoint loc1 = prevPoints[0];
+				double y = 2*loc1.getY() -loc0.getY();
+	  		predictedTarget.setLocation(predictedTarget.x, y);
+	    	success = true;		
+			}
+//			if (accelValid) {
+//				// base prediction on acceleration
+//				TPoint loc0 = prevPoints[2];
+//				TPoint loc1 = prevPoints[1];
+//				TPoint loc2 = prevPoints[0];
+//				double x = 3*loc2.getX() - 3*loc1.getX() + loc0.getX();
+//				double y = 3*loc2.getY() - 3*loc1.getY() + loc0.getY();
+//	  		predictedTarget.setLocation(x, y);
+//	    	success = true;			
+//			}
+//			else if (velocValid) {
+//				// else base prediction on velocity
+//				TPoint loc0 = prevPoints[1];
+//				TPoint loc1 = prevPoints[0];
+//				double x = 2*loc1.getX() -loc0.getX();
+//				double y = 2*loc1.getY() -loc0.getY();
+//	  		predictedTarget.setLocation(x, y);
+//	    	success = true;		
+//			}
   	}
     if (success) {
     	// make sure prediction is within the video image
@@ -1427,7 +1466,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   }
 
   /**
-   * Gets the available derivatives of the specified order. 
+   * Gets the available derivatives of the specified order. These are NOT time 
+   * derivatives, but simply differences in pixel units: order 1 is deltaPosition,
+   * order 2 is change in deltaPosition, order 3 is change in order 2. Note the
+   * TPoint positions are in image units, not world units.
    *
    * @param positions an array of positions
    * @param order may be 1 (v), 2 (a) or 3 (jerk)
