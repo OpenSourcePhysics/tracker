@@ -3310,7 +3310,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     				if (prop.getPropertyName().equals("datatool_tabs")) { //$NON-NLS-1$
 	      			for (XMLControl tabControl: prop.getChildControls()) {
 	      				// pass the tab control to the DataTool and get back the newly added tab
-	      				ArrayList<DataToolTab> addedTabs = tool.addTabs(tabControl);
+	      				ArrayList<DataToolTab> addedTabs = null;
+								try {
+									addedTabs = tool.addTabs(tabControl);
+								} catch (Exception e) {
+								}
 	      				if (addedTabs==null || addedTabs.isEmpty()) continue;
 	      				DataToolTab tab = addedTabs.get(0);
 	      				
