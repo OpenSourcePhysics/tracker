@@ -2101,7 +2101,10 @@ public abstract class TTrack implements Interactive,
   			return TMouseHandler.autoTrackMarkCursor;
   		}
   		
-  		if (this instanceof CoordAxes || this instanceof TapeMeasure || this instanceof Protractor) {
+  		if (this instanceof CoordAxes 
+  				|| this instanceof PerspectiveTrack 
+  				|| this instanceof TapeMeasure 
+  				|| this instanceof Protractor) {
   			AutoTracker autoTracker = trackerPanel.getAutoTracker();
 	    	if (autoTracker.getTrack()==null || autoTracker.getTrack()==this) {
 	    		int n = trackerPanel.getFrameNumber();
