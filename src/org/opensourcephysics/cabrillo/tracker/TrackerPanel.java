@@ -220,6 +220,24 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   }
 
   /**
+   * Gets the path used as tooltip for the tab.
+   *
+   * @return the path
+   */
+  public String getToolTipPath() {
+    if (getDataFile() != null) {
+      return XML.forwardSlash(getDataFile().getPath());
+    }
+    if (getVideo() != null) {
+      String path = (String) getVideo().getProperty("absolutePath"); //$NON-NLS-1$
+      if (path != null) {
+        return XML.forwardSlash(path);
+      }
+    }
+    return null;
+  }
+
+  /**
    * Gets the description of this panel.
    *
    * @return the description

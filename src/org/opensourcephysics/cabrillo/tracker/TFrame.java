@@ -167,7 +167,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     setIgnoreRepaint(true);
     String name = trackerPanel.getTitle();
     synchronized(tabbedPane) {
-    	tabbedPane.addTab(name, panel); 
+    	tabbedPane.addTab(name, panel);
+    	int tab = getTab(trackerPanel);
+      tabbedPane.setToolTipTextAt(tab, trackerPanel.getToolTipPath());
     }
     // from now on trackerPanel's top level container is this TFrame,
     // so trackerPanel.getFrame() method will return non-null
@@ -449,6 +451,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   public void refreshTab(TrackerPanel panel) {
     int tab = getTab(panel);
     tabbedPane.setTitleAt(tab, panel.getTitle());
+    tabbedPane.setToolTipTextAt(tab, panel.getToolTipPath());
   }
 
   /**
