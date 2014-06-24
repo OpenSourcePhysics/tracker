@@ -363,12 +363,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	}
   	
   	// return null (no prediction) if there is no recent position data
-  	if (!lookAhead || prevPoints[0]==null)
+  	if (prevPoints[0]==null)
   		return null;
   	
   	// set predictedTarget to prev position
 		predictedTarget.setLocation(prevPoints[0].getX(), prevPoints[0].getY());
-  	if (prevPoints[1]==null) {
+  	if (!lookAhead || prevPoints[1]==null) {
   		// no recent velocity or acceleration data available
     	success = true;    		
   	}
@@ -776,8 +776,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     	}
 			if (needsRepaint) repaint();
 		}		
-		else if (name.equals("selectedtrack")) { //$NON-NLS-1$
-			setTrack((TTrack)e.getNewValue());
+		else if (name.equals("selectedtrack") && wizard!=null) { //$NON-NLS-1$
+//			setTrack((TTrack)e.getNewValue());
 			wizard.refreshGUI();
 		}
 		
