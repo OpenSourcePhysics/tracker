@@ -216,13 +216,21 @@ public class TrackerIO extends VideoIO {
   public static File save(File file, TrackerPanel trackerPanel) {
   	trackerPanel.restoreViews();
   	getChooser().setAcceptAllFileFilterUsed(false);
-  	getChooser().addChoosableFileFilter(trkFileFilter);
+  	chooser.addChoosableFileFilter(trkFileFilter);
   	chooser.setAccessory(null);
+  	if (file==null && trackerPanel.getDataFile()==null) {
+	  	VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+	  	if (clip.getVideo()!=null || clip.getVideoPath()!=null) {
+	  		File dir = new File(clip.getVideoPath()).getParentFile();
+	  		chooser.setCurrentDirectory(dir);
+	    }
+  	}
+  	
   	boolean isNew = file==null;
   	file = VideoIO.save(file, trackerPanel, 
   			TrackerRes.getString("TrackerIO.Dialog.SaveTab.Title")); //$NON-NLS-1$
-  	getChooser().removeChoosableFileFilter(trkFileFilter);
-  	getChooser().setAcceptAllFileFilterUsed(true);
+  	chooser.removeChoosableFileFilter(trkFileFilter);
+  	chooser.setAcceptAllFileFilterUsed(true);
   	if (isNew && file!=null) {
       Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
       TMenuBar.getMenuBar(trackerPanel).refresh();
