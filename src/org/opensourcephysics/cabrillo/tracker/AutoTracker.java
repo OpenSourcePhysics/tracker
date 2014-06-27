@@ -3247,10 +3247,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Accept")); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Retry")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	}
-      		if (canStep())
-      			buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Skip")); //$NON-NLS-1$ //$NON-NLS-2$
 			  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Mark")); //$NON-NLS-1$ //$NON-NLS-2$
 			  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.NewKeyFrame")); //$NON-NLS-1$ //$NON-NLS-2$
+      		if (canStep())
+      			buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Skip")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	break;
 	    	case 3: // no match was found
 	      	textPane.setForeground(Color.red);
@@ -3263,10 +3263,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		      	buf.append(TrackerRes.getString("AutoTracker.Info.NoMatch")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Retry")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	}
-      		if (canStep())
-      			buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Skip")); //$NON-NLS-1$ //$NON-NLS-2$
 			  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Mark")); //$NON-NLS-1$ //$NON-NLS-2$
 			  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.NewKeyFrame")); //$NON-NLS-1$ //$NON-NLS-2$
+      		if (canStep())
+      			buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Skip")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	break;
 	    	case 4: // searchRect failed (no video image or x-axis inside)
 	      	textPane.setForeground(Color.red);
@@ -3279,9 +3279,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		      	buf.append(TrackerRes.getString("AutoTracker.Info.Outside")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Retry")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	}
+			  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Mark")); //$NON-NLS-1$ //$NON-NLS-2$
       		if (canStep())
       			buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Skip")); //$NON-NLS-1$ //$NON-NLS-2$
-			  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Mark")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	break;
 	    	case 5: // target marked manually
 	      	textPane.setForeground(Color.blue);
