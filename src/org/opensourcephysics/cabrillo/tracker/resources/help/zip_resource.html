@@ -16,21 +16,22 @@
 	<p>Tracker ZIP files  define searchable keywords and other metadata which enable the DL browser to find them readily. The metadata is displayed in a tooltip when   the mouse hovers over a tree node as shown. </p>
     <p align="center"><a name="browser_image"></a><img src="../help_images/zip_resource_in_browser.gif" alt="ZIP resource open in Digital Library Browser"></p>
     <h3><a name="anatomy"></a>1. Anatomy of a Tracker ZIP file</h3>
-<p>A Tracker ZIP file is a compressed zip file containing resource files that share a common naming scheme and define all data and metadata used by the DL browser. For example, the file &quot;loop2.trz&quot; contains the following:</p>
+<p>A <strong>Tracker ZIP file</strong> is a compressed zip file containing resource files that share a common naming scheme and define all data and metadata used by the DL browser. For example, the file &quot;loop2.trz&quot; contains the following:</p>
 <ol>
   <li>A tracker data file &quot;loop2.trk&quot;</li>
   <li>A video file &quot;loop2.flv&quot;</li>
   <li>An HTML information file  &quot;loop2_info.html&quot; (described below)</li>
   <li>A thumbnnail image file &quot;loop2_thumbnail.png&quot;</li>
 </ol>
-<p>Tracker ZIP files may also contain  supplemental HTML and/or PDF files with associated images. These may be displayed in Tracker itself (see <a href="pageview.html">page views</a>) or in separate HTML and/or PDF viewers. They do not have to conform to the naming conventions above..</p>
-<p>An <strong>HTML information </strong>file uses standard HTML code in the &lt;head&gt; section to define the title (tree node name) and metadata for the Tracker ZIP. For example, the HTML information file &quot;loop2_info.html&quot; includes the following:</p>
+<p>Note that all of these files have names that start with &quot;loop2&quot;.</p>
+<p><strong>HTML information files </strong> use standard HTML code in the &lt;head&gt; section to define the title (tree node name) and metadata for the Tracker ZIP. For example, the HTML information file &quot;loop2_info.html&quot; includes the following:</p>
 <blockquote>
   <p> <em>&lt;meta name=&quot;author&quot; content=&quot;Douglas Brown&quot;&gt;<br>
     &lt;meta name=&quot;contact&quot; content=&quot;Cabrillo College&quot;&gt;<br>
     &lt;meta name=&quot;keywords&quot; content=&quot;circular motion, centripetal acceleration, toy truck, Newton's second law&quot;&gt;<br>
     &lt;title&gt;Modeling a Hot Wheels Loop&lt;/title&gt;</em></p>
 </blockquote>
+<p><strong>Supplemental HTML and/or PDF files</strong> (with associated images) may also be added to a Tracker ZIP file. These are displayed in Tracker itself (see <a href="pageview.html">page views</a>) and/or in separate HTML and/or PDF viewers. They do not have to conform to the naming conventions above.</p>
 <p>Tracker ZIP files can  be created with any HTML editor and zip utility, but it is much easier to export them from Tracker in a single step as described below.</p>
 <h3>2. Exporting a Tracker ZIP file</h3>
 	<p>Click the <strong>Export Tracker ZIP</strong> button on the toolbar or choose the <strong>File|Export Tracker ZIP</strong> menu item to open a dialog with fields and controls for defining and saving a ZIP file for the currently selected tab. </p>
@@ -65,7 +66,7 @@
     <p align="center"><img src="../help_images/thumbnail_dialog.gif" alt="Thumbnail dialog" align="top"></p>
 <p><strong>Button bar:</strong></p>
     <ol>
-      <li>The <strong>Add Files</strong> button opens a file browser that lets you add supplemental files to the Tracker ZIP. There is no limit to the number of supplemental files. Most supplemental files are HTML and/or PDF documents, but you can also add  tracker and video files if desired. <strong>Note</strong>: it is NOT necessary to add HTML files displayed in a Tracker <a href="pageview.html">page view</a>--these will be included automatically in the Tracker ZIP.</li>
+      <li>The <strong>Add Files</strong> button opens a file browser that lets you add supplemental files to the Tracker ZIP. There is no limit to the number of supplemental files. Most supplemental files are HTML and/or PDF documents, but you can also add  tracker and video files if desired. <strong>Note</strong>: it is NOT necessary to use this button to add HTML files displayed in a Tracker <a href="pageview.html">page view</a>--these will be included automatically in the Tracker ZIP.</li>
       <li>The <strong>Save As</strong> button opens a file browser that lets you name and save the ZIP file. The base zip file name is also used for the tracker file, video file (if trimmed to clip), HTML information file and thumbnail file as described in  <a href="zip_resource.html#anatomy">Anatomy of a Tracker ZIP file</a> above.</li>
       <li>The <strong>Cancel</strong> button closes the dialog. It does not clear the fields, so when you  reopen the dalog you do not need to re-enter the information.</li>
     </ol>
