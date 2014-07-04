@@ -56,6 +56,7 @@ import javax.swing.undo.UndoableEditSupport;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LaunchBuilder;
@@ -191,6 +192,9 @@ public class PageTView extends JPanel implements TView {
    */
   public void addTab(TabView tab) {
   	tabs.add(tab);
+  	if (trackerPanel!=null) {
+  		trackerPanel.changed = true;
+  	}
   	refresh();
   }
 
@@ -201,6 +205,9 @@ public class PageTView extends JPanel implements TView {
    */
   public void removeTab(TabView tab) {
   	tabs.remove(tab);
+  	if (trackerPanel!=null) {
+  		trackerPanel.changed = true;
+  	}
   	refresh();
   }
 
@@ -434,6 +441,9 @@ public class PageTView extends JPanel implements TView {
     	tabbedPane.setSelectedComponent(prev);
     }
     refreshTitle();
+    if (trackerPanel!=null) {
+    	TToolBar.getToolbar(trackerPanel).refresh(false);
+    }
   }
   
   /**
@@ -489,6 +499,16 @@ public class PageTView extends JPanel implements TView {
 	    });
 	    closeItem.setEnabled(!locked);
 	    popup.add(closeItem);
+	    if (tab.data.url!=null) {
+	    	s = TrackerRes.getString("PageTView.MenuItem.OpenInBrowser"); //$NON-NLS-1$
+		    JMenuItem item = new JMenuItem(s);
+		    item.addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent e) {
+          	OSPDesktop.displayURL(tab.data.url.toExternalForm());
+		      }
+		    });
+		    popup.add(item);
+	    }
 	    if (tab.undoManager.canUndoOrRedo()) {
 		    popup.addSeparator();
 		    if (tab.undoManager.canUndo()) {
@@ -539,7 +559,7 @@ public class PageTView extends JPanel implements TView {
       nameField.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
         	TabView tab = getSelectedTab();
-        	tab.data.title = nameField.getText();
+        	tab.data.setTitle(nameField.getText());
         	refresh();
         	nameDialog.setVisible(false);
         }
@@ -558,7 +578,7 @@ public class PageTView extends JPanel implements TView {
 	    nameDialog.addWindowListener(new WindowAdapter() {
 	      public void windowClosing(WindowEvent e) {
 	      	TabView tab = getSelectedTab();
-	      	tab.data.title = nameField.getText();
+        	tab.data.setTitle(nameField.getText());
 	      	refresh();
 	      }
 	    });
@@ -759,15 +779,6 @@ public class PageTView extends JPanel implements TView {
     }
 
     /**
-     * Constructor with tab title.
-     *
-     * @param title the tab title (may be null)
-     */
-    TabData(String title) {
-    	this(title, null);
-    }
-
-    /**
      * Constructor with tab text and title.
      *
      * @param title the tab title (may be null)
@@ -779,6 +790,20 @@ public class PageTView extends JPanel implements TView {
     }
 
     /**
+     * Sets the title.
+     *
+     * @param title the title
+     */
+    public void setTitle(String title) {
+    	if (title==null) return;
+      this.title = title;
+      if (trackerPanel!=null) {
+      	trackerPanel.changed = true;
+      	TToolBar.getToolbar(trackerPanel).refresh(false);
+      }
+    }
+
+    /**
      * Sets the text.
      *
      * @param text the text
@@ -786,7 +811,7 @@ public class PageTView extends JPanel implements TView {
     public void setText(String text) {
     	if (text==null) return;
       this.text = text;
-      setURL(text); // will fail for non-url text
+      setURL(text); // fails for non-url text
     }
 
     /**
@@ -805,9 +830,8 @@ public class PageTView extends JPanel implements TView {
      * Sets the URL.
      *
      * @param path the url path
-     * @return true if a url resource was found
      */
-    private boolean setURL(String path) {
+    private void setURL(String path) {
       url = null;
       Resource res = ResourceLoader.getResource(path);
       if((res!=null)&&(res.getURL()!=null)) {
@@ -819,8 +843,12 @@ public class PageTView extends JPanel implements TView {
           url = null;
         }
       }
-      return url!=null;
-    }        
+      if (trackerPanel!=null) {
+      	trackerPanel.changed = true;
+      	TToolBar.getToolbar(trackerPanel).refresh(false);
+      }
+    }
+    
   }
   
   /**

@@ -383,7 +383,7 @@ public class PrefsDialog extends JDialog {
       		Tracker.setPreferredLocale(null);        
     		else for (Locale next: Tracker.locales) {
         	if (s.equals(OSPRuntime.getDisplayLanguage(next))) {
-        		TrackerRes.setLocale(next);
+//        		TrackerRes.setLocale(next);
         		Tracker.setPreferredLocale(next.toString());
         		break;
         	}

@@ -49,6 +49,7 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
@@ -215,13 +216,21 @@ public class TrackerIO extends VideoIO {
   public static File save(File file, TrackerPanel trackerPanel) {
   	trackerPanel.restoreViews();
   	getChooser().setAcceptAllFileFilterUsed(false);
-  	getChooser().addChoosableFileFilter(trkFileFilter);
+  	chooser.addChoosableFileFilter(trkFileFilter);
   	chooser.setAccessory(null);
+  	if (file==null && trackerPanel.getDataFile()==null) {
+	  	VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+	  	if (clip.getVideo()!=null || clip.getVideoPath()!=null) {
+	  		File dir = new File(clip.getVideoPath()).getParentFile();
+	  		chooser.setCurrentDirectory(dir);
+	    }
+  	}
+  	
   	boolean isNew = file==null;
   	file = VideoIO.save(file, trackerPanel, 
   			TrackerRes.getString("TrackerIO.Dialog.SaveTab.Title")); //$NON-NLS-1$
-  	getChooser().removeChoosableFileFilter(trkFileFilter);
-  	getChooser().setAcceptAllFileFilterUsed(true);
+  	chooser.removeChoosableFileFilter(trkFileFilter);
+  	chooser.setAcceptAllFileFilterUsed(true);
   	if (isNew && file!=null) {
       Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
       TMenuBar.getMenuBar(trackerPanel).refresh();
@@ -616,6 +625,8 @@ public class TrackerIO extends VideoIO {
       } 
     } 
     else { // load data from zip, trz or trk file
+			Map<String, String> pageViewTabs = new HashMap<String, String>(); // pageView tabs that display html files
+
     	if (zipFileFilter.accept(testFile) || trzFileFilter.accept(testFile)) {
     		monitorDialog.stop();
   			String name = XML.getName(ResourceLoader.getNonURIPath(path));
@@ -631,9 +642,8 @@ public class TrackerIO extends VideoIO {
   			}
 	  			
 				ArrayList<String> trkFiles = new ArrayList<String>(); // all trk files found in zip
-				final ArrayList<String> htmlFiles = new ArrayList<String>(); // all html files found in zip
+				final ArrayList<String> htmlFiles = new ArrayList<String>(); // supplemental html files found in zip
 				final ArrayList<String> pdfFiles = new ArrayList<String>(); // all pdf files found in zip
-				ArrayList<String> pageViews = new ArrayList<String>(); // pageViews that may reference html
 				String trkForTFrame = null;
 				
 				// sort the zip file contents
@@ -645,7 +655,7 @@ public class TrackerIO extends VideoIO {
 						trkFiles.add(s);
 					}
 					else if (next.endsWith(".pdf")) { //$NON-NLS-1$
-						pdfFiles.add(XML.getName(next));
+						pdfFiles.add(next);
 					}
 					else if (next.endsWith(".html") || next.endsWith(".htm")) { //$NON-NLS-1$ //$NON-NLS-2$
 						// exclude HTML info files (name "<zipname>_info")
@@ -654,7 +664,7 @@ public class TrackerIO extends VideoIO {
 						if (XML.stripExtension(nextName).equals(baseName+"_info"))  //$NON-NLS-1$
 							continue;
 						
-						htmlFiles.add(nextName);
+						htmlFiles.add(next);
 					}
 				}
 				if (trkFiles.isEmpty() && pdfFiles.isEmpty() && htmlFiles.isEmpty()) {
@@ -666,7 +676,7 @@ public class TrackerIO extends VideoIO {
 					return;
 				}
 				
-				// extract names of page views from trk files
+				// find page view filenames in TrackerPanel xmlControls
 				// also look for trk for TFrame
 				if (!trkFiles.isEmpty()) {
 					ArrayList<String> trkNames = new ArrayList<String>();
@@ -674,15 +684,7 @@ public class TrackerIO extends VideoIO {
 						trkNames.add(XML.stripExtension(XML.getName(next)));
 						XMLControl control = new XMLControlElement(next);
 						if (control.getObjectClassName().endsWith("TrackerPanel")) { //$NON-NLS-1$
-							String xml = control.toXML();
-							int j = xml.indexOf("PageTView$TabView"); //$NON-NLS-1$
-							if (j>-1) { // page view exists
-								xml = xml.substring(j+17);
-								j = xml.indexOf("selected_views"); //$NON-NLS-1$
-								if (j>-1)
-									xml = xml.substring(0, j);
-								pageViews.add(xml);
-							}
+							findPageViewFiles(control, pageViewTabs);
 						}
 						else if (trkForTFrame==null
 								&& control.getObjectClassName().endsWith("TFrame")) { //$NON-NLS-1$
@@ -690,20 +692,19 @@ public class TrackerIO extends VideoIO {
 						}
 					}
 					if (!htmlFiles.isEmpty()) {
-						// keep only HTML files NOT displayed in page views
+						// remove page view HTML files
 						String[] paths = htmlFiles.toArray(new String[htmlFiles.size()]);
 						for (String htmlPath: paths) {
-							String htmlName = XML.getName(htmlPath); // name of html file
 							boolean isPageView = false;
-							for (String xml: pageViews) {
-								isPageView = isPageView || xml.indexOf(htmlName)>-1;
+							for (String page: pageViewTabs.keySet()) {
+								isPageView = isPageView || htmlPath.endsWith(page);
 							}
 							if (isPageView) {
 								htmlFiles.remove(htmlPath);
 							}
 							// discard HTML <trkname>_info files
 							for (String trkName: trkNames) {
-								if (htmlName.contains(trkName+"_info.")) { //$NON-NLS-1$
+								if (htmlPath.contains(trkName+"_info.")) { //$NON-NLS-1$
 									htmlFiles.remove(htmlPath);
 								}								
 							}
@@ -716,20 +717,22 @@ public class TrackerIO extends VideoIO {
 				}
 				
 				// unzip pdf/html files into temp directory and open on desktop
-				final ArrayList<String> deskFiles = new ArrayList<String>();		
+				final ArrayList<String> tempFiles = new ArrayList<String>();		
 				if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty()) {
 					File temp = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$			
-					Set<File> files = ResourceLoader.unzip(path, temp, false);
+					Set<File> files = ResourceLoader.unzip(path, temp, true);
 					for (File next : files) {
 						next.deleteOnExit();
-						if (pdfFiles.contains(next.getName()) || htmlFiles.contains(next.getName())) {
+		        // add PDF and HTML files to tempFiles
+						String relPath = XML.getPathRelativeTo(next.getPath(), temp.getPath());
+						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath)) {
 							String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());
-							deskFiles.add(tempPath);
+							tempFiles.add(tempPath);
 						}
 					}
 		  		Runnable runner = new Runnable() {
 						public void run() {
-			        for (String path: deskFiles) {
+			        for (String path: tempFiles) {
 			        	OSPDesktop.displayURL(path);
 			        }
 						}
@@ -739,7 +742,7 @@ public class TrackerIO extends VideoIO {
 				// load trk files into Tracker
 	  		if (!VideoIO.isCanceled()) {
 	        monitorDialog.close();
-	      	open(trkFiles, frame, deskFiles);
+	      	open(trkFiles, frame, tempFiles);
 	        Tracker.addRecent(nonURIPath, false); // add at beginning
 	      	return;
 	  		}
@@ -774,8 +777,14 @@ public class TrackerIO extends VideoIO {
         trackerPanel.frame = frame;
         trackerPanel.defaultFileName = XML.getName(path);
         trackerPanel.openedFromPath = path;
+
+        // find page view files and add to TrackerPanel.pageViewFilePaths
+				findPageViewFiles(control, trackerPanel.pageViewFilePaths);
+        
         if (desktopFiles!=null) {
-        	trackerPanel.desktopFiles.addAll(desktopFiles);
+        	for (String s: desktopFiles) {
+        		trackerPanel.supplementalFilePaths.add(s);
+        	}
         }
         trackerPanel.setDataFile(new File(ResourceLoader.getNonURIPath(path)));
       	if (monitorDialog.isVisible()) 
@@ -1527,6 +1536,60 @@ public class TrackerIO extends VideoIO {
   	}
   	if (selected!=null)
   		customDelimiters.remove(selected);
+  }
+  
+  /**
+   * Finds page view file paths in an XMLControl and maps the page view path to the URL path
+   * of the file. If the page view path refers to a file inside a trk, zip or jar file, then 
+   * all files in the jar are extracted and the URL path points to the extracted HTML file.
+   * This ensures that the HTML page can be opened on the desktop.
+   */
+  private static void findPageViewFiles(XMLControl control, Map<String, String> pageViewFiles) {
+		// extract page view filenames from control xml
+		String xml = control.toXML();
+		// basic unit is a tab with title and text
+		String token = "PageTView$TabView"; //$NON-NLS-1$
+		int j = xml.indexOf(token);
+		while (j>-1) { // found page view tab
+			xml = xml.substring(j+token.length());
+			// get text and check if it is a loadable path
+			token = "<property name=\"text\" type=\"string\">"; //$NON-NLS-1$
+			j = xml.indexOf(token);
+			String path = xml.substring(j+token.length());
+			j = path.indexOf("</property>"); //$NON-NLS-1$
+			path = path.substring(0, j);
+			if (path.endsWith(".html") || path.endsWith(".htm")) { //$NON-NLS-1$ //$NON-NLS-2$
+				Resource res = ResourceLoader.getResource(path);
+				if (res!=null) {
+					// found an HTML file, so add it to the map
+					String urlPath = res.getURL().toExternalForm();
+					String zipPath = ResourceLoader.getNonURIPath(res.getAbsolutePath());
+					int n = zipPath.indexOf("!/"); //$NON-NLS-1$
+					// extract files from jar, zip or trz files into temp directory
+					if (n>0) {
+						File target = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
+						zipPath = zipPath.substring(0, n);
+						ResourceLoader.unzip(zipPath, target, true); // overwrite
+						target = new File(target, path);
+						if (target!=null && target.exists()) {
+							res = ResourceLoader.getResource(target.getAbsolutePath());
+							urlPath = res.getURL().toExternalForm();
+						}
+						else {
+							path = null;
+						}
+					}
+					if (path!=null) {
+						pageViewFiles.put(path, urlPath);
+					}
+				}				
+			}
+			
+			// look for the next tab
+			token = "PageTView$TabView"; //$NON-NLS-1$
+			j = xml.indexOf(token);
+		}
+
   }
 
   /**

@@ -116,7 +116,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected AttachmentDialog attachmentDialog;
   protected boolean isAutoRefresh = true;
 	private JButton loadDataFunctionsButton, saveDataFunctionsButton, autoloadDataFunctionsButton;
-	protected ArrayList<String> desktopFiles = new ArrayList<String>(); // desktop html and pdf files associated with this panel
+	protected TreeSet<String> supplementalFilePaths = new TreeSet<String>(); // HTML/PDF URI paths
+	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
   protected StepSet selectedSteps = new StepSet(this);
 
   /**
@@ -216,6 +217,24 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       }
     }
     return TrackerRes.getString("TrackerPanel.NewTab.Name"); //$NON-NLS-1$
+  }
+
+  /**
+   * Gets the path used as tooltip for the tab.
+   *
+   * @return the path
+   */
+  public String getToolTipPath() {
+    if (getDataFile() != null) {
+      return XML.forwardSlash(getDataFile().getPath());
+    }
+    if (getVideo() != null) {
+      String path = (String) getVideo().getProperty("absolutePath"); //$NON-NLS-1$
+      if (path != null) {
+        return XML.forwardSlash(path);
+      }
+    }
+    return null;
   }
 
   /**
@@ -3309,7 +3328,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     				if (prop.getPropertyName().equals("datatool_tabs")) { //$NON-NLS-1$
 	      			for (XMLControl tabControl: prop.getChildControls()) {
 	      				// pass the tab control to the DataTool and get back the newly added tab
-	      				ArrayList<DataToolTab> addedTabs = tool.addTabs(tabControl);
+	      				ArrayList<DataToolTab> addedTabs = null;
+								try {
+									addedTabs = tool.addTabs(tabControl);
+								} catch (Exception e) {
+								}
 	      				if (addedTabs==null || addedTabs.isEmpty()) continue;
 	      				DataToolTab tab = addedTabs.get(0);
 	      				

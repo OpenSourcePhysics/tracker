@@ -113,7 +113,7 @@ public class Tracker {
   static Icon trackerLogoIcon, ospLogoIcon;
   static JLabel tipOfTheDayLabel;
   static JProgressBar progressBar;
-  static String version = "4.85"; //$NON-NLS-1$
+  static String version = "4.86"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
   static String copyright = "Copyright (c) 2014 Douglas Brown"; //$NON-NLS-1$
   static String trackerWebsite = "www.cabrillo.edu/~dbrown/tracker"; //$NON-NLS-1$
@@ -872,13 +872,13 @@ public class Tracker {
   protected static void setPreferredLocale(String localeName) {
   	if (localeName==null) {
     	Locale.setDefault(defaultLocale);
-    	TrackerRes.setLocale(defaultLocale);
+//    	TrackerRes.setLocale(defaultLocale);
     	preferredLocale = null;
   	}
   	else for (Locale locale: locales) {
     	if (locale.toString().equals(localeName)) {
       	Locale.setDefault(locale);
-      	TrackerRes.setLocale(locale);
+//      	TrackerRes.setLocale(locale);
       	preferredLocale = localeName;
     		break;
     	}

@@ -431,7 +431,7 @@ public class Protractor extends TTrack {
   public JMenu getMenu(TrackerPanel trackerPanel) {
     JMenu menu = super.getMenu(trackerPanel);
         
-    lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
+//    lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
     fixedItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
     fixedItem.setSelected(isFixed());
     fixedItem.setEnabled(attachments==null || (attachments[0]==null && attachments[1]==null && attachments[2]==null));

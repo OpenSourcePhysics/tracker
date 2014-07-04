@@ -193,8 +193,11 @@ public class TMouseHandler implements InteractiveMouseHandler {
           // if autotrack trigger, add key frame to autotracker
           if (isAutoTrackTrigger(e) && step!=null && step.getPoints()[index]!=null) {
           	TPoint target = step.getPoints()[index];
-          	// remark step target if CoordAxes, TapeMeasure or Protractor selected and no keyframe exists
-          	if (selectedTrack instanceof CoordAxes || selectedTrack instanceof TapeMeasure || selectedTrack instanceof Protractor) {
+          	// remark step target if Axes/Tape/Protractor/Perspective selected and no keyframe exists
+          	if (selectedTrack instanceof CoordAxes 
+          			|| selectedTrack instanceof TapeMeasure 
+          			|| selectedTrack instanceof PerspectiveTrack 
+          			|| selectedTrack instanceof Protractor) {
           		if (autoTracker.getTrack()==selectedTrack) {
         	    	AutoTracker.FrameData frame = autoTracker.getFrame(frameNumber);
 		          	if (frame.getKeyFrame()==null) {

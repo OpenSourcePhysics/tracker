@@ -270,7 +270,7 @@ public class LineFootprint implements Footprint, Cloneable {
   static {
     // HIGHLIGHT
     Ellipse2D circle = new Ellipse2D.Double();
-    circle.setFrame(-6, -6, 12, 12);
+    circle.setFrame(-3, -3, 6, 6);
     Stroke stroke = new BasicStroke(2);
     HIGHLIGHT = stroke.createStrokedShape(circle);
 
