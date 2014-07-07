@@ -360,6 +360,7 @@ public class ThumbnailDialog extends JDialog {
   	isRefreshing = true;
   	Object selectedItem = sizeDropdown.getSelectedItem();
   	sizeDropdown.removeAllItems();
+  	sizes.clear();
 		switch(viewDropdown.getSelectedIndex()) {
 			case 1: // video and graphics
 		  	Rectangle bounds = trackerPanel.getMat().mat;
@@ -389,13 +390,12 @@ public class ThumbnailDialog extends JDialog {
   		sizeDropdown.addItem(s);
   		sizes.put(s, dim);
 		}
-		// add "full-thumb-size" item
+		// add "full-thumb-size" item and make it the default
 		String s = thumbSize.width+"x"+thumbSize.height; //$NON-NLS-1$
+		Object defaultItem = s;
 		sizeDropdown.addItem(s);
 		sizes.put(s, thumbSize);
-		// make full-thumb-size the default
-		if (selectedItem==null)
-			selectedItem = s;
+		
 		// add additional sizes if acceptable
 		double[] factor = new double[] {0.75, 0.5, 0.375, 0.25};
 		for (int i=0; i<factor.length; i++) {
@@ -406,8 +406,8 @@ public class ThumbnailDialog extends JDialog {
 	  		sizes.put(s, dim);
 			}
 		}
-		if (sizes.keySet().contains(selectedItem))
-			sizeDropdown.setSelectedItem(selectedItem);
+		// select previous or default size
+		sizeDropdown.setSelectedItem(sizes.keySet().contains(selectedItem)? selectedItem: defaultItem);
   	isRefreshing = false;
   }
 
