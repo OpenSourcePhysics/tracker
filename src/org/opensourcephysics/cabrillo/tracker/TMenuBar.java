@@ -571,6 +571,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 								}
 							}
 			    	}
+			    	else { // user canceled
+			    		editVideoItem.setSelected(false);
+			    	}
 		  		}
 		  	}
 		  }
