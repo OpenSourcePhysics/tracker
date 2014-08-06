@@ -483,6 +483,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     if (showTrackControl && getTFrame()!=null) {
     	TrackControl.getControl(this).setVisible(true);
     }
+    
+    // select new track in autotracker
+    if (autoTracker!=null) {
+    	autoTracker.setTrack(track);
+    }
   }
   
   private FunctionPanel createFunctionPanel(TTrack track) {
