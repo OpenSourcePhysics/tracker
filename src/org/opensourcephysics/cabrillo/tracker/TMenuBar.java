@@ -1284,6 +1284,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     	JMenuItem item = diagMenu.add(Tracker.startLogAction);
     	item.setToolTipText(System.getenv("START_LOG")); //$NON-NLS-1$
     }
+    if (Tracker.trackerPrefsAction!=null) {
+    	JMenuItem item = diagMenu.add(Tracker.trackerPrefsAction);
+    	item.setToolTipText(XML.forwardSlash(Tracker.prefsPath));
+    }
     diagMenu.addSeparator();    
     if (Tracker.aboutJavaAction != null) diagMenu.add(Tracker.aboutJavaAction);
     if (Tracker.aboutQTAction != null) diagMenu.add(Tracker.aboutQTAction);
