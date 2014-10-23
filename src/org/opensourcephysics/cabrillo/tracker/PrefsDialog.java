@@ -528,12 +528,20 @@ public class PrefsDialog extends JDialog {
 	    		Tracker.use32BitMode = true;
 	    		// must run QT engine in 32-bit VM
 	    		if (qtButton.isSelected()) return;
-	    		// set engine to QT and inform user
-	    		qtButton.setSelected(true);
-	      	JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+	    		// check with user
+	      	int selected = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(),
           		TrackerRes.getString("PrefsDialog.Dialog.SwitchTo32.Message"),    //$NON-NLS-1$
               TrackerRes.getString("PrefsDialog.Dialog.SwitchEngine.Title"),    //$NON-NLS-1$
-              JOptionPane.INFORMATION_MESSAGE);
+              JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
+          if(selected==JOptionPane.OK_OPTION) {
+		    		qtButton.setSelected(true);
+          	vm32Button.setName("OK"); //$NON-NLS-1$
+          }
+          else {
+  	    		Tracker.use32BitMode = false;
+          	vm32Button.setName("cancel"); //$NON-NLS-1$
+  	    		vm32Button.setSelected(false);
+          }
 	    	}
 	    	else if (OSPRuntime.isWindows()) {	    		
 	    		refreshJREDropdown(32);
@@ -1671,6 +1679,17 @@ public class PrefsDialog extends JDialog {
     		break;
     	}
     }
+    
+    // tracker jar
+    int selected = 0;
+    for (int i = 0, count = versionDropdown.getItemCount(); i<count; i++) {
+    	String next = versionDropdown.getItemAt(i).toString();
+    	if (Tracker.preferredTrackerJar.indexOf(next)>-1) {
+    		selected = i;
+    		break;
+    	}    	
+    }
+    versionDropdown.setSelectedIndex(selected);
     
     // video
     if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)) {
