@@ -50,7 +50,7 @@ import org.opensourcephysics.cabrillo.tracker.TrackerRes;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.tools.DiagnosticsForXuggle;
+import org.opensourcephysics.tools.DiagnosticsForFFMPeg;
 import org.opensourcephysics.tools.ExtensionsManager;
 
 /**
@@ -67,8 +67,8 @@ public class TrackerStarter {
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
 	static String exceptions = ""; //$NON-NLS-1$
-	static String qtJavaWarning, xuggleWarning;
-	static String trackerHome, userHome, javaHome, xuggleHome, userDocuments;
+	static String qtJavaWarning, ffmpegWarning;
+	static String trackerHome, userHome, javaHome, ffmpegHome, userDocuments;
 	static String startLogPath;
 	static FilenameFilter trackerJarFilter = new TrackerJarFilter();
 	static File codeBaseDir, starterJarFile;
@@ -102,7 +102,7 @@ public class TrackerStarter {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
 		}
-		// get user home, java home and xuggle home
+		// get user home, java home and ffmpeg home
 		try {
 			userHome = System.getProperty("user.home"); //$NON-NLS-1$
 			javaHome = System.getProperty("java.home"); //$NON-NLS-1$
@@ -118,7 +118,7 @@ public class TrackerStarter {
 					userDocuments = null;
 				}
 			}
-			xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
+			ffmpegHome = System.getenv("FFMPEG_HOME"); //$NON-NLS-1$
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
@@ -660,14 +660,14 @@ public class TrackerStarter {
 			env.put("MEMORY_SIZE", String.valueOf(memorySize)); //$NON-NLS-1$
 			showDebugMessage("setting environment variable MEMORY_SIZE = " + String.valueOf(memorySize)); //$NON-NLS-1$ 
 		}
-		if (xuggleWarning!=null) env.put("XUGGLE_WARNING", xuggleWarning); //$NON-NLS-1$ 
+		if (ffmpegWarning!=null) env.put("FFMPEG_WARNING", ffmpegWarning); //$NON-NLS-1$ 
 		if (qtJavaWarning!=null) env.put("QTJAVA_WARNING", qtJavaWarning); //$NON-NLS-1$ 
 		
 		// on OS X, add DYLD_LIBRARY_PATH to environment here
-		// note TRACKER_HOME, XUGGLE_HOME must be in environment BEFORE running this
+		// note TRACKER_HOME must be in environment BEFORE running this
 		if (OSPRuntime.isMac()
-				&& xuggleHome!=null && new File(xuggleHome+"/lib").exists()) { //$NON-NLS-1$
-			env.put("DYLD_LIBRARY_PATH", xuggleHome+"/lib"); //$NON-NLS-1$ //$NON-NLS-2$
+				&& ffmpegHome!=null && new File(ffmpegHome+"/lib").exists()) { //$NON-NLS-1$
+			env.put("DYLD_LIBRARY_PATH", ffmpegHome+"/lib"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		
 		// assemble command message for log
@@ -885,45 +885,49 @@ public class TrackerStarter {
 	}
 
 	/**
-	 * Copies Xuggle jars and QTJava.zip to target VM extensions directory.
+	 * Copies ffmpeg jars and QTJava.zip to target VM extensions directory.
 	 */
 	private static void refreshVideoEngines() throws Exception {
 		ExtensionsManager manager = ExtensionsManager.getManager();
 		String jrePath = preferredVM != null ? preferredVM : javaHome;
 		File extDir = new File(jrePath, "lib/ext"); //$NON-NLS-1$
 		
-		// Xuggle
-		if (manager.copyXuggleJarsTo(extDir)) {
-			showDebugMessage("copied xuggle jars to " + extDir.getAbsolutePath()); //$NON-NLS-1$
+		// FFMPeg
+		if (manager.copyFFMPegJarsTo(extDir)) {
+			showDebugMessage("copied ffmpeg jars to " + extDir.getAbsolutePath()); //$NON-NLS-1$
 		}
 		else {
-	    File extFile = new File(extDir, "xuggle-xuggler.jar"); //$NON-NLS-1$
+	    File extFile = new File(extDir, "ffmpeg-"+DiagnosticsForFFMPeg.FFMPEG_VERSION+".jar"); //$NON-NLS-1$
+	    File extFile1 = new File(extDir, "ffmpeg.jar");
 	    if (extFile.exists()) {
-				showDebugMessage("xuggle jars found in " + extDir.getAbsolutePath()); //$NON-NLS-1$	
+				showDebugMessage("ffmpeg jars found in " + extDir.getAbsolutePath()); //$NON-NLS-1$	
+	    } else if (extFile1.exists()) {
+	    	    showDebugMessage("ffmpeg jars found in " + extDir.getAbsolutePath()); //$NON-NLS-1$
 	    }
 	    else {
-	    	String xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
-	    	if (xuggleHome==null || !new File(xuggleHome+"/share/java/jars/xuggle-xuggler.jar").exists()) {  //$NON-NLS-1$
-					String message = "xuggle jars not found"; //$NON-NLS-1$
-					if (xuggleHome==null) message += ": XUGGLE_HOME is undefined"; //$NON-NLS-1$
-					else message += " in "+xuggleHome; //$NON-NLS-1$
+	    	String ffmpegHome = System.getenv("FFMPEG_HOME"); //$NON-NLS-1$
+	    	if (ffmpegHome==null || !new File(ffmpegHome,"ffmpeg.jar").exists()
+	    			|| !new File(ffmpegHome,"ffmpeg-"+DiagnosticsForFFMPeg.FFMPEG_VERSION+".jar").exists()) {  //$NON-NLS-1$
+					String message = "ffmpeg jars not found"; //$NON-NLS-1$
+					if (ffmpegHome==null) message += ": FFMPEG_HOME is undefined"; //$NON-NLS-1$
+					else message += " in "+ffmpegHome; //$NON-NLS-1$
 	    		showDebugMessage(message);
 	    	}
 	    	else {
-	    		// failed to copy xuggle jars to ext directory--permissions problem?
-	    		String xuggleSourceDir = new File(xuggleHome+"/share/java/jars").getAbsolutePath(); //$NON-NLS-1$
-					showDebugMessage("unable to copy xuggle jars from "+xuggleSourceDir+" to "+extDir.getAbsolutePath());    		 //$NON-NLS-1$ //$NON-NLS-2$
+	    		// failed to copy ffmpeg jars to ext directory--permissions problem?
+	    		String ffmpegSourceDir = new File(ffmpegHome).getAbsolutePath(); //$NON-NLS-1$
+					showDebugMessage("unable to copy ffmpeg jars from "+ffmpegSourceDir+" to "+extDir.getAbsolutePath()); //$NON-NLS-1$ //$NON-NLS-2$
 					
-					// assemble xuggleWarning to pass to Tracker as an environment variable
-					xuggleWarning = TrackerRes.getString("TrackerStarter.Warning.FailedToCopy1");  //$NON-NLS-1$ 
-					xuggleWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.FailedToCopy2");  //$NON-NLS-1$ //$NON-NLS-2$
-					xuggleWarning += "\n \n"+TrackerRes.getString("TrackerStarter.Warning.FilesToCopy")+" ";  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					for (String next: DiagnosticsForXuggle.getXuggleJarNames()) {
-						xuggleWarning += next+", "; //$NON-NLS-1$
+					// assemble ffmpegWarning to pass to Tracker as an environment variable
+					ffmpegWarning = TrackerRes.getString("TrackerStarter.Warning.FailedToCopy1");  //$NON-NLS-1$ 
+					ffmpegWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.FailedToCopy2");  //$NON-NLS-1$ //$NON-NLS-2$
+					ffmpegWarning += "\n \n"+TrackerRes.getString("TrackerStarter.Warning.FilesToCopy")+" ";  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					for (String next: DiagnosticsForFFMPeg.getFFMPegJarNames()) {
+						ffmpegWarning += next+", "; //$NON-NLS-1$
 					}
-					xuggleWarning = xuggleWarning.substring(0, xuggleWarning.lastIndexOf(", ")); //$NON-NLS-1$
-					xuggleWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.CopyFrom")+" "+xuggleSourceDir; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					xuggleWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.CopyTo")+" "+extDir;  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
+					ffmpegWarning = ffmpegWarning.substring(0, ffmpegWarning.lastIndexOf(", ")); //$NON-NLS-1$
+					ffmpegWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.CopyFrom")+" "+ffmpegSourceDir; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					ffmpegWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.CopyTo")+" "+extDir;  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
 	    	}
 	    }
 	    
@@ -972,14 +976,7 @@ public class TrackerStarter {
 	// String jrePath = preferredVM!=null? preferredVM: javaHome;
 	// ExtensionsManager manager = ExtensionsManager.getManager();
 	// boolean qtInstalled = manager.getQTJavaZip()!=null;
-	// double xuggleVersion = VideoIO.guessXuggleVersion();
-	// // OSX: use 32-bit VM unless Xuggle version is 3.4
-	// if (OSPRuntime.isMac()) {
-	// use32BitMode = xuggleVersion!=3.4;
 	// }
-	// // Windows: use 32-bit VM unless no QuickTime and Xuggle version is 5.4
-	// else if (OSPRuntime.isWindows()) {
-	// if (!qtInstalled && xuggleVersion==5.4) {
 	// if (manager.is32BitVM(jrePath)) {
 	// // switch to default 64-bit VM, if any
 	// String jre64 = manager.getDefaultJRE(64);

@@ -66,10 +66,8 @@ public class TrackerIO extends VideoIO {
   protected static Map<String, String> delimiters = new TreeMap<String, String>();
   protected static Map<String, String> customDelimiters = new TreeMap<String, String>();
   protected static boolean isffmpegError = false;
-  protected static boolean isXuggleError = false;
   protected static TFrame theFrame;
   protected static PropertyChangeListener ffmpegListener;
-  protected static PropertyChangeListener xuggleListener;
   protected static boolean loadInSeparateThread = true;
   protected static Set<MonitorDialog> monitors = new HashSet<MonitorDialog>();
   protected static double defaultBadFrameTolerance = 0.2;
@@ -146,76 +144,6 @@ public class TrackerIO extends VideoIO {
     	}
     };
     OSPLog.getOSPLog().addPropertyChangeListener(ffmpegListener);
-  	xuggleListener = new PropertyChangeListener() {
-    	public void propertyChange(PropertyChangeEvent e) {
-    		if (e.getPropertyName().equals("xuggle_error")) { //$NON-NLS-1$
-    			if (!isXuggleError) { // first error thrown
-    				isXuggleError = true;
-    				if (!Tracker.warnXuggleError) {
-    					if (e.getNewValue()!=null) {
-	  						String s = e.getNewValue().toString();
-	  						int n = s.indexOf("]"); //$NON-NLS-1$
-	  						if (n>-1) s = s.substring(n+1);
-	  						s += TrackerRes.getString("TrackerIO.ErrorXuggle.LogMessage"); //$NON-NLS-1$
-	  						OSPLog.warning(s);
-    					}
-  						return;
-  					}
-    	    	// warn user that a Xuggle error has occurred
-    	    	Box box = Box.createVerticalBox();
-    	    	box.add(new JLabel(TrackerRes.getString("TrackerIO.Dialog.ErrorXuggle.Message1"))); //$NON-NLS-1$
-    	    	String error = e.getNewValue().toString();
-    	    	int n = error.lastIndexOf("]"); //$NON-NLS-1$
-    	    	if (n>-1) {
-    	    		error = error.substring(n+1).trim();
-    	    	}
-     	    	box.add(new JLabel("  ")); //$NON-NLS-1$
-     	    	JLabel erLabel = new JLabel("\""+error+"\""); //$NON-NLS-1$ //$NON-NLS-2$
-     	    	erLabel.setBorder(BorderFactory.createEmptyBorder(0, 60, 0, 0));
-    	    	box.add(erLabel);
-     	    	box.add(new JLabel("  ")); //$NON-NLS-1$
-     	      box.add(new JLabel(TrackerRes.getString("TrackerIO.Dialog.ErrorXuggle.Message2"))); //$NON-NLS-1$
-    	    	
-    	    	box.add(new JLabel("  ")); //$NON-NLS-1$
-    	    	box.setBorder(BorderFactory.createEmptyBorder(20, 15, 0, 15));
-    	    	
-    				final JDialog dialog = new JDialog(theFrame, false);
-    				JPanel contentPane = new JPanel(new BorderLayout());
-    				dialog.setContentPane(contentPane);
-    				contentPane.add(box, BorderLayout.CENTER);
-    		    JButton closeButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
-    		    closeButton.setForeground(new Color(0, 0, 102));
-    		    closeButton.addActionListener(new ActionListener() {
-    		      public void actionPerformed(ActionEvent e) {
-    		        dialog.setVisible(false);
-    		      }
-    		    });
-    		    JButton dontShowAgainButton = new JButton(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
-    		    dontShowAgainButton.setForeground(new Color(0, 0, 102));
-    		    dontShowAgainButton.addActionListener(new ActionListener() {
-    		      public void actionPerformed(ActionEvent e) {
-    	    			Tracker.warnXuggleError = false;
-    		        dialog.setVisible(false);
-    		      }
-    		    });
-    		    JPanel buttonbar = new JPanel();
-    		    buttonbar.add(dontShowAgainButton);
-    		    buttonbar.add(closeButton);
-    		    buttonbar.setBorder(BorderFactory.createEtchedBorder());
-    				contentPane.add(buttonbar, BorderLayout.SOUTH);
-    				dialog.pack();
-    				dialog.setTitle(TrackerRes.getString("TrackerIO.Dialog.ErrorXuggle.Title")); //$NON-NLS-1$
-    		    // center dialog on the screen
-    		    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    		    int x = (dim.width - dialog.getBounds().width) / 2;
-    		    int y = (dim.height - dialog.getBounds().height) / 2;
-    		    dialog.setLocation(x, y);
-    				dialog.setVisible(true);
-    			}
-    		}
-    	}
-    };
-    OSPLog.getOSPLog().addPropertyChangeListener(xuggleListener);
     zipFileFilter = new FileFilter() {
       public boolean accept(File f) {
         if (f == null) return false;
@@ -599,10 +527,6 @@ public class TrackerIO extends VideoIO {
 	        	VideoType ffmpegType = VideoIO.getVideoType("FFMPeg", ext); //$NON-NLS-1$
 	        	if (ffmpegType!=null) otherEngines.add(ffmpegType);
 	        }
-	        if (!engine.equals(VideoIO.ENGINE_XUGGLE)) {
-	        	VideoType xuggleType = VideoIO.getVideoType("Xuggle", ext); //$NON-NLS-1$
-	        	if (xuggleType!=null) otherEngines.add(xuggleType);
-	        }
 	        if (!engine.equals(VideoIO.ENGINE_QUICKTIME)) {
 	        	VideoType qtType = VideoIO.getVideoType("QT", ext); //$NON-NLS-1$
 	        	if (qtType!=null) otherEngines.add(qtType);
@@ -619,7 +543,6 @@ public class TrackerIO extends VideoIO {
       		// provide immediate way to open with other engines
         	engine = VideoIO.ENGINE_NONE.equals(engine)? MediaRes.getString("VideoIO.Engine.None"): //$NON-NLS-1$
         			VideoIO.ENGINE_FFMPEG.equals(engine)? MediaRes.getString("FFMPegVideoType.Description"): //$NON-NLS-1$
-           			VideoIO.ENGINE_XUGGLE.equals(engine)? MediaRes.getString("XuggleVideoType.Description"): //$NON-NLS-1$
         			MediaRes.getString("QTVideoType.Description"); //$NON-NLS-1$
         	String message = MediaRes.getString("VideoIO.Dialog.TryDifferentEngine.Message1")+" ("+engine+")."; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         	message += "\n"+MediaRes.getString("VideoIO.Dialog.TryDifferentEngine.Message2"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -628,8 +551,6 @@ public class TrackerIO extends VideoIO {
         	for (VideoType next: otherEngines) {
         		if (next.getClass().getSimpleName().equals("FFMPegVideoType")) 
         				optionList.add(MediaRes.getString("FFMPegVideoType.Description")); //$NON-NLS-1$
-        		else if(next.getClass().getSimpleName().equals("XuggleVideoType"))
-    				optionList.add(MediaRes.getString("XuggleVideoType.Description")); //$NON-NLS-1$
         		else if(next.getClass().getSimpleName().equals("QTVideoType"))
     				optionList.add(MediaRes.getString("QTVideoType.Description")); //$NON-NLS-1$
         	}

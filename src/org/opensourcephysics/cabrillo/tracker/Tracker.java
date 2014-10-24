@@ -108,7 +108,6 @@ public class Tracker {
 	  "config.saveWithData", "data.builder", "data.tool"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   static Set<String> defaultConfig;
   static boolean ffmpegCopied;
-  static boolean xuggleCopied;
   static String[] mainArgs;
   static JFrame splash;
   static Icon trackerLogoIcon, ospLogoIcon;
@@ -120,7 +119,7 @@ public class Tracker {
   static String trackerWebsite = "www.cabrillo.edu/~dbrown/tracker"; //$NON-NLS-1$
   static String author = "Douglas Brown"; //$NON-NLS-1$
   static String osp = "Open Source Physics"; //$NON-NLS-1$
-  static AbstractAction aboutQTAction, aboutFFMPegAction, aboutXuggleAction, aboutThreadsAction;
+  static AbstractAction aboutQTAction, aboutFFMPegAction, aboutThreadsAction;
   static Action aboutTrackerAction, readmeAction;
   static Action aboutJavaAction, startLogAction;
   private static Tracker tracker;
@@ -157,8 +156,8 @@ public class Tracker {
   static int checkForUpgradeInterval = 0;
   static int preferredFontLevel = 0;
   static boolean isRadians, isVideoFast, engineKnown=true;
-  static boolean warnFFMPegError=true, warnXuggleError=true, warnNoVideoEngine=true, use32BitMode=false;
-  static boolean warnXuggleVersion=true, warnVariableDuration=true, warnCopyFailed=true;
+  static boolean warnFFMPegError=true, warnNoVideoEngine=true, use32BitMode=false;
+  static boolean warnVariableDuration=true, warnCopyFailed=true;
   static String[] prelaunchExecutables = new String[0];
   static Collection<String> dataFunctionControls = new HashSet<String>();
 
@@ -327,15 +326,6 @@ public class Tracker {
 			String ffmpegIOName = "org.opensourcephysics.media.ffmpeg.FFMPegIO"; //$NON-NLS-1$
 			Class<?> ffmpegIOClass = Class.forName(ffmpegIOName);
 			Method method = ffmpegIOClass.getMethod("registerWithVideoIO", (Class[]) null);  //$NON-NLS-1$
-			method.invoke(null, (Object[]) null);
-		} catch (Exception ex) {
-		}    
-    
-    // add Xuggle video types, if available using reflection
-  	try {
-			String xuggleIOName = "org.opensourcephysics.media.xuggle.XuggleIO"; //$NON-NLS-1$
-			Class<?> xuggleIOClass = Class.forName(xuggleIOName);
-			Method method = xuggleIOClass.getMethod("registerWithVideoIO", (Class[]) null);  //$NON-NLS-1$
 			method.invoke(null, (Object[]) null);
 		} catch (Exception ex) {
 		}    
@@ -709,11 +699,6 @@ public class Tracker {
       	DiagnosticsForFFMPeg.aboutFFMPeg("Tracker"); //$NON-NLS-1$
       }
     };
-    aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
-        public void actionPerformed(ActionEvent e) {
-        	DiagnosticsForXuggle.aboutXuggle("Tracker"); //$NON-NLS-1$
-        }
-    };
     aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
       	DiagnosticsForThreads.aboutThreads();
@@ -917,13 +902,11 @@ public class Tracker {
    */
   protected static boolean updateResources() {
 		boolean ffmpegUpdated = VideoIO.updateEngine("FFMPegVideoType"); //$NON-NLS-1$
-		boolean xuggleUpdated = VideoIO.updateEngine("XuggleVideoType"); //$NON-NLS-1$
-		if (trackerHome!=null && OSPRuntime.isWindows()) { // ffmpeg/xuggle files changed, so copy into Tracker home also
+		if (trackerHome!=null && OSPRuntime.isWindows()) { // ffmpeg files changed, so copy into Tracker home also
 	  	if(ffmpegUpdated) ExtensionsManager.getManager().copyFFMPegJarsTo(new File(trackerHome));		
-	  	if(xuggleUpdated) ExtensionsManager.getManager().copyXuggleJarsTo(new File(trackerHome));		
 		}
 		boolean qtUpdated = VideoIO.updateEngine("QTVideoType"); //$NON-NLS-1$
-		return qtUpdated || xuggleUpdated || ffmpegUpdated;
+		return qtUpdated || ffmpegUpdated;
   }
 
   /**
@@ -1094,7 +1077,7 @@ public class Tracker {
    * @param args array of tracker or video file names
    */
   public static void main(String[] args) {
-//		String[] vars = {"TRACKER_HOME", "XUGGLE_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+//		String[] vars = {"TRACKER_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 //		for (String next: vars) {
 //			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
 //		}
@@ -1133,7 +1116,7 @@ public class Tracker {
 	  		else javaPath = null;
 	    }
 	    boolean needsJavaVM = javaPath!=null && !javaCommand.equals(javaPath);
-			// update resources like QuickTime, Xuggle and FFMPeg
+			// update resources like QuickTime and FFMPeg
 			boolean updated = updateResources();
 			
 			// compare memory with requested size(s)
@@ -1259,8 +1242,8 @@ public class Tracker {
 	      		TrackerRes.getString("Tracker.Dialog.FailedToCopy.Title")+": QuickTime", //$NON-NLS-1$ //$NON-NLS-2$
 	      		JOptionPane.WARNING_MESSAGE);
 	  	}
-	  	if (System.getenv("XUGGLE_WARNING")!=null) { //$NON-NLS-1$
-	      String warningString = System.getenv("XUGGLE_WARNING"); //$NON-NLS-1$
+	  	if (System.getenv("FFMPEG_WARNING")!=null) { //$NON-NLS-1$
+	      String warningString = System.getenv("FFMPEG_WARNING"); //$NON-NLS-1$
 	      String[] lines = warningString.split("\n"); //$NON-NLS-1$
 	    	Box box = Box.createVerticalBox();
 	  		for (String line: lines) {    			
@@ -1281,7 +1264,7 @@ public class Tracker {
 
 	      JOptionPane.showMessageDialog(null, 
 	      		box, 
-	      		TrackerRes.getString("Tracker.Dialog.FailedToCopy.Title")+": Xuggle", //$NON-NLS-1$ //$NON-NLS-2$
+	      		TrackerRes.getString("Tracker.Dialog.FailedToCopy.Title")+": FFMPeg", //$NON-NLS-1$ //$NON-NLS-2$
 	          JOptionPane.WARNING_MESSAGE);
 	  	}
   	}
@@ -1289,14 +1272,13 @@ public class Tracker {
 //    warnNoVideoEngine = false; // for PLATO
     if (warnNoVideoEngine && VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {    	
     	boolean ffmpegInstalled = ExtensionsManager.getManager().getFFMPegJar()!=null;
-    	boolean xuggleInstalled = VideoIO.guessXuggleVersion()!=0;
     	boolean qtInstalled = ExtensionsManager.getManager().getQTJavaZip()!=null;
     	
     	ArrayList<String> message = new ArrayList<String>();    	
 			boolean showRelaunchDialog = false;
 	    	
     	// no engine installed
-    	if (!xuggleInstalled && !qtInstalled) {
+    	if (!ffmpegInstalled && !qtInstalled) {
     		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message1")); //$NON-NLS-1$
     		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message2")); //$NON-NLS-1$
     		message.add(" "); //$NON-NLS-1$
@@ -1373,35 +1355,6 @@ public class Tracker {
     		
     }
     
-//  	warnXuggleVersion = false; // for PLATO
-    if (warnXuggleVersion && VideoIO.guessXuggleVersion()==5.4) {    	
-    	// warn user that xuggle 5.4 is not recommended
-    	ArrayList<String> message = new ArrayList<String>();
-  		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message1")); //$NON-NLS-1$
-  		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message2")); //$NON-NLS-1$
-  		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
-  		
-    	Box box = Box.createVerticalBox();
-  		for (String line: message) {    			
-  			box.add(new JLabel(line));
-  		}
-    	
-    	// add "don't show again" checkbox
-    	box.add(new JLabel("  ")); //$NON-NLS-1$
-    	final JCheckBox checkbox = new JCheckBox(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
-    	checkbox.addActionListener(new ActionListener() {
-    		public void actionPerformed(ActionEvent e) {
-    			warnXuggleVersion = !checkbox.isSelected();
-    		}
-    	});
-    	box.add(checkbox);
-    	box.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-    	
-    	JOptionPane.showMessageDialog(frame, box,
-    			TrackerRes.getString("PrefsDialog.Checkbox.WarnXuggleVersion"),  //$NON-NLS-1$
-    			JOptionPane.INFORMATION_MESSAGE);
-    		
-    }
     testPanel = frame.getTrackerPanel(0);
   }
 
@@ -1605,10 +1558,6 @@ public class Tracker {
       		control.setValue("warn_variable_frame_duration", Tracker.warnVariableDuration); //$NON-NLS-1$
       	if (!Tracker.warnFFMPegError) // true by default
       		control.setValue("warn_ffmpeg_error", Tracker.warnFFMPegError); //$NON-NLS-1$
-      	if (!Tracker.warnXuggleVersion) // true by default
-      		control.setValue("warn_xuggle_version", Tracker.warnXuggleVersion); //$NON-NLS-1$
-      	if (!Tracker.warnXuggleError) // true by default
-      		control.setValue("warn_xuggle_error", Tracker.warnXuggleError); //$NON-NLS-1$
       	if (!Tracker.warnCopyFailed) // true by default
       		control.setValue("warn_copy_failed", Tracker.warnCopyFailed); //$NON-NLS-1$
       	// always save preferred tracker.jar
@@ -1703,10 +1652,6 @@ public class Tracker {
       		Tracker.warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_ffmpeg_error")) //$NON-NLS-1$
       		Tracker.warnFFMPegError = control.getBoolean("warn_ffmpeg_error"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("warn_xuggle_version")) //$NON-NLS-1$
-      		Tracker.warnXuggleVersion = control.getBoolean("warn_xuggle_version"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("warn_xuggle_error")) //$NON-NLS-1$
-      		Tracker.warnXuggleError = control.getBoolean("warn_xuggle_error"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_variable_frame_duration")) //$NON-NLS-1$
       		Tracker.warnVariableDuration = control.getBoolean("warn_variable_frame_duration"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("show_hints")) { //$NON-NLS-1$

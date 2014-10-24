@@ -178,15 +178,12 @@ public class PropertiesDialog extends JDialog {
 		    type = videoType==null? 
 		    		video.getClass().getSimpleName(): 
 		    		videoType.getDescription();
-		    // eliminate extension list and replace with video engine if ffmpeg, xuggle or QT
+		    // eliminate extension list and replace with video engine if ffmpeg or QT
 		    int n = type.lastIndexOf("("); //$NON-NLS-1$
 		    if (n>-1) {
 		    	type = type.substring(0, n);
 		    	if (video.getClass().getSimpleName().contains(VideoIO.ENGINE_FFMPEG)) {
 		    		type += "(FFMPeg)"; //$NON-NLS-1$
-		    	}
-		    	else if (video.getClass().getSimpleName().contains(VideoIO.ENGINE_XUGGLE)) {
-		    		type += "(Xuggle)"; //$NON-NLS-1$
 		    	}
 		    	else if (video.getClass().getSimpleName().contains(VideoIO.ENGINE_QUICKTIME)) {
 		    		type += "(QuickTime)"; //$NON-NLS-1$
