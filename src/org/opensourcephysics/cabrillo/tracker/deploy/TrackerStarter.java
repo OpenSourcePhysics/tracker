@@ -1,7 +1,7 @@
 /*
  * The tracker.deploy package defines classes for launching and installing Tracker.
  *
- * Copyright (c) 2014  Douglas Brown
+ * Copyright (c) 2015  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,6 @@ import java.nio.charset.Charset;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
-import org.opensourcephysics.cabrillo.tracker.TrackerRes;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
@@ -61,19 +60,26 @@ import org.opensourcephysics.tools.ExtensionsManager;
  */
 public class TrackerStarter {
 
+	public static final String PREFERRED_TRACKER_JAR = "PREFERRED_TRACKER_JAR"; //$NON-NLS-1$
+	public static final String PREFERRED_JAVA_VM = "PREFERRED_JAVA_VM"; //$NON-NLS-1$
+	public static final String PREFERRED_VM_BITNESS = "PREFERRED_VM_BITNESS"; //$NON-NLS-1$
+	public static final String PREFERRED_MEMORY_SIZE = "PREFERRED_MEMORY_SIZE"; //$NON-NLS-1$
+	public static final String PREFERRED_TRACKER_PREFS = "PREFERRED_TRACKER_PREFS"; //$NON-NLS-1$
+	public static final String TRACKER_RELAUNCH = "TRACKER_RELAUNCH"; //$NON-NLS-1$	
 	public static final String LOG_FILE_NAME = "tracker_start.log"; //$NON-NLS-1$
 	static String prefsFileName = ".tracker.prefs"; //$NON-NLS-1$
 	static String starterPrefsFileName = ".tracker_starter.prefs"; //$NON-NLS-1$
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
 	static String exceptions = ""; //$NON-NLS-1$
-	static String qtJavaWarning, xuggleWarning;
+	static String qtJavaWarning, xuggleWarning, starterWarning;
 	static String trackerHome, userHome, javaHome, xuggleHome, userDocuments;
 	static String startLogPath;
 	static FilenameFilter trackerJarFilter = new TrackerJarFilter();
 	static File codeBaseDir, starterJarFile;
 	static double launchVersionNumber;
 	static String launchVersionString;
+	static String trackerJarPath;
 	static int memorySize, preferredMemorySize;
 	static String[] executables;
 	static String logText = ""; //$NON-NLS-1$
@@ -84,8 +90,9 @@ public class TrackerStarter {
 	static boolean debug = false;
 	static boolean log = true;
 	static boolean use32BitMode = false;
+	static boolean relaunching = false;
 	// static boolean qtPreferred = false;
-	static String version = "4.86"; //$NON-NLS-1$
+	static String version = "4.87"; //$NON-NLS-1$
 	static XMLControlElement prefsXMLControl = new XMLControlElement();
 	static int port = 12321;
 	static Timer timer;
@@ -118,7 +125,6 @@ public class TrackerStarter {
 					userDocuments = null;
 				}
 			}
-			xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
@@ -126,23 +132,20 @@ public class TrackerStarter {
 	}
 	
 	/**
-	 * Relaunches a new instance of Tracker.
-	 * @param args array of filenames
-	 */
-	public static void relaunch(final String[] args) {
-		Runnable runner = new Runnable() {
-			public void run() {
-				TrackerStarter.main(args);
-			}
-		};
-		new Thread(runner).start();
-	}
-
-	/**
 	 * Main entry point when used as executable
 	 * @param args array of filenames
 	 */
 	public static void main(String[] args) {
+		relaunching = false;
+		launchTracker(args);
+	}
+
+	/**
+	 * Launches a new instance of Tracker.
+	 * @param args array of filenames
+	 */
+	public static void launchTracker(String[] args) {
+
 		String argString = null;
 		if (args != null && args.length > 0) {
 			argString = ""; //$NON-NLS-1$
@@ -150,12 +153,12 @@ public class TrackerStarter {
 				argString += "\"" + next + "\" "; //$NON-NLS-1$ //$NON-NLS-2$
 			}
 		}
-		showDebugMessage("main arguments: " + argString); //$NON-NLS-1$
+		showDebugMessage("launching with main arguments: " + argString); //$NON-NLS-1$
 		String jarPath = null;
 
 		// find Tracker home
 		try {
-			findTrackerHome();
+			trackerHome = findTrackerHome();
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
@@ -164,7 +167,15 @@ public class TrackerStarter {
 			exitGracefully(null);
 		}
 
-		// load preferences from trackerHome
+		// find Xuggle home
+		try {
+			xuggleHome = findXuggleHome(trackerHome);
+		} catch (Exception ex) {
+			exceptions += ex.getClass().getSimpleName()
+					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
+		}
+
+		// load preferences
 		loadPreferences();
 
 		// determine which tracker jar to launch
@@ -176,21 +187,6 @@ public class TrackerStarter {
 		}
 		if (jarPath == null) {
 			exitGracefully(null);
-		}
-
-		// // set Java VM if there is no preferred video engine
-		// try {
-		// setVMIfNoPreferredEngine();
-		// } catch (Exception ex) {
-		//			exceptions += ex.getClass().getSimpleName()+": "+ex.getMessage()+newline; //$NON-NLS-1$
-		// }
-
-		// copy video engine files to target VM extensions directory
-		try {
-			refreshVideoEngines();
-		} catch (Exception ex) {
-			exceptions += ex.getClass().getSimpleName()
-					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
 		}
 
 		// launch Tracker
@@ -211,13 +207,29 @@ public class TrackerStarter {
 		if (!launched) {
 			exitGracefully(jarPath);
 		}
-		// System.exit(0);
+	}
+
+
+	
+	/**
+	 * Relaunches a new instance of Tracker.
+	 * @param args array of filenames
+	 * @param secondTry true to flag this as a second try in the new process
+	 */
+	public static void relaunch(final String[] args, boolean secondTry) {
+		relaunching = secondTry;
+		Runnable runner = new Runnable() {
+			public void run() {
+				launchTracker(args);
+			}
+		};
+		new Thread(runner).start();
 	}
 
 	/**
-	 * Finds the Tracker home directory and sets the static variable trackerHome.
+	 * Finds the Tracker home directory and sets/returns the static variable trackerHome.
 	 */
-	private static void findTrackerHome() throws Exception {
+	public static String findTrackerHome() throws Exception {
 		// first look for trackerHome in environment variable
 		try {
 			trackerHome = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
@@ -267,6 +279,49 @@ public class TrackerStarter {
 		if (trackerHome == null)
 			throw new NullPointerException("trackerhome not found"); //$NON-NLS-1$
 		showDebugMessage("using trackerhome: " + trackerHome); //$NON-NLS-1$
+		
+		return trackerHome;
+	}
+
+	/**
+	 * Finds the Xuggle home directory and sets/returns the static variable xuggleHome.
+	 */
+	public static String findXuggleHome(String trackerHome) throws Exception {
+		// first see if xuggleHome is child or sibling of trackerHome
+		if (trackerHome!=null) {
+			File trackerHomeDir = new File(trackerHome);
+			File f = new File(trackerHomeDir, "Xuggle"); //$NON-NLS-1$
+			if (!f.exists() || !f.isDirectory()) {
+				f = new File(trackerHomeDir.getParentFile(), "Xuggle"); //$NON-NLS-1$
+			}
+			if ((!f.exists()||!f.isDirectory()) && OSPRuntime.isMac()) {
+				f = new File("/usr/local/xuggler"); //$NON-NLS-1$
+			}
+			if (f.exists() && f.isDirectory()) {
+				xuggleHome = f.getPath();
+				showDebugMessage("xuggleHome found relative to TrackerHome: "+xuggleHome); //$NON-NLS-1$
+			}
+		}
+
+		// if not yet found, look for xuggleHome in environment variable
+		if (xuggleHome==null) {
+			try {
+				xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
+			} catch (Exception ex) {
+				exceptions += ex.getClass().getSimpleName()
+						+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
+			}
+			showDebugMessage("environment variable XUGGLE_HOME: " + xuggleHome); //$NON-NLS-1$
+			if (xuggleHome!=null && !fileExists(xuggleHome)) {
+				xuggleHome = null;
+				showDebugMessage("XUGGLE_HOME directory no longer exists"); //$NON-NLS-1$
+			}			
+		}
+
+		if (xuggleHome==null)
+			throw new NullPointerException("xuggleHome not found"); //$NON-NLS-1$
+		showDebugMessage("using xuggleHome: " + xuggleHome); //$NON-NLS-1$
+		return xuggleHome;
 	}
 
 	// /**
@@ -367,11 +422,21 @@ public class TrackerStarter {
 	 * Loads preferences from a preferences file.
 	 */
 	private static void loadPreferences() {
-		// look for prefs file in user home
+		trackerJarPath = null;
 		File prefsFile = null;
 		boolean loaded = false;
 		boolean tried = false;
-		if (userHome != null) {
+		
+		// look for preferred tracker.prefs in environment
+		String systemProperty = System.getProperty(PREFERRED_TRACKER_PREFS);
+		if (systemProperty!=null) {
+			tried = true;
+			prefsFile = new File(systemProperty);
+			showDebugMessage("system property "+PREFERRED_TRACKER_PREFS+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
+			prefsXMLControl.read(prefsFile.getPath());
+		}
+		// look for prefs file in user home
+		if (userHome != null && (!tried || prefsXMLControl.failedToRead())) {
 			tried = true;
 			prefsFile = new File(userHome, prefsFileName);
 			prefsXMLControl.read(prefsFile.getPath());
@@ -386,34 +451,63 @@ public class TrackerStarter {
 			prefsFile = new File(codeBaseDir, prefsFileName);
 			prefsXMLControl.read(prefsFile.getPath());
 		}
+		
+		// now read the preferences from the prefs file
+		// but also check environment preferences which trump prefs file
 		if (!prefsXMLControl.failedToRead()) {
 			showDebugMessage("loading starter preferences from: " + prefsFile.getPath()); //$NON-NLS-1$
-			use32BitMode = prefsXMLControl.getBoolean("32-bit"); //$NON-NLS-1$
-			//    	qtPreferred = prefsXMLControl.getBoolean("qt_preferred"); //$NON-NLS-1$
-			//    	preferredEngine = prefsXMLControl.getString("video_engine"); //$NON-NLS-1$
-			if (prefsXMLControl.getPropertyNames().contains("tracker_jar")) { //$NON-NLS-1$
+			
+			// preferred vm bitness
+			systemProperty = System.getProperty(PREFERRED_VM_BITNESS);
+			if (systemProperty!=null) {
+				use32BitMode = "32".equals(systemProperty); //$NON-NLS-1$
+				showDebugMessage("system property "+PREFERRED_VM_BITNESS+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			else use32BitMode = prefsXMLControl.getBoolean("32-bit"); //$NON-NLS-1$
+			
+			// preferred tracker jar
+			String jar = null;
+			systemProperty = System.getProperty(PREFERRED_TRACKER_JAR);
+			if (systemProperty!=null) {
 				loaded = true;
-				String jar = prefsXMLControl.getString("tracker_jar"); //$NON-NLS-1$
-				if (!jar.equals("tracker.jar")) { //$NON-NLS-1$
-					int dot = jar.indexOf(".jar"); //$NON-NLS-1$
-					String ver = jar.substring(8, dot);
-					String versionStr = ver;
-	    		int n = ver.toLowerCase().indexOf(snapshot);
-	    		if (n>-1) {
-	    			ver = ver.substring(0, n);
-	    		}
-					try {
-						launchVersionNumber = Double.parseDouble(ver);
-						launchVersionString = versionStr;
-						showDebugMessage("preferred version: " + launchVersionString); //$NON-NLS-1$
-					} catch (Exception ex) {
-						showDebugMessage("version number could not be parsed: " + ver); //$NON-NLS-1$
-					}
+				trackerJarPath = systemProperty;
+				jar = XML.getName(trackerJarPath);
+				showDebugMessage("system property "+PREFERRED_TRACKER_JAR+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			else if (prefsXMLControl.getPropertyNames().contains("tracker_jar")) { //$NON-NLS-1$
+				loaded = true;
+				jar = prefsXMLControl.getString("tracker_jar"); //$NON-NLS-1$
+			}
+			if (jar!=null && !jar.equals("tracker.jar")) { //$NON-NLS-1$
+				int dot = jar.indexOf(".jar"); //$NON-NLS-1$
+				String ver = jar.substring(8, dot);
+				String versionStr = ver;
+    		int n = ver.toLowerCase().indexOf(snapshot);
+    		if (n>-1) {
+    			ver = ver.substring(0, n);
+    		}
+				try {
+					launchVersionNumber = Double.parseDouble(ver);
+					launchVersionString = versionStr;
+					showDebugMessage("preferred version: " + launchVersionString); //$NON-NLS-1$
+				} catch (Exception ex) {
+					showDebugMessage("version number could not be parsed: " + ver); //$NON-NLS-1$
 				}
 			}
-			if (prefsXMLControl.getPropertyNames().contains("java_vm")) { //$NON-NLS-1$
+
+			// preferred java vm
+			preferredVM = null;
+			systemProperty = System.getProperty(PREFERRED_JAVA_VM);
+			if (systemProperty!=null) {
+				loaded = true;
+				preferredVM = systemProperty;
+				showDebugMessage("system property "+PREFERRED_JAVA_VM+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			else if (prefsXMLControl.getPropertyNames().contains("java_vm")) { //$NON-NLS-1$
 				loaded = true;
 				preferredVM = prefsXMLControl.getString("java_vm"); //$NON-NLS-1$
+			}
+			if (preferredVM!=null) {
 				File javaFile = OSPRuntime.getJavaFile(preferredVM);
 				if (javaFile != null && javaFile.exists()) {
 					javaCommand = XML.stripExtension(javaFile.getPath());
@@ -423,8 +517,10 @@ public class TrackerStarter {
 					preferredVM = null;
 					javaCommand = "java"; //$NON-NLS-1$
 				}
+
 			}
 
+			// preferred executables to run prior to starting Tracker
 			if (prefsXMLControl.getPropertyNames().contains("run")) { //$NON-NLS-1$
 				loaded = true;
 				executables = (String[]) prefsXMLControl.getObject("run"); //$NON-NLS-1$
@@ -452,10 +548,25 @@ public class TrackerStarter {
 						}
 				}
 			}
-			if (prefsXMLControl.getPropertyNames().contains("memory_size")) { //$NON-NLS-1$
-				preferredMemorySize = prefsXMLControl.getInt("memory_size"); //$NON-NLS-1$
-				showDebugMessage("preferred memory size: " + preferredMemorySize + " MB"); //$NON-NLS-1$ //$NON-NLS-2$
+			
+			// preferred memory size
+			preferredMemorySize = 0; // default
+			systemProperty = System.getProperty(PREFERRED_MEMORY_SIZE);
+			if (systemProperty!=null) {
+				loaded = true;
+				try {
+					preferredMemorySize = Integer.parseInt(systemProperty);
+					showDebugMessage("system property "+PREFERRED_MEMORY_SIZE+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
+				} catch (NumberFormatException e) {
+				}
 			}
+			else if (prefsXMLControl.getPropertyNames().contains("memory_size")) { //$NON-NLS-1$
+				preferredMemorySize = prefsXMLControl.getInt("memory_size"); //$NON-NLS-1$
+			}
+			if (preferredMemorySize>0) {
+				showDebugMessage("preferred memory size: " + preferredMemorySize + " MB"); //$NON-NLS-1$ //$NON-NLS-2$				
+			}
+			
 			if (!loaded)
 				showDebugMessage("no starter preferences found in " + prefsFile.getPath()); //$NON-NLS-1$      		
 		}
@@ -546,6 +657,9 @@ public class TrackerStarter {
 	 * @return the path, or null if none found
 	 */
 	private static String getTrackerJarPath() throws Exception {
+		if (trackerJarPath!=null) {
+			return trackerJarPath;
+		}
 		String jarPath = null;
 		String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath()
 				: trackerHome;
@@ -637,7 +751,7 @@ public class TrackerStarter {
 			cmd.add(use32BitMode ? "-d32" : "-d64"); //$NON-NLS-1$ //$NON-NLS-2$
 			cmd.add("-Xdock:name=Tracker"); //$NON-NLS-1$
 		}
-
+		
 		cmd.add("-jar"); //$NON-NLS-1$
 		cmd.add(jarPath);
 		if (args != null && args.length > 0)
@@ -651,25 +765,55 @@ public class TrackerStarter {
 		
 		// set environment variables for new process
 		Map<String, String> env = builder.environment();
-		String portVar = "TRACKER_PORT"; //$NON-NLS-1$
-		env.put(portVar, String.valueOf(port));
-		if (logText.indexOf(portVar)==-1) {
-			showDebugMessage("setting environment variable "+portVar+" = " + String.valueOf(port)); //$NON-NLS-1$ //$NON-NLS-2$
-		}
+//		String portVar = "TRACKER_PORT"; //$NON-NLS-1$
+//		env.put(portVar, String.valueOf(port));
+//		if (logText.indexOf(portVar)==-1) {
+//			showDebugMessage("setting environment variable "+portVar+" = " + String.valueOf(port)); //$NON-NLS-1$ //$NON-NLS-2$
+//		}
 		if (memorySize<preferredMemorySize) {
 			env.put("MEMORY_SIZE", String.valueOf(memorySize)); //$NON-NLS-1$
 			showDebugMessage("setting environment variable MEMORY_SIZE = " + String.valueOf(memorySize)); //$NON-NLS-1$ 
 		}
 		if (xuggleWarning!=null) env.put("XUGGLE_WARNING", xuggleWarning); //$NON-NLS-1$ 
 		if (qtJavaWarning!=null) env.put("QTJAVA_WARNING", qtJavaWarning); //$NON-NLS-1$ 
+		if (starterWarning!=null) env.put("STARTER_WARNING", starterWarning); //$NON-NLS-1$ 
 		
-		// on OS X, add DYLD_LIBRARY_PATH to environment here
-		// note TRACKER_HOME, XUGGLE_HOME must be in environment BEFORE running this
-		if (OSPRuntime.isMac()
-				&& xuggleHome!=null && new File(xuggleHome+"/lib").exists()) { //$NON-NLS-1$
-			env.put("DYLD_LIBRARY_PATH", xuggleHome+"/lib"); //$NON-NLS-1$ //$NON-NLS-2$
+		// add TRACKER_HOME, XUGGLE_HOME and PATH to environment
+		if (trackerHome!=null) { 
+			env.put("TRACKER_HOME", trackerHome); //$NON-NLS-1$ 
+			showDebugMessage("setting TRACKER_HOME = " + trackerHome); //$NON-NLS-1$
+		}
+		if (xuggleHome!=null && new File(xuggleHome).exists()) {
+			env.put("XUGGLE_HOME", xuggleHome); //$NON-NLS-1$ 
+			showDebugMessage("setting XUGGLE_HOME = " + xuggleHome); //$NON-NLS-1$
+
+			String pathEnvironment = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
+				OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
+			
+			String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
+			String xugglePath = xuggleHome+File.separator+subdir;
+			if (new File(xugglePath).exists()) {
+				// get current PATH
+				String pathValue = env.get(pathEnvironment);
+				if (pathValue==null) pathValue = ""; //$NON-NLS-1$
+				
+				// add xuggle path at beginning of current PATH
+//				if (!pathValue.startsWith(xuggleBinPath)) {
+//					pathValue = xuggleBinPath+File.pathSeparator+pathValue;
+//				}
+				
+				pathValue = xugglePath;
+				env.put(pathEnvironment, pathValue);
+				showDebugMessage("setting "+pathEnvironment+" = " + pathValue); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			
 		}
 		
+		// add TRACKER_RELAUNCH to process environment if relaunching
+		if (relaunching) {
+			env.put(TRACKER_RELAUNCH, "true"); //$NON-NLS-1$
+		}
+							
 		// assemble command message for log
 		String message = ""; //$NON-NLS-1$
 		for (String next: cmd) {
@@ -739,6 +883,16 @@ public class TrackerStarter {
     		showDebugMessage("try to start with smaller memory size "+memorySize+"MB"); //$NON-NLS-1$ //$NON-NLS-2$
     		startTracker(jarPath, args);
     	}
+	    // if process failed due to unsupported 32-bit VM, change bitness and try again
+	    else if (errors.indexOf("32-bit")>-1) { //$NON-NLS-1$
+	    	use32BitMode = false;
+    		showDebugMessage("try to start in 64-bit mode"); //$NON-NLS-1$
+    		
+				// assemble warning to pass to Tracker as an environment variable
+    		starterWarning = "The Java VM was started in 64-bit mode (32-bit not support)."; //$NON-NLS-1$
+
+    		startTracker(jarPath, args);
+	    }
 	    else {
   			exceptions += errors + newline;
   			exitGracefully(jarPath);
@@ -748,6 +902,11 @@ public class TrackerStarter {
 			// should never get here--exits via timer
 			System.exit(0);
 		}
+		if (OSPRuntime.isMac()
+				&& xuggleHome!=null && new File(xuggleHome+"/lib").exists()) { //$NON-NLS-1$
+			env.put("DYLD_LIBRARY_PATH", xuggleHome+"/lib"); //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		
 	}
 
 	private static String writeUserLog() {
@@ -886,7 +1045,10 @@ public class TrackerStarter {
 
 	/**
 	 * Copies Xuggle jars and QTJava.zip to target VM extensions directory.
+	 * Deprecated--no longer require extensions as of Oct 2014
 	 */
+	@SuppressWarnings("unused")
+	@Deprecated
 	private static void refreshVideoEngines() throws Exception {
 		ExtensionsManager manager = ExtensionsManager.getManager();
 		String jrePath = preferredVM != null ? preferredVM : javaHome;
@@ -915,15 +1077,15 @@ public class TrackerStarter {
 					showDebugMessage("unable to copy xuggle jars from "+xuggleSourceDir+" to "+extDir.getAbsolutePath());    		 //$NON-NLS-1$ //$NON-NLS-2$
 					
 					// assemble xuggleWarning to pass to Tracker as an environment variable
-					xuggleWarning = TrackerRes.getString("TrackerStarter.Warning.FailedToCopy1");  //$NON-NLS-1$ 
-					xuggleWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.FailedToCopy2");  //$NON-NLS-1$ //$NON-NLS-2$
-					xuggleWarning += "\n \n"+TrackerRes.getString("TrackerStarter.Warning.FilesToCopy")+" ";  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					xuggleWarning = "Some video engine files could not be copied automatically."; //$NON-NLS-1$
+					xuggleWarning += "\nThe video engine may not work unless they are copied manually.";  //$NON-NLS-1$ 
+					xuggleWarning += "\n\nFiles to copy: ";  //$NON-NLS-1$ 
 					for (String next: DiagnosticsForXuggle.getXuggleJarNames()) {
 						xuggleWarning += next+", "; //$NON-NLS-1$
 					}
 					xuggleWarning = xuggleWarning.substring(0, xuggleWarning.lastIndexOf(", ")); //$NON-NLS-1$
-					xuggleWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.CopyFrom")+" "+xuggleSourceDir; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					xuggleWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.CopyTo")+" "+extDir;  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
+					xuggleWarning += "\nCopy from: "+xuggleSourceDir; //$NON-NLS-1$ 
+					xuggleWarning += "\nCopy to: "+extDir;  //$NON-NLS-1$ 
 	    	}
 	    }
 	    
@@ -951,64 +1113,16 @@ public class TrackerStarter {
 					showDebugMessage("unable to copy "+qtSource.getAbsolutePath()+" to "+extDir.getAbsolutePath());  //$NON-NLS-1$ //$NON-NLS-2$
 					
 					// assemble qtJavaWarning to pass to Tracker as an environment variable
-					qtJavaWarning = TrackerRes.getString("TrackerStarter.Warning.FailedToCopy1");  //$NON-NLS-1$ 
-					qtJavaWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.FailedToCopy2");  //$NON-NLS-1$ //$NON-NLS-2$
-					qtJavaWarning += "\n \n"+TrackerRes.getString("TrackerStarter.Warning.FilesToCopy")+" QTJava.zip";  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					qtJavaWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.CopyFrom")+" "+qtSource.getParent(); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					qtJavaWarning += "\n"+TrackerRes.getString("TrackerStarter.Warning.CopyTo")+" "+extDir;  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
+					// assemble xuggleWarning to pass to Tracker as an environment variable
+					qtJavaWarning = "Some video engine files could not be copied automatically."; //$NON-NLS-1$
+					qtJavaWarning += "\nThe video engine may not work unless they are copied manually.";  //$NON-NLS-1$ 
+					qtJavaWarning += "\n\nFiles to copy: QTJava.zip";  //$NON-NLS-1$ 
+					qtJavaWarning += "\nCopy from: "+qtSource.getParent(); //$NON-NLS-1$ 
+					qtJavaWarning += "\nCopy to: "+extDir;  //$NON-NLS-1$ 
 	    	}
 	    }
 	    
 		}
 	}
-
-	// /**
-	// * Sets an appropriate Java VM if no preferred video engine is defined.
-	// * pig: this doesn't work yet
-	// */
-	// private static void setVMIfNoPreferredEngine() throws Exception {
-	// if (preferredEngine==null) { // should only happen the first time Tracker
-	// is used
-	// String jrePath = preferredVM!=null? preferredVM: javaHome;
-	// ExtensionsManager manager = ExtensionsManager.getManager();
-	// boolean qtInstalled = manager.getQTJavaZip()!=null;
-	// double xuggleVersion = VideoIO.guessXuggleVersion();
-	// // OSX: use 32-bit VM unless Xuggle version is 3.4
-	// if (OSPRuntime.isMac()) {
-	// use32BitMode = xuggleVersion!=3.4;
-	// }
-	// // Windows: use 32-bit VM unless no QuickTime and Xuggle version is 5.4
-	// else if (OSPRuntime.isWindows()) {
-	// if (!qtInstalled && xuggleVersion==5.4) {
-	// if (manager.is32BitVM(jrePath)) {
-	// // switch to default 64-bit VM, if any
-	// String jre64 = manager.getDefaultJRE(64);
-	// if (jre64!=null) {
-	// File javaFile = OSPRuntime.getJavaFile(jre64);
-	// if (javaFile!=null && javaFile.exists()) {
-	// preferredVM = jre64;
-	// javaCommand = XML.stripExtension(javaFile.getPath());
-	//			    			showDebugMessage("initial startup java VM: "+javaCommand); //$NON-NLS-1$
-	// }
-	// }
-	// }
-	// }
-	// else if (!manager.is32BitVM(jrePath)) {
-	// // switch to 32-bit VM
-	// String jre32 = manager.getDefaultJRE(32);
-	// if (jre32!=null) {
-	// File javaFile = OSPRuntime.getJavaFile(jre32);
-	// if (javaFile!=null && javaFile.exists()) {
-	// preferredVM = jre32;
-	// javaCommand = XML.stripExtension(javaFile.getPath());
-	//		    			showDebugMessage("initial startup java VM: "+javaCommand); //$NON-NLS-1$
-	// }
-	// }
-	//
-	// }
-	// }
-	// }
-	// }
-	//
 
 }
