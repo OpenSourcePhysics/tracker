@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2014  Douglas Brown
+ * Copyright (c) 2015  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
@@ -38,12 +37,12 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
-import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.MouseInputAdapter;
 
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
+import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.*;
@@ -113,19 +112,20 @@ public class Tracker {
   static Icon trackerLogoIcon, ospLogoIcon;
   static JLabel tipOfTheDayLabel;
   static JProgressBar progressBar;
-  static String version = "4.86"; //$NON-NLS-1$
+  static String version = "4.8620141102"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
-  static String copyright = "Copyright (c) 2014 Douglas Brown"; //$NON-NLS-1$
+  static String copyright = "Copyright (c) 2015 Douglas Brown"; //$NON-NLS-1$
   static String trackerWebsite = "www.cabrillo.edu/~dbrown/tracker"; //$NON-NLS-1$
   static String author = "Douglas Brown"; //$NON-NLS-1$
   static String osp = "Open Source Physics"; //$NON-NLS-1$
   static AbstractAction aboutQTAction, aboutXuggleAction, aboutThreadsAction;
   static Action aboutTrackerAction, readmeAction;
-  static Action aboutJavaAction, startLogAction;
+  static Action aboutJavaAction, startLogAction, trackerPrefsAction;
   private static Tracker tracker;
   static Process rmiProc;
   static String readmeFileName = "tracker_README.txt"; //$NON-NLS-1$
-  static JDialog readmeDialog, startLogDialog;
+  static JDialog readmeDialog, startLogDialog, trackerPrefsDialog;
+  static JTextArea trackerPrefsTextArea;
   static String prefsFileName = ".tracker.prefs"; //$NON-NLS-1$
   static String prefsPath;
   @SuppressWarnings("javadoc")
@@ -683,7 +683,50 @@ public class Tracker {
 	    };
 		}
 
-    // about Java
+		if (prefsPath!=null) {
+	    trackerPrefsAction = new AbstractAction(
+	        TrackerRes.getString("Tracker.Prefs.MenuItem.Text")+"...", null) { //$NON-NLS-1$ //$NON-NLS-2$
+				public void actionPerformed(ActionEvent e) {
+					if (trackerPrefsDialog==null) {
+		        String s = ResourceLoader.getString(prefsPath);
+		        if (s==null || "".equals(s)) { //$NON-NLS-1$
+		        	s = TrackerRes.getString("Tracker.Prefs.NotFound")+": "+prefsPath; //$NON-NLS-1$ //$NON-NLS-2$
+		          JOptionPane.showMessageDialog(null, s,
+		          TrackerRes.getString("Tracker.Prefs.NotFound"), //$NON-NLS-1$
+		          JOptionPane.WARNING_MESSAGE);
+		          return;
+		        }
+		        trackerPrefsDialog = new JDialog((Frame)null, true);
+		        trackerPrefsDialog.setTitle(TrackerRes.getString("ConfigInspector.Title")+": "+ //$NON-NLS-1$ //$NON-NLS-2$
+		        		XML.forwardSlash(Tracker.prefsPath));
+		        trackerPrefsTextArea = new JTextArea();
+		        trackerPrefsTextArea.setEditable(false);
+		        trackerPrefsTextArea.setTabSize(2);
+		        trackerPrefsTextArea.setLineWrap(true);
+		        trackerPrefsTextArea.setWrapStyleWord(true);
+		        JScrollPane scroller = new JScrollPane(trackerPrefsTextArea);
+		        trackerPrefsDialog.setContentPane(scroller);
+		        trackerPrefsTextArea.setText(s);
+		        trackerPrefsTextArea.setCaretPosition(0);
+		    		FontSizer.setFonts(trackerPrefsDialog, FontSizer.getLevel());
+		    		trackerPrefsDialog.setSize(800, 400);
+		        // center on screen
+		        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		        int x = (dim.width - trackerPrefsDialog.getBounds().width) / 2;
+		        int y = (dim.height - trackerPrefsDialog.getBounds().height) / 2;
+		        trackerPrefsDialog.setLocation(x, y);
+					}
+					else {
+		        String s = ResourceLoader.getString(prefsPath);
+		        trackerPrefsTextArea.setText(s);
+		        trackerPrefsTextArea.setCaretPosition(0);
+					}
+					trackerPrefsDialog.setVisible(true);
+	      }
+	    };
+		}
+
+		// about Java
     aboutJavaAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutJava"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
         Diagnostics.aboutJava();
@@ -706,121 +749,121 @@ public class Tracker {
     };
   }
   
-  /**
-   * Attempts to relaunch Tracker with specified runtime parameters.
-   *
-   * @param memorySize the desired memory size in MB
-   * @param javaPath the java executable path
-   */
-  protected static void relaunch(int memorySize, String javaPath) {
-//    try {
-//			JarFile jarfile = OSPRuntime.getLaunchJar();
-//			java.util.jar.Attributes att = jarfile.getManifest().getMainAttributes();
-//			Object mainclass = att.getValue("Main-Class"); //$NON-NLS-1$
-//			isTracker = mainclass.toString().endsWith("Tracker"); //$NON-NLS-1$
-//		} catch (Exception ex) {
-//		}
-//		// save tracker panels
-//		ArrayList<String> filenames = new ArrayList<String>();
-//		if (frame!=null) {
-//			for (int i = 0; i<frame.getTabCount(); i++) {
-//				TrackerPanel next = frame.getTrackerPanel(i);
-//				if (!next.save()) return;
-//				File datafile = next.getDataFile();
-//				if (datafile!=null && isTracker) {
-//	    		String fileName = XML.getAbsolutePath(next.getDataFile());
-//	    		filenames.add(fileName);
-//				}
-//			}
-//		}
-	final int prevSize = Tracker.preferredMemorySize;
-	int newSize = memorySize>minimumMemorySize? memorySize: -1;
-//		Tracker.preferredMemorySize = newSize;
-//		Tracker.savePreferences();
-		
-    final ArrayList<String> cmd = new ArrayList<String>();
-    cmd.add(javaPath==null? "java": javaPath); //$NON-NLS-1$
-    if (newSize>-1) {
-	    cmd.add("-Xms32m"); //$NON-NLS-1$
-	    cmd.add("-Xmx"+newSize+"m"); //$NON-NLS-1$ //$NON-NLS-2$
-    }
-    if (OSPRuntime.isMac()) {
-	    cmd.add(use32BitMode? "-d32": "-d64"); //$NON-NLS-1$ //$NON-NLS-2$
-    	cmd.add("-Xdock:name=Tracker"); //$NON-NLS-1$
-    }
-    cmd.add("-jar"); //$NON-NLS-1$
-  	String jar = OSPRuntime.getLaunchJarPath();
-    cmd.add(jar);
-//    if (frame!=null) {
-//	    for (String next: filenames) {
+//  /**
+//   * Attempts to relaunch Tracker with specified runtime parameters.
+//   *
+//   * @param memorySize the desired memory size in MB
+//   * @param javaPath the java executable path
+//   */
+//  protected static void relaunch(int memorySize, String javaPath) {
+////    try {
+////			JarFile jarfile = OSPRuntime.getLaunchJar();
+////			java.util.jar.Attributes att = jarfile.getManifest().getMainAttributes();
+////			Object mainclass = att.getValue("Main-Class"); //$NON-NLS-1$
+////			isTracker = mainclass.toString().endsWith("Tracker"); //$NON-NLS-1$
+////		} catch (Exception ex) {
+////		}
+////		// save tracker panels
+////		ArrayList<String> filenames = new ArrayList<String>();
+////		if (frame!=null) {
+////			for (int i = 0; i<frame.getTabCount(); i++) {
+////				TrackerPanel next = frame.getTrackerPanel(i);
+////				if (!next.save()) return;
+////				File datafile = next.getDataFile();
+////				if (datafile!=null && isTracker) {
+////	    		String fileName = XML.getAbsolutePath(next.getDataFile());
+////	    		filenames.add(fileName);
+////				}
+////			}
+////		}
+//	final int prevSize = Tracker.preferredMemorySize;
+//	int newSize = memorySize>minimumMemorySize? memorySize: -1;
+////		Tracker.preferredMemorySize = newSize;
+////		Tracker.savePreferences();
+//		
+//    final ArrayList<String> cmd = new ArrayList<String>();
+//    cmd.add(javaPath==null? "java": javaPath); //$NON-NLS-1$
+//    if (newSize>-1) {
+//	    cmd.add("-Xms32m"); //$NON-NLS-1$
+//	    cmd.add("-Xmx"+newSize+"m"); //$NON-NLS-1$ //$NON-NLS-2$
+//    }
+//    if (OSPRuntime.isMac()) {
+//	    cmd.add(use32BitMode? "-d32": "-d64"); //$NON-NLS-1$ //$NON-NLS-2$
+//    	cmd.add("-Xdock:name=Tracker"); //$NON-NLS-1$
+//    }
+//    cmd.add("-jar"); //$NON-NLS-1$
+//  	String jar = OSPRuntime.getLaunchJarPath();
+//    cmd.add(jar);
+////    if (frame!=null) {
+////	    for (String next: filenames) {
+////	    	cmd.add(next);
+////	    }
+////    }
+//    if (mainArgs!=null) {
+//	    for (String next: mainArgs) {
 //	    	cmd.add(next);
 //	    }
 //    }
-    if (mainArgs!=null) {
-	    for (String next: mainArgs) {
-	    	cmd.add(next);
-	    }
-    }
-  	cmd.add("relaunch"); //$NON-NLS-1$
-    // create a timer to exit the system if relaunch is successful
-    final Timer timer = new Timer(500, new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        System.exit(0);
-      }
-    });
-    timer.setRepeats(false);
-    timer.start();
-    // create a thread to launch in separate VM
-    Runnable launchRunner = new Runnable() {
-      public void run() {
-        // log command for debugging
-        String log = ""; //$NON-NLS-1$
-        for (int i=0; i< cmd.size(); i++) {
-        	log += cmd.get(i)+" "; //$NON-NLS-1$
-        }
-        writeRelaunchLog(log);
-        try { 
-        	ProcessBuilder builder = new ProcessBuilder(cmd);
-        	Process proc = builder.start();
-          BufferedInputStream errStream=new BufferedInputStream(proc.getErrorStream());
-          errStream.read(); // blocks if no errors
-          byte[] b = new byte[1024];
-          int bytesRead=0;
-          String strFileContents;
-          while( (bytesRead = errStream.read(b)) != -1){
-          	strFileContents = new String(b, 0, bytesRead);
-          	OSPLog.warning(strFileContents);
-          }
-          timer.stop();
-          errStream.close();
-          Tracker.preferredMemorySize = prevSize;
-        	Tracker.start(mainArgs);
-        } catch(Exception ex) {}
-      }
+//  	cmd.add("relaunch"); //$NON-NLS-1$
+//    // create a timer to exit the system if relaunch is successful
+//    final Timer timer = new Timer(500, new ActionListener() {
+//      public void actionPerformed(ActionEvent e) {
+//        System.exit(0);
+//      }
+//    });
+//    timer.setRepeats(false);
+//    timer.start();
+//    // create a thread to launch in separate VM
+//    Runnable launchRunner = new Runnable() {
+//      public void run() {
+//        // log command for debugging
+//        String log = ""; //$NON-NLS-1$
+//        for (int i=0; i< cmd.size(); i++) {
+//        	log += cmd.get(i)+" "; //$NON-NLS-1$
+//        }
+//        writeRelaunchLog(log);
+//        try { 
+//        	ProcessBuilder builder = new ProcessBuilder(cmd);
+//        	Process proc = builder.start();
+//          BufferedInputStream errStream=new BufferedInputStream(proc.getErrorStream());
+//          errStream.read(); // blocks if no errors
+//          byte[] b = new byte[1024];
+//          int bytesRead=0;
+//          String strFileContents;
+//          while( (bytesRead = errStream.read(b)) != -1){
+//          	strFileContents = new String(b, 0, bytesRead);
+//          	OSPLog.warning(strFileContents);
+//          }
+//          timer.stop();
+//          errStream.close();
+//          Tracker.preferredMemorySize = prevSize;
+//        	Tracker.start(mainArgs);
+//        } catch(Exception ex) {}
+//      }
+//
+//    };
+//    Thread relauncher = new Thread(launchRunner);
+//    relauncher.setPriority(Thread.NORM_PRIORITY);
+//    relauncher.start();           
+//  }
 
-    };
-    Thread relauncher = new Thread(launchRunner);
-    relauncher.setPriority(Thread.NORM_PRIORITY);
-    relauncher.start();           
-  }
-
-  protected static void writeRelaunchLog(String cmd) {
-    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
-    Calendar cal = Calendar.getInstance();
-    String logText = "Tracker version "+version+"  " //$NON-NLS-1$ //$NON-NLS-2$
-		+sdf.format(cal.getTime())+"\n\n"; //$NON-NLS-1$
-  	logText += "java command: "+cmd; //$NON-NLS-1$
-    File file = new File(trackerHome, "tracker_relaunch.log"); //$NON-NLS-1$
-    try {
-      FileOutputStream stream = new FileOutputStream(file);
-      Charset charset = Charset.forName("UTF-8"); //$NON-NLS-1$
-      OutputStreamWriter out = new OutputStreamWriter(stream, charset);
-    	BufferedWriter writer = new BufferedWriter(out);
-      writer.write(logText);
-      writer.flush();
-      writer.close();
-    } catch(IOException ex) {}
-  }
+//  protected static void writeRelaunchLog(String cmd) {
+//    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
+//    Calendar cal = Calendar.getInstance();
+//    String logText = "Tracker version "+version+"  " //$NON-NLS-1$ //$NON-NLS-2$
+//		+sdf.format(cal.getTime())+"\n\n"; //$NON-NLS-1$
+//  	logText += "java command: "+cmd; //$NON-NLS-1$
+//    File file = new File(trackerHome, "tracker_relaunch.log"); //$NON-NLS-1$
+//    try {
+//      FileOutputStream stream = new FileOutputStream(file);
+//      Charset charset = Charset.forName("UTF-8"); //$NON-NLS-1$
+//      OutputStreamWriter out = new OutputStreamWriter(stream, charset);
+//    	BufferedWriter writer = new BufferedWriter(out);
+//      writer.write(logText);
+//      writer.flush();
+//      writer.close();
+//    } catch(IOException ex) {}
+//  }
   
   /**
    * Gets the full set of configuration properties.
@@ -901,12 +944,14 @@ public class Tracker {
    * @return true if any resources were updated
    */
   protected static boolean updateResources() {
-		boolean updated = VideoIO.updateEngine("XuggleVideoType"); //$NON-NLS-1$
-		if (updated && trackerHome!=null && OSPRuntime.isWindows()) { // xuggle files changed, so copy into Tracker home also
-	  	ExtensionsManager.getManager().copyXuggleJarsTo(new File(trackerHome));		
-		}
-		updated = VideoIO.updateEngine("QTVideoType") || updated; //$NON-NLS-1$
-		return updated;
+  	// update QTJava.zip--copies newer QTJava, if found, to Tracker home
+  	return ExtensionsManager.getManager().copyQTJavaTo(new File(trackerHome));
+//		boolean updated = VideoIO.updateEngine("XuggleVideoType"); //$NON-NLS-1$
+//		if (updated && trackerHome!=null && OSPRuntime.isWindows()) { // xuggle files changed, so copy into Tracker home also
+//	  	ExtensionsManager.getManager().copyXuggleJarsTo(new File(trackerHome));		
+//		}
+//		updated = VideoIO.updateEngine("QTVideoType") || updated; //$NON-NLS-1$
+//		return updated;
   }
 
   /**
@@ -1092,13 +1137,17 @@ public class Tracker {
 		} catch (Exception ex) {}
 		
 		// determine if relaunch is needed
-		boolean isRelaunch = args!=null && args.length>0 && "relaunch".equals(args[args.length-1]); //$NON-NLS-1$
-
+  	boolean isRelaunch = args!=null && args.length>0 && "relaunch".equals(args[args.length-1]); //$NON-NLS-1$
     if (isRelaunch) {
     	String[] newargs = new String[args.length-1];
     	System.arraycopy(args, 0, newargs, 0, newargs.length);
     	args = newargs;
     }
+    else {
+    	String s = System.getenv(TrackerStarter.TRACKER_RELAUNCH);
+    	isRelaunch = "true".equals(s); //$NON-NLS-1$
+    }
+
     
     // get current memory (maximum heap) size
 		java.lang.management.MemoryMXBean memory
@@ -1116,7 +1165,8 @@ public class Tracker {
 	  		else javaPath = null;
 	    }
 	    boolean needsJavaVM = javaPath!=null && !javaCommand.equals(javaPath);
-			// update resources like QuickTime and Xuggle
+	    
+			// update resources like QuickTime
 			boolean updated = updateResources();
 			
 			// compare memory with requested size(s)
@@ -1128,13 +1178,45 @@ public class Tracker {
 
 	    boolean needsMemory = requestedMemorySize>10 &&
 					(size<9*requestedMemorySize/10 || size>11*requestedMemorySize/10);
-	    // attempt to relaunch if needed
-	    if (isTracker && (needsJavaVM || updated || needsMemory)) {
+	    
+	    // check environment
+	    boolean needsEnvironment = false;
+	    String trackerEnv = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
+	    String xuggleEnv = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
+			String pathEnvironment = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
+				OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
+			String pathValue = System.getenv(pathEnvironment);
+	    try {
+				String trackerDir = TrackerStarter.findTrackerHome();
+				if (trackerDir!=null && !trackerDir.equals(trackerEnv)) {
+					needsEnvironment = true;
+				}
+				String xuggleDir = TrackerStarter.findXuggleHome(trackerDir);
+				if (xuggleDir!=null && !xuggleDir.equals(xuggleEnv)) {
+					needsEnvironment = true;					
+				}
+				if (xuggleDir!=null) {
+					String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
+					String xugglePath = xuggleDir+File.separator+subdir;
+					if (!pathValue.contains(xugglePath)) {
+						needsEnvironment = true;					
+					}
+				}
+					
+			} catch (Exception e) {
+			}
+	    
+
+	    // attempt to relaunch if needed	    
+	    if (isTracker && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
 	    	mainArgs = args;
 	    	if (requestedMemorySize<=10) {
 	    		requestedMemorySize = (int)size;
 	    	}
-	    	relaunch(requestedMemorySize, javaPath);
+	    	System.setProperty(TrackerStarter.PREFERRED_MEMORY_SIZE, String.valueOf(requestedMemorySize));
+	    	System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, OSPRuntime.getLaunchJarPath());
+
+	    	TrackerStarter.relaunch(mainArgs, true);
 		    return;
 			}
 		}
@@ -1286,8 +1368,8 @@ public class Tracker {
     		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message3")); //$NON-NLS-1$
     	}
     	
-    	// engines installed but no 32-bit VM
-    	else if (ExtensionsManager.getManager().getDefaultJRE(32)==null) {
+    	// engines installed on Windows but no 32-bit VM
+    	else if (OSPRuntime.isWindows() && ExtensionsManager.getManager().getDefaultJRE(32)==null) {
     		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message1")); //$NON-NLS-1$
     		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message2")); //$NON-NLS-1$
     		message.add(" "); //$NON-NLS-1$
@@ -1295,8 +1377,8 @@ public class Tracker {
     		message.add(TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message")); //$NON-NLS-1$	    		
     	}
     	
-    	// engines installed but running in 64-bit VM
-    	else if (OSPRuntime.getVMBitness()==64) {
+    	// engines installed on Windows but running in 64-bit VM
+    	else if (OSPRuntime.isWindows() && OSPRuntime.getVMBitness()==64) {
     		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message1")); //$NON-NLS-1$
     		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message2")); //$NON-NLS-1$
     		message.add(" "); //$NON-NLS-1$
@@ -1339,7 +1421,10 @@ public class Tracker {
   				// use prefs dialog to switch to 32-bit VM/default engine and relaunch
   				PrefsDialog prefs = frame.getPrefsDialog();
   				prefs.vm32Button.setSelected(true); // also sets default video engine
-  				prefs.relaunchButton.doClick(0);
+  				// check that not canceled by user
+  				if (!"cancel".equals(prefs.vm32Button.getName())) { //$NON-NLS-1$
+  					prefs.relaunchButton.doClick(0);
+  				}
   			}
   			if (response==1) {
   				// show prefs dialog and select video tab
@@ -1385,6 +1470,27 @@ public class Tracker {
     			JOptionPane.INFORMATION_MESSAGE);
     		
     }
+    
+		if (System.getenv("STARTER_WARNING")!=null) { //$NON-NLS-1$
+			// possible cause: running VM in 64-bits even though preference is 32-bit
+			// if so, change preference
+	    int vmBitness = OSPRuntime.getVMBitness();
+			use32BitMode = vmBitness==32;
+		  String warningString = System.getenv("STARTER_WARNING"); //$NON-NLS-1$
+		  String[] lines = warningString.split("\n"); //$NON-NLS-1$
+			Box box = Box.createVerticalBox();
+			for (String line: lines) {    			
+				box.add(new JLabel(line));
+			}
+			
+			box.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
+
+		  JOptionPane.showMessageDialog(null, 
+		  		box, 
+		  		TrackerRes.getString("Tracker.Dialog.StarterWarning.Title"), //$NON-NLS-1$
+		      JOptionPane.WARNING_MESSAGE);
+		}
+
     testPanel = frame.getTrackerPanel(0);
   }
 
