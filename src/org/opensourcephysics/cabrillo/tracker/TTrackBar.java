@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2014  Douglas Brown
+ * Copyright (c) 2015  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,7 +77,32 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
 //		    	      	final TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-		    	      	
+		    	      	// show environment
+//			    	  		String[] vars = {"TRACKER_HOME", "XUGGLE_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+//			    	  		for (String next: vars) {
+//			    	  			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
+//			    	  		}
+//		    	      	String s = System.getProperty("java.class.path");
+//		    	      	OSPLog.warning("java.class.path = "+s);
+//		    	      	
+//			    	  		Map env = System.getenv();
+//			    	  		Set keys = env.keySet();
+//		    	        String jres = "environment: ";
+//			    	  		for (Object key: keys) {
+//			    	  			jres +=" "+key+"="+env.get(key);
+//			    	  		}
+//			    	  		OSPLog.warning(jres+"\n"); //$NON-NLS-1$
+//			    	  			
+//		    	  			Properties props = System.getProperties();
+//		    	  			keys = props.keySet();
+//		    	        jres = "properties: ";
+//			    	  		for (Object key: keys) {
+//			    	  			jres +=" "+key+"="+props.get(key);
+//			    	  		}
+//			    	  		OSPLog.warning(jres+"\n"); //$NON-NLS-1$
+			    	      	
+
+			    	  		OSPLog.showLog();
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
 		  	    				testTimer=null;
