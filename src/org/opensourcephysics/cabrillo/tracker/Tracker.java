@@ -1286,9 +1286,7 @@ public class Tracker {
 				Class<?> OSXClass = Class.forName(className);
 				Constructor<?> constructor = OSXClass.getConstructor(Tracker.class);
 				constructor.newInstance(tracker);
-				OSPLog.warning("pig loaded OSX class");
 			} catch (Exception ex) {
-				OSPLog.warning("pig failed to load OSX class");
 			}
 		}
  
