@@ -69,7 +69,7 @@ public class Tracker {
 	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
 	static final String ALPHA = TeXParser.parseTeX("$\\alpha"); //$NON-NLS-1$
 	static final String DEGREES = "º"; //$NON-NLS-1$
-  static final String trackerHome;
+  static String trackerHome;
   static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
   
   // for testing
@@ -112,7 +112,7 @@ public class Tracker {
   static Icon trackerLogoIcon, ospLogoIcon;
   static JLabel tipOfTheDayLabel;
   static JProgressBar progressBar;
-  static String version = "4.8620141102"; //$NON-NLS-1$
+  static String version = "4.87"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
   static String copyright = "Copyright (c) 2015 Douglas Brown"; //$NON-NLS-1$
   static String trackerWebsite = "www.cabrillo.edu/~dbrown/tracker"; //$NON-NLS-1$
@@ -168,6 +168,12 @@ public class Tracker {
 //  	OSPLog.setLevel(ConsoleLevel.ALL);
   	defaultLocale = Locale.getDefault();
 		trackerHome = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
+		if (trackerHome==null) {
+			try {
+				trackerHome = TrackerStarter.findTrackerHome(false);
+			} catch (Exception e1) {
+			}
+		}
     // set system properties for Mac OSX look and feel
 //    System.setProperty("apple.laf.useScreenMenuBar", "true");
 //    System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Tracker");
@@ -610,7 +616,7 @@ public class Tracker {
     readmeAction = new AbstractAction(
         TrackerRes.getString("Tracker.Readme")+"...", null) { //$NON-NLS-1$ //$NON-NLS-2$
 			public void actionPerformed(ActionEvent e) {
-				if (readmeDialog==null) {
+				if (readmeDialog==null && Tracker.trackerHome!=null) {
 		      String slash = System.getProperty("file.separator", "/"); //$NON-NLS-1$//$NON-NLS-2$
 	        String path = Tracker.trackerHome+slash+readmeFileName;
 	        String s = ResourceLoader.getString(path);
@@ -945,6 +951,7 @@ public class Tracker {
    */
   protected static boolean updateResources() {
   	// update QTJava.zip--copies newer QTJava, if found, to Tracker home
+  	if (trackerHome==null) return false;
   	return ExtensionsManager.getManager().copyQTJavaTo(new File(trackerHome));
 //		boolean updated = VideoIO.updateEngine("XuggleVideoType"); //$NON-NLS-1$
 //		if (updated && trackerHome!=null && OSPRuntime.isWindows()) { // xuggle files changed, so copy into Tracker home also
@@ -1144,6 +1151,7 @@ public class Tracker {
     	args = newargs;
     }
     else {
+    	// versions 4.87+ use environment variable to indicate relaunch
     	String s = System.getenv(TrackerStarter.TRACKER_RELAUNCH);
     	isRelaunch = "true".equals(s); //$NON-NLS-1$
     }
@@ -1181,25 +1189,29 @@ public class Tracker {
 	    
 	    // check environment
 	    boolean needsEnvironment = false;
-	    String trackerEnv = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
-	    String xuggleEnv = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
-			String pathEnvironment = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
-				OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
-			String pathValue = System.getenv(pathEnvironment);
 	    try {
-				String trackerDir = TrackerStarter.findTrackerHome();
+				String trackerDir = TrackerStarter.findTrackerHome(false);
+		    String trackerEnv = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
 				if (trackerDir!=null && !trackerDir.equals(trackerEnv)) {
 					needsEnvironment = true;
 				}
-				String xuggleDir = TrackerStarter.findXuggleHome(trackerDir);
-				if (xuggleDir!=null && !xuggleDir.equals(xuggleEnv)) {
-					needsEnvironment = true;					
-				}
-				if (xuggleDir!=null) {
-					String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
-					String xugglePath = xuggleDir+File.separator+subdir;
-					if (!pathValue.contains(xugglePath)) {
+				else {
+					String xuggleDir = TrackerStarter.findXuggleHome(trackerDir, false);
+					String xuggleEnv = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
+					if (xuggleDir!=null && !xuggleDir.equals(xuggleEnv)) {
 						needsEnvironment = true;					
+					}
+					else {
+						if (xuggleDir!=null) {
+							String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
+							String xugglePath = xuggleDir+File.separator+subdir;
+							String pathName = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
+								OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
+							String pathEnv = System.getenv(pathName);
+							if (pathEnv==null || !pathEnv.contains(xugglePath)) {
+								needsEnvironment = true;					
+							}
+						}
 					}
 				}
 					
@@ -1274,7 +1286,9 @@ public class Tracker {
 				Class<?> OSXClass = Class.forName(className);
 				Constructor<?> constructor = OSXClass.getConstructor(Tracker.class);
 				constructor.newInstance(tracker);
+				OSPLog.warning("pig loaded OSX class");
 			} catch (Exception ex) {
+				OSPLog.warning("pig failed to load OSX class");
 			}
 		}
  
@@ -1567,7 +1581,7 @@ public class Tracker {
   		starterPrefsFile = new File(userHome, ".tracker_starter.prefs"); //$NON-NLS-1$
   	}
   	// if not found, check trackerHome
-  	if (starterPrefsFile==null || !starterPrefsFile.exists()) {
+  	if (trackerHome!=null && (starterPrefsFile==null || !starterPrefsFile.exists())) {
   		starterPrefsFile = new File(trackerHome, ".tracker_starter.prefs"); //$NON-NLS-1$
   	}
 
