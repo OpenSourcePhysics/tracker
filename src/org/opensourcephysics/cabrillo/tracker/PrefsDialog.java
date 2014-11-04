@@ -864,7 +864,8 @@ public class PrefsDialog extends JDialog {
     setRunButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         int result = JFileChooser.CANCEL_OPTION;
-        JFileChooser chooser = getFileChooser(new File(Tracker.trackerHome), false);
+        File f = Tracker.trackerHome==null? new File("."): new File(Tracker.trackerHome); //$NON-NLS-1$
+        JFileChooser chooser = getFileChooser(f, false);
         chooser.setDialogTitle(TrackerRes.getString("PrefsDialog.FileChooser.Title.Run")); //$NON-NLS-1$
         result = chooser.showOpenDialog(PrefsDialog.this);
         if(result==JFileChooser.APPROVE_OPTION) {
@@ -1733,7 +1734,7 @@ public class PrefsDialog extends JDialog {
     selected = 0;
     for (int i = 0, count = jreDropdown.getItemCount(); i<count; i++) {
     	String next = jreDropdown.getItemAt(i).toString();
-    	if (Tracker.preferredJRE.equals(next)) {
+    	if (next.equals(Tracker.preferredJRE)) {
     		selected = i;
     		break;
     	}    	
