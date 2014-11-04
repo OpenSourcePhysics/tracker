@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2014  Douglas Brown
+ * Copyright (c) 2015  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -482,6 +482,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     changed = true;
     if (showTrackControl && getTFrame()!=null) {
     	TrackControl.getControl(this).setVisible(true);
+    }
+    
+    // select new track in autotracker
+    if (autoTracker!=null) {
+    	autoTracker.setTrack(track);
     }
   }
   
@@ -2330,7 +2335,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     }
     if (launcherFrame != null)
     	launcherFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-    Tracker.updateResources();
+//    Tracker.updateResources();
     // get the shared tracker and add tabs
     Tracker tracker = Tracker.getTracker();
     final TFrame frame = tracker.getFrame();

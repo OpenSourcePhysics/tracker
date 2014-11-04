@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2014  Douglas Brown
+ * Copyright (c) 2015  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -550,39 +550,19 @@ public class TrackerIO extends VideoIO {
         }
         else {
       		// provide immediate way to open with other engines
-        	engine = VideoIO.ENGINE_NONE.equals(engine)? MediaRes.getString("VideoIO.Engine.None"): //$NON-NLS-1$
-        			VideoIO.ENGINE_XUGGLE.equals(engine)? MediaRes.getString("XuggleVideoType.Description"): //$NON-NLS-1$
-        			MediaRes.getString("QTVideoType.Description"); //$NON-NLS-1$
-        	String message = MediaRes.getString("VideoIO.Dialog.TryDifferentEngine.Message1")+" ("+engine+")."; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        	message += "\n"+MediaRes.getString("VideoIO.Dialog.TryDifferentEngine.Message2"); //$NON-NLS-1$ //$NON-NLS-2$
-        	message += "\n"+MediaRes.getString("VideoIO.Dialog.Label.Path")+": "+path; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        	ArrayList<String> optionList = new ArrayList<String>();
-        	for (VideoType next: otherEngines) {
-        		if (next.getClass().getSimpleName().equals("XuggleVideoType")) { //$NON-NLS-1$
-        			optionList.add(MediaRes.getString("XuggleVideoType.Description")); //$NON-NLS-1$
-        		}
-        		else if (next.getClass().getSimpleName().equals("QTVideoType")) { //$NON-NLS-1$
-        			optionList.add(MediaRes.getString("QTVideoType.Description")); //$NON-NLS-1$
-        		}
-        	}
-        	optionList.add(MediaRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
-    			Object[] options = optionList.toArray(new String[optionList.size()]);
-    			int response = JOptionPane.showOptionDialog(frame, message,
-    					MediaRes.getString("VideoClip.Dialog.BadVideo.Title"), //$NON-NLS-1$
-              JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-    			if (response>=0 && response<options.length-1) {
-    				VideoType desiredType = otherEngines.get(response);
-    				monitorDialog.restart();
-    	    	video = getVideo(path, desiredType);
-    	    	if (video==null && !VideoIO.isCanceled()) {
-    	    		// failed again
-    	    		monitorDialog.close();
-    	    		JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
-    	        		MediaRes.getString("VideoIO.Dialog.BadVideo.Message")+"\n\n"+path, //$NON-NLS-1$ //$NON-NLS-2$
-    	        		MediaRes.getString("VideoClip.Dialog.BadVideo.Title"), //$NON-NLS-1$
-    	            JOptionPane.WARNING_MESSAGE); 
-    	    	}
-    			}
+    			JCheckBox setAsDefaultBox = new JCheckBox(MediaRes.getString("VideoIO.Dialog.TryDifferentEngine.Checkbox")); //$NON-NLS-1$
+        	video = VideoIO.getVideo(path, otherEngines, setAsDefaultBox, frame);
+		    	if (video!=null && setAsDefaultBox.isSelected()) {
+		    		String typeName = video.getClass().getSimpleName();
+		    		String newEngine = typeName.indexOf("Xuggle")>-1? VideoIO.ENGINE_XUGGLE: //$NON-NLS-1$
+		    			typeName.indexOf("QT")>-1? VideoIO.ENGINE_QUICKTIME: //$NON-NLS-1$
+		    				VideoIO.ENGINE_NONE;
+		    		VideoIO.setEngine(newEngine);
+	  				PrefsDialog prefs = frame.getPrefsDialog();
+	  				prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
+	  				frame.showPrefsDialog();
+		    	}
+
         }
       }
 			if (video==null) {

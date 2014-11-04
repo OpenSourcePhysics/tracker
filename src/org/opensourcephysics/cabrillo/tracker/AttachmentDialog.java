@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2014  Douglas Brown
+ * Copyright (c) 2015  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -321,7 +321,7 @@ public class AttachmentDialog extends JDialog
     for (TTrack track: trackerPanel.getTracks()) {
     	if (track instanceof TapeMeasure) {
     		TapeMeasure tape = (TapeMeasure)track;
-    		if (tape.isViewable())
+//    		if (tape.isViewable())
     			tools.add(tape);
     	}
     	else if (track instanceof Protractor) {
