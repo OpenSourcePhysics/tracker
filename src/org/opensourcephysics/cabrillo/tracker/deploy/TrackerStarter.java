@@ -158,7 +158,7 @@ public class TrackerStarter {
 
 		// find Tracker home
 		try {
-			trackerHome = findTrackerHome();
+			trackerHome = findTrackerHome(true);
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
@@ -169,7 +169,7 @@ public class TrackerStarter {
 
 		// find Xuggle home
 		try {
-			xuggleHome = findXuggleHome(trackerHome);
+			xuggleHome = findXuggleHome(trackerHome, true);
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
@@ -228,8 +228,10 @@ public class TrackerStarter {
 
 	/**
 	 * Finds the Tracker home directory and sets/returns the static variable trackerHome.
+	 * 
+	 * @param writeToLog true to write the results to the start log
 	 */
-	public static String findTrackerHome() throws Exception {
+	public static String findTrackerHome(boolean writeToLog) throws Exception {
 		// first look for trackerHome in environment variable
 		try {
 			trackerHome = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
@@ -237,19 +239,19 @@ public class TrackerStarter {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
 		}
-		showDebugMessage("environment variable TRACKER_HOME: " + trackerHome); //$NON-NLS-1$
+		if (writeToLog) showDebugMessage("environment variable TRACKER_HOME: " + trackerHome); //$NON-NLS-1$
 		if (trackerHome != null && !fileExists(trackerHome)) {
 			trackerHome = null;
-			showDebugMessage("TRACKER_HOME directory no longer exists"); //$NON-NLS-1$
+			if (writeToLog) showDebugMessage("TRACKER_HOME directory no longer exists"); //$NON-NLS-1$
 		}
 
 		// determine if code directory is trackerHome
 		if (trackerHome == null && codeBaseDir != null) {
-			showDebugMessage("code base: " + codeBaseDir.getPath()); //$NON-NLS-1$
+			if (writeToLog) showDebugMessage("code base: " + codeBaseDir.getPath()); //$NON-NLS-1$
 			// accept if the code directory is named "Tracker"
 			if (codeBaseDir.getPath().toLowerCase().endsWith("tracker")) { //$NON-NLS-1$
 				trackerHome = codeBaseDir.getPath();
-				showDebugMessage("code base accepted as trackerhome based on name"); //$NON-NLS-1$
+				if (writeToLog) showDebugMessage("code base accepted as trackerhome based on name"); //$NON-NLS-1$
 			}
 
 			// or if it has any tracker jars in it
@@ -258,7 +260,7 @@ public class TrackerStarter {
 					String[] fileNames = codeBaseDir.list(trackerJarFilter);
 					if (fileNames != null && fileNames.length > 0) {
 						trackerHome = codeBaseDir.getPath();
-						showDebugMessage("code base accepted as trackerhome based on contents"); //$NON-NLS-1$
+						if (writeToLog) showDebugMessage("code base accepted as trackerhome based on contents"); //$NON-NLS-1$
 					}
 				} catch (Exception ex) {
 					exceptions += ex.getClass().getSimpleName()
@@ -273,20 +275,23 @@ public class TrackerStarter {
 			String dir = file.getAbsoluteFile().getParent();
 			if (fileExists(dir)) {
 				trackerHome = dir;
-				showDebugMessage("parent directory accepted as trackerhome based on contents"); //$NON-NLS-1$
+				if (writeToLog) showDebugMessage("parent directory accepted as trackerhome based on contents"); //$NON-NLS-1$
 			}
 		}
 		if (trackerHome == null)
 			throw new NullPointerException("trackerhome not found"); //$NON-NLS-1$
-		showDebugMessage("using trackerhome: " + trackerHome); //$NON-NLS-1$
+		if (writeToLog) showDebugMessage("using trackerhome: " + trackerHome); //$NON-NLS-1$
 		
 		return trackerHome;
 	}
 
 	/**
 	 * Finds the Xuggle home directory and sets/returns the static variable xuggleHome.
+	 * 
+	 * @param trackerHome the Tracker home directory (may be null)
+	 * @param writeToLog true to write results to the start log
 	 */
-	public static String findXuggleHome(String trackerHome) throws Exception {
+	public static String findXuggleHome(String trackerHome, boolean writeToLog) throws Exception {
 		// first see if xuggleHome is child or sibling of trackerHome
 		if (trackerHome!=null) {
 			File trackerHomeDir = new File(trackerHome);
@@ -299,7 +304,7 @@ public class TrackerStarter {
 			}
 			if (f.exists() && f.isDirectory()) {
 				xuggleHome = f.getPath();
-				showDebugMessage("xuggleHome found relative to TrackerHome: "+xuggleHome); //$NON-NLS-1$
+				if (writeToLog) showDebugMessage("xuggleHome found relative to TrackerHome: "+xuggleHome); //$NON-NLS-1$
 			}
 		}
 
@@ -311,16 +316,16 @@ public class TrackerStarter {
 				exceptions += ex.getClass().getSimpleName()
 						+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
 			}
-			showDebugMessage("environment variable XUGGLE_HOME: " + xuggleHome); //$NON-NLS-1$
+			if (writeToLog) showDebugMessage("environment variable XUGGLE_HOME: " + xuggleHome); //$NON-NLS-1$
 			if (xuggleHome!=null && !fileExists(xuggleHome)) {
 				xuggleHome = null;
-				showDebugMessage("XUGGLE_HOME directory no longer exists"); //$NON-NLS-1$
+				if (writeToLog) showDebugMessage("XUGGLE_HOME directory no longer exists"); //$NON-NLS-1$
 			}			
 		}
 
 		if (xuggleHome==null)
 			throw new NullPointerException("xuggleHome not found"); //$NON-NLS-1$
-		showDebugMessage("using xuggleHome: " + xuggleHome); //$NON-NLS-1$
+		if (writeToLog) showDebugMessage("using xuggleHome: " + xuggleHome); //$NON-NLS-1$
 		return xuggleHome;
 	}
 
