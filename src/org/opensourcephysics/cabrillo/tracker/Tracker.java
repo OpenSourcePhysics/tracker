@@ -157,7 +157,7 @@ public class Tracker {
   static int preferredFontLevel = 0;
   static boolean isRadians, isXuggleFast, engineKnown=true;
   static boolean warnXuggleError=true, warnNoVideoEngine=true, use32BitMode=false;
-  static boolean warnXuggleVersion=true, warnVariableDuration=true, warnCopyFailed=true;
+  static boolean warnVariableDuration=true;
   static String[] prelaunchExecutables = new String[0];
   static Collection<String> dataFunctionControls = new HashSet<String>();
 
@@ -1310,58 +1310,6 @@ public class Tracker {
     			JOptionPane.INFORMATION_MESSAGE);
   	}
   	
-  	// inform user if tracker_starter issued warnings of failure to copy video engine
-  	if (warnCopyFailed) {
-	  	if (System.getenv("QTJAVA_WARNING")!=null) { //$NON-NLS-1$
-	      String warningString = System.getenv("QTJAVA_WARNING"); //$NON-NLS-1$
-	      String[] lines = warningString.split("\n"); //$NON-NLS-1$
-	    	Box box = Box.createVerticalBox();
-	  		for (String line: lines) {    			
-	  			box.add(new JLabel(line));
-	  		}
-	    	
-	    	// add "don't show again" checkbox
-	    	box.add(new JLabel("  ")); //$NON-NLS-1$
-	    	final JCheckBox checkbox = new JCheckBox(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
-	    	checkbox.addActionListener(new ActionListener() {
-	    		public void actionPerformed(ActionEvent e) {
-	    			warnCopyFailed = !checkbox.isSelected();
-	    		}
-	    	});   	
-	    	box.add(checkbox);
-	    	box.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-
-	      JOptionPane.showMessageDialog(null, 
-	      		box, 
-	      		TrackerRes.getString("Tracker.Dialog.FailedToCopy.Title")+": QuickTime", //$NON-NLS-1$ //$NON-NLS-2$
-	      		JOptionPane.WARNING_MESSAGE);
-	  	}
-	  	if (System.getenv("XUGGLE_WARNING")!=null) { //$NON-NLS-1$
-	      String warningString = System.getenv("XUGGLE_WARNING"); //$NON-NLS-1$
-	      String[] lines = warningString.split("\n"); //$NON-NLS-1$
-	    	Box box = Box.createVerticalBox();
-	  		for (String line: lines) {    			
-	  			box.add(new JLabel(line));
-	  		}
-	    	
-	    	// add "don't show again" checkbox
-	    	box.add(new JLabel("  ")); //$NON-NLS-1$
-	    	final JCheckBox checkbox = new JCheckBox(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
-	    	checkbox.setSelected(!warnCopyFailed);
-	    	checkbox.addActionListener(new ActionListener() {
-	    		public void actionPerformed(ActionEvent e) {
-	    			warnCopyFailed = !checkbox.isSelected();
-	    		}
-	    	});   	
-	    	box.add(checkbox);
-	    	box.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-
-	      JOptionPane.showMessageDialog(null, 
-	      		box, 
-	      		TrackerRes.getString("Tracker.Dialog.FailedToCopy.Title")+": Xuggle", //$NON-NLS-1$ //$NON-NLS-2$
-	          JOptionPane.WARNING_MESSAGE);
-	  	}
-  	}
 
 //    warnNoVideoEngine = false; // for PLATO
     if (warnNoVideoEngine && VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {    	
@@ -1452,37 +1400,7 @@ public class Tracker {
     	}
     		
     }
-    
-//  	warnXuggleVersion = false; // for PLATO
-    if (warnXuggleVersion && VideoIO.guessXuggleVersion()==5.4) {    	
-    	// warn user that xuggle 5.4 is not recommended
-    	ArrayList<String> message = new ArrayList<String>();
-  		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message1")); //$NON-NLS-1$
-  		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message2")); //$NON-NLS-1$
-  		message.add(TrackerRes.getString("Tracker.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
-  		
-    	Box box = Box.createVerticalBox();
-  		for (String line: message) {    			
-  			box.add(new JLabel(line));
-  		}
-    	
-    	// add "don't show again" checkbox
-    	box.add(new JLabel("  ")); //$NON-NLS-1$
-    	final JCheckBox checkbox = new JCheckBox(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
-    	checkbox.addActionListener(new ActionListener() {
-    		public void actionPerformed(ActionEvent e) {
-    			warnXuggleVersion = !checkbox.isSelected();
-    		}
-    	});
-    	box.add(checkbox);
-    	box.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
-    	
-    	JOptionPane.showMessageDialog(frame, box,
-    			TrackerRes.getString("PrefsDialog.Checkbox.WarnXuggleVersion"),  //$NON-NLS-1$
-    			JOptionPane.INFORMATION_MESSAGE);
-    		
-    }
-    
+        
 		if (System.getenv("STARTER_WARNING")!=null) { //$NON-NLS-1$
 			// possible cause: running VM in 64-bits even though preference is 32-bit
 			// if so, change preference
@@ -1704,12 +1622,8 @@ public class Tracker {
       		control.setValue("warn_no_engine", Tracker.warnNoVideoEngine); //$NON-NLS-1$
       	if (!Tracker.warnVariableDuration) // true by default
       		control.setValue("warn_variable_frame_duration", Tracker.warnVariableDuration); //$NON-NLS-1$
-      	if (!Tracker.warnXuggleVersion) // true by default
-      		control.setValue("warn_xuggle_version", Tracker.warnXuggleVersion); //$NON-NLS-1$
       	if (!Tracker.warnXuggleError) // true by default
       		control.setValue("warn_xuggle_error", Tracker.warnXuggleError); //$NON-NLS-1$
-      	if (!Tracker.warnCopyFailed) // true by default
-      		control.setValue("warn_copy_failed", Tracker.warnCopyFailed); //$NON-NLS-1$
       	// always save preferred tracker.jar
       	String jar = Tracker.preferredTrackerJar==null? 
       			"tracker.jar": Tracker.preferredTrackerJar; //$NON-NLS-1$
@@ -1802,10 +1716,6 @@ public class Tracker {
       		Tracker.warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_xuggle_error")) //$NON-NLS-1$
       		Tracker.warnXuggleError = control.getBoolean("warn_xuggle_error"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("warn_xuggle_version")) //$NON-NLS-1$
-      		Tracker.warnXuggleVersion = control.getBoolean("warn_xuggle_version"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("warn_copy_failed")) //$NON-NLS-1$
-      		Tracker.warnCopyFailed = control.getBoolean("warn_copy_failed"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_variable_frame_duration")) //$NON-NLS-1$
       		Tracker.warnVariableDuration = control.getBoolean("warn_variable_frame_duration"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("show_hints")) { //$NON-NLS-1$
