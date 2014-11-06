@@ -87,7 +87,7 @@ public class PrefsDialog extends JDialog {
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
   		versionLabel, runLabel;
   protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, 
-  		xuggleErrorCheckbox, xuggleVersionCheckbox, variableDurationCheckBox, copyFailedCheckbox;
+  		xuggleErrorCheckbox, variableDurationCheckBox;
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
   protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, 
@@ -904,8 +904,7 @@ public class PrefsDialog extends JDialog {
         xuggleFastButton.setEnabled(xuggleButton.isSelected());
         xuggleSlowButton.setEnabled(xuggleButton.isSelected());
         xuggleErrorCheckbox.setEnabled(xuggleButton.isSelected());
-        xuggleVersionCheckbox.setEnabled(xuggleButton.isSelected());
-    		if (!xuggleButton.isSelected()) return;
+     		if (!xuggleButton.isSelected()) return;
   			Tracker.engineKnown = true;
   			// OSX: if 32-bit, set preferred VM to 64-bit and inform user
     		if (OSPRuntime.isMac() && vm32Button.isSelected()) {
@@ -1063,22 +1062,6 @@ public class PrefsDialog extends JDialog {
       	Tracker.warnXuggleError = xuggleErrorCheckbox.isSelected();
       }
     });
-    xuggleVersionCheckbox = new JCheckBox();
-    xuggleVersionCheckbox.setOpaque(false);
-    xuggleVersionCheckbox.setSelected(Tracker.warnXuggleVersion);
-    xuggleVersionCheckbox.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	Tracker.warnXuggleVersion = xuggleVersionCheckbox.isSelected();
-      }
-    });
-    copyFailedCheckbox = new JCheckBox();
-    copyFailedCheckbox.setOpaque(false);
-    copyFailedCheckbox.setSelected(Tracker.warnCopyFailed);
-    copyFailedCheckbox.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	Tracker.warnCopyFailed = copyFailedCheckbox.isSelected();
-      }
-    });
     variableDurationCheckBox = new JCheckBox();
     variableDurationCheckBox.setOpaque(false);
     variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
@@ -1108,8 +1091,6 @@ public class PrefsDialog extends JDialog {
     warningsNorthPanel.add(vidWarningCheckbox);
     warningsNorthPanel.add(variableDurationCheckBox);
     warningsCenterPanel.add(xuggleErrorCheckbox);
-    warningsCenterPanel.add(xuggleVersionCheckbox);
-    warningsSouthPanel.add(copyFailedCheckbox);
     
     // set selected states of engine buttons AFTER creating the xugglefast, xuggleslow and warnxuggle buttons
     if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)
@@ -1305,6 +1286,7 @@ public class PrefsDialog extends JDialog {
     });
     logLevelDropdown = new JComboBox();
     defaultLevel = TrackerRes.getString("PrefsDialog.Version.Default").toUpperCase(); //$NON-NLS-1$
+    defaultLevel += " ("+Tracker.DEFAULT_LOG_LEVEL.toString().toLowerCase()+")"; //$NON-NLS-1$ //$NON-NLS-2$
     selected = defaultLevel;
     logLevelDropdown.addItem(defaultLevel);
     for (int i=OSPLog.levels.length-1; i>=0; i--) {
@@ -1404,7 +1386,6 @@ public class PrefsDialog extends JDialog {
     xuggleFastButton.setEnabled(xuggleButton.isSelected());
     xuggleSlowButton.setEnabled(xuggleButton.isSelected());
     xuggleErrorCheckbox.setEnabled(xuggleButton.isSelected());
-    xuggleVersionCheckbox.setEnabled(xuggleButton.isSelected());
     if (OSPRuntime.isWindows()) {
 	    vm32Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(32).isEmpty());
 	    vm64Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(64).isEmpty());
@@ -1433,8 +1414,6 @@ public class PrefsDialog extends JDialog {
 		prevExecutables = Tracker.prelaunchExecutables;
 		prevWarnNoVideoEngine = Tracker.warnNoVideoEngine;
 		prevWarnXuggleError = Tracker.warnXuggleError;
-		prevWarnXuggleVersion = Tracker.warnXuggleVersion;
-		prevWarnCopyFailed = Tracker.warnCopyFailed;
 		prevCache = ResourceLoader.getOSPCache();
 		prevUpgradeInterval = Tracker.checkForUpgradeInterval;
 		prevUse32BitVM = Tracker.use32BitMode;
@@ -1457,8 +1436,6 @@ public class PrefsDialog extends JDialog {
 		Tracker.prelaunchExecutables = prevExecutables;
 		Tracker.warnNoVideoEngine = prevWarnNoVideoEngine;
 		Tracker.warnXuggleError = prevWarnXuggleError;
-		Tracker.warnXuggleVersion = prevWarnXuggleVersion;
-		Tracker.warnCopyFailed = prevWarnCopyFailed;
 		ResourceLoader.setOSPCache(prevCache);
 		Tracker.checkForUpgradeInterval = prevUpgradeInterval;
 		Tracker.use32BitMode = prevUse32BitVM;
@@ -1524,8 +1501,6 @@ public class PrefsDialog extends JDialog {
     vidWarningCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfNoEngine")); //$NON-NLS-1$    
     variableDurationCheckBox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnVariableDuration")); //$NON-NLS-1$    
     xuggleErrorCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfXuggleError")); //$NON-NLS-1$    
-    xuggleVersionCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnXuggleVersion")); //$NON-NLS-1$    
-    copyFailedCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnCopyFailed")); //$NON-NLS-1$    
     setTabTitle(configPanel, TrackerRes.getString("PrefsDialog.Tab.Configuration.Title")); //$NON-NLS-1$
     setTabTitle(runtimePanel, TrackerRes.getString("PrefsDialog.Tab.Runtime.Title")); //$NON-NLS-1$
     setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
@@ -1709,8 +1684,6 @@ public class PrefsDialog extends JDialog {
     vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
     variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
     xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
-    xuggleVersionCheckbox.setSelected(Tracker.warnXuggleVersion);
-    copyFailedCheckbox.setSelected(Tracker.warnCopyFailed);
     // locale
     for (Locale next: Tracker.locales) {
     	if (next.equals(Locale.getDefault())) {
@@ -1741,6 +1714,30 @@ public class PrefsDialog extends JDialog {
     }
     jreDropdown.setSelectedIndex(selected);
     
+    // log level
+    selected = 0;
+    if (!Tracker.preferredLogLevel.equals(Tracker.DEFAULT_LOG_LEVEL)) {
+	    for (int i = 1, count = logLevelDropdown.getItemCount(); i<count; i++) {
+	    	String next = logLevelDropdown.getItemAt(i).toString();
+	    	if (Tracker.preferredLogLevel.toString().equals(next)) {
+	    		selected = i;
+	    		break;
+	    	}    	
+	    }
+    }
+    logLevelDropdown.setSelectedIndex(selected);
+    
+    // checkForUpgrade
+    selected = 0;
+    for (int i = 1, count = Tracker.checkForUpgradeChoices.size(); i<count; i++) {
+    	String next = Tracker.checkForUpgradeChoices.get(i);
+    	if (Tracker.checkForUpgradeIntervals.get(next)==Tracker.checkForUpgradeInterval) {
+    		selected = i;
+    		break;
+    	}    	
+    }
+    checkForUpgradeDropdown.setSelectedIndex(selected);
+
     // video
     if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)) {
 	    qtButton.setSelected(true);

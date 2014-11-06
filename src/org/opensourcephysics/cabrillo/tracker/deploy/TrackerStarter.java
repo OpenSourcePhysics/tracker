@@ -137,6 +137,8 @@ public class TrackerStarter {
 	 */
 	public static void main(String[] args) {
 		relaunching = false;
+		logText = ""; //$NON-NLS-1$
+		showDebugMessage("launch initiated by user"); //$NON-NLS-1$
 		launchTracker(args);
 	}
 
@@ -220,6 +222,8 @@ public class TrackerStarter {
 		relaunching = secondTry;
 		Runnable runner = new Runnable() {
 			public void run() {
+				logText = ""; //$NON-NLS-1$
+				showDebugMessage("relaunch initiated by Tracker"); //$NON-NLS-1$
 				launchTracker(args);
 			}
 		};
@@ -779,9 +783,15 @@ public class TrackerStarter {
 			env.put("MEMORY_SIZE", String.valueOf(memorySize)); //$NON-NLS-1$
 			showDebugMessage("setting environment variable MEMORY_SIZE = " + String.valueOf(memorySize)); //$NON-NLS-1$ 
 		}
-		if (xuggleWarning!=null) env.put("XUGGLE_WARNING", xuggleWarning); //$NON-NLS-1$ 
-		if (qtJavaWarning!=null) env.put("QTJAVA_WARNING", qtJavaWarning); //$NON-NLS-1$ 
-		if (starterWarning!=null) env.put("STARTER_WARNING", starterWarning); //$NON-NLS-1$ 
+		else env.remove("MEMORY_SIZE"); //$NON-NLS-1$ 
+
+		// remove xuggle and qtJava warnings that may have been set by previous versions of TrackerStarter
+		env.remove("XUGGLE_WARNING"); //$NON-NLS-1$ 
+		env.remove("QTJAVA_WARNING"); //$NON-NLS-1$ 
+		if (starterWarning!=null) {
+			env.put("STARTER_WARNING", starterWarning); //$NON-NLS-1$ 
+		}
+		else env.remove("STARTER_WARNING"); //$NON-NLS-1$ 
 		
 		// add TRACKER_HOME, XUGGLE_HOME and PATH to environment
 		if (trackerHome!=null) { 
@@ -802,9 +812,9 @@ public class TrackerStarter {
 				String pathValue = env.get(pathEnvironment);
 				if (pathValue==null) pathValue = ""; //$NON-NLS-1$
 				
-				// add xuggle path at beginning of current PATH
-//				if (!pathValue.startsWith(xuggleBinPath)) {
-//					pathValue = xuggleBinPath+File.pathSeparator+pathValue;
+//				// add xuggle path at beginning of current PATH
+//				if (!pathValue.startsWith(xugglePath)) {
+//					pathValue = xugglePath+File.pathSeparator+pathValue;
 //				}
 				
 				pathValue = xugglePath;
@@ -818,6 +828,7 @@ public class TrackerStarter {
 		if (relaunching) {
 			env.put(TRACKER_RELAUNCH, "true"); //$NON-NLS-1$
 		}
+		else env.remove("TRACKER_RELAUNCH"); //$NON-NLS-1$ 
 							
 		// assemble command message for log
 		String message = ""; //$NON-NLS-1$
@@ -907,11 +918,6 @@ public class TrackerStarter {
 			// should never get here--exits via timer
 			System.exit(0);
 		}
-		if (OSPRuntime.isMac()
-				&& xuggleHome!=null && new File(xuggleHome+"/lib").exists()) { //$NON-NLS-1$
-			env.put("DYLD_LIBRARY_PATH", xuggleHome+"/lib"); //$NON-NLS-1$ //$NON-NLS-2$
-		}
-		
 	}
 
 	private static String writeUserLog() {
