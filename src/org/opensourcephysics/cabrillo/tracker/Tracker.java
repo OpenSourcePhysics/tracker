@@ -945,16 +945,21 @@ public class Tracker {
   }
 
   /**
-   * Checks and updates QuickTime and other system resources.
+   * Checks and updates QuickTime resources.
    * 
    * @return true if any resources were updated
    */
   protected static boolean updateResources() {
-//  	return false;
-  	// update QTJava.zip--copies newer QTJava, if found, to Tracker home
-  	if (trackerHome==null) return false;
+  	// OSX doesn't need QTJava updating
   	if (OSPRuntime.isMac()) return false;
-  	return ExtensionsManager.getManager().copyQTJavaTo(new File(trackerHome));
+  	
+  	// update QTJava.zip--copy newer QTJava, if found, to current Java extensions
+    String jre = System.getProperty("java.home"); //$NON-NLS-1$
+    File extDir = new File(jre, "lib/ext"); //$NON-NLS-1$
+    if (extDir.exists()) {
+    	return ExtensionsManager.getManager().copyQTJavaTo(extDir);
+    }
+    return false;
   	
 //		boolean updated = VideoIO.updateEngine("XuggleVideoType"); //$NON-NLS-1$
 //		if (updated && trackerHome!=null && OSPRuntime.isWindows()) { // xuggle files changed, so copy into Tracker home also
