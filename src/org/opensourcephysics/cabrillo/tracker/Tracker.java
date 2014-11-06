@@ -950,9 +950,12 @@ public class Tracker {
    * @return true if any resources were updated
    */
   protected static boolean updateResources() {
+//  	return false;
   	// update QTJava.zip--copies newer QTJava, if found, to Tracker home
   	if (trackerHome==null) return false;
+  	if (OSPRuntime.isMac()) return false;
   	return ExtensionsManager.getManager().copyQTJavaTo(new File(trackerHome));
+  	
 //		boolean updated = VideoIO.updateEngine("XuggleVideoType"); //$NON-NLS-1$
 //		if (updated && trackerHome!=null && OSPRuntime.isWindows()) { // xuggle files changed, so copy into Tracker home also
 //	  	ExtensionsManager.getManager().copyXuggleJarsTo(new File(trackerHome));		
@@ -1161,6 +1164,7 @@ public class Tracker {
 		java.lang.management.MemoryMXBean memory
 				= java.lang.management.ManagementFactory.getMemoryMXBean();
     long size = memory.getHeapMemoryUsage().getMax()/(1024*1024);
+    
 		if (!isRelaunch) {
 	    String javaCommand = System.getProperty("java.home");              						//$NON-NLS-1$
 	    javaCommand = XML.forwardSlash(javaCommand)+"/bin/java"; //$NON-NLS-1$
@@ -1221,6 +1225,7 @@ public class Tracker {
 
 	    // attempt to relaunch if needed	    
 	    if (isTracker && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
+//	    if (isTracker && (needsJavaVM || needsMemory || needsEnvironment)) {
 	    	mainArgs = args;
 	    	if (requestedMemorySize<=10) {
 	    		requestedMemorySize = (int)size;

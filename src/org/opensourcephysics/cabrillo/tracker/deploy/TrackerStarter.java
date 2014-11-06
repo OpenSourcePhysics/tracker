@@ -812,12 +812,11 @@ public class TrackerStarter {
 				String pathValue = env.get(pathEnvironment);
 				if (pathValue==null) pathValue = ""; //$NON-NLS-1$
 				
-//				// add xuggle path at beginning of current PATH
-//				if (!pathValue.startsWith(xugglePath)) {
-//					pathValue = xugglePath+File.pathSeparator+pathValue;
-//				}
+				// add xuggle path at beginning of current PATH
+				if (!pathValue.startsWith(xugglePath)) {
+					pathValue = xugglePath+File.pathSeparator+pathValue;
+				}
 				
-				pathValue = xugglePath;
 				env.put(pathEnvironment, pathValue);
 				showDebugMessage("setting "+pathEnvironment+" = " + pathValue); //$NON-NLS-1$ //$NON-NLS-2$
 			}
