@@ -1286,6 +1286,7 @@ public class PrefsDialog extends JDialog {
     });
     logLevelDropdown = new JComboBox();
     defaultLevel = TrackerRes.getString("PrefsDialog.Version.Default").toUpperCase(); //$NON-NLS-1$
+    defaultLevel += " ("+Tracker.DEFAULT_LOG_LEVEL.toString().toLowerCase()+")"; //$NON-NLS-1$ //$NON-NLS-2$
     selected = defaultLevel;
     logLevelDropdown.addItem(defaultLevel);
     for (int i=OSPLog.levels.length-1; i>=0; i--) {
@@ -1713,6 +1714,30 @@ public class PrefsDialog extends JDialog {
     }
     jreDropdown.setSelectedIndex(selected);
     
+    // log level
+    selected = 0;
+    if (!Tracker.preferredLogLevel.equals(Tracker.DEFAULT_LOG_LEVEL)) {
+	    for (int i = 1, count = logLevelDropdown.getItemCount(); i<count; i++) {
+	    	String next = logLevelDropdown.getItemAt(i).toString();
+	    	if (Tracker.preferredLogLevel.toString().equals(next)) {
+	    		selected = i;
+	    		break;
+	    	}    	
+	    }
+    }
+    logLevelDropdown.setSelectedIndex(selected);
+    
+    // checkForUpgrade
+    selected = 0;
+    for (int i = 1, count = Tracker.checkForUpgradeChoices.size(); i<count; i++) {
+    	String next = Tracker.checkForUpgradeChoices.get(i);
+    	if (Tracker.checkForUpgradeIntervals.get(next)==Tracker.checkForUpgradeInterval) {
+    		selected = i;
+    		break;
+    	}    	
+    }
+    checkForUpgradeDropdown.setSelectedIndex(selected);
+
     // video
     if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)) {
 	    qtButton.setSelected(true);
