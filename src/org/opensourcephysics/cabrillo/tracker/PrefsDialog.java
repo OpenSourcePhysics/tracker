@@ -1696,7 +1696,7 @@ public class PrefsDialog extends JDialog {
     int selected = 0;
     for (int i = 0, count = versionDropdown.getItemCount(); i<count; i++) {
     	String next = versionDropdown.getItemAt(i).toString();
-    	if (Tracker.preferredTrackerJar.indexOf(next)>-1) {
+    	if (Tracker.preferredTrackerJar!=null && Tracker.preferredTrackerJar.indexOf(next)>-1) {
     		selected = i;
     		break;
     	}    	
