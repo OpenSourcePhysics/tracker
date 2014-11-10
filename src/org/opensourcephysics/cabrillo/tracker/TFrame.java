@@ -892,6 +892,33 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   	new Thread(runner).start();
   }
   
+  /**
+   * Shows the preferences dialog set to a specified tab.
+   * 
+   * @param tabName the name of the tab: config, runtime, video, general, display
+   */
+  public void showPrefsDialog(final String tabName) {
+  	Runnable runner = new Runnable() {
+  		public void run() {
+				// show prefs dialog and select video tab
+  	  	PrefsDialog prefsDialog = getPrefsDialog();
+  	  	if (tabName!=null) {
+  	  		if (tabName.contains("runtime")) //$NON-NLS-1$
+  	  			prefsDialog.tabbedPane.setSelectedComponent(prefsDialog.runtimePanel);
+  	  		else if (tabName.contains("video")) //$NON-NLS-1$
+  	  			prefsDialog.tabbedPane.setSelectedComponent(prefsDialog.videoPanel);
+  	  		else if (tabName.contains("general")) //$NON-NLS-1$
+  	  			prefsDialog.tabbedPane.setSelectedComponent(prefsDialog.generalPanel);
+  	  		else if (tabName.contains("display")) //$NON-NLS-1$
+  	  			prefsDialog.tabbedPane.setSelectedComponent(prefsDialog.displayPanel);
+  	  	}
+  			prefsDialog.setVisible(true);
+  			prefsDialog.requestFocus();
+  		}
+  	};
+  	new Thread(runner).start();
+  }
+  
 //_________________________________ private methods _________________________
   
   /**
