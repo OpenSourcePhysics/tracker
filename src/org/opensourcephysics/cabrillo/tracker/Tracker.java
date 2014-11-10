@@ -501,6 +501,8 @@ public class Tracker {
     Tracker.setProgress(5);
 		OSPRuntime.setLookAndFeel(true, lookAndFeel);
     frame = new TFrame();
+    Diagnostics.setDialogOwner(frame);
+    DiagnosticsForXuggle.setDialogOwner(frame);
     // set up the Java VM exit mechanism when used as application
     if ( org.opensourcephysics.display.OSPRuntime.applet == null) {
       frame.addWindowListener(new WindowAdapter() {
@@ -950,23 +952,23 @@ public class Tracker {
    * @return true if any resources were updated
    */
   protected static boolean updateResources() {
+  	boolean updated = false;
+  	// copy xuggle files to Tracker home, if needed
+		try {
+			File trackerDir = new File(TrackerStarter.findTrackerHome(false));
+			updated = ExtensionsManager.getManager().copyXuggleJarsTo(trackerDir);
+		} catch (Exception e) {
+		}
   	// OSX doesn't need QTJava updating
-  	if (OSPRuntime.isMac()) return false;
+  	if (OSPRuntime.isMac()) return updated;
   	
-  	// update QTJava.zip--copy newer QTJava, if found, to current Java extensions
+  	// copy newer QTJava, if found, to current Java extensions
     String jre = System.getProperty("java.home"); //$NON-NLS-1$
     File extDir = new File(jre, "lib/ext"); //$NON-NLS-1$
     if (extDir.exists()) {
-    	return ExtensionsManager.getManager().copyQTJavaTo(extDir);
+    	updated = ExtensionsManager.getManager().copyQTJavaTo(extDir) || updated;
     }
-    return false;
-  	
-//		boolean updated = VideoIO.updateEngine("XuggleVideoType"); //$NON-NLS-1$
-//		if (updated && trackerHome!=null && OSPRuntime.isWindows()) { // xuggle files changed, so copy into Tracker home also
-//	  	ExtensionsManager.getManager().copyXuggleJarsTo(new File(trackerHome));		
-//		}
-//		updated = VideoIO.updateEngine("QTVideoType") || updated; //$NON-NLS-1$
-//		return updated;
+    return updated; 	
   }
 
   /**
@@ -1382,7 +1384,7 @@ public class Tracker {
     		// provide immediate way to change to 32-bit VM and relaunch
   			Object[] options = new Object[] {
   					TrackerRes.getString("Tracker.Dialog.Button.RelaunchNow"),    //$NON-NLS-1$
-  					TrackerRes.getString("Tracker.Dialog.Button.ShowPrefs"),    //$NON-NLS-1$
+//  					TrackerRes.getString("Tracker.Dialog.Button.ShowPrefs"),    //$NON-NLS-1$
             TrackerRes.getString("Tracker.Dialog.Button.ContinueWithoutEngine")}; //$NON-NLS-1$
   			int response = JOptionPane.showOptionDialog(frame, box,
             TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Title"), //$NON-NLS-1$
@@ -1396,12 +1398,12 @@ public class Tracker {
   					prefs.relaunchButton.doClick(0);
   				}
   			}
-  			if (response==1) {
-  				// show prefs dialog and select video tab
-  				PrefsDialog prefs = frame.getPrefsDialog();
-    			prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
-    			frame.showPrefsDialog();
-  			}
+//  			if (response==1) {
+//  				// show prefs dialog and select video tab
+//  				PrefsDialog prefs = frame.getPrefsDialog();
+//    			prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
+//    			frame.showPrefsDialog();
+//  			}
     	}
     	else {
 	    	JOptionPane.showMessageDialog(frame, box,

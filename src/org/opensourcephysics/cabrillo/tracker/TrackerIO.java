@@ -1551,7 +1551,7 @@ public class TrackerIO extends VideoIO {
 						zipPath = zipPath.substring(0, n);
 						ResourceLoader.unzip(zipPath, target, true); // overwrite
 						target = new File(target, path);
-						if (target!=null && target.exists()) {
+						if (target.exists()) {
 							res = ResourceLoader.getResource(target.getAbsolutePath());
 							urlPath = res.getURL().toExternalForm();
 						}
