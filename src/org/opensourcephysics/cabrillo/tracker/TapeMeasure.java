@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2014  Douglas Brown
+ * Copyright (c) 2015  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -639,19 +639,28 @@ public class TapeMeasure extends TTrack {
 //	  	menu.add(fixedLengthItem);
 //  	}
   	
-    // add an attachment dialog item if viewable
-  	if (isViewable()) {
-	  	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
-	  	attachmentItem.addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent e) {
-	      	AttachmentDialog control = TapeMeasure.this.trackerPanel.getAttachmentDialog(TapeMeasure.this);
-	      	control.setVisible(true);
-	      }
-	    });
-	  	
-	  	menu.addSeparator();
-	    menu.add(attachmentItem);
-  	}
+    // add an attachment dialog item
+  	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+  	attachmentItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	ImageCoordSystem coords = TapeMeasure.this.trackerPanel.getCoords();
+      	if (TapeMeasure.this.isStickMode() && coords.isFixedScale()) {
+      		int result = JOptionPane.showConfirmDialog(TapeMeasure.this.trackerPanel.getTFrame(), 
+      				TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
+      				TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message2"),  //$NON-NLS-1$
+      				TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Title"), //$NON-NLS-1$
+      				JOptionPane.YES_NO_OPTION,
+      				JOptionPane.QUESTION_MESSAGE);
+      		if (result!=JOptionPane.YES_OPTION) return;
+      	}
+    		coords.setFixedScale(false);
+      	AttachmentDialog control = TapeMeasure.this.trackerPanel.getAttachmentDialog(TapeMeasure.this);
+      	control.setVisible(true);
+      }
+    });
+  	
+  	menu.addSeparator();
+    menu.add(attachmentItem);
   	
   	menu.addSeparator();
     menu.add(deleteTrackItem);

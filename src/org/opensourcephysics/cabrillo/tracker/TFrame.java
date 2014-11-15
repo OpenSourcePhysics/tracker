@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2014  Douglas Brown
+ * Copyright (c) 2015  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -167,7 +167,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     setIgnoreRepaint(true);
     String name = trackerPanel.getTitle();
     synchronized(tabbedPane) {
-    	tabbedPane.addTab(name, panel); 
+    	tabbedPane.addTab(name, panel);
+    	int tab = getTab(trackerPanel);
+      tabbedPane.setToolTipTextAt(tab, trackerPanel.getToolTipPath());
     }
     // from now on trackerPanel's top level container is this TFrame,
     // so trackerPanel.getFrame() method will return non-null
@@ -449,6 +451,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   public void refreshTab(TrackerPanel panel) {
     int tab = getTab(panel);
     tabbedPane.setTitleAt(tab, panel.getTitle());
+    tabbedPane.setToolTipTextAt(tab, panel.getToolTipPath());
   }
 
   /**
@@ -882,6 +885,33 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   	Runnable runner = new Runnable() {
   		public void run() {
   	  	PrefsDialog prefsDialog = getPrefsDialog();
+  			prefsDialog.setVisible(true);
+  			prefsDialog.requestFocus();
+  		}
+  	};
+  	new Thread(runner).start();
+  }
+  
+  /**
+   * Shows the preferences dialog set to a specified tab.
+   * 
+   * @param tabName the name of the tab: config, runtime, video, general, display
+   */
+  public void showPrefsDialog(final String tabName) {
+  	Runnable runner = new Runnable() {
+  		public void run() {
+				// show prefs dialog and select video tab
+  	  	PrefsDialog prefsDialog = getPrefsDialog();
+  	  	if (tabName!=null) {
+  	  		if (tabName.contains("runtime")) //$NON-NLS-1$
+  	  			prefsDialog.tabbedPane.setSelectedComponent(prefsDialog.runtimePanel);
+  	  		else if (tabName.contains("video")) //$NON-NLS-1$
+  	  			prefsDialog.tabbedPane.setSelectedComponent(prefsDialog.videoPanel);
+  	  		else if (tabName.contains("general")) //$NON-NLS-1$
+  	  			prefsDialog.tabbedPane.setSelectedComponent(prefsDialog.generalPanel);
+  	  		else if (tabName.contains("display")) //$NON-NLS-1$
+  	  			prefsDialog.tabbedPane.setSelectedComponent(prefsDialog.displayPanel);
+  	  	}
   			prefsDialog.setVisible(true);
   			prefsDialog.requestFocus();
   		}

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2014  Douglas Brown
+ * Copyright (c) 2015  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -570,6 +570,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 									TTrackBar.refreshMemoryButton();
 								}
 							}
+			    	}
+			    	else { // user canceled
+			    		editVideoItem.setSelected(false);
 			    	}
 		  		}
 		  	}
@@ -1280,15 +1283,19 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       }
     });
     diagMenu.add(logItem);
-    diagMenu.addSeparator();
-    if (Tracker.aboutJavaAction != null) 
-    	diagMenu.add(Tracker.aboutJavaAction);
-    if (Tracker.aboutQTAction != null)
-    	diagMenu.add(Tracker.aboutQTAction);
-    if (Tracker.aboutFFMPegAction != null)
-    	diagMenu.add(Tracker.aboutFFMPegAction);
-    if (Tracker.aboutThreadsAction != null)
-    	diagMenu.add(Tracker.aboutThreadsAction);
+    if (Tracker.startLogAction!=null) {
+    	JMenuItem item = diagMenu.add(Tracker.startLogAction);
+    	item.setToolTipText(System.getenv("START_LOG")); //$NON-NLS-1$
+    }
+    if (Tracker.trackerPrefsAction!=null) {
+    	JMenuItem item = diagMenu.add(Tracker.trackerPrefsAction);
+    	item.setToolTipText(XML.forwardSlash(Tracker.prefsPath));
+    }
+    diagMenu.addSeparator();    
+    if (Tracker.aboutJavaAction != null) diagMenu.add(Tracker.aboutJavaAction);
+    if (Tracker.aboutQTAction != null) diagMenu.add(Tracker.aboutQTAction);
+    if (Tracker.aboutFFMPegAction != null) diagMenu.add(Tracker.aboutFFMPegAction);
+    if (Tracker.aboutThreadsAction != null) diagMenu.add(Tracker.aboutThreadsAction);
     // end diagnostics menu
     
     helpMenu.addSeparator();
@@ -1494,7 +1501,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         fixedScaleItem.setSelected(coords.isFixedScale());
         fixedOriginItem.setEnabled(defaultCoords && !coords.isLocked());
         fixedAngleItem.setEnabled(defaultCoords && !coords.isLocked());
-        fixedScaleItem.setEnabled(defaultCoords && !coords.isLocked());
+        boolean stickAttached = false;
+        ArrayList<TapeMeasure> tapes = trackerPanel.getDrawables(TapeMeasure.class);
+        for (TapeMeasure tape: tapes) {
+        	if (tape.isStickMode() && tape.attachments!=null 
+        			&& (tape.attachments[0]!=null || tape.attachments[1]!=null)) {
+        		stickAttached = true;
+        		break;
+        	}
+        }
+        fixedScaleItem.setEnabled(defaultCoords && !coords.isLocked() && !stickAttached);
         refFrameMenu.setEnabled(!coords.isLocked());
         // add default reference frame item
         refFrameGroup.add(defaultRefFrameItem);

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2014  Douglas Brown
+ * Copyright (c) 2015  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -116,7 +116,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected AttachmentDialog attachmentDialog;
   protected boolean isAutoRefresh = true;
 	private JButton loadDataFunctionsButton, saveDataFunctionsButton, autoloadDataFunctionsButton;
-	protected ArrayList<String> desktopFiles = new ArrayList<String>(); // desktop html and pdf files associated with this panel
+	protected TreeSet<String> supplementalFilePaths = new TreeSet<String>(); // HTML/PDF URI paths
+	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
   protected StepSet selectedSteps = new StepSet(this);
 
   /**
@@ -216,6 +217,24 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       }
     }
     return TrackerRes.getString("TrackerPanel.NewTab.Name"); //$NON-NLS-1$
+  }
+
+  /**
+   * Gets the path used as tooltip for the tab.
+   *
+   * @return the path
+   */
+  public String getToolTipPath() {
+    if (getDataFile() != null) {
+      return XML.forwardSlash(getDataFile().getPath());
+    }
+    if (getVideo() != null) {
+      String path = (String) getVideo().getProperty("absolutePath"); //$NON-NLS-1$
+      if (path != null) {
+        return XML.forwardSlash(path);
+      }
+    }
+    return null;
   }
 
   /**
@@ -463,6 +482,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     changed = true;
     if (showTrackControl && getTFrame()!=null) {
     	TrackControl.getControl(this).setVisible(true);
+    }
+    
+    // select new track in autotracker
+    if (autoTracker!=null) {
+    	autoTracker.setTrack(track);
     }
   }
   
@@ -2313,7 +2337,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     }
     if (launcherFrame != null)
     	launcherFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-    Tracker.updateResources();
+//    Tracker.updateResources();
     // get the shared tracker and add tabs
     Tracker tracker = Tracker.getTracker();
     final TFrame frame = tracker.getFrame();
@@ -3311,7 +3335,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     				if (prop.getPropertyName().equals("datatool_tabs")) { //$NON-NLS-1$
 	      			for (XMLControl tabControl: prop.getChildControls()) {
 	      				// pass the tab control to the DataTool and get back the newly added tab
-	      				ArrayList<DataToolTab> addedTabs = tool.addTabs(tabControl);
+	      				ArrayList<DataToolTab> addedTabs = null;
+								try {
+									addedTabs = tool.addTabs(tabControl);
+								} catch (Exception e) {
+								}
 	      				if (addedTabs==null || addedTabs.isEmpty()) continue;
 	      				DataToolTab tab = addedTabs.get(0);
 	      				

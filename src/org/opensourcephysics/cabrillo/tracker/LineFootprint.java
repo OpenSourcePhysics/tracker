@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2014  Douglas Brown
+ * Copyright (c) 2015  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -270,7 +270,7 @@ public class LineFootprint implements Footprint, Cloneable {
   static {
     // HIGHLIGHT
     Ellipse2D circle = new Ellipse2D.Double();
-    circle.setFrame(-6, -6, 12, 12);
+    circle.setFrame(-3, -3, 6, 6);
     Stroke stroke = new BasicStroke(2);
     HIGHLIGHT = stroke.createStrokedShape(circle);
 
