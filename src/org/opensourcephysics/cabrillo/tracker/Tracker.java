@@ -1207,15 +1207,15 @@ public class Tracker {
 					needsEnvironment = true;
 				}
 				else {
-					String xuggleDir = TrackerStarter.findXuggleHome(trackerDir, false);
-					String xuggleEnv = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
-					if (xuggleDir!=null && !xuggleDir.equals(xuggleEnv)) {
+					String ffmpegDir = TrackerStarter.findFFMPegHome(trackerDir, false);
+					String ffmpegEnv = System.getenv("FFMPEG_HOME"); //$NON-NLS-1$
+					if (ffmpegDir!=null && !ffmpegDir.equals(ffmpegEnv)) {
 						needsEnvironment = true;					
 					}
 					else {
-						if (xuggleDir!=null) {
+						if (ffmpegDir!=null) {
 							String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
-							String xugglePath = xuggleDir+File.separator+subdir;
+							String xugglePath = ffmpegDir+File.separator+subdir;
 							String pathName = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
 								OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
 							String pathEnv = System.getenv(pathName);
