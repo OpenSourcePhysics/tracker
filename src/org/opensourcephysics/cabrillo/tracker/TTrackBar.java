@@ -78,7 +78,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    	  			// test action goes here
 //		    	      	final TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 		    	      	// show environment
-//			    	  		String[] vars = {"TRACKER_HOME", "XUGGLE_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+//			    	  		String[] vars = {"TRACKER_HOME", "FFMPEG_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 //			    	  		for (String next: vars) {
 //			    	  			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
 //			    	  		}

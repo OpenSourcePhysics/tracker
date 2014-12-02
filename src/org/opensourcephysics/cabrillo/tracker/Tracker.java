@@ -1213,13 +1213,13 @@ public class Tracker {
 						needsEnvironment = true;					
 					}
 					else {
-						if (ffmpegDir!=null) {
+						if (ffmpegDir!=null && !OSPRuntime.isLinux()) { // not needed in Linux
 							String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
-							String xugglePath = ffmpegDir+File.separator+subdir;
+							String ffmpegPath = ffmpegDir+File.separator+subdir;
 							String pathName = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
 								OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
 							String pathEnv = System.getenv(pathName);
-							if (pathEnv==null || !pathEnv.contains(xugglePath)) {
+							if (pathEnv==null || !pathEnv.contains(ffmpegPath)) {
 								needsEnvironment = true;					
 							}
 						}

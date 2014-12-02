@@ -761,8 +761,26 @@ public class TrackerStarter {
 			cmd.add("-Xdock:name=Tracker"); //$NON-NLS-1$
 		}
 		
-		cmd.add("-jar"); //$NON-NLS-1$
-		cmd.add(jarPath);
+		// Linux needs classpath to be set, so launch with different parameters
+		// -jar / -cp are mutually exclusive
+		if (OSPRuntime.isLinux()) {
+			String classpath = jarPath;
+			if (ffmpegHome != null && new File(ffmpegHome).exists()) {
+				for (String next : DiagnosticsForFFMPeg.getFFMPegJarNames()) {
+					next = ffmpegHome+"/"+next;
+					if (new  File(next).exists()) {
+						classpath += ":" + next;
+					}
+				}
+			}
+			cmd.add("-cp");
+			cmd.add(classpath);
+			cmd.add("org.opensourcephysics.cabrillo.tracker.Tracker");
+		}
+		else {
+			cmd.add("-jar"); //$NON-NLS-1$
+			cmd.add(jarPath);
+		}
 		if (args != null && args.length > 0)
 			for (String next : args) {
 				if (next != null)
@@ -807,7 +825,8 @@ public class TrackerStarter {
 			
 			String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
 			String ffmpegPath = ffmpegHome+File.separator+subdir;
-			if (new File(ffmpegPath).exists()) {
+			// Linux doesn't need this
+			if (new File(ffmpegPath).exists() && !OSPRuntime.isLinux()) {
 				// get current PATH
 				String pathValue = env.get(pathEnvironment);
 				if (pathValue==null) pathValue = ""; //$NON-NLS-1$
@@ -904,7 +923,7 @@ public class TrackerStarter {
     		showDebugMessage("try to start in 64-bit mode"); //$NON-NLS-1$
     		
 				// assemble warning to pass to Tracker as an environment variable
-    		starterWarning = "The Java VM was started in 64-bit mode (32-bit not support)."; //$NON-NLS-1$
+    		starterWarning = "The Java VM was started in 64-bit mode (32-bit not supported)."; //$NON-NLS-1$
 
     		startTracker(jarPath, args);
 	    }
@@ -1054,12 +1073,8 @@ public class TrackerStarter {
 	}
 
 	/**
-<<<<<<< HEAD
 	 * Copies ffmpeg jars and QTJava.zip to target VM extensions directory.
-=======
-	 * Copies Xuggle jars and QTJava.zip to target VM extensions directory.
 	 * Deprecated--no longer require extensions as of Oct 2014
->>>>>>> upstream/master
 	 */
 	@SuppressWarnings("unused")
 	@Deprecated
@@ -1131,7 +1146,6 @@ public class TrackerStarter {
 					showDebugMessage("unable to copy "+qtSource.getAbsolutePath()+" to "+extDir.getAbsolutePath());  //$NON-NLS-1$ //$NON-NLS-2$
 					
 					// assemble qtJavaWarning to pass to Tracker as an environment variable
-					// assemble xuggleWarning to pass to Tracker as an environment variable
 					qtJavaWarning = "Some video engine files could not be copied automatically."; //$NON-NLS-1$
 					qtJavaWarning += "\nThe video engine may not work unless they are copied manually.";  //$NON-NLS-1$ 
 					qtJavaWarning += "\n\nFiles to copy: QTJava.zip";  //$NON-NLS-1$ 
