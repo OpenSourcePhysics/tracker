@@ -558,7 +558,8 @@ public class PointMass extends TTrack {
     // store the mass in the data properties
     if (data != null) {
       Double m = getMass();
-      data.setConstant("m", m, m.toString()); //$NON-NLS-1$
+      String desc = TrackerRes.getString("ParticleModel.Parameter.Mass.Description"); //$NON-NLS-1$
+      data.setConstant("m", m, m.toString(), desc); //$NON-NLS-1$
     }
   }
 
@@ -805,7 +806,8 @@ public class PointMass extends TTrack {
     }
     // store the mass in the data properties
     Double m = getMass();
-    data.setConstant("m", m, m.toString()); //$NON-NLS-1$
+    String desc = TrackerRes.getString("ParticleModel.Parameter.Mass.Description"); //$NON-NLS-1$
+    data.setConstant("m", m, m.toString(), desc); //$NON-NLS-1$
   }
 
   /**

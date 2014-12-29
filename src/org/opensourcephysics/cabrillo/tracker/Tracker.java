@@ -144,6 +144,9 @@ public class Tracker {
   static Locale defaultLocale;
   static ArrayList<String> checkForUpgradeChoices;
   static Map<String, Integer> checkForUpgradeIntervals;
+  static Collection<String> dataFunctionControlStrings = new HashSet<String>();
+  static Collection<XMLControl> dataFunctionControls = new HashSet<XMLControl>();
+  static java.io.FileFilter xmlFilter;
   
   // user-settable preferences saved/loaded by Preferences class
   static Level preferredLogLevel = DEFAULT_LOG_LEVEL;
@@ -159,7 +162,6 @@ public class Tracker {
   static boolean warnXuggleError=true, warnNoVideoEngine=true, use32BitMode=false;
   static boolean warnVariableDuration=true;
   static String[] prelaunchExecutables = new String[0];
-  static Collection<String> dataFunctionControls = new HashSet<String>();
 
   // the only instance field!
   private TFrame frame;
@@ -217,6 +219,16 @@ public class Tracker {
   	setDefaultConfig(getFullConfig());
   	loadPreferences();
   	loadCurrentVersion(false);
+    xmlFilter = new java.io.FileFilter() {
+      // accept only *.xml files.
+      public boolean accept(File f) {
+        if (f==null || f.isDirectory()) return false;
+        String ext = XML.getExtension(f.getName());
+        if (ext!=null && "xml".equals(ext.toLowerCase())) return true; //$NON-NLS-1$
+        return false;
+      }
+    };
+    autoloadDataFunctions();
   	
   	// check for upgrade intervals
     checkForUpgradeChoices = new ArrayList<String>();
@@ -603,6 +615,70 @@ public class Tracker {
                                   JOptionPane.INFORMATION_MESSAGE);
   }
   
+	/**
+	 * Finds data functions in all DataBuilder XMLControl files found in a specified directory.
+	 * This returns a map for which the keys are paths to DataBuilder xml files and the values
+	 * are lists of data functions as Object[] {function name, expression, selected, tracktype}
+	 * 
+	 * @param dirPath the directory path
+	 * @return map of file path to list of data functions
+	 */
+	public static Map<String, ArrayList<Object[]>> findDataFunctions(String dirPath) {
+		Map<String, ArrayList<Object[]>> results = new TreeMap<String, ArrayList<Object[]>>();
+		if (dirPath==null) return results;
+		
+		File dir = new File(dirPath);
+		if (!dir.exists()) return results;
+		
+		File[] files = dir.listFiles(xmlFilter);
+		if (files!=null) {
+			for (File file: files) {
+		    XMLControl control = new XMLControlElement(file.getPath());    
+		    if (control.failedToRead()) {
+		      continue;
+		    }
+
+		    Class<?> type = control.getObjectClass();
+		    if (type!=null && DataBuilder.class.isAssignableFrom(type)) {
+    			ArrayList<Object[]> expandedFunctions = new ArrayList<Object[]>();
+		    	
+		      // look through XMLControl for data functions            	
+	        for (Object next: control.getPropertyContent()) {
+	        	if (next instanceof XMLProperty 
+	        			&& ((XMLProperty)next).getPropertyName().equals("functions")) { //$NON-NLS-1$
+	        		// found DataFunctionPanels
+	        		XMLControl[] panels = ((XMLProperty)next).getChildControls();
+	        		inner: for (XMLControl panelControl: panels) {
+	        			String trackType = panelControl.getString("description"); //$NON-NLS-1$
+	        			ArrayList<String[]> functions = (ArrayList<String[]>)panelControl.getObject("functions"); //$NON-NLS-1$
+	        			if (trackType==null || functions==null || functions.isEmpty()) continue inner;
+	        			
+	        			// add localized trackType name to function arrays
+	        			for (String[] f: functions) {
+	        				Object[] data = new Object[4];
+	        				System.arraycopy(f, 0, data, 0, 2);
+	        				data[2] = !panelControl.getBoolean("autoload_off_"+data[0]); //$NON-NLS-1$
+	        				// use XML.getExtension method to get short name of track type
+	        				String trackName = XML.getExtension(trackType);
+	        				String localized = TrackerRes.getString(trackName+".Name"); //$NON-NLS-1$
+	        				if (!localized.startsWith("!")) //$NON-NLS-1$
+	        					trackName = localized;
+	        				data[3] = trackName;
+	        				expandedFunctions.add(data);
+	        			}
+	        		} // end inner loop
+	        	}
+	        } // end outer loop
+	        
+	        // add entry to the results map
+	        results.put(file.getAbsolutePath(), expandedFunctions);
+		    }
+				
+			}
+		}
+		return results;
+	}
+	
   /**
    * Creates the actions.
    */
@@ -914,6 +990,53 @@ public class Tracker {
     	defaultConfig.add(next);
     }
   }
+  
+  /**
+   * Autoloads data functions found in the user home and code base directories.
+   * This loads DataFunctionPanel XMLControls into a static collection that is
+   * accessed when need by DataBuilder.
+   */
+  protected static void autoloadDataFunctions() {
+  	dataFunctionControls.clear();
+  	String[] dirs = new String[] 
+  			{System.getProperty("user.home"), OSPRuntime.getLaunchJarDirectory()}; //$NON-NLS-1$
+	  for (String dirPath: dirs) {
+			if (dirPath==null) continue;
+			
+			File dir = new File(dirPath);
+			if (!dir.exists()) continue;
+			
+			File[] files = dir.listFiles(xmlFilter);
+			if (files!=null) {
+				for (File file: files) {
+			    XMLControl control = new XMLControlElement(file.getPath());    
+			    if (control.failedToRead()) {
+			      continue;
+			    }
+	
+			    Class<?> type = control.getObjectClass();
+			    if (type!=null && DataBuilder.class.isAssignableFrom(type)) {
+		        for (Object next: control.getPropertyContent()) {
+		        	if (next instanceof XMLProperty 
+		        			&& ((XMLProperty)next).getPropertyName().equals("functions")) { //$NON-NLS-1$
+		        		// found DataFunctionPanels
+		        		XMLControl[] panels = ((XMLProperty)next).getChildControls();
+		        		inner: for (XMLControl panelControl: panels) {
+		        			String trackType = panelControl.getString("description"); //$NON-NLS-1$
+		        			ArrayList<String[]> functions = (ArrayList<String[]>)panelControl.getObject("functions"); //$NON-NLS-1$
+		        			if (trackType==null || functions==null || functions.isEmpty()) 
+		        				continue inner;
+		        			
+		        			// add panel to dataFunctionControls
+		        			dataFunctionControls.add(panelControl);
+		        		} // end inner loop
+		        	}
+		        } // end next loop
+			    }					
+				} // end file loop
+			}
+	  } // end dirPath loop
+  }
 
   /**
    * Sets the preferred locale.
@@ -923,13 +1046,11 @@ public class Tracker {
   protected static void setPreferredLocale(String localeName) {
   	if (localeName==null) {
     	Locale.setDefault(defaultLocale);
-//    	TrackerRes.setLocale(defaultLocale);
     	preferredLocale = null;
   	}
   	else for (Locale locale: locales) {
     	if (locale.toString().equals(localeName)) {
       	Locale.setDefault(locale);
-//      	TrackerRes.setLocale(locale);
       	preferredLocale = localeName;
     		break;
     	}
@@ -1232,7 +1353,6 @@ public class Tracker {
 
 	    // attempt to relaunch if needed	    
 	    if (isTracker && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
-//	    if (isTracker && (needsJavaVM || needsMemory || needsEnvironment)) {
 	    	mainArgs = args;
 	    	if (requestedMemorySize<=10) {
 	    		requestedMemorySize = (int)size;
@@ -1261,37 +1381,6 @@ public class Tracker {
     else tracker = new Tracker(args, true);
     
   	if (OSPRuntime.isMac()) {
-//		// set up socket communication with TrackerStarter
-//  	String portStr = System.getenv("TRACKER_PORT"); //$NON-NLS-1$
-//	  final TFrame frame = tracker.getFrame();
-//  	try {
-//			int port = Integer.parseInt(portStr);
-//			OSPSocket socketClient = new OSPSocket(port, false);
-//			socketClient.addPropertyChangeListener(new PropertyChangeListener() {
-//				public void propertyChange(PropertyChangeEvent e) {
-//					String data = (String)e.getNewValue();
-//					if (data!=null && data.startsWith(OSPSocket.OPEN)) {
-//						data = data.substring(OSPSocket.OPEN.length());
-//				    String separator = System.getProperty("path.separator"); //$NON-NLS-1$
-//				    int n = data.indexOf(separator);
-//				    while(n>-1) {
-//				    	String path = data.substring(0, n);
-//				    	data = data.substring(n+separator.length());
-//  		        // set default root path to path of first .trk file opened
-//  		        if ((path.endsWith(".trk") || path.endsWith(".trz")) //$NON-NLS-1$ //$NON-NLS-2$
-//  		        		&& path.indexOf("/") != -1 //$NON-NLS-1$
-//  		            && Tracker.rootXMLPath.equals("")) { //$NON-NLS-1$
-//  		        	Tracker.rootXMLPath = path.substring(0, path.lastIndexOf("/") + 1); //$NON-NLS-1$
-//  		          OSPLog.fine("Setting rootPath: " + Tracker.rootXMLPath); //$NON-NLS-1$
-//  		        }
-//  		        TrackerIO.open(path, frame);	  
-//				    }
-//					}
-//				}
-//			});
-//		} catch (NumberFormatException e) {
-//		}
-
 			// instantiate the OSXServices class by reflection
 			String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
 	    try {
@@ -1384,7 +1473,6 @@ public class Tracker {
     		// provide immediate way to change to 32-bit VM and relaunch
   			Object[] options = new Object[] {
   					TrackerRes.getString("Tracker.Dialog.Button.RelaunchNow"),    //$NON-NLS-1$
-//  					TrackerRes.getString("Tracker.Dialog.Button.ShowPrefs"),    //$NON-NLS-1$
             TrackerRes.getString("Tracker.Dialog.Button.ContinueWithoutEngine")}; //$NON-NLS-1$
   			int response = JOptionPane.showOptionDialog(frame, box,
             TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Title"), //$NON-NLS-1$
@@ -1398,12 +1486,6 @@ public class Tracker {
   					prefs.relaunchButton.doClick(0);
   				}
   			}
-//  			if (response==1) {
-//  				// show prefs dialog and select video tab
-//  				PrefsDialog prefs = frame.getPrefsDialog();
-//    			prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
-//    			frame.showPrefsDialog();
-//  			}
     	}
     	else {
 	    	JOptionPane.showMessageDialog(frame, box,
@@ -1689,8 +1771,8 @@ public class Tracker {
       		control.setValue("max_recent", Tracker.recentFilesSize); //$NON-NLS-1$
       	if (!Tracker.recentFiles.isEmpty()) // empty by default
       		control.setValue("recent_files", Tracker.recentFiles); //$NON-NLS-1$
-      	if (!Tracker.dataFunctionControls.isEmpty()) {
-      		control.setValue("data_functions", Tracker.dataFunctionControls); //$NON-NLS-1$
+      	if (!Tracker.dataFunctionControlStrings.isEmpty()) {
+      		control.setValue("data_functions", Tracker.dataFunctionControlStrings); //$NON-NLS-1$
       	}
       	if (defaultConfig!=null && !areEqual(defaultConfig, getFullConfig())) { // defaultConfig by default
     			Configuration config = new Configuration(defaultConfig);
@@ -1779,8 +1861,9 @@ public class Tracker {
   	    	  addRecent(next.toString(), true); // add at end
   	    	}
       	}
+      	// load data functions (deprecated: as of Dec 2014, autoloadDataFunctions() used instead)
       	if (control.getPropertyNames().contains("data_functions")) { //$NON-NLS-1$
-      		Tracker.dataFunctionControls.addAll((Collection<String>)control.getObject("data_functions")); //$NON-NLS-1$
+      		Tracker.dataFunctionControlStrings.addAll((Collection<String>)control.getObject("data_functions")); //$NON-NLS-1$
       	}
     		XMLControl child = control.getChildControl("configuration"); //$NON-NLS-1$
     		if (child!=null) {
