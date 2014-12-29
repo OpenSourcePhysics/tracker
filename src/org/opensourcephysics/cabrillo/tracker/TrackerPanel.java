@@ -31,15 +31,10 @@ import java.rmi.RemoteException;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.font.FontRenderContext;
-import java.awt.font.TextLayout;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
@@ -102,9 +97,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected boolean isEmpty;
   protected String defaultSavePath, openedFromPath;
   protected ModelBuilder modelBuilder;
-  protected JLabel startFrameLabel, endFrameLabel, boosterLabel;
-  protected ModelFrameSpinner startFrameSpinner, endFrameSpinner;
-  protected JComboBox boosterDropdown;
   protected TrackControl trackControl;
   protected boolean isModelBuilderVisible;
   protected boolean isShiftKeyDown, isControlKeyDown;
@@ -115,7 +107,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected DerivativeAlgorithmDialog algorithmDialog;
   protected AttachmentDialog attachmentDialog;
   protected boolean isAutoRefresh = true;
-	private JButton loadDataFunctionsButton, saveDataFunctionsButton, autoloadDataFunctionsButton;
 	protected TreeSet<String> supplementalFilePaths = new TreeSet<String>(); // HTML/PDF URI paths
 	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
   protected StepSet selectedSteps = new StepSet(this);
@@ -263,58 +254,58 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   public FunctionTool getModelBuilder() {
   	if (modelBuilder == null) {
-  		// create start and end frame spinners
-  	  Font font = new JSpinner().getFont();
-  	  int n = getPlayer().getVideoClip().getFrameCount()-1;
-  	  FontRenderContext frc = new FontRenderContext(null, false, false);
-  	  String s = String.valueOf(Math.max(n, 200));
-  	  TextLayout layout = new TextLayout(s, font, frc);
-  	  int w = (int)layout.getBounds().getWidth()+4;
-  	  if (n>1000) w+=3;
-  		startFrameLabel = new JLabel();
-  		startFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
-  		endFrameLabel = new JLabel();
-  		endFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
-  		SpinnerNumberModel model = new SpinnerNumberModel(0, 0, n, 1); // init, min, max, step
-  		startFrameSpinner = new ModelFrameSpinner(model);
-  		startFrameSpinner.prefWidth = w;
-  		model = new SpinnerNumberModel(n, 0, n, 1); // init, min, max, step
-  		endFrameSpinner = new ModelFrameSpinner(model);
-  		endFrameSpinner.prefWidth = w;
-  		
-  		// create booster label and dropdown
-      boosterLabel = new JLabel();
-      boosterLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
-      boosterDropdown = new JComboBox();
-      boosterDropdown.setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 0));
-      boosterDropdown.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-        	if (!boosterDropdown.isEnabled()) return;
-      	  FunctionPanel panel = modelBuilder.getSelectedPanel();
-      	  if (panel!=null) {
-      	  	ParticleModel part = ((ModelFunctionPanel)panel).model;
-      	  	if (!(part instanceof DynamicParticle)) return;
-      	  	DynamicParticle model = (DynamicParticle)part;
-      	  	
-      	  	Object item = boosterDropdown.getSelectedItem();
-	          if(item!=null) {
-	          	Object[] array = (Object[])item;
-	          	PointMass target = (PointMass)array[1]; // null if "none" selected
-		      		model.setBooster(target);
-		      		if (target!=null) {
-			      		Step step = getSelectedStep();
-			      		if (step!=null && step instanceof PositionStep) {
-			      			PointMass pm = (PointMass)((PositionStep)step).track;
-			      			if (pm==target) {
-			      				model.setStartFrame(step.getFrameNumber());
-			      			}
-			      		}
-		      		}
-	          }
-      	  }
-        }
-      });
-      
+//  		// create start and end frame spinners
+//  	  Font font = new JSpinner().getFont();
+//  	  int n = getPlayer().getVideoClip().getFrameCount()-1;
+//  	  FontRenderContext frc = new FontRenderContext(null, false, false);
+//  	  String s = String.valueOf(Math.max(n, 200));
+//  	  TextLayout layout = new TextLayout(s, font, frc);
+//  	  int w = (int)layout.getBounds().getWidth()+4;
+//  	  if (n>1000) w+=3;
+//  		startFrameLabel = new JLabel();
+//  		startFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
+//  		endFrameLabel = new JLabel();
+//  		endFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
+//  		SpinnerNumberModel model = new SpinnerNumberModel(0, 0, n, 1); // init, min, max, step
+//  		startFrameSpinner = new ModelFrameSpinner(model);
+//  		startFrameSpinner.prefWidth = w;
+//  		model = new SpinnerNumberModel(n, 0, n, 1); // init, min, max, step
+//  		endFrameSpinner = new ModelFrameSpinner(model);
+//  		endFrameSpinner.prefWidth = w;
+//  		
+//  		// create booster label and dropdown
+//      boosterLabel = new JLabel();
+//      boosterLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
+//      boosterDropdown = new JComboBox();
+//      boosterDropdown.setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 0));
+//      boosterDropdown.addActionListener(new ActionListener() {
+//        public void actionPerformed(ActionEvent e) {
+//        	if (!boosterDropdown.isEnabled()) return;
+//      	  FunctionPanel panel = modelBuilder.getSelectedPanel();
+//      	  if (panel!=null) {
+//      	  	ParticleModel part = ((ModelFunctionPanel)panel).model;
+//      	  	if (!(part instanceof DynamicParticle)) return;
+//      	  	DynamicParticle model = (DynamicParticle)part;
+//      	  	
+//      	  	Object item = boosterDropdown.getSelectedItem();
+//	          if(item!=null) {
+//	          	Object[] array = (Object[])item;
+//	          	PointMass target = (PointMass)array[1]; // null if "none" selected
+//		      		model.setBooster(target);
+//		      		if (target!=null) {
+//			      		Step step = getSelectedStep();
+//			      		if (step!=null && step instanceof PositionStep) {
+//			      			PointMass pm = (PointMass)((PositionStep)step).track;
+//			      			if (pm==target) {
+//			      				model.setStartFrame(step.getFrameNumber());
+//			      			}
+//			      		}
+//		      		}
+//	          }
+//      	  }
+//        }
+//      });
+//      
   		// create and size model builder
   		modelBuilder = new ModelBuilder(this);  			
   		modelBuilder.setFontLevel(FontSizer.getLevel());
@@ -464,7 +455,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     track.addPropertyChangeListener("model_end", this); //$NON-NLS-1$
     // update track control and dataTool
     if (trackControl!=null && trackControl.isVisible()) trackControl.refresh();
-    if (getDataBuilder() != null) {
+    if (getDataBuilder() != null && !getSystemDrawables().contains(track)) {   	
     	FunctionPanel panel = createFunctionPanel(track);
     	dataBuilder.addPanel(track.getName(), panel);
     	dataBuilder.setSelectedPanel(track.getName());  	
@@ -1290,169 +1281,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   protected FunctionTool getDataBuilder() {
   	if (dataBuilder == null) { // create new tool if none exists
-      String imageFile = "/org/opensourcephysics/resources/tools/images/open.gif"; //$NON-NLS-1$
-      Icon openIcon = ResourceLoader.getIcon(imageFile);
-      loadDataFunctionsButton = new JButton(openIcon);
-      loadDataFunctionsButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          JFileChooser chooser = OSPRuntime.createChooser(
-          		TrackerRes.getString("TrackerPanel.DataBuilder.Load.Title"),  //$NON-NLS-1$
-          		TrackerRes.getString("TrackerPanel.DataBuilder.Chooser.XMLFiles"),  //$NON-NLS-1$
-          		new String[] {"xml"}); //$NON-NLS-1$
-          int result = chooser.showOpenDialog(dataBuilder);
-          if(result==JFileChooser.APPROVE_OPTION) {
-            OSPRuntime.chooserDir = chooser.getCurrentDirectory().toString();
-            String fileName = chooser.getSelectedFile().getAbsolutePath();
-            XMLControl control = new XMLControlElement(fileName);
-            if (control.failedToRead()) {
-              JOptionPane.showMessageDialog(getTFrame(), 
-                  TrackerRes.getString("Tracker.Dialog.Invalid.Message"), //$NON-NLS-1$
-              		TrackerRes.getString("Tracker.Dialog.Invalid.Title"), //$NON-NLS-1$
-              		JOptionPane.ERROR_MESSAGE);
-              return;
-            }
-            
-            Class<?> type = control.getObjectClass();
-            if (DataFunctionPanel.class.isAssignableFrom(type)) {
-            	// determine what track type the control is for
-            	FunctionPanel dataPanel = dataBuilder.getSelectedPanel();
-            	Class<?> panelType = null;
-            	Class<?> controlType = null;
-            	try {
-								panelType = Class.forName(dataPanel.getDescription());
-            		controlType = Class.forName(control.getString("description")); //$NON-NLS-1$);
-							} catch (ClassNotFoundException ex) {
-							}
-            	String trackType = TrackerRes.getString("TrackerPanel.DataBuilder.TrackType.Unknown"); //$NON-NLS-1$
-            	if (controlType!=null)
-            		trackType = TrackerRes.getString(controlType.getSimpleName()+".Name").toLowerCase(); //$NON-NLS-1$
-            	
-            	if (controlType!=panelType) {
-	            	String targetType = TrackerRes.getString(panelType.getSimpleName()+".Name").toLowerCase(); //$NON-NLS-1$
-                JOptionPane.showMessageDialog(getTFrame(), 
-                    TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.WrongTrackType.Message1")+" \""+trackType+".\"" //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-                    +"\n"+TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.WrongTrackType.Message2")+" \""+targetType+".\"", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-                		TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.WrongTrackType.Title"), //$NON-NLS-1$
-                		JOptionPane.ERROR_MESSAGE);            	
-            		return;
-            	}
-            	
-            	if (dataBuilder.chooseDataFunctions(control, "Load", null)) { //$NON-NLS-1$
-            		// load data function panel(s)
-            		ArrayList<FunctionPanel> panelsToLoad = new ArrayList<FunctionPanel>();
-                for (String name: dataBuilder.getPanelNames()) {
-                	FunctionPanel nextPanel = dataBuilder.getPanel(name);
-                	try {
-    								panelType = Class.forName(nextPanel.getDescription());
-    							} catch (ClassNotFoundException ex) {
-    							}
-                	if (panelType==controlType) {
-	                	panelsToLoad.add(nextPanel);
-                	}
-                }
-            		
-            		result = 1; // default if only one track to load
-            		if (panelsToLoad.size()>1) {
-	            		Object[] options = new String[] {
-	            				TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.Load.Button.All"),  //$NON-NLS-1$
-	            				TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.Load.Button.Only")+" "+dataPanel.getName(),  //$NON-NLS-1$ //$NON-NLS-2$
-	            				TrackerRes.getString("Dialog.Button.Cancel")}; //$NON-NLS-1$
-	            		result = JOptionPane.showOptionDialog(dataBuilder, 
-	            				TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.Load.Message")+" \""+trackType+"\"?",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	            				TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.Load.Title"),  //$NON-NLS-1$
-	            				JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
-            		}
-            		if (result==0) {
-	                for (FunctionPanel nextPanel: panelsToLoad) {
-		                control.loadObject(nextPanel);
-	                }
-            		}
-            		else if (result==1) {
-                	control.loadObject(dataPanel);            			
-            		}
-              }
-            }
-        		else {
-              JOptionPane.showMessageDialog(getTFrame(), 
-                  TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.WrongType.Message"), //$NON-NLS-1$
-              		TrackerRes.getString("TrackerPanel.DataBuilder.Dialog.WrongType.Title"), //$NON-NLS-1$
-              		JOptionPane.ERROR_MESSAGE);
-        		}
-
-          }
-        }
-
-      });
-      imageFile = "/org/opensourcephysics/resources/tools/images/save.gif"; //$NON-NLS-1$
-      Icon saveIcon = ResourceLoader.getIcon(imageFile);
-      saveDataFunctionsButton = new JButton(saveIcon);
-      saveDataFunctionsButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-        	XMLControl control = new XMLControlElement(dataBuilder.getSelectedPanel());
-         	if (dataBuilder.chooseDataFunctions(control, "Save", null)) { //$NON-NLS-1$
-            JFileChooser chooser = OSPRuntime.createChooser(
-            		TrackerRes.getString("TrackerPanel.DataBuilder.Save.Title"),  //$NON-NLS-1$
-            		TrackerRes.getString("TrackerPanel.DataBuilder.Chooser.XMLFiles"),  //$NON-NLS-1$
-            		new String[] {"xml"}); //$NON-NLS-1$
-            int result = chooser.showSaveDialog(dataBuilder);
-            if (result==JFileChooser.APPROVE_OPTION) {
-              OSPRuntime.chooserDir = chooser.getCurrentDirectory().toString();
-              File file = chooser.getSelectedFile();
-              if(!TrackerIO.canWrite(file)) return;
-              String fileName = file.getAbsolutePath();
-              control.write(fileName);
-            }
-          }
-        }
-
-      });
-      autoloadDataFunctionsButton = new JButton(TrackerRes.getString("TrackerPanel.DataBuilder.Button.Autoload")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
-      autoloadDataFunctionsButton.addActionListener(new ActionListener() {
-        @SuppressWarnings("unchecked")
-				public void actionPerformed(ActionEvent e) {
-        	// determine current track type and get collection of autoloaded data functions
-        	FunctionPanel panel = dataBuilder.getSelectedPanel();
-        	Class<?> trackType = Object.class;
-        	try {
-    				trackType = Class.forName(panel.getDescription());
-    				} catch (ClassNotFoundException ex) {
-    			}
-        	Collection<String[]> autoLoadedFunctions = dataBuilder.getAutoLoadedFunctions(trackType);
-
-        	XMLControl control = new XMLControlElement(panel); 
-        	// add autoloaded functions to those in the panel (but avoid duplicate names)
-       		Collection<String[]> functions = (Collection<String[]>)control.getObject("functions"); //$NON-NLS-1$
-        	if (autoLoadedFunctions!=null) {
-        		for (String[] next: autoLoadedFunctions) {
-        			boolean add = true;
-	        		for (String[] existing: functions) {
-	        			if (existing[0].equals(next[0])) add = false;
-	        		}
-        			if (add) functions.add(next);
-        		}
-        	}
-        	control.setValue("functions", functions); //$NON-NLS-1$
-        	// choose desired functions to autoload
-         	if (dataBuilder.chooseDataFunctions(control, "Autoload", autoLoadedFunctions)) { //$NON-NLS-1$
-         		for (Iterator<String> it = Tracker.dataFunctionControls.iterator(); it.hasNext();) {
-         			XMLControl next = new XMLControlElement(it.next());
-         			String trackClassName = next.getString("description"); //$NON-NLS-1$
-	          	Class<?>xmlType = null;
-            	try {
-  							xmlType = Class.forName(trackClassName);
-  						} catch (Exception ex) {
-  						}
-         			if (xmlType==trackType)
-         				it.remove();
-         		}
-         		functions = (Collection<String[]>)control.getObject("functions"); //$NON-NLS-1$
-          	if (!functions.isEmpty()) Tracker.dataFunctionControls.add(control.toXML());
-          	Tracker.savePreferences();
-          }
-        }
-
-      });
-
   		dataBuilder = new DataBuilder(this);
 			dataBuilder.setHelpPath("data_builder_help.html"); //$NON-NLS-1$
   		dataBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
@@ -2071,12 +1899,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     		if (track != null) {
 //    			setSelectedTrack(track);
     			ParticleModel model = (ParticleModel)track;
-      		startFrameSpinner.setValue(model.getStartFrame());
+    			modelBuilder.setSpinnerStartFrame(model.getStartFrame());
       		int end = model.getEndFrame();
       		if (end==Integer.MAX_VALUE) {
       			end = getPlayer().getVideoClip().getFrameCount()-1;
       		}
-      		endFrameSpinner.setValue(end);
+      		modelBuilder.setSpinnerEndFrame(end);
     		}
     	}
   		modelBuilder.refreshSpinners();
@@ -2094,7 +1922,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     else if (name.equals("model_start")) { //$NON-NLS-1$
     	ParticleModel model = (ParticleModel)e.getSource();
     	if (model.getName().equals(getModelBuilder().getSelectedName())) {
-    		startFrameSpinner.setValue(e.getNewValue());
+    		modelBuilder.setSpinnerStartFrame(e.getNewValue());
     	}
     }
     else if (name.equals("model_end")) { //$NON-NLS-1$
@@ -2104,7 +1932,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	  		if (end==Integer.MAX_VALUE) {
 	  			end = getPlayer().getVideoClip().getFrameCount()-1;
 	  		}
-	    	endFrameSpinner.setValue(end);
+	  		modelBuilder.setSpinnerEndFrame(end);
     	}
     }
     else if (name.equals("radian_angles")) { // angle format has changed //$NON-NLS-1$
@@ -2570,59 +2398,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   }
 
 	/**
-   * An inner class for the particle model start and end frame spinners.
-   */
-	class ModelFrameSpinner extends JSpinner {
-
-	  protected int prefWidth;
-
-		Integer prevMax;
-		SpinnerNumberModel spinModel;
-		
-		ModelFrameSpinner(SpinnerNumberModel model) {
-			super(model);
-			spinModel = model;
-    	prevMax = (Integer)spinModel.getMaximum();
-  		addChangeListener(new ChangeListener() {
-        public void stateChanged(ChangeEvent e) {
-        	ModelFunctionPanel panel = (ModelFunctionPanel)modelBuilder.getSelectedPanel();
-        	if (panel==null || panel.model==null || panel.model.refreshing)
-        		return;
-        	// do nothing if max has changed
-        	if (prevMax!=spinModel.getMaximum()) {
-        		prevMax = (Integer)spinModel.getMaximum();
-        		return;
-        	}
-        	// otherwise set model start or end frame
-      		int n = (Integer)getValue();
-        	if (ModelFrameSpinner.this==startFrameSpinner)
-        		panel.model.setStartFrame(n);
-        	else
-        		panel.model.setEndFrame(n);
-        }
-      });
-		}
-		
-		public Dimension getMaximumSize() {
-			Dimension dim = super.getMaximumSize();
-			dim.width = getMinimumSize().width;
-			return dim;
-		}
-		
-		public Dimension getMinimumSize() {
-			Dimension dim = super.getMinimumSize();
-	    dim.width += prefWidth-getEditor().getPreferredSize().width;
-			return dim;
-		}
-		
-		public Dimension getPreferredSize() {
-			Dimension dim = super.getPreferredSize();
-			dim.width = getMinimumSize().width;
-			return dim;
-		}
-	}
-
-	/**
    * This inner class extends IADMouseController to set the cursor
    * and show selected point coordinates.
    */
@@ -2677,351 +2452,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
   }
   
-  /**
-   * Inner data builder class.
-   */
-	class DataBuilder extends FunctionTool {
-		
-		protected DataBuilder(TrackerPanel trackerPanel) {
-			super(trackerPanel, new Component[] {loadDataFunctionsButton, saveDataFunctionsButton, Box.createHorizontalGlue(), autoloadDataFunctionsButton});
-			setHelpPath("data_builder_help.html"); //$NON-NLS-1$
-			addPropertyChangeListener("panel", trackerPanel); //$NON-NLS-1$
-			addPropertyChangeListener("function", trackerPanel); //$NON-NLS-1$
-			addPropertyChangeListener("visible", trackerPanel); //$NON-NLS-1$
-			ArrayList<Drawable> nogos = trackerPanel.getSystemDrawables();
-			Iterator<TTrack> it = trackerPanel.getTracks().iterator();
-			while (it.hasNext()) {
-				TTrack track = it.next();
-				if (nogos.contains(track)) continue;
-				FunctionPanel panel = trackerPanel.createFunctionPanel(track);
-		    addPanel(track.getName(), panel);
-			}
-		}
-		
-	  protected void refreshGUI() {
-	  	super.refreshGUI();
-	  	dropdown.setToolTipText(TrackerRes.getString("TrackerPanel.DataBuilder.Dropdown.Tooltip")); //$NON-NLS-1$
-			setTitle(TrackerRes.getString("TrackerPanel.DataBuilder.Title")); //$NON-NLS-1$
-			FunctionPanel panel = getSelectedPanel();
-			loadDataFunctionsButton.setEnabled(panel!=null);
-			saveDataFunctionsButton.setEnabled(panel!=null && panel.getFunctionEditor().getObjects().size()>0);
-			autoloadDataFunctionsButton.setEnabled(panel!=null);
-			loadDataFunctionsButton.setToolTipText(TrackerRes.getString("TrackerPanel.DataBuilder.Button.Load.Tooltip")); //$NON-NLS-1$
-			saveDataFunctionsButton.setToolTipText(TrackerRes.getString("TrackerPanel.DataBuilder.Button.Save.Tooltip")); //$NON-NLS-1$
-			autoloadDataFunctionsButton.setToolTipText(TrackerRes.getString("TrackerPanel.DataBuilder.Button.Autoload.Tooltip")); //$NON-NLS-1$
-	  }
-	  		
-	  /**
-	   * Adds a FunctionPanel.
-	   *
-	   * @param name a descriptive name
-	   * @param panel the FunctionPanel
-	   * @return the added panel
-	   */
-	  @Override
-	  public FunctionPanel addPanel(String name, FunctionPanel panel) {
-	    super.addPanel(name, panel);
-	    // load default data functions, if any, for this track type
-    	Class<?> trackType = null;
-    	try {
-				trackType = Class.forName(panel.getDescription());
-				} catch (ClassNotFoundException ex) {
-			}
-	    for (String xml: Tracker.dataFunctionControls) {
-	    	XMLControl control = new XMLControlElement(xml);
-		  	// determine what track type the control is for
-		  	Class<?> controlTrackType = null;
-		  	try {
-		  		controlTrackType = Class.forName(control.getString("description")); //$NON-NLS-1$);
-				} catch (Exception ex) {
-				}
-		  	
-		  	if (controlTrackType==trackType) {
-		  		control.loadObject(panel);            			
-		  	}	  	
-	    }	    
-	    return panel;
-	  }
-	  
-	  @SuppressWarnings("unchecked")
-		protected Collection<String[]> getAutoLoadedFunctions(Class<?> trackType) {
-   		for (String xml: Tracker.dataFunctionControls) {
-   			XMLControl control = new XMLControlElement(xml);
-   			String trackClassName = control.getString("description"); //$NON-NLS-1$
-      	Class<?>xmlType = null;
-      	try {
-					xmlType = Class.forName(trackClassName);
-     			if (xmlType==trackType) {
-     				return (Collection<String[]>)control.getObject("functions"); //$NON-NLS-1$
-     			}
-				} catch (Exception ex) {
-				}
-   		}
-   		return null;
-	  }
-	  
-	  protected boolean chooseDataFunctions(XMLControl control, String description, Collection<String[]> selectedFunctions) {
-	    ListChooser listChooser = new ListChooser(
-	    		TrackerRes.getString("TrackerPanel.DataBuilder."+description+".Title"), //$NON-NLS-1$ //$NON-NLS-2$
-	    		TrackerRes.getString("TrackerPanel.DataBuilder."+description+".Message"), //$NON-NLS-1$ //$NON-NLS-2$
-	        dataBuilder);
-	    // choose the elements and save
-	    ArrayList<Object> originals = new ArrayList<Object>();
-	    ArrayList<Object> choices = new ArrayList<Object>();
-	    ArrayList<String> names = new ArrayList<String>();
-	    ArrayList<String> expressions = new ArrayList<String>();
-	    ArrayList<?> functions = (ArrayList<?>)control.getObject("functions"); //$NON-NLS-1$
-	    
-	    for (Object next: functions) {
-	    	String[] function = (String[])next;          	
-	  		originals.add(function);
-	  		choices.add(function);
-	  		names.add(function[0]);
-	  		expressions.add(" = "+function[1]); //$NON-NLS-1$
-	    }
-	    // select all by default
-	    boolean[] selected = new boolean[choices.size()];
-	    for (int i = 0; i<selected.length; i++) {
-	    	selected[i] = true;
-	    }
-	    // if choosing autoload functions, select only those in selectedFunctions
-	    if (description.equals("Autoload")) { //$NON-NLS-1$
-		    for (int i = 0; i<names.size(); i++) {
-		    	selected[i] = false;
-		    	if (selectedFunctions!=null) {
-			    	String functionName = names.get(i);
-		     		for (String[] next: selectedFunctions) {
-				    	if (next[0].equals(functionName))
-				    		selected[i] = true;
-		     		}
-		    	}
-		    }
-	    }
-	    if (listChooser.choose(choices, names, expressions, selected)) {
-	      // compare choices with originals and remove unwanted object content
-	      for (Object next: originals) {
-	        if (!choices.contains(next)) {
-	          functions.remove(next);
-	        }
-	      }
-	      // rewrite the control with only selected functions
-	      control.setValue("functions", functions); //$NON-NLS-1$
-	      return true;
-	    }
-	    return false;
-	  }
-	  
-	};
-	
-  /**
-   * Inner ModelBuilder class.
-   */
-	class ModelBuilder extends FunctionTool {
-		
-		protected ModelBuilder(TrackerPanel trackerPanel) {
-			super(trackerPanel, new Component[] 
-  		    {startFrameLabel, startFrameSpinner, endFrameLabel, endFrameSpinner, boosterLabel, boosterDropdown});
-			
-      DropdownRenderer renderer= new DropdownRenderer();
-      boosterDropdown.setRenderer(renderer);
-  		refreshBoosterDropdown();
-
-      trackerPanel.addPropertyChangeListener("track", new PropertyChangeListener() { //$NON-NLS-1$
-      	public void propertyChange(PropertyChangeEvent e) {
-      		refreshBoosterDropdown();
-      		refreshLayout();
-      	}
-      });
-
-      setHelpAction(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          TFrame frame = getTFrame();
-          if (frame != null) {
-          	ModelFunctionPanel panel = (ModelFunctionPanel)modelBuilder.getSelectedPanel();
-          	if (panel.model instanceof DynamicSystem) {
-          		frame.showHelp("system", 0); //$NON-NLS-1$
-          	}
-          	else {
-          		frame.showHelp("particle", 0); //$NON-NLS-1$
-          	}
-          }
-        }
-      });
-		}
-		
-		@Override
-		protected void refreshGUI() {
-	  	super.refreshGUI();
-	  	dropdown.setToolTipText(TrackerRes.getString
-  				("TrackerPanel.ModelBuilder.Spinner.Tooltip")); //$NON-NLS-1$
-	  	boosterDropdown.setToolTipText(TrackerRes.getString
-  				("TrackerPanel.Dropdown.Booster.Tooltip")); //$NON-NLS-1$
-  		String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$  
-    	FunctionPanel panel = getSelectedPanel();
-    	if (panel!=null) {
-    		TTrack track = getTrack(panel.getName());
-    		if (track != null) {
-    			String type = track.getClass().getSimpleName();
-    			title += ": "+TrackerRes.getString(type+".Builder.Title"); //$NON-NLS-1$ //$NON-NLS-2$
-    		}
-    	}
-  		setTitle(title);
-  		boosterLabel.setText(TrackerRes.getString
-  				("TrackerPanel.Label.Booster")); //$NON-NLS-1$
-  		startFrameLabel.setText(TrackerRes.getString
-  				("TrackerPanel.Label.ModelStart")); //$NON-NLS-1$
-  		endFrameLabel.setText(TrackerRes.getString
-  				("TrackerPanel.Label.ModelEnd")); //$NON-NLS-1$
-  		startFrameSpinner.setToolTipText(TrackerRes.getString
-  				("TrackerPanel.Spinner.ModelStart.Tooltip")); //$NON-NLS-1$
-  		endFrameSpinner.setToolTipText(TrackerRes.getString
-  				("TrackerPanel.Spinner.ModelEnd.Tooltip")); //$NON-NLS-1$  	  		
-  		refreshBoosterDropdown();
-	  }
-	  
-		@Override
-	  public void setVisible(boolean vis) {
-	  	super.setVisible(vis);
-	  	isModelBuilderVisible = vis;
-	  }
-		
-		@Override
-	  public void setFontLevel(int level) {
-			super.setFontLevel(level);
-			refreshBoosterDropdown();
-			refreshLayout();
-		}
-		
-		/**
-	   * Refreshes the layout to ensure the booster dropdown is fully displayed.
-	   */
-		protected void refreshLayout() {
-    	SwingUtilities.invokeLater(new Runnable() {
-    		public void run() {
-      		validate();
-      		refreshGUI();
-      		Dimension dim = getSize();
-    			int height = Toolkit.getDefaultToolkit().getScreenSize().height;
-    			height = Math.min((int)(0.95*height), (int)(550*(1+fontLevel/4.0)));
-    			dim.height = height;
-    			setSize(dim); 
-      		repaint();
-    		}
-    	});
-
-		}
-
-		/**
-	   * Refreshes the start and end frame spinners.
-	   */
-	  protected void refreshSpinners() {
-		  int n = getPlayer().getVideoClip().getFrameCount()-1;
-  	  FunctionPanel panel = modelBuilder.getSelectedPanel();
-  	  startFrameSpinner.setEnabled(panel!=null);
-  	  endFrameSpinner.setEnabled(panel!=null);
-  	  startFrameLabel.setEnabled(panel!=null);
-  	  endFrameLabel.setEnabled(panel!=null);
-  	  int end = n;
-  	  ParticleModel model = null;
-  	  if (panel!=null) {
-  	  	model = ((ModelFunctionPanel)panel).model;
-  	  	end = Math.min(n, model.getEndFrame());
-  	  }
-  	  // following two lines trigger change events
-  	  ((SpinnerNumberModel)startFrameSpinner.getModel()).setMaximum(n);
-  	  ((SpinnerNumberModel)endFrameSpinner.getModel()).setMaximum(n);
-  	  if (model!=null) {
-  	  	startFrameSpinner.setValue(model.getStartFrame());
-  	  	endFrameSpinner.setValue(end);
-  	  }
-  	  else {
-  	  	startFrameSpinner.setValue(0);
-  	  	endFrameSpinner.setValue(n);
-  	  }
-		  Font font = startFrameSpinner.getFont();
-		  FontRenderContext frc = new FontRenderContext(null, false, false);
-  	  String s = String.valueOf(Math.max(n, 200));
-  	  TextLayout layout = new TextLayout(s, font, frc);
-  	  int w = (int)layout.getBounds().getWidth()+1;
-  	  if (n>1000) w+=3;
-	  	startFrameSpinner.prefWidth = w;
-	  	endFrameSpinner.prefWidth = w;
-	  	
-  	  validate();
-	  }
-
-	  /**
-	   * Refreshes the booster dropdown.
-	   */
-	  protected void refreshBoosterDropdown() {
-	  	  FunctionPanel panel = getSelectedPanel();
-	  	  DynamicParticle dynamicModel = null;
-	  	  if (panel!=null) {
-	  	  	ParticleModel model = ((ModelFunctionPanel)panel).model;  	  	
-	  	  	if (model instanceof DynamicParticle) {
-	  	  		dynamicModel = (DynamicParticle)model;
-	  	  	}
-	    	  boosterDropdown.setEnabled(false);  // disabled during refresh to prevent action
-	    		// refresh boosterDropdown
-	  	  	String s = TrackerRes.getString("TrackerPanel.Booster.None"); //$NON-NLS-1$
-	  	    Object[] none = new Object[] {new ShapeIcon(new Rectangle(), 21, 16), null, s};
-	  	  	Object[] selected = none;
-	  	  	boolean targetExists = false;
-	  	    boosterDropdown.removeAllItems();
-	  	    ArrayList<PointMass> masses = TrackerPanel.this.getDrawables(PointMass.class);
-	  	    outer: for (PointMass next: masses) {
-	  	    	if (next==model) continue;
-	  	    	if (next instanceof DynamicSystem) continue;
-	  	    	
-	  	    	String name = next.getName();
-	   	      Object[] item = new Object[] {next.getFootprint().getIcon(21, 16), next, name};
-	   	      
-	   	      // check that next is not a dynamic particle being boosted by selected model
-	   	      // or part of a system being boosted by selected model
-  	  	  	if (next instanceof DynamicParticle) {
-  	  	  		DynamicParticle dynamic = (DynamicParticle)next;
-  	  	  		if (dynamic.isBoostedBy(model)) continue;
-  	  	  		if (dynamic.system!=null) {
-  	  	  			for (DynamicParticle part: dynamic.system.particles) {
-  	  	  	  		if (part.isBoostedBy(model)) continue outer;
-  	  	  			}
-  	  	  		}
-  	  	  	}
-	   	      
-	  	    	if (dynamicModel!=null) {	
-	  	    		// check that next is not in same dynamic system as selected model
-	  	    		if (dynamicModel.system!=null && next instanceof DynamicParticle) {
-	  	  	  		DynamicParticle dynamicNext = (DynamicParticle)next;
-	  	  	  		if (dynamicNext.system==dynamicModel.system) {
-	  	  	  			continue outer;
-	  	  	  		}
-	  	    		}
-	  	    		// check if next is selected model's booster
-		  	    	if (dynamicModel.modelBooster!=null) {
-		  	    		PointMass booster = dynamicModel.modelBooster.booster;
-		  	    		// check if next pointmass is the current booster
-			  	  		if (booster==next) {
-			  	  			selected = item;
-			  	  			targetExists = true;
-			  	  		}
-		  	    	}
-	  	    	}
-	  	      boosterDropdown.addItem(item);
-	  	    }
-		      boosterDropdown.addItem(none);
-		      boosterDropdown.setSelectedItem(selected);
-		      if (dynamicModel!=null && !targetExists) {
-		      	dynamicModel.setBooster(null);
-		      }
-	  	  	boolean enable = dynamicModel!=null && !(dynamicModel instanceof DynamicSystem);
-	    	  boosterLabel.setEnabled(enable);
-	    	  boosterDropdown.setEnabled(enable);
-	  	  }
-	  	  validate();
-	  }
-	  		
-	} // end ModelBuilder class
-
   /**
    * Returns an XML.ObjectLoader to save and load object data.
    *
