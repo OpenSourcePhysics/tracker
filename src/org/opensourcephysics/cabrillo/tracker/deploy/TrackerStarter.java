@@ -236,40 +236,19 @@ public class TrackerStarter {
 	 * @param writeToLog true to write the results to the start log
 	 */
 	public static String findTrackerHome(boolean writeToLog) throws Exception {
-		// first look for trackerHome in environment variable
-		try {
-			trackerHome = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
-		} catch (Exception ex) {
-			exceptions += ex.getClass().getSimpleName()
-					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
-		}
-		if (writeToLog) showDebugMessage("environment variable TRACKER_HOME: " + trackerHome); //$NON-NLS-1$
-		if (trackerHome != null && !fileExists(trackerHome)) {
-			trackerHome = null;
-			if (writeToLog) showDebugMessage("TRACKER_HOME directory no longer exists"); //$NON-NLS-1$
-		}
-
-		// determine if code directory is trackerHome
-		if (trackerHome == null && codeBaseDir != null) {
+		// first determine if code base directory is trackerHome
+		if (codeBaseDir != null) {
 			if (writeToLog) showDebugMessage("code base: " + codeBaseDir.getPath()); //$NON-NLS-1$
-			// accept if the code directory is named "Tracker"
-			if (codeBaseDir.getPath().toLowerCase().endsWith("tracker")) { //$NON-NLS-1$
-				trackerHome = codeBaseDir.getPath();
-				if (writeToLog) showDebugMessage("code base accepted as trackerhome based on name"); //$NON-NLS-1$
-			}
-
-			// or if it has any tracker jars in it
-			else {
-				try {
-					String[] fileNames = codeBaseDir.list(trackerJarFilter);
-					if (fileNames != null && fileNames.length > 0) {
-						trackerHome = codeBaseDir.getPath();
-						if (writeToLog) showDebugMessage("code base accepted as trackerhome based on contents"); //$NON-NLS-1$
-					}
-				} catch (Exception ex) {
-					exceptions += ex.getClass().getSimpleName()
-							+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
+			// accept if the directory has any tracker jars in it
+			try {
+				String[] fileNames = codeBaseDir.list(trackerJarFilter);
+				if (fileNames != null && fileNames.length > 0) {
+					trackerHome = codeBaseDir.getPath();
+					if (writeToLog) showDebugMessage("code base accepted as trackerhome based on contents"); //$NON-NLS-1$
 				}
+			} catch (Exception ex) {
+				exceptions += ex.getClass().getSimpleName()
+						+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
 			}
 		}
 
@@ -282,6 +261,22 @@ public class TrackerStarter {
 				if (writeToLog) showDebugMessage("parent directory accepted as trackerhome based on contents"); //$NON-NLS-1$
 			}
 		}
+
+		// if not found locally, look for (legacy) environment variable
+		if (trackerHome == null) {
+			try {
+				trackerHome = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
+			} catch (Exception ex) {
+				exceptions += ex.getClass().getSimpleName()
+						+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
+			}
+			if (writeToLog) showDebugMessage("environment variable TRACKER_HOME: " + trackerHome); //$NON-NLS-1$
+			if (trackerHome != null && !fileExists(trackerHome)) {
+				trackerHome = null;
+				if (writeToLog) showDebugMessage("TRACKER_HOME directory no longer exists"); //$NON-NLS-1$
+			}
+		}
+
 		if (trackerHome == null)
 			throw new NullPointerException("trackerhome not found"); //$NON-NLS-1$
 		if (writeToLog) showDebugMessage("using trackerhome: " + trackerHome); //$NON-NLS-1$
