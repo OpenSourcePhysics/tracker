@@ -83,7 +83,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected TPoint pointState = new TPoint();
   protected MouseEvent mEvent;
   protected JLabel badNameLabel = new JLabel();
-  protected DataBuilder dataBuilder;
+  protected TrackDataBuilder dataBuilder;
   protected boolean dataToolVisible;
   protected XMLProperty viewsProperty; // TFrame loads views
   protected XMLProperty selectedViewsProperty; // TFrame sets selected views
@@ -1281,7 +1281,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   protected FunctionTool getDataBuilder() {
   	if (dataBuilder == null) { // create new tool if none exists
-  		dataBuilder = new DataBuilder(this);
+  		dataBuilder = new TrackDataBuilder(this);
 			dataBuilder.setHelpPath("data_builder_help.html"); //$NON-NLS-1$
   		dataBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
   		dataBuilder.addPropertyChangeListener("function", this); //$NON-NLS-1$
