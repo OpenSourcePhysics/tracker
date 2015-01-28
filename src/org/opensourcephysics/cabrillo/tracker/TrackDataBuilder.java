@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
-
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -34,13 +33,14 @@ import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.DataFunctionPanel;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.FunctionAutoloadManager;
+import org.opensourcephysics.tools.AbstractAutoloadManager;
 import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.ParamEditor;
 import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.ResourceLoader;
+import org.opensourcephysics.tools.TristateCheckBox;
 
 /**
  * A FunctionTool for building data functions for track data.
@@ -324,8 +324,9 @@ public class TrackDataBuilder extends FunctionTool {
 		autoloadButton = new JButton();
 	  autoloadButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-	      getAutoloadManager().refreshAutoloadData();
-	      getAutoloadManager().setVisible(true);	
+				AutoloadManager manager = getAutoloadManager();
+				manager.refreshAutoloadData();
+				manager.setVisible(true);	
 	    }
 	
 	  });
@@ -415,7 +416,7 @@ public class TrackDataBuilder extends FunctionTool {
   public FunctionPanel addPanel(String name, FunctionPanel panel) {
     super.addPanel(name, panel);
 
-    // load default data functions, if any, for this track type
+    // autoload data functions, if any, for this track type
   	Class<?> trackType = null;
   	try {
 			trackType = Class.forName(panel.getDescription());
@@ -436,26 +437,29 @@ public class TrackDataBuilder extends FunctionTool {
 	  	}	  	
     }	
     
-    // load from XMLControls autoloaded from XML files in user home and code base
-    for (XMLControl control: Tracker.dataFunctionControls) {
-	  	// determine what track type the control is for
-	  	Class<?> controlTrackType = null;
-	  	try {
-	  		controlTrackType = Class.forName(control.getString("description")); //$NON-NLS-1$);
-			} catch (Exception ex) {
-			}
-	  	
-	  	if (controlTrackType==trackType) {
-	  		// copy the control for modification if any functions are autoload_off
-	  		XMLControl copyControl = new XMLControlElement(control);
-	  		eliminateUnwantedFunctions(copyControl);
-	  		// change duplicate function names without requiring user confirmation
-	  		FunctionEditor editor = panel.getFunctionEditor();
-	  		boolean confirmChanges = editor.getConfirmChanges();
-	  		editor.setConfirmChanges(false);
-	  		copyControl.loadObject(panel);            			
-	  		editor.setConfirmChanges(confirmChanges);
-	  	}	  	
+    // load from XMLControls autoloaded from XML files in search paths
+    for (String path: Tracker.dataFunctionControls.keySet()) {
+    	ArrayList<XMLControl> controls = Tracker.dataFunctionControls.get(path);
+      for (XMLControl control: controls) {
+		  	// determine what track type the control is for
+		  	Class<?> controlTrackType = null;
+		  	try {
+		  		controlTrackType = Class.forName(control.getString("description")); //$NON-NLS-1$);
+				} catch (Exception ex) {
+				}
+		  	
+		  	if (controlTrackType==trackType) {
+		  		// copy the control for modification if any functions are autoload_off
+		  		XMLControl copyControl = new XMLControlElement(control);
+		  		eliminateExcludedFunctions(copyControl, path);
+		  		// change duplicate function names without requiring user confirmation
+		  		FunctionEditor editor = panel.getFunctionEditor();
+		  		boolean confirmChanges = editor.getConfirmChanges();
+		  		editor.setConfirmChanges(false);
+		  		copyControl.loadObject(panel);            			
+		  		editor.setConfirmChanges(confirmChanges);
+		  	}
+      }
     }
     
     return panel;
@@ -651,7 +655,7 @@ public class TrackDataBuilder extends FunctionTool {
   }
   
 	/**
-	 * Eliminates unwanted function entries from a DataFunctionPanel XMLControl. 
+	 * Eliminates excluded function entries from a DataFunctionPanel XMLControl. 
 	 * Typical (but incomplete) control:
 	 * 
 	 *	<object class="org.opensourcephysics.tools.DataFunctionPanel">
@@ -666,8 +670,9 @@ public class TrackDataBuilder extends FunctionTool {
 	 *	</object>
 	 *
 	 * @param panelControl the XMLControl to modify
+	 * @param filePath the path to the XML file read by the XMLControl
 	 */
-	protected void eliminateUnwantedFunctions(XMLControl panelControl) {
+	private void eliminateExcludedFunctions(XMLControl panelControl, String filePath) {
     for (Object prop: panelControl.getPropertyContent()) {
     	if (prop instanceof XMLProperty 
     			&& ((XMLProperty)prop).getPropertyName().equals("functions")) { //$NON-NLS-1$
@@ -679,7 +684,7 @@ public class TrackDataBuilder extends FunctionTool {
     			XMLProperty item = (XMLProperty)child;
     			XMLProperty nameProp = (XMLProperty)item.getPropertyContent().get(0);
     			String functionName = (String)nameProp.getPropertyContent().get(0);
-    			if (panelControl.getBoolean("autoload_off_"+functionName)) { //$NON-NLS-1$
+    			if (isFunctionExcluded(filePath, functionName)) {
     				toRemove.add(item);
     			}
     		}
@@ -690,6 +695,23 @@ public class TrackDataBuilder extends FunctionTool {
     }
 	}
 	
+  /**
+   * Determines if a named function is excluded from autoloading.
+   *
+   * @param filePath the path to the file defining the function
+   * @param functionName the function name
+   * @return true if the function is excluded
+   */
+  private boolean isFunctionExcluded(String filePath, String functionName) {
+  	String[] functions = Tracker.autoloadMap.get(filePath);
+  	if (functions==null) return false;
+  	for (String name: functions) {
+  		if (name.equals("*")) return true; //$NON-NLS-1$
+  		if (name.equals(functionName)) return true;
+  	}
+  	return false;
+  }
+  
 	/**
 	 * Gets the autoload manager, creating it the first time called.
 	 * 
@@ -698,6 +720,7 @@ public class TrackDataBuilder extends FunctionTool {
   protected AutoloadManager getAutoloadManager() {
   	if (autoloadManager==null) {
   		autoloadManager = new AutoloadManager(this);
+  		
   		// center on screen
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - autoloadManager.getBounds().width) / 2;
@@ -705,6 +728,7 @@ public class TrackDataBuilder extends FunctionTool {
       autoloadManager.setLocation(x, y);
       
       if (!Tracker.dataFunctionControlStrings.isEmpty()) {
+      	// pig convert and save in user platform-dependent default directory? or let user decide?
     		final String userhome = System.getProperty("user.home"); //$NON-NLS-1$
     		if (userhome!=null) {
 	      	Runnable runner = new Runnable() {
@@ -738,6 +762,7 @@ public class TrackDataBuilder extends FunctionTool {
     		}
       }      
   	}
+  	autoloadManager.setFontLevel(FontSizer.getLevel());
   	return autoloadManager;
   }
   
@@ -753,9 +778,9 @@ public class TrackDataBuilder extends FunctionTool {
     
     
   /**
-	 * A FunctionAutoloadManager for DataFunctions.
+	 * An AutoloadManager for DataFunctions.
 	 */
-  class AutoloadManager extends FunctionAutoloadManager {
+  class AutoloadManager extends AbstractAutoloadManager {
   	
   	/**
   	 * Constructor for a dialog.
@@ -765,6 +790,26 @@ public class TrackDataBuilder extends FunctionTool {
   	public AutoloadManager(JDialog dialog) {
 			super(dialog);
 		}
+  	
+  	@Override
+  	public void setVisible(boolean vis) {
+  		super.setVisible(vis);
+  		if (!vis) {
+  			// save non-default search paths in Tracker.preferredAutoloadSearchPaths 
+  			Collection<String> searchPaths = getSearchPaths();
+  			Collection<String> defaultPaths = Tracker.getDefaultAutoloadSearchPaths();
+  			boolean isDefault = searchPaths.size()==defaultPaths.size();
+  			for (String next: searchPaths) {
+  				isDefault = isDefault && defaultPaths.contains(next);
+  			}
+  			if (isDefault) {
+  				Tracker.preferredAutoloadSearchPaths = null;
+  			}
+  			else {
+  				Tracker.preferredAutoloadSearchPaths = searchPaths.toArray(new String[searchPaths.size()]);
+  			}
+  		}
+  	}
   	
   	/**
   	 * Refreshes the GUI.
@@ -776,7 +821,8 @@ public class TrackDataBuilder extends FunctionTool {
 			setTitle(title);		
   		setInstructions(TrackerRes.getString("TrackDataBuilder.Instructions.SelectToAutoload") //$NON-NLS-1$
   				+ "\n\n"+TrackerRes.getString("TrackDataBuilder.Instructions.WhereDefined") //$NON-NLS-1$ //$NON-NLS-2$
-  				+" "+TrackerRes.getString("TrackDataBuilder.Instructions.HowToAddFunction")); //$NON-NLS-1$ //$NON-NLS-2$
+  				+" "+TrackerRes.getString("TrackDataBuilder.Instructions.HowToAddFunction") //$NON-NLS-1$ //$NON-NLS-2$
+  				+" "+TrackerRes.getString("TrackDataBuilder.Instructions.HowToAddDirectory")); //$NON-NLS-1$ //$NON-NLS-2$
   	}
   	
   	/**
@@ -794,85 +840,143 @@ public class TrackDataBuilder extends FunctionTool {
   	}
 
     /**
-	   * Called when the status of a function has changed.
-	   *
-	   * @param id the function identifier {String directory, String filePath, Object[] function}
+     * Sets the selection state of a function.
+     *
+     * @param filePath the path to the file defining the function
+     * @param function the function {name, expression, optional descriptor}
+     * @param select true to select the function
      */
   	@Override
-    @SuppressWarnings("unchecked")
-    protected void functionChanged(Object[] id) {
-    	Object[] f = (Object[])id[2];
-	    XMLControl control = new XMLControlElement((String)id[1]);    
-	    if (control.failedToRead()) {
-	      return;
-	    }
-
-	    Class<?> type = control.getObjectClass();
-	    if (TrackDataBuilder.class.isAssignableFrom(type)) {
-	    	// find target DataFunctionPanel XMLControl with the desired function
-	    	XMLControl targetControl = null;
-        outerLoop: for (Object next: control.getPropertyContent()) {
-        	if (next instanceof XMLProperty 
-        			&& ((XMLProperty)next).getPropertyName().equals("functions")) { //$NON-NLS-1$
-        		// found DataFunctionPanels
-        		XMLControl[] panels = ((XMLProperty)next).getChildControls();
-        		for (XMLControl panelControl: panels) {
-        			String trackType = panelControl.getString("description"); //$NON-NLS-1$
-        			if (trackType==null || !f[3].equals(getLocalizedTrackName(trackType))) {
-        				// wrong track type
-        				continue;
-        			}
-        			ArrayList<String[]> functions = (ArrayList<String[]>)panelControl.getObject("functions"); //$NON-NLS-1$
-        			for (String[] func: functions) {
-        				if (func[0].equals(f[0])) {
-	        				targetControl = panelControl;
-	        				break outerLoop;        					
-        				}
-        			}
-        		}
-        	}
-        } // end outerLoop
-	    	
-	    	// set autoload_off property for function name
-	    	if (targetControl!=null) {
-	    		boolean on = (Boolean)f[2];
-	    		if (!on) {
-	    			targetControl.setValue("autoload_off_"+f[0], !on); //$NON-NLS-1$
-	    		}
-	    		else {
-	    			targetControl.setValue("autoload_off_"+f[0], null); //$NON-NLS-1$
-	    		}
-		    	control.write((String)id[1]);  
-	    	}
-	    }
+    protected void setFunctionSelected(String filePath, String[] function, boolean select) {
+    	
+    	String[] oldExclusions = Tracker.autoloadMap.get(filePath);
+			String[] newExclusions = null;
+  		if (!select) {
+  			// create or add entry to newExclusions
+  			if (oldExclusions==null) {
+  				newExclusions = new String[] {function[0]};
+  			}
+  			else {
+  				int n = oldExclusions.length;
+  				newExclusions = new String[n+1];
+  				System.arraycopy(oldExclusions, 0, newExclusions, 0, n);
+  				newExclusions[n] = function[0];
+  			}
+  		}
+  		else if (oldExclusions!=null){
+  			// remove entry
+				int n = oldExclusions.length;
+				if (n>1) {
+					ArrayList<String> exclusions = new ArrayList<String>();
+					for (String f: oldExclusions) {
+						if (f.equals(function[0])) continue;
+						exclusions.add(f);
+					}
+					newExclusions = exclusions.toArray(new String[exclusions.size()]);
+				}
+  		}
+  		
+  		Tracker.autoloadMap.remove(filePath);
+  		if (newExclusions!=null) {
+    		Tracker.autoloadMap.put(filePath, newExclusions);
+  		}
+  		
 	    Tracker.autoloadDataFunctions();
 	    refreshAutoloadData();
 	    // reload autoloaded functions into existing panels
-	    for (String name: TrackDataBuilder.this.getPanelNames()) {
-	    	DataFunctionPanel panel = (DataFunctionPanel)TrackDataBuilder.this.getPanel(name);
+	    for (String name: getPanelNames()) {
+	    	DataFunctionPanel panel = (DataFunctionPanel)getPanel(name);
+	    	addPanel(name, panel);
+	    }
+    	
+    }
+    
+    /**
+     * Gets the selection state of a function.
+     *
+     * @param filePath the path to the file defining the function
+     * @param function the function {name, expression, optional descriptor}
+     * @return true if the function is selected
+     */
+  	@Override
+    protected boolean isFunctionSelected(String filePath, String[] function) {
+    	String[] functions = Tracker.autoloadMap.get(filePath);
+    	if (functions==null) return true;
+    	for (String name: functions) {
+    		if (name.equals("*")) return false; //$NON-NLS-1$
+    		if (name.equals(function[0])) return false;
+    	}
+    	return true;
+    }
+    
+    /**
+     * Sets the selection state of a file. Note that PART_SELECTED is not an option.
+     *
+     * @param filePath the path to the file
+     * @param select true/false to select/deselect the file and all its functions
+     */
+  	@Override
+    protected void setFileSelected(String filePath, boolean select) {
+    	Tracker.autoloadMap.remove(filePath);
+    	if (!select) {
+    		String[] function = new String[] {"*"}; //$NON-NLS-1$
+      	Tracker.autoloadMap.put(filePath, function);
+    	}
+	    Tracker.autoloadDataFunctions();
+	    refreshAutoloadData();
+	    // reload autoloaded functions into existing panels
+	    for (String name: getPanelNames()) {
+	    	DataFunctionPanel panel = (DataFunctionPanel)getPanel(name);
 	    	addPanel(name, panel);
 	    }
     }
-  	
+    
+    /**
+     * Gets the selection state of a file.
+     *
+     * @param filePath the path to the file
+     * @return TristateCheckBox.SELECTED, NOT_SELECTED or PART_SELECTED
+     */
+  	@Override
+    protected TristateCheckBox.State getFileSelectionState(String filePath) {
+    	String[] functions = Tracker.autoloadMap.get(filePath);
+    	if (functions==null) return TristateCheckBox.SELECTED;
+    	if (functions[0].equals("*")) return TristateCheckBox.NOT_SELECTED; //$NON-NLS-1$
+    	return TristateCheckBox.PART_SELECTED;
+    }
+    
   	/**
   	 * Refreshes the autoload data.
   	 */
+  	@Override
   	protected void refreshAutoloadData() {
-      // display data functions, if any, in (a) user home and (b) code base
-    	final Map<String, Map<String, ArrayList<Object[]>>> data 
-    		= new TreeMap<String, Map<String, ArrayList<Object[]>>>();
-      String userhome = System.getProperty("user.home"); //$NON-NLS-1$
-      if (userhome!=null) {
-        Map<String, ArrayList<Object[]>> functionMap = Tracker.findDataFunctions(userhome);
-        data.put(userhome, functionMap);
-      }
-      String codebase = OSPRuntime.getLaunchJarDirectory();
-      if (codebase!=null) {
-      	Map<String, ArrayList<Object[]>> functionMap = Tracker.findDataFunctions(codebase);
-        data.put(codebase, functionMap);
-      }      
+    	final Map<String, Map<String, ArrayList<String[]>>> data 
+    		= new TreeMap<String, Map<String, ArrayList<String[]>>>();
+    	for (String path: getSearchPaths()) {
+        Map<String, ArrayList<String[]>> functionMap = Tracker.findDataFunctions(path);
+        data.put(path, functionMap);
+    	}
       setAutoloadData(data);
   	}
+  	
+  	/**
+  	 * Gets the collection of search paths.
+  	 * 
+  	 * @return the search paths
+  	 */
+  	@Override
+  	public Collection<String> getSearchPaths() {
+  		Collection<String> paths = super.getSearchPaths();
+    	if (paths.isEmpty() && !initialized) {
+  			initialized = true;
+    		for (String next: Tracker.getInitialSearchPaths()) {
+  				paths.add(next);
+  				addSearchPath(next);
+    		}
+    	}
+  		return paths;
+  	}
+
   }
   
 }

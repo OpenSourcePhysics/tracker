@@ -1311,24 +1311,23 @@ public class TrackerIO extends VideoIO {
    *
    * @param trackerPanel the tracker panel
    */
-  public static void pasteXML(TrackerPanel trackerPanel) {
+  public static boolean pasteXML(TrackerPanel trackerPanel) {
     try {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
       Transferable data = clipboard.getContents(null);
       XMLControl control = new XMLControlElement();
       control.readXML((String)data.getTransferData(DataFlavor.stringFlavor));
       Class<?> type = control.getObjectClass();
+      if (control.failedToRead() || type==null) {
+      	return false;
+      }
       if (TTrack.class.isAssignableFrom(type)) {
       	TTrack track = (TTrack)control.loadObject(null);
       	if (track != null) {
           trackerPanel.addTrack(track);
           trackerPanel.setSelectedTrack(track);
+          return true;
       	}
-      }
-      else if (ImageCoordSystem.class.isAssignableFrom(type)) {
-        XMLControl state = new XMLControlElement(trackerPanel.getCoords());
-      	control.loadObject(trackerPanel.getCoords());
-        Undo.postCoordsEdit(trackerPanel, state);
       }
       else if (VideoClip.class.isAssignableFrom(type)) {
       	VideoClip clip = (VideoClip)control.loadObject(null);
@@ -1337,14 +1336,23 @@ public class TrackerIO extends VideoIO {
       		XMLControl state = new XMLControlElement(prev);
           trackerPanel.getPlayer().setVideoClip(clip);
       		Undo.postVideoReplace(trackerPanel, state);
+      		return true;
       	}
       }
-      else if (TrackerPanel.class.isAssignableFrom(type)) {
+      else if (ImageCoordSystem.class.isAssignableFrom(type)) {
+        XMLControl state = new XMLControlElement(trackerPanel.getCoords());
+      	control.loadObject(trackerPanel.getCoords());
+        Undo.postCoordsEdit(trackerPanel, state);
+        return true;
+      }
+      if (TrackerPanel.class.isAssignableFrom(type)) {
         control.loadObject(trackerPanel);
+        return true;
       }
     }
     catch (Exception ex) {
     }
+    return false;
   }
 
   /**
