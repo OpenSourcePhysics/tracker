@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -46,6 +45,7 @@ import java.nio.charset.Charset;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
+import org.opensourcephysics.cabrillo.tracker.Tracker;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
@@ -92,7 +92,6 @@ public class TrackerStarter {
 	static boolean use32BitMode = false;
 	static boolean relaunching = false;
 	// static boolean qtPreferred = false;
-	static String version = "4.87"; //$NON-NLS-1$
 	static XMLControlElement prefsXMLControl = new XMLControlElement();
 	static int port = 12321;
 	static Timer timer;
@@ -365,7 +364,7 @@ public class TrackerStarter {
 									+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
 									+ "please see www.cabrillo.edu/~dbrown/tracker/." + newline + newline //$NON-NLS-1$
 									+ "Problems:" + newline + exceptions, //$NON-NLS-1$
-							"TrackerStarter Vers " + version + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
+							"TrackerStarter Vers " + Tracker.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 							JOptionPane.ERROR_MESSAGE);
 		} else {
 			if (trackerHome == null) {
@@ -383,7 +382,7 @@ public class TrackerStarter {
 											+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
 											+ "please see www.cabrillo.edu/~dbrown/tracker/." + newline + newline //$NON-NLS-1$
 											+ "Problems:" + newline + exceptions, //$NON-NLS-1$
-									"TrackerStarter Vers " + version + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
+									"TrackerStarter Vers " + Tracker.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 									JOptionPane.ERROR_MESSAGE);
 				} else {
 					JOptionPane
@@ -396,7 +395,7 @@ public class TrackerStarter {
 											+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
 											+ "please see www.cabrillo.edu/~dbrown/tracker/." + newline + newline //$NON-NLS-1$
 											+ "Problems:" + newline + exceptions, //$NON-NLS-1$
-									"TrackerStarter Vers " + version + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
+									"TrackerStarter Vers " + Tracker.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 									JOptionPane.ERROR_MESSAGE);
 				}
 			} else {
@@ -413,7 +412,7 @@ public class TrackerStarter {
 										+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
 										+ "please see www.cabrillo.edu/~dbrown/tracker/." + newline + newline //$NON-NLS-1$
 										+ "Problems:" + newline + exceptions, //$NON-NLS-1$
-								"TrackerStarter Vers " + version + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
+								"TrackerStarter Vers " + Tracker.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 								JOptionPane.ERROR_MESSAGE);
 			}
 
@@ -575,7 +574,7 @@ public class TrackerStarter {
 				showDebugMessage("no starter preferences found in " + prefsFile.getPath()); //$NON-NLS-1$      		
 		}
 		if (loaded) {
-			writeStarterPrefs();
+//			writeStarterPrefs();
 			return;
 		}
 
@@ -953,7 +952,7 @@ public class TrackerStarter {
 		if (!logText.startsWith("TrackerStarter")) { //$NON-NLS-1$
 			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
 			Calendar cal = Calendar.getInstance();
-			logText = "TrackerStarter version " + version + "  " //$NON-NLS-1$ //$NON-NLS-2$
+			logText = "TrackerStarter version " + Tracker.VERSION + "  " //$NON-NLS-1$ //$NON-NLS-2$
 					+ sdf.format(cal.getTime()) + newline + newline + logText;
 		}		
 	}
@@ -977,51 +976,51 @@ public class TrackerStarter {
 		}
 	}
 
-	/**
-	 * Writes starter preferences.
-	 */
-	private static void writeStarterPrefs() {
-		File starterPrefsFile = new File(userHome, starterPrefsFileName);
-		if (starterPrefsFile.exists() && !starterPrefsFile.canWrite()) {
-			return;
-		}
-		StringBuffer buf = new StringBuffer();
-		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
-		Calendar cal = Calendar.getInstance();
-		buf.append("TrackerStarter version " + version + "  " //$NON-NLS-1$ //$NON-NLS-2$
-				+ sdf.format(cal.getTime()));
-		// add notice of deprecation
-		buf.append("\nNote: .tracker_starter.prefs is deprecated as of version 4.62."); //$NON-NLS-1$
-		buf.append("\nThis file is for backward compatibility only."); //$NON-NLS-1$
-		// add jre path
-		if (!"java".equals(javaCommand)) { //$NON-NLS-1$
-			buf.append("\n\njre " + javaCommand); //$NON-NLS-1$
-		}
-		// add tracker version
-		if (launchVersionNumber > 2.5) {
-			buf.append("\nversion " + launchVersionString); //$NON-NLS-1$
-		}
-		// add executable paths
-		if (executables != null) {
-			for (String path : executables) {
-				if (path == null || "".equals(path))continue; //$NON-NLS-1$
-				buf.append("\nrun " + path); //$NON-NLS-1$
-			}
-		}
-		if (buf.length() > 0)
-			try {
-				FileOutputStream stream = new FileOutputStream(starterPrefsFile);
-				Charset charset = Charset.forName(encoding);
-				Writer out = new OutputStreamWriter(stream, charset);
-				BufferedWriter output = new BufferedWriter(out);
-				output.write(buf.toString());
-				output.flush();
-				output.close();
-				showDebugMessage("writing backup starter preferences to " + starterPrefsFile.getPath()); //$NON-NLS-1$
-			} catch (IOException ex) {
-			}
-	}
-
+//	/**
+//	 * Writes starter preferences.
+//	 */
+//	private static void writeStarterPrefs() {
+//		File starterPrefsFile = new File(userHome, starterPrefsFileName);
+//		if (starterPrefsFile.exists() && !starterPrefsFile.canWrite()) {
+//			return;
+//		}
+//		StringBuffer buf = new StringBuffer();
+//		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
+//		Calendar cal = Calendar.getInstance();
+//		buf.append("TrackerStarter version " + version + "  " //$NON-NLS-1$ //$NON-NLS-2$
+//				+ sdf.format(cal.getTime()));
+//		// add notice of deprecation
+//		buf.append("\nNote: .tracker_starter.prefs is deprecated as of version 4.62."); //$NON-NLS-1$
+//		buf.append("\nThis file is for backward compatibility only."); //$NON-NLS-1$
+//		// add jre path
+//		if (!"java".equals(javaCommand)) { //$NON-NLS-1$
+//			buf.append("\n\njre " + javaCommand); //$NON-NLS-1$
+//		}
+//		// add tracker version
+//		if (launchVersionNumber > 2.5) {
+//			buf.append("\nversion " + launchVersionString); //$NON-NLS-1$
+//		}
+//		// add executable paths
+//		if (executables != null) {
+//			for (String path : executables) {
+//				if (path == null || "".equals(path))continue; //$NON-NLS-1$
+//				buf.append("\nrun " + path); //$NON-NLS-1$
+//			}
+//		}
+//		if (buf.length() > 0)
+//			try {
+//				FileOutputStream stream = new FileOutputStream(starterPrefsFile);
+//				Charset charset = Charset.forName(encoding);
+//				Writer out = new OutputStreamWriter(stream, charset);
+//				BufferedWriter output = new BufferedWriter(out);
+//				output.write(buf.toString());
+//				output.flush();
+//				output.close();
+//				showDebugMessage("writing backup starter preferences to " + starterPrefsFile.getPath()); //$NON-NLS-1$
+//			} catch (IOException ex) {
+//			}
+//	}
+//
 	private static boolean fileExists(String path) {
 		File file = new File(path);
 		try {

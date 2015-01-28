@@ -35,6 +35,7 @@ import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 
 import javax.swing.*;
+
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
@@ -110,6 +111,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected TreeSet<String> supplementalFilePaths = new TreeSet<String>(); // HTML/PDF URI paths
 	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
   protected StepSet selectedSteps = new StepSet(this);
+  protected ActionListener worldDataRefresher;
 
   /**
    * Constructs a blank TrackerPanel with a player.
@@ -157,6 +159,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     player.addPropertyChangeListener("outframe", this); //$NON-NLS-1$
     player.addPropertyChangeListener("slider", this); //$NON-NLS-1$
     player.addPropertyChangeListener("playing", this); //$NON-NLS-1$
+
     configure();
   }
 
@@ -252,7 +255,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    *
    * @return the model builder
    */
-  public FunctionTool getModelBuilder() {
+  public ModelBuilder getModelBuilder() {
   	if (modelBuilder == null) {
 //  		// create start and end frame spinners
 //  	  Font font = new JSpinner().getFont();
@@ -1222,6 +1225,73 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   public void setMessage(String msg) {
   	if (!OSPRuntime.isMac()) super.setMessage(msg);
   }
+  
+  // pig 
+  protected DataModel importData(String dataString, Object source) {
+  	// if dataString is null return null
+  	if (dataString==null) {
+  		return null;
+  	}
+  	// if dataString is parsable data (eg pasted), find 
+  	// corresponding data model and set the data
+		DatasetManager data = DataTool.parseData(dataString, null);
+		if (data!=null) {
+      return importData(data, source);
+    }
+  	
+  	// if dataString is a resource path, read the resource and call this again
+		String path = dataString;
+  	return importData(ResourceLoader.getString(path), path);
+  }
+  
+  // pig 
+  public DataModel importData(Data data, Object source) {
+  	if (data==null) return null;
+  	// find DataModel with matching name
+  	String name = data.getName();
+  	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
+  		name = TrackerRes.getString("DataModel.New.Name"); //$NON-NLS-1$
+  	}
+  	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
+  	TTrack track = getTrack(name);
+  	// if not found by name, check for matching ID
+  	if (track==null || track.getClass()!=DataModel.class) {
+	  	int id = data.getID();
+  		for (DataModel model: getDrawables(DataModel.class)) {
+  			if (id==model.getExternalData().getID()) {
+  				track = model;
+  				break;
+  			}
+  		}
+  	}
+  	try {
+    	if (track==null || track.getClass()!=DataModel.class) {
+					track = new DataModel(data, source);
+					int i = getDrawables(PointMass.class).size();
+					track.setColorToDefault(i);
+					track.setName(name);
+					addTrack(track);
+					setSelectedPoint(null);
+					setSelectedTrack(track);
+					DataModel model = (DataModel)track;
+					FunctionTool inspector = model.getInspector();
+					model.setStartFrame(getPlayer().getVideoClip().getStartFrameNumber());
+					inspector.setVisible(true);
+					return (DataModel)track;
+    	}
+    	else {
+    		DataModel model = (DataModel)track;
+    		model.setData(data);
+    		return model;
+    	}
+		} catch (Exception e) {
+			// pig warn user
+			OSPLog.warning(e.getMessage());
+		}
+  	if (track==null || track.getClass()!=DataModel.class)
+  		return null;
+		return (DataModel)track;
+  }
 
   /**
    * Refreshes all data in tracks and views.
@@ -1727,7 +1797,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				|| isEnabled("new.protractor")  //$NON-NLS-1$
 				|| isEnabled("new.analyticParticle")  //$NON-NLS-1$
 				|| isEnabled("new.dynamicParticle")  //$NON-NLS-1$
-				|| isEnabled("new.dynamicTwoBody");  //$NON-NLS-1$
+				|| isEnabled("new.dynamicTwoBody")  //$NON-NLS-1$
+				|| isEnabled("new.dataModel");  //$NON-NLS-1$
   }
 
   /**
@@ -2479,7 +2550,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	
       TrackerPanel trackerPanel = (TrackerPanel)obj;
       // save the version
-      control.setValue("version", Tracker.version); //$NON-NLS-1$
+      control.setValue("version", Tracker.VERSION); //$NON-NLS-1$
       // save the image size
       control.setValue("width", trackerPanel.getImageWidth()); //$NON-NLS-1$
       control.setValue("height", trackerPanel.getImageHeight()); //$NON-NLS-1$
@@ -2626,14 +2697,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	    String ver = control.getString("version"); //$NON-NLS-1$
 	    if (ver!=null) {
 	    	double xmlVersion = Double.parseDouble(ver);
-	    	double version = Double.parseDouble(Tracker.version);
+	    	double version = Double.parseDouble(Tracker.VERSION);
 	    	if (xmlVersion-version>0.2) {
 	    		JOptionPane.showMessageDialog(trackerPanel, 
 	    				TrackerRes.getString("TrackerPanel.Dialog.Version.Message1") //$NON-NLS-1$
 	    				+ " "+ver+" " //$NON-NLS-1$ //$NON-NLS-2$
 	    				+ TrackerRes.getString("TrackerPanel.Dialog.Version.Message2") //$NON-NLS-1$
 	    				+ "\n"+TrackerRes.getString("TrackerPanel.Dialog.Version.Message3") //$NON-NLS-1$ //$NON-NLS-2$
-	    				+ " ("+Tracker.version+")." //$NON-NLS-1$ //$NON-NLS-2$
+	    				+ " ("+Tracker.VERSION+")." //$NON-NLS-1$ //$NON-NLS-2$
 	    				+ "\n\n"+TrackerRes.getString("TrackerPanel.Dialog.Version.Message4") //$NON-NLS-1$ //$NON-NLS-2$
 	    				+" "+Tracker.trackerWebsite+".",  //$NON-NLS-1$ //$NON-NLS-2$
 	    				TrackerRes.getString("TrackerPanel.Dialog.Version.Title"),  //$NON-NLS-1$

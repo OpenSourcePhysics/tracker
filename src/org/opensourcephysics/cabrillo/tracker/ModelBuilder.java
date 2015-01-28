@@ -39,7 +39,7 @@ import org.opensourcephysics.tools.*;
 /**
  * A FunctionTool for building particle models.
  */
-class ModelBuilder extends FunctionTool {
+public class ModelBuilder extends FunctionTool {
 	
   private TrackerPanel trackerPanel;
   private JLabel startFrameLabel, endFrameLabel, boosterLabel;
@@ -190,6 +190,15 @@ class ModelBuilder extends FunctionTool {
 		super.setFontLevel(level);
 		refreshBoosterDropdown();
 		refreshLayout();
+	}
+	
+	/**
+   * Gets the TrackerPanel.
+   * 
+   * @return the TrackerPanel
+   */
+	public TrackerPanel getTrackerPanel() {
+		return trackerPanel;
 	}
 	
 	/**

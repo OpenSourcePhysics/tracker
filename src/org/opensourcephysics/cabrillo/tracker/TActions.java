@@ -35,7 +35,10 @@ import java.net.URL;
 import javax.swing.*;
 
 import org.opensourcephysics.controls.*;
+import org.opensourcephysics.display.DatasetManager;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.Resource;
@@ -132,12 +135,16 @@ public class TActions {
     };
     actions.put("newTab", newTabAction); //$NON-NLS-1$
     // pastexml
-    AbstractAction pasteXMLAction = new AbstractAction(TrackerRes.getString("TActions.Action.Paste")) { //$NON-NLS-1$
+    AbstractAction pasteAction = new AbstractAction(TrackerRes.getString("TActions.Action.Paste")) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
-        TrackerIO.pasteXML(trackerPanel);
+        if (!TrackerIO.pasteXML(trackerPanel)) {
+        	// pasting XML failed, so try to paste data
+        	String dataString = DataTool.paste();
+        	trackerPanel.importData(dataString, null);
+        }
       }
     };
-    actions.put("pastexml", pasteXMLAction); //$NON-NLS-1$
+    actions.put("paste", pasteAction); //$NON-NLS-1$
     // open
     Icon icon = new ImageIcon(Tracker.class.getResource("resources/images/open.gif")); //$NON-NLS-1$
     final AbstractAction openAction = new AbstractAction(TrackerRes.getString("TActions.Action.Open"), icon) { //$NON-NLS-1$
@@ -227,6 +234,25 @@ public class TActions {
       }
     };
     actions.put("import", importAction); //$NON-NLS-1$
+    // import data
+    AbstractAction importDataAction = new AbstractAction(TrackerRes.getString("TActions.Action.ImportData")) { //$NON-NLS-1$
+      public void actionPerformed(ActionEvent e) {
+        // choose file and import its data into trackerPanel
+    		JFileChooser chooser = OSPRuntime.getChooser();
+    		String title = chooser.getDialogTitle();
+    		chooser.setDialogTitle(TrackerRes.getString("TActions.Action.ImportData.ChooserTitle")); //$NON-NLS-1$
+        int result = chooser.showOpenDialog(trackerPanel.getTFrame());
+        // restore original title
+    		chooser.setDialogTitle(title);
+        if (result!=JFileChooser.APPROVE_OPTION) {
+        	return;
+        }
+        OSPRuntime.chooserDir = chooser.getCurrentDirectory().toString();
+        String filePath = chooser.getSelectedFile().getAbsolutePath();
+        trackerPanel.importData(filePath, null);        
+      }
+    };
+    actions.put("importData", importDataAction); //$NON-NLS-1$
     // save current tab
     icon = new ImageIcon(Tracker.class.getResource("resources/images/save.gif")); //$NON-NLS-1$
     AbstractAction saveAction = new AbstractAction(TrackerRes.getString("TActions.Action.Save"), icon) { //$NON-NLS-1$
@@ -547,6 +573,49 @@ public class TActions {
       }
     };
     actions.put("dynamicSystem", dynamicSystemAction); //$NON-NLS-1$
+    // new data model item
+    AbstractAction dataModelAction = new AbstractAction(TrackerRes.getString("DataModel.Name"), null) { //$NON-NLS-1$
+      public void actionPerformed(ActionEvent e) {
+        // choose file and get its data
+    		JFileChooser chooser = OSPRuntime.getChooser();
+    		String title = chooser.getDialogTitle();
+    		chooser.setDialogTitle(TrackerRes.getString("TActions.Action.NewDataModel.ChooserTitle")); //$NON-NLS-1$
+        int result = chooser.showOpenDialog(trackerPanel.getTFrame());
+        // restore title
+    		chooser.setDialogTitle(title);
+        if (result!=JFileChooser.APPROVE_OPTION) {
+        	return;
+        }
+        OSPRuntime.chooserDir = chooser.getCurrentDirectory().toString();
+        String filePath = chooser.getSelectedFile().getAbsolutePath();
+        String dataString = ResourceLoader.getString(filePath);
+        if (dataString==null) {
+        // pig if dataString is null report to user
+        	return;
+        }
+    		DatasetManager data = DataTool.parseData(dataString, null);
+    		if (data==null) {
+        // pig if data is null report to user
+    			return;
+    		}
+        try {
+					DataModel model = new DataModel(data, filePath);
+					model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
+					trackerPanel.addTrack(model);
+					trackerPanel.setSelectedPoint(null);
+					trackerPanel.setSelectedTrack(model);
+					FunctionTool inspector = model.getInspector();
+					model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
+					inspector.setVisible(true);
+				} catch (Exception ex) {
+					ex.printStackTrace();
+          // pig x or y data is missing, so report to user
+				}
+        // pig should this use TrackerPanel.importData()?
+          
+      }
+    };
+    actions.put("dataModel", dataModelAction); //$NON-NLS-1$
     // new (read-only) tape measure
     String s = TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$
     AbstractAction tapeAction = new AbstractAction(s, null) {

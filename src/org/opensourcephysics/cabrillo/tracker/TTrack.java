@@ -364,7 +364,8 @@ public abstract class TTrack implements Interactive,
         }
         Undo.postTrackEdit(TTrack.this, control);
     		if (TTrack.this instanceof PointMass) {
-    			((PointMass)TTrack.this).updateDerivatives();
+    			PointMass p = (PointMass)TTrack.this;
+    			p.updateDerivatives();
     		}
        	AutoTracker autoTracker = trackerPanel.getAutoTracker();
        	if (autoTracker.getTrack()==TTrack.this)

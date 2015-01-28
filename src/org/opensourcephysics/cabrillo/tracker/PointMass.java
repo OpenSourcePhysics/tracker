@@ -107,7 +107,7 @@ public class PointMass extends TTrack {
   protected boolean traceVisible = false;
 	protected GeneralPath trace = new GeneralPath();
 	protected Stroke traceStroke = new BasicStroke(1);
-
+	
   /**
    * Constructs a PointMass with mass 1.0.
    */
@@ -171,8 +171,8 @@ public class PointMass extends TTrack {
    * @param color the desired color
    */
   public void setColor(Color color) {
-	setVelocityColor(color);
-	setAccelerationColor(color);
+  	setVelocityColor(color);
+  	setAccelerationColor(color);
     super.setColor(color);
   }
 
@@ -2284,6 +2284,7 @@ public class PointMass extends TTrack {
         snapToPosition("a"); //$NON-NLS-1$
       }
     });
+
   }
 
   /**

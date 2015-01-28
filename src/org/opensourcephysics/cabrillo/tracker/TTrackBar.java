@@ -34,9 +34,12 @@ import javax.swing.Timer;
 import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
+import org.opensourcephysics.display.Data;
 
 /**
  * This is a toolbar that display selected track properties 
@@ -76,7 +79,14 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-//		    	      	final TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+				    	    demo.DataTestApp testApp = new demo.DataTestApp();
+						    	Data data = testApp.generateData();
+		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+		    	      	trackerPanel.importData(data, testApp);
+//				    			testApp.setTool(model);
+//				    				testApp.sendData();
+		    	      	
+		    	      	
 		    	      	// show environment
 //			    	  		String[] vars = {"TRACKER_HOME", "XUGGLE_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 //			    	  		for (String next: vars) {
@@ -102,7 +112,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 //			    	  		OSPLog.warning(jres+"\n"); //$NON-NLS-1$
 			    	      	
 
-			    	  		OSPLog.showLog();
+//			    	  		OSPLog.showLog();
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
 		  	    				testTimer=null;
