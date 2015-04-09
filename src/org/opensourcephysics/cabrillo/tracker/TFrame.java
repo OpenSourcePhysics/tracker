@@ -288,6 +288,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     int tab = getTab(trackerPanel);
     if (tab == -1) return; // tab doesn't exist
     if (!trackerPanel.save()) return; // user cancelled
+    
     // hide the info dialog
     notesDialog.setVisible(false);
     if (trackerPanel.dataBuilder != null) trackerPanel.dataBuilder.dispose();

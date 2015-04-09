@@ -32,6 +32,9 @@ import java.net.URL;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
 import java.text.SimpleDateFormat;
 import java.awt.*;
 import java.awt.event.*;
@@ -59,27 +62,27 @@ public class Tracker {
   }
 
   // define static constants
+  /** tracker version */
+  public static final String VERSION = "4.87150331"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
   /** a larger tracker icon */
   public static final ImageIcon TRACKER_ICON_256 = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_256.png")); //$NON-NLS-1$
-  public static final String VERSION = "4.87150126"; //$NON-NLS-1$
 
 	static final String THETA = TeXParser.parseTeX("$\\theta"); //$NON-NLS-1$
 	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
 	static final String ALPHA = TeXParser.parseTeX("$\\alpha"); //$NON-NLS-1$
 	static final String DEGREES = "º"; //$NON-NLS-1$
-  static String trackerHome;
   static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
   
   // for testing
   static boolean timeLogEnabled = false;
-  static boolean testOn = true;
-  static TrackerPanel testPanel;
+  static boolean testOn = false;
   
   // define static fields
+  static String trackerHome;
   static String[] fullConfig =
   	{"file.new", "file.open", "file.close",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   	"file.import", "file.export", "file.save",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -93,7 +96,7 @@ public class Tracker {
 	  "new.lineProfile", "new.RGBRegion",  //$NON-NLS-1$ //$NON-NLS-2$
 	  "new.analyticParticle", "new.clone",  //$NON-NLS-1$ //$NON-NLS-2$
 	  "new.dynamicParticle", "new.dynamicTwoBody",  //$NON-NLS-1$ //$NON-NLS-2$ 
-	  "new.dataModel", "new.tapeMeasure", "new.protractor",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	  "new.dataTrack", "new.tapeMeasure", "new.protractor",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "calibration.stick", "calibration.tape", //$NON-NLS-1$ //$NON-NLS-2$
 	  "calibration.points", "calibration.offsetOrigin", //$NON-NLS-1$ //$NON-NLS-2$
 	  "track.name", "track.description",  //$NON-NLS-1$ //$NON-NLS-2$
@@ -123,11 +126,9 @@ public class Tracker {
   static Action aboutTrackerAction, readmeAction;
   static Action aboutJavaAction, startLogAction, trackerPrefsAction;
   private static Tracker tracker;
-  static Process rmiProc;
   static String readmeFileName = "tracker_README.txt"; //$NON-NLS-1$
   static JDialog readmeDialog, startLogDialog, trackerPrefsDialog;
   static JTextArea trackerPrefsTextArea;
-  static String prefsFileName = ".tracker.prefs"; //$NON-NLS-1$
   static String prefsPath;
   @SuppressWarnings("javadoc")
 	public static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
@@ -149,6 +150,9 @@ public class Tracker {
   static Collection<String> initialAutoloadSearchPaths = new TreeSet<String>();
   static Map<String, ArrayList<XMLControl>> dataFunctionControls = new TreeMap<String, ArrayList<XMLControl>>();
   static java.io.FileFilter xmlFilter;
+  static boolean qtLoading, qtLoaded;
+  static Registry registry; // used for RMI communication with EJS
+  static DataTrackTool dataTrackTool; // used for RMI communication with EJS
   
   // user-settable preferences saved/loaded by Preferences class
   static Level preferredLogLevel = DEFAULT_LOG_LEVEL;
@@ -365,7 +369,7 @@ public class Tracker {
 //              qtType = new QTVideoType(filter);
 //              VideoIO.addVideoType(qtType);
 //          	}
-          	
+          	qtLoading = true;
           	String qtTypeName = "org.opensourcephysics.media.quicktime.QTVideoType"; //$NON-NLS-1$
             Class<?> qtClass = Class.forName(qtTypeName);
             Constructor<?>[] constructors = qtClass.getDeclaredConstructors();
@@ -384,19 +388,24 @@ public class Tracker {
             VideoType qtType = (VideoType)cNoArgs.newInstance();
             VideoIO.addVideoEngine(qtType);
             
-            if (cFilterArg==null) return;
+            if (cFilterArg==null) {
+            	qtLoaded = true;
+            	return;
+            }
           	for (String ext: VideoIO.VIDEO_EXTENSIONS) { // {"mov", "avi", "mp4"}
             	VideoFileFilter filter = new VideoFileFilter(ext, new String[] {ext});
               qtType = (VideoType)cFilterArg.newInstance(filter);
               VideoIO.addVideoType(qtType);
           	}
-
+          	qtLoaded = true;
           }
           catch (Exception ex) { // QT for Java not working
           	OSPLog.config("QuickTime exception: "+ex.toString()); //$NON-NLS-1$
+          	qtLoading = false;
           }
           catch (Error er) { // QT for Java not working
           	OSPLog.config("QuickTime error: "+er.toString()); //$NON-NLS-1$
+          	qtLoading = false;
           }
         }
       };
@@ -436,16 +445,17 @@ public class Tracker {
    */
   public static Tracker getTracker() {
     if (tracker == null) {
-      tracker = new Tracker(null, false);
+    	OSPLog.fine("creating shared Tracker"); //$NON-NLS-1$
+      tracker = new Tracker(null, false, false);
     }
     return tracker;
   }
 
   /**
-   * Constructs Tracker with a blank tab.
+   * Constructs Tracker with a blank tab and splash.
    */
   public Tracker() {
-    this(null, true);
+    this(null, true, true);
   }
 
   /**
@@ -465,8 +475,8 @@ public class Tracker {
    *
    * @param names an array of xml, video or zip file names
    */
-  private Tracker(String[] names, boolean addTabIfEmpty) {
-    splash.setVisible(true);
+  private Tracker(String[] names, boolean addTabIfEmpty, boolean showSplash) {
+    splash.setVisible(showSplash);
     createFrame();
     Tracker.setProgress(5);
     if (names != null) {
@@ -583,10 +593,13 @@ public class Tracker {
 						} catch (Exception ex) {
 						}
           }
-          if (rmiProc != null) rmiProc.destroy();
           
           // hide the frame
           frame.setVisible(false);
+          
+          // unregister the DataTrackTool and inform RMI clients
+					dataTrackTool.trackerExiting();
+					unregisterRemoteTool(dataTrackTool);
 
           // exit the system if frame wishes to exit 
           if (frame.wishesToExit() && 
@@ -1072,6 +1085,45 @@ public class Tracker {
   	return OSPRuntime.getDefaultSearchPaths();
   }
   
+//  /**
+//   * Imports Data from a source into a DataTrack. 
+//   * Data must include "x" and "y" columns, may include "t". 
+//   * The returned DataTrack is the first one found in the selected TrackerPanel
+//   * that matches the Data name or ID. If none found, a new DataTrack is created.
+//   * The source Object may be a String path, JPanel controlPanel, Tool tool, etc
+//   * 
+//   * @param data the Data to import
+//   * @param source the data source (may be null)
+//   * @return the DataTrack with the Data (may return null)
+//   */
+//  public static DataTrack importData(Data data, Object source) {
+//  	// get shared Tracker  
+//  	Tracker tracker = getTracker();
+//  	TFrame frame = tracker.getFrame();
+//  	frame.setVisible(true);
+//  	
+//  	// look for matching DataTrack in selected TrackerPanel?
+//  	DataTrack model = null;
+//  	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());  	
+//  	if (trackerPanel!=null) {
+//	  	model = trackerPanel.importData(data, source);
+//  	}
+//  	
+//  	// create new tab
+//  	if (model==null) {
+//	  	trackerPanel = new TrackerPanel();
+//	  	frame.addTab(trackerPanel);
+//	
+//	  	// pass the data and source to the TrackerPanel and get the DataTrack it creates
+//	  	model = trackerPanel.importData(data, source);
+//  	}
+//  	if (model==null) {
+//	  	frame.setVisible(false);
+//	  	return null;
+//  	}
+//  	return model;
+//  }
+//  
 	/**
 	 * Gets the starting autoload search paths. Search paths may be later modified by the user.
 	 * 
@@ -1209,72 +1261,65 @@ public class Tracker {
    * Loads preferences from a preferences file, if any.
    */
   protected static void loadPreferences() {
-  	// look for prefs file in OSPRuntime.getDefaultSearchPaths() 
-    XMLControl control = null;
-  	String loadedPath = null;
-  	outer: for (String path: OSPRuntime.getDefaultSearchPaths()) {
-  		for (int i=0; i<2; i++) {
-  			String fileName = prefsFileName;
-  			if (i==1) {
-  				// if not found with leading dot in fileName, try without
-  				fileName = fileName.substring(1);
-  			}
-	      prefsPath = new File(path, fileName).getAbsolutePath();
-	      control = new XMLControlElement(prefsPath);
-	      if (!control.failedToRead() && control.getObjectClass()==Preferences.class) {
-	      	loadedPath = prefsPath;
-	      	break outer;
-	      }
-  		}
-  	}
-  	// code below this point is legacy and should never be reached
-    // if not loaded, look in (1) user home, (2) TRACKER_HOME, (3) current directory
-    // check user home
-    if (loadedPath==null) {
-	    String userhome = System.getProperty("user.home"); //$NON-NLS-1$
-	    if (userhome!=null) {
-	      prefsPath = userhome+"/"+prefsFileName; //$NON-NLS-1$
-	      control = new XMLControlElement(prefsPath);
-	      if (!control.failedToRead()) loadedPath = prefsPath;
-	    }
-    }
-    // if not loaded, check TRACKER_HOME
-    if (loadedPath==null) {
-      if (trackerHome!=null) {
-	      String path = trackerHome+"/"+prefsFileName; //$NON-NLS-1$
-	      control = new XMLControlElement(path);
-	      if (!control.failedToRead()) loadedPath = path;
-	      if (prefsPath==null)
-	      	prefsPath = path;
-      }
-    }
-    // if not loaded, check launch jar directory
-    if (loadedPath==null) {
-      String dir = OSPRuntime.getLaunchJarDirectory();
-      if (dir!=null) {
-        String path = dir+"/"+prefsFileName; //$NON-NLS-1$
-        control = new XMLControlElement(path);
-	      if (!control.failedToRead()) loadedPath = path;
-        if (prefsPath==null && loadedPath!=null)
-        	prefsPath = path;   	
-      }
-    }
-    // check current directory
-    if (loadedPath==null) {
-      File file = new File(prefsFileName);
-      if (file.exists()) {
-        String path = file.getAbsolutePath();
-        control = new XMLControlElement(path);
-	      if (!control.failedToRead()) loadedPath = path;
-        if (prefsPath==null && loadedPath!=null)
-        	prefsPath = path;   	
-      }
-    }
-    if (loadedPath!=null) {
+  	
+  	XMLControl prefsControl = TrackerStarter.findPreferences();
+  	if (prefsControl!=null) {
+  		prefsPath = prefsControl.getString("prefsPath"); //$NON-NLS-1$
     	OSPLog.getOSPLog();
-    	OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(loadedPath))); //$NON-NLS-1$
-    	control.loadObject(null);  // the loader itself sets the values
-    }
+    	OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
+    	prefsControl.loadObject(null);  // the loader itself reads the values
+    	return;
+  	}
+  	
+//  	// code below this point is legacy and should never be reached
+//    // if not loaded, look in (1) user home, (2) TRACKER_HOME, (3) current directory
+//    // check user home
+//    XMLControl control = null;
+//  	String loadedPath = null;
+//    String userhome = System.getProperty("user.home"); //$NON-NLS-1$
+//    if (userhome!=null) {
+//      prefsPath = userhome+"/"+prefsFileName; //$NON-NLS-1$
+//      control = new XMLControlElement(prefsPath);
+//      if (!control.failedToRead()) loadedPath = prefsPath;
+//    }
+//    // if not loaded, check TRACKER_HOME
+//    if (loadedPath==null) {
+//      if (trackerHome!=null) {
+//	      String path = trackerHome+"/"+prefsFileName; //$NON-NLS-1$
+//	      control = new XMLControlElement(path);
+//	      if (!control.failedToRead()) loadedPath = path;
+//	      if (prefsPath==null)
+//	      	prefsPath = path;
+//      }
+//    }
+//    // if not loaded, check launch jar directory
+//    if (loadedPath==null) {
+//      String dir = OSPRuntime.getLaunchJarDirectory();
+//      if (dir!=null) {
+//        String path = dir+"/"+prefsFileName; //$NON-NLS-1$
+//        control = new XMLControlElement(path);
+//	      if (!control.failedToRead()) loadedPath = path;
+//        if (prefsPath==null && loadedPath!=null)
+//        	prefsPath = path;   	
+//      }
+//    }
+//    // check current directory
+//    if (loadedPath==null) {
+//      File file = new File(prefsFileName);
+//      if (file.exists()) {
+//        String path = file.getAbsolutePath();
+//        control = new XMLControlElement(path);
+//	      if (!control.failedToRead()) loadedPath = path;
+//        if (prefsPath==null && loadedPath!=null)
+//        	prefsPath = path;   	
+//      }
+//    }
+//    if (loadedPath!=null) {
+//    	OSPLog.getOSPLog();
+//    	OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(loadedPath))); //$NON-NLS-1$
+//    	control.loadObject(null);  // the loader itself sets the values
+//    }
+//    // end legacy code
   }
 
   /**
@@ -1288,10 +1333,20 @@ public class Tracker {
 		control.write(prefsPath);
 		
 		// also write prefs to current directory if it already exists and is writable
-    File file = new File(prefsFileName);
+    File file = new File(".tracker.prefs"); //$NON-NLS-1$
     if (file.exists() && file.canWrite()) {
     	control.write(file.getAbsolutePath());
     }
+    
+    // save current trackerHome and xuggleHome in OSP preferences 
+    if (trackerHome!=null) {
+    	OSPRuntime.setPreference("TRACKER_HOME", trackerHome); //$NON-NLS-1$
+    }
+  	String xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
+    if (xuggleHome!=null) {
+    	OSPRuntime.setPreference("XUGGLE_HOME", xuggleHome); //$NON-NLS-1$
+    }
+    OSPRuntime.savePreferences();
     
 		return prefsPath;
   }
@@ -1452,7 +1507,7 @@ public class Tracker {
   private static void start(String[] args) {
     Tracker tracker = null;
     if (args == null || args.length == 0) tracker = new Tracker();
-    else tracker = new Tracker(args, true);
+    else tracker = new Tracker(args, true, true);
     
   	if (OSPRuntime.isMac()) {
 			// instantiate the OSXServices class by reflection
@@ -1466,9 +1521,22 @@ public class Tracker {
 		}
  
   	FontSizer.setLevel(preferredFontLevel);
-  	TFrame frame = tracker.getFrame();
+  	final TFrame frame = tracker.getFrame();
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    
+    // create and register DataTrackTool
+		Runnable runner = new Runnable() {
+			public void run() {
+	  		try {
+			    dataTrackTool = new DataTrackTool(frame);
+					registerRemoteTool(dataTrackTool);
+				} catch (RemoteException e) {
+				}
+			}
+		};
+		new Thread(runner).start();
+    
     LaunchNode node = Launcher.activeNode;
     if (node != null) {
       frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
@@ -1589,7 +1657,6 @@ public class Tracker {
 		      JOptionPane.WARNING_MESSAGE);
 		}
 
-    testPanel = frame.getTrackerPanel(0);
   }
 
   /**
@@ -1620,7 +1687,49 @@ public class Tracker {
   		OSPLog.info(sdf.format(cal.getTime())+": "+message); //$NON-NLS-1$
   	}
   }
-
+  
+  /**
+   * Registers a Remote tool with the RMI registry.
+   * 
+   * @param remoteTool the Remote
+   * @return true if successfully registered
+   */
+  protected static boolean registerRemoteTool(Remote remoteTool) {
+  	// register tool
+  	try {
+  		// create registry if needed
+  		if (registry==null) {
+	 			registry = java.rmi.registry.LocateRegistry.createRegistry(DataTrackSupport.PORT); 			
+  		}
+			String name = remoteTool.getClass().getSimpleName();
+			registry.rebind(name, remoteTool);
+  		OSPLog.fine(name+" successfully registered"); //$NON-NLS-1$
+  		return true;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+  	return false;
+  }
+  
+  /**
+   * Unregisters a Remote tool with the RMI registry.
+   * 
+   * @param remoteTool the Remote
+   * @return true if successfully unregistered
+   */
+  protected static boolean unregisterRemoteTool(Remote remoteTool) {
+  	if (registry==null || remoteTool==null) return false;
+  	try {
+			String name = remoteTool.getClass().getSimpleName();
+			registry.unbind(name);
+  		OSPLog.fine(name+" successfully unregistered"); //$NON-NLS-1$
+  		return true;
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+  	return false;
+  }
+  
   /**
    * Adds a path to the list of recent files.
    * 

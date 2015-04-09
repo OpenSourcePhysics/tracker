@@ -118,6 +118,7 @@ public class PrefsDialog extends JDialog {
 	  	userHome = System.getProperty("user.home"); //$NON-NLS-1$
       javaHome = System.getProperty("java.home"); //$NON-NLS-1$
   		URL url = TrackerStarter.class.getProtectionDomain().getCodeSource().getLocation();
+//  		File jarFile = new File(url.getPath());
   		File jarFile = new File(url.toURI());
   		codeBaseDir = jarFile.getParentFile();
 		}  

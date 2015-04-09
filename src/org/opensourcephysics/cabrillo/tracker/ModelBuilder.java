@@ -30,10 +30,13 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.opensourcephysics.display.Data;
+import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.tools.*;
 
 /**

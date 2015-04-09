@@ -485,7 +485,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   }
   
   private FunctionPanel createFunctionPanel(TTrack track) {
-    FunctionPanel panel = new DataFunctionPanel(track.getData(this));
+  	DatasetManager data = track.getData(this);
+    FunctionPanel panel = new DataFunctionPanel(data);
   	panel.setIcon(track.getFootprint().getIcon(21, 16));
   	Class<?> type = track.getClass();
   	if (PointMass.class.isAssignableFrom(type))
@@ -1226,10 +1227,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   	if (!OSPRuntime.isMac()) super.setMessage(msg);
   }
   
-  // pig 
-  protected DataModel importData(String dataString, Object source) {
-  	// if dataString is null return null
+  /**
+   * Imports Data from a data string (delimited fields) into a DataTrack.
+   * The data string must be parsable by DataTool. If the string is a path,
+   * an attempt is made to get the data string with ResourceLoader. 
+   * 
+   * Source object (model) may be String path, JPanel controlPanel, Tool tool, etc
+   * 
+   * @param dataString delimited fields parsable by DataTool, or a path to a Resource
+   * @param source the data source (may be null)
+   * @return the DataTrack with the Data (may return null)
+   */
+  protected DataTrack importData(String dataString, Object source) {
   	if (dataString==null) {
+  		// pig inform user?
   		return null;
   	}
   	// if dataString is parsable data (eg pasted), find 
@@ -1244,53 +1255,78 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   	return importData(ResourceLoader.getString(path), path);
   }
   
-  // pig 
-  public DataModel importData(Data data, Object source) {
+  /**
+   * Imports Data from a source into a DataTrack. 
+   * Data must include "x" and "y" columns, may include "t". 
+   * DataTrack is the first one found that matches the Data name or ID.
+   * If none found, a new DataTrack is created.
+   * Source object (model) may be String path, JPanel controlPanel, Tool tool, etc
+   * 
+   * @param data the Data to import
+   * @param source the data source (may be null)
+   * @return the DataTrack with the Data (may return null)
+   */
+  @Override
+  public DataTrack importData(Data data, Object source) {
   	if (data==null) return null;
-  	// find DataModel with matching name
+  	
+  	// find DataTrack with matching name
   	String name = data.getName();
   	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
-  		name = TrackerRes.getString("DataModel.New.Name"); //$NON-NLS-1$
+  		name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
   	}
   	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
   	TTrack track = getTrack(name);
+  	
   	// if not found by name, check for matching ID
-  	if (track==null || track.getClass()!=DataModel.class) {
+  	if (track==null || track.getClass()!=ParticleDataTrack.class) {
 	  	int id = data.getID();
-  		for (DataModel model: getDrawables(DataModel.class)) {
-  			if (id==model.getExternalData().getID()) {
+  		for (ParticleDataTrack model: getDrawables(ParticleDataTrack.class)) {
+  			Data existingData = model.getData();
+  			if (existingData!=null && id==existingData.getID()) {
   				track = model;
   				break;
   			}
   		}
   	}
+  	
+  	// load data into DataTrack
   	try {
-    	if (track==null || track.getClass()!=DataModel.class) {
-					track = new DataModel(data, source);
-					int i = getDrawables(PointMass.class).size();
-					track.setColorToDefault(i);
-					track.setName(name);
-					addTrack(track);
-					setSelectedPoint(null);
-					setSelectedTrack(track);
-					DataModel model = (DataModel)track;
-					FunctionTool inspector = model.getInspector();
-					model.setStartFrame(getPlayer().getVideoClip().getStartFrameNumber());
-					inspector.setVisible(true);
-					return (DataModel)track;
+	  	// create a new DataTrack if none exists
+    	if (track==null || track.getClass()!=ParticleDataTrack.class) {
+				track = new ParticleDataTrack(data, source);
+				ParticleDataTrack dataTrack = (ParticleDataTrack)track;
+				int i = getDrawables(PointMass.class).size();
+				dataTrack.setColorToDefault(i);
+				dataTrack.setName(name);
+				addTrack(dataTrack);
+				setSelectedPoint(null);
+				setSelectedTrack(dataTrack);
+				// set videoclip and dataclip properties
+				VideoClip videoClip = getPlayer().getVideoClip();
+				DataClip dataClip = dataTrack.getDataClip();
+				int startFrame = videoClip.getStartFrameNumber();
+				int endFrame = startFrame+dataClip.getDataLength()-1;
+				if (videoClip.getVideo()==null && videoClip.getEndFrameNumber()<endFrame) {
+					videoClip.setEndFrameNumber(endFrame);
+				}
+				dataTrack.setStartFrame(startFrame);
+				dataClip.setClipLength(-1); // sets clip length to data length
+				dataTrack.getInspector().setVisible(true);
+				dataTrack.firePropertyChange("data", null, null); //$NON-NLS-1$
     	}
     	else {
-    		DataModel model = (DataModel)track;
-    		model.setData(data);
-    		return model;
+      	// set data for existing DataTrack
+  			ParticleDataTrack dataTrack = (ParticleDataTrack)track;
+  			dataTrack.setData(data);
     	}
 		} catch (Exception e) {
-			// pig warn user
-			OSPLog.warning(e.getMessage());
+			// pig inform user
+			OSPLog.warning(e.getClass().getSimpleName()+": "+e.getMessage()); //$NON-NLS-1$
+			e.printStackTrace();
+			track = null;
 		}
-  	if (track==null || track.getClass()!=DataModel.class)
-  		return null;
-		return (DataModel)track;
+		return (DataTrack)track;
   }
 
   /**
@@ -1798,7 +1834,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				|| isEnabled("new.analyticParticle")  //$NON-NLS-1$
 				|| isEnabled("new.dynamicParticle")  //$NON-NLS-1$
 				|| isEnabled("new.dynamicTwoBody")  //$NON-NLS-1$
-				|| isEnabled("new.dataModel");  //$NON-NLS-1$
+				|| isEnabled("new.dataTrack");  //$NON-NLS-1$
   }
 
   /**
@@ -2760,13 +2796,21 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         int n = trackerPanel.getFrameNumber();
         trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
       }
+    	// pig kludge to prevent a freeze (deadlock?) when loading QT videos and DataTracks
+      Video vid = trackerPanel.getVideo();
+    	if (vid!=null && vid.getClass().getSimpleName().contains("QT") //$NON-NLS-1$
+    			&& control.toXML().contains("ParticleDataTrack")) try { //$NON-NLS-1$
+				Thread.sleep(100);
+			} catch (InterruptedException ex) {
+				ex.printStackTrace();
+			}
       // load the tracks
       ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
       if (tracks != null) {
-        Iterator<?> it = tracks.iterator();
-        while (it.hasNext()) {
-          trackerPanel.addTrack((TTrack)it.next());
-        }
+      	for (Object next: tracks) {
+      		TTrack track = (TTrack)next;
+          trackerPanel.addTrack(track);
+      	}
       }
       // load the reference frame
       String rfName = control.getString("referenceframe"); //$NON-NLS-1$
