@@ -35,8 +35,6 @@ import java.net.URL;
 import javax.swing.*;
 
 import org.opensourcephysics.controls.*;
-import org.opensourcephysics.display.DatasetManager;
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
@@ -237,19 +235,7 @@ public class TActions {
     // import data
     AbstractAction importDataAction = new AbstractAction(TrackerRes.getString("TActions.Action.ImportData")) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
-        // choose file and import its data into trackerPanel
-    		JFileChooser chooser = OSPRuntime.getChooser();
-    		String title = chooser.getDialogTitle();
-    		chooser.setDialogTitle(TrackerRes.getString("TActions.Action.ImportData.ChooserTitle")); //$NON-NLS-1$
-        int result = chooser.showOpenDialog(trackerPanel.getTFrame());
-        // restore original title
-    		chooser.setDialogTitle(title);
-        if (result!=JFileChooser.APPROVE_OPTION) {
-        	return;
-        }
-        OSPRuntime.chooserDir = chooser.getCurrentDirectory().toString();
-        String filePath = chooser.getSelectedFile().getAbsolutePath();
-        trackerPanel.importData(filePath, null);        
+      	getAction("dataTrack", trackerPanel).actionPerformed(e); //$NON-NLS-1$
       }
     };
     actions.put("importData", importDataAction); //$NON-NLS-1$
@@ -573,49 +559,34 @@ public class TActions {
       }
     };
     actions.put("dynamicSystem", dynamicSystemAction); //$NON-NLS-1$
-    // new data model item
-    AbstractAction dataModelAction = new AbstractAction(TrackerRes.getString("DataModel.Name"), null) { //$NON-NLS-1$
+    // new DataTrack item
+    AbstractAction dataTrackAction = new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
         // choose file and get its data
-    		JFileChooser chooser = OSPRuntime.getChooser();
-    		String title = chooser.getDialogTitle();
-    		chooser.setDialogTitle(TrackerRes.getString("TActions.Action.NewDataModel.ChooserTitle")); //$NON-NLS-1$
-        int result = chooser.showOpenDialog(trackerPanel.getTFrame());
-        // restore title
-    		chooser.setDialogTitle(title);
-        if (result!=JFileChooser.APPROVE_OPTION) {
+      	File[] files = TrackerIO.getChooserFiles("open data"); //$NON-NLS-1$
+        if (files==null) {
         	return;
         }
-        OSPRuntime.chooserDir = chooser.getCurrentDirectory().toString();
-        String filePath = chooser.getSelectedFile().getAbsolutePath();
-        String dataString = ResourceLoader.getString(filePath);
-        if (dataString==null) {
-        // pig if dataString is null report to user
-        	return;
+        String filePath = files[0].getAbsolutePath();
+        String ext = XML.getExtension(filePath);
+        if ("jar".equals(ext)) { //$NON-NLS-1$
+        	if (!DataTrackTool.isDataSource(filePath)) {
+        		String jarName = TrackerRes.getString("TActions.Action.DataTrack.Unsupported.JarFile") //$NON-NLS-1$
+        				+ " \""+XML.getName(filePath)+"\" "; //$NON-NLS-1$ //$NON-NLS-2$
+      			JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
+      					jarName+TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Message")+".", //$NON-NLS-1$ //$NON-NLS-2$
+      					TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Title"), //$NON-NLS-1$
+      					JOptionPane.WARNING_MESSAGE);
+      			return;
+        	}
+        	DataTrackTool.launchDataSource(filePath, true);
         }
-    		DatasetManager data = DataTool.parseData(dataString, null);
-    		if (data==null) {
-        // pig if data is null report to user
-    			return;
-    		}
-        try {
-					DataModel model = new DataModel(data, filePath);
-					model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
-					trackerPanel.addTrack(model);
-					trackerPanel.setSelectedPoint(null);
-					trackerPanel.setSelectedTrack(model);
-					FunctionTool inspector = model.getInspector();
-					model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
-					inspector.setVisible(true);
-				} catch (Exception ex) {
-					ex.printStackTrace();
-          // pig x or y data is missing, so report to user
-				}
-        // pig should this use TrackerPanel.importData()?
-          
+        else {
+	        trackerPanel.importData(filePath, null);
+        }        
       }
     };
-    actions.put("dataModel", dataModelAction); //$NON-NLS-1$
+    actions.put("dataTrack", dataTrackAction); //$NON-NLS-1$
     // new (read-only) tape measure
     String s = TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$
     AbstractAction tapeAction = new AbstractAction(s, null) {

@@ -1005,7 +1005,7 @@ abstract public class ParticleModel extends PointMass {
       // load track data
       XML.getLoader(TTrack.class).loadObject(control, obj);
       ParticleModel p = (ParticleModel)obj;
-      p.mass = (control.getDouble("mass")); //$NON-NLS-1$
+      p.mass = control.getDouble("mass"); //$NON-NLS-1$
   		p.inspectorX = control.getInt("inspector_x"); //$NON-NLS-1$
   		p.inspectorY = control.getInt("inspector_y"); //$NON-NLS-1$
   		p.inspectorH = control.getInt("inspector_h"); //$NON-NLS-1$

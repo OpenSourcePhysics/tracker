@@ -8,14 +8,14 @@ import javax.swing.JPanel;
 import org.opensourcephysics.tools.UserFunctionEditor;
 
 /**
- * A function panel for a DataModel.
+ * A function panel for a ParticleDataTrack.
  *
  * @author Douglas Brown
  */
-public class DataModelFunctionPanel extends ModelFunctionPanel {
+public class ParticleDataTrackFunctionPanel extends ModelFunctionPanel {
 	
-	private DataModelClipControl clipControl;
-	private DataModelTimeControl timeControl;
+	private DataTrackClipControl clipControl;
+	private DataTrackTimeControl timeControl;
 	private JPanel customControl;
 	private JPanel customTitle;
 
@@ -23,17 +23,17 @@ public class DataModelFunctionPanel extends ModelFunctionPanel {
    * Constructor.
    *
    * @param editor the user function editor
-   * @param track a DataModel
+   * @param track a ParticleDataTrack
    */
-  public DataModelFunctionPanel(DataModel track) {
+  public ParticleDataTrackFunctionPanel(ParticleDataTrack track) {
   	// must pass a UserFunctionEditor (never used) to the superclass
   	super(new UserFunctionEditor(), track);
   	model = track;
-  	setName(track.getName());
+  	setName(track.getName());  	
   	
   	// create and assemble GUI
-  	clipControl = new DataModelClipControl((DataModel)model);
-  	timeControl = new DataModelTimeControl((DataModel)model);
+  	clipControl = new DataTrackClipControl(track);
+  	timeControl = new DataTrackTimeControl(track);
   	box.remove(paramEditor);
   	box.remove(functionEditor);
 		box.add(clipControl, 1);
@@ -57,9 +57,9 @@ public class DataModelFunctionPanel extends ModelFunctionPanel {
 			if (customTitle==null) {
 				customTitle = new JPanel(new BorderLayout());
 			}
-			customTitle.setBorder(BorderFactory.createTitledBorder("Data Source Control"));
 			customTitle.add(customControl, BorderLayout.CENTER);
   		box.add(customTitle, 3);
+  		refreshGUI();
   	}
   }
   
@@ -69,11 +69,15 @@ public class DataModelFunctionPanel extends ModelFunctionPanel {
   protected void refreshGUI() {
   	super.refreshGUI();
   	if (model!=null) {
-	  	DataModel dataModel = (DataModel)model;
-			Object dataSource = dataModel.getSource();
+	  	ParticleDataTrack dataTrack = (ParticleDataTrack)model;
+			Object dataSource = dataTrack.getSource();
 			if (dataSource!=null && dataSource instanceof JPanel) {
 				setCustomControl((JPanel)dataSource);
 			}  		
+  	}
+  	if (customControl!=null) {
+  		String title = TrackerRes.getString("ParticleDataTrackFunctionPanel.Border.Title"); //$NON-NLS-1$
+			customTitle.setBorder(BorderFactory.createTitledBorder(title));
   	}
   }
 

@@ -151,7 +151,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem newDynamicParticleCartesianItem;
   protected JMenuItem newDynamicParticlePolarItem;
   protected JMenuItem newDynamicSystemItem;
-  protected JMenuItem newDataModelItem;
+  protected JMenuItem newDataTrackItem;
   protected JMenuItem emptyTracksItem;
   // coords menu
   protected JMenu coordsMenu;
@@ -390,7 +390,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
                 if (xImport!=null && yImport!=null) {
                 	String name = manager.getName();
                 	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
-                		name = TrackerRes.getString("DataModel.New.Name"); //$NON-NLS-1$
+                		name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
                 	}
                 	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
                 	pasteItem.setEnabled(true);
@@ -1059,8 +1059,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     newDynamicParticlePolarItem.addActionListener(actions.get("dynamicParticlePolar")); //$NON-NLS-1$
     newDynamicSystemItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TwoBody")); //$NON-NLS-1$
     newDynamicSystemItem.addActionListener(actions.get("dynamicSystem")); //$NON-NLS-1$
-    newDataModelItem = new JMenuItem(TrackerRes.getString("DataModel.Name")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
-    newDataModelItem.addActionListener(actions.get("dataModel")); //$NON-NLS-1$
+    newDataTrackItem = new JMenuItem(TrackerRes.getString("ParticleDataTrack.Name")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    newDataTrackItem.addActionListener(actions.get("dataTrack")); //$NON-NLS-1$
     // window menu
     windowMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Window")); //$NON-NLS-1$
     windowMenu.addMouseListener(new MouseAdapter() {
@@ -1775,9 +1775,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           calibrationToolsMenu.setText(TrackerRes.getString("TMenuBar.Menu.CalibrationTools")); //$NON-NLS-1$
           createMenu.add(calibrationToolsMenu);
         }
-        if (trackerPanel.isEnabled("new.dataModel")) { //$NON-NLS-1$
+        if (trackerPanel.isEnabled("new.dataTrack")) { //$NON-NLS-1$
           if (createMenu.getItemCount() > 0) createMenu.addSeparator();
-          createMenu.add(newDataModelItem); 
+          createMenu.add(newDataTrackItem); 
         }
         newTrackItems = createMenu.getMenuComponents();
         // refresh coords menu
