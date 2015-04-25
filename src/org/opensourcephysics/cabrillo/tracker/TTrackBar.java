@@ -34,12 +34,10 @@ import javax.swing.Timer;
 import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.FunctionTool;
+import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
-import org.opensourcephysics.display.Data;
 
 /**
  * This is a toolbar that display selected track properties 
@@ -79,40 +77,12 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-				    	    demo.DataTestApp testApp = new demo.DataTestApp();
-						    	Data data = testApp.generateData();
-		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-		    	      	trackerPanel.importData(data, testApp);
-//				    			testApp.setTool(model);
-//				    				testApp.sendData();
 		    	      	
+		    	      	String path = "http://www.cabrillo.edu/~dbrown/tracker/counter/counter.html?page=test";
+//		    	      	path = "http://www.cabrillo.edu/~dbrown/tracker/library/_share/sharing.html";
+		              String result = ResourceLoader.getString(path);
+		              System.out.println("pig "+result);
 		    	      	
-		    	      	// show environment
-//			    	  		String[] vars = {"TRACKER_HOME", "XUGGLE_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-//			    	  		for (String next: vars) {
-//			    	  			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
-//			    	  		}
-//		    	      	String s = System.getProperty("java.class.path");
-//		    	      	OSPLog.warning("java.class.path = "+s);
-//		    	      	
-//			    	  		Map env = System.getenv();
-//			    	  		Set keys = env.keySet();
-//		    	        String jres = "environment: ";
-//			    	  		for (Object key: keys) {
-//			    	  			jres +=" "+key+"="+env.get(key);
-//			    	  		}
-//			    	  		OSPLog.warning(jres+"\n"); //$NON-NLS-1$
-//			    	  			
-//		    	  			Properties props = System.getProperties();
-//		    	  			keys = props.keySet();
-//		    	        jres = "properties: ";
-//			    	  		for (Object key: keys) {
-//			    	  			jres +=" "+key+"="+props.get(key);
-//			    	  		}
-//			    	  		OSPLog.warning(jres+"\n"); //$NON-NLS-1$
-			    	      	
-
-//			    	  		OSPLog.showLog();
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
 		  	    				testTimer=null;

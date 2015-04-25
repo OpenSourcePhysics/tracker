@@ -35,8 +35,6 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.opensourcephysics.display.Data;
-import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.tools.*;
 
 /**

@@ -1302,16 +1302,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				addTrack(dataTrack);
 				setSelectedPoint(null);
 				setSelectedTrack(dataTrack);
-				// set videoclip and dataclip properties
+				dataTrack.getDataClip().setClipLength(-1); // sets clip length to data length
 				VideoClip videoClip = getPlayer().getVideoClip();
-				DataClip dataClip = dataTrack.getDataClip();
-				int startFrame = videoClip.getStartFrameNumber();
-				int endFrame = startFrame+dataClip.getDataLength()-1;
-				if (videoClip.getVideo()==null && videoClip.getEndFrameNumber()<endFrame) {
-					videoClip.setEndFrameNumber(endFrame);
-				}
-				dataTrack.setStartFrame(startFrame);
-				dataClip.setClipLength(-1); // sets clip length to data length
+				dataTrack.setStartFrame(videoClip.getStartFrameNumber());
 				dataTrack.getInspector().setVisible(true);
 				dataTrack.firePropertyChange("data", null, null); //$NON-NLS-1$
     	}

@@ -33,7 +33,6 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import org.opensourcephysics.cabrillo.tracker.PageTView.TabView;
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;

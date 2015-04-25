@@ -228,6 +228,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		n = Math.min(n, end); // not greater than clip end
 		startFrame = n;
 		refreshInitialTime();
+    extendVideoClip();
 		lastValidFrame = -1;
 //		refreshSteps();
 		trackerPanel.repaint();
@@ -237,7 +238,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			Video video = trackerPanel.getVideo();
 			if (video!=null) video.setFrameNumber(getStartFrame());
 		}
-		
 	}
   
   @Override
@@ -338,6 +338,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		// listen for changes to the dataclip
 		else if (e.getSource()==dataClip) {
 			refreshInitialTime();
+	    extendVideoClip();
 			firePropertyChange("dataclip", null, null); //$NON-NLS-1$
 	    lastValidFrame = -1;
 	    repaint();
@@ -424,7 +425,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @throws Exception if (x, y) data not found
 	 */
 	public void appendData(Data data) throws Exception {
-		OSPLog.fine("Appending data"); //$NON-NLS-1$
 		// following line throws exception if (x, y) not found
 		double[][] newData = ParticleDataTrack.getDataArray(data);
 		double[][] oldData = getDataArray();
@@ -527,12 +527,32 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		tData = data[2];
 		dataClip.setDataLength(data[0].length);
 		firePropertyChange("dataclip", null, dataClip); //$NON-NLS-1$
+    extendVideoClip();
 		if (reset) {
 			lastValidFrame = -1;
 			refreshSteps();
 			firePropertyChange("steps", null, null); //$NON-NLS-1$
 		}
 		repaint();
+	}
+	
+	/**
+	 * Extends the video clip if it currently ends at the last frame 
+	 * and the data clip extends past that point.
+	 * 
+	 * @return true if the video clip was extended
+	 */
+	private boolean extendVideoClip() {
+		if (trackerPanel==null) return false;
+		// determine if video clip ends at last frame
+		VideoClip vidClip = trackerPanel.getPlayer().getVideoClip();
+		int videoEndFrame = vidClip.getEndFrameNumber();
+		boolean isLast = videoEndFrame==vidClip.getLastFrameNumber();
+		int dataEndFrame = getStartFrame()+dataClip.getAvailableClipLength()-1;
+		if (isLast && dataEndFrame>videoEndFrame) {
+			vidClip.extendEndFrameNumber(dataEndFrame);
+		}
+		return false;
 	}
 	
 //__________________________ static methods ___________________________

@@ -63,7 +63,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version */
-  public static final String VERSION = "4.87150331"; //$NON-NLS-1$
+  public static final String VERSION = "4.87150425"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -79,7 +79,7 @@ public class Tracker {
   
   // for testing
   static boolean timeLogEnabled = false;
-  static boolean testOn = false;
+  static boolean testOn = true;
   
   // define static fields
   static String trackerHome;

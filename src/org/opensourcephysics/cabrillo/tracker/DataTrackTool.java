@@ -13,6 +13,8 @@ import java.util.TreeMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import javax.swing.JOptionPane;
+
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -21,9 +23,12 @@ import org.opensourcephysics.display.DataClip;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.DataTrackSupport;
 import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.Job;
 import org.opensourcephysics.tools.LocalJob;
+import org.opensourcephysics.tools.Resource;
+import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.Tool;
 
 /**
@@ -90,7 +95,28 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 		// set video properties
   	if (control.getPropertyNames().contains("video")) { //$NON-NLS-1$
   		String path = control.getString("video"); //$NON-NLS-1$
-  		TrackerIO.importVideo(new File(path), trackerPanel, null);
+  		Resource res = ResourceLoader.getResource(path);
+  		File videoFile = new File(path);
+  		if (res!=null && res.getFile()!=null) {
+  			videoFile = res.getFile();
+  		}
+  		if (!videoFile.exists()) {
+        int result = JOptionPane.showConfirmDialog(trackerPanel,
+        		TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Message1") //$NON-NLS-1$
+    				+" \""+path+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+        		+"\n"+TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Message2"), //$NON-NLS-1$ //$NON-NLS-2$
+    				TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Title"),  //$NON-NLS-1$
+    				JOptionPane.ERROR_MESSAGE);
+        if (result==JOptionPane.YES_OPTION) {
+          java.io.File[] files = VideoIO.getChooserFiles("open video");                                         //$NON-NLS-1$
+          if (files!=null && files.length>0) {
+          	videoFile = files[0];
+          }
+        }
+  		}
+  		if (videoFile.exists()) {
+  			TrackerIO.importVideo(videoFile, trackerPanel, null);
+  		}
   	}
   	if (control.getPropertyNames().contains("videoStartFrame")) { //$NON-NLS-1$
   		int start = control.getInt("videoStartFrame"); //$NON-NLS-1$
@@ -118,6 +144,12 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
     	String name = control.getString("dataName"); //$NON-NLS-1$
     	int dataID = control.getInt("dataID"); //$NON-NLS-1$
     	dataTrack = findParticleDataTrack(trackerPanel, name, dataID);
+    	if (dataTrack!=null) {
+    		try {
+					dataTrack.setData(data, replyTo);
+				} catch (Exception e) {
+				}
+    	}
     }
     
     // set DataTrack properties
@@ -218,17 +250,13 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 			try {
 				if (append) {
   				dataTrack.appendData(data);
-  				// set videoclip and dataclip properties so last point is displayed
+  				// display the last point appended
   				VideoPlayer player = trackerPanel.getPlayer();
   				VideoClip videoClip = player.getVideoClip();
   				DataClip dataClip = dataTrack.getDataClip();
-  				int startFrame = dataTrack.getStartFrame();
-  				int endFrame = startFrame+dataClip.getDataLength()-1;
-  				if (videoClip.getEndFrameNumber()<endFrame) {
-  					videoClip.setEndFrameNumber(endFrame);
-  				}
-  				dataClip.setClipLength(-1); // sets clip length to data length
-  				player.setStepNumber(videoClip.frameToStep(endFrame));
+  				dataClip.setClipLength(-1); // set clip length to data length
+  				int dataEndFrame = dataTrack.getStartFrame()+dataClip.getDataLength()-1;
+  				player.setStepNumber(videoClip.frameToStep(dataEndFrame));
 				}
 				else {
 					dataTrack.setData(data);
@@ -253,6 +281,7 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 			JarFile jar = new JarFile(jarPath);
 			String classPath = DataTrackSupport.class.getName().replace(".", "/"); //$NON-NLS-1$ //$NON-NLS-2$
 			JarEntry entry = jar.getJarEntry(classPath+".class"); //$NON-NLS-1$
+			jar.close();
 			return entry!=null;
 		} catch (IOException ex) {
 		}

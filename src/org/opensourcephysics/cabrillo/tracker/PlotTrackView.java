@@ -92,7 +92,7 @@ public class PlotTrackView extends TrackView {
       }
       plots[i].isCustom = false;
     }
-  }
+ }
 
   /**
    * Refreshes this view.
