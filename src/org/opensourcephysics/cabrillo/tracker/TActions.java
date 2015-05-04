@@ -170,9 +170,15 @@ public class TActions {
           return;
         }
         Resource res = ResourceLoader.getResource(input.toString().trim());
-        if (res==null) return;
+        if (res==null || res.getURL()==null) {
+    	    JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+    	        TrackerRes.getString("TActions.Dialog.URLResourceNotFound.Message") //$NON-NLS-1$
+    	        +"\n\""+input.toString().trim()+"\"",  //$NON-NLS-1$ //$NON-NLS-2$
+    	        TrackerRes.getString("TActions.Dialog.URLResourceNotFound.Title"),  //$NON-NLS-1$ 
+    	        JOptionPane.ERROR_MESSAGE);
+        	return;
+        }
         URL url = res.getURL();
-        if (url==null) return;
         trackerPanel.setSelectedPoint(null);
       	trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         TFrame frame = trackerPanel.getTFrame();
