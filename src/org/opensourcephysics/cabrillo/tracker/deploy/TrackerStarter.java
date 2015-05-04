@@ -66,6 +66,8 @@ public class TrackerStarter {
 //	public static final String PREFERRED_TRACKER_PREFS = "PREFERRED_TRACKER_PREFS"; //$NON-NLS-1$
 	public static final String TRACKER_RELAUNCH = "TRACKER_RELAUNCH"; //$NON-NLS-1$	
 	public static final String LOG_FILE_NAME = "tracker_start.log"; //$NON-NLS-1$
+  public static final int DEFAULT_MEMORY_SIZE = 256;
+  
 	static String prefsFileName = ".tracker.prefs"; //$NON-NLS-1$
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
@@ -570,6 +572,10 @@ public class TrackerStarter {
 			}
 			if (preferredMemorySize>0) {
 				logMessage("preferred memory size: " + preferredMemorySize + " MB"); //$NON-NLS-1$ //$NON-NLS-2$				
+			}
+			else {
+				preferredMemorySize = DEFAULT_MEMORY_SIZE;
+				logMessage("using default memory size: " + preferredMemorySize + " MB"); //$NON-NLS-1$ //$NON-NLS-2$				
 			}
 			
 			if (!loaded)
