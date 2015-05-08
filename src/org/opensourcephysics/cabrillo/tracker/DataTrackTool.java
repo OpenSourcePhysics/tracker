@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.jar.JarEntry;
@@ -16,6 +17,7 @@ import java.util.jar.JarFile;
 import javax.swing.JOptionPane;
 
 import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.Data;
@@ -45,6 +47,7 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
   
   private TFrame frame;
   private TreeMap<Integer, Tool> replyToTools = new TreeMap<Integer, Tool>();
+  private TreeMap<Integer, String> jarPaths = new TreeMap<Integer, String>();
   
   /**
    * Constructor for a TFrame.
@@ -79,6 +82,8 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
   	if (control.getBoolean("handshake")) { //$NON-NLS-1$
   		// save replyTo tool
 			replyToTools.put(sourceID, replyTo);
+  		// save jarPath
+			jarPaths.put(sourceID, control.getString("jar_path")); //$NON-NLS-1$
 			// send handshake reply
 	  	job.setXML(control.toXML());
 			replyTo.send(job, null);
@@ -95,12 +100,43 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 		// set video properties
   	if (control.getPropertyNames().contains("video")) { //$NON-NLS-1$
   		String path = control.getString("video"); //$NON-NLS-1$
+  		File videoFile = null;
+  		// try to load video resource directly from path
   		Resource res = ResourceLoader.getResource(path);
-  		File videoFile = new File(path);
-  		if (res!=null && res.getFile()!=null) {
+  		if (res==null) {
+  			String jarPath = jarPaths.get(sourceID);
+  			if (jarPath!=null) {
+  	  		// try to load video resource from path relative to jar path
+					String target = XML.getResolvedPath(path, XML.getDirectoryPath(jarPath));
+		  		res = ResourceLoader.getResource(target);
+		  		if (res==null) {
+	  	  		// try to find and extract video entry in the jar file
+		  			String name = XML.getName(path);
+	  				JarEntry entry = null;
+						try {
+							JarFile jar = new JarFile(jarPath);
+							for (Enumeration<JarEntry> en = jar.entries(); en.hasMoreElements();) {
+								JarEntry next = en.nextElement();
+								if (!next.isDirectory() && next.getName().endsWith(name)) {
+									entry = next;
+									break;
+								}
+							}
+							jar.close();
+						} catch (Exception e) {
+						}
+	  				if (entry!=null) {	  					
+	  					String source = jarPath+"!/"+entry.getName(); //$NON-NLS-1$
+	  					source = ResourceLoader.getURIPath(source);
+	  					videoFile = ResourceLoader.extractFileFromZIP(source, new File(target), false);
+	  				}
+		  		}
+  			}
+  		}
+  		if (videoFile==null && res!=null && res.getFile()!=null) {
   			videoFile = res.getFile();
   		}
-  		if (!videoFile.exists()) {
+  		if (videoFile==null || !videoFile.exists()) {
         int result = JOptionPane.showConfirmDialog(trackerPanel,
         		TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Message1") //$NON-NLS-1$
     				+" \""+path+"\"" //$NON-NLS-1$ //$NON-NLS-2$
@@ -108,13 +144,13 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
     				TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Title"),  //$NON-NLS-1$
     				JOptionPane.ERROR_MESSAGE);
         if (result==JOptionPane.YES_OPTION) {
-          java.io.File[] files = VideoIO.getChooserFiles("open video");                                         //$NON-NLS-1$
+          java.io.File[] files = VideoIO.getChooserFiles("open video");  //$NON-NLS-1$
           if (files!=null && files.length>0) {
           	videoFile = files[0];
           }
         }
   		}
-  		if (videoFile.exists()) {
+  		else {
   			TrackerIO.importVideo(videoFile, trackerPanel, null);
   		}
   	}
