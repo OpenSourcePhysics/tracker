@@ -397,14 +397,14 @@ public abstract class Step implements Cloneable {
     }
     
     /**
-     * Sets the position of this handle on the shaft nearest the specified
+     * Sets the position of this handle on the line nearest the specified
      * screen position. Subclasses must override.
      *
      * @param xScreen the x screen position
      * @param yScreen the y screen position
      * @param trackerPanel the trackerPanel drawing this step
      */
-    public void setPositionOnShaft(int xScreen, int yScreen, TrackerPanel trackerPanel) {
+    public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
     }
 
   }
