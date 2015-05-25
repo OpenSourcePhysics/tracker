@@ -63,7 +63,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version */
-  public static final String VERSION = "4.87150425"; //$NON-NLS-1$
+  public static final String VERSION = "4.88"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -79,7 +79,7 @@ public class Tracker {
   
   // for testing
   static boolean timeLogEnabled = false;
-  static boolean testOn = true;
+  static boolean testOn = false;
   
   // define static fields
   static String trackerHome;
@@ -1416,11 +1416,12 @@ public class Tracker {
     	isRelaunch = "true".equals(s); //$NON-NLS-1$
     }
 
-    
+    // get memory size requested in environment, if any
+    String memoryEnvironment = System.getenv("MEMORY_SIZE"); //$NON-NLS-1$
     // get current memory (maximum heap) size
 		java.lang.management.MemoryMXBean memory
 				= java.lang.management.ManagementFactory.getMemoryMXBean();
-    long size = memory.getHeapMemoryUsage().getMax()/(1024*1024);
+    long currentMemory = memory.getHeapMemoryUsage().getMax()/(1024*1024);
     
 		if (!isRelaunch) {
 	    String javaCommand = System.getProperty("java.home");              						//$NON-NLS-1$
@@ -1439,14 +1440,13 @@ public class Tracker {
 			boolean updated = updateResources();
 			
 			// compare memory with requested size(s)
-	    String mem = System.getenv("MEMORY_SIZE"); //$NON-NLS-1$
-	    if (mem!=null) {
+	    if (memoryEnvironment!=null) {
 	    	originalMemoryRequest = requestedMemorySize;
-	    	requestedMemorySize = Integer.parseInt(mem);
+	    	requestedMemorySize = Integer.parseInt(memoryEnvironment);
 	    }
 
 	    boolean needsMemory = requestedMemorySize>10 &&
-					(size<9*requestedMemorySize/10 || size>11*requestedMemorySize/10);
+					(currentMemory<9*requestedMemorySize/10 || currentMemory>11*requestedMemorySize/10);
 	    
 	    // check environment
 	    boolean needsEnvironment = false;
@@ -1484,7 +1484,7 @@ public class Tracker {
 	    if (isTracker && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
 	    	mainArgs = args;
 	    	if (requestedMemorySize<=10) {
-	    		requestedMemorySize = (int)size;
+	    		requestedMemorySize = TrackerStarter.DEFAULT_MEMORY_SIZE;
 	    	}
 	    	System.setProperty(TrackerStarter.PREFERRED_MEMORY_SIZE, String.valueOf(requestedMemorySize));
 	    	System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, OSPRuntime.getLaunchJarPath());
@@ -1495,7 +1495,7 @@ public class Tracker {
 		}
     preferredMemorySize = requestedMemorySize;
     if (requestedMemorySize<0)
-    	requestedMemorySize = (int)(size+2);
+    	requestedMemorySize = (int)(currentMemory+2);
     start(args);
   }
 
@@ -1706,7 +1706,7 @@ public class Tracker {
   		OSPLog.fine(name+" successfully registered"); //$NON-NLS-1$
   		return true;
 		} catch (Exception ex) {
-			ex.printStackTrace();
+  		OSPLog.warning(ex.getMessage());
 		}
   	return false;
   }
