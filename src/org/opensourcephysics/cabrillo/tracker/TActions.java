@@ -629,6 +629,22 @@ public class TActions {
       }
     };
     actions.put("protractor", protractorAction); //$NON-NLS-1$
+    // new compass
+    AbstractAction compassAction = new AbstractAction(TrackerRes.getString("Compass.Name"), null) { //$NON-NLS-1$
+      public void actionPerformed(ActionEvent e) {
+        Compass compass = new Compass();
+        compass.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
+      	// place compass above center of mat
+      	Rectangle rect = trackerPanel.getMat().mat;
+        double x = rect.width/2;
+        double y = rect.height/2;
+//				compass.createStep(0, x-50, y-20, x+50, y-20);
+        trackerPanel.addTrack(compass);
+        trackerPanel.setSelectedPoint(null);
+        trackerPanel.setSelectedTrack(compass);
+      }
+    };
+    actions.put("compass", compassAction); //$NON-NLS-1$
     // clone track action
     AbstractAction cloneTrackAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
