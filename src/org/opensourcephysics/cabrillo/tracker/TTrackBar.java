@@ -35,7 +35,6 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
 
@@ -68,7 +67,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   static {
   	smallSelectIcon =  new ImageIcon(Tracker.class.getResource("resources/images/small_select.gif")); //$NON-NLS-1$
     if (Tracker.testOn) {
-	  	testButton = new JButton("Test"); //$NON-NLS-1$
+	  	testButton = new JButton("Save Origin/Angle Data"); //$NON-NLS-1$
 	  	testButton.addActionListener(new ActionListener() {
 	  		public void actionPerformed(ActionEvent e) {
 	    		final TFrame frame = (TFrame)testButton.getTopLevelAncestor();
@@ -78,11 +77,10 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
 		    	      	
-		    	      	String path = "http://www.cabrillo.edu/~dbrown/tracker/counter/counter.html?page=test";
-//		    	      	path = "http://www.cabrillo.edu/~dbrown/tracker/library/_share/sharing.html";
-		              String result = ResourceLoader.getString(path);
-		              System.out.println("pig "+result);
-		    	      	
+//	    	      	String path = "http://www.cabrillo.edu/~dbrown/tracker/counter/counter.html?page=test";
+//	              String result = ResourceLoader.getString(path);
+//	              System.out.println("pig "+result);
+	    	      			    	      	
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
 		  	    				testTimer=null;
