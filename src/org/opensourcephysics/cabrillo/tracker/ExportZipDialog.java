@@ -43,6 +43,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
+import javax.swing.text.JTextComponent;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
@@ -429,6 +430,13 @@ public class ExportZipDialog extends JDialog {
     descriptionPane = new JTextArea();
     descriptionPane.setLineWrap(true);
     descriptionPane.setWrapStyleWord(true);
+    descriptionPane.getDocument().putProperty("parent", descriptionPane); //$NON-NLS-1$
+    descriptionPane.getDocument().addDocumentListener(EntryField.documentListener);
+    descriptionPane.addFocusListener(new FocusAdapter() {
+      public void focusLost(FocusEvent e) {
+      	descriptionPane.setBackground(Color.white);
+      }
+    });
     JToolBar descriptionbar = new JToolBar();
     descriptionbar.setBorder(toolbarBorder);
     descriptionbar.setFloatable(false);
@@ -1691,11 +1699,11 @@ public class ExportZipDialog extends JDialog {
   	
   	static DocumentListener documentListener = new DocumentListener() {   
       public void insertUpdate(DocumentEvent e) {
-      	EntryField field = (EntryField)e.getDocument().getProperty("parent"); //$NON-NLS-1$
+      	JTextComponent field = (JTextComponent)e.getDocument().getProperty("parent"); //$NON-NLS-1$
       	field.setBackground(Color.yellow);
       }
       public void removeUpdate(DocumentEvent e) {
-      	EntryField field = (EntryField)e.getDocument().getProperty("parent"); //$NON-NLS-1$
+      	JTextComponent field = (JTextComponent)e.getDocument().getProperty("parent"); //$NON-NLS-1$
       	field.setBackground(Color.yellow);
       }
 			public void changedUpdate(DocumentEvent e) {}

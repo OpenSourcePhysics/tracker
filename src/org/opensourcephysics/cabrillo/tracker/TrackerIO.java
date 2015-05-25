@@ -61,7 +61,8 @@ public class TrackerIO extends VideoIO {
 
 	protected static final String TAB="\t", SPACE=" ",  //$NON-NLS-1$ //$NON-NLS-2$
   		COMMA=",", SEMICOLON=";"; //$NON-NLS-1$ //$NON-NLS-2$
-  protected static FileFilter zipFileFilter, trkFileFilter, trzFileFilter, videoAndTrkFileFilter;
+  protected static FileFilter zipFileFilter, trkFileFilter, trzFileFilter;
+  protected static FileFilter videoAndTrkFileFilter, txtFileFilter, jarFileFilter;
   protected static String defaultDelimiter = TAB;  // tab delimiter by default
   protected static String delimiter = defaultDelimiter;
   protected static Map<String, String> delimiters = new TreeMap<String, String>();
@@ -194,6 +195,30 @@ public class TrackerIO extends VideoIO {
       	return TrackerRes.getString("TrackerIO.VideoAndDataFileFilter.Description"); //$NON-NLS-1$
       }
     };
+    txtFileFilter = new FileFilter() {
+      public boolean accept(File f) {
+        if (f == null) return false;
+        if (f.isDirectory()) return true;
+        String extension = VideoIO.getExtension(f);
+        if ("txt".equals(extension)) return true; //$NON-NLS-1$
+        return false;
+      }
+      public String getDescription() {
+      	return TrackerRes.getString("TrackerIO.TextFileFilter.Description"); //$NON-NLS-1$
+      }
+    };
+    jarFileFilter = new FileFilter() {
+      public boolean accept(File f) {
+        if (f == null) return false;
+        if (f.isDirectory()) return true;
+        String extension = VideoIO.getExtension(f);
+        if ("jar".equals(extension)) return true; //$NON-NLS-1$
+        return false;
+      }
+      public String getDescription() {
+      	return TrackerRes.getString("TrackerIO.JarFileFilter.Description"); //$NON-NLS-1$
+      }
+    };
     delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Tab"), TAB); //$NON-NLS-1$
     delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Space"), SPACE); //$NON-NLS-1$
     delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Comma"), COMMA); //$NON-NLS-1$
@@ -313,7 +338,7 @@ public class TrackerIO extends VideoIO {
    * Displays a file chooser and returns the chosen files.
    *
    * @param type may be open, open video, save, insert image, export file, 
-   * 				import file, save tabset
+   * 				import file, save tabset, open data
    * @return the files, or null if no files chosen
    */
   public static File[] getChooserFiles(String type) {
@@ -358,6 +383,23 @@ public class TrackerIO extends VideoIO {
       result = chooser.showOpenDialog(null);
     	File file = chooser.getSelectedFile();
       chooser.removeChoosableFileFilter(videoFileFilter);
+      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
+	    if(result==JFileChooser.APPROVE_OPTION) {
+	      return new File[] {file};
+	    }
+	    return null;
+    } 
+    if (type.toLowerCase().equals("open data")) { // open data //$NON-NLS-1$
+      chooser.setMultiSelectionEnabled(false);
+      chooser.setAcceptAllFileFilterUsed(true);
+      chooser.addChoosableFileFilter(txtFileFilter);
+      chooser.addChoosableFileFilter(jarFileFilter);
+      chooser.setFileFilter(chooser.getAcceptAllFileFilter());
+      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenData.Title"));        //$NON-NLS-1$
+      result = chooser.showOpenDialog(null);
+    	File file = chooser.getSelectedFile();
+      chooser.removeChoosableFileFilter(txtFileFilter);
+      chooser.removeChoosableFileFilter(jarFileFilter);
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
 	    if(result==JFileChooser.APPROVE_OPTION) {
 	      return new File[] {file};
@@ -750,9 +792,8 @@ public class TrackerIO extends VideoIO {
         }
 
 
-        // TODO the line below needs to finish (in SwingWorker?) before continuing?
-        control.loadObject(trackerPanel);
-        
+        // pig the line below needs to finish (in SwingWorker?) before continuing?
+        control.loadObject(trackerPanel);       
         
         trackerPanel.frame = frame;
         trackerPanel.defaultFileName = XML.getName(path);
@@ -1006,6 +1047,12 @@ public class TrackerIO extends VideoIO {
    * @param vidType the preferred video type
    */
   public static void importVideo(File file, TrackerPanel trackerPanel, VideoType vidType) {
+  	while (Tracker.qtLoading && !Tracker.qtLoaded) {
+  		try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+			}
+  	}
   	String path = XML.getAbsolutePath(file);
   	OSPLog.finest("importing file: "+path);  	 //$NON-NLS-1$
   	TFrame frame = trackerPanel.getTFrame();
@@ -1311,24 +1358,23 @@ public class TrackerIO extends VideoIO {
    *
    * @param trackerPanel the tracker panel
    */
-  public static void pasteXML(TrackerPanel trackerPanel) {
+  public static boolean pasteXML(TrackerPanel trackerPanel) {
     try {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
       Transferable data = clipboard.getContents(null);
       XMLControl control = new XMLControlElement();
       control.readXML((String)data.getTransferData(DataFlavor.stringFlavor));
       Class<?> type = control.getObjectClass();
+      if (control.failedToRead() || type==null) {
+      	return false;
+      }
       if (TTrack.class.isAssignableFrom(type)) {
       	TTrack track = (TTrack)control.loadObject(null);
       	if (track != null) {
           trackerPanel.addTrack(track);
           trackerPanel.setSelectedTrack(track);
+          return true;
       	}
-      }
-      else if (ImageCoordSystem.class.isAssignableFrom(type)) {
-        XMLControl state = new XMLControlElement(trackerPanel.getCoords());
-      	control.loadObject(trackerPanel.getCoords());
-        Undo.postCoordsEdit(trackerPanel, state);
       }
       else if (VideoClip.class.isAssignableFrom(type)) {
       	VideoClip clip = (VideoClip)control.loadObject(null);
@@ -1337,14 +1383,23 @@ public class TrackerIO extends VideoIO {
       		XMLControl state = new XMLControlElement(prev);
           trackerPanel.getPlayer().setVideoClip(clip);
       		Undo.postVideoReplace(trackerPanel, state);
+      		return true;
       	}
       }
-      else if (TrackerPanel.class.isAssignableFrom(type)) {
+      else if (ImageCoordSystem.class.isAssignableFrom(type)) {
+        XMLControl state = new XMLControlElement(trackerPanel.getCoords());
+      	control.loadObject(trackerPanel.getCoords());
+        Undo.postCoordsEdit(trackerPanel, state);
+        return true;
+      }
+      if (TrackerPanel.class.isAssignableFrom(type)) {
         control.loadObject(trackerPanel);
+        return true;
       }
     }
     catch (Exception ex) {
     }
+    return false;
   }
 
   /**

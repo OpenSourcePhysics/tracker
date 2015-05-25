@@ -36,6 +36,8 @@ import javax.swing.event.*;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.controls.*;
+import org.opensourcephysics.display.Dataset;
+import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.*;
 
@@ -71,6 +73,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenu importMenu;
   protected JMenuItem importVideoItem;
   protected JMenuItem importTRKItem;
+  protected JMenuItem importDataItem;
   protected JMenu exportMenu;
   protected JMenuItem exportZipItem;
   protected JMenuItem exportVideoItem;
@@ -90,7 +93,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem copyFrameImageItem;
   protected JMenuItem[] copyViewImageItems;
   protected JMenu copyObjectMenu;
-  protected JMenuItem pasteXMLItem;
+  protected JMenuItem pasteItem;
   protected JMenu deleteTracksMenu;
   protected JMenuItem deleteSelectedPointItem;
   protected JMenuItem clearTracksItem;
@@ -148,6 +151,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem newDynamicParticleCartesianItem;
   protected JMenuItem newDynamicParticlePolarItem;
   protected JMenuItem newDynamicSystemItem;
+  protected JMenuItem newDataTrackItem;
   protected JMenuItem emptyTracksItem;
   // coords menu
   protected JMenu coordsMenu;
@@ -276,8 +280,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       importVideoItem.addActionListener(actions.get("openVideo")); //$NON-NLS-1$
       importVideoItem.setAccelerator(KeyStroke.getKeyStroke('I', keyMask));
       importTRKItem = new JMenuItem(actions.get("import")); //$NON-NLS-1$
+      importDataItem = new JMenuItem(actions.get("importData")); //$NON-NLS-1$
       importMenu.add(importVideoItem);
       importMenu.add(importTRKItem);
+      importMenu.add(importDataItem);
       // close and close all items
       closeItem = new JMenuItem(actions.get("close")); //$NON-NLS-1$
       closeAllItem = new JMenuItem(actions.get("closeAll")); //$NON-NLS-1$
@@ -357,33 +363,56 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         TTrack track = trackerPanel.getSelectedTrack();
         boolean cantDeleteSteps = track==null || track.isLocked() || track.isDependent();
         deleteSelectedPointItem.setEnabled(!cantDeleteSteps && step!=null);
-        // enable and refresh pasteXML item if clipboard contains xml string data
-        String paste = actions.get("pastexml").getValue(Action.NAME).toString(); //$NON-NLS-1$
-      	pasteXMLItem.setText(paste);
-      	pasteXMLItem.setEnabled(false);
+        // enable and refresh paste item if clipboard contains xml string data
+        String paste = actions.get("paste").getValue(Action.NAME).toString(); //$NON-NLS-1$
+      	pasteItem.setText(paste);
+      	pasteItem.setEnabled(false);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         Transferable data = clipboard.getContents(null);
         if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
           try {
-            control.readXML((String)data.getTransferData(DataFlavor.stringFlavor));
+	        	String s = (String)data.getTransferData(DataFlavor.stringFlavor);
+            control.readXML(s);
             Class<?> type = control.getObjectClass();
-            if (TTrack.class.isAssignableFrom(type)) {
-              pasteXMLItem.setEnabled(true);
+            if (control.failedToRead()) {
+            	// see if s is importable dataString
+          		DatasetManager manager = DataTool.parseData(s, null);
+          		if (manager!=null) {
+          			double[] xImport = null, yImport = null;
+                for (Dataset next: manager.getDatasets()) {
+                	if (next.getYColumnName().equals("x")) { //$NON-NLS-1$
+                		xImport = next.getYPoints();
+                	}
+                	else if (next.getYColumnName().equals("y")) { //$NON-NLS-1$
+                		yImport = next.getYPoints();
+                	}
+                }
+                if (xImport!=null && yImport!=null) {
+                	String name = manager.getName();
+                	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
+                		name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
+                	}
+                	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
+                	pasteItem.setEnabled(true);
+		            	pasteItem.setText(paste+" "+name);                	 //$NON-NLS-1$
+                }
+          		}
+            }
+            else if (TTrack.class.isAssignableFrom(type)) {
+              pasteItem.setEnabled(true);
             	String name = control.getString("name"); //$NON-NLS-1$
-            	pasteXMLItem.setText(paste+" "+name); //$NON-NLS-1$
+            	pasteItem.setText(paste+" "+name); //$NON-NLS-1$
             }
             else if (ImageCoordSystem.class.isAssignableFrom(type)) {
-              pasteXMLItem.setEnabled(true);
-            	pasteXMLItem.setText(paste+" " //$NON-NLS-1$
-            			+TrackerRes.getString("TMenuBar.MenuItem.Coords")); //$NON-NLS-1$
+              pasteItem.setEnabled(true);
+            	pasteItem.setText(paste+" "+TrackerRes.getString("TMenuBar.MenuItem.Coords")); //$NON-NLS-1$ //$NON-NLS-2$
             }
             else if (VideoClip.class.isAssignableFrom(type)) {
-              pasteXMLItem.setEnabled(true);
-            	pasteXMLItem.setText(paste+" " //$NON-NLS-1$
-            			+TrackerRes.getString("TMenuBar.MenuItem.VideoClip")); //$NON-NLS-1$
+              pasteItem.setEnabled(true);
+            	pasteItem.setText(paste+" "+TrackerRes.getString("TMenuBar.MenuItem.VideoClip")); //$NON-NLS-1$ //$NON-NLS-2$
             }
           }
-          catch (Exception ex) {
+          catch (Exception ex) {          	
           }
         }
         // refresh copyData menu
@@ -470,9 +499,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       	trackerPanel.setSelectedPoint(null);
       }
     });    
-    // paste item
-    pasteXMLItem = editMenu.add(actions.get("pastexml")); //$NON-NLS-1$
-    pasteXMLItem.setAccelerator(KeyStroke.getKeyStroke('V', keyMask));
+    // paste items
+    pasteItem = editMenu.add(actions.get("paste")); //$NON-NLS-1$
+    pasteItem.setAccelerator(KeyStroke.getKeyStroke('V', keyMask));
     editMenu.addSeparator();
     
     // copy data menu
@@ -1030,6 +1059,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     newDynamicParticlePolarItem.addActionListener(actions.get("dynamicParticlePolar")); //$NON-NLS-1$
     newDynamicSystemItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TwoBody")); //$NON-NLS-1$
     newDynamicSystemItem.addActionListener(actions.get("dynamicSystem")); //$NON-NLS-1$
+    newDataTrackItem = new JMenuItem(TrackerRes.getString("ParticleDataTrack.Name")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    newDataTrackItem.addActionListener(actions.get("dataTrack")); //$NON-NLS-1$
     // window menu
     windowMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Window")); //$NON-NLS-1$
     windowMenu.addMouseListener(new MouseAdapter() {
@@ -1660,7 +1691,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         // paste xml item
         if (trackerPanel.isEnabled("edit.paste")) { //$NON-NLS-1$
           if (editMenu.getItemCount() > 0) editMenu.addSeparator();
-          editMenu.add(pasteXMLItem);
+          editMenu.add(pasteItem);
         }
         
         // delete and clear menus
@@ -1710,7 +1741,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             || trackerPanel.isEnabled("new.dynamicParticle") //$NON-NLS-1$
             || trackerPanel.isEnabled("new.dynamicTwoBody")) { //$NON-NLS-1$
           if (createMenu.getItemCount() > 0) createMenu.addSeparator();
-          if (trackerPanel.isEnabled("new.analyticParticle")) createMenu.add(newAnalyticParticleItem); //$NON-NLS-1$
+          if (trackerPanel.isEnabled("new.analyticParticle"))  //$NON-NLS-1$
+          	createMenu.add(newAnalyticParticleItem); 
           if (trackerPanel.isEnabled("new.dynamicParticle") //$NON-NLS-1$
           		|| trackerPanel.isEnabled("new.dynamicTwoBody")) { //$NON-NLS-1$
           	createMenu.add(newDynamicParticleMenu);
@@ -1742,6 +1774,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           JMenu calibrationToolsMenu = calibrationButton.getCalibrationToolsMenu();
           calibrationToolsMenu.setText(TrackerRes.getString("TMenuBar.Menu.CalibrationTools")); //$NON-NLS-1$
           createMenu.add(calibrationToolsMenu);
+        }
+        if (trackerPanel.isEnabled("new.dataTrack")) { //$NON-NLS-1$
+          if (createMenu.getItemCount() > 0) createMenu.addSeparator();
+          createMenu.add(newDataTrackItem); 
         }
         newTrackItems = createMenu.getMenuComponents();
         // refresh coords menu

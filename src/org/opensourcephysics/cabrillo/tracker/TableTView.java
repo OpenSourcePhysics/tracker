@@ -151,7 +151,7 @@ public class TableTView extends TrackChooserTView {
    * @param track the track
    */
   protected void refreshColumnsDialog(TTrack track) {
-  	if (getColumnsDialog() == null) return;
+  	if (getColumnsDialog()==null) return;
     Container contentPane = columnsDialog.getContentPane();
     contentPane.removeAll();
     trackLabel.setIcon(track.getFootprint().getIcon(21, 16));
@@ -191,7 +191,7 @@ public class TableTView extends TrackChooserTView {
     else if (e.getPropertyName().equals("function")) { //$NON-NLS-1$
       super.propertyChange(e);
       TTrack track = getSelectedTrack();
-      if (columnsDialog != null) {
+      if (track!=null && columnsDialog!=null) {
         refreshColumnsDialog(track);      	
   	    JViewport port = ((TableTrackView)getTrackView(track)).
   	    		columnsScroller.getViewport();

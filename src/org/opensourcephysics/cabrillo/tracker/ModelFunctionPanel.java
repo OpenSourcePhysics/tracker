@@ -116,11 +116,11 @@ public class ModelFunctionPanel extends FunctionPanel {
   	if (paramEditor != null) {
     	UserFunction[] functions = ((UserFunctionEditor)functionEditor).getMainFunctions();
   		for (int i = 0; i < functions.length; i++) {
-  			functions[i].setParameters(paramEditor.getNames(), paramEditor.getValues());
+  			functions[i].setParameters(paramEditor.getNames(), paramEditor.getValues(), paramEditor.getDescriptions());
   		}		
     	functions = ((UserFunctionEditor)functionEditor).getSupportFunctions();
     	for (int i = 0; i < functions.length; i++) {
-    		functions[i].setParameters(paramEditor.getNames(), paramEditor.getValues());
+    		functions[i].setParameters(paramEditor.getNames(), paramEditor.getValues(), paramEditor.getDescriptions());
     	}		
   	}
   	// evaluate the initial values 

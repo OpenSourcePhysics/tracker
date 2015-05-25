@@ -285,6 +285,7 @@ public class TableTrackView extends TrackView {
         		}        			
         	}
     		}
+	    	if ("".equals(tooltip.trim())) tooltip = ""; //$NON-NLS-1$ //$NON-NLS-2$
       	dataTable.setUnits(yTitle, units, tooltip);
 	    	local.append(in.getXPoints(), yPoints);
 	    	local.setXYColumnNames(xTitle, yTitle);

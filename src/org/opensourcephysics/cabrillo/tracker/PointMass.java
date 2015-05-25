@@ -107,7 +107,7 @@ public class PointMass extends TTrack {
   protected boolean traceVisible = false;
 	protected GeneralPath trace = new GeneralPath();
 	protected Stroke traceStroke = new BasicStroke(1);
-
+	
   /**
    * Constructs a PointMass with mass 1.0.
    */
@@ -171,8 +171,8 @@ public class PointMass extends TTrack {
    * @param color the desired color
    */
   public void setColor(Color color) {
-	setVelocityColor(color);
-	setAccelerationColor(color);
+  	setVelocityColor(color);
+  	setAccelerationColor(color);
     super.setColor(color);
   }
 
@@ -558,7 +558,8 @@ public class PointMass extends TTrack {
     // store the mass in the data properties
     if (data != null) {
       Double m = getMass();
-      data.setConstant("m", m, m.toString()); //$NON-NLS-1$
+      String desc = TrackerRes.getString("ParticleModel.Parameter.Mass.Description"); //$NON-NLS-1$
+      data.setConstant("m", m, m.toString(), desc); //$NON-NLS-1$
     }
   }
 
@@ -805,7 +806,8 @@ public class PointMass extends TTrack {
     }
     // store the mass in the data properties
     Double m = getMass();
-    data.setConstant("m", m, m.toString()); //$NON-NLS-1$
+    String desc = TrackerRes.getString("ParticleModel.Parameter.Mass.Description"); //$NON-NLS-1$
+    data.setConstant("m", m, m.toString(), desc); //$NON-NLS-1$
   }
 
   /**
@@ -2282,6 +2284,7 @@ public class PointMass extends TTrack {
         snapToPosition("a"); //$NON-NLS-1$
       }
     });
+
   }
 
   /**

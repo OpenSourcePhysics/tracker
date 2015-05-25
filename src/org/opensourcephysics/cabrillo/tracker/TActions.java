@@ -36,6 +36,7 @@ import javax.swing.*;
 
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.Resource;
@@ -132,12 +133,16 @@ public class TActions {
     };
     actions.put("newTab", newTabAction); //$NON-NLS-1$
     // pastexml
-    AbstractAction pasteXMLAction = new AbstractAction(TrackerRes.getString("TActions.Action.Paste")) { //$NON-NLS-1$
+    AbstractAction pasteAction = new AbstractAction(TrackerRes.getString("TActions.Action.Paste")) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
-        TrackerIO.pasteXML(trackerPanel);
+        if (!TrackerIO.pasteXML(trackerPanel)) {
+        	// pasting XML failed, so try to paste data
+        	String dataString = DataTool.paste();
+        	trackerPanel.importData(dataString, null);
+        }
       }
     };
-    actions.put("pastexml", pasteXMLAction); //$NON-NLS-1$
+    actions.put("paste", pasteAction); //$NON-NLS-1$
     // open
     Icon icon = new ImageIcon(Tracker.class.getResource("resources/images/open.gif")); //$NON-NLS-1$
     final AbstractAction openAction = new AbstractAction(TrackerRes.getString("TActions.Action.Open"), icon) { //$NON-NLS-1$
@@ -165,9 +170,15 @@ public class TActions {
           return;
         }
         Resource res = ResourceLoader.getResource(input.toString().trim());
-        if (res==null) return;
+        if (res==null || res.getURL()==null) {
+    	    JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+    	        TrackerRes.getString("TActions.Dialog.URLResourceNotFound.Message") //$NON-NLS-1$
+    	        +"\n\""+input.toString().trim()+"\"",  //$NON-NLS-1$ //$NON-NLS-2$
+    	        TrackerRes.getString("TActions.Dialog.URLResourceNotFound.Title"),  //$NON-NLS-1$ 
+    	        JOptionPane.ERROR_MESSAGE);
+        	return;
+        }
         URL url = res.getURL();
-        if (url==null) return;
         trackerPanel.setSelectedPoint(null);
       	trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         TFrame frame = trackerPanel.getTFrame();
@@ -227,6 +238,13 @@ public class TActions {
       }
     };
     actions.put("import", importAction); //$NON-NLS-1$
+    // import data
+    AbstractAction importDataAction = new AbstractAction(TrackerRes.getString("TActions.Action.ImportData")) { //$NON-NLS-1$
+      public void actionPerformed(ActionEvent e) {
+      	getAction("dataTrack", trackerPanel).actionPerformed(e); //$NON-NLS-1$
+      }
+    };
+    actions.put("importData", importDataAction); //$NON-NLS-1$
     // save current tab
     icon = new ImageIcon(Tracker.class.getResource("resources/images/save.gif")); //$NON-NLS-1$
     AbstractAction saveAction = new AbstractAction(TrackerRes.getString("TActions.Action.Save"), icon) { //$NON-NLS-1$
@@ -547,6 +565,34 @@ public class TActions {
       }
     };
     actions.put("dynamicSystem", dynamicSystemAction); //$NON-NLS-1$
+    // new DataTrack item
+    AbstractAction dataTrackAction = new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
+      public void actionPerformed(ActionEvent e) {
+        // choose file and get its data
+      	File[] files = TrackerIO.getChooserFiles("open data"); //$NON-NLS-1$
+        if (files==null) {
+        	return;
+        }
+        String filePath = files[0].getAbsolutePath();
+        String ext = XML.getExtension(filePath);
+        if ("jar".equals(ext)) { //$NON-NLS-1$
+        	if (!DataTrackTool.isDataSource(filePath)) {
+        		String jarName = TrackerRes.getString("TActions.Action.DataTrack.Unsupported.JarFile") //$NON-NLS-1$
+        				+ " \""+XML.getName(filePath)+"\" "; //$NON-NLS-1$ //$NON-NLS-2$
+      			JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
+      					jarName+TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Message")+".", //$NON-NLS-1$ //$NON-NLS-2$
+      					TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Title"), //$NON-NLS-1$
+      					JOptionPane.WARNING_MESSAGE);
+      			return;
+        	}
+        	DataTrackTool.launchDataSource(filePath, true);
+        }
+        else {
+	        trackerPanel.importData(filePath, null);
+        }        
+      }
+    };
+    actions.put("dataTrack", dataTrackAction); //$NON-NLS-1$
     // new (read-only) tape measure
     String s = TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$
     AbstractAction tapeAction = new AbstractAction(s, null) {
