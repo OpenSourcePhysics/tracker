@@ -2755,7 +2755,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       // load the video clip
       XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
       if (child != null) {
+      	Video existingVideo = trackerPanel.getVideo();
         VideoClip clip = (VideoClip) control.getObject("videoclip"); //$NON-NLS-1$
+      	// if newly loaded clip has no video use existing video, if any
+        if (clip.getVideo()==null && existingVideo!=null) {
+        	clip.importVideo(existingVideo);
+        }
         trackerPanel.getPlayer().setVideoClip(clip);
         Video vid = clip.getVideo();
         if (vid != null) {

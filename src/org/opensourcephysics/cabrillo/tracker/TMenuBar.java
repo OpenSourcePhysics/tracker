@@ -69,6 +69,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem saveItem;
   protected JMenuItem saveAsItem;
   protected JMenuItem saveZipAsItem;
+  protected JMenuItem saveVideoAsItem;
   protected JMenuItem saveTabsetAsItem;
   protected JMenu importMenu;
   protected JMenuItem importVideoItem;
@@ -77,6 +78,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenu exportMenu;
   protected JMenuItem exportZipItem;
   protected JMenuItem exportVideoItem;
+  protected JMenuItem exportTRKItem;
   protected JMenuItem exportThumbnailItem;
   protected JMenuItem exportDataItem;
   protected JMenuItem captureVideoItem;
@@ -304,6 +306,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         }
       });
       exportMenu.add(exportVideoItem);
+      // export TRK item
+      exportTRKItem = new JMenuItem(actions.get("export")); //$NON-NLS-1$
+      exportMenu.add(exportTRKItem);
       // export thumbnail item
       exportThumbnailItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Thumbnail")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
       exportThumbnailItem.addActionListener(new ActionListener() {
@@ -322,8 +327,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         }
       });
       exportMenu.add(exportDataItem);
-//      exportTRKItem = new JMenuItem(actions.get("export")); //$NON-NLS-1$
-//      exportTRKItem.setAccelerator(KeyStroke.getKeyStroke('E', keyMask));
       fileMenu.addSeparator();
       // save item
       saveItem = new JMenuItem(actions.get("save")); //$NON-NLS-1$
@@ -332,6 +335,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       saveAsItem = new JMenuItem(actions.get("saveAs")); //$NON-NLS-1$
       // save zip item
       saveZipAsItem = new JMenuItem(actions.get("saveZip")); //$NON-NLS-1$
+      // saveVideoAs item
+      saveVideoAsItem = new JMenuItem(actions.get("saveVideo")); //$NON-NLS-1$
       // saveTabset item
       saveTabsetAsItem = new JMenuItem(actions.get("saveTabsetAs")); //$NON-NLS-1$
       fileMenu.addSeparator();
@@ -1585,6 +1590,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
               fileMenu.add(saveItem);
             if (trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
               fileMenu.add(saveAsItem);
+              if (trackerPanel.getVideo()!=null) {
+              	fileMenu.add(saveVideoAsItem);
+              }
               fileMenu.add(saveTabsetAsItem);
             }
           }

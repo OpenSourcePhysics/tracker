@@ -279,8 +279,15 @@ public class TActions {
       }
     };
     actions.put("saveTabsetAs", saveTabsetAsAction); //$NON-NLS-1$
+    // save video
+    AbstractAction saveVideoAction = new AbstractAction(TrackerRes.getString("TActions.Action.SaveVideoAs")) { //$NON-NLS-1$
+      public void actionPerformed(ActionEvent e) {
+        TrackerIO.saveVideo(null, trackerPanel);
+      }
+    };
+    actions.put("saveVideo", saveVideoAction); //$NON-NLS-1$
     // export file
-    AbstractAction exportAction = new AbstractAction(TrackerRes.getString("TActions.Action.Export")) { //$NON-NLS-1$
+    AbstractAction exportAction = new AbstractAction(TrackerRes.getString("TActions.Action.ImportTRK")) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
         TrackerIO.exportFile(trackerPanel);
       }
@@ -634,11 +641,6 @@ public class TActions {
       public void actionPerformed(ActionEvent e) {
         Compass compass = new Compass();
         compass.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
-      	// place compass above center of mat
-      	Rectangle rect = trackerPanel.getMat().mat;
-        double x = rect.width/2;
-        double y = rect.height/2;
-//				compass.createStep(0, x-50, y-20, x+50, y-20);
         trackerPanel.addTrack(compass);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(compass);
