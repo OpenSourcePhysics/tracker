@@ -100,42 +100,7 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 		// set video properties
   	if (control.getPropertyNames().contains("video")) { //$NON-NLS-1$
   		String path = control.getString("video"); //$NON-NLS-1$
-  		File videoFile = null;
-  		// try to load video resource directly from path
-  		Resource res = ResourceLoader.getResource(path);
-  		if (res==null) {
-  			String jarPath = jarPaths.get(sourceID);
-  			if (jarPath!=null) {
-  	  		// try to load video resource from path relative to jar path
-					String target = XML.getResolvedPath(path, XML.getDirectoryPath(jarPath));
-		  		res = ResourceLoader.getResource(target);
-		  		if (res==null) {
-	  	  		// try to find and extract video entry in the jar file
-		  			String name = XML.getName(path);
-	  				JarEntry entry = null;
-						try {
-							JarFile jar = new JarFile(jarPath);
-							for (Enumeration<JarEntry> en = jar.entries(); en.hasMoreElements();) {
-								JarEntry next = en.nextElement();
-								if (!next.isDirectory() && next.getName().endsWith(name)) {
-									entry = next;
-									break;
-								}
-							}
-							jar.close();
-						} catch (Exception e) {
-						}
-	  				if (entry!=null) {	  					
-	  					String source = jarPath+"!/"+entry.getName(); //$NON-NLS-1$
-	  					source = ResourceLoader.getURIPath(source);
-	  					videoFile = ResourceLoader.extractFileFromZIP(source, new File(target), false);
-	  				}
-		  		}
-  			}
-  		}
-  		if (videoFile==null && res!=null && res.getFile()!=null) {
-  			videoFile = res.getFile();
-  		}
+  		File videoFile = findFile(path, sourceID);
   		if (videoFile==null || !videoFile.exists()) {
         int result = JOptionPane.showConfirmDialog(trackerPanel,
         		TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Message1") //$NON-NLS-1$
@@ -150,7 +115,7 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
           }
         }
   		}
-  		else {
+  		if (videoFile!=null) {
   			TrackerIO.importVideo(videoFile, trackerPanel, null);
   		}
   	}
@@ -165,6 +130,40 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
   	if (control.getPropertyNames().contains("videoStepSize")) { //$NON-NLS-1$
   		int size = control.getInt("videoStepSize"); //$NON-NLS-1$
   		trackerPanel.getPlayer().getVideoClip().setStepSize(size);
+  	}
+  	if (control.getPropertyNames().contains("trk")) { //$NON-NLS-1$
+  		String path = control.getString("trk"); //$NON-NLS-1$
+  		File trkFile = findFile(path, sourceID);
+  		if (trkFile==null || !trkFile.exists()) {
+        int result = JOptionPane.showConfirmDialog(trackerPanel,
+        		TrackerRes.getString("DataTrackTool.Dialog.FileNotFound.Message1") //$NON-NLS-1$
+    				+" \""+path+"\"" //$NON-NLS-1$ //$NON-NLS-2$
+        		+"\n"+TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Message2"), //$NON-NLS-1$ //$NON-NLS-2$
+    				TrackerRes.getString("DataTrackTool.Dialog.FileNotFound.Title"),  //$NON-NLS-1$
+    				JOptionPane.ERROR_MESSAGE);
+        if (result==JOptionPane.YES_OPTION) {
+          java.io.File[] files = TrackerIO.getChooserFiles("open trk");  //$NON-NLS-1$
+          if (files!=null && files.length>0) {
+          	trkFile = files[0];
+          }
+        }
+  		}
+  		if (trkFile!=null) {
+  	    XMLControlElement trkControl = new XMLControlElement(trkFile.getAbsolutePath());
+  	    Class<?> type = trkControl.getObjectClass();
+  	    if (!TrackerPanel.class.equals(type)) {
+  	      JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
+  	          TrackerRes.getString("DataTrackTool.Dialog.InvalidTRK.Message") //$NON-NLS-1$
+  	  				+ ": \""+ trkFile.getAbsolutePath()+"\"", //$NON-NLS-1$ //$NON-NLS-2$
+  	      		TrackerRes.getString("DataTrackTool.Dialog.InvalidTRK.Title"), //$NON-NLS-1$
+  	      		JOptionPane.WARNING_MESSAGE);
+  	    	// pig 
+  	    }
+  	    else {
+	        trackerPanel.changed = true;
+	        trkControl.loadObject(trackerPanel);
+  	    }
+  		}
   	}
   	  	
   	// get the data, if any
@@ -239,6 +238,54 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 			}
 		} catch (RemoteException e) {
 		}
+  }
+  
+  /**
+   * Attempts to find a file specified by path and source ID.
+   * Extracts the file from the source jar if required.
+   * 
+   * @param path the file path, usually relative
+   * @param ID the source ID
+   * @return the file, or null if not found
+   */
+  private File findFile(String path, int ID) {
+		File file = null;
+		// try to load file directly from path
+		Resource res = ResourceLoader.getResource(path);
+		if (res==null) {
+			String jarPath = jarPaths.get(ID);
+			if (jarPath!=null) {
+	  		// try to load file from path relative to jar path
+				String target = XML.getResolvedPath(path, XML.getDirectoryPath(jarPath));
+	  		res = ResourceLoader.getResource(target);
+	  		if (res==null) {
+  	  		// try to find and extract file entry in the jar file
+	  			String name = XML.getName(path);
+  				JarEntry entry = null;
+					try {
+						JarFile jar = new JarFile(jarPath);
+						for (Enumeration<JarEntry> en = jar.entries(); en.hasMoreElements();) {
+							JarEntry next = en.nextElement();
+							if (!next.isDirectory() && next.getName().endsWith(name)) {
+								entry = next;
+								break;
+							}
+						}
+						jar.close();
+					} catch (Exception e) {
+					}
+  				if (entry!=null) {	  					
+  					String source = jarPath+"!/"+entry.getName(); //$NON-NLS-1$
+  					source = ResourceLoader.getURIPath(source);
+  					file = ResourceLoader.extractFileFromZIP(source, new File(target), false);
+  				}
+	  		}
+			}
+		}
+		if (file==null && res!=null && res.getFile()!=null) {
+			file = res.getFile();
+		}
+		return file;
   }
   
   /**
