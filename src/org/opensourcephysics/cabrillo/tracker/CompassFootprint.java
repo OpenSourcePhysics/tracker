@@ -26,8 +26,10 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Arc2D;
 import java.awt.geom.Area;
 import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,7 +59,7 @@ public class CompassFootprint implements Footprint, Cloneable {
   private static Shape emptyHitShape = new Rectangle();
   private static Line2D line = new Line2D.Double();
   private static AffineTransform transform = new AffineTransform();
-  private static Point[] iconPoints = new Point[] {new Point(), new Point(), new Point()};
+  private static Arc2D.Float iconArc = new Arc2D.Float(); 
 
   // instance fields
   protected String name;
@@ -67,6 +69,7 @@ public class CompassFootprint implements Footprint, Cloneable {
 	protected Ellipse2D circle;
 	protected double radius;
 	protected Shape marker;
+	protected Shape crosshatch;
 	protected int markerSize;
 	protected Point selectedPoint;
 	protected boolean drawRadius;
@@ -82,6 +85,13 @@ public class CompassFootprint implements Footprint, Cloneable {
   	markerSize = size;
   	circle = new Ellipse2D.Double();
   	marker = new Ellipse2D.Double(-size, -size, 2*size, 2*size);
+  	double d = size*0.707;
+  	GeneralPath path = new GeneralPath();
+  	path.moveTo(-d, -d);
+  	path.lineTo(d, d);
+  	path.moveTo(-d, d);
+  	path.lineTo(d, -d);
+  	crosshatch = path;
   	setStroke(new BasicStroke());
   }
 
@@ -120,20 +130,13 @@ public class CompassFootprint implements Footprint, Cloneable {
    * @return the icon
    */
   public Icon getIcon(int w, int h) {  	
-//    double x0 = radius-w+2;
-//    double y0 = h-radius-2;
-//    double d = Math.sqrt(x0*x0+y0*y0);
-//    double x1 = x0*radius/d;
-//    double y1 = y0*radius/d;
-//    Line2D line = new Line2D.Double(x0, y0, x1, y1);
-//    area.add(new Area(stroke.createStrokedShape(line)));
-//    line.setLine(x0, y0, radius-2, y0);
-//    area.add(new Area(stroke.createStrokedShape(line)));
-    // pig finish this
-    int r = h-markerSize-1;
-    circle.setFrameFromCenter(w/2, 0, w/2 +r, r);
-  	Shape shape = stroke.createStrokedShape(circle);
+    int r = markerSize/2;
+    iconArc.setArc(0, 0, 20, 20, 200, 140, Arc2D.OPEN);
+  	Shape shape = stroke.createStrokedShape(iconArc);
     Area area = new Area(shape);
+    circle.setFrameFromCenter(10, 20, 10+r, 20+r);
+  	shape = stroke.createStrokedShape(circle);
+  	area.add(new Area(shape));
     ShapeIcon icon = new ShapeIcon(area, w, h);
     icon.setColor(color);
     return icon;
@@ -297,11 +300,20 @@ public class CompassFootprint implements Footprint, Cloneable {
 	    	// circle
 	      circle.setFrameFromCenter(center.x, center.y, center.x+radius, center.y+radius);
 		    drawMe.add(new Area(stroke.createStrokedShape(circle)));
-		    hitShapes.add(hitStroke.createStrokedShape(circle));
+	    
+	    	// center
+	      transform.setToTranslation(points[0].x, points[0].y);
+	      Shape s = transform.createTransformedShape(marker);
+	      drawMe.add(new Area(stroke.createStrokedShape(s)));
+	      s = transform.createTransformedShape(crosshatch);
+	      drawMe.add(new Area(stroke.createStrokedShape(s)));
 	    
 		    // radial line
+	      Point slider = points[2];
+	    	int dx = slider.x-center.x, dy = slider.y-center.y;
+	    	line.setLine(center.x+dx/4, center.y+dy/4, slider.x, slider.y);
+		    hitShapes.add(hitStroke.createStrokedShape(line));
 		    if (drawRadius) {
-		      Point slider = points[2];
 			    line.setLine(center, slider);
 			    drawMe.add(new Area(stroke.createStrokedShape(line)));
 		    }

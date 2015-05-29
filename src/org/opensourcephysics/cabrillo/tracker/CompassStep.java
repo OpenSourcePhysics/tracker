@@ -30,7 +30,6 @@ import java.awt.geom.*;
 
 import javax.swing.SwingUtilities;
 
-import org.opensourcephysics.cabrillo.tracker.PositionStep.Loader;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -54,8 +53,8 @@ public class CompassStep extends Step {
   protected TPoint center, edge; 
   protected Slider slider;
   protected double radius;
-  protected Map<TrackerPanel, Shape> circleHitShapes = new HashMap<TrackerPanel, Shape>();
-  protected ArrayList<Map<TrackerPanel, Shape>> markerHitShapes = new ArrayList<Map<TrackerPanel, Shape>>();
+  protected Map<TrackerPanel, Shape> lineHitShapes = new HashMap<TrackerPanel, Shape>();
+  protected ArrayList<Map<TrackerPanel, Shape>> pointHitShapes = new ArrayList<Map<TrackerPanel, Shape>>();
   protected Shape selectedShape;
   
   /**
@@ -67,7 +66,7 @@ public class CompassStep extends Step {
   public CompassStep(Compass track, int n) {
     super(track, n);
     compass = track;
-    center = new TPoint();
+    center = new Center(0, 0);
     edge = new TPoint();
     slider = new Slider(0, 0);
     points = new TPoint[] {center, edge, slider};
@@ -75,22 +74,26 @@ public class CompassStep extends Step {
   }
 
   /**
-   * Adds an perimeter point to this step at the specified image coordinates.
+   * Adds an data point to this step at the specified image coordinates.
    *
-   * @param x the image x coordinate of the perimeter point
-   * @param y the image y coordinate of the perimeter point
+   * @param x the image x coordinate of the data point
+   * @param y the image y coordinate of the data point
+   * @param refresh true to refresh the circle and fire property change event
+   * 
    */
-  public void addDataPoint(double x, double y) {
+  public void addDataPoint(double x, double y, boolean refresh) {
 		if (!compass.isFixed()) {
     	compass.keyFrames.add(n);
 		}
     dataPoints.add(new DataPoint(x, y));
-    defaultIndex = dataPoints.size()-1;
-    refreshCircle();
-  	compass.dataValid = false;
-  	compass.firePropertyChange("data", null, compass); //$NON-NLS-1$
-    if (compass.trackerPanel != null) {
-    	compass.trackerPanel.changed = true;
+    if (refresh) {
+	    defaultIndex = dataPoints.size()-1;
+	    refreshCircle();
+	  	compass.dataValid = false;
+	  	compass.firePropertyChange("data", null, compass); //$NON-NLS-1$
+	    if (compass.trackerPanel != null) {
+	    	compass.trackerPanel.changed = true;
+	    }
     }
   }
 
@@ -127,6 +130,8 @@ public class CompassStep extends Step {
   	}
   	compass.dataValid = false;
   	compass.firePropertyChange("data", null, null); //$NON-NLS-1$
+  	compass.trackerPanel.setSelectedPoint(null);
+  	TTrackBar.getTrackbar(compass.trackerPanel).refresh();
   }
 
   @Override
@@ -145,8 +150,8 @@ public class CompassStep extends Step {
     Shape hitShape;
     Interactive hit = null;
     
-    for (int i=0; i<markerHitShapes.size(); i++) {
-    	Map<TrackerPanel, Shape> map = markerHitShapes.get(i);
+    for (int i=0; i<pointHitShapes.size(); i++) {
+    	Map<TrackerPanel, Shape> map = pointHitShapes.get(i);
     	if (map!=null) {
       	hitShape = map.get(trackerPanel);
       	if (hitShape!=null && hitShape.intersects(hitRect)) {
@@ -157,7 +162,7 @@ public class CompassStep extends Step {
     }
     
     if (hit==null && compass.isRadialLineVisible()) {
-    	hitShape = circleHitShapes.get(trackerPanel);
+    	hitShape = lineHitShapes.get(trackerPanel);
     	if (hitShape!=null && hitShape.intersects(hitRect)) {
         hit = slider;
     	}
@@ -231,16 +236,16 @@ public class CompassStep extends Step {
       
       // get new hit shapes
       Shape[] shapes = footprint.getHitShapes();
-      circleHitShapes.put(trackerPanel, shapes[0]);
-      if (shapes.length-1<markerHitShapes.size()) {
-      	markerHitShapes.clear();
+      lineHitShapes.put(trackerPanel, shapes[0]);
+      if (shapes.length-1<pointHitShapes.size()) {
+      	pointHitShapes.clear();
       }
       for (int i=1; i<shapes.length; i++) {
-      	if (markerHitShapes.size()<=i-1) {
+      	if (pointHitShapes.size()<=i-1) {
       		Map<TrackerPanel, Shape> newMap = new HashMap<TrackerPanel, Shape>();
-      		markerHitShapes.add(newMap);
+      		pointHitShapes.add(newMap);
       	}
-      	Map<TrackerPanel, Shape> map = markerHitShapes.get(i-1);
+      	Map<TrackerPanel, Shape> map = pointHitShapes.get(i-1);
       	map.put(trackerPanel, shapes[i]);
       }
       
@@ -273,13 +278,40 @@ public class CompassStep extends Step {
   }
   
   /**
-   * Returns the slider angle relative to the horizontal.
+   * Returns the slider angle relative to the +x-axis.
    * 
    * @return the slider angle
    */
   public double getSliderAngle() {
-  	// pig deal with special cases
-  	return -center.angle(slider);
+  	// deal with special cases
+  	if (dataPoints.size()<3 || Double.isNaN(radius) || radius>CompassFootprint.MAX_RADIUS) {
+  		return Double.NaN;
+  	}
+  	double theta = -center.angle(slider);
+  	if (compass.trackerPanel!=null) {
+  		theta -= compass.trackerPanel.getCoords().getAngle(n);
+  	}
+  	return theta;
+  }
+
+  /**
+   * Returns the slider angle relative to the horizontal.
+   * 
+   * @return the slider angle
+   */
+  public void setSliderAngle(double theta) {
+  	double prev = getSliderAngle();
+  	if (theta==prev || Double.isNaN(prev)) return;
+  	if (compass.trackerPanel!=null) {
+  		theta += compass.trackerPanel.getCoords().getAngle(n);
+  	}
+  	double sin = -Math.sin(theta);
+  	double cos = Math.cos(theta);
+  	slider.setLocation(center.x+radius*cos, center.y+radius*sin);
+  	repaint();
+  	compass.refreshFields(n);
+//  	compass.dataValid = false;
+//  	compass.firePropertyChange("data", null, null);
   }
 
   /**
@@ -496,11 +528,11 @@ public class CompassStep extends Step {
   public Object clone() {
     CompassStep step = (CompassStep)super.clone();
     if (step != null) {
-      step.points[0] = step.center = new TPoint(center.getX(), center.getY());
+      step.points[0] = step.center = step.new Center(center.getX(), center.getY());
       step.points[1] = step.edge = new TPoint(edge.getX(), edge.getY());
       step.points[2] = step.slider = step.new Slider(slider.getX(), slider.getY());
-      step.circleHitShapes = new HashMap<TrackerPanel, Shape>();
-      step.markerHitShapes = new ArrayList<Map<TrackerPanel, Shape>>();
+      step.lineHitShapes = new HashMap<TrackerPanel, Shape>();
+      step.pointHitShapes = new ArrayList<Map<TrackerPanel, Shape>>();
       step.dataPoints = new ArrayList<DataPoint>();
       for (DataPoint next: dataPoints) {
       	step.dataPoints.add(new DataPoint(next.x, next.y));
@@ -525,8 +557,10 @@ public class CompassStep extends Step {
   		DataPoint source = step.dataPoints.get(i);
   		dataPoints.get(i).setLocation(source);
   	}
-    defaultIndex = dataPoints.size()-1;  	
+    defaultIndex = dataPoints.size()-1;
+    double theta = step.getSliderAngle();
   	refreshCircle();
+  	setSliderAngle(theta);
   }
 
   /**
@@ -549,7 +583,7 @@ public class CompassStep extends Step {
 
   //______________________ inner Slider class ________________________
 
-  class Slider extends Step.Handle {
+  class Slider extends TPoint {
   	
     /**
      * Constructs a Edge with specified image coordinates.
@@ -573,19 +607,20 @@ public class CompassStep extends Step {
       	CompassStep keyStep = (CompassStep)compass.steps.getStep(0);
       	keyStep.slider.setLocation(x, y); // set property of keyStep 0
       	Point p = keyStep.slider.getScreenPosition(compass.trackerPanel);
-      	keyStep.slider.setPositionOnLine(p.x, p.y, compass.trackerPanel);
+      	keyStep.slider.setPositionOnCircle(p.x, p.y, compass.trackerPanel);
       	compass.refreshStep(CompassStep.this); // sets properties of this step
       }
       else {
       	setLocation(x, y);
       	Point p = getScreenPosition(compass.trackerPanel);
-      	setPositionOnLine(p.x, p.y, compass.trackerPanel);
+      	setPositionOnCircle(p.x, p.y, compass.trackerPanel);
       }
       repaint();
       compass.refreshFields(n);
+	  	compass.dataValid = false;
       if (compass.trackerPanel != null) {
       	compass.trackerPanel.changed = true;
-      }
+      }      
     }
 
     /**
@@ -596,12 +631,11 @@ public class CompassStep extends Step {
      * @param yScreen the y screen position
      * @param trackerPanel the trackerPanel drawing this step
      */
-    @Override
-    public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
+    public void setPositionOnCircle(int xScreen, int yScreen, TrackerPanel trackerPanel) {
     	
 	    if (compass.isFixed() && n!=0) {
 		  	CompassStep keyStep = (CompassStep)compass.steps.getStep(0);
-		  	keyStep.slider.setPositionOnLine(xScreen, yScreen, trackerPanel);
+		  	keyStep.slider.setPositionOnCircle(xScreen, yScreen, trackerPanel);
 		  	return;
 		  }
     	
@@ -659,6 +693,77 @@ public class CompassStep extends Step {
       setLocation(x, y);
       repaint();
     }
+    
+   /**
+    * Overrides TPoint method.
+    *
+    * @param adjusting true if being dragged
+    */
+   public void setAdjusting(boolean adjusting) {
+   	boolean wasAdjusting = isAdjusting();
+   	super.setAdjusting(adjusting);
+   	if (wasAdjusting && !adjusting) {
+	  	compass.firePropertyChange("data", null, compass); //$NON-NLS-1$
+   	}
+   }
+
+    
+  }
+
+  //______________________ inner Center class ________________________
+
+  class Center extends TPoint {
+  	
+    /**
+     * Constructs a Center with specified image coordinates.
+     *
+     * @param x the x coordinate
+     * @param y the y coordinate
+     */
+    public Center(double x, double y) {
+      super(x, y);
+//      setStepEditTrigger(true);
+    }
+
+//    @Override
+//    public void setXY(double x, double y) {
+//      if (compass.isFixed()) {
+////      	CompassStep keyStep = (CompassStep)compass.steps.getStep(0);
+////      	keyStep.slider.setLocation(x, y); // set property of keyStep 0
+////      	Point p = keyStep.slider.getScreenPosition(compass.trackerPanel);
+////      	keyStep.slider.setPositionOnCircle(p.x, p.y, compass.trackerPanel);
+////      	compass.refreshStep(CompassStep.this); // sets properties of this step
+//      }
+//      else {
+//      	setLocation(x, y);
+////      	Point p = getScreenPosition(compass.trackerPanel);
+//      }
+//      repaint();
+//      compass.refreshFields(n);
+//	  	compass.dataValid = false;
+//      if (compass.trackerPanel != null) {
+//      	compass.trackerPanel.changed = true;
+//      }      
+//    }
+
+    @Override
+    public int getFrameNumber(VideoPanel vidPanel) {
+      return n;
+    }
+
+//   /**
+//    * Overrides TPoint method.
+//    *
+//    * @param adjusting true if being dragged
+//    */
+//   public void setAdjusting(boolean adjusting) {
+//   	boolean wasAdjusting = isAdjusting();
+//   	super.setAdjusting(adjusting);
+//   	if (wasAdjusting && !adjusting) {
+//	  	compass.firePropertyChange("data", null, compass); //$NON-NLS-1$
+//   	}
+//   }
+//
     
   }
 
@@ -799,7 +904,7 @@ public class CompassStep extends Step {
     		// add data point(s)
     		for (int i=0; i<diff; i++) {
     			double[] position = pointData[pointData.length-1-i];
-    			step.addDataPoint(position[0], position[1]);
+    			step.addDataPoint(position[0], position[1], false);
     		}
     	}
     	for (int i=0; i<pointData.length; i++) {

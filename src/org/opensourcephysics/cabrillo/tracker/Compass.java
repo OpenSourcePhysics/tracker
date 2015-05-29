@@ -31,9 +31,12 @@ import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.*;
+
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.cabrillo.tracker.CompassStep.DataPoint;
+import org.opensourcephysics.cabrillo.tracker.CompassStep.Slider;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -45,12 +48,13 @@ public class Compass extends TTrack {
 	// pig undoable edits
 	
   // instance fields
-  protected boolean fixedPosition=true, drawRadialLine=true;
+  protected boolean fixedPosition=true, radialLineVisible=false, radialLineEnabled=false;
   protected JCheckBoxMenuItem fixedItem;
+  protected JCheckBox radialLineCheckbox;
   protected JLabel clickToMarkLabel;
   protected JLabel xDataPointLabel, yDataPointLabel;
   protected NumberField xDataField, yDataField;
-  protected Component xDataPointSeparator, yDataPointSeparator;
+  protected Component xDataPointSeparator, yDataPointSeparator, checkboxSeparator;
 
   /**
    * Constructs a Compass.
@@ -97,11 +101,30 @@ public class Compass extends TTrack {
     
     clickToMarkLabel = new JLabel();
     clickToMarkLabel.setForeground(Color.red.darker());
-
+    
+  	if (radialLineEnabled) {
+	    radialLineCheckbox = new JCheckBox();
+	    radialLineCheckbox.setOpaque(false);
+	    radialLineCheckbox.setBorder(BorderFactory.createEmptyBorder());
+	    radialLineCheckbox.setSelected(isRadialLineVisible());
+	    radialLineCheckbox.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					setRadialLineVisible(radialLineCheckbox.isSelected());
+					repaint();
+			  	dataValid = false;
+			  	firePropertyChange("data", null, null); //$NON-NLS-1$
+				}    	
+	    });
+	    checkboxSeparator = Box.createRigidArea(new Dimension(6, 4));
+  	}
+    
     // create actions, listeners, labels and fields for data points
     final Action dataPointAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
       	if (trackerPanel==null) return;
+      	if (e!=null && e.getSource()==xDataField && xDataField.getBackground()!=Color.yellow) return;
+      	if (e!=null && e.getSource()==yDataField && yDataField.getBackground()!=Color.yellow) return;
         TPoint p = trackerPanel.getSelectedPoint();
         if (!(p instanceof DataPoint)) return;
         double xValue = xDataField.getValue();
@@ -120,6 +143,8 @@ public class Compass extends TTrack {
     // focus listener
     FocusListener dataFieldFocusListener = new FocusAdapter() {
       public void focusLost(FocusEvent e) {
+      	if (e.getSource()==xDataField && xDataField.getBackground()!=Color.yellow) return;
+      	if (e.getSource()==yDataField && yDataField.getBackground()!=Color.yellow) return;
       	dataPointAction.actionPerformed(null);
       }
     };
@@ -147,6 +172,27 @@ public class Compass extends TTrack {
   	magField.setEnabled(false);
   	xDataField.setPatterns(new String[] {"0.000E0", "0.000", "0.00", "0.0", "0.000E0"}); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
   	yDataField.setPatterns(new String[] {"0.000E0", "0.000", "0.00", "0.0", "0.000E0"}); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+  
+  	// set action for angle field
+    final Action sliderAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (angleField.getBackground()!=Color.yellow) {
+					return;
+				}
+        double theta = angleField.getValue();
+        int n = trackerPanel.getFrameNumber();
+        CompassStep step = (CompassStep)getStep(n);
+        step.setSliderAngle(theta);
+			}  		
+    };
+  	angleField.addActionListener(sliderAction);
+    FocusListener sliderFocusListener = new FocusAdapter() {
+      public void focusLost(FocusEvent e) {
+      	sliderAction.actionPerformed(null);
+      }
+    };
+    angleField.addFocusListener(sliderFocusListener);
   }
 
   /**
@@ -167,9 +213,11 @@ public class Compass extends TTrack {
     }
     fixedPosition = fixed;
     if (fixed) { // refresh data and post undo only when fixing
+    	keyFrames.clear();
+    	keyFrames.add(0);
     	dataValid = false;
     	support.firePropertyChange("data", null, null); //$NON-NLS-1$
-    	Undo.postTrackEdit(this, control);
+    	Undo.postTrackEdit(this, control);    	
     }
   }
 
@@ -188,8 +236,8 @@ public class Compass extends TTrack {
    * @param vis true to draw a radial line
    */
   public void setRadialLineVisible(boolean vis) {
-  	boolean changed = vis!=drawRadialLine;
-  	drawRadialLine = vis;
+  	boolean changed = vis!=radialLineVisible;
+  	radialLineVisible = vis;
   	if (trackerPanel!=null) {
   		int n = trackerPanel.getFrameNumber();
     	steps.getStep(n).repaint();
@@ -205,14 +253,10 @@ public class Compass extends TTrack {
    * @return true if visible
    */
   public boolean isRadialLineVisible() {
-    return drawRadialLine;
+    return radialLineEnabled && radialLineVisible;
   }
-
-  /**
-   * Responds to property change events. Overrides TTrack method.
-   *
-   * @param e the property change event
-   */
+  
+  @Override
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();    
     if (trackerPanel.getSelectedTrack() == this) {
@@ -225,7 +269,7 @@ public class Compass extends TTrack {
       else if (name.equals("transform")) { //$NON-NLS-1$
       	refreshFields(trackerPanel.getFrameNumber());
       }
-    }
+    }// pig does code below work or do anything?
     if (name.equals("adjusting") && e.getSource() instanceof TrackerPanel) { //$NON-NLS-1$
 			refreshDataLater = (Boolean)e.getNewValue();
 			if (!refreshDataLater) {  // stopped adjusting
@@ -235,11 +279,7 @@ public class Compass extends TTrack {
     super.propertyChange(e);
   }
 
-  /**
-   * Overrides TTrack setTrailVisible method to keep trails hidden.
-   *
-   * @param visible ignored
-   */
+  @Override
   public void setTrailVisible(boolean visible) {/** empty block */}
 
   /**
@@ -251,29 +291,23 @@ public class Compass extends TTrack {
    * @param y the y coordinate in image space
    * @return the step
    */
+  @Override
   public Step createStep(int n, double x, double y) {
   	if (!isFixed()) {
     	keyFrames.add(n);
 	    CompassStep step = (CompassStep)steps.getStep(n);
-	    step.addDataPoint(x, y);
+	    step.addDataPoint(x, y, true);
 	    return step;
   	}
   	else {
       keyFrames.add(0);      
 	    CompassStep step = (CompassStep)steps.getStep(0);
-	    step.addDataPoint(x, y);
-	    return (CompassStep)getStep(n);
+	    step.addDataPoint(x, y, true);
+	    return getStep(n);
   	}
   }
 
-  /**
-   * Used by autoTracker to mark a step at a match target position. 
-   * 
-   * @param n the frame number
-   * @param x the x target coordinate in image space
-   * @param y the y target coordinate in image space
-   * @return the TPoint that was automarked
-   */
+  @Override
   public TPoint autoMarkAt(int n, double x, double y) {
   	setFixed(false);
   	CompassStep step = (CompassStep)steps.getStep(n);
@@ -299,6 +333,7 @@ public class Compass extends TTrack {
    * @param n the frame number
    * @return the deleted step
    */
+  @Override
   public Step deleteStep(int n) {
   	TPoint p = trackerPanel.getSelectedPoint();
     CompassStep step = (CompassStep)steps.getStep(n);
@@ -323,12 +358,7 @@ public class Compass extends TTrack {
     return null;
   }
 
-  /**
-   * Overrides TTrack getStep method to provide fixed behavior.
-   *
-   * @param n the frame number
-   * @return the step
-   */
+  @Override
   public Step getStep(int n) {
     CompassStep step = (CompassStep)steps.getStep(n);
 		refreshStep(step);
@@ -353,123 +383,28 @@ public class Compass extends TTrack {
     return null;
   }
 
-  /**
-   * Gets the length of the steps created by this track.
-   *
-   * @return the footprint length
-   */
+  @Override
   public int getStepLength() {
   	return CompassStep.getLength();
   }
 
-  /**
-   * Determines if any point in this track is autotrackable.
-   *
-   * @return true if autotrackable
-   */
-  protected boolean isAutoTrackable() {
-  	return true;
-  }
-  
-  /**
-   * Determines if the given point index is autotrackable.
-   *
-   * @param pointIndex the points[] index
-   * @return true if autotrackable
-   */
-  protected boolean isAutoTrackable(int pointIndex) {
-  	return pointIndex<3;
-  }
-  
-  /**
-   * Returns a description of a target point with a given index.
-   *
-   * @param pointIndex the index
-   * @return the description
-   */
-  protected String getTargetDescription(int pointIndex) {
-  	if (pointIndex==0) return TrackerRes.getString("Protractor.Vertex.Name"); //$NON-NLS-1$
-  	String s = TrackerRes.getString("Protractor.End.Name"); //$NON-NLS-1$
-  	return s+" "+(pointIndex); //$NON-NLS-1$
-  }
-
-  /**
-   * Gets the length of the footprints required by this track.
-   *
-   * @return the footprint length
-   */
+  @Override
   public int getFootprintLength() {
     return 3;
   }
 
-  /**
-   * Refreshes the data.
-   *
-   * @param data the DatasetManager
-   * @param trackerPanel the tracker panel
-   */
-  protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
-    if (refreshDataLater || trackerPanel == null || data == null) return;
-    dataFrames.clear();
-    // get the datasets: radius, x_center, y_center, step, frame
-    int count = 0;
-    Dataset x_center = data.getDataset(count++);
-    Dataset y_center = data.getDataset(count++);
-    Dataset r = data.getDataset(count++);
-    Dataset stepNum = data.getDataset(count++);
-    Dataset frameNum = data.getDataset(count++);
-    // assign column names to the datasets
-    String time = "t"; //$NON-NLS-1$
-    if (!x_center.getColumnName(0).equals(time)) { // not yet initialized
-    	String center = TrackerRes.getString("Compass.Data.Center"); //$NON-NLS-1$
-    	x_center.setXYColumnNames(time, "x_"+center); //$NON-NLS-1$
-    	y_center.setXYColumnNames(time, "y_"+center); //$NON-NLS-1$
-    	r.setXYColumnNames(time, "r"); //$NON-NLS-1$
-	    stepNum.setXYColumnNames(time, "step"); //$NON-NLS-1$
-	    frameNum.setXYColumnNames(time, "frame"); //$NON-NLS-1$
-    }
-    else for (int i = 0; i<count; i++) {
-    	data.getDataset(i).clear();
-    }
-    // fill dataDescriptions array
-    dataDescriptions = new String[count+1];
-    for (int i = 0; i < dataDescriptions.length; i++) {
-      dataDescriptions[i] = TrackerRes.getString("Compass.Data.Description."+i); //$NON-NLS-1$
-    }
-    // look thru steps and get data for those included in clip
-    VideoPlayer player = trackerPanel.getPlayer();
-    VideoClip clip = player.getVideoClip();
-	  int len = clip.getStepCount();
-	  double[][] validData = new double[data.getDatasets().size()+1][len];
-    for (int n = 0; n < len; n++) {
-      int frame = clip.stepToFrame(n);
-      CompassStep next = (CompassStep)getStep(frame);
-      next.dataVisible = true;
-	    // get the step number and time
-	    double t = player.getStepTime(n)/1000.0;
-			validData[0][n] = t;
-			Point2D center = next.getWorldCenter();
-			validData[1][n] = center==null? Double.NaN: center.getX();
-			validData[2][n] = center==null? Double.NaN: center.getY();
-			validData[3][n] = next.getWorldRadius();
-			validData[4][n] = n;
-			validData[5][n] = frame;
-      dataFrames.add(frame);
-    }
-    // append the data to the data set
-	  x_center.append(validData[0], validData[1]);
-	  y_center.append(validData[0], validData[2]);
-	  r.append(validData[0], validData[3]);
-    stepNum.append(validData[0], validData[4]);
-    frameNum.append(validData[0], validData[5]);
+  @Override
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{clickToMarkLabel, xDataPointLabel, yDataPointLabel};
+    FontSizer.setFonts(objectsToSize, level);
+  	if (radialLineEnabled) {
+      FontSizer.setFonts(radialLineCheckbox, level);
+  	}
   }
 
-  /**
-   * Returns a menu with items that control this track.
-   *
-   * @param trackerPanel the tracker panel
-   * @return a menu
-   */
+  @Override
   public JMenu getMenu(TrackerPanel trackerPanel) {
     JMenu menu = super.getMenu(trackerPanel);
         
@@ -487,19 +422,22 @@ public class Compass extends TTrack {
     return menu;
   }
 
-  /**
-   * Returns a list of point-related toolbar components.
-   *
-   * @param trackerPanel the tracker panel
-   * @return a list of components
-   */
+  @Override
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
     int n = trackerPanel.getFrameNumber();
+  	refreshFields(n);
   	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     list.add(stepSeparator);
     CompassStep step = (CompassStep)getStep(n);
-    TPoint p = trackerPanel.getSelectedPoint();
     if (step.dataPoints.size()>2) {
+    	if (radialLineEnabled) {
+		  	radialLineCheckbox.setText(TrackerRes.getString("Compass.Checkbox.RadialLine")); //$NON-NLS-1$
+		  	radialLineCheckbox.setToolTipText(TrackerRes.getString("Compass.Checkbox.RadialLine.Tooltip")); //$NON-NLS-1$
+		    list.add(radialLineCheckbox);
+		    list.add(checkboxSeparator);
+    	}
+	  	xField.setToolTipText(TrackerRes.getString("Compass.Field.CenterX.Tooltip")); //$NON-NLS-1$
+	  	yField.setToolTipText(TrackerRes.getString("Compass.Field.CenterY.Tooltip")); //$NON-NLS-1$
 	  	magLabel.setText(TrackerRes.getString("Compass.Label.Radius")); //$NON-NLS-1$
 	  	magField.setToolTipText(TrackerRes.getString("Compass.Field.Radius.Tooltip")); //$NON-NLS-1$
 	    list.add(magLabel);
@@ -512,14 +450,14 @@ public class Compass extends TTrack {
 	    list.add(yField);
 	    list.add(ySeparator);
     }
-    else if (p==null || !(p instanceof DataPoint)) {
+    else if (trackerPanel.getSelectedPoint()==null) {
 	  	clickToMarkLabel.setText(TrackerRes.getString("Compass.Label.MarkPoint")); //$NON-NLS-1$
-	    clickToMarkLabel.setForeground(Color.red.darker());
 	    list.add(clickToMarkLabel);
     }
     return list;
   }
   
+  @Override
   public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
       TPoint point) {
   	ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
@@ -546,14 +484,7 @@ public class Compass extends TTrack {
   	return list;
   }
 
-  /**
-   * Implements findInteractive method.
-   *
-   * @param panel the drawing panel
-   * @param xpix the x pixel position on the panel
-   * @param ypix the y pixel position on the panel
-   * @return the first step or motion vector that is hit
-   */
+  @Override
   public Interactive findInteractive(
     DrawingPanel panel, int xpix, int ypix) {
     if (!(panel instanceof TrackerPanel) || !isVisible())
@@ -577,27 +508,23 @@ public class Compass extends TTrack {
         partName = TrackerRes.getString("Compass.DataPoint.Name"); //$NON-NLS-1$
         hint = TrackerRes.getString("Compass.DataPoint.Hint"); //$NON-NLS-1$
       }
+      else if (ia instanceof Slider) {
+        partName = TrackerRes.getString("Compass.Slider.Name"); //$NON-NLS-1$
+        hint = TrackerRes.getString("Compass.Slider.Hint"); //$NON-NLS-1$
+      }
       return ia;
     }
     return null;
   }
 
-  /**
-   * Overrides Object toString method.
-   *
-   * @return the name of this track
-   */
+  @Override
   public String toString() {
     return TrackerRes.getString("Compass.Name"); //$NON-NLS-1$
   }
 
 //__________________________ protected methods ________________________
   
-  /**
-   * Overrides TTrack setTrackerPanel method.
-   *
-   * @param panel the TrackerPanel
-   */
+  @Override
   protected void setTrackerPanel(TrackerPanel panel) {
   	if (trackerPanel != null) { 
   		trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
@@ -609,16 +536,100 @@ public class Compass extends TTrack {
     setFixed(isFixed());
   }
 
-  /**
-   * Overrides TTrack method.
-   *
-   * @param radians <code>true</code> for radians, false for degrees
-   */
   @Override
   protected void setAnglesInRadians(boolean radians) {  	
     super.setAnglesInRadians(radians);
     CompassStep step = (CompassStep)getStep(trackerPanel.getFrameNumber());     
     step.repaint(); // refreshes angle readout
+  }
+
+  @Override
+  protected boolean isAutoTrackable() {
+  	return true;
+  }
+  
+  @Override
+  protected boolean isAutoTrackable(int pointIndex) {
+  	return pointIndex<3;
+  }
+  
+  @Override
+  protected String getTargetDescription(int pointIndex) {
+  	if (pointIndex==0) return TrackerRes.getString("Protractor.Vertex.Name"); //$NON-NLS-1$
+  	String s = TrackerRes.getString("Protractor.End.Name"); //$NON-NLS-1$
+  	return s+" "+(pointIndex); //$NON-NLS-1$
+  }
+
+  @Override
+  protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
+    if (refreshDataLater || trackerPanel == null || data == null) return;
+    dataFrames.clear();
+    // get the datasets: radius, x_center, y_center, step, frame
+    int count = 0;
+    Dataset angle = null;
+    Dataset x_center = data.getDataset(count++);
+    Dataset y_center = data.getDataset(count++);
+    Dataset r = data.getDataset(count++);
+    Dataset stepNum = data.getDataset(count++);
+    Dataset frameNum = data.getDataset(count++);
+    if (radialLineEnabled) {
+    	angle = data.getDataset(count++);
+    }
+    // assign column names to the datasets
+    String time = "t"; //$NON-NLS-1$
+    if (!x_center.getColumnName(0).equals(time)) { // not yet initialized
+    	String center = TrackerRes.getString("Compass.Data.Center"); //$NON-NLS-1$
+    	x_center.setXYColumnNames(time, "x_"+center); //$NON-NLS-1$
+    	y_center.setXYColumnNames(time, "y_"+center); //$NON-NLS-1$
+    	r.setXYColumnNames(time, "r"); //$NON-NLS-1$
+	    stepNum.setXYColumnNames(time, "step"); //$NON-NLS-1$
+	    frameNum.setXYColumnNames(time, "frame"); //$NON-NLS-1$
+      if (radialLineEnabled) {
+      	angle.setXYColumnNames(time, "$\\theta$"); //$NON-NLS-1$
+      }
+    }
+    else for (int i = 0; i<count; i++) {
+    	data.getDataset(i).clear();
+    }
+    // fill dataDescriptions array
+    dataDescriptions = new String[count+1];
+    for (int i = 0; i < dataDescriptions.length; i++) {
+      dataDescriptions[i] = TrackerRes.getString("Compass.Data.Description."+i); //$NON-NLS-1$
+    }
+    // look thru steps and get data for those included in clip
+    VideoPlayer player = trackerPanel.getPlayer();
+    VideoClip clip = player.getVideoClip();
+	  int len = clip.getStepCount();
+	  double[][] validData = new double[data.getDatasets().size()+1][len];
+    for (int n = 0; n < len; n++) {
+      int frame = clip.stepToFrame(n);
+      CompassStep next = (CompassStep)getStep(frame);
+      next.dataVisible = true;
+	    // get the step number and time
+	    double t = player.getStepTime(n)/1000.0;
+			validData[0][n] = t;
+			Point2D center = next.getWorldCenter();
+			validData[1][n] = center==null? Double.NaN: center.getX();
+			validData[2][n] = center==null? Double.NaN: center.getY();
+			double theta = next.getSliderAngle();
+			double radius = next.getWorldRadius();
+			validData[3][n] = radius;
+			validData[4][n] = n;
+			validData[5][n] = frame;
+      dataFrames.add(frame);
+      if (radialLineEnabled) {
+      	validData[6][n] = isRadialLineVisible()? theta: Double.NaN;
+      }
+    }
+    // append the data to the data set
+	  x_center.append(validData[0], validData[1]);
+	  y_center.append(validData[0], validData[2]);
+	  r.append(validData[0], validData[3]);
+    stepNum.append(validData[0], validData[4]);
+    frameNum.append(validData[0], validData[5]);
+    if (radialLineEnabled) {
+    	angle.append(validData[0], validData[6]);
+    }
   }
 
   /**
@@ -677,7 +688,7 @@ public class Compass extends TTrack {
    * @param step the step
    * @return the key step
    */
-  private CompassStep getKeyStep(CompassStep step) {
+  protected CompassStep getKeyStep(CompassStep step) {
   	int key = 0;
   	if (!this.isFixed()) {
 	  	for (int i: keyFrames) {
@@ -688,8 +699,38 @@ public class Compass extends TTrack {
   	return (CompassStep)steps.getStep(key);
   }
   
-
-
+  /**
+   * Sets the coordinate system origin to the circle center in all frames.
+   */
+  protected void setCoordsOriginToCenter() {
+  	XMLControl control = new XMLControlElement(trackerPanel.getCoords());
+    if (isFixed()) {
+    	CompassStep step = (CompassStep)getStep(0);
+    	TPoint pt = step.center;
+    	int len = trackerPanel.getCoords().getLength();
+    	if (trackerPanel.getCoords().isFixedOrigin()) {
+        trackerPanel.getCoords().setOriginXY(0, pt.x, pt.y);
+    	}
+    	else for (int i = 0; i<len; i++) {
+    		if (i>0 && !trackerPanel.getCoords().getKeyFrames().contains(i)) {
+    			continue;
+    		}
+        trackerPanel.getCoords().setOriginXY(i, pt.x, pt.y);
+    	}
+    }
+    else {
+    	trackerPanel.getCoords().setFixedOrigin(false);
+      Step[] stepArray = steps.array;
+      for (Step step: stepArray) {
+      	if (step==null) continue;
+        CompassStep compassStep = (CompassStep)step;
+        trackerPanel.getCoords().setOriginXY(step.n, compassStep.center.x, compassStep.center.y);
+      }
+    }
+    trackerPanel.getAxes().setVisible(true);
+    // post undoable edit
+    Undo.postCoordsEdit(trackerPanel, control);
+  }
   
 //__________________________ static methods ___________________________
 
@@ -775,17 +816,20 @@ public class Compass extends TTrack {
       for (int i = 0; i < data.length; i++) {
         if (data[i] == null) continue;
         int n = (int)data[i][0];
-        CompassStep step = (CompassStep)compass.createStep(n, data[i][1], data[i][2]);
-        int additionalDataPoints = (data[i].length-1)/2 - 1;
-        for (int j=1; j<additionalDataPoints; j++) {
-        	step.addDataPoint(data[i][2*j+1], data[i][2*j+2]);
+        CompassStep step = (CompassStep)compass.getStep(n);
+        step.dataPoints.clear();
+        int pointCount = (data[i].length-3)/2;
+        for (int j=0; j<pointCount; j++) {
+        	step.addDataPoint(data[i][2*j+1], data[i][2*j+2], false);
         }
-        // set slider position
+        // refresh circle and set slider position
+  	    step.refreshCircle();
         int last = data[i].length-1;
     		step.slider.setLocation(data[i][last-1], data[i][last]);
-
       }
       compass.setLocked(locked);
+	  	compass.dataValid = false;
+	  	compass.firePropertyChange("data", null, compass); //$NON-NLS-1$
       return obj;
     }
   }
