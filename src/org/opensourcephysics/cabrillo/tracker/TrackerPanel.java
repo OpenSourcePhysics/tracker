@@ -2755,30 +2755,35 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       // load the video clip
       XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
       if (child != null) {
-      	Video existingVideo = trackerPanel.getVideo();
+//      	Video existingVideo = trackerPanel.getVideo();
         VideoClip clip = (VideoClip) control.getObject("videoclip"); //$NON-NLS-1$
       	// if newly loaded clip has no video use existing video, if any
-        if (clip.getVideo()==null && existingVideo!=null) {
-        	clip.importVideo(existingVideo);
-        }
-        trackerPanel.getPlayer().setVideoClip(clip);
-        Video vid = clip.getVideo();
-        if (vid != null) {
-          FilterStack stack = vid.getFilterStack();
-          Iterator<Filter> it = stack.getFilters().iterator();
-          while (it.hasNext()) {
-          	Filter filter = it.next();
-          	filter.setVideoPanel(trackerPanel);
-          	if (filter.inspectorX != Integer.MIN_VALUE) {
-          		filter.inspectorVisible = true;
-          		if (trackerPanel.visibleFilters == null) {
-          			trackerPanel.visibleFilters = new HashMap<Filter, Point>();
-          		}
-          		Point p = new Point(filter.inspectorX, filter.inspectorY);
-          		trackerPanel.visibleFilters.put(filter, p);	
-          	}
-          }
-        }
+//        if (clip.getVideo()==null && existingVideo!=null) {
+//        	VideoClip existingClip = trackerPanel.getPlayer().getVideoClip();
+//        	existingClip.setStartFrameNumber(clip.getStartFrameNumber());
+//        	existingClip.setStepSize(clip.getStepSize());
+//        	existingClip.setStepCount(clip.getStepCount());
+//        }
+//        else {
+	        trackerPanel.getPlayer().setVideoClip(clip);
+	        Video vid = clip.getVideo();
+	        if (vid != null) {
+	          FilterStack stack = vid.getFilterStack();
+	          Iterator<Filter> it = stack.getFilters().iterator();
+	          while (it.hasNext()) {
+	          	Filter filter = it.next();
+	          	filter.setVideoPanel(trackerPanel);
+	          	if (filter.inspectorX != Integer.MIN_VALUE) {
+	          		filter.inspectorVisible = true;
+	          		if (trackerPanel.visibleFilters == null) {
+	          			trackerPanel.visibleFilters = new HashMap<Filter, Point>();
+	          		}
+	          		Point p = new Point(filter.inspectorX, filter.inspectorY);
+	          		trackerPanel.visibleFilters.put(filter, p);	
+	          	}
+	          }
+	        }
+//        }
       }
       // load the clip control
       child = control.getChildControl("clipcontrol"); //$NON-NLS-1$

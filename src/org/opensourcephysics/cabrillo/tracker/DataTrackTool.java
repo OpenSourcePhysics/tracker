@@ -116,6 +116,7 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
         }
   		}
   		if (videoFile!=null) {
+	    	OSPLog.fine("importing video file "+videoFile.getAbsolutePath()); //$NON-NLS-1$
   			TrackerIO.importVideo(videoFile, trackerPanel, null);
   		}
   	}
@@ -157,11 +158,15 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
   	  				+ ": \""+ trkFile.getAbsolutePath()+"\"", //$NON-NLS-1$ //$NON-NLS-2$
   	      		TrackerRes.getString("DataTrackTool.Dialog.InvalidTRK.Title"), //$NON-NLS-1$
   	      		JOptionPane.WARNING_MESSAGE);
-  	    	// pig 
   	    }
   	    else {
+  	    	OSPLog.fine("loading TRK file "+trkFile.getAbsolutePath()); //$NON-NLS-1$
 	        trackerPanel.changed = true;
 	        trkControl.loadObject(trackerPanel);
+	        trackerPanel.defaultFileName = XML.getName(path);
+	        trackerPanel.openedFromPath = trkFile.getAbsolutePath();
+	        trackerPanel.setDataFile(trkFile);
+	        Tracker.addRecent(trkFile.getAbsolutePath(), false); // add at beginning
   	    }
   		}
   	}
