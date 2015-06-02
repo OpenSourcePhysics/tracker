@@ -141,10 +141,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem newCMItem;
   protected JMenuItem newVectorItem;
   protected JMenuItem newVectorSumItem;
-//  protected JMenuItem newCalibrationPointsItem;
   protected JMenuItem newLineProfileItem;
   protected JMenuItem newRGBRegionItem;
-//  protected JMenuItem newOffsetItem;
   protected JMenuItem newProtractorItem;
   protected JMenuItem newTapeItem;
   protected JMenuItem newCompassItem;
@@ -162,7 +160,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JCheckBoxMenuItem fixedOriginItem;
   protected JCheckBoxMenuItem fixedAngleItem;
   protected JCheckBoxMenuItem fixedScaleItem;
-//  protected JMenuItem applyCurrentFrameToAllItem;
   protected JMenu refFrameMenu;
   protected ButtonGroup refFrameGroup;
   protected JRadioButtonMenuItem defaultRefFrameItem;
@@ -1773,7 +1770,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           if (trackerPanel.isEnabled("new.tapeMeasure")) measuringToolsMenu.add(newTapeItem); //$NON-NLS-1$
           if (trackerPanel.isEnabled("new.protractor")) measuringToolsMenu.add(newProtractorItem); //$NON-NLS-1$
           boolean pig = true;
-          if (pig || trackerPanel.isEnabled("new.compass")) measuringToolsMenu.add(newCompassItem); //$NON-NLS-1$
+//          if (pig || trackerPanel.isEnabled("new.compass")) measuringToolsMenu.add(newCompassItem); //$NON-NLS-1$
         }
         // calibration tools menu
         if (trackerPanel.isEnabled("calibration.stick") //$NON-NLS-1$
