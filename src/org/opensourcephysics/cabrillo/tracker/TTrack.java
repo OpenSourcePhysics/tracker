@@ -227,9 +227,9 @@ public abstract class TTrack implements Interactive,
       	Color color = getColor();
       	Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
         if (newColor!=color) {
-        	XMLControl control = new XMLControlElement(TTrack.this);
+        	XMLControl control = new XMLControlElement(new TrackProperties(TTrack.this));
           setColor(newColor);
-          Undo.postTrackEdit(TTrack.this, control);
+          Undo.postTrackDisplayEdit(TTrack.this, control);
         }
       }
     });
@@ -239,7 +239,7 @@ public abstract class TTrack implements Interactive,
       public void windowClosing(WindowEvent e) {
       	String newName = nameField.getText();
       	if (trackerPanel != null) 
-      		trackerPanel.setTrackName(TTrack.this, newName);
+      		trackerPanel.setTrackName(TTrack.this, newName, true);
       }
     });
     nameField = new JTextField(20);
@@ -247,7 +247,7 @@ public abstract class TTrack implements Interactive,
       public void actionPerformed(ActionEvent e) {
       	String newName = nameField.getText();
       	if (trackerPanel != null) 
-      		trackerPanel.setTrackName(TTrack.this, newName);
+      		trackerPanel.setTrackName(TTrack.this, newName, true);
       }
     });
     final JLabel nameLabel = new JLabel();
@@ -379,9 +379,9 @@ public abstract class TTrack implements Interactive,
       public void actionPerformed(ActionEvent e) {
         String footprintName = e.getActionCommand();
         if (getFootprint().getName().equals(footprintName)) return;
-        XMLControl control = new XMLControlElement(TTrack.this);
+        XMLControl control = new XMLControlElement(new TrackProperties(TTrack.this));
         setFootprint(footprintName);
-        Undo.postTrackEdit(TTrack.this, control);
+        Undo.postTrackDisplayEdit(TTrack.this, control);
       }
     };
     circleFootprintListener = new ActionListener() {

@@ -855,19 +855,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   		}
   	}
   	else {
-  		// if ExtensionsManager is not ready, wait a short time
-  		if (!ExtensionsManager.isReady()) {
-  			int maxWait = 10000;
-  			int waited = 0;
-  			int sleepTime = 200;
-  			while (!ExtensionsManager.isReady() && waited<maxWait) {
-  				waited += sleepTime;
-  				try {
-						Thread.sleep(sleepTime);
-					} catch (InterruptedException e) {
-					}
-  			}
-  		}
       // create PrefsDialog
   		prefsDialog = new PrefsDialog(trackerPanel, TFrame.this);
       // center on screen

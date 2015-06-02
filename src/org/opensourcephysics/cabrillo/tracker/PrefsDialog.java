@@ -630,6 +630,17 @@ public class PrefsDialog extends JDialog {
     jreNorthPanel.add(vm64Button);
     
     jreDropdown = new JComboBox();
+    String pref = Tracker.preferredJRE;
+    if (pref==null && vm64Button.isSelected()) {
+    	pref = Tracker.preferredJRE64;
+    }
+    if (pref==null && vm32Button.isSelected()) {
+    	pref = Tracker.preferredJRE32;
+    }    
+    if (pref==null) {
+    	pref = System.getProperty("java.home");              						//$NON-NLS-1$
+    }
+    jreDropdown.addItem(pref);
     jreDropdown.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
     		if (refreshing) return;
@@ -1388,8 +1399,13 @@ public class PrefsDialog extends JDialog {
     xuggleSlowButton.setEnabled(xuggleButton.isSelected());
     xuggleErrorCheckbox.setEnabled(xuggleButton.isSelected());
     if (OSPRuntime.isWindows()) {
-	    vm32Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(32).isEmpty());
-	    vm64Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(64).isEmpty());
+    	Runnable runner = new Runnable() {
+    		public void run() {
+			    vm32Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(32).isEmpty());
+			    vm64Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(64).isEmpty());    			
+    		}
+    	};
+    	new Thread(runner).start();
     }
     else if (OSPRuntime.isLinux()) {
     	int bitness = OSPRuntime.getVMBitness();
@@ -1513,44 +1529,60 @@ public class PrefsDialog extends JDialog {
     updateDisplay();
   }
   
-  private void refreshJREDropdown(int vmBitness) {
-  	refreshing = true; // suppresses dropdown actions
-    
-    // replace items in dropdown
-    jreDropdown.removeAllItems();
-    ExtensionsManager manager = ExtensionsManager.getManager();
-    Set<String> availableJREs = manager.getAllJREs(vmBitness);
-    for (String next: availableJREs) {
-    	jreDropdown.addItem(next);
-    }
-    
-    // set selected item
-    String selectedItem = null;
-  	if (vmBitness==32 && recent32bitVM!=null) {
-  		selectedItem = recent32bitVM;
-  	}
-  	else if (vmBitness==64 && recent64bitVM!=null) {
-  		selectedItem = recent64bitVM;
-  	}
-    if (selectedItem==null) {
-    	selectedItem = Tracker.preferredJRE;
-    	if (selectedItem==null || !availableJREs.contains(selectedItem)) {
-      	selectedItem = vmBitness==32? Tracker.preferredJRE32: Tracker.preferredJRE64;
-        if (selectedItem==null || !availableJREs.contains(selectedItem)) {
-        	selectedItem = manager.getDefaultJRE(vmBitness);
-        }
-    	}
-    }
-    jreDropdown.setSelectedItem(selectedItem);
+  private void refreshJREDropdown(final int vmBitness) {
+    // refresh JRE dropdown in background thread
+  	Runnable runner = new Runnable() {
+  		public void run() {
+				while (!ExtensionsManager.isReady()) {
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e) {
+					}
+  			}
+				Runnable refresher = new Runnable() {
+					public void run() {
+		  	  	refreshing = true; // suppresses dropdown actions
+		  	    // replace items in dropdown
+		  	    jreDropdown.removeAllItems();
+		  	    ExtensionsManager manager = ExtensionsManager.getManager();
+		  	    Set<String> availableJREs = manager.getAllJREs(vmBitness);
+		  	    for (String next: availableJREs) {
+		  	    	jreDropdown.addItem(next);
+		  	    }
+		  	    
+		  	    // set selected item
+		  	    String selectedItem = null;
+		  	  	if (vmBitness==32 && recent32bitVM!=null) {
+		  	  		selectedItem = recent32bitVM;
+		  	  	}
+		  	  	else if (vmBitness==64 && recent64bitVM!=null) {
+		  	  		selectedItem = recent64bitVM;
+		  	  	}
+		  	    if (selectedItem==null) {
+		  	    	selectedItem = Tracker.preferredJRE;
+		  	    	if (selectedItem==null || !availableJREs.contains(selectedItem)) {
+		  	      	selectedItem = vmBitness==32? Tracker.preferredJRE32: Tracker.preferredJRE64;
+		  	        if (selectedItem==null || !availableJREs.contains(selectedItem)) {
+		  	        	selectedItem = manager.getDefaultJRE(vmBitness);
+		  	        }
+		  	    	}
+		  	    }
+		  	    jreDropdown.setSelectedItem(selectedItem);
 
-    // save selected item for future refreshing
-		if (vmBitness==32) {
-			recent32bitVM = selectedItem;
-		}
-		else {
-			recent64bitVM = selectedItem;
-		}
-    refreshing = false;
+		  	    // save selected item for future refreshing
+		  			if (vmBitness==32) {
+		  				recent32bitVM = selectedItem;
+		  			}
+		  			else {
+		  				recent64bitVM = selectedItem;
+		  			}
+		  	    refreshing = false;
+					}
+				};
+				SwingUtilities.invokeLater(refresher);  			
+  		}
+  	};
+  	new Thread(runner).start();
   }
   
   private void refreshTextFields() {

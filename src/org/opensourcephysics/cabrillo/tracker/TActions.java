@@ -279,8 +279,15 @@ public class TActions {
       }
     };
     actions.put("saveTabsetAs", saveTabsetAsAction); //$NON-NLS-1$
+    // save video
+    AbstractAction saveVideoAction = new AbstractAction(TrackerRes.getString("TActions.Action.SaveVideoAs")) { //$NON-NLS-1$
+      public void actionPerformed(ActionEvent e) {
+        TrackerIO.saveVideo(null, trackerPanel);
+      }
+    };
+    actions.put("saveVideo", saveVideoAction); //$NON-NLS-1$
     // export file
-    AbstractAction exportAction = new AbstractAction(TrackerRes.getString("TActions.Action.Export")) { //$NON-NLS-1$
+    AbstractAction exportAction = new AbstractAction(TrackerRes.getString("TActions.Action.ImportTRK")) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
         TrackerIO.exportFile(trackerPanel);
       }
@@ -629,6 +636,17 @@ public class TActions {
       }
     };
     actions.put("protractor", protractorAction); //$NON-NLS-1$
+    // new compass
+    AbstractAction compassAction = new AbstractAction(TrackerRes.getString("Compass.Name"), null) { //$NON-NLS-1$
+      public void actionPerformed(ActionEvent e) {
+        Compass compass = new Compass();
+        compass.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
+        trackerPanel.addTrack(compass);
+        trackerPanel.setSelectedPoint(null);
+        trackerPanel.setSelectedTrack(compass);
+      }
+    };
+    actions.put("compass", compassAction); //$NON-NLS-1$
     // clone track action
     AbstractAction cloneTrackAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {

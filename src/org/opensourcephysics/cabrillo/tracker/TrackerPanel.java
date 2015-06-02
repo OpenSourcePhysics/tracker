@@ -445,7 +445,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     // all other tracks
     else {
       // set track name--prevents duplicate names
-      setTrackName(track, track.getName());
+      setTrackName(track, track.getName(), false);
     	super.addDrawable(track);
     }
     addPropertyChangeListener(track); // track listens for all properties
@@ -1519,14 +1519,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	        		double dy = tip.y-tail.y;
 	            clone = vector.createStep(n, tail.x, tail.y, dx, dy);
         		}
-						if (clone != null && selectedTrack.isAutoAdvance()) {
+						if (clone!=null && selectedTrack.isAutoAdvance()) {
 		          getPlayer().step();
  		          hideMouseBox();
 						}
 						else {
 	            setMouseCursor(Cursor.getDefaultCursor());
-	            setSelectedPoint(clone.getDefaultPoint());
-	            selectedTrack.repaint(clone);
+	            if (clone!=null) {
+		            setSelectedPoint(clone.getDefaultPoint());
+		            selectedTrack.repaint(clone);
+	            }
 						}
         	}
         }
@@ -2475,8 +2477,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * 
    * @param track the track to name
    * @param newName the proposed name
+   * @param postEdit true to post an undoable edit
    */
-  protected void setTrackName(TTrack track, String newName) {
+  protected void setTrackName(TTrack track, String newName, boolean postEdit) {
 		for (Drawable next: getDrawables()) {
 			if (next == track) continue;
 			if (next instanceof TTrack) {
@@ -2491,7 +2494,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 			}
 		}
+  	XMLControl control = new XMLControlElement(new TrackProperties(track));
 		track.setName(newName);
+    if (postEdit)
+    	Undo.postTrackDisplayEdit(track, control);
 		track.nameDialog.setVisible(false);
 		track.nameDialog.getContentPane().remove(badNameLabel);
 		TMenuBar.getMenuBar(this).refresh();
@@ -2749,25 +2755,35 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       // load the video clip
       XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
       if (child != null) {
+//      	Video existingVideo = trackerPanel.getVideo();
         VideoClip clip = (VideoClip) control.getObject("videoclip"); //$NON-NLS-1$
-        trackerPanel.getPlayer().setVideoClip(clip);
-        Video vid = clip.getVideo();
-        if (vid != null) {
-          FilterStack stack = vid.getFilterStack();
-          Iterator<Filter> it = stack.getFilters().iterator();
-          while (it.hasNext()) {
-          	Filter filter = it.next();
-          	filter.setVideoPanel(trackerPanel);
-          	if (filter.inspectorX != Integer.MIN_VALUE) {
-          		filter.inspectorVisible = true;
-          		if (trackerPanel.visibleFilters == null) {
-          			trackerPanel.visibleFilters = new HashMap<Filter, Point>();
-          		}
-          		Point p = new Point(filter.inspectorX, filter.inspectorY);
-          		trackerPanel.visibleFilters.put(filter, p);	
-          	}
-          }
-        }
+      	// if newly loaded clip has no video use existing video, if any
+//        if (clip.getVideo()==null && existingVideo!=null) {
+//        	VideoClip existingClip = trackerPanel.getPlayer().getVideoClip();
+//        	existingClip.setStartFrameNumber(clip.getStartFrameNumber());
+//        	existingClip.setStepSize(clip.getStepSize());
+//        	existingClip.setStepCount(clip.getStepCount());
+//        }
+//        else {
+	        trackerPanel.getPlayer().setVideoClip(clip);
+	        Video vid = clip.getVideo();
+	        if (vid != null) {
+	          FilterStack stack = vid.getFilterStack();
+	          Iterator<Filter> it = stack.getFilters().iterator();
+	          while (it.hasNext()) {
+	          	Filter filter = it.next();
+	          	filter.setVideoPanel(trackerPanel);
+	          	if (filter.inspectorX != Integer.MIN_VALUE) {
+	          		filter.inspectorVisible = true;
+	          		if (trackerPanel.visibleFilters == null) {
+	          			trackerPanel.visibleFilters = new HashMap<Filter, Point>();
+	          		}
+	          		Point p = new Point(filter.inspectorX, filter.inspectorY);
+	          		trackerPanel.visibleFilters.put(filter, p);	
+	          	}
+	          }
+	        }
+//        }
       }
       // load the clip control
       child = control.getChildControl("clipcontrol"); //$NON-NLS-1$

@@ -197,6 +197,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
     dataInSpinner.setModel(spinModel);
     // data stride
     max = Math.max(1, dataLength-1);
+    max = Math.max(max, dataClip.getStride());
     spinModel = new SpinnerNumberModel(dataClip.getStride(), 1, max, 1);
     dataStrideSpinner.setModel(spinModel);
     if (videoClip!=null) {
