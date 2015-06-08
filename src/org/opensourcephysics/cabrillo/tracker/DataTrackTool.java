@@ -132,6 +132,24 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
   		int size = control.getInt("videoStepSize"); //$NON-NLS-1$
   		trackerPanel.getPlayer().getVideoClip().setStepSize(size);
   	}
+  	if (control.getPropertyNames().contains("stepNumber")) { //$NON-NLS-1$
+  		int step = control.getInt("stepNumber"); //$NON-NLS-1$
+  		trackerPanel.getPlayer().setStepNumber(step);
+  	}
+  	if (control.getPropertyNames().contains("frameNumber")) { //$NON-NLS-1$
+  		int frame = control.getInt("frameNumber"); //$NON-NLS-1$
+  		int step = trackerPanel.getPlayer().getVideoClip().frameToStep(frame);
+  		trackerPanel.getPlayer().setStepNumber(step);
+  	}
+  	if (control.getPropertyNames().contains("deleteTracks")) { //$NON-NLS-1$
+  		String[] trackNames = (String[])control.getObject("deleteTracks"); //$NON-NLS-1$
+  		for (String next: trackNames) {
+  			ParticleDataTrack track = findParticleDataTrack(trackerPanel, next, -1);
+  			if (track!=null) {
+  				track.delete();
+  			}
+  		}
+  	}
   	if (control.getPropertyNames().contains("trk")) { //$NON-NLS-1$
   		String path = control.getString("trk"); //$NON-NLS-1$
   		File trkFile = findFile(path, sourceID);
