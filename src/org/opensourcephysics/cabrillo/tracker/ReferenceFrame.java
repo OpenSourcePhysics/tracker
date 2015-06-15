@@ -52,14 +52,14 @@ public class ReferenceFrame extends ImageCoordSystem
    */
   public ReferenceFrame(ImageCoordSystem coords, PointMass originTrack) {
     super(coords.getLength());
+    this.originTrack = originTrack;
+    this.coords = coords;
     setFixedOrigin(false);
     setFixedAngle(coords.isFixedAngle());
     setFixedScale(coords.isFixedScale());
     coords.addPropertyChangeListener("transform", this); //$NON-NLS-1$
     originTrack.addPropertyChangeListener("step", this); //$NON-NLS-1$
     originTrack.addPropertyChangeListener("steps", this); //$NON-NLS-1$
-    this.coords = coords;
-    this.originTrack = originTrack;
     for (int n = 0; n < coords.getLength(); n++) {
       setScaleXY(n, coords.getScaleX(n), coords.getScaleY(n));
       setCosineSine(n, coords.getCosine(n),  coords.getSine(n));

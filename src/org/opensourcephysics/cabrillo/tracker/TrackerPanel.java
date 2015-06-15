@@ -827,10 +827,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     }
     if (pm != null) {
       ImageCoordSystem coords = getCoords();
-      if (coords instanceof ReferenceFrame) {
+      boolean wasRefFrame = coords instanceof ReferenceFrame;
+      while (coords instanceof ReferenceFrame) {
         coords = ( (ReferenceFrame) coords).getCoords();
       }
       setCoords(new ReferenceFrame(coords, pm));
+      // special case: if pm is a particle model and wasRefFrame is true,
+      // refresh steps of pm after setting new ReferenceFrame
+      if (pm instanceof ParticleModel && wasRefFrame) {
+      	((ParticleModel)pm).lastValidFrame = -1;
+      	((ParticleModel)pm).refreshSteps();
+      }      
       setSelectedPoint(null);
       repaint();
     }
@@ -1240,17 +1247,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   protected DataTrack importData(String dataString, Object source) {
   	if (dataString==null) {
-  		// pig inform user?
+  		// inform user
+			JOptionPane.showMessageDialog(frame, 
+					TrackerRes.getString("TrackerPanel.Dialog.NoData.Message"), //$NON-NLS-1$
+					TrackerRes.getString("TrackerPanel.Dialog.NoData.Title"), //$NON-NLS-1$
+					JOptionPane.WARNING_MESSAGE);
   		return null;
   	}
-  	// if dataString is parsable data (eg pasted), find 
-  	// corresponding data model and set the data
+  	// if dataString is parsable data, parse and import it
 		DatasetManager data = DataTool.parseData(dataString, null);
 		if (data!=null) {
       return importData(data, source);
     }
   	
-  	// if dataString is a resource path, read the resource and call this again
+  	// assume dataString is a resource path, read the resource and call this again
 		String path = dataString;
   	return importData(ResourceLoader.getString(path), path);
   }
@@ -1314,9 +1324,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   			dataTrack.setData(data);
     	}
 		} catch (Exception e) {
-			// pig inform user
+			// inform user
+			JOptionPane.showMessageDialog(frame, 
+					TrackerRes.getString("TrackerPanel.Dialog.Exception.Message")+":" //$NON-NLS-1$ //$NON-NLS-2$
+					+e.getClass().getSimpleName()+": "+e.getMessage(), //$NON-NLS-1$
+					TrackerRes.getString("TrackerPanel.Dialog.Exception.Title"), //$NON-NLS-1$
+					JOptionPane.WARNING_MESSAGE);
 			OSPLog.warning(e.getClass().getSimpleName()+": "+e.getMessage()); //$NON-NLS-1$
-			e.printStackTrace();
 			track = null;
 		}
 		return (DataTrack)track;

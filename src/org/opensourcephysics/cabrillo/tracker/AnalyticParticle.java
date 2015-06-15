@@ -132,10 +132,11 @@ public class AnalyticParticle
 	  	getAArray(trackerPanel).setLength(0);
 	  	// set position of step at firstFrameInClip
 	    ImageCoordSystem coords = trackerPanel.getCoords();
-	    // get underlying coords if reference frame
-	    while (coords instanceof ReferenceFrame) {
-	      coords = ( (ReferenceFrame) coords).getCoords();
-	    }
+      // get underlying coords if appropriate
+      boolean useDefault = isUseDefaultReferenceFrame();
+      while (useDefault && coords instanceof ReferenceFrame) {
+        coords = ( (ReferenceFrame) coords).getCoords();
+      }
 	    AffineTransform transform = coords.getToImageTransform(firstFrameInClip); 
     	UserFunction[] functions = getFunctionEditor().getMainFunctions();
     	// get time at firstFrameInClip
