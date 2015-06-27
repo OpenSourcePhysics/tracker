@@ -30,6 +30,8 @@ import java.awt.geom.Line2D;
 
 import javax.swing.Icon;
 
+import org.opensourcephysics.tools.FontSizer;
+
 /**
  * A double crosshair footprint for a Point array of length 2.
  *
@@ -84,13 +86,20 @@ public class DoubleCrosshairFootprint extends LineFootprint {
    * @return the icon
    */
   public Icon getIcon(int w, int h) {
-    Shape target = stroke.createStrokedShape(targetShape);
+    int scale = FontSizer.getIntegerFactor();
+    w *= scale;
+    h *= scale;
+  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
+  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
+  	}
+  	transform.setToScale(scale, scale);
+    Shape target = stroke.createStrokedShape(transform.createTransformedShape(targetShape));
     Area area = new Area(target);
-    double x0 = size/2-w+2;
-    double y0 = h-size/2-2;
+    double x0 = scale*(size+2)-w;
+    double y0 = h-scale*(size+2);
     double d = Math.sqrt(x0*x0+y0*y0);
-    double x1 = x0*size/d;
-    double y1 = y0*size/d;
+    double x1 = x0*scale*size/d;
+    double y1 = y0*scale*size/d;
     Line2D line = new Line2D.Double(x0, y0, x1, y1);
     area.add(new Area(stroke.createStrokedShape(line)));
     ShapeIcon icon = new ShapeIcon(area, w, h);
@@ -105,7 +114,7 @@ public class DoubleCrosshairFootprint extends LineFootprint {
    */
   public void setStroke(BasicStroke stroke) {
     if (stroke == null) return;
-    this.stroke = stroke;
+    this.baseStroke = stroke;
   }
 
   /**
@@ -120,16 +129,23 @@ public class DoubleCrosshairFootprint extends LineFootprint {
     
     // set up end shapes
     transform.setToTranslation(p1.x, p1.y);
+    int scale = FontSizer.getIntegerFactor();
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
     Shape target1 = transform.createTransformedShape(targetShape);
     hitShapes[0] = transform.createTransformedShape(hitShape); // end1
     transform.setToTranslation(p2.x, p2.y);
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
     Shape target2 = transform.createTransformedShape(targetShape);
     hitShapes[1] = transform.createTransformedShape(hitShape); // end2
     
     // set up line shapes
     float d = (float)p1.distance(p2); // distance between ends
     float center = d/2; // center point
-    float l = d - 2*size-6; // line length
+    float l = d - scale*2*(size+3); // line length
     float f = 0.45f; // hit shape is 90% of line length
     path.reset();
     path.moveTo(center - f*l, 0);
@@ -144,6 +160,9 @@ public class DoubleCrosshairFootprint extends LineFootprint {
     Shape line = transform.createTransformedShape(path);
     
     // set up drawing area
+  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
+  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
+  	}
     Area area = new Area(stroke.createStrokedShape(target1));
     area.add(new Area(stroke.createStrokedShape(target2)));
     area.add(new Area(stroke.createStrokedShape(line)));

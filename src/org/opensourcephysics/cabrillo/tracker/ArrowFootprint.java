@@ -29,6 +29,8 @@ import java.awt.geom.Area;
 
 import javax.swing.*;
 
+import org.opensourcephysics.tools.FontSizer;
+
 /**
  * An ArrowFootprint returns an arrow shape for a Point array of length 2.
  *
@@ -42,6 +44,7 @@ public class ArrowFootprint extends LineFootprint {
   protected int tipWidth = 4;
   boolean openHead = true;
   protected BasicStroke headStroke = new BasicStroke();
+  protected BasicStroke tipStroke;
 
   /**
    * Constructs an ArrowFootprint.
@@ -115,6 +118,9 @@ public class ArrowFootprint extends LineFootprint {
    * @return the icon
    */
   public Icon getIcon(int w, int h) {
+    int scale = FontSizer.getIntegerFactor();
+    w *= scale;
+    h *= scale;
     Point[] points = new Point[] {new Point(), new Point(w - 2, 2 - h)};
     double prevStretch = stretch;
     stretch = 1;
@@ -138,23 +144,36 @@ public class ArrowFootprint extends LineFootprint {
     
     transform.setToRotation(theta, p1.x, p1.y);
     transform.translate(p1.x, p1.y);
+    int scale = FontSizer.getIntegerFactor();
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
     highlight = transform.createTransformedShape(HIGHLIGHT);
     
     transform.setToRotation(theta, p2.x, p2.y);
     transform.translate(p2.x, p2.y);
     float d = (float)(stretch * p1.distance(p2)); // length of the arrow
     // set arrowhead dimensions and stroke
-    int tipL = Math.min(tipLength, Math.round(d-4));
+    int tiplen = tipLength*scale;
+    int tipL = Math.min(tiplen, Math.round(d-4));
     tipL = Math.max(8, tipL);
     int tipW = Math.max(tipL/4, 2);
-    float f = stroke.getLineWidth();
-    BasicStroke s = f < tipL/4? stroke: 
-    	new BasicStroke(Math.max(tipL/4, 0.8f),
+    float f = scale*baseStroke.getLineWidth();
+    float lineWidth = f < tipL/4? f: Math.max(tipL/4, 0.8f);
+  	if (stroke==null || stroke.getLineWidth()!=lineWidth) {
+  		stroke = new BasicStroke(lineWidth,
           BasicStroke.CAP_BUTT,
           BasicStroke.JOIN_MITER,
           8,
-          stroke.getDashArray(),
+          baseStroke.getDashArray(),
+          baseStroke.getDashPhase());
+      headStroke = new BasicStroke(lineWidth,
+          BasicStroke.CAP_BUTT,
+          BasicStroke.JOIN_MITER,
+          8,
+          null,
           stroke.getDashPhase());
+  	}
     try {
 			// set up tip hitShape using full length
 			path.reset();
@@ -166,7 +185,7 @@ public class ArrowFootprint extends LineFootprint {
 			hitShapes[0] = transform.createTransformedShape(path); // for tip
 			// shorten d to account for the width of the stroke
 			// see Java 2D API Graphics, by VJ Hardy (Sun, 2000) page 147
-			d = d - (float)(s.getLineWidth()*1.58) + 1;
+			d = d - (float)(stroke.getLineWidth()*1.58) + 1;
 			// set up shaft hitShape
 			path.reset();
 			path.moveTo(0, 0);
@@ -178,7 +197,7 @@ public class ArrowFootprint extends LineFootprint {
 			path.moveTo(0, 0);
 			path.lineTo(d-tipL+tipW, 0);
 			Shape shaft = transform.createTransformedShape(path);
-			shaft = s.createStrokedShape(shaft);
+			shaft = stroke.createStrokedShape(shaft);
 			Area area = new Area(shaft);
 			path.reset();
 			path.moveTo(d-tipL+tipW, 0);
@@ -198,7 +217,7 @@ public class ArrowFootprint extends LineFootprint {
 		} catch (Exception e) { // occasionally throws path exception for reasons unknown!
 	    d = (float)(stretch * p1.distance(p2));
 			java.awt.geom.Line2D line = new java.awt.geom.Line2D.Double(0, 0, d, 0); 
-			return s.createStrokedShape(transform.createTransformedShape(line));
+			return stroke.createStrokedShape(transform.createTransformedShape(line));
 		}
   }
 }

@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,6 +33,8 @@ import java.awt.geom.*;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * A CircleFootprint returns a circle for a Point[] of length 1.
@@ -55,6 +56,7 @@ public class CircleFootprint implements Footprint, Cloneable {
   protected Color color = new Color(255, 0, 0, 127);
   protected Color highlightColor = Color.red;
   protected Shape[] hitShapes = new Shape[1];
+  protected BasicStroke baseHighlightStroke, baseOutlineStroke;
   protected BasicStroke highlightStroke, outlineStroke;
   protected boolean outlined=true, spotted;
   protected int alpha = 0;
@@ -141,6 +143,9 @@ public class CircleFootprint implements Footprint, Cloneable {
    * @return the icon
    */
   public Icon getIcon(int w, int h) {
+    int scale = FontSizer.getIntegerFactor();
+    w *= scale;
+    h *= scale;
   	int realRadius = r;
   	setRadius(outlined? 5: 6);
     Shape shape = getShape(new Point[] {new Point()});
@@ -214,8 +219,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    * @param stroke the stroke
    */
   public void setStroke(BasicStroke stroke) {
-    outlineStroke = stroke;
-  	highlightStroke = new BasicStroke(stroke.getLineWidth()+1.0f);
+    baseOutlineStroke = stroke;
+  	baseHighlightStroke = new BasicStroke(stroke.getLineWidth()+1.0f);
   }
 
   /**
@@ -295,7 +300,7 @@ public class CircleFootprint implements Footprint, Cloneable {
   		s+="outline "; //$NON-NLS-1$
   	if (spotted)
   		s+="spot "; //$NON-NLS-1$
-  	if (outlineStroke.getLineWidth()>plainStrokeSize)
+  	if (baseOutlineStroke.getLineWidth()>plainStrokeSize)
   		s+="bold "; //$NON-NLS-1$
     return s;
   }
@@ -333,11 +338,11 @@ public class CircleFootprint implements Footprint, Cloneable {
       int y = (dim.height - dialog.getBounds().height) / 2;
       dialog.setLocation(x, y);
     }
-    dialog.boldCheckbox.setSelected(outlineStroke.getLineWidth()>plainStrokeSize);
+    dialog.boldCheckbox.setSelected(baseOutlineStroke.getLineWidth()>plainStrokeSize);
     dialog.spotCheckbox.setSelected(spotted);
     dialog.spinner.setValue(r);
     prevSpot = spotted;
-    prevStrokeSize = outlineStroke.getLineWidth();
+    prevStrokeSize = baseOutlineStroke.getLineWidth();
     prevRadius = r;
     dialog.setVisible(true);
   }
@@ -351,7 +356,15 @@ public class CircleFootprint implements Footprint, Cloneable {
   public Shape getShape(Point[] points) {
     Point p = points[0];
     transform.setToTranslation(p.x, p.y);
+    int scale = FontSizer.getIntegerFactor();
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
     Shape c = transform.createTransformedShape(circle);
+    if (outlineStroke==null || outlineStroke.getLineWidth()!=scale*baseOutlineStroke.getLineWidth()) {
+    	outlineStroke = new BasicStroke(scale*baseOutlineStroke.getLineWidth());
+    	highlightStroke = new BasicStroke(scale*baseHighlightStroke.getLineWidth());
+    }
     highlight = highlightStroke.createStrokedShape(c);    
     outline = outlineStroke.createStrokedShape(c);
     spot = transform.createTransformedShape(center);

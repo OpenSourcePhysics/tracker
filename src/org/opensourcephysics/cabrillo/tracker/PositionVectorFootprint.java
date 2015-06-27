@@ -52,7 +52,7 @@ public class PositionVectorFootprint extends PointShapeFootprint {
     this.track = track;
     arrow = (LineFootprint)LineFootprint.getFootprint("Footprint.Arrow"); //$NON-NLS-1$
     arrow.setLineWidth(w);
-    stroke = null;
+    baseStroke = null;
   }
   
   /**
