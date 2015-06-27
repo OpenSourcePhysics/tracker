@@ -306,8 +306,9 @@ public class TrackerStarter {
   	}
   	if (loadedPath!=null) {
   		control.setValue("prefsPath", loadedPath); //$NON-NLS-1$
+    	return control;
   	}
-  	return control;
+  	return null;
 	}
 
 	/**
@@ -457,6 +458,10 @@ public class TrackerStarter {
 		boolean loaded = false;
 		
 		XMLControl prefsXMLControl = findPreferences();
+		if (prefsXMLControl==null) {
+			logMessage("no preferences file found"); //$NON-NLS-1$    
+			return;
+		}
 		String prefsPath = prefsXMLControl.getString("prefsPath"); //$NON-NLS-1$
 		
 		// now read the preferences from the prefsXMLControl
