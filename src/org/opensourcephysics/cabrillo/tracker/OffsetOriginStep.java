@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.*;
 
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is a Step for a OffsetOrigin. It is used for
@@ -125,6 +126,10 @@ public class OffsetOriginStep extends Step {
       Point pt = points[0].getScreenPosition(trackerPanel);
       if (selection == points[0]) { // point is selected
         transform.setToTranslation(pt.x, pt.y);
+        int scale = FontSizer.getIntegerFactor();
+        if (scale>1) {
+        	transform.scale(scale, scale);
+        }
         shape = transform.createTransformedShape(selectionShape);
       }
       else { // point is not selected

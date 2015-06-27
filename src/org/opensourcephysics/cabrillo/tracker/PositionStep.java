@@ -32,6 +32,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 
 import java.util.*;
 
@@ -204,6 +205,10 @@ public class PositionStep extends Step {
       }
       else {
         transform.setToTranslation(p.x, p.y);
+        int scale = FontSizer.getIntegerFactor();
+        if (scale>1) {
+        	transform.scale(scale, scale);
+        }
         final Color color = footprint.getColor();
         final Shape selectedShape
           = transform.createTransformedShape(selectionShape);

@@ -35,6 +35,7 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is a Step for a Compass. It is used for measuring and finding centers of circles.
@@ -212,6 +213,10 @@ public class CompassStep extends Step {
         final Color color = footprint.getColor();
         final Mark stepMark = mark;
         transform.setToTranslation(p.x, p.y);
+        int scale = FontSizer.getIntegerFactor();
+        if (scale>1) {
+        	transform.scale(scale, scale);
+        }
         selectedShape = transform.createTransformedShape(selectionShape);
         mark = new Mark() {
           public void draw(Graphics2D g, boolean highlighted) {
