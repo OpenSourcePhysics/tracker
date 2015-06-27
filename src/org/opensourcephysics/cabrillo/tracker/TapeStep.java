@@ -25,13 +25,13 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.font.*;
 import java.awt.geom.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -57,6 +57,7 @@ public class TapeStep extends Step {
   protected double xAxisToTapeAngle, tapeAngle;
   protected boolean endsEnabled = true;
   protected boolean drawLayoutBounds;
+  protected boolean adjustingTips;
   protected Map<TrackerPanel, Shape> end1Shapes = new HashMap<TrackerPanel, Shape>();
   protected Map<TrackerPanel, Shape> end2Shapes = new HashMap<TrackerPanel, Shape>();
   protected Map<TrackerPanel, Shape> shaftShapes = new HashMap<TrackerPanel, Shape>();
@@ -258,6 +259,10 @@ public class TapeStep extends Step {
         final Color color = footprint.getColor();
         final Mark stepMark = mark;
         transform.setToTranslation(p.x, p.y);
+        int scale = FontSizer.getIntegerFactor();
+        if (scale>1) {
+        	transform.scale(scale, scale);
+        }
         final Shape selectedShape
           	= transform.createTransformedShape(selectionShape);
         mark = new Mark() {
@@ -478,6 +483,8 @@ public class TapeStep extends Step {
    * Moves the tips of the tape to display current worldLength.
    */
   protected void adjustTipsToLength() {
+  	if (adjustingTips) return;
+  	adjustingTips = true;
   	double sin = end1.sin(end2);
   	double cos = end1.cos(end2);
   	double d = end1.distance(end2);
@@ -513,6 +520,9 @@ public class TapeStep extends Step {
   		}
   	}
   	else if (p==handle) {
+  		// be sure handle is on line between ends
+	  	Point screenPt = handle.getScreenPosition(tape.trackerPanel);
+	  	handle.setPositionOnLine(screenPt.x, screenPt.y, tape.trackerPanel);
   		// keep handle fixed
     	d = handle.distance(end1);
     	if (d==0) d = 0.5; // special case
@@ -535,12 +545,15 @@ public class TapeStep extends Step {
 	    end1.setLocation(x1, y1);
 	    end2.setLocation(x2, y2);
   	}
+  	adjustingTips = false;
   }
 
   /**
    * Moves the tips of the tape to display current xAxisToTapeAngle.
    */
   protected void adjustTipsToAngle() {
+  	if (adjustingTips) return;
+  	adjustingTips = true;
     double axisTiltAngle = tape.trackerPanel.getCoords().getAngle(n);
     tapeAngle = xAxisToTapeAngle + axisTiltAngle;
   	double sin = Math.sin(tapeAngle);
@@ -588,6 +601,7 @@ public class TapeStep extends Step {
 	    end1.setLocation(x1, y1);
 	    end2.setLocation(x2, y2);
   	}
+  	adjustingTips = false;
   }
 
   /**
@@ -708,7 +722,7 @@ public class TapeStep extends Step {
     public Tip(double x, double y) {
       super(x, y);
     }
-
+    
     /**
      * Overrides TPoint setXY method.
      *
