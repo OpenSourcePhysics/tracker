@@ -355,6 +355,7 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
   	if (dataTrack!=null) {
 			try {
 				if (append) {
+					// following call throws exception if (x, y) data not found
   				dataTrack.appendData(data);
   				// display the last point appended
   				VideoPlayer player = trackerPanel.getPlayer();
@@ -365,10 +366,15 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
   				player.setStepNumber(videoClip.frameToStep(dataEndFrame));
 				}
 				else {
+					// following call throws exception if (x, y) data not found
 					dataTrack.setData(data);
 				}
 			} catch (Exception e) {
-				// pig inform user
+				// inform user
+				JOptionPane.showMessageDialog(frame, 
+						TrackerRes.getString("DataTrackTool.Dialog.InvalidData.Message"), //$NON-NLS-1$
+						TrackerRes.getString("DataTrackTool.Dialog.InvalidData.Title"), //$NON-NLS-1$
+						JOptionPane.WARNING_MESSAGE);
 			}
   	}
   	return dataTrack;
@@ -402,7 +408,13 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
    */
   public static void launchDataSource(String jarPath, boolean requestData) {
   	if (!isDataSource(jarPath)) {
-  		// pig inform user
+  		// inform user
+  		String jarName = TrackerRes.getString("TActions.Action.DataTrack.Unsupported.JarFile") //$NON-NLS-1$
+  				+ " \""+XML.getName(jarPath)+"\" "; //$NON-NLS-1$ //$NON-NLS-2$
+			JOptionPane.showMessageDialog(null, 
+					jarName+TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Message")+".", //$NON-NLS-1$ //$NON-NLS-2$
+					TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Title"), //$NON-NLS-1$
+					JOptionPane.WARNING_MESSAGE);
   		return;
   	}
 		// assemble the command

@@ -283,7 +283,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   class MappingGraphic implements Interactive {
   	
 		GeneralPath path = new GeneralPath();
-		//pig convert to using TPoints & implement interactivity
+		// pig convert to using TPoints & implement interactivity?
 
 		@Override
 		public void draw(DrawingPanel panel, Graphics g) {

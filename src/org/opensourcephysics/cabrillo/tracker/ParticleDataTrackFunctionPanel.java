@@ -83,7 +83,7 @@ public class ParticleDataTrackFunctionPanel extends ModelFunctionPanel {
 
 
   
-  // pig need to give instructions, do help
+  // pigg need to give instructions, do help
   
 
 }
