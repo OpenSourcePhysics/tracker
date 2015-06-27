@@ -38,7 +38,6 @@ import org.opensourcephysics.controls.XMLControlElement;
 
 import java.rmi.RemoteException;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 
