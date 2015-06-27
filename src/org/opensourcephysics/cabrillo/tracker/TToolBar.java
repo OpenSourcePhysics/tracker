@@ -36,6 +36,7 @@ import org.opensourcephysics.cabrillo.tracker.PageTView.TabView;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.MediaRes;
@@ -105,46 +106,47 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   protected ArrayList<PageTView.TabData> pageViewTabs = new ArrayList<PageTView.TabData>();
   
   static {
-  	newTrackIcon =  new ImageIcon(Tracker.class.getResource("resources/images/poof.gif")); //$NON-NLS-1$
-  	trackControlIcon =  new ImageIcon(Tracker.class.getResource("resources/images/track_control.gif")); //$NON-NLS-1$
-  	trackControlOnIcon =  new ImageIcon(Tracker.class.getResource("resources/images/track_control_on.gif")); //$NON-NLS-1$
-    zoomIcon = new ImageIcon(Tracker.class.getResource("resources/images/zoom.gif")); //$NON-NLS-1$
-    clipOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/clip_off.gif")); //$NON-NLS-1$
-    clipOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/clip_on.gif")); //$NON-NLS-1$
-    axesOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/axes.gif")); //$NON-NLS-1$
-    axesOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/axes_on.gif")); //$NON-NLS-1$
-    tapeOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/tape.gif")); //$NON-NLS-1$
-    tapeOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/tape_on.gif")); //$NON-NLS-1$
-    tapeOffRolloverIcon = new ImageIcon(Tracker.class.getResource("resources/images/tape_rollover.gif")); //$NON-NLS-1$
-    tapeOnRolloverIcon = new ImageIcon(Tracker.class.getResource("resources/images/tape_on_rollover.gif")); //$NON-NLS-1$
-    stickOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/stick.gif")); //$NON-NLS-1$
-    stickOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/stick_on.gif")); //$NON-NLS-1$
-    stickOffRolloverIcon = new ImageIcon(Tracker.class.getResource("resources/images/stick_rollover.gif")); //$NON-NLS-1$
-    stickOnRolloverIcon = new ImageIcon(Tracker.class.getResource("resources/images/stick_on_rollover.gif")); //$NON-NLS-1$
-    pointsOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/positions.gif")); //$NON-NLS-1$
-    pointsOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/positions_on.gif")); //$NON-NLS-1$
-    velocOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/velocities.gif")); //$NON-NLS-1$
-    velocOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/velocities_on.gif")); //$NON-NLS-1$
-    accelOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/accel.gif")); //$NON-NLS-1$
-    accelOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/accel_on.gif")); //$NON-NLS-1$
-    traceOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/trace.gif")); //$NON-NLS-1$
-    traceOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/trace_on.gif")); //$NON-NLS-1$
-    labelsOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/labels.gif")); //$NON-NLS-1$
-    labelsOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/labels_on.gif")); //$NON-NLS-1$
-    stretchOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/stretch.gif")); //$NON-NLS-1$
-    stretchOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/stretch_on.gif")); //$NON-NLS-1$
-    xmassOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/x_mass.gif")); //$NON-NLS-1$
-    xmassOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/x_mass_on.gif")); //$NON-NLS-1$
-    autotrackerOffIcon = new ImageIcon(Tracker.class.getResource("resources/images/autotrack_off.gif")); //$NON-NLS-1$
-    autotrackerOnIcon = new ImageIcon(Tracker.class.getResource("resources/images/autotrack_on.gif")); //$NON-NLS-1$
-    infoIcon = new ImageIcon(Tracker.class.getResource("resources/images/info.gif")); //$NON-NLS-1$
-    refreshIcon = new ImageIcon(Tracker.class.getResource("resources/images/refresh.gif")); //$NON-NLS-1$
-    htmlIcon = new ImageIcon(Tracker.class.getResource("resources/images/html.gif")); //$NON-NLS-1$
-    trailIcons[0] = new ImageIcon(Tracker.class.getResource("resources/images/trails_off.gif")); //$NON-NLS-1$
-    trailIcons[1] = new ImageIcon(Tracker.class.getResource("resources/images/trails_1.gif")); //$NON-NLS-1$
-    trailIcons[2] = new ImageIcon(Tracker.class.getResource("resources/images/trails_2.gif")); //$NON-NLS-1$
-    trailIcons[3] = new ImageIcon(Tracker.class.getResource("resources/images/trails_on.gif")); //$NON-NLS-1$
-    separatorIcon = new ImageIcon(Tracker.class.getResource("resources/images/separator.gif")); //$NON-NLS-1$
+  	newTrackIcon =  new ResizableIcon(Tracker.class.getResource("resources/images/poof.gif")); //$NON-NLS-1$
+  	trackControlIcon =  new ResizableIcon(Tracker.class.getResource("resources/images/track_control.gif")); //$NON-NLS-1$
+  	trackControlOnIcon =  new ResizableIcon(Tracker.class.getResource("resources/images/track_control_on.gif")); //$NON-NLS-1$
+    zoomIcon = new ResizableIcon(Tracker.class.getResource("resources/images/zoom.gif")); //$NON-NLS-1$
+    clipOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/clip_off.gif")); //$NON-NLS-1$
+    clipOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/clip_on.gif")); //$NON-NLS-1$
+    axesOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/axes.gif")); //$NON-NLS-1$
+    axesOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/axes_on.gif")); //$NON-NLS-1$
+    tapeOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/tape.gif")); //$NON-NLS-1$
+    tapeOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/tape_on.gif")); //$NON-NLS-1$
+    tapeOffRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/tape_rollover.gif")); //$NON-NLS-1$
+    tapeOnRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/tape_on_rollover.gif")); //$NON-NLS-1$
+    stickOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stick.gif")); //$NON-NLS-1$
+    stickOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stick_on.gif")); //$NON-NLS-1$
+    stickOffRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stick_rollover.gif")); //$NON-NLS-1$
+    stickOnRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stick_on_rollover.gif")); //$NON-NLS-1$
+    pointsOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/positions.gif")); //$NON-NLS-1$
+    pointsOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/positions_on.gif")); //$NON-NLS-1$
+    velocOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/velocities.gif")); //$NON-NLS-1$
+    velocOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/velocities_on.gif")); //$NON-NLS-1$
+    accelOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/accel.gif")); //$NON-NLS-1$
+    accelOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/accel_on.gif")); //$NON-NLS-1$
+    traceOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/trace.gif")); //$NON-NLS-1$
+    traceOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/trace_on.gif")); //$NON-NLS-1$
+    labelsOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/labels.gif")); //$NON-NLS-1$
+    labelsOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/labels_on.gif")); //$NON-NLS-1$
+    stretchOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stretch.gif")); //$NON-NLS-1$
+    stretchOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stretch_on.gif")); //$NON-NLS-1$
+    xmassOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/x_mass.gif")); //$NON-NLS-1$
+    xmassOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/x_mass_on.gif")); //$NON-NLS-1$
+    autotrackerOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/autotrack_off.gif")); //$NON-NLS-1$
+    autotrackerOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/autotrack_on.gif")); //$NON-NLS-1$
+    infoIcon = new ResizableIcon(Tracker.class.getResource("resources/images/info.gif")); //$NON-NLS-1$
+    refreshIcon = new ResizableIcon(Tracker.class.getResource("resources/images/refresh.gif")); //$NON-NLS-1$
+    refreshIcon = new ResizableIcon(Tracker.class.getResource("resources/images/refresh.gif")); //$NON-NLS-1$
+    htmlIcon = new ResizableIcon(Tracker.class.getResource("resources/images/html.gif")); //$NON-NLS-1$
+    trailIcons[0] = new ResizableIcon(Tracker.class.getResource("resources/images/trails_off.gif")); //$NON-NLS-1$
+    trailIcons[1] = new ResizableIcon(Tracker.class.getResource("resources/images/trails_1.gif")); //$NON-NLS-1$
+    trailIcons[2] = new ResizableIcon(Tracker.class.getResource("resources/images/trails_2.gif")); //$NON-NLS-1$
+    trailIcons[3] = new ResizableIcon(Tracker.class.getResource("resources/images/trails_on.gif")); //$NON-NLS-1$
+    separatorIcon = new ResizableIcon(Tracker.class.getResource("resources/images/separator.gif")); //$NON-NLS-1$
   	zoomFormat.setMaximumFractionDigits(0);
   }
 
@@ -762,7 +764,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         for (int i = 0; i < trailLengths.length; i++) {
           if (trailLength == trailLengths[i]) {
           	trailButton.setIcon(trailIcons[i]);
-          	trailButton.setSelectedIcon(trailIcons[i]);
+//          	trailButton.setSelectedIcon(trailIcons[i]);
+          	FontSizer.setFonts(trailButton, FontSizer.getLevel());
           }
         }
         

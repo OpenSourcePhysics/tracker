@@ -33,6 +33,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.FontSizer;
@@ -476,7 +477,14 @@ public class AttachmentDialog extends JDialog
 			if (val!=null) {
 				TTrack track = (TTrack)val;
 				setText(track.getName());
-				setIcon(track==dummyMass? dummyIcon: track.getFootprint().getIcon(21, 16));
+				Icon icon = track==dummyMass? 
+						new ResizableIcon(dummyIcon): 
+						track.getFootprint().getIcon(21, 16);
+				int factor = FontSizer.getIntegerFactor();
+				if (icon instanceof ResizableIcon) {
+					((ResizableIcon)icon).resize(factor);
+				}
+				setIcon(icon);
 			}
 			return this;
     }

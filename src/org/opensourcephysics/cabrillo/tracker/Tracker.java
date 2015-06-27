@@ -163,7 +163,7 @@ public class Tracker {
   static String preferredJRE, preferredJRE32, preferredJRE64;
   static String preferredTrackerJar;
   static int checkForUpgradeInterval = 0;
-  static int preferredFontLevel = 0;
+  static int preferredFontLevel = 0, preferredFontLevelPlus = 0;
   static boolean isRadians, isXuggleFast, engineKnown=true;
   static boolean warnXuggleError=true, warnNoVideoEngine=true, use32BitMode=false;
   static boolean warnVariableDuration=true;
@@ -1265,8 +1265,10 @@ public class Tracker {
   	XMLControl prefsControl = TrackerStarter.findPreferences();
   	if (prefsControl!=null) {
   		prefsPath = prefsControl.getString("prefsPath"); //$NON-NLS-1$
-    	OSPLog.getOSPLog();
-    	OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
+  		if (prefsPath!=null) {
+	    	OSPLog.getOSPLog();
+	    	OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
+  		}
     	prefsControl.loadObject(null);  // the loader itself reads the values
     	return;
   	}
@@ -1921,8 +1923,10 @@ public class Tracker {
       		control.setValue("run", Tracker.prelaunchExecutables); //$NON-NLS-1$
       	if (Tracker.preferredLocale!=null)
       		control.setValue("locale", Tracker.preferredLocale); //$NON-NLS-1$
-      	if (Tracker.preferredFontLevel>0)
+      	if (Tracker.preferredFontLevel>0) {
       		control.setValue("font_size", Tracker.preferredFontLevel); //$NON-NLS-1$
+      		control.setValue("font_size_plus", Tracker.preferredFontLevelPlus); //$NON-NLS-1$
+      	}
       	if (ResourceLoader.getOSPCache()!=null) {
       		File cache = ResourceLoader.getOSPCache();
       		control.setValue("cache", cache.getPath()); //$NON-NLS-1$
@@ -2004,7 +2008,10 @@ public class Tracker {
         Level logLevel = OSPLog.parseLevel(control.getString("log_level")); //$NON-NLS-1$
         if(logLevel!=null) {
         	preferredLogLevel = logLevel;
-        	OSPLog.setLevel(logLevel);        	
+        	OSPLog.setLevel(logLevel);
+        	if (logLevel==Level.ALL) {
+        		OSPLog.showLogInvokeLater();
+        	}
         }
       	isRadians = control.getBoolean("radians"); //$NON-NLS-1$
       	isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
@@ -2032,8 +2039,13 @@ public class Tracker {
       		prelaunchExecutables = (String[])control.getObject("run"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("locale")) //$NON-NLS-1$
       		setPreferredLocale(control.getString("locale")); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("font_size")) //$NON-NLS-1$
+      	if (control.getPropertyNames().contains("font_size")) { //$NON-NLS-1$
       		preferredFontLevel = control.getInt("font_size"); //$NON-NLS-1$
+      		preferredFontLevelPlus = control.getInt("font_size_plus"); //$NON-NLS-1$
+      		if (preferredFontLevelPlus==Integer.MIN_VALUE) {
+      			preferredFontLevelPlus = 0;
+      		}
+      	}
       	// set cache only if it has not yet been set
       	if (ResourceLoader.getOSPCache()==null) {
       		setCache(control.getString("cache")); //$NON-NLS-1$

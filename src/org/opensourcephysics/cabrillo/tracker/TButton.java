@@ -40,7 +40,7 @@ public class TButton extends JButton {
 	protected TTrack track;
   private boolean hidePopup = false;
   private JPopupMenu popup;
-	private Icon onIcon, offIcon;
+//	private Icon onIcon, offIcon;
 
   /**
    * Constructs a TButton.
@@ -137,16 +137,16 @@ public class TButton extends JButton {
 		setIcons(off, on);
   }
   
-  /**
-   * Sets the icon. Overrides JButton method.
-   *
-   * @param icon the icon
-   */
-  public void setIcon(Icon icon) {
-    super.setIcon(icon);
-    setSelectedIcon(icon);
-//    setRolloverSelectedIcon(icon); 
-  }
+//  /**
+//   * Sets the icon. Overrides JButton method.
+//   *
+//   * @param icon the icon
+//   */
+//  public void setIcon(Icon icon) {
+//    super.setIcon(icon);
+////    setSelectedIcon(icon);
+////    setRolloverSelectedIcon(icon); 
+//  }
   
   /**
    * Sets the icons for selected and unselected states.
@@ -155,25 +155,26 @@ public class TButton extends JButton {
    * @param on the selected state icon
    */
   public void setIcons(Icon off, Icon on) {
-		onIcon = on;
-		offIcon = off;
-		setIcon(off);
+//		onIcon = on;
+//		offIcon = off;
+		super.setIcon(off);
+		setSelectedIcon(on);
   }
   
-  /**
-   * Sets the selected state. Overrides JButton method.
-   *
-   * @param selected true to select
-   */
-  public void setSelected(boolean selected) {
-  	super.setSelected(selected);
-  	if (selected && onIcon !=null) {
-  		setIcon(onIcon);
-  	}
-  	else if (!selected && offIcon !=null) {
-  		setIcon(offIcon);
-  	}
-  }
+//  /**
+//   * Sets the selected state. Overrides JButton method.
+//   *
+//   * @param selected true to select
+//   */
+//  public void setSelected(boolean selected) {
+//  	super.setSelected(selected);
+//  	if (selected && onIcon !=null) {
+//  		setIcon(onIcon);
+//  	}
+//  	else if (!selected && offIcon !=null) {
+//  		setIcon(offIcon);
+//  	}
+//  }
     	
   /**
    * Sets the track associated with this button.
@@ -187,6 +188,7 @@ public class TButton extends JButton {
 		  setText(track.getName()); 
 		  setToolTipText(TrackerRes.getString("TButton.Track.ToolTip") //$NON-NLS-1$
 		  		+" "+track.getName());  //$NON-NLS-1$
+		  FontSizer.setFonts(this, FontSizer.getLevel());
   	}
   	else {
 		  setIcon(null);

@@ -45,6 +45,7 @@ import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPlayer;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.UserFunction;
@@ -505,7 +506,16 @@ public class DynamicSystem extends DynamicParticlePolar {
     	refreshSystemParameters();
     }
   }
-	
+  
+  @Override
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	if (systemInspector!=null) {
+  		FontSizer.setFonts(systemInspector, level);
+  		systemInspector.updateDisplay();
+  	}
+  }
+
   /**
    * Gets the system inspector.
    *

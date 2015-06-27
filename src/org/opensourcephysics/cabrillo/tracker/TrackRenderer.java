@@ -25,7 +25,10 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
+
 import javax.swing.*;
+
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * A custom renderer to show track name and icon in dropdown list items
@@ -57,6 +60,7 @@ public class TrackRenderer extends JLabel implements ListCellRenderer {
       Object[] array = (Object[])value;
       setText((String)array[1]);
       setIcon((Icon)array[0]);
+      FontSizer.setFonts(this, FontSizer.getLevel());
     }
     return this;
   }

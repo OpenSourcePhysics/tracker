@@ -34,6 +34,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -137,7 +138,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
         while (it.hasNext()) {
           TView view = it.next();
           String name = view.getViewName();
-          item = new JMenuItem(name, view.getViewIcon());
+          item = new JMenuItem(name, new ResizableIcon(view.getViewIcon()));
           item.setActionCommand(name);
           item.addActionListener(listener);
           popup.add(item);
@@ -313,7 +314,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
     }
     selectedView.refresh();
     // put icon in button
-    chooserButton.setIcon(selectedView.getViewIcon());
+    chooserButton.setIcon(new ResizableIcon(selectedView.getViewIcon()));
     // show the view on the viewPanel
     CardLayout cl = (CardLayout) (viewPanel.getLayout());
     cl.show(viewPanel, selectedView.getViewName());

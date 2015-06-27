@@ -689,7 +689,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       }
 
     };
-    for(int i = 0; i<4; i++) {
+    for(int i = 0; i<6; i++) {
     	String s = i==0? TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"): "+"+i; //$NON-NLS-1$ //$NON-NLS-2$
       JMenuItem item = new JRadioButtonMenuItem(s);
       item.addActionListener(fontSizeAction);
@@ -1770,7 +1770,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           if (trackerPanel.isEnabled("new.tapeMeasure")) measuringToolsMenu.add(newTapeItem); //$NON-NLS-1$
           if (trackerPanel.isEnabled("new.protractor")) measuringToolsMenu.add(newProtractorItem); //$NON-NLS-1$
           boolean pig = true;
-//          if (pig || trackerPanel.isEnabled("new.compass")) measuringToolsMenu.add(newCompassItem); //$NON-NLS-1$
+          if (pig || trackerPanel.isEnabled("new.compass")) measuringToolsMenu.add(newCompassItem); //$NON-NLS-1$
         }
         // calibration tools menu
         if (trackerPanel.isEnabled("calibration.stick") //$NON-NLS-1$
