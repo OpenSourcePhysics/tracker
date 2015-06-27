@@ -1466,9 +1466,9 @@ public class TrackerIO extends VideoIO {
       		if (!choices.contains(next)) {
       			if (removeVideo) {
       				// remove video from clip property
-	            XMLProperty prop = vidControl.getParentProperty();
-      				vidClipControl.setValue("video", null); //$NON-NLS-1$
-      				vidClipControl.getPropertyContent().remove(prop);
+//	            XMLProperty prop = vidControl.getParentProperty();
+//      				vidClipControl.setValue("video", null); //$NON-NLS-1$
+//      				vidClipControl.getPropertyContent().remove(prop);
 	      		}
 	      		else {
 	      			// remove video clip property entirely
