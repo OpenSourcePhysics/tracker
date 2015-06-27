@@ -406,14 +406,18 @@ public class PrefsDialog extends JDialog {
     fontSizeDropdown = new JComboBox();
     String defaultLevel = TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"); //$NON-NLS-1$
     fontSizeDropdown.addItem(defaultLevel);
-    for (int i=1; i<4; i++) {
+    int preferredLevel = Tracker.preferredFontLevel + Tracker.preferredFontLevelPlus;
+    int maxLevel = Math.max(preferredLevel, 6);
+    for (int i=1; i<=maxLevel; i++) {
     	String s = "+"+i; //$NON-NLS-1$
     	fontSizeDropdown.addItem(s);
     }
-    fontSizeDropdown.setSelectedIndex(Tracker.preferredFontLevel);
+    fontSizeDropdown.setSelectedIndex(preferredLevel);
     fontSizeDropdown.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
-        Tracker.preferredFontLevel = fontSizeDropdown.getSelectedIndex();
+    		int preferredLevel = fontSizeDropdown.getSelectedIndex();
+        Tracker.preferredFontLevel = Math.min(preferredLevel, 3);
+        Tracker.preferredFontLevelPlus = preferredLevel - Tracker.preferredFontLevel;
     	}
     });
     fontSubPanel.add(fontSizeDropdown);
