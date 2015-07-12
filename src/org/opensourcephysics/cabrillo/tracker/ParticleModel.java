@@ -57,7 +57,8 @@ abstract public class ParticleModel extends PointMass {
 	static {
     timeFormat.setMinimumIntegerDigits(1);
     timeFormat.setMaximumFractionDigits(3);
-    timeFormat.setMinimumFractionDigits(3);		
+    timeFormat.setMinimumFractionDigits(3);	
+    timeFormat.setGroupingUsed(false);
 	}
 
 	// instance fields
@@ -370,7 +371,7 @@ abstract public class ParticleModel extends PointMass {
 		inspectorItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				positionInspector();
-				inspector.setVisible(true);
+				getInspector().setVisible(true);
 			}
 		});
 		// assemble the menu
@@ -639,6 +640,7 @@ abstract public class ParticleModel extends PointMass {
       	int frameNumber = start+(int)(stepNumber*stepSize);
         time = startTime + stepNumber*dt;
         Point2D[] points = getNextTracePositions();
+        if (points==null) continue;
       	AffineTransform transform = coords.getToImageTransform(frameNumber);
         for (int j = 0; j < models.length; j++) {
           transform.transform(points[j], points[j]);
@@ -1003,7 +1005,7 @@ abstract public class ParticleModel extends PointMass {
       // load track data
       XML.getLoader(TTrack.class).loadObject(control, obj);
       ParticleModel p = (ParticleModel)obj;
-      p.mass = (control.getDouble("mass")); //$NON-NLS-1$
+      p.mass = control.getDouble("mass"); //$NON-NLS-1$
   		p.inspectorX = control.getInt("inspector_x"); //$NON-NLS-1$
   		p.inspectorY = control.getInt("inspector_y"); //$NON-NLS-1$
   		p.inspectorH = control.getInt("inspector_h"); //$NON-NLS-1$

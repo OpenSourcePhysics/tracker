@@ -676,9 +676,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (name.equals("progress")) { // from currently loading (ffmpeg) video  //$NON-NLS-1$
-    	Object val = e.getNewValue();
-    	String vidName = XML.forwardSlash((String)e.getOldValue());
-    	try {
+        Object val = e.getNewValue();
+        String vidName = XML.forwardSlash((String)e.getOldValue());
+        try {
 				framesLoaded = Integer.parseInt(val.toString());
 			} catch (Exception ex) {
 			}
@@ -691,13 +691,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     			}
 	      	next.setProgress(progress);
 	      	break;
-    		}
-    	}
+                }
+        }
     }
     else if (name.equals("stalled")) { // from stalled ffmpeg video //$NON-NLS-1$
-    	String fileName = XML.getName((String)e.getNewValue());
-    	String s = TrackerRes.getString("TFrame.Dialog.StalledVideo.Message0") //$NON-NLS-1$
-    			+"\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message1") //$NON-NLS-1$ //$NON-NLS-2$
+        String fileName = XML.getName((String)e.getNewValue());
+        String s = TrackerRes.getString("TFrame.Dialog.StalledVideo.Message0") //$NON-NLS-1$
+                        +"\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message1") //$NON-NLS-1$ //$NON-NLS-2$
     			+"\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message2") //$NON-NLS-1$ //$NON-NLS-2$
     			+"\n\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
     	if (VideoIO.getVideoType(VideoIO.ENGINE_QUICKTIME, null)!=null) {
@@ -851,24 +851,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   		if (prefsDialog.trackerPanel!=trackerPanel) {
 		  	prefsDialog.trackerPanel = trackerPanel;
 	  		prefsDialog.refreshGUI();
-  		}
-  	}
-  	else {
-  		// if ExtensionsManager is not ready, wait a short time
-  		if (!ExtensionsManager.isReady()) {
-  			int maxWait = 10000;
-  			int waited = 0;
-  			int sleepTime = 200;
-  			while (!ExtensionsManager.isReady() && waited<maxWait) {
-  				waited += sleepTime;
-  				try {
-						Thread.sleep(sleepTime);
-					} catch (InterruptedException e) {
-					}
-  			}
-  		}
+                }
+        }
+        else {
       // create PrefsDialog
-  		prefsDialog = new PrefsDialog(trackerPanel, TFrame.this);
+                prefsDialog = new PrefsDialog(trackerPanel, TFrame.this);
       // center on screen
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - prefsDialog.getBounds().width) / 2;
@@ -1241,13 +1228,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   	}
 
   	if (prefsDialog!=null) {
-  		prefsDialog.refreshGUI();
-  	}
-  	if (libraryBrowser!=null) {
-  		//TODO libraryBrowser.setFontLevel(level);
-  	}
-  	if (helpLauncher!=null) {
-  		FontSizer.setFonts(helpLauncher, level);
+                prefsDialog.refreshGUI();
+        }
+        if (libraryBrowser!=null) {
+                libraryBrowser.setFontLevel(level);
+        }
+        if (helpLauncher!=null) {
+                FontSizer.setFonts(helpLauncher, level);
   	}
   	FontSizer.setFonts(notesDialog, level);
 		FontSizer.setFonts(OSPLog.getOSPLog(), level);
@@ -1344,10 +1331,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     	LibraryBrowser.fireHelpEvent = true;
     	libraryBrowser.addPropertyChangeListener("help", new PropertyChangeListener() { //$NON-NLS-1$
 	  		public void propertyChange(PropertyChangeEvent e) {
-	  			showHelp("library", 0); //$NON-NLS-1$
-	  		}
-	  	});
-  		//TODO libraryBrowser.setFontLevel(FontSizer.getLevel());
+                                showHelp("library", 0); //$NON-NLS-1$
+                        }
+                });
+                libraryBrowser.setFontLevel(FontSizer.getLevel());
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - dialog.getBounds().width) / 2;
       int y = (dim.height - dialog.getBounds().height) / 2;

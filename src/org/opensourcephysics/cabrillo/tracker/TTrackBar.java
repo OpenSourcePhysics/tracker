@@ -67,7 +67,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   static {
   	smallSelectIcon =  new ImageIcon(Tracker.class.getResource("resources/images/small_select.gif")); //$NON-NLS-1$
     if (Tracker.testOn) {
-	  	testButton = new JButton("Test"); //$NON-NLS-1$
+	  	testButton = new JButton("Save Origin/Angle Data"); //$NON-NLS-1$
 	  	testButton.addActionListener(new ActionListener() {
 	  		public void actionPerformed(ActionEvent e) {
 	    		final TFrame frame = (TFrame)testButton.getTopLevelAncestor();
@@ -76,33 +76,11 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-//		    	      	final TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-		    	      	// show environment
-//			    	  		String[] vars = {"TRACKER_HOME", "FFMPEG_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-//			    	  		for (String next: vars) {
-//			    	  			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
-//			    	  		}
-//		    	      	String s = System.getProperty("java.class.path");
-//		    	      	OSPLog.warning("java.class.path = "+s);
-//		    	      	
-//			    	  		Map env = System.getenv();
-//			    	  		Set keys = env.keySet();
-//		    	        String jres = "environment: ";
-//			    	  		for (Object key: keys) {
-//			    	  			jres +=" "+key+"="+env.get(key);
-//			    	  		}
-//			    	  		OSPLog.warning(jres+"\n"); //$NON-NLS-1$
-//			    	  			
-//		    	  			Properties props = System.getProperties();
-//		    	  			keys = props.keySet();
-//		    	        jres = "properties: ";
-//			    	  		for (Object key: keys) {
-//			    	  			jres +=" "+key+"="+props.get(key);
-//			    	  		}
-//			    	  		OSPLog.warning(jres+"\n"); //$NON-NLS-1$
-			    	      	
-
-			    	  		OSPLog.showLog();
+		    	      	
+//	    	      	String path = "http://www.cabrillo.edu/~dbrown/tracker/counter/counter.html?page=test";
+//	              String result = ResourceLoader.getString(path);
+//	              System.out.println("pig "+result);
+	    	      			    	      	
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
 		  	    				testTimer=null;

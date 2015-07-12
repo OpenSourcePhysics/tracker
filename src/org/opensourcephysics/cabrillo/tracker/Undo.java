@@ -26,8 +26,10 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import javax.swing.undo.*;
 
+import java.awt.Color;
 import java.io.IOException;
 import java.util.*;
+
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.media.core.*;
 
@@ -54,6 +56,7 @@ public class Undo {
     undoManager.setLimit(20);
     undoSupport = new UndoableEditSupport();
     undoSupport.addUndoableEditListener(undoManager);
+    XML.setLoader(TrackProperties.class, TrackProperties.getLoader());
   }
 
   /**
@@ -290,6 +293,20 @@ public class Undo {
   	refreshMenus(panel);
   }
 
+  /**
+   * Posts an undoable edit for a footprint, name or color change.
+   * 
+   * @param track the track with the changed property
+   * @param control an XMLControl with the previous state of the footprint
+   */
+  protected static void postTrackDisplayEdit(TTrack track, XMLControl control) {
+  	TrackerPanel panel = track.trackerPanel;
+  	if (panel == null) return;
+  	UndoableEdit edit = getUndo(panel).new TrackDisplayEdit(track, control); 
+  	getUndo(panel).undoSupport.postEdit(edit);
+  	refreshMenus(panel);
+  }
+
   private static Undo getUndo(TrackerPanel panel) {
   	Undo undo = undomap.get(panel);
   	if (undo == null) {
@@ -345,6 +362,42 @@ public class Undo {
    	  XMLControl control = new XMLControlElement(xml);
   	  control.loadObject(step);
   	  step.erase();
+    }
+  }
+
+  /**
+   * A class to undo/redo footprint, color and name changes.
+   */
+  protected class TrackDisplayEdit extends TEdit {
+
+  	String undoName, redoName;
+  	String trackName;
+  	
+  	private TrackDisplayEdit(TTrack track, XMLControl control) {
+  		super(track.trackerPanel, new TrackProperties(track), control);
+  	  control = new XMLControlElement(undo);
+  	  TrackProperties props = (TrackProperties)control.loadObject(null);
+  		undoName = track.getName();
+  		redoName = props.name;
+    }
+
+    public void undo() throws CannotUndoException {
+    	trackName = undoName;
+    	super.undo();
+    }
+
+    public void redo() throws CannotUndoException {
+    	trackName = redoName;
+    	super.redo();
+    }
+    
+  	protected void load(String xml) {
+   	  XMLControl control = new XMLControlElement(xml);
+  	  TrackProperties props = (TrackProperties)control.loadObject(null);
+   	  TTrack track = panel.getTrack(trackName);
+  	  track.setFootprint(props.footprint);
+  	  track.setColor(props.color);
+  	  track.setName(props.name);
     }
   }
 
@@ -702,7 +755,59 @@ public class Undo {
       }
     }
   }
+  
+}
 
+/**
+ * A class used for name, footprint and color edits.
+ */
+class TrackProperties {
+	String name;
+	String footprint;
+	Color color;
+	
+	TrackProperties(TTrack track) {
+		name = track.getName();
+		footprint = track.getFootprint().getName();
+		color = track.getColor();
+	}
+	
+	TrackProperties(String name, String footprint, Color color) {
+		this.name = name;
+		this.footprint = footprint;
+		this.color = color;
+	}
+	
+  public static XML.ObjectLoader getLoader() {
+    return new Loader();
+  }
 
+  /**
+   * A class to save and load data for this class.
+   */
+  static class Loader implements XML.ObjectLoader {
+
+		@Override
+		public void saveObject(XMLControl control, Object obj) {
+			TrackProperties props = (TrackProperties)obj;
+			control.setValue("name", props.name); //$NON-NLS-1$
+			control.setValue("footprint", props.footprint); //$NON-NLS-1$
+			control.setValue("color", props.color); //$NON-NLS-1$
+		}
+
+		@Override
+		public Object createObject(XMLControl control) {
+			String name = control.getString("name"); //$NON-NLS-1$
+			String footprint = control.getString("footprint"); //$NON-NLS-1$
+			Color color = (Color)control.getObject("color"); //$NON-NLS-1$
+			return new TrackProperties(name, footprint, color);
+		}
+
+		@Override
+		public Object loadObject(XMLControl control, Object obj) {
+			return obj;
+		}
+  
+  }
 }
 

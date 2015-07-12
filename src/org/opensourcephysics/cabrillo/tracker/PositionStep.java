@@ -267,7 +267,10 @@ public class PositionStep extends Step {
    */
   public Rectangle getBounds(TrackerPanel trackerPanel) {
     Rectangle bounds = getMark(trackerPanel).getBounds(false);
-    bounds.add(layoutBounds.get(trackerPanel));
+    Rectangle layoutRect = layoutBounds.get(trackerPanel);
+    if (layoutRect!=null) {
+    	bounds.add(layoutRect);
+    }
     return bounds;
   }
 

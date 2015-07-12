@@ -227,9 +227,9 @@ public abstract class TTrack implements Interactive,
       	Color color = getColor();
       	Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
         if (newColor!=color) {
-        	XMLControl control = new XMLControlElement(TTrack.this);
+        	XMLControl control = new XMLControlElement(new TrackProperties(TTrack.this));
           setColor(newColor);
-          Undo.postTrackEdit(TTrack.this, control);
+          Undo.postTrackDisplayEdit(TTrack.this, control);
         }
       }
     });
@@ -239,7 +239,7 @@ public abstract class TTrack implements Interactive,
       public void windowClosing(WindowEvent e) {
       	String newName = nameField.getText();
       	if (trackerPanel != null) 
-      		trackerPanel.setTrackName(TTrack.this, newName);
+      		trackerPanel.setTrackName(TTrack.this, newName, true);
       }
     });
     nameField = new JTextField(20);
@@ -247,7 +247,7 @@ public abstract class TTrack implements Interactive,
       public void actionPerformed(ActionEvent e) {
       	String newName = nameField.getText();
       	if (trackerPanel != null) 
-      		trackerPanel.setTrackName(TTrack.this, newName);
+      		trackerPanel.setTrackName(TTrack.this, newName, true);
       }
     });
     final JLabel nameLabel = new JLabel();
@@ -364,7 +364,8 @@ public abstract class TTrack implements Interactive,
         }
         Undo.postTrackEdit(TTrack.this, control);
     		if (TTrack.this instanceof PointMass) {
-    			((PointMass)TTrack.this).updateDerivatives();
+    			PointMass p = (PointMass)TTrack.this;
+    			p.updateDerivatives();
     		}
        	AutoTracker autoTracker = trackerPanel.getAutoTracker();
        	if (autoTracker.getTrack()==TTrack.this)
@@ -378,9 +379,9 @@ public abstract class TTrack implements Interactive,
       public void actionPerformed(ActionEvent e) {
         String footprintName = e.getActionCommand();
         if (getFootprint().getName().equals(footprintName)) return;
-        XMLControl control = new XMLControlElement(TTrack.this);
+        XMLControl control = new XMLControlElement(new TrackProperties(TTrack.this));
         setFootprint(footprintName);
-        Undo.postTrackEdit(TTrack.this, control);
+        Undo.postTrackDisplayEdit(TTrack.this, control);
       }
     };
     circleFootprintListener = new ActionListener() {
@@ -565,8 +566,10 @@ public abstract class TTrack implements Interactive,
       if (trackerPanel.dataBuilder != null) {
       	org.opensourcephysics.tools.FunctionPanel panel = 
       		trackerPanel.dataBuilder.getPanel(getName());
-      	panel.setIcon(footprint.getIcon(21, 16));
-      	trackerPanel.dataBuilder.refreshDropdown(null);
+      	if (panel != null) {
+        	panel.setIcon(footprint.getIcon(21, 16));
+        	trackerPanel.dataBuilder.refreshDropdown(null);      		
+      	}
       }
     }
     support.firePropertyChange("color", null, color); //$NON-NLS-1$
@@ -1178,7 +1181,8 @@ public abstract class TTrack implements Interactive,
       		String name = (String)constantsLoadedFromXML[i][0];
       		double val = (Double)constantsLoadedFromXML[i][1];
       		String expression = (String)constantsLoadedFromXML[i][2];
-      		data.setConstant(name, val, expression);
+      		String desc = constantsLoadedFromXML[i].length<4? null: (String)constantsLoadedFromXML[i][3];
+      		data.setConstant(name, val, expression, desc);
       	}
       	constantsLoadedFromXML = null;
       }
@@ -1249,7 +1253,18 @@ public abstract class TTrack implements Interactive,
    * @return a String data description
    */
   public String getDataDescription(int index) {
-    return dataDescriptions!=null && index<dataDescriptions.length? dataDescriptions[index]: ""; //$NON-NLS-1$
+  	if (dataDescriptions==null) return ""; //$NON-NLS-1$
+  	if (index>=dataDescriptions.length) {
+      ArrayList<Dataset> datasets = data.getDatasets();
+  		index--;
+    	if (index<datasets.size() && datasets.get(index) instanceof DataFunction) {
+    		String desc = datasets.get(index).getYColumnDescription();
+    		if (desc==null) desc = ""; //$NON-NLS-1$
+    		return desc;
+    	}
+    	return ""; //$NON-NLS-1$
+  	}
+    return dataDescriptions[index];
   }
   
   /**
@@ -2449,12 +2464,13 @@ public abstract class TTrack implements Interactive,
 	    	if (!list.isEmpty()) {
 		    	String[] names = data.getConstantNames();
 		    	if (names.length>0) {
-		    		Object[][] paramArray = new Object[names.length][3];
+		    		Object[][] paramArray = new Object[names.length][4];
 		    		int i = 0;
 		    		for (String key: names) {
 		    			paramArray[i][0] = key;
 		    			paramArray[i][1] = data.getConstantValue(key);
 		    			paramArray[i][2] = data.getConstantExpression(key);
+		    			paramArray[i][3] = data.getConstantDescription(key);
 		    			i++;
 		    		}
 		    		control.setValue("constants", paramArray); //$NON-NLS-1$

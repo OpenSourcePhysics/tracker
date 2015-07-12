@@ -51,7 +51,7 @@ import org.opensourcephysics.media.core.*;
 public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	
 	// static fields
-	static final String DEFINED_AS = ": "; //$NON-NLS-1$
+	protected static final String DEFINED_AS = ": "; //$NON-NLS-1$
 
 	// instance fields
   protected TTrack track;
@@ -992,7 +992,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     // append data to dataset
     Double x = null, y = null;
     if (xMean != Double.NaN) {
-      for (int i = 0; i < manager.getRowCount(); i++) {
+    	int n = yData.getRowCount();
+      for (int i = 0; i < n; i++) {
         y = (Double)yData.getValueAt(i, 1);
         if (xIndex == -1)
           x = (Double)xData.getValueAt(i, 0);

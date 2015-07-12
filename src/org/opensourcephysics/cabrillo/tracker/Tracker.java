@@ -32,6 +32,9 @@ import java.net.URL;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
+import java.rmi.Remote;
+import java.rmi.RemoteException;
+import java.rmi.registry.Registry;
 import java.text.SimpleDateFormat;
 import java.awt.*;
 import java.awt.event.*;
@@ -59,28 +62,29 @@ public class Tracker {
   }
 
   // define static constants
+  /** tracker version */
+  public static final String VERSION = "4.88"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
   /** a larger tracker icon */
   public static final ImageIcon TRACKER_ICON_256 = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_256.png")); //$NON-NLS-1$
-	static final String THETA = TeXParser.parseTeX("$\\theta"); //$NON-NLS-1$
-	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
-	static final String ALPHA = TeXParser.parseTeX("$\\alpha"); //$NON-NLS-1$
-	static final String DEGREES = "�"; //$NON-NLS-1$
-  static String trackerHome;
+        static final String THETA = TeXParser.parseTeX("$\\theta"); //$NON-NLS-1$
+        static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
+        static final String ALPHA = TeXParser.parseTeX("$\\alpha"); //$NON-NLS-1$
+        static final String DEGREES = "�"; //$NON-NLS-1$
   static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
   
   // for testing
   static boolean timeLogEnabled = false;
   static boolean testOn = false;
-  static TrackerPanel testPanel;
   
   // define static fields
+  static String trackerHome;
   static String[] fullConfig =
-  	{"file.new", "file.open", "file.close",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-  	"file.import", "file.export", "file.save",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        {"file.new", "file.open", "file.close",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        "file.import", "file.export", "file.save",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "file.saveAs", "file.print", "file.library", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "edit.copyObject", "edit.copyData", "edit.copyImage",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "edit.paste", "edit.matSize",  //$NON-NLS-1$ //$NON-NLS-2$
@@ -88,13 +92,13 @@ public class Tracker {
 	  "video.close", "video.visible", "video.filters",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "pageView.edit", "notes.edit", "new.pointMass", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
 	  "new.cm", "new.vector", "new.vectorSum",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	  "new.lineProfile", "new.RGBRegion",  //$NON-NLS-1$ //$NON-NLS-2$
-	  "new.analyticParticle", "new.clone",  //$NON-NLS-1$ //$NON-NLS-2$
-	  "new.dynamicParticle", "new.dynamicTwoBody",  //$NON-NLS-1$ //$NON-NLS-2$ 
-	  "new.tapeMeasure", "new.protractor",  //$NON-NLS-1$ //$NON-NLS-2$
-	  "calibration.stick", "calibration.tape", //$NON-NLS-1$ //$NON-NLS-2$
-	  "calibration.points", "calibration.offsetOrigin", //$NON-NLS-1$ //$NON-NLS-2$
-	  "track.name", "track.description",  //$NON-NLS-1$ //$NON-NLS-2$
+          "new.lineProfile", "new.RGBRegion",  //$NON-NLS-1$ //$NON-NLS-2$
+          "new.analyticParticle", "new.clone",  //$NON-NLS-1$ //$NON-NLS-2$
+          "new.dynamicParticle", "new.dynamicTwoBody",  //$NON-NLS-1$ //$NON-NLS-2$ 
+          "new.dataTrack", "new.tapeMeasure", "new.protractor",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+          "calibration.stick", "calibration.tape", //$NON-NLS-1$ //$NON-NLS-2$
+          "calibration.points", "calibration.offsetOrigin", //$NON-NLS-1$ //$NON-NLS-2$
+          "track.name", "track.description",  //$NON-NLS-1$ //$NON-NLS-2$
 	  "track.color", "track.footprint",  //$NON-NLS-1$ //$NON-NLS-2$ 
 	  "track.visible", "track.locked",  //$NON-NLS-1$ //$NON-NLS-2$
 	  "track.delete", "track.autoAdvance",  //$NON-NLS-1$ //$NON-NLS-2$ 
@@ -103,8 +107,8 @@ public class Tracker {
 	  "coords.scale", "coords.refFrame", "button.x",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "button.v", "button.a", "button.trails",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
 	  "button.labels", "button.stretch", "button.clipSettings",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	  "button.xMass", "button.axes", "button.path",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	  "config.saveWithData", "data.builder", "data.tool"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+          "button.xMass", "button.axes", "button.path",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+          "config.saveWithData", "data.builder", "data.tool"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   static Set<String> defaultConfig;
   static boolean ffmpegCopied;
   static String[] mainArgs;
@@ -112,7 +116,6 @@ public class Tracker {
   static Icon trackerLogoIcon, ospLogoIcon;
   static JLabel tipOfTheDayLabel;
   static JProgressBar progressBar;
-  static String version = "4.87"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
   static String copyright = "Copyright (c) 2015 Douglas Brown"; //$NON-NLS-1$
   static String trackerWebsite = "www.cabrillo.edu/~dbrown/tracker"; //$NON-NLS-1$
@@ -122,14 +125,12 @@ public class Tracker {
   static Action aboutTrackerAction, readmeAction;
   static Action aboutJavaAction, startLogAction, trackerPrefsAction;
   private static Tracker tracker;
-  static Process rmiProc;
   static String readmeFileName = "tracker_README.txt"; //$NON-NLS-1$
   static JDialog readmeDialog, startLogDialog, trackerPrefsDialog;
   static JTextArea trackerPrefsTextArea;
-  static String prefsFileName = ".tracker.prefs"; //$NON-NLS-1$
   static String prefsPath;
   @SuppressWarnings("javadoc")
-	public static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
+        public static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
   static Cursor zoomInCursor, zoomOutCursor, grabCursor, grabbedCursor;
   static boolean showHints = true;
   static boolean startupHintShown;
@@ -144,6 +145,13 @@ public class Tracker {
   static Locale defaultLocale;
   static ArrayList<String> checkForUpgradeChoices;
   static Map<String, Integer> checkForUpgradeIntervals;
+  static Collection<String> dataFunctionControlStrings = new HashSet<String>();
+  static Collection<String> initialAutoloadSearchPaths = new TreeSet<String>();
+  static Map<String, ArrayList<XMLControl>> dataFunctionControls = new TreeMap<String, ArrayList<XMLControl>>();
+  static java.io.FileFilter xmlFilter;
+  static boolean qtLoading, qtLoaded;
+  static Registry registry; // used for RMI communication with EJS
+  static DataTrackTool dataTrackTool; // used for RMI communication with EJS
   
   // user-settable preferences saved/loaded by Preferences class
   static Level preferredLogLevel = DEFAULT_LOG_LEVEL;
@@ -159,7 +167,8 @@ public class Tracker {
   static boolean warnFFMPegError=true, warnNoVideoEngine=true, use32BitMode=false;
   static boolean warnVariableDuration=true;
   static String[] prelaunchExecutables = new String[0];
-  static Collection<String> dataFunctionControls = new HashSet<String>();
+  static Map<String, String[]> autoloadMap = new TreeMap<String, String[]>();
+  static String[] preferredAutoloadSearchPaths;
 
   // the only instance field!
   private TFrame frame;
@@ -214,11 +223,21 @@ public class Tracker {
 			new Locale("sv"), // swedish //$NON-NLS-1$
 			Locale.TAIWAN, // traditional chinese
 			Locale.CHINA}; // simplified chinese
-  	setDefaultConfig(getFullConfig());
-  	loadPreferences();
-  	loadCurrentVersion(false);
-  	
-  	// check for upgrade intervals
+        setDefaultConfig(getFullConfig());
+        loadPreferences();
+        loadCurrentVersion(false);
+    xmlFilter = new java.io.FileFilter() {
+      // accept only *.xml files.
+      public boolean accept(File f) {
+        if (f==null || f.isDirectory()) return false;
+        String ext = XML.getExtension(f.getName());
+        if (ext!=null && "xml".equals(ext.toLowerCase())) return true; //$NON-NLS-1$
+        return false;
+      }
+    };
+    autoloadDataFunctions();
+        
+        // check for upgrade intervals
     checkForUpgradeChoices = new ArrayList<String>();
   	checkForUpgradeIntervals = new HashMap<String, Integer>();
     String s = "PrefsDialog.Upgrades.Always"; //$NON-NLS-1$
@@ -297,8 +316,8 @@ public class Tracker {
     contentPane.add(center, BorderLayout.CENTER);
 
     // version south
-    String vers = author+"   "+osp+"   Ver "+version; //$NON-NLS-1$ //$NON-NLS-2$
-		if (version.length()>5 || testOn) vers += " BETA"; //$NON-NLS-1$
+    String vers = author+"   "+osp+"   Ver "+VERSION; //$NON-NLS-1$ //$NON-NLS-2$
+                if (VERSION.length()>5 || testOn) vers += " BETA"; //$NON-NLS-1$
     JLabel versionLabel = new JLabel(vers);
     versionLabel.setForeground(darkblue);
     font = font.deriveFont(Font.BOLD).deriveFont(10f);
@@ -319,22 +338,22 @@ public class Tracker {
     int y = 3*dim.height/5;  // below center
     splash.setLocation(x-size.width/2, y-size.height/2);
 
-  	// set up videos extensions to extract from jars
-  	// this list should agree with ffmpeg video types below
-  	for (String ext: VideoIO.VIDEO_EXTENSIONS) { // {"mov", "avi", "mp4"}
+        // set up videos extensions to extract from jars
+        // this list should agree with ffmpeg video types below
+        for (String ext: VideoIO.VIDEO_EXTENSIONS) { // {"mov", "avi", "mp4"}
       ResourceLoader.addExtractExtension(ext);
-  	}
+        }
     
-  	is64BitVM = OSPRuntime.getVMBitness()==64;
-  	
+        is64BitVM = OSPRuntime.getVMBitness()==64;
+        
     // add FFMPeg video types, if available using reflection
-  	try {
-			String ffmpegIOName = "org.opensourcephysics.media.ffmpeg.FFMPegIO"; //$NON-NLS-1$
-			Class<?> ffmpegIOClass = Class.forName(ffmpegIOName);
-			Method method = ffmpegIOClass.getMethod("registerWithVideoIO", (Class[]) null);  //$NON-NLS-1$
-			method.invoke(null, (Object[]) null);
-		} catch (Exception ex) {
-		}    
+        try {
+                        String ffmpegIOName = "org.opensourcephysics.media.ffmpeg.FFMPegIO"; //$NON-NLS-1$
+                        Class<?> ffmpegIOClass = Class.forName(ffmpegIOName);
+                        Method method = ffmpegIOClass.getMethod("registerWithVideoIO", (Class[]) null);  //$NON-NLS-1$
+                        method.invoke(null, (Object[]) null);
+                } catch (Exception ex) {
+                }    
     
     // add QT video types, if available, using reflection
     if (!OSPRuntime.isLinux()) {
@@ -348,9 +367,9 @@ public class Tracker {
 //            	VideoFileFilter filter = new VideoFileFilter(ext, new String[] {ext});
 //              qtType = new QTVideoType(filter);
 //              VideoIO.addVideoType(qtType);
-//          	}
-          	
-          	String qtTypeName = "org.opensourcephysics.media.quicktime.QTVideoType"; //$NON-NLS-1$
+//              }
+                qtLoading = true;
+                String qtTypeName = "org.opensourcephysics.media.quicktime.QTVideoType"; //$NON-NLS-1$
             Class<?> qtClass = Class.forName(qtTypeName);
             Constructor<?>[] constructors = qtClass.getDeclaredConstructors();
           	Constructor<?> cNoArgs = null, cFilterArg = null;
@@ -368,19 +387,24 @@ public class Tracker {
             VideoType qtType = (VideoType)cNoArgs.newInstance();
             VideoIO.addVideoEngine(qtType);
             
-            if (cFilterArg==null) return;
-          	for (String ext: VideoIO.VIDEO_EXTENSIONS) { // {"mov", "avi", "mp4"}
-            	VideoFileFilter filter = new VideoFileFilter(ext, new String[] {ext});
+            if (cFilterArg==null) {
+                qtLoaded = true;
+                return;
+            }
+                for (String ext: VideoIO.VIDEO_EXTENSIONS) { // {"mov", "avi", "mp4"}
+                VideoFileFilter filter = new VideoFileFilter(ext, new String[] {ext});
               qtType = (VideoType)cFilterArg.newInstance(filter);
               VideoIO.addVideoType(qtType);
-          	}
-
+                }
+                qtLoaded = true;
           }
           catch (Exception ex) { // QT for Java not working
-          	OSPLog.config("QuickTime exception: "+ex.toString()); //$NON-NLS-1$
+                OSPLog.config("QuickTime exception: "+ex.toString()); //$NON-NLS-1$
+                qtLoading = false;
           }
           catch (Error er) { // QT for Java not working
-          	OSPLog.config("QuickTime error: "+er.toString()); //$NON-NLS-1$
+                OSPLog.config("QuickTime error: "+er.toString()); //$NON-NLS-1$
+                qtLoading = false;
           }
         }
       };
@@ -420,16 +444,17 @@ public class Tracker {
    */
   public static Tracker getTracker() {
     if (tracker == null) {
-      tracker = new Tracker(null, false);
+        OSPLog.fine("creating shared Tracker"); //$NON-NLS-1$
+      tracker = new Tracker(null, false, false);
     }
     return tracker;
   }
 
   /**
-   * Constructs Tracker with a blank tab.
+   * Constructs Tracker with a blank tab and splash.
    */
   public Tracker() {
-    this(null, true);
+    this(null, true, true);
   }
 
   /**
@@ -449,8 +474,8 @@ public class Tracker {
    *
    * @param names an array of xml, video or zip file names
    */
-  private Tracker(String[] names, boolean addTabIfEmpty) {
-    splash.setVisible(true);
+  private Tracker(String[] names, boolean addTabIfEmpty, boolean showSplash) {
+    splash.setVisible(showSplash);
     createFrame();
     Tracker.setProgress(5);
     if (names != null) {
@@ -499,7 +524,7 @@ public class Tracker {
     // create actions
     createActions();
     Tracker.setProgress(5);
-		OSPRuntime.setLookAndFeel(true, lookAndFeel);
+                OSPRuntime.setLookAndFeel(true, lookAndFeel);
     frame = new TFrame();
     Diagnostics.setDialogOwner(frame);
     DiagnosticsForFFMPeg.setDialogOwner(frame);
@@ -507,9 +532,27 @@ public class Tracker {
     if ( org.opensourcephysics.display.OSPRuntime.applet == null) {
       frame.addWindowListener(new WindowAdapter() {
         public void windowClosing(WindowEvent e) {
-        	savePreferences();
-        	if (frame.libraryBrowser!=null) {
-        		boolean canceled = !frame.libraryBrowser.exit();
+                // save preferences, but first clean up autoloadMap
+                ArrayList<String> dirs = new ArrayList<String>();
+                if (preferredAutoloadSearchPaths!=null) {
+                        for (String path: preferredAutoloadSearchPaths) dirs.add(path);
+                }
+                else dirs.addAll(getDefaultAutoloadSearchPaths());
+                
+                for (Iterator<String> it = autoloadMap.keySet().iterator(); it.hasNext();) {
+                        String filePath = it.next();
+                        String parentPath = XML.getDirectoryPath(filePath);
+                        boolean keep = false;
+                        for (String dir: dirs) {
+                                keep = keep || parentPath.equals(dir);
+                        }
+                        if (!keep || !new File(filePath).exists()) {
+                                it.remove();
+                        }
+                }
+                savePreferences();
+                if (frame.libraryBrowser!=null) {
+                        boolean canceled = !frame.libraryBrowser.exit();
         		if (canceled) {
 						  // exiting is canceled so temporarily change close operation
 						  // to DO_NOTHING and return
@@ -546,17 +589,20 @@ public class Tracker {
 							  return;
 							}
 							frame.removeTab(frame.getTrackerPanel(i));
-						} catch (Exception ex) {
-						}
+                                                } catch (Exception ex) {
+                                                }
           }
-          if (rmiProc != null) rmiProc.destroy();
           
           // hide the frame
           frame.setVisible(false);
 
+          // unregister the DataTrackTool and inform RMI clients
+                                        dataTrackTool.trackerExiting();
+                                        unregisterRemoteTool(dataTrackTool);
+
           // exit the system if frame wishes to exit 
           if (frame.wishesToExit() && 
-          				frame.getDefaultCloseOperation() == WindowConstants.DISPOSE_ON_CLOSE) {
+                                        frame.getDefaultCloseOperation() == WindowConstants.DISPOSE_ON_CLOSE) {
           	System.exit(0);
           }
         }
@@ -579,11 +625,11 @@ public class Tracker {
    * Shows the About Tracker dialog.
    */
   public static void showAboutTracker() {
-  	String newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-  	String vers = Tracker.version;
-		if (vers.length()>5 || testOn) vers += " BETA"; //$NON-NLS-1$
-		String date = OSPRuntime.getLaunchJarBuildDate();
-		if (date!=null) 
+        String newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+        String vers = Tracker.VERSION;
+                if (vers.length()>5 || testOn) vers += " BETA"; //$NON-NLS-1$
+                String date = OSPRuntime.getLaunchJarBuildDate();
+                if (date!=null) 
 			vers = vers+"   "+date; //$NON-NLS-1$
     String aboutString = "Tracker "  //$NON-NLS-1$
     		+ vers + newline
@@ -603,6 +649,70 @@ public class Tracker {
                                   JOptionPane.INFORMATION_MESSAGE);
   }
   
+  /**
+         * Finds data functions in all DataBuilder XMLControl files found in a specified directory.
+         * This returns a map for which the keys are names of DataBuilder xml files and the values
+         * are lists of data functions as String[] {function name, expression, tracktype}
+         * 
+         * @param dirPath the directory path
+         * @return map of file name to list of data functions
+         */
+        public static Map<String, ArrayList<String[]>> findDataFunctions(String dirPath) {
+                Map<String, ArrayList<String[]>> results = new TreeMap<String, ArrayList<String[]>>();
+                if (dirPath==null) return results;
+                
+                File dir = new File(dirPath);
+                if (!dir.exists()) return results;
+                
+                File[] files = dir.listFiles(xmlFilter);
+                if (files!=null) {
+                        for (File file: files) {
+                    XMLControl control = new XMLControlElement(file.getPath());    
+                    if (control.failedToRead()) {
+                      continue;
+                    }
+
+                    Class<?> type = control.getObjectClass();
+                    if (type!=null && TrackDataBuilder.class.isAssignableFrom(type)) {
+                        ArrayList<String[]> expandedFunctions = new ArrayList<String[]>();
+
+                      // look through XMLControl for data functions             
+                for (Object next: control.getPropertyContent()) {
+                        if (next instanceof XMLProperty 
+                                        && ((XMLProperty)next).getPropertyName().equals("functions")) { //$NON-NLS-1$
+                                // found DataFunctionPanels
+                                XMLControl[] panels = ((XMLProperty)next).getChildControls();
+                                inner: for (XMLControl panelControl: panels) {
+                                        String trackType = panelControl.getString("description"); //$NON-NLS-1$
+                                        @SuppressWarnings("unchecked")
+                                                                ArrayList<String[]> functions = (ArrayList<String[]>)panelControl.getObject("functions"); //$NON-NLS-1$
+                                        if (trackType==null || functions==null || functions.isEmpty()) continue inner;
+                                        
+                                        // add localized trackType name to function arrays
+                                        for (String[] f: functions) {
+                                                String[] data = new String[3];
+                                                System.arraycopy(f, 0, data, 0, 2);
+                                                // use XML.getExtension method to get short name of track type
+                                                String trackName = XML.getExtension(trackType);
+                                                String localized = TrackerRes.getString(trackName+".Name"); //$NON-NLS-1$
+                                                if (!localized.startsWith("!")) //$NON-NLS-1$
+                                                        trackName = localized;
+                                                data[2] = trackName;
+                                                expandedFunctions.add(data);
+                                        }
+                                } // end inner loop
+                        }
+                } // end outer loop
+                
+                // add entry to the results map
+                results.put(file.getName(), expandedFunctions);
+                    }
+                                
+                        }
+                }
+                return results;
+        }
+        
   /**
    * Creates the actions.
    */
@@ -742,12 +852,12 @@ public class Tracker {
     };
     aboutQTAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutQT"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
-      	Diagnostics.aboutQTJava("Tracker"); //$NON-NLS-1$
+        Diagnostics.aboutQTJava("Tracker"); //$NON-NLS-1$
       }
     };
     aboutFFMPegAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutFFMPeg"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
-      	DiagnosticsForFFMPeg.aboutFFMPeg("Tracker"); //$NON-NLS-1$
+        DiagnosticsForFFMPeg.aboutFFMPeg("Tracker"); //$NON-NLS-1$
       }
     };
     aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
@@ -916,23 +1026,140 @@ public class Tracker {
   }
 
   /**
+   * Autoloads data functions found in the user home and code base directories.
+   * This loads DataFunctionPanel XMLControls into a static collection that is
+   * accessed when need by DataBuilder.
+   */
+  protected static void autoloadDataFunctions() {
+        dataFunctionControls.clear();
+          for (String dirPath: getInitialSearchPaths()) {
+                        if (dirPath==null) continue;
+                        
+                        File dir = new File(dirPath);
+                        if (!dir.exists()) continue;
+                        
+                        File[] files = dir.listFiles(xmlFilter);
+                        if (files!=null) {
+                                for (File file: files) {
+                            XMLControl control = new XMLControlElement(file.getPath());    
+                            if (control.failedToRead()) {
+                              continue;
+                            }
+        
+                            Class<?> type = control.getObjectClass();
+                            if (type!=null && TrackDataBuilder.class.isAssignableFrom(type)) {
+                        for (Object next: control.getPropertyContent()) {
+                                if (next instanceof XMLProperty 
+                                                && ((XMLProperty)next).getPropertyName().equals("functions")) { //$NON-NLS-1$
+                                        // found DataFunctionPanels
+                                        ArrayList<XMLControl> controls = new ArrayList<XMLControl>();
+                                        XMLControl[] panels = ((XMLProperty)next).getChildControls();
+                                        inner: for (XMLControl panelControl: panels) {
+                                                String trackType = panelControl.getString("description"); //$NON-NLS-1$
+                                                @SuppressWarnings("unchecked")
+                                                                        ArrayList<String[]> functions = (ArrayList<String[]>)panelControl.getObject("functions"); //$NON-NLS-1$
+                                                if (trackType==null || functions==null || functions.isEmpty()) 
+                                                        continue inner;
+                                                
+                                                // add panel to dataFunctionControls
+                                                controls.add(panelControl);
+                                        } // end inner loop
+                                        
+                                              String filePath = XML.forwardSlash(file.getAbsolutePath());
+                                        dataFunctionControls.put(filePath, controls);
+                                }
+                        } // end next loop
+                            }                                   
+                                } // end file loop
+                        }
+          } // end dirPath loop
+  }
+  
+        /**
+         * Gets the default autoload search paths.
+         * 
+         * @return the default search paths
+         */
+  public static Collection<String> getDefaultAutoloadSearchPaths() {
+        return OSPRuntime.getDefaultSearchPaths();
+  }
+  
+//  /**
+//   * Imports Data from a source into a DataTrack. 
+//   * Data must include "x" and "y" columns, may include "t". 
+//   * The returned DataTrack is the first one found in the selected TrackerPanel
+//   * that matches the Data name or ID. If none found, a new DataTrack is created.
+//   * The source Object may be a String path, JPanel controlPanel, Tool tool, etc
+//   * 
+//   * @param data the Data to import
+//   * @param source the data source (may be null)
+//   * @return the DataTrack with the Data (may return null)
+//   */
+//  public static DataTrack importData(Data data, Object source) {
+//      // get shared Tracker  
+//      Tracker tracker = getTracker();
+//      TFrame frame = tracker.getFrame();
+//      frame.setVisible(true);
+//      
+//      // look for matching DataTrack in selected TrackerPanel?
+//      DataTrack model = null;
+//      TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());      
+//      if (trackerPanel!=null) {
+//              model = trackerPanel.importData(data, source);
+//      }
+//      
+//      // create new tab
+//      if (model==null) {
+//              trackerPanel = new TrackerPanel();
+//              frame.addTab(trackerPanel);
+//      
+//              // pass the data and source to the TrackerPanel and get the DataTrack it creates
+//              model = trackerPanel.importData(data, source);
+//      }
+//      if (model==null) {
+//              frame.setVisible(false);
+//              return null;
+//      }
+//      return model;
+//  }
+//  
+        /**
+         * Gets the starting autoload search paths. Search paths may be later modified by the user.
+         * 
+         * @return the search paths
+         */
+  protected static Collection<String> getInitialSearchPaths() {
+        if (initialAutoloadSearchPaths.isEmpty()) {
+                if (preferredAutoloadSearchPaths!=null) {
+                        for (String next: preferredAutoloadSearchPaths) {
+                                initialAutoloadSearchPaths.add(next);
+                        }
+                }
+                else {
+                        for (String next: getDefaultAutoloadSearchPaths()) {
+                                initialAutoloadSearchPaths.add(next);
+                        }
+                }
+        }
+        return initialAutoloadSearchPaths;
+  }
+  
+  /**
    * Sets the preferred locale.
    * 
    * @param localeName the name of the locale
    */
   protected static void setPreferredLocale(String localeName) {
-  	if (localeName==null) {
-    	Locale.setDefault(defaultLocale);
-//    	TrackerRes.setLocale(defaultLocale);
-    	preferredLocale = null;
-  	}
-  	else for (Locale locale: locales) {
-    	if (locale.toString().equals(localeName)) {
-      	Locale.setDefault(locale);
-//      	TrackerRes.setLocale(locale);
-      	preferredLocale = localeName;
-    		break;
-    	}
+        if (localeName==null) {
+        Locale.setDefault(defaultLocale);
+        preferredLocale = null;
+        }
+        else for (Locale locale: locales) {
+        if (locale.toString().equals(localeName)) {
+        Locale.setDefault(locale);
+        preferredLocale = localeName;
+                break;
+        }
     }
   }
 
@@ -952,14 +1179,14 @@ public class Tracker {
    * @return true if any resources were updated
    */
   protected static boolean updateResources() {
-  	boolean updated = false;
-  	// copy ffmpeg files to Tracker home, if needed
-		try {
-			File trackerDir = new File(TrackerStarter.findTrackerHome(false));
-			updated = ExtensionsManager.getManager().copyFFMPegJarsTo(trackerDir);
-		} catch (Exception e) {
-		}
-  	// OSX doesn't need QTJava updating
+        boolean updated = false;
+        // copy ffmpeg files to Tracker home, if needed
+                try {
+                        File trackerDir = new File(TrackerStarter.findTrackerHome(false));
+                        updated = ExtensionsManager.getManager().copyFFMPegJarsTo(trackerDir);
+                } catch (Exception e) {
+                }
+        // OSX doesn't need QTJava updating
   	if (OSPRuntime.isMac()) return updated;
   	
   	// copy newer QTJava, if found, to current Java extensions
@@ -998,13 +1225,13 @@ public class Tracker {
 //  	if (true) return; // for PLATO
   	
   	// interval has passed, so check for upgrades and save current time
-  	// read current version from version.txt file on tracker home
-  	Runnable runner = new Runnable() {
-  		public void run() {
-  	  	double vers = Double.parseDouble(version);
-  	    try {
-  	    	URL url = new URL("http://"+trackerWebsite+"/version.txt"); //$NON-NLS-1$ //$NON-NLS-2$
-  	    	InputStream is = url.openStream();
+        // read current version from version.txt file on tracker home
+        Runnable runner = new Runnable() {
+                public void run() {
+                double vers = Double.parseDouble(VERSION);
+            try {
+                URL url = new URL("http://"+trackerWebsite+"/version.txt"); //$NON-NLS-1$ //$NON-NLS-2$
+                InputStream is = url.openStream();
   	    	BufferedReader reader = new BufferedReader(new InputStreamReader(is));
   	      String s = reader.readLine();
   	    	while (s != null && s.length()>0) { // typical version: "4.00" or "4.61111227"
@@ -1033,53 +1260,65 @@ public class Tracker {
    * Loads preferences from a preferences file, if any.
    */
   protected static void loadPreferences() {
-    // look for prefs file in (1) user home, (2) TRACKER_HOME, (3) current directory
-    XMLControl control = null;
-  	String loadedPath = null;
-    // check user home
-    String userhome = System.getProperty("user.home"); //$NON-NLS-1$
-    if (userhome!=null) {
-      prefsPath = userhome+"/"+prefsFileName; //$NON-NLS-1$
-      control = new XMLControlElement(prefsPath);
-      if (!control.failedToRead()) loadedPath = prefsPath;
+        
+        XMLControl prefsControl = TrackerStarter.findPreferences();
+        if (prefsControl!=null) {
+                prefsPath = prefsControl.getString("prefsPath"); //$NON-NLS-1$
+        OSPLog.getOSPLog();
+        OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
+        prefsControl.loadObject(null);  // the loader itself reads the values
+        return;
     }
-    // if not loaded, check TRACKER_HOME
-    if (loadedPath==null) {
-      if (trackerHome!=null) {
-	      String path = trackerHome+"/"+prefsFileName; //$NON-NLS-1$
-	      control = new XMLControlElement(path);
-	      if (!control.failedToRead()) loadedPath = path;
-	      if (prefsPath==null)
-	      	prefsPath = path;
-      }
-    }
-    // if not loaded, check launch jar directory
-    if (loadedPath==null) {
-      String dir = OSPRuntime.getLaunchJarDirectory();
-      if (dir!=null) {
-        String path = dir+"/"+prefsFileName; //$NON-NLS-1$
-        control = new XMLControlElement(path);
-	      if (!control.failedToRead()) loadedPath = path;
-        if (prefsPath==null && loadedPath!=null)
-        	prefsPath = path;   	
-      }
-    }
-    // check current directory
-    if (loadedPath==null) {
-      File file = new File(prefsFileName);
-      if (file.exists()) {
-        String path = file.getAbsolutePath();
-        control = new XMLControlElement(path);
-	      if (!control.failedToRead()) loadedPath = path;
-        if (prefsPath==null && loadedPath!=null)
-        	prefsPath = path;   	
-      }
-    }
-    if (loadedPath!=null) {
-    	OSPLog.getOSPLog();
-    	OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(loadedPath))); //$NON-NLS-1$
-    	control.loadObject(null);  // the loader itself sets the values
-    }
+        
+//      // code below this point is legacy and should never be reached
+//    // if not loaded, look in (1) user home, (2) TRACKER_HOME, (3) current directory
+//    // check user home
+//    XMLControl control = null;
+//      String loadedPath = null;
+//    String userhome = System.getProperty("user.home"); //$NON-NLS-1$
+//    if (userhome!=null) {
+//      prefsPath = userhome+"/"+prefsFileName; //$NON-NLS-1$
+//      control = new XMLControlElement(prefsPath);
+//      if (!control.failedToRead()) loadedPath = prefsPath;
+//    }
+//    // if not loaded, check TRACKER_HOME
+//    if (loadedPath==null) {
+//      if (trackerHome!=null) {
+//            String path = trackerHome+"/"+prefsFileName; //$NON-NLS-1$
+//            control = new XMLControlElement(path);
+//            if (!control.failedToRead()) loadedPath = path;
+//            if (prefsPath==null)
+//              prefsPath = path;
+//      }
+//    }
+//    // if not loaded, check launch jar directory
+//    if (loadedPath==null) {
+//      String dir = OSPRuntime.getLaunchJarDirectory();
+//      if (dir!=null) {
+//        String path = dir+"/"+prefsFileName; //$NON-NLS-1$
+//        control = new XMLControlElement(path);
+//            if (!control.failedToRead()) loadedPath = path;
+//        if (prefsPath==null && loadedPath!=null)
+//              prefsPath = path;       
+//      }
+//    }
+//    // check current directory
+//    if (loadedPath==null) {
+//      File file = new File(prefsFileName);
+//      if (file.exists()) {
+//        String path = file.getAbsolutePath();
+//        control = new XMLControlElement(path);
+//            if (!control.failedToRead()) loadedPath = path;
+//        if (prefsPath==null && loadedPath!=null)
+//              prefsPath = path;       
+//      }
+//    }
+//    if (loadedPath!=null) {
+//      OSPLog.getOSPLog();
+//      OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(loadedPath))); //$NON-NLS-1$
+//      control.loadObject(null);  // the loader itself sets the values
+//    }
+//    // end legacy code
   }
 
   /**
@@ -1090,15 +1329,25 @@ public class Tracker {
   protected static String savePreferences() {
   	// save prefs file in current preferences path
   	XMLControl control = new XMLControlElement(new Preferences());
-		control.write(prefsPath);
-		
-		// also write prefs to current directory if it already exists and is writable
-    File file = new File(prefsFileName);
+                control.write(prefsPath);
+                
+                // also write prefs to current directory if it already exists and is writable
+    File file = new File(".tracker.prefs"); //$NON-NLS-1$
     if (file.exists() && file.canWrite()) {
-    	control.write(file.getAbsolutePath());
+        control.write(file.getAbsolutePath());
     }
     
-		return prefsPath;
+    // save current trackerHome and ffmpegHome in OSP preferences 
+    if (trackerHome!=null) {
+        OSPRuntime.setPreference("TRACKER_HOME", trackerHome); //$NON-NLS-1$
+    }
+        String ffmpegHome = System.getenv("FFMPEG_HOME"); //$NON-NLS-1$
+    if (ffmpegHome!=null) {
+        OSPRuntime.setPreference("FFMPEG_HOME", ffmpegHome); //$NON-NLS-1$
+    }
+    OSPRuntime.savePreferences();
+    
+                return prefsPath;
   }
 
   /**
@@ -1139,10 +1388,10 @@ public class Tracker {
    * @param args array of tracker or video file names
    */
   public static void main(String[] args) {
-//		String[] vars = {"TRACKER_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-//		for (String next: vars) {
-//			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
-//		}
+//              String[] vars = {"TRACKER_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+//              for (String next: vars) {
+//                      OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
+//              }
 
     // determine if this is tracker.jar (Tracker main class)
     boolean isTracker = false;
@@ -1163,17 +1412,18 @@ public class Tracker {
     else {
     	// versions 4.87+ use environment variable to indicate relaunch
     	String s = System.getenv(TrackerStarter.TRACKER_RELAUNCH);
-    	isRelaunch = "true".equals(s); //$NON-NLS-1$
+        isRelaunch = "true".equals(s); //$NON-NLS-1$
     }
 
-    
+    // get memory size requested in environment, if any
+    String memoryEnvironment = System.getenv("MEMORY_SIZE"); //$NON-NLS-1$
     // get current memory (maximum heap) size
-		java.lang.management.MemoryMXBean memory
-				= java.lang.management.ManagementFactory.getMemoryMXBean();
-    long size = memory.getHeapMemoryUsage().getMax()/(1024*1024);
+                java.lang.management.MemoryMXBean memory
+                                = java.lang.management.ManagementFactory.getMemoryMXBean();
+    long currentMemory = memory.getHeapMemoryUsage().getMax()/(1024*1024);
     
-		if (!isRelaunch) {
-	    String javaCommand = System.getProperty("java.home");              						//$NON-NLS-1$
+                if (!isRelaunch) {
+            String javaCommand = System.getProperty("java.home");                                                       //$NON-NLS-1$
 	    javaCommand = XML.forwardSlash(javaCommand)+"/bin/java"; //$NON-NLS-1$
 	    String javaPath = preferredJRE;
 	    if (javaPath!=null) {
@@ -1186,43 +1436,42 @@ public class Tracker {
 	    boolean needsJavaVM = javaPath!=null && !javaCommand.equals(javaPath);
 	    
 			// update resources like QuickTime
-			boolean updated = updateResources();
-			
-			// compare memory with requested size(s)
-	    String mem = System.getenv("MEMORY_SIZE"); //$NON-NLS-1$
-	    if (mem!=null) {
-	    	originalMemoryRequest = requestedMemorySize;
-	    	requestedMemorySize = Integer.parseInt(mem);
-	    }
+                        boolean updated = updateResources();
+                        
+                        // compare memory with requested size(s)
+            if (memoryEnvironment!=null) {
+                originalMemoryRequest = requestedMemorySize;
+                requestedMemorySize = Integer.parseInt(memoryEnvironment);
+            }
 
-	    boolean needsMemory = requestedMemorySize>10 &&
-					(size<9*requestedMemorySize/10 || size>11*requestedMemorySize/10);
-	    
-	    // check environment
-	    boolean needsEnvironment = false;
+            boolean needsMemory = requestedMemorySize>10 &&
+                                        (currentMemory<9*requestedMemorySize/10 || currentMemory>11*requestedMemorySize/10);
+            
+            // check environment
+            boolean needsEnvironment = false;
 	    try {
 				String trackerDir = TrackerStarter.findTrackerHome(false);
 		    String trackerEnv = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
 				if (trackerDir!=null && !trackerDir.equals(trackerEnv)) {
-					needsEnvironment = true;
-				}
-				else {
-					String ffmpegDir = TrackerStarter.findFFMPegHome(trackerDir, false);
-					String ffmpegEnv = System.getenv("FFMPEG_HOME"); //$NON-NLS-1$
-					if (ffmpegDir!=null && !ffmpegDir.equals(ffmpegEnv)) {
-						needsEnvironment = true;					
-					}
-					else {
-						if (ffmpegDir!=null && !OSPRuntime.isLinux()) { // not needed in Linux
-							String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
-							String ffmpegPath = ffmpegDir+File.separator+subdir;
-							String pathName = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
-								OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
-							String pathEnv = System.getenv(pathName);
-							if (pathEnv==null || !pathEnv.contains(ffmpegPath)) {
-								needsEnvironment = true;					
-							}
-						}
+                                        needsEnvironment = true;
+                                }
+                                else {
+                                        String ffmpegDir = TrackerStarter.findFFMPegHome(trackerDir, false);
+                                        String ffmpegEnv = System.getenv("FFMPEG_HOME"); //$NON-NLS-1$
+                                        if (ffmpegDir!=null && !ffmpegDir.equals(ffmpegEnv)) {
+                                                needsEnvironment = true;                                        
+                                        }
+                                        else {
+                                                if (ffmpegDir!=null && !OSPRuntime.isLinux()) { // not needed in Linux
+                                                        String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
+                                                        String ffmpegPath = ffmpegDir+File.separator+subdir;
+                                                        String pathName = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
+                                                                OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
+                                                        String pathEnv = System.getenv(pathName);
+                                                        if (pathEnv==null || !pathEnv.contains(ffmpegPath)) {
+                                                                needsEnvironment = true;                                        
+                                                        }
+                                                }
 					}
 				}
 					
@@ -1230,23 +1479,22 @@ public class Tracker {
 			}
 	    
 
-	    // attempt to relaunch if needed	    
-	    if (isTracker && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
-//	    if (isTracker && (needsJavaVM || needsMemory || needsEnvironment)) {
-	    	mainArgs = args;
-	    	if (requestedMemorySize<=10) {
-	    		requestedMemorySize = (int)size;
-	    	}
-	    	System.setProperty(TrackerStarter.PREFERRED_MEMORY_SIZE, String.valueOf(requestedMemorySize));
-	    	System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, OSPRuntime.getLaunchJarPath());
+            // attempt to relaunch if needed        
+            if (isTracker && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
+                mainArgs = args;
+                if (requestedMemorySize<=10) {
+                        requestedMemorySize = TrackerStarter.DEFAULT_MEMORY_SIZE;
+                }
+                System.setProperty(TrackerStarter.PREFERRED_MEMORY_SIZE, String.valueOf(requestedMemorySize));
+                System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, OSPRuntime.getLaunchJarPath());
 
 	    	TrackerStarter.relaunch(mainArgs, true);
 		    return;
 			}
-		}
+                }
     preferredMemorySize = requestedMemorySize;
     if (requestedMemorySize<0)
-    	requestedMemorySize = (int)(size+2);
+        requestedMemorySize = (int)(currentMemory+2);
     start(args);
   }
 
@@ -1258,54 +1506,36 @@ public class Tracker {
   private static void start(String[] args) {
     Tracker tracker = null;
     if (args == null || args.length == 0) tracker = new Tracker();
-    else tracker = new Tracker(args, true);
+    else tracker = new Tracker(args, true, true);
     
-  	if (OSPRuntime.isMac()) {
-//		// set up socket communication with TrackerStarter
-//  	String portStr = System.getenv("TRACKER_PORT"); //$NON-NLS-1$
-//	  final TFrame frame = tracker.getFrame();
-//  	try {
-//			int port = Integer.parseInt(portStr);
-//			OSPSocket socketClient = new OSPSocket(port, false);
-//			socketClient.addPropertyChangeListener(new PropertyChangeListener() {
-//				public void propertyChange(PropertyChangeEvent e) {
-//					String data = (String)e.getNewValue();
-//					if (data!=null && data.startsWith(OSPSocket.OPEN)) {
-//						data = data.substring(OSPSocket.OPEN.length());
-//				    String separator = System.getProperty("path.separator"); //$NON-NLS-1$
-//				    int n = data.indexOf(separator);
-//				    while(n>-1) {
-//				    	String path = data.substring(0, n);
-//				    	data = data.substring(n+separator.length());
-//  		        // set default root path to path of first .trk file opened
-//  		        if ((path.endsWith(".trk") || path.endsWith(".trz")) //$NON-NLS-1$ //$NON-NLS-2$
-//  		        		&& path.indexOf("/") != -1 //$NON-NLS-1$
-//  		            && Tracker.rootXMLPath.equals("")) { //$NON-NLS-1$
-//  		        	Tracker.rootXMLPath = path.substring(0, path.lastIndexOf("/") + 1); //$NON-NLS-1$
-//  		          OSPLog.fine("Setting rootPath: " + Tracker.rootXMLPath); //$NON-NLS-1$
-//  		        }
-//  		        TrackerIO.open(path, frame);	  
-//				    }
-//					}
-//				}
-//			});
-//		} catch (NumberFormatException e) {
-//		}
-
-			// instantiate the OSXServices class by reflection
-			String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
-	    try {
+        if (OSPRuntime.isMac()) {
+                        // instantiate the OSXServices class by reflection
+                        String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
+            try {
 				Class<?> OSXClass = Class.forName(className);
 				Constructor<?> constructor = OSXClass.getConstructor(Tracker.class);
 				constructor.newInstance(tracker);
 			} catch (Exception ex) {
 			}
-		}
+                }
  
-  	FontSizer.setLevel(preferredFontLevel);
-  	TFrame frame = tracker.getFrame();
+        FontSizer.setLevel(preferredFontLevel);
+        final TFrame frame = tracker.getFrame();
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    
+    // create and register DataTrackTool
+                Runnable runner = new Runnable() {
+                        public void run() {
+                        try {
+                            dataTrackTool = new DataTrackTool(frame);
+                                        registerRemoteTool(dataTrackTool);
+                                } catch (RemoteException e) {
+                                }
+                        }
+                };
+                new Thread(runner).start();
+    
     LaunchNode node = Launcher.activeNode;
     if (node != null) {
       frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
@@ -1324,18 +1554,18 @@ public class Tracker {
   	
 
 //    warnNoVideoEngine = false; // for PLATO
-    if (warnNoVideoEngine && VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {    	
-    	boolean ffmpegInstalled = ExtensionsManager.getManager().getFFMPegJar()!=null;
-    	boolean qtInstalled = ExtensionsManager.getManager().getQTJavaZip()!=null;
-    	
-    	ArrayList<String> message = new ArrayList<String>();    	
-			boolean showRelaunchDialog = false;
-	    	
-    	// no engine installed
-    	if (!ffmpegInstalled && !qtInstalled) {
-    		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message1")); //$NON-NLS-1$
-    		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message2")); //$NON-NLS-1$
-    		message.add(" "); //$NON-NLS-1$
+    if (warnNoVideoEngine && VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {          
+        boolean ffmpegInstalled = ExtensionsManager.getManager().getFFMPegJar()!=null;
+        boolean qtInstalled = ExtensionsManager.getManager().getQTJavaZip()!=null;
+        
+        ArrayList<String> message = new ArrayList<String>();            
+                        boolean showRelaunchDialog = false;
+                
+        // no engine installed
+        if (!ffmpegInstalled && !qtInstalled) {
+                message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message1")); //$NON-NLS-1$
+                message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message2")); //$NON-NLS-1$
+                message.add(" "); //$NON-NLS-1$
     		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message3")); //$NON-NLS-1$
     	}
     	
@@ -1380,12 +1610,11 @@ public class Tracker {
     	box.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
     	
     	if (showRelaunchDialog) {
-    		// provide immediate way to change to 32-bit VM and relaunch
-  			Object[] options = new Object[] {
-  					TrackerRes.getString("Tracker.Dialog.Button.RelaunchNow"),    //$NON-NLS-1$
-//  					TrackerRes.getString("Tracker.Dialog.Button.ShowPrefs"),    //$NON-NLS-1$
+                // provide immediate way to change to 32-bit VM and relaunch
+                        Object[] options = new Object[] {
+                                        TrackerRes.getString("Tracker.Dialog.Button.RelaunchNow"),    //$NON-NLS-1$
             TrackerRes.getString("Tracker.Dialog.Button.ContinueWithoutEngine")}; //$NON-NLS-1$
-  			int response = JOptionPane.showOptionDialog(frame, box,
+                        int response = JOptionPane.showOptionDialog(frame, box,
             TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Title"), //$NON-NLS-1$
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
   			if (response==0) {
@@ -1394,18 +1623,12 @@ public class Tracker {
   				prefs.vm32Button.setSelected(true); // also sets default video engine
   				// check that not canceled by user
   				if (!"cancel".equals(prefs.vm32Button.getName())) { //$NON-NLS-1$
-  					prefs.relaunchButton.doClick(0);
-  				}
-  			}
-//  			if (response==1) {
-//  				// show prefs dialog and select video tab
-//  				PrefsDialog prefs = frame.getPrefsDialog();
-//    			prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
-//    			frame.showPrefsDialog();
-//  			}
-    	}
-    	else {
-	    	JOptionPane.showMessageDialog(frame, box,
+                                        prefs.relaunchButton.doClick(0);
+                                }
+                        }
+        }
+        else {
+                JOptionPane.showMessageDialog(frame, box,
 	    			TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Title"),  //$NON-NLS-1$
 	    			JOptionPane.INFORMATION_MESSAGE);
     	}
@@ -1429,10 +1652,9 @@ public class Tracker {
 		  JOptionPane.showMessageDialog(null, 
 		  		box, 
 		  		TrackerRes.getString("Tracker.Dialog.StarterWarning.Title"), //$NON-NLS-1$
-		      JOptionPane.WARNING_MESSAGE);
-		}
+                      JOptionPane.WARNING_MESSAGE);
+                }
 
-    testPanel = frame.getTrackerPanel(0);
   }
 
   /**
@@ -1464,6 +1686,48 @@ public class Tracker {
   	}
   }
 
+  /**
+   * Registers a Remote tool with the RMI registry.
+   * 
+   * @param remoteTool the Remote
+   * @return true if successfully registered
+   */
+  protected static boolean registerRemoteTool(Remote remoteTool) {
+        // register tool
+        try {
+                // create registry if needed
+                if (registry==null) {
+                                registry = java.rmi.registry.LocateRegistry.createRegistry(DataTrackSupport.PORT);                      
+                }
+                        String name = remoteTool.getClass().getSimpleName();
+                        registry.rebind(name, remoteTool);
+                OSPLog.fine(name+" successfully registered"); //$NON-NLS-1$
+                return true;
+                } catch (Exception ex) {
+                OSPLog.warning(ex.getMessage());
+                }
+        return false;
+  }
+  
+  /**
+   * Unregisters a Remote tool with the RMI registry.
+   * 
+   * @param remoteTool the Remote
+   * @return true if successfully unregistered
+   */
+  protected static boolean unregisterRemoteTool(Remote remoteTool) {
+        if (registry==null || remoteTool==null) return false;
+        try {
+                        String name = remoteTool.getClass().getSimpleName();
+                        registry.unbind(name);
+                OSPLog.fine(name+" successfully unregistered"); //$NON-NLS-1$
+                return true;
+                } catch (Exception ex) {
+                        ex.printStackTrace();
+                }
+        return false;
+  }
+  
   /**
    * Adds a path to the list of recent files.
    * 
@@ -1497,56 +1761,56 @@ public class Tracker {
     }
   }
   
-  /**
-   * Loads preferences from the deprecated tracker_starter prefs file.
-   */
-  protected static void loadStarterPrefs() {
-	    // look for starter prefs file in user home
-  	File starterPrefsFile = null;
-  	String userHome = System.getProperty("user.home"); //$NON-NLS-1$
-  	if (userHome!=null) {
-  		starterPrefsFile = new File(userHome, ".tracker_starter.prefs"); //$NON-NLS-1$
-  	}
-  	// if not found, check trackerHome
-  	if (trackerHome!=null && (starterPrefsFile==null || !starterPrefsFile.exists())) {
-  		starterPrefsFile = new File(trackerHome, ".tracker_starter.prefs"); //$NON-NLS-1$
-  	}
-
-  	if (starterPrefsFile.exists()) try {
-  		String encoding = "UTF-8"; //$NON-NLS-1$
-  	  java.nio.charset.Charset charset = java.nio.charset.Charset.forName(encoding);
-    	InputStream stream =  new FileInputStream(starterPrefsFile);
-    	BufferedReader in = new BufferedReader(new InputStreamReader(stream, charset));
-      String line = in.readLine();
-      ArrayList<String> runPaths = new ArrayList<String>();
-      while(line!=null) {
-       	if (line.startsWith("jre ")) { //$NON-NLS-1$
-      		File javaFile = new File(line.substring(4).trim());
-      		String jre = OSPRuntime.getJREPath(javaFile);
-      		Tracker.preferredJRE = "".equals(jre)? null: jre; //$NON-NLS-1$
-      	}
-       	else if (line.startsWith("run ")) { //$NON-NLS-1$
-      		String app = line.substring(4).trim();
-        	if (!"".equals(app)) runPaths.add(app);        	 //$NON-NLS-1$
-       	}
-       	else if (line.startsWith("version ")) { //$NON-NLS-1$
-      		String ver = line.substring(8).trim();
-					try {
-						Double.parseDouble(ver);
-						Tracker.preferredTrackerJar = "tracker-"+ver+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
-					} catch (Exception ex) {}
-       	}
-        line = in.readLine();
-      }
-      in.close();
-      Tracker.prelaunchExecutables = runPaths.toArray(new String[0]);
-    } 
-		catch (Exception ex) {}
-  }
-
-//	static class TrackerOSXHandler implements com.apple.eawt.AboutHandler, 
-//			com.apple.eawt.QuitHandler, com.apple.eawt.PreferencesHandler {
-//		Tracker tracker;
+//  /**
+//   * Loads preferences from the deprecated tracker_starter prefs file.
+//   */
+//  protected static void loadStarterPrefs() {
+//          // look for starter prefs file in user home
+//      File starterPrefsFile = null;
+//      String userHome = System.getProperty("user.home"); //$NON-NLS-1$
+//      if (userHome!=null) {
+//              starterPrefsFile = new File(userHome, ".tracker_starter.prefs"); //$NON-NLS-1$
+//      }
+//      // if not found, check trackerHome
+//      if (trackerHome!=null && (starterPrefsFile==null || !starterPrefsFile.exists())) {
+//              starterPrefsFile = new File(trackerHome, ".tracker_starter.prefs"); //$NON-NLS-1$
+//      }
+//
+//      if (starterPrefsFile.exists()) try {
+//              String encoding = "UTF-8"; //$NON-NLS-1$
+//        java.nio.charset.Charset charset = java.nio.charset.Charset.forName(encoding);
+//      InputStream stream =  new FileInputStream(starterPrefsFile);
+//      BufferedReader in = new BufferedReader(new InputStreamReader(stream, charset));
+//      String line = in.readLine();
+//      ArrayList<String> runPaths = new ArrayList<String>();
+//      while(line!=null) {
+//              if (line.startsWith("jre ")) { //$NON-NLS-1$
+//                      File javaFile = new File(line.substring(4).trim());
+//                      String jre = OSPRuntime.getJREPath(javaFile);
+//                      Tracker.preferredJRE = "".equals(jre)? null: jre; //$NON-NLS-1$
+//              }
+//              else if (line.startsWith("run ")) { //$NON-NLS-1$
+//                      String app = line.substring(4).trim();
+//              if (!"".equals(app)) runPaths.add(app);          //$NON-NLS-1$
+//              }
+//              else if (line.startsWith("version ")) { //$NON-NLS-1$
+//                      String ver = line.substring(8).trim();
+//                                      try {
+//                                              Double.parseDouble(ver);
+//                                              Tracker.preferredTrackerJar = "tracker-"+ver+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
+//                                      } catch (Exception ex) {}
+//              }
+//        line = in.readLine();
+//      }
+//      in.close();
+//      Tracker.prelaunchExecutables = runPaths.toArray(new String[0]);
+//    } 
+//              catch (Exception ex) {}
+//  }
+//
+//      static class TrackerOSXHandler implements com.apple.eawt.AboutHandler, 
+//                      com.apple.eawt.QuitHandler, com.apple.eawt.PreferencesHandler {
+//              Tracker tracker;
 //		
 //		TrackerOSXHandler(Tracker app) {
 //			tracker = app;
@@ -1624,20 +1888,20 @@ public class Tracker {
       	if (!Tracker.preferredLogLevel.equals(Tracker.DEFAULT_LOG_LEVEL)) // true by default
       		control.setValue("log_level", Tracker.preferredLogLevel.getName()); //$NON-NLS-1$
       	if (!Tracker.showHintsByDefault) // true by default
-      		control.setValue("show_hints", Tracker.showHintsByDefault); //$NON-NLS-1$
-      	if (Tracker.isRadians) // false by default
-      		control.setValue("radians", Tracker.isRadians); //$NON-NLS-1$
-      	if (Tracker.isVideoFast) // false by default
-      		control.setValue("video_fast", Tracker.isVideoFast); //$NON-NLS-1$
-      	if (!Tracker.warnNoVideoEngine) // true by default
-      		control.setValue("warn_no_engine", Tracker.warnNoVideoEngine); //$NON-NLS-1$
-      	if (!Tracker.warnVariableDuration) // true by default
-      		control.setValue("warn_variable_frame_duration", Tracker.warnVariableDuration); //$NON-NLS-1$
-      	if (!Tracker.warnFFMPegError) // true by default
-      		control.setValue("warn_ffmpeg_error", Tracker.warnFFMPegError); //$NON-NLS-1$
-      	// always save preferred tracker.jar
-      	String jar = Tracker.preferredTrackerJar==null? 
-      			"tracker.jar": Tracker.preferredTrackerJar; //$NON-NLS-1$
+                control.setValue("show_hints", Tracker.showHintsByDefault); //$NON-NLS-1$
+        if (Tracker.isRadians) // false by default
+                control.setValue("radians", Tracker.isRadians); //$NON-NLS-1$
+        if (Tracker.isVideoFast) // false by default
+                control.setValue("video_fast", Tracker.isVideoFast); //$NON-NLS-1$
+        if (!Tracker.warnNoVideoEngine) // true by default
+                control.setValue("warn_no_engine", Tracker.warnNoVideoEngine); //$NON-NLS-1$
+        if (!Tracker.warnVariableDuration) // true by default
+                control.setValue("warn_variable_frame_duration", Tracker.warnVariableDuration); //$NON-NLS-1$
+        if (!Tracker.warnFFMPegError) // true by default
+                control.setValue("warn_ffmpeg_error", Tracker.warnFFMPegError); //$NON-NLS-1$
+        // always save preferred tracker.jar
+        String jar = Tracker.preferredTrackerJar==null? 
+                        "tracker.jar": Tracker.preferredTrackerJar; //$NON-NLS-1$
       	control.setValue("tracker_jar", jar); //$NON-NLS-1$
       	if (Tracker.preferredJRE!=null)
       		control.setValue("java_vm", Tracker.preferredJRE); //$NON-NLS-1$
@@ -1685,14 +1949,33 @@ public class Tracker {
         	control.setValue("zip_export_extension", ExportZipDialog.preferredExtension); //$NON-NLS-1$
 
         if (Tracker.recentFilesSize!=6) // 6 items by default
-      		control.setValue("max_recent", Tracker.recentFilesSize); //$NON-NLS-1$
-      	if (!Tracker.recentFiles.isEmpty()) // empty by default
-      		control.setValue("recent_files", Tracker.recentFiles); //$NON-NLS-1$
-      	if (!Tracker.dataFunctionControls.isEmpty()) {
-      		control.setValue("data_functions", Tracker.dataFunctionControls); //$NON-NLS-1$
-      	}
-      	if (defaultConfig!=null && !areEqual(defaultConfig, getFullConfig())) { // defaultConfig by default
-    			Configuration config = new Configuration(defaultConfig);
+                control.setValue("max_recent", Tracker.recentFilesSize); //$NON-NLS-1$
+        if (!Tracker.recentFiles.isEmpty()) // empty by default
+                control.setValue("recent_files", Tracker.recentFiles); //$NON-NLS-1$
+        if (Tracker.preferredAutoloadSearchPaths!=null) {
+                // added Dec 2104
+                control.setValue("autoload_search_paths", preferredAutoloadSearchPaths); //$NON-NLS-1$
+        }
+        if (!Tracker.autoloadMap.isEmpty()) {
+                // added Dec 2104               
+                String[][] autoloadData = new String[Tracker.autoloadMap.size()][];
+                int i = 0;
+                for (String filePath: Tracker.autoloadMap.keySet()) {
+                        String[] functions = Tracker.autoloadMap.get(filePath);
+                        String[] fileAndFunctions = new String[functions.length+1];
+                        fileAndFunctions[0] = filePath;
+                        System.arraycopy(functions, 0, fileAndFunctions, 1, functions.length);
+                        autoloadData[i] = fileAndFunctions;
+                        i++;
+                }
+                control.setValue("autoload_exclusions", autoloadData); //$NON-NLS-1$
+        }
+        if (!Tracker.dataFunctionControlStrings.isEmpty()) {
+                // deprecated Dec 2014: this is for legacy preferences
+                control.setValue("data_functions", Tracker.dataFunctionControlStrings); //$NON-NLS-1$
+        }
+        if (defaultConfig!=null && !areEqual(defaultConfig, getFullConfig())) { // defaultConfig by default
+                        Configuration config = new Configuration(defaultConfig);
     			control.setValue("configuration", config); //$NON-NLS-1$
       	}      	
       }
@@ -1715,59 +1998,55 @@ public class Tracker {
        * @return the loaded object
        */
       @SuppressWarnings("unchecked")
-			public Object loadObject(XMLControl control, Object obj) {
+                        public Object loadObject(XMLControl control, Object obj) {
         Level logLevel = OSPLog.parseLevel(control.getString("log_level")); //$NON-NLS-1$
         if(logLevel!=null) {
-        	Tracker.preferredLogLevel = logLevel;
-        	OSPLog.setLevel(logLevel);        	
+                preferredLogLevel = logLevel;
+                OSPLog.setLevel(logLevel);              
         }
-      	Tracker.isRadians = control.getBoolean("radians"); //$NON-NLS-1$
-      	Tracker.isVideoFast = control.getBoolean("video_fast"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("warn_no_engine")) //$NON-NLS-1$
-      		Tracker.warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("warn_ffmpeg_error")) //$NON-NLS-1$
-      		Tracker.warnFFMPegError = control.getBoolean("warn_ffmpeg_error"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("warn_variable_frame_duration")) //$NON-NLS-1$
-      		Tracker.warnVariableDuration = control.getBoolean("warn_variable_frame_duration"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("show_hints")) { //$NON-NLS-1$
-      		Tracker.showHintsByDefault = control.getBoolean("show_hints"); //$NON-NLS-1$
-      		Tracker.showHints = Tracker.showHintsByDefault;
-      		Tracker.startupHintShown = !Tracker.showHints;
-      	}
-      	if (control.getPropertyNames().contains("java_vm")) //$NON-NLS-1$
-      		Tracker.preferredJRE = control.getString("java_vm"); //$NON-NLS-1$
-    		Tracker.preferredJRE32 = control.getString("java_vm_32"); //$NON-NLS-1$
-    		Tracker.preferredJRE64 = control.getString("java_vm_64"); //$NON-NLS-1$
-      	Tracker.use32BitMode = control.getBoolean("32-bit"); //$NON-NLS-1$
-  	    if (control.getPropertyNames().contains("memory_size")) //$NON-NLS-1$
-      		Tracker.requestedMemorySize = control.getInt("memory_size"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("look_feel")) //$NON-NLS-1$
-      		Tracker.lookAndFeel = control.getString("look_feel"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("run")) //$NON-NLS-1$
-      		Tracker.prelaunchExecutables = (String[])control.getObject("run"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("locale")) //$NON-NLS-1$
-      		Tracker.setPreferredLocale(control.getString("locale")); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("font_size")) //$NON-NLS-1$
-      		Tracker.preferredFontLevel = control.getInt("font_size"); //$NON-NLS-1$
-      	// set cache only if it has not yet been set
-      	if (ResourceLoader.getOSPCache()==null) {
-      		Tracker.setCache(control.getString("cache")); //$NON-NLS-1$
-      	}
-      	if (control.getPropertyNames().contains("upgrade_interval")) { //$NON-NLS-1$
-      		Tracker.checkForUpgradeInterval = control.getInt("upgrade_interval"); //$NON-NLS-1$
-      		Tracker.lastMillisChecked = control.getInt("last_checked")*1000L; //$NON-NLS-1$
-      	}
-      	if (control.getPropertyNames().contains("file_chooser_directory")) //$NON-NLS-1$
-      		OSPRuntime.chooserDir = control.getString("file_chooser_directory"); //$NON-NLS-1$
-      	
-      	// preferred video engine
-      	// qt_preferred is legacy variable
-//      	if (control.getPropertyNames().contains("qt_preferred")) //$NON-NLS-1$
-//      		VideoIO.setQTLast(false);
-      	// VideoIO engine is new variable
-      	VideoIO.setEngine(control.getString("video_engine")); //$NON-NLS-1$
-      	VideoIO.setPreferredExportExtension(control.getString("export_extension")); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("zip_export_extension")) //$NON-NLS-1$
+        Tracker.isRadians = control.getBoolean("radians"); //$NON-NLS-1$
+        Tracker.isVideoFast = control.getBoolean("video_fast"); //$NON-NLS-1$
+        if (control.getPropertyNames().contains("warn_no_engine")) //$NON-NLS-1$
+                Tracker.warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
+        if (control.getPropertyNames().contains("warn_ffmpeg_error")) //$NON-NLS-1$
+                Tracker.warnFFMPegError = control.getBoolean("warn_ffmpeg_error"); //$NON-NLS-1$
+        if (control.getPropertyNames().contains("warn_variable_frame_duration")) //$NON-NLS-1$
+                warnVariableDuration = control.getBoolean("warn_variable_frame_duration"); //$NON-NLS-1$
+        if (control.getPropertyNames().contains("show_hints")) { //$NON-NLS-1$
+                showHintsByDefault = control.getBoolean("show_hints"); //$NON-NLS-1$
+                showHints = Tracker.showHintsByDefault;
+                startupHintShown = !Tracker.showHints;
+        }
+        if (control.getPropertyNames().contains("java_vm")) //$NON-NLS-1$
+                preferredJRE = control.getString("java_vm"); //$NON-NLS-1$
+                preferredJRE32 = control.getString("java_vm_32"); //$NON-NLS-1$
+                preferredJRE64 = control.getString("java_vm_64"); //$NON-NLS-1$
+        use32BitMode = control.getBoolean("32-bit"); //$NON-NLS-1$
+            if (control.getPropertyNames().contains("memory_size")) //$NON-NLS-1$
+                requestedMemorySize = control.getInt("memory_size"); //$NON-NLS-1$
+        if (control.getPropertyNames().contains("look_feel")) //$NON-NLS-1$
+                lookAndFeel = control.getString("look_feel"); //$NON-NLS-1$
+        if (control.getPropertyNames().contains("run")) //$NON-NLS-1$
+                prelaunchExecutables = (String[])control.getObject("run"); //$NON-NLS-1$
+        if (control.getPropertyNames().contains("locale")) //$NON-NLS-1$
+                setPreferredLocale(control.getString("locale")); //$NON-NLS-1$
+        if (control.getPropertyNames().contains("font_size")) //$NON-NLS-1$
+                preferredFontLevel = control.getInt("font_size"); //$NON-NLS-1$
+        // set cache only if it has not yet been set
+        if (ResourceLoader.getOSPCache()==null) {
+                setCache(control.getString("cache")); //$NON-NLS-1$
+        }
+        if (control.getPropertyNames().contains("upgrade_interval")) { //$NON-NLS-1$
+                checkForUpgradeInterval = control.getInt("upgrade_interval"); //$NON-NLS-1$
+                lastMillisChecked = control.getInt("last_checked")*1000L; //$NON-NLS-1$
+        }
+        if (control.getPropertyNames().contains("file_chooser_directory")) //$NON-NLS-1$
+                OSPRuntime.chooserDir = control.getString("file_chooser_directory"); //$NON-NLS-1$
+        
+        // preferred video engine
+        VideoIO.setEngine(control.getString("video_engine")); //$NON-NLS-1$
+        VideoIO.setPreferredExportExtension(control.getString("export_extension")); //$NON-NLS-1$
+        if (control.getPropertyNames().contains("zip_export_extension")) //$NON-NLS-1$
       		ExportZipDialog.preferredExtension = control.getString("zip_export_extension"); //$NON-NLS-1$
 
       	if (control.getPropertyNames().contains("max_recent")) //$NON-NLS-1$
@@ -1775,24 +2054,40 @@ public class Tracker {
       	if (control.getPropertyNames().contains("recent_files")) { //$NON-NLS-1$
   	    	ArrayList<?> recent = ArrayList.class.cast(control.getObject("recent_files")); //$NON-NLS-1$
   	    	for (Object next: recent) {
-  	    	  addRecent(next.toString(), true); // add at end
-  	    	}
-      	}
-      	if (control.getPropertyNames().contains("data_functions")) { //$NON-NLS-1$
-      		Tracker.dataFunctionControls.addAll((Collection<String>)control.getObject("data_functions")); //$NON-NLS-1$
-      	}
-    		XMLControl child = control.getChildControl("configuration"); //$NON-NLS-1$
-    		if (child!=null) {
-    			Configuration config = (Configuration)child.loadObject(null);
-    			setDefaultConfig(config.enabled);
-    		}
-      	// always load "tracker_jar"
-      	Tracker.preferredTrackerJar = control.getString("tracker_jar"); //$NON-NLS-1$
-      	if (Tracker.preferredTrackerJar==null)
-      		Tracker.loadStarterPrefs();
-      	return obj;
+                  addRecent(next.toString(), true); // add at end
+                }
+        }
+                // added Dec 2104
+        Tracker.preferredAutoloadSearchPaths = (String[])control.getObject("autoload_search_paths"); //$NON-NLS-1$
+        // load autoload_exclusions: added Dec 2014
+        if (control.getPropertyNames().contains("autoload_exclusions")) { //$NON-NLS-1$
+                String[][] autoloadData = (String[][])control.getObject("autoload_exclusions"); //$NON-NLS-1$
+                for (String[] next: autoloadData) {
+                        String filePath = XML.forwardSlash(next[0]);
+                        String[] functions = new String[next.length-1];
+                        System.arraycopy(next, 1, functions, 0, functions.length);
+                        autoloadMap.put(filePath, functions);
+                }
+        }
+        
+        // load autoloadable data function strings (deprecated Dec 2014: this is for legacy files)
+        if (control.getPropertyNames().contains("data_functions")) { //$NON-NLS-1$
+                Collection<String> autoloads = (Collection<String>)control.getObject("data_functions"); //$NON-NLS-1$
+                dataFunctionControlStrings.addAll(autoloads);
+        }
+
+                XMLControl child = control.getChildControl("configuration"); //$NON-NLS-1$
+                if (child!=null) {
+                        Configuration config = (Configuration)child.loadObject(null);
+                        setDefaultConfig(config.enabled);
+                }
+        // always load "tracker_jar"
+        preferredTrackerJar = control.getString("tracker_jar"); //$NON-NLS-1$
+//              if (preferredTrackerJar==null)
+//                      loadStarterPrefs();
+        return obj;
       }
-    }  	
+    }   
   }
   
 }

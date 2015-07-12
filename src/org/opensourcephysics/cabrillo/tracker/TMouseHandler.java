@@ -267,17 +267,16 @@ public class TMouseHandler implements InteractiveMouseHandler {
         	}
         	if (step!=null) step.erase();
         	
-          if (p instanceof Step.Handle) {
-            ((Step.Handle)p).setPositionOnShaft(e.getX(), e.getY(), trackerPanel);
-          }
-          else if (p instanceof AutoTracker.Handle) {
+          if (p instanceof AutoTracker.Handle) {
             ((AutoTracker.Handle)p).setScreenLocation(e.getX(), e.getY(), trackerPanel);
           }
           if (p!=null) {
-          	p.showCoordinates(trackerPanel);
-          	
+          	p.showCoordinates(trackerPanel);         	
           }
           trackerPanel.setSelectedPoint(p);
+          if (p instanceof Step.Handle) {
+            ((Step.Handle)p).setPositionOnLine(e.getX(), e.getY(), trackerPanel);
+          }
         }
         else { // no interactive
         	boolean pointSelected = (trackerPanel.getSelectedPoint()!=null);
