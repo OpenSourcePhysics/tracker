@@ -76,7 +76,6 @@ public class DataTrackTimeControl extends JPanel implements PropertyChangeListen
     return dim;
   }
 
-	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 //		if (e.getPropertyName().equals("timedata")) { //$NON-NLS-1$
 //			if (ClipControl.isTimeSource(dataTrack) && videoButton.isSelected()) {

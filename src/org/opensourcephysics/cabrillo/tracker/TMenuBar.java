@@ -914,6 +914,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
                         }    
           }
         }
+      }
     });
     //  checkDurationsItem   
     checkDurationsItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CheckFrameDurations")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1453,6 +1454,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
                         } catch (Exception ex) {
                         }               
                 }
+          }
           // video filters menu
           if (trackerPanel.isEnabled("video.filters")) { //$NON-NLS-1$
             // clear filters menu

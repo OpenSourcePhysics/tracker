@@ -1880,18 +1880,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         getVideo().setProperty("measure", null); //$NON-NLS-1$
         // if ffmpeg video, set smooth play per preferences
         VideoType videoType = (VideoType)video.getProperty("video_type"); //$NON-NLS-1$
-        if (videoType!=null) {  
-                if(videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_FFMPEG)) {
+        if (videoType!=null && videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_FFMPEG)) {
                 boolean smooth = !Tracker.isVideoFast;
                 try {
-                                String ffmpegName = "org.opensourcephysics.media.ffmpeg.FFMPegVideo"; //$NON-NLS-1$
-                                Class<?> ffmpegClass = Class.forName(ffmpegName);
-                                Method method = ffmpegClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
-                                method.invoke(video, new Object[] {smooth});
-                        } catch (Exception ex) {
-                        }    
-                }
+                    String ffmpegName = "org.opensourcephysics.media.ffmpeg.FFMPegVideo"; //$NON-NLS-1$
+                    Class<?> ffmpegClass = Class.forName(ffmpegName);
+                    Method method = ffmpegClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
+                    method.invoke(video, new Object[] {smooth});
+                } catch (Exception ex) {
+                }    
         }
+      }
       changed = true;
     }
     else if (name.equals("stepnumber")) {              // from videoPlayer //$NON-NLS-1$

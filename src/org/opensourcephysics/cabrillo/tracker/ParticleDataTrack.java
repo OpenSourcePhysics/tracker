@@ -398,13 +398,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		stepCounter = 0;
 	}
   
-	@Override
 	public void setData(Data data, Object source) throws Exception {
 		setData(data);
 		setSource(source);
 	}
 
-	@Override
 	public VideoPanel getVideoPanel() {
 		return trackerPanel;
 	}

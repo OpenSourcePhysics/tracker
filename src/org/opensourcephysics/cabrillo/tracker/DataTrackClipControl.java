@@ -234,7 +234,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
     return dim;
   }
   
-	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		refreshSpinners();
 //		if (e.getPropertyName().equals("dataclip")) { //$NON-NLS-1$
@@ -285,7 +284,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 		GeneralPath path = new GeneralPath();
 		//pig convert to using TPoints & implement interactivity
 
-		@Override
 		public void draw(DrawingPanel panel, Graphics g) {
 	    VideoPanel vidPanel = dataTrack.getVideoPanel();
 	    if (vidPanel==null) return;
@@ -481,11 +479,9 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	  public Mark getMark(Point[] points) {
 	  	return new Mark() {
 
-				@Override
 				public void draw(Graphics2D g, boolean highlighted) {
 				}
 
-				@Override
 				public Rectangle getBounds(boolean highlighted) {
 					return null;
 				}
@@ -493,63 +489,50 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	  	};
 	  }
 
-		@Override
 		public double getXMin() {
 			return 0;
 		}
 
-		@Override
 		public double getXMax() {
 			return 100;
 		}
 
-		@Override
 		public double getYMin() {
 			return 0;
 		}
 
-		@Override
 		public double getYMax() {
 			return 100;
 		}
 
-		@Override
 		public boolean isMeasured() {
 			return true;
 		}
 
-		@Override
 		public Interactive findInteractive(DrawingPanel panel, int _xpix, int _ypix) {
 			// pig implement
 			return null;
 		}
 
-		@Override
 		public void setEnabled(boolean enabled) {}
 
-		@Override
 		public boolean isEnabled() {
 			return true;
 		}
 
-		@Override
 		public void setXY(double x, double y) {}
 
-		@Override
 		public void setX(double x) {
 			// pig implement
 		}
 
-		@Override
 		public void setY(double y) {}
 
-		@Override
 		public double getX() {
 			// pig implement
 			return 0;
 		}
 
-		@Override
 		public double getY() {
 			return 0;
 		}

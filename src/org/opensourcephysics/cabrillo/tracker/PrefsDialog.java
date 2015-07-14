@@ -1072,7 +1072,7 @@ public class PrefsDialog extends JDialog {
     
     warningsNorthPanel.add(vidWarningCheckbox);
     warningsNorthPanel.add(variableDurationCheckBox);
-    warningsCenterPanel.add(xuggleErrorCheckbox);
+    warningsCenterPanel.add(ffmpegErrorCheckbox);
     
     // set selected states of engine buttons AFTER creating the videofast, videoslow and warnffmpeg buttons
     if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)

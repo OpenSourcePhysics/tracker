@@ -108,7 +108,6 @@ public class Compass extends TTrack {
 	    radialLineCheckbox.setBorder(BorderFactory.createEmptyBorder());
 	    radialLineCheckbox.setSelected(isRadialLineVisible());
 	    radialLineCheckbox.addActionListener(new ActionListener() {
-				@Override
 				public void actionPerformed(ActionEvent e) {
 					setRadialLineVisible(radialLineCheckbox.isSelected());
 					repaint();
@@ -175,7 +174,6 @@ public class Compass extends TTrack {
   
   	// set action for angle field
     final Action sliderAction = new AbstractAction() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (angleField.getBackground()!=Color.yellow) {
 					return;
