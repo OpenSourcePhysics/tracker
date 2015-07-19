@@ -28,9 +28,6 @@ import java.beans.*;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.font.FontRenderContext;
-import java.awt.font.TextLayout;
-
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -67,23 +64,15 @@ public class ModelBuilder extends FunctionTool {
 	 */
 	protected void createToolbarComponents() {
 		// create start and end frame spinners
-	  Font font = new JSpinner().getFont();
-	  int n = trackerPanel.getPlayer().getVideoClip().getFrameCount()-1;
-	  FontRenderContext frc = new FontRenderContext(null, false, false);
-	  String s = String.valueOf(Math.max(n, 200));
-	  TextLayout layout = new TextLayout(s, font, frc);
-	  int w = (int)layout.getBounds().getWidth()+4;
-	  if (n>1000) w+=3;
 		startFrameLabel = new JLabel();
 		startFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
 		endFrameLabel = new JLabel();
 		endFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
+	  int n = trackerPanel.getPlayer().getVideoClip().getFrameCount()-1;
 		SpinnerNumberModel model = new SpinnerNumberModel(0, 0, n, 1); // init, min, max, step
 		startFrameSpinner = new ModelFrameSpinner(model);
-		startFrameSpinner.prefWidth = w;
 		model = new SpinnerNumberModel(n, 0, n, 1); // init, min, max, step
 		endFrameSpinner = new ModelFrameSpinner(model);
-		endFrameSpinner.prefWidth = w;
 		
 		// create booster label and dropdown
     boosterLabel = new JLabel();
@@ -134,7 +123,10 @@ public class ModelBuilder extends FunctionTool {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
         	ModelFunctionPanel panel = (ModelFunctionPanel)getSelectedPanel();
-        	if (panel.model instanceof DynamicSystem) {
+        	if (panel instanceof ParticleDataTrackFunctionPanel) {
+        		frame.showHelp("datatrack", 0); //$NON-NLS-1$
+        	}
+        	else if (panel.model instanceof DynamicSystem) {
         		frame.showHelp("system", 0); //$NON-NLS-1$
         	}
         	else {
@@ -191,6 +183,7 @@ public class ModelBuilder extends FunctionTool {
 		super.setFontLevel(level);
 		refreshBoosterDropdown();
 		refreshLayout();
+	  validate();
 	}
 	
 	/**
@@ -248,15 +241,7 @@ public class ModelBuilder extends FunctionTool {
 	  	startFrameSpinner.setValue(0);
 	  	endFrameSpinner.setValue(n);
 	  }
-	  Font font = startFrameSpinner.getFont();
-	  FontRenderContext frc = new FontRenderContext(null, false, false);
-	  String s = String.valueOf(Math.max(n, 200));
-	  TextLayout layout = new TextLayout(s, font, frc);
-	  int w = (int)layout.getBounds().getWidth()+1;
-	  if (n>1000) w+=3;
-  	startFrameSpinner.prefWidth = w;
-  	endFrameSpinner.prefWidth = w;
-  	
+	  
 	  validate();
   }
 
@@ -353,8 +338,6 @@ public class ModelBuilder extends FunctionTool {
    */
 	class ModelFrameSpinner extends JSpinner {
 
-	  protected int prefWidth;
-
 		Integer prevMax;
 		SpinnerNumberModel spinModel;
 		
@@ -382,21 +365,9 @@ public class ModelBuilder extends FunctionTool {
       });
 		}
 		
-		public Dimension getMaximumSize() {
-			Dimension dim = super.getMaximumSize();
-			dim.width = getMinimumSize().width;
-			return dim;
-		}
-		
 		public Dimension getMinimumSize() {
 			Dimension dim = super.getMinimumSize();
-	    dim.width += prefWidth-getEditor().getPreferredSize().width;
-			return dim;
-		}
-		
-		public Dimension getPreferredSize() {
-			Dimension dim = super.getPreferredSize();
-			dim.width = getMinimumSize().width;
+			dim.width += (int)(FontSizer.getFactor()*4);
 			return dim;
 		}
 	}

@@ -349,6 +349,7 @@ public class TrackDataBuilder extends FunctionTool {
 			autoloadButton.setText(TrackerRes.getString("TrackerPanel.DataBuilder.Button.Autoload")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
 			autoloadButton.setToolTipText(TrackerRes.getString("TrackerPanel.DataBuilder.Button.Autoload.Tooltip")); //$NON-NLS-1$
 		}
+		setFontLevel(FontSizer.getLevel());
 		if (autoloadManager!=null) {
 			autoloadManager.refreshGUI();
 		}
@@ -404,6 +405,33 @@ public class TrackDataBuilder extends FunctionTool {
   		});
     }
     return panel;
+  }
+  
+  @Override
+  public void setFontLevel(int level) {
+  	if (autoloadButton==null) return;
+    level = Math.max(0, level);
+		Object[] toSize = new Object[] {loadButton, saveButton, autoloadButton};
+    FontSizer.setFonts(toSize, level);
+    for (String name: panels.keySet()) {
+    	TTrack track = trackerPanel.getTrack(name);
+    	FunctionPanel panel = panels.get(name);
+    	if (track==null || panel==null) continue;
+    	// get new footprint icon, automatically resized to current level
+	  	panel.setIcon(track.getFootprint().getIcon(21, 16));    	
+    }
+
+  	super.setFontLevel(level);
+  	validate();
+  	autoloadButton.revalidate();
+  }
+  
+  @Override
+  public void setVisible(boolean vis) {
+  	if (vis) {
+  		setFontLevel(FontSizer.getLevel());
+  	}
+  	super.setVisible(vis);
   }
 
   /**
