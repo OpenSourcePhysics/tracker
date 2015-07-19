@@ -56,7 +56,7 @@ import org.opensourcephysics.tools.Parameter;
  * @author Douglas Brown
  */
 public class ParticleDataTrack extends ParticleModel implements DataTrack {
-	// pigg test this with video with frameshift
+	// pig test this with video with frameshift
 	
 	private DataClip dataClip;
 	private Data sourceData;

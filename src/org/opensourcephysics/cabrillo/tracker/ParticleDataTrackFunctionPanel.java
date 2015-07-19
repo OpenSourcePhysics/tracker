@@ -1,10 +1,16 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
+import javax.swing.text.Style;
+import javax.swing.text.StyledDocument;
 
+import org.opensourcephysics.tools.FunctionEditor;
+import org.opensourcephysics.tools.ToolsRes;
 import org.opensourcephysics.tools.UserFunctionEditor;
 
 /**
@@ -32,8 +38,16 @@ public class ParticleDataTrackFunctionPanel extends ModelFunctionPanel {
   	setName(track.getName());  	
   	
   	// create and assemble GUI
+  	MouseAdapter listener = new MouseAdapter() {
+  		@Override
+  		public void mousePressed(MouseEvent e) {
+  			clearSelection();
+  		}
+  	};
   	clipControl = new DataTrackClipControl(track);
+  	clipControl.addMouseListenerToAll(listener);
   	timeControl = new DataTrackTimeControl(track);
+  	timeControl.addMouseListener(listener);
   	box.remove(paramEditor);
   	box.remove(functionEditor);
 		box.add(clipControl, 1);
@@ -81,9 +95,26 @@ public class ParticleDataTrackFunctionPanel extends ModelFunctionPanel {
   	}
   }
 
+  @Override
+  protected void refreshInstructions(FunctionEditor source, boolean editing, int selectedColumn) {
+    StyledDocument doc = instructions.getStyledDocument();
+    Style style = doc.getStyle("blue");                                                //$NON-NLS-1$
+    String s = TrackerRes.getString("ParticleDataTrackFunctionPanel.Instructions.General"); //$NON-NLS-1$
+    if(!editing && hasInvalidExpressions()) {                            // error condition
+      s = ToolsRes.getString("FunctionPanel.Instructions.BadCell");           //$NON-NLS-1$
+      style = doc.getStyle("red");                                            //$NON-NLS-1$
+    }
+    instructions.setText(s);
+    int len = instructions.getText().length();
+    doc.setCharacterAttributes(0, len, style, false);
+    revalidate();
+  }
+  
+  @Override  
+	protected void tabToNext(FunctionEditor editor) {
+  	clipControl.requestFocusInWindow();
+  }
+
 
   
-  // pigg need to give instructions, do help
-  
-
 }

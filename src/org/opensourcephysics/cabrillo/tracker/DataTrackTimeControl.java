@@ -14,6 +14,7 @@ import javax.swing.JRadioButton;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.VideoPlayer;
+import org.opensourcephysics.tools.FontSizer;
 
 public class DataTrackTimeControl extends JPanel implements PropertyChangeListener {
 	
@@ -67,6 +68,8 @@ public class DataTrackTimeControl extends JPanel implements PropertyChangeListen
 		boolean dataSelected = ClipControl.isTimeSource(dataTrack);
 		dataButton.setSelected(dataSelected);
 		videoButton.setSelected(!dataSelected);
+		// following line needed to display titled border correctly when a DataTrack is created
+		FontSizer.setFonts(getBorder(), FontSizer.getLevel());
 	}
 	
   @Override
@@ -78,14 +81,6 @@ public class DataTrackTimeControl extends JPanel implements PropertyChangeListen
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-//		if (e.getPropertyName().equals("timedata")) { //$NON-NLS-1$
-//			if (ClipControl.isTimeSource(dataTrack) && videoButton.isSelected()) {
-//				dataButton.setSelected(true);
-//			}
-//			else if (!ClipControl.isTimeSource(dataTrack) && dataButton.isSelected()) {
-//				videoButton.setSelected(true);
-//			}
-//		}
 		refreshGUI();
 	}
 
