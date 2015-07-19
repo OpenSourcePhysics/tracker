@@ -45,12 +45,12 @@ import org.opensourcephysics.tools.FontSizer;
 public class TViewChooser extends JPanel implements PropertyChangeListener {
 	
 	// static fields
-	protected static Icon minIcon, maxIcon, restoreIcon;
+	protected static Icon maxIcon, restoreIcon;
 	
 	static {
-    maxIcon = new ImageIcon(
+    maxIcon = new ResizableIcon(
         Tracker.class.getResource("resources/images/maximize.gif")); //$NON-NLS-1$
-    restoreIcon = new ImageIcon(
+    restoreIcon = new ResizableIcon(
         Tracker.class.getResource("resources/images/restore.gif")); //$NON-NLS-1$
 		
 	}
