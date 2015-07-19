@@ -330,7 +330,7 @@ public class TrackerStarter {
 			}
 			if (f.exists() && f.isDirectory()) {
 				xuggleHome = f.getPath();
-				if (writeToLog) logMessage("xuggleHome found relative to TrackerHome: "+xuggleHome); //$NON-NLS-1$
+				if (writeToLog) logMessage("xugglehome found relative to trackerhome: "+xuggleHome); //$NON-NLS-1$
 			}
 		}
 
@@ -350,8 +350,8 @@ public class TrackerStarter {
 		}
 
 		if (xuggleHome==null)
-			throw new NullPointerException("xuggleHome not found"); //$NON-NLS-1$
-		if (writeToLog) logMessage("using xuggleHome: " + xuggleHome); //$NON-NLS-1$
+			throw new NullPointerException("xugglehome not found"); //$NON-NLS-1$
+		if (writeToLog) logMessage("using xugglehome: " + xuggleHome); //$NON-NLS-1$
 		return xuggleHome;
 	}
 
