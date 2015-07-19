@@ -112,6 +112,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
   protected StepSet selectedSteps = new StepSet(this);
   protected ActionListener worldDataRefresher;
+  protected boolean hideDescriptionWhenLoaded;
 
   /**
    * Constructs a blank TrackerPanel with a player.
@@ -1441,6 +1442,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	frame.notesTextPane.setBackground(Color.WHITE);
     	frame.cancelNotesDialogButton.setEnabled(false);
     	frame.closeNotesDialogButton.setEnabled(true);
+    	TrackerPanel panel = frame.getTrackerPanel(frame.getSelectedTab());
+    	frame.displayWhenLoadedCheckbox.setEnabled(panel!=null);
+    	if (panel!=null) {
+    		frame.displayWhenLoadedCheckbox.setSelected(!panel.hideDescriptionWhenLoaded);
+    	}
 
     	frame.notesTextPane.setEditable(isEnabled("notes.edit")); //$NON-NLS-1$
     }
@@ -1840,6 +1846,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				|| isEnabled("new.RGBRegion")  //$NON-NLS-1$
 				|| isEnabled("new.tapeMeasure")  //$NON-NLS-1$
 				|| isEnabled("new.protractor")  //$NON-NLS-1$
+				|| isEnabled("new.circleFitter")  //$NON-NLS-1$
 				|| isEnabled("new.analyticParticle")  //$NON-NLS-1$
 				|| isEnabled("new.dynamicParticle")  //$NON-NLS-1$
 				|| isEnabled("new.dynamicTwoBody")  //$NON-NLS-1$
@@ -1868,6 +1875,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       		p.showCoordinates(this);
       }
       repaint();
+      if (name.equals("steps")) { //$NON-NLS-1$
+		  	TTrackBar.getTrackbar(this).refresh();
+      }
     }
     else if (name.equals("mass")) {                    // from point masses //$NON-NLS-1$
       firePropertyChange("mass", null, null);          // to motion control //$NON-NLS-1$
@@ -2616,6 +2626,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       // save the description, if any
       if (!trackerPanel.description.trim().equals("")) { //$NON-NLS-1$
         control.setValue("description", trackerPanel.description); //$NON-NLS-1$
+        if (trackerPanel.hideDescriptionWhenLoaded) {
+        	control.setValue("hide_description", trackerPanel.hideDescriptionWhenLoaded); //$NON-NLS-1$
+        }
       }
       // save the metadata, if any
       if (trackerPanel.author!=null) {
@@ -2762,7 +2775,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	    }
       // load the description
       String desc = control.getString("description"); //$NON-NLS-1$
-      if (desc != null) trackerPanel.setDescription(desc);
+      if (desc != null) {
+      	trackerPanel.setDescription(desc);
+      	trackerPanel.hideDescriptionWhenLoaded = control.getBoolean("hide_description"); //$NON-NLS-1$
+      }
       // load the metadata
       trackerPanel.author = control.getString("author"); //$NON-NLS-1$
       trackerPanel.contact = control.getString("contact"); //$NON-NLS-1$
@@ -2819,7 +2835,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         int n = trackerPanel.getFrameNumber();
         trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
       }
-    	// pig kludge to prevent a freeze (deadlock?) when loading QT videos and DataTracks
+    	// kludge to prevent a freeze (deadlock?) when loading QT videos and DataTracks
       Video vid = trackerPanel.getVideo();
     	if (vid!=null && vid.getClass().getSimpleName().contains("QT") //$NON-NLS-1$
     			&& control.toXML().contains("ParticleDataTrack")) try { //$NON-NLS-1$
