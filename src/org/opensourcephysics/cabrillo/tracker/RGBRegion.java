@@ -634,13 +634,11 @@ public class RGBRegion extends TTrack {
     if (step == null) return list;
     int n = step.getFrameNumber();
     n = trackerPanel.getPlayer().getVideoClip().frameToStep(n);
-    stepValueLabel.setText("" + n); //$NON-NLS-1$
     xField.setEnabled(!isLocked());
     yField.setEnabled(!isLocked());
     list.add(stepSeparator);
     list.add(stepLabel);
     list.add(stepValueLabel);
-    list.add(tValueLabel);
     list.add(tSeparator);
     list.add(xLabel);
     list.add(xField);

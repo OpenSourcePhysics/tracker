@@ -526,9 +526,9 @@ public class Vector extends TTrack {
   public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
                                              TPoint point) {
     ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
+    list.add(stepSeparator);
     list.add(stepLabel);
     list.add(stepValueLabel);
-    list.add(tValueLabel);
     list.add(tSeparator);
     list.add(xLabel);
     list.add(xField);

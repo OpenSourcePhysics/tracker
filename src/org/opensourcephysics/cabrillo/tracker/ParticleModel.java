@@ -402,6 +402,9 @@ abstract public class ParticleModel extends PointMass {
 		JMenu menu = super.getMenu(trackerPanel);
 
 		// remove unwanted menu items and separators
+		menu.remove(autotrackItem);
+		menu.remove(deleteStepItem);
+		menu.remove(clearStepsItem);
 		menu.remove(lockedItem);
 		menu.remove(autoAdvanceItem);
 		menu.remove(markByDefaultItem);

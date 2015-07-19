@@ -1599,7 +1599,7 @@ public abstract class TTrack implements Interactive,
     VideoClip clip = trackerPanel.getPlayer().getVideoClip();
     if (step != null && clip.includesFrame(step.getFrameNumber())) {
       int n = clip.frameToStep(step.getFrameNumber());
-    	stepValueLabel.setText("" + n); //$NON-NLS-1$
+    	stepValueLabel.setText(n+": "); //$NON-NLS-1$
       double t = trackerPanel.getPlayer().getStepTime(n) / 1000;
       if (t >= 0) {
         tField.setValue(t);
