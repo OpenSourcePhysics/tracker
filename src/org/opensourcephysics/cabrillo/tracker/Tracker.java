@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -28,6 +28,7 @@ import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.jar.JarFile;
@@ -40,6 +41,7 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.MouseInputAdapter;
 
@@ -63,7 +65,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version */
-  public static final String VERSION = "4.88"; //$NON-NLS-1$
+  public static final String VERSION = "4.90"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -94,7 +96,7 @@ public class Tracker {
 	  "pageView.edit", "notes.edit", "new.pointMass", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
 	  "new.cm", "new.vector", "new.vectorSum",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "new.lineProfile", "new.RGBRegion",  //$NON-NLS-1$ //$NON-NLS-2$
-	  "new.analyticParticle", "new.clone",  //$NON-NLS-1$ //$NON-NLS-2$
+	  "new.analyticParticle", "new.clone", "new.circleFitter", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "new.dynamicParticle", "new.dynamicTwoBody",  //$NON-NLS-1$ //$NON-NLS-2$ 
 	  "new.dataTrack", "new.tapeMeasure", "new.protractor",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "calibration.stick", "calibration.tape", //$NON-NLS-1$ //$NON-NLS-2$
@@ -117,9 +119,10 @@ public class Tracker {
   static Icon trackerLogoIcon, ospLogoIcon;
   static JLabel tipOfTheDayLabel;
   static JProgressBar progressBar;
+  static String counterPath = "http://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
   static String copyright = "Copyright (c) 2015 Douglas Brown"; //$NON-NLS-1$
-  static String trackerWebsite = "www.cabrillo.edu/~dbrown/tracker"; //$NON-NLS-1$
+  static String trackerWebsite = "physlets.org/tracker"; //$NON-NLS-1$
   static String author = "Douglas Brown"; //$NON-NLS-1$
   static String osp = "Open Source Physics"; //$NON-NLS-1$
   static AbstractAction aboutQTAction, aboutXuggleAction, aboutThreadsAction;
@@ -153,6 +156,7 @@ public class Tracker {
   static boolean qtLoading, qtLoaded;
   static Registry registry; // used for RMI communication with EJS
   static DataTrackTool dataTrackTool; // used for RMI communication with EJS
+  static boolean toolRegistered, toolNotFound;
   
   // user-settable preferences saved/loaded by Preferences class
   static Level preferredLogLevel = DEFAULT_LOG_LEVEL;
@@ -163,7 +167,7 @@ public class Tracker {
   static String preferredJRE, preferredJRE32, preferredJRE64;
   static String preferredTrackerJar;
   static int checkForUpgradeInterval = 0;
-  static int preferredFontLevel = 0;
+  static int preferredFontLevel = 0, preferredFontLevelPlus = 0;
   static boolean isRadians, isXuggleFast, engineKnown=true;
   static boolean warnXuggleError=true, warnNoVideoEngine=true, use32BitMode=false;
   static boolean warnVariableDuration=true;
@@ -226,7 +230,23 @@ public class Tracker {
 			Locale.CHINA}; // simplified chinese
   	setDefaultConfig(getFullConfig());
   	loadPreferences();
-  	loadCurrentVersion(false);
+  	// load current version after a delay to allow video engines to load
+    Timer timer = new Timer(10000, new ActionListener() {
+			 public void actionPerformed(ActionEvent e) {
+			  	Runnable runner = new Runnable() {
+			  		public void run() {
+			  	  	loadCurrentVersion(false, true);
+			  		}
+			  	};
+			    Thread opener = new Thread(runner);
+			    opener.setPriority(Thread.NORM_PRIORITY);
+			    opener.setDaemon(true);
+			    opener.start();
+			 }
+		 });
+		timer.setRepeats(false);
+		timer.start();
+
     xmlFilter = new java.io.FileFilter() {
       // accept only *.xml files.
       public boolean accept(File f) {
@@ -1216,46 +1236,98 @@ public class Tracker {
     return true;
   }
   
-  protected static void loadCurrentVersion(boolean ignoreInterval) {  	
+  /**
+   * Loads the current (latest) Tracker version and compares it with this version.
+   * 
+   * @param ignoreInterval true to load/compare immediately
+   * @param logToFile true to log in to the PHP counter 
+   */
+  protected static void loadCurrentVersion(boolean ignoreInterval, final boolean logToFile) {  	
   	if (!ignoreInterval) {
 	  	// check to see if upgrade interval has passed
 	  	long millis = System.currentTimeMillis();
 	  	long days = (millis-lastMillisChecked)/86400000;
-	  	if (days<checkForUpgradeInterval) return;
+	  	if (lastMillisChecked==0) {
+    		lastMillisChecked = System.currentTimeMillis();
+	  	}
+	  	// minimum interval is 0.1 days = 2.4 hrs so separate lab sections are counted?
+	  	double interval = checkForUpgradeInterval==0? 0.1: checkForUpgradeInterval;
+	  	if (days<interval) {
+	  		return;
+	  	}
   	}
 //  	if (true) return; // for PLATO
   	
-  	// interval has passed, so check for upgrades and save current time
-  	// read current version from version.txt file on tracker home
-  	Runnable runner = new Runnable() {
-  		public void run() {
-  	  	double vers = Double.parseDouble(VERSION);
-  	    try {
-  	    	URL url = new URL("http://"+trackerWebsite+"/version.txt"); //$NON-NLS-1$ //$NON-NLS-2$
-  	    	InputStream is = url.openStream();
-  	    	BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-  	      String s = reader.readLine();
-  	    	while (s != null && s.length()>0) { // typical version: "4.00" or "4.61111227"
-  	    		try {
-  	    			// convert version string to double and compare with this version
-  						double current = Double.parseDouble(s);
-  						if (current>vers) {
-  							newerVersion = s;
-  						}
-  						s = null;
-  					} catch (Exception e) { // parse failed, so discard first character
-  						s = s.substring(1);
-  					}
-  	    	}	      	
-  	    } catch (Exception e) { // url connection failed
-  	    }
-  		}
-  	};
-    Thread opener = new Thread(runner);
-    opener.setPriority(Thread.NORM_PRIORITY);
-    opener.setDaemon(true);
-    opener.start();    	  	
+  	// interval has passed, so check for upgrades and save current time  	
+  	double vers = Double.parseDouble(VERSION);  	  	
+	 	// send runtime and version data as page name to get latest version from PHP script
+		String pageName = getPHPPageName(logToFile);
+		String latestVersion = loginGetLatestVersion(pageName);
+    try {  	    	
+    	while (latestVersion != null && latestVersion.length()>0) { // typical version: "4.90" or "4.61111227"
+    		try {
+    			// convert version string to double and compare with this version
+					double current = Double.parseDouble(latestVersion);
+					if (current>vers) {
+						newerVersion = latestVersion;
+					}
+					latestVersion = null;
+				} catch (Exception e) { // parse failed, so discard first character
+					latestVersion = latestVersion.substring(1);
+				}
+    	}	      	
+    } catch (Exception e) { // url connection failed
+    }
   }
+  
+  /**
+   * Gets the "page name" to send to the PHP counter.
+   * 
+   * @param logToFile true to assemble a page name that will be counted/logged
+   * @return the page name
+   */
+  private static String getPHPPageName(boolean logToFile) {
+  	String page = "version"; //$NON-NLS-1$
+  	if (logToFile) {
+  		// assemble "page" to send to counter
+  		String language = TrackerRes.locale.getLanguage();
+  		String country = TrackerRes.locale.getCountry();
+      String engine = VideoIO.getEngine();
+    	String os = "unknownOS"; //$NON-NLS-1$
+	    try { // system properties may not be readable in some environments
+	      os = System.getProperty("os.name", "unknownOS").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
+	    } catch(SecurityException ex) {}
+      os = os.replace(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
+      page = "log_"+VERSION+"_"+os+"_"+engine; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+      if (!"".equals(language)) { //$NON-NLS-1$
+      	page += "_"+language; //$NON-NLS-1$
+      }
+      if (!"".equals(country)) { //$NON-NLS-1$
+      	page += "_"+country; //$NON-NLS-1$
+      }
+  	}
+  	return page;
+  }
+
+  /**
+   * Logs a specified page and returns the latest version of Tracker.
+   * 
+   * @param page a page name
+   * @return the latest available version as a string
+   */
+  private static String loginGetLatestVersion(String page) {
+  	String path = counterPath+"page="+page; //$NON-NLS-1$
+    try {
+			URL url = new URL(path);
+			Resource res = new Resource(url);
+	    String version = res.getString();
+	    OSPLog.finer(path+":   "+version); //$NON-NLS-1$
+	    return version;
+		} catch (MalformedURLException e) {
+		}
+  	return VERSION;
+  }
+
 
   /**
    * Loads preferences from a preferences file, if any.
@@ -1265,8 +1337,10 @@ public class Tracker {
   	XMLControl prefsControl = TrackerStarter.findPreferences();
   	if (prefsControl!=null) {
   		prefsPath = prefsControl.getString("prefsPath"); //$NON-NLS-1$
-    	OSPLog.getOSPLog();
-    	OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
+  		if (prefsPath!=null) {
+	    	OSPLog.getOSPLog();
+	    	OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
+  		}
     	prefsControl.loadObject(null);  // the loader itself reads the values
     	return;
   	}
@@ -1695,19 +1769,57 @@ public class Tracker {
    * @return true if successfully registered
    */
   protected static boolean registerRemoteTool(Remote remoteTool) {
+		final String toolname = remoteTool.getClass().getSimpleName();
+		
+//		// create thread to see if registry is running and tool registered
+//    Thread registryThread = new Thread() {
+//      public void run() {
+//        toolRegistered = false;
+//      	toolNotFound = false;
+//        try { 
+//          registry = java.rmi.registry.LocateRegistry.getRegistry(DataTrackSupport.PORT);
+//          registry.lookup(toolname);
+//	        toolRegistered = true;
+//        }
+//        catch (Exception exc) {
+//        	toolNotFound = true;
+//        }       	
+//      }      
+//    };
+//    
+//    // start thread and check every half-second to see if completed
+//    registryThread.setPriority(Thread.NORM_PRIORITY);
+//    registryThread.start();
+//    int attempts = 0;
+//    int maxAttempts = 8;
+//    while (attempts<=maxAttempts) {
+//      attempts++;
+//      if (toolRegistered || toolNotFound) {
+//        break;
+//      }
+//      try { Thread.sleep(500); }
+//      catch(Exception exc) {}
+//    }
+//    if (toolRegistered) {
+//      OSPLog.finest("Registry thread found registered tool "+toolname); //$NON-NLS-1$
+//    	return true;
+//    }
+//    
+//    OSPLog.finest("Killing registry thread and registering tool "+toolname); //$NON-NLS-1$
+//    registryThread.interrupt();
+        
   	// register tool
   	try {
   		// create registry if needed
   		if (registry==null) {
 	 			registry = java.rmi.registry.LocateRegistry.createRegistry(DataTrackSupport.PORT); 			
   		}
-			String name = remoteTool.getClass().getSimpleName();
-			registry.rebind(name, remoteTool);
-  		OSPLog.fine(name+" successfully registered"); //$NON-NLS-1$
+			registry.rebind(toolname, remoteTool);
+  		OSPLog.fine(toolname+" successfully registered"); //$NON-NLS-1$
   		return true;
 		} catch (Exception ex) {
   		OSPLog.warning(ex.getMessage());
-		}
+		}    
   	return false;
   }
   
@@ -1921,17 +2033,17 @@ public class Tracker {
       		control.setValue("run", Tracker.prelaunchExecutables); //$NON-NLS-1$
       	if (Tracker.preferredLocale!=null)
       		control.setValue("locale", Tracker.preferredLocale); //$NON-NLS-1$
-      	if (Tracker.preferredFontLevel>0)
+      	if (Tracker.preferredFontLevel>0) {
       		control.setValue("font_size", Tracker.preferredFontLevel); //$NON-NLS-1$
+      		control.setValue("font_size_plus", Tracker.preferredFontLevelPlus); //$NON-NLS-1$
+      	}
       	if (ResourceLoader.getOSPCache()!=null) {
       		File cache = ResourceLoader.getOSPCache();
       		control.setValue("cache", cache.getPath()); //$NON-NLS-1$
       	}
-      	if (Tracker.checkForUpgradeInterval>0) {
-      		control.setValue("upgrade_interval", Tracker.checkForUpgradeInterval); //$NON-NLS-1$
-      		int lastChecked = (int)(Tracker.lastMillisChecked/1000L);
-      		control.setValue("last_checked", lastChecked); //$NON-NLS-1$
-      	}
+      	control.setValue("upgrade_interval", Tracker.checkForUpgradeInterval); //$NON-NLS-1$
+      	int lastChecked = (int)(Tracker.lastMillisChecked/1000L);
+      	control.setValue("last_checked", lastChecked); //$NON-NLS-1$
       	JFileChooser chooser = VideoIO.getChooser();
       	File file = chooser.getCurrentDirectory();
         String userDir = System.getProperty("user.dir"); //$NON-NLS-1$
@@ -2004,7 +2116,10 @@ public class Tracker {
         Level logLevel = OSPLog.parseLevel(control.getString("log_level")); //$NON-NLS-1$
         if(logLevel!=null) {
         	preferredLogLevel = logLevel;
-        	OSPLog.setLevel(logLevel);        	
+        	OSPLog.setLevel(logLevel);
+        	if (logLevel==Level.ALL) {
+        		OSPLog.showLogInvokeLater();
+        	}
         }
       	isRadians = control.getBoolean("radians"); //$NON-NLS-1$
       	isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
@@ -2032,8 +2147,13 @@ public class Tracker {
       		prelaunchExecutables = (String[])control.getObject("run"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("locale")) //$NON-NLS-1$
       		setPreferredLocale(control.getString("locale")); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("font_size")) //$NON-NLS-1$
+      	if (control.getPropertyNames().contains("font_size")) { //$NON-NLS-1$
       		preferredFontLevel = control.getInt("font_size"); //$NON-NLS-1$
+      		preferredFontLevelPlus = control.getInt("font_size_plus"); //$NON-NLS-1$
+      		if (preferredFontLevelPlus==Integer.MIN_VALUE) {
+      			preferredFontLevelPlus = 0;
+      		}
+      	}
       	// set cache only if it has not yet been set
       	if (ResourceLoader.getOSPCache()==null) {
       		setCache(control.getString("cache")); //$NON-NLS-1$

@@ -20,13 +20,12 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.util.*;
-
 import java.awt.*;
 import java.awt.font.*;
 import java.awt.geom.*;
@@ -35,6 +34,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is a Step that represents a vector. It is used when tracking
@@ -532,6 +532,10 @@ public class VectorStep extends Step
       // if selected, draw selection shape on top of basic mark
       if (p != null) {
         transform.setToTranslation(p.x, p.y);
+        int scale = FontSizer.getIntegerFactor();
+        if (scale>1) {
+        	transform.scale(scale, scale);
+        }
         final Color color = footprint.getColor();
         final Mark stepMark = mark;
         final Shape selectedShape

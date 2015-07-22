@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -81,13 +81,13 @@ public class DynamicSystemInspector extends JDialog
     setResizable(false);
     createGUI();
     initialize();
-    updateDisplay();
   }
 
   /**
    * Initializes this inspector.
    */
   public void initialize() {
+		FontSizer.setFonts(this, FontSizer.getLevel());
     updateDisplay();
   }
 
@@ -341,7 +341,7 @@ public class DynamicSystemInspector extends JDialog
     panel.setBorder(BorderFactory.createEmptyBorder(4, 0, 2, 0));
     contentPane.add(panel, BorderLayout.NORTH);
   }
-
+  
   /**
    * Updates the system to reflect the current particle selection.
    */
@@ -393,6 +393,7 @@ public class DynamicSystemInspector extends JDialog
 	    Border etched = BorderFactory.createEtchedBorder();
 	    TitledBorder title = BorderFactory.createTitledBorder(etched,
 	        TrackerRes.getString("DynamicSystemInspector.Border.Title")+" "+(i+1)); //$NON-NLS-1$ //$NON-NLS-2$
+	    FontSizer.setFonts(title, FontSizer.getLevel());
 	    particlePanels[i].setBorder(title);
     	changeButtons[i].setText(
     			TrackerRes.getString("DynamicSystemInspector.Button.Change")); //$NON-NLS-1$
@@ -416,6 +417,7 @@ public class DynamicSystemInspector extends JDialog
 	    	labelPanels[i].setLayout(new BorderLayout());
       	labelPanels[i].add(particleLabels[i]);
     	}
+      FontSizer.setFonts(labelPanels[i], FontSizer.getLevel());
   	}
   	changeButtons[particleCount-1].setEnabled(!empty);
   	changeButtons[0].requestFocusInWindow();

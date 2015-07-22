@@ -20,12 +20,15 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
+
 import javax.swing.*;
+
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * A custom renderer to show track name and icon in dropdown list items
@@ -57,6 +60,7 @@ public class TrackRenderer extends JLabel implements ListCellRenderer {
       Object[] array = (Object[])value;
       setText((String)array[1]);
       setIcon((Icon)array[0]);
+      FontSizer.setFonts(this, FontSizer.getLevel());
     }
     return this;
   }

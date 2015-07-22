@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -362,6 +362,7 @@ public class Undo {
    	  XMLControl control = new XMLControlElement(xml);
   	  control.loadObject(step);
   	  step.erase();
+  	  TTrackBar.getTrackbar(panel).refresh();
     }
   }
 

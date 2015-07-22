@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -52,7 +52,7 @@ public class PositionVectorFootprint extends PointShapeFootprint {
     this.track = track;
     arrow = (LineFootprint)LineFootprint.getFootprint("Footprint.Arrow"); //$NON-NLS-1$
     arrow.setLineWidth(w);
-    stroke = null;
+    baseStroke = null;
   }
   
   /**

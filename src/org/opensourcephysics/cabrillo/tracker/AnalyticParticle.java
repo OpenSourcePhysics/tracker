@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -132,10 +132,11 @@ public class AnalyticParticle
 	  	getAArray(trackerPanel).setLength(0);
 	  	// set position of step at firstFrameInClip
 	    ImageCoordSystem coords = trackerPanel.getCoords();
-	    // get underlying coords if reference frame
-	    while (coords instanceof ReferenceFrame) {
-	      coords = ( (ReferenceFrame) coords).getCoords();
-	    }
+      // get underlying coords if appropriate
+      boolean useDefault = isUseDefaultReferenceFrame();
+      while (useDefault && coords instanceof ReferenceFrame) {
+        coords = ( (ReferenceFrame) coords).getCoords();
+      }
 	    AffineTransform transform = coords.getToImageTransform(firstFrameInClip); 
     	UserFunction[] functions = getFunctionEditor().getMainFunctions();
     	// get time at firstFrameInClip

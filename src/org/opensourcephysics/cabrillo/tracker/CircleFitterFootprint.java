@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -37,24 +37,26 @@ import java.util.HashSet;
 
 import javax.swing.Icon;
 
+import org.opensourcephysics.tools.FontSizer;
+
 /**
- * A CompassFootprint returns a circle, center point and data point marks.
+ * A CircleFitterFootprint returns a circle, center point and data point marks.
  * It requires a minimum Point array of length 2 {center, edge} but accommodates many data points.
  *
  * @author Douglas Brown
  */
-public class CompassFootprint implements Footprint, Cloneable {
+public class CircleFitterFootprint implements Footprint, Cloneable {
 
 	// static constants
   @SuppressWarnings("javadoc")
   private static BasicStroke hitStroke = new BasicStroke(4);
-  private static final CompassFootprint CIRCLE_4, CIRCLE_7, 
+  private static final CircleFitterFootprint CIRCLE_4, CIRCLE_7, 
   		CIRCLE_4_BOLD, CIRCLE_7_BOLD;
   protected static final int MAX_RADIUS = 100000;
 
 	// static fields
-  private static Collection<CompassFootprint> footprints 
-			= new HashSet<CompassFootprint>();
+  private static Collection<CircleFitterFootprint> footprints 
+			= new HashSet<CircleFitterFootprint>();
   private static Shape hitShape = new Ellipse2D.Double(-6, -6, 12, 12);
   private static Shape emptyHitShape = new Rectangle();
   private static Line2D line = new Line2D.Double();
@@ -63,7 +65,7 @@ public class CompassFootprint implements Footprint, Cloneable {
 
   // instance fields
   protected String name;
-  protected BasicStroke stroke;
+  protected BasicStroke baseStroke, stroke;
   protected Color color = Color.black;
   protected ArrayList<Shape> hitShapes = new ArrayList<Shape>();
 	protected Ellipse2D circle;
@@ -75,12 +77,12 @@ public class CompassFootprint implements Footprint, Cloneable {
 	protected boolean drawRadius;
 
   /**
-   * Constructs a CompassFootprint.
+   * Constructs a CircleFitterFootprint.
    *
    * @param name the name
    * @param size the radius
    */
-  public CompassFootprint(String name, int size) {
+  public CircleFitterFootprint(String name, int size) {
     this.name = name;
   	markerSize = size;
   	circle = new Ellipse2D.Double();
@@ -130,11 +132,17 @@ public class CompassFootprint implements Footprint, Cloneable {
    * @return the icon
    */
   public Icon getIcon(int w, int h) {  	
+    int scale = FontSizer.getIntegerFactor();
+    w *= scale;
+    h *= scale;
     int r = markerSize/2;
-    iconArc.setArc(0, 0, 20, 20, 200, 140, Arc2D.OPEN);
+    iconArc.setArc(0, 0, scale*20, scale*20, 200, 140, Arc2D.OPEN);
+  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
+  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
+  	}
   	Shape shape = stroke.createStrokedShape(iconArc);
     Area area = new Area(shape);
-    circle.setFrameFromCenter(10, 20, 10+r, 20+r);
+    circle.setFrameFromCenter(scale*10, scale*20, scale*(10+r), scale*(20+r));
   	shape = stroke.createStrokedShape(circle);
   	area.add(new Area(shape));
     ShapeIcon icon = new ShapeIcon(area, w, h);
@@ -184,7 +192,7 @@ public class CompassFootprint implements Footprint, Cloneable {
    */
   public void setStroke(BasicStroke stroke) {
     if (stroke == null) return;
-    this.stroke = new BasicStroke(stroke.getLineWidth(),
+    baseStroke = new BasicStroke(stroke.getLineWidth(),
                                   BasicStroke.CAP_BUTT,
                                   BasicStroke.JOIN_MITER,
                                   8,
@@ -198,7 +206,7 @@ public class CompassFootprint implements Footprint, Cloneable {
    * @return the stroke
    */
   public BasicStroke getStroke() {
-    return stroke;
+    return baseStroke;
   }
 
   /**
@@ -238,7 +246,7 @@ public class CompassFootprint implements Footprint, Cloneable {
   }
 
   /**
-   * Sets the selected screen point. The selected point is not drawn so CompassStep 
+   * Sets the selected screen point. The selected point is not drawn so CircleStep 
    * can draw a selection shape instead.
    *
    * @param p the selected screen point (may be null)
@@ -259,6 +267,10 @@ public class CompassFootprint implements Footprint, Cloneable {
     Point edge = points[1];
     hitShapes.clear();
     Area drawMe = new Area();
+    int scale = FontSizer.getIntegerFactor();
+  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
+  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
+  	}
         
     // draw shapes only if there are 3 or more data points (plus center, edge and slider)
     if (points.length<6) {
@@ -303,6 +315,9 @@ public class CompassFootprint implements Footprint, Cloneable {
 	    
 	    	// center
 	      transform.setToTranslation(points[0].x, points[0].y);
+	      if (scale>1) {
+	      	transform.scale(scale, scale);
+	      }
 	      Shape s = transform.createTransformedShape(marker);
 	      drawMe.add(new Area(stroke.createStrokedShape(s)));
 	      s = transform.createTransformedShape(crosshatch);
@@ -323,6 +338,9 @@ public class CompassFootprint implements Footprint, Cloneable {
     // always draw data points
     for (int i=3; i<points.length; i++) {
       transform.setToTranslation(points[i].x, points[i].y);
+      if (scale>1) {
+      	transform.scale(scale, scale);
+      }
       if (points[i]!=selectedPoint) {
 	      Shape s = transform.createTransformedShape(marker);
 	      drawMe.add(new Area(stroke.createStrokedShape(s)));
@@ -340,9 +358,9 @@ public class CompassFootprint implements Footprint, Cloneable {
    * @return the footprint
    */
   public static Footprint getFootprint(String name) {
-    for (CompassFootprint footprint: footprints) {
+    for (CircleFitterFootprint footprint: footprints) {
       if (name == footprint.getName()) try {
-        return (CompassFootprint)footprint.clone();
+        return (CircleFitterFootprint)footprint.clone();
       } catch(CloneNotSupportedException ex) {ex.printStackTrace();}
     }
     return null;
@@ -353,20 +371,20 @@ public class CompassFootprint implements Footprint, Cloneable {
   	BasicStroke stroke = new BasicStroke(1);
   	  	
     // create standard footprints
-    CIRCLE_4 = new CompassFootprint("CompassFootprint.Circle4", 4); //$NON-NLS-1$
+    CIRCLE_4 = new CircleFitterFootprint("CircleFitterFootprint.Circle4", 4); //$NON-NLS-1$
     CIRCLE_4.setStroke(stroke);
     footprints.add(CIRCLE_4);
     
-    CIRCLE_7 = new CompassFootprint("CompassFootprint.Circle7", 7); //$NON-NLS-1$
+    CIRCLE_7 = new CircleFitterFootprint("CircleFitterFootprint.Circle7", 7); //$NON-NLS-1$
     CIRCLE_7.setStroke(stroke);
     footprints.add(CIRCLE_7);
 
   	stroke = new BasicStroke(2);
-    CIRCLE_4_BOLD = new CompassFootprint("CompassFootprint.Circle4Bold", 4); //$NON-NLS-1$
+    CIRCLE_4_BOLD = new CircleFitterFootprint("CircleFitterFootprint.Circle4Bold", 4); //$NON-NLS-1$
   	CIRCLE_4_BOLD.setStroke(stroke);
     footprints.add(CIRCLE_4_BOLD);
 
-    CIRCLE_7_BOLD = new CompassFootprint("CompassFootprint.Circle7Bold", 7); //$NON-NLS-1$
+    CIRCLE_7_BOLD = new CircleFitterFootprint("CircleFitterFootprint.Circle7Bold", 7); //$NON-NLS-1$
   	CIRCLE_7_BOLD.setStroke(stroke);
     footprints.add(CIRCLE_7_BOLD);
   }

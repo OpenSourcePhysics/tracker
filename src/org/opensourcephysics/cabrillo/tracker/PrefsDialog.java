@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -406,14 +406,18 @@ public class PrefsDialog extends JDialog {
     fontSizeDropdown = new JComboBox();
     String defaultLevel = TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"); //$NON-NLS-1$
     fontSizeDropdown.addItem(defaultLevel);
-    for (int i=1; i<4; i++) {
+    int preferredLevel = Tracker.preferredFontLevel + Tracker.preferredFontLevelPlus;
+    int maxLevel = Math.max(preferredLevel, 6);
+    for (int i=1; i<=maxLevel; i++) {
     	String s = "+"+i; //$NON-NLS-1$
     	fontSizeDropdown.addItem(s);
     }
-    fontSizeDropdown.setSelectedIndex(Tracker.preferredFontLevel);
+    fontSizeDropdown.setSelectedIndex(preferredLevel);
     fontSizeDropdown.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
-        Tracker.preferredFontLevel = fontSizeDropdown.getSelectedIndex();
+    		int preferredLevel = fontSizeDropdown.getSelectedIndex();
+        Tracker.preferredFontLevel = Math.min(preferredLevel, 3);
+        Tracker.preferredFontLevelPlus = preferredLevel - Tracker.preferredFontLevel;
     	}
     });
     fontSubPanel.add(fontSizeDropdown);
@@ -1280,7 +1284,7 @@ public class PrefsDialog extends JDialog {
     checkForUpgradeButton = new JButton();
     checkForUpgradeButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	Tracker.loadCurrentVersion(true);
+      	Tracker.loadCurrentVersion(true, false);
     		Tracker.lastMillisChecked = System.currentTimeMillis();
   			if (trackerPanel!=null) TTrackBar.getTrackbar(trackerPanel).refresh();
     		String message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$

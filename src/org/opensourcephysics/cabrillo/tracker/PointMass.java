@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -1945,13 +1945,11 @@ public class PointMass extends TTrack {
     	boolean xMass = TToolBar.getToolbar(trackerPanel).xMassButton.isSelected();    	
       if (isVelocity(step)) {
         if (xMass) {
-        	stepValueLabel.setText("p " + n); //$NON-NLS-1$
         	xLabel.setText("px"); //$NON-NLS-1$
         	yLabel.setText("py"); //$NON-NLS-1$
         	magLabel.setText("p"); //$NON-NLS-1$
         }
         else {
-        	stepValueLabel.setText("v " + n); //$NON-NLS-1$
         	xLabel.setText("vx"); //$NON-NLS-1$
         	yLabel.setText("vy"); //$NON-NLS-1$
         	magLabel.setText("v"); //$NON-NLS-1$
@@ -1959,13 +1957,11 @@ public class PointMass extends TTrack {
       }
       else if (isAcceleration(step)) {
         if (xMass) {
-        	stepValueLabel.setText("F " + n); //$NON-NLS-1$
         	xLabel.setText("Fx"); //$NON-NLS-1$
         	yLabel.setText("Fy"); //$NON-NLS-1$
         	magLabel.setText("F"); //$NON-NLS-1$
         }
         else {
-        	stepValueLabel.setText("a " + n); //$NON-NLS-1$
         	xLabel.setText("ax"); //$NON-NLS-1$
         	yLabel.setText("ay"); //$NON-NLS-1$
         	magLabel.setText("a"); //$NON-NLS-1$
@@ -1977,7 +1973,6 @@ public class PointMass extends TTrack {
       angleField.setEnabled(false);
     }
     else {
-    	stepValueLabel.setText("" + n); //$NON-NLS-1$
     	xLabel.setText("x"); //$NON-NLS-1$
     	yLabel.setText("y"); //$NON-NLS-1$
     	magLabel.setText("r"); //$NON-NLS-1$
@@ -1989,7 +1984,6 @@ public class PointMass extends TTrack {
 
     list.add(stepLabel);
     list.add(stepValueLabel);
-    list.add(tValueLabel);
     list.add(tSeparator);
     list.add(xLabel);
     list.add(xField);

@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -34,6 +34,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is a step for RGB tracks. It is used for obtaining
@@ -53,6 +54,7 @@ public class RGBStep extends Step {
   protected Map<TrackerPanel, Shape> hitShapes = new HashMap<TrackerPanel, Shape>();
 	protected double[] rgbData = new double[5];
 	protected boolean dataValid = false;
+	protected BasicStroke stroke;
 
   static {
   	crosshair = new GeneralPath();
@@ -130,6 +132,13 @@ public class RGBStep extends Step {
    * @return the mark
    */
   protected Mark getMark(TrackerPanel trackerPanel) {
+  	BasicStroke baseStroke = footprint.getStroke();
+    int scale = FontSizer.getIntegerFactor();
+    float lineWidth = Math.min(scale*baseStroke.getLineWidth(), radius/3);
+    lineWidth = Math.max(lineWidth, baseStroke.getLineWidth());
+  	if (stroke==null || stroke.getLineWidth()!=lineWidth) {
+  		stroke = new BasicStroke(lineWidth);
+  	}
     Mark mark = marks.get(trackerPanel);
     if (mark == null) {
       transform = trackerPanel.getPixelTransform();
@@ -144,18 +153,21 @@ public class RGBStep extends Step {
       // center of circle is crosshair or selectionShape
     	Point p = position.getScreenPosition(trackerPanel);
       transform.setToTranslation(p.x, p.y);
+      final Shape cross = transform.createTransformedShape(crosshair);
+      if (scale>1) {
+      	transform.scale(scale, scale);
+      }
       final Shape square = position == trackerPanel.getSelectedPoint()?
       	transform.createTransformedShape(selectionShape): null;
-      final Shape cross = transform.createTransformedShape(crosshair);
       mark = new Mark() {
         public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           g.setPaint(footprint.getColor());
           g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
           		RenderingHints.VALUE_ANTIALIAS_ON);
+          g.setStroke(stroke);
           if (square != null) g.fill(square);
           else g.draw(cross);
-          g.setStroke(footprint.getStroke());
           g.draw(rgn);
           g.setPaint(gpaint);
         }

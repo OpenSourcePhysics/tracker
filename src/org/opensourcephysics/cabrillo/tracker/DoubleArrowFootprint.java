@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -28,6 +28,8 @@ import java.awt.*;
 import java.awt.geom.Area;
 
 import javax.swing.Icon;
+
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * An DoubleArrowFootprint returns a double arrow shape
@@ -60,6 +62,9 @@ public class DoubleArrowFootprint extends LineFootprint {
    * @return the icon
    */
   public Icon getIcon(int w, int h) {
+    int scale = FontSizer.getIntegerFactor();
+    w *= scale;
+    h *= scale;
     Point[] points = new Point[] {new Point(), new Point(w - 2, 2 - h)};
     Shape shape = getShape(points, false);
     ShapeIcon icon = new ShapeIcon(shape, w, h);
@@ -129,19 +134,30 @@ public class DoubleArrowFootprint extends LineFootprint {
     transform.translate(p2.x, p2.y);
     float d = (float) p1.distance(p2); // length of the line
     // set arrowhead dimensions and stroke
-    int tipL = tipLength;
+//    int tiplen = tipLength*scale;
+//    int tipL = Math.min(tiplen, Math.round(d-4));
+    int scale = FontSizer.getIntegerFactor();
+    int tipL = tipLength*scale;
     if (bothEnds) 
-    	tipL = Math.min(tipLength, Math.round(d/2-3));
+    	tipL = Math.min(tipL, Math.round(d/2-3));
     tipL = Math.max(8, tipL);
     int tipW = Math.max(tipL/4, 3);
-    float f = stroke.getLineWidth();
-    BasicStroke s = f < tipL/4? stroke: 
-    	new BasicStroke(Math.max(tipL/4, 0.8f),
+    float f = scale*baseStroke.getLineWidth();
+    float lineWidth = f < tipL/4? f: Math.max(tipL/4, 0.8f);
+  	if (stroke==null || stroke.getLineWidth()!=lineWidth) {
+  		stroke = new BasicStroke(lineWidth,
           BasicStroke.CAP_BUTT,
           BasicStroke.JOIN_MITER,
           8,
-          stroke.getDashArray(),
+          baseStroke.getDashArray(),
+          baseStroke.getDashPhase());
+      headStroke = new BasicStroke(lineWidth,
+          BasicStroke.CAP_BUTT,
+          BasicStroke.JOIN_MITER,
+          8,
+          null,
           stroke.getDashPhase());
+  	}    
     // set up tip hitShape using full length
     path.reset();
     path.moveTo(d - 4, 0);
@@ -167,15 +183,15 @@ public class DoubleArrowFootprint extends LineFootprint {
     hitShapes[2] = transform.createTransformedShape(path); // for shaft
     // shorten d to account for the width of the stroke
     // see Java 2D API Graphics, by VJ Hardy (Sun, 2000) page 147
-    float w = (float) (s.getLineWidth() * 1.58) - 1;
+    float w = (float) (stroke.getLineWidth() * 1.58) - 1;
     d = d - w;
     
 		// set up draw shape
 		path.reset();
-		path.moveTo(tipL-tipW, 0);
+		path.moveTo(tipL+w-tipW, 0);
 		path.lineTo(bothEnds? d-tipL+tipW: d, 0);
 		Shape shaft = transform.createTransformedShape(path);
-		shaft = s.createStrokedShape(shaft);
+		shaft = stroke.createStrokedShape(shaft);
 		Area area = new Area(shaft);
 		path.reset();
 	  path.moveTo(w+tipL-tipW, 0);

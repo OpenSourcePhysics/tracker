@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -53,7 +53,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
   // static fields
   protected static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
-  protected static String helpPathWeb = "http://www.cabrillo.edu/~dbrown/tracker/help/"; //$NON-NLS-1$
+  protected static String helpPathWeb = "http://physlets.org/tracker/help/"; //$NON-NLS-1$
   static Color yellow = new Color(255, 255, 105);
 
   // instance fields
@@ -67,8 +67,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   protected JTabbedPane tabbedPane;
   protected JTextPane notesTextPane;
   protected Action saveNotesAction;
-  protected JButton cancelNotesDialogButton;
-  protected JButton closeNotesDialogButton;
+  protected JButton cancelNotesDialogButton, closeNotesDialogButton;
+  protected JCheckBox displayWhenLoadedCheckbox;
   protected JDialog notesDialog;
   protected JDialog helpDialog;
   protected LibraryBrowser libraryBrowser;
@@ -808,7 +808,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
         }
         // refresh info dialog
         cancelNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
-        closeNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+        closeNotesDialogButton.setText(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$
+        displayWhenLoadedCheckbox.setText(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
       }
       // refresh memory button
       TTrackBar.refreshMemoryButton();
@@ -1469,10 +1470,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     Runnable runner = new Runnable() {
       public void run() {
       	TTrack track = panel.getSelectedTrack();
-      	if ((track != null && track.getDescription()!= null &&
+      	if (!panel.hideDescriptionWhenLoaded &&
+      			((track != null && track.getDescription()!= null &&
                 !track.getDescription().trim().equals("")) || //$NON-NLS-1$
             (track == null && panel.getDescription() != null &&
-                !panel.getDescription().trim().equals(""))) { //$NON-NLS-1$
+                !panel.getDescription().trim().equals("")))) { //$NON-NLS-1$
           if (!button.isSelected()) button.doClick();
         }
         else if (button.isSelected()) button.doClick();
@@ -1584,6 +1586,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
           }
           else if (!desc.equals(trackerPanel.getDescription())) {
             trackerPanel.setDescription(desc);
+            trackerPanel.hideDescriptionWhenLoaded = false;
           }
         }
       	notesTextPane.setBackground(Color.WHITE);
@@ -1633,6 +1636,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     infoContentPane.add(textScroller, BorderLayout.CENTER);
     JPanel buttonbar = new JPanel(new FlowLayout());
     infoContentPane.add(buttonbar, BorderLayout.SOUTH);
+    displayWhenLoadedCheckbox = new JCheckBox(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
+    displayWhenLoadedCheckbox.addActionListener(new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
+        if (trackerPanel!=null) {
+        	trackerPanel.hideDescriptionWhenLoaded = !displayWhenLoadedCheckbox.isSelected();
+        }
+      }
+    });
+    buttonbar.add(displayWhenLoadedCheckbox); 
+    buttonbar.add(Box.createHorizontalStrut(50));
     cancelNotesDialogButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
     cancelNotesDialogButton.addActionListener(new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
@@ -1641,13 +1655,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       }
     });
     buttonbar.add(cancelNotesDialogButton);    
-    closeNotesDialogButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+    closeNotesDialogButton = new JButton(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$
     closeNotesDialogButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	notesDialog.setVisible(false);
       }
     });
-    buttonbar.add(closeNotesDialogButton);    
+    buttonbar.add(closeNotesDialogButton);
     notesDialog.pack();
     // create the tabbed pane
     tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);

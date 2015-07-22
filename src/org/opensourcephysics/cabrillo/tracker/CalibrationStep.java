@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -31,6 +31,7 @@ import javax.swing.JOptionPane;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is a Step for a Calibration. It is used for
@@ -125,6 +126,10 @@ public class CalibrationStep extends Step {
         Point p = points[i].getScreenPosition(trackerPanel);
         if (selection == points[i]) { // point is selected
           transform.setToTranslation(p.x, p.y);
+          int scale = FontSizer.getIntegerFactor();
+          if (scale>1) {
+          	transform.scale(scale, scale);
+          }
           shapes[i] = transform.createTransformedShape(selectionShape);
         }
         else { // point not selected

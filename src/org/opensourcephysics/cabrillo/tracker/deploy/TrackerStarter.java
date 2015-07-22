@@ -19,7 +19,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker.deploy;
 
@@ -306,8 +306,9 @@ public class TrackerStarter {
   	}
   	if (loadedPath!=null) {
   		control.setValue("prefsPath", loadedPath); //$NON-NLS-1$
+    	return control;
   	}
-  	return control;
+  	return null;
 	}
 
 	/**
@@ -329,7 +330,7 @@ public class TrackerStarter {
 			}
 			if (f.exists() && f.isDirectory()) {
 				xuggleHome = f.getPath();
-				if (writeToLog) logMessage("xuggleHome found relative to TrackerHome: "+xuggleHome); //$NON-NLS-1$
+				if (writeToLog) logMessage("xugglehome found relative to trackerhome: "+xuggleHome); //$NON-NLS-1$
 			}
 		}
 
@@ -349,8 +350,8 @@ public class TrackerStarter {
 		}
 
 		if (xuggleHome==null)
-			throw new NullPointerException("xuggleHome not found"); //$NON-NLS-1$
-		if (writeToLog) logMessage("using xuggleHome: " + xuggleHome); //$NON-NLS-1$
+			throw new NullPointerException("xugglehome not found"); //$NON-NLS-1$
+		if (writeToLog) logMessage("using xugglehome: " + xuggleHome); //$NON-NLS-1$
 		return xuggleHome;
 	}
 
@@ -457,6 +458,10 @@ public class TrackerStarter {
 		boolean loaded = false;
 		
 		XMLControl prefsXMLControl = findPreferences();
+		if (prefsXMLControl==null) {
+			logMessage("no preferences file found"); //$NON-NLS-1$    
+			return;
+		}
 		String prefsPath = prefsXMLControl.getString("prefsPath"); //$NON-NLS-1$
 		
 		// now read the preferences from the prefsXMLControl

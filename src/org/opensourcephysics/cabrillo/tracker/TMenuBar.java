@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -145,7 +145,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem newRGBRegionItem;
   protected JMenuItem newProtractorItem;
   protected JMenuItem newTapeItem;
-  protected JMenuItem newCompassItem;
+  protected JMenuItem newCircleFitterItem;
   protected JCheckBoxMenuItem axesVisibleItem;
   protected JMenuItem newAnalyticParticleItem;
   protected JMenu newDynamicParticleMenu;
@@ -689,7 +689,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       }
 
     };
-    for(int i = 0; i<4; i++) {
+    for(int i = 0; i<6; i++) {
     	String s = i==0? TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"): "+"+i; //$NON-NLS-1$ //$NON-NLS-2$
       JMenuItem item = new JRadioButtonMenuItem(s);
       item.addActionListener(fontSizeAction);
@@ -760,7 +760,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     newRGBRegionItem = new JMenuItem(actions.get("rgbRegion")); //$NON-NLS-1$
     newProtractorItem = new JMenuItem(actions.get("protractor")); //$NON-NLS-1$
     newTapeItem = new JMenuItem(actions.get("tape")); //$NON-NLS-1$
-    newCompassItem = new JMenuItem(actions.get("compass")); //$NON-NLS-1$
+    newCircleFitterItem = new JMenuItem(actions.get("circleFitter")); //$NON-NLS-1$
     // clone track menu
     cloneMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Clone")); //$NON-NLS-1$
     // measuring tools menu
@@ -1763,14 +1763,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           }
         }
         if (trackerPanel.isEnabled("new.tapeMeasure") || //$NON-NLS-1$
-            trackerPanel.isEnabled("new.protractor")) { //$NON-NLS-1$
+            trackerPanel.isEnabled("new.protractor") || //$NON-NLS-1$
+            trackerPanel.isEnabled("new.circleFitter")) { //$NON-NLS-1$
           if (createMenu.getItemCount() > 0) createMenu.addSeparator();
           createMenu.add(measuringToolsMenu);
           measuringToolsMenu.removeAll();
           if (trackerPanel.isEnabled("new.tapeMeasure")) measuringToolsMenu.add(newTapeItem); //$NON-NLS-1$
           if (trackerPanel.isEnabled("new.protractor")) measuringToolsMenu.add(newProtractorItem); //$NON-NLS-1$
-          boolean pig = true;
-//          if (pig || trackerPanel.isEnabled("new.compass")) measuringToolsMenu.add(newCompassItem); //$NON-NLS-1$
+          if (trackerPanel.isEnabled("new.circleFitter")) measuringToolsMenu.add(newCircleFitterItem); //$NON-NLS-1$
         }
         // calibration tools menu
         if (trackerPanel.isEnabled("calibration.stick") //$NON-NLS-1$

@@ -20,12 +20,15 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
+
 import javax.swing.*;
+
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * An OutlineFootprint returns an outline shape for a Point array of length 2.
@@ -44,7 +47,7 @@ public class OutlineFootprint extends LineFootprint {
    */
   public OutlineFootprint(String name) {
     super(name);
-    setStroke(stroke);
+    setStroke(baseStroke);
   }
 
   /**
@@ -73,9 +76,12 @@ public class OutlineFootprint extends LineFootprint {
    * @return the icon
    */
   public Icon getIcon(int w, int h) {
-    Point[] points = new Point[] {new Point(), new Point(w - 2, 2 - h)};
+    int scale = FontSizer.getIntegerFactor();
+    w *= scale;
+    h *= scale;
+    Point[] points = new Point[] {new Point(), new Point(w - scale*2, scale*2 - h)};
     int prevSpread = spread;
-    spread = 1;
+    spread = scale;
     Shape shape = getShape(points);
     ShapeIcon icon = new ShapeIcon(shape, w, h);
     icon.setColor(color);
@@ -116,12 +122,18 @@ public class OutlineFootprint extends LineFootprint {
     int w = Math.min(spread + 1, 4);
     path.moveTo(d/2, w);
     path.lineTo(d/2, -w);
+    int scale = FontSizer.getIntegerFactor();
     // centerline
-    if (getSpread() > 4) {
+    if (getSpread() > 4 +2*scale) {
       path.moveTo(0, 0);
       path.lineTo(d, 0);
     }
     Shape outline = transform.createTransformedShape(path); // outline shape
+    float lineWidth = Math.min(scale*baseStroke.getLineWidth(), spread+1);
+    lineWidth = Math.max(lineWidth, baseStroke.getLineWidth());
+  	if (stroke==null || stroke.getLineWidth()!=lineWidth) {
+  		stroke = new BasicStroke(lineWidth);
+  	}
     outline = stroke.createStrokedShape(outline);
     // ceate hitshapes
     path.reset();

@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -35,6 +35,7 @@ import java.net.URL;
 import javax.swing.*;
 
 import org.opensourcephysics.controls.*;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
@@ -144,7 +145,7 @@ public class TActions {
     };
     actions.put("paste", pasteAction); //$NON-NLS-1$
     // open
-    Icon icon = new ImageIcon(Tracker.class.getResource("resources/images/open.gif")); //$NON-NLS-1$
+    Icon icon = new ResizableIcon(Tracker.class.getResource("resources/images/open.gif")); //$NON-NLS-1$
     final AbstractAction openAction = new AbstractAction(TrackerRes.getString("TActions.Action.Open"), icon) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
         trackerPanel.setSelectedPoint(null);
@@ -191,7 +192,7 @@ public class TActions {
     };
     actions.put("openURL", openURLAction); //$NON-NLS-1$
     // openBrowser
-    icon = new ImageIcon(Tracker.class.getResource("resources/images/open_catalog.gif")); //$NON-NLS-1$
+    icon = new ResizableIcon(Tracker.class.getResource("resources/images/open_catalog.gif")); //$NON-NLS-1$
     final AbstractAction openBrowserAction = new AbstractAction(TrackerRes.getString("TActions.Action.OpenBrowser"), icon) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
         TFrame frame = trackerPanel.getTFrame();
@@ -246,7 +247,7 @@ public class TActions {
     };
     actions.put("importData", importDataAction); //$NON-NLS-1$
     // save current tab
-    icon = new ImageIcon(Tracker.class.getResource("resources/images/save.gif")); //$NON-NLS-1$
+    icon = new ResizableIcon(Tracker.class.getResource("resources/images/save.gif")); //$NON-NLS-1$
     AbstractAction saveAction = new AbstractAction(TrackerRes.getString("TActions.Action.Save"), icon) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
         TrackerIO.save(trackerPanel.getDataFile(), trackerPanel);
@@ -263,7 +264,7 @@ public class TActions {
     };
     actions.put("saveAs", saveAsAction); //$NON-NLS-1$
     // save zip resource
-    icon = new ImageIcon(Tracker.class.getResource("resources/images/save_zip.gif")); //$NON-NLS-1$
+    icon = new ResizableIcon(Tracker.class.getResource("resources/images/save_zip.gif")); //$NON-NLS-1$
     AbstractAction saveZipAction = new AbstractAction(TrackerRes.getString("TActions.Action.SaveZip")+"...", icon) { //$NON-NLS-1$ //$NON-NLS-2$
       public void actionPerformed(ActionEvent e) {
       	ExportZipDialog zipDialog = ExportZipDialog.getDialog(trackerPanel);
@@ -310,7 +311,7 @@ public class TActions {
     };
     actions.put("config", configAction); //$NON-NLS-1$
     // axesVisible
-    icon = new ImageIcon(Tracker.class.getResource("resources/images/axes.gif")); //$NON-NLS-1$
+    icon = new ResizableIcon(Tracker.class.getResource("resources/images/axes.gif")); //$NON-NLS-1$
     AbstractAction axesVisibleAction = new AbstractAction(TrackerRes.getString("TActions.Action.AxesVisible"), icon) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
       	CoordAxes axes = trackerPanel.getAxes();
@@ -636,17 +637,17 @@ public class TActions {
       }
     };
     actions.put("protractor", protractorAction); //$NON-NLS-1$
-    // new compass
-    AbstractAction compassAction = new AbstractAction(TrackerRes.getString("Compass.Name"), null) { //$NON-NLS-1$
+    // new circle track
+    AbstractAction circleFitterAction = new AbstractAction(TrackerRes.getString("CircleFitter.Name"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
-        Compass compass = new Compass();
-        compass.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
-        trackerPanel.addTrack(compass);
+        CircleFitter track = new CircleFitter();
+        track.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
+        trackerPanel.addTrack(track);
         trackerPanel.setSelectedPoint(null);
-        trackerPanel.setSelectedTrack(compass);
+        trackerPanel.setSelectedTrack(track);
       }
     };
-    actions.put("compass", compassAction); //$NON-NLS-1$
+    actions.put("circleFitter", circleFitterAction); //$NON-NLS-1$
     // clone track action
     AbstractAction cloneTrackAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {

@@ -19,7 +19,7 @@
  * <http://www.gnu.org/copyleft/gpl.html>
  * 
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -29,6 +29,8 @@ import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+
+import javax.swing.JOptionPane;
 
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
@@ -366,10 +368,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		int index = dataClip.stepToIndex(0);
     point.setLocation(xData[index], yData[index]);
 		ImageCoordSystem coords = trackerPanel.getCoords();
-		// get underlying coords if reference frame
-		while (coords instanceof ReferenceFrame) {
-		  coords = ( (ReferenceFrame) coords).getCoords();
-		}
+    // get underlying coords if appropriate
+    boolean useDefault = isUseDefaultReferenceFrame();
+    while (useDefault && coords instanceof ReferenceFrame) {
+      coords = ( (ReferenceFrame) coords).getCoords();
+    }
 		
 	  int firstFrameInClip = getStartFrame();
 		AffineTransform transform = coords.getToImageTransform(firstFrameInClip);
@@ -430,7 +433,12 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		double[][] oldData = getDataArray();
 		int n = oldData[0].length;
 		if (newData[0].length<=n) {
-			// pig inform user
+			// inform user that no new data was found
+			TFrame frame = trackerPanel!=null? trackerPanel.getTFrame(): null;
+			JOptionPane.showMessageDialog(frame, 
+					TrackerRes.getString("ParticleDataTrack.Dialog.NoNewData.Message"), //$NON-NLS-1$
+					TrackerRes.getString("ParticleDataTrack.Dialog.NoNewData.Title"), //$NON-NLS-1$
+					JOptionPane.WARNING_MESSAGE);
 			return;
 		}
 		for (int i=0; i<newData.length; i++) {

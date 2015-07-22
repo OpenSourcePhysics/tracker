@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -35,6 +35,8 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import javax.swing.Icon;
+
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * A ProtractorFootprint returns a pair of lines that meet at a vertex
@@ -62,17 +64,15 @@ public class ProtractorFootprint implements Footprint, Cloneable {
   private static AffineTransform transform = new AffineTransform();
   private static Arc2D arc = new Arc2D.Double(-arcRadius, -arcRadius, 
   		2*arcRadius, 2*arcRadius, 0, 0, Arc2D.OPEN);
-  private static BasicStroke arcStroke = new BasicStroke();
-
 
   // instance fields
   protected String name;
-  protected BasicStroke stroke;
+  protected BasicStroke baseStroke, stroke;
   protected Color color = Color.black;
   protected Shape[] hitShapes = new Shape[6];
 	protected Shape circle;
 	protected int radius;
-  private Stroke arcAdjustStroke;
+  private Stroke arcStroke, arcAdjustStroke;
 
   /**
    * Constructs a ProtractorFootprint.
@@ -122,13 +122,28 @@ public class ProtractorFootprint implements Footprint, Cloneable {
    * @return the icon
    */
   public Icon getIcon(int w, int h) {
-  	Shape shape = stroke.createStrokedShape(circle);
+    int scale = FontSizer.getIntegerFactor();
+    w *= scale;
+    h *= scale;
+    transform.setToScale(scale, scale);
+    Shape shape = transform.createTransformedShape(circle);
+  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
+  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
+  		arcStroke = new BasicStroke(scale);
+      arcAdjustStroke = new BasicStroke(stroke.getLineWidth(),
+          BasicStroke.CAP_BUTT,
+          BasicStroke.JOIN_MITER,
+          8,
+          DOTTED_LINE,
+          stroke.getDashPhase());  
+  	}
+  	shape = stroke.createStrokedShape(shape);
     Area area = new Area(shape);
-    double x0 = radius-w+2;
-    double y0 = h-radius-2;
+    double x0 = scale*(radius+2)-w;
+    double y0 = h-scale*(radius+2);
     double d = Math.sqrt(x0*x0+y0*y0);
-    double x1 = x0*radius/d;
-    double y1 = y0*radius/d;
+    double x1 = x0*scale*radius/d;
+    double y1 = y0*scale*radius/d;
     Line2D line = new Line2D.Double(x0, y0, x1, y1);
     area.add(new Area(stroke.createStrokedShape(line)));
     line.setLine(x0, y0, radius-2, y0);
@@ -179,7 +194,7 @@ public class ProtractorFootprint implements Footprint, Cloneable {
    */
   public void setStroke(BasicStroke stroke) {
     if (stroke == null) return;
-    this.stroke = new BasicStroke(stroke.getLineWidth(),
+    baseStroke = new BasicStroke(stroke.getLineWidth(),
                                   BasicStroke.CAP_BUTT,
                                   BasicStroke.JOIN_MITER,
                                   8,
@@ -199,7 +214,7 @@ public class ProtractorFootprint implements Footprint, Cloneable {
    * @return the stroke
    */
   public BasicStroke getStroke() {
-    return stroke;
+    return baseStroke;
   }
 
   /**
@@ -228,8 +243,12 @@ public class ProtractorFootprint implements Footprint, Cloneable {
    */
   public Shape getCircleShape(Point p) {
   	transform.setToTranslation(p.x, p.y);
-  	Shape shape = stroke.createStrokedShape(circle);
-  	shape = transform.createTransformedShape(shape);
+    int scale = FontSizer.getIntegerFactor();
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
+  	Shape shape = transform.createTransformedShape(circle);
+  	shape = stroke.createStrokedShape(shape);
   	return shape;
   }
 
@@ -243,8 +262,9 @@ public class ProtractorFootprint implements Footprint, Cloneable {
    */
   public Shape getArcAdjustShape(Point vertex, Point rotator) {
   	double theta = Math.toRadians(arc.getAngleStart()+arc.getAngleExtent()/2);
-	  p.x = (int)Math.round(vertex.x + arcRadius*Math.cos(theta));
-	  p.y = (int)Math.round(vertex.y - arcRadius*Math.sin(theta));
+    int scale = FontSizer.getIntegerFactor();
+	  p.x = (int)Math.round(vertex.x + scale*arcRadius*Math.cos(theta));
+	  p.y = (int)Math.round(vertex.y - scale*arcRadius*Math.sin(theta));
 	  Shape circle = getCircleShape(p);
     Area area = new Area(circle);
   	if (rotator!=null) {
@@ -268,7 +288,8 @@ public class ProtractorFootprint implements Footprint, Cloneable {
     Point vertex = points[0];
     Point end1 = points[1];
     Point end2 = points[2];
-    int r = circle.getBounds().width/2;
+    int scale = FontSizer.getIntegerFactor();
+    int r = scale*circle.getBounds().width/2;
     
     // line1 and line2 shapes
     line1.setLine(vertex, end1);
@@ -279,10 +300,26 @@ public class ProtractorFootprint implements Footprint, Cloneable {
     if (d2>1) adjustLineLength(line2, 1, (d2-r)/d2);
     
     // end1 & end2 shapes
+  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
+  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
+  		arcStroke = new BasicStroke(scale);
+      arcAdjustStroke = new BasicStroke(stroke.getLineWidth(),
+          BasicStroke.CAP_BUTT,
+          BasicStroke.JOIN_MITER,
+          8,
+          DOTTED_LINE,
+          stroke.getDashPhase());  
+  	}
     transform.setToTranslation(end1.x, end1.y);
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
     Shape end1Shape = transform.createTransformedShape(circle);
     end1Shape = stroke.createStrokedShape(end1Shape);
     transform.setToTranslation(end2.x, end2.y);
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
     Shape end2Shape = transform.createTransformedShape(circle);
     end2Shape = stroke.createStrokedShape(end2Shape);
     
@@ -295,18 +332,24 @@ public class ProtractorFootprint implements Footprint, Cloneable {
     if (degrees < -180) degrees += 360;
     arc.setAngleExtent(degrees);
     transform.setToTranslation(vertex.x, vertex.y);
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
     Shape arcShape = transform.createTransformedShape(arc);
     
     // arrowhead where arc hits line2
     Shape dotShape = null;
     if (Math.abs(degrees)>10) {
-	    double xDot = vertex.getX() + arcRadius*(end2.getX()-vertex.getX())/d2;
-	    double yDot = vertex.getY() + arcRadius*(end2.getY()-vertex.getY())/d2;
+	    double xDot = vertex.getX() + scale*arcRadius*(end2.getX()-vertex.getX())/d2;
+	    double yDot = vertex.getY() + scale*arcRadius*(end2.getY()-vertex.getY())/d2;
 	    double angle = -theta2-Math.PI/2;
 	    if (degrees<0)
 	    	angle += Math.PI;
 	    transform.setToRotation(angle, xDot, yDot);
 	    transform.translate(xDot, yDot);
+	    if (scale>1) {
+	    	transform.scale(scale, scale);
+	    }
 	    dotShape = transform.createTransformedShape(arrowhead);
     }
    
@@ -319,16 +362,25 @@ public class ProtractorFootprint implements Footprint, Cloneable {
     
     // hit shapes    
     transform.setToTranslation(vertex.x, vertex.y);
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
     hitShapes[0] = transform.createTransformedShape(hitShape); // vertex
     transform.setToTranslation(end1.x, end1.y);
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
     hitShapes[1] = transform.createTransformedShape(hitShape); // end1
     transform.setToTranslation(end2.x, end2.y);
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
     hitShapes[2] = transform.createTransformedShape(hitShape); // end2
-    if (d1>1) adjustLineLength(line1, (d1-arcRadius-8)/d1, (d1-8)/d1);
-    if (d2>1) adjustLineLength(line2, (d2-arcRadius-8)/d2, (d2-8)/d2);
-    hitShapes[3] = stroke.createStrokedShape(line1);
-    hitShapes[4] = stroke.createStrokedShape(line2);
-    hitShapes[5] = stroke.createStrokedShape(arcShape);
+    if (d1>1) adjustLineLength(line1, (d1-scale*arcRadius-8)/d1, (d1-8)/d1);
+    if (d2>1) adjustLineLength(line2, (d2-scale*arcRadius-8)/d2, (d2-8)/d2);
+    hitShapes[3] = baseStroke.createStrokedShape(line1);
+    hitShapes[4] = baseStroke.createStrokedShape(line2);
+    hitShapes[5] = baseStroke.createStrokedShape(arcShape);
     
     return drawMe;
   }

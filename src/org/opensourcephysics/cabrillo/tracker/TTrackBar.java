@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -77,10 +77,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
 		    	      	
-//	    	      	String path = "http://www.cabrillo.edu/~dbrown/tracker/counter/counter.html?page=test";
-//	              String result = ResourceLoader.getString(path);
-//	              System.out.println("pig "+result);
-	    	      			    	      	
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
 		  	    				testTimer=null;

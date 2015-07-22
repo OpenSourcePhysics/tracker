@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
+
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -348,6 +349,7 @@ public class TrackDataBuilder extends FunctionTool {
 			autoloadButton.setText(TrackerRes.getString("TrackerPanel.DataBuilder.Button.Autoload")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
 			autoloadButton.setToolTipText(TrackerRes.getString("TrackerPanel.DataBuilder.Button.Autoload.Tooltip")); //$NON-NLS-1$
 		}
+		setFontLevel(FontSizer.getLevel());
 		if (autoloadManager!=null) {
 			autoloadManager.refreshGUI();
 		}
@@ -403,6 +405,33 @@ public class TrackDataBuilder extends FunctionTool {
   		});
     }
     return panel;
+  }
+  
+  @Override
+  public void setFontLevel(int level) {
+  	if (autoloadButton==null) return;
+    level = Math.max(0, level);
+		Object[] toSize = new Object[] {loadButton, saveButton, autoloadButton};
+    FontSizer.setFonts(toSize, level);
+    for (String name: panels.keySet()) {
+    	TTrack track = trackerPanel.getTrack(name);
+    	FunctionPanel panel = panels.get(name);
+    	if (track==null || panel==null) continue;
+    	// get new footprint icon, automatically resized to current level
+	  	panel.setIcon(track.getFootprint().getIcon(21, 16));    	
+    }
+
+  	super.setFontLevel(level);
+  	validate();
+  	autoloadButton.revalidate();
+  }
+  
+  @Override
+  public void setVisible(boolean vis) {
+  	if (vis) {
+  		setFontLevel(FontSizer.getLevel());
+  	}
+  	super.setVisible(vis);
   }
 
   /**
@@ -728,9 +757,10 @@ public class TrackDataBuilder extends FunctionTool {
       autoloadManager.setLocation(x, y);
       
       if (!Tracker.dataFunctionControlStrings.isEmpty()) {
-      	// pig convert and save in user platform-dependent default directory? or let user decide?
-    		final String userhome = System.getProperty("user.home"); //$NON-NLS-1$
-    		if (userhome!=null) {
+      	// convert and save in user platform-dependent default search directory
+      	ArrayList<String> searchPaths = OSPRuntime.getDefaultSearchPaths();
+    		final String directory = searchPaths.size()>0? searchPaths.get(0): null;
+    		if (directory!=null) {
 	      	Runnable runner = new Runnable() {
 	      		public void run() {
 			      	int response = JOptionPane.showConfirmDialog(TrackDataBuilder.this, 
@@ -749,7 +779,7 @@ public class TrackDataBuilder extends FunctionTool {
 			      			builder.addPanelWithoutAutoloading("panel"+i, panel); //$NON-NLS-1$
 			      			i++;
 			      		}
-			      		File file = new File(userhome, "TrackerConvertedAutoloadFunctions.xml"); //$NON-NLS-1$
+			      		File file = new File(directory, "TrackerConvertedAutoloadFunctions.xml"); //$NON-NLS-1$
 			      		XMLControl control = new XMLControlElement(builder);
 			      		control.write(file.getAbsolutePath());
 			      		Tracker.dataFunctionControlStrings.clear();

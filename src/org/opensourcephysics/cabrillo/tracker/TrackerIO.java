@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -344,7 +344,6 @@ public class TrackerIO extends VideoIO {
   public static File[] getChooserFiles(String type) {
     JFileChooser chooser = getChooser();
     int result = JFileChooser.CANCEL_OPTION;
-    chooser.resetChoosableFileFilters();
     // open tracker or video file
   	if (type.toLowerCase().equals("open")) { //$NON-NLS-1$
 	    chooser.setMultiSelectionEnabled(false);
@@ -358,6 +357,7 @@ public class TrackerIO extends VideoIO {
     	File file = chooser.getSelectedFile();
 	    chooser.removeChoosableFileFilter(videoAndTrkFileFilter); 
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
+      chooser.resetChoosableFileFilters();
 	    if(result==JFileChooser.APPROVE_OPTION) {
 	      return new File[] {file};
 	    }
@@ -373,7 +373,7 @@ public class TrackerIO extends VideoIO {
       chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title"));        //$NON-NLS-1$
 	    result = chooser.showOpenDialog(null);
     	File file = chooser.getSelectedFile();
-	    chooser.removeChoosableFileFilter(trkFileFilter); 
+      chooser.resetChoosableFileFilters();
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
 	    if(result==JFileChooser.APPROVE_OPTION) {
 	      return new File[] {file};
@@ -386,6 +386,7 @@ public class TrackerIO extends VideoIO {
       chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title"));        //$NON-NLS-1$
 	    result = chooser.showOpenDialog(null);
     	File file = chooser.getSelectedFile();
+      chooser.resetChoosableFileFilters();
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
 	    if(result==JFileChooser.APPROVE_OPTION) {
 	      return new File[] {file};
@@ -402,7 +403,7 @@ public class TrackerIO extends VideoIO {
       chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title"));        //$NON-NLS-1$
       result = chooser.showOpenDialog(null);
     	File file = chooser.getSelectedFile();
-      chooser.removeChoosableFileFilter(videoFileFilter);
+      chooser.resetChoosableFileFilters();
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
 	    if(result==JFileChooser.APPROVE_OPTION) {
 	      return new File[] {file};
@@ -418,8 +419,7 @@ public class TrackerIO extends VideoIO {
       chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenData.Title"));        //$NON-NLS-1$
       result = chooser.showOpenDialog(null);
     	File file = chooser.getSelectedFile();
-      chooser.removeChoosableFileFilter(txtFileFilter);
-      chooser.removeChoosableFileFilter(jarFileFilter);
+      chooser.resetChoosableFileFilters();
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
 	    if(result==JFileChooser.APPROVE_OPTION) {
 	      return new File[] {file};
@@ -432,6 +432,7 @@ public class TrackerIO extends VideoIO {
       chooser.setMultiSelectionEnabled(false);
       result = chooser.showSaveDialog(null);
     	File file = chooser.getSelectedFile();
+      chooser.resetChoosableFileFilters();
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
 	    if(result==JFileChooser.APPROVE_OPTION && canWrite(file)) {
 	      return new File[] {file};
@@ -448,7 +449,7 @@ public class TrackerIO extends VideoIO {
       chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Import.Title")); //$NON-NLS-1$
 	    result = chooser.showOpenDialog(null);
     	File file = chooser.getSelectedFile();
-	    chooser.removeChoosableFileFilter(trkFileFilter); 
+      chooser.resetChoosableFileFilters();
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
 	    if(result==JFileChooser.APPROVE_OPTION) {
 	      return new File[] {file};
@@ -465,7 +466,7 @@ public class TrackerIO extends VideoIO {
       chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Export.Title")); //$NON-NLS-1$
 	    result = chooser.showSaveDialog(null);
     	File file = chooser.getSelectedFile();
-	    chooser.removeChoosableFileFilter(trkFileFilter); 
+      chooser.resetChoosableFileFilters();
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
 	    if(result==JFileChooser.APPROVE_OPTION) {
 	      return new File[] {file};
@@ -488,7 +489,7 @@ public class TrackerIO extends VideoIO {
       chooser.setSelectedFile(file);
       result = chooser.showSaveDialog(null);
     	file = chooser.getSelectedFile();
-	    chooser.removeChoosableFileFilter(trkFileFilter); 
+      chooser.resetChoosableFileFilters();
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
       if(result==JFileChooser.APPROVE_OPTION) {
         if(!defaultXMLExt.equals(getExtension(file))) {
@@ -887,7 +888,7 @@ public class TrackerIO extends VideoIO {
         }
 
 
-        // pig the line below needs to finish (in SwingWorker?) before continuing?
+        // should the line below finish (in SwingWorker?) before continuing?
         control.loadObject(trackerPanel);       
         
         trackerPanel.frame = frame;
@@ -1466,9 +1467,9 @@ public class TrackerIO extends VideoIO {
       		if (!choices.contains(next)) {
       			if (removeVideo) {
       				// remove video from clip property
-	            XMLProperty prop = vidControl.getParentProperty();
-      				vidClipControl.setValue("video", null); //$NON-NLS-1$
-      				vidClipControl.getPropertyContent().remove(prop);
+//	            XMLProperty prop = vidControl.getParentProperty();
+//      				vidClipControl.setValue("video", null); //$NON-NLS-1$
+//      				vidClipControl.getPropertyContent().remove(prop);
 	      		}
 	      		else {
 	      			// remove video clip property entirely

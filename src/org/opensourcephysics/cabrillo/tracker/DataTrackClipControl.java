@@ -13,6 +13,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.event.MouseListener;
 import java.awt.geom.GeneralPath;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -83,6 +84,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         dataTrack.setStartFrame(in);
         videoInSpinner.setValue(dataTrack.getStartFrame());
         repaint();
+        videoInSpinner.requestFocusInWindow();
       }
   	};
   	videoInSpinner.addChangeListener(listener);
@@ -99,6 +101,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         dataTrack.getDataClip().setStartIndex(in);
         dataInSpinner.setValue(dataTrack.getDataClip().getStartIndex());
         repaint();
+        dataInSpinner.requestFocusInWindow();
       }
   	};
   	dataInSpinner.addChangeListener(listener);
@@ -116,6 +119,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         dataTrack.getDataClip().setClipLength(length);
         dataClipLengthSpinner.setValue(dataTrack.getDataClip().getClipLength());
         repaint();
+        dataClipLengthSpinner.requestFocusInWindow();
       }
   	};
   	dataClipLengthSpinner.addChangeListener(listener);
@@ -132,6 +136,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         dataTrack.getDataClip().setStride(n);
         dataStrideSpinner.setValue(dataTrack.getDataClip().getStride());
         repaint();
+        dataStrideSpinner.requestFocusInWindow();
       }
   	};
   	dataStrideSpinner.addChangeListener(listener);
@@ -226,6 +231,12 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   	dataInLabel.setText(TrackerRes.getString("DataTrackClipControl.Label.DataStart")); //$NON-NLS-1$
   	dataStrideLabel.setText(TrackerRes.getString("DataTrackClipControl.Label.Stride")); //$NON-NLS-1$
 	}
+	
+	protected void addMouseListenerToAll(MouseListener listener) {
+		this.addMouseListener(listener);
+		drawingPanel.addMouseListener(listener);
+		spinnerPanel.addMouseListener(listener);
+	}
 
   @Override
   public Dimension getMaximumSize() {
@@ -283,7 +294,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   class MappingGraphic implements Interactive {
   	
 		GeneralPath path = new GeneralPath();
-		//pig convert to using TPoints & implement interactivity
 
 		@Override
 		public void draw(DrawingPanel panel, Graphics g) {
@@ -520,7 +530,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 
 		@Override
 		public Interactive findInteractive(DrawingPanel panel, int _xpix, int _ypix) {
-			// pig implement
 			return null;
 		}
 
@@ -537,7 +546,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 
 		@Override
 		public void setX(double x) {
-			// pig implement
 		}
 
 		@Override
@@ -545,7 +553,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 
 		@Override
 		public double getX() {
-			// pig implement
 			return 0;
 		}
 
