@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -1284,7 +1284,7 @@ public class PrefsDialog extends JDialog {
     checkForUpgradeButton = new JButton();
     checkForUpgradeButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	Tracker.loadCurrentVersion(true);
+      	Tracker.loadCurrentVersion(true, false);
     		Tracker.lastMillisChecked = System.currentTimeMillis();
   			if (trackerPanel!=null) TTrackBar.getTrackbar(trackerPanel).refresh();
     		String message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$

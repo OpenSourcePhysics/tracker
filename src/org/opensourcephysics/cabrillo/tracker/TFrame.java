@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -53,7 +53,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
   // static fields
   protected static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
-  protected static String helpPathWeb = "http://www.cabrillo.edu/~dbrown/tracker/help/"; //$NON-NLS-1$
+  protected static String helpPathWeb = "http://physlets.org/tracker/help/"; //$NON-NLS-1$
   static Color yellow = new Color(255, 255, 105);
 
   // instance fields
