@@ -1695,12 +1695,14 @@ public class Tracker {
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
   			if (response==0) {
   				// use prefs dialog to switch to 32-bit VM/default engine and relaunch
-  				PrefsDialog prefs = frame.getPrefsDialog();
-  				prefs.vm32Button.setSelected(true); // also sets default video engine
-  				// check that not canceled by user
-  				if (!"cancel".equals(prefs.vm32Button.getName())) { //$NON-NLS-1$
-  					prefs.relaunchButton.doClick(0);
-  				}
+  				Runnable launcher = new Runnable() {
+  					public void run() {
+  						PrefsDialog prefs = frame.getPrefsDialog();
+  						prefs.relaunch32Bit();
+  					}
+  				}; 					
+  				SwingUtilities.invokeLater(launcher);
+
   			}
     	}
     	else {

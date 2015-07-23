@@ -100,6 +100,7 @@ public class PrefsDialog extends JDialog {
   protected String recent32bitVM, recent64bitVM;
   protected String recentEngine;
   private boolean refreshing = false;
+  protected boolean relaunching = false;
   
   // previous values
   protected Set<String> prevEnabled = new TreeSet<String>();
@@ -1581,6 +1582,13 @@ public class PrefsDialog extends JDialog {
 		  				recent64bitVM = selectedItem;
 		  			}
 		  	    refreshing = false;
+		  	    if (vmBitness==32 && relaunching) {
+		  	  		// check that not canceled by user
+		  	  		if (!"cancel".equals(vm32Button.getName())) { //$NON-NLS-1$
+		  	  	    relaunching = false;
+		  	  			relaunchButton.doClick(0);
+		  	  		}
+		  	    }
 					}
 				};
 				SwingUtilities.invokeLater(refresher);  			
@@ -1820,6 +1828,14 @@ public class PrefsDialog extends JDialog {
   		if (tabbedPane.getComponentAt(i)==tab)
   			tabbedPane.setTitleAt(i, title);
   	}
+  }
+  
+  /**
+   * Relaunches after changing preferred VM to 32-bit
+   */
+  protected void relaunch32Bit() {
+  	relaunching = true;
+		vm32Button.setSelected(true); // also sets default video engine
   }
   
   /**
