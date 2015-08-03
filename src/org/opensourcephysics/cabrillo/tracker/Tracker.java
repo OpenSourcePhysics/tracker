@@ -1290,8 +1290,9 @@ public class Tracker {
   	String page = "version"; //$NON-NLS-1$
   	if (logToFile) {
   		// assemble "page" to send to counter
-  		String language = TrackerRes.locale.getLanguage();
-  		String country = TrackerRes.locale.getCountry();
+  		Locale locale = Locale.getDefault();
+  		String language = locale.getLanguage();
+  		String country = locale.getCountry();
       String engine = VideoIO.getEngine();
     	String os = "unknownOS"; //$NON-NLS-1$
 	    try { // system properties may not be readable in some environments
@@ -1300,10 +1301,10 @@ public class Tracker {
       os = os.replace(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
       page = "log_"+VERSION+"_"+os+"_"+engine; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
       if (!"".equals(language)) { //$NON-NLS-1$
+	      if (!"".equals(country)) { //$NON-NLS-1$
+	      	language += "-"+country; //$NON-NLS-1$
+	      }
       	page += "_"+language; //$NON-NLS-1$
-      }
-      if (!"".equals(country)) { //$NON-NLS-1$
-      	page += "_"+country; //$NON-NLS-1$
       }
   	}
   	return page;
@@ -1695,12 +1696,14 @@ public class Tracker {
             JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
   			if (response==0) {
   				// use prefs dialog to switch to 32-bit VM/default engine and relaunch
-  				PrefsDialog prefs = frame.getPrefsDialog();
-  				prefs.vm32Button.setSelected(true); // also sets default video engine
-  				// check that not canceled by user
-  				if (!"cancel".equals(prefs.vm32Button.getName())) { //$NON-NLS-1$
-  					prefs.relaunchButton.doClick(0);
-  				}
+  				Runnable launcher = new Runnable() {
+  					public void run() {
+  						PrefsDialog prefs = frame.getPrefsDialog();
+  						prefs.relaunch32Bit();
+  					}
+  				}; 					
+  				SwingUtilities.invokeLater(launcher);
+
   			}
     	}
     	else {

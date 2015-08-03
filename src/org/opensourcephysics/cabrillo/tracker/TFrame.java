@@ -808,7 +808,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
         }
         // refresh info dialog
         cancelNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
-        closeNotesDialogButton.setText(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$
+        closeNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$ 
         displayWhenLoadedCheckbox.setText(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
       }
       // refresh memory button
@@ -1592,6 +1592,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       	notesTextPane.setBackground(Color.WHITE);
       	cancelNotesDialogButton.setEnabled(false);
       	closeNotesDialogButton.setEnabled(true);
+        closeNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$ 
       }
     };
     notesDialog = new JDialog(this, false) {
@@ -1623,6 +1624,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       	if (!trackerPanel.isEnabled("notes.edit")) //$NON-NLS-1$
       		return;
       	notesTextPane.setBackground(yellow);
+        closeNotesDialogButton.setText(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$ 
       	cancelNotesDialogButton.setEnabled(true);
       }
     });
@@ -1655,7 +1657,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       }
     });
     buttonbar.add(cancelNotesDialogButton);    
-    closeNotesDialogButton = new JButton(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$
+    closeNotesDialogButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
     closeNotesDialogButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	notesDialog.setVisible(false);
