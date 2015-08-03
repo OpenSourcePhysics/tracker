@@ -1290,8 +1290,9 @@ public class Tracker {
   	String page = "version"; //$NON-NLS-1$
   	if (logToFile) {
   		// assemble "page" to send to counter
-  		String language = TrackerRes.locale.getLanguage();
-  		String country = TrackerRes.locale.getCountry();
+  		Locale locale = Locale.getDefault();
+  		String language = locale.getLanguage();
+  		String country = locale.getCountry();
       String engine = VideoIO.getEngine();
     	String os = "unknownOS"; //$NON-NLS-1$
 	    try { // system properties may not be readable in some environments
@@ -1300,10 +1301,10 @@ public class Tracker {
       os = os.replace(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
       page = "log_"+VERSION+"_"+os+"_"+engine; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
       if (!"".equals(language)) { //$NON-NLS-1$
+	      if (!"".equals(country)) { //$NON-NLS-1$
+	      	language += "-"+country; //$NON-NLS-1$
+	      }
       	page += "_"+language; //$NON-NLS-1$
-      }
-      if (!"".equals(country)) { //$NON-NLS-1$
-      	page += "_"+country; //$NON-NLS-1$
       }
   	}
   	return page;
