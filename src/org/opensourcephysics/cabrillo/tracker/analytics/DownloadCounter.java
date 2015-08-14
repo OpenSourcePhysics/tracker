@@ -23,14 +23,14 @@ import java.util.Calendar;
 import org.opensourcephysics.tools.Resource;
 
 /**
- * A program to read the launch/download "uncounted" files on the server and write to a local file.
+ * A program to read the PHP download counter and update the download counter file.
  *
  * @author Doug Brown
  * @version 1.0
  */
-public class UpdateUncountedFilesApp {
+public class DownloadCounter {
 	
-	static String dataFile = "C:/Users/Doug/Eclipse/workspace_deploy/analytics/uncounted.txt"; //$NON-NLS-1$
+	static String dataFile = "C:/Users/Doug/Eclipse/workspace_deploy/analytics/download_counts.csv"; //$NON-NLS-1$
 	static String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 	
   public static void main(String[] args) {
@@ -39,30 +39,47 @@ public class UpdateUncountedFilesApp {
     StringBuffer buffer = new StringBuffer();
   	buffer.append(getDateAndTime());
   	
-    // append uncounted page/file names
-  	String path = "http://physlets.org/tracker/installers/download.php?file=list__list"; //$NON-NLS-1$
-  	String uncounted = getUncountedPages(path);
-  	if (!"".equals(uncounted)) { //$NON-NLS-1$
-	  	buffer.append(NEW_LINE);
-	  	buffer.append(uncounted);  		
-  	}
+    // get file names (first line of dataFile except data/time)
+  	String[] filenames = getFileNames(dataFile);
   	
-  	path = "http://physlets.org/tracker/counter/counter.php?page=list_"; //$NON-NLS-1$
-  	uncounted = getUncountedPages(path);
-  	if (!"".equals(uncounted)) { //$NON-NLS-1$
-	  	buffer.append(NEW_LINE);
-	  	buffer.append(uncounted);  		
+  	// go through file names and append tabs and download counts
+		for (int j = 0; j<filenames.length; j++) {
+	  	String count = getDownloadCount(filenames[j]);
+	  	buffer.append("\t"+count); //$NON-NLS-1$
   	}
-
+		
 		// get current contents and add StringBuffer at end
 		String contents = read(dataFile);
 		contents += buffer.toString();
 		
 		// write the new contents to dataFile
 		write(contents, dataFile);
-
   }
   
+  /**
+   * Reads the first line of the data file and returns an array of file names.
+   *
+   * @return the file names
+   */
+  static String[] getFileNames(String dataFile) {
+    File file = new File(dataFile);
+    try {
+      BufferedReader in = new BufferedReader(new FileReader(file));
+      String firstLine = in.readLine();
+      in.close();
+      if (firstLine!=null) {
+    		String[] split = firstLine.split("\t"); //$NON-NLS-1$
+    		if (split.length>0) {
+    			String[] fileNames = new String[split.length-1];
+    			System.arraycopy(split, 1, fileNames, 0, fileNames.length);
+    			return fileNames;
+    		}
+      }
+    } catch(IOException ex) {
+    }
+    return new String[0];
+  }
+
   /**
    * Reads a file.
    *
@@ -113,16 +130,17 @@ public class UpdateUncountedFilesApp {
 		return sdf.format(cal.getTime());
   }
 	
-  static String getUncountedPages(String path) {
+  static String getDownloadCount(String filename) {
+  	String path = "http://physlets.org/tracker/installers/download.php?file="+filename+"__read"; //$NON-NLS-1$ //$NON-NLS-2$
     try {
 			URL url = new URL(path);
 			Resource res = new Resource(url);
-	    return res.getString().trim();
+    	return res.getString().trim();
 		} catch (MalformedURLException e) {
 		}
   	return null;
   }
-
+  
 }
 
 /*

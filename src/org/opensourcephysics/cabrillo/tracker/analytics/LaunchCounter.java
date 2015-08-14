@@ -27,7 +27,7 @@ import org.opensourcephysics.tools.Resource;
  * @author Doug Brown
  * @version 1.0
  */
-public class UpdateLaunchCounterFileApp {
+public class LaunchCounter {
 	
 	static String dataFile = "C:/Users/Doug/Eclipse/workspace_deploy/analytics/launch_counts.csv"; //$NON-NLS-1$
 	static String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -53,9 +53,6 @@ public class UpdateLaunchCounterFileApp {
 		
 		// write the new contents to dataFile
 		write(contents, dataFile);
-		
-    // finally list uncounted page names
-  	listUncountedPages();
   }
   
   /**
@@ -132,17 +129,6 @@ public class UpdateLaunchCounterFileApp {
 		return sdf.format(cal.getTime());
   }
 	
-  static void listUncountedPages() {
-  	String path = "http://physlets.org/tracker/counter/counter.php?page=list_"; //$NON-NLS-1$
-    try {
-			URL url = new URL(path);
-			Resource res = new Resource(url);
-	    System.out.println("uncounted:\n"+res.getString()); //$NON-NLS-1$
-		} catch (MalformedURLException e) {
-		}
-  	
-  }
-
   static String getCount(String filename) {
   	String path = "http://physlets.org/tracker/counter/counter.php?page=read_"+filename; //$NON-NLS-1$
     try {
