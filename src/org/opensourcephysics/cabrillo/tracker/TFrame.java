@@ -1309,7 +1309,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   					accept = accept || lcTarget.endsWith("."+ext); //$NON-NLS-1$
     			}
   				if (accept) {
-//		  			libraryBrowser.setVisible(false);
+		  			libraryBrowser.setVisible(false);
 		        Resource res = ResourceLoader.getResourceZipURLsOK(target);
   					if (res!=null) {
   						ArrayList<String> urlPaths = new ArrayList<String>();

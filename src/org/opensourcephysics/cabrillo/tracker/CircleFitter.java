@@ -62,6 +62,7 @@ public class CircleFitter extends TTrack {
   protected PointMass sourceTrack;
   protected int sourceStartStep = 0, sourceEndStep = 100000;
   protected CircleFitterInspector inspector;
+  protected boolean inspectorVisible;
 
   /**
    * Constructs a CircleFitter.
@@ -430,16 +431,41 @@ public class CircleFitter extends TTrack {
   	super.draw(panel, g);
   	if (inspector==null) {
   		getInspector().setVisible(true);
+    	if (trackerPanel.getTFrame()!=null) {
+    		trackerPanel.getTFrame().addPropertyChangeListener("tab", this); //$NON-NLS-1$
+    	}
   	}
   }
   
   @Override
+  public void delete() {
+  	if (inspector!=null) {
+			inspector.setVisible(false);
+			inspector.dispose();
+			inspector = null;
+  	}
+  	super.delete();
+  }
+  
+  @Override
   public void propertyChange(PropertyChangeEvent e) {
-    String name = e.getPropertyName();  
+    String name = e.getPropertyName(); 
     
     if (name.equals("track") && inspector!=null) { //$NON-NLS-1$
     	inspector.refreshDisplay();
     }
+		else if (name.equals("tab") && inspector!=null) { //$NON-NLS-1$
+			if (trackerPanel != null 
+					&& e.getNewValue() == trackerPanel 
+					&& inspectorVisible) {
+				inspector.setVisible(true);				
+			}
+			else if (inspector.isVisible()) {
+				inspector.setVisible(false);
+				inspectorVisible = true;
+			}
+			
+		}
     if (trackerPanel.getSelectedTrack() == this) {
       if (name.equals("stepnumber")) { //$NON-NLS-1$
       	refreshFields(trackerPanel.getFrameNumber());
@@ -705,6 +731,9 @@ public class CircleFitter extends TTrack {
   protected void setTrackerPanel(TrackerPanel panel) {
   	if (trackerPanel != null) { 
   		trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+  		if (trackerPanel.getTFrame()!=null) {
+  			trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
+  		}
   	}
 	  super.setTrackerPanel(panel);
   	if (trackerPanel != null) {
@@ -977,7 +1006,6 @@ public class CircleFitter extends TTrack {
     	Border etched = BorderFactory.createEtchedBorder();
     	Border empty = BorderFactory.createEmptyBorder(2,4,2,4);
     	textPane.setBorder(BorderFactory.createCompoundBorder(etched, empty));
-//      textPane.setBorder(BorderFactory.createEmptyBorder(2,4,2,4));
       textPane.setForeground(Color.blue);
 
     	
@@ -989,19 +1017,6 @@ public class CircleFitter extends TTrack {
         }
       };
       trackDropdown.setRenderer(new TrackRenderer());
-//      trackDropdown.addActionListener(new ActionListener() {
-//        public void actionPerformed(ActionEvent e) {
-//          Object[] item = (Object[])trackDropdown.getSelectedItem();
-//          if (item!=null) {
-//          	for (PointMass next: trackerPanel.getDrawables(PointMass.class)) {
-//          		if (item[1].equals(next.getName())) {
-//          			setSourceTrack(next);
-//          			refreshGUI();
-//          		}
-//          	}
-//          }
-//        }
-//      });
       
       SpinnerModel spinModel = new SpinnerNumberModel(sourceStartStep, 0, sourceEndStep, 1);
       startStepSpinner = new JSpinner(spinModel);
@@ -1147,6 +1162,12 @@ public class CircleFitter extends TTrack {
       // resize and pack
       FontSizer.setFonts(this, FontSizer.getLevel());
       pack();
+    }
+    
+    @Override
+    public void setVisible(boolean vis) {
+    	super.setVisible(vis);
+    	inspectorVisible = vis;
     }
 
   }
