@@ -1746,7 +1746,9 @@ public class PrefsDialog extends JDialog {
     		break;
     	}    	
     }
-    versionDropdown.setSelectedIndex(selected);
+    if (versionDropdown.getItemCount()>selected) {
+    	versionDropdown.setSelectedIndex(selected);
+    }
     
     // VM dropdown
     selected = 0;
@@ -1757,7 +1759,9 @@ public class PrefsDialog extends JDialog {
     		break;
     	}    	
     }
-    jreDropdown.setSelectedIndex(selected);
+    if (jreDropdown.getItemCount()>selected) {
+    	jreDropdown.setSelectedIndex(selected);
+    }
     
     // log level
     selected = 0;
@@ -1770,7 +1774,9 @@ public class PrefsDialog extends JDialog {
 	    	}    	
 	    }
     }
-    logLevelDropdown.setSelectedIndex(selected);
+    if (logLevelDropdown.getItemCount()>selected) {
+    	logLevelDropdown.setSelectedIndex(selected);
+    }
     
     // checkForUpgrade
     selected = 0;
@@ -1781,7 +1787,9 @@ public class PrefsDialog extends JDialog {
     		break;
     	}    	
     }
-    checkForUpgradeDropdown.setSelectedIndex(selected);
+    if (checkForUpgradeDropdown.getItemCount()>selected) {
+    	checkForUpgradeDropdown.setSelectedIndex(selected);
+    }
 
     // video
     if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)) {
