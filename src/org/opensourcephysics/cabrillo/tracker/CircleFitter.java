@@ -430,7 +430,7 @@ public class CircleFitter extends TTrack {
   public void draw(DrawingPanel panel, Graphics g) {
   	super.draw(panel, g);
   	if (inspector==null) {
-  		getInspector().setVisible(true);
+  		getInspector();
     	if (trackerPanel.getTFrame()!=null) {
     		trackerPanel.getTFrame().addPropertyChangeListener("tab", this); //$NON-NLS-1$
     	}
@@ -956,7 +956,7 @@ public class CircleFitter extends TTrack {
   /**
    * Inner CircleFitterInspector class to control source track and frames.
    */
-  private class CircleFitterInspector extends JDialog {
+  protected class CircleFitterInspector extends JDialog {
   	
   	private JTextArea textPane;
   	private JComboBox trackDropdown;

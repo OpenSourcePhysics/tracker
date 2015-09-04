@@ -28,7 +28,6 @@ import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.jar.JarFile;
@@ -1243,6 +1242,9 @@ public class Tracker {
    * @param logToFile true to log in to the PHP counter 
    */
   protected static void loadCurrentVersion(boolean ignoreInterval, final boolean logToFile) {  	
+		if (!ResourceLoader.isURLAvailable("http://www.opensourcephysics.org")) { //$NON-NLS-1$
+			return;
+		}
   	if (!ignoreInterval) {
 	  	// check to see if upgrade interval has passed
 	  	long millis = System.currentTimeMillis();
@@ -1324,7 +1326,7 @@ public class Tracker {
 	    String version = res.getString();
 	    OSPLog.finer(path+":   "+version); //$NON-NLS-1$
 	    return version;
-		} catch (MalformedURLException e) {
+		} catch (Exception e) {
 		}
   	return VERSION;
   }
