@@ -645,6 +645,7 @@ public class TActions {
         trackerPanel.addTrack(track);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(track);
+        track.getInspector().setVisible(true);
       }
     };
     actions.put("circleFitter", circleFitterAction); //$NON-NLS-1$
