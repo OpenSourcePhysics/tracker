@@ -2624,11 +2624,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         control.setValue("center_y", (int)rect.getCenterY()); //$NON-NLS-1$
       }
       // save the description, if any
+      if (trackerPanel.hideDescriptionWhenLoaded) {
+      	control.setValue("hide_description", true); //$NON-NLS-1$
+      }
       if (!trackerPanel.description.trim().equals("")) { //$NON-NLS-1$
         control.setValue("description", trackerPanel.description); //$NON-NLS-1$
-        if (trackerPanel.hideDescriptionWhenLoaded) {
-        	control.setValue("hide_description", trackerPanel.hideDescriptionWhenLoaded); //$NON-NLS-1$
-        }
       }
       // save the metadata, if any
       if (trackerPanel.author!=null) {
@@ -2774,10 +2774,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	    	}	    	
 	    }
       // load the description
+    	trackerPanel.hideDescriptionWhenLoaded = control.getBoolean("hide_description"); //$NON-NLS-1$
       String desc = control.getString("description"); //$NON-NLS-1$
       if (desc != null) {
       	trackerPanel.setDescription(desc);
-      	trackerPanel.hideDescriptionWhenLoaded = control.getBoolean("hide_description"); //$NON-NLS-1$
       }
       // load the metadata
       trackerPanel.author = control.getString("author"); //$NON-NLS-1$

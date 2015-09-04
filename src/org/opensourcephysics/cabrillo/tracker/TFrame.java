@@ -1586,7 +1586,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
           }
           else if (!desc.equals(trackerPanel.getDescription())) {
             trackerPanel.setDescription(desc);
-            trackerPanel.hideDescriptionWhenLoaded = false;
+            trackerPanel.hideDescriptionWhenLoaded = !displayWhenLoadedCheckbox.isSelected();
           }
         }
       	notesTextPane.setBackground(Color.WHITE);
