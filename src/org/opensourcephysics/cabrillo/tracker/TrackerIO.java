@@ -671,7 +671,7 @@ public class TrackerIO extends VideoIO {
         if (requestedType==null) {
 	        String ext = XML.getExtension(path);        
 	        if (!engine.equals(VideoIO.ENGINE_FFMPEG)) {
-	        	VideoType ffmpetType = VideoIO.getVideoType("FFMPeg", ext); //$NON-NLS-1$
+	        	VideoType ffmpegType = VideoIO.getVideoType("FFMPeg", ext); //$NON-NLS-1$
 	        	if (ffmpegType!=null) otherEngines.add(ffmpegType);
 	        }
 	        if (!engine.equals(VideoIO.ENGINE_QUICKTIME)) {

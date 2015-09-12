@@ -903,7 +903,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         if (video==null || !(video.getClass().getName().equals(ffmpegName))) return;
         if (e.getStateChange() == ItemEvent.SELECTED ||
             e.getStateChange() == ItemEvent.DESELECTED) {
-          boolean smooth = playFFMPegSmoothlyItem.isSelected();
+          boolean smooth = playVideoSmoothlyItem.isSelected();
         	try {
       			Class<?> ffmpegClass = Class.forName(ffmpegName);
       			Method method = ffmpegClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
@@ -1443,7 +1443,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       			String ffmpegName = "org.opensourcephysics.media.ffmpeg.FFMPegVideo"; //$NON-NLS-1$
           	try {
         			Class<?> ffmpegClass = Class.forName(ffmpegName);
-        			Method method = xuggleClass.getMethod("isSmoothPlay", (Class[])null);  //$NON-NLS-1$
+        			Method method = ffmpegClass.getMethod("isSmoothPlay", (Class[])null);  //$NON-NLS-1$
         			Boolean smooth = (Boolean)method.invoke(video, (Object[])null);
             	playVideoSmoothlyItem.setSelected(smooth);
               videoMenu.add(playVideoSmoothlyItem);

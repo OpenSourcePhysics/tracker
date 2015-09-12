@@ -910,7 +910,7 @@ public class PrefsDialog extends JDialog {
     videoTypeSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
     videoTypeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoTypeSubPanelBorder));    
-    boolean xuggleInstalled = VideoIO.isEngineInstalled(VideoIO.ENGINE_FFMPEG);
+    boolean ffmpegInstalled = VideoIO.isEngineInstalled(VideoIO.ENGINE_FFMPEG);
 
     ffmpegButton = new JRadioButton();
     ffmpegButton.setOpaque(false);
@@ -966,7 +966,7 @@ public class PrefsDialog extends JDialog {
       			}
       		}
       	}
-    		if (xuggleButton.isSelected()) {
+    		if (ffmpegButton.isSelected()) {
     			recentEngine = VideoIO.ENGINE_FFMPEG;
     		}
     	}
@@ -1044,9 +1044,9 @@ public class PrefsDialog extends JDialog {
     videoSpeedSubPanel.setBackground(color);
     videoSpeedSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.FFMPeg.Speed.BorderTitle")); //$NON-NLS-1$
-    if (!xuggleInstalled)
-    	ffmpegSpeedSubPanelBorder.setTitleColor(new Color(153, 153, 153));
-    ffmpegSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, ffmpegSpeedSubPanelBorder));    
+    if (!ffmpegInstalled)
+    	 videoSpeedSubPanelBorder.setTitleColor(new Color(153, 153, 153));
+    videoSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoSpeedSubPanelBorder));    
     buttonGroup = new ButtonGroup();
     videoFastButton = new JRadioButton();
     videoFastButton.setOpaque(false);
@@ -1673,7 +1673,7 @@ public class PrefsDialog extends JDialog {
 		else VideoIO.setEngine(VideoIO.ENGINE_NONE);
 		
     Tracker.isRadians = radiansButton.isSelected();
-		Tracker.isVideoFast = ffmpegFastButton.isSelected();
+		Tracker.isVideoFast = videoFastButton.isSelected();
 		if (frame!=null) frame.setAnglesInRadians(Tracker.isRadians);
     // save the tracker and tracker_starter preferences
     String path = Tracker.savePreferences();

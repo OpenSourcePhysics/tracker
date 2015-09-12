@@ -48,7 +48,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.tools.DiagnosticsForXuggle;
+import org.opensourcephysics.tools.DiagnosticsForFFMPeg;
 import org.opensourcephysics.tools.ExtensionsManager;
 
 /**
@@ -72,8 +72,8 @@ public class TrackerStarter {
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
 	static String exceptions = ""; //$NON-NLS-1$
-	static String qtJavaWarning, xuggleWarning, starterWarning;
-	static String trackerHome, userHome, javaHome, xuggleHome, userDocuments;
+	static String qtJavaWarning, ffmpegWarning, starterWarning;
+	static String trackerHome, userHome, javaHome, ffmpegHome, userDocuments;
 	static String startLogPath;
 	static FilenameFilter trackerJarFilter = new TrackerJarFilter();
 	static File codeBaseDir, starterJarFile;

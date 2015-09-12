@@ -75,7 +75,7 @@ public class Tracker {
 	static final String THETA = TeXParser.parseTeX("$\\theta"); //$NON-NLS-1$
 	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
 	static final String ALPHA = TeXParser.parseTeX("$\\alpha"); //$NON-NLS-1$
-	static final String DEGREES = "º"; //$NON-NLS-1$
+	static final String DEGREES = "ï¿½"; //$NON-NLS-1$
   static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
   
   // for testing
@@ -547,7 +547,7 @@ public class Tracker {
 		OSPRuntime.setLookAndFeel(true, lookAndFeel);
     frame = new TFrame();
     Diagnostics.setDialogOwner(frame);
-    DiagnosticsForXuggle.setDialogOwner(frame);
+    DiagnosticsForFFMPeg.setDialogOwner(frame);
     // set up the Java VM exit mechanism when used as application
     if ( org.opensourcephysics.display.OSPRuntime.applet == null) {
       frame.addWindowListener(new WindowAdapter() {
@@ -877,7 +877,7 @@ public class Tracker {
     };
     aboutFFMPegAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutFFMPeg"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
-      	DiagnosticsForFFMPeg.aboutXuggle("Tracker"); //$NON-NLS-1$
+      	DiagnosticsForFFMPeg.aboutFFMPeg("Tracker"); //$NON-NLS-1$
       }
     };
     aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
@@ -1546,7 +1546,7 @@ public class Tracker {
 							String pathName = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
 								OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
 							String pathEnv = System.getenv(pathName);
-							if (pathEnv==null || !pathEnv.contains(xugglePath)) {
+							if (pathEnv==null || !pathEnv.contains(ffmpegPath)) {
 								needsEnvironment = true;					
 							}
 						}
