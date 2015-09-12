@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -187,10 +187,11 @@ public class DynamicParticle
     		firstFrameInClip++;
     	}
 	    ImageCoordSystem coords = trackerPanel.getCoords();
-	    // get underlying coords if reference frame
-	    while (coords instanceof ReferenceFrame) {
-	      coords = ( (ReferenceFrame) coords).getCoords();
-	    }
+      // get underlying coords if appropriate
+      boolean useDefault = isUseDefaultReferenceFrame();
+      while (useDefault && coords instanceof ReferenceFrame) {
+        coords = ( (ReferenceFrame) coords).getCoords();
+      }
     	// step solver forward to first frame in clip
 	    int count = (firstFrameInClip-getStartFrame())*tracePtsPerStep*iterationsPerStep/clip.getStepSize();
     	for (int i=0; i<count; i++) {

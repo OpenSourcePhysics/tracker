@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -145,7 +145,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem newRGBRegionItem;
   protected JMenuItem newProtractorItem;
   protected JMenuItem newTapeItem;
-  protected JMenuItem newCompassItem;
+  protected JMenuItem newCircleFitterItem;
   protected JCheckBoxMenuItem axesVisibleItem;
   protected JMenuItem newAnalyticParticleItem;
   protected JMenu newDynamicParticleMenu;
@@ -368,54 +368,54 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         deleteSelectedPointItem.setEnabled(!cantDeleteSteps && step!=null);
         // enable and refresh paste item if clipboard contains xml string data
         String paste = actions.get("paste").getValue(Action.NAME).toString(); //$NON-NLS-1$
-        pasteItem.setText(paste);
-        pasteItem.setEnabled(false);
+      	pasteItem.setText(paste);
+      	pasteItem.setEnabled(false);
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         Transferable data = clipboard.getContents(null);
         if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
           try {
-                        String s = (String)data.getTransferData(DataFlavor.stringFlavor);
+	        	String s = (String)data.getTransferData(DataFlavor.stringFlavor);
             control.readXML(s);
             Class<?> type = control.getObjectClass();
             if (control.failedToRead()) {
-                // see if s is importable dataString
-                        DatasetManager manager = DataTool.parseData(s, null);
-                        if (manager!=null) {
-                                double[] xImport = null, yImport = null;
+            	// see if s is importable dataString
+          		DatasetManager manager = DataTool.parseData(s, null);
+          		if (manager!=null) {
+          			double[] xImport = null, yImport = null;
                 for (Dataset next: manager.getDatasets()) {
-                        if (next.getYColumnName().equals("x")) { //$NON-NLS-1$
-                                xImport = next.getYPoints();
-                        }
-                        else if (next.getYColumnName().equals("y")) { //$NON-NLS-1$
-                                yImport = next.getYPoints();
-                        }
+                	if (next.getYColumnName().equals("x")) { //$NON-NLS-1$
+                		xImport = next.getYPoints();
+                	}
+                	else if (next.getYColumnName().equals("y")) { //$NON-NLS-1$
+                		yImport = next.getYPoints();
+                	}
                 }
                 if (xImport!=null && yImport!=null) {
-                        String name = manager.getName();
-                        if (name==null || name.trim().equals("")) { //$NON-NLS-1$
-                                name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
-                        }
-                        name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
-                        pasteItem.setEnabled(true);
-                                pasteItem.setText(paste+" "+name);                       //$NON-NLS-1$
+                	String name = manager.getName();
+                	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
+                		name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
+                	}
+                	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
+                	pasteItem.setEnabled(true);
+		            	pasteItem.setText(paste+" "+name);                	 //$NON-NLS-1$
                 }
-                        }
+          		}
             }
             else if (TTrack.class.isAssignableFrom(type)) {
               pasteItem.setEnabled(true);
-                String name = control.getString("name"); //$NON-NLS-1$
-                pasteItem.setText(paste+" "+name); //$NON-NLS-1$
+            	String name = control.getString("name"); //$NON-NLS-1$
+            	pasteItem.setText(paste+" "+name); //$NON-NLS-1$
             }
             else if (ImageCoordSystem.class.isAssignableFrom(type)) {
               pasteItem.setEnabled(true);
-                pasteItem.setText(paste+" "+TrackerRes.getString("TMenuBar.MenuItem.Coords")); //$NON-NLS-1$ //$NON-NLS-2$
+            	pasteItem.setText(paste+" "+TrackerRes.getString("TMenuBar.MenuItem.Coords")); //$NON-NLS-1$ //$NON-NLS-2$
             }
             else if (VideoClip.class.isAssignableFrom(type)) {
               pasteItem.setEnabled(true);
-                pasteItem.setText(paste+" "+TrackerRes.getString("TMenuBar.MenuItem.VideoClip")); //$NON-NLS-1$ //$NON-NLS-2$
+            	pasteItem.setText(paste+" "+TrackerRes.getString("TMenuBar.MenuItem.VideoClip")); //$NON-NLS-1$ //$NON-NLS-2$
             }
           }
-          catch (Exception ex) {
+          catch (Exception ex) {          	
           }
         }
         // refresh copyData menu
@@ -499,7 +499,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     redoItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	Undo.redo(trackerPanel);
-        trackerPanel.setSelectedPoint(null);
+      	trackerPanel.setSelectedPoint(null);
       }
     });    
     // paste items
@@ -689,7 +689,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       }
 
     };
-    for(int i = 0; i<4; i++) {
+    for(int i = 0; i<6; i++) {
     	String s = i==0? TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"): "+"+i; //$NON-NLS-1$ //$NON-NLS-2$
       JMenuItem item = new JRadioButtonMenuItem(s);
       item.addActionListener(fontSizeAction);
@@ -760,7 +760,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     newRGBRegionItem = new JMenuItem(actions.get("rgbRegion")); //$NON-NLS-1$
     newProtractorItem = new JMenuItem(actions.get("protractor")); //$NON-NLS-1$
     newTapeItem = new JMenuItem(actions.get("tape")); //$NON-NLS-1$
-    newCompassItem = new JMenuItem(actions.get("compass")); //$NON-NLS-1$
+    newCircleFitterItem = new JMenuItem(actions.get("circleFitter")); //$NON-NLS-1$
     // clone track menu
     cloneMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Clone")); //$NON-NLS-1$
     // measuring tools menu
@@ -899,20 +899,17 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     playVideoSmoothlyItem.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
         Video video = trackerPanel.getVideo();
-        if (video==null) return;
-        boolean ffmpegVideo = video.getClass().getName().equals("org.opensourcephysics.media.ffmpeg.FFMPegVideo");
-        if(!ffmpegVideo) return;
+  			String ffmpegName = "org.opensourcephysics.media.ffmpeg.FFMPegVideo"; //$NON-NLS-1$
+        if (video==null || !(video.getClass().getName().equals(ffmpegName))) return;
         if (e.getStateChange() == ItemEvent.SELECTED ||
             e.getStateChange() == ItemEvent.DESELECTED) {
-          boolean smooth = playVideoSmoothlyItem.isSelected();
-          if(ffmpegVideo) {
-                try {
-                                Class<?> ffmpegClass = Class.forName("org.opensourcephysics.media.ffmpeg.FFMPegVideo");
-                                Method method = ffmpegClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
-                                method.invoke(video, new Object[] {smooth});
-                        } catch (Exception ex) {
-                        }    
-          }
+          boolean smooth = playFFMPegSmoothlyItem.isSelected();
+        	try {
+      			Class<?> ffmpegClass = Class.forName(ffmpegName);
+      			Method method = ffmpegClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
+      			method.invoke(video, new Object[] {smooth});
+      		} catch (Exception ex) {
+      		}    
         }
       }
     });
@@ -1442,18 +1439,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           videoMenu.add(playAllStepsItem);
           // smooth play item for ffmpeg videos
           VideoType videoType = (VideoType)video.getProperty("video_type"); //$NON-NLS-1$
-          if (videoType!=null) {
-                if(videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_FFMPEG)) {
-                        String ffmpegName = "org.opensourcephysics.media.ffmpeg.FFMPegVideo"; //$NON-NLS-1$
-                try {
-                                Class<?> ffmpegClass = Class.forName(ffmpegName);
-                                Method method = ffmpegClass.getMethod("isSmoothPlay", (Class[])null);  //$NON-NLS-1$
-                                Boolean smooth = (Boolean)method.invoke(video, (Object[])null);
-                        playVideoSmoothlyItem.setSelected(smooth);
-                  videoMenu.add(playVideoSmoothlyItem);
-                        } catch (Exception ex) {
-                        }               
-                }
+          if (videoType!=null && videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_FFMPEG)) {
+      			String ffmpegName = "org.opensourcephysics.media.ffmpeg.FFMPegVideo"; //$NON-NLS-1$
+          	try {
+        			Class<?> ffmpegClass = Class.forName(ffmpegName);
+        			Method method = xuggleClass.getMethod("isSmoothPlay", (Class[])null);  //$NON-NLS-1$
+        			Boolean smooth = (Boolean)method.invoke(video, (Object[])null);
+            	playVideoSmoothlyItem.setSelected(smooth);
+              videoMenu.add(playVideoSmoothlyItem);
+        		} catch (Exception ex) {
+        		}              	
           }
           // video filters menu
           if (trackerPanel.isEnabled("video.filters")) { //$NON-NLS-1$
@@ -1593,7 +1588,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             if (trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
               fileMenu.add(saveAsItem);
               if (trackerPanel.getVideo()!=null) {
-                fileMenu.add(saveVideoAsItem);
+              	fileMenu.add(saveVideoAsItem);
               }
               fileMenu.add(saveTabsetAsItem);
             }
@@ -1754,10 +1749,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             || trackerPanel.isEnabled("new.dynamicTwoBody")) { //$NON-NLS-1$
           if (createMenu.getItemCount() > 0) createMenu.addSeparator();
           if (trackerPanel.isEnabled("new.analyticParticle"))  //$NON-NLS-1$
-                createMenu.add(newAnalyticParticleItem); 
+          	createMenu.add(newAnalyticParticleItem); 
           if (trackerPanel.isEnabled("new.dynamicParticle") //$NON-NLS-1$
-                        || trackerPanel.isEnabled("new.dynamicTwoBody")) { //$NON-NLS-1$
-                createMenu.add(newDynamicParticleMenu);
+          		|| trackerPanel.isEnabled("new.dynamicTwoBody")) { //$NON-NLS-1$
+          	createMenu.add(newDynamicParticleMenu);
           	newDynamicParticleMenu.removeAll();
             if (trackerPanel.isEnabled("new.dynamicParticle")) { //$NON-NLS-1$
 	          	newDynamicParticleMenu.add(newDynamicParticleCartesianItem);
@@ -1768,14 +1763,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           }
         }
         if (trackerPanel.isEnabled("new.tapeMeasure") || //$NON-NLS-1$
-            trackerPanel.isEnabled("new.protractor")) { //$NON-NLS-1$
+            trackerPanel.isEnabled("new.protractor") || //$NON-NLS-1$
+            trackerPanel.isEnabled("new.circleFitter")) { //$NON-NLS-1$
           if (createMenu.getItemCount() > 0) createMenu.addSeparator();
           createMenu.add(measuringToolsMenu);
           measuringToolsMenu.removeAll();
           if (trackerPanel.isEnabled("new.tapeMeasure")) measuringToolsMenu.add(newTapeItem); //$NON-NLS-1$
           if (trackerPanel.isEnabled("new.protractor")) measuringToolsMenu.add(newProtractorItem); //$NON-NLS-1$
-          boolean pig = true;
-//          if (pig || trackerPanel.isEnabled("new.compass")) measuringToolsMenu.add(newCompassItem); //$NON-NLS-1$
+          if (trackerPanel.isEnabled("new.circleFitter")) measuringToolsMenu.add(newCircleFitterItem); //$NON-NLS-1$
         }
         // calibration tools menu
         if (trackerPanel.isEnabled("calibration.stick") //$NON-NLS-1$

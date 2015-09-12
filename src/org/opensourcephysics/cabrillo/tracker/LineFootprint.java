@@ -20,17 +20,18 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
 
  */
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.geom.*;
 
 import javax.swing.*;
+
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * A LineFootprint returns a line shape for a Point array of length 2.
@@ -43,7 +44,8 @@ public class LineFootprint implements Footprint, Cloneable {
   protected String name;
   protected Shape highlight;
   protected AffineTransform transform = new AffineTransform();
-  protected BasicStroke stroke = new BasicStroke();
+  protected BasicStroke baseStroke = new BasicStroke();
+  protected BasicStroke stroke;
   protected Color color = Color.black;
   protected GeneralPath path = new GeneralPath();
   protected Line2D line = new Line2D.Double();
@@ -110,6 +112,9 @@ public class LineFootprint implements Footprint, Cloneable {
    * @return the icon
    */
   public Icon getIcon(int w, int h) {
+    int scale = FontSizer.getIntegerFactor();
+    w *= scale;
+    h *= scale;
     Point[] points = new Point[] {new Point(), new Point(w - 2, 2 - h)};
     Shape shape = getShape(points);
     ShapeIcon icon = new ShapeIcon(shape, w, h);
@@ -163,7 +168,7 @@ public class LineFootprint implements Footprint, Cloneable {
    */
   public void setStroke(BasicStroke stroke) {
     if (stroke == null) return;
-    this.stroke = new BasicStroke(stroke.getLineWidth(),
+    this.baseStroke = new BasicStroke(stroke.getLineWidth(),
                                   BasicStroke.CAP_BUTT,
                                   BasicStroke.JOIN_MITER,
                                   8,
@@ -177,7 +182,7 @@ public class LineFootprint implements Footprint, Cloneable {
    * @return the stroke
    */
   public BasicStroke getStroke() {
-    return stroke;
+    return baseStroke;
   }
 
   /**
@@ -186,12 +191,12 @@ public class LineFootprint implements Footprint, Cloneable {
    * @param dashArray the desired dash array
    */
   public void setDashArray(float[] dashArray) {
-    setStroke(new BasicStroke(stroke.getLineWidth(),
+    setStroke(new BasicStroke(baseStroke.getLineWidth(),
                               BasicStroke.CAP_BUTT,
                               BasicStroke.JOIN_MITER,
                               8,
                               dashArray,
-                              stroke.getDashPhase()));
+                              baseStroke.getDashPhase()));
   }
 
   /**
@@ -200,12 +205,12 @@ public class LineFootprint implements Footprint, Cloneable {
    * @param w the desired line width
    */
   public void setLineWidth(double w) {
-    stroke = new BasicStroke((float)w,
+    baseStroke = new BasicStroke((float)w,
                               BasicStroke.CAP_BUTT,
                               BasicStroke.JOIN_MITER,
                               8,
-                              stroke.getDashArray(),
-                              stroke.getDashPhase());
+                              baseStroke.getDashArray(),
+                              baseStroke.getDashPhase());
   }
 
   /**
@@ -239,6 +244,10 @@ public class LineFootprint implements Footprint, Cloneable {
     hitShapes[0] = new Rectangle(p1.x-1, p1.y-1, 2, 2); // for p1
     hitShapes[1] = new Rectangle(p2.x-1, p2.y-1, 2, 2); // for p2
     hitShapes[2] = (Line2D.Double)line.clone();         // for line
+    int scale = FontSizer.getIntegerFactor();
+  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
+  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
+  	}
     return stroke.createStrokedShape(line);
   }
 

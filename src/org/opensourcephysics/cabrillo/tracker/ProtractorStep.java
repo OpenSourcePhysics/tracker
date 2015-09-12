@@ -20,18 +20,18 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.font.*;
 import java.awt.geom.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -307,6 +307,10 @@ public class ProtractorStep extends Step {
         final Color color = footprint.getColor();
         final Mark stepMark = mark;
         transform.setToTranslation(p.x, p.y);
+        int scale = FontSizer.getIntegerFactor();
+        if (scale>1) {
+        	transform.scale(scale, scale);
+        }
         selectedShape = transform.createTransformedShape(selectionShape);
         mark = new Mark() {
           public void draw(Graphics2D g, boolean highlighted) {
@@ -521,6 +525,7 @@ public class ProtractorStep extends Step {
    */
   private Point getLayoutPosition(TrackerPanel trackerPanel,
                                   TextLayout layout, TPoint end) {
+    int scale = FontSizer.getIntegerFactor();
   	if (end==vertex) {
 	    Point p = vertex.getScreenPosition(trackerPanel);
 	    Rectangle2D bounds = layout.getBounds();
@@ -531,7 +536,7 @@ public class ProtractorStep extends Step {
 	    	angle += Math.PI;
 	    double sin = -Math.sin(angle);
 	    double cos = -Math.cos(angle);
-	    double d = 24;
+	    double d = scale*24;
 		  p.setLocation((int)(p.x + d*cos - w/2), (int)(p.y - d*sin + h/2));
 	    return p;
   	}
@@ -552,7 +557,7 @@ public class ProtractorStep extends Step {
     }
     double cos = endPoint2.cos(endPoint1);
     double sin = endPoint2.sin(endPoint1);
-    double d = 6 + Math.abs(w*sin/2) + Math.abs(h*cos/2);
+    double d = scale*6 + Math.abs(w*sin/2) + Math.abs(h*cos/2);
     if (cos >= 0) {   // first/fourth quadrants
       p.setLocation((int)(p.x - d*sin - w/2), (int)(p.y - d*cos + h/2));
     }

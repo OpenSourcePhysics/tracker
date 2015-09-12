@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -108,21 +108,21 @@ public class ExportVideoDialog extends JDialog {
    * Refreshes the format set.
    */
   public static void refreshFormats() {
-                formats.clear(); 
-                formatDescriptions.clear();  
-                // unwanted types are quicktime, ffmpeg or all depending on VideoIO engine
-        ArrayList<VideoType> unwanted = new ArrayList<VideoType>();
-        boolean skipQT = VideoIO.getEngine().equals(VideoIO.ENGINE_FFMPEG)
-                        || VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
-        boolean skipFFMPeg = VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)
-                        || VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
-        for (String ext: VideoIO.VIDEO_EXTENSIONS) {
-        if (skipQT)
-                unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_QUICKTIME, ext));
-        if (skipFFMPeg)
-                unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_FFMPEG, ext));
-        }
-                for (VideoType next: VideoIO.getVideoTypes()) {
+		formats.clear(); 
+		formatDescriptions.clear();  
+		// unwanted types are quicktime, ffmpeg or both depending on VideoIO engine
+  	ArrayList<VideoType> unwanted = new ArrayList<VideoType>();
+  	boolean skipQT = VideoIO.getEngine().equals(VideoIO.ENGINE_FFMPEG)
+  			|| VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
+  	boolean skipFFMPeg = VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)
+  			|| VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
+  	for (String ext: VideoIO.VIDEO_EXTENSIONS) {
+    	if (skipQT)
+    		unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_QUICKTIME, ext));
+    	if (skipFFMPeg)
+    		unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_FFMPEG, ext));
+  	}
+		for (VideoType next: VideoIO.getVideoTypes()) {
       if (next.canRecord() && !unwanted.contains(next)) {
       	formats.put(next.getDescription(), next);
       	formatDescriptions.add(next.getDescription());
@@ -459,66 +459,66 @@ public class ExportVideoDialog extends JDialog {
 	  		
 	  		s += " ("+TrackerRes.getString("ExportVideoDialog.MatSize")+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  		sizeDropdown.addItem(s);
-                        sizes.put(s, fullSize);
-                        }
-                        // add additional sizes if acceptable
-                        Dimension dim = new Dimension(fullSize.width*8/10, fullSize.height*8/10);
-                        if (isAcceptedDimension(dim.width, dim.height)) {
-                        s = dim.width+"x"+dim.height; //$NON-NLS-1$
-                        sizeDropdown.addItem(s);
-                        sizes.put(s, dim);
-                        }
-                        dim = new Dimension(fullSize.width*3/4, fullSize.height*3/4);
-                        if (isAcceptedDimension(dim.width, dim.height)) {
-                        s = dim.width+"x"+dim.height; //$NON-NLS-1$
-                        sizeDropdown.addItem(s);
-                        sizes.put(s, dim);
-                        }
-                        dim = new Dimension(fullSize.width*6/10, fullSize.height*6/10);
-                        if (isAcceptedDimension(dim.width, dim.height)) {
-                        s = dim.width+"x"+dim.height; //$NON-NLS-1$
-                        sizeDropdown.addItem(s);
+	  		sizes.put(s, fullSize);
+			}
+			// add additional sizes if acceptable
+			Dimension dim = new Dimension(fullSize.width*8/10, fullSize.height*8/10);
+			if (isAcceptedDimension(dim.width, dim.height)) {
+	  		s = dim.width+"x"+dim.height; //$NON-NLS-1$
+	  		sizeDropdown.addItem(s);
+	  		sizes.put(s, dim);
+			}
+			dim = new Dimension(fullSize.width*3/4, fullSize.height*3/4);
+			if (isAcceptedDimension(dim.width, dim.height)) {
+	  		s = dim.width+"x"+dim.height; //$NON-NLS-1$
+	  		sizeDropdown.addItem(s);
+	  		sizes.put(s, dim);
+			}
+			dim = new Dimension(fullSize.width*6/10, fullSize.height*6/10);
+			if (isAcceptedDimension(dim.width, dim.height)) {
+	  		s = dim.width+"x"+dim.height; //$NON-NLS-1$
+	  		sizeDropdown.addItem(s);
 	  		sizes.put(s, dim);
 			}
 			dim = new Dimension(fullSize.width/2, fullSize.height/2);
 			if (isAcceptedDimension(dim.width, dim.height)) {
 	  		s = dim.width+"x"+dim.height; //$NON-NLS-1$
-                        sizeDropdown.addItem(s);
-                        sizes.put(s, dim);
-                        }
-                        dim = new Dimension(fullSize.width*4/10, fullSize.height*4/10);
-                        if (isAcceptedDimension(dim.width, dim.height)) {
-                        s = dim.width+"x"+dim.height; //$NON-NLS-1$
-                        sizeDropdown.addItem(s);
-                        sizes.put(s, dim);
-                        }
-                        dim = new Dimension(fullSize.width*3/8, fullSize.height*3/8);
-                        if (isAcceptedDimension(dim.width, dim.height)) {
-                        s = dim.width+"x"+dim.height; //$NON-NLS-1$
-                        sizeDropdown.addItem(s);
-                        sizes.put(s, dim);
-                        }
-                        dim = new Dimension(fullSize.width*3/10, fullSize.height*3/10);
-                        if (isAcceptedDimension(dim.width, dim.height)) {
-                        s = dim.width+"x"+dim.height; //$NON-NLS-1$
-                        sizeDropdown.addItem(s);
-                        sizes.put(s, dim);
-                        }
-                        dim = new Dimension(fullSize.width/4, fullSize.height/4);
-                        if (isAcceptedDimension(dim.width, dim.height)) {
-                        s = dim.width+"x"+dim.height; //$NON-NLS-1$
-                        sizeDropdown.addItem(s);
-                        sizes.put(s, dim);
-                        }
-                        dim = new Dimension(fullSize.width*2/10, fullSize.height*2/10);
-                        if (isAcceptedDimension(dim.width, dim.height)) {
-                        s = dim.width+"x"+dim.height; //$NON-NLS-1$
-                        sizeDropdown.addItem(s);
-                        sizes.put(s, dim);
-                        }
-                }
-                else if (view instanceof PlotTrackView){
-                        PlotTrackView trackView = (PlotTrackView)view;
+	  		sizeDropdown.addItem(s);
+	  		sizes.put(s, dim);
+			}
+			dim = new Dimension(fullSize.width*4/10, fullSize.height*4/10);
+			if (isAcceptedDimension(dim.width, dim.height)) {
+	  		s = dim.width+"x"+dim.height; //$NON-NLS-1$
+	  		sizeDropdown.addItem(s);
+	  		sizes.put(s, dim);
+			}
+			dim = new Dimension(fullSize.width*3/8, fullSize.height*3/8);
+			if (isAcceptedDimension(dim.width, dim.height)) {
+	  		s = dim.width+"x"+dim.height; //$NON-NLS-1$
+	  		sizeDropdown.addItem(s);
+	  		sizes.put(s, dim);
+			}
+			dim = new Dimension(fullSize.width*3/10, fullSize.height*3/10);
+			if (isAcceptedDimension(dim.width, dim.height)) {
+	  		s = dim.width+"x"+dim.height; //$NON-NLS-1$
+	  		sizeDropdown.addItem(s);
+	  		sizes.put(s, dim);
+			}
+			dim = new Dimension(fullSize.width/4, fullSize.height/4);
+			if (isAcceptedDimension(dim.width, dim.height)) {
+	  		s = dim.width+"x"+dim.height; //$NON-NLS-1$
+	  		sizeDropdown.addItem(s);
+	  		sizes.put(s, dim);
+			}
+			dim = new Dimension(fullSize.width*2/10, fullSize.height*2/10);
+			if (isAcceptedDimension(dim.width, dim.height)) {
+	  		s = dim.width+"x"+dim.height; //$NON-NLS-1$
+	  		sizeDropdown.addItem(s);
+	  		sizes.put(s, dim);
+			}
+		}
+		else if (view instanceof PlotTrackView){
+			PlotTrackView trackView = (PlotTrackView)view;
 			Dimension dim = trackView.mainView.getSize();
 			fullSize = getAcceptedDimension(dim.width, dim.height);
 	  	s = fullSize.width+"x"+fullSize.height; //$NON-NLS-1$
@@ -610,12 +610,12 @@ public class ExportVideoDialog extends JDialog {
    */
   private boolean isAcceptedDimension(int w, int h) {
   	if (w<160 || h<120) return false;
-        if (w%4!=0 || h%4!=0) return false;
-        if (1.0*h/w==.75) return true; // 4:3 aspect ratio
-        if (1.0*w/h==1.5) return true; // 3:2 aspect ratio
-        if (16.0*h/w==9.0) return true; // 16:9 aspect ratio
-        if (w%16==0 && h%16==0) return true; // any dimensions that are mod 16
-        return false;
+  	if (w%4!=0 || h%4!=0) return false;
+  	if (1.0*h/w==.75) return true; // 4:3 aspect ratio
+  	if (1.0*w/h==1.5) return true; // 3:2 aspect ratio
+  	if (16.0*h/w==9.0) return true; // 16:9 aspect ratio
+  	if (w%16==0 && h%16==0) return true; // any dimensions that are mod 16
+  	return false;
   }
   
   /**

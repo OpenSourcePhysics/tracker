@@ -20,15 +20,17 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.geom.*;
+
 import javax.swing.*;
+
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * A PointShapeFootprint returns a shape for a Point[] of length 1.
@@ -40,7 +42,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
   protected Shape shape;
   protected Shape highlight;
   protected AffineTransform transform = new AffineTransform();
-  protected BasicStroke stroke = new BasicStroke();
+  protected BasicStroke baseStroke = new BasicStroke();
+  protected BasicStroke stroke;
   protected Color color = Color.black;
   protected Shape[] hitShapes = new Shape[1];
   protected double defaultWidth = 1;
@@ -108,10 +111,13 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    * @return the icon
    */
   public Icon getIcon(int w, int h) {
-   Shape shape = getShape(new Point[] {new Point()});
-   ShapeIcon icon = new ShapeIcon(shape, w, h);
-   icon.setColor(color);
-   return icon;
+    int scale = FontSizer.getIntegerFactor();
+    w *= scale;
+    h *= scale;
+	  Shape shape = getShape(new Point[] {new Point()});
+	  ShapeIcon icon = new ShapeIcon(shape, w, h);
+	  icon.setColor(color);
+	  return icon;
   }
 
   /**
@@ -157,7 +163,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    * @param stroke the desired stroke
    */
   public void setStroke(BasicStroke stroke) {
-    this.stroke = stroke;
+    baseStroke = stroke;
     if (stroke != null) {
       defaultWidth = stroke.getLineWidth();
     }
@@ -169,7 +175,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    * @return the stroke
    */
   public BasicStroke getStroke() {
-    return stroke;
+    return baseStroke;
   }
 
   /**
@@ -178,13 +184,13 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    * @param w the desired line width
    */
   public void setLineWidth(double w) {
-    if (stroke == null) return;
-    stroke = new BasicStroke((float)w,
+    if (baseStroke == null) return;
+    baseStroke = new BasicStroke((float)w,
                               BasicStroke.CAP_BUTT,
                               BasicStroke.JOIN_MITER,
                               8,
-                              stroke.getDashArray(),
-                              stroke.getDashPhase());
+                              baseStroke.getDashArray(),
+                              baseStroke.getDashPhase());
   }
 
   /**
@@ -214,10 +220,18 @@ public class PointShapeFootprint implements Footprint, Cloneable {
   public Shape getShape(Point[] points) {
     Point p = points[0];
     transform.setToTranslation(p.x, p.y);
+    int scale = FontSizer.getIntegerFactor();
+    if (scale>1) {
+    	transform.scale(scale, scale);
+    }
     Shape transformedShape = transform.createTransformedShape(shape);
     highlight = transform.createTransformedShape(HIGHLIGHT);
-    if (stroke != null)
+    if (baseStroke != null) {
+    	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
+    		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
+    	}
       transformedShape = stroke.createStrokedShape(transformedShape);
+    }
     hitShapes[0] = transformedShape;
     return transformedShape;
   }

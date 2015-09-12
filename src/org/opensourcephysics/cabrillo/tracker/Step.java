@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -34,6 +34,7 @@ import javax.swing.JTextField;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * A Step is associated with a single frame of a TTrack.
@@ -302,6 +303,10 @@ public abstract class Step implements Cloneable {
       mark = footprint.getMark(screenPoints);
       if (p != null) { // point is selected, so draw selection shape
         transform.setToTranslation(p.x, p.y);
+        int scale = FontSizer.getIntegerFactor();
+        if (scale>1) {
+        	transform.scale(scale, scale);
+        }
         final Color color = footprint.getColor();
         final Mark stepMark = mark;
         final Shape selectedShape

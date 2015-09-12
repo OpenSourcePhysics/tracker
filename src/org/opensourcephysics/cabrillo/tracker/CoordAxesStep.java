@@ -20,18 +20,18 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is a Step for a CoordAxes. It is used for displaying the axes and for
@@ -214,13 +214,20 @@ public class CoordAxesStep extends Step {
       }
       handleShapes.put(trackerPanel, hitShape);
       // get selected point shape, if any
+      int scale = FontSizer.getIntegerFactor();
       if (selection == origin) {
         transform.setToTranslation(p0.x, p0.y);
+        if (scale>1) {
+        	transform.scale(scale, scale);
+        }
         fillShapes[1] = transform.createTransformedShape(selectionShape);
       }
       else if (selection == handle) {
         Point p1 = handle.getScreenPosition(trackerPanel);
         transform.setToTranslation(p1.x, p1.y);
+        if (scale>1) {
+        	transform.scale(scale, scale);
+        }
         fillShapes[1] = transform.createTransformedShape(selectionShape);
       }
       else fillShapes[1] = null;

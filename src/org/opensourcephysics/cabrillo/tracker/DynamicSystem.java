@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -45,6 +45,7 @@ import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPlayer;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.UserFunction;
@@ -505,7 +506,16 @@ public class DynamicSystem extends DynamicParticlePolar {
     	refreshSystemParameters();
     }
   }
-	
+  
+  @Override
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	if (systemInspector!=null) {
+  		FontSizer.setFonts(systemInspector, level);
+  		systemInspector.updateDisplay();
+  	}
+  }
+
   /**
    * Gets the system inspector.
    *

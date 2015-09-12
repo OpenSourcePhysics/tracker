@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -130,7 +130,6 @@ public class ExportZipDialog extends JDialog {
 	  	zipExporter.addedFilesDialog.addedFiles.clear();
 	  	zipExporter.htmlField.setText(zipExporter.htmlField.getDefaultText());
 	  	zipExporter.htmlField.setForeground(zipExporter.htmlField.getEmptyForeground());
-	  	zipExporter.htmlField.setFont(zipExporter.htmlField.getEmptyFont());
 	  	zipExporter.htmlField.setBackground(Color.white);
 			zipExporter.clipCheckbox.setSelected(panel.getVideo()!=null);			
 	  	zipExporter.titleField.requestFocusInWindow();
@@ -254,6 +253,11 @@ public class ExportZipDialog extends JDialog {
     saveButton.setForeground(labelColor);
     saveButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+        String description = descriptionPane.getText().trim();
+        if (!"".equals(description) && "".equals(trackerPanel.getDescription())) { //$NON-NLS-1$ //$NON-NLS-2$
+        	trackerPanel.setDescription(description);
+        	trackerPanel.hideDescriptionWhenLoaded = true;
+        }
       	// if saving clip, warn if there are particle models with start frames not included in clip
       	if (clipCheckbox.isSelected()) {
 	      	badModels = getModelsNotInClip();
@@ -375,13 +379,6 @@ public class ExportZipDialog extends JDialog {
   		protected String getDefaultText() {
   			return TrackerRes.getString("ZipResourceDialog.HTMLField.DefaultText"); //$NON-NLS-1$
   		}
-    	protected Font getEmptyFont() {
-    		return getFont().deriveFont(Font.ITALIC);
-    	}     	
-    	protected Font getDefaultFont() {
-    		return getFont().deriveFont(Font.PLAIN);
-    	}      	
-
     };
     htmlField.setAlignmentY(JToolBar.TOP_ALIGNMENT);
     htmlField.addActionListener(new ActionListener() {
@@ -676,7 +673,6 @@ public class ExportZipDialog extends JDialog {
   	Resource res = null;
   	if (!path.equals(htmlField.getDefaultText()) && !path.equals("")) {  //$NON-NLS-1$
   		res = ResourceLoader.getResource(path);
-	    htmlField.setFont(htmlField.getDefaultFont());
 	  	htmlField.setForeground(res==null? Color.red: EntryField.defaultForeground);
   	}
     htmlField.setBackground(Color.white);
@@ -1362,7 +1358,7 @@ public class ExportZipDialog extends JDialog {
     JFileChooser chooser = TrackerIO.getChooser();
     chooser.setDialogTitle(TrackerRes.getString("ZipResourceDialog.FileChooser.SaveZip.Title"));  //$NON-NLS-1$
     chooser.setAcceptAllFileFilterUsed(false);
-//    chooser.addChoosableFileFilter(TrackerIO.zipFileFilter);
+    chooser.addChoosableFileFilter(TrackerIO.trzFileFilter);
     chooser.setFileFilter(TrackerIO.trzFileFilter);
   	File[] files = TrackerIO.getChooserFiles("save"); //$NON-NLS-1$
     chooser.resetChoosableFileFilters();
@@ -1685,14 +1681,6 @@ public class ExportZipDialog extends JDialog {
   		return null;
   	}
   	
-  	protected Font getEmptyFont() {
-  		return getFont();
-  	}
-  	
-  	protected Font getDefaultFont() {
-  		return getFont();
-  	}
-  	
   	protected Color getEmptyForeground() {
   		return Color.gray;
   	}
@@ -1714,7 +1702,6 @@ public class ExportZipDialog extends JDialog {
       	EntryField field = (EntryField)e.getSource();
       	if (field.getDefaultText()!=null && field.getText().equals(field.getDefaultText())) {
       		field.setText(null);
-  	  		field.setFont(field.getDefaultFont());
 	    		field.setForeground(defaultForeground);
       	}
       	field.selectAll();
@@ -1726,7 +1713,6 @@ public class ExportZipDialog extends JDialog {
       	if (field.getDefaultText()!=null && "".equals(field.getText())) { //$NON-NLS-1$
       		field.setText(field.getDefaultText());
       		field.setForeground(field.getEmptyForeground());
-  	  		field.setFont(field.getEmptyFont());
       	}
 	      field.setBackground(Color.white);
 	      if (fire)	field.fireActionPerformed();

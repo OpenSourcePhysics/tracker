@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -53,7 +53,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
   // static fields
   protected static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
-  protected static String helpPathWeb = "http://www.cabrillo.edu/~dbrown/tracker/help/"; //$NON-NLS-1$
+  protected static String helpPathWeb = "http://physlets.org/tracker/help/"; //$NON-NLS-1$
   static Color yellow = new Color(255, 255, 105);
 
   // instance fields
@@ -67,8 +67,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   protected JTabbedPane tabbedPane;
   protected JTextPane notesTextPane;
   protected Action saveNotesAction;
-  protected JButton cancelNotesDialogButton;
-  protected JButton closeNotesDialogButton;
+  protected JButton cancelNotesDialogButton, closeNotesDialogButton;
+  protected JCheckBox displayWhenLoadedCheckbox;
   protected JDialog notesDialog;
   protected JDialog helpDialog;
   protected LibraryBrowser libraryBrowser;
@@ -83,7 +83,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   protected ArrayList<String> loadedFiles = new ArrayList<String>();
   protected boolean anglesInRadians = Tracker.isRadians;
   protected File tabsetFile; // used when saving tabsets
-  protected int framesLoaded, prevFramesLoaded; // used when loading ffmpeg videos
+  protected int framesLoaded, prevFramesLoaded; // used when loading xuggle videos
 //  protected JProgressBar monitor;
   protected PrefsDialog prefsDialog;
 
@@ -288,6 +288,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     int tab = getTab(trackerPanel);
     if (tab == -1) return; // tab doesn't exist
     if (!trackerPanel.save()) return; // user cancelled
+    
     // hide the info dialog
     notesDialog.setVisible(false);
     if (trackerPanel.dataBuilder != null) trackerPanel.dataBuilder.dispose();
@@ -675,10 +676,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
    */
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("progress")) { // from currently loading (ffmpeg) video  //$NON-NLS-1$
-        Object val = e.getNewValue();
-        String vidName = XML.forwardSlash((String)e.getOldValue());
-        try {
+    if (name.equals("progress")) { // from currently loading (xuggle) video  //$NON-NLS-1$
+    	Object val = e.getNewValue();
+    	String vidName = XML.forwardSlash((String)e.getOldValue());
+    	try {
 				framesLoaded = Integer.parseInt(val.toString());
 			} catch (Exception ex) {
 			}
@@ -691,13 +692,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     			}
 	      	next.setProgress(progress);
 	      	break;
-                }
-        }
+    		}
+    	}
     }
     else if (name.equals("stalled")) { // from stalled ffmpeg video //$NON-NLS-1$
-        String fileName = XML.getName((String)e.getNewValue());
-        String s = TrackerRes.getString("TFrame.Dialog.StalledVideo.Message0") //$NON-NLS-1$
-                        +"\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message1") //$NON-NLS-1$ //$NON-NLS-2$
+    	String fileName = XML.getName((String)e.getNewValue());
+    	String s = TrackerRes.getString("TFrame.Dialog.StalledVideo.Message0") //$NON-NLS-1$
+    			+"\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message1") //$NON-NLS-1$ //$NON-NLS-2$
     			+"\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message2") //$NON-NLS-1$ //$NON-NLS-2$
     			+"\n\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
     	if (VideoIO.getVideoType(VideoIO.ENGINE_QUICKTIME, null)!=null) {
@@ -807,7 +808,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
         }
         // refresh info dialog
         cancelNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
-        closeNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+        closeNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$ 
+        displayWhenLoadedCheckbox.setText(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
       }
       // refresh memory button
       TTrackBar.refreshMemoryButton();
@@ -851,11 +853,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   		if (prefsDialog.trackerPanel!=trackerPanel) {
 		  	prefsDialog.trackerPanel = trackerPanel;
 	  		prefsDialog.refreshGUI();
-                }
-        }
-        else {
+  		}
+  	}
+  	else {
       // create PrefsDialog
-                prefsDialog = new PrefsDialog(trackerPanel, TFrame.this);
+  		prefsDialog = new PrefsDialog(trackerPanel, TFrame.this);
       // center on screen
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - prefsDialog.getBounds().width) / 2;
@@ -1228,13 +1230,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   	}
 
   	if (prefsDialog!=null) {
-                prefsDialog.refreshGUI();
-        }
-        if (libraryBrowser!=null) {
-                libraryBrowser.setFontLevel(level);
-        }
-        if (helpLauncher!=null) {
-                FontSizer.setFonts(helpLauncher, level);
+  		prefsDialog.refreshGUI();
+  	}
+  	if (libraryBrowser!=null) {
+  		libraryBrowser.setFontLevel(level);
+  	}
+  	if (helpLauncher!=null) {
+  		FontSizer.setFonts(helpLauncher, level);
   	}
   	FontSizer.setFonts(notesDialog, level);
 		FontSizer.setFonts(OSPLog.getOSPLog(), level);
@@ -1331,10 +1333,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     	LibraryBrowser.fireHelpEvent = true;
     	libraryBrowser.addPropertyChangeListener("help", new PropertyChangeListener() { //$NON-NLS-1$
 	  		public void propertyChange(PropertyChangeEvent e) {
-                                showHelp("library", 0); //$NON-NLS-1$
-                        }
-                });
-                libraryBrowser.setFontLevel(FontSizer.getLevel());
+	  			showHelp("library", 0); //$NON-NLS-1$
+	  		}
+	  	});
+  		libraryBrowser.setFontLevel(FontSizer.getLevel());
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - dialog.getBounds().width) / 2;
       int y = (dim.height - dialog.getBounds().height) / 2;
@@ -1468,10 +1470,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     Runnable runner = new Runnable() {
       public void run() {
       	TTrack track = panel.getSelectedTrack();
-      	if ((track != null && track.getDescription()!= null &&
+      	if (!panel.hideDescriptionWhenLoaded &&
+      			((track != null && track.getDescription()!= null &&
                 !track.getDescription().trim().equals("")) || //$NON-NLS-1$
             (track == null && panel.getDescription() != null &&
-                !panel.getDescription().trim().equals(""))) { //$NON-NLS-1$
+                !panel.getDescription().trim().equals("")))) { //$NON-NLS-1$
           if (!button.isSelected()) button.doClick();
         }
         else if (button.isSelected()) button.doClick();
@@ -1583,11 +1586,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
           }
           else if (!desc.equals(trackerPanel.getDescription())) {
             trackerPanel.setDescription(desc);
+            trackerPanel.hideDescriptionWhenLoaded = !displayWhenLoadedCheckbox.isSelected();
           }
         }
       	notesTextPane.setBackground(Color.WHITE);
       	cancelNotesDialogButton.setEnabled(false);
       	closeNotesDialogButton.setEnabled(true);
+        closeNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$ 
       }
     };
     notesDialog = new JDialog(this, false) {
@@ -1619,6 +1624,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       	if (!trackerPanel.isEnabled("notes.edit")) //$NON-NLS-1$
       		return;
       	notesTextPane.setBackground(yellow);
+        closeNotesDialogButton.setText(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$ 
       	cancelNotesDialogButton.setEnabled(true);
       }
     });
@@ -1632,6 +1638,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     infoContentPane.add(textScroller, BorderLayout.CENTER);
     JPanel buttonbar = new JPanel(new FlowLayout());
     infoContentPane.add(buttonbar, BorderLayout.SOUTH);
+    displayWhenLoadedCheckbox = new JCheckBox(TrackerRes.getString("TFrame.NotesDialog.Checkbox.ShowByDefault")); //$NON-NLS-1$
+    displayWhenLoadedCheckbox.addActionListener(new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+        TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
+        if (trackerPanel!=null) {
+        	trackerPanel.hideDescriptionWhenLoaded = !displayWhenLoadedCheckbox.isSelected();
+        }
+      }
+    });
+    buttonbar.add(displayWhenLoadedCheckbox); 
+    buttonbar.add(Box.createHorizontalStrut(50));
     cancelNotesDialogButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
     cancelNotesDialogButton.addActionListener(new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
@@ -1646,7 +1663,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       	notesDialog.setVisible(false);
       }
     });
-    buttonbar.add(closeNotesDialogButton);    
+    buttonbar.add(closeNotesDialogButton);
     notesDialog.pack();
     // create the tabbed pane
     tabbedPane = new JTabbedPane(SwingConstants.BOTTOM);

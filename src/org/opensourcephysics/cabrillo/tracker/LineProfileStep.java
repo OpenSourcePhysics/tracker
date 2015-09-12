@@ -20,18 +20,18 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This is a step for a LineProfile. It is used for obtaining
@@ -237,6 +237,10 @@ public class LineProfileStep extends Step {
       mark = footprint.getMark(screenPoints);
       if (p != null) {
         transform.setToTranslation(p.x, p.y);
+        int scale = FontSizer.getIntegerFactor();
+        if (scale>1) {
+        	transform.scale(scale, scale);
+        }
         s = transform.createTransformedShape(selectionShape);
         final Color color = footprint.getColor();
         final Mark stepMark = mark;

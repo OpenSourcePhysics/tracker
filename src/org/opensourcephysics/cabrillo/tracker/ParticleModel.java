@@ -19,7 +19,7 @@
  * <http://www.gnu.org/copyleft/gpl.html>
  * 
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -77,6 +77,8 @@ abstract public class ParticleModel extends PointMass {
 	protected boolean refreshDerivsLater, refreshStepsLater;
 	protected boolean invalidWarningShown, startFrameUndefined;
 	protected int startFrame, endFrame=Integer.MAX_VALUE;
+	protected boolean useDefaultReferenceFrame;
+	protected JMenuItem inspectorItem, useDefaultRefFrameItem;
 	
   /**
 	 * Constructs a ParticleModel.
@@ -216,12 +218,19 @@ abstract public class ParticleModel extends PointMass {
 			inspector.setSelectedPanel(getName());
 		}
 		if (name.equals("function") //$NON-NLS-1$
-				|| name.equals("transform") //$NON-NLS-1$
 				|| name.equals("starttime") //$NON-NLS-1$
 				|| name.equals("frameduration") //$NON-NLS-1$
 				|| name.equals("startframe") //$NON-NLS-1$
 				|| name.equals("stepsize")) { //$NON-NLS-1$
-			lastValidFrame = -1;							
+			lastValidFrame = -1;		
+		}
+		if (name.equals("transform")) { //$NON-NLS-1$
+			// workaround to prevent infinite loop
+      ImageCoordSystem coords = trackerPanel.getCoords();
+			if (!(coords instanceof ReferenceFrame && 
+    				((ReferenceFrame)coords).getOriginTrack()==this)) {
+				lastValidFrame = -1;		
+			}
 		}
 		if (!refreshing && isModelsVisible()) {
 			if (name.equals("function")) { //$NON-NLS-1$
@@ -237,7 +246,7 @@ abstract public class ParticleModel extends PointMass {
 				// workaround to prevent infinite loop
 	      ImageCoordSystem coords = trackerPanel.getCoords();
 				if (!(coords instanceof ReferenceFrame && 
-	    				((ReferenceFrame)coords).getOriginTrack() == this)) {
+	    				((ReferenceFrame)coords).getOriginTrack()==this)) {
 					refreshSteps();
 				}
 			}
@@ -365,24 +374,51 @@ abstract public class ParticleModel extends PointMass {
 	 * @return a menu
 	 */
 	public JMenu getMenu(TrackerPanel trackerPanel) {
-		// create the model inspector item
-		JMenuItem inspectorItem = new JMenuItem(
-				TrackerRes.getString("ParticleModel.MenuItem.InspectModel")); //$NON-NLS-1$
-		inspectorItem.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				positionInspector();
-				getInspector().setVisible(true);
-			}
-		});
+		if (inspectorItem==null) {
+			// create the model inspector item
+			inspectorItem = new JMenuItem();
+			inspectorItem.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					positionInspector();
+					getInspector().setVisible(true);
+				}
+			});
+			// create the useDefaultRefFrameItem item
+			useDefaultRefFrameItem = new JCheckBoxMenuItem();
+			useDefaultRefFrameItem.setSelected(!useDefaultReferenceFrame);
+			useDefaultRefFrameItem.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					setUseDefaultReferenceFrame(!useDefaultRefFrameItem.isSelected());
+					if (ParticleModel.this.trackerPanel.getCoords() instanceof ReferenceFrame) {
+		      	lastValidFrame = -1;
+		      	refreshSteps();						
+					}
+				}
+			});
+		}
+		inspectorItem.setText(TrackerRes.getString("ParticleModel.MenuItem.InspectModel")); //$NON-NLS-1$
+		useDefaultRefFrameItem.setText(TrackerRes.getString("ParticleModel.MenuItem.UseDefaultReferenceFrame")); //$NON-NLS-1$
 		// assemble the menu
 		JMenu menu = super.getMenu(trackerPanel);
 
 		// remove unwanted menu items and separators
+		menu.remove(autotrackItem);
+		menu.remove(deleteStepItem);
+		menu.remove(clearStepsItem);
 		menu.remove(lockedItem);
 		menu.remove(autoAdvanceItem);
 		menu.remove(markByDefaultItem);
 		menu.insert(inspectorItem, 0);
 		if (menu.getItemCount() > 1) menu.insertSeparator(1);
+		
+//		// find visible item and insert useDefaultRefFrameItem after it
+//		for (int i=0; i<menu.getMenuComponentCount(); i++) {
+//			if (menu.getMenuComponent(i)==visibleItem) {
+//				menu.insert(useDefaultRefFrameItem, i+1);
+//				break;
+//			}
+//		}
+		
 		// eliminate any double separators
 		Object prevItem = inspectorItem;
 		int n = menu.getItemCount();
@@ -615,8 +651,9 @@ abstract public class ParticleModel extends PointMass {
       boolean singleStep = (end-start==1);
       // step forward to end
       ImageCoordSystem coords = trackerPanel.getCoords();
-      // get underlying coords if reference frame
-      while (coords instanceof ReferenceFrame) {
+      // get underlying coords if appropriate
+      boolean useDefault = isUseDefaultReferenceFrame();
+      while (useDefault && coords instanceof ReferenceFrame) {
         coords = ( (ReferenceFrame) coords).getCoords();
       }
       double startTime = t0 + dt*tracePtsPerStep*
@@ -798,6 +835,29 @@ abstract public class ParticleModel extends PointMass {
 	 */
 	protected boolean restoreState(int frameNumber) {
 		return false;
+	}
+	
+	/**
+	 * Determines if the default reference frame is used to determine step positions.
+	 * 
+	 * @return true if the default reference frame is used
+	 */
+	protected boolean isUseDefaultReferenceFrame() {
+		ImageCoordSystem coords = trackerPanel.getCoords();
+		if (coords instanceof ReferenceFrame
+				&& ((ReferenceFrame)coords).getOriginTrack()==this) {
+		  return true;
+		}
+		return useDefaultReferenceFrame;
+	}
+	
+	/**
+	 * Sets the useDefaultReferenceFrame flag.
+	 * 
+	 * @param useDefault true to use the default reference frame
+	 */
+	public void setUseDefaultReferenceFrame(boolean useDefault) {
+		useDefaultReferenceFrame = useDefault;
 	}
 	
 	/**

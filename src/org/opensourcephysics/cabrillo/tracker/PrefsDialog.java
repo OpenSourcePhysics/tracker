@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -77,21 +77,21 @@ public class PrefsDialog extends JDialog {
   protected JPanel mainButtonBar;
   protected JTabbedPane tabbedPane;
   protected JPanel configPanel, runtimePanel, videoPanel, generalPanel, 
-                displayPanel;
+  		displayPanel;
   protected TitledBorder checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
-        unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
-        videoTypeSubPanelBorder, videoSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
-        cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder;
+  	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
+  	videoTypeSubPanelBorder, videoSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
+  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder;
 
   protected IntegerField memoryField;
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
-                versionLabel, runLabel;
+  		versionLabel, runLabel;
   protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, 
-                ffmpegErrorCheckbox, variableDurationCheckBox;
+  		ffmpegErrorCheckbox, variableDurationCheckBox;
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
   protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, 
-                checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown;
+  		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown;
   protected JRadioButton vm32Button, vm64Button;
   protected JRadioButton ffmpegButton, qtButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
@@ -100,13 +100,15 @@ public class PrefsDialog extends JDialog {
   protected String recent32bitVM, recent64bitVM;
   protected String recentEngine;
   private boolean refreshing = false;
+  protected boolean relaunching = false;
   
   // previous values
   protected Set<String> prevEnabled = new TreeSet<String>();
   protected int prevMemory, prevRecentCount, prevUpgradeInterval, prevFontLevel;
   protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine;
   protected boolean prevHints, prevRadians, prevFastVideo, 
-                prevWarnNoVideoEngine, prevWarnFFMPegError, prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed;
+  		prevWarnNoVideoEngine, prevWarnFFMPegError,
+  		prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed;
   protected File prevCache;
   protected String[] prevExecutables;
 
@@ -114,13 +116,13 @@ public class PrefsDialog extends JDialog {
 	static {
 		trackerJarFilter = new org.opensourcephysics.cabrillo.tracker.deploy.TrackerJarFilter();
   	try {
-                userHome = System.getProperty("user.home"); //$NON-NLS-1$
+	  	userHome = System.getProperty("user.home"); //$NON-NLS-1$
       javaHome = System.getProperty("java.home"); //$NON-NLS-1$
-                URL url = TrackerStarter.class.getProtectionDomain().getCodeSource().getLocation();
-//              File jarFile = new File(url.getPath());
-                File jarFile = new File(url.toURI());
-                codeBaseDir = jarFile.getParentFile();
-                }  
+  		URL url = TrackerStarter.class.getProtectionDomain().getCodeSource().getLocation();
+//  		File jarFile = new File(url.getPath());
+  		File jarFile = new File(url.toURI());
+  		codeBaseDir = jarFile.getParentFile();
+		}  
 		catch (Exception ex) {}
 	}
 	
@@ -152,13 +154,13 @@ public class PrefsDialog extends JDialog {
   
   public void setFontLevel(int level) {
 		FontSizer.setFonts(this, level);
-                Object[] borders = new Object[] {
-                  checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
-                unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
-                videoTypeSubPanelBorder, videoSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
-                cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder};
-                FontSizer.setFonts(borders, level); 
-                JComboBox[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, 
+		Object[] borders = new Object[] {
+		  checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
+	  	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
+	  	videoTypeSubPanelBorder, videoSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
+	  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder};
+		FontSizer.setFonts(borders, level); 
+		JComboBox[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, 
 				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown};
 		for (JComboBox next: dropdowns) {
 			int n = next.getSelectedIndex();
@@ -405,14 +407,18 @@ public class PrefsDialog extends JDialog {
     fontSizeDropdown = new JComboBox();
     String defaultLevel = TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"); //$NON-NLS-1$
     fontSizeDropdown.addItem(defaultLevel);
-    for (int i=1; i<4; i++) {
+    int preferredLevel = Tracker.preferredFontLevel + Tracker.preferredFontLevelPlus;
+    int maxLevel = Math.max(preferredLevel, 6);
+    for (int i=1; i<=maxLevel; i++) {
     	String s = "+"+i; //$NON-NLS-1$
     	fontSizeDropdown.addItem(s);
     }
-    fontSizeDropdown.setSelectedIndex(Tracker.preferredFontLevel);
+    fontSizeDropdown.setSelectedIndex(preferredLevel);
     fontSizeDropdown.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
-        Tracker.preferredFontLevel = fontSizeDropdown.getSelectedIndex();
+    		int preferredLevel = fontSizeDropdown.getSelectedIndex();
+        Tracker.preferredFontLevel = Math.min(preferredLevel, 3);
+        Tracker.preferredFontLevelPlus = preferredLevel - Tracker.preferredFontLevel;
     	}
     });
     fontSubPanel.add(fontSizeDropdown);
@@ -559,18 +565,18 @@ public class PrefsDialog extends JDialog {
     vm64Button.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
     vm64Button.setSelected(vmBitness==64);
     vm64Button.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent e) {
-                if (!vm64Button.isSelected()) return;
+    	public void itemStateChanged(ItemEvent e) {
+    		if (!vm64Button.isSelected()) return;
 
-                if (OSPRuntime.isMac()) {
-                        Tracker.use32BitMode = false;
-                                refreshJREDropdown(64);                         
-                        if (ffmpegButton.isSelected() || noEngineButton.isSelected()) return;
-                        // if no ffmpeg engine, show warning
-                        if (!ffmpegButton.isSelected()) {
-                        int selected = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(),
-                                TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message1")+"\n"+  //$NON-NLS-1$ //$NON-NLS-2$
-                                TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message2")+"\n\n"+  //$NON-NLS-1$ //$NON-NLS-2$
+	    	if (OSPRuntime.isMac()) {
+	    		Tracker.use32BitMode = false;
+	    		refreshJREDropdown(64);	    			
+	    		if (ffmpegButton.isSelected() || noEngineButton.isSelected()) return;
+	    		// if no ffmpeg engine, show warning
+	    		if (!ffmpegButton.isSelected()) {
+		      	int selected = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(),
+	          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message1")+"\n"+  //$NON-NLS-1$ //$NON-NLS-2$
+	          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message2")+"\n\n"+  //$NON-NLS-1$ //$NON-NLS-2$
 	              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Question"),    //$NON-NLS-1$
 	              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Title"),    //$NON-NLS-1$
 	              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null);
@@ -579,31 +585,31 @@ public class PrefsDialog extends JDialog {
 	          }
 	          else {
 	          	vm32Button.setSelected(true); // revert to 32-bit VM	          	
-                  }
-                                return;
-                        }
-                        // set engine to FFMPeg and inform user
-                        int selected = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(),
-                        TrackerRes.getString("PrefsDialog.Dialog.SwitchTo64.Message"),    //$NON-NLS-1$
+	          }
+	    			return;
+	    		}
+	    		// set engine to FFMPeg and inform user
+	    		int selected = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(),
+          		TrackerRes.getString("PrefsDialog.Dialog.SwitchTo64.Message"),    //$NON-NLS-1$
               TrackerRes.getString("PrefsDialog.Dialog.SwitchEngine.Title"),    //$NON-NLS-1$
               JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
           if(selected==JOptionPane.OK_OPTION) {
-                ffmpegButton.setSelected(true);
+          	ffmpegButton.setSelected(true);
           }
           else {
-                        Tracker.use32BitMode = true;
+  	    		Tracker.use32BitMode = true;
   	    		vm32Button.setSelected(true);
           }
-                }
-                else if (OSPRuntime.isWindows()) {                      
-                        refreshJREDropdown(64);                         
-                        if (ffmpegButton.isSelected()) return;
-                        if (noEngineButton.isSelected()) return;
-                        // if no ffmpeg engine, show warning
-                        if (!ffmpegButton.isSelected()) {
-                                // inform that no engine available in 64-bit VM
-                        int selected = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(),
-                                TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message1")+"\n"+  //$NON-NLS-1$ //$NON-NLS-2$
+	    	}
+	    	else if (OSPRuntime.isWindows()) {	    		
+	    		refreshJREDropdown(64);	    			
+	    		if (ffmpegButton.isSelected()) return;
+	    		if (noEngineButton.isSelected()) return;
+	    		// if no ffmpeg engine, show warning
+	    		if (!ffmpegButton.isSelected()) {
+	    			// inform that no engine available in 64-bit VM
+		      	int selected = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(),
+	          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message1")+"\n"+  //$NON-NLS-1$ //$NON-NLS-2$
 	          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message2")+"\n\n"+  //$NON-NLS-1$ //$NON-NLS-2$
 	              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Question"),    //$NON-NLS-1$
 	              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Title"),    //$NON-NLS-1$
@@ -613,35 +619,35 @@ public class PrefsDialog extends JDialog {
 	          }
 	          else {
 	          	vm32Button.setSelected(true); // revert to 32-bit VM	          	
-                  }
-                                return;
-                        }
-                        // set engine to ffmpeg and inform user
-                        ffmpegButton.setSelected(true);
-                JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
-                        TrackerRes.getString("PrefsDialog.Dialog.SwitchToFFMPeg.Message"),    //$NON-NLS-1$
+	          }
+	    			return;
+	    		}
+	    		// set engine to FFMPeg and inform user
+	    		ffmpegButton.setSelected(true);
+	      	JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+          		TrackerRes.getString("PrefsDialog.Dialog.SwitchToFFMPeg.Message"),    //$NON-NLS-1$
               TrackerRes.getString("PrefsDialog.Dialog.SwitchToFFMPeg.Title"),    //$NON-NLS-1$
               JOptionPane.INFORMATION_MESSAGE);
-                }
-        }
+	    	}
+    	}
     });
     jreNorthPanel.add(vm64Button);
     
     jreDropdown = new JComboBox();
     String pref = Tracker.preferredJRE;
     if (pref==null && vm64Button.isSelected()) {
-        pref = Tracker.preferredJRE64;
+    	pref = Tracker.preferredJRE64;
     }
     if (pref==null && vm32Button.isSelected()) {
-        pref = Tracker.preferredJRE32;
+    	pref = Tracker.preferredJRE32;
     }    
     if (pref==null) {
-        pref = System.getProperty("java.home");                                                         //$NON-NLS-1$
+    	pref = System.getProperty("java.home");              						//$NON-NLS-1$
     }
     jreDropdown.addItem(pref);
     jreDropdown.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent e) {
-                if (refreshing) return;
+    	public void itemStateChanged(ItemEvent e) {
+    		if (refreshing) return;
     		Object selected = jreDropdown.getSelectedItem();
     		if (selected==null) return;
     		if (vm64Button.isSelected()) {
@@ -902,40 +908,68 @@ public class PrefsDialog extends JDialog {
     box.add(videoTypeSubPanel);
     videoTypeSubPanel.setBackground(color);
     videoTypeSubPanelBorder = BorderFactory.createTitledBorder(
-                TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
+    		TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
     videoTypeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoTypeSubPanelBorder));    
-    boolean ffmpegInstalled = VideoIO.isEngineInstalled(VideoIO.ENGINE_FFMPEG);
+    boolean xuggleInstalled = VideoIO.isEngineInstalled(VideoIO.ENGINE_FFMPEG);
 
     ffmpegButton = new JRadioButton();
     ffmpegButton.setOpaque(false);
     ffmpegButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
     ffmpegButton.addItemListener(new ItemListener() {
-        public void itemStateChanged(ItemEvent e) {
-                videoFastButton.setEnabled(ffmpegButton.isSelected());
-                videoSlowButton.setEnabled(ffmpegButton.isSelected());
-                ffmpegErrorCheckbox.setEnabled(ffmpegButton.isSelected());
-                        if (!ffmpegButton.isSelected()) return;
-                                Tracker.engineKnown = true;
-                                // OSX: if 32-bit, set preferred VM to 64-bit and inform user
-                        if (OSPRuntime.isMac() && vm32Button.isSelected()) {
-                        int selected = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(),
-                                TrackerRes.getString("PrefsDialog.Dialog.SwitchToFFMPeg64.Message"),    //$NON-NLS-1$
-                      TrackerRes.getString("PrefsDialog.Dialog.SwitchVM.Title"),    //$NON-NLS-1$
-                      JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
-                  if(selected==JOptionPane.OK_OPTION) {
-	          	vm64Button.setSelected(true); // triggers selection of default or recent 64-bit VM
-	          }
-	          else {
-	          	// revert to previous engine
-	          	if (recentEngine.equals(VideoIO.ENGINE_QUICKTIME)) {
-	          		qtButton.setSelected(true);         		
-	          	}
-	          	else if (recentEngine.equals(VideoIO.ENGINE_NONE)) {
-	          		noEngineButton.setSelected(true);         		
-                        }
-                  }
-                }
-        }
+    	public void itemStateChanged(ItemEvent e) {
+        videoFastButton.setEnabled(ffmpegButton.isSelected());
+        videoSlowButton.setEnabled(ffmpegButton.isSelected());
+        ffmpegErrorCheckbox.setEnabled(ffmpegButton.isSelected());
+     		if (!ffmpegButton.isSelected()) return;
+  			Tracker.engineKnown = true;
+  			// OSX: if 32-bit, set preferred VM to 64-bit and inform user
+    		if (OSPRuntime.isMac() && vm32Button.isSelected()) {
+	      	int selected = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(),
+          		TrackerRes.getString("PrefsDialog.Dialog.SwitchToFFMPeg64.Message"),    //$NON-NLS-1$
+              TrackerRes.getString("PrefsDialog.Dialog.SwitchVM.Title"),    //$NON-NLS-1$
+              JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
+          if(selected==JOptionPane.OK_OPTION) {
+          	vm64Button.setSelected(true); // triggers selection of default or recent 64-bit VM
+          }
+          else {
+          	// revert to previous engine
+          	if (recentEngine.equals(VideoIO.ENGINE_QUICKTIME)) {
+          		qtButton.setSelected(true);         		
+          	}
+          	else if (recentEngine.equals(VideoIO.ENGINE_NONE)) {
+          		noEngineButton.setSelected(true);         		
+          	}
+          }
+    		}
+      	// Windows: if ffmpeg and 64-bit, set preferred VM to 32-bit and inform user    		
+    		else if (OSPRuntime.isWindows() && vm64Button.isSelected()) {
+      		boolean has32BitVM = ExtensionsManager.getManager().getDefaultJRE(32)!=null;
+      		if (has32BitVM) {
+	      		vm32Button.setSelected(true);
+		      	JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+	          		TrackerRes.getString("PrefsDialog.Dialog.SwitchToFFMPeg32.Message"),    //$NON-NLS-1$
+	              TrackerRes.getString("PrefsDialog.Dialog.SwitchVM.Title"),    //$NON-NLS-1$
+	              JOptionPane.INFORMATION_MESSAGE);
+      		}
+      		else { // help user download 32-bit VM
+      			Object[] options = new Object[] {
+      					TrackerRes.getString("PrefsDialog.Button.ShowHelpNow"),    //$NON-NLS-1$
+	              TrackerRes.getString("Dialog.Button.OK")}; //$NON-NLS-1$
+      			int response = JOptionPane.showOptionDialog(trackerPanel.getTFrame(),
+	          		TrackerRes.getString("PrefsDialog.Dialog.No32bitVMFFMPeg.Message")+"\n"+ //$NON-NLS-1$ //$NON-NLS-2$
+	          		TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message"), //$NON-NLS-1$
+	              TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Title"), //$NON-NLS-1$
+	              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+      			noEngineButton.setSelected(true);
+      			if (response==0) {
+      				trackerPanel.getTFrame().showHelp("install", 0); //$NON-NLS-1$
+      			}
+      		}
+      	}
+    		if (xuggleButton.isSelected()) {
+    			recentEngine = VideoIO.ENGINE_FFMPEG;
+    		}
+    	}
     });
     ffmpegButton.setEnabled(ffmpegInstalled);
     
@@ -958,12 +992,12 @@ public class PrefsDialog extends JDialog {
           	vm32Button.setSelected(true); // triggers selection of default or recent 32-bit VM
           }
           else {
-                // revert to previous engine
-                if (recentEngine.equals(VideoIO.ENGINE_FFMPEG)) {
-                        ffmpegButton.setSelected(true);                         
-                }
-                else if (recentEngine.equals(VideoIO.ENGINE_NONE)) {
-                        noEngineButton.setSelected(true);                       
+          	// revert to previous engine
+          	if (recentEngine.equals(VideoIO.ENGINE_FFMPEG)) {
+          		ffmpegButton.setSelected(true);         		
+          	}
+          	else if (recentEngine.equals(VideoIO.ENGINE_NONE)) {
+          		noEngineButton.setSelected(true);         		
           	}
           }
     		}
@@ -997,7 +1031,7 @@ public class PrefsDialog extends JDialog {
     		recentEngine = VideoIO.ENGINE_NONE;
     		VideoIO.setEngine(VideoIO.ENGINE_NONE);
   			Tracker.engineKnown = true;
-        }
+    	}
     });
 
     videoTypeSubPanel.add(ffmpegButton);
@@ -1009,20 +1043,20 @@ public class PrefsDialog extends JDialog {
     box.add(videoSpeedSubPanel);
     videoSpeedSubPanel.setBackground(color);
     videoSpeedSubPanelBorder = BorderFactory.createTitledBorder(
-                TrackerRes.getString("PrefsDialog.Video.Speed.BorderTitle")); //$NON-NLS-1$
-    if (!ffmpegInstalled)
-        videoSpeedSubPanelBorder.setTitleColor(new Color(153, 153, 153));
-    videoSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoSpeedSubPanelBorder));    
+    		TrackerRes.getString("PrefsDialog.FFMPeg.Speed.BorderTitle")); //$NON-NLS-1$
+    if (!xuggleInstalled)
+    	ffmpegSpeedSubPanelBorder.setTitleColor(new Color(153, 153, 153));
+    ffmpegSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, ffmpegSpeedSubPanelBorder));    
     buttonGroup = new ButtonGroup();
     videoFastButton = new JRadioButton();
     videoFastButton.setOpaque(false);
     videoFastButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
-    videoFastButton.setSelected((ffmpegInstalled) && Tracker.isVideoFast);
+    videoFastButton.setSelected(ffmpegInstalled && Tracker.isVideoFast);
     buttonGroup.add(videoFastButton);
     videoSlowButton = new JRadioButton();
     videoSlowButton.setOpaque(false);
     videoSlowButton.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
-    videoSlowButton.setSelected((ffmpegInstalled) && !Tracker.isVideoFast);
+    videoSlowButton.setSelected(ffmpegInstalled && !Tracker.isVideoFast);
     buttonGroup.add(videoSlowButton);
     videoSpeedSubPanel.add(videoFastButton);
     videoSpeedSubPanel.add(videoSlowButton);
@@ -1033,7 +1067,7 @@ public class PrefsDialog extends JDialog {
     vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
     vidWarningCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        Tracker.warnNoVideoEngine = vidWarningCheckbox.isSelected();
+      	Tracker.warnNoVideoEngine = vidWarningCheckbox.isSelected();
       }
     });
     ffmpegErrorCheckbox = new JCheckBox();
@@ -1041,7 +1075,7 @@ public class PrefsDialog extends JDialog {
     ffmpegErrorCheckbox.setSelected(Tracker.warnFFMPegError);
     ffmpegErrorCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        Tracker.warnFFMPegError = ffmpegErrorCheckbox.isSelected();
+      	Tracker.warnFFMPegError = ffmpegErrorCheckbox.isSelected();
       }
     });
     variableDurationCheckBox = new JCheckBox();
@@ -1069,19 +1103,19 @@ public class PrefsDialog extends JDialog {
     centerSouthPanel.add(warningsCenterPanel, BorderLayout.NORTH);
     centerSouthPanel.add(warningsSouthPanel, BorderLayout.CENTER);
     warningsSubPanel.add(centerSouthPanel, BorderLayout.CENTER);
-    
+
     warningsNorthPanel.add(vidWarningCheckbox);
     warningsNorthPanel.add(variableDurationCheckBox);
     warningsCenterPanel.add(ffmpegErrorCheckbox);
     
     // set selected states of engine buttons AFTER creating the videofast, videoslow and warnffmpeg buttons
     if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)
-                && VideoIO.getVideoType("QT", null)!=null) { //$NON-NLS-1$
-            qtButton.setSelected(true);
+    		&& VideoIO.getVideoType("QT", null)!=null) { //$NON-NLS-1$
+	    qtButton.setSelected(true);
     }
     else if (VideoIO.getEngine().equals(VideoIO.ENGINE_FFMPEG)
-                && VideoIO.getVideoType("FFMPeg", null)!=null) { //$NON-NLS-1$
-            ffmpegButton.setSelected(true);
+    		&& VideoIO.getVideoType("FFMPeg", null)!=null) { //$NON-NLS-1$
+	    ffmpegButton.setSelected(true);
     }
     else noEngineButton.setSelected(true);
 
@@ -1250,7 +1284,7 @@ public class PrefsDialog extends JDialog {
     checkForUpgradeButton = new JButton();
     checkForUpgradeButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	Tracker.loadCurrentVersion(true);
+      	Tracker.loadCurrentVersion(true, false);
     		Tracker.lastMillisChecked = System.currentTimeMillis();
   			if (trackerPanel!=null) TTrackBar.getTrackbar(trackerPanel).refresh();
     		String message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
@@ -1369,17 +1403,17 @@ public class PrefsDialog extends JDialog {
     videoSlowButton.setEnabled(ffmpegButton.isSelected());
     ffmpegErrorCheckbox.setEnabled(ffmpegButton.isSelected());
     if (OSPRuntime.isWindows()) {
-        Runnable runner = new Runnable() {
-                public void run() {
-            vm32Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(32).isEmpty());
-            vm64Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(64).isEmpty());
-    }
-        };
-        new Thread(runner).start();
+    	Runnable runner = new Runnable() {
+    		public void run() {
+			    vm32Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(32).isEmpty());
+			    vm64Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(64).isEmpty());    			
+    		}
+    	};
+    	new Thread(runner).start();
     }
     else if (OSPRuntime.isLinux()) {
-        int bitness = OSPRuntime.getVMBitness();
-            vm32Button.setEnabled(bitness==32);
+    	int bitness = OSPRuntime.getVMBitness();
+	    vm32Button.setEnabled(bitness==32);
 	    vm64Button.setEnabled(bitness==64);    	
     }
     refreshGUI();
@@ -1392,18 +1426,18 @@ public class PrefsDialog extends JDialog {
 		prevLookFeel = Tracker.lookAndFeel;
 		prevRecentCount = Tracker.recentFilesSize;
 		prevLocaleName = Tracker.preferredLocale;
-                prevFontLevel = Tracker.preferredFontLevel;
-                prevHints = Tracker.showHintsByDefault;
-                prevRadians = Tracker.isRadians;
-                prevFastVideo = Tracker.isVideoFast;
-                prevJRE = Tracker.preferredJRE;
-                prevTrackerJar = Tracker.preferredTrackerJar;
-                prevExecutables = Tracker.prelaunchExecutables;
-                prevWarnNoVideoEngine = Tracker.warnNoVideoEngine;
-                prevWarnFFMPegError = Tracker.warnFFMPegError;
-                prevCache = ResourceLoader.getOSPCache();
-                prevUpgradeInterval = Tracker.checkForUpgradeInterval;
-                prevUse32BitVM = Tracker.use32BitMode;
+		prevFontLevel = Tracker.preferredFontLevel;
+		prevHints = Tracker.showHintsByDefault;
+		prevRadians = Tracker.isRadians;
+		prevFastVideo = Tracker.isVideoFast;
+		prevJRE = Tracker.preferredJRE;
+		prevTrackerJar = Tracker.preferredTrackerJar;
+		prevExecutables = Tracker.prelaunchExecutables;
+		prevWarnNoVideoEngine = Tracker.warnNoVideoEngine;
+		prevWarnFFMPegError = Tracker.warnFFMPegError;
+		prevCache = ResourceLoader.getOSPCache();
+		prevUpgradeInterval = Tracker.checkForUpgradeInterval;
+		prevUse32BitVM = Tracker.use32BitMode;
 		prevEngine = VideoIO.getEngine();
 		recentEngine = VideoIO.getEngine();
   }
@@ -1414,18 +1448,18 @@ public class PrefsDialog extends JDialog {
 		Tracker.lookAndFeel = prevLookFeel;
 		Tracker.recentFilesSize = prevRecentCount;
 		Tracker.setPreferredLocale(prevLocaleName);
-                Tracker.preferredFontLevel = prevFontLevel;
-                Tracker.showHintsByDefault = prevHints;
-                Tracker.isRadians = prevRadians;
-                Tracker.isVideoFast = prevFastVideo;
-                Tracker.preferredJRE = prevJRE;
-                Tracker.preferredTrackerJar = prevTrackerJar;
-                Tracker.prelaunchExecutables = prevExecutables;
-                Tracker.warnNoVideoEngine = prevWarnNoVideoEngine;
-                Tracker.warnFFMPegError = prevWarnFFMPegError;
-                ResourceLoader.setOSPCache(prevCache);
-                Tracker.checkForUpgradeInterval = prevUpgradeInterval;
-                Tracker.use32BitMode = prevUse32BitVM;
+		Tracker.preferredFontLevel = prevFontLevel;
+		Tracker.showHintsByDefault = prevHints;
+		Tracker.isRadians = prevRadians;
+		Tracker.isVideoFast = prevFastVideo;
+		Tracker.preferredJRE = prevJRE;
+		Tracker.preferredTrackerJar = prevTrackerJar;
+		Tracker.prelaunchExecutables = prevExecutables;
+		Tracker.warnNoVideoEngine = prevWarnNoVideoEngine;
+		Tracker.warnFFMPegError = prevWarnFFMPegError;
+		ResourceLoader.setOSPCache(prevCache);
+		Tracker.checkForUpgradeInterval = prevUpgradeInterval;
+		Tracker.use32BitMode = prevUse32BitVM;
 		// reset JRE dropdown to initial state
     int vmBitness = OSPRuntime.getVMBitness();
     if (vmBitness==32) {
@@ -1480,7 +1514,7 @@ public class PrefsDialog extends JDialog {
     vm64Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.64BitVM")); //$NON-NLS-1$
     ffmpegButton.setText(TrackerRes.getString("PrefsDialog.Button.FFMPeg")); //$NON-NLS-1$
     qtButton.setText(TrackerRes.getString("PrefsDialog.Button.QT")); //$NON-NLS-1$
-        noEngineButton.setText(TrackerRes.getString("PrefsDialog.Button.NoEngine")); //$NON-NLS-1$
+  	noEngineButton.setText(TrackerRes.getString("PrefsDialog.Button.NoEngine")); //$NON-NLS-1$
     radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
     degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
     videoFastButton.setText(TrackerRes.getString("PrefsDialog.Video.Fast")); //$NON-NLS-1$
@@ -1501,62 +1535,69 @@ public class PrefsDialog extends JDialog {
   
   private void refreshJREDropdown(final int vmBitness) {
     // refresh JRE dropdown in background thread
-        Runnable runner = new Runnable() {
-                public void run() {
-                                while (!ExtensionsManager.isReady()) {
-                                        try {
-                                                Thread.sleep(200);
-                                        } catch (InterruptedException e) {
-                                        }
-                        }
-                                Runnable refresher = new Runnable() {
-                                        public void run() {
-        refreshing = true; // suppresses dropdown actions
-    // replace items in dropdown
-    jreDropdown.removeAllItems();
-    ExtensionsManager manager = ExtensionsManager.getManager();
-    Set<String> availableJREs = manager.getAllJREs(vmBitness);
-    for (String next: availableJREs) {
-    	jreDropdown.addItem(next);
-    }
-    
-    // set selected item
-    String selectedItem = null;
-  	if (vmBitness==32 && recent32bitVM!=null) {
-  		selectedItem = recent32bitVM;
-  	}
-  	else if (vmBitness==64 && recent64bitVM!=null) {
-  		selectedItem = recent64bitVM;
-  	}
-    if (selectedItem==null) {
-    	selectedItem = Tracker.preferredJRE;
-    	if (selectedItem==null || !availableJREs.contains(selectedItem)) {
-      	selectedItem = vmBitness==32? Tracker.preferredJRE32: Tracker.preferredJRE64;
-        if (selectedItem==null || !availableJREs.contains(selectedItem)) {
-        	selectedItem = manager.getDefaultJRE(vmBitness);
-        }
-    	}
-    }
-    jreDropdown.setSelectedItem(selectedItem);
+  	Runnable runner = new Runnable() {
+  		public void run() {
+				while (!ExtensionsManager.isReady()) {
+					try {
+						Thread.sleep(200);
+					} catch (InterruptedException e) {
+					}
+  			}
+				Runnable refresher = new Runnable() {
+					public void run() {
+		  	  	refreshing = true; // suppresses dropdown actions
+		  	    // replace items in dropdown
+		  	    jreDropdown.removeAllItems();
+		  	    ExtensionsManager manager = ExtensionsManager.getManager();
+		  	    Set<String> availableJREs = manager.getAllJREs(vmBitness);
+		  	    for (String next: availableJREs) {
+		  	    	jreDropdown.addItem(next);
+		  	    }
+		  	    
+		  	    // set selected item
+		  	    String selectedItem = null;
+		  	  	if (vmBitness==32 && recent32bitVM!=null) {
+		  	  		selectedItem = recent32bitVM;
+		  	  	}
+		  	  	else if (vmBitness==64 && recent64bitVM!=null) {
+		  	  		selectedItem = recent64bitVM;
+		  	  	}
+		  	    if (selectedItem==null) {
+		  	    	selectedItem = Tracker.preferredJRE;
+		  	    	if (selectedItem==null || !availableJREs.contains(selectedItem)) {
+		  	      	selectedItem = vmBitness==32? Tracker.preferredJRE32: Tracker.preferredJRE64;
+		  	        if (selectedItem==null || !availableJREs.contains(selectedItem)) {
+		  	        	selectedItem = manager.getDefaultJRE(vmBitness);
+		  	        }
+		  	    	}
+		  	    }
+		  	    jreDropdown.setSelectedItem(selectedItem);
 
-    // save selected item for future refreshing
-		if (vmBitness==32) {
-			recent32bitVM = selectedItem;
-		}
-		else {
-			recent64bitVM = selectedItem;
-                }
-    refreshing = false;
-  }
-                                };
-                                SwingUtilities.invokeLater(refresher);                          
-                }
-        };
-        new Thread(runner).start();
+		  	    // save selected item for future refreshing
+		  			if (vmBitness==32) {
+		  				recent32bitVM = selectedItem;
+		  			}
+		  			else {
+		  				recent64bitVM = selectedItem;
+		  			}
+		  	    refreshing = false;
+		  	    if (vmBitness==32 && relaunching) {
+		  	  		// check that not canceled by user
+		  	  		if (!"cancel".equals(vm32Button.getName())) { //$NON-NLS-1$
+		  	  	    relaunching = false;
+		  	  			relaunchButton.doClick(0);
+		  	  		}
+		  	    }
+					}
+				};
+				SwingUtilities.invokeLater(refresher);  			
+  		}
+  	};
+  	new Thread(runner).start();
   }
   
   private void refreshTextFields() {
-        // run field
+  	// run field
   	int n = (Integer)runSpinner.getValue();
   	if (Tracker.prelaunchExecutables.length>n
   			&& Tracker.prelaunchExecutables[n]!=null) {
@@ -1620,20 +1661,20 @@ public class PrefsDialog extends JDialog {
 			if (ExtensionsManager.getManager().is32BitVM(Tracker.preferredJRE)) {
 				Tracker.preferredJRE32 = Tracker.preferredJRE;				
 			}
-                        else Tracker.preferredJRE64 = Tracker.preferredJRE;
-                }
-                // video engine
-                if (ffmpegButton.isSelected() && ffmpegButton.isEnabled()) {
-                        VideoIO.setEngine(VideoIO.ENGINE_FFMPEG);
-                }
-                else if (qtButton.isSelected() && qtButton.isEnabled()) {
-                        VideoIO.setEngine(VideoIO.ENGINE_QUICKTIME);
+			else Tracker.preferredJRE64 = Tracker.preferredJRE;
 		}
-                else VideoIO.setEngine(VideoIO.ENGINE_NONE);
-                
+		// video engine
+		if (ffmpegButton.isSelected() && ffmpegButton.isEnabled()) {
+			VideoIO.setEngine(VideoIO.ENGINE_FFMPEG);
+		}
+		else if (qtButton.isSelected() && qtButton.isEnabled()) {
+			VideoIO.setEngine(VideoIO.ENGINE_QUICKTIME);
+		}
+		else VideoIO.setEngine(VideoIO.ENGINE_NONE);
+		
     Tracker.isRadians = radiansButton.isSelected();
-                Tracker.isVideoFast = videoFastButton.isSelected();
-                if (frame!=null) frame.setAnglesInRadians(Tracker.isRadians);
+		Tracker.isVideoFast = ffmpegFastButton.isSelected();
+		if (frame!=null) frame.setAnglesInRadians(Tracker.isRadians);
     // save the tracker and tracker_starter preferences
     String path = Tracker.savePreferences();
 		if (path!=null)
@@ -1689,7 +1730,7 @@ public class PrefsDialog extends JDialog {
     ffmpegErrorCheckbox.setSelected(Tracker.warnFFMPegError);
     // locale
     for (Locale next: Tracker.locales) {
-        if (next.equals(Locale.getDefault())) {
+    	if (next.equals(Locale.getDefault())) {
     		languageDropdown.setSelectedItem(OSPRuntime.getDisplayLanguage(next));
     		break;
     	}
@@ -1704,7 +1745,9 @@ public class PrefsDialog extends JDialog {
     		break;
     	}    	
     }
-    versionDropdown.setSelectedIndex(selected);
+    if (versionDropdown.getItemCount()>selected) {
+    	versionDropdown.setSelectedIndex(selected);
+    }
     
     // VM dropdown
     selected = 0;
@@ -1715,7 +1758,9 @@ public class PrefsDialog extends JDialog {
     		break;
     	}    	
     }
-    jreDropdown.setSelectedIndex(selected);
+    if (jreDropdown.getItemCount()>selected) {
+    	jreDropdown.setSelectedIndex(selected);
+    }
     
     // log level
     selected = 0;
@@ -1728,7 +1773,9 @@ public class PrefsDialog extends JDialog {
 	    	}    	
 	    }
     }
-    logLevelDropdown.setSelectedIndex(selected);
+    if (logLevelDropdown.getItemCount()>selected) {
+    	logLevelDropdown.setSelectedIndex(selected);
+    }
     
     // checkForUpgrade
     selected = 0;
@@ -1739,17 +1786,19 @@ public class PrefsDialog extends JDialog {
     		break;
     	}    	
     }
-    checkForUpgradeDropdown.setSelectedIndex(selected);
+    if (checkForUpgradeDropdown.getItemCount()>selected) {
+    	checkForUpgradeDropdown.setSelectedIndex(selected);
+    }
 
     // video
     if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)) {
-            qtButton.setSelected(true);
+	    qtButton.setSelected(true);
     }
     else if (VideoIO.getEngine().equals(VideoIO.ENGINE_FFMPEG)) {
-            ffmpegButton.setSelected(true);
+	    ffmpegButton.setSelected(true);
     }
     
-                qtButton.setEnabled(true);
+		qtButton.setEnabled(true);
 		vm32Button.setEnabled(true);
 //		// if running OSX version 10.10 or later, disable 32-bit VM and QuickTime buttons
 //		if (OSPRuntime.isMac()) {
@@ -1786,6 +1835,14 @@ public class PrefsDialog extends JDialog {
   		if (tabbedPane.getComponentAt(i)==tab)
   			tabbedPane.setTitleAt(i, title);
   	}
+  }
+  
+  /**
+   * Relaunches after changing preferred VM to 32-bit
+   */
+  protected void relaunch32Bit() {
+  	relaunching = true;
+		vm32Button.setSelected(true); // also sets default video engine
   }
   
   /**

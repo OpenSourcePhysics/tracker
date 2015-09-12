@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -362,6 +362,7 @@ public class Undo {
    	  XMLControl control = new XMLControlElement(xml);
   	  control.loadObject(step);
   	  step.erase();
+  	  TTrackBar.getTrackbar(panel).refresh();
     }
   }
 
@@ -787,6 +788,7 @@ class TrackProperties {
    */
   static class Loader implements XML.ObjectLoader {
 
+		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			TrackProperties props = (TrackProperties)obj;
 			control.setValue("name", props.name); //$NON-NLS-1$
@@ -794,6 +796,7 @@ class TrackProperties {
 			control.setValue("color", props.color); //$NON-NLS-1$
 		}
 
+		@Override
 		public Object createObject(XMLControl control) {
 			String name = control.getString("name"); //$NON-NLS-1$
 			String footprint = control.getString("footprint"); //$NON-NLS-1$
@@ -801,6 +804,7 @@ class TrackProperties {
 			return new TrackProperties(name, footprint, color);
 		}
 
+		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			return obj;
 		}

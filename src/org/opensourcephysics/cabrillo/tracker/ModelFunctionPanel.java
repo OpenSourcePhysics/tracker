@@ -161,6 +161,13 @@ public class ModelFunctionPanel extends FunctionPanel {
 	  	initEditor.getTable().selectOnFocus = false;
  	  }
 	}
+	
+	@Override
+  protected boolean hasInvalidExpressions() {
+    return functionEditor.containsInvalidExpressions() 
+    		|| paramEditor.containsInvalidExpressions()
+    		|| initEditor.containsInvalidExpressions();
+  }
 
 }
 

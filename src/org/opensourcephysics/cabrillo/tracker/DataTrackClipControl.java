@@ -13,6 +13,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.event.MouseListener;
 import java.awt.geom.GeneralPath;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -83,6 +84,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         dataTrack.setStartFrame(in);
         videoInSpinner.setValue(dataTrack.getStartFrame());
         repaint();
+        videoInSpinner.requestFocusInWindow();
       }
   	};
   	videoInSpinner.addChangeListener(listener);
@@ -99,6 +101,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         dataTrack.getDataClip().setStartIndex(in);
         dataInSpinner.setValue(dataTrack.getDataClip().getStartIndex());
         repaint();
+        dataInSpinner.requestFocusInWindow();
       }
   	};
   	dataInSpinner.addChangeListener(listener);
@@ -116,6 +119,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         dataTrack.getDataClip().setClipLength(length);
         dataClipLengthSpinner.setValue(dataTrack.getDataClip().getClipLength());
         repaint();
+        dataClipLengthSpinner.requestFocusInWindow();
       }
   	};
   	dataClipLengthSpinner.addChangeListener(listener);
@@ -132,6 +136,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         dataTrack.getDataClip().setStride(n);
         dataStrideSpinner.setValue(dataTrack.getDataClip().getStride());
         repaint();
+        dataStrideSpinner.requestFocusInWindow();
       }
   	};
   	dataStrideSpinner.addChangeListener(listener);
@@ -226,6 +231,12 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   	dataInLabel.setText(TrackerRes.getString("DataTrackClipControl.Label.DataStart")); //$NON-NLS-1$
   	dataStrideLabel.setText(TrackerRes.getString("DataTrackClipControl.Label.Stride")); //$NON-NLS-1$
 	}
+	
+	protected void addMouseListenerToAll(MouseListener listener) {
+		this.addMouseListener(listener);
+		drawingPanel.addMouseListener(listener);
+		spinnerPanel.addMouseListener(listener);
+	}
 
   @Override
   public Dimension getMaximumSize() {
@@ -234,6 +245,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
     return dim;
   }
   
+	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		refreshSpinners();
 //		if (e.getPropertyName().equals("dataclip")) { //$NON-NLS-1$
@@ -282,8 +294,8 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   class MappingGraphic implements Interactive {
   	
 		GeneralPath path = new GeneralPath();
-		//pig convert to using TPoints & implement interactivity
 
+		@Override
 		public void draw(DrawingPanel panel, Graphics g) {
 	    VideoPanel vidPanel = dataTrack.getVideoPanel();
 	    if (vidPanel==null) return;
@@ -479,9 +491,11 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	  public Mark getMark(Point[] points) {
 	  	return new Mark() {
 
+				@Override
 				public void draw(Graphics2D g, boolean highlighted) {
 				}
 
+				@Override
 				public Rectangle getBounds(boolean highlighted) {
 					return null;
 				}
@@ -489,50 +503,60 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	  	};
 	  }
 
+		@Override
 		public double getXMin() {
 			return 0;
 		}
 
+		@Override
 		public double getXMax() {
 			return 100;
 		}
 
+		@Override
 		public double getYMin() {
 			return 0;
 		}
 
+		@Override
 		public double getYMax() {
 			return 100;
 		}
 
+		@Override
 		public boolean isMeasured() {
 			return true;
 		}
 
+		@Override
 		public Interactive findInteractive(DrawingPanel panel, int _xpix, int _ypix) {
-			// pig implement
 			return null;
 		}
 
+		@Override
 		public void setEnabled(boolean enabled) {}
 
+		@Override
 		public boolean isEnabled() {
 			return true;
 		}
 
+		@Override
 		public void setXY(double x, double y) {}
 
+		@Override
 		public void setX(double x) {
-			// pig implement
 		}
 
+		@Override
 		public void setY(double y) {}
 
+		@Override
 		public double getX() {
-			// pig implement
 			return 0;
 		}
 
+		@Override
 		public double getY() {
 			return 0;
 		}

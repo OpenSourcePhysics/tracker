@@ -20,7 +20,7 @@
  * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
  *
  * For additional Tracker information and documentation, please see
- * <http://www.cabrillo.edu/~dbrown/tracker/>.
+ * <http://physlets.org/tracker/>.
 
  */
 package org.opensourcephysics.cabrillo.tracker;
@@ -526,9 +526,9 @@ public class Vector extends TTrack {
   public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
                                              TPoint point) {
     ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
+    list.add(stepSeparator);
     list.add(stepLabel);
     list.add(stepValueLabel);
-    list.add(tValueLabel);
     list.add(tSeparator);
     list.add(xLabel);
     list.add(xField);
