@@ -312,7 +312,7 @@ public class TrackerStarter {
 	}
 
 	/**
-	 * Finds the FFMPeg home directory and sets/returns the static variable xuggleHome.
+	 * Finds the FFMPeg home directory and sets/returns the static variable ffmpegHome.
 	 * 
 	 * @param trackerHome the Tracker home directory (may be null)
 	 * @param writeToLog true to write results to the start log

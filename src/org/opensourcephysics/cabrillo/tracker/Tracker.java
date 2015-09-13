@@ -75,7 +75,7 @@ public class Tracker {
 	static final String THETA = TeXParser.parseTeX("$\\theta"); //$NON-NLS-1$
 	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
 	static final String ALPHA = TeXParser.parseTeX("$\\alpha"); //$NON-NLS-1$
-	static final String DEGREES = "�"; //$NON-NLS-1$
+	static final String DEGREES = "°"; //$NON-NLS-1$
   static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
   
   // for testing
@@ -1194,6 +1194,24 @@ public class Tracker {
   }
 
   /**
+   * Test for writable directory
+   * 
+   * @param dir the directory file object
+   */
+  protected static boolean isDirWritable(File dir) {
+	  if(dir == null || !dir.isDirectory())
+		  return false;
+	  File test = new File(dir,"empty");
+	  try {
+		  test.createNewFile();
+		  test.delete();
+		  return true;
+	  } catch (IOException e) {
+		  return false;
+	  }
+  }
+  
+  /**
    * Checks and updates QuickTime resources.
    * 
    * @return true if any resources were updated
@@ -1203,7 +1221,8 @@ public class Tracker {
   	// copy ffmpeg files to Tracker home, if needed
 		try {
 			File trackerDir = new File(TrackerStarter.findTrackerHome(false));
-			updated = ExtensionsManager.getManager().copyFFMPegJarsTo(trackerDir);
+			if(isDirWritable(trackerDir))
+				updated = ExtensionsManager.getManager().copyFFMPegJarsTo(trackerDir);
 		} catch (Exception e) {
 		}
   	// OSX doesn't need QTJava updating
@@ -1212,7 +1231,7 @@ public class Tracker {
   	// copy newer QTJava, if found, to current Java extensions
     String jre = System.getProperty("java.home"); //$NON-NLS-1$
     File extDir = new File(jre, "lib/ext"); //$NON-NLS-1$
-    if (extDir.exists()) {
+    if (extDir.exists() && isDirWritable(extDir)) {
     	updated = ExtensionsManager.getManager().copyQTJavaTo(extDir) || updated;
     }
     return updated; 	
@@ -1540,8 +1559,8 @@ public class Tracker {
 						needsEnvironment = true;					
 					}
 					else {
-						if (ffmpegDir!=null) {
-							String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
+						if (!OSPRuntime.isLinux() && ffmpegDir!=null) {
+							String subdir = OSPRuntime.isWindows()? "bin":"lib" ; //$NON-NLS-1$ //$NON-NLS-2$
 							String ffmpegPath = ffmpegDir+File.separator+subdir;
 							String pathName = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
 								OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
