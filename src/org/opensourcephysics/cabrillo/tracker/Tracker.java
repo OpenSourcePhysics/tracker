@@ -64,7 +64,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version */
-  public static final String VERSION = "4.90"; //$NON-NLS-1$
+  public static final String VERSION = "4.91"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -120,7 +120,7 @@ public class Tracker {
   static JProgressBar progressBar;
   static String counterPath = "http://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
-  static String copyright = "Copyright (c) 2015 Douglas Brown"; //$NON-NLS-1$
+  static String copyright = "Copyright (c) 2016 Douglas Brown"; //$NON-NLS-1$
   static String trackerWebsite = "physlets.org/tracker"; //$NON-NLS-1$
   static String author = "Douglas Brown"; //$NON-NLS-1$
   static String osp = "Open Source Physics"; //$NON-NLS-1$
