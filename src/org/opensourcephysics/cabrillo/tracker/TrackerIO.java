@@ -432,7 +432,6 @@ public class TrackerIO extends VideoIO {
       chooser.setMultiSelectionEnabled(false);
       result = chooser.showSaveDialog(null);
     	File file = chooser.getSelectedFile();
-      chooser.resetChoosableFileFilters();
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
 	    if(result==JFileChooser.APPROVE_OPTION && canWrite(file)) {
 	      return new File[] {file};
