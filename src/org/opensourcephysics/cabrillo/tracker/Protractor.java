@@ -139,6 +139,13 @@ public class Protractor extends TTrack {
         setFixed(fixedItem.isSelected());
       }
     });
+  	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+  	attachmentItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	AttachmentDialog control = trackerPanel.getAttachmentDialog(Protractor.this);
+      	control.setVisible(true);
+      }
+    });
     final FocusListener arcFocusListener = new FocusAdapter() {
       public void focusLost(FocusEvent e) {
       	if (angleField.getBackground() == Color.yellow) {
@@ -221,6 +228,9 @@ public class Protractor extends TTrack {
 			if (!refreshDataLater) {  // stopped adjusting
 	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
 			}
+    }
+    else if (name.equals("step") || name.equals("steps")) { //$NON-NLS-1$ //$NON-NLS-2$
+    	refreshAttachments();
     }
     super.propertyChange(e);
   }
@@ -423,6 +433,35 @@ public class Protractor extends TTrack {
   }
 
   /**
+   * Returns the array of attachments for this track.
+   * 
+   * @return the attachments array
+   */
+  public TTrack[] getAttachments() {
+    if (attachments==null) {
+    	attachments = new TTrack[3];
+    }
+    if (attachments.length<3) {
+    	TTrack[] newAttachments = new TTrack[3];
+    	System.arraycopy(attachments, 0, newAttachments, 0, attachments.length);
+    	attachments = newAttachments;
+    }
+  	return attachments;
+  }
+  
+  /**
+   * Returns the description of a particular attachment point.
+   * 
+   * @param n the attachment point index
+   * @return the description
+   */
+  public String getAttachmentDescription(int n) {
+  	return n==0? 
+  			TrackerRes.getString("AttachmentInspector.Label.Vertex"): //$NON-NLS-1$
+  			TrackerRes.getString("AttachmentInspector.Label.End")+" "+n; //$NON-NLS-1$ //$NON-NLS-2$
+  }
+  
+  /**
    * Returns a menu with items that control this track.
    *
    * @param trackerPanel the tracker panel
@@ -434,26 +473,34 @@ public class Protractor extends TTrack {
 //    lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
     fixedItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
     fixedItem.setSelected(isFixed());
-    fixedItem.setEnabled(attachments==null || (attachments[0]==null && attachments[1]==null && attachments[2]==null));
+    boolean hasAttachments = attachments!=null;
+    if (hasAttachments) {
+    	hasAttachments = false;
+    	for (TTrack next: attachments) {
+    		hasAttachments = hasAttachments || next!=null;
+    	}
+    }
+    fixedItem.setEnabled(!hasAttachments);
 
-    // remove end items and last separator
-    menu.remove(deleteTrackItem);
-    menu.remove(menu.getMenuComponent(menu.getMenuComponentCount()-1));
-    menu.add(fixedItem);
+//    // remove end items and last separator
+//    menu.remove(deleteTrackItem);
+//    menu.remove(menu.getMenuComponent(menu.getMenuComponentCount()-1));
     
-    // add an attachment dialog item
-  	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
-  	attachmentItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	AttachmentDialog control = Protractor.this.trackerPanel.getAttachmentDialog(Protractor.this);
-      	control.setVisible(true);
-      }
-    });
-  	menu.addSeparator();
-    menu.add(attachmentItem);
-    
-  	menu.addSeparator();
-    menu.add(deleteTrackItem);
+    // put fixed item after locked item
+    for (int i=0; i<menu.getItemCount(); i++) {
+    	if (menu.getItem(i)==lockedItem) {
+		  	menu.insert(fixedItem, i+1);
+    		break;
+    	}
+    }
+  	
+    // insert the attachments dialog item at beginning
+  	attachmentItem.setText(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+    menu.insert(attachmentItem, 0);
+  	menu.insertSeparator(1);
+  	    
+//  	menu.addSeparator();
+//    menu.add(deleteTrackItem);
     return menu;
   }
 

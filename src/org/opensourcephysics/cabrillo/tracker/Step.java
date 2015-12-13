@@ -157,7 +157,7 @@ public abstract class Step implements Cloneable {
     index = Math.min(index, points.length-1);
     defaultIndex = Math.max(0, index);
   }
-
+  
   /**
    * Erases this on the specified tracker panel. Erasing
    * adds the current bounds to the dirty region and nulls the

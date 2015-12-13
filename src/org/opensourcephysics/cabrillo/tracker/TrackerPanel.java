@@ -1367,9 +1367,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   }
 
   /**
-   * Gets the attachment dialog for attaching tape and protractor ends to point masses.
+   * Gets the attachment dialog for attaching measuring tool points to point masses.
    * 
-   * @param track a tape measure or protractor
+   * @param track a measuing tool
    * @return the attachment dialog
    */
   public AttachmentDialog getAttachmentDialog(TTrack track) {
@@ -1504,7 +1504,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	        	boolean marking = setCursorForMarking(true, e);
 	          if (selectedTrack!=null && marking!=selectedTrack.isMarking) {
 	          	selectedTrack.setMarking(marking);
-	          	selectedTrack.repaint(TrackerPanel.this);
 	          }
         	}
         }
@@ -1514,7 +1513,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	        	boolean marking = setCursorForMarking(isShiftKeyDown, e);
 	          if (selectedTrack!=null && marking!=selectedTrack.isMarking) {
 	          	selectedTrack.setMarking(marking);
-	          	selectedTrack.repaint(TrackerPanel.this);
 	          }
         	}
         }
@@ -1560,7 +1558,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         	boolean marking = setCursorForMarking(false, e);
           if (selectedTrack!=null && marking!=selectedTrack.isMarking) {
           	selectedTrack.setMarking(marking);
-          	selectedTrack.repaint(TrackerPanel.this);
           }
         }
         else if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
@@ -1568,7 +1565,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         	boolean marking = setCursorForMarking(isShiftKeyDown, e);
           if (selectedTrack!=null && marking!=selectedTrack.isMarking) {
           	selectedTrack.setMarking(marking);
-          	selectedTrack.repaint(TrackerPanel.this);
           }
         }
       }
@@ -1997,6 +1993,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       }
       firePropertyChange("data", null, null);           // to views //$NON-NLS-1$
       if (name.equals("stepsize") //$NON-NLS-1$
+      		|| name.equals("stepcount") //$NON-NLS-1$
       		|| name.equals("starttime") //$NON-NLS-1$
       		|| name.equals("frameduration") //$NON-NLS-1$
       		|| name.equals("startframe")) //$NON-NLS-1$
@@ -2512,8 +2509,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					Toolkit.getDefaultToolkit().beep();
 					String s = "\"" + newName + "\" "; //$NON-NLS-1$ //$NON-NLS-2$
 					badNameLabel.setText(s + TrackerRes.getString("TTrack.Dialog.Name.BadName")); //$NON-NLS-1$
-					track.nameDialog.getContentPane().add(badNameLabel, BorderLayout.SOUTH);
-					track.nameAction.actionPerformed(null);
+					TTrack.NameDialog nameDialog = TTrack.getNameDialog(track);
+					nameDialog.getContentPane().add(badNameLabel, BorderLayout.SOUTH);
+					nameDialog.pack();
+	        nameDialog.setVisible(true);
 					return;
 				}
 			}
@@ -2522,8 +2521,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		track.setName(newName);
     if (postEdit)
     	Undo.postTrackDisplayEdit(track, control);
-		track.nameDialog.setVisible(false);
-		track.nameDialog.getContentPane().remove(badNameLabel);
+    if (TTrack.nameDialog!=null) {
+			TTrack.nameDialog.setVisible(false);
+			TTrack.nameDialog.getContentPane().remove(badNameLabel);
+    }
 		TMenuBar.getMenuBar(this).refresh();
   }
 

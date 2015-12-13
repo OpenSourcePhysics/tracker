@@ -88,7 +88,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
       	KeyboardFocusManager.getCurrentKeyboardFocusManager();
     Component focusOwner = focuser.getFocusOwner();
 		AutoTracker autoTracker = trackerPanel.getAutoTracker();
-  	if (autoTracker.getTrack()==null)
+  	if (autoTracker.getTrack()==null && autoTracker.getWizard().isVisible())
   		autoTracker.setTrack(trackerPanel.getSelectedTrack());
    
     switch(trackerPanel.getMouseAction()) {
@@ -123,7 +123,6 @@ public class TMouseHandler implements InteractiveMouseHandler {
         marking = trackerPanel.setCursorForMarking(invertCursor, e);
         if (selectedTrack!=null && marking!= selectedTrack.isMarking) {
         	selectedTrack.setMarking(marking);
-        	selectedTrack.repaint(trackerPanel);
         }
         if (marking) {
         	iad = null;

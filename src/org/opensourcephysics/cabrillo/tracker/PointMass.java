@@ -534,6 +534,17 @@ public class PointMass extends TTrack {
   }
 
   /**
+   * Sets the marking flag. Flag should be true when ready to be marked by user.
+   * 
+   * @param marking true when marking
+   */
+  @Override
+  protected void setMarking(boolean marking) {
+  	super.setMarking(marking);
+  	repaint(trackerPanel);
+  }
+  
+  /**
    * Gets the mass.
    *
    * @return the mass
