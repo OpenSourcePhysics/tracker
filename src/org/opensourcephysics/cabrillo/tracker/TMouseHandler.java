@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
@@ -173,6 +174,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
           		boolean newStep = step==null;
 	        		step = selectedTrack.createStep(frameNumber,
 	                trackerPanel.getMouseX(), trackerPanel.getMouseY());
+          		trackerPanel.newlyMarkedPoint = step.getDefaultPoint();
           		TPoint[] pts = step.getPoints();
           		// increment target index if new step
               if (newStep && pts.length>index+1) nextIndex = index+1;
@@ -255,13 +257,20 @@ public class TMouseHandler implements InteractiveMouseHandler {
         			// do nothing: point is selected and step is in selectedSteps
         		}
         		else {
-        			// deselect all selectedSteps
+        			// deselect existing selectedSteps
+        			boolean stepsIncludeSelectedPoint = false;
         			for (Step next: trackerPanel.selectedSteps) {
         				next.erase();
+        				stepsIncludeSelectedPoint = stepsIncludeSelectedPoint || next.getPoints()[0]==trackerPanel.getSelectedPoint();
         			}
+        			
 	        		trackerPanel.selectedSteps.clear();
-	        		// select this point's step
+	        		// add this point's step
 	        		trackerPanel.selectedSteps.add(step);
+	        		
+	        		if (stepsIncludeSelectedPoint) {
+	        			trackerPanel.pointState.setLocation(trackerPanel.getSelectedPoint()); // prevents posting undoable edit
+	        		}
         		}
         	}
         	if (step!=null) step.erase();
@@ -280,17 +289,14 @@ public class TMouseHandler implements InteractiveMouseHandler {
         else { // no interactive
         	boolean pointSelected = (trackerPanel.getSelectedPoint()!=null);
         	if (pointSelected) {
-	          // deselect the selected point--this will post undoable edit
+	          // deselect the selected point--this will post undoable edit if changed
 	          trackerPanel.setSelectedPoint(null);
         	}
-        	else if (trackerPanel.selectedSteps.isChanged()) {
-        		Undo.postStepSetEdit(trackerPanel.selectedSteps, trackerPanel.selectedSteps.getUndoControl());    		
-        	}
-        	// deselect selected steps, if any
+        	// erase and clear selected steps, if any
         	for (Step step: trackerPanel.selectedSteps) {
         		step.erase();
         	}
-        	trackerPanel.selectedSteps.clear();
+        	trackerPanel.selectedSteps.clear(); // triggers undoable edit if changed
         	
           if (!trackerPanel.isShowCoordinates()) {
             trackerPanel.hideMouseBox();
@@ -327,6 +333,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
           p.setScreenPosition(e.getX(), e.getY(), trackerPanel, e);
           p.showCoordinates(trackerPanel);
         	// move other TPoints associated with selectedSteps by same amount 
+    	    trackerPanel.selectedSteps.setChanged(true);
         	for (Step step: trackerPanel.selectedSteps) {
         		p = step.points[0];
         		if (p==trackerPanel.getSelectedPoint()) continue;

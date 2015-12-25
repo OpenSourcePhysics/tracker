@@ -2108,6 +2108,14 @@ public class PointMass extends TTrack {
           	p.createStep(n, data[n].x, data[n].y);
           }
         }
+        if (!p.isDependent()) {
+	        // delete existing steps, if any, beyond the frame data length
+		      Step[] steps = p.getSteps();
+		      for (int n = data.length; n < steps.length; n++) {
+	        	p.steps.setStep(n, null);
+		      }
+        }
+        
         p.updateDerivatives();
     	  p.support.firePropertyChange("data", null, null); //$NON-NLS-1$
       }

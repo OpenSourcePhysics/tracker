@@ -24,9 +24,11 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import javax.swing.JDialog;
 import javax.swing.undo.*;
 
 import java.awt.Color;
+import java.awt.Point;
 import java.io.IOException;
 import java.util.*;
 
@@ -45,15 +47,15 @@ public class Undo {
 	
 	// instance fields
   protected UndoableEditSupport undoSupport;
-  protected UndoManager undoManager;
+  protected MyUndoManager undoManager;
 
   /**
    * Private constructor.
    */
   private Undo() {
     // set up the undo system
-    undoManager = new UndoManager();
-    undoManager.setLimit(20);
+    undoManager = new MyUndoManager();
+//    undoManager.setLimit(20);
     undoSupport = new UndoableEditSupport();
     undoSupport.addUndoableEditListener(undoManager);
     XML.setLoader(TrackProperties.class, TrackProperties.getLoader());
@@ -70,11 +72,33 @@ public class Undo {
   }
 
   /**
+   * Gets the undoable edit description for the specified panel.
+   * 
+   * @param panel the TrackerPanel
+   * @return the undoable edit description
+   */
+  public static String getUndoDescription(TrackerPanel panel) {
+  	return getUndo(panel).undoManager.getUndoPresentationName();
+  }
+
+  /**
    * Undoes the most recently posted edit for the specified panel.
    * 
    * @param panel the TrackerPanel
    */
   public static void undo(TrackerPanel panel) {
+  	// check last edit and (if trackEdit) modify its redo state with current state of track
+  	if (!getUndo(panel).undoManager.canRedo()) {
+	  	UndoableEdit lastEdit = getUndo(panel).undoManager.getLastEdit();
+  		if (lastEdit!=null && lastEdit instanceof TrackEdit) {
+  			TrackEdit trackEdit = (TrackEdit)lastEdit;
+  			String name = trackEdit.trackName;
+  			TTrack track = panel.getTrack(name);
+  			if (track!=null) {
+  				trackEdit.redo = new XMLControlElement(track).toXML();
+  			}
+  		}
+  	}
   	getUndo(panel).undoManager.undo();
   	refreshMenus(panel);
   	panel.repaint();
@@ -88,6 +112,16 @@ public class Undo {
    */
   public static boolean canRedo(TrackerPanel panel) {
   	return getUndo(panel).undoManager.canRedo();
+  }
+
+  /**
+   * Gets the redoable edit description for the specified panel.
+   * 
+   * @param panel the TrackerPanel
+   * @return the redoable edit description
+   */
+  public static String getRedoDescription(TrackerPanel panel) {
+  	return getUndo(panel).undoManager.getRedoPresentationName();
   }
 
   /**
@@ -191,9 +225,29 @@ public class Undo {
    */
   protected static void postStepSetEdit(StepSet steps, XMLControl control) {
   	TrackerPanel panel = steps.trackerPanel;
-  	UndoableEdit edit = getUndo(panel).new StepSetEdit(steps, control); 
+  	TTrack track = null;
+  	boolean singleTrack = true;
+  	for (Step step: steps) {
+  		if (step.getTrack()!=null) {
+  			if (track==null) track = step.getTrack();
+  			else { // track not null, so compare
+  				if (track!=step.getTrack()) {
+  					singleTrack = false;
+  					break;
+  				}
+  			}
+  		}
+  	}
+  	UndoableEdit edit;
+  	if (track!=null && singleTrack) {
+    	edit = getUndo(panel).new TrackEdit(track, control); 
+  	}
+  	else {
+  		edit = getUndo(panel).new StepSetEdit(steps, control); 
+  	}
   	getUndo(panel).undoSupport.postEdit(edit);
-  	steps.setChanged(false);
+  	steps.setChanged(false); // prevents clear() method from saving another undoable edit
+  	steps.clear();
   	refreshMenus(panel);
   }
 
@@ -328,11 +382,16 @@ public class Undo {
    */
   protected class TrackEdit extends TEdit {
   	
-  	String trackName;
+  	String trackName, trackType;
 
   	private TrackEdit(TTrack track, XMLControl control) {
   		super(track.trackerPanel, track, control);
-    	trackName = track.getName();
+  		trackName = track.getName();
+    	String s = track.getClass().getSimpleName();
+    	trackType = TrackerRes.getString(s+".Name"); //$NON-NLS-1$
+    	if (trackType.startsWith("!")) { //$NON-NLS-1$
+    		trackType = s;
+    	}
     }
 
   	protected void load(String xml) {
@@ -344,6 +403,12 @@ public class Undo {
   	  // TrackEdit is also used for text column edits
   	  track.firePropertyChange("text_column", null, null); //$NON-NLS-1$
     }
+    
+    public String getPresentationName() {
+      return TrackerRes.getString("Undo.Description.Edit")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      		+trackType; 
+    }
+
   }
 
   /**
@@ -352,10 +417,16 @@ public class Undo {
   protected class StepEdit extends TEdit {
 
   	Step step;
+  	String trackType;
   	
   	private StepEdit(Step step, XMLControl control) {
   		super(step.getTrack().trackerPanel, step, control);
   		this.step = step;
+  		String s = step.track.getClass().getSimpleName();
+    	trackType = TrackerRes.getString(s+".Name"); //$NON-NLS-1$
+    	if (trackType.startsWith("!")) { //$NON-NLS-1$
+    		trackType = s;
+    	}   
     }
 
   	protected void load(String xml) {
@@ -364,6 +435,12 @@ public class Undo {
   	  step.erase();
   	  TTrackBar.getTrackbar(panel).refresh();
     }
+  	
+    public String getPresentationName() {
+      return TrackerRes.getString("Undo.Description.Edit")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      		+trackType;
+    }
+
   }
 
   /**
@@ -372,7 +449,7 @@ public class Undo {
   protected class TrackDisplayEdit extends TEdit {
 
   	String undoName, redoName;
-  	String trackName;
+  	String trackName, trackType;
   	
   	private TrackDisplayEdit(TTrack track, XMLControl control) {
   		super(track.trackerPanel, new TrackProperties(track), control);
@@ -380,6 +457,11 @@ public class Undo {
   	  TrackProperties props = (TrackProperties)control.loadObject(null);
   		undoName = track.getName();
   		redoName = props.name;
+  		String s = track.getClass().getSimpleName();
+    	trackType = TrackerRes.getString(s+".Name"); //$NON-NLS-1$
+    	if (trackType.startsWith("!")) { //$NON-NLS-1$
+    		trackType = s;
+    	}   
     }
 
     public void undo() throws CannotUndoException {
@@ -400,13 +482,19 @@ public class Undo {
   	  track.setColor(props.color);
   	  track.setName(props.name);
     }
+  	
+    public String getPresentationName() {
+      return TrackerRes.getString("Undo.Description.Edit")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      		+trackType;
+    }
+
   }
 
   /**
    * A class to undo/redo stepset changes.
    */
   protected class StepSetEdit extends TEdit {
-
+  	
   	private StepSetEdit(StepSet steps, XMLControl control) {
   		super(steps.trackerPanel, steps, control);
     }
@@ -416,6 +504,12 @@ public class Undo {
    	  StepSet steps = new StepSet(panel);
   	  control.loadObject(steps);
     }
+  	
+    public String getPresentationName() {
+      return TrackerRes.getString("Undo.Description.Edit")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      		+TrackerRes.getString("Undo.Description.Steps"); //$NON-NLS-1$
+    }
+
   }
 
   /**
@@ -432,6 +526,12 @@ public class Undo {
    	  ImageCoordSystem coords = panel.getCoords();
   	  control.loadObject(coords);
     }
+  	
+    public String getPresentationName() {
+      return TrackerRes.getString("Undo.Description.Edit")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      		+TrackerRes.getString("TMenuBar.Menu.Coords"); //$NON-NLS-1$
+    }
+
   }
 
   /**
@@ -498,6 +598,16 @@ public class Undo {
   			panel.getPlayer().setStepNumber(step);
   		}
     }
+  	
+    public String getPresentationName() {
+    	if (added) {
+	      return TrackerRes.getString("Undo.Description.Add")+" " //$NON-NLS-1$ //$NON-NLS-2$
+	      		+TrackerRes.getString("Undo.Description.Images"); //$NON-NLS-1$
+    	}
+      return TrackerRes.getString("Undo.Description.Remove")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      		+TrackerRes.getString("Undo.Description.Images"); //$NON-NLS-1$
+    }
+
   }
 
   /**
@@ -518,7 +628,6 @@ public class Undo {
     	// refresh redo state
     	redo = new XMLControlElement(panel.getPlayer().getVideoClip()).toXML();
     	super.undo();
-    	load(undo);
     }
 
     public void redo() throws CannotUndoException {
@@ -530,14 +639,50 @@ public class Undo {
     	// refresh undo state
     	undo = new XMLControlElement(panel.getPlayer().getVideoClip()).toXML();
     	super.redo();
-    	load(redo);
     }
     
   	protected void load(String xml) {
    	  XMLControl control = new XMLControlElement(xml);
    	  VideoClip clip = (VideoClip)control.loadObject(null);
       panel.getPlayer().setVideoClip(clip);
+    	Video video = panel.getVideo();
+      if (video!=null) {
+      	for (Filter filter: video.getFilterStack().getFilters()) {
+      		filter.setVideoPanel(panel);
+        	if (filter.inspectorX != Integer.MIN_VALUE) {
+        		filter.inspectorVisible = true;
+        		if (panel.visibleFilters == null) {
+        			panel.visibleFilters = new HashMap<Filter, Point>();
+        		}
+        		Point p = new Point(filter.inspectorX, filter.inspectorY);
+        		panel.visibleFilters.put(filter, p);	
+        	}
+//      		if (filter.inspectorX != Integer.MIN_VALUE) {
+//            Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+//            TFrame frame = panel.getTFrame();
+//        		final JDialog inspector = filter.getInspector();
+//      			int x = Math.max(filter.inspectorX + frame.getLocation().x, 0);
+//      			x = Math.min(x, dim.width-inspector.getWidth());
+//      			int y = Math.max(filter.inspectorY + frame.getLocation().y, 0);
+//      			y = Math.min(y, dim.height-inspector.getHeight());
+//          	inspector.setLocation(x, y);
+//        		inspector.setVisible(true);
+////        		Runnable runner = new Runnable() {
+////          		public void run() {
+////            		inspector.setVisible(true);
+////          		}
+////          	};
+////          	EventQueue.invokeLater(runner);
+//      		}
+      	}
+      }
     }
+  	
+    public String getPresentationName() {
+      return TrackerRes.getString("Undo.Description.Replace")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      		+TrackerRes.getString("Undo.Description.Video"); //$NON-NLS-1$
+    }
+
   }
 
   /**
@@ -554,7 +699,7 @@ public class Undo {
   	protected TEdit(TrackerPanel panel, Object obj, XMLControl control) {
     	this.panel = panel;
     	undo = control.toXML();
-  	  control.saveObject(obj);
+  	  control = new XMLControlElement(obj);
   	  redo = control.toXML();
     }
 
@@ -596,6 +741,11 @@ public class Undo {
     	editB.redo();
     }
     
+  	
+    public String getPresentationName() {
+      return editA.getPresentationName();
+    }
+
   }
 
   /**
@@ -606,11 +756,17 @@ public class Undo {
   	String xml;
   	TTrack track; // null unless undone 	
   	TrackerPanel panel;
+  	String trackType;
 
     private TrackDelete(TrackerPanel panel, TTrack track) {
     	XMLControl control = new XMLControlElement(track);
     	xml = control.toXML();
     	this.panel = panel;
+  		String s = track.getClass().getSimpleName();
+    	trackType = TrackerRes.getString(s+".Name"); //$NON-NLS-1$
+    	if (trackType.startsWith("!")) { //$NON-NLS-1$
+    		trackType = s;
+    	}   
     }
 
     public void undo() throws CannotUndoException {
@@ -626,6 +782,12 @@ public class Undo {
       panel.removeTrack(track);
       track = null; // eliminate all references to deleted track
     }
+    
+    public String getPresentationName() {
+      return TrackerRes.getString("Undo.Description.Delete")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      		+trackType;
+    }
+
   }
 
   /**
@@ -656,6 +818,12 @@ public class Undo {
     	super.redo();
       panel.clearTracks();
     }
+  	
+    public String getPresentationName() {
+      return TrackerRes.getString("Undo.Description.Clear")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      		+TrackerRes.getString("Undo.Description.Tracks"); //$NON-NLS-1$
+    }
+
   }
 
   /**
@@ -667,11 +835,18 @@ public class Undo {
   	TrackerPanel panel;
   	int i;
   	Filter filter;
+  	String filterName;
 
     private FilterDelete(TrackerPanel trackerPanel, Filter filter) {
     	xml = new XMLControlElement(filter).toXML();
     	panel = trackerPanel;
       i = panel.getVideo().getFilterStack().lastIndexRemoved();
+      filterName = filter.getClass().getSimpleName();
+      int j = filterName.indexOf("Filter"); //$NON-NLS-1$
+      if (j>0 && j<filterName.length()-1) {
+      	filterName = filterName.substring(0, j);
+      }
+      filterName = MediaRes.getString("VideoFilter."+filterName); //$NON-NLS-1$
     }
 
     public void undo() throws CannotUndoException {
@@ -680,7 +855,27 @@ public class Undo {
       if (video != null) {
         XMLControl control = new XMLControlElement(xml);
         filter = (Filter)control.loadObject(null);
+        filter.setVideoPanel(panel);
         video.getFilterStack().insertFilter(filter, i);    		
+      	if (filter.inspectorX != Integer.MIN_VALUE) {
+      		filter.inspectorVisible = true;
+      		if (panel.visibleFilters == null) {
+      			panel.visibleFilters = new HashMap<Filter, Point>();
+      		}
+      		Point p = new Point(filter.inspectorX, filter.inspectorY);
+      		panel.visibleFilters.put(filter, p);	
+      	}
+//      	if (filter.inspectorX != Integer.MIN_VALUE) {
+//          Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+//          TFrame frame = panel.getTFrame();
+//      		JDialog inspector = filter.getInspector();
+//    			int x = Math.max(filter.inspectorX + frame.getLocation().x, 0);
+//    			x = Math.min(x, dim.width-inspector.getWidth());
+//    			int y = Math.max(filter.inspectorY + frame.getLocation().y, 0);
+//    			y = Math.min(y, dim.height-inspector.getHeight());
+//        	inspector.setLocation(x, y);
+//      		inspector.setVisible(true);
+//      	}
       }
     }
 
@@ -688,14 +883,25 @@ public class Undo {
     	super.redo();
       Video video = panel.getVideo();
       if (video != null) {
+        filter.setVideoPanel(null);
+        TMenuBar menubar = TMenuBar.getMenuBar(panel);
+        menubar.refreshing = true; // prevents posting another undoable edit
         video.getFilterStack().removeFilter(filter);
+        menubar.refreshing = false;
         i = video.getFilterStack().lastIndexRemoved();
+        filter = null; // eliminate all references to deleted filter
       }
     }
+    
+    public String getPresentationName() {
+      return TrackerRes.getString("Undo.Description.Delete")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      		+TrackerRes.getString("Undo.Description.Filter"); //$NON-NLS-1$
+    }
+
   }
 
   /**
-   * A class to undo/redo filter deletion.
+   * A class to undo/redo filter clearing.
    */
   protected class FilterClear extends AbstractUndoableEdit {
   	
@@ -711,11 +917,19 @@ public class Undo {
     	super.undo();
       Video video = panel.getVideo();
       if (video != null) {
-      	Iterator<String> it = xml.iterator();
-      	while (it.hasNext()) {
-        	XMLControl control = new XMLControlElement(it.next());
+      	for (String next: xml) {
+        	XMLControl control = new XMLControlElement(next);
         	Filter filter = (Filter)control.loadObject(null);
+          filter.setVideoPanel(panel);
           video.getFilterStack().addFilter(filter);    		
+        	if (filter.inspectorX != Integer.MIN_VALUE) {
+        		filter.inspectorVisible = true;
+        		if (panel.visibleFilters == null) {
+        			panel.visibleFilters = new HashMap<Filter, Point>();
+        		}
+        		Point p = new Point(filter.inspectorX, filter.inspectorY);
+        		panel.visibleFilters.put(filter, p);	
+        	}
       	}
       }
     }
@@ -724,23 +938,40 @@ public class Undo {
     	super.redo();
       Video video = panel.getVideo();
       if (video != null) {
+      	FilterStack stack = video.getFilterStack();
+      	for (Filter filter: stack.getFilters()) {
+          filter.setVideoPanel(null);
+      	}
         video.getFilterStack().clear();
       }
     }
+    
+    public String getPresentationName() {
+      return TrackerRes.getString("Undo.Description.Clear")+" " //$NON-NLS-1$ //$NON-NLS-2$
+      		+TrackerRes.getString("TMenuBar.MenuItem.VideoFilters"); //$NON-NLS-1$
+    }
+
   }
   
   /**
-   * A class to undo/redo filter deletion.
+   * A class to undo/redo filter edit.
    */
   protected class FilterEdit extends TEdit {
   	
   	int filterIndex;
   	int frameNumber;
+  	String filterType;
   	
     private FilterEdit(TrackerPanel panel, Filter filter, XMLControl control) {
     	super(panel, filter, control);
     	filterIndex = panel.getVideo().getFilterStack().getFilters().indexOf(filter);
     	frameNumber = panel.getFrameNumber();
+      filterType = filter.getClass().getSimpleName();
+      int j = filterType.indexOf("Filter"); //$NON-NLS-1$
+      if (j>0 && j<filterType.length()-1) {
+      	filterType = filterType.substring(0, j);
+      }
+      filterType = MediaRes.getString("VideoFilter."+filterType); //$NON-NLS-1$
     }
 
   	protected void load(String xml) {
@@ -748,15 +979,38 @@ public class Undo {
       Video video = panel.getVideo();
       if (video != null) {      	
         ArrayList<Filter> filters = video.getFilterStack().getFilters();
-        if (filterIndex>=filters.size()) return;
+        if (filterIndex<0 || filterIndex>=filters.size()) return;
         Filter filter = filters.get(filterIndex);
 	  	  control.loadObject(filter);
+	  	  JDialog inspector = filter.getInspector();
+	  	  if (inspector!=null) {
+	  	  	inspector.setVisible(true);
+	  	  }
 	  	  VideoClip clip = panel.getPlayer().getVideoClip();
 	  	  panel.getPlayer().setStepNumber(clip.frameToStep(frameNumber));
       }
     }
+  	
+    public String getPresentationName() {
+      return TrackerRes.getString("Undo.Description.Edit")+" "+filterType; //$NON-NLS-1$ //$NON-NLS-2$
+    }
+
   }
   
+}
+
+/**
+ * An UndoManager that exposes it's edits.
+ */
+class MyUndoManager extends UndoManager {
+	public UndoableEdit getLastEdit() {
+		return this.lastEdit();
+	}
+	
+	public UndoableEdit getNextEdit() {
+		return this.editToBeUndone();
+	}
+	
 }
 
 /**

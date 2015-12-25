@@ -64,7 +64,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version */
-  public static final String VERSION = "4.91"; //$NON-NLS-1$
+  public static final String VERSION = "4.92"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -219,6 +219,7 @@ public class Tracker {
 			new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
 			Locale.ITALIAN,
 			new Locale("ko"), // korean //$NON-NLS-1$
+			new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$ 
 //			new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
 			new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ 

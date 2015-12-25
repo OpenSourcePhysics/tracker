@@ -1101,8 +1101,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	    	item.addActionListener(openRecentAction);
 	    	menu.add(item);
 	    }
+	    FontSizer.setFonts(menu, FontSizer.getLevel());
   	}
-    FontSizer.setFonts(menu, FontSizer.getLevel());
   }
 
   /**
@@ -1976,22 +1976,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   		tc.positioned = true;
     }
     // show filter inspectors
-    if (trackerPanel.visibleFilters != null) {
-      Iterator<Filter> it = trackerPanel.visibleFilters.keySet().iterator();
-      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-      while (it.hasNext()) {
-      	Filter filter = it.next();
-      	Point p = trackerPanel.visibleFilters.get(filter);
-      	Dialog inspector = filter.getInspector();
-  			int x = Math.max(p.x + getLocation().x, 0);
-  			x = Math.min(x, dim.width-inspector.getWidth());
-  			int y = Math.max(p.y + getLocation().y, 0);
-  			y = Math.min(y, dim.height-inspector.getHeight());
-      	inspector.setLocation(x, y);
-      	inspector.setVisible(true);
-      }
-      trackerPanel.visibleFilters = null;
-    }
+    trackerPanel.showFilterInspectors();
     Tracker.setProgress(90);
   }
   

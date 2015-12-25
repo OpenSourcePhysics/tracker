@@ -71,6 +71,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected Step selectedStep;
   protected TrackerPanel selectingPanel;
   protected TTrack selectedTrack;
+  protected TPoint newlyMarkedPoint;
   protected Rectangle dirty;
   protected AffineTransform prevPixelTransform;
   protected double zoom = 1;
@@ -181,7 +182,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   		state = new XMLControlElement(getPlayer().getVideoClip());
   	}  	
     super.setVideo(newVideo, true); // play all steps by default
-    if (state != null) Undo.postVideoReplace(this, state);
+    if (state != null) {
+  		state = new XMLControlElement(state.toXML());
+  		Undo.postVideoReplace(this, state);
+    }
     TMat mat = getMat();
     if (mat != null) mat.refresh();
     if (modelBuilder!=null) {
@@ -441,6 +445,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	showTrackControl = false;
       calibrationTools.add(track);
       visibleTools.add(track);
+    	super.addDrawable(track);
+    }
+    // special case: perspective track
+    else if (track instanceof PerspectiveTrack) { 
+    	showTrackControl = false;
     	super.addDrawable(track);
     }
     // all other tracks
@@ -937,17 +946,52 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	prevPoint.setAdjusting(false);
     }
     selectedPoint = point;
-    // post undo edit if previously selected point has changed 
-    if (currentState!=null && prevPoint != null && prevPoint != point &&
-    				(prevPoint.x != pointState.x || prevPoint.y != pointState.y)) {
-    	boolean trackEdit = prevPoint.isTrackEditTrigger() && getSelectedTrack() != null;
-    	boolean coordsEdit = prevPoint.isCoordsEditTrigger();
+    // determine if selected steps or previous point has changed 
+    boolean stepsChanged = !selectedSteps.isEmpty() && selectedSteps.isChanged();
+    // determine if newly selected step is in selectedSteps
+    if (selectedSteps.size()>1) {
+      boolean newStepSelected = false;
+      if (point!=null) {
+    		// find associated step
+    		Step step = null;
+        for (TTrack track: getTracks()) {
+        	step = track.getStep(point, this);
+        	if (step != null) {
+        		newStepSelected = selectedSteps.contains(step);
+        		break;
+        	}
+        }
+      }
+      if (newStepSelected) {
+        firePropertyChange("selectedpoint", prevPoint, point); //$NON-NLS-1$
+      	selectedSteps.isModified = false;
+        return;
+      }
+    }
+    boolean prevPointChanged = currentState!=null && prevPoint != null && prevPoint != point && prevPoint != newlyMarkedPoint
+    				&& (prevPoint.x != pointState.x || prevPoint.y != pointState.y);
+    if (selectedPoint==null) {
+    	newlyMarkedPoint = null;
+    }
+    // post undo edit if selectedSteps or previous point has changed 
+    if (stepsChanged || prevPointChanged) {
+    	boolean trackEdit = false;
+    	boolean coordsEdit = false;
+    	if (prevPointChanged) {
+	    	trackEdit = prevPoint.isTrackEditTrigger() && getSelectedTrack() != null;
+	    	coordsEdit = prevPoint.isCoordsEditTrigger();
+    	}
+    	else { // steps have changed 
+    		trackEdit = selectedSteps.getTrack()!=null;
+    	}
     	if (trackEdit && coordsEdit) {
     		Undo.postTrackAndCoordsEdit(getSelectedTrack(), currentState, currentCoords);    		
     	}
     	else if (trackEdit) {
-    		if (selectedSteps.contains(getSelectedStep())) {
-	    		Undo.postStepSetEdit(selectedSteps, selectedSteps.getUndoControl());    		  			
+    		if (stepsChanged) {
+      		if (!selectedSteps.isModified) {
+      			selectedSteps.clear(); // posts undoable edit if changed
+      		}
     		}
     		else {
     			Undo.postTrackEdit(getSelectedTrack(), currentState);
@@ -956,7 +1000,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	else if (coordsEdit) {
     		Undo.postCoordsEdit(this, currentState);
     	}
-    	else if (prevPoint.isStepEditTrigger()) {
+    	else if (prevPoint!=null && prevPoint.isStepEditTrigger()) {
     		Undo.postStepEdit(selectedStep, currentState);
     	}
     	else if (prevPoint instanceof LineProfileStep.LineEnd) {
@@ -1002,10 +1046,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	        }
 	        else if (trackEdit) {
 	        	currentState = new XMLControlElement(track);
-	        	// reset selectedSteps to unchanged
-	        	selectedSteps.setChanged(false);
-	        	if (step instanceof PositionStep) {
-	        		selectedSteps.setChanged(true); // forces creation of undo XMControl
+	      		if (!selectedSteps.contains(step) && !selectedSteps.isModified) {
+	        		selectedSteps.clear();
 	        	}
 	        }
 	        else if (coordsEdit) {
@@ -1019,6 +1061,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       selectingPanel = this;
       requestFocusInWindow();
     }
+  	selectedSteps.isModified = false;
     firePropertyChange("selectedpoint", prevPoint, point); //$NON-NLS-1$
   }
 
@@ -1753,8 +1796,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     }
 
     if (dx == 0 && dy == 0) return;
+    selectedSteps.setChanged(true);
     for (Step step: selectedSteps) {
-	    selectedSteps.setChanged(true);
     	TPoint point = step.points[0];
     	if (point==selectedPoint) continue;
 	    Point p = point.getScreenPosition(this);
@@ -1959,6 +2002,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       TMenuBar.getMenuBar(this).refreshMatSizes(video);
       repaint();
     }
+    else if (name.equals("filterChanged")) {            // from video //$NON-NLS-1$
+  		Filter filter = (Filter)e.getNewValue();
+  		String prevState = (String)e.getOldValue();
+	    XMLControl control = new XMLControlElement(prevState);	
+	    Undo.postFilterEdit(this, filter, control);
+    }
     else if (name.equals("videoVisible")) {             // from video //$NON-NLS-1$
       firePropertyChange("videoVisible", null, null);   // to views //$NON-NLS-1$
       repaint();
@@ -2079,6 +2128,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     		TTrack track = new PerspectiveTrack(filter);
     		addTrack(track);
     	}
+    	else if (e.getOldValue()!=null) {
+      	// clean up deleted perspective track and filter pig not done yet?
+    		PerspectiveFilter filter = (PerspectiveFilter)e.getOldValue();
+      	PerspectiveTrack track = PerspectiveTrack.filterMap.get(filter);
+    		if (track!=null) {
+    			PerspectiveTrack.filterMap.remove(filter);
+    			removeTrack(track);
+    			track.setTrackerPanel(null);
+    			track.filter = null;
+    			filter.setVideoPanel(null);
+    		}
+    	}
     }
     else if (Tracker.showHints) {
     	Tracker.startupHintShown = false;
@@ -2153,6 +2214,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     TFrame frame = getTFrame();
     if (frame !=null && trackControl==null) 
     	trackControl = TrackControl.getControl(this);
+    
   }
 
   /**
@@ -2447,6 +2509,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	zoomCenter = null;
   		scrollRectToVisible(rect);
     }
+    showFilterInspectors();
   }
   
   /**
@@ -2528,6 +2591,30 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		TMenuBar.getMenuBar(this).refresh();
   }
 
+  /**
+   * Shows the visible filter inspectors, if any.
+   */
+  protected void showFilterInspectors() {
+	  // show filter inspectors
+	  if (visibleFilters != null) {
+	  	TFrame frame = getTFrame();
+	    Iterator<Filter> it = visibleFilters.keySet().iterator();
+	    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+	    while (it.hasNext()) {
+	    	Filter filter = it.next();
+	    	Point p = visibleFilters.get(filter);
+	    	Dialog inspector = filter.getInspector();
+				int x = Math.max(p.x + frame.getLocation().x, 0);
+				x = Math.min(x, dim.width-inspector.getWidth());
+				int y = Math.max(p.y + frame.getLocation().y, 0);
+				y = Math.min(y, dim.height-inspector.getHeight());
+	    	inspector.setLocation(x, y);
+	    	inspector.setVisible(true);
+	    }
+	    visibleFilters = null;
+	  }
+  }
+  
 	/**
    * This inner class extends IADMouseController to set the cursor
    * and show selected point coordinates.
