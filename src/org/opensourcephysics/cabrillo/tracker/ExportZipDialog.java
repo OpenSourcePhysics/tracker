@@ -1141,6 +1141,48 @@ public class ExportZipDialog extends JDialog {
     	        trackControl.setValue("world_coordinates", newKeys);        			 //$NON-NLS-1$
         		}
 
+        		else if (CircleFitter.class.equals(trackType)) {
+    	        int frameNum = trackControl.getInt("absolute_start"); //$NON-NLS-1$
+    	        if (frameNum>0) {
+	    	        int newStartFrameNum = realClip.frameToStep(frameNum);
+	  	        	// start frame should round up
+	  	        	if (frameNum>realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
+	  	        		newStartFrameNum++;
+	    	        trackControl.setValue("absolute_start", newStartFrameNum); //$NON-NLS-1$
+    	        }
+    	        frameNum = trackControl.getInt("absolute_end"); //$NON-NLS-1$
+    	        if (frameNum>0) {
+	    	        int newEndFrameNum = realClip.frameToStep(frameNum);
+	  	        	// end frame should round down
+	    	        trackControl.setValue("absolute_end", newEndFrameNum); //$NON-NLS-1$
+    	        }
+    	        // change and trim keyframe numbers
+    	        array = trackControl.getObject("framedata"); //$NON-NLS-1$
+    	        double[][] keyFrameData = (double[][])array;
+    	        ArrayList<double[]> newKeyFrameData = new ArrayList<double[]>();
+    	        newFrameNumbers.clear();
+    	        newFrameNum = 0;
+    	        for (int i = 0; i<keyFrameData.length; i++) {
+    	        	if (keyFrameData[i]==null) continue;
+    	        	double[] stepData = keyFrameData[i];
+    	        	int keyFrameNum = (int)stepData[0];
+    	        	newFrameNum = realClip.frameToStep(keyFrameNum);
+    	        	if (newFrameNum>realClip.getLastFrameNumber()
+    	        			|| newFrameNum<realClip.getFirstFrameNumber()) continue;
+    	        	// change frame number in step data and add to the new key frame data
+    	        	stepData[0] = newFrameNum;
+    	        	newKeyFrameData.add(stepData);
+//    	        	newFrameNumbers.put(newFrameNum, i);  // maps to stepData index       	
+    	        }
+//    	        double[][] newKeys = new double[newFrameNum+1][];
+//    	        for (Integer k: newFrameNumbers.keySet()) {
+//    	        	double[] stepData = keyFrameData[newFrameNumbers.get(k)];
+//    	        	newKeys[k] = keyFrameData[newFrameNumbers.get(k)];
+//    	        }
+    	        double[][] newKeyData = newKeyFrameData.toArray(new double[newKeyFrameData.size()][]);
+    	        trackControl.setValue("framedata", newKeyData);        			 //$NON-NLS-1$
+        		}
+
 	        }
     		}
     	}
