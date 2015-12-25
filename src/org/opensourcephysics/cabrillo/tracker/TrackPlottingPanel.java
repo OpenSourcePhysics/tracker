@@ -123,7 +123,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		  	if (clickedStep == null) return;
         TPoint pt = clickedStep.getDefaultPoint();
       	plotTrackView.trackerPanel.setSelectedPoint(pt);
-        pt.showCoordinates(plotTrackView.trackerPanel);
+      	if (pt!=null) {
+      		pt.showCoordinates(plotTrackView.trackerPanel);
+      	}
         clickedStep = null;
         repaint();
 		  }
