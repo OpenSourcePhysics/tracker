@@ -67,7 +67,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   static {
   	smallSelectIcon =  new ImageIcon(Tracker.class.getResource("resources/images/small_select.gif")); //$NON-NLS-1$
     if (Tracker.testOn) {
-	  	testButton = new JButton("Save Origin/Angle Data"); //$NON-NLS-1$
+	  	testButton = new JButton("beep"); //$NON-NLS-1$
 	  	testButton.addActionListener(new ActionListener() {
 	  		public void actionPerformed(ActionEvent e) {
 	    		final TFrame frame = (TFrame)testButton.getTopLevelAncestor();
@@ -76,7 +76,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-		    	      	
+		    					Toolkit.getDefaultToolkit().beep();
+
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
 		  	    				testTimer=null;
@@ -341,7 +342,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
         selectButton.setMaximumSize(dime);
     		add(selectButton);
         track = trackerPanel.getSelectedTrack();
-        if (track != null) {
+        if (track != null && !(track instanceof PerspectiveTrack)) {
         	trackButton.setTrack(track);
           // listen to tracks for property changes that affect icon or name
           track.addPropertyChangeListener("name", TTrackBar.this); //$NON-NLS-1$

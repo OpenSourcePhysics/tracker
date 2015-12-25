@@ -785,8 +785,10 @@ public abstract class TTrack implements Interactive,
           if (trackerPanel.dataBuilder != null) {
           	org.opensourcephysics.tools.FunctionPanel panel = 
           		trackerPanel.dataBuilder.getPanel(getName());
-          	panel.setIcon(footprint.getIcon(21, 16));
-          	trackerPanel.dataBuilder.refreshDropdown(null);
+          	if (panel!=null) {
+	          	panel.setIcon(footprint.getIcon(21, 16));
+	          	trackerPanel.dataBuilder.refreshDropdown(null);
+          	}
           }
         }
         support.firePropertyChange("footprint", null, footprint); //$NON-NLS-1$
