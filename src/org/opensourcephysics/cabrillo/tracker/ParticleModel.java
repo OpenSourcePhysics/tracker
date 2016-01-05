@@ -284,7 +284,7 @@ abstract public class ParticleModel extends PointMass {
 		massField.setValue(mass);
 		// refresh mass parameter in paramPanel if changed
 		Parameter massParam = (Parameter)getParamEditor().getObject("m"); //$NON-NLS-1$
-		if (massParam.getValue() != mass) {
+		if (massParam!=null && massParam.getValue() != mass) {
 			functionPanel.getParamEditor().setExpression("m", String.valueOf(mass), false); //$NON-NLS-1$
 			refreshSteps();
 		}
@@ -304,12 +304,12 @@ abstract public class ParticleModel extends PointMass {
 	}
 
   /**
-   * Gets a display name for this model. The default is the track name. 
+   * Gets a display name for this model. The default is the model name. 
    *
    * @return the display name
    */
   public String getDisplayName() {
-    return name;
+    return getName("model"); //$NON-NLS-1$
   }
 
   /**
@@ -624,6 +624,7 @@ abstract public class ParticleModel extends PointMass {
 	 * Refreshes step positions.
 	 */
 	protected void refreshSteps() {
+		locked = true;
 		if (refreshStepsLater)
 			return;
     // return if this is an empty dynamic system

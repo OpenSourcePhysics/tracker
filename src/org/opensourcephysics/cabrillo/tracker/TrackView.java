@@ -67,7 +67,7 @@ public abstract class TrackView extends JScrollPane
 
   Icon getIcon() {
   	if (track==null) return null;
-    return track.getFootprint().getIcon(21, 16);
+    return track.getIcon(21, 16, "point"); //$NON-NLS-1$
   }
 
   TTrack getTrack() {

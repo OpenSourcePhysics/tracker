@@ -40,6 +40,7 @@ public class TButton extends JButton {
 	protected TTrack track;
   private boolean hidePopup = false;
   private JPopupMenu popup;
+  protected String context = "track"; //$NON-NLS-1$
 //	private Icon onIcon, offIcon;
 
   /**
@@ -184,10 +185,10 @@ public class TButton extends JButton {
   public void setTrack(TTrack track) {
   	this.track = track;
   	if (track!=null) {
-		  setIcon(track.getFootprint().getIcon(21, 16));
-		  setText(track.getName()); 
+		  setIcon(track.getIcon(21, 16, context));
+		  setText(track.getName(context)); 
 		  setToolTipText(TrackerRes.getString("TButton.Track.ToolTip") //$NON-NLS-1$
-		  		+" "+track.getName());  //$NON-NLS-1$
+		  		+" "+track.getName(context));  //$NON-NLS-1$
 		  FontSizer.setFonts(this, FontSizer.getLevel());
   	}
   	else {

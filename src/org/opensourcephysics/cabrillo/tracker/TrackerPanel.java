@@ -369,9 +369,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   }
 
   /**
-   * Gets the list of user-defined TTracks on this panel.
+   * Gets the list of user-controlled TTracks on this panel.
    *
-   * @return a list of tracks other than the axes and tape
+   * @return a list of tracks under direct user control
    */
   public ArrayList<TTrack> getUserTracks() {
     ArrayList<TTrack> tracks = getTracks();
@@ -379,6 +379,28 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     tracks.removeAll(calibrationTools);
     ArrayList<PerspectiveTrack> list = getDrawables(PerspectiveTrack.class);
     tracks.removeAll(list);
+    // remove child ParticleDataTracks
+    for (ParticleDataTrack next: getDrawables(ParticleDataTrack.class)) {
+    	if (next.getLeader()!=next) {
+    		tracks.remove(next);
+    	}
+    }
+    return tracks;
+  }
+
+  /**
+   * Gets the list of TTracks to save with this panel.
+   *
+   * @return a list of tracks to save
+   */
+  public ArrayList<TTrack> getTracksToSave() {
+    ArrayList<TTrack> tracks = getTracks();
+    // remove child ParticleDataTracks
+    for (ParticleDataTrack next: getDrawables(ParticleDataTrack.class)) {
+    	if (next.getLeader()!=next) {
+    		tracks.remove(next);
+    	}
+    }
     return tracks;
   }
 
@@ -391,6 +413,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   public TTrack getTrack(String name) {
     for (TTrack track: getTracks()) {
       if (track.getName().equals(name)) return track;
+      if (track.getName("track").equals(name)) return track; //$NON-NLS-1$
     }
     return null;
   }
@@ -452,6 +475,33 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	showTrackControl = false;
     	super.addDrawable(track);
     }
+    // special case: ParticleDataTrack may add extra points
+    else if (track instanceof ParticleDataTrack) { 
+    	super.addDrawable(track);
+    	final ParticleDataTrack dt = (ParticleDataTrack)track;
+    	if (dt.allPoints().size()>1) {
+	    	Runnable runner = new Runnable() {
+	    		public void run() {
+	      		for (ParticleDataTrack child: dt.allPoints()) {
+	      			if (child==dt) continue;
+	      			addTrack(child);
+	      		}
+		  			TFrame frame = getTFrame();
+		  			if (TrackerPanel.this.isShowing()) {
+			        TView[][] views = frame.getTViews(TrackerPanel.this);
+			        for (TView[] next: views) {
+			        	for  (TView view: next) {
+			        		if (view instanceof TrackChooserTView) {
+			        			((TrackChooserTView)view).setSelectedTrack(dt);
+			        		} 
+			        	}
+			        }
+		  			}
+	    		}
+	    	};
+	    	SwingUtilities.invokeLater(runner);
+    	}
+    }
     // all other tracks
     else {
       // set track name--prevents duplicate names
@@ -484,7 +534,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     // notify views
     firePropertyChange("track", null, track); // to views //$NON-NLS-1$
     changed = true;
-    if (showTrackControl && getTFrame()!=null) {
+    if (showTrackControl && getTFrame()!=null && this.isShowing()) {
     	TrackControl.getControl(this).setVisible(true);
     }
     
@@ -497,7 +547,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   private FunctionPanel createFunctionPanel(TTrack track) {
   	DatasetManager data = track.getData(this);
     FunctionPanel panel = new DataFunctionPanel(data);
-  	panel.setIcon(track.getFootprint().getIcon(21, 16));
+  	panel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
   	Class<?> type = track.getClass();
   	if (PointMass.class.isAssignableFrom(type))
   		panel.setDescription(PointMass.class.getName());
@@ -2738,7 +2788,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       }
       control.setValue("coords", coords); //$NON-NLS-1$
       // save the tracks
-      control.setValue("tracks", trackerPanel.getTracks()); //$NON-NLS-1$
+      control.setValue("tracks", trackerPanel.getTracksToSave()); //$NON-NLS-1$
       // save the selected track
       TTrack track = trackerPanel.getSelectedTrack();
       if (track != null) {

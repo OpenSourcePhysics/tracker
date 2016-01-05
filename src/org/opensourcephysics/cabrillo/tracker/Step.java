@@ -252,7 +252,7 @@ public abstract class Step implements Cloneable {
    */
   public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
-    boolean highlighted = (track.trackerPanel.getFrameNumber() == getFrameNumber());
+    boolean highlighted = track.trackerPanel.getFrameNumber()==getFrameNumber();
    	AutoTracker autoTracker = track.trackerPanel.getAutoTracker();
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     setHitRectCenter(xpix, ypix);

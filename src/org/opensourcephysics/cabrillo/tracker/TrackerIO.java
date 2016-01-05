@@ -889,13 +889,6 @@ public class TrackerIO extends VideoIO {
         // should the line below finish (in SwingWorker?) before continuing?
         control.loadObject(trackerPanel);
         
-//        try { // pig for testing only
-//					Thread.sleep(5000);
-//				} catch (InterruptedException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-        
         trackerPanel.frame = frame;
         trackerPanel.defaultFileName = XML.getName(path);
         trackerPanel.openedFromPath = path;

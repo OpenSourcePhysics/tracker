@@ -372,6 +372,16 @@ public abstract class TTrack implements Interactive,
    * a reference to it, this should then be garbage-collected.
    */
   public void delete() {
+    delete(true);
+  }
+
+  /**
+   * Removes this track from all panels that draw it. If no other objects have
+   * a reference to it, this should then be garbage-collected.
+   * 
+   * @param postEdit true to post an undoable edit
+   */
+  protected void delete(boolean postEdit) {
     if (isLocked() && !isDependent()) return;
     cleanup();
     if (trackerPanel != null) {
@@ -385,7 +395,9 @@ public abstract class TTrack implements Interactive,
       	trackerPanel.setCoords(coords);
       }    	
     }
-    Undo.postTrackDelete(this); // posts undoable edit
+    if (postEdit) {
+    	Undo.postTrackDelete(this); // posts undoable edit
+    }
     Iterator<TrackerPanel> it = panels.iterator();
     while (it.hasNext()) {
       TrackerPanel panel = it.next();
@@ -529,7 +541,7 @@ public abstract class TTrack implements Interactive,
       	org.opensourcephysics.tools.FunctionPanel panel = 
       		trackerPanel.dataBuilder.getPanel(getName());
       	if (panel != null) {
-        	panel.setIcon(footprint.getIcon(21, 16));
+        	panel.setIcon(getIcon(21, 16, "track")); //$NON-NLS-1$
         	trackerPanel.dataBuilder.refreshDropdown(null);      		
       	}
       }
@@ -593,6 +605,17 @@ public abstract class TTrack implements Interactive,
   }
 
   /**
+   * Gets the name of this track.
+   * 
+   * @param context ignored by default
+   *
+   * @return the name
+   */
+  public String getName(String context) {
+    return getName();
+  }
+
+  /**
    * Sets the name of this track.
    *
    * @param newName the new name of this track
@@ -652,7 +675,7 @@ public abstract class TTrack implements Interactive,
   	String s = getName();
   	if (partName != null) 
     	s += " "+partName; //$NON-NLS-1$
-    if (isLocked()) {
+    if (isLocked() && !TrackerRes.getString("PointMass.Position.Locked.Hint").equals(hint)) { //$NON-NLS-1$
       hint = TrackerRes.getString("TTrack.Locked.Hint"); //$NON-NLS-1$
     }
     if (Tracker.showHints && hint != null) 
@@ -786,7 +809,7 @@ public abstract class TTrack implements Interactive,
           	org.opensourcephysics.tools.FunctionPanel panel = 
           		trackerPanel.dataBuilder.getPanel(getName());
           	if (panel!=null) {
-	          	panel.setIcon(footprint.getIcon(21, 16));
+	          	panel.setIcon(getIcon(21, 16, "track")); //$NON-NLS-1$
 	          	trackerPanel.dataBuilder.refreshDropdown(null);
           	}
           }
@@ -825,6 +848,19 @@ public abstract class TTrack implements Interactive,
    */
   public Footprint getFootprint(Step step) {
     return getFootprint();
+  }
+
+  /**
+   * Gets this track's current icon.
+   * 
+   * @param w the icon width
+   * @param h the icon height
+   * @param context
+   *
+   * @return the icon
+   */
+  public Icon getIcon(int w, int h, String context) {
+    return getFootprint().getIcon(w, h);
   }
 
   /**
@@ -1594,7 +1630,7 @@ public abstract class TTrack implements Interactive,
       footprintMenu.add(item);
     }
     // return a new menu every time
-    menu = new JMenu(getName());
+    menu = new JMenu(getName("track")); //$NON-NLS-1$
     menu.setIcon(getFootprint().getIcon(21, 16));
     // add name and description items
     if (trackerPanel.isEnabled("track.name") || //$NON-NLS-1$

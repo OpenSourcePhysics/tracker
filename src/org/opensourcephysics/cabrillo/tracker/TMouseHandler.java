@@ -82,7 +82,10 @@ public class TMouseHandler implements InteractiveMouseHandler {
     if (!(panel instanceof TrackerPanel)) return;
     // popup menus handled by MainTView class
   	if (OSPRuntime.isPopupTrigger(e)
-  			|| panel.getZoomBox().isVisible()) return;
+  			|| panel.getZoomBox().isVisible()) {
+  		iad = null;
+  		return;
+  	}
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     if (!trackerPanel.isDrawingInImageSpace()) return;
     KeyboardFocusManager focuser =

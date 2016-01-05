@@ -139,7 +139,7 @@ public class TActions {
         if (!TrackerIO.pasteXML(trackerPanel)) {
         	// pasting XML failed, so try to paste data
         	String dataString = DataTool.paste();
-        	trackerPanel.importData(dataString, null);
+        	trackerPanel.importData(dataString, null); // returns DataTrack if successful
         }
       }
     };

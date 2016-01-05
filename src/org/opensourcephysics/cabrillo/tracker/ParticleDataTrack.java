@@ -23,6 +23,10 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -30,6 +34,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 
+import javax.swing.Icon;
+import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 
 import org.opensourcephysics.controls.OSPLog;
@@ -49,7 +55,7 @@ import org.opensourcephysics.tools.Parameter;
 
 /**
  * This is a particle model with steps based on world positions defined in a Data object.
- * The Data object is an "external model" associated with a source (path, URL, Tool)
+ * The Data object is an "external model" associated with a source (eg path, URL, Tool, null)
  * The Data must define data arrays "x" and "y" and may include a clock array "t" 
  * The Data may include additional data array pairs "x1", "y1", etc.
  *
@@ -57,44 +63,318 @@ import org.opensourcephysics.tools.Parameter;
  */
 public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	// pig test this with video with frameshift
+	private static ArrayList<String> initialFootprintNames; 
+	static {
+		initialFootprintNames = new ArrayList<String>();
+		initialFootprintNames.add("CircleFootprint.FilledCircle#6 outline"); //$NON-NLS-1$
+		initialFootprintNames.add("CircleFootprint.Circle#5 outlinebold"); //$NON-NLS-1$
+		initialFootprintNames.add("Footprint.Spot"); //$NON-NLS-1$
+	}
 	
 	private DataClip dataClip;
 	private Data sourceData;
   private double[] xData={0}, yData={0}, tData={0};
   private Point2D[] tracePosition; // used by getNextTracePositions() method
   private int stepCounter;
-  private Object dataSource;
+  private Object dataSource; // may be ParticleDataTrack leader 
   private boolean useDataTime;
+  protected String pointName="", modelName=""; //$NON-NLS-1$ //$NON-NLS-2$
+  private ArrayList<ParticleDataTrack> morePoints = new ArrayList<ParticleDataTrack>();
+  private JMenu pointsMenu = new JMenu();
 	
 	/**
-	 * Constructor.
+	 * Public constructor.
 	 * 
 	 * @param data the Data object
 	 * @param source the data source object (null if data is pasted)
 	 * @throws Exception if the data does not define x and y-datasets
 	 */
-	ParticleDataTrack(Data data, Object source) throws Exception {
-		dataSource = source;
+	public ParticleDataTrack(Data data, Object source) throws Exception {
+		this(source);
 		getDataClip().addPropertyChangeListener(this);
-		tracePosition = new Point2D[] {point};
-		tracePtsPerStep = 1;
 		// next line throws Exception if the data does not define x and y-columns
 		setData(data);
 	}
 	
 	/**
-	 * Constructor for XMLLoader.
+	 * Private constructor used by all.
+	 * 
+	 * @param source the data source
+	 */
+	private ParticleDataTrack(Object source) {
+		dataSource = source;
+		tracePosition = new Point2D[] {point};
+		tracePtsPerStep = 1;
+	}
+	
+	/**
+	 * Private constructor for making additional point tracks.
+	 * 
+	 * @param data Object[] {String name, double[2][] xyData}
+	 * @param parent the parent
+	 */
+	private ParticleDataTrack(Object[] data, ParticleDataTrack parent) {
+		this(parent);
+		dataClip = parent.getDataClip();
+		getDataClip().addPropertyChangeListener(this);
+		setPointName(data[0].toString());
+//		setName(pointName);
+		double[][] xyData = (double[][])data[1];
+		setData(xyData, true);
+	}
+	
+	/**
+	 * Private constructor for XMLLoader.
 	 * 
 	 * @param data the Data object
 	 */
-	private ParticleDataTrack(double[] x, double[] y, double[] t) {
+	private ParticleDataTrack(double[][] coreData, ArrayList<Object[]> pointData) {
+		this(null);
 		getDataClip().addPropertyChangeListener(this);
-		tracePosition = new Point2D[] {point};
-		tracePtsPerStep = 1;
 		try {
-			setData(new double[][] {x, y, t}, true);
-		} catch (Exception e) {
+			setData(coreData, true);
+		} catch (Exception e) {}		
+		
+		for (int i = 0; i< pointData.size(); i++) {
+			// get the new data
+			Object[] next = pointData.get(i);				
+			double[][] xyArray = (double[][])next[1];				
+			double[][] dataArray = new double[][] {xyArray[0], xyArray[1], null};		
+			ParticleDataTrack target = new ParticleDataTrack(next, this);
+			morePoints.add(target);
+			target.setTrackerPanel(trackerPanel);
+			if (trackerPanel!=null) {
+				trackerPanel.addTrack(target);
+			}
+			
+			// set target's data
+			target.setData(dataArray, true);
 		}
+	}
+	
+	@Override
+  public void delete() {
+    for (TTrack track: morePoints) {
+    	track.delete(false); // don't post undoable edit
+    }
+    super.delete();
+  }
+
+	/**
+	 * Returns a menu with items that control this track.
+	 * 
+	 * @param trackerPanel the tracker panel
+	 * @return a menu
+	 */
+	public JMenu getMenu(TrackerPanel trackerPanel) {
+		if (getLeader()!=this) {
+			return getPointMenu(trackerPanel);
+		}
+		
+		JMenu menu = super.getMenu(trackerPanel);
+		menu.setIcon(getIcon(21, 16, "model")); //$NON-NLS-1$
+		menu.removeAll();
+		
+		// refresh points menu
+		pointsMenu.setText(TrackerRes.getString("ParticleDataTrack.Menu.Points")); //$NON-NLS-1$
+		pointsMenu.removeAll();		
+		// add point menus
+		for (ParticleDataTrack next: allPoints()) {
+			JMenu pointMenu = next.getPointMenu(trackerPanel);
+			pointsMenu.add(pointMenu);
+		}
+
+		// assemble menu
+		menu.add(inspectorItem);
+		menu.add(pointsMenu);
+		menu.addSeparator();
+		menu.add(descriptionItem);
+		menu.add(visibleItem);
+//		menu.addSeparator();
+//		menu.add(dataBuilderItem);
+		menu.addSeparator();
+		menu.add(deleteTrackItem);
+		return menu;
+	}
+	
+	/**
+	 * Returns a menu with items associated with this track's point properties.
+	 * 
+	 * @param trackerPanel the tracker panel
+	 * @return a menu
+	 */
+	protected JMenu getPointMenu(TrackerPanel trackerPanel) {
+    // prepare menu items
+    colorItem.setText(TrackerRes.getString("TTrack.MenuItem.Color")); //$NON-NLS-1$
+    footprintMenu.setText(TrackerRes.getString("TTrack.MenuItem.Footprint")); //$NON-NLS-1$
+    velocityMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
+    accelerationMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
+		JMenu menu = getLeader()!=this? super.getMenu(trackerPanel): new JMenu();
+		menu.setText(getPointName());
+    menu.setIcon(getFootprint().getIcon(21, 16));
+		menu.removeAll();
+		menu.add(colorItem);
+		menu.add(footprintMenu);
+		menu.addSeparator();
+		menu.add(velocityMenu);
+		menu.add(accelerationMenu);
+		return menu;
+	}
+	
+  @Override
+	public Icon getIcon(int w, int h, String context) {
+  	// for point context, return footprint icon
+		if (context.contains("point")) { //$NON-NLS-1$
+			return getFootprint().getIcon(w, h);
+		}
+		// for other contexts, return combination icon
+		ArrayList<ShapeIcon> shapeIcons = new ArrayList<ShapeIcon>();
+		for (TTrack track: getLeader().allPoints()) {
+			Icon icon = track.getFootprint().getIcon(w, h);
+			if (icon instanceof ShapeIcon) {
+				shapeIcons.add((ShapeIcon)icon);
+			}
+		}
+		return new ComboIcon(shapeIcons);
+	}
+	
+  @Override
+  public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+    ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
+    if (trackerPanel.getSelectedPoint()==null) {
+	    list.remove(massLabel);
+	    list.remove(massField);
+	    list.remove(mSeparator);
+    }
+    return list;
+  }
+  
+	/**
+	 * Gets the point name. The point name is appended to the 
+	 * lead track name for most buttons and dropdowns.
+	 * 
+	 * @return the point name
+	 */
+  protected String getPointName() {
+  	if (pointName==null) {
+  		pointName = ""; //$NON-NLS-1$
+  	}
+  	if ("".equals(pointName)) { //$NON-NLS-1$
+  		ArrayList<ParticleDataTrack> pts = getLeader().allPoints();
+			for (int i=0; i<pts.size(); i++) {
+				if (pts.get(i)==this) {
+					return alphabet.substring(i, i+1);
+				}
+			}
+  	}
+  	// count duplicates
+  	int count = 0, i = 0;
+  	for (ParticleDataTrack next: getLeader().allPoints()) {
+			if (pointName.equals(next.pointName)) {
+				count++;
+				if (next==this) {
+					i = count;
+				}
+			}
+		}
+  	if (count>1) {
+  		return pointName+" "+i; //$NON-NLS-1$
+  	}
+  	return pointName;
+  }
+
+	/**
+	 * Sets the point name. The point name is appended to the 
+	 * leader's track name for most buttons and dropdowns.
+	 * 
+	 * @param newName the point name
+	 */
+  protected void setPointName(String newName) {
+  	if (newName==null) newName = ""; //$NON-NLS-1$
+  	boolean changed = !newName.equals(pointName);
+  	pointName = newName;
+  	if (changed) {
+  		for (ParticleDataTrack next: allPoints()) {
+  			next.name = next.getFullName();
+  		}
+  		support.firePropertyChange("name", null, null); //$NON-NLS-1$
+  	}
+  }
+
+	/**
+	 * Gets a list of all points in this track.
+	 * 
+	 * @return the points
+	 */
+  protected ArrayList<ParticleDataTrack> allPoints() {
+  	ArrayList<ParticleDataTrack> points = new ArrayList<ParticleDataTrack>();
+  	points.add(this);
+  	if (morePoints!=null) {
+  		points.addAll(morePoints);
+  	}
+  	return points;
+  }
+
+	/**
+	 * Gets the full name (model & point) for this track.
+	 * 
+	 * @return the full name
+	 */
+  public String getFullName() {
+  	return getLeader().modelName+" "+getPointName(); //$NON-NLS-1$
+  }
+  
+  @Override
+  public String getName(String context) {
+  	// point context: full name (eg "example A" or "example elbow")
+  	if (context.contains("point")) { //$NON-NLS-1$
+  		return getName();
+  	}
+  	// for other contexts, return modelName only (eg "example")
+  	return getLeader().modelName;  	  	
+  }
+  
+  @Override
+  public void setName(String newName) {  	
+  	// set the model name if this is the leader
+  	if (getLeader()==this) {
+    	// ignore if newName equals current full name
+    	if (getFullName().equals(newName)) return;
+  		modelName = newName;
+  		// set name of all points
+  		for (ParticleDataTrack next: allPoints()) {
+  			next.name = next.getFullName();
+  		}
+  	}
+  	// do nothing for other points
+  }
+
+  @Override
+  public void setColor(Color color) {
+  	super.setColor(color);
+  	if (getLeader()!=this) {
+  		getLeader().support.firePropertyChange("color", null, color); //$NON-NLS-1$
+  	}
+  }
+  
+  @Override
+  public void setFootprint(String name) {
+  	super.setFootprint(name);
+  	if (getLeader()!=this) {
+  		getLeader().support.firePropertyChange("footprint", null, getLeader().footprint); //$NON-NLS-1$
+  	}
+//    support.firePropertyChange("footprint", null, footprint); //$NON-NLS-1$
+  }
+	/**
+	 * Returns the lead track (index=0)
+	 * 
+	 * @return the leader (may be this track)
+	 */
+	public ParticleDataTrack getLeader() {
+		if (dataSource instanceof ParticleDataTrack) {
+			return (ParticleDataTrack)dataSource;
+		}
+		return this;
 	}
 	
 	/**
@@ -105,12 +385,48 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @throws Exception if the data does not define x and y-columns
 	 */
 	public void setData(Data data) throws Exception {
-		// the following line throws an exception if (x, y) data is not found
-		double[][] dataArray = getDataArray(data);
+		OSPLog.finer("Setting new data"); //$NON-NLS-1$
 		
-		OSPLog.fine("Setting new data"); //$NON-NLS-1$
+		// the following line throws an exception if (x, y) data is not found
+		ArrayList<Object[]> pointData = getPointData(data);
 		sourceData = data;
+		
+		// set {x,y,t} data for this lead track
+		Object[] coreData = pointData.get(0);
+		setPointName(coreData[0].toString());
+		double[][] xyArray = (double[][])coreData[1];				
+		double[] timeArray = getTimeData(data);				
+		if (timeArray!=null && xyArray[0].length!=timeArray.length) {
+			throw new Exception("Time data has incorrect array length"); //$NON-NLS-1$
+		}
+		
+		double[][] dataArray = new double[][] {xyArray[0], xyArray[1], timeArray};		
 		setData(dataArray, true);
+		
+		// set {x,y} for additional points
+		for (int i = 1; i< pointData.size(); i++) {
+			// get the new data
+			Object[] next = pointData.get(i);				
+			xyArray = (double[][])next[1];				
+			dataArray = new double[][] {xyArray[0], xyArray[1], null};		
+				
+			// if needed, create new track
+			if (i>morePoints.size()) {
+				ParticleDataTrack target = new ParticleDataTrack(next, this);
+				morePoints.add(target);
+				target.setTrackerPanel(trackerPanel);
+				if (trackerPanel!=null) {
+					trackerPanel.addTrack(target);
+				}
+			}
+			else {
+				ParticleDataTrack target = morePoints.get(i-1);
+				// set target's data
+				target.setData(dataArray, true);
+				// set target's pointName
+				target.setPointName(next[0].toString());
+			}
+		}
 	}
 	
 	/**
@@ -164,6 +480,25 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		return trackerPanel.getPlayer().getVideoClip();
 	}
 	
+	@Override
+	public boolean isVisible() {
+		if (getLeader()!=this) {
+			return getLeader().isVisible();
+		}
+		return super.isVisible();
+	}
+	
+	@Override
+	public void setVisible(boolean vis) {
+		super.setVisible(vis);
+		if (getLeader()!=this && vis!=getLeader().isVisible()) {
+			getLeader().setVisible(vis);
+		}
+		for (TTrack next: morePoints) {
+			next.setVisible(vis);
+		}
+	}
+	
 	/**
 	 * Gets the end data index.
 	 * 
@@ -206,7 +541,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 */
   public double getVideoStartTime() {
   	if (!isTimeDataAvailable()) return Double.NaN;
-	  double t0 = tData[dataClip.getStartIndex()];
+	  double t0 = tData[getDataClip().getStartIndex()];
 	  double duration = getFrameDuration();
 		return t0-duration*(getStartFrame()-getVideoClip().getStartFrameNumber());  	
   }
@@ -218,7 +553,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 */
   public double getFrameDuration() {
   	if (!isTimeDataAvailable()) return Double.NaN;
-		return tData[dataClip.getStride()]-tData[0];
+		return tData[getDataClip().getStride()]-tData[0];
   }
 
   @Override
@@ -232,6 +567,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		refreshInitialTime();
     extendVideoClip();
 		lastValidFrame = -1;
+		for (ParticleDataTrack next: morePoints) {
+			next.lastValidFrame = -1;
+		}
 //		refreshSteps();
 		trackerPanel.repaint();
 		firePropertyChange("startframe", null, getStartFrame()); //$NON-NLS-1$
@@ -245,7 +583,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   @Override
 	public void setEndFrame(int n) {
   	// set dataclip length
-  	dataClip.setClipLength((n-getStartFrame()+1));
+  	getDataClip().setClipLength((n-getStartFrame()+1));
   	trackerPanel.getModelBuilder().refreshSpinners();
 	}
   
@@ -266,7 +604,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 		// refresh init editor to show data start time
 		Parameter param = (Parameter)getInitEditor().getObject("t"); //$NON-NLS-1$
-		double tZero = tData[dataClip.getStartIndex()];
+		double tZero = tData[getDataClip().getStartIndex()];
 		String t = timeFormat.format(tZero);
 		if (!timeFormat.format(param.getValue()).equals(t)) {
 			boolean prev = refreshing;
@@ -277,19 +615,27 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	}
 
   @Override
+  public int getStartFrame() {
+  	if (getLeader()!=this) {
+  		return getLeader().getStartFrame();
+  	}
+		return startFrame;
+	}
+	
+  @Override
 	public int getEndFrame() {
   	// determine end frame based on start frame and clip length
-  	int clipEnd = getStartFrame()+dataClip.getClipLength()-1;
+  	int clipEnd = getStartFrame()+getDataClip().getClipLength()-1;
   	int videoEnd = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
   	return Math.min(clipEnd, videoEnd);
 	}
   
 	@Override
-	Point2D[] getNextTracePositions() {		
+	Point2D[] getNextTracePositions() {
 		stepCounter++;
 		int videoStepSize = trackerPanel.getPlayer().getVideoClip().getStepSize();
 		int modelStepNumber = stepCounter*videoStepSize;
-		int index = dataClip.stepToIndex(modelStepNumber);
+		int index = getDataClip().stepToIndex(modelStepNumber);
 		if (index>=xData.length || index>=yData.length) {
 			return null;
 		}
@@ -298,8 +644,27 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	}
 	
 	@Override
+  public void setColorToDefault(int index) {
+  	super.setColorToDefault(index);
+		for (TTrack next: morePoints) {
+			next.setColor(this.getColor());
+		}
+		// set initial footprints too
+		ArrayList<ParticleDataTrack> pts = allPoints();
+		for (int i=0; i<pts.size(); i++) {
+			TTrack next = pts.get(i);
+	  	int m = Math.min(i, initialFootprintNames.size()-1);
+	  	next.setFootprint(initialFootprintNames.get(m));
+		}
+  }
+
+	@Override
 	protected void setTrackerPanel(TrackerPanel panel) {
 		super.setTrackerPanel(panel);
+		for (TTrack next: morePoints) {
+			if (next==this) continue;
+			next.setTrackerPanel(panel);
+		}
 		if (panel==null) return;
 		
 		VideoClip videoClip = panel.getPlayer().getVideoClip();
@@ -365,7 +730,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 			steps.setStep(i, null);
 		}
-		int index = dataClip.stepToIndex(0);
+		int index = getDataClip().stepToIndex(0);
     point.setLocation(xData[index], yData[index]);
 		ImageCoordSystem coords = trackerPanel.getCoords();
     // get underlying coords if appropriate
@@ -429,10 +794,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 */
 	public void appendData(Data data) throws Exception {
 		// following line throws exception if (x, y) not found
-		double[][] newData = ParticleDataTrack.getDataArray(data);
+		Object[] pointData = getPointData(data).get(0);
+		double[][] xyArray = (double[][])pointData[1];				
 		double[][] oldData = getDataArray();
 		int n = oldData[0].length;
-		if (newData[0].length<=n) {
+		if (xyArray[0].length<=n) {
 			// inform user that no new data was found
 			TFrame frame = trackerPanel!=null? trackerPanel.getTFrame(): null;
 			JOptionPane.showMessageDialog(frame, 
@@ -441,6 +807,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					JOptionPane.WARNING_MESSAGE);
 			return;
 		}
+		double[] timeArray = getTimeData(data); // may be null
+		double[][] newData = new double[][] {xyArray[0], xyArray[1], timeArray};
 		for (int i=0; i<newData.length; i++) {
 			if (newData[i]!=null && oldData[i]!=null) {
 				System.arraycopy(oldData[i], 0, newData[i], 0, n);
@@ -451,44 +819,123 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	}
 	
 	/**
-	 * Gets the {x, y, t} data array from a Data object.
+	 * Gets the time data from a Data object.
 	 * 
 	 * @param data the Data object
-	 * @return the data array {x, y, t}
+	 * @return the t array, or null if none found
+	 */
+	private static double[] getTimeData(Data data) {
+		ArrayList<Dataset> datasets = data.getDatasets();
+		for (Dataset dataset: datasets) {
+			if (dataset.getXColumnName().toLowerCase().equals("t"))	return dataset.getXPoints(); //$NON-NLS-1$
+			else if (dataset.getYColumnName().toLowerCase().equals("t"))	return dataset.getYPoints(); //$NON-NLS-1$
+		}
+		return null;
+	}
+	
+	/**
+	 * Gets named (x, y) point data from a Data object.
+	 * 
+	 * @param data the Data object
+	 * @return list of Object[] {String name, double[2][] xyData}
 	 * @throws Exception if (x, y) data not defined, empty or inconsistent
 	 */
-	public static double[][] getDataArray(Data data) throws Exception {
+	private static ArrayList<Object[]> getPointData(Data data) throws Exception {
 		if (data==null) throw new Exception("Data is null"); //$NON-NLS-1$
 		ArrayList<Dataset> datasets = data.getDatasets();
 		if (datasets==null) throw new Exception("Data contains no datasets"); //$NON-NLS-1$
-		double[][] array = new double[3][];
+
+		ArrayList<Object[]> results = new ArrayList<Object[]>();
+//		boolean foundX = false, foundY = false;
+		String colName = null;
+		Dataset prevDataset = null;
 		for (Dataset dataset: datasets) {
-			if (array[0]==null) {
-				if (dataset.getXColumnName().equals("x"))	array[0] = dataset.getXPoints(); //$NON-NLS-1$
-				else if (dataset.getYColumnName().equals("x"))	array[0] = dataset.getYPoints(); //$NON-NLS-1$
+			
+			// look for columns with paired xy names
+			double[][] xy = new double[2][];
+			if (colName==null) {
+				if (xy[0]==null && dataset.getXColumnName().toLowerCase().startsWith("x"))	{ //$NON-NLS-1$
+					colName = dataset.getXColumnName().substring(1).trim();
+					xy[0] = dataset.getXPoints();
+				}
+				else if (xy[0]==null && dataset.getYColumnName().toLowerCase().startsWith("x")) { //$NON-NLS-1$
+					colName = dataset.getXColumnName().substring(1).trim();
+					xy[0] = dataset.getYPoints();
+				}
+				if (xy[1]==null && dataset.getXColumnName().toLowerCase().startsWith("y"))	{ //$NON-NLS-1$
+					if (colName==null) {
+						xy[1] = dataset.getXPoints();
+						colName = dataset.getXColumnName().substring(1).trim();
+					}
+					else if (dataset.getXColumnName().substring(1).equals(colName)) {
+						// match
+						xy[1] = dataset.getXPoints();
+					}
+				}
+				else if (xy[1]==null && dataset.getYColumnName().toLowerCase().startsWith("y")) { //$NON-NLS-1$
+					if (colName==null) {
+						colName = dataset.getYColumnName().substring(1).trim();
+						xy[1] = dataset.getYPoints();
+					}
+					else if (dataset.getYColumnName().substring(1).equals(colName)) {
+						// match
+						xy[1] = dataset.getYPoints();
+					}
+				}
 			}
-			if (array[1]==null) {
-				if (dataset.getXColumnName().equals("y"))	array[1] = dataset.getXPoints(); //$NON-NLS-1$
-				else if (dataset.getYColumnName().equals("y"))	array[1] = dataset.getYPoints(); //$NON-NLS-1$
+			
+			// if all data are present, add to results and continue to next dataset
+			if (xy[0]!=null && xy[1]!=null && colName!=null) {
+				results.add(new Object[] {colName, xy});
+				colName = null;
+				continue;
 			}
-			if (array[2]==null) {
-				if (dataset.getXColumnName().equals("t"))	array[2] = dataset.getXPoints(); //$NON-NLS-1$
-				else if (dataset.getYColumnName().equals("t"))	array[2] = dataset.getYPoints(); //$NON-NLS-1$
+			
+			// not all data is present
+			if (colName!=null && prevDataset!=null) { // partial data is present, so look at previous dataset
+				if (xy[0]==null && prevDataset.getXColumnName().toLowerCase().startsWith("x") //$NON-NLS-1$
+						&& prevDataset.getXColumnName().substring(1).equals(colName))	{
+					xy[0] = prevDataset.getXPoints();
+				}
+				else if (xy[0]==null && prevDataset.getYColumnName().toLowerCase().startsWith("x") //$NON-NLS-1$
+						&& prevDataset.getYColumnName().substring(1).equals(colName))	{
+					xy[0] = prevDataset.getYPoints();
+				}
+				if (xy[1]==null && prevDataset.getXColumnName().toLowerCase().startsWith("y") //$NON-NLS-1$
+						&& prevDataset.getXColumnName().substring(1).equals(colName))	{
+					xy[1] = prevDataset.getXPoints();
+				}
+				else if (xy[1]==null && prevDataset.getYColumnName().toLowerCase().startsWith("y") //$NON-NLS-1$
+						&& prevDataset.getYColumnName().substring(1).equals(colName))	{
+					xy[1] = prevDataset.getYPoints();
+				}				
 			}
-		}
-		if (array[0]==null || array[1]==null) {
+			
+			prevDataset = dataset;
+			// if all data are present, add to results
+			if (xy[0]!=null && xy[1]!=null && colName!=null) {
+				results.add(new Object[] {colName, xy});
+				prevDataset = null;
+			}
+			
+			colName = null;
+		}	// end for loop
+		
+		if (results.isEmpty()) {
 			throw new Exception("Position data (x, y) not defined"); //$NON-NLS-1$
 		}
-		if (array[0].length==0 || array[1].length==0) {
+		// check first data array for matching data length, etc
+		Object[] result = results.get(0);
+		double[][] dataArray = (double[][])result[1];
+		
+		if (dataArray[0].length==0 || dataArray[1].length==0) {
 			throw new Exception("Position data is empty"); //$NON-NLS-1$
 		}
-		if (array[0].length!=array[1].length) {
+		if (dataArray[0].length!=dataArray[1].length) {
 			throw new Exception("X and Y data have different array lengths"); //$NON-NLS-1$
 		}
-		if (array[2]!=null && array[0].length!=array[2].length) {
-			throw new Exception("Time data has incorrect array length"); //$NON-NLS-1$
-		}
-		return array;
+		
+		return results;
 	}
 	
 
@@ -522,18 +969,17 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	}
 	
 	/**
-	 * Sets the data. If time data is included, it is assumed to be in seconds.
+	 * Sets the data as array {x, y, t}. If time data is included, it is assumed to be in seconds.
+	 * The t array may be null, but x and y are required.
 	 * 
-	 * @param x the x array
-	 * @param y the y array
-	 * @param t the t array (may be null)
+	 * @param data the data array {x, y, t}
 	 * @param reset true to redraw all frames
 	 */
 	private void setData(double[][] data, boolean reset) {
 		xData = data[0];
 		yData = data[1];
-		tData = data[2];
-		dataClip.setDataLength(data[0].length);
+		tData = data.length>2? data[2]: null;
+		getDataClip().setDataLength(data[0].length);
 		firePropertyChange("dataclip", null, dataClip); //$NON-NLS-1$
     extendVideoClip();
 		if (reset) {
@@ -541,6 +987,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			refreshSteps();
 			firePropertyChange("steps", null, null); //$NON-NLS-1$
 		}
+		invalidWarningShown = true;
 		repaint();
 	}
 	
@@ -556,11 +1003,57 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		VideoClip vidClip = trackerPanel.getPlayer().getVideoClip();
 		int videoEndFrame = vidClip.getEndFrameNumber();
 		boolean isLast = videoEndFrame==vidClip.getLastFrameNumber();
-		int dataEndFrame = getStartFrame()+dataClip.getAvailableClipLength()-1;
+		int dataEndFrame = getStartFrame()+getDataClip().getAvailableClipLength()-1;
 		if (isLast && dataEndFrame>videoEndFrame) {
 			vidClip.extendEndFrameNumber(dataEndFrame);
 		}
 		return false;
+	}
+	
+//___________________________________ inner classes _________________________________
+	
+	class ComboIcon implements Icon {
+		
+		ArrayList<ShapeIcon> shapeIcons;
+		
+		ComboIcon(ArrayList<ShapeIcon> icons) {
+			shapeIcons = icons;
+		}
+		
+		@Override
+		public void paintIcon(Component c, Graphics g, int x, int y) {
+			if (shapeIcons.size()==1) {
+				shapeIcons.get(0).paintIcon(c, g, x, y);
+			}
+			else {
+				Graphics2D g2 = (Graphics2D)g;
+				AffineTransform restoreTransform = g2.getTransform();
+				int w = getIconWidth();
+				int h = getIconHeight();
+				g2.scale(0.7, 0.7);
+				int n = shapeIcons.size();
+				for (int i=0; i<n; i++) {
+					if (i%2==0) { // even points above
+						shapeIcons.get(i).paintIcon(c, g, x+i*w/(n), y);
+					}
+					else { // odd points below
+						shapeIcons.get(i).paintIcon(c, g, x+i*w/(n), y+h/2);
+					}					
+				}
+				g2.setTransform(restoreTransform);
+			}
+		}
+	
+		@Override
+		public int getIconWidth() {
+			return shapeIcons.get(0).getIconWidth();
+		}
+	
+		@Override
+		public int getIconHeight() {
+			return shapeIcons.get(0).getIconHeight();
+		}
+		
 	}
 	
 //__________________________ static methods ___________________________
@@ -585,6 +1078,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
       control.setValue("mass", dataTrack.getMass()); //$NON-NLS-1$
       // save track data
       XML.getLoader(TTrack.class).saveObject(control, obj);
+      //save model name as name
+      control.setValue("name", dataTrack.modelName); //$NON-NLS-1$
 //      // save initial values
 //      Parameter[] inits = model.getInitEditor().getParameters();
 //    	control.setValue("initial_values", inits); //$NON-NLS-1$
@@ -592,6 +1087,29 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	    control.setValue("x", dataTrack.xData); //$NON-NLS-1$
 	    control.setValue("y", dataTrack.yData); //$NON-NLS-1$
 	    control.setValue("t", dataTrack.tData); //$NON-NLS-1$
+	    // save point name
+	    control.setValue("pointname", dataTrack.pointName); //$NON-NLS-1$
+	    // save additional point data: x, y, mass, point name, color, footprint
+	    for (int i=0; i<dataTrack.morePoints.size(); i++) {
+	    	ParticleDataTrack pointTrack = dataTrack.morePoints.get(i);
+	      // save the data
+		    control.setValue("x"+i, pointTrack.xData); //$NON-NLS-1$
+		    control.setValue("y"+i, pointTrack.yData); //$NON-NLS-1$
+		    // save point name
+	      control.setValue("mass"+i, pointTrack.getMass()); //$NON-NLS-1$
+		    control.setValue("pointname"+i, pointTrack.pointName); //$NON-NLS-1$
+	      // save color
+	      control.setValue("color"+i, pointTrack.getColor()); //$NON-NLS-1$
+	      // footprint name
+	      Footprint fp = pointTrack.getFootprint();
+	      String s = fp.getName();
+	      if (fp instanceof CircleFootprint) {
+	      	CircleFootprint cfp = (CircleFootprint)fp;
+	      	s+="#"+cfp.getProperties(); //$NON-NLS-1$
+	      }
+	      control.setValue("footprint"+i, s); //$NON-NLS-1$
+	    }
+	    
 	    // save the dataclip
 	    control.setValue("dataclip", dataTrack.getDataClip()); //$NON-NLS-1$
       // save start and end frames (if custom)
@@ -615,10 +1133,23 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
     }
 
     public Object createObject(XMLControl control){
-    	double[] x = (double[])control.getObject("x"); //$NON-NLS-1$
-    	double[] y = (double[])control.getObject("y"); //$NON-NLS-1$
-    	double[] t = (double[])control.getObject("t"); //$NON-NLS-1$
-      return new ParticleDataTrack(x, y, t);
+    	double[][] coreData = new double[3][];
+    	coreData[0] = (double[])control.getObject("x"); //$NON-NLS-1$
+    	coreData[1] = (double[])control.getObject("y"); //$NON-NLS-1$
+    	coreData[2] = (double[])control.getObject("t"); //$NON-NLS-1$
+    	int i = 0;
+    	ArrayList<Object[]> pointData = new ArrayList<Object[]>();
+    	double[][] next = new double[2][];
+    	next[0] = (double[])control.getObject("x"+i); //$NON-NLS-1$
+    	while (next[0]!=null) {
+    		next[1] = (double[])control.getObject("y"+i); //$NON-NLS-1$)
+    		String name = control.getString("pointname"+i); //$NON-NLS-1$
+    		pointData.add(new Object[] {name, next});
+    		i++;
+    		next = new double[2][];
+    		next[0] = (double[])control.getObject("x"+i); //$NON-NLS-1$
+    	}
+      return new ParticleDataTrack(coreData, pointData);
     }
 
     public Object loadObject(XMLControl control, Object obj) {
@@ -626,10 +1157,19 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
       // load track data and mass
       XML.getLoader(TTrack.class).loadObject(control, obj);
       dataTrack.mass = control.getDouble("mass"); //$NON-NLS-1$
+      // load pointname
+      dataTrack.setPointName(control.getString("pointname")); //$NON-NLS-1$
       // load dataclip
       XMLControl dataClipControl = control.getChildControl("dataclip"); //$NON-NLS-1$
       if (dataClipControl!=null) {
       	dataClipControl.loadObject(dataTrack.getDataClip());
+      }
+      // load point properties: mass, color, footprint
+      for (int i=0; i<dataTrack.morePoints.size(); i++) {
+      	ParticleDataTrack child = dataTrack.morePoints.get(i);
+      	child.setMass(control.getDouble("mass"+i)); //$NON-NLS-1$
+      	child.setColor((Color)control.getObject("color"+i)); //$NON-NLS-1$
+      	child.setFootprint(control.getString("footprint"+i)); //$NON-NLS-1$
       }
       // load useDataTime flag
       dataTrack.useDataTime = control.getBoolean("use_data_time"); //$NON-NLS-1$

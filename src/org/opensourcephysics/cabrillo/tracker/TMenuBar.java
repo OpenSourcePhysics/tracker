@@ -381,21 +381,22 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             	// see if s is importable dataString
           		DatasetManager manager = DataTool.parseData(s, null);
           		if (manager!=null) {
-          			double[] xImport = null, yImport = null;
+          			boolean hasX = false, hasY = false;
                 for (Dataset next: manager.getDatasets()) {
-                	if (next.getYColumnName().equals("x")) { //$NON-NLS-1$
-                		xImport = next.getYPoints();
+                	if (next.getYColumnName().toLowerCase().startsWith("x")) { //$NON-NLS-1$
+                		hasX = true;
                 	}
-                	else if (next.getYColumnName().equals("y")) { //$NON-NLS-1$
-                		yImport = next.getYPoints();
+                	else if (next.getYColumnName().toLowerCase().startsWith("y")) { //$NON-NLS-1$
+                		hasY = true;
                 	}
                 }
-                if (xImport!=null && yImport!=null) {
-                	String name = manager.getName();
-                	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
-                		name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
-                	}
-                	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
+                if (hasX && hasY) {
+//                	String name = manager.getName();
+//                	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
+//                		name = TrackerRes.getString("ParticleDataTrack.Name"); //$NON-NLS-1$
+//                	}
+//                	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
+              		String name = TrackerRes.getString("ParticleDataTrack.Name"); //$NON-NLS-1$
                 	pasteItem.setEnabled(true);
 		            	pasteItem.setText(paste+" "+name);                	 //$NON-NLS-1$
                 }
@@ -1825,15 +1826,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           track = it.next();
           track.removePropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
           track.addPropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
-          String trackName = track.getName();
+          String trackName = track.getName("track"); //$NON-NLS-1$
           // add delete item to edit menu for each track
           item = new JMenuItem(trackName);
+          item.setIcon(track.getIcon(21, 16, "track")); //$NON-NLS-1$
           item.addActionListener(actions.get("deleteTrack")); //$NON-NLS-1$
           item.setEnabled(!track.isLocked() || track.isDependent());
           deleteTracksMenu.add(item);
           // add item to clone menu for each track
           item = new JMenuItem(trackName);
-          item.setIcon(track.getFootprint().getIcon(21, 16));
+          item.setIcon(track.getIcon(21, 16, "track")); //$NON-NLS-1$
           item.addActionListener(actions.get("cloneTrack")); //$NON-NLS-1$
           cloneMenu.add(item);
           // add each track's submenu to track menu
