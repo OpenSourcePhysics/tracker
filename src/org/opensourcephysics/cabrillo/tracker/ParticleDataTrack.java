@@ -56,8 +56,7 @@ import org.opensourcephysics.tools.Parameter;
 /**
  * This is a particle model with steps based on world positions defined in a Data object.
  * The Data object is an "external model" associated with a source (eg path, URL, Tool, null)
- * The Data must define data arrays "x" and "y" and may include a clock array "t" 
- * The Data may include additional data array pairs "x1", "y1", etc.
+ * The Data must define one or more data arrays in matched x-y pairs and may include a time array "t" 
  *
  * @author Douglas Brown
  */
