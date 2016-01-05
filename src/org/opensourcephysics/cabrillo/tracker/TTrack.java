@@ -2405,7 +2405,10 @@ public abstract class TTrack implements Interactive,
      * @return the step
      */
     public Step getStep(int n) {    	
-      if (n >= length) setLength(n + delta);
+      if (n >= length) {
+      	int len = Math.max(n+delta, n-length+1);
+      	setLength(len);
+      }
       return array[n];
     }
 
@@ -2418,7 +2421,10 @@ public abstract class TTrack implements Interactive,
      */
     public void setStep(int n, Step step) {
       if (autofill && step == null) return;
-      if (n >= length) setLength(n + delta);
+      if (n >= length) {
+      	int len = Math.max(n+delta, n-length+1);
+      	setLength(len);
+      }
       synchronized(array) {
         array[n] = step;
       }
