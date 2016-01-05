@@ -391,12 +391,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
                 	}
                 }
                 if (hasX && hasY) {
-//                	String name = manager.getName();
-//                	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
-//                		name = TrackerRes.getString("ParticleDataTrack.Name"); //$NON-NLS-1$
-//                	}
-//                	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
-              		String name = TrackerRes.getString("ParticleDataTrack.Name"); //$NON-NLS-1$
+              		String name = TrackerRes.getString("DataTrackClipControl.Label.Data"); //$NON-NLS-1$
                 	pasteItem.setEnabled(true);
 		            	pasteItem.setText(paste+" "+name);                	 //$NON-NLS-1$
                 }
