@@ -1351,7 +1351,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   	// if dataString is parsable data, parse and import it
 		DatasetManager data = DataTool.parseData(dataString, null);
 		if (data!=null) {
-      return importData(data, source);
+      DataTrack dt = importData(data, source);
+      if (dt instanceof ParticleDataTrack) {
+      	ParticleDataTrack pdt = (ParticleDataTrack)dt;
+      	pdt.prevDataString = dataString;
+      }
+      return dt;
     }
   	
   	// assume dataString is a resource path, read the resource and call this again
@@ -1375,34 +1380,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   	if (data==null) return null;
   	
   	// find DataTrack with matching name
-  	String name = data.getName();
-  	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
-  		name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
-  	}
-  	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
-  	TTrack track = getTrack(name);
-  	
-  	// if not found by name, check for matching ID
-  	if (track==null || track.getClass()!=ParticleDataTrack.class) {
-	  	int id = data.getID();
-  		for (ParticleDataTrack model: getDrawables(ParticleDataTrack.class)) {
-  			Data existingData = model.getData();
-  			if (existingData!=null && id==existingData.getID()) {
-  				track = model;
-  				break;
-  			}
-  		}
-  	}
+  	ParticleDataTrack dataTrack = ParticleDataTrack.getTrackForData(data, this);
   	
   	// load data into DataTrack
   	try {
 	  	// create a new DataTrack if none exists
-    	if (track==null || track.getClass()!=ParticleDataTrack.class) {
-				track = new ParticleDataTrack(data, source);
-				ParticleDataTrack dataTrack = (ParticleDataTrack)track;
+    	if (dataTrack==null) {
+    		dataTrack = new ParticleDataTrack(data, source);
 				int i = getDrawables(PointMass.class).size();
 				dataTrack.setColorToDefault(i);
-				dataTrack.setName(name);
 				addTrack(dataTrack);
 				setSelectedPoint(null);
 				setSelectedTrack(dataTrack);
@@ -1414,7 +1400,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	}
     	else {
       	// set data for existing DataTrack
-  			ParticleDataTrack dataTrack = (ParticleDataTrack)track;
   			dataTrack.setData(data);
     	}
 		} catch (Exception e) {
@@ -1425,9 +1410,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					TrackerRes.getString("TrackerPanel.Dialog.Exception.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
 			OSPLog.warning(e.getClass().getSimpleName()+": "+e.getMessage()); //$NON-NLS-1$
-			track = null;
+			dataTrack = null;
 		}
-		return (DataTrack)track;
+		return dataTrack;
   }
 
   /**

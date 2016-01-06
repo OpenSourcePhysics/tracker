@@ -30,6 +30,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
 import java.awt.event.*;
 
 import javax.swing.*;
@@ -86,6 +87,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   protected int framesLoaded, prevFramesLoaded; // used when loading xuggle videos
 //  protected JProgressBar monitor;
   protected PrefsDialog prefsDialog;
+  protected Clipboard clipboard;
 
   /**
    * Constructs an empty TFrame.
@@ -1572,6 +1574,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
    * Creates the GUI.
    */
   private void createGUI() {
+  	clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+  	// add focus listener to send clipboard to listeners
+  	addWindowFocusListener(new WindowAdapter() {
+  		@Override
+      public void windowGainedFocus(WindowEvent e) {
+  			firePropertyChange("clipboard", null, clipboard); //$NON-NLS-1$
+  		}
+  	});
     // create notes actions and dialog
     saveNotesAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {

@@ -36,8 +36,6 @@ import javax.swing.event.*;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.controls.*;
-import org.opensourcephysics.display.Dataset;
-import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.*;
 
@@ -377,25 +375,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	        	String s = (String)data.getTransferData(DataFlavor.stringFlavor);
             control.readXML(s);
             Class<?> type = control.getObjectClass();
-            if (control.failedToRead()) {
-            	// see if s is importable dataString
-          		DatasetManager manager = DataTool.parseData(s, null);
-          		if (manager!=null) {
-          			boolean hasX = false, hasY = false;
-                for (Dataset next: manager.getDatasets()) {
-                	if (next.getYColumnName().toLowerCase().startsWith("x")) { //$NON-NLS-1$
-                		hasX = true;
-                	}
-                	else if (next.getYColumnName().toLowerCase().startsWith("y")) { //$NON-NLS-1$
-                		hasY = true;
-                	}
-                }
-                if (hasX && hasY) {
-              		String name = TrackerRes.getString("DataTrackClipControl.Label.Data"); //$NON-NLS-1$
-                	pasteItem.setEnabled(true);
-		            	pasteItem.setText(paste+" "+name);                	 //$NON-NLS-1$
-                }
-          		}
+            if (control.failedToRead() && ParticleDataTrack.getImportableDataName(s)!=null) {
+            	paste = TrackerRes.getString("ParticleDataTrack.Button.Paste.Text"); //$NON-NLS-1$
+            	pasteItem.setEnabled(true);
+            	pasteItem.setText(paste);
             }
             else if (TTrack.class.isAssignableFrom(type)) {
               pasteItem.setEnabled(true);

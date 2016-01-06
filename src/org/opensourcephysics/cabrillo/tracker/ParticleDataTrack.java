@@ -25,18 +25,27 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 
+import javax.swing.BorderFactory;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
+import javax.swing.border.Border;
 
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
@@ -51,6 +60,7 @@ import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPanel;
+import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.Parameter;
 
 /**
@@ -80,6 +90,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   protected String pointName="", modelName=""; //$NON-NLS-1$ //$NON-NLS-2$
   private ArrayList<ParticleDataTrack> morePoints = new ArrayList<ParticleDataTrack>();
   private JMenu pointsMenu = new JMenu();
+  private JButton pasteButton;
+  protected String currentDataString, prevDataString;
 	
 	/**
 	 * Public constructor.
@@ -91,6 +103,12 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public ParticleDataTrack(Data data, Object source) throws Exception {
 		this(source);
 		getDataClip().addPropertyChangeListener(this);
+  	String name = data.getName();
+  	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
+  		name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
+  	}
+  	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
+		setName(name);
 		// next line throws Exception if the data does not define x and y-columns
 		setData(data);
 	}
@@ -156,6 +174,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
     for (TTrack track: morePoints) {
     	track.delete(false); // don't post undoable edit
     }
+		trackerPanel.getTFrame().removePropertyChangeListener("clipboard", this); //$NON-NLS-1$
     super.delete();
   }
 
@@ -239,11 +258,47 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	
   @Override
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+  	// create paste button here to insure that TFrame is defined
+  	if (getLeader().pasteButton==null) {
+  		final TFrame frame = trackerPanel.getTFrame();
+  		final int h = TTrackBar.getTrackbar(trackerPanel).toolbarComponentHeight;
+  		getLeader().pasteButton = new JButton() {
+      	public Dimension getMaximumSize() {
+      		Dimension dim = super.getMaximumSize();
+      		dim.height = h;
+      		return dim;
+      	}
+  		};
+  		
+  		getLeader().pasteButton.setEnabled(false);
+  		getLeader().pasteButton.setOpaque(false);
+  		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
+  		Border line = BorderFactory.createLineBorder(Color.GRAY);
+  		getLeader().pasteButton.setBorder(BorderFactory.createCompoundBorder(line, space));
+  		
+  		getLeader().pasteButton.addActionListener(new ActionListener() {
+  			public void actionPerformed(ActionEvent e) {
+  				int tab = frame.getSelectedTab();
+  				TrackerPanel panel = frame.getTrackerPanel(tab);
+  				if (panel!=null) {
+  					TActions.getAction("paste", panel).actionPerformed(null); //$NON-NLS-1$
+  					getLeader().prevDataString = getLeader().currentDataString;
+  					getLeader().pasteButton.setEnabled(false);
+  					TTrackBar.getTrackbar(panel).refresh();
+  				}
+  			}			
+  		});
+  		frame.addPropertyChangeListener("clipboard", getLeader()); //$NON-NLS-1$
+  	}
+  	getLeader().pasteButton.setText(TrackerRes.getString("ParticleDataTrack.Button.Paste.Text")); //$NON-NLS-1$
     ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     if (trackerPanel.getSelectedPoint()==null) {
 	    list.remove(massLabel);
 	    list.remove(massField);
-	    list.remove(mSeparator);
+//	    list.remove(mSeparator);
+	    if (getLeader().pasteButton.isEnabled()) {
+	    	list.add(getLeader().pasteButton);
+	    }
     }
     return list;
   }
@@ -661,7 +716,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	protected void setTrackerPanel(TrackerPanel panel) {
 		super.setTrackerPanel(panel);
 		for (TTrack next: morePoints) {
-			if (next==this) continue;
 			next.setTrackerPanel(panel);
 		}
 		if (panel==null) return;
@@ -708,6 +762,26 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			firePropertyChange("dataclip", null, null); //$NON-NLS-1$
 	    lastValidFrame = -1;
 	    repaint();
+		}
+		// listen for clipboard changes
+		else if (e.getPropertyName().equals("clipboard")) { //$NON-NLS-1$
+			Clipboard clipboard = (Clipboard)e.getNewValue();
+			boolean importable = false;
+			// get data string and compare with previous
+	    Transferable data = clipboard.getContents(null);
+	    if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+	    	try {
+					String s = (String)data.getTransferData(DataFlavor.stringFlavor);
+					String dataName = getImportableDataName(s);
+					importable = getLeader().modelName.equals(dataName) && !s.equals(getLeader().prevDataString);
+					getLeader().currentDataString = s;
+				} catch (Exception ex) {
+				}
+	    }
+			getLeader().pasteButton.setEnabled(importable);
+			if (trackerPanel.getSelectedTrack() instanceof ParticleDataTrack) {
+				TTrackBar.getTrackbar(trackerPanel).refresh();
+			}
 		}
 	}
 	
@@ -830,6 +904,66 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			else if (dataset.getYColumnName().toLowerCase().equals("t"))	return dataset.getYPoints(); //$NON-NLS-1$
 		}
 		return null;
+	}
+	
+	protected static String getImportableDataName(String s) {
+  	// see if s is importable dataString
+		DatasetManager manager = DataTool.parseData(s, null);
+		if (manager==null) return null;
+		boolean hasX = false, hasY = false;
+    for (Dataset next: manager.getDatasets()) {
+    	if (next.getYColumnName().toLowerCase().startsWith("x")) { //$NON-NLS-1$
+    		hasX = true;
+    	}
+    	else if (next.getYColumnName().toLowerCase().startsWith("y")) { //$NON-NLS-1$
+    		hasY = true;
+    	}
+    }
+    if (hasX && hasY){
+    	String name = manager.getName();
+    	if (name.trim().equals("")) { //$NON-NLS-1$
+    		name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
+    	}
+    	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
+    	return name;
+    }
+    return null;
+	}
+	
+	protected static boolean isImportableClipboard(Clipboard clipboard) {
+    Transferable data = clipboard.getContents(null);
+    if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+    	try {
+				String s = (String)data.getTransferData(DataFlavor.stringFlavor);
+				return getImportableDataName(s)!=null;
+			} catch (Exception e) {
+			}
+    }
+    return false;
+	}
+	
+	protected static ParticleDataTrack getTrackForData(Data data, TrackerPanel trackerPanel) {
+  	// find DataTrack with matching name
+  	String name = data.getName();
+  	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
+  		name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
+  	}
+  	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
+  	TTrack track = trackerPanel.getTrack(name);
+  	
+  	// if not found by name, check for matching ID
+  	if (track==null || track.getClass()!=ParticleDataTrack.class) {
+  		track = null;
+	  	int id = data.getID();
+  		for (ParticleDataTrack model: trackerPanel.getDrawables(ParticleDataTrack.class)) {
+  			Data existingData = model.getData();
+  			if (existingData!=null && id==existingData.getID()) {
+  				track = model;
+  				break;
+  			}
+  		}
+  	}
+  	return (ParticleDataTrack)track;
 	}
 	
 	/**
