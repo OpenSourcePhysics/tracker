@@ -214,6 +214,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		linesVisibleCheckbox = new JCheckBoxMenuItem();
 		linesVisibleCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+      	if (refreshing) return;
       	modelFootprintVisible = linesVisibleCheckbox.isSelected();
       	erase();
       	trackerPanel.repaint();
@@ -222,6 +223,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		linesClosedCheckbox = new JCheckBoxMenuItem();
 		linesClosedCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+      	if (refreshing) return;
         Footprint f = getLeader().modelFootprint;
         if (f instanceof MultiLineFootprint) {
         	((MultiLineFootprint)f).setClosed(linesClosedCheckbox.isSelected());
@@ -233,6 +235,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		linesBoldCheckbox = new JCheckBoxMenuItem();
 		linesBoldCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+      	if (refreshing) return;
       	MultiLineFootprint mlf = (MultiLineFootprint)getLeader().modelFootprint;
       	Color c = mlf.getColor();
       	boolean closed = mlf.isClosed();
@@ -370,12 +373,17 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 
 		// refresh lines menu
+		refreshing = true;
 		if (points.size()>1) {
 	    lineColorItem.setText(TrackerRes.getString("TTrack.MenuItem.Color")); //$NON-NLS-1$
 	    linesVisibleCheckbox.setText(visibleItem.getText());
+	    linesVisibleCheckbox.setSelected(modelFootprintVisible);
 	    linesClosedCheckbox.setText(TrackerRes.getString("ParticleDataTrack.Checkbox.Closed")); //$NON-NLS-1$
+	    linesClosedCheckbox.setSelected(getLeader().modelFootprint instanceof MultiLineFootprint
+	    		&& ((MultiLineFootprint)getLeader().modelFootprint).isClosed());
 			linesMenu.setText(TrackerRes.getString("ParticleDataTrack.Menu.Lines")); //$NON-NLS-1$
 			linesBoldCheckbox.setText(TrackerRes.getString("CircleFootprint.Dialog.Checkbox.Bold")); //$NON-NLS-1$
+			linesBoldCheckbox.setSelected(modelFootprint.getName().indexOf("Bold")>-1); //$NON-NLS-1$
 			linesMenu.removeAll();		
 			// add pertinent items
 			linesMenu.add(lineColorItem);
@@ -386,6 +394,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				linesMenu.add(linesClosedCheckbox);
 			}
 		}
+		refreshing = false;
 		
 		// refresh allFootprint menu
     allFootprintsMenu.setText(TrackerRes.getString("TTrack.MenuItem.Footprint")); //$NON-NLS-1$
