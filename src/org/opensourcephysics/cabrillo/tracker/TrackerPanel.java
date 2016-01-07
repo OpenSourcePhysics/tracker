@@ -1359,7 +1359,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       return dt;
     }
   	
-  	// assume dataString is a resource path, read the resource and call this again
+  	// assume dataString is a resource path, read the resource and call this again with path as source
 		String path = dataString;
   	return importData(ResourceLoader.getString(path), path);
   }
@@ -1379,7 +1379,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   public DataTrack importData(Data data, Object source) {
   	if (data==null) return null;
   	
-  	// find DataTrack with matching name
+  	// find DataTrack with matching name or ID
   	ParticleDataTrack dataTrack = ParticleDataTrack.getTrackForData(data, this);
   	
   	// load data into DataTrack

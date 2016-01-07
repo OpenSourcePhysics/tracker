@@ -478,9 +478,23 @@ public class Undo {
    	  XMLControl control = new XMLControlElement(xml);
   	  TrackProperties props = (TrackProperties)control.loadObject(null);
    	  TTrack track = panel.getTrack(trackName);
-  	  track.setFootprint(props.footprint);
-  	  track.setColor(props.color);
   	  track.setName(props.name);
+  	  if (props.colors!=null) {
+  	  	if (props.colors.length==1) {
+	    	  track.setColor(props.colors[0]);
+	  	  }
+  	  	else if (track instanceof ParticleDataTrack) {
+  	  		((ParticleDataTrack)track).setAllColors(props.colors);
+  	  	}
+  	  }
+  	  if (props.footprints!=null) {
+  	  	if (props.footprints.length==1) {
+  	  	  track.setFootprint(props.footprints[0]);
+	  	  }
+  	  	else if (track instanceof ParticleDataTrack) {
+  	  		((ParticleDataTrack)track).setAllFootprints(props.footprints);
+  	  	}
+  	  }
     }
   	
     public String getPresentationName() {
@@ -1018,19 +1032,37 @@ class MyUndoManager extends UndoManager {
  */
 class TrackProperties {
 	String name;
-	String footprint;
-	Color color;
+	String[] footprints;
+	Color[] colors;
 	
 	TrackProperties(TTrack track) {
 		name = track.getName();
-		footprint = track.getFootprint().getName();
-		color = track.getColor();
+		if (track instanceof ParticleDataTrack) {
+			ParticleDataTrack dt = (ParticleDataTrack)track;
+			ArrayList<ParticleDataTrack> points = dt.allPoints();
+			colors = new Color[points.size()+1];
+			colors[colors.length-1] = dt.modelFootprint.getColor();
+			for (int i=0; i<points.size(); i++) {
+				ParticleDataTrack next = points.get(i);
+				colors[i] = next.getColor();
+			}
+			footprints = new String[points.size()+1];
+			footprints[footprints.length-1] = dt.getModelFootprintName();
+			for (int i=0; i<points.size(); i++) {
+				ParticleDataTrack next = points.get(i);
+				footprints[i] = next.getFootprintName();
+			}
+		}
+		else {
+			footprints = new String[] {track.getFootprintName()};
+			colors = new Color[] {track.getColor()};
+		}
 	}
 	
-	TrackProperties(String name, String footprint, Color color) {
+	TrackProperties(String name, String[] footprints, Color[] colors) {
 		this.name = name;
-		this.footprint = footprint;
-		this.color = color;
+		this.footprints = footprints;
+		this.colors = colors;
 	}
 	
   public static XML.ObjectLoader getLoader() {
@@ -1046,16 +1078,16 @@ class TrackProperties {
 		public void saveObject(XMLControl control, Object obj) {
 			TrackProperties props = (TrackProperties)obj;
 			control.setValue("name", props.name); //$NON-NLS-1$
-			control.setValue("footprint", props.footprint); //$NON-NLS-1$
-			control.setValue("color", props.color); //$NON-NLS-1$
+			control.setValue("footprints", props.footprints); //$NON-NLS-1$
+			control.setValue("colors", props.colors); //$NON-NLS-1$
 		}
 
 		@Override
 		public Object createObject(XMLControl control) {
 			String name = control.getString("name"); //$NON-NLS-1$
-			String footprint = control.getString("footprint"); //$NON-NLS-1$
-			Color color = (Color)control.getObject("color"); //$NON-NLS-1$
-			return new TrackProperties(name, footprint, color);
+			String[] footprints = (String[])control.getObject("footprints"); //$NON-NLS-1$
+			Color[] colors = (Color[])control.getObject("colors"); //$NON-NLS-1$
+			return new TrackProperties(name, footprints, colors);
 		}
 
 		@Override

@@ -789,7 +789,7 @@ public abstract class TTrack implements Interactive,
   		props = name.substring(n+1);
   		name = name.substring(0, n);
   	}
-    for (int i = 0; i < footprints.length; i++)
+    for (int i = 0; i < footprints.length; i++) {
       if (name.equals(footprints[i].getName())) {
         footprint = footprints[i];
         if (footprint instanceof CircleFootprint) {
@@ -817,6 +817,22 @@ public abstract class TTrack implements Interactive,
         support.firePropertyChange("footprint", null, footprint); //$NON-NLS-1$
         return;
       }
+    }
+  }
+
+  /**
+   * Gets the full name of the current footprint, including properties if available
+   *
+   * @return the footprint name
+   */
+  public String getFootprintName() {
+    Footprint fp = getFootprint();
+    String s = fp.getName();
+    if (fp instanceof CircleFootprint) {
+    	CircleFootprint cfp = (CircleFootprint)fp;
+    	s+="#"+cfp.getProperties(); //$NON-NLS-1$
+    }
+    return s;
   }
 
   /**
@@ -2593,13 +2609,7 @@ public abstract class TTrack implements Interactive,
       // color
       control.setValue("color", track.getColor()); //$NON-NLS-1$
       // footprint name
-      Footprint fp = track.getFootprint();
-      String s = fp.getName();
-      if (fp instanceof CircleFootprint) {
-      	CircleFootprint cfp = (CircleFootprint)fp;
-      	s+="#"+cfp.getProperties(); //$NON-NLS-1$
-      }
-      control.setValue("footprint", s); //$NON-NLS-1$
+      control.setValue("footprint", track.getFootprintName()); //$NON-NLS-1$
       // visible
       control.setValue("visible", track.isVisible()); //$NON-NLS-1$
       // trail

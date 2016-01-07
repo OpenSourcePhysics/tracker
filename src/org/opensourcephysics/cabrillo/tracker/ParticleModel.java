@@ -707,7 +707,7 @@ abstract public class ParticleModel extends PointMass {
         		saveState(frameNumber);
             PositionStep step = (PositionStep)models[j].getStep(frameNumber);
             if (step==null) {
-          		step = new PositionStep(models[j], frameNumber, 0, 0);
+          		step = createPositionStep(models[j], frameNumber, 0, 0);
           		step.setFootprint(models[j].getFootprint());
           		models[j].steps.setStep(frameNumber, step);
             }
@@ -759,11 +759,29 @@ abstract public class ParticleModel extends PointMass {
 	  	    else
 	  	    	next.support.firePropertyChange("steps", null, null); //$NON-NLS-1$
   	    }
-  	    next.repaint();
+  	    // erase refreshed steps
+  	    for (int i=start+1; i<=end; i++) {
+  	    	Step step = next.getStep(i);
+  	    	if (step!=null) step.erase();
+  	    }
   	    next.locked = true;
       }
     	trackerPanel.repaint();
   	}
+	}
+	
+	/**
+	 * Creates a position step with image coordinates. Overridden by ParticleDataTrack.
+   *
+   * @param track the PointMass track
+   * @param n the frame number
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * 
+   * @return the PositionStep
+	 */
+	protected PositionStep createPositionStep(PointMass track, int n, double x, double y) {
+		return new PositionStep(track, n, x, y);
 	}
 	
 	/**
