@@ -93,7 +93,7 @@ public class MultiPositionStep extends PositionStep {
 		    	else 
 		    		screenPoints[i] = points[i].getScreenPosition(trackerPanel);
 		    }
-		    aMark = dataTrack.modelFootprint.getMark(screenPoints);
+		    aMark = dataTrack.getModelFootprint().getMark(screenPoints);
     	}
       final Mark modelMark = aMark;
       final Mark positionMark = super.getMark(trackerPanel);

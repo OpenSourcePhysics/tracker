@@ -1041,7 +1041,7 @@ class TrackProperties {
 			ParticleDataTrack dt = (ParticleDataTrack)track;
 			ArrayList<ParticleDataTrack> points = dt.allPoints();
 			colors = new Color[points.size()+1];
-			colors[colors.length-1] = dt.modelFootprint.getColor();
+			colors[colors.length-1] = dt.getModelFootprint().getColor();
 			for (int i=0; i<points.size(); i++) {
 				ParticleDataTrack next = points.get(i);
 				colors[i] = next.getColor();

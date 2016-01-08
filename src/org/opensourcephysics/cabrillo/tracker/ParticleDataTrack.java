@@ -131,6 +131,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		// set footprint and model footprint
 		setFootprint(startupFootprint);
 		defaultFootprint = getFootprint();
+		// set mmodel footprint only if this is the leader
 		if (!(source instanceof ParticleDataTrack)) {
 	    modelFootprints = new Footprint[]
 	        {MultiLineFootprint.getFootprint("Footprint.Lines"), //$NON-NLS-1$
@@ -224,7 +225,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		linesClosedCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
-        Footprint f = getLeader().modelFootprint;
+        Footprint f = getModelFootprint();
         if (f instanceof MultiLineFootprint) {
         	((MultiLineFootprint)f).setClosed(linesClosedCheckbox.isSelected());
         	erase();
@@ -236,7 +237,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		linesBoldCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
-      	MultiLineFootprint mlf = (MultiLineFootprint)getLeader().modelFootprint;
+      	MultiLineFootprint mlf = (MultiLineFootprint)getModelFootprint();
       	Color c = mlf.getColor();
       	boolean closed = mlf.isClosed();
       	if (linesBoldCheckbox.isSelected()) {
@@ -245,7 +246,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
       	else {
       		getLeader().setModelFootprint("Footprint.Lines"+"#"+closed); //$NON-NLS-1$ //$NON-NLS-2$
       	}
-      	modelFootprint.setColor(c);
+      	getModelFootprint().setColor(c);
       	erase();
       	trackerPanel.repaint();
       }
@@ -262,6 +263,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 */
 	private ParticleDataTrack(Object[] data, ParticleDataTrack parent) {
 		this(parent);
+		parent.morePoints.add(this);
 		dataClip = parent.getDataClip();
 		getDataClip().addPropertyChangeListener(this);
 		setPointName(data[0].toString());
@@ -295,7 +297,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			Object[] next = pointData.get(i);				
 			double[][] xyArray = (double[][])next[1];				
 			ParticleDataTrack target = new ParticleDataTrack(next, this);
-			morePoints.add(target);
 			target.setTrackerPanel(trackerPanel);
 			if (trackerPanel!=null) {
 				trackerPanel.addTrack(target);
@@ -316,6 +317,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   }
 	
 	protected void setModelFootprint(String name) {
+		if (this!=getLeader()) {
+			getLeader().setModelFootprint(name);
+			return;
+		}
   	String props = null;
   	int n = name.indexOf("#"); //$NON-NLS-1$
   	if (n>-1) {
@@ -338,10 +343,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
     }
 	}
 	
+	protected Footprint getModelFootprint() {
+		return getLeader().modelFootprint;
+	}
+	
 	protected String getModelFootprintName() {
-		String s = modelFootprint.getName();
-		if (modelFootprint instanceof MultiLineFootprint) {
-			MultiLineFootprint mlf = (MultiLineFootprint)modelFootprint;
+		String s = getModelFootprint().getName();
+		if (getModelFootprint() instanceof MultiLineFootprint) {
+			MultiLineFootprint mlf = (MultiLineFootprint)getModelFootprint();
 			s+="#"+mlf.isClosed(); //$NON-NLS-1$
 		}
 		return s;
@@ -379,11 +388,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	    linesVisibleCheckbox.setText(visibleItem.getText());
 	    linesVisibleCheckbox.setSelected(modelFootprintVisible);
 	    linesClosedCheckbox.setText(TrackerRes.getString("ParticleDataTrack.Checkbox.Closed")); //$NON-NLS-1$
-	    linesClosedCheckbox.setSelected(getLeader().modelFootprint instanceof MultiLineFootprint
-	    		&& ((MultiLineFootprint)getLeader().modelFootprint).isClosed());
+	    linesClosedCheckbox.setSelected(getModelFootprint() instanceof MultiLineFootprint
+	    		&& ((MultiLineFootprint)getModelFootprint()).isClosed());
 			linesMenu.setText(TrackerRes.getString("ParticleDataTrack.Menu.Lines")); //$NON-NLS-1$
 			linesBoldCheckbox.setText(TrackerRes.getString("CircleFootprint.Dialog.Checkbox.Bold")); //$NON-NLS-1$
-			linesBoldCheckbox.setSelected(modelFootprint.getName().indexOf("Bold")>-1); //$NON-NLS-1$
+			linesBoldCheckbox.setSelected(getModelFootprint().getName().indexOf("Bold")>-1); //$NON-NLS-1$
 			linesMenu.removeAll();		
 			// add pertinent items
 			linesMenu.add(lineColorItem);
@@ -571,18 +580,20 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	/**
 	 * Sets the point name. The point name is appended to the 
-	 * leader's track name for most buttons and dropdowns.
+	 * leader's track name to name the point.
 	 * 
 	 * @param newName the point name
 	 */
   protected void setPointName(String newName) {
   	if (newName==null) newName = ""; //$NON-NLS-1$
-  	boolean changed = !newName.equals(pointName);
   	pointName = newName;
+  	boolean changed = false;
+  	for (ParticleDataTrack next: getLeader().allPoints()) {
+  		String fullName = next.getFullName();
+  		changed = changed || !fullName.equals(next.name);
+			next.name = fullName;
+		}
   	if (changed) {
-  		for (ParticleDataTrack next: allPoints()) {
-  			next.name = next.getFullName();
-  		}
   		support.firePropertyChange("name", null, null); //$NON-NLS-1$
   	}
   }
@@ -750,7 +761,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			// if needed, create new track
 			if (i>morePoints.size()) {
 				ParticleDataTrack target = new ParticleDataTrack(next, this);
-				morePoints.add(target);
 				target.setTrackerPanel(trackerPanel);
 				if (trackerPanel!=null) {
 					trackerPanel.addTrack(target);
@@ -768,6 +778,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		for (int i=morePoints.size()-1; i>=pointData.size()-1; i--) {
 			ParticleDataTrack next = morePoints.remove(i);
 			next.delete(false); // don't post undoable edit
+		}
+		// reset point names of all tracks to refresh full names
+		for (ParticleDataTrack next: allPoints()) {
+			next.setPointName(next.pointName);
 		}
 	}
 	
@@ -992,7 +1006,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			next.setColor(this.getColor());
 		}
 		// set modelFootprint color
-		getLeader().modelFootprint.setColor(this.getColor());
+		getModelFootprint().setColor(this.getColor());
   }
 
 	@Override
@@ -1166,8 +1180,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 */
 	public void appendData(Data data) throws Exception {
 		// following line throws exception if (x, y) not found
-		Object[] pointData = getPointData(data).get(0);
-		double[][] xyArray = (double[][])pointData[1];				
+		ArrayList<Object[]> pointData = getPointData(data);
+
+		sourceData = data;
+		Object[] coreData = pointData.get(0);
+		double[][] xyArray = (double[][])coreData[1];				
 		double[][] oldData = getDataArray();
 		int n = oldData[0].length;
 		if (xyArray[0].length<=n) {
@@ -1186,9 +1203,19 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				System.arraycopy(oldData[i], 0, newData[i], 0, n);
 			}
 		}
-		sourceData = data;
 		setCoreData(newData, false);
-		// pig deal with appended values of other points
+		
+		// append values to other points
+		int len = Math.min(pointData.size()-1, morePoints.size());
+		for (int i = 0; i<len; i++) {
+			ParticleDataTrack target = morePoints.get(i);
+			// get the new data
+			Object[] next = pointData.get(i+1);				
+			xyArray = (double[][])next[1];								
+			// set target's data
+			target.setCoreData(xyArray, true);
+		}
+
 	}
 	
 	/**
@@ -1587,7 +1614,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	    control.setValue("use_data_time", ClipControl.isTimeSource(dataTrack)); //$NON-NLS-1$
 	    // save modelFootprint properties
 	    control.setValue("model_footprint", dataTrack.getModelFootprintName()); //$NON-NLS-1$
-	    control.setValue("model_footprint_color", dataTrack.modelFootprint.getColor()); //$NON-NLS-1$
+	    control.setValue("model_footprint_color", dataTrack.getModelFootprint().getColor()); //$NON-NLS-1$
 	    if (dataTrack.modelFootprintVisible) {
 	    	control.setValue("model_footprint_visible", true); //$NON-NLS-1$
 	    }
