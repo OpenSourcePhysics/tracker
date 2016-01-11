@@ -1041,7 +1041,7 @@ public class PointMass extends TTrack {
    */
   public boolean isStepVisible(Step step, TrackerPanel trackerPanel) {
     if (!isVisible()) return false;
-    int n =  step.getFrameNumber();
+    int n = step.getFrameNumber();
     if (!trackerPanel.getPlayer().getVideoClip().includesFrame(n)) return false;
     if (isPosition(step) && !isPositionVisible(trackerPanel)) return false;
     if (isVelocity(step) && !isVVisible(trackerPanel)) return false;

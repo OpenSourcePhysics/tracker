@@ -40,6 +40,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+
 import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
@@ -75,7 +76,6 @@ import org.opensourcephysics.tools.ResourceLoader;
  * @author Douglas Brown
  */
 public class ParticleDataTrack extends ParticleModel implements DataTrack {
-	// pig test this with video with frameshift
 	
 	private static String startupFootprint = "CircleFootprint.FilledCircle#5 outline"; //$NON-NLS-1$
 	
@@ -917,7 +917,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (n==getStartFrame()) return;
 		n = Math.max(n, 0); // not less than zero
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-		int end = clip.getFrameCount()-1;
+		int end = clip.getLastFrameNumber();
 		n = Math.min(n, end); // not greater than clip end
 		startFrame = n;
 		refreshInitialTime();
@@ -989,14 +989,29 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	@Override
 	Point2D[] getNextTracePositions() {
 		stepCounter++;
-		int videoStepSize = trackerPanel.getPlayer().getVideoClip().getStepSize();
-		int modelStepNumber = stepCounter*videoStepSize;
-		int index = getDataClip().stepToIndex(modelStepNumber);
-		if (index>=xData.length || index>=yData.length) {
+		int index = getDataIndexAtVideoStepNumber(stepCounter);
+		if (index<0 || index>=xData.length || index>=yData.length) {
 			return null;
 		}
     point.setLocation(xData[index], yData[index]);
 		return tracePosition;
+	}
+	
+	/**
+	 * Converts video step number to data index.
+	 * 
+	 * @param videoStepNumber
+	 * @return the data index, or -1 if none
+	 */
+	protected int getDataIndexAtVideoStepNumber(int videoStepNumber) {
+		VideoClip vidClip = trackerPanel.getPlayer().getVideoClip();
+		DataClip dataClip = getDataClip();
+		int len = dataClip.getAvailableClipLength();
+		int frameNum = vidClip.stepToFrame(videoStepNumber);
+		int dataStepNumber = frameNum-getStartFrame();
+		boolean validData = dataStepNumber>=0 && dataStepNumber<len;
+		int index = getDataClip().stepToIndex(dataStepNumber);
+		return validData? index: -1;
 	}
 	
 	@Override
@@ -1011,14 +1026,20 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	@Override
 	protected void setTrackerPanel(TrackerPanel panel) {
+//		TrackerPanel prev = trackerPanel;
 		super.setTrackerPanel(panel);
 		for (TTrack next: morePoints) {
 			next.setTrackerPanel(panel);
 		}
-		if (panel==null) return;
+		if (panel==null) {
+//			if (prev!=null) {
+//				prev.removePropertyChangeListener("frameshift", this); //$NON-NLS-1$
+//			}
+			return;
+		}
 		
+//		panel.addPropertyChangeListener("frameshift", this); //$NON-NLS-1$
 		VideoClip videoClip = panel.getPlayer().getVideoClip();
-		videoClip.addPropertyChangeListener(this);
 		int length = videoClip.getLastFrameNumber()-videoClip.getFirstFrameNumber()+1;
 		dataClip.setClipLength(Math.min(length, dataClip.getClipLength()));
 		firePropertyChange("videoclip", null, null); //$NON-NLS-1$
@@ -1036,18 +1057,18 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		super.propertyChange(e);
-		// listen for changes to the video clip
-		if (e.getSource() instanceof VideoClip || e.getPropertyName().equals("video")) { //$NON-NLS-1$
-			if (e.getPropertyName().equals("frameshift")) { //$NON-NLS-1$
-//				int frameshift = (Integer)e.getNewValue();
-				VideoClip videoClip = getVideoPanel().getPlayer().getVideoClip();
-
-				int startFrame = getStartFrame();
-				startFrame = Math.max(startFrame, videoClip.getFirstFrameNumber());
-				startFrame = Math.min(startFrame, videoClip.getLastFrameNumber());
-						
-				setStartFrame(startFrame);
-			}
+		// listen for changes to the video
+		if (e.getPropertyName().equals("video")) { //$NON-NLS-1$
+//			if (e.getPropertyName().equals("frameshift")) { //$NON-NLS-1$
+////				int frameshift = (Integer)e.getNewValue();
+//				VideoClip videoClip = getVideoPanel().getPlayer().getVideoClip();
+//
+//				int startFrame = getStartFrame();
+//				startFrame = Math.max(startFrame, videoClip.getFirstFrameNumber());
+//				startFrame = Math.min(startFrame, videoClip.getLastFrameNumber());
+//						
+//				setStartFrame(startFrame);
+//			}
 			firePropertyChange("videoclip", null, null); //$NON-NLS-1$
 	    lastValidFrame = -1;
 	    repaint();
@@ -1109,28 +1130,34 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 			steps.setStep(i, null);
 		}
-		int index = getDataClip().stepToIndex(0);
-    point.setLocation(xData[index], yData[index]);
+		
+		// get coordinate system
 		ImageCoordSystem coords = trackerPanel.getCoords();
     // get underlying coords if appropriate
     boolean useDefault = isUseDefaultReferenceFrame();
     while (useDefault && coords instanceof ReferenceFrame) {
       coords = ( (ReferenceFrame) coords).getCoords();
     }
-		
-	  int firstFrameInClip = getStartFrame();
-		AffineTransform transform = coords.getToImageTransform(firstFrameInClip);
-	  transform.transform(point, point);
+    
+		// get data index and firstFrameInVideoClip
+		VideoClip vidClip = getVideoClip();
+	  int firstFrameInVideoClip = vidClip.getStartFrameNumber();	  
+		int index = getDataIndexAtVideoStepNumber(0); // index will be -1 if none
+		if (index>-1) {
+	    point.setLocation(xData[index], yData[index]);
+			AffineTransform transform = coords.getToImageTransform(firstFrameInVideoClip);
+		  transform.transform(point, point);
+		}
 	  
-  	// mark a step at firstFrameInClip unless dataclip length is zero
-  	steps.setLength(firstFrameInClip+1);
+  	// mark a step at firstFrameInVideoClip unless dataclip length is zero
+  	steps.setLength(firstFrameInVideoClip+1);
   	for (int i = 0; i<steps.length; i++) {
-  		if (i<firstFrameInClip || dataClip.getClipLength()==0)
+  		if (i<firstFrameInVideoClip || index==-1)
   			steps.setStep(i, null);
   		else {
-  			PositionStep step = createPositionStep(this, firstFrameInClip, point.getX(), point.getY());
+  			PositionStep step = createPositionStep(this, i, point.getX(), point.getY());
     		step.setFootprint(getFootprint());	  			
-        steps.setStep(firstFrameInClip, step);
+        steps.setStep(i, step);
   		}	  			
   	}
   	
@@ -1141,7 +1168,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   	// reset trace data
     traceX = new double[] {point.getX()};
     traceY = new double[] {point.getY()};
-		lastValidFrame = firstFrameInClip;
+		lastValidFrame = firstFrameInVideoClip;
 		stepCounter = 0;
 	}
   
@@ -1159,8 +1186,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	@Override
 	protected PositionStep createPositionStep(PointMass track, int n, double x, double y) {
 		ParticleDataTrack dt = (ParticleDataTrack)track;
-		if (track==getLeader())	return new MultiPositionStep(dt, n, x, y);
-		return new PositionStep(dt, n, x, y);
+		PositionStep newStep;
+		if (track==getLeader())	newStep = new MultiPositionStep(dt, n, x, y);
+		else newStep = new PositionStep(dt, n, x, y);
+		newStep.valid = !Double.isNaN(x) && !Double.isNaN(y);
+		return newStep;
 	}
 	
 	/**

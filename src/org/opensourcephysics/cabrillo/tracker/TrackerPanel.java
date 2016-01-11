@@ -1395,7 +1395,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				dataTrack.getDataClip().setClipLength(-1); // sets clip length to data length
 				VideoClip videoClip = getPlayer().getVideoClip();
 				dataTrack.setStartFrame(videoClip.getStartFrameNumber());
-				dataTrack.getInspector().setVisible(true);
+//				dataTrack.getInspector().setVisible(true);
 				dataTrack.firePropertyChange("data", null, null); //$NON-NLS-1$
     	}
     	else {
@@ -1934,7 +1934,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-//    System.out.println(name);
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" property change "+name); //$NON-NLS-1$
     if (name.equals("size")) super.propertyChange(e); //$NON-NLS-1$
     if (name.equals("step") || name.equals("steps")) { // from tracks/steps //$NON-NLS-1$ //$NON-NLS-2$
@@ -1968,7 +1967,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       // replace coords and videoclip listeners
       ImageCoordSystem oldCoords = coords;
       coords.removePropertyChangeListener(this);
-      super.propertyChange(e);       // replaces video and (possibly) coords
+      super.propertyChange(e);       // replaces video, videoclip listeners, (possibly) coords
       coords.addPropertyChangeListener(this);
       firePropertyChange("coords", oldCoords, coords); // to tracks //$NON-NLS-1$
       firePropertyChange("video", null, null);        // to TMenuBar & views //$NON-NLS-1$
@@ -2109,7 +2108,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     			modelBuilder.setSpinnerStartFrame(model.getStartFrame());
       		int end = model.getEndFrame();
       		if (end==Integer.MAX_VALUE) {
-      			end = getPlayer().getVideoClip().getFrameCount()-1;
+      			end = getPlayer().getVideoClip().getLastFrameNumber();
       		}
       		modelBuilder.setSpinnerEndFrame(end);
     		}
@@ -2137,11 +2136,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	if (model.getName().equals(getModelBuilder().getSelectedName())) {
 	  		int end = (Integer)e.getNewValue();
 	  		if (end==Integer.MAX_VALUE) {
-	  			end = getPlayer().getVideoClip().getFrameCount()-1;
+	  			end = getPlayer().getVideoClip().getLastFrameNumber();
 	  		}
 	  		modelBuilder.setSpinnerEndFrame(end);
     	}
     }
+//    else if (name.equals("frameshift")) {                  // from video clip //$NON-NLS-1$
+//      firePropertyChange("frameshift", null, e.getNewValue()); // to tracks //$NON-NLS-1$    	
+//    }
     else if (name.equals("radian_angles")) { // angle format has changed //$NON-NLS-1$
       firePropertyChange("radian_angles", null, e.getNewValue()); // to tracks //$NON-NLS-1$    	
     }

@@ -1004,7 +1004,7 @@ public class ExportZipDialog extends JDialog {
     clipXMLControl.setValue("video_framecount", clipXMLControl.getInt("stepcount")); //$NON-NLS-1$ //$NON-NLS-2$
     clipXMLControl.setValue("startframe", 0); //$NON-NLS-1$
     clipXMLControl.setValue("stepsize", 1); //$NON-NLS-1$
-    clipXMLControl.setValue("frameshift", 0); //$NON-NLS-1$
+//    clipXMLControl.setValue("frameshift", 0); //$NON-NLS-1$
     if (videoPath!=null) {
 	    // modify videoControl with correct video type, and add delta_t for image videos
   		VideoType format = ExportVideoDialog.formats.get(formatDropdown.getSelectedItem());

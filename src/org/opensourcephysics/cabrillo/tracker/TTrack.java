@@ -1565,7 +1565,7 @@ public abstract class TTrack implements Interactive,
 	    		Step targetStep = targetTrack.getStep(n);
 	    		Step step = getStep(n);
 	    		TPoint p = step.getPoints()[i]; // not for CircleFitter--see overridden method
-	    		if (targetStep==null) {
+	    		if (targetStep==null || !targetStep.valid) {
 		      	if (p!=null) {
 		      		p.detach();
 		      	}

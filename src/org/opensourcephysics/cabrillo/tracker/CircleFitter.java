@@ -48,6 +48,8 @@ import org.opensourcephysics.controls.*;
  */
 public class CircleFitter extends TTrack {
 	
+	protected static int maxDataPointCount = 20;
+	
   // instance fields
   protected boolean fixedPosition=true;
   protected JCheckBoxMenuItem fixedItem;
@@ -59,8 +61,7 @@ public class CircleFitter extends TTrack {
   protected JMenuItem attachmentItem;
   protected JButton pointCountButton;
   protected boolean attachToSteps = false, isRelativeFrameNumbers = false;
-  protected int absoluteStart = 0, absoluteEnd = Integer.MAX_VALUE;
-  protected int relativeStart = -2, relativeEnd = 2;
+  protected int absoluteStart = 0, relativeStart = -2, attachmentFrameCount = 5;
   protected TTrack[] attachmentForSteps;
   protected String stepAttachmentName;
   private boolean refreshingAttachments, abortRefreshAttachments;
@@ -456,6 +457,33 @@ public class CircleFitter extends TTrack {
   			xDataField, yDataField};
     FontSizer.setFonts(objectsToSize, level);
   }
+  
+  /**
+   * Determines if this is attached to one or more tracks.
+   *
+   * @return true if attached
+   */
+  public boolean isAttached() {
+  	TTrack[] attachments = getAttachments();
+  	for (int i = 0; i < attachments.length; i++) {
+  		if (attachments[i]!=null) {
+  			return true;
+  		}
+  	}
+  	return false;
+  }
+
+  /**
+   * Determines if this is attached to one or more tracks.
+   *
+   * @return true if attached
+   */
+  public boolean isNoPoints(int frameNumber) {
+  	if (!isRelativeFrameNumbers) return false;
+  	int start = frameNumber+relativeStart;
+  	int end = frameNumber+relativeStart+attachmentFrameCount-1;
+  	return end<0 || start>trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+  }
 
   /**
    * Sets the start frame for single track attachments.
@@ -463,55 +491,71 @@ public class CircleFitter extends TTrack {
    * @param n the desired start frame
    */
   public void setAttachmentStartFrame(int n) {
+//  	int min = 0;
+//  	int max = trackerPanel.getPlayer().getVideoClip().getFrameCount()-1;
   	if (isRelativeFrameNumbers) {
-    	int max = trackerPanel.getPlayer().getVideoClip().getFrameCount()-1;
-  		n = Math.max(n, -max);
-	  	relativeStart = Math.min(n, relativeEnd);
+	  	int count = trackerPanel.getPlayer().getVideoClip().getFrameCount();
+  		n = Math.max(n, 1-count);
+    	n = Math.min(n, count-1);
+	  	relativeStart = n;
   	}
-  	else {
-	  	n = Math.max(n, 0);
-	  	absoluteStart = Math.min(n, absoluteEnd);
+  	else { // absolute frame numbers
+	  	int min = trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
+	  	int max = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+	  	n = Math.max(n, min);
+	  	n = Math.min(n, max);
+	  	absoluteStart = n;
   	}
   }
 
   /**
-   * Sets the end frame for single track attachments.
-   *
-   * @param n the desired end frame
+   * Gets the start frame for single track attachments.
+   * 
+   * @param frameNumber the frame number
+   * @return the start frame
    */
-  public void setAttachmentEndFrame(int n) {
+  public int getAttachmentStartFrame(int frameNumber) {
   	if (isRelativeFrameNumbers) {
-    	int max = trackerPanel.getPlayer().getVideoClip().getFrameCount()-1;
-  		n = Math.min(n, max);
-	  	relativeEnd = Math.max(n, relativeStart);
+  		int n = Math.max(0, frameNumber+relativeStart); // not less than first frame
+  		n = Math.min(n, trackerPanel.getPlayer().getVideoClip().getLastFrameNumber()); // not more than last frame
+  		return n;
   	}
-  	else {
-    	int last = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
-    	n = Math.min(n, last);
-    	absoluteEnd = Math.max(n, absoluteStart);
-  	}
+  	return absoluteStart;
   }
 
   /**
-   * Sets the start frame for single track attachments.
+   * Sets the attachment frame count for single track attachments.
    *
-   * @param n the desired start frame
-   * @param relative true if setting relative start
-   * @return the resulting start frame
+   * @param n the desired frame count
    */
-  public int getAttachmentStartFrame() {
-  	return isRelativeFrameNumbers? relativeStart: absoluteStart;
+  public void setAttachmentFrameCount(int n) {
+    n = Math.min(n, maxDataPointCount);
+    n = Math.max(n, 1);
+    attachmentFrameCount = n;
   }
 
   /**
-   * Sets the end frame for single track attachments.
+   * Gets the attachment frame count.
    *
-   * @param n the desired end frame
-   * @param relative true if setting relative end
-   * @return the resulting end frame
+   * @return the frame count
    */
-  public int getAttachmentEndFrame() {
-  	return isRelativeFrameNumbers? relativeEnd: absoluteEnd;
+  public int getAttachmentFrameCount() {
+    return attachmentFrameCount;
+  }
+
+  /**
+   * Gets the end frame for single track attachments.
+   *
+   * @param frameNumber the current frame number
+   * @return the end frame
+   */
+  public int getAttachmentEndFrame(int frameNumber) {
+  	int n = Math.max(0, absoluteStart+attachmentFrameCount-1);
+  	if (isRelativeFrameNumbers) {
+  		n = Math.max(0, frameNumber+relativeStart+attachmentFrameCount-1);
+  	}
+		n = Math.min(n, trackerPanel.getPlayer().getVideoClip().getLastFrameNumber()); // not more than last frame
+		return n;
   }
 
   @Override
@@ -618,11 +662,7 @@ public class CircleFitter extends TTrack {
   	    	trackerPanel.changed = change;
   	  	}
   	  	 	
-  			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-  	  	if (absoluteEnd==Integer.MAX_VALUE) {
-  	  		absoluteEnd = clip.getStepCount()-1;
-  	  	}
-  	  	
+  			VideoClip clip = trackerPanel.getPlayer().getVideoClip();  			
   			CircleFitterStep.doRefresh = false;
   		  TreeSet<Integer> framesToRefresh = new TreeSet<Integer>();
   	  	if (!attachToSteps) {
@@ -692,9 +732,9 @@ public class CircleFitter extends TTrack {
   	  	else {  	
   		  	// each CircleFitter step attaches to multiple steps in a single track 
   		  	TTrack targetTrack = attachments[0];
-  		  	if (targetTrack!=null) {
+  		  	if (targetTrack!=null) { 		  		
   		  		// target track not null so check DataPoints[1] array of every step in the clip
-  		  		int stepCount = clip.getStepCount();
+  		  		int stepCount = isRelativeFrameNumbers? clip.getStepCount(): 0;
   		    	for (int stepNum = 0; stepNum<=stepCount; stepNum++) {
     	    		if (abortRefreshAttachments) {
     	    			refreshingAttachments = false;
@@ -702,12 +742,10 @@ public class CircleFitter extends TTrack {
     	    		}
   		    		int n = clip.stepToFrame(stepNum);
   		    		CircleFitterStep circleStep = (CircleFitterStep)steps.getStep(n);
-  		    		// determine in and out frames for attachments
-  		    		int in = isRelativeFrameNumbers? n+relativeStart: absoluteStart;
-  		    		in = Math.max(in, 0);
-  		    		int out = isRelativeFrameNumbers? n+relativeEnd: absoluteEnd;
-  		    		out = Math.min(out, targetTrack.steps.length-1);
-  		    		out = Math.max(out, in);
+  		    		// in and out frames for attachments
+  		    		int in = getAttachmentStartFrame(n);
+  		    		int out = getAttachmentEndFrame(n);
+  		    		boolean noPoints = in<out? false: isNoPoints(n);
   		    		
   		    		// check candidate target steps at every existing frame from in to out
   		    		for (int frame = in; frame<=out; frame++) {
@@ -719,7 +757,7 @@ public class CircleFitter extends TTrack {
   		    			int dataPointIndex = frame-in;
   			    		DataPoint p = circleStep.getDataPoint(1, dataPointIndex); // may be null
   			    		
-  			    		if (targetStep==null) {
+  			    		if (targetStep==null || noPoints) {
   	    	    		// target step is null, so detach any data point and set null array element
   				      	if (p!=null) {				      		
   				      		p.detach();
@@ -795,164 +833,7 @@ public class CircleFitter extends TTrack {
   		}
   	};
   	
-  	new Thread(runner).start();
-  	
-//  	
-//  	TTrack[] attachments = getAttachments();
-//
-//  	// unfix the track if it has non-null attachments
-//		boolean hasAttachments = false;
-//  	for (int i = 0; i < attachments.length; i++) { 
-//  		hasAttachments = hasAttachments || attachments[i]!=null;
-//  	}
-//  	if (hasAttachments) {
-//			setFixed(false);
-//  	}
-//  	 	
-//		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-//  	if (absoluteEnd==Integer.MAX_VALUE) {
-//  		absoluteEnd = clip.getStepCount()-1;
-//  	}
-//  	
-//		CircleFitterStep.doRefresh = false;
-//		framesToRefresh.clear();
-//  	if (!attachToSteps) {
-//    	for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
-//    		CircleFitterStep step = (CircleFitterStep)steps.getStep(n);
-//    		if (step.trimAttachedPointsToLength(attachments.length-1)) {
-//      		framesToRefresh.add(n);
-//    		}
-//    	}
-//  		
-//  		// each CircleFitter step attaches to same-frame step in attachment tracks
-//    	for (int i=0; i<attachments.length; i++) {
-//    		TTrack targetTrack = attachments[i];
-//  	  	if (targetTrack!=null) {
-//  	  		// attach/detach points to each CircleFitter step
-//  	    	for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
-//  	    		Step targetStep = targetTrack.getStep(n);
-//  	    		CircleFitterStep step = (CircleFitterStep)steps.getStep(n); // no refresh
-//  	    		DataPoint p = step.getDataPoint(1, i); // may return null
-//  	    		if (targetStep==null) {
-//    	    		// target step is null, so detach any data point and set null CircleFitterStep array element
-//  	    			if (p!=null) {
-//			      		p.detach();
-//			      		p = null;
-//			      		step.setDataPoint(null, 1, i, false, false); // element set to mull, not compacted
-//			      		framesToRefresh.add(n);
-//  	    			}
-//  	    		}
-//  	    		else {
-//	  	    		// targetStep exists, so attach data point to target position and set CircleFitterStep array element
-//	  	      	TPoint target = targetStep.getPoints()[0];
-//  	    			if (p==null) {
-//  	    				p = step.new DataPoint(target.x, target.y);
-//  	    				step.setDataPoint(p, 1, i, false, false);
-//  	    			}
-//	  	      	if (p.attachTo(target)) { // returns true if a change has occurred
-//	  	      		framesToRefresh.add(n);
-//	  	      	}
-//  	    		}
-//  	    	}  		
-//  	  	}
-//  	  	else { // target track is null so detach all data points and eliminate array elements
-//  	  		for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
-//  	    		CircleFitterStep step = (CircleFitterStep)steps.getStep(n);
-//  	    		DataPoint p = step.getDataPoint(1, i); // may return null
-//  	      	if (p!=null) {  	      		
-//  	      		p.detach();
-//		      		step.setDataPoint(null, 1, i, false, true); // array is compacted (null element eliminated)
-//		      		framesToRefresh.add(n);
-//  	      	}
-//  	    	}
-//  	  	}
-//    	}
-//  	}
-//  	else {  	
-//	  	// each CircleFitter step attaches to multiple steps in a single track 
-//	  	TTrack targetTrack = attachments[0];
-//	  	if (targetTrack!=null) {
-//	  		// target track not null so check DataPoints[1] array of every step in the clip
-//	  		int stepCount = clip.getStepCount();
-//	    	for (int stepNum = 0; stepNum<=stepCount; stepNum++) {
-//	    		int n = clip.stepToFrame(stepNum);
-//	    		CircleFitterStep circleStep = (CircleFitterStep)steps.getStep(n);
-//	    		// determine in and out frames for attachments
-//	    		int in = isRelativeFrameNumbers? n+relativeStart: absoluteStart;
-//	    		in = Math.max(in, 0);
-//	    		int out = isRelativeFrameNumbers? n+relativeEnd: absoluteEnd;
-//	    		out = Math.min(out, targetTrack.steps.length-1);
-//	    		out = Math.max(out, in);
-//	    		
-//	    		// check candidate target steps at every existing frame from in to out
-//	    		for (int frame = in; frame<=out; frame++) {
-//	    			Step targetStep = targetTrack.getStep(frame);
-//	    			int dataPointIndex = frame-in;
-//		    		DataPoint p = circleStep.getDataPoint(1, dataPointIndex); // may be null
-//		    		
-//		    		if (targetStep==null) {
-//    	    		// target step is null, so detach any data point and set null array element
-//			      	if (p!=null) {				      		
-//			      		p.detach();
-//			      		p = null;
-//			      		framesToRefresh.add(n);
-//			      	}
-//		    		}
-//		    		else {
-//	  	    		// targetStep not null, so attach data point to target and set CircleFitterStep array element
-//			      	TPoint target = targetStep.getPoints()[0];
-//		    			if (p==null) {
-//  	    				p = circleStep.new DataPoint(target.x, target.y);
-//		    			}
-//	  	      	if (p.attachTo(target)) { // returns true if a change has occurred
-//	  	      		framesToRefresh.add(n);
-//	  	      	}
-//		    		}
-//	      		circleStep.setDataPoint(p, 1, dataPointIndex, false, false); // sets data point, keeps null elements
-//	    		}
-//	    		
-//	    		// truncate dataPoints[1] array if needed
-//	    		DataPoint[] existingPts = circleStep.dataPoints[1];
-//	    		if (existingPts.length>out-in+1) {
-//	    			DataPoint[] newPts = new DataPoint[out-in+1];
-//	    			System.arraycopy(existingPts, 0, newPts, 0, newPts.length);
-//	    			circleStep.dataPoints[1] = newPts;
-//	    			for (int k=newPts.length; k<existingPts.length; k++) {
-//	    				if (existingPts[k]!=null) {
-//	    					framesToRefresh.add(existingPts[k].getFrameNumber(trackerPanel));
-//	    				}
-//	    			}
-//	    		}
-//
-//	    	}  		
-//	  	}
-//	  	else { // target track is null so detach all data points and compact the array
-//	  		for (int stepNum = 0; stepNum<=clip.getStepCount(); stepNum++) {
-//	    		int n = clip.stepToFrame(stepNum);
-//	    		CircleFitterStep step = (CircleFitterStep)steps.getStep(n);
-//	    		for (int i = 0; i<=step.dataPoints[1].length; i++) {
-//		    		DataPoint p = step.getDataPoint(1, i); // may return null
-//		      	if (p!=null) {
-//		      		p.detach();
-//		      		framesToRefresh.add(n);
-//		      	}
-//	    		}
-//		  		step.dataPoints[1] = new DataPoint[0]; // reset 
-//	    	}
-//	  	}
-//  	}
-//  	
-//  	// refresh circles
-//		CircleFitterStep.doRefresh = true;
-//		for (int n: framesToRefresh) {
-//  		CircleFitterStep step = (CircleFitterStep)steps.getStep(n);
-//  		step.refreshCircle();
-//		}
-//		
-//  	TTrackBar.getTrackbar(trackerPanel).refresh();
-//  	repaint();
-//  	dataValid = false;
-//  	firePropertyChange("data", null, this); //$NON-NLS-1$
+  	new Thread(runner).start();  	
   }
 
   @Override
@@ -1206,43 +1087,77 @@ public class CircleFitter extends TTrack {
    * @param step the step to refresh
    */
   protected void refreshStep(CircleFitterStep step) {
-  	// compare step with keyStep
+  	boolean changed = false;
+    // refresh attached data points if attached to steps and not relative frame numbers
+    if (isAttached() && attachToSteps && !isRelativeFrameNumbers) {
+    	CircleFitterStep keyStep = (CircleFitterStep)steps.getStep(0);
+    	if (keyStep!=step) {
+    		DataPoint[] keyPts = keyStep.dataPoints[1];
+    		DataPoint[] pts = step.dataPoints[1];
+      	if (keyPts.length!=pts.length) {
+      		changed = true;
+      		pts = new DataPoint[keyPts.length];
+        	for (int i=0; i<pts.length; i++) {
+        		DataPoint next = keyPts[i];
+        		pts[i] = next==null? null: step.new DataPoint(next.x, next.y);
+        	}
+        	step.dataPoints[1] = pts;
+      	}
+      	else { // arrays have same length
+    	  	for (int i=0; i<pts.length; i++) {
+    	  		if (keyPts[i]==null) {
+    	  			changed = changed || pts[i]!=null;
+    	  			pts[i] = null;
+    	  		}
+    	  		else {
+    	  			if (pts[i]==null) {
+    	  				changed = true;
+    	  				pts[i] = step.new DataPoint(0, 0);
+    	  			}
+    	  			changed = changed || keyPts[i].x!=pts[i].x || keyPts[i].y!=pts[i].y;
+    	  			pts[i].setLocation(keyPts[i]);
+    	  		}
+    	  	}
+      	}
+    	}    	
+    }
+    
+  	// refresh user-marked points: compare step with keyStep
   	CircleFitterStep keyStep = getKeyStep(step);
   	if (keyStep==step) {
   		return;
   	}
   	boolean different = keyStep.dataPoints.length!=step.dataPoints.length;
   	if (!different) {
-  		for (int i=0; i<keyStep.dataPoints.length; i++) {
-  			different = different || keyStep.dataPoints[i].length!=step.dataPoints[i].length;
-  		}
+  		different = keyStep.dataPoints[0].length!=step.dataPoints[0].length;
   	}
-  	// compare locations of data points
+  	// compare locations of user-marked data points
   	if (!different) {
-  		for (int i=0; i<keyStep.dataPoints.length; i++) {
-  			DataPoint[] keyPts = keyStep.dataPoints[i];
-  			DataPoint[] pts = step.dataPoints[i];
-  			for (int j=0; j<keyPts.length; j++) {
-    			DataPoint p1 = keyPts[j];
-    			DataPoint p2 = pts[j];
-    			if (p1==null) {
-    				if (p2==null) continue;
-    				different = true;
-    			}
-    			else if (p2==null) {
-    				different = true;
-    			}
-    			if (!different) {
-    				different = different || p1.x!=p2.x || p1.y!=p2.y;
-    			}
-    			if (different) break;
-  				
+  		DataPoint[] keyPts = keyStep.dataPoints[0];
+  		DataPoint[] pts = step.dataPoints[0];
+  		for (int i=0; i<keyPts.length; i++) {
+  			DataPoint p1 = keyPts[i];
+  			DataPoint p2 = pts[i];
+  			if (p1==null) {
+  				if (p2==null) continue;
+  				different = true;
   			}
+  			else if (p2==null) {
+  				different = true;
+  			}
+  			if (!different) {
+  				different = different || p1.x!=p2.x || p1.y!=p2.y;
+  			}
+  			if (different) break;
+				
   		}
   	}
     // update step if needed
     if (different) {
-    	step.copy(keyStep);
+    	step.copy(keyStep); // copies only user-marked points
+    }
+    else if (changed) {
+    	step.refreshCircle();
     }
   }
   
@@ -1417,9 +1332,8 @@ public class CircleFitter extends TTrack {
       	control.setValue("relative_frames", true); //$NON-NLS-1$
       }
       control.setValue("absolute_start", circleFitter.absoluteStart); //$NON-NLS-1$
-      control.setValue("absolute_end", circleFitter.absoluteEnd); //$NON-NLS-1$
+      control.setValue("attachment_framecount", circleFitter.attachmentFrameCount); //$NON-NLS-1$
       control.setValue("relative_start", circleFitter.relativeStart); //$NON-NLS-1$
-      control.setValue("relative_end", circleFitter.relativeEnd); //$NON-NLS-1$
       // save step attachment track name
       if (circleFitter.attachmentForSteps!=null && circleFitter.attachmentForSteps.length>0
       		&& circleFitter.attachmentForSteps[0]!=null) {
@@ -1467,13 +1381,11 @@ public class CircleFitter extends TTrack {
       circleFitter.isRelativeFrameNumbers = control.getBoolean("relative_frames"); //$NON-NLS-1$
       if (control.getPropertyNames().contains("absolute_start")) //$NON-NLS-1$
       	circleFitter.absoluteStart = control.getInt("absolute_start"); //$NON-NLS-1$
-      if (control.getPropertyNames().contains("absolute_end")) //$NON-NLS-1$
-      	circleFitter.absoluteEnd = control.getInt("absolute_end"); //$NON-NLS-1$
+      if (control.getPropertyNames().contains("attachment_framecount")) //$NON-NLS-1$
+      	circleFitter.attachmentFrameCount = control.getInt("attachment_framecount"); //$NON-NLS-1$
       if (control.getPropertyNames().contains("relative_start")) //$NON-NLS-1$
       	circleFitter.relativeStart = control.getInt("relative_start"); //$NON-NLS-1$
-      if (control.getPropertyNames().contains("relative_end")) //$NON-NLS-1$
-      	circleFitter.relativeEnd = control.getInt("relative_end"); //$NON-NLS-1$
-      // load step attachment track
+       // load step attachment track
       String name = control.getString("step_attachment"); //$NON-NLS-1$
       if (name!=null) {
       	circleFitter.stepAttachmentName = name;

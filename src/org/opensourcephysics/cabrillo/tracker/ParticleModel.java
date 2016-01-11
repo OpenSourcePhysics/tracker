@@ -458,12 +458,12 @@ abstract public class ParticleModel extends PointMass {
    * @param n the desired start frame
    */
 	public void setStartFrame(int n) {
-		if (n==getStartFrame()) return;
-		n = Math.max(n, 0); // not less than zero
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-		int end = clip.getFrameCount()-1;
-		n = Math.min(n, end); // not greater than clip end
+		n = Math.max(n, clip.getFirstFrameNumber()); // not less than first frame
+		int end = clip.getLastFrameNumber();
+		n = Math.min(n, end); // not greater than last frame
 		n = Math.min(n, getEndFrame()); // not greater than endFrame
+		if (n==startFrame) return;
 		startFrame = n;
 		refreshInitialTime();
 		lastValidFrame = -1;
@@ -488,7 +488,7 @@ abstract public class ParticleModel extends PointMass {
    */
 	public void setEndFrame(int n) {
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-		int end = clip.getFrameCount()-1;
+		int end = clip.getLastFrameNumber();
 		n = Math.max(n, 0); // not less than zero
 		n = Math.max(n, getStartFrame()); // not less than startFrame
 		if (n==getEndFrame()) return;
@@ -781,7 +781,9 @@ abstract public class ParticleModel extends PointMass {
    * @return the PositionStep
 	 */
 	protected PositionStep createPositionStep(PointMass track, int n, double x, double y) {
-		return new PositionStep(track, n, x, y);
+		PositionStep newStep = new PositionStep(track, n, x, y);
+		newStep.valid = !Double.isNaN(x) && !Double.isNaN(y);
+		return newStep;
 	}
 	
 	/**

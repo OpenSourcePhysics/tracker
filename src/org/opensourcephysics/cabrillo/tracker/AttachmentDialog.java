@@ -68,8 +68,8 @@ public class AttachmentDialog extends JDialog
   protected JPanel attachmentsPanel, circleFitterPanel, circleFitterStartStopPanel;
   protected JRadioButton stepsButton, tracksButton;
   protected JCheckBox relativeCheckbox;
-  protected IntegerField startField, endField;
-  protected JLabel startLabel, endLabel;
+  protected IntegerField startField, countField;
+  protected JLabel startLabel, countLabel;
   protected boolean refreshing;
 
   
@@ -86,14 +86,14 @@ public class AttachmentDialog extends JDialog
 		refreshDropdowns();
     trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
+//    trackerPanel.addPropertyChangeListener("frameshift", this); //$NON-NLS-1$
     TFrame frame = trackerPanel.getTFrame();
     frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
     refreshGUI();
   }
 
   /**
-   * Responds to property change events. This listens for the
-   * following events: "tab" from TFrame.
+   * Responds to property change events.
    *
    * @param e the property change event
    */
@@ -296,33 +296,34 @@ public class AttachmentDialog extends JDialog
 			@Override
 			public void actionPerformed(ActionEvent e) {
       	CircleFitter fitter = (CircleFitter)measuringTool;
-    		fitter.setAttachmentStartFrame(startField.getIntValue());
-    		fitter.setAttachmentEndFrame(endField.getIntValue());
+    		fitter.setAttachmentStartFrame(startField.getIntValue());   		
+    		fitter.setAttachmentFrameCount(countField.getIntValue());
     		refreshFieldsAndButtons(fitter);
         fitter.refreshAttachments();
 		    DefaultTableModel dm = (DefaultTableModel)table.getModel();
-		    dm.fireTableDataChanged();				
+		    dm.fireTableDataChanged();
+		    fitter.trackerPanel.repaint();
 			}
     };
 
     FocusListener frameRangeFocusListener = new FocusAdapter() {
       public void focusLost(FocusEvent e) {
       	if (e.getSource()==startField && startField.getBackground()!=Color.yellow) return;
-      	if (e.getSource()==endField && endField.getBackground()!=Color.yellow) return;
+      	if (e.getSource()==countField && countField.getBackground()!=Color.yellow) return;
       	frameRangeAction.actionPerformed(null);
       }
     };
-    startField = new IntegerField(4);
+    startField = new IntegerField(3);
     startField.addActionListener(frameRangeAction);
     startField.addFocusListener(frameRangeFocusListener);
-    endField = new IntegerField(4);
-    endField.addActionListener(frameRangeAction);
-    endField.addFocusListener(frameRangeFocusListener);
+    countField = new IntegerField(2);
+    countField.addActionListener(frameRangeAction);
+    countField.addFocusListener(frameRangeFocusListener);
     
   	startLabel = new JLabel();
-  	startLabel.setBorder(BorderFactory.createEmptyBorder(0,4,0,4));
-  	endLabel = new JLabel();
-  	endLabel.setBorder(BorderFactory.createEmptyBorder(0,4,0,4));
+  	startLabel.setBorder(BorderFactory.createEmptyBorder(0,4,0,0));
+  	countLabel = new JLabel();
+  	countLabel.setBorder(BorderFactory.createEmptyBorder(0,4,0,0));
     
     // put circleFitter panel in attachments panel SOUTH
     circleFitterPanel = new JPanel(new BorderLayout());
@@ -346,8 +347,8 @@ public class AttachmentDialog extends JDialog
     buttonbar.add(startLabel);
     buttonbar.add(startField);
 //    buttonbar.add(startSpinner);
-    buttonbar.add(endLabel);
-    buttonbar.add(endField);
+    buttonbar.add(countLabel);
+    buttonbar.add(countField);
 //    buttonbar.add(endSpinner);
     circleFitterStartStopPanel.add(buttonbar, BorderLayout.CENTER);
     
@@ -462,21 +463,20 @@ public class AttachmentDialog extends JDialog
   protected void refreshFieldsAndButtons(CircleFitter fitter) {
   	if (fitter.attachToSteps && fitter.isRelativeFrameNumbers) {
       startField.getFormat().applyPattern("+#;-#"); //$NON-NLS-1$
-      endField.getFormat().applyPattern("+#;-#"); //$NON-NLS-1$
   	}
   	else {
       startField.getFormat().applyPattern("#;-#"); //$NON-NLS-1$
-      endField.getFormat().applyPattern("#;-#"); //$NON-NLS-1$
   	}
   	int min = fitter.isRelativeFrameNumbers? 
-  			1-trackerPanel.getPlayer().getVideoClip().getFrameCount(): 0;
-  	int max = trackerPanel.getPlayer().getVideoClip().getFrameCount()-1;
-  	startField.setMaxValue(fitter.getAttachmentEndFrame());
+  			1-trackerPanel.getPlayer().getVideoClip().getFrameCount(): 
+  				trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
+  	int max = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+  	startField.setMaxValue(max);
   	startField.setMinValue(min);
-    startField.setIntValue(fitter.getAttachmentStartFrame());
-  	endField.setMaxValue(max);
-  	endField.setMinValue(fitter.getAttachmentStartFrame());
-    endField.setIntValue(fitter.getAttachmentEndFrame());
+    startField.setIntValue(fitter.isRelativeFrameNumbers? fitter.relativeStart: fitter.absoluteStart);
+  	countField.setMaxValue(CircleFitter.maxDataPointCount);
+  	countField.setMinValue(1);
+    countField.setIntValue(fitter.getAttachmentFrameCount());
     
     refreshing = true;
     stepsButton.setSelected(fitter.attachToSteps);
@@ -492,8 +492,8 @@ public class AttachmentDialog extends JDialog
     helpButton.setText(TrackerRes.getString("Dialog.Button.Help")); //$NON-NLS-1$  
     closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
     dummyMass.setName(TrackerRes.getString("DynamicSystemInspector.ParticleName.None")); //$NON-NLS-1$
-  	startLabel.setText(TrackerRes.getString("AttachmentInspector.Label.Frames")); //$NON-NLS-1$
-  	endLabel.setText(TrackerRes.getString("AttachmentInspector.Label.To")); //$NON-NLS-1$
+  	startLabel.setText(TrackerRes.getString("AttachmentInspector.Label.StartFrame")); //$NON-NLS-1$
+  	countLabel.setText(TrackerRes.getString("AttachmentInspector.Label.FrameCount")); //$NON-NLS-1$
   	stepsButton.setText(TrackerRes.getString("AttachmentInspector.Button.Steps")); //$NON-NLS-1$
   	tracksButton.setText(TrackerRes.getString("AttachmentInspector.Button.Tracks")); //$NON-NLS-1$
   	relativeCheckbox.setText(TrackerRes.getString("AttachmentInspector.Checkbox.Relative")); //$NON-NLS-1$
@@ -519,7 +519,7 @@ public class AttachmentDialog extends JDialog
       }
       else {
       	if (fitter.isRelativeFrameNumbers) {
-      		startLabel.setText(TrackerRes.getString("AttachmentInspector.Label.Offset")); //$NON-NLS-1$
+//      		startLabel.setText(TrackerRes.getString("AttachmentInspector.Label.Offset")); //$NON-NLS-1$
       	}
         changedLayout = changedLayout || !hasStartStopPanel;
         circleFitterPanel.add(circleFitterStartStopPanel, BorderLayout.CENTER);      	
