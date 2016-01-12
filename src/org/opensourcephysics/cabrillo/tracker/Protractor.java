@@ -383,19 +383,21 @@ public class Protractor extends TTrack {
     dataFrames.clear();
     // get the datasets
     int count = 0;
-    Dataset theta = data.getDataset(count++);
+    Dataset angle = data.getDataset(count++);
     Dataset arm1Length = data.getDataset(count++);
     Dataset arm2Length = data.getDataset(count++);
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
+    Dataset rotationAngle = data.getDataset(count++);
     // assign column names to the datasets
     String time = "t"; //$NON-NLS-1$
-    if (!theta.getColumnName(0).equals(time)) { // not yet initialized
-    	theta.setXYColumnNames(time, Tracker.THETA);
+    if (!angle.getColumnName(0).equals(time)) { // not yet initialized
+    	angle.setXYColumnNames(time, Tracker.THETA);
     	arm1Length.setXYColumnNames(time, "L_{1}"); //$NON-NLS-1$
     	arm2Length.setXYColumnNames(time, "L_{2}"); //$NON-NLS-1$
 	    stepNum.setXYColumnNames(time, "step"); //$NON-NLS-1$
 	    frameNum.setXYColumnNames(time, "frame"); //$NON-NLS-1$
+    	rotationAngle.setXYColumnNames(time, "$\\theta$_{rot}"); //$NON-NLS-1$
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -410,28 +412,38 @@ public class Protractor extends TTrack {
     VideoClip clip = player.getVideoClip();
 	  int len = clip.getStepCount();
 	  double[][] validData = new double[data.getDatasets().size()+1][len];
+	  double rotation = 0, prevAngle = 0;
     for (int n = 0; n < len; n++) {
       int frame = clip.stepToFrame(n);
       ProtractorStep next = (ProtractorStep)getStep(frame);
       next.dataVisible = true;
+	    // determine the cumulative rotation angle
+      double theta = next.getProtractorAngle();
+	    double delta = theta-prevAngle;
+	    if (delta < -Math.PI) delta += 2*Math.PI;
+	    else if (delta > Math.PI) delta -= 2*Math.PI;
+	    rotation += delta;
 	    // get the step number and time
 	    double t = player.getStepTime(n)/1000.0;
 			validData[0][n] = t;
-			validData[1][n] = next.getProtractorAngle();
+			validData[1][n] = theta;
 			validData[2][n] = next.getArmLength(next.end1);
 			validData[3][n] = next.getArmLength(next.end2);
 			validData[4][n] = n;
 			validData[5][n] = frame;
+			validData[6][n] = rotation;
       dataFrames.add(frame);
+	    prevAngle = theta;
     }
     // append the data to the data set
-	  theta.append(validData[0], validData[1]);
+	  angle.append(validData[0], validData[1]);
 	  arm1Length.append(validData[0], validData[2]);
 	  arm2Length.append(validData[0], validData[3]);
     stepNum.append(validData[0], validData[4]);
     frameNum.append(validData[0], validData[5]);
+	  rotationAngle.append(validData[0], validData[6]);
   }
-
+  
   /**
    * Returns the array of attachments for this track.
    * 
