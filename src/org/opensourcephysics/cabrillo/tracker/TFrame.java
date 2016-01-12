@@ -1929,6 +1929,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     // add video filters to the tracker panel
     trackerPanel.addFilter(DeinterlaceFilter.class);
     trackerPanel.addFilter(GhostFilter.class);
+    trackerPanel.addFilter(StrobeFilter.class);
     trackerPanel.addFilter(DarkGhostFilter.class);
     trackerPanel.addFilter(NegativeFilter.class);
     trackerPanel.addFilter(GrayScaleFilter.class);

@@ -1666,7 +1666,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	        	copyObjectMenu.add(item);
 	          // copy track items
 	          for (TTrack next: trackerPanel.getTracks()) {
-	          	if (next==trackerPanel.getAxes())
+	          	if (next==trackerPanel.getAxes() || next instanceof PerspectiveTrack)
 	          		continue;
 	          	item = new JMenuItem(next.getName());
 	          	item.setActionCommand(next.getName());
