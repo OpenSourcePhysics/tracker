@@ -305,8 +305,11 @@ public class TableTrackView extends TrackView {
     	local.setXYColumnNames(xTitle, xTitle);
     	local.setYColumnVisible(false);
     }
-    // display the table
-    dataTable.refreshTable();
+    // display the table, catch occasional exceptions
+    try {
+			dataTable.refreshTable();
+		} catch (Exception e) {
+		}
     setHighlighted(frameNumber);
   }
 
