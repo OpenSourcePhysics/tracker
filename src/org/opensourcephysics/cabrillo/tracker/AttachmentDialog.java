@@ -282,16 +282,13 @@ public class AttachmentDialog extends JDialog
       	if (refreshing) return;
       	CircleFitter fitter = (CircleFitter)measuringTool;
       	fitter.isRelativeFrameNumbers = relativeCheckbox.isSelected();
-//      	refreshSpinners(fitter);
       	refreshFieldsAndButtons(fitter);
 	    	fitter.refreshAttachments();
 				refreshGUI();				
-//	      DefaultTableModel dm = (DefaultTableModel)table.getModel();
-//	      dm.fireTableDataChanged();				
 			}   	
     });
     
-    // start and end action, listener and fields
+    // range action, listener and fields
     final Action frameRangeAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

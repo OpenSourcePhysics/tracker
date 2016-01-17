@@ -733,7 +733,9 @@ public class CircleFitter extends TTrack {
   		  	// each CircleFitter step attaches to multiple steps in a single track 
   		  	TTrack targetTrack = attachments[0];
   		  	if (targetTrack!=null) { 		  		
-  		  		// target track not null so check DataPoints[1] array of every step in the clip
+  		  		// target track not null so check DataPoints[1] array
+  		  		// if relative frame numbers, do every step in the clip
+  		  		// otherwise, do only step 0 and let refreshStep() do the rest (faster?)
   		  		int stepCount = isRelativeFrameNumbers? clip.getStepCount(): 0;
   		    	for (int stepNum = 0; stepNum<=stepCount; stepNum++) {
     	    		if (abortRefreshAttachments) {
@@ -1090,7 +1092,8 @@ public class CircleFitter extends TTrack {
   	boolean changed = false;
     // refresh attached data points if attached to steps and not relative frame numbers
     if (isAttached() && attachToSteps && !isRelativeFrameNumbers) {
-    	CircleFitterStep keyStep = (CircleFitterStep)steps.getStep(0);
+    	int firstFrame = trackerPanel.getPlayer().getVideoClip().stepToFrame(0);
+    	CircleFitterStep keyStep = (CircleFitterStep)steps.getStep(firstFrame);
     	if (keyStep!=step) {
     		DataPoint[] keyPts = keyStep.dataPoints[1];
     		DataPoint[] pts = step.dataPoints[1];
@@ -1125,6 +1128,9 @@ public class CircleFitter extends TTrack {
   	// refresh user-marked points: compare step with keyStep
   	CircleFitterStep keyStep = getKeyStep(step);
   	if (keyStep==step) {
+      if (changed) {
+      	step.refreshCircle();
+      }
   		return;
   	}
   	boolean different = keyStep.dataPoints.length!=step.dataPoints.length;
@@ -1216,7 +1222,7 @@ public class CircleFitter extends TTrack {
   	} 		
   	
   	if (loaded && refresh) {
- 	  	refreshAttachments();
+ 	  	refreshAttachmentsLater();
   	}
   	return loaded;
   }

@@ -32,6 +32,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.*;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
@@ -1527,11 +1528,32 @@ public abstract class TTrack implements Interactive,
   		attachments = temp;
   		attachmentNames = null;
 	  	if (refresh)
-	  		refreshAttachments();
+	  		refreshAttachmentsLater();
   	}
   	return foundAll;
   }
 
+  /**
+   * Refreshes the attachments for this track after a delay.
+   * This should be used only when loading attachments from Names during loading
+   */
+  protected void refreshAttachmentsLater() {
+  	// use timer with 2 second delay
+    Timer timer = new Timer(2000, new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	// save changed state
+      	boolean changed = trackerPanel!=null && trackerPanel.changed;
+      	refreshAttachments();
+      	if (trackerPanel!=null) {
+      		// restore changed state
+      		trackerPanel.changed = changed;
+      	}
+      }
+    });
+		timer.setRepeats(false);
+		timer.start();
+  }
+  
   /**
    * Refreshes the attachments for this track.
    */

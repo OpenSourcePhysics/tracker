@@ -217,96 +217,95 @@ public class TableTrackView extends TrackView {
   	if (!isRefreshEnabled()) return;
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh "+frameNumber); //$NON-NLS-1$
     
-	  track.getData(trackerPanel);
-	  // copy datasets into table data based on checkbox states
-	  tableData.clear();
-	  int colCount = 0;
-	  ArrayList<Dataset> datasets = data.getDatasets();
-		dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
-		int count = datasets.size();
-    for (int i = 0; i < count; i++) {
-      if (checkBoxes[i].isSelected()) {
-      	Dataset in = datasets.get(i);
-	    	String xTitle = in.getXColumnName();
-	    	String yTitle = in.getYColumnName();
-		    boolean yIsAngle = yTitle.startsWith(Tracker.THETA)
-		    		|| yTitle.startsWith(Tracker.OMEGA)
-		    		|| yTitle.startsWith(Tracker.ALPHA);
-		    boolean degrees = trackerPanel.getTFrame()!=null
-    				&& !trackerPanel.getTFrame().anglesInRadians;
-	    	Dataset local = tableData.getDataset(colCount++);
-	    	double[] yPoints = in.getYPoints();
-	    	String tooltip = track.getDataDescription(i+1)+" "; //$NON-NLS-1$
-	    	String units = ""; //$NON-NLS-1$
-	    	if (yIsAngle) { // angle columns
-  	    	if (yTitle.startsWith(Tracker.THETA)) {
-  	    		if (degrees) {
-  	    			units = Tracker.DEGREES;
-  	  	    	tooltip += TrackerRes.getString("TableTrackView.Degrees.Tooltip"); //$NON-NLS-1$
-  	    		}
-  	    		else {
-  	    			tooltip += TrackerRes.getString("TableTrackView.Radians.Tooltip"); //$NON-NLS-1$
-  	    		}
-  	    	}
-  	    	else if (yTitle.startsWith(Tracker.OMEGA)) {
-  	    		if (degrees) {
-  	  	    	tooltip += TrackerRes.getString("TableTrackView.DegreesPerSecond.Tooltip"); //$NON-NLS-1$
-  	    		}
-  	    		else {
-  	    			tooltip += TrackerRes.getString("TableTrackView.RadiansPerSecond.Tooltip"); //$NON-NLS-1$
-  	    		}
-  	    	}
-  	    	else if (yTitle.startsWith(Tracker.ALPHA)) {
-  	    		if (degrees) {
-  	  	    	tooltip += TrackerRes.getString("TableTrackView.DegreesPerSecondSquared.Tooltip"); //$NON-NLS-1$
-  	    		}
-  	    		else {
-  	    			tooltip += TrackerRes.getString("TableTrackView.RadiansPerSecondSquared.Tooltip"); //$NON-NLS-1$
-  	    		}
-  	    	}
-      		TableCellRenderer precisionRenderer = dataTable.getPrecisionRenderer(yTitle);
-        	if (degrees) {
-        		// convert values from radians to degrees
-        		for (int k = 0; k<yPoints.length; k++) {
-        			if (!Double.isNaN(yPoints[k])) {
-        				yPoints[k] *= 180/Math.PI;
-        			}
-        		}
-         		// set default degrees precision
-        		if (precisionRenderer==null) {
-          		dataTable.setFormatPattern(yTitle, "0.0"); //$NON-NLS-1$
-          		degreeRenderers.put(yTitle, dataTable.getPrecisionRenderer(yTitle));
-        		}
-         	}
-        	else if (precisionRenderer!=null){ // radians display
-        		if (precisionRenderer==degreeRenderers.get(yTitle)) {
-          		dataTable.setFormatPattern(yTitle, null);
-          		degreeRenderers.remove(yTitle);        			
-        		}        			
-        	}
-    		}
-	    	if ("".equals(tooltip.trim())) tooltip = ""; //$NON-NLS-1$ //$NON-NLS-2$
-      	dataTable.setUnits(yTitle, units, tooltip);
-	    	local.append(in.getXPoints(), yPoints);
-	    	local.setXYColumnNames(xTitle, yTitle);
-	    	local.setYColumnVisible(true);
-      }
-    }
-    for (int i = colCount; i < tableData.getDatasets().size(); i++) {
-    	tableData.setYColumnVisible(i, false);
-    }
-    if (colCount==0) {
-    	// show independent variable
-    	Dataset in = datasets.get(0);
-    	String xTitle = in.getXColumnName();
-    	Dataset local = tableData.getDataset(colCount++);
-    	double[] x = in.getXPoints();
-    	local.append(x, x);
-    	local.setXYColumnNames(xTitle, xTitle);
-    	local.setYColumnVisible(false);
-    }
-    // display the table, catch occasional exceptions
     try {
+		  track.getData(trackerPanel);
+		  // copy datasets into table data based on checkbox states
+		  tableData.clear();
+		  int colCount = 0;
+		  ArrayList<Dataset> datasets = data.getDatasets();
+			dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
+			int count = datasets.size();
+	    for (int i = 0; i < count; i++) {
+	      if (checkBoxes[i].isSelected()) {
+	      	Dataset in = datasets.get(i);
+		    	String xTitle = in.getXColumnName();
+		    	String yTitle = in.getYColumnName();
+			    boolean yIsAngle = yTitle.startsWith(Tracker.THETA)
+			    		|| yTitle.startsWith(Tracker.OMEGA)
+			    		|| yTitle.startsWith(Tracker.ALPHA);
+			    boolean degrees = trackerPanel.getTFrame()!=null
+	    				&& !trackerPanel.getTFrame().anglesInRadians;
+		    	Dataset local = tableData.getDataset(colCount++);
+		    	double[] yPoints = in.getYPoints();
+		    	String tooltip = track.getDataDescription(i+1)+" "; //$NON-NLS-1$
+		    	String units = ""; //$NON-NLS-1$
+		    	if (yIsAngle) { // angle columns
+	  	    	if (yTitle.startsWith(Tracker.THETA)) {
+	  	    		if (degrees) {
+	  	    			units = Tracker.DEGREES;
+	  	  	    	tooltip += TrackerRes.getString("TableTrackView.Degrees.Tooltip"); //$NON-NLS-1$
+	  	    		}
+	  	    		else {
+	  	    			tooltip += TrackerRes.getString("TableTrackView.Radians.Tooltip"); //$NON-NLS-1$
+	  	    		}
+	  	    	}
+	  	    	else if (yTitle.startsWith(Tracker.OMEGA)) {
+	  	    		if (degrees) {
+	  	  	    	tooltip += TrackerRes.getString("TableTrackView.DegreesPerSecond.Tooltip"); //$NON-NLS-1$
+	  	    		}
+	  	    		else {
+	  	    			tooltip += TrackerRes.getString("TableTrackView.RadiansPerSecond.Tooltip"); //$NON-NLS-1$
+	  	    		}
+	  	    	}
+	  	    	else if (yTitle.startsWith(Tracker.ALPHA)) {
+	  	    		if (degrees) {
+	  	  	    	tooltip += TrackerRes.getString("TableTrackView.DegreesPerSecondSquared.Tooltip"); //$NON-NLS-1$
+	  	    		}
+	  	    		else {
+	  	    			tooltip += TrackerRes.getString("TableTrackView.RadiansPerSecondSquared.Tooltip"); //$NON-NLS-1$
+	  	    		}
+	  	    	}
+	      		TableCellRenderer precisionRenderer = dataTable.getPrecisionRenderer(yTitle);
+	        	if (degrees) {
+	        		// convert values from radians to degrees
+	        		for (int k = 0; k<yPoints.length; k++) {
+	        			if (!Double.isNaN(yPoints[k])) {
+	        				yPoints[k] *= 180/Math.PI;
+	        			}
+	        		}
+	         		// set default degrees precision
+	        		if (precisionRenderer==null) {
+	          		dataTable.setFormatPattern(yTitle, "0.0"); //$NON-NLS-1$
+	          		degreeRenderers.put(yTitle, dataTable.getPrecisionRenderer(yTitle));
+	        		}
+	         	}
+	        	else if (precisionRenderer!=null){ // radians display
+	        		if (precisionRenderer==degreeRenderers.get(yTitle)) {
+	          		dataTable.setFormatPattern(yTitle, null);
+	          		degreeRenderers.remove(yTitle);        			
+	        		}        			
+	        	}
+	    		}
+		    	if ("".equals(tooltip.trim())) tooltip = ""; //$NON-NLS-1$ //$NON-NLS-2$
+	      	dataTable.setUnits(yTitle, units, tooltip);
+		    	local.append(in.getXPoints(), yPoints);
+		    	local.setXYColumnNames(xTitle, yTitle);
+		    	local.setYColumnVisible(true);
+	      }
+	    }
+	    for (int i = colCount; i < tableData.getDatasets().size(); i++) {
+	    	tableData.setYColumnVisible(i, false);
+	    }
+	    if (colCount==0) {
+	    	// show independent variable
+	    	Dataset in = datasets.get(0);
+	    	String xTitle = in.getXColumnName();
+	    	Dataset local = tableData.getDataset(colCount++);
+	    	double[] x = in.getXPoints();
+	    	local.append(x, x);
+	    	local.setXYColumnNames(xTitle, xTitle);
+	    	local.setYColumnVisible(false);
+	    }
 			dataTable.refreshTable();
 		} catch (Exception e) {
 		}
