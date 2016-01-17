@@ -67,7 +67,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   static {
   	smallSelectIcon =  new ImageIcon(Tracker.class.getResource("resources/images/small_select.gif")); //$NON-NLS-1$
     if (Tracker.testOn) {
-	  	testButton = new JButton("beep"); //$NON-NLS-1$
+	  	testButton = new JButton("test"); //$NON-NLS-1$
 	  	testButton.addActionListener(new ActionListener() {
 	  		public void actionPerformed(ActionEvent e) {
 	    		final TFrame frame = (TFrame)testButton.getTopLevelAncestor();
@@ -76,7 +76,13 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-		    					Toolkit.getDefaultToolkit().beep();
+		    	      	
+		    	      	for (Object key: System.getProperties().keySet()) {
+		    	      		OSPLog.info("property "+key+"="+System.getProperty(key.toString())); //$NON-NLS-1$ //$NON-NLS-2$
+		    	      	}
+		    	      	for (String key: System.getenv().keySet()) {
+		    	      		OSPLog.info("environment "+key+"="+System.getenv(key)); //$NON-NLS-1$ //$NON-NLS-2$
+		    	      	}
 
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
