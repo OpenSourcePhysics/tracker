@@ -402,6 +402,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
   
   protected static boolean isAutoTrackTrigger(InputEvent e) {
   	if (e.isControlDown()) return true;
+  	if (e.isMetaDown() && OSPRuntime.isMac()) return true; // meta is command key on Mac
   	return false;
   }
 
