@@ -123,7 +123,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		  	if (clickedStep == null) return;
         TPoint pt = clickedStep.getDefaultPoint();
       	plotTrackView.trackerPanel.setSelectedPoint(pt);
-        pt.showCoordinates(plotTrackView.trackerPanel);
+      	if (pt!=null) {
+      		pt.showCoordinates(plotTrackView.trackerPanel);
+      	}
         clickedStep = null;
         repaint();
 		  }
@@ -940,6 +942,15 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	  addDrawable(dataset);
     
     // refresh guest datasets
+	  // first eliminate any guests that may have been deleted
+    for (Iterator<TTrack> it = guests.iterator(); it.hasNext();) {    	
+    	// check if guest still exists in tracker panel
+    	TTrack next = it.next();
+    	if (next!=null && track.trackerPanel.getTrack(next.getName())==null) {
+    		it.remove();
+    	}
+    }
+    // now plot guests
     for (TTrack next: guests) {
     	DatasetManager nextData = next.getData(next.trackerPanel);
     	HighlightableDataset nextDataset = guestDatasets.get(next);

@@ -29,13 +29,14 @@ import java.awt.*;
 import java.awt.event.*;
 
 import javax.swing.*;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 
 import org.opensourcephysics.display.ResizableIcon;
-import org.opensourcephysics.media.core.TPoint;
-import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.IntegerField;
 import org.opensourcephysics.tools.FontSizer;
 
 import java.beans.PropertyChangeListener;
@@ -51,23 +52,25 @@ public class AttachmentDialog extends JDialog
 	
 
   // instance fields
-  protected TTrack measuringTool;
-  protected int endPointCount;
-  protected TTrack[] attachedMass;
-  protected String[] endPointName;
-  
+  protected TTrack measuringTool;  
   protected TrackerPanel trackerPanel;
   protected boolean isVisible;
   protected JButton closeButton, helpButton;
   protected ArrayList<? extends TTrack> masses;
-  protected PointMass dummyMass;
   protected JTable table;
 	protected int cellheight = 28; // depends on font level
   protected JComboBox rendererDropdown, editorDropdown, measuringToolDropdown;
+  protected PointMass dummyMass;
   protected Icon dummyIcon = new ShapeIcon(null, 21, 16);
   protected JScrollPane scrollPane;
   protected AttachmentCellRenderer attachmentCellRenderer = new AttachmentCellRenderer();
   protected TTrackRenderer trackRenderer = new TTrackRenderer();
+  protected JPanel attachmentsPanel, circleFitterPanel, circleFitterStartStopPanel;
+  protected JRadioButton stepsButton, tracksButton;
+  protected JCheckBox relativeCheckbox;
+  protected IntegerField startField, countField;
+  protected JLabel startLabel, countLabel;
+  protected boolean refreshing;
 
   
   /**
@@ -77,18 +80,20 @@ public class AttachmentDialog extends JDialog
    */
   public AttachmentDialog(TTrack track) {
     super(JOptionPane.getFrameForComponent(track.trackerPanel), false);
+  	trackerPanel = track.trackerPanel;
     createGUI();
     setMeasuringTool(track);
 		refreshDropdowns();
     trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
+//    trackerPanel.addPropertyChangeListener("frameshift", this); //$NON-NLS-1$
     TFrame frame = trackerPanel.getTFrame();
     frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
-    refreshDisplay();
+    refreshGUI();
   }
 
   /**
-   * Responds to property change events. This listens for the
-   * following events: "tab" from TFrame.
+   * Responds to property change events.
    *
    * @param e the property change event
    */
@@ -106,26 +111,41 @@ public class AttachmentDialog extends JDialog
     else if (e.getPropertyName().equals("track")) { //$NON-NLS-1$
     	TTrack deleted = (TTrack)e.getOldValue();
     	if (deleted!=null) {
-    		deleted.removePropertyChangeListener("step", this); //$NON-NLS-1$
-    		deleted.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+//    		deleted.removePropertyChangeListener("step", this); //$NON-NLS-1$
+//    		deleted.removePropertyChangeListener("steps", this); //$NON-NLS-1$
     		deleted.removePropertyChangeListener("name", this); //$NON-NLS-1$
     		deleted.removePropertyChangeListener("color", this); //$NON-NLS-1$
     		deleted.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-	     	for (int i = 0; i < endPointCount; i++) {
-			  	if (deleted==attachedMass[i] || deleted==measuringTool) {
-			  		attachedMass[i] = null;	  		
+    		TTrack[] attachments = measuringTool.getAttachments();
+	     	for (int i = 0; i < attachments.length; i++) {
+			  	if (deleted==attachments[i] || deleted==measuringTool) {
+			  		attachments[i] = null;	  		
 			  	}
 	    	}
-	   		refreshMeasuringTool();
+	    	measuringTool.refreshAttachments();
     	}
   		refreshDropdowns();
-    	refreshDisplay();
+    	refreshGUI();
     }
-    else if (e.getPropertyName().equals("step") //$NON-NLS-1$
-    		|| e.getPropertyName().equals("steps")) { //$NON-NLS-1$
-    	refreshMeasuringTool();
+    else if (e.getPropertyName().equals("selectedtrack") && e.getNewValue()!=null) { //$NON-NLS-1$
+      TTrack track = (TTrack)e.getNewValue();
+      for (int i=0; i<measuringToolDropdown.getItemCount(); i++) {
+      	if (track==measuringToolDropdown.getItemAt(i)) {
+      		measuringToolDropdown.setSelectedIndex(i);
+      		break;
+      	}
+      }
     }
-    else refreshDisplay();
+//    else if (e.getPropertyName().equals("step") //$NON-NLS-1$
+//    		|| e.getPropertyName().equals("steps")) { //$NON-NLS-1$
+//    	measuringTool.refreshAttachments();
+//    }
+    else if (e.getPropertyName().equals("dataPoint")) { //$NON-NLS-1$
+    	measuringTool.refreshAttachments();
+      DefaultTableModel dm = (DefaultTableModel)table.getModel();
+      dm.fireTableDataChanged();
+    }
+    else refreshGUI();
   }
 
   /**
@@ -163,11 +183,17 @@ public class AttachmentDialog extends JDialog
    * Creates the visible components of this panel.
    */
   private void createGUI() {
-  	setResizable(false);
+//  	setResizable(false);
     // create GUI components
     JPanel contentPane = new JPanel(new BorderLayout());
     setContentPane(contentPane);
     
+    // put attachments panel in content pane CENTER
+    attachmentsPanel = new JPanel(new BorderLayout());
+    contentPane.add(attachmentsPanel, BorderLayout.CENTER);
+    
+    
+    // put measuring tool dropdown in attachments panel NORTH
     JPanel north = new JPanel();
     north.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 0));
     measuringToolDropdown = new JComboBox();
@@ -180,7 +206,7 @@ public class AttachmentDialog extends JDialog
       }
     });
     north.add(measuringToolDropdown);
-    contentPane.add(north, BorderLayout.NORTH);
+    attachmentsPanel.add(north, BorderLayout.NORTH);
         
     dummyMass = new PointMass();
     		
@@ -211,22 +237,132 @@ public class AttachmentDialog extends JDialog
     scrollPane = new JScrollPane(table) {
     	public Dimension getPreferredSize() {
     		Dimension dim = super.getPreferredSize();
-    		dim.height = 3*cellheight+8;
-    		dim.width= table.getPreferredSize().width;
+    		int cellCount = Math.max(4, table.getRowCount()+1);
+    		cellCount = Math.min(10, cellCount);
+    		dim.height = cellCount*cellheight+8;
+    		dim.width= table.getPreferredSize().width+20;
     		return dim;
     	}
     };
+
+    // put table in attachments panel CENTER
     JPanel center = new JPanel(new GridLayout(1,1));
-    contentPane.add(center, BorderLayout.CENTER);
+    attachmentsPanel.add(center, BorderLayout.CENTER);
     center.add(scrollPane);
-    center.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 8));
+    center.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
    
-    // create buttons and buttonbar
+    // steps and tracks buttons
+    stepsButton = new JRadioButton();
+    tracksButton = new JRadioButton();
+    Action tracksOrStepsAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+      	if (refreshing) return;
+      	CircleFitter fitter = (CircleFitter)measuringTool;
+      	fitter.attachToSteps = !tracksButton.isSelected();
+	    	fitter.refreshAttachments();
+				refreshGUI();				
+	      DefaultTableModel dm = (DefaultTableModel)table.getModel();
+	      dm.fireTableDataChanged();				
+			}   	
+    };
+    stepsButton.addActionListener(tracksOrStepsAction);
+    tracksButton.addActionListener(tracksOrStepsAction);
+    ButtonGroup group = new ButtonGroup();
+    group.add(stepsButton);
+    group.add(tracksButton);
+    tracksButton.setSelected(true);
+    
+    // relative button
+    relativeCheckbox = new JCheckBox();
+    relativeCheckbox.setSelected(false);
+    relativeCheckbox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+      	if (refreshing) return;
+      	CircleFitter fitter = (CircleFitter)measuringTool;
+      	fitter.isRelativeFrameNumbers = relativeCheckbox.isSelected();
+      	refreshFieldsAndButtons(fitter);
+	    	fitter.refreshAttachments();
+				refreshGUI();				
+			}   	
+    });
+    
+    // range action, listener and fields
+    final Action frameRangeAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+      	CircleFitter fitter = (CircleFitter)measuringTool;
+    		fitter.setAttachmentStartFrame(startField.getIntValue());   		
+    		fitter.setAttachmentFrameCount(countField.getIntValue());
+    		refreshFieldsAndButtons(fitter);
+        fitter.refreshAttachments();
+		    DefaultTableModel dm = (DefaultTableModel)table.getModel();
+		    dm.fireTableDataChanged();
+		    fitter.trackerPanel.repaint();
+			}
+    };
+
+    FocusListener frameRangeFocusListener = new FocusAdapter() {
+      public void focusLost(FocusEvent e) {
+      	if (e.getSource()==startField && startField.getBackground()!=Color.yellow) return;
+      	if (e.getSource()==countField && countField.getBackground()!=Color.yellow) return;
+      	frameRangeAction.actionPerformed(null);
+      }
+    };
+    startField = new IntegerField(3);
+    startField.addActionListener(frameRangeAction);
+    startField.addFocusListener(frameRangeFocusListener);
+    countField = new IntegerField(2);
+    countField.addActionListener(frameRangeAction);
+    countField.addFocusListener(frameRangeFocusListener);
+    
+  	startLabel = new JLabel();
+  	startLabel.setBorder(BorderFactory.createEmptyBorder(0,4,0,0));
+  	countLabel = new JLabel();
+  	countLabel.setBorder(BorderFactory.createEmptyBorder(0,4,0,0));
+    
+    // put circleFitter panel in attachments panel SOUTH
+    circleFitterPanel = new JPanel(new BorderLayout());
+    circleFitterPanel.setBorder(BorderFactory.createTitledBorder("")); //$NON-NLS-1$
+    
+    // put steps and tracks buttons in circleFitterPanel NORTH
+    JPanel buttonbar = new JPanel();
+    circleFitterPanel.add(buttonbar, BorderLayout.NORTH);
+    buttonbar.add(stepsButton);
+    buttonbar.add(tracksButton);
+    
+    // create circleFitterStartStopPanel
+    circleFitterStartStopPanel = new JPanel(new BorderLayout());
+    Border empty = BorderFactory.createEmptyBorder(0,4,0,4);
+    Border etched = BorderFactory.createEtchedBorder();
+    circleFitterStartStopPanel.setBorder(BorderFactory.createCompoundBorder(empty, etched));
+    
+    
+    // put start and end frame controls in circleFitterStartStopPanel CENTER
+    buttonbar = new JPanel();
+    buttonbar.add(startLabel);
+    buttonbar.add(startField);
+//    buttonbar.add(startSpinner);
+    buttonbar.add(countLabel);
+    buttonbar.add(countField);
+//    buttonbar.add(endSpinner);
+    circleFitterStartStopPanel.add(buttonbar, BorderLayout.CENTER);
+    
+    // put relative checkbox in circleFitterStartStopPanel SOUTH
+    buttonbar = new JPanel();
+    circleFitterStartStopPanel.add(buttonbar, BorderLayout.SOUTH);
+    buttonbar.add(relativeCheckbox);
+    
+
+    // help and close buttons
     helpButton = new JButton();
     helpButton.setForeground(new Color(0, 0, 102));
     helpButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	String keyword = measuringTool instanceof Protractor? "protractor": "tape"; //$NON-NLS-1$ //$NON-NLS-2$
+      	String keyword = measuringTool==null? "circle":  //$NON-NLS-1$
+      		measuringTool instanceof Protractor? "protractor":  //$NON-NLS-1$
+      		measuringTool instanceof TapeMeasure? "tape": "circle"; //$NON-NLS-1$ //$NON-NLS-2$
         trackerPanel.getTFrame().showHelp(keyword+"#attach", 0); //$NON-NLS-1$
       }
     });
@@ -237,61 +373,34 @@ public class AttachmentDialog extends JDialog
         setVisible(false);
       }
     });
-    JPanel buttonbar = new JPanel();
+    
+    // put help and close button in content pane SOUTH
+    buttonbar = new JPanel();
     contentPane.add(buttonbar, BorderLayout.SOUTH);
     buttonbar.add(helpButton);
     buttonbar.add(closeButton);
   }
   
+  /**
+   * Sets the measuring tool.
+   */
   protected void setMeasuringTool(TTrack tool) {
+  	if (measuringTool!=null) {
+	    measuringTool.removePropertyChangeListener("dataPoint", this); //$NON-NLS-1$  		
+  	}
     measuringTool = tool;
-    if (tool!=null) {
-	    trackerPanel = measuringTool.trackerPanel;
-	    endPointCount = tool instanceof TapeMeasure? 2: 3;
-	    endPointName = new String[endPointCount];
-	    attachedMass = measuringTool.attachments==null? new TTrack[endPointCount]: measuringTool.attachments;
-    }
-    else {
-	    endPointCount = 0;
-	    endPointName = new String[0];
-	    attachedMass = new TTrack[0];    	
+  	if (measuringTool!=null) {
+	    measuringTool.addPropertyChangeListener("dataPoint", this); //$NON-NLS-1$  		
+  	}
+    tool.refreshAttachments();
+    refreshDropdowns();
+    if (measuringTool instanceof CircleFitter) {
+    	CircleFitter fitter = (CircleFitter)measuringTool;
+	    refreshFieldsAndButtons(fitter);
     }
     DefaultTableModel dm = (DefaultTableModel)table.getModel();
     dm.fireTableDataChanged();
-    refreshDisplay();
-  }
-
-  /**
-   * Updates the system to reflect the current particle selection.
-   */
-  private void refreshMeasuringTool() {
-  	measuringTool.attachments = attachedMass;
-		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-  	for (int i = 0; i < endPointCount; i++) {
-	  	if (attachedMass[i]!=null) {
-	  		if (measuringTool instanceof TapeMeasure)
-	  			((TapeMeasure)measuringTool).setFixedPosition(false);
-	  		else if (measuringTool instanceof Protractor)
-	  			((Protractor)measuringTool).setFixed(false);
-	    	for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
-	    		Step step = attachedMass[i].getStep(n);
-	      	TPoint p = measuringTool.getStep(n).getPoints()[i];
-	    		if (step==null) {
-		      	p.detach();
-	    			continue;
-	    		}
-	      	TPoint target = step.getPoints()[0];
-	      	p.attachTo(target);
-	    	}  		
-	  	}
-	  	else { // attached mass is null
-	    	for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
-	      	TPoint p = measuringTool.getStep(n).getPoints()[i];
-	      	p.detach();
-	    	}  		  		
-	  	}
-  	}
-  	measuringTool.getToolbarTrackComponents(trackerPanel);
+    refreshGUI();
   }
 
   /**
@@ -300,13 +409,13 @@ public class AttachmentDialog extends JDialog
   protected void refreshDropdowns() {
 		masses = trackerPanel.getDrawables(PointMass.class);
     for (TTrack p: masses) {
-      p.removePropertyChangeListener("step", this); //$NON-NLS-1$
-      p.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+//      p.removePropertyChangeListener("step", this); //$NON-NLS-1$
+//      p.removePropertyChangeListener("steps", this); //$NON-NLS-1$
       p.removePropertyChangeListener("name", this); //$NON-NLS-1$
       p.removePropertyChangeListener("color", this); //$NON-NLS-1$
       p.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      p.addPropertyChangeListener("step", this); //$NON-NLS-1$
-      p.addPropertyChangeListener("steps", this); //$NON-NLS-1$
+//      p.addPropertyChangeListener("step", this); //$NON-NLS-1$
+//      p.addPropertyChangeListener("steps", this); //$NON-NLS-1$
       p.addPropertyChangeListener("name", this); //$NON-NLS-1$
       p.addPropertyChangeListener("color", this); //$NON-NLS-1$
       p.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
@@ -317,7 +426,6 @@ public class AttachmentDialog extends JDialog
 		editorDropdown.setModel(new AttachmentComboBoxModel());
     
 		FontSizer.setFonts(measuringToolDropdown, FontSizer.getLevel());
-    Object tool = measuringToolDropdown.getSelectedItem();
 		java.util.Vector<TTrack> tools = new java.util.Vector<TTrack>();
     for (TTrack track: trackerPanel.getTracks()) {
     	if (track instanceof TapeMeasure) {
@@ -325,7 +433,7 @@ public class AttachmentDialog extends JDialog
 //    		if (tape.isViewable())
     			tools.add(tape);
     	}
-    	else if (track instanceof Protractor) {
+    	else if (track instanceof Protractor || track instanceof CircleFitter) {
     		tools.add(track);
     	}
     }
@@ -338,32 +446,89 @@ public class AttachmentDialog extends JDialog
       p.addPropertyChangeListener("footprint", this); //$NON-NLS-1$    	
     }
     measuringToolDropdown.setModel(new DefaultComboBoxModel(tools));
-    if (tool==measuringTool) {
-    	setMeasuringTool(tools.isEmpty()? null: tools.get(0));
+    if (!tools.isEmpty() && measuringTool!=null) {
+    	measuringToolDropdown.setSelectedItem(measuringTool);
     }
   }
   
   /**
-   * Updates this inspector to show the system's current particles.
+   * Refreshes the start and end fields based on the state of a CircleFitter.
+   * Also refreshes the button state.
+   * 
+   * @param fitter the CircleFitter
    */
-  protected void refreshDisplay() {
+  protected void refreshFieldsAndButtons(CircleFitter fitter) {
+  	if (fitter.attachToSteps && fitter.isRelativeFrameNumbers) {
+      startField.getFormat().applyPattern("+#;-#"); //$NON-NLS-1$
+  	}
+  	else {
+      startField.getFormat().applyPattern("#;-#"); //$NON-NLS-1$
+  	}
+  	int min = fitter.isRelativeFrameNumbers? 
+  			1-trackerPanel.getPlayer().getVideoClip().getFrameCount(): 
+  				trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
+  	int max = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+  	startField.setMaxValue(max);
+  	startField.setMinValue(min);
+    startField.setIntValue(fitter.isRelativeFrameNumbers? fitter.relativeStart: fitter.absoluteStart);
+  	countField.setMaxValue(CircleFitter.maxDataPointCount);
+  	countField.setMinValue(1);
+    countField.setIntValue(fitter.getAttachmentFrameCount());
+    
+    refreshing = true;
+    stepsButton.setSelected(fitter.attachToSteps);
+    relativeCheckbox.setSelected(fitter.isRelativeFrameNumbers);
+    refreshing = false;
+  }
+  
+  /**
+   * Updates this inspector to show the system's current attachments.
+   */
+  protected void refreshGUI() {
     setTitle(TrackerRes.getString("AttachmentInspector.Title")); //$NON-NLS-1$
     helpButton.setText(TrackerRes.getString("Dialog.Button.Help")); //$NON-NLS-1$  
-    closeButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
+    closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
     dummyMass.setName(TrackerRes.getString("DynamicSystemInspector.ParticleName.None")); //$NON-NLS-1$
-    if (endPointCount>0 && measuringTool!=null) {
-	    if (measuringTool instanceof Protractor) {
-	    	endPointName[0] = TrackerRes.getString("AttachmentInspector.Label.Vertex"); //$NON-NLS-1$
-	      endPointName[1] = TrackerRes.getString("AttachmentInspector.Label.End")+" 1"; //$NON-NLS-1$ //$NON-NLS-2$
-	      endPointName[2] = TrackerRes.getString("AttachmentInspector.Label.End")+" 2"; //$NON-NLS-1$ //$NON-NLS-2$
-	    }
-	    else {
-	      endPointName[0] = TrackerRes.getString("AttachmentInspector.Label.End")+" 1"; //$NON-NLS-1$ //$NON-NLS-2$
-	      endPointName[1] = TrackerRes.getString("AttachmentInspector.Label.End")+" 2";    	 //$NON-NLS-1$ //$NON-NLS-2$
-	    }
-	    measuringToolDropdown.setSelectedItem(measuringTool);
-    }
-    pack();
+  	startLabel.setText(TrackerRes.getString("AttachmentInspector.Label.StartFrame")); //$NON-NLS-1$
+  	countLabel.setText(TrackerRes.getString("AttachmentInspector.Label.FrameCount")); //$NON-NLS-1$
+  	stepsButton.setText(TrackerRes.getString("AttachmentInspector.Button.Steps")); //$NON-NLS-1$
+  	tracksButton.setText(TrackerRes.getString("AttachmentInspector.Button.Tracks")); //$NON-NLS-1$
+  	relativeCheckbox.setText(TrackerRes.getString("AttachmentInspector.Checkbox.Relative")); //$NON-NLS-1$
+  	stepsButton.setToolTipText(TrackerRes.getString("AttachmentInspector.Button.Steps.Tooltip")); //$NON-NLS-1$
+  	tracksButton.setToolTipText(TrackerRes.getString("AttachmentInspector.Button.Tracks.Tooltip")); //$NON-NLS-1$
+  	relativeCheckbox.setToolTipText(TrackerRes.getString("AttachmentInspector.Checkbox.Relative.Tooltip")); //$NON-NLS-1$
+    TitledBorder border = (TitledBorder)circleFitterPanel.getBorder();
+  	border.setTitle(TrackerRes.getString("AttachmentInspector.Border.Title.AttachTo")); //$NON-NLS-1$
+    
+  	// refresh layout to include/exclude circle fitter items
+  	boolean hasCircleFitterPanel = attachmentsPanel.getComponentCount()>2;
+  	boolean hasStartStopPanel = circleFitterPanel.getComponentCount()>1;
+  	boolean changedLayout = false;
+  	if (measuringTool instanceof CircleFitter) {
+      // put circleFitter panel in attachments panel SOUTH
+      changedLayout = !hasCircleFitterPanel;
+      attachmentsPanel.add(circleFitterPanel, BorderLayout.SOUTH);
+
+      CircleFitter fitter = (CircleFitter)measuringTool;
+      if (!fitter.attachToSteps) {
+        changedLayout = changedLayout || hasStartStopPanel;
+        circleFitterPanel.remove(circleFitterStartStopPanel);      	
+      }
+      else {
+      	if (fitter.isRelativeFrameNumbers) {
+//      		startLabel.setText(TrackerRes.getString("AttachmentInspector.Label.Offset")); //$NON-NLS-1$
+      	}
+        changedLayout = changedLayout || !hasStartStopPanel;
+        circleFitterPanel.add(circleFitterStartStopPanel, BorderLayout.CENTER);      	
+      }
+  	}
+  	else {
+      attachmentsPanel.remove(circleFitterPanel);
+      changedLayout = hasCircleFitterPanel;
+  	}
+  	if (changedLayout) {
+  		pack();
+  	}
     repaint();
   }
   
@@ -371,6 +536,8 @@ public class AttachmentDialog extends JDialog
 		FontSizer.setFonts(this, level);
 		FontSizer.setFonts(attachmentCellRenderer.label, level);
 		FontSizer.setFonts(table, level);
+		FontSizer.setFonts(circleFitterPanel, level);
+		FontSizer.setFonts(circleFitterStartStopPanel, level);
 		refreshDropdowns();
 		pack();
   }
@@ -381,11 +548,27 @@ public class AttachmentDialog extends JDialog
    * A class to provide model data for the attachment table.
    */
   class AttachmentTableModel extends DefaultTableModel {
-    public int getRowCount() {return endPointCount;}
+    public int getRowCount() {
+    	if (measuringTool==null) return 0;
+    	
+    	if (measuringTool instanceof CircleFitter) {
+    		CircleFitter fitter = (CircleFitter)measuringTool;
+    		if (fitter.attachToSteps) {
+    			return 1;
+    		}
+    	}
+    	TTrack[] attachments = measuringTool.getAttachments();
+    	return attachments==null?	0: attachments.length;
+    }
 
     public int getColumnCount() {return 2;}
 
-    public Object getValueAt(int row, int col) {return col==0? endPointName[row]: attachedMass[row];}
+    public Object getValueAt(int row, int col) {
+    	if (col==0) {
+		    return measuringTool.getAttachmentDescription(row);
+    	}
+    	return measuringTool.getAttachments()[row];
+    }
     
     public String getColumnName(int col) {
     	return col==0? TrackerRes.getString("AttachmentInspector.Header.PointName"): //$NON-NLS-1$
@@ -447,8 +630,17 @@ public class AttachmentDialog extends JDialog
       Object obj = super.getCellEditorValue();
 			int row = table.getSelectedRow();
 			if (row<0) return null;
-			attachedMass[row] = obj==dummyMass? null: (PointMass)obj;				
-    	refreshMeasuringTool();
+			TTrack[] attachments = measuringTool.getAttachments();
+			if (attachments[row]!=null) {
+				attachments[row].removePropertyChangeListener("step", measuringTool); //$NON-NLS-1$
+				attachments[row].removePropertyChangeListener("steps", measuringTool); //$NON-NLS-1$
+			}
+			attachments[row] = obj==dummyMass? null: (PointMass)obj;
+    	measuringTool.refreshAttachments();
+			refreshGUI();
+			
+      DefaultTableModel dm = (DefaultTableModel)table.getModel();
+      dm.fireTableDataChanged();
       return obj;
     }
   	

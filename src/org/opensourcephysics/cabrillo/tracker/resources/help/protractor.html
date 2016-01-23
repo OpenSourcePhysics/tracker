@@ -1,11 +1,11 @@
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 
 <html>
 
 	<head>
 		<link rel="icon" type="image/vnd.microsoft.icon" href="http://www.cabrillo.edu/%7edbrown/tracker/tracker_16.ico">
 		<title>Tracker Help: Protractor</title>
-		<link href="help.css" rel="stylesheet" type="text/css">
+    	<link href="help.css" rel="stylesheet" type="text/css">
 	</head>
 
 	<body>
@@ -38,9 +38,10 @@
 		<h3>2. Unfixing the position</strong></h3>
 		<p>By default, the protractor has a <strong>fixed position</strong>--that is, its vertex and arm positions are the same in all frames. Uncheck the <strong>Fixed Position</strong> checkbox in its track menu to allow these properties to vary independently from frame to frame.</p>
         
-		<h3>3. Measuring the distances and angles between  point masses</h3>
-        <p>It is often useful to measure the distances and angles between  independent point mass tracks. This is accomplished most easily by creating a protractor and <strong>attaching</strong> its ends to the point masses. To attach the ends, choose the <strong>Attach Ends</strong> item in the protractor's track menu, then select the desired point mass tracks from the dropdown lists in the Attach Ends dialog.  Attaching the ends automatically unfixes them.</p>
-        <p align="center"><img src="../help_images/attach_protractor.gif" alt="Attach Ends dialog"></p>
+		<h3><a name="attach"></a>3. Attaching points</h3>
+        <p>It is sometimes useful to measure the distances and angles determined by independent point mass tracks. This can be accomplished by creating a protractor and <strong>attaching</strong> its ends and/or vertex to the point masses. To attach points, choose the <strong>Attach Points...</strong> item in the protractor's track menu, then select the desired point mass tracks from the dropdown lists in the Attach Points dialog.   You can attach to any point mass track including a <a href="cm.html">center of mass</a>, <a href="particles.html">particle model</a> or <a href="datatrack.html">data track</a>.</p>
+        <p>Attaching the points automatically unfixes the protractor.</p>
+    <p align="center"><img src="../help_images/attach_protractor.gif" alt="Attach Ends dialog"></p>
         <h3>4. Locking the protractor</h3>
 		<p>Locking the protractor prevents it from making any changes to the scale. Lock the protractor by turning on the <strong>Locked</strong> property in its <a href="tracks.html#trackmenu">track menu</a>.</p>
 	</body>

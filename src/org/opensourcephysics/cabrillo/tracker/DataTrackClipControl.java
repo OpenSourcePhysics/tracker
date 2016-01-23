@@ -210,6 +210,9 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   		int first = videoClip.getFirstFrameNumber();
   		int last = videoClip.getLastFrameNumber();
   		int startFrame = dataTrack.getStartFrame();
+  		
+  		startFrame = Math.max(startFrame, first);
+  		startFrame = Math.min(startFrame, last);
       spinModel = new SpinnerNumberModel(startFrame, first, last, 1);
       videoInSpinner.setModel(spinModel);
     }
@@ -581,11 +584,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
       // remove the interactive panel mouse controller
       removeMouseListener(mouseController);
       removeMouseMotionListener(mouseController);
-//      // create and add a new mouse controller
-//      mouseController = new TMouseController();
-//      addMouseListener(mouseController);
-//      addMouseMotionListener(mouseController);
-
   	}
   	
 		@Override

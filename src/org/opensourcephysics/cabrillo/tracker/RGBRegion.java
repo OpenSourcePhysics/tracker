@@ -335,6 +335,17 @@ public class RGBRegion extends TTrack {
   }
   
   /**
+   * Sets the marking flag. Flag should be true when ready to be marked by user.
+   * 
+   * @param marking true when marking
+   */
+  @Override
+  protected void setMarking(boolean marking) {
+  	super.setMarking(marking);
+  	repaint(trackerPanel);
+  }
+  
+  /**
    * Overrides TTrack setTrailVisible method to keep trails hidden.
    *
    * @param visible ignored

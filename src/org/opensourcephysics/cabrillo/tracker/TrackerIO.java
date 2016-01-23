@@ -432,7 +432,6 @@ public class TrackerIO extends VideoIO {
       chooser.setMultiSelectionEnabled(false);
       result = chooser.showSaveDialog(null);
     	File file = chooser.getSelectedFile();
-      chooser.resetChoosableFileFilters();
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
 	    if(result==JFileChooser.APPROVE_OPTION && canWrite(file)) {
 	      return new File[] {file};
@@ -887,9 +886,8 @@ public class TrackerIO extends VideoIO {
           }
         }
 
-
         // should the line below finish (in SwingWorker?) before continuing?
-        control.loadObject(trackerPanel);       
+        control.loadObject(trackerPanel);
         
         trackerPanel.frame = frame;
         trackerPanel.defaultFileName = XML.getName(path);
@@ -1547,6 +1545,8 @@ public class TrackerIO extends VideoIO {
       	if (clip != null) {
       		VideoClip prev = trackerPanel.getPlayer().getVideoClip();
       		XMLControl state = new XMLControlElement(prev);
+      		// make new XMLControl with no stored object
+      		state = new XMLControlElement(state.toXML());
           trackerPanel.getPlayer().setVideoClip(clip);
       		Undo.postVideoReplace(trackerPanel, state);
       		return true;

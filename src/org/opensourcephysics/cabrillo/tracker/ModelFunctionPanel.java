@@ -33,7 +33,7 @@ public class ModelFunctionPanel extends FunctionPanel {
   public ModelFunctionPanel(UserFunctionEditor editor, ParticleModel track) {
   	super(editor);
   	model = track;
-  	setName(track.getName());
+  	setName(track.getName("model")); //$NON-NLS-1$
   }
 
 	/**
@@ -97,7 +97,7 @@ public class ModelFunctionPanel extends FunctionPanel {
    */
   public Icon getIcon() {
   	if (model != null)
-  		return model.getFootprint().getIcon(21, 16);
+  		return model.getIcon(21, 16, "model"); //$NON-NLS-1$
     return null;
   }
 

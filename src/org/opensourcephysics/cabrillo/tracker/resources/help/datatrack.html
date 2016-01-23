@@ -12,7 +12,7 @@
 		<h1>Data Track</h1>
 		<p align="center"><img src="../help_images/particle.gif" alt="Data track steps"></p>
 
-		<p>A <strong>data track</strong> is a <a href="pointmass.html">point mass</a> with world positions determined by an external <strong>data source</strong>, typically based on a dynamic model. It enables the model to be drawn directly on a real-world video for visual comparison. </p>
+		<p>A <strong>data track</strong> is a set of one or more <a href="pointmass.html">point masses</a> with world positions determined by an external <strong>data source</strong>, typically based on a dynamic model. It enables the model to be animated and drawn directly on a real-world video for visual comparison. </p>
 		<p>There are two types of data source:</p>
 		<ol>
 	  	  <li><strong>Delimited text data</strong> in a file or pasted from the clipboard.</li>
@@ -20,18 +20,19 @@
     </ol>
 	<p>There are four ways to create a data track:</p>
 <ol>
-		  <li> Click the <strong>Create</strong> button <img src="../help_images/create_button.gif" align="absmiddle"> and choose <strong>Data Track...</strong> from the popup menu, then open a data source file using the resulting file chooser.</li>
-		  <li>Choose <strong>Import|Data Source...</strong> from the File menu, then open a data source file using the resulting file chooser.</li>
-		  <li>Copy delimited text data to the clipboard from a separate program and choose <strong>Paste</strong> from the Edit menu.</li>
+		  <li> Click the <strong>Create</strong> button <img src="../help_images/create_button.gif" align="absmiddle"> and choose <strong>Data Track...</strong> from the popup menu, then open a delimited text data file using the resulting file chooser.</li>
+		  <li>Choose <strong>Import|Data Source...</strong> from the File menu, then open a delimited text data file using the resulting file chooser.</li>
+		  <li>Copy delimited text data to the clipboard from a separate program and choose <strong>Paste Data</strong> from the Edit menu.</li>
 		  <li>Run an EjsS simulation and send data directly to Tracker.    </li>
 	</ol>
 	<h3>1. Data sources: delimited text data</h3>
-    <p>The figure below shows two examples of delimited text data suitable for a data track. Note that:</p>
+    <p>The figure below shows three examples of delimited text data suitable for a data track. Note that:</p>
     <ul>
    	  <li>Data and variable names are organized into rows and columns. </li>
       	<li>The very first row may define an optional track name. Names should not contain spaces or punctuation marks. Underscores (&quot;_&quot;) are converted to spaces in a track name.</li>
-   	  <li>A row defining  variable names must come before the first data row. Positions &quot;x&quot; and &quot;y&quot; are required;  time &quot;t&quot; is optional. Variable names can be in any order.</li>
-   	  <li>Every data row defines a separate data point. Data points must contain a value for every variable in the same order as the variables are defined.</li>
+   	  <li>A row defining  variable names must come before the first data row. At least one matched pair of x and y-variables is required (names must start with x and y, be otherwise identical, and be in adjacent columns). Multiple x-y pairs define multiple point masses; optional strings appended to the x-y variable names are used to identify the points in Tracker. For example, in the &quot;jumper&quot; data, points are defined for the head, elbow and knee.</li>
+   	  <li>Time &quot;t&quot; is optional. When comparing  data with a video it is important that the model time steps match the video frame rate.</li>
+   	  <li>Every data row defines a separate data point. Data points must contain values in the same order as the variables are defined. Values may be null as shown in the jumper data below.</li>
       	<li>Names or values in a given row are separated (&quot;delimited&quot;) by tabs, spaces, commas or semicolons. You must use the same delimiter throughout.</li>
    	  <li>Data values can be written in decimal or scientific format. The numbers &quot;-6&quot;, &quot;3.14&quot; and &quot;9.5E-2&quot; are all valid values.      </li>
     </ul>
@@ -43,8 +44,14 @@
         <img src="../help_images/spacer.gif">
         <img src="../help_images/spacer.gif">
         <img src="../help_images/data2.gif" align="top" alt="Comma-delimited t-x-y data with track name">
+        <img src="../help_images/spacer.gif">
+        <img src="../help_images/spacer.gif">
+        <img src="../help_images/spacer.gif">
+        <img src="../help_images/spacer.gif">
+        <img src="../help_images/spacer.gif">
+        <img src="../help_images/data3.gif" align="top" alt="Comma-delimited 3-point data for head, elbow, knee">
       </p>
-	<p>Most programs that collect, generate or analyze data, including spreadsheets, are able to save or export delimited text files that conform to these specifications.		</p>
+	<p>Most programs that collect, generate or analyze data, including spreadsheets, are able to save or export delimited text files that conform to these specifications.</p>
 
 	<h3>2. Data sources: EjsS simulations</h3>
 		<p>EjsS  (Easy Java/Javascript Simulations) is a free authoring tool written in Java that helps non-programmers create   interactive simulations for teaching and   learning. EJsS was created by <a href="http://www.um.es/fem/EjsWiki/Main/Author" target="_blank">Francisco Esquembre</a> and, along with Tracker, is part of the <a href="http://www.opensourcephysics.org" rel="nofollow" target="_blank">Open Source Physics</a> project. EjsS can be downloaded from <a href="http://www.um.es/fem/EjsWiki/Main/Download" target="_blank">http://www.um.es/fem/EjsWiki/Main/Download</a>.</p>
@@ -58,11 +65,14 @@
         <ol>
           <li>Start Frame: the video frame displaying the first data point.</li>
           <li>Frame Count: the number of video frames displaying data points.</li>
-          <li>Data Start: the index of the first displayed data point.</li>
+          <li>Data Start: the index of the first displayed data points.</li>
           <li>Data Stride: the index increment between displayed data points.</li>
           <li>Time Basis: the source of the time base used to determine video frame times (and thus velocities and accelerations). Data Time is enabled only if a data source provides time data.</li>
         </ol>
     <p>For example, using the settings shown in the figure above, data point index 2 is displayed in video frame 15, index 4 in frame 16, index 6 in frame 17, index 8 in frame 18 and index 10 in frame 19 as shown in the green and white bar graphics. In this example, the data time is ignored since video time is selected as the time basis.</p>
+
+<h3>4. Data track point properties</h3>
+        <p>The points defined by a data track are <a href="pointmass.html">point masses</a> so each has settable mass, color, footprint and motion vector properties. This also means you can attach measuring tools to the points and add them to center of mass tracks just like any other point mass track.</p>
 </body>
 
 </html>

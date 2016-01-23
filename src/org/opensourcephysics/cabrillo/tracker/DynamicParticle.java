@@ -155,7 +155,7 @@ public class DynamicParticle
 	  	ParticleModel[] models = getModels();
       VideoClip clip = trackerPanel.getPlayer().getVideoClip();
       // find last frame included in both model and clip
-  		int end = Math.min(getEndFrame(), clip.getFrameCount()-1);
+  		int end = Math.min(getEndFrame(), clip.getLastFrameNumber());
   		while (end>getStartFrame() && !clip.includesFrame(end)) {
   			end--;
   		}

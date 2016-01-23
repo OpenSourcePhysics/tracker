@@ -25,7 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.TreeSet;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
@@ -33,14 +33,12 @@ import java.beans.PropertyChangeEvent;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.cabrillo.tracker.CircleFitterStep.DataPoint;
-import org.opensourcephysics.cabrillo.tracker.CircleFitterStep.Slider;
+import org.opensourcephysics.cabrillo.tracker.CircleFitterStep.CenterPoint;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -50,19 +48,23 @@ import org.opensourcephysics.controls.*;
  */
 public class CircleFitter extends TTrack {
 	
+	protected static int maxDataPointCount = 20;
+	
   // instance fields
-  protected boolean fixedPosition=true, radialLineVisible=false, radialLineEnabled=false;
+  protected boolean fixedPosition=true;
   protected JCheckBoxMenuItem fixedItem;
-  protected JCheckBox radialLineCheckbox;
   protected JLabel clickToMarkLabel;
   protected JLabel xDataPointLabel, yDataPointLabel;
   protected NumberField xDataField, yDataField;
-  protected Component xDataPointSeparator, yDataPointSeparator, checkboxSeparator;
-  protected JMenuItem inspectorItem, originToCenterItem, clearPointsItem;
-  protected PointMass sourceTrack;
-  protected int sourceStartStep = 0, sourceEndStep = 100000;
-  protected CircleFitterInspector inspector;
-  protected boolean inspectorVisible;
+  protected Component xDataPointSeparator, yDataPointSeparator;
+  protected JMenuItem originToCenterItem, clearPointsItem;
+  protected JMenuItem attachmentItem;
+  protected JButton pointCountButton;
+  protected boolean attachToSteps = false, isRelativeFrameNumbers = false;
+  protected int absoluteStart = 0, relativeStart = -2, attachmentFrameCount = 5;
+  protected TTrack[] attachmentForSteps;
+  protected String stepAttachmentName;
+  private boolean refreshingAttachments, abortRefreshAttachments;
 
   /**
    * Constructs a CircleFitter.
@@ -108,25 +110,17 @@ public class CircleFitter extends TTrack {
       }
     });
     
-    clickToMarkLabel = new JLabel();
-    clickToMarkLabel.setForeground(Color.red.darker());
-    
-  	if (radialLineEnabled) {
-	    radialLineCheckbox = new JCheckBox();
-	    radialLineCheckbox.setOpaque(false);
-	    radialLineCheckbox.setBorder(BorderFactory.createEmptyBorder());
-	    radialLineCheckbox.setSelected(isRadialLineVisible());
-	    radialLineCheckbox.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					setRadialLineVisible(radialLineCheckbox.isSelected());
-					repaint();
-			  	dataValid = false;
-			  	firePropertyChange("data", null, null); //$NON-NLS-1$
-				}    	
-	    });
-	    checkboxSeparator = Box.createRigidArea(new Dimension(6, 4));
-  	}
+    // create attachment dialog item
+  	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+  	attachmentItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	AttachmentDialog control = trackerPanel.getAttachmentDialog(CircleFitter.this);
+      	control.setVisible(true);
+      }
+    });
+
+  	clickToMarkLabel = new JLabel();
+    clickToMarkLabel.setForeground(Color.green.darker().darker());
     
     // create actions, listeners, labels and fields for data points
     final Action dataPointAction = new AbstractAction() {
@@ -136,6 +130,8 @@ public class CircleFitter extends TTrack {
       	if (e!=null && e.getSource()==yDataField && yDataField.getBackground()!=Color.yellow) return;
         TPoint p = trackerPanel.getSelectedPoint();
         if (!(p instanceof DataPoint)) return;
+      	if (p.isAttached()) return;
+
         double xValue = xDataField.getValue();
         double yValue = yDataField.getValue();
         int n = trackerPanel.getFrameNumber();
@@ -182,36 +178,6 @@ public class CircleFitter extends TTrack {
   	xDataField.setPatterns(new String[] {"0.000E0", "0.000", "0.00", "0.0", "0.000E0"}); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
   	yDataField.setPatterns(new String[] {"0.000E0", "0.000", "0.00", "0.0", "0.000E0"}); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
   
-  	// set action for angle field
-    final Action sliderAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (angleField.getBackground()!=Color.yellow) {
-					return;
-				}
-        double theta = angleField.getValue();
-        int n = trackerPanel.getFrameNumber();
-        CircleFitterStep step = (CircleFitterStep)getStep(n);
-        step.setSliderAngle(theta);
-			}  		
-    };
-  	angleField.addActionListener(sliderAction);
-    FocusListener sliderFocusListener = new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
-      	sliderAction.actionPerformed(null);
-      }
-    };
-    angleField.addFocusListener(sliderFocusListener);
-    
-    // inspector item
-    inspectorItem = new JMenuItem();
-    inspectorItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				getInspector().setVisible(true);
-			}  		
-    });
-    
     // originToCenter item
     originToCenterItem = new JMenuItem();
     originToCenterItem.addActionListener(new ActionListener() {
@@ -230,9 +196,9 @@ public class CircleFitter extends TTrack {
 				boolean changed = false;
 				for (Step step: getSteps()) {
 					CircleFitterStep next = (CircleFitterStep)step;
-					if (next.dataPoints.isEmpty()) continue;
+					if (next.dataPoints.length==0) continue;
 					changed = true;
-					next.dataPoints.clear();
+					next.dataPoints = new DataPoint[2][0];
 					next.refreshCircle();
 				}
 				if (changed) {
@@ -247,10 +213,74 @@ public class CircleFitter extends TTrack {
 				}
 			}  		
     });
+    
+    // pointCountButton
+    pointCountButton = new TButton() {
+      protected JPopupMenu getPopup() {
+      	// get and save currently selected TPoint to restore if needed
+      	final TPoint selected = trackerPanel.getSelectedPoint();
+      	JPopupMenu popup = new JPopupMenu();
+      	// add item for each data point, both marked and attached
+      	int n = trackerPanel.getFrameNumber();
+      	CircleFitterStep step = (CircleFitterStep)getStep(n);
+			  final ArrayList<DataPoint> pts = step.getValidDataPoints();
+			  VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+      	ActionListener selector = new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						int i = Integer.parseInt(e.getActionCommand());
+						DataPoint p = pts.get(i);
+						trackerPanel.setSelectedPoint(p);
+					}      		
+      	};
+      	for (int i=0; i<pts.size(); i++) {
+      		DataPoint p = pts.get(i);
+      		Point2D worldPt = p.getWorldPosition(trackerPanel);
+      		String s=""; //$NON-NLS-1$
+      		
+      		// first add marked point items
+      		if (i<step.dataPoints[0].length) {
+	      		s = TrackerRes.getString("CircleFitter.MenuItem.MarkedPoint"); //$NON-NLS-1$
+      		}
+      		// then add attached points
+      		else if (attachments!=null) {
+      			Step targetStep = p.getAttachedStep();
+      			// show name of attached track
+      			s = targetStep.getTrack().getName() + " "; //$NON-NLS-1$ 
+	      		s += TrackerRes.getString("TTrack.Label.Step") + " "; //$NON-NLS-1$ //$NON-NLS-2$
+	      		// add step number
+	      		int frame = targetStep.getFrameNumber();
+	      		s += clip.frameToStep(frame);
+      		}
+      		// add the coordinates after the point description
+      		s += " ("+xDataField.getFormat().format(worldPt.getX()) //$NON-NLS-1$
+      				+", "+yDataField.getFormat().format(worldPt.getY())+")"; //$NON-NLS-1$ //$NON-NLS-2$
+      		JMenuItem item = new JMenuItem(s);
+      		item.setActionCommand(String.valueOf(i));
+      		item.addActionListener(selector);
+      		final int index = i;
+        	item.addMouseListener(new MouseAdapter() {
+        		public void mouseEntered(MouseEvent e) {
+  						DataPoint p = pts.get(index);
+  						trackerPanel.setSelectedPoint(p);
+        		}
+        		public void mouseExited(MouseEvent e) {
+  						trackerPanel.setSelectedPoint(selected);
+        		}
+        	});
+      		popup.add(item);
+      	}
+      	FontSizer.setFonts(popup, FontSizer.getLevel());
+      	return popup;
+      }
+    };
+    pointCountButton.setOpaque(false);
+		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
+		Border line = BorderFactory.createLineBorder(Color.GRAY);
+		pointCountButton.setBorder(BorderFactory.createCompoundBorder(line, space));
   }
 
   /**
-   * Sets the fixed property. When fixed, it has the same position at all times.
+   * Sets the fixed property. When fixed, it has the same data points at all times.
    *
    * @param fixed <code>true</code> to fix
    */
@@ -284,191 +314,12 @@ public class CircleFitter extends TTrack {
     return fixedPosition;
   }
 
-  /**
-   * Sets the visibility of the radial line.
-   *
-   * @param vis true to draw a radial line
-   */
-  public void setRadialLineVisible(boolean vis) {
-  	boolean changed = vis!=radialLineVisible;
-  	radialLineVisible = vis;
-  	if (trackerPanel!=null) {
-  		int n = trackerPanel.getFrameNumber();
-    	steps.getStep(n).repaint();
-    	if (changed) {
-        trackerPanel.changed = true;
-    	}
-  	}
-  }
-  
-  /**
-   * Copies step positions from a point mass source. Source may be null.
-   *
-   * @param source a PointMass to copy
-   */
-  public void copySourceStepPositions(PointMass source) {
-  	if (sourceTrack==null && source==null) {
-  		return;
-  	}
-  	sourceTrack = source;
-  	trackerPanel.setSelectedPoint(null);
-		boolean changed = false;
-		XMLControl control = new XMLControlElement(this); // for undo (only if changed)
-		CircleFitterStep circleStep = null;
-		if (isFixed()) {
-			circleStep = (CircleFitterStep)getStep(0); 
-		}
-		else {
-			int n = trackerPanel.getFrameNumber();
-	  	circleStep = (CircleFitterStep)getStep(n); 			
-		}
-  	if (sourceTrack!=null) {
-  		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-	  	ArrayList<DataPoint> tempList = new ArrayList<DataPoint>();
-	  	tempList.addAll(circleStep.dataPoints);
-	  	circleStep.dataPoints.clear();
-	  	// copy step positions as circleStep DataPoints
-	  	Step[] steps = sourceTrack.getSteps();
-	  	for (int i=0; i< steps.length; i++) {
-	  		// check if frame is included in video clip and falls in specified range
-	  		if (!clip.includesFrame(i)) continue;
-	  		int stepNumber = clip.frameToStep(i);
-	  		if (steps[i]!=null && stepNumber>=sourceStartStep && stepNumber<=sourceEndStep) {
-	  			PositionStep p = (PositionStep)steps[i];
-					circleStep.addDataPoint(p.getPosition().x, p.getPosition().y, false);
-	  		}
-	  	}
-	  	// determine if number of points have changed
-	  	changed = circleStep.dataPoints.size()!=tempList.size();
-	  	if (!changed) {
-		  	// determine if point positions have changed
-	  		for (DataPoint next: circleStep.dataPoints) {
-	  			Iterator<DataPoint> it = tempList.iterator();
-	  			while (it.hasNext()) {
-	  				DataPoint test = it.next();
-	  				if (next.x==test.x && next.y==test.y) {
-	  					it.remove();
-	  					break;
-	  				}
-	  			}
-	  		}
-	  		changed = !tempList.isEmpty();
-	  	}
-  	}
-  	Step[] steps = getSteps();
-  	for (int i=0; i< steps.length; i++) {
-  		if (steps[i]!=null) {
-  			if (!isFixed() && i<circleStep.n) continue;
-  			CircleFitterStep next = (CircleFitterStep)steps[i];
-				next.copy(circleStep);
-				next.refreshCircle();
-  		}
-  	}
-  	repaint();
-  	dataValid = false;
-  	firePropertyChange("data", null, this); //$NON-NLS-1$
-    if (trackerPanel != null) {
-    	trackerPanel.changed = true;
-    }
-  	TTrackBar.getTrackbar(trackerPanel).refresh();
-  	if (changed) {
-    	Undo.postTrackEdit(this, control);    	
-  	}
-  }
-  
-  /**
-   * Sets the source start frame.
-   *
-   * @param n the desired start frame
-   */
-  public void setSourceStartStep(int n) {
-  	n = Math.max(n, 0);
-  	sourceStartStep = Math.min(n, sourceEndStep);  	
-//  	copyStepPositions(sourceTrack);
-  	if (inspector!=null) {
-      SpinnerModel spinModel = new SpinnerNumberModel(sourceStartStep, 0, sourceEndStep, 1);
-      inspector.startStepSpinner.setModel(spinModel);
-  	}
-  }
-
-  /**
-   * Sets the source end frame.
-   *
-   * @param n the desired end frame
-   */
-  public void setSourceEndStep(int n) {
-  	int last = trackerPanel.getPlayer().getVideoClip().getStepCount()-1;
-  	n = Math.min(n, last);
-  	sourceEndStep = Math.max(n, sourceStartStep);
-//  	copyStepPositions(sourceTrack);
-  	if (inspector!=null) {
-      SpinnerModel spinModel = new SpinnerNumberModel(sourceEndStep, sourceStartStep, last, 1);
-      inspector.endStepSpinner.setModel(spinModel);
-  	}
-  }
-
-  /**
-   * Gets the visibility of the radial line.
-   *
-   * @return true if visible
-   */
-  public boolean isRadialLineVisible() {
-    return radialLineEnabled && radialLineVisible;
-  }
-  
-  @Override
-  public void setLocked(boolean locked) {
-    super.setLocked(locked);
-    if (inspector!=null) {
-    	inspector.refreshDisplay();
-    }
-  }
-
-
-  
-  @Override
-  public void draw(DrawingPanel panel, Graphics g) {
-  	super.draw(panel, g);
-  	if (inspector==null) {
-  		getInspector();
-    	if (trackerPanel.getTFrame()!=null) {
-    		trackerPanel.getTFrame().addPropertyChangeListener("tab", this); //$NON-NLS-1$
-    	}
-  	}
-  }
-  
-  @Override
-  public void delete() {
-  	if (inspector!=null) {
-			inspector.setVisible(false);
-			inspector.dispose();
-			inspector = null;
-  	}
-  	super.delete();
-  }
-  
   @Override
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName(); 
-    
-    if (name.equals("track") && inspector!=null) { //$NON-NLS-1$
-    	inspector.refreshDisplay();
-    }
-		else if (name.equals("tab") && inspector!=null) { //$NON-NLS-1$
-			if (trackerPanel != null 
-					&& e.getNewValue() == trackerPanel 
-					&& inspectorVisible) {
-				inspector.setVisible(true);				
-			}
-			else if (inspector.isVisible()) {
-				inspector.setVisible(false);
-				inspectorVisible = true;
-			}
-			
-		}
     if (trackerPanel.getSelectedTrack() == this) {
       if (name.equals("stepnumber")) { //$NON-NLS-1$
-      	refreshFields(trackerPanel.getFrameNumber());
+      	TTrackBar.getTrackbar(trackerPanel).refresh();
       }
       else if (name.equals("transform")) { //$NON-NLS-1$
       	refreshFields(trackerPanel.getFrameNumber());
@@ -480,6 +331,16 @@ public class CircleFitter extends TTrack {
 //	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
 //			}
 //    }
+    if (name.equalsIgnoreCase("startframe") //$NON-NLS-1$
+    		|| name.equalsIgnoreCase("stepcount") //$NON-NLS-1$
+    		|| name.equalsIgnoreCase("stepsize") //$NON-NLS-1$
+  			|| name.equalsIgnoreCase("step") //$NON-NLS-1$
+    		|| name.equalsIgnoreCase("steps")) { //$NON-NLS-1$
+    	
+    	if (attachments!=null) {
+    		refreshAttachments();
+    	}
+    }
     super.propertyChange(e);
   }
 
@@ -500,17 +361,18 @@ public class CircleFitter extends TTrack {
   	if (!isFixed()) {
     	keyFrames.add(n);
 	    CircleFitterStep step = (CircleFitterStep)steps.getStep(n);
-	    step.addDataPoint(x, y, true);
+	    step.addDataPoint(step.new DataPoint(x, y), true);
 	    return step;
   	}
   	keyFrames.add(0);      
 	  CircleFitterStep step = (CircleFitterStep)steps.getStep(0);
-	  step.addDataPoint(x, y, true);
+	  step.addDataPoint(step.new DataPoint(x, y), true);
+    
 	  return getStep(n);
   }
 
   /**
-   * Overrides TTrack deleteStep method to delete selected points.
+   * Overrides TTrack deleteStep method to delete selected data points.
    *
    * @param n the frame number
    * @return null since the step itself is never deleted
@@ -521,23 +383,30 @@ public class CircleFitter extends TTrack {
   		return null;
   	}
   	TPoint p = trackerPanel.getSelectedPoint();
+  	if (p!=null && !(p instanceof DataPoint)) return null;
+  	
+  	DataPoint data = (DataPoint)p; // may be null?
     CircleFitterStep step = (CircleFitterStep)steps.getStep(n);
     if (!isFixed()) {
-    	step.removeDataPoint(p, true);
+    	step.removeDataPoint(data, true, true);
     }
     else { // fixed, so delete corresponding data point in step 0
     	// find index of p
-    	int index = -1;
-    	for (int i=0; i<step.dataPoints.size(); i++) {
-    		if (step.dataPoints.get(i)==p) {
-    			index = i;
-    			break;
+    	int row = -1, column = 0;
+    	for (int i=0; i<step.dataPoints.length; i++) {
+    		DataPoint[] points = step.dataPoints[i];
+    		for (int j=0; j<points.length; j++) {
+	    		if (data==points[j]) {
+	    			column = i;
+	    			row = j;
+	    			break;
+	    		}
     		}
     	}
-    	if (index>-1) {
+    	if (row>-1) {
         step = (CircleFitterStep)steps.getStep(0);
-    		p = step.dataPoints.get(index);
-      	step.removeDataPoint(p, true);
+    		data = step.dataPoints[column][row];
+      	step.removeDataPoint(data, true, true);
     	}
     }
     return null;
@@ -561,8 +430,10 @@ public class CircleFitter extends TTrack {
         if (points[i]==point) return step;
       }
       CircleFitterStep circleStep = (CircleFitterStep)step;
-      for (TPoint p: circleStep.dataPoints) {
-      	if (p==point) return step;
+      for (DataPoint[] pts: circleStep.dataPoints) {
+      	for (DataPoint p: pts) {
+      		if (p==point) return step;
+      	}
       }
     }
     return null;
@@ -585,19 +456,392 @@ public class CircleFitter extends TTrack {
   			{clickToMarkLabel, xDataPointLabel, yDataPointLabel,
   			xDataField, yDataField};
     FontSizer.setFonts(objectsToSize, level);
-  	if (radialLineEnabled) {
-      FontSizer.setFonts(radialLineCheckbox, level);
+  }
+  
+  /**
+   * Determines if this is attached to one or more tracks.
+   *
+   * @return true if attached
+   */
+  public boolean isAttached() {
+  	TTrack[] attachments = getAttachments();
+  	for (int i = 0; i < attachments.length; i++) {
+  		if (attachments[i]!=null) {
+  			return true;
+  		}
   	}
-  	if (inspector!=null) {
-      inspector.refreshDisplay();
+  	return false;
+  }
+
+  /**
+   * Determines if this is attached to one or more tracks.
+   *
+   * @return true if attached
+   */
+  public boolean isNoPoints(int frameNumber) {
+  	if (!isRelativeFrameNumbers) return false;
+  	int start = frameNumber+relativeStart;
+  	int end = frameNumber+relativeStart+attachmentFrameCount-1;
+  	return end<0 || start>trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+  }
+
+  /**
+   * Sets the start frame for single track attachments.
+   *
+   * @param n the desired start frame
+   */
+  public void setAttachmentStartFrame(int n) {
+//  	int min = 0;
+//  	int max = trackerPanel.getPlayer().getVideoClip().getFrameCount()-1;
+  	if (isRelativeFrameNumbers) {
+	  	int count = trackerPanel.getPlayer().getVideoClip().getFrameCount();
+  		n = Math.max(n, 1-count);
+    	n = Math.min(n, count-1);
+	  	relativeStart = n;
   	}
+  	else { // absolute frame numbers
+	  	int min = trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
+	  	int max = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+	  	n = Math.max(n, min);
+	  	n = Math.min(n, max);
+	  	absoluteStart = n;
+  	}
+  }
+
+  /**
+   * Gets the start frame for single track attachments.
+   * 
+   * @param frameNumber the frame number
+   * @return the start frame
+   */
+  public int getAttachmentStartFrame(int frameNumber) {
+  	if (isRelativeFrameNumbers) {
+  		int n = Math.max(0, frameNumber+relativeStart); // not less than first frame
+  		n = Math.min(n, trackerPanel.getPlayer().getVideoClip().getLastFrameNumber()); // not more than last frame
+  		return n;
+  	}
+  	return absoluteStart;
+  }
+
+  /**
+   * Sets the attachment frame count for single track attachments.
+   *
+   * @param n the desired frame count
+   */
+  public void setAttachmentFrameCount(int n) {
+    n = Math.min(n, maxDataPointCount);
+    n = Math.max(n, 1);
+    attachmentFrameCount = n;
+  }
+
+  /**
+   * Gets the attachment frame count.
+   *
+   * @return the frame count
+   */
+  public int getAttachmentFrameCount() {
+    return attachmentFrameCount;
+  }
+
+  /**
+   * Gets the end frame for single track attachments.
+   *
+   * @param frameNumber the current frame number
+   * @return the end frame
+   */
+  public int getAttachmentEndFrame(int frameNumber) {
+  	int n = Math.max(0, absoluteStart+attachmentFrameCount-1);
+  	if (isRelativeFrameNumbers) {
+  		n = Math.max(0, frameNumber+relativeStart+attachmentFrameCount-1);
+  	}
+		n = Math.min(n, trackerPanel.getPlayer().getVideoClip().getLastFrameNumber()); // not more than last frame
+		return n;
+  }
+
+  @Override
+  public TTrack[] getAttachments() {
+  	// check existing attachments array and modify if necessary
+    if (attachments==null || attachments.length==0) {
+    	attachments = new TTrack[1];
+    }
+    
+    if (attachToSteps) {
+    	if (attachmentForSteps==null) {
+    		attachmentForSteps = new TTrack[] {attachments[0]};
+    	}
+    	return attachmentForSteps;
+    }
+
+    boolean ready = true;
+  	for (int i=0; i<attachments.length; i++) {
+  		ready = ready && ((i<attachments.length-1 && attachments[i]!=null) 
+  				|| (i>=attachments.length-1 && attachments[i]==null));
+  	}
+  	if (ready) return attachments;
+  	
+  	// eliminate null attachments
+  	for (int i=attachments.length-1; i>=0; i--) {
+  		if (attachments[i]==null) {
+  			TTrack[] newAttachments = new TTrack[attachments.length-1];
+  			System.arraycopy(attachments, 0, newAttachments, 0, i);
+  			System.arraycopy(attachments, i+1, newAttachments, i, attachments.length-i-1);
+  			attachments = newAttachments; 
+  		}  		
+  	}
+
+    // include "new" element 
+  	if (attachments.length==0) {
+			attachments = new TTrack[1];
+		}
+		else if (!attachToSteps) {
+    	TTrack[] newAttachments = new TTrack[attachments.length+1];
+    	System.arraycopy(attachments, 0, newAttachments, 0, attachments.length);
+    	attachments = newAttachments;
+		}
+  	return attachments;
+  }
+  
+  /**
+   * Returns the description of a particular attachment point.
+   * 
+   * @param n the attachment point index
+   * @return the description
+   */
+  public String getAttachmentDescription(int n) {
+		if (attachToSteps) {
+			// attaching to steps
+	  	return attachmentForSteps[0]==null? // "new" when attachment is null
+	  			TrackerRes.getString("CircleFitter.Label.NewPoint"): //$NON-NLS-1$
+	  			TrackerRes.getString("CircleFitter.Label.Points"); //$NON-NLS-1$
+		}
+  	return n==attachments.length-1? // last row is always "new"
+  			TrackerRes.getString("CircleFitter.Label.NewPoint"): //$NON-NLS-1$
+  			TrackerRes.getString("CircleFitter.Label.Point"); //$NON-NLS-1$
+		
+  }
+  
+  /**
+   * Refreshes the attachments for this track. 
+   * This manages attached data points (dataPoints[1]) and ignores marked data points (dataPoints[0])
+   */
+  @Override
+  protected void refreshAttachments() {
+  	if (refreshingAttachments) {
+  		abortRefreshAttachments = true;
+  		while (refreshingAttachments) {
+  			// wait for current thread to abort/finish
+  			try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+  		}
+  	}
+  	
+  	Runnable runner = new Runnable() {
+  		public void run() {
+  			abortRefreshAttachments = false;
+  			refreshingAttachments = true;
+  	  	TTrack[] attachments = getAttachments();
+
+  	  	// look for non-null attachments and if so set fixed to false
+  			boolean hasAttachments = false;
+  	  	for (int i = 0; i < attachments.length; i++) {
+  	  		if (attachments[i]!=null) {
+  	  			hasAttachments = true;
+  	  			// refresh listeners
+  					attachments[i].removePropertyChangeListener("step", CircleFitter.this); //$NON-NLS-1$
+  					attachments[i].removePropertyChangeListener("steps", CircleFitter.this); //$NON-NLS-1$
+  					attachments[i].addPropertyChangeListener("step", CircleFitter.this); //$NON-NLS-1$
+  					attachments[i].addPropertyChangeListener("steps", CircleFitter.this); //$NON-NLS-1$
+  	  		}
+  	  	}
+  	  	if (hasAttachments) {
+  	  		boolean change = trackerPanel.changed;
+  				setFixed(false);
+  	    	trackerPanel.changed = change;
+  	  	}
+  	  	 	
+  			VideoClip clip = trackerPanel.getPlayer().getVideoClip();  			
+  			CircleFitterStep.doRefresh = false;
+  		  TreeSet<Integer> framesToRefresh = new TreeSet<Integer>();
+  	  	if (!attachToSteps) {
+  	    	for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
+  	    		if (abortRefreshAttachments) {
+  	    			refreshingAttachments = false;
+  	    			return;
+  	    		}
+  	    		CircleFitterStep step = (CircleFitterStep)steps.getStep(n);
+  	    		if (step.trimAttachedPointsToLength(attachments.length-1)) {
+  	      		framesToRefresh.add(n);
+  	    		}
+  	    	}
+  	  		
+  	  		// each CircleFitter step attaches to same-frame step in attachment tracks
+  	    	for (int i=0; i<attachments.length; i++) {
+  	    		TTrack targetTrack = attachments[i];
+  	  	  	if (targetTrack!=null) {
+  	  	  		// attach/detach points to each CircleFitter step
+  	  	    	for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
+  	  	    		if (abortRefreshAttachments) {
+  	  	    			refreshingAttachments = false;
+  	  	    			return;
+  	  	    		}
+  	  	    		Step targetStep = targetTrack.getStep(n);
+  	  	    		CircleFitterStep step = (CircleFitterStep)steps.getStep(n); // no refresh
+  	  	    		DataPoint p = step.getDataPoint(1, i); // may return null
+  	  	    		if (targetStep==null) {
+  	    	    		// target step is null, so detach any data point and set null CircleFitterStep array element
+  	  	    			if (p!=null) {
+  				      		p.detach();
+  				      		p = null;
+  				      		step.setDataPoint(null, 1, i, false, false); // element set to mull, not compacted
+  				      		framesToRefresh.add(n);
+  	  	    			}
+  	  	    		}
+  	  	    		else {
+  		  	    		// targetStep exists, so attach data point to target position and set CircleFitterStep array element
+  		  	      	TPoint target = targetStep.getPoints()[0];
+  	  	    			if (p==null) {
+  	  	    				p = step.new DataPoint(target.x, target.y);
+  	  	    				step.setDataPoint(p, 1, i, false, false);
+  	  	    			}
+  		  	      	if (p.attachTo(target)) { // returns true if a change has occurred
+  		  	      		framesToRefresh.add(n);
+  		  	      	}
+  	  	    		}
+  	  	    	}  		
+  	  	  	}
+  	  	  	else { // target track is null so detach all data points and eliminate array elements
+  	  	  		for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
+  	  	    		if (abortRefreshAttachments) {
+  	  	    			refreshingAttachments = false;
+  	  	    			return;
+  	  	    		}
+  	  	    		CircleFitterStep step = (CircleFitterStep)steps.getStep(n);
+  	  	    		DataPoint p = step.getDataPoint(1, i); // may return null
+  	  	      	if (p!=null) {  	      		
+  	  	      		p.detach();
+  			      		step.setDataPoint(null, 1, i, false, true); // array is compacted (null element eliminated)
+  			      		framesToRefresh.add(n);
+  	  	      	}
+  	  	    	}
+  	  	  	}
+  	    	}
+  	  	}
+  	  	else {  	
+  		  	// each CircleFitter step attaches to multiple steps in a single track 
+  		  	TTrack targetTrack = attachments[0];
+  		  	if (targetTrack!=null) { 		  		
+  		  		// target track not null so check DataPoints[1] array
+  		  		// if relative frame numbers, do every step in the clip
+  		  		// otherwise, do only step 0 and let refreshStep() do the rest (faster?)
+  		  		int stepCount = isRelativeFrameNumbers? clip.getStepCount(): 0;
+  		    	for (int stepNum = 0; stepNum<=stepCount; stepNum++) {
+    	    		if (abortRefreshAttachments) {
+    	    			refreshingAttachments = false;
+    	    			return;
+    	    		}
+  		    		int n = clip.stepToFrame(stepNum);
+  		    		CircleFitterStep circleStep = (CircleFitterStep)steps.getStep(n);
+  		    		// in and out frames for attachments
+  		    		int in = getAttachmentStartFrame(n);
+  		    		int out = getAttachmentEndFrame(n);
+  		    		boolean noPoints = in<out? false: isNoPoints(n);
+  		    		
+  		    		// check candidate target steps at every existing frame from in to out
+  		    		for (int frame = in; frame<=out; frame++) {
+  	  	    		if (abortRefreshAttachments) {
+  	  	    			refreshingAttachments = false;
+  	  	    			return;
+  	  	    		}
+  		    			Step targetStep = targetTrack.getStep(frame);
+  		    			int dataPointIndex = frame-in;
+  			    		DataPoint p = circleStep.getDataPoint(1, dataPointIndex); // may be null
+  			    		
+  			    		if (targetStep==null || noPoints) {
+  	    	    		// target step is null, so detach any data point and set null array element
+  				      	if (p!=null) {				      		
+  				      		p.detach();
+  				      		p = null;
+  				      		framesToRefresh.add(n);
+  				      	}
+  			    		}
+  			    		else {
+  		  	    		// targetStep not null, so attach data point to target and set CircleFitterStep array element
+  				      	TPoint target = targetStep.getPoints()[0];
+  			    			if (p==null) {
+  	  	    				p = circleStep.new DataPoint(target.x, target.y);
+  			    			}
+  		  	      	if (p.attachTo(target)) { // returns true if a change has occurred
+  		  	      		framesToRefresh.add(n);
+  		  	      	}
+  			    		}
+  		      		circleStep.setDataPoint(p, 1, dataPointIndex, false, false); // sets data point, keeps null elements
+  		    		}
+  		    		
+  		    		// truncate dataPoints[1] array if needed
+  		    		DataPoint[] existingPts = circleStep.dataPoints[1];
+  		    		if (existingPts.length>out-in+1) {
+  		    			DataPoint[] newPts = new DataPoint[out-in+1];
+  		    			System.arraycopy(existingPts, 0, newPts, 0, newPts.length);
+  		    			circleStep.dataPoints[1] = newPts;
+  		    			for (int k=newPts.length; k<existingPts.length; k++) {
+  		    				if (existingPts[k]!=null) {
+  		    					framesToRefresh.add(n);
+  		    				}
+  		    			}
+  		    		}
+
+  		    	}  		
+  		  	}
+  		  	else { // target track is null so detach all data points and compact the array
+  		  		for (int stepNum = 0; stepNum<=clip.getStepCount(); stepNum++) {
+    	    		if (abortRefreshAttachments) {
+    	    			refreshingAttachments = false;
+    	    			return;
+    	    		}
+  		    		int n = clip.stepToFrame(stepNum);
+  		    		CircleFitterStep step = (CircleFitterStep)steps.getStep(n);
+  		    		for (int i = 0; i<=step.dataPoints[1].length; i++) {
+  			    		DataPoint p = step.getDataPoint(1, i); // may return null
+  			      	if (p!=null) {
+  			      		p.detach();
+  			      		framesToRefresh.add(n);
+  			      	}
+  		    		}
+  			  		step.dataPoints[1] = new DataPoint[0]; // reset 
+  		    	}
+  		  	}
+  	  	}
+  	  	
+  	  	// refresh circles
+  			CircleFitterStep.doRefresh = true;
+
+  			for (int n: framesToRefresh) {
+	    		if (abortRefreshAttachments) {
+	    			refreshingAttachments = false;
+	    			return;
+	    		}
+  	  		CircleFitterStep step = (CircleFitterStep)steps.getStep(n);
+  	  		step.refreshCircle();
+  			}
+  			
+  	  	TTrackBar.getTrackbar(trackerPanel).refresh();
+  	  	repaint();
+  	  	dataValid = false;
+  	  	firePropertyChange("data", null, this); //$NON-NLS-1$
+  			refreshingAttachments = false;
+  		}
+  	};
+  	
+  	new Thread(runner).start();  	
   }
 
   @Override
   public JMenu getMenu(TrackerPanel trackerPanel) {
     JMenu menu = super.getMenu(trackerPanel);
         
-    inspectorItem.setText(TrackerRes.getString("CircleFitter.MenuItem.Inspector")); //$NON-NLS-1$
     originToCenterItem.setText(TrackerRes.getString("CircleFitter.MenuItem.OriginToCenter")); //$NON-NLS-1$
     originToCenterItem.setEnabled(!trackerPanel.getCoords().isLocked());
     deleteStepItem.setText(TrackerRes.getString("CircleFitter.MenuItem.DeletePoint")); //$NON-NLS-1$
@@ -605,19 +849,35 @@ public class CircleFitter extends TTrack {
     clearPointsItem.setEnabled(!isLocked());
     fixedItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
     fixedItem.setSelected(isFixed());
-    fixedItem.setEnabled(attachments==null || (attachments[0]==null && attachments[1]==null && attachments[2]==null));
+    boolean noAttachments = true;
+    if (attachments!=null) {
+    	for (TTrack next: attachments) {
+    		if (next!=null) noAttachments = false;
+    	}
+    }
+    fixedItem.setEnabled(attachments==null || noAttachments);
 
-    // add inspector item and separator at beginning
-    menu.insert(inspectorItem, 0);
+    // add attachment item and separator at beginning
+    menu.insert(attachmentItem, 0);
     menu.insertSeparator(1);
-    // add originToCenter item and separator below inspector item
-    menu.insert(originToCenterItem, 2);
-    menu.insertSeparator(3);
-    // remove end items and last separator
+    
+    // put fixed item after locked item
+    for (int i=0; i<menu.getItemCount(); i++) {
+    	if (menu.getItem(i)==lockedItem) {
+		  	menu.insert(fixedItem, i+1);
+    		break;
+    	}
+    }
+  	
+    
+
+    // remove end items and add new items
     menu.remove(deleteTrackItem);
     menu.remove(menu.getMenuComponent(menu.getMenuComponentCount()-1));
-    menu.add(fixedItem);
     
+    // add originToCenter item and separator below inspector item
+  	menu.addSeparator();
+    menu.add(originToCenterItem);
   	menu.addSeparator();
     menu.add(deleteStepItem);
     menu.add(clearPointsItem);
@@ -627,18 +887,27 @@ public class CircleFitter extends TTrack {
 
   @Override
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+  	// refresh fields
     int n = trackerPanel.getFrameNumber();
   	refreshFields(n);
-  	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
-    list.add(stepSeparator);
+  	
+  	// refresh pointCountButton
     CircleFitterStep step = (CircleFitterStep)getStep(n);
-    if (step.dataPoints.size()>2) {
-    	if (radialLineEnabled) {
-		  	radialLineCheckbox.setText(TrackerRes.getString("CircleFitter.Checkbox.RadialLine")); //$NON-NLS-1$
-		  	radialLineCheckbox.setToolTipText(TrackerRes.getString("CircleFitter.Checkbox.RadialLine.Tooltip")); //$NON-NLS-1$
-		    list.add(radialLineCheckbox);
-		    list.add(checkboxSeparator);
-    	}
+    ArrayList<DataPoint> pts = step.getValidDataPoints();
+		int dataCount=pts.size();
+  	pointCountButton.setText(dataCount+" "+TrackerRes.getString("CircleFitter.Button.DataPoints")); //$NON-NLS-1$ //$NON-NLS-2$
+    // refresh step number label
+  	stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+  	stepValueLabel.setText(trackerPanel.getStepNumber()+":"); //$NON-NLS-1$
+ 	
+  	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
+    list.add(stepLabel);
+    list.add(stepValueLabel);
+    list.add(tSeparator);
+    list.add(pointCountButton);
+    list.add(stepSeparator);
+
+    if (dataCount>2) {
 	  	xField.setToolTipText(TrackerRes.getString("CircleFitter.Field.CenterX.Tooltip")); //$NON-NLS-1$
 	  	yField.setToolTipText(TrackerRes.getString("CircleFitter.Field.CenterY.Tooltip")); //$NON-NLS-1$
 	  	magLabel.setText(TrackerRes.getString("CircleFitter.Label.Radius")); //$NON-NLS-1$
@@ -664,23 +933,23 @@ public class CircleFitter extends TTrack {
   public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
       TPoint point) {
   	ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
+  	if (!(point instanceof DataPoint)) {
+  		return list;
+  	}
     int n = trackerPanel.getFrameNumber();
   	refreshFields(n);
+  	stepValueLabel.setText(trackerPanel.getStepNumber()+":"); //$NON-NLS-1$
     CircleFitterStep step = (CircleFitterStep)getStep(n);
-    if (point==step.slider) {
-      list.add(angleLabel);
-      list.add(angleField);
-      list.add(angleSeparator);
-    }
-    else {
-	    list.add(xDataPointLabel);
-	    list.add(xDataField);
-	    list.add(xDataPointSeparator);
-	    list.add(yDataPointLabel);
-	    list.add(yDataField);
-	    list.add(yDataPointSeparator);
-    }
-    if (step.dataPoints.size()<3) {
+    list.add(xDataPointLabel);
+    list.add(xDataField);
+    list.add(xDataPointSeparator);
+    list.add(yDataPointLabel);
+    list.add(yDataField);
+    list.add(yDataPointSeparator);
+		// count valid points
+    ArrayList<DataPoint> pts = step.getValidDataPoints();
+		int dataCount=pts.size();
+    if (dataCount<3) {
 	  	clickToMarkLabel.setText(TrackerRes.getString("CircleFitter.Label.MarkPoint")); //$NON-NLS-1$
 	    list.add(clickToMarkLabel);
     }
@@ -694,26 +963,26 @@ public class CircleFitter extends TTrack {
       return null;
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     int n = trackerPanel.getFrameNumber();
-    CircleFitterStep step = (CircleFitterStep)getStep(n);
     if (trackerPanel.getPlayer().getVideoClip().includesFrame(n)) {
+	    CircleFitterStep step = (CircleFitterStep)steps.getStep(n);
       Interactive ia = step.findInteractive(trackerPanel, xpix, ypix);
       if (ia == null) {
       	partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
-      	if (step.dataPoints.size()<3) {
-      		hint = TrackerRes.getString("CircleFitter.Hint.Mark3"); //$NON-NLS-1$
-      	}
-      	else {
-      		hint = TrackerRes.getString("CircleFitter.Hint.MarkMore"); //$NON-NLS-1$
-      	}
+    		hint = TrackerRes.getString("CircleFitter.Hint.Mark3"); //$NON-NLS-1$
       	return null;
       }
       if (ia instanceof DataPoint) {
         partName = TrackerRes.getString("CircleFitter.DataPoint.Name"); //$NON-NLS-1$
         hint = TrackerRes.getString("CircleFitter.DataPoint.Hint"); //$NON-NLS-1$
       }
-      else if (ia instanceof Slider) {
-        partName = TrackerRes.getString("CircleFitter.Slider.Name"); //$NON-NLS-1$
-        hint = TrackerRes.getString("CircleFitter.Slider.Hint"); //$NON-NLS-1$
+      else if (ia instanceof CenterPoint) {
+        partName = TrackerRes.getString("CircleFitter.Center.Name"); //$NON-NLS-1$
+        hint = TrackerRes.getString("CircleFitter.Center.Hint"); //$NON-NLS-1$
+      }
+      else if (ia==step.edge) {
+        partName = TrackerRes.getString("CircleFitter.Circle.Name"); //$NON-NLS-1$
+        hint = TrackerRes.getString("CircleFitter.Circle.Hint"); //$NON-NLS-1$
+        ia = step.center;
       }
       return ia;
     }
@@ -762,15 +1031,11 @@ public class CircleFitter extends TTrack {
     dataFrames.clear();
     // get the datasets: radius, x_center, y_center, step, frame
     int count = 0;
-    Dataset angle = null;
     Dataset x_center = data.getDataset(count++);
     Dataset y_center = data.getDataset(count++);
     Dataset r = data.getDataset(count++);
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
-    if (radialLineEnabled) {
-    	angle = data.getDataset(count++);
-    }
     // assign column names to the datasets
     String time = "t"; //$NON-NLS-1$
     if (!x_center.getColumnName(0).equals(time)) { // not yet initialized
@@ -780,9 +1045,6 @@ public class CircleFitter extends TTrack {
     	r.setXYColumnNames(time, "r"); //$NON-NLS-1$
 	    stepNum.setXYColumnNames(time, "step"); //$NON-NLS-1$
 	    frameNum.setXYColumnNames(time, "frame"); //$NON-NLS-1$
-      if (radialLineEnabled) {
-      	angle.setXYColumnNames(time, "$\\theta$"); //$NON-NLS-1$
-      }
     }
     else for (int i = 0; i<count; i++) {
     	data.getDataset(i).clear();
@@ -807,15 +1069,11 @@ public class CircleFitter extends TTrack {
 			Point2D center = next.getWorldCenter();
 			validData[1][n] = center==null? Double.NaN: center.getX();
 			validData[2][n] = center==null? Double.NaN: center.getY();
-			double theta = next.getSliderAngle();
 			double radius = next.getWorldRadius();
 			validData[3][n] = radius;
 			validData[4][n] = n;
 			validData[5][n] = frame;
       dataFrames.add(frame);
-      if (radialLineEnabled) {
-      	validData[6][n] = isRadialLineVisible()? theta: Double.NaN;
-      }
     }
     // append the data to the data set
 	  x_center.append(validData[0], validData[1]);
@@ -823,9 +1081,6 @@ public class CircleFitter extends TTrack {
 	  r.append(validData[0], validData[3]);
     stepNum.append(validData[0], validData[4]);
     frameNum.append(validData[0], validData[5]);
-    if (radialLineEnabled) {
-    	angle.append(validData[0], validData[6]);
-    }
   }
 
   /**
@@ -834,27 +1089,81 @@ public class CircleFitter extends TTrack {
    * @param step the step to refresh
    */
   protected void refreshStep(CircleFitterStep step) {
-  	// compare step with keyStep
+  	boolean changed = false;
+    // refresh attached data points if attached to steps and not relative frame numbers
+    if (isAttached() && attachToSteps && !isRelativeFrameNumbers) {
+    	int firstFrame = trackerPanel.getPlayer().getVideoClip().stepToFrame(0);
+    	CircleFitterStep keyStep = (CircleFitterStep)steps.getStep(firstFrame);
+    	if (keyStep!=step) {
+    		DataPoint[] keyPts = keyStep.dataPoints[1];
+    		DataPoint[] pts = step.dataPoints[1];
+      	if (keyPts.length!=pts.length) {
+      		changed = true;
+      		pts = new DataPoint[keyPts.length];
+        	for (int i=0; i<pts.length; i++) {
+        		DataPoint next = keyPts[i];
+        		pts[i] = next==null? null: step.new DataPoint(next.x, next.y);
+        	}
+        	step.dataPoints[1] = pts;
+      	}
+      	else { // arrays have same length
+    	  	for (int i=0; i<pts.length; i++) {
+    	  		if (keyPts[i]==null) {
+    	  			changed = changed || pts[i]!=null;
+    	  			pts[i] = null;
+    	  		}
+    	  		else {
+    	  			if (pts[i]==null) {
+    	  				changed = true;
+    	  				pts[i] = step.new DataPoint(0, 0);
+    	  			}
+    	  			changed = changed || keyPts[i].x!=pts[i].x || keyPts[i].y!=pts[i].y;
+    	  			pts[i].setLocation(keyPts[i]);
+    	  		}
+    	  	}
+      	}
+    	}    	
+    }
+    
+  	// refresh user-marked points: compare step with keyStep
   	CircleFitterStep keyStep = getKeyStep(step);
   	if (keyStep==step) {
+      if (changed) {
+      	step.refreshCircle();
+      }
   		return;
   	}
-  	boolean different = keyStep.dataPoints.size()!=step.dataPoints.size();
-  	// compare locations of data points
+  	boolean different = keyStep.dataPoints.length!=step.dataPoints.length;
   	if (!different) {
-  		for (int i=0; i<keyStep.dataPoints.size(); i++) {
-  			TPoint p1 = keyStep.dataPoints.get(i);
-  			TPoint p2 = step.dataPoints.get(i);
-  			different = different || p1.x!=p2.x || p1.y!=p2.y;
+  		different = keyStep.dataPoints[0].length!=step.dataPoints[0].length;
+  	}
+  	// compare locations of user-marked data points
+  	if (!different) {
+  		DataPoint[] keyPts = keyStep.dataPoints[0];
+  		DataPoint[] pts = step.dataPoints[0];
+  		for (int i=0; i<keyPts.length; i++) {
+  			DataPoint p1 = keyPts[i];
+  			DataPoint p2 = pts[i];
+  			if (p1==null) {
+  				if (p2==null) continue;
+  				different = true;
+  			}
+  			else if (p2==null) {
+  				different = true;
+  			}
+  			if (!different) {
+  				different = different || p1.x!=p2.x || p1.y!=p2.y;
+  			}
+  			if (different) break;
+				
   		}
   	}
     // update step if needed
     if (different) {
-    	step.copy(keyStep);
+    	step.copy(keyStep); // copies only user-marked points
     }
-    if (step.slider.x!=keyStep.slider.x || step.slider.y!=keyStep.slider.y) {
-    	step.slider.setLocation(keyStep.slider);
-    	repaint();
+    else if (changed) {
+    	step.refreshCircle();
     }
   }
   
@@ -862,6 +1171,7 @@ public class CircleFitter extends TTrack {
    * Refreshes the toolbar fields.
    */
   protected void refreshFields(int frameNumber) {
+  	if (trackerPanel==null) return;
     CircleFitterStep step = (CircleFitterStep)getStep(frameNumber);
    	magField.setValue(step.getWorldRadius());
     Point2D worldPt = step.getWorldCenter();
@@ -873,9 +1183,8 @@ public class CircleFitter extends TTrack {
 	    worldPt = p.getWorldPosition(trackerPanel);
 	    xDataField.setValue(worldPt.getX());
 	    yDataField.setValue(worldPt.getY());
-   	}
-   	else if (p==step.slider) {
-   		angleField.setValue(step.getSliderAngle());
+	    xDataField.setEnabled(!p.isAttached() && !isLocked());
+	    yDataField.setEnabled(!p.isAttached() && !isLocked());
    	}
   }
   
@@ -893,6 +1202,29 @@ public class CircleFitter extends TTrack {
 	  	}
   	}
   	return (CircleFitterStep)steps.getStep(key);
+  }
+  
+  /**
+   * Loads the attachments for this track.
+   * 
+   * @param refresh true to refresh attachments after loading
+   */
+  @Override
+  protected boolean loadAttachmentsFromNames(boolean refresh) {
+  	boolean loaded = super.loadAttachmentsFromNames(false);
+  	if (!loaded && stepAttachmentName==null) return false;
+
+		TTrack track = trackerPanel.getTrack(stepAttachmentName);
+  	if (track!=null) {
+  		loaded = true;
+  		attachmentForSteps = new TTrack[] {track};
+  		stepAttachmentName = null;
+  	} 		
+  	
+  	if (loaded && refresh) {
+ 	  	refreshAttachmentsLater();
+  	}
+  	return loaded;
   }
   
   /**
@@ -942,238 +1274,7 @@ public class CircleFitter extends TTrack {
     // post undoable edit
     Undo.postCoordsEdit(trackerPanel, control);
   }
-  
-  protected CircleFitterInspector getInspector() {
-  	if (inspector==null) {
-  		inspector = new CircleFitterInspector();
-  	}
-  	inspector.refreshDisplay();
-  	return inspector;
-  }
-    
-//__________________________ inner classes ___________________________
-  
-  /**
-   * Inner CircleFitterInspector class to control source track and frames.
-   */
-  protected class CircleFitterInspector extends JDialog {
-  	
-  	private JTextArea textPane;
-  	private JComboBox trackDropdown;
-  	private JSpinner startStepSpinner, endStepSpinner;
-  	private JLabel dropdownLabel, startLabel, endLabel;
-  	private JButton copyButton, closeButton;
-  	private boolean refreshing;
-  	
-    /**
-     * Constructs the CircleFitterInspector.
-     */
-    public CircleFitterInspector() {
-      super(trackerPanel.getTFrame(), false);
-//      setResizable(false);
-      createGUI();
-      refreshDisplay();
-      // center on screen
-      Rectangle rect = getBounds();
-      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-      int x = (dim.width-rect.width)/2;
-      int y = (dim.height-rect.height)/2;
-      setLocation(x, y);
-    }
-
-    /**
-     * Creates the visible components.
-     */
-    void createGUI() {
-    	// initialize sourceStartFrame and sourceEndFrame
-    	setSourceStartStep(0);
-    	setSourceEndStep(trackerPanel.getPlayer().getVideoClip().getStepCount()-1);
-      // create components
-    	
-      // create text area for hints
-      textPane = new JTextArea() {
-      	@Override
-      	public Dimension getPreferredSize() {
-      		Dimension dim = super.getPreferredSize();
-      		int n = (int)(250*FontSizer.getFactor());
-      		dim.width = Math.max(n, dim.width);
-      		return dim;
-      	}
-      };
-      textPane.setEditable(false);
-      textPane.setLineWrap(true);
-      textPane.setWrapStyleWord(true);
-    	Border etched = BorderFactory.createEtchedBorder();
-    	Border empty = BorderFactory.createEmptyBorder(2,4,2,4);
-    	textPane.setBorder(BorderFactory.createCompoundBorder(etched, empty));
-      textPane.setForeground(Color.blue);
-
-    	
-      trackDropdown = new JComboBox() {
-        public Dimension getPreferredSize() {
-      		Dimension dim = super.getPreferredSize();
-      		dim.height-=1;
-      		return dim;
-        }
-      };
-      trackDropdown.setRenderer(new TrackRenderer());
-      
-      SpinnerModel spinModel = new SpinnerNumberModel(sourceStartStep, 0, sourceEndStep, 1);
-      startStepSpinner = new JSpinner(spinModel);
-      ChangeListener listener = new ChangeListener() {
-        public void stateChanged(ChangeEvent e) {
-        	if (refreshing) return;
-          int in = (Integer)startStepSpinner.getValue();
-          if (in==sourceStartStep) {
-          	return;
-          }
-          setSourceStartStep(in);
-        }
-    	};
-    	startStepSpinner.addChangeListener(listener);
-
-      int last = trackerPanel.getPlayer().getVideoClip().getStepCount()-1;
-      spinModel = new SpinnerNumberModel(sourceEndStep, sourceStartStep, last, 1);
-      endStepSpinner = new JSpinner(spinModel);
-      listener = new ChangeListener() {
-        public void stateChanged(ChangeEvent e) {
-        	if (refreshing) return;
-          int in = (Integer)endStepSpinner.getValue();
-          if (in==sourceEndStep) {
-          	return;
-          }
-          setSourceEndStep(in);
-        }
-    	};
-    	endStepSpinner.addChangeListener(listener);
-    	
-    	dropdownLabel = new JLabel();
-    	dropdownLabel.setBorder(BorderFactory.createEmptyBorder(0,4,0,4));
-    	startLabel = new JLabel();
-    	startLabel.setBorder(BorderFactory.createEmptyBorder(0,4,0,4));
-    	endLabel = new JLabel();
-    	endLabel.setBorder(BorderFactory.createEmptyBorder(0,4,0,4));
-    	
-    	copyButton = new JButton();
-    	copyButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          Object[] item = (Object[])trackDropdown.getSelectedItem();
-          if (item!=null) {
-          	for (PointMass next: trackerPanel.getDrawables(PointMass.class)) {
-          		if (item[1].equals(next.getName())) {
-          			copySourceStepPositions(next);
-          			refreshGUI();
-          		}
-          	}
-          }
-        }
-      });
-
-      closeButton = new JButton();
-      closeButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          inspector.setVisible(false);
-        }
-      });
-      
-    	JPanel contentPane = new JPanel(new BorderLayout());
-      setContentPane(contentPane);
-      
-      JPanel centerPanel = new JPanel(new BorderLayout());
-      contentPane.add(centerPanel, BorderLayout.CENTER);
-      
-      centerPanel.add(textPane, BorderLayout.NORTH);
-
-      JPanel sourcePanel = new JPanel(new BorderLayout());
-      centerPanel.add(sourcePanel, BorderLayout.CENTER);
-      
-      JPanel dropdownPanel = new JPanel();
-      dropdownPanel.setBorder(BorderFactory.createEmptyBorder(8,4,4,4));
-      dropdownPanel.add(dropdownLabel);
-      dropdownPanel.add(trackDropdown);
-      sourcePanel.add(dropdownPanel, BorderLayout.NORTH);
-      
-      JPanel spinnerPanel = new JPanel();
-      spinnerPanel.setBorder(BorderFactory.createEmptyBorder(4,4,8,4));
-      spinnerPanel.add(startLabel);
-      spinnerPanel.add(startStepSpinner);
-      spinnerPanel.add(endLabel);
-      spinnerPanel.add(endStepSpinner);
-      sourcePanel.add(spinnerPanel, BorderLayout.SOUTH);
-      
-      JPanel buttonPanel = new JPanel();
-      buttonPanel.setBorder(etched);
-      buttonPanel.add(copyButton);
-      buttonPanel.add(closeButton);
-      contentPane.add(buttonPanel, BorderLayout.SOUTH);
-
-    	refreshGUI();
-    }
-    
-    /**
-     * Refreshes the visible components.
-     */
-    public void refreshGUI() {
-      setTitle(TrackerRes.getString("CircleFitter.Name")+" \""+CircleFitter.this.getName()+"\""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-    	dropdownLabel.setText(TrackerRes.getString("CircleFitter.Inspector.Label.SourceTrack")); //$NON-NLS-1$
-    	startLabel.setText(TrackerRes.getString("CircleFitter.Inspector.Label.From")); //$NON-NLS-1$
-    	endLabel.setText(TrackerRes.getString("CircleFitter.Inspector.Label.To")); //$NON-NLS-1$
-    	String info = TrackerRes.getString("CircleFitter.Inspector.Instructions1") //$NON-NLS-1$
-    			+"  "+TrackerRes.getString("CircleFitter.Inspector.Instructions2"); //$NON-NLS-1$ //$NON-NLS-2$
-    	textPane.setText(info);
-    	copyButton.setText(TrackerRes.getString("CircleFitter.Inspector.Button.Apply")); //$NON-NLS-1$
-    	closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
-      pack();
-    }
-
-    /**
-     * Updates this inspector to reflect the current settings.
-     */
-    void refreshDisplay() {
-      ArrayList<PointMass> trackList = trackerPanel.getDrawables(PointMass.class);
-      copyButton.setEnabled(!trackList.isEmpty() && !isLocked());
-    	
-    	// update trackDropdown
-      Object toSelect = null;
-      refreshing = true;
-      trackDropdown.removeAllItems();
-      
-      if (trackList.isEmpty()) {
-        Object[] item = new Object[] {null, TrackerRes.getString("CircleFitter.Inspector.Dropdown.None")};  //$NON-NLS-1$
-        trackDropdown.addItem(item);
-        toSelect = item;
-      }
-      else for (PointMass next: trackList) {
-      	Icon icon = next.getFootprint().getIcon(21, 16);
-        Object[] item = new Object[] {icon, next.getName()};
-        trackDropdown.addItem(item);
-        if (next==sourceTrack) {
-        	toSelect = item;
-        }
-      }
-      // select desired item
-      if (toSelect!=null) {
-      	trackDropdown.setSelectedItem(toSelect);
-      }
-      else {
-      	trackDropdown.setSelectedIndex(0);
-      }
-      refreshing = false;  
-      // resize and pack
-      FontSizer.setFonts(this, FontSizer.getLevel());
-      pack();
-    }
-    
-    @Override
-    public void setVisible(boolean vis) {
-    	super.setVisible(vis);
-    	inspectorVisible = vis;
-    }
-
-  }
-
-
-  
+   
 //__________________________ static methods ___________________________
 
   /**
@@ -1204,30 +1305,46 @@ public class CircleFitter extends TTrack {
       control.setValue("fixed", circleFitter.isFixed()); //$NON-NLS-1$
       // save steps
       Step[] steps = circleFitter.getSteps();
-      int count = steps.length;
-      if (circleFitter.isFixed()) count = 1;
-      double[][] data = new double[count][];
-      for (int n = 0; n < count; n++) {
+      ArrayList<double[]> dataList = new ArrayList<double[]>();
+      for (int n = 0; n < steps.length; n++) {
       	// save only key frames
         if (steps[n] == null || !circleFitter.keyFrames.contains(n)) continue;
         CircleFitterStep step = (CircleFitterStep)steps[n];
-        int len = step.dataPoints.size();
+        DataPoint[] pts = step.dataPoints[0];
+        int len = pts.length;
+        // data array: first element = frame number, 
+        // remaining elements = (x,y) user-marked data point positions 
         if (len==0) {
-          data[n] = new double[] {n};
+          dataList.add(new double[] {n});
         	continue;
         }
-        double[] stepData = new double[2*len+3];
+        double[] stepData = new double[2*len+1];
         stepData[0] = n;
         for (int i=0; i<len; i++) {
-        	DataPoint p = step.dataPoints.get(i);
+        	DataPoint p = pts[i];
         	stepData[2*i+1] = p.x;
         	stepData[2*i+2] = p.y;
         }
-        stepData[stepData.length-2] = step.slider.x;
-        stepData[stepData.length-1] = step.slider.y;
-        data[n] = stepData;
+        dataList.add(stepData);
       }
+      double[][] data = dataList.toArray(new double[dataList.size()][]);
       control.setValue("framedata", data); //$NON-NLS-1$
+      
+      // save attachment data (attachments array saved by TTrack)
+      if (circleFitter.attachToSteps) {
+      	control.setValue("attach_to_steps", true); //$NON-NLS-1$
+      }
+      if (circleFitter.isRelativeFrameNumbers) {
+      	control.setValue("relative_frames", true); //$NON-NLS-1$
+      }
+      control.setValue("absolute_start", circleFitter.absoluteStart); //$NON-NLS-1$
+      control.setValue("attachment_framecount", circleFitter.attachmentFrameCount); //$NON-NLS-1$
+      control.setValue("relative_start", circleFitter.relativeStart); //$NON-NLS-1$
+      // save step attachment track name
+      if (circleFitter.attachmentForSteps!=null && circleFitter.attachmentForSteps.length>0
+      		&& circleFitter.attachmentForSteps[0]!=null) {
+      	control.setValue("step_attachment", circleFitter.attachmentForSteps[0].getName()); //$NON-NLS-1$
+      }
     }
 
     /**
@@ -1248,6 +1365,16 @@ public class CircleFitter extends TTrack {
      * @return the loaded object
      */
     public Object loadObject(XMLControl control, Object obj) {
+    	// check version
+      double version = 4.91;
+      XMLProperty parent = control.getParentProperty();
+      while (parent!=null) {
+      	if (parent.getPropertyName().equals("TrackerPanel") && parent instanceof XMLControl) { //$NON-NLS-1$
+      		XMLControl trackerControl = (XMLControl)parent;
+      		version = trackerControl.getDouble("version"); //$NON-NLS-1$
+      	}
+      	parent = parent.getParentProperty();
+      }
     	CircleFitter circleFitter = (CircleFitter)obj;
       // load track data
       XML.getLoader(TTrack.class).loadObject(control, obj);
@@ -1255,27 +1382,56 @@ public class CircleFitter extends TTrack {
       circleFitter.setLocked(false);
       // load fixed property
       circleFitter.fixedPosition = control.getBoolean("fixed"); //$NON-NLS-1$
-      // load step data
+      // load attachment data
+      circleFitter.attachToSteps = control.getBoolean("attach_to_steps"); //$NON-NLS-1$
+      circleFitter.isRelativeFrameNumbers = control.getBoolean("relative_frames"); //$NON-NLS-1$
+      if (control.getPropertyNames().contains("absolute_start")) //$NON-NLS-1$
+      	circleFitter.absoluteStart = control.getInt("absolute_start"); //$NON-NLS-1$
+      if (control.getPropertyNames().contains("attachment_framecount")) //$NON-NLS-1$
+      	circleFitter.attachmentFrameCount = control.getInt("attachment_framecount"); //$NON-NLS-1$
+      if (control.getPropertyNames().contains("relative_start")) //$NON-NLS-1$
+      	circleFitter.relativeStart = control.getInt("relative_start"); //$NON-NLS-1$
+       // load step attachment track
+      String name = control.getString("step_attachment"); //$NON-NLS-1$
+      if (name!=null) {
+      	circleFitter.stepAttachmentName = name;
+      }
+      
+      // load step data for key frames
       circleFitter.keyFrames.clear();
     	circleFitter.keyFrames.add(0);
       double[][] data = (double[][])control.getObject("framedata"); //$NON-NLS-1$
       for (int i = 0; i < data.length; i++) {
         if (data[i] == null || data[i].length<1) continue;
+        
+        // first element in the array is the frame number (as double)
         int n = (int)data[i][0];
-        CircleFitterStep step = (CircleFitterStep)circleFitter.getStep(n);
-        step.dataPoints.clear();
-        if (data[i].length==1) {
-    	    step.refreshCircle();
+      	circleFitter.keyFrames.add(n);
+      	if (n>0) {
+          circleFitter.fixedPosition = false; // must be false
+      	}
+        CircleFitterStep step = (CircleFitterStep)circleFitter.steps.getStep(n);
+
+        // remaining elements are DataPoint (x, y) pairs
+        int prevCount = step.dataPoints[0].length;
+        if (data[i].length==1) { // no data points
+	        step.dataPoints[0] = new DataPoint[0];
+        	if (prevCount>0) {
+        		step.refreshCircle(); // refresh only if changed
+        	}
         	continue;
-        }
-        int pointCount = (data[i].length-3)/2;
+        }      
+        
+        // data saved with version 4.91 includes deprecated slider after data points
+        int pointCount = version<4.92? (data[i].length-3)/2: (data[i].length-1)/2;
+        DataPoint[] loadedPoints = new DataPoint[pointCount];
         for (int j=0; j<pointCount; j++) {
-        	step.addDataPoint(data[i][2*j+1], data[i][2*j+2], false);
+        	loadedPoints[j] = step.new DataPoint(data[i][2*j+1], data[i][2*j+2]);
         }
-        // refresh circle and set slider position
-  	    step.refreshCircle();
-        int last = data[i].length-1;
-    		step.slider.setLocation(data[i][last-1], data[i][last]);
+        step.dataPoints[0] = loadedPoints;
+        
+        // refresh circle
+  	    step.refreshCircle();  	    
       }
       circleFitter.setLocked(locked);
 	  	circleFitter.dataValid = false;

@@ -12,25 +12,53 @@
 		<h1>Circle Fitter</strong></h1>
 		<p align="center"><img src="../help_images/circle_fitter.gif" alt="Circle Fitter"></p>
 
-		<p>A <strong>circle fitter</strong> track is a tool for fitting circles and finding their centers.  It requires at least 3 data points, but can  fit a circle to any number of points. Points can be marked manually or copied from a point mass source.</p>
+		<p>A <strong>circle fitter</strong> track is a tool for fitting circles and finding their radii and centers.  It requires at least three data points, but can  fit a circle to any number of points. Points can be marked manually or attached automatically to point masses. Once a circle is fit you can instantly move the coordinate system origin to the circle center(s) with a menu item.</p>
 		<p>To create a circle fitter, click the <strong>Create</strong> button <img src="../help_images/create_button.gif" align="absmiddle"> and choose <strong>Measuring Tools|Circle Fitter</strong> from the popup menu. Multiple circle fitters can be created as needed.</p>
         
 		<h3>1. Fitting a circle</h3>
-		<p>At least 3 data points are required to fit a circle.  To mark points manually, shift-click the video repeatedly along a circular path. You can mark as many points as you wish; all points are weighted equally in the fit. To move a marked point, select it and drag with the mouse or nudge it using the arrow keys.</p>
-		<p>Once 3 or more data points have been marked, the radius and center position of the best fit circle is displayed on the toolbar as shown below. Also, if a data point is selected, its position is displayed and you can enter a desired position directly in the x or y toolbar fields.</p>
-<p align="center"><img src="../help_images/circle_fitter_display.gif" alt="circle fitter toolbar fields" align="bottom">
+		<p>At least three data points are required to fit a circle.  When a circle is fit, its radius and center position are displayed on the toolbar as shown below. When a data point is selected, its position is also displayed.</p>
+<p align="center"><img src="../help_images/circle_fitter_display.gif" alt="circle fitter toolbar" align="bottom">
 </p>
+<p>There are two ways to create data points: (a) <strong>mark the points manually</strong> using the mouse, or (b) <strong>attach the points automatically</strong> to point masses. The marked  and attached  data points  are weighted equally when fitting a circle.</p>
         
-		<h3>2. Unfixing the circle</strong></h3>
-		<p>By default, the circle fitter has a <strong>fixed position</strong>--that is, the data point positions and fitted circle center and radius are the same in all frames. Uncheck the <strong>Fixed Position</strong> checkbox in its track menu to allow these properties to vary independently from frame to frame.</p>
+		<h3>2. Marking data points</h3>
+<p>To mark points manually, shift-click a video frame repeatedly along a circular path. You can mark as many points as you wish; all points are weighted equally in the fit. To move a marked point, select it and drag with the mouse or nudge it using the arrow keys. Also, for marked points you can select them and enter a desired position directly in the x or y toolbar fields as shown above.</p>
         
-	<h3>3. Copying data points from a point mass source</h3>
-        <p>It is often useful to fit a circle to the path of a existing point mass track. You can do this easily by copying some or all of the point mass step positions using the<strong> </strong>dialog shown below. The dialog is displayed automatically when the circle fitter is first created. To redisplay the dialog after closing it, choose the <strong>Copy Point Mass Steps... </strong>item in the circle fitter's track menu. To copy data points, select the desired point mass source from the dropdown list, set the desired step range, and click the <strong>Copy Steps</strong> button. Note: copied data points are not &quot;attached&quot; to the original point mass positions--i.e., the circle fitter points can be moved or deleted without affecting the point mass positions, and vice versa. </p>
-        <p align="center"><img src="../help_images/circle_fitter_dialog.gif" alt="circle fitter dialog to copy point mass steps"></p>
-        <h3>4. Moving the coordinate system origin to the circle center</h3>
-        <p>To move the origin of the coordinate system to the center of the circle in every frame, choose the <strong>Move Origin to Center </strong> item in the circle fitter's track menu<a href="tracks.html#trackmenu"></a>. This is particularly useful when the center of the circle is outside the video frame (e.g., a video of a pendulum bob that does not include the support).</p>
-<h3>5. Locking the circle fitter</h3>
-		<p>Locking the circle fitter prevents any changes to the data points or circle. Lock the circle fitter by turning on the <strong>Locked</strong> property in its <a href="tracks.html#trackmenu">track menu</a>.</p>
+<h3>3. Fixed vs unfixed points</h3>
+<p>By default, marked data points have a <strong>fixed position</strong>--that is, they are identical in all frames (steps). This means that every step contains the same data points (and resulting best-fit circle), and moving a point in any step affects all.</p>
+<p>Of course there are many videos in which a circular object or path of interest changes with frame or time. You can  track those changes with marked points only if the circle fitter is first <strong>unfixed</strong>. To unfix a circle fitter, uncheck the <strong>Fixed Position</strong> checkbox in its track menu. (<strong>Note</strong>: it is often easier to track changing circles with <em>attached</em> data points as described in section 4.)</p>
+		<p>Once the circle fitter is unfixed, marked data points behave as follows:</p>
+		<ul>
+		  <li>If a point is changed in a particular step then that step becomes a <strong>key step</strong>. </li>
+		  <li>Changes in a key step also change later steps up to the next key step but  have no effect on earlier steps. </li>
+    </ul>
+<h3><a name="attach"></a>4. Attaching data points</h3>
+<p>The circle fitter can automatically <strong>create and attach data points</strong> to existing <a href="pointmass.html">point mass</a> tracks including <a href="cm.html">centers of mass</a>, <a href="particles.html">particle models</a> and <a href="datatrack.html">data tracks</a>. Marked data points (section 2) are not affected and continue to be included in the fit along with the attached points.</p>
+        <p>To attach points, open the <strong>Attach Points</strong> dialog shown below by choosing the <strong>Attach Points...</strong> menu item from its track menu.</p>
+    <p align="center"><img src="../help_images/circle_fitter_attachments_dialog.gif" alt="circle fitter attachments dialog"></p>
+        <p>There are two options for attaching data points:</p>
+        <ul>
+          <li><strong>Multiple tracks</strong>: each step of the circle fitter attaches one data point to the corresponding step in each of several point mass tracks. If at least three tracks are attached, the circle will be fit in every marked frame. This is useful for fitting circles that change over time (frame number) if you can track the edge of the circle at several places.</li>
+          <li><strong>Single track</strong>: the circle fitter attaches data points to multiple steps in a single track. When you select this option additional frame number controls are displayed as shown below.</li>
+        </ul>
+    <p align="center">
+    	<img src="../help_images/circle_fitter_attachments_dialog2.gif" alt="circle fitter attachments dialog">
+    	<img src="../help_images/spacer.gif">
+   	  <img src="../help_images/circle_fitter_attachments_dialog3.gif" alt="circle fitter attachments dialog">
+    </p>
+        <p>The fields define the range of frame numbers to which data points will be attached (if the point mass positions are marked). If at least three points are attached then the circle will be fit. <strong>Note</strong>: the maximum frame count is 20 since little is gained by fitting circles to large numbers of data points.</p>
+    <p>The frame numbers can be <strong>absolute</strong> or <strong>relative</strong>: </p>
+        <ul>
+          <li><strong>absolute</strong>: the circle fitter uses frames within a defined absolute range for every step, so every step uses the same data points and fits the same circle. For example, in the case shown on the left every circle fitter step will attach to point mass steps (10, 11, 12, 13, 14). This is useful when you expect the circle to remain constant with time (e.g. a pendulum from a fixed support) or when analyzing a still image.</li>
+          <li><strong>relative</strong>: the circle fitter uses frames within a defined range<em> relative to each step</em>, so each step fits a different circle. For example, in the case shown on the right the circle fitter step 5 will attach to point mass steps (3, 4, 5, 6, 7), circle fitter step 6 will attach to point mass steps (4, 5, 6, 7, 8) and so on. This is useful when you want to measure a changing radius of curvature and/or center point along a track.</li>
+        </ul>
+<h3>5. Viewing and selecting data points</h3>
+        <p>The circle fitter toolbar includes a button that displays the number of data points in the current step and enables you to identify and select the points. To see a popup menu listing all points, click the data points button. Moving the mouse over a menu item temporarily selects the corresponding point on the video so you can easily find it; selecting the menu item leaves the point selected.</p>
+    <p align="center"><img src="../help_images/circle_fitter_select_points.gif" alt="selecting circle fitter points"></p>
+<h3>6. Moving the coordinate system origin to the circle center</h3>
+<p>To move the origin of the coordinate system to the center of the circle in every frame, choose the <strong>Move Origin to Center </strong> item in the circle fitter's track menu<a href="tracks.html#trackmenu"></a>. This is particularly useful when the center of the circle is outside the video frame (e.g., a video of a pendulum bob that does not include the support).</p>
+<h3>7. Locking the circle fitter</h3>
+		<p>Locking the circle fitter prevents any changes to the marked data points. Attached points can still affect the circle, however. Lock the circle fitter by turning on the <strong>Locked</strong> property in its <a href="tracks.html#trackmenu">track menu</a>.</p>
 	</body>
 
 </html>

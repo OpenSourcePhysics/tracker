@@ -99,6 +99,7 @@ public class TrackControl extends JDialog
     trackerPanel.addPropertyChangeListener("mass", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("data", this); //$NON-NLS-1$
+//    trackerPanel.addPropertyChangeListener("color", this); //$NON-NLS-1$
   }
 
 	public Dimension getPreferredSize() {

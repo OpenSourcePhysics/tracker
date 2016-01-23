@@ -153,7 +153,11 @@ public class ExportVideoDialog extends JDialog {
   	}
   	// set dropdowns to Main View, Video only, full size
   	viewDropdown.setSelectedIndex(0);
-  	contentDropdown.setSelectedIndex(1);
+  	try {
+			contentDropdown.setSelectedIndex(1);
+		} catch (Exception e) {
+			contentDropdown.setSelectedIndex(0);
+		}
   	sizeDropdown.setSelectedIndex(0);
   	// render
     VideoType format = formats.get(formatDropdown.getSelectedItem());

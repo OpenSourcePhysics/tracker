@@ -74,7 +74,7 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
 	protected Shape crosshatch;
 	protected int markerSize;
 	protected Point selectedPoint;
-	protected boolean drawRadius;
+	protected int markedPointCount;
 
   /**
    * Constructs a CircleFitterFootprint.
@@ -228,18 +228,9 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
   }
   
   /**
-   * Sets the flag to draw a line from the center to the slider.
+   * Sets the radius of the datapoint circle.
    *
-   * @param drawRadius true to draw a line
-   */
-  protected void setDrawRadialLine(boolean drawRadius) {
-  	this.drawRadius = drawRadius;
-  }
-
-  /**
-   * Sets the radius of the circle.
-   *
-   * @param drawRadialLine true to draw a line
+   * @param r the radius
    */
   protected void setPixelRadius(double r) {
   	radius = r;
@@ -256,8 +247,17 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
   }
   
   /**
-   * Gets the shape of this footprint for a Point array {center, edge, slider, data1, data2, ...}.
-   * Also sets up hit shapes {circle, data1, data2, ...}
+   * Sets the marked point count. Marked points are drawn differently than attached points.
+   *
+   * @param n the number of user-marked points in the step
+   */
+  protected void setMarkedPointCount(int n) {
+  	markedPointCount = n;
+  }
+  
+  /**
+   * Gets the shape of this footprint for a Point array {center, edge, data0, data1, ...}.
+   * Also sets up hit shapes {circle, center, data1, data2, ...}
    *
    * @param points an array of Points
    * @return the shape
@@ -272,18 +272,15 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
   		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
   	}
         
-    // draw shapes only if there are 3 or more data points (plus center, edge and slider)
-    if (points.length<6) {
-	    hitShapes.add(emptyHitShape);  // add empty hit shape in place of circle
-    }
-    else {
+    // draw shapes only if there are 3 or more data points (plus center & edge)
+    if (points.length>=5) {
     	// special case: infinite or very large radius, so draw straight line thru edge
     	if (Double.isInfinite(radius) || radius>MAX_RADIUS) {
     		double x = edge.getX();
     		double y = edge.getY();
     		// get slope of line
-      	double dx = points[4].getX()-points[3].getX();
-      	double dy = points[4].getY()-points[3].getY();
+      	double dx = points[3].getX()-points[2].getX();
+      	double dy = points[3].getY()-points[2].getY();
       	double slope = dy/dx;
       	// draw long line to extend past window bounds
       	double len = MAX_RADIUS/10;
@@ -300,18 +297,12 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
       	}
 		    drawMe.add(new Area(stroke.createStrokedShape(line)));
 		    hitShapes.add(hitStroke.createStrokedShape(line));
-		    
-		    // perpendicular line
-		    if (drawRadius) {
-		      Point slider = points[2];
-		      transform.setToRotation(Math.PI/2, slider.x, slider.y);
-			    drawMe.add(new Area(stroke.createStrokedShape(transform.createTransformedShape(line))));
-		    }
     	}
-    	else {
+    	else { // standard case
 	    	// circle
 	      circle.setFrameFromCenter(center.x, center.y, center.x+radius, center.y+radius);
 		    drawMe.add(new Area(stroke.createStrokedShape(circle)));
+		    hitShapes.add(stroke.createStrokedShape(circle));
 	    
 	    	// center
 	      transform.setToTranslation(points[0].x, points[0].y);
@@ -320,32 +311,29 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
 	      }
 	      Shape s = transform.createTransformedShape(marker);
 	      drawMe.add(new Area(stroke.createStrokedShape(s)));
+		    hitShapes.add(stroke.createStrokedShape(s)); // center hit shape
 	      s = transform.createTransformedShape(crosshatch);
-	      drawMe.add(new Area(stroke.createStrokedShape(s)));
-	    
-		    // radial line
-	      Point slider = points[2];
-	    	int dx = slider.x-center.x, dy = slider.y-center.y;
-	    	line.setLine(center.x+dx/4, center.y+dy/4, slider.x, slider.y);
-		    hitShapes.add(hitStroke.createStrokedShape(line));
-		    if (drawRadius) {
-			    line.setLine(center, slider);
-			    drawMe.add(new Area(stroke.createStrokedShape(line)));
-		    }
+	      drawMe.add(new Area(stroke.createStrokedShape(s)));	    
     	}
     }
         
     // always draw data points
-    for (int i=3; i<points.length; i++) {
+    for (int i=2; i<points.length; i++) {
       transform.setToTranslation(points[i].x, points[i].y);
       if (scale>1) {
       	transform.scale(scale, scale);
       }
       if (points[i]!=selectedPoint) {
 	      Shape s = transform.createTransformedShape(marker);
-	      drawMe.add(new Area(stroke.createStrokedShape(s)));
+      	drawMe.add(new Area(stroke.createStrokedShape(s)));
+	      if (i>=2+markedPointCount) {
+	      	drawMe.add(new Area(s));
+	      }
       }
       hitShapes.add(transform.createTransformedShape(hitShape));
+    }
+    while (hitShapes.size()<2) {
+	    hitShapes.add(emptyHitShape);  // add empty hit shapes to pad
     }
     
     return drawMe;

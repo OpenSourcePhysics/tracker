@@ -67,8 +67,8 @@ public class TrackerStarter {
 	public static final String TRACKER_RELAUNCH = "TRACKER_RELAUNCH"; //$NON-NLS-1$	
 	public static final String LOG_FILE_NAME = "tracker_start.log"; //$NON-NLS-1$
   public static final int DEFAULT_MEMORY_SIZE = 256;
+	public static final String PREFS_FILE_NAME = ".tracker.prefs"; //$NON-NLS-1$
   
-	static String prefsFileName = ".tracker.prefs"; //$NON-NLS-1$
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
 	static String exceptions = ""; //$NON-NLS-1$
@@ -291,7 +291,7 @@ public class TrackerStarter {
   	String loadedPath = null;
   	outer: for (String path: OSPRuntime.getDefaultSearchPaths()) {
   		for (int i=0; i<2; i++) {
-  			String fileName = prefsFileName;
+  			String fileName = PREFS_FILE_NAME;
   			if (i==1) {
   				// if not found with leading dot in fileName, try without
   				fileName = fileName.substring(1);

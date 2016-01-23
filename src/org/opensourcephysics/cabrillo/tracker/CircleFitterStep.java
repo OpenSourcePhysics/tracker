@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
 import java.awt.*;
+import java.awt.event.InputEvent;
 import java.awt.geom.*;
 
 import javax.swing.SwingUtilities;
@@ -47,14 +48,16 @@ public class CircleFitterStep extends Step {
   protected static AffineTransform transform = new AffineTransform();
 	protected static TPoint endPoint1 = new TPoint(); // used for large radius case
   protected static TPoint endPoint2 = new TPoint(); // used for large radius case
-
+	protected static boolean doRefresh = true;
+	
   // instance fields
   protected CircleFitter circleFitter;
-  protected ArrayList<DataPoint> dataPoints = new ArrayList<DataPoint>();
-  protected TPoint center, edge; 
-  protected Slider slider;
+  protected DataPoint[][] dataPoints = new DataPoint[2][0];
+  protected CenterPoint center; 
+  protected TPoint edge; 
   protected double radius;
-  protected Map<TrackerPanel, Shape> lineHitShapes = new HashMap<TrackerPanel, Shape>();
+  protected Map<TrackerPanel, Shape> circleHitShapes = new HashMap<TrackerPanel, Shape>();
+  protected Map<TrackerPanel, Shape> centerHitShapes = new HashMap<TrackerPanel, Shape>();
   protected ArrayList<Map<TrackerPanel, Shape>> pointHitShapes = new ArrayList<Map<TrackerPanel, Shape>>();
   protected Shape selectedShape;
   
@@ -67,32 +70,53 @@ public class CircleFitterStep extends Step {
   public CircleFitterStep(CircleFitter track, int n) {
     super(track, n);
     circleFitter = track;
-    center = new TPoint();
+    center = new CenterPoint(0, 0);
     edge = new TPoint();
-    slider = new Slider(0, 0);
-    points = new TPoint[] {center, edge, slider};
+    points = new TPoint[] {center, edge};
     screenPoints = new Point[points.length];
   }
 
   /**
-   * Adds an data point to this step at the specified image coordinates.
+   * Sets the data point at a specified column and row. Replaces existing element, adds null elements if needed.
+   * Data is stored in array element DataPoints[col][row]
    *
-   * @param x the image x coordinate of the data point
-   * @param y the image y coordinate of the data point
+   * @param p the data point (may be null)
+   * @param column the array index
+   * @param index the array index
    * @param refreshAndPostEdit true to refresh circle, fire event and post undo edit
-   * 
+   * @param reduceArrayLengthIfNull true to eliminate null elements
    */
-  public void addDataPoint(double x, double y, boolean refreshAndPostEdit) {
-		XMLControl control = new XMLControlElement(this);
-  	if (!circleFitter.isFixed()) {
+  public void setDataPoint(DataPoint p, int column, int row, boolean refreshAndPostEdit, boolean reduceArrayLengthIfNull) {
+  	if (row<0 || column<0 || column>=dataPoints.length) return;
+		XMLControl control = new XMLControlElement(this); // for undoable edit
+		
+  	if (!circleFitter.isFixed() && refreshAndPostEdit) {
     	circleFitter.keyFrames.add(n);
 		}
-    dataPoints.add(new DataPoint(x, y));
+  	
+  	// make new array if needed
+  	if (row>=dataPoints[column].length) {
+  		int len = dataPoints[column].length;
+      DataPoint[] newPoints = new DataPoint[row+1];
+      System.arraycopy(dataPoints[column], 0, newPoints, 0, len);
+      dataPoints[column] = newPoints;
+  	}
+  	
+  	// set the array element
+  	dataPoints[column][row] = p;
+  	if (p==null && reduceArrayLengthIfNull) {
+      DataPoint[] newPoints = new DataPoint[dataPoints[column].length-1];
+      System.arraycopy(dataPoints[column], 0, newPoints, 0, row);
+      System.arraycopy(dataPoints[column], row+1, newPoints, row, dataPoints[column].length-row-1);
+      dataPoints[column] = newPoints;
+  	}
+
     if (refreshAndPostEdit) {
-	    defaultIndex = dataPoints.size()-1;
+	    defaultIndex = dataPoints[0].length-1;
 	    refreshCircle();
 	  	circleFitter.dataValid = false;
 	  	circleFitter.firePropertyChange("data", null, circleFitter); //$NON-NLS-1$
+	  	circleFitter.firePropertyChange("dataPoint", null, circleFitter); //$NON-NLS-1$
 	    if (circleFitter.trackerPanel != null) {
 	    	circleFitter.trackerPanel.changed = true;
 	    }
@@ -102,49 +126,122 @@ public class CircleFitterStep extends Step {
   }
 
   /**
-   * Removes a data point.
+   * Adds a data point at the end of the array.
+   *
+   * @param p the data point
+   * @param refreshAndPostEdit true to refresh circle, fire event and post undo edit
+   * 
+   */
+  public void addDataPoint(DataPoint p, boolean refreshAndPostEdit) {
+  	setDataPoint(p, 0, dataPoints[0].length, refreshAndPostEdit, p==null);
+  }
+
+  /**
+   * Removes a data point from the user-marked array.
    *
    * @param p the point to remove
+   * @param postUndoableEdit true to post an undoable edit
+   * @param fireEvents true to fire property change events
    */
-  public void removeDataPoint(TPoint p, boolean postUndoableEdit) {
-  	boolean found = false;
-  	for (TPoint next: dataPoints) {
-  		if (next==p) {
-  	  	found = true;
+  public void removeDataPoint(DataPoint p, boolean postUndoableEdit, boolean fireEvents) {
+  	if (p==null) return;
+  	int index = -1;
+  	for (int i=0; i<dataPoints[0].length; i++) {
+  		if (p==dataPoints[0][i]) {
+  	  	index = i;
   	  	break;
   		}
   	}
   	XMLControl control = new XMLControlElement(this);
-  	if (found) {
-  		if (!circleFitter.isFixed()) {
+  	if (index>-1) {
+  		if (!circleFitter.isFixed() && !p.isAttached()) {
       	circleFitter.keyFrames.add(n);
   		}
-	    dataPoints.remove(p);
+    	
+    	// make new array
+      DataPoint[] newPoints = new DataPoint[dataPoints[0].length-1];
+      System.arraycopy(dataPoints[0], 0, newPoints, 0, index);
+      System.arraycopy(dataPoints[0], index+1, newPoints, index, dataPoints[0].length-index-1);
+      dataPoints[0] = newPoints;
+
+	  }
+    refreshCircle();
+		if (index>-1 && postUndoableEdit) {
+			Undo.postStepEdit(this, control);
       if (circleFitter.trackerPanel != null) {
       	circleFitter.trackerPanel.changed = true;
       }
-	  }
-    refreshCircle();
-		if (found && postUndoableEdit) {
-			Undo.postStepEdit(this, control);
 		}
   	if (n==circleFitter.trackerPanel.getFrameNumber()) {
 	    repaint();
   		circleFitter.refreshFields(n);
   	}
   	circleFitter.dataValid = false;
-  	circleFitter.firePropertyChange("data", null, null); //$NON-NLS-1$
+  	if (fireEvents) {
+	  	circleFitter.firePropertyChange("data", null, null); //$NON-NLS-1$
+	  	circleFitter.firePropertyChange("dataPoint", null, circleFitter); //$NON-NLS-1$
+  	}
   	circleFitter.trackerPanel.setSelectedPoint(null);
   	TTrackBar.getTrackbar(circleFitter.trackerPanel).refresh();
   	repaint();
   }
 
+  /**
+   * Gets a data point.
+   *
+   * @param column the column: 0=marked points, 1=attached points
+   * @param row the row
+   * @return the DataPoint, or null if not found
+   */
+  public DataPoint getDataPoint(int column, int row) {
+  	if (row>=0 && column>=0 && column<dataPoints.length && dataPoints[column].length>row) {
+  		return dataPoints[column][row];
+  	}
+    return null;
+  }
+
+  /**
+   * Gets the valid data points. A point is valid if non-null. 
+   * This return points from all columns, with user-marked points (column 0) first.
+   */
+  public ArrayList<DataPoint> getValidDataPoints() {
+  	ArrayList<DataPoint> validPoints = new ArrayList<DataPoint>();
+  	for (int col=0; col<dataPoints.length; col++) {
+  		DataPoint[] pts = dataPoints[col];
+  		for (int row=0; row<pts.length; row++) {
+	  		if (pts[row]!=null) {
+	  			validPoints.add(pts[row]);
+	  		}
+  		}
+  	}
+    return validPoints;
+  }
+
+  /**
+   * Trims the attached points array to a specified length.
+   * 
+   * @param len the trimmed length
+   * @return true if any non-null points were trimmed
+   */
+  public boolean trimAttachedPointsToLength(int len) {
+  	boolean changed = false;
+  	if (len<dataPoints[1].length) {
+    	DataPoint[] newPoints = new DataPoint[len];
+    	System.arraycopy(dataPoints[1], 0, newPoints, 0, len);
+    	for (int i=len; i<dataPoints[1].length; i++) {
+    		changed = changed || dataPoints[1][i]!=null;
+    	}
+    	dataPoints[1] = newPoints;
+  	}
+  	return changed;
+  }
+
   @Override
   public TPoint getDefaultPoint() {
-  	if (dataPoints.size()>defaultIndex) {
-  		return dataPoints.get(defaultIndex);
+  	if (defaultIndex>=0 && dataPoints[0].length>defaultIndex) {
+  		return dataPoints[0][defaultIndex];
   	}
-    return slider;
+    return null;
   }
 
   @Override
@@ -155,24 +252,33 @@ public class CircleFitterStep extends Step {
     Shape hitShape;
     Interactive hit = null;
     
+  	hitShape = circleHitShapes.get(trackerPanel);
+  	if (hitShape!=null && hitShape.intersects(hitRect)) { 
+  		hit = edge;
+  	}
+    
+  	hitShape = centerHitShapes.get(trackerPanel);
+  	if (hitShape!=null && hitShape.intersects(hitRect)) { 
+  		hit = center;
+  	}
+    
     for (int i=0; i<pointHitShapes.size(); i++) {
     	Map<TrackerPanel, Shape> map = pointHitShapes.get(i);
     	if (map!=null) {
       	hitShape = map.get(trackerPanel);
-      	if (hitShape!=null && hitShape.intersects(hitRect)) {
-      		hit = dataPoints.get(i);
+      	if (hitShape!=null && hitShape.intersects(hitRect)) { 
+      		ArrayList<DataPoint> validPoints = getValidDataPoints();
+      		if (i<validPoints.size())
+      			hit = validPoints.get(i);
       	}
     	}
 
     }
     
-    if (hit==null && circleFitter.isRadialLineVisible()) {
-    	hitShape = lineHitShapes.get(trackerPanel);
-    	if (hitShape!=null && hitShape.intersects(hitRect)) {
-        hit = slider;
-    	}
-    }
-  	
+  	if (hit!=null && hit instanceof DataPoint && ((DataPoint)hit).isAttached()) {
+  		return null;
+  	}
+
     return hit;
   }
 
@@ -191,27 +297,29 @@ public class CircleFitterStep extends Step {
     if (mark==null) {
       selection = trackerPanel.getSelectedPoint();
       // assemble screen points array
-      if (screenPoints.length!=points.length+dataPoints.size()) {
-      	screenPoints = new Point[points.length+dataPoints.size()];
+      ArrayList<DataPoint> pts = getValidDataPoints();
+  		int dataCount = pts.size();
+      if (screenPoints.length!=points.length+dataCount) {
+      	screenPoints = new Point[points.length+dataCount];
       }
       Point p = null;
       for (int i = 0; i<points.length; i++) {
         screenPoints[i] = points[i].getScreenPosition(trackerPanel);
         if (selection==points[i]) p = screenPoints[i];
       }
-      for (int i = 0; i<dataPoints.size(); i++) {
-      	DataPoint next = dataPoints.get(i);
+      for (int i = 0; i<dataCount; i++) {
+      	DataPoint next = pts.get(i);
         screenPoints[i+points.length] = next.getScreenPosition(trackerPanel);
         if (selection==next) p = screenPoints[i+points.length];
       }
       
       // set up footprint
-      CircleFitterFootprint cf = (CircleFitterFootprint)footprint;
-      cf.setSelectedPoint(p);
-      cf.setDrawRadialLine(circleFitter.isRadialLineVisible()); 
-      cf.setPixelRadius(radius*trackerPanel.getXPixPerUnit()); // radius in screen pixel units
+      CircleFitterFootprint fitterFootprint = (CircleFitterFootprint)footprint;
+      fitterFootprint.setSelectedPoint(p);
+      fitterFootprint.setPixelRadius(radius*trackerPanel.getXPixPerUnit()); // radius in screen pixel units
+      fitterFootprint.setMarkedPointCount(dataPoints[0].length);
       // get footprint mark
-      mark = footprint.getMark(screenPoints);
+      mark = fitterFootprint.getMark(screenPoints);
       // make mark to draw selected point, if any
       if (p != null) {
         final Color color = footprint.getColor();
@@ -245,16 +353,17 @@ public class CircleFitterStep extends Step {
       
       // get new hit shapes
       Shape[] shapes = footprint.getHitShapes();
-      lineHitShapes.put(trackerPanel, shapes[0]);
-      if (shapes.length-1<pointHitShapes.size()) {
+      circleHitShapes.put(trackerPanel, shapes[0]);
+      centerHitShapes.put(trackerPanel, shapes[1]);
+      if (shapes.length-2<pointHitShapes.size()) {
       	pointHitShapes.clear();
       }
-      for (int i=1; i<shapes.length; i++) {
+      for (int i=2; i<shapes.length; i++) {
       	if (pointHitShapes.size()<=i-1) {
       		Map<TrackerPanel, Shape> newMap = new HashMap<TrackerPanel, Shape>();
       		pointHitShapes.add(newMap);
       	}
-      	Map<TrackerPanel, Shape> map = pointHitShapes.get(i-1);
+      	Map<TrackerPanel, Shape> map = pointHitShapes.get(i-2);
       	map.put(trackerPanel, shapes[i]);
       }
       
@@ -268,7 +377,8 @@ public class CircleFitterStep extends Step {
    * @return the radius in world units
    */
   public double getWorldRadius() {
-  	if (dataPoints.size()<3) {
+		int dataCount=getValidDataPoints().size();
+  	if (dataCount<3 || circleFitter.trackerPanel==null) {
   		return Double.NaN;
   	}
   	return radius/circleFitter.trackerPanel.getCoords().getScaleX(n);
@@ -280,47 +390,12 @@ public class CircleFitterStep extends Step {
    * @return the center point in world units
    */
   public Point2D getWorldCenter() {
-  	if (dataPoints.size()<3 || Double.isInfinite(radius) || radius>CircleFitterFootprint.MAX_RADIUS) {
+		int dataCount=getValidDataPoints().size();
+  	if (dataCount<3 || Double.isInfinite(radius) || radius>CircleFitterFootprint.MAX_RADIUS
+  			 || circleFitter.trackerPanel==null) {
   		return null;
   	}
     return center.getWorldPosition(circleFitter.trackerPanel);  	
-  }
-  
-  /**
-   * Returns the slider angle relative to the +x-axis.
-   * 
-   * @return the slider angle
-   */
-  public double getSliderAngle() {
-  	// deal with special cases
-  	if (dataPoints.size()<3 || Double.isNaN(radius) || radius>CircleFitterFootprint.MAX_RADIUS) {
-  		return Double.NaN;
-  	}
-  	double theta = -center.angle(slider);
-  	if (circleFitter.trackerPanel!=null) {
-  		theta -= circleFitter.trackerPanel.getCoords().getAngle(n);
-  	}
-  	return theta;
-  }
-
-  /**
-   * Returns the slider angle relative to the horizontal.
-   * 
-   * @return the slider angle
-   */
-  public void setSliderAngle(double theta) {
-  	double prev = getSliderAngle();
-  	if (theta==prev || Double.isNaN(prev)) return;
-  	if (circleFitter.trackerPanel!=null) {
-  		theta += circleFitter.trackerPanel.getCoords().getAngle(n);
-  	}
-  	double sin = -Math.sin(theta);
-  	double cos = Math.cos(theta);
-  	slider.setLocation(center.x+radius*cos, center.y+radius*sin);
-  	repaint();
-  	circleFitter.refreshFields(n);
-//  	circleFitter.dataValid = false;
-//  	circleFitter.firePropertyChange("data", null, null);
   }
   
   /**
@@ -329,7 +404,8 @@ public class CircleFitterStep extends Step {
    *  @return true if valid
    */
   public boolean isValidCircle() {
-  	return dataPoints.size()>2 && !Double.isInfinite(radius) 
+		int dataCount=getValidDataPoints().size();
+  	return dataCount>2 && !Double.isInfinite(radius) 
   			&& radius>0	&& radius<CircleFitterFootprint.MAX_RADIUS;
   }
 
@@ -338,33 +414,27 @@ public class CircleFitterStep extends Step {
    */
   public void refreshCircle() {
   	double prevR = radius, prevX = center.x, prevY = center.y;
-  	int len = dataPoints.size();
-		double sin = 1, cos = 0;
-  	if (!Double.isInfinite(radius) 
-  			&& radius>0  
-  			&& radius<CircleFitterFootprint.MAX_RADIUS) {
-			cos = (slider.x-center.x)/radius;
-			sin = (slider.y-center.y)/radius;
-		}
 
+  	ArrayList<DataPoint> pts = getValidDataPoints();
+		int len=pts.size();
   	TPoint p = null;
   	switch (len) {
   		case 0: 
   			break;
   		case 1:
-  			DataPoint p0 = dataPoints.get(0);
+  			DataPoint p0 = pts.get(0);
   	    center.setLocation(p0);
   	    break;
   		case 2:
-  			p0 = dataPoints.get(0);
-  			DataPoint p1 = dataPoints.get(1);
+  			p0 = pts.get(0);
+  			DataPoint p1 = pts.get(1);
   	    center.center(p0, p1);
   	    edge.setLocation(p0);
   	    break;
   		case 3:
-  			p0 = dataPoints.get(0);
-  			p1 = dataPoints.get(1);
-  			DataPoint p2 = dataPoints.get(2);
+  			p0 = pts.get(0);
+  			p1 = pts.get(1);
+  			DataPoint p2 = pts.get(2);
   	    refreshCircle(p0, p1, p2);
   	    if (circleFitter.trackerPanel!=null) {
   	    	p = circleFitter.trackerPanel.getSelectedPoint();
@@ -372,14 +442,14 @@ public class CircleFitterStep extends Step {
   	    edge.setLocation(p==p1? p1: p==p2? p2: p0);
   	    break;
   		default:
-  			refreshCircle(dataPoints);
+  			refreshCircle(pts);
       	if (Double.isInfinite(radius) || radius>CircleFitterFootprint.MAX_RADIUS) {
     	    if (circleFitter.trackerPanel!=null) {
     	    	p = circleFitter.trackerPanel.getSelectedPoint();
     	    }
-    			p0 = dataPoints.get(0);
-    			p1 = dataPoints.get(1);
-    			p2 = dataPoints.get(2);
+    			p0 = pts.get(0);
+    			p1 = pts.get(1);
+    			p2 = pts.get(2);
     	    edge.setLocation(p==p1? p1: p==p2? p2: p0);
       	}
       	else {
@@ -389,20 +459,15 @@ public class CircleFitterStep extends Step {
   	
   	boolean isVisible = circleFitter.trackerPanel!=null && n==circleFitter.trackerPanel.getFrameNumber();
   	if (radius!=prevR || center.x!=prevX || center.y!=prevY) {
-    	if (!Double.isInfinite(radius) 
-    			&& radius>0  
-    			&& radius<CircleFitterFootprint.MAX_RADIUS) {
-    		// set position of slider
-    		slider.setLocation(center.x+radius*cos, center.y+radius*sin);
-    	}
   		if (isVisible) {
   			repaint();
   		}
   		else erase();
   	}
-  	if (isVisible) {
-  		circleFitter.refreshFields(n);
-  	}
+  	
+//  	if (isVisible) {
+//  		circleFitter.refreshFields(n);
+//  	}
   }
   
   /**
@@ -547,14 +612,15 @@ public class CircleFitterStep extends Step {
   public Object clone() {
     CircleFitterStep step = (CircleFitterStep)super.clone();
     if (step != null) {
-      step.points[0] = step.center = new TPoint(center.getX(), center.getY());
+      step.points[0] = step.center = step.new CenterPoint(center.x, center.y);
       step.points[1] = step.edge = new TPoint(edge.getX(), edge.getY());
-      step.points[2] = step.slider = step.new Slider(slider.getX(), slider.getY());
-      step.lineHitShapes = new HashMap<TrackerPanel, Shape>();
+      step.circleHitShapes = new HashMap<TrackerPanel, Shape>();
       step.pointHitShapes = new ArrayList<Map<TrackerPanel, Shape>>();
-      step.dataPoints = new ArrayList<DataPoint>();
-      for (DataPoint next: dataPoints) {
-      	step.dataPoints.add(new DataPoint(next.x, next.y));
+      step.dataPoints = new DataPoint[2][0];
+      step.dataPoints[0] = new DataPoint[dataPoints[0].length];
+      for (int i=0; i<dataPoints[0].length; i++) {
+      	DataPoint p = dataPoints[0][i];
+      	step.dataPoints[0][i] = step.new DataPoint(p.x, p.y);
       }
     }
     return step;
@@ -566,20 +632,23 @@ public class CircleFitterStep extends Step {
    * @param step the step to copy
    */
   public void copy(CircleFitterStep step) {
-  	if (dataPoints.size()!=step.dataPoints.size()) {
-  		dataPoints.clear();    		
-    	for (int i=0; i<step.dataPoints.size(); i++) {
-    		dataPoints.add(new DataPoint(0, 0));
+  	// copy only marked data points--attached points set in refreshAttachments() method
+  	if (dataPoints[0].length!=step.dataPoints[0].length) {
+  		dataPoints[0] = new DataPoint[step.dataPoints[0].length];
+    	for (int i=0; i<step.dataPoints[0].length; i++) {
+    		DataPoint next = step.dataPoints[0][i];
+    		dataPoints[0][i] = next==null? null: this.new DataPoint(next.x, next.y);
     	}
   	}
-  	for (int i=0; i<step.dataPoints.size(); i++) {
-  		DataPoint source = step.dataPoints.get(i);
-  		dataPoints.get(i).setLocation(source);
+  	else {
+	  	for (int i=0; i<step.dataPoints[0].length; i++) {
+	  		if (dataPoints[0][i]!=null && step.dataPoints[0][i]!=null) {
+	  			dataPoints[0][i].setLocation(step.dataPoints[0][i]);
+	  		}
+	  	}
   	}
-    defaultIndex = dataPoints.size()-1;
-    double theta = step.getSliderAngle();
+    defaultIndex = dataPoints[0].length-1;
   	refreshCircle();
-  	setSliderAngle(theta);
   }
 
   /**
@@ -588,7 +657,11 @@ public class CircleFitterStep extends Step {
    * @return a descriptive string
    */
   public String toString() {
-    return "CircleFitterStep "+n+" [center ("+center.x+", "+center.y+"), radius "+radius+"]"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+  	String s = ""; //$NON-NLS-1$
+  	for (int i=0; i<dataPoints[0].length; i++) {
+  		s += "\n"+i+": "+dataPoints[0][i]; //$NON-NLS-1$ //$NON-NLS-2$
+  	}
+    return "CircleFitterStep "+n+" [center ("+center.x+", "+center.y+"), radius "+radius+"]"+s; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
   }
 
   /**
@@ -600,139 +673,10 @@ public class CircleFitterStep extends Step {
     return 3;
   }
 
-  //______________________ inner Slider class ________________________
-
-  class Slider extends TPoint {
-  	
-    /**
-     * Constructs a Edge with specified image coordinates.
-     *
-     * @param x the x coordinate
-     * @param y the y coordinate
-     */
-    public Slider(double x, double y) {
-      super(x, y);
-      setStepEditTrigger(true);
-    }
-
-    /**
-     * Overrides TPoint setXY method to move slider along the circle.
-     *
-     * @param x the x coordinate
-     * @param y the y coordinate
-     */
-    public void setXY(double x, double y) {
-      if (circleFitter.isFixed()) {
-      	CircleFitterStep keyStep = (CircleFitterStep)circleFitter.steps.getStep(0);
-      	keyStep.slider.setLocation(x, y); // set property of keyStep 0
-      	Point p = keyStep.slider.getScreenPosition(circleFitter.trackerPanel);
-      	keyStep.slider.setPositionOnCircle(p.x, p.y, circleFitter.trackerPanel);
-      	circleFitter.refreshStep(CircleFitterStep.this); // sets properties of this step
-      }
-      else {
-      	setLocation(x, y);
-      	Point p = getScreenPosition(circleFitter.trackerPanel);
-      	setPositionOnCircle(p.x, p.y, circleFitter.trackerPanel);
-      }
-      repaint();
-      circleFitter.refreshFields(n);
-	  	circleFitter.dataValid = false;
-      if (circleFitter.trackerPanel != null) {
-      	circleFitter.trackerPanel.changed = true;
-      }      
-    }
-
-    /**
-     * Sets the position of the slider on the circle nearest the specified
-     * screen position.
-     *
-     * @param xScreen the x screen position
-     * @param yScreen the y screen position
-     * @param trackerPanel the trackerPanel drawing this step
-     */
-    public void setPositionOnCircle(int xScreen, int yScreen, TrackerPanel trackerPanel) {
-    	
-	    if (circleFitter.isFixed() && n!=0) {
-		  	CircleFitterStep keyStep = (CircleFitterStep)circleFitter.steps.getStep(0);
-		  	keyStep.slider.setPositionOnCircle(xScreen, yScreen, trackerPanel);
-		  	return;
-		  }
-    	
-    	circleFitter.keyFrames.add(n);
-    	// check for large radius condition
-    	if (java.lang.Double.isInfinite(radius) || radius>CircleFitterFootprint.MAX_RADIUS) {
-    		if (dataPoints.size()<2) return;
-      	double dx = dataPoints.get(1).getX()-dataPoints.get(0).getX();
-      	double dy = dataPoints.get(1).getY()-dataPoints.get(0).getY();
-      	double slope = dy/dx;
-      	double len = CircleFitterFootprint.MAX_RADIUS/100;
-      	if (dx==0) { // vertical line
-      		endPoint1.setLocation(edge.x, edge.y-len);
-      		endPoint2.setLocation(edge.x, edge.y+len);
-      	}
-      	else {
-	      	if (Math.abs(dx)>Math.abs(dy)) {
-	      		endPoint1.setLocation(edge.x-len, edge.y-slope*len);
-	      		endPoint2.setLocation(edge.x+len, edge.y+slope*len);
-	      	}
-	      	else {
-	      		endPoint1.setLocation(edge.x-len/slope, edge.y-len);
-	      		endPoint2.setLocation(edge.x+len/slope, edge.y+len);
-	      	}
-      	}
-    		setPositionOnLine(xScreen, yScreen, trackerPanel, endPoint1, endPoint2);
-    		return;
-    	}
-
-      // get image coordinates of the screen point
-      if(screenPt==null) {
-        screenPt = new Point();
-      }
-      if(worldPt==null) {
-        worldPt = new Point2D.Double();
-      }
-      screenPt.setLocation(xScreen, yScreen);
-      AffineTransform toScreen = trackerPanel.getPixelTransform();
-      if(!trackerPanel.isDrawingInImageSpace()) {
-        int n = getFrameNumber(trackerPanel);
-        toScreen.concatenate(trackerPanel.getCoords().getToWorldTransform(n));
-      }
-      try {
-        toScreen.inverseTransform(screenPt, worldPt);
-      } catch(NoninvertibleTransformException ex) {
-        ex.printStackTrace();
-      }
-      // set location to nearest point on circle
-      double d = center.distance(worldPt);
-      double dx = worldPt.getX()-center.getX();
-      double dy = worldPt.getY()-center.getY();
-      double r = center.distance(edge);
-      double x = center.getX()+r*dx/d;
-      double y = center.getY()+r*dy/d;
-      setLocation(x, y);
-      repaint();
-    }
-    
-   /**
-    * Overrides TPoint method.
-    *
-    * @param adjusting true if being dragged
-    */
-   public void setAdjusting(boolean adjusting) {
-   	boolean wasAdjusting = isAdjusting();
-   	super.setAdjusting(adjusting);
-   	if (wasAdjusting && !adjusting) {
-	  	circleFitter.firePropertyChange("data", null, circleFitter); //$NON-NLS-1$
-   	}
-   }
-
-    
-  }
-
-  //______________________ inner DataPoint class ________________________
+  //______________________ inner DataPoint and CenterPoint classes ________________________
 
   class DataPoint extends TPoint {
-
+  	
     /**
      * Constructs a DataPoint with specified image coordinates.
      *
@@ -745,15 +689,6 @@ public class CircleFitterStep extends Step {
     }
 
     /**
-     * Constructs a DataPoint with coordinates equal to those of a TPoint.
-     *
-     * @param p the TPoint
-     */
-    public DataPoint(TPoint p) {
-      this(p.x, p.y);
-    }
-
-    /**
      * Overrides TPoint setXY method.
      *
      * @param x the x coordinate
@@ -761,33 +696,82 @@ public class CircleFitterStep extends Step {
      */
     public void setXY(double x, double y) {
       if (track.locked) return;
+
       if (circleFitter.isFixed()) {
-      	int pointIndex = 0;
-      	for (int i=0; i<CircleFitterStep.this.dataPoints.size(); i++) {
-      		DataPoint next = CircleFitterStep.this.dataPoints.get(i);
-      		if (next==this) {
-      			pointIndex = i;
+      	int row = 0;
+    		for (int j=0; j<dataPoints[0].length; j++) {
+      		if (this==dataPoints[0][j]) {
+      			row = j;
       			break;
       		}
       	}
       	CircleFitterStep keyStep = (CircleFitterStep)circleFitter.steps.getStep(0);
-      	while (keyStep.dataPoints.size()<=pointIndex) {
-      		keyStep.dataPoints.add(keyStep.new DataPoint(0, 0));
+      	while (keyStep.dataPoints[0].length<=row) {
+      		keyStep.addDataPoint(keyStep.new DataPoint(0, 0), false);
       	}
-      	keyStep.dataPoints.get(pointIndex).setLocation(x, y); // set property of step 0
-        keyStep.refreshCircle();
-  	    circleFitter.refreshStep(CircleFitterStep.this); // sets properties of this step
+      	keyStep.dataPoints[0][row].setLocation(x, y); // set property of step 0
+      	if (doRefresh) keyStep.refreshCircle();
+      	if (doRefresh) circleFitter.refreshStep(CircleFitterStep.this); // sets properties of this step
       }
       else {
       	setLocation(x, y);
-      	circleFitter.keyFrames.add(n);
-	      refreshCircle();
-    	} 
+      	if (!this.isAttached())
+      		circleFitter.keyFrames.add(n);
+      	if (doRefresh) refreshCircle();
+    	}
+      if (doRefresh) circleFitter.refreshFields(n);
+      
 	  	circleFitter.dataValid = false;
-	  	circleFitter.firePropertyChange("data", null, circleFitter); //$NON-NLS-1$
+	  	if (doRefresh) circleFitter.firePropertyChange("data", null, circleFitter); //$NON-NLS-1$
       if (circleFitter.trackerPanel != null) {
       	circleFitter.trackerPanel.changed = true;
       }
+    }
+
+    @Override
+    public void setScreenPosition(int x, int y, VideoPanel vidPanel, InputEvent e) {
+    	if (this.isAttached()) return; // don't drag or nudge when attached to another point
+      setScreenPosition(x, y, vidPanel);
+    }
+
+    @Override
+    public String toString() {
+    	return "DataPoint "+n+": "+super.toString(); //$NON-NLS-1$ //$NON-NLS-2$
+    }
+    
+    public Step getAttachedStep() {
+    	if (this.attachedTo!=null && CircleFitterStep.this.track.trackerPanel!=null) {
+    		ArrayList<PointMass> masses = track.trackerPanel.getDrawables(PointMass.class);
+    		for (PointMass next: masses) {
+    			Step step = next.getStep(attachedTo, track.trackerPanel);
+    			if (step!=null) return step;
+    		}
+    	}
+    	return null;
+    }
+
+  }
+  
+  class CenterPoint extends TPoint {
+  	
+    /**
+     * Constructs a CenterPoint with specified image coordinates.
+     *
+     * @param x the x coordinate
+     * @param y the y coordinate
+     */
+    public CenterPoint(double x, double y) {
+      super(x, y);
+    }
+
+    /**
+     * Overrides TPoint setXY method to prevent user dragging/nudging.
+     *
+     * @param x the x coordinate
+     * @param y the y coordinate
+     */
+    public void setXY(double x, double y) {
+      return;
     }
 
   }
@@ -815,16 +799,14 @@ public class CircleFitterStep extends Step {
     public void saveObject(XMLControl control, Object obj) {
       CircleFitterStep step = (CircleFitterStep) obj;
       // save data points
-      double[][] pointData = new double[step.dataPoints.size()][2];
-      for (int i=0; i<pointData.length; i++) {
-      	DataPoint next = step.dataPoints.get(i);
+      DataPoint[] pts = step.dataPoints[0];
+      double[][] pointData = new double[pts.length][2];
+      for (int i=0; i<pts.length; i++) {
+      	DataPoint next = pts[i];
       	double[] position = new double[] {next.x, next.y};
       	pointData[i] = position;
       }
       control.setValue("datapoints", pointData); //$NON-NLS-1$
-      // save slider position
-      double[] sliderData = new double[] {step.slider.x, step.slider.y};
-      control.setValue("slider", sliderData); //$NON-NLS-1$
     	if (step.circleFitter!=null && !step.circleFitter.isFixed()) {
     		control.setValue("iskey", step.circleFitter.keyFrames.contains(step.n)); //$NON-NLS-1$
     	}
@@ -864,27 +846,31 @@ public class CircleFitterStep extends Step {
     		}
     	}
     	double[][] pointData = (double[][])control.getObject("datapoints"); //$NON-NLS-1$
-    	int diff = pointData.length-step.dataPoints.size();
+      DataPoint[] pts = step.dataPoints[0];
+    	int diff = pointData.length-pts.length;
     	if (diff<0) {
     		// remove data point(s)
     		for (int i=0; i<-diff; i++) {
-    			step.removeDataPoint(step.dataPoints.get(step.dataPoints.size()-1), false);
+    			DataPoint p = pts[pts.length-1]; // remove from the end
+    			step.removeDataPoint(p, false, false);
     		}
+    		pts = step.dataPoints[0];
     	}
     	else if (diff>0) {
     		// add data point(s)
     		for (int i=0; i<diff; i++) {
     			double[] position = pointData[pointData.length-1-i];
-    			step.addDataPoint(position[0], position[1], false);
+    			step.addDataPoint(step.new DataPoint(position[0], position[1]), false);
     		}
+    		pts = step.dataPoints[0];
     	}
+    	// set locations of all points
     	for (int i=0; i<pointData.length; i++) {
+    		// set locations of valid points
   			double[] position = pointData[i];
-    		step.dataPoints.get(i).setLocation(position[0], position[1]);
+  			pts[i].setLocation(position[0], position[1]);
     	}
-    	double[] sliderData = (double[])control.getObject("slider"); //$NON-NLS-1$
   		step.refreshCircle();
-  		step.slider.setLocation(sliderData[0], sliderData[1]);
     	if (step.circleFitter!=null) {
     		final CircleFitterStep cstep = step;
     		Runnable runner = new Runnable() {

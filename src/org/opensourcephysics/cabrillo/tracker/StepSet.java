@@ -39,7 +39,11 @@ public class StepSet extends HashSet<Step> {
 	
 	TrackerPanel trackerPanel;
 	boolean changed;
-	XMLControl undoControl;
+	String trackUndoXML;
+	HashSet<String[]> undoStepStates = new HashSet<String[]>(); // stepState is {track name, frame number, xml step state}
+	HashSet<Step> removedSteps = new HashSet<Step>(); // steps removed after being changed (undo steps states retained)
+	boolean saveUndoStates = false;
+	boolean isModified = false;
 	
   /**
    * Constructs a StepSet.
@@ -54,12 +58,33 @@ public class StepSet extends HashSet<Step> {
    * Adds a step to this set.
    *
    * @param step the step to add
+   * @return true if added
    */
 	@Override
   public boolean add(Step step) {
-		if(!(step instanceof PositionStep)) return false;
+		if (!(step instanceof PositionStep)) return false;
     boolean added = super.add(step);
-    if (added) setChanged(false); // triggers creation of new undo XMLControl
+    isModified = added;
+
+    if (added && !removedSteps.contains(step)) {
+	    // add initial step state to stepStates
+    	String xml = new XMLControlElement(step).toXML();
+    	String[] data = {step.getTrack().getName(), String.valueOf(step.getFrameNumber()), xml};
+    	String[] match = null;
+    	for (String[] next: undoStepStates) {
+    		if (next[0].equals(data[0]) && next[1].equals(data[1])) {
+    			match = next;
+    			break;
+    		}
+    	}
+    	if (match==null) {
+	    	undoStepStates.add(data);
+    	}
+    	if (trackUndoXML==null) {
+   			TTrack track = step.getTrack();
+  			trackUndoXML = new XMLControlElement(track).toXML();
+  		}
+    }
     return added;
   }
 	
@@ -72,22 +97,69 @@ public class StepSet extends HashSet<Step> {
 	public boolean remove(Object step) {
 		if(!(step instanceof PositionStep)) return false;
     boolean removed = super.remove(step);
-    if (removed) setChanged(false); // triggers creation of new undo XMLControl
+    if (removed) {
+    	isModified = true;
+    	PositionStep stepp = (PositionStep)step;
+    	if (!isChanged()) {
+		    // remove step state from stepStates
+	    	String frameNum = String.valueOf(stepp.getFrameNumber());
+	    	String[] match = null;
+	    	for (String[] next: undoStepStates) {
+	    		if (next[0].equals(stepp.getTrack().getName()) && next[1].equals(frameNum)) {
+	    			match = next;
+	    			break;
+	    		}
+	    	}
+	    	if (match!=null) {
+	    		undoStepStates.remove(match);
+	    	}
+    	}
+    	else {
+    		// stepp may have been changed so add to removedSteps
+    		removedSteps.add(stepp);
+    	}
+    	if (stepp.getPoints()[0]==trackerPanel.getSelectedPoint()) {
+    		trackerPanel.setSelectedPoint(null);    		
+    	}
+    	if (this.isEmpty()) {
+    		clear();
+    	}
+    }
     return removed;
   }
 	
   /**
+   * Clears this set.
+   */
+	@Override
+  public void clear() {
+		if (changed && (!this.isEmpty() || !removedSteps.isEmpty())) {
+  		TTrack track = getTrack();
+  		if (track!=null && getTrackUndoControl()!=null) {
+    		Undo.postTrackEdit(track, getTrackUndoControl());    		        			
+  		}
+  		else {
+    		Undo.postStepSetEdit(this, getStepsUndoControl());    		        			
+  		}			
+		}
+		// erase all steps
+		for (Step next: this) {
+			next.erase();
+		}
+		super.clear();
+		undoStepStates.clear();
+		removedSteps.clear();
+		trackUndoXML = null;
+		changed = false;
+		isModified = false;
+  }
+	
+  /**
    * Sets the changed property. When true, the steps in this set have been changed.
-   * The first time this is called on an "unchanged" set a new XMLControl is created
-   * that defines the Undo state for the set prior to changing.
    *
    * @param changed true if changed
    */
 	public void setChanged(boolean changed) {
-		// when changed for the first time, save state
-		if (changed && !this.changed) {
-			undoControl = new XMLControlElement(this);
-		}
 		this.changed = changed;
 	}
 	
@@ -105,10 +177,50 @@ public class StepSet extends HashSet<Step> {
    *
    * @return the undo XMLControl
    */
-	public XMLControl getUndoControl() {
-		return undoControl;
+	public XMLControl getStepsUndoControl() {
+		saveUndoStates = true;
+		XMLControl control = new XMLControlElement(this);
+		saveUndoStates = false;
+		return control;
 	}
 	
+  /**
+   * Gets the XMLControl that defines the Undo state for the track.
+   *
+   * @return the track XMLControl
+   */
+	public XMLControl getTrackUndoControl() {
+		return trackUndoXML==null? null: new XMLControlElement(trackUndoXML);
+	}
+	
+  /**
+   * Returns the track containing all steps, or null if multiple tracks are selected.
+   *
+   * @return the track (may be null)
+   */
+	public TTrack getTrack() {
+  	TTrack track = null;
+  	boolean singleTrack = true;
+  	for (Step step: this) {
+  		if (step.getTrack()!=null) {
+  			if (track==null) track = step.getTrack();
+  			else { // track not null, so compare
+  				if (track!=step.getTrack()) {
+  					singleTrack = false;
+  					break;
+  				}
+  			}
+  		}
+  	}
+  	return singleTrack? track: null;
+
+//		for (Step step: this) {
+//			if (step!=null && step.getTrack()!=null) {
+//				return step.getTrack();
+//			}
+//		}
+//		return null;
+	}
 	
   /**
    * Returns an ObjectLoader to save and load data for this class.
@@ -133,12 +245,24 @@ public class StepSet extends HashSet<Step> {
     public void saveObject(XMLControl control, Object obj) {
       StepSet steps = (StepSet) obj;
       // assemble array of String[3]: each element is {track name, frame number, xml step state}
-      String[][] stepsData = new String[steps.size()][3];
-      int i = 0;
-      for (Step step: steps) {
-      	String xml = new XMLControlElement(step).toXML();
-      	String[] data = {step.getTrack().getName(), String.valueOf(step.getFrameNumber()), xml};
-      	stepsData[i++] = data;
+      String[][] stepsData;
+      if (steps.saveUndoStates) {
+      	stepsData = steps.undoStepStates.toArray(new String[steps.undoStepStates.size()][]);
+      }
+      else {
+      	// save current states of all steps and removed steps
+      	stepsData = new String[steps.size() + steps.removedSteps.size()][];
+	      int i = 0;
+	      for (Step step: steps) {
+	      	String xml = new XMLControlElement(step).toXML();
+	      	String[] data = {step.getTrack().getName(), String.valueOf(step.getFrameNumber()), xml};
+	      	stepsData[i++] = data;
+	      }
+	      for (Step step: steps.removedSteps) {
+	      	String xml = new XMLControlElement(step).toXML();
+	      	String[] data = {step.getTrack().getName(), String.valueOf(step.getFrameNumber()), xml};
+	      	stepsData[i++] = data;
+	      }
       }
       control.setValue("steps", stepsData); //$NON-NLS-1$
     }

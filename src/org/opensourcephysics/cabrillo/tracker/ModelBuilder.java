@@ -68,10 +68,11 @@ public class ModelBuilder extends FunctionTool {
 		startFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
 		endFrameLabel = new JLabel();
 		endFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
-	  int n = trackerPanel.getPlayer().getVideoClip().getFrameCount()-1;
-		SpinnerNumberModel model = new SpinnerNumberModel(0, 0, n, 1); // init, min, max, step
+	  int first = trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
+	  int last = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+		SpinnerNumberModel model = new SpinnerNumberModel(first, first, last, 1); // init, min, max, step
 		startFrameSpinner = new ModelFrameSpinner(model);
-		model = new SpinnerNumberModel(n, 0, n, 1); // init, min, max, step
+		model = new SpinnerNumberModel(last, first, last, 1); // init, min, max, step
 		endFrameSpinner = new ModelFrameSpinner(model);
 		
 		// create booster label and dropdown
@@ -218,28 +219,31 @@ public class ModelBuilder extends FunctionTool {
    * Refreshes the start and end frame spinners.
    */
   protected void refreshSpinners() {
-	  int n = trackerPanel.getPlayer().getVideoClip().getFrameCount()-1;
+	  int last = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+	  int first = trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
 	  FunctionPanel panel = getSelectedPanel();
 	  startFrameSpinner.setEnabled(panel!=null);
 	  endFrameSpinner.setEnabled(panel!=null);
 	  startFrameLabel.setEnabled(panel!=null);
 	  endFrameLabel.setEnabled(panel!=null);
-	  int end = n;
+	  int end = last;
 	  ParticleModel model = null;
 	  if (panel!=null) {
 	  	model = ((ModelFunctionPanel)panel).model;
-	  	end = Math.min(n, model.getEndFrame());
+	  	end = Math.min(last, model.getEndFrame());
 	  }
-	  // following two lines trigger change events
-	  ((SpinnerNumberModel)startFrameSpinner.getModel()).setMaximum(n);
-	  ((SpinnerNumberModel)endFrameSpinner.getModel()).setMaximum(n);
+	  // following three lines trigger change events
+	  ((SpinnerNumberModel)startFrameSpinner.getModel()).setMaximum(last);
+	  ((SpinnerNumberModel)endFrameSpinner.getModel()).setMaximum(last);
+	  ((SpinnerNumberModel)startFrameSpinner.getModel()).setMinimum(first);
+	  ((SpinnerNumberModel)endFrameSpinner.getModel()).setMinimum(first);
 	  if (model!=null) {
 	  	startFrameSpinner.setValue(model.getStartFrame());
 	  	endFrameSpinner.setValue(end);
 	  }
 	  else {
-	  	startFrameSpinner.setValue(0);
-	  	endFrameSpinner.setValue(n);
+	  	startFrameSpinner.setValue(first);
+	  	endFrameSpinner.setValue(last);
 	  }
 	  
 	  validate();

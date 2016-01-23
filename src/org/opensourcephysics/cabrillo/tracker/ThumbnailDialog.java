@@ -88,7 +88,7 @@ public class ThumbnailDialog extends JDialog {
   		thumbnailDialog = new ThumbnailDialog(panel);
   		fileChooserListener = new PropertyChangeListener() {
  			  public void propertyChange(PropertyChangeEvent e) {
- 			  	if (chooserField!=null) {
+ 			  	if (chooserField!=null && e.getNewValue()!=null) {
 	 			  	VideoFileFilter filter = (VideoFileFilter)e.getNewValue();
 			  		final String ext = filter.getDefaultExtension();
 	 			    Runnable runner = new Runnable() {
@@ -155,6 +155,7 @@ public class ThumbnailDialog extends JDialog {
       	return null;
       filePath = files[0].getAbsolutePath();
       VideoFileFilter selectedFilter = (VideoFileFilter)chooser.getFileFilter();
+      chooser.resetChoosableFileFilters();
       String ext = selectedFilter.getDefaultExtension();
     	setFormat(ext);
       if (!selectedFilter.accept(files[0])) {

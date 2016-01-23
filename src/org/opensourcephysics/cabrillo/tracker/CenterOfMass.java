@@ -333,7 +333,7 @@ public class CenterOfMass extends PointMass {
     // determine cm step position in imagespace
     for (int i = 0; i < masses.length; i++) {
       PositionStep step = (PositionStep)masses[i].getStep(n);
-      if (step == null) {           // if any mass data missing,
+      if (step == null || !step.valid) {           // if any mass data missing,
         if (getStep(n) != null) {   // delete existing cm step if any
         	if (firePropertyChange) {
     	      locked = false;

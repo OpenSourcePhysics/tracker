@@ -534,6 +534,17 @@ public class PointMass extends TTrack {
   }
 
   /**
+   * Sets the marking flag. Flag should be true when ready to be marked by user.
+   * 
+   * @param marking true when marking
+   */
+  @Override
+  protected void setMarking(boolean marking) {
+  	super.setMarking(marking);
+  	repaint(trackerPanel);
+  }
+  
+  /**
    * Gets the mass.
    *
    * @return the mass
@@ -1030,7 +1041,7 @@ public class PointMass extends TTrack {
    */
   public boolean isStepVisible(Step step, TrackerPanel trackerPanel) {
     if (!isVisible()) return false;
-    int n =  step.getFrameNumber();
+    int n = step.getFrameNumber();
     if (!trackerPanel.getPlayer().getVideoClip().includesFrame(n)) return false;
     if (isPosition(step) && !isPositionVisible(trackerPanel)) return false;
     if (isVelocity(step) && !isVVisible(trackerPanel)) return false;
@@ -2097,6 +2108,14 @@ public class PointMass extends TTrack {
           	p.createStep(n, data[n].x, data[n].y);
           }
         }
+        if (!p.isDependent()) {
+	        // delete existing steps, if any, beyond the frame data length
+		      Step[] steps = p.getSteps();
+		      for (int n = data.length; n < steps.length; n++) {
+	        	p.steps.setStep(n, null);
+		      }
+        }
+        
         p.updateDerivatives();
     	  p.support.firePropertyChange("data", null, null); //$NON-NLS-1$
       }

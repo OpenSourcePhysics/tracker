@@ -32,6 +32,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.*;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.border.*;
 import javax.swing.event.*;
 
@@ -57,6 +58,7 @@ public abstract class TTrack implements Interactive,
   protected static JCheckBox skippedStepWarningCheckbox;
   protected static JButton closeButton;
 	protected static boolean skippedStepWarningOn = true;
+  protected static NameDialog nameDialog;
   protected static FontRenderContext frc
 		  = new FontRenderContext(null,   // no AffineTransform
 		                          false,  // no antialiasing
@@ -108,9 +110,6 @@ public abstract class TTrack implements Interactive,
   protected JMenuItem dataBuilderItem;
   protected JSpinner xSpinner, ySpinner;
   protected Font labelFont = new Font("arial", Font.PLAIN, 12); //$NON-NLS-1$
-  protected JDialog nameDialog;
-  protected JTextField nameField;
-  protected Action nameAction;
   protected TrackerPanel trackerPanel;
   protected XMLProperty dataProp;
   protected Object[][] constantsLoadedFromXML;
@@ -125,8 +124,9 @@ public abstract class TTrack implements Interactive,
   // for autotracking
   protected boolean autoTrackerMarking;
   protected int targetIndex;
-  // attached tracks--used by AttachmentDialog with TapeMeasure and Protractor tracks
+  // attached tracks--used by AttachmentDialog with TapeMeasure, Protractor and CircleFitter tracks
   protected TTrack[] attachments;
+  protected String[] attachmentNames; // used when loading attachments
   // user-editable text columns shown in DataTable view
   protected Map<String, String[]> textColumnEntries = new TreeMap<String, String[]>();
   protected ArrayList<String> textColumnNames = new ArrayList<String>();
@@ -233,50 +233,13 @@ public abstract class TTrack implements Interactive,
         }
       }
     });
-    nameDialog = new JDialog((Frame)null, null, true);
-    nameDialog.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-    nameDialog.addWindowListener(new WindowAdapter() {
-      public void windowClosing(WindowEvent e) {
-      	String newName = nameField.getText();
-      	if (trackerPanel != null) 
-      		trackerPanel.setTrackName(TTrack.this, newName, true);
-      }
-    });
-    nameField = new JTextField(20);
-    nameField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	String newName = nameField.getText();
-      	if (trackerPanel != null) 
-      		trackerPanel.setTrackName(TTrack.this, newName, true);
-      }
-    });
-    final JLabel nameLabel = new JLabel();
-    JToolBar bar = new JToolBar();
-    bar.setFloatable(false);
-    bar.add(nameLabel);
-    bar.add(nameField);
-    JPanel contentPane = new JPanel(new BorderLayout());
-    contentPane.add(bar, BorderLayout.CENTER);
-    nameDialog.setContentPane(contentPane);
-    nameDialog.pack();
-    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    int x = (dim.width - nameDialog.getBounds().width) / 2;
-    int y = (dim.height - nameDialog.getBounds().height) / 2;
-    nameDialog.setLocation(x, y);
-    nameAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
-        // show dialog with name of this track selected
-    		FontSizer.setFonts(nameDialog, FontSizer.getLevel());
-      	nameDialog.setTitle(TrackerRes.getString("TTrack.Dialog.Name.Title")); //$NON-NLS-1$
-      	nameLabel.setText(TrackerRes.getString("TTrack.Dialog.Name.Label")); //$NON-NLS-1$
-      	nameField.setText(getName());
-      	nameField.selectAll();
-      	nameDialog.pack();
-        nameDialog.setVisible(true);
-      }
-    };
+
     nameItem = new JMenuItem();
-    nameItem.addActionListener(nameAction);
+    nameItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        getNameDialog(TTrack.this).setVisible(true);
+      }
+    });
     footprintMenu = new JMenu();
     descriptionItem = new JMenuItem();
     descriptionItem.addActionListener(new ActionListener() {
@@ -410,6 +373,16 @@ public abstract class TTrack implements Interactive,
    * a reference to it, this should then be garbage-collected.
    */
   public void delete() {
+    delete(true);
+  }
+
+  /**
+   * Removes this track from all panels that draw it. If no other objects have
+   * a reference to it, this should then be garbage-collected.
+   * 
+   * @param postEdit true to post an undoable edit
+   */
+  protected void delete(boolean postEdit) {
     if (isLocked() && !isDependent()) return;
     cleanup();
     if (trackerPanel != null) {
@@ -423,7 +396,9 @@ public abstract class TTrack implements Interactive,
       	trackerPanel.setCoords(coords);
       }    	
     }
-    Undo.postTrackDelete(this); // posts undoable edit
+    if (postEdit) {
+    	Undo.postTrackDelete(this); // posts undoable edit
+    }
     Iterator<TrackerPanel> it = panels.iterator();
     while (it.hasNext()) {
       TrackerPanel panel = it.next();
@@ -567,7 +542,7 @@ public abstract class TTrack implements Interactive,
       	org.opensourcephysics.tools.FunctionPanel panel = 
       		trackerPanel.dataBuilder.getPanel(getName());
       	if (panel != null) {
-        	panel.setIcon(footprint.getIcon(21, 16));
+        	panel.setIcon(getIcon(21, 16, "track")); //$NON-NLS-1$
         	trackerPanel.dataBuilder.refreshDropdown(null);      		
       	}
       }
@@ -631,6 +606,17 @@ public abstract class TTrack implements Interactive,
   }
 
   /**
+   * Gets the name of this track.
+   * 
+   * @param context ignored by default
+   *
+   * @return the name
+   */
+  public String getName(String context) {
+    return getName();
+  }
+
+  /**
    * Sets the name of this track.
    *
    * @param newName the new name of this track
@@ -690,7 +676,7 @@ public abstract class TTrack implements Interactive,
   	String s = getName();
   	if (partName != null) 
     	s += " "+partName; //$NON-NLS-1$
-    if (isLocked()) {
+    if (isLocked() && !TrackerRes.getString("PointMass.Position.Locked.Hint").equals(hint)) { //$NON-NLS-1$
       hint = TrackerRes.getString("TTrack.Locked.Hint"); //$NON-NLS-1$
     }
     if (Tracker.showHints && hint != null) 
@@ -804,7 +790,7 @@ public abstract class TTrack implements Interactive,
   		props = name.substring(n+1);
   		name = name.substring(0, n);
   	}
-    for (int i = 0; i < footprints.length; i++)
+    for (int i = 0; i < footprints.length; i++) {
       if (name.equals(footprints[i].getName())) {
         footprint = footprints[i];
         if (footprint instanceof CircleFootprint) {
@@ -823,13 +809,31 @@ public abstract class TTrack implements Interactive,
           if (trackerPanel.dataBuilder != null) {
           	org.opensourcephysics.tools.FunctionPanel panel = 
           		trackerPanel.dataBuilder.getPanel(getName());
-          	panel.setIcon(footprint.getIcon(21, 16));
-          	trackerPanel.dataBuilder.refreshDropdown(null);
+          	if (panel!=null) {
+	          	panel.setIcon(getIcon(21, 16, "track")); //$NON-NLS-1$
+	          	trackerPanel.dataBuilder.refreshDropdown(null);
+          	}
           }
         }
         support.firePropertyChange("footprint", null, footprint); //$NON-NLS-1$
         return;
       }
+    }
+  }
+
+  /**
+   * Gets the full name of the current footprint, including properties if available
+   *
+   * @return the footprint name
+   */
+  public String getFootprintName() {
+    Footprint fp = getFootprint();
+    String s = fp.getName();
+    if (fp instanceof CircleFootprint) {
+    	CircleFootprint cfp = (CircleFootprint)fp;
+    	s+="#"+cfp.getProperties(); //$NON-NLS-1$
+    }
+    return s;
   }
 
   /**
@@ -861,6 +865,19 @@ public abstract class TTrack implements Interactive,
    */
   public Footprint getFootprint(Step step) {
     return getFootprint();
+  }
+
+  /**
+   * Gets this track's current icon.
+   * 
+   * @param w the icon width
+   * @param h the icon height
+   * @param context
+   *
+   * @return the icon
+   */
+  public Icon getIcon(int w, int h, String context) {
+    return getFootprint().getIcon(w, h);
   }
 
   /**
@@ -1468,6 +1485,135 @@ public abstract class TTrack implements Interactive,
   }
   
   /**
+   * Returns the array of attachments for this track. May return null.
+   * 
+   * @return the attachments array
+   */
+  public TTrack[] getAttachments() {
+  	return attachments;
+  }
+  
+  /**
+   * Returns the description of a particular attachment point.
+   * 
+   * @param n the attachment point index
+   * @return the description
+   */
+  public String getAttachmentDescription(int n) {
+  	return TrackerRes.getString("AttachmentInspector.Label.End")+" "+(n+1); //$NON-NLS-1$ //$NON-NLS-2$
+  }
+  
+  /**
+   * Loads the attachments for this track based on attachmentNames array, if any.
+   * 
+   * @param refresh true to refresh attachments after loading
+   * @return true if attachments were loaded
+   */
+  protected boolean loadAttachmentsFromNames(boolean refresh) {
+  	// if track attachmentNames is not null then find tracks and populate attachments
+  	if (attachmentNames==null) return false;
+
+  	boolean foundAll = true;
+  	TTrack[] temp = new TTrack[attachmentNames.length];
+  	for (int i=0; i<attachmentNames.length; i++) {
+    	TTrack track = trackerPanel.getTrack(attachmentNames[i]);  
+    	if (track!=null) {      		
+    		temp[i] = track;
+    	}
+    	else if (attachmentNames[i]!=null) {
+    		foundAll = false;
+    	}
+  	}
+  	if (foundAll) {
+  		attachments = temp;
+  		attachmentNames = null;
+	  	if (refresh)
+	  		refreshAttachmentsLater();
+  	}
+  	return foundAll;
+  }
+
+  /**
+   * Refreshes the attachments for this track after a delay.
+   * This should be used only when loading attachments from Names during loading
+   */
+  protected void refreshAttachmentsLater() {
+  	// use timer with 2 second delay
+    Timer timer = new Timer(2000, new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	// save changed state
+      	boolean changed = trackerPanel!=null && trackerPanel.changed;
+      	refreshAttachments();
+      	if (trackerPanel!=null) {
+      		// restore changed state
+      		trackerPanel.changed = changed;
+      	}
+      }
+    });
+		timer.setRepeats(false);
+		timer.start();
+  }
+  
+  /**
+   * Refreshes the attachments for this track.
+   */
+  protected void refreshAttachments() {
+  	if (attachments==null || attachments.length==0) return;
+  	  	
+  	// unfix the track if it has attachments
+		boolean hasAttachments = false;
+  	for (int i = 0; i < attachments.length; i++) { 
+  		hasAttachments = hasAttachments || attachments[i]!=null;
+  	}
+  	if (hasAttachments) {
+			if (this instanceof TapeMeasure) {
+				((TapeMeasure)this).setFixedPosition(false);
+			}
+			else if (this instanceof Protractor) {
+				((Protractor)this).setFixed(false);
+			}
+  	}
+  	
+		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+  	for (int i = 0; i < attachments.length; i++) {
+  		TTrack targetTrack = attachments[i];
+	  	if (targetTrack!=null) {
+	  		targetTrack.removePropertyChangeListener("step", this); //$NON-NLS-1$
+	  		targetTrack.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+	  		targetTrack.addPropertyChangeListener("step", this); //$NON-NLS-1$
+	  		targetTrack.addPropertyChangeListener("steps", this); //$NON-NLS-1$
+	  		// attach/detach points
+	    	for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
+	    		Step targetStep = targetTrack.getStep(n);
+	    		Step step = getStep(n);
+	    		TPoint p = step.getPoints()[i]; // not for CircleFitter--see overridden method
+	    		if (targetStep==null || !targetStep.valid) {
+		      	if (p!=null) {
+		      		p.detach();
+		      	}
+	    		}
+	    		else if (p!=null) {
+		      	TPoint target = targetStep.getPoints()[0];
+		      	p.attachTo(target);
+	    		}
+	    	}  		
+	  	}
+	  	else { // target track is null
+	  		for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
+	    		Step step = getStep(n);
+	    		TPoint p = step.getPoints()[i];
+	      	if (p!=null) {
+	      		p.detach();
+	      	}
+	    	}  		  		
+	  	}
+  	}
+  		
+  	TTrackBar.getTrackbar(trackerPanel).refresh();
+//	refreshFields(trackerPanel.getFrameNumber());
+  }
+
+  /**
    * Prepares menu items and returns a new menu.
    * Subclasses should override this method and add track-specific menu items.
    *
@@ -1522,7 +1668,7 @@ public abstract class TTrack implements Interactive,
       footprintMenu.add(item);
     }
     // return a new menu every time
-    menu = new JMenu(getName());
+    menu = new JMenu(getName("track")); //$NON-NLS-1$
     menu.setIcon(getFootprint().getIcon(21, 16));
     // add name and description items
     if (trackerPanel.isEnabled("track.name") || //$NON-NLS-1$
@@ -1599,7 +1745,7 @@ public abstract class TTrack implements Interactive,
     VideoClip clip = trackerPanel.getPlayer().getVideoClip();
     if (step != null && clip.includesFrame(step.getFrameNumber())) {
       int n = clip.frameToStep(step.getFrameNumber());
-    	stepValueLabel.setText(n+": "); //$NON-NLS-1$
+    	stepValueLabel.setText(n+":"); //$NON-NLS-1$
       double t = trackerPanel.getPlayer().getStepTime(n) / 1000;
       if (t >= 0) {
         tField.setValue(t);
@@ -1707,6 +1853,7 @@ public abstract class TTrack implements Interactive,
    * @param _g the graphics context on which to draw
    */
   public void draw(DrawingPanel panel, Graphics _g) {
+    loadAttachmentsFromNames(true);
     if (!(panel instanceof TrackerPanel) || !visible) return;
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     panels.add(trackerPanel);   // keep a list of tracker panels
@@ -2296,7 +2443,10 @@ public abstract class TTrack implements Interactive,
      * @return the step
      */
     public Step getStep(int n) {    	
-      if (n >= length) setLength(n + delta);
+      if (n >= length) {
+      	int len = Math.max(n+delta, n-length+1);
+      	setLength(len);
+      }
       return array[n];
     }
 
@@ -2309,7 +2459,10 @@ public abstract class TTrack implements Interactive,
      */
     public void setStep(int n, Step step) {
       if (autofill && step == null) return;
-      if (n >= length) setLength(n + delta);
+      if (n >= length) {
+      	int len = Math.max(n+delta, n-length+1);
+      	setLength(len);
+      }
       synchronized(array) {
         array[n] = step;
       }
@@ -2395,6 +2548,57 @@ public abstract class TTrack implements Interactive,
           array[n] = clone;
         }
     }
+  } // end StepArray class
+
+//______________________ inner NameDialog class _______________________
+
+  protected static class NameDialog extends JDialog {
+  	
+  	JLabel nameLabel;
+  	JTextField nameField;
+  	TTrack target;
+  	TrackerPanel trackerPanel;
+  	
+  	// constructor
+  	NameDialog(TrackerPanel panel) {  		
+  		super(panel.getTFrame(), null, true);
+  		trackerPanel = panel;
+      setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+      addWindowListener(new WindowAdapter() {
+        public void windowClosing(WindowEvent e) {
+        	String newName = nameField.getText();
+        	if (target != null) 
+        		trackerPanel.setTrackName(target, newName, true);
+        }
+      });
+      nameField = new JTextField(20);
+      nameField.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+        	String newName = nameField.getText();
+        	if (target != null) 
+        		trackerPanel.setTrackName(target, newName, true);
+        }
+      });
+      nameLabel = new JLabel();
+      JToolBar bar = new JToolBar();
+      bar.setFloatable(false);
+      bar.add(nameLabel);
+      bar.add(nameField);
+      JPanel contentPane = new JPanel(new BorderLayout());
+      contentPane.add(bar, BorderLayout.CENTER);
+      setContentPane(contentPane);
+  	}
+  	
+  	void setTrack(TTrack track) {
+  		target = track;
+      // initial text is current track name
+  		FontSizer.setFonts(this, FontSizer.getLevel());
+    	setTitle(TrackerRes.getString("TTrack.Dialog.Name.Title")); //$NON-NLS-1$
+    	nameLabel.setText(TrackerRes.getString("TTrack.Dialog.Name.Label")); //$NON-NLS-1$
+    	nameField.setText(track.getName());
+    	nameField.selectAll();
+    	pack();
+  	}
   }
 
   /**
@@ -2427,13 +2631,7 @@ public abstract class TTrack implements Interactive,
       // color
       control.setValue("color", track.getColor()); //$NON-NLS-1$
       // footprint name
-      Footprint fp = track.getFootprint();
-      String s = fp.getName();
-      if (fp instanceof CircleFootprint) {
-      	CircleFootprint cfp = (CircleFootprint)fp;
-      	s+="#"+cfp.getProperties(); //$NON-NLS-1$
-      }
-      control.setValue("footprint", s); //$NON-NLS-1$
+      control.setValue("footprint", track.getFootprintName()); //$NON-NLS-1$
       // visible
       control.setValue("visible", track.isVisible()); //$NON-NLS-1$
       // trail
@@ -2478,6 +2676,19 @@ public abstract class TTrack implements Interactive,
 	    		DataFunction[] f = list.toArray(new DataFunction[0]);
 	    		control.setValue("data_functions", f); //$NON-NLS-1$
 	    	}
+      }
+      // attachments
+      if (track.attachments!=null && track.attachments.length>0) {
+      	String[] names = new String[track.attachments.length];
+      	boolean notNull = false;
+      	for (int i=0; i<track.attachments.length; i++) {
+      		TTrack next = track.attachments[i];
+      		names[i] = next==null? null: next.getName();
+      		notNull = notNull || names[i]!=null;
+      	}
+      	if (notNull) {
+      		control.setValue("attachments", names); //$NON-NLS-1$
+      	}
       }
     }
 
@@ -2536,11 +2747,31 @@ public abstract class TTrack implements Interactive,
           track.dataProp = prop;
       	}
       }
+      // attachments
+      String[] names = (String[])control.getObject("attachments"); //$NON-NLS-1$
+      if (names!=null) {
+      	track.attachmentNames = names;
+      }
       // locked
       track.setLocked(locked || control.getBoolean("locked")); //$NON-NLS-1$
       return obj;
     }
   }
+  
+  protected static NameDialog getNameDialog(TTrack track) {
+  	if (nameDialog==null && track.trackerPanel!=null) {
+      nameDialog = new NameDialog(track.trackerPanel);
+      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+      int x = (dim.width - nameDialog.getBounds().width) / 2;
+      int y = (dim.height - nameDialog.getBounds().height) / 2;
+      nameDialog.setLocation(x, y);
+  	}
+  	// prepare dialog
+  	nameDialog.setTrack(track);
+  	return nameDialog;
+  }
+  
+  
 
   /**
    * Reports whether or not the specified step is visible.

@@ -36,8 +36,6 @@ import javax.swing.event.*;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.controls.*;
-import org.opensourcephysics.display.Dataset;
-import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.*;
 
@@ -177,7 +175,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem dataBuilderItem;
   protected JMenuItem dataToolItem;
   // other fields
-  protected boolean refreshing; // true when refreshing menus
+  protected boolean refreshing; // true when refreshing menus or redoing filter delete
 
   /**
    * Returns a TMenuBar for the specified trackerPanel.
@@ -377,29 +375,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	        	String s = (String)data.getTransferData(DataFlavor.stringFlavor);
             control.readXML(s);
             Class<?> type = control.getObjectClass();
-            if (control.failedToRead()) {
-            	// see if s is importable dataString
-          		DatasetManager manager = DataTool.parseData(s, null);
-          		if (manager!=null) {
-          			double[] xImport = null, yImport = null;
-                for (Dataset next: manager.getDatasets()) {
-                	if (next.getYColumnName().equals("x")) { //$NON-NLS-1$
-                		xImport = next.getYPoints();
-                	}
-                	else if (next.getYColumnName().equals("y")) { //$NON-NLS-1$
-                		yImport = next.getYPoints();
-                	}
-                }
-                if (xImport!=null && yImport!=null) {
-                	String name = manager.getName();
-                	if (name==null || name.trim().equals("")) { //$NON-NLS-1$
-                		name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
-                	}
-                	name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
-                	pasteItem.setEnabled(true);
-		            	pasteItem.setText(paste+" "+name);                	 //$NON-NLS-1$
-                }
-          		}
+            if (control.failedToRead() && ParticleDataTrack.getImportableDataName(s)!=null) {
+            	paste = TrackerRes.getString("ParticleDataTrack.Button.Paste.Text"); //$NON-NLS-1$
+            	pasteItem.setEnabled(true);
+            	pasteItem.setText(paste);
             }
             else if (TTrack.class.isAssignableFrom(type)) {
               pasteItem.setEnabled(true);
@@ -1460,7 +1439,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             newFilterMenu.removeAll();
             synchronized(trackerPanel.getFilters()) {
 	          	for (String name: trackerPanel.getFilters().keySet()) {
-	              String shortName = new String(name);
+	              String shortName = name;
 	              int i = shortName.lastIndexOf('.');
 	              if (i > 0 && i < shortName.length() - 1) {
 	                shortName = shortName.substring(i + 1);
@@ -1621,9 +1600,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         editMenu.removeAll();
         if (trackerPanel.isEnabled("edit.undoRedo")) { //$NON-NLS-1$
 	      	undoItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Undo")); //$NON-NLS-1$
+	      	undoItem.setText(Undo.getUndoDescription(trackerPanel));
 	      	editMenu.add(undoItem);
 	      	undoItem.setEnabled(Undo.canUndo(trackerPanel));
 	      	redoItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Redo")); //$NON-NLS-1$
+	      	redoItem.setText(Undo.getRedoDescription(trackerPanel));
 	      	editMenu.add(redoItem);
 	      	redoItem.setEnabled(Undo.canRedo(trackerPanel));
         }
@@ -1685,7 +1666,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	        	copyObjectMenu.add(item);
 	          // copy track items
 	          for (TTrack next: trackerPanel.getTracks()) {
-	          	if (next==trackerPanel.getAxes())
+	          	if (next==trackerPanel.getAxes() || next instanceof PerspectiveTrack)
 	          		continue;
 	          	item = new JMenuItem(next.getName());
 	          	item.setActionCommand(next.getName());
@@ -1823,15 +1804,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           track = it.next();
           track.removePropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
           track.addPropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
-          String trackName = track.getName();
+          String trackName = track.getName("track"); //$NON-NLS-1$
           // add delete item to edit menu for each track
           item = new JMenuItem(trackName);
+          item.setIcon(track.getIcon(21, 16, "track")); //$NON-NLS-1$
           item.addActionListener(actions.get("deleteTrack")); //$NON-NLS-1$
           item.setEnabled(!track.isLocked() || track.isDependent());
           deleteTracksMenu.add(item);
           // add item to clone menu for each track
           item = new JMenuItem(trackName);
-          item.setIcon(track.getFootprint().getIcon(21, 16));
+          item.setIcon(track.getIcon(21, 16, "track")); //$NON-NLS-1$
           item.addActionListener(actions.get("cloneTrack")); //$NON-NLS-1$
           cloneMenu.add(item);
           // add each track's submenu to track menu
@@ -1935,8 +1917,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     else if (name.equals("size")) {     // image size has changed //$NON-NLS-1$
       refresh();
     }
-    else if (name.equals("filter")) {    // filter has been added or removed //$NON-NLS-1$
-      // post undoable edit if filter was removed
+    else if (!refreshing && name.equals("filter")) {    // filter has been added or removed //$NON-NLS-1$
+      // post undoable edit if individual filter was removed
     	Filter filter = (Filter)e.getOldValue();
     	if (filter != null) {
     		Undo.postFilterDelete(trackerPanel, filter);
