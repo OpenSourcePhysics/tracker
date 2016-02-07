@@ -256,6 +256,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			    }
 		    }
         trackerPanel.refreshTrackData();
+        trackerPanel.getTFrame().refresh();
     	}
     };
     SwingUtilities.invokeLater(runner);
