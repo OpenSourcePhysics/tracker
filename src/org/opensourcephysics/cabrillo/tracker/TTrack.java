@@ -59,6 +59,7 @@ public abstract class TTrack implements Interactive,
   protected static JButton closeButton;
 	protected static boolean skippedStepWarningOn = true;
   protected static NameDialog nameDialog;
+  protected static int nextID = 0;
   protected static FontRenderContext frc
 		  = new FontRenderContext(null,   // no AffineTransform
 		                          false,  // no antialiasing
@@ -130,11 +131,13 @@ public abstract class TTrack implements Interactive,
   // user-editable text columns shown in DataTable view
   protected Map<String, String[]> textColumnEntries = new TreeMap<String, String[]>();
   protected ArrayList<String> textColumnNames = new ArrayList<String>();
+  private int ID; // unique ID number 
 
   /**
    * Constructs a TTrack.
    */
   protected TTrack() {
+  	ID = nextID++;
     support = new SwingPropertyChangeSupport(this);
     // create toolbar components
     stepLabel = new JLabel();
@@ -596,6 +599,15 @@ public abstract class TTrack implements Interactive,
   	return chooser.getColor();
   }
   
+  /**
+   * Gets the ID number of this track.
+   *
+   * @return the ID number
+   */
+  public int getID() {
+    return ID;
+  }
+
   /**
    * Gets the name of this track.
    *

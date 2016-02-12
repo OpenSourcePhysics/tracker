@@ -5,8 +5,6 @@ import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +36,6 @@ import org.opensourcephysics.tools.AbstractAutoloadManager;
 import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
-import org.opensourcephysics.tools.ParamEditor;
 import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.TristateCheckBox;
@@ -72,7 +69,7 @@ public class TrackDataBuilder extends FunctionTool {
 		while (it.hasNext()) {
 			TTrack track = it.next();
 			if (nogos.contains(track)) continue;
-			FunctionPanel panel = createFunctionPanel(track);
+			FunctionPanel panel = trackerPanel.createFunctionPanel(track);
 	    addPanel(track.getName(), panel);
 		}
 	}
@@ -355,58 +352,6 @@ public class TrackDataBuilder extends FunctionTool {
 		}
 	}
   		
-	/**
-	 * Creates a new DataFunctionPanel for a track, autoloading appropriate data functions.
-	 * 
-	 * @param track the track
-	 */
-  protected FunctionPanel createFunctionPanel(TTrack track) {
-    FunctionPanel panel = new DataFunctionPanel(track.getData(trackerPanel));
-  	panel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
-  	Class<?> type = track.getClass();
-  	if (PointMass.class.isAssignableFrom(type))
-  		panel.setDescription(PointMass.class.getName());
-  	else if (Vector.class.isAssignableFrom(type))
-  		panel.setDescription(Vector.class.getName());
-  	else if (RGBRegion.class.isAssignableFrom(type))
-  		panel.setDescription(RGBRegion.class.getName());
-  	else if (LineProfile.class.isAssignableFrom(type))
-  		panel.setDescription(LineProfile.class.getName());
-  	else panel.setDescription(type.getName());
-    final ParamEditor paramEditor = panel.getParamEditor();
-    if (track instanceof PointMass) {
-    	final PointMass m = (PointMass)track;
-	  	Parameter param = (Parameter)paramEditor.getObject("m"); //$NON-NLS-1$
-	  	if (param==null) {
-	  		param = new Parameter("m", String.valueOf(m.getMass())); //$NON-NLS-1$
-	  		param.setDescription(TrackerRes.getString("ParticleModel.Parameter.Mass.Description")); //$NON-NLS-1$
-	      paramEditor.addObject(param, false);
-	  	}
-  		param.setNameEditable(false); // mass name not editable
-      paramEditor.addPropertyChangeListener(new PropertyChangeListener() {
-  		  public void propertyChange(PropertyChangeEvent e) {
-  		  	if ("m".equals(e.getOldValue())) { //$NON-NLS-1$
-  		  		Parameter param = (Parameter)paramEditor.getObject("m"); //$NON-NLS-1$
-  		  		if (m.getMass() != param.getValue()) {
-  		      	m.setMass(param.getValue());
-  		      	m.massField.setValue(m.getMass());
-  		      }
-  		  	}
-  		  }
-  		});
-      m.addPropertyChangeListener("mass", new PropertyChangeListener() { //$NON-NLS-1$
-  		  public void propertyChange(PropertyChangeEvent e) {
-  		  	Parameter param = (Parameter)paramEditor.getObject("m"); //$NON-NLS-1$
-  		  	double newMass = (Double)e.getNewValue();
-  		    if (newMass != param.getValue()) {
-  		    	paramEditor.setExpression("m", String.valueOf(newMass), false); //$NON-NLS-1$
-  		  	}
-  		  }
-  		});
-    }
-    return panel;
-  }
-  
   @Override
   public void setFontLevel(int level) {
   	if (autoloadButton==null) return;

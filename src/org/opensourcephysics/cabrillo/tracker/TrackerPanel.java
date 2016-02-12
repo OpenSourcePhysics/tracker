@@ -419,6 +419,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   }
 
   /**
+   * Gets the track with the specified ID number
+   *
+   * @param ID the ID number
+   * @return the track (may be null)
+   */
+  public TTrack getTrack(int ID) {
+    for (TTrack track: getTracks()) {
+      if (ID==track.getID()) return track;
+    }
+    return null;
+  }
+
+  /**
    * Adds a track.
    *
    * @param track the track to add
@@ -502,7 +515,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	    	SwingUtilities.invokeLater(runner);
     	}
     }
-    // all other tracks
+    // all other tracks (point mass, vector, particle model, line profile, etc)
     else {
       // set track name--prevents duplicate names
       setTrackName(track, track.getName(), false);
@@ -544,7 +557,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     }
   }
   
-  private FunctionPanel createFunctionPanel(TTrack track) {
+  protected FunctionPanel createFunctionPanel(TTrack track) {
   	DatasetManager data = track.getData(this);
     FunctionPanel panel = new DataFunctionPanel(data);
   	panel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
@@ -560,7 +573,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   	else panel.setDescription(type.getName());
     final ParamEditor paramEditor = panel.getParamEditor();
     if (track instanceof PointMass) {
-    	final PointMass m = (PointMass)track;
+    	PointMass m = (PointMass)track;
+    	final int trackID = track.getID();
 	  	Parameter param = (Parameter)paramEditor.getObject("m"); //$NON-NLS-1$
 	  	if (param==null) {
 	  		param = new Parameter("m", String.valueOf(m.getMass())); //$NON-NLS-1$
@@ -572,7 +586,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   		  public void propertyChange(PropertyChangeEvent e) {
   		  	if ("m".equals(e.getOldValue())) { //$NON-NLS-1$
   		  		Parameter param = (Parameter)paramEditor.getObject("m"); //$NON-NLS-1$
-  		  		if (m.getMass() != param.getValue()) {
+  		  		PointMass m = (PointMass)getTrack(trackID);
+  		  		if (m!=null && m.getMass() != param.getValue()) {
   		      	m.setMass(param.getValue());
   		      	m.massField.setValue(m.getMass());
   		      }
