@@ -1183,6 +1183,63 @@ public class ExportZipDialog extends JDialog {
     	        trackControl.setValue("framedata", newKeyData);        			 //$NON-NLS-1$
         		}
 
+        		else if (TapeMeasure.class.equals(trackType)) {
+    	        array = trackControl.getObject("framedata"); //$NON-NLS-1$
+    	        TapeMeasure.FrameData[] tapeKeyFrames = (TapeMeasure.FrameData[])array;
+    	        newFrameNumbers.clear();
+    	        newFrameNum = 0;
+    	        int newKeysLength = 0;
+    	        int nonNullIndex = 0; 
+    	        for (int i = 0; i<=realClip.getEndFrameNumber(); i++) {
+    	        	if (i<tapeKeyFrames.length && tapeKeyFrames[i]!=null) {
+    	        		nonNullIndex = i;
+    	        	}
+    	        	if (!realClip.includesFrame(i)) continue;
+    	        	newFrameNum = realClip.frameToStep(i); // new frame number equals step number
+    	        	if (nonNullIndex>-1) {
+	    	        	newFrameNumbers.put(newFrameNum, nonNullIndex); 
+	    	        	newKeysLength = newFrameNum+1;
+    	        		nonNullIndex = -1;
+    	        	}
+    	        	else if (i<tapeKeyFrames.length) {
+	    	        	newFrameNumbers.put(newFrameNum, i);    	        	    	        		
+	    	        	newKeysLength = newFrameNum+1;
+    	        	}
+    	        }
+    	        TapeMeasure.FrameData[] newKeys = new TapeMeasure.FrameData[newKeysLength];
+    	        for (Integer k: newFrameNumbers.keySet()) {
+    	        	newKeys[k] = tapeKeyFrames[newFrameNumbers.get(k)];
+    	        }
+    	        trackControl.setValue("framedata", newKeys);        			 //$NON-NLS-1$
+        		}
+
+        		else if (Protractor.class.equals(trackType)) {
+    	        array = trackControl.getObject("framedata"); //$NON-NLS-1$
+    	        double[][] protractorData = (double[][])array;
+    	        newFrameNumbers.clear();
+    	        newFrameNum = 0;
+    	        int nonNullIndex = 0; 
+    	        for (int i = 0; i<protractorData.length; i++) {
+    	        	if (i>realClip.getEndFrameNumber()) break;
+    	        	if (protractorData[i]!=null) {
+    	        		nonNullIndex = i;
+    	        	}
+    	        	if (!realClip.includesFrame(i)) continue;
+    	        	newFrameNum = realClip.frameToStep(i); // new frame number equals step number
+    	        	if (nonNullIndex>-1) {
+	    	        	newFrameNumbers.put(newFrameNum, nonNullIndex);    	        	    	        		
+    	        		nonNullIndex = -1;
+    	        	}
+    	        	else {
+	    	        	newFrameNumbers.put(newFrameNum, i);    	        	    	        		
+    	        	}
+    	        }
+    	        double[][] newKeys = new double[newFrameNum+1][];
+    	        for (Integer k: newFrameNumbers.keySet()) {
+    	        	newKeys[k] = protractorData[newFrameNumbers.get(k)];
+    	        }
+    	        trackControl.setValue("framedata", newKeys);        			 //$NON-NLS-1$
+        		}
 	        }
     		}
     	}

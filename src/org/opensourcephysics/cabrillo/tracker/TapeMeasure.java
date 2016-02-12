@@ -1160,9 +1160,8 @@ public class TapeMeasure extends TTrack {
 
   /**
    * Inner class containing the tape data for a single frame number.
-   * This is here only to read legacy xml files.
    */
-  private static class FrameData {
+  public static class FrameData {
     double[] data = new double[4];
     
     FrameData() {}
