@@ -103,6 +103,7 @@ public class PlotTrackView extends TrackView {
   	if (!isRefreshEnabled()) return;
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh "+frameNumber); //$NON-NLS-1$
     
+  	TTrack track = getTrack();
     track.getData(trackerPanel);
     for (int i = 0; i < plots.length; i++) {
       HighlightableDataset data = plots[i].getDataset();
@@ -125,6 +126,7 @@ public class PlotTrackView extends TrackView {
   	linkCheckBox.setToolTipText(TrackerRes.getString("PlotTrackView.Checkbox.Synchronize.Tooltip")); //$NON-NLS-1$
     plotsButton.setText(TrackerRes.getString("PlotTrackView.Button.PlotCount")); //$NON-NLS-1$
     plotsButton.setToolTipText(TrackerRes.getString("PlotTrackView.Button.PlotCount.ToolTip")); //$NON-NLS-1$
+  	TTrack track = getTrack();
     track.getData(trackerPanel); // load the current data
     for (int i = 0; i < plots.length; i++) {
     	boolean custom = plots[i].isCustom;
@@ -175,6 +177,7 @@ public class PlotTrackView extends TrackView {
   public void setPlotCount(int plotCount) {
   	if (plotCount==mainView.getComponentCount())
   		return;
+  	TTrack track = getTrack();
   	track.trackerPanel.changed = true;
     plotCount = Math.min(plotCount, plots.length);
     plotCountItems[plotCount-1].setSelected(true);
@@ -290,6 +293,7 @@ public class PlotTrackView extends TrackView {
    * @return a new empty plot panel
    */
   private TrackPlottingPanel createPlotPanel() {
+  	TTrack track = getTrack();
     TrackPlottingPanel plotPanel = new TrackPlottingPanel(track, data);
     plotPanel.enableInspector(true);
     plotPanel.setAutoscaleX(true);
@@ -387,7 +391,7 @@ public class PlotTrackView extends TrackView {
      */
     public void saveObject(XMLControl control, Object obj) {
       PlotTrackView trackView = (PlotTrackView)obj;
-      control.setValue("track", trackView.track.getName()); //$NON-NLS-1$
+      control.setValue("track", trackView.getTrack().getName()); //$NON-NLS-1$
       TrackPlottingPanel[] plots = trackView.getPlots();
       for (int i = 0; i < plots.length; i++) {
         control.setValue("plot"+i, plots[i]); //$NON-NLS-1$        	

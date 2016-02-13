@@ -39,13 +39,13 @@ public abstract class TrackView extends JScrollPane
                                 implements PropertyChangeListener {
 
   // instance fields
-  protected TTrack track;
+  private int trackID;
   protected TrackerPanel trackerPanel;
   protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
 
   // constructor
   protected TrackView(TTrack track, TrackerPanel panel) {
-    this.track = track;
+    trackID = track.getID();
     trackerPanel = panel;
     trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
   }
@@ -61,17 +61,17 @@ public abstract class TrackView extends JScrollPane
   abstract JButton getViewButton();
   
   public String getName() {
-  	if (track==null) return null;
+  	TTrack track = getTrack();
     return track.getName();
   }
 
   Icon getIcon() {
-  	if (track==null) return null;
+  	TTrack track = getTrack();
     return track.getIcon(21, 16, "point"); //$NON-NLS-1$
   }
 
   TTrack getTrack() {
-    return track;
+  	return trackerPanel.getTrack(trackID);
   }
 
   /**
@@ -100,6 +100,7 @@ public abstract class TrackView extends JScrollPane
     }
     else if (name.equals("selectedpoint")) { // from tracker panel //$NON-NLS-1$
       Step step = trackerPanel.getSelectedStep();
+    	TTrack track = getTrack();
       if (step != null && trackerPanel.getSelectedTrack() == track) {
         refresh(step.getFrameNumber());
       }
