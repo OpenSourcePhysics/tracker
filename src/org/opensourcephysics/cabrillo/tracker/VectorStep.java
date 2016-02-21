@@ -58,7 +58,7 @@ public class VectorStep extends Step
   protected TPoint tip;
   protected TPoint middle;
   protected Handle handle;
-  protected Hinge hinge;
+  protected VisibleTip visibleTip;
   protected int dx, dy; // used when snapped to origin
   protected boolean tipEnabled = true;
   protected Map<TrackerPanel, Shape> tipShapes = new HashMap<TrackerPanel, Shape>();
@@ -97,8 +97,8 @@ public class VectorStep extends Step
     tip = new Tip(x, y);
     handle = new Handle(x, y);
     handle.setStepEditTrigger(true);
-    hinge = new Hinge(x, y);
-    points = new TPoint[] {tip, tail, handle, hinge, middle};
+    visibleTip = new VisibleTip(x, y);
+    points = new TPoint[] {tip, tail, handle, visibleTip, middle};
     screenPoints = new Point[getLength()];
     tip.setLocation(x + xc, y + yc);
   }
@@ -131,12 +131,12 @@ public class VectorStep extends Step
   }
 
   /**
-   * Gets the hinge point.
+   * Gets the visible tip point.
    *
-   * @return the hinge
+   * @return the visible tip
    */
-  public TPoint getHinge() {
-    return hinge;
+  public TPoint getVisibleTip() {
+    return visibleTip;
   }
 
   /**
@@ -266,6 +266,7 @@ public class VectorStep extends Step
     TPoint p = null;
     if (pointSnapEnabled) {
       // snap to position
+    	TTrack track = getTrack();
       if (track instanceof PointMass) {
         p = ((PositionStep)track.getStep(n)).getPosition();
         if (p.distance(tail) < snapDistance) {
@@ -294,7 +295,7 @@ public class VectorStep extends Step
           VectorStep vec = it.next();
           if (!vec.valid) continue;
           if (!getTrack().isStepVisible(vec, trackerPanel)) continue;
-          p = vec.getHinge();
+          p = vec.getVisibleTip();
           if (p.distance(tail) > snapDistance) continue;
           if (vec == this) continue;
           VectorChain chain = vec.getChain();
@@ -440,7 +441,7 @@ public class VectorStep extends Step
       // look for tip hit
       hitShape = tipShapes.get(trackerPanel);
       if (hitShape != null && hitShape.intersects(hitRect)) {
-        return hinge;
+        return visibleTip;
       }
     }
     if (rolloverVisible && labelVisible) {
@@ -460,8 +461,8 @@ public class VectorStep extends Step
     Mark mark = marks.get(trackerPanel);
     TPoint selection = null;
     if (mark == null) {
-      tip.setLocation(tip.getX(), tip.getY()); // resets hinge position
-      middle.center(hinge, tail);
+      tip.setLocation(tip.getX(), tip.getY()); // sets visible tip position
+      middle.center(visibleTip, tail);
       // determine if this step is selected
       selection = trackerPanel.getSelectedPoint();
       Point p = null;
@@ -496,6 +497,7 @@ public class VectorStep extends Step
         panel = ((WorldTView)panel).getTrackerPanel();
       }
       boolean xMass = TToolBar.getToolbar(panel).xMassButton.isSelected();
+    	TTrack track = getTrack();
       String s = track.getName() + " "; //$NON-NLS-1$
       if (track instanceof PointMass) {
         PointMass m = (PointMass)track;
@@ -620,7 +622,7 @@ public class VectorStep extends Step
       step.points[0] = step.tip = step.new Tip(tip.getX(), tip.getY());
       step.points[1] = step.tail = step.new Handle(tail.getX(), tail.getY());
       step.points[2] = step.handle = step.new Handle(handle.getX(), handle.getY());
-      step.points[3] = step.hinge = step.new Hinge(hinge.getX(), hinge.getY());
+      step.points[3] = step.visibleTip = step.new VisibleTip(visibleTip.getX(), visibleTip.getY());
       step.points[4] = step.middle = new TPoint(middle.getX(), middle.getY()) {
         public int getFrameNumber(VideoPanel vidPanel) {
           return VectorStep.this.n;
@@ -727,13 +729,13 @@ public class VectorStep extends Step
       if (attachmentPoint != null &&
           attachmentPoint.distance(tail) > 1) {
         // attempt to break chain if this is linked
-        if (chain != null && attachmentPoint instanceof Hinge) {
+        if (chain != null && attachmentPoint instanceof VisibleTip) {
           chain.breakAt(VectorStep.this);
         }
         else attach(null);
       }
       if (firePropertyChangeEvents)
-        track.support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+        getTrack().support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
       repaint();
     }
 
@@ -775,7 +777,7 @@ public class VectorStep extends Step
      * @param trackerPanel the trackerPanel drawing this step
      */
     public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
-    	setPositionOnLine(xScreen, yScreen, trackerPanel, hinge, tail);
+    	setPositionOnLine(xScreen, yScreen, trackerPanel, visibleTip, tail);
     	repaint();
     }
 
@@ -812,7 +814,7 @@ public class VectorStep extends Step
      */
     public void setLocation(double x, double y) {
       super.setLocation(x, y);
-      hinge.setHingeLocation();
+      visibleTip.setVisibleTipLocation();
     }
 
     /**
@@ -822,6 +824,7 @@ public class VectorStep extends Step
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
+    	TTrack track = getTrack();
       if (track.isLocked())
         return;
       super.setXY(x, y);
@@ -843,6 +846,7 @@ public class VectorStep extends Step
                                                getYComponent());
       double y = coords.imageToWorldYComponent(n, getXComponent(),
                                                getYComponent());
+    	TTrack track = getTrack();
       if (track instanceof PointMass) {
         TrackerPanel trackerPanel = (TrackerPanel)vidPanel;
         PointMass m = (PointMass) track;
@@ -881,17 +885,17 @@ public class VectorStep extends Step
     
   }
 
-//______________________ inner Hinge class ________________________
+//______________________ inner VisibleTip class ________________________
 
-  class Hinge extends TPoint {
+  class VisibleTip extends TPoint {
 
     /**
-     * Constructs a Hinge with specified image coordinates.
+     * Constructs a VisibleTip with specified image coordinates.
      *
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public Hinge(double x, double y) {
+    public VisibleTip(double x, double y) {
       super(x, y);
       setStepEditTrigger(true);
     }
@@ -907,7 +911,7 @@ public class VectorStep extends Step
     }
 
     /**
-     * Gets this hinge's parent vector step.
+     * Gets this point's parent vector step.
      *
      * @return the step
      */
@@ -918,7 +922,7 @@ public class VectorStep extends Step
     /**
      * Sets the location relative to the tail and tip.
      */
-    public void setHingeLocation() {
+    public void setVisibleTipLocation() {
       double stretch = 1;
       if (footprint instanceof ArrowFootprint) {
         ArrowFootprint arrow = (ArrowFootprint) footprint;

@@ -122,12 +122,9 @@ public class ArrowFootprint extends LineFootprint {
     w *= scale;
     h *= scale;
     Point[] points = new Point[] {new Point(), new Point(w - 2, 2 - h)};
-    double prevStretch = stretch;
-    stretch = 1;
     Shape shape = getShape(points);
     ShapeIcon icon = new ShapeIcon(shape, w, h);
     icon.setColor(color);
-    stretch = prevStretch;
     return icon;
   }
 
@@ -140,6 +137,9 @@ public class ArrowFootprint extends LineFootprint {
   public synchronized Shape getShape(Point[] points) {
     Point p1 = points[0];
     Point p2 = points[1];
+    if (points.length>3) {
+    	p1 = points[3]; // (possibly stretched) visible tip
+    }
     double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);
     
     transform.setToRotation(theta, p1.x, p1.y);
@@ -152,7 +152,7 @@ public class ArrowFootprint extends LineFootprint {
     
     transform.setToRotation(theta, p2.x, p2.y);
     transform.translate(p2.x, p2.y);
-    float d = (float)(stretch * p1.distance(p2)); // length of the arrow
+    float d = (float)(p1.distance(p2)); // length of the arrow
     // set arrowhead dimensions and stroke
     int tiplen = tipLength*scale;
     int tipL = Math.min(tiplen, Math.round(d-4));
@@ -215,7 +215,7 @@ public class ArrowFootprint extends LineFootprint {
 			}
 			return area;
 		} catch (Exception e) { // occasionally throws path exception for reasons unknown!
-	    d = (float)(stretch * p1.distance(p2));
+	    d = (float)(p1.distance(p2));
 			java.awt.geom.Line2D line = new java.awt.geom.Line2D.Double(0, 0, d, 0); 
 			return stroke.createStrokedShape(transform.createTransformedShape(line));
 		}
