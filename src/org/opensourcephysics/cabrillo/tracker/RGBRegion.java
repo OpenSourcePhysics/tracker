@@ -29,6 +29,7 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -46,17 +47,16 @@ import org.opensourcephysics.controls.*;
  */
 public class RGBRegion extends TTrack {
 
-  // static constants
-	protected static final int MAX_RADIUS = 100;
-
   // static fields
   protected static int defaultRadius = 10;
+  protected static int defaultMaxRadius = 100;
 
   // instance fields
   protected boolean fixedPosition = true; // region has same position at all times
   protected boolean fixedRadius = true; // region has same radius at all times
   protected JCheckBoxMenuItem fixedPositionItem, fixedRadiusItem;
   protected JLabel radiusLabel;
+	protected int maxRadius = defaultMaxRadius;
   protected IntegerField radiusField;
   protected boolean firstTimeRadiusUnfixed = true;
   protected ArrayList<RGBStep> validSteps = new ArrayList<RGBStep>();
@@ -246,7 +246,7 @@ public class RGBRegion extends TTrack {
   protected void setRadius(int n, int r) {
     if (isLocked() || r == Integer.MIN_VALUE || trackerPanel == null) return;
     r = Math.max(r, 0);
-    r = Math.min(r, MAX_RADIUS);
+    r = Math.min(r, maxRadius);
     radiusField.setIntValue(r);
     
     RGBStep step = (RGBStep)getStep(n); // target step
@@ -676,6 +676,12 @@ public class RGBRegion extends TTrack {
    */
   public void propertyChange(PropertyChangeEvent e) {
   	if (trackerPanel != null) {
+      if (maxRadius==defaultMaxRadius && trackerPanel.getVideo()!=null) {
+     		BufferedImage image = trackerPanel.getVideo().getImage();
+      	maxRadius = image.getHeight()/2;
+      	maxRadius = Math.min(maxRadius, image.getWidth()/2);
+      	maxRadius -= 1;
+      }
       String name = e.getPropertyName();
       if (name.equals("stepnumber")) { //$NON-NLS-1$
       	dataValid = false;
@@ -694,6 +700,12 @@ public class RGBRegion extends TTrack {
       	else if (!dataHidden && vid.isVisible()) // video filters
       		clearData();
       	else dataHidden = false;
+      	if (vid!=null) {
+      		BufferedImage image = vid.getImage();
+        	maxRadius = image.getHeight()/2;
+        	maxRadius = Math.min(maxRadius, image.getWidth()/2);
+        	maxRadius -= 1;
+      	}
         support.firePropertyChange(e); // to views
       }
   	}
