@@ -80,8 +80,9 @@ public class VectorSum extends Vector {
     }
     this.vectors = vectors;
     setColor(defaultColors[0]);
-    for (int i = 0; i < vectors.length; i++)
-      vectors[i].addPropertyChangeListener(this);
+    for (int i = 0; i < vectors.length; i++) {
+      vectors[i].addPropertyChangeListener("step", this); //$NON-NLS-1$
+    }
     locked = true;
     // set initial hint
     if (vectors.length == 0)
@@ -149,7 +150,7 @@ public class VectorSum extends Vector {
       System.arraycopy(vectors, 0, newVectors, 0, vectors.length);
       newVectors[vectors.length] = vec;
       vectors = newVectors;
-      vec.addPropertyChangeListener(this);
+      vec.addPropertyChangeListener("step", this); //$NON-NLS-1$
     }
     update();
   }
@@ -163,7 +164,7 @@ public class VectorSum extends Vector {
     synchronized(vectors) {
       for (int i = 0; i < vectors.length; i++)
         if (vectors[i] == vec) {
-          vec.removePropertyChangeListener(this);
+          vec.removePropertyChangeListener("step", this); //$NON-NLS-1$
           Vector[] newVectors = new Vector[vectors.length - 1];
           System.arraycopy(vectors, 0, newVectors, 0, i);
           System.arraycopy(vectors, i+1, newVectors, i, newVectors.length-i);
@@ -264,7 +265,7 @@ public class VectorSum extends Vector {
    */
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("track") && e.getNewValue() == null) { // track deleted //$NON-NLS-1$
+    if (name.equals("track") && e.getOldValue()!=null) { // track deleted //$NON-NLS-1$
       TTrack track = (TTrack)e.getOldValue();
       if (track instanceof Vector)
         removeVector((Vector)track);
@@ -281,8 +282,14 @@ public class VectorSum extends Vector {
   /**
    * Cleans up associated resources when this track is deleted or cleared.
    */
-  protected void cleanup() {
-  	super.cleanup();
+  protected void dispose() {
+  	super.dispose();
+    for (Vector v: vectors) {
+      if (v!=null) {
+      	v.removePropertyChangeListener("step", this); //$NON-NLS-1$
+      }
+    }
+    vectors = new Vector[0];
 		if (inspector != null) inspector.dispose();
   }
 

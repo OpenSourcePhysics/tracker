@@ -64,7 +64,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version */
-  public static final String VERSION = "4.92"; //$NON-NLS-1$
+  public static final String VERSION = "4.93"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -144,6 +144,7 @@ public class Tracker {
   static int requestedMemorySize = -1, originalMemoryRequest = 0;
   static long lastMillisChecked;
 	static boolean is64BitVM;
+  static int maxFontLevel = 6;
   protected static Locale[] locales;
   static Locale defaultLocale;
   static ArrayList<String> checkForUpgradeChoices;
@@ -226,6 +227,8 @@ public class Tracker {
 			new Locale("sk"), // slovak //$NON-NLS-1$
 			new Locale("sl"), // slovenian //$NON-NLS-1$
 			new Locale("sv"), // swedish //$NON-NLS-1$
+			new Locale("tr"), // turkish //$NON-NLS-1$
+			new Locale("vi"), // vietnamese //$NON-NLS-1$
 			Locale.TAIWAN, // traditional chinese
 			Locale.CHINA}; // simplified chinese
   	setDefaultConfig(getFullConfig());
@@ -1348,82 +1351,31 @@ public class Tracker {
     	prefsControl.loadObject(null);  // the loader itself reads the values
     	return;
   	}
-  	else {
-  		// unable to find prefs, so write new one(s) if possible
-  		String recommendedPath = ""; //$NON-NLS-1$
-	  	for (String path: OSPRuntime.getDefaultSearchPaths()) {
-  			String fileName = TrackerStarter.PREFS_FILE_NAME;
-	      String prefs_path = new File(path, fileName).getAbsolutePath();
-	      if ("".equals(recommendedPath)) recommendedPath = prefs_path; //$NON-NLS-1$
-	      else recommendedPath = " or "+prefs_path; //$NON-NLS-1$
-	    	XMLControl control = new XMLControlElement(new Preferences());
-	      if (control.write(prefs_path)!=null) {
-	      	prefsPath = prefs_path;
-		    	OSPLog.getOSPLog();
-		    	OSPLog.info("wrote new preferences file to "+XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
-	      }
-	  	}
-  		if (prefsPath==null) {
-    		// unable to read or write prefs 			
+
+		// unable to find prefs, so write new one(s) if possible
+		String recommendedPath = null;
+  	for (String path: OSPRuntime.getDefaultSearchPaths()) {
+			String fileName = TrackerStarter.PREFS_FILE_NAME;
+      String prefs_path = new File(path, fileName).getAbsolutePath();
+      if (recommendedPath==null) recommendedPath = prefs_path;
+      else recommendedPath += " or "+prefs_path; //$NON-NLS-1$
+    	XMLControl control = new XMLControlElement(new Preferences());
+      if (control.write(prefs_path)!=null) {
+      	prefsPath = prefs_path;
 	    	OSPLog.getOSPLog();
-	    	if (recommendedPath!=null) {
-		    	OSPLog.warning("administrator action required: unable to write preferences file to "+recommendedPath); //$NON-NLS-1$
-	  		}
-	    	else {
-		    	OSPLog.warning("unable to find or create preferences file "+TrackerStarter.PREFS_FILE_NAME); //$NON-NLS-1$
-	    	}
-  		}
+	    	OSPLog.info("wrote new preferences file to "+XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
+      }
   	}
-  	
-//  	// code below this point is legacy and should never be reached
-//    // if not loaded, look in (1) user home, (2) TRACKER_HOME, (3) current directory
-//    // check user home
-//    XMLControl control = null;
-//  	String loadedPath = null;
-//    String userhome = System.getProperty("user.home"); //$NON-NLS-1$
-//    if (userhome!=null) {
-//      prefsPath = userhome+"/"+prefsFileName; //$NON-NLS-1$
-//      control = new XMLControlElement(prefsPath);
-//      if (!control.failedToRead()) loadedPath = prefsPath;
-//    }
-//    // if not loaded, check TRACKER_HOME
-//    if (loadedPath==null) {
-//      if (trackerHome!=null) {
-//	      String path = trackerHome+"/"+prefsFileName; //$NON-NLS-1$
-//	      control = new XMLControlElement(path);
-//	      if (!control.failedToRead()) loadedPath = path;
-//	      if (prefsPath==null)
-//	      	prefsPath = path;
-//      }
-//    }
-//    // if not loaded, check launch jar directory
-//    if (loadedPath==null) {
-//      String dir = OSPRuntime.getLaunchJarDirectory();
-//      if (dir!=null) {
-//        String path = dir+"/"+prefsFileName; //$NON-NLS-1$
-//        control = new XMLControlElement(path);
-//	      if (!control.failedToRead()) loadedPath = path;
-//        if (prefsPath==null && loadedPath!=null)
-//        	prefsPath = path;   	
-//      }
-//    }
-//    // check current directory
-//    if (loadedPath==null) {
-//      File file = new File(prefsFileName);
-//      if (file.exists()) {
-//        String path = file.getAbsolutePath();
-//        control = new XMLControlElement(path);
-//	      if (!control.failedToRead()) loadedPath = path;
-//        if (prefsPath==null && loadedPath!=null)
-//        	prefsPath = path;   	
-//      }
-//    }
-//    if (loadedPath!=null) {
-//    	OSPLog.getOSPLog();
-//    	OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(loadedPath))); //$NON-NLS-1$
-//    	control.loadObject(null);  // the loader itself sets the values
-//    }
-//    // end legacy code
+		if (prefsPath==null) {
+  		// unable to read or write prefs 			
+    	OSPLog.getOSPLog();
+    	if (recommendedPath!=null) {
+	    	OSPLog.warning("administrator action required: unable to write preferences file to "+recommendedPath); //$NON-NLS-1$
+  		}
+    	else {
+	    	OSPLog.warning("unable to find or create preferences file "+TrackerStarter.PREFS_FILE_NAME); //$NON-NLS-1$
+    	}
+		}  	
   }
 
   /**
@@ -1462,7 +1414,7 @@ public class Tracker {
     }
     
     // save current trackerHome and xuggleHome in OSP preferences 
-    if (trackerHome!=null) {
+    if (trackerHome!=null && new File(trackerHome, "tracker.jar").exists()) {   	 //$NON-NLS-1$
     	OSPRuntime.setPreference("TRACKER_HOME", trackerHome); //$NON-NLS-1$
     }
   	String xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
@@ -1516,6 +1468,14 @@ public class Tracker {
 //		for (String next: vars) {
 //			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
 //		}
+  	
+//  	Map<String, String> map = System.getenv();
+//  	for (String key: map.keySet()) {
+//  		System.out.println("environment "+key+" = "+map.get(key));
+//  	}
+//  	for (Object key: System.getProperties().keySet()) {
+//  		System.out.println("property "+key+" = "+System.getProperties().get(key));
+//  	}
 
     // determine if this is tracker.jar (Tracker main class)
     boolean isTracker = false;
@@ -1643,7 +1603,7 @@ public class Tracker {
 			}
 		}
  
-  	FontSizer.setLevel(preferredFontLevel);
+  	FontSizer.setLevel(preferredFontLevel+preferredFontLevelPlus);
   	final TFrame frame = tracker.getFrame();
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -2086,6 +2046,8 @@ public class Tracker {
       		control.setValue("locale", Tracker.preferredLocale); //$NON-NLS-1$
       	if (Tracker.preferredFontLevel>0) {
       		control.setValue("font_size", Tracker.preferredFontLevel); //$NON-NLS-1$
+      	}
+      	if (Tracker.preferredFontLevelPlus>0) {
       		control.setValue("font_size_plus", Tracker.preferredFontLevelPlus); //$NON-NLS-1$
       	}
       	if (ResourceLoader.getOSPCache()!=null) {

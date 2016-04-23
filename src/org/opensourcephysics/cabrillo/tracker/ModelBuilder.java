@@ -28,10 +28,12 @@ import java.beans.*;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.tools.*;
 
 /**
@@ -45,7 +47,7 @@ public class ModelBuilder extends FunctionTool {
   private JComboBox boosterDropdown;
 	
 	/**
-	 * Contsructor.
+	 * Constructor.
 	 * 
 	 * @param trackerPanel the TrackerPanel with the models
 	 */
@@ -97,7 +99,7 @@ public class ModelBuilder extends FunctionTool {
 	      		if (target!=null) {
 		      		Step step = trackerPanel.getSelectedStep();
 		      		if (step!=null && step instanceof PositionStep) {
-		      			PointMass pm = (PointMass)((PositionStep)step).track;
+		      			PointMass pm = (PointMass)step.getTrack();
 		      			if (pm==target) {
 		      				model.setStartFrame(step.getFrameNumber());
 		      			}
@@ -112,12 +114,7 @@ public class ModelBuilder extends FunctionTool {
     boosterDropdown.setRenderer(renderer);
 		refreshBoosterDropdown();
 
-    trackerPanel.addPropertyChangeListener("track", new PropertyChangeListener() { //$NON-NLS-1$
-    	public void propertyChange(PropertyChangeEvent e) {
-    		refreshBoosterDropdown();
-    		refreshLayout();
-    	}
-    });
+    trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
 
     setHelpAction(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -187,6 +184,39 @@ public class ModelBuilder extends FunctionTool {
 	  validate();
 	}
 	
+  @Override
+  public void propertyChange(PropertyChangeEvent e) {
+  	if (e.getPropertyName().equals("track")) { //$NON-NLS-1$
+  		refreshBoosterDropdown();
+  		refreshLayout();
+  	}
+  	else super.propertyChange(e);
+  }
+  	
+  @Override
+  public void finalize() {
+  	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
+  }
+
+  @Override
+  public void dispose() {
+    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$  	
+    ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
+		removePropertyChangeListener("panel", trackerPanel); //$NON-NLS-1$
+		if (helpDialog!=null) {
+			helpDialog.dispose();
+		}
+		for (String key: panels.keySet()) {
+			FunctionPanel next = panels.get(key);
+      next.setFunctionTool(null);			
+		}
+		clearPanels();
+		selectedPanel = null;
+    trackerPanel.modelBuilder = null;
+    trackerPanel = null;
+  	super.dispose();
+  }
+
 	/**
    * Gets the TrackerPanel.
    * 
@@ -315,6 +345,10 @@ public class ModelBuilder extends FunctionTool {
   	  	boolean enable = dynamicModel!=null && !(dynamicModel instanceof DynamicSystem);
     	  boosterLabel.setEnabled(enable);
     	  boosterDropdown.setEnabled(enable);
+  	  }
+  	  else { // selected panel is null
+    	  boosterDropdown.setEnabled(false);  // disabled during refresh to prevent action
+  	    boosterDropdown.removeAllItems();  	
   	  }
   	  validate();
   }

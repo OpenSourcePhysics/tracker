@@ -76,7 +76,7 @@ public class OffsetOriginStep extends Step {
    * @param y the world y coordinate
    */
   public void setWorldXY(double x, double y) {
-    if (track.isLocked()) return;
+    if (getTrack().isLocked()) return;
     
     if (offset.isFixedCoordinates()) {
     	OffsetOriginStep step = (OffsetOriginStep)offset.steps.getStep(0);
@@ -216,7 +216,7 @@ public class OffsetOriginStep extends Step {
      * @param y the y position
      */
     public void setXY(double x, double y) {
-      if (track.isLocked()) return;
+      if (getTrack().isLocked()) return;
       if (isAdjusting()) {
       	lastX = x;
       	lastY = y;
@@ -248,7 +248,7 @@ public class OffsetOriginStep extends Step {
     	super.setAdjusting(adjusting);
     	if (wasAdjusting && !adjusting) {
     		setXY(lastX, lastY);
-    		track.firePropertyChange("step", null, n); //$NON-NLS-1$
+    		getTrack().firePropertyChange("step", null, n); //$NON-NLS-1$
     	}
     }
 

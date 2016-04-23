@@ -80,6 +80,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
   public void handleMouseAction(InteractivePanel panel,
                                 MouseEvent e) {
     if (!(panel instanceof TrackerPanel)) return;
+    
     // popup menus handled by MainTView class
   	if (OSPRuntime.isPopupTrigger(e)
   			|| panel.getZoomBox().isVisible()) {

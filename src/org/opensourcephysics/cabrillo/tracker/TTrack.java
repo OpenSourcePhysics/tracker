@@ -59,7 +59,8 @@ public abstract class TTrack implements Interactive,
   protected static JButton closeButton;
 	protected static boolean skippedStepWarningOn = true;
   protected static NameDialog nameDialog;
-  protected static int nextID = 0;
+  protected static int nextID = 1;
+  protected static HashMap<Integer, TTrack> activeTracks = new HashMap<Integer, TTrack>();
   protected static FontRenderContext frc
 		  = new FontRenderContext(null,   // no AffineTransform
 		                          false,  // no antialiasing
@@ -387,7 +388,6 @@ public abstract class TTrack implements Interactive,
    */
   protected void delete(boolean postEdit) {
     if (isLocked() && !isDependent()) return;
-    cleanup();
     if (trackerPanel != null) {
     	trackerPanel.setSelectedPoint(null);
       // handle case when this is the origin of current reference frame
@@ -407,8 +407,8 @@ public abstract class TTrack implements Interactive,
       TrackerPanel panel = it.next();
       panel.removeTrack(this);
     }
-    setTrackerPanel(null);
-    repaint(); // repaints all panels
+    erase();
+    dispose();
   }
 
   /**
@@ -677,6 +677,11 @@ public abstract class TTrack implements Interactive,
    */
   public String toString() {
     return getClass().getSimpleName()+" "+name; //$NON-NLS-1$
+  }
+
+  @Override
+  public void finalize() {
+  	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
   }
 
   /**
@@ -1632,7 +1637,7 @@ public abstract class TTrack implements Interactive,
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(final TrackerPanel trackerPanel) {
+  public JMenu getMenu(TrackerPanel trackerPanel) {
     // prepare menu items
     visibleItem.setText(TrackerRes.getString("TTrack.MenuItem.Visible")); //$NON-NLS-1$
     trailVisibleItem.setText(TrackerRes.getString("TTrack.MenuItem.TrailVisible")); //$NON-NLS-1$
@@ -2189,6 +2194,20 @@ public abstract class TTrack implements Interactive,
     support.removePropertyChangeListener(property, listener);
   }
 
+  /**
+   * Reports whether or not the specified step is visible.
+   *
+   * @param step the step
+   * @param trackerPanel the tracker panel
+   * @return <code>true</code> if the step is visible
+   */
+  public boolean isStepVisible(Step step, TrackerPanel trackerPanel) {
+    if (!isVisible()) return false;
+    int n =  step.getFrameNumber();
+    return trackerPanel.getPlayer().getVideoClip().includesFrame(n) &&
+          (trailVisible || trackerPanel.getFrameNumber() == n);
+  }
+
   //___________________________ protected methods ____________________________
 
   /**
@@ -2248,9 +2267,33 @@ public abstract class TTrack implements Interactive,
   }
 
   /**
-   * Cleans up associated resources when this track is deleted or cleared.
+   * Disposes of resources when this track is deleted or cleared.
    */
-  protected void cleanup() {
+  protected void dispose() {
+  	panels.clear();
+  	properties.clear();
+  	worldBounds.clear();
+  	data = null;
+  	if (attachments!=null) {
+    	for (int i = 0; i < attachments.length; i++) {
+    		TTrack targetTrack = attachments[i];
+  	  	if (targetTrack!=null) {
+  	  		targetTrack.removePropertyChangeListener("step", this); //$NON-NLS-1$
+  	  		targetTrack.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+  	  	}
+  	  	attachments[i] = null;
+    	}
+    	refreshAttachments();
+  	}
+  	attachments = null;
+  	attachmentNames = null;
+  	for (Step step: steps.array) {
+  		if (step!=null) {
+  			step.dispose();
+  		}
+  	}
+  	steps = null;
+  	setTrackerPanel(null);
   }
   
   /**
@@ -2783,21 +2826,9 @@ public abstract class TTrack implements Interactive,
   	return nameDialog;
   }
   
-  
-
-  /**
-   * Reports whether or not the specified step is visible.
-   *
-   * @param step the step
-   * @param trackerPanel the tracker panel
-   * @return <code>true</code> if the step is visible
-   */
-  public boolean isStepVisible(Step step, TrackerPanel trackerPanel) {
-    if (!isVisible()) return false;
-    int n =  step.getFrameNumber();
-    return trackerPanel.getPlayer().getVideoClip().includesFrame(n) &&
-          (trailVisible || trackerPanel.getFrameNumber() == n);
+  protected static TTrack getTrack(int ID) {
+  	return activeTracks.get(ID);
   }
-
+  
 }
 

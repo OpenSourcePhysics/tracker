@@ -32,6 +32,7 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
@@ -50,6 +51,8 @@ public class MainTView extends JPanel implements TView {
   Rectangle scrollRect = new Rectangle();
   private Point zoomCenter = new Point();
   private JToolBar playerBar;
+  private MouseAdapter mouseAdapter;
+  private KeyAdapter keyAdapter;
 
   /**
    * Constructs a main view of a tracker panel.
@@ -81,12 +84,12 @@ public class MainTView extends JPanel implements TView {
     scrollPane.setViewportView(trackerPanel);
     trackerPanel.setScrollPane(scrollPane);
     
-//    trackerPanel.addOptionController();
-    // add mouse listener for zoom
-    trackerPanel.addMouseListener(new MouseAdapter() {
+    mouseAdapter = new MouseAdapter() {
+    	@Override
     	public void mousePressed(MouseEvent e) {
     		zoomCenter.setLocation(e.getPoint());
     	}
+    	@Override
       public void mouseReleased(MouseEvent e) {
       	// handle zoom actions
       	if (trackerPanel.getCursor() == Tracker.zoomOutCursor) 
@@ -94,8 +97,7 @@ public class MainTView extends JPanel implements TView {
         else if (trackerPanel.getCursor() == Tracker.zoomInCursor) 
         	zoomIn(false);   
       }
-    });
-    trackerPanel.addMouseWheelListener(new MouseWheelListener() {
+    	@Override
     	public void mouseWheelMoved(MouseWheelEvent e) {
     		zoomCenter.setLocation(e.getPoint());
         if (e.getWheelRotation() > 0) {
@@ -105,8 +107,9 @@ public class MainTView extends JPanel implements TView {
         	zoomIn(true);  // zoom by a step
         }
     	}
-    });
-    trackerPanel.addKeyListener(new KeyAdapter() {
+    };
+        
+    keyAdapter = new KeyAdapter() {
       public void keyPressed(KeyEvent e) {
       	JButton z = trackerPanel.getTFrame().getToolBar(trackerPanel).zoomButton;
       	int d = trackerPanel.getSelectedPoint() == null? 10: 0;
@@ -182,7 +185,12 @@ public class MainTView extends JPanel implements TView {
 	        SwingUtilities.invokeLater(runner);
         }
       }
-    });
+    };
+    // add mouse and key listeners
+    trackerPanel.addMouseListener(mouseAdapter);
+    trackerPanel.addMouseWheelListener(mouseAdapter);
+    trackerPanel.addKeyListener(keyAdapter);
+
   }
   
   /**
@@ -503,11 +511,13 @@ public class MainTView extends JPanel implements TView {
    * Initializes this view
    */
   public void init() {
-    cleanup(); // removes previous listeners
-    // add this listener to tracker panel
+    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
     // add this listener to tracks
     for (TTrack track: trackerPanel.getTracks()){
+      track.removePropertyChangeListener("color", this); //$NON-NLS-1$
       track.addPropertyChangeListener("color", this); //$NON-NLS-1$
     }
   }
@@ -518,10 +528,42 @@ public class MainTView extends JPanel implements TView {
   public void cleanup() {
     // remove this listener from tracker panel
     trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-    // remove this listener from tracks
-    for (TTrack track: trackerPanel.getTracks()){
+    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+    // remove this listener from all tracks
+    for (Integer n: TTrack.activeTracks.keySet()) {
+    	TTrack track = TTrack.activeTracks.get(n);
       track.removePropertyChangeListener("color", this); //$NON-NLS-1$
     }
+  }
+
+  /**
+   * Disposes of the view
+   */
+  public void dispose() {
+  	cleanup();
+	  // dispose of floating player, if any
+  	// pig this main view not finalized when player is floating
+	  Container frame = playerBar.getTopLevelAncestor();
+	  if (frame instanceof JDialog) {
+	  	frame.removeAll();
+	    ((JDialog)frame).dispose();
+	  }
+    // remove mouse and key listeners
+    trackerPanel.removeMouseListener(mouseAdapter);
+    trackerPanel.removeMouseWheelListener(mouseAdapter);
+    trackerPanel.removeKeyListener(keyAdapter);
+
+    playerBar.removeAll();
+    playerBar = null;
+    scrollPane.setViewportView(null);
+    scrollPane = null;
+    removeAll();
+  	trackerPanel = null;
+  }
+
+  @Override
+  public void finalize() {
+  	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
   }
 
   /**
@@ -577,7 +619,7 @@ public class MainTView extends JPanel implements TView {
    */
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("track")) { // track has been added or removed //$NON-NLS-1$
+    if (name.equals("track") || name.equals("clear")) { // track has been added or removed //$NON-NLS-1$ //$NON-NLS-2$
       refresh();
     }
     else if (name.equals("color")) { // track color has changed //$NON-NLS-1$

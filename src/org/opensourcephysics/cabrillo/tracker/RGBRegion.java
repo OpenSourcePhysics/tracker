@@ -852,6 +852,27 @@ public class RGBRegion extends TTrack {
 	        radii[n] = ((RGBStep)steps[n]).radius;
 	      }
 	      control.setValue("radii", radii); //$NON-NLS-1$
+	      // save RGB values
+	      count = steps.length;
+	      int first = 0;
+	      int last = count-1;
+	      if (region.trackerPanel!=null) {
+	      	first = region.trackerPanel.getPlayer().getVideoClip().getStartFrameNumber();
+	      	last = region.trackerPanel.getPlayer().getVideoClip().getEndFrameNumber();
+	      }
+	      double[][] rgb = new double[last+1][];
+	      double[] stepRGB = new double[5];
+	      for (int n = first; n <= last; n++) {
+	      	// save RGB and pixel count data for all valid frames in clip
+	        if (steps[n] == null) continue;
+	        if (((RGBStep)steps[n]).dataValid) {
+	        	stepRGB = ((RGBStep)steps[n]).rgbData;
+	        	rgb[n] = new double[4];
+		        System.arraycopy(stepRGB, 0, rgb[n], 0, 3);
+		        System.arraycopy(stepRGB, 4, rgb[n], 3, 1);
+	        }
+	      }
+	      control.setValue("rgb", rgb); //$NON-NLS-1$
     	}
     }
 
@@ -914,6 +935,21 @@ public class RGBRegion extends TTrack {
 	        step.radius = radii[n];
 	        region.radiusKeyFrames.add(n);
 	      }
+      }
+      double[][] rgb = (double[][])control.getObject("rgb"); //$NON-NLS-1$
+      if (rgb!=null) {
+      	for (int n=0; n<rgb.length; n++) {
+      		if (rgb[n]==null) continue;
+	        RGBStep step = (RGBStep)region.steps.getStep(n);
+	        System.arraycopy(rgb[n], 0, step.rgbData, 0, 3);
+	        step.rgbData[0] = rgb[n][0];
+	        step.rgbData[1] = rgb[n][1];
+	        step.rgbData[2] = rgb[n][2];
+	        step.rgbData[3] = RGBRegion.getLuma(rgb[n][0], rgb[n][1], rgb[n][2]);
+	        step.rgbData[4] = rgb[n][3];
+	        region.refreshStep(step);
+	        step.dataValid = true;
+      	}
       }
       region.setLocked(locked);
       region.loading = false;

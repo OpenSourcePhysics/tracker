@@ -23,6 +23,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.controls.ListChooser;
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -38,6 +39,7 @@ import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.ResourceLoader;
+import org.opensourcephysics.tools.ToolsRes;
 import org.opensourcephysics.tools.TristateCheckBox;
 
 /**
@@ -752,6 +754,36 @@ public class TrackDataBuilder extends FunctionTool {
   }
     
     
+  /**
+   * Disposes of this data builder.
+   */
+  public void dispose() {
+		removePropertyChangeListener("panel", trackerPanel); //$NON-NLS-1$
+		removePropertyChangeListener("function", trackerPanel); //$NON-NLS-1$
+		removePropertyChangeListener("visible", trackerPanel); //$NON-NLS-1$
+    ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
+		if (autoloadManager!=null) {
+			autoloadManager.dispose();
+		}
+		if (helpDialog!=null) {
+			helpDialog.dispose();
+		}
+		for (String key: panels.keySet()) {
+			FunctionPanel next = panels.get(key);
+      next.setFunctionTool(null);			
+		}
+		clearPanels();
+		selectedPanel = null;
+		trackerPanel.dataBuilder = null;
+		trackerPanel = null;
+  	super.dispose();
+  }
+  
+  @Override
+  public void finalize() {
+  	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
+  }
+
   /**
 	 * An AutoloadManager for DataFunctions.
 	 */

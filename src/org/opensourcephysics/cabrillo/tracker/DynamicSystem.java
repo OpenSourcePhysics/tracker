@@ -103,7 +103,7 @@ public class DynamicSystem extends DynamicParticlePolar {
        PointShapeFootprint.getFootprint("Footprint.SolidCircle"), //$NON-NLS-1$
        PointShapeFootprint.getFootprint("Footprint.BoldVerticalLine"), //$NON-NLS-1$
        PointShapeFootprint.getFootprint("Footprint.BoldHorizontalLine"), //$NON-NLS-1$
-       new PositionVectorFootprint(this, "Footprint.BoldPositionVector", 2)}); //$NON-NLS-1$
+       PointShapeFootprint.getFootprint("Footprint.BoldPositionVector")}); //$NON-NLS-1$
     defaultFootprint = getFootprint();
     setColor(defaultColors[0]);
     locked = true;
@@ -138,7 +138,7 @@ public class DynamicSystem extends DynamicParticlePolar {
       }
       if (empty) particleNames = new String[0];
     }
-    getInspector();
+    getModelBuilder();
     if (systemInspectorX != Integer.MIN_VALUE
 				&& trackerPanel.getTFrame() != null) {
 			// set system inspector position
@@ -339,7 +339,9 @@ public class DynamicSystem extends DynamicParticlePolar {
 				particle.system = null;
 				particle.inSystem = false;
 				particle.refreshInitialTime();
-				particle.removePropertyChangeListener(this);
+				particle.removePropertyChangeListener("mass", this); //$NON-NLS-1$
+				particle.removePropertyChangeListener("step", this); //$NON-NLS-1$
+				particle.removePropertyChangeListener("steps", this); //$NON-NLS-1$
 				particle.lastValidFrame = -1;
 				particle.repaint();
 				if (systemInspector!=null) {
@@ -367,8 +369,12 @@ public class DynamicSystem extends DynamicParticlePolar {
 		points[points.length-1] = point;
 		
 		for (int i = 0; i < particles.length; i++) {
-			particles[i].removePropertyChangeListener(this);
-			particles[i].addPropertyChangeListener(this);
+			particles[i].removePropertyChangeListener("mass", this); //$NON-NLS-1$
+			particles[i].removePropertyChangeListener("step", this); //$NON-NLS-1$
+			particles[i].removePropertyChangeListener("steps", this); //$NON-NLS-1$
+			particles[i].addPropertyChangeListener("mass", this); //$NON-NLS-1$
+			particles[i].addPropertyChangeListener("step", this); //$NON-NLS-1$
+			particles[i].addPropertyChangeListener("steps", this); //$NON-NLS-1$
 			particles[i].system = this;
 			particles[i].refreshInitialTime();
 			if (systemInspector!=null) {
@@ -381,8 +387,8 @@ public class DynamicSystem extends DynamicParticlePolar {
 			}
 		}
     refreshSystemParameters();
-    if (inspector != null)
-    	inspector.refreshDropdown(null);
+    if (modelBuilder != null)
+    	modelBuilder.refreshDropdown(null);
     if (particles.length==0 && steps != noSteps) {
     	steps = noSteps;
   		support.firePropertyChange("steps", null, null); //$NON-NLS-1$
@@ -682,11 +688,15 @@ public class DynamicSystem extends DynamicParticlePolar {
 
 //______________________________ protected methods __________________________
 	
-  /**
-   * Cleans up associated resources when this track is deleted or cleared.
-   */
-  protected void cleanup() {
-  	super.cleanup();
+  @Override
+  protected void dispose() {
+		for (int i = 0; i < particles.length; i++) {
+			particles[i].removePropertyChangeListener("mass", this); //$NON-NLS-1$
+			particles[i].removePropertyChangeListener("step", this); //$NON-NLS-1$
+			particles[i].removePropertyChangeListener("steps", this); //$NON-NLS-1$
+			particles[i].system = null;
+		}
+  	super.dispose();
 		if (systemInspector != null) systemInspector.dispose();
   }
 

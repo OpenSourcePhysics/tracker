@@ -662,7 +662,7 @@ public class TapeStep extends Step {
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
-      if (track.locked) return;
+      if (getTrack().locked) return;
       double dx = x - getX();
       double dy = y - getY();
     	setLocation(x, y);
@@ -730,7 +730,7 @@ public class TapeStep extends Step {
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
-      if (track.locked) return;
+      if (getTrack().locked) return;
       if (tape.isStickMode() && isAdjusting()) {
       	lastX = x;
       	lastY = y;

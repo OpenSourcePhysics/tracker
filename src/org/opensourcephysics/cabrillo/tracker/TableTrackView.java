@@ -58,39 +58,37 @@ public class TableTrackView extends TrackView {
 	static final String DEFINED_AS = ": "; //$NON-NLS-1$
 
   // instance fields
-  protected TableTView parentView;
-  protected DataTable dataTable;
-  protected JButton columnsButton;
-  protected JPopupMenu popup;
-  protected JPanel columnsPanel;
-  protected JScrollPane columnsScroller;
   protected DatasetManager data;
-  protected DatasetManager tableData;
+  protected JScrollPane columnsScroller;
+  protected DataTable dataTable;
   protected JCheckBox[] checkBoxes;
-  protected JMenuItem formatDialogItem;
-  protected JMenu copyDataMenu;
-  protected JMenuItem copyDataRawItem, copyDataFormattedItem;
-  protected JMenu setDelimiterMenu;
-  ButtonGroup delimiterButtonGroup = new ButtonGroup();
-  protected JMenuItem addDelimiterItem, removeDelimiterItem;
-  protected JMenuItem copyImageItem, snapshotItem, printItem, helpItem;
-  protected JMenuItem dataToolItem, dataBuilderItem, deleteDataFunctionItem;
   protected JMenuItem createTextColumnItem;
   protected JMenu textColumnMenu, deleteTextColumnMenu, renameTextColumnMenu;
-  protected String xVar, yVar;
   protected boolean refresh = true;
-  protected boolean highlightVisible = true;
-  protected int highlightRow; // highlighted table row, or -1
-  protected int leadCol;
-  protected Font font = new JTextField().getFont();
-  protected TreeSet<Double> selectedIndepVarValues // used when sorting
-  		= new TreeSet<Double>();
-  protected Map<String, TableCellRenderer> degreeRenderers
-  		= new HashMap<String, TableCellRenderer>();
-  protected TextColumnTableModel textColumnModel;
-  protected TextColumnEditor textColumnEditor;
   protected Set<String> textColumnsVisible = new TreeSet<String>();
-  protected ArrayList<String> textColumnNames = new ArrayList<String>();
+  protected JMenuItem dataToolItem, dataBuilderItem, deleteDataFunctionItem;
+  private JButton columnsButton;
+  private JPopupMenu popup;
+  private JPanel columnsPanel;
+  private DatasetManager tableData;
+  private JMenuItem formatDialogItem;
+  private JMenu copyDataMenu;
+  private JMenuItem copyDataRawItem, copyDataFormattedItem;
+  private JMenu setDelimiterMenu;
+  private ButtonGroup delimiterButtonGroup = new ButtonGroup();
+  private JMenuItem addDelimiterItem, removeDelimiterItem;
+  private JMenuItem copyImageItem, snapshotItem, printItem, helpItem;
+  private boolean highlightVisible = true;
+  private int highlightRow; // highlighted table row, or -1
+  private int leadCol;
+  private Font font = new JTextField().getFont();
+  private TreeSet<Double> selectedIndepVarValues // used when sorting
+  		= new TreeSet<Double>();
+  private Map<String, TableCellRenderer> degreeRenderers
+  		= new HashMap<String, TableCellRenderer>();
+  private TextColumnTableModel textColumnModel;
+  private TextColumnEditor textColumnEditor;
+  private ArrayList<String> textColumnNames = new ArrayList<String>();
 
   /**
    * Constructs a TrackTableView of the specified track on the specified tracker panel.
@@ -100,8 +98,7 @@ public class TableTrackView extends TrackView {
    * @param view the TableTView that will display this
    */
   public TableTrackView(TTrack track, TrackerPanel panel, TableTView view) {
-    super(track, panel);
-    parentView = view;
+    super(track, panel, view);
     track.addPropertyChangeListener("text_column", this); //$NON-NLS-1$
     textColumnNames.addAll(track.getTextColumnNames());
     // create the DataTable
@@ -327,11 +324,6 @@ public class TableTrackView extends TrackView {
   }
 
   /**
-   * Implements TrackView interface.
-   */
-  void dispose() {/** empty block */}
-  
-  /**
    * Gets the datatable.
    *
    * @return the datatable
@@ -421,6 +413,20 @@ public class TableTrackView extends TrackView {
         break;
       }
     }
+  }
+
+  protected void dispose() {
+    data = null;
+    getTrack().removePropertyChangeListener("text_column", this); //$NON-NLS-1$
+    setViewportView(null);
+    columnsPanel.removeAll();
+    tableData.clear();
+    tableData = null;
+    dataTable.clear();
+    dataTable.setRefreshDelay(-1); // stops the refresh timer
+    dataTable = null;
+    parent = null;
+    super.dispose();
   }
 
   /**
@@ -544,10 +550,10 @@ public class TableTrackView extends TrackView {
    */
   public void propertyChange(PropertyChangeEvent e) {
   	TTrack track = getTrack();
-    if (parentView.columnsDialog != null 
+    if (((TableTView)parent).columnsDialog != null 
     			&& e.getPropertyName().equals("track") //$NON-NLS-1$
     			&& e.getNewValue()==track) {
-      parentView.refreshColumnsDialog(getTrack());
+    	((TableTView)parent).refreshColumnsDialog(track);
     }
     if (e.getPropertyName().equals("text_column")) { //$NON-NLS-1$
   		// look for added and removed column names
@@ -761,7 +767,7 @@ public class TableTrackView extends TrackView {
     };
     columnsButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        parentView.showColumnsDialog(getTrack());
+      	((TableTView)parent).showColumnsDialog(getTrack());
       }
     });
     // create column list

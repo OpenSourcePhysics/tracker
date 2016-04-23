@@ -877,10 +877,10 @@ public class TapeMeasure extends TTrack {
 	  super.setTrackerPanel(panel);
   	if (trackerPanel != null) {
   		trackerPanel.addMouseListener(editListener);
+	    boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
+	    setFixedPosition(isFixedPosition() && canBeFixed);
 //  		trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
   	}
-    boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
-    setFixedPosition(isFixedPosition() && canBeFixed);
   }
   
   /**

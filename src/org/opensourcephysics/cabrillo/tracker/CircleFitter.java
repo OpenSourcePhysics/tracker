@@ -64,7 +64,7 @@ public class CircleFitter extends TTrack {
   protected int absoluteStart = 0, relativeStart = -2, attachmentFrameCount = 5;
   protected TTrack[] attachmentForSteps;
   protected String stepAttachmentName;
-  private boolean refreshingAttachments, abortRefreshAttachments;
+  private boolean refreshingAttachments, abortRefreshAttachments, loadingAttachments;
 
   /**
    * Constructs a CircleFitter.
@@ -120,7 +120,7 @@ public class CircleFitter extends TTrack {
     });
 
   	clickToMarkLabel = new JLabel();
-    clickToMarkLabel.setForeground(Color.green.darker().darker());
+    clickToMarkLabel.setForeground(Color.red.darker());
     
     // create actions, listeners, labels and fields for data points
     final Action dataPointAction = new AbstractAction() {
@@ -453,9 +453,46 @@ public class CircleFitter extends TTrack {
   public void setFontLevel(int level) {
   	super.setFontLevel(level);
   	Object[] objectsToSize = new Object[]
-  			{clickToMarkLabel, xDataPointLabel, yDataPointLabel,
+  			{clickToMarkLabel, xDataPointLabel, yDataPointLabel, pointCountButton,
   			xDataField, yDataField};
     FontSizer.setFonts(objectsToSize, level);
+  }
+  
+  @Override
+  protected void dispose() {
+    for (Integer n: TTrack.activeTracks.keySet()) {
+    	TTrack track = TTrack.activeTracks.get(n);
+  		track.removePropertyChangeListener("step", this); //$NON-NLS-1$
+  		track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+  	}
+  	if (attachmentForSteps!=null) {
+    	for (int i = 0; i < attachmentForSteps.length; i++) {
+  	  	attachmentForSteps[i] = null;
+    	}
+  	}
+  	if (attachments!=null) {
+    	for (int i = 0; i < attachments.length; i++) {
+  	  	attachments[i] = null;
+    	}
+  	}
+  	// remove attachments from all dataPoints[1] of each step
+  	Step[] steps = getSteps();
+  	for (Step next: steps) {
+  		if (next==null) continue;
+  		CircleFitterStep step = (CircleFitterStep)next;
+  		for (int i = 0; i<=step.dataPoints[1].length; i++) {
+    		DataPoint p = step.getDataPoint(1, i); // may return null
+      	if (p!=null) {
+      		p.detach();
+      	}
+  		}
+  	}
+  	attachmentNames = null;
+  	panels.clear();
+  	properties.clear();
+  	worldBounds.clear();
+  	data = null;
+  	setTrackerPanel(null);
   }
   
   /**
@@ -832,6 +869,10 @@ public class CircleFitter extends TTrack {
   	  	dataValid = false;
   	  	firePropertyChange("data", null, this); //$NON-NLS-1$
   			refreshingAttachments = false;
+  			if (loadingAttachments) {
+  				trackerPanel.changed = false;
+  				loadingAttachments = false;
+  			}
   		}
   	};
   	
@@ -1214,6 +1255,7 @@ public class CircleFitter extends TTrack {
   	boolean loaded = super.loadAttachmentsFromNames(false);
   	if (!loaded && stepAttachmentName==null) return false;
 
+  	loadingAttachments = true;
 		TTrack track = trackerPanel.getTrack(stepAttachmentName);
   	if (track!=null) {
   		loaded = true;
@@ -1223,6 +1265,9 @@ public class CircleFitter extends TTrack {
   	
   	if (loaded && refresh) {
  	  	refreshAttachmentsLater();
+  	}
+  	else {
+  		loadingAttachments = false;
   	}
   	return loaded;
   }

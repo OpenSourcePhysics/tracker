@@ -64,8 +64,8 @@ public class PlotTrackView extends TrackView {
    * @param track the track being viewed
    * @param panel the tracker panel interpreting the track
    */
-  public PlotTrackView(TTrack track, TrackerPanel panel) {
-    super(track, panel);
+  public PlotTrackView(TTrack track, TrackerPanel panel, PlotTView view) {
+    super(track, panel, view);
     // get the track data object (DatasetManager)
     data = track.getData(trackerPanel);
     // create the GUI
@@ -104,6 +104,7 @@ public class PlotTrackView extends TrackView {
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh "+frameNumber); //$NON-NLS-1$
     
   	TTrack track = getTrack();
+  	if (track==null) return;
     track.getData(trackerPanel);
     for (int i = 0; i < plots.length; i++) {
       HighlightableDataset data = plots[i].getDataset();
@@ -116,6 +117,18 @@ public class PlotTrackView extends TrackView {
       plots[i].plotData();
     }
     mainView.repaint();
+  }
+
+  @Override
+  protected void dispose() {
+    data = null;
+    for (TrackPlottingPanel next: plots) {
+    	next.dispose();
+    }
+    plots = null;
+    mainView.removeAll();
+    parent = null;
+    super.dispose();
   }
 
   /**
@@ -135,8 +148,6 @@ public class PlotTrackView extends TrackView {
     }
   }
 
-  void dispose() {/** empty block */}
-  
   /**
    * Gets the toolbar components
    *

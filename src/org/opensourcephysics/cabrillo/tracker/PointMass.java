@@ -36,6 +36,7 @@ import javax.swing.event.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -130,13 +131,13 @@ public class PointMass extends TTrack {
        CircleFootprint.getFootprint("CircleFootprint.Circle"), //$NON-NLS-1$
        PointShapeFootprint.getFootprint("Footprint.VerticalLine"), //$NON-NLS-1$
        PointShapeFootprint.getFootprint("Footprint.HorizontalLine"), //$NON-NLS-1$       
-       new PositionVectorFootprint(this, "Footprint.PositionVector", 1), //$NON-NLS-1$
+       PointShapeFootprint.getFootprint("Footprint.PositionVector"), //$NON-NLS-1$
        PointShapeFootprint.getFootprint("Footprint.Spot"), //$NON-NLS-1$
     	 PointShapeFootprint.getFootprint("Footprint.BoldDiamond"), //$NON-NLS-1$
        PointShapeFootprint.getFootprint("Footprint.BoldTriangle"), //$NON-NLS-1$
        PointShapeFootprint.getFootprint("Footprint.BoldVerticalLine"), //$NON-NLS-1$
        PointShapeFootprint.getFootprint("Footprint.BoldHorizontalLine"), //$NON-NLS-1$
-       new PositionVectorFootprint(this, "Footprint.BoldPositionVector", 2)}); //$NON-NLS-1$
+       PointShapeFootprint.getFootprint("Footprint.BoldPositionVector")}); //$NON-NLS-1$
     defaultFootprint = getFootprint();
     setVelocityFootprints(new Footprint[]
       {LineFootprint.getFootprint("Footprint.Arrow"), //$NON-NLS-1$
@@ -660,6 +661,20 @@ public class PointMass extends TTrack {
   		updateDerivatives();
       support.firePropertyChange("steps", null, null); //$NON-NLS-1$
   	}
+  }
+
+  @Override
+  protected void dispose() {
+  	if (trackerPanel!=null) {
+  		removePropertyChangeListener("mass", trackerPanel.massChangeListener); //$NON-NLS-1$
+  		if (trackerPanel.dataBuilder!=null) {
+  			FunctionPanel functionPanel = trackerPanel.dataBuilder.getPanel(getName());
+  			if (functionPanel!=null) {
+  				functionPanel.getParamEditor().removePropertyChangeListener("edit", trackerPanel.massParamListener); //$NON-NLS-1$
+  			}
+  		}  	
+  	}
+  	super.dispose();
   }
 
   /**
@@ -2335,13 +2350,6 @@ public class PointMass extends TTrack {
     return a;
   }
 
-  /**
-   * Cleans up associated resources when this track is deleted or cleared.
-   */
-  protected void cleanup() {
-  	super.cleanup();
-  }
-  
   /**
    * Sets the position of the currently selected point based on the values
    * in the x and y fields.

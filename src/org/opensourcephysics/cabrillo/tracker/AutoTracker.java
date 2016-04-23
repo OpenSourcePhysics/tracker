@@ -46,6 +46,7 @@ import javax.swing.border.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
@@ -102,7 +103,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   // instance fields
   private TrackerPanel trackerPanel;
-//  private TTrack track;
   private int trackID;
   private Wizard wizard;
   private Shape match = new Ellipse2D.Double();
@@ -145,6 +145,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
   	trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
   	trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+  	trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
   	trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
   	trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
     stepper = new Runnable() {
@@ -647,6 +648,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * @return the template matcher
    */
   public TemplateMatcher getTemplateMatcher() {
+  	if (trackerPanel==null) return null;
   	int n = trackerPanel.getFrameNumber();
   	KeyFrame keyFrame = getFrame(n).getKeyFrame();
   	if (keyFrame==null)
@@ -798,6 +800,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  	if (deletedTrack==track) {	  		
 	  		setTrack(null);
 	  	}
+		}
+		else if (name.equals("clear")) { //$NON-NLS-1$
+			// tracks have been cleared
+	  	trackFrameData.clear();
+	  	setTrack(null);
 		}
 		
 		if (wizard==null || !wizard.isVisible()) return;
@@ -1043,7 +1050,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   }
   
   protected TTrack getTrack() {
-    return trackerPanel.getTrack(trackID);
+    return TTrack.getTrack(trackID);
   }
   
   /**
@@ -1066,20 +1073,28 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   }
   
   /**
-   * Cleans up resources.
+   * Disposes of this autotracker.
    */
-  protected void cleanup() {
+  protected void dispose() {
   	trackerPanel.removeDrawable(this);
   	trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
   	trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
   	trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+  	trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
   	trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
   	trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
   	setTrack(null);
   	trackFrameData.clear();
   	wizard.dispose();
+  	trackerPanel.autoTracker = null;
+  	trackerPanel = null;
   }
   
+  @Override
+  public void finalize() {
+  	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
+  }
+
   /**
    * Gets the drawing mark.
    *
@@ -2079,6 +2094,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   		pack();
 
   	}
+  	
+  	@Override
+  	public void dispose() {
+      trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
+      timer.stop();
+      timer = null;
+  		super.dispose();
+  	}
 
   //_____________________________ protected methods ____________________________
 
@@ -3004,6 +3027,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     		track.setMarkByDefault(false);
     	Runnable runner = new Runnable() {
     		public void run() {
+    			if (trackerPanel==null) return;
     			refreshDropdowns();
           refreshStrings();
         	refreshIcons();

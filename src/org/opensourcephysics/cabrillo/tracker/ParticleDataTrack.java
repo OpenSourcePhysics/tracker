@@ -312,6 +312,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
     for (TTrack track: morePoints) {
     	track.delete(false); // don't post undoable edit
     }
+    morePoints.clear();
 		trackerPanel.getTFrame().removePropertyChangeListener("windowfocus", this); //$NON-NLS-1$
     super.delete();
   }
@@ -429,7 +430,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
     allColorItem.setText(TrackerRes.getString("TTrack.MenuItem.Color")); //$NON-NLS-1$
     
 		// assemble menu
-		menu.add(inspectorItem);
+		menu.add(modelBuilderItem);
 		menu.addSeparator();
 		menu.add(descriptionItem);
 		menu.addSeparator();
@@ -1026,19 +1027,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	@Override
 	protected void setTrackerPanel(TrackerPanel panel) {
-//		TrackerPanel prev = trackerPanel;
 		super.setTrackerPanel(panel);
 		for (TTrack next: morePoints) {
 			next.setTrackerPanel(panel);
 		}
 		if (panel==null) {
-//			if (prev!=null) {
-//				prev.removePropertyChangeListener("frameshift", this); //$NON-NLS-1$
-//			}
 			return;
 		}
 		
-//		panel.addPropertyChangeListener("frameshift", this); //$NON-NLS-1$
 		VideoClip videoClip = panel.getPlayer().getVideoClip();
 		int length = videoClip.getLastFrameNumber()-videoClip.getFirstFrameNumber()+1;
 		dataClip.setClipLength(Math.min(length, dataClip.getClipLength()));
@@ -1649,17 +1645,17 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	    	control.setValue("model_footprint_visible", true); //$NON-NLS-1$
 	    }
   		// save inspector size and position
-  		if (dataTrack.inspector != null &&
+  		if (dataTrack.modelBuilder != null &&
   						dataTrack.trackerPanel != null && 
   						dataTrack.trackerPanel.getTFrame() != null) {
   			// save inspector location relative to frame
   			TFrame frame = dataTrack.trackerPanel.getTFrame();
-  			int x = dataTrack.inspector.getLocation().x - frame.getLocation().x;
-  			int y = dataTrack.inspector.getLocation().y - frame.getLocation().y;
+  			int x = dataTrack.modelBuilder.getLocation().x - frame.getLocation().x;
+  			int y = dataTrack.modelBuilder.getLocation().y - frame.getLocation().y;
     		control.setValue("inspector_x", x); //$NON-NLS-1$
     		control.setValue("inspector_y", y); //$NON-NLS-1$  			
-    		control.setValue("inspector_h", dataTrack.inspector.getHeight()); //$NON-NLS-1$ 
-    		control.setValue("inspector_visible", dataTrack.inspector.isVisible()); //$NON-NLS-1$
+    		control.setValue("inspector_h", dataTrack.modelBuilder.getHeight()); //$NON-NLS-1$ 
+    		control.setValue("inspector_visible", dataTrack.modelBuilder.isVisible()); //$NON-NLS-1$
   		}
     }
 
@@ -1723,7 +1719,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
       dataTrack.inspectorX = control.getInt("inspector_x"); //$NON-NLS-1$
       dataTrack.inspectorY = control.getInt("inspector_y"); //$NON-NLS-1$
       dataTrack.inspectorH = control.getInt("inspector_h"); //$NON-NLS-1$
-      dataTrack.showInspector = control.getBoolean("inspector_visible"); //$NON-NLS-1$
+      dataTrack.showModelBuilder = control.getBoolean("inspector_visible"); //$NON-NLS-1$
       return dataTrack;
     }
   }

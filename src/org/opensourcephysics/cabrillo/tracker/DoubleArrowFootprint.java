@@ -159,70 +159,73 @@ public class DoubleArrowFootprint extends LineFootprint {
           stroke.getDashPhase());
   	}    
     // set up tip hitShape using full length
-    path.reset();
-    path.moveTo(d - 4, 0);
-    path.lineTo(d - 6, -2);
-    path.lineTo(d, 0);
-    path.lineTo(d - 6, 2);
-    path.closePath();
-    hitShapes[0] = transform.createTransformedShape(path); // for tip
-    // set up tail hitShape
-    path.reset();
-    path.moveTo(4, 0);
-    path.lineTo(6, -2);
-    path.lineTo(0, 0);
-    path.lineTo(6, 2);
-    path.closePath();
-    hitShapes[1] = transform.createTransformedShape(path); // for tail
-    // set up shaft hitShape
-    float center = d/2; // center point
-    float l = d - 2 * tipL; // center section length
-    path.reset();
-    path.moveTo(center - 0.45f*l, 0);
-    path.lineTo(center + 0.45f*l, 0);
-    hitShapes[2] = transform.createTransformedShape(path); // for shaft
-    // shorten d to account for the width of the stroke
-    // see Java 2D API Graphics, by VJ Hardy (Sun, 2000) page 147
-    float w = (float) (stroke.getLineWidth() * 1.58) - 1;
-    d = d - w;
-    
-		// set up draw shape
-		path.reset();
-		path.moveTo(tipL+w-tipW, 0);
-		path.lineTo(bothEnds? d-tipL+tipW: d, 0);
-		Shape shaft = transform.createTransformedShape(path);
-		shaft = stroke.createStrokedShape(shaft);
-		Area area = new Area(shaft);
-		path.reset();
-	  path.moveTo(w+tipL-tipW, 0);
-	  path.lineTo(w+tipL, tipW);
-	  path.lineTo(w, 0);
-	  path.lineTo(w+tipL, -tipW);
-		path.closePath();
-		Shape end1 = transform.createTransformedShape(path);
-		if (openHead) {
-			end1 = headStroke.createStrokedShape(end1);
-		}
-		area.add(new Area(end1));
-		if (!openHead) {
-			area.add(new Area(headStroke.createStrokedShape(end1)));
-		}
-		if (bothEnds) {
+		Area area = null;
+  	synchronized(path) {
+	    path.reset();
+	    path.moveTo(d - 4, 0);
+	    path.lineTo(d - 6, -2);
+	    path.lineTo(d, 0);
+	    path.lineTo(d - 6, 2);
+	    path.closePath();
+	    hitShapes[0] = transform.createTransformedShape(path); // for tip
+	    // set up tail hitShape
+	    path.reset();
+	    path.moveTo(4, 0);
+	    path.lineTo(6, -2);
+	    path.lineTo(0, 0);
+	    path.lineTo(6, 2);
+	    path.closePath();
+	    hitShapes[1] = transform.createTransformedShape(path); // for tail
+	    // set up shaft hitShape
+	    float center = d/2; // center point
+	    float l = d - 2 * tipL; // center section length
+	    path.reset();
+	    path.moveTo(center - 0.45f*l, 0);
+	    path.lineTo(center + 0.45f*l, 0);
+	    hitShapes[2] = transform.createTransformedShape(path); // for shaft
+	    // shorten d to account for the width of the stroke
+	    // see Java 2D API Graphics, by VJ Hardy (Sun, 2000) page 147
+	    float w = (float) (stroke.getLineWidth() * 1.58) - 1;
+	    d = d - w;
+	    
+			// set up draw shape
 			path.reset();
-			path.moveTo(d-tipL+tipW, 0);
-			path.lineTo(d-tipL, -tipW);
-			path.lineTo(d, 0);
-			path.lineTo(d-tipL, tipW);
+			path.moveTo(tipL+w-tipW, 0);
+			path.lineTo(bothEnds? d-tipL+tipW: d, 0);
+			Shape shaft = transform.createTransformedShape(path);
+			shaft = stroke.createStrokedShape(shaft);
+			area = new Area(shaft);
+			path.reset();
+		  path.moveTo(w+tipL-tipW, 0);
+		  path.lineTo(w+tipL, tipW);
+		  path.lineTo(w, 0);
+		  path.lineTo(w+tipL, -tipW);
 			path.closePath();
-			Shape end2 = transform.createTransformedShape(path);
+			Shape end1 = transform.createTransformedShape(path);
 			if (openHead) {
-				end2 = headStroke.createStrokedShape(end2);
+				end1 = headStroke.createStrokedShape(end1);
 			}
-			area.add(new Area(end2));
+			area.add(new Area(end1));
 			if (!openHead) {
-				area.add(new Area(headStroke.createStrokedShape(end2)));
+				area.add(new Area(headStroke.createStrokedShape(end1)));
 			}
-		}
+			if (bothEnds) {
+				path.reset();
+				path.moveTo(d-tipL+tipW, 0);
+				path.lineTo(d-tipL, -tipW);
+				path.lineTo(d, 0);
+				path.lineTo(d-tipL, tipW);
+				path.closePath();
+				Shape end2 = transform.createTransformedShape(path);
+				if (openHead) {
+					end2 = headStroke.createStrokedShape(end2);
+				}
+				area.add(new Area(end2));
+				if (!openHead) {
+					area.add(new Area(headStroke.createStrokedShape(end2)));
+				}
+			}
+  	}
 		return area;
   }
 

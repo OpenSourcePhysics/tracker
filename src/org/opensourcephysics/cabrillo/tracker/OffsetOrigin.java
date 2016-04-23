@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
@@ -35,6 +34,7 @@ import javax.swing.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -368,6 +368,18 @@ public class OffsetOrigin extends TTrack {
     super.setLocked(locked);
     xField.setEnabled(!isLocked());
     yField.setEnabled(!isLocked());
+  }
+
+  /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{unmarkedLabel, fixedCoordinatesItem};
+    FontSizer.setFonts(objectsToSize, level);
   }
 
   /**

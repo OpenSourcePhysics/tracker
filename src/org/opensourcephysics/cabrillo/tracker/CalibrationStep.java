@@ -193,6 +193,7 @@ public class CalibrationStep extends Step {
    * @return true if successfully set
    */
   public boolean setWorldCoordinates(double x1, double y1, double x2, double y2) {
+  	TTrack track = getTrack();
     if (track.isLocked()) return false;
     // points can't share the same world position
     boolean sameX = x2==x1;
@@ -460,7 +461,7 @@ public class CalibrationStep extends Step {
      * @param y the y position
      */
     public void setXY(double x, double y) {
-      if (track.isLocked()) return;
+      if (getTrack().isLocked()) return;
       // calibration points can't share the same image position
       int i = this == points[0]? 1: 0;
       if (points[i] != null &&
@@ -523,7 +524,7 @@ public class CalibrationStep extends Step {
     	super.setAdjusting(adjusting);
     	if (wasAdjusting && !adjusting) {
     		setXY(lastX, lastY);
-    		track.firePropertyChange("step", null, n); //$NON-NLS-1$
+    		getTrack().firePropertyChange("step", null, n); //$NON-NLS-1$
     	}
     }
 

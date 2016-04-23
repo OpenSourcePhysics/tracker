@@ -66,7 +66,7 @@ public abstract class Step implements Cloneable {
   }
 
   // instance fields
-  protected TTrack track;                  // track this belongs to
+  protected int trackID;                   // ID number of track this belongs to
   protected int n;                         // frame number
   protected Footprint footprint;           // determines appearance
   protected TPoint[] points;               // defines image data
@@ -84,7 +84,7 @@ public abstract class Step implements Cloneable {
    * @param n the frame number
    */
   protected Step(TTrack track, int n) {
-    this.track = track;
+    trackID = track.getID();
     this.n = n;
   }
 
@@ -112,7 +112,7 @@ public abstract class Step implements Cloneable {
    * @return the track
    */
   public TTrack getTrack() {
-    return track;
+  	return TTrack.getTrack(trackID);
   }
 
   /**
@@ -220,6 +220,13 @@ public abstract class Step implements Cloneable {
     while (it.hasNext())
       repaint(it.next());
   }
+  
+  /**
+   * Disposes of this step.
+   */
+  protected void dispose() {
+  	marks.clear();
+  }
 
   /**
    * Draws this step.
@@ -228,6 +235,7 @@ public abstract class Step implements Cloneable {
    * @param g the graphics context on which to draw
    */
   public void draw(DrawingPanel panel, Graphics g) {
+  	TTrack track = getTrack();
 		if (track.trackerPanel==panel) {
 			AutoTracker autoTracker = track.trackerPanel.getAutoTracker();
 			if (autoTracker.isInteracting(track)) return;
@@ -252,6 +260,7 @@ public abstract class Step implements Cloneable {
    */
   public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
+  	TTrack track = getTrack();
     boolean highlighted = track.trackerPanel.getFrameNumber()==getFrameNumber();
    	AutoTracker autoTracker = track.trackerPanel.getAutoTracker();
     TrackerPanel trackerPanel = (TrackerPanel)panel;

@@ -133,6 +133,7 @@ public class CoordAxesStep extends Step {
          DrawingPanel panel, int xpix, int ypix) {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     setHitRectCenter(xpix, ypix);
+  	TTrack track = getTrack();
     AutoTracker autoTracker = track.trackerPanel==null? null: track.trackerPanel.getAutoTracker();
     if (handleEnabled) {
       Shape hitShape = handleShapes.get(trackerPanel);
@@ -170,6 +171,7 @@ public class CoordAxesStep extends Step {
    * @param _g the graphics context on which to draw
    */
   public void draw(DrawingPanel panel, Graphics _g) {
+  	TTrack track = getTrack();
 		if (track.trackerPanel==panel) {
 			AutoTracker autoTracker = track.trackerPanel.getAutoTracker();
 			if (autoTracker.isInteracting(track)) return;
@@ -194,6 +196,7 @@ public class CoordAxesStep extends Step {
       // set origin location to coords origin
       ImageCoordSystem coords = trackerPanel.getCoords();
       int n = trackerPanel.getFrameNumber();
+    	TTrack track = getTrack();
       if (track.trackerPanel != null) n = track.trackerPanel.getFrameNumber();
       double x = coords.getOriginX(n);
       double y = coords.getOriginY(n);
@@ -233,7 +236,6 @@ public class CoordAxesStep extends Step {
       else fillShapes[1] = null;
       // create mark to draw fillShapes
       final Color color = footprint.getColor();
-      final TrackerPanel panel = trackerPanel;
       mark = new Mark() {
         public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
@@ -248,7 +250,7 @@ public class CoordAxesStep extends Step {
         }
 
         public Rectangle getBounds(boolean highlighted) {
-          Rectangle bounds = panel.getBounds();
+          Rectangle bounds = getTrack().trackerPanel.getBounds();
           if (fillShapes[1] != null) {
             bounds.add(fillShapes[1].getBounds());
           }
@@ -316,6 +318,12 @@ public class CoordAxesStep extends Step {
     return 2;
   }
 
+  @Override
+  protected void dispose() {
+  	handleShapes.clear();
+  	super.dispose();
+  }
+
   // ______________________ inner Origin class ________________________
 
   /**
@@ -332,6 +340,7 @@ public class CoordAxesStep extends Step {
      * @param y the y position
      */
     public void setXY(double x, double y) {
+    	TTrack track = getTrack();
       if (track.isLocked()) return;
       if (isAdjusting()) {
       	lastX = x;
@@ -363,6 +372,7 @@ public class CoordAxesStep extends Step {
     	super.setAdjusting(adjusting);
     	if (wasAdjusting && !adjusting) {
     		setXY(lastX, lastY);
+      	TTrack track = getTrack();
     		track.firePropertyChange("step", null, track.trackerPanel.getFrameNumber()); //$NON-NLS-1$
     	}
     }
@@ -385,6 +395,7 @@ public class CoordAxesStep extends Step {
      * @param y the y position
      */
     public void setXY(double x, double y) {
+    	TTrack track = getTrack();
       if (track.isLocked()) return;
       CoordAxes coordAxes = (CoordAxes)track;
       if (coordAxes.trackerPanel == null) {

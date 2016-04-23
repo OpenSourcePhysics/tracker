@@ -388,7 +388,9 @@ public class CoordAxes extends TTrack {
   @Override
   protected void setTrackerPanel(TrackerPanel panel) {
 	  super.setTrackerPanel(panel);
-  	trackerPanel.addDrawable(grid);
+  	if (trackerPanel!=null) {
+  		trackerPanel.addDrawable(grid);
+  	}
   }
 
   /**
@@ -561,15 +563,6 @@ public class CoordAxes extends TTrack {
     FontSizer.setFonts(objectsToSize, level);
   }
 
-  /**
-   * Overrides Object toString method.
-   *
-   * @return the name of this track
-   */
-  public String toString() {
-    return "Coordinate Axes"; //$NON-NLS-1$
-  }
-  
   /**
    * A TPoint used by autotracker to check for manually marked angles.
    */

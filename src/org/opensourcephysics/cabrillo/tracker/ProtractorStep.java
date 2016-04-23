@@ -591,7 +591,7 @@ public class ProtractorStep extends Step {
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
-      if (track.locked) return;
+      if (getTrack().locked) return;
       double dx = x - getX();
       double dy = y - getY();
       setLocation(x, y);
@@ -665,7 +665,7 @@ public class ProtractorStep extends Step {
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
-      if (track.locked) return;
+      if (getTrack().locked) return;
       // keep distance from vertex >= 2*R
       if (this!=vertex) {
 	      double d = vertex.distance(x, y);
@@ -730,7 +730,7 @@ public class ProtractorStep extends Step {
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
-      if (track.locked) return;
+      if (getTrack().locked) return;
       super.setXY(x, y);
       // rotate the protractor so midline passes thru rotator
       double theta = -vertex.angle(this);
@@ -758,6 +758,7 @@ public class ProtractorStep extends Step {
       if (protractor.getFootprint()!=null 
       		&& protractor.getFootprint() instanceof ProtractorFootprint) {
       	footprint = (ProtractorFootprint)protractor.getFootprint();
+      	TTrack track = getTrack();
 	  		Point p1 = vertex.getScreenPosition(track.trackerPanel);
 	  		Point p2 = this.getScreenPosition(track.trackerPanel);
 	  		arcHighlight = footprint.getArcAdjustShape(p1, p2);

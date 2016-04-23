@@ -52,6 +52,7 @@ public class CircleFitterStep extends Step {
 	
   // instance fields
   protected CircleFitter circleFitter;
+  // dataPoints[0] are user-marked, dataPoints[1] are attached points
   protected DataPoint[][] dataPoints = new DataPoint[2][0];
   protected CenterPoint center; 
   protected TPoint edge; 
@@ -673,6 +674,17 @@ public class CircleFitterStep extends Step {
     return 3;
   }
 
+  @Override
+  protected void dispose() {
+  	centerHitShapes.clear();
+  	circleHitShapes.clear();  	
+  	for (Map<TrackerPanel, Shape> shapes: pointHitShapes) {
+  		shapes.clear();
+  	}
+  	pointHitShapes.clear();
+  	super.dispose();
+  }
+
   //______________________ inner DataPoint and CenterPoint classes ________________________
 
   class DataPoint extends TPoint {
@@ -695,7 +707,7 @@ public class CircleFitterStep extends Step {
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
-      if (track.locked) return;
+      if (getTrack().locked) return;
 
       if (circleFitter.isFixed()) {
       	int row = 0;
@@ -740,7 +752,8 @@ public class CircleFitterStep extends Step {
     }
     
     public Step getAttachedStep() {
-    	if (this.attachedTo!=null && CircleFitterStep.this.track.trackerPanel!=null) {
+    	TTrack track = getTrack();
+    	if (this.attachedTo!=null && track.trackerPanel!=null) {
     		ArrayList<PointMass> masses = track.trackerPanel.getDrawables(PointMass.class);
     		for (PointMass next: masses) {
     			Step step = next.getStep(attachedTo, track.trackerPanel);

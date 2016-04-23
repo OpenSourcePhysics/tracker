@@ -36,20 +36,17 @@ import javax.swing.Icon;
 public class PositionVectorFootprint extends PointShapeFootprint {
 
   // instance fields
-	TTrack track;
 	LineFootprint arrow;
 	Point[] onePoint = new Point[1];
 
   /**
    * Constructs a PositionVectorFootprint.
    *
-   * @param track the (PointMass) track that will use this footprint
    * @param name the name of the footprint
    * @param w the stroke line width
    */
-  public PositionVectorFootprint(TTrack track, String name, int w) {
+  public PositionVectorFootprint(String name, int w) {
     super(name, new Ellipse2D.Double(-2, -2, 4, 4));
-    this.track = track;
     arrow = (LineFootprint)LineFootprint.getFootprint("Footprint.Arrow"); //$NON-NLS-1$
     arrow.setLineWidth(w);
     baseStroke = null;

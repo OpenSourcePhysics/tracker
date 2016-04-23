@@ -123,6 +123,7 @@ public class PositionStep extends Step {
    * @param _g the graphics context on which to draw
    */
   public void draw(DrawingPanel panel, Graphics _g) {
+  	TTrack track = getTrack();
 		if (track.trackerPanel==panel) {
 			AutoTracker autoTracker = track.trackerPanel.getAutoTracker();
 			if (autoTracker.isInteracting(track)) return;
@@ -324,6 +325,7 @@ public class PositionStep extends Step {
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
+    	TTrack track = getTrack();
       if (track.isLocked()) return;
       super.setXY(x, y);
       repaint();
@@ -338,6 +340,7 @@ public class PositionStep extends Step {
      */
     public void showCoordinates(VideoPanel vidPanel) {
       // put values into pointmass x and y fields
+    	TTrack track = getTrack();
       Point2D p = getWorldPosition(vidPanel);
       track.xField.setValue(p.getX());
       track.yField.setValue(p.getY());
@@ -375,7 +378,7 @@ public class PositionStep extends Step {
     @Override
     public void setAdjusting(boolean adjusting) {
     	super.setAdjusting(adjusting);
-      track.support.firePropertyChange("adjusting", null, adjusting); //$NON-NLS-1$    	
+      getTrack().support.firePropertyChange("adjusting", null, adjusting); //$NON-NLS-1$    	
     }
 
   }

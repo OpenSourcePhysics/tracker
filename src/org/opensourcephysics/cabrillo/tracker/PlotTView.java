@@ -75,7 +75,7 @@ public class PlotTView extends TrackChooserTView {
    * @return the track view
    */
   protected TrackView createTrackView(TTrack track) {
-    return new PlotTrackView(track, trackerPanel);
+    return new PlotTrackView(track, trackerPanel, this);
   }
 
   /**

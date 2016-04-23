@@ -43,7 +43,7 @@ import org.opensourcephysics.media.core.*;
 public class Undo {
 
 	// static fields
-  private static Map<TrackerPanel, Undo> undomap = new HashMap<TrackerPanel, Undo>();
+  protected static Map<TrackerPanel, Undo> undomap = new HashMap<TrackerPanel, Undo>();
 	
 	// instance fields
   protected UndoableEditSupport undoSupport;
@@ -422,7 +422,7 @@ public class Undo {
   	private StepEdit(Step step, XMLControl control) {
   		super(step.getTrack().trackerPanel, step, control);
   		this.step = step;
-  		String s = step.track.getClass().getSimpleName();
+  		String s = step.getTrack().getClass().getSimpleName();
     	trackType = TrackerRes.getString(s+".Name"); //$NON-NLS-1$
     	if (trackType.startsWith("!")) { //$NON-NLS-1$
     		trackType = s;
@@ -656,10 +656,15 @@ public class Undo {
     }
     
   	protected void load(String xml) {
+  		// clear filters from old video
+    	Video video = panel.getVideo();
+    	if (video!=null) {
+    		TActions.getAction("clearFilters", panel).actionPerformed(null); //$NON-NLS-1$
+    	}
    	  XMLControl control = new XMLControlElement(xml);
    	  VideoClip clip = (VideoClip)control.loadObject(null);
       panel.getPlayer().setVideoClip(clip);
-    	Video video = panel.getVideo();
+    	video = panel.getVideo();
       if (video!=null) {
       	for (Filter filter: video.getFilterStack().getFilters()) {
       		filter.setVideoPanel(panel);
@@ -671,23 +676,6 @@ public class Undo {
         		Point p = new Point(filter.inspectorX, filter.inspectorY);
         		panel.visibleFilters.put(filter, p);	
         	}
-//      		if (filter.inspectorX != Integer.MIN_VALUE) {
-//            Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-//            TFrame frame = panel.getTFrame();
-//        		final JDialog inspector = filter.getInspector();
-//      			int x = Math.max(filter.inspectorX + frame.getLocation().x, 0);
-//      			x = Math.min(x, dim.width-inspector.getWidth());
-//      			int y = Math.max(filter.inspectorY + frame.getLocation().y, 0);
-//      			y = Math.min(y, dim.height-inspector.getHeight());
-//          	inspector.setLocation(x, y);
-//        		inspector.setVisible(true);
-////        		Runnable runner = new Runnable() {
-////          		public void run() {
-////            		inspector.setVisible(true);
-////          		}
-////          	};
-////          	EventQueue.invokeLater(runner);
-//      		}
       	}
       }
     }
@@ -768,7 +756,7 @@ public class Undo {
   protected class TrackDelete extends AbstractUndoableEdit {
   	
   	String xml;
-  	TTrack track; // null unless undone 	
+  	int trackID;
   	TrackerPanel panel;
   	String trackType;
 
@@ -786,15 +774,16 @@ public class Undo {
     public void undo() throws CannotUndoException {
     	super.undo();
     	XMLControl control = new XMLControlElement(xml);
-    	track = (TTrack)control.loadObject(null);
+    	TTrack track = (TTrack)control.loadObject(null);
       panel.addTrack(track);
+      trackID = track.getID();
       panel.requestFocus();
     }
 
     public void redo() throws CannotUndoException {
     	super.redo();
+    	TTrack track = TTrack.getTrack(trackID);
       panel.removeTrack(track);
-      track = null; // eliminate all references to deleted track
     }
     
     public String getPresentationName() {
@@ -954,9 +943,13 @@ public class Undo {
       if (video != null) {
       	FilterStack stack = video.getFilterStack();
       	for (Filter filter: stack.getFilters()) {
-          filter.setVideoPanel(null);
+        	PerspectiveTrack track = PerspectiveTrack.filterMap.get(filter);
+      		if (track!=null) {
+      			panel.removeTrack(track);
+      			track.dispose();
+      		}
       	}
-        video.getFilterStack().clear();
+        stack.clear();
       }
     }
     
