@@ -37,6 +37,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
 import java.nio.charset.Charset;
 
@@ -50,6 +51,7 @@ import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.DiagnosticsForXuggle;
 import org.opensourcephysics.tools.ExtensionsManager;
+import org.opensourcephysics.tools.ResourceLoader;
 
 /**
  * A class to start Tracker. This is the main executable when Tracker is
@@ -286,26 +288,42 @@ public class TrackerStarter {
 	 * @return the loaded XMLControl, or null if no preferences file found
 	 */
 	public static XMLControl findPreferences() {
-  	// look for prefs file in OSPRuntime.getDefaultSearchPaths() 
-    XMLControl control = null;
-  	String loadedPath = null;
-  	outer: for (String path: OSPRuntime.getDefaultSearchPaths()) {
+  	// look for all prefs files in OSPRuntime.getDefaultSearchPaths()
+    Map<File, XMLControl> controls = new HashMap<File, XMLControl>();
+  	File firstFileFound = null, newestFileFound = null;
+  	long modified = 0;
+  	for (String path: OSPRuntime.getDefaultSearchPaths()) {
   		for (int i=0; i<2; i++) {
-  			String fileName = PREFS_FILE_NAME;
+  			String prefsFileName = PREFS_FILE_NAME;
   			if (i==1) {
-  				// if not found with leading dot in fileName, try without
-  				fileName = fileName.substring(1);
+  				// look for files with and without leading dot in fileName
+  				prefsFileName = prefsFileName.substring(1);
   			}
-	      String prefsPath = new File(path, fileName).getAbsolutePath();
-	      control = new XMLControlElement(prefsPath);
+	      String prefsPath = new File(path, prefsFileName).getAbsolutePath();
+	      XMLControl control = new XMLControlElement(prefsPath);
 	      if (!control.failedToRead() && control.getObjectClassName().endsWith("Preferences")) { //$NON-NLS-1$
-	      	loadedPath = prefsPath;
-	      	break outer;
+	      	File file = new File(prefsPath);
+	      	if (file.lastModified()>modified+50) {
+	      		newestFileFound = file;
+		      	modified = file.lastModified();
+	      	}
+	      	controls.put(file, control);
+	      	if (firstFileFound==null) {
+		      	firstFileFound = file;
+	      	}
 	      }
   		}
   	}
-  	if (loadedPath!=null) {
-  		control.setValue("prefsPath", loadedPath); //$NON-NLS-1$
+  	// replace first file with newest if different
+  	if (newestFileFound!=firstFileFound) {
+  		ResourceLoader.copyAllFiles(newestFileFound, firstFileFound);
+  		controls.put(firstFileFound, controls.get(newestFileFound));
+  	}
+		
+  	// return control associated with first file found
+  	if (firstFileFound!=null) {
+  		XMLControl control = controls.get(firstFileFound);
+  		control.setValue("prefsPath", firstFileFound.getAbsolutePath()); //$NON-NLS-1$
     	return control;
   	}
   	return null;
@@ -333,8 +351,18 @@ public class TrackerStarter {
 				if (writeToLog) logMessage("xugglehome found relative to trackerhome: "+xuggleHome); //$NON-NLS-1$
 			}
 		}
+		
+		// if not found, check OSP preferences
+		if (xuggleHome==null) {
+			xuggleHome = (String)OSPRuntime.getPreference("XUGGLE_HOME"); //$NON-NLS-1$
+			if (writeToLog) logMessage("osp.prefs XUGGLE_HOME: " + xuggleHome); //$NON-NLS-1$
+			if (xuggleHome!=null && !fileExists(xuggleHome)) {
+				xuggleHome = null;
+				if (writeToLog) logMessage("XUGGLE_HOME directory no longer exists"); //$NON-NLS-1$
+			}	
+		}
 
-		// if not yet found, look for xuggleHome in environment variable
+		// if still not found, look for xuggleHome in environment variable
 		if (xuggleHome==null) {
 			try {
 				xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
