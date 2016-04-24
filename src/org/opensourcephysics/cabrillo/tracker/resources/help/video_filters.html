@@ -13,12 +13,12 @@
 		<p>Video filters allow you to modify the video image for special effects or to improve the quality of data obtained from tracks.  Tracker's filters fall into four general categories:</p>
 		<ol>
 			<li>Image enhancement: <a href="video_filters.html#bright">brightness/contrast</a>, <a href="video_filters.html#deinterlace">deinterlace</a></li>
-		  <li>Special effects: <a href="video_filters.html#ghost">ghost</a>, <a href="video_filters.html#darkghost">dark ghost</a>, <a href="video_filters.html#grey">greyscale</a>, <a href="video_filters.html#negative">negative</a></li>
+		  <li>Special effects: <a href="video_filters.html#strobe">strobe</a>, <a href="video_filters.html#ghost">ghost</a>, <a href="video_filters.html#darkghost">dark ghost</a>, <a href="video_filters.html#grey">greyscale</a>, <a href="video_filters.html#negative">negative</a></li>
 		  <li>Noise reduction: <a href="video_filters.html#baseline">baseline</a>, <a href="video_filters.html#sum">sum/average</a></li>
 		  <li>Image transformations: <a href="video_filters.html#perspective">perspective</a>, <a href="video_filters.html#distortion">radial distortion</a>, <a href="video_filters.html#resize">resize</a>, <a href="video_filters.html#rotate">rotate</a></li>
 	</ol>
         
-	<h3>1. Applying filters to a video</h3>
+<h3>1. Applying filters to a video</h3>
 		<p>Create a new filter with the <strong>Video|Filters|New</strong> menu. Multiple filters are applied in the order in which they are created and listed in the <strong>Video|Filters</strong> menu. Existing filters can be temporarily disabled or permanently deleted. Choose <strong>Video|Filters|Clear</strong> to delete all filters.</p>
 		<p align="center"><img src="../help_images/video_menu_filters_new.gif" alt="New filter menu"></p>
         
@@ -36,36 +36,38 @@
 		<p align="center"><img src="../help_images/deinterlace_dialog.gif" alt="Deinterlace filter properties"></p>
 		<p>Each frame of a 30 fps interlaced video consists of two fields, odd and even, that are captured 1/60 s apart. Each field contains a complete image with half the vertical resolution of the frame. When played on an interlaced TV the fields are displayed sequentially so the separate images result in smoother motion, but when viewed one frame at a time in Tracker the fields are combined, resulting in a double image. The interlace filter corrects the problem by displaying only one of the fields. Note that this also reduces the vertical resolution.</p>
         
-		<h3><a id="ghost" name="ghost"></a>5. Ghost filter</h3>
-		<p>The <strong>ghost</strong> filter leaves a trail of fading ghost images of a moving bright object against a dark background. The effect is produced only when the video is played or stepped. The &quot;live&quot; motion diagram that results can be a very effective tool for learning the concepts of position, velocity and acceleration.</p>
+		<h3><a id="ghost2" name="strobe"></a>5. Strobe filter</h3>
+        <p>The <strong>strobe</strong> filter leaves a trail of images of a moving object much like a strobe photograph. The effect is produced only when the video is played or stepped. The &quot;live&quot; motion diagram that results can be a very effective tool for learning the concepts of position, velocity and acceleration.</p>
+        <p align="center"><img src="../help_images/strobe_filter.gif" alt="Strobe filter in action"></p>
+    <p>The strobe images may be bright objects against a dark background (shown above) or vice-versa. They can also fade away as they recede in time. To set the rate at which they fade, use the slider or enter a value directly in the field. The <strong>Clear</strong> button clears all current strobe images.</p>
+        <p align="center"><img src="../help_images/strobe_dialog.gif" alt="Strobe filter properties"></p>
+        <h3><a id="ghost" name="ghost"></a>6. Ghost filter</h3>
+	<p>The <strong>ghost</strong> filter leaves a trail of fading ghost images of moving bright objects against a dark background. It is similar to the strobe filter effect except the ghost images are ghostly grey rather than full color. </p>
 		<p align="center"><img src="../help_images/ghost_filter.gif" alt="Ghost filter in action"></p>
-		<p>To set the rate at which the ghosts fade, use the slider or enter a value directly in the field. The <strong>Clear</strong> button clears all current ghosts from the image.</p>
-		<p align="center"><img src="../help_images/ghost_dialog.gif" alt="Ghost filter properties"></p>
+<h3><a id="darkghost" name="darkghost"></a>7. Dark ghost filter</h3>
+		<p>The <strong>dark ghost</strong> filter is like the ghost filter above except that it works with moving dark objects against a bright background.</p>
         
-		<h3><a id="darkghost" name="darkghost"></a>6. Dark ghost filter</h3>
-		<p>The <strong>dark ghost</strong> filter is like the ghost filter above except that it works with moving dark object against a bright background.</p>
-        
-		<h3><a id="grey" name="grey"></a>7. Grayscale filter</h3>
+		<h3><a id="grey" name="grey"></a>8. Grayscale filter</h3>
 		<p>The <strong>grayscale</strong> filter converts a color image into a grayscale image. This is useful for extracting brightness data (gray level 0-255) from RGB components. The conversion uses separate RGB weighting factors in the equation: </p>
 		<p align="center">gray level = (R*weightR + G*weightG + B*weightB) / (weightR + weightG + weightB)</p>
 		<p align="center"><img src="../help_images/grayscale_dialog.gif" alt="Grayscale filter"></p>
 		<p>The filter includes standard weighting factors for video and flat-response images but also allows advanced users to define custom weighting factors.</p>
 
-		<h3><a id="negative" name="negative"></a>8. Negative filter</h3>
+		<h3><a id="negative" name="negative"></a>9. Negative filter</h3>
 		<p>The <strong>negative</strong> filter produces a negative image in which each pixel RGB component x becomes 255-x. This is often useful when printing, particularly when combined with a brightness filter, since dark features against a light background are often clearer (and use less ink!) than light features against a dark background.</p>
 		<p>There is no properties dialog for the negative filter since there is nothing to adjust.</p>
         
-		<h3><a id="baseline" name="baseline"></a>9. Baseline filter</h3>
+		<h3><a id="baseline" name="baseline"></a>10. Baseline filter</h3>
 		<p>The <strong>baseline</strong> filter subtracts a &quot;baseline&quot; image from the video images. If the baseline is the (unchanging) background in the video scene, the background is eliminated, leaving black. This is particularly useful when using a <a href="lineprofile.html">line profile</a> or <a href="rgbregion.html">rgb region</a> to measure RGB values in spectral or other images contaminated with unwanted background light--simply capture an image or video of the background light alone (i.e., with the spectral light source turned off) and use it as the baseline.</p>
 		<p align="center"><img src="../help_images/baseline_dialog.gif" alt="Baseline filter properties"></p>
 		<p>To set a baseline image, use the <strong>Load</strong> button to load the image from a file or the <strong>Capture</strong> button to capture the video image currently displayed in Tracker. The <strong>Clear</strong> button removes the current baseline image.</p>
         
-		<h3><a id="sum" name="sum"></a>10. Sum/average filter</h3>
+		<h3><a id="sum" name="sum"></a>11. Sum/average filter</h3>
 		<p>The <strong>sum</strong> filter adds video images together (separate RGB components) and displays a fraction of the result. When the <strong>Show mean</strong> checkbox is selected, the fraction is automatically adjusted to display the mean RGB values of the images. This can significantly reduce the RGB noise in videos of spectra or other optical phonomena.</p>
 		<p align="center"><img src="../help_images/add_dialog.gif" alt="Sum filter properties"></p>
 		<p>When the Show mean checkbox is not selected, use the slider or enter a percent directly in the field. The <strong>Clear</strong> button resets the sum to the current image.</p>
 		
-        <h3><a id="perspective" name="perspective"></a>11. Perspective filter</h3>
+        <h3><a id="perspective" name="perspective"></a>12. Perspective filter</h3>
 		<p>The perspective filter can correct the distortion that occurs when an object is photographed from an angle rather than straight-on.  It does so by mapping a distorted plane shape in the input image to a straight-on plane shape (rectangle by default) in the output image. The input and output shapes are adjusted by dragging or <a href="autotracker.html">autotracking</a> their corners. To use the filter:</p>
 		<ol>
             <li>Select the Input tab and define the distorted plane in the input image.</li>
@@ -74,15 +76,15 @@
 		<p align="center"><img src="../help_images/perspective_filter_input.gif" alt="Perspective filter input"></p>
 		<p align="center"><img src="../help_images/perspective_filter_output.gif" alt="Perspective filter output"></p>
 
-		<h3><a id="resize" name="resize"></a>12. Resize filter</h3>
+		<h3><a id="resize" name="resize"></a>13. Resize filter</h3>
         <p>The <strong>resize</strong> filter changes the dimensions of the video image. This is particularly useful for correcting the distortions that result when the non-square pixels in DV-formatted videos are displayed and analyzed in Tracker's square pixel environment. This causes the image to be stretched horizontally. The stretch can be corrected by resizing the image from 720x480 to 640x480 as shown.</p>
         <p align="center"><img src="../help_images/resize_dialog.gif" alt="Resize filter properties"></p>
         
-        <h3><a id="rotate" name="rotate"></a>13. Rotate filter</h3>
+        <h3><a id="rotate" name="rotate"></a>14. Rotate filter</h3>
 		<p>The <strong>rotate</strong> filter rotates in 90 degree increments and/or reverses the video image. Rotation is useful for videos shot in portrait rather than landscape orientation. Reversing the image flips right and left before rotating.</p>
 		<p align="center"><img src="../help_images/rotate_dialog.gif" alt="Rotate filter properties"></p>
         
-        <h3><a id="distortion" name="distortion"></a>14. Radial distortion filter</h3>
+        <h3><a id="distortion" name="distortion"></a>15. Radial distortion filter</h3>
 		<p>The <strong>radial distortion</strong> filter corrects the distortion associated with fisheye and wide-angle lenses. It works by applying a radial transformation to the image, moving each point toward or away from the center by an amount that depends on its radial distance r and the projection types of the input and output images. To use the filter:</p>
 		<ol>
             <li>Set the input and output projection types.</li>
