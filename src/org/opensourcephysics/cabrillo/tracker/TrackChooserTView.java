@@ -200,9 +200,10 @@ public abstract class TrackChooserTView extends JPanel implements TView {
       if (trackView == null) trackView = createTrackView(track);
       trackView.refreshGUI();
       newViews.put(track, trackView);
-      Object item = new Object[] {trackView.getIcon(), track.getName()};
+      String trackName = track.getName("point"); //$NON-NLS-1$
+      Object item = new Object[] {trackView.getIcon(), trackName};
       dropdown.addItem(item);
-      add(trackView, track.getName());
+      add(trackView, trackName);
       tracks.put(item, track);
     }
     validate();

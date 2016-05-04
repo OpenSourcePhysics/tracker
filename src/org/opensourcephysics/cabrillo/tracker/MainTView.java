@@ -213,7 +213,12 @@ public class MainTView extends JPanel implements TView {
       	trackClicked = true;
         Step prev = trackerPanel.selectedStep;
         trackerPanel.selectedStep = step;
-        popup = track.getMenu(trackerPanel).getPopupMenu();
+        if (track instanceof ParticleDataTrack) {
+        	popup = ((ParticleDataTrack)track).getPointMenu(trackerPanel).getPopupMenu();
+        }
+        else {
+        	popup = track.getMenu(trackerPanel).getPopupMenu();
+        }
         trackerPanel.selectedStep = prev;
       }
     }

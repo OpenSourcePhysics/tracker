@@ -362,7 +362,7 @@ public class TrackDataBuilder extends FunctionTool {
 	 */
   protected FunctionPanel createFunctionPanel(TTrack track) {
     FunctionPanel panel = new DataFunctionPanel(track.getData(trackerPanel));
-  	panel.setIcon(track.getFootprint().getIcon(21, 16));
+  	panel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
   	Class<?> type = track.getClass();
   	if (PointMass.class.isAssignableFrom(type))
   		panel.setDescription(PointMass.class.getName());
@@ -418,7 +418,7 @@ public class TrackDataBuilder extends FunctionTool {
     	FunctionPanel panel = panels.get(name);
     	if (track==null || panel==null) continue;
     	// get new footprint icon, automatically resized to current level
-	  	panel.setIcon(track.getFootprint().getIcon(21, 16));    	
+	  	panel.setIcon(track.getIcon(21, 16, "point"));    	 //$NON-NLS-1$
     }
 
   	super.setFontLevel(level);

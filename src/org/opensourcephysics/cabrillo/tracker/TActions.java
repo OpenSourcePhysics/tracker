@@ -139,7 +139,7 @@ public class TActions {
         if (!TrackerIO.pasteXML(trackerPanel)) {
         	// pasting XML failed, so try to paste data
         	String dataString = DataTool.paste();
-        	trackerPanel.importData(dataString, null);
+        	trackerPanel.importData(dataString, null); // returns DataTrack if successful
         }
       }
     };
@@ -645,7 +645,6 @@ public class TActions {
         trackerPanel.addTrack(track);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(track);
-        track.getInspector().setVisible(true);
       }
     };
     actions.put("circleFitter", circleFitterAction); //$NON-NLS-1$
@@ -694,6 +693,15 @@ public class TActions {
         	while (it.hasNext()) {
         		Filter filter = it.next();
         		xml.add(new XMLControlElement(filter).toXML());
+          	PerspectiveTrack track = PerspectiveTrack.filterMap.get(filter);
+        		if (track!=null) {
+        			PerspectiveTrack.filterMap.remove(filter);
+        			trackerPanel.removeTrack(track);
+        			track.setTrackerPanel(null);
+        			track.filter = null;
+        			filter.setVideoPanel(null);
+        		}
+
         	}
           video.getFilterStack().clear();
           Undo.postFilterClear(trackerPanel, xml);

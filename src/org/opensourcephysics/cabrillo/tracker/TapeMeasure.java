@@ -169,6 +169,24 @@ public class TapeMeasure extends TTrack {
         setFixedLength(fixedLengthItem.isSelected());
       }
     });
+  	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+  	attachmentItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	ImageCoordSystem coords = TapeMeasure.this.trackerPanel.getCoords();
+      	if (TapeMeasure.this.isStickMode() && coords.isFixedScale()) {
+      		int result = JOptionPane.showConfirmDialog(TapeMeasure.this.trackerPanel.getTFrame(), 
+      				TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
+      				TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message2"),  //$NON-NLS-1$
+      				TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Title"), //$NON-NLS-1$
+      				JOptionPane.YES_NO_OPTION,
+      				JOptionPane.QUESTION_MESSAGE);
+      		if (result!=JOptionPane.YES_OPTION) return;
+	    		coords.setFixedScale(false);
+      	}
+      	AttachmentDialog control = TapeMeasure.this.trackerPanel.getAttachmentDialog(TapeMeasure.this);
+      	control.setVisible(true);
+      }
+    });
     final FocusListener magFocusListener = new FocusAdapter() {
       public void focusLost(FocusEvent e) {
       	if (magField.getBackground() == Color.yellow) {
@@ -413,6 +431,9 @@ public class TapeMeasure extends TTrack {
     else if (isStickMode() && name.equals("fixed_scale") && e.getNewValue()==Boolean.FALSE) { //$NON-NLS-1$
     	setFixedPosition(false);
     }
+    else if (name.equals("step") || name.equals("steps")) { //$NON-NLS-1$ //$NON-NLS-2$
+    	refreshAttachments();
+    }
     else super.propertyChange(e);
   }
 
@@ -611,6 +632,23 @@ public class TapeMeasure extends TTrack {
   }
 
   /**
+   * Returns the array of attachments for this track.
+   * 
+   * @return the attachments array
+   */
+  public TTrack[] getAttachments() {
+    if (attachments==null) {
+    	attachments = new TTrack[2];
+    }
+    if (attachments.length<2) {
+    	TTrack[] newAttachments = new TTrack[2];
+    	System.arraycopy(attachments, 0, newAttachments, 0, attachments.length);
+    	attachments = newAttachments;
+    }
+  	return attachments;
+  }
+  
+  /**
    * Returns a menu with items that control this track.
    *
    * @param trackerPanel the tracker panel
@@ -630,37 +668,33 @@ public class TapeMeasure extends TTrack {
     fixedPositionItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
     fixedPositionItem.setSelected(isFixedPosition());
     boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
-    boolean notAttached = attachments==null || (attachments[0]==null && attachments[1]==null);
-    fixedPositionItem.setEnabled(canBeFixed && notAttached);
-  	menu.add(fixedPositionItem);
+    boolean hasAttachments = attachments!=null;
+    if (hasAttachments) {
+    	hasAttachments = false;
+    	for (TTrack next: attachments) {
+    		hasAttachments = hasAttachments || next!=null;
+    	}
+    }
+    // put fixed position item after locked item
+    fixedPositionItem.setEnabled(canBeFixed && !hasAttachments);
+    for (int i=0; i<menu.getItemCount(); i++) {
+    	if (menu.getItem(i)==lockedItem) {
+		  	menu.insert(fixedPositionItem, i+1);
+    		break;
+    	}
+    }
+  	
+    // insert the attachments dialog item at beginning
+  	attachmentItem.setText(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+    menu.insert(attachmentItem, 0);
+  	menu.insertSeparator(1);
+  	
+
 //  	if (isStickMode()) {
 //	    fixedLengthItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.FixedLength")); //$NON-NLS-1$
 //	    fixedLengthItem.setSelected(isFixedLength());
 //	  	menu.add(fixedLengthItem);
 //  	}
-  	
-    // add an attachment dialog item
-  	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
-  	attachmentItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	ImageCoordSystem coords = TapeMeasure.this.trackerPanel.getCoords();
-      	if (TapeMeasure.this.isStickMode() && coords.isFixedScale()) {
-      		int result = JOptionPane.showConfirmDialog(TapeMeasure.this.trackerPanel.getTFrame(), 
-      				TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
-      				TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message2"),  //$NON-NLS-1$
-      				TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Title"), //$NON-NLS-1$
-      				JOptionPane.YES_NO_OPTION,
-      				JOptionPane.QUESTION_MESSAGE);
-      		if (result!=JOptionPane.YES_OPTION) return;
-      	}
-    		coords.setFixedScale(false);
-      	AttachmentDialog control = TapeMeasure.this.trackerPanel.getAttachmentDialog(TapeMeasure.this);
-      	control.setVisible(true);
-      }
-    });
-  	
-  	menu.addSeparator();
-    menu.add(attachmentItem);
   	
   	menu.addSeparator();
     menu.add(deleteTrackItem);

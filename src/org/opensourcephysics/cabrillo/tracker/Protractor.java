@@ -139,6 +139,13 @@ public class Protractor extends TTrack {
         setFixed(fixedItem.isSelected());
       }
     });
+  	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+  	attachmentItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	AttachmentDialog control = trackerPanel.getAttachmentDialog(Protractor.this);
+      	control.setVisible(true);
+      }
+    });
     final FocusListener arcFocusListener = new FocusAdapter() {
       public void focusLost(FocusEvent e) {
       	if (angleField.getBackground() == Color.yellow) {
@@ -221,6 +228,9 @@ public class Protractor extends TTrack {
 			if (!refreshDataLater) {  // stopped adjusting
 	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
 			}
+    }
+    else if (name.equals("step") || name.equals("steps")) { //$NON-NLS-1$ //$NON-NLS-2$
+    	refreshAttachments();
     }
     super.propertyChange(e);
   }
@@ -373,19 +383,21 @@ public class Protractor extends TTrack {
     dataFrames.clear();
     // get the datasets
     int count = 0;
-    Dataset theta = data.getDataset(count++);
+    Dataset angle = data.getDataset(count++);
     Dataset arm1Length = data.getDataset(count++);
     Dataset arm2Length = data.getDataset(count++);
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
+    Dataset rotationAngle = data.getDataset(count++);
     // assign column names to the datasets
     String time = "t"; //$NON-NLS-1$
-    if (!theta.getColumnName(0).equals(time)) { // not yet initialized
-    	theta.setXYColumnNames(time, Tracker.THETA);
+    if (!angle.getColumnName(0).equals(time)) { // not yet initialized
+    	angle.setXYColumnNames(time, Tracker.THETA);
     	arm1Length.setXYColumnNames(time, "L_{1}"); //$NON-NLS-1$
     	arm2Length.setXYColumnNames(time, "L_{2}"); //$NON-NLS-1$
 	    stepNum.setXYColumnNames(time, "step"); //$NON-NLS-1$
 	    frameNum.setXYColumnNames(time, "frame"); //$NON-NLS-1$
+    	rotationAngle.setXYColumnNames(time, "$\\theta$_{rot}"); //$NON-NLS-1$
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -400,28 +412,67 @@ public class Protractor extends TTrack {
     VideoClip clip = player.getVideoClip();
 	  int len = clip.getStepCount();
 	  double[][] validData = new double[data.getDatasets().size()+1][len];
+	  double rotation = 0, prevAngle = 0;
     for (int n = 0; n < len; n++) {
       int frame = clip.stepToFrame(n);
       ProtractorStep next = (ProtractorStep)getStep(frame);
       next.dataVisible = true;
+	    // determine the cumulative rotation angle
+      double theta = next.getProtractorAngle();
+	    double delta = theta-prevAngle;
+	    if (delta < -Math.PI) delta += 2*Math.PI;
+	    else if (delta > Math.PI) delta -= 2*Math.PI;
+	    rotation += delta;
 	    // get the step number and time
 	    double t = player.getStepTime(n)/1000.0;
 			validData[0][n] = t;
-			validData[1][n] = next.getProtractorAngle();
+			validData[1][n] = theta;
 			validData[2][n] = next.getArmLength(next.end1);
 			validData[3][n] = next.getArmLength(next.end2);
 			validData[4][n] = n;
 			validData[5][n] = frame;
+			validData[6][n] = rotation;
       dataFrames.add(frame);
+	    prevAngle = theta;
     }
     // append the data to the data set
-	  theta.append(validData[0], validData[1]);
+	  angle.append(validData[0], validData[1]);
 	  arm1Length.append(validData[0], validData[2]);
 	  arm2Length.append(validData[0], validData[3]);
     stepNum.append(validData[0], validData[4]);
     frameNum.append(validData[0], validData[5]);
+	  rotationAngle.append(validData[0], validData[6]);
   }
-
+  
+  /**
+   * Returns the array of attachments for this track.
+   * 
+   * @return the attachments array
+   */
+  public TTrack[] getAttachments() {
+    if (attachments==null) {
+    	attachments = new TTrack[3];
+    }
+    if (attachments.length<3) {
+    	TTrack[] newAttachments = new TTrack[3];
+    	System.arraycopy(attachments, 0, newAttachments, 0, attachments.length);
+    	attachments = newAttachments;
+    }
+  	return attachments;
+  }
+  
+  /**
+   * Returns the description of a particular attachment point.
+   * 
+   * @param n the attachment point index
+   * @return the description
+   */
+  public String getAttachmentDescription(int n) {
+  	return n==0? 
+  			TrackerRes.getString("AttachmentInspector.Label.Vertex"): //$NON-NLS-1$
+  			TrackerRes.getString("AttachmentInspector.Label.End")+" "+n; //$NON-NLS-1$ //$NON-NLS-2$
+  }
+  
   /**
    * Returns a menu with items that control this track.
    *
@@ -434,26 +485,34 @@ public class Protractor extends TTrack {
 //    lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
     fixedItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
     fixedItem.setSelected(isFixed());
-    fixedItem.setEnabled(attachments==null || (attachments[0]==null && attachments[1]==null && attachments[2]==null));
+    boolean hasAttachments = attachments!=null;
+    if (hasAttachments) {
+    	hasAttachments = false;
+    	for (TTrack next: attachments) {
+    		hasAttachments = hasAttachments || next!=null;
+    	}
+    }
+    fixedItem.setEnabled(!hasAttachments);
 
-    // remove end items and last separator
-    menu.remove(deleteTrackItem);
-    menu.remove(menu.getMenuComponent(menu.getMenuComponentCount()-1));
-    menu.add(fixedItem);
+//    // remove end items and last separator
+//    menu.remove(deleteTrackItem);
+//    menu.remove(menu.getMenuComponent(menu.getMenuComponentCount()-1));
     
-    // add an attachment dialog item
-  	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
-  	attachmentItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	AttachmentDialog control = Protractor.this.trackerPanel.getAttachmentDialog(Protractor.this);
-      	control.setVisible(true);
-      }
-    });
-  	menu.addSeparator();
-    menu.add(attachmentItem);
-    
-  	menu.addSeparator();
-    menu.add(deleteTrackItem);
+    // put fixed item after locked item
+    for (int i=0; i<menu.getItemCount(); i++) {
+    	if (menu.getItem(i)==lockedItem) {
+		  	menu.insert(fixedItem, i+1);
+    		break;
+    	}
+    }
+  	
+    // insert the attachments dialog item at beginning
+  	attachmentItem.setText(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+    menu.insert(attachmentItem, 0);
+  	menu.insertSeparator(1);
+  	    
+//  	menu.addSeparator();
+//    menu.add(deleteTrackItem);
     return menu;
   }
 

@@ -284,7 +284,7 @@ abstract public class ParticleModel extends PointMass {
 		massField.setValue(mass);
 		// refresh mass parameter in paramPanel if changed
 		Parameter massParam = (Parameter)getParamEditor().getObject("m"); //$NON-NLS-1$
-		if (massParam.getValue() != mass) {
+		if (massParam!=null && massParam.getValue() != mass) {
 			functionPanel.getParamEditor().setExpression("m", String.valueOf(mass), false); //$NON-NLS-1$
 			refreshSteps();
 		}
@@ -304,12 +304,12 @@ abstract public class ParticleModel extends PointMass {
 	}
 
   /**
-   * Gets a display name for this model. The default is the track name. 
+   * Gets a display name for this model. The default is the model name. 
    *
    * @return the display name
    */
   public String getDisplayName() {
-    return name;
+    return getName("model"); //$NON-NLS-1$
   }
 
   /**
@@ -458,12 +458,12 @@ abstract public class ParticleModel extends PointMass {
    * @param n the desired start frame
    */
 	public void setStartFrame(int n) {
-		if (n==getStartFrame()) return;
-		n = Math.max(n, 0); // not less than zero
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-		int end = clip.getFrameCount()-1;
-		n = Math.min(n, end); // not greater than clip end
+		n = Math.max(n, clip.getFirstFrameNumber()); // not less than first frame
+		int end = clip.getLastFrameNumber();
+		n = Math.min(n, end); // not greater than last frame
 		n = Math.min(n, getEndFrame()); // not greater than endFrame
+		if (n==startFrame) return;
 		startFrame = n;
 		refreshInitialTime();
 		lastValidFrame = -1;
@@ -488,7 +488,7 @@ abstract public class ParticleModel extends PointMass {
    */
 	public void setEndFrame(int n) {
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-		int end = clip.getFrameCount()-1;
+		int end = clip.getLastFrameNumber();
 		n = Math.max(n, 0); // not less than zero
 		n = Math.max(n, getStartFrame()); // not less than startFrame
 		if (n==getEndFrame()) return;
@@ -624,6 +624,7 @@ abstract public class ParticleModel extends PointMass {
 	 * Refreshes step positions.
 	 */
 	protected void refreshSteps() {
+		locked = true;
 		if (refreshStepsLater)
 			return;
     // return if this is an empty dynamic system
@@ -706,7 +707,7 @@ abstract public class ParticleModel extends PointMass {
         		saveState(frameNumber);
             PositionStep step = (PositionStep)models[j].getStep(frameNumber);
             if (step==null) {
-          		step = new PositionStep(models[j], frameNumber, 0, 0);
+          		step = createPositionStep(models[j], frameNumber, 0, 0);
           		step.setFootprint(models[j].getFootprint());
           		models[j].steps.setStep(frameNumber, step);
             }
@@ -758,11 +759,31 @@ abstract public class ParticleModel extends PointMass {
 	  	    else
 	  	    	next.support.firePropertyChange("steps", null, null); //$NON-NLS-1$
   	    }
-  	    next.repaint();
+  	    // erase refreshed steps
+  	    for (int i=start+1; i<=end; i++) {
+  	    	Step step = next.getStep(i);
+  	    	if (step!=null) step.erase();
+  	    }
   	    next.locked = true;
       }
     	trackerPanel.repaint();
   	}
+	}
+	
+	/**
+	 * Creates a position step with image coordinates. Overridden by ParticleDataTrack.
+   *
+   * @param track the PointMass track
+   * @param n the frame number
+   * @param x the x coordinate
+   * @param y the y coordinate
+   * 
+   * @return the PositionStep
+	 */
+	protected PositionStep createPositionStep(PointMass track, int n, double x, double y) {
+		PositionStep newStep = new PositionStep(track, n, x, y);
+		newStep.valid = !Double.isNaN(x) && !Double.isNaN(y);
+		return newStep;
 	}
 	
 	/**

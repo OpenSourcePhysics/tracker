@@ -258,9 +258,10 @@ public class FileDropHandler extends TransferHandler {
 	    dropList = null;
 	  }
 
- 	  public void drop(DropTargetDropEvent e) {
+  	@Override
+		public void drop(DropTargetDropEvent e) {
   		dropList = null;
-      }
+		}
 
   }
 

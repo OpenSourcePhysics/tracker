@@ -157,7 +157,7 @@ public abstract class Step implements Cloneable {
     index = Math.min(index, points.length-1);
     defaultIndex = Math.max(0, index);
   }
-
+  
   /**
    * Erases this on the specified tracker panel. Erasing
    * adds the current bounds to the dirty region and nulls the
@@ -252,7 +252,7 @@ public abstract class Step implements Cloneable {
    */
   public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
-    boolean highlighted = (track.trackerPanel.getFrameNumber() == getFrameNumber());
+    boolean highlighted = track.trackerPanel.getFrameNumber()==getFrameNumber();
    	AutoTracker autoTracker = track.trackerPanel.getAutoTracker();
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     setHitRectCenter(xpix, ypix);

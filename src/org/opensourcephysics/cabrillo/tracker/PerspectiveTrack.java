@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.beans.PropertyChangeEvent;
+import java.util.HashMap;
 
 import javax.swing.JMenu;
 
@@ -34,6 +35,7 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.PerspectiveFilter;
 import org.opensourcephysics.media.core.TPoint;
@@ -45,7 +47,11 @@ import org.opensourcephysics.media.core.TPoint;
  */
 public class PerspectiveTrack extends TTrack {
 	
+	static int n=0;
+	static HashMap<Filter, PerspectiveTrack> filterMap = new HashMap<Filter, PerspectiveTrack>();
+	
 	PerspectiveFilter filter;
+	String filterState;
 	
 	/**
 	 * Constructor requires a PerspectiveFilter to control.
@@ -54,13 +60,15 @@ public class PerspectiveTrack extends TTrack {
 	 */
 	public PerspectiveTrack(PerspectiveFilter filter) {
 		this.filter = filter;
+		filterMap.put(filter, this);
 		this.viewable = false;
 		CircleFootprint c = (CircleFootprint) CircleFootprint.getFootprint("CircleFootprint.Circle"); //$NON-NLS-1$
 		c.setColor(filter.getColor());
 		c.setSpotShown(false);
 		c.setAlpha(0);
     setFootprints(new Footprint[] {c});
-    setName(MediaRes.getString("Filter.Perspective.Title").toLowerCase()); //$NON-NLS-1$
+    String letter = alphabet.substring(n, n+1);
+    setName(MediaRes.getString("Filter.Perspective.Title").toLowerCase()+" "+letter); //$NON-NLS-1$ //$NON-NLS-2$
     Step step = new PerspectiveStep(this, 0, 0, 0);
     step.setFootprint(getFootprint());
     steps = new StepArray(step);
@@ -69,6 +77,7 @@ public class PerspectiveTrack extends TTrack {
     filter.addPropertyChangeListener("enabled", this); //$NON-NLS-1$
     filter.addPropertyChangeListener("tab", this); //$NON-NLS-1$
     filter.addPropertyChangeListener("cornerlocation", this); //$NON-NLS-1$
+    filter.addPropertyChangeListener("fixed", this); //$NON-NLS-1$
 	}
 	
   /**
@@ -83,30 +92,52 @@ public class PerspectiveTrack extends TTrack {
 	  		setColor((Color)e.getNewValue());
 	  	}
 	  	else if (name.equals("enabled") || name.equals("tab") || name.equals("visible")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	  		boolean visible = filter.hasInspector() && filter.getInspector().isVisible();
-	  		boolean isInput = filter.isInputEnabled();
-	  		boolean isActive = filter.isActive();
-	  		boolean nullPoint = trackerPanel.getSelectedPoint()==null;
-	  		if (visible && isActive && isInput && nullPoint) {
-	  			trackerPanel.setSelectedTrack(this);
-	  		}
-	  		else if (trackerPanel.getSelectedTrack()==this) {
-	  			trackerPanel.setSelectedTrack(null);  			
+	  		if (trackerPanel.getSelectedTrack()==this) {
   				trackerPanel.setSelectedPoint(null);
 	  		}
+	  		boolean visible = filter.hasInspector() && filter.getInspector().isVisible();
+	  		if (visible) {
+	  			trackerPanel.setSelectedTrack(this);
+	  		}
+	  		else {
+	  			trackerPanel.setSelectedTrack(null);  				  			
+	  		}
 	  	}
-	  	else if (name.equals("cornerlocation") && filter.isInputEnabled()) { //$NON-NLS-1$
+	  	else if (name.equals("cornerlocation")) { //$NON-NLS-1$
 	  		PerspectiveFilter.Corner filtercorner = (PerspectiveFilter.Corner)e.getNewValue();
 	  		int i = filter.getCornerIndex(filtercorner);
 	  		int n = trackerPanel.getFrameNumber();
-	  		getStep(n).points[i].setXY(filtercorner.getX(), filtercorner.getY());
+	  		if (filter.isInputEnabled() && i<4) {
+	  			getStep(n).points[i].setXY(filtercorner.getX(), filtercorner.getY());
+	  		}
+	  	}
+	  	else if (name.equals("fixed")) { //$NON-NLS-1$
+	  		String xml = (String)e.getOldValue();
+		    XMLControl control = new XMLControlElement(xml);		    
+		    Undo.postFilterEdit(trackerPanel, filter, control);
 	  	}
   	}
   	if (name.equals("selectedtrack")) { //$NON-NLS-1$
   		if (e.getNewValue()==this) {
-  			if (!filter.isEnabled()) filter.setEnabled(true);
-  			if (!filter.isInputEnabled()) filter.setInputEnabled(true);
-  			if (filter.hasInspector() && !filter.getInspector().isVisible()) filter.getInspector().setVisible(true);
+  			if (filter.hasInspector() && !filter.getInspector().isVisible()) {
+  				filter.getInspector().setVisible(true);
+  			}
+  		}
+  	}
+  	if (name.equals("selectedpoint")) { //$NON-NLS-1$
+  		if (e.getOldValue()!=null && filterState!=null) {
+  			TPoint p = (TPoint)e.getOldValue();
+  			if (p instanceof PerspectiveFilter.Corner) {
+			    XMLControl control = new XMLControlElement(filterState);
+			    Undo.postFilterEdit(trackerPanel, filter, control);
+			    filterState = null;
+  			}
+  		}
+  		if (e.getNewValue()!=null) {
+  			TPoint p = (TPoint)e.getNewValue();
+  			if (p instanceof PerspectiveFilter.Corner && filterState==null) {
+  				filterState = new XMLControlElement(filter).toXML();
+  			}
   		}
   	}
   }
@@ -122,8 +153,11 @@ public class PerspectiveTrack extends TTrack {
    */
   public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
+  	partName = null;
+  	hint = null;
   	return null;
   }
+  
   /**
    * Prepares menu items and returns a new menu.
    * Subclasses should override this method and add track-specific menu items.
@@ -137,6 +171,24 @@ public class PerspectiveTrack extends TTrack {
     return menu;
   }
 	
+	/**
+	 * Gets a message about this track to display in a message box.
+	 *
+	 * @return the message
+	 */
+  @Override
+	public String getMessage() {
+  	String s = MediaRes.getString("Filter.Perspective.Title").toLowerCase(); //$NON-NLS-1$
+  	if (partName != null) 
+    	s += " "+partName; //$NON-NLS-1$
+    if (isLocked()) {
+      hint = TrackerRes.getString("TTrack.Locked.Hint"); //$NON-NLS-1$
+    }
+    if (Tracker.showHints && hint != null) 
+    	s += " ("+hint+")"; //$NON-NLS-1$ //$NON-NLS-2$
+    return s;
+	}
+	
   /**
    * Gets the step associated with a TPoint.
    *
@@ -145,11 +197,13 @@ public class PerspectiveTrack extends TTrack {
    * @return the step associated with the TPoint
    */
   public Step getStep(TPoint p, TrackerPanel trackerPanel) {
-  	if (filter.isEnabled()) return null;
     if (p instanceof PerspectiveFilter.Corner) {
     	PerspectiveFilter.Corner corner = (PerspectiveFilter.Corner)p;
     	int i = filter.getCornerIndex(corner);
+    	// set the hint
     	if (i>-1) {
+      	partName = getTargetDescription(i);
+      	hint = TrackerRes.getString("PerspectiveTrack.Corner.Hint"); //$NON-NLS-1$
     		return getStep(trackerPanel.getFrameNumber());
     	}
     }
@@ -166,10 +220,8 @@ public class PerspectiveTrack extends TTrack {
     if (locked) return null;
     TPoint p = trackerPanel.getSelectedPoint();
     if (p instanceof PerspectiveFilter.Corner) {
-      XMLControl control = new XMLControlElement(filter);
     	PerspectiveFilter.Corner corner = (PerspectiveFilter.Corner)p;
     	filter.deleteKeyFrame(n, corner);
-      Undo.postFilterEdit(trackerPanel, filter, control);
     	trackerPanel.repaint();
     }
     Step step = getStep(n);
@@ -225,8 +277,11 @@ public class PerspectiveTrack extends TTrack {
    */
 	@Override
   protected String getTargetDescription(int pointIndex) {
-  	return TrackerRes.getString("PerspectiveTrack.Corner")+" "+pointIndex; //$NON-NLS-1$ //$NON-NLS-2$
-  }
+		if (pointIndex<4) {
+			return TrackerRes.getString("PerspectiveTrack.Corner.Input")+" "+pointIndex; //$NON-NLS-1$ //$NON-NLS-2$
+		}
+		return TrackerRes.getString("PerspectiveTrack.Corner.Output")+" "+(pointIndex-4); //$NON-NLS-1$ //$NON-NLS-2$
+	}
 
   /**
    * Determines if the given point index is autotrackable.
