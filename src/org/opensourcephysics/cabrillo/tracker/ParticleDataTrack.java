@@ -1172,13 +1172,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		stepCounter = 0;
 	}
   
-	@Override
 	public void setData(Data data, Object source) throws Exception {
 		setData(data);
 		setSource(source);
 	}
 
-	@Override
 	public VideoPanel getVideoPanel() {
 		return trackerPanel;
 	}
@@ -1551,7 +1549,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			shapeIcons = icons;
 		}
 		
-		@Override
 		public void paintIcon(Component c, Graphics g, int x, int y) {
 			if (shapeIcons.size()==1) {
 				shapeIcons.get(0).paintIcon(c, g, x, y);
@@ -1575,12 +1572,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 		}
 	
-		@Override
 		public int getIconWidth() {
 			return shapeIcons.get(0).getIconWidth();
 		}
 	
-		@Override
 		public int getIconHeight() {
 			return shapeIcons.get(0).getIconHeight();
 		}

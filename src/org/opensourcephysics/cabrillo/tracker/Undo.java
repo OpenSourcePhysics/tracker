@@ -1074,7 +1074,6 @@ class TrackProperties {
    */
   static class Loader implements XML.ObjectLoader {
 
-		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			TrackProperties props = (TrackProperties)obj;
 			control.setValue("name", props.name); //$NON-NLS-1$
@@ -1082,7 +1081,6 @@ class TrackProperties {
 			control.setValue("colors", props.colors); //$NON-NLS-1$
 		}
 
-		@Override
 		public Object createObject(XMLControl control) {
 			String name = control.getString("name"); //$NON-NLS-1$
 			String[] footprints = (String[])control.getObject("footprints"); //$NON-NLS-1$
@@ -1090,7 +1088,6 @@ class TrackProperties {
 			return new TrackProperties(name, footprints, colors);
 		}
 
-		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			return obj;
 		}

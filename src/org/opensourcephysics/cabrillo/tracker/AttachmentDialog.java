@@ -255,7 +255,6 @@ public class AttachmentDialog extends JDialog
     stepsButton = new JRadioButton();
     tracksButton = new JRadioButton();
     Action tracksOrStepsAction = new AbstractAction() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
       	CircleFitter fitter = (CircleFitter)measuringTool;
@@ -277,7 +276,6 @@ public class AttachmentDialog extends JDialog
     relativeCheckbox = new JCheckBox();
     relativeCheckbox.setSelected(false);
     relativeCheckbox.addActionListener(new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
       	CircleFitter fitter = (CircleFitter)measuringTool;
@@ -290,7 +288,6 @@ public class AttachmentDialog extends JDialog
     
     // range action, listener and fields
     final Action frameRangeAction = new AbstractAction() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
       	CircleFitter fitter = (CircleFitter)measuringTool;
     		fitter.setAttachmentStartFrame(startField.getIntValue());   		
