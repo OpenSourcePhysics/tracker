@@ -207,6 +207,7 @@ public class MainTView extends JPanel implements TView {
     // see if a track has been clicked
     boolean trackClicked = false;
     Interactive iad = trackerPanel.getInteractive();
+    // first look at TPoints
     if (iad instanceof TPoint) {
       TPoint p = (TPoint)iad;
       TTrack track = null;
@@ -229,6 +230,20 @@ public class MainTView extends JPanel implements TView {
         }
         trackerPanel.selectedStep = prev;
       }
+    }
+    // look for direct track clicks
+    if (iad instanceof TTrack) {
+    	trackClicked = true;
+    	final TTrack track = (TTrack)iad;
+    	if (track instanceof TapeMeasure) {
+    		popup = ((TapeMeasure)track).getInputFieldPopup();
+    	}
+    	else if (track instanceof Protractor) {
+    		popup = ((Protractor)track).getInputFieldPopup();
+    	}
+    	else {
+    		popup = track.getMenu(trackerPanel).getPopupMenu();
+    	}
     }
     if (!trackClicked) { // video or non-track TPoint was clicked
       popup.removeAll();

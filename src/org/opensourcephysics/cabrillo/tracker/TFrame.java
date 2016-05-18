@@ -86,6 +86,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   protected int framesLoaded, prevFramesLoaded; // used when loading xuggle videos
 //  protected JProgressBar monitor;
   protected PrefsDialog prefsDialog;
+  protected ClipboardListener clipboardListener;
 
   /**
    * Constructs an empty TFrame.
@@ -104,7 +105,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     // set transfer handler on tabbedPane
     fileDropHandler = new FileDropHandler(this);
     tabbedPane.setTransferHandler(fileDropHandler);
-
+    
     // set size and limit maximized size so taskbar not covered
     GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
     Rectangle screenRect = e.getMaximumWindowBounds();

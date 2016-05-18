@@ -28,6 +28,9 @@ import java.beans.*;
 import java.text.NumberFormat;
 import java.util.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.*;
 
 import javax.swing.*;
@@ -992,7 +995,19 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
     menubar.refresh();
   	for (Component c: menubar.newTrackItems) {
-      newPopup.add(c);    
+      newPopup.add(c);
+      if (c==menubar.newDataTrackMenu) {
+        // disable newDataTrackPasteItem unless pastable data is on the clipboard
+        menubar.newDataTrackPasteItem.setEnabled(false);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        Transferable data = clipboard.getContents(null);
+        if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+          try {
+          	String s = (String)data.getTransferData(DataFlavor.stringFlavor);
+          	menubar.newDataTrackPasteItem.setEnabled(ParticleDataTrack.getImportableDataName(s)!=null);
+          } catch (Exception ex) {}
+        }      	
+      }
   	}
     if (menubar.cloneMenu.getItemCount()>0 && trackerPanel.isEnabled("new.clone")) { //$NON-NLS-1$
     	newPopup.addSeparator();

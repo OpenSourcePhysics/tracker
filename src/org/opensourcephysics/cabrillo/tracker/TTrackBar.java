@@ -54,6 +54,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   protected static JButton testButton;
   protected static javax.swing.Timer testTimer;
   protected static boolean showOutOfMemoryDialog = true;
+  static ClipboardListener b;
   
   // instance fields
   protected TrackerPanel trackerPanel; // manages & displays track data
@@ -78,7 +79,15 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    	  			// test action goes here
 		    	      	
 //	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-	    	      		
+		    	      	if (b==null) {
+			    	        b = new ClipboardListener(frame);
+			    	        b.start();
+		    	      	}
+		    	      	else {
+		    	      		b.end();
+		    	      		b = null;
+		    	      	}
+		    	      	
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
 		  	    				testTimer=null;
