@@ -73,6 +73,7 @@ public class TrackerIO extends VideoIO {
   protected static boolean loadInSeparateThread = true;
   protected static Set<MonitorDialog> monitors = new HashSet<MonitorDialog>();
   protected static double defaultBadFrameTolerance = 0.2;
+  protected static boolean dataCopiedToClipboard;
 
   static {
   	ffmpegListener = new PropertyChangeListener() {
@@ -1589,6 +1590,7 @@ public class TrackerIO extends VideoIO {
     	header += XML.NEW_LINE;
     StringSelection stringSelection = new StringSelection(header+buf.toString());
     clipboard.setContents(stringSelection, stringSelection);
+    dataCopiedToClipboard = true;
   }
 
   /**
