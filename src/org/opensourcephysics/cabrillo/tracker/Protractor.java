@@ -137,6 +137,12 @@ public class Protractor extends TTrack {
         Rectangle bounds = step.layoutBounds.get(trackerPanel);
         if (bounds != null &&
             bounds.contains(e.getPoint())) {
+        	// readout was clicked
+        	TTrack[] attached = getAttachments(); // vertex, x-axis, arm
+        	if (attached[2]!=null) {
+    				Protractor.this.trackerPanel.setSelectedTrack(Protractor.this);
+    				return;
+        	}
           setEditing(true, step);
         }
       }
@@ -374,8 +380,8 @@ public class Protractor extends TTrack {
    */
   protected String getTargetDescription(int pointIndex) {
   	if (pointIndex==0) return TrackerRes.getString("Protractor.Vertex.Name"); //$NON-NLS-1$
-  	String s = TrackerRes.getString("Protractor.End.Name"); //$NON-NLS-1$
-  	return s+" "+(pointIndex); //$NON-NLS-1$
+  	if (pointIndex==1) return TrackerRes.getString("Protractor.Base.Name"); //$NON-NLS-1$
+  	return TrackerRes.getString("Protractor.End.Name"); //$NON-NLS-1$
   }
 
   /**
@@ -483,9 +489,10 @@ public class Protractor extends TTrack {
    * @return the description
    */
   public String getAttachmentDescription(int n) {
-  	return n==0? 
-  			TrackerRes.getString("AttachmentInspector.Label.Vertex"): //$NON-NLS-1$
-  			TrackerRes.getString("AttachmentInspector.Label.End")+" "+n; //$NON-NLS-1$ //$NON-NLS-2$
+  	// end1 is "base", end2 is "arm"
+  	return n==0? TrackerRes.getString("AttachmentInspector.Label.Vertex"): //$NON-NLS-1$
+  				 n==1? TrackerRes.getString("Protractor.Attachment.Arm"): //$NON-NLS-1$
+  					 		 TrackerRes.getString("Protractor.Attachment.Base"); //$NON-NLS-1$
   }
   
   /**
@@ -542,7 +549,12 @@ public class Protractor extends TTrack {
     list.add(stepSeparator);
   	angleLabel.setText(TrackerRes.getString("Protractor.Label.Angle")); //$NON-NLS-1$
 		angleField.setToolTipText(TrackerRes.getString("Protractor.Field.Angle.Tooltip")); //$NON-NLS-1$
-		angleField.setEnabled(!isLocked());
+		boolean attached = false;
+  	TTrack[] attachments = getAttachments(); // vertex, x-axis, arm
+  	if (attachments[2]!=null) {
+			attached = true;
+  	}
+		angleField.setEnabled(!attached && !isLocked());
     list.add(angleLabel);
     list.add(angleField);
     return list;
@@ -574,7 +586,11 @@ public class Protractor extends TTrack {
         partName = TrackerRes.getString("Protractor.Vertex.Name"); //$NON-NLS-1$
         hint = TrackerRes.getString("Protractor.Vertex.Hint"); //$NON-NLS-1$
       }
-      else if (ia instanceof ProtractorStep.Tip) {
+      else if (ia==step.end1) {
+        partName = TrackerRes.getString("Protractor.Base.Name"); //$NON-NLS-1$
+        hint = TrackerRes.getString("Protractor.Base.Hint"); //$NON-NLS-1$
+      }
+      else if (ia==step.end2) {
         partName = TrackerRes.getString("Protractor.End.Name"); //$NON-NLS-1$
         hint = TrackerRes.getString("Protractor.End.Hint"); //$NON-NLS-1$
       }
@@ -607,6 +623,24 @@ public class Protractor extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
+  	if (variableList==null) {
+    	ArrayList<String> names = new ArrayList<String>();
+	  	DatasetManager data = getData(trackerPanel);
+	  	// add independent variable
+	    Dataset dataset = data.getDataset(0);
+	    String name = dataset.getXColumnName();
+	    names.add(name);
+	    // then add other variables
+			for (int i = 0; i<data.getDatasets().size(); i++) {
+				dataset = data.getDataset(i);
+		    name = dataset.getYColumnName();
+		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
+		    	continue;
+		    }
+		    names.add(name);
+			}
+  		variableList = names.toArray(new String[names.size()]);
+  	}
   	numberFields.clear();
   	// dataset column names set in refreshData() method
   	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});

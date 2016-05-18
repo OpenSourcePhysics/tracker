@@ -49,7 +49,8 @@ public class ProtractorFootprint implements Footprint, Cloneable {
 
 	// static constants
   @SuppressWarnings("javadoc")
-	public static final float[] DOTTED_LINE = new float[] {2, 2};
+	public static final float[] DOTTED_LINE = new float[] {1, 6};
+	public static final float[] STIPPLED_LINE = new float[] {2, 2};
   private static final ProtractorFootprint CIRCLE_3, CIRCLE_5, 
   		CIRCLE_3_BOLD, CIRCLE_5_BOLD;
 
@@ -72,7 +73,7 @@ public class ProtractorFootprint implements Footprint, Cloneable {
   protected Shape[] hitShapes = new Shape[6];
 	protected Shape circle;
 	protected int radius;
-  private Stroke arcStroke, arcAdjustStroke;
+  private Stroke arcStroke, arcAdjustStroke, armStroke;
 
   /**
    * Constructs a ProtractorFootprint.
@@ -206,6 +207,12 @@ public class ProtractorFootprint implements Footprint, Cloneable {
         8,
         DOTTED_LINE,
         stroke.getDashPhase());  
+    armStroke = new BasicStroke(stroke.getLineWidth(),
+        BasicStroke.CAP_BUTT,
+        BasicStroke.JOIN_MITER,
+        8,
+        STIPPLED_LINE,
+        stroke.getDashPhase());  
    }
 
   /**
@@ -292,10 +299,10 @@ public class ProtractorFootprint implements Footprint, Cloneable {
     int r = scale*circle.getBounds().width/2;
     
     // line1 and line2 shapes
-    line1.setLine(vertex, end1);
+    line1.setLine(vertex, end1); // "fixed" x-axis: angles measured ccw from this
     double d1 = vertex.distance(end1);
     if (d1>1) adjustLineLength(line1, 1, (d1-r)/d1);
-    line2.setLine(vertex, end2);
+    line2.setLine(vertex, end2); // "movable" arm
     double d2 = vertex.distance(end2);    
     if (d2>1) adjustLineLength(line2, 1, (d2-r)/d2);
     
@@ -308,6 +315,12 @@ public class ProtractorFootprint implements Footprint, Cloneable {
           BasicStroke.JOIN_MITER,
           8,
           DOTTED_LINE,
+          stroke.getDashPhase());  
+      armStroke = new BasicStroke(stroke.getLineWidth(),
+          BasicStroke.CAP_BUTT,
+          BasicStroke.JOIN_MITER,
+          8,
+          STIPPLED_LINE,
           stroke.getDashPhase());  
   	}
     transform.setToTranslation(end1.x, end1.y);
@@ -353,8 +366,8 @@ public class ProtractorFootprint implements Footprint, Cloneable {
 	    dotShape = transform.createTransformedShape(arrowhead);
     }
    
-    Area drawMe = new Area(stroke.createStrokedShape(line1));
-		drawMe.add(new Area(stroke.createStrokedShape(line2)));
+    Area drawMe = new Area(stroke.createStrokedShape(line1)); // x-axis
+		drawMe.add(new Area(armStroke.createStrokedShape(line2))); // arm
     drawMe.add(new Area(end1Shape));
     drawMe.add(new Area(end2Shape));
     drawMe.add(new Area(arcStroke.createStrokedShape(arcShape)));
