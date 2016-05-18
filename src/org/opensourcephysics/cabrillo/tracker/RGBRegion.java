@@ -721,6 +721,34 @@ public class RGBRegion extends TTrack {
     return TrackerRes.getString("RGBRegion.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	if (variableList==null) {
+    	ArrayList<String> names = new ArrayList<String>();
+	  	DatasetManager data = getData(trackerPanel);
+	  	// add independent variable
+	    Dataset dataset = data.getDataset(0);
+	    String name = dataset.getXColumnName();
+	    names.add(name);
+	    // then add other variables
+			for (int i = 0; i<data.getDatasets().size(); i++) {
+				dataset = data.getDataset(i);
+		    name = dataset.getYColumnName();
+		    if (name.equals("step") || name.equals("frame") || name.equals("pixels")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		    	continue;
+		    }
+		    names.add(name);
+			}
+  		variableList = names.toArray(new String[names.size()]);
+  	}
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
+  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
+  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
+  	return numberFields;
+  }
+  
 //__________________________ private methods ___________________________
 
   /**

@@ -561,6 +561,24 @@ public class Vector extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
+  	if (variableList==null) {
+    	ArrayList<String> names = new ArrayList<String>();
+	  	DatasetManager data = getData(trackerPanel);
+	  	// add independent variable
+	    Dataset dataset = data.getDataset(0);
+	    String name = dataset.getXColumnName();
+	    names.add(name);
+	    // then add other variables
+			for (int i = 0; i<data.getDatasets().size(); i++) {
+				dataset = data.getDataset(i);
+		    name = dataset.getYColumnName();
+		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
+		    	continue;
+		    }
+		    names.add(name);
+			}
+  		variableList = names.toArray(new String[names.size()]);
+  	}
   	numberFields.clear();
   	// dataset column names set in refreshData() method
   	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});

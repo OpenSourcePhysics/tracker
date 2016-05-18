@@ -168,6 +168,19 @@ public class TapeMeasure extends TTrack {
         Rectangle bounds = step.layoutBounds.get(trackerPanel);
         if (bounds != null &&
             bounds.contains(e.getPoint())) {
+        	// readout was clicked
+        	TTrack[] attached = getAttachments();
+        	int attachmentCount = 0;
+        	for (int i=0; i< attached.length; i++) {
+        		if (attached[i]!=null) {
+        			attachmentCount++;
+        			if (attachmentCount==2) {
+        				// select the tape
+        				TapeMeasure.this.trackerPanel.setSelectedTrack(TapeMeasure.this);
+        				return;
+        			}
+        		}
+        	}
           setEditing(true, step);
         }
       }
@@ -880,6 +893,24 @@ public class TapeMeasure extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
+  	if (variableList==null) {
+    	ArrayList<String> names = new ArrayList<String>();
+	  	DatasetManager data = getData(trackerPanel);
+	  	// add independent variable
+	    Dataset dataset = data.getDataset(0);
+	    String name = dataset.getXColumnName();
+	    names.add(name);
+	    // then add other variables
+			for (int i = 0; i<data.getDatasets().size(); i++) {
+				dataset = data.getDataset(i);
+		    name = dataset.getYColumnName();
+		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
+		    	continue;
+		    }
+		    names.add(name);
+			}
+  		variableList = names.toArray(new String[names.size()]);
+  	}
   	numberFields.clear();
   	if (!isViewable() || data==null) {
     	numberFields.put("length", new NumberField[] {magField, inputField}); //$NON-NLS-1$

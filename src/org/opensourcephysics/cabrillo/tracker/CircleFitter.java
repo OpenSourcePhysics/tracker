@@ -1042,13 +1042,33 @@ public class CircleFitter extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
+  	String selected = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
+  	if (variableList==null) {
+    	ArrayList<String> names = new ArrayList<String>();
+	  	DatasetManager data = getData(trackerPanel);
+	  	// add independent variable
+	    Dataset dataset = data.getDataset(0);
+	    String name = dataset.getXColumnName();
+	    names.add(name);
+	    // then add other variables
+			for (int i = 0; i<data.getDatasets().size(); i++) {
+				dataset = data.getDataset(i);
+		    name = dataset.getYColumnName();
+		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
+		    	continue;
+		    }
+		    names.add(name);
+			}
+			names.add("x"+selected); //$NON-NLS-1$
+			names.add("y"+selected); //$NON-NLS-1$
+  		variableList = names.toArray(new String[names.size()]);
+  	}
   	numberFields.clear();
   	// dataset column names set in refreshData() method
   	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
   	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
   	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
   	numberFields.put(data.getDataset(2).getYColumnName(), new NumberField[] {magField});
-  	String selected = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
   	numberFields.put("x"+selected, new NumberField[] {xDataField}); //$NON-NLS-1$
   	numberFields.put("y"+selected, new NumberField[] {yDataField}); //$NON-NLS-1$  
   	return numberFields;
