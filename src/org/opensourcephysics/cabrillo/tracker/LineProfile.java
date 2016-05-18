@@ -508,7 +508,6 @@ public class LineProfile extends TTrack {
       String name = e.getPropertyName();
       if (name.equals("stepnumber")) { //$NON-NLS-1$
       	dataValid = false;
-        support.firePropertyChange(e); // to views
       }
       else if (name.equals("image")) { //$NON-NLS-1$
       	dataValid = false;
@@ -532,6 +531,33 @@ public class LineProfile extends TTrack {
     return TrackerRes.getString("LineProfile.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	if (variableList==null) {
+    	ArrayList<String> names = new ArrayList<String>();
+	  	DatasetManager data = getData(trackerPanel);
+	  	// skip independent variable "n"
+	    // add other variables except "pixels
+			for (int i = 0; i<data.getDatasets().size(); i++) {
+				Dataset dataset = data.getDataset(i);
+		    String name = dataset.getYColumnName();
+		    if (name.equals("pixels")) { //$NON-NLS-1$
+		    	continue;
+		    }
+		    names.add(name);
+			}
+  		variableList = names.toArray(new String[names.size()]);
+  	}
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
+  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
+  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
+  	numberFields.put(data.getDataset(2).getYColumnName(), new NumberField[] {magField});
+  	numberFields.put(data.getDataset(3).getYColumnName(), new NumberField[] {angleField});
+  	return numberFields;
+  }
+  
 //_______________________ private and protected methods _______________________
 
   /**

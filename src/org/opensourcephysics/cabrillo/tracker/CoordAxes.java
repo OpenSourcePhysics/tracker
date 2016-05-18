@@ -138,8 +138,8 @@ public class CoordAxes extends TTrack {
       }
     };
     // configure x and y origin field components
-    xField = new DecimalField(5, 2);
-    yField = new DecimalField(5, 2);
+//    xField = new DecimalField(5, 2);
+//    yField = new DecimalField(5, 2);
 
     xField.addActionListener(setOriginAction);
     yField.addActionListener(setOriginAction);
@@ -563,6 +563,19 @@ public class CoordAxes extends TTrack {
     FontSizer.setFonts(objectsToSize, level);
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	if (variableList==null) {
+  		variableList = new String[] {"x", "y", Tracker.THETA}; //$NON-NLS-1$ //$NON-NLS-2$ 
+  	}
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put("x", new NumberField[] {xField}); //$NON-NLS-1$
+  	numberFields.put("y", new NumberField[] {yField}); //$NON-NLS-1$
+  	numberFields.put(Tracker.THETA, new NumberField[] {angleField});
+  	return numberFields;
+  }
+  
   /**
    * A TPoint used by autotracker to check for manually marked angles.
    */

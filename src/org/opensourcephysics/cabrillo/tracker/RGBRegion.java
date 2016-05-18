@@ -689,7 +689,7 @@ public class RGBRegion extends TTrack {
   	    RGBStep step = (RGBStep)getStep(n);
   	    if (step != null) radiusField.setIntValue(step.radius);
   	    radiusField.setEnabled(!isLocked() && step != null);
-        support.firePropertyChange(e); // to views
+//        support.firePropertyChange(e); // to views
       }
       else if (name.equals("image")) { //$NON-NLS-1$
       	dataValid = false;
@@ -864,7 +864,7 @@ public class RGBRegion extends TTrack {
 	      double[] stepRGB = new double[5];
 	      for (int n = first; n <= last; n++) {
 	      	// save RGB and pixel count data for all valid frames in clip
-	        if (steps[n] == null) continue;
+	        if (n>steps.length-1 || steps[n] == null) continue;
 	        if (((RGBStep)steps[n]).dataValid) {
 	        	stepRGB = ((RGBStep)steps[n]).rgbData;
 	        	rgb[n] = new double[4];

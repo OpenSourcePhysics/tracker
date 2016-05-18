@@ -42,7 +42,7 @@ import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
- * A Calibration controls the ImageCoordSystem of a TrackerPanel.
+ * A Calibration is a pair of calibration points that control the ImageCoordSystem of a TrackerPanel.
  *
  * @author Douglas Brown
  */
@@ -177,18 +177,21 @@ public class Calibration extends TTrack {
     coords.setFixedAngle(false);
     coords.setFixedScale(false);
     if (step == null) {
+    	// create new step with point 1--this also fills step array
 	  	step = (CalibrationStep)createStep(n, x, y);
 	  	if (step!=null) 
 	  		return step.getPoints()[index];
     }
-    else {    	
+    else {  
+    	// step already exists
 	    TPoint p = step.getPoints()[index];
 	    if (p==null) {
+	    		// must add point 2
 	        if (trackerPanel!=null && trackerPanel.getSelectedPoint()==step.getPoints()[0]) {
 	        	trackerPanel.setSelectedPoint(null);
 	        }
 	        step.addSecondPoint(x, y);
-	        steps = new StepArray(step);
+//	        steps = new StepArray(step);
 	        return step.getPoints()[index];
 	    }
 
@@ -555,6 +558,20 @@ public class Calibration extends TTrack {
     return TrackerRes.getString("Calibration.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	if (variableList==null) {
+  		variableList = new String[] {"x1", "y1", "x2", "y2"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  	}
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put("x1", new NumberField[] {xField}); //$NON-NLS-1$
+  	numberFields.put("y1", new NumberField[] {yField}); //$NON-NLS-1$
+  	numberFields.put("x2", new NumberField[] {x1Field}); //$NON-NLS-1$
+  	numberFields.put("y2", new NumberField[] {y1Field}); //$NON-NLS-1$
+  	return numberFields;
+  }
+  
   /**
    * Responds to property change events. Overrides TTrack method.
    *
@@ -681,6 +698,8 @@ public class Calibration extends TTrack {
     x1Field.setBorder(fieldBorder);
     y1Field = new NumberField(5);
     y1Field.setBorder(fieldBorder);
+    x1Field.addMouseListener(formatMouseListener);
+    y1Field.addMouseListener(formatMouseListener);
     xField.addActionListener(xyAction);
     xField.addFocusListener(xyFocusListener);
     yField.addActionListener(xyAction);

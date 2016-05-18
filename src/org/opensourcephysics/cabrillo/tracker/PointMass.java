@@ -2026,6 +2026,37 @@ public class PointMass extends TTrack {
     return list;
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	if (variableList==null) {
+    	ArrayList<String> names = new ArrayList<String>();
+	  	DatasetManager data = getData(trackerPanel);
+	  	// add independent variable
+	    Dataset dataset = data.getDataset(0);
+	    String name = dataset.getXColumnName();
+	    names.add(name);
+	    // then add other variables
+			for (int i = 0; i<data.getDatasets().size(); i++) {
+				dataset = data.getDataset(i);
+		    name = dataset.getYColumnName();
+		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
+		    	continue;
+		    }
+		    names.add(name);
+			}
+  		variableList = names.toArray(new String[names.size()]);
+  	}
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put("m", new NumberField[] {massField}); //$NON-NLS-1$
+  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
+  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
+  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
+  	numberFields.put(data.getDataset(2).getYColumnName(), new NumberField[] {magField});
+  	numberFields.put(data.getDataset(3).getYColumnName(), new NumberField[] {angleField});
+  	return numberFields;
+  }
+  
 //__________________________ static methods ___________________________
 
   /**
@@ -2157,6 +2188,7 @@ public class PointMass extends TTrack {
         massField.requestFocusInWindow();
       }
     });
+    massField.addMouseListener(formatMouseListener);
     // add focus listener
     massField.addFocusListener(new FocusAdapter() {
       public void focusLost(FocusEvent e) {

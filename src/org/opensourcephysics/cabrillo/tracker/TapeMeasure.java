@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.text.*;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.TreeSet;
 import java.awt.*;
 import java.awt.event.*;
@@ -36,6 +37,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -104,7 +106,20 @@ public class TapeMeasure extends TTrack {
   	partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
     hint = TrackerRes.getString("TapeMeasure.Hint"); //$NON-NLS-1$
     // create input field and panel
-    inputField = new NumberField(9);
+    inputField = new NumberField(9) {
+      @Override
+      public void setFixedPattern(String pattern) {
+      	super.setFixedPattern(pattern);
+      	setValue(magField.getValue());
+      	// repaint current step
+        int n = trackerPanel.getFrameNumber();
+        TapeStep tape = ((TapeStep)getStep(n));
+        if (tape!=null) {
+        	tape.repaint();
+        }
+      }
+
+    };
     inputField.setBorder(null);
     format = inputField.getFormat();
     inputPanel = new JPanel(null);
@@ -740,6 +755,7 @@ public class TapeMeasure extends TTrack {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     int n = trackerPanel.getFrameNumber();
     TapeStep step = (TapeStep)getStep(n);
+    if (step==null) return null;
     TPoint[] pts = step.points;
     if (trackerPanel.getPlayer().getVideoClip().includesFrame(n)) {
     	TPoint p = trackerPanel.getSelectedPoint();
@@ -862,6 +878,43 @@ public class TapeMeasure extends TTrack {
     return TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	numberFields.clear();
+  	if (!isViewable() || data==null) {
+    	numberFields.put("length", new NumberField[] {magField, inputField}); //$NON-NLS-1$
+    	numberFields.put(Tracker.THETA, new NumberField[] {angleField});
+  		return numberFields;
+  	}
+  	// dataset column names set in refreshData() method
+  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
+  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {magField, inputField});
+  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {angleField});
+  	return numberFields;
+  }
+  
+  /**
+   * Returns a popup menu for the input field (readout).
+   *
+   * @return the popup menu
+   */
+  protected JPopupMenu getInputFieldPopup() {
+  	JPopupMenu popup = new JPopupMenu();
+		JMenuItem item = new JMenuItem();
+		final String[] selected = new String[] {"length"}; //$NON-NLS-1$
+		item.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {              		
+        NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TapeMeasure.this, selected);
+        FontSizer.setFonts(dialog, FontSizer.getLevel());
+        dialog.pack();     
+  	    dialog.setVisible(true);
+      }
+    });
+		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+		popup.add(item);
+		return popup;
+  }
+  
 //__________________________ protected and private methods _______________________
 
   /**

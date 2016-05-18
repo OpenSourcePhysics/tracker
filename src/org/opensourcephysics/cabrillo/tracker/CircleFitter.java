@@ -25,6 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.TreeSet;
 import java.awt.*;
 import java.awt.event.*;
@@ -153,18 +154,21 @@ public class CircleFitter extends TTrack {
       	dataPointAction.actionPerformed(null);
       }
     };
-    xDataPointLabel = new JLabel("selected x"); //$NON-NLS-1$
+    xDataPointLabel = new JLabel();
+
     xDataPointLabel.setBorder(xLabel.getBorder());
     xDataField = new NumberField(5);
     xDataField.setBorder(fieldBorder);
     xDataField.addActionListener(dataPointAction);
     xDataField.addFocusListener(dataFieldFocusListener);
+    xDataField.addMouseListener(formatMouseListener);
     yDataPointLabel = new JLabel("y"); //$NON-NLS-1$
     yDataPointLabel.setBorder(xLabel.getBorder());
     yDataField = new NumberField(5);
     yDataField.setBorder(fieldBorder);
     yDataField.addActionListener(dataPointAction);
     yDataField.addFocusListener(dataFieldFocusListener);
+    yDataField.addMouseListener(formatMouseListener);
     xDataPointSeparator = Box.createRigidArea(new Dimension(6, 4));
     yDataPointSeparator = Box.createRigidArea(new Dimension(6, 4));
 
@@ -981,6 +985,7 @@ public class CircleFitter extends TTrack {
   	refreshFields(n);
   	stepValueLabel.setText(trackerPanel.getStepNumber()+":"); //$NON-NLS-1$
     CircleFitterStep step = (CircleFitterStep)getStep(n);
+    xDataPointLabel.setText(TrackerRes.getString("TTrack.Selected.Hint")+" x"); //$NON-NLS-1$ //$NON-NLS-2$
     list.add(xDataPointLabel);
     list.add(xDataField);
     list.add(xDataPointSeparator);
@@ -1035,6 +1040,20 @@ public class CircleFitter extends TTrack {
     return TrackerRes.getString("CircleFitter.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
+  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
+  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
+  	numberFields.put(data.getDataset(2).getYColumnName(), new NumberField[] {magField});
+  	String selected = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
+  	numberFields.put("x"+selected, new NumberField[] {xDataField}); //$NON-NLS-1$
+  	numberFields.put("y"+selected, new NumberField[] {yDataField}); //$NON-NLS-1$  
+  	return numberFields;
+  }
+  
 //__________________________ protected methods ________________________
   
   @Override

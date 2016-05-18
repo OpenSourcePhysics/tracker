@@ -36,13 +36,14 @@ import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.*;
-import org.opensourcephysics.display.DataTable.NumberFormatDialog;
+import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.*;
 
@@ -60,7 +61,7 @@ public class TableTrackView extends TrackView {
   // instance fields
   protected DatasetManager data;
   protected JScrollPane columnsScroller;
-  protected DataTable dataTable;
+  protected TrackDataTable dataTable;
   protected JCheckBox[] checkBoxes;
   protected JMenuItem createTextColumnItem;
   protected JMenu textColumnMenu, deleteTextColumnMenu, renameTextColumnMenu;
@@ -103,34 +104,35 @@ public class TableTrackView extends TrackView {
     textColumnNames.addAll(track.getTextColumnNames());
     // create the DataTable
     textColumnEditor = new TextColumnEditor();
-    dataTable = new DataTable() {
-      public void refreshTable() {
-        // save selected rows and columns
-        int[] rows = getSelectedRows();
-        int[] cols = getSelectedColumns();
-        // refresh table
-        super.refreshTable();
-        // restore selected rows and columns
-        for (int i = 0; i < rows.length; i++) {
-        	if (rows[i] < getRowCount())
-        		addRowSelectionInterval(rows[i], rows[i]);
-        }
-        for (int i = 0; i < cols.length; i++) {
-        	if (cols[i] < getColumnCount())
-        		addColumnSelectionInterval(cols[i], cols[i]);
-        }
-      }
-      public TableCellEditor getCellEditor(int row, int column) {
-      	// only text columns are editable, so always return textColumnEditor
-        return textColumnEditor;
-      }
-      public boolean isCellEditable(int row, int col) {
-      	// true only for text (String) columns
-        int i = dataTable.convertColumnIndexToModel(col);
-        return dataTable.getModel().getColumnClass(i).equals(String.class);
-      }
-
-    };   
+    dataTable = new TrackDataTable();
+//    dataTable = new DataTable() {
+//      public void refreshTable() {
+//        // save selected rows and columns
+//        int[] rows = getSelectedRows();
+//        int[] cols = getSelectedColumns();
+//        // refresh table
+//        super.refreshTable();
+//        // restore selected rows and columns
+//        for (int i = 0; i < rows.length; i++) {
+//        	if (rows[i] < getRowCount())
+//        		addRowSelectionInterval(rows[i], rows[i]);
+//        }
+//        for (int i = 0; i < cols.length; i++) {
+//        	if (cols[i] < getColumnCount())
+//        		addColumnSelectionInterval(cols[i], cols[i]);
+//        }
+//      }
+//      public TableCellEditor getCellEditor(int row, int column) {
+//      	// only text columns are editable, so always return textColumnEditor
+//        return textColumnEditor;
+//      }
+//      public boolean isCellEditable(int row, int col) {
+//      	// true only for text (String) columns
+//        int i = dataTable.convertColumnIndexToModel(col);
+//        return dataTable.getModel().getColumnClass(i).equals(String.class);
+//      }
+//
+//    };   
     
     data = track.getData(trackerPanel);
     tableData = new DatasetManager();
@@ -203,6 +205,13 @@ public class TableTrackView extends TrackView {
 	    setVisible(0, true);
 	    setVisible(1, true);
     }
+    // set the default number formats, if any
+    DataTable table = getDataTable();
+    Class trackType = NumberFormatSetter.getTrackType(track);
+    TreeMap<String, String> patterns = trackerPanel.formatPatterns.get(trackType);
+  	for (String name: patterns.keySet()) {
+    	table.setFormatPattern(name, patterns.get(name));
+  	}
   }
 
   /**
@@ -213,7 +222,7 @@ public class TableTrackView extends TrackView {
   public void refresh(int frameNumber) {
   	if (!isRefreshEnabled()) return;
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh "+frameNumber); //$NON-NLS-1$
-    
+		dataTable.clearSelection();
   	TTrack track = getTrack();
     try {
 		  track.getData(trackerPanel);
@@ -273,7 +282,7 @@ public class TableTrackView extends TrackView {
 	        		}
 	         		// set default degrees precision
 	        		if (precisionRenderer==null) {
-	          		dataTable.setFormatPattern(yTitle, "0.0"); //$NON-NLS-1$
+	          		dataTable.setFormatPattern(yTitle, NumberField.DECIMAL_1_PATTERN);
 	          		degreeRenderers.put(yTitle, dataTable.getPrecisionRenderer(yTitle));
 	        		}
 	         	}
@@ -328,7 +337,7 @@ public class TableTrackView extends TrackView {
    *
    * @return the datatable
    */
-  public DataTable getDataTable() {
+  public TrackDataTable getDataTable() {
     return dataTable;
   }
 
@@ -791,14 +800,13 @@ public class TableTrackView extends TrackView {
     formatDialogItem = new JMenuItem();
     formatDialogItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        String[] cols = getDataColumnNames();
         int[] selected = dataTable.getSelectedColumns();
         String[] selectedNames = new String[selected.length];
         for (int i=0; i<selectedNames.length; i++) {
         	String name = dataTable.getColumnName(selected[i]);
         	selectedNames[i] = name;
         }
-        NumberFormatDialog dialog = dataTable.getFormatDialog(cols, selectedNames);
+        NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(getTrack(), selectedNames);
         FontSizer.setFonts(dialog, FontSizer.getLevel());
         dialog.pack();     
   	    dialog.setVisible(true);
@@ -1130,7 +1138,7 @@ public class TableTrackView extends TrackView {
   }
   
   protected JPopupMenu getPopup() {
-    formatDialogItem.setText(ToolsRes.getString("DataToolTable.Popup.MenuItem.NumberFormat")); //$NON-NLS-1$
+    formatDialogItem.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
     copyImageItem.setText(TrackerRes.getString("TMenuBar.Menu.CopyImage")); //$NON-NLS-1$
     snapshotItem.setText(DisplayRes.getString("DisplayPanel.Snapshot_menu_item")); //$NON-NLS-1$
     printItem.setText(TrackerRes.getString("TActions.Action.Print")); //$NON-NLS-1$
@@ -1587,7 +1595,89 @@ public class TableTrackView extends TrackView {
     }
 
   }
+  
+  class NumberFieldRenderer extends NumberField implements TableCellRenderer {
+  	
+  	DefaultTableCellRenderer defaultRenderer;
 
+		public NumberFieldRenderer() {
+			super(1);
+			defaultRenderer = new DefaultTableCellRenderer();
+			defaultRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
+		}
 
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value,
+				boolean isSelected, boolean hasFocus, int row, int column) {
+			Component c = defaultRenderer.getTableCellRendererComponent(
+					table, value, isSelected, hasFocus, row, column);
+			if (value instanceof Double && c instanceof JLabel) {
+				// show number as formatted by this NumberField
+				setValue((Double)value);
+				((JLabel)c).setText(getText());
+			}
+			return c;
+		}
+  	
+  }
+  
+  class TrackDataTable extends DataTable {
+  	
+  	NumberFieldRenderer numberFieldRenderer = new NumberFieldRenderer();
+  	
+  	@Override
+    public void refreshTable() {
+      // save selected rows and columns
+      int[] rows = getSelectedRows();
+      int[] cols = getSelectedColumns();
+      // refresh table
+      super.refreshTable();
+      // restore selected rows and columns
+      for (int i = 0; i < rows.length; i++) {
+      	if (rows[i] < getRowCount())
+      		addRowSelectionInterval(rows[i], rows[i]);
+      }
+      for (int i = 0; i < cols.length; i++) {
+      	if (cols[i] < getColumnCount())
+      		addColumnSelectionInterval(cols[i], cols[i]);
+      }
+    }
+    
+  	@Override
+    public TableCellEditor getCellEditor(int row, int column) {
+    	// only text columns are editable, so always return textColumnEditor
+      return textColumnEditor;
+    }
+    
+  	@Override
+    public boolean isCellEditable(int row, int col) {
+    	// true only for text (String) columns
+      int i = dataTable.convertColumnIndexToModel(col);
+      return dataTable.getModel().getColumnClass(i).equals(String.class);
+    }
+  	
+  	@Override
+  	public TableCellRenderer getDefaultRenderer(Class<?> type) {
+  		if (type.isAssignableFrom(Double.class)) {
+  			return numberFieldRenderer;
+  		}
+  		return super.getDefaultRenderer(type);
+  	}
+
+  	protected TableCellRenderer getCellRenderer(String columnName) {
+      UnitRenderer unitRenderer = unitRenderersByColumnName.get(columnName);
+      TableCellRenderer baseRenderer = precisionRenderersByColumnName.get(columnName);
+      // if no precision base renderer, use default
+      if (baseRenderer==null)
+      	baseRenderer = getDefaultRenderer(Double.class);
+      // return unit renderer if defined
+    	if (unitRenderer!=null) {
+    		unitRenderer.setBaseRenderer(baseRenderer);
+    		return unitRenderer;
+    	}
+      return baseRenderer;
+  	}
+  	
+  }
 
 }

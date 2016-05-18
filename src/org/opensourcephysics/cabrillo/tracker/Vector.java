@@ -32,6 +32,7 @@ import java.awt.geom.*;
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.*;
+
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.controls.*;
@@ -558,6 +559,18 @@ public class Vector extends TTrack {
     return TrackerRes.getString("Vector.Name") + " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
+  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
+  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
+  	numberFields.put(data.getDataset(2).getYColumnName(), new NumberField[] {magField});
+  	numberFields.put(data.getDataset(3).getYColumnName(), new NumberField[] {angleField});
+  	return numberFields;
+  }
+  
 //__________________________ static methods ___________________________
 
   /**

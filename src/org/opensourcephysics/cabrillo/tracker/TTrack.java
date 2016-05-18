@@ -92,6 +92,8 @@ public abstract class TTrack implements Interactive,
   protected JLabel tValueLabel, stepValueLabel;
   protected NumberField tField, xField, yField, magField;
   protected DecimalField angleField;
+  protected Map<String, NumberField[]> numberFields = new TreeMap<String, NumberField[]>();
+  protected String[] variableList;
   protected Border fieldBorder;
   protected Component tSeparator, xSeparator, ySeparator, magSeparator,
       angleSeparator, stepSeparator;
@@ -132,6 +134,8 @@ public abstract class TTrack implements Interactive,
   // user-editable text columns shown in DataTable view
   protected Map<String, String[]> textColumnEntries = new TreeMap<String, String[]>();
   protected ArrayList<String> textColumnNames = new ArrayList<String>();
+  // mouse listener for number fields
+  protected MouseAdapter formatMouseListener, formatAngleMouseListener;
   private int ID; // unique ID number 
 
   /**
@@ -165,6 +169,77 @@ public abstract class TTrack implements Interactive,
     editor = new JSpinner.NumberEditor(ySpinner, "0.00"); //$NON-NLS-1$
     editor.getTextField().setHorizontalAlignment(SwingConstants.LEFT);
     ySpinner.setEditor(editor);
+    // create mouse listeners for fields
+    formatMouseListener = new MouseAdapter() {
+    	@Override
+      public void mouseClicked(MouseEvent e) {
+        if (OSPRuntime.isPopupTrigger(e)) {
+        	if (e.getSource() instanceof IntegerField) return;
+          for (String name: getNumberFields().keySet()) {
+          	if (numberFields.get(name)[0]==e.getSource()) {
+            	NumberField field = numberFields.get(name)[0];          		
+          		JPopupMenu popup = new JPopupMenu();
+          		JMenuItem item = new JMenuItem();
+          		final String[] selected = new String[] {name};
+          		item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {              		
+                  NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TTrack.this, selected);
+                  FontSizer.setFonts(dialog, FontSizer.getLevel());
+                  dialog.pack();     
+            	    dialog.setVisible(true);
+                }
+              });
+          		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+          		popup.add(item);
+            	FontSizer.setFonts(popup, FontSizer.getLevel());
+          		popup.show(field, 0, field.getHeight());
+        	    break;
+          	}
+          }
+
+        }
+      }
+    };
+    formatAngleMouseListener = new MouseAdapter() {
+    	@Override
+      public void mouseClicked(MouseEvent e) {
+      	if (e==null || OSPRuntime.isPopupTrigger(e)) {
+          for (String name: getNumberFields().keySet()) {
+          	if (numberFields.get(name)[0]==angleField) {
+          		JPopupMenu popup = new JPopupMenu();
+          		JMenuItem item = new JMenuItem();
+          		final boolean radians = angleField.getConversionFactor()==1;
+          		item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                	TFrame frame = trackerPanel.getTFrame();
+                	frame.setAnglesInRadians(!radians);
+                }
+              });
+          		item.setText(radians? 
+          				TrackerRes.getString("TTrack.AngleField.Popup.Degrees"): //$NON-NLS-1$
+          				TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
+          		popup.add(item);
+          		item = new JMenuItem();
+          		final String[] selected = new String[] {name};
+          		item.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                  NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TTrack.this, selected);
+                  FontSizer.setFonts(dialog, FontSizer.getLevel());
+                  dialog.pack();     
+            	    dialog.setVisible(true);
+                }
+              });
+          		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+          		popup.add(item);
+
+            	FontSizer.setFonts(popup, FontSizer.getLevel());
+          		popup.show(angleField, 0, angleField.getHeight());
+          	}
+          }
+      	}
+      }
+    };
+
     // create labels and fields
     Border empty = BorderFactory.createEmptyBorder(0, 1, 0, 2);
     xLabel = new JLabel("x"); //$NON-NLS-1$
@@ -177,30 +252,13 @@ public abstract class TTrack implements Interactive,
     magLabel.setBorder(empty);
     magField = new NumberField(5);
     magField.setMinValue(0);
+    xField.addMouseListener(formatMouseListener);
+    yField.addMouseListener(formatMouseListener);
+    magField.addMouseListener(formatMouseListener);
     angleLabel = new JLabel("theta"); //$NON-NLS-1$
     angleLabel.setBorder(empty);
     angleField = new DecimalField(4, 1);
-    angleField.addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
-      	if (OSPRuntime.isPopupTrigger(e)) {
-      		JPopupMenu popup = new JPopupMenu();
-      		JMenuItem item = new JMenuItem();
-      		final boolean radians = angleField.getConversionFactor()==1;
-      		item.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-            	TFrame frame = trackerPanel.getTFrame();
-            	frame.setAnglesInRadians(!radians);
-            }
-          });
-      		item.setText(radians? 
-      				TrackerRes.getString("TTrack.AngleField.Popup.Degrees"): //$NON-NLS-1$
-      				TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
-      		popup.add(item);
-        	FontSizer.setFonts(popup, FontSizer.getLevel());
-      		popup.show(angleField, 0, angleField.getHeight());
-      	}
-      }
-    });
+    angleField.addMouseListener(formatAngleMouseListener);
     empty = BorderFactory.createEmptyBorder(0, 3, 0, 3);
     Color grey = new Color(102, 102, 102);
     Border etch = BorderFactory.createEtchedBorder(Color.white, grey);
@@ -358,6 +416,7 @@ public abstract class TTrack implements Interactive,
       	cfp.showProperties(TTrack.this);
       }
     };
+
   }
 
   /**
@@ -1361,6 +1420,26 @@ public abstract class TTrack implements Interactive,
   }
   
   /**
+   * Gets a map of number fields by name. 
+   * 
+   * @return a map of name to NumberField.
+   */
+  public Map<String, NumberField[]> getNumberFields() {
+  	numberFields.clear();
+  	// subclasses add entries
+  	return numberFields;
+  }
+  
+  /**
+   * Gets a list of data variable names in desired order. 
+   * 
+   * @return a list of field names. May be null.
+   */
+  public String[] getVariableList() {
+  	return variableList;
+  }
+  
+  /**
    * Gets the text column names. 
    * 
    * @return list of column names.
@@ -1741,6 +1820,15 @@ public abstract class TTrack implements Interactive,
    * @return a collection of components
    */
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+  	String tooltip = TrackerRes.getString("TTrack.NumberField.Format.Tooltip"); //$NON-NLS-1$
+  	if (OSPRuntime.isMac()) {
+  		tooltip = TrackerRes.getString("TTrack.NumberField.Format.Tooltip.OSX"); //$NON-NLS-1$
+  	}
+  	for (NumberField[] fields: getNumberFields().values()) {
+  		for (int i=0; i< fields.length; i++) {
+  			fields[i].setToolTipText(tooltip);
+  		}
+  	}
     toolbarTrackComponents.clear();
     return toolbarTrackComponents;
   }

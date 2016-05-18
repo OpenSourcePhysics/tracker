@@ -391,6 +391,15 @@ public class OffsetOrigin extends TTrack {
     return TrackerRes.getString("OffsetOrigin.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put("x", new NumberField[] {xField}); //$NON-NLS-1$
+  	numberFields.put("y", new NumberField[] {yField}); //$NON-NLS-1$
+  	return numberFields;
+  }
+  
   /**
    * Returns a description of the point at a given index. Used by AutoTracker.
    *

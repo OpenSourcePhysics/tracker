@@ -115,6 +115,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected StepSet selectedSteps = new StepSet(this);
   protected boolean hideDescriptionWhenLoaded;
   protected PropertyChangeListener massParamListener, massChangeListener;
+  protected Map<Class, TreeMap<String, String>> formatPatterns = new HashMap<Class, TreeMap<String,String>>();
 
   /**
    * Constructs a blank TrackerPanel with a player.
@@ -543,6 +544,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       setTrackName(track, track.getName(), false);
     	super.addDrawable(track);
     }
+    
+    // all tracks handled below
     addPropertyChangeListener(track); // track listens for all properties
     track.addPropertyChangeListener("step", this); //$NON-NLS-1$
     track.addPropertyChangeListener("steps", this); //$NON-NLS-1$
@@ -565,6 +568,32 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     
     // set font level
     track.setFontLevel(FontSizer.getLevel());
+    
+    // set NumberField format patterns
+    Class trackType = NumberFormatSetter.getTrackType(track);
+    TreeMap<String, String> patterns = formatPatterns.get(trackType);
+    if (patterns==null) {
+    	patterns = new TreeMap<String, String>();
+  		patterns.put("t", NumberField.DECIMAL_2_PATTERN); //$NON-NLS-1$
+  		patterns.put("step", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+  		patterns.put("frame", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+  		patterns.put("n", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+  		patterns.put("pixels", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+  		patterns.put("R", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+  		patterns.put("G", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+  		patterns.put("B", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+  		patterns.put("luma", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+  		formatPatterns.put(trackType, patterns);
+    }
+    Map<String, NumberField[]> fieldArrays = track.getNumberFields();
+  	for (String name: patterns.keySet()) {
+    	NumberField[] fields = fieldArrays.get(name);
+    	if (fields!=null) {
+    		for (NumberField next: fields) {
+	    		next.setFixedPattern(patterns.get(name));    			
+    		}
+    	}
+  	}
     
     // notify views
     firePropertyChange("track", null, track); // to views //$NON-NLS-1$

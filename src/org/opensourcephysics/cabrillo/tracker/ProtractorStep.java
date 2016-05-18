@@ -68,7 +68,6 @@ public class ProtractorStep extends Step {
   protected Map<TrackerPanel, TextLayout> textLayouts2 = new HashMap<TrackerPanel, TextLayout>();
   protected Map<TrackerPanel, Rectangle> layout2Bounds = new HashMap<TrackerPanel, Rectangle>();
   protected Shape selectedShape;
-  protected NumberField lengthField = new NumberField(9);
   
   /**
    * Constructs a ProtractorStep with specified end point coordinates in image space.
@@ -364,7 +363,7 @@ public class ProtractorStep extends Step {
       	TPoint end = k==0? end1: end2;
       	Map<TrackerPanel, TextLayout> layouts = k==0? textLayouts1: textLayouts2;
         Map<TrackerPanel, Rectangle> lBounds = k==0? layout1Bounds: layout2Bounds;
-	      s = getFormattedLength(getArmLength(end));
+	      s = getFormattedLength(end);
 	      layout = new TextLayout(s, textLayoutFont, frc);
 	      layouts.put(trackerPanel, layout);
 	      p = getLayoutPosition(trackerPanel, layout, end);
@@ -388,9 +387,11 @@ public class ProtractorStep extends Step {
    * @param length the length value to format
    * @return the formatted length string
    */
-  public String getFormattedLength(double length) {
-    lengthField.setFormatFor(length);
-    return lengthField.getFormat().format(length);
+  public String getFormattedLength(TPoint end) {
+  	double length = getArmLength(end);
+  	NumberField field = end==end1? getTrack().xField: getTrack().yField;
+    field.setFormatFor(length);
+    return field.getFormat().format(length);
   }
 
   /**
