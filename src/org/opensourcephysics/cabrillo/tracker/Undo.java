@@ -397,6 +397,7 @@ public class Undo {
   	protected void load(String xml) {
    	  XMLControl control = new XMLControlElement(xml);
    	  TTrack track = panel.getTrack(trackName);
+   	  if (track==null) return;
   	  control.loadObject(track);
   	  track.erase();
   	  track.firePropertyChange("steps", null, null); //$NON-NLS-1$
@@ -478,6 +479,7 @@ public class Undo {
    	  XMLControl control = new XMLControlElement(xml);
   	  TrackProperties props = (TrackProperties)control.loadObject(null);
    	  TTrack track = panel.getTrack(trackName);
+   	  if (track==null) return;
   	  track.setName(props.name);
   	  if (props.colors!=null) {
   	  	if (props.colors.length==1) {
@@ -783,7 +785,7 @@ public class Undo {
     public void redo() throws CannotUndoException {
     	super.redo();
     	TTrack track = TTrack.getTrack(trackID);
-      panel.removeTrack(track);
+    	track.delete(false);
     }
     
     public String getPresentationName() {
