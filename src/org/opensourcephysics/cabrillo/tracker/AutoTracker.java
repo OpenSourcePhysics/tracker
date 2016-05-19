@@ -46,6 +46,7 @@ import javax.swing.border.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
@@ -102,7 +103,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   // instance fields
   private TrackerPanel trackerPanel;
-  private TTrack track;
+  private int trackID;
   private Wizard wizard;
   private Shape match = new Ellipse2D.Double();
   private double minMaskRadius = 4;
@@ -143,10 +144,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	trackerPanel.addDrawable(this);
   	trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
   	trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
+  	trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+  	trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
   	trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
   	trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
     stepper = new Runnable() {
       public void run() {
+        TTrack track = getTrack();
       	if (!active || track==null) {
       		return;
       	}
@@ -182,32 +186,36 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       }
     };
 		wizard = new Wizard();
-    // center on screen
-    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    int x = (dim.width - wizard.getBounds().width) / 2;
-    int y = (dim.height - wizard.getBounds().height) / 2;
+    // place near top right corner of frame
+    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+		TFrame frame = trackerPanel.getTFrame();
+		Point frameLoc = frame.getLocationOnScreen();
+		int w = wizard.getWidth()+8;
+		int x = Math.min(screen.width-w, frameLoc.x+frame.getWidth()-w);
+		int y = trackerPanel.getLocationOnScreen().y;
     wizard.setLocation(x, y);
   }
   
   /**
    * Sets the track to mark when matches are found.
    *
-   * @param aTrack the track
+   * @param newTrack the track
    */
-  protected void setTrack(TTrack aTrack) {
-  	if (aTrack!=null && !aTrack.isAutoTrackable())
-  		aTrack = null;
-  	if (track==aTrack) return;
+  protected void setTrack(TTrack newTrack) {
+  	if (newTrack!=null && !newTrack.isAutoTrackable())
+  		newTrack = null;
+    TTrack track = getTrack();
+  	if (track==newTrack) return;
   	if (track!=null) {
     	track.removePropertyChangeListener("step", this); //$NON-NLS-1$
     	track.removePropertyChangeListener("name", this); //$NON-NLS-1$  	
     	track.removePropertyChangeListener("color", this); //$NON-NLS-1$
     	track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
   	}
-  	track = aTrack;
-  	if (track!=null)
-  		trackerPanel.setSelectedTrack(track);
+  	track = newTrack;
   	if (track!=null) {
+  		trackID = track.getID();
+  		trackerPanel.setSelectedTrack(track);
 	  	track.addPropertyChangeListener("step", this); //$NON-NLS-1$
 	  	track.addPropertyChangeListener("name", this); //$NON-NLS-1$
     	track.addPropertyChangeListener("color", this); //$NON-NLS-1$
@@ -218,6 +226,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			TPoint[] searchPts = frame.getSearchPoints(true);
 			if (searchPts != null)
 				setSearchPoints(searchPts[0], searchPts[1]);
+  	}
+  	else {
+  		trackID = -1;
   	}
   	wizard.refreshGUI();
   }
@@ -294,6 +305,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	paused = false;
   	wizard.refreshGUI();
   	if (update) {
+      TTrack track = getTrack();
 			if (track instanceof PointMass) {
 				PointMass pointMass = (PointMass)track;
 				pointMass.updateDerivatives();
@@ -309,6 +321,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * @return true if a new step was marked
    */
   public boolean markCurrentFrame(boolean predictLoc) {
+    TTrack track = getTrack();
   	if (track==null) return false;
   	trackerPanel.setSelectedTrack(track);
     int n = trackerPanel.getFrameNumber();
@@ -348,6 +361,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	
   	// get position data at previous steps  	
   	TPoint[] prevPoints = new TPoint[predictionLookback];
+    TTrack track = getTrack();
   	if (stepNumber>0 && track!=null) {
   		for (int j = 0; j<predictionLookback; j++) {
   			if (stepNumber-j-1 >= 0) {
@@ -536,6 +550,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    */
   public void draw(DrawingPanel panel, Graphics g) {
   	// don't draw this unless wizard is visible and a video exists
+    TTrack track = getTrack();
     if (track==null || wizard==null 
     		|| !wizard.isVisible() || trackerPanel.getVideo()==null) {
     	maskVisible = targetVisible = searchVisible = false;
@@ -636,6 +651,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * @return the template matcher
    */
   public TemplateMatcher getTemplateMatcher() {
+  	if (trackerPanel==null) return null;
   	int n = trackerPanel.getFrameNumber();
   	KeyFrame keyFrame = getFrame(n).getKeyFrame();
   	if (keyFrame==null)
@@ -721,6 +737,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    */
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
+    TTrack track = getTrack();
 		int n = trackerPanel.getFrameNumber();
     FrameData frame = getFrame(n);
   	KeyFrame keyFrame = frame.getKeyFrame();
@@ -777,8 +794,20 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			if (needsRepaint) repaint();
 		}		
 		else if (name.equals("selectedtrack") && wizard!=null) { //$NON-NLS-1$
-//			setTrack((TTrack)e.getNewValue());
 			wizard.refreshGUI();
+		}
+		else if (name.equals("track") && e.getOldValue()!=null) { //$NON-NLS-1$
+			// track has been deleted
+			TTrack deletedTrack = (TTrack)e.getOldValue();
+	  	trackFrameData.remove(deletedTrack);
+	  	if (deletedTrack==track) {	  		
+	  		setTrack(null);
+	  	}
+		}
+		else if (name.equals("clear")) { //$NON-NLS-1$
+			// tracks have been cleared
+	  	trackFrameData.clear();
+	  	setTrack(null);
 		}
 		
 		if (wizard==null || !wizard.isVisible()) return;
@@ -973,6 +1002,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   
   // indexFrameData maps point index to frameData
   protected Map<Integer, Map<Integer, FrameData>> getIndexFrameData() {
+    TTrack track = getTrack();
   	Map<Integer, Map<Integer, FrameData>> indexFrameData  = trackFrameData.get(track);
   	if (indexFrameData==null) {
   		indexFrameData = new TreeMap<Integer, Map<Integer, FrameData>>();  		
@@ -992,6 +1022,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   }
   
   protected Map<Integer, FrameData> getFrameData() {
+    TTrack track = getTrack();
   	int index = track==null? 0: track.getTargetIndex();
   	return getFrameData(index);
   }
@@ -999,6 +1030,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   protected FrameData getFrame(int frameNumber) {
   	FrameData frame = getFrameData().get(frameNumber);
   	if (frame==null) {
+      TTrack track = getTrack();
     	int index = track==null? 0: track.getTargetIndex();
   		frame = new FrameData(index, frameNumber);
   		getFrameData().put(frameNumber, frame);
@@ -1008,6 +1040,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   
   protected int getIndex(TPoint p) {
   	int n = p.getFrameNumber(trackerPanel);
+    TTrack track = getTrack();
   	Step step = track.getStep(n); // non-null if marked
   	if (step!=null) {
   		for (int i=0; i< step.points.length; i++) {
@@ -1020,7 +1053,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   }
   
   protected TTrack getTrack() {
-  	return track;
+    return TTrack.getTrack(trackID);
   }
   
   /**
@@ -1043,15 +1076,28 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   }
   
   /**
-   * Cleans up resources.
+   * Disposes of this autotracker.
    */
-  protected void cleanup() {
+  protected void dispose() {
   	trackerPanel.removeDrawable(this);
-  	trackerPanel.removePropertyChangeListener(this);
+  	trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+  	trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
+  	trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+  	trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+  	trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
+  	trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
   	setTrack(null);
+  	trackFrameData.clear();
   	wizard.dispose();
+  	trackerPanel.autoTracker = null;
+  	trackerPanel = null;
   }
   
+  @Override
+  public void finalize() {
+  	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
+  }
+
   /**
    * Gets the drawing mark.
    *
@@ -1061,6 +1107,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     int n = trackerPanel.getFrameNumber();
     FrameData frame = getFrame(n);
     KeyFrame keyFrame = frame.getKeyFrame();
+    final TTrack track = getTrack();
   	if (track==null || keyFrame==null) return null;
     if (mark==null) {
     	int k = getStatusCode(n);
@@ -1267,6 +1314,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			frameData.remove(i);
 		}
 		// delete all steps unless always marked
+    TTrack track = getTrack();
   	boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
   	if (!isAlwaysMarked) {
 			for (int n = 0; n < track.getSteps().length; n++) {
@@ -1376,6 +1424,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     		return 6; // accepted by user
     	}
     	// not automarked
+      TTrack track = getTrack();
     	boolean isCalibrationTool = track instanceof CoordAxes
     			|| track instanceof OffsetOrigin
     			|| track instanceof Calibration;
@@ -1645,6 +1694,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     	FrameData frame = getFrame(n);
       KeyFrame keyFrame = frame.getKeyFrame();
       keyFrame.setTargetOffset(x-maskCenter.x, y-maskCenter.y);
+      TTrack track = getTrack();
 			track.autoTrackerMarking = track.isAutoAdvance();			
 			TPoint p = track.autoMarkAt(n, getX(), getY());
 			frame.setAutoMarkPoint(p);
@@ -1832,6 +1882,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     }
     
     boolean isMarked() {
+      TTrack track = getTrack();
     	return track!=null && track.getStep(frameNum)!=null;  
     }
         
@@ -1864,6 +1915,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     TPoint getMarkedPoint() {
     	if (!isMarked()) return null;
     	if (trackPoint!=null) return trackPoint;
+      TTrack track = getTrack();
     	return track.getMarkedPoint(frameNum, index);
     }
     
@@ -2045,6 +2097,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   		pack();
 
   	}
+  	
+  	@Override
+  	public void dispose() {
+      trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
+      timer.stop();
+      timer = null;
+  		super.dispose();
+  	}
 
   //_____________________________ protected methods ____________________________
 
@@ -2147,6 +2207,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       };
       addWindowFocusListener(new java.awt.event.WindowAdapter() {
       	public void windowGainedFocus(java.awt.event.WindowEvent e) {
+          TTrack track = getTrack();
       		if (track!=null) trackerPanel.setSelectedTrack(track);
       	}
       });
@@ -2173,6 +2234,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
           if(item!=null) {
           	for (TTrack next: trackerPanel.getTracks()) {
           		if (item[1].equals(next.getName())) {
+			        	stop(true, false);
           			setTrack(next);
           			refreshGUI();
           		}
@@ -2400,6 +2462,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         	if ("refresh".equals(pointDropdown.getName())) return; //$NON-NLS-1$
           String item = (String)pointDropdown.getSelectedItem();
           if(item!=null) {
+	        	stop(true, false);
+            TTrack track = getTrack();
           	track.setTargetIndex(item);
       			int n = trackerPanel.getFrameNumber();
       	    FrameData frame = getFrame(n);
@@ -2434,6 +2498,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       closeButton = new JButton();
       closeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
+      		stop(true, true); // stop after the next search
           setVisible(false);
         }
       });
@@ -2460,6 +2525,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         	// mark the target
     			marking = true;
         	TPoint p = getMatchTarget(frame.getMatchPoints()[0]);
+          TTrack track = getTrack();
     			TPoint target = track.autoMarkAt(n, p.x, p.y);
     			frame.setAutoMarkPoint(target);
     			frame.decided = true;
@@ -2545,6 +2611,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         		}
         	}
         	
+          TTrack track = getTrack();
         	if (track.getStep(n)==null) {
         		FrameData frame = getFrame(n);
         		if (frame!=null) {
@@ -2578,6 +2645,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       			frame.clear();
       		}
       		
+          TTrack track = getTrack();
         	boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
         	if (!isAlwaysMarked && track.getSteps().length>n)
         		track.getSteps()[n] = null;
@@ -2602,6 +2670,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       		for (int i: toRemove) {
       			frameData.remove(i);
       		}
+          TTrack track = getTrack();
         	boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
         	if (!isAlwaysMarked) {
 	      		Step[] steps = track.getSteps();
@@ -2626,6 +2695,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         public void actionPerformed(ActionEvent e) {
         	// first determine what can be deleted
         	int n = trackerPanel.getFrameNumber();
+          TTrack track = getTrack();
         	boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
         	boolean hasThis = false;
         	boolean isKeyFrame = getFrame(n).isKeyFrame(); 
@@ -2789,6 +2859,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  	    
 		      // set titles and labels of GUI elements
 	  			String title = TrackerRes.getString("AutoTracker.Wizard.Title"); //$NON-NLS-1$		      
+	  	    TTrack track = getTrack();
 	  			if (track!=null) {
 	  				int index = track.getTargetIndex();
 	  				title += ": "+track.getName()+" "+track.getTargetDescription(index); //$NON-NLS-1$ //$NON-NLS-2$
@@ -2862,6 +2933,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     		public void run() {
     	    int n = trackerPanel.getFrameNumber();
     	    FrameData frame = getFrame(n);
+    	    TTrack track = getTrack();
 
 	  			// enable the search buttons
     	    int code = getStatusCode(n);
@@ -2956,10 +3028,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
      * Refreshes the visible components of this wizard.
      */
     protected void refreshGUI() {
+      TTrack track = getTrack();
     	if (track!=null && this.isVisible())
     		track.setMarkByDefault(false);
     	Runnable runner = new Runnable() {
     		public void run() {
+    			if (trackerPanel==null) return;
     			refreshDropdowns();
           refreshStrings();
         	refreshIcons();
@@ -2983,6 +3057,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       Object toSelect = null;
       trackDropdown.setName("refresh"); //$NON-NLS-1$
       trackDropdown.removeAllItems();
+      TTrack track = getTrack();
       for (TTrack next: trackerPanel.getTracks()) {
       	if (!next.isAutoTrackable()) continue;
       	Icon icon = next.getFootprint().getIcon(21, 16);
@@ -3039,6 +3114,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     protected void refreshIcons() {
     	Runnable runner = new Runnable() {
     		public void run() {
+    	    TTrack track = getTrack();
     			if (getTemplateMatcher()==null || track==null) {
     				templateImageLabel.setIcon(null);
     				matchImageLabel.setIcon(null);
@@ -3071,6 +3147,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     protected void replaceIcons(final KeyFrame keyFrame) {
     	Runnable runner = new Runnable() {
     		public void run() {
+    	    TTrack track = getTrack();
     			if (trackerPanel.getVideo()==null || track==null) {
     				templateImageLabel.setIcon(null);
     				matchImageLabel.setIcon(null);
@@ -3107,6 +3184,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       
       // blue instructions if no track
       textPane.setForeground(Color.blue);
+      TTrack track = getTrack();
       if (track==null) {
       	textPane.setText(TrackerRes.getString("AutoTracker.Info.SelectTrack")); //$NON-NLS-1$
       	return;

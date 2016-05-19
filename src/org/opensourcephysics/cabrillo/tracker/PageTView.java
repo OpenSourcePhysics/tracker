@@ -54,6 +54,7 @@ import javax.swing.undo.UndoManager;
 import javax.swing.undo.UndoableEdit;
 import javax.swing.undo.UndoableEditSupport;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;
@@ -137,6 +138,17 @@ public class PageTView extends JPanel implements TView {
    * Cleans up this view
    */
   public void cleanup() {
+  }
+
+  /**
+   * Disposes of the view
+   */
+  public void dispose() {
+    for (TabView tab: tabs) {
+    	tab.data.trackerPanel = null;
+    }
+    tabbedPane.removeAll();
+  	trackerPanel = null;
   }
 
   /**
@@ -260,7 +272,6 @@ public class PageTView extends JPanel implements TView {
    * @param e the property change event
    */
   public void propertyChange(PropertyChangeEvent e) {
-//    String name = e.getPropertyName();
   }
   
 //_________________________ protected and private methods _________________
@@ -431,21 +442,28 @@ public class PageTView extends JPanel implements TView {
   protected void refreshTabs() {
   	TabView prev = getSelectedTab();
     tabbedPane.removeAll();
+    boolean refreshToolbar = false;
     for (TabView tab: tabs) {
     	tab.pageView = this;
     	tab.data.trackerPanel = trackerPanel;
     	tab.refreshView(false);
       tabbedPane.addTab(tab.data.title, tab);
+      refreshToolbar = refreshToolbar || tab.data.url!=null;
     }
     if (prev!=null && tabbedPane.indexOfComponent(prev)>-1) {
     	tabbedPane.setSelectedComponent(prev);
     }
     refreshTitle();
-    if (trackerPanel!=null) {
+    if (trackerPanel!=null && refreshToolbar) {
     	TToolBar.getToolbar(trackerPanel).refresh(false);
     }
   }
   
+  @Override
+  public void finalize() {
+  	OSPLog.finest(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
+  }
+
   /**
    * Refreshes the title bar.
    */

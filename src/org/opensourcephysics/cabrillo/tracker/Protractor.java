@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.Map;
 import java.awt.*;
 import java.awt.event.*;
 import java.beans.PropertyChangeEvent;
@@ -35,6 +36,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -49,7 +51,7 @@ public class Protractor extends TTrack {
   protected JCheckBoxMenuItem fixedItem;
   protected JMenuItem attachmentItem;
   protected boolean editing = false;
-  protected final DecimalField inputField;
+  protected final NumberField inputField;
   protected JPanel inputPanel;
   protected JPanel glassPanel;
   protected NumberFormat format;
@@ -76,7 +78,20 @@ public class Protractor extends TTrack {
     
     keyFrames.add(0);
     // create input field and panel
-    inputField = new DecimalField(4, 1);
+    inputField = new NumberField(9) {
+      @Override
+      public void setFixedPattern(String pattern) {
+      	super.setFixedPattern(pattern);
+      	setValue(magField.getValue());
+      	// repaint current step
+        int n = trackerPanel.getFrameNumber();
+        ProtractorStep step = ((ProtractorStep)getStep(n));
+        if (step!=null) {
+        	step.repaint();
+        }
+      }
+
+    };
     inputField.setBorder(null);
 
     format = inputField.getFormat();
@@ -122,6 +137,12 @@ public class Protractor extends TTrack {
         Rectangle bounds = step.layoutBounds.get(trackerPanel);
         if (bounds != null &&
             bounds.contains(e.getPoint())) {
+        	// readout was clicked
+        	TTrack[] attached = getAttachments(); // vertex, x-axis, arm
+        	if (attached[2]!=null) {
+    				Protractor.this.trackerPanel.setSelectedTrack(Protractor.this);
+    				return;
+        	}
           setEditing(true, step);
         }
       }
@@ -359,8 +380,8 @@ public class Protractor extends TTrack {
    */
   protected String getTargetDescription(int pointIndex) {
   	if (pointIndex==0) return TrackerRes.getString("Protractor.Vertex.Name"); //$NON-NLS-1$
-  	String s = TrackerRes.getString("Protractor.End.Name"); //$NON-NLS-1$
-  	return s+" "+(pointIndex); //$NON-NLS-1$
+  	if (pointIndex==1) return TrackerRes.getString("Protractor.Base.Name"); //$NON-NLS-1$
+  	return TrackerRes.getString("Protractor.End.Name"); //$NON-NLS-1$
   }
 
   /**
@@ -468,9 +489,10 @@ public class Protractor extends TTrack {
    * @return the description
    */
   public String getAttachmentDescription(int n) {
-  	return n==0? 
-  			TrackerRes.getString("AttachmentInspector.Label.Vertex"): //$NON-NLS-1$
-  			TrackerRes.getString("AttachmentInspector.Label.End")+" "+n; //$NON-NLS-1$ //$NON-NLS-2$
+  	// end1 is "base", end2 is "arm"
+  	return n==0? TrackerRes.getString("AttachmentInspector.Label.Vertex"): //$NON-NLS-1$
+  				 n==1? TrackerRes.getString("Protractor.Attachment.Arm"): //$NON-NLS-1$
+  					 		 TrackerRes.getString("Protractor.Attachment.Base"); //$NON-NLS-1$
   }
   
   /**
@@ -527,7 +549,12 @@ public class Protractor extends TTrack {
     list.add(stepSeparator);
   	angleLabel.setText(TrackerRes.getString("Protractor.Label.Angle")); //$NON-NLS-1$
 		angleField.setToolTipText(TrackerRes.getString("Protractor.Field.Angle.Tooltip")); //$NON-NLS-1$
-		angleField.setEnabled(!isLocked());
+		boolean attached = false;
+  	TTrack[] attachments = getAttachments(); // vertex, x-axis, arm
+  	if (attachments[2]!=null) {
+			attached = true;
+  	}
+		angleField.setEnabled(!attached && !isLocked());
     list.add(angleLabel);
     list.add(angleField);
     return list;
@@ -559,7 +586,11 @@ public class Protractor extends TTrack {
         partName = TrackerRes.getString("Protractor.Vertex.Name"); //$NON-NLS-1$
         hint = TrackerRes.getString("Protractor.Vertex.Hint"); //$NON-NLS-1$
       }
-      else if (ia instanceof ProtractorStep.Tip) {
+      else if (ia==step.end1) {
+        partName = TrackerRes.getString("Protractor.Base.Name"); //$NON-NLS-1$
+        hint = TrackerRes.getString("Protractor.Base.Hint"); //$NON-NLS-1$
+      }
+      else if (ia==step.end2) {
         partName = TrackerRes.getString("Protractor.End.Name"); //$NON-NLS-1$
         hint = TrackerRes.getString("Protractor.End.Hint"); //$NON-NLS-1$
       }
@@ -590,6 +621,71 @@ public class Protractor extends TTrack {
     return TrackerRes.getString("Protractor.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	if (variableList==null) {
+    	ArrayList<String> names = new ArrayList<String>();
+	  	DatasetManager data = getData(trackerPanel);
+	  	// add independent variable
+	    Dataset dataset = data.getDataset(0);
+	    String name = dataset.getXColumnName();
+	    names.add(name);
+	    // then add other variables
+			for (int i = 0; i<data.getDatasets().size(); i++) {
+				dataset = data.getDataset(i);
+		    name = dataset.getYColumnName();
+		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
+		    	continue;
+		    }
+		    names.add(name);
+			}
+  		variableList = names.toArray(new String[names.size()]);
+  	}
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
+  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {angleField, inputField});
+  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {xField}); // L1
+  	numberFields.put(data.getDataset(2).getYColumnName(), new NumberField[] {yField}); // L2
+  	return numberFields;
+  }
+  
+  /**
+   * Returns a popup menu for the input field (readout).
+   *
+   * @return the popup menu
+   */
+  protected JPopupMenu getInputFieldPopup() {
+  	JPopupMenu popup = new JPopupMenu();
+		JMenuItem item = new JMenuItem();
+		final boolean radians = angleField.getConversionFactor()==1;
+		item.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	TFrame frame = trackerPanel.getTFrame();
+      	frame.setAnglesInRadians(!radians);
+      }
+    });
+		item.setText(radians? 
+				TrackerRes.getString("TTrack.AngleField.Popup.Degrees"): //$NON-NLS-1$
+				TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
+		popup.add(item);
+		
+		item = new JMenuItem();
+		final String[] selected = new String[] {Tracker.THETA};
+		item.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {              		
+        NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(Protractor.this, selected);
+        FontSizer.setFonts(dialog, FontSizer.getLevel());
+        dialog.pack();     
+  	    dialog.setVisible(true);
+      }
+    });
+		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+		popup.add(item);
+		// add "change to radians" item
+		return popup;
+  }
+  
 //__________________________ protected methods ________________________
   
   /**
@@ -618,7 +714,7 @@ public class Protractor extends TTrack {
   @Override
   protected void setAnglesInRadians(boolean radians) {  	
     super.setAnglesInRadians(radians);
-    inputField.setDecimalPlaces(radians? 3: 1);
+//    inputField.setDecimalPlaces(radians? 3: 1);
     inputField.setConversionFactor(radians? 1.0: 180/Math.PI);
     ProtractorStep step = (ProtractorStep)getStep(trackerPanel.getFrameNumber());     
     step.repaint(); // refreshes angle readout

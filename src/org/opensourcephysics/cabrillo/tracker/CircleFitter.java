@@ -25,6 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.TreeSet;
 import java.awt.*;
 import java.awt.event.*;
@@ -64,7 +65,7 @@ public class CircleFitter extends TTrack {
   protected int absoluteStart = 0, relativeStart = -2, attachmentFrameCount = 5;
   protected TTrack[] attachmentForSteps;
   protected String stepAttachmentName;
-  private boolean refreshingAttachments, abortRefreshAttachments;
+  private boolean refreshingAttachments, abortRefreshAttachments, loadingAttachments;
 
   /**
    * Constructs a CircleFitter.
@@ -120,7 +121,7 @@ public class CircleFitter extends TTrack {
     });
 
   	clickToMarkLabel = new JLabel();
-    clickToMarkLabel.setForeground(Color.green.darker().darker());
+    clickToMarkLabel.setForeground(Color.red.darker());
     
     // create actions, listeners, labels and fields for data points
     final Action dataPointAction = new AbstractAction() {
@@ -153,18 +154,21 @@ public class CircleFitter extends TTrack {
       	dataPointAction.actionPerformed(null);
       }
     };
-    xDataPointLabel = new JLabel("selected x"); //$NON-NLS-1$
+    xDataPointLabel = new JLabel();
+
     xDataPointLabel.setBorder(xLabel.getBorder());
     xDataField = new NumberField(5);
     xDataField.setBorder(fieldBorder);
     xDataField.addActionListener(dataPointAction);
     xDataField.addFocusListener(dataFieldFocusListener);
+    xDataField.addMouseListener(formatMouseListener);
     yDataPointLabel = new JLabel("y"); //$NON-NLS-1$
     yDataPointLabel.setBorder(xLabel.getBorder());
     yDataField = new NumberField(5);
     yDataField.setBorder(fieldBorder);
     yDataField.addActionListener(dataPointAction);
     yDataField.addFocusListener(dataFieldFocusListener);
+    yDataField.addMouseListener(formatMouseListener);
     xDataPointSeparator = Box.createRigidArea(new Dimension(6, 4));
     yDataPointSeparator = Box.createRigidArea(new Dimension(6, 4));
 
@@ -453,9 +457,46 @@ public class CircleFitter extends TTrack {
   public void setFontLevel(int level) {
   	super.setFontLevel(level);
   	Object[] objectsToSize = new Object[]
-  			{clickToMarkLabel, xDataPointLabel, yDataPointLabel,
+  			{clickToMarkLabel, xDataPointLabel, yDataPointLabel, pointCountButton,
   			xDataField, yDataField};
     FontSizer.setFonts(objectsToSize, level);
+  }
+  
+  @Override
+  protected void dispose() {
+    for (Integer n: TTrack.activeTracks.keySet()) {
+    	TTrack track = TTrack.activeTracks.get(n);
+  		track.removePropertyChangeListener("step", this); //$NON-NLS-1$
+  		track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+  	}
+  	if (attachmentForSteps!=null) {
+    	for (int i = 0; i < attachmentForSteps.length; i++) {
+  	  	attachmentForSteps[i] = null;
+    	}
+  	}
+  	if (attachments!=null) {
+    	for (int i = 0; i < attachments.length; i++) {
+  	  	attachments[i] = null;
+    	}
+  	}
+  	// remove attachments from all dataPoints[1] of each step
+  	Step[] steps = getSteps();
+  	for (Step next: steps) {
+  		if (next==null) continue;
+  		CircleFitterStep step = (CircleFitterStep)next;
+  		for (int i = 0; i<=step.dataPoints[1].length; i++) {
+    		DataPoint p = step.getDataPoint(1, i); // may return null
+      	if (p!=null) {
+      		p.detach();
+      	}
+  		}
+  	}
+  	attachmentNames = null;
+  	panels.clear();
+  	properties.clear();
+  	worldBounds.clear();
+  	data = null;
+  	setTrackerPanel(null);
   }
   
   /**
@@ -832,6 +873,10 @@ public class CircleFitter extends TTrack {
   	  	dataValid = false;
   	  	firePropertyChange("data", null, this); //$NON-NLS-1$
   			refreshingAttachments = false;
+  			if (loadingAttachments) {
+  				trackerPanel.changed = false;
+  				loadingAttachments = false;
+  			}
   		}
   	};
   	
@@ -940,6 +985,7 @@ public class CircleFitter extends TTrack {
   	refreshFields(n);
   	stepValueLabel.setText(trackerPanel.getStepNumber()+":"); //$NON-NLS-1$
     CircleFitterStep step = (CircleFitterStep)getStep(n);
+    xDataPointLabel.setText(TrackerRes.getString("TTrack.Selected.Hint")+" x"); //$NON-NLS-1$ //$NON-NLS-2$
     list.add(xDataPointLabel);
     list.add(xDataField);
     list.add(xDataPointSeparator);
@@ -994,6 +1040,40 @@ public class CircleFitter extends TTrack {
     return TrackerRes.getString("CircleFitter.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	String selected = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
+  	if (variableList==null) {
+    	ArrayList<String> names = new ArrayList<String>();
+	  	DatasetManager data = getData(trackerPanel);
+	  	// add independent variable
+	    Dataset dataset = data.getDataset(0);
+	    String name = dataset.getXColumnName();
+	    names.add(name);
+	    // then add other variables
+			for (int i = 0; i<data.getDatasets().size(); i++) {
+				dataset = data.getDataset(i);
+		    name = dataset.getYColumnName();
+		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
+		    	continue;
+		    }
+		    names.add(name);
+			}
+			names.add("x"+selected); //$NON-NLS-1$
+			names.add("y"+selected); //$NON-NLS-1$
+  		variableList = names.toArray(new String[names.size()]);
+  	}
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
+  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
+  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
+  	numberFields.put(data.getDataset(2).getYColumnName(), new NumberField[] {magField});
+  	numberFields.put("x"+selected, new NumberField[] {xDataField}); //$NON-NLS-1$
+  	numberFields.put("y"+selected, new NumberField[] {yDataField}); //$NON-NLS-1$  
+  	return numberFields;
+  }
+  
 //__________________________ protected methods ________________________
   
   @Override
@@ -1214,6 +1294,7 @@ public class CircleFitter extends TTrack {
   	boolean loaded = super.loadAttachmentsFromNames(false);
   	if (!loaded && stepAttachmentName==null) return false;
 
+  	loadingAttachments = true;
 		TTrack track = trackerPanel.getTrack(stepAttachmentName);
   	if (track!=null) {
   		loaded = true;
@@ -1223,6 +1304,9 @@ public class CircleFitter extends TTrack {
   	
   	if (loaded && refresh) {
  	  	refreshAttachmentsLater();
+  	}
+  	else {
+  		loadingAttachments = false;
   	}
   	return loaded;
   }

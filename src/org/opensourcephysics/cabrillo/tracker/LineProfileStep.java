@@ -212,7 +212,7 @@ public class LineProfileStep extends Step {
     if (mark == null) {
       if (footprint instanceof OutlineFootprint) {
         OutlineFootprint outline = (OutlineFootprint)footprint;
-        LineProfile profile = (LineProfile)track;
+        LineProfile profile = (LineProfile)getTrack();
         int spread = profile.getSpread();
         double factor = trackerPanel.getXPixPerUnit();
         if (!trackerPanel.isDrawingInImageSpace()) {
@@ -1075,6 +1075,7 @@ public class LineProfileStep extends Step {
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
+    	TTrack track = getTrack();
       if (track.isLocked()) return;
       if (!line.isFixed()) {
       	line.keyFrames.add(n);
@@ -1146,6 +1147,7 @@ public class LineProfileStep extends Step {
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
+    	TTrack track = getTrack();
       if (track.isLocked()) return;
       // skip if track has not been added to TrackerPanel (eg when loading)
       if (track.trackerPanel == null) {

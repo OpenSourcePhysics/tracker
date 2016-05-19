@@ -33,6 +33,7 @@ import java.awt.event.KeyListener;
 
 import javax.swing.*;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -77,7 +78,7 @@ public class TrackControl extends JDialog
    *
    * @param panel the tracker panel to control
    */
-  private TrackControl(final TrackerPanel panel) {
+  private TrackControl(TrackerPanel panel) {
     super(panel.getTFrame(), false);
     // create GUI
     trackBarPanel = new JPanel();
@@ -96,6 +97,7 @@ public class TrackControl extends JDialog
     popup = new JPopupMenu();
     trackerPanel = panel;
     trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("mass", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("data", this); //$NON-NLS-1$
@@ -109,6 +111,7 @@ public class TrackControl extends JDialog
 	}
 	
 	public void setVisible(boolean vis) {
+		if (trackerPanel==null) return;
 		TFrame frame = trackerPanel.getTFrame();
 		if (!positioned && vis) {
 			if (frame.isVisible()) {
@@ -143,21 +146,51 @@ public class TrackControl extends JDialog
         isVisible = vis;
       }
     }
+    else if (e.getPropertyName().equals("track") && e.getOldValue()!=null) { //$NON-NLS-1$
+      // track has been deleted, so remove all listeners from it
+    	TTrack track = (TTrack)e.getOldValue();
+      track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+      track.removePropertyChangeListener("color", this); //$NON-NLS-1$
+      track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+    }
+    else if (e.getPropertyName().equals("clear")) {     // tracks have been cleared //$NON-NLS-1$
+      for (Integer n: TTrack.activeTracks.keySet()) {
+      	TTrack track = TTrack.activeTracks.get(n);
+        track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+        track.removePropertyChangeListener("color", this); //$NON-NLS-1$
+        track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+      }
+    }
     refresh();
   }
 
+  @Override
+  public void finalize() {
+  	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
+  }
+
   /**
-   * Disposes of this dialog.
+   * Disposes of this track control.
    */
   public void dispose() {
     if (trackerPanel != null) {
       trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+      trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
       trackerPanel.removePropertyChangeListener("mass", this); //$NON-NLS-1$
       trackerPanel.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
       trackerPanel.removePropertyChangeListener("data", this); //$NON-NLS-1$
       TFrame frame = trackerPanel.getTFrame();
       if (frame != null) {
         frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+      }
+      controls.remove(trackerPanel);
+      trackerPanel.trackControl = null;
+      trackerPanel = null;
+      for (Integer n: TTrack.activeTracks.keySet()) {
+      	TTrack track = TTrack.activeTracks.get(n);
+	      track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+	      track.removePropertyChangeListener("color", this); //$NON-NLS-1$
+	      track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
       }
     }
     super.dispose();
@@ -178,6 +211,7 @@ public class TrackControl extends JDialog
    * Refreshes buttons and vectors.
    */
   protected void refresh() {
+  	if (trackerPanel==null) return;
     setTitle(TrackerRes.getString("TrackControl.Name")); //$NON-NLS-1$
     int perbar = 4;
     ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
@@ -208,10 +242,10 @@ public class TrackControl extends JDialog
       track = it.next();
       // listen to tracks for property changes that affect icon or name
       track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-      track.addPropertyChangeListener("name", this); //$NON-NLS-1$
       track.removePropertyChangeListener("color", this); //$NON-NLS-1$
-      track.addPropertyChangeListener("color", this); //$NON-NLS-1$
       track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+      track.addPropertyChangeListener("name", this); //$NON-NLS-1$
+      track.addPropertyChangeListener("color", this); //$NON-NLS-1$
       track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
       // make the track buttons
       TButton button = new TButton(track);

@@ -34,7 +34,7 @@ import javax.swing.*;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * A MultiLineFootprint returns set of line segments for a Point array of any length > 1.
+ * A MultiLineFootprint returns a set of line segments for a Point array of any length > 1.
  *
  * @author Douglas Brown
  */

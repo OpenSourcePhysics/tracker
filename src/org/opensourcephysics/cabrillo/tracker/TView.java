@@ -54,6 +54,11 @@ public interface TView extends PropertyChangeListener {
   public void cleanup();
 
   /**
+   * Disposes of the view
+   */
+  public void dispose();
+
+  /**
    * Gets the TrackerPanel containing the track data
    *
    * @return the tracker panel containing the data to be viewed

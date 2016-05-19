@@ -58,7 +58,7 @@ public class PerspectiveStep extends Step {
   public int getPointIndex(TPoint p) {
   	if (p instanceof PerspectiveFilter.Corner) {
 	  	PerspectiveFilter.Corner corner = (PerspectiveFilter.Corner)p;
-	  	PerspectiveTrack ptrack = (PerspectiveTrack)track;
+	  	PerspectiveTrack ptrack = (PerspectiveTrack)getTrack();
 	  	int i = ptrack.filter.getCornerIndex(corner);
 	  	if (i<4) return i;
   	}
@@ -74,7 +74,7 @@ public class PerspectiveStep extends Step {
    * @return the default TPoint
    */
   public TPoint getDefaultPoint() {
-  	PerspectiveTrack ptrack = (PerspectiveTrack)track;
+  	PerspectiveTrack ptrack = (PerspectiveTrack)getTrack();
   	int index = ptrack.getTargetIndex();
     return ptrack.filter.getCorner(index);
   }
@@ -121,7 +121,7 @@ public class PerspectiveStep extends Step {
   	
   	public void setXY(double x, double y) {
   		super.setLocation(x, y);
-	  	PerspectiveTrack ptrack = (PerspectiveTrack)track;
+	  	PerspectiveTrack ptrack = (PerspectiveTrack)getTrack();
 	  	if (ptrack.trackerPanel!=null) {
 	  		int n = ptrack.trackerPanel.getFrameNumber();
 	  	  ptrack.support.firePropertyChange("step", null, n); //$NON-NLS-1$	  		

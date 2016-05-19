@@ -38,7 +38,7 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * This displays plot track views selected from a dropdown list.
+ * This displays table track views selected from a dropdown list.
  *
  * @author Douglas Brown
  */
@@ -105,8 +105,16 @@ public class TableTView extends TrackChooserTView {
   	}
   	super.setSelectedTrack(track);
 		// refresh or close the columns dialog
-  	if (columnsDialog == null || !columnsDialog.isVisible()) return; 
-  	else if (getSelectedTrack() == null) columnsDialog.setVisible(false);
+  	if (columnsDialog == null) {
+  		return;
+  	}
+  	else if (getSelectedTrack() == null) {
+    	columnsDialog.getContentPane().removeAll();    	
+  		columnsDialog.setVisible(false);
+  	}
+  	else if (!columnsDialog.isVisible()) {
+  		return;
+  	}
   	else showColumnsDialog(getSelectedTrack());
   }
   
@@ -203,6 +211,16 @@ public class TableTView extends TrackChooserTView {
     else super.propertyChange(e);
   }
   
+  /**
+   * Cleans up this view
+   */
+  public void cleanup() {
+  	super.cleanup();
+  	if (trackerPanel!=null && trackerPanel.getTFrame()!=null) {
+  		trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
+  	}
+  }
+
   private JDialog getColumnsDialog() {
   	TFrame frame = trackerPanel.getTFrame();
     if (columnsDialog == null && frame != null) {
@@ -428,7 +446,10 @@ public class TableTView extends TrackChooserTView {
                 	// find column with modelIndex and move to targetIndex
                 	for (int k=0; k<desiredIndexes.length; k++) {
                 		if (model.getColumn(k).getModelIndex()==desiredIndexes[targetIndex]) {
-                    	model.moveColumn(k, targetIndex);
+                    	try {
+												model.moveColumn(k, targetIndex);
+											} catch (Exception e) {
+											}
                 			continue outer;
                 		}
                 	}

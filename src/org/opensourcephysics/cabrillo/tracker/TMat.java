@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
-
 import java.awt.*;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
@@ -57,12 +56,8 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
    * @param panel the tracker panel
    */
   public TMat(TrackerPanel panel) {
-    trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener("coords", this); //$NON-NLS-1$
-    coords = trackerPanel.getCoords();
-    coords.addPropertyChangeListener("transform", this); //$NON-NLS-1$
     mat = new Rectangle();
-    trackerPanel.addDrawable(this);
+    setTrackerPanel(panel);
     refresh();
   }
 
@@ -98,6 +93,14 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
     Rectangle2D rect2D = asDrawn.getBounds2D();
     drawingBounds = new Rectangle((int)Math.round(rect2D.getMinX()), 
     		(int)Math.round(rect2D.getMinY()),(int)rect2D.getWidth(),(int)rect2D.getHeight());
+  }
+  
+  public void setTrackerPanel(TrackerPanel panel) {
+  	if (panel==null || trackerPanel==panel) return;
+    trackerPanel = panel;
+    trackerPanel.addPropertyChangeListener("coords", this); //$NON-NLS-1$
+    coords = trackerPanel.getCoords();
+    coords.addPropertyChangeListener("transform", this); //$NON-NLS-1$
   }
 
   /**
@@ -255,7 +258,16 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
     }
   }
 
-  //_______________________________ private methods _________________________
+  /**
+   * Cleans up this mat
+   */
+  public void cleanup() {
+    trackerPanel.removePropertyChangeListener("coords", this); //$NON-NLS-1$
+    coords.removePropertyChangeListener("transform", this); //$NON-NLS-1$
+    trackerPanel = null;
+  }
+  
+//_______________________________ private methods _________________________
 
   /**
    * Gets the world bounds of the mat.

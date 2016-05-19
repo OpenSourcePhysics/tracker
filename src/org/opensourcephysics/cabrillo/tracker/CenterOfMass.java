@@ -74,12 +74,15 @@ public class CenterOfMass extends PointMass {
        PointShapeFootprint.getFootprint("Footprint.SolidCircle"), //$NON-NLS-1$
        PointShapeFootprint.getFootprint("Footprint.BoldVerticalLine"), //$NON-NLS-1$
        PointShapeFootprint.getFootprint("Footprint.BoldHorizontalLine"), //$NON-NLS-1$
-       new PositionVectorFootprint(this, "Footprint.BoldPositionVector", 2)}); //$NON-NLS-1$
+       PointShapeFootprint.getFootprint("Footprint.BoldPositionVector")}); //$NON-NLS-1$
     defaultFootprint = getFootprint();
     this.masses = masses;
     setColor(defaultColors[0]);
-    for (int i = 0; i < masses.length; i++)
-      masses[i].addPropertyChangeListener(this);
+    for (int i = 0; i < masses.length; i++) {
+      masses[i].addPropertyChangeListener("mass", this); //$NON-NLS-1$
+      masses[i].addPropertyChangeListener("step", this); //$NON-NLS-1$
+      masses[i].addPropertyChangeListener("steps", this); //$NON-NLS-1$
+    }
     locked = true;
     // set initial hint
     if (masses.length == 0)
@@ -129,7 +132,9 @@ public class CenterOfMass extends PointMass {
       System.arraycopy(masses, 0, newMasses, 0, masses.length);
       newMasses[masses.length] = m;
       masses = newMasses;
-      m.addPropertyChangeListener(this);
+      m.addPropertyChangeListener("mass", this); //$NON-NLS-1$
+      m.addPropertyChangeListener("step", this); //$NON-NLS-1$
+      m.addPropertyChangeListener("steps", this); //$NON-NLS-1$
     }
     update();
   }
@@ -143,7 +148,9 @@ public class CenterOfMass extends PointMass {
     synchronized(masses) {
       for (int i = 0; i < masses.length; i++)
         if (masses[i] == m) {
-          m.removePropertyChangeListener(this);
+          m.removePropertyChangeListener("mass", this); //$NON-NLS-1$
+          m.removePropertyChangeListener("step", this); //$NON-NLS-1$
+          m.removePropertyChangeListener("steps", this); //$NON-NLS-1$
           PointMass[] newMasses = new PointMass[masses.length - 1];
           System.arraycopy(masses, 0, newMasses, 0, i);
           System.arraycopy(masses, i+1, newMasses, i, newMasses.length-i);
@@ -261,7 +268,7 @@ public class CenterOfMass extends PointMass {
    */
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("track") && e.getNewValue() == null) { // track deleted //$NON-NLS-1$
+    if (name.equals("track") && e.getOldValue()!=null) { // track deleted //$NON-NLS-1$
       TTrack track = (TTrack)e.getOldValue();
       if (track instanceof PointMass)
         removeMass((PointMass)track);
@@ -283,8 +290,16 @@ public class CenterOfMass extends PointMass {
   /**
    * Cleans up associated resources when this track is deleted or cleared.
    */
-  protected void cleanup() {
-  	super.cleanup();
+  protected void dispose() {
+  	super.dispose();
+    for (PointMass m: masses) {
+      if (m!=null) {
+        m.removePropertyChangeListener("mass", this); //$NON-NLS-1$
+        m.removePropertyChangeListener("step", this); //$NON-NLS-1$
+        m.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+      }
+    }
+    masses = new PointMass[0];
 		if (inspector != null) inspector.dispose();
   }
 

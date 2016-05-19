@@ -67,7 +67,7 @@ public class TActions {
    * @param trackerPanel the TrackerPanel
    * @return the Action
    */
-  public static Action getAction(String key, final TrackerPanel trackerPanel) {
+  public static Action getAction(String key, TrackerPanel trackerPanel) {
     return getActions(trackerPanel).get(key);
   }
 
@@ -115,7 +115,7 @@ public class TActions {
        // post edit and clear tracks
        Undo.postTrackClear(trackerPanel, xml);
        trackerPanel.clearTracks();
-      }
+     }
     };
     actions.put("clearTracks", clearTracksAction); //$NON-NLS-1$
     // new tab
@@ -523,7 +523,7 @@ public class TActions {
         trackerPanel.addTrack(model);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(model);
-        FunctionTool inspector = model.getInspector();
+        FunctionTool inspector = model.getModelBuilder();
         model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
         inspector.setVisible(true);
       }
@@ -537,7 +537,7 @@ public class TActions {
         trackerPanel.addTrack(model);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(model);
-        FunctionTool inspector = model.getInspector();
+        FunctionTool inspector = model.getModelBuilder();
         model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
         inspector.setVisible(true);
       }
@@ -551,7 +551,7 @@ public class TActions {
         trackerPanel.addTrack(model);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(model);
-        FunctionTool inspector = model.getInspector();
+        FunctionTool inspector = model.getModelBuilder();
         model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
         inspector.setVisible(true);
       }
@@ -565,7 +565,7 @@ public class TActions {
         trackerPanel.addTrack(model);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(model);
-        FunctionTool inspector = model.getInspector();
+        FunctionTool inspector = model.getModelBuilder();
         model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
         inspector.setVisible(true);
         DynamicSystemInspector systemInspector = model.getSystemInspector();
@@ -625,13 +625,13 @@ public class TActions {
       public void actionPerformed(ActionEvent e) {
       	Protractor protractor = new Protractor();
         protractor.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
+        trackerPanel.addTrack(protractor);
       	// place protractor above center of mat
       	Rectangle rect = trackerPanel.getMat().mat;
         double x = rect.width/2;
         double y = rect.height/2;
         ProtractorStep step = (ProtractorStep)protractor.getStep(0);
         step.handle.setXY(x, y-30);        	
-        trackerPanel.addTrack(protractor);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(protractor);
       }
@@ -684,27 +684,24 @@ public class TActions {
     };
     actions.put("cloneTrack", cloneTrackAction); //$NON-NLS-1$
     // clear filters action
-    AbstractAction clearFiltersAction = new AbstractAction(TrackerRes.getString("TActions.Action.ClearFilters"), null) { //$NON-NLS-1$
+    final AbstractAction clearFiltersAction = new AbstractAction(TrackerRes.getString("TActions.Action.ClearFilters"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
         Video video = trackerPanel.getVideo();
         if (video != null) {
         	ArrayList<String> xml = new ArrayList<String>();
-        	Iterator<Filter> it = video.getFilterStack().getFilters().iterator();
-        	while (it.hasNext()) {
-        		Filter filter = it.next();
+        	FilterStack stack = video.getFilterStack();
+        	for (Filter filter: stack.getFilters()) {
         		xml.add(new XMLControlElement(filter).toXML());
           	PerspectiveTrack track = PerspectiveTrack.filterMap.get(filter);
         		if (track!=null) {
-        			PerspectiveTrack.filterMap.remove(filter);
         			trackerPanel.removeTrack(track);
-        			track.setTrackerPanel(null);
-        			track.filter = null;
-        			filter.setVideoPanel(null);
+        			track.dispose();
         		}
-
         	}
-          video.getFilterStack().clear();
-          Undo.postFilterClear(trackerPanel, xml);
+          stack.clear();
+          if (e!=null) {
+          	Undo.postFilterClear(trackerPanel, xml);
+          }
         }
       }
     };

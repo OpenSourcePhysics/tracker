@@ -89,6 +89,7 @@ public class ExportZipDialog extends JDialog {
   // instance fields
 	protected ExportVideoDialog videoExporter;
   protected TrackerPanel trackerPanel;
+  protected TFrame frame;
   protected AddedFilesDialog addedFilesDialog;
   protected Icon openIcon;
   protected JPanel videoPanel, thumbnailPanel, centerPanel, imagePanel;
@@ -119,6 +120,7 @@ public class ExportZipDialog extends JDialog {
   	boolean reset = false;
   	if (zipExporter==null) {
   		zipExporter = new ExportZipDialog(panel);
+  		zipExporter.setFontLevel(FontSizer.getLevel());
   		reset = true;
   	}
   	reset = reset || zipExporter.trackerPanel!=panel;
@@ -149,8 +151,8 @@ public class ExportZipDialog extends JDialog {
   private ExportZipDialog(TrackerPanel panel) {
     super(panel.getTFrame(), false);
     trackerPanel = panel;
+    frame = panel.getTFrame();
     videoExporter = ExportVideoDialog.getDialog(panel);
-//    setResizable(false);
     createGUI();
     refreshGUI();
     // center dialog on the screen
@@ -236,7 +238,7 @@ public class ExportZipDialog extends JDialog {
     helpButton.setForeground(new Color(0, 0, 102));
     helpButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        trackerPanel.getTFrame().showHelp("zip", 0); //$NON-NLS-1$
+        frame.showHelp("zip", 0); //$NON-NLS-1$
       }
     });
     addFilesButton = new JButton();
@@ -262,7 +264,6 @@ public class ExportZipDialog extends JDialog {
       	if (clipCheckbox.isSelected()) {
 	      	badModels = getModelsNotInClip();
 	      	if (!badModels.isEmpty()) {
-	    	    final TFrame frame = trackerPanel.getTFrame();
 	    	    // show names of bad models and offer to exclude them from export
 	    	    String names = ""; //$NON-NLS-1$
 	    	    for (ParticleModel next: badModels) {
@@ -939,7 +940,6 @@ public class ExportZipDialog extends JDialog {
     		  	}
   		  		if (!added) {
   		  			// offer to add HTML to zip
-  		  	    final TFrame frame = trackerPanel.getTFrame();
   		  	  	int response = javax.swing.JOptionPane.showConfirmDialog(
   		  	  			frame,	    			
   		  	  			TrackerRes.getString("ZipResourceDialog.AddHTMLInfo.Message1") //$NON-NLS-1$ 
@@ -1000,7 +1000,7 @@ public class ExportZipDialog extends JDialog {
     
     // videoclip--convert frame count, start frame, step size and frame shift but not start time or step count
     XMLControl clipXMLControl = toModify.getChildControl("videoclip"); //$NON-NLS-1$
-    VideoClip realClip = trackerPanel.getPlayer().getVideoClip();
+    VideoClip realClip = player.getVideoClip();
     clipXMLControl.setValue("video_framecount", clipXMLControl.getInt("stepcount")); //$NON-NLS-1$ //$NON-NLS-2$
     clipXMLControl.setValue("startframe", 0); //$NON-NLS-1$
     clipXMLControl.setValue("stepsize", 1); //$NON-NLS-1$
@@ -1183,6 +1183,63 @@ public class ExportZipDialog extends JDialog {
     	        trackControl.setValue("framedata", newKeyData);        			 //$NON-NLS-1$
         		}
 
+        		else if (TapeMeasure.class.equals(trackType)) {
+    	        array = trackControl.getObject("framedata"); //$NON-NLS-1$
+    	        TapeMeasure.FrameData[] tapeKeyFrames = (TapeMeasure.FrameData[])array;
+    	        newFrameNumbers.clear();
+    	        newFrameNum = 0;
+    	        int newKeysLength = 0;
+    	        int nonNullIndex = 0; 
+    	        for (int i = 0; i<=realClip.getEndFrameNumber(); i++) {
+    	        	if (i<tapeKeyFrames.length && tapeKeyFrames[i]!=null) {
+    	        		nonNullIndex = i;
+    	        	}
+    	        	if (!realClip.includesFrame(i)) continue;
+    	        	newFrameNum = realClip.frameToStep(i); // new frame number equals step number
+    	        	if (nonNullIndex>-1) {
+	    	        	newFrameNumbers.put(newFrameNum, nonNullIndex); 
+	    	        	newKeysLength = newFrameNum+1;
+    	        		nonNullIndex = -1;
+    	        	}
+    	        	else if (i<tapeKeyFrames.length) {
+	    	        	newFrameNumbers.put(newFrameNum, i);    	        	    	        		
+	    	        	newKeysLength = newFrameNum+1;
+    	        	}
+    	        }
+    	        TapeMeasure.FrameData[] newKeys = new TapeMeasure.FrameData[newKeysLength];
+    	        for (Integer k: newFrameNumbers.keySet()) {
+    	        	newKeys[k] = tapeKeyFrames[newFrameNumbers.get(k)];
+    	        }
+    	        trackControl.setValue("framedata", newKeys);        			 //$NON-NLS-1$
+        		}
+
+        		else if (Protractor.class.equals(trackType)) {
+    	        array = trackControl.getObject("framedata"); //$NON-NLS-1$
+    	        double[][] protractorData = (double[][])array;
+    	        newFrameNumbers.clear();
+    	        newFrameNum = 0;
+    	        int nonNullIndex = 0; 
+    	        for (int i = 0; i<protractorData.length; i++) {
+    	        	if (i>realClip.getEndFrameNumber()) break;
+    	        	if (protractorData[i]!=null) {
+    	        		nonNullIndex = i;
+    	        	}
+    	        	if (!realClip.includesFrame(i)) continue;
+    	        	newFrameNum = realClip.frameToStep(i); // new frame number equals step number
+    	        	if (nonNullIndex>-1) {
+	    	        	newFrameNumbers.put(newFrameNum, nonNullIndex);    	        	    	        		
+    	        		nonNullIndex = -1;
+    	        	}
+    	        	else {
+	    	        	newFrameNumbers.put(newFrameNum, i);    	        	    	        		
+    	        	}
+    	        }
+    	        double[][] newKeys = new double[newFrameNum+1][];
+    	        for (Integer k: newFrameNumbers.keySet()) {
+    	        	newKeys[k] = protractorData[newFrameNumbers.get(k)];
+    	        }
+    	        trackControl.setValue("framedata", newKeys);        			 //$NON-NLS-1$
+        		}
 	        }
     		}
     	}
@@ -1368,7 +1425,6 @@ public class ExportZipDialog extends JDialog {
    * @param path the path to the zip file
    */
   private void openZip(String path) {
-    final TFrame frame = trackerPanel.getTFrame();
   	int response = javax.swing.JOptionPane.showConfirmDialog(
   			frame,	    			
   			TrackerRes.getString("ZipResourceDialog.Complete.Message1") //$NON-NLS-1$ 
@@ -1415,7 +1471,6 @@ public class ExportZipDialog extends JDialog {
   			"|",":","*","%"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
   	for (String next: reserved) {
   		if (targetName.indexOf(next)>-1) {
-  			TFrame frame = trackerPanel.getTFrame();  			
   			String list = ""; //$NON-NLS-1$
   			for (int i = 1; i<reserved.length; i++) {
   				list += "    "+reserved[i]; //$NON-NLS-1$

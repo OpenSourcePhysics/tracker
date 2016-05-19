@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
@@ -35,6 +34,7 @@ import javax.swing.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -371,6 +371,18 @@ public class OffsetOrigin extends TTrack {
   }
 
   /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{unmarkedLabel, fixedCoordinatesItem};
+    FontSizer.setFonts(objectsToSize, level);
+  }
+
+  /**
    * Overrides Object toString method.
    *
    * @return the name of this track
@@ -379,6 +391,15 @@ public class OffsetOrigin extends TTrack {
     return TrackerRes.getString("OffsetOrigin.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put("x", new NumberField[] {xField}); //$NON-NLS-1$
+  	numberFields.put("y", new NumberField[] {yField}); //$NON-NLS-1$
+  	return numberFields;
+  }
+  
   /**
    * Returns a description of the point at a given index. Used by AutoTracker.
    *

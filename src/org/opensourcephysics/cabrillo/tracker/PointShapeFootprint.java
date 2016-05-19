@@ -262,6 +262,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
   private static final PointShapeFootprint SMALL_SPOT;
   private static final PointShapeFootprint SMALL_CIRCLE;
   private static final PointShapeFootprint SOLID_SQUARE;
+  private static final PointShapeFootprint VECTOR;
+  private static final PointShapeFootprint BOLD_VECTOR;
 
   // static initializers
   static {
@@ -380,6 +382,12 @@ public class PointShapeFootprint implements Footprint, Cloneable {
     SOLID_SQUARE = new PointShapeFootprint("Footprint.SolidSquare", square); //$NON-NLS-1$
     SOLID_SQUARE.setStroke(null);
     footprints.add(SOLID_SQUARE);
+    
+    // VECTOR
+    VECTOR = new PositionVectorFootprint("Footprint.PositionVector", 1); //$NON-NLS-1$
+    footprints.add(VECTOR);
+    BOLD_VECTOR = new PositionVectorFootprint("Footprint.BoldPositionVector", 2); //$NON-NLS-1$
+    footprints.add(BOLD_VECTOR);
 
   }
 }

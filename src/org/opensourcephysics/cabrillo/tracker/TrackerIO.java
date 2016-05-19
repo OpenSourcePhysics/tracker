@@ -73,6 +73,7 @@ public class TrackerIO extends VideoIO {
   protected static boolean loadInSeparateThread = true;
   protected static Set<MonitorDialog> monitors = new HashSet<MonitorDialog>();
   protected static double defaultBadFrameTolerance = 0.2;
+  protected static boolean dataCopiedToClipboard;
 
   static {
   	ffmpegListener = new PropertyChangeListener() {
@@ -517,7 +518,7 @@ public class TrackerIO extends VideoIO {
   		extension = null;
   	}
   	final String ext = extension;
-    chooser.setDialogTitle(MediaRes.getString("VideoIO.Dialog.SaveVideoAs.Title")); //$NON-NLS-1$
+    getChooser().setDialogTitle(MediaRes.getString("VideoIO.Dialog.SaveVideoAs.Title")); //$NON-NLS-1$
     chooser.resetChoosableFileFilters();
     chooser.setAccessory(null);
     chooser.setMultiSelectionEnabled(false);
@@ -1215,11 +1216,11 @@ public class TrackerIO extends VideoIO {
 	  	}
 	  	done = (i==video.getFrameCount());
 		}
-//		double frameDur = dur/(video.getFrameCount()-outliers.size());
 		if (outliers.contains(video.getFrameCount()-1)) {
 			outliers.remove(new Integer(video.getFrameCount()-1));
 		}
 		if (showDialog) {
+	    NumberFormat format = NumberFormat.getInstance();
 			String message = TrackerRes.getString("TrackerIO.Dialog.DurationIsConstant.Message"); //$NON-NLS-1$
 			int messageType = JOptionPane.INFORMATION_MESSAGE; 
 			if (outliers.isEmpty() && onlyIfFound) {
@@ -1249,7 +1250,6 @@ public class TrackerIO extends VideoIO {
 					end = clip.getEndFrameNumber();
 				}
 				// assemble message
-		    NumberFormat format = NumberFormat.getInstance();
 		    format.setMaximumFractionDigits(2);
 		    format.setMinimumFractionDigits(2);
 				message = TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message1"); //$NON-NLS-1$
@@ -1265,6 +1265,12 @@ public class TrackerIO extends VideoIO {
 				message += "\n\n"+TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Recommended")+":  " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						+TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Start")+" "+start+",  " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						+TrackerRes.getString("TrackerIO.Dialog.DurationVaries.End")+" "+end+"\n "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$				
+			}
+			else { // all frames have identical durations
+		    format.setMaximumFractionDigits(2);
+		    format.setMinimumFractionDigits(2);
+				double frameDur = trackerPanel.getPlayer().getClipControl().getMeanFrameDuration();		
+				message += ": "+format.format(frameDur)+"ms"; //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			String close = TrackerRes.getString("Dialog.Button.OK"); //$NON-NLS-1$
 			String dontShow = TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox"); //$NON-NLS-1$
@@ -1584,6 +1590,7 @@ public class TrackerIO extends VideoIO {
     	header += XML.NEW_LINE;
     StringSelection stringSelection = new StringSelection(header+buf.toString());
     clipboard.setContents(stringSelection, stringSelection);
+    dataCopiedToClipboard = true;
   }
 
   /**

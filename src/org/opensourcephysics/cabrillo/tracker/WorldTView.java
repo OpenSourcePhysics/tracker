@@ -34,10 +34,7 @@ import javax.swing.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.*;
-import org.opensourcephysics.controls.XMLControlElement;
-
-import java.rmi.RemoteException;
-
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 
@@ -55,8 +52,7 @@ public class WorldTView extends TrackerPanel implements TView {
   protected JMenuItem printItem;
   protected JMenuItem helpItem;
   protected JButton worldViewButton;
-  protected ArrayList<Component> components = new ArrayList<Component>();
-  protected OverlayTool overlayTool = new OverlayTool();
+  protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
 
   /**
    * Constructs a WorldTView of the specified TrackerPanel
@@ -75,7 +71,7 @@ public class WorldTView extends TrackerPanel implements TView {
         Tracker.class.getResource("resources/images/axes.gif")); //$NON-NLS-1$
     // world view button
     worldViewButton = new TButton();
-    components.add(worldViewButton);
+    toolbarComponents.add(worldViewButton);
     // copy image item
     Action copyImageAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
@@ -168,7 +164,7 @@ public class WorldTView extends TrackerPanel implements TView {
   public void init() {
     cleanup();
     // add this view to tracker panel listeners
-    trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+    // note "track" and "clear" not needed since forwarded from TViewChooser
     trackerPanel.addPropertyChangeListener("size", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("transform", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
@@ -187,16 +183,36 @@ public class WorldTView extends TrackerPanel implements TView {
    */
   public void cleanup() {
     // remove this listener from tracker panel
-    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("size", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("transform", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("image", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("videoVisible", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("data", this); //$NON-NLS-1$
     // remove this listener from tracks
-    for (TTrack track: trackerPanel.getTracks()) {
+    for (Integer n: TTrack.activeTracks.keySet()) {
+    	TTrack track = TTrack.activeTracks.get(n);
       track.removePropertyChangeListener("color", this); //$NON-NLS-1$
     }
+  }
+
+  /**
+   * Disposes of the view
+   */
+  public void dispose() {
+  	cleanup();
+    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("radian_angles", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("function", this); //$NON-NLS-1$
+    coords.removePropertyChangeListener(this);
+  	trackerPanel = null;
+    super.dispose();    
+  }
+
+  @Override
+  public void finalize() {
+  	OSPLog.finest(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
   }
 
   /**
@@ -261,7 +277,7 @@ public class WorldTView extends TrackerPanel implements TView {
    */
   public ArrayList<Component> getToolBarComponents() {
   	worldViewButton.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
-    return components;
+    return toolbarComponents;
   }
 
   /**
@@ -281,6 +297,19 @@ public class WorldTView extends TrackerPanel implements TView {
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (name.equals("track")) {           // track has been added or removed //$NON-NLS-1$
+      if (e.getOldValue()!=null) { // track removed
+      	TTrack removed = (TTrack)e.getOldValue();
+      	removed.removePropertyChangeListener("color", this); //$NON-NLS-1$
+      	removed.removePropertyChangeListener("visible", this); //$NON-NLS-1$
+      }
+      refresh();
+    }
+    else if (name.equals("clear")) {           // tracks have been cleared //$NON-NLS-1$
+      for (Integer n: TTrack.activeTracks.keySet()) {
+      	TTrack track = TTrack.activeTracks.get(n);
+        track.removePropertyChangeListener("color", this); //$NON-NLS-1$
+        track.removePropertyChangeListener("visible", this); //$NON-NLS-1$
+      }
       refresh();
     }
     else if (name.equals("stepnumber") ||   // stepnumber has changed //$NON-NLS-1$
@@ -309,6 +338,9 @@ public class WorldTView extends TrackerPanel implements TView {
    * @return a list of Drawable objects
    */
   public ArrayList<Drawable> getDrawables() {
+  	if (trackerPanel==null) {
+  		return super.getDrawables();
+  	}
     // return all drawables in tracker panel plus those in this world view
     ArrayList<Drawable> list = trackerPanel.getDrawables();
     list.addAll(super.getDrawables());
@@ -392,45 +424,6 @@ public class WorldTView extends TrackerPanel implements TView {
   		c = c.getParent();
   	}
   	return false;
-  }
-
-  /**
-   * Inner tool class to receive and draw jobs from animation tools.
-   */
-  class OverlayTool implements Tool {
-
-    JobManager jobManager = new JobManager(this);
-    XMLControlElement control = new XMLControlElement();
-
-    /**
-     * Sends a job to this tool and specifies a tool to reply to. The job must
-     * contain osp xml data for a Drawable object.
-     *
-     * @param job the Job
-     * @param replyTo the tool to notify when the job is complete (may be null)
-     * @throws RemoteException
-     */
-    public void send(Job job, Tool replyTo) throws RemoteException {
-      // load and draw the Drawable specified in the job's xml
-      Drawable drawable = null;
-      Object[] array = jobManager.getObjects(job);
-      if (array != null && array.length > 0) {
-        // job has been sent previously, so load previous drawable (array[0])
-        drawable = (Drawable)array[0];
-      }
-      control.readXML(job.getXML());
-      if (control.failedToRead() || control.getObjectClass() == Object.class)
-        return;
-      boolean firstTime = (drawable == null);
-      drawable = (Drawable)control.loadObject(drawable);
-      if (firstTime && drawable != null) {
-        addDrawable(drawable);
-        jobManager.log(job, replyTo);
-        jobManager.associate(job, drawable);
-      }
-      repaint();
-    }
-
   }
 
   /**

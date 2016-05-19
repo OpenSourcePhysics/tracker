@@ -150,7 +150,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem newDynamicParticleCartesianItem;
   protected JMenuItem newDynamicParticlePolarItem;
   protected JMenuItem newDynamicSystemItem;
-  protected JMenuItem newDataTrackItem;
+  protected JMenu newDataTrackMenu;
+  protected JMenuItem newDataTrackPasteItem;
+  protected JMenuItem newDataTrackFromFileItem;
+  protected JCheckBoxMenuItem newDataTrackAutoPasteItem;
   protected JMenuItem emptyTracksItem;
   // coords menu
   protected JMenu coordsMenu;
@@ -225,6 +228,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     if (trackerPanel != null) {
       trackerPanel.removePropertyChangeListener("locked", this); //$NON-NLS-1$
       trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+      trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
       trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
       trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
       trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
@@ -234,6 +238,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     trackerPanel = panel;
     trackerPanel.addPropertyChangeListener("locked", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
@@ -256,6 +261,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         if (!fileMenu.isPopupMenuVisible()) return;
         // disable export data menu if no tables to export
         exportDataItem.setEnabled(!getDataViews().isEmpty());
+        // disable saveTabsetAs item if only 1 tab is open
+        TFrame frame = trackerPanel.getTFrame();
+        saveTabsetAsItem.setEnabled(frame!=null && frame.getTabCount()>1);
       }
     });
     if( org.opensourcephysics.display.OSPRuntime.applet == null) {
@@ -521,6 +529,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         if (image != null) {
         	Video video = new ImageVideo(image);
           trackerPanel.setVideo(video);
+          // set step number to show image in all frames
+        	int n = trackerPanel.getPlayer().getVideoClip().getStepCount();
+          trackerPanel.getPlayer().getVideoClip().setStepCount(n);
         }
       }
     };
@@ -668,7 +679,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       }
 
     };
-    for(int i = 0; i<6; i++) {
+    for(int i = 0; i<=Tracker.maxFontLevel; i++) {
     	String s = i==0? TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"): "+"+i; //$NON-NLS-1$ //$NON-NLS-2$
       JMenuItem item = new JRadioButtonMenuItem(s);
       item.addActionListener(fontSizeAction);
@@ -757,7 +768,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         pasteImageItem.setEnabled(b);
         Video video = trackerPanel.getVideo();
         if (video != null) {
-          videoVisibleItem.setSelected(video.isVisible());          
+        	boolean vis = trackerPanel.getPlayer().getClipControl().videoVisible;
+          videoVisibleItem.setSelected(video.isVisible() || vis);          
           // replace filters menu if used in popup
           boolean showFiltersMenu = trackerPanel.isEnabled("video.filters"); //$NON-NLS-1$
           boolean hasNoFiltersMenu = true;
@@ -869,6 +881,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             e.getStateChange() == ItemEvent.DESELECTED) {
           boolean visible = videoVisibleItem.isSelected();
           video.setVisible(visible);
+          trackerPanel.getPlayer().getClipControl().videoVisible = visible;
           trackerPanel.setVideo(video); // triggers image change event
         }
       }
@@ -919,8 +932,20 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     trackMenu.addMouseListener(new MouseAdapter() {
       public void mouseEntered(MouseEvent e) {mousePressed(e);}
       public void mousePressed(MouseEvent e) {
+        // ignore when menu is about to close
+        if (!trackMenu.isPopupMenuVisible()) return;
         if (createMenu.getItemCount() > 0) 
         	trackMenu.add(createMenu, 0);
+        // disable newDataTrackPasteItem unless pastable data is on the clipboard
+        newDataTrackPasteItem.setEnabled(false);
+        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+        Transferable data = clipboard.getContents(null);
+        if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+          try {
+	        	String s = (String)data.getTransferData(DataFlavor.stringFlavor);
+            newDataTrackPasteItem.setEnabled(ParticleDataTrack.getImportableDataName(s)!=null);
+          } catch (Exception ex) {}
+        }
       }
     });
     add(trackMenu);
@@ -1042,8 +1067,33 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     newDynamicParticlePolarItem.addActionListener(actions.get("dynamicParticlePolar")); //$NON-NLS-1$
     newDynamicSystemItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TwoBody")); //$NON-NLS-1$
     newDynamicSystemItem.addActionListener(actions.get("dynamicSystem")); //$NON-NLS-1$
-    newDataTrackItem = new JMenuItem(TrackerRes.getString("ParticleDataTrack.Name")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
-    newDataTrackItem.addActionListener(actions.get("dataTrack")); //$NON-NLS-1$
+    newDataTrackMenu = new JMenu(TrackerRes.getString("ParticleDataTrack.Name")); //$NON-NLS-1$
+    newDataTrackFromFileItem = new JMenuItem(TrackerRes.getString("TrackerIO.Dialog.OpenData.Title")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    newDataTrackFromFileItem.addActionListener(actions.get("dataTrack")); //$NON-NLS-1$
+    newDataTrackPasteItem = new JMenuItem(TrackerRes.getString("ParticleDataTrack.Button.Paste.Text")); //$NON-NLS-1$
+    newDataTrackPasteItem.addActionListener(actions.get("paste")); //$NON-NLS-1$
+    newDataTrackAutoPasteItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.AutoPasteData.Text")); //$NON-NLS-1$
+    newDataTrackAutoPasteItem.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+	    	if (newDataTrackAutoPasteItem.isSelected()) {
+	      	if (getFrame().clipboardListener==null) {
+	      		frame.clipboardListener = new ClipboardListener(frame);
+	      		frame.clipboardListener.start();
+	      		if (newDataTrackPasteItem.isEnabled()) {
+	      			actions.get("paste").actionPerformed(null); //$NON-NLS-1$
+	      		}
+	      	}
+	    	}
+	    	else if (getFrame().clipboardListener!=null) {
+	    		frame.clipboardListener.end();
+	    		frame.clipboardListener = null;
+	    	}
+	    	if (trackerPanel.getSelectedTrack() instanceof ParticleDataTrack) {
+			    TTrackBar trackbar = TTrackBar.getTrackbar(trackerPanel);
+			    trackbar.refresh();
+	    	}
+	    }
+	  });
     // window menu
     windowMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Window")); //$NON-NLS-1$
     windowMenu.addMouseListener(new MouseAdapter() {
@@ -1767,7 +1817,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         }
         if (trackerPanel.isEnabled("new.dataTrack")) { //$NON-NLS-1$
           if (createMenu.getItemCount() > 0) createMenu.addSeparator();
-          createMenu.add(newDataTrackItem); 
+          createMenu.add(newDataTrackMenu); 
+          newDataTrackMenu.add(newDataTrackFromFileItem); 
+          newDataTrackMenu.add(newDataTrackPasteItem); 
+          newDataTrackMenu.add(newDataTrackAutoPasteItem); 
         }
         newTrackItems = createMenu.getMenuComponents();
         // refresh coords menu
@@ -1894,8 +1947,43 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   }
 
   /**
+   * Cleans up this menubar
+   */
+  public void dispose() {
+  	menuBars.remove(trackerPanel);
+    trackerPanel.removePropertyChangeListener("locked", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("size", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("datafile", this); //$NON-NLS-1$
+    Video video = trackerPanel.getVideo();
+    if (video!=null) {
+    	video.getFilterStack().removePropertyChangeListener("filter", TMenuBar.this); //$NON-NLS-1$
+    }
+    for (Integer n: TTrack.activeTracks.keySet()) {
+    	TTrack track = TTrack.activeTracks.get(n);
+      track.removePropertyChangeListener("locked", this); //$NON-NLS-1$
+    }
+    actions.clear();
+    actions = null;
+    TActions.actionMaps.remove(trackerPanel);
+    for (int i = 0; i < copyViewImageItems.length; i++) {
+      copyViewImageItems[i] = null;
+    }
+    trackerPanel = null;
+  }
+
+  @Override
+  public void finalize() {
+  	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
+  }
+
+  /**
    * Responds to the following events: "selectedtrack", "selectedpoint",
-   * "track", "video" from tracker panel, "filter" from filter stack,
+   * "track", "clear", "video" from tracker panel, "filter" from filter stack,
    * "datafile" from VideoPanel.
    *
    * @param e the property change event
@@ -1926,8 +2014,18 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     	refresh();
     }
     else if (name.equals("track")) {     // track has been added or removed //$NON-NLS-1$
-      if (e.getNewValue() == null)       // track has been removed
+      if (e.getOldValue() instanceof TTrack) {      // track has been removed
+      	TTrack track = (TTrack)e.getOldValue();
+        track.removePropertyChangeListener("locked", this); //$NON-NLS-1$
         trackerPanel.setSelectedTrack(null);
+      }
+      refresh();
+    }
+    else if (name.equals("clear")) {     // tracks have been cleared //$NON-NLS-1$
+      for (Integer n: TTrack.activeTracks.keySet()) {
+      	TTrack track = TTrack.activeTracks.get(n);
+        track.removePropertyChangeListener("locked", this); //$NON-NLS-1$
+      }
       refresh();
     }
     else if (name.equals("locked")) {      // track or coords locked/unlocked //$NON-NLS-1$

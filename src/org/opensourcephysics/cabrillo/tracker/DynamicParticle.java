@@ -107,7 +107,6 @@ public class DynamicParticle
   /**
    * Deletes this particle. Overrides ParticleModel method to warn user if this
    * is part of a DynamicSystem.
-   * 
    */
   public void delete() {
     // if this is part of a system, warn user
@@ -125,6 +124,12 @@ public class DynamicParticle
     	else return;
     }
     super.delete();
+  }
+
+  @Override
+  protected void dispose() {
+  	setBooster(null);
+  	super.dispose();
   }
 
   /**
@@ -593,12 +598,14 @@ public class DynamicParticle
      */
   	public void setBooster(PointMass pm) {
   		if (booster!=null) {
-  			booster.removePropertyChangeListener(this);
+				booster.removePropertyChangeListener("step", this);  			 //$NON-NLS-1$
+				booster.removePropertyChangeListener("steps", this);  			 //$NON-NLS-1$
   		}
   		booster = pm;
   		if (booster!=null) {
 				boost();
-				booster.addPropertyChangeListener(this);  			
+				booster.addPropertyChangeListener("step", this);  			 //$NON-NLS-1$
+				booster.addPropertyChangeListener("steps", this);  			 //$NON-NLS-1$
   		}
   	}
   	

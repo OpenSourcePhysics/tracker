@@ -151,9 +151,11 @@ public class FileDropHandler extends TransferHandler {
 		  	// if targetPanel not null and file is video then import
 		  	else if (targetPanel != null && videoFilter.accept(file)) {
 		      // open in separate background thread
-		      final TrackerPanel trackerPanel = targetPanel;
+		  		final TFrame frame = targetPanel.getTFrame();
+		  		final int n = frame.getTab(targetPanel);
 		      Runnable runner = new Runnable() {
 		      	public void run() {
+		      		TrackerPanel trackerPanel = frame.getTrackerPanel(n);
 		        	TrackerIO.importVideo(file, trackerPanel, null);            
 		        }
 		      };

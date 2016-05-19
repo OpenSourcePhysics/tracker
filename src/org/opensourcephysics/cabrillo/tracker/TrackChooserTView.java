@@ -31,6 +31,7 @@ import java.awt.event.*;
 
 import javax.swing.*;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.tools.FontSizer;
@@ -97,7 +98,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
         if (track != null) {
           trackerPanel.changed = true;
           TrackView trackView = getTrackView(track);
-          // remove step propertyChangeListener from prev selected track
+          // remove step propertyChangeListeners from prev selected track
           TTrack prevTrack = selectedTrack;
           TrackView prevView = null;
           if (prevTrack != null) {
@@ -106,11 +107,12 @@ public abstract class TrackChooserTView extends JPanel implements TView {
             prevTrack.removePropertyChangeListener("steps", prevView); //$NON-NLS-1$
             if (prevView instanceof PlotTrackView) {
             	PlotTrackView plotView = (PlotTrackView)prevView;
-            	TrackPlottingPanel plot = plotView.plots[0];
-            	for (TTrack guest: plot.guests) {
-            		guest.removePropertyChangeListener("step", prevView); //$NON-NLS-1$
-            		guest.removePropertyChangeListener("steps", prevView); //$NON-NLS-1$          		
-            	}
+              for (TrackPlottingPanel plot: plotView.plots) {
+	            	for (TTrack guest: plot.guests) {
+	            		guest.removePropertyChangeListener("step", prevView); //$NON-NLS-1$
+	            		guest.removePropertyChangeListener("steps", prevView); //$NON-NLS-1$          		
+	            	}
+              }
             }
           }
           // add step propertyChangeListener to new track
@@ -118,11 +120,12 @@ public abstract class TrackChooserTView extends JPanel implements TView {
           track.addPropertyChangeListener("steps", trackView); //$NON-NLS-1$
           if (trackView instanceof PlotTrackView) {
           	PlotTrackView plotView = (PlotTrackView)trackView;
-          	TrackPlottingPanel plot = plotView.plots[0];
-          	for (TTrack guest: plot.guests) {
-          		guest.addPropertyChangeListener("step", trackView); //$NON-NLS-1$
-          		guest.addPropertyChangeListener("steps", trackView); //$NON-NLS-1$          		
-          	}
+            for (TrackPlottingPanel plot: plotView.plots) {
+	          	for (TTrack guest: plot.guests) {
+	          		guest.addPropertyChangeListener("step", trackView); //$NON-NLS-1$
+	          		guest.addPropertyChangeListener("steps", trackView); //$NON-NLS-1$  
+	          	}
+            }
           }
           selectedTrack = track;
           Step step = trackerPanel.getSelectedStep();
@@ -218,9 +221,24 @@ public abstract class TrackChooserTView extends JPanel implements TView {
   }
 
   /**
-   * Refreshes the configuration.
+   * Refreshes the menus.
    */
   protected void refreshMenus() {  	
+  }
+  
+  /**
+   * Determines if the specified track is currently displayed.
+   * 
+   * @param track the track
+   * @return true if this TView is displayed and the track is selected
+   */
+  protected boolean isTrackViewDisplayed(TTrack track) {  
+  	boolean displayed = track==getSelectedTrack();
+  	Container c = getParent().getParent();
+		if (c instanceof TViewChooser) {
+			displayed = displayed && ((TViewChooser)c).getSelectedView()==this;
+		}
+  	return displayed;
   }
   
   /**
@@ -229,7 +247,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
   public void init() {
     cleanup();
     // add this listener to tracker panel
-    trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("transform", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("image", this); //$NON-NLS-1$
@@ -238,6 +256,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
     trackerPanel.addPropertyChangeListener("function", this); //$NON-NLS-1$
     // add this listener to tracks
     for (TTrack track: trackerPanel.getTracks()) {
+      track.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+      track.addPropertyChangeListener("image", this); //$NON-NLS-1$
       track.addPropertyChangeListener("name", this); //$NON-NLS-1$
       track.addPropertyChangeListener("color", this); //$NON-NLS-1$
       track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
@@ -250,7 +270,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
    */
   public void cleanup() {
     // remove this listener from tracker panel
-    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("transform", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("image", this); //$NON-NLS-1$
@@ -258,12 +278,35 @@ public abstract class TrackChooserTView extends JPanel implements TView {
     trackerPanel.removePropertyChangeListener("radian_angles", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("function", this); //$NON-NLS-1$
     // remove this listener from tracks
-    for (TTrack track: trackerPanel.getTracks()) {
+    for (Integer n: TTrack.activeTracks.keySet()) {
+    	TTrack track = TTrack.activeTracks.get(n);
+      track.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+      track.removePropertyChangeListener("image", this); //$NON-NLS-1$
       track.removePropertyChangeListener("name", this); //$NON-NLS-1$
       track.removePropertyChangeListener("color", this); //$NON-NLS-1$
       track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
       track.removePropertyChangeListener("data", this); //$NON-NLS-1$
     }
+  }
+
+  /**
+   * Disposes of the view
+   */
+  public void dispose() {
+  	cleanup();
+  	for (TTrack next: trackViews.keySet()) {
+  		trackViews.get(next).dispose();
+  	}
+  	trackViews.clear();
+  	tracks.clear();
+  	setSelectedTrack(null);
+  	remove(noData);
+  	trackerPanel = null;
+  }
+
+  @Override
+  public void finalize() {
+  	OSPLog.finest(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
   }
 
   /**
@@ -392,12 +435,17 @@ public abstract class TrackChooserTView extends JPanel implements TView {
     if (name.equals("track")) {               // track has been added or removed //$NON-NLS-1$
       TTrack track = (TTrack)e.getOldValue();
       if (track != null) {
+        track.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+        track.removePropertyChangeListener("image", this); //$NON-NLS-1$
         track.removePropertyChangeListener("name", this); //$NON-NLS-1$
         track.removePropertyChangeListener("color", this); //$NON-NLS-1$
         track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
         track.removePropertyChangeListener("data", this); //$NON-NLS-1$
         TrackView view = trackViews.get(track);
-        if (view != null) view.dispose();
+        if (view != null) {
+        	view.dispose();
+        	trackViews.remove(track);
+        }
       }
     	refresh();
     	TFrame frame = trackerPanel.getTFrame();
@@ -405,6 +453,25 @@ public abstract class TrackChooserTView extends JPanel implements TView {
       // select a newly added track
       track = (TTrack)e.getNewValue();
       if (track != null) setSelectedTrack(track);
+    }
+    else if (name.equals("clear")) {     // tracks have been cleared //$NON-NLS-1$
+      for (Integer n: TTrack.activeTracks.keySet()) {
+      	TTrack track = TTrack.activeTracks.get(n);
+        track.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+        track.removePropertyChangeListener("image", this); //$NON-NLS-1$
+        track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+        track.removePropertyChangeListener("color", this); //$NON-NLS-1$
+        track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+        track.removePropertyChangeListener("data", this); //$NON-NLS-1$
+        TrackView view = trackViews.get(track);
+        if (view != null) {
+        	view.dispose();
+        	trackViews.remove(track);
+        }
+      }
+      refresh();
+    	TFrame frame = trackerPanel.getTFrame();
+    	if (frame != null) frame.repaint();
     }
     else if (name.equals("transform")) {             // coords have changed //$NON-NLS-1$      
     	TTrack track = getSelectedTrack();

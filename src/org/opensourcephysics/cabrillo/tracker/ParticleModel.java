@@ -51,7 +51,7 @@ abstract public class ParticleModel extends PointMass {
 	protected static int tracePtsPerStep = 10;
 	protected static boolean loading = false;
 	protected static Point2D nan = new Point2D.Double(Double.NaN, Double.NaN);
-	protected static double xLimit=4000, yLimit=3000; // too far off screen
+	protected static double xLimit=8000, yLimit=6000; // too far off screen
 	protected static NumberFormat timeFormat = NumberFormat.getNumberInstance();
 	
 	static {
@@ -62,12 +62,12 @@ abstract public class ParticleModel extends PointMass {
 	}
 
 	// instance fields
-	protected FunctionTool inspector;
+	protected FunctionTool modelBuilder;
 	protected ModelFunctionPanel functionPanel;
 	protected UserFunctionEditor functionEditor;
 	protected int inspectorX = Integer.MIN_VALUE, 
 		inspectorY, inspectorH = Integer.MIN_VALUE;
-	protected boolean showInspector;
+	protected boolean showModelBuilder;
 	protected boolean refreshing = false;
 	protected double[] traceX={}, traceY={};
 	protected double[] prevX, prevY;
@@ -78,7 +78,8 @@ abstract public class ParticleModel extends PointMass {
 	protected boolean invalidWarningShown, startFrameUndefined;
 	protected int startFrame, endFrame=Integer.MAX_VALUE;
 	protected boolean useDefaultReferenceFrame;
-	protected JMenuItem inspectorItem, useDefaultRefFrameItem;
+	protected JMenuItem modelBuilderItem, useDefaultRefFrameItem;
+  protected PropertyChangeListener massParamListener, timeParamListener;
 	
   /**
 	 * Constructs a ParticleModel.
@@ -122,17 +123,17 @@ abstract public class ParticleModel extends PointMass {
 	 * @param _g the graphics context on which to draw
 	 */
 	public void drawMe(DrawingPanel panel, Graphics _g) {
-		// position and show inspector if requested during loading
+		// position and show model builder if requested during loading
     if (inspectorX != Integer.MIN_VALUE && trackerPanel != null
 						&& trackerPanel.getTFrame() != null) {
-    	positionInspector();
+    	positionModelBuilder();
 	    Runnable runner = new Runnable() {
 	    	public void run() {
-	      	showInspector = false;
-	    		inspector.setVisible(true);
+	      	showModelBuilder = false;
+	    		modelBuilder.setVisible(true);
 	    	}
 	    };
-    	if (showInspector)
+    	if (showModelBuilder)
     		SwingUtilities.invokeLater(runner);
     }
 		if (isVisible() && isTraceVisible()) {
@@ -200,22 +201,22 @@ abstract public class ParticleModel extends PointMass {
 		if (name.equals("function") && !loading) { //$NON-NLS-1$
 			trackerPanel.changed = true;
 		}
-		else if (name.equals("tab") && inspector != null) { //$NON-NLS-1$
+		else if (name.equals("tab") && modelBuilder != null) { //$NON-NLS-1$
 			if (trackerPanel != null 
 					&& e.getNewValue() == trackerPanel 
 					&& trackerPanel.isModelBuilderVisible) {
-				inspector.setVisible(true);				
+				modelBuilder.setVisible(true);				
 			}
-			else if (inspector.isVisible()) {
-				inspector.setVisible(false);
+			else if (modelBuilder.isVisible()) {
+				modelBuilder.setVisible(false);
 				trackerPanel.isModelBuilderVisible = true;
 			}
 			
 		}
 		else if (name.equals("selectedtrack") //$NON-NLS-1$
-					&& e.getNewValue() == this && inspector != null
-					&& !inspector.getSelectedName().equals(getName())) {
-			inspector.setSelectedPanel(getName());
+					&& e.getNewValue() == this && modelBuilder != null
+					&& !modelBuilder.getSelectedName().equals(getName())) {
+			modelBuilder.setSelectedPanel(getName());
 		}
 		if (name.equals("function") //$NON-NLS-1$
 				|| name.equals("starttime") //$NON-NLS-1$
@@ -298,8 +299,8 @@ abstract public class ParticleModel extends PointMass {
 	public void setName(String name) {
 		String prevName = getName();
 		super.setName(name);
-		if (inspector != null) {
-			inspector.renamePanel(prevName, name);
+		if (modelBuilder != null) {
+			modelBuilder.renamePanel(prevName, name);
 		}
 	}
 
@@ -374,13 +375,13 @@ abstract public class ParticleModel extends PointMass {
 	 * @return a menu
 	 */
 	public JMenu getMenu(TrackerPanel trackerPanel) {
-		if (inspectorItem==null) {
-			// create the model inspector item
-			inspectorItem = new JMenuItem();
-			inspectorItem.addActionListener(new ActionListener() {
+		if (modelBuilderItem==null) {
+			// create the model  item
+			modelBuilderItem = new JMenuItem();
+			modelBuilderItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {
-					positionInspector();
-					getInspector().setVisible(true);
+					positionModelBuilder();
+					getModelBuilder().setVisible(true);
 				}
 			});
 			// create the useDefaultRefFrameItem item
@@ -396,7 +397,7 @@ abstract public class ParticleModel extends PointMass {
 				}
 			});
 		}
-		inspectorItem.setText(TrackerRes.getString("ParticleModel.MenuItem.InspectModel")); //$NON-NLS-1$
+		modelBuilderItem.setText(TrackerRes.getString("ParticleModel.MenuItem.InspectModel")); //$NON-NLS-1$
 		useDefaultRefFrameItem.setText(TrackerRes.getString("ParticleModel.MenuItem.UseDefaultReferenceFrame")); //$NON-NLS-1$
 		// assemble the menu
 		JMenu menu = super.getMenu(trackerPanel);
@@ -408,7 +409,7 @@ abstract public class ParticleModel extends PointMass {
 		menu.remove(lockedItem);
 		menu.remove(autoAdvanceItem);
 		menu.remove(markByDefaultItem);
-		menu.insert(inspectorItem, 0);
+		menu.insert(modelBuilderItem, 0);
 		if (menu.getItemCount() > 1) menu.insertSeparator(1);
 		
 //		// find visible item and insert useDefaultRefFrameItem after it
@@ -420,7 +421,7 @@ abstract public class ParticleModel extends PointMass {
 //		}
 		
 		// eliminate any double separators
-		Object prevItem = inspectorItem;
+		Object prevItem = modelBuilderItem;
 		int n = menu.getItemCount();
 		for (int j = 1; j < n; j++) {
 			Object item = menu.getItem(j);
@@ -553,20 +554,27 @@ abstract public class ParticleModel extends PointMass {
 				functionPanel.initEditor.setDescription(FunctionEditor.OMEGA, s);
   }
 
-  /**
-   * Cleans up associated resources when this track is deleted or cleared.
-   */
-  protected void cleanup() {
-  	super.cleanup();
-		if (inspector != null) {
-			trackerPanel.removePropertyChangeListener("data", this); //$NON-NLS-1$
-			inspector.removePanel(getName());
-			inspector.removePropertyChangeListener(this);
-      if (trackerPanel.getTFrame() != null) {
-      	trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
-      }
-			if (inspector.isEmpty()) inspector.setVisible(false);
-		}  	
+  @Override
+  protected void dispose() {
+		trackerPanel.removePropertyChangeListener("data", this); //$NON-NLS-1$
+    if (trackerPanel.getTFrame() != null) {
+    	trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
+    }
+		if (modelBuilder != null) {
+			getParamEditor().removePropertyChangeListener(massParamListener);
+			getInitEditor().removePropertyChangeListener(timeParamListener);
+			functionPanel.dispose();
+			
+			modelBuilder.removePanel(getName());
+			modelBuilder.removePropertyChangeListener(this);
+			if (modelBuilder.isEmpty()) {
+				modelBuilder.setVisible(false);
+			}
+			modelBuilder = null;
+			functionPanel = null;
+			functionEditor = null;
+		} 
+  	super.dispose();
   }
 
   /**
@@ -882,16 +890,16 @@ abstract public class ParticleModel extends PointMass {
 	}
 	
 	/**
-	 * Gets the particle inspector.
+	 * Gets the model builder.
 	 * 
-	 * @return the inspector
+	 * @return the model builder
 	 */
-	public FunctionTool getInspector() {
+	public FunctionTool getModelBuilder() {
 		if (trackerPanel == null) return null;
-		if (inspector == null) {
-			inspector = trackerPanel.getModelBuilder();
-			inspector.addPanel(getName(), functionPanel);
-			inspector.addPropertyChangeListener(this);
+		if (modelBuilder == null) {
+			modelBuilder = trackerPanel.getModelBuilder();
+			modelBuilder.addPanel(getName(), functionPanel);
+			modelBuilder.addPropertyChangeListener(this);
       if (trackerPanel.getTFrame() != null) {
       	trackerPanel.getTFrame().addPropertyChangeListener("tab", this); //$NON-NLS-1$
       }
@@ -900,7 +908,7 @@ abstract public class ParticleModel extends PointMass {
     		getInitEditor().getTable().clearSelection();
       }
 		}
-		return inspector;
+		return modelBuilder;
 	}
 
 	/**
@@ -923,17 +931,21 @@ abstract public class ParticleModel extends PointMass {
 		param.setNameEditable(false);
 		param.setDescription(TrackerRes.getString("ParticleModel.Parameter.InitialTime.Description")); //$NON-NLS-1$
 		functionPanel.getInitEditor().addObject(param, false);
-		getParamEditor().addPropertyChangeListener(new PropertyChangeListener() {
+    massParamListener = new PropertyChangeListener() {
 		  public void propertyChange(PropertyChangeEvent e) {
 		  	if ("m".equals(e.getOldValue())) { //$NON-NLS-1$
-		  		Parameter param = (Parameter)getParamEditor().getObject("m"); //$NON-NLS-1$
-		      if (ParticleModel.super.getMass() != param.getValue()) {
-		      	setMass(param.getValue());
-		      }
+			  	if ("m".equals(e.getOldValue())) { //$NON-NLS-1$
+			  		Parameter param = (Parameter)getParamEditor().getObject("m"); //$NON-NLS-1$
+			      if (ParticleModel.super.getMass() != param.getValue()) {
+			      	setMass(param.getValue());
+			      }
+			  	}
 		  	}
 		  }
-		});
-		getInitEditor().addPropertyChangeListener(new PropertyChangeListener() {
+		};
+		getParamEditor().addPropertyChangeListener(massParamListener);
+
+    timeParamListener = new PropertyChangeListener() {
 		  public void propertyChange(PropertyChangeEvent e) {
 		  	if (refreshing) return;
 		  	if ("t".equals(e.getOldValue()) && trackerPanel != null) { //$NON-NLS-1$
@@ -949,7 +961,8 @@ abstract public class ParticleModel extends PointMass {
 		      	Toolkit.getDefaultToolkit().beep();
 		  	}
 		  }
-		});
+		};
+		getInitEditor().addPropertyChangeListener(timeParamListener);
 	}
 	
 	/**
@@ -988,23 +1001,23 @@ abstract public class ParticleModel extends PointMass {
 		return functionPanel.getUserFunctionEditor();		
 	}
 	
-	private void positionInspector() {
+	private void positionModelBuilder() {
     if (inspectorX != Integer.MIN_VALUE) {
-    	// trackerPanel will select this track when getInspector() is called
-    	// only if loader has set the showInspector flag (so refreshing is false)
-    	refreshing = !showInspector;
+    	// trackerPanel will select this track when getModelBuilder() is called
+    	// only if loader has set the showModelBuilder flag (so refreshing is false)
+    	refreshing = !showModelBuilder;
     	loading = true; // prevents setting trackerPanel changed flag
-    	getInspector();
+    	getModelBuilder();
     	refreshing = loading = false;
 			TFrame frame = trackerPanel.getTFrame();
 	    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			if (inspectorH != Integer.MIN_VALUE)
-				inspector.setSize(inspector.getWidth(), Math.min(inspectorH, dim.height));
+				modelBuilder.setSize(modelBuilder.getWidth(), Math.min(inspectorH, dim.height));
 			int x = Math.max(frame.getLocation().x + inspectorX, 0);
-			x = Math.min(x, dim.width-inspector.getWidth());
+			x = Math.min(x, dim.width-modelBuilder.getWidth());
 			int y = Math.max(frame.getLocation().y + inspectorY, 0);
-			y = Math.min(y, dim.height-inspector.getHeight());
-			inspector.setLocation(x, y);
+			y = Math.min(y, dim.height-modelBuilder.getHeight());
+			modelBuilder.setLocation(x, y);
 	  	inspectorX = Integer.MIN_VALUE;
     }
 	}
@@ -1035,6 +1048,21 @@ abstract public class ParticleModel extends PointMass {
       control.setValue("mass", p.getMass()); //$NON-NLS-1$
       // save track data
       XML.getLoader(TTrack.class).saveObject(control, obj);
+      // save velocity and acceleration footprint and color if not default
+      Footprint fp = p.getVelocityFootprint();
+      if (!fp.getColor().equals(p.getColor())) {
+    	  control.setValue("velocity_color", fp.getColor()); //$NON-NLS-1$
+      }
+      if (!fp.getName().equals(p.getVelocityFootprints()[0].getName())) {
+    	  control.setValue("velocity_footprint", fp.getName()); //$NON-NLS-1$
+      }
+      fp = p.getAccelerationFootprint();
+      if (!fp.getColor().equals(p.getColor())) {
+    	  control.setValue("acceleration_color", fp.getColor()); //$NON-NLS-1$
+      }
+      if (!fp.getName().equals(p.getAccelerationFootprints()[0].getName())) {
+    	  control.setValue("acceleration_footprint", fp.getName()); //$NON-NLS-1$
+      }
       // save parameters, initial values and functions
       Parameter[] params = p.getParamEditor().getParameters();
       control.setValue("user_parameters", params); //$NON-NLS-1$
@@ -1050,18 +1078,18 @@ abstract public class ParticleModel extends PointMass {
       	control.setValue("start_frame", p.startFrame); //$NON-NLS-1$
       if (p.endFrame<Integer.MAX_VALUE)
       	control.setValue("end_frame", p.endFrame); //$NON-NLS-1$
-  		// save inspector size and position
-  		if (p.inspector != null &&
+  		// save model builder size and position
+  		if (p.modelBuilder != null &&
   						p.trackerPanel != null && 
   						p.trackerPanel.getTFrame() != null) {
-  			// save inspector location relative to frame
+  			// save builder location relative to frame
   			TFrame frame = p.trackerPanel.getTFrame();
-  			int x = p.inspector.getLocation().x - frame.getLocation().x;
-  			int y = p.inspector.getLocation().y - frame.getLocation().y;
+  			int x = p.modelBuilder.getLocation().x - frame.getLocation().x;
+  			int y = p.modelBuilder.getLocation().y - frame.getLocation().y;
     		control.setValue("inspector_x", x); //$NON-NLS-1$
     		control.setValue("inspector_y", y); //$NON-NLS-1$  			
-    		control.setValue("inspector_h", p.inspector.getHeight()); //$NON-NLS-1$ 
-    		control.setValue("inspector_visible", p.inspector.isVisible()); //$NON-NLS-1$
+    		control.setValue("inspector_h", p.modelBuilder.getHeight()); //$NON-NLS-1$ 
+    		control.setValue("inspector_visible", p.modelBuilder.isVisible()); //$NON-NLS-1$
   		}
     }
 
@@ -1086,11 +1114,30 @@ abstract public class ParticleModel extends PointMass {
       // load track data
       XML.getLoader(TTrack.class).loadObject(control, obj);
       ParticleModel p = (ParticleModel)obj;
-      p.mass = control.getDouble("mass"); //$NON-NLS-1$
+      // load mass
+      double m = control.getDouble("mass"); //$NON-NLS-1$
+      if (m != Double.NaN) {
+        p.mass = m;
+      }
+      // load velocity and acceleration footprint and color
+      Color c = (Color)control.getObject("velocity_color"); //$NON-NLS-1$
+      if (c!=null) p.setVelocityColor(c);
+      else p.setVelocityColor(p.getColor());
+      String s = control.getString("velocity_footprint"); //$NON-NLS-1$
+      if (s!=null) p.setVelocityFootprint(s);
+      else p.setVelocityFootprint(p.getVelocityFootprints()[0].getName());
+      
+      c = (Color)control.getObject("acceleration_color"); //$NON-NLS-1$
+      if (c!=null) p.setAccelerationColor(c);
+      else p.setAccelerationColor(p.getColor());
+      s = control.getString("acceleration_footprint"); //$NON-NLS-1$
+      if (s!=null) p.setAccelerationFootprint(s);
+      else p.setAccelerationFootprint(p.getAccelerationFootprints()[0].getName());
+      
   		p.inspectorX = control.getInt("inspector_x"); //$NON-NLS-1$
   		p.inspectorY = control.getInt("inspector_y"); //$NON-NLS-1$
   		p.inspectorH = control.getInt("inspector_h"); //$NON-NLS-1$
-  		p.showInspector = control.getBoolean("inspector_visible"); //$NON-NLS-1$
+  		p.showModelBuilder = control.getBoolean("inspector_visible"); //$NON-NLS-1$
   		Parameter[] params = (Parameter[])control.getObject("user_parameters"); //$NON-NLS-1$
   		p.getParamEditor().setParameters(params);
   		params = (Parameter[])control.getObject("initial_values"); //$NON-NLS-1$

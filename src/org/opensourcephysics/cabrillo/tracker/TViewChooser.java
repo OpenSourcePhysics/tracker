@@ -78,6 +78,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
     super(new BorderLayout());
     trackerPanel = panel;
     trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
     // viewPanel
     viewPanel = new JPanel(new CardLayout());
     viewPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -324,22 +325,46 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
   }
 
   /**
-   * Responds to property change events. ViewChooser listens for the following
-   * property names: "track" from trackerPanel
+   * Responds to property change events.
    *
    * @param e the property change event
    */
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("track")) {             // track has been added or removed //$NON-NLS-1$
-      if (selectedView != null) {
-        selectedView.propertyChange(e);
-        refreshToolbar();
+    if (name.equals("track")) {  // track added/removed //$NON-NLS-1$
+      for (TView view: getViews()) {
+      	view.propertyChange(e);
       }
+      refreshToolbar();
+    }
+    else if (name.equals("clear")) {  // tracks cleared //$NON-NLS-1$
+      for (TView view: getViews()) {
+      	view.propertyChange(e);
+      }
+      refreshToolbar();
     }
     else if (name.equals("trackview")) {    // trackview has changed //$NON-NLS-1$
       refreshToolbar();
     }
+  }
+
+  /**
+   * Disposes of this chooser
+   */
+  public void dispose() {
+    CardLayout cl = (CardLayout) (viewPanel.getLayout());
+    for (TView view: getViews()) {
+      ((JComponent)view).removePropertyChangeListener("trackview", this); //$NON-NLS-1$
+      cl.removeLayoutComponent((JComponent)view);
+    	view.dispose();
+    }
+    views.clear();
+    selectedView = null;
+    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+    viewPanel.removeAll();
+    toolbar.removeAll();
+    trackerPanel = null;
   }
 
   /**

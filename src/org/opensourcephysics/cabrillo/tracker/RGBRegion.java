@@ -29,6 +29,7 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
+import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -46,17 +47,16 @@ import org.opensourcephysics.controls.*;
  */
 public class RGBRegion extends TTrack {
 
-  // static constants
-	protected static final int MAX_RADIUS = 100;
-
   // static fields
   protected static int defaultRadius = 10;
+  protected static int defaultMaxRadius = 100;
 
   // instance fields
   protected boolean fixedPosition = true; // region has same position at all times
   protected boolean fixedRadius = true; // region has same radius at all times
   protected JCheckBoxMenuItem fixedPositionItem, fixedRadiusItem;
   protected JLabel radiusLabel;
+	protected int maxRadius = defaultMaxRadius;
   protected IntegerField radiusField;
   protected boolean firstTimeRadiusUnfixed = true;
   protected ArrayList<RGBStep> validSteps = new ArrayList<RGBStep>();
@@ -246,7 +246,7 @@ public class RGBRegion extends TTrack {
   protected void setRadius(int n, int r) {
     if (isLocked() || r == Integer.MIN_VALUE || trackerPanel == null) return;
     r = Math.max(r, 0);
-    r = Math.min(r, MAX_RADIUS);
+    r = Math.min(r, maxRadius);
     radiusField.setIntValue(r);
     
     RGBStep step = (RGBStep)getStep(n); // target step
@@ -676,6 +676,12 @@ public class RGBRegion extends TTrack {
    */
   public void propertyChange(PropertyChangeEvent e) {
   	if (trackerPanel != null) {
+      if (maxRadius==defaultMaxRadius && trackerPanel.getVideo()!=null) {
+     		BufferedImage image = trackerPanel.getVideo().getImage();
+      	maxRadius = image.getHeight()/2;
+      	maxRadius = Math.min(maxRadius, image.getWidth()/2);
+      	maxRadius -= 1;
+      }
       String name = e.getPropertyName();
       if (name.equals("stepnumber")) { //$NON-NLS-1$
       	dataValid = false;
@@ -683,7 +689,7 @@ public class RGBRegion extends TTrack {
   	    RGBStep step = (RGBStep)getStep(n);
   	    if (step != null) radiusField.setIntValue(step.radius);
   	    radiusField.setEnabled(!isLocked() && step != null);
-        support.firePropertyChange(e); // to views
+//        support.firePropertyChange(e); // to views
       }
       else if (name.equals("image")) { //$NON-NLS-1$
       	dataValid = false;
@@ -694,6 +700,12 @@ public class RGBRegion extends TTrack {
       	else if (!dataHidden && vid.isVisible()) // video filters
       		clearData();
       	else dataHidden = false;
+      	if (vid!=null) {
+      		BufferedImage image = vid.getImage();
+        	maxRadius = image.getHeight()/2;
+        	maxRadius = Math.min(maxRadius, image.getWidth()/2);
+        	maxRadius -= 1;
+      	}
         support.firePropertyChange(e); // to views
       }
   	}
@@ -709,6 +721,34 @@ public class RGBRegion extends TTrack {
     return TrackerRes.getString("RGBRegion.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	if (variableList==null) {
+    	ArrayList<String> names = new ArrayList<String>();
+	  	DatasetManager data = getData(trackerPanel);
+	  	// add independent variable
+	    Dataset dataset = data.getDataset(0);
+	    String name = dataset.getXColumnName();
+	    names.add(name);
+	    // then add other variables
+			for (int i = 0; i<data.getDatasets().size(); i++) {
+				dataset = data.getDataset(i);
+		    name = dataset.getYColumnName();
+		    if (name.equals("step") || name.equals("frame") || name.equals("pixels")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		    	continue;
+		    }
+		    names.add(name);
+			}
+  		variableList = names.toArray(new String[names.size()]);
+  	}
+  	numberFields.clear();
+  	// dataset column names set in refreshData() method
+  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
+  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
+  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
+  	return numberFields;
+  }
+  
 //__________________________ private methods ___________________________
 
   /**
@@ -840,6 +880,27 @@ public class RGBRegion extends TTrack {
 	        radii[n] = ((RGBStep)steps[n]).radius;
 	      }
 	      control.setValue("radii", radii); //$NON-NLS-1$
+	      // save RGB values
+	      count = steps.length;
+	      int first = 0;
+	      int last = count-1;
+	      if (region.trackerPanel!=null) {
+	      	first = region.trackerPanel.getPlayer().getVideoClip().getStartFrameNumber();
+	      	last = region.trackerPanel.getPlayer().getVideoClip().getEndFrameNumber();
+	      }
+	      double[][] rgb = new double[last+1][];
+	      double[] stepRGB = new double[5];
+	      for (int n = first; n <= last; n++) {
+	      	// save RGB and pixel count data for all valid frames in clip
+	        if (n>steps.length-1 || steps[n] == null) continue;
+	        if (((RGBStep)steps[n]).dataValid) {
+	        	stepRGB = ((RGBStep)steps[n]).rgbData;
+	        	rgb[n] = new double[4];
+		        System.arraycopy(stepRGB, 0, rgb[n], 0, 3);
+		        System.arraycopy(stepRGB, 4, rgb[n], 3, 1);
+	        }
+	      }
+	      control.setValue("rgb", rgb); //$NON-NLS-1$
     	}
     }
 
@@ -902,6 +963,21 @@ public class RGBRegion extends TTrack {
 	        step.radius = radii[n];
 	        region.radiusKeyFrames.add(n);
 	      }
+      }
+      double[][] rgb = (double[][])control.getObject("rgb"); //$NON-NLS-1$
+      if (rgb!=null) {
+      	for (int n=0; n<rgb.length; n++) {
+      		if (rgb[n]==null) continue;
+	        RGBStep step = (RGBStep)region.steps.getStep(n);
+	        System.arraycopy(rgb[n], 0, step.rgbData, 0, 3);
+	        step.rgbData[0] = rgb[n][0];
+	        step.rgbData[1] = rgb[n][1];
+	        step.rgbData[2] = rgb[n][2];
+	        step.rgbData[3] = RGBRegion.getLuma(rgb[n][0], rgb[n][1], rgb[n][2]);
+	        step.rgbData[4] = rgb[n][3];
+	        region.refreshStep(step);
+	        step.dataValid = true;
+      	}
       }
       region.setLocked(locked);
       region.loading = false;

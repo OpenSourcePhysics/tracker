@@ -54,6 +54,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   protected static JButton testButton;
   protected static javax.swing.Timer testTimer;
   protected static boolean showOutOfMemoryDialog = true;
+  static ClipboardListener b;
   
   // instance fields
   protected TrackerPanel trackerPanel; // manages & displays track data
@@ -77,13 +78,16 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
 		    	      	
-		    	      	for (Object key: System.getProperties().keySet()) {
-		    	      		OSPLog.info("property "+key+"="+System.getProperty(key.toString())); //$NON-NLS-1$ //$NON-NLS-2$
+//	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+		    	      	if (b==null) {
+			    	        b = new ClipboardListener(frame);
+			    	        b.start();
 		    	      	}
-		    	      	for (String key: System.getenv().keySet()) {
-		    	      		OSPLog.info("environment "+key+"="+System.getenv(key)); //$NON-NLS-1$ //$NON-NLS-2$
+		    	      	else {
+		    	      		b.end();
+		    	      		b = null;
 		    	      	}
-
+		    	      	
 		  	    			if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
 		  	    				testTimer=null;
@@ -209,11 +213,17 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   private TTrackBar(TrackerPanel panel) {
     trackerPanel = panel;
     trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
     createGUI();
     refresh();
     validate();
+  }
+
+  @Override
+  public void finalize() {
+  	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
   }
 
   /**
@@ -252,6 +262,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     	@Override
       protected JPopupMenu getPopup() {
     		
+    		TTrack track = getTrack();
     		// special case: ParticleDataTrack
       	if (track instanceof ParticleDataTrack) { 
       		if (trackButton.context.contains("point")) { //$NON-NLS-1$
@@ -289,14 +300,14 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   protected JPopupMenu getSelectTrackPopup() {
     selectPopup.removeAll();
     // add calibration tools and axes at end
-    final CoordAxes axes = trackerPanel.getAxes();
+//    final CoordAxes axes = trackerPanel.getAxes();
     final ActionListener listener = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	JMenuItem item = (JMenuItem)e.getSource();
       	TTrack track = trackerPanel.getTrack(item.getText());
       	if (track==null) return;
       	if (trackerPanel.calibrationTools.contains(track)
-      			|| track==axes) {
+      			|| track==trackerPanel.getAxes()) {
       		track.setVisible(true);
       	}
       	trackerPanel.setSelectedTrack(track);
@@ -379,7 +390,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
         		TPoint p = trackerPanel.getSelectedPoint();
         		if (p!=null) {
 	        		Step step = track.getStep(p, trackerPanel);
-	        		if (step!=null && step.track==track) {
+	        		if (step!=null && step.getTrack()==track) {
 	        			trackButton.context = "point"; //$NON-NLS-1$
 	        		}
         		}
@@ -464,11 +475,41 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     else if (name.equals("selectedpoint")) {  // selected point has changed //$NON-NLS-1$
       refresh();
     }
-    else if (name.equals("track")) {     // track has been added or removed //$NON-NLS-1$
+    else if (name.equals("track")) {  // tracks have been added or removed //$NON-NLS-1$
+      refresh();
+    }
+    else if (name.equals("clear")) {  // tracks have been cleared //$NON-NLS-1$
+  		for (Integer n: TTrack.activeTracks.keySet()) {
+  			TTrack track = TTrack.activeTracks.get(n);
+	  		track.removePropertyChangeListener("name", TTrackBar.this); //$NON-NLS-1$
+	      track.removePropertyChangeListener("color", TTrackBar.this); //$NON-NLS-1$
+	      track.removePropertyChangeListener("footprint", TTrackBar.this); //$NON-NLS-1$
+  		}
+  		trackButton.setTrack(null);
       refresh();
     }
   }
   
+  /**
+   * Cleans up this trackbar
+   */
+  public void dispose() {
+  	trackbars.remove(trackerPanel);
+    removeAll();
+    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+    for (Integer n: TTrack.activeTracks.keySet()) {
+    	TTrack track = TTrack.activeTracks.get(n);
+      track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+      track.removePropertyChangeListener("color", this); //$NON-NLS-1$
+      track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+		}
+		trackButton.setTrack(null);
+    trackerPanel = null;
+  }
+
   /**
    *  Refreshes the memory button.
    */

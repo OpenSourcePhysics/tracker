@@ -52,11 +52,11 @@ public class AttachmentDialog extends JDialog
 	
 
   // instance fields
-  protected TTrack measuringTool;  
+  protected int trackID;
   protected TrackerPanel trackerPanel;
   protected boolean isVisible;
   protected JButton closeButton, helpButton;
-  protected ArrayList<? extends TTrack> masses;
+  protected ArrayList<PointMass> masses;
   protected JTable table;
 	protected int cellheight = 28; // depends on font level
   protected JComboBox rendererDropdown, editorDropdown, measuringToolDropdown;
@@ -74,7 +74,7 @@ public class AttachmentDialog extends JDialog
 
   
   /**
-   * Constructs an AttachmentControl.
+   * Constructs an AttachmentDialog.
    *
    * @param track the measuring tool
    */
@@ -86,7 +86,7 @@ public class AttachmentDialog extends JDialog
 		refreshDropdowns();
     trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
-//    trackerPanel.addPropertyChangeListener("frameshift", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
     TFrame frame = trackerPanel.getTFrame();
     frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
     refreshGUI();
@@ -111,18 +111,34 @@ public class AttachmentDialog extends JDialog
     else if (e.getPropertyName().equals("track")) { //$NON-NLS-1$
     	TTrack deleted = (TTrack)e.getOldValue();
     	if (deleted!=null) {
-//    		deleted.removePropertyChangeListener("step", this); //$NON-NLS-1$
-//    		deleted.removePropertyChangeListener("steps", this); //$NON-NLS-1$
     		deleted.removePropertyChangeListener("name", this); //$NON-NLS-1$
     		deleted.removePropertyChangeListener("color", this); //$NON-NLS-1$
     		deleted.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-    		TTrack[] attachments = measuringTool.getAttachments();
-	     	for (int i = 0; i < attachments.length; i++) {
-			  	if (deleted==attachments[i] || deleted==measuringTool) {
-			  		attachments[i] = null;	  		
-			  	}
-	    	}
-	    	measuringTool.refreshAttachments();
+    		TTrack measuringTool = TTrack.getTrack(trackID);
+    		if (measuringTool!=null) {
+    			if (measuringTool!=deleted) {
+		    		TTrack[] attachments = measuringTool.getAttachments();
+			     	for (int i = 0; i < attachments.length; i++) {
+					  	if (deleted==attachments[i] || deleted==measuringTool) {
+					  		attachments[i] = null;	  		
+					  	}
+			    	}
+			    	measuringTool.refreshAttachments();
+	    		}
+    			else { // measuring tool has been deleted
+    				trackID = 0;
+    			}
+    		}
+    	}
+  		refreshDropdowns();
+    	refreshGUI();
+    }
+    else if (e.getPropertyName().equals("clear")) { //$NON-NLS-1$
+    	for (Integer n: TTrack.activeTracks.keySet()) {
+    		TTrack next = TTrack.activeTracks.get(n);
+    		next.removePropertyChangeListener("name", this); //$NON-NLS-1$
+    		next.removePropertyChangeListener("color", this); //$NON-NLS-1$
+    		next.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
     	}
   		refreshDropdowns();
     	refreshGUI();
@@ -141,6 +157,7 @@ public class AttachmentDialog extends JDialog
 //    	measuringTool.refreshAttachments();
 //    }
     else if (e.getPropertyName().equals("dataPoint")) { //$NON-NLS-1$
+  		TTrack measuringTool = TTrack.getTrack(trackID);
     	measuringTool.refreshAttachments();
       DefaultTableModel dm = (DefaultTableModel)table.getModel();
       dm.fireTableDataChanged();
@@ -159,20 +176,31 @@ public class AttachmentDialog extends JDialog
   }
 
   /**
-   * Disposes of this inspector.
+   * Disposes of this dialog.
    */
   public void dispose() {
     if (trackerPanel != null) {
       trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+      trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
+      trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
       for (TTrack p: masses) {
         p.removePropertyChangeListener("name", this); //$NON-NLS-1$
         p.removePropertyChangeListener("color", this); //$NON-NLS-1$
         p.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
       }
+      masses.clear();
+      dummyMass.delete();
+      dummyMass = null;
+  		TTrack measuringTool = TTrack.getTrack(trackID);
+    	if (measuringTool!=null) {
+  	    measuringTool.removePropertyChangeListener("dataPoint", this); //$NON-NLS-1$  		
+    	}
       TFrame frame = trackerPanel.getTFrame();
       if (frame != null) {
         frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
       }
+    	trackerPanel.attachmentDialog = null;
+      trackerPanel = null;
     }
     super.dispose();
   }
@@ -201,6 +229,7 @@ public class AttachmentDialog extends JDialog
     measuringToolDropdown.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         TTrack tool = (TTrack)measuringToolDropdown.getSelectedItem();
+    		TTrack measuringTool = TTrack.getTrack(trackID);
       	if (tool==measuringTool) return;
         setMeasuringTool(tool);
       }
@@ -258,7 +287,8 @@ public class AttachmentDialog extends JDialog
 			@Override
 			public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
-      	CircleFitter fitter = (CircleFitter)measuringTool;
+      	CircleFitter fitter = (CircleFitter)TTrack.getTrack(trackID);
+;
       	fitter.attachToSteps = !tracksButton.isSelected();
 	    	fitter.refreshAttachments();
 				refreshGUI();				
@@ -280,7 +310,8 @@ public class AttachmentDialog extends JDialog
 			@Override
 			public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
-      	CircleFitter fitter = (CircleFitter)measuringTool;
+      	CircleFitter fitter = (CircleFitter)TTrack.getTrack(trackID);
+;
       	fitter.isRelativeFrameNumbers = relativeCheckbox.isSelected();
       	refreshFieldsAndButtons(fitter);
 	    	fitter.refreshAttachments();
@@ -292,7 +323,8 @@ public class AttachmentDialog extends JDialog
     final Action frameRangeAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-      	CircleFitter fitter = (CircleFitter)measuringTool;
+      	CircleFitter fitter = (CircleFitter)TTrack.getTrack(trackID);
+;
     		fitter.setAttachmentStartFrame(startField.getIntValue());   		
     		fitter.setAttachmentFrameCount(countField.getIntValue());
     		refreshFieldsAndButtons(fitter);
@@ -360,6 +392,7 @@ public class AttachmentDialog extends JDialog
     helpButton.setForeground(new Color(0, 0, 102));
     helpButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+    		TTrack measuringTool = TTrack.getTrack(trackID);
       	String keyword = measuringTool==null? "circle":  //$NON-NLS-1$
       		measuringTool instanceof Protractor? "protractor":  //$NON-NLS-1$
       		measuringTool instanceof TapeMeasure? "tape": "circle"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -385,14 +418,16 @@ public class AttachmentDialog extends JDialog
    * Sets the measuring tool.
    */
   protected void setMeasuringTool(TTrack tool) {
+		TTrack measuringTool = TTrack.getTrack(trackID);
   	if (measuringTool!=null) {
 	    measuringTool.removePropertyChangeListener("dataPoint", this); //$NON-NLS-1$  		
   	}
+  	
     measuringTool = tool;
-  	if (measuringTool!=null) {
-	    measuringTool.addPropertyChangeListener("dataPoint", this); //$NON-NLS-1$  		
-  	}
-    tool.refreshAttachments();
+  	trackID = measuringTool.getID();
+	  measuringTool.addPropertyChangeListener("dataPoint", this); //$NON-NLS-1$  
+	  
+    measuringTool.refreshAttachments();
     refreshDropdowns();
     if (measuringTool instanceof CircleFitter) {
     	CircleFitter fitter = (CircleFitter)measuringTool;
@@ -409,13 +444,9 @@ public class AttachmentDialog extends JDialog
   protected void refreshDropdowns() {
 		masses = trackerPanel.getDrawables(PointMass.class);
     for (TTrack p: masses) {
-//      p.removePropertyChangeListener("step", this); //$NON-NLS-1$
-//      p.removePropertyChangeListener("steps", this); //$NON-NLS-1$
       p.removePropertyChangeListener("name", this); //$NON-NLS-1$
       p.removePropertyChangeListener("color", this); //$NON-NLS-1$
       p.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-//      p.addPropertyChangeListener("step", this); //$NON-NLS-1$
-//      p.addPropertyChangeListener("steps", this); //$NON-NLS-1$
       p.addPropertyChangeListener("name", this); //$NON-NLS-1$
       p.addPropertyChangeListener("color", this); //$NON-NLS-1$
       p.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
@@ -428,12 +459,9 @@ public class AttachmentDialog extends JDialog
 		FontSizer.setFonts(measuringToolDropdown, FontSizer.getLevel());
 		java.util.Vector<TTrack> tools = new java.util.Vector<TTrack>();
     for (TTrack track: trackerPanel.getTracks()) {
-    	if (track instanceof TapeMeasure) {
-    		TapeMeasure tape = (TapeMeasure)track;
-//    		if (tape.isViewable())
-    			tools.add(tape);
-    	}
-    	else if (track instanceof Protractor || track instanceof CircleFitter) {
+    	if (track instanceof TapeMeasure
+    			|| track instanceof Protractor
+    			|| track instanceof CircleFitter) {
     		tools.add(track);
     	}
     }
@@ -446,8 +474,16 @@ public class AttachmentDialog extends JDialog
       p.addPropertyChangeListener("footprint", this); //$NON-NLS-1$    	
     }
     measuringToolDropdown.setModel(new DefaultComboBoxModel(tools));
+		TTrack measuringTool = TTrack.getTrack(trackID);
     if (!tools.isEmpty() && measuringTool!=null) {
     	measuringToolDropdown.setSelectedItem(measuringTool);
+    }
+    else {
+    	// measuring tool is null, so set it to first in list, if any
+    	for (TTrack next: tools) {
+    		setMeasuringTool(next);
+    		break;
+    	}
     }
   }
   
@@ -504,6 +540,7 @@ public class AttachmentDialog extends JDialog
   	boolean hasCircleFitterPanel = attachmentsPanel.getComponentCount()>2;
   	boolean hasStartStopPanel = circleFitterPanel.getComponentCount()>1;
   	boolean changedLayout = false;
+		TTrack measuringTool = TTrack.getTrack(trackID);
   	if (measuringTool instanceof CircleFitter) {
       // put circleFitter panel in attachments panel SOUTH
       changedLayout = !hasCircleFitterPanel;
@@ -549,6 +586,7 @@ public class AttachmentDialog extends JDialog
    */
   class AttachmentTableModel extends DefaultTableModel {
     public int getRowCount() {
+  		TTrack measuringTool = TTrack.getTrack(trackID);
     	if (measuringTool==null) return 0;
     	
     	if (measuringTool instanceof CircleFitter) {
@@ -564,6 +602,7 @@ public class AttachmentDialog extends JDialog
     public int getColumnCount() {return 2;}
 
     public Object getValueAt(int row, int col) {
+  		TTrack measuringTool = TTrack.getTrack(trackID);
     	if (col==0) {
 		    return measuringTool.getAttachmentDescription(row);
     	}
@@ -630,6 +669,7 @@ public class AttachmentDialog extends JDialog
       Object obj = super.getCellEditorValue();
 			int row = table.getSelectedRow();
 			if (row<0) return null;
+  		TTrack measuringTool = TTrack.getTrack(trackID);
 			TTrack[] attachments = measuringTool.getAttachments();
 			if (attachments[row]!=null) {
 				attachments[row].removePropertyChangeListener("step", measuringTool); //$NON-NLS-1$

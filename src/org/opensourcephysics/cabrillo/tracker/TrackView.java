@@ -39,39 +39,49 @@ public abstract class TrackView extends JScrollPane
                                 implements PropertyChangeListener {
 
   // instance fields
-  protected TTrack track;
+  private int trackID;
   protected TrackerPanel trackerPanel;
   protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
+  protected TrackChooserTView parent;
 
   // constructor
-  protected TrackView(TTrack track, TrackerPanel panel) {
-    this.track = track;
+  protected TrackView(TTrack track, TrackerPanel panel, TrackChooserTView view) {
+    trackID = track.getID();
     trackerPanel = panel;
     trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+    parent = view;
+  }
+
+  protected void dispose() {
+    for (Integer n: TTrack.activeTracks.keySet()) {
+      TTrack track = TTrack.activeTracks.get(n);
+	    track.removePropertyChangeListener("step", this); //$NON-NLS-1$
+	    track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+    }
+    trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+    trackerPanel = null;
   }
 
   abstract void refresh(int stepNumber);
 
   abstract void refreshGUI();
 
-  abstract void dispose();
-
   abstract boolean isCustomState();
 
   abstract JButton getViewButton();
   
   public String getName() {
-  	if (track==null) return null;
+  	TTrack track = getTrack();
     return track.getName();
   }
 
   Icon getIcon() {
-  	if (track==null) return null;
+  	TTrack track = getTrack();
     return track.getIcon(21, 16, "point"); //$NON-NLS-1$
   }
 
   TTrack getTrack() {
-    return track;
+  	return TTrack.getTrack(trackID);
   }
 
   /**
@@ -91,15 +101,16 @@ public abstract class TrackView extends JScrollPane
    */
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("step")) {               // from track //$NON-NLS-1$
-      Integer i = (Integer)e.getNewValue();
+    if (name.equals("step")) { // from track //$NON-NLS-1$
+    	Integer i = (Integer)e.getNewValue();
       refresh(i);
     }
-    else if (name.equals("steps")) {         // from particle model tracks //$NON-NLS-1$
+    else if (name.equals("steps")) { // from particle model tracks //$NON-NLS-1$
       refresh(trackerPanel.getFrameNumber());
     }
     else if (name.equals("selectedpoint")) { // from tracker panel //$NON-NLS-1$
       Step step = trackerPanel.getSelectedStep();
+    	TTrack track = getTrack();
       if (step != null && trackerPanel.getSelectedTrack() == track) {
         refresh(step.getFrameNumber());
       }
@@ -110,7 +121,7 @@ public abstract class TrackView extends JScrollPane
   }
   
   protected boolean isRefreshEnabled() {
-  	return trackerPanel.isAutoRefresh;
+  	return trackerPanel.isAutoRefresh && parent.isTrackViewDisplayed(getTrack());
   }
 
 }

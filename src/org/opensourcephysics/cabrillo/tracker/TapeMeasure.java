@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.text.*;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.TreeSet;
 import java.awt.*;
 import java.awt.event.*;
@@ -36,6 +37,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -104,7 +106,20 @@ public class TapeMeasure extends TTrack {
   	partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
     hint = TrackerRes.getString("TapeMeasure.Hint"); //$NON-NLS-1$
     // create input field and panel
-    inputField = new NumberField(9);
+    inputField = new NumberField(9) {
+      @Override
+      public void setFixedPattern(String pattern) {
+      	super.setFixedPattern(pattern);
+      	setValue(magField.getValue());
+      	// repaint current step
+        int n = trackerPanel.getFrameNumber();
+        TapeStep tape = ((TapeStep)getStep(n));
+        if (tape!=null) {
+        	tape.repaint();
+        }
+      }
+
+    };
     inputField.setBorder(null);
     format = inputField.getFormat();
     inputPanel = new JPanel(null);
@@ -153,6 +168,19 @@ public class TapeMeasure extends TTrack {
         Rectangle bounds = step.layoutBounds.get(trackerPanel);
         if (bounds != null &&
             bounds.contains(e.getPoint())) {
+        	// readout was clicked
+        	TTrack[] attached = getAttachments();
+        	int attachmentCount = 0;
+        	for (int i=0; i< attached.length; i++) {
+        		if (attached[i]!=null) {
+        			attachmentCount++;
+        			if (attachmentCount==2) {
+        				// select the tape
+        				TapeMeasure.this.trackerPanel.setSelectedTrack(TapeMeasure.this);
+        				return;
+        			}
+        		}
+        	}
           setEditing(true, step);
         }
       }
@@ -740,6 +768,7 @@ public class TapeMeasure extends TTrack {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     int n = trackerPanel.getFrameNumber();
     TapeStep step = (TapeStep)getStep(n);
+    if (step==null) return null;
     TPoint[] pts = step.points;
     if (trackerPanel.getPlayer().getVideoClip().includesFrame(n)) {
     	TPoint p = trackerPanel.getSelectedPoint();
@@ -862,6 +891,61 @@ public class TapeMeasure extends TTrack {
     return TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	if (variableList==null) {
+    	ArrayList<String> names = new ArrayList<String>();
+	  	DatasetManager data = getData(trackerPanel);
+	  	// add independent variable
+	    Dataset dataset = data.getDataset(0);
+	    String name = dataset.getXColumnName();
+	    names.add(name);
+	    // then add other variables
+			for (int i = 0; i<data.getDatasets().size(); i++) {
+				dataset = data.getDataset(i);
+		    name = dataset.getYColumnName();
+		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
+		    	continue;
+		    }
+		    names.add(name);
+			}
+  		variableList = names.toArray(new String[names.size()]);
+  	}
+  	numberFields.clear();
+  	if (!isViewable() || data==null) {
+    	numberFields.put("length", new NumberField[] {magField, inputField}); //$NON-NLS-1$
+    	numberFields.put(Tracker.THETA, new NumberField[] {angleField});
+  		return numberFields;
+  	}
+  	// dataset column names set in refreshData() method
+  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
+  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {magField, inputField});
+  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {angleField});
+  	return numberFields;
+  }
+  
+  /**
+   * Returns a popup menu for the input field (readout).
+   *
+   * @return the popup menu
+   */
+  protected JPopupMenu getInputFieldPopup() {
+  	JPopupMenu popup = new JPopupMenu();
+		JMenuItem item = new JMenuItem();
+		final String[] selected = new String[] {"length"}; //$NON-NLS-1$
+		item.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {              		
+        NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TapeMeasure.this, selected);
+        FontSizer.setFonts(dialog, FontSizer.getLevel());
+        dialog.pack();     
+  	    dialog.setVisible(true);
+      }
+    });
+		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+		popup.add(item);
+		return popup;
+  }
+  
 //__________________________ protected and private methods _______________________
 
   /**
@@ -877,10 +961,10 @@ public class TapeMeasure extends TTrack {
 	  super.setTrackerPanel(panel);
   	if (trackerPanel != null) {
   		trackerPanel.addMouseListener(editListener);
+	    boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
+	    setFixedPosition(isFixedPosition() && canBeFixed);
 //  		trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
   	}
-    boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
-    setFixedPosition(isFixedPosition() && canBeFixed);
   }
   
   /**
@@ -1160,9 +1244,8 @@ public class TapeMeasure extends TTrack {
 
   /**
    * Inner class containing the tape data for a single frame number.
-   * This is here only to read legacy xml files.
    */
-  private static class FrameData {
+  public static class FrameData {
     double[] data = new double[4];
     
     FrameData() {}

@@ -315,6 +315,7 @@ public class RGBStep extends Step {
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
+    	TTrack track = getTrack();
       if (track.isLocked()) return;
       if (rgbRegion.isFixedPosition()) {
       	RGBStep step = (RGBStep)rgbRegion.steps.getStep(0);
@@ -339,6 +340,7 @@ public class RGBStep extends Step {
      */
     public void showCoordinates(VideoPanel vidPanel) {
       // put values into x and y fields
+    	TTrack track = getTrack();
       Point2D p = getWorldPosition(vidPanel);
       track.xField.setValue(p.getX());
       track.yField.setValue(p.getY());

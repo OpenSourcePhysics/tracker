@@ -80,6 +80,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
   public void handleMouseAction(InteractivePanel panel,
                                 MouseEvent e) {
     if (!(panel instanceof TrackerPanel)) return;
+    
     // popup menus handled by MainTView class
   	if (OSPRuntime.isPopupTrigger(e)
   			|| panel.getZoomBox().isVisible()) {
@@ -92,7 +93,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
       	KeyboardFocusManager.getCurrentKeyboardFocusManager();
     Component focusOwner = focuser.getFocusOwner();
 		AutoTracker autoTracker = trackerPanel.getAutoTracker();
-  	if (autoTracker.getTrack()==null && autoTracker.getWizard().isVisible())
+  	if (autoTracker.getTrack()==null)
   		autoTracker.setTrack(trackerPanel.getSelectedTrack());
    
     switch(trackerPanel.getMouseAction()) {
