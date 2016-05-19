@@ -37,6 +37,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.text.SimpleDateFormat;
 import java.awt.*;
+import java.awt.datatransfer.FlavorEvent;
+import java.awt.datatransfer.FlavorListener;
 import java.awt.event.*;
 
 import javax.swing.*;
