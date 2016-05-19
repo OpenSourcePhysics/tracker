@@ -186,10 +186,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       }
     };
 		wizard = new Wizard();
-    // center on screen
-    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    int x = (dim.width - wizard.getBounds().width) / 2;
-    int y = (dim.height - wizard.getBounds().height) / 2;
+    // place near top right corner of frame
+    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+		TFrame frame = trackerPanel.getTFrame();
+		Point frameLoc = frame.getLocationOnScreen();
+		int w = wizard.getWidth()+8;
+		int x = Math.min(screen.width-w, frameLoc.x+frame.getWidth()-w);
+		int y = trackerPanel.getLocationOnScreen().y;
     wizard.setLocation(x, y);
   }
   
@@ -2231,6 +2234,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
           if(item!=null) {
           	for (TTrack next: trackerPanel.getTracks()) {
           		if (item[1].equals(next.getName())) {
+			        	stop(true, false);
           			setTrack(next);
           			refreshGUI();
           		}
@@ -2458,6 +2462,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         	if ("refresh".equals(pointDropdown.getName())) return; //$NON-NLS-1$
           String item = (String)pointDropdown.getSelectedItem();
           if(item!=null) {
+	        	stop(true, false);
             TTrack track = getTrack();
           	track.setTargetIndex(item);
       			int n = trackerPanel.getFrameNumber();
@@ -2493,6 +2498,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       closeButton = new JButton();
       closeButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
+      		stop(true, true); // stop after the next search
           setVisible(false);
         }
       });

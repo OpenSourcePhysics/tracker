@@ -356,13 +356,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			modelBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
 			// show model builder
 			try {
-				Point p = getLocationOnScreen();
+		    // place near top right corner of frame
+		    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
 				TFrame frame = getTFrame();
-				if (frame != null) {
-					MainTView view = frame.getMainView(this);
-					p = view.getLocationOnScreen();
-				}
-				modelBuilder.setLocation(p.x+160, p.y);
+				Point frameLoc = frame.getLocationOnScreen();
+				int w = modelBuilder.getWidth()+8;
+				int x = Math.min(screen.width-w, frameLoc.x+frame.getWidth()-w);
+				int y = getLocationOnScreen().y;
+				modelBuilder.setLocation(x, y);
 			}
 			catch(Exception ex) {/** empty block */}
   	}
@@ -1469,8 +1470,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				dataTrack.getDataClip().setClipLength(-1); // sets clip length to data length
 				VideoClip videoClip = getPlayer().getVideoClip();
 				dataTrack.setStartFrame(videoClip.getStartFrameNumber());
-//				dataTrack.getInspector().setVisible(true);
 				dataTrack.firePropertyChange("data", null, null); //$NON-NLS-1$
+				dataTrack.getModelBuilder().setVisible(true);
     	}
     	else {
       	// set data for existing DataTrack
