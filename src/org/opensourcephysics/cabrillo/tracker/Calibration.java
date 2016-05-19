@@ -119,8 +119,18 @@ public class Calibration extends TTrack {
       if (trackerPanel!=null && trackerPanel.getSelectedPoint()==step.getPoints()[0]) {
       	trackerPanel.setSelectedPoint(null);
       }
-      step.addSecondPoint(x, y);
-      steps = new StepArray(step);
+      TPoint p = step.addSecondPoint(x, y);
+      if (this.isFixedCoordinates()) {
+      	steps = new StepArray(step);
+      }
+      else if (p!=null) {
+      	for (Step next: getSteps()) {        		
+      		if (next!=null && next.getPoints()[1]==null) {
+        		CalibrationStep nextStep = (CalibrationStep)next;
+      			next.getPoints()[1] = nextStep.new Position(p.x, p.y);
+      		}
+      	}
+      }
     }
     else if (trackerPanel!=null) {
   		TPoint p = trackerPanel.getSelectedPoint();
@@ -179,22 +189,31 @@ public class Calibration extends TTrack {
     if (step == null) {
     	// create new step with point 1--this also fills step array
 	  	step = (CalibrationStep)createStep(n, x, y);
-	  	if (step!=null) 
-	  		return step.getPoints()[index];
+	  	return step==null? null: step.getPoints()[index];
     }
     else {  
-    	// step already exists
+    	// step with point 1 already exists
 	    TPoint p = step.getPoints()[index];
 	    if (p==null) {
-	    		// must add point 2
-	        if (trackerPanel!=null && trackerPanel.getSelectedPoint()==step.getPoints()[0]) {
-	        	trackerPanel.setSelectedPoint(null);
-	        }
-	        step.addSecondPoint(x, y);
-//	        steps = new StepArray(step);
-	        return step.getPoints()[index];
+	    	// point 2 doesn't exist
+        if (trackerPanel!=null && trackerPanel.getSelectedPoint()==step.getPoints()[0]) {
+        	trackerPanel.setSelectedPoint(null);
+        }
+        p = step.addSecondPoint(x, y);
+        if (this.isFixedCoordinates()) {
+        	steps = new StepArray(step);
+        }
+        else if (p!=null) {
+        	for (Step next: getSteps()) {        		
+        		if (next!=null && next.getPoints()[1]==null) {
+          		CalibrationStep nextStep = (CalibrationStep)next;
+        			next.getPoints()[1] = nextStep.new Position(p.x, p.y);
+        		}
+        	}
+        }
+        return step.getPoints()[index];
 	    }
-
+	    // both points exist, so move target point
       Mark mark = step.marks.get(trackerPanel);
       if (mark==null) {
       	double worldX = index==0? step.worldX0: step.worldX1;
@@ -208,9 +227,7 @@ public class Calibration extends TTrack {
     	p.setXY(x, y);
     	p.setAdjusting(false);
     	return p;
-
     }
-  	return null;
   }
   
   /**
@@ -621,6 +638,11 @@ public class Calibration extends TTrack {
    */
   protected String getTargetDescription(int pointIndex) {
   	String s = TrackerRes.getString("Calibration.Point.Name"); //$NON-NLS-1$
+  	int n = trackerPanel.getFrameNumber();
+    CalibrationStep step = (CalibrationStep)getStep(n);
+    if (step==null && pointIndex==1) {
+    	return null;
+    }
   	return s+" "+(pointIndex+1); //$NON-NLS-1$
   }
 

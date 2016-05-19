@@ -67,11 +67,13 @@ public class CalibrationStep extends Step {
    *
    * @param x the image x coordinate of the position point
    * @param y the image y coordinate of the position point
+   * @return the new position
    */
-  public void addSecondPoint(double x, double y) {
+  public Position addSecondPoint(double x, double y) {
     Position p = new Position(x, y);
     points[1] = p;
     setWorldCoordinates(worldX0, worldY0, worldX1, worldY1);
+    return p;
   }
 
   /**
@@ -194,7 +196,7 @@ public class CalibrationStep extends Step {
    */
   public boolean setWorldCoordinates(double x1, double y1, double x2, double y2) {
   	TTrack track = getTrack();
-    if (track.isLocked()) return false;
+    if (track==null || track.isLocked()) return false;
     // points can't share the same world position
     boolean sameX = x2==x1;
     boolean sameY = y2==y1;
