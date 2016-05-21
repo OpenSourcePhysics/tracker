@@ -78,8 +78,13 @@ public class ParticleDataTrackFunctionPanel extends ModelFunctionPanel {
   }
   
   /**
-	 * Refreshes the GUI.
-	 */
+   * Refreshes the time source.
+   */
+  protected void refreshTimeSource() {
+  	timeControl.setTimeSourceToDataTrack(timeControl.isTimeSourceDataTrack());
+  }
+  
+  @Override
   protected void refreshGUI() {
   	super.refreshGUI();
   	if (model!=null) {

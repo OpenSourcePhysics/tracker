@@ -51,6 +51,11 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	protected JSpinner videoInSpinner, dataInSpinner, dataClipLengthSpinner, dataStrideSpinner;
 	protected boolean refreshing, drawVideoClip=false;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param model the DataTrack
+	 */
 	public DataTrackClipControl(DataTrack model) {
 		super(new BorderLayout());
 		dataTrack = model;
@@ -60,6 +65,9 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 		refreshGUI();
 	}
 	
+	/**
+	 * Creates the GUI.
+	 */
 	protected void createGUI() {
   	// create labels
   	videoInLabel = new JLabel();
@@ -187,6 +195,9 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 
 	}
 	
+	/**
+	 * Refreshes the spinners.
+	 */
 	protected void refreshSpinners() {
     VideoPanel vidPanel = dataTrack.getVideoPanel();
     if (vidPanel==null) return;
@@ -227,6 +238,9 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
     }
 	}
 
+	/**
+	 * Refreshes the GUI.
+	 */
 	protected void refreshGUI() {
 		setBorder(BorderFactory.createTitledBorder(TrackerRes.getString("DataTrackClipControl.Border.Title"))); //$NON-NLS-1$
   	videoInLabel.setText(TrackerRes.getString("DataTrackClipControl.Label.VideoStart")); //$NON-NLS-1$
@@ -235,6 +249,9 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   	dataStrideLabel.setText(TrackerRes.getString("DataTrackClipControl.Label.Stride")); //$NON-NLS-1$
 	}
 	
+	/**
+	 * Adds a mouse listener to all JPanels associated with this control.
+	 */
 	protected void addMouseListenerToAll(MouseListener listener) {
 		this.addMouseListener(listener);
 		drawingPanel.addMouseListener(listener);
@@ -285,6 +302,11 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
     return dataTrack.getDataClip().stepToIndex(0);
   }
   
+  /**
+   * Sets the interactive graphic element that displays data elements and video frames. 
+   *
+   * @param graphic the graphic element
+   */
   public void setGraphic(Interactive graphic) {
   	if (graphic==null) return;
   	if (mappingGraphic!=null) {
@@ -294,6 +316,9 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   	drawingPanel.addDrawable(mappingGraphic);
   }
   
+  /**
+   * An Interactive that displays and maps data elements to video frames. 
+   */
   class MappingGraphic implements Interactive {
   	
 		GeneralPath path = new GeneralPath();

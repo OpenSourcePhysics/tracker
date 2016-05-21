@@ -106,9 +106,14 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 	  	try {
 				String dataString = (String)t.getTransferData(DataFlavor.stringFlavor);
 				if (dataString!=null) {
+					DataTrack dt = ParticleDataTrack.getTrackForDataString(dataString, trackerPanel);
+					if (dt!=null) {
+						// clipboard data has already been pasted
+						return;
+					}
 					DatasetManager data = DataTool.parseData(dataString, null);
 					if (data!=null) {
-			      DataTrack dt = trackerPanel.importData(data, null);
+			      dt = trackerPanel.importData(data, null);
 			      if (dt instanceof ParticleDataTrack) {
 			      	ParticleDataTrack pdt = (ParticleDataTrack)dt;
 			      	pdt.prevDataString = dataString;

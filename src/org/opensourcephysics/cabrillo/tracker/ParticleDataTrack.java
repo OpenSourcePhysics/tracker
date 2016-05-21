@@ -65,6 +65,7 @@ import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPanel;
+import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.ResourceLoader;
@@ -774,6 +775,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		ArrayList<Object[]> pointData = getPointData(data);
 		sourceData = data;
 		
+		// save current time array for comparison
+		double[] tPrev = tData;
 		// set core {x,y,t} data for the leader (this)
 		Object[] coreData = pointData.get(0);
 		setPointName(coreData[0].toString());
@@ -816,6 +819,16 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		// reset point names of all tracks to refresh full names
 		for (ParticleDataTrack next: allPoints()) {
 			next.setPointName(next.pointName);
+		}
+		// check for changed time data 
+		if (tData!=null && tData.length>1 && tPrev!=null && tPrev.length>1 && getVideoPanel()!=null) {
+			boolean changed = tData[0]!=tPrev[0] || (tData[1]-tData[0])!=(tPrev[1]-tPrev[0]);
+			VideoPlayer player = getVideoPanel().getPlayer();
+			boolean isDataTime = player.getClipControl().getTimeSource()==this;
+			if (changed && isDataTime && functionPanel!=null) {
+				ParticleDataTrackFunctionPanel dtPanel = (ParticleDataTrackFunctionPanel)functionPanel;
+				dtPanel.refreshTimeSource();
+			}
 		}
 	}
 	
@@ -1341,6 +1354,15 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
     return false;
 	}
 	
+	protected static ParticleDataTrack getTrackForDataString(String dataString, TrackerPanel trackerPanel) {
+  	if (dataString==null) return null;
+		ArrayList<ParticleDataTrack> tracks = trackerPanel.getDrawables(ParticleDataTrack.class);
+  	for (ParticleDataTrack next: tracks) {
+  		if (dataString.equals(next.currentDataString)) return next;
+  	}
+  	return null;
+	}
+	
 	protected static ParticleDataTrack getTrackForData(Data data, TrackerPanel trackerPanel) {
   	// find DataTrack with matching name
   	String name = data.getName();
@@ -1424,64 +1446,62 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		Dataset prevDataset = null;
 		for (Dataset dataset: datasets) {
 			
-			// look for columns with paired xy names
-			double[][] xy = new double[2][];
-			if (colName==null) {
-				if (xy[0]==null && dataset.getXColumnName().toLowerCase().startsWith("x"))	{ //$NON-NLS-1$
+		// look for columns with paired xy names
+		double[][] xy = new double[2][];
+			if (xy[0]==null && dataset.getXColumnName().toLowerCase().startsWith("x"))	{ //$NON-NLS-1$
+				colName = dataset.getXColumnName().substring(1).trim();
+				xy[0] = dataset.getXPoints();
+			}
+			else if (xy[0]==null && dataset.getYColumnName().toLowerCase().startsWith("x")) { //$NON-NLS-1$
+				colName = dataset.getYColumnName().substring(1).trim();
+				xy[0] = dataset.getYPoints();
+			}
+			else if (xy[0]==null && dataset.getXColumnName().toLowerCase().endsWith("x")) { //$NON-NLS-1$
+				colName = dataset.getXColumnName().substring(0, dataset.getXColumnName().length()-1).trim();
+				xy[0] = dataset.getXPoints();
+			}
+			else if (xy[0]==null && dataset.getYColumnName().toLowerCase().endsWith("x")) { //$NON-NLS-1$
+				colName = dataset.getYColumnName().substring(0, dataset.getYColumnName().length()-1).trim();
+				xy[0] = dataset.getYPoints();
+			}
+			if (xy[1]==null && dataset.getXColumnName().toLowerCase().startsWith("y"))	{ //$NON-NLS-1$
+				if (colName==null) {
+					xy[1] = dataset.getXPoints();
 					colName = dataset.getXColumnName().substring(1).trim();
-					xy[0] = dataset.getXPoints();
 				}
-				else if (xy[0]==null && dataset.getYColumnName().toLowerCase().startsWith("x")) { //$NON-NLS-1$
+				else if (dataset.getXColumnName().substring(1).trim().equals(colName)) {
+					// match
+					xy[1] = dataset.getXPoints();
+				}
+			}
+			else if (xy[1]==null && dataset.getYColumnName().toLowerCase().startsWith("y")) { //$NON-NLS-1$
+				if (colName==null) {
 					colName = dataset.getYColumnName().substring(1).trim();
-					xy[0] = dataset.getYPoints();
+					xy[1] = dataset.getYPoints();
 				}
-				else if (xy[0]==null && dataset.getXColumnName().toLowerCase().endsWith("x")) { //$NON-NLS-1$
+				else if (dataset.getYColumnName().substring(1).trim().equals(colName)) {
+					// match
+					xy[1] = dataset.getYPoints();
+				}
+			}
+			else if (xy[1]==null && dataset.getXColumnName().toLowerCase().endsWith("y"))	{ //$NON-NLS-1$
+				if (colName==null) {
+					xy[1] = dataset.getXPoints();
 					colName = dataset.getXColumnName().substring(0, dataset.getXColumnName().length()-1).trim();
-					xy[0] = dataset.getXPoints();
 				}
-				else if (xy[0]==null && dataset.getYColumnName().toLowerCase().endsWith("x")) { //$NON-NLS-1$
+				else if (dataset.getXColumnName().substring(0, dataset.getXColumnName().length()-1).trim().equals(colName)) {
+					// match
+					xy[1] = dataset.getXPoints();
+				}
+			}
+			else if (xy[1]==null && dataset.getYColumnName().toLowerCase().endsWith("y")) { //$NON-NLS-1$
+				if (colName==null) {
 					colName = dataset.getYColumnName().substring(0, dataset.getYColumnName().length()-1).trim();
-					xy[0] = dataset.getYPoints();
+					xy[1] = dataset.getYPoints();
 				}
-				if (xy[1]==null && dataset.getXColumnName().toLowerCase().startsWith("y"))	{ //$NON-NLS-1$
-					if (colName==null) {
-						xy[1] = dataset.getXPoints();
-						colName = dataset.getXColumnName().substring(1).trim();
-					}
-					else if (dataset.getXColumnName().substring(1).trim().equals(colName)) {
-						// match
-						xy[1] = dataset.getXPoints();
-					}
-				}
-				else if (xy[1]==null && dataset.getYColumnName().toLowerCase().startsWith("y")) { //$NON-NLS-1$
-					if (colName==null) {
-						colName = dataset.getYColumnName().substring(1).trim();
-						xy[1] = dataset.getYPoints();
-					}
-					else if (dataset.getYColumnName().substring(1).trim().equals(colName)) {
-						// match
-						xy[1] = dataset.getYPoints();
-					}
-				}
-				else if (xy[1]==null && dataset.getXColumnName().toLowerCase().endsWith("y"))	{ //$NON-NLS-1$
-					if (colName==null) {
-						xy[1] = dataset.getXPoints();
-						colName = dataset.getXColumnName().substring(0, dataset.getXColumnName().length()-1).trim();
-					}
-					else if (dataset.getXColumnName().substring(0, dataset.getXColumnName().length()-1).trim().equals(colName)) {
-						// match
-						xy[1] = dataset.getXPoints();
-					}
-				}
-				else if (xy[1]==null && dataset.getYColumnName().toLowerCase().endsWith("y")) { //$NON-NLS-1$
-					if (colName==null) {
-						colName = dataset.getYColumnName().substring(0, dataset.getYColumnName().length()-1).trim();
-						xy[1] = dataset.getYPoints();
-					}
-					else if (dataset.getYColumnName().substring(0, dataset.getYColumnName().length()-1).trim().equals(colName)) {
-						// match
-						xy[1] = dataset.getYPoints();
-					}
+				else if (dataset.getYColumnName().substring(0, dataset.getYColumnName().length()-1).trim().equals(colName)) {
+					// match
+					xy[1] = dataset.getYPoints();
 				}
 			}
 			
