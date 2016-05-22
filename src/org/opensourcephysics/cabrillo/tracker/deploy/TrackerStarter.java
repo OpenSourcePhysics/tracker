@@ -69,7 +69,7 @@ public class TrackerStarter {
 	public static final String TRACKER_RELAUNCH = "TRACKER_RELAUNCH"; //$NON-NLS-1$	
 	public static final String LOG_FILE_NAME = "tracker_start.log"; //$NON-NLS-1$
   public static final int DEFAULT_MEMORY_SIZE = 256;
-	public static final String PREFS_FILE_NAME = ".tracker.prefs"; //$NON-NLS-1$
+	public static final String PREFS_FILE_NAME = "tracker.prefs"; //$NON-NLS-1$
   
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
@@ -103,6 +103,7 @@ public class TrackerStarter {
 					.getLocation();
 			starterJarFile = new File(url.toURI());
 			codeBaseDir = starterJarFile.getParentFile();
+			OSPRuntime.setLaunchJarPath(starterJarFile.getAbsolutePath());
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
@@ -289,16 +290,18 @@ public class TrackerStarter {
 	 */
 	public static XMLControl findPreferences() {
   	// look for all prefs files in OSPRuntime.getDefaultSearchPaths()
+		// and in current directory
     Map<File, XMLControl> controls = new HashMap<File, XMLControl>();
   	File firstFileFound = null, newestFileFound = null;
   	long modified = 0;
-  	for (String path: OSPRuntime.getDefaultSearchPaths()) {
-  		for (int i=0; i<2; i++) {
-  			String prefsFileName = PREFS_FILE_NAME;
-  			if (i==1) {
-  				// look for files with and without leading dot in fileName
-  				prefsFileName = prefsFileName.substring(1);
-  			}
+  	
+  	for (int i=0; i<2; i++) {
+			String prefsFileName = PREFS_FILE_NAME;
+			if (i==1) {
+				// add leading dot to fileName
+				prefsFileName = "."+prefsFileName; //$NON-NLS-1$
+			}
+  		for (String path: OSPRuntime.getDefaultSearchPaths()) {
 	      String prefsPath = new File(path, prefsFileName).getAbsolutePath();
 	      XMLControl control = new XMLControlElement(prefsPath);
 	      if (!control.failedToRead() && control.getObjectClassName().endsWith("Preferences")) { //$NON-NLS-1$
@@ -313,6 +316,20 @@ public class TrackerStarter {
 	      	}
 	      }
   		}
+  		// look in current directory
+      String prefsPath = new File(prefsFileName).getAbsolutePath();
+      XMLControl control = new XMLControlElement(prefsPath);
+      if (!control.failedToRead() && control.getObjectClassName().endsWith("Preferences")) { //$NON-NLS-1$
+      	File file = new File(prefsPath);
+      	if (file.lastModified()>modified+50) {
+      		newestFileFound = file;
+	      	modified = file.lastModified();
+      	}
+      	controls.put(file, control);
+      	if (firstFileFound==null) {
+	      	firstFileFound = file;
+      	}
+      }
   	}
   	// replace first file with newest if different
   	if (newestFileFound!=firstFileFound) {
