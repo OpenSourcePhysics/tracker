@@ -38,6 +38,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -74,7 +75,48 @@ import org.opensourcephysics.media.core.NumberField;
 public class NumberFormatSetter extends JDialog {
 
   static final String NO_PATTERN = TrackerRes.getString("NumberFormatSetter.NoPattern"); //$NON-NLS-1$
+  static Map<Class<? extends TTrack>, TreeMap<String, String>> defaultFormatPatterns;
+  static TFrame frame;
   private static NumberFormatSetter formatSetter;
+  static {
+		// set default number patterns
+		defaultFormatPatterns = new HashMap<Class<? extends TTrack>, TreeMap<String,String>>();
+		HashSet<Class<? extends TTrack>> types = new HashSet<Class<? extends TTrack>>();
+		types.add(CoordAxes.class);
+		types.add(PointMass.class);
+		types.add(Vector.class);
+		types.add(LineProfile.class);
+		types.add(RGBRegion.class);
+		types.add(TapeMeasure.class);
+		types.add(Protractor.class);
+		types.add(CircleFitter.class);
+		types.add(Calibration.class);
+		types.add(OffsetOrigin.class);
+		for (Class<? extends TTrack> trackType: types) {
+			TreeMap<String, String> patterns = new TreeMap<String, String>();
+			boolean isLine = LineProfile.class==trackType;
+			boolean isRGB = isLine || RGBRegion.class==trackType;
+			boolean isStep = RGBRegion.class==trackType || PointMass.class==trackType
+					|| Vector.class==trackType || Protractor.class==trackType
+					|| CircleFitter.class==trackType || TapeMeasure.class==trackType;
+			if (isStep) {
+				patterns.put("t", NumberField.DECIMAL_3_PATTERN); //$NON-NLS-1$
+				patterns.put("step", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+				patterns.put("frame", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+			}
+			if (isLine) {
+				patterns.put("n", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+			}
+			if (isRGB) {
+	  		patterns.put("pixels", NumberField.INTEGER_PATTERN); //$NON-NLS-1$  		
+	  		patterns.put("R", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+	  		patterns.put("G", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+	  		patterns.put("B", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+	  		patterns.put("luma", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+			}
+			defaultFormatPatterns.put(trackType, patterns);
+		}
+  }
 
   int trackID = -1;
   JButton closeButton, cancelButton, helpButton, resetButton;
@@ -108,7 +150,7 @@ public class NumberFormatSetter extends JDialog {
       formatSetter.setLocation(x, y);
     }
   	formatSetter.trackID = track.getID();
-    String[] names = formatSetter.getVariableNames(track);
+    String[] names = getVariableNames(track);
     formatSetter.setVariables(names, selectedNames);
     return formatSetter;
   }
@@ -248,6 +290,7 @@ public class NumberFormatSetter extends JDialog {
    * @param selected the intially selected names
    */
   protected void setVariables(String[] names, String[] selected) {
+  	TTrack track = TTrack.getTrack(trackID);
     displayedNames = new String[names.length];
     realNames.clear();
   	for (int i=0; i<names.length; i++) {
@@ -265,7 +308,7 @@ public class NumberFormatSetter extends JDialog {
   	}
     prevPatterns.clear();
     for(String name : names) {
-        prevPatterns.put(name, getFormatPattern(name));
+        prevPatterns.put(name, getFormatPattern(track, name));
     }
     // create variable list and add to scroller
     variableList = new JList(displayedNames);
@@ -372,7 +415,7 @@ public class NumberFormatSetter extends JDialog {
    * @param track the track
    * @return array of variable names
    */
-  protected String[] getVariableNames(TTrack track) {
+  protected static String[] getVariableNames(TTrack track) {
   	if (track==null || track.trackerPanel==null) return new String[0];
   	if (track.getVariableList()!=null) {
   		return track.getVariableList();
@@ -415,13 +458,13 @@ public class NumberFormatSetter extends JDialog {
   }
 
   /**
-   * Gets the format pattern for a named variable.
+   * Gets the format pattern for a specified track and variable.
    *
+   * @param track the track
    * @param name the variable name
    * @return the pattern
    */
-  public String getFormatPattern(String name) {
-  	TTrack track = TTrack.getTrack(trackID);
+  protected static String getFormatPattern(TTrack track, String name) {
   	// get pattern from track NumberField if possible
   	NumberField[] fields = track.getNumberFields().get(name);
   	if (fields!=null) {
@@ -433,21 +476,38 @@ public class NumberFormatSetter extends JDialog {
   }
 
   /**
-   * Sets the format pattern for a named variable.
+   * Gets the format patterns for a specified track.
    *
+   * @param track the track
+   * @return array with variable names and patterns
+   */
+  protected static String[] getFormatPatterns(TTrack track) {
+  	ArrayList<String> patterns = new ArrayList<String>();
+  	for (String name: getVariableNames(track)) {
+  		patterns.add(name);
+  		patterns.add(getFormatPattern(track, name));
+  	}
+  	return patterns.toArray(new String[patterns.size()]);
+  }
+
+  /**
+   * Sets the format pattern for a specified track and variable.
+   *
+   * @param track the track
    * @param name the variable name
    * @param pattern the pattern
    */
-  public void setFormatPattern(String name, String pattern) {
-  	TTrack track = TTrack.getTrack(trackID);
+  protected static void setFormatPattern(TTrack track, String name, String pattern) {
   	ArrayList<TableTrackView> tableViews = getTableViews(track);
-  	// set pattern in track tables
-  	for (TableTrackView view: tableViews) {
-  		if (view==null) continue;
-    	DataTable table = view.getDataTable();
-    	if (!table.getFormatPattern(name).equals(pattern)) {
-    		table.setFormatPattern(name, pattern);
-    	}
+  	if (track.isViewable()) {
+	  	// set pattern in track tables
+	  	for (TableTrackView view: tableViews) {
+	  		if (view==null) continue;
+	    	DataTable table = view.getDataTable();
+	    	if (!table.getFormatPattern(name).equals(pattern)) {
+	    		table.setFormatPattern(name, pattern);
+	    	}
+	  	}
   	}
   	// set pattern in track NumberFields
   	NumberField[] fields = track.getNumberFields().get(name);
@@ -456,33 +516,93 @@ public class NumberFormatSetter extends JDialog {
 	  		field.setFixedPattern(pattern);
 	  	}
   	}
+  }
+  
+  /**
+   * Gets the custom format patterns for a specified track.
+   *
+   * @param track the track
+   * @return array with variable names and custom patterns
+   */
+  protected static String[] getCustomFormatPatterns(TTrack track) {
+  	String[] patterns = getFormatPatterns(track);
+  	Class<? extends TTrack> type = track.getClass();
+		TreeMap<String, String> map = track.trackerPanel.formatPatterns.get(type);
+  	ArrayList<String> customPatterns = new ArrayList<String>();
+  	for (int i=0; i<patterns.length-1; i=i+2) {
+  		String name = patterns[i];
+  		String pattern = map.get(name)==null? "": map.get(name); //$NON-NLS-1$
+  		if (!pattern.equals(patterns[i+1])) {
+  			customPatterns.add(name);
+  			customPatterns.add(patterns[i+1]);
+  		}
+  	}  	
+  	return customPatterns.toArray(new String[customPatterns.size()]);
+  }
+
+  /**
+   * Gets the custom format patterns for a specified track.
+   *
+   * @param track the track
+   * @return array with variable names and custom patterns
+   */
+  protected static String[][] getCustomFormatPatterns(TrackerPanel trackerPanel) {
+    ArrayList<String[]> formats = new ArrayList<String[]>();
+    // look at all track types defined in defaultFormatPatterns
+    for (Class<? extends TTrack> type: NumberFormatSetter.defaultFormatPatterns.keySet()) {    	
+    	TreeMap<String, String> defaultPatterns = NumberFormatSetter.defaultFormatPatterns.get(type);
+    	TreeMap<String, String> patterns = trackerPanel.formatPatterns.get(type);
+    	// if patterns are null then go to next track type
+    	if (patterns==null) continue;
+    	ArrayList<String> customPatterns = new ArrayList<String>();
+    	for (String name: defaultPatterns.keySet()) {
+    		String defaultPattern = defaultPatterns.get(name);
+    		String pattern = patterns.get(name);
+    		if (!defaultPattern.equals(pattern)) {
+    			if (customPatterns.isEmpty()) {
+    				customPatterns.add(type.getName());
+    			}
+    			customPatterns.add(name);
+    			customPatterns.add(pattern==null? "": pattern); //$NON-NLS-1$
+    		}
+    	} 
+    	for (String name: patterns.keySet()) {
+    		String defaultPattern = defaultPatterns.get(name);
+    		String pattern = patterns.get(name);
+    		if (!pattern.equals(defaultPattern) && !customPatterns.contains(name)) {
+    			if (customPatterns.isEmpty()) {
+    				customPatterns.add(type.getName());
+    			}
+    			customPatterns.add(name);
+    			customPatterns.add(pattern);
+    		}
+    	}
+    	if (!customPatterns.isEmpty()) {
+    		formats.add(customPatterns.toArray(new String[customPatterns.size()]));
+    	}
+    }
+    return formats.toArray(new String[formats.size()][]);
+  }
+
+  /**
+   * Sets the format pattern for a named variable.
+   *
+   * @param name the variable name
+   * @param pattern the pattern
+   */
+  protected void setFormatPattern(String name, String pattern) {
+  	TTrack track = TTrack.getTrack(trackID);
+  	setFormatPattern(track, name, pattern);
     track.firePropertyChange("data", null, null); //$NON-NLS-1$
   	
   	if (applyToAllCheckbox.isSelected()) {
-  		Class trackType = getTrackType(track);
+  		Class<? extends TTrack> trackType = getTrackType(track);
   		ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
 	  	// set pattern in tables and fields of other tracks of same type 
   		for (TTrack next: tracks) {
   			if (next==track) continue; // don't re-apply to selected track
   			if (!next.getClass().isAssignableFrom(trackType)) continue;
-  			if (next.isViewable()) {
-	  	  	tableViews = getTableViews(next);
-	  	  	// set pattern in track tables
-	  	  	for (TableTrackView view: tableViews) {
-	  	  		if (view==null) continue;
-	  	    	DataTable table = view.getDataTable();
-	  	    	if (!table.getFormatPattern(name).equals(pattern)) {
-	  	    		table.setFormatPattern(name, pattern);
-	  	    	}
-	  	  	}
-  			}
-  	  	// set pattern in track NumberFields
-  	  	fields = next.getNumberFields().get(name);
-  	  	if (fields!=null) {
-	  	  	for (NumberField field: fields) {
-	  	  		field.setFixedPattern(pattern);
-	  	  	}
-  	  	}
+  			setFormatPattern(next, name, pattern);
   	    next.firePropertyChange("data", null, null); //$NON-NLS-1$
   		}
   		// set pattern in trackerPanel.formatPatterns
@@ -497,7 +617,7 @@ public class NumberFormatSetter extends JDialog {
    * @param track the track
    * @return ArrayList of table views
    */
-  protected ArrayList<TableTrackView> getTableViews(TTrack track) {
+  protected static ArrayList<TableTrackView> getTableViews(TTrack track) {
   	ArrayList<TableTrackView> dataViews = new ArrayList<TableTrackView>();
   	if (track==null || track.trackerPanel==null || track.trackerPanel.getTFrame()==null)
   		return dataViews;
@@ -505,11 +625,12 @@ public class NumberFormatSetter extends JDialog {
     for (int i = 0; i < c.length; i++) {
     	if (c[i] instanceof TViewChooser) {
         TViewChooser chooser = (TViewChooser)c[i];
-        TView tview = chooser.getSelectedView();
-        if (tview instanceof TableTView) {
-          TableTView tableView = (TableTView)tview;
-          TableTrackView trackView = (TableTrackView)tableView.getTrackView(track);
-    			dataViews.add(trackView);
+        for (TView tview: chooser.getViews()) {
+	        if (tview instanceof TableTView) {
+	          TableTView tableView = (TableTView)tview;
+	          TableTrackView trackView = (TableTrackView)tableView.getTrackView(track);
+	    			dataViews.add(trackView);
+	        }
         }
       }
     }
@@ -520,7 +641,9 @@ public class NumberFormatSetter extends JDialog {
    * Refreshes the GUI strings.
    */
   protected void refreshGUI() {
-    setTitle(DisplayRes.getString("DataTable.NumberFormat.Dialog.Title")); //$NON-NLS-1$
+    TTrack track = TTrack.getTrack(trackID);
+  	String trackName = track==null? "": track.getName(); //$NON-NLS-1$
+    setTitle(DisplayRes.getString("DataTable.NumberFormat.Dialog.Title")+":  "+trackName); //$NON-NLS-1$ //$NON-NLS-2$
     closeButton.setText(DisplayRes.getString("GUIUtils.Ok")); //$NON-NLS-1$
     resetButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.Reset")); //$NON-NLS-1$
     cancelButton.setText(DisplayRes.getString("GUIUtils.Cancel")); //$NON-NLS-1$
@@ -530,9 +653,8 @@ public class NumberFormatSetter extends JDialog {
     variablePanel.setBorder(BorderFactory.createTitledBorder(
     		TrackerRes.getString("NumberFormatSetter.ApplyToVariables.Text"))); //$NON-NLS-1$
 	  String s = TrackerRes.getString("NumberFormatSetter.ApplyToTracksOfType.Text"); //$NON-NLS-1$
-    TTrack track = TTrack.getTrack(trackID);
     if (track!=null) {
-  		Class trackType = getTrackType(track);
+  		Class<? extends TTrack> trackType = getTrackType(track);
 	    s += " "+trackType.getSimpleName(); //$NON-NLS-1$
     }
     applyToAllCheckbox.setText(s);
@@ -544,7 +666,7 @@ public class NumberFormatSetter extends JDialog {
    * @param track the track
    * @return the DataTable
    */
-  protected TrackDataTable getDataTable(TTrack track) {
+  protected static TrackDataTable getDataTable(TTrack track) {
   	ArrayList<TableTrackView> tableViews = getTableViews(track);
   	if (tableViews.isEmpty()) return null;
   	TableTrackView view = tableViews.get(0);
@@ -566,7 +688,7 @@ public class NumberFormatSetter extends JDialog {
     }
     else if (selectedIndices.length==1) {
     	String name = realNames.get(displayedNames[selectedIndices[0]]);
-    	String pattern = getFormatPattern(name);
+    	String pattern = getFormatPattern(track, name);
       boolean degrees = name.startsWith(Tracker.THETA) && !track.trackerPanel.getTFrame().anglesInRadians;
     	showNumberFormatAndSample(pattern, degrees);
     }
@@ -574,14 +696,14 @@ public class NumberFormatSetter extends JDialog {
     	// do all selected indices have same pattern?
     	String name = realNames.get(displayedNames[selectedIndices[0]]);
       boolean degrees = name.startsWith(Tracker.THETA) && !track.trackerPanel.getTFrame().anglesInRadians;       		
-    	String pattern = getFormatPattern(name);
+    	String pattern = getFormatPattern(track, name);
       if (degrees && (pattern==null || "".equals(pattern))) { //$NON-NLS-1$
       	pattern = NumberField.DECIMAL_1_PATTERN;
       }
     	for (int i=1; i<selectedIndices.length; i++) {
       	name = realNames.get(displayedNames[selectedIndices[i]]);
         degrees = degrees && name.startsWith(Tracker.THETA); 
-        String selectedPattern = getFormatPattern(name);
+        String selectedPattern = getFormatPattern(track, name);
         if (degrees && (selectedPattern==null || "".equals(selectedPattern))) { //$NON-NLS-1$
         	selectedPattern = NumberField.DECIMAL_1_PATTERN;
         }
@@ -626,8 +748,8 @@ public class NumberFormatSetter extends JDialog {
    * @param track the track
    * @return the class
    */
-  protected static Class getTrackType(TTrack track) {
-		Class type = track.getClass();
+  protected static Class<? extends TTrack> getTrackType(TTrack track) {
+		Class<? extends TTrack> type = track.getClass();
 		if (PointMass.class.isAssignableFrom(type)) {
 			type = PointMass.class;
 		}

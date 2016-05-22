@@ -79,7 +79,7 @@ public class TableTrackView extends TrackView {
   private ButtonGroup delimiterButtonGroup = new ButtonGroup();
   private JMenuItem addDelimiterItem, removeDelimiterItem;
   private JMenuItem copyImageItem, snapshotItem, printItem, helpItem;
-  private boolean highlightVisible = true;
+  private boolean highlightVisible = true, refreshed = false, forceRefresh = false;
   private int highlightRow; // highlighted table row, or -1
   private int leadCol;
   private Font font = new JTextField().getFont();
@@ -207,7 +207,7 @@ public class TableTrackView extends TrackView {
     }
     // set the default number formats, if any
     DataTable table = getDataTable();
-    Class trackType = NumberFormatSetter.getTrackType(track);
+    Class<? extends TTrack> trackType = NumberFormatSetter.getTrackType(track);
     TreeMap<String, String> patterns = trackerPanel.formatPatterns.get(trackType);
   	for (String name: patterns.keySet()) {
     	table.setFormatPattern(name, patterns.get(name));
@@ -220,7 +220,8 @@ public class TableTrackView extends TrackView {
    * @param frameNumber the frame number
    */
   public void refresh(int frameNumber) {
-  	if (!isRefreshEnabled()) return;
+  	if (!forceRefresh && !isRefreshEnabled()) return;
+  	forceRefresh = false;
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh "+frameNumber); //$NON-NLS-1$
 		dataTable.clearSelection();
   	TTrack track = getTrack();
@@ -314,6 +315,7 @@ public class TableTrackView extends TrackView {
 	    	local.setYColumnVisible(false);
 	    }
 			dataTable.refreshTable();
+			refreshed = true;
 		} catch (Exception e) {
 		}
     setHighlighted(frameNumber);
@@ -365,6 +367,10 @@ public class TableTrackView extends TrackView {
    * @return true if in a custom state, false if in the default state
    */
   public boolean isCustomState() {
+  	if (!refreshed) {
+  		forceRefresh = true;
+  		refresh(trackerPanel.getFrameNumber());
+  	}
   	// check displayed data columns--default is columns 0 and 1 only
   	int n = checkBoxes.length;
   	for (int i = 0; i < n; i++) {
@@ -372,9 +378,11 @@ public class TableTrackView extends TrackView {
   		boolean shouldBe = i < 2;
   		if ((shouldBe && !selected) || (!shouldBe && selected)) return true;
   	}
-  	// check for formatting--default is no formatting
-  	if (dataTable.getFormattedColumnNames().length>0)
-  		return true;
+  	
+  	// ignore formatting since now handled by NumberFormatSetter
+//  	if (dataTable.getFormattedColumnNames().length>0)
+//  		return true;
+  	
   	// check for reordered columns
 		TableColumnModel model = dataTable.getColumnModel();
 		int count = model.getColumnCount();
@@ -1157,8 +1165,8 @@ public class TableTrackView extends TrackView {
   	}
     popup.add(formatDialogItem);
   	TTrack track = getTrack();
-    if (track!=null && track.trackerPanel!=null
-    		&& track.trackerPanel.isEnabled("edit.copyData")) { //$NON-NLS-1$
+  	if (track==null) return popup;
+    if (track.trackerPanel!=null && track.trackerPanel.isEnabled("edit.copyData")) { //$NON-NLS-1$
 	    popup.addSeparator();
 	    popup.add(copyDataMenu);
     }
@@ -1202,13 +1210,13 @@ public class TableTrackView extends TrackView {
     }
     textColumnMenu.setEnabled(!track.isLocked());
     
-    if (track!=null && track.trackerPanel!=null
+    if (track.trackerPanel!=null
     		&& track.trackerPanel.isEnabled("edit.copyImage")) { //$NON-NLS-1$
 	    popup.addSeparator();
 	    popup.add(copyImageItem);
 	    popup.add(snapshotItem);
     }
-    if (track!=null && track.trackerPanel!=null
+    if (track.trackerPanel!=null
     		&& (track.trackerPanel.isEnabled("data.builder") //$NON-NLS-1$
   			|| track.trackerPanel.isEnabled("data.tool"))) { //$NON-NLS-1$    
     	popup.addSeparator();
@@ -1217,7 +1225,7 @@ public class TableTrackView extends TrackView {
     	if (track.trackerPanel.isEnabled("data.tool")) //$NON-NLS-1$
     		popup.add(dataToolItem);
     }
-    if (track!=null && track.trackerPanel!=null
+    if (track.trackerPanel!=null
     		&& track.trackerPanel.isEnabled("file.print")) { //$NON-NLS-1$
 	    popup.addSeparator();
 	    popup.add(printItem);

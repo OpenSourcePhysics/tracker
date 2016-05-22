@@ -136,6 +136,7 @@ public abstract class TTrack implements Interactive,
   protected ArrayList<String> textColumnNames = new ArrayList<String>();
   // mouse listener for number fields
   protected MouseAdapter formatMouseListener, formatAngleMouseListener;
+  protected String[] customNumberFormats;
   private int ID; // unique ID number 
 
   /**
@@ -2781,7 +2782,12 @@ public abstract class TTrack implements Interactive,
       control.setValue("trail", track.isTrailVisible()); //$NON-NLS-1$
       // locked
       if (track.isLocked()) control.setValue("locked", track.isLocked()); //$NON-NLS-1$
-      // text columns
+      // number formats
+      String[] customPatterns = NumberFormatSetter.getCustomFormatPatterns(track);
+    	if (customPatterns.length>0) {
+    		control.setValue("number_formats", customPatterns); //$NON-NLS-1$
+    	}
+    	// text columns
       if (!track.getTextColumnNames().isEmpty()) {
       	String[] names = track.getTextColumnNames().toArray(new String[0]);
       	control.setValue("text_column_names", names); //$NON-NLS-1$
@@ -2868,6 +2874,8 @@ public abstract class TTrack implements Interactive,
       // visible and trail
       track.setVisible(control.getBoolean("visible")); //$NON-NLS-1$
       track.setTrailVisible(control.getBoolean("trail")); //$NON-NLS-1$
+      // number formats
+      track.customNumberFormats = (String[])control.getObject("number_formats"); //$NON-NLS-1$
       // text columns
   		track.textColumnNames.clear();
   		track.textColumnEntries.clear();

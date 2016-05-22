@@ -37,8 +37,6 @@ import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.text.SimpleDateFormat;
 import java.awt.*;
-import java.awt.datatransfer.FlavorEvent;
-import java.awt.datatransfer.FlavorListener;
 import java.awt.event.*;
 
 import javax.swing.*;
@@ -252,7 +250,7 @@ public class Tracker {
 		timer.setRepeats(false);
 		timer.start();
 
-    xmlFilter = new java.io.FileFilter() {
+		xmlFilter = new java.io.FileFilter() {
       // accept only *.xml files.
       public boolean accept(File f) {
         if (f==null || f.isDirectory()) return false;
@@ -1356,8 +1354,12 @@ public class Tracker {
 
 		// unable to find prefs, so write new one(s) if possible
 		String recommendedPath = null;
+		String fileName = TrackerStarter.PREFS_FILE_NAME;
+		if (!OSPRuntime.isWindows()) {
+			// add leading dot to hide file on OSX and Linux
+			fileName = "."+fileName; //$NON-NLS-1$
+		}
   	for (String path: OSPRuntime.getDefaultSearchPaths()) {
-			String fileName = TrackerStarter.PREFS_FILE_NAME;
       String prefs_path = new File(path, fileName).getAbsolutePath();
       if (recommendedPath==null) recommendedPath = prefs_path;
       else recommendedPath += " or "+prefs_path; //$NON-NLS-1$
@@ -1392,28 +1394,31 @@ public class Tracker {
   		control.write(prefsPath);
   	}
   	
-  	// also update existing prefs files in OSPRuntime search paths
-  	for (String path: OSPRuntime.getDefaultSearchPaths()) {
-  		for (int i=0; i<2; i++) {
-  			String fileName = TrackerStarter.PREFS_FILE_NAME;
-  			if (i==1) {
-  				fileName = fileName.substring(1);
-  			}
+  	// save other existing prefs files
+		for (int i=0; i<2; i++) {
+			String fileName = TrackerStarter.PREFS_FILE_NAME;
+			if (i==1) {
+				fileName = "."+fileName; //$NON-NLS-1$
+			}
+	  	// update prefs files in OSPRuntime search paths, if any
+			for (String path: OSPRuntime.getDefaultSearchPaths()) {
 	      File prefsFile = new File(path, fileName);
 	      if (prefsFile.getAbsolutePath().equals(prefsPath)) {
 	      	continue;
-	      }
+	      }	      
 	      if (prefsFile.exists() && prefsFile.canWrite()) {
 	    		control.write(prefsFile.getAbsolutePath());	      	
 	      }
   		}
+			// update prefs in current directory, if any
+      File prefsFile = new File(fileName);
+      if (prefsFile.getAbsolutePath().equals(prefsPath)) {
+      	continue;
+      }
+      if (prefsFile.exists() && prefsFile.canWrite()) {
+    		control.write(prefsFile.getAbsolutePath());	      	
+      }
   	}
-		
-		// also write prefs to current directory if it already exists and is writable
-    File file = new File(".tracker.prefs"); //$NON-NLS-1$
-    if (file.exists() && file.canWrite()) {
-    	control.write(file.getAbsolutePath());
-    }
     
     // save current trackerHome and xuggleHome in OSP preferences 
     if (trackerHome!=null && new File(trackerHome, "tracker.jar").exists()) {   	 //$NON-NLS-1$
