@@ -206,12 +206,14 @@ public class TableTrackView extends TrackView {
 	    setVisible(1, true);
     }
     // set the default number formats, if any
-    DataTable table = getDataTable();
     Class<? extends TTrack> trackType = NumberFormatSetter.getTrackType(track);
     TreeMap<String, String> patterns = trackerPanel.formatPatterns.get(trackType);
-  	for (String name: patterns.keySet()) {
-    	table.setFormatPattern(name, patterns.get(name));
-  	}
+    if (patterns!=null) {
+	    DataTable table = getDataTable();
+	  	for (String name: patterns.keySet()) {
+	    	table.setFormatPattern(name, patterns.get(name));
+	  	}
+    }
   }
 
   /**
