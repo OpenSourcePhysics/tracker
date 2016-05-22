@@ -115,7 +115,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected StepSet selectedSteps = new StepSet(this);
   protected boolean hideDescriptionWhenLoaded;
   protected PropertyChangeListener massParamListener, massChangeListener;
-  protected Map<Class, TreeMap<String, String>> formatPatterns = new HashMap<Class, TreeMap<String,String>>();
+  protected Map<Class<? extends TTrack>, TreeMap<String, String>> formatPatterns 
+  	= new HashMap<Class<? extends TTrack>, TreeMap<String,String>>();
 
   /**
    * Constructs a blank TrackerPanel with a player.
@@ -570,34 +571,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     // set font level
     track.setFontLevel(FontSizer.getLevel());
     
-    // set NumberField format patterns
-    Class trackType = NumberFormatSetter.getTrackType(track);
-    TreeMap<String, String> patterns = formatPatterns.get(trackType);
-    if (patterns==null) {
-    	patterns = new TreeMap<String, String>();
-  		patterns.put("t", NumberField.DECIMAL_2_PATTERN); //$NON-NLS-1$
-  		patterns.put("step", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
-  		patterns.put("frame", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
-  		patterns.put("n", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
-  		patterns.put("pixels", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
-  		patterns.put("R", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
-  		patterns.put("G", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
-  		patterns.put("B", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
-  		patterns.put("luma", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
-  		formatPatterns.put(trackType, patterns);
-    }
-    Map<String, NumberField[]> fieldArrays = track.getNumberFields();
-  	for (String name: patterns.keySet()) {
-    	NumberField[] fields = fieldArrays.get(name);
-    	if (fields!=null) {
-    		for (NumberField next: fields) {
-	    		next.setFixedPattern(patterns.get(name));    			
-    		}
-    	}
-  	}
-    
     // notify views
     firePropertyChange("track", null, track); // to views //$NON-NLS-1$
+    
+    // set default NumberField format patterns
+		if (getTFrame()!=null) {
+			setInitialFormatPatterns(track);
+		}
+	  
     changed = true;
     if (showTrackControl && getTFrame()!=null && this.isShowing()) {
     	TrackControl.getControl(this).setVisible(true);
@@ -2675,6 +2656,39 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   	return autoTracker;
   }
   
+  protected void setInitialFormatPatterns() {
+  	for (TTrack track: getTracks()) {
+  		setInitialFormatPatterns(track);
+  	}
+  }
+  
+  protected void setInitialFormatPatterns(TTrack track) {
+    // set default NumberField format patterns
+    Class<? extends TTrack> trackType = NumberFormatSetter.getTrackType(track);
+    TreeMap<String, String> patterns = formatPatterns.get(trackType);
+    if (patterns==null) {
+    	patterns = new TreeMap<String, String>();
+  		formatPatterns.put(trackType, patterns);
+    	TreeMap<String, String> defaultPatterns = NumberFormatSetter.defaultFormatPatterns.get(trackType);
+    	if (defaultPatterns!=null) {
+    		patterns.putAll(defaultPatterns);
+    	}
+    }
+  	for (String name: patterns.keySet()) {
+  		NumberFormatSetter.setFormatPattern(track, name, patterns.get(name));
+  	}
+  	// set custom formats AFTER setting default patterns
+	  if (track.customNumberFormats!=null) {
+	  	track.getData(this);
+    	for (int i=0; i<track.customNumberFormats.length-1; i=i+2) {
+    		String name = track.customNumberFormats[i];
+    		String pattern = track.customNumberFormats[i+1];
+    		NumberFormatSetter.setFormatPattern(track, name, pattern);
+    	}
+    	track.customNumberFormats = null;
+	  }  		
+  }
+  
   /**
    * Disposes of this panel
    */
@@ -2977,6 +2991,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         coords = refFrame.getCoords();
       }
       control.setValue("coords", coords); //$NON-NLS-1$
+      // save custom number formats      
+      String[][] customPatterns = NumberFormatSetter.getCustomFormatPatterns(trackerPanel);
+    	if (customPatterns.length>0) {
+    		control.setValue("number_formats", customPatterns); //$NON-NLS-1$
+    	}
       // save the tracks
       control.setValue("tracks", trackerPanel.getTracksToSave()); //$NON-NLS-1$
       // save the selected track
@@ -3162,6 +3181,22 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         child.loadObject(coords);
         int n = trackerPanel.getFrameNumber();
         trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
+      }
+      // load custom number formats
+      String[][] patterns = (String[][])control.getObject("number_formats"); //$NON-NLS-1$
+      if (patterns!=null) {
+      	for (String[] next: patterns) {
+      		try {
+						@SuppressWarnings("unchecked")
+						Class<? extends TTrack> type = (Class<? extends TTrack>) Class.forName(next[0]);
+						TreeMap<String, String> map = new TreeMap<String, String>();
+						for (int i=1; i<next.length-1; i=i+2) {
+							map.put(next[i], next[i+1]);
+						}
+						trackerPanel.formatPatterns.put(type, map);
+					} catch (ClassNotFoundException e) {
+					}
+      	}
       }
     	// kludge to prevent a freeze (deadlock?) when loading QT videos and DataTracks
       Video vid = trackerPanel.getVideo();

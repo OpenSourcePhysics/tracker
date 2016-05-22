@@ -21,6 +21,11 @@ public class DataTrackTimeControl extends JPanel implements PropertyChangeListen
 	protected DataTrack dataTrack;
 	private JRadioButton videoButton, dataButton;
 	
+	/**
+	 * Constructor.
+	 * 
+	 * @param track the DataTrack
+	 */
 	public DataTrackTimeControl(DataTrack track) {
 		super();
 		dataTrack = track;
@@ -29,6 +34,9 @@ public class DataTrackTimeControl extends JPanel implements PropertyChangeListen
 		refreshGUI();
 	}
 	
+	/**
+	 * Creates the GUI.
+	 */
 	protected void createGUI() {
 		videoButton = new JRadioButton();
 		videoButton.addActionListener(new ActionListener() {
@@ -50,16 +58,9 @@ public class DataTrackTimeControl extends JPanel implements PropertyChangeListen
 		add(dataButton);
 	}
 	
-	protected void setTimeSourceToDataTrack(boolean isTrackTimeSource) {
-		if (dataTrack.getVideoPanel()==null) return;
-		VideoPlayer player = dataTrack.getVideoPanel().getPlayer();
-		player.getClipControl().setTimeSource(isTrackTimeSource? dataTrack: null);
-		player.refresh();
-		if (dataTrack instanceof ParticleDataTrack) {
-			((ParticleDataTrack)dataTrack).refreshInitialTime();
-		}
-	}
-	
+	/**
+	 * Refreshes the GUI.
+	 */
 	protected void refreshGUI() {
 		setBorder(BorderFactory.createTitledBorder(TrackerRes.getString("DataTrackTimeControl.Border.Title"))); //$NON-NLS-1$
 		videoButton.setText(TrackerRes.getString("DataTrackTimeControl.Button.Video")); //$NON-NLS-1$
@@ -70,6 +71,32 @@ public class DataTrackTimeControl extends JPanel implements PropertyChangeListen
 		videoButton.setSelected(!dataSelected);
 		// following line needed to display titled border correctly when a DataTrack is created
 		FontSizer.setFonts(getBorder(), FontSizer.getLevel());
+	}
+	
+	/**
+	 * Sets the DataTrack time source flag.
+	 * 
+	 * @param isTrackTimeSource true to use DataTrack time, false to use video time
+	 */
+	protected void setTimeSourceToDataTrack(boolean isTrackTimeSource) {
+		if (dataTrack.getVideoPanel()==null) return;
+		VideoPlayer player = dataTrack.getVideoPanel().getPlayer();
+		player.getClipControl().setTimeSource(isTrackTimeSource? dataTrack: null);
+		player.refresh();
+		if (dataTrack instanceof ParticleDataTrack) {
+			((ParticleDataTrack)dataTrack).refreshInitialTime();
+		}
+	}
+	
+	/**
+	 * Gets the DataTrack time source flag.
+	 * 
+	 * @return true if using DataTrack time
+	 */
+	protected boolean isTimeSourceDataTrack() {
+		if (dataTrack.getVideoPanel()==null) return false;
+		VideoPlayer player = dataTrack.getVideoPanel().getPlayer();
+		return player.getClipControl().getTimeSource()==dataTrack;
 	}
 	
   @Override

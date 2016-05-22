@@ -2084,6 +2084,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     }
     // show filter inspectors
     trackerPanel.showFilterInspectors();
+    // set initial format patterns for existing tracks
+    trackerPanel.setInitialFormatPatterns();
     Tracker.setProgress(90);
   }
   
