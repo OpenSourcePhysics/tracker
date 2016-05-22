@@ -185,13 +185,15 @@ public class NumberFormatSetter extends JDialog {
       		// reset pattern in trackerPanel.formatPatterns
       		Class<? extends TTrack> trackType = getTrackType(track);
       		TreeMap<String, String> patterns = track.trackerPanel.formatPatterns.get(trackType);
-      		patterns.put(name, prevDefaultPatterns.get(name));
+      		if (patterns!=null) {
+      			patterns.put(name, prevDefaultPatterns.get(name));
+      		}
         	// reset track formats
       		ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
       		for (TTrack next: tracks) {
       			if (!next.getClass().isAssignableFrom(trackType)) continue;
           	patterns = prevTrackPatterns.get(next);
-            if (setFormatPattern(next, name, patterns.get(name))) {
+            if (patterns!=null && setFormatPattern(next, name, patterns.get(name))) {
             	next.firePropertyChange("data", null, null); //$NON-NLS-1$
             }
       		}
@@ -325,7 +327,9 @@ public class NumberFormatSetter extends JDialog {
     prevDefaultPatterns.clear();
 		Class<? extends TTrack> trackType = getTrackType(track);
 		TreeMap<String, String> patterns = track.trackerPanel.formatPatterns.get(trackType);
-		prevDefaultPatterns.putAll(patterns);
+		if (patterns!=null) {
+			prevDefaultPatterns.putAll(patterns);
+		}
 
   	// save previous track format patterns
     prevTrackPatterns.clear();
@@ -565,14 +569,16 @@ public class NumberFormatSetter extends JDialog {
   	Class<? extends TTrack> type = track.getClass();
 		TreeMap<String, String> map = track.trackerPanel.formatPatterns.get(type);
   	ArrayList<String> customPatterns = new ArrayList<String>();
-  	for (int i=0; i<patterns.length-1; i=i+2) {
-  		String name = patterns[i];
-  		String pattern = map.get(name)==null? "": map.get(name); //$NON-NLS-1$
-  		if (!pattern.equals(patterns[i+1])) {
-  			customPatterns.add(name);
-  			customPatterns.add(patterns[i+1]);
-  		}
-  	}  	
+  	if (map!=null) {
+	  	for (int i=0; i<patterns.length-1; i=i+2) {
+	  		String name = patterns[i];
+	  		String pattern = map.get(name)==null? "": map.get(name); //$NON-NLS-1$
+	  		if (!pattern.equals(patterns[i+1])) {
+	  			customPatterns.add(name);
+	  			customPatterns.add(patterns[i+1]);
+	  		}
+	  	} 
+  	}
   	return customPatterns.toArray(new String[customPatterns.size()]);
   }
 
@@ -643,7 +649,9 @@ public class NumberFormatSetter extends JDialog {
   		}
   		// set pattern in trackerPanel.formatPatterns
   		TreeMap<String, String> patterns = track.trackerPanel.formatPatterns.get(trackType);
-  		patterns.put(name, pattern);
+  		if (patterns!=null) {
+  			patterns.put(name, pattern);
+  		}
   	}
   }
   
