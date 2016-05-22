@@ -126,7 +126,9 @@ public class NumberFormatSetter extends JDialog {
   java.text.DecimalFormat testFormat;
   String[] displayedNames;
   Map<String, String> realNames = new HashMap<String, String>();
-  Map<String, String> prevPatterns = new HashMap<String, String>();
+  Map<String, String> prevDefaultPatterns = new HashMap<String, String>();
+  Map<TTrack, TreeMap<String, String>> prevTrackPatterns 
+  	= new HashMap<TTrack, TreeMap<String, String>>();
   JPanel variablePanel;
   JList variableList;
   JScrollPane variableScroller;
@@ -177,9 +179,22 @@ public class NumberFormatSetter extends JDialog {
     final Action resetAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+      	TTrack track = TTrack.getTrack(trackID);
         for(String displayedName : displayedNames) {
         	String name = realNames.get(displayedName);
-          setFormatPattern(name, prevPatterns.get(name));
+      		// reset pattern in trackerPanel.formatPatterns
+      		Class<? extends TTrack> trackType = getTrackType(track);
+      		TreeMap<String, String> patterns = track.trackerPanel.formatPatterns.get(trackType);
+      		patterns.put(name, prevDefaultPatterns.get(name));
+        	// reset track formats
+      		ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
+      		for (TTrack next: tracks) {
+      			if (!next.getClass().isAssignableFrom(trackType)) continue;
+          	patterns = prevTrackPatterns.get(next);
+            if (setFormatPattern(next, name, patterns.get(name))) {
+            	next.firePropertyChange("data", null, null); //$NON-NLS-1$
+            }
+      		}
         }
     		showNumberFormatAndSample(variableList.getSelectedIndices());
     		prevPattern = ""; //$NON-NLS-1$
@@ -306,10 +321,24 @@ public class NumberFormatSetter extends JDialog {
 	    	}
     	}
   	}
-    prevPatterns.clear();
-    for(String name : names) {
-        prevPatterns.put(name, getFormatPattern(track, name));
+  	// save previous default format patterns
+    prevDefaultPatterns.clear();
+		Class<? extends TTrack> trackType = getTrackType(track);
+		TreeMap<String, String> patterns = track.trackerPanel.formatPatterns.get(trackType);
+		prevDefaultPatterns.putAll(patterns);
+
+  	// save previous track format patterns
+    prevTrackPatterns.clear();
+		ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
+		for (TTrack next: tracks) {
+			if (!next.getClass().isAssignableFrom(trackType)) continue;
+			patterns = new TreeMap<String, String>(); 
+	    for(String name : names) {
+	      patterns.put(name, getFormatPattern(next, name));
+	    }
+	    prevTrackPatterns.put(next, patterns);
     }
+
     // create variable list and add to scroller
     variableList = new JList(displayedNames);
     variableList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
@@ -496,9 +525,11 @@ public class NumberFormatSetter extends JDialog {
    * @param track the track
    * @param name the variable name
    * @param pattern the pattern
+   * @return true if any changes were made
    */
-  protected static void setFormatPattern(TTrack track, String name, String pattern) {
+  protected static boolean setFormatPattern(TTrack track, String name, String pattern) {
   	ArrayList<TableTrackView> tableViews = getTableViews(track);
+  	boolean changed = false;
   	if (track.isViewable()) {
 	  	// set pattern in track tables
 	  	for (TableTrackView view: tableViews) {
@@ -506,6 +537,7 @@ public class NumberFormatSetter extends JDialog {
 	    	DataTable table = view.getDataTable();
 	    	if (!table.getFormatPattern(name).equals(pattern)) {
 	    		table.setFormatPattern(name, pattern);
+	    		changed = true;
 	    	}
 	  	}
   	}
@@ -513,9 +545,13 @@ public class NumberFormatSetter extends JDialog {
   	NumberField[] fields = track.getNumberFields().get(name);
   	if (fields!=null) {
 	  	for (NumberField field: fields) {
-	  		field.setFixedPattern(pattern);
+	  		if (!field.getFixedPattern().equals(pattern)) {
+	  			field.setFixedPattern(pattern);
+	  			changed = true;
+	  		}
 	  	}
   	}
+  	return changed;
   }
   
   /**
