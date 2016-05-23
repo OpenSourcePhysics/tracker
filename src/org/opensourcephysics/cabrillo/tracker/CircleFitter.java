@@ -329,12 +329,6 @@ public class CircleFitter extends TTrack {
       	refreshFields(trackerPanel.getFrameNumber());
       }
     }
-//    if (name.equals("adjusting") && e.getSource() instanceof TrackerPanel) { //$NON-NLS-1$
-//			refreshDataLater = (Boolean)e.getNewValue();
-//			if (!refreshDataLater) {  // stopped adjusting
-//	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
-//			}
-//    }
     if (name.equalsIgnoreCase("startframe") //$NON-NLS-1$
     		|| name.equalsIgnoreCase("stepcount") //$NON-NLS-1$
     		|| name.equalsIgnoreCase("stepsize") //$NON-NLS-1$
@@ -345,6 +339,12 @@ public class CircleFitter extends TTrack {
     		refreshAttachments();
     	}
     }
+		else if (name.equals("adjusting")) { //$NON-NLS-1$
+			refreshDataLater = (Boolean)e.getNewValue();
+			if (!refreshDataLater) {  // stopped adjusting
+	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
+			}
+		}
     super.propertyChange(e);
   }
 
