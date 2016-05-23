@@ -75,7 +75,7 @@ public class Tracker {
 	static final String THETA = TeXParser.parseTeX("$\\theta"); //$NON-NLS-1$
 	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
 	static final String ALPHA = TeXParser.parseTeX("$\\alpha"); //$NON-NLS-1$
-	static final String DEGREES = "º"; //$NON-NLS-1$
+	static final String DEGREES = "\u00B0"; //$NON-NLS-1$
   static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
   
   // for testing
