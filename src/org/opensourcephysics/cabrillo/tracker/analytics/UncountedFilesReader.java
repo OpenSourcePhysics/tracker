@@ -50,8 +50,8 @@ public class UncountedFilesReader extends JFrame {
 		setContentPane(contentPane);
 		
 		textArea = new JTextArea();
-		textArea.setPreferredSize(new Dimension(200, 400));
 		JScrollPane scroller = new JScrollPane(textArea);
+		scroller.setPreferredSize(new Dimension(200, 400));
 		contentPane.add(scroller, BorderLayout.CENTER);
 		
 		JPanel buttonbar = new JPanel();

@@ -185,10 +185,8 @@ public class NumberFormatSetter extends JDialog {
         	String name = realNames.get(displayedName);
       		// reset pattern in trackerPanel.formatPatterns
       		Class<? extends TTrack> trackType = getTrackType(track);
-      		TreeMap<String, String> patterns = track.trackerPanel.formatPatterns.get(trackType);
-      		if (patterns!=null) {
-      			patterns.put(name, prevDefaultPatterns.get(name));
-      		}
+          TreeMap<String, String> patterns = track.trackerPanel.getFormatPatterns(trackType);
+      		patterns.put(name, prevDefaultPatterns.get(name));
         	// reset track formats
       		ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
       		for (TTrack next: tracks) {
@@ -331,10 +329,8 @@ public class NumberFormatSetter extends JDialog {
   	// save previous default format patterns
     prevDefaultPatterns.clear();
 		Class<? extends TTrack> trackType = getTrackType(track);
-		TreeMap<String, String> patterns = track.trackerPanel.formatPatterns.get(trackType);
-		if (patterns!=null) {
-			prevDefaultPatterns.putAll(patterns);
-		}
+		TreeMap<String, String> patterns = track.trackerPanel.getFormatPatterns(trackType);
+		prevDefaultPatterns.putAll(patterns);
 
   	// save previous track format patterns
     prevTrackPatterns.clear();
@@ -521,7 +517,7 @@ public class NumberFormatSetter extends JDialog {
   	// get pattern for track type
   	Class<? extends TTrack> type = getTrackType(track);
     // look in trackerPanel formatPatterns
-    TreeMap<String, String> patterns = track.trackerPanel.formatPatterns.get(type);
+    TreeMap<String, String> patterns = track.trackerPanel.getFormatPatterns(type);
     if (patterns.get(name)!=null) {
     	return patterns.get(name);
     }
@@ -601,18 +597,16 @@ public class NumberFormatSetter extends JDialog {
   protected static String[] getCustomFormatPatterns(TTrack track) {
   	String[] patterns = getFormatPatterns(track);
   	Class<? extends TTrack> type = track.getClass();
-		TreeMap<String, String> map = track.trackerPanel.formatPatterns.get(type);
+    TreeMap<String, String> defaultPatterns = track.trackerPanel.getFormatPatterns(type);
   	ArrayList<String> customPatterns = new ArrayList<String>();
-  	if (map!=null) {
-	  	for (int i=0; i<patterns.length-1; i=i+2) {
-	  		String name = patterns[i];
-	  		String pattern = map.get(name)==null? "": map.get(name); //$NON-NLS-1$
-	  		if (!pattern.equals(patterns[i+1])) {
-	  			customPatterns.add(name);
-	  			customPatterns.add(patterns[i+1]);
-	  		}
-	  	} 
-  	}
+  	for (int i=0; i<patterns.length-1; i=i+2) {
+  		String name = patterns[i];
+  		String pattern = defaultPatterns.get(name)==null? "": defaultPatterns.get(name); //$NON-NLS-1$
+  		if (!pattern.equals(patterns[i+1])) {
+  			customPatterns.add(name);
+  			customPatterns.add(patterns[i+1]);
+  		}
+  	} 
   	return customPatterns.toArray(new String[customPatterns.size()]);
   }
 
@@ -627,9 +621,7 @@ public class NumberFormatSetter extends JDialog {
     // look at all track types defined in defaultFormatPatterns
     for (Class<? extends TTrack> type: NumberFormatSetter.defaultFormatPatterns.keySet()) {    	
     	TreeMap<String, String> defaultPatterns = NumberFormatSetter.defaultFormatPatterns.get(type);
-    	TreeMap<String, String> patterns = trackerPanel.formatPatterns.get(type);
-    	// if patterns are null then go to next track type
-    	if (patterns==null) continue;
+    	TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(type);
     	ArrayList<String> customPatterns = new ArrayList<String>();
     	for (String name: defaultPatterns.keySet()) {
     		String defaultPattern = defaultPatterns.get(name);
@@ -687,10 +679,8 @@ public class NumberFormatSetter extends JDialog {
   			}
   		}
   		// set pattern in trackerPanel.formatPatterns
-  		TreeMap<String, String> patterns = track.trackerPanel.formatPatterns.get(trackType);
-  		if (patterns!=null) {
-  			patterns.put(name, pattern);
-  		}
+      TreeMap<String, String> patterns = track.trackerPanel.getFormatPatterns(trackType);
+  		patterns.put(name, pattern);
   	}
   	if (!wasChanged && formatsChanged) {
   		refreshGUI();

@@ -2656,24 +2656,44 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   	return autoTracker;
   }
   
+  /**
+   * Gets the default format patterns for a specified track type
+   * 
+   * @param trackType the track type
+   * @return a map of variable name to pattern
+   */
+  protected TreeMap<String, String> getFormatPatterns(Class<? extends TTrack> trackType) {
+    TreeMap<String, String> patterns = formatPatterns.get(trackType);
+    if (patterns==null) {
+    	patterns = new TreeMap<String, String>();
+  		formatPatterns.put(trackType, patterns);
+  		// initialize with default patterns
+    	TreeMap<String, String> defaultPatterns = NumberFormatSetter.defaultFormatPatterns.get(trackType);
+    	if (defaultPatterns!=null) {
+    		patterns.putAll(defaultPatterns);
+    	}
+    }
+  	return patterns;
+  }
+  
+  /**
+   * Sets the initial default format patterns for all tracks
+   */
   protected void setInitialFormatPatterns() {
   	for (TTrack track: getTracks()) {
   		setInitialFormatPatterns(track);
   	}
   }
   
+  /**
+   * Sets the initial default format patterns for a specified track 
+   * 
+   * @param track the track
+   */
   protected void setInitialFormatPatterns(TTrack track) {
     // set default NumberField format patterns
     Class<? extends TTrack> trackType = NumberFormatSetter.getTrackType(track);
-    TreeMap<String, String> patterns = formatPatterns.get(trackType);
-    if (patterns==null) {
-    	patterns = new TreeMap<String, String>();
-  		formatPatterns.put(trackType, patterns);
-    	TreeMap<String, String> defaultPatterns = NumberFormatSetter.defaultFormatPatterns.get(trackType);
-    	if (defaultPatterns!=null) {
-    		patterns.putAll(defaultPatterns);
-    	}
-    }
+    TreeMap<String, String> patterns = getFormatPatterns(trackType);
   	for (String name: patterns.keySet()) {
   		NumberFormatSetter.setFormatPattern(track, name, patterns.get(name));
   	}
@@ -3188,12 +3208,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       	for (String[] next: patterns) {
       		try {
 						@SuppressWarnings("unchecked")
-						Class<? extends TTrack> type = (Class<? extends TTrack>) Class.forName(next[0]);
-						TreeMap<String, String> map = new TreeMap<String, String>();
+						Class<? extends TTrack> type = (Class<? extends TTrack>)Class.forName(next[0]);
+						TreeMap<String, String> patternMap = trackerPanel.getFormatPatterns(type);
 						for (int i=1; i<next.length-1; i=i+2) {
-							map.put(next[i], next[i+1]);
+							patternMap.put(next[i], next[i+1]);
 						}
-						trackerPanel.formatPatterns.put(type, map);
 					} catch (ClassNotFoundException e) {
 					}
       	}
