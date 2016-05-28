@@ -755,6 +755,9 @@ public class NumberFormatSetter extends JDialog {
     	} 
     	for (String name: patterns.keySet()) {
     		String defaultPattern = defaultPatterns.get(name);
+    		if (defaultPattern==null) {
+    			defaultPattern = ""; //$NON-NLS-1$
+    		}
     		String pattern = patterns.get(name);
     		if (!pattern.equals(defaultPattern) && !customPatterns.contains(name)) {
     			if (customPatterns.isEmpty()) {
