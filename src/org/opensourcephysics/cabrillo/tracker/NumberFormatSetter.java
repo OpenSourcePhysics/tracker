@@ -868,6 +868,26 @@ public class NumberFormatSetter extends JDialog {
     			}
     		}
   		}
+  		else { // null dimensions
+	  		// apply to this track
+  			if (setFormatPattern(track, name, pattern)) {
+  	  		track.firePropertyChange("data", null, null); //$NON-NLS-1$
+  	  		formatsChanged = true;
+  	  	}
+  			// apply to all other tracks with variable of same name and null dimensions
+    		ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
+    		for (TTrack next: tracks) {
+    			Class<? extends TTrack> nextType = getTrackType(next);
+    			for (String var: getVariableNames(next)) {
+    				if (var.equals(name) && getVariableDimensions(nextType, name)==null) {
+        			if (setFormatPattern(next, name, pattern)) {
+        	  		next.firePropertyChange("data", null, null); //$NON-NLS-1$
+        	  		formatsChanged = true;
+        	  	}    					
+    				}
+    			}
+    		}  			
+  		}
   	}
   	else if (trackTypeButton.isSelected()) {
 	  	// apply to the variable in all tracks of same type 
