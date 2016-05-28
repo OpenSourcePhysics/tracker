@@ -48,7 +48,12 @@ import org.opensourcephysics.controls.*;
 public class CoordAxes extends TTrack {
 	
 	protected static Icon gridOptionsIcon;
+  protected static String[]	variableList;
 	
+  static {
+  	variableList = new String[] {"x", "y", Tracker.THETA}; //$NON-NLS-1$ //$NON-NLS-2$ 
+  }
+
 	protected boolean notyetShown = true;
   protected JLabel originLabel;
   protected WorldGrid grid;
@@ -565,14 +570,10 @@ public class CoordAxes extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	if (variableList==null) {
-  		variableList = new String[] {"x", "y", Tracker.THETA}; //$NON-NLS-1$ //$NON-NLS-2$ 
-  	}
   	numberFields.clear();
-  	// dataset column names set in refreshData() method
-  	numberFields.put("x", new NumberField[] {xField}); //$NON-NLS-1$
-  	numberFields.put("y", new NumberField[] {yField}); //$NON-NLS-1$
-  	numberFields.put(Tracker.THETA, new NumberField[] {angleField});
+  	numberFields.put(variableList[0], new NumberField[] {xField}); 
+  	numberFields.put(variableList[1], new NumberField[] {yField}); 
+  	numberFields.put(variableList[2], new NumberField[] {angleField});
   	return numberFields;
   }
   

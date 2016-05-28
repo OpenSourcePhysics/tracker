@@ -50,6 +50,12 @@ public class RGBRegion extends TTrack {
   // static fields
   protected static int defaultRadius = 10;
   protected static int defaultMaxRadius = 100;
+  protected static String[]	variableList;
+
+  static {
+  	variableList = new String[] {"t", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  			"G", "B", "luma", "pixels", "step", "frame"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+  }
 
   // instance fields
   protected boolean fixedPosition = true; // region has same position at all times
@@ -73,7 +79,7 @@ public class RGBRegion extends TTrack {
     // assign a default name
     setName(TrackerRes.getString("RGBRegion.New.Name")); //$NON-NLS-1$
     // assign default plot variables
-    setProperty("yVarPlot0", "luma"); //$NON-NLS-1$ //$NON-NLS-2$
+    setProperty("yVarPlot0", variableList[6]); //$NON-NLS-1$
     setProperty("yMinPlot0", new Double(0)); //$NON-NLS-1$
     setProperty("yMaxPlot0", new Double(255)); //$NON-NLS-1$
     // assign default table variables: x, y and luma
@@ -510,17 +516,17 @@ public class RGBRegion extends TTrack {
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
     // assign column names to the datasets
-    String time = "t"; //$NON-NLS-1$
+    String time = variableList[0]; 
     if (!x.getColumnName(0).equals(time)) { // not yet initialized
-	    x.setXYColumnNames(time, "x"); //$NON-NLS-1$
-	    y.setXYColumnNames(time, "y"); //$NON-NLS-1$
-	    r.setXYColumnNames(time, "R"); //$NON-NLS-1$
-	    g.setXYColumnNames(time, "G"); //$NON-NLS-1$
-	    b.setXYColumnNames(time, "B"); //$NON-NLS-1$
-	    luma.setXYColumnNames(time, "luma"); //$NON-NLS-1$
-	    pixels.setXYColumnNames(time, "pixels"); //$NON-NLS-1$
-	    stepNum.setXYColumnNames(time, "step"); //$NON-NLS-1$
-	    frameNum.setXYColumnNames(time, "frame"); //$NON-NLS-1$
+	    x.setXYColumnNames(time, variableList[1]); 
+	    y.setXYColumnNames(time, variableList[2]); 
+	    r.setXYColumnNames(time, variableList[3]); 
+	    g.setXYColumnNames(time, variableList[4]); 
+	    b.setXYColumnNames(time, variableList[5]); 
+	    luma.setXYColumnNames(time, variableList[6]); 
+	    pixels.setXYColumnNames(time, variableList[7]); 
+	    stepNum.setXYColumnNames(time, variableList[8]); 
+	    frameNum.setXYColumnNames(time, variableList[9]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -723,29 +729,10 @@ public class RGBRegion extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	if (variableList==null) {
-    	ArrayList<String> names = new ArrayList<String>();
-	  	DatasetManager data = getData(trackerPanel);
-	  	// add independent variable
-	    Dataset dataset = data.getDataset(0);
-	    String name = dataset.getXColumnName();
-	    names.add(name);
-	    // then add other variables
-			for (int i = 0; i<data.getDatasets().size(); i++) {
-				dataset = data.getDataset(i);
-		    name = dataset.getYColumnName();
-		    if (name.equals("step") || name.equals("frame") || name.equals("pixels")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		    	continue;
-		    }
-		    names.add(name);
-			}
-  		variableList = names.toArray(new String[names.size()]);
-  	}
   	numberFields.clear();
-  	// dataset column names set in refreshData() method
-  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
-  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
-  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
+  	numberFields.put(variableList[0], new NumberField[] {tField});
+  	numberFields.put(variableList[1], new NumberField[] {xField});
+  	numberFields.put(variableList[2], new NumberField[] {yField});
   	return numberFields;
   }
   

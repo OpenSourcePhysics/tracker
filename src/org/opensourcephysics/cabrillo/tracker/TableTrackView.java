@@ -808,7 +808,7 @@ public class TableTrackView extends TrackView {
     formatDialogItem = new JMenuItem();
     formatDialogItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        int[] selected = dataTable.getSelectedColumns();
+        int[] selected = dataTable.getSelectedColumns();        
         String[] selectedNames = new String[selected.length];
         for (int i=0; i<selectedNames.length; i++) {
         	String name = dataTable.getColumnName(selected[i]);

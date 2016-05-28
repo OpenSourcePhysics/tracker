@@ -53,6 +53,11 @@ public class TapeMeasure extends TTrack {
 	protected static final double MIN_LENGTH = 1.0E-30;
   @SuppressWarnings("javadoc")
 	public static final float[] BROKEN_LINE = new float[] {10, 1};
+  protected static String[]	variableList;
+
+  static {
+  	variableList = new String[] {"t", "length", Tracker.THETA, "step", "frame"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+  }
 
   // instance fields
   protected boolean fixedPosition = true, fixedLength = true;
@@ -80,10 +85,10 @@ public class TapeMeasure extends TTrack {
 		defaultColors = new Color[] {new Color(204, 0, 0)};
 		
     // assign default plot variables
-    setProperty("xVarPlot0", "t"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("yVarPlot0", "length"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("xVarPlot1", "t"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("yVarPlot1", Tracker.THETA); //$NON-NLS-1$
+    setProperty("xVarPlot0", variableList[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot0", variableList[1]); //$NON-NLS-1$ 
+    setProperty("xVarPlot1", variableList[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot1", variableList[2]); //$NON-NLS-1$
 
     // assign default table variables: length and angle
     setProperty("tableVar0", "0"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -830,12 +835,12 @@ public class TapeMeasure extends TTrack {
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
     // assign column names to the datasets
-    String time = "t"; //$NON-NLS-1$
+    String time = variableList[0]; 
     if (!length.getColumnName(0).equals(time)) { // not yet initialized
-    	length.setXYColumnNames(time, "length"); //$NON-NLS-1$
-    	angle.setXYColumnNames(time, Tracker.THETA);
-	    stepNum.setXYColumnNames(time, "step"); //$NON-NLS-1$
-	    frameNum.setXYColumnNames(time, "frame"); //$NON-NLS-1$
+    	length.setXYColumnNames(time, variableList[1]); 
+    	angle.setXYColumnNames(time, variableList[2]);
+	    stepNum.setXYColumnNames(time, variableList[3]); 
+	    frameNum.setXYColumnNames(time, variableList[4]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -893,34 +898,10 @@ public class TapeMeasure extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	if (variableList==null) {
-    	ArrayList<String> names = new ArrayList<String>();
-	  	DatasetManager data = getData(trackerPanel);
-	  	// add independent variable
-	    Dataset dataset = data.getDataset(0);
-	    String name = dataset.getXColumnName();
-	    names.add(name);
-	    // then add other variables
-			for (int i = 0; i<data.getDatasets().size(); i++) {
-				dataset = data.getDataset(i);
-		    name = dataset.getYColumnName();
-		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
-		    	continue;
-		    }
-		    names.add(name);
-			}
-  		variableList = names.toArray(new String[names.size()]);
-  	}
   	numberFields.clear();
-  	if (!isViewable() || data==null) {
-    	numberFields.put("length", new NumberField[] {magField, inputField}); //$NON-NLS-1$
-    	numberFields.put(Tracker.THETA, new NumberField[] {angleField});
-  		return numberFields;
-  	}
-  	// dataset column names set in refreshData() method
-  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
-  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {magField, inputField});
-  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {angleField});
+  	numberFields.put(variableList[0], new NumberField[] {tField});
+  	numberFields.put(variableList[1], new NumberField[] {magField, inputField});
+  	numberFields.put(variableList[2], new NumberField[] {angleField});
   	return numberFields;
   }
   
@@ -932,7 +913,7 @@ public class TapeMeasure extends TTrack {
   protected JPopupMenu getInputFieldPopup() {
   	JPopupMenu popup = new JPopupMenu();
 		JMenuItem item = new JMenuItem();
-		final String[] selected = new String[] {"length"}; //$NON-NLS-1$
+		final String[] selected = new String[] {variableList[1]}; 
 		item.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {              		
         NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TapeMeasure.this, selected);

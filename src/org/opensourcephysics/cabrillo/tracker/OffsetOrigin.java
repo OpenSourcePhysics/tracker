@@ -44,6 +44,12 @@ import org.opensourcephysics.controls.*;
  */
 public class OffsetOrigin extends TTrack {
 
+  // static fields
+	protected static String[]	variableList;
+
+  static {
+  	variableList = new String[] {"x", "y"}; //$NON-NLS-1$ //$NON-NLS-2$
+  }
   // instance fields
   private Component separator;
   protected boolean fixedCoordinates = true;
@@ -287,28 +293,6 @@ public class OffsetOrigin extends TTrack {
     return menu;
   }
 
-//  /**
-//   * Overrides TTrack getToolbarPointComponents method.
-//   *
-//   * @param trackerPanel the tracker panel
-//   * @param point the TPoint
-//   * @return a list of components
-//   */
-//  public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
-//                                             TPoint point) {
-//    ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
-//    list.add(stepSeparator);
-//    list.add(xLabel);
-//    list.add(xField);
-//    list.add(separator);
-//    list.add(yLabel);
-//    list.add(yField);
-//    boolean locked = trackerPanel.getCoords().isLocked() || super.isLocked();
-//    xField.setEnabled(!locked);
-//    yField.setEnabled(!locked);
-//    return list;
-//  }
-
   /**
    * Overrides TTrack method.
    *
@@ -394,9 +378,8 @@ public class OffsetOrigin extends TTrack {
   @Override
   public Map<String, NumberField[]> getNumberFields() {
   	numberFields.clear();
-  	// dataset column names set in refreshData() method
-  	numberFields.put("x", new NumberField[] {xField}); //$NON-NLS-1$
-  	numberFields.put("y", new NumberField[] {yField}); //$NON-NLS-1$
+  	numberFields.put(variableList[0], new NumberField[] {xField});
+  	numberFields.put(variableList[1], new NumberField[] {yField});
   	return numberFields;
   }
   
