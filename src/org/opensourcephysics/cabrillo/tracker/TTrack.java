@@ -93,7 +93,6 @@ public abstract class TTrack implements Interactive,
   protected NumberField tField, xField, yField, magField;
   protected DecimalField angleField;
   protected Map<String, NumberField[]> numberFields = new TreeMap<String, NumberField[]>();
-  protected String[] variableList;
   protected Border fieldBorder;
   protected Component tSeparator, xSeparator, ySeparator, magSeparator,
       angleSeparator, stepSeparator;
@@ -1432,12 +1431,42 @@ public abstract class TTrack implements Interactive,
   }
   
   /**
-   * Gets a list of data variable names in desired order. 
+   * Gets a list of variable names for a given track type. 
    * 
-   * @return a list of field names. May be null.
+   * @return an array of variable names. May be empty.
    */
-  public String[] getVariableList() {
-  	return variableList;
+  public static String[] getVariableList(Class<? extends TTrack> trackType) {
+  	if (PointMass.class.isAssignableFrom(trackType)) {
+  		return PointMass.variableList;
+  	}
+  	if (Vector.class.isAssignableFrom(trackType)) {
+  		return Vector.variableList;
+  	}
+  	if (LineProfile.class.isAssignableFrom(trackType)) {
+  		return LineProfile.variableList;
+  	}
+  	if (RGBRegion.class.isAssignableFrom(trackType)) {
+  		return RGBRegion.variableList;
+  	}
+  	if (TapeMeasure.class.isAssignableFrom(trackType)) {
+  		return TapeMeasure.variableList;
+  	}
+  	if (Protractor.class.isAssignableFrom(trackType)) {
+  		return Protractor.variableList;
+  	}
+  	if (CircleFitter.class.isAssignableFrom(trackType)) {
+  		return CircleFitter.variableList;
+  	}
+  	if (Calibration.class.isAssignableFrom(trackType)) {
+  		return Calibration.variableList;
+  	}
+  	if (OffsetOrigin.class.isAssignableFrom(trackType)) {
+  		return OffsetOrigin.variableList;
+  	}
+  	if (CoordAxes.class.isAssignableFrom(trackType)) {
+  		return CoordAxes.variableList;
+  	}
+  	return new String[0];
   }
   
   /**

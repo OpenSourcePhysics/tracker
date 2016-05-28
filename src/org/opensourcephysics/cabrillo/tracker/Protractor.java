@@ -40,13 +40,21 @@ import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
- * A Protractor measures and displays an angular arc.
+ * A Protractor measures and displays angular arcs and arm lengths.
  *
  * @author Douglas Brown
  */
 public class Protractor extends TTrack {
 	
-  // instance fields
+  // static fields
+	protected static String[]	variableList;
+
+  static {
+  	variableList = new String[] {"t", Tracker.THETA, "L_{1}", "L_{2}",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+  			"step", "frame", Tracker.THETA+"_{rot}"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+  }
+
+	// instance fields
   protected boolean fixedPosition = true;
   protected JCheckBoxMenuItem fixedItem;
   protected JMenuItem attachmentItem;
@@ -411,14 +419,14 @@ public class Protractor extends TTrack {
     Dataset frameNum = data.getDataset(count++);
     Dataset rotationAngle = data.getDataset(count++);
     // assign column names to the datasets
-    String time = "t"; //$NON-NLS-1$
+    String time = variableList[0]; 
     if (!angle.getColumnName(0).equals(time)) { // not yet initialized
-    	angle.setXYColumnNames(time, Tracker.THETA);
-    	arm1Length.setXYColumnNames(time, "L_{1}"); //$NON-NLS-1$
-    	arm2Length.setXYColumnNames(time, "L_{2}"); //$NON-NLS-1$
-	    stepNum.setXYColumnNames(time, "step"); //$NON-NLS-1$
-	    frameNum.setXYColumnNames(time, "frame"); //$NON-NLS-1$
-    	rotationAngle.setXYColumnNames(time, "$\\theta$_{rot}"); //$NON-NLS-1$
+    	angle.setXYColumnNames(time, variableList[1]);
+    	arm1Length.setXYColumnNames(time, variableList[2]); 
+    	arm2Length.setXYColumnNames(time, variableList[3]); 
+	    stepNum.setXYColumnNames(time, variableList[4]); 
+	    frameNum.setXYColumnNames(time, variableList[5]); 
+    	rotationAngle.setXYColumnNames(time, variableList[6]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -623,30 +631,11 @@ public class Protractor extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	if (variableList==null) {
-    	ArrayList<String> names = new ArrayList<String>();
-	  	DatasetManager data = getData(trackerPanel);
-	  	// add independent variable
-	    Dataset dataset = data.getDataset(0);
-	    String name = dataset.getXColumnName();
-	    names.add(name);
-	    // then add other variables
-			for (int i = 0; i<data.getDatasets().size(); i++) {
-				dataset = data.getDataset(i);
-		    name = dataset.getYColumnName();
-		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
-		    	continue;
-		    }
-		    names.add(name);
-			}
-  		variableList = names.toArray(new String[names.size()]);
-  	}
   	numberFields.clear();
-  	// dataset column names set in refreshData() method
-  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
-  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {angleField, inputField});
-  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {xField}); // L1
-  	numberFields.put(data.getDataset(2).getYColumnName(), new NumberField[] {yField}); // L2
+  	numberFields.put(variableList[0], new NumberField[] {tField});
+  	numberFields.put(variableList[1], new NumberField[] {angleField, inputField});
+  	numberFields.put(variableList[2], new NumberField[] {xField}); // L1
+  	numberFields.put(variableList[3], new NumberField[] {yField}); // L2
   	return numberFields;
   }
   

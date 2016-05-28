@@ -2672,14 +2672,24 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	if (defaultPatterns!=null) {
     		patterns.putAll(defaultPatterns);
     	}
+    	// initialize for additional trackType variables
+			String[] varNames = TTrack.getVariableList(trackType);
+			for (String var: varNames) {
+				if (!patterns.containsKey(var)) {
+					patterns.put(var, ""); //$NON-NLS-1$
+				}
+			}
     }
   	return patterns;
   }
   
   /**
-   * Sets the initial default format patterns for all tracks
+   * Sets the initial default format patterns for all track types and existing tracks
    */
   protected void setInitialFormatPatterns() {
+  	for (Class<? extends TTrack> type: NumberFormatSetter.getFormattableTrackTypes()) {
+  		getFormatPatterns(type);
+  	}
   	for (TTrack track: getTracks()) {
   		setInitialFormatPatterns(track);
   	}
@@ -2818,6 +2828,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     if (ThumbnailDialog.thumbnailDialog!=null && ThumbnailDialog.thumbnailDialog.trackerPanel==this) {
     	ThumbnailDialog.thumbnailDialog.trackerPanel = null;   	
     }
+    NumberFormatSetter.dispose(this);
     filterClasses.clear();
     selectingPanel = null;
     frame = null;

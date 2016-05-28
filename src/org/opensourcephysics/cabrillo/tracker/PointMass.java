@@ -56,6 +56,38 @@ public class PointMass extends TTrack {
   protected static Derivative vDeriv = new FirstDerivative();
   protected static Derivative aDeriv = new SecondDerivative();
   protected static BounceDerivatives bounceDerivs = new BounceDerivatives();
+  protected static String[]	variableList;
+
+  static {
+  	ArrayList<String> names = new ArrayList<String>();
+  	names.add("t"); //$NON-NLS-1$ 0
+  	names.add("x"); //$NON-NLS-1$ 1
+  	names.add("y"); //$NON-NLS-1$ 2
+  	names.add("r"); //$NON-NLS-1$ 3
+  	names.add(Tracker.THETA+"_{r}"); //$NON-NLS-1$ 4
+  	names.add("v_{x}"); //$NON-NLS-1$ 5
+  	names.add("v_{y}"); //$NON-NLS-1$ 6
+  	names.add("v"); //$NON-NLS-1$ 7
+  	names.add(Tracker.THETA+"_{v}"); //$NON-NLS-1$ 8
+  	names.add("a_{x}"); //$NON-NLS-1$ 9
+  	names.add("a_{y}"); //$NON-NLS-1$ 10
+  	names.add("a"); //$NON-NLS-1$ 11
+  	names.add(Tracker.THETA+"_{a}"); //$NON-NLS-1$ 12
+  	names.add(Tracker.THETA); // 13
+  	names.add(TeXParser.parseTeX("$\\omega$")); //$NON-NLS-1$ 14
+  	names.add(TeXParser.parseTeX("$\\alpha$")); //$NON-NLS-1$ 15
+  	names.add("step"); //$NON-NLS-1$ 16
+  	names.add("frame"); //$NON-NLS-1$ 17
+  	names.add("p_{x}"); //$NON-NLS-1$ 18
+  	names.add("p_{y}"); //$NON-NLS-1$ 19
+  	names.add("p"); //$NON-NLS-1$ 20
+  	names.add(Tracker.THETA+"_{p}"); //$NON-NLS-1$ 21
+  	names.add("pixel_{x}"); //$NON-NLS-1$ 22
+  	names.add("pixel_{y}"); //$NON-NLS-1$ 23
+  	names.add("K"); //$NON-NLS-1$ 24
+  	names.add("m"); //$NON-NLS-1$ 25
+		variableList = names.toArray(new String[names.size()]);
+  }
 
   // instance fields
   protected double mass;
@@ -704,40 +736,23 @@ public class PointMass extends TTrack {
     }
     if (data.getDataset(0).getColumnName(0).equals("x")) { //$NON-NLS-1$
 	    // assign column names to the datasets
-	    String timeVar = "t"; //$NON-NLS-1$
-    	data.getDataset(0).setXYColumnNames(timeVar, "x"); //$NON-NLS-1$
-    	data.getDataset(1).setXYColumnNames(timeVar, "y"); //$NON-NLS-1$
-    	data.getDataset(2).setXYColumnNames(timeVar, "r"); //$NON-NLS-1$
-    	data.getDataset(3).setXYColumnNames(timeVar, "$\\theta$_{r}"); //$NON-NLS-1$
-    	data.getDataset(4).setXYColumnNames(timeVar, "v_{x}"); //$NON-NLS-1$
-    	data.getDataset(5).setXYColumnNames(timeVar, "v_{y}"); //$NON-NLS-1$
-    	data.getDataset(6).setXYColumnNames(timeVar, "v"); //$NON-NLS-1$
-    	data.getDataset(7).setXYColumnNames(timeVar, "$\\theta$_{v}"); //$NON-NLS-1$
-    	data.getDataset(8).setXYColumnNames(timeVar, "a_{x}"); //$NON-NLS-1$
-    	data.getDataset(9).setXYColumnNames(timeVar, "a_{y}"); //$NON-NLS-1$
-    	data.getDataset(10).setXYColumnNames(timeVar, "a"); //$NON-NLS-1$
-    	data.getDataset(11).setXYColumnNames(timeVar, "$\\theta$_{a}"); //$NON-NLS-1$
-    	data.getDataset(12).setXYColumnNames(timeVar, "$\\theta$"); //$NON-NLS-1$
-    	data.getDataset(13).setXYColumnNames(timeVar, "$\\omega$"); //$NON-NLS-1$
-    	data.getDataset(14).setXYColumnNames(timeVar, "$\\alpha$"); //$NON-NLS-1$
-    	data.getDataset(15).setXYColumnNames(timeVar, "step"); //$NON-NLS-1$
-    	data.getDataset(16).setXYColumnNames(timeVar, "frame"); //$NON-NLS-1$
-    	data.getDataset(17).setXYColumnNames(timeVar, "p_{x}"); //$NON-NLS-1$
-    	data.getDataset(18).setXYColumnNames(timeVar, "p_{y}"); //$NON-NLS-1$
-    	data.getDataset(19).setXYColumnNames(timeVar, "p"); //$NON-NLS-1$
-    	data.getDataset(20).setXYColumnNames(timeVar, "$\\theta$_{p}"); //$NON-NLS-1$
-    	data.getDataset(21).setXYColumnNames(timeVar, "pixel_{x}"); //$NON-NLS-1$
-    	data.getDataset(22).setXYColumnNames(timeVar, "pixel_{y}"); //$NON-NLS-1$
-    	if (count>baseCount)
-  	    data.getDataset(baseCount).setXYColumnNames(timeVar, "K"); //$NON-NLS-1$
+	    String timeVar = variableList[0];
+	    for (int i=0; i<baseCount; i++) {
+	    	data.getDataset(i).setXYColumnNames(timeVar, variableList[i+1]);
+	    }
+    	if (count>baseCount) {
+  	    data.getDataset(baseCount).setXYColumnNames(timeVar, variableList[baseCount+1]);
+    	}
     }
     // create preferred column order
-    if (count==baseCount) 
-    	preferredColumnOrder = new int[] 
-    	    {0,1,2,3,4,5,6,7,8,9,10,11,17,18,19,20,12,13,14};
-    else 
-    	preferredColumnOrder = new int[] 
-    	    {0,1,2,3,4,5,6,7,8,9,10,11,17,18,19,20,12,13,14,baseCount};
+    if (preferredColumnOrder==null) {
+	    if (count==baseCount) 
+	    	preferredColumnOrder = new int[] 
+	    	    {0,1,2,3,4,5,6,7,8,9,10,11,17,18,19,20,12,13,14};
+	    else 
+	    	preferredColumnOrder = new int[] 
+	    	    {0,1,2,3,4,5,6,7,8,9,10,11,17,18,19,20,12,13,14,baseCount};
+    }
     // fill dataDescriptions array
     dataDescriptions = new String[count+1];
     for (int i = 0; i < dataDescriptions.length; i++) {
@@ -2028,32 +2043,28 @@ public class PointMass extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	if (variableList==null) {
-    	ArrayList<String> names = new ArrayList<String>();
-	  	DatasetManager data = getData(trackerPanel);
-	  	// add independent variable
-	    Dataset dataset = data.getDataset(0);
-	    String name = dataset.getXColumnName();
-	    names.add(name);
-	    // then add other variables
-			for (int i = 0; i<data.getDatasets().size(); i++) {
-				dataset = data.getDataset(i);
-		    name = dataset.getYColumnName();
-		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
-		    	continue;
-		    }
-		    names.add(name);
-			}
-  		variableList = names.toArray(new String[names.size()]);
-  	}
+  	// refresh variableList?
+//	    	ArrayList<String> names = new ArrayList<String>();
+//		  	DatasetManager data = getData(trackerPanel);
+//		    // then add other variables
+//				for (int i = 0; i<data.getDatasets().size(); i++) {
+//					Dataset dataset = data.getDataset(i);
+//			    name = dataset.getYColumnName();
+//			    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
+//			    	continue;
+//			    }
+//			    names.add(name);
+//				}
+//	  		variableList = names.toArray(new String[names.size()]);
+  		
   	numberFields.clear();
   	// dataset column names set in refreshData() method
-  	numberFields.put("m", new NumberField[] {massField}); //$NON-NLS-1$
-  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
-  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
-  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
-  	numberFields.put(data.getDataset(2).getYColumnName(), new NumberField[] {magField});
-  	numberFields.put(data.getDataset(3).getYColumnName(), new NumberField[] {angleField});
+  	numberFields.put(variableList[0], new NumberField[] {tField});
+  	numberFields.put(variableList[1], new NumberField[] {xField});
+  	numberFields.put(variableList[2], new NumberField[] {yField});
+  	numberFields.put(variableList[3], new NumberField[] {magField});
+  	numberFields.put(variableList[4], new NumberField[] {angleField});
+  	numberFields.put(variableList[25], new NumberField[] {massField});
   	return numberFields;
   }
   

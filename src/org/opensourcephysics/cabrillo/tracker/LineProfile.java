@@ -47,6 +47,12 @@ public class LineProfile extends TTrack {
   // static constants
   /** The maximum allowed spread */
   public static final int MAX_SPREAD = 100;
+  protected static String[]	variableList;
+
+  static {
+  	variableList = new String[] {"n", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  			"G", "B", "luma", "pixels"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  }
 
   // instance fields
   protected boolean fixedLine = true; // line is the same at all times
@@ -70,8 +76,8 @@ public class LineProfile extends TTrack {
     setName(TrackerRes.getString("LineProfile.New.Name")); //$NON-NLS-1$
     // assign default plot variables
     setProperty("highlights", "false"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("xVarPlot0", "x"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("yVarPlot0", "luma"); //$NON-NLS-1$ //$NON-NLS-2$
+    setProperty("xVarPlot0", variableList[1]); //$NON-NLS-1$ 
+    setProperty("yVarPlot0", variableList[6]); //$NON-NLS-1$ 
     setProperty("pointsPlot0", "false"); //$NON-NLS-1$ //$NON-NLS-2$
     setProperty("yMinPlot0", new Double(0)); //$NON-NLS-1$
     setProperty("yMaxPlot0", new Double(255)); //$NON-NLS-1$
@@ -405,15 +411,15 @@ public class LineProfile extends TTrack {
     Dataset luma = data.getDataset(count++);
     Dataset w = data.getDataset(count++);
     // assign column names to the datasets
-    String pixelNum = "n"; //$NON-NLS-1$
+    String pixelNum = variableList[0];
     if (!x.getColumnName(0).equals(pixelNum)) { // not yet initialized
-	    x.setXYColumnNames(pixelNum, "x"); //$NON-NLS-1$
-	    y.setXYColumnNames(pixelNum, "y"); //$NON-NLS-1$
-	    r.setXYColumnNames(pixelNum, "R"); //$NON-NLS-1$
-	    g.setXYColumnNames(pixelNum, "G"); //$NON-NLS-1$
-	    b.setXYColumnNames(pixelNum, "B"); //$NON-NLS-1$
-	    luma.setXYColumnNames(pixelNum, "luma"); //$NON-NLS-1$
-	    w.setXYColumnNames(pixelNum, "pixels"); //$NON-NLS-1$
+	    x.setXYColumnNames(pixelNum, variableList[1]); 
+	    y.setXYColumnNames(pixelNum, variableList[2]); 
+	    r.setXYColumnNames(pixelNum, variableList[3]); 
+	    g.setXYColumnNames(pixelNum, variableList[4]); 
+	    b.setXYColumnNames(pixelNum, variableList[5]); 
+	    luma.setXYColumnNames(pixelNum, variableList[6]); 
+	    w.setXYColumnNames(pixelNum, variableList[7]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -533,28 +539,9 @@ public class LineProfile extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	if (variableList==null) {
-    	ArrayList<String> names = new ArrayList<String>();
-	  	DatasetManager data = getData(trackerPanel);
-	  	// skip independent variable "n"
-	    // add other variables except "pixels
-			for (int i = 0; i<data.getDatasets().size(); i++) {
-				Dataset dataset = data.getDataset(i);
-		    String name = dataset.getYColumnName();
-		    if (name.equals("pixels")) { //$NON-NLS-1$
-		    	continue;
-		    }
-		    names.add(name);
-			}
-  		variableList = names.toArray(new String[names.size()]);
-  	}
   	numberFields.clear();
-  	// dataset column names set in refreshData() method
-  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
-  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
-  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
-  	numberFields.put(data.getDataset(2).getYColumnName(), new NumberField[] {magField});
-  	numberFields.put(data.getDataset(3).getYColumnName(), new NumberField[] {angleField});
+  	numberFields.put(variableList[1], new NumberField[] {xField});
+  	numberFields.put(variableList[2], new NumberField[] {yField});
   	return numberFields;
   }
   

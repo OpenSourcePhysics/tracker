@@ -52,6 +52,11 @@ public class Calibration extends TTrack {
   protected static final int X_AXIS = 2;
   protected static final int XY_AXES = 1;
   protected static final int Y_AXIS = 0;
+  protected static String[]	variableList;
+  
+  static {
+  	variableList = new String[] {"x_{1}", "y_{1}", "x_{2}", "y_{2}"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  }
 
   // instance fields
   protected NumberField x1Field, y1Field;
@@ -577,15 +582,11 @@ public class Calibration extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	if (variableList==null) {
-  		variableList = new String[] {"x1", "y1", "x2", "y2"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-  	}
   	numberFields.clear();
-  	// dataset column names set in refreshData() method
-  	numberFields.put("x1", new NumberField[] {xField}); //$NON-NLS-1$
-  	numberFields.put("y1", new NumberField[] {yField}); //$NON-NLS-1$
-  	numberFields.put("x2", new NumberField[] {x1Field}); //$NON-NLS-1$
-  	numberFields.put("y2", new NumberField[] {y1Field}); //$NON-NLS-1$
+  	numberFields.put(variableList[0], new NumberField[] {xField}); 
+  	numberFields.put(variableList[1], new NumberField[] {yField}); 
+  	numberFields.put(variableList[2], new NumberField[] {x1Field}); 
+  	numberFields.put(variableList[3], new NumberField[] {y1Field}); 
   	return numberFields;
   }
   

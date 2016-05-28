@@ -808,7 +808,7 @@ public class TableTrackView extends TrackView {
     formatDialogItem = new JMenuItem();
     formatDialogItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        int[] selected = dataTable.getSelectedColumns();
+        int[] selected = dataTable.getSelectedColumns();        
         String[] selectedNames = new String[selected.length];
         for (int i=0; i<selectedNames.length; i++) {
         	String name = dataTable.getColumnName(selected[i]);
@@ -1159,10 +1159,6 @@ public class TableTrackView extends TrackView {
     dataToolItem.setText(TrackerRes.getString("TableTrackView.Popup.MenuItem.Analyze")); //$NON-NLS-1$
   	refreshCopyDataMenu(copyDataMenu);
   	popup.removeAll();
-  	if (!"".equals(deleteDataFunctionItem.getActionCommand())) { //$NON-NLS-1$
-	  	popup.add(deleteDataFunctionItem);
-	  	popup.addSeparator();
-  	}
     popup.add(formatDialogItem);
   	TTrack track = getTrack();
   	if (track==null) return popup;
@@ -1210,7 +1206,12 @@ public class TableTrackView extends TrackView {
     }
     textColumnMenu.setEnabled(!track.isLocked());
     
-    if (track.trackerPanel!=null
+  	if (!"".equals(deleteDataFunctionItem.getActionCommand())) { //$NON-NLS-1$
+	  	popup.addSeparator();
+	  	popup.add(deleteDataFunctionItem);
+  	}
+
+  	if (track.trackerPanel!=null
     		&& track.trackerPanel.isEnabled("edit.copyImage")) { //$NON-NLS-1$
 	    popup.addSeparator();
 	    popup.add(copyImageItem);

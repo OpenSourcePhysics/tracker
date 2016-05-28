@@ -50,7 +50,23 @@ import org.opensourcephysics.controls.*;
 public class CircleFitter extends TTrack {
 	
 	protected static int maxDataPointCount = 20;
+  protected static String[]	variableList;
 	
+  static {
+   	String center = TrackerRes.getString("CircleFitter.Data.Center")+"}"; //$NON-NLS-1$ //$NON-NLS-2$
+  	String selected = TrackerRes.getString("TTrack.Selected.Hint")+"}"; //$NON-NLS-1$ //$NON-NLS-2$
+  	ArrayList<String> names = new ArrayList<String>();
+  	names.add("t"); //$NON-NLS-1$ 0
+  	names.add("x_{"+center); //$NON-NLS-1$ 1
+  	names.add("y_{"+center); //$NON-NLS-1$ 2
+  	names.add("r"); //$NON-NLS-1$ 3
+  	names.add("step"); //$NON-NLS-1$ 4
+  	names.add("frame"); //$NON-NLS-1$ 5
+		names.add("x_{"+selected); //$NON-NLS-1$ 6
+		names.add("y_{"+selected); //$NON-NLS-1$ 7
+		variableList = names.toArray(new String[names.size()]);
+  }
+
   // instance fields
   protected boolean fixedPosition=true;
   protected JCheckBoxMenuItem fixedItem;
@@ -88,13 +104,12 @@ public class CircleFitter extends TTrack {
     setProperty("tableVar1", "1"); //$NON-NLS-1$ //$NON-NLS-2$
     setProperty("tableVar2", "2"); //$NON-NLS-1$ //$NON-NLS-2$
     // assign default plot variables
-  	String center = TrackerRes.getString("CircleFitter.Data.Center"); //$NON-NLS-1$
-    setProperty("xVarPlot0", "t"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("yVarPlot0", "x"+center); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("xVarPlot1", "t"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("yVarPlot1", "y"+center); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("xVarPlot2", "t"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("yVarPlot2", "r"); //$NON-NLS-1$ //$NON-NLS-2$
+    setProperty("xVarPlot0", variableList[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot0", variableList[1]); //$NON-NLS-1$ 
+    setProperty("xVarPlot1", variableList[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot1", variableList[2]); //$NON-NLS-1$ 
+    setProperty("xVarPlot2", variableList[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot2", variableList[3]); //$NON-NLS-1$ 
    
     // set initial hint
   	partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
@@ -1042,35 +1057,14 @@ public class CircleFitter extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	String selected = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
-  	if (variableList==null) {
-    	ArrayList<String> names = new ArrayList<String>();
-	  	DatasetManager data = getData(trackerPanel);
-	  	// add independent variable
-	    Dataset dataset = data.getDataset(0);
-	    String name = dataset.getXColumnName();
-	    names.add(name);
-	    // then add other variables
-			for (int i = 0; i<data.getDatasets().size(); i++) {
-				dataset = data.getDataset(i);
-		    name = dataset.getYColumnName();
-		    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
-		    	continue;
-		    }
-		    names.add(name);
-			}
-			names.add("x"+selected); //$NON-NLS-1$
-			names.add("y"+selected); //$NON-NLS-1$
-  		variableList = names.toArray(new String[names.size()]);
-  	}
   	numberFields.clear();
   	// dataset column names set in refreshData() method
-  	numberFields.put(data.getDataset(0).getXColumnName(), new NumberField[] {tField});
-  	numberFields.put(data.getDataset(0).getYColumnName(), new NumberField[] {xField});
-  	numberFields.put(data.getDataset(1).getYColumnName(), new NumberField[] {yField});
-  	numberFields.put(data.getDataset(2).getYColumnName(), new NumberField[] {magField});
-  	numberFields.put("x"+selected, new NumberField[] {xDataField}); //$NON-NLS-1$
-  	numberFields.put("y"+selected, new NumberField[] {yDataField}); //$NON-NLS-1$  
+  	numberFields.put(variableList[0], new NumberField[] {tField});
+  	numberFields.put(variableList[1], new NumberField[] {xField});
+  	numberFields.put(variableList[2], new NumberField[] {yField});
+  	numberFields.put(variableList[3], new NumberField[] {magField});
+  	numberFields.put(variableList[6], new NumberField[] {xDataField});
+  	numberFields.put(variableList[7], new NumberField[] {yDataField});  
   	return numberFields;
   }
   
@@ -1117,14 +1111,13 @@ public class CircleFitter extends TTrack {
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
     // assign column names to the datasets
-    String time = "t"; //$NON-NLS-1$
+    String time = variableList[0]; 
     if (!x_center.getColumnName(0).equals(time)) { // not yet initialized
-    	String center = TrackerRes.getString("CircleFitter.Data.Center"); //$NON-NLS-1$
-    	x_center.setXYColumnNames(time, "x_"+center); //$NON-NLS-1$
-    	y_center.setXYColumnNames(time, "y_"+center); //$NON-NLS-1$
-    	r.setXYColumnNames(time, "r"); //$NON-NLS-1$
-	    stepNum.setXYColumnNames(time, "step"); //$NON-NLS-1$
-	    frameNum.setXYColumnNames(time, "frame"); //$NON-NLS-1$
+    	x_center.setXYColumnNames(time, variableList[1]); 
+    	y_center.setXYColumnNames(time, variableList[2]); 
+    	r.setXYColumnNames(time, variableList[3]); 
+	    stepNum.setXYColumnNames(time, variableList[4]); 
+	    frameNum.setXYColumnNames(time, variableList[5]); 
     }
     else for (int i = 0; i<count; i++) {
     	data.getDataset(i).clear();
