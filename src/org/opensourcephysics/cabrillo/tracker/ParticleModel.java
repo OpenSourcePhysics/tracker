@@ -556,10 +556,12 @@ abstract public class ParticleModel extends PointMass {
 
   @Override
   protected void dispose() {
-		trackerPanel.removePropertyChangeListener("data", this); //$NON-NLS-1$
-    if (trackerPanel.getTFrame() != null) {
-    	trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
-    }
+  	if (trackerPanel!=null) {
+			trackerPanel.removePropertyChangeListener("data", this); //$NON-NLS-1$
+	    if (trackerPanel.getTFrame() != null) {
+	    	trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
+	    }
+  	}
 		if (modelBuilder != null) {
 			getParamEditor().removePropertyChangeListener(massParamListener);
 			getInitEditor().removePropertyChangeListener(timeParamListener);
