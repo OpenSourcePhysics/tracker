@@ -26,10 +26,10 @@
 <h3></h3>
     <p>To create a data track from delimited text data on the <strong>clipboard</strong>, do one of the following: </p>
     <ul>
-      <li>Choose <strong>Edit|Paste Data</strong>.</li>
+      <li>Choose <strong>Edit|Paste Data</strong> or hit <strong>Control-V</strong> (Command-V on Mac).</li>
       <li> Click the <strong>Create</strong> button <img src="../help_images/create_button.gif" align="absmiddle"> and choose <strong>Data Track|Paste Data</strong>.</li>
-      <li> Click the <strong>Create</strong> button <img src="../help_images/create_button.gif" align="absmiddle"> and check the<strong> Data Track|Paste Data Automatically</strong> checkbox. Tracker will constantly monitor the clipboard contents and paste valid data automatically. If the clipboard data changes, the new data is immediately applied to the existing Data Track. This makes it easy to change a model in a separate application, copy its data to the clipboard, and automatically see the changes in Tracker.</li>
     </ul>
+    <p> A data track created from pasted data can be refreshed automatically by checking the<strong> Paste Data Automatically</strong> checkbox on the toolbar. Tracker will then constantly monitor the clipboard contents and paste valid data automatically. If the clipboard data changes, the new data is immediately applied to the existing Data Track. This makes it easy to change a model in a separate application, copy its data to the clipboard, and automatically see the changes in Tracker.</p>
 <h3></h3>
     <p>To create a data track from an EjsS simulation (version 5.2 or later), do one of the following:</p>
     <ul>
@@ -41,7 +41,7 @@
     <ul>
    	  <li>Data and variable names are organized into rows and columns. </li>
       	<li>The very first row may define an optional track name. Names should not contain spaces or punctuation marks. Underscores (&quot;_&quot;) are converted to spaces in a track name.</li>
-   	  <li>A row defining  variable names must come before the first data row. At least one matched pair of x and y-variables is required (names must start or end with x and y, be otherwise identical, and be in adjacent columns). Multiple x-y pairs define multiple point masses; optional strings that are part of the x-y variable names are used to identify the points in Tracker. For example, in the &quot;jumper&quot; data, points are defined for the head, elbow and knee.</li>
+   	  <li>A row defining  variable names must come before the first data row. At least one matched pair of x and y-variables is required (names must start or end with x and y, be otherwise identical, and be in adjacent columns). Multiple x-y pairs define multiple point masses; optional strings that are part of the x-y variable names are used to identify the points in Tracker. For example, in the &quot;jumper&quot; data, points are defined for the head, elbow and knee. Strings in parentheses or square brackets (e.g., units) are ignored--for example, &quot;x (m)&quot; is read as &quot;x&quot;.</li>
    	  <li>Time &quot;t&quot; is optional. When no time data is included, Tracker uses the video frame times.</li>
    	  <li>Every data row defines a separate data point. Data points must contain values in the same order as the variables are defined. Values may be null as shown in the jumper data below.</li>
       	<li>Names or values in a given row are separated (&quot;delimited&quot;) by tabs, spaces, commas or semicolons. You must use the same delimiter throughout.</li>
