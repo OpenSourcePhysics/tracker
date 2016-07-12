@@ -869,6 +869,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       	tabbedPane.setTitleAt(i, trackerPanel.getTitle());
       	VideoPlayer player = trackerPanel.getPlayer();
       	player.refresh();
+      	player.setLocale((Locale)e.getNewValue());
         Video vid = trackerPanel.getVideo();
         if (vid != null) {
           vid.getFilterStack().refresh();
@@ -1651,6 +1652,45 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     int tab = getTab(trackerPanel);
     if (tab >= 0) return tabs.get(tabbedPane.getComponentAt(tab));
     return null;
+  }
+  
+  /**
+   * Gets the (singleton) clipboard listener.
+   *
+   * @return the ClipboardListener
+   */
+  protected ClipboardListener getClipboardListener() {
+  	if (clipboardListener==null) {
+  		clipboardListener = new ClipboardListener(this);
+  		clipboardListener.start();
+  	}
+  	return clipboardListener;
+  }
+
+  /**
+   * Starts or ends the clipboard listener as needed.
+   */
+  protected void checkClipboardListener() {
+  	// do any pasted data tracks exist?
+  	boolean hasPastedTracks = false;
+    for (int i = 0; i < getTabCount(); i++) {
+    	TrackerPanel trackerPanel = getTrackerPanel(i);
+    	ArrayList<DataTrack> dataTracks = trackerPanel.getDrawables(DataTrack.class);
+    	// do any tracks have null source?
+    	for (DataTrack next: dataTracks) {
+    		hasPastedTracks = hasPastedTracks || next.getSource()==null;
+    	}
+    }
+    
+    if (hasPastedTracks) {
+    	getClipboardListener();
+    }
+  	else {
+  		if (clipboardListener==null) return;
+    	// end existing listener
+    	clipboardListener.end();
+    	clipboardListener = null;
+  	}
   }
 
   /**
