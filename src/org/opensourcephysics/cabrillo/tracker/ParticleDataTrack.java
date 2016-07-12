@@ -93,13 +93,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   private JMenu pointsMenu, linesMenu, allFootprintsMenu;
   private JButton reloadButton;
   private JMenuItem allColorItem, lineColorItem;
-  protected String currentDataString, prevDataString;
+  protected String pendingDataString, prevDataString;
   protected Footprint modelFootprint;
   protected Footprint[] modelFootprints = new Footprint[0];
   protected boolean modelFootprintVisible = false;
   private JCheckBoxMenuItem linesVisibleCheckbox, linesClosedCheckbox, linesBoldCheckbox;
   private JCheckBox autoPasteCheckbox;
   private ActionListener allFootprintsListener, allCircleFootprintsListener;
+  private boolean autoPasteEnabled;
 	
 	/**
 	 * Public constructor.
@@ -316,6 +317,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
     if (trackerPanel != null) {
     	trackerPanel.setSelectedPoint(null);
 			trackerPanel.getTFrame().removePropertyChangeListener("windowfocus", this); //$NON-NLS-1$
+
       // handle case when this is the origin of current reference frame
     	ImageCoordSystem coords = trackerPanel.getCoords();
       if (coords instanceof ReferenceFrame && 
@@ -514,6 +516,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   	// create reload button here to insure that TFrame is defined
   	if (getLeader().reloadButton==null) {
   		final TFrame frame = trackerPanel.getTFrame();
+  		frame.checkClipboardListener();
   		final int h = TTrackBar.getTrackbar(trackerPanel).toolbarComponentHeight;
   		getLeader().reloadButton = new JButton() {
       	public Dimension getMaximumSize() {
@@ -540,21 +543,55 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   					else if (getLeader().dataSource instanceof String) { // data is from a file
   						panel.importData(getLeader().dataSource.toString(), null);
   					}
-  					getLeader().prevDataString = getLeader().currentDataString;
+  					getLeader().prevDataString = getLeader().pendingDataString;
   					getLeader().reloadButton.setEnabled(false);
   					TTrackBar.getTrackbar(panel).refresh();
   				}
   			}			
   		});
   		frame.addPropertyChangeListener("windowfocus", getLeader()); //$NON-NLS-1$
+  	}
+  	if (autoPasteCheckbox==null) {
   		// also create autoPasteCheckbox
   		autoPasteCheckbox = new JCheckBox();
   		autoPasteCheckbox.setOpaque(false);
   		autoPasteCheckbox.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-			    TMenuBar menubar = TMenuBar.getMenuBar(ParticleDataTrack.this.trackerPanel);
-			    menubar.newDataTrackAutoPasteItem.doClick(0);
+					setAutoPasteEnabled(autoPasteCheckbox.isSelected());
+					if (ParticleDataTrack.this.trackerPanel==null) return;
+					TFrame frame = ParticleDataTrack.this.trackerPanel.getTFrame();
+					if (frame==null) return;
+		    	if (isAutoPasteEnabled()) {
+		      	ClipboardListener clipboardListener = frame.getClipboardListener();
+		        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		        Transferable data = clipboard.getContents(null);
+		        if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+		          try {
+			        	String s = (String)data.getTransferData(DataFlavor.stringFlavor);
+		            if (ParticleDataTrack.getImportableDataName(s)!=null) {
+				      		clipboardListener.processContents(data);
+//		        	    Action paste = TActions.getAction("paste", ParticleDataTrack.this.trackerPanel); //$NON-NLS-1$
+//		        			paste.actionPerformed(null);
+		            }
+		          }
+		          catch (Exception ex) {          	
+		          }
+		        }
+  					getLeader().prevDataString = getLeader().pendingDataString;
+  					getLeader().reloadButton.setEnabled(false);
+  					TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel).refresh();
+
+		    	}
+
+//		    	else if (frame.clipboardListener!=null && !frame.clipboardListener.hasAutoPasteTargets()) {
+//		    		frame.clipboardListener.end();
+//		    		frame.clipboardListener = null;
+//		    	}
+		    	if (ParticleDataTrack.this.trackerPanel.getSelectedTrack()==ParticleDataTrack.this) {
+				    TTrackBar trackbar = TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel);
+				    trackbar.refresh();
+		    	}
 				}  			
   		});
   	}
@@ -565,18 +602,37 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
     if (trackerPanel.getSelectedPoint()==null) {
 	    list.remove(massLabel);
 	    list.remove(massField);
-	    if (getSource()==null) {
+	    if (getSource()==null) { // data was pasted
 		    autoPasteCheckbox.setText(TrackerRes.getString("TMenuBar.MenuItem.AutoPasteData.Text")); //$NON-NLS-1$
-		    TFrame frame = trackerPanel.getTFrame();
-		    autoPasteCheckbox.setSelected(frame.clipboardListener!=null);
+		    autoPasteCheckbox.setSelected(isAutoPasteEnabled());
 		    list.add(autoPasteCheckbox);
 		    list.add(mSeparator);
 	    }
-	    else if (getLeader().reloadButton.isEnabled()) {
+	    if (getLeader().reloadButton.isEnabled()) {
 	    	list.add(getLeader().reloadButton);
 	    }
     }
     return list;
+  }
+  
+	/**
+	 * Determines if autopaste is enabled for this track.
+	 * 
+	 * @return true if autopaste is enabled
+	 */
+  protected boolean isAutoPasteEnabled() {
+  	// only the leader is autopaste enabled
+  	return autoPasteEnabled;
+  }
+  
+	/**
+	 * Sets the autoPasteEnabled flag for this track.
+	 * 
+	 * @param enable true to enable autopasting
+	 */
+  protected void setAutoPasteEnabled(boolean enable) {
+  	// only the leader is autopaste enabled  	
+  	getLeader().autoPasteEnabled = enable;
   }
   
 	/**
@@ -591,11 +647,13 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   	}
   	if ("".equals(pointName)) { //$NON-NLS-1$
   		ArrayList<ParticleDataTrack> pts = getLeader().allPoints();
-			for (int i=0; i<pts.size(); i++) {
-				if (pts.get(i)==this) {
-					return alphabet.substring(i, i+1);
+  		if (pts.size()>1) {
+				for (int i=0; i<pts.size(); i++) {
+					if (pts.get(i)==this) {
+						pointName = alphabet.substring(i, i+1);
+					}
 				}
-			}
+  		}
   	}
   	// count duplicates
   	int count = 0, i = 0;
@@ -621,6 +679,17 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 */
   protected void setPointName(String newName) {
   	if (newName==null) newName = ""; //$NON-NLS-1$
+  	// strip parentheses and brackets from name
+  	int n = newName.indexOf("("); //$NON-NLS-1$
+  	if (n>-1) {
+  		newName =newName.substring(0, n).trim();
+  	}
+  	else {
+    	n = newName.indexOf("["); //$NON-NLS-1$
+    	if (n>-1) {
+    		newName =newName.substring(0, n).trim();
+    	}
+  	}
   	pointName = newName;
   	boolean changed = false;
   	for (ParticleDataTrack next: getLeader().allPoints()) {
@@ -1073,6 +1142,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	@Override
 	protected void setTrackerPanel(TrackerPanel panel) {
+		if (panel==null && trackerPanel!=null) {
+  		trackerPanel.getTFrame().checkClipboardListener();
+		}
 		super.setTrackerPanel(panel);
 		for (TTrack next: morePoints) {
 			next.setTrackerPanel(panel);
@@ -1124,7 +1196,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	    repaint();
 		}
 		// listen for clipboard changes
-		else if (e.getPropertyName().equals("windowfocus") && trackerPanel!=null) { //$NON-NLS-1$
+		else if (e.getPropertyName().equals("windowfocus") && trackerPanel!=null //$NON-NLS-1$
+				&& trackerPanel.getTFrame()!=null 
+				&& trackerPanel==trackerPanel.getTFrame().getTrackerPanel(trackerPanel.getTFrame().getSelectedTab())) {
 			if (this==getLeader()) {
 				// get current data string and compare with previous
 				String dataString = null;
@@ -1141,16 +1215,20 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					dataString = ResourceLoader.getString(dataSource.toString());
 				}
 				if (dataString!=null) {
-					String dataName = getImportableDataName(dataString);
-					boolean dataChanged = modelName.equals(dataName) && !dataString.equals(prevDataString);
-					currentDataString = dataString;
-					reloadButton.setEnabled(dataChanged);
-					if (trackerPanel.getSelectedTrack() instanceof ParticleDataTrack
-							&& allPoints().contains(trackerPanel.getSelectedTrack())) {
-						TTrackBar.getTrackbar(trackerPanel).refresh();
-					}
+					setPendingDataString(dataString);
 				}
 			}
+		}
+	}
+	
+	protected void setPendingDataString(String dataString) {
+		String dataName = getImportableDataName(dataString);
+		boolean dataChanged = modelName.equals(dataName) && !dataString.equals(prevDataString);
+		pendingDataString = dataString;
+		reloadButton.setEnabled(dataChanged);
+		if (trackerPanel.getSelectedTrack() instanceof ParticleDataTrack
+				&& allPoints().contains(trackerPanel.getSelectedTrack())) {
+			TTrackBar.getTrackbar(trackerPanel).refresh();
 		}
 	}
 	
@@ -1299,10 +1377,33 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	private static double[] getTimeData(Data data) {
 		ArrayList<Dataset> datasets = data.getDatasets();
 		for (Dataset dataset: datasets) {
-			if (dataset.getXColumnName().toLowerCase().equals("t"))	return dataset.getXPoints(); //$NON-NLS-1$
-			else if (dataset.getYColumnName().toLowerCase().equals("t"))	return dataset.getYPoints(); //$NON-NLS-1$
-			else if (dataset.getXColumnName().toLowerCase().equals("time"))	return dataset.getXPoints(); //$NON-NLS-1$
-			else if (dataset.getYColumnName().toLowerCase().equals("time"))	return dataset.getYPoints(); //$NON-NLS-1$
+			// look at x-column
+			String s = dataset.getXColumnName().toLowerCase();
+	  	int n = s.indexOf("("); //$NON-NLS-1$
+	  	if (n>-1) {
+	  		s =s.substring(0, n).trim();
+	  	}
+	  	else {
+	    	n = s.indexOf("["); //$NON-NLS-1$
+	    	if (n>-1) {
+	    		s =s.substring(0, n).trim();
+	    	}
+	  	}
+			if (s.equals("t") || s.equals("time"))	return dataset.getXPoints(); //$NON-NLS-1$ //$NON-NLS-2$
+			
+			// look at y-column
+			s = dataset.getYColumnName().toLowerCase();
+	  	n = s.indexOf("("); //$NON-NLS-1$
+	  	if (n>-1) {
+	  		s =s.substring(0, n).trim();
+	  	}
+	  	else {
+	    	n = s.indexOf("["); //$NON-NLS-1$
+	    	if (n>-1) {
+	    		s =s.substring(0, n).trim();
+	    	}
+	  	}
+			if (s.equals("t") || s.equals("time"))	return dataset.getYPoints(); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		return null;
 	}
@@ -1358,7 +1459,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   	if (dataString==null) return null;
 		ArrayList<ParticleDataTrack> tracks = trackerPanel.getDrawables(ParticleDataTrack.class);
   	for (ParticleDataTrack next: tracks) {
-  		if (dataString.equals(next.currentDataString)) return next;
+  		if (dataString.equals(next.prevDataString)) return next;
   	}
   	return null;
 	}
@@ -1444,10 +1545,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 //		boolean foundX = false, foundY = false;
 		String colName = null;
 		Dataset prevDataset = null;
-		for (Dataset dataset: datasets) {
-			
-		// look for columns with paired xy names
-		double[][] xy = new double[2][];
+		for (Dataset dataset: datasets) {			
+			// look for columns with paired xy names
+			double[][] xy = new double[2][];
 			if (xy[0]==null && dataset.getXColumnName().toLowerCase().startsWith("x"))	{ //$NON-NLS-1$
 				colName = dataset.getXColumnName().substring(1).trim();
 				xy[0] = dataset.getXPoints();
@@ -1559,6 +1659,25 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			colName = null;
 		}	// end for loop
 		
+		// if no paired datasets are found check for unnamed data
+		if (results.isEmpty()) {
+			double[][] xy = new double[2][];
+			for (Dataset dataset: datasets) {			
+				if (xy[0]==null && dataset.getYColumnName().equals("?"))	{ //$NON-NLS-1$
+					xy[0] = dataset.getYPoints();					
+				}
+				else if (xy[0]!=null && xy[1]==null && dataset.getYColumnName().equals("?")) { //$NON-NLS-1$
+					xy[1] = dataset.getYPoints();
+					break;
+				}
+			}
+			// if all data are present, add to results
+			if (xy[0]!=null && xy[1]!=null) {
+				colName = TrackerRes.getString("TrackerPanel.DataBuilder.TrackType.Unknown"); //$NON-NLS-1$
+				results.add(new Object[] {colName, xy});
+			}
+		}
+
 		if (results.isEmpty()) {
 			throw new Exception("Position data (x, y) not defined"); //$NON-NLS-1$
 		}

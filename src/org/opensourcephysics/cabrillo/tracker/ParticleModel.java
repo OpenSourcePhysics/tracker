@@ -201,17 +201,25 @@ abstract public class ParticleModel extends PointMass {
 		if (name.equals("function") && !loading) { //$NON-NLS-1$
 			trackerPanel.changed = true;
 		}
-		else if (name.equals("tab") && modelBuilder != null) { //$NON-NLS-1$
-			if (trackerPanel != null 
-					&& e.getNewValue() == trackerPanel 
-					&& trackerPanel.isModelBuilderVisible) {
-				modelBuilder.setVisible(true);				
+		else if (name.equals("tab")) { //$NON-NLS-1$
+			if (modelBuilder != null) {
+				if (trackerPanel != null 
+						&& e.getNewValue() == trackerPanel 
+						&& trackerPanel.isModelBuilderVisible) {
+					modelBuilder.setVisible(true);				
+				}
+				else if (modelBuilder.isVisible()) {
+					modelBuilder.setVisible(false);
+					trackerPanel.isModelBuilderVisible = true;
+				}
 			}
-			else if (modelBuilder.isVisible()) {
-				modelBuilder.setVisible(false);
-				trackerPanel.isModelBuilderVisible = true;
+			if (this instanceof ParticleDataTrack
+//					&& ((ParticleDataTrack)this).isAutoPasteEnabled()
+					&& trackerPanel!=null && trackerPanel.getTFrame()!=null
+//					&& trackerPanel.getTFrame().clipboardListener!=null
+					&& trackerPanel==e.getNewValue()) {
+				trackerPanel.getTFrame().getClipboardListener().processContents(trackerPanel);
 			}
-			
 		}
 		else if (name.equals("selectedtrack") //$NON-NLS-1$
 					&& e.getNewValue() == this && modelBuilder != null
