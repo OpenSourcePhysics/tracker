@@ -1591,11 +1591,11 @@ public class ExportZipDialog extends JDialog {
       addButton.setForeground(labelColor);
       addButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-        	// show file chooser to add PDF and HTML files
+        	// show file chooser to add support files
           JFileChooser chooser = TrackerIO.getChooser();
           chooser.setDialogTitle(TrackerRes.getString("ZipResourceDialog.FileChooser.AddFile.Title"));  //$NON-NLS-1$
-          chooser.addChoosableFileFilter(LaunchBuilder.getPDFFilter());
-          chooser.setFileFilter(LaunchBuilder.getHTMLFilter());
+//          chooser.addChoosableFileFilter(LaunchBuilder.getPDFFilter());
+//          chooser.setFileFilter(LaunchBuilder.getHTMLFilter());
         	File[] files = TrackerIO.getChooserFiles("open any"); //$NON-NLS-1$
           chooser.removeChoosableFileFilter(LaunchBuilder.getHTMLFilter());
           chooser.removeChoosableFileFilter(LaunchBuilder.getPDFFilter());
