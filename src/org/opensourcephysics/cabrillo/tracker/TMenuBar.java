@@ -94,6 +94,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem[] copyViewImageItems;
   protected JMenu copyObjectMenu;
   protected JMenuItem pasteItem;
+  protected JCheckBoxMenuItem autopasteCheckbox;
   protected JMenu deleteTracksMenu;
   protected JMenuItem deleteSelectedPointItem;
   protected JMenuItem clearTracksItem;
@@ -494,7 +495,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     pasteItem = editMenu.add(actions.get("paste")); //$NON-NLS-1$
     pasteItem.setAccelerator(KeyStroke.getKeyStroke('V', keyMask));
     editMenu.addSeparator();
-    
+    // autopaste checkbox
+    autopasteCheckbox = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.Checkbox.Autopaste")); //$NON-NLS-1$
+    autopasteCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	trackerPanel.getTFrame().alwaysListenToClipboard = autopasteCheckbox.isSelected();
+      	trackerPanel.getTFrame().checkClipboardListener();
+      }
+    });    
     // copy data menu
     copyDataMenu = new JMenu();
     
@@ -1724,10 +1732,15 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	        }
         }
         
-        // paste xml item
+        // paste paste and autopaste items
         if (trackerPanel.isEnabled("edit.paste")) { //$NON-NLS-1$
           if (editMenu.getItemCount() > 0) editMenu.addSeparator();
           editMenu.add(pasteItem);
+          TFrame frame = trackerPanel.getTFrame();
+          if (frame!=null) {
+            autopasteCheckbox.setSelected(frame.alwaysListenToClipboard);
+            editMenu.add(autopasteCheckbox);
+          }
         }
         
         // delete and clear menus

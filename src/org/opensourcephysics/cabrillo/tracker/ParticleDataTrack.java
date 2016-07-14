@@ -100,7 +100,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   private JCheckBoxMenuItem linesVisibleCheckbox, linesClosedCheckbox, linesBoldCheckbox;
   private JCheckBox autoPasteCheckbox;
   private ActionListener allFootprintsListener, allCircleFootprintsListener;
-  private boolean autoPasteEnabled;
+  private boolean autoPasteEnabled = true;
 	
 	/**
 	 * Public constructor.

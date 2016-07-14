@@ -58,6 +58,13 @@ class ClipboardListener extends Thread implements ClipboardOwner {
   }
   
   @Override
+  public void start() {
+  	super.start();
+		Transferable contents = sysClip.getContents(this);
+		processContents(contents);
+  }
+  
+  @Override
   public void run() {
     Transferable trans = sysClip.getContents(this);
     takeOwnership(trans);
@@ -105,10 +112,12 @@ class ClipboardListener extends Thread implements ClipboardOwner {
    * @param t a Transferable.
    */
   public void processContents(Transferable t) {
+  	// if Tracker itself copied the data, ignore it
   	if (TrackerIO.dataCopiedToClipboard) {
   		TrackerIO.dataCopiedToClipboard = false;
   		return;
   	}
+  	// if no String data on the clipboard, return
     if (t==null || !t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
     	return;
     }
@@ -122,6 +131,7 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 				}
 				if (trackerPanel==null) return;
 				DataTrack dt = ParticleDataTrack.getTrackForDataString(dataString, trackerPanel);
+				// if track exists with the same data string, return
 				if (dt!=null) {
 					// clipboard data has already been pasted
 					return;
@@ -130,6 +140,7 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 				DatasetManager data = DataTool.parseData(dataString, null);
 				if (data!=null) {
 					String dataName = data.getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$;
+					boolean foundMatch = false;
 					ArrayList<DataTrack> dataTracks = trackerPanel.getDrawables(DataTrack.class);
 					for (DataTrack next: dataTracks) {
 						if (!(next instanceof ParticleDataTrack)) continue;
@@ -138,6 +149,7 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 						if (trackName.equals(dataName) || ("".equals(dataName) &&  //$NON-NLS-1$
 								trackName.equals(TrackerRes.getString("ParticleDataTrack.New.Name")))) { //$NON-NLS-1$
 							// found the data track
+							foundMatch = true;
 							if (track.isAutoPasteEnabled()) {
 								// set new data immediately
 				  			track.setData(data);
@@ -148,6 +160,14 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 								track.setPendingDataString(dataString);
 							}
 							break;
+						}
+					}
+					// if no matching track was found then create new track
+					if (!foundMatch && frame.alwaysListenToClipboard) {
+						dt = trackerPanel.importData(data, null);	
+						if (dt!=null && dt instanceof ParticleDataTrack) {
+							ParticleDataTrack track = (ParticleDataTrack)dt;
+							track.prevDataString = track.pendingDataString = dataString;
 						}
 					}
 		    }

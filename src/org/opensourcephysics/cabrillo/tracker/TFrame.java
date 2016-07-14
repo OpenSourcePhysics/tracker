@@ -87,6 +87,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //  protected JProgressBar monitor;
   protected PrefsDialog prefsDialog;
   protected ClipboardListener clipboardListener;
+  protected boolean alwaysListenToClipboard;
 
   /**
    * Constructs an empty TFrame.
@@ -1671,26 +1672,43 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
    * Starts or ends the clipboard listener as needed.
    */
   protected void checkClipboardListener() {
-  	// do any pasted data tracks exist?
-  	boolean hasPastedTracks = false;
-    for (int i = 0; i < getTabCount(); i++) {
-    	TrackerPanel trackerPanel = getTrackerPanel(i);
-    	ArrayList<DataTrack> dataTracks = trackerPanel.getDrawables(DataTrack.class);
-    	// do any tracks have null source?
-    	for (DataTrack next: dataTracks) {
-    		hasPastedTracks = hasPastedTracks || next.getSource()==null;
-    	}
-    }
-    
-    if (hasPastedTracks) {
-    	getClipboardListener();
-    }
-  	else {
-  		if (clipboardListener==null) return;
-    	// end existing listener
-    	clipboardListener.end();
-    	clipboardListener = null;
-  	}
+  	// do we need clipboard listener?
+  	Runnable runner = new Runnable() {
+  		public void run() {
+  	  	boolean needListener = alwaysListenToClipboard;
+  	  	if (!needListener) {
+  		  	// do any pasted data tracks exist?
+  		    try {
+  					for (int i = 0; i < getTabCount(); i++) {
+  						TrackerPanel trackerPanel = getTrackerPanel(i);
+  						ArrayList<DataTrack> dataTracks = trackerPanel.getDrawables(DataTrack.class);
+  						// do any tracks have null source?
+  						for (DataTrack next: dataTracks) {
+  							if (next.getSource()==null) {
+  								// null source, so data is pasted
+  								needListener = true;
+  								break;
+  							}
+  						}
+  					}
+  				} catch (Exception ex) {
+  				}
+  	  	}
+  	    
+  	    if (needListener) {
+  	    	getClipboardListener();
+  	    }
+  	  	else {
+  	  		if (clipboardListener==null) return;
+  	    	// end existing listener
+  	    	clipboardListener.end();
+  	    	clipboardListener = null;
+  	  	}  			
+  		}
+  	};
+//  	new Thread(runner).start();
+  	SwingUtilities.invokeLater(runner);
+
   }
 
   /**

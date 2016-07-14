@@ -1422,10 +1422,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   
   /**
    * Imports Data from a source into a DataTrack. 
-   * Data must include "x" and "y" columns, may include "t". 
+   * Data must include "x" and "y" columns (may be unnamed), may include "t". 
    * DataTrack is the first one found that matches the Data name or ID.
    * If none found, a new DataTrack is created.
-   * Source object (model) may be String path, JPanel controlPanel, Tool tool, etc
+   * Source object (model) may be String path, JPanel controlPanel, Tool tool, null, etc
    * 
    * @param data the Data to import
    * @param source the data source (may be null)
