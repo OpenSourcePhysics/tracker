@@ -762,6 +762,7 @@ public class TrackerIO extends VideoIO {
 				ArrayList<String> trkFiles = new ArrayList<String>(); // all trk files found in zip
 				final ArrayList<String> htmlFiles = new ArrayList<String>(); // supplemental html files found in zip
 				final ArrayList<String> pdfFiles = new ArrayList<String>(); // all pdf files found in zip
+				final ArrayList<String> otherFiles = new ArrayList<String>(); // other files found in zip
 				String trkForTFrame = null;
 				
 				// sort the zip file contents
@@ -784,8 +785,14 @@ public class TrackerIO extends VideoIO {
 						
 						htmlFiles.add(next);
 					}
+					// collect other files in top directory except thumbnails
+					else if (next.indexOf("thumbnail")==-1 && next.indexOf("/")==-1) { //$NON-NLS-1$ //$NON-NLS-2$
+						String s = ResourceLoader.getURIPath(path+"!/"+next); //$NON-NLS-1$
+			    	OSPLog.finest("found other file "+s); //$NON-NLS-1$
+						otherFiles.add(next);
+					}
 				}
-				if (trkFiles.isEmpty() && pdfFiles.isEmpty() && htmlFiles.isEmpty()) {
+				if (trkFiles.isEmpty() && pdfFiles.isEmpty() && htmlFiles.isEmpty() && otherFiles.isEmpty()) {
 					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
       		JOptionPane.showMessageDialog(frame, 
       				s+" \""+name+"\".", //$NON-NLS-1$ //$NON-NLS-2$
@@ -834,20 +841,21 @@ public class TrackerIO extends VideoIO {
 					}
 				}
 				
-				// unzip pdf/html files into temp directory and open on desktop
+				// unzip pdf/html/other files into temp directory and open on desktop
 				final ArrayList<String> tempFiles = new ArrayList<String>();		
-				if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty()) {
+				if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty() || !otherFiles.isEmpty()) {
 					File temp = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$			
 					Set<File> files = ResourceLoader.unzip(path, temp, true);
 					for (File next : files) {
 						next.deleteOnExit();
-		        // add PDF and HTML files to tempFiles
+		        // add PDF/HTML/other files to tempFiles
 						String relPath = XML.getPathRelativeTo(next.getPath(), temp.getPath());
-						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath)) {
+						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath) || otherFiles.contains(relPath)) {
 							String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());
 							tempFiles.add(tempPath);
 						}
 					}
+					// open tempfiles on the desktop
 		  		Runnable runner = new Runnable() {
 						public void run() {
 			        for (String path: tempFiles) {
@@ -860,7 +868,7 @@ public class TrackerIO extends VideoIO {
 				// load trk files into Tracker
 	  		if (!VideoIO.isCanceled()) {
 	        monitorDialog.close();
-	      	open(trkFiles, frame, tempFiles);
+	      	open(trkFiles, frame, tempFiles); // this also adds tempFile paths to trackerPanel
 	        Tracker.addRecent(nonURIPath, false); // add at beginning
 	      	return;
 	  		}
@@ -888,7 +896,7 @@ public class TrackerIO extends VideoIO {
         }
 
         // should the line below finish (in SwingWorker?) before continuing?
-        control.loadObject(trackerPanel);
+        trackerPanel = (TrackerPanel)control.loadObject(trackerPanel);
         
         trackerPanel.frame = frame;
         trackerPanel.defaultFileName = XML.getName(path);

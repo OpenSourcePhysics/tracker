@@ -94,6 +94,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem[] copyViewImageItems;
   protected JMenu copyObjectMenu;
   protected JMenuItem pasteItem;
+  protected JCheckBoxMenuItem autopasteCheckbox;
   protected JMenu deleteTracksMenu;
   protected JMenuItem deleteSelectedPointItem;
   protected JMenuItem clearTracksItem;
@@ -109,6 +110,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   // video menu
   protected JMenu videoMenu;
   protected JCheckBoxMenuItem videoVisibleItem;
+  protected JMenuItem goToItem;
   protected JMenu filtersMenu;
   protected JMenu newFilterMenu;
   protected JMenuItem clearFiltersItem;
@@ -153,7 +155,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenu newDataTrackMenu;
   protected JMenuItem newDataTrackPasteItem;
   protected JMenuItem newDataTrackFromFileItem;
-  protected JCheckBoxMenuItem newDataTrackAutoPasteItem;
+  protected JMenuItem dataTrackHelpItem;
   protected JMenuItem emptyTracksItem;
   // coords menu
   protected JMenu coordsMenu;
@@ -493,7 +495,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     pasteItem = editMenu.add(actions.get("paste")); //$NON-NLS-1$
     pasteItem.setAccelerator(KeyStroke.getKeyStroke('V', keyMask));
     editMenu.addSeparator();
-    
+    // autopaste checkbox
+    autopasteCheckbox = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.Checkbox.Autopaste")); //$NON-NLS-1$
+    autopasteCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	trackerPanel.getTFrame().alwaysListenToClipboard = autopasteCheckbox.isSelected();
+      	trackerPanel.getTFrame().checkClipboardListener();
+      }
+    });    
     // copy data menu
     copyDataMenu = new JMenu();
     
@@ -803,6 +812,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     openVideoItem = videoMenu.add(actions.get("openVideo")); //$NON-NLS-1$
     closeVideoItem = videoMenu.add(actions.get("closeVideo")); //$NON-NLS-1$
     
+    // goTo item
+    goToItem = new JMenuItem(MediaRes.getString("VideoPlayer.Readout.Menu.GoTo")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    goToItem.setAccelerator(KeyStroke.getKeyStroke('G', keyMask));
+    goToItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	VideoPlayer player = trackerPanel.getPlayer();
+      	player.showGoToDialog();
+      }
+    });
+   
     // image video items
     importImageMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.AddImage")); //$NON-NLS-1$
     addImageAfterItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.AddAfter")); //$NON-NLS-1$
@@ -1072,28 +1091,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     newDataTrackFromFileItem.addActionListener(actions.get("dataTrack")); //$NON-NLS-1$
     newDataTrackPasteItem = new JMenuItem(TrackerRes.getString("ParticleDataTrack.Button.Paste.Text")); //$NON-NLS-1$
     newDataTrackPasteItem.addActionListener(actions.get("paste")); //$NON-NLS-1$
-    newDataTrackAutoPasteItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.AutoPasteData.Text")); //$NON-NLS-1$
-    newDataTrackAutoPasteItem.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-	    	if (newDataTrackAutoPasteItem.isSelected()) {
-	      	if (getFrame().clipboardListener==null) {
-	      		frame.clipboardListener = new ClipboardListener(frame);
-	      		frame.clipboardListener.start();
-	      		if (newDataTrackPasteItem.isEnabled()) {
-	      			actions.get("paste").actionPerformed(null); //$NON-NLS-1$
-	      		}
-	      	}
-	    	}
-	    	else if (getFrame().clipboardListener!=null) {
-	    		frame.clipboardListener.end();
-	    		frame.clipboardListener = null;
-	    	}
-	    	if (trackerPanel.getSelectedTrack() instanceof ParticleDataTrack) {
-			    TTrackBar trackbar = TTrackBar.getTrackbar(trackerPanel);
-			    trackbar.refresh();
-	    	}
-	    }
-	  });
+    dataTrackHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.DataTrackHelp")); //$NON-NLS-1$
+    dataTrackHelpItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        getFrame().showHelp("datatrack", 0); //$NON-NLS-1$
+      }
+    });
     // window menu
     windowMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Window")); //$NON-NLS-1$
     windowMenu.addMouseListener(new MouseAdapter() {
@@ -1435,6 +1438,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         if (videoMenu.getItemCount() > 0)
           videoMenu.addSeparator();
         
+        videoMenu.add(goToItem);
+        videoMenu.addSeparator();
+        
         if (hasVideo && video instanceof ImageVideo) {
         	editVideoItem.setSelected(((ImageVideo)video).isEditable());
       		videoMenu.add(editVideoItem);
@@ -1726,10 +1732,15 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	        }
         }
         
-        // paste xml item
+        // paste paste and autopaste items
         if (trackerPanel.isEnabled("edit.paste")) { //$NON-NLS-1$
           if (editMenu.getItemCount() > 0) editMenu.addSeparator();
           editMenu.add(pasteItem);
+          TFrame frame = trackerPanel.getTFrame();
+          if (frame!=null) {
+            autopasteCheckbox.setSelected(frame.alwaysListenToClipboard);
+            editMenu.add(autopasteCheckbox);
+          }
         }
         
         // delete and clear menus
@@ -1817,10 +1828,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         }
         if (trackerPanel.isEnabled("new.dataTrack")) { //$NON-NLS-1$
           if (createMenu.getItemCount() > 0) createMenu.addSeparator();
-          createMenu.add(newDataTrackMenu); 
+          createMenu.add(newDataTrackMenu);
+          newDataTrackMenu.removeAll();
           newDataTrackMenu.add(newDataTrackFromFileItem); 
           newDataTrackMenu.add(newDataTrackPasteItem); 
-          newDataTrackMenu.add(newDataTrackAutoPasteItem); 
+          newDataTrackMenu.addSeparator(); 
+          newDataTrackMenu.add(dataTrackHelpItem); 
         }
         newTrackItems = createMenu.getMenuComponents();
         // refresh coords menu

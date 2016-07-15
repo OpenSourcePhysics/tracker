@@ -87,6 +87,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //  protected JProgressBar monitor;
   protected PrefsDialog prefsDialog;
   protected ClipboardListener clipboardListener;
+  protected boolean alwaysListenToClipboard;
 
   /**
    * Constructs an empty TFrame.
@@ -308,8 +309,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     trackerPanel.selectedStep = null;
     trackerPanel.selectedTrack = null;
     
-    // hide the info dialog
-    notesDialog.setVisible(false);
+    // hide the info dialog if trackerPanel is in selected tab
+    if (tab==getSelectedTab()) {
+    	notesDialog.setVisible(false);
+    }
     
     // inform listeners
     firePropertyChange("tab", trackerPanel, null); //$NON-NLS-1$
@@ -779,6 +782,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     				progress = 20+(int)(framesLoaded*60.0/next.getFrameCount());
     			}
 	      	next.setProgress(progress);
+	      	next.setTitle(TrackerRes.getString("TFrame.ProgressDialog.Title.FramesLoaded")+": "+framesLoaded); //$NON-NLS-1$ //$NON-NLS-2$
 	      	break;
     		}
     	}
@@ -869,6 +873,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       	tabbedPane.setTitleAt(i, trackerPanel.getTitle());
       	VideoPlayer player = trackerPanel.getPlayer();
       	player.refresh();
+      	player.setLocale((Locale)e.getNewValue());
         Video vid = trackerPanel.getVideo();
         if (vid != null) {
           vid.getFilterStack().refresh();
@@ -1652,6 +1657,62 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     if (tab >= 0) return tabs.get(tabbedPane.getComponentAt(tab));
     return null;
   }
+  
+  /**
+   * Gets the (singleton) clipboard listener.
+   *
+   * @return the ClipboardListener
+   */
+  protected ClipboardListener getClipboardListener() {
+  	if (clipboardListener==null) {
+  		clipboardListener = new ClipboardListener(this);
+  		clipboardListener.start();
+  	}
+  	return clipboardListener;
+  }
+
+  /**
+   * Starts or ends the clipboard listener as needed.
+   */
+  protected void checkClipboardListener() {
+  	// do we need clipboard listener?
+  	Runnable runner = new Runnable() {
+  		public void run() {
+  	  	boolean needListener = alwaysListenToClipboard;
+  	  	if (!needListener) {
+  		  	// do any pasted data tracks exist?
+  		    try {
+  					for (int i = 0; i < getTabCount(); i++) {
+  						TrackerPanel trackerPanel = getTrackerPanel(i);
+  						ArrayList<DataTrack> dataTracks = trackerPanel.getDrawables(DataTrack.class);
+  						// do any tracks have null source?
+  						for (DataTrack next: dataTracks) {
+  							if (next.getSource()==null) {
+  								// null source, so data is pasted
+  								needListener = true;
+  								break;
+  							}
+  						}
+  					}
+  				} catch (Exception ex) {
+  				}
+  	  	}
+  	    
+  	    if (needListener) {
+  	    	getClipboardListener();
+  	    }
+  	  	else {
+  	  		if (clipboardListener==null) return;
+  	    	// end existing listener
+  	    	clipboardListener.end();
+  	    	clipboardListener = null;
+  	  	}  			
+  		}
+  	};
+//  	new Thread(runner).start();
+  	SwingUtilities.invokeLater(runner);
+
+  }
 
   /**
    * Creates the GUI.
@@ -1690,6 +1751,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     notesDialog = new JDialog(this, false) {
     	public void setVisible(boolean vis) {
     		super.setVisible(vis);
+
         if (getSelectedTab() > -1) {
           TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
           TToolBar toolbar = getToolBar(trackerPanel);

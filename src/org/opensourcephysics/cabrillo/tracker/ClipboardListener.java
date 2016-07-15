@@ -28,7 +28,7 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-
+import java.util.ArrayList;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.tools.DataTool;
@@ -45,6 +45,7 @@ class ClipboardListener extends Thread implements ClipboardOwner {
   private Clipboard sysClip = Toolkit.getDefaultToolkit().getSystemClipboard();
   private TFrame frame;
   private boolean running = true;
+  private TrackerPanel targetPanel;
   
   /**
    * Constructor
@@ -54,6 +55,13 @@ class ClipboardListener extends Thread implements ClipboardOwner {
   public ClipboardListener(TFrame frame) {
   	super();
   	this.frame = frame;
+  }
+  
+  @Override
+  public void start() {
+  	super.start();
+		Transferable contents = sysClip.getContents(this);
+		processContents(contents);
   }
   
   @Override
@@ -88,40 +96,83 @@ class ClipboardListener extends Thread implements ClipboardOwner {
   }
   
   /**
+   * Immediately processes the clipboard contents, targeting a specified TrackerPanel.
+   * 
+   * @param target the target TrackerPanel
+   */
+  public void processContents(TrackerPanel target) {
+  	targetPanel = target;
+		Transferable contents = sysClip.getContents(this);
+		processContents(contents);
+  }  
+  
+  /**
    * Processes the Transferable contents.
    * 
    * @param t a Transferable.
    */
   public void processContents(Transferable t) {
+  	// if Tracker itself copied the data, ignore it
   	if (TrackerIO.dataCopiedToClipboard) {
   		TrackerIO.dataCopiedToClipboard = false;
   		return;
   	}
+  	// if no String data on the clipboard, return
     if (t==null || !t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
     	return;
     }
-		int tab = frame.getSelectedTab();
-		TrackerPanel trackerPanel = frame.getTrackerPanel(tab);
-		if (trackerPanel!=null) {
-	  	try {
-				String dataString = (String)t.getTransferData(DataFlavor.stringFlavor);
-				if (dataString!=null) {
-					DataTrack dt = ParticleDataTrack.getTrackForDataString(dataString, trackerPanel);
-					if (dt!=null) {
-						// clipboard data has already been pasted
-						return;
-					}
-					DatasetManager data = DataTool.parseData(dataString, null);
-					if (data!=null) {
-			      dt = trackerPanel.importData(data, null);
-			      if (dt instanceof ParticleDataTrack) {
-			      	ParticleDataTrack pdt = (ParticleDataTrack)dt;
-			      	pdt.prevDataString = dataString;
-			      }
-			    }
+  	try {
+			String dataString = (String)t.getTransferData(DataFlavor.stringFlavor);
+			if (dataString!=null) {
+				TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+				if (targetPanel!=null) {
+					trackerPanel = targetPanel;
+					targetPanel = null;
 				}
-			} catch (Exception ex) {
+				if (trackerPanel==null) return;
+				DataTrack dt = ParticleDataTrack.getTrackForDataString(dataString, trackerPanel);
+				// if track exists with the same data string, return
+				if (dt!=null) {
+					// clipboard data has already been pasted
+					return;
+				}
+				// parse the data and find data track
+				DatasetManager data = DataTool.parseData(dataString, null);
+				if (data!=null) {
+					String dataName = data.getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$;
+					boolean foundMatch = false;
+					ArrayList<DataTrack> dataTracks = trackerPanel.getDrawables(DataTrack.class);
+					for (DataTrack next: dataTracks) {
+						if (!(next instanceof ParticleDataTrack)) continue;
+						ParticleDataTrack track = (ParticleDataTrack)next;
+						String trackName = track.getName("model"); //$NON-NLS-1$
+						if (trackName.equals(dataName) || ("".equals(dataName) &&  //$NON-NLS-1$
+								trackName.equals(TrackerRes.getString("ParticleDataTrack.New.Name")))) { //$NON-NLS-1$
+							// found the data track
+							foundMatch = true;
+							if (track.isAutoPasteEnabled()) {
+								// set new data immediately
+				  			track.setData(data);
+				  			track.prevDataString = dataString;
+							}
+							else {
+								// set pending data
+								track.setPendingDataString(dataString);
+							}
+							break;
+						}
+					}
+					// if no matching track was found then create new track
+					if (!foundMatch && frame.alwaysListenToClipboard) {
+						dt = trackerPanel.importData(data, null);	
+						if (dt!=null && dt instanceof ParticleDataTrack) {
+							ParticleDataTrack track = (ParticleDataTrack)dt;
+							track.prevDataString = track.pendingDataString = dataString;
+						}
+					}
+		    }
 			}
+		} catch (Exception ex) {
 		}
   }
   
