@@ -309,8 +309,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     trackerPanel.selectedStep = null;
     trackerPanel.selectedTrack = null;
     
-    // hide the info dialog
-    notesDialog.setVisible(false);
+    // hide the info dialog if trackerPanel is in selected tab
+    if (tab==getSelectedTab()) {
+    	notesDialog.setVisible(false);
+    }
     
     // inform listeners
     firePropertyChange("tab", trackerPanel, null); //$NON-NLS-1$
@@ -780,6 +782,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     				progress = 20+(int)(framesLoaded*60.0/next.getFrameCount());
     			}
 	      	next.setProgress(progress);
+	      	next.setTitle(TrackerRes.getString("TFrame.ProgressDialog.Title.FramesLoaded")+": "+framesLoaded); //$NON-NLS-1$ //$NON-NLS-2$
 	      	break;
     		}
     	}
@@ -1748,6 +1751,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     notesDialog = new JDialog(this, false) {
     	public void setVisible(boolean vis) {
     		super.setVisible(vis);
+
         if (getSelectedTab() > -1) {
           TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
           TToolBar toolbar = getToolBar(trackerPanel);
