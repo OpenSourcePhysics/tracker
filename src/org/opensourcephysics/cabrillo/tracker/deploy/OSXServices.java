@@ -5,7 +5,6 @@ import java.util.ArrayList;
 
 import org.opensourcephysics.cabrillo.tracker.TFrame;
 import org.opensourcephysics.cabrillo.tracker.Tracker;
-import org.opensourcephysics.cabrillo.tracker.TrackerIO;
 
 /**
  * A class to handle apple events in OSX. Requires the stub classes in AppleJavaExtensions.jar 
@@ -16,31 +15,34 @@ import org.opensourcephysics.cabrillo.tracker.TrackerIO;
 public class OSXServices implements com.apple.eawt.AboutHandler, 
 	com.apple.eawt.QuitHandler, com.apple.eawt.PreferencesHandler, com.apple.eawt.OpenFilesHandler {
 
-	public static ArrayList<File> filesToOpen = new ArrayList<File>();
 	Tracker tracker;
+	ArrayList<File> filesToOpen = new ArrayList<File>();
 	
+	/**
+	 * Constructor used by TrackerStarter
+	 */
 	public OSXServices() {
+		com.apple.eawt.Application application = com.apple.eawt.Application.getApplication();
+		application.setOpenFileHandler(this);
+	}
+	
+	/**
+	 * Constructor used by Tracker
+	 * @param app the Tracker application
+	 */
+	public OSXServices(Tracker app) {
 		com.apple.eawt.Application application = com.apple.eawt.Application.getApplication();
 		application.setDockIconImage(Tracker.getOSXDockImage());
 		application.setAboutHandler(this);
 		application.setQuitHandler(this);
 		application.setPreferencesHandler(this);
-	}
-	
-	public void setTracker(Tracker app) {		
 		tracker = app;
-		TFrame frame = tracker.getFrame();
-		for (File file: filesToOpen) {
-			TrackerIO.open(file, frame);
-		}
-		filesToOpen.clear();
 	}
 	
 	public void handleAbout(com.apple.eawt.AppEvent.AboutEvent e) {
 		Tracker.showAboutTracker();
 	}
 	
-	// pig this needs work
 	public void openFiles(com.apple.eawt.AppEvent.OpenFilesEvent e) {
 		filesToOpen.addAll(e.getFiles());
 	}
@@ -70,5 +72,9 @@ public class OSXServices implements com.apple.eawt.AboutHandler,
 			frame.showPrefsDialog();
 		}
 	}
-	
+
+	public ArrayList<File> getFilesToOpen() {
+		return filesToOpen;
+	}
+
 }
