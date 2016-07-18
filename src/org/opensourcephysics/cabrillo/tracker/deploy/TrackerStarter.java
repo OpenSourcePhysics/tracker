@@ -33,6 +33,8 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -93,7 +95,8 @@ public class TrackerStarter {
 	static boolean use32BitMode = false;
 	static boolean relaunching = false;
 	static int port = 12321;
-	static Timer timer;
+	static Timer exitTimer, launchTimer;
+	static Object OSXServices;
 
 	static {
 		// identify codeBaseDir
@@ -134,11 +137,47 @@ public class TrackerStarter {
 	 * Main entry point when used as executable
 	 * @param args array of filenames
 	 */
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
+  	if (OSPRuntime.isMac()) {
+			// instantiate the OSXServices class by reflection
+			String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
+	    try {
+				Class<?> OSXClass = Class.forName(className);
+				Constructor<?> constructor = OSXClass.getConstructor();
+				OSXServices = constructor.newInstance();
+				logMessage("OSXServices running"); //$NON-NLS-1$
+			} catch (Exception ex) {
+			}
+		}
 		relaunching = false;
 		logText = ""; //$NON-NLS-1$
 		logMessage("launch initiated by user"); //$NON-NLS-1$
-		launchTracker(args);
+		launchTimer = new Timer(5000, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				boolean launchWithOriginalArgs = true;
+				if (OSXServices!=null) {
+					logMessage("checking OSXServices for files to open"); //$NON-NLS-1$
+					try {
+						Method method = OSXServices.getClass().getMethod("getFilesToOpen", (Class<?>)null); //$NON-NLS-1$
+						ArrayList<File> files = (ArrayList<File>)method.invoke(OSXServices, (Object[])null);
+						if (!files.isEmpty()) {
+							String[] newArgs = new String[files.size()];
+							for (int i=0; i<newArgs.length; i++) {
+								newArgs[i] = files.get(i).getAbsolutePath();
+							}
+							launchWithOriginalArgs = false;
+							launchTracker(newArgs);					 							
+						}
+					} catch (Exception ex) {
+					}
+				}
+				if (launchWithOriginalArgs) {
+					launchTracker(args);					 
+				}
+			}
+		});
+		launchTimer.setRepeats(false);
+		launchTimer.start();
 	}
 
 	/**
@@ -417,7 +456,7 @@ public class TrackerStarter {
 	 * Exits gracefully by giving information to the user.
 	 */
 	private static void exitGracefully(String jarPath) {
-		if (timer!=null) timer.stop();
+		if (exitTimer!=null) exitTimer.stop();
 		if (exceptions.equals("")) //$NON-NLS-1$
 			exceptions = "None"; //$NON-NLS-1$
 		String startLogLine = ""; //$NON-NLS-1$
@@ -818,18 +857,18 @@ public class TrackerStarter {
 			env.put("START_LOG", startLogPath); //$NON-NLS-1$
 		
 		// set up timer to exit after short delay
-		if (timer==null) {
-			timer = new Timer(1000, new ActionListener() {
+		if (exitTimer==null) {
+			exitTimer = new Timer(1000, new ActionListener() {
 				 public void actionPerformed(ActionEvent e) {
 					 System.exit(0);
 				 }
 			 });
-			timer.setRepeats(false);
-			timer.start();
+			exitTimer.setRepeats(false);
+			exitTimer.start();
 		}
 		else {
 			// reset timer every time a new process is started
-			timer.restart();
+			exitTimer.restart();
 		}
 		
 		// start the Tracker process and wait for it to finish
