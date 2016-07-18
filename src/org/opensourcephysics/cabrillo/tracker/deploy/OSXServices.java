@@ -1,10 +1,11 @@
 package org.opensourcephysics.cabrillo.tracker.deploy;
 
 import java.io.File;
-import java.util.List;
+import java.util.ArrayList;
 
 import org.opensourcephysics.cabrillo.tracker.TFrame;
 import org.opensourcephysics.cabrillo.tracker.Tracker;
+import org.opensourcephysics.cabrillo.tracker.TrackerIO;
 
 /**
  * A class to handle apple events in OSX. Requires the stub classes in AppleJavaExtensions.jar 
@@ -15,11 +16,10 @@ import org.opensourcephysics.cabrillo.tracker.Tracker;
 public class OSXServices implements com.apple.eawt.AboutHandler, 
 	com.apple.eawt.QuitHandler, com.apple.eawt.PreferencesHandler, com.apple.eawt.OpenFilesHandler {
 
+	public static ArrayList<File> filesToOpen = new ArrayList<File>();
 	Tracker tracker;
-	OSPSocket socket;
 	
-	public OSXServices(Tracker app) {
-		tracker = app;
+	public OSXServices() {
 		com.apple.eawt.Application application = com.apple.eawt.Application.getApplication();
 		application.setDockIconImage(Tracker.getOSXDockImage());
 		application.setAboutHandler(this);
@@ -27,11 +27,13 @@ public class OSXServices implements com.apple.eawt.AboutHandler,
 		application.setPreferencesHandler(this);
 	}
 	
-	public OSXServices(OSPSocket app) {
-		socket = app;
-		com.apple.eawt.Application application = com.apple.eawt.Application.getApplication();
-		application.setDockIconImage(Tracker.getOSXDockImage());
-		application.setOpenFileHandler(this);
+	public void setTracker(Tracker app) {		
+		tracker = app;
+		TFrame frame = tracker.getFrame();
+		for (File file: filesToOpen) {
+			TrackerIO.open(file, frame);
+		}
+		filesToOpen.clear();
 	}
 	
 	public void handleAbout(com.apple.eawt.AppEvent.AboutEvent e) {
@@ -40,19 +42,7 @@ public class OSXServices implements com.apple.eawt.AboutHandler,
 	
 	// pig this needs work
 	public void openFiles(com.apple.eawt.AppEvent.OpenFilesEvent e) {
-//		if (socket!=null && socket.isServer && socket.clientReady) {
-		if (socket!=null) {
-			List<File> files = e.getFiles();
-			String command = OSPSocket.OPEN;
-	    String separator = System.getProperty("path.separator"); //$NON-NLS-1$
-			for (File next: files) {
-				command += next.getAbsolutePath()+separator;
-			}
-			try {
-				socket.send(command);
-			} catch (Exception ex) {
-			}
-		}
+		filesToOpen.addAll(e.getFiles());
 	}
 	
 	public void handleQuitRequestWith(com.apple.eawt.AppEvent.QuitEvent e,
