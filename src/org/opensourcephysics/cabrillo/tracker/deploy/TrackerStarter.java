@@ -23,6 +23,10 @@
  */
 package org.opensourcephysics.cabrillo.tracker.deploy;
 
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
@@ -34,7 +38,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -43,8 +46,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.nio.charset.Charset;
 
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.Timer;
+import javax.swing.border.BevelBorder;
 
 import org.opensourcephysics.cabrillo.tracker.Tracker;
 import org.opensourcephysics.controls.XML;
@@ -61,7 +71,7 @@ import org.opensourcephysics.tools.ResourceLoader;
  * 
  * @author Douglas Brown
  */
-public class TrackerStarter {
+public class TrackerStarter extends JFrame {
 
 	public static final String PREFERRED_TRACKER_JAR = "PREFERRED_TRACKER_JAR"; //$NON-NLS-1$
 	public static final String PREFERRED_MEMORY_SIZE = "PREFERRED_MEMORY_SIZE"; //$NON-NLS-1$
@@ -94,10 +104,11 @@ public class TrackerStarter {
 	static boolean log = true;
 	static boolean use32BitMode = false;
 	static boolean relaunching = false;
+	static boolean launching = false;
 	static int port = 12321;
-	static Timer exitTimer, launchTimer;
-	static Object OSXServices;
-
+	static Timer exitTimer;
+	static TrackerStarter splash;
+	
 	static {
 		// identify codeBaseDir
 		try {
@@ -133,51 +144,71 @@ public class TrackerStarter {
 		}
 	}
 	
+	private TrackerStarter() {
+    setTitle("Tracker"); //$NON-NLS-1$ // name shown on task bar
+    ImageIcon icon = new ImageIcon(
+        Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$    setIconImage(Tracker.TRACKER_ICON.getImage()); // icon shown on task bar
+    setIconImage(icon.getImage()); // icon shown on task bar
+    setUndecorated(true);
+    setAlwaysOnTop(true);
+    setResizable(false);
+    Color grayblue = new Color(116, 147, 179);
+    Color darkgrayblue = new Color(83, 105, 128);
+    Color background = new Color(250, 250, 230);
+    JPanel contentPane = new JPanel(new BorderLayout());
+    contentPane.setBackground(background);
+    contentPane.setBorder(BorderFactory.createBevelBorder(
+    		BevelBorder.RAISED, grayblue, darkgrayblue));
+    setContentPane(contentPane);
+    String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/tracker_logo.png"; //$NON-NLS-1$
+    Icon trackerLogoIcon = ResourceLoader.getIcon(imageFile);
+    JLabel trackerLogoLabel = new JLabel(trackerLogoIcon);
+    trackerLogoLabel.setBorder(BorderFactory.createEmptyBorder(12, 24, 4, 24));
+    contentPane.add(trackerLogoLabel, BorderLayout.NORTH);
+    pack();
+    Dimension size = getSize();
+    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+    int x = dim.width/2;
+    int y = dim.height/2;
+    setLocation(x-size.width/2, y-size.height/2);    
+	}
+	
 	/**
 	 * Main entry point when used as executable
 	 * @param args array of filenames
 	 */
 	public static void main(final String[] args) {
+		// show splash
+		splash = new TrackerStarter();
+		splash.setVisible(true);
+		
+		
+		relaunching = false;
+		logText = ""; //$NON-NLS-1$
+		logMessage("launch initiated by user"); //$NON-NLS-1$
   	if (OSPRuntime.isMac()) {
 			// instantiate the OSXServices class by reflection
 			String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
 	    try {
 				Class<?> OSXClass = Class.forName(className);
 				Constructor<?> constructor = OSXClass.getConstructor();
-				OSXServices = constructor.newInstance();
+				constructor.newInstance();
 				logMessage("OSXServices running"); //$NON-NLS-1$
+				Timer launchTimer = new Timer(1000, new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						// gets here only when no files are loaded
+						launchTracker(args);					 
+					}
+				});
+				launchTimer.setRepeats(false);
+				launchTimer.start();
 			} catch (Exception ex) {
+				logMessage("OSXServices failed "+ex); //$NON-NLS-1$
 			}
 		}
-		relaunching = false;
-		logText = ""; //$NON-NLS-1$
-		logMessage("launch initiated by user"); //$NON-NLS-1$
-		launchTimer = new Timer(5000, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				boolean launchWithOriginalArgs = true;
-				if (OSXServices!=null) {
-					logMessage("checking OSXServices for files to open"); //$NON-NLS-1$
-					try {
-						Method method = OSXServices.getClass().getMethod("getFilesToOpen", (Class<?>)null); //$NON-NLS-1$
-						ArrayList<File> files = (ArrayList<File>)method.invoke(OSXServices, (Object[])null);
-						if (!files.isEmpty()) {
-							String[] newArgs = new String[files.size()];
-							for (int i=0; i<newArgs.length; i++) {
-								newArgs[i] = files.get(i).getAbsolutePath();
-							}
-							launchWithOriginalArgs = false;
-							launchTracker(newArgs);					 							
-						}
-					} catch (Exception ex) {
-					}
-				}
-				if (launchWithOriginalArgs) {
-					launchTracker(args);					 
-				}
-			}
-		});
-		launchTimer.setRepeats(false);
-		launchTimer.start();
+  	else {
+			launchTracker(args);					 
+  	}
 	}
 
 	/**
@@ -185,7 +216,12 @@ public class TrackerStarter {
 	 * @param args array of filenames
 	 */
 	public static void launchTracker(String[] args) {
-
+		if (launching) return;
+		launching = true;		
+		if (splash!=null) {
+			splash.setVisible(false);
+		}
+		
 		String argString = null;
 		if (args != null && args.length > 0) {
 			argString = ""; //$NON-NLS-1$
@@ -258,6 +294,7 @@ public class TrackerStarter {
 	 */
 	public static void relaunch(final String[] args, boolean secondTry) {
 		relaunching = secondTry;
+		launching = false;
 		Runnable runner = new Runnable() {
 			public void run() {
 				logText = ""; //$NON-NLS-1$
@@ -457,6 +494,9 @@ public class TrackerStarter {
 	 */
 	private static void exitGracefully(String jarPath) {
 		if (exitTimer!=null) exitTimer.stop();
+		if (splash!=null) {
+			splash.setVisible(false);
+		}
 		if (exceptions.equals("")) //$NON-NLS-1$
 			exceptions = "None"; //$NON-NLS-1$
 		String startLogLine = ""; //$NON-NLS-1$
