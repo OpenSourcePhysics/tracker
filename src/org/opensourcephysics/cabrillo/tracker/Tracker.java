@@ -115,8 +115,7 @@ public class Tracker {
   static boolean xuggleCopied;
   static String[] mainArgs;
   static JFrame splash;
-  static Icon trackerLogoIcon, ospLogoIcon;
-  static JLabel tipOfTheDayLabel;
+  public static Icon trackerLogoIcon, ospLogoIcon;
   static JProgressBar progressBar;
   static String counterPath = "http://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
@@ -322,12 +321,12 @@ public class Tracker {
     String tip = TrackerRes.getString("Tracker.Splash.HelpMessage"); //$NON-NLS-1$
     tip += " "+TrackerRes.getString("TMenuBar.Menu.Help"); //$NON-NLS-1$ //$NON-NLS-2$
     tip += "|"+TrackerRes.getString("TMenuBar.MenuItem.GettingStarted"); //$NON-NLS-1$ //$NON-NLS-2$
-    tipOfTheDayLabel = new JLabel(tip);
-    tipOfTheDayLabel.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
-    Font font = tipOfTheDayLabel.getFont().deriveFont(Font.PLAIN).deriveFont(14f);
-    tipOfTheDayLabel.setFont(font);
-    tipOfTheDayLabel.setForeground(darkred);
-    tipOfTheDayLabel.setAlignmentX(0.5f);
+    JLabel helpLabel = new JLabel(tip);
+    helpLabel.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
+    Font font = helpLabel.getFont().deriveFont(Font.PLAIN).deriveFont(14f);
+    helpLabel.setFont(font);
+    helpLabel.setForeground(darkred);
+    helpLabel.setAlignmentX(0.5f);
     progressBar = new JProgressBar(0, 100);
     progressBar.setValue(0);
     JPanel progressPanel = new JPanel(new BorderLayout());
@@ -335,7 +334,7 @@ public class Tracker {
     progressPanel.add(progressBar, BorderLayout.CENTER);
     progressPanel.setOpaque(false);
     Box center = Box.createVerticalBox();
-    center.add(tipOfTheDayLabel);
+    center.add(helpLabel);
     center.add(progressPanel);
     contentPane.add(center, BorderLayout.CENTER);
 
@@ -506,8 +505,6 @@ public class Tracker {
       // parse file names
       for (int i = 0; i < names.length; i++) {
         if (names[i] == null) continue;
-        String name = XML.getName(names[i]);
-        splash(TrackerRes.getString("Tracker.Splash.Loading")+" \""+name+"\""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         // set default root path to path of first .trk or .trz file opened
         if ((names[i].endsWith(".trk") || names[i].endsWith(".trz")) //$NON-NLS-1$ //$NON-NLS-2$
         		&& names[i].indexOf("/") != -1 //$NON-NLS-1$
@@ -637,14 +634,6 @@ public class Tracker {
 //________________________________  static methods ____________________________
   
 
-  /**
-   * Gets an image for the OSX dock.
-   * @return a Tracker icon image
-   */
-  public static Image getOSXDockImage() {
-  	return TRACKER_ICON_256.getImage();
-  }
-  
   /**
    * Shows the About Tracker dialog.
    */
@@ -1749,14 +1738,6 @@ public class Tracker {
 		      JOptionPane.WARNING_MESSAGE);
 		}
 
-  }
-
-  /**
-   * Displays a message in the splash screen.
-   * @param message 
-   */
-  protected static void splash(String message) {
-  	if (tipOfTheDayLabel != null) tipOfTheDayLabel.setText(message);
   }
 
   /**
