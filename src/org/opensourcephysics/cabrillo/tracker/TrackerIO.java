@@ -411,13 +411,27 @@ public class TrackerIO extends VideoIO {
 	    }
 	    return null;
     } 
-    if (type.toLowerCase().equals("open data")) { // open data //$NON-NLS-1$
+    if (type.toLowerCase().equals("open data")) { // open text data file //$NON-NLS-1$
       chooser.setMultiSelectionEnabled(false);
       chooser.setAcceptAllFileFilterUsed(true);
       chooser.addChoosableFileFilter(txtFileFilter);
-      chooser.addChoosableFileFilter(jarFileFilter);
-      chooser.setFileFilter(chooser.getAcceptAllFileFilter());
+//      chooser.setFileFilter(chooser.getAcceptAllFileFilter());
       chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenData.Title"));        //$NON-NLS-1$
+      result = chooser.showOpenDialog(null);
+    	File file = chooser.getSelectedFile();
+      chooser.resetChoosableFileFilters();
+      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
+	    if(result==JFileChooser.APPROVE_OPTION) {
+	      return new File[] {file};
+	    }
+	    return null;
+    } 
+    if (type.toLowerCase().equals("open ejs")) { // open ejs //$NON-NLS-1$
+      chooser.setMultiSelectionEnabled(false);
+      chooser.setAcceptAllFileFilterUsed(true);
+      chooser.addChoosableFileFilter(jarFileFilter);
+//      chooser.setFileFilter(chooser.getAcceptAllFileFilter());
+      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenEJS.Title"));        //$NON-NLS-1$
       result = chooser.showOpenDialog(null);
     	File file = chooser.getSelectedFile();
       chooser.resetChoosableFileFilters();

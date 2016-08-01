@@ -155,6 +155,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenu newDataTrackMenu;
   protected JMenuItem newDataTrackPasteItem;
   protected JMenuItem newDataTrackFromFileItem;
+  protected JMenuItem newDataTrackFromEJSItem;
   protected JMenuItem dataTrackHelpItem;
   protected JMenuItem emptyTracksItem;
   // coords menu
@@ -1087,9 +1088,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     newDynamicSystemItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TwoBody")); //$NON-NLS-1$
     newDynamicSystemItem.addActionListener(actions.get("dynamicSystem")); //$NON-NLS-1$
     newDataTrackMenu = new JMenu(TrackerRes.getString("ParticleDataTrack.Name")); //$NON-NLS-1$
-    newDataTrackFromFileItem = new JMenuItem(TrackerRes.getString("TrackerIO.Dialog.OpenData.Title")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    newDataTrackFromFileItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.DataFile")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
     newDataTrackFromFileItem.addActionListener(actions.get("dataTrack")); //$NON-NLS-1$
-    newDataTrackPasteItem = new JMenuItem(TrackerRes.getString("ParticleDataTrack.Button.Paste.Text")); //$NON-NLS-1$
+    newDataTrackFromEJSItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.EJS")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    newDataTrackFromEJSItem.addActionListener(actions.get("dataTrackFromEJS")); //$NON-NLS-1$
+    newDataTrackPasteItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Clipboard")); //$NON-NLS-1$
     newDataTrackPasteItem.addActionListener(actions.get("paste")); //$NON-NLS-1$
     dataTrackHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.DataTrackHelp")); //$NON-NLS-1$
     dataTrackHelpItem.addActionListener(new ActionListener() {
@@ -1788,7 +1791,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         }
         if (trackerPanel.isEnabled("new.analyticParticle") //$NON-NLS-1$
             || trackerPanel.isEnabled("new.dynamicParticle") //$NON-NLS-1$
-            || trackerPanel.isEnabled("new.dynamicTwoBody")) { //$NON-NLS-1$
+            || trackerPanel.isEnabled("new.dynamicTwoBody") //$NON-NLS-1$
+            || trackerPanel.isEnabled("new.dataTrack")) { //$NON-NLS-1$
           if (createMenu.getItemCount() > 0) createMenu.addSeparator();
           if (trackerPanel.isEnabled("new.analyticParticle"))  //$NON-NLS-1$
           	createMenu.add(newAnalyticParticleItem); 
@@ -1802,6 +1806,15 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             }
             if (trackerPanel.isEnabled("new.dynamicTwoBody")) //$NON-NLS-1$
             	newDynamicParticleMenu.add(newDynamicSystemItem);
+          }
+          if (trackerPanel.isEnabled("new.dataTrack")) { //$NON-NLS-1$
+            createMenu.add(newDataTrackMenu);
+            newDataTrackMenu.removeAll();
+            newDataTrackMenu.add(newDataTrackFromFileItem); 
+            newDataTrackMenu.add(newDataTrackFromEJSItem); 
+            newDataTrackMenu.add(newDataTrackPasteItem); 
+            newDataTrackMenu.addSeparator(); 
+            newDataTrackMenu.add(dataTrackHelpItem); 
           }
         }
         if (trackerPanel.isEnabled("new.tapeMeasure") || //$NON-NLS-1$
@@ -1825,15 +1838,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           JMenu calibrationToolsMenu = calibrationButton.getCalibrationToolsMenu();
           calibrationToolsMenu.setText(TrackerRes.getString("TMenuBar.Menu.CalibrationTools")); //$NON-NLS-1$
           createMenu.add(calibrationToolsMenu);
-        }
-        if (trackerPanel.isEnabled("new.dataTrack")) { //$NON-NLS-1$
-          if (createMenu.getItemCount() > 0) createMenu.addSeparator();
-          createMenu.add(newDataTrackMenu);
-          newDataTrackMenu.removeAll();
-          newDataTrackMenu.add(newDataTrackFromFileItem); 
-          newDataTrackMenu.add(newDataTrackPasteItem); 
-          newDataTrackMenu.addSeparator(); 
-          newDataTrackMenu.add(dataTrackHelpItem); 
         }
         newTrackItems = createMenu.getMenuComponents();
         // refresh coords menu
