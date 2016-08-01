@@ -598,7 +598,13 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   	}
   	public Dimension getPreferredSize() {
   		Dimension dim = super.getPreferredSize();
-  		dim.height += 6;
+  		if (dataTrack instanceof ParticleDataTrack) {
+  			ParticleDataTrack pdt = (ParticleDataTrack)dataTrack;
+  			dim.height = pdt.trackerPanel.getModelBuilder().getSpinnerHeight();
+  		}
+  		else {
+    		dim.height += 6;  			
+  		}
   		dim.width += 6;
   		return dim;
   	}

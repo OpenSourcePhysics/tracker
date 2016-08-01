@@ -372,6 +372,15 @@ public class ModelBuilder extends FunctionTool {
   }
   		
 	/**
+	 * Gets the spinner height.
+	 * 
+	 * @return the spinner height
+	 */
+  protected int getSpinnerHeight() {
+  	return startFrameSpinner.getHeight();
+  }
+  		
+	/**
    * An inner class for the particle model start and end frame spinners.
    */
 	class ModelFrameSpinner extends JSpinner {
