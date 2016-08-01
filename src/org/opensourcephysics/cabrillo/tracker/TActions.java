@@ -573,11 +573,24 @@ public class TActions {
       }
     };
     actions.put("dynamicSystem", dynamicSystemAction); //$NON-NLS-1$
-    // new DataTrack item
+    // new DataTrack from text file item
     AbstractAction dataTrackAction = new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
-        // choose file and get its data
+        // choose file and import data
       	File[] files = TrackerIO.getChooserFiles("open data"); //$NON-NLS-1$
+        if (files==null) {
+        	return;
+        }
+        String filePath = files[0].getAbsolutePath();
+	      trackerPanel.importData(filePath, null);        
+      }
+    };
+    actions.put("dataTrack", dataTrackAction); //$NON-NLS-1$
+    // new DataTrack from ejs item
+    AbstractAction dataTrackfromEJSAction = new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
+      public void actionPerformed(ActionEvent e) {
+        // choose file and get its data
+      	File[] files = TrackerIO.getChooserFiles("open ejs"); //$NON-NLS-1$
         if (files==null) {
         	return;
         }
@@ -595,12 +608,9 @@ public class TActions {
         	}
         	DataTrackTool.launchDataSource(filePath, true);
         }
-        else {
-	        trackerPanel.importData(filePath, null);
-        }        
       }
     };
-    actions.put("dataTrack", dataTrackAction); //$NON-NLS-1$
+    actions.put("dataTrackFromEJS", dataTrackfromEJSAction); //$NON-NLS-1$
     // new (read-only) tape measure
     String s = TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$
     AbstractAction tapeAction = new AbstractAction(s, null) {
