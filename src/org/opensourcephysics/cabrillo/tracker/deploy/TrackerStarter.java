@@ -23,12 +23,6 @@
  */
 package org.opensourcephysics.cabrillo.tracker.deploy;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -46,23 +40,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.nio.charset.Charset;
 
-import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.Timer;
-import javax.swing.border.BevelBorder;
-
 import org.opensourcephysics.cabrillo.tracker.Tracker;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.tools.DiagnosticsForXuggle;
-import org.opensourcephysics.tools.ExtensionsManager;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
@@ -71,7 +54,7 @@ import org.opensourcephysics.tools.ResourceLoader;
  * 
  * @author Douglas Brown
  */
-public class TrackerStarter extends JFrame {
+public class TrackerStarter {
 
 	public static final String PREFERRED_TRACKER_JAR = "PREFERRED_TRACKER_JAR"; //$NON-NLS-1$
 	public static final String PREFERRED_MEMORY_SIZE = "PREFERRED_MEMORY_SIZE"; //$NON-NLS-1$
@@ -106,8 +89,8 @@ public class TrackerStarter extends JFrame {
 	static boolean relaunching = false;
 	static boolean launching = false;
 	static int port = 12321;
-	static Timer exitTimer;
-	static TrackerStarter splash;
+	static Thread launchThread, exitThread;
+	static int exitCounter = 0;
 	
 	static {
 		// identify codeBaseDir
@@ -144,69 +127,49 @@ public class TrackerStarter extends JFrame {
 		}
 	}
 	
-	private TrackerStarter() {
-    setTitle("Tracker"); //$NON-NLS-1$ // name shown on task bar
-    ImageIcon icon = new ImageIcon(
-        Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$    setIconImage(Tracker.TRACKER_ICON.getImage()); // icon shown on task bar
-    setIconImage(icon.getImage()); // icon shown on task bar
-    setUndecorated(true);
-    setAlwaysOnTop(true);
-    setResizable(false);
-    Color grayblue = new Color(116, 147, 179);
-    Color darkgrayblue = new Color(83, 105, 128);
-    Color background = new Color(250, 250, 230);
-    JPanel contentPane = new JPanel(new BorderLayout());
-    contentPane.setBackground(background);
-    contentPane.setBorder(BorderFactory.createBevelBorder(
-    		BevelBorder.RAISED, grayblue, darkgrayblue));
-    setContentPane(contentPane);
-    String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/tracker_logo.png"; //$NON-NLS-1$
-    Icon trackerLogoIcon = ResourceLoader.getIcon(imageFile);
-    JLabel trackerLogoLabel = new JLabel(trackerLogoIcon);
-    trackerLogoLabel.setBorder(BorderFactory.createEmptyBorder(12, 24, 4, 24));
-    contentPane.add(trackerLogoLabel, BorderLayout.NORTH);
-    pack();
-    Dimension size = getSize();
-    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    int x = dim.width/2;
-    int y = dim.height/2;
-    setLocation(x-size.width/2, y-size.height/2);    
-	}
-	
 	/**
 	 * Main entry point when used as executable
 	 * @param args array of filenames
 	 */
 	public static void main(final String[] args) {
-		// show splash
-		splash = new TrackerStarter();
-		splash.setVisible(true);
-		
-		
 		relaunching = false;
 		logText = ""; //$NON-NLS-1$
 		logMessage("launch initiated by user"); //$NON-NLS-1$
+
   	if (OSPRuntime.isMac()) {
-			// instantiate the OSXServices class by reflection
-			String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
-	    try {
-				Class<?> OSXClass = Class.forName(className);
-				Constructor<?> constructor = OSXClass.getConstructor();
-				constructor.newInstance();
-				logMessage("OSXServices running"); //$NON-NLS-1$
-				Timer launchTimer = new Timer(1000, new ActionListener() {
-					public void actionPerformed(ActionEvent e) {
-						// gets here only when no files are loaded
-						launchTracker(args);					 
+  		// create launchThread to instantiate OSXServices and launch Tracker
+		  launchThread = new Thread(new Runnable() {
+				public void run() {
+					// instantiate OSXServices
+					String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
+					try {
+						Class<?> OSXClass = Class.forName(className);
+						Constructor<?> constructor = OSXClass.getConstructor();
+						constructor.newInstance();
+						logMessage("OSXServices running"); //$NON-NLS-1$
+					} catch (Exception ex) {
+						logMessage("OSXServices failed"); //$NON-NLS-1$
 					}
-				});
-				launchTimer.setRepeats(false);
-				launchTimer.start();
-			} catch (Exception ex) {
-				logMessage("OSXServices failed "+ex); //$NON-NLS-1$
-			}
+					// wait a short time for OSXServices to handle openFile event
+					// and launch Tracker with file arguments (sets launchThread to null)
+					int i = 0;
+					while(launchThread!=null && i<5) {
+						try {
+							Thread.sleep(100);
+							i++;
+						} catch (InterruptedException e) {
+						}
+					};
+					// launch Tracker with default args if launchThread is not null 
+					if (launchThread!=null) {
+						launchTracker(args);	
+					}
+				}
+			});
+			launchThread.start();				  
 		}
   	else {
+  		// for Windows and LInux, launch Tracker immediately with default args
 			launchTracker(args);					 
   	}
 	}
@@ -217,10 +180,9 @@ public class TrackerStarter extends JFrame {
 	 */
 	public static void launchTracker(String[] args) {
 		if (launching) return;
-		launching = true;		
-		if (splash!=null) {
-			splash.setVisible(false);
-		}
+		launching = true;
+		
+		launchThread = null;
 		
 		String argString = null;
 		if (args != null && args.length > 0) {
@@ -493,10 +455,7 @@ public class TrackerStarter extends JFrame {
 	 * Exits gracefully by giving information to the user.
 	 */
 	private static void exitGracefully(String jarPath) {
-		if (exitTimer!=null) exitTimer.stop();
-		if (splash!=null) {
-			splash.setVisible(false);
-		}
+//		if (exitTimer!=null) exitTimer.stop();
 		if (exceptions.equals("")) //$NON-NLS-1$
 			exceptions = "None"; //$NON-NLS-1$
 		String startLogLine = ""; //$NON-NLS-1$
@@ -831,6 +790,7 @@ public class TrackerStarter extends JFrame {
 //		if (logText.indexOf(portVar)==-1) {
 //			showDebugMessage("setting environment variable "+portVar+" = " + String.valueOf(port)); //$NON-NLS-1$ //$NON-NLS-2$
 //		}
+		
 		if (memorySize<preferredMemorySize) {
 			env.put("MEMORY_SIZE", String.valueOf(memorySize)); //$NON-NLS-1$
 			logMessage("setting environment variable MEMORY_SIZE = " + String.valueOf(memorySize)); //$NON-NLS-1$ 
@@ -880,7 +840,7 @@ public class TrackerStarter extends JFrame {
 			env.put(TRACKER_RELAUNCH, "true"); //$NON-NLS-1$
 		}
 		else env.remove(TRACKER_RELAUNCH);
-							
+		
 		// assemble command message for log
 		String message = ""; //$NON-NLS-1$
 		for (String next: cmd) {
@@ -896,19 +856,22 @@ public class TrackerStarter extends JFrame {
 		if (startLogPath!=null)
 			env.put("START_LOG", startLogPath); //$NON-NLS-1$
 		
-		// set up timer to exit after short delay
-		if (exitTimer==null) {
-			exitTimer = new Timer(1000, new ActionListener() {
-				 public void actionPerformed(ActionEvent e) {
-					 System.exit(0);
-				 }
-			 });
-			exitTimer.setRepeats(false);
-			exitTimer.start();
-		}
-		else {
-			// reset timer every time a new process is started
-			exitTimer.restart();
+		exitCounter = 0;
+		if (exitThread==null) {
+			exitThread = new Thread(new Runnable() {
+				public void run() {
+					while (exitCounter<10) {
+						try {
+							Thread.sleep(100);
+							exitCounter++;
+						} catch (InterruptedException e) {
+						}
+					}					
+					System.exit(0);
+				}
+			});
+			exitThread.setDaemon(true);
+			exitThread.start();
 		}
 		
 		// start the Tracker process and wait for it to finish
@@ -1034,51 +997,6 @@ public class TrackerStarter extends JFrame {
 		}
 	}
 
-//	/**
-//	 * Writes starter preferences.
-//	 */
-//	private static void writeStarterPrefs() {
-//		File starterPrefsFile = new File(userHome, starterPrefsFileName);
-//		if (starterPrefsFile.exists() && !starterPrefsFile.canWrite()) {
-//			return;
-//		}
-//		StringBuffer buf = new StringBuffer();
-//		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
-//		Calendar cal = Calendar.getInstance();
-//		buf.append("TrackerStarter version " + version + "  " //$NON-NLS-1$ //$NON-NLS-2$
-//				+ sdf.format(cal.getTime()));
-//		// add notice of deprecation
-//		buf.append("\nNote: .tracker_starter.prefs is deprecated as of version 4.62."); //$NON-NLS-1$
-//		buf.append("\nThis file is for backward compatibility only."); //$NON-NLS-1$
-//		// add jre path
-//		if (!"java".equals(javaCommand)) { //$NON-NLS-1$
-//			buf.append("\n\njre " + javaCommand); //$NON-NLS-1$
-//		}
-//		// add tracker version
-//		if (launchVersionNumber > 2.5) {
-//			buf.append("\nversion " + launchVersionString); //$NON-NLS-1$
-//		}
-//		// add executable paths
-//		if (executables != null) {
-//			for (String path : executables) {
-//				if (path == null || "".equals(path))continue; //$NON-NLS-1$
-//				buf.append("\nrun " + path); //$NON-NLS-1$
-//			}
-//		}
-//		if (buf.length() > 0)
-//			try {
-//				FileOutputStream stream = new FileOutputStream(starterPrefsFile);
-//				Charset charset = Charset.forName(encoding);
-//				Writer out = new OutputStreamWriter(stream, charset);
-//				BufferedWriter output = new BufferedWriter(out);
-//				output.write(buf.toString());
-//				output.flush();
-//				output.close();
-//				showDebugMessage("writing backup starter preferences to " + starterPrefsFile.getPath()); //$NON-NLS-1$
-//			} catch (IOException ex) {
-//			}
-//	}
-//
 	private static boolean fileExists(String path) {
 		File file = new File(path);
 		try {
@@ -1101,88 +1019,6 @@ public class TrackerStarter extends JFrame {
 		}
 		if (debug) {
 			System.out.println(message);
-		}
-	}
-
-	/**
-	 * Copies Xuggle jars and QTJava.zip to target VM extensions directory.
-	 * Deprecated--no longer require extensions as of Oct 2014
-	 */
-	@SuppressWarnings("unused")
-	@Deprecated
-	private static void refreshVideoEngines() throws Exception {
-		ExtensionsManager manager = ExtensionsManager.getManager();
-		String jrePath = preferredVM != null ? preferredVM : javaHome;
-		File extDir = new File(jrePath, "lib/ext"); //$NON-NLS-1$
-		
-		// Xuggle
-		if (manager.copyXuggleJarsTo(extDir)) {
-			logMessage("copied xuggle jars to " + extDir.getAbsolutePath()); //$NON-NLS-1$
-		}
-		else {
-	    File extFile = new File(extDir, "xuggle-xuggler.jar"); //$NON-NLS-1$
-	    if (extFile.exists()) {
-				logMessage("xuggle jars found in " + extDir.getAbsolutePath()); //$NON-NLS-1$	
-	    }
-	    else {
-	    	String xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
-	    	if (xuggleHome==null || !new File(xuggleHome+"/share/java/jars/xuggle-xuggler.jar").exists()) {  //$NON-NLS-1$
-					String message = "xuggle jars not found"; //$NON-NLS-1$
-					if (xuggleHome==null) message += ": XUGGLE_HOME is undefined"; //$NON-NLS-1$
-					else message += " in "+xuggleHome; //$NON-NLS-1$
-	    		logMessage(message);
-	    	}
-	    	else {
-	    		// failed to copy xuggle jars to ext directory--permissions problem?
-	    		String xuggleSourceDir = new File(xuggleHome+"/share/java/jars").getAbsolutePath(); //$NON-NLS-1$
-					logMessage("unable to copy xuggle jars from "+xuggleSourceDir+" to "+extDir.getAbsolutePath());    		 //$NON-NLS-1$ //$NON-NLS-2$
-					
-					// assemble xuggleWarning to pass to Tracker as an environment variable
-					xuggleWarning = "Some video engine files could not be copied automatically."; //$NON-NLS-1$
-					xuggleWarning += "\nThe video engine may not work unless they are copied manually.";  //$NON-NLS-1$ 
-					xuggleWarning += "\n\nFiles to copy: ";  //$NON-NLS-1$ 
-					for (String next: DiagnosticsForXuggle.getXuggleJarNames()) {
-						xuggleWarning += next+", "; //$NON-NLS-1$
-					}
-					xuggleWarning = xuggleWarning.substring(0, xuggleWarning.lastIndexOf(", ")); //$NON-NLS-1$
-					xuggleWarning += "\nCopy from: "+xuggleSourceDir; //$NON-NLS-1$ 
-					xuggleWarning += "\nCopy to: "+extDir;  //$NON-NLS-1$ 
-	    	}
-	    }
-	    
-		}
-		
-		// QuickTime
-		if (manager.copyQTJavaTo(extDir)) {
-			logMessage("copied QTJava.zip to " + extDir.getAbsolutePath()); //$NON-NLS-1$
-		}
-		else {
-	    File extFile = new File(extDir, "QTJava.zip"); //$NON-NLS-1$
-	    if (extFile.exists()) {
-				logMessage("QTJava.zip found in " + extDir.getAbsolutePath()); //$NON-NLS-1$
-	    }
-	    else {
-		    File qtSource = manager.getQTJavaZip(); // file to be copied
-	    	if (qtSource==null) {
-					logMessage("QTJava.zip not found"); //$NON-NLS-1$
-	    	}
-	    	else {
-	    		// Windows Vista special case--fails to launch Tracker if qtJavaWarning code is executed...
-	    		if (System.getProperty("os.name", "").toLowerCase().contains("vista")) return; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	    		
-	    		// failed to copy QTJava to ext directory--permissions problem?
-					logMessage("unable to copy "+qtSource.getAbsolutePath()+" to "+extDir.getAbsolutePath());  //$NON-NLS-1$ //$NON-NLS-2$
-					
-					// assemble qtJavaWarning to pass to Tracker as an environment variable
-					// assemble xuggleWarning to pass to Tracker as an environment variable
-					qtJavaWarning = "Some video engine files could not be copied automatically."; //$NON-NLS-1$
-					qtJavaWarning += "\nThe video engine may not work unless they are copied manually.";  //$NON-NLS-1$ 
-					qtJavaWarning += "\n\nFiles to copy: QTJava.zip";  //$NON-NLS-1$ 
-					qtJavaWarning += "\nCopy from: "+qtSource.getParent(); //$NON-NLS-1$ 
-					qtJavaWarning += "\nCopy to: "+extDir;  //$NON-NLS-1$ 
-	    	}
-	    }
-	    
 		}
 	}
 
