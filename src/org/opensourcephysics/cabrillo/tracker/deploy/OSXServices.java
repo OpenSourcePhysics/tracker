@@ -3,8 +3,6 @@ package org.opensourcephysics.cabrillo.tracker.deploy;
 import java.io.File;
 import java.util.List;
 
-import javax.swing.ImageIcon;
-
 import org.opensourcephysics.cabrillo.tracker.TFrame;
 import org.opensourcephysics.cabrillo.tracker.Tracker;
 
@@ -20,14 +18,11 @@ public class OSXServices implements com.apple.eawt.AboutHandler,
 	Tracker tracker;
 	
 	/**
-	 * Constructor used by TrackerStarter, which uses the DockIcon & OpenFileHandler
+	 * Constructor used by TrackerStarter, which uses only the OpenFileHandler
 	 */
 	public OSXServices() {
 		com.apple.eawt.Application application = com.apple.eawt.Application.getApplication();
 		application.setOpenFileHandler(this);
-		ImageIcon icon = new ImageIcon(
-	      Tracker.class.getResource("resources/images/tracker_icon_256.png")); //$NON-NLS-1$
-		application.setDockIconImage(icon.getImage());
 	}
 	
 	/**
@@ -42,9 +37,7 @@ public class OSXServices implements com.apple.eawt.AboutHandler,
 		application.setAboutHandler(this);
 		application.setQuitHandler(this);
 		application.setPreferencesHandler(this);
-		ImageIcon icon = new ImageIcon(
-	      Tracker.class.getResource("resources/images/tracker_icon_256.png")); //$NON-NLS-1$
-		application.setDockIconImage(icon.getImage());
+		application.setDockIconImage(Tracker.TRACKER_ICON_256.getImage());
 	}
 	
 	/**
