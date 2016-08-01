@@ -744,6 +744,10 @@ public class Tracker {
 				if (readmeDialog==null && Tracker.trackerHome!=null) {
 		      String slash = System.getProperty("file.separator", "/"); //$NON-NLS-1$//$NON-NLS-2$
 	        String path = Tracker.trackerHome+slash+readmeFileName;
+	        if (OSPRuntime.isMac()) {
+	        	String dir = new File(Tracker.trackerHome).getParent();
+	        	path = dir+slash+readmeFileName;
+	        }
 	        String s = ResourceLoader.getString(path);
 	        if (s==null || "".equals(s)) { //$NON-NLS-1$
 	        	s = TrackerRes.getString("Tracker.Readme.NotFound")+": "+path; //$NON-NLS-1$ //$NON-NLS-2$
@@ -1590,11 +1594,12 @@ public class Tracker {
     
   	if (OSPRuntime.isMac()) {
 			// instantiate the OSXServices class by reflection
+  		System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Tracker"); //$NON-NLS-1$ //$NON-NLS-2$
 			String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
 	    try {
 				Class<?> OSXClass = Class.forName(className);
 				Constructor<?> constructor = OSXClass.getConstructor(Tracker.class);
-				constructor.newInstance(tracker);
+				constructor.newInstance(tracker);				
 			} catch (Exception ex) {
 			}
 		}

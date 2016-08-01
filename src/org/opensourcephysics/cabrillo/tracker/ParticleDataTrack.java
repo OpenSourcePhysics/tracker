@@ -62,7 +62,6 @@ import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.ImageCoordSystem;
-import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoPlayer;
@@ -555,6 +554,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   		// also create autoPasteCheckbox
   		autoPasteCheckbox = new JCheckBox();
   		autoPasteCheckbox.setOpaque(false);
+  		autoPasteCheckbox.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 0));
   		autoPasteCheckbox.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -1037,18 +1037,17 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		n = Math.min(n, end); // not greater than clip end
 		startFrame = n;
 		refreshInitialTime();
-    extendVideoClip();
+    adjustVideoClip();
 		lastValidFrame = -1;
 		for (ParticleDataTrack next: morePoints) {
 			next.lastValidFrame = -1;
 		}
-//		refreshSteps();
 		trackerPanel.repaint();
 		firePropertyChange("startframe", null, getStartFrame()); //$NON-NLS-1$
 		if (trackerPanel!=null) {
 			trackerPanel.getModelBuilder().refreshSpinners();
-			Video video = trackerPanel.getVideo();
-			if (video!=null) video.setFrameNumber(getStartFrame());
+			int stepNum = clip.frameToStep(startFrame);
+			trackerPanel.getPlayer().setStepNumber(stepNum);
 		}
 	}
   
@@ -1190,7 +1189,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		// listen for changes to the dataclip
 		else if (e.getSource()==dataClip) {
 			refreshInitialTime();
-	    extendVideoClip();
+	    adjustVideoClip();
 			firePropertyChange("dataclip", null, null); //$NON-NLS-1$
 	    lastValidFrame = -1;
 	    repaint();
@@ -1278,6 +1277,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   			PositionStep step = createPositionStep(this, i, point.getX(), point.getY());
     		step.setFootprint(getFootprint());	  			
         steps.setStep(i, step);
+        refreshData(data, trackerPanel, firstFrameInVideoClip, 1);
   		}	  			
   	}
   	
@@ -1673,7 +1673,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 			// if all data are present, add to results
 			if (xy[0]!=null && xy[1]!=null) {
-				colName = TrackerRes.getString("TrackerPanel.DataBuilder.TrackType.Unknown"); //$NON-NLS-1$
+				colName = ""; //$NON-NLS-1$
 				results.add(new Object[] {colName, xy});
 			}
 		}
@@ -1738,7 +1738,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		tData = data.length>2? data[2]: null;
 		getDataClip().setDataLength(data[0].length);
 		firePropertyChange("dataclip", null, dataClip); //$NON-NLS-1$
-    extendVideoClip();
+    adjustVideoClip();
 		if (reset) {
 			lastValidFrame = -1;
 			refreshSteps();
@@ -1749,13 +1749,12 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	}
 	
 	/**
-	 * Extends the video clip if it currently ends at the last frame 
-	 * and the data clip extends past that point.
-	 * 
-	 * @return true if the video clip was extended
+	 * Adjusts the video clip by (a) extending it if it currently ends 
+	 * at the last frame and the data clip extends past that point, or (b)
+	 * trimming it if it has extra frames past the last frame in the data clip.
 	 */
-	private boolean extendVideoClip() {
-		if (trackerPanel==null) return false;
+	private void adjustVideoClip() {
+		if (trackerPanel==null) return;
 		// determine if video clip ends at last frame
 		VideoClip vidClip = trackerPanel.getPlayer().getVideoClip();
 		int videoEndFrame = vidClip.getEndFrameNumber();
@@ -1764,7 +1763,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (isLast && dataEndFrame>videoEndFrame) {
 			vidClip.extendEndFrameNumber(dataEndFrame);
 		}
-		return false;
+		else if (dataEndFrame<videoEndFrame && vidClip.getExtraFrames()>0) {
+			// trim surplus extra frames
+			int needed = vidClip.getExtraFrames()-(videoEndFrame-dataEndFrame);
+			vidClip.setExtraFrames(needed);
+		}
 	}
 	
 //___________________________________ inner classes _________________________________
