@@ -227,7 +227,7 @@ public class Tracker {
 			new Locale("sl"), // slovenian //$NON-NLS-1$
 			new Locale("sv"), // swedish //$NON-NLS-1$
 			new Locale("tr"), // turkish //$NON-NLS-1$
-			new Locale("vi"), // vietnamese //$NON-NLS-1$
+			new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
 			Locale.TAIWAN, // traditional chinese
 			Locale.CHINA}; // simplified chinese
   	setDefaultConfig(getFullConfig());

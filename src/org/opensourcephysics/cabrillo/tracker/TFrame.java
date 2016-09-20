@@ -2082,7 +2082,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     }
     // add coordinate axes if none exists
     if (trackerPanel.getAxes() == null) {
-      Tracker.setProgress(80);
+      Tracker.setProgress(81);
       CoordAxes axes = new CoordAxes();
       axes.setVisible(false);
       trackerPanel.addTrack(axes);
