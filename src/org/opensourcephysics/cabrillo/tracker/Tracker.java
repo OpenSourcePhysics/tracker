@@ -64,7 +64,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version */
-  public static final String VERSION = "4.94"; //$NON-NLS-1$
+  public static final String VERSION = "4.95"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
