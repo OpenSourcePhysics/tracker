@@ -144,7 +144,8 @@ public class Tracker {
   static int requestedMemorySize = -1, originalMemoryRequest = 0;
   static long lastMillisChecked;
 	static boolean is64BitVM;
-  protected static Locale[] locales;
+	static int maxFontLevel = 6;
+	protected static Locale[] locales;
   static Locale defaultLocale;
   static ArrayList<String> checkForUpgradeChoices;
   static Map<String, Integer> checkForUpgradeIntervals;
