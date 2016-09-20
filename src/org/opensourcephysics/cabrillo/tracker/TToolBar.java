@@ -75,6 +75,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   protected static Icon labelsOffIcon, labelsOnIcon;
   protected static Icon stretchOffIcon, stretchOnIcon;
   protected static Icon xmassOffIcon, xmassOnIcon;
+  protected static Icon fontSmallerIcon, fontBiggerIcon;
   protected static Icon autotrackerOffIcon, autotrackerOnIcon, autotrackerDisabledIcon;
   protected static Icon infoIcon, refreshIcon, htmlIcon, htmlDisabledIcon;
   protected static Icon[] trailIcons = new Icon[4];
@@ -94,6 +95,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   protected JButton axesButton, zoomButton, autotrackerButton;
   protected JButton traceVisButton, pVisButton, vVisButton, aVisButton;
   protected JButton xMassButton, trailButton, labelsButton, stretchButton;
+  protected JButton fontSmallerButton, fontBiggerButton;
   protected int trailLength = trailLengths[trailLengths.length-2];
   protected JPopupMenu newPopup = new JPopupMenu();
   protected JPopupMenu selectPopup = new JPopupMenu();
@@ -141,6 +143,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     stretchOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stretch_on.gif")); //$NON-NLS-1$
     xmassOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/x_mass.gif")); //$NON-NLS-1$
     xmassOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/x_mass_on.gif")); //$NON-NLS-1$
+    fontSmallerIcon = new ResizableIcon(Tracker.class.getResource("resources/images/font_smaller.gif")); //$NON-NLS-1$
+    fontBiggerIcon = new ResizableIcon(Tracker.class.getResource("resources/images/font_bigger.gif")); //$NON-NLS-1$
     autotrackerOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/autotrack_off.gif")); //$NON-NLS-1$
     autotrackerOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/autotrack_on.gif")); //$NON-NLS-1$
     autotrackerDisabledIcon = new ResizableIcon(Tracker.class.getResource("resources/images/autotrack_disabled.gif")); //$NON-NLS-1$
@@ -476,6 +480,22 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       }
     };
     
+    // font buttons
+    fontSmallerButton = new TButton(fontSmallerIcon);
+    fontSmallerButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	int i = FontSizer.getLevel();
+      	FontSizer.setLevel(i-1);
+      }
+    });
+    fontBiggerButton = new TButton(fontBiggerIcon);
+    fontBiggerButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	int i = FontSizer.getLevel();
+      	FontSizer.setLevel(i+1);
+      }
+    });
+
     // horizontal glue for right end of toolbar
     toolbarFiller = Box.createHorizontalGlue();
     // info button
@@ -684,6 +704,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         newTrackButton.setToolTipText(TrackerRes.getString("TrackControl.Button.NewTrack.ToolTip")); //$NON-NLS-1$
         trackControlButton.setToolTipText(TrackerRes.getString("TToolBar.Button.TrackControl.Tooltip")); //$NON-NLS-1$
         autotrackerButton.setToolTipText(TrackerRes.getString("TToolBar.Button.AutoTracker.Tooltip")); //$NON-NLS-1$
+        fontSmallerButton.setToolTipText(TrackerRes.getString("TrackControl.Button.FontSmaller.ToolTip")); //$NON-NLS-1$
+        fontBiggerButton.setToolTipText(TrackerRes.getString("TrackControl.Button.FontBigger.ToolTip")); //$NON-NLS-1$
       	if (trackerPanel.getPlayer()!=null) {
 	        VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 	        ClipInspector inspector = clip.getClipInspector();
@@ -879,8 +901,12 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		        add(stretchButton);
 	        if (trackerPanel.isEnabled("button.xMass")) //$NON-NLS-1$
 		        add(xMassButton);
+	        add(getSeparator());
         }
         add(toolbarFiller);
+        add(fontSmallerButton);
+        add(fontBiggerButton);
+        add(getSeparator());
         add(desktopButton);
         add(notesButton);
         boolean hasPageURLs = !pageViewTabs.isEmpty();
