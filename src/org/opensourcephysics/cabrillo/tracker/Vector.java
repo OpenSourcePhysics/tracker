@@ -32,6 +32,7 @@ import java.awt.geom.*;
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.*;
+
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.controls.*;
@@ -43,6 +44,23 @@ import org.opensourcephysics.controls.*;
  * @author Douglas Brown
  */
 public class Vector extends TTrack {
+
+  // static fields
+	protected static String[]	variableList;
+
+  static {
+  	ArrayList<String> names = new ArrayList<String>();
+  	names.add("t"); //$NON-NLS-1$ 0
+  	names.add("x"); //$NON-NLS-1$ 1
+  	names.add("y"); //$NON-NLS-1$ 2
+  	names.add("mag"); //$NON-NLS-1$ 3
+  	names.add(Tracker.THETA); // 4
+  	names.add("x_{tail}"); //$NON-NLS-1$ 5
+  	names.add("y_{tail}"); //$NON-NLS-1$ 6
+  	names.add("step"); //$NON-NLS-1$ 7
+  	names.add("frame"); //$NON-NLS-1$ 8
+		variableList = names.toArray(new String[names.size()]);
+  }
 
   // instance fields
   protected JMenuItem tailsToOriginItem = new JMenuItem();
@@ -70,10 +88,10 @@ public class Vector extends TTrack {
     // assign a default name
     setName(TrackerRes.getString("Vector.New.Name")); //$NON-NLS-1$
     // assign default plot variables
-    setProperty("xVarPlot0", "t"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("yVarPlot0", "x"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("xVarPlot1", "t"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("yVarPlot1", "y"); //$NON-NLS-1$ //$NON-NLS-2$
+    setProperty("xVarPlot0", variableList[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot0", variableList[1]); //$NON-NLS-1$ 
+    setProperty("xVarPlot1", variableList[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot1", variableList[2]); //$NON-NLS-1$ 
     // set initial hint
   	partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
     hint = TrackerRes.getString("Vector.Unmarked.Hint"); //$NON-NLS-1$
@@ -295,16 +313,17 @@ public class Vector extends TTrack {
     Dataset yTail = data.getDataset(count++);
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
-    // assign column names to the datasets
+    // assign column names to the datasets   
     if (xComp.getColumnName(0).equals("x")) { // not yet initialized //$NON-NLS-1$
-      xComp.setXYColumnNames("t", "x"); //$NON-NLS-1$ //$NON-NLS-2$
-      yComp.setXYColumnNames("t", "y"); //$NON-NLS-1$ //$NON-NLS-2$
-      mag.setXYColumnNames("t", "mag"); //$NON-NLS-1$ //$NON-NLS-2$
-      ang.setXYColumnNames("t", "$\\theta$"); //$NON-NLS-1$ //$NON-NLS-2$
-      xTail.setXYColumnNames("t", "x_{tail}"); //$NON-NLS-1$ //$NON-NLS-2$
-      yTail.setXYColumnNames("t", "y_{tail}"); //$NON-NLS-1$ //$NON-NLS-2$
-      stepNum.setXYColumnNames("t", "step"); //$NON-NLS-1$ //$NON-NLS-2$
-      frameNum.setXYColumnNames("t", "frame"); //$NON-NLS-1$ //$NON-NLS-2$
+    	String time = variableList[0];
+      xComp.setXYColumnNames(time, variableList[1]); 
+      yComp.setXYColumnNames(time, variableList[2]); 
+      mag.setXYColumnNames(time, variableList[3]); 
+      ang.setXYColumnNames(time, variableList[4]); 
+      xTail.setXYColumnNames(time, variableList[5]); 
+      yTail.setXYColumnNames(time, variableList[6]); 
+      stepNum.setXYColumnNames(time, variableList[7]); 
+      frameNum.setXYColumnNames(time, variableList[8]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -558,6 +577,17 @@ public class Vector extends TTrack {
     return TrackerRes.getString("Vector.Name") + " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	numberFields.clear();
+  	numberFields.put(variableList[0], new NumberField[] {tField});
+  	numberFields.put(variableList[1], new NumberField[] {xField});
+  	numberFields.put(variableList[2], new NumberField[] {yField});
+  	numberFields.put(variableList[3], new NumberField[] {magField});
+  	numberFields.put(variableList[4], new NumberField[] {angleField});
+  	return numberFields;
+  }
+  
 //__________________________ static methods ___________________________
 
   /**

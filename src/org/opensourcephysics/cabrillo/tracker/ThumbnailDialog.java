@@ -86,6 +86,7 @@ public class ThumbnailDialog extends JDialog {
   	// create singleton if it does not yet exist
   	if (thumbnailDialog==null) {
   		thumbnailDialog = new ThumbnailDialog(panel);
+  		FontSizer.setFonts(thumbnailDialog, FontSizer.getLevel());
   		fileChooserListener = new PropertyChangeListener() {
  			  public void propertyChange(PropertyChangeEvent e) {
  			  	if (chooserField!=null && e.getNewValue()!=null) {

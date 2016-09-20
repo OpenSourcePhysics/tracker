@@ -176,7 +176,7 @@ public class DynamicSystemInspector extends JDialog
 			      	newParticle = null;
 			      	cloneAction.actionPerformed(e);
 	          	if (newParticle!=null) {
-	          		newParticle.getInspector();
+	          		newParticle.getModelBuilder();
 		          	selectedParticles[n] = newParticle;
 				      	updateSystem();
 	          	}
@@ -224,7 +224,7 @@ public class DynamicSystemInspector extends JDialog
 		      	newParticle = null;
           	cartesianAction.actionPerformed(e);
           	if (newParticle!=null) {
-          		newParticle.getInspector();
+          		newParticle.getModelBuilder();
 	          	selectedParticles[n] = newParticle;
 			      	updateSystem();
           	}
@@ -238,7 +238,7 @@ public class DynamicSystemInspector extends JDialog
 		      	newParticle = null;
           	polarAction.actionPerformed(e);
           	if (newParticle!=null) {
-          		newParticle.getInspector();
+          		newParticle.getModelBuilder();
 	          	selectedParticles[n] = newParticle;
 			      	updateSystem();
           	}
@@ -356,7 +356,7 @@ public class DynamicSystemInspector extends JDialog
   	else system.setParticles(selectedParticles);
   	if (newParticle==null)
   		newParticle = system;
-  	system.getInspector().setSelectedPanel(newParticle.getName());
+  	system.getModelBuilder().setSelectedPanel(newParticle.getName());
   	updateDisplay();
   	this.setVisible(true);
   }

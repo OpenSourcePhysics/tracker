@@ -42,7 +42,7 @@ import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
- * A Calibration controls the ImageCoordSystem of a TrackerPanel.
+ * A Calibration is a pair of calibration points that control the ImageCoordSystem of a TrackerPanel.
  *
  * @author Douglas Brown
  */
@@ -52,6 +52,11 @@ public class Calibration extends TTrack {
   protected static final int X_AXIS = 2;
   protected static final int XY_AXES = 1;
   protected static final int Y_AXIS = 0;
+  protected static String[]	variableList;
+  
+  static {
+  	variableList = new String[] {"x_{1}", "y_{1}", "x_{2}", "y_{2}"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  }
 
   // instance fields
   protected NumberField x1Field, y1Field;
@@ -119,8 +124,18 @@ public class Calibration extends TTrack {
       if (trackerPanel!=null && trackerPanel.getSelectedPoint()==step.getPoints()[0]) {
       	trackerPanel.setSelectedPoint(null);
       }
-      step.addSecondPoint(x, y);
-      steps = new StepArray(step);
+      TPoint p = step.addSecondPoint(x, y);
+      if (this.isFixedCoordinates()) {
+      	steps = new StepArray(step);
+      }
+      else if (p!=null) {
+      	for (Step next: getSteps()) {        		
+      		if (next!=null && next.getPoints()[1]==null) {
+        		CalibrationStep nextStep = (CalibrationStep)next;
+      			next.getPoints()[1] = nextStep.new Position(p.x, p.y);
+      		}
+      	}
+      }
     }
     else if (trackerPanel!=null) {
   		TPoint p = trackerPanel.getSelectedPoint();
@@ -177,21 +192,33 @@ public class Calibration extends TTrack {
     coords.setFixedAngle(false);
     coords.setFixedScale(false);
     if (step == null) {
+    	// create new step with point 1--this also fills step array
 	  	step = (CalibrationStep)createStep(n, x, y);
-	  	if (step!=null) 
-	  		return step.getPoints()[index];
+	  	return step==null? null: step.getPoints()[index];
     }
-    else {    	
+    else {  
+    	// step with point 1 already exists
 	    TPoint p = step.getPoints()[index];
 	    if (p==null) {
-	        if (trackerPanel!=null && trackerPanel.getSelectedPoint()==step.getPoints()[0]) {
-	        	trackerPanel.setSelectedPoint(null);
-	        }
-	        step.addSecondPoint(x, y);
-	        steps = new StepArray(step);
-	        return step.getPoints()[index];
+	    	// point 2 doesn't exist
+        if (trackerPanel!=null && trackerPanel.getSelectedPoint()==step.getPoints()[0]) {
+        	trackerPanel.setSelectedPoint(null);
+        }
+        p = step.addSecondPoint(x, y);
+        if (this.isFixedCoordinates()) {
+        	steps = new StepArray(step);
+        }
+        else if (p!=null) {
+        	for (Step next: getSteps()) {        		
+        		if (next!=null && next.getPoints()[1]==null) {
+          		CalibrationStep nextStep = (CalibrationStep)next;
+        			next.getPoints()[1] = nextStep.new Position(p.x, p.y);
+        		}
+        	}
+        }
+        return step.getPoints()[index];
 	    }
-
+	    // both points exist, so move target point
       Mark mark = step.marks.get(trackerPanel);
       if (mark==null) {
       	double worldX = index==0? step.worldX0: step.worldX1;
@@ -205,9 +232,7 @@ public class Calibration extends TTrack {
     	p.setXY(x, y);
     	p.setAdjusting(false);
     	return p;
-
     }
-  	return null;
   }
   
   /**
@@ -555,6 +580,16 @@ public class Calibration extends TTrack {
     return TrackerRes.getString("Calibration.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	numberFields.clear();
+  	numberFields.put(variableList[0], new NumberField[] {xField}); 
+  	numberFields.put(variableList[1], new NumberField[] {yField}); 
+  	numberFields.put(variableList[2], new NumberField[] {x1Field}); 
+  	numberFields.put(variableList[3], new NumberField[] {y1Field}); 
+  	return numberFields;
+  }
+  
   /**
    * Responds to property change events. Overrides TTrack method.
    *
@@ -604,6 +639,11 @@ public class Calibration extends TTrack {
    */
   protected String getTargetDescription(int pointIndex) {
   	String s = TrackerRes.getString("Calibration.Point.Name"); //$NON-NLS-1$
+  	int n = trackerPanel.getFrameNumber();
+    CalibrationStep step = (CalibrationStep)getStep(n);
+    if (step==null && pointIndex==1) {
+    	return null;
+    }
   	return s+" "+(pointIndex+1); //$NON-NLS-1$
   }
 
@@ -681,6 +721,8 @@ public class Calibration extends TTrack {
     x1Field.setBorder(fieldBorder);
     y1Field = new NumberField(5);
     y1Field.setBorder(fieldBorder);
+    x1Field.addMouseListener(formatMouseListener);
+    y1Field.addMouseListener(formatMouseListener);
     xField.addActionListener(xyAction);
     xField.addFocusListener(xyFocusListener);
     yField.addActionListener(xyAction);

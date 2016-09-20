@@ -102,6 +102,12 @@ public class PropertiesDialog extends JDialog {
 		trkTable.setRowHeight(font.getSize()+4);
   }
   
+  @Override
+  public void setVisible(boolean vis) {
+  	super.setVisible(vis);
+  	dispose();
+  }
+  
 //_____________________________ private methods ____________________________
 
   /**

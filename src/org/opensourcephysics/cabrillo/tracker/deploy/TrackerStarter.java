@@ -23,8 +23,6 @@
  */
 package org.opensourcephysics.cabrillo.tracker.deploy;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -33,23 +31,22 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Constructor;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
 import java.nio.charset.Charset;
 
 import javax.swing.JOptionPane;
-import javax.swing.Timer;
-
 import org.opensourcephysics.cabrillo.tracker.Tracker;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.tools.DiagnosticsForFFMPeg;
-import org.opensourcephysics.tools.ExtensionsManager;
+import org.opensourcephysics.tools.ResourceLoader;
 
 /**
  * A class to start Tracker. This is the main executable when Tracker is
@@ -67,7 +64,7 @@ public class TrackerStarter {
 	public static final String TRACKER_RELAUNCH = "TRACKER_RELAUNCH"; //$NON-NLS-1$	
 	public static final String LOG_FILE_NAME = "tracker_start.log"; //$NON-NLS-1$
   public static final int DEFAULT_MEMORY_SIZE = 256;
-	public static final String PREFS_FILE_NAME = ".tracker.prefs"; //$NON-NLS-1$
+	public static final String PREFS_FILE_NAME = "tracker.prefs"; //$NON-NLS-1$
   
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
@@ -90,9 +87,11 @@ public class TrackerStarter {
 	static boolean log = true;
 	static boolean use32BitMode = false;
 	static boolean relaunching = false;
+	static boolean launching = false;
 	static int port = 12321;
-	static Timer timer;
-
+	static Thread launchThread, exitThread;
+	static int exitCounter = 0;
+	
 	static {
 		// identify codeBaseDir
 		try {
@@ -101,6 +100,7 @@ public class TrackerStarter {
 					.getLocation();
 			starterJarFile = new File(url.toURI());
 			codeBaseDir = starterJarFile.getParentFile();
+			OSPRuntime.setLaunchJarPath(starterJarFile.getAbsolutePath());
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
@@ -131,11 +131,47 @@ public class TrackerStarter {
 	 * Main entry point when used as executable
 	 * @param args array of filenames
 	 */
-	public static void main(String[] args) {
+	public static void main(final String[] args) {
 		relaunching = false;
 		logText = ""; //$NON-NLS-1$
 		logMessage("launch initiated by user"); //$NON-NLS-1$
-		launchTracker(args);
+
+  	if (OSPRuntime.isMac()) {
+  		// create launchThread to instantiate OSXServices and launch Tracker
+		  launchThread = new Thread(new Runnable() {
+				public void run() {
+					// instantiate OSXServices
+					String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
+					try {
+						Class<?> OSXClass = Class.forName(className);
+						Constructor<?> constructor = OSXClass.getConstructor();
+						constructor.newInstance();
+						logMessage("OSXServices running"); //$NON-NLS-1$
+					} catch (Exception ex) {
+						logMessage("OSXServices failed"); //$NON-NLS-1$
+					}
+					// wait a short time for OSXServices to handle openFile event
+					// and launch Tracker with file arguments (sets launchThread to null)
+					int i = 0;
+					while(launchThread!=null && i<5) {
+						try {
+							Thread.sleep(100);
+							i++;
+						} catch (InterruptedException e) {
+						}
+					};
+					// launch Tracker with default args if launchThread is not null 
+					if (launchThread!=null) {
+						launchTracker(args);	
+					}
+				}
+			});
+			launchThread.start();				  
+		}
+  	else {
+  		// for Windows and LInux, launch Tracker immediately with default args
+			launchTracker(args);					 
+  	}
 	}
 
 	/**
@@ -143,7 +179,11 @@ public class TrackerStarter {
 	 * @param args array of filenames
 	 */
 	public static void launchTracker(String[] args) {
-
+		if (launching) return;
+		launching = true;
+		
+		launchThread = null;
+		
 		String argString = null;
 		if (args != null && args.length > 0) {
 			argString = ""; //$NON-NLS-1$
@@ -216,6 +256,7 @@ public class TrackerStarter {
 	 */
 	public static void relaunch(final String[] args, boolean secondTry) {
 		relaunching = secondTry;
+		launching = false;
 		Runnable runner = new Runnable() {
 			public void run() {
 				logText = ""; //$NON-NLS-1$
@@ -286,26 +327,58 @@ public class TrackerStarter {
 	 * @return the loaded XMLControl, or null if no preferences file found
 	 */
 	public static XMLControl findPreferences() {
-  	// look for prefs file in OSPRuntime.getDefaultSearchPaths() 
-    XMLControl control = null;
-  	String loadedPath = null;
-  	outer: for (String path: OSPRuntime.getDefaultSearchPaths()) {
-  		for (int i=0; i<2; i++) {
-  			String fileName = PREFS_FILE_NAME;
-  			if (i==1) {
-  				// if not found with leading dot in fileName, try without
-  				fileName = fileName.substring(1);
-  			}
-	      String prefsPath = new File(path, fileName).getAbsolutePath();
-	      control = new XMLControlElement(prefsPath);
+  	// look for all prefs files in OSPRuntime.getDefaultSearchPaths()
+		// and in current directory
+    Map<File, XMLControl> controls = new HashMap<File, XMLControl>();
+  	File firstFileFound = null, newestFileFound = null;
+  	long modified = 0;
+  	
+  	for (int i=0; i<2; i++) {
+			String prefsFileName = PREFS_FILE_NAME;
+			if (i==1) {
+				// add leading dot to fileName
+				prefsFileName = "."+prefsFileName; //$NON-NLS-1$
+			}
+  		for (String path: OSPRuntime.getDefaultSearchPaths()) {
+	      String prefsPath = new File(path, prefsFileName).getAbsolutePath();
+	      XMLControl control = new XMLControlElement(prefsPath);
 	      if (!control.failedToRead() && control.getObjectClassName().endsWith("Preferences")) { //$NON-NLS-1$
-	      	loadedPath = prefsPath;
-	      	break outer;
+	      	File file = new File(prefsPath);
+	      	if (file.lastModified()>modified+50) {
+	      		newestFileFound = file;
+		      	modified = file.lastModified();
+	      	}
+	      	controls.put(file, control);
+	      	if (firstFileFound==null) {
+		      	firstFileFound = file;
+	      	}
 	      }
   		}
+  		// look in current directory
+      String prefsPath = new File(prefsFileName).getAbsolutePath();
+      XMLControl control = new XMLControlElement(prefsPath);
+      if (!control.failedToRead() && control.getObjectClassName().endsWith("Preferences")) { //$NON-NLS-1$
+      	File file = new File(prefsPath);
+      	if (file.lastModified()>modified+50) {
+      		newestFileFound = file;
+	      	modified = file.lastModified();
+      	}
+      	controls.put(file, control);
+      	if (firstFileFound==null) {
+	      	firstFileFound = file;
+      	}
+      }
   	}
-  	if (loadedPath!=null) {
-  		control.setValue("prefsPath", loadedPath); //$NON-NLS-1$
+  	// replace first file with newest if different
+  	if (newestFileFound!=firstFileFound) {
+  		ResourceLoader.copyAllFiles(newestFileFound, firstFileFound);
+  		controls.put(firstFileFound, controls.get(newestFileFound));
+  	}
+		
+  	// return control associated with first file found
+  	if (firstFileFound!=null) {
+  		XMLControl control = controls.get(firstFileFound);
+  		control.setValue("prefsPath", firstFileFound.getAbsolutePath()); //$NON-NLS-1$
     	return control;
   	}
   	return null;
@@ -332,6 +405,16 @@ public class TrackerStarter {
 				ffmpegHome = f.getPath();
 				if (writeToLog) logMessage("ffmpegHome found relative to trackerhome: "+ffmpegHome); //$NON-NLS-1$
 			}
+		}
+		
+		// if not found, check OSP preferences
+		if (ffmpegHome==null) {
+			ffmpegHome = (String)OSPRuntime.getPreference("FFMPEG_HOME"); //$NON-NLS-1$
+			if (writeToLog) logMessage("osp.prefs FFMPEG_HOME: " + ffmpegHome); //$NON-NLS-1$
+			if (ffmpegHome!=null && !fileExists(ffmpegHome)) {
+				ffmpegHome = null;
+				if (writeToLog) logMessage("FFMPEG_HOME directory no longer exists"); //$NON-NLS-1$
+			}	
 		}
 
 		// if not yet found, look for ffmpegHome in environment variable
@@ -372,7 +455,7 @@ public class TrackerStarter {
 	 * Exits gracefully by giving information to the user.
 	 */
 	private static void exitGracefully(String jarPath) {
-		if (timer!=null) timer.stop();
+//		if (exitTimer!=null) exitTimer.stop();
 		if (exceptions.equals("")) //$NON-NLS-1$
 			exceptions = "None"; //$NON-NLS-1$
 		String startLogLine = ""; //$NON-NLS-1$
@@ -707,6 +790,7 @@ public class TrackerStarter {
 //		if (logText.indexOf(portVar)==-1) {
 //			showDebugMessage("setting environment variable "+portVar+" = " + String.valueOf(port)); //$NON-NLS-1$ //$NON-NLS-2$
 //		}
+		
 		if (memorySize<preferredMemorySize) {
 			env.put("MEMORY_SIZE", String.valueOf(memorySize)); //$NON-NLS-1$
 			logMessage("setting environment variable MEMORY_SIZE = " + String.valueOf(memorySize)); //$NON-NLS-1$ 
@@ -756,7 +840,7 @@ public class TrackerStarter {
 			env.put(TRACKER_RELAUNCH, "true"); //$NON-NLS-1$
 		}
 		else env.remove(TRACKER_RELAUNCH);
-							
+		
 		// assemble command message for log
 		String message = ""; //$NON-NLS-1$
 		for (String next: cmd) {
@@ -772,19 +856,22 @@ public class TrackerStarter {
 		if (startLogPath!=null)
 			env.put("START_LOG", startLogPath); //$NON-NLS-1$
 		
-		// set up timer to exit after short delay
-		if (timer==null) {
-			timer = new Timer(1000, new ActionListener() {
-				 public void actionPerformed(ActionEvent e) {
-					 System.exit(0);
-				 }
-			 });
-			timer.setRepeats(false);
-			timer.start();
-		}
-		else {
-			// reset timer every time a new process is started
-			timer.restart();
+		exitCounter = 0;
+		if (exitThread==null) {
+			exitThread = new Thread(new Runnable() {
+				public void run() {
+					while (exitCounter<10) {
+						try {
+							Thread.sleep(100);
+							exitCounter++;
+						} catch (InterruptedException e) {
+						}
+					}					
+					System.exit(0);
+				}
+			});
+			exitThread.setDaemon(true);
+			exitThread.start();
 		}
 		
 		// start the Tracker process and wait for it to finish
@@ -910,51 +997,6 @@ public class TrackerStarter {
 		}
 	}
 
-//	/**
-//	 * Writes starter preferences.
-//	 */
-//	private static void writeStarterPrefs() {
-//		File starterPrefsFile = new File(userHome, starterPrefsFileName);
-//		if (starterPrefsFile.exists() && !starterPrefsFile.canWrite()) {
-//			return;
-//		}
-//		StringBuffer buf = new StringBuffer();
-//		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
-//		Calendar cal = Calendar.getInstance();
-//		buf.append("TrackerStarter version " + version + "  " //$NON-NLS-1$ //$NON-NLS-2$
-//				+ sdf.format(cal.getTime()));
-//		// add notice of deprecation
-//		buf.append("\nNote: .tracker_starter.prefs is deprecated as of version 4.62."); //$NON-NLS-1$
-//		buf.append("\nThis file is for backward compatibility only."); //$NON-NLS-1$
-//		// add jre path
-//		if (!"java".equals(javaCommand)) { //$NON-NLS-1$
-//			buf.append("\n\njre " + javaCommand); //$NON-NLS-1$
-//		}
-//		// add tracker version
-//		if (launchVersionNumber > 2.5) {
-//			buf.append("\nversion " + launchVersionString); //$NON-NLS-1$
-//		}
-//		// add executable paths
-//		if (executables != null) {
-//			for (String path : executables) {
-//				if (path == null || "".equals(path))continue; //$NON-NLS-1$
-//				buf.append("\nrun " + path); //$NON-NLS-1$
-//			}
-//		}
-//		if (buf.length() > 0)
-//			try {
-//				FileOutputStream stream = new FileOutputStream(starterPrefsFile);
-//				Charset charset = Charset.forName(encoding);
-//				Writer out = new OutputStreamWriter(stream, charset);
-//				BufferedWriter output = new BufferedWriter(out);
-//				output.write(buf.toString());
-//				output.flush();
-//				output.close();
-//				showDebugMessage("writing backup starter preferences to " + starterPrefsFile.getPath()); //$NON-NLS-1$
-//			} catch (IOException ex) {
-//			}
-//	}
-//
 	private static boolean fileExists(String path) {
 		File file = new File(path);
 		try {
@@ -977,92 +1019,6 @@ public class TrackerStarter {
 		}
 		if (debug) {
 			System.out.println(message);
-		}
-	}
-
-	/**
-	 * Copies FFMPeg jars and QTJava.zip to target VM extensions directory.
-	 * Deprecated--no longer require extensions as of Oct 2014
-	 */
-	@SuppressWarnings("unused")
-	@Deprecated
-	private static void refreshVideoEngines() throws Exception {
-		ExtensionsManager manager = ExtensionsManager.getManager();
-		String jrePath = preferredVM != null ? preferredVM : javaHome;
-		File extDir = new File(jrePath, "lib/ext"); //$NON-NLS-1$
-		
-		// FFMPeg
-		if (manager.copyFFMPegJarsTo(extDir)) {
-			logMessage("copied ffmpeg jars to " + extDir.getAbsolutePath()); //$NON-NLS-1$
-		}
-		else {
-	    File extFile = new File(extDir, "ffmpeg-"+DiagnosticsForFFMPeg.FFMPEG_VERSION+".jar"); //$NON-NLS-1$
-	    File extFile1 = new File(extDir, "ffmpeg.jar");
-	    if (extFile.exists()) {
-				logMessage("ffmpeg jars found in " + extDir.getAbsolutePath()); //$NON-NLS-1$	
-	    } else if (extFile1.exists()) {
-	    	    logMessage("ffmpeg jars found in " + extDir.getAbsolutePath()); //$NON-NLS-1$
-	    }
-	    else {
-	    	String ffmpegHome = System.getenv("FFMPEG_HOME"); //$NON-NLS-1$
-	    	if (ffmpegHome==null || !new File(ffmpegHome,"ffmpeg.jar").exists()
-	    			|| !new File(ffmpegHome,"ffmpeg-"+DiagnosticsForFFMPeg.FFMPEG_VERSION+".jar").exists()) {  //$NON-NLS-1$
-					String message = "ffmpeg jars not found"; //$NON-NLS-1$
-					if (ffmpegHome==null) message += ": FFMPEG_HOME is undefined"; //$NON-NLS-1$
-					else message += " in "+ffmpegHome; //$NON-NLS-1$
-	    		logMessage(message);
-	    	}
-	    	else {
-	    		// failed to copy ffmpeg jars to ext directory--permissions problem?
-	    		String ffmpegSourceDir = new File(ffmpegHome).getAbsolutePath(); //$NON-NLS-1$
-					logMessage("unable to copy ffmpeg jars from "+ffmpegSourceDir+" to "+extDir.getAbsolutePath());    		 //$NON-NLS-1$ //$NON-NLS-2$
-					
-					// assemble ffmpegWarning to pass to Tracker as an environment variable
-					ffmpegWarning = "Some video engine files could not be copied automatically.";  //$NON-NLS-1$ 
-					ffmpegWarning += "\nThe video engine may not work unless they are copied manually.";  //$NON-NLS-1$
-					ffmpegWarning += "\n\nFiles to copy: ";  //$NON-NLS-1$
-					for (String next: DiagnosticsForFFMPeg.getFFMPegJarNames()) {
-						ffmpegWarning += next+", "; //$NON-NLS-1$
-					}
-					ffmpegWarning = ffmpegWarning.substring(0, ffmpegWarning.lastIndexOf(", ")); //$NON-NLS-1$
-					ffmpegWarning += "\nCopy from: "+ffmpegSourceDir; //$NON-NLS-1$
-					ffmpegWarning += "\nCopy to: "+extDir;  //$NON-NLS-1$
-	    	}
-	    }
-	    
-		}
-		
-		// QuickTime
-		if (manager.copyQTJavaTo(extDir)) {
-			logMessage("copied QTJava.zip to " + extDir.getAbsolutePath()); //$NON-NLS-1$
-		}
-		else {
-	    File extFile = new File(extDir, "QTJava.zip"); //$NON-NLS-1$
-	    if (extFile.exists()) {
-				logMessage("QTJava.zip found in " + extDir.getAbsolutePath()); //$NON-NLS-1$
-	    }
-	    else {
-		    File qtSource = manager.getQTJavaZip(); // file to be copied
-	    	if (qtSource==null) {
-					logMessage("QTJava.zip not found"); //$NON-NLS-1$
-	    	}
-	    	else {
-	    		// Windows Vista special case--fails to launch Tracker if qtJavaWarning code is executed...
-	    		if (System.getProperty("os.name", "").toLowerCase().contains("vista")) return; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	    		
-	    		// failed to copy QTJava to ext directory--permissions problem?
-					logMessage("unable to copy "+qtSource.getAbsolutePath()+" to "+extDir.getAbsolutePath());  //$NON-NLS-1$ //$NON-NLS-2$
-					
-					// assemble qtJavaWarning to pass to Tracker as an environment variable
-					// assemble xuggleWarning to pass to Tracker as an environment variable
-					qtJavaWarning = "Some video engine files could not be copied automatically."; //$NON-NLS-1$
-					qtJavaWarning += "\nThe video engine may not work unless they are copied manually.";  //$NON-NLS-1$ 
-					qtJavaWarning += "\n\nFiles to copy: QTJava.zip";  //$NON-NLS-1$ 
-					qtJavaWarning += "\nCopy from: "+qtSource.getParent(); //$NON-NLS-1$ 
-					qtJavaWarning += "\nCopy to: "+extDir;  //$NON-NLS-1$ 
-	    	}
-	    }
-	    
 		}
 	}
 

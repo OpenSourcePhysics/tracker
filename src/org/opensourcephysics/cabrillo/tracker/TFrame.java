@@ -86,6 +86,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   protected int framesLoaded, prevFramesLoaded; // used when loading xuggle videos
 //  protected JProgressBar monitor;
   protected PrefsDialog prefsDialog;
+  protected ClipboardListener clipboardListener;
+  protected boolean alwaysListenToClipboard;
 
   /**
    * Constructs an empty TFrame.
@@ -104,7 +106,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     // set transfer handler on tabbedPane
     fileDropHandler = new FileDropHandler(this);
     tabbedPane.setTransferHandler(fileDropHandler);
-
+    
     // set size and limit maximized size so taskbar not covered
     GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
     Rectangle screenRect = e.getMaximumWindowBounds();
@@ -138,14 +140,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
    */
   public void addTab(final TrackerPanel trackerPanel) {
     if (getTab(trackerPanel) >= 0) return; // tab already exists
-    // make propertyChangeListener to refresh tab
-    PropertyChangeListener tabRefresher = new PropertyChangeListener() {
-      public void propertyChange(PropertyChangeEvent e) {
-        refreshTab(trackerPanel);
-      }
-    };
-    trackerPanel.addPropertyChangeListener("datafile", tabRefresher); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("video", tabRefresher); //$NON-NLS-1$
+    // listen for changes that affect tab title
+    trackerPanel.addPropertyChangeListener("datafile", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
     // set up trackerPanel to listen for angle format property change
     addPropertyChangeListener("radian_angles", trackerPanel); //$NON-NLS-1$
     // create the tab
@@ -244,8 +241,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     setIgnoreRepaint(false);
     trackerPanel.changed = false;
 
-    Runnable runner = new Runnable() {
-    	public void run() {
+    Timer timer = new Timer(500, new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
 		    // close blank tab at position 0, if any
 		    if (getTabCount()>1) {
 			  	TrackerPanel existingPanel = getTrackerPanel(0);
@@ -256,9 +253,28 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			    }
 		    }
         trackerPanel.refreshTrackData();
-    	}
-    };
-    SwingUtilities.invokeLater(runner);
+        refresh();
+      }
+    });
+		timer.setRepeats(false);
+		timer.start();
+
+//    Runnable runner = new Runnable() {
+//    	public void run() {
+//		    // close blank tab at position 0, if any
+//		    if (getTabCount()>1) {
+//			  	TrackerPanel existingPanel = getTrackerPanel(0);
+//			    if (tabbedPane.getTitleAt(0).equals(
+//			        TrackerRes.getString("TrackerPanel.NewTab.Name")) //$NON-NLS-1$
+//			        && !existingPanel.changed) {
+//			      removeTab(existingPanel);
+//			    }
+//		    }
+//        trackerPanel.refreshTrackData();
+//        refresh();
+//    	}
+//    };
+//    SwingUtilities.invokeLater(runner);
   }
   
   /**
@@ -289,37 +305,108 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     if (tab == -1) return; // tab doesn't exist
     if (!trackerPanel.save()) return; // user cancelled
     
-    // hide the info dialog
-    notesDialog.setVisible(false);
-    if (trackerPanel.dataBuilder != null) trackerPanel.dataBuilder.dispose();
+    trackerPanel.selectedPoint = null;
+    trackerPanel.selectedStep = null;
+    trackerPanel.selectedTrack = null;
+    
+    // hide the info dialog if trackerPanel is in selected tab
+    if (tab==getSelectedTab()) {
+    	notesDialog.setVisible(false);
+    }
+    
     // inform listeners
     firePropertyChange("tab", trackerPanel, null); //$NON-NLS-1$
-    // remove panel from angle format listeners
+    
+    // clean up mouse handler
+    trackerPanel.mouseHandler.selectedTrack = null;
+    trackerPanel.mouseHandler.p = null;
+    trackerPanel.mouseHandler.iad = null;
+    
+    // clear filter classes
+    trackerPanel.clearFilters();
+    // remove transfer handler
+    trackerPanel.setTransferHandler(null);
+    
+    // remove property change listeners
+    trackerPanel.removePropertyChangeListener("datafile", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
     removePropertyChangeListener("radian_angles", trackerPanel); //$NON-NLS-1$
-    // hide the track control, clip inspector and player bar
-    TrackControl.getControl(trackerPanel).setVisible(false);
+    
+    // dispose of the track control, clip inspector and player bar
+    TrackControl.getControl(trackerPanel).dispose();
     ClipInspector ci = trackerPanel.getPlayer().getVideoClip().getClipInspector();
-    if (ci != null) ci.setVisible(false);
+    if (ci!=null) {
+    	ci.dispose();
+    }
+
     // set the video to null
     trackerPanel.setVideo(null);
-    System.gc();
-    // remove floating player, if any
-    Object[] array = tabs.get(trackerPanel);
-    if (array != null) {
-      playerBar = ( (MainTView) array[0]).getPlayerBar();
-      Container frame = playerBar.getTopLevelAncestor();
-      if (frame != null && frame != TFrame.this)
-        frame.setVisible(false);
+    
+    // dispose of TViewChoosers and TViews
+    Container[] views = getViews(trackerPanel);
+    for (int i = 0; i < views.length; i++) {
+      if (views[i] instanceof TViewChooser) {
+      	TViewChooser chooser = (TViewChooser)views[i];
+      	chooser.dispose();
+      }
     }
+
+    // clean up main view
+    MainTView mainView = getMainView(trackerPanel);
+    mainView.dispose();
+    trackerPanel.setScrollPane(null);
+    
+    // clear the drawables AFTER disposing of main view
+    ArrayList<TTrack> tracks = trackerPanel.getTracks();
+    trackerPanel.clear();
+    for (TTrack track: tracks) {
+    	track.dispose();
+    }
+    
     // get the tab panel and remove components from it
-    JPanel panel = (JPanel)tabbedPane.getComponentAt(tab);
-    panel.removeAll();
-    // remove the components from the tabs map
-    tabs.remove(panel);
+    JPanel tabPanel = (JPanel)tabbedPane.getComponentAt(tab);
+    tabPanel.removeAll();
+    
     // remove the tab
     synchronized(tabbedPane) {
-    	tabbedPane.remove(panel);
+    	tabbedPane.remove(tabPanel);
     }
+    
+    // dispose of trackbar, toolbar, menubar AFTER removing tab
+    TToolBar toolbar = getToolBar(trackerPanel);
+    toolbar.dispose();
+    TMenuBar menubar = getMenuBar(trackerPanel);
+    menubar.dispose();
+    TTrackBar trackbar = getTrackBar(trackerPanel);
+    trackbar.dispose();
+    JSplitPane[] panes = getSplitPanes(trackerPanel);
+    for (int i=0; i<panes.length; i++) {
+    	JSplitPane pane = panes[i];
+    	pane.removeAll();
+    }
+    for (int i=0; i<panes.length; i++) {
+    	panes[i] = null;
+    }
+    
+    // remove the components from the tabs map
+    Object[] array = tabs.get(tabPanel);
+//  array is {mainView, views, panes, toolbar, menubar, trackbar};
+    if (array != null) {
+      for (int i=0; i< array.length; i++) {
+      	array[i] = null;
+      }
+    }    
+    tabs.remove(tabPanel);
+    
+    TActions.getActions(trackerPanel).clear();
+    TActions.actionMaps.remove(trackerPanel);
+  	if (prefsDialog!=null) {
+  		prefsDialog.trackerPanel = null;
+  	}
+  	Undo.undomap.remove(trackerPanel);
+    
+    trackerPanel.dispose();
+        
     // change menubar and show floating player of newly selected tab, if any
     array = tabs.get(tabbedPane.getSelectedComponent());
     if (array != null) {
@@ -676,7 +763,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
    */
   public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("progress")) { // from currently loading (xuggle) video  //$NON-NLS-1$
+    if (name.equals("datafile") ||  name.equals("video")) { // from TrackerPanel  //$NON-NLS-1$ //$NON-NLS-2$
+      TrackerPanel trackerPanel = (TrackerPanel)e.getSource();
+    	refreshTab(trackerPanel);
+    }    
+    else if (name.equals("progress")) { // from currently loading (xuggle) video  //$NON-NLS-1$
     	Object val = e.getNewValue();
     	String vidName = XML.forwardSlash((String)e.getOldValue());
     	try {
@@ -691,6 +782,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     				progress = 20+(int)(framesLoaded*60.0/next.getFrameCount());
     			}
 	      	next.setProgress(progress);
+	      	next.setTitle(TrackerRes.getString("TFrame.ProgressDialog.Title.FramesLoaded")+": "+framesLoaded); //$NON-NLS-1$ //$NON-NLS-2$
 	      	break;
     		}
     	}
@@ -781,6 +873,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       	tabbedPane.setTitleAt(i, trackerPanel.getTitle());
       	VideoPlayer player = trackerPanel.getPlayer();
       	player.refresh();
+      	player.setLocale((Locale)e.getNewValue());
         Video vid = trackerPanel.getVideo();
         if (vid != null) {
           vid.getFilterStack().refresh();
@@ -1204,31 +1297,28 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
    * @param level the desired font level
    */
   public void setFontLevel(int level) {
-  	super.setFontLevel(level);  	
+  	try {
+			super.setFontLevel(level);
+		} catch (Exception e) {}  	
   	if (tabbedPane==null) return;
   	
   	Step.textLayoutFont = FontSizer.getResizedFont(Step.textLayoutFont, level);
-  	ExportZipDialog zipDialog = null;
-  	ExportVideoDialog videoDialog = null;
-  	ThumbnailDialog thumbnailDialog = null;
+  	
   	for (int i=0; i<getTabCount(); i++) {
   		TrackerPanel trackerPanel = getTrackerPanel(i);
   		trackerPanel.setFontLevel(level);
-  		if (zipDialog==null) zipDialog = ExportZipDialog.getDialog(trackerPanel);
-  		if (videoDialog==null) videoDialog = ExportVideoDialog.getDialog(trackerPanel);
-  		if (thumbnailDialog==null) thumbnailDialog = ThumbnailDialog.getDialog(trackerPanel, true);
   	}
-  	if (zipDialog!=null) {
-  		zipDialog.setFontLevel(level);
+  	
+  	if (ExportZipDialog.zipExporter!=null) {
+  		ExportZipDialog.zipExporter.setFontLevel(level);
   	}
-  	if (videoDialog!=null) {
-  		videoDialog.setFontLevel(level);
+  	if (ExportVideoDialog.videoExporter!=null) {
+  		ExportVideoDialog.videoExporter.setFontLevel(level);
   	}
-  	if (thumbnailDialog!=null) {
-  		FontSizer.setFonts(thumbnailDialog, level);
-  		thumbnailDialog.refreshGUI();
+  	if (ThumbnailDialog.thumbnailDialog!=null) {
+  		FontSizer.setFonts(ThumbnailDialog.thumbnailDialog, level);
+  		ThumbnailDialog.thumbnailDialog.refreshGUI();
   	}
-
   	if (prefsDialog!=null) {
   		prefsDialog.refreshGUI();
   	}
@@ -1567,6 +1657,62 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     if (tab >= 0) return tabs.get(tabbedPane.getComponentAt(tab));
     return null;
   }
+  
+  /**
+   * Gets the (singleton) clipboard listener.
+   *
+   * @return the ClipboardListener
+   */
+  protected ClipboardListener getClipboardListener() {
+  	if (clipboardListener==null) {
+  		clipboardListener = new ClipboardListener(this);
+  		clipboardListener.start();
+  	}
+  	return clipboardListener;
+  }
+
+  /**
+   * Starts or ends the clipboard listener as needed.
+   */
+  protected void checkClipboardListener() {
+  	// do we need clipboard listener?
+  	Runnable runner = new Runnable() {
+  		public void run() {
+  	  	boolean needListener = alwaysListenToClipboard;
+  	  	if (!needListener) {
+  		  	// do any pasted data tracks exist?
+  		    try {
+  					for (int i = 0; i < getTabCount(); i++) {
+  						TrackerPanel trackerPanel = getTrackerPanel(i);
+  						ArrayList<DataTrack> dataTracks = trackerPanel.getDrawables(DataTrack.class);
+  						// do any tracks have null source?
+  						for (DataTrack next: dataTracks) {
+  							if (next.getSource()==null) {
+  								// null source, so data is pasted
+  								needListener = true;
+  								break;
+  							}
+  						}
+  					}
+  				} catch (Exception ex) {
+  				}
+  	  	}
+  	    
+  	    if (needListener) {
+  	    	getClipboardListener();
+  	    }
+  	  	else {
+  	  		if (clipboardListener==null) return;
+  	    	// end existing listener
+  	    	clipboardListener.end();
+  	    	clipboardListener = null;
+  	  	}  			
+  		}
+  	};
+//  	new Thread(runner).start();
+  	SwingUtilities.invokeLater(runner);
+
+  }
 
   /**
    * Creates the GUI.
@@ -1605,6 +1751,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     notesDialog = new JDialog(this, false) {
     	public void setVisible(boolean vis) {
     		super.setVisible(vis);
+
         if (getSelectedTab() > -1) {
           TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
           TToolBar toolbar = getToolBar(trackerPanel);
@@ -1683,6 +1830,18 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       public void stateChanged(ChangeEvent e) {
         TrackerPanel newPanel = null;
         TrackerPanel oldPanel = prevPanel;
+        
+        // hide exportZipDialog
+        if (ExportZipDialog.zipExporter!=null) {
+        	ExportZipDialog.zipExporter.setVisible(false);
+        	ExportZipDialog.zipExporter.trackerPanel = null;
+        }        
+      	if (ExportVideoDialog.videoExporter!=null) {
+      		ExportVideoDialog.videoExporter.trackerPanel = null;
+      	}
+      	if (ThumbnailDialog.thumbnailDialog!=null) {
+      		ThumbnailDialog.thumbnailDialog.trackerPanel = null;
+      	}
         // update prefsDialog
         if (prefsDialog!=null) {
         	prefsDialog.trackerPanel = null;
@@ -1698,8 +1857,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
           	prevPanel.dataBuilder.setVisible(false);
           	prevPanel.dataToolVisible = vis;
           }
-          ClipInspector ci = prevPanel.getPlayer().getVideoClip().getClipInspector();
-          if (ci != null) ci.setVisible(false);
+          if (prevPanel.getPlayer()!=null) {
+	          ClipInspector ci = prevPanel.getPlayer().getVideoClip().getClipInspector();
+	          if (ci != null) ci.setVisible(false);
+          }
           Video vid = prevPanel.getVideo();
           if (vid != null) {
             vid.getFilterStack().setInspectorsVisible(false);
@@ -1916,8 +2077,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
    */
   private void initialize(TrackerPanel trackerPanel) {
     // add a background mat if none exists
-    if (trackerPanel.getDrawables(TMat.class).isEmpty()) {
-      new TMat(trackerPanel); // constructor adds mat to panel
+    if (trackerPanel.getMat()==null) {
+      trackerPanel.addDrawable(new TMat(trackerPanel)); // constructor adds mat to panel
     }
     // add coordinate axes if none exists
     if (trackerPanel.getAxes() == null) {
@@ -1941,8 +2102,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     trackerPanel.addFilter(PerspectiveFilter.class);
     trackerPanel.addFilter(RadialDistortionFilter.class);
     // set mouse handler
-    TMouseHandler handler = new TMouseHandler();
-    trackerPanel.setInteractiveMouseHandler(handler);
+    trackerPanel.mouseHandler = new TMouseHandler();
+    trackerPanel.setInteractiveMouseHandler(trackerPanel.mouseHandler);
     // set file drop handler
     trackerPanel.setTransferHandler(fileDropHandler);
     // set divider locations
@@ -1985,6 +2146,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     }
     // show filter inspectors
     trackerPanel.showFilterInspectors();
+    // set initial format patterns for existing tracks
+    trackerPanel.setInitialFormatPatterns();
     Tracker.setProgress(90);
   }
   

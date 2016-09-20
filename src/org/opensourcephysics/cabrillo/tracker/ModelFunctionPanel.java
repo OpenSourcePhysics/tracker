@@ -137,6 +137,26 @@ public class ModelFunctionPanel extends FunctionPanel {
   	initEditor.getTable().clearSelection();
 	}
 	
+  /**
+   * Disposes of this panel.
+   */
+  protected void dispose() {
+  	if (paramEditor==null) {
+  		// already disposed!
+  		return;
+  	}
+		initEditor.removePropertyChangeListener(this);
+		paramEditor.removePropertyChangeListener(initEditor);
+		functionEditor.removePropertyChangeListener(initEditor);
+		initEditor.removePropertyChangeListener(paramEditor);
+		initEditor.removePropertyChangeListener(functionEditor);
+    initEditor.setFunctionPanel(null);
+		initEditor.setFunctionEditors(null);
+		paramEditor.setFunctionEditors(null);
+    model = null;
+    super.dispose();
+  }
+
 	/**
 	 * Tabs to the next editor.
 	 * 

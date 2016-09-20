@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
@@ -35,6 +34,7 @@ import javax.swing.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -44,6 +44,12 @@ import org.opensourcephysics.controls.*;
  */
 public class OffsetOrigin extends TTrack {
 
+  // static fields
+	protected static String[]	variableList;
+
+  static {
+  	variableList = new String[] {"x", "y"}; //$NON-NLS-1$ //$NON-NLS-2$
+  }
   // instance fields
   private Component separator;
   protected boolean fixedCoordinates = true;
@@ -287,28 +293,6 @@ public class OffsetOrigin extends TTrack {
     return menu;
   }
 
-//  /**
-//   * Overrides TTrack getToolbarPointComponents method.
-//   *
-//   * @param trackerPanel the tracker panel
-//   * @param point the TPoint
-//   * @return a list of components
-//   */
-//  public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
-//                                             TPoint point) {
-//    ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
-//    list.add(stepSeparator);
-//    list.add(xLabel);
-//    list.add(xField);
-//    list.add(separator);
-//    list.add(yLabel);
-//    list.add(yField);
-//    boolean locked = trackerPanel.getCoords().isLocked() || super.isLocked();
-//    xField.setEnabled(!locked);
-//    yField.setEnabled(!locked);
-//    return list;
-//  }
-
   /**
    * Overrides TTrack method.
    *
@@ -371,6 +355,18 @@ public class OffsetOrigin extends TTrack {
   }
 
   /**
+   * Sets the font level.
+   *
+   * @param level the desired font level
+   */
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{unmarkedLabel, fixedCoordinatesItem};
+    FontSizer.setFonts(objectsToSize, level);
+  }
+
+  /**
    * Overrides Object toString method.
    *
    * @return the name of this track
@@ -379,6 +375,14 @@ public class OffsetOrigin extends TTrack {
     return TrackerRes.getString("OffsetOrigin.Name"); //$NON-NLS-1$
   }
 
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	numberFields.clear();
+  	numberFields.put(variableList[0], new NumberField[] {xField});
+  	numberFields.put(variableList[1], new NumberField[] {yField});
+  	return numberFields;
+  }
+  
   /**
    * Returns a description of the point at a given index. Used by AutoTracker.
    *

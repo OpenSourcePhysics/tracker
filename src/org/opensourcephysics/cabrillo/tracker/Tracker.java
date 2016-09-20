@@ -64,7 +64,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version */
-  public static final String VERSION = "4.92"; //$NON-NLS-1$
+  public static final String VERSION = "4.94"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -1474,12 +1474,6 @@ public class Tracker {
 	      }
   		}
   	}
-		
-		// also write prefs to current directory if it already exists and is writable
-    File file = new File(".tracker.prefs"); //$NON-NLS-1$
-    if (file.exists() && file.canWrite()) {
-    	control.write(file.getAbsolutePath());
-    }
     
     // save current trackerHome and ffmpegHome in OSP preferences 
     if (trackerHome!=null) {
@@ -2106,6 +2100,8 @@ public class Tracker {
       		control.setValue("locale", Tracker.preferredLocale); //$NON-NLS-1$
       	if (Tracker.preferredFontLevel>0) {
       		control.setValue("font_size", Tracker.preferredFontLevel); //$NON-NLS-1$
+      	}
+      	if (Tracker.preferredFontLevelPlus>0) {
       		control.setValue("font_size_plus", Tracker.preferredFontLevelPlus); //$NON-NLS-1$
       	}
       	if (ResourceLoader.getOSPCache()!=null) {

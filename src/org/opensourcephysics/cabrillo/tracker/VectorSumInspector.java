@@ -120,6 +120,7 @@ public class VectorSumInspector extends JDialog
       if (frame != null) {
         frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
       }
+      trackerPanel = null;
     }
     super.dispose();
   }

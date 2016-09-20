@@ -80,6 +80,19 @@ public class PerspectiveTrack extends TTrack {
     filter.addPropertyChangeListener("fixed", this); //$NON-NLS-1$
 	}
 	
+  @Override
+	protected void dispose() {
+  	super.dispose();
+		filterMap.remove(filter);
+    filter.removePropertyChangeListener("color", this); //$NON-NLS-1$
+    filter.removePropertyChangeListener("visible", this); //$NON-NLS-1$
+    filter.removePropertyChangeListener("enabled", this); //$NON-NLS-1$
+    filter.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+    filter.removePropertyChangeListener("cornerlocation", this); //$NON-NLS-1$
+    filter.removePropertyChangeListener("fixed", this); //$NON-NLS-1$
+  	filter = null;
+  }
+
   /**
    * Responds to property change events.
    *
@@ -165,7 +178,7 @@ public class PerspectiveTrack extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(final TrackerPanel trackerPanel) {
+  public JMenu getMenu(TrackerPanel trackerPanel) {
     menu = new JMenu(getName());
     menu.setIcon(getFootprint().getIcon(21, 16));
     return menu;

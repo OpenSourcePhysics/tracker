@@ -48,7 +48,12 @@ import org.opensourcephysics.controls.*;
 public class CoordAxes extends TTrack {
 	
 	protected static Icon gridOptionsIcon;
+  protected static String[]	variableList;
 	
+  static {
+  	variableList = new String[] {"x", "y", Tracker.THETA}; //$NON-NLS-1$ //$NON-NLS-2$ 
+  }
+
 	protected boolean notyetShown = true;
   protected JLabel originLabel;
   protected WorldGrid grid;
@@ -138,8 +143,8 @@ public class CoordAxes extends TTrack {
       }
     };
     // configure x and y origin field components
-    xField = new DecimalField(5, 2);
-    yField = new DecimalField(5, 2);
+//    xField = new DecimalField(5, 2);
+//    yField = new DecimalField(5, 2);
 
     xField.addActionListener(setOriginAction);
     yField.addActionListener(setOriginAction);
@@ -388,7 +393,9 @@ public class CoordAxes extends TTrack {
   @Override
   protected void setTrackerPanel(TrackerPanel panel) {
 	  super.setTrackerPanel(panel);
-  	trackerPanel.addDrawable(grid);
+  	if (trackerPanel!=null) {
+  		trackerPanel.addDrawable(grid);
+  	}
   }
 
   /**
@@ -561,13 +568,13 @@ public class CoordAxes extends TTrack {
     FontSizer.setFonts(objectsToSize, level);
   }
 
-  /**
-   * Overrides Object toString method.
-   *
-   * @return the name of this track
-   */
-  public String toString() {
-    return "Coordinate Axes"; //$NON-NLS-1$
+  @Override
+  public Map<String, NumberField[]> getNumberFields() {
+  	numberFields.clear();
+  	numberFields.put(variableList[0], new NumberField[] {xField}); 
+  	numberFields.put(variableList[1], new NumberField[] {yField}); 
+  	numberFields.put(variableList[2], new NumberField[] {angleField});
+  	return numberFields;
   }
   
   /**

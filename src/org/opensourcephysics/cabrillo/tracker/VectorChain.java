@@ -146,7 +146,7 @@ public class VectorChain extends ArrayList<VectorStep> {
     // link to the end hinge if allowed
     if (isAllowed(vector)) {
       VectorStep end = getEnd();
-      vector.attach(end.getHinge());
+      vector.attach(end.getVisibleTip());
       vector.chain = this;
       super.add(vector);
       return true;

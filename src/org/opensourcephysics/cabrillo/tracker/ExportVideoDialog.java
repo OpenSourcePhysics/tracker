@@ -94,6 +94,7 @@ public class ExportVideoDialog extends JDialog {
 		
   	if (videoExporter==null) {
   		videoExporter = new ExportVideoDialog(panel);
+  		videoExporter.setFontLevel(FontSizer.getLevel());
   	}
   	
   	// refresh format dropdown
@@ -560,7 +561,6 @@ public class ExportVideoDialog extends JDialog {
     }
     if (preferred!=null) setFormat(preferred);
     else if (hasSelected) setFormat(selected);
-//    else setFormat(preferred);
   }
 
   /**

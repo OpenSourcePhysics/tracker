@@ -73,6 +73,7 @@ public class TrackerIO extends VideoIO {
   protected static boolean loadInSeparateThread = true;
   protected static Set<MonitorDialog> monitors = new HashSet<MonitorDialog>();
   protected static double defaultBadFrameTolerance = 0.2;
+  protected static boolean dataCopiedToClipboard;
 
   static {
   	ffmpegListener = new PropertyChangeListener() {
@@ -410,13 +411,27 @@ public class TrackerIO extends VideoIO {
 	    }
 	    return null;
     } 
-    if (type.toLowerCase().equals("open data")) { // open data //$NON-NLS-1$
+    if (type.toLowerCase().equals("open data")) { // open text data file //$NON-NLS-1$
       chooser.setMultiSelectionEnabled(false);
       chooser.setAcceptAllFileFilterUsed(true);
       chooser.addChoosableFileFilter(txtFileFilter);
-      chooser.addChoosableFileFilter(jarFileFilter);
-      chooser.setFileFilter(chooser.getAcceptAllFileFilter());
+//      chooser.setFileFilter(chooser.getAcceptAllFileFilter());
       chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenData.Title"));        //$NON-NLS-1$
+      result = chooser.showOpenDialog(null);
+    	File file = chooser.getSelectedFile();
+      chooser.resetChoosableFileFilters();
+      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
+	    if(result==JFileChooser.APPROVE_OPTION) {
+	      return new File[] {file};
+	    }
+	    return null;
+    } 
+    if (type.toLowerCase().equals("open ejs")) { // open ejs //$NON-NLS-1$
+      chooser.setMultiSelectionEnabled(false);
+      chooser.setAcceptAllFileFilterUsed(true);
+      chooser.addChoosableFileFilter(jarFileFilter);
+//      chooser.setFileFilter(chooser.getAcceptAllFileFilter());
+      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenEJS.Title"));        //$NON-NLS-1$
       result = chooser.showOpenDialog(null);
     	File file = chooser.getSelectedFile();
       chooser.resetChoosableFileFilters();
@@ -518,7 +533,7 @@ public class TrackerIO extends VideoIO {
   		extension = null;
   	}
   	final String ext = extension;
-    chooser.setDialogTitle(MediaRes.getString("VideoIO.Dialog.SaveVideoAs.Title")); //$NON-NLS-1$
+    getChooser().setDialogTitle(MediaRes.getString("VideoIO.Dialog.SaveVideoAs.Title")); //$NON-NLS-1$
     chooser.resetChoosableFileFilters();
     chooser.setAccessory(null);
     chooser.setMultiSelectionEnabled(false);
@@ -762,6 +777,7 @@ public class TrackerIO extends VideoIO {
 				ArrayList<String> trkFiles = new ArrayList<String>(); // all trk files found in zip
 				final ArrayList<String> htmlFiles = new ArrayList<String>(); // supplemental html files found in zip
 				final ArrayList<String> pdfFiles = new ArrayList<String>(); // all pdf files found in zip
+				final ArrayList<String> otherFiles = new ArrayList<String>(); // other files found in zip
 				String trkForTFrame = null;
 				
 				// sort the zip file contents
@@ -784,8 +800,14 @@ public class TrackerIO extends VideoIO {
 						
 						htmlFiles.add(next);
 					}
+					// collect other files in top directory except thumbnails
+					else if (next.indexOf("thumbnail")==-1 && next.indexOf("/")==-1) { //$NON-NLS-1$ //$NON-NLS-2$
+						String s = ResourceLoader.getURIPath(path+"!/"+next); //$NON-NLS-1$
+			    	OSPLog.finest("found other file "+s); //$NON-NLS-1$
+						otherFiles.add(next);
+					}
 				}
-				if (trkFiles.isEmpty() && pdfFiles.isEmpty() && htmlFiles.isEmpty()) {
+				if (trkFiles.isEmpty() && pdfFiles.isEmpty() && htmlFiles.isEmpty() && otherFiles.isEmpty()) {
 					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
       		JOptionPane.showMessageDialog(frame, 
       				s+" \""+name+"\".", //$NON-NLS-1$ //$NON-NLS-2$
@@ -834,20 +856,21 @@ public class TrackerIO extends VideoIO {
 					}
 				}
 				
-				// unzip pdf/html files into temp directory and open on desktop
+				// unzip pdf/html/other files into temp directory and open on desktop
 				final ArrayList<String> tempFiles = new ArrayList<String>();		
-				if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty()) {
+				if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty() || !otherFiles.isEmpty()) {
 					File temp = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$			
 					Set<File> files = ResourceLoader.unzip(path, temp, true);
 					for (File next : files) {
 						next.deleteOnExit();
-		        // add PDF and HTML files to tempFiles
+		        // add PDF/HTML/other files to tempFiles
 						String relPath = XML.getPathRelativeTo(next.getPath(), temp.getPath());
-						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath)) {
+						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath) || otherFiles.contains(relPath)) {
 							String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());
 							tempFiles.add(tempPath);
 						}
 					}
+					// open tempfiles on the desktop
 		  		Runnable runner = new Runnable() {
 						public void run() {
 			        for (String path: tempFiles) {
@@ -860,7 +883,7 @@ public class TrackerIO extends VideoIO {
 				// load trk files into Tracker
 	  		if (!VideoIO.isCanceled()) {
 	        monitorDialog.close();
-	      	open(trkFiles, frame, tempFiles);
+	      	open(trkFiles, frame, tempFiles); // this also adds tempFile paths to trackerPanel
 	        Tracker.addRecent(nonURIPath, false); // add at beginning
 	      	return;
 	  		}
@@ -888,7 +911,7 @@ public class TrackerIO extends VideoIO {
         }
 
         // should the line below finish (in SwingWorker?) before continuing?
-        control.loadObject(trackerPanel);
+        trackerPanel = (TrackerPanel)control.loadObject(trackerPanel);
         
         trackerPanel.frame = frame;
         trackerPanel.defaultFileName = XML.getName(path);
@@ -1216,11 +1239,11 @@ public class TrackerIO extends VideoIO {
 	  	}
 	  	done = (i==video.getFrameCount());
 		}
-//		double frameDur = dur/(video.getFrameCount()-outliers.size());
 		if (outliers.contains(video.getFrameCount()-1)) {
 			outliers.remove(new Integer(video.getFrameCount()-1));
 		}
 		if (showDialog) {
+	    NumberFormat format = NumberFormat.getInstance();
 			String message = TrackerRes.getString("TrackerIO.Dialog.DurationIsConstant.Message"); //$NON-NLS-1$
 			int messageType = JOptionPane.INFORMATION_MESSAGE; 
 			if (outliers.isEmpty() && onlyIfFound) {
@@ -1250,7 +1273,6 @@ public class TrackerIO extends VideoIO {
 					end = clip.getEndFrameNumber();
 				}
 				// assemble message
-		    NumberFormat format = NumberFormat.getInstance();
 		    format.setMaximumFractionDigits(2);
 		    format.setMinimumFractionDigits(2);
 				message = TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Message1"); //$NON-NLS-1$
@@ -1266,6 +1288,12 @@ public class TrackerIO extends VideoIO {
 				message += "\n\n"+TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Recommended")+":  " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						+TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Start")+" "+start+",  " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						+TrackerRes.getString("TrackerIO.Dialog.DurationVaries.End")+" "+end+"\n "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$				
+			}
+			else { // all frames have identical durations
+		    format.setMaximumFractionDigits(2);
+		    format.setMinimumFractionDigits(2);
+				double frameDur = trackerPanel.getPlayer().getClipControl().getMeanFrameDuration();		
+				message += ": "+format.format(frameDur)+"ms"; //$NON-NLS-1$ //$NON-NLS-2$
 			}
 			String close = TrackerRes.getString("Dialog.Button.OK"); //$NON-NLS-1$
 			String dontShow = TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox"); //$NON-NLS-1$
@@ -1585,6 +1613,7 @@ public class TrackerIO extends VideoIO {
     	header += XML.NEW_LINE;
     StringSelection stringSelection = new StringSelection(header+buf.toString());
     clipboard.setContents(stringSelection, stringSelection);
+    dataCopiedToClipboard = true;
   }
 
   /**

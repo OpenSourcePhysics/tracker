@@ -53,13 +53,13 @@ public class CircleFootprint implements Footprint, Cloneable {
   protected Shape outline;
   protected Shape spot;
   protected AffineTransform transform = new AffineTransform();
-  protected Color color = new Color(255, 0, 0, 127);
-  protected Color highlightColor = Color.red;
+  protected int alpha = 0;
+  protected Color color = new Color(0, 0, 0, alpha);
+  protected Color highlightColor = Color.black;
   protected Shape[] hitShapes = new Shape[1];
   protected BasicStroke baseHighlightStroke, baseOutlineStroke;
   protected BasicStroke highlightStroke, outlineStroke;
   protected boolean outlined=true, spotted;
-  protected int alpha = 0;
   protected CircleDialog dialog;
   protected int r;
   protected int prevRadius;
@@ -374,7 +374,8 @@ public class CircleFootprint implements Footprint, Cloneable {
   
   private class CircleDialog extends JDialog {
   	
-  	TTrack track;
+  	int trackID;
+  	TrackerPanel trackerPanel;
   	JSpinner spinner;
   	JLabel spinnerLabel;
   	JButton okButton, cancelButton;
@@ -386,7 +387,8 @@ public class CircleFootprint implements Footprint, Cloneable {
      */
     public CircleDialog(TTrack track) {
       super(track.trackerPanel.getTFrame(), true);
-      this.track = track;
+      trackID = track.getID();
+      trackerPanel = track.trackerPanel;
       setTitle(TrackerRes.getString("CircleFootprint.Dialog.Title")); //$NON-NLS-1$
       setResizable(false);
       setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
@@ -418,7 +420,8 @@ public class CircleFootprint implements Footprint, Cloneable {
           int radius = (Integer)spinner.getValue();
           if (radius==r) return;
           setRadius(radius);
-          track.trackerPanel.changed = true;
+          trackerPanel.changed = true;
+          TTrack track = TTrack.getTrack(trackID);
           track.repaint();
         }
     	};
@@ -432,7 +435,8 @@ public class CircleFootprint implements Footprint, Cloneable {
         public void actionPerformed(ActionEvent e) {
   		  	float f = boldCheckbox.isSelected()? boldStrokeSize: plainStrokeSize;
   		  	setStroke(new BasicStroke(f));
-          track.trackerPanel.changed = true;
+          trackerPanel.changed = true;
+          TTrack track = TTrack.getTrack(trackID);
           track.repaint();
         }
       });
@@ -442,7 +446,8 @@ public class CircleFootprint implements Footprint, Cloneable {
       spotCheckbox.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
   		  	setSpotShown(spotCheckbox.isSelected());
-          track.trackerPanel.changed = true;
+          trackerPanel.changed = true;
+          TTrack track = TTrack.getTrack(trackID);
           track.repaint();
         }
       });
@@ -454,6 +459,7 @@ public class CircleFootprint implements Footprint, Cloneable {
       okButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
   		  	setVisible(false);
+          TTrack track = TTrack.getTrack(trackID);
   		  	track.setFootprint(CircleFootprint.this.getName());
         }
       });
@@ -464,6 +470,7 @@ public class CircleFootprint implements Footprint, Cloneable {
 	        setSpotShown(prevSpot);
 	        setStroke(new BasicStroke(prevStrokeSize));
 	        setRadius(prevRadius);
+          TTrack track = TTrack.getTrack(trackID);
           track.repaint();
   		  	setVisible(false);
         }

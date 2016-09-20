@@ -37,11 +37,10 @@ import org.opensourcephysics.tools.FontSizer;
  */
 public class TButton extends JButton {
 	
-	protected TTrack track;
+	private int trackID;
   private boolean hidePopup = false;
   private JPopupMenu popup;
   protected String context = "track"; //$NON-NLS-1$
-//	private Icon onIcon, offIcon;
 
   /**
    * Constructs a TButton.
@@ -53,6 +52,7 @@ public class TButton extends JButton {
     	public void mouseEntered(MouseEvent e) {
     		setBorderPainted(true);
         hidePopup = popup!=null && popup.isVisible();
+        TTrack track = getTrack();
       	if (Tracker.showHints && track!=null && track.trackerPanel!=null) {
         	if (track.trackerPanel.getSelectedTrack() == track)
         		track.trackerPanel.setMessage(track.getMessage());
@@ -70,10 +70,11 @@ public class TButton extends JButton {
     	}
 
     	public void mousePressed(MouseEvent e) {
+        TTrack track = getTrack();
     		if (track!=null && track.trackerPanel!=null
     				&& track != track.trackerPanel.getSelectedTrack()) {
-        	track.trackerPanel.setSelectedTrack(track);
-        	track.trackerPanel.setSelectedPoint(null);
+    			track.trackerPanel.setSelectedTrack(track);
+    			track.trackerPanel.setSelectedPoint(null);
         	hidePopup = true;
         }
     	}
@@ -138,17 +139,6 @@ public class TButton extends JButton {
 		setIcons(off, on);
   }
   
-//  /**
-//   * Sets the icon. Overrides JButton method.
-//   *
-//   * @param icon the icon
-//   */
-//  public void setIcon(Icon icon) {
-//    super.setIcon(icon);
-////    setSelectedIcon(icon);
-////    setRolloverSelectedIcon(icon); 
-//  }
-  
   /**
    * Sets the icons for selected and unselected states.
    *
@@ -156,35 +146,18 @@ public class TButton extends JButton {
    * @param on the selected state icon
    */
   public void setIcons(Icon off, Icon on) {
-//		onIcon = on;
-//		offIcon = off;
 		super.setIcon(off);
 		setSelectedIcon(on);
   }
   
-//  /**
-//   * Sets the selected state. Overrides JButton method.
-//   *
-//   * @param selected true to select
-//   */
-//  public void setSelected(boolean selected) {
-//  	super.setSelected(selected);
-//  	if (selected && onIcon !=null) {
-//  		setIcon(onIcon);
-//  	}
-//  	else if (!selected && offIcon !=null) {
-//  		setIcon(offIcon);
-//  	}
-//  }
-    	
   /**
    * Sets the track associated with this button.
    *
    * @param track the track
    */
   public void setTrack(TTrack track) {
-  	this.track = track;
   	if (track!=null) {
+	  	trackID = track.getID();
 		  setIcon(track.getIcon(21, 16, context));
 		  setText(track.getName(context)); 
 		  setToolTipText(TrackerRes.getString("TButton.Track.ToolTip") //$NON-NLS-1$
@@ -192,6 +165,7 @@ public class TButton extends JButton {
 		  FontSizer.setFonts(this, FontSizer.getLevel());
   	}
   	else {
+  		trackID = -1;
 		  setIcon(null);
 		  setText(" "); //$NON-NLS-1$
 		  setToolTipText(null);
@@ -203,7 +177,7 @@ public class TButton extends JButton {
    * @return the track
    */
   public TTrack getTrack() {
-  	return track;
+  	return TTrack.getTrack(trackID);
   }
   
   /**
@@ -214,6 +188,7 @@ public class TButton extends JButton {
    * @return the popup menu, or null if none
    */
   protected JPopupMenu getPopup() {
+    TTrack track = getTrack();
   	if (track!=null && track.trackerPanel!=null) {
     	JMenu trackMenu = track.getMenu(track.trackerPanel);
     	FontSizer.setFonts(trackMenu, FontSizer.getLevel());
