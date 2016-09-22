@@ -284,7 +284,7 @@ public class TapeMeasure extends TTrack {
     	int n = trackerPanel.getFrameNumber();
     	trackerPanel.changed = true;
     	TapeStep keyStep = (TapeStep)getStep(n);
-      for (int i = 0; i < steps.length; i++) {
+      for (int i = 0; i < steps.array.length; i++) {
       	TapeStep step = (TapeStep)steps.getStep(i);
       	if (step==null) continue;
         step.getEnd1().setLocation(keyStep.getEnd1());
@@ -327,7 +327,7 @@ public class TapeMeasure extends TTrack {
     	int n = trackerPanel.getFrameNumber();
     	trackerPanel.changed = true;
     	TapeStep keyStep = (TapeStep)getStep(n);
-      for (int i = 0; i < steps.length; i++) {
+      for (int i = 0; i < steps.array.length; i++) {
       	TapeStep step = (TapeStep)steps.getStep(i);
         step.worldLength = keyStep.worldLength;
       }

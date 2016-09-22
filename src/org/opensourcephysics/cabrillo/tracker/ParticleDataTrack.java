@@ -1242,7 +1242,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   @Override
 	protected void reset() {
 		// clear existing steps
-		for (int i=0; i<steps.length; i++) {
+		for (int i=0; i<steps.array.length; i++) {
 			Step step = steps.getStep(i);
 			if (step!=null) {
 				step.erase();
@@ -1270,7 +1270,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	  
   	// mark a step at firstFrameInVideoClip unless dataclip length is zero
   	steps.setLength(firstFrameInVideoClip+1);
-  	for (int i = 0; i<steps.length; i++) {
+  	for (int i = 0; i<steps.array.length; i++) {
   		if (i<firstFrameInVideoClip || index==-1)
   			steps.setStep(i, null);
   		else {

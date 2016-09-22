@@ -208,7 +208,7 @@ public class DynamicParticle
 				models[i].lastValidFrame = firstFrameInClip;
 		  	models[i].steps.setLength(firstFrameInClip+1);
 		    PositionStep step = (PositionStep)models[i].getStep(firstFrameInClip);
-		  	for (int j = 0; j < models[i].steps.length;j++) {
+		  	for (int j = 0; j < models[i].steps.array.length;j++) {
 		  		if (j<firstFrameInClip)
 		  			models[i].steps.setStep(j, null);
 		  		else if (step==null) {

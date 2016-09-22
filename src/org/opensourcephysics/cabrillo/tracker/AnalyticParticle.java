@@ -119,7 +119,7 @@ public class AnalyticParticle
     	// mark a step at firstFrameInClip
 	  	steps.setLength(firstFrameInClip+1);
 	    PositionStep step = (PositionStep)getStep(firstFrameInClip);
-	  	for (int i = 0; i<steps.length; i++) {
+	  	for (int i = 0; i<steps.array.length; i++) {
 	  		if (i<firstFrameInClip)
 	  			steps.setStep(i, null);
 	  		else if (step==null) {
