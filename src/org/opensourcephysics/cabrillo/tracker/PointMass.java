@@ -1463,10 +1463,10 @@ public class PointMass extends TTrack {
 			return;
     VideoClip clip = trackerPanel.getPlayer().getVideoClip();
     // initialize data arrays
-    if (xData.length < steps.length) {
-      derivData[1] = xData = new double[steps.length + 5];
-      derivData[2] = yData = new double[steps.length + 5];
-      derivData[3] = validData = new boolean[steps.length + 5];
+    if (xData.length < steps.array.length) {
+      derivData[1] = xData = new double[steps.array.length + 5];
+      derivData[2] = yData = new double[steps.array.length + 5];
+      derivData[3] = validData = new boolean[steps.array.length + 5];
     }
     // set up derivative parameters
     params[1] = startFrame;
@@ -1609,12 +1609,12 @@ public class PointMass extends TTrack {
    */
   protected Object[] getRotationData() {
     // initialize data arrays once, for all panels
-    if (xData.length < steps.length) {
-      derivData[1] = xData = new double[steps.length + 5];
-      derivData[2] = yData = new double[steps.length + 5];
-      derivData[3] = validData = new boolean[steps.length + 5];
+    if (xData.length < steps.array.length) {
+      derivData[1] = xData = new double[steps.array.length + 5];
+      derivData[2] = yData = new double[steps.array.length + 5];
+      derivData[3] = validData = new boolean[steps.array.length + 5];
     }
-    for (int i = 0; i < steps.length; i++)
+    for (int i = 0; i < steps.array.length; i++)
       validData[i] = false;
     // set up derivative parameters
     VideoClip clip = trackerPanel.getPlayer().getVideoClip();
@@ -1670,12 +1670,12 @@ public class PointMass extends TTrack {
    */
   protected Object[] getRotationData(int startFrame, int stepCount) {
     // initialize data arrays once, for all panels
-    if (xData.length < steps.length) {
-      derivData[1] = xData = new double[steps.length + 5];
-      derivData[2] = yData = new double[steps.length + 5];
-      derivData[3] = validData = new boolean[steps.length + 5];
+    if (xData.length < steps.array.length) {
+      derivData[1] = xData = new double[steps.array.length + 5];
+      derivData[2] = yData = new double[steps.array.length + 5];
+      derivData[3] = validData = new boolean[steps.array.length + 5];
     }
-    for (int i = 0; i < steps.length; i++)
+    for (int i = 0; i < steps.array.length; i++)
       validData[i] = false;
     // set up derivative parameters
     VideoClip clip = trackerPanel.getPlayer().getVideoClip();

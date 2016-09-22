@@ -558,7 +558,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     track.addPropertyChangeListener("model_end", this); //$NON-NLS-1$
     // update track control and dataTool
     if (trackControl!=null && trackControl.isVisible()) trackControl.refresh();
-    if (getDataBuilder() != null && !getSystemDrawables().contains(track)) {   	
+    if (dataBuilder != null && !getSystemDrawables().contains(track)) {   	
     	FunctionPanel panel = createFunctionPanel(track);
     	dataBuilder.addPanel(track.getName(), panel);
     	dataBuilder.setSelectedPanel(track.getName());  	
