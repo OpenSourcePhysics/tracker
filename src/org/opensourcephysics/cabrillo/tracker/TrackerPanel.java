@@ -3147,7 +3147,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
      * @return the loaded object
      */
     public Object loadObject(XMLControl control, Object obj) {
-      TrackerPanel trackerPanel = (TrackerPanel)obj;
+      final TrackerPanel trackerPanel = (TrackerPanel)obj;
 	    // load and check the Tracker version that created this file
 	    String ver = control.getString("version"); //$NON-NLS-1$
 	    if (ver!=null) {
@@ -3331,7 +3331,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 								} catch (Exception e) {
 								}
 	      				if (addedTabs==null || addedTabs.isEmpty()) continue;
-	      				DataToolTab tab = addedTabs.get(0);
+	      				final DataToolTab tab = addedTabs.get(0);
 	      				
 	      				// set the owner of the tab to the specified track
 	      				String trackname = tab.getOwnerName();
@@ -3341,7 +3341,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	      				tab.setOwner(trackname, data);
 	      				
 	      				// set up a DataRefreshTool and send it to the tab
-	              DataRefreshTool refresher = DataRefreshTool.getTool(data);	              
+	              final DataRefreshTool refresher = DataRefreshTool.getTool(data);	              
 	            	DatasetManager toSend = new DatasetManager();
 	            	toSend.setID(data.getID());
 	              try {
@@ -3350,12 +3350,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	              catch (RemoteException ex) {ex.printStackTrace();}
 	              
 	              // set the tab column IDs to the track data IDs and add track data to the refresher
-	              for (TTrack tt: trackerPanel.getTracks()) {
-	              	Data trackData = tt.getData(trackerPanel);
-	              	if (tab.setOwnedColumnIDs(tt.getName(), trackData)) { // true if track owns one or more columns
-	              		refresher.addData(trackData);
+	              Runnable refreshRunner = new Runnable() {
+	              	public void run() {
+	  	              for (TTrack tt: trackerPanel.getTracks()) {
+	  	              	Data trackData = tt.getData(trackerPanel);
+	  	              	if (tab.setOwnedColumnIDs(tt.getName(), trackData)) { // true if track owns one or more columns
+	  	              		refresher.addData(trackData);
+	  	              	}
+	  	              }
 	              	}
-	              }
+	              };
+	              SwingUtilities.invokeLater(refreshRunner);
 	              // tab is now fully "wired" for refreshing by tracks
 	      			}    					
     				}
