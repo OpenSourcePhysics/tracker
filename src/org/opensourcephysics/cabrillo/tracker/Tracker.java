@@ -64,7 +64,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version */
-  public static final String VERSION = "4.94"; //$NON-NLS-1$
+  public static final String VERSION = "4.95"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -144,8 +144,8 @@ public class Tracker {
   static int requestedMemorySize = -1, originalMemoryRequest = 0;
   static long lastMillisChecked;
 	static boolean is64BitVM;
-	static int maxFontLevel = 6;
-	protected static Locale[] locales;
+  static int maxFontLevel = 6;
+  protected static Locale[] locales;
   static Locale defaultLocale;
   static ArrayList<String> checkForUpgradeChoices;
   static Map<String, Integer> checkForUpgradeIntervals;
@@ -227,6 +227,8 @@ public class Tracker {
 			new Locale("sk"), // slovak //$NON-NLS-1$
 			new Locale("sl"), // slovenian //$NON-NLS-1$
 			new Locale("sv"), // swedish //$NON-NLS-1$
+			new Locale("tr"), // turkish //$NON-NLS-1$
+			new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
 			Locale.TAIWAN, // traditional chinese
 			Locale.CHINA}; // simplified chinese
   	setDefaultConfig(getFullConfig());
@@ -248,7 +250,7 @@ public class Tracker {
 		timer.setRepeats(false);
 		timer.start();
 
-    xmlFilter = new java.io.FileFilter() {
+		xmlFilter = new java.io.FileFilter() {
       // accept only *.xml files.
       public boolean accept(File f) {
         if (f==null || f.isDirectory()) return false;
@@ -320,12 +322,12 @@ public class Tracker {
     String tip = TrackerRes.getString("Tracker.Splash.HelpMessage"); //$NON-NLS-1$
     tip += " "+TrackerRes.getString("TMenuBar.Menu.Help"); //$NON-NLS-1$ //$NON-NLS-2$
     tip += "|"+TrackerRes.getString("TMenuBar.MenuItem.GettingStarted"); //$NON-NLS-1$ //$NON-NLS-2$
-    tipOfTheDayLabel = new JLabel(tip);
-    tipOfTheDayLabel.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
-    Font font = tipOfTheDayLabel.getFont().deriveFont(Font.PLAIN).deriveFont(14f);
-    tipOfTheDayLabel.setFont(font);
-    tipOfTheDayLabel.setForeground(darkred);
-    tipOfTheDayLabel.setAlignmentX(0.5f);
+    JLabel helpLabel = new JLabel(tip);
+    helpLabel.setBorder(BorderFactory.createEmptyBorder(0, 12, 0, 12));
+    Font font = helpLabel.getFont().deriveFont(Font.PLAIN).deriveFont(14f);
+    helpLabel.setFont(font);
+    helpLabel.setForeground(darkred);
+    helpLabel.setAlignmentX(0.5f);
     progressBar = new JProgressBar(0, 100);
     progressBar.setValue(0);
     JPanel progressPanel = new JPanel(new BorderLayout());
@@ -333,7 +335,7 @@ public class Tracker {
     progressPanel.add(progressBar, BorderLayout.CENTER);
     progressPanel.setOpaque(false);
     Box center = Box.createVerticalBox();
-    center.add(tipOfTheDayLabel);
+    center.add(helpLabel);
     center.add(progressPanel);
     contentPane.add(center, BorderLayout.CENTER);
 
@@ -504,8 +506,6 @@ public class Tracker {
       // parse file names
       for (int i = 0; i < names.length; i++) {
         if (names[i] == null) continue;
-        String name = XML.getName(names[i]);
-        splash(TrackerRes.getString("Tracker.Splash.Loading")+" \""+name+"\""); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         // set default root path to path of first .trk or .trz file opened
         if ((names[i].endsWith(".trk") || names[i].endsWith(".trz")) //$NON-NLS-1$ //$NON-NLS-2$
         		&& names[i].indexOf("/") != -1 //$NON-NLS-1$
@@ -636,14 +636,6 @@ public class Tracker {
   
 
   /**
-   * Gets an image for the OSX dock.
-   * @return a Tracker icon image
-   */
-  public static Image getOSXDockImage() {
-  	return TRACKER_ICON_256.getImage();
-  }
-  
-  /**
    * Shows the About Tracker dialog.
    */
   public static void showAboutTracker() {
@@ -753,6 +745,10 @@ public class Tracker {
 				if (readmeDialog==null && Tracker.trackerHome!=null) {
 		      String slash = System.getProperty("file.separator", "/"); //$NON-NLS-1$//$NON-NLS-2$
 	        String path = Tracker.trackerHome+slash+readmeFileName;
+	        if (OSPRuntime.isMac()) {
+	        	String dir = new File(Tracker.trackerHome).getParent();
+	        	path = dir+slash+readmeFileName;
+	        }
 	        String s = ResourceLoader.getString(path);
 	        if (s==null || "".equals(s)) { //$NON-NLS-1$
 	        	s = TrackerRes.getString("Tracker.Readme.NotFound")+": "+path; //$NON-NLS-1$ //$NON-NLS-2$
@@ -1196,24 +1192,6 @@ public class Tracker {
   }
 
   /**
-   * Test for writable directory
-   * 
-   * @param dir the directory file object
-   */
-  protected static boolean isDirWritable(File dir) {
-	  if(dir == null || !dir.isDirectory())
-		  return false;
-	  File test = new File(dir,"empty");
-	  try {
-		  test.createNewFile();
-		  test.delete();
-		  return true;
-	  } catch (IOException e) {
-		  return false;
-	  }
-  }
-  
-  /**
    * Checks and updates QuickTime resources.
    * 
    * @return true if any resources were updated
@@ -1222,8 +1200,7 @@ public class Tracker {
   	boolean updated = false;
   	// copy ffmpeg files to Tracker home, if needed
 		try {
-			File trackerDir = new File(TrackerStarter.findTrackerHome(false));
-			if(isDirWritable(trackerDir))
+				File trackerDir = new File(TrackerStarter.findTrackerHome(false));
 				updated = ExtensionsManager.getManager().copyFFMPegJarsTo(trackerDir);
 		} catch (Exception e) {
 		}
@@ -1233,7 +1210,7 @@ public class Tracker {
   	// copy newer QTJava, if found, to current Java extensions
     String jre = System.getProperty("java.home"); //$NON-NLS-1$
     File extDir = new File(jre, "lib/ext"); //$NON-NLS-1$
-    if (extDir.exists() && isDirWritable(extDir)) {
+    if (extDir.exists()) {
     	updated = ExtensionsManager.getManager().copyQTJavaTo(extDir) || updated;
     }
     return updated; 	
@@ -1333,7 +1310,6 @@ public class Tracker {
   	return page;
   }
 
-
   /**
    * Logs a specified page and returns the latest version of Tracker.
    * 
@@ -1369,82 +1345,35 @@ public class Tracker {
     	prefsControl.loadObject(null);  // the loader itself reads the values
     	return;
   	}
-  	else {
-  		// unable to find prefs, so write new one(s) if possible
-  		String recommendedPath = ""; //$NON-NLS-1$
-	  	for (String path: OSPRuntime.getDefaultSearchPaths()) {
-  			String fileName = TrackerStarter.PREFS_FILE_NAME;
-	      String prefs_path = new File(path, fileName).getAbsolutePath();
-	      if ("".equals(recommendedPath)) recommendedPath = prefs_path; //$NON-NLS-1$
-	      else recommendedPath = " or "+prefs_path; //$NON-NLS-1$
-	    	XMLControl control = new XMLControlElement(new Preferences());
-	      if (control.write(prefs_path)!=null) {
-	      	prefsPath = prefs_path;
-		    	OSPLog.getOSPLog();
-		    	OSPLog.info("wrote new preferences file to "+XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
-	      }
-	  	}
-  		if (prefsPath==null) {
-    		// unable to read or write prefs 			
+
+		// unable to find prefs, so write new one(s) if possible
+		String recommendedPath = null;
+		String fileName = TrackerStarter.PREFS_FILE_NAME;
+		if (!OSPRuntime.isWindows()) {
+			// add leading dot to hide file on OSX and Linux
+			fileName = "."+fileName; //$NON-NLS-1$
+		}
+  	for (String path: OSPRuntime.getDefaultSearchPaths()) {
+      String prefs_path = new File(path, fileName).getAbsolutePath();
+      if (recommendedPath==null) recommendedPath = prefs_path;
+      else recommendedPath += " or "+prefs_path; //$NON-NLS-1$
+    	XMLControl control = new XMLControlElement(new Preferences());
+      if (control.write(prefs_path)!=null) {
+      	prefsPath = prefs_path;
 	    	OSPLog.getOSPLog();
-	    	if (recommendedPath!=null) {
-		    	OSPLog.warning("administrator action required: unable to write preferences file to "+recommendedPath); //$NON-NLS-1$
-	  		}
-	    	else {
-		    	OSPLog.warning("unable to find or create preferences file "+TrackerStarter.PREFS_FILE_NAME); //$NON-NLS-1$
-	    	}
-  		}
+	    	OSPLog.info("wrote new preferences file to "+XML.getAbsolutePath(new File(prefsPath))); //$NON-NLS-1$
+      }
   	}
-  	
-//  	// code below this point is legacy and should never be reached
-//    // if not loaded, look in (1) user home, (2) TRACKER_HOME, (3) current directory
-//    // check user home
-//    XMLControl control = null;
-//  	String loadedPath = null;
-//    String userhome = System.getProperty("user.home"); //$NON-NLS-1$
-//    if (userhome!=null) {
-//      prefsPath = userhome+"/"+prefsFileName; //$NON-NLS-1$
-//      control = new XMLControlElement(prefsPath);
-//      if (!control.failedToRead()) loadedPath = prefsPath;
-//    }
-//    // if not loaded, check TRACKER_HOME
-//    if (loadedPath==null) {
-//      if (trackerHome!=null) {
-//	      String path = trackerHome+"/"+prefsFileName; //$NON-NLS-1$
-//	      control = new XMLControlElement(path);
-//	      if (!control.failedToRead()) loadedPath = path;
-//	      if (prefsPath==null)
-//	      	prefsPath = path;
-//      }
-//    }
-//    // if not loaded, check launch jar directory
-//    if (loadedPath==null) {
-//      String dir = OSPRuntime.getLaunchJarDirectory();
-//      if (dir!=null) {
-//        String path = dir+"/"+prefsFileName; //$NON-NLS-1$
-//        control = new XMLControlElement(path);
-//	      if (!control.failedToRead()) loadedPath = path;
-//        if (prefsPath==null && loadedPath!=null)
-//        	prefsPath = path;   	
-//      }
-//    }
-//    // check current directory
-//    if (loadedPath==null) {
-//      File file = new File(prefsFileName);
-//      if (file.exists()) {
-//        String path = file.getAbsolutePath();
-//        control = new XMLControlElement(path);
-//	      if (!control.failedToRead()) loadedPath = path;
-//        if (prefsPath==null && loadedPath!=null)
-//        	prefsPath = path;   	
-//      }
-//    }
-//    if (loadedPath!=null) {
-//    	OSPLog.getOSPLog();
-//    	OSPLog.info("loading preferences from "+XML.getAbsolutePath(new File(loadedPath))); //$NON-NLS-1$
-//    	control.loadObject(null);  // the loader itself sets the values
-//    }
-//    // end legacy code
+		if (prefsPath==null) {
+  		// unable to read or write prefs 			
+    	OSPLog.getOSPLog();
+    	if (recommendedPath!=null) {
+	    	OSPLog.warning("administrator action required: unable to write preferences file to "+recommendedPath); //$NON-NLS-1$
+  		}
+    	else {
+	    	OSPLog.warning("unable to find or create preferences file "+TrackerStarter.PREFS_FILE_NAME); //$NON-NLS-1$
+    	}
+		}  	
   }
 
   /**
@@ -1459,25 +1388,34 @@ public class Tracker {
   		control.write(prefsPath);
   	}
   	
-  	// also update existing prefs files in OSPRuntime search paths
-  	for (String path: OSPRuntime.getDefaultSearchPaths()) {
-  		for (int i=0; i<2; i++) {
-  			String fileName = TrackerStarter.PREFS_FILE_NAME;
-  			if (i==1) {
-  				fileName = fileName.substring(1);
-  			}
+  	// save other existing prefs files
+		for (int i=0; i<2; i++) {
+			String fileName = TrackerStarter.PREFS_FILE_NAME;
+			if (i==1) {
+				fileName = "."+fileName; //$NON-NLS-1$
+			}
+	  	// update prefs files in OSPRuntime search paths, if any
+			for (String path: OSPRuntime.getDefaultSearchPaths()) {
 	      File prefsFile = new File(path, fileName);
 	      if (prefsFile.getAbsolutePath().equals(prefsPath)) {
 	      	continue;
-	      }
+	      }	      
 	      if (prefsFile.exists() && prefsFile.canWrite()) {
 	    		control.write(prefsFile.getAbsolutePath());	      	
 	      }
   		}
+			// update prefs in current directory, if any
+      File prefsFile = new File(fileName);
+      if (prefsFile.getAbsolutePath().equals(prefsPath)) {
+      	continue;
+      }
+      if (prefsFile.exists() && prefsFile.canWrite()) {
+    		control.write(prefsFile.getAbsolutePath());	      	
+      }
   	}
     
     // save current trackerHome and ffmpegHome in OSP preferences 
-    if (trackerHome!=null) {
+    if (trackerHome!=null && new File(trackerHome, "tracker.jar").exists()) {   	 //$NON-NLS-1$
     	OSPRuntime.setPreference("TRACKER_HOME", trackerHome); //$NON-NLS-1$
     }
   	String ffmpegHome = System.getenv("FFMPEG_HOME"); //$NON-NLS-1$
@@ -1531,6 +1469,14 @@ public class Tracker {
 //		for (String next: vars) {
 //			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
 //		}
+  	
+//  	Map<String, String> map = System.getenv();
+//  	for (String key: map.keySet()) {
+//  		System.out.println("environment "+key+" = "+map.get(key));
+//  	}
+//  	for (Object key: System.getProperties().keySet()) {
+//  		System.out.println("property "+key+" = "+System.getProperties().get(key));
+//  	}
 
     // determine if this is tracker.jar (Tracker main class)
     boolean isTracker = false;
@@ -1601,7 +1547,7 @@ public class Tracker {
 						needsEnvironment = true;					
 					}
 					else {
-						if (!OSPRuntime.isLinux() && ffmpegDir!=null) {
+						if (ffmpegDir!=null) {
 							String subdir = OSPRuntime.isWindows()? "bin":"lib" ; //$NON-NLS-1$ //$NON-NLS-2$
 							String ffmpegPath = ffmpegDir+File.separator+subdir;
 							String pathName = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
@@ -1649,16 +1595,17 @@ public class Tracker {
     
   	if (OSPRuntime.isMac()) {
 			// instantiate the OSXServices class by reflection
+  		System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Tracker"); //$NON-NLS-1$ //$NON-NLS-2$
 			String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
 	    try {
 				Class<?> OSXClass = Class.forName(className);
 				Constructor<?> constructor = OSXClass.getConstructor(Tracker.class);
-				constructor.newInstance(tracker);
+				constructor.newInstance(tracker);				
 			} catch (Exception ex) {
 			}
 		}
  
-  	FontSizer.setLevel(preferredFontLevel);
+  	FontSizer.setLevel(preferredFontLevel+preferredFontLevelPlus);
   	final TFrame frame = tracker.getFrame();
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -1797,14 +1744,6 @@ public class Tracker {
 		      JOptionPane.WARNING_MESSAGE);
 		}
 
-  }
-
-  /**
-   * Displays a message in the splash screen.
-   * @param message 
-   */
-  protected static void splash(String message) {
-  	if (tipOfTheDayLabel != null) tipOfTheDayLabel.setText(message);
   }
 
   /**
