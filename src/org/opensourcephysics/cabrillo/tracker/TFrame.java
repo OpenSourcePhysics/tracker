@@ -83,7 +83,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   protected ArrayList<String> loadedFiles = new ArrayList<String>();
   protected boolean anglesInRadians = Tracker.isRadians;
   protected File tabsetFile; // used when saving tabsets
-  protected int framesLoaded, prevFramesLoaded; // used when loading xuggle videos
+  protected int framesLoaded, prevFramesLoaded; // used when loading ffmpeg videos
 //  protected JProgressBar monitor;
   protected PrefsDialog prefsDialog;
   protected ClipboardListener clipboardListener;
@@ -767,7 +767,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       TrackerPanel trackerPanel = (TrackerPanel)e.getSource();
     	refreshTab(trackerPanel);
     }    
-    else if (name.equals("progress")) { // from currently loading (xuggle) video  //$NON-NLS-1$
+    else if (name.equals("progress")) { // from currently loading (ffmpeg) video  //$NON-NLS-1$
     	Object val = e.getNewValue();
     	String vidName = XML.forwardSlash((String)e.getOldValue());
     	try {

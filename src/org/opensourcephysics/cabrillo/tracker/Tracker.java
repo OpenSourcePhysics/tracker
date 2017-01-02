@@ -1547,7 +1547,7 @@ public class Tracker {
 						needsEnvironment = true;					
 					}
 					else {
-						if (ffmpegDir!=null) {
+						if (ffmpegDir!=null && !OSPRuntime.isLinux()) {
 							String subdir = OSPRuntime.isWindows()? "bin":"lib" ; //$NON-NLS-1$ //$NON-NLS-2$
 							String ffmpegPath = ffmpegDir+File.separator+subdir;
 							String pathName = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
