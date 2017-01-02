@@ -1737,8 +1737,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @return true if marking (ie next mouse click will mark a TPoint)
    */
   protected boolean setCursorForMarking(boolean invert, InputEvent e) {
-  	if (getCursor() == Tracker.zoomInCursor
-  			|| getCursor() == Tracker.zoomOutCursor) return false;
+  	if (Tracker.isZoomInCursor(getCursor())
+  			|| Tracker.isZoomOutCursor(getCursor())) return false;
     boolean markable = false;
     boolean marking = false;
     selectedTrack = getSelectedTrack();
@@ -2333,8 +2333,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   public void setMouseCursor(Cursor cursor) {
     if (cursor != Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)
-    		&& getCursor() != Tracker.zoomOutCursor
-    		&& getCursor() != Tracker.zoomInCursor)
+    		&& !Tracker.isZoomInCursor(getCursor())
+    		&& !Tracker.isZoomOutCursor(getCursor()))
     	super.setMouseCursor(cursor);
   }
 
@@ -2411,7 +2411,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @return true if a zoom event
    */
   public boolean isZoomEvent(MouseEvent e) {
-  	return super.isZoomEvent(e) || getCursor()==Tracker.zoomInCursor;
+  	return super.isZoomEvent(e) || Tracker.isZoomInCursor(getCursor());
   }
 
   /**

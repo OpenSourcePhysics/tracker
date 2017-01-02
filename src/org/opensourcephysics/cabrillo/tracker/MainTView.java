@@ -92,9 +92,9 @@ public class MainTView extends JPanel implements TView {
     	@Override
       public void mouseReleased(MouseEvent e) {
       	// handle zoom actions
-      	if (trackerPanel.getCursor() == Tracker.zoomOutCursor) 
+      	if (Tracker.isZoomOutCursor(trackerPanel.getCursor())) 
       		zoomOut(false);  
-        else if (trackerPanel.getCursor() == Tracker.zoomInCursor) 
+        else if (Tracker.isZoomInCursor(trackerPanel.getCursor())) 
         	zoomIn(false);   
       }
     	@Override
@@ -199,8 +199,8 @@ public class MainTView extends JPanel implements TView {
    * @return the popup menu
    */
   JPopupMenu getPopupMenu() {
-  	if (trackerPanel.getCursor() == Tracker.zoomInCursor
-  			|| trackerPanel.getCursor() == Tracker.zoomOutCursor) {
+  	if (Tracker.isZoomInCursor(trackerPanel.getCursor())
+  			|| Tracker.isZoomOutCursor(trackerPanel.getCursor())) {
   		return null;
   	}
   	JPopupMenu popup = trackerPanel.popup;
