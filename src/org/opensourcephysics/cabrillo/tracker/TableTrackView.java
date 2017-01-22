@@ -1673,7 +1673,7 @@ public class TableTrackView extends TrackView {
   		return super.getDefaultRenderer(type);
   	}
 
-  	protected TableCellRenderer getCellRenderer(String columnName) {
+  	public TableCellRenderer getCellRenderer(String columnName) {
       UnitRenderer unitRenderer = unitRenderersByColumnName.get(columnName);
       TableCellRenderer baseRenderer = precisionRenderersByColumnName.get(columnName);
       // if no precision base renderer, use default

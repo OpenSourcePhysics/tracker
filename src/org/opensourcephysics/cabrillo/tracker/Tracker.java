@@ -44,6 +44,7 @@ import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.MouseInputAdapter;
 
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
@@ -64,7 +65,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version */
-  public static final String VERSION = "4.95"; //$NON-NLS-1$
+  public static final String VERSION = "4.96"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -133,7 +134,7 @@ public class Tracker {
   static String prefsPath;
   @SuppressWarnings("javadoc")
 	public static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
-  static Cursor zoomInCursor, zoomOutCursor, grabCursor, grabbedCursor;
+  static Cursor zoomInCursor, zoomOutCursor, grabCursor;
   static boolean showHints = true;
   static boolean startupHintShown;
   static String pdfHelpPath = "/tracker_help.pdf"; //$NON-NLS-1$
@@ -196,14 +197,12 @@ public class Tracker {
     trackerLogoIcon = ResourceLoader.getIcon(imageFile);
     imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/osp_logo_url.png"; //$NON-NLS-1$
     ospLogoIcon = ResourceLoader.getIcon(imageFile);
-    imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/grab.gif";  //$NON-NLS-1$
-    Image im = ResourceLoader.getImage(imageFile);    
-    grabCursor = Toolkit.getDefaultToolkit().createCustomCursor(
-    		im, new Point(14, 10), "Grab"); //$NON-NLS-1$
-    imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/grabbing.gif";  //$NON-NLS-1$
-    im = ResourceLoader.getImage(imageFile);    
-    grabbedCursor = Toolkit.getDefaultToolkit().createCustomCursor(
-    		im, new Point(12, 8), "Grabbed"); //$NON-NLS-1$  	
+    
+    // create grab cursor
+	  imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/grab.gif";  //$NON-NLS-1$
+	  Image grab = ResourceLoader.getImage(imageFile); 
+	  grabCursor = GUIUtils.createCustomCursor(grab, new Point(14, 10), "Grab", Cursor.HAND_CURSOR); //$NON-NLS-1$
+    
   	// create static objects AFTER they are defined above
     locales = new Locale[] { 
 			Locale.ENGLISH, 
@@ -217,10 +216,12 @@ public class Tracker {
 			new Locale("fi"), // finnish //$NON-NLS-1$
 			Locale.FRENCH,
 			new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
+			new Locale("hu", "HU"), // hungarian //$NON-NLS-1$ //$NON-NLS-2$
 			Locale.ITALIAN,
 			new Locale("ko"), // korean //$NON-NLS-1$
 			new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$ 
 //			new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
+//			new Locale("pl"), // polish //$NON-NLS-1$
 			new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("sk"), // slovak //$NON-NLS-1$
@@ -1432,14 +1433,21 @@ public class Tracker {
    * @return the cursor
    */
   protected static Cursor getZoomInCursor() {
-    if (zoomInCursor == null) {
-	    // create cursor
-	    String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/zoom_in.gif";  //$NON-NLS-1$
-	    Image im = ResourceLoader.getImage(imageFile);    
-	    zoomInCursor = Toolkit.getDefaultToolkit().createCustomCursor(
-	    		im, new Point(12, 12), "Zoom In"); //$NON-NLS-1$
-    }
+  	if (zoomInCursor==null) {
+  	  String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/zoom_in.gif";  //$NON-NLS-1$
+  	  Image zoom = ResourceLoader.getImage(imageFile);    
+  	  zoomInCursor = GUIUtils.createCustomCursor(zoom, new Point(12, 12), "Zoom In", Cursor.DEFAULT_CURSOR); //$NON-NLS-1$
+  	}
     return zoomInCursor;
+  }
+
+  /**
+   * Determines if a cursor is the zoomInCursor.
+   *
+   * @return true if the cursor is zoonIn
+   */
+  protected static boolean isZoomInCursor(Cursor cursor) {
+    return cursor==Tracker.zoomInCursor && Tracker.zoomInCursor!=Cursor.getDefaultCursor();
   }
 
   /**
@@ -1448,14 +1456,21 @@ public class Tracker {
    * @return the cursor
    */
   protected static Cursor getZoomOutCursor() {
-    if (zoomOutCursor == null) {
-	    // create cursor
-    	String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/zoom_out.gif";  //$NON-NLS-1$
-    	Image im = ResourceLoader.getImage(imageFile);    
-	    zoomOutCursor = Toolkit.getDefaultToolkit().createCustomCursor(
-	    		im, new Point(12, 12), "Zoom Out"); //$NON-NLS-1$
-    }
+  	if (zoomOutCursor==null) {
+  		String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/zoom_out.gif";  //$NON-NLS-1$
+  		Image zoom = ResourceLoader.getImage(imageFile);    
+  	  zoomOutCursor = GUIUtils.createCustomCursor(zoom, new Point(12, 12), "Zoom Out", Cursor.DEFAULT_CURSOR); //$NON-NLS-1$
+  	}
     return zoomOutCursor;
+  }
+
+  /**
+   * Determines if a cursor is the zoomOutCursor.
+   *
+   * @return true if the cursor is zoomOut
+   */
+  protected static boolean isZoomOutCursor(Cursor cursor) {
+    return cursor==Tracker.zoomOutCursor && Tracker.zoomOutCursor!=Cursor.getDefaultCursor();
   }
 
   /**
@@ -1519,7 +1534,7 @@ public class Tracker {
 	    }
 	    boolean needsJavaVM = javaPath!=null && !javaCommand.equals(javaPath);
 	    
-			// update resources like QuickTime
+			// update resources like Xuggle & QuickTime
 			boolean updated = updateResources();
 			
 			// compare memory with requested size(s)

@@ -262,7 +262,8 @@ public class PointMass extends TTrack {
     }
 	  support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
     // check independent point masses for skipped steps during marking
-    if (skippedStepWarningOn && steps.isPreceded(n) && trackerPanel!=null && !isDependent()) {
+    if (skippedStepWarningOn && steps.isPreceded(n) && trackerPanel!=null && !isDependent()
+    		&& !AutoTracker.neverPause) {
     	VideoClip clip = trackerPanel.getPlayer().getVideoClip();
     	int stepNumber = clip.frameToStep(n);
     	if (stepNumber>0) {    		

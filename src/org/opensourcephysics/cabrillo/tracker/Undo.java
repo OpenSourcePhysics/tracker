@@ -77,7 +77,12 @@ public class Undo {
    * @return the undoable edit description
    */
   public static String getUndoDescription(TrackerPanel panel) {
-  	return getUndo(panel).undoManager.getUndoPresentationName();
+  	String desc = TrackerRes.getString("TMenuBar.MenuItem.Undo"); //$NON-NLS-1$
+  	UndoableEdit edit = getUndo(panel).undoManager.getUndoEdit();
+  	if (edit!=null) {
+  		desc += " "+edit.getPresentationName(); //$NON-NLS-1$
+  	}
+  	return desc;
   }
 
   /**
@@ -88,7 +93,7 @@ public class Undo {
   public static void undo(TrackerPanel panel) {
   	// check last edit and (if trackEdit) modify its redo state with current state of track
   	if (!getUndo(panel).undoManager.canRedo()) {
-	  	UndoableEdit lastEdit = getUndo(panel).undoManager.getLastEdit();
+	  	UndoableEdit lastEdit = getUndo(panel).undoManager.getUndoEdit();
   		if (lastEdit!=null && lastEdit instanceof TrackEdit) {
   			TrackEdit trackEdit = (TrackEdit)lastEdit;
   			String name = trackEdit.trackName;
@@ -120,7 +125,12 @@ public class Undo {
    * @return the redoable edit description
    */
   public static String getRedoDescription(TrackerPanel panel) {
-  	return getUndo(panel).undoManager.getRedoPresentationName();
+  	String desc = TrackerRes.getString("TMenuBar.MenuItem.Redo"); //$NON-NLS-1$
+  	UndoableEdit edit = getUndo(panel).undoManager.getRedoEdit();
+  	if (edit!=null) {
+  		desc += " "+edit.getPresentationName(); //$NON-NLS-1$
+  	}
+  	return desc;
   }
 
   /**
@@ -1011,12 +1021,12 @@ public class Undo {
  * An UndoManager that exposes it's edits.
  */
 class MyUndoManager extends UndoManager {
-	public UndoableEdit getLastEdit() {
-		return this.lastEdit();
+	public UndoableEdit getUndoEdit() {
+		return this.editToBeUndone();
 	}
 	
-	public UndoableEdit getNextEdit() {
-		return this.editToBeUndone();
+	public UndoableEdit getRedoEdit() {
+		return this.editToBeRedone();
 	}
 	
 }

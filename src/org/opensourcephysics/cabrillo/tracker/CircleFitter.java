@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeSet;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
@@ -251,9 +253,23 @@ public class CircleFitter extends TTrack {
 						trackerPanel.setSelectedPoint(p);
 					}      		
       	};
+      	// create string buffer to copy data point positions to clipboard
+        final StringBuffer buf = new StringBuffer();
+        buf.append(step.getTrack().getName()+"_"+stepLabel.getText()+"_"+trackerPanel.getStepNumber()); //$NON-NLS-1$ //$NON-NLS-2$
+        buf.append(XML.NEW_LINE);
+        buf.append("x"+TrackerIO.getDelimiter()+"y"); //$NON-NLS-1$ //$NON-NLS-2$
+        buf.append(XML.NEW_LINE);
       	for (int i=0; i<pts.size(); i++) {
       		DataPoint p = pts.get(i);
       		Point2D worldPt = p.getWorldPosition(trackerPanel);
+      		
+      		// add raw data to the buffer for the clipboard
+          buf.append(worldPt.getX()+TrackerIO.getDelimiter()+worldPt.getY());
+          if (i<pts.size()-1) {
+          	buf.append(XML.NEW_LINE);
+          }
+      		
+          // create point description string
       		String s=""; //$NON-NLS-1$
       		
       		// first add marked point items
@@ -288,6 +304,20 @@ public class CircleFitter extends TTrack {
         	});
       		popup.add(item);
       	}
+      	// add "copy to clipboard" menu item
+    		JMenuItem item = new JMenuItem(TrackerRes.getString("CircleFitter.MenuItem.CopyToClipboard.Text")); //$NON-NLS-1$
+    		item.setToolTipText(TrackerRes.getString("CircleFitter.MenuItem.CopyToClipboard.Tooltip")); //$NON-NLS-1$
+    		item.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						// copy buffer to the clipboard
+				    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+				    StringSelection stringSelection = new StringSelection(buf.toString());
+				    clipboard.setContents(stringSelection, stringSelection);
+					}      		
+      	});
+    		popup.addSeparator();
+    		popup.add(item);
+    		
       	FontSizer.setFonts(popup, FontSizer.getLevel());
       	return popup;
       }

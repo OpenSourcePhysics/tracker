@@ -76,7 +76,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-		    	      	
 //	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 
 		    	      	if (!testTimer.isRepeats()) {

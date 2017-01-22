@@ -59,16 +59,16 @@ public class TMouseHandler implements InteractiveMouseHandler {
   static {
     ImageIcon icon = new ImageIcon(
         Tracker.class.getResource("resources/images/creatept.gif")); //$NON-NLS-1$
-    markPointCursor = Toolkit.getDefaultToolkit().createCustomCursor(
-        icon.getImage(), new Point(8, 8), TrackerRes.getString("Tracker.Cursor.Crosshair.Description")); //$NON-NLS-1$  	
+    markPointCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(8, 8), 
+    		TrackerRes.getString("Tracker.Cursor.Crosshair.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$  	
     icon = new ImageIcon(
         Tracker.class.getResource("resources/images/autotrack.gif")); //$NON-NLS-1$
-    autoTrackCursor = Toolkit.getDefaultToolkit().createCustomCursor(
-        icon.getImage(), new Point(9, 9), TrackerRes.getString("PointMass.Cursor.Autotrack.Description")); //$NON-NLS-1$  	
+    autoTrackCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(9, 9), 
+    		TrackerRes.getString("PointMass.Cursor.Autotrack.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$  	
     icon = new ImageIcon(
         Tracker.class.getResource("resources/images/autotrack_mark.gif")); //$NON-NLS-1$
-    autoTrackMarkCursor = Toolkit.getDefaultToolkit().createCustomCursor(
-        icon.getImage(), new Point(9, 9), TrackerRes.getString("PointMass.Cursor.Autotrack.Description")); //$NON-NLS-1$  	
+    autoTrackMarkCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(9, 9), 
+    		TrackerRes.getString("Tracker.Cursor.Autotrack.Keyframe.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$  	
   }
 
   /**
@@ -346,8 +346,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	          p.setScreenPosition(scrPt.x+dx, scrPt.y+dy, trackerPanel, e);
         	}
         }
-        else if (trackerPanel.getCursor()!=Tracker.zoomInCursor
-        		&& trackerPanel.getCursor()!=Tracker.zoomOutCursor){
+        else if (!Tracker.isZoomInCursor(trackerPanel.getCursor())
+        		&& !Tracker.isZoomOutCursor(trackerPanel.getCursor())){
         	Point p = e.getPoint();
         	Rectangle rect = trackerPanel.scrollPane.getViewport().getViewRect();
         	trackerPanel.scrollPane.getViewport().getView().getSize(dim);
@@ -358,7 +358,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
         	int y = Math.max(0, viewLoc.y+dy);
         	y = Math.min(y, dim.height-rect.height);
         	if (x!=rect.x || y!=rect.y) {
-            trackerPanel.setMouseCursor(Tracker.grabbedCursor);
+            trackerPanel.setMouseCursor(Tracker.grabCursor);
         		rect.x = x;
         		rect.y = y;
         		trackerPanel.scrollRectToVisible(rect);

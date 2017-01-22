@@ -26,6 +26,8 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -37,6 +39,7 @@ import java.awt.font.FontRenderContext;
 import java.awt.geom.*;
 import java.awt.image.BufferedImage;
 import java.beans.*;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
@@ -45,8 +48,10 @@ import javax.swing.Timer;
 import javax.swing.border.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.table.TableCellRenderer;
 
 import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
@@ -85,6 +90,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	private static double[] defaultSearchSize = {40, 40};
 	private static int templateIconMagnification = 2;
 	private static int predictionLookback = 4;
+  static boolean neverPause = true;
 
   static {
   	dotted = new BasicStroke(2,BasicStroke.CAP_BUTT,BasicStroke.JOIN_MITER,8,DOTTED_LINE,0);
@@ -154,7 +160,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       	if (!active || track==null) {
       		return;
       	}
-  	    if (markCurrentFrame(true)) { 
+      	// if never pausing, don't look ahead
+      	boolean moveSearchArea = !neverPause;
+  	    if (markCurrentFrame(moveSearchArea) || neverPause) { 
   	    	// successfully found/marked a good match
   	    	if (!canStep()) { // reached the end
   	    		stop(true, true);
@@ -271,7 +279,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	wizard.changed = false;
   	active = true; // actively searching
   	paused = false;
-    if (!startWithThis || markCurrentFrame(false)) {
+    if (!startWithThis || markCurrentFrame(false) || neverPause) {
     	if (canStep() && (!startWithThis||stepping)) {
 	    	trackerPanel.getPlayer().step();
 	    	return;
@@ -303,6 +311,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	stepping = false; // don't keep stepping
   	active = !now && !paused;
   	paused = false;
+  	wizard.prepareForFixedSearch(false);
   	wizard.refreshGUI();
   	if (update) {
       TTrack track = getTrack();
@@ -1292,7 +1301,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		trackerPanel.repaint();
     FrameData frame = getFrame(n);
     frame.clear();
-  }  
+  } 
   
   /**
    * Clears all existing steps and match data for the current point index.
@@ -1996,11 +2005,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
     // instance fields
   	private JButton startButton, searchNextButton, searchThisButton;
+  	private JPopupMenu popup;
   	private JButton closeButton, helpButton, deleteButton, keyFrameButton;
   	private JButton acceptButton, skipButton;
   	private JSpinner evolveSpinner, acceptSpinner;
   	private JComboBox trackDropdown, pointDropdown;
-  	private boolean isVisible, changed;
+  	private boolean isVisible, changed, hidePopup;
     private JTextArea textPane;
     protected JToolBar templateToolbar, searchToolbar, targetToolbar, imageToolbar, trackToolbar;
     private JPanel startPanel, followupPanel, infoPanel, northPanel, targetPanel;
@@ -2012,6 +2022,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     private Object mouseOverObj;
     private MouseAdapter mouseOverListener;
     private Timer timer;
+    private boolean ignoreChanges, isPrevValid, prevLookAhead, prevOneD;
+    private int prevEvolution;
 
     /**
      * Constructs a Wizard.
@@ -2150,12 +2162,20 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
         			trackerPanel.getPlayer().setStepNumber(clip.getStepCount()-1);
         			break;
+        		case KeyEvent.VK_SHIFT:
+          		if (!stepping) {
+          			startButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.Options")); //$NON-NLS-1$);
+          		}
+        			break;
         	}
         }
         public void keyReleased(KeyEvent e) {
         	// handle shift key release when wizard takes focus from TrackerPanel
         	if (e.getKeyCode()==KeyEvent.VK_SHIFT) {
         		trackerPanel.isShiftKeyDown = false;
+        		startButton.setText(stepping?
+    					TrackerRes.getString("AutoTracker.Wizard.Button.Stop"): //$NON-NLS-1$
+    					TrackerRes.getString("AutoTracker.Wizard.Button.Search")); //$NON-NLS-1$);
         	}
         }
       };
@@ -2247,19 +2267,84 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       startPanel = new JPanel();
       startButton = new JButton();
       startButton.setDisabledIcon(graySearchIcon);
-      startButton.addActionListener(new ActionListener() {
+      final ActionListener searchAction = new ActionListener() {
         public void actionPerformed(ActionEvent e) {
+    			hidePopup = false;
         	if (stepping) {
         		stop(false, false); // stop after the next search
         	}
         	else search(true, true); // search this frame and keep stepping
         }
+      };
+        
+      startButton.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+      		if (hidePopup) {
+      			popup.setVisible(false);
+      			hidePopup = false;
+      			return;
+      		}
+        	// set "neverPause" flag
+        	neverPause = (e.getModifiers()&0x01)==1; // shift key down   
+        	if (neverPause && !stepping) {
+        		// show popup menu
+        		if (popup==null) {
+	            popup = new JPopupMenu();
+	            JMenuItem item = new JMenuItem(TrackerRes.getString("AutoTracker.Wizard.Menuitem.SearchFixed"));  //$NON-NLS-1$
+							item.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.MenuItem.SearchFixed.Tooltip")); //$NON-NLS-1$
+	  	        item.addActionListener(searchAction);
+	  	        item.addMouseListener(new MouseAdapter() {
+	  	        	@Override
+	  	        	public void mouseEntered(MouseEvent e) {
+	  	        		prepareForFixedSearch(true);
+	  	        	}
+	  	        	@Override
+	  	        	public void mouseExited(MouseEvent e) {
+	  	        		prepareForFixedSearch(false);
+	  	        	}
+	  	        });
+	  	        popup.add(item);
+	  	        popup.addSeparator();
+	            item = new JMenuItem(TrackerRes.getString("AutoTracker.Wizard.Menuitem.CopyMatchScores"));  //$NON-NLS-1$
+							item.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.MenuItem.CopyMatchScores.Tooltip")); //$NON-NLS-1$
+	  	        item.addActionListener(new ActionListener() {
+	  	          public void actionPerformed(ActionEvent e) {
+	  	          	hidePopup = false;
+	  	          	// get match score data string
+	  	          	String matchScore = getMatchDataString();
+	  							// copy to the clipboard
+	  					    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	  					    StringSelection stringSelection = new StringSelection(matchScore);
+	  					    clipboard.setContents(stringSelection, stringSelection);
+	  	          }
+	  	        });
+	  	        popup.add(item);
+        		}
+        		hidePopup = true;
+          	FontSizer.setFonts(popup, FontSizer.getLevel());
+            popup.show(startButton, 0, startButton.getHeight());       		
+        	}
+        	else {
+	        	searchAction.actionPerformed(e);
+        	}
+        }
       });
       startButton.addKeyListener(kl);
+      startButton.addMouseMotionListener(new MouseAdapter() {
+      	@Override
+      	public void mouseMoved(MouseEvent e) {
+      		startButton.setText((e.getModifiers()&0x01)==1 && !stepping? 
+      				TrackerRes.getString("AutoTracker.Wizard.Button.Options"): //$NON-NLS-1$
+      					stepping?
+  								TrackerRes.getString("AutoTracker.Wizard.Button.Stop"): //$NON-NLS-1$
+  								TrackerRes.getString("AutoTracker.Wizard.Button.Search")); //$NON-NLS-1$);
+      	}
+      });
       startPanel.add(startButton);
       searchThisButton = new JButton();
       searchThisButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
+        	neverPause = (e.getModifiers()>16);
         	search(true, false); // search this frame and stop
         }
       });
@@ -2268,6 +2353,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       searchNextButton = new JButton();
       searchNextButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
+        	neverPause = (e.getModifiers()>16);
         	search(false, false); // search next frame and stop
         }
       });
@@ -2342,6 +2428,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     	tf.setDisabledTextColor(Color.BLACK);
       ChangeListener listener = new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
+        	if (ignoreChanges) return;
         	Integer i = (Integer)evolveSpinner.getValue();
         	setAlphaFromRate(i);
         	int n = trackerPanel.getFrameNumber();
@@ -2651,7 +2738,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         		track.getSteps()[n] = null;
         	refreshGUI();
         	AutoTracker.this.repaint();
-        	trackerPanel.repaint();
+        	track.dataValid = false;
+			  	track.firePropertyChange("data", null, track); //$NON-NLS-1$
       	}        		
     	};
     	
@@ -2680,6 +2768,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         	}
         	refreshGUI();
         	AutoTracker.this.repaint();
+        	track.dataValid = false;
+			  	track.firePropertyChange("data", null, track); //$NON-NLS-1$
       	}        		
     	};
     	
@@ -2895,11 +2985,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 						startButton.setText(stepping?
 								TrackerRes.getString("AutoTracker.Wizard.Button.Stop"): //$NON-NLS-1$
 								TrackerRes.getString("AutoTracker.Wizard.Button.Search")); //$NON-NLS-1$
+						startButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.Search.Tooltip")); //$NON-NLS-1$
 						FontSizer.setFonts(startButton, FontSizer.getLevel());
 						searchThisButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis")); //$NON-NLS-1$
 						searchThisButton.setEnabled(!running);
+						searchThisButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis.Tooltip")); //$NON-NLS-1$
 						searchNextButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext")); //$NON-NLS-1$
 						searchNextButton.setEnabled(!running);
+						searchNextButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext.Tooltip")); //$NON-NLS-1$
 		    	}
 		      
 		      // set label sizes
@@ -3436,6 +3529,108 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     	return buf.toString();
     }
     
+    protected void prepareForFixedSearch(boolean fixed) {
+    	ignoreChanges = true;
+    	if (fixed) {   		
+    		prevEvolution = (Integer)evolveSpinner.getValue();
+    		prevLookAhead = lookAheadCheckbox.isSelected();
+    		prevOneD = oneDCheckbox.isSelected();
+    		isPrevValid = true;
+    		evolveSpinner.setValue(0);
+    		lookAheadCheckbox.setSelected(false);
+    		oneDCheckbox.setSelected(false);
+    	}
+    	else if (isPrevValid) {
+    		isPrevValid = false;
+    		evolveSpinner.setValue(prevEvolution);
+    		lookAheadCheckbox.setSelected(prevLookAhead);
+    		oneDCheckbox.setSelected(prevOneD);
+    	}
+    	evolveSpinner.setEnabled(!fixed);
+    	evolveRateLabel.setEnabled(!fixed);  		
+    	lookAheadCheckbox.setEnabled(!fixed);
+  		oneDCheckbox.setEnabled(!fixed);
+      JFormattedTextField tf = ((JSpinner.DefaultEditor)evolveSpinner.getEditor()).getTextField();
+    	tf.setDisabledTextColor(fixed? Color.GRAY.brighter(): Color.BLACK);
+    	ignoreChanges = false;
+    }
+    
+  }
+  
+  /**
+   * Gets the match data as a delimited string with "columns" for frame number, match score,
+   * target x and target y.
+   */
+  protected String getMatchDataString() {
+  	// create string buffer to collect match score data
+    StringBuffer buf = new StringBuffer();
+    buf.append(getTrack().getName()+"_"+wizard.pointDropdown.getSelectedItem()); //$NON-NLS-1$
+    buf.append(XML.NEW_LINE);
+    buf.append(TrackerRes.getString("ThumbnailDialog.Label.FrameNumber")+TrackerIO.getDelimiter()+TrackerRes.getString("AutoTracker.Match.Score")); //$NON-NLS-1$ //$NON-NLS-2$
+    String tar = "_"+TrackerRes.getString("AutoTracker.Label.Target").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
+    buf.append(TrackerIO.getDelimiter()+"x"+tar+TrackerIO.getDelimiter()+"y"+tar); //$NON-NLS-1$ //$NON-NLS-2$
+    buf.append(XML.NEW_LINE);
+  	Map<Integer, FrameData> frameData = getFrameData();
+  	NumberFormat scoreFormat = NumberFormat.getInstance();
+  	scoreFormat.setMaximumFractionDigits(1);
+  	scoreFormat.setMinimumFractionDigits(1);
+  	DecimalFormat xFormat = (DecimalFormat)NumberFormat.getInstance();
+  	DecimalFormat yFormat = (DecimalFormat)NumberFormat.getInstance();
+  	DataTable table = null;
+  	TableCellRenderer xRenderer = null, yRenderer = null;
+  	TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+    TreeMap<Integer, TableTrackView> dataViews = menubar.getDataViews();
+    for (int key: dataViews.keySet()) {
+  		TableTrackView view = dataViews.get(key);
+  		if (view.getTrack()==getTrack()) {
+    		table = view.getDataTable();
+      	String pattern = table.getFormatPattern("x"); //$NON-NLS-1$
+      	if (pattern==null || pattern.equals("")) { //$NON-NLS-1$
+        	xRenderer = table.getDefaultRenderer(Double.class);
+      	}
+       	else {
+       		xFormat.applyPattern(pattern);
+       	}
+      	pattern = table.getFormatPattern("y"); //$NON-NLS-1$
+      	if (pattern==null || pattern.equals("")) { //$NON-NLS-1$
+        	yRenderer = table.getDefaultRenderer(Double.class);
+      	}
+       	else {
+       		yFormat.applyPattern(pattern);
+       	}
+      	break;
+  		}
+    }
+  	for (Integer i: frameData.keySet()) {
+  		FrameData next = frameData.get(i);
+  		if (next==null || next.getMatchWidthAndHeight()==null) continue;
+  		double score = next.getMatchWidthAndHeight()[1];
+  		String value = Double.isInfinite(score)? String.valueOf(score): scoreFormat.format(score);
+      buf.append(next.getFrameNumber()+TrackerIO.getDelimiter()+value);
+      TPoint[] pts = next.getMatchPoints();
+      if (pts!=null) {
+      	TPoint p = pts[0]; // center of the match
+      	p = getMatchTarget(p); // target position
+      	Point2D pt = p.getWorldPosition(trackerPanel);
+      	String xval = xFormat.format(pt.getX());
+      	String yval = yFormat.format(pt.getY());
+      	if (xRenderer!=null) {
+	        Component c = xRenderer.getTableCellRendererComponent(table, pt.getX(), false, false, 0, 0);
+	        if (c instanceof JLabel) {
+	        	xval = ((JLabel)c).getText().trim();
+	        }
+      	}
+      	if (yRenderer!=null) {
+	        Component c = yRenderer.getTableCellRendererComponent(table, pt.getY(), false, false, 0, 0);
+	        if (c instanceof JLabel) {
+	        	yval = ((JLabel)c).getText().trim();
+	        }
+      	}
+      	buf.append(TrackerIO.getDelimiter()+xval+TrackerIO.getDelimiter()+yval);
+      }
+      buf.append(XML.NEW_LINE);
+  	}
+  	return buf.toString();
   }
   
   /**
