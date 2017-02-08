@@ -180,6 +180,7 @@ public class Tracker {
 
   static {
 //  	OSPLog.setLevel(ConsoleLevel.ALL);
+//  	OSPLog.showLog();
   	defaultLocale = Locale.getDefault();
 		trackerHome = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
 		if (trackerHome==null) {
@@ -208,20 +209,20 @@ public class Tracker {
 			Locale.ENGLISH, 
 			new Locale("ar"), // arabic //$NON-NLS-1$
 			new Locale("cs"), // czech //$NON-NLS-1$
-			new Locale("in"), // indonesian //$NON-NLS-1$
 			new Locale("da"), // danish //$NON-NLS-1$
 			Locale.GERMAN,
 			new Locale("el", "GR"), // greek //$NON-NLS-1$ //$NON-NLS-2$
 			new Locale("es"), // spanish //$NON-NLS-1$
 			new Locale("fi"), // finnish //$NON-NLS-1$
 			Locale.FRENCH,
-			new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
 			new Locale("hu", "HU"), // hungarian //$NON-NLS-1$ //$NON-NLS-2$
+			new Locale("in"), // indonesian //$NON-NLS-1$
 			Locale.ITALIAN,
+			new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
 			new Locale("ko"), // korean //$NON-NLS-1$
 			new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$ 
 //			new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
-//			new Locale("pl"), // polish //$NON-NLS-1$
+			new Locale("pl"), // polish //$NON-NLS-1$
 			new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("sk"), // slovak //$NON-NLS-1$
@@ -229,8 +230,8 @@ public class Tracker {
 			new Locale("sv"), // swedish //$NON-NLS-1$
 			new Locale("tr"), // turkish //$NON-NLS-1$
 			new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
-			Locale.TAIWAN, // traditional chinese
-			Locale.CHINA}; // simplified chinese
+			Locale.CHINA, // simplified chinese
+			Locale.TAIWAN}; // traditional chinese
   	setDefaultConfig(getFullConfig());
   	loadPreferences();
   	// load current version after a delay to allow video engines to load
