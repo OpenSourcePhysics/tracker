@@ -714,8 +714,9 @@ public class NumberFormatSetter extends JDialog {
    * @return array with variable names and custom patterns
    */
   protected static String[] getCustomFormatPatterns(TTrack track) {
+  	if (track.trackerPanel==null) return new String[0];
   	String[] patterns = getFormatPatterns(track);
-  	Class<? extends TTrack> type = track.getClass();
+  	Class<? extends TTrack> type = track.getClass();  	
     TreeMap<String, String> defaultPatterns = track.trackerPanel.getFormatPatterns(type);
   	ArrayList<String> customPatterns = new ArrayList<String>();
   	for (int i=0; i<patterns.length-1; i=i+2) {
