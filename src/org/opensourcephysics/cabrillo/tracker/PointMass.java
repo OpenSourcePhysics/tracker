@@ -257,6 +257,7 @@ public class PointMass extends TTrack {
     	Undo.postStepEdit(step, state);
     	step.erase();
     }
+    step.valid = true;
     if (!autoTrackerMarking) {
 	    updateDerivatives(n);
     }
