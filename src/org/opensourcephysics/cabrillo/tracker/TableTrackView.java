@@ -485,6 +485,7 @@ public class TableTrackView extends TrackView {
       	}
         try {
 					dataTable.setRowSelectionInterval(highlightRow, highlightRow);
+					dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRow, 0, true));
 				} catch (Exception e) {
 					// occasionally throws exception during loading!
 				}
