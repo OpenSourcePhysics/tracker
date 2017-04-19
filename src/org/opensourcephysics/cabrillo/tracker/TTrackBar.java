@@ -37,6 +37,7 @@ import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * This is a toolbar that display selected track properties 
@@ -63,10 +64,12 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   protected TButton selectButton;
   protected JLabel emptyLabel = new JLabel();
   protected JPopupMenu selectPopup = new JPopupMenu();
+  static Icon pigIcon;
 
   static {
   	smallSelectIcon =  new ImageIcon(Tracker.class.getResource("resources/images/small_select.gif")); //$NON-NLS-1$
-    if (Tracker.testOn) {
+  	smallSelectIcon = new ResizableIcon(smallSelectIcon);
+  	if (Tracker.testOn) {
 	  	testButton = new JButton("test"); //$NON-NLS-1$
 	  	testButton.addActionListener(new ActionListener() {
 	  		public void actionPerformed(ActionEvent e) {
@@ -75,8 +78,40 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    			if (testTimer==null) {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
-		    	  			// test action goes here
-//	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+		    	  			// test action goes here		    	      	
+	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+	    	      		TTrack track = trackerPanel.getSelectedTrack();
+	    	      		if (track instanceof ParticleModel) {
+	    	      			ParticleModel model = (ParticleModel)track;
+	    	      			ArrayList<ParticleModel> models = new ArrayList<ParticleModel>();
+	    	            if (model instanceof ParticleDataTrack) {
+	    	            	ParticleDataTrack pdt = (ParticleDataTrack)model;
+	    	          		ArrayList<ParticleDataTrack> points = pdt.allPoints();
+	    	          		if (points.size()>1 && trackerPanel.getSelectedStep()==null) {
+	    	          			models.addAll(pdt.allPoints());
+	    	          		}
+	    	          		else {
+	  	    	      			models.add(model);
+	    	          		}
+	    	            }
+	    	            else {
+		    	      			models.add(model);
+	    	            }
+    	            	model.refreshSteps();
+	    	            for (ParticleModel next: models) {
+		    	      			PointMass pm = new PointMass();
+		    	      			pm.setName(next.getName()+" (converted)");
+		    	      			pm.setColor(next.getColor().darker());
+		    	            trackerPanel.addTrack(pm);
+		    	      			for (Step step: next.getSteps()) {
+		    	      				if (step==null) continue;
+		    	      				TPoint pt = step.getPoints()[0];
+		    	      				int n = pt.getFrameNumber(trackerPanel);
+		    	      				pm.createStep(n, pt.x, pt.y);
+		    	      			}
+	    	            }
+	    	      			trackerPanel.repaint();
+	    	      		}
 
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();

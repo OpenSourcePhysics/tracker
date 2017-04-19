@@ -198,6 +198,18 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     return bar;
   }
   
+  /**
+   * Returns a new TMenuBar for the specified trackerPanel.
+   *
+   * @param  panel the tracker panel
+   * @return a TMenuBar
+   */
+  public static synchronized TMenuBar getNewMenuBar(TrackerPanel panel) {
+    TMenuBar bar = new TMenuBar(panel);
+    menuBars.put(panel, bar);
+    return bar;
+  }
+  
   protected void loadVideoMenu(JMenu vidMenu) {
   	/** empty block */
   }
