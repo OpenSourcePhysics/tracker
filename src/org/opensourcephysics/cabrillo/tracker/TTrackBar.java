@@ -81,37 +81,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    	  			// test action goes here		    	      	
 	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 	    	      		TTrack track = trackerPanel.getSelectedTrack();
-	    	      		if (track instanceof ParticleModel) {
-	    	      			ParticleModel model = (ParticleModel)track;
-	    	      			ArrayList<ParticleModel> models = new ArrayList<ParticleModel>();
-	    	            if (model instanceof ParticleDataTrack) {
-	    	            	ParticleDataTrack pdt = (ParticleDataTrack)model;
-	    	          		ArrayList<ParticleDataTrack> points = pdt.allPoints();
-	    	          		if (points.size()>1 && trackerPanel.getSelectedStep()==null) {
-	    	          			models.addAll(pdt.allPoints());
-	    	          		}
-	    	          		else {
-	  	    	      			models.add(model);
-	    	          		}
-	    	            }
-	    	            else {
-		    	      			models.add(model);
-	    	            }
-    	            	model.refreshSteps();
-	    	            for (ParticleModel next: models) {
-		    	      			PointMass pm = new PointMass();
-		    	      			pm.setName(next.getName()+" (converted)");
-		    	      			pm.setColor(next.getColor().darker());
-		    	            trackerPanel.addTrack(pm);
-		    	      			for (Step step: next.getSteps()) {
-		    	      				if (step==null) continue;
-		    	      				TPoint pt = step.getPoints()[0];
-		    	      				int n = pt.getFrameNumber(trackerPanel);
-		    	      				pm.createStep(n, pt.x, pt.y);
-		    	      			}
-	    	            }
-	    	      			trackerPanel.repaint();
-	    	      		}
 
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();

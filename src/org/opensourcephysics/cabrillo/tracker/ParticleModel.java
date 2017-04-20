@@ -78,7 +78,7 @@ abstract public class ParticleModel extends PointMass {
 	protected boolean invalidWarningShown, startFrameUndefined;
 	protected int startFrame, endFrame=Integer.MAX_VALUE;
 	protected boolean useDefaultReferenceFrame;
-	protected JMenuItem modelBuilderItem, useDefaultRefFrameItem;
+	protected JMenuItem modelBuilderItem, useDefaultRefFrameItem, stampItem;
   protected PropertyChangeListener massParamListener, timeParamListener;
 	
   /**
@@ -404,9 +404,44 @@ abstract public class ParticleModel extends PointMass {
 					}
 				}
 			});
+			// create the stamp item
+			stampItem = new JMenuItem();
+			stampItem.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					refreshSteps();
+          PointMass pm = new PointMass();
+          // pig append number if stamp name already exists
+          String proposed = getName()+" "+TrackerRes.getString("ParticleModel.Stamp.Name"); //$NON-NLS-1$ //$NON-NLS-2$
+          for (TTrack track: ParticleModel.this.trackerPanel.getTracks()) {
+          	if (proposed.equals(track.getName())) {
+          		try {
+								int n = Integer.parseInt(proposed.substring(proposed.length()-1));
+								proposed = proposed.substring(0, proposed.length()-1) + (n+1);
+							} catch (NumberFormatException ex) {
+								proposed = proposed + "2"; //$NON-NLS-1$
+								continue;
+							}
+          	}
+          }
+      		pm.setName(proposed);
+      		pm.setColor(getColor().darker());
+          ParticleModel.this.trackerPanel.addTrack(pm);
+      		for (Step step: getSteps()) {
+      			if (step==null) continue;
+      			TPoint pt = step.getPoints()[0];
+      			int n = pt.getFrameNumber(ParticleModel.this.trackerPanel);
+      			pm.createStep(n, pt.x, pt.y);
+      		}
+      		ParticleModel.this.trackerPanel.repaint();
+				}
+			});
 		}
 		modelBuilderItem.setText(TrackerRes.getString("ParticleModel.MenuItem.InspectModel")); //$NON-NLS-1$
 		useDefaultRefFrameItem.setText(TrackerRes.getString("ParticleModel.MenuItem.UseDefaultReferenceFrame")); //$NON-NLS-1$
+		String stamp = TrackerRes.getString("ParticleModel.MenuItem.Stamp"); //$NON-NLS-1$
+		String pm = TrackerRes.getString("PointMass.Name"); //$NON-NLS-1$
+		stampItem.setText(stamp+" "+pm); //$NON-NLS-1$
+		stampItem.setToolTipText(TrackerRes.getString("ParticleModel.MenuItem.Stamp.Tooltip")); //$NON-NLS-1$
 		// assemble the menu
 		JMenu menu = super.getMenu(trackerPanel);
 
@@ -419,6 +454,17 @@ abstract public class ParticleModel extends PointMass {
 		menu.remove(markByDefaultItem);
 		menu.insert(modelBuilderItem, 0);
 		if (menu.getItemCount() > 1) menu.insertSeparator(1);
+		
+		// find acceleration menu and insert stampItem after it
+    if (trackerPanel.isEnabled("model.stamp")) { //$NON-NLS-1$
+			for (int i=0; i<menu.getMenuComponentCount(); i++) {
+				if (menu.getMenuComponent(i)==accelerationMenu) {
+					menu.insert(stampItem, i+1);
+				  menu.insertSeparator(i+1);
+					break;
+				}
+			}
+    }
 		
 //		// find visible item and insert useDefaultRefFrameItem after it
 //		for (int i=0; i<menu.getMenuComponentCount(); i++) {

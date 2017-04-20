@@ -489,7 +489,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		menu.add(footprintMenu);
 		menu.addSeparator();
 		menu.add(velocityMenu);
-		menu.add(accelerationMenu);
+		menu.add(accelerationMenu);		
+    if (trackerPanel.isEnabled("model.stamp")) { //$NON-NLS-1$
+			menu.addSeparator();
+			menu.add(stampItem);
+    }
 		return menu;
 	}
 	
