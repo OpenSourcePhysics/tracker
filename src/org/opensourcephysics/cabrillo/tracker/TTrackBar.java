@@ -64,7 +64,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   protected TButton selectButton;
   protected JLabel emptyLabel = new JLabel();
   protected JPopupMenu selectPopup = new JPopupMenu();
-  static Icon pigIcon;
 
   static {
   	smallSelectIcon =  new ImageIcon(Tracker.class.getResource("resources/images/small_select.gif")); //$NON-NLS-1$
@@ -79,8 +78,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here		    	      	
-	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-	    	      		TTrack track = trackerPanel.getSelectedTrack();
+//	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+//	    	      		TTrack track = trackerPanel.getSelectedTrack();
 
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
