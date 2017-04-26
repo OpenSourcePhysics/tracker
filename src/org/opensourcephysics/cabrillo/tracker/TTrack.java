@@ -2241,7 +2241,9 @@ public abstract class TTrack implements Interactive,
       TrackerPanel trackerPanel = (TrackerPanel)e.getSource();
       if (name.equals("transform") //$NON-NLS-1$
       		|| name.equals("coords")) { //$NON-NLS-1$
-      	dataValid = false;
+      	if (!(this instanceof PointMass)) {
+	      	dataValid = false;
+      	}
         erase();
         trackerPanel.repaint();
       }
@@ -2251,8 +2253,9 @@ public abstract class TTrack implements Interactive,
       }
       else if (name.equals("imagespace")) //$NON-NLS-1$
         erase(trackerPanel);
-      else if (name.equals("data")) //$NON-NLS-1$
+      else if (name.equals("data")) { //$NON-NLS-1$
       	dataValid = false;
+      }
       else if (name.equals("radian_angles")) { // angle format has changed //$NON-NLS-1$
       	setAnglesInRadians((Boolean)e.getNewValue());    	
       }
