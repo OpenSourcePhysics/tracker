@@ -328,7 +328,7 @@ public class TableTrackView extends TrackView {
   	TTrack track = getTrack();
   	columnsButton.setText(TrackerRes.getString("TableTrackView.Button.SelectTableData")); //$NON-NLS-1$
     columnsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SelectTableData.ToolTip")); //$NON-NLS-1$
-    track.dataValid = false; // triggers data refresh
+//    track.dataValid = false; // triggers data refresh
     track.getData(trackerPanel); // load the current data
     refreshColumnCheckboxes();    
     refresh(trackerPanel.getFrameNumber());
