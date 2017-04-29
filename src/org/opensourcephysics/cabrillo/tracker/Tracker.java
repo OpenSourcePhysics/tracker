@@ -44,6 +44,7 @@ import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.MouseInputAdapter;
 
+import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
@@ -1607,12 +1608,13 @@ public class Tracker {
   }
 
   /**
-   * Starts a new Tracker.
+   * Starts a new Tracker. 
    *
    * @param args array of tracker or video file names
    */
   private static void start(String[] args) {
   	FontSizer.setLevel(preferredFontLevel+preferredFontLevelPlus);
+  	Dataset.maxPointsMultiplier = 4; // increase max points in dataset
     Tracker tracker = null;
     if (args == null || args.length == 0) tracker = new Tracker();
     else tracker = new Tracker(args, true, true);
