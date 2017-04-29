@@ -81,10 +81,10 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 	    	      		trackerPanel.isAutoRefresh = false;
 //	    	      		TTrack track = trackerPanel.getSelectedTrack();
-	    	      		trackerPanel.getPlayer().getVideoClip().setEndFrameNumber(13000);
+	    	      		trackerPanel.getPlayer().getVideoClip().setEndFrameNumber(20000);
 	    	      		PointMass p = new PointMass();
 	    	      		trackerPanel.addTrack(p);
-	    	      		for (int i=0; i<13000; i++) {
+	    	      		for (int i=0; i<20000; i++) {
 	    	      			p.createStep(i, 320+i/100.0, 240+i/200.0);
 //	    	      			trackerPanel.getPlayer().step();
 	    	      		}
