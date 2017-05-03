@@ -1115,6 +1115,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   }
 
   /**
+   * Sets the menubar for the specified tracker panel.
+   *
+   * @param trackerPanel the tracker panel
+   * @param menubar a TMenuBar
+   */
+  public void setMenuBar(TrackerPanel trackerPanel, TMenuBar menubar) {
+    Object[] array = getArray(trackerPanel);
+    if (array != null && array.length > 4) {
+      array[4] = menubar;
+      setJMenuBar(menubar);
+    }
+  }
+
+  /**
    * Gets the selected track bar for the specified tracker panel.
    *
    * @param trackerPanel the tracker panel
@@ -1301,6 +1315,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			super.setFontLevel(level);
 		} catch (Exception e) {}  	
   	if (tabbedPane==null) return;
+		FontSizer.setFonts(tabbedPane, level);
   	
   	Step.textLayoutFont = FontSizer.getResizedFont(Step.textLayoutFont, level);
   	

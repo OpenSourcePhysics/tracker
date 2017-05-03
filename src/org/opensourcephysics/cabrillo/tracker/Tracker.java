@@ -44,6 +44,7 @@ import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.MouseInputAdapter;
 
+import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
@@ -65,7 +66,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version */
-  public static final String VERSION = "4.96"; //$NON-NLS-1$
+  public static final String VERSION = "4.97"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -105,7 +106,8 @@ public class Tracker {
 	  "track.color", "track.footprint",  //$NON-NLS-1$ //$NON-NLS-2$ 
 	  "track.visible", "track.locked",  //$NON-NLS-1$ //$NON-NLS-2$
 	  "track.delete", "track.autoAdvance",  //$NON-NLS-1$ //$NON-NLS-2$ 
-	  "track.markByDefault", "track.autotrack", "coords.locked",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
+	  "track.markByDefault", "track.autotrack",  //$NON-NLS-1$ //$NON-NLS-2$
+	  "model.stamp", "coords.locked",  //$NON-NLS-1$ //$NON-NLS-2$ 
 	  "coords.origin", "coords.angle", "data.algorithm",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "coords.scale", "coords.refFrame", "button.x",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "button.v", "button.a", "button.trails",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
@@ -500,6 +502,13 @@ public class Tracker {
    * @param names an array of xml, video or zip file names
    */
   private Tracker(String[] names, boolean addTabIfEmpty, boolean showSplash) {
+  	// set font level resize and center splash frame
+  	FontSizer.setFonts(splash, FontSizer.getLevel());
+  	splash.pack();
+    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+    int x = (dim.width - splash.getBounds().width) / 2;
+    int y = (dim.height - splash.getBounds().height) / 2;
+    splash.setLocation(x, y);
     splash.setVisible(showSplash);
     createFrame();
     Tracker.setProgress(5);
@@ -1599,11 +1608,13 @@ public class Tracker {
   }
 
   /**
-   * Starts a new Tracker.
+   * Starts a new Tracker. 
    *
    * @param args array of tracker or video file names
    */
   private static void start(String[] args) {
+  	FontSizer.setLevel(preferredFontLevel+preferredFontLevelPlus);
+  	Dataset.maxPointsMultiplier = 6; // increase max points in dataset
     Tracker tracker = null;
     if (args == null || args.length == 0) tracker = new Tracker();
     else tracker = new Tracker(args, true, true);
@@ -1620,7 +1631,6 @@ public class Tracker {
 			}
 		}
  
-  	FontSizer.setLevel(preferredFontLevel+preferredFontLevelPlus);
   	final TFrame frame = tracker.getFrame();
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

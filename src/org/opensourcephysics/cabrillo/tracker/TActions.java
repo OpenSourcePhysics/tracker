@@ -407,7 +407,8 @@ public class TActions {
         trackerPanel.addTrack(pointMass);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(pointMass);
-        trackerPanel.getPlayer().setStepNumber(0);
+        // line below commented out 19 Apr 2017 DB
+//        trackerPanel.getPlayer().setStepNumber(0);
         // offer to add new mass if single cm exists
         ArrayList<CenterOfMass> list = trackerPanel.getDrawables(CenterOfMass.class);
         if (list.size() == 1) {

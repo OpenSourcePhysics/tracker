@@ -2358,8 +2358,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     TTrackBar trackbar = TTrackBar.getTrackbar(this);
     trackbar.setFontLevel(level);
     trackbar.refresh();
+    // replace the menubar to get new accelerator fonts
+    TMenuBar menubar = TMenuBar.getNewMenuBar(this);
+    frame.setMenuBar(this, menubar);
     // select the correct fontSize menu radiobutton
-    TMenuBar menubar = TMenuBar.getMenuBar(this);
     if (menubar.fontSizeGroup!=null) {
 	    Enumeration<AbstractButton> e = menubar.fontSizeGroup.getElements();
 	    for (; e.hasMoreElements();) {

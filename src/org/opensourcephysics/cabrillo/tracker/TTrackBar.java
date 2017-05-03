@@ -37,6 +37,7 @@ import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * This is a toolbar that display selected track properties 
@@ -66,7 +67,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 
   static {
   	smallSelectIcon =  new ImageIcon(Tracker.class.getResource("resources/images/small_select.gif")); //$NON-NLS-1$
-    if (Tracker.testOn) {
+  	smallSelectIcon = new ResizableIcon(smallSelectIcon);
+  	if (Tracker.testOn) {
 	  	testButton = new JButton("test"); //$NON-NLS-1$
 	  	testButton.addActionListener(new ActionListener() {
 	  		public void actionPerformed(ActionEvent e) {
@@ -75,8 +77,19 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    			if (testTimer==null) {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
-		    	  			// test action goes here
-//	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+		    	  			// test action goes here		    	      	
+	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+	    	      		trackerPanel.isAutoRefresh = false;
+//	    	      		TTrack track = trackerPanel.getSelectedTrack();
+	    	      		trackerPanel.getPlayer().getVideoClip().setEndFrameNumber(20000);
+	    	      		PointMass p = new PointMass();
+	    	      		trackerPanel.addTrack(p);
+	    	      		for (int i=0; i<20000; i++) {
+	    	      			p.createStep(i, 320+i/100.0, 240+i/200.0);
+//	    	      			trackerPanel.getPlayer().step();
+	    	      		}
+	    	      		trackerPanel.refreshTrackData();
+	    	      		trackerPanel.repaint();
 
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
