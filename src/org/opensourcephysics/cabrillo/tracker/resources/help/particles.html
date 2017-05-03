@@ -9,7 +9,7 @@
 	</head>
 
 	<body>
-		<h1>Particle Models</h1>
+		<h1> Particle Models</h1>
 		<p align="center">
 			<img src="../help_images/particle.gif">
         </p>
@@ -18,8 +18,9 @@
 		<p>Model particles have a <strong>start</strong> and <strong>end</strong> frame that define the frames of the video in which they are drawn. This makes it possible to define multiple models that apply at different times in the same video.</p>
 		<p>A dynamic particle may use a <strong>launcher</strong> (point mass) to set its initial position and velocity. Launchers can be quite powerful--for more information, see <a href="#launching">Launching dynamic particles</a>.</p>
 <p>A particle model has a settable mass and generates motion data and vectors just like any other point mass. See <a href="pointmass.html">point mass</a> for additional information.</p>
+<p>A particle model can create a <strong>stamped point mass</strong> which clones the model's current positions. The stamped point mass  positions don't move when you change scale. For more information see <a href="#stamping">Stamping a point mass</a>.</p>
         
-		<h3><a id="model_builder" name="model_builder"></a>1. Building particle models</h3>
+<h3><a id="model_builder" name="model_builder"></a>1. Building particle models</h3>
 		<p>Particle model properties are displayed and edited using the Model Builder tool. To use the builder, choose <strong>Model Builder...</strong> from the model's track menu.</p>
 		<p align="center">
 			<a id="fig1" name="fig1"></a><img src="../help_images/model_builder.gif">
@@ -126,6 +127,10 @@
 			<img src="../help_images/model_builder_boosted.gif">
 		</p>
 		<h5>Fig. 6 Defining a launcher to set initial conditions</h5>
-    </body>
+        
+    <h3><a id="stamping" name="stamping"></a>3. Stamping a point mass</h3>
+<p>The positions of a model's steps (on the video image) are determined by (a) the model expressions, parameters and/or data and (b) the origin, tilt and scale of the coordinate system. This means if you change the axes or the calibration of the video the steps will move. But sometimes it is useful to have the steps behave like a standard point mass: stay fixed on the image so when you change the coordinate system the steps don't move but instead the world data changes. Creating a point mass that clones a model is called <strong>stamping a point mass</strong>.</p>
+		<p>To stamp a point mass from a model, choose the <strong>Stamp Point Mass</strong> menu item from the model's track menu. For an <a href="datatrack.html">External Model</a>, the Stamp Point Mass item is in the <strong>Points</strong> submenus. The stamped point mass is given the name of the model plus "stampX" where X is a number. A single model may stamp multiple point masses with varying parameters for comparison or editing.</p>
+</body>
 
 </html>

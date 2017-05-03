@@ -410,15 +410,14 @@ abstract public class ParticleModel extends PointMass {
 				public void actionPerformed(ActionEvent e) {
 					refreshSteps();
           PointMass pm = new PointMass();
-          // pig append number if stamp name already exists
-          String proposed = getName()+" "+TrackerRes.getString("ParticleModel.Stamp.Name"); //$NON-NLS-1$ //$NON-NLS-2$
+          // pig append number
+          String proposed = getName()+" "+TrackerRes.getString("ParticleModel.Stamp.Name")+"1"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
           for (TTrack track: ParticleModel.this.trackerPanel.getTracks()) {
           	if (proposed.equals(track.getName())) {
           		try {
 								int n = Integer.parseInt(proposed.substring(proposed.length()-1));
 								proposed = proposed.substring(0, proposed.length()-1) + (n+1);
 							} catch (NumberFormatException ex) {
-								proposed = proposed + "2"; //$NON-NLS-1$
 								continue;
 							}
           	}

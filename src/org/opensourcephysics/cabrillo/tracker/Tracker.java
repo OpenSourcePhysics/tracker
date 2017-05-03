@@ -1614,7 +1614,7 @@ public class Tracker {
    */
   private static void start(String[] args) {
   	FontSizer.setLevel(preferredFontLevel+preferredFontLevelPlus);
-  	Dataset.maxPointsMultiplier = 4; // increase max points in dataset
+  	Dataset.maxPointsMultiplier = 6; // increase max points in dataset
     Tracker tracker = null;
     if (args == null || args.length == 0) tracker = new Tracker();
     else tracker = new Tracker(args, true, true);
