@@ -77,19 +77,25 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    			if (testTimer==null) {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
-		    	  			// test action goes here		    	      	
+		    	  			// test action goes here	
+		    	      	
 	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 	    	      		trackerPanel.isAutoRefresh = false;
 //	    	      		TTrack track = trackerPanel.getSelectedTrack();
 	    	      		trackerPanel.getPlayer().getVideoClip().setEndFrameNumber(20000);
 	    	      		PointMass p = new PointMass();
 	    	      		trackerPanel.addTrack(p);
-	    	      		for (int i=0; i<20000; i++) {
+	    	      		for (int i=0; i<10001; i++) {
 	    	      			p.createStep(i, 320+i/100.0, 240+i/200.0);
+	    	      			if (i%1000==0) {
+//	    	      				System.out.println("pig "+i);
+	    	      				
+	    	      			}
 //	    	      			trackerPanel.getPlayer().step();
 	    	      		}
-	    	      		trackerPanel.refreshTrackData();
+//	    	      		trackerPanel.refreshTrackData();
 	    	      		trackerPanel.repaint();
+  	      				trackerPanel.getPlayer().play();
 
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
