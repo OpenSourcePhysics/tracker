@@ -1769,6 +1769,13 @@ public class Tracker {
 		      JOptionPane.WARNING_MESSAGE);
 		}
 
+  	Timer memoryTimer = new Timer(5000, new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	TTrackBar.refreshMemoryButton();
+      }				    	      
+    });
+  	memoryTimer.setRepeats(true);
+  	memoryTimer.start();
   }
 
   /**
