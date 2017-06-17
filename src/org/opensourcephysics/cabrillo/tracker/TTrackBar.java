@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,23 +79,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here	
 		    	      	
-	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-	    	      		trackerPanel.isAutoRefresh = false;
+//	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 //	    	      		TTrack track = trackerPanel.getSelectedTrack();
-	    	      		trackerPanel.getPlayer().getVideoClip().setEndFrameNumber(20000);
-	    	      		PointMass p = new PointMass();
-	    	      		trackerPanel.addTrack(p);
-	    	      		for (int i=0; i<10001; i++) {
-	    	      			p.createStep(i, 320+i/100.0, 240+i/200.0);
-	    	      			if (i%1000==0) {
-//	    	      				System.out.println("pig "+i);
-	    	      				
-	    	      			}
-//	    	      			trackerPanel.getPlayer().step();
-	    	      		}
-//	    	      		trackerPanel.refreshTrackData();
-	    	      		trackerPanel.repaint();
-  	      				trackerPanel.getPlayer().play();
 
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();

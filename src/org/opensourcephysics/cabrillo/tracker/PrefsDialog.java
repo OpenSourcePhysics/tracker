@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -96,7 +96,7 @@ public class PrefsDialog extends JDialog {
   protected JRadioButton xuggleButton, qtButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
   protected JRadioButton xuggleFastButton, xuggleSlowButton;
-  protected String[] trackerVersions;
+  protected Tracker.Version[] trackerVersions;
   protected String recent32bitVM, recent64bitVM;
   protected String recentEngine;
   private boolean refreshing = false;
@@ -181,7 +181,7 @@ public class PrefsDialog extends JDialog {
    */
   private void findTrackerJars() {
   	if (Tracker.trackerHome==null || codeBaseDir==null) {
-			trackerVersions = new String[] {"0"}; //$NON-NLS-1$
+			trackerVersions = new Tracker.Version[] {new Tracker.Version("0")}; //$NON-NLS-1$
   		return;
   	}
 		String jarHome = OSPRuntime.isMac()? 
@@ -189,16 +189,16 @@ public class PrefsDialog extends JDialog {
 		File dir = new File(jarHome);
 		String[] fileNames = dir.list(trackerJarFilter);
 		if (fileNames!=null && fileNames.length>0) {
-			TreeSet<String> versions = new TreeSet<String>();
+			TreeSet<Tracker.Version> versions = new TreeSet<Tracker.Version>();
 			for (int i=0; i<fileNames.length; i++) {
 				if ("tracker.jar".equals(fileNames[i].toLowerCase())) {//$NON-NLS-1$
-					versions.add("0"); //$NON-NLS-1$
+					versions.add(new Tracker.Version("0")); //$NON-NLS-1$
 				}
-				else {
-					versions.add(fileNames[i].substring(8, fileNames[i].length()-4));
+				else {					
+					versions.add(new Tracker.Version(fileNames[i].substring(8, fileNames[i].length()-4)));
 				}
 			}
-			trackerVersions = versions.toArray(new String[versions.size()]);
+			trackerVersions = versions.toArray(new Tracker.Version[versions.size()]);
 		}
   }
  
@@ -478,7 +478,7 @@ public class PrefsDialog extends JDialog {
     int preferred = 0;
     versionDropdown = new JComboBox();
     for (int i = 0; i<trackerVersions.length; i++) {
-    	String next = trackerVersions[i];
+    	String next = trackerVersions[i].ver;
     	if (next.equals("0")) { //$NON-NLS-1$
     		String s = TrackerRes.getString("PrefsDialog.Version.Default"); //$NON-NLS-1$
     		versionDropdown.addItem(s);

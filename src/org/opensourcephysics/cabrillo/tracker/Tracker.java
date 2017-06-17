@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,8 +65,9 @@ public class Tracker {
   }
 
   // define static constants
-  /** tracker version */
-  public static final String VERSION = "4.97"; //$NON-NLS-1$
+  /** tracker version and copyright */
+  public static final String VERSION = "4.9.8"; //$NON-NLS-1$
+  public static final String COPYRIGHT = "Copyright (c) 2017 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -122,7 +123,6 @@ public class Tracker {
   static JProgressBar progressBar;
   static String counterPath = "http://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
-  static String copyright = "Copyright (c) 2016 Douglas Brown"; //$NON-NLS-1$
   static String trackerWebsite = "physlets.org/tracker"; //$NON-NLS-1$
   static String author = "Douglas Brown"; //$NON-NLS-1$
   static String osp = "Open Source Physics"; //$NON-NLS-1$
@@ -344,7 +344,7 @@ public class Tracker {
 
     // version south
     String vers = author+"   "+osp+"   Ver "+VERSION; //$NON-NLS-1$ //$NON-NLS-2$
-		if (VERSION.length()>5 || testOn) vers += " BETA"; //$NON-NLS-1$
+		if (VERSION.length()>7 || testOn) vers += " BETA"; //$NON-NLS-1$
     JLabel versionLabel = new JLabel(vers);
     versionLabel.setForeground(darkblue);
     font = font.deriveFont(Font.BOLD).deriveFont(10f);
@@ -644,6 +644,45 @@ public class Tracker {
 
 //________________________________  static methods ____________________________
   
+  /**
+   * Compares version strings.
+   * 
+   * @param ver1 version 1
+   * @param ver2 version 2
+   * @return 0 if equal, 1 if ver1>ver2, -1 if ver1<ver2
+   */
+  public static int compareVersions(String ver1, String ver2) {
+  	// deal with null values
+  	if (ver1==null || ver2==null) {
+  		return 0;
+  	}
+  	// typical newer semantic version "4.9.10" 
+  	// typical older version "4.97"
+    String[] v1 = ver1.trim().split("\\."); //$NON-NLS-1$
+    String[] v2 = ver2.trim().split("\\."); //$NON-NLS-1$
+    // newer semantic version arrays have length 3
+    // older version arrays have length 2
+ 
+  	if (v2.length>v1.length) {
+  		// v1 is older version, v2 is newer
+  		return -1;
+  	}
+  	if (v1.length>v2.length) {
+  		// v2 is older version, v1 is newer
+  		return 1;
+  	}
+  	// both arrays have the same length
+    for (int i=0; i<v1.length; i++) {
+      if (Integer.parseInt(v1[i]) < Integer.parseInt(v2[i])) {
+        return -1;
+      }
+      else if (Integer.parseInt(v1[i]) > Integer.parseInt(v2[i])) {
+        return 1;
+      }
+    }
+  	return 0;  	
+  }
+  
 
   /**
    * Shows the About Tracker dialog.
@@ -651,13 +690,14 @@ public class Tracker {
   public static void showAboutTracker() {
   	String newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
   	String vers = Tracker.VERSION;
-		if (vers.length()>5 || testOn) vers += " BETA"; //$NON-NLS-1$
+  	// typical beta version 4.10.0170514
+		if (vers.length()>7 || testOn) vers += " BETA"; //$NON-NLS-1$
 		String date = OSPRuntime.getLaunchJarBuildDate();
 		if (date!=null) 
 			vers = vers+"   "+date; //$NON-NLS-1$
     String aboutString = "Tracker "  //$NON-NLS-1$
     		+ vers + newline
-        + Tracker.copyright + newline
+        + Tracker.COPYRIGHT + newline
         + Tracker.trackerWebsite + newline + newline
         + TrackerRes.getString("Tracker.About.ProjectOf") + newline //$NON-NLS-1$
         + "Open Source Physics" + newline //$NON-NLS-1$
@@ -1244,7 +1284,7 @@ public class Tracker {
   }
   
   /**
-   * Loads the current (latest) Tracker version and compares it with this version.
+   * Loads the current (latest) Tracker version number and compares it with this version.
    * 
    * @param ignoreInterval true to load/compare immediately
    * @param logToFile true to log in to the PHP counter 
@@ -1269,25 +1309,16 @@ public class Tracker {
 //  	if (true) return; // for PLATO
   	
   	// interval has passed, so check for upgrades and save current time  	
-  	double vers = Double.parseDouble(VERSION);  	  	
+	  // typical pre-4.97 version: "4.90" or "4.61111227"
+  	// typical post-4.97 version: "4.9.8" or "4.10.0" or "4.10.0170504"
+
 	 	// send runtime and version data as page name to get latest version from PHP script
 		String pageName = getPHPPageName(logToFile);
 		String latestVersion = loginGetLatestVersion(pageName);
-    try {  	    	
-    	while (latestVersion != null && latestVersion.length()>0) { // typical version: "4.90" or "4.61111227"
-    		try {
-    			// convert version string to double and compare with this version
-					double current = Double.parseDouble(latestVersion);
-					if (current>vers) {
-						newerVersion = latestVersion;
-					}
-					latestVersion = null;
-				} catch (Exception e) { // parse failed, so discard first character
-					latestVersion = latestVersion.substring(1);
-				}
-    	}	      	
-    } catch (Exception e) { // url connection failed
-    }
+		int result = compareVersions(latestVersion, VERSION);
+		if (result>0) { // newer version available
+			newerVersion = latestVersion;
+		}		
   }
   
   /**
@@ -2008,6 +2039,69 @@ public class Tracker {
 //		
 //	}
 //
+
+  /**
+   * A class to compare version strings.
+   */
+  public static class Version implements Comparable {
+  	String ver;
+  	
+    /**
+     * Constructor
+     * 
+     * @param version the version string
+     */
+  	public Version(String version) {
+  		ver = version;
+  	}
+  	
+  	public boolean isValid() {
+	    String[] v = this.ver.trim().split("\\."); //$NON-NLS-1$
+	    if (v.length==2 || v.length==3) {
+	    	for (int i=0; i<v.length; i++) {
+	    		try {
+	    			Integer.parseInt(v[i].trim());
+	    		} catch (Exception ex) {
+	    			return false;
+	    		}
+	    	}
+    		return true;
+	    }
+  		return false;
+  	}
+
+		@Override
+		public int compareTo(Object o) {
+	  	// typical newer semantic version "4.9.10" 
+	  	// typical older version "4.97"
+			
+			// split at decimal points
+	    String[] v1 = this.ver.trim().split("\\."); //$NON-NLS-1$
+	    String[] v2 = ((Version)o).ver.trim().split("\\."); //$NON-NLS-1$
+	    // newer semantic version arrays have length 3
+	    // older version arrays have length 2
+	 
+	  	if (v2.length>v1.length) {
+	  		// v1 is older version, v2 is newer
+	  		return -1;
+	  	}
+	  	if (v1.length>v2.length) {
+	  		// v2 is older version, v1 is newer
+	  		return 1;
+	  	}
+	  	// both arrays have the same length
+	    for (int i=0; i<v1.length; i++) {
+	      if (Integer.parseInt(v1[i]) < Integer.parseInt(v2[i])) {
+	        return -1;
+	      }
+	      else if (Integer.parseInt(v1[i]) > Integer.parseInt(v2[i])) {
+	        return 1;
+	      }
+	    }
+			return 0;
+		}
+  }
+  
   
   /**
    * A class to save and load Tracker preferences. The preference data are static Tracker fields.

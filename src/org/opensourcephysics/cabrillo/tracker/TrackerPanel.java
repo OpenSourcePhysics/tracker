@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1459,8 +1459,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //						try {
 //							Thread.sleep(500);
 //						} catch (InterruptedException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
 //						}
 //			      firePropertyChange("stepnumber", null, getPlayer().getStepNumber());    // to views //$NON-NLS-1$
 						target.firePropertyChange("data", null, null); //$NON-NLS-1$						
@@ -2999,7 +2997,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	
       TrackerPanel trackerPanel = (TrackerPanel)obj;
       // save the version
-      control.setValue("version", Tracker.VERSION); //$NON-NLS-1$
+//      control.setValue("version", Tracker.VERSION); //$NON-NLS-1$
+      // changed to semantic version June 15 2017
+      control.setValue("semantic_version", Tracker.VERSION); //$NON-NLS-1$
       // save the image size
       control.setValue("width", trackerPanel.getImageWidth()); //$NON-NLS-1$
       control.setValue("height", trackerPanel.getImageHeight()); //$NON-NLS-1$
@@ -3150,15 +3150,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
      */
     public Object loadObject(XMLControl control, Object obj) {
       final TrackerPanel trackerPanel = (TrackerPanel)obj;
-	    // load and check the Tracker version that created this file
-	    String ver = control.getString("version"); //$NON-NLS-1$
-	    if (ver!=null) {
-	    	double xmlVersion = Double.parseDouble(ver);
-	    	double version = Double.parseDouble(Tracker.VERSION);
-	    	if (xmlVersion-version>0.2) {
+	    // load and check if a newer Tracker version created this file
+	    String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
+	    // if ver is null then must be an older version
+	    if (fileVersion!=null) {
+	    	int result = Tracker.compareVersions(fileVersion, Tracker.VERSION);
+	    	if (result>0) {  // file is newer version than Tracker
 	    		JOptionPane.showMessageDialog(trackerPanel, 
 	    				TrackerRes.getString("TrackerPanel.Dialog.Version.Message1") //$NON-NLS-1$
-	    				+ " "+ver+" " //$NON-NLS-1$ //$NON-NLS-2$
+	    				+ " "+fileVersion+" " //$NON-NLS-1$ //$NON-NLS-2$
 	    				+ TrackerRes.getString("TrackerPanel.Dialog.Version.Message2") //$NON-NLS-1$
 	    				+ "\n"+TrackerRes.getString("TrackerPanel.Dialog.Version.Message3") //$NON-NLS-1$ //$NON-NLS-2$
 	    				+ " ("+Tracker.VERSION+")." //$NON-NLS-1$ //$NON-NLS-2$
