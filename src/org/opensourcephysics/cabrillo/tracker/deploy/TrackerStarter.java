@@ -1,7 +1,7 @@
 /*
  * The tracker.deploy package defines classes for launching and installing Tracker.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,7 +74,6 @@ public class TrackerStarter {
 	static String startLogPath;
 	static FilenameFilter trackerJarFilter = new TrackerJarFilter();
 	static File codeBaseDir, starterJarFile;
-	static double launchVersionNumber;
 	static String launchVersionString;
 	static String trackerJarPath;
 	static int memorySize, preferredMemorySize;
@@ -581,12 +580,12 @@ public class TrackerStarter {
     		if (n>-1) {
     			ver = ver.substring(0, n);
     		}
-				try {
-					launchVersionNumber = Double.parseDouble(ver);
+				if (new Tracker.Version(ver).isValid()) {
 					launchVersionString = versionStr;
 					logMessage("preferred version: " + launchVersionString); //$NON-NLS-1$
-				} catch (Exception ex) {
-					logMessage("version number could not be parsed: " + ver); //$NON-NLS-1$
+				} 
+				else {
+					logMessage("version number not valid: " + ver); //$NON-NLS-1$
 				}
 			}
 
@@ -672,7 +671,7 @@ public class TrackerStarter {
 	}
 
 	/**
-	 * Gets the preferred tracker jar path
+	 * Gets the preferred tracker jar path.
 	 * 
 	 * @return the path, or null if none found
 	 */
@@ -701,7 +700,7 @@ public class TrackerStarter {
 				logMessage(s.substring(0, s.length() - 2));
 				String defaultJar = null;
 				String numberedJar = null;
-				double version = 0;
+				Tracker.Version newestVersion = null;
 				for (int i = 0; i < fileNames.length; i++) {
 					if ("tracker.jar".equals(fileNames[i].toLowerCase())) {//$NON-NLS-1$
 						defaultJar = fileNames[i];
@@ -715,15 +714,17 @@ public class TrackerStarter {
 		    			vers = vers.substring(0, n);
 		    		}
 
-						double nextVersion = Double.parseDouble(vers);
-						if (nextVersion == launchVersionNumber && versionStr.equals(launchVersionString)) {
-							File file = new File(jarHome, fileNames[i]);
-							logMessage("using tracker jar: " + file.getAbsolutePath()); //$NON-NLS-1$
-							return file.getAbsolutePath();
-						}
-						if (nextVersion > version) { // look for latest numbered version
-							version = nextVersion;
-							numberedJar = fileNames[i];
+		    		Tracker.Version v = new Tracker.Version(vers);
+						if (v.isValid()) {
+							if (versionStr.equals(launchVersionString)) {
+								File file = new File(jarHome, fileNames[i]);
+								logMessage("using tracker jar: " + file.getAbsolutePath()); //$NON-NLS-1$
+								return file.getAbsolutePath();
+							}
+							if (newestVersion==null || newestVersion.compareTo(v)<0) {
+								newestVersion = v;
+								numberedJar = fileNames[i];
+							}
 						}
 					} catch (Exception ex) {
 					}
