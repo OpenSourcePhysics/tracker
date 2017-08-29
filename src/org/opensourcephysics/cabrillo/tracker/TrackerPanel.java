@@ -2357,6 +2357,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @param cursor the requested cursor
    */
   public void setMouseCursor(Cursor cursor) {
+  	if (PencilDrawer.isDrawing(this) && cursor==Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)) {
+  		return;
+  	}
     if (cursor!=Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)
     		&& !Tracker.isZoomInCursor(cursor)
     		&& !Tracker.isZoomOutCursor(cursor)) {

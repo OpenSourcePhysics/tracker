@@ -356,7 +356,7 @@ public class PencilDrawer {
   	
   	boolean showPopup; 	
     JPopupMenu popup = new JPopupMenu();
-    JMenuItem drawingVisibleCheckbox, clearDrawingsItem;
+    JMenuItem drawingVisibleCheckbox, clearDrawingsItem, hidePencilItem;
     JMenu drawingColorMenu;
     
     /**
@@ -374,6 +374,9 @@ public class PencilDrawer {
       
       clearDrawingsItem = new JMenuItem();
       clearDrawingsItem.addActionListener(this);
+      
+      hidePencilItem = new JMenuItem();
+      hidePencilItem.addActionListener(this);
       
       drawingColorMenu = new JMenu();
       final AbstractAction colorAction = new AbstractAction() {
@@ -439,6 +442,10 @@ public class PencilDrawer {
     	popup.addSeparator();
     	popup.add(clearDrawingsItem);
     	clearDrawingsItem.setEnabled(hasDrawings(trackerPanel));
+    	if (!forButton) {
+	    	popup.addSeparator();
+	    	popup.add(hidePencilItem);
+    	}
     	FontSizer.setFonts(popup, FontSizer.getLevel());
     	return popup;
     }
@@ -464,8 +471,7 @@ public class PencilDrawer {
 	      	trackerPanel.setMessage(null);
 	      }
     	}
-    	else { // drawings visible and clear drawing actions
-    		// see which item changed
+    	else { // menu item actions
       	trackerPanel.setSelectedPoint(null);
         JMenuItem source = (JMenuItem)e.getSource();
         if (source==drawingVisibleCheckbox) {
@@ -473,6 +479,13 @@ public class PencilDrawer {
         }
         else if (source==clearDrawingsItem) {
         	clearPencilDrawings();
+        	trackerPanel.repaint();
+        }
+        else if (source==hidePencilItem) {
+  	      trackerPanel.hideMouseBox();        
+  	      setSelected(false);
+  	      trackerPanel.setMessage(null);
+  	      refresh();
         	trackerPanel.repaint();
         }
         refresh();    		
@@ -487,6 +500,7 @@ public class PencilDrawer {
       drawingColorMenu.setText(TrackerRes.getString("PencilDrawer.Menu.DrawingColor.Text")); //$NON-NLS-1$
       drawingVisibleCheckbox.setText(TrackerRes.getString("PencilDrawer.MenuItem.DrawingVisible.Text")); //$NON-NLS-1$
       clearDrawingsItem.setText(TrackerRes.getString("PencilDrawer.MenuItem.ClearDrawings.Text")); //$NON-NLS-1$
+      hidePencilItem.setText(TrackerRes.getString("PencilDrawer.MenuItem.HidePencil.Text")); //$NON-NLS-1$
       drawingVisibleCheckbox.setIcon(drawingsVisible? checkboxIcons[1]: checkboxIcons[0]);
       // set color icons
       for (int i=0; i<PencilDrawing.pencilColors.length; i++) {
