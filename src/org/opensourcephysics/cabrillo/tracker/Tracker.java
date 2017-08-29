@@ -66,7 +66,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "4.9.8"; //$NON-NLS-1$
+  public static final String VERSION = "4.10.0"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2017 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -113,7 +113,7 @@ public class Tracker {
 	  "coords.scale", "coords.refFrame", "button.x",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "button.v", "button.a", "button.trails",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
 	  "button.labels", "button.stretch", "button.clipSettings",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	  "button.xMass", "button.axes", "button.path",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	  "button.xMass", "button.axes", "button.path", "button.pencil",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	  "config.saveWithData", "data.builder", "data.tool"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   static Set<String> defaultConfig;
   static boolean xuggleCopied;
@@ -1340,6 +1340,9 @@ public class Tracker {
 	      os = System.getProperty("os.name", "unknownOS").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
 	    } catch(SecurityException ex) {}
       os = os.replace(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
+      if (os.indexOf("windows")>-1) { //$NON-NLS-1$
+      	os = "windows"; //$NON-NLS-1$
+      }
       page = "log_"+VERSION+"_"+os+"_"+engine; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
       if (!"".equals(language)) { //$NON-NLS-1$
 	      if (!"".equals(country)) { //$NON-NLS-1$

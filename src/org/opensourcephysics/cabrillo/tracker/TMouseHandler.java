@@ -64,7 +64,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
     icon = new ImageIcon(
         Tracker.class.getResource("resources/images/autotrack.gif")); //$NON-NLS-1$
     autoTrackCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(9, 9), 
-    		TrackerRes.getString("PointMass.Cursor.Autotrack.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$  	
+    		TrackerRes.getString("PointMass.Cursor.Autotrack.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$ 
     icon = new ImageIcon(
         Tracker.class.getResource("resources/images/autotrack_mark.gif")); //$NON-NLS-1$
     autoTrackMarkCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(9, 9), 
@@ -79,16 +79,24 @@ public class TMouseHandler implements InteractiveMouseHandler {
    */
   public void handleMouseAction(InteractivePanel panel,
                                 MouseEvent e) {
+
     if (!(panel instanceof TrackerPanel)) return;
+    TrackerPanel trackerPanel = (TrackerPanel)panel;
     
     // popup menus handled by MainTView class
-  	if (OSPRuntime.isPopupTrigger(e)
-  			|| panel.getZoomBox().isVisible()) {
+  	if (OSPRuntime.isPopupTrigger(e) || panel.getZoomBox().isVisible()) {
   		iad = null;
   		return;
   	}
-    TrackerPanel trackerPanel = (TrackerPanel)panel;
+  	
     if (!trackerPanel.isDrawingInImageSpace()) return;
+  	
+  	// drawing actions handled by PencilDrawer
+    if (PencilDrawer.isDrawing(trackerPanel)) {
+    	PencilDrawer.getDrawer(trackerPanel).handleMouseAction(e);
+    	return;
+    }
+    
     KeyboardFocusManager focuser =
       	KeyboardFocusManager.getCurrentKeyboardFocusManager();
     Component focusOwner = focuser.getFocusOwner();
@@ -100,27 +108,6 @@ public class TMouseHandler implements InteractiveMouseHandler {
 
       // request focus and identify TPoints when moving mouse
       case InteractivePanel.MOUSE_MOVED:
-//        // request focus from owners that are floating non-modal dialogs
-//        // unless they are tools
-//        if (focusOwner != null &&
-//            focusOwner != trackerPanel &&
-//            !(focusOwner instanceof javax.swing.text.JTextComponent)) {
-//          String name = "unknownTool"; //$NON-NLS-1$
-//          JFrame frame = null;
-//          if (focusOwner instanceof JFrame) {
-//            frame = (JFrame) focusOwner;
-//          }
-//          else if (focusOwner instanceof JComponent) {
-//            Container c = ((JComponent)focusOwner).getTopLevelAncestor();
-//            if (c instanceof JFrame) {
-//              frame = (JFrame) c;
-//            }
-//          }
-//          if (frame != null) name = frame.getName();
-//          if (name.indexOf("Tool") == -1 && !(frame instanceof DrawingFrame)) { //$NON-NLS-1$
-//            trackerPanel.requestFocusInWindow();
-//          }
-//        }
         selectedTrack = trackerPanel.getSelectedTrack();
         frameNumber = trackerPanel.getFrameNumber();
         iad = trackerPanel.getInteractive();
@@ -417,4 +404,5 @@ public class TMouseHandler implements InteractiveMouseHandler {
 		}
   	return null;
   }
+  
 }
