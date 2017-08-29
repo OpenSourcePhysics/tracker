@@ -77,7 +77,10 @@ public class PencilDrawing extends Trail implements Trackable {
 	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
   	if (!visible) return;
-  	super.draw(panel, g);
+  	TrackerPanel trackerPanel = (TrackerPanel)panel;
+  	if (trackerPanel.isDrawingInImageSpace()) {
+  		super.draw(panel, g);
+  	}
   }
 	
 	public double[][] getPoints() {
