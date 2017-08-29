@@ -63,6 +63,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
   protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
+
 	
   // instance fields
   protected double defaultImageBorder;
@@ -109,6 +110,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected AutoTracker autoTracker;
   protected DerivativeAlgorithmDialog algorithmDialog;
   protected AttachmentDialog attachmentDialog;
+  protected PlotGuestDialog guestsDialog;
   protected boolean isAutoRefresh = true;
 	protected TreeSet<String> supplementalFilePaths = new TreeSet<String>(); // HTML/PDF URI paths
 	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
@@ -1537,6 +1539,31 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   }
 
   /**
+   * Gets the plot guest dialog for comparing multiple track data in a single plot.
+   * 
+   * @param plot a TrackPlottingPanel
+   * @return the plot guest dialog
+   */
+  public PlotGuestDialog getPlotGuestDialog(TrackPlottingPanel plot) {
+    if (guestsDialog == null) {
+    	guestsDialog = new PlotGuestDialog(this);
+    	guestsDialog.setPlot(plot);
+  		FontSizer.setFonts(guestsDialog, FontSizer.getLevel());
+      // center on screen
+      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+      int x = (dim.width - guestsDialog.getBounds().width) / 2;
+      int y = (dim.height - guestsDialog.getBounds().height) / 2;
+      guestsDialog.setLocation(x, y);
+    }
+    else {
+    	guestsDialog.setPlot(plot);
+  		FontSizer.setFonts(guestsDialog, FontSizer.getLevel());
+    }
+    guestsDialog.pack();
+    return guestsDialog;
+  }
+
+  /**
    * Gets the data builder for defining custom data functions.
    * @return the data builder
    */
@@ -2330,10 +2357,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @param cursor the requested cursor
    */
   public void setMouseCursor(Cursor cursor) {
-    if (cursor != Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)
-    		&& !Tracker.isZoomInCursor(getCursor())
-    		&& !Tracker.isZoomOutCursor(getCursor()))
+    if (cursor!=Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)
+    		&& !Tracker.isZoomInCursor(cursor)
+    		&& !Tracker.isZoomOutCursor(cursor)) {
     	super.setMouseCursor(cursor);
+    }
   }
 
 	/**
@@ -2824,6 +2852,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	algorithmDialog.trackerPanel = null;
     	algorithmDialog = null;
     }
+    if (guestsDialog!=null) {
+    	guestsDialog.dispose();
+    	guestsDialog = null;
+    }
     if (ExportDataDialog.dataExporter!=null && ExportDataDialog.dataExporter.trackerPanel==this) {
     	ExportDataDialog.dataExporter.trackerPanel = null;
     	ExportDataDialog.dataExporter.tableDropdown.removeAllItems();
@@ -2939,7 +2971,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
        */
       public void mouseEntered(MouseEvent e) {
         super.mouseEntered(e);
-        setMouseCursor(Cursor.getDefaultCursor());
+  			if (PencilDrawer.isDrawing(TrackerPanel.this)) {
+  				setMouseCursor(PencilDrawer.getDrawer(TrackerPanel.this).getPencilCursor());
+  			}
+  			else setMouseCursor(Cursor.getDefaultCursor());
       }
 
       /**
@@ -3050,6 +3085,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       TTrack track = trackerPanel.getSelectedTrack();
       if (track != null) {
         control.setValue("selectedtrack", track.getName()); //$NON-NLS-1$
+      }
+      // save the drawings and drawing visibility
+      if (PencilDrawer.hasDrawings(trackerPanel)) {
+	      PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+	      control.setValue("drawings", drawer.pencilDrawings); //$NON-NLS-1$
+	      control.setValue("drawings_visible", drawer.drawingsVisible); //$NON-NLS-1$
       }
 
       // save custom configurations
@@ -3261,6 +3302,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
           trackerPanel.addTrack(track);
       	}
       }
+      // load the drawings
+      ArrayList<PencilDrawing> drawings = (ArrayList<PencilDrawing>)control.getObject("drawings"); //$NON-NLS-1$
+      if (drawings!=null) {
+      	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+      	drawer.drawingsVisible = control.getBoolean("drawings_visible"); //$NON-NLS-1$
+      	// clear previous drawings and add new ones
+      	drawer.clearPencilDrawings();
+      	for (PencilDrawing next: drawings) {
+      		next.visible = drawer.drawingsVisible;
+      		drawer.addPencilDrawing(next);
+      	}
+      }
+
       // load the reference frame
       String rfName = control.getString("referenceframe"); //$NON-NLS-1$
       if (rfName!=null) {
