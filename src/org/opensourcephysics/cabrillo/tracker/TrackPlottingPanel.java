@@ -70,7 +70,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
   protected JMenuItem showXZeroItem, showYZeroItem;
   protected JMenuItem algorithmItem, printItem, helpItem, mergeYScalesItem;
   protected JCheckBoxMenuItem linesItem, pointsItem;
-  protected JMenu guestMenu;
+  protected JMenuItem guestsItem;
   protected String xLabel, yLabel, title;
   protected int highlightIndex; // dataset index of highlighted point, or -1
   protected ItemListener xListener, yListener;
@@ -342,7 +342,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	  dataToolItem.setText(TrackerRes.getString("TableTrackView.Popup.MenuItem.Analyze")); //$NON-NLS-1$
 	  algorithmItem.setText(TrackerRes.getString("Popup.MenuItem.Algorithm")); //$NON-NLS-1$
 	  helpItem.setText(TrackerRes.getString("Tracker.Popup.MenuItem.Help")); //$NON-NLS-1$          
-	  guestMenu.setText(TrackerRes.getString("TrackPlottingPanel.Popup.Menu.CompareWith"));   //$NON-NLS-1$
+	  guestsItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.Menu.CompareWith")+"...");   //$NON-NLS-1$ //$NON-NLS-2$
     if (plotTrackView.mainView.getComponentCount()>1) {
     	popupmenu.add(mergeYScalesItem, 3);
     }
@@ -364,22 +364,14 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	    popupmenu.insert(showYZeroItem, popupmenu.getComponentIndex(scaleItem));    	
     }
 
-    // refresh guest menu
+    // refresh guests item
     TTrack track = TTrack.getTrack(trackID);
     Class<? extends TTrack> type = track instanceof PointMass? PointMass.class:
     	track instanceof Vector? Vector.class: track.getClass();
     ArrayList<? extends TTrack> tracks = trackerPanel.getDrawables(type);
     tracks.removeAll(trackerPanel.calibrationTools);
-    guestMenu.removeAll();
-    for (TTrack next: tracks) {
-    	if (next!=track) {
-    		JMenuItem item = new JCheckBoxMenuItem(next.getName(), next.getFootprint().getIcon(21, 16));
-    		item.setSelected(guests.contains(next));
-    		item.addActionListener(guestListener);    		
-    		guestMenu.add(item);
-    	}
-    }
-    guestMenu.setEnabled(guestMenu.getItemCount()>0);
+    tracks.remove(track);
+    guestsItem.setEnabled(!tracks.isEmpty());
     FontSizer.setFonts(popup, FontSizer.getLevel());
     return popupmenu;
   }
@@ -698,25 +690,14 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	      }
 	    });
   	}
-  	// guest menu
-  	guestMenu = new JMenu();
-    guestListener = new AbstractAction() {
+    // guests item
+    guestsItem = new JMenuItem();
+    guestsItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	// add or remove chosen guest to/from all plots
-      	JMenuItem item = (JMenuItem)e.getSource();
-      	TTrack guest = trackerPanel.getTrack(item.getText());
-      	if (item.isSelected()) addGuest(guest);
-		else removeGuest(guest);
-		plotData();
-
-//		boolean addGuest = item.isSelected();
-//		for (TrackPlottingPanel plot: plotTrackView.plots) {
-//			if (addGuest) plot.addGuest(guest);
-//			else plot.removeGuest(guest);
-//			plot.plotData();
-//		}
+        PlotGuestDialog dialog = trackerPanel.getPlotGuestDialog(TrackPlottingPanel.this);
+        dialog.setVisible(true);
       }
-    };
+    });
 
     popupmenu.removeAll();
     popupmenu.add(zoomInItem);
@@ -734,7 +715,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
   	    popupmenu.add(copyImageItem);
   	    popupmenu.add(snapshotItem);
       } 
-  		popupmenu.add(guestMenu);
+  		popupmenu.add(guestsItem);
     	popupmenu.addSeparator();
   		if (trackerPanel.isEnabled("data.builder") //$NON-NLS-1$
     			|| trackerPanel.isEnabled("data.tool")) { //$NON-NLS-1$    
