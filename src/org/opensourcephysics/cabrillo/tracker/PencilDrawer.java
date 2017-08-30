@@ -356,7 +356,7 @@ public class PencilDrawer {
   	
   	boolean showPopup; 	
     JPopupMenu popup = new JPopupMenu();
-    JMenuItem drawingVisibleCheckbox, clearDrawingsItem, hidePencilItem;
+    JMenuItem drawingVisibleCheckbox, clearDrawingsItem, hidePencilItem, undoItem;
     JMenu drawingColorMenu;
     
     /**
@@ -377,6 +377,9 @@ public class PencilDrawer {
       
       hidePencilItem = new JMenuItem();
       hidePencilItem.addActionListener(this);
+      
+      undoItem = new JMenuItem();
+      undoItem.addActionListener(this);
       
       drawingColorMenu = new JMenu();
       final AbstractAction colorAction = new AbstractAction() {
@@ -440,8 +443,10 @@ public class PencilDrawer {
 	    	popup.add(drawingVisibleCheckbox);
     	}
     	popup.addSeparator();
+    	popup.add(undoItem);
     	popup.add(clearDrawingsItem);
     	clearDrawingsItem.setEnabled(hasDrawings(trackerPanel));
+    	undoItem.setEnabled(hasDrawings(trackerPanel));
     	if (!forButton) {
 	    	popup.addSeparator();
 	    	popup.add(hidePencilItem);
@@ -481,6 +486,10 @@ public class PencilDrawer {
         	clearPencilDrawings();
         	trackerPanel.repaint();
         }
+        else if (source==undoItem) {
+        	removeLastPencilDrawing();
+        	trackerPanel.repaint();
+        }
         else if (source==hidePencilItem) {
   	      trackerPanel.hideMouseBox();        
   	      setSelected(false);
@@ -501,6 +510,7 @@ public class PencilDrawer {
       drawingVisibleCheckbox.setText(TrackerRes.getString("PencilDrawer.MenuItem.DrawingVisible.Text")); //$NON-NLS-1$
       clearDrawingsItem.setText(TrackerRes.getString("PencilDrawer.MenuItem.ClearDrawings.Text")); //$NON-NLS-1$
       hidePencilItem.setText(TrackerRes.getString("PencilDrawer.MenuItem.HidePencil.Text")); //$NON-NLS-1$
+      undoItem.setText(TrackerRes.getString("PencilDrawer.MenuItem.Undo.Text")); //$NON-NLS-1$
       drawingVisibleCheckbox.setIcon(drawingsVisible? checkboxIcons[1]: checkboxIcons[0]);
       // set color icons
       for (int i=0; i<PencilDrawing.pencilColors.length; i++) {
