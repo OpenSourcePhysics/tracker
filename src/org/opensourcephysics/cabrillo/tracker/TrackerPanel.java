@@ -2859,6 +2859,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	guestsDialog.dispose();
     	guestsDialog = null;
     }
+    PencilDrawer.dispose(this);
     if (ExportDataDialog.dataExporter!=null && ExportDataDialog.dataExporter.trackerPanel==this) {
     	ExportDataDialog.dataExporter.trackerPanel = null;
     	ExportDataDialog.dataExporter.tableDropdown.removeAllItems();
@@ -3092,8 +3093,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       // save the drawings and drawing visibility
       if (PencilDrawer.hasDrawings(trackerPanel)) {
 	      PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
-	      control.setValue("drawings", drawer.pencilDrawings); //$NON-NLS-1$
-	      control.setValue("drawings_visible", drawer.drawingsVisible); //$NON-NLS-1$
+	      control.setValue("drawing_scenes", drawer.scenes); //$NON-NLS-1$
+	      control.setValue("drawings_visible", drawer.areDrawingsVisible()); //$NON-NLS-1$
       }
 
       // save custom configurations
@@ -3305,16 +3306,27 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
           trackerPanel.addTrack(track);
       	}
       }
-      // load the drawings
+      // load drawing scenes saved in vers 4.10.1+
+      ArrayList<PencilScene> scenes = (ArrayList<PencilScene>)control.getObject("drawing_scenes"); //$NON-NLS-1$
+      if (scenes!=null) {
+      	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+      	drawer.setDrawingsVisible(control.getBoolean("drawings_visible")); //$NON-NLS-1$
+      	// replace previous scenes
+      	drawer.setScenes(scenes);
+      }
+      // load drawings saved with vers 4.10.0
       ArrayList<PencilDrawing> drawings = (ArrayList<PencilDrawing>)control.getObject("drawings"); //$NON-NLS-1$
       if (drawings!=null) {
       	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
-      	drawer.drawingsVisible = control.getBoolean("drawings_visible"); //$NON-NLS-1$
+      	drawer.setDrawingsVisible(control.getBoolean("drawings_visible")); //$NON-NLS-1$
       	// clear previous drawings and add new ones
-      	drawer.clearPencilDrawings();
+      	drawer.clearAllScenes();
+      	PencilScene scene = drawer.addNewScene();
+      	scene.startframe = 0;
+      	scene.endframe = Integer.MAX_VALUE;
+      	drawer.selectedScene = scene;
       	for (PencilDrawing next: drawings) {
-      		next.visible = drawer.drawingsVisible;
-      		drawer.addPencilDrawing(next);
+      		drawer.addDrawingtoSelectedScene(next);
       	}
       }
 

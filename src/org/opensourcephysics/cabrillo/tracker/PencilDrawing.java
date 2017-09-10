@@ -48,10 +48,10 @@ public class PencilDrawing extends Trail implements Trackable {
 		Color.YELLOW, Color.MAGENTA, Color.CYAN, Color.WHITE};
   
   static {
-  	XML.setLoader(PencilDrawing.class, getLoader());
+  	XML.setLoader(PencilDrawing.class, PencilDrawing.getLoader());
   }
 
-	public boolean visible = true;
+  PencilScene pencilScene;
 	ArrayList<double[]> pointArray = new ArrayList<double[]>();
 	double[] coords = new double[6];
 	
@@ -59,30 +59,53 @@ public class PencilDrawing extends Trail implements Trackable {
    * 
    * Constructs a PencilDrawing with the default color.
    */
-	PencilDrawing() {
+	private PencilDrawing() {
 		setStroke(new BasicStroke(2));
 	}
 
   /**
-   * 
-   * Constructs a PencilDrawing with a specified color.
+   * Constructs a PencilDrawing with a specified color and scene.
    *
    * @param c a Color
+   * @param scene the pencil scene that controls visibility
    */
-	PencilDrawing(Color c) {
+	PencilDrawing(Color c, PencilScene scene) {
 		this();
 		color = c;
+		setPencilScene(scene);
+	}
+	
+  /**
+   * 
+   * Sets the pencil scene that controls the visibility.
+   *
+   * @param scene the pencil scene that controls visibility
+   */
+	public void setPencilScene(PencilScene scene) {
+		pencilScene = scene;
 	}
 
 	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
-  	if (!visible) return;
-  	TrackerPanel trackerPanel = (TrackerPanel)panel;
-  	if (trackerPanel.isDrawingInImageSpace()) {
-  		super.draw(panel, g);
+  	if (pencilScene==null || !pencilScene.visible) return;
+  	if (panel instanceof TrackerPanel) {
+	  	TrackerPanel trackerPanel = (TrackerPanel)panel;
+	  	int frame = trackerPanel.getFrameNumber();
+	  	if (trackerPanel.isDrawingInImageSpace()
+	  			&& frame>=pencilScene.startframe && frame<=pencilScene.endframe) {
+	  		super.draw(panel, g);
+	  	}
+  	}
+  	else {
+  		super.draw(panel, g);  		
   	}
   }
 	
+  /**
+   * Gets the points that define the GeneralPath.
+   *
+   * @return double[][], each point is double[] {Seg_type, x, y}
+   */
 	public double[][] getPoints() {
 		pointArray.clear();
 		for (PathIterator pi = generalPath.getPathIterator(null); !pi.isDone(); pi.next()) {
@@ -122,8 +145,13 @@ public class PencilDrawing extends Trail implements Trackable {
     	drawing.color = new Color(control.getInt("colorRGB")); //$NON-NLS-1$
     	double[][] points = (double[][])control.getObject("points"); //$NON-NLS-1$
     	for (double[] point: points) {
-    		if (point[0]==PathIterator.SEG_LINETO) {
-    			drawing.addPoint(point[1], point[2]);
+    		if (point.length==3) {
+	    		if (point[0]==PathIterator.SEG_LINETO) {
+	    			drawing.addPoint(point[1], point[2]);
+	    		}
+    		}
+    		else { // legacy points included only SEG_LINETO
+    			drawing.addPoint(point[0], point[1]);
     		}
     	}
       return drawing;

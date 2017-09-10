@@ -24,9 +24,12 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -34,19 +37,35 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
-
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.opensourcephysics.display.ColorIcon;
+import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.InteractivePanel;
 import org.opensourcephysics.display.ResizableIcon;
+import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -125,12 +144,56 @@ public class PencilDrawer {
   }
   
   protected TrackerPanel trackerPanel;
-  protected ArrayList<PencilDrawing> pencilDrawings = new ArrayList<PencilDrawing>();
-  protected boolean drawingsVisible = true;
+  protected PropertyChangeListener stepListener;
+  protected ArrayList<PencilScene> scenes = new ArrayList<PencilScene>();
   protected Color pencilColor = Color.BLACK;
   protected DrawingButton pencilButton;
+  protected ScenePropertiesDialog scenePropertiesDialog;
   protected KeyListener keyListener;
+  protected PencilScene selectedScene;
   
+  /**
+   * Constructs a PencilDrawer.
+   * 
+   * @param panel a TrackerPanel
+   */
+	private PencilDrawer(TrackerPanel panel) {
+		trackerPanel = panel;
+		stepListener = new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent evt) {
+				selectedScene = getSceneByStartFrame(trackerPanel.getFrameNumber());
+			}			
+		};
+		trackerPanel.addPropertyChangeListener("stepnumber", stepListener); //$NON-NLS-1$
+    keyListener = new KeyAdapter() {
+      public void keyPressed(KeyEvent e) {
+      	if (pencilButton==null || !pencilButton.isDisplayable()) return;
+      	
+        if (e.getKeyCode() == KeyEvent.VK_D) {
+    			getPencilButton().setSelected(true);
+  	      setDrawingsVisible(true);        	
+          trackerPanel.setMouseCursor(getPencilCursor());
+      		if (Tracker.showHints) {
+      			trackerPanel.setMessage(TrackerRes.getString("PencilDrawer.Hint")); //$NON-NLS-1$
+      		}
+        }
+      }
+      public void keyReleased(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_D) {
+    			getPencilButton().setSelected(false);
+    			trackerPanel.setMouseCursor(Cursor.getDefaultCursor());
+    			trackerPanel.setMessage(null);
+        	boolean marking = trackerPanel.setCursorForMarking(trackerPanel.isShiftKeyDown, e);
+        	TTrack selectedTrack = trackerPanel.getSelectedTrack();
+          if (selectedTrack!=null && marking!=selectedTrack.isMarking) {
+          	selectedTrack.setMarking(marking);
+          }
+        }
+      }
+    };
+	}
+
   /** 
    * Gets the PencilDrawer for a specified TrackerPanel.
    * 
@@ -169,116 +232,216 @@ public class PencilDrawer {
    */
   public static boolean hasDrawings(TrackerPanel panel) {
   	PencilDrawer drawer = drawers.get(panel);
-  	return drawer!=null && !drawer.pencilDrawings.isEmpty();
+  	if (drawer==null || drawer.scenes.isEmpty()) return false;
+  	for (PencilScene scene: drawer.scenes) {
+  		if (!scene.getDrawings().isEmpty()) return true;
+  	}
+  	return false;
+  }
+
+  /** 
+   * Disposes the PencilDrawer for a specified TrackerPanel.
+   * 
+   * @param panel the TrackerPanel
+   */
+  public static void dispose(TrackerPanel panel) {
+  	PencilDrawer drawer = drawers.get(panel);
+  	if (drawer!=null) {
+  		drawer.dispose();
+  		drawers.remove(panel);
+  	}
+  }
+
+  /** 
+   * Determines if drawings (scenes) are visible.
+   * 
+   * @return true if drawings are visible
+   */
+  public boolean areDrawingsVisible() {
+  	for (PencilScene scene: scenes) {
+  		return scene.visible;
+  	}
+  	return true;
   }
 
   /**
-   * Constructs a PencilDrawer.
+   * Sets the visibility of all scenes.
    * 
-   * @param panel a TrackerPanel
-   */
-	PencilDrawer(TrackerPanel panel) {
-		trackerPanel = panel;
-    keyListener = new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
-      	if (pencilButton==null || !pencilButton.isDisplayable()) return;
-      	
-        if (e.getKeyCode() == KeyEvent.VK_D) {
-    			getPencilButton().setSelected(true);
-  	      if (!drawingsVisible) {
-          	setDrawingsVisible(true);        	
-  	      }
-          trackerPanel.setMouseCursor(getPencilCursor());
-      		if (Tracker.showHints) {
-      			trackerPanel.setMessage(TrackerRes.getString("PencilDrawer.Hint")); //$NON-NLS-1$
-      		}
-        }
-      }
-      public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_D) {
-    			getPencilButton().setSelected(false);
-    			trackerPanel.setMouseCursor(Cursor.getDefaultCursor());
-    			trackerPanel.setMessage(null);
-        	boolean marking = trackerPanel.setCursorForMarking(trackerPanel.isShiftKeyDown, e);
-        	TTrack selectedTrack = trackerPanel.getSelectedTrack();
-          if (selectedTrack!=null && marking!=selectedTrack.isMarking) {
-          	selectedTrack.setMarking(marking);
-          }
-        }
-      }
-    };
-	}
-
-  /**
-   * Sets the visibility of all drawings.
-   * 
-   * @param vis true to show all drawings
+   * @param vis true to show all scenes
    */
 	public void setDrawingsVisible(boolean vis) {
-		drawingsVisible = vis;
-		for (PencilDrawing drawing: pencilDrawings) {
-			drawing.visible = vis;
+		for (PencilScene scene: scenes) {
+			scene.setVisible(vis);
 		}
 		trackerPanel.repaint();
 	}
 	
   /**
-   * Creates a new drawing on this panel.
+   * Creates a drawing and adds it to the selected scene. If no scene is selected
+   * a new one is created;
    * 
-   * @return the new drawing
+   * @return the newly added drawing
    */
-	public PencilDrawing createPencilDrawing() {
-		return addPencilDrawing(new PencilDrawing(pencilColor));
-	}
-	
-  /**
-   * Adds a drawing to this panel.
-   * 
-   * @param drawing the drawing to add
-   * @return the added drawing
-   */
-	public PencilDrawing addPencilDrawing(PencilDrawing drawing) {
-		drawing.visible = drawingsVisible;
-		pencilDrawings.add(drawing);
-		trackerPanel.addDrawable(drawing);
+	public PencilDrawing addNewDrawingtoSelectedScene() {
+		PencilScene scene = getSelectedScene();
+		if (scene==null) {
+			scene = addNewScene();
+			selectedScene = scene;
+		}
+		PencilDrawing drawing = new PencilDrawing(pencilColor, scene);
+		scene.getDrawings().add(drawing);
+		trackerPanel.addDrawable(scene);
 		trackerPanel.changed = true;
 		return drawing;
 	}
 	
   /**
-   * Gets the most recently added drawing. May return null.
+   * Creates a drawing and adds it to the selected scene. If no scene is selected
+   * a new one is created;
+   * 
+   * @return the newly added drawing
+   */
+	public PencilDrawing addDrawingtoSelectedScene(PencilDrawing drawing) {
+		PencilScene scene = getSelectedScene();
+		if (scene==null) {
+			scene = addNewScene();
+			selectedScene = scene;
+		}
+		drawing.setPencilScene(scene);
+		scene.getDrawings().add(drawing);
+		trackerPanel.addDrawable(scene);
+		trackerPanel.changed = true;
+		return drawing;
+	}
+	
+  /**
+   * Gets the most recently drawn drawing in the selected scene. May return null.
    * 
    * @return the last drawing
    */
-	public PencilDrawing getLastPencilDrawing() {
-		if (pencilDrawings.isEmpty()) return null;
-		return pencilDrawings.get(pencilDrawings.size()-1);
+	public PencilDrawing getLastDrawingInSelectedScene() {
+		PencilScene scene = getSelectedScene();
+		if (scene!=null && !scene.getDrawings().isEmpty()) {
+			return scene.getDrawings().get(scene.getDrawings().size()-1);
+		}
+		return null;
 	}
 	
   /**
-   * Removes the most recently added drawing.
-   * 
-   * @return the removed drawing
+   * Erases the most recently drawn drawing in the selected scene.
    */
-	public PencilDrawing removeLastPencilDrawing() {
-		PencilDrawing drawing = getLastPencilDrawing();
+	public void eraseLastDrawingInSelectedScene() {
+		PencilDrawing drawing = getLastDrawingInSelectedScene();
 		if (drawing!=null) {
-			pencilDrawings.remove(drawing);
-			trackerPanel.removeDrawable(drawing);
+			PencilScene scene = getSelectedScene();
+			scene.getDrawings().remove(drawing);
+			if (scene.getDrawings().isEmpty()) {
+				clearScene(scene);
+			}
 			trackerPanel.changed = true;
 		}
-		return drawing;
 	}
 	
   /**
-   * Clears all pencil drawings.
+   * Clears all scenes.
    */
-	public void clearPencilDrawings() {
-		for (PencilDrawing drawing: pencilDrawings) {
-			trackerPanel.removeDrawable(drawing);
+	public void clearAllScenes() {
+		for (PencilScene scene: scenes) {
+			scene.getDrawings().clear();
+			trackerPanel.removeDrawable(scene);
 		}
-		pencilDrawings.clear();
+		scenes.clear();
+		selectedScene = null;
 		trackerPanel.changed = true;
+	}
+	
+  /**
+   * Clears a scene.
+   */
+	public void clearScene(PencilScene scene) {
+		if (scene==null) return;
+		scene.getDrawings().clear();
+		trackerPanel.removeDrawable(scene);
+		scenes.remove(scene);
+		if (scene==selectedScene) {
+			selectedScene = null;
+		}
+		trackerPanel.changed = true;
+	}
+	
+  /**
+   * Adds a new empty scene.
+   * 
+   * @return the new scene
+   */
+	public PencilScene addNewScene() {
+		PencilScene scene = new PencilScene();
+		scene.setStartFrame(trackerPanel.getFrameNumber());
+		scene.setEndFrame(scene.startframe);
+		scenes.add(scene);
+		selectedScene = scene;
+  	Collections.sort(scenes);
+		trackerPanel.addDrawable(scene);
+		trackerPanel.changed = true;
+		return scene;
+	}
+	
+  /**
+   * Replaces all scenes with new ones.
+   * 
+   * @return the new scene
+   */
+	public void setScenes(ArrayList<PencilScene> pencilScenes) {
+		if (pencilScenes==null || pencilScenes==scenes) return;
+		// remove existing scenes
+		for (PencilScene scene: scenes) {
+			trackerPanel.removeDrawable(scene);
+		}
+		// add new scenes
+		scenes = pencilScenes;
+  	Collections.sort(scenes);
+		selectedScene = null;
+		for (PencilScene scene: scenes) {
+  		if (trackerPanel.isDisplayable() && Integer.MAX_VALUE==scene.endframe) {
+    	  int last = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+  			scene.endframe = last;
+  		}
+			trackerPanel.addDrawable(scene);
+		}
+	}
+	
+  /**
+   * Gets the selected scene. May return null.
+   */
+	public PencilScene getSelectedScene() {
+		if (selectedScene==null && trackerPanel.isDisplayable()) {
+			selectedScene = getSceneByStartFrame(trackerPanel.getFrameNumber());
+		}
+		return selectedScene;
+	}
+	
+  /**
+   * Gets the scene with a given start frame. May return null;
+   */
+	public PencilScene getSceneByStartFrame(int startFrame) {
+		for (PencilScene scene: scenes) {
+			if (scene.startframe==startFrame) {
+				return scene;			
+			}
+		}
+		return null;
+	}
+	
+  /**
+   * Gets the scene with a given hash code. May return null.
+   */
+	public PencilScene getSceneByHashCode(int hash) {
+		for (PencilScene scene: scenes) {
+			if (scene.hashCode()==hash) {
+				return scene;			
+			}
+		}
+		return null;
 	}
 	
   /**
@@ -290,6 +453,22 @@ public class PencilDrawer {
 			trackerPanel.addKeyListener(keyListener);
 		}
 		return pencilButton;
+	}
+	
+  /**
+   * Gets the drawing properties dialog.
+   */
+	public ScenePropertiesDialog getDrawingPropertiesDialog(PencilScene scene) {
+		if (scenePropertiesDialog==null) {
+			scenePropertiesDialog = new ScenePropertiesDialog();
+			// center on screen
+	    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+	    int x = (dim.width - scenePropertiesDialog.getBounds().width) / 2;
+	    int y = (dim.height - scenePropertiesDialog.getBounds().height) / 2;
+	    scenePropertiesDialog.setLocation(x, y);
+		}
+		scenePropertiesDialog.refresh(scene);
+		return scenePropertiesDialog;
 	}
 	
   /**
@@ -321,7 +500,7 @@ public class PencilDrawer {
       	break;
         	
       case InteractivePanel.MOUSE_PRESSED:
-       	PencilDrawing drawing = createPencilDrawing();
+       	PencilDrawing drawing = addNewDrawingtoSelectedScene();
       	drawing.addPoint(trackerPanel.getMouseX(), trackerPanel.getMouseY());
         trackerPanel.setMouseCursor(getPencilCursor());
     		if (Tracker.showHints) {
@@ -330,7 +509,7 @@ public class PencilDrawer {
         break;
 
       case InteractivePanel.MOUSE_DRAGGED:
-      	drawing = getLastPencilDrawing();
+      	drawing = getLastDrawingInSelectedScene();
       	if (drawing==null) break;
       	drawing.addPoint(trackerPanel.getMouseX(), trackerPanel.getMouseY());
       	trackerPanel.repaint();
@@ -338,26 +517,37 @@ public class PencilDrawer {
         break;
 
       case InteractivePanel.MOUSE_RELEASED:
-      	drawing = getLastPencilDrawing();
+      	drawing = getLastDrawingInSelectedScene();
       	if (drawing!=null && drawing.getNumberOfPoints()<=1) {
-      		removeLastPencilDrawing();
+      		eraseLastDrawingInSelectedScene();
       		trackerPanel.repaint();
       	}
         trackerPanel.setMouseCursor(getPencilCursor());
      }
   }
   
-  
+  public void dispose() {
+		trackerPanel.removePropertyChangeListener("stepnumber", stepListener); //$NON-NLS-1$
+		trackerPanel.removeKeyListener(keyListener);
+		scenes.clear();
+		if (scenePropertiesDialog!=null) {
+			scenePropertiesDialog.dispose();
+		}
+  	trackerPanel = null;
+  	scenePropertiesDialog = null;
+		pencilButton = null;
+		selectedScene = null;
+  }
   /**
-   * A button to manage the pencil drawing process.
+   * A button inner class to manage the pencil drawing process.
    */
   protected class DrawingButton extends TButton 
   		implements ActionListener {
   	
   	boolean showPopup; 	
     JPopupMenu popup = new JPopupMenu();
-    JMenuItem drawingVisibleCheckbox, clearDrawingsItem, hidePencilItem, undoItem;
-    JMenu drawingColorMenu;
+    JMenuItem drawingVisibleCheckbox, clearLastItem, clearAllItem, hidePencilItem;
+    JMenu drawingColorMenu, scenesMenu;
     
     /**
      * Constructor.
@@ -369,17 +559,18 @@ public class PencilDrawer {
       addActionListener(this);
 
       drawingVisibleCheckbox = new JMenuItem();
-      drawingVisibleCheckbox.setSelected(drawingsVisible);
       drawingVisibleCheckbox.addActionListener(this);
       
-      clearDrawingsItem = new JMenuItem();
-      clearDrawingsItem.addActionListener(this);
+      clearLastItem = new JMenuItem();
+      clearLastItem.addActionListener(this);
+      
+      clearAllItem = new JMenuItem();
+      clearAllItem.addActionListener(this);
       
       hidePencilItem = new JMenuItem();
       hidePencilItem.addActionListener(this);
       
-      undoItem = new JMenuItem();
-      undoItem.addActionListener(this);
+      scenesMenu = new JMenu();
       
       drawingColorMenu = new JMenu();
       final AbstractAction colorAction = new AbstractAction() {
@@ -421,7 +612,7 @@ public class PencilDrawer {
     /**
      * Overrides TButton method.
      *
-     * @return the popup, or null if the right side of this button was clicked
+     * @return the popup menu
      */
     protected JPopupMenu getPopup() {
     	if (!showPopup)	return null;
@@ -429,28 +620,62 @@ public class PencilDrawer {
     }
     
     /**
-     * Overrides TButton method.
-     *
-     * @return the popup, or null if the right side of this button was clicked
+     * Gets the popup menu.
+     * 
+     * @param forButton true if the popup menu is for the drawing button
+     * @return the popup
      */
     protected JPopupMenu getPopup(boolean forButton) {
     	refresh();
       // rebuild popup menu
     	popup.removeAll();    	
     	popup.add(drawingColorMenu);
+    	popup.addSeparator();
+    	// refresh the scenes menu
+    	scenesMenu.removeAll();
+    	JMenuItem item = null;
+    	JMenu menu = null;
+    	VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+    	for (PencilScene scene: scenes) {
+    		if (trackerPanel.isDisplayable() && Integer.MAX_VALUE==scene.endframe) {
+      	  int last = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+    			scene.endframe = last;
+    		}
+    		menu = new JMenu(TrackerRes.getString("PencilDrawer.Menu.Frames.Text") //$NON-NLS-1$
+    				+" "+scene.startframe+"-"+scene.endframe); //$NON-NLS-1$ //$NON-NLS-2$
+    		scenesMenu.add(menu);
+    		item = new JMenuItem(TrackerRes.getString("PencilDrawer.MenuItem.Properties.Text")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    		item.setActionCommand(String.valueOf(scene.hashCode()));
+    		item.addActionListener(this);
+    		item.setName("properties"); //$NON-NLS-1$
+    		menu.add(item);
+    		menu.addSeparator();
+    		item = new JMenuItem(TrackerRes.getString("PencilDrawer.MenuItem.Show.Text")+" ("+scene.startframe+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    		item.setActionCommand(String.valueOf(scene.hashCode()));
+    		item.addActionListener(this);
+    		item.setName("show"); //$NON-NLS-1$
+    		item.setEnabled(clip.includesFrame(scene.startframe));
+    		menu.add(item);
+    		menu.addSeparator();
+    		item = new JMenuItem(TrackerRes.getString("PencilDrawer.MenuItem.ClearScene.Text")); //$NON-NLS-1$
+    		item.setActionCommand(String.valueOf(scene.hashCode()));
+    		item.addActionListener(this);
+    		item.setName("erase"); //$NON-NLS-1$
+    		menu.add(item);
+    	}
+    	scenesMenu.setEnabled(!scenes.isEmpty());
+    	popup.add(scenesMenu);
     	if (forButton) {
 	    	popup.addSeparator();
 	    	popup.add(drawingVisibleCheckbox);
     	}
-    	popup.addSeparator();
-    	popup.add(undoItem);
-    	popup.add(clearDrawingsItem);
-    	clearDrawingsItem.setEnabled(hasDrawings(trackerPanel));
-    	undoItem.setEnabled(hasDrawings(trackerPanel));
-    	if (!forButton) {
+    	else {
 	    	popup.addSeparator();
 	    	popup.add(hidePencilItem);
     	}
+    	popup.addSeparator();
+    	popup.add(clearLastItem);
+    	popup.add(clearAllItem);
     	FontSizer.setFonts(popup, FontSizer.getLevel());
     	return popup;
     }
@@ -466,7 +691,7 @@ public class PencilDrawer {
 	      trackerPanel.setSelectedPoint(null);
 	      trackerPanel.hideMouseBox();        
 	      setSelected(!isSelected());
-	      if (!drawingsVisible) {
+	      if (!areDrawingsVisible()) {
         	setDrawingsVisible(true);        	
 	      }
 	      if (isSelected() && Tracker.showHints) {
@@ -480,14 +705,14 @@ public class PencilDrawer {
       	trackerPanel.setSelectedPoint(null);
         JMenuItem source = (JMenuItem)e.getSource();
         if (source==drawingVisibleCheckbox) {
-        	setDrawingsVisible(!drawingsVisible);        	
+        	setDrawingsVisible(!areDrawingsVisible());        	
         }
-        else if (source==clearDrawingsItem) {
-        	clearPencilDrawings();
+        else if (source==clearLastItem) {
+        	eraseLastDrawingInSelectedScene();
         	trackerPanel.repaint();
         }
-        else if (source==undoItem) {
-        	removeLastPencilDrawing();
+        else if (source==clearAllItem) {
+        	clearAllScenes();
         	trackerPanel.repaint();
         }
         else if (source==hidePencilItem) {
@@ -496,6 +721,29 @@ public class PencilDrawer {
   	      trackerPanel.setMessage(null);
   	      refresh();
         	trackerPanel.repaint();
+        }
+        else { // scene items
+        	try {
+						int actionNumber = Integer.valueOf(source.getActionCommand());
+						setDrawingsVisible(true);
+						if ("show".equals(source.getName())) { //$NON-NLS-1$
+							PencilScene scene = getSceneByHashCode(actionNumber);
+	        		// set step number to show scene
+							int stepNum = trackerPanel.getPlayer().getVideoClip().frameToStep(scene.startframe);
+							trackerPanel.getPlayer().setStepNumber(stepNum);
+							selectedScene = scene;
+						}
+						else if ("properties".equals(source.getName())) { //$NON-NLS-1$
+							PencilScene scene = getSceneByHashCode(actionNumber);
+							getDrawingPropertiesDialog(scene).setVisible(true);
+						}
+						else if ("erase".equals(source.getName())) { //$NON-NLS-1$
+							PencilScene scene = getSceneByHashCode(actionNumber);
+							clearScene(scene);
+							trackerPanel.repaint();
+						}
+					} catch (Exception ex) {
+					}
         }
         refresh();    		
     	}
@@ -506,12 +754,15 @@ public class PencilDrawer {
      */
     void refresh() {
       setToolTipText(TrackerRes.getString("PencilDrawer.Button.Drawings.Tooltip")); //$NON-NLS-1$
+      scenesMenu.setText(TrackerRes.getString("PencilDrawer.Menu.Drawing.Text")); //$NON-NLS-1$
       drawingColorMenu.setText(TrackerRes.getString("PencilDrawer.Menu.DrawingColor.Text")); //$NON-NLS-1$
       drawingVisibleCheckbox.setText(TrackerRes.getString("PencilDrawer.MenuItem.DrawingVisible.Text")); //$NON-NLS-1$
-      clearDrawingsItem.setText(TrackerRes.getString("PencilDrawer.MenuItem.ClearDrawings.Text")); //$NON-NLS-1$
+      clearLastItem.setText(TrackerRes.getString("PencilDrawer.MenuItem.Undo.Text")); //$NON-NLS-1$
+      clearAllItem.setText(TrackerRes.getString("PencilDrawer.MenuItem.ClearAll.Text")); //$NON-NLS-1$
       hidePencilItem.setText(TrackerRes.getString("PencilDrawer.MenuItem.HidePencil.Text")); //$NON-NLS-1$
-      undoItem.setText(TrackerRes.getString("PencilDrawer.MenuItem.Undo.Text")); //$NON-NLS-1$
-      drawingVisibleCheckbox.setIcon(drawingsVisible? checkboxIcons[1]: checkboxIcons[0]);
+      drawingVisibleCheckbox.setIcon(areDrawingsVisible()? checkboxIcons[1]: checkboxIcons[0]);
+    	clearLastItem.setEnabled(getSelectedScene()!=null);
+    	clearAllItem.setEnabled(hasDrawings(trackerPanel));
       // set color icons
       for (int i=0; i<PencilDrawing.pencilColors.length; i++) {
       	if (pencilColor.equals(PencilDrawing.pencilColors[i])) {
@@ -524,10 +775,127 @@ public class PencilDrawer {
       		break;
       	}
       }
-  		if (!drawingsVisible) {
+  		if (!areDrawingsVisible()) {
 	      setSelected(false);
   		}
     }
     
+  }
+  
+  /**
+   * ScenePropertiesDialog inner class
+   */
+  protected class ScenePropertiesDialog extends JDialog {
+  	
+    private JLabel startFrameLabel, endFrameLabel;
+    private JSpinner startFrameSpinner, endFrameSpinner;
+    private TitledBorder title;
+    private DrawingPanel canvas;
+    private JButton closeButton;
+    private PencilScene scene;
+  	
+  	private ScenePropertiesDialog() {
+  		super(JOptionPane.getFrameForComponent(trackerPanel), true);
+  		setResizable(false);
+  		title = BorderFactory.createTitledBorder(""); //$NON-NLS-1$
+  		// create end frame spinners
+  		startFrameLabel = new JLabel();
+  		startFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
+  		endFrameLabel = new JLabel();
+  		endFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 2));
+  		startFrameSpinner = new JSpinner() {  			
+  			@Override
+  			public Dimension getMinimumSize() {
+  				Dimension dim = super.getMinimumSize();
+  				dim.width += (int)(FontSizer.getFactor()*4);
+  				return dim;
+  			}
+  		};
+  		endFrameSpinner = new JSpinner() {  			
+  			@Override
+  			public Dimension getMinimumSize() {
+  				Dimension dim = super.getMinimumSize();
+  				dim.width += (int)(FontSizer.getFactor()*4);
+  				return dim;
+  			}
+  		};
+  		startFrameSpinner.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent e) {
+        	if (scene==null) return;
+        	scene.setStartFrame((Integer)startFrameSpinner.getValue());
+        	Collections.sort(scenes);
+        	trackerPanel.repaint();
+        	refresh(scene);
+        }
+      }); 		
+  		endFrameSpinner.addChangeListener(new ChangeListener() {
+        public void stateChanged(ChangeEvent e) {
+        	if (scene==null) return;
+        	scene.setEndFrame((Integer)endFrameSpinner.getValue());
+        	Collections.sort(scenes);
+        	trackerPanel.repaint();
+        	refresh(scene);
+        }
+      });
+  		
+  		canvas = new DrawingPanel();
+  		canvas.setAutoscaleX(false);
+  		canvas.setAutoscaleY(false);
+  		canvas.setSquareAspect(true);
+  		canvas.setBackground(Color.WHITE);
+  		canvas.setPreferredGutters(20, 20, 20, 20);
+  		canvas.setPreferredSize(new Dimension(200, 150));
+  		
+  		closeButton = new JButton();
+  		closeButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					scenePropertiesDialog.setVisible(false);
+				} 			
+  		});
+  		
+  		JPanel contentPane = new JPanel(new BorderLayout());
+  		setContentPane(contentPane);
+  		contentPane.add(canvas, BorderLayout.NORTH);
+  		
+  		// range panel shows the range of visible frames
+  		JPanel rangePanel = new JPanel();
+  		Border outline = BorderFactory.createEtchedBorder();
+  		Border combo = BorderFactory.createCompoundBorder(outline, title);
+  		rangePanel.setBorder(combo);
+  		contentPane.add(rangePanel, BorderLayout.CENTER);
+  		rangePanel.add(startFrameLabel);
+  		rangePanel.add(startFrameSpinner);
+  		rangePanel.add(endFrameLabel);
+  		rangePanel.add(endFrameSpinner);
+      
+  		// button panel
+  		JPanel buttonPanel = new JPanel();
+  		buttonPanel.setBorder(outline);
+  		contentPane.add(buttonPanel, BorderLayout.SOUTH);
+  		buttonPanel.add(closeButton);
+  		 		
+		}
+  	
+  	private void refresh(PencilScene pencilScene) {
+  		canvas.removeDrawable(scene);
+  		scene = pencilScene;
+  		canvas.addDrawable(scene);
+  		canvas.setPreferredMinMaxX(scene.getXMin(), scene.getXMax());
+  		canvas.setPreferredMinMaxY(scene.getYMax(), scene.getYMin());
+  		canvas.repaint();
+  	  int first = trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
+  	  int last = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
+  		SpinnerNumberModel model = new SpinnerNumberModel(scene.startframe, first, last, 1); // init, min, max, step
+  		startFrameSpinner.setModel(model);
+  		model = new SpinnerNumberModel(scene.endframe, scene.startframe, last, 1); // init, min, max, step
+  		endFrameSpinner.setModel(model);
+  		setTitle(TrackerRes.getString("PencilDrawer.Dialog.Properties.Title")); //$NON-NLS-1$
+  		startFrameLabel.setText(TrackerRes.getString("PencilDrawer.Dialog.Properties.StartFrameLabel.Text")); //$NON-NLS-1$
+  		endFrameLabel.setText(TrackerRes.getString("PencilDrawer.Dialog.Properties.EndFrameLabel.Text")); //$NON-NLS-1$
+  		closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+  		title.setTitle(TrackerRes.getString("PencilDrawer.Dialog.Properties.TitledBorder.Title")); //$NON-NLS-1$
+  		pack();
+  	}
   }
 }
