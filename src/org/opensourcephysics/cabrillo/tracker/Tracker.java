@@ -66,7 +66,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "4.10.0"; //$NON-NLS-1$
+  public static final String VERSION = "4.11.0"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2017 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -124,6 +124,7 @@ public class Tracker {
   static String counterPath = "http://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
   static String trackerWebsite = "physlets.org/tracker"; //$NON-NLS-1$
+  static String trackerDownloadFolder = "/upgrade/"; //$NON-NLS-1$
   static String author = "Douglas Brown"; //$NON-NLS-1$
   static String osp = "Open Source Physics"; //$NON-NLS-1$
   static AbstractAction aboutQTAction, aboutXuggleAction, aboutThreadsAction;
@@ -1310,7 +1311,7 @@ public class Tracker {
   	
   	// interval has passed, so check for upgrades and save current time  	
 	  // typical pre-4.97 version: "4.90" or "4.61111227"
-  	// typical post-4.97 version: "4.9.8" or "4.10.0" or "4.10.0170504"
+  	// typical post-4.97 version: "4.9.8" or "4.10.0" or "4.10.0170504" or "5.0.0"
 
 	 	// send runtime and version data as page name to get latest version from PHP script
 		String pageName = getPHPPageName(logToFile);
@@ -1365,7 +1366,7 @@ public class Tracker {
     try {
 			URL url = new URL(path);
 			Resource res = new Resource(url);
-	    String version = res.getString();
+	    String version = res.getString().trim();
 	    OSPLog.finer(path+":   "+version); //$NON-NLS-1$
 	    return version;
 		} catch (Exception e) {
@@ -1803,7 +1804,33 @@ public class Tracker {
 		      JOptionPane.WARNING_MESSAGE);
 		}
 
-  	Timer memoryTimer = new Timer(5000, new ActionListener() {
+		final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
+		if (newVersionURL!=null) {
+  		final File target = new File(trackerHome, "tracker.jar"); //$NON-NLS-1$
+      Timer timer = new Timer(2000, new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+	    		ResourceLoader.download(newVersionURL, target, true);
+	    		// check preferences: if not default tracker.jar, ask user to change to default
+	    		if (Tracker.preferredTrackerJar!=null && !"tracker.jar".equals(Tracker.preferredTrackerJar)) { //$NON-NLS-1$
+	    			String prefVers = Tracker.preferredTrackerJar.substring(8, Tracker.preferredTrackerJar.lastIndexOf(".")); //$NON-NLS-1$
+	    			String s1 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message1")+" "+Tracker.VERSION; //$NON-NLS-1$ //$NON-NLS-2$
+	    			String s2 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message2")+" "+prefVers; //$NON-NLS-1$ //$NON-NLS-2$
+	    			String s3 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message3"); //$NON-NLS-1$
+	    			String title = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Title"); //$NON-NLS-1$
+		    		int response = JOptionPane.showConfirmDialog(null, s1+XML.NEW_LINE+s2+XML.NEW_LINE+s3, 
+		    				title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+		    		if (response==JOptionPane.YES_OPTION) {
+		    			Tracker.preferredTrackerJar = null;
+		    			Tracker.savePreferences();
+		    		}
+	    		}
+        }
+      });
+      timer.setRepeats(false);
+      timer.start();		      
+		}
+
+		Timer memoryTimer = new Timer(5000, new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	TTrackBar.refreshMemoryButton();
       }				    	      
