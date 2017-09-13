@@ -297,7 +297,7 @@ public class PencilDrawer {
 	
   /**
    * Creates a drawing and adds it to the selected scene. If no scene is selected
-   * a new one is created;
+   * a new one is created.
    * 
    * @return the newly added drawing
    */
@@ -650,7 +650,7 @@ public class PencilDrawer {
     		item.setName("properties"); //$NON-NLS-1$
     		menu.add(item);
     		menu.addSeparator();
-    		item = new JMenuItem(TrackerRes.getString("PencilDrawer.MenuItem.Show.Text")+" ("+scene.startframe+")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    		item = new JMenuItem(TrackerRes.getString("PencilDrawer.MenuItem.Show.Text")); //$NON-NLS-1$ 
     		item.setActionCommand(String.valueOf(scene.hashCode()));
     		item.addActionListener(this);
     		item.setName("show"); //$NON-NLS-1$

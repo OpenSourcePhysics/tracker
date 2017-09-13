@@ -62,6 +62,7 @@ public class TrackerStarter {
 //	public static final String PREFERRED_VM_BITNESS = "PREFERRED_VM_BITNESS"; //$NON-NLS-1$
 //	public static final String PREFERRED_TRACKER_PREFS = "PREFERRED_TRACKER_PREFS"; //$NON-NLS-1$
 	public static final String TRACKER_RELAUNCH = "TRACKER_RELAUNCH"; //$NON-NLS-1$	
+	public static final String TRACKER_NEW_VERSION = "TRACKER_NEW_VERSION"; //$NON-NLS-1$	
 	public static final String LOG_FILE_NAME = "tracker_start.log"; //$NON-NLS-1$
   public static final int DEFAULT_MEMORY_SIZE = 256;
 	public static final String PREFS_FILE_NAME = "tracker.prefs"; //$NON-NLS-1$
@@ -841,6 +842,14 @@ public class TrackerStarter {
 			env.put(TRACKER_RELAUNCH, "true"); //$NON-NLS-1$
 		}
 		else env.remove(TRACKER_RELAUNCH);
+		
+		// add TRACKER_NEW_VERSION to process environment if launching a new version
+		String newVersionURL = System.getProperty(TRACKER_NEW_VERSION);
+		if (newVersionURL!=null) {
+			logMessage("setting "+TRACKER_NEW_VERSION+" = " + newVersionURL); //$NON-NLS-1$ //$NON-NLS-2$ 
+			env.put(TRACKER_NEW_VERSION, newVersionURL);
+		}
+		else env.remove(TRACKER_NEW_VERSION);
 		
 		// assemble command message for log
 		String message = ""; //$NON-NLS-1$

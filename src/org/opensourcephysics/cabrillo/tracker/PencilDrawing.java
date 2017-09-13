@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.geom.GeneralPath;
 import java.awt.geom.PathIterator;
 import java.util.ArrayList;
 
@@ -106,7 +107,7 @@ public class PencilDrawing extends Trail implements Trackable {
    *
    * @return double[][], each point is double[] {Seg_type, x, y}
    */
-	public double[][] getPoints() {
+	public double[][] getPathPoints() {
 		pointArray.clear();
 		for (PathIterator pi = generalPath.getPathIterator(null); !pi.isDone(); pi.next()) {
 	    int type = pi.currentSegment(coords); // type will be SEG_LINETO or SEG_MOVETO
@@ -115,6 +116,28 @@ public class PencilDrawing extends Trail implements Trackable {
 	    }
 		}
 		return pointArray.toArray(new double[pointArray.size()][3]);
+	}
+	
+	public void setPath(GeneralPath path) {
+		generalPath = path;
+		// reset numPts and min/max values
+		double[][] pts = getPathPoints();
+		numpts = 0;
+		for (double[] next: pts) {
+	    xmin = Math.min(xmin, next[1]);
+	    xmax = Math.max(xmax, next[1]);
+	    if(next[1]>0) {
+	      xminLogscale = Math.min(xminLogscale, next[1]);
+	      xmaxLogscale = Math.max(xmaxLogscale, next[1]);
+	    }
+	    ymin = Math.min(ymin, next[2]);
+	    ymax = Math.max(ymax, next[2]);
+	    if(next[2]>0) {
+	      yminLogscale = Math.min(yminLogscale, next[2]);
+	      ymaxLogscale = Math.max(ymaxLogscale, next[2]);
+	    }
+	    numpts++;
+		}
 	}
 	
   /**
@@ -133,7 +156,7 @@ public class PencilDrawing extends Trail implements Trackable {
     public void saveObject(XMLControl control, Object obj) {
     	PencilDrawing drawing = (PencilDrawing) obj;
       control.setValue("colorRGB", drawing.color.getRGB()); //$NON-NLS-1$
-      control.setValue("points", drawing.getPoints()); //$NON-NLS-1$
+      control.setValue("points", drawing.getPathPoints()); //$NON-NLS-1$
     }
 
     public Object createObject(XMLControl control) {

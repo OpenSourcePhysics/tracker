@@ -25,9 +25,13 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
+import java.io.File;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.GlyphVector;
+import java.awt.geom.GeneralPath;
 
 import javax.swing.*;
 import javax.swing.Timer;
@@ -35,7 +39,11 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.Resource;
+import org.opensourcephysics.tools.ResourceLoader;
+import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.ResizableIcon;
 
@@ -55,6 +63,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   protected static JButton testButton;
   protected static javax.swing.Timer testTimer;
   protected static boolean showOutOfMemoryDialog = true;
+  protected static JDialog relaunchingDialog;
+  protected static JLabel downloadLabel, relaunchLabel;
   
   // instance fields
   protected TrackerPanel trackerPanel; // manages & displays track data
@@ -77,9 +87,22 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    			if (testTimer==null) {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
-		    	  			// test action goes here	
-		    	      	
-	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+		    	  			// test action goes here			    	      	
+//	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+
+//	    	      		Font textFont = new Font("Helvetica", Font.PLAIN, 60);
+//	    	      		String s = "Hello world";
+//	    	          FontRenderContext fontRenderContext = 
+//	    	              new FontRenderContext(null,true,true);
+//	    	          GlyphVector glyphVector = 
+//	    	          		textFont.createGlyphVector(fontRenderContext, s);
+//	    	          Shape outline = glyphVector.getOutline(100, 100);
+//	    	          GeneralPath path = new GeneralPath(outline);
+//	    	          PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+//	    	          PencilDrawing drawing = new PencilDrawing(drawer.pencilColor, null);
+//	    	          drawing.setPath(path);
+//	    	          drawer.addDrawingtoSelectedScene(drawing);
+//	    	          trackerPanel.repaint();
 //	    	      		TTrack track = trackerPanel.getSelectedTrack();
 
 		    	      	if (!testTimer.isRepeats()) {
@@ -138,9 +161,80 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    popup.add(upgradeItem);
   	    upgradeItem.addActionListener(new ActionListener() {
   	    	public void actionPerformed(ActionEvent e) {
-  	    		String url = "http://"+Tracker.trackerWebsite; //$NON-NLS-1$
-  	    		OSPDesktop.displayURL(url);
-  	    	}
+  	    		final String fileName = "tracker-"+Tracker.newerVersion+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
+  	    		OSPLog.finer("upgrading to "+fileName); //$NON-NLS-1$
+  	    		String testurl = "http://"+Tracker.trackerWebsite+Tracker.trackerDownloadFolder+fileName; //$NON-NLS-1$
+    				// see if the new jar file is found at this url
+  	    		Resource res = ResourceLoader.getResourceZipURLsOK(testurl);
+    				if (res==null) {
+    					testurl = "https://"+Tracker.trackerWebsite+Tracker.trackerDownloadFolder+fileName; //$NON-NLS-1$
+    	    		res = ResourceLoader.getResourceZipURLsOK(testurl);
+    				}
+      			if (res==null) {
+    					// no jar to download, so go to web site
+	  	    		String websiteurl = "https://"+Tracker.trackerWebsite; //$NON-NLS-1$
+	  	    		OSPDesktop.displayURL(websiteurl);
+    				}
+    				else {
+	  	    		// download new jar file and relaunch
+	  	    		if (relaunchingDialog==null) {
+	  	    			relaunchingDialog = new JDialog((Window)null);
+		    				JPanel panel = new JPanel();
+		    				panel.setBackground(Color.WHITE);
+		    				panel.setBorder(BorderFactory.createEtchedBorder());
+		    				relaunchingDialog.setContentPane(panel);
+		    				relaunchingDialog.setUndecorated(true);
+		    				Box box = Box.createVerticalBox();
+		    				relaunchingDialog.getContentPane().add(box);
+		    				downloadLabel = new JLabel((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Text"))); //$NON-NLS-1$
+		    				downloadLabel.setBorder(BorderFactory.createEmptyBorder(4, 0, 6, 0));
+		    				box.add(downloadLabel);
+		    				relaunchLabel = new JLabel((TrackerRes.getString("TTrackBar.Dialog.Relaunch.RelaunchLabel.Text")+" tracker-X.X.X.jar")); //$NON-NLS-1$ //$NON-NLS-2$
+		    				relaunchLabel.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
+		    				box.add(relaunchLabel);
+		    				relaunchingDialog.pack();
+		    				// center on screen
+		    		    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		    		    int x = (dim.width-relaunchingDialog.getBounds().width)/2;
+		    		    int y = (dim.height-relaunchingDialog.getBounds().height)/2;
+		    		    relaunchingDialog.setLocation(x, y-200);
+	  	    		}
+	  	    		final String url = testurl;  	    		
+	  	    		Runnable runner = new Runnable() {
+	  	    			public void run() {
+	  	  	    		File target = new File(Tracker.trackerHome, fileName);
+	  	    				downloadLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Text")+" "+fileName)); //$NON-NLS-1$ //$NON-NLS-2$
+	  	    				relaunchLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.RelaunchLabel.Text"))); //$NON-NLS-1$
+	  	    				relaunchingDialog.validate();		 	    				
+	  	    				relaunchingDialog.setVisible(true);
+	  	    				
+	  	  	    		target = ResourceLoader.download(url, target, true);
+	  	  		    	TFrame frame = (TFrame)memoryButton.getTopLevelAncestor();
+	  	  	    		if (target!=null && target.exists()) {
+	  	  	      		ArrayList<String> filenames = new ArrayList<String>();
+	  	  	    			for (int i = 0; i<frame.getTabCount(); i++) {
+	  	  	    				TrackerPanel next = frame.getTrackerPanel(i);
+	  	  	    				if (!next.save()) {
+	  	  	    					// user aborted the relaunch
+	  	  	    					relaunchingDialog.setVisible(false);
+	  	  	    					return;
+	  	  	    				}
+	  	  	    				File datafile = next.getDataFile();
+	  	  	    				if (datafile!=null) {
+	  	  	    	    		filenames.add(datafile.getAbsolutePath());
+	  	  	    				}
+	  	  	    			}
+	  	  	    			String[] args = filenames.isEmpty()? null: filenames.toArray(new String[0]);
+	  	  	  	    	System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, target.getAbsolutePath());
+	  	  	  	    	System.setProperty(TrackerStarter.TRACKER_NEW_VERSION, url);
+	  	  	  	    	TrackerStarter.relaunch(args, false);
+	  	  	    		}
+	  	    			}
+	  	    		};
+	  	    		new Thread(runner).start();
+    				}
+
+  	    	} // end download/relaunch
   	    });
   	    JMenuItem ignoreItem = new JMenuItem(
   	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.Ignore")); //$NON-NLS-1$
