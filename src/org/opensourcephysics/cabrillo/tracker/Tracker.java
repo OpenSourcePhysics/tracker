@@ -177,6 +177,7 @@ public class Tracker {
   static String[] prelaunchExecutables = new String[0];
   static Map<String, String[]> autoloadMap = new TreeMap<String, String[]>();
   static String[] preferredAutoloadSearchPaths;
+  static boolean markAtCurrentFrame = true;
 
   // the only instance field!
   private TFrame frame;
@@ -2166,6 +2167,8 @@ public class Tracker {
       		control.setValue("show_hints", Tracker.showHintsByDefault); //$NON-NLS-1$
       	if (Tracker.isRadians) // false by default
       		control.setValue("radians", Tracker.isRadians); //$NON-NLS-1$
+      	if (Tracker.markAtCurrentFrame) // false by default
+      		control.setValue("mark_current_frame", Tracker.markAtCurrentFrame); //$NON-NLS-1$
       	if (Tracker.isXuggleFast) // false by default
       		control.setValue("xuggle_fast", Tracker.isXuggleFast); //$NON-NLS-1$
       	if (!Tracker.warnNoVideoEngine) // true by default
@@ -2285,6 +2288,7 @@ public class Tracker {
         	}
         }
       	isRadians = control.getBoolean("radians"); //$NON-NLS-1$
+      	markAtCurrentFrame = control.getBoolean("mark_current_frame"); //$NON-NLS-1$
       	isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_no_engine")) //$NON-NLS-1$
       		warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
