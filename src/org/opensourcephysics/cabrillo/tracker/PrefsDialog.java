@@ -76,18 +76,17 @@ public class PrefsDialog extends JDialog {
   protected JPanel checkPanel;
   protected JPanel mainButtonBar;
   protected JTabbedPane tabbedPane;
-  protected JPanel configPanel, runtimePanel, videoPanel, generalPanel, 
-  		displayPanel;
+  protected JPanel configPanel, runtimePanel, videoPanel, generalPanel, trackPanel, displayPanel;
   protected TitledBorder checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
   	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
   	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
-  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder;
+  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, resetToStep0SubPanelBorder;
 
   protected IntegerField memoryField;
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
   		versionLabel, runLabel;
   protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, 
-  		xuggleErrorCheckbox, variableDurationCheckBox;
+  		xuggleErrorCheckbox, variableDurationCheckBox, resetToStep0Checkbox;
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
   protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, 
@@ -273,7 +272,7 @@ public class PrefsDialog extends JDialog {
       checkPanel.add(checkbox);
     }
     JScrollPane scroller = new JScrollPane(checkPanel);
-    scroller.setPreferredSize(new Dimension(380, 200));
+    scroller.setPreferredSize(new Dimension(450, 200));
     configPanel.add(scroller, BorderLayout.CENTER);
     // apply button
     applyButton = new JButton();
@@ -1120,8 +1119,30 @@ public class PrefsDialog extends JDialog {
     }
     else noEngineButton.setSelected(true);
 
+    // tracking panel
+    trackPanel = new JPanel(new BorderLayout());
+    tabbedPane.addTab(null, trackPanel);
+    box = Box.createVerticalBox();
+    trackPanel.add(box, BorderLayout.CENTER);
 
-    
+    // marking subpanel
+    JPanel markingSubPanel = new JPanel();
+    box.add(markingSubPanel);
+    markingSubPanel.setBackground(color);
+    resetToStep0SubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.Marking.BorderTitle")); //$NON-NLS-1$
+    markingSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, resetToStep0SubPanelBorder));
+
+    resetToStep0Checkbox = new JCheckBox();
+    resetToStep0Checkbox.setOpaque(false);
+    resetToStep0Checkbox.setSelected(!Tracker.markAtCurrentFrame);
+    resetToStep0Checkbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	Tracker.markAtCurrentFrame = !resetToStep0Checkbox.isSelected();
+      }
+    });
+    markingSubPanel.add(resetToStep0Checkbox);
+        
     // "general" panel
     generalPanel = new JPanel(new BorderLayout());
     tabbedPane.addTab(null, generalPanel);
@@ -1513,6 +1534,7 @@ public class PrefsDialog extends JDialog {
     recentSizeLabel.setText(TrackerRes.getString("PrefsDialog.Label.RecentSize")); //$NON-NLS-1$
     defaultMemoryCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.DefaultSize")); //$NON-NLS-1$
     hintsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.HintsOn")); //$NON-NLS-1$    
+    resetToStep0Checkbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.ResetToZero.Text")); //$NON-NLS-1$    
     vm32Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.32BitVM")); //$NON-NLS-1$
     vm64Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.64BitVM")); //$NON-NLS-1$
     xuggleButton.setText(TrackerRes.getString("PrefsDialog.Button.Xuggle")); //$NON-NLS-1$
@@ -1529,6 +1551,7 @@ public class PrefsDialog extends JDialog {
     setTabTitle(runtimePanel, TrackerRes.getString("PrefsDialog.Tab.Runtime.Title")); //$NON-NLS-1$
     setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
     setTabTitle(displayPanel, TrackerRes.getString("PrefsDialog.Tab.Display.Title")); //$NON-NLS-1$
+    setTabTitle(trackPanel, TrackerRes.getString("PrefsDialog.Tab.Tracking.Title")); //$NON-NLS-1$
     setTabTitle(generalPanel, TrackerRes.getString("PrefsDialog.Tab.General.Title")); //$NON-NLS-1$
     refreshTextFields();
     setFontLevel(FontSizer.getLevel());

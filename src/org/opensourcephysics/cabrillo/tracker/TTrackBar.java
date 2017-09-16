@@ -26,12 +26,11 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.io.File;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.font.FontRenderContext;
-import java.awt.font.GlyphVector;
-import java.awt.geom.GeneralPath;
 
 import javax.swing.*;
 import javax.swing.Timer;
@@ -39,11 +38,9 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
-import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.ResizableIcon;
 
@@ -87,7 +84,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    			if (testTimer==null) {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
-		    	  			// test action goes here			    	      	
+		    	  			// test action goes here	
+		    	      	
 //	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 
 //	    	      		Font textFont = new Font("Helvetica", Font.PLAIN, 60);
@@ -161,17 +159,20 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    popup.add(upgradeItem);
   	    upgradeItem.addActionListener(new ActionListener() {
   	    	public void actionPerformed(ActionEvent e) {
-  	    		final String fileName = "tracker-"+Tracker.newerVersion+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
-  	    		OSPLog.finer("upgrading to "+fileName); //$NON-NLS-1$
-  	    		String testurl = "http://"+Tracker.trackerWebsite+Tracker.trackerDownloadFolder+fileName; //$NON-NLS-1$
-    				// see if the new jar file is found at this url
-  	    		Resource res = ResourceLoader.getResourceZipURLsOK(testurl);
-    				if (res==null) {
-    					testurl = "https://"+Tracker.trackerWebsite+Tracker.trackerDownloadFolder+fileName; //$NON-NLS-1$
-    	    		res = ResourceLoader.getResourceZipURLsOK(testurl);
-    				}
-      			if (res==null) {
-    					// no jar to download, so go to web site
+  	    		int responseCode = 0; // code 200 = "OK"
+   	    		final String fileName = "tracker-"+Tracker.newerVersion+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
+  	    		String upgradeURL = ResourceLoader.getString("http://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
+  	    		if (upgradeURL!=null) {
+	    				// see if the jar file is found at this url
+	  	    		try {
+	  	    	    URL url = new URL(upgradeURL.trim()+fileName);
+	  	    	    HttpURLConnection huc = (HttpURLConnection)url.openConnection();
+	  	    	    responseCode = huc.getResponseCode();
+		  	    	} catch (Exception ex) {
+		  	    	}
+  	    		}
+      			if (responseCode!=200) {
+    					// no jar to download, so go to Tracker web site
 	  	    		String websiteurl = "https://"+Tracker.trackerWebsite; //$NON-NLS-1$
 	  	    		OSPDesktop.displayURL(websiteurl);
     				}
@@ -199,7 +200,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    		    int y = (dim.height-relaunchingDialog.getBounds().height)/2;
 		    		    relaunchingDialog.setLocation(x, y-200);
 	  	    		}
-	  	    		final String url = testurl;  	    		
+	  	    		final String url = upgradeURL;  	    		
 	  	    		Runnable runner = new Runnable() {
 	  	    			public void run() {
 	  	  	    		File target = new File(Tracker.trackerHome, fileName);
