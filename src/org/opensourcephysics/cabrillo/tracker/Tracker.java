@@ -1581,7 +1581,7 @@ public class Tracker {
 	    }
 	    boolean needsJavaVM = javaPath!=null && !javaCommand.equals(javaPath);
 	    
-			// update resources like Xuggle & QuickTime
+			// update resources like FFMPeg & QuickTime
 			boolean updated = updateResources();
 			
 			// compare memory with requested size(s)
