@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,18 +76,17 @@ public class PrefsDialog extends JDialog {
   protected JPanel checkPanel;
   protected JPanel mainButtonBar;
   protected JTabbedPane tabbedPane;
-  protected JPanel configPanel, runtimePanel, videoPanel, generalPanel, 
-  		displayPanel;
+  protected JPanel configPanel, runtimePanel, videoPanel, generalPanel, trackPanel, displayPanel;
   protected TitledBorder checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
   	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
   	videoTypeSubPanelBorder, videoSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
-  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder;
+  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, resetToStep0SubPanelBorder;
 
   protected IntegerField memoryField;
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
   		versionLabel, runLabel;
   protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, 
-  		ffmpegErrorCheckbox, variableDurationCheckBox;
+  		ffmpegErrorCheckbox, variableDurationCheckBox, resetToStep0Checkbox;
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
   protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, 
@@ -96,7 +95,7 @@ public class PrefsDialog extends JDialog {
   protected JRadioButton ffmpegButton, qtButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
   protected JRadioButton videoFastButton, videoSlowButton;
-  protected String[] trackerVersions;
+  protected Tracker.Version[] trackerVersions;
   protected String recent32bitVM, recent64bitVM;
   protected String recentEngine;
   private boolean refreshing = false;
@@ -181,7 +180,7 @@ public class PrefsDialog extends JDialog {
    */
   private void findTrackerJars() {
   	if (Tracker.trackerHome==null || codeBaseDir==null) {
-			trackerVersions = new String[] {"0"}; //$NON-NLS-1$
+			trackerVersions = new Tracker.Version[] {new Tracker.Version("0")}; //$NON-NLS-1$
   		return;
   	}
 		String jarHome = OSPRuntime.isMac()? 
@@ -189,16 +188,16 @@ public class PrefsDialog extends JDialog {
 		File dir = new File(jarHome);
 		String[] fileNames = dir.list(trackerJarFilter);
 		if (fileNames!=null && fileNames.length>0) {
-			TreeSet<String> versions = new TreeSet<String>();
+			TreeSet<Tracker.Version> versions = new TreeSet<Tracker.Version>();
 			for (int i=0; i<fileNames.length; i++) {
 				if ("tracker.jar".equals(fileNames[i].toLowerCase())) {//$NON-NLS-1$
-					versions.add("0"); //$NON-NLS-1$
+					versions.add(new Tracker.Version("0")); //$NON-NLS-1$
 				}
-				else {
-					versions.add(fileNames[i].substring(8, fileNames[i].length()-4));
+				else {					
+					versions.add(new Tracker.Version(fileNames[i].substring(8, fileNames[i].length()-4)));
 				}
 			}
-			trackerVersions = versions.toArray(new String[versions.size()]);
+			trackerVersions = versions.toArray(new Tracker.Version[versions.size()]);
 		}
   }
  
@@ -273,7 +272,7 @@ public class PrefsDialog extends JDialog {
       checkPanel.add(checkbox);
     }
     JScrollPane scroller = new JScrollPane(checkPanel);
-    scroller.setPreferredSize(new Dimension(380, 200));
+    scroller.setPreferredSize(new Dimension(450, 200));
     configPanel.add(scroller, BorderLayout.CENTER);
     // apply button
     applyButton = new JButton();
@@ -478,7 +477,7 @@ public class PrefsDialog extends JDialog {
     int preferred = 0;
     versionDropdown = new JComboBox();
     for (int i = 0; i<trackerVersions.length; i++) {
-    	String next = trackerVersions[i];
+    	String next = trackerVersions[i].ver;
     	if (next.equals("0")) { //$NON-NLS-1$
     		String s = TrackerRes.getString("PrefsDialog.Version.Default"); //$NON-NLS-1$
     		versionDropdown.addItem(s);
@@ -1119,8 +1118,30 @@ public class PrefsDialog extends JDialog {
     }
     else noEngineButton.setSelected(true);
 
+    // tracking panel
+    trackPanel = new JPanel(new BorderLayout());
+    tabbedPane.addTab(null, trackPanel);
+    box = Box.createVerticalBox();
+    trackPanel.add(box, BorderLayout.CENTER);
 
-    
+    // marking subpanel
+    JPanel markingSubPanel = new JPanel();
+    box.add(markingSubPanel);
+    markingSubPanel.setBackground(color);
+    resetToStep0SubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.Marking.BorderTitle")); //$NON-NLS-1$
+    markingSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, resetToStep0SubPanelBorder));
+
+    resetToStep0Checkbox = new JCheckBox();
+    resetToStep0Checkbox.setOpaque(false);
+    resetToStep0Checkbox.setSelected(!Tracker.markAtCurrentFrame);
+    resetToStep0Checkbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	Tracker.markAtCurrentFrame = !resetToStep0Checkbox.isSelected();
+      }
+    });
+    markingSubPanel.add(resetToStep0Checkbox);
+        
     // "general" panel
     generalPanel = new JPanel(new BorderLayout());
     tabbedPane.addTab(null, generalPanel);
@@ -1512,6 +1533,7 @@ public class PrefsDialog extends JDialog {
     recentSizeLabel.setText(TrackerRes.getString("PrefsDialog.Label.RecentSize")); //$NON-NLS-1$
     defaultMemoryCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.DefaultSize")); //$NON-NLS-1$
     hintsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.HintsOn")); //$NON-NLS-1$    
+    resetToStep0Checkbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.ResetToZero.Text")); //$NON-NLS-1$    
     vm32Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.32BitVM")); //$NON-NLS-1$
     vm64Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.64BitVM")); //$NON-NLS-1$
     ffmpegButton.setText(TrackerRes.getString("PrefsDialog.Button.FFMPeg")); //$NON-NLS-1$
@@ -1528,6 +1550,7 @@ public class PrefsDialog extends JDialog {
     setTabTitle(runtimePanel, TrackerRes.getString("PrefsDialog.Tab.Runtime.Title")); //$NON-NLS-1$
     setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
     setTabTitle(displayPanel, TrackerRes.getString("PrefsDialog.Tab.Display.Title")); //$NON-NLS-1$
+    setTabTitle(trackPanel, TrackerRes.getString("PrefsDialog.Tab.Tracking.Title")); //$NON-NLS-1$
     setTabTitle(generalPanel, TrackerRes.getString("PrefsDialog.Tab.General.Title")); //$NON-NLS-1$
     refreshTextFields();
     setFontLevel(FontSizer.getLevel());

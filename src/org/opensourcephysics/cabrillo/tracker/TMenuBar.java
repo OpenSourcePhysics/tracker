@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -195,6 +195,18 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       bar = new TMenuBar(panel);
       menuBars.put(panel, bar);
     }
+    return bar;
+  }
+  
+  /**
+   * Returns a new TMenuBar for the specified trackerPanel.
+   *
+   * @param  panel the tracker panel
+   * @return a TMenuBar
+   */
+  public static synchronized TMenuBar getNewMenuBar(TrackerPanel panel) {
+    TMenuBar bar = new TMenuBar(panel);
+    menuBars.put(panel, bar);
     return bar;
   }
   

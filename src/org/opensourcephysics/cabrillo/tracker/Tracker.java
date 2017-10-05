@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,6 +44,8 @@ import javax.swing.Timer;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.MouseInputAdapter;
 
+import org.opensourcephysics.display.Dataset;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
@@ -63,8 +65,9 @@ public class Tracker {
   }
 
   // define static constants
-  /** tracker version */
-  public static final String VERSION = "4.95"; //$NON-NLS-1$
+  /** tracker version and copyright */
+  public static final String VERSION = "4.11.0"; //$NON-NLS-1$
+  public static final String COPYRIGHT = "Copyright (c) 2017 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -104,12 +107,13 @@ public class Tracker {
 	  "track.color", "track.footprint",  //$NON-NLS-1$ //$NON-NLS-2$ 
 	  "track.visible", "track.locked",  //$NON-NLS-1$ //$NON-NLS-2$
 	  "track.delete", "track.autoAdvance",  //$NON-NLS-1$ //$NON-NLS-2$ 
-	  "track.markByDefault", "track.autotrack", "coords.locked",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
+	  "track.markByDefault", "track.autotrack",  //$NON-NLS-1$ //$NON-NLS-2$
+	  "model.stamp", "coords.locked",  //$NON-NLS-1$ //$NON-NLS-2$ 
 	  "coords.origin", "coords.angle", "data.algorithm",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "coords.scale", "coords.refFrame", "button.x",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "button.v", "button.a", "button.trails",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
 	  "button.labels", "button.stretch", "button.clipSettings",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	  "button.xMass", "button.axes", "button.path",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	  "button.xMass", "button.axes", "button.path", "button.pencil",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	  "config.saveWithData", "data.builder", "data.tool"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   static Set<String> defaultConfig;
   static boolean ffmpegCopied;
@@ -120,8 +124,8 @@ public class Tracker {
   static JProgressBar progressBar;
   static String counterPath = "http://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
-  static String copyright = "Copyright (c) 2016 Douglas Brown"; //$NON-NLS-1$
   static String trackerWebsite = "physlets.org/tracker"; //$NON-NLS-1$
+  static String trackerDownloadFolder = "/upgrade/"; //$NON-NLS-1$
   static String author = "Douglas Brown"; //$NON-NLS-1$
   static String osp = "Open Source Physics"; //$NON-NLS-1$
   static AbstractAction aboutQTAction, aboutFFMPegAction, aboutThreadsAction;
@@ -134,7 +138,7 @@ public class Tracker {
   static String prefsPath;
   @SuppressWarnings("javadoc")
 	public static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
-  static Cursor zoomInCursor, zoomOutCursor, grabCursor, grabbedCursor;
+  static Cursor zoomInCursor, zoomOutCursor, grabCursor;
   static boolean showHints = true;
   static boolean startupHintShown;
   static String pdfHelpPath = "/tracker_help.pdf"; //$NON-NLS-1$
@@ -174,12 +178,14 @@ public class Tracker {
   static String[] prelaunchExecutables = new String[0];
   static Map<String, String[]> autoloadMap = new TreeMap<String, String[]>();
   static String[] preferredAutoloadSearchPaths;
+  static boolean markAtCurrentFrame = true;
 
   // the only instance field!
   private TFrame frame;
 
   static {
 //  	OSPLog.setLevel(ConsoleLevel.ALL);
+//  	OSPLog.showLog();
   	defaultLocale = Locale.getDefault();
 		trackerHome = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
 		if (trackerHome==null) {
@@ -197,31 +203,31 @@ public class Tracker {
     trackerLogoIcon = ResourceLoader.getIcon(imageFile);
     imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/osp_logo_url.png"; //$NON-NLS-1$
     ospLogoIcon = ResourceLoader.getIcon(imageFile);
-    imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/grab.gif";  //$NON-NLS-1$
-    Image im = ResourceLoader.getImage(imageFile);    
-    grabCursor = Toolkit.getDefaultToolkit().createCustomCursor(
-    		im, new Point(14, 10), "Grab"); //$NON-NLS-1$
-    imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/grabbing.gif";  //$NON-NLS-1$
-    im = ResourceLoader.getImage(imageFile);    
-    grabbedCursor = Toolkit.getDefaultToolkit().createCustomCursor(
-    		im, new Point(12, 8), "Grabbed"); //$NON-NLS-1$  	
+    
+    // create grab cursor
+	  imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/grab.gif";  //$NON-NLS-1$
+	  Image grab = ResourceLoader.getImage(imageFile); 
+	  grabCursor = GUIUtils.createCustomCursor(grab, new Point(14, 10), "Grab", Cursor.HAND_CURSOR); //$NON-NLS-1$
+    
   	// create static objects AFTER they are defined above
     locales = new Locale[] { 
 			Locale.ENGLISH, 
 			new Locale("ar"), // arabic //$NON-NLS-1$
 			new Locale("cs"), // czech //$NON-NLS-1$
-			new Locale("in"), // indonesian //$NON-NLS-1$
 			new Locale("da"), // danish //$NON-NLS-1$
 			Locale.GERMAN,
 			new Locale("el", "GR"), // greek //$NON-NLS-1$ //$NON-NLS-2$
 			new Locale("es"), // spanish //$NON-NLS-1$
 			new Locale("fi"), // finnish //$NON-NLS-1$
 			Locale.FRENCH,
-			new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
+			new Locale("hu", "HU"), // hungarian //$NON-NLS-1$ //$NON-NLS-2$
+			new Locale("in"), // indonesian //$NON-NLS-1$
 			Locale.ITALIAN,
+			new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
 			new Locale("ko"), // korean //$NON-NLS-1$
 			new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$ 
 //			new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
+			new Locale("pl"), // polish //$NON-NLS-1$
 			new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("sk"), // slovak //$NON-NLS-1$
@@ -229,8 +235,8 @@ public class Tracker {
 			new Locale("sv"), // swedish //$NON-NLS-1$
 			new Locale("tr"), // turkish //$NON-NLS-1$
 			new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
-			Locale.TAIWAN, // traditional chinese
-			Locale.CHINA}; // simplified chinese
+			Locale.CHINA, // simplified chinese
+			Locale.TAIWAN}; // traditional chinese
   	setDefaultConfig(getFullConfig());
   	loadPreferences();
   	// load current version after a delay to allow video engines to load
@@ -341,7 +347,7 @@ public class Tracker {
 
     // version south
     String vers = author+"   "+osp+"   Ver "+VERSION; //$NON-NLS-1$ //$NON-NLS-2$
-		if (VERSION.length()>5 || testOn) vers += " BETA"; //$NON-NLS-1$
+		if (VERSION.length()>7 || testOn) vers += " BETA"; //$NON-NLS-1$
     JLabel versionLabel = new JLabel(vers);
     versionLabel.setForeground(darkblue);
     font = font.deriveFont(Font.BOLD).deriveFont(10f);
@@ -499,6 +505,13 @@ public class Tracker {
    * @param names an array of xml, video or zip file names
    */
   private Tracker(String[] names, boolean addTabIfEmpty, boolean showSplash) {
+  	// set font level resize and center splash frame
+  	FontSizer.setFonts(splash, FontSizer.getLevel());
+  	splash.pack();
+    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+    int x = (dim.width - splash.getBounds().width) / 2;
+    int y = (dim.height - splash.getBounds().height) / 2;
+    splash.setLocation(x, y);
     splash.setVisible(showSplash);
     createFrame();
     Tracker.setProgress(5);
@@ -634,6 +647,45 @@ public class Tracker {
 
 //________________________________  static methods ____________________________
   
+  /**
+   * Compares version strings.
+   * 
+   * @param ver1 version 1
+   * @param ver2 version 2
+   * @return 0 if equal, 1 if ver1>ver2, -1 if ver1<ver2
+   */
+  public static int compareVersions(String ver1, String ver2) {
+  	// deal with null values
+  	if (ver1==null || ver2==null) {
+  		return 0;
+  	}
+  	// typical newer semantic version "4.9.10" 
+  	// typical older version "4.97"
+    String[] v1 = ver1.trim().split("\\."); //$NON-NLS-1$
+    String[] v2 = ver2.trim().split("\\."); //$NON-NLS-1$
+    // newer semantic version arrays have length 3
+    // older version arrays have length 2
+ 
+  	if (v2.length>v1.length) {
+  		// v1 is older version, v2 is newer
+  		return -1;
+  	}
+  	if (v1.length>v2.length) {
+  		// v2 is older version, v1 is newer
+  		return 1;
+  	}
+  	// both arrays have the same length
+    for (int i=0; i<v1.length; i++) {
+      if (Integer.parseInt(v1[i]) < Integer.parseInt(v2[i])) {
+        return -1;
+      }
+      else if (Integer.parseInt(v1[i]) > Integer.parseInt(v2[i])) {
+        return 1;
+      }
+    }
+  	return 0;  	
+  }
+  
 
   /**
    * Shows the About Tracker dialog.
@@ -641,13 +693,14 @@ public class Tracker {
   public static void showAboutTracker() {
   	String newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
   	String vers = Tracker.VERSION;
-		if (vers.length()>5 || testOn) vers += " BETA"; //$NON-NLS-1$
+  	// typical beta version 4.10.0170514
+		if (vers.length()>7 || testOn) vers += " BETA"; //$NON-NLS-1$
 		String date = OSPRuntime.getLaunchJarBuildDate();
 		if (date!=null) 
 			vers = vers+"   "+date; //$NON-NLS-1$
     String aboutString = "Tracker "  //$NON-NLS-1$
     		+ vers + newline
-        + Tracker.copyright + newline
+        + Tracker.COPYRIGHT + newline
         + Tracker.trackerWebsite + newline + newline
         + TrackerRes.getString("Tracker.About.ProjectOf") + newline //$NON-NLS-1$
         + "Open Source Physics" + newline //$NON-NLS-1$
@@ -1234,7 +1287,7 @@ public class Tracker {
   }
   
   /**
-   * Loads the current (latest) Tracker version and compares it with this version.
+   * Loads the current (latest) Tracker version number and compares it with this version.
    * 
    * @param ignoreInterval true to load/compare immediately
    * @param logToFile true to log in to the PHP counter 
@@ -1259,25 +1312,16 @@ public class Tracker {
 //  	if (true) return; // for PLATO
   	
   	// interval has passed, so check for upgrades and save current time  	
-  	double vers = Double.parseDouble(VERSION);  	  	
+	  // typical pre-4.97 version: "4.90" or "4.61111227"
+  	// typical post-4.97 version: "4.9.8" or "4.10.0" or "4.10.0170504" or "5.0.0"
+
 	 	// send runtime and version data as page name to get latest version from PHP script
 		String pageName = getPHPPageName(logToFile);
 		String latestVersion = loginGetLatestVersion(pageName);
-    try {  	    	
-    	while (latestVersion != null && latestVersion.length()>0) { // typical version: "4.90" or "4.61111227"
-    		try {
-    			// convert version string to double and compare with this version
-					double current = Double.parseDouble(latestVersion);
-					if (current>vers) {
-						newerVersion = latestVersion;
-					}
-					latestVersion = null;
-				} catch (Exception e) { // parse failed, so discard first character
-					latestVersion = latestVersion.substring(1);
-				}
-    	}	      	
-    } catch (Exception e) { // url connection failed
-    }
+		int result = compareVersions(latestVersion, VERSION);
+		if (result>0) { // newer version available
+			newerVersion = latestVersion;
+		}		
   }
   
   /**
@@ -1299,6 +1343,9 @@ public class Tracker {
 	      os = System.getProperty("os.name", "unknownOS").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
 	    } catch(SecurityException ex) {}
       os = os.replace(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
+      if (os.indexOf("windows")>-1) { //$NON-NLS-1$
+      	os = "windows"; //$NON-NLS-1$
+      }
       page = "log_"+VERSION+"_"+os+"_"+engine; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
       if (!"".equals(language)) { //$NON-NLS-1$
 	      if (!"".equals(country)) { //$NON-NLS-1$
@@ -1321,7 +1368,7 @@ public class Tracker {
     try {
 			URL url = new URL(path);
 			Resource res = new Resource(url);
-	    String version = res.getString();
+	    String version = res.getString().trim();
 	    OSPLog.finer(path+":   "+version); //$NON-NLS-1$
 	    return version;
 		} catch (Exception e) {
@@ -1433,14 +1480,21 @@ public class Tracker {
    * @return the cursor
    */
   protected static Cursor getZoomInCursor() {
-    if (zoomInCursor == null) {
-	    // create cursor
-	    String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/zoom_in.gif";  //$NON-NLS-1$
-	    Image im = ResourceLoader.getImage(imageFile);    
-	    zoomInCursor = Toolkit.getDefaultToolkit().createCustomCursor(
-	    		im, new Point(12, 12), "Zoom In"); //$NON-NLS-1$
-    }
+  	if (zoomInCursor==null) {
+  	  String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/zoom_in.gif";  //$NON-NLS-1$
+  	  Image zoom = ResourceLoader.getImage(imageFile);    
+  	  zoomInCursor = GUIUtils.createCustomCursor(zoom, new Point(12, 12), "Zoom In", Cursor.DEFAULT_CURSOR); //$NON-NLS-1$
+  	}
     return zoomInCursor;
+  }
+
+  /**
+   * Determines if a cursor is the zoomInCursor.
+   *
+   * @return true if the cursor is zoonIn
+   */
+  protected static boolean isZoomInCursor(Cursor cursor) {
+    return cursor==Tracker.zoomInCursor && Tracker.zoomInCursor!=Cursor.getDefaultCursor();
   }
 
   /**
@@ -1449,14 +1503,21 @@ public class Tracker {
    * @return the cursor
    */
   protected static Cursor getZoomOutCursor() {
-    if (zoomOutCursor == null) {
-	    // create cursor
-    	String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/zoom_out.gif";  //$NON-NLS-1$
-    	Image im = ResourceLoader.getImage(imageFile);    
-	    zoomOutCursor = Toolkit.getDefaultToolkit().createCustomCursor(
-	    		im, new Point(12, 12), "Zoom Out"); //$NON-NLS-1$
-    }
+  	if (zoomOutCursor==null) {
+  		String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/zoom_out.gif";  //$NON-NLS-1$
+  		Image zoom = ResourceLoader.getImage(imageFile);    
+  	  zoomOutCursor = GUIUtils.createCustomCursor(zoom, new Point(12, 12), "Zoom Out", Cursor.DEFAULT_CURSOR); //$NON-NLS-1$
+  	}
     return zoomOutCursor;
+  }
+
+  /**
+   * Determines if a cursor is the zoomOutCursor.
+   *
+   * @return true if the cursor is zoomOut
+   */
+  protected static boolean isZoomOutCursor(Cursor cursor) {
+    return cursor==Tracker.zoomOutCursor && Tracker.zoomOutCursor!=Cursor.getDefaultCursor();
   }
 
   /**
@@ -1520,7 +1581,7 @@ public class Tracker {
 	    }
 	    boolean needsJavaVM = javaPath!=null && !javaCommand.equals(javaPath);
 	    
-			// update resources like QuickTime
+			// update resources like Xuggle & QuickTime
 			boolean updated = updateResources();
 			
 			// compare memory with requested size(s)
@@ -1584,11 +1645,13 @@ public class Tracker {
   }
 
   /**
-   * Starts a new Tracker.
+   * Starts a new Tracker. 
    *
    * @param args array of tracker or video file names
    */
   private static void start(String[] args) {
+  	FontSizer.setLevel(preferredFontLevel+preferredFontLevelPlus);
+  	Dataset.maxPointsMultiplier = 6; // increase max points in dataset
     Tracker tracker = null;
     if (args == null || args.length == 0) tracker = new Tracker();
     else tracker = new Tracker(args, true, true);
@@ -1605,7 +1668,6 @@ public class Tracker {
 			}
 		}
  
-  	FontSizer.setLevel(preferredFontLevel+preferredFontLevelPlus);
   	final TFrame frame = tracker.getFrame();
     frame.setVisible(true);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -1744,6 +1806,39 @@ public class Tracker {
 		      JOptionPane.WARNING_MESSAGE);
 		}
 
+		final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
+		if (newVersionURL!=null) {
+  		final File target = new File(trackerHome, "tracker.jar"); //$NON-NLS-1$
+      Timer timer = new Timer(2000, new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+	    		ResourceLoader.download(newVersionURL, target, true);
+	    		// check preferences: if not default tracker.jar, ask user to change to default
+	    		if (Tracker.preferredTrackerJar!=null && !"tracker.jar".equals(Tracker.preferredTrackerJar)) { //$NON-NLS-1$
+	    			String prefVers = Tracker.preferredTrackerJar.substring(8, Tracker.preferredTrackerJar.lastIndexOf(".")); //$NON-NLS-1$
+	    			String s1 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message1")+" "+Tracker.VERSION; //$NON-NLS-1$ //$NON-NLS-2$
+	    			String s2 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message2")+" "+prefVers; //$NON-NLS-1$ //$NON-NLS-2$
+	    			String s3 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message3"); //$NON-NLS-1$
+	    			String title = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Title"); //$NON-NLS-1$
+		    		int response = JOptionPane.showConfirmDialog(null, s1+XML.NEW_LINE+s2+XML.NEW_LINE+s3, 
+		    				title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+		    		if (response==JOptionPane.YES_OPTION) {
+		    			Tracker.preferredTrackerJar = null;
+		    			Tracker.savePreferences();
+		    		}
+	    		}
+        }
+      });
+      timer.setRepeats(false);
+      timer.start();		      
+		}
+
+		Timer memoryTimer = new Timer(5000, new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	TTrackBar.refreshMemoryButton();
+      }				    	      
+    });
+  	memoryTimer.setRepeats(true);
+  	memoryTimer.start();
   }
 
   /**
@@ -1976,6 +2071,69 @@ public class Tracker {
 //		
 //	}
 //
+
+  /**
+   * A class to compare version strings.
+   */
+  public static class Version implements Comparable {
+  	String ver;
+  	
+    /**
+     * Constructor
+     * 
+     * @param version the version string
+     */
+  	public Version(String version) {
+  		ver = version;
+  	}
+  	
+  	public boolean isValid() {
+	    String[] v = this.ver.trim().split("\\."); //$NON-NLS-1$
+	    if (v.length==2 || v.length==3) {
+	    	for (int i=0; i<v.length; i++) {
+	    		try {
+	    			Integer.parseInt(v[i].trim());
+	    		} catch (Exception ex) {
+	    			return false;
+	    		}
+	    	}
+    		return true;
+	    }
+  		return false;
+  	}
+
+		@Override
+		public int compareTo(Object o) {
+	  	// typical newer semantic version "4.9.10" 
+	  	// typical older version "4.97"
+			
+			// split at decimal points
+	    String[] v1 = this.ver.trim().split("\\."); //$NON-NLS-1$
+	    String[] v2 = ((Version)o).ver.trim().split("\\."); //$NON-NLS-1$
+	    // newer semantic version arrays have length 3
+	    // older version arrays have length 2
+	 
+	  	if (v2.length>v1.length) {
+	  		// v1 is older version, v2 is newer
+	  		return -1;
+	  	}
+	  	if (v1.length>v2.length) {
+	  		// v2 is older version, v1 is newer
+	  		return 1;
+	  	}
+	  	// both arrays have the same length
+	    for (int i=0; i<v1.length; i++) {
+	      if (Integer.parseInt(v1[i]) < Integer.parseInt(v2[i])) {
+	        return -1;
+	      }
+	      else if (Integer.parseInt(v1[i]) > Integer.parseInt(v2[i])) {
+	        return 1;
+	      }
+	    }
+			return 0;
+		}
+  }
+  
   
   /**
    * A class to save and load Tracker preferences. The preference data are static Tracker fields.
@@ -2010,6 +2168,8 @@ public class Tracker {
       		control.setValue("show_hints", Tracker.showHintsByDefault); //$NON-NLS-1$
       	if (Tracker.isRadians) // false by default
       		control.setValue("radians", Tracker.isRadians); //$NON-NLS-1$
+      	if (Tracker.markAtCurrentFrame) // false by default
+      		control.setValue("mark_current_frame", Tracker.markAtCurrentFrame); //$NON-NLS-1$
       	if (Tracker.isVideoFast) // false by default
       		control.setValue("video_fast", Tracker.isVideoFast); //$NON-NLS-1$
       	if (!Tracker.warnNoVideoEngine) // true by default
@@ -2129,6 +2289,7 @@ public class Tracker {
         	}
         }
       	isRadians = control.getBoolean("radians"); //$NON-NLS-1$
+      	markAtCurrentFrame = control.getBoolean("mark_current_frame"); //$NON-NLS-1$
       	isVideoFast = control.getBoolean("ffmpeg_fast"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_no_engine")) //$NON-NLS-1$
       		warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -246,7 +246,7 @@ public class TrackerIO extends VideoIO {
   	chooser.setAccessory(null);
   	if (file==null && trackerPanel.getDataFile()==null) {
 	  	VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-	  	if (clip.getVideo()!=null || clip.getVideoPath()!=null) {
+	  	if (clip.getVideoPath()!=null) {	  		
 	  		File dir = new File(clip.getVideoPath()).getParentFile();
 	  		chooser.setCurrentDirectory(dir);
 	    }

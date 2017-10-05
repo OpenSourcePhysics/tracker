@@ -1,7 +1,7 @@
 /*
  * The tracker.deploy package defines classes for launching and installing Tracker.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,21 +42,26 @@ public class TrackerJarFilter implements FilenameFilter {
     	String version = fileName.substring(8);
     	int len = version.length();
     	version = version.substring(0, len-4); // strips ".jar"
+  		String snapshot = "-snapshot"; //$NON-NLS-1$
+  		int n = version.toLowerCase().indexOf(snapshot);
+  		if (n>-1) {
+  			version = version.substring(0, n);
+  		}
+
+      String[] intArray = version.split("\\."); //$NON-NLS-1$
+      if (intArray.length<=3) {
+      	try {
+      		for (int i=0; i<intArray.length; i++) {
+      			Integer.parseInt(intArray[i].trim());
+      		}
+      		return true;
+  			} catch (Exception ex) {
+  			}
+      }
     	try {
 				Double.parseDouble(version);
       	return true;
-			} catch (Exception ex1) {
-	    	try {
-	    		String snapshot = "-snapshot"; //$NON-NLS-1$
-	    		int n = version.indexOf(snapshot);
-	    		if (n>-1) {
-	    			version = version.substring(0, n);
-						Double.parseDouble(version);
-		      	return true;
-	    		}
-				} catch (Exception ex2) {
-				}
-
+			} catch (Exception ex) {
 			}
     }
     return false;

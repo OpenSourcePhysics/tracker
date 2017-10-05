@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,6 +63,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
   protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
+
 	
   // instance fields
   protected double defaultImageBorder;
@@ -109,6 +110,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected AutoTracker autoTracker;
   protected DerivativeAlgorithmDialog algorithmDialog;
   protected AttachmentDialog attachmentDialog;
+  protected PlotGuestDialog guestsDialog;
   protected boolean isAutoRefresh = true;
 	protected TreeSet<String> supplementalFilePaths = new TreeSet<String>(); // HTML/PDF URI paths
 	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
@@ -1459,8 +1461,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //						try {
 //							Thread.sleep(500);
 //						} catch (InterruptedException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
 //						}
 //			      firePropertyChange("stepnumber", null, getPlayer().getStepNumber());    // to views //$NON-NLS-1$
 						target.firePropertyChange("data", null, null); //$NON-NLS-1$						
@@ -1536,6 +1536,31 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	attachmentDialog.setMeasuringTool(track);
     }
     return attachmentDialog;
+  }
+
+  /**
+   * Gets the plot guest dialog for comparing multiple track data in a single plot.
+   * 
+   * @param plot a TrackPlottingPanel
+   * @return the plot guest dialog
+   */
+  public PlotGuestDialog getPlotGuestDialog(TrackPlottingPanel plot) {
+    if (guestsDialog == null) {
+    	guestsDialog = new PlotGuestDialog(this);
+    	guestsDialog.setPlot(plot);
+  		FontSizer.setFonts(guestsDialog, FontSizer.getLevel());
+      // center on screen
+      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+      int x = (dim.width - guestsDialog.getBounds().width) / 2;
+      int y = (dim.height - guestsDialog.getBounds().height) / 2;
+      guestsDialog.setLocation(x, y);
+    }
+    else {
+    	guestsDialog.setPlot(plot);
+  		FontSizer.setFonts(guestsDialog, FontSizer.getLevel());
+    }
+    guestsDialog.pack();
+    return guestsDialog;
   }
 
   /**
@@ -1737,8 +1762,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @return true if marking (ie next mouse click will mark a TPoint)
    */
   protected boolean setCursorForMarking(boolean invert, InputEvent e) {
-  	if (getCursor() == Tracker.zoomInCursor
-  			|| getCursor() == Tracker.zoomOutCursor) return false;
+  	if (Tracker.isZoomInCursor(getCursor())
+  			|| Tracker.isZoomOutCursor(getCursor())) return false;
     boolean markable = false;
     boolean marking = false;
     selectedTrack = getSelectedTrack();
@@ -2332,10 +2357,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @param cursor the requested cursor
    */
   public void setMouseCursor(Cursor cursor) {
-    if (cursor != Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)
-    		&& getCursor() != Tracker.zoomOutCursor
-    		&& getCursor() != Tracker.zoomInCursor)
+  	if (PencilDrawer.isDrawing(this) && cursor==Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)) {
+  		return;
+  	}
+    if (cursor!=Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)
+    		&& !Tracker.isZoomInCursor(cursor)
+    		&& !Tracker.isZoomOutCursor(cursor)) {
     	super.setMouseCursor(cursor);
+    }
   }
 
 	/**
@@ -2358,8 +2387,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     TTrackBar trackbar = TTrackBar.getTrackbar(this);
     trackbar.setFontLevel(level);
     trackbar.refresh();
+    // replace the menubar to get new accelerator fonts
+    TMenuBar menubar = TMenuBar.getNewMenuBar(this);
+    frame.setMenuBar(this, menubar);
     // select the correct fontSize menu radiobutton
-    TMenuBar menubar = TMenuBar.getMenuBar(this);
     if (menubar.fontSizeGroup!=null) {
 	    Enumeration<AbstractButton> e = menubar.fontSizeGroup.getElements();
 	    for (; e.hasMoreElements();) {
@@ -2411,7 +2442,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @return true if a zoom event
    */
   public boolean isZoomEvent(MouseEvent e) {
-  	return super.isZoomEvent(e) || getCursor()==Tracker.zoomInCursor;
+  	return super.isZoomEvent(e) || Tracker.isZoomInCursor(getCursor());
   }
 
   /**
@@ -2824,6 +2855,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	algorithmDialog.trackerPanel = null;
     	algorithmDialog = null;
     }
+    if (guestsDialog!=null) {
+    	guestsDialog.dispose();
+    	guestsDialog = null;
+    }
+    PencilDrawer.dispose(this);
     if (ExportDataDialog.dataExporter!=null && ExportDataDialog.dataExporter.trackerPanel==this) {
     	ExportDataDialog.dataExporter.trackerPanel = null;
     	ExportDataDialog.dataExporter.tableDropdown.removeAllItems();
@@ -2939,7 +2975,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
        */
       public void mouseEntered(MouseEvent e) {
         super.mouseEntered(e);
-        setMouseCursor(Cursor.getDefaultCursor());
+  			if (PencilDrawer.isDrawing(TrackerPanel.this)) {
+  				setMouseCursor(PencilDrawer.getDrawer(TrackerPanel.this).getPencilCursor());
+  			}
+  			else setMouseCursor(Cursor.getDefaultCursor());
       }
 
       /**
@@ -2997,7 +3036,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	
       TrackerPanel trackerPanel = (TrackerPanel)obj;
       // save the version
-      control.setValue("version", Tracker.VERSION); //$NON-NLS-1$
+//      control.setValue("version", Tracker.VERSION); //$NON-NLS-1$
+      // changed to semantic version June 15 2017
+      control.setValue("semantic_version", Tracker.VERSION); //$NON-NLS-1$
       // save the image size
       control.setValue("width", trackerPanel.getImageWidth()); //$NON-NLS-1$
       control.setValue("height", trackerPanel.getImageHeight()); //$NON-NLS-1$
@@ -3048,6 +3089,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       TTrack track = trackerPanel.getSelectedTrack();
       if (track != null) {
         control.setValue("selectedtrack", track.getName()); //$NON-NLS-1$
+      }
+      // save the drawings and drawing visibility
+      if (PencilDrawer.hasDrawings(trackerPanel)) {
+	      PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+	      control.setValue("drawing_scenes", drawer.scenes); //$NON-NLS-1$
+	      control.setValue("drawings_visible", drawer.areDrawingsVisible()); //$NON-NLS-1$
       }
 
       // save custom configurations
@@ -3148,15 +3195,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
      */
     public Object loadObject(XMLControl control, Object obj) {
       TrackerPanel trackerPanel = (TrackerPanel)obj;
-	    // load and check the Tracker version that created this file
-	    String ver = control.getString("version"); //$NON-NLS-1$
-	    if (ver!=null) {
-	    	double xmlVersion = Double.parseDouble(ver);
-	    	double version = Double.parseDouble(Tracker.VERSION);
-	    	if (xmlVersion-version>0.2) {
+	    // load and check if a newer Tracker version created this file
+	    String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
+	    // if ver is null then must be an older version
+	    if (fileVersion!=null) {
+	    	int result = Tracker.compareVersions(fileVersion, Tracker.VERSION);
+	    	if (result>0) {  // file is newer version than Tracker
 	    		JOptionPane.showMessageDialog(trackerPanel, 
 	    				TrackerRes.getString("TrackerPanel.Dialog.Version.Message1") //$NON-NLS-1$
-	    				+ " "+ver+" " //$NON-NLS-1$ //$NON-NLS-2$
+	    				+ " "+fileVersion+" " //$NON-NLS-1$ //$NON-NLS-2$
 	    				+ TrackerRes.getString("TrackerPanel.Dialog.Version.Message2") //$NON-NLS-1$
 	    				+ "\n"+TrackerRes.getString("TrackerPanel.Dialog.Version.Message3") //$NON-NLS-1$ //$NON-NLS-2$
 	    				+ " ("+Tracker.VERSION+")." //$NON-NLS-1$ //$NON-NLS-2$
@@ -3259,6 +3306,30 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
           trackerPanel.addTrack(track);
       	}
       }
+      // load drawing scenes saved in vers 4.10.1+
+      ArrayList<PencilScene> scenes = (ArrayList<PencilScene>)control.getObject("drawing_scenes"); //$NON-NLS-1$
+      if (scenes!=null) {
+      	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+      	drawer.setDrawingsVisible(control.getBoolean("drawings_visible")); //$NON-NLS-1$
+      	// replace previous scenes
+      	drawer.setScenes(scenes);
+      }
+      // load drawings saved with vers 4.10.0
+      ArrayList<PencilDrawing> drawings = (ArrayList<PencilDrawing>)control.getObject("drawings"); //$NON-NLS-1$
+      if (drawings!=null) {
+      	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+      	drawer.setDrawingsVisible(control.getBoolean("drawings_visible")); //$NON-NLS-1$
+      	// clear previous drawings and add new ones
+      	drawer.clearAllScenes();
+      	PencilScene scene = drawer.addNewScene();
+      	scene.startframe = 0;
+      	scene.endframe = Integer.MAX_VALUE;
+      	drawer.selectedScene = scene;
+      	for (PencilDrawing next: drawings) {
+      		drawer.addDrawingtoSelectedScene(next);
+      	}
+      }
+
       // load the reference frame
       String rfName = control.getString("referenceframe"); //$NON-NLS-1$
       if (rfName!=null) {

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,10 +64,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   protected static Icon zoomIcon;
   protected static Icon clipOffIcon, clipOnIcon;
   protected static Icon axesOffIcon, axesOnIcon;
-  protected static Icon tapeOffIcon, tapeOnIcon;
-  protected static Icon tapeOffRolloverIcon, tapeOnRolloverIcon;
-  protected static Icon stickOffIcon, stickOnIcon;
-  protected static Icon stickOffRolloverIcon, stickOnRolloverIcon;
+  protected static Icon calibrationToolsOffIcon, calibrationToolsOnIcon;
+  protected static Icon calibrationToolsOffRolloverIcon, calibrationToolsOnRolloverIcon;
   protected static Icon pointsOffIcon, pointsOnIcon;
   protected static Icon velocOffIcon, velocOnIcon;
   protected static Icon accelOffIcon, accelOnIcon;
@@ -75,6 +73,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   protected static Icon labelsOffIcon, labelsOnIcon;
   protected static Icon stretchOffIcon, stretchOnIcon;
   protected static Icon xmassOffIcon, xmassOnIcon;
+  protected static Icon fontSmallerIcon, fontBiggerIcon, fontSmallerDisabledIcon, fontBiggerDisabledIcon;
   protected static Icon autotrackerOffIcon, autotrackerOnIcon, autotrackerDisabledIcon;
   protected static Icon infoIcon, refreshIcon, htmlIcon, htmlDisabledIcon;
   protected static Icon[] trailIcons = new Icon[4];
@@ -119,14 +118,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     clipOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/clip_on.gif")); //$NON-NLS-1$
     axesOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/axes.gif")); //$NON-NLS-1$
     axesOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/axes_on.gif")); //$NON-NLS-1$
-    tapeOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/tape.gif")); //$NON-NLS-1$
-    tapeOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/tape_on.gif")); //$NON-NLS-1$
-    tapeOffRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/tape_rollover.gif")); //$NON-NLS-1$
-    tapeOnRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/tape_on_rollover.gif")); //$NON-NLS-1$
-    stickOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stick.gif")); //$NON-NLS-1$
-    stickOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stick_on.gif")); //$NON-NLS-1$
-    stickOffRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stick_rollover.gif")); //$NON-NLS-1$
-    stickOnRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stick_on_rollover.gif")); //$NON-NLS-1$
+    calibrationToolsOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/calibration_tool.gif")); //$NON-NLS-1$
+    calibrationToolsOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/calibration_tool_on.gif")); //$NON-NLS-1$
+    calibrationToolsOffRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/calibration_tool_rollover.gif")); //$NON-NLS-1$
+    calibrationToolsOnRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/calibration_tool_on_rollover.gif")); //$NON-NLS-1$
     pointsOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/positions.gif")); //$NON-NLS-1$
     pointsOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/positions_on.gif")); //$NON-NLS-1$
     velocOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/velocities.gif")); //$NON-NLS-1$
@@ -141,6 +136,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     stretchOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stretch_on.gif")); //$NON-NLS-1$
     xmassOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/x_mass.gif")); //$NON-NLS-1$
     xmassOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/x_mass_on.gif")); //$NON-NLS-1$
+    fontSmallerDisabledIcon = new ResizableIcon(Tracker.class.getResource("resources/images/font_smaller_disabled.gif")); //$NON-NLS-1$
+    fontBiggerDisabledIcon = new ResizableIcon(Tracker.class.getResource("resources/images/font_bigger_disabled.gif")); //$NON-NLS-1$
     autotrackerOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/autotrack_off.gif")); //$NON-NLS-1$
     autotrackerOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/autotrack_on.gif")); //$NON-NLS-1$
     autotrackerDisabledIcon = new ResizableIcon(Tracker.class.getResource("resources/images/autotrack_disabled.gif")); //$NON-NLS-1$
@@ -476,6 +473,12 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       }
     };
     
+    fontSmallerButton.setDisabledIcon(fontSmallerDisabledIcon);
+      	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
+      	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
+    fontBiggerButton.setDisabledIcon(fontBiggerDisabledIcon);
+      	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
+      	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
     // horizontal glue for right end of toolbar
     toolbarFiller = Box.createHorizontalGlue();
     // info button
@@ -642,6 +645,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         refreshing = true; // signals listeners that items are being refreshed
         refreshZoomButton();
         calibrationButton.refresh();
+        PencilDrawer.getDrawer(trackerPanel).getPencilButton().refresh();
         stretchButton.setSelected(vStretch>1 || aStretch>1);
         stretchOffItem.setText(TrackerRes.getString("TToolBar.MenuItem.StretchOff")); //$NON-NLS-1$
         stretchOffItem.setEnabled(vStretch>1 || aStretch>1);
@@ -660,7 +664,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         		next.setSelected(true);
         	}
         }
-
+        
         vStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
         aStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
         openButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Open.Tooltip")); //$NON-NLS-1$
@@ -684,7 +688,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         newTrackButton.setToolTipText(TrackerRes.getString("TrackControl.Button.NewTrack.ToolTip")); //$NON-NLS-1$
         trackControlButton.setToolTipText(TrackerRes.getString("TToolBar.Button.TrackControl.Tooltip")); //$NON-NLS-1$
         autotrackerButton.setToolTipText(TrackerRes.getString("TToolBar.Button.AutoTracker.Tooltip")); //$NON-NLS-1$
-      	if (trackerPanel.getPlayer()!=null) {
+      	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
+      	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
+        if (trackerPanel.getPlayer()!=null) {
 	        VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 	        ClipInspector inspector = clip.getClipInspector();
 	        clipSettingsButton.setSelected(inspector!=null && inspector.isVisible());
@@ -881,6 +887,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		        add(xMassButton);
         }
         add(toolbarFiller);
+        if (trackerPanel.isEnabled("button.pencil")) //$NON-NLS-1$
+        	add(PencilDrawer.getDrawer(trackerPanel).getPencilButton());
         add(desktopButton);
         add(notesButton);
         boolean hasPageURLs = !pageViewTabs.isEmpty();
@@ -1128,13 +1136,13 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
      * Constructor.
      */
     private CalibrationButton() {
-    	setIcons(tapeOffIcon, tapeOnIcon);
-      setRolloverIcon(tapeOffRolloverIcon);
-      setRolloverSelectedIcon(tapeOnRolloverIcon);
+    	setIcons(calibrationToolsOffIcon, calibrationToolsOnIcon);
+      setRolloverIcon(calibrationToolsOffRolloverIcon);
+      setRolloverSelectedIcon(calibrationToolsOnRolloverIcon);
       // mouse listener to distinguish between popup and tool visibility actions
       addMouseListener(new MouseAdapter() {
         public void mousePressed(MouseEvent e) {
-        	int w = stickOffRolloverIcon.getIconWidth();
+        	int w = calibrationToolsOffRolloverIcon.getIconWidth();
         	int dw = calibrationButton.getWidth()-w;
         	// show popup if right side of button clicked or if no tools selected
         	showPopup = e.getX()>(18 + dw/2) || trackerPanel.visibleTools.isEmpty();

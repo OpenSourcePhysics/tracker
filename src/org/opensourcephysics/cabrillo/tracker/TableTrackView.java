@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -328,7 +328,7 @@ public class TableTrackView extends TrackView {
   	TTrack track = getTrack();
   	columnsButton.setText(TrackerRes.getString("TableTrackView.Button.SelectTableData")); //$NON-NLS-1$
     columnsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SelectTableData.ToolTip")); //$NON-NLS-1$
-    track.dataValid = false; // triggers data refresh
+//    track.dataValid = false; // triggers data refresh
     track.getData(trackerPanel); // load the current data
     refreshColumnCheckboxes();    
     refresh(trackerPanel.getFrameNumber());
@@ -485,6 +485,7 @@ public class TableTrackView extends TrackView {
       	}
         try {
 					dataTable.setRowSelectionInterval(highlightRow, highlightRow);
+					dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRow, 0, true));
 				} catch (Exception e) {
 					// occasionally throws exception during loading!
 				}
@@ -1673,7 +1674,7 @@ public class TableTrackView extends TrackView {
   		return super.getDefaultRenderer(type);
   	}
 
-  	protected TableCellRenderer getCellRenderer(String columnName) {
+  	public TableCellRenderer getCellRenderer(String columnName) {
       UnitRenderer unitRenderer = unitRenderersByColumnName.get(columnName);
       TableCellRenderer baseRenderer = precisionRenderersByColumnName.get(columnName);
       // if no precision base renderer, use default

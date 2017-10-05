@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -257,12 +257,14 @@ public class PointMass extends TTrack {
     	Undo.postStepEdit(step, state);
     	step.erase();
     }
-    if (!autoTrackerMarking) {
+    step.valid = true;
+    if (!autoTrackerMarking && trackerPanel!=null && trackerPanel.isAutoRefresh) {
 	    updateDerivatives(n);
     }
 	  support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
     // check independent point masses for skipped steps during marking
-    if (skippedStepWarningOn && steps.isPreceded(n) && trackerPanel!=null && !isDependent()) {
+    if (skippedStepWarningOn && steps.isPreceded(n) && trackerPanel!=null && !isDependent()
+    		&& !AutoTracker.neverPause) {
     	VideoClip clip = trackerPanel.getPlayer().getVideoClip();
     	int stepNumber = clip.frameToStep(n);
     	if (stepNumber>0) {    		

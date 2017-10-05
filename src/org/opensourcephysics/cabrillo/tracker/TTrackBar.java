@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,6 +25,9 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
+import java.io.File;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -35,8 +38,11 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.ResourceLoader;
+import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * This is a toolbar that display selected track properties 
@@ -54,6 +60,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   protected static JButton testButton;
   protected static javax.swing.Timer testTimer;
   protected static boolean showOutOfMemoryDialog = true;
+  protected static JDialog relaunchingDialog;
+  protected static JLabel downloadLabel, relaunchLabel;
   
   // instance fields
   protected TrackerPanel trackerPanel; // manages & displays track data
@@ -66,7 +74,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 
   static {
   	smallSelectIcon =  new ImageIcon(Tracker.class.getResource("resources/images/small_select.gif")); //$NON-NLS-1$
-    if (Tracker.testOn) {
+  	smallSelectIcon = new ResizableIcon(smallSelectIcon);
+  	if (Tracker.testOn) {
 	  	testButton = new JButton("test"); //$NON-NLS-1$
 	  	testButton.addActionListener(new ActionListener() {
 	  		public void actionPerformed(ActionEvent e) {
@@ -75,9 +84,24 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    			if (testTimer==null) {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
-		    	  			// test action goes here
+		    	  			// test action goes here	
 		    	      	
 //	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+
+//	    	      		Font textFont = new Font("Helvetica", Font.PLAIN, 60);
+//	    	      		String s = "Hello world";
+//	    	          FontRenderContext fontRenderContext = 
+//	    	              new FontRenderContext(null,true,true);
+//	    	          GlyphVector glyphVector = 
+//	    	          		textFont.createGlyphVector(fontRenderContext, s);
+//	    	          Shape outline = glyphVector.getOutline(100, 100);
+//	    	          GeneralPath path = new GeneralPath(outline);
+//	    	          PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+//	    	          PencilDrawing drawing = new PencilDrawing(drawer.pencilColor, null);
+//	    	          drawing.setPath(path);
+//	    	          drawer.addDrawingtoSelectedScene(drawing);
+//	    	          trackerPanel.repaint();
+//	    	      		TTrack track = trackerPanel.getSelectedTrack();
 
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
@@ -135,9 +159,83 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    popup.add(upgradeItem);
   	    upgradeItem.addActionListener(new ActionListener() {
   	    	public void actionPerformed(ActionEvent e) {
-  	    		String url = "http://"+Tracker.trackerWebsite; //$NON-NLS-1$
-  	    		OSPDesktop.displayURL(url);
-  	    	}
+  	    		int responseCode = 0; // code 200 = "OK"
+   	    		final String fileName = "tracker-"+Tracker.newerVersion+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
+  	    		String upgradeURL = ResourceLoader.getString("http://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
+  	    		if (upgradeURL!=null) {
+	    				// see if the jar file is found at this url
+	  	    		try {
+	  	    	    URL url = new URL(upgradeURL.trim()+fileName);
+	  	    	    HttpURLConnection huc = (HttpURLConnection)url.openConnection();
+	  	    	    responseCode = huc.getResponseCode();
+		  	    	} catch (Exception ex) {
+		  	    	}
+  	    		}
+      			if (responseCode!=200) {
+    					// no jar to download, so go to Tracker web site
+	  	    		String websiteurl = "https://"+Tracker.trackerWebsite; //$NON-NLS-1$
+	  	    		OSPDesktop.displayURL(websiteurl);
+    				}
+    				else {
+	  	    		// download new jar file and relaunch
+	  	    		if (relaunchingDialog==null) {
+	  	    			relaunchingDialog = new JDialog((Window)null);
+		    				JPanel panel = new JPanel();
+		    				panel.setBackground(Color.WHITE);
+		    				panel.setBorder(BorderFactory.createEtchedBorder());
+		    				relaunchingDialog.setContentPane(panel);
+		    				relaunchingDialog.setUndecorated(true);
+		    				Box box = Box.createVerticalBox();
+		    				relaunchingDialog.getContentPane().add(box);
+		    				downloadLabel = new JLabel((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Text"))); //$NON-NLS-1$
+		    				downloadLabel.setBorder(BorderFactory.createEmptyBorder(4, 0, 6, 0));
+		    				box.add(downloadLabel);
+		    				relaunchLabel = new JLabel((TrackerRes.getString("TTrackBar.Dialog.Relaunch.RelaunchLabel.Text")+" tracker-X.X.X.jar")); //$NON-NLS-1$ //$NON-NLS-2$
+		    				relaunchLabel.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
+		    				box.add(relaunchLabel);
+		    				relaunchingDialog.pack();
+		    				// center on screen
+		    		    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		    		    int x = (dim.width-relaunchingDialog.getBounds().width)/2;
+		    		    int y = (dim.height-relaunchingDialog.getBounds().height)/2;
+		    		    relaunchingDialog.setLocation(x, y-200);
+	  	    		}
+	  	    		final String url = upgradeURL;  	    		
+	  	    		Runnable runner = new Runnable() {
+	  	    			public void run() {
+	  	  	    		File target = new File(Tracker.trackerHome, fileName);
+	  	    				downloadLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Text")+" "+fileName)); //$NON-NLS-1$ //$NON-NLS-2$
+	  	    				relaunchLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.RelaunchLabel.Text"))); //$NON-NLS-1$
+	  	    				relaunchingDialog.validate();		 	    				
+	  	    				relaunchingDialog.setVisible(true);
+	  	    				
+	  	  	    		target = ResourceLoader.download(url, target, true);
+	  	  		    	TFrame frame = (TFrame)memoryButton.getTopLevelAncestor();
+	  	  	    		if (target!=null && target.exists()) {
+	  	  	      		ArrayList<String> filenames = new ArrayList<String>();
+	  	  	    			for (int i = 0; i<frame.getTabCount(); i++) {
+	  	  	    				TrackerPanel next = frame.getTrackerPanel(i);
+	  	  	    				if (!next.save()) {
+	  	  	    					// user aborted the relaunch
+	  	  	    					relaunchingDialog.setVisible(false);
+	  	  	    					return;
+	  	  	    				}
+	  	  	    				File datafile = next.getDataFile();
+	  	  	    				if (datafile!=null) {
+	  	  	    	    		filenames.add(datafile.getAbsolutePath());
+	  	  	    				}
+	  	  	    			}
+	  	  	    			String[] args = filenames.isEmpty()? null: filenames.toArray(new String[0]);
+	  	  	  	    	System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, target.getAbsolutePath());
+	  	  	  	    	System.setProperty(TrackerStarter.TRACKER_NEW_VERSION, url);
+	  	  	  	    	TrackerStarter.relaunch(args, false);
+	  	  	    		}
+	  	    			}
+	  	    		};
+	  	    		new Thread(runner).start();
+    				}
+
+  	    	} // end download/relaunch
   	    });
   	    JMenuItem ignoreItem = new JMenuItem(
   	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.Ignore")); //$NON-NLS-1$

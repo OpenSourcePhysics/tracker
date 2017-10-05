@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -407,7 +407,10 @@ public class TActions {
         trackerPanel.addTrack(pointMass);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(pointMass);
-        trackerPanel.getPlayer().setStepNumber(0);
+        
+        if (!Tracker.markAtCurrentFrame) {
+        	trackerPanel.getPlayer().setStepNumber(0);
+        }
         // offer to add new mass if single cm exists
         ArrayList<CenterOfMass> list = trackerPanel.getDrawables(CenterOfMass.class);
         if (list.size() == 1) {
@@ -450,7 +453,9 @@ public class TActions {
         trackerPanel.addTrack(vec);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(vec);
-        trackerPanel.getPlayer().setStepNumber(0);
+        if (!Tracker.markAtCurrentFrame) {
+        	trackerPanel.getPlayer().setStepNumber(0);
+        }
       }
     };
     actions.put("vector", vectorAction); //$NON-NLS-1$
@@ -511,7 +516,9 @@ public class TActions {
         trackerPanel.addTrack(rgb);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.setSelectedTrack(rgb);
-        trackerPanel.getPlayer().setStepNumber(0);
+        if (!Tracker.markAtCurrentFrame) {
+        	trackerPanel.getPlayer().setStepNumber(0);
+        }
       }
     };
     actions.put("rgbRegion", rgbRegionAction); //$NON-NLS-1$

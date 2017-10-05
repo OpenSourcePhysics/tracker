@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ public abstract class Step implements Cloneable {
   protected Footprint footprint;           // determines appearance
   protected TPoint[] points;               // defines image data
   protected Point[] screenPoints;          // for transform conversions
-  protected boolean valid;								 // invalid steps not drawn
+  protected boolean valid;								 // invalid until drawn except for point mass
   protected Map<TrackerPanel, Mark> marks  // tracker panel to Mark
   		= new HashMap<TrackerPanel, Mark>();
   protected int defaultIndex = 0; 				 // array index of default TPoint

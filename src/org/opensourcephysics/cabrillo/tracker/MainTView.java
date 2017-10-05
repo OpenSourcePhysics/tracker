@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2015  Douglas Brown
+ * Copyright (c) 2017  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,9 +92,9 @@ public class MainTView extends JPanel implements TView {
     	@Override
       public void mouseReleased(MouseEvent e) {
       	// handle zoom actions
-      	if (trackerPanel.getCursor() == Tracker.zoomOutCursor) 
+      	if (Tracker.isZoomOutCursor(trackerPanel.getCursor())) 
       		zoomOut(false);  
-        else if (trackerPanel.getCursor() == Tracker.zoomInCursor) 
+        else if (Tracker.isZoomInCursor(trackerPanel.getCursor())) 
         	zoomIn(false);   
       }
     	@Override
@@ -199,11 +199,17 @@ public class MainTView extends JPanel implements TView {
    * @return the popup menu
    */
   JPopupMenu getPopupMenu() {
-  	if (trackerPanel.getCursor() == Tracker.zoomInCursor
-  			|| trackerPanel.getCursor() == Tracker.zoomOutCursor) {
+  	if (PencilDrawer.isDrawing(trackerPanel) && 
+  			(!trackerPanel.getZoomBox().isVisible() || trackerPanel.getZoomBox().reportZoom().getWidth()==0)) {
+  		return PencilDrawer.getDrawer(trackerPanel).getPencilButton().getPopup(false);
+  	}
+
+  	if (Tracker.isZoomInCursor(trackerPanel.getCursor())
+  			|| Tracker.isZoomOutCursor(trackerPanel.getCursor())) {
   		return null;
   	}
   	JPopupMenu popup = trackerPanel.popup;
+  	
     // see if a track has been clicked
     boolean trackClicked = false;
     Interactive iad = trackerPanel.getInteractive();
