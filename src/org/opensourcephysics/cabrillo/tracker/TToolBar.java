@@ -93,6 +93,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   protected JButton axesButton, zoomButton, autotrackerButton;
   protected JButton traceVisButton, pVisButton, vVisButton, aVisButton;
   protected JButton xMassButton, trailButton, labelsButton, stretchButton;
+  protected JButton fontSmallerButton, fontBiggerButton;
   protected int trailLength = trailLengths[trailLengths.length-2];
   protected JPopupMenu newPopup = new JPopupMenu();
   protected JPopupMenu selectPopup = new JPopupMenu();
@@ -473,12 +474,28 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       }
     };
     
+   // font buttons
+    fontSmallerButton = new TButton(fontSmallerIcon);
     fontSmallerButton.setDisabledIcon(fontSmallerDisabledIcon);
-      	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
-      	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
+    fontSmallerButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+    	int i = FontSizer.getLevel();
+    	FontSizer.setLevel(i-1);
+    	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
+    	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
+      }
+    });
+    fontBiggerButton = new TButton(fontBiggerIcon);
     fontBiggerButton.setDisabledIcon(fontBiggerDisabledIcon);
-      	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
-      	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
+    fontBiggerButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+    	int i = FontSizer.getLevel();
+    	FontSizer.setLevel(i+1);
+    	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
+    	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
+      }
+    });
+
     // horizontal glue for right end of toolbar
     toolbarFiller = Box.createHorizontalGlue();
     // info button
