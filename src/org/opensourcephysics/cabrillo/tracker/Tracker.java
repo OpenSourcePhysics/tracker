@@ -27,7 +27,6 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.*;
 import java.util.jar.JarFile;
@@ -66,7 +65,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "4.11.0"; //$NON-NLS-1$
+  public static final String VERSION = "4.11.1"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2017 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -127,7 +126,7 @@ public class Tracker {
   static String trackerDownloadFolder = "/upgrade/"; //$NON-NLS-1$
   static String author = "Douglas Brown"; //$NON-NLS-1$
   static String osp = "Open Source Physics"; //$NON-NLS-1$
-  static AbstractAction aboutQTAction, aboutXuggleAction, aboutThreadsAction;
+  static AbstractAction aboutXuggleAction, aboutThreadsAction;
   static Action aboutTrackerAction, readmeAction;
   static Action aboutJavaAction, startLogAction, trackerPrefsAction;
   private static Tracker tracker;
@@ -156,7 +155,6 @@ public class Tracker {
   static Collection<String> initialAutoloadSearchPaths = new TreeSet<String>();
   static Map<String, ArrayList<XMLControl>> dataFunctionControls = new TreeMap<String, ArrayList<XMLControl>>();
   static java.io.FileFilter xmlFilter;
-  static boolean qtLoading, qtLoaded;
   static Registry registry; // used for RMI communication with EJS
   static DataTrackTool dataTrackTool; // used for RMI communication with EJS
   static boolean toolRegistered, toolNotFound;
@@ -384,65 +382,6 @@ public class Tracker {
 		} catch (Exception ex) {
 		}    
     
-    // add QT video types, if available, using reflection
-    if (!OSPRuntime.isLinux()) {
-    	// do this in a separate thread since can be time-consuming
-      Runnable runner = new Runnable() {
-      	public void run() {
-          try {
-//          	VideoType qtType = new QTVideoType();
-//            VideoIO.addVideoEngine(qtType);
-//          	for (String ext: VideoIO.VIDEO_EXTENSIONS) { // {"mov", "avi", "mp4"}
-//            	VideoFileFilter filter = new VideoFileFilter(ext, new String[] {ext});
-//              qtType = new QTVideoType(filter);
-//              VideoIO.addVideoType(qtType);
-//          	}
-          	qtLoading = true;
-          	String qtTypeName = "org.opensourcephysics.media.quicktime.QTVideoType"; //$NON-NLS-1$
-            Class<?> qtClass = Class.forName(qtTypeName);
-            Constructor<?>[] constructors = qtClass.getDeclaredConstructors();
-          	Constructor<?> cNoArgs = null, cFilterArg = null;
-          	for (int i = 0; i < constructors.length; i++) {
-          		Type[] argTypes = constructors[i].getGenericParameterTypes();
-        	    if (argTypes.length==0) {
-        	    	cNoArgs = constructors[i];
-        	    }
-        	    else if (argTypes.length==1 && argTypes[0].equals(VideoFileFilter.class)) {
-        	    	cFilterArg = constructors[i];        	    	
-        	    }
-          	}
-          	if (cNoArgs==null) throw new Exception("QuickTime not found"); //$NON-NLS-1$
-          	
-            VideoType qtType = (VideoType)cNoArgs.newInstance();
-            VideoIO.addVideoEngine(qtType);
-            
-            if (cFilterArg==null) {
-            	qtLoaded = true;
-            	return;
-            }
-          	for (String ext: VideoIO.VIDEO_EXTENSIONS) { // {"mov", "avi", "mp4"}
-            	VideoFileFilter filter = new VideoFileFilter(ext, new String[] {ext});
-              qtType = (VideoType)cFilterArg.newInstance(filter);
-              VideoIO.addVideoType(qtType);
-          	}
-          	qtLoaded = true;
-          }
-          catch (Exception ex) { // QT for Java not working
-          	OSPLog.config("QuickTime exception: "+ex.toString()); //$NON-NLS-1$
-          	qtLoading = false;
-          }
-          catch (Error er) { // QT for Java not working
-          	OSPLog.config("QuickTime error: "+er.toString()); //$NON-NLS-1$
-          	qtLoading = false;
-          }
-        }
-      };
-      Thread opener = new Thread(runner);
-      opener.setPriority(Thread.NORM_PRIORITY);
-      opener.setDaemon(true);
-      opener.start();    	
-    }
-
     VideoIO.setDefaultXMLExtension("trk"); //$NON-NLS-1$
     
     // create pdf help button
@@ -460,7 +399,7 @@ public class Tracker {
     // find Java VMs in background thread so they are ready when needed
     Runnable runner = new Runnable() {
     	public void run() {
-		    ExtensionsManager.getManager().getAllJREs(32);    		
+		    JREFinder.getFinder().getJREs(32);    		
     	}
     };
     new Thread(runner).start();
@@ -920,11 +859,6 @@ public class Tracker {
         Diagnostics.aboutJava();
       }
     };
-    aboutQTAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutQT"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
-      	Diagnostics.aboutQTJava("Tracker"); //$NON-NLS-1$
-      }
-    };
     aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
       	DiagnosticsForXuggle.aboutXuggle("Tracker"); //$NON-NLS-1$
@@ -1244,7 +1178,7 @@ public class Tracker {
   }
 
   /**
-   * Checks and updates QuickTime resources.
+   * Checks and updates Xuggle resources.
    * 
    * @return true if any resources were updated
    */
@@ -1253,18 +1187,9 @@ public class Tracker {
   	// copy xuggle files to Tracker home, if needed
 		try {
 			File trackerDir = new File(TrackerStarter.findTrackerHome(false));
-			updated = ExtensionsManager.getManager().copyXuggleJarsTo(trackerDir);
+			updated = DiagnosticsForXuggle.copyXuggleJarsTo(trackerDir);
 		} catch (Exception e) {
 		}
-  	// OSX doesn't need QTJava updating
-  	if (OSPRuntime.isMac()) return updated;
-  	
-  	// copy newer QTJava, if found, to current Java extensions
-    String jre = System.getProperty("java.home"); //$NON-NLS-1$
-    File extDir = new File(jre, "lib/ext"); //$NON-NLS-1$
-    if (extDir.exists()) {
-    	updated = ExtensionsManager.getManager().copyQTJavaTo(extDir) || updated;
-    }
     return updated; 	
   }
 
@@ -1580,7 +1505,7 @@ public class Tracker {
 	    }
 	    boolean needsJavaVM = javaPath!=null && !javaCommand.equals(javaPath);
 	    
-			// update resources like Xuggle & QuickTime
+			// update Xuggle
 			boolean updated = updateResources();
 			
 			// compare memory with requested size(s)
@@ -1703,14 +1628,13 @@ public class Tracker {
 //    warnNoVideoEngine = false; // for PLATO
     if (warnNoVideoEngine && VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {    	
     	// warn user that there is no working video engine
-    	boolean xuggleInstalled = VideoIO.guessXuggleVersion()!=0;
-    	boolean qtInstalled = ExtensionsManager.getManager().getQTJavaZip()!=null;
+    	boolean xuggleInstalled = DiagnosticsForXuggle.guessXuggleVersion()!=0;
     	
     	ArrayList<String> message = new ArrayList<String>();    	
 			boolean showRelaunchDialog = false;
 	    	
     	// no engine installed
-    	if (!xuggleInstalled && !qtInstalled) {
+    	if (!xuggleInstalled) {
     		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message1")); //$NON-NLS-1$
     		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message2")); //$NON-NLS-1$
     		message.add(" "); //$NON-NLS-1$
@@ -1718,7 +1642,7 @@ public class Tracker {
     	}
     	
     	// engines installed on Windows but no 32-bit VM
-    	else if (OSPRuntime.isWindows() && ExtensionsManager.getManager().getDefaultJRE(32)==null) {
+    	else if (OSPRuntime.isWindows() && JREFinder.getFinder().getDefaultJRE(32)==null) {
     		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message1")); //$NON-NLS-1$
     		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message2")); //$NON-NLS-1$
     		message.add(" "); //$NON-NLS-1$
@@ -2215,10 +2139,6 @@ public class Tracker {
         String userDir = System.getProperty("user.dir"); //$NON-NLS-1$
         if (!file.getAbsolutePath().equals(userDir)) // user.dir by default
         	control.setValue("file_chooser_directory", XML.getAbsolutePath(file)); //$NON-NLS-1$
-        
-        // qt_preferred--legacy preference for pre-version 4.75
-        if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME))
-      		control.setValue("qt_preferred", true); //$NON-NLS-1$
         
         // video_engine--used by version 4.75+
         if (Tracker.engineKnown) // true by default
