@@ -70,7 +70,7 @@ public class TrackerStarter {
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
 	static String exceptions = ""; //$NON-NLS-1$
-	static String qtJavaWarning, xuggleWarning, starterWarning;
+	static String xuggleWarning, starterWarning;
 	static String trackerHome, userHome, javaHome, xuggleHome, userDocuments;
 	static String startLogPath;
 	static FilenameFilter trackerJarFilter = new TrackerJarFilter();
@@ -799,9 +799,8 @@ public class TrackerStarter {
 		}
 		else env.remove("MEMORY_SIZE"); //$NON-NLS-1$ 
 
-		// remove xuggle and qtJava warnings that may have been set by previous versions of TrackerStarter
+		// remove xuggle warnings that may have been set by previous versions of TrackerStarter
 		env.remove("XUGGLE_WARNING"); //$NON-NLS-1$ 
-		env.remove("QTJAVA_WARNING"); //$NON-NLS-1$ 
 		if (starterWarning!=null) {
 			env.put("STARTER_WARNING", starterWarning); //$NON-NLS-1$ 
 		}

@@ -108,6 +108,7 @@ public class NumberFormatSetter extends JDialog {
 			boolean isStep = RGBRegion.class==trackType || PointMass.class==trackType
 					|| Vector.class==trackType || Protractor.class==trackType
 					|| CircleFitter.class==trackType || TapeMeasure.class==trackType;
+			boolean isCircle = CircleFitter.class==trackType;
 			if (isStep) {
 				patterns.put("t", NumberField.DECIMAL_3_PATTERN); //$NON-NLS-1$
 				patterns.put("step", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
@@ -122,6 +123,10 @@ public class NumberFormatSetter extends JDialog {
 	  		patterns.put("G", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
 	  		patterns.put("B", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
 	  		patterns.put("luma", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+			}
+			if (isCircle) {
+				String var = TTrack.getVariableList(trackType)[8];
+				patterns.put(var, NumberField.INTEGER_PATTERN);
 			}
 			defaultFormatPatterns.put(trackType, patterns);
 		}
@@ -1256,7 +1261,7 @@ public class NumberFormatSetter extends JDialog {
   				|| vars[6].equals(variable)	|| vars[7].equals(variable)) {
   			return "L"; //$NON-NLS-1$
   		}  		
-  		if (vars[4].equals(variable) || vars[5].equals(variable)) {
+  		if (vars[4].equals(variable) || vars[5].equals(variable) || vars[8].equals(variable)) {
   			return "I"; //$NON-NLS-1$
   		}  		
   	}

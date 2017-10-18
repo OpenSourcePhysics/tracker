@@ -113,6 +113,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem goToItem;
   protected JMenu filtersMenu;
   protected JMenu newFilterMenu;
+  protected JMenuItem pasteFilterItem;
   protected JMenuItem clearFiltersItem;
   protected JMenuItem openVideoItem;
   protected JMenuItem closeVideoItem;
@@ -785,9 +786,27 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         // enable paste image item if clipboard contains image data
         Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
         Transferable data = clipboard.getContents(null);
-        boolean b = data != null && data.isDataFlavorSupported(DataFlavor.imageFlavor);
+        boolean b = data!=null && data.isDataFlavorSupported(DataFlavor.imageFlavor);
         pasteImageMenu.setEnabled(b);
         pasteImageItem.setEnabled(b);
+        boolean filterOnClipboard = false;
+        String pasteFilterText = TrackerRes.getString("TActions.Action.Paste"); //$NON-NLS-1$
+        String xml = DataTool.paste();
+        if (xml!=null && xml.contains("<?xml")) { //$NON-NLS-1$
+        	XMLControl control = new XMLControlElement(xml);  
+        	filterOnClipboard = Filter.class.isAssignableFrom(control.getObjectClass());        	
+	        if (filterOnClipboard) {
+	        	String filterName = control.getObjectClass().getSimpleName();
+            int i = filterName.indexOf("Filter"); //$NON-NLS-1$
+            if (i>0 && i<filterName.length()-1) {
+              filterName = filterName.substring(0, i);
+            }
+            filterName = MediaRes.getString("VideoFilter."+filterName); //$NON-NLS-1$
+	        	pasteFilterText += " "+filterName; //$NON-NLS-1$
+	        }
+        }
+        pasteFilterItem.setEnabled(filterOnClipboard);
+        pasteFilterItem.setText(pasteFilterText);
         Video video = trackerPanel.getVideo();
         if (video != null) {
         	boolean vis = trackerPanel.getPlayer().getClipControl().videoVisible;
@@ -952,6 +971,19 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     newFilterMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.NewVideoFilter")); //$NON-NLS-1$
     filtersMenu.add(newFilterMenu);
     filtersMenu.addSeparator();
+    // paste filter item
+    pasteFilterItem = new JMenuItem(TrackerRes.getString("TActions.Action.Paste")); //$NON-NLS-1$
+    pasteFilterItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	String xml = DataTool.paste();
+      	XMLControl control = new XMLControlElement(xml);     	
+        Video video = trackerPanel.getVideo();
+        FilterStack stack = video.getFilterStack();
+        Filter filter = (Filter)control.loadObject(null);
+        stack.addFilter(filter);
+        filter.setVideoPanel(trackerPanel);
+      }
+    });
     // clear filters item
     clearFiltersItem = filtersMenu.add(actions.get("clearFilters")); //$NON-NLS-1$
     // track menu
@@ -1372,7 +1404,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     }
     diagMenu.addSeparator();    
     if (Tracker.aboutJavaAction != null) diagMenu.add(Tracker.aboutJavaAction);
-    if (Tracker.aboutQTAction != null) diagMenu.add(Tracker.aboutQTAction);
     if (Tracker.aboutXuggleAction != null) diagMenu.add(Tracker.aboutXuggleAction);
     if (Tracker.aboutThreadsAction != null) diagMenu.add(Tracker.aboutThreadsAction);
     // end diagnostics menu
@@ -1540,10 +1571,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
                 menu = filter.getMenu(video);
                 filtersMenu.add(menu);
               }
-              // add clearFiltersItem
+            }
+            // add paste filter item
+            filtersMenu.addSeparator();
+            filtersMenu.add(pasteFilterItem);
+            // add clearFiltersItem
+            if (!stack.getFilters().isEmpty()) {
               filtersMenu.addSeparator();
               filtersMenu.add(clearFiltersItem);
             }
+            
             if (videoMenu.getItemCount() > 0)
               videoMenu.addSeparator();
             videoMenu.add(filtersMenu);

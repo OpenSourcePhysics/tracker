@@ -45,7 +45,8 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.IntegerField;
 import org.opensourcephysics.media.core.VideoIO;
-import org.opensourcephysics.tools.ExtensionsManager;
+import org.opensourcephysics.tools.DiagnosticsForXuggle;
+import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -92,7 +93,7 @@ public class PrefsDialog extends JDialog {
   protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, 
   		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown;
   protected JRadioButton vm32Button, vm64Button;
-  protected JRadioButton xuggleButton, qtButton, noEngineButton;
+  protected JRadioButton xuggleButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
   protected JRadioButton xuggleFastButton, xuggleSlowButton;
   protected Tracker.Version[] trackerVersions;
@@ -531,25 +532,7 @@ public class PrefsDialog extends JDialog {
     vm32Button.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
     		if (!vm32Button.isSelected()) return;
-	    	if (OSPRuntime.isMac()) {
-	    		Tracker.use32BitMode = true;
-	    		refreshJREDropdown(32);
-	    		// must run QT engine in 32-bit VM
-	    		if (qtButton.isSelected()) return;
-	    		// check with user
-	      	int selected = JOptionPane.showConfirmDialog(frame,
-          		TrackerRes.getString("PrefsDialog.Dialog.SwitchTo32.Message"),    //$NON-NLS-1$
-              TrackerRes.getString("PrefsDialog.Dialog.SwitchEngine.Title"),    //$NON-NLS-1$
-              JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
-          if(selected==JOptionPane.OK_OPTION) {
-		    		qtButton.setSelected(true);
-          }
-          else {
-  	    		Tracker.use32BitMode = false;
-  	    		vm64Button.setSelected(true);
-          }
-	    	}
-	    	else if (OSPRuntime.isWindows()) {	    		
+	    	if (OSPRuntime.isWindows()) {	    		
 	    		refreshJREDropdown(32);
 	    		if (noEngineButton.isSelected()) {
 	    			Tracker.engineKnown = false;
@@ -567,7 +550,7 @@ public class PrefsDialog extends JDialog {
     	public void itemStateChanged(ItemEvent e) {
     		if (!vm64Button.isSelected()) return;
 
-    		double xuggleVersion = VideoIO.guessXuggleVersion();
+    		double xuggleVersion = DiagnosticsForXuggle.guessXuggleVersion();
 	    	if (OSPRuntime.isMac()) {
 	    		Tracker.use32BitMode = false;
 	    		refreshJREDropdown(64);	    			
@@ -910,7 +893,7 @@ public class PrefsDialog extends JDialog {
     videoTypeSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
     videoTypeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoTypeSubPanelBorder));    
-    boolean xuggleInstalled = VideoIO.isEngineInstalled(VideoIO.ENGINE_XUGGLE);
+    boolean xuggleInstalled = DiagnosticsForXuggle.getXuggleJar()!=null;
 
     xuggleButton = new JRadioButton();
     xuggleButton.setOpaque(false);
@@ -931,19 +914,13 @@ public class PrefsDialog extends JDialog {
           if(selected==JOptionPane.OK_OPTION) {
           	vm64Button.setSelected(true); // triggers selection of default or recent 64-bit VM
           }
-          else {
-          	// revert to previous engine
-          	if (recentEngine.equals(VideoIO.ENGINE_QUICKTIME)) {
-          		qtButton.setSelected(true);         		
-          	}
-          	else if (recentEngine.equals(VideoIO.ENGINE_NONE)) {
-          		noEngineButton.setSelected(true);         		
-          	}
+          else if (recentEngine.equals(VideoIO.ENGINE_NONE)) {
+          	noEngineButton.setSelected(true);         		
           }
     		}
       	// Windows: if xuggle 3.4 and 64-bit, set preferred VM to 32-bit and inform user    		
-    		else if (OSPRuntime.isWindows() && VideoIO.guessXuggleVersion()==3.4 && vm64Button.isSelected()) {
-      		boolean has32BitVM = ExtensionsManager.getManager().getDefaultJRE(32)!=null;
+    		else if (OSPRuntime.isWindows() && DiagnosticsForXuggle.guessXuggleVersion()==3.4 && vm64Button.isSelected()) {
+      		boolean has32BitVM = JREFinder.getFinder().getDefaultJRE(32)!=null;
       		if (has32BitVM) {
 	      		vm32Button.setSelected(true);
 		      	JOptionPane.showMessageDialog(frame,
@@ -973,55 +950,6 @@ public class PrefsDialog extends JDialog {
     });
     xuggleButton.setEnabled(xuggleInstalled);
     
-    qtButton = new JRadioButton();
-    qtButton.setOpaque(false);
-    qtButton.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
-    qtButton.addItemListener(new ItemListener() {
-    	public void itemStateChanged(ItemEvent e) {
-    		if (!qtButton.isSelected()) return;
-    		if (vm32Button.isSelected()) return;
-  			Tracker.engineKnown = true;
-      	// if 64-bit, set preferred VM to 32-bit and inform user
-    		boolean has32BitVM = OSPRuntime.isMac() || ExtensionsManager.getManager().getDefaultJRE(32)!=null;
-    		if (has32BitVM) {
-	      	int selected = JOptionPane.showConfirmDialog(frame,
-          		TrackerRes.getString("PrefsDialog.Dialog.SwitchToQT.Message"),    //$NON-NLS-1$
-              TrackerRes.getString("PrefsDialog.Dialog.SwitchVM.Title"),    //$NON-NLS-1$
-              JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
-          if(selected==JOptionPane.OK_OPTION) {
-          	vm32Button.setSelected(true); // triggers selection of default or recent 32-bit VM
-          }
-          else {
-          	// revert to previous engine
-          	if (recentEngine.equals(VideoIO.ENGINE_XUGGLE)) {
-          		xuggleButton.setSelected(true);         		
-          	}
-          	else if (recentEngine.equals(VideoIO.ENGINE_NONE)) {
-          		noEngineButton.setSelected(true);         		
-          	}
-          }
-    		}
-    		else { // help user download 32-bit VM
-    			Object[] options = new Object[] {
-    					TrackerRes.getString("PrefsDialog.Button.ShowHelpNow"),    //$NON-NLS-1$
-              TrackerRes.getString("Dialog.Button.OK")}; //$NON-NLS-1$
-    			int response = JOptionPane.showOptionDialog(frame,
-          		TrackerRes.getString("PrefsDialog.Dialog.No32bitVMQT.Message")+"\n"+ //$NON-NLS-1$ //$NON-NLS-2$
-          		TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message"), //$NON-NLS-1$
-              TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Title"), //$NON-NLS-1$
-              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-    			noEngineButton.setSelected(true);
-    			if (response==0) {
-    				frame.showHelp("install", 0); //$NON-NLS-1$
-    			}
-    		}
-    		if (qtButton.isSelected()) {
-    			recentEngine = VideoIO.ENGINE_QUICKTIME;
-    		}
-    	}
-    });
-    qtButton.setEnabled(VideoIO.isEngineInstalled(VideoIO.ENGINE_QUICKTIME));
-    
     noEngineButton= new JRadioButton();
     noEngineButton.setOpaque(false);
     noEngineButton.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
@@ -1035,7 +963,6 @@ public class PrefsDialog extends JDialog {
     });
 
     videoTypeSubPanel.add(xuggleButton);
-    videoTypeSubPanel.add(qtButton);
     videoTypeSubPanel.add(noEngineButton);
     
     // xuggle speed subpanel
@@ -1109,11 +1036,7 @@ public class PrefsDialog extends JDialog {
     warningsCenterPanel.add(xuggleErrorCheckbox);
     
     // set selected states of engine buttons AFTER creating the xugglefast, xuggleslow and warnxuggle buttons
-    if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)
-    		&& VideoIO.getVideoType("QT", null)!=null) { //$NON-NLS-1$
-	    qtButton.setSelected(true);
-    }
-    else if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)
+    if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)
     		&& VideoIO.getVideoType("Xuggle", null)!=null) { //$NON-NLS-1$
 	    xuggleButton.setSelected(true);
     }
@@ -1417,7 +1340,6 @@ public class PrefsDialog extends JDialog {
     // add engine buttons to buttongroups
     buttonGroup = new ButtonGroup();
     buttonGroup.add(xuggleButton);
-    buttonGroup.add(qtButton);
     buttonGroup.add(noEngineButton);
     
     // enable/disable buttons
@@ -1427,8 +1349,8 @@ public class PrefsDialog extends JDialog {
     if (OSPRuntime.isWindows()) {
     	Runnable runner = new Runnable() {
     		public void run() {
-			    vm32Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(32).isEmpty());
-			    vm64Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(64).isEmpty());    			
+			    vm32Button.setEnabled(!JREFinder.getFinder().getJREs(32).isEmpty());
+			    vm64Button.setEnabled(!JREFinder.getFinder().getJREs(64).isEmpty());    			
     		}
     	};
     	new Thread(runner).start();
@@ -1437,6 +1359,10 @@ public class PrefsDialog extends JDialog {
     	int bitness = OSPRuntime.getVMBitness();
 	    vm32Button.setEnabled(bitness==32);
 	    vm64Button.setEnabled(bitness==64);    	
+    }
+    else if (OSPRuntime.isMac()) {
+	    vm32Button.setEnabled(false);
+	    vm64Button.setEnabled(true);    	
     }
     refreshGUI();
   }
@@ -1538,7 +1464,6 @@ public class PrefsDialog extends JDialog {
     vm32Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.32BitVM")); //$NON-NLS-1$
     vm64Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.64BitVM")); //$NON-NLS-1$
     xuggleButton.setText(TrackerRes.getString("PrefsDialog.Button.Xuggle")); //$NON-NLS-1$
-    qtButton.setText(TrackerRes.getString("PrefsDialog.Button.QT")); //$NON-NLS-1$
   	noEngineButton.setText(TrackerRes.getString("PrefsDialog.Button.NoEngine")); //$NON-NLS-1$
     radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
     degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
@@ -1563,7 +1488,7 @@ public class PrefsDialog extends JDialog {
     // refresh JRE dropdown in background thread
   	Runnable runner = new Runnable() {
   		public void run() {
-				while (!ExtensionsManager.isReady()) {
+				while (!JREFinder.isReady()) {
 					try {
 						Thread.sleep(200);
 					} catch (InterruptedException e) {
@@ -1574,10 +1499,12 @@ public class PrefsDialog extends JDialog {
 		  	  	refreshing = true; // suppresses dropdown actions
 		  	    // replace items in dropdown
 		  	    jreDropdown.removeAllItems();
-		  	    ExtensionsManager manager = ExtensionsManager.getManager();
-		  	    Set<String> availableJREs = manager.getAllJREs(vmBitness);
-		  	    for (String next: availableJREs) {
-		  	    	jreDropdown.addItem(next);
+		  	    JREFinder jreFinder = JREFinder.getFinder();
+		  	    Set<File> availableJREs = jreFinder.getJREs(vmBitness);
+		  	    ArrayList<String> availableJREPaths = new ArrayList<String>();
+		  	    for (File next: availableJREs) {
+		  	    	availableJREPaths.add(next.getPath());
+		  	    	jreDropdown.addItem(next.getPath());
 		  	    }
 		  	    
 		  	    // set selected item
@@ -1590,10 +1517,13 @@ public class PrefsDialog extends JDialog {
 		  	  	}
 		  	    if (selectedItem==null) {
 		  	    	selectedItem = Tracker.preferredJRE;
-		  	    	if (selectedItem==null || !availableJREs.contains(selectedItem)) {
+		  	    	if (selectedItem==null || !availableJREPaths.contains(selectedItem)) {
 		  	      	selectedItem = vmBitness==32? Tracker.preferredJRE32: Tracker.preferredJRE64;
-		  	        if (selectedItem==null || !availableJREs.contains(selectedItem)) {
-		  	        	selectedItem = manager.getDefaultJRE(vmBitness);
+		  	        if (selectedItem==null || !availableJREPaths.contains(selectedItem)) {
+		  	        	File file = jreFinder.getDefaultJRE(vmBitness);
+		  	        	if (file!=null) {
+		  	        		selectedItem = file.getPath();
+		  	        	}
 		  	        }
 		  	    	}
 		  	    }
@@ -1684,7 +1614,7 @@ public class PrefsDialog extends JDialog {
 		Object selected = jreDropdown.getSelectedItem();
 		if (selected !=null && !selected.equals(Tracker.preferredJRE)) {
 			Tracker.preferredJRE = selected.toString();
-			if (ExtensionsManager.getManager().is32BitVM(Tracker.preferredJRE)) {
+			if (JREFinder.getFinder().is32BitVM(Tracker.preferredJRE)) {
 				Tracker.preferredJRE32 = Tracker.preferredJRE;				
 			}
 			else Tracker.preferredJRE64 = Tracker.preferredJRE;
@@ -1692,9 +1622,6 @@ public class PrefsDialog extends JDialog {
 		// video engine
 		if (xuggleButton.isSelected() && xuggleButton.isEnabled()) {
 			VideoIO.setEngine(VideoIO.ENGINE_XUGGLE);
-		}
-		else if (qtButton.isSelected() && qtButton.isEnabled()) {
-			VideoIO.setEngine(VideoIO.ENGINE_QUICKTIME);
 		}
 		else VideoIO.setEngine(VideoIO.ENGINE_NONE);
 		
@@ -1817,39 +1744,9 @@ public class PrefsDialog extends JDialog {
     }
 
     // video
-    if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)) {
-	    qtButton.setSelected(true);
-    }
-    else if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)) {
+    if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)) {
 	    xuggleButton.setSelected(true);
     }
-    
-		qtButton.setEnabled(true);
-		vm32Button.setEnabled(true);
-//		// if running OSX version 10.10 or later, disable 32-bit VM and QuickTime buttons
-//		if (OSPRuntime.isMac()) {
-//			String version = System.getProperty("os.version"); //$NON-NLS-1$
-//			if (version!=null) {
-//				int n = version.indexOf("."); //$NON-NLS-1$
-//				if (n>-1) {
-//					version = version.substring(n+1);
-//					if (version.length()>1) {
-//						try {
-//							int vers = Integer.parseInt(version.substring(0, 2));
-//							if (vers>=10) {
-//								// disable 32-bit VM and QuickTime buttons
-//								qtButton.setEnabled(false);
-//								vm32Button.setEnabled(false);
-//								vm64Button.setSelected(true);
-//								Tracker.preferredJRE32 = null;
-//							}
-//						} catch (NumberFormatException e) {
-//						}							
-//					}
-//				}
-//			}
-//		}
-
     repaint();
   }
   

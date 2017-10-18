@@ -793,12 +793,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     			+"\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message1") //$NON-NLS-1$ //$NON-NLS-2$
     			+"\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message2") //$NON-NLS-1$ //$NON-NLS-2$
     			+"\n\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
-    	if (VideoIO.getVideoType(VideoIO.ENGINE_QUICKTIME, null)!=null) {
-	    	s+= "\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.Message4"); //$NON-NLS-1$ //$NON-NLS-2$
-    	}
-    	else if (OSPRuntime.isMac()) {
-    		s+= "\n"+TrackerRes.getString("TFrame.Dialog.StalledVideo.MessageMac"); //$NON-NLS-1$ //$NON-NLS-2$
-    	}
     	String stop = TrackerRes.getString("TFrame.Dialog.StalledVideo.Button.Stop"); //$NON-NLS-1$
     	String wait = TrackerRes.getString("TFrame.Dialog.StalledVideo.Button.Wait"); //$NON-NLS-1$
     	int response = JOptionPane.showOptionDialog(TFrame.this, 

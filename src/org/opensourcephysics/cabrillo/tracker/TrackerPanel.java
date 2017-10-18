@@ -3290,14 +3290,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					}
       	}
       }
-    	// kludge to prevent a freeze (deadlock?) when loading QT videos and DataTracks
-      Video vid = trackerPanel.getVideo();
-    	if (vid!=null && vid.getClass().getSimpleName().contains("QT") //$NON-NLS-1$
-    			&& control.toXML().contains("ParticleDataTrack")) try { //$NON-NLS-1$
-				Thread.sleep(100);
-			} catch (InterruptedException ex) {
-				ex.printStackTrace();
-			}
       // load the tracks
       ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
       if (tracks != null) {
