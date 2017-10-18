@@ -50,7 +50,7 @@ public class TrackerCountReader extends JFrame {
 	private String[] versions = {"all", "4.9.8", "4.97", "4.96", "4.95", "4.94", "4.93",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$
 			"4.92", "4.91", "4.90"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	private String[] OSs = {"all", "windows", "osx", "linux"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-	private String[] engines = {"all", "Xuggle", "QT", "none"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+	private String[] engines = {"all", "Xuggle", "none"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	JComboBox actionDropdown, versionDropdown, osDropdown, engineDropdown;
 	JLabel actionLabel, versionLabel, osLabel, engineLabel;
 
@@ -242,7 +242,6 @@ public class TrackerCountReader extends JFrame {
 				else {
 					for (int k=0; k<eng.length; k++) {
 						String osname = os[j];
-						if (osname.equals("linux") && eng[k].equals("QT")) continue; //$NON-NLS-1$ //$NON-NLS-2$
 						if (osname.equals("osx")) osname = "macosx"; //$NON-NLS-1$ //$NON-NLS-2$
 						String command = action+"_"+ver[i]+"_"+osname+"_"+eng[k]; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						if (action.contains("test")) { //$NON-NLS-1$
