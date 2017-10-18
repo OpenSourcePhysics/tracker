@@ -57,6 +57,7 @@ public class CircleFitter extends TTrack {
   static {
    	String center = TrackerRes.getString("CircleFitter.Data.Center")+"}"; //$NON-NLS-1$ //$NON-NLS-2$
   	String selected = TrackerRes.getString("TTrack.Selected.Hint")+"}"; //$NON-NLS-1$ //$NON-NLS-2$
+  	String points = TrackerRes.getString("CircleFitter.Data.PointCount"); //$NON-NLS-1$
   	ArrayList<String> names = new ArrayList<String>();
   	names.add("t"); //$NON-NLS-1$ 0
   	names.add("x_{"+center); //$NON-NLS-1$ 1
@@ -66,6 +67,7 @@ public class CircleFitter extends TTrack {
   	names.add("frame"); //$NON-NLS-1$ 5
 		names.add("x_{"+selected); //$NON-NLS-1$ 6
 		names.add("y_{"+selected); //$NON-NLS-1$ 7
+		names.add(points); // 8
 		variableList = names.toArray(new String[names.size()]);
   }
 
@@ -97,7 +99,8 @@ public class CircleFitter extends TTrack {
         {CircleFitterFootprint.getFootprint("CircleFitterFootprint.Circle4"), //$NON-NLS-1$
         CircleFitterFootprint.getFootprint("CircleFitterFootprint.Circle7"), //$NON-NLS-1$
         CircleFitterFootprint.getFootprint("CircleFitterFootprint.Circle4Bold"), //$NON-NLS-1$
-        CircleFitterFootprint.getFootprint("CircleFitterFootprint.Circle7Bold")}); //$NON-NLS-1$
+        CircleFitterFootprint.getFootprint("CircleFitterFootprint.Circle7Bold"), //$NON-NLS-1$
+        CircleFitterFootprint.getFootprint("CircleFitterFootprint.Circle4.PointsOnly")}); //$NON-NLS-1$
     defaultFootprint = getFootprint();
     setColor(defaultColors[0]);
     
@@ -1133,11 +1136,12 @@ public class CircleFitter extends TTrack {
   protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
     if (refreshDataLater || trackerPanel == null || data == null) return;
     dataFrames.clear();
-    // get the datasets: radius, x_center, y_center, step, frame
+    // get the datasets: radius, x_center, y_center, step, frame, datapoints
     int count = 0;
     Dataset x_center = data.getDataset(count++);
     Dataset y_center = data.getDataset(count++);
     Dataset r = data.getDataset(count++);
+    Dataset dataCount = data.getDataset(count++);
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
     // assign column names to the datasets
@@ -1148,6 +1152,7 @@ public class CircleFitter extends TTrack {
     	r.setXYColumnNames(time, variableList[3]); 
 	    stepNum.setXYColumnNames(time, variableList[4]); 
 	    frameNum.setXYColumnNames(time, variableList[5]); 
+	    dataCount.setXYColumnNames(time, variableList[8]); 
     }
     else for (int i = 0; i<count; i++) {
     	data.getDataset(i).clear();
@@ -1176,6 +1181,7 @@ public class CircleFitter extends TTrack {
 			validData[3][n] = radius;
 			validData[4][n] = n;
 			validData[5][n] = frame;
+			validData[6][n] = next.getValidDataPoints().size();
       dataFrames.add(frame);
     }
     // append the data to the data set
@@ -1184,6 +1190,7 @@ public class CircleFitter extends TTrack {
 	  r.append(validData[0], validData[3]);
     stepNum.append(validData[0], validData[4]);
     frameNum.append(validData[0], validData[5]);
+    dataCount.append(validData[0], validData[6]);
   }
 
   /**

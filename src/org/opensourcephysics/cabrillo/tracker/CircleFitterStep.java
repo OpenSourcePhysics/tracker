@@ -254,12 +254,12 @@ public class CircleFitterStep extends Step {
     Interactive hit = null;
     
   	hitShape = circleHitShapes.get(trackerPanel);
-  	if (hitShape!=null && hitShape.intersects(hitRect)) { 
+  	if (isValidCircle() && hitShape!=null && hitShape.intersects(hitRect)) { 
   		hit = edge;
   	}
     
   	hitShape = centerHitShapes.get(trackerPanel);
-  	if (hitShape!=null && hitShape.intersects(hitRect)) { 
+  	if (isValidCircle() && hitShape!=null && hitShape.intersects(hitRect)) { 
   		hit = center;
   	}
     

@@ -51,7 +51,7 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
   @SuppressWarnings("javadoc")
   private static BasicStroke hitStroke = new BasicStroke(4);
   private static final CircleFitterFootprint CIRCLE_4, CIRCLE_7, 
-  		CIRCLE_4_BOLD, CIRCLE_7_BOLD;
+  		CIRCLE_4_BOLD, CIRCLE_7_BOLD, CIRCLE_4_POINTS_ONLY;
   protected static final int MAX_RADIUS = 100000;
 
 	// static fields
@@ -75,6 +75,7 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
 	protected int markerSize;
 	protected Point selectedPoint;
 	protected int markedPointCount;
+	protected boolean drawCircle = true;
 
   /**
    * Constructs a CircleFitterFootprint.
@@ -135,13 +136,16 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
     int scale = FontSizer.getIntegerFactor();
     w *= scale;
     h *= scale;
-    int r = markerSize/2;
-    iconArc.setArc(0, 0, scale*20, scale*20, 200, 140, Arc2D.OPEN);
+    Shape shape = emptyHitShape;
   	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
   		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
   	}
-  	Shape shape = stroke.createStrokedShape(iconArc);
+    if (drawCircle) {
+	    iconArc.setArc(0, 0, scale*20, scale*20, 200, 140, Arc2D.OPEN);
+	  	shape = stroke.createStrokedShape(iconArc);
+    }
     Area area = new Area(shape);
+    int r = markerSize/2;
     circle.setFrameFromCenter(scale*10, scale*20, scale*(10+r), scale*(20+r));
   	shape = stroke.createStrokedShape(circle);
   	area.add(new Area(shape));
@@ -237,6 +241,15 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
   }
 
   /**
+   * Sets the visibility of the circle.
+   *
+   * @param vis true to draw the circle
+   */
+  protected void setCircleVisible(boolean vis) {
+  	drawCircle = vis;
+  }
+
+  /**
    * Sets the selected screen point. The selected point is not drawn so CircleStep 
    * can draw a selection shape instead.
    *
@@ -273,7 +286,7 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
   	}
         
     // draw shapes only if there are 3 or more data points (plus center & edge)
-    if (points.length>=5) {
+    if (drawCircle && points.length>=5) {
     	// special case: infinite or very large radius, so draw straight line thru edge
     	if (Double.isInfinite(radius) || radius>MAX_RADIUS) {
     		double x = edge.getX();
@@ -316,6 +329,9 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
 	      drawMe.add(new Area(stroke.createStrokedShape(s)));	    
     	}
     }
+    while (hitShapes.size()<2) {
+	    hitShapes.add(emptyHitShape);  // add empty hit shapes to pad
+    }
         
     // always draw data points
     for (int i=2; i<points.length; i++) {
@@ -331,9 +347,6 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
 	      }
       }
       hitShapes.add(transform.createTransformedShape(hitShape));
-    }
-    while (hitShapes.size()<2) {
-	    hitShapes.add(emptyHitShape);  // add empty hit shapes to pad
     }
     
     return drawMe;
@@ -366,6 +379,11 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
     CIRCLE_7 = new CircleFitterFootprint("CircleFitterFootprint.Circle7", 7); //$NON-NLS-1$
     CIRCLE_7.setStroke(stroke);
     footprints.add(CIRCLE_7);
+    
+    CIRCLE_4_POINTS_ONLY = new CircleFitterFootprint("CircleFitterFootprint.Circle4.PointsOnly", 4); //$NON-NLS-1$
+    CIRCLE_4_POINTS_ONLY.setStroke(stroke);
+    CIRCLE_4_POINTS_ONLY.setCircleVisible(false);
+    footprints.add(CIRCLE_4_POINTS_ONLY);
 
   	stroke = new BasicStroke(2);
     CIRCLE_4_BOLD = new CircleFitterFootprint("CircleFitterFootprint.Circle4Bold", 4); //$NON-NLS-1$
