@@ -111,15 +111,10 @@ public class ExportVideoDialog extends JDialog {
   public static void refreshFormats() {
 		formats.clear(); 
 		formatDescriptions.clear();  
-		// unwanted types are quicktime, xuggle or both depending on VideoIO engine
+		// eliminate xuggle types if VideoIO engine is NONE
   	ArrayList<VideoType> unwanted = new ArrayList<VideoType>();
-  	boolean skipQT = VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)
-  			|| VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
-  	boolean skipXuggle = VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)
-  			|| VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
+  	boolean skipXuggle = VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
   	for (String ext: VideoIO.VIDEO_EXTENSIONS) {
-    	if (skipQT)
-    		unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_QUICKTIME, ext));
     	if (skipXuggle)
     		unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_XUGGLE, ext));
   	}
