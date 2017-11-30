@@ -603,10 +603,10 @@ public class TrackerStarter {
 				preferredVM = prefsXMLControl.getString("java_vm"); //$NON-NLS-1$
 			}
 			if (preferredVM!=null) {
+				logMessage("preferred java VM: " + preferredVM); //$NON-NLS-1$
 				File javaFile = OSPRuntime.getJavaFile(preferredVM);
 				if (javaFile != null && javaFile.exists()) {
 					javaCommand = XML.stripExtension(javaFile.getPath());
-					logMessage("preferred java VM: " + javaCommand); //$NON-NLS-1$
 				} else {
 					logMessage("preferred java VM invalid--using default instead"); //$NON-NLS-1$
 					preferredVM = null;
