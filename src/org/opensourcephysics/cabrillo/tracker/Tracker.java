@@ -65,8 +65,8 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "4.11.1"; //$NON-NLS-1$
-  public static final String COPYRIGHT = "Copyright (c) 2017 Douglas Brown"; //$NON-NLS-1$
+  public static final String VERSION = "5.0.0"; //$NON-NLS-1$
+  public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -129,7 +129,7 @@ public class Tracker {
   static AbstractAction aboutXuggleAction, aboutThreadsAction;
   static Action aboutTrackerAction, readmeAction;
   static Action aboutJavaAction, startLogAction, trackerPrefsAction;
-  private static Tracker tracker;
+  private static Tracker sharedTracker;
   static String readmeFileName = "tracker_README.txt"; //$NON-NLS-1$
   static JDialog readmeDialog, startLogDialog, trackerPrefsDialog;
   static JTextArea trackerPrefsTextArea;
@@ -408,14 +408,14 @@ public class Tracker {
   /**
    * Gets the shared Tracker for single-VM use.
    *
-   * @return the tracker panel
+   * @return the shared Tracker
    */
   public static Tracker getTracker() {
-    if (tracker == null) {
+    if (sharedTracker == null) {
     	OSPLog.fine("creating shared Tracker"); //$NON-NLS-1$
-      tracker = new Tracker(null, false, false);
+      sharedTracker = new Tracker(null, false, false);
     }
-    return tracker;
+    return sharedTracker;
   }
 
   /**
@@ -647,6 +647,10 @@ public class Tracker {
     if (!translator.equals("")) { //$NON-NLS-1$
     	aboutString += newline+TrackerRes.getString("Tracker.About.TranslationBy") //$NON-NLS-1$
     			+" "+ translator + newline; //$NON-NLS-1$
+    }
+    if (Tracker.trackerHome!=null) {
+    	aboutString += newline+TrackerRes.getString("Tracker.About.TrackerHome") //$NON-NLS-1$
+    			+newline+ Tracker.trackerHome + newline;
     }
     JOptionPane.showMessageDialog(null,
     															aboutString,
@@ -1242,9 +1246,23 @@ public class Tracker {
 	 	// send runtime and version data as page name to get latest version from PHP script
 		String pageName = getPHPPageName(logToFile);
 		String latestVersion = loginGetLatestVersion(pageName);
+		String pig = "5.1.1";
+		latestVersion = pig;
 		int result = compareVersions(latestVersion, VERSION);
 		if (result>0) { // newer version available
 			newerVersion = latestVersion;
+			TFrame tFrame = null;
+	    Frame[] frames = Frame.getFrames();
+	    for(int i = 0, n = frames.length; i<n; i++) {
+	       if (frames[i] instanceof TFrame) {
+	      	 tFrame = (TFrame)frames[i];
+	   			 TrackerPanel trackerPanel = tFrame.getTrackerPanel(tFrame.getSelectedTab());
+	  			 if (trackerPanel!=null) {
+	  				 TTrackBar trackbar = TTrackBar.getTrackbar(trackerPanel);
+	  				 trackbar.refresh();
+	  			 }
+	       }
+	    }
 		}		
   }
   
