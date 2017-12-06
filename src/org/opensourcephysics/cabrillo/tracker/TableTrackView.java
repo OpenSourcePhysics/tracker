@@ -33,6 +33,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
@@ -57,6 +58,11 @@ public class TableTrackView extends TrackView {
 	
 	// static fields
 	static final String DEFINED_AS = ": "; //$NON-NLS-1$
+	static Icon skipsOffIcon, skipsOnIcon;
+	static {
+		skipsOnIcon =  new ResizableIcon(Tracker.class.getResource("resources/images/skips_on.gif")); //$NON-NLS-1$
+		skipsOffIcon =  new ResizableIcon(Tracker.class.getResource("resources/images/skips_off.gif")); //$NON-NLS-1$
+	}
 
   // instance fields
   protected DatasetManager data;
@@ -68,11 +74,11 @@ public class TableTrackView extends TrackView {
   protected boolean refresh = true;
   protected Set<String> textColumnsVisible = new TreeSet<String>();
   protected JMenuItem dataToolItem, dataBuilderItem, deleteDataFunctionItem;
-  private JButton columnsButton;
+  private JButton columnsButton, skippedFramesButton;
   private JPopupMenu popup;
   private JPanel columnsPanel;
   private DatasetManager tableData;
-  private JMenuItem formatDialogItem;
+  private JMenuItem goToFrameItem, formatDialogItem;
   private JMenu copyDataMenu;
   private JMenuItem copyDataRawItem, copyDataFormattedItem;
   private JMenu setDelimiterMenu;
@@ -328,6 +334,10 @@ public class TableTrackView extends TrackView {
   	TTrack track = getTrack();
   	columnsButton.setText(TrackerRes.getString("TableTrackView.Button.SelectTableData")); //$NON-NLS-1$
     columnsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SelectTableData.ToolTip")); //$NON-NLS-1$
+//  	skippedFramesButton.setText(skippedFramesButton.isSelected()?
+//  		TrackerRes.getString("TableTrackView.Button.SkippedFrames.On"): //$NON-NLS-1$
+//    		TrackerRes.getString("TableTrackView.Button.SkippedFrames.Off")); //$NON-NLS-1$
+  	skippedFramesButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SkippedFrames.ToolTip")); //$NON-NLS-1$
 //    track.dataValid = false; // triggers data refresh
     track.getData(trackerPanel); // load the current data
     refreshColumnCheckboxes();    
@@ -349,6 +359,15 @@ public class TableTrackView extends TrackView {
    * @return an ArrayList of components to be added to a toolbar
    */
   public ArrayList<Component> getToolBarComponents() {
+  	toolbarComponents.remove(skippedFramesButton);
+  	// determine if track has skips
+  	TTrack track = getTrack();
+  	if (track instanceof PointMass) {
+  		PointMass p = (PointMass)track;
+  		if (p.skippedSteps.size()>0) {
+  	  	toolbarComponents.add(skippedFramesButton);
+  		}
+  	}
     return toolbarComponents;
   }
 
@@ -453,29 +472,9 @@ public class TableTrackView extends TrackView {
    */
   protected void setHighlighted(int frameNumber) {
     // assume no highlights
-    highlightRow = -1;
     if (!highlightVisible) return;
-  	TTrack track = getTrack();
-    Step[] steps = track.getSteps();
-    int row = -1;
-    VideoClip clip = null;
-    if (track.trackerPanel != null) {
-    	clip = track.trackerPanel.getPlayer().getVideoClip();
-    }
-    // look for row to highlight
-    for (int i = 0; i < steps.length; i++) {
-      if (steps[i] != null 
-      			&& steps[i].dataVisible 
-      			&& clip != null 
-      			&& clip.includesFrame(steps[i].getFrameNumber())) {
-        row++;
-        if (steps[i].getFrameNumber() == frameNumber) {
-        	if (row >= dataTable.getRowCount()) return;
-        	highlightRow = row;
-          break;
-        }
-      }
-    }
+    // get row to highlight
+    highlightRow = getRowFromFrame(frameNumber);
     // select highlighted row, or clear selection if none found
     Runnable runner = new Runnable() {
       public synchronized void run() {
@@ -692,6 +691,44 @@ public class TableTrackView extends TrackView {
   }
   
   /**
+   * Gets the frame number for a view row. Returns -1 if not found.
+   *
+   * @param row the table row
+   * @return the frame number
+   */
+  protected int getFrameAtRow(int row) {
+  	// get value of independent variable at row
+  	double val = getIndepVarValueAtRow(row);
+  	String var = dataTable.getColumnName(0);
+  	TTrack track = getTrack();
+  	int frameNum = track.getFrameForData(var, val);
+    return frameNum;
+  }
+
+  /**
+   * Gets the view row for a given frame number. Returns -1 if none found.
+   *
+   * @param row the table row
+   * @return the frame number
+   */
+  protected int getRowFromFrame(int frame) {
+  	// look for "frame" dataset in data
+  	ArrayList<Dataset> temp = data.getDatasets();
+  	for (int i=0; i<temp.size(); i++) {
+  		if ("frame".equals(temp.get(i).getYColumnName())) { //$NON-NLS-1$
+  			double[] vals = temp.get(i).getYPoints();
+  			for (int j=0; j<vals.length; j++) {
+  				if (vals[j]==frame) {
+  		  		SortDecorator decorator = (SortDecorator)dataTable.getModel();
+  		  		return decorator.getSortedRow(j);
+  				}
+  			}
+  		}
+  	}
+  	return -1;
+  }
+
+   /**
    * Gets the independent variable value at a view row.
    *
    * @param row the table row
@@ -705,8 +742,8 @@ public class TableTrackView extends TrackView {
 		} catch (Exception e) {}
     return val==null? Double.NaN: val;
   }
-
-  /**
+  
+ /**
    * Gets the view row at which an independent variable value is found.
    *
    * @param indepVarValue the value
@@ -790,6 +827,36 @@ public class TableTrackView extends TrackView {
     });
     // create column list
     refreshColumnCheckboxes();
+    // button to show skipped frames
+    skippedFramesButton = new TButton(skipsOffIcon, skipsOnIcon) {
+    	// override getMaximumSize method so has same height as chooser button
+	    public Dimension getMaximumSize() {
+	      Dimension dim = super.getMaximumSize();
+	      Dimension min = getMinimumSize();
+	    	Container c = getParent();
+	    	while (c!=null) {
+	  			if (c instanceof TViewChooser) {
+		  			int h = ((TViewChooser)c).chooserButton.getHeight();
+		  			dim.height = Math.max(h, min.height);
+	  				break;
+	  			}
+	  			c = c.getParent();
+	    	}
+	      return dim;
+	    }    	    	
+    };
+    skippedFramesButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	skippedFramesButton.setSelected(!skippedFramesButton.isSelected());
+      	dataTable.skippedFramesRenderer.setVisible(skippedFramesButton.isSelected());
+      	if (skippedFramesButton.isSelected()) {
+  	  		SortDecorator decorator = (SortDecorator)dataTable.getModel();
+  	  		decorator.reset();
+      	}
+      	dataTable.repaint();
+      	dataTable.getTableHeader().resizeAndRepaint();
+      }
+    });
     // create popup and add menu items
     popup = new JPopupMenu();
     
@@ -806,6 +873,21 @@ public class TableTrackView extends TrackView {
       }
     });
 
+    goToFrameItem = new JMenuItem();
+    goToFrameItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        try {
+					int row = Integer.parseInt(e.getActionCommand());
+					int frameNum = getFrameAtRow(row);
+					if (frameNum>-1) {
+						VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+						int stepNum = clip.frameToStep(frameNum);
+						trackerPanel.getPlayer().setStepNumber(stepNum);
+					}
+				} catch (Exception ex) {
+				}
+  	  }	
+    });
     formatDialogItem = new JMenuItem();
     formatDialogItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -1016,6 +1098,8 @@ public class TableTrackView extends TrackView {
               deleteDataFunctionItem.setText(s+" \""+colName+"\""); //$NON-NLS-1$ //$NON-NLS-2$
             }
           }
+          
+          goToFrameItem.setEnabled(false);
           getPopup().show(dataTable.getTableHeader(), e.getX(), e.getY()+8);
         }
         else {
@@ -1056,7 +1140,7 @@ public class TableTrackView extends TrackView {
         setSelectedIndepVarValues(vals);     	
       }
     });
-    // add right button mouse listener to copy data and double-click to select all
+    // data table: add right button mouse listener to copy data and double-click to select all
     dataTable.addMouseListener(new MouseAdapter() {
       public void mousePressed(MouseEvent e) {
       	if (e.getClickCount() == 2) {
@@ -1077,7 +1161,20 @@ public class TableTrackView extends TrackView {
               deleteDataFunctionItem.setText(s+" \""+colName+"\""); //$NON-NLS-1$ //$NON-NLS-2$
             }
           }
-          getPopup().show(TableTrackView.this, e.getX()-10, e.getY());
+          // set action command and title of goToFrame item
+          int row = dataTable.rowAtPoint(mousePt);
+          goToFrameItem.setEnabled(row>-1);
+          if (goToFrameItem.isEnabled()) {
+            goToFrameItem.setActionCommand(String.valueOf(row));
+            String s = TrackerRes.getString("TableTrackView.Popup.Menuitem.GoToStep"); //$NON-NLS-1$
+            int frameNum = getFrameAtRow(row);
+						VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+						int stepNum = clip.frameToStep(frameNum);
+            s += " "+stepNum; //$NON-NLS-1$
+            goToFrameItem.setText(s);
+          }         
+          
+          getPopup().show(dataTable, e.getX()+4, e.getY());
         }
       }
     });
@@ -1160,6 +1257,10 @@ public class TableTrackView extends TrackView {
     dataToolItem.setText(TrackerRes.getString("TableTrackView.Popup.MenuItem.Analyze")); //$NON-NLS-1$
   	refreshCopyDataMenu(copyDataMenu);
   	popup.removeAll();
+  	if (goToFrameItem.isEnabled()) {
+      popup.add(goToFrameItem);
+      popup.addSeparator();
+  	}
     popup.add(formatDialogItem);
   	TTrack track = getTrack();
   	if (track==null) return popup;
@@ -1606,6 +1707,7 @@ public class TableTrackView extends TrackView {
 
   }
   
+	// the default table cell renderer when no PrecisionRenderer is used
   class NumberFieldRenderer extends NumberField implements TableCellRenderer {
   	
   	DefaultTableCellRenderer defaultRenderer;
@@ -1624,7 +1726,62 @@ public class TableTrackView extends TrackView {
 			if (value instanceof Double && c instanceof JLabel) {
 				// show number as formatted by this NumberField
 				setValue((Double)value);
-				((JLabel)c).setText(getText());
+				((JLabel)c).setText(getText());				
+			}
+			return c;
+		}
+  	
+  }
+  
+	// the default table cell renderer when no PrecisionRenderer is used
+  class SkippedFramesRenderer implements TableCellRenderer {
+  	
+  	TableCellRenderer baseRenderer;
+  	Border belowBorder, aboveBorder;
+  	boolean visible = false;
+
+		public SkippedFramesRenderer() {
+			belowBorder = BorderFactory.createMatteBorder(0,0,1,0,Color.red);
+			Border space = BorderFactory.createEmptyBorder(0, 1, 0, 1);
+			belowBorder = BorderFactory.createCompoundBorder(belowBorder, space);
+			aboveBorder = BorderFactory.createMatteBorder(1,0,0,0,Color.red);
+			space = BorderFactory.createEmptyBorder(0, 1, 1, 1);
+			aboveBorder = BorderFactory.createCompoundBorder(aboveBorder, space);
+		}
+		
+		public void setBaseRenderer(TableCellRenderer renderer) {
+			baseRenderer = renderer;
+		}
+		
+		public void setVisible(boolean vis) {
+			visible = vis;
+		}
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value,
+				boolean isSelected, boolean hasFocus, int row, int column) {
+			Component c = baseRenderer.getTableCellRendererComponent(
+					table, value, isSelected, hasFocus, row, column);
+			if (visible) {
+				// add red above or below border to identify skipped frames
+	    	TTrack track = getTrack();
+	    	if (track instanceof PointMass) {
+	    		PointMass p = (PointMass)track;
+	    		if (p.trackerPanel!=null) {
+	    			VideoClip clip = p.trackerPanel.getPlayer().getVideoClip();
+	      		Set<Integer> skippedSteps = p.skippedSteps;
+	      		int frameNum = getFrameAtRow(row);
+	      		int stepNum = clip.frameToStep(frameNum);
+	      		for (int i: skippedSteps) {
+	      			if (stepNum+1==i) {
+	      				((JLabel)c).setBorder(belowBorder);
+	      			}
+	      			else if (stepNum-1==i) {
+	      				((JLabel)c).setBorder(aboveBorder);
+	      			}
+	      		}
+	    		}				
+				}
 			}
 			return c;
 		}
@@ -1634,14 +1791,22 @@ public class TableTrackView extends TrackView {
   class TrackDataTable extends DataTable {
   	
   	NumberFieldRenderer numberFieldRenderer = new NumberFieldRenderer();
+  	SkippedFramesRenderer skippedFramesRenderer = new SkippedFramesRenderer();  	
   	
   	@Override
     public void refreshTable() {
+  		// model for this table assumed to be a SortDecorator
+  		// always reset the decorator before changing table structure
+  		SortDecorator decorator = (SortDecorator)getModel();
+  		int col = decorator.getSortedColumn();
+  		decorator.reset();
       // save selected rows and columns
       int[] rows = getSelectedRows();
       int[] cols = getSelectedColumns();
       // refresh table
       super.refreshTable();
+      // sort if needed
+      if (col>-1) sort(col);
       // restore selected rows and columns
       for (int i = 0; i < rows.length; i++) {
       	if (rows[i] < getRowCount())
@@ -1651,6 +1816,24 @@ public class TableTrackView extends TrackView {
       	if (cols[i] < getColumnCount())
       		addColumnSelectionInterval(cols[i], cols[i]);
       }
+    	// find TViewChooser with this view
+    	TFrame frame = trackerPanel.getTFrame();
+    	if (frame!=null) {
+	    	Container[] views = frame.getViews(trackerPanel);
+	    	for (int i = 0; i < views.length; i++) {
+	        if (views[i] instanceof TViewChooser) {
+	          TViewChooser chooser = (TViewChooser)views[i];
+	          if (chooser.getSelectedView() instanceof TableTView) {
+	          	TableTView tableView = (TableTView)chooser.getSelectedView();
+	          	TrackView view = tableView.getTrackView(tableView.getSelectedTrack());
+	          	if (view != null && view.equals(TableTrackView.this)) {
+	          		chooser.refreshToolbar();
+	          	}
+	          }
+	        }
+	    	}
+    	}
+
     }
     
   	@Override
@@ -1673,20 +1856,42 @@ public class TableTrackView extends TrackView {
   		}
   		return super.getDefaultRenderer(type);
   	}
+  	
+  	@Override
+    public TableCellRenderer getCellRenderer(int row, int column) {
+    	TableCellRenderer renderer = super.getCellRenderer(row, column);
+  		skippedFramesRenderer.setBaseRenderer(renderer);
+  		return skippedFramesRenderer;
+    }
+  	
+    @Override
+    public void sort(int col) {
+      if (col>0 && skippedFramesButton.isSelected()) {
+      	skippedFramesButton.doClick(0);
+      }
+      super.sort(col);
+    }
 
-  	public TableCellRenderer getCellRenderer(String columnName) {
-      UnitRenderer unitRenderer = unitRenderersByColumnName.get(columnName);
-      TableCellRenderer baseRenderer = precisionRenderersByColumnName.get(columnName);
-      // if no precision base renderer, use default
-      if (baseRenderer==null)
-      	baseRenderer = getDefaultRenderer(Double.class);
-      // return unit renderer if defined
-    	if (unitRenderer!=null) {
-    		unitRenderer.setBaseRenderer(baseRenderer);
-    		return unitRenderer;
-    	}
-      return baseRenderer;
-  	}
+
+
+//  	public TableCellRenderer getCellRenderer(String columnName) {
+//      UnitRenderer unitRenderer = unitRenderersByColumnName.get(columnName);
+//      TableCellRenderer valueRenderer = precisionRenderersByColumnName.get(columnName);
+//      // if no precision renderer, use numberFieldRenderer
+//      if (valueRenderer==null) {
+//      	valueRenderer = numberFieldRenderer;
+//      }
+//      // return unit renderer if defined
+//    	if (unitRenderer!=null) {
+//    		unitRenderer.setBaseRenderer(valueRenderer);
+//    		skippedFramesRenderer.setBaseRenderer(unitRenderer);
+//    		return unitRenderer;
+//    	}
+//    	else {
+//    		skippedFramesRenderer.setBaseRenderer(valueRenderer);
+//    	}
+//      return skippedFramesRenderer;
+//  	}
   	
   }
 

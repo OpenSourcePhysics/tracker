@@ -118,6 +118,8 @@ public class PointMass extends TTrack {
   protected double[] yData = new double[5];
   protected boolean[] validData = new boolean[5];
   protected Object[] derivData = new Object[] {params, xData, yData, validData};
+  // identify skipped steps
+  protected TreeSet<Integer> skippedSteps = new TreeSet<Integer>();
 
   // for GUI
   protected JLabel massLabel;
@@ -773,13 +775,29 @@ public class PointMass extends TTrack {
     for (int i = 0; i < count;i++) {
       data.getDataset(i).clear();
     }
+    skippedSteps.clear();
     // get data at each non-null position step in the videoclip
     VideoPlayer player = trackerPanel.getPlayer();
     VideoClip clip = player.getVideoClip();
     ImageCoordSystem coords = trackerPanel.getCoords();
     Step[] stepArray = getSteps();
+    Step curStep = null, prevNonNullStep = null;
     for (int n = 0; n < stepArray.length; n++) {
-      if (stepArray[n] == null || !clip.includesFrame(n)) continue;
+    	boolean inFrame = clip.includesFrame(n);
+    	if (inFrame) {
+    		curStep = stepArray[n];
+    		if (curStep!=null) {
+    			int curStepNum = clip.frameToStep(n);
+    			if (prevNonNullStep!=null) {
+    				int prevStepNum = clip.frameToStep(prevNonNullStep.n);
+    				for (int i=prevStepNum+1; i<curStepNum; i++) {
+    					skippedSteps.add(i);
+    				}
+    			}
+    			prevNonNullStep = curStep;
+    		}
+    	}
+      if (stepArray[n] == null || !inFrame) continue;
       int stepNumber = clip.frameToStep(n);
       double t = player.getStepTime(stepNumber)/1000.0;
     	double tf = player.getStepTime(stepNumber+vDerivSpill)/1000.0;
