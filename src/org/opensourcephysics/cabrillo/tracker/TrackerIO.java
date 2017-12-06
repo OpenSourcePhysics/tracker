@@ -1433,14 +1433,14 @@ public class TrackerIO extends VideoIO {
       }
       else if (name.equals("videoclip")) { //$NON-NLS-1$
       	name = TrackerRes.getString("TMenuBar.MenuItem.VideoClip"); //$NON-NLS-1$
-//      	vidControl = children[i].getChildControl("video"); //$NON-NLS-1$
-//      	if (vidControl!=null) {
-//	      	vidClipControl = children[i];
-//	        originals.add(vidControl);
-//	        choices.add(vidControl);
-//	        names.add(name+" "+TrackerRes.getString("TrackerIO.Export.Option.WithoutVideo"));  //$NON-NLS-1$//$NON-NLS-2$
-//	       	name = name+" "+TrackerRes.getString("TrackerIO.Export.Option.WithVideo"); //$NON-NLS-1$ //$NON-NLS-2$
-//      	}
+      	vidControl = children[i].getChildControl("video"); //$NON-NLS-1$
+      	if (vidControl!=null) {
+	      	vidClipControl = children[i];
+	        originals.add(vidControl);
+	        choices.add(vidControl);
+	        names.add(name+" "+TrackerRes.getString("TrackerIO.Export.Option.WithoutVideo"));  //$NON-NLS-1$//$NON-NLS-2$
+	       	name = name+" "+TrackerRes.getString("TrackerIO.Export.Option.WithVideo"); //$NON-NLS-1$ //$NON-NLS-2$
+      	}
       }
       originals.add(children[i]);
       if (name.equals("clipcontrol")) continue; //$NON-NLS-1$
@@ -1482,9 +1482,9 @@ public class TrackerIO extends VideoIO {
       		if (!choices.contains(next)) {
       			if (removeVideo) {
       				// remove video from clip property
-//	            XMLProperty prop = vidControl.getParentProperty();
-//      				vidClipControl.setValue("video", null); //$NON-NLS-1$
-//      				vidClipControl.getPropertyContent().remove(prop);
+	            XMLProperty prop = vidControl.getParentProperty();
+      				vidClipControl.setValue("video", null); //$NON-NLS-1$
+      				vidClipControl.getPropertyContent().remove(prop);
 	      		}
 	      		else {
 	      			// remove video clip property entirely
