@@ -85,23 +85,21 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here	
-		    	      	
-//	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 
+//		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 //	    	      		Font textFont = new Font("Helvetica", Font.PLAIN, 60);
 //	    	      		String s = "Hello world";
-//	    	          FontRenderContext fontRenderContext = 
-//	    	              new FontRenderContext(null,true,true);
-//	    	          GlyphVector glyphVector = 
+//	    	          java.awt.font.FontRenderContext fontRenderContext = 
+//	    	              new java.awt.font.FontRenderContext(null,true,true);
+//	    	          java.awt.font.GlyphVector glyphVector = 
 //	    	          		textFont.createGlyphVector(fontRenderContext, s);
 //	    	          Shape outline = glyphVector.getOutline(100, 100);
-//	    	          GeneralPath path = new GeneralPath(outline);
+//	    	          java.awt.geom.GeneralPath path = new java.awt.geom.GeneralPath(outline);
 //	    	          PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
 //	    	          PencilDrawing drawing = new PencilDrawing(drawer.pencilColor, null);
 //	    	          drawing.setPath(path);
 //	    	          drawer.addDrawingtoSelectedScene(drawing);
 //	    	          trackerPanel.repaint();
-//	    	      		TTrack track = trackerPanel.getSelectedTrack();
 
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
@@ -162,10 +160,11 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    		int responseCode = 0; // code 200 = "OK"
    	    		final String fileName = "tracker-"+Tracker.newerVersion+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
   	    		String upgradeURL = ResourceLoader.getString("http://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
+  	    		String upgradeFile = upgradeURL.trim()+fileName;
   	    		if (upgradeURL!=null) {
 	    				// see if the jar file is found at this url
 	  	    		try {
-	  	    	    URL url = new URL(upgradeURL.trim()+fileName);
+	  	    	    URL url = new URL(upgradeFile);
 	  	    	    HttpURLConnection huc = (HttpURLConnection)url.openConnection();
 	  	    	    responseCode = huc.getResponseCode();
 		  	    	} catch (Exception ex) {
@@ -200,7 +199,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    		    int y = (dim.height-relaunchingDialog.getBounds().height)/2;
 		    		    relaunchingDialog.setLocation(x, y-200);
 	  	    		}
-	  	    		final String url = upgradeURL;  	    		
+	  	    		final String url = upgradeFile;  	    		
 	  	    		Runnable runner = new Runnable() {
 	  	    			public void run() {
 	  	  	    		File target = new File(Tracker.trackerHome, fileName);
@@ -236,6 +235,16 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     				}
 
   	    	} // end download/relaunch
+  	    });
+  	    JMenuItem homeItem = new JMenuItem(
+  	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.LearnMore")); //$NON-NLS-1$
+  	    popup.add(homeItem);
+  	    homeItem.addActionListener(new ActionListener() {
+  	    	public void actionPerformed(ActionEvent e) {
+  					// go to Tracker web site
+  	    		String websiteurl = "https://"+Tracker.trackerWebsite+"/change_log.html"; //$NON-NLS-1$ //$NON-NLS-2$
+  	    		OSPDesktop.displayURL(websiteurl);
+  	    	}
   	    });
   	    JMenuItem ignoreItem = new JMenuItem(
   	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.Ignore")); //$NON-NLS-1$
