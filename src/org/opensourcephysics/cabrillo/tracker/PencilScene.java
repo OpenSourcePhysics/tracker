@@ -45,13 +45,6 @@ public class PencilScene implements Trackable, Measurable, Comparable {
 	boolean visible = true;
 	int startframe=0, endframe=Integer.MAX_VALUE;
 	
-  /**
-   * 
-   * Constructs a PencilScene.
-   */
-	PencilScene() {
-	}
-
 	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
 		if (!visible) return;
@@ -100,7 +93,7 @@ public class PencilScene implements Trackable, Measurable, Comparable {
    * @param vis
    */
 	public void setVisible(boolean vis) {
-		visible = vis;;
+		visible = vis;
 	}
 
 	@Override

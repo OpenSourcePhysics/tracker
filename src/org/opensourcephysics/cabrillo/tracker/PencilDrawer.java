@@ -151,6 +151,7 @@ public class PencilDrawer {
   protected ScenePropertiesDialog scenePropertiesDialog;
   protected KeyListener keyListener;
   protected PencilScene selectedScene;
+  protected PencilScene newScene;
   
   /**
    * Constructs a PencilDrawer.
@@ -286,7 +287,7 @@ public class PencilDrawer {
 		PencilScene scene = getSelectedScene();
 		if (scene==null) {
 			scene = addNewScene();
-			selectedScene = scene;
+			selectedScene = newScene = scene;
 		}
 		PencilDrawing drawing = new PencilDrawing(pencilColor, scene);
 		scene.getDrawings().add(drawing);
@@ -522,6 +523,10 @@ public class PencilDrawer {
       		eraseLastDrawingInSelectedScene();
       		trackerPanel.repaint();
       	}
+      	if (drawing!=null && newScene!=null) {      		
+					getDrawingPropertiesDialog(newScene).setVisible(true);
+      	}
+				newScene = null;
         trackerPanel.setMouseCursor(getPencilCursor());
      }
   }

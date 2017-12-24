@@ -563,7 +563,7 @@ public class MainTView extends JPanel implements TView {
   public void dispose() {
   	cleanup();
 	  // dispose of floating player, if any
-  	// pig this main view not finalized when player is floating
+  	// note main view not finalized when player is floating
 	  Container frame = playerBar.getTopLevelAncestor();
 	  if (frame instanceof JDialog) {
 	  	frame.removeAll();
