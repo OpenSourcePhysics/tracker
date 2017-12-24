@@ -32,10 +32,18 @@
 		<h3>4. Sorting rows</h3>
 		<p>Click a column header to sort rows in ascending order of the data in the clicked column. The sorted column name is displayed in bold font.</p>
 		<p align="center"><img src="../help_images/table_sorted.gif" alt="Sorted column"></p>
+        
+		<h3><a name="skips"></a>5. Finding skipped steps</h3>
+		<p>Sometimes  steps are skipped when marking, by accident or otherwise. It is recommended you identify and eliminate these skips since they prevent Tracker from determining velocities and accelerations. The datatable can help make this easier by drawing red lines where steps have been skipped. When Tracker detects that there are skips a button is displayed on the table's toolbar. Click this button to draw bright red lines at the skipped steps. In the images below, step 2 has been deleted to illustrate.</p>
+	<p align="center">
+    	<img src="../help_images/table_skips_off.gif" alt="Skips button">
+        <img src="../help_images/spacer.gif">
+    	<img src="../help_images/table_skips_on.gif" alt="Skips shown in red">
+    </p>
 
-		<h3>5. Formatting data columns</h3>
+	<h3>6. Formatting data columns</h3>
 		<p>By default, the format of a number displayed in a table varies based on the magnitude of the number. If desired, you can set a fixed format using the <strong>Number Format</strong> dialog. To display the Number Format dialog right-click the datatable   and select  <strong>Number Format...</strong> from the popup menu. For more information see <a href="interface.html#numberformat">Number Formats</a>.</p>
-<h3>6. Selecting cells</h3>
+<h3>7. Selecting cells</h3>
 		<p>Click and drag in the table to select cells. Double-click any cell to select all cells, or double-click a column header to select that column.</p>
 		<p>Control-click a cell to add or remove that row and column to or from the current selection. Control-click a column header to add or remove that column to or from the current selection.</p>
 		<p>Shift-click a cell to add that and all intervening rows and columns to the current selection. Shift-click a column to add that and all intervening columns to the current selection.</p>
@@ -46,14 +54,14 @@
         </p>
 		<p>Click the blank area below the data table to deselect all cells.</p>
 
-		<h3>7. Copying data</h3>
+		<h3>8. Copying data</h3>
 		<p>Right-click the table and select <strong>Copy Selected Data</strong> from the popup menu to copy the selected cells to the clipboard. On Mac, select one cell, then hold down both the shift and control keys while clicking on a second cell to select the enclosed range and pop up the Copy menu.</p>
 		<p>Cell values may be copied in full precision scientific notation or using the format displayed in the table.</p>
 		<p align="center"><img src="../help_images/table_copying3.gif" alt="Copying the data"></p>
 		<p>By default, cells are copied as text strings delimited by tabs between columns and line returns between rows. You can change the column delimiter using the <strong>Set Delimiter</strong> menu as shown.</p>
 		<p align="center"><img src="../help_images/table_copying4.gif" alt="Setting the delimiter"></p>
         
-		<h3>8. Defining text columns</h3>
+		<h3>9. Defining text columns</h3>
 		<p>Right-click the table and choose <strong>Text Columns|Create...</strong> to create a new editable text column. You must assign the column a name that is not already in use.</p>
 		<p align="center">
 			<img src="../help_images/text_column_create.gif" alt="Creating a text column">
@@ -66,7 +74,7 @@
 		<p>To delete or rename a text column, choose the column name from the appropriate <strong>Text Columns</strong> popup menu.</p>
 		<p align="center"><img src="../help_images/text_column_delete.gif" alt="Deleting a text column"></p>
 
-		<h3>9. Defining new data columns with Data Builder</h3>
+		<h3>10. Defining new data columns with Data Builder</h3>
 <p>Right-click the table and choose <strong>Define...</strong> to display a <strong>Data Builder</strong> with which you can define custom variables called <strong>data functions</strong> for plots and datatables.</p>
 		<p align="center"><img src="../help_images/table_define.gif"></p>
 		<p>Click the appropriate <strong>Add</strong> button to add new data functions or to define <strong>parameters</strong> for use in function expressions.</p>
@@ -78,7 +86,7 @@
 		<p>Data functions can be virtually any mathematical function of parameters, track-defined data columns, and other data functions.</p>
 		<p align="center"><img src="../help_images/data_builder_help.gif" alt="Data Builder help"></p>
         
-		<h3>10. Saving, loading and autoloading data functions</h3>
+		<h3>11. Saving, loading and autoloading data functions</h3>
 		<p>Data functions created with Data Builder can be saved in XML files for manual or automatic loading. To save a function for manual loading, click the save button on the Data Builder toolbar, select the functions to save in the <strong>Save Data Functions</strong> dialog, and click the OK button. To manually load a saved data function, click the open button on the Data Builder toolbar, open the XML file with the file chooser, then select the functions to load. <strong>Note</strong>: data functions are associated with a specific track type and cannot be loaded into other track types--e.g., a function defined and saved by a Point Mass track can be loaded only by other point masses, not by vectors.</p>
         <p align="center">
 	<img src="../help_images/data_builder_save.gif" alt="Saving a data function">
@@ -88,7 +96,7 @@
 		<p>Data functions can also be loaded <em>automatically</em> so they are always available just like built-in data columns. To autoload a data function, first create or manually load it into Data Builder, then click the <strong>Autoload</strong> button on the Data Builder toolbar. Select the functions to autoload in the <strong>Autoload Data Functions</strong> dialog and click the OK button. The functions will then be autoloaded by all tracks of the same type. <strong>Note</strong>: data functions are associated with a specific track type and cannot be autoloaded into other track types--e.g., a function selected for autoloading by Point Mass tracks will not be autoloaded by vectors.</p>
 <p align="center"><img src="../help_images/data_builder_autoload.gif" alt="Autoloading a data function"></p>
 
-<h3><a name="analyze"></a>11. Analyzing data with Data Tool</h3>
+<h3><a name="analyze"></a>12. Analyzing data with Data Tool</h3>
 <p>Right-click the table and choose <strong>Analyze...</strong> to open all visible columns in the <strong>Data Tool</strong>.</p>
 		<p align="center"><img src="../help_images/table_analyze.gif" alt="Analyze menu item"></p>
 		<p>The Data Tool provides statistical analysis including automatic and manual curve fitting of all or any selected subset of the data. For help using Data Tool, open Data Tool and click its <strong>Help</strong> button.</p>
