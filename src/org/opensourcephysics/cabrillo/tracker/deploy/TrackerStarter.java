@@ -41,11 +41,13 @@ import java.util.Map;
 import java.nio.charset.Charset;
 
 import javax.swing.JOptionPane;
+
 import org.opensourcephysics.cabrillo.tracker.Tracker;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
@@ -81,24 +83,29 @@ public class TrackerStarter {
 	static String[] executables;
 	static String logText = ""; //$NON-NLS-1$
 	static String javaCommand = "java"; //$NON-NLS-1$
-	static String preferredVM;
+	static String preferredVM, bundledVM;
 	static String snapshot = "-snapshot"; //$NON-NLS-1$
 	static boolean debug = false;
 	static boolean log = true;
-	static boolean use32BitMode = false;
 	static boolean relaunching = false;
 	static boolean launching = false;
 	static int port = 12321;
 	static Thread launchThread, exitThread;
+	static boolean abortExit;
 	static int exitCounter = 0;
 	
 	static {
 		// identify codeBaseDir
 		try {
 			newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-			URL url = TrackerStarter.class.getProtectionDomain().getCodeSource()
-					.getLocation();
-			starterJarFile = new File(url.toURI());
+			URL url = TrackerStarter.class.getProtectionDomain().getCodeSource().getLocation();
+			java.net.URI uri = url.toURI();
+			String path = uri.toString();
+			if (path.startsWith("jar:")) { //$NON-NLS-1$
+				path = path.substring(4, path.length());
+			}
+			uri = new java.net.URI(path);
+			starterJarFile = new File(uri);
 			codeBaseDir = starterJarFile.getParentFile();
 			OSPRuntime.setLaunchJarPath(starterJarFile.getAbsolutePath());
 		} catch (Exception ex) {
@@ -181,6 +188,7 @@ public class TrackerStarter {
 	public static void launchTracker(String[] args) {
 		if (launching) return;
 		launching = true;
+		logMessage("TrackerStarter runnning in jre: " + javaHome); //$NON-NLS-1$
 		
 		launchThread = null;
 		
@@ -437,6 +445,30 @@ public class TrackerStarter {
 		if (writeToLog) logMessage("using xugglehome: " + xuggleHome); //$NON-NLS-1$
 		return xuggleHome;
 	}
+	
+	/**
+	 * Finds the bundled Java vm, if any.
+	 */
+	public static String findBundledVM() {
+		if (bundledVM!=null) return bundledVM;
+		File jre = null;
+		if (OSPRuntime.isWindows()) {
+			jre = JREFinder.getFinder().getDefaultJRE(32, trackerHome);
+		}
+		else if (OSPRuntime.isMac()) {
+			File home = new File(trackerHome);
+			String path = home.getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
+			jre = JREFinder.getFinder().getDefaultJRE(64, path);
+		}
+		else {
+			jre = JREFinder.getFinder().getDefaultJRE(OSPRuntime.getVMBitness(), trackerHome);
+		}
+		if (jre != null && jre.exists()) {
+			return jre.getPath();
+		}
+		return null;
+	}
+
 
 	// /**
 	// * Finds all available Java VMs and returns their paths in a Set<String>[].
@@ -455,7 +487,7 @@ public class TrackerStarter {
 	 * Exits gracefully by giving information to the user.
 	 */
 	private static void exitGracefully(String jarPath) {
-//		if (exitTimer!=null) exitTimer.stop();
+		if (exitThread!=null) abortExit = true;
 		if (exceptions.equals("")) //$NON-NLS-1$
 			exceptions = "None"; //$NON-NLS-1$
 		String startLogLine = ""; //$NON-NLS-1$
@@ -466,9 +498,8 @@ public class TrackerStarter {
 			JOptionPane
 					.showMessageDialog(
 							null,
-							"Tracker could not be started automatically due to" + newline //$NON-NLS-1$
-									+ "the problem(s) listed below.  However, you may be able to" + newline //$NON-NLS-1$
-									+ "start it directly by double-clicking the jar file" + newline //$NON-NLS-1$
+							"Tracker could not be started due to the problem(s) listed below." + newline //$NON-NLS-1$
+									+ "However, you may be able to start it by double-clicking the file" + newline //$NON-NLS-1$
 									+ jarPath
 									+ "." + newline + newline //$NON-NLS-1$
 									+ startLogLine
@@ -552,14 +583,6 @@ public class TrackerStarter {
 		if (!prefsXMLControl.failedToRead()) {
 			logMessage("loading starter preferences from: " + prefsPath); //$NON-NLS-1$
 			
-			// preferred vm bitness
-//			String systemProperty = System.getProperty(PREFERRED_VM_BITNESS);
-//			if (systemProperty!=null) {
-//				use32BitMode = "32".equals(systemProperty); //$NON-NLS-1$
-//				logMessage("system property "+PREFERRED_VM_BITNESS+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
-//			}
-			use32BitMode = prefsXMLControl.getBoolean("32-bit"); //$NON-NLS-1$
-			
 			// preferred tracker jar
 			String jar = null;
 			String systemProperty = System.getProperty(PREFERRED_TRACKER_JAR);
@@ -592,12 +615,6 @@ public class TrackerStarter {
 
 			// preferred java vm
 			preferredVM = null;
-//			systemProperty = System.getProperty(PREFERRED_JAVA_VM);
-//			if (systemProperty!=null) {
-//				loaded = true;
-//				preferredVM = systemProperty;
-//				logMessage("system property "+PREFERRED_JAVA_VM+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
-//			}
 			if (prefsXMLControl.getPropertyNames().contains("java_vm")) { //$NON-NLS-1$
 				loaded = true;
 				preferredVM = prefsXMLControl.getString("java_vm"); //$NON-NLS-1$
@@ -607,12 +624,26 @@ public class TrackerStarter {
 				File javaFile = OSPRuntime.getJavaFile(preferredVM);
 				if (javaFile != null && javaFile.exists()) {
 					javaCommand = XML.stripExtension(javaFile.getPath());
-				} else {
-					logMessage("preferred java VM invalid--using default instead"); //$NON-NLS-1$
+				} 
+				else {
+					logMessage("preferred java VM invalid"); //$NON-NLS-1$
 					preferredVM = null;
-					javaCommand = "java"; //$NON-NLS-1$
 				}
-
+			}
+			if (preferredVM==null) {
+					// look for bundled jre
+				bundledVM = findBundledVM();
+				if (bundledVM != null) {
+					File javaFile = OSPRuntime.getJavaFile(bundledVM);
+					if (javaFile!=null && javaFile.exists()) {
+						preferredVM = bundledVM;
+						logMessage("no preferred java VM, using bundled VM: "+bundledVM); //$NON-NLS-1$
+						javaCommand = XML.stripExtension(javaFile.getPath());
+					}
+				} 
+				else {
+					logMessage("no preferred or bundled java VM, using default"); //$NON-NLS-1$
+				}
 			}
 
 			// preferred executables to run prior to starting Tracker
@@ -770,7 +801,6 @@ public class TrackerStarter {
 			cmd.add("-Xmx" + memorySize + "m"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		if (OSPRuntime.isMac()) {
-			cmd.add(use32BitMode ? "-d32" : "-d64"); //$NON-NLS-1$ //$NON-NLS-2$
 			cmd.add("-Xdock:name=Tracker"); //$NON-NLS-1$
 		}
 		
@@ -869,8 +899,10 @@ public class TrackerStarter {
 		if (exitThread==null) {
 			exitThread = new Thread(new Runnable() {
 				public void run() {
+					abortExit = false;
 					while (exitCounter<10) {
 						try {
+							if (abortExit) return;
 							Thread.sleep(100);
 							exitCounter++;
 						} catch (InterruptedException e) {
@@ -922,16 +954,6 @@ public class TrackerStarter {
     		logMessage("try to start with smaller memory size "+memorySize+"MB"); //$NON-NLS-1$ //$NON-NLS-2$
     		startTracker(jarPath, args);
     	}
-	    // if process failed due to unsupported 32-bit VM, change bitness and try again
-	    else if (errors.indexOf("32-bit")>-1) { //$NON-NLS-1$
-	    	use32BitMode = false;
-    		logMessage("try to start in 64-bit mode"); //$NON-NLS-1$
-    		
-				// assemble warning to pass to Tracker as an environment variable
-    		starterWarning = "The Java VM was started in 64-bit mode (32-bit not support)."; //$NON-NLS-1$
-
-    		startTracker(jarPath, args);
-	    }
 	    else {
   			exceptions += errors + newline;
   			exitGracefully(jarPath);
