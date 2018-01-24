@@ -142,7 +142,7 @@ public class TrackerStarter {
 		relaunching = false;
 		logText = ""; //$NON-NLS-1$
 		logMessage("launch initiated by user"); //$NON-NLS-1$
-
+		
   	if (OSPRuntime.isMac()) {
   		// create launchThread to instantiate OSXServices and launch Tracker
 		  launchThread = new Thread(new Runnable() {
@@ -176,7 +176,7 @@ public class TrackerStarter {
 			launchThread.start();				  
 		}
   	else {
-  		// for Windows and LInux, launch Tracker immediately with default args
+  		// for Windows and Linux, launch Tracker immediately with default args
 			launchTracker(args);					 
   	}
 	}
@@ -453,15 +453,15 @@ public class TrackerStarter {
 		if (bundledVM!=null) return bundledVM;
 		File jre = null;
 		if (OSPRuntime.isWindows()) {
-			jre = JREFinder.getFinder().getDefaultJRE(32, trackerHome);
+			jre = JREFinder.getFinder().getDefaultJRE(32, trackerHome, false);
 		}
 		else if (OSPRuntime.isMac()) {
 			File home = new File(trackerHome);
 			String path = home.getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
-			jre = JREFinder.getFinder().getDefaultJRE(64, path);
+			jre = JREFinder.getFinder().getDefaultJRE(64, path, false);
 		}
 		else {
-			jre = JREFinder.getFinder().getDefaultJRE(OSPRuntime.getVMBitness(), trackerHome);
+			jre = JREFinder.getFinder().getDefaultJRE(OSPRuntime.getVMBitness(), trackerHome, false);
 		}
 		if (jre != null && jre.exists()) {
 			return jre.getPath();
