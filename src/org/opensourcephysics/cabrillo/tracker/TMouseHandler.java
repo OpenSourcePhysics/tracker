@@ -91,7 +91,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
   	
     if (!trackerPanel.isDrawingInImageSpace()) return;
   	
-  	// drawing actions handled by PencilDrawer
+  	// pencil drawing actions handled by PencilDrawer
     if (PencilDrawer.isDrawing(trackerPanel)) {
     	PencilDrawer.getDrawer(trackerPanel).handleMouseAction(e);
     	return;

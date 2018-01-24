@@ -79,6 +79,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   protected static Icon[] trailIcons = new Icon[4];
   protected static int[] stretchValues = new int[] {1,2,3,4,6,8,12,16,24,32};
   protected static Icon separatorIcon;
+  protected static Icon checkboxOffIcon, checkboxOnIcon;
+  protected static ResizableIcon checkboxOnDisabledIcon;
+  protected static Icon pencilOffIcon, pencilOnIcon, pencilOffRolloverIcon, pencilOnRolloverIcon;
   protected static NumberFormat zoomFormat = NumberFormat.getNumberInstance();
 	
 	// instance fields
@@ -90,6 +93,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   protected TButton newTrackButton;
   protected JButton trackControlButton, clipSettingsButton;
   protected CalibrationButton calibrationButton;
+  protected DrawingButton drawingButton;
   protected JButton axesButton, zoomButton, autotrackerButton;
   protected JButton traceVisButton, pVisButton, vVisButton, aVisButton;
   protected JButton xMassButton, trailButton, labelsButton, stretchButton;
@@ -154,7 +158,14 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     trailIcons[2] = new ResizableIcon(Tracker.class.getResource("resources/images/trails_2.gif")); //$NON-NLS-1$
     trailIcons[3] = new ResizableIcon(Tracker.class.getResource("resources/images/trails_on.gif")); //$NON-NLS-1$
     separatorIcon = new ResizableIcon(Tracker.class.getResource("resources/images/separator.gif")); //$NON-NLS-1$
-  	zoomFormat.setMaximumFractionDigits(0);
+    checkboxOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/box_unchecked.gif")); //$NON-NLS-1$
+    checkboxOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/box_checked.gif")); //$NON-NLS-1$
+    checkboxOnDisabledIcon = new ResizableIcon(Tracker.class.getResource("resources/images/box_checked_disabled.gif")); //$NON-NLS-1$
+    pencilOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/pencil_off.gif")); //$NON-NLS-1$
+    pencilOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/pencil_on.gif")); //$NON-NLS-1$
+    pencilOffRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/pencil_off_rollover.gif")); //$NON-NLS-1$
+    pencilOnRolloverIcon = new ResizableIcon(Tracker.class.getResource("resources/images/pencil_on_rollover.gif")); //$NON-NLS-1$
+    zoomFormat.setMaximumFractionDigits(0);
   }
 
   /**
@@ -506,6 +517,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         notesButton.setSelected(false);
       }
     };
+    drawingButton = new DrawingButton();
     notesButton = new TButton(infoIcon);
     notesButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -664,7 +676,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         refreshing = true; // signals listeners that items are being refreshed
         refreshZoomButton();
         calibrationButton.refresh();
-        PencilDrawer.getDrawer(trackerPanel).getPencilButton().refresh();
+        drawingButton.refresh();
         stretchButton.setSelected(vStretch>1 || aStretch>1);
         stretchOffItem.setText(TrackerRes.getString("TToolBar.MenuItem.StretchOff")); //$NON-NLS-1$
         stretchOffItem.setEnabled(vStretch>1 || aStretch>1);
@@ -912,8 +924,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         add(fontBiggerButton);
         add(getSeparator());
         add(toolbarFiller);
-        if (trackerPanel.isEnabled("button.pencil")) //$NON-NLS-1$
-        	add(PencilDrawer.getDrawer(trackerPanel).getPencilButton());
+        if (trackerPanel.isEnabled("button.drawing")) //$NON-NLS-1$
+        	add(drawingButton);
         add(desktopButton);
         add(notesButton);
         boolean hasPageURLs = !pageViewTabs.isEmpty();
@@ -1149,7 +1161,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   }
   
   /**
-   * A class to manage the creation and visibility of calibration tools.
+   * A button to manage the creation and visibility of calibration tools.
    */
   protected class CalibrationButton extends TButton 
   		implements ActionListener {
@@ -1175,8 +1187,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       });
       addActionListener(this);
     }
-
-  	
+ 	
     /**
      * Overrides TButton method.
      *
@@ -1429,6 +1440,95 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       }
     }
     
+  } // end calibration button
+  
+  /**
+   * A button to manage the visibility of the pencil scenes and control dialog
+   */
+  protected class DrawingButton extends TButton 
+  		implements ActionListener {
+  	  	
+  	boolean showPopup; 	
+    JPopupMenu popup;
+    JMenuItem drawingVisibleCheckbox;
+    
+    /**
+     * Constructor.
+     */
+    private DrawingButton() {
+    	setIcons(pencilOffIcon, pencilOnIcon);      
+      setRolloverIcon(pencilOffRolloverIcon);
+      setRolloverSelectedIcon(pencilOnRolloverIcon);
+      addActionListener(this);
+      
+      // mouse listener to distinguish between popup and tool visibility actions
+      addMouseListener(new MouseAdapter() {
+        public void mousePressed(MouseEvent e) {
+        	int w = getIcon().getIconWidth();
+        	int dw = getWidth()-w;
+        	// show popup if right side of button clicked
+        	showPopup = e.getX()>(w*18/28 + dw/2);
+        }
+      });
+
+      drawingVisibleCheckbox = new JMenuItem();
+      drawingVisibleCheckbox.setSelected(true);
+      drawingVisibleCheckbox.setDisabledIcon(checkboxOnDisabledIcon);
+      drawingVisibleCheckbox.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+        	drawingVisibleCheckbox.setSelected(!drawingVisibleCheckbox.isSelected());
+        	trackerPanel.setSelectedPoint(null);
+        	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+        	drawer.setDrawingsVisible(drawingVisibleCheckbox.isSelected());
+        	trackerPanel.repaint();
+        }
+      }); 
+      popup = new JPopupMenu();
+    	popup.add(drawingVisibleCheckbox);
+    }
+ 	
+    @Override
+    protected JPopupMenu getPopup() {
+    	if (!showPopup)	return null;
+    	refresh();
+    	FontSizer.setFonts(popup, FontSizer.getLevel());
+    	checkboxOnDisabledIcon.resize(FontSizer.getIntegerFactor());
+    	return popup;
+    }
+    
+    @Override
+    public void actionPerformed(ActionEvent e) {
+  		if (showPopup) return;
+      trackerPanel.setSelectedPoint(null);
+      trackerPanel.hideMouseBox();        
+      setSelected(!isSelected());
+    	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+      drawer.getDrawingControl().setVisible(isSelected());
+      if (isSelected()) {
+				if (drawer.scenes.isEmpty()) {
+					drawer.addNewScene();
+				}
+				else {
+					PencilScene scene = drawer.getSceneAtFrame(trackerPanel.getFrameNumber());
+					drawer.getDrawingControl().setSelectedScene(scene);
+				}
+	      drawer.setDrawingsVisible(true);        	
+      }
+    }
+    
+    /**
+     * Refreshes this button.
+     */
+    void refresh() {
+      setToolTipText(TrackerRes.getString("TToolBar.Button.Drawings.Tooltip")); //$NON-NLS-1$
+      drawingVisibleCheckbox.setText(TrackerRes.getString("TToolBar.MenuItem.DrawingsVisible.Text")); //$NON-NLS-1$
+    	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
+    	drawingVisibleCheckbox.setSelected(drawer.areDrawingsVisible());
+      drawingVisibleCheckbox.setIcon(drawer.areDrawingsVisible()? checkboxOnIcon: checkboxOffIcon);
+      drawingVisibleCheckbox.setEnabled(!PencilDrawer.isDrawing(trackerPanel));
+    }
+    
   }
+
 
 }

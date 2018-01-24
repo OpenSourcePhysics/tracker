@@ -2418,6 +2418,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     if (attachmentDialog!=null) {
     	attachmentDialog.setFontLevel(level);
     }
+    PencilDrawer drawer = PencilDrawer.getDrawer(this);
+    if (drawer.drawingControl!=null && drawer.drawingControl.isVisible()) {
+    	drawer.drawingControl.setFontLevel(level);
+    }
     Video video = getVideo();
     if (video!=null) {
     	FilterStack filterStack = video.getFilterStack();
@@ -2480,6 +2484,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @param args args[0] may be an xml file
    */
   public static void main(String[] args) {
+  	// if no argument, pass call to Tracker
   	if (args==null || args.length==0) {
   		Tracker.main(args);
   		return;
@@ -3208,7 +3213,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	    				+ "\n"+TrackerRes.getString("TrackerPanel.Dialog.Version.Message3") //$NON-NLS-1$ //$NON-NLS-2$
 	    				+ " ("+Tracker.VERSION+")." //$NON-NLS-1$ //$NON-NLS-2$
 	    				+ "\n\n"+TrackerRes.getString("TrackerPanel.Dialog.Version.Message4") //$NON-NLS-1$ //$NON-NLS-2$
-	    				+" "+Tracker.trackerWebsite+".",  //$NON-NLS-1$ //$NON-NLS-2$
+	    				+" https://"+Tracker.trackerWebsite+".",  //$NON-NLS-1$ //$NON-NLS-2$
 	    				TrackerRes.getString("TrackerPanel.Dialog.Version.Title"),  //$NON-NLS-1$
 	    				JOptionPane.INFORMATION_MESSAGE);
 	    	}	    	
@@ -3298,7 +3303,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
           trackerPanel.addTrack(track);
       	}
       }
-      // load drawing scenes saved in vers 4.10.1+
+      // load drawing scenes saved in vers 4.11.0+
       ArrayList<PencilScene> scenes = (ArrayList<PencilScene>)control.getObject("drawing_scenes"); //$NON-NLS-1$
       if (scenes!=null) {
       	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
@@ -3311,12 +3316,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       if (drawings!=null) {
       	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
       	drawer.setDrawingsVisible(control.getBoolean("drawings_visible")); //$NON-NLS-1$
-      	// clear previous drawings and add new ones
-      	drawer.clearAllScenes();
-      	PencilScene scene = drawer.addNewScene();
-      	scene.startframe = 0;
-      	scene.endframe = Integer.MAX_VALUE;
-      	drawer.selectedScene = scene;
+      	// clear previous scenes and add drawings to new one
+      	drawer.clearScenes();
       	for (PencilDrawing next: drawings) {
       		drawer.addDrawingtoSelectedScene(next);
       	}

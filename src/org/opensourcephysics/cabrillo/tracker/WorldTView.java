@@ -133,6 +133,7 @@ public class WorldTView extends TrackerPanel implements TView {
    * Refreshes all tracks
    */
   public void refresh() {
+  	worldViewButton.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
     // axes & tape items
   	CoordAxes axes = trackerPanel.getAxes();
     if (axes!=null) {
@@ -341,9 +342,11 @@ public class WorldTView extends TrackerPanel implements TView {
   	if (trackerPanel==null) {
   		return super.getDrawables();
   	}
-    // return all drawables in tracker panel plus those in this world view
+    // return all drawables in trackerPanel (except PencilScenes) plus those in this world view
     ArrayList<Drawable> list = trackerPanel.getDrawables();
     list.addAll(super.getDrawables());
+    // remove PencilScenes
+    list.removeAll(trackerPanel.getDrawables(PencilScene.class));
     // put mat behind everything
     TMat mat = trackerPanel.getMat();
     if (mat != null && list.get(0) != mat) {

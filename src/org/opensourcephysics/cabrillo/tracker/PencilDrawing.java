@@ -24,10 +24,9 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
-import java.awt.geom.GeneralPath;
+import java.awt.Graphics2D;
 import java.awt.geom.PathIterator;
 import java.util.ArrayList;
 
@@ -36,71 +35,46 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLLoader;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Trail;
-import org.opensourcephysics.media.core.Trackable;
 
 /**
- * A PencilDrawing is a Trackable Trail.
+ * A PencilDrawing is a freeform line.
  *
  * @author Douglas Brown
  */
-public class PencilDrawing extends Trail implements Trackable {
+public class PencilDrawing extends Trail {
 	
-  protected static Color[] pencilColors = {Color.BLACK, Color.RED, Color.GREEN, Color.BLUE,
-		Color.YELLOW, Color.MAGENTA, Color.CYAN, Color.WHITE};
-  
   static {
   	XML.setLoader(PencilDrawing.class, PencilDrawing.getLoader());
   }
 
-  PencilScene pencilScene;
-	ArrayList<double[]> pointArray = new ArrayList<double[]>();
-	double[] coords = new double[6];
+	private ArrayList<double[]> pointArray = new ArrayList<double[]>();
+	private double[] coords = new double[6]; // used to get path points for XMLLoader
 	
   /**
-   * 
-   * Constructs a PencilDrawing with the default color.
+   * Constructs a PencilDrawing with the default color and stroke.
    */
 	private PencilDrawing() {
-		setStroke(new BasicStroke(2));
+		setStroke(PencilDrawer.lightStroke);
 	}
 
   /**
-   * Constructs a PencilDrawing with a specified color and scene.
+   * Constructs a PencilDrawing with a specified color.
    *
    * @param c a Color
-   * @param scene the pencil scene that controls visibility
    */
-	PencilDrawing(Color c, PencilScene scene) {
+	PencilDrawing(Color c) {
 		this();
 		color = c;
-		setPencilScene(scene);
 	}
 	
-  /**
-   * 
-   * Sets the pencil scene that controls the visibility.
-   *
-   * @param scene the pencil scene that controls visibility
-   */
-	public void setPencilScene(PencilScene scene) {
-		pencilScene = scene;
-	}
-
 	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
-  	if (pencilScene==null || !pencilScene.visible) return;
-  	if (panel instanceof TrackerPanel) {
-	  	TrackerPanel trackerPanel = (TrackerPanel)panel;
-	  	int frame = trackerPanel.getFrameNumber();
-	  	if (trackerPanel.isDrawingInImageSpace()
-	  			&& frame>=pencilScene.startframe && frame<=pencilScene.endframe) {
-	  		super.draw(panel, g);
-	  	}
-  	}
-  	else {
-  		super.draw(panel, g);  		
-  	}
-  }
+		Graphics2D g2 = (Graphics2D)g;
+		Color c = g2.getColor();
+		super.draw(panel, g);
+		// restore color
+		g2.setColor(c);
+	}
 	
   /**
    * Gets the points that define the GeneralPath.
@@ -117,29 +91,7 @@ public class PencilDrawing extends Trail implements Trackable {
 		}
 		return pointArray.toArray(new double[pointArray.size()][3]);
 	}
-	
-	public void setPath(GeneralPath path) {
-		generalPath = path;
-		// reset numPts and min/max values
-		double[][] pts = getPathPoints();
-		numpts = 0;
-		for (double[] next: pts) {
-	    xmin = Math.min(xmin, next[1]);
-	    xmax = Math.max(xmax, next[1]);
-	    if(next[1]>0) {
-	      xminLogscale = Math.min(xminLogscale, next[1]);
-	      xmaxLogscale = Math.max(xmaxLogscale, next[1]);
-	    }
-	    ymin = Math.min(ymin, next[2]);
-	    ymax = Math.max(ymax, next[2]);
-	    if(next[2]>0) {
-	      yminLogscale = Math.min(yminLogscale, next[2]);
-	      ymaxLogscale = Math.max(ymaxLogscale, next[2]);
-	    }
-	    numpts++;
-		}
-	}
-	
+		
   /**
    * Returns the XML.ObjectLoader for this class.
    *
@@ -153,16 +105,19 @@ public class PencilDrawing extends Trail implements Trackable {
    * A class to save and load TDrawing data in an XMLControl.
    */
   private static class Loader extends XMLLoader {
+    @Override
     public void saveObject(XMLControl control, Object obj) {
     	PencilDrawing drawing = (PencilDrawing) obj;
       control.setValue("colorRGB", drawing.color.getRGB()); //$NON-NLS-1$
       control.setValue("points", drawing.getPathPoints()); //$NON-NLS-1$
     }
 
+    @Override
     public Object createObject(XMLControl control) {
       return new PencilDrawing();
     }
 
+    @Override
     public Object loadObject(XMLControl control, Object obj) {
     	PencilDrawing drawing = (PencilDrawing) obj;
     	drawing.color = new Color(control.getInt("colorRGB")); //$NON-NLS-1$
@@ -179,7 +134,6 @@ public class PencilDrawing extends Trail implements Trackable {
     	}
       return drawing;
     }
-
   }
 
 }
