@@ -199,11 +199,6 @@ public class MainTView extends JPanel implements TView {
    * @return the popup menu
    */
   JPopupMenu getPopupMenu() {
-  	if (PencilDrawer.isDrawing(trackerPanel) && 
-  			(!trackerPanel.getZoomBox().isVisible() || trackerPanel.getZoomBox().reportZoom().getWidth()==0)) {
-  		return PencilDrawer.getDrawer(trackerPanel).getPencilButton().getPopup(false);
-  	}
-
   	if (Tracker.isZoomInCursor(trackerPanel.getCursor())
   			|| Tracker.isZoomOutCursor(trackerPanel.getCursor())) {
   		return null;
