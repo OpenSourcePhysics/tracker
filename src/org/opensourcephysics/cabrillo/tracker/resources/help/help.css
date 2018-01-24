@@ -29,6 +29,11 @@ h5 {
 	text-align: center
 }
 
+h6 {
+	font-size: 10pt;
+	text-align: center
+}
+
 table {
 	margin-bottom: 6px;
 	border-style: solid;
