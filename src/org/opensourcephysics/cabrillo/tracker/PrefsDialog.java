@@ -42,6 +42,7 @@ import javax.swing.filechooser.FileFilter;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.IntegerField;
 import org.opensourcephysics.media.core.VideoIO;
@@ -116,7 +117,6 @@ public class PrefsDialog extends JDialog {
 	  	userHome = System.getProperty("user.home"); //$NON-NLS-1$
       javaHome = System.getProperty("java.home"); //$NON-NLS-1$
   		URL url = TrackerStarter.class.getProtectionDomain().getCodeSource().getLocation();
-//  		File jarFile = new File(url.getPath());
   		File jarFile = new File(url.toURI());
   		codeBaseDir = jarFile.getParentFile();
 		}  
@@ -542,135 +542,35 @@ public class PrefsDialog extends JDialog {
     vm64Button.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
     		if (!vm64Button.isSelected()) return;
-    		double xuggleVersion = DiagnosticsForXuggle.guessXuggleVersion();
 	    	if (OSPRuntime.isMac()) {
 	    		refreshJREDropdown(64);	    			
 	    	}
 	    	else if (OSPRuntime.isWindows()) {	    		
 	    		refreshJREDropdown(64);	    			
-	    		if (xuggleVersion==5.4) return;
-	    		// if no xuggle 5.4 engine, show warning
-	    		if (xuggleVersion==0 || xuggleVersion==3.4) {
-	    			// inform that no engine available in 64-bit VM
-		      	int selected = JOptionPane.showConfirmDialog(frame,
-	          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message1")+"\n"+  //$NON-NLS-1$ //$NON-NLS-2$
-	          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message2")+"\n\n"+  //$NON-NLS-1$ //$NON-NLS-2$
-	              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Question"),    //$NON-NLS-1$
-	              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Title"),    //$NON-NLS-1$
-	              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null);
-	          if (selected!=JOptionPane.YES_OPTION) {
-	          	vm32Button.setSelected(true); // revert to 32-bit VM	          	
-	          }
-	    			return;
-	    		}
+    			// inform that no engine available in 64-bit VM
+	      	int selected = JOptionPane.showConfirmDialog(frame,
+          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message1")+"\n"+  //$NON-NLS-1$ //$NON-NLS-2$
+          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message2")+"\n\n"+  //$NON-NLS-1$ //$NON-NLS-2$
+              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Question"),    //$NON-NLS-1$
+              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Title"),    //$NON-NLS-1$
+              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null);
+          if (selected!=JOptionPane.YES_OPTION) {
+          	vm32Button.setSelected(true); // revert to 32-bit VM	          	
+          }
+    			return;
 	    	}
     	}
     });
     jreNorthPanel.add(vm64Button);
     
     jreDropdown = new JComboBox();
-//    String pref = Tracker.preferredJRE;
-//    if (pref==null) {
-//    	int bitness = vm64Button.isSelected()? 64: 32;
-//    	File dir = JREFinder.getFinder().getDefaultJRE(bitness, Tracker.trackerHome);
-//    	if (dir!=null) pref = dir.getPath();
-//    }
-//    if (pref==null) {
-//    	pref = System.getProperty("java.home");              						//$NON-NLS-1$
-//    }
-//    jreDropdown.addItem(pref);
-    
-//    jreDropdown.addItemListener(new ItemListener() {
-//    	public void itemStateChanged(ItemEvent e) {
-//    		if (refreshing) return;
-//    		Object selected = jreDropdown.getSelectedItem();
-//    		if (selected==null) return;
-//    		if (vm64Button.isSelected()) {
-//    			recent64bitVM = selected.toString();
-//    		}
-//    		else {
-//    			recent32bitVM = selected.toString();    			
-//    		}
-//    	}
-//    });
     jreSouthPanel.add(jreDropdown); 
     refreshJREDropdown(vmBitness);
 
-//    jreField = new JTextField(24);
-//    jreSouthPanel.add(jreField);
-//    final Action setJREAction = new AbstractAction() {
-//      public void actionPerformed(ActionEvent e) {
-//      	String jre = jreField.getText();
-//      	File javaFile = OSPRuntime.getJavaFile(jre);
-//      	String path = OSPRuntime.getJREPath(javaFile);
-//      	if (path==null) {
-//      		if ("".equals(jre)) { //$NON-NLS-1$
-//      			Tracker.preferredJRE = null;
-//      		}
-//      		else {
-//      			Toolkit.getDefaultToolkit().beep();
-//      		}
-//      	}
-//      	else if ("".equals(path)) { //$NON-NLS-1$
-//    			Tracker.preferredJRE = null;
-//      	}
-//      	else if (!path.equals(Tracker.preferredJRE)) {
-//    			Tracker.preferredJRE = path;
-//      	}
-//      	refreshTextFields();
-//      	updateDisplay();
-//      }
-//    };
-//    jreField.addKeyListener(new KeyAdapter() {
-//      public void keyPressed(KeyEvent e) {
-//      	jreField.setBackground(Color.yellow);
-//      }
-//    });
-//    jreField.addFocusListener(new FocusAdapter() {
-//      public void focusLost(FocusEvent e) {
-//      	if (jreField.getBackground()==Color.yellow)
-//      		setJREAction.actionPerformed(null);
-//      }
-//    });
-//    jreField.addActionListener(setJREAction);
-//    
-//    setJREButton = new TButton(openFileIcon);
-//    setJREButton.addActionListener(new ActionListener() {
-//      public void actionPerformed(ActionEvent e) {
-//        int result = JFileChooser.CANCEL_OPTION;
-//        String path = Tracker.preferredJRE;
-//        if (path==null || "".equals(path)) //$NON-NLS-1$
-//        	path = System.getProperty("java.home"); //$NON-NLS-1$
-//      	File jreDir = new File(path);
-//      	if (OSPRuntime.isMac()) {
-//      		// java home is ".../Contents/Home/" so move up 2 more levels
-//      		jreDir = jreDir.getParentFile().getParentFile();
-//      	}
-//      	if (jreDir.getName().equals("jre") && //$NON-NLS-1$
-//      			(jreDir.getParentFile().getName().indexOf("jdk")>-1 //$NON-NLS-1$
-//      			|| jreDir.getParentFile().getName().indexOf("sun")>-1)) { //$NON-NLS-1$
-//      		jreDir = jreDir.getParentFile();
-//      	}
-//        JFileChooser chooser = getFileChooser(jreDir.getParentFile(), true);
-//        chooser.setDialogTitle(TrackerRes.getString("PrefsDialog.FileChooser.Title.JRE")); //$NON-NLS-1$
-//    	  chooser.setSelectedFile(jreDir);
-//        result = chooser.showDialog(PrefsDialog.this, 
-//    	  		TrackerRes.getString("PrefsDialog.FileChooser.Title.JRE")); //$NON-NLS-1$
-//        if(result==JFileChooser.APPROVE_OPTION) {
-//          File file = chooser.getSelectedFile();
-//      		if (file!=null) {
-//      			jreField.setText(file.getPath());
-//      			setJREAction.actionPerformed(null);
-//      		}
-//        }
-//      }
-//    });
+    // create button border
     Border buttonBorder = BorderFactory.createEtchedBorder();
     Border space = BorderFactory.createEmptyBorder(2,2,2,2);
     buttonBorder = BorderFactory.createCompoundBorder(buttonBorder, space);
-//    setJREButton.setBorder(buttonBorder);
-//    setJREButton.setContentAreaFilled(false);
-//    jreSouthPanel.add(setJREButton);
     
     // memory subpanel
     JPanel memorySubPanel = new JPanel();
@@ -859,7 +759,7 @@ public class PrefsDialog extends JDialog {
      		if (!xuggleButton.isSelected()) return;
       	// Windows: if xuggle 3.4 and 64-bit, set preferred VM to 32-bit and inform user    		
     		if (OSPRuntime.isWindows() && DiagnosticsForXuggle.guessXuggleVersion()==3.4 && vm64Button.isSelected()) {
-      		boolean has32BitVM = JREFinder.getFinder().getDefaultJRE(32, Tracker.trackerHome)!=null;
+      		boolean has32BitVM = JREFinder.getFinder().getDefaultJRE(32, Tracker.trackerHome, true)!=null;
       		if (has32BitVM) {
 	      		vm32Button.setSelected(true);
 		      	JOptionPane.showMessageDialog(frame,
@@ -906,7 +806,7 @@ public class PrefsDialog extends JDialog {
     xuggleSpeedSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Xuggle.Speed.BorderTitle")); //$NON-NLS-1$
     if (!xuggleInstalled)
-    	xuggleSpeedSubPanelBorder.setTitleColor(new Color(153, 153, 153));
+    	xuggleSpeedSubPanelBorder.setTitleColor(GUIUtils.getDisabledTextColor());
     xuggleSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, xuggleSpeedSubPanelBorder));    
     buttonGroup = new ButtonGroup();
     xuggleFastButton = new JRadioButton();
@@ -1171,7 +1071,7 @@ public class PrefsDialog extends JDialog {
     			message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
     					+" "+Tracker.newerVersion+" " //$NON-NLS-1$ //$NON-NLS-2$
     					+TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message2") //$NON-NLS-1$
-    					+XML.NEW_LINE+Tracker.trackerWebsite;
+    					+XML.NEW_LINE+"https://"+Tracker.trackerWebsite; //$NON-NLS-1$
     		}
   			JOptionPane.showMessageDialog(PrefsDialog.this, 
   					message, 
@@ -1430,11 +1330,22 @@ public class PrefsDialog extends JDialog {
 		  	    JREFinder jreFinder = JREFinder.getFinder();
 		  	    Set<File> availableJREs = jreFinder.getJREs(vmBitness);
 		  	    ArrayList<String> availableJREPaths = new ArrayList<String>();
+		  			String path = Tracker.trackerHome;
+		  			if (OSPRuntime.isMac()) {
+		  				path = new File(Tracker.trackerHome).getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
+		  			}
 		  	    for (File next: availableJREs) {
 		  	    	String jrePath = next.getPath();
-		  	    	if (jrePath.equals(TrackerStarter.findBundledVM())) {
+		  	    	if (TrackerStarter.findBundledVM()!=null && jrePath.equals(TrackerStarter.findBundledVM())) {
 			  	    	availableJREPaths.add(jrePath);
 			  	    	jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"), 0); //$NON-NLS-1$			  	    	
+		  	    	}
+		  	    	else if (jreFinder.getDefaultJRE(vmBitness, path, true)!=null
+		  	    			&& jrePath.equals(jreFinder.getDefaultJRE(vmBitness, path, true).getPath())
+		  	    			&& !(vmBitness==64 && OSPRuntime.isWindows())) {
+			  	    	availableJREPaths.add(jrePath);
+			  	    	jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"), 0); //$NON-NLS-1$			  	    	
+			  	    	jreDropdown.addItem(jrePath); // duplicate latest
 		  	    	}
 		  	    	else {
 			  	    	availableJREPaths.add(jrePath);
@@ -1448,6 +1359,9 @@ public class PrefsDialog extends JDialog {
 	  	    		String bundledVM = TrackerStarter.findBundledVM();
   	        	if (bundledVM!=null) {
   	        		selectedItem = TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"); //$NON-NLS-1$;
+  	        	}
+  	        	else {
+  	        		selectedItem = TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"); //$NON-NLS-1$;
   	        	}
 	  	    	}
 		  	    jreDropdown.setSelectedItem(selectedItem);
@@ -1529,6 +1443,9 @@ public class PrefsDialog extends JDialog {
 		Object selected = jreDropdown.getSelectedItem();
 		if (selected !=null && !selected.equals(Tracker.preferredJRE)) {
 			if (selected.equals(TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"))) { //$NON-NLS-1$
+				Tracker.preferredJRE = null;
+			}
+			else if (selected.equals(TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"))) { //$NON-NLS-1$
 				Tracker.preferredJRE = null;
 			}
 			else {
