@@ -309,7 +309,7 @@
         </property>
         <property name="item" type="object">
         <object class="org.opensourcephysics.tools.LaunchNode">
-            <property name="name" type="string">Drawings (Annotations)</property>
+            <property name="name" type="string">Annotation Drawings</property>
             <property name="html" type="array" class="[[Ljava.lang.String;">
                 <property name="[0]" type="array" class="[Ljava.lang.String;">
                     <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/drawings.html</property>
