@@ -893,6 +893,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
         if (prefsDialog!=null && prefsDialog.isVisible()) {
         	prefsDialog.refreshGUI();
         }
+        // refresh pencil drawer
+        PencilDrawer.getDrawer(trackerPanel).refresh();
         // refresh info dialog
         cancelNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
         closeNotesDialogButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$ 
@@ -1371,6 +1373,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
    */
   protected LibraryBrowser getLibraryBrowser() {
     if (libraryBrowser == null) {
+    	LibraryComPADRE.desiredOSPType = "Tracker"; //$NON-NLS-1$
     	JDialog dialog = new JDialog(this, false);
     	libraryBrowser = LibraryBrowser.getBrowser(dialog);
     	libraryBrowser.addOSPLibrary(LibraryBrowser.TRACKER_LIBRARY);
