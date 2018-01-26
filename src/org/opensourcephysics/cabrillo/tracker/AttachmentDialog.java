@@ -447,6 +447,16 @@ public class AttachmentDialog extends JDialog
       p.removePropertyChangeListener("name", this); //$NON-NLS-1$
       p.removePropertyChangeListener("color", this); //$NON-NLS-1$
       p.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+    }
+		TTrack measuringTool = TTrack.getTrack(trackID);
+		if (measuringTool!=null && measuringTool instanceof TapeMeasure) {
+			// can't attach calibration stick to models--creates circular dependency
+			TapeMeasure tape = (TapeMeasure)measuringTool;
+			if (tape.isStickMode()) {
+				masses.removeAll(trackerPanel.getDrawables(ParticleModel.class));
+			}
+		}
+    for (TTrack p: masses) {
       p.addPropertyChangeListener("name", this); //$NON-NLS-1$
       p.addPropertyChangeListener("color", this); //$NON-NLS-1$
       p.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
@@ -474,7 +484,6 @@ public class AttachmentDialog extends JDialog
       p.addPropertyChangeListener("footprint", this); //$NON-NLS-1$    	
     }
     measuringToolDropdown.setModel(new DefaultComboBoxModel(tools));
-		TTrack measuringTool = TTrack.getTrack(trackID);
     if (!tools.isEmpty() && measuringTool!=null) {
     	measuringToolDropdown.setSelectedItem(measuringTool);
     }
