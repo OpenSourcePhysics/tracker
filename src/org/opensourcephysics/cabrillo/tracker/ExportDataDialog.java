@@ -25,7 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.BufferedWriter;
@@ -41,6 +40,7 @@ import javax.swing.border.*;
 import org.opensourcephysics.controls.ControlsRes;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * A dialog for exporting videos from a TrackerPanel.
@@ -248,18 +248,23 @@ public class ExportDataDialog extends JDialog {
     title = TrackerRes.getString("ExportDataDialog.Subtitle.Table"); //$NON-NLS-1$
     Border space = BorderFactory.createEmptyBorder(0, 4, 6, 4);
     Border titled = BorderFactory.createTitledBorder(title);
+  	FontSizer.setFonts(titled, FontSizer.getLevel());
     tablePanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
     title = TrackerRes.getString("ExportDataDialog.Subtitle.Delimiter"); //$NON-NLS-1$
     titled = BorderFactory.createTitledBorder(title);
+  	FontSizer.setFonts(titled, FontSizer.getLevel());
     delimiterPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
     title = TrackerRes.getString("ExportDataDialog.Subtitle.Content"); //$NON-NLS-1$
     titled = BorderFactory.createTitledBorder(title);
+  	FontSizer.setFonts(titled, FontSizer.getLevel());
     contentPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
     title = TrackerRes.getString("ExportDataDialog.Subtitle.Format"); //$NON-NLS-1$
     titled = BorderFactory.createTitledBorder(title);
+  	FontSizer.setFonts(titled, FontSizer.getLevel());
     formatPanel.setBorder(BorderFactory.createCompoundBorder(titled, space));
     saveAsButton.setText(TrackerRes.getString("ExportVideoDialog.Button.SaveAs")); //$NON-NLS-1$
     closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+  	FontSizer.setFonts(this, FontSizer.getLevel());
     
     // refresh dropdowns
     // delimiters

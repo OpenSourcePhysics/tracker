@@ -49,6 +49,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.ImageVideoType;
@@ -207,7 +208,7 @@ public class ExportZipDialog extends JDialog {
    */
   private void createGUI() {
     String path = "/org/opensourcephysics/cabrillo/tracker/resources/images/open.gif"; //$NON-NLS-1$
-    openIcon = new ImageIcon(this.getClass().getResource(path));
+    openIcon = new ResizableIcon(new ImageIcon(this.getClass().getResource(path)));
     Color color = UIManager.getColor("Label.disabledForeground"); //$NON-NLS-1$
     if (color!=null) UIManager.put("ComboBox.disabledForeground", color); //$NON-NLS-1$
     videoExportListener = new VideoListener();
