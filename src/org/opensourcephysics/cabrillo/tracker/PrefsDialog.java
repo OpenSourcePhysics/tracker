@@ -82,7 +82,8 @@ public class PrefsDialog extends JDialog {
   protected TitledBorder checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
   	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
   	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
-  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, resetToStep0SubPanelBorder;
+  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, 
+  	resetToStep0SubPanelBorder, decimalSeparatorBorder;
 
   protected IntegerField memoryField;
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
@@ -97,13 +98,14 @@ public class PrefsDialog extends JDialog {
   protected JRadioButton xuggleButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
   protected JRadioButton xuggleFastButton, xuggleSlowButton;
+  protected JRadioButton defaultDecimalButton, periodDecimalButton, commaDecimalButton;
   protected Tracker.Version[] trackerVersions;
   protected boolean relaunching = false;
   
   // previous values
   protected Set<String> prevEnabled = new TreeSet<String>();
   protected int prevMemory, prevRecentCount, prevUpgradeInterval, prevFontLevel, prevFontLevelPlus;
-  protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine;
+  protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine, prevDecimalSeparator;
   protected boolean prevHints, prevRadians, prevFastXuggle, 
   		prevWarnNoVideoEngine, prevWarnXuggleError, prevWarnXuggleVersion,
   		prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed;
@@ -151,13 +153,14 @@ public class PrefsDialog extends JDialog {
   
   public void setFontLevel(int level) {
 		FontSizer.setFonts(this, level);
-		Object[] borders = new Object[] {
+		TitledBorder[] borders = new TitledBorder[] {
 		  checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
 	  	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
 	  	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
-	  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder};
+	  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, 
+	  	resetToStep0SubPanelBorder, decimalSeparatorBorder};
 		FontSizer.setFonts(borders, level); 
-		JComboBox[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, 
+		JComboBox[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, fontSizeDropdown, 
 				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown};
 		for (JComboBox next: dropdowns) {
 			int n = next.getSelectedIndex();
@@ -270,6 +273,7 @@ public class PrefsDialog extends JDialog {
       checkPanel.add(checkbox);
     }
     JScrollPane scroller = new JScrollPane(checkPanel);
+    scroller.getVerticalScrollBar().setUnitIncrement(16);
     scroller.setPreferredSize(new Dimension(450, 200));
     configPanel.add(scroller, BorderLayout.CENTER);
     // apply button
@@ -323,10 +327,14 @@ public class PrefsDialog extends JDialog {
     tabbedPane.addTab(null, displayPanel);
     Box box = Box.createVerticalBox();
     displayPanel.add(box, BorderLayout.CENTER);
-    
+
+    // put look&feel and language subpanels side by side
+    Box horz = Box.createHorizontalBox();
+    box.add(horz);
+
     // look and feel subpanel
     JPanel lfSubPanel = new JPanel();
-    box.add(lfSubPanel);
+    horz.add(lfSubPanel);
     lfSubPanel.setBackground(color);
 
     lfSubPanelBorder = BorderFactory.createTitledBorder(
@@ -359,7 +367,7 @@ public class PrefsDialog extends JDialog {
 
     // language subpanel
     JPanel langSubPanel = new JPanel();
-    box.add(langSubPanel);
+    horz.add(langSubPanel);
     langSubPanel.setBackground(color);
     langSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Language.BorderTitle")); //$NON-NLS-1$
@@ -390,11 +398,15 @@ public class PrefsDialog extends JDialog {
         }
     	}
     });
-    langSubPanel.add(languageDropdown);    
+    langSubPanel.add(languageDropdown);
+    
+    // put font size and hints subpanels side by side
+    horz = Box.createHorizontalBox();
+    box.add(horz);
 
     // font level subpanel
     JPanel fontSubPanel = new JPanel();
-    box.add(fontSubPanel);
+    horz.add(fontSubPanel);
     fontSubPanel.setBackground(color);
     fontSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
@@ -430,7 +442,7 @@ public class PrefsDialog extends JDialog {
       }
     });
     JPanel hintsSubPanel = new JPanel();
-    box.add(hintsSubPanel);
+    horz.add(hintsSubPanel);
     hintsSubPanel.setBackground(color);
     hintsSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Hints.BorderTitle")); //$NON-NLS-1$
@@ -458,6 +470,40 @@ public class PrefsDialog extends JDialog {
     buttonGroup.add(degreesButton);
     unitsSubPanel.add(radiansButton);
     unitsSubPanel.add(degreesButton);
+    
+    // decimal separator subpanel
+    JPanel decimalSubPanel = new JPanel();
+    box.add(decimalSubPanel);
+    decimalSubPanel.setBackground(color);
+    decimalSeparatorBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
+    decimalSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, decimalSeparatorBorder));
+    Action decimalSeparatorAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Tracker.preferredDecimalSeparator = periodDecimalButton.isSelected()? ".": //$NON-NLS-1$
+					commaDecimalButton.isSelected()? ",": null; //$NON-NLS-1$
+			}
+    };
+    defaultDecimalButton = new JRadioButton();
+    defaultDecimalButton.setOpaque(false);
+    defaultDecimalButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    defaultDecimalButton.addActionListener(decimalSeparatorAction);    
+    periodDecimalButton = new JRadioButton();
+    periodDecimalButton.setOpaque(false);
+    periodDecimalButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    periodDecimalButton.addActionListener(decimalSeparatorAction);
+    commaDecimalButton = new JRadioButton();
+    commaDecimalButton.setOpaque(false);
+    commaDecimalButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    commaDecimalButton.addActionListener(decimalSeparatorAction);
+    ButtonGroup group = new ButtonGroup();
+    group.add(defaultDecimalButton);
+    group.add(periodDecimalButton);
+    group.add(commaDecimalButton);    
+    decimalSubPanel.add(defaultDecimalButton);
+    decimalSubPanel.add(periodDecimalButton);
+    decimalSubPanel.add(commaDecimalButton);
     
     // runtime panel
     runtimePanel = new JPanel(new BorderLayout());
@@ -1212,6 +1258,7 @@ public class PrefsDialog extends JDialog {
 		prevFontLevelPlus = Tracker.preferredFontLevelPlus;
 		prevHints = Tracker.showHintsByDefault;
 		prevRadians = Tracker.isRadians;
+		prevDecimalSeparator = Tracker.preferredDecimalSeparator;
 		prevFastXuggle = Tracker.isXuggleFast;
 		prevJRE = Tracker.preferredJRE;
 		prevTrackerJar = Tracker.preferredTrackerJar;
@@ -1233,6 +1280,7 @@ public class PrefsDialog extends JDialog {
 		Tracker.preferredFontLevelPlus = prevFontLevelPlus;
 		Tracker.showHintsByDefault = prevHints;
 		Tracker.isRadians = prevRadians;
+		Tracker.preferredDecimalSeparator = prevDecimalSeparator;
 		Tracker.isXuggleFast = prevFastXuggle;
 		Tracker.preferredJRE = prevJRE;
 		Tracker.preferredTrackerJar = prevTrackerJar;
@@ -1271,6 +1319,31 @@ public class PrefsDialog extends JDialog {
    * Refreshes the GUI.
    */
   protected void refreshGUI() {
+    checkPanelBorder.setTitle(TrackerRes.getString("ConfigInspector.Border.Title")); //$NON-NLS-1$
+    lfSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.LookFeel.BorderTitle")); //$NON-NLS-1$
+    langSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Language.BorderTitle")); //$NON-NLS-1$
+    hintsSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Hints.BorderTitle")); //$NON-NLS-1$
+    unitsSubPanelBorder.setTitle(TrackerRes.getString("TMenuBar.Menu.AngleUnits")); //$NON-NLS-1$
+    versionSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Version.BorderTitle")); //$NON-NLS-1$
+    jreSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.JRE.BorderTitle")); //$NON-NLS-1$
+    memorySubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Memory.BorderTitle")); //$NON-NLS-1$
+    runSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Run.BorderTitle")); //$NON-NLS-1$
+    videoTypeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
+    xuggleSpeedSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Xuggle.Speed.BorderTitle")); //$NON-NLS-1$
+    warningsSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.NoVideoWarning.BorderTitle")); //$NON-NLS-1$
+    recentSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.RecentFiles.BorderTitle")); //$NON-NLS-1$
+    cacheSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.CacheFiles.BorderTitle")); //$NON-NLS-1$
+    logLevelSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.LogLevel.BorderTitle")); //$NON-NLS-1$
+    upgradeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Upgrades.BorderTitle")); //$NON-NLS-1$
+    fontSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
+    resetToStep0SubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Marking.BorderTitle")); //$NON-NLS-1$
+    decimalSeparatorBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
+    defaultDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Default")); //$NON-NLS-1$
+    periodDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Period")); //$NON-NLS-1$
+    commaDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Comma")); //$NON-NLS-1$
+    defaultDecimalButton.setSelected(OSPRuntime.getPreferredDecimalSeparator()==null);
+    periodDecimalButton.setSelected(".".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
+    commaDecimalButton.setSelected(",".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
     cancelButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
     saveButton.setText(TrackerRes.getString("ConfigInspector.Button.SaveAsDefault")); //$NON-NLS-1$
     okButton.setText(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$
@@ -1426,7 +1499,7 @@ public class PrefsDialog extends JDialog {
    * Applies and saves the current preferences.
    */
   private void applyPrefs() {
-    // look/feel, language, video, hints, fontlevel are set directly by components
+    // look/feel, language, video, hints, font size & decimal separator are set directly by components
   	// update configuration
     updateConfig();
     // update recent menu
