@@ -161,22 +161,22 @@ public class PencilCaption extends InteractiveTextLine {
 
   @Override
   public double getXMin() {
-    return xMin; // pig
+    return xMin;
   }
 
   @Override
   public double getXMax() {
-    return xMax; // pig
+    return xMax;
   }
 
   @Override
   public double getYMin() {
-    return yMin; // pig
+    return yMin;
   }
 
   @Override
   public double getYMax() {
-    return yMax; // pig
+    return yMax;
   }
   
   /**
