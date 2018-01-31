@@ -184,8 +184,6 @@ public abstract class TTrack implements Interactive,
           		item.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {              		
                   NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TTrack.this, selected);
-                  FontSizer.setFonts(dialog, FontSizer.getLevel());
-                  dialog.pack();     
             	    dialog.setVisible(true);
                 }
               });
@@ -224,8 +222,6 @@ public abstract class TTrack implements Interactive,
           		item.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                   NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TTrack.this, selected);
-                  FontSizer.setFonts(dialog, FontSizer.getLevel());
-                  dialog.pack();     
             	    dialog.setVisible(true);
                 }
               });

@@ -24,6 +24,8 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.TreeSet;
@@ -266,8 +268,13 @@ public class CircleFitter extends TTrack {
       		DataPoint p = pts.get(i);
       		Point2D worldPt = p.getWorldPosition(trackerPanel);
       		
-      		// add raw data to the buffer for the clipboard
-          buf.append(worldPt.getX()+TrackerIO.getDelimiter()+worldPt.getY());
+      		// add formatted data to the buffer for the clipboard
+          DecimalFormat nf = (DecimalFormat)NumberFormat.getInstance();
+          nf.applyPattern("0.000000E0"); //$NON-NLS-1$
+          nf.setDecimalFormatSymbols(OSPRuntime.getDecimalFormatSymbols());
+          String formattedX = nf.format(worldPt.getX());
+          String formattedY = nf.format(worldPt.getY());
+          buf.append(formattedX+TrackerIO.getDelimiter()+formattedY);
           if (i<pts.size()-1) {
           	buf.append(XML.NEW_LINE);
           }
@@ -290,6 +297,7 @@ public class CircleFitter extends TTrack {
 	      		s += clip.frameToStep(frame);
       		}
       		// add the coordinates after the point description
+      		
       		s += " ("+xDataField.getFormat().format(worldPt.getX()) //$NON-NLS-1$
       				+", "+yDataField.getFormat().format(worldPt.getY())+")"; //$NON-NLS-1$ //$NON-NLS-2$
       		JMenuItem item = new JMenuItem(s);

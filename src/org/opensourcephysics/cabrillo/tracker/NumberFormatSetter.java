@@ -60,6 +60,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -68,8 +69,10 @@ import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * A Dialog for setting the format of number fields and table cells
@@ -158,13 +161,15 @@ public class NumberFormatSetter extends JDialog {
   HashMap<Class<? extends TTrack>, TreeMap<String,String>> prevDefaultPatterns = new HashMap<Class<? extends TTrack>, TreeMap<String,String>>();
   Map<TTrack, TreeMap<String, String>> prevTrackPatterns 
   	= new HashMap<TTrack, TreeMap<String, String>>();
-  JPanel variablePanel, applyToPanel, unitsPanel;
+  JPanel variablePanel, applyToPanel, unitsPanel, decimalSeparatorPanel;
   JList variableList;
   JScrollPane variableScroller;
   JRadioButton trackOnlyButton, trackTypeButton, dimensionButton;
   JRadioButton degreesButton, radiansButton;
-  String prevPattern;
-  boolean formatsChanged;
+  JRadioButton defaultDecimalButton, periodDecimalButton, commaDecimalButton;
+  String prevPattern, prevDecimalSeparator;
+  TitledBorder variablesBorder, applyToBorder, unitsBorder, decimalSeparatorBorder;
+  boolean formatsChanged, prevAnglesInRadians;
   Map<Integer, String[]> selectedVariables = new TreeMap<Integer, String[]>();
 
   /**
@@ -182,6 +187,7 @@ public class NumberFormatSetter extends JDialog {
     if(setter==null) {
     	setter = new NumberFormatSetter(track.trackerPanel);
     	formatSetters.put(track.trackerPanel, setter);
+      setter.setFontLevel(FontSizer.getLevel());
       // center on screen
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - setter.getBounds().width) / 2;
@@ -191,6 +197,7 @@ public class NumberFormatSetter extends JDialog {
     setter.savePrevious();
     setter.selectedVariables.put(track.getID(), selectedNames);
   	setter.setTrack(track);
+    setter.setFontLevel(FontSizer.getLevel());
     return setter;
   }
 
@@ -216,208 +223,7 @@ public class NumberFormatSetter extends JDialog {
   private NumberFormatSetter(TrackerPanel tPanel) {
     super(frame, true);
     trackerPanel = tPanel;
-    setLayout(new BorderLayout());
-    // create test format
-    testFormat = (java.text.DecimalFormat) java.text.NumberFormat.getNumberInstance();
-    // create buttons
-    closeButton = new JButton(); 
-    closeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        setVisible(false);
-      }
-    });
-    revertButton = new JButton();
-    final Action resetAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-      	TTrack track = TTrack.getTrack(trackID);
-      	
-    		// reset default patterns in trackerPanel.formatPatterns
-      	TreeMap<String, String> patterns, prevPatterns;
-      	for (Class<? extends TTrack> type: formattableTrackTypes) {
-      		prevPatterns = prevDefaultPatterns.get(type);
-      		trackerPanel.formatPatterns.put(type, prevPatterns);
-      	}
-      	
-      	// reset track formats
-    		ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
-    		for (TTrack next: tracks) {
-        	patterns = prevTrackPatterns.get(next);
-          if (patterns!=null) {
-          	boolean fireEvent = false;
-          	String[] names = getVariableNames(next);
-            for(String name : names) {
-	          	fireEvent = setFormatPattern(next, name, patterns.get(name)) || fireEvent;
-	          	if (fireEvent) {
-	          		next.firePropertyChange("data", null, null); //$NON-NLS-1$
-	          	}
-	          }
-          }
-    		}
-    		showNumberFormatAndSample(variableList.getSelectedIndices());
-    		prevPattern = ""; //$NON-NLS-1$
-    		formatsChanged = false;
-    		refreshGUI();
-			}
-    };
-    revertButton.addActionListener(resetAction);
-    helpButton = new JButton(); 
-    helpButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        String tab = "      ";                                                                                          //$NON-NLS-1$
-        String nl = System.getProperty("line.separator", "/n");                                                         //$NON-NLS-1$ //$NON-NLS-2$
-        JOptionPane.showMessageDialog(NumberFormatSetter.this, DisplayRes.getString("DataTable.NumberFormat.Help.Message1")+nl+ //$NON-NLS-1$
-          tab+DisplayRes.getString("DataTable.NumberFormat.Help.Message2")+nl+ //$NON-NLS-1$
-          tab+DisplayRes.getString("DataTable.NumberFormat.Help.Message3")+nl+ //$NON-NLS-1$
-          tab+DisplayRes.getString("DataTable.NumberFormat.Help.Message4")+nl+ //$NON-NLS-1$
-          tab+DisplayRes.getString("DataTable.NumberFormat.Help.Message5")+nl+nl+ //$NON-NLS-1$
-          DisplayRes.getString("DataTable.NumberFormat.Help.Message6")+" PI."+nl+nl+ //$NON-NLS-1$ //$NON-NLS-2$
-          TrackerRes.getString("NumberFormatSetter.Help.Dimensions.1")+nl+ //$NON-NLS-1$
-          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.2")+nl+ //$NON-NLS-1$
-          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.3")+nl+ //$NON-NLS-1$
-          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.4")+nl+ //$NON-NLS-1$
-          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.5")+nl+ //$NON-NLS-1$
-          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.6")+nl+ //$NON-NLS-1$
-          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.7")+nl+ //$NON-NLS-1$
-          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.8")+nl, //$NON-NLS-1$
-          DisplayRes.getString("DataTable.NumberFormat.Help.Title"), //$NON-NLS-1$
-          JOptionPane.INFORMATION_MESSAGE);
-      }
-
-    });
-    
-    // create trackDropdown early since need it for spinners
-    trackDropdown = new JComboBox() {
-      public Dimension getPreferredSize() {
-    		Dimension dim = super.getPreferredSize();
-    		dim.height-=1;
-    		return dim;
-      }
-    };
-    trackDropdown.setRenderer(new TrackRenderer());
-    trackDropdown.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	if ("refresh".equals(trackDropdown.getName())) return; //$NON-NLS-1$
-        Object[] item = (Object[])trackDropdown.getSelectedItem();
-        if (item!=null) {
-        	for (TTrack next: trackerPanel.getTracks()) {
-        		if (item[1].equals(next.getName())) {
-        			setTrack(next);
-        			refreshGUI();
-        		}
-        	}
-        }
-      }
-    });
-
-    // create labels and text fields
-    patternLabel = new JLabel(); 
-    sampleLabel = new JLabel();  
-    patternField = new JTextField(6);
-    patternField.setAction(new AbstractAction() {
-			public void actionPerformed(ActionEvent e) {
-        applyPattern(patternField.getText());
-      }
-    });
-    patternField.addKeyListener(new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
-        if(e.getKeyCode()==KeyEvent.VK_ENTER) {
-          patternField.setBackground(Color.white);
-      		showNumberFormatAndSample(variableList.getSelectedIndices());
-        } 
-        else {
-          patternField.setBackground(Color.yellow);
-          // apply new pattern
-          Runnable runner = new Runnable() {
-            public void run() {
-		          applyPattern(patternField.getText());
-            }
-          };
-          SwingUtilities.invokeLater(runner);
-        }
-      }
-
-    });
-    patternField.addFocusListener(new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
-  			if (patternField.getBackground()==Color.yellow) {
-	        patternField.setBackground(Color.white);
-	        patternField.getAction().actionPerformed(null);
-  			}
-      }
-
-    });
-    sampleField = new NumberField(6);
-    sampleField.setEditable(false);
-    // variable scroller (list is instantiated in setVariableNames() method)
-    variableScroller = new JScrollPane();
-    variableScroller.setPreferredSize(new Dimension(280, 120));
-    // "apply to" buttons
-    trackOnlyButton = new JRadioButton();
-    trackTypeButton = new JRadioButton();
-    dimensionButton = new JRadioButton();
-    ButtonGroup group = new ButtonGroup();
-    group.add(trackOnlyButton);
-    group.add(trackTypeButton);
-    group.add(dimensionButton);
-    trackOnlyButton.setSelected(true);
-    
-    // angle unit buttons
-    Action angleUnitAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-      	frame.setAnglesInRadians(radiansButton.isSelected());
-    		showNumberFormatAndSample(variableList.getSelectedIndices());
-			}
-    };
-    degreesButton = new JRadioButton();
-    degreesButton.addActionListener(angleUnitAction);
-    radiansButton = new JRadioButton();
-    radiansButton.addActionListener(angleUnitAction);
-    group = new ButtonGroup();
-    group.add(degreesButton);
-    group.add(radiansButton);
-    degreesButton.setSelected(!frame.anglesInRadians);
-    radiansButton.setSelected(frame.anglesInRadians);
-    
-    // assemble dialog
-    JPanel formatPanel = new JPanel(new GridLayout());
-    JPanel patternPanel = new JPanel();
-    patternPanel.add(patternLabel);
-    patternPanel.add(patternField);
-    formatPanel.add(patternPanel);
-    JPanel samplePanel = new JPanel();
-    samplePanel.add(sampleLabel);
-    samplePanel.add(sampleField);
-    formatPanel.add(samplePanel);
-    add(formatPanel, BorderLayout.NORTH);
-    variablePanel = new JPanel(new BorderLayout());
-    JPanel dropdownPanel = new JPanel();
-    dropdownPanel.add(trackDropdown);
-    variablePanel.add(dropdownPanel, BorderLayout.NORTH);
-    variablePanel.add(variableScroller, BorderLayout.CENTER);
-    add(variablePanel, BorderLayout.CENTER);
-    JPanel south = new JPanel(new BorderLayout());
-    add(south, BorderLayout.SOUTH);
-    applyToPanel = new JPanel();
-    Box box = Box.createVerticalBox();
-    box.add(trackOnlyButton);
-    box.add(trackTypeButton);
-    box.add(dimensionButton);
-    applyToPanel.add(box);
-    south.add(applyToPanel, BorderLayout.NORTH);
-    
-    unitsPanel = new JPanel();
-    unitsPanel.add(degreesButton);
-    unitsPanel.add(radiansButton);
-    south.add(unitsPanel, BorderLayout.CENTER);
-    
-    JPanel buttonPanel = new JPanel();
-    buttonPanel.add(helpButton);
-    buttonPanel.add(revertButton);
-    buttonPanel.add(closeButton);
-    south.add(buttonPanel, BorderLayout.SOUTH);
-    pack();
+    createGUI();
     refreshGUI();
   }
   
@@ -460,6 +266,7 @@ public class NumberFormatSetter extends JDialog {
     	}
     });
     variableScroller.setViewportView(variableList);
+    FontSizer.setFonts(variableList, FontSizer.getLevel());
     int[] indices = null;
     if (selected!=null) {
       // select requested names
@@ -825,6 +632,8 @@ public class NumberFormatSetter extends JDialog {
 	    }
 	    prevTrackPatterns.put(next, patterns);
     }
+		prevAnglesInRadians = frame.anglesInRadians;
+		prevDecimalSeparator = OSPRuntime.getPreferredDecimalSeparator();
     formatsChanged = false;
   }
   
@@ -920,6 +729,12 @@ public class NumberFormatSetter extends JDialog {
   	}
   }
   
+  protected void setFontLevel(int level) {
+    FontSizer.setFonts(this, FontSizer.getLevel());
+    refreshDropdown();
+    pack();
+  }
+  
   /**
    * Gets all table views for a specified track.
    *
@@ -947,6 +762,277 @@ public class NumberFormatSetter extends JDialog {
   }
   
   /**
+   * Creates the GUI.
+   */
+  private void createGUI() {
+    setLayout(new BorderLayout());
+    // create test format
+    testFormat = (java.text.DecimalFormat) java.text.NumberFormat.getNumberInstance();
+    // create buttons
+    closeButton = new JButton(); 
+    closeButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        setVisible(false);
+      }
+    });
+    revertButton = new JButton();
+    final Action resetAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+      	TTrack track = TTrack.getTrack(trackID);
+      	
+    		// reset default patterns in trackerPanel.formatPatterns
+      	TreeMap<String, String> patterns, prevPatterns;
+      	for (Class<? extends TTrack> type: formattableTrackTypes) {
+      		prevPatterns = prevDefaultPatterns.get(type);
+      		trackerPanel.formatPatterns.put(type, prevPatterns);
+      	}
+      	
+      	// reset track formats
+    		ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
+    		for (TTrack next: tracks) {
+        	patterns = prevTrackPatterns.get(next);
+          if (patterns!=null) {
+          	boolean fireEvent = false;
+          	String[] names = getVariableNames(next);
+            for(String name : names) {
+	          	fireEvent = setFormatPattern(next, name, patterns.get(name)) || fireEvent;
+	          	if (fireEvent) {
+	          		next.firePropertyChange("data", null, null); //$NON-NLS-1$
+	          	}
+	          }
+          }
+    		}
+    		OSPRuntime.setPreferredDecimalSeparator(prevDecimalSeparator);
+      	frame.setAnglesInRadians(prevAnglesInRadians);
+    		showNumberFormatAndSample(variableList.getSelectedIndices());
+    		prevPattern = ""; //$NON-NLS-1$
+    		formatsChanged = false;
+    		refreshGUI();
+			}
+    };
+    revertButton.addActionListener(resetAction);
+    helpButton = new JButton(); 
+    helpButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        String tab = "      ";                                                                                          //$NON-NLS-1$
+        String nl = System.getProperty("line.separator", "/n");                                                         //$NON-NLS-1$ //$NON-NLS-2$
+        JOptionPane.showMessageDialog(NumberFormatSetter.this, DisplayRes.getString("DataTable.NumberFormat.Help.Message1")+nl+ //$NON-NLS-1$
+          tab+DisplayRes.getString("DataTable.NumberFormat.Help.Message2")+nl+ //$NON-NLS-1$
+          tab+DisplayRes.getString("DataTable.NumberFormat.Help.Message3")+nl+ //$NON-NLS-1$
+          tab+DisplayRes.getString("DataTable.NumberFormat.Help.Message4")+nl+ //$NON-NLS-1$
+          tab+DisplayRes.getString("DataTable.NumberFormat.Help.Message5")+nl+nl+ //$NON-NLS-1$
+          DisplayRes.getString("DataTable.NumberFormat.Help.Message6")+" PI."+nl+nl+ //$NON-NLS-1$ //$NON-NLS-2$
+          TrackerRes.getString("NumberFormatSetter.Help.Dimensions.1")+nl+ //$NON-NLS-1$
+          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.2")+nl+ //$NON-NLS-1$
+          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.3")+nl+ //$NON-NLS-1$
+          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.4")+nl+ //$NON-NLS-1$
+          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.5")+nl+ //$NON-NLS-1$
+          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.6")+nl+ //$NON-NLS-1$
+          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.7")+nl+ //$NON-NLS-1$
+          tab+TrackerRes.getString("NumberFormatSetter.Help.Dimensions.8")+nl, //$NON-NLS-1$
+          DisplayRes.getString("DataTable.NumberFormat.Help.Title"), //$NON-NLS-1$
+          JOptionPane.INFORMATION_MESSAGE);
+      }
+
+    });
+    
+    // create trackDropdown early since need it for spinners
+    trackDropdown = new JComboBox() {
+      public Dimension getPreferredSize() {
+    		Dimension dim = super.getPreferredSize();
+    		dim.height-=1;
+    		return dim;
+      }
+    };
+    trackDropdown.setRenderer(new TrackRenderer());
+    trackDropdown.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	if ("refresh".equals(trackDropdown.getName())) return; //$NON-NLS-1$
+        Object[] item = (Object[])trackDropdown.getSelectedItem();
+        if (item!=null) {
+        	for (TTrack next: trackerPanel.getTracks()) {
+        		if (item[1].equals(next.getName())) {
+        			setTrack(next);
+        			refreshGUI();
+        		}
+        	}
+        }
+      }
+    });
+    
+    // create labels and text fields
+    patternLabel = new JLabel(); 
+    sampleLabel = new JLabel();  
+    patternField = new JTextField(6);
+    patternField.setAction(new AbstractAction() {
+			public void actionPerformed(ActionEvent e) {
+        applyPattern(patternField.getText());
+      }
+    });
+    patternField.addKeyListener(new KeyAdapter() {
+      public void keyPressed(KeyEvent e) {
+        if(e.getKeyCode()==KeyEvent.VK_ENTER) {
+          patternField.setBackground(Color.white);
+      		showNumberFormatAndSample(variableList.getSelectedIndices());
+        } 
+        else {
+          patternField.setBackground(Color.yellow);
+          // apply new pattern
+          Runnable runner = new Runnable() {
+            public void run() {
+		          applyPattern(patternField.getText());
+            }
+          };
+          SwingUtilities.invokeLater(runner);
+        }
+      }
+
+    });
+    patternField.addFocusListener(new FocusAdapter() {
+      public void focusLost(FocusEvent e) {
+  			if (patternField.getBackground()==Color.yellow) {
+	        patternField.setBackground(Color.white);
+	        patternField.getAction().actionPerformed(null);
+  			}
+      }
+
+    });
+    sampleField = new NumberField(6);
+    sampleField.setEditable(false);
+    // variable scroller (list is instantiated in setVariableNames() method)
+    variableScroller = new JScrollPane();
+    variableScroller.setPreferredSize(new Dimension(280, 120));
+    // "apply to" buttons
+    trackOnlyButton = new JRadioButton();
+    trackTypeButton = new JRadioButton();
+    dimensionButton = new JRadioButton();
+    ButtonGroup group = new ButtonGroup();
+    group.add(trackOnlyButton);
+    group.add(trackTypeButton);
+    group.add(dimensionButton);
+    trackOnlyButton.setSelected(true);
+    
+    // angle unit buttons
+    Action angleUnitAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (frame.anglesInRadians==radiansButton.isSelected()) return;
+      	frame.setAnglesInRadians(radiansButton.isSelected());
+    		formatsChanged = true;
+    		showNumberFormatAndSample(variableList.getSelectedIndices());
+    		refreshGUI();
+			}
+    };
+    degreesButton = new JRadioButton();
+    degreesButton.addActionListener(angleUnitAction);
+    radiansButton = new JRadioButton();
+    radiansButton.addActionListener(angleUnitAction);
+    group = new ButtonGroup();
+    group.add(degreesButton);
+    group.add(radiansButton);
+    degreesButton.setSelected(!frame.anglesInRadians);
+    radiansButton.setSelected(frame.anglesInRadians);
+    
+    // decimal separator buttons
+    Action decimalSeparatorAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String separator;
+      	if (periodDecimalButton.isSelected()) {
+      		separator = "."; //$NON-NLS-1$
+      	}
+      	else if (commaDecimalButton.isSelected()) {
+      		separator = ","; //$NON-NLS-1$
+      	}
+      	else {
+      		separator = null;
+      	}
+    		OSPRuntime.setPreferredDecimalSeparator(separator);
+    		showNumberFormatAndSample(variableList.getSelectedIndices());
+    		trackerPanel.refreshDecimalSeparators();
+    		if ((prevDecimalSeparator!=null && !prevDecimalSeparator.equals(separator))
+    				|| (separator!=null && !separator.equals(prevDecimalSeparator))) {
+    			formatsChanged = true;
+    		}
+    		refreshGUI();
+			}
+    };
+    defaultDecimalButton = new JRadioButton();
+    defaultDecimalButton.addActionListener(decimalSeparatorAction);    
+    periodDecimalButton = new JRadioButton();
+    periodDecimalButton.addActionListener(decimalSeparatorAction);
+    commaDecimalButton = new JRadioButton();
+    commaDecimalButton.addActionListener(decimalSeparatorAction);
+    group = new ButtonGroup();
+    group.add(defaultDecimalButton);
+    group.add(periodDecimalButton);
+    group.add(commaDecimalButton);
+    
+    // create borders
+    variablesBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("NumberFormatSetter.ApplyToVariables.Text")); //$NON-NLS-1$
+    applyToBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("NumberFormatSetter.TitledBorder.ApplyTo.Text")); //$NON-NLS-1$
+    unitsBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("NumberFormatSetter.TitledBorder.Units.Text")); //$NON-NLS-1$
+    decimalSeparatorBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
+
+    // assemble dialog
+    JPanel formatPanel = new JPanel(new GridLayout());
+    JPanel patternPanel = new JPanel();
+    patternPanel.add(patternLabel);
+    patternPanel.add(patternField);
+    formatPanel.add(patternPanel);
+    JPanel samplePanel = new JPanel();
+    samplePanel.add(sampleLabel);
+    samplePanel.add(sampleField);
+    formatPanel.add(samplePanel);
+    add(formatPanel, BorderLayout.NORTH);
+    variablePanel = new JPanel(new BorderLayout());
+    variablePanel.setBorder(variablesBorder);
+    JPanel dropdownPanel = new JPanel();
+    dropdownPanel.add(trackDropdown);
+    variablePanel.add(dropdownPanel, BorderLayout.NORTH);
+    variablePanel.add(variableScroller, BorderLayout.CENTER);
+    add(variablePanel, BorderLayout.CENTER);
+    JPanel south = new JPanel(new BorderLayout());
+    add(south, BorderLayout.SOUTH);
+    applyToPanel = new JPanel();
+    applyToPanel.setBorder(applyToBorder);
+    Box box = Box.createVerticalBox();
+    box.add(trackOnlyButton);
+    box.add(trackTypeButton);
+    box.add(dimensionButton);
+    applyToPanel.add(box);
+    south.add(applyToPanel, BorderLayout.NORTH);
+    
+    JPanel southCenter = new JPanel(new BorderLayout());
+    south.add(southCenter, BorderLayout.CENTER);
+    
+    unitsPanel = new JPanel();
+    unitsPanel.setBorder(unitsBorder);
+    unitsPanel.add(degreesButton);
+    unitsPanel.add(radiansButton);
+    southCenter.add(unitsPanel, BorderLayout.NORTH);
+    
+    decimalSeparatorPanel = new JPanel();
+    decimalSeparatorPanel.setBorder(decimalSeparatorBorder);
+    decimalSeparatorPanel.add(defaultDecimalButton);
+    decimalSeparatorPanel.add(commaDecimalButton);
+    decimalSeparatorPanel.add(periodDecimalButton);
+    southCenter.add(decimalSeparatorPanel, BorderLayout.SOUTH);
+    
+    JPanel buttonPanel = new JPanel();
+    buttonPanel.add(helpButton);
+    buttonPanel.add(revertButton);
+    buttonPanel.add(closeButton);
+    south.add(buttonPanel, BorderLayout.SOUTH);
+    pack();
+  }
+  
+  /**
    * Refreshes the GUI strings.
    */
   protected void refreshGUI() {
@@ -966,6 +1052,15 @@ public class NumberFormatSetter extends JDialog {
 
     degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
     radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
+    degreesButton.setSelected(!frame.anglesInRadians);
+    radiansButton.setSelected(frame.anglesInRadians);
+    
+    defaultDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Default")); //$NON-NLS-1$
+    periodDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Period")); //$NON-NLS-1$
+    commaDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Comma")); //$NON-NLS-1$
+    defaultDecimalButton.setSelected(OSPRuntime.getPreferredDecimalSeparator()==null);
+    periodDecimalButton.setSelected(".".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
+    commaDecimalButton.setSelected(",".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
     
     String s = TrackerRes.getString("NumberFormatSetter.Button.ApplyToTrackOnly.Text"); //$NON-NLS-1$
     trackOnlyButton.setText(s+" ("+trackName+")"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -990,13 +1085,11 @@ public class NumberFormatSetter extends JDialog {
 	  	}
 	  	dimensionButton.setText(s+" "+dim); //$NON-NLS-1$
 	  }
-	  // set titled borders
-    variablePanel.setBorder(BorderFactory.createTitledBorder(
-    		TrackerRes.getString("NumberFormatSetter.ApplyToVariables.Text"))); //$NON-NLS-1$
-    applyToPanel.setBorder(BorderFactory.createTitledBorder(
-    		TrackerRes.getString("NumberFormatSetter.TitledBorder.ApplyTo.Text"))); //$NON-NLS-1$
-    unitsPanel.setBorder(BorderFactory.createTitledBorder(
-    		TrackerRes.getString("NumberFormatSetter.TitledBorder.Units.Text"))); //$NON-NLS-1$
+	  // set border titles
+    variablesBorder.setTitle(TrackerRes.getString("NumberFormatSetter.ApplyToVariables.Text")); //$NON-NLS-1$
+    applyToBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.ApplyTo.Text")); //$NON-NLS-1$
+    unitsBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.Units.Text")); //$NON-NLS-1$
+    decimalSeparatorBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
     Dimension dim = getSize();
 		if (dim.width>getMinimumSize().width) {
 			setSize(dim);

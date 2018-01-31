@@ -208,7 +208,7 @@ abstract public class ParticleModel extends PointMass {
 						&& trackerPanel.isModelBuilderVisible) {
 					modelBuilder.setVisible(true);				
 				}
-				else if (modelBuilder.isVisible()) {
+				else if (modelBuilder.isVisible() && e.getNewValue()!=null) {
 					modelBuilder.setVisible(false);
 					trackerPanel.isModelBuilderVisible = true;
 				}

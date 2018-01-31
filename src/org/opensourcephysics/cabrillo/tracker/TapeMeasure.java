@@ -37,7 +37,6 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -917,8 +916,6 @@ public class TapeMeasure extends TTrack {
 		item.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {              		
         NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TapeMeasure.this, selected);
-        FontSizer.setFonts(dialog, FontSizer.getLevel());
-        dialog.pack();     
   	    dialog.setVisible(true);
       }
     });

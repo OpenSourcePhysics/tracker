@@ -36,7 +36,6 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -664,8 +663,6 @@ public class Protractor extends TTrack {
 		item.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {              		
         NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(Protractor.this, selected);
-        FontSizer.setFonts(dialog, FontSizer.getLevel());
-        dialog.pack();     
   	    dialog.setVisible(true);
       }
     });

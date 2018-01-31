@@ -64,7 +64,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
   protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
 
-	
   // instance fields
   protected double defaultImageBorder;
   protected String description = ""; //$NON-NLS-1$
@@ -300,58 +299,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   public ModelBuilder getModelBuilder() {
   	if (modelBuilder == null) {
-//  		// create start and end frame spinners
-//  	  Font font = new JSpinner().getFont();
-//  	  int n = getPlayer().getVideoClip().getFrameCount()-1;
-//  	  FontRenderContext frc = new FontRenderContext(null, false, false);
-//  	  String s = String.valueOf(Math.max(n, 200));
-//  	  TextLayout layout = new TextLayout(s, font, frc);
-//  	  int w = (int)layout.getBounds().getWidth()+4;
-//  	  if (n>1000) w+=3;
-//  		startFrameLabel = new JLabel();
-//  		startFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
-//  		endFrameLabel = new JLabel();
-//  		endFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
-//  		SpinnerNumberModel model = new SpinnerNumberModel(0, 0, n, 1); // init, min, max, step
-//  		startFrameSpinner = new ModelFrameSpinner(model);
-//  		startFrameSpinner.prefWidth = w;
-//  		model = new SpinnerNumberModel(n, 0, n, 1); // init, min, max, step
-//  		endFrameSpinner = new ModelFrameSpinner(model);
-//  		endFrameSpinner.prefWidth = w;
-//  		
-//  		// create booster label and dropdown
-//      boosterLabel = new JLabel();
-//      boosterLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
-//      boosterDropdown = new JComboBox();
-//      boosterDropdown.setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 0));
-//      boosterDropdown.addActionListener(new ActionListener() {
-//        public void actionPerformed(ActionEvent e) {
-//        	if (!boosterDropdown.isEnabled()) return;
-//      	  FunctionPanel panel = modelBuilder.getSelectedPanel();
-//      	  if (panel!=null) {
-//      	  	ParticleModel part = ((ModelFunctionPanel)panel).model;
-//      	  	if (!(part instanceof DynamicParticle)) return;
-//      	  	DynamicParticle model = (DynamicParticle)part;
-//      	  	
-//      	  	Object item = boosterDropdown.getSelectedItem();
-//	          if(item!=null) {
-//	          	Object[] array = (Object[])item;
-//	          	PointMass target = (PointMass)array[1]; // null if "none" selected
-//		      		model.setBooster(target);
-//		      		if (target!=null) {
-//			      		Step step = getSelectedStep();
-//			      		if (step!=null && step instanceof PositionStep) {
-//			      			PointMass pm = (PointMass)((PositionStep)step).track;
-//			      			if (pm==target) {
-//			      				model.setStartFrame(step.getFrameNumber());
-//			      			}
-//			      		}
-//		      		}
-//	          }
-//      	  }
-//        }
-//      });
-//      
   		// create and size model builder
   		modelBuilder = new ModelBuilder(this);  			
   		modelBuilder.setFontLevel(FontSizer.getLevel());
@@ -1498,6 +1445,41 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   	isAutoRefresh = auto;
   }
 
+  @Override
+  protected void refreshDecimalSeparators() {
+  	super.refreshDecimalSeparators();
+  	// refresh the trackbar so fields repaint
+		TTrackBar.getTrackbar(this).refresh();
+		
+  	// refresh all plot and table views
+		refreshTrackData();
+		
+		// refresh modelbuilder and databuilder
+		if (modelBuilder!=null) {
+			modelBuilder.refreshGUI();
+		}
+		if (dataBuilder!=null) {
+			dataBuilder.refreshGUI();
+		}
+		// refresh DataTool
+		if (frame!=null && frame.getTrackerPanel(frame.getSelectedTab())==this) {
+			DataTool.getTool().refreshDecimalSeparators();
+		}
+		
+		// repaint tracks with readouts
+		for (TapeMeasure tape: getDrawables(TapeMeasure.class)) {
+			tape.inputField.getFormat(); // sets decimal separator
+			tape.repaint(this);
+		}
+		for (Protractor p: getDrawables(Protractor.class)) {
+			p.inputField.getFormat(); // sets decimal separator
+			p.xField.getFormat(); // sets decimal separator
+			p.yField.getFormat(); // sets decimal separator
+			p.repaint(this);
+		}
+		
+  }
+  
   /**
    * Gets the most recent mouse event.
    *
@@ -2090,6 +2072,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     }
     else if (name.equals("stepnumber")) {              // from videoPlayer //$NON-NLS-1$
       setSelectedPoint(null);
+  		selectedSteps.clear();
       if (getVideo() != null && !getVideo().getFilterStack().isEmpty()) {
         Iterator<Filter> it = getVideo().getFilterStack().getFilters().iterator();
         while (it.hasNext()) {
@@ -2387,6 +2370,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     TTrackBar trackbar = TTrackBar.getTrackbar(this);
     trackbar.setFontLevel(level);
     trackbar.refresh();
+    TToolBar.getToolbar(this).refresh(false);
     // replace the menubar to get new accelerator fonts
     TMenuBar menubar = TMenuBar.getNewMenuBar(this);
     frame.setMenuBar(this, menubar);

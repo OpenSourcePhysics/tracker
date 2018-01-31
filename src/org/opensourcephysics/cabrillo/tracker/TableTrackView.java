@@ -111,35 +111,6 @@ public class TableTrackView extends TrackView {
     // create the DataTable
     textColumnEditor = new TextColumnEditor();
     dataTable = new TrackDataTable();
-//    dataTable = new DataTable() {
-//      public void refreshTable() {
-//        // save selected rows and columns
-//        int[] rows = getSelectedRows();
-//        int[] cols = getSelectedColumns();
-//        // refresh table
-//        super.refreshTable();
-//        // restore selected rows and columns
-//        for (int i = 0; i < rows.length; i++) {
-//        	if (rows[i] < getRowCount())
-//        		addRowSelectionInterval(rows[i], rows[i]);
-//        }
-//        for (int i = 0; i < cols.length; i++) {
-//        	if (cols[i] < getColumnCount())
-//        		addColumnSelectionInterval(cols[i], cols[i]);
-//        }
-//      }
-//      public TableCellEditor getCellEditor(int row, int column) {
-//      	// only text columns are editable, so always return textColumnEditor
-//        return textColumnEditor;
-//      }
-//      public boolean isCellEditable(int row, int col) {
-//      	// true only for text (String) columns
-//        int i = dataTable.convertColumnIndexToModel(col);
-//        return dataTable.getModel().getColumnClass(i).equals(String.class);
-//      }
-//
-//    };   
-    
     data = track.getData(trackerPanel);
     tableData = new DatasetManager();
     tableData.setXPointsLinked(true);
@@ -898,8 +869,6 @@ public class TableTrackView extends TrackView {
         	selectedNames[i] = name;
         }
         NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(getTrack(), selectedNames);
-        FontSizer.setFonts(dialog, FontSizer.getLevel());
-        dialog.pack();     
   	    dialog.setVisible(true);
   	  }	
     });

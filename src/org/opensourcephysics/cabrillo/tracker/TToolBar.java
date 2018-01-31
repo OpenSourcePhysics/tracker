@@ -814,7 +814,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         for (int i = 0; i < trailLengths.length; i++) {
           if (trailLength == trailLengths[i]) {
           	trailButton.setIcon(trailIcons[i]);
-//          	trailButton.setSelectedIcon(trailIcons[i]);
           	FontSizer.setFonts(trailButton, FontSizer.getLevel());
           }
         }

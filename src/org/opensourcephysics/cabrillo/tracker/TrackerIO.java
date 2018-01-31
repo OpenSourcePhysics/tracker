@@ -1666,6 +1666,7 @@ public class TrackerIO extends VideoIO {
     buf.append(XML.NEW_LINE);
     java.text.DecimalFormat nf = (DecimalFormat)NumberFormat.getInstance();
     nf.applyPattern("0.000000000E0"); //$NON-NLS-1$
+    nf.setDecimalFormatSymbols(OSPRuntime.getDecimalFormatSymbols());
     java.text.DateFormat df = java.text.DateFormat.getInstance();
     for (int i = 0; i < selectedRows.length; i++) {
       for (int j = 0; j < selectedColumns.length; j++) {

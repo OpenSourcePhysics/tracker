@@ -34,6 +34,7 @@ import javax.swing.*;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -482,7 +483,9 @@ public abstract class TrackChooserTView extends JPanel implements TView {
       		if (coords.isAdjusting()) return;
       	}
         TrackView trackView = getTrackView(track);
-        trackView.refresh(trackerPanel.getFrameNumber());
+        TPoint pt = trackerPanel.getSelectedPoint();
+        Step step = track.getStep(pt, trackerPanel);
+        trackView.refresh(step==null? trackerPanel.getFrameNumber(): step.getFrameNumber());
       }
     }
     else if (name.equals("data")) {             // data has changed //$NON-NLS-1$
