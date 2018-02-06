@@ -118,6 +118,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected PropertyChangeListener massParamListener, massChangeListener;
   protected Map<Class<? extends TTrack>, TreeMap<String, String>> formatPatterns 
   	= new HashMap<Class<? extends TTrack>, TreeMap<String,String>>();
+  protected String lengthUnit="m", massUnit="kg";
+  protected boolean showUnits = true;
 
   /**
    * Constructs a blank TrackerPanel with a player.
@@ -194,6 +196,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		  }
 		};
     
+    getDataBuilder(); // so autoloaded datafunctions are available to tracks
     configure();
   }
 
@@ -904,6 +907,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       	((ParticleModel)pm).refreshSteps();
       }      
       setSelectedPoint(null);
+      selectedSteps.clear();
       repaint();
     }
     else {
@@ -912,6 +916,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         coords = ( (ReferenceFrame) coords).getCoords();
         setCoords(coords);
         setSelectedPoint(null);
+        selectedSteps.clear();
         repaint();
       }
     }
@@ -1315,6 +1320,33 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   }
 
   /**
+   * Returns true if units are displayed.
+   *
+   * @return <code>true</code> if units are displayed
+   */
+  public boolean isShowUnits() {
+    return showUnits;
+  }
+
+  /**
+   * Gets the units for a given track and variable.
+   *
+   * @param track the track
+   * @param var the variable
+   * @return the units
+   */
+  public String getUnits(TTrack track, String var) {
+  	if (!showUnits) return "";
+    String dimensions = NumberFormatSetter.getVariableDimensions(track.getClass(), var);
+    if (dimensions==null) return "";
+    String space = " ";
+    if (dimensions.equals("L")) return space+lengthUnit;
+    if (dimensions.equals("M")) return space+massUnit;
+    if (dimensions.equals("T")) return space+"s";
+    return "";
+  }
+
+  /**
    * Returns true if mouse coordinates are displayed. Overrides VideoPanel
    * method to report false if a point is selected.
    *
@@ -1396,6 +1428,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				dataTrack.setColorToDefault(i);
 				addTrack(dataTrack);
 				setSelectedPoint(null);
+        selectedSteps.clear();
 				setSelectedTrack(dataTrack);
 				dataTrack.getDataClip().setClipLength(-1); // sets clip length to data length
 				VideoClip videoClip = getPlayer().getVideoClip();
@@ -1448,8 +1481,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   @Override
   protected void refreshDecimalSeparators() {
   	super.refreshDecimalSeparators();
-  	// refresh the trackbar so fields repaint
-		TTrackBar.getTrackbar(this).refresh();
+  	// refresh the trackbar decimal separators
+		TTrackBar.getTrackbar(this).refreshDecimalSeparators();
 		
   	// refresh all plot and table views
 		refreshTrackData();
@@ -2072,7 +2105,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     }
     else if (name.equals("stepnumber")) {              // from videoPlayer //$NON-NLS-1$
       setSelectedPoint(null);
-  		selectedSteps.clear();
+      selectedSteps.clear();
       if (getVideo() != null && !getVideo().getFilterStack().isEmpty()) {
         Iterator<Filter> it = getVideo().getFilterStack().getFilters().iterator();
         while (it.hasNext()) {
@@ -2238,6 +2271,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     }
     else if (e.getSource() instanceof Filter && name.equals("visible")) { //$NON-NLS-1$
     	setSelectedPoint(null);
+      selectedSteps.clear();
     }
     else if (name.equals("perspective")) { //$NON-NLS-1$
     	if (e.getNewValue()!=null) {
@@ -2565,6 +2599,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         step = track.deleteStep(step.n);
         if (step == null) return;
         setSelectedPoint(null);
+        selectedSteps.clear();
         hideMouseBox();
         return;
       }
@@ -2708,8 +2743,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     		patterns.putAll(defaultPatterns);
     	}
     	// initialize for additional trackType variables
-			String[] varNames = TTrack.getVariableList(trackType);
-			for (String var: varNames) {
+			for (String var: TTrack.getAllVariables(trackType)) {
 				if (!patterns.containsKey(var)) {
 					patterns.put(var, ""); //$NON-NLS-1$
 				}
@@ -2977,6 +3011,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
        */
       public void mouseExited(MouseEvent e) {
         super.mouseExited(e);
+        isShiftKeyDown = false;
         if (getSelectedPoint()==null) {
         	blMessageBox.setText(null);
         }

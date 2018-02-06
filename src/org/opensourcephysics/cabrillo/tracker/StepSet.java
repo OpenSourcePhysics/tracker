@@ -120,6 +120,7 @@ public class StepSet extends HashSet<Step> {
     	}
     	if (stepp.getPoints()[0]==trackerPanel.getSelectedPoint()) {
     		trackerPanel.setSelectedPoint(null);    		
+        trackerPanel.selectedSteps.clear();
     	}
     	if (this.isEmpty()) {
     		clear();

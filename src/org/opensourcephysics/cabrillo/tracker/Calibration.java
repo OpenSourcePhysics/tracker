@@ -52,10 +52,28 @@ public class Calibration extends TTrack {
   protected static final int X_AXIS = 2;
   protected static final int XY_AXES = 1;
   protected static final int Y_AXIS = 0;
-  protected static String[]	variableList;
+  protected static String[]	dataVariables;
+  protected static String[] formatVariables; // used by NumberFormatSetter
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
   
   static {
-  	variableList = new String[] {"x_{1}", "y_{1}", "x_{2}", "y_{2}"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  	dataVariables = new String[] {"x_{1}", "y_{1}", "x_{2}", "y_{2}"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  	formatVariables = new String[] {"r"}; //$NON-NLS-1$ 
+  	
+  	// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[0]); 
+		list.add(dataVariables[1]); 
+		list.add(dataVariables[2]); 
+		list.add(dataVariables[3]); 
+		formatMap.put(formatVariables[0], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("CircleFitter.Description.Positions")); //$NON-NLS-1$ 
+
   }
 
   // instance fields
@@ -123,6 +141,7 @@ public class Calibration extends TTrack {
     else if (step.getPoints()[1] == null) {
       if (trackerPanel!=null && trackerPanel.getSelectedPoint()==step.getPoints()[0]) {
       	trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
       }
       TPoint p = step.addSecondPoint(x, y);
       if (this.isFixedCoordinates()) {
@@ -203,6 +222,7 @@ public class Calibration extends TTrack {
 	    	// point 2 doesn't exist
         if (trackerPanel!=null && trackerPanel.getSelectedPoint()==step.getPoints()[0]) {
         	trackerPanel.setSelectedPoint(null);
+          trackerPanel.selectedSteps.clear();
         }
         p = step.addSecondPoint(x, y);
         if (this.isFixedCoordinates()) {
@@ -583,10 +603,10 @@ public class Calibration extends TTrack {
   @Override
   public Map<String, NumberField[]> getNumberFields() {
   	numberFields.clear();
-  	numberFields.put(variableList[0], new NumberField[] {xField}); 
-  	numberFields.put(variableList[1], new NumberField[] {yField}); 
-  	numberFields.put(variableList[2], new NumberField[] {x1Field}); 
-  	numberFields.put(variableList[3], new NumberField[] {y1Field}); 
+  	numberFields.put(dataVariables[0], new NumberField[] {xField}); 
+  	numberFields.put(dataVariables[1], new NumberField[] {yField}); 
+  	numberFields.put(dataVariables[2], new NumberField[] {x1Field}); 
+  	numberFields.put(dataVariables[3], new NumberField[] {y1Field}); 
   	return numberFields;
   }
   

@@ -315,6 +315,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
     if (isLocked() && !isDependent()) return;
     if (trackerPanel != null) {
     	trackerPanel.setSelectedPoint(null);
+      trackerPanel.selectedSteps.clear();
 			trackerPanel.getTFrame().removePropertyChangeListener("windowfocus", this); //$NON-NLS-1$
 
       // handle case when this is the origin of current reference frame

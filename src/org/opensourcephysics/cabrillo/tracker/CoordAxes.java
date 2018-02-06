@@ -48,10 +48,31 @@ import org.opensourcephysics.controls.*;
 public class CoordAxes extends TTrack {
 	
 	protected static Icon gridOptionsIcon;
-  protected static String[]	variableList;
+  protected static String[]	dataVariables;
+  protected static String[] formatVariables; // used by NumberFormatSetter
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
 	
   static {
-  	variableList = new String[] {"x", "y", Tracker.THETA}; //$NON-NLS-1$ //$NON-NLS-2$ 
+  	dataVariables = new String[] {"x", "y", Tracker.THETA}; //$NON-NLS-1$ //$NON-NLS-2$ 
+  	formatVariables = new String[] {"pixel", Tracker.THETA}; //$NON-NLS-1$
+  	
+  	// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[0]); 
+		list.add(dataVariables[1]); 
+		formatMap.put(formatVariables[0], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[2]); 
+		formatMap.put(formatVariables[1], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("CoordAxes.Origin.Label")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("CoordAxes.Label.Angle")); //$NON-NLS-1$ 
+
   }
 
 	protected boolean notyetShown = true;
@@ -140,6 +161,7 @@ public class CoordAxes extends TTrack {
         TPoint handle = step.getHandle();
 	      if (handle==trackerPanel.getSelectedPoint()) {
 	      	trackerPanel.setSelectedPoint(null);
+	        trackerPanel.selectedSteps.clear();
 	      }
       }
     };
@@ -572,9 +594,9 @@ public class CoordAxes extends TTrack {
   @Override
   public Map<String, NumberField[]> getNumberFields() {
   	numberFields.clear();
-  	numberFields.put(variableList[0], new NumberField[] {xField}); 
-  	numberFields.put(variableList[1], new NumberField[] {yField}); 
-  	numberFields.put(variableList[2], new NumberField[] {angleField});
+  	numberFields.put(dataVariables[0], new NumberField[] {xField}); 
+  	numberFields.put(dataVariables[1], new NumberField[] {yField}); 
+  	numberFields.put(dataVariables[2], new NumberField[] {angleField});
   	return numberFields;
   }
   

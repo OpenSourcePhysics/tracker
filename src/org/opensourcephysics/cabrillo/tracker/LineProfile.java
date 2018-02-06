@@ -47,11 +47,42 @@ public class LineProfile extends TTrack {
   // static constants
   /** The maximum allowed spread */
   public static final int MAX_SPREAD = 100;
-  protected static String[]	variableList;
+  protected static String[]	dataVariables;
+  protected static String[]	fieldVariables;
+  protected static String[]	formatVariables;
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
 
   static {
-  	variableList = new String[] {"n", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  	dataVariables = new String[] {"n", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
   			"G", "B", "luma", "pixels"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  	fieldVariables = new String[0]; // no number fields used except integer spread
+  	formatVariables = new String[] {"r", "RGB", "luma"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+  	
+		// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();
+		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[1]); 
+		list.add(dataVariables[2]); 
+		formatMap.put(formatVariables[0], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[3]); 
+		list.add(dataVariables[4]); 
+		list.add(dataVariables[5]); 
+		formatMap.put(formatVariables[1], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[6]); 
+		formatMap.put(formatVariables[2], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Position.Name")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("LineProfile.Description.RGB")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("LineProfile.Data.Brightness")); //$NON-NLS-1$ 
+
   }
 
   // instance fields
@@ -76,8 +107,8 @@ public class LineProfile extends TTrack {
     setName(TrackerRes.getString("LineProfile.New.Name")); //$NON-NLS-1$
     // assign default plot variables
     setProperty("highlights", "false"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("xVarPlot0", variableList[1]); //$NON-NLS-1$ 
-    setProperty("yVarPlot0", variableList[6]); //$NON-NLS-1$ 
+    setProperty("xVarPlot0", dataVariables[1]); //$NON-NLS-1$ 
+    setProperty("yVarPlot0", dataVariables[6]); //$NON-NLS-1$ 
     setProperty("pointsPlot0", "false"); //$NON-NLS-1$ //$NON-NLS-2$
     setProperty("yMinPlot0", new Double(0)); //$NON-NLS-1$
     setProperty("yMaxPlot0", new Double(255)); //$NON-NLS-1$
@@ -117,6 +148,7 @@ public class LineProfile extends TTrack {
       }
     });
     spreadField.setBorder(fieldBorder);
+    spreadField.addMouseListener(formatMouseListener);
     // create fixed line item
     fixedLineItem = new JCheckBoxMenuItem(TrackerRes.getString("LineProfile.MenuItem.Fixed")); //$NON-NLS-1$
     fixedLineItem.addItemListener(new ItemListener() {
@@ -411,15 +443,15 @@ public class LineProfile extends TTrack {
     Dataset luma = data.getDataset(count++);
     Dataset w = data.getDataset(count++);
     // assign column names to the datasets
-    String pixelNum = variableList[0];
+    String pixelNum = dataVariables[0];
     if (!x.getColumnName(0).equals(pixelNum)) { // not yet initialized
-	    x.setXYColumnNames(pixelNum, variableList[1]); 
-	    y.setXYColumnNames(pixelNum, variableList[2]); 
-	    r.setXYColumnNames(pixelNum, variableList[3]); 
-	    g.setXYColumnNames(pixelNum, variableList[4]); 
-	    b.setXYColumnNames(pixelNum, variableList[5]); 
-	    luma.setXYColumnNames(pixelNum, variableList[6]); 
-	    w.setXYColumnNames(pixelNum, variableList[7]); 
+	    x.setXYColumnNames(pixelNum, dataVariables[1]); 
+	    y.setXYColumnNames(pixelNum, dataVariables[2]); 
+	    r.setXYColumnNames(pixelNum, dataVariables[3]); 
+	    g.setXYColumnNames(pixelNum, dataVariables[4]); 
+	    b.setXYColumnNames(pixelNum, dataVariables[5]); 
+	    luma.setXYColumnNames(pixelNum, dataVariables[6]); 
+	    w.setXYColumnNames(pixelNum, dataVariables[7]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -537,14 +569,6 @@ public class LineProfile extends TTrack {
     return TrackerRes.getString("LineProfile.Name"); //$NON-NLS-1$
   }
 
-  @Override
-  public Map<String, NumberField[]> getNumberFields() {
-  	numberFields.clear();
-  	numberFields.put(variableList[1], new NumberField[] {xField});
-  	numberFields.put(variableList[2], new NumberField[] {yField});
-  	return numberFields;
-  }
-  
 //_______________________ private and protected methods _______________________
 
   /**

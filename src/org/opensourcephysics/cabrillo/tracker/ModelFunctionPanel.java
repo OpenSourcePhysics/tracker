@@ -179,7 +179,10 @@ public class ModelFunctionPanel extends FunctionPanel {
 		String name = e.getPropertyName();
  	  if (e.getSource() == paramEditor && name.equals("edit")) { //$NON-NLS-1$
 	  	initEditor.getTable().selectOnFocus = false;
- 	  }
+ 	  } 
+ 	  else if (name.equals("angles_in_radians") && model.trackerPanel!=null) {   //$NON-NLS-1$
+ 	  	model.trackerPanel.getTFrame().setAnglesInRadians((Boolean)e.getNewValue());
+	  }
 	}
 	
 	@Override

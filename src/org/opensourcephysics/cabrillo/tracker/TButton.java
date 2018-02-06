@@ -75,6 +75,7 @@ public class TButton extends JButton {
     				&& track != track.trackerPanel.getSelectedTrack()) {
     			track.trackerPanel.setSelectedTrack(track);
     			track.trackerPanel.setSelectedPoint(null);
+          track.trackerPanel.selectedSteps.clear();
         	hidePopup = true;
         }
     	}

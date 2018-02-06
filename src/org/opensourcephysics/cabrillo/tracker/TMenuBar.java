@@ -106,6 +106,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JRadioButtonMenuItem videoSizeItem;
   protected JMenu languageMenu;
   protected JMenuItem[] languageItems;
+  protected JMenuItem otherLanguageItem;
   protected JMenuItem propsItem;
   // video menu
   protected JMenu videoMenu;
@@ -494,6 +495,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     undoItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
       	Undo.undo(trackerPanel);
       }
     });    
@@ -503,6 +505,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       public void actionPerformed(ActionEvent e) {
       	Undo.redo(trackerPanel);
       	trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
       }
     });    
     // paste items
@@ -729,6 +732,22 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     Action languageAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
         String language = e.getActionCommand();
+        for (int i = 0; i < Tracker.incompleteLocales.length; i++) {
+          if (language.equals(Tracker.incompleteLocales[i][0].toString())) {
+          	Locale locale = (Locale)Tracker.incompleteLocales[i][0];
+          	String lang = OSPRuntime.getDisplayLanguage(locale);
+          	JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
+          			TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message1") //$NON-NLS-1$
+          					+" "+Tracker.incompleteLocales[i][1] //$NON-NLS-1$
+          					+".\n"+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message2") //$NON-NLS-1$ //$NON-NLS-2$
+          					+" "+lang+" "+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message3") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+          					+"\n"+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message4") //$NON-NLS-1$ //$NON-NLS-2$
+          					+" dobrown@cabrillo.edu.",  //$NON-NLS-1$
+              	TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Title") //$NON-NLS-1$
+              			+": "+lang,  //$NON-NLS-1$
+          			JOptionPane.WARNING_MESSAGE);
+          }
+        }
         for (int i = 0; i < Tracker.locales.length; i++) {
           if (language.equals(Tracker.locales[i].toString())) {
           	TrackerRes.setLocale(Tracker.locales[i]);
@@ -760,6 +779,20 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     for (int i = 0; i < languageItems.length; i++) {
       languageMenu.add(languageItems[i]);
     }
+    // add "other" language item at end
+    otherLanguageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Language.Other")); //$NON-NLS-1$
+    languageMenu.add(otherLanguageItem);
+    otherLanguageItem.addActionListener(new ActionListener() {
+    	public void actionPerformed(ActionEvent e) {
+        JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
+	    			TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message1") //$NON-NLS-1$
+	    					+"\n"+TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message2") //$NON-NLS-1$ //$NON-NLS-2$
+	    					+"\n"+TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message3") //$NON-NLS-1$ //$NON-NLS-2$
+	    					+" dobrown@cabrillo.edu.",  //$NON-NLS-1$
+	    			TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Title"),  //$NON-NLS-1$
+	    			JOptionPane.INFORMATION_MESSAGE);
+    	}
+    });
 		
     // create new track menu
     createMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.NewTrack")); //$NON-NLS-1$
@@ -1810,9 +1843,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         if (editMenu.getItemCount() > 0) editMenu.addSeparator();
       	editMenu.add(fontSizeMenu);
         refreshMatSizes(video);
+        languageMenu.removeAll();
         for (int i = 0; i < Tracker.locales.length; i++) {
           languageMenu.add(languageItems[i]);
         }
+        languageMenu.addSeparator();
+        languageMenu.add(otherLanguageItem);
         if (editMenu.getItemCount() > 0) editMenu.addSeparator();
         editMenu.add(languageMenu);
         if (editMenu.getItemCount() > 0) editMenu.addSeparator();

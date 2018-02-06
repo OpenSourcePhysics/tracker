@@ -107,6 +107,7 @@ public class PerspectiveTrack extends TTrack {
 	  	else if (name.equals("enabled") || name.equals("tab") || name.equals("visible")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  		if (trackerPanel.getSelectedTrack()==this) {
   				trackerPanel.setSelectedPoint(null);
+          trackerPanel.selectedSteps.clear();
 	  		}
 	  		boolean visible = filter.hasInspector() && filter.getInspector().isVisible();
 	  		if (visible) {

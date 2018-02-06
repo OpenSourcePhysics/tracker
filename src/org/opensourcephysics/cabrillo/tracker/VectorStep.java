@@ -865,11 +865,12 @@ public class VectorStep extends Step
           y = m.getMass() * y;
         }
       }
-      track.xField.setValue(x);
-      track.yField.setValue(y);
-      track.magField.setValue(Math.sqrt(x * x + y * y));
+      NumberField[] fields = track.getNumberFieldsForStep(VectorStep.this);
+      fields[0].setValue(x); 
+      fields[1].setValue(y); 
+      fields[2].setValue(Math.sqrt(x * x + y * y)); 
       double theta = Math.atan2(y, x);
-      track.angleField.setValue(theta);
+      fields[3].setValue(theta); 
       super.showCoordinates(vidPanel);
     }
 

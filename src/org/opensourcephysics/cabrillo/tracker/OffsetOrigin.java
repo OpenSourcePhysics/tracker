@@ -45,10 +45,26 @@ import org.opensourcephysics.controls.*;
 public class OffsetOrigin extends TTrack {
 
   // static fields
-	protected static String[]	variableList;
+	protected static String[]	dataVariables;
+  protected static String[] formatVariables; // used by NumberFormatSetter
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
 
   static {
-  	variableList = new String[] {"x", "y"}; //$NON-NLS-1$ //$NON-NLS-2$
+  	dataVariables = new String[] {"x", "y"}; //$NON-NLS-1$ //$NON-NLS-2$
+  	formatVariables = new String[] {"r"}; //$NON-NLS-1$
+  	
+  	// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[0]); 
+		list.add(dataVariables[1]); 
+		formatMap.put(formatVariables[0], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Position.Name")); //$NON-NLS-1$ 
+
   }
   // instance fields
   private Component separator;
@@ -378,8 +394,8 @@ public class OffsetOrigin extends TTrack {
   @Override
   public Map<String, NumberField[]> getNumberFields() {
   	numberFields.clear();
-  	numberFields.put(variableList[0], new NumberField[] {xField});
-  	numberFields.put(variableList[1], new NumberField[] {yField});
+  	numberFields.put(dataVariables[0], new NumberField[] {xField});
+  	numberFields.put(dataVariables[1], new NumberField[] {yField});
   	return numberFields;
   }
   

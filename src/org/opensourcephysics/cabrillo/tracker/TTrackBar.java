@@ -65,11 +65,12 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   protected static boolean showOutOfMemoryDialog = true;
   protected static JDialog relaunchingDialog;
   protected static JLabel downloadLabel, relaunchLabel;
+  private static JTextField sizingField = new JTextField();
   
   // instance fields
   protected TrackerPanel trackerPanel; // manages & displays track data
   protected Component toolbarEnd;
-  protected int toolbarComponentHeight;
+  protected int toolbarComponentHeight, numberFieldWidth;
   protected TButton trackButton;
   protected TButton selectButton;
   protected JLabel emptyLabel = new JLabel();
@@ -88,7 +89,13 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-
+		    	      	URL url = Tracker.class.getResource("resources/help/axes.html");
+		    	      	String s = ResourceLoader.getString(url.toExternalForm());
+		    	      	String[] pTags = s.split("<p>");
+		    	      	for (int i=1; i< pTags.length; i++) {
+		    	      		pTags[i] = pTags[i].substring(0, pTags[i].indexOf("</p>"));
+			    	      	System.out.println("pig "+pTags[i]);		    	      		
+		    	      	}
 //		    	      	Tracker.newerVersion = "6.7.8";
 //		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 //		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
@@ -760,8 +767,10 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
    */
   public void setFontLevel(int level) {
   	Object[] objectsToSize = new Object[]
-  			{trackButton};
+  			{trackButton, sizingField};
     FontSizer.setFonts(objectsToSize, level);
+		sizingField.setText("1234567"); //$NON-NLS-1$
+		numberFieldWidth = sizingField.getPreferredSize().width;
   }
   
   /**
@@ -922,6 +931,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh"); //$NON-NLS-1$
     Runnable runner = new Runnable() {
     	public void run() {
+    		sizingField.setText("1234567"); //$NON-NLS-1$
+    		numberFieldWidth = sizingField.getPreferredSize().width;
         selectButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SelectTrack.Tooltip")); //$NON-NLS-1$
     		TTrack track = trackButton.getTrack();
     		if (track!=null) {
@@ -970,6 +981,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
               jc.setPreferredSize(null);
               Dimension dim = jc.getPreferredSize();
               dim.height = toolbarComponentHeight;
+              if(jc instanceof NumberField) {
+              	dim.width = Math.max(numberFieldWidth, dim.width);
+              }
               jc.setPreferredSize(dim);
               jc.setMaximumSize(dim);
             }
@@ -988,6 +1002,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
                 jc.setPreferredSize(null);
                 Dimension dim = jc.getPreferredSize();
                 dim.height = toolbarComponentHeight;
+                if(jc instanceof NumberField) {
+                	dim.width = Math.max(numberFieldWidth, dim.width);
+                }
                 jc.setPreferredSize(dim);
                 jc.setMaximumSize(dim);
               }
@@ -1013,6 +1030,34 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     };
     if (SwingUtilities.isEventDispatchThread()) runner.run();
     else SwingUtilities.invokeLater(runner); 
+  }
+  
+  /**
+   *  Resizes a NumberField.
+   */
+  protected void resizeField(NumberField field) {
+  	// do nothing if the field is not displayed
+  	if (getComponentIndex(field)<0) return;
+    field.setMaximumSize(null);
+    field.setPreferredSize(null);
+    Dimension dim = field.getPreferredSize();
+    dim.height = toolbarComponentHeight;
+    dim.width = Math.max(numberFieldWidth, dim.width);
+    field.setMaximumSize(dim);
+    field.setPreferredSize(dim);
+		revalidate();
+  }
+
+  /**
+   *  Refreshes the decimal separators of displayed NumberFields.
+   */
+  protected void refreshDecimalSeparators() {
+  	for (Component next: getComponents()) {
+  		if (next instanceof NumberField) {
+  			NumberField field = (NumberField)next;
+  			field.setValue(field.getValue());
+  		}
+  	}
   }
 
   /**
@@ -1127,12 +1172,12 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		memoryButton.setForeground(used>0.8? Color.red: Color.black);
   }
 
-  protected static boolean isAlive(Process process) {
-    try {
-        process.exitValue();
-        return false;
-    } catch (Exception e) {
-        return true;
-    }
+  private static boolean isAlive(Process process) {
+  	try {
+  		process.exitValue();
+  		return false;
+  	} catch (Exception e) {
+  		return true;
+  	}
   }
 }

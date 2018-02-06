@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.text.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 import java.awt.*;
@@ -52,10 +53,35 @@ public class TapeMeasure extends TTrack {
 	protected static final double MIN_LENGTH = 1.0E-30;
   @SuppressWarnings("javadoc")
 	public static final float[] BROKEN_LINE = new float[] {10, 1};
-  protected static String[]	variableList;
+  protected static String[]	dataVariables;
+  protected static String[]	formatVariables; // also used for fieldVariables
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
 
   static {
-  	variableList = new String[] {"t", "length", Tracker.THETA, "step", "frame"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+  	dataVariables = new String[] {"t", "L", Tracker.THETA, "step", "frame"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+  	formatVariables = new String[] {"t", "L", Tracker.THETA}; //$NON-NLS-1$ //$NON-NLS-2$ 
+		
+  	// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[0]); 
+		formatMap.put(formatVariables[0], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[1]); 
+		formatMap.put(formatVariables[1], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[2]); 
+		formatMap.put(formatVariables[2], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("TapeMeasure.Label.Length")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("TapeMeasure.Label.TapeAngle")); //$NON-NLS-1$ 
+
   }
 
   // instance fields
@@ -84,10 +110,10 @@ public class TapeMeasure extends TTrack {
 		defaultColors = new Color[] {new Color(204, 0, 0)};
 		
     // assign default plot variables
-    setProperty("xVarPlot0", variableList[0]); //$NON-NLS-1$ 
-    setProperty("yVarPlot0", variableList[1]); //$NON-NLS-1$ 
-    setProperty("xVarPlot1", variableList[0]); //$NON-NLS-1$ 
-    setProperty("yVarPlot1", variableList[2]); //$NON-NLS-1$
+    setProperty("xVarPlot0", dataVariables[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot0", dataVariables[1]); //$NON-NLS-1$ 
+    setProperty("xVarPlot1", dataVariables[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot1", dataVariables[2]); //$NON-NLS-1$
 
     // assign default table variables: length and angle
     setProperty("tableVar0", "0"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -834,12 +860,12 @@ public class TapeMeasure extends TTrack {
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
     // assign column names to the datasets
-    String time = variableList[0]; 
+    String time = dataVariables[0]; 
     if (!length.getColumnName(0).equals(time)) { // not yet initialized
-    	length.setXYColumnNames(time, variableList[1]); 
-    	angle.setXYColumnNames(time, variableList[2]);
-	    stepNum.setXYColumnNames(time, variableList[3]); 
-	    frameNum.setXYColumnNames(time, variableList[4]); 
+    	length.setXYColumnNames(time, dataVariables[1]); 
+    	angle.setXYColumnNames(time, dataVariables[2]);
+	    stepNum.setXYColumnNames(time, dataVariables[3]); 
+	    frameNum.setXYColumnNames(time, dataVariables[4]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -897,10 +923,11 @@ public class TapeMeasure extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	numberFields.clear();
-  	numberFields.put(variableList[0], new NumberField[] {tField});
-  	numberFields.put(variableList[1], new NumberField[] {magField, inputField});
-  	numberFields.put(variableList[2], new NumberField[] {angleField});
+  	if (numberFields.isEmpty()) {
+	  	numberFields.put(dataVariables[0], new NumberField[] {tField});
+	  	numberFields.put(dataVariables[1], new NumberField[] {magField, inputField});
+	  	numberFields.put(dataVariables[2], new NumberField[] {angleField});
+  	}
   	return numberFields;
   }
   
@@ -912,7 +939,7 @@ public class TapeMeasure extends TTrack {
   protected JPopupMenu getInputFieldPopup() {
   	JPopupMenu popup = new JPopupMenu();
 		JMenuItem item = new JMenuItem();
-		final String[] selected = new String[] {variableList[1]}; 
+		final String[] selected = new String[] {dataVariables[1]}; 
 		item.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {              		
         NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TapeMeasure.this, selected);

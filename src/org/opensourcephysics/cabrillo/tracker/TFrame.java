@@ -2031,11 +2031,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     JMenu editMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Edit")); //$NON-NLS-1$
     defaultMenuBar.add(editMenu);
     // language menu
-    JMenuItem languageMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Language")); //$NON-NLS-1$
+    JMenu languageMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Language")); //$NON-NLS-1$
     editMenu.add(languageMenu);
     Action languageAction = new AbstractAction() {
       public void actionPerformed(ActionEvent e) {
         String language = e.getActionCommand();
+        for (int i = 0; i < Tracker.incompleteLocales.length; i++) {
+          if (language.equals(Tracker.incompleteLocales[i][0].toString())) {
+          	Locale locale = (Locale)Tracker.incompleteLocales[i][0];
+          	String lang = OSPRuntime.getDisplayLanguage(locale);
+          	JOptionPane.showMessageDialog(TFrame.this, 
+          			TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message1") //$NON-NLS-1$
+          					+" "+Tracker.incompleteLocales[i][1] //$NON-NLS-1$
+          					+".\n"+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message2") //$NON-NLS-1$ //$NON-NLS-2$
+          					+" "+lang+" "+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message3") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+          					+"\n"+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message4") //$NON-NLS-1$ //$NON-NLS-2$
+          					+" dobrown@cabrillo.edu.",  //$NON-NLS-1$
+          			TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Title") //$NON-NLS-1$
+          					+": "+lang,  //$NON-NLS-1$
+          			JOptionPane.WARNING_MESSAGE);
+          }
+        }
         for (int i = 0; i < Tracker.locales.length; i++) {
           if (language.equals(Tracker.locales[i].toString())) {
           	TrackerRes.setLocale(Tracker.locales[i]);
@@ -2055,6 +2071,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       	item.setSelected(true);
       }
     }
+    // add "other" language item at end
+    JMenuItem otherLanguageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Language.Other")); //$NON-NLS-1$
+    languageMenu.addSeparator();
+    languageMenu.add(otherLanguageItem);
+    otherLanguageItem.addActionListener(new ActionListener() {
+    	public void actionPerformed(ActionEvent e) {
+        JOptionPane.showMessageDialog(TFrame.this, 
+	    			TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message1") //$NON-NLS-1$
+	    					+"\n"+TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message2") //$NON-NLS-1$ //$NON-NLS-2$
+	    					+"\n"+TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message3") //$NON-NLS-1$ //$NON-NLS-2$
+	    					+" dobrown@cabrillo.edu.",  //$NON-NLS-1$
+	    			TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Title"),  //$NON-NLS-1$
+	    			JOptionPane.INFORMATION_MESSAGE);
+    	}
+    });
     // preferences item
     JMenuItem prefsItem = new JMenuItem(TrackerRes.getString("TActions.Action.Config")); //$NON-NLS-1$
     prefsItem.addActionListener(new ActionListener() {

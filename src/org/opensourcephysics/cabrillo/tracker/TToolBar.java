@@ -428,6 +428,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   		public void actionPerformed(ActionEvent e) {
   			int n = Integer.parseInt(e.getActionCommand());
       	trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         vStretch = n;
         refresh(true);
   		}
@@ -449,6 +450,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   		public void actionPerformed(ActionEvent e) {
   			int n = Integer.parseInt(e.getActionCommand());
       	trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         aStretch = n;
         refresh(true);
   		}
@@ -1336,6 +1338,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     	if (e.getSource()==calibrationButton) { // button action: show/hide tools
     		if (showPopup) return;
 	      trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
 	      trackerPanel.hideMouseBox();        
 	      if (!calibrationButton.isSelected()) {
 	      	calibrationButton.setSelected(true);
@@ -1356,6 +1359,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     	else { // menuItem action
     		// see which item changed and show/hide corresponding tool
       	trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         JMenuItem source = (JMenuItem)e.getSource();
         for (TTrack track: trackerPanel.calibrationTools) {
           if (e.getActionCommand().equals(track.getName())) {
@@ -1477,6 +1481,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         public void actionPerformed(ActionEvent e) {
         	drawingVisibleCheckbox.setSelected(!drawingVisibleCheckbox.isSelected());
         	trackerPanel.setSelectedPoint(null);
+          trackerPanel.selectedSteps.clear();
         	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
         	drawer.setDrawingsVisible(drawingVisibleCheckbox.isSelected());
         	trackerPanel.repaint();
@@ -1499,6 +1504,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     public void actionPerformed(ActionEvent e) {
   		if (showPopup) return;
       trackerPanel.setSelectedPoint(null);
+      trackerPanel.selectedSteps.clear();
       trackerPanel.hideMouseBox();        
       setSelected(!isSelected());
     	PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);

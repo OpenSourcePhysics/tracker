@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 import java.awt.*;
@@ -53,8 +54,12 @@ import org.opensourcephysics.controls.*;
  */
 public class CircleFitter extends TTrack {
 	
-	protected static int maxDataPointCount = 20;
-  protected static String[]	variableList;
+	protected static int maxDataPointCount = 50;
+  protected static String[]	dataVariables;
+  protected static String[] fieldVariables; // associated with number fields
+  protected static String[] formatVariables; // used by NumberFormatSetter
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
 	
   static {
    	String center = TrackerRes.getString("CircleFitter.Data.Center")+"}"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -64,13 +69,48 @@ public class CircleFitter extends TTrack {
   	names.add("t"); //$NON-NLS-1$ 0
   	names.add("x_{"+center); //$NON-NLS-1$ 1
   	names.add("y_{"+center); //$NON-NLS-1$ 2
-  	names.add("r"); //$NON-NLS-1$ 3
+  	names.add("R"); //$NON-NLS-1$ 3
   	names.add("step"); //$NON-NLS-1$ 4
   	names.add("frame"); //$NON-NLS-1$ 5
 		names.add("x_{"+selected); //$NON-NLS-1$ 6
 		names.add("y_{"+selected); //$NON-NLS-1$ 7
 		names.add(points); // 8
-		variableList = names.toArray(new String[names.size()]);
+		dataVariables = names.toArray(new String[names.size()]);
+		
+  	names.clear();
+  	names.add(dataVariables[0]); // 0
+  	names.add(dataVariables[1]); // 1
+  	names.add(dataVariables[2]); // 2
+  	names.add(dataVariables[3]); // 3
+		names.add(dataVariables[6]); // 6
+		names.add(dataVariables[7]); // 7
+		fieldVariables = names.toArray(new String[names.size()]);
+
+		formatVariables = new String[] {"t", "r", "R"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		
+  	// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[0]); 
+		formatMap.put(formatVariables[0], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[1]); 
+		list.add(dataVariables[2]); 
+		list.add(dataVariables[6]); 
+		list.add(dataVariables[7]); 
+		formatMap.put(formatVariables[1], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[3]);  
+		formatMap.put(formatVariables[2], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("CircleFitter.Description.Positions")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("CircleFitter.Label.Radius")); //$NON-NLS-1$ 
+
   }
 
   // instance fields
@@ -111,12 +151,12 @@ public class CircleFitter extends TTrack {
     setProperty("tableVar1", "1"); //$NON-NLS-1$ //$NON-NLS-2$
     setProperty("tableVar2", "2"); //$NON-NLS-1$ //$NON-NLS-2$
     // assign default plot variables
-    setProperty("xVarPlot0", variableList[0]); //$NON-NLS-1$ 
-    setProperty("yVarPlot0", variableList[1]); //$NON-NLS-1$ 
-    setProperty("xVarPlot1", variableList[0]); //$NON-NLS-1$ 
-    setProperty("yVarPlot1", variableList[2]); //$NON-NLS-1$ 
-    setProperty("xVarPlot2", variableList[0]); //$NON-NLS-1$ 
-    setProperty("yVarPlot2", variableList[3]); //$NON-NLS-1$ 
+    setProperty("xVarPlot0", dataVariables[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot0", dataVariables[1]); //$NON-NLS-1$ 
+    setProperty("xVarPlot1", dataVariables[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot1", dataVariables[2]); //$NON-NLS-1$ 
+    setProperty("xVarPlot2", dataVariables[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot2", dataVariables[3]); //$NON-NLS-1$ 
    
     // set initial hint
   	partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
@@ -1100,12 +1140,12 @@ public class CircleFitter extends TTrack {
   public Map<String, NumberField[]> getNumberFields() {
   	numberFields.clear();
   	// dataset column names set in refreshData() method
-  	numberFields.put(variableList[0], new NumberField[] {tField});
-  	numberFields.put(variableList[1], new NumberField[] {xField});
-  	numberFields.put(variableList[2], new NumberField[] {yField});
-  	numberFields.put(variableList[3], new NumberField[] {magField});
-  	numberFields.put(variableList[6], new NumberField[] {xDataField});
-  	numberFields.put(variableList[7], new NumberField[] {yDataField});  
+  	numberFields.put(dataVariables[0], new NumberField[] {tField});
+  	numberFields.put(dataVariables[1], new NumberField[] {xField});
+  	numberFields.put(dataVariables[2], new NumberField[] {yField});
+  	numberFields.put(dataVariables[3], new NumberField[] {magField});
+  	numberFields.put(dataVariables[6], new NumberField[] {xDataField});
+  	numberFields.put(dataVariables[7], new NumberField[] {yDataField});  
   	return numberFields;
   }
   
@@ -1153,14 +1193,14 @@ public class CircleFitter extends TTrack {
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
     // assign column names to the datasets
-    String time = variableList[0]; 
+    String time = dataVariables[0]; 
     if (!x_center.getColumnName(0).equals(time)) { // not yet initialized
-    	x_center.setXYColumnNames(time, variableList[1]); 
-    	y_center.setXYColumnNames(time, variableList[2]); 
-    	r.setXYColumnNames(time, variableList[3]); 
-	    stepNum.setXYColumnNames(time, variableList[4]); 
-	    frameNum.setXYColumnNames(time, variableList[5]); 
-	    dataCount.setXYColumnNames(time, variableList[8]); 
+    	x_center.setXYColumnNames(time, dataVariables[1]); 
+    	y_center.setXYColumnNames(time, dataVariables[2]); 
+    	r.setXYColumnNames(time, dataVariables[3]); 
+	    stepNum.setXYColumnNames(time, dataVariables[4]); 
+	    frameNum.setXYColumnNames(time, dataVariables[5]); 
+	    dataCount.setXYColumnNames(time, dataVariables[8]); 
     }
     else for (int i = 0; i<count; i++) {
     	data.getDataset(i).clear();

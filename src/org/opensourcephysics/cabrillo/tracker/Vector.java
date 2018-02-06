@@ -46,7 +46,11 @@ import org.opensourcephysics.controls.*;
 public class Vector extends TTrack {
 
   // static fields
-	protected static String[]	variableList;
+	protected static String[]	dataVariables;
+	protected static String[]	formatVariables;
+	protected static String[]	fieldVariables;
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
 
   static {
   	ArrayList<String> names = new ArrayList<String>();
@@ -59,7 +63,48 @@ public class Vector extends TTrack {
   	names.add("y_{tail}"); //$NON-NLS-1$ 6
   	names.add("step"); //$NON-NLS-1$ 7
   	names.add("frame"); //$NON-NLS-1$ 8
-		variableList = names.toArray(new String[names.size()]);
+		dataVariables = names.toArray(new String[names.size()]);
+		
+		// assemble field variables
+  	names.clear();
+  	names.add(dataVariables[0]); // 0
+  	names.add(dataVariables[1]); // 1
+  	names.add(dataVariables[2]); // 2
+  	names.add(dataVariables[3]); // 3
+  	names.add(dataVariables[4]); // 4
+		fieldVariables = names.toArray(new String[names.size()]);
+		
+		// assemble format variables
+  	names.clear();
+  	names.add("t"); //$NON-NLS-1$ 1
+  	names.add("mag"); //$NON-NLS-1$ 2
+   	names.add(Tracker.THETA); // 7
+		formatVariables = names.toArray(new String[names.size()]);
+		
+		// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();
+		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[0]); 
+		formatMap.put(formatVariables[0], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[1]); 
+		list.add(dataVariables[2]); 
+		list.add(dataVariables[3]); 
+		list.add(dataVariables[5]); 
+		list.add(dataVariables[6]); 
+		formatMap.put(formatVariables[1], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[4]);
+		formatMap.put(formatVariables[2], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("Vector.Data.Description.0")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("Vector.Description.Magnitudes")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("Vector.Data.Description.4")); //$NON-NLS-1$
   }
 
   // instance fields
@@ -88,10 +133,10 @@ public class Vector extends TTrack {
     // assign a default name
     setName(TrackerRes.getString("Vector.New.Name")); //$NON-NLS-1$
     // assign default plot variables
-    setProperty("xVarPlot0", variableList[0]); //$NON-NLS-1$ 
-    setProperty("yVarPlot0", variableList[1]); //$NON-NLS-1$ 
-    setProperty("xVarPlot1", variableList[0]); //$NON-NLS-1$ 
-    setProperty("yVarPlot1", variableList[2]); //$NON-NLS-1$ 
+    setProperty("xVarPlot0", dataVariables[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot0", dataVariables[1]); //$NON-NLS-1$ 
+    setProperty("xVarPlot1", dataVariables[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot1", dataVariables[2]); //$NON-NLS-1$ 
     // set initial hint
   	partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
     hint = TrackerRes.getString("Vector.Unmarked.Hint"); //$NON-NLS-1$
@@ -315,15 +360,15 @@ public class Vector extends TTrack {
     Dataset frameNum = data.getDataset(count++);
     // assign column names to the datasets   
     if (xComp.getColumnName(0).equals("x")) { // not yet initialized //$NON-NLS-1$
-    	String time = variableList[0];
-      xComp.setXYColumnNames(time, variableList[1]); 
-      yComp.setXYColumnNames(time, variableList[2]); 
-      mag.setXYColumnNames(time, variableList[3]); 
-      ang.setXYColumnNames(time, variableList[4]); 
-      xTail.setXYColumnNames(time, variableList[5]); 
-      yTail.setXYColumnNames(time, variableList[6]); 
-      stepNum.setXYColumnNames(time, variableList[7]); 
-      frameNum.setXYColumnNames(time, variableList[8]); 
+    	String time = dataVariables[0];
+      xComp.setXYColumnNames(time, dataVariables[1]); 
+      yComp.setXYColumnNames(time, dataVariables[2]); 
+      mag.setXYColumnNames(time, dataVariables[3]); 
+      ang.setXYColumnNames(time, dataVariables[4]); 
+      xTail.setXYColumnNames(time, dataVariables[5]); 
+      yTail.setXYColumnNames(time, dataVariables[6]); 
+      stepNum.setXYColumnNames(time, dataVariables[7]); 
+      frameNum.setXYColumnNames(time, dataVariables[8]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -459,6 +504,7 @@ public class Vector extends TTrack {
       Step step = panel.getSelectedStep();
       if (step != null && step == getStep(step.getFrameNumber())) {
         panel.setSelectedPoint(null);
+        panel.selectedSteps.clear();
       }
     }
   }
@@ -579,12 +625,13 @@ public class Vector extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	numberFields.clear();
-  	numberFields.put(variableList[0], new NumberField[] {tField});
-  	numberFields.put(variableList[1], new NumberField[] {xField});
-  	numberFields.put(variableList[2], new NumberField[] {yField});
-  	numberFields.put(variableList[3], new NumberField[] {magField});
-  	numberFields.put(variableList[4], new NumberField[] {angleField});
+  	if (numberFields.isEmpty()) {
+	  	numberFields.put(dataVariables[0], new NumberField[] {tField});
+	  	numberFields.put(dataVariables[1], new NumberField[] {xField});
+	  	numberFields.put(dataVariables[2], new NumberField[] {yField});
+	  	numberFields.put(dataVariables[3], new NumberField[] {magField});
+	  	numberFields.put(dataVariables[4], new NumberField[] {angleField});
+  	}
   	return numberFields;
   }
   

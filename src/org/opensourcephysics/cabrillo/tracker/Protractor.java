@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.awt.*;
 import java.awt.event.*;
@@ -46,11 +47,41 @@ import org.opensourcephysics.controls.*;
 public class Protractor extends TTrack {
 	
   // static fields
-	protected static String[]	variableList;
+	protected static String[]	dataVariables;
+	protected static String[]	fieldVariables;
+  protected static String[]	formatVariables;
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
 
   static {
-  	variableList = new String[] {"t", Tracker.THETA, "L_{1}", "L_{2}",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+  	dataVariables = new String[] {"t", Tracker.THETA, "L_{1}", "L_{2}",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   			"step", "frame", Tracker.THETA+"_{rot}"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+  	fieldVariables = new String[] {"t", Tracker.THETA, "L_{1}", "L_{2}"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+  	formatVariables = new String[] {"t", "L", Tracker.THETA}; //$NON-NLS-1$ //$NON-NLS-2$
+  	
+  	// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();
+		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[0]); 
+		formatMap.put(formatVariables[0], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[2]); 
+		list.add(dataVariables[3]); 
+		formatMap.put(formatVariables[1], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[1]); 
+		list.add(dataVariables[6]);  
+		formatMap.put(formatVariables[2], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("TapeMeasure.Label.Length")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("Vector.Data.Description.4")); //$NON-NLS-1$ 
+
   }
 
 	// instance fields
@@ -418,14 +449,14 @@ public class Protractor extends TTrack {
     Dataset frameNum = data.getDataset(count++);
     Dataset rotationAngle = data.getDataset(count++);
     // assign column names to the datasets
-    String time = variableList[0]; 
+    String time = dataVariables[0]; 
     if (!angle.getColumnName(0).equals(time)) { // not yet initialized
-    	angle.setXYColumnNames(time, variableList[1]);
-    	arm1Length.setXYColumnNames(time, variableList[2]); 
-    	arm2Length.setXYColumnNames(time, variableList[3]); 
-	    stepNum.setXYColumnNames(time, variableList[4]); 
-	    frameNum.setXYColumnNames(time, variableList[5]); 
-    	rotationAngle.setXYColumnNames(time, variableList[6]); 
+    	angle.setXYColumnNames(time, dataVariables[1]);
+    	arm1Length.setXYColumnNames(time, dataVariables[2]); 
+    	arm2Length.setXYColumnNames(time, dataVariables[3]); 
+	    stepNum.setXYColumnNames(time, dataVariables[4]); 
+	    frameNum.setXYColumnNames(time, dataVariables[5]); 
+    	rotationAngle.setXYColumnNames(time, dataVariables[6]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -630,11 +661,12 @@ public class Protractor extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	numberFields.clear();
-  	numberFields.put(variableList[0], new NumberField[] {tField});
-  	numberFields.put(variableList[1], new NumberField[] {angleField, inputField});
-  	numberFields.put(variableList[2], new NumberField[] {xField}); // L1
-  	numberFields.put(variableList[3], new NumberField[] {yField}); // L2
+  	if (numberFields.isEmpty()) {
+	  	numberFields.put(dataVariables[0], new NumberField[] {tField});
+	  	numberFields.put(dataVariables[1], new NumberField[] {angleField, inputField});
+	  	numberFields.put(dataVariables[2], new NumberField[] {xField}); // L1
+	  	numberFields.put(dataVariables[3], new NumberField[] {yField}); // L2
+  	}
   	return numberFields;
   }
   

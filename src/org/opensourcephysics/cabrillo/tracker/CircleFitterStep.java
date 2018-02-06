@@ -183,6 +183,7 @@ public class CircleFitterStep extends Step {
 	  	circleFitter.firePropertyChange("dataPoint", null, circleFitter); //$NON-NLS-1$
   	}
   	circleFitter.trackerPanel.setSelectedPoint(null);
+    circleFitter.trackerPanel.selectedSteps.clear();
   	TTrackBar.getTrackbar(circleFitter.trackerPanel).refresh();
   	repaint();
   }

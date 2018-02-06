@@ -804,7 +804,7 @@ public class MainTView extends JPanel implements TView {
   		if (!track.isVisible() || track.getClass()!=PointMass.class) continue;
   		if (!((PointMass)track).isPositionVisible(trackerPanel)) continue;
   		for (Step step: track.getSteps()) {
-  			if (step==null) continue;
+  			if (step==null || !track.isStepVisible(step, trackerPanel)) continue;
   			// need look only at points[0] for PositionStep
   	    TPoint p = step.getPoints()[0];
 	      if (p==null || Double.isNaN(p.getX())) continue;
