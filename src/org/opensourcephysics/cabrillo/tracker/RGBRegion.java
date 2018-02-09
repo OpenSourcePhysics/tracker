@@ -132,6 +132,8 @@ public class RGBRegion extends TTrack {
     hint = TrackerRes.getString("RGBRegion.Unmarked.Hint"); //$NON-NLS-1$
     // create toolbar components
     radiusLabel = new JLabel();
+    Border empty = BorderFactory.createEmptyBorder(0, 4, 0, 2);
+    radiusLabel.setBorder(empty);
     radiusField = new IntegerField(2);
     radiusField.setMinValue(1);
     // radius focus listener
@@ -665,12 +667,41 @@ public class RGBRegion extends TTrack {
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
     ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     radiusLabel.setText(TrackerRes.getString("RGBRegion.Label.Radius")); //$NON-NLS-1$
-    Border empty = BorderFactory.createEmptyBorder(0, 4, 0, 2);
-    radiusLabel.setBorder(empty);
     list.add(radiusLabel);
     radiusField.setIntValue(getRadius());
     radiusField.setEnabled(!isLocked());
     list.add(radiusField);
+    
+	  int n = trackerPanel.getFrameNumber();
+    Step step = getStep(n);
+    if (step==null) return list;
+    
+    stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+  	xLabel.setText(dataVariables[1]); 
+  	yLabel.setText(dataVariables[2]); 
+    xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+    yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
+
+    xField.setEnabled(!isLocked());
+    yField.setEnabled(!isLocked());
+    
+    // put step number into label
+    stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+    VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+    n = clip.frameToStep(n);
+    stepValueLabel.setText(n+":"); //$NON-NLS-1$
+
+    list.add(stepSeparator);
+    list.add(stepLabel);
+    list.add(stepValueLabel);
+    list.add(tSeparator);
+    list.add(xLabel);
+    list.add(xField);
+    list.add(xSeparator);
+    list.add(yLabel);
+    list.add(yField);
+    list.add(ySeparator);
+
     return list;
   }
 
@@ -683,23 +714,27 @@ public class RGBRegion extends TTrack {
    */
   public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
                                              TPoint point) {
-    Step step = getStep(point, trackerPanel);
+  	
     ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
-    if (step == null) return list;
-    int n = step.getFrameNumber();
-    n = trackerPanel.getPlayer().getVideoClip().frameToStep(n);
-    xField.setEnabled(!isLocked());
-    yField.setEnabled(!isLocked());
-    list.add(stepSeparator);
-    list.add(stepLabel);
-    list.add(stepValueLabel);
-    list.add(tSeparator);
-    list.add(xLabel);
-    list.add(xField);
-    list.add(xSeparator);
-    list.add(yLabel);
-    list.add(yField);
-    list.add(ySeparator);
+//    if (getStep(point, trackerPanel)==null) return list;
+//
+//  	xLabel.setText(dataVariables[1]); 
+//  	yLabel.setText(dataVariables[2]); 
+//    xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+//    yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
+//
+//    xField.setEnabled(!isLocked());
+//    yField.setEnabled(!isLocked());
+//    list.add(stepSeparator);
+//    list.add(stepLabel);
+//    list.add(stepValueLabel);
+//    list.add(tSeparator);
+//    list.add(xLabel);
+//    list.add(xField);
+//    list.add(xSeparator);
+//    list.add(yLabel);
+//    list.add(yField);
+//    list.add(ySeparator);
     return list;
   }
 
@@ -730,8 +765,14 @@ public class RGBRegion extends TTrack {
       	dataValid = false;
   	    int n = trackerPanel.getFrameNumber();
   	    RGBStep step = (RGBStep)getStep(n);
-  	    if (step != null) radiusField.setIntValue(step.radius);
+  	    if (step != null) {
+  	    	radiusField.setIntValue(step.radius);
+		      Point2D p = step.position.getWorldPosition(trackerPanel);
+		      xField.setValue(p.getX());
+		      yField.setValue(p.getY());
+  	    }
   	    radiusField.setEnabled(!isLocked() && step != null);
+	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
 //        support.firePropertyChange(e); // to views
       }
       else if (name.equals("image")) { //$NON-NLS-1$
@@ -777,16 +818,16 @@ public class RGBRegion extends TTrack {
 //__________________________ private methods ___________________________
 
   /**
-   * Sets the position of the currently selected point based on the values
+   * Sets the position of the current step based on the values
    * in the x and y fields.
    */
   private void setPositionFromFields() {
     double xValue = xField.getValue();
     double yValue = yField.getValue();
-    TPoint p = trackerPanel.getSelectedPoint();
     int n = trackerPanel.getFrameNumber();
-    Step step = getStep(n);
-    if (step != null && p != null) {
+    RGBStep step = (RGBStep)getStep(n);    
+    if (step != null) {
+    	TPoint p = step.position;
       ImageCoordSystem coords = trackerPanel.getCoords();
       double x = coords.worldToImageX(n, xValue, yValue);
       double y = coords.worldToImageY(n, xValue, yValue);

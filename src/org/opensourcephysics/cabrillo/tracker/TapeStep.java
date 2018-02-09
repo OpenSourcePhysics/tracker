@@ -292,6 +292,8 @@ public class TapeStep extends Step {
       // get new text layout
       double tapeLength = getTapeLength(!tape.isStickMode());
       String s = tape.getFormattedLength(tapeLength);
+      s += trackerPanel.getUnits(tape, TapeMeasure.dataVariables[1]);    
+
       TextLayout layout = new TextLayout(s, textLayoutFont, frc);
       textLayouts.put(trackerPanel, layout);
       // get layout position (bottom left corner of text)

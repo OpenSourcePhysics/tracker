@@ -272,7 +272,10 @@ public class Protractor extends TTrack {
       if (name.equals("stepnumber")) { //$NON-NLS-1$
         ProtractorStep step = (ProtractorStep)getStep(trackerPanel.getFrameNumber());     
   	    step.getProtractorAngle(); // refreshes angle field
+  	    step.getFormattedLength(step.end1); // refreshes x field
+  	    step.getFormattedLength(step.end2); // refreshes y field
   	    step.arcHighlight = null;
+	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
       }
       else if (name.equals("selectedpoint")) { //$NON-NLS-1$
       	TPoint p = trackerPanel.getSelectedPoint();
@@ -584,17 +587,36 @@ public class Protractor extends TTrack {
    */
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
   	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
-    list.add(stepSeparator);
+  	
+    stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
   	angleLabel.setText(TrackerRes.getString("Protractor.Label.Angle")); //$NON-NLS-1$
 		angleField.setToolTipText(TrackerRes.getString("Protractor.Field.Angle.Tooltip")); //$NON-NLS-1$
-		boolean attached = false;
+  	xLabel.setText(dataVariables[2]);
+  	yLabel.setText(dataVariables[3]);
+    xField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));    
+    yField.setUnits(trackerPanel.getUnits(this, dataVariables[3]));    
+  	
+    // put step number into label
+    VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+    int n = clip.frameToStep(trackerPanel.getFrameNumber());
+    stepValueLabel.setText(n+":"); //$NON-NLS-1$
+
   	TTrack[] attachments = getAttachments(); // vertex, x-axis, arm
-  	if (attachments[2]!=null) {
-			attached = true;
-  	}
+  	boolean attached = attachments[2]!=null;
 		angleField.setEnabled(!attached && !isLocked());
+
+    list.add(stepSeparator);
+    list.add(stepLabel);
+    list.add(stepValueLabel);
+    list.add(tSeparator);
     list.add(angleLabel);
-    list.add(angleField);
+    list.add(angleField);    
+    list.add(xSeparator);
+    list.add(xLabel);
+    list.add(xField);    
+    list.add(ySeparator);
+    list.add(yLabel);
+    list.add(yField);    
     return list;
   }
 
@@ -689,12 +711,13 @@ public class Protractor extends TTrack {
 				TrackerRes.getString("TTrack.AngleField.Popup.Degrees"): //$NON-NLS-1$
 				TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
 		popup.add(item);
+		popup.addSeparator();
 		
 		item = new JMenuItem();
 		final String[] selected = new String[] {Tracker.THETA};
 		item.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {              		
-        NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(Protractor.this, selected);
+        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(Protractor.this, selected);
   	    dialog.setVisible(true);
       }
     });
@@ -734,7 +757,7 @@ public class Protractor extends TTrack {
     super.setAnglesInRadians(radians);
 //    inputField.setDecimalPlaces(radians? 3: 1);
     inputField.setConversionFactor(radians? 1.0: 180/Math.PI);
-    ProtractorStep step = (ProtractorStep)getStep(trackerPanel.getFrameNumber());     
+    Step step = getStep(trackerPanel.getFrameNumber());     
     step.repaint(); // refreshes angle readout
   }
 

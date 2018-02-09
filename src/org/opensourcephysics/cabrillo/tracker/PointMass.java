@@ -1530,14 +1530,25 @@ public class PointMass extends TTrack {
 
   @Override
   protected NumberField[] getNumberFieldsForStep(Step step) {
+  	NumberField[] fields;
+  	String var;
   	boolean xMass = TToolBar.getToolbar(trackerPanel).xMassButton.isSelected();    	
   	if (isVelocity(step)) {
-  		return xMass? vectorFields[2]: vectorFields[0];
+  		fields = xMass? vectorFields[2]: vectorFields[0];
+  		var = xMass? formatVariables[5]: formatVariables[3];
   	}
   	else if (isAcceleration(step)) {
-  		return xMass? vectorFields[3]: vectorFields[1];
+  		fields = xMass? vectorFields[3]: vectorFields[1];
+  		var = xMass? formatVariables[6]: formatVariables[4];
   	}
-  	return super.getNumberFieldsForStep(step);
+  	else {
+  		fields = super.getNumberFieldsForStep(step);
+  		var = formatVariables[2];
+  	}
+  	for (int i=0; i<3; i++) {
+      fields[i].setUnits(trackerPanel.getUnits(this, var));
+  	}
+  	return fields;
   }
   
   @Override
@@ -2127,9 +2138,9 @@ public class PointMass extends TTrack {
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
     ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     list.add(massLabel);
-    if (this.getClass()==PointMass.class)
-    	massField.setEnabled(!isLocked());
+    massField.setEnabled(!isLocked());
     massField.setValue(getMass());
+    massField.setUnits(trackerPanel.getUnits(this, dataVariables[25]));
     list.add(massField);
     list.add(mSeparator);
     return list;
@@ -2154,33 +2165,38 @@ public class PointMass extends TTrack {
     	boolean xMass = TToolBar.getToolbar(trackerPanel).xMassButton.isSelected();    	
       if (isVelocity(step)) {
         if (xMass) {
-        	xLabel.setText("px"); //$NON-NLS-1$
-        	yLabel.setText("py"); //$NON-NLS-1$
-        	magLabel.setText("p"); //$NON-NLS-1$
+        	xLabel.setText(dataVariables[18]); 
+        	yLabel.setText(dataVariables[19]); 
+        	magLabel.setText(dataVariables[20]); 
+        	angleLabel.setText(dataVariables[21]); 
         }
         else {
-        	xLabel.setText("vx"); //$NON-NLS-1$
-        	yLabel.setText("vy"); //$NON-NLS-1$
-        	magLabel.setText("v"); //$NON-NLS-1$
+        	xLabel.setText(dataVariables[5]); 
+        	yLabel.setText(dataVariables[6]); 
+        	magLabel.setText(dataVariables[7]); 
+        	angleLabel.setText(dataVariables[8]); 
         }
       }
       else if (isAcceleration(step)) {
         if (xMass) {
-        	xLabel.setText("Fx"); //$NON-NLS-1$
-        	yLabel.setText("Fy"); //$NON-NLS-1$
-        	magLabel.setText("F"); //$NON-NLS-1$
+        	xLabel.setText(fieldVariables[18]); 
+        	yLabel.setText(fieldVariables[19]); 
+        	magLabel.setText(fieldVariables[20]); 
+        	angleLabel.setText(fieldVariables[21]); 
         }
         else {
-        	xLabel.setText("ax"); //$NON-NLS-1$
-        	yLabel.setText("ay"); //$NON-NLS-1$
-        	magLabel.setText("a"); //$NON-NLS-1$
+        	xLabel.setText(dataVariables[9]); 
+        	yLabel.setText(dataVariables[10]); 
+        	magLabel.setText(dataVariables[11]); 
+        	angleLabel.setText(dataVariables[12]); 
         }
       }
     }
     else {
-    	xLabel.setText("x"); //$NON-NLS-1$
-    	yLabel.setText("y"); //$NON-NLS-1$
-    	magLabel.setText("r"); //$NON-NLS-1$
+    	xLabel.setText(dataVariables[1]); 
+    	yLabel.setText(dataVariables[2]); 
+    	magLabel.setText(dataVariables[3]); 
+    	angleLabel.setText(dataVariables[4]); 
     	for (NumberField f: fields) {
     		f.setEnabled(!isLocked());
     	}
@@ -2354,7 +2370,7 @@ public class PointMass extends TTrack {
   protected void createGUI() {
     // create toolbar components
     // mass field
-    massLabel = new JLabel("m"); //$NON-NLS-1$
+    massLabel = new JLabel(dataVariables[25]);
     massLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
     massField = new TrackNumberField();
     massField.addActionListener(new ActionListener() {

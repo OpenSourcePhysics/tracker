@@ -67,13 +67,15 @@ public class CalibrationStep extends Step {
    *
    * @param x the image x coordinate of the position point
    * @param y the image y coordinate of the position point
-   * @return the new position
+   * @return the new position, or null if failed
    */
   public Position addSecondPoint(double x, double y) {
     Position p = new Position(x, y);
     points[1] = p;
-    setWorldCoordinates(worldX0, worldY0, worldX1, worldY1);
-    return p;
+    boolean success = setWorldCoordinates(worldX0, worldY0, worldX1, worldY1);
+    if (success) return p;
+    points[1] = null;
+    return null;
   }
 
   /**
@@ -490,7 +492,15 @@ public class CalibrationStep extends Step {
         double x0 = coords.getOriginX(n);
         double y0 = coords.getOriginY(n);
         // translate the origin
-        coords.setOriginXY(n, x0 + dx, y0 + dy);
+        if (cal.axes==Calibration.XY_AXES) {
+        	coords.setOriginXY(n, x0 + dx, y0 + dy);
+        }
+        else if (cal.axes==Calibration.X_AXIS) {
+        	coords.setOriginXY(n, x0 + dx, y0);
+        }
+        else {
+        	coords.setOriginXY(n, x0, y0 + dy);
+        }
       }
       if (isAdjusting()) {
       	repaint();

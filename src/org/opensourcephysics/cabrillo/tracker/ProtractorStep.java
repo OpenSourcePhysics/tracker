@@ -45,6 +45,7 @@ public class ProtractorStep extends Step {
 	protected static TPoint endPoint1 = new TPoint(); // used for layout position
   protected static TPoint endPoint2 = new TPoint(); // used for layout position
   protected static TPoint middle = new TPoint(); // used for layout position
+  protected static NumberField formatField = new NumberField(1);
 
   // instance fields
   protected Protractor protractor;
@@ -364,6 +365,7 @@ public class ProtractorStep extends Step {
       	Map<TrackerPanel, TextLayout> layouts = k==0? textLayouts1: textLayouts2;
         Map<TrackerPanel, Rectangle> lBounds = k==0? layout1Bounds: layout2Bounds;
 	      s = getFormattedLength(end);
+	      s += trackerPanel.getUnits(protractor, Protractor.dataVariables[2+k]);    
 	      layout = new TextLayout(s, textLayoutFont, frc);
 	      layouts.put(trackerPanel, layout);
 	      p = getLayoutPosition(trackerPanel, layout, end);
@@ -389,9 +391,14 @@ public class ProtractorStep extends Step {
    */
   public String getFormattedLength(TPoint end) {
   	double length = getArmLength(end);
-  	NumberField field = end==end1? getTrack().xField: getTrack().yField;
-    field.setFormatFor(length);
-    return field.getFormat().format(length);
+    if (protractor.trackerPanel.getFrameNumber()==n) {
+	  	NumberField field = end==end1? getTrack().xField: getTrack().yField;
+	    field.setValue(length);
+	    return field.getFormat().format(length);
+    }
+    formatField.setFixedPattern(getTrack().xField.getFixedPattern());
+    formatField.setFormatFor(length);
+    return formatField.getFormat().format(length);
   }
 
   /**
@@ -418,7 +425,9 @@ public class ProtractorStep extends Step {
     double theta = line2Angle-line1Angle;
     if (theta > Math.PI) theta -= 2*Math.PI;
     if (theta < -Math.PI) theta += 2*Math.PI;
- 	  protractor.angleField.setValue(theta);
+    if (protractor.trackerPanel.getFrameNumber()==n) {
+    	protractor.angleField.setValue(theta);
+    }
     return theta;
   }
 

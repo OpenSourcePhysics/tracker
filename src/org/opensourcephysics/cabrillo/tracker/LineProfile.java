@@ -127,6 +127,8 @@ public class LineProfile extends TTrack {
     hint = TrackerRes.getString("LineProfile.Unmarked.Hint"); //$NON-NLS-1$
     // create toolbar components
     spreadLabel = new JLabel();
+    Border empty = BorderFactory.createEmptyBorder(0, 4, 0, 2);
+    spreadLabel.setBorder(empty);
     spreadField = new IntegerField(3);
     spreadField.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -518,8 +520,6 @@ public class LineProfile extends TTrack {
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
     ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     spreadLabel.setText(TrackerRes.getString("LineProfile.Label.Spread")); //$NON-NLS-1$
-    Border empty = BorderFactory.createEmptyBorder(0, 4, 0, 2);
-    spreadLabel.setBorder(empty);
     list.add(spreadLabel);
     spreadField.setIntValue(getSpread());
     spreadField.setEnabled(!isLocked());

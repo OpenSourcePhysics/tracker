@@ -316,16 +316,33 @@ public class OffsetOrigin extends TTrack {
    * @return a list of components
    */
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
-  	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
-    list.add(stepSeparator);
-    unmarkedLabel.setText(TrackerRes.getString("TTrack.Label.Unmarked")); //$NON-NLS-1$
+  	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);  	
 	  int n = trackerPanel.getFrameNumber();
     Step step = getStep(n);
     
+    list.add(stepSeparator);
     if (step==null) {
+	    unmarkedLabel.setText(TrackerRes.getString("TTrack.Label.Unmarked")); //$NON-NLS-1$
 	    list.add(unmarkedLabel);
     }
     else {
+      // put step number into label
+      stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+      VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+      n = clip.frameToStep(n);
+      stepValueLabel.setText(n+":"); //$NON-NLS-1$
+
+      list.add(stepLabel);
+      list.add(stepValueLabel);
+      list.add(tSeparator);
+	  	xLabel.setText(dataVariables[0]); 
+	  	yLabel.setText(dataVariables[1]); 
+	    xField.setUnits(trackerPanel.getUnits(this, dataVariables[0]));
+	    yField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+	    boolean locked = trackerPanel.getCoords().isLocked() || super.isLocked();
+	    xField.setEnabled(!locked);
+	    yField.setEnabled(!locked);
+	    displayWorldCoordinates();
 	    list.add(xLabel);
 	    list.add(xField);
 	    list.add(separator);
@@ -333,10 +350,6 @@ public class OffsetOrigin extends TTrack {
 	    list.add(yField);
     }
     
-    boolean locked = trackerPanel.getCoords().isLocked() || super.isLocked();
-    xField.setEnabled(!locked);
-    yField.setEnabled(!locked);
-    displayWorldCoordinates();
     return list;
   }
 
@@ -350,6 +363,7 @@ public class OffsetOrigin extends TTrack {
     if (name.equals("stepnumber")) { //$NON-NLS-1$
       if (trackerPanel.getSelectedTrack() == this) {
       	displayWorldCoordinates();
+	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
       }
     }
     else if (name.equals("locked")) { //$NON-NLS-1$

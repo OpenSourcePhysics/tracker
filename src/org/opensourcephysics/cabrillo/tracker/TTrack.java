@@ -88,8 +88,8 @@ public abstract class TTrack implements Interactive,
   protected Point2D point = new Point2D.Double();
   protected ArrayList<Component> toolbarTrackComponents = new ArrayList<Component>();
   protected ArrayList<Component> toolbarPointComponents = new ArrayList<Component>();
-  protected JLabel tLabel, xLabel, yLabel, magLabel, angleLabel, stepLabel;
-  protected JLabel tValueLabel, stepValueLabel;
+  protected TextLineLabel xLabel, yLabel, magLabel, angleLabel;
+  protected JLabel tLabel, stepLabel, tValueLabel, stepValueLabel;
   protected NumberField tField, xField, yField, magField;
   protected DecimalField angleField;
   protected NumberField[] positionFields;
@@ -150,6 +150,8 @@ public abstract class TTrack implements Interactive,
     stepLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
     stepValueLabel = new JLabel();
     stepValueLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 0));
+    tLabel = new JLabel();
+    tLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
     tValueLabel = new JLabel();
     tValueLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
     tField = new TrackDecimalField(3) {
@@ -177,9 +179,12 @@ public abstract class TTrack implements Interactive,
         if (OSPRuntime.isPopupTrigger(e)) {
         	NumberField field = (NumberField)e.getSource();
         	String[] fieldName = null;
+        	boolean hasUnits = false;
           for (String name: getNumberFields().keySet()) {
           	if (numberFields.get(name)[0]==field) {
           		fieldName = new String[] {name};
+          		String s = NumberFormatDialog.getVariableDimensions(TTrack.this.getClass(), name);
+          		hasUnits = s.contains("L") || s.contains("M") || s.contains("T"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
           		break;
           	}
           }
@@ -188,12 +193,41 @@ public abstract class TTrack implements Interactive,
       		final String[] selected = fieldName;
       		item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {              		
-              NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TTrack.this, selected);
+              NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(TTrack.this, selected);
         	    dialog.setVisible(true);
             }
           });
       		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
       		popup.add(item);
+      		
+          if (hasUnits) {
+	      		popup.addSeparator();
+	          boolean hasLengthUnit = !"".equals(trackerPanel.lengthUnit); //$NON-NLS-1$
+	          boolean hasMassUnit = !"".equals(trackerPanel.massUnit); //$NON-NLS-1$          
+	          if (hasLengthUnit && hasMassUnit) {
+		      		item = new JMenuItem();
+		      		final boolean vis = trackerPanel.isUnitsVisible();
+		      		item.addActionListener(new ActionListener() {
+		            public void actionPerformed(ActionEvent e) {              		
+		              trackerPanel.setUnitsVisible(!vis);
+		              TTrackBar.getTrackbar(trackerPanel).refresh();
+		            }
+		          });
+		      		item.setText(vis? TrackerRes.getString("TTrack.MenuItem.HideUnits"): //$NON-NLS-1$
+		      				TrackerRes.getString("TTrack.MenuItem.ShowUnits")); //$NON-NLS-1$
+		      		popup.add(item);
+	          }
+	      		item = new JMenuItem();
+	      		item.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent e) {              		
+	              UnitsDialog dialog = trackerPanel.getUnitsDialog();
+	        	    dialog.setVisible(true);
+	            }
+	          });
+	      		item.setText(TrackerRes.getString("UnitsDialog.Title")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+	      		popup.add(item);
+          }
+      		
         	FontSizer.setFonts(popup, FontSizer.getLevel());
       		popup.show(field, 0, field.getHeight());
         }
@@ -224,11 +258,13 @@ public abstract class TTrack implements Interactive,
       				TrackerRes.getString("TTrack.AngleField.Popup.Degrees"): //$NON-NLS-1$
       				TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
       		popup.add(item);
+      		popup.addSeparator();
+      		
       		item = new JMenuItem();
       		final String[] selected = new String[] {fieldName};
       		item.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-              NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TTrack.this, selected);
+              NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(TTrack.this, selected);
         	    dialog.setVisible(true);
             }
           });
@@ -242,25 +278,20 @@ public abstract class TTrack implements Interactive,
     };
 
     // create labels and fields
-    Border empty = BorderFactory.createEmptyBorder(0, 1, 0, 2);
-    xLabel = new JLabel("x"); //$NON-NLS-1$
-    xLabel.setBorder(empty);
+    xLabel = new TextLineLabel(); 
     xField = new TrackNumberField();
-    yLabel = new JLabel("y"); //$NON-NLS-1$
-    yLabel.setBorder(empty);
+    yLabel = new TextLineLabel(); 
     yField = new TrackNumberField();
-    magLabel = new JLabel("r"); //$NON-NLS-1$
-    magLabel.setBorder(empty);
+    magLabel = new TextLineLabel(); 
     magField = new TrackNumberField();
     magField.setMinValue(0);
     xField.addMouseListener(formatMouseListener);
     yField.addMouseListener(formatMouseListener);
     magField.addMouseListener(formatMouseListener);
-    angleLabel = new JLabel("theta"); //$NON-NLS-1$
-    angleLabel.setBorder(empty);
+    angleLabel = new TextLineLabel(); 
     angleField = new TrackDecimalField(1);
     angleField.addMouseListener(formatAngleMouseListener);
-    empty = BorderFactory.createEmptyBorder(0, 3, 0, 3);
+    Border empty = BorderFactory.createEmptyBorder(0, 3, 0, 3);
     Color grey = new Color(102, 102, 102);
     Border etch = BorderFactory.createEtchedBorder(Color.white, grey);
     fieldBorder = BorderFactory.createCompoundBorder(etch, empty);
@@ -271,7 +302,7 @@ public abstract class TTrack implements Interactive,
     angleField.setBorder(fieldBorder);
     positionFields = new NumberField[] {xField, yField, magField, angleField};
     stepSeparator = Box.createRigidArea(new Dimension(4, 4));
-    tSeparator = Box.createRigidArea(new Dimension(4, 4));
+    tSeparator = Box.createRigidArea(new Dimension(6, 4));
     xSeparator = Box.createRigidArea(new Dimension(6, 4));
     ySeparator = Box.createRigidArea(new Dimension(6, 4));
     magSeparator = Box.createRigidArea(new Dimension(6, 4));
@@ -2062,6 +2093,7 @@ public abstract class TTrack implements Interactive,
   			fields[i].setToolTipText(tooltip);
   		}
   	}
+  	tField.setUnits(trackerPanel.getUnits(this, "t")); //$NON-NLS-1$
     toolbarTrackComponents.clear();
     return toolbarTrackComponents;
   }
@@ -2928,8 +2960,9 @@ public abstract class TTrack implements Interactive,
     }
   } // end StepArray class
 
-//______________________ inner TrackNumberField class _______________________
-  
+  /**
+   * A NumberField that resizes itself for display on a TTrackBar.
+   */
   protected class TrackNumberField extends NumberField {
   	
   	TrackNumberField() {
@@ -2946,8 +2979,9 @@ public abstract class TTrack implements Interactive,
   	
   }
 
-//______________________ inner TrackDecimalField class _______________________
-  
+  /**
+   * A DecimalField that resizes itself for display on a TTrackBar.
+   */
   protected class TrackDecimalField extends DecimalField {
   	
   	TrackDecimalField(int places) {
@@ -2964,8 +2998,102 @@ public abstract class TTrack implements Interactive,
   	
   }
 
-//______________________ inner NameDialog class _______________________
-
+  /**
+   * A DrawingPanel that mimics the look of a JLabel but can display subscripts.
+   */
+  protected static class TextLineLabel extends DrawingPanel {
+    DrawableTextLine textLine;
+    JLabel label;
+    int w;
+    
+    /**
+     * Constructor
+     */
+    TextLineLabel() {
+    	textLine = new DrawableTextLine("", 0, -4.5); //$NON-NLS-1$
+	    textLine.setJustification(TextLine.CENTER);
+	    addDrawable(textLine);
+	    label = new JLabel();
+	    textLine.setFont(label.getFont());
+	    textLine.setColor(label.getForeground());
+    }
+    
+    /**
+     * Constructor with initial text
+     */
+    TextLineLabel(String text) {
+    	this();
+    	setText(text);
+    }
+    
+    /**
+     * Sets the text to be displayed. Accepts subscript notation eg v_{x}.
+     * 
+     * @param text the text
+     */
+    void setText(String text) {
+    	if (text==null) text = ""; //$NON-NLS-1$
+    	if (text.equals(textLine.getText())) return;
+    	w =-1;
+      textLine.setText(text);
+      if (text.contains("_{")) { //$NON-NLS-1$
+      	text = TeXParser.removeSubscripting(text);
+      }
+      // use label to set initial preferred size
+      label.setText(text);
+      java.awt.Dimension dim = label.getPreferredSize();
+      dim.width += 4;
+      setPreferredSize(dim);
+    }
+    
+    @Override
+    public Font getFont() {
+    	if (textLine!=null) return textLine.getFont();
+    	return super.getFont();
+    }
+    
+    @Override
+    public void setFont(Font font) {
+      if (textLine!=null) {
+      	textLine.setFont(font);
+      	w = -1;
+      }
+      else super.setFont(font);
+    }
+    
+    @Override
+    public void paintComponent(Graphics g) {
+      setPixelScale(); // sets the pixel scale and the world-to-pixel AffineTransform
+	  	if (!OSPRuntime.isMac()) {  // rendering hint bug in Mac?
+	  		((Graphics2D) g).setRenderingHint(
+  					RenderingHints.KEY_TEXT_ANTIALIASING,
+  					RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+	  	}
+    	textLine.draw(this, g);
+    	if (w==-1) {
+        // check preferred size and adjust if needed
+    		w = textLine.getWidth(g);
+    		Dimension dim = getPreferredSize();
+    		if (dim.width>w+4 || dim.width<w+4) {
+    			dim.width = w+4;
+    			setPreferredSize(dim);
+    			Container c = getParent();
+    			while (c!=null) {
+    				if (c instanceof TTrackBar) {
+    					((TTrackBar)c).refresh();
+    					break;
+    				}
+    			}
+    		}
+    	}
+    }
+    
+  }
+  
+  
+  /**
+   * A dialog used to set the name of a track.
+   */
   protected static class NameDialog extends JDialog {
   	
   	JLabel nameLabel;
@@ -3003,6 +3131,11 @@ public abstract class TTrack implements Interactive,
       setContentPane(contentPane);
   	}
   	
+    /**
+     * Sets the track.
+     * 
+     * @param track the track
+     */
   	void setTrack(TTrack track) {
   		target = track;
       // initial text is current track name
@@ -3053,7 +3186,7 @@ public abstract class TTrack implements Interactive,
       // locked
       if (track.isLocked()) control.setValue("locked", track.isLocked()); //$NON-NLS-1$
       // number formats
-      String[] customPatterns = NumberFormatSetter.getCustomFormatPatterns(track);
+      String[] customPatterns = NumberFormatDialog.getCustomFormatPatterns(track);
     	if (customPatterns.length>0) {
     		control.setValue("number_formats", customPatterns); //$NON-NLS-1$
     	}

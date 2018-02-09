@@ -217,22 +217,21 @@ public class CircleFitter extends TTrack {
       }
     };
     xDataPointLabel = new JLabel();
-
-    xDataPointLabel.setBorder(xLabel.getBorder());
+    xDataPointLabel.setBorder(tLabel.getBorder());
     xDataField = new NumberField(5);
     xDataField.setBorder(fieldBorder);
     xDataField.addActionListener(dataPointAction);
     xDataField.addFocusListener(dataFieldFocusListener);
     xDataField.addMouseListener(formatMouseListener);
-    yDataPointLabel = new JLabel("y"); //$NON-NLS-1$
-    yDataPointLabel.setBorder(xLabel.getBorder());
+    yDataPointLabel = new JLabel();
+    yDataPointLabel.setBorder(tLabel.getBorder());
     yDataField = new NumberField(5);
     yDataField.setBorder(fieldBorder);
     yDataField.addActionListener(dataPointAction);
     yDataField.addFocusListener(dataFieldFocusListener);
     yDataField.addMouseListener(formatMouseListener);
-    xDataPointSeparator = Box.createRigidArea(new Dimension(6, 4));
-    yDataPointSeparator = Box.createRigidArea(new Dimension(6, 4));
+    xDataPointSeparator = Box.createRigidArea(new Dimension(4, 4));
+    yDataPointSeparator = Box.createRigidArea(new Dimension(4, 4));
 
     xLabel.setText("center x"); //$NON-NLS-1$
     xField.setPatterns(new String[] {"0.000E0", "0.000", "0.00", "0.0", "0.000E0"}); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
@@ -1049,10 +1048,15 @@ public class CircleFitter extends TTrack {
     list.add(stepSeparator);
 
     if (dataCount>2) {
+    	xLabel.setText(dataVariables[1]); 
+    	yLabel.setText(dataVariables[2]); 
 	  	xField.setToolTipText(TrackerRes.getString("CircleFitter.Field.CenterX.Tooltip")); //$NON-NLS-1$
 	  	yField.setToolTipText(TrackerRes.getString("CircleFitter.Field.CenterY.Tooltip")); //$NON-NLS-1$
 	  	magLabel.setText(TrackerRes.getString("CircleFitter.Label.Radius")); //$NON-NLS-1$
 	  	magField.setToolTipText(TrackerRes.getString("CircleFitter.Field.Radius.Tooltip")); //$NON-NLS-1$
+	    xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+	    yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
+	    magField.setUnits(trackerPanel.getUnits(this, dataVariables[3]));
 	    list.add(magLabel);
 	    list.add(magField);
 	    list.add(magSeparator);
@@ -1081,7 +1085,8 @@ public class CircleFitter extends TTrack {
   	refreshFields(n);
   	stepValueLabel.setText(trackerPanel.getStepNumber()+":"); //$NON-NLS-1$
     CircleFitterStep step = (CircleFitterStep)getStep(n);
-    xDataPointLabel.setText(TrackerRes.getString("TTrack.Selected.Hint")+" x"); //$NON-NLS-1$ //$NON-NLS-2$
+    xDataPointLabel.setText("x"); //$NON-NLS-1$
+    yDataPointLabel.setText("y"); //$NON-NLS-1$
     list.add(xDataPointLabel);
     list.add(xDataField);
     list.add(xDataPointSeparator);

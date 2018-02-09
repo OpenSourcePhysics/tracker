@@ -38,6 +38,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -136,7 +137,7 @@ public class TapeMeasure extends TTrack {
   	partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
     hint = TrackerRes.getString("TapeMeasure.Hint"); //$NON-NLS-1$
     // create input field and panel
-    inputField = new NumberField(9) {
+    inputField = new TrackNumberField() {
       @Override
       public void setFixedPattern(String pattern) {
       	super.setFixedPattern(pattern);
@@ -227,7 +228,7 @@ public class TapeMeasure extends TTrack {
         setFixedLength(fixedLengthItem.isSelected());
       }
     });
-  	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+  	attachmentItem = new JMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Attach")); //$NON-NLS-1$
   	attachmentItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	ImageCoordSystem coords = TapeMeasure.this.trackerPanel.getCoords();
@@ -479,6 +480,7 @@ public class TapeMeasure extends TTrack {
 	      boolean enabled = isFieldsEnabled();
 	      magField.setEnabled(enabled);
 	      angleField.setEnabled(enabled);
+	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
       }
     }
     else if (name.equals("locked")) { //$NON-NLS-1$
@@ -743,7 +745,7 @@ public class TapeMeasure extends TTrack {
     }
   	
     // insert the attachments dialog item at beginning
-  	attachmentItem.setText(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+  	attachmentItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Attach")); //$NON-NLS-1$
     menu.insert(attachmentItem, 0);
   	menu.insertSeparator(1);
   	
@@ -769,7 +771,18 @@ public class TapeMeasure extends TTrack {
   	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     magLabel.setText(TrackerRes.getString("TapeMeasure.Label.Length")); //$NON-NLS-1$
     magField.setToolTipText(TrackerRes.getString("TapeMeasure.Field.Magnitude.Tooltip")); //$NON-NLS-1$
+    magField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));    
+
+    // put step number into label
+    stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+    VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+    int n = clip.frameToStep(trackerPanel.getFrameNumber());
+    stepValueLabel.setText(n+":"); //$NON-NLS-1$
+
     list.add(stepSeparator);
+    list.add(stepLabel);
+    list.add(stepValueLabel);
+    list.add(tSeparator);
     list.add(magLabel);
     list.add(magField);
 		angleLabel.setText(TrackerRes.getString("TapeMeasure.Label.TapeAngle")); //$NON-NLS-1$
@@ -942,11 +955,39 @@ public class TapeMeasure extends TTrack {
 		final String[] selected = new String[] {dataVariables[1]}; 
 		item.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {              		
-        NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TapeMeasure.this, selected);
+        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(TapeMeasure.this, selected);
   	    dialog.setVisible(true);
       }
     });
 		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+		popup.add(item);
+		popup.addSeparator();
+		
+    boolean hasLengthUnit = !"".equals(trackerPanel.lengthUnit); //$NON-NLS-1$
+    boolean hasMassUnit = !"".equals(trackerPanel.massUnit); //$NON-NLS-1$
+    if (hasLengthUnit && hasMassUnit) {
+  		item = new JMenuItem();
+  		final boolean vis = trackerPanel.isUnitsVisible();
+  		item.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {              		
+          trackerPanel.setUnitsVisible(!vis);
+          TTrackBar.getTrackbar(trackerPanel).refresh();
+          Step step = getStep(trackerPanel.getFrameNumber());     
+          step.repaint();
+        }
+      });
+  		item.setText(vis? TrackerRes.getString("TTrack.MenuItem.HideUnits"): //$NON-NLS-1$
+  				TrackerRes.getString("TTrack.MenuItem.ShowUnits")); //$NON-NLS-1$
+  		popup.add(item);
+    }
+		item = new JMenuItem();
+		item.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {              		
+        UnitsDialog dialog = trackerPanel.getUnitsDialog();
+  	    dialog.setVisible(true);
+      }
+    });
+		item.setText(TrackerRes.getString("UnitsDialog.Title")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
 		popup.add(item);
 		return popup;
   }
@@ -1038,6 +1079,7 @@ public class TapeMeasure extends TTrack {
    * @param target the tape step that handles the edit process
    */
   private void setEditing(boolean edit, TapeStep target) {
+  	final String rawText = inputField.getText();
     editing = edit;
     if ((readOnly || isStickMode()) && !editing) {
     	// if not fixed, add target frame to key frames
@@ -1051,7 +1093,9 @@ public class TapeMeasure extends TTrack {
       public void run() {
         if (editing) {
         	trackerPanel.setSelectedTrack(TapeMeasure.this);
+        	FontSizer.setFonts(inputField, FontSizer.getLevel());
           inputField.setForeground(footprint.getColor());
+          inputField.setUnits(trackerPanel.getUnits(TapeMeasure.this, dataVariables[1]));    
           Rectangle bounds = step.layoutBounds.get(trackerPanel);
           bounds.grow(3, 3);
           bounds.setLocation(bounds.x+1, bounds.y);
@@ -1075,6 +1119,21 @@ public class TapeMeasure extends TTrack {
         }
         else { // end editing
         	step.drawLayoutBounds = false;
+        	if (!TapeMeasure.this.isReadOnly()) {
+	          String[] split = rawText.split(" "); //$NON-NLS-1$
+	          if (split.length>1) {
+	          	// find first character not ""
+	          	for (int i=1; i< split.length; i++) {
+	          		if (!"".equals(split[i])) { //$NON-NLS-1$
+	  	          	if (trackerPanel.setLengthUnit(split[i])) {
+	  	          		TTrackBar.getTrackbar(trackerPanel).refresh();
+	  	          		step.repaint(trackerPanel);
+	  	          	}
+	  	          	break;
+	          		}
+	          	}
+	          }
+        	}
           step.setTapeLength(inputField.getValue());
         	inputField.setSigFigs(4);
           trackerPanel.add(glassPanel, BorderLayout.CENTER);

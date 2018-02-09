@@ -590,6 +590,14 @@ public class Vector extends TTrack {
    */
   public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
                                              TPoint point) {
+  	xLabel.setText(dataVariables[1]); 
+  	yLabel.setText(dataVariables[2]); 
+  	magLabel.setText(dataVariables[3]); 
+  	angleLabel.setText(dataVariables[4]);
+    xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+    yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
+    magField.setUnits(trackerPanel.getUnits(this, dataVariables[3]));
+
     ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
     list.add(stepSeparator);
     list.add(stepLabel);

@@ -27,14 +27,11 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.font.TextLayout;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.*;
 import javax.swing.border.Border;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
@@ -49,9 +46,9 @@ import org.opensourcephysics.controls.*;
 public class Calibration extends TTrack {
 
   // static fields
-  protected static final int X_AXIS = 2;
-  protected static final int XY_AXES = 1;
-  protected static final int Y_AXIS = 0;
+  protected static final int XY_AXES = 0;
+  protected static final int X_AXIS = 1;
+  protected static final int Y_AXIS = 2;
   protected static String[]	dataVariables;
   protected static String[] formatVariables; // used by NumberFormatSetter
   protected static Map<String, ArrayList<String>> formatMap;
@@ -78,16 +75,15 @@ public class Calibration extends TTrack {
 
   // instance fields
   protected NumberField x1Field, y1Field;
-  protected JLabel point1Label, point2Label, x1Label, y1Label;
-  private Component spinnerSeparator;
+  protected JLabel point1MissingLabel, point2MissingLabel;
+  protected TextLineLabel x1Label, y1Label;
   private Component[] fieldSeparators = new Component[3];
-  protected boolean[] isWorldDataValid = new boolean[] {false, false};
-  protected ArrayList<String> axisList = new ArrayList<String>();
-  protected JSpinner axisSpinner;
-  protected ChangeListener axisListener;
+  private Component axisSeparator;
+  protected JComboBox axisDropdown;
+  protected ActionListener axisDropdownAction;
   protected JLabel axisLabel = new JLabel();
   protected int axes = XY_AXES;
-  protected int spinnerTextWidth;
+  protected boolean[] isWorldDataValid = new boolean[] {false, false};
   protected boolean fixedCoordinates = true;
   protected JCheckBoxMenuItem fixedCoordinatesItem;
 
@@ -132,6 +128,7 @@ public class Calibration extends TTrack {
    */
   public Step createStep(int n, double x, double y) {
     if (isLocked()) return null;
+    boolean success = true;
     CalibrationStep step = (CalibrationStep)getStep(n);
     if (step == null) {
       step = new CalibrationStep(this, n, x, y);
@@ -143,7 +140,7 @@ public class Calibration extends TTrack {
       	trackerPanel.setSelectedPoint(null);
         trackerPanel.selectedSteps.clear();
       }
-      TPoint p = step.addSecondPoint(x, y);
+      TPoint p = step.addSecondPoint(x, y); // may be null
       if (this.isFixedCoordinates()) {
       	steps = new StepArray(step);
       }
@@ -167,15 +164,23 @@ public class Calibration extends TTrack {
 				Point2D pt = p.getWorldPosition(trackerPanel);
 				
   			if (step.points[0]==p) { // selected position is 0
-  				step.setWorldCoordinates(pt.getX(), pt.getY(), step.worldX1, step.worldY1);
+  				success = step.setWorldCoordinates(pt.getX(), pt.getY(), step.worldX1, step.worldY1);
   			}
   			else { // selected position is 1
-  				step.setWorldCoordinates(step.worldX0, step.worldY0, pt.getX(), pt.getY());
+  				success = step.setWorldCoordinates(step.worldX0, step.worldY0, pt.getX(), pt.getY());
   			}
-    		Undo.postStepEdit(step, state);
+  			if (success) {
+  				Undo.postStepEdit(step, state);
+  			}
+  			else {
+  				// revert
+  				state.loadObject(step);
+  			}
   		}
     }
-    support.firePropertyChange("step", null, n); //$NON-NLS-1$
+    if (success) {
+    	support.firePropertyChange("step", null, n); //$NON-NLS-1$
+    }
     return step;
   }
 
@@ -403,8 +408,8 @@ public class Calibration extends TTrack {
     yField.setEnabled(enabled);
     x1Field.setEnabled(enabled);
     y1Field.setEnabled(enabled);
-    if (axisSpinner!=null)
-    	axisSpinner.setEnabled(enabled);
+    if (axisDropdown!=null)
+    	axisDropdown.setEnabled(enabled);
   }
 
   /**
@@ -438,91 +443,88 @@ public class Calibration extends TTrack {
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
   	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
   	
-    // rebuild the axis spinner
-    axisList.clear();
-    String y = TrackerRes.getString("Calibration.Axes.YOnly"); //$NON-NLS-1$
-    axisList.add(y);
-    String xy = TrackerRes.getString("Calibration.Axes.XY"); //$NON-NLS-1$
-    axisList.add(xy);
-    String x = TrackerRes.getString("Calibration.Axes.XOnly"); //$NON-NLS-1$
-    axisList.add(x);
-    SpinnerListModel axisModel = new SpinnerListModel(axisList);
-    axisSpinner = new JSpinner(axisModel) {
-    	public Dimension getPreferredSize() {
-    		Dimension dim = super.getPreferredSize();
-    		dim.width += spinnerTextWidth/2;
-    		return dim;
-    	}
-    };
-    JTextField field = ((JSpinner.DefaultEditor)axisSpinner.getEditor()).getTextField();  
-    field.setDisabledTextColor(NumberField.DISABLED_COLOR);     
-    String longest = xy;
-    longest = x.length()>longest.length()? x: longest;
-    longest = y.length()>longest.length()? y: longest;
-		Font font = axisSpinner.getFont().deriveFont(Font.PLAIN);
-    FontSizer.setFonts(axisSpinner, FontSizer.getLevel());		
-    TextLayout layout = new TextLayout(longest, font, frc);
-    spinnerTextWidth = (int)layout.getBounds().getWidth();
-    // set correct value
-    axisModel.setValue(axes == XY_AXES? xy: axes == X_AXIS? x: y);
-    axisSpinner.addChangeListener(axisListener);
-    axisSpinner.setToolTipText(TrackerRes.getString("Calibration.Spinner.Axes.Tooltip")); //$NON-NLS-1$
+  	// rebuild axisDropdown
+    axisDropdown = new JComboBox();
+    axisDropdown.setEditable(false);
+    axisDropdown.addItem(TrackerRes.getString("Calibration.Axes.XY")); //$NON-NLS-1$
+    axisDropdown.addItem(TrackerRes.getString("Calibration.Axes.XOnly")); //$NON-NLS-1$
+    axisDropdown.addItem(TrackerRes.getString("Calibration.Axes.YOnly")); //$NON-NLS-1$
+		axisDropdown.setSelectedIndex(axes);
+		axisDropdown.addActionListener(axisDropdownAction);
+		FontSizer.setFonts(axisDropdown, FontSizer.getLevel());
+		
+  	xLabel.setText(dataVariables[0]); 
+  	yLabel.setText(dataVariables[1]); 
+  	x1Label.setText(dataVariables[2]); 
+  	y1Label.setText(dataVariables[3]);
+    xField.setUnits(trackerPanel.getUnits(this, dataVariables[0]));
+    yField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+    x1Field.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
+    y1Field.setUnits(trackerPanel.getUnits(this, dataVariables[3]));
     axisLabel.setText(TrackerRes.getString("Calibration.Label.Axes")); //$NON-NLS-1$
-    Border empty = BorderFactory.createEmptyBorder(0, 4, 0, 2);
+    Border empty = BorderFactory.createEmptyBorder(0, 4, 0, 4);
     axisLabel.setBorder(empty);
     list.add(axisLabel);
-    list.add(axisSpinner);
-    list.add(spinnerSeparator);
+    list.add(axisDropdown);
+    list.add(axisSeparator);
     
 	  int n = trackerPanel.getFrameNumber();
     Step step = getStep(n);
     
     // add world coordinate fields and labels
-    String s = TrackerRes.getString("Calibration.Label.Point"); //$NON-NLS-1$
-    String unmarked = TrackerRes.getString("TTrack.Label.Unmarked"); //$NON-NLS-1$
-    point1Label.setText(s+" 1: "); //$NON-NLS-1$
-    point2Label.setText(s+" 2: "); //$NON-NLS-1$
-    point1Label.setForeground(yLabel.getForeground());
-    point2Label.setForeground(yLabel.getForeground());
-    
     boolean exists = step!=null;
     boolean complete = exists && step.getPoints()[1]!=null;
+    String s = TrackerRes.getString("Calibration.Label.Point"); //$NON-NLS-1$
+    String unmarked = TrackerRes.getString("TTrack.Label.Unmarked"); //$NON-NLS-1$    
     if (!exists) {
-      point1Label.setText(s+" 1: "+unmarked); //$NON-NLS-1$
-      point1Label.setForeground(Color.red.darker());
+      point1MissingLabel.setText(s+" 1: "+unmarked); //$NON-NLS-1$
+      point1MissingLabel.setForeground(Color.red.darker());
+      list.add(point1MissingLabel);
     }
-    else if (!complete){
-      point2Label.setText(s+" 2: "+unmarked); //$NON-NLS-1$
-      point2Label.setForeground(Color.red.darker());
+    else if (!complete) {
+      point2MissingLabel.setText(s+" 2: "+unmarked); //$NON-NLS-1$
+      point2MissingLabel.setForeground(Color.red.darker());
+    }
+    if (exists) {
+      // put step number into label
+      stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+      VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+      n = clip.frameToStep(n);
+      stepValueLabel.setText(n+":"); //$NON-NLS-1$
+
+      list.add(stepLabel);
+      list.add(stepValueLabel);
+      list.add(tSeparator);
     }
     if (axes == Y_AXIS) {
-      list.add(point1Label);
       if (exists) {
 	      list.add(yLabel);
 	      list.add(yField); 
 	      list.add(fieldSeparators[1]);
-	      list.add(point2Label);
 	      if (complete) {
 		      list.add(y1Label);
 		      list.add(y1Field);
 	      }
+	      else {
+		      list.add(point2MissingLabel);	      	
+	      }
       }
     }
     else if (axes == X_AXIS) {
-      list.add(point1Label);
       if (exists) {
 	      list.add(xLabel);
 	      list.add(xField); 
 	      list.add(fieldSeparators[1]);
-	      list.add(point2Label);
 	      if (complete) {
 		      list.add(x1Label);
 		      list.add(x1Field);
 	      }
+	      else {
+		      list.add(point2MissingLabel);
+	      }
       }
     }
     else {
-      list.add(point1Label);
       if (exists) {
         list.add(xLabel);
         list.add(xField);
@@ -530,13 +532,15 @@ public class Calibration extends TTrack {
         list.add(yLabel);
         list.add(yField);    	
         list.add(fieldSeparators[1]);
-        list.add(point2Label);
 	      if (complete) {
 	        list.add(x1Label);
 	        list.add(x1Field);
 	        list.add(fieldSeparators[2]);
 	        list.add(y1Label);
 	        list.add(y1Field);	      	
+	      }
+	      else {
+	        list.add(point2MissingLabel);
 	      }
       }
     }
@@ -546,7 +550,7 @@ public class Calibration extends TTrack {
     yField.setEnabled(!locked);
     x1Field.setEnabled(!locked);
     y1Field.setEnabled(!locked);
-    axisSpinner.setEnabled(!locked);
+    axisDropdown.setEnabled(!locked);
     // display world coordinates in fields
     displayWorldCoordinates();
     return list;
@@ -586,7 +590,7 @@ public class Calibration extends TTrack {
   public void setFontLevel(int level) {
   	super.setFontLevel(level);
   	Object[] objectsToSize = new Object[]
-  			{point1Label, point2Label, x1Label, y1Label, x1Field, y1Field, axisLabel,
+  			{point1MissingLabel, point2MissingLabel, x1Label, y1Label, x1Field, y1Field, axisLabel,
   			fixedCoordinatesItem};
     FontSizer.setFonts(objectsToSize, level);
   }
@@ -620,6 +624,7 @@ public class Calibration extends TTrack {
     if (name.equals("stepnumber")) { //$NON-NLS-1$
       if (trackerPanel.getSelectedTrack() == this) {
         displayWorldCoordinates();
+	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
       }
     }
     else if (name.equals("locked")) { //$NON-NLS-1$
@@ -628,7 +633,7 @@ public class Calibration extends TTrack {
       yField.setEnabled(enabled);
       x1Field.setEnabled(enabled);
       y1Field.setEnabled(enabled);
-      axisSpinner.setEnabled(enabled);
+      axisDropdown.setEnabled(enabled);
     }
     else super.propertyChange(e);
   }
@@ -684,8 +689,13 @@ public class Calibration extends TTrack {
     if (different) {
     	XMLControl trackControl = new XMLControlElement(this);
     	XMLControl coordsControl = new XMLControlElement(trackerPanel.getCoords());
-    	step.setWorldCoordinates(x1, y1, x2, y2);
-    	Undo.postTrackAndCoordsEdit(this, trackControl, coordsControl);
+    	boolean success = step.setWorldCoordinates(x1, y1, x2, y2);
+    	if (success) {
+    		Undo.postTrackAndCoordsEdit(this, trackControl, coordsControl);
+    	}
+    	else {
+    		displayWorldCoordinates();
+    	}
     }
   }
   
@@ -728,18 +738,24 @@ public class Calibration extends TTrack {
     // create xy ActionListener and FocusListener
     ActionListener xyAction = new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        setWorldCoordinatesFromFields();
-        ((NumberField)e.getSource()).requestFocusInWindow();
+      	NumberField field = (NumberField)e.getSource();
+      	if (field.getBackground().equals(Color.YELLOW)) {
+      		setWorldCoordinatesFromFields();
+      	}
+        field.requestFocusInWindow();
       }
     };
     FocusListener xyFocusListener = new FocusAdapter() {
       public void focusLost(FocusEvent e) {
-        setWorldCoordinatesFromFields();
+      	NumberField field = (NumberField)e.getSource();
+      	if (field.getBackground().equals(Color.YELLOW)) {
+      		setWorldCoordinatesFromFields();
+      	}
       }
     };
-    x1Field = new NumberField(5);
+    x1Field = new TrackNumberField();
     x1Field.setBorder(fieldBorder);
-    y1Field = new NumberField(5);
+    y1Field = new TrackNumberField();
     y1Field.setBorder(fieldBorder);
     x1Field.addMouseListener(formatMouseListener);
     y1Field.addMouseListener(formatMouseListener);
@@ -751,58 +767,55 @@ public class Calibration extends TTrack {
     x1Field.addFocusListener(xyFocusListener);
     y1Field.addActionListener(xyAction);
     y1Field.addFocusListener(xyFocusListener);
-    point1Label = new JLabel();
-    point2Label = new JLabel();
-    point1Label.setBorder(xLabel.getBorder());
-    point2Label.setBorder(yLabel.getBorder());
-    x1Label = new JLabel("x"); //$NON-NLS-1$
-    y1Label = new JLabel("y"); //$NON-NLS-1$
+    point1MissingLabel = new JLabel();
+    point2MissingLabel = new JLabel();
+    point1MissingLabel.setBorder(xLabel.getBorder());
+    point2MissingLabel.setBorder(yLabel.getBorder());
+    x1Label = new TextLineLabel(); 
+    y1Label = new TextLineLabel(); 
     x1Label.setBorder(xLabel.getBorder());
     y1Label.setBorder(yLabel.getBorder());
     fieldSeparators[0] = Box.createRigidArea(new Dimension(4, 4));
     fieldSeparators[1] = Box.createRigidArea(new Dimension(8, 4));
     fieldSeparators[2] = Box.createRigidArea(new Dimension(4, 4));
-    axisListener = new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
-        String choice = (String)axisSpinner.getValue();
-        for(int i = 0;i<axisList.size();i++) {
-          if(axisList.get(i).equals(choice)) {
-          	if (axes == i) return;
-          	// check for invalid coords if step is complete
-          	if (trackerPanel != null) {
-            	int n = trackerPanel.getFrameNumber();
-          		CalibrationStep step = (CalibrationStep)getStep(n);            	
-            	boolean isComplete = step!=null && step.getPoints()[1]!=null;
-            	if (isComplete) {
-              	if (i == X_AXIS && step.worldX0 == step.worldX1) {
-              		JOptionPane.showMessageDialog(trackerPanel, 
-                      				TrackerRes.getString("Calibration.Dialog.InvalidXCoordinates.Message"), //$NON-NLS-1$
-                      				TrackerRes.getString("Calibration.Dialog.InvalidCoordinates.Title"), //$NON-NLS-1$
-                      				JOptionPane.WARNING_MESSAGE);
-              		axisSpinner.setValue(axisList.get(axes));
-              		return;
-              	}
-              	else if (i == Y_AXIS && step.worldY0 == step.worldY1) {
-                  JOptionPane.showMessageDialog(trackerPanel, 
-                          		TrackerRes.getString("Calibration.Dialog.InvalidYCoordinates.Message"), //$NON-NLS-1$
-                          		TrackerRes.getString("Calibration.Dialog.InvalidCoordinates.Title"), //$NON-NLS-1$
-                          		JOptionPane.WARNING_MESSAGE);
-                  axisSpinner.setValue(axisList.get(axes));
-                  return;
-                }
-            	}
+    axisSeparator = Box.createRigidArea(new Dimension(8, 4));
+    axisDropdownAction = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int i = axisDropdown.getSelectedIndex();
+      	if (axes == i) return;
+      	// check for invalid coords if step is complete
+      	if (trackerPanel != null) {
+        	int n = trackerPanel.getFrameNumber();
+      		CalibrationStep step = (CalibrationStep)getStep(n);            	
+        	boolean isComplete = step!=null && step.getPoints()[1]!=null;
+        	if (isComplete) {
+          	if (i == X_AXIS && step.worldX0 == step.worldX1) {
+          		JOptionPane.showMessageDialog(trackerPanel, 
+                  				TrackerRes.getString("Calibration.Dialog.InvalidXCoordinates.Message"), //$NON-NLS-1$
+                  				TrackerRes.getString("Calibration.Dialog.InvalidCoordinates.Title"), //$NON-NLS-1$
+                  				JOptionPane.WARNING_MESSAGE);
+          		axisDropdown.setSelectedIndex(axes);
+          		return;
           	}
-          	setAxisType(i);
-          	if (trackerPanel != null) {
-          		trackerPanel.getTFrame().getTrackBar(trackerPanel).refresh();
-          	}
-          }
-        }
-      }
+          	else if (i == Y_AXIS && step.worldY0 == step.worldY1) {
+              JOptionPane.showMessageDialog(trackerPanel, 
+                      		TrackerRes.getString("Calibration.Dialog.InvalidYCoordinates.Message"), //$NON-NLS-1$
+                      		TrackerRes.getString("Calibration.Dialog.InvalidCoordinates.Title"), //$NON-NLS-1$
+                      		JOptionPane.WARNING_MESSAGE);
+          		axisDropdown.setSelectedIndex(axes);
+              return;
+            }
+        	}
+      	}
+      	setAxisType(i);
+      	if (trackerPanel != null) {
+      		trackerPanel.getTFrame().getTrackBar(trackerPanel).refresh();
+      	}
+			}    	
     };
-    spinnerSeparator = Box.createRigidArea(new Dimension(8, 4));
   }
-
+  
   /**
    * Returns an ObjectLoader to save and load data for this class.
    *
