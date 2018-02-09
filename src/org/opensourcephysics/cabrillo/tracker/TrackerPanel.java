@@ -110,6 +110,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected DerivativeAlgorithmDialog algorithmDialog;
   protected AttachmentDialog attachmentDialog;
   protected PlotGuestDialog guestsDialog;
+  protected UnitsDialog unitsDialog;
   protected boolean isAutoRefresh = true;
 	protected TreeSet<String> supplementalFilePaths = new TreeSet<String>(); // HTML/PDF URI paths
 	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
@@ -118,8 +119,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected PropertyChangeListener massParamListener, massChangeListener;
   protected Map<Class<? extends TTrack>, TreeMap<String, String>> formatPatterns 
   	= new HashMap<Class<? extends TTrack>, TreeMap<String,String>>();
-  protected String lengthUnit="m", massUnit="kg";
-  protected boolean showUnits = true;
+  protected String lengthUnit="m", massUnit="kg", timeUnit="s"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+  protected boolean unitsVisible = true;
 
   /**
    * Constructs a blank TrackerPanel with a player.
@@ -1320,12 +1321,79 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   }
 
   /**
-   * Returns true if units are displayed.
+   * Gets the units visibility.
    *
    * @return <code>true</code> if units are displayed
    */
-  public boolean isShowUnits() {
-    return showUnits;
+  public boolean isUnitsVisible() {
+    return unitsVisible && !"".equals(lengthUnit) && !"".equals(massUnit); //$NON-NLS-1$ //$NON-NLS-2$
+  }
+
+  /**
+   * Sets the units visibility.
+   *
+   * @param visible <code>true</code> to display units
+   */
+  public void setUnitsVisible(boolean visible) {
+    unitsVisible = visible;
+  }
+
+  /**
+   * Gets the mass unit.
+   *
+   * @return the mass unit
+   */
+  public String getMassUnit() {
+    return massUnit;
+  }
+
+  /**
+   * Sets the mass unit.
+   *
+   * @param unit the mass unit
+   * @return true if unit was changed
+   */
+  public boolean setMassUnit(String unit) {
+  	if (unit==null) unit = ""; //$NON-NLS-1$
+  	unit = unit.trim();
+  	if (massUnit.equals(unit)) return false;
+  	// prevent numbers being set as units
+  	try {
+			Double.parseDouble(unit);
+			return false;
+		} catch (NumberFormatException e) {
+		}
+    massUnit = unit;
+    return true;
+  }
+
+  /**
+   * Gets the length unit.
+   *
+   * @return the length unit
+   */
+  public String getLengthUnit() {
+    return lengthUnit;
+  }
+
+  /**
+   * Sets the length unit.
+   *
+   * @param unit the length unit
+   * @return true if unit was changed
+   */
+  public boolean setLengthUnit(String unit) {
+  	if (unit==null) unit = ""; //$NON-NLS-1$
+  	unit = unit.trim();
+  	if (lengthUnit.equals(unit)) return false;
+  	// prevent numbers being set as units
+  	try {
+			Double.parseDouble(unit);
+			return false;
+		} catch (NumberFormatException e) {
+		}
+    lengthUnit = unit;
+    return true;
   }
 
   /**
@@ -1336,14 +1404,24 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @return the units
    */
   public String getUnits(TTrack track, String var) {
-  	if (!showUnits) return "";
-    String dimensions = NumberFormatSetter.getVariableDimensions(track.getClass(), var);
-    if (dimensions==null) return "";
-    String space = " ";
-    if (dimensions.equals("L")) return space+lengthUnit;
-    if (dimensions.equals("M")) return space+massUnit;
-    if (dimensions.equals("T")) return space+"s";
-    return "";
+  	if (!isUnitsVisible()) return ""; //$NON-NLS-1$
+    String dimensions = NumberFormatDialog.getVariableDimensions(track.getClass(), var);
+    if (dimensions==null) return ""; //$NON-NLS-1$
+    String sp = " "; //$NON-NLS-1$
+    String d = Tracker.DOT;
+    String sq = Tracker.SQUARED;
+    if (dimensions.equals("T")) return sp+timeUnit; //$NON-NLS-1$
+    if (dimensions.equals("M")) return sp+massUnit; //$NON-NLS-1$
+    if (dimensions.equals("L")) return sp+lengthUnit; //$NON-NLS-1$
+    if (dimensions.equals("L/T")) return sp+lengthUnit+"/"+timeUnit; //$NON-NLS-1$ //$NON-NLS-2$
+    if (dimensions.equals("L/TT")) return sp+lengthUnit+"/"+timeUnit+sq; //$NON-NLS-1$ //$NON-NLS-2$
+    if (dimensions.equals("ML/T")) return sp+massUnit+d+lengthUnit+"/"+timeUnit; //$NON-NLS-1$ //$NON-NLS-2$
+    if (dimensions.equals("ML/TT")) return sp+massUnit+d+lengthUnit+"/"+timeUnit+sq; //$NON-NLS-1$ //$NON-NLS-2$
+    if (dimensions.equals("MLL/TT")) return sp+massUnit+d+lengthUnit+sq+"/"+timeUnit+sq; //$NON-NLS-1$ //$NON-NLS-2$
+    String angUnit = getTFrame().anglesInRadians? "": Tracker.DEGREES; //$NON-NLS-1$
+    if (dimensions.equals("A/T")) return sp+angUnit+"/"+timeUnit; //$NON-NLS-1$ //$NON-NLS-2$
+    if (dimensions.equals("A/TT")) return sp+angUnit+"/"+timeUnit+sq; //$NON-NLS-1$ //$NON-NLS-2$
+    return ""; //$NON-NLS-1$
   }
 
   /**
@@ -1531,9 +1609,30 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   }
 
   /**
+   * Gets the units dialog.
+   * 
+   * @return the units dialog
+   */
+  public UnitsDialog getUnitsDialog() {
+    if (unitsDialog == null) {
+    	unitsDialog = new UnitsDialog(this);
+    	unitsDialog.setFontLevel(FontSizer.getLevel());
+      // center on screen
+      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+      int x = (dim.width - unitsDialog.getBounds().width) / 2;
+      int y = (dim.height - unitsDialog.getBounds().height) / 2;
+      unitsDialog.setLocation(x, y);
+    }
+    else {
+    	unitsDialog.setFontLevel(FontSizer.getLevel());
+    }
+    return unitsDialog;
+  }
+
+  /**
    * Gets the attachment dialog for attaching measuring tool points to point masses.
    * 
-   * @param track a measuing tool
+   * @param track a measuring tool
    * @return the attachment dialog
    */
   public AttachmentDialog getAttachmentDialog(TTrack track) {
@@ -2738,7 +2837,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	patterns = new TreeMap<String, String>();
   		formatPatterns.put(trackType, patterns);
   		// initialize with default patterns
-    	TreeMap<String, String> defaultPatterns = NumberFormatSetter.defaultFormatPatterns.get(trackType);
+    	TreeMap<String, String> defaultPatterns = NumberFormatDialog.defaultFormatPatterns.get(trackType);
     	if (defaultPatterns!=null) {
     		patterns.putAll(defaultPatterns);
     	}
@@ -2756,7 +2855,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * Sets the initial default format patterns for all track types and existing tracks
    */
   protected void setInitialFormatPatterns() {
-  	for (Class<? extends TTrack> type: NumberFormatSetter.getFormattableTrackTypes()) {
+  	for (Class<? extends TTrack> type: NumberFormatDialog.getFormattableTrackTypes()) {
   		getFormatPatterns(type);
   	}
   	for (TTrack track: getTracks()) {
@@ -2771,10 +2870,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   protected void setInitialFormatPatterns(TTrack track) {
     // set default NumberField format patterns
-    Class<? extends TTrack> trackType = NumberFormatSetter.getTrackType(track);
+    Class<? extends TTrack> trackType = NumberFormatDialog.getTrackType(track);
     TreeMap<String, String> patterns = getFormatPatterns(trackType);
   	for (String name: patterns.keySet()) {
-  		NumberFormatSetter.setFormatPattern(track, name, patterns.get(name));
+  		NumberFormatDialog.setFormatPattern(track, name, patterns.get(name));
   	}
   	// set custom formats AFTER setting default patterns
 	  if (track.customNumberFormats!=null) {
@@ -2782,7 +2881,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	for (int i=0; i<track.customNumberFormats.length-1; i=i+2) {
     		String name = track.customNumberFormats[i];
     		String pattern = track.customNumberFormats[i+1];
-    		NumberFormatSetter.setFormatPattern(track, name, pattern);
+    		NumberFormatDialog.setFormatPattern(track, name, pattern);
     	}
     	track.customNumberFormats = null;
 	  }  		
@@ -2902,7 +3001,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     if (ThumbnailDialog.thumbnailDialog!=null && ThumbnailDialog.thumbnailDialog.trackerPanel==this) {
     	ThumbnailDialog.thumbnailDialog.trackerPanel = null;   	
     }
-    NumberFormatSetter.dispose(this);
+    NumberFormatDialog.dispose(this);
     filterClasses.clear();
     selectingPanel = null;
     frame = null;
@@ -3103,7 +3202,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       }
       control.setValue("coords", coords); //$NON-NLS-1$
       // save custom number formats      
-      String[][] customPatterns = NumberFormatSetter.getCustomFormatPatterns(trackerPanel);
+      String[][] customPatterns = NumberFormatDialog.getCustomFormatPatterns(trackerPanel);
     	if (customPatterns.length>0) {
     		control.setValue("number_formats", customPatterns); //$NON-NLS-1$
     	}
