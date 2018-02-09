@@ -78,14 +78,14 @@ import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * A Dialog for setting the format of number fields and table cells
- * that display track variables.
+ * A Dialog for setting the format of number fields and table cells.
  *
  * @author Douglas Brown
  */
-public class NumberFormatSetter extends JDialog {
+public class NumberFormatDialog extends JDialog {
 
-	private static Map<TrackerPanel, NumberFormatSetter> formatSetters = new HashMap<TrackerPanel, NumberFormatSetter>();
+	private static Map<TrackerPanel, NumberFormatDialog> formatSetters 
+		= new HashMap<TrackerPanel, NumberFormatDialog>();
   
 	// static fields
   protected static final String NO_PATTERN = TrackerRes.getString("NumberFormatSetter.NoPattern"); //$NON-NLS-1$
@@ -95,20 +95,22 @@ public class NumberFormatSetter extends JDialog {
   private static Dimension scrollerDimension = new Dimension(200, 60);
   
   static {
+		// create list of formattable track types
+		formattableTrackTypes = new ArrayList<Class<? extends TTrack>>();
+		formattableTrackTypes.add(PointMass.class);
+		formattableTrackTypes.add(Vector.class);
+		formattableTrackTypes.add(LineProfile.class);
+		formattableTrackTypes.add(RGBRegion.class);
+		formattableTrackTypes.add(TapeMeasure.class);
+		formattableTrackTypes.add(Protractor.class);
+		formattableTrackTypes.add(CircleFitter.class);
+		formattableTrackTypes.add(Calibration.class);
+		formattableTrackTypes.add(OffsetOrigin.class);
+		formattableTrackTypes.add(CoordAxes.class);
+		
 		// set default number patterns
 		defaultFormatPatterns = new HashMap<Class<? extends TTrack>, TreeMap<String,String>>();
-		HashSet<Class<? extends TTrack>> types = new HashSet<Class<? extends TTrack>>();
-		types.add(CoordAxes.class);
-		types.add(PointMass.class);
-		types.add(Vector.class);
-		types.add(LineProfile.class);
-		types.add(RGBRegion.class);
-		types.add(TapeMeasure.class);
-		types.add(Protractor.class);
-		types.add(CircleFitter.class);
-		types.add(Calibration.class);
-		types.add(OffsetOrigin.class);
-		for (Class<? extends TTrack> trackType: types) {
+		for (Class<? extends TTrack> trackType: formattableTrackTypes) {
 			TreeMap<String, String> patterns = new TreeMap<String, String>();
 			boolean isLine = LineProfile.class==trackType;
 			boolean isRGB = isLine || RGBRegion.class==trackType;
@@ -137,18 +139,6 @@ public class NumberFormatSetter extends JDialog {
 			}
 			defaultFormatPatterns.put(trackType, patterns);
 		}
-		// create list of formattable track types
-		formattableTrackTypes = new ArrayList<Class<? extends TTrack>>();
-		formattableTrackTypes.add(PointMass.class);
-		formattableTrackTypes.add(Vector.class);
-		formattableTrackTypes.add(LineProfile.class);
-		formattableTrackTypes.add(RGBRegion.class);
-		formattableTrackTypes.add(TapeMeasure.class);
-		formattableTrackTypes.add(Protractor.class);
-		formattableTrackTypes.add(CircleFitter.class);
-		formattableTrackTypes.add(Calibration.class);
-		formattableTrackTypes.add(OffsetOrigin.class);
-		formattableTrackTypes.add(CoordAxes.class);
   }
 
   // instance fields
@@ -169,25 +159,24 @@ public class NumberFormatSetter extends JDialog {
   JList variableList;
   JScrollPane variableScroller;
   JRadioButton trackOnlyButton, trackTypeButton, dimensionButton;
-  JRadioButton degreesButton, radiansButton;
   JRadioButton defaultDecimalButton, periodDecimalButton, commaDecimalButton;
   String prevPattern, prevDecimalSeparator;
-  TitledBorder variablesBorder, applyToBorder, unitsBorder, decimalSeparatorBorder;
+  TitledBorder variablesBorder, applyToBorder, decimalSeparatorBorder;
   boolean formatsChanged, prevAnglesInRadians;
   Map<Integer, String[]> selectedVariables = new TreeMap<Integer, String[]>();
 
   /**
-   * Gets the format setter.
+   * Gets the format dialog.
    *
    * @param track the track
    * @param selectedNames the initially selected names
    * @return the format setter
    */
-  protected static NumberFormatSetter getFormatSetter(TTrack track, String[] selectedNames) {
+  protected static NumberFormatDialog getNumberFormatDialog(TTrack track, String[] selectedNames) {
     if (frame==null && track.trackerPanel!=null) frame = track.trackerPanel.getTFrame();
-  	NumberFormatSetter setter = formatSetters.get(track.trackerPanel);
+  	NumberFormatDialog setter = formatSetters.get(track.trackerPanel);
     if(setter==null) {
-    	setter = new NumberFormatSetter(track.trackerPanel);
+    	setter = new NumberFormatDialog(track.trackerPanel);
     	formatSetters.put(track.trackerPanel, setter);
       setter.setFontLevel(FontSizer.getLevel());
       // center on screen
@@ -219,7 +208,7 @@ public class NumberFormatSetter extends JDialog {
    * @param trackerPanel a TrackerPanel
    */
   public static void dispose(TrackerPanel trackerPanel) {
-  	NumberFormatSetter setter = formatSetters.get(trackerPanel);
+  	NumberFormatDialog setter = formatSetters.get(trackerPanel);
     if(setter!=null) {
     	setter.setVisible(false);
     	setter.trackerPanel = null;
@@ -232,7 +221,7 @@ public class NumberFormatSetter extends JDialog {
    *
    * @param track a track
    */
-  private NumberFormatSetter(TrackerPanel tPanel) {
+  private NumberFormatDialog(TrackerPanel tPanel) {
     super(frame, true);
     trackerPanel = tPanel;
     createGUI();
@@ -329,8 +318,6 @@ public class NumberFormatSetter extends JDialog {
     else {
       showNumberFormatAndSample(indices);
     }
-    degreesButton.setSelected(!frame.anglesInRadians);
-    radiansButton.setSelected(frame.anglesInRadians);
     // refresh GUI to be sure correct track type and unit dimensions are shown
     refreshGUI();
   }
@@ -557,7 +544,7 @@ public class NumberFormatSetter extends JDialog {
     }
     
     // look in defaultFormatPatterns 
-    patterns = NumberFormatSetter.defaultFormatPatterns.get(type);
+    patterns = NumberFormatDialog.defaultFormatPatterns.get(type);
     if (patterns.get(name)!=null) {
     	return patterns.get(name);
     }
@@ -681,8 +668,8 @@ public class NumberFormatSetter extends JDialog {
     if (frame==null) frame = trackerPanel.getTFrame();
     ArrayList<String[]> formats = new ArrayList<String[]>();
     // look at all track types defined in defaultFormatPatterns
-    for (Class<? extends TTrack> type: NumberFormatSetter.defaultFormatPatterns.keySet()) {    	
-    	TreeMap<String, String> defaultPatterns = NumberFormatSetter.defaultFormatPatterns.get(type);
+    for (Class<? extends TTrack> type: NumberFormatDialog.defaultFormatPatterns.keySet()) {    	
+    	TreeMap<String, String> defaultPatterns = NumberFormatDialog.defaultFormatPatterns.get(type);
     	TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(type);
     	ArrayList<String> customPatterns = new ArrayList<String>();
     	for (String name: defaultPatterns.keySet()) {
@@ -948,7 +935,7 @@ public class NumberFormatSetter extends JDialog {
       public void actionPerformed(ActionEvent e) {
         String tab = "      ";                                                                                          //$NON-NLS-1$
         String nl = System.getProperty("line.separator", "/n");                                                         //$NON-NLS-1$ //$NON-NLS-2$
-        JOptionPane.showMessageDialog(NumberFormatSetter.this, DisplayRes.getString("DataTable.NumberFormat.Help.Message1")+nl+ //$NON-NLS-1$
+        JOptionPane.showMessageDialog(NumberFormatDialog.this, DisplayRes.getString("DataTable.NumberFormat.Help.Message1")+nl+ //$NON-NLS-1$
           tab+DisplayRes.getString("DataTable.NumberFormat.Help.Message2")+nl+ //$NON-NLS-1$
           tab+DisplayRes.getString("DataTable.NumberFormat.Help.Message3")+nl+ //$NON-NLS-1$
           tab+DisplayRes.getString("DataTable.NumberFormat.Help.Message4")+nl+ //$NON-NLS-1$
@@ -1055,27 +1042,6 @@ public class NumberFormatSetter extends JDialog {
     group.add(dimensionButton);
     trackOnlyButton.setSelected(true);
     
-    // angle unit buttons
-    Action angleUnitAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (frame.anglesInRadians==radiansButton.isSelected()) return;
-      	frame.setAnglesInRadians(radiansButton.isSelected());
-    		formatsChanged = true;
-    		showNumberFormatAndSample(variableList.getSelectedIndices());
-    		refreshGUI();
-			}
-    };
-    degreesButton = new JRadioButton();
-    degreesButton.addActionListener(angleUnitAction);
-    radiansButton = new JRadioButton();
-    radiansButton.addActionListener(angleUnitAction);
-    group = new ButtonGroup();
-    group.add(degreesButton);
-    group.add(radiansButton);
-    degreesButton.setSelected(!frame.anglesInRadians);
-    radiansButton.setSelected(frame.anglesInRadians);
-    
     // decimal separator buttons
     Action decimalSeparatorAction = new AbstractAction() {
 			@Override
@@ -1116,8 +1082,6 @@ public class NumberFormatSetter extends JDialog {
     		TrackerRes.getString("NumberFormatSetter.ApplyToVariables.Text")); //$NON-NLS-1$
     applyToBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("NumberFormatSetter.TitledBorder.ApplyTo.Text")); //$NON-NLS-1$
-    unitsBorder = BorderFactory.createTitledBorder(
-    		TrackerRes.getString("NumberFormatSetter.TitledBorder.Units.Text")); //$NON-NLS-1$
     decimalSeparatorBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
 
@@ -1150,21 +1114,12 @@ public class NumberFormatSetter extends JDialog {
     applyToPanel.add(box);
     south.add(applyToPanel, BorderLayout.NORTH);
     
-    JPanel southCenter = new JPanel(new BorderLayout());
-    south.add(southCenter, BorderLayout.CENTER);
-    
-    unitsPanel = new JPanel();
-    unitsPanel.setBorder(unitsBorder);
-    unitsPanel.add(degreesButton);
-    unitsPanel.add(radiansButton);
-    southCenter.add(unitsPanel, BorderLayout.NORTH);
-    
     decimalSeparatorPanel = new JPanel();
     decimalSeparatorPanel.setBorder(decimalSeparatorBorder);
     decimalSeparatorPanel.add(defaultDecimalButton);
     decimalSeparatorPanel.add(commaDecimalButton);
     decimalSeparatorPanel.add(periodDecimalButton);
-    southCenter.add(decimalSeparatorPanel, BorderLayout.SOUTH);
+    south.add(decimalSeparatorPanel, BorderLayout.CENTER);
     
     JPanel buttonPanel = new JPanel();
     buttonPanel.add(helpButton);
@@ -1191,12 +1146,6 @@ public class NumberFormatSetter extends JDialog {
     helpButton.setText(DisplayRes.getString("GUIUtils.Help")); //$NON-NLS-1$
     patternLabel.setText(DisplayRes.getString("DataTable.NumberFormat.Dialog.Label.Format")); //$NON-NLS-1$
     sampleLabel.setText(DisplayRes.getString("DataTable.NumberFormat.Dialog.Label.Sample"));  //$NON-NLS-1$
-
-    degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
-    radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
-    degreesButton.setSelected(!frame.anglesInRadians);
-    radiansButton.setSelected(frame.anglesInRadians);
-    
     defaultDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Default")); //$NON-NLS-1$
     periodDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Period")); //$NON-NLS-1$
     commaDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Comma")); //$NON-NLS-1$
@@ -1230,7 +1179,6 @@ public class NumberFormatSetter extends JDialog {
 	  // set border titles
     variablesBorder.setTitle(TrackerRes.getString("NumberFormatSetter.ApplyToVariables.Text")); //$NON-NLS-1$
     applyToBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.ApplyTo.Text")); //$NON-NLS-1$
-    unitsBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.Units.Text")); //$NON-NLS-1$
     decimalSeparatorBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
     Dimension dim = getSize();
 		if (dim.width>getMinimumSize().width) {
