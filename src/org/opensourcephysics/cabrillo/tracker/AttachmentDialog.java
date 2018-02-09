@@ -288,7 +288,6 @@ public class AttachmentDialog extends JDialog
 			public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
       	CircleFitter fitter = (CircleFitter)TTrack.getTrack(trackID);
-;
       	fitter.attachToSteps = !tracksButton.isSelected();
 	    	fitter.refreshAttachments();
 				refreshGUI();				
@@ -311,7 +310,6 @@ public class AttachmentDialog extends JDialog
 			public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
       	CircleFitter fitter = (CircleFitter)TTrack.getTrack(trackID);
-;
       	fitter.isRelativeFrameNumbers = relativeCheckbox.isSelected();
       	refreshFieldsAndButtons(fitter);
 	    	fitter.refreshAttachments();
@@ -324,7 +322,6 @@ public class AttachmentDialog extends JDialog
 			@Override
 			public void actionPerformed(ActionEvent e) {
       	CircleFitter fitter = (CircleFitter)TTrack.getTrack(trackID);
-;
     		fitter.setAttachmentStartFrame(startField.getIntValue());   		
     		fitter.setAttachmentFrameCount(countField.getIntValue());
     		refreshFieldsAndButtons(fitter);
@@ -527,7 +524,7 @@ public class AttachmentDialog extends JDialog
   }
   
   /**
-   * Updates this inspector to show the system's current attachments.
+   * Updates this dialog to show the system's current attachments.
    */
   protected void refreshGUI() {
     setTitle(TrackerRes.getString("AttachmentInspector.Title")); //$NON-NLS-1$
