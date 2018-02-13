@@ -102,7 +102,6 @@ public class PlotTrackView extends TrackView {
   public void refresh(int frameNumber) {
   	if (!isRefreshEnabled()) return;
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh "+frameNumber); //$NON-NLS-1$
-    
   	TTrack track = getTrack();
   	if (track==null) return;
     track.getData(trackerPanel);
@@ -238,6 +237,11 @@ public class PlotTrackView extends TrackView {
       for (TrackPlottingPanel plot: plots) {
       	plot.buildPopupmenu();
       }
+    }
+    else if (name.equals("units")) { // from trackerPanel //$NON-NLS-1$
+    	for (TrackPlottingPanel plot: plots) {
+    		plot.plotData();
+    	}
     }
     super.propertyChange(e);
   }

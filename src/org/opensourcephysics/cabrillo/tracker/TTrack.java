@@ -189,42 +189,47 @@ public abstract class TTrack implements Interactive,
           	}
           }
       		JPopupMenu popup = new JPopupMenu();
-      		JMenuItem item = new JMenuItem();
-      		final String[] selected = fieldName;
-      		item.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {              		
-              NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(TTrack.this, selected);
-        	    dialog.setVisible(true);
-            }
-          });
-      		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
-      		popup.add(item);
-      		
-          if (hasUnits) {
-	      		popup.addSeparator();
-	          boolean hasLengthUnit = !"".equals(trackerPanel.lengthUnit); //$NON-NLS-1$
-	          boolean hasMassUnit = !"".equals(trackerPanel.massUnit); //$NON-NLS-1$          
-	          if (hasLengthUnit && hasMassUnit) {
-		      		item = new JMenuItem();
-		      		final boolean vis = trackerPanel.isUnitsVisible();
+          if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
+	      		JMenu numberMenu = new JMenu(TrackerRes.getString("Popup.Menu.Numbers")); //$NON-NLS-1$
+	      		popup.add(numberMenu);
+	      		if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
+		      		JMenuItem item = new JMenuItem();
+		      		final String[] selected = fieldName;
 		      		item.addActionListener(new ActionListener() {
 		            public void actionPerformed(ActionEvent e) {              		
-		              trackerPanel.setUnitsVisible(!vis);
-		              TTrackBar.getTrackbar(trackerPanel).refresh();
+		              NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, TTrack.this, selected);
+		        	    dialog.setVisible(true);
 		            }
 		          });
-		      		item.setText(vis? TrackerRes.getString("TTrack.MenuItem.HideUnits"): //$NON-NLS-1$
-		      				TrackerRes.getString("TTrack.MenuItem.ShowUnits")); //$NON-NLS-1$
-		      		popup.add(item);
+		      		item.setText(TrackerRes.getString("Popup.MenuItem.Formats")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+		      		numberMenu.add(item);
+	      		}
+	      		
+	          if (hasUnits && trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$
+		      		JMenuItem item = new JMenuItem();
+		      		item.addActionListener(new ActionListener() {
+		            public void actionPerformed(ActionEvent e) {              		
+		              UnitsDialog dialog = trackerPanel.getUnitsDialog();
+		        	    dialog.setVisible(true);
+		            }
+		          });
+		      		item.setText(TrackerRes.getString("Popup.MenuItem.Units")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+		      		numberMenu.add(item);	      		
 	          }
-	      		item = new JMenuItem();
+          }
+          boolean hasLengthUnit = trackerPanel.lengthUnit!=null; 
+          boolean hasMassUnit = trackerPanel.massUnit!=null; 
+          if (hasLengthUnit && hasMassUnit) {
+	      		JMenuItem item = new JMenuItem();
+	      		final boolean vis = trackerPanel.isUnitsVisible();
 	      		item.addActionListener(new ActionListener() {
 	            public void actionPerformed(ActionEvent e) {              		
-	              UnitsDialog dialog = trackerPanel.getUnitsDialog();
-	        	    dialog.setVisible(true);
+	              trackerPanel.setUnitsVisible(!vis);
 	            }
 	          });
-	      		item.setText(TrackerRes.getString("UnitsDialog.Title")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+	      		item.setText(vis? TrackerRes.getString("TTrack.MenuItem.HideUnits"): //$NON-NLS-1$
+	      				TrackerRes.getString("TTrack.MenuItem.ShowUnits")); //$NON-NLS-1$
+	      		if (popup.getComponentCount()>0) popup.addSeparator();
 	      		popup.add(item);
           }
       		
@@ -260,16 +265,18 @@ public abstract class TTrack implements Interactive,
       		popup.add(item);
       		popup.addSeparator();
       		
-      		item = new JMenuItem();
-      		final String[] selected = new String[] {fieldName};
-      		item.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-              NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(TTrack.this, selected);
-        	    dialog.setVisible(true);
-            }
-          });
-      		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
-      		popup.add(item);
+      		if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
+      			item = new JMenuItem();
+	      		final String[] selected = new String[] {fieldName};
+	      		item.addActionListener(new ActionListener() {
+	            public void actionPerformed(ActionEvent e) {
+	              NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, TTrack.this, selected);
+	        	    dialog.setVisible(true);
+	            }
+	          });
+	      		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+	      		popup.add(item);
+      		}
 
         	FontSizer.setFonts(popup, FontSizer.getLevel());
       		popup.show(field, 0, angleField.getHeight());

@@ -277,13 +277,25 @@ public class TableTView extends TrackChooserTView {
       });
 
       buttonPanel = new JPanel();
-	    buttonPanel.add(defineButton);
-	    buttonPanel.add(textColumnButton);
+	    if (trackerPanel.isEnabled("data.builder"))  //$NON-NLS-1$
+	    	buttonPanel.add(defineButton);
+	    if (trackerPanel.isEnabled("text.columns"))  //$NON-NLS-1$
+	    	buttonPanel.add(textColumnButton);
 	    buttonPanel.add(closeButton);
 	    // create track label
 	    trackLabel = new JLabel();
 	    trackLabel.setBorder(BorderFactory.createEmptyBorder(7, 0, 6, 0));
 	    trackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    }
+    
+    // refresh button panel
+    if (columnsDialog!=null) {    
+	    buttonPanel.removeAll();
+	    if (trackerPanel.isEnabled("data.builder"))  //$NON-NLS-1$
+	    	buttonPanel.add(defineButton);
+	    if (trackerPanel.isEnabled("text.columns"))  //$NON-NLS-1$
+	    	buttonPanel.add(textColumnButton);
+	    buttonPanel.add(closeButton);
     }
   	return columnsDialog;
   }

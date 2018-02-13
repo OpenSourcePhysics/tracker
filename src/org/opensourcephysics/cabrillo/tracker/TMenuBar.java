@@ -98,6 +98,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenu deleteTracksMenu;
   protected JMenuItem deleteSelectedPointItem;
   protected JMenuItem clearTracksItem;
+  protected JMenu numberMenu;
+  protected JMenuItem formatsItem, unitsItem;
   protected JMenuItem configItem;
   protected JMenu matSizeMenu;
   protected ButtonGroup matSizeGroup;
@@ -182,6 +184,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenuItem notesItem;
   protected JMenuItem dataBuilderItem;
   protected JMenuItem dataToolItem;
+  // help menu
+  protected JMenu helpMenu;
   // other fields
   protected boolean refreshing; // true when refreshing menus or redoing filter delete
 
@@ -678,6 +682,23 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     clearTracksItem = deleteTracksMenu.add(actions.get("clearTracks")); //$NON-NLS-1$
     // config item
     configItem = editMenu.add(actions.get("config")); //$NON-NLS-1$
+    // number menu
+    numberMenu = new JMenu(TrackerRes.getString("Popup.Menu.Numbers")); //$NON-NLS-1$
+    formatsItem = new JMenuItem(TrackerRes.getString("Popup.MenuItem.Formats")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    formatsItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	TTrack track = trackerPanel.getSelectedTrack();
+        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, track, null);
+  	    dialog.setVisible(true);
+  	  }	
+    });
+    unitsItem = new JMenuItem(TrackerRes.getString("Popup.MenuItem.Units")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    unitsItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        UnitsDialog dialog = trackerPanel.getUnitsDialog();
+  	    dialog.setVisible(true);
+  	  }	
+    });
     // size menu
     matSizeMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.MatSize")); //$NON-NLS-1$
     final String[] sizes = new String[] {"320x240", //$NON-NLS-1$
@@ -1318,7 +1339,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	    }
 	  });
     // help menu
-    JMenu helpMenu = getTrackerHelpMenu();
+    helpMenu = getTrackerHelpMenu(trackerPanel);
     add(helpMenu);
     // empty menu items
   	emptyVideoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Empty")); //$NON-NLS-1$
@@ -1334,7 +1355,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
    *
    * @return the help menu
    */
-  protected static JMenu getTrackerHelpMenu() {
+  protected static JMenu getTrackerHelpMenu(TrackerPanel trackerPanel) {
     // help menu
     int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     final JMenu helpMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Help")); //$NON-NLS-1$
@@ -1404,42 +1425,44 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       helpMenu.addSeparator();
     	helpMenu.add(hintsItem);
     }
-    helpMenu.addSeparator();
     
     //diagnostics menu
-    JMenu diagMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Diagnostics")); //$NON-NLS-1$
-    helpMenu.add(diagMenu);        
-    JMenuItem logItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.MessageLog")); //$NON-NLS-1$
-    logItem.setAccelerator(KeyStroke.getKeyStroke('L', keyMask));
-    logItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	Point p = new Frame().getLocation(); // default location of new frame or dialog
-        OSPLog log = OSPLog.getOSPLog();
-    		FontSizer.setFonts(log, FontSizer.getLevel());
-        if (log.getLocation().x==p.x && log.getLocation().y==p.y) {
-          // center on screen
-          Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-          int x = (dim.width - log.getBounds().width) / 2;
-          int y = (dim.height - log.getBounds().height) / 2;
-          log.setLocation(x, y);
-        }
-        log.setVisible(true);
-      }
-    });
-    diagMenu.add(logItem);
-    if (Tracker.startLogAction!=null) {
-    	JMenuItem item = diagMenu.add(Tracker.startLogAction);
-    	item.setToolTipText(System.getenv("START_LOG")); //$NON-NLS-1$
-    }
-    if (Tracker.trackerPrefsAction!=null) {
-    	JMenuItem item = diagMenu.add(Tracker.trackerPrefsAction);
-    	item.setToolTipText(XML.forwardSlash(Tracker.prefsPath));
-    }
-    diagMenu.addSeparator();    
-    if (Tracker.aboutJavaAction != null) diagMenu.add(Tracker.aboutJavaAction);
-    if (Tracker.aboutXuggleAction != null) diagMenu.add(Tracker.aboutXuggleAction);
-    if (Tracker.aboutThreadsAction != null) diagMenu.add(Tracker.aboutThreadsAction);
-    // end diagnostics menu
+    if (trackerPanel!=null && trackerPanel.isEnabled("help.diagnostics")) { //$NON-NLS-1$
+	    helpMenu.addSeparator();
+	    JMenu diagMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Diagnostics")); //$NON-NLS-1$
+	    helpMenu.add(diagMenu);        
+	    JMenuItem logItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.MessageLog")); //$NON-NLS-1$
+	    logItem.setAccelerator(KeyStroke.getKeyStroke('L', keyMask));
+	    logItem.addActionListener(new ActionListener() {
+	      public void actionPerformed(ActionEvent e) {
+	      	Point p = new Frame().getLocation(); // default location of new frame or dialog
+	        OSPLog log = OSPLog.getOSPLog();
+	    		FontSizer.setFonts(log, FontSizer.getLevel());
+	        if (log.getLocation().x==p.x && log.getLocation().y==p.y) {
+	          // center on screen
+	          Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+	          int x = (dim.width - log.getBounds().width) / 2;
+	          int y = (dim.height - log.getBounds().height) / 2;
+	          log.setLocation(x, y);
+	        }
+	        log.setVisible(true);
+	      }
+	    });
+	    diagMenu.add(logItem);
+	    if (Tracker.startLogAction!=null) {
+	    	JMenuItem item = diagMenu.add(Tracker.startLogAction);
+	    	item.setToolTipText(System.getenv("START_LOG")); //$NON-NLS-1$
+	    }
+	    if (Tracker.trackerPrefsAction!=null) {
+	    	JMenuItem item = diagMenu.add(Tracker.trackerPrefsAction);
+	    	item.setToolTipText(XML.forwardSlash(Tracker.prefsPath));
+	    }
+	    diagMenu.addSeparator();    
+	    if (Tracker.aboutJavaAction != null) diagMenu.add(Tracker.aboutJavaAction);
+	    if (Tracker.aboutXuggleAction != null) diagMenu.add(Tracker.aboutXuggleAction);
+	    if (Tracker.aboutThreadsAction != null) diagMenu.add(Tracker.aboutThreadsAction);
+    } // end diagnostics menu
+    
     
     helpMenu.addSeparator();
     if (Tracker.aboutTrackerAction != null) helpMenu.add(Tracker.aboutTrackerAction);
@@ -1520,7 +1543,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         videoMenu.add(goToItem);
         videoMenu.addSeparator();
         
-        if (hasVideo && video instanceof ImageVideo) {
+        if (importEnabled && hasVideo && video instanceof ImageVideo) {
         	editVideoItem.setSelected(((ImageVideo)video).isEditable());
       		videoMenu.add(editVideoItem);
           videoMenu.addSeparator();
@@ -1529,7 +1552,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         if (importEnabled)
         	videoMenu.add(hasVideo? pasteImageMenu: pasteImageItem);
         if (hasVideo) {
-        	boolean isEditableVideo = video instanceof ImageVideo
+        	boolean isEditableVideo = importEnabled && video instanceof ImageVideo
         			&& ((ImageVideo)video).isEditable();
           if (isEditableVideo && importEnabled) {
             pasteImageMenu.add(pasteImageBeforeItem);
@@ -1552,6 +1575,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           playAllStepsItem.setSelected(clip.isPlayAllSteps());
           videoMenu.add(playAllStepsItem);
           // smooth play item for xuggle videos
+          boolean isXuggleVideo = false;
           VideoType videoType = (VideoType)video.getProperty("video_type"); //$NON-NLS-1$
           if (videoType!=null && videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_XUGGLE)) {
       			String xuggleName = "org.opensourcephysics.media.xuggle.XuggleVideo"; //$NON-NLS-1$
@@ -1561,6 +1585,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         			Boolean smooth = (Boolean)method.invoke(video, (Object[])null);
             	playXuggleSmoothlyItem.setSelected(smooth);
               videoMenu.add(playXuggleSmoothlyItem);
+              isXuggleVideo = true;
         		} catch (Exception ex) {
         		}              	
           }
@@ -1619,7 +1644,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             videoMenu.add(filtersMenu);
           }
           videoMenu.addSeparator();
-      		videoMenu.add(checkDurationsItem);
+      		if (isXuggleVideo) videoMenu.add(checkDurationsItem);
       		videoMenu.add(aboutVideoItem);
         }
         // update save and close items
@@ -1817,7 +1842,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	        }
         }
         
-        // paste paste and autopaste items
+        // paste and autopaste items
         if (trackerPanel.isEnabled("edit.paste")) { //$NON-NLS-1$
           if (editMenu.getItemCount() > 0) editMenu.addSeparator();
           editMenu.add(pasteItem);
@@ -1835,7 +1860,15 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           	editMenu.add(deleteTracksMenu);
           }
         }
-          // add size menu
+        // number menu
+        if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
+	        if (editMenu.getItemCount() > 0) editMenu.addSeparator();
+	        editMenu.add(numberMenu);
+	        numberMenu.removeAll();
+	        if (trackerPanel.isEnabled("number.formats")) numberMenu.add(formatsItem); //$NON-NLS-1$
+	        if (trackerPanel.isEnabled("number.units")) numberMenu.add(unitsItem); //$NON-NLS-1$
+        }
+        // add size menu
         if (trackerPanel.isEnabled("edit.matSize")) { //$NON-NLS-1$
           if (editMenu.getItemCount() > 0) editMenu.addSeparator();
         	editMenu.add(matSizeMenu);
@@ -2030,6 +2063,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           }
         }
         deleteTracksMenu.setEnabled(hasTracks);
+        // hack to eliminate extra separator at end of video menu
+        int n = videoMenu.getMenuComponentCount();
+        if (n>0 && videoMenu.getMenuComponent(n-1) instanceof JSeparator) {
+        	videoMenu.remove(n-1);
+        }
         // add empty menu items to menus with no items
         if (videoMenu.getItemCount()==0) {
         	videoMenu.add(emptyVideoItem);
@@ -2040,6 +2078,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         if (coordsMenu.getItemCount()==0) {
         	coordsMenu.add(emptyCoordsItem);
         }
+        
+        // replace help menu
+        TMenuBar.this.remove(helpMenu);
+        helpMenu = getTrackerHelpMenu(trackerPanel);
+        TMenuBar.this.add(helpMenu);
         FontSizer.setFonts(TMenuBar.this, FontSizer.getLevel());
         refreshing = false;
       }

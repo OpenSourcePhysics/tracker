@@ -21,7 +21,6 @@
  *
  * For additional Tracker information and documentation, please see
  * <http://physlets.org/tracker/>.
-
  */
 package org.opensourcephysics.cabrillo.tracker;
 
@@ -83,6 +82,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
   protected PlotMouseListener mouseListener;
   protected PropertyChangeListener playerListener;
   protected Step clickedStep;
+  protected TCoordinateStringBuilder coordStringBuilder;
 
   /**
    * Constructs a TrackPlottingPanel for a track.
@@ -97,6 +97,16 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     this.data = data;
     dataset.setConnected(true);
     dataset.setMarkerShape(Dataset.SQUARE);
+    // set new CoordinateStringBuilder
+    coordStringBuilder = new TCoordinateStringBuilder();
+    setCoordinateStringBuilder(coordStringBuilder);
+
+    Font font = new JTextField().getFont();
+    trMessageBox.setMessageFont(font);
+    tlMessageBox.setMessageFont(font);
+    brMessageBox.setMessageFont(font);
+    blMessageBox.setMessageFont(font);
+    
     // make listeners for the button states
     xListener = new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
@@ -137,6 +147,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     // create clickable axes
     plotAxes = new ClickableAxes(this);
     setAxes(plotAxes);
+    
     // add plotMouseListener
     mouseListener = new PlotMouseListener();
     addMouseListener(mouseListener);
@@ -214,12 +225,20 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
    * @param label the x label.
    */
   public void setXLabel(String label) {
-    super.setXLabel(label);
-    xLabel = label;
     dataset.setXYColumnNames(label, yLabel);
+    xLabel = label;
     String xStr = TeXParser.removeSubscripting(xLabel)+"="; //$NON-NLS-1$
     String yStr = "  "+TeXParser.removeSubscripting(yLabel)+"="; //$NON-NLS-1$ //$NON-NLS-2$
     getCoordinateStringBuilder().setCoordinateLabels(xStr, yStr);
+    // add units to label
+    TTrack track = TTrack.getTrack(trackID);
+		if (track.trackerPanel!=null) {
+			String units = track.trackerPanel.getUnits(track, label);
+			if (!"".equals(units)) { //$NON-NLS-1$
+				label += " ("+units.trim()+")"; //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		}
+    super.setXLabel(label);
   }
 
   /**
@@ -237,12 +256,20 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
    * @param label the y label
    */
   public void setYLabel(String label) {
-    super.setYLabel(label);
     yLabel = label;
     dataset.setXYColumnNames(xLabel, label);
     String xStr = TeXParser.removeSubscripting(xLabel)+"="; //$NON-NLS-1$
     String yStr = "  "+TeXParser.removeSubscripting(yLabel)+"="; //$NON-NLS-1$ //$NON-NLS-2$
     getCoordinateStringBuilder().setCoordinateLabels(xStr, yStr);
+    // add units to label
+    TTrack track = TTrack.getTrack(trackID);
+		if (track.trackerPanel!=null) {
+			String units = track.trackerPanel.getUnits(track, label);
+			if (!"".equals(units)) { //$NON-NLS-1$
+				label += " ("+units.trim()+")"; //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		}
+    super.setYLabel(label);
   }
 
   /**
@@ -715,10 +742,13 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
   	    popupmenu.add(copyImageItem);
   	    popupmenu.add(snapshotItem);
       } 
-  		popupmenu.add(guestsItem);
-    	popupmenu.addSeparator();
+  		if (trackerPanel.isEnabled("plot.compare")) { //$NON-NLS-1$
+	    	popupmenu.addSeparator();
+  			popupmenu.add(guestsItem);
+  		}
   		if (trackerPanel.isEnabled("data.builder") //$NON-NLS-1$
     			|| trackerPanel.isEnabled("data.tool")) { //$NON-NLS-1$    
+	    	popupmenu.addSeparator();
       	if (trackerPanel.isEnabled("data.builder")) //$NON-NLS-1$
       		popupmenu.add(dataBuilderItem);
       	if (trackerPanel.isEnabled("data.tool")) //$NON-NLS-1$
@@ -923,6 +953,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     		&& trackerPanel.getTFrame()!=null
     		&& !trackerPanel.getTFrame().anglesInRadians;
     
+    // refresh the coordStringBuilder
+    coordStringBuilder.setUnitsAndPatterns(track, xTitle, yTitle);
     // refresh the main dataset
     refreshDataset(dataset, data, xIsAngle, yIsAngle, degrees);
     // add dataset to this plot panel
@@ -1028,14 +1060,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     if (index >=0 && dataset.getIndex() > index) {
     	double x = dataset.getXPoints()[index];
     	double y = dataset.getYPoints()[index];
-    	if (!Double.isNaN(x) && !Double.isNaN(y)) {
-	      String xStr = TeXParser.removeSubscripting(xLabel)+"="; //$NON-NLS-1$
-	      String yStr = "  "+TeXParser.removeSubscripting(yLabel)+"="; //$NON-NLS-1$ //$NON-NLS-2$
-	      if((Math.abs(x)>100)||(Math.abs(x)<0.01)) msg = xStr+scientificFormat.format(x);
-	      else msg = xStr+decimalFormat.format(x);
-	      if((Math.abs(y)>100)||(Math.abs(y)<0.01)) msg += yStr+scientificFormat.format(y);
-	      else msg += yStr+decimalFormat.format(y);
-    	}
+      TTrack track = TTrack.getTrack(trackID);
+    	msg = coordStringBuilder.getCoordinateString(track.trackerPanel, x, y);
     }
     setMessage(msg, 0);
   }
@@ -1378,6 +1404,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     ClickableAxes(PlottingPanel panel) {
       super(panel);
       setDefaultGutters(defaultLeftGutter, 30, defaultRightGutter, defaultBottomGutter);
+      setCoordinateStringBuilder(coordStringBuilder);
     }
     
     // Overrides CartesianInteractive method

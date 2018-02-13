@@ -69,16 +69,17 @@ public class TableTrackView extends TrackView {
   protected JScrollPane columnsScroller;
   protected TrackDataTable dataTable;
   protected JCheckBox[] checkBoxes;
-  protected JMenuItem createTextColumnItem;
-  protected JMenu textColumnMenu, deleteTextColumnMenu, renameTextColumnMenu;
   protected boolean refresh = true;
   protected Set<String> textColumnsVisible = new TreeSet<String>();
-  protected JMenuItem dataToolItem, dataBuilderItem, deleteDataFunctionItem;
   private JButton columnsButton, skippedFramesButton;
-  private JPopupMenu popup;
   private JPanel columnsPanel;
   private DatasetManager tableData;
-  private JMenuItem goToFrameItem, formatDialogItem;
+  private JPopupMenu popup;
+  protected JMenu textColumnMenu, deleteTextColumnMenu, renameTextColumnMenu;
+  protected JMenuItem createTextColumnItem;
+  protected JMenuItem dataToolItem, dataBuilderItem, deleteDataFunctionItem;
+  private JMenu numberMenu;
+  private JMenuItem goToFrameItem, formatDialogItem, setUnitsItem, showUnitsItem;
   private JMenu copyDataMenu;
   private JMenuItem copyDataRawItem, copyDataFormattedItem;
   private JMenu setDelimiterMenu;
@@ -183,7 +184,7 @@ public class TableTrackView extends TrackView {
 	    setVisible(1, true);
     }
     // set the default number formats, if any
-    Class<? extends TTrack> trackType = NumberFormatSetter.getTrackType(track);
+    Class<? extends TTrack> trackType = NumberFormatDialog.getTrackType(track);
     TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(trackType);
     DataTable table = getDataTable();
   	for (String name: patterns.keySet()) {
@@ -579,6 +580,9 @@ public class TableTrackView extends TrackView {
       textColumnNames.addAll(track.getTextColumnNames());
 
     }
+    else if (e.getPropertyName().equals("units")) { // from trackerPanel //$NON-NLS-1$
+    	dataTable.getTableHeader().repaint();
+    }
     else super.propertyChange(e);
   }
 
@@ -859,6 +863,7 @@ public class TableTrackView extends TrackView {
 				}
   	  }	
     });
+    numberMenu = new JMenu();
     formatDialogItem = new JMenuItem();
     formatDialogItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -868,7 +873,20 @@ public class TableTrackView extends TrackView {
         	String name = dataTable.getColumnName(selected[i]);
         	selectedNames[i] = name;
         }
-        NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(getTrack(), selectedNames);
+        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, getTrack(), selectedNames);
+  	    dialog.setVisible(true);
+  	  }	
+    });
+    showUnitsItem = new JMenuItem();
+    showUnitsItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        trackerPanel.setUnitsVisible(!trackerPanel.isUnitsVisible());
+  	  }	
+    });
+    setUnitsItem = new JMenuItem();
+    setUnitsItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        UnitsDialog dialog = trackerPanel.getUnitsDialog();
   	    dialog.setVisible(true);
   	  }	
     });
@@ -1213,7 +1231,9 @@ public class TableTrackView extends TrackView {
   }
   
   protected JPopupMenu getPopup() {
-    formatDialogItem.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+  	numberMenu.setText(TrackerRes.getString("Popup.Menu.Numbers")); //$NON-NLS-1$
+    formatDialogItem.setText(TrackerRes.getString("Popup.MenuItem.Formats")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    setUnitsItem.setText(TrackerRes.getString("Popup.MenuItem.Units")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
     copyImageItem.setText(TrackerRes.getString("TMenuBar.Menu.CopyImage")); //$NON-NLS-1$
     snapshotItem.setText(DisplayRes.getString("DisplayPanel.Snapshot_menu_item")); //$NON-NLS-1$
     printItem.setText(TrackerRes.getString("TActions.Action.Print")); //$NON-NLS-1$
@@ -1228,52 +1248,71 @@ public class TableTrackView extends TrackView {
   	popup.removeAll();
   	if (goToFrameItem.isEnabled()) {
       popup.add(goToFrameItem);
-      popup.addSeparator();
   	}
-    popup.add(formatDialogItem);
+
   	TTrack track = getTrack();
-  	if (track==null) return popup;
+  	if (track==null) {
+      if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
+    		if (popup.getComponentCount()>0) popup.addSeparator();
+    		popup.add(numberMenu);
+    		numberMenu.removeAll();
+  	    if (trackerPanel.isEnabled("number.formats")) numberMenu.add(formatDialogItem); //$NON-NLS-1$
+  	    if (trackerPanel.isEnabled("number.units")) numberMenu.add(setUnitsItem); //$NON-NLS-1$
+      }
+  		return popup;
+  	}
     if (track.trackerPanel!=null && track.trackerPanel.isEnabled("edit.copyData")) { //$NON-NLS-1$
-	    popup.addSeparator();
+      if (popup.getComponentCount()>0) popup.addSeparator();
 	    popup.add(copyDataMenu);
     }
-    popup.addSeparator();
+    if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units") //$NON-NLS-1$ //$NON-NLS-2$
+    		&& track.trackerPanel!=null) { 
+  		if (popup.getComponentCount()>0) popup.addSeparator();
+  		popup.add(numberMenu);
+  		numberMenu.removeAll();
+	    if (trackerPanel.isEnabled("number.formats")) numberMenu.add(formatDialogItem); //$NON-NLS-1$
+	    if (trackerPanel.isEnabled("number.units")) numberMenu.add(setUnitsItem); //$NON-NLS-1$
+    }
+    
     // textColumnMenu
-    textColumnMenu.removeAll();
-    popup.add(textColumnMenu);
-    textColumnMenu.add(createTextColumnItem);
-    if (track.getTextColumnNames().size()>0) {
-    	deleteTextColumnMenu.removeAll();
-    	textColumnMenu.add(deleteTextColumnMenu);
-    	for (String next: track.getTextColumnNames()) {
-    		JMenuItem item = new JMenuItem(next);
-    		deleteTextColumnMenu.add(item);
-    		item.setActionCommand(next);
-    		item.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-          	TTrack track = getTrack();
-            track.removeTextColumn(e.getActionCommand());
-          }
-        });
-    	}
-    	renameTextColumnMenu.removeAll();
-    	textColumnMenu.add(renameTextColumnMenu);
-    	for (String next: track.getTextColumnNames()) {
-    		JMenuItem item = new JMenuItem(next);
-    		renameTextColumnMenu.add(item);
-    		item.setActionCommand(next);
-    		item.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-          	String prev = e.getActionCommand();
-            String name = getUniqueColumnName(prev, false);
-            if (name!=null && !name.equals("") && !name.equals(prev)) { //$NON-NLS-1$
-            	// name has changed
-            	TTrack track = getTrack();
-            	track.renameTextColumn(prev, name);            	
-            }
-          }
-        });
-    	}
+    if (trackerPanel.isEnabled("text.columns")) { //$NON-NLS-1$
+    	textColumnMenu.removeAll();
+	    if (popup.getComponentCount()>0) popup.addSeparator();
+	    popup.add(textColumnMenu);
+	    textColumnMenu.add(createTextColumnItem);
+	    if (track.getTextColumnNames().size()>0) {
+	    	deleteTextColumnMenu.removeAll();
+	    	textColumnMenu.add(deleteTextColumnMenu);
+	    	for (String next: track.getTextColumnNames()) {
+	    		JMenuItem item = new JMenuItem(next);
+	    		deleteTextColumnMenu.add(item);
+	    		item.setActionCommand(next);
+	    		item.addActionListener(new ActionListener() {
+	          public void actionPerformed(ActionEvent e) {
+	          	TTrack track = getTrack();
+	            track.removeTextColumn(e.getActionCommand());
+	          }
+	        });
+	    	}
+	    	renameTextColumnMenu.removeAll();
+	    	textColumnMenu.add(renameTextColumnMenu);
+	    	for (String next: track.getTextColumnNames()) {
+	    		JMenuItem item = new JMenuItem(next);
+	    		renameTextColumnMenu.add(item);
+	    		item.setActionCommand(next);
+	    		item.addActionListener(new ActionListener() {
+	          public void actionPerformed(ActionEvent e) {
+	          	String prev = e.getActionCommand();
+	            String name = getUniqueColumnName(prev, false);
+	            if (name!=null && !name.equals("") && !name.equals(prev)) { //$NON-NLS-1$
+	            	// name has changed
+	            	TTrack track = getTrack();
+	            	track.renameTextColumn(prev, name);            	
+	            }
+	          }
+	        });
+	    	}
+	    }
     }
     textColumnMenu.setEnabled(!track.isLocked());
     
@@ -1302,7 +1341,7 @@ public class TableTrackView extends TrackView {
 	    popup.addSeparator();
 	    popup.add(printItem);
     }
-    popup.addSeparator();
+    if (popup.getComponentCount()>0) popup.addSeparator();
     popup.add(helpItem);
     FontSizer.setFonts(popup, FontSizer.getLevel());
     return popup;
@@ -1760,7 +1799,17 @@ public class TableTrackView extends TrackView {
   class TrackDataTable extends DataTable {
   	
   	NumberFieldRenderer numberFieldRenderer = new NumberFieldRenderer();
-  	SkippedFramesRenderer skippedFramesRenderer = new SkippedFramesRenderer();  	
+  	SkippedFramesRenderer skippedFramesRenderer = new SkippedFramesRenderer(); 
+  	
+  	TrackDataTable() {
+  		super();
+  		TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
+  		if (renderer instanceof DataTable.HeaderRenderer) {
+  			renderer = ((DataTable.HeaderRenderer)renderer).getBaseRenderer();
+  		}
+      TableCellRenderer headerRenderer = new HeaderUnitsRenderer(this, renderer);
+      getTableHeader().setDefaultRenderer(headerRenderer);
+  	}
   	
   	@Override
     public void refreshTable() {
@@ -1841,26 +1890,28 @@ public class TableTrackView extends TrackView {
       super.sort(col);
     }
 
+  }
+  
+  public class HeaderUnitsRenderer extends DataTable.HeaderRenderer {
 
-
-//  	public TableCellRenderer getCellRenderer(String columnName) {
-//      UnitRenderer unitRenderer = unitRenderersByColumnName.get(columnName);
-//      TableCellRenderer valueRenderer = precisionRenderersByColumnName.get(columnName);
-//      // if no precision renderer, use numberFieldRenderer
-//      if (valueRenderer==null) {
-//      	valueRenderer = numberFieldRenderer;
-//      }
-//      // return unit renderer if defined
-//    	if (unitRenderer!=null) {
-//    		unitRenderer.setBaseRenderer(valueRenderer);
-//    		skippedFramesRenderer.setBaseRenderer(unitRenderer);
-//    		return unitRenderer;
-//    	}
-//    	else {
-//    		skippedFramesRenderer.setBaseRenderer(valueRenderer);
-//    	}
-//      return skippedFramesRenderer;
-//  	}
+		public HeaderUnitsRenderer(DataTable table, TableCellRenderer renderer) {
+			table.super(renderer);
+		}
+		
+		@Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+			Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+			TTrack track = getTrack();
+			if (track.trackerPanel!=null) {
+				String var = textLine.getText();
+				String units = track.trackerPanel.getUnits(track, var);
+				if (!"".equals(units)) { //$NON-NLS-1$
+					var += " ("+units.trim()+")"; //$NON-NLS-1$ //$NON-NLS-2$
+					textLine.setText(var);
+				}
+			}
+			return c;
+		}
   	
   }
 

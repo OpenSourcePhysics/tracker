@@ -49,6 +49,7 @@ public abstract class TrackView extends JScrollPane
     trackID = track.getID();
     trackerPanel = panel;
     trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener("units", this); //$NON-NLS-1$
     parent = view;
   }
 
@@ -59,6 +60,7 @@ public abstract class TrackView extends JScrollPane
 	    track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
     }
     trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("units", this); //$NON-NLS-1$
     trackerPanel = null;
   }
 
