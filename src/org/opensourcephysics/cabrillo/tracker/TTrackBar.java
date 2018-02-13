@@ -40,6 +40,7 @@ import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.ToolsRes;
+import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
@@ -89,13 +90,14 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-		    	      	URL url = Tracker.class.getResource("resources/help/axes.html");
-		    	      	String s = ResourceLoader.getString(url.toExternalForm());
-		    	      	String[] pTags = s.split("<p>");
-		    	      	for (int i=1; i< pTags.length; i++) {
-		    	      		pTags[i] = pTags[i].substring(0, pTags[i].indexOf("</p>"));
-			    	      	System.out.println("pig "+pTags[i]);		    	      		
-		    	      	}
+		    	      	
+//		    	      	URL url = Tracker.class.getResource("resources/help/axes.html");
+//		    	      	String s = ResourceLoader.getString(url.toExternalForm());
+//		    	      	String[] pTags = s.split("<p>");
+//		    	      	for (int i=1; i< pTags.length; i++) {
+//		    	      		pTags[i] = pTags[i].substring(0, pTags[i].indexOf("</p>"));
+//		    	      	}
+
 //		    	      	Tracker.newerVersion = "6.7.8";
 //		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 //		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
@@ -977,12 +979,16 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
                 !(c instanceof JButton) && 
                 !(c instanceof JCheckBox)) {
               JComponent jc = (JComponent)c;
+              int w = jc.getPreferredSize().width;
               jc.setMaximumSize(null);
               jc.setPreferredSize(null);
               Dimension dim = jc.getPreferredSize();
               dim.height = toolbarComponentHeight;
               if(jc instanceof NumberField) {
               	dim.width = Math.max(numberFieldWidth, dim.width);
+              }
+              else if (jc instanceof TextLineLabel) {
+              	dim.width = w;                	
               }
               jc.setPreferredSize(dim);
               jc.setMaximumSize(dim);
@@ -995,15 +1001,19 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
             // a point is selected
             list = track.getToolbarPointComponents(trackerPanel, p);
             for (Component c: list) {
-              if (c instanceof JComponent &&
-                  !(c instanceof JButton)) {
+              if (c instanceof JComponent 
+              		&& !(c instanceof JButton)) {
                 JComponent jc = (JComponent)c;
+                int w = jc.getPreferredSize().width;
                 jc.setMaximumSize(null);
                 jc.setPreferredSize(null);
                 Dimension dim = jc.getPreferredSize();
                 dim.height = toolbarComponentHeight;
                 if(jc instanceof NumberField) {
                 	dim.width = Math.max(numberFieldWidth, dim.width);
+                }
+                else if (jc instanceof TextLineLabel) {
+                	dim.width = w;                	
                 }
                 jc.setPreferredSize(dim);
                 jc.setMaximumSize(dim);
