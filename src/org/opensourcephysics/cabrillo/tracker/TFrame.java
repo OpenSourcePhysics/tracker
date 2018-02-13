@@ -2109,7 +2109,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     coordsMenu.setEnabled(false);
     defaultMenuBar.add(coordsMenu);
     // help menu
-    JMenu helpMenu = TMenuBar.getTrackerHelpMenu();
+    JMenu helpMenu = TMenuBar.getTrackerHelpMenu(null);
     defaultMenuBar.add(helpMenu);
   }
 
