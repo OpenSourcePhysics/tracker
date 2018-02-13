@@ -120,7 +120,6 @@ public class UnitsDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				trackerPanel.setUnitsVisible(visibleCheckbox.isSelected());
-    		TTrackBar.getTrackbar(trackerPanel).refresh();
     		refreshGUI();
 			}   	
     });
@@ -188,8 +187,8 @@ public class UnitsDialog extends JDialog {
     unitsBorder.setTitle(TrackerRes.getString("UnitsDialog.Border.LMT.Text")); //$NON-NLS-1$
     angleBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.Units.Text")); //$NON-NLS-1$
     
-    boolean hasLengthUnit = !"".equals(trackerPanel.lengthUnit); //$NON-NLS-1$
-    boolean hasMassUnit = !"".equals(trackerPanel.massUnit); //$NON-NLS-1$
+    boolean hasLengthUnit = trackerPanel.lengthUnit!=null; 
+    boolean hasMassUnit = trackerPanel.massUnit!=null; 
   	visibleCheckbox.setText(TrackerRes.getString("UnitsDialog.Checkbox.Visible.Text")); //$NON-NLS-1$
     visibleCheckbox.setSelected(trackerPanel.isUnitsVisible());
     visibleCheckbox.setEnabled(hasLengthUnit && hasMassUnit);
@@ -232,16 +231,12 @@ public class UnitsDialog extends JDialog {
   
   private void setUnit(UnitField field) {
   	if (field==lengthUnitField) {
-  		if (trackerPanel.setLengthUnit(field.getText())) {
-    		TTrackBar.getTrackbar(trackerPanel).refresh();
-    		refreshGUI();
-  		}
+  		trackerPanel.setLengthUnit(field.getText());
+    	refreshGUI();
   	}
   	else if (field==massUnitField) {
-  		if (trackerPanel.setMassUnit(field.getText())) {
-    		TTrackBar.getTrackbar(trackerPanel).refresh();
-    		refreshGUI();
-  		}
+  		trackerPanel.setMassUnit(field.getText());
+    	refreshGUI();
   	}
   }
   
