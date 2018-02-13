@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ import java.util.logging.Level;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.awt.*;
 import java.awt.event.*;
@@ -65,7 +66,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.0.0"; //$NON-NLS-1$
+  public static final String VERSION = "5.0.1180131"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -78,11 +79,13 @@ public class Tracker {
 	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
 	static final String ALPHA = TeXParser.parseTeX("$\\alpha"); //$NON-NLS-1$
 	static final String DEGREES = "\u00B0"; //$NON-NLS-1$
+	static final String SQUARED = "\u00b2"; //$NON-NLS-1$
+	static final String DOT = "\u00b7"; //$NON-NLS-1$
   static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
   
   // for testing
   static boolean timeLogEnabled = false;
-  static boolean testOn = false;
+  static boolean testOn = true;
   
   // define static fields
   static String trackerHome;
@@ -107,12 +110,13 @@ public class Tracker {
 	  "track.visible", "track.locked",  //$NON-NLS-1$ //$NON-NLS-2$
 	  "track.delete", "track.autoAdvance",  //$NON-NLS-1$ //$NON-NLS-2$ 
 	  "track.markByDefault", "track.autotrack",  //$NON-NLS-1$ //$NON-NLS-2$
-	  "model.stamp", "coords.locked",  //$NON-NLS-1$ //$NON-NLS-2$ 
+	  "model.stamp", "help.diagnostics", "coords.locked",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
 	  "coords.origin", "coords.angle", "data.algorithm",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "coords.scale", "coords.refFrame", "button.x",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  "button.v", "button.a", "button.trails",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
 	  "button.labels", "button.stretch", "button.clipSettings",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	  "button.xMass", "button.axes", "button.path", "button.pencil",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+	  "button.xMass", "button.axes", "button.path", "button.drawing",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+	  "number.formats", "number.units", "text.columns", "plot.compare",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	  "config.saveWithData", "data.builder", "data.tool"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   static Set<String> defaultConfig;
   static boolean xuggleCopied;
@@ -122,6 +126,7 @@ public class Tracker {
   static JProgressBar progressBar;
   static String counterPath = "http://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
+  static boolean checkedForNewerVersion = false; // true if checked for new version
   static String trackerWebsite = "physlets.org/tracker"; //$NON-NLS-1$
   static String trackerDownloadFolder = "/upgrade/"; //$NON-NLS-1$
   static String author = "Douglas Brown"; //$NON-NLS-1$
@@ -145,9 +150,9 @@ public class Tracker {
   static int minimumMemorySize = 32;
   static int requestedMemorySize = -1, originalMemoryRequest = 0;
   static long lastMillisChecked;
-	static boolean is64BitVM;
   static int maxFontLevel = 6;
   protected static Locale[] locales;
+  protected static Object[][] incompleteLocales;
   static Locale defaultLocale;
   static ArrayList<String> checkForUpgradeChoices;
   static Map<String, Integer> checkForUpgradeIntervals;
@@ -164,13 +169,12 @@ public class Tracker {
   static boolean showHintsByDefault = true;
   static int recentFilesSize = 6;
   static int preferredMemorySize = -1;
-  static String lookAndFeel, preferredLocale;
-  static String preferredJRE, preferredJRE32, preferredJRE64;
-  static String preferredTrackerJar;
+  static String lookAndFeel, preferredLocale, preferredDecimalSeparator;
+  static String preferredJRE, preferredTrackerJar;
   static int checkForUpgradeInterval = 0;
   static int preferredFontLevel = 0, preferredFontLevelPlus = 0;
-  static boolean isRadians, isXuggleFast, engineKnown=true;
-  static boolean warnXuggleError=true, warnNoVideoEngine=true, use32BitMode=false;
+  static boolean isRadians, isXuggleFast;
+  static boolean warnXuggleError=true, warnNoVideoEngine=true;
   static boolean warnVariableDuration=true;
   static String[] prelaunchExecutables = new String[0];
   static Map<String, String[]> autoloadMap = new TreeMap<String, String[]>();
@@ -223,10 +227,10 @@ public class Tracker {
 			new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
 			new Locale("ko"), // korean //$NON-NLS-1$
 			new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$ 
-//			new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
+			new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
 			new Locale("pl"), // polish //$NON-NLS-1$
-			new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
+			new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("sk"), // slovak //$NON-NLS-1$
 			new Locale("sl"), // slovenian //$NON-NLS-1$
 			new Locale("sv"), // swedish //$NON-NLS-1$
@@ -234,7 +238,14 @@ public class Tracker {
 			new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
 			Locale.CHINA, // simplified chinese
 			Locale.TAIWAN}; // traditional chinese
-  	setDefaultConfig(getFullConfig());
+    
+    // pig make sure these are correct
+    incompleteLocales = new Object[][] { 
+			{new Locale("cs"), "2015"}, // czech //$NON-NLS-1$ //$NON-NLS-2$
+			{new Locale("fi"), "2013"}, // finnish //$NON-NLS-1$ //$NON-NLS-2$
+			{new Locale("in"), "2014"}};// indonesian //$NON-NLS-1$ //$NON-NLS-2$
+
+    setDefaultConfig(getFullConfig());
   	loadPreferences();
   	// load current version after a delay to allow video engines to load
     Timer timer = new Timer(10000, new ActionListener() {
@@ -279,6 +290,7 @@ public class Tracker {
     s = "PrefsDialog.Upgrades.Never"; //$NON-NLS-1$
     checkForUpgradeChoices.add(s);
     checkForUpgradeIntervals.put(s, 10000);
+    
   	
     // create splash frame
     Color darkred = new Color(153, 0, 0);
@@ -371,8 +383,6 @@ public class Tracker {
       ResourceLoader.addExtractExtension(ext);
   	}
     
-  	is64BitVM = OSPRuntime.getVMBitness()==64;
-  	
     // add Xuggle video types, if available, using reflection
   	try {
 			String xuggleIOName = "org.opensourcephysics.media.xuggle.XuggleIO"; //$NON-NLS-1$
@@ -389,7 +399,7 @@ public class Tracker {
     pdfHelpButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
         try {
-        	java.net.URL url = new java.net.URL("http://"+trackerWebsite+pdfHelpPath); //$NON-NLS-1$
+        	java.net.URL url = new java.net.URL("https://"+trackerWebsite+pdfHelpPath); //$NON-NLS-1$
         	org.opensourcephysics.desktop.OSPDesktop.displayURL(url.toString());
         }
         catch(Exception ex) { ex.printStackTrace(); }
@@ -597,7 +607,7 @@ public class Tracker {
   	if (ver1==null || ver2==null) {
   		return 0;
   	}
-  	// typical newer semantic version "4.9.10" 
+  	// typical newer semantic version "4.9.10" or 5.0.0171230
   	// typical older version "4.97"
     String[] v1 = ver1.trim().split("\\."); //$NON-NLS-1$
     String[] v2 = ver2.trim().split("\\."); //$NON-NLS-1$
@@ -639,7 +649,7 @@ public class Tracker {
     String aboutString = "Tracker "  //$NON-NLS-1$
     		+ vers + newline
         + Tracker.COPYRIGHT + newline
-        + Tracker.trackerWebsite + newline + newline
+        + "https://"+Tracker.trackerWebsite + newline + newline //$NON-NLS-1$
         + TrackerRes.getString("Tracker.About.ProjectOf") + newline //$NON-NLS-1$
         + "Open Source Physics" + newline //$NON-NLS-1$
         + "www.opensourcephysics.org" + newline; //$NON-NLS-1$
@@ -651,6 +661,16 @@ public class Tracker {
     if (Tracker.trackerHome!=null) {
     	aboutString += newline+TrackerRes.getString("Tracker.About.TrackerHome") //$NON-NLS-1$
     			+newline+ Tracker.trackerHome + newline;
+    }
+    loadCurrentVersion(true, false);
+    if (newerVersion!=null) {
+    	aboutString += newline+TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
+					+" "+newerVersion+" " //$NON-NLS-1$ //$NON-NLS-2$
+					+TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message2") //$NON-NLS-1$
+					+newline+"https://"+trackerWebsite+newline; //$NON-NLS-1$
+    }
+    else {
+    	aboutString += newline+TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
     }
     JOptionPane.showMessageDialog(null,
     															aboutString,
@@ -1169,6 +1189,9 @@ public class Tracker {
     		break;
     	}
     }
+    // set the default decimal separator
+    OSPRuntime.setDefaultDecimalSeparator(
+    		new DecimalFormat().getDecimalFormatSymbols().getDecimalSeparator());
   }
 
   /**
@@ -1224,6 +1247,9 @@ public class Tracker {
 		if (!ResourceLoader.isURLAvailable("http://www.opensourcephysics.org")) { //$NON-NLS-1$
 			return;
 		}
+  	if (checkedForNewerVersion) {
+  		return;
+  	}
   	if (!ignoreInterval) {
 	  	// check to see if upgrade interval has passed
 	  	long millis = System.currentTimeMillis();
@@ -1242,12 +1268,11 @@ public class Tracker {
   	// interval has passed, so check for upgrades and save current time  	
 	  // typical pre-4.97 version: "4.90" or "4.61111227"
   	// typical post-4.97 version: "4.9.8" or "4.10.0" or "4.10.0170504" or "5.0.0"
-
 	 	// send runtime and version data as page name to get latest version from PHP script
 		String pageName = getPHPPageName(logToFile);
 		String latestVersion = loginGetLatestVersion(pageName);
-		String pig = "5.1.1";
-		latestVersion = pig;
+		checkedForNewerVersion = true;
+		
 		int result = compareVersions(latestVersion, VERSION);
 		if (result>0) { // newer version available
 			newerVersion = latestVersion;
@@ -1646,7 +1671,7 @@ public class Tracker {
 //    warnNoVideoEngine = false; // for PLATO
     if (warnNoVideoEngine && VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {    	
     	// warn user that there is no working video engine
-    	boolean xuggleInstalled = DiagnosticsForXuggle.guessXuggleVersion()!=0;
+    	boolean xuggleInstalled = DiagnosticsForXuggle.guessXuggleVersion()==3.4;
     	
     	ArrayList<String> message = new ArrayList<String>();    	
 			boolean showRelaunchDialog = false;
@@ -1660,7 +1685,7 @@ public class Tracker {
     	}
     	
     	// engines installed on Windows but no 32-bit VM
-    	else if (OSPRuntime.isWindows() && JREFinder.getFinder().getDefaultJRE(32)==null) {
+    	else if (OSPRuntime.isWindows() && JREFinder.getFinder().getDefaultJRE(32, trackerHome, true)==null) {
     		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message1")); //$NON-NLS-1$
     		message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message2")); //$NON-NLS-1$
     		message.add(" "); //$NON-NLS-1$
@@ -1730,8 +1755,6 @@ public class Tracker {
 		if (System.getenv("STARTER_WARNING")!=null) { //$NON-NLS-1$
 			// possible cause: running VM in 64-bits even though preference is 32-bit
 			// if so, change preference
-	    int vmBitness = OSPRuntime.getVMBitness();
-			use32BitMode = vmBitness==32;
 		  String warningString = System.getenv("STARTER_WARNING"); //$NON-NLS-1$
 		  String[] lines = warningString.split("\n"); //$NON-NLS-1$
 			Box box = Box.createVerticalBox();
@@ -2125,12 +2148,6 @@ public class Tracker {
       	control.setValue("tracker_jar", jar); //$NON-NLS-1$
       	if (Tracker.preferredJRE!=null)
       		control.setValue("java_vm", Tracker.preferredJRE); //$NON-NLS-1$
-      	if (Tracker.preferredJRE32!=null)
-      		control.setValue("java_vm_32", Tracker.preferredJRE32); //$NON-NLS-1$
-      	if (Tracker.preferredJRE64!=null)
-      		control.setValue("java_vm_64", Tracker.preferredJRE64); //$NON-NLS-1$
-      	if (Tracker.use32BitMode)
-      		control.setValue("32-bit", Tracker.use32BitMode); //$NON-NLS-1$
       	if (Tracker.preferredMemorySize>-1) // -1 by default
       		control.setValue("memory_size", Tracker.preferredMemorySize); //$NON-NLS-1$
       	if (Tracker.lookAndFeel!=null)
@@ -2139,6 +2156,8 @@ public class Tracker {
       		control.setValue("run", Tracker.prelaunchExecutables); //$NON-NLS-1$
       	if (Tracker.preferredLocale!=null)
       		control.setValue("locale", Tracker.preferredLocale); //$NON-NLS-1$
+      	if (Tracker.preferredDecimalSeparator!=null)
+      		control.setValue("decimal_separator", Tracker.preferredDecimalSeparator); //$NON-NLS-1$
       	if (Tracker.preferredFontLevel>0) {
       		control.setValue("font_size", Tracker.preferredFontLevel); //$NON-NLS-1$
       	}
@@ -2159,8 +2178,6 @@ public class Tracker {
         	control.setValue("file_chooser_directory", XML.getAbsolutePath(file)); //$NON-NLS-1$
         
         // video_engine--used by version 4.75+
-        if (Tracker.engineKnown) // true by default
-        	control.setValue("video_engine", VideoIO.getEngine()); //$NON-NLS-1$
         if (!VideoIO.getPreferredExportExtension().equals(VideoIO.DEFAULT_PREFERRED_EXPORT_EXTENSION))
         	control.setValue("export_extension", VideoIO.getPreferredExportExtension()); //$NON-NLS-1$
         if (!ExportZipDialog.preferredExtension.equals(ExportZipDialog.DEFAULT_VIDEO_EXTENSION))
@@ -2241,13 +2258,14 @@ public class Tracker {
       	}
       	if (control.getPropertyNames().contains("java_vm")) //$NON-NLS-1$
       		preferredJRE = control.getString("java_vm"); //$NON-NLS-1$
-    		preferredJRE32 = control.getString("java_vm_32"); //$NON-NLS-1$
-    		preferredJRE64 = control.getString("java_vm_64"); //$NON-NLS-1$
-      	use32BitMode = control.getBoolean("32-bit"); //$NON-NLS-1$
   	    if (control.getPropertyNames().contains("memory_size")) //$NON-NLS-1$
       		requestedMemorySize = control.getInt("memory_size"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("look_feel")) //$NON-NLS-1$
       		lookAndFeel = control.getString("look_feel"); //$NON-NLS-1$
+      	if (control.getPropertyNames().contains("decimal_separator")) { //$NON-NLS-1$
+      		preferredDecimalSeparator = control.getString("decimal_separator"); //$NON-NLS-1$
+      		OSPRuntime.setPreferredDecimalSeparator(preferredDecimalSeparator);
+      	}
       	if (control.getPropertyNames().contains("run")) //$NON-NLS-1$
       		prelaunchExecutables = (String[])control.getObject("run"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("locale")) //$NON-NLS-1$
@@ -2271,7 +2289,6 @@ public class Tracker {
       		OSPRuntime.chooserDir = control.getString("file_chooser_directory"); //$NON-NLS-1$
       	
       	// preferred video engine
-      	VideoIO.setEngine(control.getString("video_engine")); //$NON-NLS-1$
       	VideoIO.setPreferredExportExtension(control.getString("export_extension")); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("zip_export_extension")) //$NON-NLS-1$
       		ExportZipDialog.preferredExtension = control.getString("zip_export_extension"); //$NON-NLS-1$
@@ -2310,8 +2327,6 @@ public class Tracker {
     		}
       	// always load "tracker_jar"
       	preferredTrackerJar = control.getString("tracker_jar"); //$NON-NLS-1$
-//      	if (preferredTrackerJar==null)
-//      		loadStarterPrefs();
       	return obj;
       }
     }  	
