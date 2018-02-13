@@ -120,7 +120,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected Map<Class<? extends TTrack>, TreeMap<String, String>> formatPatterns 
   	= new HashMap<Class<? extends TTrack>, TreeMap<String,String>>();
   protected String lengthUnit="m", massUnit="kg", timeUnit="s"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-  protected boolean unitsVisible = true;
+  protected boolean unitsVisible; // not visible by default
+  protected TCoordinateStringBuilder coordStringBuilder;
 
   /**
    * Constructs a blank TrackerPanel with a player.
@@ -150,10 +151,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     mouseController = new TMouseController();
     addMouseListener(mouseController);
     addMouseMotionListener(mouseController);
+    // set new CoordinateStringBuilder
+    coordStringBuilder = new TCoordinateStringBuilder();
+    setCoordinateStringBuilder(coordStringBuilder);
+    
+    // set fonts of message boxes and noDataLabels
+    Font font = new JTextField().getFont();
+    trMessageBox.setMessageFont(font);
+    tlMessageBox.setMessageFont(font);
+    brMessageBox.setMessageFont(font);
+    blMessageBox.setMessageFont(font);
+    
     badNameLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
     Box box = Box.createVerticalBox();
     noData.add(box);
-    Font font = new JTextField().getFont();
     for (int i = 0; i < 2; i++) {
     	noDataLabels[i] = new JLabel();
     	noDataLabels[i].setFont(font);
@@ -983,6 +994,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     if (Tracker.showHints && track != null) setMessage(track.getMessage());
     else setMessage(""); //$NON-NLS-1$
     firePropertyChange("selectedtrack", prevTrack, track); //$NON-NLS-1$
+		coordStringBuilder.setUnitsAndPatterns(track, "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
   }
 
   /**
@@ -1326,7 +1338,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @return <code>true</code> if units are displayed
    */
   public boolean isUnitsVisible() {
-    return unitsVisible && !"".equals(lengthUnit) && !"".equals(massUnit); //$NON-NLS-1$ //$NON-NLS-2$
+    return unitsVisible && lengthUnit!=null && massUnit!=null; 
   }
 
   /**
@@ -1335,7 +1347,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @param visible <code>true</code> to display units
    */
   public void setUnitsVisible(boolean visible) {
+  	if (visible==unitsVisible) return;
     unitsVisible = visible;
+		TTrackBar.getTrackbar(this).refresh();
+		coordStringBuilder.setUnitsAndPatterns(getSelectedTrack(), "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (getSelectedPoint()!=null) {
+			getSelectedPoint().showCoordinates(this);
+		}
+		firePropertyChange("units", false, true); //$NON-NLS-1$
   }
 
   /**
@@ -1354,16 +1373,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @return true if unit was changed
    */
   public boolean setMassUnit(String unit) {
-  	if (unit==null) unit = ""; //$NON-NLS-1$
-  	unit = unit.trim();
-  	if (massUnit.equals(unit)) return false;
+  	if (unit!=null) unit = unit.trim();
+  	if ("".equals(unit)) unit = null; //$NON-NLS-1$
+  	if (massUnit!=null && massUnit.equals(unit)) return false;
+  	if (massUnit==null && unit==null) return false;
   	// prevent numbers being set as units
   	try {
 			Double.parseDouble(unit);
 			return false;
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 		}
     massUnit = unit;
+		TTrackBar.getTrackbar(this).refresh();
+		firePropertyChange("units", false, true); //$NON-NLS-1$
     return true;
   }
 
@@ -1383,16 +1405,23 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @return true if unit was changed
    */
   public boolean setLengthUnit(String unit) {
-  	if (unit==null) unit = ""; //$NON-NLS-1$
-  	unit = unit.trim();
-  	if (lengthUnit.equals(unit)) return false;
+  	if (unit!=null) unit = unit.trim();
+  	if ("".equals(unit)) unit = null; //$NON-NLS-1$
+  	if (lengthUnit!=null && lengthUnit.equals(unit)) return false;
+  	if (lengthUnit==null && unit==null) return false;
   	// prevent numbers being set as units
   	try {
 			Double.parseDouble(unit);
 			return false;
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 		}
     lengthUnit = unit;
+		TTrackBar.getTrackbar(this).refresh();
+		coordStringBuilder.setUnitsAndPatterns(getSelectedTrack(), "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
+		if (getSelectedPoint()!=null) {
+			getSelectedPoint().showCoordinates(this);
+		}
+		firePropertyChange("units", false, true); //$NON-NLS-1$
     return true;
   }
 
@@ -2591,6 +2620,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   }
 
   @Override
+  public XYCoordinateStringBuilder getXYCoordinateStringBuilder(TPoint point) {
+  	return coordStringBuilder;
+  }
+
+  @Override
   public void finalize() {
   	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
   }
@@ -3206,6 +3240,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	if (customPatterns.length>0) {
     		control.setValue("number_formats", customPatterns); //$NON-NLS-1$
     	}
+      // save units and unit visibility
+    	control.setValue("length_unit", trackerPanel.lengthUnit); //$NON-NLS-1$
+    	control.setValue("mass_unit", trackerPanel.massUnit); //$NON-NLS-1$
+    	if (trackerPanel.unitsVisible) {
+    		control.setValue("units_visible", trackerPanel.unitsVisible); //$NON-NLS-1$
+    	}
+
       // save the tracks
       control.setValue("tracks", trackerPanel.getTracksToSave()); //$NON-NLS-1$
       // save the selected track
@@ -3398,6 +3439,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         int n = trackerPanel.getFrameNumber();
         trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
       }
+      // load units and unit visibility
+      if (control.getPropertyNames().contains("length_unit")) { //$NON-NLS-1$
+      	trackerPanel.lengthUnit = control.getString("length_unit"); //$NON-NLS-1$
+      }
+      if (control.getPropertyNames().contains("mass_unit")) { //$NON-NLS-1$
+      	trackerPanel.massUnit = control.getString("mass_unit"); //$NON-NLS-1$
+      }
+      trackerPanel.unitsVisible = control.getBoolean("units_visible"); //$NON-NLS-1$
+
       // load custom number formats
       String[][] patterns = (String[][])control.getObject("number_formats"); //$NON-NLS-1$
       if (patterns!=null) {
