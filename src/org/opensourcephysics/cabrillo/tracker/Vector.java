@@ -77,7 +77,7 @@ public class Vector extends TTrack {
 		// assemble format variables
   	names.clear();
   	names.add("t"); //$NON-NLS-1$ 1
-  	names.add("mag"); //$NON-NLS-1$ 2
+  	names.add("xy"); //$NON-NLS-1$ 2
    	names.add(Tracker.THETA); // 7
 		formatVariables = names.toArray(new String[names.size()]);
 		
@@ -335,6 +335,12 @@ public class Vector extends TTrack {
   	super.propertyChange(e);
   }
 
+  @Override
+  protected void setMarking(boolean marking) {
+  	super.setMarking(marking);
+  	repaint(trackerPanel);
+  }
+  
   /**
    * Refreshes the data.
    *

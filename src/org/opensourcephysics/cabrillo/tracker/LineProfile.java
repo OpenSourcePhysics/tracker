@@ -57,7 +57,7 @@ public class LineProfile extends TTrack {
   	dataVariables = new String[] {"n", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
   			"G", "B", "luma", "pixels"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
   	fieldVariables = new String[0]; // no number fields used except integer spread
-  	formatVariables = new String[] {"r", "RGB", "luma"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+  	formatVariables = new String[] {"xy", "RGB", "luma"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   	
 		// assemble format map
 		formatMap = new HashMap<String, ArrayList<String>>();

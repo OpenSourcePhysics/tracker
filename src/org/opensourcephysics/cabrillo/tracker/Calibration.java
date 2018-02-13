@@ -56,7 +56,7 @@ public class Calibration extends TTrack {
   
   static {
   	dataVariables = new String[] {"x_{1}", "y_{1}", "x_{2}", "y_{2}"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-  	formatVariables = new String[] {"r"}; //$NON-NLS-1$ 
+  	formatVariables = new String[] {"xy"}; //$NON-NLS-1$ 
   	
   	// assemble format map
 		formatMap = new HashMap<String, ArrayList<String>>();		

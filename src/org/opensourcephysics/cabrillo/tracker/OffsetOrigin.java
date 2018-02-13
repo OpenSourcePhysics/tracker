@@ -52,7 +52,7 @@ public class OffsetOrigin extends TTrack {
 
   static {
   	dataVariables = new String[] {"x", "y"}; //$NON-NLS-1$ //$NON-NLS-2$
-  	formatVariables = new String[] {"r"}; //$NON-NLS-1$
+  	formatVariables = new String[] {"xy"}; //$NON-NLS-1$
   	
   	// assemble format map
 		formatMap = new HashMap<String, ArrayList<String>>();		

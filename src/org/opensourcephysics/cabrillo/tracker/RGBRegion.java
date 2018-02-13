@@ -60,7 +60,7 @@ public class RGBRegion extends TTrack {
   	dataVariables = new String[] {"t", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
   			"G", "B", "luma", "pixels", "step", "frame"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
   	fieldVariables = new String[] {"t", "x", "y"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
-  	formatVariables = new String[] {"t", "r", "RGB", "luma"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+  	formatVariables = new String[] {"t", "xy", "RGB", "luma"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
   	
   	// assemble format map
 		formatMap = new HashMap<String, ArrayList<String>>();		

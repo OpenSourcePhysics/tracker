@@ -123,7 +123,7 @@ public class PointMass extends TTrack {
   	names.clear();
   	names.add("m"); //$NON-NLS-1$ 0
   	names.add("t"); //$NON-NLS-1$ 1
-  	names.add("r"); //$NON-NLS-1$ 2
+  	names.add("xy"); //$NON-NLS-1$ 2
   	names.add("v"); //$NON-NLS-1$ 3
   	names.add("a"); //$NON-NLS-1$ 4
   	names.add("p"); //$NON-NLS-1$ 5

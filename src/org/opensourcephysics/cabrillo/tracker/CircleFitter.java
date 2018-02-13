@@ -86,7 +86,7 @@ public class CircleFitter extends TTrack {
 		names.add(dataVariables[7]); // 7
 		fieldVariables = names.toArray(new String[names.size()]);
 
-		formatVariables = new String[] {"t", "r", "R"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		formatVariables = new String[] {"t", "xy", "R"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		
   	// assemble format map
 		formatMap = new HashMap<String, ArrayList<String>>();		

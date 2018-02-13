@@ -542,14 +542,13 @@ public class TapeMeasure extends TTrack {
     TPoint[] pts = step.getPoints();
     TPoint p = trackerPanel==null? null: trackerPanel.getSelectedPoint();
     if (p==null) {
-    	p = step.getEnd1();
-    	if (trackerPanel!=null)
-    		trackerPanel.setSelectedPoint(p);
+    	p = pts[0];
     }
     if (p==pts[0] || p==pts[1]) {
-    	p.setLocation(x, y);
-      keyFrames.add(n);
-    	step.worldLength = step.getTapeLength(true);
+    	p.setXY(x, y);
+    	if (trackerPanel!=null) {
+    		trackerPanel.setSelectedPoint(p);
+    	}
     }
     return step;
   }
@@ -951,22 +950,39 @@ public class TapeMeasure extends TTrack {
    */
   protected JPopupMenu getInputFieldPopup() {
   	JPopupMenu popup = new JPopupMenu();
-		JMenuItem item = new JMenuItem();
-		final String[] selected = new String[] {dataVariables[1]}; 
-		item.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {              		
-        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(TapeMeasure.this, selected);
-  	    dialog.setVisible(true);
-      }
-    });
-		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
-		popup.add(item);
-		popup.addSeparator();
-		
-    boolean hasLengthUnit = !"".equals(trackerPanel.lengthUnit); //$NON-NLS-1$
-    boolean hasMassUnit = !"".equals(trackerPanel.massUnit); //$NON-NLS-1$
+    if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
+	  	JMenu numberMenu = new JMenu(TrackerRes.getString("Popup.Menu.Numbers")); //$NON-NLS-1$
+			popup.add(numberMenu);
+			if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
+				JMenuItem item = new JMenuItem();
+				final String[] selected = new String[] {dataVariables[1]}; 
+				item.addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent e) {              		
+		        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, TapeMeasure.this, selected);
+		  	    dialog.setVisible(true);
+		      }
+		    });
+				item.setText(TrackerRes.getString("Popup.MenuItem.Formats")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+				numberMenu.add(item);
+			}			
+			if (trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$
+				JMenuItem item = new JMenuItem();
+				item.addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent e) {              		
+		        UnitsDialog dialog = trackerPanel.getUnitsDialog();
+		  	    dialog.setVisible(true);
+		      }
+		    });
+				item.setText(TrackerRes.getString("Popup.MenuItem.Units")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+				numberMenu.add(item);
+			}
+  		popup.addSeparator();
+    }
+    
+    boolean hasLengthUnit = trackerPanel.lengthUnit!=null; 
+    boolean hasMassUnit = trackerPanel.massUnit!=null; 
     if (hasLengthUnit && hasMassUnit) {
-  		item = new JMenuItem();
+  		JMenuItem item = new JMenuItem();
   		final boolean vis = trackerPanel.isUnitsVisible();
   		item.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {              		
@@ -980,15 +996,6 @@ public class TapeMeasure extends TTrack {
   				TrackerRes.getString("TTrack.MenuItem.ShowUnits")); //$NON-NLS-1$
   		popup.add(item);
     }
-		item = new JMenuItem();
-		item.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {              		
-        UnitsDialog dialog = trackerPanel.getUnitsDialog();
-  	    dialog.setVisible(true);
-      }
-    });
-		item.setText(TrackerRes.getString("UnitsDialog.Title")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
-		popup.add(item);
 		return popup;
   }
   
@@ -1124,11 +1131,18 @@ public class TapeMeasure extends TTrack {
 	          if (split.length>1) {
 	          	// find first character not ""
 	          	for (int i=1; i< split.length; i++) {
-	          		if (!"".equals(split[i])) { //$NON-NLS-1$
-	  	          	if (trackerPanel.setLengthUnit(split[i])) {
-	  	          		TTrackBar.getTrackbar(trackerPanel).refresh();
-	  	          		step.repaint(trackerPanel);
-	  	          	}
+	          		if (!"".equals(split[i]) && !split[i].equals(trackerPanel.getLengthUnit())) { //$NON-NLS-1$
+	          			int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), 
+	          					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Message") //$NON-NLS-1$
+	          					+" \""+split[i]+"\" ?",  //$NON-NLS-1$ //$NON-NLS-2$
+	          					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Title"),  //$NON-NLS-1$
+	          					JOptionPane.YES_NO_OPTION);
+	          			if (response==JOptionPane.YES_OPTION) {
+		  	          	if (trackerPanel.setLengthUnit(split[i])) {
+		  	          		step.repaint(trackerPanel);
+		  	          		trackerPanel.setUnitsVisible(true);
+		  	          	}
+	          			}
 	  	          	break;
 	          		}
 	          	}

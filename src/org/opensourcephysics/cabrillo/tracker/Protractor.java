@@ -315,7 +315,18 @@ public class Protractor extends TTrack {
    */
   public Step createStep(int n, double x, double y) {
     Step step = steps.getStep(n);
-    ((ProtractorStep)step).end1.setLocation(x, y);
+    TPoint[] pts = step.getPoints();
+    TPoint p = trackerPanel==null? null: trackerPanel.getSelectedPoint();
+    if (p==null) {
+    	p = pts[2];
+    }
+    if (p==pts[0] || p==pts[1] || p==pts[2]) {
+    	p.setXY(x, y);
+    	if (trackerPanel!=null) {
+    		trackerPanel.setSelectedPoint(p);
+    		step.defaultIndex = p==pts[0]? 0: p==pts[1]? 1: 2;
+    	}
+    }
     return step;
   }
 
@@ -711,18 +722,20 @@ public class Protractor extends TTrack {
 				TrackerRes.getString("TTrack.AngleField.Popup.Degrees"): //$NON-NLS-1$
 				TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
 		popup.add(item);
-		popup.addSeparator();
-		
-		item = new JMenuItem();
-		final String[] selected = new String[] {Tracker.THETA};
-		item.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {              		
-        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(Protractor.this, selected);
-  	    dialog.setVisible(true);
-      }
-    });
-		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
-		popup.add(item);
+    if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
+			popup.addSeparator();			
+			item = new JMenuItem();
+			final String[] selected = new String[] {Tracker.THETA};
+			item.addActionListener(new ActionListener() {
+	      public void actionPerformed(ActionEvent e) {
+	      	TrackerPanel tp = Protractor.this.trackerPanel;
+	        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(tp, Protractor.this, selected);
+	  	    dialog.setVisible(true);
+	      }
+	    });
+			item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+			popup.add(item);
+    }
 		// add "change to radians" item
 		return popup;
   }
