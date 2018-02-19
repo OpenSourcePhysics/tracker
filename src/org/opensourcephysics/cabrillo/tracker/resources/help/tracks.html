@@ -9,18 +9,18 @@
 	</head>
 
 	<body>
-		<h1>Tracks</h1>
+		<h1><a name="track0" id="track0"></a>Tracks</h1>
 		<p>A track represents a video feature that evolves over time. All interactive elements in Tracker, including the axes, measuring tools and calibration tools, are tracks.</p>
 		<p>The position or shape of the feature in a single video frame is known as a <strong>step</strong>; thus, a track is a series of steps. Each step can be selected and manipulated with the mouse or keyboard. Some steps, like those for point mass tracks, have only a single moveable point, but others, like vector steps, have two end points plus a center handle point.</p>
-		<p>There are several types of user-defined tracks and three measuring tools. For detailed information on a specific type, see its corresponding help topic: <a href="pointmass.html">point mass</a>, <a href="cm.html">center of mass</a>, <a href="vector.html">vector</a>, <a href="vectorsum.html">vector sum</a>, <a href="lineprofile.html">line profile</a>, <a href="rgbregion.html">rgb region</a>, <a href="particles.html">analytic particle model</a>, <a href="particles.html">dynamic particle model</a> (cartesian, polar or <a href="systems.html">two-body system</a>), <a href="tape.html">tape measure</a>, <a href="protractor.html">protractor</a>, <a href="circlefitter.html">circle fitter</a> and <a href="datatrack.html">data track</a>.</p>
+		<p>There are several types of user-defined tracks and three measuring tools. For detailed information on a specific type, see its corresponding help topic: <a href="pointmass.html">point mass</a>, <a href="cm.html">center of mass</a>, <a href="vector.html">vector</a>, <a href="vectorsum.html">vector sum</a>, <a href="lineprofile.html">line profile</a>, <a href="rgbregion.html">rgb region</a>, <a href="particles.html">kinematic particle model</a>, <a href="particles.html">dynamic particle model</a>, <a href="systems.html">two-body system</a>, <a href="datatrack.html">external model</a>, <a href="tape.html">tape measure</a>, <a href="protractor.html">protractor</a> and <a href="circlefitter.html">circle fitter</a>.</p>
         
-		<h3>1. Creating a track</h3>
+		<h3><a name="track1" id="track1"></a>1. Creating a track</h3>
 		<p align="center">
 			<img src="../help_images/track_list.gif">
 		</p>
 		<p>Create a new track by selecting the desired track type from the <strong>Create</strong> button menu on the toolbar or the <strong>Track|New</strong> menu on the menu bar. A newly created track is automatically selected for marking.</p>
 		
-        <h3>2. Marking a track</h3>
+        <h3><a name="track2" id="track2"></a>2. Marking a track</h3>
 		<p align="center">
 			<img src="../help_images/crosshair_large.gif">
 		</p>
@@ -34,20 +34,20 @@
 		<p>When creating a new point mass, vector or rgb region, the video is reset to step 0 by default. You can prevent this reset by unchecking the <strong>Auto-reset to step 0</strong> box in the Tracks tab of the <a href="interface.html#prefs">preferences dialog</a>.</p>
 <p>If you prefer that the video not automatically step forward while marking you can uncheck the <strong>Autostep</strong> option in the Track menu for point mass and vector tracks.</p>
         
-		<h3><a name="trackmenu"></a>3. Track buttons and menus</h3>
+		<h3><a name="trackmenu" id="trackmenu"></a>3. Track buttons and menus</h3>
 		<p align="center">
 			<img src="../help_images/pointmass_menu.gif">
 		</p>
 		<p>Every track has a <strong>track button</strong> that shows its name, color and footprint, and a <strong>track menu</strong> with items for setting its properties. Track buttons are displayed on both the <a href="interface.html#toolbar">toolbar</a> and the <a href="tracks.html#trackControl">track control</a>. Track menus can be accessed by (a) clicking the track button, (b) choosing the track from the <strong>Tracks</strong> menu on the menu bar, or (c) right-clicking the main video view and choosing the track from the <strong>Tracks</strong> popup menu.</p>
 
-		<h3><a name="trackControl"></a>4. Track control</h3>
+		<h3><a name="trackControl" id="trackControl"></a>4. Track control</h3>
 		<p align="center">
 			<img src="../help_images/track_control.gif">
         </p>
 		<p>The <strong>track control</strong> displays a track button for each user-created track. This makes it easy to select tracks and provides ready access to all track menus.</p>
 		<p>To show the track control, click the track control button <img src="../help_images/track_control_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a>.</p>
 
-		<h3>5. Selecting a track</h3>
+		<h3><a name="track5" id="track5"></a>5. Selecting a track</h3>
 		<p>Tracks can be marked or edited only when they are selected. The track button of the currently selected track is displayed on the lower tier of the <a href="interface.html#toolbar">toolbar</a>.</p>
 		<p align="center">
 			<img src="../help_images/name_footprint1.gif">
@@ -60,16 +60,16 @@
         </p>
 		<p>To deselect all tracks, double-click the video or background mat.</p>
 			
-        <h3>6. Cloning, copying and importing tracks</h3>
+        <h3><a name="track6" id="track6"></a>6. Cloning, copying and importing tracks</h3>
 		<p>Make a duplicate copy of an existing track using the <strong>Clone</strong> item in the <strong>Create</strong> menu or the <strong>Track|New</strong> menu.</p>
 		<p align="center">
         	<img src="../help_images/clone.gif">
         </p>
 		<p>Copy a track from one tab to another by selecting the track and copying it to the clipboard using the <strong>Edit|Copy</strong> menu item, then pasting using the <strong>Edit|Paste</strong> item.</p>
 		<p>Since the tape measure and axes are tracks, they can also be copied. When pasted, they replace the existing tape or axes in the tab. When no track is selected, the entire tracker panel (video clip, coordinate system and tracks) is copied.</p>
-		<p>Tracks can also be imported directly from saved tracker files into an open tab using the <strong>File|Import</strong> menu item. For more information see <a href="datafile.html#_import">tracker files</a>.</p>
+		<p>Tracks can also be imported directly from saved tracker files into an open tab using the <strong>File|Import</strong> menu item. For more information see <a href="datafile.html#import">tracker files</a>.</p>
 		
-        <h3>7. Customizing and documenting a track</h3>
+        <h3><a name="track7" id="track7"></a>7. Customizing and documenting a track</h3>
 		<p>Every track is identified by its <strong>name</strong>, <strong>color</strong>, <strong>footprint</strong> (visible shape) and<strong> notes</strong> (descriptive comments). Newly created tracks are assigned default values for the first three properties that depend on the type of track. For example, a point mass might initially be named &rdquo;mass A&rdquo; and be drawn as a red diamond.</p>
 		<p align="center">
 			<img src="../help_images/name_footprint1.gif" alt="Toolbar track name and footprint" border="0">
@@ -83,10 +83,10 @@
             <img src="../help_images/description_entering.gif">
         </p>
         
-		<h3>8. Controlling visibility</h3>
+		<h3><a name="track8" id="track8"></a>8. Controlling visibility</h3>
 		<p>Hide a track by turning off the <strong>Visible</strong> property in its <a href="tracks.html#trackmenu">track menu</a>. Or use the <strong>trails</strong>, <strong>labels</strong>, <strong>paths</strong>, <strong>positions</strong>, <strong>velocities</strong> and <strong>accelerations</strong> buttons on the <a href="interface.html#toolbar">toolbar</a> to toggle the visibility of these features on all tracks.</p>
 		
-        <h3>9. Selecting and identifying points</h3>
+        <h3><a name="track9" id="track9"></a>9. Selecting and identifying points</h3>
 		<p align="center">
 			<img src="../help_images/hand_pointer.gif">
             <img src="../help_images/selected_point.gif" border="1">
@@ -95,11 +95,11 @@
 		<p>When a single point is selected, its track is selected, its editable properties (position, etc) are displayed on the toolbar, and it is identified with a square selection icon.</p>
 		<p>You can also select multiple points (Point Mass positions) for simultaneous dragging or deleting. Select multiple points by (a) control-clicking additional points or (b) right-dragging a box and choosing <strong>Select Points</strong> from the popup menu. Deselect previously selected points by (a) control-clicking them or (b) right-dragging a box and choosing <strong>Deselect Points</strong> from the popup menu.</p>
 		
-<h3>10. Editing a step</h3>
+<h3><a name="track10" id="track10"></a>10. Editing a step</h3>
 		<p>To edit a step, select and drag one of its points. A selected point can also be nudged one pixel at a time with the arrow keys on the keyboard. Holding down the shift key increases the nudge distance.</p>
 		<p>Many tracks also provide input fields on the toolbar for setting positions or other properties of the selected step.</p>
 		
-        <h3>11. Deleting</h3>
+        <h3><a name="track11" id="track11"></a>11. Deleting</h3>
 		<p>Delete a single or multiple steps by selecting them and hitting the <strong>delete key</strong> on the keyboard. Delete all steps for a track by choosing the <strong>Clear Steps</strong> item from its <a href="tracks.html#trackmenu">track menu</a>.</p>
 		<p>Delete an entire track by name in the <strong>Edit|Delete</strong> menu or by choosing the <strong>Delete</strong> item in its <a href="tracks.html#trackmenu">track menu</a>.</p>
 		<p>Clear all tracks in the current tab by choosing the <strong>Edit|Clear</strong> menu item.</p>
@@ -107,7 +107,7 @@
 			<img src="../help_images/edit_menu.gif">
 		</p>
         
-		<h3>12. Locking a track</h3>
+		<h3><a name="track12" id="track12"></a>12. Locking a track</h3>
 		<p>Locking a track prevents any changes to its steps. Lock a track by turning on the <strong>Locked</strong> property in its track menu.</p>
         
 </body>

@@ -9,17 +9,17 @@
 	</head>
 
 	<body>
-		<h1>Coordinate System</h1>
+		<h1><a name="coords0" id="coords0"></a>Coordinate System</h1>
 		<p>When you mark a point in Tracker's main video view, you are defining its <strong>image position</strong>. Image positions are measured in pixel units relative to the top left corner of the video image. In a 320 x 240 pixel image the upper left corner is at image position (0.0, 0.0) and the lower right is at (320.0, 240.0).</p>
 		<p>Since a video image is a camera view of the real world, a physical object within that image also has <strong>world coordinates</strong>. World coordinates are measured in scaled world units (e.g., meters) relative to a specified reference frame. The origin of the reference frame may be anywhere on or off the image.</p>
 		<p>The <strong>coordinate system</strong> is a set of transformations used to convert image positions into world coordinates. The coordinate system defines for each frame of the video:</p>
 		<ul>
-			<li><strong>scale</strong> (image units per world unit)
-			<li><strong>origin</strong> (image position of the reference frame origin) 
-			<li><strong>angle</strong> (counterclockwise angle from the image x-axis to the world x-axis.
+			<li><strong>scale</strong> (image units per world unit)</li>
+			<li><strong>origin</strong> (image position of the reference frame origin)</li> 
+			<li><strong>angle</strong> (counterclockwise angle from the image x-axis to the world x-axis.</li>
 		</ul>
         
-		<h3>1. Setting coordinate system properties</h3>
+		<h3><a name="coords1" id="coords1"></a>1. Setting coordinate system properties</h3>
 		<p>By default, the scale, origin and angle of the coordinate system are <strong>fixed</strong>--that is, they do not vary from frame to frame. However, any or all of these may be allowed to vary by turning off the appropriate Fixed property in the <strong>Coordinate System</strong> menu on the menu bar.</p>
 		<p align="center">
         	<img src="../help_images/coords_menu.gif">
@@ -29,22 +29,22 @@
 			<img src="../help_images/ref_frame_menu.gif">
 		</p>
         
-		<h3>2. Setting the scale (calibrating)</h3>
+		<h3><a name="coords2" id="coords2"></a>2. Setting the scale (calibrating)</h3>
 		<p>Set the scale using a <strong><a href="stick.html">calibration stick</a></strong> or <strong><a href="calibration.html">calibration points</a></strong>.</p>
         
-		<h3>3. Setting the origin</h3>
+		<h3><a name="coords3" id="coords3"></a>3. Setting the origin</h3>
 		<p>Set the position of the origin using the <strong><a href="axes.html">axes</a></strong>, an <strong><a href="offset_origin.html">offset origin</a></strong> or <strong><a href="calibration.html">calibration points</a></strong>.</p>
         
-		<h3>4. Setting the angle</h3>
+		<h3><a name="coords4" id="coords4"></a>4. Setting the angle</h3>
 		<p>Set the angle of the x-axis using the <strong><a href="axes.html">axes</a></strong>, <strong><a href="stick.html">calibration stick</a></strong> or <strong><a href="calibration.html">calibration points</a></strong>.</p>
         
-		<h3><a id="units" name="units"></a>5. Setting angle units</h3>
+		<h3><a name="angleunits" id="angleunits"></a>5. Setting angle units</h3>
 		<p>Angles can be displayed in either degrees or radians. Select the desired units from the <strong>Angle Units</strong> menu.</p>
 		<p align="center">
         	<img src="../help_images/angle_units.gif">
         </p>
         
-		<h3>6. Locking the coordinate system</h3>
+		<h3><a name="coords6" id="coords6"></a>6. Locking the coordinate system</h3>
 		<p>Locking the coordinate system prevents any changes to the scale, origin and angle. Lock it by turning on the <strong>Locked</strong> property in the <strong>Coordinate System</strong> menu.</p>
 	</body>
 

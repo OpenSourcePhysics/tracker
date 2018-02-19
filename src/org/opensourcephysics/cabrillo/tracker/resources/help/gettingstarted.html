@@ -9,25 +9,25 @@
 	</head>
 
 	<body>
-		<h1>Getting Started</h1>
+		<h1><a name="start0" id="start0"></a>Getting Started</h1>
 		<p>When you first open Tracker it appears as shown below. Here's how to start analyzing a video:</p>
         <ol>
-            <li><strong><a href="gettingstarted.html#open">Open a video or tracker file.</a></strong>
-            <li><strong><a href="gettingstarted.html#clip">Identify the frames (&quot;video clip&quot;) you wish to analyze.</a></strong>
-            <li><strong><a href="gettingstarted.html#scale">Calibrate the video scale.</a></strong>
-            <li><strong><a href="gettingstarted.html#axes">Set the reference frame origin and angle.</a></strong>
-            <li><strong><a href="gettingstarted.html#track">Track objects of interest with the mouse.</a> </strong>
-            <li><strong><a href="gettingstarted.html#plot">Plot and analyze the tracks.</a></strong>
-            <li><strong><a href="gettingstarted.html#save">Save your work in a tracker file.</a> </strong>
-            <li><strong><a href="gettingstarted.html#_export">Export track data to a spreadsheet.</a></strong>
-            <li><strong><a href="gettingstarted.html#print">Print, save or copy/paste images for reports.</a></strong>
+            <li><strong><a href="gettingstarted.html#open">Open a video or tracker file.</a></strong></li>
+            <li><strong><a href="gettingstarted.html#clip">Identify the frames (&quot;video clip&quot;) you wish to analyze.</a></strong></li>
+            <li><strong><a href="gettingstarted.html#scale">Calibrate the video scale.</a></strong></li>
+            <li><strong><a href="gettingstarted.html#axes">Set the reference frame origin and angle.</a></strong></li>
+            <li><strong><a href="gettingstarted.html#track">Track objects of interest with the mouse.</a> </strong></li>
+            <li><strong><a href="gettingstarted.html#plot">Plot and analyze the tracks.</a></strong></li>
+            <li><strong><a href="gettingstarted.html#save">Save your work in a tracker file.</a> </strong></li>
+            <li><strong><a href="gettingstarted.html#export">Export track data to a spreadsheet.</a></strong></li>
+            <li><strong><a href="gettingstarted.html#print">Print, save or copy/paste images for reports.</a></strong></li>
         </ol>
 		<p align="center">
 			<img src="../help_images/interface.gif">
 </p>
 		<p>Note that the order of the buttons on the toolbar mirrors the steps used to analyze a video. For more information about Tracker's user interface, including user customization, see <a href="interface.html">user interface</a>.</p>
         
-		<h3><a id="open" name="open"></a>1. Open a video or tracker file</h3>
+		<h3><a name="open" id="open"></a>1. Open a video or tracker file</h3>
 		<p>Click the <strong>Open</strong> button <img src="../help_images/open_button.gif" align="absmiddle">  or <strong>File|Open File </strong>menu item and select a digital video (mov, avi, mp4, flv, wmv, etc.), tracker data file (.trk), or zipped tracker file (.zip) to open. You can also open still and animated image files (.jpg, .gif, .png), numbered sequences of image files, and images pasted from the clipboard.</p>
 		<p>Play, scan or step through the video using the <strong>video player</strong>. For more information see <a href="videos.html">videos</a>.</p>
 		<p>Another option is to open the <strong>OSP Digital Library  Browser</strong> by clicking the <strong>Open Library Browser</strong> button or choosing the <strong>File|Open Library Browser </strong>menu item. The library browser enables you to browse and access collections of digital library resources including videos and tracker files.  For help using the OSP Digital Library Browser, choose its <strong>Help|Library Browser Help</strong> menu item.</p>
@@ -35,7 +35,7 @@
           <img src="../help_images/library_browser.gif">
     	</p>
         
-        <h3><a id="clip" name="clip"></a>2. Identify the frames (&quot;video clip&quot;) you wish to analyze</h3>
+        <h3><a name="clip" id="clip"></a>2. Identify the frames (&quot;video clip&quot;) you wish to analyze</h3>
 		<p>Display the clip settings by clicking the <strong>Clip Settings</strong> button <img src="../help_images/clip_settings_button.gif" align="absmiddle">  on the toolbar.</p>
 		<p>In the clip settings dialog, set the <strong>Start frame</strong> and <strong>End frame</strong> to define the range you wish to analyze. You can drag the player's slider to scan through the video and quickly find the frames of interest. If the video contains too many frames to analyze (more than 20 or so can become tedious), increase the <strong>Step size</strong> to automatically skip frames.</p>
 		<p>You can also set these video clip properties directly on the video player. For more information see <a href="videos.html#videoclip">video clips</a>.</p>
@@ -43,7 +43,7 @@
 			<img src="../help_images/clip_inspector.gif">
 		</p>
         
-		<h3><a id="scale" name="scale"></a>3. Calibrate the scale</h3>
+		<h3><a name="scale" id="scale"></a>3. Calibrate the scale</h3>
 		<p>Click the <strong>Calibration</strong> button <img src="../help_images/tape_button.gif" align="absmiddle"> and select the <a href="stick.html">calibration stick</a>.</p>
 		<p align="center">
         	<img src="../help_images/stick.gif">
@@ -59,7 +59,7 @@
 		</p>
 		<p>For more information see <a href="stick.html">calibration stick</a>, or for an alternate way to calibrate the video consider a <a href="calibration.html">calibration point pair</a>.</p>
 
-		<h3><a id="axes" name="axes"></a>4. Set the reference frame origin and angle</h3>
+		<h3><a name="axes" id="axes"></a>4. Set the reference frame origin and angle</h3>
 		<p>Click the <strong>Axes</strong> button <img src="../help_images/axes_button.gif" align="absmiddle"> to show the coordinate axes. Drag the origin and/or x-axis to set the reference frame origin and angle. A common choice for the origin is the initial position of an object of interest.  For more information see <a href="axes.html">axes</a>, or for alternate ways to set the origin and/or angle consider a <a href="calibration.html">calibration point pair</a>, an <a href="offset_origin.html">offset origin</a> or the  <a href="stick.html#angle">calibration stick</a>.</p>
 		<p align="center">
 			<img src="../help_images/origin_selected.gif">
@@ -68,7 +68,7 @@
         </p>
 		<p>The scale and reference frame origin and angle uniquely define the <strong>coordinate system</strong> used to convert pixel image positions to scaled world coordinates. In some videos the coordinate system properties may vary from one frame to the next (e.g., if the camera is zoomed the scale will change, or if panned the origin will change). Tracker makes it relatively easy to handle such videos--see <a href="coords.html">coordinate system</a> for more information.</p>
         
-		<h3><a id="track" name="track"></a>5. Track objects of interest with the mouse or model them with particle models.</h3>
+		<h3><a name="track" id="track"></a>5. Track objects of interest with the mouse or model them with particle models.</h3>
 		<p>Click the <strong>Create</strong> button <img src="../help_images/create_button.gif" align="absmiddle"> and choose a track type from the menu of choices. Most moving objects are tracked using a <strong><a href="pointmass.html">Point Mass</a></strong> track or modeled using a <strong><a href="particles.html">Dynamic Particle Model</a></strong> track.</p>
 
 		<p align="center">
@@ -90,7 +90,7 @@
         </p>
 		<p>For more information on tracks and the track control, see <a href="tracks.html">tracks</a>. For detailed information on a specific track type, see <a href="pointmass.html">point mass</a>, <a href="cm.html">center of mass</a>, <a href="vector.html">vector</a>, <a href="vectorsum.html">vector sum</a>, <a href="lineprofile.html">line profile</a>, <a href="rgbregion.html">rgb region</a>, <a href="particles.html">particle model</a> or <a href="systems.html">two-body system</a>.</p>
 
-		<h3><a id="plot" name="plot"></a>6. Plot and analyze the tracks</h3>
+		<h3><a name="plot" id="plot"></a>6. Plot and analyze the tracks</h3>
 		<p>The <strong>Plot View</strong> displays graphs of track data. Click the x- or y-axis label to change the variable plotted on that axis.  To plot multiple graphs, click the <strong>Plots</strong> button and select the desired number.  Right-click on a plot to access display and analysis options in a popup menu.</p>
 		<p align="center">
 			<img src="../help_images/plot_select_variable.gif" align="top">
@@ -101,22 +101,22 @@
         </p>
 		<p>Two of the most powerful analysis options available from the popup menu are <strong>Define...</strong> and <strong>Analyze...</strong>.</p>
 		<ul>
-			<li>The Define... item displays a <strong>Data Builder</strong> with which you can define custom variables for plots and datatables. Custom variables can be virtually any function of built-in and previously defined custom variables. For help using Data Builder, open Data Builder and click its Help button.
+			<li>The Define... item displays a <strong>Data Builder</strong> with which you can define custom variables for plots and datatables. Custom variables can be virtually any function of built-in and previously defined custom variables. For help using Data Builder, open Data Builder and click its Help button.</li>
 		</ul>
 		<p align="center">
 			<img src="../help_images/data_builder2.gif">
         </p>
 		<ul>
-			<li>The Analyze... item displays a <strong>Data Tool</strong> with statistics, curve-fitting and other analysis capabilities. For help using Data Tool, open Data Tool and click its Help button.
+			<li>The Analyze... item displays a <strong>Data Tool</strong> with statistics, curve-fitting and other analysis capabilities. For help using Data Tool, open Data Tool and click its Help button.</li>
 		</ul>
 		<p align="center">
 			<img src="../help_images/data_tool.gif">
         </p>
         
-		<h3><a id="save" name="save"></a>7. Save your work in a tracker (.trk) file</h3>
+		<h3><a name="save" id="save"></a>7. Save your work in a tracker (.trk) file</h3>
 		<p>Click the <strong>Save</strong> button <img src="../help_images/save_button.gif" align="absmiddle"> or <strong>File|Save As...</strong> menu item to save your work in an XML-based <strong>tracker file</strong> with the extension &quot;.trk&quot;. When a saved tracker file is opened, Tracker loads the video, sets the clip and coordinate system properties, and rebuilds all tracks, custom variables and views. For more information see <a href="datafile.html">tracker files</a>.</p>
 
-		<h3><a id="_export" name="_export"></a>8. Export track data to a spreadsheet</h3>
+		<h3><a name="export" id="export"></a>8. Export track data to a spreadsheet</h3>
 		<p>Tracker's <strong>Datatable View</strong> displays track data in a table. To change the variables included in the table, click the <strong>Data</strong> button and select from the list displayed.</p>
 		<p>Data can be easily exported from the datatable by copying to the clipboard and pasting into a spreadsheet or other application. To copy, select the desired data in the table, then right-click and choose <strong>Copy Data</strong> from the popup menu. For more information see <a href="tableview.html">datatable view</a>.</p>
 		<p align="center">
@@ -125,7 +125,7 @@
             <img src="../help_images/copy_data.gif" align="top">
         </p>
 
-		<h3><a id="print" name="print"></a>9. Print, save or copy/paste images for reports</h3>
+		<h3><a name="print" id="print"></a>9. Print, save or copy/paste images for reports</h3>
 		<p>You can print or copy an image of the entire Tracker frame or any individual view (e.g., a plot or datatable). To print the entire frame (all visible views), choose the <strong>File|Print...</strong> menu item. To print an individual view, right-click the view and choose <strong>Print...</strong> from the popup menu. To copy an image, choose the desired view from the <strong>Edit|Copy Image</strong> menu or right-click a view and choose <strong>Copy Image</strong>. Pasting printed or copied images into notes and reports is an excellent way to document your video analysis results.</p>
 		<p>To save an image, right-click on the view of interest and choose the <strong>Snapshot</strong> menu item.  Then choose the <strong>File|Save Image</strong> menu item in the snapshot window.</p>
 

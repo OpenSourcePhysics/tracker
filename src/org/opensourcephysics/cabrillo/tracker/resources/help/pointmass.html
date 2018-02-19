@@ -9,31 +9,31 @@
 	</head>
 
 	<body>
-		<h1>Point Mass</h1>
+		<h1><a name="mass0" id="mass0"></a>Point Mass</h1>
 		<p align="center"><img src="../help_images/pointmass.gif" alt="Point mass track"></p>
 		<p>A <strong>point mass</strong> track represents a mass moving as a point-like object. It is the most fundamental model of a moving inertial object. Point masses are the building blocks with which more complex and realistic models of physical systems are constructed in classical physics.</p>
-		<h3>1. Marking and editing the steps</h3>
-		<ol>
-			<li type="A"><strong>Manual tracking:</strong> shift-click once to mark a step at the mouse position, or shift-enter to mark a step at the exact location of the previous step. The video will auto-advance for easy and fast marking. It is wise to set the <a href="videos.html#videoclip">video clip</a> properties first so you don't mark unnecessary video frames. Zoom in for accuracy.</li>
-			<li type="A"><strong>Autotracking:</strong> point mass tracks can be automatically marked as long as the feature of interest has a consistent shape, size, color and orientation. Please see <a href="autotracker.html">Autotracker</a> for more information.</li>
+		<h3><a name="mass1" id="mass1"></a>1. Marking and editing the steps</h3>
+		<ol type="A">
+			<li><strong>Manual tracking:</strong> shift-click once to mark a step at the mouse position, or shift-enter to mark a step at the exact location of the previous step. The video will auto-advance for easy and fast marking. It is wise to set the <a href="videos.html#videoclip">video clip</a> properties first so you don't mark unnecessary video frames. Zoom in for accuracy.</li>
+			<li><strong>Autotracking:</strong> point mass tracks can be automatically marked as long as the feature of interest has a consistent shape, size, color and orientation. Please see <a href="autotracker.html">Autotracker</a> for more information.</li>
 		</ol>
 		<p><strong>Don't skip frames</strong>--if you do, velocities and accelerations cannot be determined. If you accidentally skip frames, the <a href="tableview.html#skips">Datatable view</a> can help you find them.   </p>
 		<p>Point masses have visible trails by default. Hide or shorten the trails if desired using the <strong>trails</strong> button <img src="../help_images/trails_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a>.</p>
 	<p>To edit a marked step, select it and drag or use the arrow keys on the keyboard to nudge it one pixel at a time. Very fine control is possible at a high zoom level. You can also enter world coordinates directly in the toolbar fields to assign a known position.</p>
 		<p align="center"><img src="../help_images/pointmass_fields.gif"></p>
         
-		<h3>2. Setting the mass</strong></h3>
+		<h3><a name="mass2" id="mass2"></a>2. Setting the mass</strong></h3>
 		<p align="center"><img src="../help_images/pointmass_setting_mass.gif" alt="Setting the mass"></p>
 		<p>A newly created point mass is given a default mass of 1.0 (arbitrary units). Enter a new mass (m &gt;= 0) in the mass field on the toolbar to change it.</p>
         
-		<h3>3. Displaying motion vectors</strong></h3>
+		<h3><a name="mass3" id="mass3"></a>3. Displaying motion vectors</h3>
 		<p>Toggle the vector visibility for all point masses by clicking the <strong>velocity</strong> button <img src="../help_images/veloc_button.gif" align="absmiddle"> or <strong>acceleration</strong> button <img src="../help_images/accel_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a>. The vectors are initially <strong>attached</strong> to their positions (i.e. the tail of the velocity vector for step n is at the step n position).</p>
 		<p align="center"><img src="../help_images/veloc_home.gif" alt="Velocities at home positions"></p>
 		<p><strong>Note:</strong> Some motion vectors, especially accelerations, may be very short. You can artificially &quot;stretch&quot; them by clicking on the <strong>stretch</strong> button <img src="../help_images/stretch_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a> and selecting a stretch factor from the dropdown menu.</p>
 		<p>You can change the footprint of a motion vector using the appropriate <strong>footprint</strong> item on its <a href="tracks.html#trackmenu">track button</a>. The &rdquo;big arrow&rdquo; footprint is particularly useful for large classroom presentations.</p>
 		<p>You can set different colors for the velocity and acceleration vectors using the appropriate <strong>color</strong> item on the <a href="tracks.html#trackmenu">track button</a>. Motion vector colors are the same as the position by default.</p>
         
-		<h3>4. Analyzing motion vectors</h3>
+		<h3><a name="mass4" id="mass4"></a>4. Analyzing motion vectors</h3>
 		<p>Select a vector by clicking near its center to display its components on the toolbar.</p>
 		<p align="center"><img src="../help_images/veloc_components.gif" alt="Vector component fields"></p>
 		<p>Drag a vector to detach it from its position and move it around. Drop the vector with its tail near its position to reattach--it will <strong>snap</strong> to the position. </p>
@@ -46,10 +46,10 @@
 		<p align="center"><img src="../help_images/vector_snap_origin.gif" alt="Vector tail at origin"></p>
 		<p>Attach all vectors quickly to the origin or positions with the <strong>Tails to Origin</strong> or <strong>Tails to Position</strong> items in the point mass track menu.</p>
         
-		<h3>5. Displaying momentum and net force vectors</h3>
+		<h3><a name="mass5" id="mass5"></a>5. Displaying momentum and net force vectors</h3>
 		<p>Click the <strong>dynamics</strong> button <img src="../help_images/dynamics_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a> to multiply all velocity and acceleration vectors by their mass. This changes them to momentum and net force vectors, respectively.</p>
         
-		<h3>6. Linking motion vectors</h3>
+		<h3><a name="mass6" id="mass6"></a>6. Linking motion vectors</h3>
 		<p align="center">
         	<img src="../help_images/vector_snap_link.gif" alt="Linking vectors">
             <img src="../help_images/spacer.gif">

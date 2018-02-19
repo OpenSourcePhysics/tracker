@@ -9,24 +9,24 @@
 	</head>
 
 	<body>
-		<h1>Plot View</h1>
+		<h1><a name="plot0" id="plot0"></a>Plot View</h1>
 		<p align="center"><img src="../help_images/plot_view.gif" alt="Plot view"></p>
 		<p>The <strong>plot view</strong> displays plots of a track's data. It has its own toolbar for selecting tracks and displaying multiple plots. The color of the plot markers is the same as that of the selected track. The data point associated with the current video frame or currently selected step is highlighted in the plot and its coordinates are displayed in the lower left corner.</p>
         
-		<h3>1. Refreshing plots</h3>
+		<h3><a name="plot1" id="plot1"></a>1. Refreshing plots</h3>
 		<p>By default, plots are refreshed automatically when changes in data occur (e.g. when marking points). But when working with very long videos it can be useful to turn off auto-refresh in order to speed up the marking process. To turn off auto-refresh, click the Refresh button on the toolbar and uncheck the <strong>Auto-refresh</strong> item in the popup menu.  When done marking, turn auto-refresh back on or refresh the plots manually by choosing the <strong>Refresh</strong> item in the popup menu.</p>
 		<p align="center"><img src="../help_images/refresh_menu.gif" alt="Refresh menu"></p>
-<h3>2. Selecting a track</h3>
+<h3><a name="plot2" id="plot2"></a>2. Selecting a track</h3>
 		<p>Select the track of interest from the dropdown list on the plot view's toolbar.</p>
 		<p align="center"><img src="../help_images/plot_select_track.gif" alt="Selecting a track"></p>
         
-		<h3>3. Multiple plots and synchronized x-axes</h3>
+		<h3><a name="plot3" id="plot3"></a>3. Multiple plots and synchronized x-axes</h3>
 		<p>Click the <strong>Plots</strong> button and choose the number of plots desired. Multiple plots are stacked vertically.</p>
 		<p align="center"><img src="../help_images/plot_select_layout.gif" alt="Selecting the layout"></p>
 		<p>Check the <strong>Sync</strong> checkbox to synchronize the horizontal axes of the plots so that they all share the same variable and scale. Unchecking this box enables the horizontal variables and scales to be set independently. Vertical variables and scales are always independent.</p>
 		<p align="center"><img src="../help_images/plot_double.gif" alt="Double layout"></p>
         
-		<h3>4. Setting plot axis variables</h3>
+		<h3><a name="plot4" id="plot4"></a>4. Setting plot axis variables</h3>
 		<p>Move the mouse over an axis label until a box appears, then click on the box and choose the desired variable from the popup list.</p>
 		<p align="center">
         	<img src="../help_images/plot_select_variable.gif" align="top">    
@@ -34,26 +34,26 @@
             <img src="../help_images/plot_select_data.gif" align="top">
         </p>
         
-		<h3>5. Setting the scale</h3>
+		<h3><a name="plot5" id="plot5"></a>5. Setting the scale</h3>
 		<p>The plot axes autoscale by default. There are several options for setting the horizontal and/or vertical scale manually:</p>
 		<p align="center">
         	<img src="../help_images/plot_right_click_menu.gif" alt="right-clicking the plot" align="top">
             <img src="../help_images/spacer.gif">
     <img src="../help_images/plot_scale_dialog.gif" alt="scale dialog" align="top"></p>
 		<ol>
-			<li>Right-drag on the plot to mark a region of interest, then choose <strong>Zoom In</strong> from the popup menu to zoom in on the marked region. The popup menu also enables you to <strong>Zoom Out</strong>, <strong>Autoscale</strong>, <strong>Show  zero </strong> (often useful when all plotted values have the same sign) or display a <strong>Scale</strong> dialog for setting limits and/or autoscale properties for both ends of both axes.
-		  <li>Move the mouse near the center section of an axis until a double-ended arrow appears, then click and drag the axis to &quot;move&quot; the plot along that axis without zooming.
-			<li>Move the mouse near either end of an axis until a single-ended arrow appears, then click and drag the axis to &quot;zoom&quot; that end while keeping the opposite end unchanged.
-			<li>Hold down the Alt key until a four-way arrow appears, then click and drag to &quot;move&quot; the plot in any direction without zooming.
-			<li>Move the mouse near either end of an axis to display a popup field and checkbox for setting the limit and/or autoscale property for that axis end. 
+			<li>Right-drag on the plot to mark a region of interest, then choose <strong>Zoom In</strong> from the popup menu to zoom in on the marked region. The popup menu also enables you to <strong>Zoom Out</strong>, <strong>Autoscale</strong>, <strong>Show  zero </strong> (often useful when all plotted values have the same sign) or display a <strong>Scale</strong> dialog for setting limits and/or autoscale properties for both ends of both axes.</li>
+		  <li>Move the mouse near the center section of an axis until a double-ended arrow appears, then click and drag the axis to &quot;move&quot; the plot along that axis without zooming.</li>
+			<li>Move the mouse near either end of an axis until a single-ended arrow appears, then click and drag the axis to &quot;zoom&quot; that end while keeping the opposite end unchanged.</li>
+			<li>Hold down the Alt key until a four-way arrow appears, then click and drag to &quot;move&quot; the plot in any direction without zooming.</li>
+			<li>Move the mouse near either end of an axis to display a popup field and checkbox for setting the limit and/or autoscale property for that axis end.</li>
 		</ol>
 		<p align="center"><img src="../help_images/plot_set_scale1.gif" alt="Scale menu"></p>
 			
-        <h3>6. Hiding data point and lines</h3>
+        <h3><a name="plot6" id="plot6"></a>6. Hiding data point and lines</h3>
 		<p>Right-click the plot and uncheck the appropriate box to hide the data points or connecting lines.</p>
 		<p align="center"><img src="../help_images/plot_points.gif" alt="Hiding points"></p>
 		
-        <h3>7. Comparing data with other tracks</h3>
+        <h3><a name="plot7" id="plot7"></a>7. Comparing data with other tracks</h3>
         <p>Right-click a plot and select one or more tracks from the <strong>Compare With</strong> dialog to add their data to the pot for direct comparison. For  further analysis of   multiple track data displayed in this way, open the plot data in <a href="plotview.html#datatool">Data Tool</a>. The  Data Tool  column names for the added tracks will have  subscripts to distinguish them from the track's original data.</p>
         <p align="center">
         <img src="../help_images/plot_compare.gif" alt="Compare menu item" align="top">
@@ -62,7 +62,7 @@
         <img src="../help_images/spacer.gif">
         <img src="../help_images/plot_compare_plot.gif" alt="comparing two point mass tracks" align="top"></p>
     </p>
-<h3>8. Defining new data columns with Data Builder</h3>
+<h3><a name="plot8" id="plot8"></a>8. Defining new data columns with Data Builder</h3>
 	<p>Right-click a plot and choose <strong>Define...</strong> to display a <strong>Data Builder</strong> with which you can define custom variables called <strong>data functions</strong> for plots and datatables. Click the appropriate <strong>Add</strong> button to add new data functions or to define <strong>parameters</strong> for use in function expressions.</p>
 		<p align="center">
         	<img src="../help_images/plot_define.gif" align="top">
@@ -72,7 +72,7 @@
 			<p align="center"><img src="../help_images/data_builder2.gif" alt="Gravitational potential energy function"></p>
 			<p align="center"><img src="../help_images/data_builder_help.gif" alt="parser functions"></p>
 			
-		<h3>9. Saving, loading and autoloading data functions</h3>
+		<h3><a name="plot9" id="plot9"></a>9. Saving, loading and autoloading data functions</h3>
 		<p>Data functions created with Data Builder can be saved in XML files for manual or automatic loading. To save a function for manual loading, click the save button on the Data Builder toolbar, select the functions to save in the <strong>Save Data Functions</strong> dialog, and click the OK button. To manually load a saved data function, click the open button on the Data Builder toolbar, open the XML file with the file chooser, then select the functions to load. <strong>Note</strong>: data functions are associated with a specific track type and cannot be loaded into other track types--e.g., a function defined and saved by a Point Mass track can be loaded only by other point masses, not by vectors.</p>
         <p align="center">
 	<img src="../help_images/data_builder_save.gif" alt="Saving a data function">
@@ -82,7 +82,7 @@
 		<p>Data functions can also be loaded <em>automatically</em> so they are always available just like built-in data columns. To autoload a data function, first create or manually load it into Data Builder, then click the <strong>Autoload</strong> button on the Data Builder toolbar. Select the functions to autoload in the <strong>Autoload Data Functions</strong> dialog and click the OK button. The functions will then be autoloaded by all tracks of the same type. <strong>Note</strong>: data functions are associated with a specific track type and cannot be autoloaded into other track types--e.g., a function selected for autoloading by Point Mass tracks will not be autoloaded by vectors.</p>
 <p align="center"><img src="../help_images/data_builder_autoload.gif" alt="Autoloading a data function"></p>
 
-    <h3><a name="datatool"></a>10. Analyzing data with Data Tool</h3>
+    <h3><a name="datatool" id="datatool"></a>10. Analyzing data with Data Tool</h3>
 	<p>Right-click a plot and choose <strong>Analyze...</strong> to open its data in the <strong>Data Tool</strong> for analysis.</p>
 			<p align="center"><img src="../help_images/plot_analyze.gif"></p>
 			<p>The Data Tool provides data analysis including automatic and manual curve fitting of all or any selected subset of the data. For help using Data Tool, open Data Tool and click its <strong>Help</strong> button.</p>

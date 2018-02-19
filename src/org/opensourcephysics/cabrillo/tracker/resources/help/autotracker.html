@@ -9,7 +9,7 @@
 	</head>
 
 	<body>
-		<h1>Autotracker</h1>
+		<h1><a name="auto0" id="auto0"></a>Autotracker</h1>
 		<p align="center">
 			<img src="../help_images/autotracked.gif">
 		</p>
@@ -17,7 +17,7 @@
 		<p><strong>Tip:</strong> an excellent way to obtain videos suitable for autotracking is to stick colored circular markers on the objects of interest (a white ring around a colored center is even better). Multiple objects can be autotracked if a different color is used for each.</p>
         <p>Click the autotracker button <img src="../help_images/autotracker_button.gif" align="absmiddle"> on the toolbar to show or hide autotracker.</p>
         
-		<h3>1. How autotracker works</h3>
+		<h3><a name="auto1" id="auto1"></a>1. How autotracker works</h3>
 		<p>Autotracker works by creating one or more <strong>template</strong> images of a feature of interest and then searching each frame for the best<strong> match</strong> to that template. The best match is the one with the highest <strong>match score</strong>, a number that is inversely proportional to the sum of the squares of the RGB differences between the template and match pixels. Once the best match is found, it is compared with nearby match scores to determine an interpolated <strong>sub-pixel best match</strong> position.</p>
 		<p>By default, the template <strong>evolves</strong> to adapt to shape and color changes over time. Higher <strong>evolution rates</strong> track more rapid changes, but may result in template &quot;drift&quot; over many frames.</p>
       	<p>A <strong>target</strong> defines the position at which  points are marked relative to the template when matches are found. The target may be offset from the template. The specific <strong>track</strong> and <strong>point</strong> marked at the target position must be selected prior to autotracking.</p>
@@ -28,7 +28,7 @@
 		<p>A specialized option is to search all frames non-stop using a fixed area and fixed template. For more information see <strong>Other buttons</strong> in the <a href="#settings">Setting and controls</a> section below.</p>
 <p>After autotracker has completed the marking process, you may modify the steps at will. In other words, autotracker helps you mark the steps but does not limit your control over them.</p>
                    
-		<h3>2. Preparing to use autotracker</h3>
+		<h3><a name="auto2" id="auto2"></a>2. Preparing to use autotracker</h3>
 		<p>Before using autotracker, scan through the video and verify that the feature of interest is visible and reasonably consistent (shape, size, color and orientation) in all frames. If not, adjust the <a href="videos.html#videoclip">video clip</a> start frame, end frame and/or step size until this condition is met. Then reset the video to the start frame.</p>
 		<p>If planning to autotrack a very long video, it is useful to turn off auto-refresh in order to speed up the marking process. To turn off auto-refresh, click the Refresh button on the toolbar and uncheck the <strong>Auto-refresh</strong> item in the popup menu. When done marking, turn auto-refresh back on or refresh the data manually by choosing the <strong>Refresh</strong> item in the popup menu.</p>
 	<p align="center"><img src="../help_images/refresh_menu.gif" alt="Refresh menu"></p>
@@ -45,9 +45,9 @@
             <img src="../help_images/spacer.gif">
             <img src="../help_images/autotracker_keyframe.gif" alt="autotracker key frame" align="middle">
         </p>
-        <h5><strong>Fig. 1 Autotracker</strong></h5>
+        <h5>Fig. 1 Autotracker</h5>
         
- 		<h3><a name="settings"></a>4. Settings and controls</h3>
+ 		<h3><a name="settings" id="settings"></a>4. Settings and controls</h3>
 	<p>Controls are organized into the following categories. To learn more about a specific control or setting, simply move the mouse over it.</p>
 		<p><strong>Search buttons:</strong></p>
 		<ol>
@@ -78,14 +78,14 @@
             <li>The <strong>Show Key Frame</strong> button enables you to quickly jump to a key frame to review and/or change the template or target.</li>
             <li>The <strong>Delete</strong> button enables you to easily delete incorrectly marked points.</li>
             <li>The <strong>Close</strong> button closes autotracker.</li>
-            <li>The <strong>Options</strong> button (Shift-Search button) pops up a menu with the following items:
+            <li>The <strong>Options</strong> button (Shift-Search button) pops up a menu with the following items:</li>
               <ul>
                 <li><strong>Search Fixed Area</strong>: searches for matches in all frames using the current (fixed) template and search area. This steps through all frames non-stop no matter what match scores are found. An example of how this can be useful is determining the motion of a moving (translating) camera. If a calibration tape with regularly spaced black dots is included in the background, and a (small) fixed area search is made using a black dot template, then a good match will be found every time a black dot enters the area. The resulting match data can be used to determine the camera speed.</li>
                 <li><strong>Copy Match Data</strong>: copies match data (frame numbers, non-null match scores and positions) to the clipboard for pasting into a spreadsheet or other document. (<strong>Note</strong>: match data cannot be displayed in Tracker data tables because they are generated by templates, not by tracks.)</li>
               </ul>
-            </li>
+            
         </ol>
-		<h3>5. Search results</h3>
+		<h3><a name="auto5" id="auto5"></a>5. Search results</h3>
 		<p>After searching a frame, autotracker will display one of the following search results and, in some cases, present options for solving problems.</p>
         <ol>
             <li>A <strong>good match</strong> was found (match score above the automark level) and marked automatically (Figure 2).</li>
@@ -98,13 +98,13 @@
             <img src="../help_images/spacer.gif">
             <img src="../help_images/autotracker_success.gif" alt="successful search" align="middle">
         </p>
-		<h5><strong>Fig. 2 Search results: good match</strong></h5>
+		<h5>Fig. 2 Search results: good match</h5>
 		<p align="center">
         	<img src="../help_images/autotracker_video_possible.gif" alt="possible match" align="middle">
             <img src="../help_images/spacer.gif">
       		<img src="../help_images/autotracker_possible.gif" alt="possible match" align="middle">
         </p>
-        <h5><strong>Fig. 3 Search results: possible match (false match in this case)</strong></h5>
+        <h5>Fig. 3 Search results: possible match (false match in this case)</h5>
        
 	</body>
 
