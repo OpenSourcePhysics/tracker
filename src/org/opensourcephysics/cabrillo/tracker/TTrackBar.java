@@ -38,12 +38,15 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.LaunchNode;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.ToolsRes;
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
@@ -90,14 +93,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-		    	      	
-//		    	      	URL url = Tracker.class.getResource("resources/help/axes.html");
-//		    	      	String s = ResourceLoader.getString(url.toExternalForm());
-//		    	      	String[] pTags = s.split("<p>");
-//		    	      	for (int i=1; i< pTags.length; i++) {
-//		    	      		pTags[i] = pTags[i].substring(0, pTags[i].indexOf("</p>"));
-//		    	      	}
-
+		    	      			    	      	
 //		    	      	Tracker.newerVersion = "6.7.8";
 //		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 //		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
