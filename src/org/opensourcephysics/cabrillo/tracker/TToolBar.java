@@ -1062,7 +1062,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     return newPopup;
   }
   
-  private JButton getSeparator() {
+  public static JButton getSeparator() {
   	JButton b = new JButton(separatorIcon);
   	b.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 4));
   	b.setOpaque(false);
