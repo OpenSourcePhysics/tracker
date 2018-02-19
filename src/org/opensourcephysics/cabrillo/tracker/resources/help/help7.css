@@ -1,33 +1,33 @@
 body {
 	font-family: Arial, Helvetica, sans-serif;
-	font-size: 20pt;
+	font-size: 58pt;
 	color: black;
 	background-color: #FFFFFF;
 }
 
 h1 {
-	font-size: 48pt;
+	font-size: 144pt;
 	color: #52677f;
 	text-align: center;
 	margin-top: 12px;
 }
 
 h2 {
-	font-size: 32pt;
+	font-size: 96pt;
 	color: #52677f;
 	margin-top: 10px;
 	margin-bottom: 2px;
 }
 
 h3 {
-	font-size: 26pt;
+	font-size: 76pt;
 	color: #52677f;
 	margin-top: 20px;
 	margin-bottom: -6px;
 }
 
 h4 {
-	font-size: 26pt;
+	font-size: 76pt;
 }
 
 ul, ol, blockquote {
@@ -36,12 +36,12 @@ ul, ol, blockquote {
 }
 
 h5 {
-	font-size: 20pt;
+	font-size: 58pt;
 	text-align: center
 }
 
 h6 {
-	font-size: 16pt;
+	font-size: 48pt;
 	text-align: center
 }
 
@@ -51,6 +51,6 @@ table {
 }
 
 td {
-	font-size: 26pt;
+	font-size: 76pt;
 	padding: 2px 4px 2px 4px;
 }

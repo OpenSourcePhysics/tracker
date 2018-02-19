@@ -12,11 +12,22 @@ h1 {
 	margin-top: 12px;
 }
 
+h2 {
+	font-size: 20pt;
+	color: #52677f;
+	margin-top: 10px;
+	margin-bottom: 2px;
+}
+
 h3 {
 	font-size: 16pt;
 	color: #52677f;
 	margin-top: 20px;
 	margin-bottom: -6px;
+}
+
+h4 {
+	font-size: 16pt;
 }
 
 ul, ol, blockquote {

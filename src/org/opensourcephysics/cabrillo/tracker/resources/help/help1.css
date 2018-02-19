@@ -6,10 +6,17 @@ body {
 }
 
 h1 {
-	font-size: 40pt;
+	font-size: 38pt;
 	color: #52677f;
 	text-align: center;
 	margin-top: 12px;
+}
+
+h2 {
+	font-size: 26pt;
+	color: #52677f;
+	margin-top: 10px;
+	margin-bottom: 2px;
 }
 
 h3 {
@@ -19,6 +26,10 @@ h3 {
 	margin-bottom: -6px;
 }
 
+h4 {
+	font-size: 20pt;
+}
+
 ul, ol, blockquote {
 	margin-top: 12px;
 	margin-bottom: 16px;
@@ -26,6 +37,11 @@ ul, ol, blockquote {
 
 h5 {
 	font-size: 16pt;
+	text-align: center
+}
+
+h6 {
+	font-size: 14pt;
 	text-align: center
 }
 
