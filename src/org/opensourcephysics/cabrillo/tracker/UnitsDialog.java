@@ -39,7 +39,7 @@ import org.opensourcephysics.tools.FontSizer;
  */
 public class UnitsDialog extends JDialog {
 	
-  final static Color MEDIUM_RED = new Color(255, 160, 180);
+  final static Color _RED = new Color(255, 160, 180);
   static TFrame frame;
 
   // instance fields
@@ -196,10 +196,10 @@ public class UnitsDialog extends JDialog {
   			TrackerRes.getString("UnitsDialog.Checkbox.Visible.Tooltip"): //$NON-NLS-1$
   			TrackerRes.getString("UnitsDialog.Checkbox.Visible.Disabled.Tooltip")); //$NON-NLS-1$
   	
-   	lengthUnitField.setBackground(hasLengthUnit? Color.WHITE: MEDIUM_RED);
+   	lengthUnitField.setBackground(hasLengthUnit? Color.WHITE: _RED);
    	lengthUnitField.setToolTipText(hasLengthUnit? null: 
   			TrackerRes.getString("UnitsDialog.Field.Undefined.Tooltip")); //$NON-NLS-1$
-   	massUnitField.setBackground(hasMassUnit? Color.WHITE: MEDIUM_RED);
+   	massUnitField.setBackground(hasMassUnit? Color.WHITE: _RED);
    	massUnitField.setToolTipText(hasMassUnit? null: 
   			TrackerRes.getString("UnitsDialog.Field.Undefined.Tooltip")); //$NON-NLS-1$
    	
