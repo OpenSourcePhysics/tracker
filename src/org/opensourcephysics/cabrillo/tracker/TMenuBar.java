@@ -757,15 +757,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           if (language.equals(Tracker.incompleteLocales[i][0].toString())) {
           	Locale locale = (Locale)Tracker.incompleteLocales[i][0];
           	String lang = OSPRuntime.getDisplayLanguage(locale);
+          	// the following message is purposely not translated
           	JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
-          			TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message1") //$NON-NLS-1$
-          					+" "+Tracker.incompleteLocales[i][1] //$NON-NLS-1$
-          					+".\n"+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message2") //$NON-NLS-1$ //$NON-NLS-2$
-          					+" "+lang+" "+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message3") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-          					+"\n"+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message4") //$NON-NLS-1$ //$NON-NLS-2$
-          					+" dobrown@cabrillo.edu.",  //$NON-NLS-1$
-              	TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Title") //$NON-NLS-1$
-              			+": "+lang,  //$NON-NLS-1$
+          			"This translation has not been updated since "+Tracker.incompleteLocales[i][1] //$NON-NLS-1$
+          			+".\nIf you speak "+lang+" and would like to help translate" //$NON-NLS-1$ //$NON-NLS-2$ 
+          			+"\nplease contact Douglas Brown at dobrown@cabrillo.edu.",  //$NON-NLS-1$
+          			"Incomplete Translation: "+lang,  //$NON-NLS-1$
           			JOptionPane.WARNING_MESSAGE);
           }
         }
@@ -800,17 +797,18 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     for (int i = 0; i < languageItems.length; i++) {
       languageMenu.add(languageItems[i]);
     }
+    
     // add "other" language item at end
-    otherLanguageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Language.Other")); //$NON-NLS-1$
+  	// the following item and message is purposely not translated
+    otherLanguageItem = new JMenuItem("Other"); //$NON-NLS-1$
     languageMenu.add(otherLanguageItem);
     otherLanguageItem.addActionListener(new ActionListener() {
     	public void actionPerformed(ActionEvent e) {
         JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
-	    			TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message1") //$NON-NLS-1$
-	    					+"\n"+TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message2") //$NON-NLS-1$ //$NON-NLS-2$
-	    					+"\n"+TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message3") //$NON-NLS-1$ //$NON-NLS-2$
-	    					+" dobrown@cabrillo.edu.",  //$NON-NLS-1$
-	    			TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Title"),  //$NON-NLS-1$
+	    			"Do you speak a language not yet available in Tracker?" //$NON-NLS-1$
+	    			+"\nTo learn more about translating Tracker into your language" //$NON-NLS-1$ 
+	    			+"\nplease contact Douglas Brown at dobrown@cabrillo.edu.",  //$NON-NLS-1$
+	    			"New Translation",  //$NON-NLS-1$
 	    			JOptionPane.INFORMATION_MESSAGE);
     	}
     });

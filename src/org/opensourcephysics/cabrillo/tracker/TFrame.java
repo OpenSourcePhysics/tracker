@@ -903,6 +903,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       // refresh memory button
       TTrackBar.refreshMemoryButton();
       validate();
+      if (helpLauncher!=null) {
+        // refresh navigation bar components
+        Component[] search = HelpFinder.getNavComponentsFor(helpLauncher);
+        Component[] comps = new Component[search.length+2];
+        System.arraycopy(search, 0, comps, 0, search.length);
+        Tracker.pdfHelpButton.setText(TrackerRes.getString("Tracker.Button.PDFHelp")); //$NON-NLS-1$
+        comps[comps.length-2] = Tracker.pdfHelpButton;
+        comps[comps.length-1] = Box.createHorizontalStrut(4);
+        helpLauncher.setNavbarRightEndComponents(comps);        
+      }
     }
   }
 
@@ -1336,9 +1346,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   	if (libraryBrowser!=null) {
   		libraryBrowser.setFontLevel(level);
   	}
-  	if (helpLauncher!=null) {
-  		FontSizer.setFonts(helpLauncher, level);
-  	}
   	FontSizer.setFonts(notesDialog, level);
 		FontSizer.setFonts(OSPLog.getOSPLog(), level);
   	if (Tracker.readmeDialog!=null) {
@@ -1348,20 +1355,23 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   		FontSizer.setFonts(Tracker.startLogDialog, level);
   	}		
     FontSizer.setFonts(defaultMenuBar, level);
-    if (helpLauncher!=null && helpLauncher.getTabCount()>0) {
-	    LaunchPanel tab = helpLauncher.getTab(0);
-	    if (level>0) {
-	    	String newValue = "help"+level+".css"; //$NON-NLS-1$ //$NON-NLS-2$
-	    	tab.getHTMLSubstitutionMap().put("help.css", newValue); //$NON-NLS-1$
-	    }
-	    else {
-	    	tab.getHTMLSubstitutionMap().remove("help.css"); //$NON-NLS-1$
-	    }
+    if (helpLauncher!=null) {
+    	helpLauncher.setFontLevel(level);
+    	for (int i=0; i<helpLauncher.getTabCount(); i++) {
+		    LaunchPanel tab = helpLauncher.getTab(i);
+		    if (level>0) {
+		    	String newValue = "help"+level+".css"; //$NON-NLS-1$ //$NON-NLS-2$
+		    	tab.getHTMLSubstitutionMap().put("help.css", newValue); //$NON-NLS-1$
+		    }
+		    else {
+		    	tab.getHTMLSubstitutionMap().remove("help.css"); //$NON-NLS-1$
+		    }
+    	}
 	    for (int i=0; i<helpLauncher.getHTMLTabCount(); i++) {
 	    	HTMLPane pane = helpLauncher.getHTMLTab(i);
 	    	pane.editorPane.getDocument().putProperty(Document.StreamDescriptionProperty, null);
 	    }
-	    helpLauncher.setDivider((int)(175*(1.0+0.36*level)));
+	    helpLauncher.setDivider((int)(175*FontSizer.getFactor(level)));
 	    helpLauncher.refreshSelectedTab();
     }
   }
@@ -1480,6 +1490,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //      }
 //      System.out.println(help_path);
       helpLauncher = new Launcher(help_path, false);
+      helpLauncher.popupEnabled = false;
       int level = FontSizer.getLevel();
       if (helpLauncher.getTabCount()>0) {
 		    LaunchPanel tab = helpLauncher.getTab(0);
@@ -1491,10 +1502,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		    	tab.getHTMLSubstitutionMap().remove("help.css"); //$NON-NLS-1$
 		    }
       }
-	    helpLauncher.setDivider((int)(175*(1.0+0.36*level)));
+	    helpLauncher.setDivider((int)(175*FontSizer.getFactor(level)));
+	    
+      // navigation bar and search components
       helpLauncher.setNavigationVisible(true);
-      Component[] comps = new Component[] {Tracker.pdfHelpButton};
-      helpLauncher.setNavbarRightEndComponents(comps);
+      
       Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
       Dimension dim = helpLauncher.getSize();
       dim.width = Math.min((9*screen.width)/10, (int)((1+level*0.35)*dim.width));    
@@ -1509,6 +1521,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       int y = (screen.height - helpDialog.getBounds().height) / 2;
       helpDialog.setLocation(x, y);
     }
+    // refresh navigation bar components in case locale has changed
+    Component[] search = HelpFinder.getNavComponentsFor(helpLauncher);
+    Component[] comps = new Component[search.length+2];
+    System.arraycopy(search, 0, comps, 0, search.length);
+    Tracker.pdfHelpButton.setText(TrackerRes.getString("Tracker.Button.PDFHelp")); //$NON-NLS-1$
+    comps[comps.length-2] = Tracker.pdfHelpButton;
+    comps[comps.length-1] = Box.createHorizontalStrut(4);
+    helpLauncher.setNavbarRightEndComponents(comps);
     return helpDialog;
   }
   
@@ -2039,16 +2059,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
         for (int i = 0; i < Tracker.incompleteLocales.length; i++) {
           if (language.equals(Tracker.incompleteLocales[i][0].toString())) {
           	Locale locale = (Locale)Tracker.incompleteLocales[i][0];
-          	String lang = OSPRuntime.getDisplayLanguage(locale);
+          	String lang = OSPRuntime.getDisplayLanguage(locale);          	
+          	// the following message is purposely not translated
           	JOptionPane.showMessageDialog(TFrame.this, 
-          			TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message1") //$NON-NLS-1$
-          					+" "+Tracker.incompleteLocales[i][1] //$NON-NLS-1$
-          					+".\n"+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message2") //$NON-NLS-1$ //$NON-NLS-2$
-          					+" "+lang+" "+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message3") //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-          					+"\n"+TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Message4") //$NON-NLS-1$ //$NON-NLS-2$
-          					+" dobrown@cabrillo.edu.",  //$NON-NLS-1$
-          			TrackerRes.getString("TMenuBar.Dialog.IncompleteTranslation.Title") //$NON-NLS-1$
-          					+": "+lang,  //$NON-NLS-1$
+          			"This translation has not been updated since "+Tracker.incompleteLocales[i][1] //$NON-NLS-1$
+          			+".\nIf you speak "+lang+" and would like to help translate" //$NON-NLS-1$ //$NON-NLS-2$ 
+          			+"\nplease contact Douglas Brown at dobrown@cabrillo.edu.",  //$NON-NLS-1$
+          			"Incomplete Translation: "+lang,  //$NON-NLS-1$
           			JOptionPane.WARNING_MESSAGE);
           }
         }
@@ -2072,17 +2089,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       }
     }
     // add "other" language item at end
-    JMenuItem otherLanguageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Language.Other")); //$NON-NLS-1$
+  	// the following item and message is purposely not translated
+    JMenuItem otherLanguageItem = new JMenuItem("Other"); //$NON-NLS-1$
     languageMenu.addSeparator();
     languageMenu.add(otherLanguageItem);
     otherLanguageItem.addActionListener(new ActionListener() {
     	public void actionPerformed(ActionEvent e) {
         JOptionPane.showMessageDialog(TFrame.this, 
-	    			TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message1") //$NON-NLS-1$
-	    					+"\n"+TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message2") //$NON-NLS-1$ //$NON-NLS-2$
-	    					+"\n"+TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Message3") //$NON-NLS-1$ //$NON-NLS-2$
-	    					+" dobrown@cabrillo.edu.",  //$NON-NLS-1$
-	    			TrackerRes.getString("TMenuBar.Dialog.NewTranslation.Title"),  //$NON-NLS-1$
+	    			"Do you speak a language not yet available in Tracker?" //$NON-NLS-1$
+	    			+"\nTo learn more about translating Tracker into your language" //$NON-NLS-1$ 
+	    			+"\nplease contact Douglas Brown at dobrown@cabrillo.edu.",  //$NON-NLS-1$
+	    			"New Translation",  //$NON-NLS-1$
 	    			JOptionPane.INFORMATION_MESSAGE);
     	}
     });
