@@ -1906,8 +1906,16 @@ public class TableTrackView extends TrackView {
 				String var = textLine.getText();
 				String units = track.trackerPanel.getUnits(track, var);
 				if (!"".equals(units)) { //$NON-NLS-1$
+		      if (OSPRuntime.isMac()) {
+		      	var = TeXParser.removeSubscripting(var);
+		      }
 					var += " ("+units.trim()+")"; //$NON-NLS-1$ //$NON-NLS-2$
-					textLine.setText(var);
+		      if (OSPRuntime.isMac()) {
+		        if (c instanceof JLabel) {
+		          ((JLabel)c).setText(var);
+		        }
+		      }
+		      textLine.setText(var);
 				}
 			}
 			return c;
