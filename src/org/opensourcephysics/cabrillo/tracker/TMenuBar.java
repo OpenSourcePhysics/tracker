@@ -171,9 +171,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenu refFrameMenu;
   protected ButtonGroup refFrameGroup;
   protected JRadioButtonMenuItem defaultRefFrameItem;
-  protected JMenu angleUnitsMenu;
-  protected JMenuItem degreesItem;
-  protected JMenuItem radiansItem;
+  protected JMenuItem showUnitDialogItem;
   protected JMenuItem emptyCoordsItem;
   // window menu
   protected JMenu windowMenu;
@@ -1076,31 +1074,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     });
     add(coordsMenu);
     
-    // angle units menu
-    angleUnitsMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.AngleUnits")); //$NON-NLS-1$
-    angleUnitsMenu.addMouseListener(new MouseAdapter() {
-      public void mouseEntered(MouseEvent e) {mousePressed(e);}
-      public void mousePressed(MouseEvent e) {
-      	TFrame frame = trackerPanel.getTFrame();
-        radiansItem.setSelected(frame.anglesInRadians);
-        degreesItem.setSelected(!frame.anglesInRadians);
-      }
-    });
-    coordsMenu.add(angleUnitsMenu);
+    // units item
+    showUnitDialogItem = new JMenuItem(TrackerRes.getString("Popup.MenuItem.Units")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    coordsMenu.add(showUnitDialogItem);
     coordsMenu.addSeparator();
-    ButtonGroup angleGroup = new ButtonGroup();
-    degreesItem = new JRadioButtonMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
-    angleGroup.add(degreesItem);
-    angleUnitsMenu.add(degreesItem);
-    radiansItem = new JRadioButtonMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
-    angleGroup.add(radiansItem);
-    angleUnitsMenu.add(radiansItem);
-    radiansItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-      	TFrame frame = trackerPanel.getTFrame();
-      	frame.setAnglesInRadians(radiansItem.isSelected());
-      }
-    });
+    showUnitDialogItem.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+        UnitsDialog dialog = trackerPanel.getUnitsDialog();
+  	    dialog.setVisible(true);
+		  }
+		});
     
     // locked coords item
     lockedCoordsItem = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CoordsLocked")); //$NON-NLS-1$
@@ -1958,7 +1941,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         newTrackItems = createMenu.getMenuComponents();
         // refresh coords menu
         coordsMenu.removeAll();
-        coordsMenu.add(angleUnitsMenu);
+        coordsMenu.add(showUnitDialogItem);
         if (trackerPanel.isEnabled("coords.locked")) { //$NON-NLS-1$
           if (coordsMenu.getItemCount() > 0) coordsMenu.addSeparator();
           coordsMenu.add(lockedCoordsItem);
