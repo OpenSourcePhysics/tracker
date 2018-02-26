@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.nio.charset.Charset;
 
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
 import org.opensourcephysics.cabrillo.tracker.Tracker;
@@ -117,16 +118,13 @@ public class TrackerStarter {
 			userHome = System.getProperty("user.home"); //$NON-NLS-1$
 			javaHome = System.getProperty("java.home"); //$NON-NLS-1$
 			if (OSPRuntime.isWindows()) {
-				userDocuments = WinRegistry
-						.readString(
-								WinRegistry.HKEY_CURRENT_USER,
-								"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", //$NON-NLS-1$
-								"Personal"); //$NON-NLS-1$
-			} else {
+				userDocuments = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
+			} 
+			else {
 				userDocuments = userHome + "/Documents"; //$NON-NLS-1$
-				if (!new File(userDocuments).exists()) {
-					userDocuments = null;
-				}
+			}
+			if (!new File(userDocuments).exists()) {
+				userDocuments = null;
 			}
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
