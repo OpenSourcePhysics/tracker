@@ -1131,18 +1131,24 @@ public class TapeMeasure extends TTrack {
 	          if (split.length>1) {
 	          	// find first character not ""
 	          	for (int i=1; i< split.length; i++) {
-	          		if (!"".equals(split[i]) && !split[i].equals(trackerPanel.getLengthUnit())) { //$NON-NLS-1$
-	          			int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), 
-	          					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Message") //$NON-NLS-1$
-	          					+" \""+split[i]+"\" ?",  //$NON-NLS-1$ //$NON-NLS-2$
-	          					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Title"),  //$NON-NLS-1$
-	          					JOptionPane.YES_NO_OPTION);
-	          			if (response==JOptionPane.YES_OPTION) {
-		  	          	if (trackerPanel.setLengthUnit(split[i])) {
-		  	          		step.repaint(trackerPanel);
-		  	          		trackerPanel.setUnitsVisible(true);
-		  	          	}
-	          			}
+	          		if (!"".equals(split[i])) { //$NON-NLS-1$
+		          		if (split[i].equals(trackerPanel.getLengthUnit())) {
+			  	          trackerPanel.setUnitsVisible(true);
+		          			step.repaint(trackerPanel);
+		          		}
+		          		else {
+		          			int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), 
+		          					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Message") //$NON-NLS-1$
+		          					+" \""+split[i]+"\" ?",  //$NON-NLS-1$ //$NON-NLS-2$
+		          					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Title"),  //$NON-NLS-1$
+		          					JOptionPane.YES_NO_OPTION);
+		          			if (response==JOptionPane.YES_OPTION) {
+			  	          	if (trackerPanel.setLengthUnit(split[i])) {
+			  	          		trackerPanel.setUnitsVisible(true);
+			  	          		step.repaint(trackerPanel);
+			  	          	}
+		          			}
+		          		}
 	  	          	break;
 	          		}
 	          	}
