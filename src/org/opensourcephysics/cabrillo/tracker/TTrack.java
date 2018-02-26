@@ -3071,11 +3071,9 @@ public abstract class TTrack implements Interactive,
     @Override
     public void paintComponent(Graphics g) {
       setPixelScale(); // sets the pixel scale and the world-to-pixel AffineTransform
-	  	if (!OSPRuntime.isMac()) {  // rendering hint bug in Mac?
-	  		((Graphics2D) g).setRenderingHint(
-  					RenderingHints.KEY_TEXT_ANTIALIASING,
-  					RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-	  	}
+  		((Graphics2D) g).setRenderingHint(
+					RenderingHints.KEY_TEXT_ANTIALIASING,
+					RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
     	textLine.draw(this, g);
     	if (w==-1) {
         // check preferred size and adjust if needed
