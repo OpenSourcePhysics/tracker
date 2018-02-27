@@ -256,6 +256,10 @@ public class TapeMeasure extends TTrack {
           TapeStep step = (TapeStep)getStep(n);
           // replace with key frame step
           step = getKeyStep(step);
+          String rawText = magField.getText();
+        	if (!TapeMeasure.this.isReadOnly()) {
+	          checkForUnits(rawText, step);
+        	}
           step.setTapeLength(magField.getValue());
           dataValid = false;
   	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
@@ -1127,34 +1131,10 @@ public class TapeMeasure extends TTrack {
         else { // end editing
         	step.drawLayoutBounds = false;
         	if (!TapeMeasure.this.isReadOnly()) {
-	          String[] split = rawText.split(" "); //$NON-NLS-1$
-	          if (split.length>1) {
-	          	// find first character not ""
-	          	for (int i=1; i< split.length; i++) {
-	          		if (!"".equals(split[i])) { //$NON-NLS-1$
-		          		if (split[i].equals(trackerPanel.getLengthUnit())) {
-			  	          trackerPanel.setUnitsVisible(true);
-		          			step.repaint(trackerPanel);
-		          		}
-		          		else {
-		          			int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), 
-		          					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Message") //$NON-NLS-1$
-		          					+" \""+split[i]+"\" ?",  //$NON-NLS-1$ //$NON-NLS-2$
-		          					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Title"),  //$NON-NLS-1$
-		          					JOptionPane.YES_NO_OPTION);
-		          			if (response==JOptionPane.YES_OPTION) {
-			  	          	if (trackerPanel.setLengthUnit(split[i])) {
-			  	          		trackerPanel.setUnitsVisible(true);
-			  	          		step.repaint(trackerPanel);
-			  	          	}
-		          			}
-		          		}
-	  	          	break;
-	          		}
-	          	}
-	          }
+	          checkForUnits(rawText, step);
         	}
           step.setTapeLength(inputField.getValue());
+      		step.repaint(trackerPanel);
         	inputField.setSigFigs(4);
           trackerPanel.add(glassPanel, BorderLayout.CENTER);
           trackerPanel.remove(inputPanel);
@@ -1166,6 +1146,34 @@ public class TapeMeasure extends TTrack {
       }
     };
     EventQueue.invokeLater(runner);
+  }
+  
+  private void checkForUnits(String rawText, TapeStep step) {
+    String[] split = rawText.split(" "); //$NON-NLS-1$
+    if (split.length>1) {
+    	// find first character not ""
+    	for (int i=1; i< split.length; i++) {
+    		if (!"".equals(split[i])) { //$NON-NLS-1$
+      		if (split[i].equals(trackerPanel.getLengthUnit())) {
+	          trackerPanel.setUnitsVisible(true);
+      		}
+      		else {
+      			int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), 
+      					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Message") //$NON-NLS-1$
+      					+" \""+split[i]+"\" ?",  //$NON-NLS-1$ //$NON-NLS-2$
+      					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Title"),  //$NON-NLS-1$
+      					JOptionPane.YES_NO_OPTION);
+      			if (response==JOptionPane.YES_OPTION) {
+	          	if (trackerPanel.setLengthUnit(split[i])) {
+	          		trackerPanel.setUnitsVisible(true);
+	          	}
+      			}
+      		}
+        	break;
+    		}
+    	}
+    }
+
   }
   
   /**
