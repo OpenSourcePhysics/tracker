@@ -120,7 +120,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   protected Map<Class<? extends TTrack>, TreeMap<String, String>> formatPatterns 
   	= new HashMap<Class<? extends TTrack>, TreeMap<String,String>>();
   protected String lengthUnit="m", massUnit="kg", timeUnit="s"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-  protected boolean unitsVisible; // not visible by default
+  protected boolean unitsVisible = true; // visible by default
   protected TCoordinateStringBuilder coordStringBuilder;
 
   /**
@@ -2744,6 +2744,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   protected void deleteSelectedSteps() {
   	ArrayList<Object[]> changes = new ArrayList<Object[]>();
+  	int nMin=Integer.MAX_VALUE, nMax=-1;
 		for (TTrack track: getTracks()) {
 			boolean isChanged = false;
 			XMLControl control = new XMLControlElement(track);
@@ -2761,17 +2762,29 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			      		entries[n] = null;
 			      	}
 			      }
+			      AutoTracker autoTracker = getAutoTracker();
+			      if (autoTracker.getTrack()==track) {
+			      	autoTracker.delete(n);
+			      }
+			      nMin = Math.min(nMin, n);
+			      nMax = Math.max(nMax, n);
 			      isChanged = true;
 		   		}
 		   	}
 		  }
 		  if (isChanged) {
 		    changes.add(new Object[] {track, control});
+		    if (track instanceof PointMass) {
+		      VideoClip clip = getPlayer().getVideoClip();
+		      
+		      int startFrame = Math.max(nMin-2*clip.getStepSize(), clip.getStartFrameNumber());
+		      int stepCount = 4 + (nMax-nMin)/clip.getStepSize();
+		    	((PointMass)track).updateDerivatives(startFrame, stepCount);
+		    }
 		    track.firePropertyChange("steps", null, null); //$NON-NLS-1$
 		  }
 		}
-		selectedSteps.clear();
-	
+		selectedSteps.clear();	
 		if (!changes.isEmpty()) {
 			Undo.postMultiTrackEdit(changes);
 		}
@@ -3243,9 +3256,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       // save units and unit visibility
     	control.setValue("length_unit", trackerPanel.lengthUnit); //$NON-NLS-1$
     	control.setValue("mass_unit", trackerPanel.massUnit); //$NON-NLS-1$
-    	if (trackerPanel.unitsVisible) {
-    		control.setValue("units_visible", trackerPanel.unitsVisible); //$NON-NLS-1$
-    	}
+    	control.setValue("units_visible", trackerPanel.unitsVisible); //$NON-NLS-1$
 
       // save the tracks
       control.setValue("tracks", trackerPanel.getTracksToSave()); //$NON-NLS-1$
@@ -3446,7 +3457,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       if (control.getPropertyNames().contains("mass_unit")) { //$NON-NLS-1$
       	trackerPanel.massUnit = control.getString("mass_unit"); //$NON-NLS-1$
       }
-      trackerPanel.unitsVisible = control.getBoolean("units_visible"); //$NON-NLS-1$
+      if (control.getPropertyNames().contains("units_visible")) { //$NON-NLS-1$
+        trackerPanel.unitsVisible = control.getBoolean("units_visible"); //$NON-NLS-1$
+      }
 
       // load custom number formats
       String[][] patterns = (String[][])control.getObject("number_formats"); //$NON-NLS-1$
