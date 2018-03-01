@@ -2375,7 +2375,9 @@ public class PointMass extends TTrack {
     massField = new TrackNumberField();
     massField.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+        String rawText = massField.getText();
 	      setMass(massField.getValue());
+        checkMassUnits(rawText);
         massField.setValue(getMass());
         massField.requestFocusInWindow();
       }
@@ -2384,8 +2386,12 @@ public class PointMass extends TTrack {
     // add focus listener
     massField.addFocusListener(new FocusAdapter() {
       public void focusLost(FocusEvent e) {
-        setMass(massField.getValue());
-        massField.setValue(getMass());
+      	if (massField.getBackground().equals(Color.yellow)) {
+	        String rawText = massField.getText();
+	        setMass(massField.getValue());
+	        checkMassUnits(rawText);
+	        massField.setValue(getMass());
+      	}
       }
     });
     massField.setMinValue(MINIMUM_MASS);
@@ -2650,6 +2656,35 @@ public class PointMass extends TTrack {
       }
     }
   }
+  
+  private void checkMassUnits(String rawText) {
+    String[] split = rawText.split(" "); //$NON-NLS-1$
+    if (split.length>1) {
+    	// find first character not ""
+    	for (int i=1; i< split.length; i++) {
+    		if (!"".equals(split[i])) { //$NON-NLS-1$
+      		if (split[i].equals(trackerPanel.getMassUnit())) {
+	          trackerPanel.setUnitsVisible(true);
+      		}
+      		else {
+      			int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), 
+      					TrackerRes.getString("PointMass.Dialog.ChangeMassUnit.Message") //$NON-NLS-1$
+      					+" \""+split[i]+"\" ?",  //$NON-NLS-1$ //$NON-NLS-2$
+      					TrackerRes.getString("PointMass.Dialog.ChangeMassUnit.Title"),  //$NON-NLS-1$
+      					JOptionPane.YES_NO_OPTION);
+      			if (response==JOptionPane.YES_OPTION) {
+	          	trackerPanel.setMassUnit(split[i]);
+	          	trackerPanel.setUnitsVisible(true);
+      			}
+      		}
+        	break;
+    		}
+    	}
+    }
+
+  }
+  
+
 
   /**
    * Snaps vectors to the origin.
