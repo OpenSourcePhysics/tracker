@@ -11,7 +11,7 @@
 	<body>
 		<h1><a name="stick0" id="stick0"></a>Calibration Stick and Tape</h1>
 <p align="center"><img src="../help_images/stick.gif" alt="Calibration Stick"></p>
-		<p>The <strong>calibration stick</strong> and <strong>calibration tape</strong> are the most commonly used tools for calibrating the video <strong>scale</strong>--i.e., the ratio of the <em>world distance in meters</em> (or any desired length unit) to the <em>image distance in pixels </em>between two points.  The world length of a calibration stick or tape is displayed in a <strong>readout</strong> and in a length field on the toolbar. For either tool, calibrating the video is simply a matter of setting this world length to a known value--see <a href="stick.html#calibrate">Calibrating a video</a> for details.</p>
+		<p>The <strong>calibration stick</strong> and <strong>calibration tape</strong> are the most commonly used tools for calibrating the video <strong>scale</strong>--i.e., the ratio of the <em>world distance in meters</em> (or any desired length unit) to the <em>image distance in pixels </em>between two points.  The world length of a calibration stick or tape is displayed in a <strong>readout</strong> and in a length field on the toolbar. For either tool, calibrating the video is simply a matter of setting this world length to a known value--see <a href="#calibrate">Calibrating a video</a> for details.</p>
 		<p>The difference between a calibration stick and a calibration tape is how its world length behaves when an end is dragged. For a calibration stick the <em>world length remains fixed</em> (thus changing the video scale).  For a calibration tape the <em>world length changes</em> so that the video scale remains fixed. (The easiest way to understand this difference is to create both, place them side by side, and then for each drag an end and/or set the world length and observe the change in the other). The discussion below refers to a calibration stick but, except for this difference, applies to both tools.</p>
 	<p>A calibration stick or tape can also be used to <a href="stick.html#angle">correct for tilt in the video image</a>.</p>
 		<p>Since a calibration stick or tape is a <a href="tracks.html">track</a>, it has a <a href="tracks.html#trackmenu">track menu</a> that is accessible in the Tracks menu on the menu bar or by right-clicking the main video view.</p>
@@ -25,7 +25,7 @@
             <img src="../help_images/spacer.gif">
             <img src="../help_images/stick_readout0.gif" align="top">
 </p>
-		<p>To change the world length, click the readout and enter the desired length in arbitrary units. Do not include the units when entering a world length. You can also enter a world length in the length readout on the toolbar.</p>
+		<p>To change the world length, click either the readout on the stick or the length field on the toolbar and enter the desired length. You can change the <a href="coords.html#units">length unit</a> at the same time by including it when entering a world length--see <a href="#calibrate">Calibrating a video</a> for an example.</p>
 		<p align="center">
         	<img src="../help_images/stick_change_length.gif" align="top">
             <img src="../help_images/spacer.gif">
@@ -38,15 +38,15 @@
             <img src="../help_images/stick_select_middle.gif" align="top">
         </p>
         
-	<h3><a name="calibrate" id="calibrate"></a>2. Calibrating a video</h3>
-	<p>To calibrate a video, first drag the ends of the calibration stick to a video feature with known length (for example, a meter stick). Then click the readout to select it and enter the known length (but do <em>not</em> include units). For example, in the figures below a calibration stick is used to set the scale in meter units using a video image of a white PVC pipe with black stripes every 10 cm.</p>
+	<h3><a name="calibrate" id="calibrate"></a>2. Calibrating a video and setting the length unit</h3>
+	<p>To calibrate a video, first drag the ends of the calibration stick to a video feature with known length (for example, a meter stick). Then click the readout to select it and enter the known length with or without <a href="coords.html#units">units</a>. For example, in the figures below a calibration stick is used to set the scale in meters (m) using a video image of a white PVC pipe with black stripes every 10 cm. If the video were calibrated by entering 30 cm instead of 0.3 m, the length unit would be changed to cm in all length-dependent fields, table columns and plots.</p>
 		<div align="center">
 			<p><img src="../help_images/stick_readout1.gif" alt="Readout with cursor" align="middle"> </p>
 			<p>a. Drag the ends of the uncalibrated stick to the desired image positions</p>
 			<p><img src="../help_images/stick_readout2.gif" alt="Readout selected" align="middle"></p>
 			<p>b. Click the readout to select it</p>
 			<p><img src="../help_images/stick_readout3.gif" alt="Readout after scale change" align="middle"></p>
-			<p>c. Enter the known distance (in this case 0.3, since units are meters)</p>
+			<p>c. Enter the known distance (in this case 0.3 m, since the desired units are meters)</p>
 			<p><img src="../help_images/stick_readout4.gif" alt="Readout after scale change" align="middle"></p>
 			<p>d. Completed calibration </p>
 		</div>

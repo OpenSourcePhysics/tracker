@@ -51,7 +51,7 @@
 	</ul>
 		<p>Buttons near the right end of the toolbar control documentation tools and refreshes data:</p>
 <ul>
-  <li><strong>Pencil</strong> button shows and hides the <a href="#pencil">pencil</a> for drawing on the video.</li>
+  <li><strong>Drawing</strong> button shows and hides the <a href="drawings.html">drawing control</a> for annotating the video with line drawings and labels.</li>
   <li><strong>Documents</strong> button displays supplemental HTML and/or PDF documents associated with a <a href="zip_resource.html">Tracker ZIP file</a>.</li>
   <li><strong>Notes</strong> button shows and hides the <a href="tracks.html#notes">notes window</a> for user descriptions of tracks and videos.</li>
   <li><strong>Refresh</strong> button refreshes track data and views and turns auto-refresh on and off.</li>
@@ -87,22 +87,23 @@
         	<img src="../help_images/hints_checkbox.gif">
         </p>
         
-<h3><a name="interface6" id="interface6"></a>6. Font level</h3>
-		<p>The Font Level determines the size of the fonts displayed by Tracker. In most cases, the default font level is best, but larger fonts are often useful when making a presentation or using a high screen resolution. To change the font level choose the desired level from the <strong>Edit|Font Level</strong> menu. You can also set a preferred font level in the Display tab of the <a href="interface.html#prefs">preferences dialog</a>.</p>
+<h3><a name="interface6" id="interface6"></a>6. Font sizing</h3>
+		<p>The Font Size determines the size of all fonts used byTracker. In most cases, the default font size is best, but larger fonts are often useful when making a presentation or using a high screen resolution. To change the font size choose the desired size from the <strong>Edit|Font Size</strong> menu. You can also set a preferred font size in the Display tab of the <a href="interface.html#prefs">preferences dialog</a>.</p>
 		<p align="center">
         	<img src="../help_images/font_level_menu.gif">
         </p>
 
 		<h3><a name="numberformat" id="numberformat"></a>7. Number formats</h3>
-<p>Real numbers displayed  on the toolbar or in datatables may be formatted using either decimal or scientific notation. For scientific notation, the letter E  is used to mean &quot;times 10 to the power of&quot; so the number 1.3 x 10^3 is written 1.3E3. By default, the choice of decimal or scientific notation and number of decimal places varies based on the magnitude of the number. </p>
+<p>Real numbers displayed  on the toolbar or in datatables may be formatted using either decimal or scientific notation. For scientific notation, the letter E  is used to mean &quot;times 10 to the power of&quot; so the number 1.3 x 10^3 is written 1.3E3. By default, the choice of decimal or scientific notation and number of decimal places varies based on the magnitude of the number.</p>
 		<p>It is often desirable to set a fixed format for some variables in order to make reading and comparing values easier. You can do this using the <strong>Number Formats</strong> dialog.</p>
-		<p> To display the Number Format dialog right-click a text field or datatable   and select  <strong>Number Formats...</strong>  from the popup menu. In the dialog, select the track and names of the variables you wish to format. Use the shift and control keys to add or remove names from the selection. Enter the desired format into the format field to apply it to the selected variables. The sample field shows the result of the format applied to the number PI. Changes are also seen immediately wherever the variables are displayed.</p>
-		<p> To apply format pattern changes to all tracks of the same type, select  <strong>All tracks of type X</strong>.</p>
+		<p>To open the Number Format dialog right-click a text field or datatable and select <strong>Numbers|Formats...</strong> from the popup menu. In the dialog, select the track and names of the variables you wish to format. Use the shift and control keys to add or remove names from the selection. Enter the desired format into the format field to apply it to the selected variables. The sample field shows the result of the format applied to the number PI. Changes are also seen immediately wherever the variables are displayed.</p>
+		<p>To apply format pattern changes to all tracks of the same type, select <strong>All tracks of type X</strong>.</p>
 		<p>To apply changes to all variables with the same dimensions, select <strong>All variables with dimensions &quot;X&quot;</strong>. This is a very fast way to apply the same pattern to all length and position  variables in all tracks (dimension &quot;L&quot;), for example.</p>
-<p align="center">
-       	<img src="../help_images/table_format1.gif">
-        <img src="../help_images/spacer.gif">
-        <img src="../help_images/table_format2.gif">
+		<p>The decimal separator character is normally locale-dependent. For example, a period is used in the US and a comma is used in Europe.  However, you can override the locale default by selecting <strong>period</strong> or <strong>comma</strong> at the bottom of the Number Formats dialog. You can also set a preferred decimal separator in the Display tab of the <a href="#prefs">Tracker Preferences</a>.</p>
+        <p align="center">
+                <img src="../help_images/table_format1.gif">
+                <img src="../help_images/spacer.gif">
+                <img src="../help_images/table_format2.gif">
 </p>
 		<p>Click the <strong>Help</strong> button to display sample formats and dimension definitions.</p>
 	<p align="center"><img src="../help_images/table_format_help.gif" alt="Format help"></p>
@@ -127,7 +128,9 @@
 		<h3><a name="prefs" id="prefs"></a>12. Tracker Preferences</h3>
 		<p>The <strong>preferences dialog</strong> enables a user to set the configuration and other properties of Tracker. These preferences are saved in a &quot;.tracker.prefs&quot; file that is automatically read every time Tracker starts. To display the preferences dialog, choose the <strong>Edit|Preferences</strong> menu item. To relaunch Tracker immediately with changed preferences, click the <strong>Relaunch Now</strong> button.</p>
 		<p align="center">
-			<img src="../help_images/preferences.gif">
+			<img src="../help_images/preferences_config.gif">
+            <img src="../help_images/spacer.gif">
+            <img src="../help_images/preferences.gif">
 		</p>
 		<p>Set preferences in the following tabs:</p>
 		<ol>
@@ -144,7 +147,7 @@
                     <li>Select a preferred <strong>font level</strong> from the dropdown list.</li>
                     <li>Check the <strong>Show hints by default</strong> checkbox to show hints on startup.</li>
                     <li>Select degrees or radians for the default <strong>angle units</strong>.</li>
-                    <li>Select a period, comma or the locale default symbol for the number <strong>decimal separator</strong>.</li>
+                    <li>Select a period, comma or the locale default character for the number <strong>decimal separator</strong>.</li>
                 </ul>
           
 		    <li><strong>Runtime tab</strong></li>
