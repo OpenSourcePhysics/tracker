@@ -258,7 +258,7 @@ public class TapeMeasure extends TTrack {
           step = getKeyStep(step);
           String rawText = magField.getText();
         	if (!TapeMeasure.this.isReadOnly()) {
-	          checkForUnits(rawText, step);
+	          checkLengthUnits(rawText);
         	}
           step.setTapeLength(magField.getValue());
           dataValid = false;
@@ -1131,7 +1131,7 @@ public class TapeMeasure extends TTrack {
         else { // end editing
         	step.drawLayoutBounds = false;
         	if (!TapeMeasure.this.isReadOnly()) {
-	          checkForUnits(rawText, step);
+	          checkLengthUnits(rawText);
         	}
           step.setTapeLength(inputField.getValue());
       		step.repaint(trackerPanel);
@@ -1148,7 +1148,7 @@ public class TapeMeasure extends TTrack {
     EventQueue.invokeLater(runner);
   }
   
-  private void checkForUnits(String rawText, TapeStep step) {
+  private void checkLengthUnits(String rawText) {
     String[] split = rawText.split(" "); //$NON-NLS-1$
     if (split.length>1) {
     	// find first character not ""
@@ -1164,9 +1164,8 @@ public class TapeMeasure extends TTrack {
       					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Title"),  //$NON-NLS-1$
       					JOptionPane.YES_NO_OPTION);
       			if (response==JOptionPane.YES_OPTION) {
-	          	if (trackerPanel.setLengthUnit(split[i])) {
-	          		trackerPanel.setUnitsVisible(true);
-	          	}
+	          	trackerPanel.setLengthUnit(split[i]);
+	          	trackerPanel.setUnitsVisible(true);
       			}
       		}
         	break;
