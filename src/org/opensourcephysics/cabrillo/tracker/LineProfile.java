@@ -110,8 +110,8 @@ public class LineProfile extends TTrack {
     setProperty("xVarPlot0", dataVariables[1]); //$NON-NLS-1$ 
     setProperty("yVarPlot0", dataVariables[6]); //$NON-NLS-1$ 
     setProperty("pointsPlot0", "false"); //$NON-NLS-1$ //$NON-NLS-2$
-    setProperty("yMinPlot0", new Double(0)); //$NON-NLS-1$
-    setProperty("yMaxPlot0", new Double(255)); //$NON-NLS-1$
+    setProperty("yMinPlot0", 0.0); //$NON-NLS-1$
+    setProperty("yMaxPlot0", 255.0); //$NON-NLS-1$
     // assign default table variables: x, y and luma
     setProperty("tableVar0", "0"); //$NON-NLS-1$ //$NON-NLS-2$
     setProperty("tableVar1", "1"); //$NON-NLS-1$ //$NON-NLS-2$

@@ -1345,7 +1345,7 @@ public class PrefsDialog extends JDialog {
     commaDecimalButton.setSelected(",".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
     cancelButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
     saveButton.setText(TrackerRes.getString("ConfigInspector.Button.SaveAsDefault")); //$NON-NLS-1$
-    okButton.setText(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$
+    okButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
     applyButton.setText(TrackerRes.getString("Dialog.Button.Apply")); //$NON-NLS-1$
     applyButton.setEnabled(trackerPanel!=null);
     allButton.setText(TrackerRes.getString("Dialog.Button.All")); //$NON-NLS-1$

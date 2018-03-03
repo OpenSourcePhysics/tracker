@@ -167,11 +167,12 @@ public class NumberFormatDialog extends JDialog {
   Map<Integer, String[]> selectedVariables = new TreeMap<Integer, String[]>();
 
   /**
-   * Gets the format dialog and sets the track and selected variables.
+   * Gets the NumberFormatDialog for a TrackerPanel and sets the track and selected variables.
    *
+   * @param trackerPanel the TrackerPanel
    * @param track the track
    * @param selectedNames the initially selected names
-   * @return the format setter
+   * @return the NumberFormatDialog
    */
   protected static NumberFormatDialog getNumberFormatDialog(TrackerPanel trackerPanel,
   		TTrack track, String[] selectedNames) {
@@ -221,7 +222,7 @@ public class NumberFormatDialog extends JDialog {
   }
 
   /**
-   * Disposes of a format setter.
+   * Disposes of a NumberFormatDialog.
    *
    * @param trackerPanel a TrackerPanel
    */
@@ -237,7 +238,7 @@ public class NumberFormatDialog extends JDialog {
   /**
    * Private constructor.
    *
-   * @param track a track
+   * @param tPanel a TrackerPanel
    */
   private NumberFormatDialog(TrackerPanel tPanel) {
     super(frame, true);
@@ -247,7 +248,7 @@ public class NumberFormatDialog extends JDialog {
   }
   
   /**
-   * Sets the variables and initially selected names displayed in this NumberFormatSetter.
+   * Sets the variables and initially selected names displayed in this NumberFormatDialog.
    *
    * @param trackType the track type
    * @param names the variable names
@@ -340,6 +341,11 @@ public class NumberFormatDialog extends JDialog {
     refreshGUI();
   }
   
+  /**
+   * Applies a pattern to selected variables, tracks and/or dimensions.
+   *
+   * @param pattern the pattern
+   */
   private void applyPattern(String pattern) {
     if (pattern.equals(prevPattern)) return;
     if (pattern.indexOf(noPattern)>-1)
@@ -496,7 +502,9 @@ public class NumberFormatDialog extends JDialog {
    * Gets the display name for a specified variable name. 
    *
    * @param var
-   * @return display name
+   * @param displayNames possible display names
+   * @param map a Map of formatter names to variables for a given track type
+   * @return the display name
    */
   private static String getDisplayName(String var, ArrayList<String> displayNames, Map<String, ArrayList<String>> map) {
   	if (displayNames.contains(var)) return var;
@@ -673,10 +681,10 @@ public class NumberFormatDialog extends JDialog {
   }
 
   /**
-   * Gets the custom format patterns for a specified track.
+   * Gets the custom format patterns for a specified TrackerPanel.
    *
-   * @param track the track
-   * @return array with variable names and custom patterns
+   * @param trackerPanel the TrackerPanel
+   * @return array of arrays with variable names and custom patterns 
    */
   protected static String[][] getCustomFormatPatterns(TrackerPanel trackerPanel) {
     if (frame==null) frame = trackerPanel.getTFrame();
@@ -745,6 +753,9 @@ public class NumberFormatDialog extends JDialog {
     setVariables(type, names, selected==null? new String[0]: selected);
   }
   
+  /**
+   * Saves the previous patterns for reverting.
+   */
   private void savePrevious() {
   	// save previous default patterns for all types
   	TreeMap<String, String> patterns;
@@ -862,6 +873,11 @@ public class NumberFormatDialog extends JDialog {
   	}
   }
   
+  /**
+   * Sets the font level of this dialog.
+   *
+   * @param level the level
+   */
   private void setFontLevel(int level) {
     FontSizer.setFonts(this, FontSizer.getLevel());
     double f = FontSizer.getFactor();

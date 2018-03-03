@@ -678,7 +678,7 @@ public class DynamicSystem extends DynamicParticlePolar {
       for (int i = 0; i < count; i++) {
       	data.getDataset(i).append(t, vals[i]);
       }
-      dataFrames.add(new Integer(n));
+      dataFrames.add(n);
     }
     // store the mass in the data properties
     Double m = getMass();

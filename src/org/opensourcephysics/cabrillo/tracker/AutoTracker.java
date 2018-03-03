@@ -2333,7 +2333,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       startButton.addMouseMotionListener(new MouseAdapter() {
       	@Override
       	public void mouseMoved(MouseEvent e) {
-      		startButton.setText((e.getModifiers()&0x01)==1 && !stepping? 
+      		startButton.setText(e.isShiftDown() && !stepping? 
       				TrackerRes.getString("AutoTracker.Wizard.Button.Options"): //$NON-NLS-1$
       					stepping?
   								TrackerRes.getString("AutoTracker.Wizard.Button.Stop"): //$NON-NLS-1$

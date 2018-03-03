@@ -538,6 +538,8 @@ public class PencilControl extends JDialog {
    * Posts a caption edit for a specified scene.
    * 
    * @param scene the scene
+   * @param oldText the previous caption text
+   * @param newText the new caption text
    */
   protected void postCaptionEdit(PencilScene scene, String oldText, String newText) {
   	CaptionEdit edit = new CaptionEdit(scene, oldText, newText);
@@ -739,6 +741,11 @@ public class PencilControl extends JDialog {
   	Color color;
   	ColorIcon icon;
   	
+	  /**
+	   * Constructor
+	   * 
+	   * @param c the color
+	   */
   	private ColorButton(Color c) {
   		color = c;
   		setBackground(color);
@@ -778,6 +785,9 @@ public class PencilControl extends JDialog {
    */
   private class SceneDropdownRenderer extends JLabel implements ListCellRenderer {
 
+	  /**
+	   * Private constructor
+	   */
   	private SceneDropdownRenderer() {
       setOpaque(true);
       setHorizontalAlignment(LEFT);

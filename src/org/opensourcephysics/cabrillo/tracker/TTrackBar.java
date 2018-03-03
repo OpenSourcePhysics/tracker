@@ -38,15 +38,12 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.LaunchNode;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.ToolsRes;
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
-import org.opensourcephysics.controls.XMLControl;
-import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
@@ -93,10 +90,10 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-		    	      			    	      	
-//		    	      	Tracker.newerVersion = "6.7.8";
-//		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-//		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
+		    	      	
+		    	      	Tracker.newerVersion = "5.0.1"; //$NON-NLS-1$
+		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
 		    	      	
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
@@ -1040,6 +1037,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   
   /**
    *  Resizes a NumberField.
+   *  
+   *  @param field the number field
    */
   protected void resizeField(NumberField field) {
   	// do nothing if the field is not displayed
@@ -1122,8 +1121,10 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 
   /**
    * Uses a JFileChooser to select a download directory.
+   * 
    * @param parent a component to own the file chooser
-   * @return the chosen file
+   * @param likely the default likely directory
+   * @return the chosen directory file
    */
   public static File chooseDownloadDirectory(Component parent, File likely) {
     JFileChooser chooser = new JFileChooser(likely);
@@ -1152,6 +1153,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     }
   	return null;
   }
+  
   /**
    *  Refreshes the memory button.
    */

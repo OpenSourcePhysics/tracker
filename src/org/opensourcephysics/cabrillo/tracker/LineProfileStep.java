@@ -1097,7 +1097,7 @@ public class LineProfileStep extends Step {
       	line.keyFrames.add(n);
     	}      
       repaint();
-      track.support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+      track.support.firePropertyChange("step", null, n); //$NON-NLS-1$
     }
 
     /**
@@ -1182,7 +1182,7 @@ public class LineProfileStep extends Step {
       	line.keyFrames.add(n);
     	}      
       repaint();
-      track.support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+      track.support.firePropertyChange("step", null, n); //$NON-NLS-1$
     }
 
     /**

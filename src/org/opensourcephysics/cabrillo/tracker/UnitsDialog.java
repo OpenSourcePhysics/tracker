@@ -33,7 +33,7 @@ import javax.swing.border.TitledBorder;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * This control length, mass and angle units.
+ * A dialog to set length, mass and angle units.
  *
  * @author Douglas Brown
  */
@@ -53,9 +53,9 @@ public class UnitsDialog extends JDialog {
   private TitledBorder unitsBorder, angleBorder;
   
   /**
-   * Constructs an AttachmentDialog.
+   * Constructs a UnitsDialog for a TrackerPanel.
    *
-   * @param track the measuring tool
+   * @param trackerPanel the TrackerPanel
    */
   public UnitsDialog(TrackerPanel trackerPanel) {
     super(JOptionPane.getFrameForComponent(trackerPanel), true);
@@ -169,7 +169,7 @@ public class UnitsDialog extends JDialog {
   }
   
   /**
-   * Updates this dialog to show the system's current attachments.
+   * Updates the GUI.
    */
   protected void refreshGUI() {
     setTitle(TrackerRes.getString("UnitsDialog.Title")); //$NON-NLS-1$
@@ -223,12 +223,22 @@ public class UnitsDialog extends JDialog {
     repaint();
   }
   
+  /**
+   * Sets the font level
+   * 
+   * @param level the level
+   */
   protected void setFontLevel(int level) {
 		FontSizer.setFonts(this, level);
 		refreshGUI();
 		pack();
   }
   
+  /**
+   * Sets the length or mass unit based on the current text in a UnitField
+   * 
+   * @param field the length or mass field
+   */
   private void setUnit(UnitField field) {
   	if (field==lengthUnitField) {
   		trackerPanel.setLengthUnit(field.getText());
@@ -240,8 +250,16 @@ public class UnitsDialog extends JDialog {
   	}
   }
   
+  /**
+   * A JTextField for setting units
+   */
   class UnitField extends JTextField {
   	
+    /**
+     * Constructor
+     * 
+     * @param len the field length
+     */
   	UnitField(int len) {
   		super(len);
       addKeyListener(new KeyAdapter() {
