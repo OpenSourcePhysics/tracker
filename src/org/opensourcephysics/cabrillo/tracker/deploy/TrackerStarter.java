@@ -154,6 +154,8 @@ public class TrackerStarter {
 						logMessage("OSXServices running"); //$NON-NLS-1$
 					} catch (Exception ex) {
 						logMessage("OSXServices failed"); //$NON-NLS-1$
+					} catch (Error err) {
+						logMessage("OSXServices failed"); //$NON-NLS-1$
 					}
 					// wait a short time for OSXServices to handle openFile event
 					// and launch Tracker with file arguments (sets launchThread to null)

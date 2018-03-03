@@ -66,7 +66,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.0.1180131"; //$NON-NLS-1$
+  public static final String VERSION = "5.0.1180302"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -85,7 +85,7 @@ public class Tracker {
   
   // for testing
   static boolean timeLogEnabled = false;
-  static boolean testOn = true;
+  static boolean testOn = false;
   
   // define static fields
   static String trackerHome;
@@ -139,8 +139,7 @@ public class Tracker {
   static JDialog readmeDialog, startLogDialog, trackerPrefsDialog;
   static JTextArea trackerPrefsTextArea;
   static String prefsPath;
-  @SuppressWarnings("javadoc")
-	public static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
+  public static String rootXMLPath = ""; // path to root directory of trk files //$NON-NLS-1$
   static Cursor zoomInCursor, zoomOutCursor, grabCursor;
   static boolean showHints = true;
   static boolean startupHintShown;
@@ -1632,6 +1631,7 @@ public class Tracker {
 				Constructor<?> constructor = OSXClass.getConstructor(Tracker.class);
 				constructor.newInstance(tracker);				
 			} catch (Exception ex) {
+			} catch (Error err) {
 			}
 		}
  
@@ -1939,103 +1939,6 @@ public class Tracker {
     }
   }
   
-//  /**
-//   * Loads preferences from the deprecated tracker_starter prefs file.
-//   */
-//  protected static void loadStarterPrefs() {
-//	    // look for starter prefs file in user home
-//  	File starterPrefsFile = null;
-//  	String userHome = System.getProperty("user.home"); //$NON-NLS-1$
-//  	if (userHome!=null) {
-//  		starterPrefsFile = new File(userHome, ".tracker_starter.prefs"); //$NON-NLS-1$
-//  	}
-//  	// if not found, check trackerHome
-//  	if (trackerHome!=null && (starterPrefsFile==null || !starterPrefsFile.exists())) {
-//  		starterPrefsFile = new File(trackerHome, ".tracker_starter.prefs"); //$NON-NLS-1$
-//  	}
-//
-//  	if (starterPrefsFile.exists()) try {
-//  		String encoding = "UTF-8"; //$NON-NLS-1$
-//  	  java.nio.charset.Charset charset = java.nio.charset.Charset.forName(encoding);
-//    	InputStream stream =  new FileInputStream(starterPrefsFile);
-//    	BufferedReader in = new BufferedReader(new InputStreamReader(stream, charset));
-//      String line = in.readLine();
-//      ArrayList<String> runPaths = new ArrayList<String>();
-//      while(line!=null) {
-//       	if (line.startsWith("jre ")) { //$NON-NLS-1$
-//      		File javaFile = new File(line.substring(4).trim());
-//      		String jre = OSPRuntime.getJREPath(javaFile);
-//      		Tracker.preferredJRE = "".equals(jre)? null: jre; //$NON-NLS-1$
-//      	}
-//       	else if (line.startsWith("run ")) { //$NON-NLS-1$
-//      		String app = line.substring(4).trim();
-//        	if (!"".equals(app)) runPaths.add(app);        	 //$NON-NLS-1$
-//       	}
-//       	else if (line.startsWith("version ")) { //$NON-NLS-1$
-//      		String ver = line.substring(8).trim();
-//					try {
-//						Double.parseDouble(ver);
-//						Tracker.preferredTrackerJar = "tracker-"+ver+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
-//					} catch (Exception ex) {}
-//       	}
-//        line = in.readLine();
-//      }
-//      in.close();
-//      Tracker.prelaunchExecutables = runPaths.toArray(new String[0]);
-//    } 
-//		catch (Exception ex) {}
-//  }
-//
-//	static class TrackerOSXHandler implements com.apple.eawt.AboutHandler, 
-//			com.apple.eawt.QuitHandler, com.apple.eawt.PreferencesHandler {
-//		Tracker tracker;
-//		
-//		TrackerOSXHandler(Tracker app) {
-//			tracker = app;
-//		}
-//		
-//		public void handleAbout(com.apple.eawt.AppEvent.AboutEvent e) {
-//			aboutTrackerAction.actionPerformed(null);
-//		} 
-//		
-//		public void handleQuitRequestWith(com.apple.eawt.AppEvent.QuitEvent e,
-//				com.apple.eawt.QuitResponse response) {
-//      TFrame frame = tracker.getFrame();
-//      if (frame != null) {
-//        for (int i = 0; i < frame.getTabCount(); i++) {
-//        	// save tabs in try/catch block so always closes
-//          try {
-//						if (!frame.getTrackerPanel(i).save()) {
-//						  response.cancelQuit();
-//						}
-//					} catch (Exception ex) {
-//					}
-//        }
-//      }
-//			response.performQuit();
-//		}
-//		
-//		public void handlePreferences(com.apple.eawt.AppEvent.PreferencesEvent e) {
-//			TFrame frame = tracker.getFrame();
-//    	if (frame.prefsDialog!=null) {
-//    		frame.prefsDialog.refreshGUI();
-//    	}
-//    	else {
-//        // create PrefsDialog
-//    		frame.prefsDialog = new PrefsDialog(null, frame);
-//        // center on screen
-//        Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-//        int x = (dim.width - frame.prefsDialog.getBounds().width) / 2;
-//        int y = (dim.height - frame.prefsDialog.getBounds().height) / 2;
-//        frame.prefsDialog.setLocation(x, y);
-//    	}
-//    	frame.prefsDialog.setVisible(true);
-//    	frame.prefsDialog.requestFocus();
-//		}
-//		
-//	}
-//
-
   /**
    * A class to compare version strings.
    */
