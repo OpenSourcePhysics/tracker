@@ -44,11 +44,11 @@ import java.util.ArrayList;
 public class DerivativeAlgorithmDialog extends JDialog {
 	
   protected TrackerPanel trackerPanel;
-  protected ArrayList<PointMass> allMasses = new ArrayList<PointMass>();
   protected ArrayList<PointMass> targetMasses = new ArrayList<PointMass>();
 	protected JButton okButton, cancelButton;
 	JTextPane textPane;
 	int[] types = new int[] {PointMass.FINITE_DIFF, PointMass.BOUNCE_DETECT};
+//	int[] types = new int[] {PointMass.FINITE_DIFF, PointMass.FINITE_DIFF_VSPILL2, PointMass.BOUNCE_DETECT};
   JRadioButton[] buttons = new JRadioButton[types.length];
   TitledBorder choiceBorder;
   int prevAlgorithm;
@@ -59,13 +59,29 @@ public class DerivativeAlgorithmDialog extends JDialog {
    * @param panel a tracker panel
    */
   public DerivativeAlgorithmDialog(TrackerPanel panel) {
-    super(panel.getTFrame(), false);
+    super(panel.getTFrame(), true);
     trackerPanel = panel;
-    allMasses = panel.getDrawables(PointMass.class);
-    targetMasses.addAll(allMasses);
     createGUI();
     pack();
     okButton.requestFocusInWindow();
+  }
+  
+  /**
+   * Sets the target mass to which algorithm changes are applied.
+   */
+  protected void setTargetMass(PointMass mass) {
+  	targetMasses.clear();
+    targetMasses.add(mass);
+    refreshGUI();
+  }
+
+  /**
+   * Sets the target masses to which algorithm changes are applied.
+   */
+  protected void setTargetMasses(ArrayList<PointMass> masses) {
+  	targetMasses.clear();
+    targetMasses.addAll(masses);
+    refreshGUI();
   }
 
 //_____________________________ private methods ____________________________
@@ -136,7 +152,10 @@ public class DerivativeAlgorithmDialog extends JDialog {
    * Refreshes the visible components of this panel.
    */
   private void refreshGUI() {
-  	setTitle(TrackerRes.getString("AlgorithmDialog.Title")); //$NON-NLS-1$
+  	
+  	String target = targetMasses.size()==1? targetMasses.get(0).getName(): 
+  			TrackerRes.getString("AlgorithmDialog.TargetMasses.All"); //$NON-NLS-1$
+  	setTitle(TrackerRes.getString("AlgorithmDialog.Title")+": "+target); //$NON-NLS-1$ //$NON-NLS-2$
   	choiceBorder.setTitle(TrackerRes.getString("AlgorithmDialog.TitledBorder.Choose")); //$NON-NLS-1$
     okButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
     cancelButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
@@ -148,6 +167,9 @@ public class DerivativeAlgorithmDialog extends JDialog {
     	}
     	else if (type==PointMass.BOUNCE_DETECT) {
     		s = TrackerRes.getString("AlgorithmDialog.Button.BounceDetect"); //$NON-NLS-1$
+    	}
+    	else if (type==PointMass.FINITE_DIFF_VSPILL2) {
+    		s = TrackerRes.getString("AlgorithmDialog.Button.SmoothFiniteDifference"); //$NON-NLS-1$
     	}
     	buttons[i].setText(s);
     }
@@ -170,11 +192,16 @@ public class DerivativeAlgorithmDialog extends JDialog {
 			+" "+TrackerRes.getString("AlgorithmDialog.BounceDetect.Message2") //$NON-NLS-1$ //$NON-NLS-2$
 			+"\n\n"+url; //$NON-NLS-1$
   	}
+  	else if (algorithm==PointMass.FINITE_DIFF_VSPILL2) {
+  		s = TrackerRes.getString("AlgorithmDialog.SmoothFiniteDifference.Message1") //$NON-NLS-1$
+  				+"\n\n    "+TrackerRes.getString("AlgorithmDialog.SmoothFiniteDifference.Message2") //$NON-NLS-1$ //$NON-NLS-2$
+  				+"\n\n    "+TrackerRes.getString("AlgorithmDialog.SmoothFiniteDifference.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
+  	}
   	textPane.setText(s);
   }
   
   private void initialize() {
-  	// save previous
+  	// save and display current algorithm
     if (!targetMasses.isEmpty()) {
     	PointMass p = targetMasses.get(0);
     	prevAlgorithm = p.algorithm;

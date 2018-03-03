@@ -400,6 +400,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     tracks.remove(track);
     guestsItem.setEnabled(!tracks.isEmpty());
     FontSizer.setFonts(popup, FontSizer.getLevel());
+    
+    // disable algorithmItem if not point mass track
+    algorithmItem.setEnabled(track instanceof PointMass);
     return popupmenu;
   }
 
@@ -668,6 +671,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	    algorithmItem.addActionListener(new ActionListener() {
 	      public void actionPerformed(ActionEvent e) {
 	      	DerivativeAlgorithmDialog dialog = trackerPanel.getAlgorithmDialog();
+	      	TTrack track = TTrack.getTrack(trackID);
+	      	if (track instanceof PointMass) {
+	      		dialog.setTargetMass((PointMass)track);
+	      	}
 	      	FontSizer.setFonts(dialog, FontSizer.getLevel());
 	      	dialog.pack();
 	      	dialog.setVisible(true);

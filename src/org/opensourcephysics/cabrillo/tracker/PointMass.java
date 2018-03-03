@@ -50,6 +50,7 @@ public class PointMass extends TTrack {
 	// static constants
 	protected static final int FINITE_DIFF = 0;
 	protected static final int BOUNCE_DETECT = 1;
+	protected static final int FINITE_DIFF_VSPILL2 = 2;
 	protected static final double MINIMUM_MASS = 1E-30;
 	
 	// static fields
@@ -822,7 +823,7 @@ public class PointMass extends TTrack {
    */
   public void setAlgorithm(int type) {
   	if (type==algorithm) return;
-  	if (type==FINITE_DIFF || type==BOUNCE_DETECT) {
+  	if (type==FINITE_DIFF || type==BOUNCE_DETECT || type==FINITE_DIFF_VSPILL2) {
   		algorithm = type;
   		refreshDataLater = false;
   		updateDerivatives();
@@ -1673,7 +1674,10 @@ public class PointMass extends TTrack {
     double[] yDeriv1; // first deriv
     double[] xDeriv2; // second deriv
     double[] yDeriv2; // second deriv
-    if (algorithm==1) {
+//    FINITE_DIFF = 0;
+//  	protected static final int BOUNCE_DETECT = 1;
+//  	protected static final int FINITE_DIFF_VSPREAD2
+    if (algorithm==BOUNCE_DETECT) {
 	    params[0] = bounceDerivsSpill; // spill
 	    Object[] result = bounceDerivs.evaluate(derivData);    	
 	    xDeriv1 = (double[]) result[0];
@@ -1682,7 +1686,7 @@ public class PointMass extends TTrack {
 	    yDeriv2 = (double[]) result[3];
     }
     else {
-	    params[0] = vDerivSpill; // spill
+	    params[0] = algorithm==FINITE_DIFF_VSPILL2? 2: vDerivSpill; // spill
 	    Object[] result = vDeriv.evaluate(derivData);    	
 	    xDeriv1 = (double[]) result[0];
 	    yDeriv1 = (double[]) result[1];
