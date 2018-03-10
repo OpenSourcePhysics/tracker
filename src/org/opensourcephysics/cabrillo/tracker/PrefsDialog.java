@@ -116,7 +116,7 @@ public class PrefsDialog extends JDialog {
 	static {
 		trackerJarFilter = new org.opensourcephysics.cabrillo.tracker.deploy.TrackerJarFilter();
   	try {
-	  	userHome = System.getProperty("user.home"); //$NON-NLS-1$
+	  	userHome = OSPRuntime.getUserHome();
       javaHome = System.getProperty("java.home"); //$NON-NLS-1$
   		URL url = TrackerStarter.class.getProtectionDomain().getCodeSource().getLocation();
   		File jarFile = new File(url.toURI());

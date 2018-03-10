@@ -115,7 +115,7 @@ public class TrackerStarter {
 		}
 		// get user home, java home and xuggle home
 		try {
-			userHome = System.getProperty("user.home"); //$NON-NLS-1$
+			userHome = OSPRuntime.getUserHome();
 			javaHome = System.getProperty("java.home"); //$NON-NLS-1$
 			if (OSPRuntime.isWindows()) {
 				userDocuments = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
