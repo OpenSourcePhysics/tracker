@@ -26,8 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.io.File;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -38,14 +36,10 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.ResourceLoader;
-import org.opensourcephysics.tools.ToolsRes;
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
-import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.desktop.OSPDesktop;
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 
 /**
@@ -64,8 +58,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   protected static JButton testButton;
   protected static javax.swing.Timer testTimer;
   protected static boolean showOutOfMemoryDialog = true;
-  protected static JDialog relaunchingDialog;
-  protected static JLabel downloadLabel, relaunchLabel;
   private static JTextField sizingField = new JTextField();
   
   // instance fields
@@ -91,7 +83,16 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
 		    	      	
-		    	      	Tracker.newerVersion = "5.0.1"; //$NON-NLS-1$
+//			    	    	Map<String, String> map = System.getenv();
+//			    	    	for (String key: map.keySet()) {
+//			    	    		System.out.println("environment "+key+" = "+map.get(key));
+//			    	    	}
+//			    	    	for (Object key: System.getProperties().keySet()) {
+//			    	    		System.out.println("property "+key+" = "+System.getProperties().get(key));
+//			    	    	}
+
+		    	      			    	      	
+			          	Tracker.newerVersion = "6.7.8"; //$NON-NLS-1$
 		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
 		    	      	
@@ -159,13 +160,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 							} catch (Exception ex) {
 							}
             }    				
-//  	    		TFrame frame = (TFrame)memoryButton.getTopLevelAncestor();
-//  	    		if (frame!=null && frame.getSelectedTab()>-1) {
-//  	    			TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-//  	    			TActions.getAction("config", trackerPanel).actionPerformed(null); //$NON-NLS-1$
-//  	    			Component c = frame.prefsDialog.runtimePanel;
-//  	    			frame.prefsDialog.tabbedPane.setSelectedComponent(c);
-//  	    		}
   	    	}
   	    });
   	    return popup;
@@ -190,504 +184,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    upgradeItem.addActionListener(new ActionListener() {
   	    	public void actionPerformed(ActionEvent e) {
     				final TFrame frame = (TFrame)newVersionButton.getTopLevelAncestor();
-    				// create relaunching dialog
-  	    		if (relaunchingDialog==null) {
-  	    			relaunchingDialog = new JDialog(frame, false);
-	    				JPanel panel = new JPanel();
-	    				panel.setBorder(BorderFactory.createEtchedBorder());
-	    				relaunchingDialog.setContentPane(panel);	    				
-	    				relaunchingDialog.setTitle(TrackerRes.getString("TTrackBar.Dialog.Relaunch.Title.Text")); //$NON-NLS-1$
-	    				Box box = Box.createVerticalBox();
-	    				relaunchingDialog.getContentPane().add(box);
-	    				downloadLabel = new JLabel(); 
-	    				downloadLabel.setBorder(BorderFactory.createEmptyBorder(10, 6, 6, 6));
-	    				box.add(downloadLabel);
-	    				relaunchLabel = new JLabel(); 
-	    				relaunchLabel.setBorder(BorderFactory.createEmptyBorder(6, 6, 16, 6));
-	    				box.add(relaunchLabel);
-  	    		}
-  	    		// look for upgrade tracker.jar
-    				final boolean[] failed = new boolean[] {false};
-  	    		int responseCode = 0; // code 200 = "OK"
-   	    		final String jarFileName = "tracker-"+Tracker.newerVersion+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
-  	    		final String upgradeURL = ResourceLoader.getString("http://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
-  	    		if (upgradeURL!=null && Tracker.trackerHome!=null) {
-	    				// see if the jar file is found at this url
-	  	    		String upgradeFile = upgradeURL.trim()+jarFileName;
-	  	    		try {
-	  	    	    URL url = new URL(upgradeFile);
-	  	    	    HttpURLConnection huc = (HttpURLConnection)url.openConnection();
-	  	    	    responseCode = huc.getResponseCode();
-		  	    	} catch (Exception ex) {
-		  	    	}
-  	    		}
-      			if (responseCode!=200) { 
-      				// jar file not found
-      				failed[0] = true;
-    				}
-    				else if (OSPRuntime.isWindows()) {
-    					// check for upgrade installer
-	    				final String upgradeInstallerName = "TrackerUpgrade-"+Tracker.newerVersion+"-windows-installer.exe"; //$NON-NLS-1$ //$NON-NLS-2$
-	  	    		final String upgradeInstallerURL = upgradeURL.trim()+upgradeInstallerName;
-	  	    		responseCode = 0;
-	  	    		try {
-	  	    	    URL url = new URL(upgradeInstallerURL);
-	  	    	    HttpURLConnection huc = (HttpURLConnection)url.openConnection();
-	  	    	    responseCode = huc.getResponseCode();
-		  	    	} catch (Exception ex) {
-		  	    	}
-	  	    		if (responseCode==200) { // upgrade installer exists
-		  	    		// let user specify download directory
-		  	    		String home = System.getProperty("user.home"); //$NON-NLS-1$
-		  	    		File downloadDir = new File(home+"/Downloads"); //$NON-NLS-1$
-		  	    		downloadDir = chooseDownloadDirectory(frame, downloadDir);
-	    					if (downloadDir==null) { 
-	    						// user cancelled
-	    						return;
-	    					}
-	    					if (!downloadDir.exists()) {
-	    						// failed to specify valid download directory
-		      				OSPLog.warning("download directory does not exist: "+downloadDir); //$NON-NLS-1$
-	    						failed[0] = true;
-	    					}
-	    					else {
-	  	    				// inform user of intended action and ask permission
-			          	int ans = JOptionPane.showConfirmDialog(frame, 
-			          			TrackerRes.getString("TTrackBar.Dialog.Download.Upgrade.Message1")+" "+downloadDir.getPath()+"." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			          			+XML.NEW_LINE+TrackerRes.getString("TTrackBar.Dialog.Download.Upgrade.Message2")+XML.NEW_LINE,  //$NON-NLS-1$
-			          			TrackerRes.getString("TTrackBar.Dialog.Download.Title"),  //$NON-NLS-1$
-			          			JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
-			          	if (ans!=JOptionPane.OK_OPTION) {
-			          		return;
-			          	}
-	  	    				// download and launch installer in separate thread
-	  	  	    		final File downloads = downloadDir;
-	  	  	    		Runnable runner = new Runnable() {
-	  	  	    			public void run() {
-		  	    					// show relaunching dialog during download
-			  	    				downloadLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Upgrade.Text") //$NON-NLS-1$
-			  	    						+" "+downloads.getPath()+".")); //$NON-NLS-1$ //$NON-NLS-2$
-			  	    				relaunchLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.RelaunchLabel.Upgrade.Text"))); //$NON-NLS-1$
-			  	    				relaunchingDialog.pack();
-			  	    				// center on TFrame
-			  	    		    relaunchingDialog.setLocationRelativeTo(frame);
-			  	    				relaunchingDialog.setVisible(true);
-			  	    				
-  				  	    		// download upgrade installer			  	    				
-			  	  	    		File installer = new File(downloads, upgradeInstallerName);
-			  	  	    		installer = ResourceLoader.download(upgradeInstallerURL, installer, false);
-			  	  	    		if (installer!=null && installer.exists()) {
-			  	  	    			// launch the upgrade installer and close Tracker
-												try {
-													// assemble command: pass tracker home as parameter
-						    	    		ArrayList<String> cmd = new ArrayList<String>();
-						    	    		cmd.add("cmd"); //$NON-NLS-1$
-						    	    		cmd.add("/c"); //$NON-NLS-1$
-						    	    		cmd.add(installer.getPath());
-						    	    		cmd.add("--tracker-home"); //$NON-NLS-1$
-						    	    		cmd.add(Tracker.trackerHome);
-						    	    		
-						    	    		// log command
-						    	    		String message = ""; //$NON-NLS-1$
-						    	    		for (String next: cmd) {
-						    	    			message += next + " "; //$NON-NLS-1$
-						    	    		}
-						    	    		OSPLog.info("executing command: " + message); //$NON-NLS-1$ 
-
-						    	    		ProcessBuilder builder = new ProcessBuilder(cmd);
-													Process p = builder.start();
-													if (isAlive(p)) {
-					  	  	    			// set preferred tracker to default
-					  	  	    			Tracker.preferredTrackerJar = null;
-					  	  	    			Tracker.savePreferences();
-					  	  	    			// exit Tracker
-														TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-														if (trackerPanel!=null) {
-															Action exit = TActions.getAction("exit", trackerPanel); //$NON-NLS-1$
-															exit.actionPerformed(null);
-														}
-														else {
-															System.exit(0);
-														}
-													}
-													else {
-														// upgrade installer launch failure
-							      				OSPLog.warning("failed to launch upgrade installer"); //$NON-NLS-1$
-														failed[0] = true;	  	    			
-													}
-												} catch (Exception ex) {
-						      				OSPLog.warning("exception: "+ex); //$NON-NLS-1$
-							  	    		failed[0] = true;	  	    			
-												}
-			  	  	    		}
-					  	    		else {
-					  	    			// failed to download upgrade installer
-					      				OSPLog.warning("failed to download upgrade installer"); //$NON-NLS-1$
-						  	    		failed[0] = true;	  	    			
-					  	    		} 
-  		  	      			if (failed[0]) {
-  		  	    					// close relaunching dialog and display Tracker web site
-  		  	      				relaunchingDialog.setVisible(false);
-  		  	      				relaunchingDialog.dispose();
-  		  		  	    		String websiteurl = "https://"+Tracker.trackerWebsite; //$NON-NLS-1$
-  		  		  	    		OSPDesktop.displayURL(websiteurl);
-  		  	    				}
-  	  	    				}
-	  	  	    		}; // end runnable
-	  	  	    		new Thread(runner).start();
-	    					}
-	  	    		} // end upgrade installer 
-	  	    		else {
-	  	    			// no upgrade installer so download tracker.jar
-  	    				// inform user of intended action and ask permission
-  	          	int ans = JOptionPane.showConfirmDialog(frame, 
-  	          			TrackerRes.getString("TTrackBar.Dialog.Download.Message1")+" "+Tracker.trackerHome+"." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-  	          			+XML.NEW_LINE+TrackerRes.getString("TTrackBar.Dialog.Download.Message2")+XML.NEW_LINE,  //$NON-NLS-1$
-  	          			TrackerRes.getString("TTrackBar.Dialog.Download.Title"),  //$NON-NLS-1$
-  	          			JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
-  	          	if (ans!=JOptionPane.OK_OPTION) {
-  	          		// user cancelled
-  	          		return;
-  	          	}
-   	  	    		Runnable runner = new Runnable() {
-  	  	    			public void run() {
-	  	    					// show relaunching dialog during downloads
-  	  	    				downloadLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Text") //$NON-NLS-1$
-  	  	    						+" "+Tracker.trackerHome+".")); //$NON-NLS-1$ //$NON-NLS-2$
-  	  	    				relaunchLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.RelaunchLabel.Text"))); //$NON-NLS-1$
-  	  	    				relaunchingDialog.pack();
-  	  	    				// center on TFrame
-  	  	    		    relaunchingDialog.setLocationRelativeTo(frame);
-  	  	    				relaunchingDialog.setVisible(true);
-  	  	    				
-    		      			// download new tracker jar
-  	  	  	    		File jarFile = new File(Tracker.trackerHome, jarFileName);
-  	   	  	    		String jarURL = upgradeURL.trim()+jarFileName;	  	    		
-    		      			jarFile = ResourceLoader.download(jarURL, jarFile, false);
-
-    		      			// also download new Tracker.exe if available
-  	  	    				String starterName = "Tracker.exe"; //$NON-NLS-1$
-  	  	  	    		String starterURL = upgradeURL.trim()+starterName;
-  	  	  	    		int responseCode = 0;
-    		  	    		try {
-    		  	    	    URL url = new URL(starterURL);
-    		  	    	    HttpURLConnection huc = (HttpURLConnection)url.openConnection();
-    		  	    	    responseCode = huc.getResponseCode();
-    			  	    	} catch (Exception ex) {
-    			  	    	}
-    		      			if (responseCode==200) {
-    		      				// Tracker.exe is available
-    	  	  	    		File starterTarget = new File(Tracker.trackerHome, starterName);
-    	  	  	    		ResourceLoader.download(starterURL, starterTarget, true);
-    		      			}
-
-  	  	  	    		if (jarFile!=null && jarFile.exists()) { // new jar successfully downloaded
-  	  	  	    			// launch new Tracker version
-  	  	  	      		ArrayList<String> filenames = new ArrayList<String>();
-  	  	  	    			for (int i = 0; i<frame.getTabCount(); i++) {
-  	  	  	    				TrackerPanel next = frame.getTrackerPanel(i);
-  	  	  	    				if (!next.save()) {
-  	  	  	    					// user aborted the relaunch
-  	  	  	    					relaunchingDialog.setVisible(false);
-  	  	  	    					return;
-  	  	  	    				}
-  	  	  	    				File datafile = next.getDataFile();
-  	  	  	    				if (datafile!=null) {
-  	  	  	    	    		filenames.add(datafile.getAbsolutePath());
-  	  	  	    				}
-  	  	  	    			}
-  	  	  	    			String[] args = filenames.isEmpty()? null: filenames.toArray(new String[0]);
-  	  	  	  	    	System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, jarFile.getAbsolutePath());
-  	  	  	  	    	System.setProperty(TrackerStarter.TRACKER_NEW_VERSION, jarURL);
-  	  	  	  	    	TrackerStarter.relaunch(args, false);
-  	  	  	    		}
-  	  	  	    		else {
-				      				OSPLog.warning("failed to download new version"); //$NON-NLS-1$
-  	  	  	    			failed[0] = true;
-  	  	  	    		}
-  	  	      			if (failed[0]) {
-  	  	    					// close relaunching dialog and display Tracker web site
-  	  	      				relaunchingDialog.setVisible(false);
-  	  	      				relaunchingDialog.dispose();
-  	  		  	    		String websiteurl = "https://"+Tracker.trackerWebsite; //$NON-NLS-1$
-  	  		  	    		OSPDesktop.displayURL(websiteurl);
-  	  	    				}
-  	  	    			}
-  	  	    		}; // end runnable
-  	  	    		new Thread(runner).start();
-	  	    		} // end new tracker.jar
-    				} // end windows
-      			else if (OSPRuntime.isMac()) { // OSX
-	    				// see if a TrackerUpgrade zip is available
-	    				final String zipFileName = "TrackerUpgrade-"+Tracker.newerVersion+"-osx-installer.zip"; //$NON-NLS-1$ //$NON-NLS-2$
-	  	    		final String zipURL = upgradeURL.trim()+zipFileName;
-	  	    		responseCode = 0;
-	  	    		try {
-	  	    	    URL url = new URL(zipURL);
-	  	    	    HttpURLConnection huc = (HttpURLConnection)url.openConnection();
-	  	    	    responseCode = huc.getResponseCode();
-		  	    	} catch (Exception ex) {
-		  	    	}
-	  	    		if (responseCode==200) { // upgrade installer exists
-		  	    		// let user specify download directory
-		  	    		String home = System.getProperty("user.home"); //$NON-NLS-1$
-		  	    		File downloadDir = new File(home+"/Downloads"); //$NON-NLS-1$
-		  	    		downloadDir = chooseDownloadDirectory(frame, downloadDir);
-	    					if (downloadDir==null) { 
-	    						// user cancelled
-	    						return;
-	    					}
-	    					if (!downloadDir.exists()) {
-	    						// failed to specify valid download directory
-		      				OSPLog.warning("download directory does not exist: "+downloadDir); //$NON-NLS-1$
-	    						failed[0] = true;
-	    					}
-	    					else {
-	  	    				// inform user of intended action and ask permission
-			          	int ans = JOptionPane.showConfirmDialog(frame, 
-			          			TrackerRes.getString("TTrackBar.Dialog.Download.Upgrade.Message1")+" "+downloadDir.getPath()+"." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			          			+XML.NEW_LINE+TrackerRes.getString("TTrackBar.Dialog.Download.Upgrade.Message2")+XML.NEW_LINE,  //$NON-NLS-1$
-			          			TrackerRes.getString("TTrackBar.Dialog.Download.Title"),  //$NON-NLS-1$
-			          			JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
-			          	if (ans!=JOptionPane.OK_OPTION) {
-			          		return;
-			          	}
-		
-	    						final File downloads = downloadDir;
-		      				// download, unzip and run installer in separate thread
-			  	    		Runnable runner = new Runnable() {
-			  	    			public void run() {
-		  	    					// show relaunching dialog during download
-			  	    				downloadLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Upgrade.Text") //$NON-NLS-1$
-			  	    						+" "+downloads.getPath()+".")); //$NON-NLS-1$ //$NON-NLS-2$
-			  	    				relaunchLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.RelaunchLabel.Upgrade.Text"))); //$NON-NLS-1$
-			  	    				relaunchingDialog.pack();
-			  	    				// center on TFrame
-			  	    		    relaunchingDialog.setLocationRelativeTo(frame);
-			  	    				relaunchingDialog.setVisible(true);
-			  	    				
-			  	    				// download zip file
-			  	  	    		File zipFile = new File(downloads, zipFileName);
-			  	  	    		zipFile = ResourceLoader.download(zipURL, zipFile, false);
-			  	  	    		if (zipFile!=null && zipFile.exists()) {
-			  	  	    			// use ditto to unzip
-			  	  	    			String path = zipFile.getPath();
-			  	  	    			ArrayList<String> cmd = new ArrayList<String>();
-					    	    		cmd.add("ditto"); //$NON-NLS-1$
-					    	    		cmd.add("-x"); //$NON-NLS-1$
-					    	    		cmd.add("-k"); //$NON-NLS-1$
-					    	    		cmd.add("-rsrcFork"); //$NON-NLS-1$
-					    	    		cmd.add(path);
-					    	    		cmd.add(downloads.getPath());			  	  	    			
-					      				try {
-						    	    		ProcessBuilder builder = new ProcessBuilder(cmd);
-													Process p = builder.start();
-					      					// wait for process to finish, then delete zip file
-					      	        p.waitFor();		
-					      	        zipFile.delete();
-					      	        // upgrade installer should now be unzipped
-					      	        
-					      	        // run upgrade installer
-					  	    				String appName = "TrackerUpgrade-"+Tracker.newerVersion+"-osx-installer.app"; //$NON-NLS-1$ //$NON-NLS-2$
-					  	  	    		File installer = new File(downloads, appName);
-					  	  	    		if (installer!=null && installer.exists()) {
-														// assemble command: pass Tracker.app path as parameter
-					  	  	    			String trackerApp = new File(Tracker.trackerHome).getParentFile().getParent();
-							    	    		cmd.clear();
-							    	    		cmd.add("open"); //$NON-NLS-1$
-							    	    		cmd.add(installer.getPath());
-							    	    		cmd.add("--tracker-app"); //$NON-NLS-1$
-							    	    		cmd.add(trackerApp);
-							    	    		
-							    	    		// log command
-							    	    		String message = ""; //$NON-NLS-1$
-							    	    		for (String next: cmd) {
-							    	    			message += next + " "; //$NON-NLS-1$
-							    	    		}
-							    	    		OSPLog.info("executing command: " + message); //$NON-NLS-1$ 
-
-							    	    		builder = new ProcessBuilder(cmd);
-														p = builder.start();
-														if (isAlive(p)) {
-											    		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-											    		if (trackerPanel!=null) {
-											    			Action exit = TActions.getAction("exit", trackerPanel); //$NON-NLS-1$
-											    			exit.actionPerformed(null);
-											    		}
-											    		else {
-											    			System.exit(0);
-											    		}
-														}
-								  	    		else {
-								      				OSPLog.warning("failed to launch upgrade installer"); //$NON-NLS-1$
-									  	    		failed[0] = true;	  	    			
-								  	    		}
-					  	  	    		}
-							  	    		else {
-							      				OSPLog.warning("failed to unzip upgrade installer"); //$NON-NLS-1$
-								  	    		failed[0] = true;	  	    			
-							  	    		}
-												} catch (Exception ex) {
-						      				OSPLog.warning("exception: "+ex); //$NON-NLS-1$
-							  	    		failed[0] = true;	  	    			
-												}
-			  	  	    		}	  	  	    		
-					  	    		else {
-					      				OSPLog.warning("failed to download zipped upgrade installer"); //$NON-NLS-1$
-						  	    		failed[0] = true;	  	    			
-					  	    		} 	  	    			
-			  	      			if (failed[0]) {
-			  	    					// close relaunching dialog and display Tracker web site
-			  	      				relaunchingDialog.setVisible(false);
-			  	      				relaunchingDialog.dispose();
-			  		  	    		String websiteurl = "https://"+Tracker.trackerWebsite; //$NON-NLS-1$
-			  		  	    		OSPDesktop.displayURL(websiteurl);
-			  	    				}
-			  	    			}
-			  	    		};  // end runnable
-			  	    		new Thread(runner).start();
-		      			}
-	  	    		}
-      			}
-      			else if (OSPRuntime.isLinux()) {
-	    				// see if a TrackerUpgrade file is available
-	    				int bitness = OSPRuntime.getVMBitness();
-	    				// see if a TrackerUpgrade zip is available
-	    				final String upgradeFileName = "TrackerUpgrade-"+Tracker.newerVersion+"-linux-"+bitness+"bit-installer.run"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	  	    		final String fileURL = upgradeURL.trim()+upgradeFileName;
-	  	    		responseCode = 0;
-	  	    		try {
-	  	    	    URL url = new URL(fileURL);
-	  	    	    HttpURLConnection huc = (HttpURLConnection)url.openConnection();
-	  	    	    responseCode = huc.getResponseCode();
-		  	    	} catch (Exception ex) {
-		  	    	}
-	  	    		if (responseCode==200) { // upgrade installer exists
-		  	    		// let user specify download directory
-		  	    		String home = System.getProperty("user.home"); //$NON-NLS-1$
-		  	    		File downloadDir = new File(home+"/Downloads"); //$NON-NLS-1$
-		  	    		downloadDir = chooseDownloadDirectory(frame, downloadDir);
-	    					if (downloadDir==null) { 
-	    						// user cancelled
-	    						return;
-	    					}
-	    					if (!downloadDir.exists()) {
-	    						// failed to specify valid download directory
-		      				OSPLog.warning("download directory does not exist: "+downloadDir); //$NON-NLS-1$
-	    						failed[0] = true;
-	    					}
-	    					else {
-	  	    				// inform user of intended action and ask permission
-			          	int ans = JOptionPane.showConfirmDialog(frame, 
-			          			TrackerRes.getString("TTrackBar.Dialog.Download.Upgrade.Message1")+" "+downloadDir.getPath()+"." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			          			+XML.NEW_LINE+TrackerRes.getString("TTrackBar.Dialog.Download.Upgrade.Message2")+XML.NEW_LINE,  //$NON-NLS-1$
-			          			TrackerRes.getString("TTrackBar.Dialog.Download.Title"),  //$NON-NLS-1$
-			          			JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
-			          	if (ans!=JOptionPane.OK_OPTION) {
-			          		return;
-			          	}
-		
-	    						final File downloads = downloadDir;
-		      				// download and run installer in separate thread
-			  	    		Runnable runner = new Runnable() {
-			  	    			public void run() {
-		  	    					// show relaunching dialog during download
-			  	    				downloadLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Upgrade.Text") //$NON-NLS-1$
-			  	    						+" "+downloads.getPath()+".")); //$NON-NLS-1$ //$NON-NLS-2$
-			  	    				relaunchLabel.setText(""); //$NON-NLS-1$
-			  	    				relaunchingDialog.pack();
-			  	    				// center on TFrame
-			  	    		    relaunchingDialog.setLocationRelativeTo(frame);
-			  	    				relaunchingDialog.setVisible(true);
-			  	    				
-			  	    				// download upgrade installer
-			  	  	    		File installer = new File(downloads, upgradeFileName);
-			  	  	    		installer = ResourceLoader.download(fileURL, installer, false);
-			  	  	    		if (installer!=null && installer.exists()) {
-				  	    				relaunchingDialog.setVisible(false);
-				  	    				installer.setExecutable(true, false);
-				  	    				
-					      	      // create text field to display copy-able command for Terminal
-			  	  	    			final JTextField field = new JTextField();
-			  	  	    			field.setBackground(Color.white);
-			  	  	    			field.setEditable(false);
-			  	  	    			field.addMouseListener(new MouseAdapter() {
-			  	  	    	    	public void mousePressed(MouseEvent e) {
-					  	  	    			field.selectAll();
-			  	  	    	    	}
-			  	  	    	    });
-
-												// assemble command: pass tracker home as parameter
-			  	  	    			String cmd = "sudo "+installer.getPath(); //$NON-NLS-1$
-					    	    		cmd += "--tracker-home "+Tracker.trackerHome; //$NON-NLS-1$
-			  	  	    			
-					    	    		// log command
-					    	    		OSPLog.info("executing command: " + cmd); //$NON-NLS-1$ 
-
-					    	    		field.setText(cmd);
-			  	  	    			JPanel panel = new JPanel(new BorderLayout());
-			  	  	    			JLabel label1 = new JLabel(TrackerRes.getString("TTrackBar.Dialog.LinuxCommand.Message1")); //$NON-NLS-1$
-			  	  	    			label1.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 4));
-			  	  	    			JLabel label2 = new JLabel(TrackerRes.getString("TTrackBar.Dialog.LinuxCommand.Message2")); //$NON-NLS-1$
-			  	  	    			label2.setBorder(BorderFactory.createEmptyBorder(4, 0, 0, 4));
-			  	  	    			JLabel label3 = new JLabel(TrackerRes.getString("TTrackBar.Dialog.LinuxCommand.Message3")); //$NON-NLS-1$
-			  	  	    			label3.setBorder(BorderFactory.createEmptyBorder(4, 0, 10, 4));
-			  	  	    			Box box = Box.createVerticalBox();
-			  	  	    			box.add(label1);
-			  	  	    			box.add(label2);
-			  	  	    			box.add(label3);
-			  	  	    			panel.add(box, BorderLayout.NORTH);
-			  	  	    			panel.add(field, BorderLayout.SOUTH);
-			  	  	    			
-			  	  	    			JOptionPane.showMessageDialog(frame, 
-			  	  	    					panel, TrackerRes.getString("TTrackBar.Dialog.LinuxCommand.Title"),  //$NON-NLS-1$
-			  	  	    					JOptionPane.INFORMATION_MESSAGE);
-			  	  	    			
-			  	  	    			// copy command to the clipboard
-//				  	  	    		// following lines don't work on Ubuntu (known issue as of Jan 2018)
-//				  	            StringSelection data = new StringSelection(cmd);
-//				  	            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-//				  	            clipboard.setContents(data, data);
-
-												TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-												if (trackerPanel!=null) {
-													Action exit = TActions.getAction("exit", trackerPanel); //$NON-NLS-1$
-													exit.actionPerformed(null);
-												}
-												else {
-													System.exit(0);
-												}
-			  	  	    		}
-			  	  	    		else {
-					      				OSPLog.warning("failed to download upgrade installer"); //$NON-NLS-1$
-			  	  	    			failed[0] = true;
-			  	  	    		}
-					      			if (failed[0]) {
-			  	    					// close relaunching dialog and display Tracker web site
-			  	      				relaunchingDialog.setVisible(false);
-			  	      				relaunchingDialog.dispose();
-						  	    		String websiteurl = "https://"+Tracker.trackerWebsite; //$NON-NLS-1$
-						  	    		OSPDesktop.displayURL(websiteurl);
-					    				}
-			  	    			}
-			  	    		}; // end runnable
-			  	    		new Thread(runner).start();
-		      			}
-	  	    		}
-	  	    		else {
-	      				OSPLog.warning("no upgrade installer found on server"); //$NON-NLS-1$
-	  	    			failed[0] = true;
-	  	    		}	  	    		
-      			} // end linux action
-      			if (failed[0]) {
-    					// close relaunching dialog and display Tracker web site
-      				relaunchingDialog.setVisible(false);
-      				relaunchingDialog.dispose();
-	  	    		String websiteurl = "https://"+Tracker.trackerWebsite; //$NON-NLS-1$
-	  	    		OSPDesktop.displayURL(websiteurl);
-    				}
-  	    	} // end upgrade action
-  	    }); // end upgrade menu item
+    				new Upgrader(frame).upgrade();
+  	    	}
+  	    });
   	    
   	    JMenuItem learnMoreItem = new JMenuItem(
   	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.LearnMore")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
@@ -813,14 +312,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
       	return getSelectTrackPopup();
       }   	
     };
-//    // mouse listener to reset zoom button to off state
-//    addMouseListener(new MouseAdapter() {
-//      public void mousePressed(MouseEvent e) {
-//      	TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
-//    		if (toolbar.zoomButton.getIcon()!=TToolBar.zoomOffIcon)
-//    			toolbar.zoomButton.setIcon(TToolBar.zoomOffIcon);    		
-//      }
-//    });
     trackButton = new TButton() {
     	@Override
       protected JPopupMenu getPopup() {
@@ -1120,41 +611,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   }
 
   /**
-   * Uses a JFileChooser to select a download directory.
-   * 
-   * @param parent a component to own the file chooser
-   * @param likely the default likely directory
-   * @return the chosen directory file
-   */
-  public static File chooseDownloadDirectory(Component parent, File likely) {
-    JFileChooser chooser = new JFileChooser(likely);
-    if (OSPRuntime.isMac())
-      chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-    else
-    	chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-    javax.swing.filechooser.FileFilter folderFilter = new javax.swing.filechooser.FileFilter() {
-      // accept directories only
-      public boolean accept(File f) {
-      	if (f==null) return false;
-        return f.isDirectory();
-      }
-      public String getDescription() {
-        return ToolsRes.getString("LibraryTreePanel.FolderFileFilter.Description"); //$NON-NLS-1$
-      } 	     	
-    };
-    chooser.setAcceptAllFileFilterUsed(false);
-    chooser.addChoosableFileFilter(folderFilter);
-    String text = TrackerRes.getString("TTrackBar.Chooser.DownloadDirectory"); //$NON-NLS-1$
-    chooser.setDialogTitle(text);
-  	FontSizer.setFonts(chooser, FontSizer.getLevel());
-	  int result = chooser.showDialog(parent, TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
-    if (result==JFileChooser.APPROVE_OPTION) {
-      return chooser.getSelectedFile();
-    }
-  	return null;
-  }
-  
-  /**
    *  Refreshes the memory button.
    */
   protected static void refreshMemoryButton() {
@@ -1180,12 +636,4 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		memoryButton.setForeground(used>0.8? Color.red: Color.black);
   }
 
-  private static boolean isAlive(Process process) {
-  	try {
-  		process.exitValue();
-  		return false;
-  	} catch (Exception e) {
-  		return true;
-  	}
-  }
 }
