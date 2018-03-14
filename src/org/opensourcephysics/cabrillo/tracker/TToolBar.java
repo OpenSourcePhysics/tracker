@@ -1233,17 +1233,12 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	          int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
 	          String letter = TrackerPanel.alphabet.substring(i, i+1);
 	          track.setName(name+" "+letter); //$NON-NLS-1$
-	          
-	    			Rectangle rect = trackerPanel.getMat().mat;
-	    			double x = rect.x+rect.width/2; // center of mat
-	    			double y = rect.y+rect.height/2; // center of mat
 	  				trackerPanel.addTrack(track);
 	          calibrationButton.setSelected(true);
 		      	// show all tools in visibleTools list
 		      	for (TTrack next: trackerPanel.visibleTools) {
 			      	showCalibrationTool(next);
 		      	}
-	  				track.createStep(0, x-50, y-10, x+50, y-10);
 	    			trackerPanel.setSelectedTrack(track);
 	        }
 	      });
@@ -1261,18 +1256,13 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	        	String name = TrackerRes.getString("CalibrationTapeMeasure.New.Name"); //$NON-NLS-1$
 	          int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
 	          String letter = TrackerPanel.alphabet.substring(i, i+1);
-	          track.setName(name+" "+letter); //$NON-NLS-1$
-	
-	          Rectangle rect = trackerPanel.getMat().mat;
-	    			double x = rect.x+rect.width/2; // center of mat
-	    			double y = rect.y+rect.height/2; // center of mat
+	          track.setName(name+" "+letter); //$NON-NLS-1$	
 	  				trackerPanel.addTrack(track);
 	          calibrationButton.setSelected(true);
 		      	// show all tools in visibleTools list
 		      	for (TTrack next: trackerPanel.visibleTools) {
 			      	showCalibrationTool(next);
 		      	}
-	  				track.createStep(0, x-50, y-30, x+50, y-30);
 	    			trackerPanel.setSelectedTrack(track);
 	        }
 	      });

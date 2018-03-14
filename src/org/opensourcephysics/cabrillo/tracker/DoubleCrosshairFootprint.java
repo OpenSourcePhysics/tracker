@@ -145,12 +145,15 @@ public class DoubleCrosshairFootprint extends LineFootprint {
     // set up line shapes
     float d = (float)p1.distance(p2); // distance between ends
     float center = d/2; // center point
-    float l = d - scale*2*(size+3); // line length
+    float l = Math.max(d - scale*2*(size+3), size); // line length
     float f = 0.45f; // hit shape is 90% of line length
     path.reset();
     path.moveTo(center - f*l, 0);
     path.lineTo(center + f*l, 0);
     double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);
+    if (Double.isNaN(theta)) {
+    	theta = 0;
+    }
     transform.setToRotation(theta, p2.x, p2.y);
     transform.translate(p2.x, p2.y);
     hitShapes[2] = transform.createTransformedShape(path); // line    

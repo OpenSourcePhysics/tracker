@@ -1953,6 +1953,7 @@ public abstract class TTrack implements Interactive,
 	    	for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
 	    		Step targetStep = targetTrack.getStep(n);
 	    		Step step = getStep(n);
+	    		if (step==null) continue;
 	    		TPoint p = step.getPoints()[i]; // not for CircleFitter--see overridden method
 	    		if (targetStep==null || !targetStep.valid) {
 		      	if (p!=null) {
@@ -1968,6 +1969,7 @@ public abstract class TTrack implements Interactive,
 	  	else { // target track is null
 	  		for (int n = clip.getStartFrameNumber(); n<=clip.getEndFrameNumber(); n++) {
 	    		Step step = getStep(n);
+	    		if (step==null) continue;
 	    		TPoint p = step.getPoints()[i];
 	      	if (p!=null) {
 	      		p.detach();

@@ -382,10 +382,19 @@ public class Calibration extends TTrack {
     Interactive ia = null;
     int n = trackerPanel.getFrameNumber();
     Step step = getStep(n);
-    if (step != null &&
-        trackerPanel.getPlayer().getVideoClip().includesFrame(n))
+    if (step==null) {
+    	partName = null;
+      hint = TrackerRes.getString("Calibration.Unmarked.Hint")+" 1"; //$NON-NLS-1$ //$NON-NLS-2$
+    	return null;
+    }
+    if (trackerPanel.getPlayer().getVideoClip().includesFrame(n)) {
       ia = step.findInteractive(trackerPanel, xpix, ypix);
-    if (ia != null) {
+    }
+    if (step.getPoints()[1]==null) {
+    	partName = null;
+      hint = TrackerRes.getString("Calibration.Unmarked.Hint")+" 2"; //$NON-NLS-1$ //$NON-NLS-2$
+    }
+    else if (ia != null) {
     	partName = TrackerRes.getString("Calibration.Point.Name"); //$NON-NLS-1$
     	hint = TrackerRes.getString("Calibration.Point.Hint"); //$NON-NLS-1$
     }

@@ -640,11 +640,14 @@ public class TActions {
         TapeMeasure tape = new TapeMeasure();
         tape.setReadOnly(true);
         tape.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
-      	// place tape above center of mat
-      	Rectangle rect = trackerPanel.getMat().mat;
-        double x = rect.width/2;
-        double y = rect.height/2;
-				tape.createStep(0, x-50, y-20, x+50, y-20);
+      	// place tape at center of viewport
+      	MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
+        Rectangle rect = mainView.scrollPane.getViewport().getViewRect();
+        int xpix = rect.x+rect.width/2;
+        int ypix = rect.y+rect.height/2;
+        double x = trackerPanel.pixToX(xpix);
+        double y = trackerPanel.pixToY(ypix);
+				tape.createStep(0, x-50, y, x+50, y);
         trackerPanel.addTrack(tape);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.selectedSteps.clear();
@@ -659,12 +662,16 @@ public class TActions {
       	Protractor protractor = new Protractor();
         protractor.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(protractor);
-      	// place protractor above center of mat
-      	Rectangle rect = trackerPanel.getMat().mat;
-        double x = rect.width/2;
-        double y = rect.height/2;
+      	// place protractor at center of viewport
+      	MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
+        Rectangle rect = mainView.scrollPane.getViewport().getViewRect();
+        int xpix = rect.x+rect.width/2;
+        int ypix = rect.y+rect.height/2;
+        double x = trackerPanel.pixToX(xpix);
+        double y = trackerPanel.pixToY(ypix);
         ProtractorStep step = (ProtractorStep)protractor.getStep(0);
-        step.handle.setXY(x, y-30);        	
+        double h = Math.abs(step.end1.y-step.end2.y);
+        step.handle.setXY(x, y+h/2);        	
         trackerPanel.setSelectedPoint(null);
         trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(protractor);

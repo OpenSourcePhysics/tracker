@@ -144,14 +144,14 @@ public class TMouseHandler implements InteractiveMouseHandler {
         AutoTracker.KeyFrame keyFrame = getActiveKeyFrame(autoTracker);
         if (marking) {
         	iad = null;
-        	boolean autoTrigger = isAutoTrackTrigger(e);
+        	boolean autotrackTrigger = isAutoTrackTrigger(e) && selectedTrack.isAutoTrackable();
           // create step
           frameNumber = trackerPanel.getFrameNumber();
           Step step = selectedTrack.getStep(frameNumber); // may be null for point mass, offset origin, calibration pts
           int index = selectedTrack.getTargetIndex();
         	int nextIndex = index;
-          if (step==null || !autoTrigger) {
-          	if (autoTrigger) {
+          if (step==null || !autotrackTrigger) {
+          	if (autotrackTrigger) {
           		selectedTrack.autoMarkAt(frameNumber,
                   trackerPanel.getMouseX(), trackerPanel.getMouseY());
               step = selectedTrack.getStep(frameNumber);          		
@@ -183,7 +183,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
             if (pts.length>index+1) nextIndex = index+1;
           }
           // if autotrack trigger, add key frame to autotracker
-          if (isAutoTrackTrigger(e) && step!=null && step.getPoints()[index]!=null) {
+          if (autotrackTrigger && step!=null && step.getPoints()[index]!=null) {
           	TPoint target = step.getPoints()[index];
           	// remark step target if Axes/Tape/Protractor/Perspective selected and no keyframe exists
           	if (selectedTrack instanceof CoordAxes 
@@ -202,7 +202,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
     	  		TTrackBar.getTrackbar(trackerPanel).refresh();
           }
           
-          if (step!=null && !isAutoTrackTrigger(e)) {
+          if (step!=null && !autotrackTrigger) {
             trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.
                 HAND_CURSOR));
             trackerPanel.setSelectedPoint(step.getDefaultPoint());
