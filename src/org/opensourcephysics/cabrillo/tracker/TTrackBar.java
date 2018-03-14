@@ -162,6 +162,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
             }    				
   	    	}
   	    });
+  	    FontSizer.setFonts(popup, FontSizer.getLevel());
   	    return popup;
     	}
     };
@@ -223,6 +224,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    		}
   	    	}
   	    });
+  	    FontSizer.setFonts(popup, FontSizer.getLevel());
   	    return popup;
     	}
     };
@@ -261,7 +263,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
    */
   public void setFontLevel(int level) {
   	Object[] objectsToSize = new Object[]
-  			{trackButton, sizingField};
+  			{newVersionButton, trackButton, sizingField, memoryButton, testButton};
     FontSizer.setFonts(objectsToSize, level);
 		sizingField.setText("1234567"); //$NON-NLS-1$
 		numberFieldWidth = sizingField.getPreferredSize().width;

@@ -592,7 +592,9 @@ public class Upgrader {
     chooser.addChoosableFileFilter(folderFilter);
     chooser.setCurrentDirectory(new File(likely.getParent()));
     chooser.setSelectedFile(likely);
-    chooser.updateUI();
+    if (OSPRuntime.isMac()) {
+    	chooser.updateUI();
+    }
   	FontSizer.setFonts(chooser, FontSizer.getLevel());
 	  int result = chooser.showDialog(parent, TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
     if (result==JFileChooser.APPROVE_OPTION) {
