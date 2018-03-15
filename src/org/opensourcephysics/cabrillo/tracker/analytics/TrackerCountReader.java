@@ -45,7 +45,7 @@ public class TrackerCountReader extends JFrame {
 	private String downloadClearFile = "clear__clear"; //$NON-NLS-1$
 	private String launchPHPPath = "http://physlets.org/tracker/counter/counter.php?page="; //$NON-NLS-1$
 	private String downloadPHPPath = "http://physlets.org/tracker/installers/download.php?file="; //$NON-NLS-1$
-	private String[] actions = {"read launch counts", "version", "list launch log failures", "list download failures",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+	private String[] actions = {"read launch counts", "read downloads", "version", "list launch log failures", "list download failures",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"clear launch log failures", "clear download failures", "test launch log", "test downloads"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] versions = {"all", "5.0.1", "5.0.0", "4.11.0", "4.10.0", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"4.9.8", "4.97", "4.96", "4.95", "4.94",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ 
@@ -110,8 +110,6 @@ public class TrackerCountReader extends JFrame {
 				}
 				else {
 					String[] ver = null, os = null, eng = null;
-					String command = versionDropdown.getSelectedItem()+"_"+osDropdown.getSelectedItem() //$NON-NLS-1$
-							+"_"+engineDropdown.getSelectedItem(); //$NON-NLS-1$
 					String action = actionDropdown.getSelectedItem().toString();
 					if (action.contains("list")) { //$NON-NLS-1$
 						String result = null;
@@ -177,7 +175,11 @@ public class TrackerCountReader extends JFrame {
 					}
 					String result = send(actionDropdown.getSelectedItem().toString(), ver, os, eng);
 	      	textArea.setForeground(Color.BLACK);
-					textArea.setText(command+": "+result); //$NON-NLS-1$
+					String command = versionDropdown.getSelectedItem()+"_"+osDropdown.getSelectedItem(); //$NON-NLS-1$
+					if (!action.contains("download")) { //$NON-NLS-1$
+						command += "_"+engineDropdown.getSelectedItem(); //$NON-NLS-1$
+					}
+					textArea.setText(action+" "+command+": "+result); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			}
 		});
@@ -214,43 +216,62 @@ public class TrackerCountReader extends JFrame {
   	return null;
   }
 	
-	private String send(String action, String[] ver, String[] os, String[] eng) {
+	private String send(final String action, String[] ver, String[] os, String[] eng) {
 		// action is "read..." or "test..."
 		int counts = 0;
 		String commands = ""; //$NON-NLS-1$
-		if (action.contains("read")) action = "read"; //$NON-NLS-1$ //$NON-NLS-2$
 		for (int i=0; i<ver.length; i++) {
 			for (int j=0; j<os.length; j++) {
-				if (action.contains("test") && action.contains("download")) {							 //$NON-NLS-1$ //$NON-NLS-2$
-						// typical Tracker-4.9.8-windows-installer.exe
-						// typical Tracker-4.9.8-osx-installer.zip
-						// typical Tracker-4.9.8-linux-32bit-installer.run
-						// typical Tracker-4.9.8-linux-64bit-installer.run
-						String osname = os[j];
-						String ext = osname.equals("windows")? ".exe": osname.equals("osx")? ".zip": ".run"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
-						if (osname.equals("linux")) { //$NON-NLS-1$
-							osname = "linux-32bit"; //$NON-NLS-1$
-						}
-						String command = "Tracker-"+ver[i]+"-"+osname+"-installer"+ext+"_test"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-						send(downloadPHPPath+command);
-						commands += NEW_LINE+command;
-						if (osname.contains("linux")) { //$NON-NLS-1$
-							command = "Tracker-"+ver[i]+"-linux-64bit-installer"+ext+"_test"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-							send(downloadPHPPath+command);
-							commands += NEW_LINE+command;
+				if ((action.contains("test") || action.contains("read")) && action.contains("download")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					// read or test downloads
+					String suffix = action.contains("read")? "__read": "_test"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					// typical Tracker-4.9.8-windows-installer.exe
+					// typical Tracker-4.9.8-osx-installer.zip
+					// typical Tracker-4.9.8-linux-32bit-installer.run
+					// typical Tracker-4.9.8-linux-64bit-installer.run
+					String osname = os[j];
+					String ext = osname.equals("windows")? ".exe": osname.equals("osx")? ".zip": ".run"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+					if (osname.equals("linux")) { //$NON-NLS-1$
+						osname = "linux-32bit"; //$NON-NLS-1$
+					}
+					String command = "Tracker-"+ver[i]+"-"+osname+"-installer"+ext; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					String result = send(downloadPHPPath+command+suffix);
+					commands += NEW_LINE+command+": "+result; //$NON-NLS-1$
+					if (action.contains("read")) { //$NON-NLS-1$
+						try {
+							result = result.replaceAll(",", ""); //$NON-NLS-1$ //$NON-NLS-2$
+							int n = Integer.parseInt(result);
+							counts += n;
+						} catch (NumberFormatException e) {
+							return "failed to parse "+result; //$NON-NLS-1$
 						}
 					}
-				else {
+					if (osname.contains("linux")) { //$NON-NLS-1$
+						command = "Tracker-"+ver[i]+"-linux-64bit-installer"+ext; //$NON-NLS-1$ //$NON-NLS-2$
+						result = send(downloadPHPPath+command+suffix);
+						commands += NEW_LINE+command+": "+result; //$NON-NLS-1$
+						if (action.contains("read")) { //$NON-NLS-1$
+							try {
+								result = result.replaceAll(",", ""); //$NON-NLS-1$ //$NON-NLS-2$
+								int n = Integer.parseInt(result);
+								counts += n;
+							} catch (NumberFormatException e) {
+								return "failed to parse "+result; //$NON-NLS-1$
+							}
+						}
+					}
+				}
+				else { // read or test launch counts
 					for (int k=0; k<eng.length; k++) {
 						String osname = os[j];
 						if (osname.equals("osx")) osname = "macosx"; //$NON-NLS-1$ //$NON-NLS-2$
-						String command = action+"_"+ver[i]+"_"+osname+"_"+eng[k]; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						String command = "read_"+ver[i]+"_"+osname+"_"+eng[k]; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						if (action.contains("test")) { //$NON-NLS-1$
 							command = "log_"+ver[i]+"_"+osname+"_"+eng[k]+"test"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 						}
 						String result = send(launchPHPPath+command);
 						commands += NEW_LINE+ver[i]+"_"+osname+"_"+eng[k]+": "+result; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-						if (action.equals("read")) { //$NON-NLS-1$
+						if (action.contains("read")) { //$NON-NLS-1$
 							try {
 								result = result.replaceAll(",", ""); //$NON-NLS-1$ //$NON-NLS-2$
 								int n = Integer.parseInt(result);
@@ -266,7 +287,7 @@ public class TrackerCountReader extends JFrame {
 		String s = String.valueOf(counts);
 		if (action.contains("test")) { //$NON-NLS-1$
 			if (action.contains("launch")) s = "launch log attempts"; //$NON-NLS-1$ //$NON-NLS-2$
-			else  s = "download attemps"; //$NON-NLS-1$
+			else  s = "download attempts"; //$NON-NLS-1$
 		}
 		if (ver.length>1 || os.length>1 || eng.length>1) {
 			s += NEW_LINE+commands;
