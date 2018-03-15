@@ -66,7 +66,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.0.1180302"; //$NON-NLS-1$
+  public static final String VERSION = "5.0.1"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -233,16 +233,18 @@ public class Tracker {
 			new Locale("sk"), // slovak //$NON-NLS-1$
 			new Locale("sl"), // slovenian //$NON-NLS-1$
 			new Locale("sv"), // swedish //$NON-NLS-1$
+			new Locale("th", "TH"), // Thailand thai //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("tr"), // turkish //$NON-NLS-1$
 			new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
 			Locale.CHINA, // simplified chinese
 			Locale.TAIWAN}; // traditional chinese
     
-    // pig make sure these are correct
+    // pig last updated March 2018
     incompleteLocales = new Object[][] { 
-			{new Locale("cs"), "2015"}, // czech //$NON-NLS-1$ //$NON-NLS-2$
+			{new Locale("cs"), "2013"}, // czech //$NON-NLS-1$ //$NON-NLS-2$
 			{new Locale("fi"), "2013"}, // finnish //$NON-NLS-1$ //$NON-NLS-2$
-			{new Locale("in"), "2014"}};// indonesian //$NON-NLS-1$ //$NON-NLS-2$
+			{new Locale("sk"), "2011"}, // slovak //$NON-NLS-1$ //$NON-NLS-2$
+			{new Locale("in"), "2013"}};// indonesian //$NON-NLS-1$ //$NON-NLS-2$
 
     setDefaultConfig(getFullConfig());
   	loadPreferences();
