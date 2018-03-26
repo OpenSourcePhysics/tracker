@@ -66,7 +66,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.0.1"; //$NON-NLS-1$
+  public static final String VERSION = "5.0.2180326"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -249,11 +249,13 @@ public class Tracker {
     setDefaultConfig(getFullConfig());
   	loadPreferences();
   	// load current version after a delay to allow video engines to load
-    Timer timer = new Timer(10000, new ActionListener() {
+  	// and every 24 hours thereafter (if program is left running)
+    Timer timer = new Timer(86400000, new ActionListener() {
 			 public void actionPerformed(ActionEvent e) {
 			  	Runnable runner = new Runnable() {
 			  		public void run() {
-			  	  	loadCurrentVersion(false, true);
+			  			checkedForNewerVersion = false;
+			  			loadCurrentVersion(false, true);
 			  		}
 			  	};
 			    Thread opener = new Thread(runner);
@@ -262,7 +264,8 @@ public class Tracker {
 			    opener.start();
 			 }
 		 });
-		timer.setRepeats(false);
+    timer.setInitialDelay(10000);
+		timer.setRepeats(true);
 		timer.start();
 
 		xmlFilter = new java.io.FileFilter() {
@@ -1244,36 +1247,36 @@ public class Tracker {
    * @param ignoreInterval true to load/compare immediately
    * @param logToFile true to log in to the PHP counter 
    */
-  protected static void loadCurrentVersion(boolean ignoreInterval, final boolean logToFile) {  	
+  protected static void loadCurrentVersion(boolean ignoreInterval, boolean logToFile) {  	
 		if (!ResourceLoader.isURLAvailable("http://www.opensourcephysics.org")) { //$NON-NLS-1$
 			return;
 		}
-  	if (checkedForNewerVersion) {
-  		return;
-  	}
+  	if (checkedForNewerVersion) return;
+		checkedForNewerVersion = true;
+		
+  	// check to see how much time has passed
+  	long millis = System.currentTimeMillis();
+  	double days = (millis-lastMillisChecked)/86400000.0;
+  	
+  	// don't log to file more often than every 2 hours no matter what
+  	if (logToFile && days<0.0833) logToFile = false;
+  	
+	 	// send data as page name to get latest version from PHP script
+	  // typical pre-4.97 version: "4.90" or "4.61111227"
+  	// typical post-4.97 version: "4.9.8" or "4.10.0170504" or "5.0.1"
+		String pageName = getPHPPageName(logToFile);
+		String latestVersion = loginGetLatestVersion(pageName);
+		
   	if (!ignoreInterval) {
 	  	// check to see if upgrade interval has passed
-	  	long millis = System.currentTimeMillis();
-	  	long days = (millis-lastMillisChecked)/86400000;
-	  	if (lastMillisChecked==0) {
-    		lastMillisChecked = System.currentTimeMillis();
-	  	}
-	  	// minimum interval is 0.1 days = 2.4 hrs so separate lab sections are counted?
-	  	double interval = checkForUpgradeInterval==0? 0.1: checkForUpgradeInterval;
+  		double interval = checkForUpgradeInterval==0? 0.0833: checkForUpgradeInterval;
 	  	if (days<interval) {
 	  		return;
 	  	}
   	}
-//  	if (true) return; // for PLATO
   	
-  	// interval has passed, so check for upgrades and save current time  	
-	  // typical pre-4.97 version: "4.90" or "4.61111227"
-  	// typical post-4.97 version: "4.9.8" or "4.10.0" or "4.10.0170504" or "5.0.0"
-	 	// send runtime and version data as page name to get latest version from PHP script
-		String pageName = getPHPPageName(logToFile);
-		String latestVersion = loginGetLatestVersion(pageName);
-		checkedForNewerVersion = true;
-		
+  	// interval has passed, so check for upgrades  	
+		lastMillisChecked = millis;
 		int result = compareVersions(latestVersion, VERSION);
 		if (result>0) { // newer version available
 			newerVersion = latestVersion;
@@ -1542,7 +1545,7 @@ public class Tracker {
 	    String javaPath = preferredJRE;
 	    if (javaPath!=null) {
 	    	File javaFile = OSPRuntime.getJavaFile(javaPath);
-	  		if (javaFile!=null && javaFile.exists()) {
+	  		if (javaFile!=null) {
 	  			javaPath = XML.stripExtension(XML.forwardSlash(javaFile.getPath()));
 	  		}
 	  		else javaPath = null;
