@@ -281,6 +281,7 @@ public class TrackerStarter {
 	 * @param writeToLog true to write the results to the start log
 	 */
 	public static String findTrackerHome(boolean writeToLog) throws Exception {
+		if (trackerHome!=null) return trackerHome;
 		// first determine if code base directory is trackerHome
 		if (codeBaseDir != null) {
 			if (writeToLog) logMessage("code base: " + codeBaseDir.getPath()); //$NON-NLS-1$
@@ -451,6 +452,10 @@ public class TrackerStarter {
 	 */
 	public static String findBundledVM() {
 		if (bundledVM!=null) return bundledVM;
+		try {
+			findTrackerHome(false);
+		} catch (Exception e) {}
+		
 		File jre = null;
 		if (OSPRuntime.isWindows()) {
 			jre = JREFinder.getFinder().getDefaultJRE(32, trackerHome, false);
@@ -622,7 +627,7 @@ public class TrackerStarter {
 			if (preferredVM!=null) {
 				logMessage("preferred java VM: " + preferredVM); //$NON-NLS-1$
 				File javaFile = OSPRuntime.getJavaFile(preferredVM);
-				if (javaFile != null && javaFile.exists()) {
+				if (javaFile != null) {
 					javaCommand = XML.stripExtension(javaFile.getPath());
 				} 
 				else {
@@ -635,7 +640,7 @@ public class TrackerStarter {
 				bundledVM = findBundledVM();
 				if (bundledVM != null) {
 					File javaFile = OSPRuntime.getJavaFile(bundledVM);
-					if (javaFile!=null && javaFile.exists()) {
+					if (javaFile!=null) {
 						preferredVM = bundledVM;
 						logMessage("no preferred java VM, using bundled VM: "+bundledVM); //$NON-NLS-1$
 						javaCommand = XML.stripExtension(javaFile.getPath());
