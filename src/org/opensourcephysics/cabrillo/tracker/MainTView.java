@@ -85,26 +85,42 @@ public class MainTView extends JPanel implements TView {
     trackerPanel.setScrollPane(scrollPane);
     
     mouseAdapter = new MouseAdapter() {
+    	
     	@Override
     	public void mousePressed(MouseEvent e) {
     		zoomCenter.setLocation(e.getPoint());
     	}
+    	
     	@Override
       public void mouseReleased(MouseEvent e) {
       	// handle zoom actions
-      	if (Tracker.isZoomOutCursor(trackerPanel.getCursor())) 
-      		zoomOut(false);  
-        else if (Tracker.isZoomInCursor(trackerPanel.getCursor())) 
-        	zoomIn(false);   
+      	if (Tracker.isZoomOutCursor(trackerPanel.getCursor())) {
+      		zoomOut(false);
+      	}
+        else if (Tracker.isZoomInCursor(trackerPanel.getCursor())) {
+        	zoomIn(false); 
+        }
       }
+    	
     	@Override
     	public void mouseWheelMoved(MouseWheelEvent e) {
-    		zoomCenter.setLocation(e.getPoint());
+    		boolean invert = e.isControlDown() && !e.isShiftDown();
+    		boolean zoom = (!Tracker.scrubMouseWheel && !invert) || (Tracker.scrubMouseWheel && invert);
+    		if (zoom) zoomCenter.setLocation(e.getPoint());
+    		int n = trackerPanel.getPlayer().getStepNumber();
         if (e.getWheelRotation() > 0) {
-        	zoomOut(true);  // zoom by a step
+        	if (zoom) zoomOut(true);  // zoom by a step
+        	else {
+        		if (e.isAltDown()) trackerPanel.getPlayer().setStepNumber(n-10);
+        		else trackerPanel.getPlayer().back();
+        	}
         }
         else {
-        	zoomIn(true);  // zoom by a step
+        	if (zoom) zoomIn(true);  // zoom by a step
+        	else {
+        		if (e.isAltDown()) trackerPanel.getPlayer().setStepNumber(n+10);
+        		else trackerPanel.getPlayer().step();
+        	}
         }
     	}
     };
