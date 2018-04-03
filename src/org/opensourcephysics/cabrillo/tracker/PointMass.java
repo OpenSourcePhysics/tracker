@@ -795,7 +795,7 @@ public class PointMass extends TTrack {
 
   /**
    * Gets the world acceleration for the specified frame number and panel.
-   * May return null;
+   * May return null.
    *
    * @param n the frame number
    * @param trackerPanel the tracker panel
@@ -831,6 +831,55 @@ public class PointMass extends TTrack {
   	}
   }
 
+  /**
+   * Marks missing steps by linear interpolation
+   */
+  public void markInterpolatedSteps() {
+  	// save state
+  	XMLControl control = new XMLControlElement(this);
+  	boolean changed = false;
+    // find non-null position steps in the videoclip
+    VideoPlayer player = trackerPanel.getPlayer();
+    VideoClip clip = player.getVideoClip();
+    Step[] stepArray = getSteps();
+    Step curStep = null, prevNonNullStep = null;
+    for (int n = 0; n < stepArray.length; n++) {
+    	boolean inFrame = clip.includesFrame(n);
+    	if (!inFrame) continue;
+  		curStep = stepArray[n];
+  		if (curStep!=null) {
+  			int curStepNum = clip.frameToStep(n);
+  			if (prevNonNullStep!=null) {
+  				int prevStepNum = clip.frameToStep(prevNonNullStep.n);
+  				int range = curStepNum-prevStepNum;
+  				for (int i=prevStepNum+1; i<curStepNum; i++) {
+  					// mark new points here
+  					double x1 = ((PositionStep)prevNonNullStep).getPosition().getX();
+  					double y1 = ((PositionStep)prevNonNullStep).getPosition().getY();
+  					double x2 = ((PositionStep)curStep).getPosition().getX();
+  					double y2 = ((PositionStep)curStep).getPosition().getY();
+  					double x = x1 + (x2-x1)*(i-prevStepNum)/range;
+  					double y = y1 + (y2-y1)*(i-prevStepNum)/range;
+  					int frameNum = clip.stepToFrame(i);
+  					PositionStep step = new PositionStep(this, frameNum, x, y);
+  			    steps.setStep(frameNum, step);
+  			    step.setFootprint(getFootprint());
+  			    step.valid = true;
+  			    changed = true;
+  				}
+  			}
+  			prevNonNullStep = curStep;
+  		}
+    }
+		refreshDataLater = false;
+		updateDerivatives();
+	  support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+	  // post undoable edit if changes made
+	  if (changed) {
+	  	Undo.postTrackEdit(this, control);
+	  }
+  }
+  
   @Override
   protected void dispose() {
   	if (trackerPanel!=null) {

@@ -674,8 +674,8 @@ public class TableTrackView extends TrackView {
   protected int getFrameAtRow(int row) {
   	// get value of independent variable at row
   	double val = getIndepVarValueAtRow(row);
-  	String var = dataTable.getColumnName(0);
   	TTrack track = getTrack();
+  	String var = track.data.getDataset(0).getXColumnName();
   	int frameNum = track.getFrameForData(var, val);
     return frameNum;
   }
@@ -802,8 +802,9 @@ public class TableTrackView extends TrackView {
     });
     // create column list
     refreshColumnCheckboxes();
-    // button to show skipped frames
-    skippedFramesButton = new TButton(skipsOffIcon, skipsOnIcon) {
+    
+    // button to show gaps in data (skipped frames)  
+    skippedFramesButton = new TButton() {    	
     	// override getMaximumSize method so has same height as chooser button
 	    public Dimension getMaximumSize() {
 	      Dimension dim = super.getMaximumSize();
@@ -818,20 +819,50 @@ public class TableTrackView extends TrackView {
 	  			c = c.getParent();
 	    	}
 	      return dim;
-	    }    	    	
+	    }
+	    
+	    @Override
+	    protected JPopupMenu getPopup() {
+	    	JPopupMenu popup = new JPopupMenu();
+	    	JMenuItem item = new JMenuItem(skippedFramesButton.isSelected()? 
+	    			TrackerRes.getString("TableTrackView.MenuItem.Gaps.Hide"):  //$NON-NLS-1$
+	    				TrackerRes.getString("TableTrackView.MenuItem.Gaps.Show")); //$NON-NLS-1$
+		    item.addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent e) {
+		      	skippedFramesButton.setSelected(!skippedFramesButton.isSelected());
+		      	dataTable.skippedFramesRenderer.setVisible(skippedFramesButton.isSelected());
+		      	if (skippedFramesButton.isSelected()) {
+		  	  		SortDecorator decorator = (SortDecorator)dataTable.getModel();
+		  	  		decorator.reset();
+		      	}
+		      	dataTable.repaint();
+		      	dataTable.getTableHeader().resizeAndRepaint();
+		      }
+		    });	    	
+	    	popup.add(item);
+	    	item = new JMenuItem(TrackerRes.getString("TableTrackView.MenuItem.Gaps.Fill")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+		    item.addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent e) {
+		      	int result = JOptionPane.showConfirmDialog(TableTrackView.this.getTopLevelAncestor(), 
+		      			TrackerRes.getString("TableTrackView.Dialog.FillGaps.Message1")+"\n"+ //$NON-NLS-1$ //$NON-NLS-2$
+		      					TrackerRes.getString("TableTrackView.Dialog.FillGaps.Message2"),  //$NON-NLS-1$
+		      			TrackerRes.getString("TableTrackView.Dialog.FillGaps.Title"),  //$NON-NLS-1$
+		      			JOptionPane.YES_NO_OPTION);
+		      	if (result==JOptionPane.YES_OPTION) {
+    	      	PointMass p = (PointMass)TableTrackView.this.getTrack();
+    	      	p.markInterpolatedSteps();
+		      	}
+		      }
+		    });	    	
+	    	popup.add(item);
+	    	FontSizer.setFonts(popup, FontSizer.getLevel());
+	    	return popup;
+	    }
+
     };
-    skippedFramesButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	skippedFramesButton.setSelected(!skippedFramesButton.isSelected());
-      	dataTable.skippedFramesRenderer.setVisible(skippedFramesButton.isSelected());
-      	if (skippedFramesButton.isSelected()) {
-  	  		SortDecorator decorator = (SortDecorator)dataTable.getModel();
-  	  		decorator.reset();
-      	}
-      	dataTable.repaint();
-      	dataTable.getTableHeader().resizeAndRepaint();
-      }
-    });
+    skippedFramesButton.setText(TrackerRes.getString("TableTrackView.Button.SkippedFrames.Text")); //$NON-NLS-1$
+
+    
     // create popup and add menu items
     popup = new JPopupMenu();
     
@@ -1777,10 +1808,9 @@ public class TableTrackView extends TrackView {
 	    		PointMass p = (PointMass)track;
 	    		if (p.trackerPanel!=null) {
 	    			VideoClip clip = p.trackerPanel.getPlayer().getVideoClip();
-	      		Set<Integer> skippedSteps = p.skippedSteps;
 	      		int frameNum = getFrameAtRow(row);
 	      		int stepNum = clip.frameToStep(frameNum);
-	      		for (int i: skippedSteps) {
+	      		for (int i: p.skippedSteps) {
 	      			if (stepNum+1==i) {
 	      				((JLabel)c).setBorder(belowBorder);
 	      			}
