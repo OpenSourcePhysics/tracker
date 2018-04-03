@@ -489,8 +489,8 @@ public class TapeMeasure extends TTrack {
     }
     if (name.equals("stepnumber")) { //$NON-NLS-1$
       if (trackerPanel.getSelectedTrack() == this) {
-	      TapeStep step = (TapeStep)getStep(trackerPanel.getFrameNumber());     
-	      step.getTapeLength(!isStickMode());
+	      TapeStep step = (TapeStep)getStep(trackerPanel.getFrameNumber());
+	      if (step!=null) step.getTapeLength(!isStickMode());
 	      boolean enabled = isFieldsEnabled();
 	      magField.setEnabled(enabled);
 	      angleField.setEnabled(enabled);
@@ -559,9 +559,12 @@ public class TapeMeasure extends TTrack {
 	    step.worldLength = step.getTapeLength(true);    	
 	    step.setFootprint(getFootprint());
 	    steps = new StepArray(step); // autofill
+	    step = (TapeStep)getStep(n); // must do this since line above changes n to 0
     }
     else if (step.worldLength==0) {
   		initialCalibration = true;
+  		// always mark step 0 when initializing
+  		step = (TapeStep)getStep(0);
     	// set location of end2 and select readout for entering length
       step.getEnd2().setLocation(x, y);    	
 	    step.worldLength = step.getTapeLength(true);
