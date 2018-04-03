@@ -789,6 +789,12 @@ public class VectorStep extends Step
     public boolean isShort() {
     	return tip.distanceSq(tail) < 25;
     }
+    
+    @Override
+    public boolean isStepEditTrigger() {
+    	if (getTrack() instanceof PointMass) return false;
+    	return super.isStepEditTrigger();
+    }
 
   }
 
