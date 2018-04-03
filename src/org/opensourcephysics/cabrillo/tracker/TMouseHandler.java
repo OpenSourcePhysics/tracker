@@ -301,8 +301,11 @@ public class TMouseHandler implements InteractiveMouseHandler {
         	Point p = e.getPoint();
         	mousePtRelativeToViewRect.setLocation(p.x-rect.x, p.y-rect.y);
         	trackerPanel.scrollPane.getViewport().getView().getSize(dim);
-        	if (dim.width>rect.width || dim.height>rect.height)
+        	Cursor c = trackerPanel.getCursor();
+        	if ((dim.width>rect.width || dim.height>rect.height) 
+        			&& !Tracker.isZoomInCursor(c) && !Tracker.isZoomOutCursor(c)) {
         		trackerPanel.setMouseCursor(Tracker.grabCursor);
+        	}
         }
         break;
 
@@ -361,7 +364,10 @@ public class TMouseHandler implements InteractiveMouseHandler {
 
         // snap vectors and/or autoAdvance when releasing mouse
       case InteractivePanel.MOUSE_RELEASED:
-        trackerPanel.setMouseCursor(Cursor.getDefaultCursor());
+      	Cursor c = trackerPanel.getCursor();
+      	if (!Tracker.isZoomInCursor(c) && !Tracker.isZoomOutCursor(c)) {
+      		trackerPanel.setMouseCursor(Cursor.getDefaultCursor());
+      	}
         trackerPanel.requestFocusInWindow();
         p = trackerPanel.getSelectedPoint();
         if (p != null) {
