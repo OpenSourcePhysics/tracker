@@ -680,6 +680,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     clearTracksItem = deleteTracksMenu.add(actions.get("clearTracks")); //$NON-NLS-1$
     // config item
     configItem = editMenu.add(actions.get("config")); //$NON-NLS-1$
+    configItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, keyMask));
     // number menu
     numberMenu = new JMenu(TrackerRes.getString("Popup.Menu.Numbers")); //$NON-NLS-1$
     formatsItem = new JMenuItem(TrackerRes.getString("Popup.MenuItem.Formats")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
