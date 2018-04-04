@@ -16,49 +16,56 @@
 	<p>A calibration stick or tape can also be used to <a href="stick.html#angle">correct for tilt in the video image</a>.</p>
 		<p>Since a calibration stick or tape is a <a href="tracks.html">track</a>, it has a <a href="tracks.html#trackmenu">track menu</a> that is accessible in the Tracks menu on the menu bar or by right-clicking the main video view.</p>
         
-	<h3><a name="stick1" id="stick1"></a>1. Creating and using a calibration stick/tape</h3>
+	<h3><a name="stick1" id="stick1"></a>1. Creating a calibration stick/tape</h3>
 		<p>Click the arrow on the <strong>Calibration</strong> button on the toolbar and select <strong>New|Calibration Stick</strong> to create a new calibration stick.  If desired, you can create more than one stick. Show or hide the calibration stick (along with other calibration tools, if any) by clicking the main part of the Calibration button.</p>
 		<p align="center"><img src="../help_images/calibration_tools_menu.gif" alt="Calibration button"></p>
-		<p>When creating a calibration stick you will be prompted to mark the ends of the stick by shift-clicking the video at 2 points a known distance apart.</p>
+		<p>The way a new calibration stick is marked depends on the option selected in the <strong>Actions</strong> tab of the <a href="interface.html#prefs" target="_blank">preferences dialog</a>. </p>
+		<ul>
+		  	<li>If <strong>Center in view</strong> is selected, a stick of length 100 image units is automatically marked at the center of the current viewport.</li>
+		  	<li>If <strong>Mark ends with mouse</strong> is selected, follow the steps below. Red instructions on the toolbar will guide you.</li>
+    	</ul>
+<p>First mark the ends of the stick by shift-clicking the video at 2 points a known real-world distance apart. </p>
 		<p align="center">
-            <img src="../help_images/create_stick_1.gif" align="top"><br>
+          	<img src="../help_images/create_stick_1.gif" align="top"><br>
             <img src="../help_images/create_stick_2.gif" align="top"><br>
-    </p>
+   	</p>
 <p>After marking the ends, the readout (showing an uncalibrated length) will be automatically selected. Enter the real-world length of the stick into the readout, with or without <a href="coords.html#units">units</a> (meters is the default).</p>
 		<p align="center">
-          <img src="../help_images/create_stick_3.gif" align="top"><br>
+  <img src="../help_images/create_stick_3.gif" align="top"><br>
     		<img src="../help_images/create_stick_4.gif" align="top">
-    </p>
-		<p>The world length and angle from the x-axis will now be displayed on the toolbar.</p>
+	</p>
+        
+	<h3><a name="stick2" id="stick2"></a>2. Modifying a calibration stick/tape</h3>
+		<p>Select a calibration stick to display its world length and angle  on the toolbar.</p>
 		<p align="center">
           <img src="../help_images/create_stick_5.gif" align="top">
 		</p>
-<p>To change the world length, click either the readout on the stick or the length field on the toolbar and enter the desired length. You can change the <a href="coords.html#units">length unit</a> at the same time by including it when entering a world length--see <a href="#calibrate">Calibrating a video</a> for an example.</p>
-		<p align="center">
-        	<img src="../help_images/stick_change_length.gif" align="top">
+		<p>To change the world length, click either the readout on the stick or the length field on the toolbar and enter the desired length. You can change the <a href="coords.html#units">length unit</a> at the same time by including it when entering a world length--see <a href="#calibrate">Calibrating a video</a> for an example.</p>
+        <p align="center">
+            <img src="../help_images/stick_change_length.gif" align="top">
             <img src="../help_images/spacer.gif">
             <img src="../help_images/stick_enter_length.gif" align="top">
-</p>
-		<p>To change the pixel length (and thus the scale), drag either end of the stick. To move the entire stick without changing the scale, drag the middle.</p>
+    </p>
+		<p>To change the pixel length, drag either end of the stick. To move the entire stick without changing the scale, drag the middle.</p>
 		<p align="center">
 			<img src="../help_images/stick_select_end.gif" align="top">
             <img src="../help_images/spacer.gif">
             <img src="../help_images/stick_select_middle.gif" align="top">
         </p>
         
-	<h3><a name="calibrate" id="calibrate"></a>2. Calibrating a video and setting the length unit</h3>
+	<h3><a name="calibrate" id="calibrate"></a>3. Calibrating a video and setting the length unit</h3>
 	<p>To calibrate a video:</p>
 	<ul>
-				<li>create a calibration stick</li>
-				<li>shift-click the 2 ends of an object with known length in the video (for example, a meter stick)</li>
-				<li>enter that length into the readout with or without <a href="coords.html#units">units</a>.</li>
+				<li>create a calibration stick.</li>
+				<li>shift-click the 2 ends of an object with known length in the video (for example, a meter stick). If the stick is automatically marked, drag the stick ends to the ends of the video object.</li>
+				<li>enter the known length into the readout with or without <a href="coords.html#units">units</a>.</li>
 			</ul>
 	<p>To change or adjust the video calibration drag the ends of the stick and/or click the readout and enter a new length including units if desired. For example, the image below shows a video calibrated in meters using  a white PVC pipe with black stripes every 10 cm. To calibrate in cm, click the readout and enter 30 cm. The length unit will be updated wherever displayed.</p>
 		<p align="center">
 		  <img src="../help_images/stick_readout4.gif" alt="Readout in meters" align="middle">
 		</p>
         
-	<h3><a name="angle" id="angle"></a>3. Correcting for tilt in the video image</h3>
+	<h3><a name="angle" id="angle"></a>4. Correcting for tilt in the video image</h3>
 		<p>The calibration stick also displays its <strong>angle relative to the +x-axis</strong> on the toolbar. By setting this angle, you can correct for camera tilt when shooting a video.</p>
 		<p align="center">
         	<img src="../help_images/stick_initial_tilt.gif" align="top">
@@ -73,11 +80,11 @@
             <img src="../help_images/stick_final_angle.gif" align="top">
         </p>
         
-		<h3><a name="stick4" id="stick4"></a>4. Unfixing the position</h3>
+		<h3><a name="stick5" id="stick5"></a>5. Unfixing the position</h3>
 		<p>By default, the calibration stick has a <strong>fixed position</strong>--that is, its end positions are the same in all frames. Uncheck the <strong>Fixed</strong> checkbox in its <a href="tracks.html#trackmenu">track menu</a> to allow the position to vary independently from frame to frame.</p>
 		<p>Note that the calibration stick is always unfixed when the scale of the <a href="coords.html">coordinate system</a> is unfixed since its pixel length must change to keep its world length constant when the scale changes.</p>
         
-		<h3><a name="stick5" id="stick5"></a>5. Locking the calibration stick</h3>
+		<h3><a name="stick6" id="stick6"></a>6. Locking the calibration stick</h3>
 		<p>Locking the calibration stick prevents it from making any changes to the scale. Lock the stick by turning on the <strong>Locked</strong> property in its <a href="tracks.html#trackmenu">track menu</a>.</p>
         
 	</body>
