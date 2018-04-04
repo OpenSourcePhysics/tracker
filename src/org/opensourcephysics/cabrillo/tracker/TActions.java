@@ -647,7 +647,7 @@ public class TActions {
         int ypix = rect.y+rect.height/2;
         double x = trackerPanel.pixToX(xpix);
         double y = trackerPanel.pixToY(ypix);
-				tape.createStep(0, x-50, y, x+50, y);
+				tape.createStep(0, x-50, y, x+50, y); // length 100 image units
         trackerPanel.addTrack(tape);
         trackerPanel.setSelectedPoint(null);
         trackerPanel.selectedSteps.clear();

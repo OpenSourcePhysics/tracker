@@ -92,10 +92,10 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 //			    	    	}
 
 		    	      			    	      	
-			          	Tracker.newerVersion = "6.7.8"; //$NON-NLS-1$
-		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
-		    	      	
+//			          	Tracker.newerVersion = "6.7.8"; //$NON-NLS-1$
+//		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+//		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
+		    	      			    	      	
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
 		  	    				testTimer=null;
