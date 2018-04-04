@@ -489,7 +489,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	      			addTrack(child);
 	      		}
 		  			TFrame frame = getTFrame();
-		  			if (TrackerPanel.this.isShowing()) {
+		  			if (frame!=null && TrackerPanel.this.isShowing()) {
 			        TView[][] views = frame.getTViews(TrackerPanel.this);
 			        for (TView[] next: views) {
 			        	for  (TView view: next) {
@@ -599,7 +599,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
     track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
     track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
-  	getTFrame().removePropertyChangeListener("tab", track); //$NON-NLS-1$
+    TFrame frame = getTFrame();
+  	if (frame!=null) frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
     super.removeDrawable(track);
     if (dataBuilder != null) dataBuilder.removePanel(track.getName());
 //    if (modelBuilder != null) modelBuilder.removePanel(track.getName());
@@ -789,7 +790,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
         track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
         track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
-      	getTFrame().removePropertyChangeListener("tab", track); //$NON-NLS-1$
+        TFrame frame = getTFrame();
+      	if (frame!=null) frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
       }
       super.removeObjectsOfClass(c);
       // notify views
@@ -818,7 +820,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
       track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
       track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
-    	getTFrame().removePropertyChangeListener("tab", track); //$NON-NLS-1$
+      TFrame frame = getTFrame();
+    	if (frame!=null) frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
 
       // handle case when track is the origin of current reference frame
     	ImageCoordSystem coords = getCoords();
@@ -1447,7 +1450,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     if (dimensions.equals("ML/T")) return sp+massUnit+d+lengthUnit+"/"+timeUnit; //$NON-NLS-1$ //$NON-NLS-2$
     if (dimensions.equals("ML/TT")) return sp+massUnit+d+lengthUnit+"/"+timeUnit+sq; //$NON-NLS-1$ //$NON-NLS-2$
     if (dimensions.equals("MLL/TT")) return sp+massUnit+d+lengthUnit+sq+"/"+timeUnit+sq; //$NON-NLS-1$ //$NON-NLS-2$
-    String angUnit = getTFrame().anglesInRadians? "": Tracker.DEGREES; //$NON-NLS-1$
+    TFrame frame = getTFrame();
+    String angUnit = frame!=null && frame.anglesInRadians? "": Tracker.DEGREES; //$NON-NLS-1$
     if (dimensions.equals("A/T")) return sp+angUnit+"/"+timeUnit; //$NON-NLS-1$ //$NON-NLS-2$
     if (dimensions.equals("A/TT")) return sp+angUnit+"/"+timeUnit+sq; //$NON-NLS-1$ //$NON-NLS-2$
     return ""; //$NON-NLS-1$
@@ -1633,6 +1637,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * Gets the popup menu. Overrides DrawingPanel method.
    */
   public JPopupMenu getPopupMenu() {
+  	if (getTFrame()==null) return super.getPopupMenu();
   	MainTView mainView = getTFrame().getMainView(this);
   	return mainView.getPopupMenu();
   }
@@ -1796,15 +1801,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   protected void restoreViews() {
   	// find maximized view and restore
-  	Container[] views = getTFrame().getViews(this);
-  	for (int i = 0; i<views.length; i++) {
-    	if (views[i] instanceof TViewChooser) {
-    		TViewChooser chooser = (TViewChooser)views[i];
-    		if (chooser.maximized) {
-    			chooser.restore();
-    			break;
-    		}
-    	}
+  	TFrame frame = getTFrame();
+    if (frame !=null) {
+	    Container[] views = frame.getViews(this);
+	  	for (int i = 0; i<views.length; i++) {
+	    	if (views[i] instanceof TViewChooser) {
+	    		TViewChooser chooser = (TViewChooser)views[i];
+	    		if (chooser.maximized) {
+	    			chooser.restore();
+	    			break;
+	    		}
+	    	}
+	    }
     }
   }
 
@@ -2326,7 +2334,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         firePropertyChange("adjusting", null, e.getNewValue()); // to particle models //$NON-NLS-1$
       if (getSelectedPoint() != null) {
         getSelectedPoint().showCoordinates(this);
-        getTFrame().getTrackBar(this).refresh();
+        TFrame frame = getTFrame();
+        if (frame !=null) frame.getTrackBar(this).refresh();
       }
       for (TTrack track: getUserTracks())
       	track.erase(this);
@@ -3108,9 +3117,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	    	Filter filter = it.next();
 	    	Point p = visibleFilters.get(filter);
 	    	Dialog inspector = filter.getInspector();
-				int x = Math.max(p.x + frame.getLocation().x, 0);
+				int x = Math.max(p.x + (frame==null? 0: frame.getLocation().x), 0);
 				x = Math.min(x, dim.width-inspector.getWidth());
-				int y = Math.max(p.y + frame.getLocation().y, 0);
+				int y = Math.max(p.y + (frame==null? 0: frame.getLocation().y), 0);
 				y = Math.min(y, dim.height-inspector.getHeight());
 	    	inspector.setLocation(x, y);
 	    	inspector.setVisible(true);
