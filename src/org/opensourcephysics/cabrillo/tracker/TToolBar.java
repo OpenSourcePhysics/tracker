@@ -1232,13 +1232,27 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	        	String name = TrackerRes.getString("CalibrationStick.New.Name"); //$NON-NLS-1$
 	          int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
 	          String letter = TrackerPanel.alphabet.substring(i, i+1);
-	          track.setName(name+" "+letter); //$NON-NLS-1$
+	          track.setName(name+" "+letter); //$NON-NLS-1$	          
 	  				trackerPanel.addTrack(track);
 	          calibrationButton.setSelected(true);
+	          
 		      	// show all tools in visibleTools list
 		      	for (TTrack next: trackerPanel.visibleTools) {
 			      	showCalibrationTool(next);
 		      	}
+		      	
+		      	// mark immediately if preferred
+		      	if (Tracker.centerCalibrationStick) {
+			      	// place at center of viewport
+			      	MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
+			        Rectangle rect = mainView.scrollPane.getViewport().getViewRect();
+			        int xpix = rect.x+rect.width/2;
+			        int ypix = rect.y+rect.height/2;
+			        double x = trackerPanel.pixToX(xpix);
+			        double y = trackerPanel.pixToY(ypix);
+			        track.createStep(0, x-50, y, x+50, y); // length 100 image units
+		      	}
+		      	
 	    			trackerPanel.setSelectedTrack(track);
 	        }
 	      });
@@ -1259,10 +1273,24 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	          track.setName(name+" "+letter); //$NON-NLS-1$	
 	  				trackerPanel.addTrack(track);
 	          calibrationButton.setSelected(true);
+	          
 		      	// show all tools in visibleTools list
 		      	for (TTrack next: trackerPanel.visibleTools) {
 			      	showCalibrationTool(next);
 		      	}
+		      	
+		      	// mark immediately if preferred
+		      	if (Tracker.centerCalibrationStick) {
+			      	// place at center of viewport
+			      	MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
+			        Rectangle rect = mainView.scrollPane.getViewport().getViewRect();
+			        int xpix = rect.x+rect.width/2;
+			        int ypix = rect.y+rect.height/2;
+			        double x = trackerPanel.pixToX(xpix);
+			        double y = trackerPanel.pixToY(ypix);
+			        track.createStep(0, x-50, y, x+50, y); // length 100 image units
+		      	}
+		      	
 	    			trackerPanel.setSelectedTrack(track);
 	        }
 	      });
