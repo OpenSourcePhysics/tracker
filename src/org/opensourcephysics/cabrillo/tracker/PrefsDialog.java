@@ -83,7 +83,7 @@ public class PrefsDialog extends JDialog {
   	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
   	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
   	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, 
-  	resetToStep0SubPanelBorder, decimalSeparatorBorder;
+  	resetToStep0SubPanelBorder, decimalSeparatorBorder, mouseWheelSubPanelBorder, calibrationStickSubPanelBorder;
 
   protected IntegerField memoryField;
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
@@ -97,6 +97,8 @@ public class PrefsDialog extends JDialog {
   protected JRadioButton vm32Button, vm64Button;
   protected JRadioButton xuggleButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
+  protected JRadioButton scrubButton, zoomButton;
+  protected JRadioButton markStickEndsButton, centerStickButton;
   protected JRadioButton xuggleFastButton, xuggleSlowButton;
   protected JRadioButton defaultDecimalButton, periodDecimalButton, commaDecimalButton;
   protected Tracker.Version[] trackerVersions;
@@ -106,9 +108,9 @@ public class PrefsDialog extends JDialog {
   protected Set<String> prevEnabled = new TreeSet<String>();
   protected int prevMemory, prevRecentCount, prevUpgradeInterval, prevFontLevel, prevFontLevelPlus;
   protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine, prevDecimalSeparator;
-  protected boolean prevHints, prevRadians, prevFastXuggle, 
+  protected boolean prevHints, prevRadians, prevFastXuggle, prevCenterCalibrationStick,
   		prevWarnNoVideoEngine, prevWarnXuggleError, prevWarnXuggleVersion,
-  		prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed;
+  		prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed, prevZoomMouseWheel;
   protected File prevCache;
   protected String[] prevExecutables;
 
@@ -785,7 +787,7 @@ public class PrefsDialog extends JDialog {
     
     boolean xuggleInstalled = DiagnosticsForXuggle.getXuggleJar()!=null;
 
-    //    // videoType subpanel
+    // videoType subpanel
     JPanel videoTypeSubPanel = new JPanel();
 //    box.add(videoTypeSubPanel);
     videoTypeSubPanel.setBackground(color);
@@ -944,6 +946,64 @@ public class PrefsDialog extends JDialog {
       }
     });
     markingSubPanel.add(resetToStep0Checkbox);
+        
+    // mouse wheel subpanel
+    JPanel mouseWheelSubPanel = new JPanel();
+    box.add(mouseWheelSubPanel);
+    mouseWheelSubPanel.setBackground(color);
+    mouseWheelSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.Mousewheel.BorderTitle")); //$NON-NLS-1$
+    mouseWheelSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, mouseWheelSubPanelBorder));
+
+    zoomButton = new JRadioButton();
+    zoomButton.setOpaque(false);
+    zoomButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    buttonGroup = new ButtonGroup();
+    buttonGroup.add(zoomButton);
+    scrubButton = new JRadioButton();
+    scrubButton.setOpaque(false);
+    scrubButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    
+    buttonGroup.add(scrubButton);
+    if (Tracker.scrubMouseWheel) scrubButton.setSelected(true);
+    else zoomButton.setSelected(true);
+    mouseWheelSubPanel.add(zoomButton);
+    mouseWheelSubPanel.add(scrubButton);
+    ActionListener mouseWheelAction = new ActionListener() {
+    	public void actionPerformed(ActionEvent e) {
+    		Tracker.scrubMouseWheel = scrubButton.isSelected();
+     	}
+    };
+    zoomButton.addActionListener(mouseWheelAction);
+    scrubButton.addActionListener(mouseWheelAction);
+        
+    // calibration stick subpanel
+    JPanel calibrationStickSubPanel = new JPanel();
+    box.add(calibrationStickSubPanel);
+    calibrationStickSubPanel.setBackground(color);
+    calibrationStickSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.CalibrationStick.BorderTitle")); //$NON-NLS-1$
+    calibrationStickSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, calibrationStickSubPanelBorder));
+    markStickEndsButton = new JRadioButton();
+    markStickEndsButton.setOpaque(false);
+    markStickEndsButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    buttonGroup = new ButtonGroup();
+    buttonGroup.add(markStickEndsButton);
+    centerStickButton = new JRadioButton();
+    centerStickButton.setOpaque(false);
+    centerStickButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));    
+    buttonGroup.add(centerStickButton);
+    if (Tracker.centerCalibrationStick) centerStickButton.setSelected(true);
+    else markStickEndsButton.setSelected(true);
+    calibrationStickSubPanel.add(markStickEndsButton);
+    calibrationStickSubPanel.add(centerStickButton);
+    ActionListener calStickAction = new ActionListener() {
+    	public void actionPerformed(ActionEvent e) {
+    		Tracker.centerCalibrationStick = centerStickButton.isSelected();
+     	}
+    };
+    markStickEndsButton.addActionListener(calStickAction);
+    centerStickButton.addActionListener(calStickAction);
         
     // "general" panel
     generalPanel = new JPanel(new BorderLayout());
@@ -1267,6 +1327,8 @@ public class PrefsDialog extends JDialog {
 		prevCache = ResourceLoader.getOSPCache();
 		prevUpgradeInterval = Tracker.checkForUpgradeInterval;
 		prevEngine = VideoIO.getEngine();
+		prevZoomMouseWheel = Tracker.scrubMouseWheel;
+		prevCenterCalibrationStick = Tracker.centerCalibrationStick;
   }
   
   private void revert() {
@@ -1286,6 +1348,8 @@ public class PrefsDialog extends JDialog {
 		Tracker.prelaunchExecutables = prevExecutables;
 		Tracker.warnNoVideoEngine = prevWarnNoVideoEngine;
 		Tracker.warnXuggleError = prevWarnXuggleError;
+		Tracker.scrubMouseWheel = prevZoomMouseWheel;
+		Tracker.centerCalibrationStick = prevCenterCalibrationStick;
 		ResourceLoader.setOSPCache(prevCache);
 		Tracker.checkForUpgradeInterval = prevUpgradeInterval;
 		// reset JRE dropdown to initial state
@@ -1336,6 +1400,7 @@ public class PrefsDialog extends JDialog {
     upgradeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Upgrades.BorderTitle")); //$NON-NLS-1$
     fontSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
     resetToStep0SubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Marking.BorderTitle")); //$NON-NLS-1$
+    mouseWheelSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Mousewheel.BorderTitle")); //$NON-NLS-1$
     decimalSeparatorBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
     defaultDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Default")); //$NON-NLS-1$
     periodDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Period")); //$NON-NLS-1$
@@ -1368,6 +1433,10 @@ public class PrefsDialog extends JDialog {
   	noEngineButton.setText(TrackerRes.getString("PrefsDialog.Button.NoEngine")); //$NON-NLS-1$
     radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
     degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
+    zoomButton.setText(TrackerRes.getString("PrefsDialog.Button.Zoom")); //$NON-NLS-1$
+    markStickEndsButton.setText(TrackerRes.getString("PrefsDialog.Button.MarkEnds")); //$NON-NLS-1$
+    centerStickButton.setText(TrackerRes.getString("PrefsDialog.Button.Center")); //$NON-NLS-1$
+    scrubButton.setText(TrackerRes.getString("PrefsDialog.Button.Scrub")); //$NON-NLS-1$
     xuggleFastButton.setText(TrackerRes.getString("PrefsDialog.Xuggle.Fast")); //$NON-NLS-1$
     xuggleSlowButton.setText(TrackerRes.getString("PrefsDialog.Xuggle.Slow")); //$NON-NLS-1$
     vidWarningCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfNoEngine")); //$NON-NLS-1$    
@@ -1377,7 +1446,7 @@ public class PrefsDialog extends JDialog {
     setTabTitle(runtimePanel, TrackerRes.getString("PrefsDialog.Tab.Runtime.Title")); //$NON-NLS-1$
     setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
     setTabTitle(displayPanel, TrackerRes.getString("PrefsDialog.Tab.Display.Title")); //$NON-NLS-1$
-    setTabTitle(trackPanel, TrackerRes.getString("PrefsDialog.Tab.Tracking.Title")); //$NON-NLS-1$
+    setTabTitle(trackPanel, TrackerRes.getString("PrefsDialog.Tab.Actions.Title")); //$NON-NLS-1$
     setTabTitle(generalPanel, TrackerRes.getString("PrefsDialog.Tab.General.Title")); //$NON-NLS-1$
     refreshTextFields();
     setFontLevel(FontSizer.getLevel());
@@ -1406,14 +1475,15 @@ public class PrefsDialog extends JDialog {
 		  			if (OSPRuntime.isMac()) {
 		  				path = new File(Tracker.trackerHome).getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
 		  			}
+		  			String bundledVM = TrackerStarter.findBundledVM();
+		  			File defaultVM = jreFinder.getDefaultJRE(vmBitness, path, true);
 		  	    for (File next: availableJREs) {
 		  	    	String jrePath = next.getPath();
-		  	    	if (TrackerStarter.findBundledVM()!=null && jrePath.equals(TrackerStarter.findBundledVM())) {
+		  	    	if (bundledVM!=null && jrePath.equals(bundledVM)) {
 			  	    	availableJREPaths.add(jrePath);
 			  	    	jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"), 0); //$NON-NLS-1$			  	    	
 		  	    	}
-		  	    	else if (jreFinder.getDefaultJRE(vmBitness, path, true)!=null
-		  	    			&& jrePath.equals(jreFinder.getDefaultJRE(vmBitness, path, true).getPath())
+		  	    	else if (defaultVM!=null && jrePath.equals(defaultVM.getPath())
 		  	    			&& !(vmBitness==64 && OSPRuntime.isWindows())) {
 			  	    	availableJREPaths.add(jrePath);
 			  	    	jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"), 0); //$NON-NLS-1$			  	    	
@@ -1428,7 +1498,6 @@ public class PrefsDialog extends JDialog {
 		  	    // set selected item
 		  	    String selectedItem = Tracker.preferredJRE;
 	  	    	if (selectedItem==null || !availableJREPaths.contains(selectedItem)) {
-	  	    		String bundledVM = TrackerStarter.findBundledVM();
   	        	if (bundledVM!=null) {
   	        		selectedItem = TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"); //$NON-NLS-1$;
   	        	}
