@@ -1409,7 +1409,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     }
     
     //diagnostics menu
-    if (trackerPanel!=null && trackerPanel.isEnabled("help.diagnostics")) { //$NON-NLS-1$
+    boolean showDiagnostics = trackerPanel==null?
+    		Tracker.getDefaultConfig().contains("help.diagnostics"): //$NON-NLS-1$
+    		trackerPanel.isEnabled("help.diagnostics"); //$NON-NLS-1$
+    if (showDiagnostics) {
 	    helpMenu.addSeparator();
 	    JMenu diagMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Diagnostics")); //$NON-NLS-1$
 	    helpMenu.add(diagMenu);        
