@@ -47,12 +47,13 @@ public class PositionStep extends Step {
 
   // instance fields
   protected Position p;
-  protected boolean labelVisible = true;
-  protected boolean rolloverVisible = false;
+  protected boolean labelVisible;
+  protected boolean rolloverVisible;
   protected Map<TrackerPanel, TextLayout> textLayouts 
   		= new HashMap<TrackerPanel, TextLayout>();
   protected Map<TrackerPanel, Rectangle> layoutBounds 
   		= new HashMap<TrackerPanel, Rectangle>();
+	protected CircleFootprint innerCircleFootprint = new CircleFootprint("CircleFootprint.Circle", 2); //$NON-NLS-1$
 //  protected Font font;
 
   /**
@@ -69,6 +70,8 @@ public class PositionStep extends Step {
     p.setTrackEditTrigger(true);
     points = new TPoint[] {p};
     screenPoints = new Point[getLength()];
+    setLabelVisible(track.labelsVisible);
+    setRolloverVisible(!track.labelsVisible);
   }
 
   /**
@@ -196,13 +199,13 @@ public class PositionStep extends Step {
         	p = screenPoints[n];
         }
       }
-      if (p == null) {
+      if (p == null) { // point not selected
       	if (footprint instanceof PositionVectorFootprint) {     		
       		twoPoints[0] = screenPoints[0];
       		twoPoints[1] = trackerPanel.getSnapPoint().getScreenPosition(trackerPanel);
         	mark = footprint.getMark(twoPoints);
       	}
-      	else mark = footprint.getMark(screenPoints);
+      	else mark = footprint.getMark(screenPoints); // this is standard footprint mark
       }
       else {
         transform.setToTranslation(p.x, p.y);
@@ -228,6 +231,26 @@ public class PositionStep extends Step {
           }
         };
       }
+      // we have a mark at this point
+      // overlay autofill mark for autofilled steps (not keyframes)
+    	if (!getTrack().keyFrames.contains(this.n)) {
+    		innerCircleFootprint.setColor(footprint.getColor());
+    		final Mark autofillMark = innerCircleFootprint.getMark(screenPoints);
+    		final Mark normalMark = mark;
+    		final PointMass m = (PointMass)getTrack();
+        mark = new Mark() {
+          public void draw(Graphics2D g, boolean highlighted) {
+            normalMark.draw(g, highlighted);
+            if (m.isAutofill()) {
+            	autofillMark.draw(g, false);
+            }
+          }
+          public Rectangle getBounds(boolean highlighted) {
+            return normalMark.getBounds(highlighted).union(autofillMark.getBounds(highlighted));
+          }
+        };
+    	}
+    	// don't draw anything if not valid
       final Mark theMark = mark;
       mark = new Mark() {
         public void draw(Graphics2D g, boolean highlighted) {
@@ -329,7 +352,12 @@ public class PositionStep extends Step {
       if (track.isLocked()) return;
       super.setXY(x, y);
       repaint();
-      ((PointMass)track).updateDerivatives(n);
+    	if (!isAdjusting()) {
+    		PointMass m = (PointMass)getTrack();
+      	if (m.isAutofill()) {
+  	    	m.markInterpolatedSteps(PositionStep.this, true);
+      	}
+    	}     
       track.support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
     }
 
@@ -377,7 +405,12 @@ public class PositionStep extends Step {
      */
     @Override
     public void setAdjusting(boolean adjusting) {
+    	if (!adjusting && !isAdjusting()) return;
     	super.setAdjusting(adjusting);
+  		PointMass m = (PointMass)getTrack();
+    	if (m.isAutofill()) {
+	    	m.markInterpolatedSteps(PositionStep.this, !adjusting);
+    	}
       getTrack().support.firePropertyChange("adjusting", null, adjusting); //$NON-NLS-1$    	
     }
 

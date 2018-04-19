@@ -62,6 +62,20 @@ public class PointMass extends TTrack {
   protected static String[] formatVariables; // used by NumberFormatSetter
   protected static Map<String, ArrayList<String>> formatMap;
   protected static Map<String, String> formatDescriptionMap;
+  protected static boolean isAutoKeyDown;
+  protected static String[] footprintNames = new String[]
+      {"Footprint.Diamond", //$NON-NLS-1$
+       "Footprint.Triangle", //$NON-NLS-1$
+       "CircleFootprint.Circle", //$NON-NLS-1$
+       "Footprint.VerticalLine", //$NON-NLS-1$
+       "Footprint.HorizontalLine", //$NON-NLS-1$       
+       "Footprint.PositionVector", //$NON-NLS-1$
+       "Footprint.Spot", //$NON-NLS-1$
+    	 "Footprint.BoldDiamond", //$NON-NLS-1$
+       "Footprint.BoldTriangle", //$NON-NLS-1$
+       "Footprint.BoldVerticalLine", //$NON-NLS-1$
+       "Footprint.BoldHorizontalLine", //$NON-NLS-1$
+       "Footprint.BoldPositionVector"}; //$NON-NLS-1$
 
   static {
   	// assemble data variables
@@ -239,6 +253,7 @@ public class PointMass extends TTrack {
   protected boolean xVisibleOnAll = false;
   protected boolean vVisibleOnAll = false;
   protected boolean aVisibleOnAll = false;
+  protected boolean labelsVisible = !Tracker.hideLabels;
   // for derivatives
   protected int algorithm = FINITE_DIFF;
   protected int vDerivSpill = 1;
@@ -251,6 +266,7 @@ public class PointMass extends TTrack {
   protected Object[] derivData = new Object[] {params, xData, yData, validData};
   // identify skipped steps
   protected TreeSet<Integer> skippedSteps = new TreeSet<Integer>();
+  protected boolean isAutofill = false, firstAutofill = true;
 
   // for GUI
   protected NumberField[][] vectorFields;
@@ -291,19 +307,20 @@ public class PointMass extends TTrack {
     super();
 		defaultColors = new Color[] {
 				Color.red,Color.cyan,Color.magenta,new Color(153, 153, 255)};
-    setFootprints(new Footprint[]
-      {PointShapeFootprint.getFootprint("Footprint.Diamond"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.Triangle"), //$NON-NLS-1$
-       CircleFootprint.getFootprint("CircleFootprint.Circle"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.VerticalLine"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.HorizontalLine"), //$NON-NLS-1$       
-       PointShapeFootprint.getFootprint("Footprint.PositionVector"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.Spot"), //$NON-NLS-1$
-    	 PointShapeFootprint.getFootprint("Footprint.BoldDiamond"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.BoldTriangle"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.BoldVerticalLine"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.BoldHorizontalLine"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.BoldPositionVector")}); //$NON-NLS-1$
+		Footprint[] fp = new Footprint[footprintNames.length];
+		for (int i=0; i<fp.length; i++) {
+			String name = footprintNames[i];
+			if (name.equals("CircleFootprint.Circle")) { //$NON-NLS-1$
+				fp[i] = CircleFootprint.getFootprint(name);
+			}
+			else {
+				fp[i] = PointShapeFootprint.getFootprint(name);
+			}
+		}
+    setFootprints(fp);
+    if (Tracker.preferredPointMassFootprint!=null) {
+    	setFootprint(Tracker.preferredPointMassFootprint);
+    }
     defaultFootprint = getFootprint();
     setVelocityFootprints(new Footprint[]
       {LineFootprint.getFootprint("Footprint.Arrow"), //$NON-NLS-1$
@@ -384,6 +401,9 @@ public class PointMass extends TTrack {
 	    step = new PositionStep(this, n, x, y);
 	    steps.setStep(n, step);
 	    step.setFootprint(getFootprint());
+	    if (isAutofill()) {
+	    	markInterpolatedSteps(step, true);
+	    }
     }
     else if (x!=step.getPosition().x || y!=step.getPosition().y) {
     	XMLControl state = new XMLControlElement(step);
@@ -420,6 +440,7 @@ public class PointMass extends TTrack {
    * @return the deleted step
    */
   public Step deleteStep(int n) {
+  	keyFrames.remove(n); // keyFrames are manually or auto-marked steps
     Step step = super.deleteStep(n);
     if (step != null) updateDerivatives(n);
     AutoTracker autoTracker = trackerPanel.getAutoTracker();
@@ -532,6 +553,14 @@ public class PointMass extends TTrack {
    */
   protected boolean isAutoTrackable() {
   	return true;
+  }
+  
+  @Override
+  public TPoint autoMarkAt(int n, double x, double y) {
+  	TPoint p = super.autoMarkAt(n, x, y);
+    // keyFrames contain all manually or auto-marked steps
+  	keyFrames.add(n);
+  	return p;
   }
   
   /**
@@ -830,43 +859,109 @@ public class PointMass extends TTrack {
       support.firePropertyChange("steps", null, null); //$NON-NLS-1$
   	}
   }
+  
+  /**
+   * Gets the autofill flag.
+   * 
+   * @return true if autofill is on
+   */
+  public boolean isAutofill() {
+  	return Tracker.enableAutofill && (PointMass.isAutoKeyDown || isAutofill);
+  }
+  
+  /**
+   * Sets the autofill flag.
+   * 
+   * @param autofill true to turn on autofill
+   */
+  public void setAutoFill(boolean autofill) {
+  	isAutofill = autofill;
+  	if (autofill) {
+  		// fill unfilled gaps, but ask if more than one
+  		int gapCount = getUnfilledGapCount();
+  		if (gapCount>1) {
+  			int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), 
+  					TrackerRes.getString("TableTrackView.Dialog.FillMultipleGaps.Message"),  //$NON-NLS-1$
+  					TrackerRes.getString("TableTrackView.Dialog.FillMultipleGaps.Title"),  //$NON-NLS-1$
+  					JOptionPane.YES_NO_OPTION);
+  			if (response==JOptionPane.YES_OPTION) {
+  				gapCount = 1;
+  			}
+  		}
+			if (gapCount==1) {
+				markAllInterpolatedSteps();
+			}
+  	}
+  }
+  
+  /**
+   * Returns the number of gaps (filled or not) in the keyframes
+   * 
+   * @return the gap count
+   */
+  public int getGapCount() {
+    int prev = -1;
+    int gapCount = 0;
+  	for (int n: keyFrames) {
+  		if (prev==-1) prev = n;
+  		else {
+  			if (n-prev>1) gapCount++;
+  			prev = n;
+  		}
+  	}
+  	return gapCount;
+  }
 
   /**
-   * Marks missing steps by linear interpolation
+   * Returns the number of unfilled gaps in the keyframes
+   * 
+   * @return the unfilled gap count
    */
-  public void markInterpolatedSteps() {
+  public int getUnfilledGapCount() {
+    int prev = -1;
+    int gapCount = 0;
+  	for (int n: keyFrames) {
+  		if (prev==-1) prev = n;
+  		else {
+  			if (n-prev>1) {
+  				// gap exists here, is it filled?
+  				boolean filled = true;
+  				for (int i=prev+1; i<n; i++) {
+  					if (skippedSteps.contains(i)) {
+  						filled = false;
+  						break;
+  					}
+  				}
+  				if (!filled) gapCount++;
+  			}
+  			prev = n;
+  		}
+  	}
+  	return gapCount;
+  }
+
+  /**
+   * Marks all missing steps by linear interpolation.
+   */
+  public void markAllInterpolatedSteps() {
+  	if (isLocked()) return;
   	// save state
   	XMLControl control = new XMLControlElement(this);
   	boolean changed = false;
+  	// go through all keyFrames and mark or move steps in the gaps
+    // keyFrames contain all manually or auto-marked steps
     // find non-null position steps in the videoclip
     VideoPlayer player = trackerPanel.getPlayer();
     VideoClip clip = player.getVideoClip();
     Step[] stepArray = getSteps();
-    Step curStep = null, prevNonNullStep = null;
+    PositionStep curStep = null, prevNonNullStep = null;
     for (int n = 0; n < stepArray.length; n++) {
     	boolean inFrame = clip.includesFrame(n);
     	if (!inFrame) continue;
-  		curStep = stepArray[n];
-  		if (curStep!=null) {
-  			int curStepNum = clip.frameToStep(n);
+  		curStep = (PositionStep)stepArray[n];
+  		if (curStep!=null && keyFrames.contains(n)) {
   			if (prevNonNullStep!=null) {
-  				int prevStepNum = clip.frameToStep(prevNonNullStep.n);
-  				int range = curStepNum-prevStepNum;
-  				for (int i=prevStepNum+1; i<curStepNum; i++) {
-  					// mark new points here
-  					double x1 = ((PositionStep)prevNonNullStep).getPosition().getX();
-  					double y1 = ((PositionStep)prevNonNullStep).getPosition().getY();
-  					double x2 = ((PositionStep)curStep).getPosition().getX();
-  					double y2 = ((PositionStep)curStep).getPosition().getY();
-  					double x = x1 + (x2-x1)*(i-prevStepNum)/range;
-  					double y = y1 + (y2-y1)*(i-prevStepNum)/range;
-  					int frameNum = clip.stepToFrame(i);
-  					PositionStep step = new PositionStep(this, frameNum, x, y);
-  			    steps.setStep(frameNum, step);
-  			    step.setFootprint(getFootprint());
-  			    step.valid = true;
-  			    changed = true;
-  				}
+  				changed = markInterpolatedSteps(prevNonNullStep, curStep) || changed;
   			}
   			prevNonNullStep = curStep;
   		}
@@ -878,6 +973,98 @@ public class PointMass extends TTrack {
 	  if (changed) {
 	  	Undo.postTrackEdit(this, control);
 	  }
+  }
+  
+  /**
+   * Marks steps by linear interpolation on both sides of a given step.
+   * 
+   * @param step the step
+   * @param refreshData true to update derivatives 
+   */
+  public void markInterpolatedSteps(PositionStep step, boolean refreshData) {
+  	if (isLocked()) return;
+    // keyFrames contain all manually or auto-marked steps
+  	if (!keyFrames.contains(step.n)) return;
+  	XMLControl control = new XMLControlElement(this);
+  	boolean changed = false;
+    VideoClip clip = trackerPanel.getPlayer().getVideoClip();  	
+  	// look for earlier and later steps
+  	int earlier = -1, later = -1;
+  	for (int keyframe: keyFrames) {
+    	boolean inFrame = clip.includesFrame(keyframe);
+    	if (!inFrame || keyframe==step.n) continue;  			
+  		if (keyframe<step.n) {
+  			earlier = keyframe;
+  		}
+  		if (later==-1 && keyframe>step.n) {
+  			later = keyframe;
+  		}
+  	}
+    Step[] stepArray = getSteps();
+    int firstStep = clip.frameToStep(step.n);
+    int lastStep = firstStep; 
+    if (earlier>-1) {
+    	PositionStep start = (PositionStep)stepArray[earlier];
+    	if (start!=null) {
+    		changed = markInterpolatedSteps(start, step);
+    		firstStep = clip.frameToStep(earlier);
+    	}
+    }
+    if (later>-1) {
+    	PositionStep end = (PositionStep)stepArray[later];
+    	if (end!=null) {
+	    	changed = markInterpolatedSteps(step, end) || changed;
+	    	lastStep = clip.frameToStep(later);
+    	}
+    }
+		refreshDataLater = !refreshData;
+		if (refreshData) updateDerivatives(firstStep, lastStep-firstStep);
+	  support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+	  // post undoable edit if changes made
+	  if (changed) {
+	  	Undo.postTrackEdit(this, control);
+	  }
+  }
+  
+  /**
+   * Marks steps by linear interpolation between two existing steps.
+   * 
+   * @param startStep the start step
+   * @param endStep the end step
+   * @return true if new steps were marked
+   */
+  public boolean markInterpolatedSteps(PositionStep startStep, PositionStep endStep) {
+  	if (isLocked()) return false;
+    VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		int startStepNum = clip.frameToStep(startStep.n);
+		int endStepNum = clip.frameToStep(endStep.n);
+		int range = endStepNum-startStepNum;
+		if (range<2) return false;
+    Step[] stepArray = getSteps();
+    boolean newlyMarked = false;
+		for (int i=startStepNum+1; i<endStepNum; i++) {
+			// mark new points or move existing points here
+			double x1 = startStep.getPosition().getX();
+			double y1 = startStep.getPosition().getY();
+			double x2 = endStep.getPosition().getX();
+			double y2 = endStep.getPosition().getY();
+			double x = x1 + (x2-x1)*(i-startStepNum)/range;
+			double y = y1 + (y2-y1)*(i-startStepNum)/range;
+			int frameNum = clip.stepToFrame(i);
+			PositionStep step = (PositionStep)stepArray[frameNum];
+			if (step==null) {
+				newlyMarked = true;
+				step = new PositionStep(this, frameNum, x, y);
+		    steps.setStep(frameNum, step);
+		    step.setFootprint(getFootprint());
+			}
+			else {
+				step.getPosition().setLocation(x, y); // triggers "location" property change for attachments
+				step.erase();
+			}
+	    step.valid = true;
+		}
+		return newlyMarked;
   }
   
   @Override
@@ -964,21 +1151,24 @@ public class PointMass extends TTrack {
     Step[] stepArray = getSteps();
     Step curStep = null, prevNonNullStep = null;
     for (int n = 0; n < stepArray.length; n++) {
+    	curStep = stepArray[n];
+      if (curStep==null) {
+      	keyFrames.remove(n);
+      	continue;
+      }
+      
     	boolean inFrame = clip.includesFrame(n);
-    	if (inFrame) {
-    		curStep = stepArray[n];
-    		if (curStep!=null) {
-    			int curStepNum = clip.frameToStep(n);
-    			if (prevNonNullStep!=null) {
-    				int prevStepNum = clip.frameToStep(prevNonNullStep.n);
-    				for (int i=prevStepNum+1; i<curStepNum; i++) {
-    					skippedSteps.add(i);
-    				}
-    			}
-    			prevNonNullStep = curStep;
-    		}
-    	}
-      if (stepArray[n] == null || !inFrame) continue;
+      if (!inFrame) continue;
+      
+			int curStepNum = clip.frameToStep(n);
+			if (prevNonNullStep!=null) {
+				int prevStepNum = clip.frameToStep(prevNonNullStep.n);
+				for (int i=prevStepNum+1; i<curStepNum; i++) {
+					skippedSteps.add(i);
+				}
+			}
+			prevNonNullStep = curStep;
+			
       int stepNumber = clip.frameToStep(n);
       double t = player.getStepTime(stepNumber)/1000.0;
     	double tf = player.getStepTime(stepNumber+vDerivSpill)/1000.0;
@@ -1521,12 +1711,13 @@ public class PointMass extends TTrack {
   }
 
   /**
-   * Sets the visibility of labels on the specified panel.
+   * Sets the visibility of labels.
    *
-   * @param panel the tracker panel
+   * @param panel a tracker panel
    * @param visible <code>true</code> to show all labels
    */
-  public void setLabelsVisible(TrackerPanel panel, boolean visible) {
+  public void setLabelsVisible(TrackerPanel panel, boolean visible) { 
+  	labelsVisible = visible;
     Step[] steps = this.getSteps();
     for (int i = 0; i < steps.length; i++) {
       PositionStep step = (PositionStep)steps[i];
@@ -2350,6 +2541,14 @@ public class PointMass extends TTrack {
 	      }
 	      control.setValue("framedata", data); //$NON-NLS-1$
       }
+      // save keyFrames
+      int[] keys = new int[p.keyFrames.size()];
+      int i = 0;
+      for (Integer n: p.keyFrames) {
+      	keys[i] = n;
+      	i++;
+      }
+      control.setValue("keyFrames", keys); //$NON-NLS-1$
     }
 
     public Object createObject(XMLControl control){
@@ -2409,6 +2608,13 @@ public class PointMass extends TTrack {
         
         p.updateDerivatives();
     	  p.support.firePropertyChange("data", null, null); //$NON-NLS-1$
+      }
+      int[] keys = (int[])control.getObject("keyFrames"); //$NON-NLS-1$
+      if (keys!=null) {
+      	p.keyFrames.clear();
+      	for (int i: keys) {
+      		p.keyFrames.add(i);
+      	}
       }
       p.setLocked(locked);
       return obj;
