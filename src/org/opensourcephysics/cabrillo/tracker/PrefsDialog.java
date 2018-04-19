@@ -380,27 +380,29 @@ public class PrefsDialog extends JDialog {
     		TrackerRes.getString("PrefsDialog.Language.BorderTitle")); //$NON-NLS-1$
     langSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, langSubPanelBorder));
     languageDropdown = new JComboBox();
-    Object selected = TrackerRes.getString("PrefsDialog.Language.Default"); //$NON-NLS-1$
-  	languageDropdown.addItem(selected);
+  	languageDropdown.addItem(TrackerRes.getString("PrefsDialog.Language.Default")); //$NON-NLS-1$
+    int index = 0, selectedIndex = 0;
     for (Locale next: Tracker.locales) {
+    	index++;
     	String s = OSPRuntime.getDisplayLanguage(next);
+    	// special handling for portuguese BR and PT
+    	if (next.getLanguage().equals("pt")) { //$NON-NLS-1$
+    		s+=" ("+next.getCountry()+")"; //$NON-NLS-1$ //$NON-NLS-2$
+    	}
     	languageDropdown.addItem(s);
     	if (next.equals(Locale.getDefault()) 
     			&& next.toString().equals(Tracker.preferredLocale)) {
-    		selected = s;
+    		selectedIndex = index;
     	}
     }
-    languageDropdown.setSelectedItem(selected);
+    languageDropdown.setSelectedIndex(selectedIndex);
     languageDropdown.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
-    		String s = languageDropdown.getSelectedItem().toString();
-    		if (s.equals(TrackerRes.getString("PrefsDialog.Language.Default"))) //$NON-NLS-1$
+    		int index = languageDropdown.getSelectedIndex();
+    		if (index==0)
       		Tracker.setPreferredLocale(null);        
-    		else for (Locale next: Tracker.locales) {
-        	if (s.equals(OSPRuntime.getDisplayLanguage(next))) {
-        		Tracker.setPreferredLocale(next.toString());
-        		break;
-        	}
+    		else {
+        	Tracker.setPreferredLocale(Tracker.locales[index-1].toString());
         }
     	}
     });
@@ -1293,7 +1295,7 @@ public class PrefsDialog extends JDialog {
     logLevelDropdown = new JComboBox();
     defaultLevel = TrackerRes.getString("PrefsDialog.Version.Default").toUpperCase(); //$NON-NLS-1$
     defaultLevel += " ("+Tracker.DEFAULT_LOG_LEVEL.toString().toLowerCase()+")"; //$NON-NLS-1$ //$NON-NLS-2$
-    selected = defaultLevel;
+    String selected = defaultLevel;
     logLevelDropdown.addItem(defaultLevel);
     for (int i=OSPLog.levels.length-1; i>=0; i--) {
     	String s = OSPLog.levels[i].toString();
@@ -1726,10 +1728,12 @@ public class PrefsDialog extends JDialog {
 		Tracker.showGaps = showGapsCheckbox.isSelected();
 		Tracker.trailLengthIndex = trailLengthDropdown.getSelectedIndex();
 		// refresh the toolbar
-		TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
-		toolbar.trailLength = TToolBar.trailLengths[Tracker.trailLengthIndex];
-  	toolbar.trailButton.setSelected(toolbar.trailLength!=1);		
-		toolbar.refresh(true);
+		if (trackerPanel!=null) {
+			TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
+			toolbar.trailLength = TToolBar.trailLengths[Tracker.trailLengthIndex];
+	  	toolbar.trailButton.setSelected(toolbar.trailLength!=1);		
+			toolbar.refresh(true);
+		}
     Tracker.isRadians = radiansButton.isSelected();
 		Tracker.isXuggleFast = xuggleFastButton.isSelected();
 		if (frame!=null) frame.setAnglesInRadians(Tracker.isRadians);
@@ -1788,12 +1792,15 @@ public class PrefsDialog extends JDialog {
     variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
     xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
     // locale
-    for (Locale next: Tracker.locales) {
+    int index = 0;
+    for (int i=0; i<Tracker.locales.length; i++) {
+    	Locale next = Tracker.locales[i];
     	if (next.equals(Locale.getDefault())) {
-    		languageDropdown.setSelectedItem(OSPRuntime.getDisplayLanguage(next));
+    		index = i+1;
     		break;
     	}
     }
+		languageDropdown.setSelectedIndex(index);
     
     // tracker jar
     int selected = 0;

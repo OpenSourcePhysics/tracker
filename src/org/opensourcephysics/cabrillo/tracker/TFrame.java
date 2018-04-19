@@ -2079,7 +2079,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     };
     ButtonGroup languageGroup = new ButtonGroup();
     for (int i = 0; i < Tracker.locales.length; i++) {
-      JMenuItem item = new JRadioButtonMenuItem(OSPRuntime.getDisplayLanguage(Tracker.locales[i]));
+	    String lang = OSPRuntime.getDisplayLanguage(Tracker.locales[i]);
+    	// special handling for portuguese BR and PT
+    	if (Tracker.locales[i].getLanguage().equals("pt")) { //$NON-NLS-1$
+    		lang +=" ("+Tracker.locales[i].getCountry()+")"; //$NON-NLS-1$ //$NON-NLS-2$
+    	}
+      JMenuItem item = new JRadioButtonMenuItem(lang);
       item.setActionCommand(Tracker.locales[i].toString());
       item.addActionListener(languageAction);
       languageMenu.add(item);
