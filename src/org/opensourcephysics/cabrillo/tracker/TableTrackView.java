@@ -71,7 +71,7 @@ public class TableTrackView extends TrackView {
   protected JCheckBox[] checkBoxes;
   protected boolean refresh = true;
   protected Set<String> textColumnsVisible = new TreeSet<String>();
-  private JButton columnsButton, skippedFramesButton;
+  private JButton columnsButton, gapsButton;
   private JPanel columnsPanel;
   private DatasetManager tableData;
   private JPopupMenu popup;
@@ -309,7 +309,7 @@ public class TableTrackView extends TrackView {
 //  	skippedFramesButton.setText(skippedFramesButton.isSelected()?
 //  		TrackerRes.getString("TableTrackView.Button.SkippedFrames.On"): //$NON-NLS-1$
 //    		TrackerRes.getString("TableTrackView.Button.SkippedFrames.Off")); //$NON-NLS-1$
-  	skippedFramesButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SkippedFrames.ToolTip")); //$NON-NLS-1$
+  	gapsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SkippedFrames.ToolTip")); //$NON-NLS-1$
 //    track.dataValid = false; // triggers data refresh
     track.getData(trackerPanel); // load the current data
     refreshColumnCheckboxes();    
@@ -331,13 +331,13 @@ public class TableTrackView extends TrackView {
    * @return an ArrayList of components to be added to a toolbar
    */
   public ArrayList<Component> getToolBarComponents() {
-  	toolbarComponents.remove(skippedFramesButton);
-  	// determine if track has skips
+  	toolbarComponents.remove(gapsButton);
+  	// determine if track has gaps
   	TTrack track = getTrack();
   	if (track instanceof PointMass) {
-  		PointMass p = (PointMass)track;
-  		if (p.skippedSteps.size()>0) {
-  	  	toolbarComponents.add(skippedFramesButton);
+  		PointMass p = (PointMass)track;  		
+  		if (p.getGapCount()>0 || p.skippedSteps.size()>0) {
+  	  	toolbarComponents.add(gapsButton);
   		}
   	}
     return toolbarComponents;
@@ -804,7 +804,7 @@ public class TableTrackView extends TrackView {
     refreshColumnCheckboxes();
     
     // button to show gaps in data (skipped frames)  
-    skippedFramesButton = new TButton() {    	
+    gapsButton = new TButton() {    	
     	// override getMaximumSize method so has same height as chooser button
 	    public Dimension getMaximumSize() {
 	      Dimension dim = super.getMaximumSize();
@@ -824,14 +824,13 @@ public class TableTrackView extends TrackView {
 	    @Override
 	    protected JPopupMenu getPopup() {
 	    	JPopupMenu popup = new JPopupMenu();
-	    	JMenuItem item = new JMenuItem(skippedFramesButton.isSelected()? 
-	    			TrackerRes.getString("TableTrackView.MenuItem.Gaps.Hide"):  //$NON-NLS-1$
-	    				TrackerRes.getString("TableTrackView.MenuItem.Gaps.Show")); //$NON-NLS-1$
+	    	JCheckBoxMenuItem item = new JCheckBoxMenuItem(TrackerRes.getString("TableTrackView.MenuItem.Gaps.GapsVisible")); //$NON-NLS-1$
+	    	item.setSelected(gapsButton.isSelected());
 		    item.addActionListener(new ActionListener() {
 		      public void actionPerformed(ActionEvent e) {
-		      	skippedFramesButton.setSelected(!skippedFramesButton.isSelected());
-		      	dataTable.skippedFramesRenderer.setVisible(skippedFramesButton.isSelected());
-		      	if (skippedFramesButton.isSelected()) {
+		      	gapsButton.setSelected(!gapsButton.isSelected());
+		      	dataTable.skippedFramesRenderer.setVisible(gapsButton.isSelected());
+		      	if (gapsButton.isSelected()) {
 		  	  		SortDecorator decorator = (SortDecorator)dataTable.getModel();
 		  	  		decorator.reset();
 		      	}
@@ -840,28 +839,27 @@ public class TableTrackView extends TrackView {
 		      }
 		    });	    	
 	    	popup.add(item);
-	    	item = new JMenuItem(TrackerRes.getString("TableTrackView.MenuItem.Gaps.Fill")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
-		    item.addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent e) {
-		      	int result = JOptionPane.showConfirmDialog(TableTrackView.this.getTopLevelAncestor(), 
-		      			TrackerRes.getString("TableTrackView.Dialog.FillGaps.Message1")+"\n"+ //$NON-NLS-1$ //$NON-NLS-2$
-		      					TrackerRes.getString("TableTrackView.Dialog.FillGaps.Message2"),  //$NON-NLS-1$
-		      			TrackerRes.getString("TableTrackView.Dialog.FillGaps.Title"),  //$NON-NLS-1$
-		      			JOptionPane.YES_NO_OPTION);
-		      	if (result==JOptionPane.YES_OPTION) {
-    	      	PointMass p = (PointMass)TableTrackView.this.getTrack();
-    	      	p.markInterpolatedSteps();
-		      	}
-		      }
-		    });	    	
-	    	popup.add(item);
+	    	if (Tracker.enableAutofill) {
+		    	item = new JCheckBoxMenuItem(TrackerRes.getString("TableTrackView.MenuItem.Gaps.AutoFill")); //$NON-NLS-1$
+			    item.addActionListener(new ActionListener() {
+			      public void actionPerformed(ActionEvent e) {
+	  	      	PointMass p = (PointMass)TableTrackView.this.getTrack();
+	  	      	p.setAutoFill(!p.isAutofill);
+	  	      	p.repaint();
+			      }
+			    });
+	      	PointMass p = (PointMass)TableTrackView.this.getTrack();
+			    item.setSelected(p.isAutofill);
+			    popup.addSeparator();
+		    	popup.add(item);
+	    	}
 	    	FontSizer.setFonts(popup, FontSizer.getLevel());
 	    	return popup;
 	    }
 
     };
-    skippedFramesButton.setText(TrackerRes.getString("TableTrackView.Button.SkippedFrames.Text")); //$NON-NLS-1$
-
+    gapsButton.setText(TrackerRes.getString("TableTrackView.Button.Gaps.Text")); //$NON-NLS-1$
+    gapsButton.setSelected(Tracker.showGaps);
     
     // create popup and add menu items
     popup = new JPopupMenu();
@@ -1777,7 +1775,7 @@ public class TableTrackView extends TrackView {
   	
   	TableCellRenderer baseRenderer;
   	Border belowBorder, aboveBorder;
-  	boolean visible = false;
+  	boolean visible = Tracker.showGaps;
 
 		public SkippedFramesRenderer() {
 			belowBorder = BorderFactory.createMatteBorder(0,0,1,0,Color.red);
@@ -1914,8 +1912,8 @@ public class TableTrackView extends TrackView {
   	
     @Override
     public void sort(int col) {
-      if (col>0 && skippedFramesButton.isSelected()) {
-      	skippedFramesButton.doClick(0);
+      if (col>0 && gapsButton.isSelected()) {
+      	gapsButton.doClick(0);
       }
       super.sort(col);
     }
