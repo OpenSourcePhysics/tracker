@@ -17,12 +17,24 @@
 			<li><strong>Manual tracking:</strong> shift-click once to mark a step at the mouse position, or shift-enter to mark a step at the exact location of the previous step. The video will auto-advance for easy and fast marking. It is wise to set the <a href="videos.html#videoclip">video clip</a> properties first so you don't mark unnecessary video frames. Zoom in for accuracy.</li>
 			<li><strong>Autotracking:</strong> point mass tracks can be automatically marked as long as the feature of interest has a consistent shape, size, color and orientation. Please see <a href="autotracker.html">Autotracker</a> for more information.</li>
 		</ol>
-		<p><strong>Don't skip frames</strong>--if you do, velocities and accelerations cannot be determined. If you accidentally skip frames, the <a href="tableview.html#skips">Datatable view</a> can help you find them.   </p>
+		<p><strong>Don't skip frames</strong>--if you do, velocities and accelerations cannot be determined at the data gaps. If you do skip frames, the <a href="tableview.html#skips">Datatable view</a> can help you find and/or autofill them. See <a href="#autofill">Autofilling gaps</a> for more information.</p>
 		<p>Point masses have visible trails by default. Hide or shorten the trails if desired using the <strong>trails</strong> button <img src="../help_images/trails_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a>.</p>
 	<p>To edit a marked step, select it and drag or use the arrow keys on the keyboard to nudge it one pixel at a time. Very fine control is possible at a high zoom level. You can also enter world coordinates directly in the toolbar fields to assign a known position.</p>
 		<p align="center"><img src="../help_images/pointmass_fields.gif"></p>
         
-		<h3><a name="mass2" id="mass2"></a>2. Setting the mass and mass unit</strong></h3>
+		<h3><a name="autofill" id="autofill"></a>2. Autofilling gaps</h3>
+		<p>When steps are skipped during marking it creates <strong>gaps</strong> in the data where velocities and accelerations cannot be determined.  Turning on <strong>Autofill</strong> can automatically fill these gaps using linear interpolation.</p>
+		<p>To turn on Autofill you must first  <strong>enable</strong> it in the <a href="interface#prefs">preferences dialog</a> (Edit|Preferences, Actions tab). Once enabled, turn it on by either (a) holding down the <strong>A</strong> key, or (b) checking the Autofill box in the <a href="tableview.html#skips">Datatable view</a>.</p>
+		<p>When autofill is on, gaps are filled by linear interpolation between marked steps. This is equivalent to assuming the track moves with constant velocity during the gap. Clicking or dragging a marked step at either end of a gap automatically updates the autofilled steps in that gap.</p>
+		<p>When autofill is on, autofilled steps are drawn with an inner circle to distinguish them from marked steps. When autofill is off the inner circles are not drawn. The images below show a gap before and after being autofilled.</p>
+    <p align="center">
+            <img src="../help_images/gap.gif" alt="Gap in positions">
+    </p>
+    <p align="center">
+      <img src="../help_images/gap_filled.gif" alt="Gap is filled">
+    </p>
+
+<h3><a name="mass3" id="mass3"></a>3. Setting the mass and mass unit</strong></h3>
 		<p>A newly created point mass is given a default mass of 1.0 mass unit (kg by default). Enter a new mass (m &gt;= 0) in the mass field on the toolbar to change the mass. You can change the <a href="coords.html#units">mass unit</a> at the same time by including it when entering the new mass. In this example, the mass unit is changed to g (grams) in all mass-dependent fields, table columns and plots. Note: all point masses in a given tab have the same units, you cannot have one in kg and another in g.</p>
 		<p align="center">
         	<img src="../help_images/pointmass_setting_mass.gif" alt="Setting the mass--original">
@@ -32,21 +44,21 @@
         	<img src="../help_images/pointmass_setting_mass3.gif" alt="Setting the mass--final">
         </p>
         
-<h3><a name="mass3" id="mass3"></a>3. Calculating velocities and accelerations</h3>
+<h3><a name="mass4" id="mass4"></a>4. Calculating velocities and accelerations</h3>
 		<p>Velocities and accelerations are calculated from the position-time data using the <strong>Finite Difference</strong> algorithm shown below. Subscripts refer to <a href="videos.html#videoclip">step numbers</a> and dt is the time between steps in seconds. The equations are shown only for the x-components; substitute y for x to obtain y-components.</p>
 		<p>If  steps are skipped when marking a point mass, velocities and accelerations cannot be calculated where the required position data is missing. This means velocities are missing both before and after a missing step, and accelerations are missing for 2 steps before and after the missing step.</p>
 		<p>If you know the point mass bounces off a surface you may wish to use the <strong>Bounce Detection</strong> algorithm which smooths velocities and accelerations but also detects sudden changes in velocity. Caution: this works very well for bounces but may produce artifacts with some motion. For more information, see http:<a href="http://gasstationwithoutpumps.wordpress.com/2011/11/08/tracker-video-analysis-tool-fixes/" target="_blank">gasstationwithoutpumps.wordpress.com/2011/11/08/tracker-video-analysis-tool-fixes/</a></p>
 	<p align="center"><img src="../help_images/veloc_accel_algorithm.gif" alt="Velocity and acceleration algorithms"></p>
 		<p>Note: there are many other finite difference algorithms.  Tracker's algorithms define the velocity for a step to be the average velocity over a 2-step interval, and the acceleration  to be the second derivative of  a parabolic fit over a 4-step interval, with the step at the center. Tracker's acceleration algorithm is less sensitive to position uncertainties than others..</p>
 
-<h3><a name="mass4" id="mass4"></a>4. Displaying motion vectors</h3>
+<h3><a name="mass5" id="mass5"></a>5. Displaying motion vectors</h3>
 		<p>Toggle the vector visibility for all point masses by clicking the <strong>velocity</strong> button <img src="../help_images/veloc_button.gif" align="absmiddle"> or <strong>acceleration</strong> button <img src="../help_images/accel_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a>. The vectors are initially <strong>attached</strong> to their positions (i.e. the tail of the velocity vector for step n is at the step n position).</p>
 		<p align="center"><img src="../help_images/veloc_home.gif" alt="Velocities at home positions"></p>
 		<p><strong>Note:</strong> Some motion vectors, especially accelerations, may be very short. You can artificially &quot;stretch&quot; them by clicking on the <strong>stretch</strong> button <img src="../help_images/stretch_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a> and selecting a stretch factor from the dropdown menu.</p>
 		<p>You can change the footprint of a motion vector using the appropriate <strong>footprint</strong> item on its <a href="tracks.html#trackmenu">track button</a>. The &rdquo;big arrow&rdquo; footprint is particularly useful for large classroom presentations.</p>
 		<p>You can set different colors for the velocity and acceleration vectors using the appropriate <strong>color</strong> item on the <a href="tracks.html#trackmenu">track button</a>. Motion vector colors are the same as the position by default.</p>
         
-		<h3><a name="mass5" id="mass5"></a>5. Analyzing motion vectors</h3>
+		<h3><a name="mass6" id="mass6"></a>6. Analyzing motion vectors</h3>
 		<p>Select a vector by clicking near its center to display its components on the toolbar.</p>
 		<p align="center"><img src="../help_images/veloc_components.gif" alt="Vector component fields"></p>
 		<p>Drag a vector to detach it from its position and move it around. Drop the vector with its tail near its position to reattach--it will <strong>snap</strong> to the position. </p>
@@ -59,10 +71,10 @@
 		<p align="center"><img src="../help_images/vector_snap_origin.gif" alt="Vector tail at origin"></p>
 		<p>Attach all vectors quickly to the origin or positions with the <strong>Tails to Origin</strong> or <strong>Tails to Position</strong> items in the point mass track menu.</p>
         
-		<h3><a name="mass6" id="mass6"></a>6. Displaying momentum and net force vectors</h3>
+		<h3><a name="mass7" id="mass7"></a>7. Displaying momentum and net force vectors</h3>
 		<p>Click the <strong>dynamics</strong> button <img src="../help_images/dynamics_button.gif" align="absmiddle"> on the <a href="interface.html#toolbar">toolbar</a> to multiply all velocity and acceleration vectors by their mass. This changes them to momentum and net force vectors, respectively.</p>
         
-		<h3><a name="mass7" id="mass7"></a>7. Linking motion vectors</h3>
+		<h3><a name="mass8" id="mass8"></a>8. Linking motion vectors</h3>
 		<p align="center">
         	<img src="../help_images/vector_snap_link.gif" alt="Linking vectors">
             <img src="../help_images/spacer.gif">

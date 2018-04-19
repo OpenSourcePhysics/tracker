@@ -34,18 +34,16 @@
 		<p align="center"><img src="../help_images/table_sorted.gif" alt="Sorted column"></p>
         
 		<h3><a name="skips" id="skips"></a>5. Finding and filling data gaps</h3>
-		<p>Sometimes  steps are skipped when marking, by accident or otherwise. It is recommended you identify and eliminate these data gaps since they prevent Tracker from <a href="pointmass.html#mass3">calculating velocities and accelerations</a>. The datatable can help make this easier by drawing red lines where the gaps occur or by filling the gaps using linear interpolation. </p>
-		<p>When Tracker detects that there are missing steps a <strong>Gaps</strong> button is displayed on the table's toolbar. Click this button and choose the <strong>Show</strong> item to draw red lines at the gaps. In the images below, step 2 is missing.</p>
+		<p>Sometimes  steps are skipped when marking, by accident or otherwise. It is recommended you identify and eliminate these data gaps since they prevent Tracker from <a href="pointmass.html#mass3">calculating velocities and accelerations</a>. The datatable can help make this easier by drawing red lines where the gaps occur or (if autofill is enabled) by filling the gaps using linear interpolation. </p>
+		<p>When Tracker detects that there are missing steps (as in the table below, where step 2 is missing) a <strong>Gaps</strong> button is displayed on the table's toolbar. Click this button to display the <strong>Show in table</strong> checkbox. Check this to show gaps by drawing red lines as show on the right side. You can also choose to show gaps by default in the <a href="interface.html#prefs">preferences dialog</a>.</p>
         <p align="center">
             <img src="../help_images/table_skips_off.gif" alt="Gaps button showing gaps">
             <img src="../help_images/spacer.gif">
             <img src="../help_images/table_skips_on.gif" alt="Gaps shown in red">
-        </p>
-		<p>To fill the gaps using linear interpolation, click the Gaps button and choose the <strong>Fill...</strong> item. You will be asked to confirm this action, but it is undoable in case you change your mind. Gaps are filled by marking points at equal distances along lines connecting existing marked points.</p>
+</p>
+		<p>If autofill is enabled (see <a href="interface.html#prefs">preferences dialog</a>), the Gaps button will also have an <strong>Autofill</strong> checkbox. Checking this box automatically fills gaps by linear interpolation. For more information see Point Mass <a href="pointmass.html#autofill">Autofilling gaps</a>.</p>
     <p align="center">
             <img src="../help_images/table_fill_gap.gif" alt="Gaps button filling gaps">
-            <img src="../help_images/spacer.gif">
-            <img src="../help_images/fill_gaps_dialog.gif" alt="Confirmation of fill action">
     </p>
 
 	<h3><a name="table6" id="table6"></a>6. Formatting data columns</h3>
