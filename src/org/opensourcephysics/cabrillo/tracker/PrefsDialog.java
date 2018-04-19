@@ -44,6 +44,7 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.IntegerField;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.DiagnosticsForXuggle;
@@ -83,17 +84,18 @@ public class PrefsDialog extends JDialog {
   	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
   	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
   	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, 
-  	resetToStep0SubPanelBorder, decimalSeparatorBorder, mouseWheelSubPanelBorder, calibrationStickSubPanelBorder;
+  	resetToStep0SubPanelBorder, decimalSeparatorBorder, mouseWheelSubPanelBorder, calibrationStickSubPanelBorder,
+  	dataGapSubPanelBorder, trailLengthSubPanelBorder, pointmassFootprintSubPanelBorder;
 
   protected IntegerField memoryField;
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
   		versionLabel, runLabel;
-  protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, 
-  		xuggleErrorCheckbox, variableDurationCheckBox, resetToStep0Checkbox;
+  protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, showGapsCheckbox,
+  		xuggleErrorCheckbox, variableDurationCheckBox, resetToStep0Checkbox, autofillCheckbox;
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
-  protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, 
-  		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown;
+  protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, trailLengthDropdown,
+  		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown, footprintDropdown;
   protected JRadioButton vm32Button, vm64Button;
   protected JRadioButton xuggleButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
@@ -102,17 +104,19 @@ public class PrefsDialog extends JDialog {
   protected JRadioButton xuggleFastButton, xuggleSlowButton;
   protected JRadioButton defaultDecimalButton, periodDecimalButton, commaDecimalButton;
   protected Tracker.Version[] trackerVersions;
-  protected boolean relaunching = false;
+  protected boolean relaunching, refreshing;
   
   // previous values
   protected Set<String> prevEnabled = new TreeSet<String>();
-  protected int prevMemory, prevRecentCount, prevUpgradeInterval, prevFontLevel, prevFontLevelPlus;
-  protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine, prevDecimalSeparator;
-  protected boolean prevHints, prevRadians, prevFastXuggle, prevCenterCalibrationStick,
-  		prevWarnNoVideoEngine, prevWarnXuggleError, prevWarnXuggleVersion,
-  		prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed, prevZoomMouseWheel;
+  protected int prevMemory, prevRecentCount, prevUpgradeInterval, prevFontLevel, prevFontLevelPlus, prevTrailLengthIndex;
+  protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine, prevDecimalSeparator,
+  		prevPointmassFootprint;
+  protected boolean prevHints, prevRadians, prevFastXuggle, prevCenterCalibrationStick, prevWarnVariableDuration,
+  		prevWarnNoVideoEngine, prevWarnXuggleError, prevWarnXuggleVersion, prevShowGaps, prevMarkAtCurrentFrame,
+  		prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed, prevZoomMouseWheel, prevAutofill;
   protected File prevCache;
   protected String[] prevExecutables;
+  protected Level prevLogLevel;
 
 
 	static {
@@ -160,10 +164,11 @@ public class PrefsDialog extends JDialog {
 	  	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
 	  	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
 	  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, 
-	  	resetToStep0SubPanelBorder, decimalSeparatorBorder};
+	  	resetToStep0SubPanelBorder, decimalSeparatorBorder, mouseWheelSubPanelBorder, calibrationStickSubPanelBorder,
+	  	dataGapSubPanelBorder, trailLengthSubPanelBorder, pointmassFootprintSubPanelBorder};
 		FontSizer.setFonts(borders, level); 
 		JComboBox[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, fontSizeDropdown, 
-				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown};
+				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown, footprintDropdown};
 		for (JComboBox next: dropdowns) {
 			int n = next.getSelectedIndex();
 			Object[] items = new Object[next.getItemCount()];
@@ -330,7 +335,7 @@ public class PrefsDialog extends JDialog {
     Box box = Box.createVerticalBox();
     displayPanel.add(box, BorderLayout.CENTER);
 
-    // put look&feel and language subpanels side by side
+    // look&feel and language subpanels side by side
     Box horz = Box.createHorizontalBox();
     box.add(horz);
 
@@ -401,58 +406,13 @@ public class PrefsDialog extends JDialog {
     });
     langSubPanel.add(languageDropdown);
     
-    // put font size and hints subpanels side by side
+    // angle units and hints subpanels side by side
     horz = Box.createHorizontalBox();
     box.add(horz);
-
-    // font level subpanel
-    JPanel fontSubPanel = new JPanel();
-    horz.add(fontSubPanel);
-    fontSubPanel.setBackground(color);
-    fontSubPanelBorder = BorderFactory.createTitledBorder(
-    		TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
-    fontSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, fontSubPanelBorder));
-    
-    // create font size dropdown
-    fontSizeDropdown = new JComboBox();
-    String defaultLevel = TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"); //$NON-NLS-1$
-    fontSizeDropdown.addItem(defaultLevel);
-    int preferredLevel = Tracker.preferredFontLevel + Tracker.preferredFontLevelPlus;
-    int maxLevel = Math.max(preferredLevel, Tracker.maxFontLevel);
-    for (int i=1; i<=maxLevel; i++) {
-    	String s = "+"+i; //$NON-NLS-1$
-    	fontSizeDropdown.addItem(s);
-    }
-    fontSizeDropdown.setSelectedIndex(preferredLevel);
-    fontSizeDropdown.addItemListener(new ItemListener() {
-    	public void itemStateChanged(ItemEvent e) {
-    		int preferredLevel = fontSizeDropdown.getSelectedIndex();
-        Tracker.preferredFontLevel = Math.min(preferredLevel, 3);
-        Tracker.preferredFontLevelPlus = preferredLevel - Tracker.preferredFontLevel;
-    	}
-    });
-    fontSubPanel.add(fontSizeDropdown);
-
-    // hints subpanel
-    hintsCheckbox = new JCheckBox();
-    hintsCheckbox.setOpaque(false);
-    hintsCheckbox.setSelected(Tracker.showHintsByDefault);
-    hintsCheckbox.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	Tracker.showHintsByDefault = hintsCheckbox.isSelected();
-      }
-    });
-    JPanel hintsSubPanel = new JPanel();
-    horz.add(hintsSubPanel);
-    hintsSubPanel.setBackground(color);
-    hintsSubPanelBorder = BorderFactory.createTitledBorder(
-    		TrackerRes.getString("PrefsDialog.Hints.BorderTitle")); //$NON-NLS-1$
-    hintsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, hintsSubPanelBorder));
-    hintsSubPanel.add(hintsCheckbox);
     
     // angle units subpanel
     JPanel unitsSubPanel = new JPanel();
-    box.add(unitsSubPanel);
+    horz.add(unitsSubPanel);
     unitsSubPanel.setBackground(color);
     unitsSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("TMenuBar.Menu.AngleUnits")); //$NON-NLS-1$
@@ -472,9 +432,30 @@ public class PrefsDialog extends JDialog {
     unitsSubPanel.add(radiansButton);
     unitsSubPanel.add(degreesButton);
     
+    // hints subpanel
+    hintsCheckbox = new JCheckBox();
+    hintsCheckbox.setOpaque(false);
+    hintsCheckbox.setSelected(Tracker.showHintsByDefault);
+    hintsCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	Tracker.showHintsByDefault = hintsCheckbox.isSelected();
+      }
+    });
+    JPanel hintsSubPanel = new JPanel();
+    horz.add(hintsSubPanel);
+    hintsSubPanel.setBackground(color);
+    hintsSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.Hints.BorderTitle")); //$NON-NLS-1$
+    hintsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, hintsSubPanelBorder));
+    hintsSubPanel.add(hintsCheckbox);
+    
+    // decimal separator and font level subpanels side by side
+    horz = Box.createHorizontalBox();
+    box.add(horz);
+
     // decimal separator subpanel
     JPanel decimalSubPanel = new JPanel();
-    box.add(decimalSubPanel);
+    horz.add(decimalSubPanel);
     decimalSubPanel.setBackground(color);
     decimalSeparatorBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
@@ -506,6 +487,96 @@ public class PrefsDialog extends JDialog {
     decimalSubPanel.add(periodDecimalButton);
     decimalSubPanel.add(commaDecimalButton);
     
+    // font level subpanel
+    JPanel fontSubPanel = new JPanel();
+    horz.add(fontSubPanel);
+    fontSubPanel.setBackground(color);
+    fontSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
+    fontSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, fontSubPanelBorder));
+    
+    // create font size dropdown
+    fontSizeDropdown = new JComboBox();
+    String defaultLevel = TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"); //$NON-NLS-1$
+    fontSizeDropdown.addItem(defaultLevel);
+    int preferredLevel = Tracker.preferredFontLevel + Tracker.preferredFontLevelPlus;
+    int maxLevel = Math.max(preferredLevel, Tracker.maxFontLevel);
+    for (int i=1; i<=maxLevel; i++) {
+    	String s = "+"+i; //$NON-NLS-1$
+    	fontSizeDropdown.addItem(s);
+    }
+    fontSizeDropdown.setSelectedIndex(preferredLevel);
+    fontSizeDropdown.addItemListener(new ItemListener() {
+    	public void itemStateChanged(ItemEvent e) {
+    		int preferredLevel = fontSizeDropdown.getSelectedIndex();
+        Tracker.preferredFontLevel = Math.min(preferredLevel, 3);
+        Tracker.preferredFontLevelPlus = preferredLevel - Tracker.preferredFontLevel;
+    	}
+    });
+    fontSubPanel.add(fontSizeDropdown);
+
+    // footprint and trail length subpanels side by side
+    horz = Box.createHorizontalBox();
+    box.add(horz);
+
+    // pointmass footprint subpanel
+    JPanel footprintSubPanel = new JPanel();
+    horz.add(footprintSubPanel);
+    footprintSubPanel.setBackground(color);
+
+    pointmassFootprintSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.PointMassFootprint.BorderTitle")); //$NON-NLS-1$
+    footprintSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, pointmassFootprintSubPanelBorder));
+    footprintDropdown = new JComboBox();
+    footprintDropdown.setRenderer(new FootprintRenderer());
+		Footprint[] footprints = new Footprint[PointMass.footprintNames.length];
+		for (int i=0; i<footprints.length; i++) {
+			String name = PointMass.footprintNames[i];
+			if (name.equals("CircleFootprint.Circle")) { //$NON-NLS-1$
+				footprints[i] = CircleFootprint.getFootprint(name);
+			}
+			else {
+				footprints[i] = PointShapeFootprint.getFootprint(name);
+			}
+		}
+    for (int i=0; i<footprints.length; i++) {
+	    footprintDropdown.addItem(footprints[i]);
+    }
+    footprintSubPanel.add(footprintDropdown); 
+    final ActionListener al = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				footprintDropdown.repaint();				
+			}    	
+    };
+    footprintDropdown.setAction(new AbstractAction() {
+    	public void actionPerformed(ActionEvent e) {
+    		if (refreshing) return;
+    		Footprint footprint = (Footprint)footprintDropdown.getSelectedItem();
+    		if (footprint instanceof CircleFootprint) {
+        	CircleFootprint cfp = (CircleFootprint)footprint;
+        	cfp.showProperties(trackerPanel.getTFrame(), al);       
+	    		Tracker.preferredPointMassFootprint = footprint.getName()+"#"+cfp.getProperties(); //$NON-NLS-1$
+    		}
+    		else Tracker.preferredPointMassFootprint = footprint.getName();
+     	}
+    });
+
+    // trailLength subpanel
+    JPanel trailLengthSubPanel = new JPanel();
+    horz.add(trailLengthSubPanel);
+    trailLengthSubPanel.setBackground(color);
+
+    trailLengthSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.Trails.BorderTitle")); //$NON-NLS-1$
+    trailLengthSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, trailLengthSubPanelBorder));
+    trailLengthDropdown = new JComboBox();
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.FullTrail")); //$NON-NLS-1$
+    trailLengthSubPanel.add(trailLengthDropdown); 
+   
     // runtime panel
     runtimePanel = new JPanel(new BorderLayout());
     tabbedPane.addTab(null, runtimePanel);
@@ -923,15 +994,19 @@ public class PrefsDialog extends JDialog {
     }
     else noEngineButton.setSelected(true);
 
-    // tracking panel
+    // track panel
     trackPanel = new JPanel(new BorderLayout());
     tabbedPane.addTab(null, trackPanel);
     box = Box.createVerticalBox();
     trackPanel.add(box, BorderLayout.CENTER);
-
+    
+    // put marking and pointmass footprint subpanels side by side
+    horz = Box.createHorizontalBox();
+    box.add(horz);
+       
     // marking subpanel
     JPanel markingSubPanel = new JPanel();
-    box.add(markingSubPanel);
+    horz.add(markingSubPanel);
     markingSubPanel.setBackground(color);
     resetToStep0SubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Marking.BorderTitle")); //$NON-NLS-1$
@@ -947,6 +1022,34 @@ public class PrefsDialog extends JDialog {
     });
     markingSubPanel.add(resetToStep0Checkbox);
         
+    // calibration stick subpanel
+    JPanel calibrationStickSubPanel = new JPanel();
+    box.add(calibrationStickSubPanel);
+    calibrationStickSubPanel.setBackground(color);
+    calibrationStickSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.CalibrationStick.BorderTitle")); //$NON-NLS-1$
+    calibrationStickSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, calibrationStickSubPanelBorder));
+    markStickEndsButton = new JRadioButton();
+    markStickEndsButton.setOpaque(false);
+    markStickEndsButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    buttonGroup = new ButtonGroup();
+    buttonGroup.add(markStickEndsButton);
+    centerStickButton = new JRadioButton();
+    centerStickButton.setOpaque(false);
+    centerStickButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));    
+    buttonGroup.add(centerStickButton);
+    if (Tracker.centerCalibrationStick) centerStickButton.setSelected(true);
+    else markStickEndsButton.setSelected(true);
+    calibrationStickSubPanel.add(markStickEndsButton);
+    calibrationStickSubPanel.add(centerStickButton);
+    ActionListener calStickAction = new ActionListener() {
+    	public void actionPerformed(ActionEvent e) {
+    		Tracker.centerCalibrationStick = centerStickButton.isSelected();
+     	}
+    };
+    markStickEndsButton.addActionListener(calStickAction);
+    centerStickButton.addActionListener(calStickAction);
+       
     // mouse wheel subpanel
     JPanel mouseWheelSubPanel = new JPanel();
     box.add(mouseWheelSubPanel);
@@ -977,33 +1080,36 @@ public class PrefsDialog extends JDialog {
     zoomButton.addActionListener(mouseWheelAction);
     scrubButton.addActionListener(mouseWheelAction);
         
-    // calibration stick subpanel
-    JPanel calibrationStickSubPanel = new JPanel();
-    box.add(calibrationStickSubPanel);
-    calibrationStickSubPanel.setBackground(color);
-    calibrationStickSubPanelBorder = BorderFactory.createTitledBorder(
-    		TrackerRes.getString("PrefsDialog.CalibrationStick.BorderTitle")); //$NON-NLS-1$
-    calibrationStickSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, calibrationStickSubPanelBorder));
-    markStickEndsButton = new JRadioButton();
-    markStickEndsButton.setOpaque(false);
-    markStickEndsButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
-    buttonGroup = new ButtonGroup();
-    buttonGroup.add(markStickEndsButton);
-    centerStickButton = new JRadioButton();
-    centerStickButton.setOpaque(false);
-    centerStickButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));    
-    buttonGroup.add(centerStickButton);
-    if (Tracker.centerCalibrationStick) centerStickButton.setSelected(true);
-    else markStickEndsButton.setSelected(true);
-    calibrationStickSubPanel.add(markStickEndsButton);
-    calibrationStickSubPanel.add(centerStickButton);
-    ActionListener calStickAction = new ActionListener() {
-    	public void actionPerformed(ActionEvent e) {
-    		Tracker.centerCalibrationStick = centerStickButton.isSelected();
-     	}
-    };
-    markStickEndsButton.addActionListener(calStickAction);
-    centerStickButton.addActionListener(calStickAction);
+    // data gaps subpanel
+    JPanel dataGapSubPanel = new JPanel();
+    box.add(dataGapSubPanel);
+    dataGapSubPanel.setBackground(color);
+    dataGapSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.DataGap.BorderTitle")); //$NON-NLS-1$
+    dataGapSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, dataGapSubPanelBorder));
+
+    showGapsCheckbox = new JCheckBox();
+    showGapsCheckbox.setOpaque(false);
+    showGapsCheckbox.setSelected(Tracker.showGaps);
+    showGapsCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	Tracker.showGaps = showGapsCheckbox.isSelected();
+      }
+    });
+    dataGapSubPanel.add(showGapsCheckbox);
+    
+    autofillCheckbox = new JCheckBox();
+    autofillCheckbox.setOpaque(false);
+    autofillCheckbox.setSelected(Tracker.enableAutofill);
+    autofillCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	Tracker.enableAutofill = autofillCheckbox.isSelected();
+      	if (trackerPanel!=null) {
+      		trackerPanel.repaint();
+      	}
+      }
+    });
+    dataGapSubPanel.add(autofillCheckbox);
         
     // "general" panel
     generalPanel = new JPanel(new BorderLayout());
@@ -1309,6 +1415,7 @@ public class PrefsDialog extends JDialog {
   private void savePrevious() {
 		prevEnabled.clear();
 		if (trackerPanel!=null) prevEnabled.addAll(trackerPanel.getEnabled()); 
+		prevLogLevel = Tracker.preferredLogLevel;
 		prevMemory = Tracker.preferredMemorySize;
 		prevLookFeel = Tracker.lookAndFeel;
 		prevRecentCount = Tracker.recentFilesSize;
@@ -1324,18 +1431,26 @@ public class PrefsDialog extends JDialog {
 		prevExecutables = Tracker.prelaunchExecutables;
 		prevWarnNoVideoEngine = Tracker.warnNoVideoEngine;
 		prevWarnXuggleError = Tracker.warnXuggleError;
+		prevWarnVariableDuration = Tracker.warnVariableDuration;
+		prevMarkAtCurrentFrame = Tracker.markAtCurrentFrame;
 		prevCache = ResourceLoader.getOSPCache();
 		prevUpgradeInterval = Tracker.checkForUpgradeInterval;
 		prevEngine = VideoIO.getEngine();
 		prevZoomMouseWheel = Tracker.scrubMouseWheel;
 		prevCenterCalibrationStick = Tracker.centerCalibrationStick;
+		prevAutofill = Tracker.enableAutofill;
+		prevShowGaps = Tracker.showGaps;
+		prevTrailLengthIndex = Tracker.trailLengthIndex;
+		prevPointmassFootprint = Tracker.preferredPointMassFootprint;
   }
   
   private void revert() {
   	if (trackerPanel!=null) trackerPanel.setEnabled(prevEnabled);
+  	Tracker.preferredPointMassFootprint = prevPointmassFootprint;
   	Tracker.preferredMemorySize = prevMemory;
 		Tracker.lookAndFeel = prevLookFeel;
 		Tracker.recentFilesSize = prevRecentCount;
+		Tracker.preferredLogLevel = prevLogLevel;
 		Tracker.setPreferredLocale(prevLocaleName);
 		Tracker.preferredFontLevel = prevFontLevel;
 		Tracker.preferredFontLevelPlus = prevFontLevelPlus;
@@ -1348,8 +1463,13 @@ public class PrefsDialog extends JDialog {
 		Tracker.prelaunchExecutables = prevExecutables;
 		Tracker.warnNoVideoEngine = prevWarnNoVideoEngine;
 		Tracker.warnXuggleError = prevWarnXuggleError;
+		Tracker.warnVariableDuration = prevWarnVariableDuration;
 		Tracker.scrubMouseWheel = prevZoomMouseWheel;
+		Tracker.markAtCurrentFrame = prevMarkAtCurrentFrame;
 		Tracker.centerCalibrationStick = prevCenterCalibrationStick;
+		Tracker.enableAutofill = prevAutofill;
+		Tracker.showGaps = prevShowGaps;
+		Tracker.trailLengthIndex = prevTrailLengthIndex;
 		ResourceLoader.setOSPCache(prevCache);
 		Tracker.checkForUpgradeInterval = prevUpgradeInterval;
 		// reset JRE dropdown to initial state
@@ -1401,6 +1521,7 @@ public class PrefsDialog extends JDialog {
     fontSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
     resetToStep0SubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Marking.BorderTitle")); //$NON-NLS-1$
     mouseWheelSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Mousewheel.BorderTitle")); //$NON-NLS-1$
+    dataGapSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.DataGap.BorderTitle")); //$NON-NLS-1$
     decimalSeparatorBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
     defaultDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Default")); //$NON-NLS-1$
     periodDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Period")); //$NON-NLS-1$
@@ -1427,6 +1548,8 @@ public class PrefsDialog extends JDialog {
     defaultMemoryCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.DefaultSize")); //$NON-NLS-1$
     hintsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.HintsOn")); //$NON-NLS-1$    
     resetToStep0Checkbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.ResetToZero.Text")); //$NON-NLS-1$    
+    autofillCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.Autofill.Text")); //$NON-NLS-1$    
+    showGapsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.ShowGaps.Text")); //$NON-NLS-1$    
     vm32Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.32BitVM")); //$NON-NLS-1$
     vm64Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.64BitVM")); //$NON-NLS-1$
     xuggleButton.setText(TrackerRes.getString("PrefsDialog.Button.Xuggle")); //$NON-NLS-1$
@@ -1450,6 +1573,13 @@ public class PrefsDialog extends JDialog {
     setTabTitle(generalPanel, TrackerRes.getString("PrefsDialog.Tab.General.Title")); //$NON-NLS-1$
     refreshTextFields();
     setFontLevel(FontSizer.getLevel());
+    // refresh trail lengths
+    trailLengthDropdown.removeAllItems();
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.FullTrail")); //$NON-NLS-1$
+
     pack();
     updateDisplay();
   }
@@ -1593,7 +1723,13 @@ public class PrefsDialog extends JDialog {
 				Tracker.preferredJRE = selected.toString();
 			}
 		}
-		
+		Tracker.showGaps = showGapsCheckbox.isSelected();
+		Tracker.trailLengthIndex = trailLengthDropdown.getSelectedIndex();
+		// refresh the toolbar
+		TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
+		toolbar.trailLength = TToolBar.trailLengths[Tracker.trailLengthIndex];
+  	toolbar.trailButton.setSelected(toolbar.trailLength!=1);		
+		toolbar.refresh(true);
     Tracker.isRadians = radiansButton.isSelected();
 		Tracker.isXuggleFast = xuggleFastButton.isSelected();
 		if (frame!=null) frame.setAnglesInRadians(Tracker.isRadians);
@@ -1622,6 +1758,7 @@ public class PrefsDialog extends JDialog {
    * Updates this dialog to show the TrackerPanel's current preferences.
    */
   protected void updateDisplay() {
+  	refreshing = true;
   	// configuration
     Component[] checkboxes = checkPanel.getComponents();
     for (int i = 0; i < checkboxes.length; i++) {
@@ -1671,7 +1808,7 @@ public class PrefsDialog extends JDialog {
     	versionDropdown.setSelectedIndex(selected);
     }
     
-    // VM dropdown
+    // JRE dropdown
     selected = 0;
     for (int i = 0, count = jreDropdown.getItemCount(); i<count; i++) {
     	String next = jreDropdown.getItemAt(i).toString();
@@ -1682,6 +1819,27 @@ public class PrefsDialog extends JDialog {
     }
     if (jreDropdown.getItemCount()>selected) {
     	jreDropdown.setSelectedIndex(selected);
+    }
+    
+    // footprint dropdown
+    selected = 0;
+    for (int i = 0; i<footprintDropdown.getItemCount(); i++) {
+    	Footprint footprint = (Footprint)footprintDropdown.getItemAt(i);
+    	if (Tracker.preferredPointMassFootprint!=null 
+    			&& Tracker.preferredPointMassFootprint.startsWith(footprint.getName())) {
+    		selected = i;
+    		if (footprint instanceof CircleFootprint) {
+        	CircleFootprint cfp = (CircleFootprint)footprint;
+        	int n = Tracker.preferredPointMassFootprint.indexOf("#"); //$NON-NLS-1$
+        	if (n>-1) {
+        		cfp.setProperties(Tracker.preferredPointMassFootprint.substring(n+1));
+        	}
+    		}
+    		break;
+    	}    	
+    }
+    if (footprintDropdown.getItemCount()>selected) {
+    	footprintDropdown.setSelectedIndex(selected);
     }
     
     // log level
@@ -1711,12 +1869,37 @@ public class PrefsDialog extends JDialog {
     if (checkForUpgradeDropdown.getItemCount()>selected) {
     	checkForUpgradeDropdown.setSelectedIndex(selected);
     }
+    
+    // show gaps
+    showGapsCheckbox.setSelected(Tracker.showGaps);
 
+    // autofill
+    autofillCheckbox.setSelected(Tracker.enableAutofill);
+    
+    // angle units
+    radiansButton.setSelected(Tracker.isRadians);
+    degreesButton.setSelected(!Tracker.isRadians);
+    
+    // new tracks reset to 0
+    resetToStep0Checkbox.setSelected(!Tracker.markAtCurrentFrame);
+    
+    // mousewheel action   
+    if (Tracker.scrubMouseWheel) scrubButton.setSelected(true);
+    else zoomButton.setSelected(true);
+
+    // new calibration sticks
+    if (Tracker.centerCalibrationStick) centerStickButton.setSelected(true);
+    else markStickEndsButton.setSelected(true);
+    
+    // trail length
+    trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
+    
     // video
     if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)) {
 	    xuggleButton.setSelected(true);
     }
     repaint();
+  	refreshing = false;
   }
   
   /**
@@ -1794,5 +1977,48 @@ public class PrefsDialog extends JDialog {
   	FontSizer.setFonts(chooser, FontSizer.getLevel());
     return chooser;
   }
+  
+  /**
+   * A class to render footprints for a dropdown 
+   */
+  class FootprintRenderer extends JLabel implements ListCellRenderer {
+  	
+  	FootprintRenderer() {
+			setOpaque(true);
+			setBorder(BorderFactory.createEmptyBorder(1, 3, 1, 0));
+  	}
+  	
+    public Component getListCellRendererComponent(JList list, Object val, int index,
+        boolean selected, boolean hasFocus) {
+
+      if (selected) {
+        setBackground(list.getSelectionBackground());
+        setForeground(list.getSelectionForeground());
+      } else {
+        setBackground(list.getBackground());
+        setForeground(list.getForeground());
+      }
+			if (val!=null) {
+				Footprint fp = (Footprint)val;
+				String name = fp.getDisplayName();
+				if (fp instanceof CircleFootprint) {
+        	CircleFootprint cfp = (CircleFootprint)fp;
+        	String[] props = cfp.getProperties().split(" "); //$NON-NLS-1$
+        	name += " r="+props[0]; //$NON-NLS-1$
+				}
+				setText(name);
+				Icon icon = fp.getIcon(21, 16);
+				int factor = FontSizer.getIntegerFactor();
+				if (icon instanceof ResizableIcon) {
+					((ResizableIcon)icon).resize(factor);
+				}
+				setIcon(icon);
+			}
+			return this;
+    }
+
+  }
+  
+
 
 }
