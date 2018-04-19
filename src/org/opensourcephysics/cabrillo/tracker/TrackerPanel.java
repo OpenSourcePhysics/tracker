@@ -1853,6 +1853,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         		if (selectedTrack.getClass()==PointMass.class) {
 	        		TPoint p = ((PositionStep)step).getPosition();
 	            clone = selectedTrack.createStep(n, p.x, p.y);
+	        		((PointMass)selectedTrack).keyFrames.add(n);
         		}
         		else if (selectedTrack.getClass()==Vector.class) {
         			VectorStep s = (VectorStep)step;
@@ -2789,6 +2790,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		      int startFrame = Math.max(nMin-2*clip.getStepSize(), clip.getStartFrameNumber());
 		      int stepCount = 4 + (nMax-nMin)/clip.getStepSize();
 		    	((PointMass)track).updateDerivatives(startFrame, stepCount);
+		    	
 		    }
 		    track.firePropertyChange("steps", null, null); //$NON-NLS-1$
 		  }

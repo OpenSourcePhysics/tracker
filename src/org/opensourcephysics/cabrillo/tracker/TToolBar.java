@@ -98,7 +98,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   protected JButton traceVisButton, pVisButton, vVisButton, aVisButton;
   protected JButton xMassButton, trailButton, labelsButton, stretchButton;
   protected JButton fontSmallerButton, fontBiggerButton;
-  protected int trailLength = trailLengths[trailLengths.length-2];
+  protected int trailLength = trailLengths[Tracker.trailLengthIndex];
   protected JPopupMenu newPopup = new JPopupMenu();
   protected JPopupMenu selectPopup = new JPopupMenu();
   protected JMenu vStretchMenu, aStretchMenu;
@@ -407,7 +407,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
     // labels visible button
     labelsButton = new TButton(labelsOffIcon, labelsOnIcon);
-    labelsButton.setSelected(true);
+    labelsButton.setSelected(!Tracker.hideLabels);
     labelsButton.addActionListener(refreshAction);
     // x mass button
     xMassButton = new TButton(xmassOffIcon, xmassOnIcon);
@@ -752,63 +752,64 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	        }
         }
         // refresh all tracks
-        if (refreshTrackProperties) 
+        if (refreshTrackProperties) {
         	for (TTrack track: trackerPanel.getTracks()) {
-          track.removePropertyChangeListener("locked", TToolBar.this); //$NON-NLS-1$
-          track.addPropertyChangeListener("locked", TToolBar.this); //$NON-NLS-1$
-          // refresh track display properties from current button states
-          track.setTrailLength(trailLength);
-          track.setTrailVisible(trailButton.isSelected());
-          if (track instanceof PointMass) {
-            PointMass p = (PointMass)track;
-            p.setTraceVisible(traceVisButton.isSelected());
-            p.setPositionVisible(trackerPanel, pVisButton.isSelected());
-            p.setVVisible(trackerPanel, vVisButton.isSelected());
-            p.setAVisible(trackerPanel, aVisButton.isSelected());
-            p.setLabelsVisible(trackerPanel, labelsButton.isSelected());
-            Footprint[] footprints = p.getVelocityFootprints();
-            for (int i = 0; i < footprints.length; i++) {
-              if (footprints[i] instanceof ArrowFootprint) {
-                ArrowFootprint arrow = (ArrowFootprint) footprints[i];
-                if (xMassButton.isSelected()) {                	
-                  arrow.setStretch(vStretch * massCount * p.getMass() / totalMass);
-                  arrow.setSolidHead(false);
-                }
-                else {
-                  arrow.setStretch(vStretch);
-                  arrow.setSolidHead(false);
-                }
-              }
-            }
-            footprints = p.getAccelerationFootprints();
-            for (int i = 0; i < footprints.length; i++) {
-              if (footprints[i] instanceof ArrowFootprint) {
-                ArrowFootprint arrow = (ArrowFootprint) footprints[i];
-                if (xMassButton.isSelected()) {
-                  arrow.setStretch(aStretch * massCount * p.getMass() / totalMass);
-                  arrow.setSolidHead(true);
-                }
-                else {
-                  arrow.setStretch(aStretch);
-                  arrow.setSolidHead(true);
-                }
-              }
-            }
-            p.repaint();
-          }
-          else if (track instanceof Vector) {
-          	Vector v = (Vector)track;
-            v.setLabelsVisible(labelsButton.isSelected());
-            Footprint[] footprints = v.getFootprints();
-            for (int i = 0; i < footprints.length; i++) {
-              if (footprints[i] instanceof ArrowFootprint) {
-                ArrowFootprint arrow = (ArrowFootprint) footprints[i];
-                arrow.setStretch(vStretch);
-              }
-            }
-            v.repaint();
-          }
-        }
+	          track.removePropertyChangeListener("locked", TToolBar.this); //$NON-NLS-1$
+	          track.addPropertyChangeListener("locked", TToolBar.this); //$NON-NLS-1$
+	          // refresh track display properties from current button states
+	          track.setTrailLength(trailLength);
+	          track.setTrailVisible(trailButton.isSelected());
+	          if (track instanceof PointMass) {
+	            PointMass p = (PointMass)track;
+	            p.setTraceVisible(traceVisButton.isSelected());
+	            p.setPositionVisible(trackerPanel, pVisButton.isSelected());
+	            p.setVVisible(trackerPanel, vVisButton.isSelected());
+	            p.setAVisible(trackerPanel, aVisButton.isSelected());
+	            p.setLabelsVisible(trackerPanel, labelsButton.isSelected());
+	            Footprint[] footprints = p.getVelocityFootprints();
+	            for (int i = 0; i < footprints.length; i++) {
+	              if (footprints[i] instanceof ArrowFootprint) {
+	                ArrowFootprint arrow = (ArrowFootprint) footprints[i];
+	                if (xMassButton.isSelected()) {                	
+	                  arrow.setStretch(vStretch * massCount * p.getMass() / totalMass);
+	                  arrow.setSolidHead(false);
+	                }
+	                else {
+	                  arrow.setStretch(vStretch);
+	                  arrow.setSolidHead(false);
+	                }
+	              }
+	            }
+	            footprints = p.getAccelerationFootprints();
+	            for (int i = 0; i < footprints.length; i++) {
+	              if (footprints[i] instanceof ArrowFootprint) {
+	                ArrowFootprint arrow = (ArrowFootprint) footprints[i];
+	                if (xMassButton.isSelected()) {
+	                  arrow.setStretch(aStretch * massCount * p.getMass() / totalMass);
+	                  arrow.setSolidHead(true);
+	                }
+	                else {
+	                  arrow.setStretch(aStretch);
+	                  arrow.setSolidHead(true);
+	                }
+	              }
+	            }
+	            p.repaint();
+	          }
+	          else if (track instanceof Vector) {
+	          	Vector v = (Vector)track;
+	            v.setLabelsVisible(labelsButton.isSelected());
+	            Footprint[] footprints = v.getFootprints();
+	            for (int i = 0; i < footprints.length; i++) {
+	              if (footprints[i] instanceof ArrowFootprint) {
+	                ArrowFootprint arrow = (ArrowFootprint) footprints[i];
+	                arrow.setStretch(vStretch);
+	              }
+	            }
+	            v.repaint();
+	          }
+	        }
+	    	}
         TPoint pt = trackerPanel.getSelectedPoint();
         if (pt != null) pt.showCoordinates(trackerPanel);
 

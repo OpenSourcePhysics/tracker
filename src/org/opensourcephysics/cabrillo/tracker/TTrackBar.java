@@ -82,6 +82,12 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
+		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+		    	      	TTrack track = trackerPanel.getSelectedTrack();
+		    	      	if (track!=null && track instanceof PointMass) {
+		    	      		Tracker.enableAutofill = !Tracker.enableAutofill;
+		    	      	}
+		    	      	
 		    	      	
 //			    	    	Map<String, String> map = System.getenv();
 //			    	    	for (String key: map.keySet()) {
@@ -92,7 +98,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 //			    	    	}
 
 		    	      			    	      	
-//			          	Tracker.newerVersion = "6.7.8"; //$NON-NLS-1$
+//			          	Tracker.newerVersion = "5.0.2"; //$NON-NLS-1$
 //		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 //		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
 		    	      			    	      	

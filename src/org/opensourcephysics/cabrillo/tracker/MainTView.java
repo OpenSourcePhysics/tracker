@@ -177,6 +177,14 @@ public class MainTView extends JPanel implements TView {
             rect.x -= d;
       			trackerPanel.scrollRectToVisible(rect);
       			break;
+	    		case KeyEvent.VK_A:
+	    			if (!PointMass.isAutoKeyDown) {
+		        	PointMass.isAutoKeyDown = true;
+		        	if (trackerPanel.getSelectedTrack()!=null && trackerPanel.getSelectedTrack() instanceof PointMass) {
+		        		trackerPanel.getSelectedTrack().repaint(trackerPanel);
+		        	}
+	    			}
+	    			break;
       	}
         if(z.isSelected()) { 
       		trackerPanel.setCursor(e.isAltDown()? 
@@ -186,9 +194,17 @@ public class MainTView extends JPanel implements TView {
       }
       public void keyReleased(final KeyEvent e) {
       	final JButton z = trackerPanel.getTFrame().getToolBar(trackerPanel).zoomButton;
-        if(e.getKeyCode()==KeyEvent.VK_Z) {
+        if (e.getKeyCode()==KeyEvent.VK_Z) {
         	z.setSelected(false);
       		trackerPanel.setCursor(Cursor.getDefaultCursor()); 
+        }
+        if (e.getKeyCode()==KeyEvent.VK_A) {
+    			if (PointMass.isAutoKeyDown) {
+	        	PointMass.isAutoKeyDown = false;
+	        	if (trackerPanel.getSelectedTrack()!=null && trackerPanel.getSelectedTrack() instanceof PointMass) {
+	        		trackerPanel.getSelectedTrack().repaint(trackerPanel);
+	        	}
+    			}
         }
         if(z.isSelected()) {
 	        Runnable runner = new Runnable() {

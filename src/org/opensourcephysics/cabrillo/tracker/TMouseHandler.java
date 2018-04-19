@@ -165,6 +165,13 @@ public class TMouseHandler implements InteractiveMouseHandler {
           		boolean newStep = step==null;
 	        		step = selectedTrack.createStep(frameNumber,
 	                trackerPanel.getMouseX(), trackerPanel.getMouseY());
+	        		if (selectedTrack instanceof PointMass) {
+	        			PointMass m = (PointMass)selectedTrack;
+	        			m.keyFrames.add(frameNumber);
+	        			if (m.isAutofill()) {
+	        				m.markInterpolatedSteps((PositionStep)step, true);
+	        			}        			
+	        		}
           		trackerPanel.newlyMarkedPoint = step.getDefaultPoint();
           		TPoint[] pts = step.getPoints();
           		// increment target index if new step
@@ -270,7 +277,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
             ((AutoTracker.Handle)p).setScreenLocation(e.getX(), e.getY(), trackerPanel);
           }
           if (p!=null) {
-          	p.showCoordinates(trackerPanel);         	
+          	p.showCoordinates(trackerPanel);
+          	p.setAdjusting(true);
           }
           trackerPanel.setSelectedPoint(p);
           if (p instanceof Step.Handle) {
