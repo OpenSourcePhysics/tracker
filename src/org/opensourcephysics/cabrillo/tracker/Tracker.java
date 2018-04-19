@@ -66,7 +66,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.0.2"; //$NON-NLS-1$
+  public static final String VERSION = "5.0.2180418"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -169,7 +169,7 @@ public class Tracker {
   static int recentFilesSize = 6;
   static int preferredMemorySize = -1;
   static String lookAndFeel, preferredLocale, preferredDecimalSeparator;
-  static String preferredJRE, preferredTrackerJar;
+  static String preferredJRE, preferredTrackerJar, preferredPointMassFootprint;
   static int checkForUpgradeInterval = 0;
   static int preferredFontLevel = 0, preferredFontLevelPlus = 0;
   static boolean isRadians, isXuggleFast;
@@ -179,8 +179,8 @@ public class Tracker {
   static Map<String, String[]> autoloadMap = new TreeMap<String, String[]>();
   static String[] preferredAutoloadSearchPaths;
   static boolean markAtCurrentFrame = true;
-  static boolean scrubMouseWheel;
-  static boolean centerCalibrationStick;
+  static boolean scrubMouseWheel, centerCalibrationStick, enableAutofill, showGaps, hideLabels;
+  static int trailLengthIndex = TToolBar.trailLengths.length-2;
 
   // the only instance field!
   private TFrame frame;
@@ -2046,6 +2046,12 @@ public class Tracker {
       		control.setValue("mark_current_frame", Tracker.markAtCurrentFrame); //$NON-NLS-1$
       	if (Tracker.scrubMouseWheel) // false by default
       		control.setValue("scrub_mousewheel", Tracker.scrubMouseWheel); //$NON-NLS-1$
+      	if (Tracker.enableAutofill) // false by default
+      		control.setValue("enable_autofill", Tracker.enableAutofill); //$NON-NLS-1$
+      	if (Tracker.showGaps) // false by default
+      		control.setValue("show_gaps", Tracker.showGaps); //$NON-NLS-1$
+      	if (Tracker.trailLengthIndex!=TToolBar.trailLengths.length-2) 
+      		control.setValue("trail_length", Tracker.trailLengthIndex); //$NON-NLS-1$
       	if (Tracker.centerCalibrationStick) // false by default
       		control.setValue("center_stick", Tracker.centerCalibrationStick); //$NON-NLS-1$
       	if (Tracker.isXuggleFast) // false by default
@@ -2062,6 +2068,8 @@ public class Tracker {
       	control.setValue("tracker_jar", jar); //$NON-NLS-1$
       	if (Tracker.preferredJRE!=null)
       		control.setValue("java_vm", Tracker.preferredJRE); //$NON-NLS-1$
+      	if (Tracker.preferredPointMassFootprint!=null)
+      		control.setValue("pointmass_footprint", Tracker.preferredPointMassFootprint); //$NON-NLS-1$
       	if (Tracker.preferredMemorySize>-1) // -1 by default
       		control.setValue("memory_size", Tracker.preferredMemorySize); //$NON-NLS-1$
       	if (Tracker.lookAndFeel!=null)
@@ -2159,8 +2167,12 @@ public class Tracker {
         Tracker.isRadians = control.getBoolean("radians"); //$NON-NLS-1$
         Tracker.markAtCurrentFrame = control.getBoolean("mark_current_frame"); //$NON-NLS-1$
         Tracker.scrubMouseWheel = control.getBoolean("scrub_mousewheel"); //$NON-NLS-1$
+        Tracker.enableAutofill = control.getBoolean("enable_autofill"); //$NON-NLS-1$
+        Tracker.showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
         Tracker.centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
     		Tracker.isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
+      	if (control.getPropertyNames().contains("trail_length")) //$NON-NLS-1$
+      		Tracker.trailLengthIndex = control.getInt("trail_length"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_no_engine")) //$NON-NLS-1$
       		Tracker.warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_xuggle_error")) //$NON-NLS-1$
@@ -2178,6 +2190,7 @@ public class Tracker {
   					Tracker.preferredJRE = null;
   				}  				
       	}
+      	Tracker.preferredPointMassFootprint = control.getString("pointmass_footprint"); //$NON-NLS-1$
   	    if (control.getPropertyNames().contains("memory_size")) //$NON-NLS-1$
   	    	Tracker.requestedMemorySize = control.getInt("memory_size"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("look_feel")) //$NON-NLS-1$
