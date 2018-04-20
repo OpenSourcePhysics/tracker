@@ -66,7 +66,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.0.2180418"; //$NON-NLS-1$
+  public static final String VERSION = "5.0.2180420"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -2050,8 +2050,8 @@ public class Tracker {
       		control.setValue("enable_autofill", Tracker.enableAutofill); //$NON-NLS-1$
       	if (Tracker.showGaps) // false by default
       		control.setValue("show_gaps", Tracker.showGaps); //$NON-NLS-1$
-      	if (Tracker.trailLengthIndex!=TToolBar.trailLengths.length-2) 
-      		control.setValue("trail_length", Tracker.trailLengthIndex); //$NON-NLS-1$
+      	if (Tracker.trailLengthIndex!=TToolBar.trailLengths.length-2)
+      		control.setValue("trail_length", TToolBar.trailLengthNames[Tracker.trailLengthIndex]); //$NON-NLS-1$
       	if (Tracker.centerCalibrationStick) // false by default
       		control.setValue("center_stick", Tracker.centerCalibrationStick); //$NON-NLS-1$
       	if (Tracker.isXuggleFast) // false by default
@@ -2171,8 +2171,12 @@ public class Tracker {
         Tracker.showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
         Tracker.centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
     		Tracker.isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("trail_length")) //$NON-NLS-1$
-      		Tracker.trailLengthIndex = control.getInt("trail_length"); //$NON-NLS-1$
+      	if (control.getPropertyNames().contains("trail_length")) { //$NON-NLS-1$
+      		String name = control.getString("trail_length"); //$NON-NLS-1$
+      		for (int i=0; i<TToolBar.trailLengthNames.length; i++) {
+      			if (TToolBar.trailLengthNames[i].equals(name)) Tracker.trailLengthIndex = i;
+      		}
+      	}
       	if (control.getPropertyNames().contains("warn_no_engine")) //$NON-NLS-1$
       		Tracker.warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_xuggle_error")) //$NON-NLS-1$

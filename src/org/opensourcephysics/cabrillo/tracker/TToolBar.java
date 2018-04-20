@@ -59,6 +59,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
   protected static Map<TrackerPanel, TToolBar> toolbars = new HashMap<TrackerPanel, TToolBar>();
 
   protected static int[] trailLengths = {1,4,15,0};
+  protected static String[] trailLengthNames = {"none","short","long","full"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
   protected static Icon newTrackIcon;
   protected static Icon trackControlIcon, trackControlOnIcon, trackControlDisabledIcon;
   protected static Icon zoomIcon;
