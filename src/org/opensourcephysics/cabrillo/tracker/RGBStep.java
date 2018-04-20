@@ -123,6 +123,9 @@ public class RGBStep extends Step {
     if (mark != null) {
       mark.draw(g, false);
     }
+    // get the RGB data now since this step is being drawn
+    // note this method does nothing once RGB data is valid
+    getRGBData(trackerPanel);
   }
 
   /**

@@ -535,7 +535,7 @@ public class RGBRegion extends TTrack {
    * @param trackerPanel the tracker panel
    */
   protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
-    if (trackerPanel == null || data == null) return;
+    if (refreshDataLater || trackerPanel == null || data == null) return;
     dataFrames.clear();
   	// get valid step at current frameNumber
     int frame = trackerPanel.getFrameNumber();
