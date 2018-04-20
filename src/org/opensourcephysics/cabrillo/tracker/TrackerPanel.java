@@ -554,6 +554,34 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     }
   }
   
+  /**
+   * Determines if the specified track is currently displayed in a table or plot view.
+   * 
+   * @param track the track
+   * @return true if displayed in a plot or table view
+   */
+  protected boolean isTrackViewDisplayed(TTrack track) { 
+  	boolean displayed = false;
+		TFrame frame = getTFrame();
+		if (frame!=null && TrackerPanel.this.isShowing()) {
+      TView[][] views = frame.getTViews(TrackerPanel.this);
+      for (TView[] next: views) {
+      	for  (TView view: next) {
+      		if (view instanceof TrackChooserTView) {
+      			displayed = displayed || ((TrackChooserTView)view).isTrackViewDisplayed(track);
+      		} 
+      	}
+      }
+		}
+  	return displayed;
+  }
+  
+  /**
+   * Creates a new FunctionPanel for a track.
+   * 
+   * @param track the track
+   * @return the FunctionPanel
+   */
   protected FunctionPanel createFunctionPanel(TTrack track) {
   	DatasetManager data = track.getData(this);
     FunctionPanel panel = new DataFunctionPanel(data);
