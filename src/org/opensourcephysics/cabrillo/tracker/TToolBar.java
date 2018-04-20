@@ -563,7 +563,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       	JMenuItem item = new JMenuItem(TrackerRes.getString("TToolbar.Button.Refresh.Popup.RefreshNow")); //$NON-NLS-1$
       	item.addActionListener(new ActionListener() {
       		public void actionPerformed(ActionEvent e) {
-      	  	// pig offer to clear RGBRegion data that are valid and visible in a view
+      	  	// offer to clear RGBRegion data that are valid and visible in a view
        			ArrayList<RGBRegion> regions = trackerPanel.getDrawables(RGBRegion.class);
     				ArrayList<RGBRegion> regionsToClear = new ArrayList<RGBRegion>();
       			if (!regions.isEmpty()) {
