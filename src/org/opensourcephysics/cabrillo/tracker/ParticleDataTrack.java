@@ -1167,11 +1167,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 	}
 	
-	public DatasetManager getData(TrackerPanel panel) {
-		DatasetManager data = super.getData(panel);
-		return data;
-	}
-
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		super.propertyChange(e);

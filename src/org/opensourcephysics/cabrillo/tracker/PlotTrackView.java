@@ -103,7 +103,7 @@ public class PlotTrackView extends TrackView {
   	if (!isRefreshEnabled()) return;
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh "+frameNumber); //$NON-NLS-1$
   	TTrack track = getTrack();
-  	if (track==null) return;
+  	if (track==null) return;  	
     track.getData(trackerPanel);
     for (int i = 0; i < plots.length; i++) {
       HighlightableDataset data = plots[i].getDataset();

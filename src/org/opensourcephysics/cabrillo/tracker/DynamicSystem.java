@@ -554,6 +554,7 @@ public class DynamicSystem extends DynamicParticlePolar {
    * @param trackerPanel the tracker panel
    */
   protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
+    if (refreshDataLater || trackerPanel == null || data == null) return;
     int count = 25; // number of datasets
     if (data.getDataset(0).getColumnName(0).equals("x")) { //$NON-NLS-1$
 	    // assign column names to the datasets

@@ -1098,8 +1098,7 @@ public class PointMass extends TTrack {
    * @param trackerPanel the tracker panel
    */
   protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
-    if (refreshDataLater)
-    	return;
+    if (refreshDataLater || trackerPanel == null || data == null) return;
     int baseCount = 23;
     int count = baseCount; // number of datasets
     if (!getClass().equals(CenterOfMass.class)

@@ -348,8 +348,7 @@ public class Vector extends TTrack {
    * @param trackerPanel the tracker panel
    */
   protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
-    if (refreshDataLater)
-    	return;
+    if (refreshDataLater || trackerPanel == null || data == null) return;
     dataFrames.clear();
     VideoPlayer player = trackerPanel.getPlayer();
     VideoClip clip = player.getVideoClip();

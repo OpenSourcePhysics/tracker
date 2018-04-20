@@ -435,6 +435,7 @@ public class LineProfile extends TTrack {
    * @param trackerPanel the tracker panel
    */
   protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
+    if (refreshDataLater || trackerPanel == null || data == null) return;
     // get the datasets
     int count = 0;
     Dataset x = data.getDataset(count++);
