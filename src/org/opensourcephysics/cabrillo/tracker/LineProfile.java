@@ -691,8 +691,11 @@ public class LineProfile extends TTrack {
       // load step data
       profile.keyFrames.clear();
       FrameData[] data = (FrameData[])control.getObject("framedata"); //$NON-NLS-1$
-      if (data != null) {
-        for (int n = 0; n < data.length; n++) {
+      if (data != null && data.length>0) {
+      	if (profile.fixedLine && data[0]!=null) {
+          profile.createStep(0, data[0].data[0], data[0].data[1], data[0].data[2], data[0].data[3]);
+      	}
+      	else for (int n = 0; n < data.length; n++) {
           if (data[n] != null) {
             profile.createStep(n, data[n].data[0], data[n].data[1], data[n].data[2], data[n].data[3]);
           }
