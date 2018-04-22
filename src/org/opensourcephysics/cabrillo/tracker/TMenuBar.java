@@ -1337,7 +1337,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
    *
    * @return the help menu
    */
-  protected static JMenu getTrackerHelpMenu(TrackerPanel trackerPanel) {
+  protected static JMenu getTrackerHelpMenu(final TrackerPanel trackerPanel) {
     // help menu
     int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
     final JMenu helpMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Help")); //$NON-NLS-1$
@@ -1450,6 +1450,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     
     
     helpMenu.addSeparator();
+    JMenuItem checkForUpgradeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CheckForUpgrade.Text")); //$NON-NLS-1$
+    checkForUpgradeItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	Tracker.showUpgradeStatus(trackerPanel);
+      }
+    });
+    helpMenu.add(checkForUpgradeItem);    
+
     if (Tracker.aboutTrackerAction != null) helpMenu.add(Tracker.aboutTrackerAction);
     return helpMenu;
   }

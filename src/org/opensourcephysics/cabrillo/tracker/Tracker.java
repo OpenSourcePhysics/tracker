@@ -66,7 +66,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.0.3"; //$NON-NLS-1$
+  public static final String VERSION = "5.0.2.180422"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -613,13 +613,22 @@ public class Tracker {
   	if (ver1==null || ver2==null) {
   		return 0;
   	}
-  	// typical newer semantic version "4.9.10" or 5.0.0171230
+  	// typical newer semantic version "4.9.10" or 5.0.0.171230
   	// typical older version "4.97"
     String[] v1 = ver1.trim().split("\\."); //$NON-NLS-1$
     String[] v2 = ver2.trim().split("\\."); //$NON-NLS-1$
+    // beta version arrays have length 4
     // newer semantic version arrays have length 3
     // older version arrays have length 2
- 
+    
+    // truncate beta versions to length 3
+    if (v1.length==4) {
+    	v1 = new String[] {v1[0], v1[1], v1[2]};
+    }
+    if (v2.length==4) {
+    	v2 = new String[] {v2[0], v2[1], v2[2]};
+    }
+
   	if (v2.length>v1.length) {
   		// v1 is older version, v2 is newer
   		return -1;
@@ -1244,6 +1253,30 @@ public class Tracker {
   }
   
   /**
+   * Check for upgrades and show a dialog with upgrade info. 
+   * Also refresh toolbar associated with TrackerPanel, if any. 
+   * 
+   * @param trackerPanel a TrackerPanel (may be null)
+   */
+  protected static void showUpgradeStatus(TrackerPanel trackerPanel) {
+		checkedForNewerVersion = false;
+		loadCurrentVersion(true, false);
+		if (trackerPanel!=null) TTrackBar.getTrackbar(trackerPanel).refresh();
+		String message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
+		if (Tracker.newerVersion!=null) { // new version available
+			message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
+					+" "+Tracker.newerVersion+" " //$NON-NLS-1$ //$NON-NLS-2$
+					+TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message2") //$NON-NLS-1$
+					+XML.NEW_LINE+"https://"+Tracker.trackerWebsite; //$NON-NLS-1$
+		}
+		TFrame frame = trackerPanel==null? null: trackerPanel.getTFrame();
+		JOptionPane.showMessageDialog(frame, 
+				message, 
+				TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Title"),  //$NON-NLS-1$
+				JOptionPane.INFORMATION_MESSAGE);  	
+  }
+  
+  /**
    * Loads the current (latest) Tracker version number and compares it with this version.
    * 
    * @param ignoreInterval true to load/compare immediately
@@ -1277,7 +1310,7 @@ public class Tracker {
 	  	}
   	}
   	
-  	// interval has passed, so check for upgrades  	
+  	// interval has passed or ignored, so check for upgrades  	
 		lastMillisChecked = millis;
 		int result = compareVersions(latestVersion, VERSION);
 		if (result>0) { // newer version available

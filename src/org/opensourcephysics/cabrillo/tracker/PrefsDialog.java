@@ -1276,20 +1276,7 @@ public class PrefsDialog extends JDialog {
     checkForUpgradeButton = new JButton();
     checkForUpgradeButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	Tracker.loadCurrentVersion(true, false);
-    		Tracker.lastMillisChecked = System.currentTimeMillis();
-  			if (trackerPanel!=null) TTrackBar.getTrackbar(trackerPanel).refresh();
-    		String message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
-    		if (Tracker.newerVersion!=null) { // new version available
-    			message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
-    					+" "+Tracker.newerVersion+" " //$NON-NLS-1$ //$NON-NLS-2$
-    					+TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message2") //$NON-NLS-1$
-    					+XML.NEW_LINE+"https://"+Tracker.trackerWebsite; //$NON-NLS-1$
-    		}
-  			JOptionPane.showMessageDialog(PrefsDialog.this, 
-  					message, 
-  					TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Title"),  //$NON-NLS-1$
-  					JOptionPane.INFORMATION_MESSAGE);
+      	Tracker.showUpgradeStatus(trackerPanel);
       }
     });
     logLevelDropdown = new JComboBox();
