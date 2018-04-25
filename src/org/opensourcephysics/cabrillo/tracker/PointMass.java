@@ -866,7 +866,7 @@ public class PointMass extends TTrack {
    * @return true if autofill is on
    */
   public boolean isAutofill() {
-  	return Tracker.enableAutofill && (PointMass.isAutoKeyDown || isAutofill);
+  	return Tracker.enableAutofill && isAutofill;
   }
   
   /**

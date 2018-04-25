@@ -52,7 +52,7 @@ public class MainTView extends JPanel implements TView {
   private Point zoomCenter = new Point();
   private JToolBar playerBar;
   private MouseAdapter mouseAdapter;
-  private KeyAdapter keyAdapter;
+  KeyAdapter keyAdapter;
 
   /**
    * Constructs a main view of a tracker panel.
@@ -181,6 +181,8 @@ public class MainTView extends JPanel implements TView {
 	    			if (!PointMass.isAutoKeyDown) {
 		        	PointMass.isAutoKeyDown = true;
 		        	if (trackerPanel.getSelectedTrack()!=null && trackerPanel.getSelectedTrack() instanceof PointMass) {
+		        		PointMass m = (PointMass)trackerPanel.getSelectedTrack();
+		        		m.setAutoFill(!m.isAutofill);
 		        		trackerPanel.getSelectedTrack().repaint(trackerPanel);
 		        	}
 	    			}
@@ -199,12 +201,7 @@ public class MainTView extends JPanel implements TView {
       		trackerPanel.setCursor(Cursor.getDefaultCursor()); 
         }
         if (e.getKeyCode()==KeyEvent.VK_A) {
-    			if (PointMass.isAutoKeyDown) {
-	        	PointMass.isAutoKeyDown = false;
-	        	if (trackerPanel.getSelectedTrack()!=null && trackerPanel.getSelectedTrack() instanceof PointMass) {
-	        		trackerPanel.getSelectedTrack().repaint(trackerPanel);
-	        	}
-    			}
+    			PointMass.isAutoKeyDown = false;
         }
         if(z.isSelected()) {
 	        Runnable runner = new Runnable() {

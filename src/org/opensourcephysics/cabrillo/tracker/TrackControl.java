@@ -90,6 +90,12 @@ public class TrackControl extends JDialog
         	trackerPanel.requestFocus();
         	trackerPanel.requestFocusInWindow();
         }
+        else if (e.getKeyCode() == KeyEvent.VK_A) {
+        	MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
+        	mainView.keyAdapter.keyPressed(e);
+        	trackerPanel.requestFocus();
+        	trackerPanel.requestFocusInWindow();
+        }
       }
     };
     setResizable(false);
