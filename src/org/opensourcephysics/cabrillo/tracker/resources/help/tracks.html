@@ -30,7 +30,7 @@
 		<p align="center">
 			<img src="../help_images/video_popup.gif">
 		</p>
-		<p>There is some variability in marking requirements for the various track types. Vector and line profile tracks require dragging rather than clicking. Point mass and vector tracks expect every step to be marked, but offset origin, calibration point pair, line profile and rgb region tracks require marking only a single frame. Center of mass, vector sum, particle model and two-body system tracks are marked automatically.</p>
+		<p>There is some variability in marking requirements for the various track types. Vector and line profile tracks require dragging rather than clicking. Point mass and vector tracks expect every step to be marked, but offset origin, calibration point pair, line profile and rgb region tracks require marking only a single frame. Center of mass, vector sum, particle model and two-body system tracks are marked automatically. For calibration sticks and tapes you can choose a preference.</p>
 		<p>When creating a new point mass, vector or rgb region, the video is reset to step 0 by default. You can prevent this reset by unchecking the <strong>Auto-reset to step 0</strong> box in the Tracks tab of the <a href="interface.html#prefs">preferences dialog</a>.</p>
 <p>If you prefer that the video not automatically step forward while marking you can uncheck the <strong>Autostep</strong> option in the Track menu for point mass and vector tracks.</p>
         
@@ -91,9 +91,10 @@
 			<img src="../help_images/hand_pointer.gif">
             <img src="../help_images/selected_point.gif" border="1">
         </p>
-		<p>To select a point, move the mouse cursor over it in the main video view. The cursor will become a hand pointer and the point will be identified in the bottom right message box. Click to select it. <strong>Note:</strong> To select a point while marking, release the shift key.</p>
-		<p>When a single point is selected, its track is selected, its editable properties (position, etc) are displayed on the toolbar, and it is identified with a square selection icon.</p>
-		<p>You can also select multiple points (Point Mass positions) for simultaneous dragging or deleting. Select multiple points by (a) control-clicking additional points or (b) right-dragging a box and choosing <strong>Select Points</strong> from the popup menu. Deselect previously selected points by (a) control-clicking them or (b) right-dragging a box and choosing <strong>Deselect Points</strong> from the popup menu.</p>
+	<p>To identify a point, move the mouse cursor over it in the main video view. The cursor will become a hand pointer and the point will be identified in the bottom right message box. To select the point, click it. The selected point is drawn with a square instead of its normal footprint. <strong>Note:</strong> to select a point while marking, release the shift key.</p>
+		<p>To select additional points, either (a) control-click the points or (b) right-drag a box and choosing <strong>Select Points</strong> from the popup menu. You can use the same actions to <strong>Deselect Points</strong>.</p>
+		<p>You can also select points in a <a href="plotview.html">plot view</a>. Click a data point in a plot to select the corresponding track point in the main video view. Or right-drag a box in the plot and choose <strong>Select Points</strong> from the popup menu.</p>
+		<p>When a single point is selected, its editable properties (position, etc) are displayed on the toolbar.</p>
 		
 <h3><a name="track10" id="track10"></a>10. Editing a step</h3>
 		<p>To edit a step, select and drag one of its points. A selected point can also be nudged one pixel at a time with the arrow keys on the keyboard. Holding down the shift key increases the nudge distance.</p>
