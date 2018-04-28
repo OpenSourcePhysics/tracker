@@ -178,7 +178,7 @@ public class MainTView extends JPanel implements TView {
       			trackerPanel.scrollRectToVisible(rect);
       			break;
 	    		case KeyEvent.VK_A:
-	    			if (!PointMass.isAutoKeyDown) {
+	    			if (Tracker.enableAutofill && !PointMass.isAutoKeyDown) {
 		        	PointMass.isAutoKeyDown = true;
 		        	if (trackerPanel.getSelectedTrack()!=null && trackerPanel.getSelectedTrack() instanceof PointMass) {
 		        		PointMass m = (PointMass)trackerPanel.getSelectedTrack();
@@ -828,6 +828,7 @@ public class MainTView extends JPanel implements TView {
   	DrawingPanel.ZoomBox zoomBox = trackerPanel.getZoomBox();
   	Rectangle zRect = zoomBox.reportZoom();
   	ArrayList<TTrack> tracks = trackerPanel.getTracks();
+  	HashSet<TTrack> changedTracks = new HashSet<TTrack>();
   	for (TTrack track: tracks) {
   		// search only visible PointMass tracks for now
   		if (!track.isVisible() || track.getClass()!=PointMass.class) continue;
@@ -838,6 +839,7 @@ public class MainTView extends JPanel implements TView {
   	    TPoint p = step.getPoints()[0];
 	      if (p==null || Double.isNaN(p.getX())) continue;
 	      if (zRect.contains(p.getScreenPosition(trackerPanel))) {
+	      	changedTracks.add(track);
 	      	if (add) {
 	      		trackerPanel.selectedSteps.add(step);
 	      	}
@@ -854,6 +856,9 @@ public class MainTView extends JPanel implements TView {
   	}
   	else if (trackerPanel.selectedSteps.size()>1) {
   		trackerPanel.setSelectedPoint(null);
+  	}
+  	for (TTrack track: changedTracks) {
+  		track.firePropertyChange("steps", null, null); //$NON-NLS-1$
   	}
   }
 

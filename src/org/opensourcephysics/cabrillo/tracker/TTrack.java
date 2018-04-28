@@ -1438,36 +1438,67 @@ public abstract class TTrack implements Interactive,
   }
 
   /**
-   * Gets the frame number associated with a specified variable and value.
+   * Gets the frame number associated with specified variables and values.
    *
-   * @param var the variable name
-   * @param value the value
+   * @param xVar the x-variable name (required)
+   * @param yVar the y-variable name (may be null)
+   * @param xyValues values array (length 1 or 2)
    * @return the frame number, or -1 if not found
    */
-  public int getFrameForData(String var, double value) {
+  public int getFrameForData(String xVar, String yVar, double[] xyValues) {
   	if (dataFrames.isEmpty() || data.getDatasets().isEmpty()) 
   		return -1;
 		Dataset dataset = data.getDataset(0);
-  	if (var.equals(dataset.getXColumnName())) {
+  	if (xVar.equals(dataset.getXColumnName())) {
+  		// for independent variable, ignore yVar
   		double[] vals = dataset.getXPoints();
   		for (int i = 0; i < vals.length; i++) {
-  			if (value == vals[i]) {
+  			if (xyValues[0] == vals[i]) {
   				return i<dataFrames.size()? dataFrames.get(i).intValue(): -1;
   			}
   		}
   	}
   	else {
-    	int n = data.getDatasetIndex(var);
+  		// not independent variable, so find match in xVar dataset 
+    	int n = data.getDatasetIndex(xVar);
     	if (n > -1) {
     		dataset = data.getDataset(n);
-    		double[] vals = dataset.getYPoints();
-    		for (int i = 0; i < vals.length; i++) {
-    			if (value == vals[i]) {
-    				return i<dataFrames.size()? dataFrames.get(i).intValue(): -1;
+    		double[] xVals = dataset.getYPoints();
+    		for (int i = 0; i < xVals.length; i++) {
+    			if (xyValues[0]==xVals[i]) {
+    				// found matching value
+    				int frame = i<dataFrames.size()? dataFrames.get(i).intValue(): -1;
+    				// if yVar value is given, verify it matches as well
+    				if (yVar!=null && xyValues.length>1) {
+	    	    	n = data.getDatasetIndex(yVar);
+	        		dataset = data.getDataset(n);
+	        		double[] yVals = dataset.getYPoints();
+	        		// if y value doesn't also match, reject and continue searching
+	      			if (xyValues[1]!=yVals[i]) {
+	      				continue;
+	      			}
+    				}    	    	
+    				return frame;
     			}
     		}
     	}
   	}
+    return -1;
+  }
+  
+  /**
+   * Gets the data index for a specified frame.
+   *
+   * @param frameNumber the frame number
+   * @return the data index, or -1 if not found
+   */
+  public int getDataIndex(int frameNumber) {
+  	if (!data.getDatasets().isEmpty()) {
+  		// find data index
+    	for (int i=0; i<dataFrames.size(); i++) {
+    		if (frameNumber==dataFrames.get(i)) return i;
+    	}
+  	}  	
     return -1;
   }
   

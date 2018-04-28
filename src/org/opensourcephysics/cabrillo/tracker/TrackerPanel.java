@@ -1044,7 +1044,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    */
   public void setSelectedPoint(TPoint point) {
     if (point == selectedPoint && point == null) return;
-    Tracker.logTime("set selected point"); //$NON-NLS-1$
     TPoint prevPoint = selectedPoint;
     if (prevPoint!=null) {
     	prevPoint.setAdjusting(false);
@@ -1086,7 +1085,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	    	coordsEdit = prevPoint.isCoordsEditTrigger();
     	}
     	else { // steps have changed 
-    		trackEdit = selectedSteps.getTrack()!=null;
+    		trackEdit = selectedSteps.getTracks().length==1;
     	}
     	if (trackEdit && coordsEdit) {
     		Undo.postTrackAndCoordsEdit(getSelectedTrack(), currentState, currentCoords);    		
@@ -1165,6 +1164,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       selectingPanel = this;
       requestFocusInWindow();
     }
+    if (selectedStep!=null) selectedSteps.add(selectedStep);
   	selectedSteps.isModified = false;
     firePropertyChange("selectedpoint", prevPoint, point); //$NON-NLS-1$
   }

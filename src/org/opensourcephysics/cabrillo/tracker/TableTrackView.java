@@ -87,7 +87,8 @@ public class TableTrackView extends TrackView {
   private JMenuItem addDelimiterItem, removeDelimiterItem;
   private JMenuItem copyImageItem, snapshotItem, printItem, helpItem;
   private boolean highlightVisible = true, refreshed = false, forceRefresh = false;
-  private int highlightRow; // highlighted table row, or -1
+  private ArrayList<Integer> highlightFrames = new ArrayList<Integer>();
+  private ArrayList<Integer> highlightRows = new ArrayList<Integer>();
   private int leadCol;
   private Font font = new JTextField().getFont();
   private TreeSet<Double> selectedIndepVarValues // used when sorting
@@ -296,7 +297,18 @@ public class TableTrackView extends TrackView {
 			refreshed = true;
 		} catch (Exception e) {
 		}
-    setHighlighted(frameNumber);
+    // set the highlighted rows
+		highlightFrames.clear();
+  	if (trackerPanel.selectedSteps.size()>0) {
+  		for (Step step: trackerPanel.selectedSteps) {
+  			if (step.getTrack()!=this.getTrack()) continue;
+  			highlightFrames.add(step.getFrameNumber());
+  		}
+  	}  
+  	else {
+			highlightFrames.add(frameNumber);
+  	}
+		setHighlighted(highlightFrames);
   }
 
   /**
@@ -438,25 +450,36 @@ public class TableTrackView extends TrackView {
   }
 
   /**
-   * Sets the highlighted point.
+   * Sets the highlighted frame numbers.
    *
-   * @param frameNumber the frame number
+   * @param frameNumbers the frame numbers
    */
-  protected void setHighlighted(int frameNumber) {
+  protected void setHighlighted(ArrayList<Integer> frameNumbers) {
     // assume no highlights
     if (!highlightVisible) return;
-    // get row to highlight
-    highlightRow = getRowFromFrame(frameNumber);
-    // select highlighted row, or clear selection if none found
+    
+    // get rows to highlight
+    highlightRows.clear();
+    for (int i=0; i< frameNumbers.size(); i++) {
+    	int row = getRowFromFrame(frameNumbers.get(i));
+    	if (row<dataTable.getRowCount() && row>-1) {
+    		highlightRows.add(row);
+    	}
+    }
+    // set highlighted rows if found
     Runnable runner = new Runnable() {
       public synchronized void run() {
-      	if (highlightRow >= dataTable.getRowCount() || highlightRow < 0) {
-      		dataTable.clearSelection();
+    		dataTable.clearSelection();
+      	if (highlightRows.isEmpty()) {
       		return;
       	}
         try {
-					dataTable.setRowSelectionInterval(highlightRow, highlightRow);
-					dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRow, 0, true));
+        	for (int row: highlightRows) {
+        		dataTable.addRowSelectionInterval(row, row);
+        	}
+        	if (highlightRows.size()==1) {
+        		dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRows.get(0), 0, true));
+        	}
 				} catch (Exception e) {
 					// occasionally throws exception during loading!
 				}
@@ -675,8 +698,8 @@ public class TableTrackView extends TrackView {
   	// get value of independent variable at row
   	double val = getIndepVarValueAtRow(row);
   	TTrack track = getTrack();
-  	String var = track.data.getDataset(0).getXColumnName();
-  	int frameNum = track.getFrameForData(var, val);
+  	String xVar = track.data.getDataset(0).getXColumnName();
+  	int frameNum = track.getFrameForData(xVar, null, new double[] {val});
     return frameNum;
   }
 

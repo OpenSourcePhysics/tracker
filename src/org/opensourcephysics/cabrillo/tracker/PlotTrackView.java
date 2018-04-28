@@ -94,11 +94,7 @@ public class PlotTrackView extends TrackView {
     }
  }
 
-  /**
-   * Refreshes this view.
-   *
-   * @param frameNumber the frame number
-   */
+  @Override
   public void refresh(int frameNumber) {
   	if (!isRefreshEnabled()) return;
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh "+frameNumber); //$NON-NLS-1$
@@ -108,11 +104,24 @@ public class PlotTrackView extends TrackView {
     for (int i = 0; i < plots.length; i++) {
       HighlightableDataset data = plots[i].getDataset();
       data.setMarkerColor(track.getColor());
-      if (highlightVisible) {
-        data.setHighlightColor(track.getColor());
-        plots[i].setHighlighted(frameNumber);
+      if (track.getColor().equals(Color.WHITE)) {
+      	data.setMarkerColor(Color.GRAY);
       }
-      else plots[i].setHighlighted(-1); // hides all highlights
+      // set up highlights
+      plots[i].highlightIndices.clear();
+      if (highlightVisible) {
+      	if (trackerPanel.selectedSteps.size()>0) {
+      		data.setHighlightColor(track.getColor());
+      		for (Step step: trackerPanel.selectedSteps) {
+      			if (step.getTrack()!=this.getTrack()) continue;
+        		plots[i].addHighlight(step.getFrameNumber());
+      		}
+      	}
+      	else {
+      		data.setHighlightColor(Color.GRAY);
+      		plots[i].addHighlight(frameNumber);
+      	}
+      }
       plots[i].plotData();
     }
     mainView.repaint();

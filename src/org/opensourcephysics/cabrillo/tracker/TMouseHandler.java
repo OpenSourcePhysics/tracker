@@ -224,22 +224,26 @@ public class TMouseHandler implements InteractiveMouseHandler {
         else if (iad instanceof TPoint) {
           // select a clicked TPoint
           p = (TPoint)iad;
-      		// find associated step
+      		// find associated step and track
       		Step step = null;
+      		TTrack stepTrack = null;
           for (TTrack track: trackerPanel.getTracks()) {
           	step = track.getStep(p, trackerPanel);
           	if (step != null) {
+          		stepTrack = track;
           		break;
           	}
           }
           
           // if control-down, manage trackerPanel.selectedSteps
       		boolean isStepSelected = trackerPanel.selectedSteps.contains(step);
+      		boolean selectedStepsChanged = false;
         	if (e.isControlDown()) {
         		if (isStepSelected) {
         			// deselect point and remove step from selectedSteps
         			p = null;
         			trackerPanel.selectedSteps.remove(step);
+        			selectedStepsChanged = true;
         		}
         		else { // the step is not yet in selectedSteps
               if (!trackerPanel.selectedSteps.isEmpty()) {
@@ -247,6 +251,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
           			p = null;              	
               }
         			trackerPanel.selectedSteps.add(step);
+        			selectedStepsChanged = true;
         		}
         	}
         	// else if not control-down, check if this step is in selectedSteps
@@ -265,12 +270,17 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	        		trackerPanel.selectedSteps.clear();
 	        		// add this point's step
 	        		trackerPanel.selectedSteps.add(step);
+        			selectedStepsChanged = true;
 	        		
 	        		if (stepsIncludeSelectedPoint) {
 	        			trackerPanel.pointState.setLocation(trackerPanel.getSelectedPoint()); // prevents posting undoable edit
 	        		}
         		}
         	}
+        	if (selectedStepsChanged && stepTrack!=null) {
+        		stepTrack.firePropertyChange("steps", null, null); //$NON-NLS-1$
+        	}
+        	
         	if (step!=null) step.erase();
         	
           if (p instanceof AutoTracker.Handle) {
@@ -292,10 +302,14 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	          trackerPanel.setSelectedPoint(null);
         	}
         	// erase and clear selected steps, if any
+        	TTrack[] tracks = trackerPanel.selectedSteps.getTracks();
         	for (Step step: trackerPanel.selectedSteps) {
         		step.erase();
         	}
         	trackerPanel.selectedSteps.clear(); // triggers undoable edit if changed
+        	for (TTrack next: tracks) {
+        		next.firePropertyChange("steps", null, null); //$NON-NLS-1$
+        	}
         	
           if (!trackerPanel.isShowCoordinates()) {
             trackerPanel.hideMouseBox();

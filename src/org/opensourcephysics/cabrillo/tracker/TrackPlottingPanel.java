@@ -67,11 +67,12 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
   protected Action dataFunctionListener, guestListener;
   protected JMenuItem copyImageItem, dataBuilderItem, dataToolItem;
   protected JMenuItem showXZeroItem, showYZeroItem;
+  protected JMenuItem selectPointsItem, deselectPointsItem;
   protected JMenuItem algorithmItem, printItem, helpItem, mergeYScalesItem;
   protected JCheckBoxMenuItem linesItem, pointsItem;
   protected JMenuItem guestsItem;
   protected String xLabel, yLabel, title;
-  protected int highlightIndex; // dataset index of highlighted point, or -1
+  protected TreeSet<Integer> highlightIndices = new TreeSet<Integer>(); // indices of highlighted points
   protected ItemListener xListener, yListener;
   protected PlotTrackView plotTrackView;
   protected boolean isCustom;
@@ -363,6 +364,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
   	mergeYScalesItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.MenuItem.MergeYAxes")); //$NON-NLS-1$
 	  linesItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.MenuItem.Lines")); //$NON-NLS-1$
 	  pointsItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.MenuItem.Points")); //$NON-NLS-1$
+	  selectPointsItem.setText(TrackerRes.getString("MainTView.Popup.MenuItem.Select")); //$NON-NLS-1$
+	  deselectPointsItem.setText(TrackerRes.getString("MainTView.Popup.MenuItem.Deselect")); //$NON-NLS-1$
 	  printItem.setText(TrackerRes.getString("TActions.Action.Print")); //$NON-NLS-1$
 	  copyImageItem.setText(TrackerRes.getString("TMenuBar.Menu.CopyImage")); //$NON-NLS-1$
 	  dataBuilderItem.setText(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
@@ -732,6 +735,49 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
         dialog.setVisible(true);
       }
     });
+    
+    Action selectAction = new AbstractAction() {
+      public void actionPerformed(ActionEvent e) {
+      	// find limits of zoom box
+      	Rectangle rect = zoomBox.reportZoom();
+        double x = pixToX(rect.x);
+        double x2 = pixToX(rect.x+rect.width);
+        double y = pixToY(rect.y+rect.height);
+        double y2 = pixToY(rect.y);
+        double xmin = Math.min(x, x2);
+        double xmax = Math.max(x, x2);
+        double ymin = Math.min(y, y2);
+        double ymax = Math.max(y, y2);
+        // look for all points in the dataset that fall within limits
+        double[] xPoints = dataset.getXPoints();
+        double[] yPoints = dataset.getYPoints();
+        TTrack track = TTrack.getTrack(trackID);
+        TreeSet<Integer> frames = new TreeSet<Integer>();
+        for (int i=0; i<xPoints.length; i++) {
+        	if (Double.isNaN(xPoints[i]) || Double.isNaN(yPoints[i])) continue;
+        	if (xPoints[i]>=xmin && xPoints[i]<=xmax && yPoints[i]>=ymin && yPoints[i]<=ymax) {
+        		// found one: add its frame number to frames set
+          	int frame = track.getFrameForData(getXLabel(), getYLabel(), new double[] {xPoints[i], yPoints[i]});
+          	if (frame>=0) {
+          		frames.add(frame);
+          	}
+        	}
+        }
+        // add or remove steps from selectedSteps
+        for (int frame: frames) {
+        	Step step = track.getStep(frame);
+        	if (e.getSource()==selectPointsItem) trackerPanel.selectedSteps.add(step);
+        	else  trackerPanel.selectedSteps.remove(step);
+      		step.erase();
+        }
+        trackerPanel.repaint();
+    		track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+      }    	
+    };
+    selectPointsItem = new JMenuItem();
+    selectPointsItem.addActionListener(selectAction);
+    deselectPointsItem = new JMenuItem();
+    deselectPointsItem.addActionListener(selectAction);
 
     popupmenu.removeAll();
     popupmenu.add(zoomInItem);
@@ -740,6 +786,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
     popupmenu.add(showYZeroItem);
     popupmenu.add(showXZeroItem);
     popupmenu.add(scaleItem);
+    popupmenu.addSeparator();    
+    popupmenu.add(selectPointsItem);
+    popupmenu.add(deselectPointsItem);
     popupmenu.addSeparator();    
     popupmenu.add(pointsItem);
     popupmenu.add(linesItem);
@@ -985,12 +1034,19 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
       refreshDataset(nextDataset, nextData, xIsAngle, yIsAngle, degrees);
   	  addDrawable(nextDataset);
     }
-    // refresh highlighted index
+    
+    // refresh highlighted indices
     dataset.clearHighlights();
-	  if (highlightIndex >=0 && dataset.getIndex() > highlightIndex) {
-	  	dataset.setHighlighted(highlightIndex, true);
-	  }
-    showPlotCoordinates(highlightIndex);
+	  for (int n: highlightIndices) {
+	  	dataset.setHighlighted(n, true);
+  	}
+	  
+	  // refresh plot coordinates
+    int plotIndex = -1;
+  	if (highlightIndices.size()==1) {
+  		plotIndex = highlightIndices.toArray(new Integer[1])[0];
+  	}
+    showPlotCoordinates(plotIndex);
     repaint();
   }
 
@@ -1128,32 +1184,15 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
   }
   
   /**
-   * Sets the highlighted point.
+   * Adds a highlight for the specified frame number.
    *
    * @param frameNumber the frame number
    */
-  protected void setHighlighted(int frameNumber) {
-    // turn off highlights
-    highlightIndex = -1;
-    if (dataset.getRowCount() == 0) return;
-    // highlight the data entry, if any, for frameNumber
+  protected void addHighlight(int frameNumber) {
+    // add data index to highlightIndices if found
     TTrack track = TTrack.getTrack(trackID);
-    Step[] steps = track.getSteps();
-    int dataIndex = -1;
-    VideoClip clip = null;
-    if (trackerPanel != null) {
-    	clip = trackerPanel.getPlayer().getVideoClip();
-    }
-    for (int i = 0; i < steps.length; i++) {
-      if (steps[i] != null && steps[i].dataVisible &&
-      				(clip == null || clip.includesFrame(steps[i].getFrameNumber()))) {
-        dataIndex++;
-        if (steps[i].getFrameNumber() == frameNumber) {
-          highlightIndex = dataIndex;
-          break;
-        }
-      }
-    }
+    int index = track.getDataIndex(frameNumber);
+    if (index>-1) highlightIndices.add(index);  
   }
 
   /**
@@ -1491,7 +1530,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
       if (iad == dataset) {
         showPlotCoordinates(dataset.getHitIndex());
       	// determine frame number
-      	int frame = track.getFrameForData(getXLabel(), dataset.getX());
+      	int frame = track.getFrameForData(getXLabel(), getYLabel(), new double[] {dataset.getX(), dataset.getY()});
       	if (frame > -1) {
       		// set video frame to selected data point frame
         	clickedStep = track.getStep(frame);

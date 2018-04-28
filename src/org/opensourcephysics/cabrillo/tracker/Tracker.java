@@ -66,7 +66,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.0.2.180422"; //$NON-NLS-1$
+  public static final String VERSION = "5.0.3.180428"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(

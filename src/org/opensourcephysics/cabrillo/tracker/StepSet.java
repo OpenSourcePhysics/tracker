@@ -44,6 +44,7 @@ public class StepSet extends HashSet<Step> {
 	HashSet<Step> removedSteps = new HashSet<Step>(); // steps removed after being changed (undo steps states retained)
 	boolean saveUndoStates = false;
 	boolean isModified = false;
+	HashSet<TTrack> tracks = new HashSet<TTrack>();
 	
   /**
    * Constructs a StepSet.
@@ -135,9 +136,9 @@ public class StepSet extends HashSet<Step> {
 	@Override
   public void clear() {
 		if (changed && (!this.isEmpty() || !removedSteps.isEmpty())) {
-  		TTrack track = getTrack();
-  		if (track!=null && getTrackUndoControl()!=null) {
-    		Undo.postTrackEdit(track, getTrackUndoControl());    		        			
+  		TTrack[] tracks = getTracks();
+  		if (tracks.length==1 && getTrackUndoControl()!=null) {
+    		Undo.postTrackEdit(tracks[0], getTrackUndoControl());    		        			
   		}
   		else {
     		Undo.postStepSetEdit(this, getStepsUndoControl());    		        			
@@ -195,32 +196,18 @@ public class StepSet extends HashSet<Step> {
 	}
 	
   /**
-   * Returns the track containing all steps, or null if multiple tracks are selected.
+   * Returns all tracks associated with the steps.
    *
-   * @return the track (may be null)
+   * @return a track array
    */
-	public TTrack getTrack() {
-  	TTrack track = null;
-  	boolean singleTrack = true;
+	public TTrack[] getTracks() {
+		tracks.clear();
   	for (Step step: this) {
   		if (step.getTrack()!=null) {
-  			if (track==null) track = step.getTrack();
-  			else { // track not null, so compare
-  				if (track!=step.getTrack()) {
-  					singleTrack = false;
-  					break;
-  				}
-  			}
+  			tracks.add(step.getTrack());
   		}
   	}
-  	return singleTrack? track: null;
-
-//		for (Step step: this) {
-//			if (step!=null && step.getTrack()!=null) {
-//				return step.getTrack();
-//			}
-//		}
-//		return null;
+  	return tracks.toArray(new TTrack[tracks.size()]);
 	}
 	
   /**
