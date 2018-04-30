@@ -1532,11 +1532,26 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
       	// determine frame number
       	int frame = track.getFrameForData(getXLabel(), getYLabel(), new double[] {dataset.getX(), dataset.getY()});
       	if (frame > -1) {
-      		// set video frame to selected data point frame
-        	clickedStep = track.getStep(frame);
-        	VideoPlayer player = plotTrackView.trackerPanel.getPlayer();
-        	int stepNumber = player.getVideoClip().frameToStep(frame);
-          player.setStepNumber(stepNumber);
+        	Step step = track.getStep(frame);
+      		if (e.isControlDown()) {
+      			// add or remove step
+      			if (step!=null) {
+      				StepSet steps = plotTrackView.trackerPanel.selectedSteps;
+      				if (steps.contains(step)) steps.remove(step);
+      				else steps.add(step);
+          		step.erase();
+              trackerPanel.repaint();
+          		track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+      			}
+      		}
+      		else {
+	      		// set clickedStep so TrackPlottingPanel will select it after displaying video frame
+	        	clickedStep = step;
+	      		// set video frame to selected data point frame
+	        	VideoPlayer player = plotTrackView.trackerPanel.getPlayer();
+	        	int stepNumber = player.getVideoClip().frameToStep(frame);
+	          player.setStepNumber(stepNumber);
+      		}
         	return;
       	}
       }
