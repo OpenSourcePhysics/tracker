@@ -348,16 +348,16 @@ public class PositionStep extends Step {
      * @param y the y coordinate
      */
     public void setXY(double x, double y) {
-    	TTrack track = getTrack();
+  		PointMass track = (PointMass)getTrack();
       if (track.isLocked()) return;
       super.setXY(x, y);
       repaint();
     	if (!isAdjusting()) {
-    		PointMass m = (PointMass)getTrack();
-      	if (m.isAutofill()) {
-  	    	m.markInterpolatedSteps(PositionStep.this, true);
+      	if (track.isAutofill()) {
+  	    	track.markInterpolatedSteps(PositionStep.this, true);
       	}
-    	}     
+      	track.updateDerivatives(n);
+    	}  
       track.support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
     }
 
@@ -411,7 +411,11 @@ public class PositionStep extends Step {
     	if (m.isAutofill()) {
 	    	m.markInterpolatedSteps(PositionStep.this, !adjusting);
     	}
-      getTrack().support.firePropertyChange("adjusting", null, adjusting); //$NON-NLS-1$    	
+    	if (!adjusting) {
+    		m.updateDerivatives(n);
+    	  m.support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+    	}
+      m.support.firePropertyChange("adjusting", null, adjusting); //$NON-NLS-1$    	
     }
 
   }
