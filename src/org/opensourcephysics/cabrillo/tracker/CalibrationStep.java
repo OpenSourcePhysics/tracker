@@ -72,6 +72,8 @@ public class CalibrationStep extends Step {
   public Position addSecondPoint(double x, double y) {
     Position p = new Position(x, y);
     points[1] = p;
+    TTrack track = getTrack();
+    if (track==null) return p; // occurs when loading from TRK file
     boolean success = setWorldCoordinates(worldX0, worldY0, worldX1, worldY1);
     if (success) return p;
     points[1] = null;
