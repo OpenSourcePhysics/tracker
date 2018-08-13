@@ -82,11 +82,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		    	      	
 		    	      	TTrack track = trackerPanel.getSelectedTrack();
-		    	      	if (track!=null && track instanceof PointMass) {
-		    	      		Tracker.enableAutofill = !Tracker.enableAutofill;
-		    	      	}
 		    	      	
 		    	      	
 //			    	    	Map<String, String> map = System.getenv();

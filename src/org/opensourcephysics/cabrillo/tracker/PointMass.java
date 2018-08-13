@@ -104,13 +104,14 @@ public class PointMass extends TTrack {
   	names.add(Tracker.THETA+"_{p}"); //$NON-NLS-1$ 21
   	names.add("pixel_{x}"); //$NON-NLS-1$ 22
   	names.add("pixel_{y}"); //$NON-NLS-1$ 23
-  	names.add("K"); //$NON-NLS-1$ 24
-  	names.add("m"); //$NON-NLS-1$ 25
+  	names.add("L"); //$NON-NLS-1$ 24
+  	names.add("K"); //$NON-NLS-1$ 25
+  	names.add("m"); //$NON-NLS-1$ 26
 		dataVariables = names.toArray(new String[names.size()]);
 		
 		// assemble field variables
   	names.clear();
-  	names.add(dataVariables[25]); // 0
+  	names.add(dataVariables[26]); // 0
   	names.add(dataVariables[0]); // 1
   	names.add(dataVariables[1]); // 2
   	names.add(dataVariables[2]); // 3
@@ -154,68 +155,69 @@ public class PointMass extends TTrack {
 		formatMap = new HashMap<String, ArrayList<String>>();
 		
 		ArrayList<String> list = new ArrayList<String>();
-		list.add(dataVariables[25]); 
-		formatMap.put(formatVariables[0], list); 
+		list.add(dataVariables[26]); // mass m
+		formatMap.put(formatVariables[0], list); // m
 		
 		list = new ArrayList<String>();
-		list.add(dataVariables[0]); 
-		formatMap.put(formatVariables[1], list); 
+		list.add(dataVariables[0]); // time t
+		formatMap.put(formatVariables[1], list); // t
 		
 		list = new ArrayList<String>();
-		list.add(dataVariables[1]); 
-		list.add(dataVariables[2]); 
-		list.add(dataVariables[3]); 
-		formatMap.put(formatVariables[2], list); 
+		list.add(dataVariables[1]); // x
+		list.add(dataVariables[2]); // y
+		list.add(dataVariables[3]); // r
+		list.add(dataVariables[24]); // L pathlength
+		formatMap.put(formatVariables[2], list); // xy
 		
 		list = new ArrayList<String>();
-		list.add(dataVariables[5]); 
-		list.add(dataVariables[6]); 
-		list.add(dataVariables[7]); 
-		formatMap.put(formatVariables[3], list); 
+		list.add(dataVariables[5]); // vx
+		list.add(dataVariables[6]); // vy
+		list.add(dataVariables[7]); // v
+		formatMap.put(formatVariables[3], list); // v
 		
 		list = new ArrayList<String>();
-		list.add(dataVariables[9]); 
-		list.add(dataVariables[10]); 
-		list.add(dataVariables[11]); 
-		formatMap.put(formatVariables[4], list); 
+		list.add(dataVariables[9]); // ax
+		list.add(dataVariables[10]); // ay
+		list.add(dataVariables[11]); // a
+		formatMap.put(formatVariables[4], list); // a
 		
 		list = new ArrayList<String>();
-		list.add(dataVariables[18]); 
-		list.add(dataVariables[19]); 
-		list.add(dataVariables[20]); 
-		formatMap.put(formatVariables[5], list); 
+		list.add(dataVariables[18]); // px
+		list.add(dataVariables[19]); // py
+		list.add(dataVariables[20]); // p
+		formatMap.put(formatVariables[5], list); // p
 		
 		list = new ArrayList<String>();
-		list.add(fieldVariables[18]); 
-		list.add(fieldVariables[19]); 
-		list.add(fieldVariables[20]); 
-		formatMap.put(formatVariables[6], list); 
+		list.add(fieldVariables[18]); // max
+		list.add(fieldVariables[19]); // may
+		list.add(fieldVariables[20]); // ma
+		formatMap.put(formatVariables[6], list); // ma
 		
 		list = new ArrayList<String>();
-		list.add(dataVariables[4]); 
-		list.add(dataVariables[8]); 
-		list.add(dataVariables[12]); 
-		list.add(dataVariables[13]);
-		list.add(dataVariables[21]); 
-		list.add(fieldVariables[21]); 
-		formatMap.put(formatVariables[7], list);
+		list.add(dataVariables[4]); // theta r
+		list.add(dataVariables[8]); // theta v
+		list.add(dataVariables[12]); // theta a
+		list.add(dataVariables[13]);// theta (rotation)
+		list.add(dataVariables[21]); // theta p
+		list.add(fieldVariables[21]); // theta ma
+		formatMap.put(formatVariables[7], list); // theta
 		
 		list = new ArrayList<String>();
-		list.add(dataVariables[14]); 
-		formatMap.put(formatVariables[8], list); 
+		list.add(dataVariables[14]); // omega
+		formatMap.put(formatVariables[8], list); // omega
 		
 		list = new ArrayList<String>();
-		list.add(dataVariables[14]); 
-		formatMap.put(formatVariables[9], list); 
+		list.add(dataVariables[14]); // alpha
+		formatMap.put(formatVariables[9], list); // alpha
 		
 		list = new ArrayList<String>();
-		list.add(dataVariables[22]); 
-		list.add(dataVariables[23]); 
-		formatMap.put(formatVariables[10], list); 
+		list.add(dataVariables[22]); // pixelx
+		list.add(dataVariables[23]); // pixely
+		formatMap.put(formatVariables[10], list); // pixel
 
 		list = new ArrayList<String>();
-		list.add(dataVariables[24]); 
-		formatMap.put(formatVariables[11], list); 
+		list.add(dataVariables[25]); // K
+		formatMap.put(formatVariables[11], list); // K
 		
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
@@ -1099,7 +1101,7 @@ public class PointMass extends TTrack {
    */
   protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
     if (refreshDataLater || trackerPanel == null || data == null) return;
-    int baseCount = 23;
+    int baseCount = 24;
     int count = baseCount; // number of datasets
     if (!getClass().equals(CenterOfMass.class)
     		&& !getClass().equals(DynamicSystem.class)) {
@@ -1119,7 +1121,7 @@ public class PointMass extends TTrack {
     if (preferredColumnOrder==null) {
 	    if (count==baseCount) 
 	    	preferredColumnOrder = new int[] 
-	    	    {0,1,2,3,4,5,6,7,8,9,10,11,17,18,19,20,12,13,14};
+	    	    {0,1,2,3,4,5,6,7,8,9,10,11,17,18,19,20,12,13,14}; 
 	    else 
 	    	preferredColumnOrder = new int[] 
 	    	    {0,1,2,3,4,5,6,7,8,9,10,11,17,18,19,20,12,13,14,baseCount};
@@ -1130,6 +1132,7 @@ public class PointMass extends TTrack {
     	if (i<22) dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description."+i); //$NON-NLS-1$
     	else if (i==22) dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.PixelX"); //$NON-NLS-1$
     	else if (i==23) dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.PixelY"); //$NON-NLS-1$
+    	else if (i==24) dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.PathLength"); //$NON-NLS-1$
     	else dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.22"); //$NON-NLS-1$
     }
     // get the rotational data
@@ -1143,6 +1146,8 @@ public class PointMass extends TTrack {
       data.getDataset(i).clear();
     }
     skippedSteps.clear();
+    Point2D prevPt = null;
+    double pathlength = 0; // total path length
     // get data at each non-null position step in the videoclip
     VideoPlayer player = trackerPanel.getPlayer();
     VideoClip clip = player.getVideoClip();
@@ -1203,6 +1208,7 @@ public class PointMass extends TTrack {
       vals[20] = Double.NaN; // pang
       vals[21] = p.x; // pixel x
       vals[22] = p.y; // pixel y
+      // for vals[23] (pathlength) see below
       if (count>baseCount) vals[baseCount] = Double.NaN; // KE
 	    VectorStep veloc = getVelocity(n, trackerPanel);
 	    if (veloc != null) {
@@ -1229,6 +1235,12 @@ public class PointMass extends TTrack {
         vals[10] = Math.sqrt(vals[8]*vals[8] + vals[9]*vals[9]);
         vals[11] = Math.atan2(vals[9], vals[8]);
       }
+      // path length
+      if (prevPt!=null) {
+      	pathlength += prevPt.distance(pt);
+      }
+      vals[23] = pathlength; // pig
+      prevPt = pt;
       // append points to datasets
       for (int i = 0; i < count; i++) {
       	data.getDataset(i).append(t, vals[i]);
@@ -2383,7 +2395,7 @@ public class PointMass extends TTrack {
     list.add(massLabel);
     massField.setEnabled(!isLocked());
     massField.setValue(getMass());
-    massField.setUnits(trackerPanel.getUnits(this, dataVariables[25]));
+    massField.setUnits(trackerPanel.getUnits(this, dataVariables[26]));
     list.add(massField);
     list.add(mSeparator);
     return list;
@@ -2628,7 +2640,7 @@ public class PointMass extends TTrack {
   protected void createGUI() {
     // create toolbar components
     // mass field
-    massLabel = new JLabel(dataVariables[25]);
+    massLabel = new JLabel(dataVariables[26]);
     massLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
     massField = new TrackNumberField();
     massField.addActionListener(new ActionListener() {

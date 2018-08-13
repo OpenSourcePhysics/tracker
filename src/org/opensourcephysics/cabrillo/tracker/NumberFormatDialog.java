@@ -1396,7 +1396,7 @@ public class NumberFormatDialog extends JDialog {
   	String[] names = TTrack.getFormatterDisplayNames(type);
   	if (PointMass.class.isAssignableFrom(type)) {
   		if (vars.get(1).equals(variable) || vars.get(2).equals(variable) 
-  				|| vars.get(3).equals(variable) || names[2].equals(variable)) { // position
+  				|| vars.get(3).equals(variable) || vars.get(24).equals(variable) || names[2].equals(variable)) { // position
   			return "L"; //$NON-NLS-1$
   		}  		
   		if (vars.get(5).equals(variable) || vars.get(6).equals(variable) 
