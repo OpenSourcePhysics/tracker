@@ -1239,7 +1239,7 @@ public class PointMass extends TTrack {
       if (prevPt!=null) {
       	pathlength += prevPt.distance(pt);
       }
-      vals[23] = pathlength; // pig
+      vals[23] = pathlength;
       prevPt = pt;
       // append points to datasets
       for (int i = 0; i < count; i++) {
