@@ -168,8 +168,11 @@ public class PlotGuestDialog extends JDialog {
     }
     
     if (checkboxPanel.getComponentCount()<cols) {
-    	int n = tracksPerColumn - box.getComponentCount();
-    	box.add(Box.createVerticalStrut(n*h));
+    	// add last box and pad its bottom if not the first
+    	if (checkboxPanel.getComponentCount()>0) {
+	    	int n = tracksPerColumn - box.getComponentCount();
+	    	box.add(Box.createVerticalStrut(n*h));
+    	}
       checkboxPanel.add(box);
     }
   	FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
