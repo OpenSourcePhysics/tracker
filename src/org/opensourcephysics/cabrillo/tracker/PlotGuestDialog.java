@@ -48,6 +48,7 @@ public class PlotGuestDialog extends JDialog {
   protected ActionListener listener;
   protected TitledBorder instructions;
   protected TreeSet<Integer> allTracks = new TreeSet<Integer>();
+  protected boolean allTracksSelected;
 
   /**
    * Constructs a PlotGuestDialog.
@@ -107,7 +108,10 @@ public class PlotGuestDialog extends JDialog {
       public void actionPerformed(ActionEvent e) {
       	for (Integer id: allTracks) {
 		      TTrack track = TTrack.getTrack(id);
-	      	plot.addGuest(track);
+		      if (allTracksSelected) {
+		      	plot.removeGuest(track);
+		      }
+		      else plot.addGuest(track);
       	}
       	plot.plotData();
       	updateDisplay();
@@ -146,6 +150,7 @@ public class PlotGuestDialog extends JDialog {
     int h = 0;
     Box box = Box.createVerticalBox();
     allTracks.clear();
+    allTracksSelected = true;
     for (TTrack next: tracks) {
     	allTracks.add(next.getID());
       JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(
@@ -153,6 +158,7 @@ public class PlotGuestDialog extends JDialog {
       checkbox.setBorderPainted(false);
       // check the checkbox if next is a guest
       checkbox.setSelected(plot.guests.contains(next));
+      allTracksSelected = allTracksSelected && checkbox.isSelected();
       checkbox.setActionCommand(String.valueOf(next.getID()));
       checkbox.addActionListener(listener);
       box.add(checkbox);
@@ -175,6 +181,12 @@ public class PlotGuestDialog extends JDialog {
     	}
       checkboxPanel.add(box);
     }
+    if (allTracksSelected) {
+    	
+    }
+    selectAllButton.setText(allTracksSelected? 
+    		TrackerRes.getString("PlotGuestDialog.Button.SelectNone.Text"): //$NON-NLS-1$
+    		TrackerRes.getString("PlotGuestDialog.Button.SelectAll.Text")); //$NON-NLS-1$
   	FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
     pack();
     repaint();
