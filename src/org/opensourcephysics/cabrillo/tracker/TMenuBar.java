@@ -1568,7 +1568,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           playAllStepsItem.setSelected(clip.isPlayAllSteps());
           videoMenu.add(playAllStepsItem);
           // smooth play item for ffmpeg videos
-          boolean isXuggleVideo = false;
+          boolean isFFMPegVideo = false;
           VideoType videoType = (VideoType)video.getProperty("video_type"); //$NON-NLS-1$
           if (videoType!=null && videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_FFMPEG)) {
       			String ffmpegName = "org.opensourcephysics.media.ffmpeg.FFMPegVideo"; //$NON-NLS-1$
@@ -1578,7 +1578,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         			Boolean smooth = (Boolean)method.invoke(video, (Object[])null);
             	playVideoSmoothlyItem.setSelected(smooth);
               videoMenu.add(playVideoSmoothlyItem);
-              isXuggleVideo = true;
+              isFFMPegVideo = true;
         		} catch (Exception ex) {
         		}              	
           }
@@ -1637,7 +1637,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             videoMenu.add(filtersMenu);
           }
           videoMenu.addSeparator();
-      		if (isXuggleVideo) videoMenu.add(checkDurationsItem);
+      		if (isFFMPegVideo) videoMenu.add(checkDurationsItem);
       		videoMenu.add(aboutVideoItem);
         }
         // update save and close items

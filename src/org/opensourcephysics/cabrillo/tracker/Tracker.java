@@ -1221,7 +1221,7 @@ public class Tracker {
   }
 
   /**
-   * Checks and updates Xuggle resources.
+   * Checks and updates FFMPeg resources.
    * 
    * @return true if any resources were updated
    */
@@ -2202,7 +2202,7 @@ public class Tracker {
         Tracker.enableAutofill = control.getBoolean("enable_autofill"); //$NON-NLS-1$
         Tracker.showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
         Tracker.centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
-    		Tracker.isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
+    		Tracker.isFFMPegFast = control.getBoolean("ffmpeg_fast"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("trail_length")) { //$NON-NLS-1$
       		String name = control.getString("trail_length"); //$NON-NLS-1$
       		for (int i=0; i<TToolBar.trailLengthNames.length; i++) {
