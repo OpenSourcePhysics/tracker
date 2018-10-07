@@ -101,6 +101,7 @@ public class PrefsDialog extends JDialog {
   protected JRadioButton radiansButton, degreesButton;
   protected JRadioButton scrubButton, zoomButton;
   protected JRadioButton markStickEndsButton, centerStickButton;
+  protected JRadioButton videoFastButton, videoSlowButton;
   protected JRadioButton defaultDecimalButton, periodDecimalButton, commaDecimalButton;
   protected Tracker.Version[] trackerVersions;
   protected boolean relaunching, refreshing;
@@ -857,7 +858,7 @@ public class PrefsDialog extends JDialog {
     box = Box.createVerticalBox();
     videoPanel.add(box, BorderLayout.CENTER);
     
-    boolean ffmpegInstalled = DiagnosticsForFFMPeg.getFFMPegJar()!=null;
+    boolean ffmpegInstalled = DiagnosticsForFFMPeg.hasFFMPegJars();
 
     // videoType subpanel
     JPanel videoTypeSubPanel = new JPanel();
@@ -925,7 +926,7 @@ public class PrefsDialog extends JDialog {
     videoSpeedSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.FFMPeg.Speed.BorderTitle")); //$NON-NLS-1$
     if (!ffmpegInstalled)
-    	ffmpegSpeedSubPanelBorder.setTitleColor(GUIUtils.getDisabledTextColor());
+    	videoSpeedSubPanelBorder.setTitleColor(GUIUtils.getDisabledTextColor());
     videoSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoSpeedSubPanelBorder));    
     buttonGroup = new ButtonGroup();
     videoFastButton = new JRadioButton();
@@ -989,7 +990,7 @@ public class PrefsDialog extends JDialog {
     warningsCenterPanel.add(ffmpegErrorCheckbox);
     
     // set selected states of engine buttons AFTER creating the videofast, videoslow and warnffmpeg buttons
-    if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)
+    if (VideoIO.getEngine().equals(VideoIO.ENGINE_FFMPEG)
     		&& VideoIO.getVideoType("FFMPeg", null)!=null) { //$NON-NLS-1$
 	    ffmpegButton.setSelected(true);
     }
@@ -1498,7 +1499,7 @@ public class PrefsDialog extends JDialog {
     memorySubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Memory.BorderTitle")); //$NON-NLS-1$
     runSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Run.BorderTitle")); //$NON-NLS-1$
     videoTypeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
-    ffmpegSpeedSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.FFMPeg.Speed.BorderTitle")); //$NON-NLS-1$
+    videoSpeedSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.FFMPeg.Speed.BorderTitle")); //$NON-NLS-1$
     warningsSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.NoVideoWarning.BorderTitle")); //$NON-NLS-1$
     recentSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.RecentFiles.BorderTitle")); //$NON-NLS-1$
     cacheSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.CacheFiles.BorderTitle")); //$NON-NLS-1$
@@ -1884,7 +1885,7 @@ public class PrefsDialog extends JDialog {
     trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
     
     // video
-    if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)) {
+    if (VideoIO.getEngine().equals(VideoIO.ENGINE_FFMPEG)) {
 	    ffmpegButton.setSelected(true);
     }
     repaint();

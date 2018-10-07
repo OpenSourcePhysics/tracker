@@ -173,7 +173,7 @@ public class Tracker {
   static String preferredJRE, preferredTrackerJar, preferredPointMassFootprint;
   static int checkForUpgradeInterval = 0;
   static int preferredFontLevel = 0, preferredFontLevelPlus = 0;
-  static boolean isRadians, isFFMPegFast;
+  static boolean isRadians, isVideoFast;
   static boolean warnFFMPegError=true, warnNoVideoEngine=true;
   static boolean warnVariableDuration=true;
   static String[] prelaunchExecutables = new String[0];
@@ -1227,12 +1227,6 @@ public class Tracker {
    */
   protected static boolean updateResources() {
   	boolean updated = false;
-  	// copy ffmpeg files to Tracker home, if needed
-		try {
-				File trackerDir = new File(TrackerStarter.findTrackerHome(false));
-			updated = DiagnosticsForFFMPeg.copyFFMPegJarsTo(trackerDir);
-		} catch (Exception e) {
-		}
     return updated; 	
   }
 
@@ -1712,7 +1706,7 @@ public class Tracker {
 //    warnNoVideoEngine = false; // for PLATO
     if (warnNoVideoEngine && VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {    	
     	// warn user that there is no working video engine
-    	boolean ffmpegInstalled = DiagnosticsForFFMPeg.guessFFMPegVersion()!=0;
+    	boolean ffmpegInstalled = DiagnosticsForFFMPeg.hasFFMPegJars();
     	
     	ArrayList<String> message = new ArrayList<String>();    	
 			boolean showRelaunchDialog = false;
@@ -2202,7 +2196,7 @@ public class Tracker {
         Tracker.enableAutofill = control.getBoolean("enable_autofill"); //$NON-NLS-1$
         Tracker.showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
         Tracker.centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
-    		Tracker.isFFMPegFast = control.getBoolean("ffmpeg_fast"); //$NON-NLS-1$
+    		Tracker.isVideoFast = control.getBoolean("ffmpeg_fast"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("trail_length")) { //$NON-NLS-1$
       		String name = control.getString("trail_length"); //$NON-NLS-1$
       		for (int i=0; i<TToolBar.trailLengthNames.length; i++) {
