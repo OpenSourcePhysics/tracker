@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,15 +111,10 @@ public class ExportVideoDialog extends JDialog {
   public static void refreshFormats() {
 		formats.clear(); 
 		formatDescriptions.clear();  
-		// unwanted types are quicktime, ffmpeg or both depending on VideoIO engine
+		// eliminate ffmpeg types if VideoIO engine is NONE
   	ArrayList<VideoType> unwanted = new ArrayList<VideoType>();
-  	boolean skipQT = VideoIO.getEngine().equals(VideoIO.ENGINE_FFMPEG)
-  			|| VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
-  	boolean skipFFMPeg = VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)
-  			|| VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
+  	boolean skipFFMPeg = VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
   	for (String ext: VideoIO.VIDEO_EXTENSIONS) {
-    	if (skipQT)
-    		unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_QUICKTIME, ext));
     	if (skipFFMPeg)
     		unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_FFMPEG, ext));
   	}

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,8 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.*;
 import java.io.File;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -38,7 +36,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.ResourceLoader;
+import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
@@ -60,13 +58,12 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   protected static JButton testButton;
   protected static javax.swing.Timer testTimer;
   protected static boolean showOutOfMemoryDialog = true;
-  protected static JDialog relaunchingDialog;
-  protected static JLabel downloadLabel, relaunchLabel;
+  private static JTextField sizingField = new JTextField();
   
   // instance fields
   protected TrackerPanel trackerPanel; // manages & displays track data
   protected Component toolbarEnd;
-  protected int toolbarComponentHeight;
+  protected int toolbarComponentHeight, numberFieldWidth;
   protected TButton trackButton;
   protected TButton selectButton;
   protected JLabel emptyLabel = new JLabel();
@@ -84,25 +81,24 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    			if (testTimer==null) {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
-		    	  			// test action goes here	
+		    	  			// test action goes here
+		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		    	      	
+		    	      	TTrack track = trackerPanel.getSelectedTrack();
 		    	      	
-//	    	      		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+		    	      	
+//			    	    	Map<String, String> map = System.getenv();
+//			    	    	for (String key: map.keySet()) {
+//			    	    		System.out.println("environment "+key+" = "+map.get(key));
+//			    	    	}
+//			    	    	for (Object key: System.getProperties().keySet()) {
+//			    	    		System.out.println("property "+key+" = "+System.getProperties().get(key));
+//			    	    	}
 
-//	    	      		Font textFont = new Font("Helvetica", Font.PLAIN, 60);
-//	    	      		String s = "Hello world";
-//	    	          FontRenderContext fontRenderContext = 
-//	    	              new FontRenderContext(null,true,true);
-//	    	          GlyphVector glyphVector = 
-//	    	          		textFont.createGlyphVector(fontRenderContext, s);
-//	    	          Shape outline = glyphVector.getOutline(100, 100);
-//	    	          GeneralPath path = new GeneralPath(outline);
-//	    	          PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
-//	    	          PencilDrawing drawing = new PencilDrawing(drawer.pencilColor, null);
-//	    	          drawing.setPath(path);
-//	    	          drawer.addDrawingtoSelectedScene(drawing);
-//	    	          trackerPanel.repaint();
-//	    	      		TTrack track = trackerPanel.getSelectedTrack();
-
+		    	      			    	      	
+//			          	Tracker.newerVersion = "5.0.2"; //$NON-NLS-1$
+//		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+//		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
+		    	      			    	      	
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
 		  	    				testTimer=null;
@@ -130,14 +126,46 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    memoryItem.addActionListener(new ActionListener() {
   	    	public void actionPerformed(ActionEvent e) {
   	    		TFrame frame = (TFrame)memoryButton.getTopLevelAncestor();
-  	    		if (frame!=null && frame.getSelectedTab()>-1) {
-  	    			TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-  	    			TActions.getAction("config", trackerPanel).actionPerformed(null); //$NON-NLS-1$
-  	    			Component c = frame.prefsDialog.runtimePanel;
-  	    			frame.prefsDialog.tabbedPane.setSelectedComponent(c);
-  	    		}
+          	Object response = JOptionPane.showInputDialog(frame, 
+                TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"),      //$NON-NLS-1$
+                TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"),        //$NON-NLS-1$
+                JOptionPane.PLAIN_MESSAGE, null, null, String.valueOf(Tracker.preferredMemorySize));
+            if (response!=null && !"".equals(response.toString())) { //$NON-NLS-1$ 
+            	String s = response.toString();
+          		try {
+          			double d = Double.parseDouble(s);
+								d = Math.rint(d);
+								int n = (int)d;
+								if (n<0) n = -1; // default
+								else n = Math.max(n, 32); // not less than 32MB
+								if (n!=Tracker.preferredMemorySize) {
+									Tracker.preferredMemorySize = n;								
+			          	int ans = JOptionPane.showConfirmDialog(frame, 
+			          			TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"),  //$NON-NLS-1$
+			          			TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"),  //$NON-NLS-1$
+			          			JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			          	if (ans==JOptionPane.YES_OPTION) {
+			          		Tracker.savePreferences();
+			          		ArrayList<String> filenames = new ArrayList<String>();
+			        			for (int i = 0; i<frame.getTabCount(); i++) {
+			        				TrackerPanel next = frame.getTrackerPanel(i);
+			        				if (!next.save()) return;
+			        				File datafile = next.getDataFile();
+			        				if (datafile!=null) {
+			        	    		String fileName = datafile.getAbsolutePath();
+			        	    		filenames.add(fileName);
+			        				}
+			        			}
+			        			String[] args = filenames.isEmpty()? null: filenames.toArray(new String[0]);
+			            	TrackerStarter.relaunch(args, false);
+			          	}
+								}
+							} catch (Exception ex) {
+							}
+            }    				
   	    	}
   	    });
+  	    FontSizer.setFonts(popup, FontSizer.getLevel());
   	    return popup;
     	}
     };
@@ -159,83 +187,30 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    popup.add(upgradeItem);
   	    upgradeItem.addActionListener(new ActionListener() {
   	    	public void actionPerformed(ActionEvent e) {
-  	    		int responseCode = 0; // code 200 = "OK"
-   	    		final String fileName = "tracker-"+Tracker.newerVersion+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
-  	    		String upgradeURL = ResourceLoader.getString("http://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
-  	    		if (upgradeURL!=null) {
-	    				// see if the jar file is found at this url
-	  	    		try {
-	  	    	    URL url = new URL(upgradeURL.trim()+fileName);
-	  	    	    HttpURLConnection huc = (HttpURLConnection)url.openConnection();
-	  	    	    responseCode = huc.getResponseCode();
-		  	    	} catch (Exception ex) {
-		  	    	}
-  	    		}
-      			if (responseCode!=200) {
-    					// no jar to download, so go to Tracker web site
-	  	    		String websiteurl = "https://"+Tracker.trackerWebsite; //$NON-NLS-1$
-	  	    		OSPDesktop.displayURL(websiteurl);
-    				}
-    				else {
-	  	    		// download new jar file and relaunch
-	  	    		if (relaunchingDialog==null) {
-	  	    			relaunchingDialog = new JDialog((Window)null);
-		    				JPanel panel = new JPanel();
-		    				panel.setBackground(Color.WHITE);
-		    				panel.setBorder(BorderFactory.createEtchedBorder());
-		    				relaunchingDialog.setContentPane(panel);
-		    				relaunchingDialog.setUndecorated(true);
-		    				Box box = Box.createVerticalBox();
-		    				relaunchingDialog.getContentPane().add(box);
-		    				downloadLabel = new JLabel((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Text"))); //$NON-NLS-1$
-		    				downloadLabel.setBorder(BorderFactory.createEmptyBorder(4, 0, 6, 0));
-		    				box.add(downloadLabel);
-		    				relaunchLabel = new JLabel((TrackerRes.getString("TTrackBar.Dialog.Relaunch.RelaunchLabel.Text")+" tracker-X.X.X.jar")); //$NON-NLS-1$ //$NON-NLS-2$
-		    				relaunchLabel.setBorder(BorderFactory.createEmptyBorder(6, 0, 6, 0));
-		    				box.add(relaunchLabel);
-		    				relaunchingDialog.pack();
-		    				// center on screen
-		    		    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		    		    int x = (dim.width-relaunchingDialog.getBounds().width)/2;
-		    		    int y = (dim.height-relaunchingDialog.getBounds().height)/2;
-		    		    relaunchingDialog.setLocation(x, y-200);
-	  	    		}
-	  	    		final String url = upgradeURL;  	    		
-	  	    		Runnable runner = new Runnable() {
-	  	    			public void run() {
-	  	  	    		File target = new File(Tracker.trackerHome, fileName);
-	  	    				downloadLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Text")+" "+fileName)); //$NON-NLS-1$ //$NON-NLS-2$
-	  	    				relaunchLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.RelaunchLabel.Text"))); //$NON-NLS-1$
-	  	    				relaunchingDialog.validate();		 	    				
-	  	    				relaunchingDialog.setVisible(true);
-	  	    				
-	  	  	    		target = ResourceLoader.download(url, target, true);
-	  	  		    	TFrame frame = (TFrame)memoryButton.getTopLevelAncestor();
-	  	  	    		if (target!=null && target.exists()) {
-	  	  	      		ArrayList<String> filenames = new ArrayList<String>();
-	  	  	    			for (int i = 0; i<frame.getTabCount(); i++) {
-	  	  	    				TrackerPanel next = frame.getTrackerPanel(i);
-	  	  	    				if (!next.save()) {
-	  	  	    					// user aborted the relaunch
-	  	  	    					relaunchingDialog.setVisible(false);
-	  	  	    					return;
-	  	  	    				}
-	  	  	    				File datafile = next.getDataFile();
-	  	  	    				if (datafile!=null) {
-	  	  	    	    		filenames.add(datafile.getAbsolutePath());
-	  	  	    				}
-	  	  	    			}
-	  	  	    			String[] args = filenames.isEmpty()? null: filenames.toArray(new String[0]);
-	  	  	  	    	System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, target.getAbsolutePath());
-	  	  	  	    	System.setProperty(TrackerStarter.TRACKER_NEW_VERSION, url);
-	  	  	  	    	TrackerStarter.relaunch(args, false);
-	  	  	    		}
-	  	    			}
-	  	    		};
-	  	    		new Thread(runner).start();
-    				}
-
-  	    	} // end download/relaunch
+    				final TFrame frame = (TFrame)newVersionButton.getTopLevelAncestor();
+    				new Upgrader(frame).upgrade();
+  	    	}
+  	    });
+  	    
+  	    JMenuItem learnMoreItem = new JMenuItem(
+  	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.LearnMore")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+  	    popup.add(learnMoreItem);
+  	    learnMoreItem.addActionListener(new ActionListener() {
+  	    	public void actionPerformed(ActionEvent e) {
+  					// go to Tracker change log
+  	    		String websiteurl = "https://"+Tracker.trackerWebsite+"/change_log.html"; //$NON-NLS-1$ //$NON-NLS-2$
+  	    		OSPDesktop.displayURL(websiteurl);
+  	    	}
+  	    });
+  	    JMenuItem homePageItem = new JMenuItem(
+  	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.TrackerHomePage")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+  	    popup.add(homePageItem);
+  	    homePageItem.addActionListener(new ActionListener() {
+  	    	public void actionPerformed(ActionEvent e) {
+  					// go to Tracker web site
+  	    		String websiteurl = "https://"+Tracker.trackerWebsite; //$NON-NLS-1$
+  	    		OSPDesktop.displayURL(websiteurl);
+  	    	}
   	    });
   	    JMenuItem ignoreItem = new JMenuItem(
   	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.Ignore")); //$NON-NLS-1$
@@ -252,6 +227,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    		}
   	    	}
   	    });
+  	    FontSizer.setFonts(popup, FontSizer.getLevel());
   	    return popup;
     	}
     };
@@ -290,8 +266,10 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
    */
   public void setFontLevel(int level) {
   	Object[] objectsToSize = new Object[]
-  			{trackButton};
+  			{newVersionButton, trackButton, sizingField, memoryButton, testButton};
     FontSizer.setFonts(objectsToSize, level);
+		sizingField.setText("1234567"); //$NON-NLS-1$
+		numberFieldWidth = sizingField.getPreferredSize().width;
   }
   
   /**
@@ -339,14 +317,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
       	return getSelectTrackPopup();
       }   	
     };
-//    // mouse listener to reset zoom button to off state
-//    addMouseListener(new MouseAdapter() {
-//      public void mousePressed(MouseEvent e) {
-//      	TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
-//    		if (toolbar.zoomButton.getIcon()!=TToolBar.zoomOffIcon)
-//    			toolbar.zoomButton.setIcon(TToolBar.zoomOffIcon);    		
-//      }
-//    });
     trackButton = new TButton() {
     	@Override
       protected JPopupMenu getPopup() {
@@ -452,6 +422,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh"); //$NON-NLS-1$
     Runnable runner = new Runnable() {
     	public void run() {
+    		sizingField.setText("1234567"); //$NON-NLS-1$
+    		numberFieldWidth = sizingField.getPreferredSize().width;
         selectButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SelectTrack.Tooltip")); //$NON-NLS-1$
     		TTrack track = trackButton.getTrack();
     		if (track!=null) {
@@ -496,10 +468,17 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
                 !(c instanceof JButton) && 
                 !(c instanceof JCheckBox)) {
               JComponent jc = (JComponent)c;
+              int w = jc.getPreferredSize().width;
               jc.setMaximumSize(null);
               jc.setPreferredSize(null);
               Dimension dim = jc.getPreferredSize();
               dim.height = toolbarComponentHeight;
+              if(jc instanceof NumberField) {
+              	dim.width = Math.max(numberFieldWidth, dim.width);
+              }
+              else if (jc instanceof TextLineLabel) {
+              	dim.width = w;                	
+              }
               jc.setPreferredSize(dim);
               jc.setMaximumSize(dim);
             }
@@ -511,13 +490,20 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
             // a point is selected
             list = track.getToolbarPointComponents(trackerPanel, p);
             for (Component c: list) {
-              if (c instanceof JComponent &&
-                  !(c instanceof JButton)) {
+              if (c instanceof JComponent 
+              		&& !(c instanceof JButton)) {
                 JComponent jc = (JComponent)c;
+                int w = jc.getPreferredSize().width;
                 jc.setMaximumSize(null);
                 jc.setPreferredSize(null);
                 Dimension dim = jc.getPreferredSize();
                 dim.height = toolbarComponentHeight;
+                if(jc instanceof NumberField) {
+                	dim.width = Math.max(numberFieldWidth, dim.width);
+                }
+                else if (jc instanceof TextLineLabel) {
+                	dim.width = w;                	
+                }
                 jc.setPreferredSize(dim);
                 jc.setMaximumSize(dim);
               }
@@ -543,6 +529,36 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     };
     if (SwingUtilities.isEventDispatchThread()) runner.run();
     else SwingUtilities.invokeLater(runner); 
+  }
+  
+  /**
+   *  Resizes a NumberField.
+   *  
+   *  @param field the number field
+   */
+  protected void resizeField(NumberField field) {
+  	// do nothing if the field is not displayed
+  	if (getComponentIndex(field)<0) return;
+    field.setMaximumSize(null);
+    field.setPreferredSize(null);
+    Dimension dim = field.getPreferredSize();
+    dim.height = toolbarComponentHeight;
+    dim.width = Math.max(numberFieldWidth, dim.width);
+    field.setMaximumSize(dim);
+    field.setPreferredSize(dim);
+		revalidate();
+  }
+
+  /**
+   *  Refreshes the decimal separators of displayed NumberFields.
+   */
+  protected void refreshDecimalSeparators() {
+  	for (Component next: getComponents()) {
+  		if (next instanceof NumberField) {
+  			NumberField field = (NumberField)next;
+  			field.setValue(field.getValue());
+  		}
+  	}
   }
 
   /**

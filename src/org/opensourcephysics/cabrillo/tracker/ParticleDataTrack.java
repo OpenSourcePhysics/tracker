@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools built on the
  * Open Source Physics framework by Wolfgang Christian.
  * 
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  * 
  * Tracker is free software; you can redistribute it and/or modify it under the
  * terms of the GNU General Public License as published by the Free Software
@@ -315,6 +315,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
     if (isLocked() && !isDependent()) return;
     if (trackerPanel != null) {
     	trackerPanel.setSelectedPoint(null);
+      trackerPanel.selectedSteps.clear();
 			trackerPanel.getTFrame().removePropertyChangeListener("windowfocus", this); //$NON-NLS-1$
 
       // handle case when this is the origin of current reference frame
@@ -1166,11 +1167,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 	}
 	
-	public DatasetManager getData(TrackerPanel panel) {
-		DatasetManager data = super.getData(panel);
-		return data;
-	}
-
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		super.propertyChange(e);

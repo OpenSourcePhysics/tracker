@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -183,6 +183,7 @@ public class CircleFitterStep extends Step {
 	  	circleFitter.firePropertyChange("dataPoint", null, circleFitter); //$NON-NLS-1$
   	}
   	circleFitter.trackerPanel.setSelectedPoint(null);
+    circleFitter.trackerPanel.selectedSteps.clear();
   	TTrackBar.getTrackbar(circleFitter.trackerPanel).refresh();
   	repaint();
   }
@@ -254,12 +255,12 @@ public class CircleFitterStep extends Step {
     Interactive hit = null;
     
   	hitShape = circleHitShapes.get(trackerPanel);
-  	if (hitShape!=null && hitShape.intersects(hitRect)) { 
+  	if (isValidCircle() && hitShape!=null && hitShape.intersects(hitRect)) { 
   		hit = edge;
   	}
     
   	hitShape = centerHitShapes.get(trackerPanel);
-  	if (hitShape!=null && hitShape.intersects(hitRect)) { 
+  	if (isValidCircle() && hitShape!=null && hitShape.intersects(hitRect)) { 
   		hit = center;
   	}
     

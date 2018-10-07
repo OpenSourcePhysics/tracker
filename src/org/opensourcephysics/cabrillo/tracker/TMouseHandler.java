@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,7 +91,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
   	
     if (!trackerPanel.isDrawingInImageSpace()) return;
   	
-  	// drawing actions handled by PencilDrawer
+  	// pencil drawing actions handled by PencilDrawer
     if (PencilDrawer.isDrawing(trackerPanel)) {
     	PencilDrawer.getDrawer(trackerPanel).handleMouseAction(e);
     	return;
@@ -144,14 +144,14 @@ public class TMouseHandler implements InteractiveMouseHandler {
         AutoTracker.KeyFrame keyFrame = getActiveKeyFrame(autoTracker);
         if (marking) {
         	iad = null;
-        	boolean autoTrigger = isAutoTrackTrigger(e);
+        	boolean autotrackTrigger = isAutoTrackTrigger(e) && selectedTrack.isAutoTrackable();
           // create step
           frameNumber = trackerPanel.getFrameNumber();
           Step step = selectedTrack.getStep(frameNumber); // may be null for point mass, offset origin, calibration pts
           int index = selectedTrack.getTargetIndex();
         	int nextIndex = index;
-          if (step==null || !autoTrigger) {
-          	if (autoTrigger) {
+          if (step==null || !autotrackTrigger) {
+          	if (autotrackTrigger) {
           		selectedTrack.autoMarkAt(frameNumber,
                   trackerPanel.getMouseX(), trackerPanel.getMouseY());
               step = selectedTrack.getStep(frameNumber);          		
@@ -165,6 +165,13 @@ public class TMouseHandler implements InteractiveMouseHandler {
           		boolean newStep = step==null;
 	        		step = selectedTrack.createStep(frameNumber,
 	                trackerPanel.getMouseX(), trackerPanel.getMouseY());
+	        		if (selectedTrack instanceof PointMass) {
+	        			PointMass m = (PointMass)selectedTrack;
+	        			m.keyFrames.add(frameNumber);
+	        			if (m.isAutofill()) {
+	        				m.markInterpolatedSteps((PositionStep)step, true);
+	        			}        			
+	        		}
           		trackerPanel.newlyMarkedPoint = step.getDefaultPoint();
           		TPoint[] pts = step.getPoints();
           		// increment target index if new step
@@ -183,7 +190,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
             if (pts.length>index+1) nextIndex = index+1;
           }
           // if autotrack trigger, add key frame to autotracker
-          if (isAutoTrackTrigger(e) && step!=null && step.getPoints()[index]!=null) {
+          if (autotrackTrigger && step!=null && step.getPoints()[index]!=null) {
           	TPoint target = step.getPoints()[index];
           	// remark step target if Axes/Tape/Protractor/Perspective selected and no keyframe exists
           	if (selectedTrack instanceof CoordAxes 
@@ -202,7 +209,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
     	  		TTrackBar.getTrackbar(trackerPanel).refresh();
           }
           
-          if (step!=null && !isAutoTrackTrigger(e)) {
+          if (step!=null && !autotrackTrigger) {
             trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.
                 HAND_CURSOR));
             trackerPanel.setSelectedPoint(step.getDefaultPoint());
@@ -217,22 +224,26 @@ public class TMouseHandler implements InteractiveMouseHandler {
         else if (iad instanceof TPoint) {
           // select a clicked TPoint
           p = (TPoint)iad;
-      		// find associated step
+      		// find associated step and track
       		Step step = null;
+      		TTrack stepTrack = null;
           for (TTrack track: trackerPanel.getTracks()) {
           	step = track.getStep(p, trackerPanel);
           	if (step != null) {
+          		stepTrack = track;
           		break;
           	}
           }
           
           // if control-down, manage trackerPanel.selectedSteps
       		boolean isStepSelected = trackerPanel.selectedSteps.contains(step);
+      		boolean selectedStepsChanged = false;
         	if (e.isControlDown()) {
         		if (isStepSelected) {
         			// deselect point and remove step from selectedSteps
         			p = null;
         			trackerPanel.selectedSteps.remove(step);
+        			selectedStepsChanged = true;
         		}
         		else { // the step is not yet in selectedSteps
               if (!trackerPanel.selectedSteps.isEmpty()) {
@@ -240,6 +251,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
           			p = null;              	
               }
         			trackerPanel.selectedSteps.add(step);
+        			selectedStepsChanged = true;
         		}
         	}
         	// else if not control-down, check if this step is in selectedSteps
@@ -258,19 +270,25 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	        		trackerPanel.selectedSteps.clear();
 	        		// add this point's step
 	        		trackerPanel.selectedSteps.add(step);
+        			selectedStepsChanged = true;
 	        		
 	        		if (stepsIncludeSelectedPoint) {
 	        			trackerPanel.pointState.setLocation(trackerPanel.getSelectedPoint()); // prevents posting undoable edit
 	        		}
         		}
         	}
+        	if (selectedStepsChanged && stepTrack!=null) {
+        		stepTrack.firePropertyChange("steps", null, null); //$NON-NLS-1$
+        	}
+        	
         	if (step!=null) step.erase();
         	
           if (p instanceof AutoTracker.Handle) {
             ((AutoTracker.Handle)p).setScreenLocation(e.getX(), e.getY(), trackerPanel);
           }
           if (p!=null) {
-          	p.showCoordinates(trackerPanel);         	
+          	p.showCoordinates(trackerPanel);
+          	p.setAdjusting(true);
           }
           trackerPanel.setSelectedPoint(p);
           if (p instanceof Step.Handle) {
@@ -284,10 +302,14 @@ public class TMouseHandler implements InteractiveMouseHandler {
 	          trackerPanel.setSelectedPoint(null);
         	}
         	// erase and clear selected steps, if any
+        	TTrack[] tracks = trackerPanel.selectedSteps.getTracks();
         	for (Step step: trackerPanel.selectedSteps) {
         		step.erase();
         	}
         	trackerPanel.selectedSteps.clear(); // triggers undoable edit if changed
+        	for (TTrack next: tracks) {
+        		next.firePropertyChange("steps", null, null); //$NON-NLS-1$
+        	}
         	
           if (!trackerPanel.isShowCoordinates()) {
             trackerPanel.hideMouseBox();
@@ -301,8 +323,11 @@ public class TMouseHandler implements InteractiveMouseHandler {
         	Point p = e.getPoint();
         	mousePtRelativeToViewRect.setLocation(p.x-rect.x, p.y-rect.y);
         	trackerPanel.scrollPane.getViewport().getView().getSize(dim);
-        	if (dim.width>rect.width || dim.height>rect.height)
+        	Cursor c = trackerPanel.getCursor();
+        	if ((dim.width>rect.width || dim.height>rect.height) 
+        			&& !Tracker.isZoomInCursor(c) && !Tracker.isZoomOutCursor(c)) {
         		trackerPanel.setMouseCursor(Tracker.grabCursor);
+        	}
         }
         break;
 
@@ -361,7 +386,10 @@ public class TMouseHandler implements InteractiveMouseHandler {
 
         // snap vectors and/or autoAdvance when releasing mouse
       case InteractivePanel.MOUSE_RELEASED:
-        trackerPanel.setMouseCursor(Cursor.getDefaultCursor());
+      	Cursor c = trackerPanel.getCursor();
+      	if (!Tracker.isZoomInCursor(c) && !Tracker.isZoomOutCursor(c)) {
+      		trackerPanel.setMouseCursor(Cursor.getDefaultCursor());
+      	}
         trackerPanel.requestFocusInWindow();
         p = trackerPanel.getSelectedPoint();
         if (p != null) {

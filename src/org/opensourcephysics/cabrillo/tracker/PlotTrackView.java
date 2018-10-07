@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -94,26 +94,34 @@ public class PlotTrackView extends TrackView {
     }
  }
 
-  /**
-   * Refreshes this view.
-   *
-   * @param frameNumber the frame number
-   */
+  @Override
   public void refresh(int frameNumber) {
   	if (!isRefreshEnabled()) return;
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh "+frameNumber); //$NON-NLS-1$
-    
   	TTrack track = getTrack();
-  	if (track==null) return;
+  	if (track==null) return;  	
     track.getData(trackerPanel);
     for (int i = 0; i < plots.length; i++) {
       HighlightableDataset data = plots[i].getDataset();
       data.setMarkerColor(track.getColor());
-      if (highlightVisible) {
-        data.setHighlightColor(track.getColor());
-        plots[i].setHighlighted(frameNumber);
+      if (track.getColor().equals(Color.WHITE)) {
+      	data.setMarkerColor(Color.GRAY);
       }
-      else plots[i].setHighlighted(-1); // hides all highlights
+      // set up highlights
+      plots[i].highlightIndices.clear();
+      if (highlightVisible) {
+      	if (trackerPanel.selectedSteps.size()>0) {
+      		data.setHighlightColor(track.getColor());
+      		for (Step step: trackerPanel.selectedSteps) {
+      			if (step.getTrack()!=this.getTrack()) continue;
+        		plots[i].addHighlight(step.getFrameNumber());
+      		}
+      	}
+      	else {
+      		data.setHighlightColor(Color.GRAY);
+      		plots[i].addHighlight(frameNumber);
+      	}
+      }
       plots[i].plotData();
     }
     mainView.repaint();
@@ -238,6 +246,11 @@ public class PlotTrackView extends TrackView {
       for (TrackPlottingPanel plot: plots) {
       	plot.buildPopupmenu();
       }
+    }
+    else if (name.equals("units")) { // from trackerPanel //$NON-NLS-1$
+    	for (TrackPlottingPanel plot: plots) {
+    		plot.plotData();
+    	}
     }
     super.propertyChange(e);
   }

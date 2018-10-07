@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
@@ -57,22 +58,28 @@ public class TableTrackView extends TrackView {
 	
 	// static fields
 	static final String DEFINED_AS = ": "; //$NON-NLS-1$
+	static Icon skipsOffIcon, skipsOnIcon;
+	static {
+		skipsOnIcon =  new ResizableIcon(Tracker.class.getResource("resources/images/skips_on.gif")); //$NON-NLS-1$
+		skipsOffIcon =  new ResizableIcon(Tracker.class.getResource("resources/images/skips_off.gif")); //$NON-NLS-1$
+	}
 
   // instance fields
   protected DatasetManager data;
   protected JScrollPane columnsScroller;
   protected TrackDataTable dataTable;
   protected JCheckBox[] checkBoxes;
-  protected JMenuItem createTextColumnItem;
-  protected JMenu textColumnMenu, deleteTextColumnMenu, renameTextColumnMenu;
   protected boolean refresh = true;
   protected Set<String> textColumnsVisible = new TreeSet<String>();
-  protected JMenuItem dataToolItem, dataBuilderItem, deleteDataFunctionItem;
-  private JButton columnsButton;
-  private JPopupMenu popup;
+  private JButton columnsButton, gapsButton;
   private JPanel columnsPanel;
   private DatasetManager tableData;
-  private JMenuItem formatDialogItem;
+  private JPopupMenu popup;
+  protected JMenu textColumnMenu, deleteTextColumnMenu, renameTextColumnMenu;
+  protected JMenuItem createTextColumnItem;
+  protected JMenuItem dataToolItem, dataBuilderItem, deleteDataFunctionItem;
+  private JMenu numberMenu;
+  private JMenuItem goToFrameItem, formatDialogItem, setUnitsItem, showUnitsItem;
   private JMenu copyDataMenu;
   private JMenuItem copyDataRawItem, copyDataFormattedItem;
   private JMenu setDelimiterMenu;
@@ -80,7 +87,8 @@ public class TableTrackView extends TrackView {
   private JMenuItem addDelimiterItem, removeDelimiterItem;
   private JMenuItem copyImageItem, snapshotItem, printItem, helpItem;
   private boolean highlightVisible = true, refreshed = false, forceRefresh = false;
-  private int highlightRow; // highlighted table row, or -1
+  private ArrayList<Integer> highlightFrames = new ArrayList<Integer>();
+  private ArrayList<Integer> highlightRows = new ArrayList<Integer>();
   private int leadCol;
   private Font font = new JTextField().getFont();
   private TreeSet<Double> selectedIndepVarValues // used when sorting
@@ -105,35 +113,6 @@ public class TableTrackView extends TrackView {
     // create the DataTable
     textColumnEditor = new TextColumnEditor();
     dataTable = new TrackDataTable();
-//    dataTable = new DataTable() {
-//      public void refreshTable() {
-//        // save selected rows and columns
-//        int[] rows = getSelectedRows();
-//        int[] cols = getSelectedColumns();
-//        // refresh table
-//        super.refreshTable();
-//        // restore selected rows and columns
-//        for (int i = 0; i < rows.length; i++) {
-//        	if (rows[i] < getRowCount())
-//        		addRowSelectionInterval(rows[i], rows[i]);
-//        }
-//        for (int i = 0; i < cols.length; i++) {
-//        	if (cols[i] < getColumnCount())
-//        		addColumnSelectionInterval(cols[i], cols[i]);
-//        }
-//      }
-//      public TableCellEditor getCellEditor(int row, int column) {
-//      	// only text columns are editable, so always return textColumnEditor
-//        return textColumnEditor;
-//      }
-//      public boolean isCellEditable(int row, int col) {
-//      	// true only for text (String) columns
-//        int i = dataTable.convertColumnIndexToModel(col);
-//        return dataTable.getModel().getColumnClass(i).equals(String.class);
-//      }
-//
-//    };   
-    
     data = track.getData(trackerPanel);
     tableData = new DatasetManager();
     tableData.setXPointsLinked(true);
@@ -206,7 +185,7 @@ public class TableTrackView extends TrackView {
 	    setVisible(1, true);
     }
     // set the default number formats, if any
-    Class<? extends TTrack> trackType = NumberFormatSetter.getTrackType(track);
+    Class<? extends TTrack> trackType = NumberFormatDialog.getTrackType(track);
     TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(trackType);
     DataTable table = getDataTable();
   	for (String name: patterns.keySet()) {
@@ -318,7 +297,18 @@ public class TableTrackView extends TrackView {
 			refreshed = true;
 		} catch (Exception e) {
 		}
-    setHighlighted(frameNumber);
+    // set the highlighted rows
+		highlightFrames.clear();
+  	if (trackerPanel.selectedSteps.size()>0) {
+  		for (Step step: trackerPanel.selectedSteps) {
+  			if (step.getTrack()!=this.getTrack()) continue;
+  			highlightFrames.add(step.getFrameNumber());
+  		}
+  	}  
+  	else {
+			highlightFrames.add(frameNumber);
+  	}
+		setHighlighted(highlightFrames);
   }
 
   /**
@@ -328,6 +318,10 @@ public class TableTrackView extends TrackView {
   	TTrack track = getTrack();
   	columnsButton.setText(TrackerRes.getString("TableTrackView.Button.SelectTableData")); //$NON-NLS-1$
     columnsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SelectTableData.ToolTip")); //$NON-NLS-1$
+//  	skippedFramesButton.setText(skippedFramesButton.isSelected()?
+//  		TrackerRes.getString("TableTrackView.Button.SkippedFrames.On"): //$NON-NLS-1$
+//    		TrackerRes.getString("TableTrackView.Button.SkippedFrames.Off")); //$NON-NLS-1$
+  	gapsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SkippedFrames.ToolTip")); //$NON-NLS-1$
 //    track.dataValid = false; // triggers data refresh
     track.getData(trackerPanel); // load the current data
     refreshColumnCheckboxes();    
@@ -349,6 +343,15 @@ public class TableTrackView extends TrackView {
    * @return an ArrayList of components to be added to a toolbar
    */
   public ArrayList<Component> getToolBarComponents() {
+  	toolbarComponents.remove(gapsButton);
+  	// determine if track has gaps
+  	TTrack track = getTrack();
+  	if (track instanceof PointMass) {
+  		PointMass p = (PointMass)track;  		
+  		if (p.getGapCount()>0 || p.skippedSteps.size()>0) {
+  	  	toolbarComponents.add(gapsButton);
+  		}
+  	}
     return toolbarComponents;
   }
 
@@ -447,45 +450,36 @@ public class TableTrackView extends TrackView {
   }
 
   /**
-   * Sets the highlighted point.
+   * Sets the highlighted frame numbers.
    *
-   * @param frameNumber the frame number
+   * @param frameNumbers the frame numbers
    */
-  protected void setHighlighted(int frameNumber) {
+  protected void setHighlighted(ArrayList<Integer> frameNumbers) {
     // assume no highlights
-    highlightRow = -1;
     if (!highlightVisible) return;
-  	TTrack track = getTrack();
-    Step[] steps = track.getSteps();
-    int row = -1;
-    VideoClip clip = null;
-    if (track.trackerPanel != null) {
-    	clip = track.trackerPanel.getPlayer().getVideoClip();
+    
+    // get rows to highlight
+    highlightRows.clear();
+    for (int i=0; i< frameNumbers.size(); i++) {
+    	int row = getRowFromFrame(frameNumbers.get(i));
+    	if (row<dataTable.getRowCount() && row>-1) {
+    		highlightRows.add(row);
+    	}
     }
-    // look for row to highlight
-    for (int i = 0; i < steps.length; i++) {
-      if (steps[i] != null 
-      			&& steps[i].dataVisible 
-      			&& clip != null 
-      			&& clip.includesFrame(steps[i].getFrameNumber())) {
-        row++;
-        if (steps[i].getFrameNumber() == frameNumber) {
-        	if (row >= dataTable.getRowCount()) return;
-        	highlightRow = row;
-          break;
-        }
-      }
-    }
-    // select highlighted row, or clear selection if none found
+    // set highlighted rows if found
     Runnable runner = new Runnable() {
       public synchronized void run() {
-      	if (highlightRow >= dataTable.getRowCount() || highlightRow < 0) {
-      		dataTable.clearSelection();
+    		dataTable.clearSelection();
+      	if (highlightRows.isEmpty()) {
       		return;
       	}
         try {
-					dataTable.setRowSelectionInterval(highlightRow, highlightRow);
-					dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRow, 0, true));
+        	for (int row: highlightRows) {
+        		dataTable.addRowSelectionInterval(row, row);
+        	}
+        	if (highlightRows.size()==1) {
+        		dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRows.get(0), 0, true));
+        	}
 				} catch (Exception e) {
 					// occasionally throws exception during loading!
 				}
@@ -609,6 +603,9 @@ public class TableTrackView extends TrackView {
       textColumnNames.addAll(track.getTextColumnNames());
 
     }
+    else if (e.getPropertyName().equals("units")) { // from trackerPanel //$NON-NLS-1$
+    	dataTable.getTableHeader().repaint();
+    }
     else super.propertyChange(e);
   }
 
@@ -692,6 +689,44 @@ public class TableTrackView extends TrackView {
   }
   
   /**
+   * Gets the frame number for a view row. Returns -1 if not found.
+   *
+   * @param row the table row
+   * @return the frame number
+   */
+  protected int getFrameAtRow(int row) {
+  	// get value of independent variable at row
+  	double val = getIndepVarValueAtRow(row);
+  	TTrack track = getTrack();
+  	String xVar = track.data.getDataset(0).getXColumnName();
+  	int frameNum = track.getFrameForData(xVar, null, new double[] {val});
+    return frameNum;
+  }
+
+  /**
+   * Gets the view row for a given frame number. Returns -1 if none found.
+   *
+   * @param row the table row
+   * @return the frame number
+   */
+  protected int getRowFromFrame(int frame) {
+  	// look for "frame" dataset in data
+  	ArrayList<Dataset> temp = data.getDatasets();
+  	for (int i=0; i<temp.size(); i++) {
+  		if ("frame".equals(temp.get(i).getYColumnName())) { //$NON-NLS-1$
+  			double[] vals = temp.get(i).getYPoints();
+  			for (int j=0; j<vals.length; j++) {
+  				if (vals[j]==frame) {
+  		  		SortDecorator decorator = (SortDecorator)dataTable.getModel();
+  		  		return decorator.getSortedRow(j);
+  				}
+  			}
+  		}
+  	}
+  	return -1;
+  }
+
+   /**
    * Gets the independent variable value at a view row.
    *
    * @param row the table row
@@ -705,8 +740,8 @@ public class TableTrackView extends TrackView {
 		} catch (Exception e) {}
     return val==null? Double.NaN: val;
   }
-
-  /**
+  
+ /**
    * Gets the view row at which an independent variable value is found.
    *
    * @param indepVarValue the value
@@ -790,6 +825,65 @@ public class TableTrackView extends TrackView {
     });
     // create column list
     refreshColumnCheckboxes();
+    
+    // button to show gaps in data (skipped frames)  
+    gapsButton = new TButton() {    	
+    	// override getMaximumSize method so has same height as chooser button
+	    public Dimension getMaximumSize() {
+	      Dimension dim = super.getMaximumSize();
+	      Dimension min = getMinimumSize();
+	    	Container c = getParent();
+	    	while (c!=null) {
+	  			if (c instanceof TViewChooser) {
+		  			int h = ((TViewChooser)c).chooserButton.getHeight();
+		  			dim.height = Math.max(h, min.height);
+	  				break;
+	  			}
+	  			c = c.getParent();
+	    	}
+	      return dim;
+	    }
+	    
+	    @Override
+	    protected JPopupMenu getPopup() {
+	    	JPopupMenu popup = new JPopupMenu();
+	    	JCheckBoxMenuItem item = new JCheckBoxMenuItem(TrackerRes.getString("TableTrackView.MenuItem.Gaps.GapsVisible")); //$NON-NLS-1$
+	    	item.setSelected(gapsButton.isSelected());
+		    item.addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent e) {
+		      	gapsButton.setSelected(!gapsButton.isSelected());
+		      	dataTable.skippedFramesRenderer.setVisible(gapsButton.isSelected());
+		      	if (gapsButton.isSelected()) {
+		  	  		SortDecorator decorator = (SortDecorator)dataTable.getModel();
+		  	  		decorator.reset();
+		      	}
+		      	dataTable.repaint();
+		      	dataTable.getTableHeader().resizeAndRepaint();
+		      }
+		    });	    	
+	    	popup.add(item);
+	    	if (Tracker.enableAutofill) {
+		    	item = new JCheckBoxMenuItem(TrackerRes.getString("TableTrackView.MenuItem.Gaps.AutoFill")); //$NON-NLS-1$
+			    item.addActionListener(new ActionListener() {
+			      public void actionPerformed(ActionEvent e) {
+	  	      	PointMass p = (PointMass)TableTrackView.this.getTrack();
+	  	      	p.setAutoFill(!p.isAutofill);
+	  	      	p.repaint();
+			      }
+			    });
+	      	PointMass p = (PointMass)TableTrackView.this.getTrack();
+			    item.setSelected(p.isAutofill);
+			    popup.addSeparator();
+		    	popup.add(item);
+	    	}
+	    	FontSizer.setFonts(popup, FontSizer.getLevel());
+	    	return popup;
+	    }
+
+    };
+    gapsButton.setText(TrackerRes.getString("TableTrackView.Button.Gaps.Text")); //$NON-NLS-1$
+    gapsButton.setSelected(Tracker.showGaps);
+    
     // create popup and add menu items
     popup = new JPopupMenu();
     
@@ -806,6 +900,22 @@ public class TableTrackView extends TrackView {
       }
     });
 
+    goToFrameItem = new JMenuItem();
+    goToFrameItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        try {
+					int row = Integer.parseInt(e.getActionCommand());
+					int frameNum = getFrameAtRow(row);
+					if (frameNum>-1) {
+						VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+						int stepNum = clip.frameToStep(frameNum);
+						trackerPanel.getPlayer().setStepNumber(stepNum);
+					}
+				} catch (Exception ex) {
+				}
+  	  }	
+    });
+    numberMenu = new JMenu();
     formatDialogItem = new JMenuItem();
     formatDialogItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
@@ -815,9 +925,20 @@ public class TableTrackView extends TrackView {
         	String name = dataTable.getColumnName(selected[i]);
         	selectedNames[i] = name;
         }
-        NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(getTrack(), selectedNames);
-        FontSizer.setFonts(dialog, FontSizer.getLevel());
-        dialog.pack();     
+        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, getTrack(), selectedNames);
+  	    dialog.setVisible(true);
+  	  }	
+    });
+    showUnitsItem = new JMenuItem();
+    showUnitsItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        trackerPanel.setUnitsVisible(!trackerPanel.isUnitsVisible());
+  	  }	
+    });
+    setUnitsItem = new JMenuItem();
+    setUnitsItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+        UnitsDialog dialog = trackerPanel.getUnitsDialog();
   	    dialog.setVisible(true);
   	  }	
     });
@@ -1016,6 +1137,8 @@ public class TableTrackView extends TrackView {
               deleteDataFunctionItem.setText(s+" \""+colName+"\""); //$NON-NLS-1$ //$NON-NLS-2$
             }
           }
+          
+          goToFrameItem.setEnabled(false);
           getPopup().show(dataTable.getTableHeader(), e.getX(), e.getY()+8);
         }
         else {
@@ -1056,7 +1179,7 @@ public class TableTrackView extends TrackView {
         setSelectedIndepVarValues(vals);     	
       }
     });
-    // add right button mouse listener to copy data and double-click to select all
+    // data table: add right button mouse listener to copy data and double-click to select all
     dataTable.addMouseListener(new MouseAdapter() {
       public void mousePressed(MouseEvent e) {
       	if (e.getClickCount() == 2) {
@@ -1077,7 +1200,20 @@ public class TableTrackView extends TrackView {
               deleteDataFunctionItem.setText(s+" \""+colName+"\""); //$NON-NLS-1$ //$NON-NLS-2$
             }
           }
-          getPopup().show(TableTrackView.this, e.getX()-10, e.getY());
+          // set action command and title of goToFrame item
+          int row = dataTable.rowAtPoint(mousePt);
+          goToFrameItem.setEnabled(row>-1);
+          if (goToFrameItem.isEnabled()) {
+            goToFrameItem.setActionCommand(String.valueOf(row));
+            String s = TrackerRes.getString("TableTrackView.Popup.Menuitem.GoToStep"); //$NON-NLS-1$
+            int frameNum = getFrameAtRow(row);
+						VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+						int stepNum = clip.frameToStep(frameNum);
+            s += " "+stepNum; //$NON-NLS-1$
+            goToFrameItem.setText(s);
+          }         
+          
+          getPopup().show(dataTable, e.getX()+4, e.getY());
         }
       }
     });
@@ -1147,7 +1283,9 @@ public class TableTrackView extends TrackView {
   }
   
   protected JPopupMenu getPopup() {
-    formatDialogItem.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+  	numberMenu.setText(TrackerRes.getString("Popup.Menu.Numbers")); //$NON-NLS-1$
+    formatDialogItem.setText(TrackerRes.getString("Popup.MenuItem.Formats")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    setUnitsItem.setText(TrackerRes.getString("Popup.MenuItem.Units")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
     copyImageItem.setText(TrackerRes.getString("TMenuBar.Menu.CopyImage")); //$NON-NLS-1$
     snapshotItem.setText(DisplayRes.getString("DisplayPanel.Snapshot_menu_item")); //$NON-NLS-1$
     printItem.setText(TrackerRes.getString("TActions.Action.Print")); //$NON-NLS-1$
@@ -1160,50 +1298,73 @@ public class TableTrackView extends TrackView {
     dataToolItem.setText(TrackerRes.getString("TableTrackView.Popup.MenuItem.Analyze")); //$NON-NLS-1$
   	refreshCopyDataMenu(copyDataMenu);
   	popup.removeAll();
-    popup.add(formatDialogItem);
+  	if (goToFrameItem.isEnabled()) {
+      popup.add(goToFrameItem);
+  	}
+
   	TTrack track = getTrack();
-  	if (track==null) return popup;
+  	if (track==null) {
+      if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
+    		if (popup.getComponentCount()>0) popup.addSeparator();
+    		popup.add(numberMenu);
+    		numberMenu.removeAll();
+  	    if (trackerPanel.isEnabled("number.formats")) numberMenu.add(formatDialogItem); //$NON-NLS-1$
+  	    if (trackerPanel.isEnabled("number.units")) numberMenu.add(setUnitsItem); //$NON-NLS-1$
+      }
+  		return popup;
+  	}
     if (track.trackerPanel!=null && track.trackerPanel.isEnabled("edit.copyData")) { //$NON-NLS-1$
-	    popup.addSeparator();
+      if (popup.getComponentCount()>0) popup.addSeparator();
 	    popup.add(copyDataMenu);
     }
-    popup.addSeparator();
+    if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units") //$NON-NLS-1$ //$NON-NLS-2$
+    		&& track.trackerPanel!=null) { 
+  		if (popup.getComponentCount()>0) popup.addSeparator();
+  		popup.add(numberMenu);
+  		numberMenu.removeAll();
+	    if (trackerPanel.isEnabled("number.formats")) numberMenu.add(formatDialogItem); //$NON-NLS-1$
+	    if (trackerPanel.isEnabled("number.units")) numberMenu.add(setUnitsItem); //$NON-NLS-1$
+    }
+    
     // textColumnMenu
-    textColumnMenu.removeAll();
-    popup.add(textColumnMenu);
-    textColumnMenu.add(createTextColumnItem);
-    if (track.getTextColumnNames().size()>0) {
-    	deleteTextColumnMenu.removeAll();
-    	textColumnMenu.add(deleteTextColumnMenu);
-    	for (String next: track.getTextColumnNames()) {
-    		JMenuItem item = new JMenuItem(next);
-    		deleteTextColumnMenu.add(item);
-    		item.setActionCommand(next);
-    		item.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-          	TTrack track = getTrack();
-            track.removeTextColumn(e.getActionCommand());
-          }
-        });
-    	}
-    	renameTextColumnMenu.removeAll();
-    	textColumnMenu.add(renameTextColumnMenu);
-    	for (String next: track.getTextColumnNames()) {
-    		JMenuItem item = new JMenuItem(next);
-    		renameTextColumnMenu.add(item);
-    		item.setActionCommand(next);
-    		item.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
-          	String prev = e.getActionCommand();
-            String name = getUniqueColumnName(prev, false);
-            if (name!=null && !name.equals("") && !name.equals(prev)) { //$NON-NLS-1$
-            	// name has changed
-            	TTrack track = getTrack();
-            	track.renameTextColumn(prev, name);            	
-            }
-          }
-        });
-    	}
+    if (trackerPanel.isEnabled("text.columns")) { //$NON-NLS-1$
+    	textColumnMenu.removeAll();
+	    if (popup.getComponentCount()>0) popup.addSeparator();
+	    popup.add(textColumnMenu);
+	    textColumnMenu.add(createTextColumnItem);
+	    if (track.getTextColumnNames().size()>0) {
+	    	deleteTextColumnMenu.removeAll();
+	    	textColumnMenu.add(deleteTextColumnMenu);
+	    	for (String next: track.getTextColumnNames()) {
+	    		JMenuItem item = new JMenuItem(next);
+	    		deleteTextColumnMenu.add(item);
+	    		item.setActionCommand(next);
+	    		item.addActionListener(new ActionListener() {
+	          public void actionPerformed(ActionEvent e) {
+	          	TTrack track = getTrack();
+	            track.removeTextColumn(e.getActionCommand());
+	          }
+	        });
+	    	}
+	    	renameTextColumnMenu.removeAll();
+	    	textColumnMenu.add(renameTextColumnMenu);
+	    	for (String next: track.getTextColumnNames()) {
+	    		JMenuItem item = new JMenuItem(next);
+	    		renameTextColumnMenu.add(item);
+	    		item.setActionCommand(next);
+	    		item.addActionListener(new ActionListener() {
+	          public void actionPerformed(ActionEvent e) {
+	          	String prev = e.getActionCommand();
+	            String name = getUniqueColumnName(prev, false);
+	            if (name!=null && !name.equals("") && !name.equals(prev)) { //$NON-NLS-1$
+	            	// name has changed
+	            	TTrack track = getTrack();
+	            	track.renameTextColumn(prev, name);            	
+	            }
+	          }
+	        });
+	    	}
+	    }
     }
     textColumnMenu.setEnabled(!track.isLocked());
     
@@ -1232,7 +1393,7 @@ public class TableTrackView extends TrackView {
 	    popup.addSeparator();
 	    popup.add(printItem);
     }
-    popup.addSeparator();
+    if (popup.getComponentCount()>0) popup.addSeparator();
     popup.add(helpItem);
     FontSizer.setFonts(popup, FontSizer.getLevel());
     return popup;
@@ -1606,6 +1767,7 @@ public class TableTrackView extends TrackView {
 
   }
   
+	// the default table cell renderer when no PrecisionRenderer is used
   class NumberFieldRenderer extends NumberField implements TableCellRenderer {
   	
   	DefaultTableCellRenderer defaultRenderer;
@@ -1624,7 +1786,61 @@ public class TableTrackView extends TrackView {
 			if (value instanceof Double && c instanceof JLabel) {
 				// show number as formatted by this NumberField
 				setValue((Double)value);
-				((JLabel)c).setText(getText());
+				((JLabel)c).setText(getText());				
+			}
+			return c;
+		}
+  	
+  }
+  
+	// the default table cell renderer when no PrecisionRenderer is used
+  class SkippedFramesRenderer implements TableCellRenderer {
+  	
+  	TableCellRenderer baseRenderer;
+  	Border belowBorder, aboveBorder;
+  	boolean visible = Tracker.showGaps;
+
+		public SkippedFramesRenderer() {
+			belowBorder = BorderFactory.createMatteBorder(0,0,1,0,Color.red);
+			Border space = BorderFactory.createEmptyBorder(0, 1, 0, 1);
+			belowBorder = BorderFactory.createCompoundBorder(belowBorder, space);
+			aboveBorder = BorderFactory.createMatteBorder(1,0,0,0,Color.red);
+			space = BorderFactory.createEmptyBorder(0, 1, 1, 1);
+			aboveBorder = BorderFactory.createCompoundBorder(aboveBorder, space);
+		}
+		
+		public void setBaseRenderer(TableCellRenderer renderer) {
+			baseRenderer = renderer;
+		}
+		
+		public void setVisible(boolean vis) {
+			visible = vis;
+		}
+
+		@Override
+		public Component getTableCellRendererComponent(JTable table, Object value,
+				boolean isSelected, boolean hasFocus, int row, int column) {
+			Component c = baseRenderer.getTableCellRendererComponent(
+					table, value, isSelected, hasFocus, row, column);
+			if (visible) {
+				// add red above or below border to identify skipped frames
+	    	TTrack track = getTrack();
+	    	if (track instanceof PointMass) {
+	    		PointMass p = (PointMass)track;
+	    		if (p.trackerPanel!=null) {
+	    			VideoClip clip = p.trackerPanel.getPlayer().getVideoClip();
+	      		int frameNum = getFrameAtRow(row);
+	      		int stepNum = clip.frameToStep(frameNum);
+	      		for (int i: p.skippedSteps) {
+	      			if (stepNum+1==i) {
+	      				((JLabel)c).setBorder(belowBorder);
+	      			}
+	      			else if (stepNum-1==i) {
+	      				((JLabel)c).setBorder(aboveBorder);
+	      			}
+	      		}
+	    		}				
+				}
 			}
 			return c;
 		}
@@ -1634,14 +1850,32 @@ public class TableTrackView extends TrackView {
   class TrackDataTable extends DataTable {
   	
   	NumberFieldRenderer numberFieldRenderer = new NumberFieldRenderer();
+  	SkippedFramesRenderer skippedFramesRenderer = new SkippedFramesRenderer(); 
+  	
+  	TrackDataTable() {
+  		super();
+  		TableCellRenderer renderer = getTableHeader().getDefaultRenderer();
+  		if (renderer instanceof DataTable.HeaderRenderer) {
+  			renderer = ((DataTable.HeaderRenderer)renderer).getBaseRenderer();
+  		}
+      TableCellRenderer headerRenderer = new HeaderUnitsRenderer(this, renderer);
+      getTableHeader().setDefaultRenderer(headerRenderer);
+  	}
   	
   	@Override
     public void refreshTable() {
+  		// model for this table assumed to be a SortDecorator
+  		// always reset the decorator before changing table structure
+  		SortDecorator decorator = (SortDecorator)getModel();
+  		int col = decorator.getSortedColumn();
+  		decorator.reset();
       // save selected rows and columns
       int[] rows = getSelectedRows();
       int[] cols = getSelectedColumns();
       // refresh table
       super.refreshTable();
+      // sort if needed
+      if (col>-1) sort(col);
       // restore selected rows and columns
       for (int i = 0; i < rows.length; i++) {
       	if (rows[i] < getRowCount())
@@ -1651,6 +1885,24 @@ public class TableTrackView extends TrackView {
       	if (cols[i] < getColumnCount())
       		addColumnSelectionInterval(cols[i], cols[i]);
       }
+    	// find TViewChooser with this view
+    	TFrame frame = trackerPanel.getTFrame();
+    	if (frame!=null) {
+	    	Container[] views = frame.getViews(trackerPanel);
+	    	for (int i = 0; i < views.length; i++) {
+	        if (views[i] instanceof TViewChooser) {
+	          TViewChooser chooser = (TViewChooser)views[i];
+	          if (chooser.getSelectedView() instanceof TableTView) {
+	          	TableTView tableView = (TableTView)chooser.getSelectedView();
+	          	TrackView view = tableView.getTrackView(tableView.getSelectedTrack());
+	          	if (view != null && view.equals(TableTrackView.this)) {
+	          		chooser.refreshToolbar();
+	          	}
+	          }
+	        }
+	    	}
+    	}
+
     }
     
   	@Override
@@ -1673,20 +1925,52 @@ public class TableTrackView extends TrackView {
   		}
   		return super.getDefaultRenderer(type);
   	}
+  	
+  	@Override
+    public TableCellRenderer getCellRenderer(int row, int column) {
+    	TableCellRenderer renderer = super.getCellRenderer(row, column);
+  		skippedFramesRenderer.setBaseRenderer(renderer);
+  		return skippedFramesRenderer;
+    }
+  	
+    @Override
+    public void sort(int col) {
+      if (col>0 && gapsButton.isSelected()) {
+      	gapsButton.doClick(0);
+      }
+      super.sort(col);
+    }
 
-  	public TableCellRenderer getCellRenderer(String columnName) {
-      UnitRenderer unitRenderer = unitRenderersByColumnName.get(columnName);
-      TableCellRenderer baseRenderer = precisionRenderersByColumnName.get(columnName);
-      // if no precision base renderer, use default
-      if (baseRenderer==null)
-      	baseRenderer = getDefaultRenderer(Double.class);
-      // return unit renderer if defined
-    	if (unitRenderer!=null) {
-    		unitRenderer.setBaseRenderer(baseRenderer);
-    		return unitRenderer;
-    	}
-      return baseRenderer;
-  	}
+  }
+  
+  public class HeaderUnitsRenderer extends DataTable.HeaderRenderer {
+
+		public HeaderUnitsRenderer(DataTable table, TableCellRenderer renderer) {
+			table.super(renderer);
+		}
+		
+		@Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+			Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+			TTrack track = getTrack();
+			if (track.trackerPanel!=null) {
+				String var = textLine.getText();
+				String units = track.trackerPanel.getUnits(track, var);
+				if (!"".equals(units)) { //$NON-NLS-1$
+		      if (OSPRuntime.isMac()) {
+		      	var = TeXParser.removeSubscripting(var);
+		      }
+					var += " ("+units.trim()+")"; //$NON-NLS-1$ //$NON-NLS-2$
+		      if (OSPRuntime.isMac()) {
+		        if (c instanceof JLabel) {
+		          ((JLabel)c).setText(var);
+		        }
+		      }
+		      textLine.setText(var);
+				}
+			}
+			return c;
+		}
   	
   }
 

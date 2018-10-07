@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -107,6 +107,7 @@ public class PerspectiveTrack extends TTrack {
 	  	else if (name.equals("enabled") || name.equals("tab") || name.equals("visible")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  		if (trackerPanel.getSelectedTrack()==this) {
   				trackerPanel.setSelectedPoint(null);
+          trackerPanel.selectedSteps.clear();
 	  		}
 	  		boolean visible = filter.hasInspector() && filter.getInspector().isVisible();
 	  		if (visible) {

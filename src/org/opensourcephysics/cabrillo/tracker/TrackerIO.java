@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -689,10 +689,6 @@ public class TrackerIO extends VideoIO {
 	        	VideoType ffmpegType = VideoIO.getVideoType("FFMPeg", ext); //$NON-NLS-1$
 	        	if (ffmpegType!=null) otherEngines.add(ffmpegType);
 	        }
-	        if (!engine.equals(VideoIO.ENGINE_QUICKTIME)) {
-	        	VideoType qtType = VideoIO.getVideoType("QT", ext); //$NON-NLS-1$
-	        	if (qtType!=null) otherEngines.add(qtType);
-	        }
         }
         if (otherEngines.isEmpty()) {
           monitorDialog.close();
@@ -708,8 +704,7 @@ public class TrackerIO extends VideoIO {
 		    	if (video!=null && setAsDefaultBox.isSelected()) {
 		    		String typeName = video.getClass().getSimpleName();
 		    		String newEngine = typeName.indexOf("FFMPeg")>-1? VideoIO.ENGINE_FFMPEG: //$NON-NLS-1$
-		    			typeName.indexOf("QT")>-1? VideoIO.ENGINE_QUICKTIME: //$NON-NLS-1$
-		    				VideoIO.ENGINE_NONE;
+		    			VideoIO.ENGINE_NONE;
 		    		VideoIO.setEngine(newEngine);
 	  				PrefsDialog prefs = frame.getPrefsDialog();
 	  				prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
@@ -1195,12 +1190,6 @@ public class TrackerIO extends VideoIO {
    * @param vidType the preferred video type
    */
   public static void importVideo(File file, TrackerPanel trackerPanel, VideoType vidType) {
-  	while (Tracker.qtLoading && !Tracker.qtLoaded) {
-  		try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-			}
-  	}
   	String path = XML.getAbsolutePath(file);
   	OSPLog.finest("importing file: "+path);  	 //$NON-NLS-1$
   	TFrame frame = trackerPanel.getTFrame();
@@ -1445,14 +1434,14 @@ public class TrackerIO extends VideoIO {
       }
       else if (name.equals("videoclip")) { //$NON-NLS-1$
       	name = TrackerRes.getString("TMenuBar.MenuItem.VideoClip"); //$NON-NLS-1$
-//      	vidControl = children[i].getChildControl("video"); //$NON-NLS-1$
-//      	if (vidControl!=null) {
-//	      	vidClipControl = children[i];
-//	        originals.add(vidControl);
-//	        choices.add(vidControl);
-//	        names.add(name+" "+TrackerRes.getString("TrackerIO.Export.Option.WithoutVideo"));  //$NON-NLS-1$//$NON-NLS-2$
-//	       	name = name+" "+TrackerRes.getString("TrackerIO.Export.Option.WithVideo"); //$NON-NLS-1$ //$NON-NLS-2$
-//      	}
+      	vidControl = children[i].getChildControl("video"); //$NON-NLS-1$
+      	if (vidControl!=null) {
+	      	vidClipControl = children[i];
+	        originals.add(vidControl);
+	        choices.add(vidControl);
+	        names.add(name+" "+TrackerRes.getString("TrackerIO.Export.Option.WithoutVideo"));  //$NON-NLS-1$//$NON-NLS-2$
+	       	name = name+" "+TrackerRes.getString("TrackerIO.Export.Option.WithVideo"); //$NON-NLS-1$ //$NON-NLS-2$
+      	}
       }
       originals.add(children[i]);
       if (name.equals("clipcontrol")) continue; //$NON-NLS-1$
@@ -1494,9 +1483,9 @@ public class TrackerIO extends VideoIO {
       		if (!choices.contains(next)) {
       			if (removeVideo) {
       				// remove video from clip property
-//	            XMLProperty prop = vidControl.getParentProperty();
-//      				vidClipControl.setValue("video", null); //$NON-NLS-1$
-//      				vidClipControl.getPropertyContent().remove(prop);
+	            XMLProperty prop = vidControl.getParentProperty();
+      				vidClipControl.setValue("video", null); //$NON-NLS-1$
+      				vidClipControl.getPropertyContent().remove(prop);
 	      		}
 	      		else {
 	      			// remove video clip property entirely
@@ -1678,6 +1667,7 @@ public class TrackerIO extends VideoIO {
     buf.append(XML.NEW_LINE);
     java.text.DecimalFormat nf = (DecimalFormat)NumberFormat.getInstance();
     nf.applyPattern("0.000000000E0"); //$NON-NLS-1$
+    nf.setDecimalFormatSymbols(OSPRuntime.getDecimalFormatSymbols());
     java.text.DateFormat df = java.text.DateFormat.getInstance();
     for (int i = 0; i < selectedRows.length; i++) {
       for (int j = 0; j < selectedColumns.length; j++) {

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.awt.*;
 import java.awt.event.*;
@@ -36,7 +37,6 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -47,11 +47,41 @@ import org.opensourcephysics.controls.*;
 public class Protractor extends TTrack {
 	
   // static fields
-	protected static String[]	variableList;
+	protected static String[]	dataVariables;
+	protected static String[]	fieldVariables;
+  protected static String[]	formatVariables;
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
 
   static {
-  	variableList = new String[] {"t", Tracker.THETA, "L_{1}", "L_{2}",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+  	dataVariables = new String[] {"t", Tracker.THETA, "L_{1}", "L_{2}",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   			"step", "frame", Tracker.THETA+"_{rot}"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+  	fieldVariables = new String[] {"t", Tracker.THETA, "L_{1}", "L_{2}"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+  	formatVariables = new String[] {"t", "L", Tracker.THETA}; //$NON-NLS-1$ //$NON-NLS-2$
+  	
+  	// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();
+		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[0]); 
+		formatMap.put(formatVariables[0], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[2]); 
+		list.add(dataVariables[3]); 
+		formatMap.put(formatVariables[1], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[1]); 
+		list.add(dataVariables[6]);  
+		formatMap.put(formatVariables[2], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("TapeMeasure.Label.Length")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("Vector.Data.Description.4")); //$NON-NLS-1$ 
+
   }
 
 	// instance fields
@@ -242,7 +272,10 @@ public class Protractor extends TTrack {
       if (name.equals("stepnumber")) { //$NON-NLS-1$
         ProtractorStep step = (ProtractorStep)getStep(trackerPanel.getFrameNumber());     
   	    step.getProtractorAngle(); // refreshes angle field
+  	    step.getFormattedLength(step.end1); // refreshes x field
+  	    step.getFormattedLength(step.end2); // refreshes y field
   	    step.arcHighlight = null;
+	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
       }
       else if (name.equals("selectedpoint")) { //$NON-NLS-1$
       	TPoint p = trackerPanel.getSelectedPoint();
@@ -282,7 +315,18 @@ public class Protractor extends TTrack {
    */
   public Step createStep(int n, double x, double y) {
     Step step = steps.getStep(n);
-    ((ProtractorStep)step).end1.setLocation(x, y);
+    TPoint[] pts = step.getPoints();
+    TPoint p = trackerPanel==null? null: trackerPanel.getSelectedPoint();
+    if (p==null) {
+    	p = pts[2];
+    }
+    if (p==pts[0] || p==pts[1] || p==pts[2]) {
+    	p.setXY(x, y);
+    	if (trackerPanel!=null) {
+    		trackerPanel.setSelectedPoint(p);
+    		step.defaultIndex = p==pts[0]? 0: p==pts[1]? 1: 2;
+    	}
+    }
     return step;
   }
 
@@ -419,14 +463,14 @@ public class Protractor extends TTrack {
     Dataset frameNum = data.getDataset(count++);
     Dataset rotationAngle = data.getDataset(count++);
     // assign column names to the datasets
-    String time = variableList[0]; 
+    String time = dataVariables[0]; 
     if (!angle.getColumnName(0).equals(time)) { // not yet initialized
-    	angle.setXYColumnNames(time, variableList[1]);
-    	arm1Length.setXYColumnNames(time, variableList[2]); 
-    	arm2Length.setXYColumnNames(time, variableList[3]); 
-	    stepNum.setXYColumnNames(time, variableList[4]); 
-	    frameNum.setXYColumnNames(time, variableList[5]); 
-    	rotationAngle.setXYColumnNames(time, variableList[6]); 
+    	angle.setXYColumnNames(time, dataVariables[1]);
+    	arm1Length.setXYColumnNames(time, dataVariables[2]); 
+    	arm2Length.setXYColumnNames(time, dataVariables[3]); 
+	    stepNum.setXYColumnNames(time, dataVariables[4]); 
+	    frameNum.setXYColumnNames(time, dataVariables[5]); 
+    	rotationAngle.setXYColumnNames(time, dataVariables[6]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -554,17 +598,36 @@ public class Protractor extends TTrack {
    */
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
   	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
-    list.add(stepSeparator);
+  	
+    stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
   	angleLabel.setText(TrackerRes.getString("Protractor.Label.Angle")); //$NON-NLS-1$
 		angleField.setToolTipText(TrackerRes.getString("Protractor.Field.Angle.Tooltip")); //$NON-NLS-1$
-		boolean attached = false;
+  	xLabel.setText(dataVariables[2]);
+  	yLabel.setText(dataVariables[3]);
+    xField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));    
+    yField.setUnits(trackerPanel.getUnits(this, dataVariables[3]));    
+  	
+    // put step number into label
+    VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+    int n = clip.frameToStep(trackerPanel.getFrameNumber());
+    stepValueLabel.setText(n+":"); //$NON-NLS-1$
+
   	TTrack[] attachments = getAttachments(); // vertex, x-axis, arm
-  	if (attachments[2]!=null) {
-			attached = true;
-  	}
+  	boolean attached = attachments[2]!=null;
 		angleField.setEnabled(!attached && !isLocked());
+
+    list.add(stepSeparator);
+    list.add(stepLabel);
+    list.add(stepValueLabel);
+    list.add(tSeparator);
     list.add(angleLabel);
-    list.add(angleField);
+    list.add(angleField);    
+    list.add(xSeparator);
+    list.add(xLabel);
+    list.add(xField);    
+    list.add(ySeparator);
+    list.add(yLabel);
+    list.add(yField);    
     return list;
   }
 
@@ -631,11 +694,12 @@ public class Protractor extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	numberFields.clear();
-  	numberFields.put(variableList[0], new NumberField[] {tField});
-  	numberFields.put(variableList[1], new NumberField[] {angleField, inputField});
-  	numberFields.put(variableList[2], new NumberField[] {xField}); // L1
-  	numberFields.put(variableList[3], new NumberField[] {yField}); // L2
+  	if (numberFields.isEmpty()) {
+	  	numberFields.put(dataVariables[0], new NumberField[] {tField});
+	  	numberFields.put(dataVariables[1], new NumberField[] {angleField, inputField});
+	  	numberFields.put(dataVariables[2], new NumberField[] {xField}); // L1
+	  	numberFields.put(dataVariables[3], new NumberField[] {yField}); // L2
+  	}
   	return numberFields;
   }
   
@@ -658,19 +722,20 @@ public class Protractor extends TTrack {
 				TrackerRes.getString("TTrack.AngleField.Popup.Degrees"): //$NON-NLS-1$
 				TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
 		popup.add(item);
-		
-		item = new JMenuItem();
-		final String[] selected = new String[] {Tracker.THETA};
-		item.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {              		
-        NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(Protractor.this, selected);
-        FontSizer.setFonts(dialog, FontSizer.getLevel());
-        dialog.pack();     
-  	    dialog.setVisible(true);
-      }
-    });
-		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
-		popup.add(item);
+    if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
+			popup.addSeparator();			
+			item = new JMenuItem();
+			final String[] selected = new String[] {Tracker.THETA};
+			item.addActionListener(new ActionListener() {
+	      public void actionPerformed(ActionEvent e) {
+	      	TrackerPanel tp = Protractor.this.trackerPanel;
+	        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(tp, Protractor.this, selected);
+	  	    dialog.setVisible(true);
+	      }
+	    });
+			item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+			popup.add(item);
+    }
 		// add "change to radians" item
 		return popup;
   }
@@ -705,7 +770,7 @@ public class Protractor extends TTrack {
     super.setAnglesInRadians(radians);
 //    inputField.setDecimalPlaces(radians? 3: 1);
     inputField.setConversionFactor(radians? 1.0: 180/Math.PI);
-    ProtractorStep step = (ProtractorStep)getStep(trackerPanel.getFrameNumber());     
+    Step step = getStep(trackerPanel.getFrameNumber());     
     step.repaint(); // refreshes angle readout
   }
 

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -133,6 +133,7 @@ public class WorldTView extends TrackerPanel implements TView {
    * Refreshes all tracks
    */
   public void refresh() {
+  	worldViewButton.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
     // axes & tape items
   	CoordAxes axes = trackerPanel.getAxes();
     if (axes!=null) {
@@ -341,9 +342,11 @@ public class WorldTView extends TrackerPanel implements TView {
   	if (trackerPanel==null) {
   		return super.getDrawables();
   	}
-    // return all drawables in tracker panel plus those in this world view
+    // return all drawables in trackerPanel (except PencilScenes) plus those in this world view
     ArrayList<Drawable> list = trackerPanel.getDrawables();
     list.addAll(super.getDrawables());
+    // remove PencilScenes
+    list.removeAll(trackerPanel.getDrawables(PencilScene.class));
     // put mat behind everything
     TMat mat = trackerPanel.getMat();
     if (mat != null && list.get(0) != mat) {

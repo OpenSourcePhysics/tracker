@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -277,13 +277,25 @@ public class TableTView extends TrackChooserTView {
       });
 
       buttonPanel = new JPanel();
-	    buttonPanel.add(defineButton);
-	    buttonPanel.add(textColumnButton);
+	    if (trackerPanel.isEnabled("data.builder"))  //$NON-NLS-1$
+	    	buttonPanel.add(defineButton);
+	    if (trackerPanel.isEnabled("text.columns"))  //$NON-NLS-1$
+	    	buttonPanel.add(textColumnButton);
 	    buttonPanel.add(closeButton);
 	    // create track label
 	    trackLabel = new JLabel();
 	    trackLabel.setBorder(BorderFactory.createEmptyBorder(7, 0, 6, 0));
 	    trackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+    }
+    
+    // refresh button panel
+    if (columnsDialog!=null) {    
+	    buttonPanel.removeAll();
+	    if (trackerPanel.isEnabled("data.builder"))  //$NON-NLS-1$
+	    	buttonPanel.add(defineButton);
+	    if (trackerPanel.isEnabled("text.columns"))  //$NON-NLS-1$
+	    	buttonPanel.add(textColumnButton);
+	    buttonPanel.add(closeButton);
     }
   	return columnsDialog;
   }

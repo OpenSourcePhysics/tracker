@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -2333,7 +2333,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       startButton.addMouseMotionListener(new MouseAdapter() {
       	@Override
       	public void mouseMoved(MouseEvent e) {
-      		startButton.setText((e.getModifiers()&0x01)==1 && !stepping? 
+      		startButton.setText(e.isShiftDown() && !stepping? 
       				TrackerRes.getString("AutoTracker.Wizard.Button.Options"): //$NON-NLS-1$
       					stepping?
   								TrackerRes.getString("AutoTracker.Wizard.Button.Stop"): //$NON-NLS-1$

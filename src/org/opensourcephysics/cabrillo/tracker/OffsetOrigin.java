@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,10 +45,26 @@ import org.opensourcephysics.controls.*;
 public class OffsetOrigin extends TTrack {
 
   // static fields
-	protected static String[]	variableList;
+	protected static String[]	dataVariables;
+  protected static String[] formatVariables; // used by NumberFormatSetter
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
 
   static {
-  	variableList = new String[] {"x", "y"}; //$NON-NLS-1$ //$NON-NLS-2$
+  	dataVariables = new String[] {"x", "y"}; //$NON-NLS-1$ //$NON-NLS-2$
+  	formatVariables = new String[] {"xy"}; //$NON-NLS-1$
+  	
+  	// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[0]); 
+		list.add(dataVariables[1]); 
+		formatMap.put(formatVariables[0], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Position.Name")); //$NON-NLS-1$ 
+
   }
   // instance fields
   private Component separator;
@@ -300,16 +316,33 @@ public class OffsetOrigin extends TTrack {
    * @return a list of components
    */
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
-  	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
-    list.add(stepSeparator);
-    unmarkedLabel.setText(TrackerRes.getString("TTrack.Label.Unmarked")); //$NON-NLS-1$
+  	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);  	
 	  int n = trackerPanel.getFrameNumber();
     Step step = getStep(n);
     
+    list.add(stepSeparator);
     if (step==null) {
+	    unmarkedLabel.setText(TrackerRes.getString("TTrack.Label.Unmarked")); //$NON-NLS-1$
 	    list.add(unmarkedLabel);
     }
     else {
+      // put step number into label
+      stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+      VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+      n = clip.frameToStep(n);
+      stepValueLabel.setText(n+":"); //$NON-NLS-1$
+
+      list.add(stepLabel);
+      list.add(stepValueLabel);
+      list.add(tSeparator);
+	  	xLabel.setText(dataVariables[0]); 
+	  	yLabel.setText(dataVariables[1]); 
+	    xField.setUnits(trackerPanel.getUnits(this, dataVariables[0]));
+	    yField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+	    boolean locked = trackerPanel.getCoords().isLocked() || super.isLocked();
+	    xField.setEnabled(!locked);
+	    yField.setEnabled(!locked);
+	    displayWorldCoordinates();
 	    list.add(xLabel);
 	    list.add(xField);
 	    list.add(separator);
@@ -317,10 +350,6 @@ public class OffsetOrigin extends TTrack {
 	    list.add(yField);
     }
     
-    boolean locked = trackerPanel.getCoords().isLocked() || super.isLocked();
-    xField.setEnabled(!locked);
-    yField.setEnabled(!locked);
-    displayWorldCoordinates();
     return list;
   }
 
@@ -334,6 +363,7 @@ public class OffsetOrigin extends TTrack {
     if (name.equals("stepnumber")) { //$NON-NLS-1$
       if (trackerPanel.getSelectedTrack() == this) {
       	displayWorldCoordinates();
+	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
       }
     }
     else if (name.equals("locked")) { //$NON-NLS-1$
@@ -378,8 +408,8 @@ public class OffsetOrigin extends TTrack {
   @Override
   public Map<String, NumberField[]> getNumberFields() {
   	numberFields.clear();
-  	numberFields.put(variableList[0], new NumberField[] {xField});
-  	numberFields.put(variableList[1], new NumberField[] {yField});
+  	numberFields.put(dataVariables[0], new NumberField[] {xField});
+  	numberFields.put(dataVariables[1], new NumberField[] {yField});
   	return numberFields;
   }
   

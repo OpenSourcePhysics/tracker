@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,15 +50,35 @@ public class PointMass extends TTrack {
 	// static constants
 	protected static final int FINITE_DIFF = 0;
 	protected static final int BOUNCE_DETECT = 1;
+	protected static final int FINITE_DIFF_VSPILL2 = 2;
 	protected static final double MINIMUM_MASS = 1E-30;
 	
 	// static fields
   protected static Derivative vDeriv = new FirstDerivative();
   protected static Derivative aDeriv = new SecondDerivative();
   protected static BounceDerivatives bounceDerivs = new BounceDerivatives();
-  protected static String[]	variableList;
+  protected static String[]	dataVariables; // used for data, tables
+  protected static String[] fieldVariables; // associated with number fields
+  protected static String[] formatVariables; // used by NumberFormatSetter
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
+  protected static boolean isAutoKeyDown;
+  protected static String[] footprintNames = new String[]
+      {"Footprint.Diamond", //$NON-NLS-1$
+       "Footprint.Triangle", //$NON-NLS-1$
+       "CircleFootprint.Circle", //$NON-NLS-1$
+       "Footprint.VerticalLine", //$NON-NLS-1$
+       "Footprint.HorizontalLine", //$NON-NLS-1$       
+       "Footprint.PositionVector", //$NON-NLS-1$
+       "Footprint.Spot", //$NON-NLS-1$
+    	 "Footprint.BoldDiamond", //$NON-NLS-1$
+       "Footprint.BoldTriangle", //$NON-NLS-1$
+       "Footprint.BoldVerticalLine", //$NON-NLS-1$
+       "Footprint.BoldHorizontalLine", //$NON-NLS-1$
+       "Footprint.BoldPositionVector"}; //$NON-NLS-1$
 
   static {
+  	// assemble data variables
   	ArrayList<String> names = new ArrayList<String>();
   	names.add("t"); //$NON-NLS-1$ 0
   	names.add("x"); //$NON-NLS-1$ 1
@@ -84,9 +104,136 @@ public class PointMass extends TTrack {
   	names.add(Tracker.THETA+"_{p}"); //$NON-NLS-1$ 21
   	names.add("pixel_{x}"); //$NON-NLS-1$ 22
   	names.add("pixel_{y}"); //$NON-NLS-1$ 23
-  	names.add("K"); //$NON-NLS-1$ 24
-  	names.add("m"); //$NON-NLS-1$ 25
-		variableList = names.toArray(new String[names.size()]);
+  	names.add("L"); //$NON-NLS-1$ 24
+  	names.add("K"); //$NON-NLS-1$ 25
+  	names.add("m"); //$NON-NLS-1$ 26
+		dataVariables = names.toArray(new String[names.size()]);
+		
+		// assemble field variables
+  	names.clear();
+  	names.add(dataVariables[26]); // 0
+  	names.add(dataVariables[0]); // 1
+  	names.add(dataVariables[1]); // 2
+  	names.add(dataVariables[2]); // 3
+  	names.add(dataVariables[3]); // 4
+  	names.add(dataVariables[4]); // 5
+  	names.add(dataVariables[5]); // 6
+  	names.add(dataVariables[6]); // 7
+  	names.add(dataVariables[7]); // 8
+  	names.add(dataVariables[8]); // 9
+  	names.add(dataVariables[9]); // 10
+  	names.add(dataVariables[10]); // 11
+  	names.add(dataVariables[11]); // 12
+  	names.add(dataVariables[12]); // 13
+  	names.add(dataVariables[18]); // 14
+  	names.add(dataVariables[19]); // 15
+  	names.add(dataVariables[20]); // 16
+  	names.add(dataVariables[21]); // 17
+  	names.add("ma_{x}"); //$NON-NLS-1$ 18
+  	names.add("ma_{y}"); //$NON-NLS-1$ 19
+  	names.add("ma"); //$NON-NLS-1$ 20
+  	names.add(Tracker.THETA+"_{ma}"); //$NON-NLS-1$ 21
+		fieldVariables = names.toArray(new String[names.size()]);
+		
+		// assemble format variables
+  	names.clear();
+  	names.add("m"); //$NON-NLS-1$ 0
+  	names.add("t"); //$NON-NLS-1$ 1
+  	names.add("xy"); //$NON-NLS-1$ 2
+  	names.add("v"); //$NON-NLS-1$ 3
+  	names.add("a"); //$NON-NLS-1$ 4
+  	names.add("p"); //$NON-NLS-1$ 5
+  	names.add("ma"); //$NON-NLS-1$ 6
+   	names.add(Tracker.THETA); // 7
+  	names.add(TeXParser.parseTeX("$\\omega$")); //$NON-NLS-1$ 8
+  	names.add(TeXParser.parseTeX("$\\alpha$")); //$NON-NLS-1$ 9
+  	names.add("pixel"); //$NON-NLS-1$ 10
+  	names.add("K"); //$NON-NLS-1$ 11
+		formatVariables = names.toArray(new String[names.size()]);
+		
+		// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();
+		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[26]); // mass m
+		formatMap.put(formatVariables[0], list); // m
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[0]); // time t
+		formatMap.put(formatVariables[1], list); // t
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[1]); // x
+		list.add(dataVariables[2]); // y
+		list.add(dataVariables[3]); // r
+		list.add(dataVariables[24]); // L pathlength
+		formatMap.put(formatVariables[2], list); // xy
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[5]); // vx
+		list.add(dataVariables[6]); // vy
+		list.add(dataVariables[7]); // v
+		formatMap.put(formatVariables[3], list); // v
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[9]); // ax
+		list.add(dataVariables[10]); // ay
+		list.add(dataVariables[11]); // a
+		formatMap.put(formatVariables[4], list); // a
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[18]); // px
+		list.add(dataVariables[19]); // py
+		list.add(dataVariables[20]); // p
+		formatMap.put(formatVariables[5], list); // p
+		
+		list = new ArrayList<String>();
+		list.add(fieldVariables[18]); // max
+		list.add(fieldVariables[19]); // may
+		list.add(fieldVariables[20]); // ma
+		formatMap.put(formatVariables[6], list); // ma
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[4]); // theta r
+		list.add(dataVariables[8]); // theta v
+		list.add(dataVariables[12]); // theta a
+		list.add(dataVariables[13]);// theta (rotation)
+		list.add(dataVariables[21]); // theta p
+		list.add(fieldVariables[21]); // theta ma
+		formatMap.put(formatVariables[7], list); // theta
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[14]); // omega
+		formatMap.put(formatVariables[8], list); // omega
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[14]); // alpha
+		formatMap.put(formatVariables[9], list); // alpha
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[22]); // pixelx
+		list.add(dataVariables[23]); // pixely
+		formatMap.put(formatVariables[10], list); // pixel
+
+		list = new ArrayList<String>();
+		list.add(dataVariables[25]); // K
+		formatMap.put(formatVariables[11], list); // K
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Description.Mass")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("PointMass.Position.Name")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[3], TrackerRes.getString("PointMass.Velocity.Name")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[4], TrackerRes.getString("PointMass.Acceleration.Name")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[5], TrackerRes.getString("PointMass.Description.Momentum")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[6], TrackerRes.getString("PointMass.Description.NetForce")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[7], TrackerRes.getString("Vector.Data.Description.4")); //$NON-NLS-1$
+		formatDescriptionMap.put(formatVariables[8], TrackerRes.getString("PointMass.Data.Description.14")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[9], TrackerRes.getString("PointMass.Data.Description.15")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[10], TrackerRes.getString("PointMass.Description.Pixel")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[11], TrackerRes.getString("PointMass.Data.Description.22")); //$NON-NLS-1$ 
+
   }
 
   // instance fields
@@ -108,6 +255,7 @@ public class PointMass extends TTrack {
   protected boolean xVisibleOnAll = false;
   protected boolean vVisibleOnAll = false;
   protected boolean aVisibleOnAll = false;
+  protected boolean labelsVisible = !Tracker.hideLabels;
   // for derivatives
   protected int algorithm = FINITE_DIFF;
   protected int vDerivSpill = 1;
@@ -118,8 +266,12 @@ public class PointMass extends TTrack {
   protected double[] yData = new double[5];
   protected boolean[] validData = new boolean[5];
   protected Object[] derivData = new Object[] {params, xData, yData, validData};
+  // identify skipped steps
+  protected TreeSet<Integer> skippedSteps = new TreeSet<Integer>();
+  protected boolean isAutofill = false, firstAutofill = true;
 
   // for GUI
+  protected NumberField[][] vectorFields;
   protected JLabel massLabel;
   protected NumberField massField;
   protected Component mSeparator;
@@ -157,19 +309,20 @@ public class PointMass extends TTrack {
     super();
 		defaultColors = new Color[] {
 				Color.red,Color.cyan,Color.magenta,new Color(153, 153, 255)};
-    setFootprints(new Footprint[]
-      {PointShapeFootprint.getFootprint("Footprint.Diamond"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.Triangle"), //$NON-NLS-1$
-       CircleFootprint.getFootprint("CircleFootprint.Circle"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.VerticalLine"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.HorizontalLine"), //$NON-NLS-1$       
-       PointShapeFootprint.getFootprint("Footprint.PositionVector"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.Spot"), //$NON-NLS-1$
-    	 PointShapeFootprint.getFootprint("Footprint.BoldDiamond"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.BoldTriangle"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.BoldVerticalLine"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.BoldHorizontalLine"), //$NON-NLS-1$
-       PointShapeFootprint.getFootprint("Footprint.BoldPositionVector")}); //$NON-NLS-1$
+		Footprint[] fp = new Footprint[footprintNames.length];
+		for (int i=0; i<fp.length; i++) {
+			String name = footprintNames[i];
+			if (name.equals("CircleFootprint.Circle")) { //$NON-NLS-1$
+				fp[i] = CircleFootprint.getFootprint(name);
+			}
+			else {
+				fp[i] = PointShapeFootprint.getFootprint(name);
+			}
+		}
+    setFootprints(fp);
+    if (Tracker.preferredPointMassFootprint!=null) {
+    	setFootprint(Tracker.preferredPointMassFootprint);
+    }
     defaultFootprint = getFootprint();
     setVelocityFootprints(new Footprint[]
       {LineFootprint.getFootprint("Footprint.Arrow"), //$NON-NLS-1$
@@ -250,6 +403,9 @@ public class PointMass extends TTrack {
 	    step = new PositionStep(this, n, x, y);
 	    steps.setStep(n, step);
 	    step.setFootprint(getFootprint());
+	    if (isAutofill()) {
+	    	markInterpolatedSteps(step, true);
+	    }
     }
     else if (x!=step.getPosition().x || y!=step.getPosition().y) {
     	XMLControl state = new XMLControlElement(step);
@@ -286,6 +442,7 @@ public class PointMass extends TTrack {
    * @return the deleted step
    */
   public Step deleteStep(int n) {
+  	keyFrames.remove(n); // keyFrames are manually or auto-marked steps
     Step step = super.deleteStep(n);
     if (step != null) updateDerivatives(n);
     AutoTracker autoTracker = trackerPanel.getAutoTracker();
@@ -398,6 +555,14 @@ public class PointMass extends TTrack {
    */
   protected boolean isAutoTrackable() {
   	return true;
+  }
+  
+  @Override
+  public TPoint autoMarkAt(int n, double x, double y) {
+  	TPoint p = super.autoMarkAt(n, x, y);
+    // keyFrames contain all manually or auto-marked steps
+  	keyFrames.add(n);
+  	return p;
   }
   
   /**
@@ -661,7 +826,7 @@ public class PointMass extends TTrack {
 
   /**
    * Gets the world acceleration for the specified frame number and panel.
-   * May return null;
+   * May return null.
    *
    * @param n the frame number
    * @param trackerPanel the tracker panel
@@ -689,14 +854,221 @@ public class PointMass extends TTrack {
    */
   public void setAlgorithm(int type) {
   	if (type==algorithm) return;
-  	if (type==FINITE_DIFF || type==BOUNCE_DETECT) {
+  	if (type==FINITE_DIFF || type==BOUNCE_DETECT || type==FINITE_DIFF_VSPILL2) {
   		algorithm = type;
   		refreshDataLater = false;
   		updateDerivatives();
       support.firePropertyChange("steps", null, null); //$NON-NLS-1$
   	}
   }
+  
+  /**
+   * Gets the autofill flag.
+   * 
+   * @return true if autofill is on
+   */
+  public boolean isAutofill() {
+  	return Tracker.enableAutofill && isAutofill;
+  }
+  
+  /**
+   * Sets the autofill flag.
+   * 
+   * @param autofill true to turn on autofill
+   */
+  public void setAutoFill(boolean autofill) {
+  	isAutofill = autofill;
+  	if (autofill) {
+  		// fill unfilled gaps, but ask if more than one
+  		int gapCount = getUnfilledGapCount();
+  		if (gapCount>1) {
+  			int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), 
+  					TrackerRes.getString("TableTrackView.Dialog.FillMultipleGaps.Message"),  //$NON-NLS-1$
+  					TrackerRes.getString("TableTrackView.Dialog.FillMultipleGaps.Title"),  //$NON-NLS-1$
+  					JOptionPane.YES_NO_OPTION);
+  			if (response==JOptionPane.YES_OPTION) {
+  				gapCount = 1;
+  			}
+  		}
+			if (gapCount==1) {
+				markAllInterpolatedSteps();
+			}
+  	}
+  }
+  
+  /**
+   * Returns the number of gaps (filled or not) in the keyframes
+   * 
+   * @return the gap count
+   */
+  public int getGapCount() {
+    int prev = -1;
+    int gapCount = 0;
+  	for (int n: keyFrames) {
+  		if (prev==-1) prev = n;
+  		else {
+  			if (n-prev>1) gapCount++;
+  			prev = n;
+  		}
+  	}
+  	return gapCount;
+  }
 
+  /**
+   * Returns the number of unfilled gaps in the keyframes
+   * 
+   * @return the unfilled gap count
+   */
+  public int getUnfilledGapCount() {
+    int prev = -1;
+    int gapCount = 0;
+  	for (int n: keyFrames) {
+  		if (prev==-1) prev = n;
+  		else {
+  			if (n-prev>1) {
+  				// gap exists here, is it filled?
+  				boolean filled = true;
+  				for (int i=prev+1; i<n; i++) {
+  					if (skippedSteps.contains(i)) {
+  						filled = false;
+  						break;
+  					}
+  				}
+  				if (!filled) gapCount++;
+  			}
+  			prev = n;
+  		}
+  	}
+  	return gapCount;
+  }
+
+  /**
+   * Marks all missing steps by linear interpolation.
+   */
+  public void markAllInterpolatedSteps() {
+  	if (isLocked()) return;
+  	// save state
+  	XMLControl control = new XMLControlElement(this);
+  	boolean changed = false;
+  	// go through all keyFrames and mark or move steps in the gaps
+    // keyFrames contain all manually or auto-marked steps
+    // find non-null position steps in the videoclip
+    VideoPlayer player = trackerPanel.getPlayer();
+    VideoClip clip = player.getVideoClip();
+    Step[] stepArray = getSteps();
+    PositionStep curStep = null, prevNonNullStep = null;
+    for (int n = 0; n < stepArray.length; n++) {
+    	boolean inFrame = clip.includesFrame(n);
+    	if (!inFrame) continue;
+  		curStep = (PositionStep)stepArray[n];
+  		if (curStep!=null && keyFrames.contains(n)) {
+  			if (prevNonNullStep!=null) {
+  				changed = markInterpolatedSteps(prevNonNullStep, curStep) || changed;
+  			}
+  			prevNonNullStep = curStep;
+  		}
+    }
+		refreshDataLater = false;
+		updateDerivatives();
+	  support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+	  // post undoable edit if changes made
+	  if (changed) {
+	  	Undo.postTrackEdit(this, control);
+	  }
+  }
+  
+  /**
+   * Marks steps by linear interpolation on both sides of a given step.
+   * 
+   * @param step the step
+   * @param refreshData true to update derivatives 
+   */
+  public void markInterpolatedSteps(PositionStep step, boolean refreshData) {
+  	if (isLocked()) return;
+    // keyFrames contain all manually or auto-marked steps
+  	if (!keyFrames.contains(step.n)) return;
+  	XMLControl control = new XMLControlElement(this);
+  	boolean changed = false;
+    VideoClip clip = trackerPanel.getPlayer().getVideoClip();  	
+  	// look for earlier and later steps
+  	int earlier = -1, later = -1;
+  	for (int keyframe: keyFrames) {
+    	boolean inFrame = clip.includesFrame(keyframe);
+    	if (!inFrame || keyframe==step.n) continue;  			
+  		if (keyframe<step.n) {
+  			earlier = keyframe;
+  		}
+  		if (later==-1 && keyframe>step.n) {
+  			later = keyframe;
+  		}
+  	}
+    Step[] stepArray = getSteps();
+    int firstStep = clip.frameToStep(step.n);
+    int lastStep = firstStep; 
+    if (earlier>-1) {
+    	PositionStep start = (PositionStep)stepArray[earlier];
+    	if (start!=null) {
+    		changed = markInterpolatedSteps(start, step);
+    		firstStep = clip.frameToStep(earlier);
+    	}
+    }
+    if (later>-1) {
+    	PositionStep end = (PositionStep)stepArray[later];
+    	if (end!=null) {
+	    	changed = markInterpolatedSteps(step, end) || changed;
+	    	lastStep = clip.frameToStep(later);
+    	}
+    }
+		refreshDataLater = !refreshData;
+		if (refreshData) updateDerivatives(firstStep, lastStep-firstStep);
+	  support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+	  // post undoable edit if changes made
+	  if (changed) {
+	  	Undo.postTrackEdit(this, control);
+	  }
+  }
+  
+  /**
+   * Marks steps by linear interpolation between two existing steps.
+   * 
+   * @param startStep the start step
+   * @param endStep the end step
+   * @return true if new steps were marked
+   */
+  public boolean markInterpolatedSteps(PositionStep startStep, PositionStep endStep) {
+  	if (isLocked()) return false;
+    VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		int startStepNum = clip.frameToStep(startStep.n);
+		int endStepNum = clip.frameToStep(endStep.n);
+		int range = endStepNum-startStepNum;
+		if (range<2) return false;
+    Step[] stepArray = getSteps();
+    boolean newlyMarked = false;
+		for (int i=startStepNum+1; i<endStepNum; i++) {
+			// mark new points or move existing points here
+			double x1 = startStep.getPosition().getX();
+			double y1 = startStep.getPosition().getY();
+			double x2 = endStep.getPosition().getX();
+			double y2 = endStep.getPosition().getY();
+			double x = x1 + (x2-x1)*(i-startStepNum)/range;
+			double y = y1 + (y2-y1)*(i-startStepNum)/range;
+			int frameNum = clip.stepToFrame(i);
+			PositionStep step = (PositionStep)stepArray[frameNum];
+			if (step==null) {
+				newlyMarked = true;
+				step = new PositionStep(this, frameNum, x, y);
+		    steps.setStep(frameNum, step);
+		    step.setFootprint(getFootprint());
+			}
+			else {
+				step.getPosition().setLocation(x, y); // triggers "location" property change for attachments
+				step.erase();
+			}
+	    step.valid = true;
+		}
+		return newlyMarked;
+  }
+  
   @Override
   protected void dispose() {
   	if (trackerPanel!=null) {
@@ -728,9 +1100,8 @@ public class PointMass extends TTrack {
    * @param trackerPanel the tracker panel
    */
   protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
-    if (refreshDataLater)
-    	return;
-    int baseCount = 23;
+    if (refreshDataLater || trackerPanel == null || data == null) return;
+    int baseCount = 24;
     int count = baseCount; // number of datasets
     if (!getClass().equals(CenterOfMass.class)
     		&& !getClass().equals(DynamicSystem.class)) {
@@ -738,19 +1109,19 @@ public class PointMass extends TTrack {
     }
     if (data.getDataset(0).getColumnName(0).equals("x")) { //$NON-NLS-1$
 	    // assign column names to the datasets
-	    String timeVar = variableList[0];
+	    String timeVar = dataVariables[0];
 	    for (int i=0; i<baseCount; i++) {
-	    	data.getDataset(i).setXYColumnNames(timeVar, variableList[i+1]);
+	    	data.getDataset(i).setXYColumnNames(timeVar, dataVariables[i+1]);
 	    }
     	if (count>baseCount) {
-  	    data.getDataset(baseCount).setXYColumnNames(timeVar, variableList[baseCount+1]);
+  	    data.getDataset(baseCount).setXYColumnNames(timeVar, dataVariables[baseCount+1]);
     	}
     }
     // create preferred column order
     if (preferredColumnOrder==null) {
 	    if (count==baseCount) 
 	    	preferredColumnOrder = new int[] 
-	    	    {0,1,2,3,4,5,6,7,8,9,10,11,17,18,19,20,12,13,14};
+	    	    {0,1,2,3,4,5,6,7,8,9,10,11,17,18,19,20,12,13,14}; 
 	    else 
 	    	preferredColumnOrder = new int[] 
 	    	    {0,1,2,3,4,5,6,7,8,9,10,11,17,18,19,20,12,13,14,baseCount};
@@ -761,6 +1132,7 @@ public class PointMass extends TTrack {
     	if (i<22) dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description."+i); //$NON-NLS-1$
     	else if (i==22) dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.PixelX"); //$NON-NLS-1$
     	else if (i==23) dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.PixelY"); //$NON-NLS-1$
+    	else if (i==24) dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.PathLength"); //$NON-NLS-1$
     	else dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.22"); //$NON-NLS-1$
     }
     // get the rotational data
@@ -773,13 +1145,34 @@ public class PointMass extends TTrack {
     for (int i = 0; i < count;i++) {
       data.getDataset(i).clear();
     }
+    skippedSteps.clear();
+    Point2D prevPt = null;
+    double pathlength = 0; // total path length
     // get data at each non-null position step in the videoclip
     VideoPlayer player = trackerPanel.getPlayer();
     VideoClip clip = player.getVideoClip();
     ImageCoordSystem coords = trackerPanel.getCoords();
     Step[] stepArray = getSteps();
+    Step curStep = null, prevNonNullStep = null;
     for (int n = 0; n < stepArray.length; n++) {
-      if (stepArray[n] == null || !clip.includesFrame(n)) continue;
+    	curStep = stepArray[n];
+      if (curStep==null) {
+      	keyFrames.remove(n);
+      	continue;
+      }
+      
+    	boolean inFrame = clip.includesFrame(n);
+      if (!inFrame) continue;
+      
+			int curStepNum = clip.frameToStep(n);
+			if (prevNonNullStep!=null) {
+				int prevStepNum = clip.frameToStep(prevNonNullStep.n);
+				for (int i=prevStepNum+1; i<curStepNum; i++) {
+					skippedSteps.add(i);
+				}
+			}
+			prevNonNullStep = curStep;
+			
       int stepNumber = clip.frameToStep(n);
       double t = player.getStepTime(stepNumber)/1000.0;
     	double tf = player.getStepTime(stepNumber+vDerivSpill)/1000.0;
@@ -815,6 +1208,7 @@ public class PointMass extends TTrack {
       vals[20] = Double.NaN; // pang
       vals[21] = p.x; // pixel x
       vals[22] = p.y; // pixel y
+      // for vals[23] (pathlength) see below
       if (count>baseCount) vals[baseCount] = Double.NaN; // KE
 	    VectorStep veloc = getVelocity(n, trackerPanel);
 	    if (veloc != null) {
@@ -841,6 +1235,12 @@ public class PointMass extends TTrack {
         vals[10] = Math.sqrt(vals[8]*vals[8] + vals[9]*vals[9]);
         vals[11] = Math.atan2(vals[9], vals[8]);
       }
+      // path length
+      if (prevPt!=null) {
+      	pathlength += prevPt.distance(pt);
+      }
+      vals[23] = pathlength;
+      prevPt = pt;
       // append points to datasets
       for (int i = 0; i < count; i++) {
       	data.getDataset(i).append(t, vals[i]);
@@ -1072,21 +1472,10 @@ public class PointMass extends TTrack {
    * @return <code>true</code> if the step is visible
    */
   public boolean isStepVisible(Step step, TrackerPanel trackerPanel) {
-    if (!isVisible()) return false;
-    int n = step.getFrameNumber();
-    if (!trackerPanel.getPlayer().getVideoClip().includesFrame(n)) return false;
     if (isPosition(step) && !isPositionVisible(trackerPanel)) return false;
     if (isVelocity(step) && !isVVisible(trackerPanel)) return false;
     if (isAcceleration(step) && !isAVisible(trackerPanel)) return false;
-//   	AutoTracker autoTracker = trackerPanel.autoTracker;
-//    if (trackerPanel.getFrameNumber() == n
-//    		&& autoTracker.wizard.isVisible()
-//    		&& autoTracker.getTrack()==this
-//    		&& trackerPanel==autoTracker.trackerPanel
-//    		&& !autoTracker.isManuallyMarked(n)) {
-//    	return false;
-//    }
-    return trailVisible || trackerPanel.getFrameNumber() == n;
+    return super.isStepVisible(step, trackerPanel);
   }
 
   /**
@@ -1112,6 +1501,7 @@ public class PointMass extends TTrack {
       Step step = trackerPanel.getSelectedStep();
       if (step != null && isVelocity(step)) {
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
       }
     }
   }
@@ -1186,8 +1576,8 @@ public class PointMass extends TTrack {
       Step step = trackerPanel.getSelectedStep();
       if (step != null && step == getStep(step.getFrameNumber())) {
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
       }
-      trackerPanel.selectedSteps.clear();
     }
   }
 
@@ -1270,6 +1660,7 @@ public class PointMass extends TTrack {
       Step step = trackerPanel.getSelectedStep();
       if (step != null && isAcceleration(step)) {
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
       }
     }
   }
@@ -1331,12 +1722,13 @@ public class PointMass extends TTrack {
   }
 
   /**
-   * Sets the visibility of labels on the specified panel.
+   * Sets the visibility of labels.
    *
-   * @param panel the tracker panel
+   * @param panel a tracker panel
    * @param visible <code>true</code> to show all labels
    */
-  public void setLabelsVisible(TrackerPanel panel, boolean visible) {
+  public void setLabelsVisible(TrackerPanel panel, boolean visible) { 
+  	labelsVisible = visible;
     Step[] steps = this.getSteps();
     for (int i = 0; i < steps.length; i++) {
       PositionStep step = (PositionStep)steps[i];
@@ -1386,6 +1778,42 @@ public class PointMass extends TTrack {
       if (step != null) return step.isLabelVisible();
     }
     return false;
+  }
+
+  @Override
+  protected NumberField[] getNumberFieldsForStep(Step step) {
+  	NumberField[] fields;
+  	String var;
+  	boolean xMass = TToolBar.getToolbar(trackerPanel).xMassButton.isSelected();    	
+  	if (isVelocity(step)) {
+  		fields = xMass? vectorFields[2]: vectorFields[0];
+  		var = xMass? formatVariables[5]: formatVariables[3];
+  	}
+  	else if (isAcceleration(step)) {
+  		fields = xMass? vectorFields[3]: vectorFields[1];
+  		var = xMass? formatVariables[6]: formatVariables[4];
+  	}
+  	else {
+  		fields = super.getNumberFieldsForStep(step);
+  		var = formatVariables[2];
+  	}
+  	for (int i=0; i<3; i++) {
+      fields[i].setUnits(trackerPanel.getUnits(this, var));
+  	}
+  	return fields;
+  }
+  
+  @Override
+  protected void setAnglesInRadians(boolean radians) {
+  	super.setAnglesInRadians(radians);
+  	for (int i=0; i<4; i++) {
+  		vectorFields[i][3].setUnits(radians? null: Tracker.DEGREES);
+  		((DecimalField)vectorFields[i][3]).setDecimalPlaces(radians? 3: 1);
+  		vectorFields[i][3].setConversionFactor(radians? 1.0: 180/Math.PI);
+  		vectorFields[i][3].setToolTipText(radians?
+	    		TrackerRes.getString("TTrack.AngleField.Radians.Tooltip"): //$NON-NLS-1$
+	    		TrackerRes.getString("TTrack.AngleField.Degrees.Tooltip")); //$NON-NLS-1$
+  	}
   }
 
   /**
@@ -1497,7 +1925,10 @@ public class PointMass extends TTrack {
     double[] yDeriv1; // first deriv
     double[] xDeriv2; // second deriv
     double[] yDeriv2; // second deriv
-    if (algorithm==1) {
+//    FINITE_DIFF = 0;
+//  	protected static final int BOUNCE_DETECT = 1;
+//  	protected static final int FINITE_DIFF_VSPREAD2
+    if (algorithm==BOUNCE_DETECT) {
 	    params[0] = bounceDerivsSpill; // spill
 	    Object[] result = bounceDerivs.evaluate(derivData);    	
 	    xDeriv1 = (double[]) result[0];
@@ -1506,7 +1937,7 @@ public class PointMass extends TTrack {
 	    yDeriv2 = (double[]) result[3];
     }
     else {
-	    params[0] = vDerivSpill; // spill
+	    params[0] = algorithm==FINITE_DIFF_VSPILL2? 2: vDerivSpill; // spill
 	    Object[] result = vDeriv.evaluate(derivData);    	
 	    xDeriv1 = (double[]) result[0];
 	    yDeriv1 = (double[]) result[1];
@@ -1962,9 +2393,9 @@ public class PointMass extends TTrack {
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
     ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     list.add(massLabel);
-    if (this.getClass()==PointMass.class)
-    	massField.setEnabled(!isLocked());
+    massField.setEnabled(!isLocked());
     massField.setValue(getMass());
+    massField.setUnits(trackerPanel.getUnits(this, dataVariables[26]));
     list.add(massField);
     list.add(mSeparator);
     return list;
@@ -1983,90 +2414,93 @@ public class PointMass extends TTrack {
     ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
     if (step == null) return list;
     int n = step.getFrameNumber();
-    n = trackerPanel.getPlayer().getVideoClip().frameToStep(n);    
+    n = trackerPanel.getPlayer().getVideoClip().frameToStep(n);
+    NumberField[] fields = getNumberFieldsForStep(step);
     if (step instanceof VectorStep) {
     	boolean xMass = TToolBar.getToolbar(trackerPanel).xMassButton.isSelected();    	
       if (isVelocity(step)) {
         if (xMass) {
-        	xLabel.setText("px"); //$NON-NLS-1$
-        	yLabel.setText("py"); //$NON-NLS-1$
-        	magLabel.setText("p"); //$NON-NLS-1$
+        	xLabel.setText(dataVariables[18]); 
+        	yLabel.setText(dataVariables[19]); 
+        	magLabel.setText(dataVariables[20]); 
+        	angleLabel.setText(dataVariables[21]); 
         }
         else {
-        	xLabel.setText("vx"); //$NON-NLS-1$
-        	yLabel.setText("vy"); //$NON-NLS-1$
-        	magLabel.setText("v"); //$NON-NLS-1$
+        	xLabel.setText(dataVariables[5]); 
+        	yLabel.setText(dataVariables[6]); 
+        	magLabel.setText(dataVariables[7]); 
+        	angleLabel.setText(dataVariables[8]); 
         }
       }
       else if (isAcceleration(step)) {
         if (xMass) {
-        	xLabel.setText("Fx"); //$NON-NLS-1$
-        	yLabel.setText("Fy"); //$NON-NLS-1$
-        	magLabel.setText("F"); //$NON-NLS-1$
+        	xLabel.setText(fieldVariables[18]); 
+        	yLabel.setText(fieldVariables[19]); 
+        	magLabel.setText(fieldVariables[20]); 
+        	angleLabel.setText(fieldVariables[21]); 
         }
         else {
-        	xLabel.setText("ax"); //$NON-NLS-1$
-        	yLabel.setText("ay"); //$NON-NLS-1$
-        	magLabel.setText("a"); //$NON-NLS-1$
+        	xLabel.setText(dataVariables[9]); 
+        	yLabel.setText(dataVariables[10]); 
+        	magLabel.setText(dataVariables[11]); 
+        	angleLabel.setText(dataVariables[12]); 
         }
       }
-      xField.setEnabled(false);
-      yField.setEnabled(false);
-      magField.setEnabled(false);
-      angleField.setEnabled(false);
     }
     else {
-    	xLabel.setText("x"); //$NON-NLS-1$
-    	yLabel.setText("y"); //$NON-NLS-1$
-    	magLabel.setText("r"); //$NON-NLS-1$
-      xField.setEnabled(!isLocked());
-      yField.setEnabled(!isLocked());
-      magField.setEnabled(!isLocked());
-      angleField.setEnabled(!isLocked());
+    	xLabel.setText(dataVariables[1]); 
+    	yLabel.setText(dataVariables[2]); 
+    	magLabel.setText(dataVariables[3]); 
+    	angleLabel.setText(dataVariables[4]); 
+    	for (NumberField f: fields) {
+    		f.setEnabled(!isLocked());
+    	}
     }
 
     list.add(stepLabel);
     list.add(stepValueLabel);
     list.add(tSeparator);
     list.add(xLabel);
-    list.add(xField);
+    list.add(fields[0]);
     list.add(xSeparator);
     list.add(yLabel);
-    list.add(yField);
+    list.add(fields[1]);
     list.add(ySeparator);
     list.add(magLabel);
-    list.add(magField);
+    list.add(fields[2]);
     list.add(magSeparator);
     list.add(angleLabel);
-    list.add(angleField);
+    list.add(fields[3]);
     list.add(angleSeparator);
     return list;
   }
 
   @Override
-  public Map<String, NumberField[]> getNumberFields() {
-  	// refresh variableList?
-//	    	ArrayList<String> names = new ArrayList<String>();
-//		  	DatasetManager data = getData(trackerPanel);
-//		    // then add other variables
-//				for (int i = 0; i<data.getDatasets().size(); i++) {
-//					Dataset dataset = data.getDataset(i);
-//			    name = dataset.getYColumnName();
-//			    if (name.equals("step") || name.equals("frame")) { //$NON-NLS-1$ //$NON-NLS-2$
-//			    	continue;
-//			    }
-//			    names.add(name);
-//				}
-//	  		variableList = names.toArray(new String[names.size()]);
-  		
-  	numberFields.clear();
-  	// dataset column names set in refreshData() method
-  	numberFields.put(variableList[0], new NumberField[] {tField});
-  	numberFields.put(variableList[1], new NumberField[] {xField});
-  	numberFields.put(variableList[2], new NumberField[] {yField});
-  	numberFields.put(variableList[3], new NumberField[] {magField});
-  	numberFields.put(variableList[4], new NumberField[] {angleField});
-  	numberFields.put(variableList[25], new NumberField[] {massField});
+  public Map<String, NumberField[]> getNumberFields() {  		
+  	if (numberFields.isEmpty()) {
+	  	numberFields.put(fieldVariables[0], new NumberField[] {massField});
+	  	numberFields.put(fieldVariables[1], new NumberField[] {tField});
+	  	numberFields.put(fieldVariables[2], new NumberField[] {xField});
+	  	numberFields.put(fieldVariables[3], new NumberField[] {yField});
+	  	numberFields.put(fieldVariables[4], new NumberField[] {magField});
+	  	numberFields.put(fieldVariables[5], new NumberField[] {angleField});
+	  	numberFields.put(fieldVariables[6], new NumberField[] {vectorFields[0][0]});
+	  	numberFields.put(fieldVariables[7], new NumberField[] {vectorFields[0][1]});
+	  	numberFields.put(fieldVariables[8], new NumberField[] {vectorFields[0][2]});
+	  	numberFields.put(fieldVariables[9], new NumberField[] {vectorFields[0][3]});
+	  	numberFields.put(fieldVariables[10], new NumberField[] {vectorFields[1][0]});
+	  	numberFields.put(fieldVariables[11], new NumberField[] {vectorFields[1][1]});
+	  	numberFields.put(fieldVariables[12], new NumberField[] {vectorFields[1][2]});
+	  	numberFields.put(fieldVariables[13], new NumberField[] {vectorFields[1][3]});
+	  	numberFields.put(fieldVariables[14], new NumberField[] {vectorFields[2][0]});
+	  	numberFields.put(fieldVariables[15], new NumberField[] {vectorFields[2][1]});
+	  	numberFields.put(fieldVariables[16], new NumberField[] {vectorFields[2][2]});
+	  	numberFields.put(fieldVariables[17], new NumberField[] {vectorFields[2][3]});
+	  	numberFields.put(fieldVariables[18], new NumberField[] {vectorFields[3][0]}); 
+	  	numberFields.put(fieldVariables[19], new NumberField[] {vectorFields[3][1]}); 
+	  	numberFields.put(fieldVariables[20], new NumberField[] {vectorFields[3][2]}); 
+	  	numberFields.put(fieldVariables[21], new NumberField[] {vectorFields[3][3]}); 
+  	}
   	return numberFields;
   }
   
@@ -2118,6 +2552,14 @@ public class PointMass extends TTrack {
 	      }
 	      control.setValue("framedata", data); //$NON-NLS-1$
       }
+      // save keyFrames
+      int[] keys = new int[p.keyFrames.size()];
+      int i = 0;
+      for (Integer n: p.keyFrames) {
+      	keys[i] = n;
+      	i++;
+      }
+      control.setValue("keyFrames", keys); //$NON-NLS-1$
     }
 
     public Object createObject(XMLControl control){
@@ -2178,6 +2620,13 @@ public class PointMass extends TTrack {
         p.updateDerivatives();
     	  p.support.firePropertyChange("data", null, null); //$NON-NLS-1$
       }
+      int[] keys = (int[])control.getObject("keyFrames"); //$NON-NLS-1$
+      if (keys!=null) {
+      	p.keyFrames.clear();
+      	for (int i: keys) {
+      		p.keyFrames.add(i);
+      	}
+      }
       p.setLocked(locked);
       return obj;
     }
@@ -2191,12 +2640,14 @@ public class PointMass extends TTrack {
   protected void createGUI() {
     // create toolbar components
     // mass field
-    massLabel = new JLabel("m"); //$NON-NLS-1$
+    massLabel = new JLabel(dataVariables[26]);
     massLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
-    massField = new NumberField(5);
+    massField = new TrackNumberField();
     massField.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
+        String rawText = massField.getText();
 	      setMass(massField.getValue());
+        checkMassUnits(rawText);
         massField.setValue(getMass());
         massField.requestFocusInWindow();
       }
@@ -2205,8 +2656,12 @@ public class PointMass extends TTrack {
     // add focus listener
     massField.addFocusListener(new FocusAdapter() {
       public void focusLost(FocusEvent e) {
-        setMass(massField.getValue());
-        massField.setValue(getMass());
+      	if (massField.getBackground().equals(Color.yellow)) {
+	        String rawText = massField.getText();
+	        setMass(massField.getValue());
+	        checkMassUnits(rawText);
+	        massField.setValue(getMass());
+      	}
       }
     });
     massField.setMinValue(MINIMUM_MASS);
@@ -2216,6 +2671,20 @@ public class PointMass extends TTrack {
         setXY();
       }
     };
+    vectorFields = new NumberField[4][4];
+    for (int i=0; i<4; i++) {
+    	for (int j=0; j<3; j++) {
+    		vectorFields[i][j] = new TrackNumberField();
+    		vectorFields[i][j].setEditable(false);
+    		vectorFields[i][j].setBorder(fieldBorder);
+    		vectorFields[i][j].addMouseListener(formatMouseListener);
+    	}
+    	vectorFields[i][3] = new TrackDecimalField(1);
+    	vectorFields[i][3].addMouseListener(formatAngleMouseListener);
+    	vectorFields[i][3].setEditable(false);
+    	vectorFields[i][3].setBorder(fieldBorder);
+    }
+
     xSpinner.addChangeListener(xyListener);
     // xy action
     Action xyAction = new AbstractAction() {
@@ -2457,6 +2926,35 @@ public class PointMass extends TTrack {
       }
     }
   }
+  
+  private void checkMassUnits(String rawText) {
+    String[] split = rawText.split(" "); //$NON-NLS-1$
+    if (split.length>1) {
+    	// find first character not ""
+    	for (int i=1; i< split.length; i++) {
+    		if (!"".equals(split[i])) { //$NON-NLS-1$
+      		if (split[i].equals(trackerPanel.getMassUnit())) {
+	          trackerPanel.setUnitsVisible(true);
+      		}
+      		else {
+      			int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), 
+      					TrackerRes.getString("PointMass.Dialog.ChangeMassUnit.Message") //$NON-NLS-1$
+      					+" \""+split[i]+"\" ?",  //$NON-NLS-1$ //$NON-NLS-2$
+      					TrackerRes.getString("PointMass.Dialog.ChangeMassUnit.Title"),  //$NON-NLS-1$
+      					JOptionPane.YES_NO_OPTION);
+      			if (response==JOptionPane.YES_OPTION) {
+	          	trackerPanel.setMassUnit(split[i]);
+	          	trackerPanel.setUnitsVisible(true);
+      			}
+      		}
+        	break;
+    		}
+    	}
+    }
+
+  }
+  
+
 
   /**
    * Snaps vectors to the origin.

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -287,7 +287,6 @@ public class AttachmentDialog extends JDialog
 			public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
       	CircleFitter fitter = (CircleFitter)TTrack.getTrack(trackID);
-;
       	fitter.attachToSteps = !tracksButton.isSelected();
 	    	fitter.refreshAttachments();
 				refreshGUI();				
@@ -309,7 +308,6 @@ public class AttachmentDialog extends JDialog
 			public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
       	CircleFitter fitter = (CircleFitter)TTrack.getTrack(trackID);
-;
       	fitter.isRelativeFrameNumbers = relativeCheckbox.isSelected();
       	refreshFieldsAndButtons(fitter);
 	    	fitter.refreshAttachments();
@@ -321,7 +319,6 @@ public class AttachmentDialog extends JDialog
     final Action frameRangeAction = new AbstractAction() {
 			public void actionPerformed(ActionEvent e) {
       	CircleFitter fitter = (CircleFitter)TTrack.getTrack(trackID);
-;
     		fitter.setAttachmentStartFrame(startField.getIntValue());   		
     		fitter.setAttachmentFrameCount(countField.getIntValue());
     		refreshFieldsAndButtons(fitter);
@@ -444,6 +441,16 @@ public class AttachmentDialog extends JDialog
       p.removePropertyChangeListener("name", this); //$NON-NLS-1$
       p.removePropertyChangeListener("color", this); //$NON-NLS-1$
       p.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+    }
+		TTrack measuringTool = TTrack.getTrack(trackID);
+		if (measuringTool!=null && measuringTool instanceof TapeMeasure) {
+			// can't attach calibration stick to models--creates circular dependency
+			TapeMeasure tape = (TapeMeasure)measuringTool;
+			if (tape.isStickMode()) {
+				masses.removeAll(trackerPanel.getDrawables(ParticleModel.class));
+			}
+		}
+    for (TTrack p: masses) {
       p.addPropertyChangeListener("name", this); //$NON-NLS-1$
       p.addPropertyChangeListener("color", this); //$NON-NLS-1$
       p.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
@@ -471,7 +478,6 @@ public class AttachmentDialog extends JDialog
       p.addPropertyChangeListener("footprint", this); //$NON-NLS-1$    	
     }
     measuringToolDropdown.setModel(new DefaultComboBoxModel(tools));
-		TTrack measuringTool = TTrack.getTrack(trackID);
     if (!tools.isEmpty() && measuringTool!=null) {
     	measuringToolDropdown.setSelectedItem(measuringTool);
     }
@@ -515,7 +521,7 @@ public class AttachmentDialog extends JDialog
   }
   
   /**
-   * Updates this inspector to show the system's current attachments.
+   * Updates this dialog to show the system's current attachments.
    */
   protected void refreshGUI() {
     setTitle(TrackerRes.getString("AttachmentInspector.Title")); //$NON-NLS-1$

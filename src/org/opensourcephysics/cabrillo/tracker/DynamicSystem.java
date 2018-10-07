@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -554,6 +554,7 @@ public class DynamicSystem extends DynamicParticlePolar {
    * @param trackerPanel the tracker panel
    */
   protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
+    if (refreshDataLater || trackerPanel == null || data == null) return;
     int count = 25; // number of datasets
     if (data.getDataset(0).getColumnName(0).equals("x")) { //$NON-NLS-1$
 	    // assign column names to the datasets
@@ -678,7 +679,7 @@ public class DynamicSystem extends DynamicParticlePolar {
       for (int i = 0; i < count; i++) {
       	data.getDataset(i).append(t, vals[i]);
       }
-      dataFrames.add(new Integer(n));
+      dataFrames.add(n);
     }
     // store the mass in the data properties
     Double m = getMass();

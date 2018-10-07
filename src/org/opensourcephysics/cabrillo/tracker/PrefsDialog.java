@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,10 +42,13 @@ import javax.swing.filechooser.FileFilter;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.IntegerField;
 import org.opensourcephysics.media.core.VideoIO;
-import org.opensourcephysics.tools.ExtensionsManager;
+import org.opensourcephysics.tools.DiagnosticsForXuggle;
+import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -80,45 +83,47 @@ public class PrefsDialog extends JDialog {
   protected TitledBorder checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
   	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
   	videoTypeSubPanelBorder, videoSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
-  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, resetToStep0SubPanelBorder;
+  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, 
+  	resetToStep0SubPanelBorder, decimalSeparatorBorder, mouseWheelSubPanelBorder, calibrationStickSubPanelBorder,
+  	dataGapSubPanelBorder, trailLengthSubPanelBorder, pointmassFootprintSubPanelBorder;
 
   protected IntegerField memoryField;
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
   		versionLabel, runLabel;
-  protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, 
-  		ffmpegErrorCheckbox, variableDurationCheckBox, resetToStep0Checkbox;
+  protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, showGapsCheckbox,
+  		ffmpegErrorCheckbox, variableDurationCheckBox, resetToStep0Checkbox, autofillCheckbox;
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
-  protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, 
-  		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown;
+  protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, trailLengthDropdown,
+  		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown, footprintDropdown;
   protected JRadioButton vm32Button, vm64Button;
-  protected JRadioButton ffmpegButton, qtButton, noEngineButton;
+  protected JRadioButton ffmpegButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
-  protected JRadioButton videoFastButton, videoSlowButton;
+  protected JRadioButton scrubButton, zoomButton;
+  protected JRadioButton markStickEndsButton, centerStickButton;
+  protected JRadioButton defaultDecimalButton, periodDecimalButton, commaDecimalButton;
   protected Tracker.Version[] trackerVersions;
-  protected String recent32bitVM, recent64bitVM;
-  protected String recentEngine;
-  private boolean refreshing = false;
-  protected boolean relaunching = false;
+  protected boolean relaunching, refreshing;
   
   // previous values
   protected Set<String> prevEnabled = new TreeSet<String>();
-  protected int prevMemory, prevRecentCount, prevUpgradeInterval, prevFontLevel, prevFontLevelPlus;
-  protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine;
-  protected boolean prevHints, prevRadians, prevFastVideo, 
-  		prevWarnNoVideoEngine, prevWarnFFMPegError,
-  		prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed;
+  protected int prevMemory, prevRecentCount, prevUpgradeInterval, prevFontLevel, prevFontLevelPlus, prevTrailLengthIndex;
+  protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine, prevDecimalSeparator,
+  		prevPointmassFootprint;
+  protected boolean prevHints, prevRadians, prevFastFFMPeg, prevCenterCalibrationStick, prevWarnVariableDuration,
+  		prevWarnNoVideoEngine, prevWarnFFMPegError, prevWarnFFMPegVersion, prevShowGaps, prevMarkAtCurrentFrame,
+  		prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed, prevZoomMouseWheel, prevAutofill;
   protected File prevCache;
   protected String[] prevExecutables;
+  protected Level prevLogLevel;
 
 
 	static {
 		trackerJarFilter = new org.opensourcephysics.cabrillo.tracker.deploy.TrackerJarFilter();
   	try {
-	  	userHome = System.getProperty("user.home"); //$NON-NLS-1$
+	  	userHome = OSPRuntime.getUserHome();
       javaHome = System.getProperty("java.home"); //$NON-NLS-1$
   		URL url = TrackerStarter.class.getProtectionDomain().getCodeSource().getLocation();
-//  		File jarFile = new File(url.getPath());
   		File jarFile = new File(url.toURI());
   		codeBaseDir = jarFile.getParentFile();
 		}  
@@ -153,14 +158,16 @@ public class PrefsDialog extends JDialog {
   
   public void setFontLevel(int level) {
 		FontSizer.setFonts(this, level);
-		Object[] borders = new Object[] {
+		TitledBorder[] borders = new TitledBorder[] {
 		  checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
 	  	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
 	  	videoTypeSubPanelBorder, videoSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
-	  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder};
+	  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, 
+	  	resetToStep0SubPanelBorder, decimalSeparatorBorder, mouseWheelSubPanelBorder, calibrationStickSubPanelBorder,
+	  	dataGapSubPanelBorder, trailLengthSubPanelBorder, pointmassFootprintSubPanelBorder};
 		FontSizer.setFonts(borders, level); 
-		JComboBox[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, 
-				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown};
+		JComboBox[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, fontSizeDropdown, 
+				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown, footprintDropdown};
 		for (JComboBox next: dropdowns) {
 			int n = next.getSelectedIndex();
 			Object[] items = new Object[next.getItemCount()];
@@ -272,6 +279,7 @@ public class PrefsDialog extends JDialog {
       checkPanel.add(checkbox);
     }
     JScrollPane scroller = new JScrollPane(checkPanel);
+    scroller.getVerticalScrollBar().setUnitIncrement(16);
     scroller.setPreferredSize(new Dimension(450, 200));
     configPanel.add(scroller, BorderLayout.CENTER);
     // apply button
@@ -325,10 +333,14 @@ public class PrefsDialog extends JDialog {
     tabbedPane.addTab(null, displayPanel);
     Box box = Box.createVerticalBox();
     displayPanel.add(box, BorderLayout.CENTER);
-    
+
+    // look&feel and language subpanels side by side
+    Box horz = Box.createHorizontalBox();
+    box.add(horz);
+
     // look and feel subpanel
     JPanel lfSubPanel = new JPanel();
-    box.add(lfSubPanel);
+    horz.add(lfSubPanel);
     lfSubPanel.setBackground(color);
 
     lfSubPanelBorder = BorderFactory.createTitledBorder(
@@ -361,42 +373,124 @@ public class PrefsDialog extends JDialog {
 
     // language subpanel
     JPanel langSubPanel = new JPanel();
-    box.add(langSubPanel);
+    horz.add(langSubPanel);
     langSubPanel.setBackground(color);
     langSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Language.BorderTitle")); //$NON-NLS-1$
     langSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, langSubPanelBorder));
     languageDropdown = new JComboBox();
-    Object selected = TrackerRes.getString("PrefsDialog.Language.Default"); //$NON-NLS-1$
-  	languageDropdown.addItem(selected);
+  	languageDropdown.addItem(TrackerRes.getString("PrefsDialog.Language.Default")); //$NON-NLS-1$
+    int index = 0, selectedIndex = 0;
     for (Locale next: Tracker.locales) {
+    	index++;
     	String s = OSPRuntime.getDisplayLanguage(next);
+    	// special handling for portuguese BR and PT
+    	if (next.getLanguage().equals("pt")) { //$NON-NLS-1$
+    		s+=" ("+next.getCountry()+")"; //$NON-NLS-1$ //$NON-NLS-2$
+    	}
     	languageDropdown.addItem(s);
     	if (next.equals(Locale.getDefault()) 
     			&& next.toString().equals(Tracker.preferredLocale)) {
-    		selected = s;
+    		selectedIndex = index;
     	}
     }
-    languageDropdown.setSelectedItem(selected);
+    languageDropdown.setSelectedIndex(selectedIndex);
     languageDropdown.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
-    		String s = languageDropdown.getSelectedItem().toString();
-    		if (s.equals(TrackerRes.getString("PrefsDialog.Language.Default"))) //$NON-NLS-1$
+    		int index = languageDropdown.getSelectedIndex();
+    		if (index==0)
       		Tracker.setPreferredLocale(null);        
-    		else for (Locale next: Tracker.locales) {
-        	if (s.equals(OSPRuntime.getDisplayLanguage(next))) {
-//        		TrackerRes.setLocale(next);
-        		Tracker.setPreferredLocale(next.toString());
-        		break;
-        	}
+    		else {
+        	Tracker.setPreferredLocale(Tracker.locales[index-1].toString());
         }
     	}
     });
-    langSubPanel.add(languageDropdown);    
+    langSubPanel.add(languageDropdown);
+    
+    // angle units and hints subpanels side by side
+    horz = Box.createHorizontalBox();
+    box.add(horz);
+    
+    // angle units subpanel
+    JPanel unitsSubPanel = new JPanel();
+    horz.add(unitsSubPanel);
+    unitsSubPanel.setBackground(color);
+    unitsSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("TMenuBar.Menu.AngleUnits")); //$NON-NLS-1$
+    unitsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, unitsSubPanelBorder));
 
+    ButtonGroup buttonGroup = new ButtonGroup();
+    radiansButton = new JRadioButton();
+    radiansButton.setOpaque(false);
+    radiansButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    radiansButton.setSelected(Tracker.isRadians);
+    buttonGroup.add(radiansButton);
+    degreesButton = new JRadioButton();
+    degreesButton.setOpaque(false);
+    degreesButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    degreesButton.setSelected(!Tracker.isRadians);
+    buttonGroup.add(degreesButton);
+    unitsSubPanel.add(radiansButton);
+    unitsSubPanel.add(degreesButton);
+    
+    // hints subpanel
+    hintsCheckbox = new JCheckBox();
+    hintsCheckbox.setOpaque(false);
+    hintsCheckbox.setSelected(Tracker.showHintsByDefault);
+    hintsCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	Tracker.showHintsByDefault = hintsCheckbox.isSelected();
+      }
+    });
+    JPanel hintsSubPanel = new JPanel();
+    horz.add(hintsSubPanel);
+    hintsSubPanel.setBackground(color);
+    hintsSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.Hints.BorderTitle")); //$NON-NLS-1$
+    hintsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, hintsSubPanelBorder));
+    hintsSubPanel.add(hintsCheckbox);
+    
+    // decimal separator and font level subpanels side by side
+    horz = Box.createHorizontalBox();
+    box.add(horz);
+
+    // decimal separator subpanel
+    JPanel decimalSubPanel = new JPanel();
+    horz.add(decimalSubPanel);
+    decimalSubPanel.setBackground(color);
+    decimalSeparatorBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
+    decimalSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, decimalSeparatorBorder));
+    Action decimalSeparatorAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Tracker.preferredDecimalSeparator = periodDecimalButton.isSelected()? ".": //$NON-NLS-1$
+					commaDecimalButton.isSelected()? ",": null; //$NON-NLS-1$
+			}
+    };
+    defaultDecimalButton = new JRadioButton();
+    defaultDecimalButton.setOpaque(false);
+    defaultDecimalButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    defaultDecimalButton.addActionListener(decimalSeparatorAction);    
+    periodDecimalButton = new JRadioButton();
+    periodDecimalButton.setOpaque(false);
+    periodDecimalButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    periodDecimalButton.addActionListener(decimalSeparatorAction);
+    commaDecimalButton = new JRadioButton();
+    commaDecimalButton.setOpaque(false);
+    commaDecimalButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    commaDecimalButton.addActionListener(decimalSeparatorAction);
+    ButtonGroup group = new ButtonGroup();
+    group.add(defaultDecimalButton);
+    group.add(periodDecimalButton);
+    group.add(commaDecimalButton);    
+    decimalSubPanel.add(defaultDecimalButton);
+    decimalSubPanel.add(periodDecimalButton);
+    decimalSubPanel.add(commaDecimalButton);
+    
     // font level subpanel
     JPanel fontSubPanel = new JPanel();
-    box.add(fontSubPanel);
+    horz.add(fontSubPanel);
     fontSubPanel.setBackground(color);
     fontSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
@@ -422,45 +516,68 @@ public class PrefsDialog extends JDialog {
     });
     fontSubPanel.add(fontSizeDropdown);
 
-    // hints subpanel
-    hintsCheckbox = new JCheckBox();
-    hintsCheckbox.setOpaque(false);
-    hintsCheckbox.setSelected(Tracker.showHintsByDefault);
-    hintsCheckbox.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	Tracker.showHintsByDefault = hintsCheckbox.isSelected();
-      }
-    });
-    JPanel hintsSubPanel = new JPanel();
-    box.add(hintsSubPanel);
-    hintsSubPanel.setBackground(color);
-    hintsSubPanelBorder = BorderFactory.createTitledBorder(
-    		TrackerRes.getString("PrefsDialog.Hints.BorderTitle")); //$NON-NLS-1$
-    hintsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, hintsSubPanelBorder));
-    hintsSubPanel.add(hintsCheckbox);
-    
-    // angle units subpanel
-    JPanel unitsSubPanel = new JPanel();
-    box.add(unitsSubPanel);
-    unitsSubPanel.setBackground(color);
-    unitsSubPanelBorder = BorderFactory.createTitledBorder(
-    		TrackerRes.getString("TMenuBar.Menu.AngleUnits")); //$NON-NLS-1$
-    unitsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, unitsSubPanelBorder));
+    // footprint and trail length subpanels side by side
+    horz = Box.createHorizontalBox();
+    box.add(horz);
 
-    ButtonGroup buttonGroup = new ButtonGroup();
-    radiansButton = new JRadioButton();
-    radiansButton.setOpaque(false);
-    radiansButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
-    radiansButton.setSelected(Tracker.isRadians);
-    buttonGroup.add(radiansButton);
-    degreesButton = new JRadioButton();
-    degreesButton.setOpaque(false);
-    degreesButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
-    degreesButton.setSelected(!Tracker.isRadians);
-    buttonGroup.add(degreesButton);
-    unitsSubPanel.add(radiansButton);
-    unitsSubPanel.add(degreesButton);
-    
+    // pointmass footprint subpanel
+    JPanel footprintSubPanel = new JPanel();
+    horz.add(footprintSubPanel);
+    footprintSubPanel.setBackground(color);
+
+    pointmassFootprintSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.PointMassFootprint.BorderTitle")); //$NON-NLS-1$
+    footprintSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, pointmassFootprintSubPanelBorder));
+    footprintDropdown = new JComboBox();
+    footprintDropdown.setRenderer(new FootprintRenderer());
+		Footprint[] footprints = new Footprint[PointMass.footprintNames.length];
+		for (int i=0; i<footprints.length; i++) {
+			String name = PointMass.footprintNames[i];
+			if (name.equals("CircleFootprint.Circle")) { //$NON-NLS-1$
+				footprints[i] = CircleFootprint.getFootprint(name);
+			}
+			else {
+				footprints[i] = PointShapeFootprint.getFootprint(name);
+			}
+		}
+    for (int i=0; i<footprints.length; i++) {
+	    footprintDropdown.addItem(footprints[i]);
+    }
+    footprintSubPanel.add(footprintDropdown); 
+    final ActionListener al = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				footprintDropdown.repaint();				
+			}    	
+    };
+    footprintDropdown.setAction(new AbstractAction() {
+    	public void actionPerformed(ActionEvent e) {
+    		if (refreshing) return;
+    		Footprint footprint = (Footprint)footprintDropdown.getSelectedItem();
+    		if (footprint instanceof CircleFootprint) {
+        	CircleFootprint cfp = (CircleFootprint)footprint;
+        	cfp.showProperties(trackerPanel.getTFrame(), al);       
+	    		Tracker.preferredPointMassFootprint = footprint.getName()+"#"+cfp.getProperties(); //$NON-NLS-1$
+    		}
+    		else Tracker.preferredPointMassFootprint = footprint.getName();
+     	}
+    });
+
+    // trailLength subpanel
+    JPanel trailLengthSubPanel = new JPanel();
+    horz.add(trailLengthSubPanel);
+    trailLengthSubPanel.setBackground(color);
+
+    trailLengthSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.Trails.BorderTitle")); //$NON-NLS-1$
+    trailLengthSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, trailLengthSubPanelBorder));
+    trailLengthDropdown = new JComboBox();
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.FullTrail")); //$NON-NLS-1$
+    trailLengthSubPanel.add(trailLengthDropdown); 
+   
     // runtime panel
     runtimePanel = new JPanel(new BorderLayout());
     tabbedPane.addTab(null, runtimePanel);
@@ -523,7 +640,6 @@ public class PrefsDialog extends JDialog {
     jreSubPanel.add(jreSouthPanel, BorderLayout.SOUTH);
 
     int vmBitness = OSPRuntime.getVMBitness();
-		Tracker.use32BitMode = vmBitness==32;
     vm32Button = new JRadioButton();
     vm32Button.setOpaque(false);
     vm32Button.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
@@ -531,29 +647,8 @@ public class PrefsDialog extends JDialog {
     vm32Button.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
     		if (!vm32Button.isSelected()) return;
-	    	if (OSPRuntime.isMac()) {
-	    		Tracker.use32BitMode = true;
+	    	if (OSPRuntime.isWindows()) {	    		
 	    		refreshJREDropdown(32);
-	    		// must run QT engine in 32-bit VM
-	    		if (qtButton.isSelected()) return;
-	    		// check with user
-	      	int selected = JOptionPane.showConfirmDialog(frame,
-          		TrackerRes.getString("PrefsDialog.Dialog.SwitchTo32.Message"),    //$NON-NLS-1$
-              TrackerRes.getString("PrefsDialog.Dialog.SwitchEngine.Title"),    //$NON-NLS-1$
-              JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
-          if(selected==JOptionPane.OK_OPTION) {
-		    		qtButton.setSelected(true);
-          }
-          else {
-  	    		Tracker.use32BitMode = false;
-  	    		vm64Button.setSelected(true);
-          }
-	    	}
-	    	else if (OSPRuntime.isWindows()) {	    		
-	    		refreshJREDropdown(32);
-	    		if (noEngineButton.isSelected()) {
-	    			Tracker.engineKnown = false;
-	    		}
 	    	}
     	}
     });
@@ -566,175 +661,35 @@ public class PrefsDialog extends JDialog {
     vm64Button.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
     		if (!vm64Button.isSelected()) return;
-
 	    	if (OSPRuntime.isMac()) {
-	    		Tracker.use32BitMode = false;
 	    		refreshJREDropdown(64);	    			
-	    		if (ffmpegButton.isSelected() || noEngineButton.isSelected()) return;
-	    		// if no ffmpeg engine, show warning
-	    		if (!ffmpegButton.isSelected()) {
-		      	int selected = JOptionPane.showConfirmDialog(frame,
-	          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message1")+"\n"+  //$NON-NLS-1$ //$NON-NLS-2$
-	          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message2")+"\n\n"+  //$NON-NLS-1$ //$NON-NLS-2$
-	              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Question"),    //$NON-NLS-1$
-	              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Title"),    //$NON-NLS-1$
-	              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null);
-	          if(selected==JOptionPane.YES_OPTION) {
-	          	noEngineButton.setSelected(true);
-	          }
-	          else {
-	          	vm32Button.setSelected(true); // revert to 32-bit VM	          	
-	          }
-	    			return;
-	    		}
-	    		// set engine to FFMPeg and inform user
-	    		int selected = JOptionPane.showConfirmDialog(frame,
-          		TrackerRes.getString("PrefsDialog.Dialog.SwitchTo64.Message"),    //$NON-NLS-1$
-              TrackerRes.getString("PrefsDialog.Dialog.SwitchEngine.Title"),    //$NON-NLS-1$
-              JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
-          if(selected==JOptionPane.OK_OPTION) {
-          	ffmpegButton.setSelected(true);
-          }
-          else {
-  	    		Tracker.use32BitMode = true;
-  	    		vm32Button.setSelected(true);
-          }
 	    	}
 	    	else if (OSPRuntime.isWindows()) {	    		
 	    		refreshJREDropdown(64);	    			
-	    		if (ffmpegButton.isSelected()) return;
-	    		if (noEngineButton.isSelected()) return;
-	    		// if no ffmpeg engine, show warning
-	    		if (!ffmpegButton.isSelected()) {
-	    			// inform that no engine available in 64-bit VM
-		      	int selected = JOptionPane.showConfirmDialog(frame,
-	          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message1")+"\n"+  //$NON-NLS-1$ //$NON-NLS-2$
-	          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message2")+"\n\n"+  //$NON-NLS-1$ //$NON-NLS-2$
-	              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Question"),    //$NON-NLS-1$
-	              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Title"),    //$NON-NLS-1$
-	              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null);
-	          if (selected==JOptionPane.YES_OPTION) {
-	          	noEngineButton.setSelected(true);
-	          }
-	          else {
-	          	vm32Button.setSelected(true); // revert to 32-bit VM	          	
-	          }
-	    			return;
-	    		}
-	    		// set engine to FFMPeg and inform user
-	    		ffmpegButton.setSelected(true);
-	      	JOptionPane.showMessageDialog(frame,
-          		TrackerRes.getString("PrefsDialog.Dialog.SwitchToFFMPeg.Message"),    //$NON-NLS-1$
-              TrackerRes.getString("PrefsDialog.Dialog.SwitchToFFMPeg.Title"),    //$NON-NLS-1$
-              JOptionPane.INFORMATION_MESSAGE);
+    			// inform that no engine available in 64-bit VM
+	      	int selected = JOptionPane.showConfirmDialog(frame,
+          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message1")+"\n"+  //$NON-NLS-1$ //$NON-NLS-2$
+          		TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message2")+"\n\n"+  //$NON-NLS-1$ //$NON-NLS-2$
+              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Question"),    //$NON-NLS-1$
+              TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Title"),    //$NON-NLS-1$
+              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null);
+          if (selected!=JOptionPane.YES_OPTION) {
+          	vm32Button.setSelected(true); // revert to 32-bit VM	          	
+          }
+    			return;
 	    	}
     	}
     });
     jreNorthPanel.add(vm64Button);
     
     jreDropdown = new JComboBox();
-    String pref = Tracker.preferredJRE;
-    if (pref==null && vm64Button.isSelected()) {
-    	pref = Tracker.preferredJRE64;
-    }
-    if (pref==null && vm32Button.isSelected()) {
-    	pref = Tracker.preferredJRE32;
-    }    
-    if (pref==null) {
-    	pref = System.getProperty("java.home");              						//$NON-NLS-1$
-    }
-    jreDropdown.addItem(pref);
-    jreDropdown.addItemListener(new ItemListener() {
-    	public void itemStateChanged(ItemEvent e) {
-    		if (refreshing) return;
-    		Object selected = jreDropdown.getSelectedItem();
-    		if (selected==null) return;
-    		if (vm64Button.isSelected()) {
-    			recent64bitVM = selected.toString();
-    		}
-    		else {
-    			recent32bitVM = selected.toString();    			
-    		}
-    	}
-    });
     jreSouthPanel.add(jreDropdown); 
     refreshJREDropdown(vmBitness);
 
-//    jreField = new JTextField(24);
-//    jreSouthPanel.add(jreField);
-//    final Action setJREAction = new AbstractAction() {
-//      public void actionPerformed(ActionEvent e) {
-//      	String jre = jreField.getText();
-//      	File javaFile = OSPRuntime.getJavaFile(jre);
-//      	String path = OSPRuntime.getJREPath(javaFile);
-//      	if (path==null) {
-//      		if ("".equals(jre)) { //$NON-NLS-1$
-//      			Tracker.preferredJRE = null;
-//      		}
-//      		else {
-//      			Toolkit.getDefaultToolkit().beep();
-//      		}
-//      	}
-//      	else if ("".equals(path)) { //$NON-NLS-1$
-//    			Tracker.preferredJRE = null;
-//      	}
-//      	else if (!path.equals(Tracker.preferredJRE)) {
-//    			Tracker.preferredJRE = path;
-//      	}
-//      	refreshTextFields();
-//      	updateDisplay();
-//      }
-//    };
-//    jreField.addKeyListener(new KeyAdapter() {
-//      public void keyPressed(KeyEvent e) {
-//      	jreField.setBackground(Color.yellow);
-//      }
-//    });
-//    jreField.addFocusListener(new FocusAdapter() {
-//      public void focusLost(FocusEvent e) {
-//      	if (jreField.getBackground()==Color.yellow)
-//      		setJREAction.actionPerformed(null);
-//      }
-//    });
-//    jreField.addActionListener(setJREAction);
-//    
-//    setJREButton = new TButton(openFileIcon);
-//    setJREButton.addActionListener(new ActionListener() {
-//      public void actionPerformed(ActionEvent e) {
-//        int result = JFileChooser.CANCEL_OPTION;
-//        String path = Tracker.preferredJRE;
-//        if (path==null || "".equals(path)) //$NON-NLS-1$
-//        	path = System.getProperty("java.home"); //$NON-NLS-1$
-//      	File jreDir = new File(path);
-//      	if (OSPRuntime.isMac()) {
-//      		// java home is ".../Contents/Home/" so move up 2 more levels
-//      		jreDir = jreDir.getParentFile().getParentFile();
-//      	}
-//      	if (jreDir.getName().equals("jre") && //$NON-NLS-1$
-//      			(jreDir.getParentFile().getName().indexOf("jdk")>-1 //$NON-NLS-1$
-//      			|| jreDir.getParentFile().getName().indexOf("sun")>-1)) { //$NON-NLS-1$
-//      		jreDir = jreDir.getParentFile();
-//      	}
-//        JFileChooser chooser = getFileChooser(jreDir.getParentFile(), true);
-//        chooser.setDialogTitle(TrackerRes.getString("PrefsDialog.FileChooser.Title.JRE")); //$NON-NLS-1$
-//    	  chooser.setSelectedFile(jreDir);
-//        result = chooser.showDialog(PrefsDialog.this, 
-//    	  		TrackerRes.getString("PrefsDialog.FileChooser.Title.JRE")); //$NON-NLS-1$
-//        if(result==JFileChooser.APPROVE_OPTION) {
-//          File file = chooser.getSelectedFile();
-//      		if (file!=null) {
-//      			jreField.setText(file.getPath());
-//      			setJREAction.actionPerformed(null);
-//      		}
-//        }
-//      }
-//    });
+    // create button border
     Border buttonBorder = BorderFactory.createEtchedBorder();
     Border space = BorderFactory.createEmptyBorder(2,2,2,2);
     buttonBorder = BorderFactory.createCompoundBorder(buttonBorder, space);
-//    setJREButton.setBorder(buttonBorder);
-//    setJREButton.setContentAreaFilled(false);
-//    jreSouthPanel.add(setJREButton);
     
     // memory subpanel
     JPanel memorySubPanel = new JPanel();
@@ -902,14 +857,15 @@ public class PrefsDialog extends JDialog {
     box = Box.createVerticalBox();
     videoPanel.add(box, BorderLayout.CENTER);
     
+    boolean xuggleInstalled = DiagnosticsForXuggle.getXuggleJar()!=null;
+
     // videoType subpanel
     JPanel videoTypeSubPanel = new JPanel();
-    box.add(videoTypeSubPanel);
+//    box.add(videoTypeSubPanel);
     videoTypeSubPanel.setBackground(color);
     videoTypeSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
     videoTypeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoTypeSubPanelBorder));    
-    boolean ffmpegInstalled = VideoIO.isEngineInstalled(VideoIO.ENGINE_FFMPEG);
 
     ffmpegButton = new JRadioButton();
     ffmpegButton.setOpaque(false);
@@ -920,29 +876,9 @@ public class PrefsDialog extends JDialog {
         videoSlowButton.setEnabled(ffmpegButton.isSelected());
         ffmpegErrorCheckbox.setEnabled(ffmpegButton.isSelected());
      		if (!ffmpegButton.isSelected()) return;
-  			Tracker.engineKnown = true;
-  			// OSX: if 32-bit, set preferred VM to 64-bit and inform user
-    		if (OSPRuntime.isMac() && vm32Button.isSelected()) {
-	      	int selected = JOptionPane.showConfirmDialog(frame,
-          		TrackerRes.getString("PrefsDialog.Dialog.SwitchToFFMPeg64.Message"),    //$NON-NLS-1$
-              TrackerRes.getString("PrefsDialog.Dialog.SwitchVM.Title"),    //$NON-NLS-1$
-              JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
-          if(selected==JOptionPane.OK_OPTION) {
-          	vm64Button.setSelected(true); // triggers selection of default or recent 64-bit VM
-          }
-          else {
-          	// revert to previous engine
-          	if (recentEngine.equals(VideoIO.ENGINE_QUICKTIME)) {
-          		qtButton.setSelected(true);         		
-          	}
-          	else if (recentEngine.equals(VideoIO.ENGINE_NONE)) {
-          		noEngineButton.setSelected(true);         		
-          	}
-          }
-    		}
       	// Windows: if ffmpeg and 64-bit, set preferred VM to 32-bit and inform user    		
-    		else if (OSPRuntime.isWindows() && vm64Button.isSelected()) {
-      		boolean has32BitVM = ExtensionsManager.getManager().getDefaultJRE(32)!=null;
+    		if (OSPRuntime.isWindows() && vm64Button.isSelected()) {
+      		boolean has32BitVM = JREFinder.getFinder().getDefaultJRE(32, Tracker.trackerHome, true)!=null;
       		if (has32BitVM) {
 	      		vm32Button.setSelected(true);
 		      	JOptionPane.showMessageDialog(frame,
@@ -965,61 +901,9 @@ public class PrefsDialog extends JDialog {
       			}
       		}
       	}
-    		if (ffmpegButton.isSelected()) {
-    			recentEngine = VideoIO.ENGINE_FFMPEG;
-    		}
     	}
     });
     ffmpegButton.setEnabled(ffmpegInstalled);
-    
-    qtButton = new JRadioButton();
-    qtButton.setOpaque(false);
-    qtButton.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
-    qtButton.addItemListener(new ItemListener() {
-    	public void itemStateChanged(ItemEvent e) {
-    		if (!qtButton.isSelected()) return;
-    		if (vm32Button.isSelected()) return;
-  			Tracker.engineKnown = true;
-      	// if 64-bit, set preferred VM to 32-bit and inform user
-    		boolean has32BitVM = OSPRuntime.isMac() || ExtensionsManager.getManager().getDefaultJRE(32)!=null;
-    		if (has32BitVM) {
-	      	int selected = JOptionPane.showConfirmDialog(frame,
-          		TrackerRes.getString("PrefsDialog.Dialog.SwitchToQT.Message"),    //$NON-NLS-1$
-              TrackerRes.getString("PrefsDialog.Dialog.SwitchVM.Title"),    //$NON-NLS-1$
-              JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE, null);
-          if(selected==JOptionPane.OK_OPTION) {
-          	vm32Button.setSelected(true); // triggers selection of default or recent 32-bit VM
-          }
-          else {
-          	// revert to previous engine
-          	if (recentEngine.equals(VideoIO.ENGINE_FFMPEG)) {
-          		ffmpegButton.setSelected(true);         		
-          	}
-          	else if (recentEngine.equals(VideoIO.ENGINE_NONE)) {
-          		noEngineButton.setSelected(true);         		
-          	}
-          }
-    		}
-    		else { // help user download 32-bit VM
-    			Object[] options = new Object[] {
-    					TrackerRes.getString("PrefsDialog.Button.ShowHelpNow"),    //$NON-NLS-1$
-              TrackerRes.getString("Dialog.Button.OK")}; //$NON-NLS-1$
-    			int response = JOptionPane.showOptionDialog(frame,
-          		TrackerRes.getString("PrefsDialog.Dialog.No32bitVMQT.Message")+"\n"+ //$NON-NLS-1$ //$NON-NLS-2$
-          		TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message"), //$NON-NLS-1$
-              TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Title"), //$NON-NLS-1$
-              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-    			noEngineButton.setSelected(true);
-    			if (response==0) {
-    				frame.showHelp("install", 0); //$NON-NLS-1$
-    			}
-    		}
-    		if (qtButton.isSelected()) {
-    			recentEngine = VideoIO.ENGINE_QUICKTIME;
-    		}
-    	}
-    });
-    qtButton.setEnabled(VideoIO.isEngineInstalled(VideoIO.ENGINE_QUICKTIME));
     
     noEngineButton= new JRadioButton();
     noEngineButton.setOpaque(false);
@@ -1027,14 +911,11 @@ public class PrefsDialog extends JDialog {
     noEngineButton.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
     		if (!noEngineButton.isSelected()) return;
-    		recentEngine = VideoIO.ENGINE_NONE;
-    		VideoIO.setEngine(VideoIO.ENGINE_NONE);
-  			Tracker.engineKnown = true;
+//    		VideoIO.setEngine(VideoIO.ENGINE_NONE);
     	}
     });
 
     videoTypeSubPanel.add(ffmpegButton);
-    videoTypeSubPanel.add(qtButton);
     videoTypeSubPanel.add(noEngineButton);
     
     // video speed subpanel
@@ -1044,7 +925,7 @@ public class PrefsDialog extends JDialog {
     videoSpeedSubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.FFMPeg.Speed.BorderTitle")); //$NON-NLS-1$
     if (!ffmpegInstalled)
-    	 videoSpeedSubPanelBorder.setTitleColor(new Color(153, 153, 153));
+    	ffmpegSpeedSubPanelBorder.setTitleColor(GUIUtils.getDisabledTextColor());
     videoSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoSpeedSubPanelBorder));    
     buttonGroup = new ButtonGroup();
     videoFastButton = new JRadioButton();
@@ -1108,25 +989,25 @@ public class PrefsDialog extends JDialog {
     warningsCenterPanel.add(ffmpegErrorCheckbox);
     
     // set selected states of engine buttons AFTER creating the videofast, videoslow and warnffmpeg buttons
-    if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)
-    		&& VideoIO.getVideoType("QT", null)!=null) { //$NON-NLS-1$
-	    qtButton.setSelected(true);
-    }
-    else if (VideoIO.getEngine().equals(VideoIO.ENGINE_FFMPEG)
+    if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)
     		&& VideoIO.getVideoType("FFMPeg", null)!=null) { //$NON-NLS-1$
 	    ffmpegButton.setSelected(true);
     }
     else noEngineButton.setSelected(true);
 
-    // tracking panel
+    // track panel
     trackPanel = new JPanel(new BorderLayout());
     tabbedPane.addTab(null, trackPanel);
     box = Box.createVerticalBox();
     trackPanel.add(box, BorderLayout.CENTER);
-
+    
+    // put marking and pointmass footprint subpanels side by side
+    horz = Box.createHorizontalBox();
+    box.add(horz);
+       
     // marking subpanel
     JPanel markingSubPanel = new JPanel();
-    box.add(markingSubPanel);
+    horz.add(markingSubPanel);
     markingSubPanel.setBackground(color);
     resetToStep0SubPanelBorder = BorderFactory.createTitledBorder(
     		TrackerRes.getString("PrefsDialog.Marking.BorderTitle")); //$NON-NLS-1$
@@ -1141,6 +1022,95 @@ public class PrefsDialog extends JDialog {
       }
     });
     markingSubPanel.add(resetToStep0Checkbox);
+        
+    // calibration stick subpanel
+    JPanel calibrationStickSubPanel = new JPanel();
+    box.add(calibrationStickSubPanel);
+    calibrationStickSubPanel.setBackground(color);
+    calibrationStickSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.CalibrationStick.BorderTitle")); //$NON-NLS-1$
+    calibrationStickSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, calibrationStickSubPanelBorder));
+    markStickEndsButton = new JRadioButton();
+    markStickEndsButton.setOpaque(false);
+    markStickEndsButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    buttonGroup = new ButtonGroup();
+    buttonGroup.add(markStickEndsButton);
+    centerStickButton = new JRadioButton();
+    centerStickButton.setOpaque(false);
+    centerStickButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));    
+    buttonGroup.add(centerStickButton);
+    if (Tracker.centerCalibrationStick) centerStickButton.setSelected(true);
+    else markStickEndsButton.setSelected(true);
+    calibrationStickSubPanel.add(markStickEndsButton);
+    calibrationStickSubPanel.add(centerStickButton);
+    ActionListener calStickAction = new ActionListener() {
+    	public void actionPerformed(ActionEvent e) {
+    		Tracker.centerCalibrationStick = centerStickButton.isSelected();
+     	}
+    };
+    markStickEndsButton.addActionListener(calStickAction);
+    centerStickButton.addActionListener(calStickAction);
+       
+    // mouse wheel subpanel
+    JPanel mouseWheelSubPanel = new JPanel();
+    box.add(mouseWheelSubPanel);
+    mouseWheelSubPanel.setBackground(color);
+    mouseWheelSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.Mousewheel.BorderTitle")); //$NON-NLS-1$
+    mouseWheelSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, mouseWheelSubPanelBorder));
+
+    zoomButton = new JRadioButton();
+    zoomButton.setOpaque(false);
+    zoomButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    buttonGroup = new ButtonGroup();
+    buttonGroup.add(zoomButton);
+    scrubButton = new JRadioButton();
+    scrubButton.setOpaque(false);
+    scrubButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    
+    buttonGroup.add(scrubButton);
+    if (Tracker.scrubMouseWheel) scrubButton.setSelected(true);
+    else zoomButton.setSelected(true);
+    mouseWheelSubPanel.add(zoomButton);
+    mouseWheelSubPanel.add(scrubButton);
+    ActionListener mouseWheelAction = new ActionListener() {
+    	public void actionPerformed(ActionEvent e) {
+    		Tracker.scrubMouseWheel = scrubButton.isSelected();
+     	}
+    };
+    zoomButton.addActionListener(mouseWheelAction);
+    scrubButton.addActionListener(mouseWheelAction);
+        
+    // data gaps subpanel
+    JPanel dataGapSubPanel = new JPanel();
+    box.add(dataGapSubPanel);
+    dataGapSubPanel.setBackground(color);
+    dataGapSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.DataGap.BorderTitle")); //$NON-NLS-1$
+    dataGapSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, dataGapSubPanelBorder));
+
+    showGapsCheckbox = new JCheckBox();
+    showGapsCheckbox.setOpaque(false);
+    showGapsCheckbox.setSelected(Tracker.showGaps);
+    showGapsCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	Tracker.showGaps = showGapsCheckbox.isSelected();
+      }
+    });
+    dataGapSubPanel.add(showGapsCheckbox);
+    
+    autofillCheckbox = new JCheckBox();
+    autofillCheckbox.setOpaque(false);
+    autofillCheckbox.setSelected(Tracker.enableAutofill);
+    autofillCheckbox.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	Tracker.enableAutofill = autofillCheckbox.isSelected();
+      	if (trackerPanel!=null) {
+      		trackerPanel.repaint();
+      	}
+      }
+    });
+    dataGapSubPanel.add(autofillCheckbox);
         
     // "general" panel
     generalPanel = new JPanel(new BorderLayout());
@@ -1305,26 +1275,13 @@ public class PrefsDialog extends JDialog {
     checkForUpgradeButton = new JButton();
     checkForUpgradeButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	Tracker.loadCurrentVersion(true, false);
-    		Tracker.lastMillisChecked = System.currentTimeMillis();
-  			if (trackerPanel!=null) TTrackBar.getTrackbar(trackerPanel).refresh();
-    		String message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
-    		if (Tracker.newerVersion!=null) { // new version available
-    			message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
-    					+" "+Tracker.newerVersion+" " //$NON-NLS-1$ //$NON-NLS-2$
-    					+TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message2") //$NON-NLS-1$
-    					+XML.NEW_LINE+Tracker.trackerWebsite;
-    		}
-  			JOptionPane.showMessageDialog(PrefsDialog.this, 
-  					message, 
-  					TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Title"),  //$NON-NLS-1$
-  					JOptionPane.INFORMATION_MESSAGE);
+      	Tracker.showUpgradeStatus(trackerPanel);
       }
     });
     logLevelDropdown = new JComboBox();
     defaultLevel = TrackerRes.getString("PrefsDialog.Version.Default").toUpperCase(); //$NON-NLS-1$
     defaultLevel += " ("+Tracker.DEFAULT_LOG_LEVEL.toString().toLowerCase()+")"; //$NON-NLS-1$ //$NON-NLS-2$
-    selected = defaultLevel;
+    String selected = defaultLevel;
     logLevelDropdown.addItem(defaultLevel);
     for (int i=OSPLog.levels.length-1; i>=0; i--) {
     	String s = OSPLog.levels[i].toString();
@@ -1416,7 +1373,6 @@ public class PrefsDialog extends JDialog {
     // add engine buttons to buttongroups
     buttonGroup = new ButtonGroup();
     buttonGroup.add(ffmpegButton);
-    buttonGroup.add(qtButton);
     buttonGroup.add(noEngineButton);
     
     // enable/disable buttons
@@ -1426,8 +1382,8 @@ public class PrefsDialog extends JDialog {
     if (OSPRuntime.isWindows()) {
     	Runnable runner = new Runnable() {
     		public void run() {
-			    vm32Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(32).isEmpty());
-			    vm64Button.setEnabled(!ExtensionsManager.getManager().getPublicJREs(64).isEmpty());    			
+			    vm32Button.setEnabled(!JREFinder.getFinder().getJREs(32).isEmpty());
+			    vm64Button.setEnabled(!JREFinder.getFinder().getJREs(64).isEmpty());    			
     		}
     	};
     	new Thread(runner).start();
@@ -1437,12 +1393,17 @@ public class PrefsDialog extends JDialog {
 	    vm32Button.setEnabled(bitness==32);
 	    vm64Button.setEnabled(bitness==64);    	
     }
+    else if (OSPRuntime.isMac()) {
+	    vm32Button.setEnabled(false);
+	    vm64Button.setEnabled(true);    	
+    }
     refreshGUI();
   }
   
   private void savePrevious() {
 		prevEnabled.clear();
 		if (trackerPanel!=null) prevEnabled.addAll(trackerPanel.getEnabled()); 
+		prevLogLevel = Tracker.preferredLogLevel;
 		prevMemory = Tracker.preferredMemorySize;
 		prevLookFeel = Tracker.lookAndFeel;
 		prevRecentCount = Tracker.recentFilesSize;
@@ -1451,46 +1412,58 @@ public class PrefsDialog extends JDialog {
 		prevFontLevelPlus = Tracker.preferredFontLevelPlus;
 		prevHints = Tracker.showHintsByDefault;
 		prevRadians = Tracker.isRadians;
-		prevFastVideo = Tracker.isVideoFast;
+		prevDecimalSeparator = Tracker.preferredDecimalSeparator;
 		prevJRE = Tracker.preferredJRE;
 		prevTrackerJar = Tracker.preferredTrackerJar;
 		prevExecutables = Tracker.prelaunchExecutables;
 		prevWarnNoVideoEngine = Tracker.warnNoVideoEngine;
 		prevWarnFFMPegError = Tracker.warnFFMPegError;
+		prevWarnVariableDuration = Tracker.warnVariableDuration;
+		prevMarkAtCurrentFrame = Tracker.markAtCurrentFrame;
 		prevCache = ResourceLoader.getOSPCache();
 		prevUpgradeInterval = Tracker.checkForUpgradeInterval;
-		prevUse32BitVM = Tracker.use32BitMode;
 		prevEngine = VideoIO.getEngine();
-		recentEngine = VideoIO.getEngine();
+		prevZoomMouseWheel = Tracker.scrubMouseWheel;
+		prevCenterCalibrationStick = Tracker.centerCalibrationStick;
+		prevAutofill = Tracker.enableAutofill;
+		prevShowGaps = Tracker.showGaps;
+		prevTrailLengthIndex = Tracker.trailLengthIndex;
+		prevPointmassFootprint = Tracker.preferredPointMassFootprint;
   }
   
   private void revert() {
   	if (trackerPanel!=null) trackerPanel.setEnabled(prevEnabled);
+  	Tracker.preferredPointMassFootprint = prevPointmassFootprint;
   	Tracker.preferredMemorySize = prevMemory;
 		Tracker.lookAndFeel = prevLookFeel;
 		Tracker.recentFilesSize = prevRecentCount;
+		Tracker.preferredLogLevel = prevLogLevel;
 		Tracker.setPreferredLocale(prevLocaleName);
 		Tracker.preferredFontLevel = prevFontLevel;
 		Tracker.preferredFontLevelPlus = prevFontLevelPlus;
 		Tracker.showHintsByDefault = prevHints;
 		Tracker.isRadians = prevRadians;
-		Tracker.isVideoFast = prevFastVideo;
+		Tracker.preferredDecimalSeparator = prevDecimalSeparator;
 		Tracker.preferredJRE = prevJRE;
 		Tracker.preferredTrackerJar = prevTrackerJar;
 		Tracker.prelaunchExecutables = prevExecutables;
 		Tracker.warnNoVideoEngine = prevWarnNoVideoEngine;
 		Tracker.warnFFMPegError = prevWarnFFMPegError;
+		Tracker.warnVariableDuration = prevWarnVariableDuration;
+		Tracker.scrubMouseWheel = prevZoomMouseWheel;
+		Tracker.markAtCurrentFrame = prevMarkAtCurrentFrame;
+		Tracker.centerCalibrationStick = prevCenterCalibrationStick;
+		Tracker.enableAutofill = prevAutofill;
+		Tracker.showGaps = prevShowGaps;
+		Tracker.trailLengthIndex = prevTrailLengthIndex;
 		ResourceLoader.setOSPCache(prevCache);
 		Tracker.checkForUpgradeInterval = prevUpgradeInterval;
-		Tracker.use32BitMode = prevUse32BitVM;
 		// reset JRE dropdown to initial state
     int vmBitness = OSPRuntime.getVMBitness();
     if (vmBitness==32) {
-    	recent32bitVM = null;
     	vm32Button.setSelected(true);
     }
     else {
-    	recent64bitVM = null;
     	vm64Button.setSelected(true);
     }
   }
@@ -1515,9 +1488,36 @@ public class PrefsDialog extends JDialog {
    * Refreshes the GUI.
    */
   protected void refreshGUI() {
+    checkPanelBorder.setTitle(TrackerRes.getString("ConfigInspector.Border.Title")); //$NON-NLS-1$
+    lfSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.LookFeel.BorderTitle")); //$NON-NLS-1$
+    langSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Language.BorderTitle")); //$NON-NLS-1$
+    hintsSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Hints.BorderTitle")); //$NON-NLS-1$
+    unitsSubPanelBorder.setTitle(TrackerRes.getString("TMenuBar.Menu.AngleUnits")); //$NON-NLS-1$
+    versionSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Version.BorderTitle")); //$NON-NLS-1$
+    jreSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.JRE.BorderTitle")); //$NON-NLS-1$
+    memorySubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Memory.BorderTitle")); //$NON-NLS-1$
+    runSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Run.BorderTitle")); //$NON-NLS-1$
+    videoTypeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
+    xuggleSpeedSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Xuggle.Speed.BorderTitle")); //$NON-NLS-1$
+    warningsSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.NoVideoWarning.BorderTitle")); //$NON-NLS-1$
+    recentSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.RecentFiles.BorderTitle")); //$NON-NLS-1$
+    cacheSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.CacheFiles.BorderTitle")); //$NON-NLS-1$
+    logLevelSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.LogLevel.BorderTitle")); //$NON-NLS-1$
+    upgradeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Upgrades.BorderTitle")); //$NON-NLS-1$
+    fontSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
+    resetToStep0SubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Marking.BorderTitle")); //$NON-NLS-1$
+    mouseWheelSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Mousewheel.BorderTitle")); //$NON-NLS-1$
+    dataGapSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.DataGap.BorderTitle")); //$NON-NLS-1$
+    decimalSeparatorBorder.setTitle(TrackerRes.getString("NumberFormatSetter.TitledBorder.DecimalSeparator.Text")); //$NON-NLS-1$
+    defaultDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Default")); //$NON-NLS-1$
+    periodDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Period")); //$NON-NLS-1$
+    commaDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Comma")); //$NON-NLS-1$
+    defaultDecimalButton.setSelected(OSPRuntime.getPreferredDecimalSeparator()==null);
+    periodDecimalButton.setSelected(".".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
+    commaDecimalButton.setSelected(",".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
     cancelButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
     saveButton.setText(TrackerRes.getString("ConfigInspector.Button.SaveAsDefault")); //$NON-NLS-1$
-    okButton.setText(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$
+    okButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
     applyButton.setText(TrackerRes.getString("Dialog.Button.Apply")); //$NON-NLS-1$
     applyButton.setEnabled(trackerPanel!=null);
     allButton.setText(TrackerRes.getString("Dialog.Button.All")); //$NON-NLS-1$
@@ -1534,15 +1534,18 @@ public class PrefsDialog extends JDialog {
     defaultMemoryCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.DefaultSize")); //$NON-NLS-1$
     hintsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.HintsOn")); //$NON-NLS-1$    
     resetToStep0Checkbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.ResetToZero.Text")); //$NON-NLS-1$    
+    autofillCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.Autofill.Text")); //$NON-NLS-1$    
+    showGapsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.ShowGaps.Text")); //$NON-NLS-1$    
     vm32Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.32BitVM")); //$NON-NLS-1$
     vm64Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.64BitVM")); //$NON-NLS-1$
     ffmpegButton.setText(TrackerRes.getString("PrefsDialog.Button.FFMPeg")); //$NON-NLS-1$
-    qtButton.setText(TrackerRes.getString("PrefsDialog.Button.QT")); //$NON-NLS-1$
   	noEngineButton.setText(TrackerRes.getString("PrefsDialog.Button.NoEngine")); //$NON-NLS-1$
     radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
     degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
-    videoFastButton.setText(TrackerRes.getString("PrefsDialog.Video.Fast")); //$NON-NLS-1$
-    videoSlowButton.setText(TrackerRes.getString("PrefsDialog.Video.Slow")); //$NON-NLS-1$
+    zoomButton.setText(TrackerRes.getString("PrefsDialog.Button.Zoom")); //$NON-NLS-1$
+    markStickEndsButton.setText(TrackerRes.getString("PrefsDialog.Button.MarkEnds")); //$NON-NLS-1$
+    centerStickButton.setText(TrackerRes.getString("PrefsDialog.Button.Center")); //$NON-NLS-1$
+    scrubButton.setText(TrackerRes.getString("PrefsDialog.Button.Scrub")); //$NON-NLS-1$
     vidWarningCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfNoEngine")); //$NON-NLS-1$    
     variableDurationCheckBox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnVariableDuration")); //$NON-NLS-1$    
     ffmpegErrorCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfFFMPegError")); //$NON-NLS-1$    
@@ -1550,10 +1553,17 @@ public class PrefsDialog extends JDialog {
     setTabTitle(runtimePanel, TrackerRes.getString("PrefsDialog.Tab.Runtime.Title")); //$NON-NLS-1$
     setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
     setTabTitle(displayPanel, TrackerRes.getString("PrefsDialog.Tab.Display.Title")); //$NON-NLS-1$
-    setTabTitle(trackPanel, TrackerRes.getString("PrefsDialog.Tab.Tracking.Title")); //$NON-NLS-1$
+    setTabTitle(trackPanel, TrackerRes.getString("PrefsDialog.Tab.Actions.Title")); //$NON-NLS-1$
     setTabTitle(generalPanel, TrackerRes.getString("PrefsDialog.Tab.General.Title")); //$NON-NLS-1$
     refreshTextFields();
     setFontLevel(FontSizer.getLevel());
+    // refresh trail lengths
+    trailLengthDropdown.removeAllItems();
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
+    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.FullTrail")); //$NON-NLS-1$
+
     pack();
     updateDisplay();
   }
@@ -1562,7 +1572,7 @@ public class PrefsDialog extends JDialog {
     // refresh JRE dropdown in background thread
   	Runnable runner = new Runnable() {
   		public void run() {
-				while (!ExtensionsManager.isReady()) {
+				while (!JREFinder.isReady()) {
 					try {
 						Thread.sleep(200);
 					} catch (InterruptedException e) {
@@ -1570,42 +1580,47 @@ public class PrefsDialog extends JDialog {
   			}
 				Runnable refresher = new Runnable() {
 					public void run() {
-		  	  	refreshing = true; // suppresses dropdown actions
 		  	    // replace items in dropdown
 		  	    jreDropdown.removeAllItems();
-		  	    ExtensionsManager manager = ExtensionsManager.getManager();
-		  	    Set<String> availableJREs = manager.getAllJREs(vmBitness);
-		  	    for (String next: availableJREs) {
-		  	    	jreDropdown.addItem(next);
+		  	    JREFinder jreFinder = JREFinder.getFinder();
+		  	    Set<File> availableJREs = jreFinder.getJREs(vmBitness);
+		  	    ArrayList<String> availableJREPaths = new ArrayList<String>();
+		  			String path = Tracker.trackerHome;
+		  			if (OSPRuntime.isMac()) {
+		  				path = new File(Tracker.trackerHome).getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
+		  			}
+		  			String bundledVM = TrackerStarter.findBundledVM();
+		  			File defaultVM = jreFinder.getDefaultJRE(vmBitness, path, true);
+		  	    for (File next: availableJREs) {
+		  	    	String jrePath = next.getPath();
+		  	    	if (bundledVM!=null && jrePath.equals(bundledVM)) {
+			  	    	availableJREPaths.add(jrePath);
+			  	    	jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"), 0); //$NON-NLS-1$			  	    	
+		  	    	}
+		  	    	else if (defaultVM!=null && jrePath.equals(defaultVM.getPath())
+		  	    			&& !(vmBitness==64 && OSPRuntime.isWindows())) {
+			  	    	availableJREPaths.add(jrePath);
+			  	    	jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"), 0); //$NON-NLS-1$			  	    	
+			  	    	jreDropdown.addItem(jrePath); // duplicate latest
+		  	    	}
+		  	    	else {
+			  	    	availableJREPaths.add(jrePath);
+			  	    	jreDropdown.addItem(jrePath);
+		  	    	}
 		  	    }
 		  	    
 		  	    // set selected item
-		  	    String selectedItem = null;
-		  	  	if (vmBitness==32 && recent32bitVM!=null) {
-		  	  		selectedItem = recent32bitVM;
-		  	  	}
-		  	  	else if (vmBitness==64 && recent64bitVM!=null) {
-		  	  		selectedItem = recent64bitVM;
-		  	  	}
-		  	    if (selectedItem==null) {
-		  	    	selectedItem = Tracker.preferredJRE;
-		  	    	if (selectedItem==null || !availableJREs.contains(selectedItem)) {
-		  	      	selectedItem = vmBitness==32? Tracker.preferredJRE32: Tracker.preferredJRE64;
-		  	        if (selectedItem==null || !availableJREs.contains(selectedItem)) {
-		  	        	selectedItem = manager.getDefaultJRE(vmBitness);
-		  	        }
-		  	    	}
-		  	    }
+		  	    String selectedItem = Tracker.preferredJRE;
+	  	    	if (selectedItem==null || !availableJREPaths.contains(selectedItem)) {
+  	        	if (bundledVM!=null) {
+  	        		selectedItem = TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"); //$NON-NLS-1$;
+  	        	}
+  	        	else {
+  	        		selectedItem = TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"); //$NON-NLS-1$;
+  	        	}
+	  	    	}
 		  	    jreDropdown.setSelectedItem(selectedItem);
 
-		  	    // save selected item for future refreshing
-		  			if (vmBitness==32) {
-		  				recent32bitVM = selectedItem;
-		  			}
-		  			else {
-		  				recent64bitVM = selectedItem;
-		  			}
-		  	    refreshing = false;
 		  	    if (vmBitness==32 && relaunching) {
 		  	  		// check that not canceled by user
 		  	  		if (!"cancel".equals(vm32Button.getName())) { //$NON-NLS-1$
@@ -1666,7 +1681,7 @@ public class PrefsDialog extends JDialog {
    * Applies and saves the current preferences.
    */
   private void applyPrefs() {
-    // look/feel, language, video, hints, fontlevel are set directly by components
+    // look/feel, language, video, hints, font size & decimal separator are set directly by components
   	// update configuration
     updateConfig();
     // update recent menu
@@ -1682,21 +1697,25 @@ public class PrefsDialog extends JDialog {
     // update preferred JRE
 		Object selected = jreDropdown.getSelectedItem();
 		if (selected !=null && !selected.equals(Tracker.preferredJRE)) {
-			Tracker.preferredJRE = selected.toString();
-			if (ExtensionsManager.getManager().is32BitVM(Tracker.preferredJRE)) {
-				Tracker.preferredJRE32 = Tracker.preferredJRE;				
+			if (selected.equals(TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"))) { //$NON-NLS-1$
+				Tracker.preferredJRE = null;
 			}
-			else Tracker.preferredJRE64 = Tracker.preferredJRE;
+			else if (selected.equals(TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"))) { //$NON-NLS-1$
+				Tracker.preferredJRE = null;
+			}
+			else {
+				Tracker.preferredJRE = selected.toString();
+			}
 		}
-		// video engine
-		if (ffmpegButton.isSelected() && ffmpegButton.isEnabled()) {
-			VideoIO.setEngine(VideoIO.ENGINE_FFMPEG);
+		Tracker.showGaps = showGapsCheckbox.isSelected();
+		Tracker.trailLengthIndex = trailLengthDropdown.getSelectedIndex();
+		// refresh the toolbar
+		if (trackerPanel!=null) {
+			TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
+			toolbar.trailLength = TToolBar.trailLengths[Tracker.trailLengthIndex];
+	  	toolbar.trailButton.setSelected(toolbar.trailLength!=1);		
+			toolbar.refresh(true);
 		}
-		else if (qtButton.isSelected() && qtButton.isEnabled()) {
-			VideoIO.setEngine(VideoIO.ENGINE_QUICKTIME);
-		}
-		else VideoIO.setEngine(VideoIO.ENGINE_NONE);
-		
     Tracker.isRadians = radiansButton.isSelected();
 		Tracker.isVideoFast = videoFastButton.isSelected();
 		if (frame!=null) frame.setAnglesInRadians(Tracker.isRadians);
@@ -1725,6 +1744,7 @@ public class PrefsDialog extends JDialog {
    * Updates this dialog to show the TrackerPanel's current preferences.
    */
   protected void updateDisplay() {
+  	refreshing = true;
   	// configuration
     Component[] checkboxes = checkPanel.getComponents();
     for (int i = 0; i < checkboxes.length; i++) {
@@ -1754,12 +1774,15 @@ public class PrefsDialog extends JDialog {
     variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
     ffmpegErrorCheckbox.setSelected(Tracker.warnFFMPegError);
     // locale
-    for (Locale next: Tracker.locales) {
+    int index = 0;
+    for (int i=0; i<Tracker.locales.length; i++) {
+    	Locale next = Tracker.locales[i];
     	if (next.equals(Locale.getDefault())) {
-    		languageDropdown.setSelectedItem(OSPRuntime.getDisplayLanguage(next));
+    		index = i+1;
     		break;
     	}
     }
+		languageDropdown.setSelectedIndex(index);
     
     // tracker jar
     int selected = 0;
@@ -1774,7 +1797,7 @@ public class PrefsDialog extends JDialog {
     	versionDropdown.setSelectedIndex(selected);
     }
     
-    // VM dropdown
+    // JRE dropdown
     selected = 0;
     for (int i = 0, count = jreDropdown.getItemCount(); i<count; i++) {
     	String next = jreDropdown.getItemAt(i).toString();
@@ -1785,6 +1808,27 @@ public class PrefsDialog extends JDialog {
     }
     if (jreDropdown.getItemCount()>selected) {
     	jreDropdown.setSelectedIndex(selected);
+    }
+    
+    // footprint dropdown
+    selected = 0;
+    for (int i = 0; i<footprintDropdown.getItemCount(); i++) {
+    	Footprint footprint = (Footprint)footprintDropdown.getItemAt(i);
+    	if (Tracker.preferredPointMassFootprint!=null 
+    			&& Tracker.preferredPointMassFootprint.startsWith(footprint.getName())) {
+    		selected = i;
+    		if (footprint instanceof CircleFootprint) {
+        	CircleFootprint cfp = (CircleFootprint)footprint;
+        	int n = Tracker.preferredPointMassFootprint.indexOf("#"); //$NON-NLS-1$
+        	if (n>-1) {
+        		cfp.setProperties(Tracker.preferredPointMassFootprint.substring(n+1));
+        	}
+    		}
+    		break;
+    	}    	
+    }
+    if (footprintDropdown.getItemCount()>selected) {
+    	footprintDropdown.setSelectedIndex(selected);
     }
     
     // log level
@@ -1814,42 +1858,37 @@ public class PrefsDialog extends JDialog {
     if (checkForUpgradeDropdown.getItemCount()>selected) {
     	checkForUpgradeDropdown.setSelectedIndex(selected);
     }
+    
+    // show gaps
+    showGapsCheckbox.setSelected(Tracker.showGaps);
 
+    // autofill
+    autofillCheckbox.setSelected(Tracker.enableAutofill);
+    
+    // angle units
+    radiansButton.setSelected(Tracker.isRadians);
+    degreesButton.setSelected(!Tracker.isRadians);
+    
+    // new tracks reset to 0
+    resetToStep0Checkbox.setSelected(!Tracker.markAtCurrentFrame);
+    
+    // mousewheel action   
+    if (Tracker.scrubMouseWheel) scrubButton.setSelected(true);
+    else zoomButton.setSelected(true);
+
+    // new calibration sticks
+    if (Tracker.centerCalibrationStick) centerStickButton.setSelected(true);
+    else markStickEndsButton.setSelected(true);
+    
+    // trail length
+    trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
+    
     // video
-    if (VideoIO.getEngine().equals(VideoIO.ENGINE_QUICKTIME)) {
-	    qtButton.setSelected(true);
-    }
-    else if (VideoIO.getEngine().equals(VideoIO.ENGINE_FFMPEG)) {
+    if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)) {
 	    ffmpegButton.setSelected(true);
     }
-    
-		qtButton.setEnabled(true);
-		vm32Button.setEnabled(true);
-//		// if running OSX version 10.10 or later, disable 32-bit VM and QuickTime buttons
-//		if (OSPRuntime.isMac()) {
-//			String version = System.getProperty("os.version"); //$NON-NLS-1$
-//			if (version!=null) {
-//				int n = version.indexOf("."); //$NON-NLS-1$
-//				if (n>-1) {
-//					version = version.substring(n+1);
-//					if (version.length()>1) {
-//						try {
-//							int vers = Integer.parseInt(version.substring(0, 2));
-//							if (vers>=10) {
-//								// disable 32-bit VM and QuickTime buttons
-//								qtButton.setEnabled(false);
-//								vm32Button.setEnabled(false);
-//								vm64Button.setSelected(true);
-//								Tracker.preferredJRE32 = null;
-//							}
-//						} catch (NumberFormatException e) {
-//						}							
-//					}
-//				}
-//			}
-//		}
-
     repaint();
+  	refreshing = false;
   }
   
   /**
@@ -1927,5 +1966,48 @@ public class PrefsDialog extends JDialog {
   	FontSizer.setFonts(chooser, FontSizer.getLevel());
     return chooser;
   }
+  
+  /**
+   * A class to render footprints for a dropdown 
+   */
+  class FootprintRenderer extends JLabel implements ListCellRenderer {
+  	
+  	FootprintRenderer() {
+			setOpaque(true);
+			setBorder(BorderFactory.createEmptyBorder(1, 3, 1, 0));
+  	}
+  	
+    public Component getListCellRendererComponent(JList list, Object val, int index,
+        boolean selected, boolean hasFocus) {
+
+      if (selected) {
+        setBackground(list.getSelectionBackground());
+        setForeground(list.getSelectionForeground());
+      } else {
+        setBackground(list.getBackground());
+        setForeground(list.getForeground());
+      }
+			if (val!=null) {
+				Footprint fp = (Footprint)val;
+				String name = fp.getDisplayName();
+				if (fp instanceof CircleFootprint) {
+        	CircleFootprint cfp = (CircleFootprint)fp;
+        	String[] props = cfp.getProperties().split(" "); //$NON-NLS-1$
+        	name += " r="+props[0]; //$NON-NLS-1$
+				}
+				setText(name);
+				Icon icon = fp.getIcon(21, 16);
+				int factor = FontSizer.getIntegerFactor();
+				if (icon instanceof ResizableIcon) {
+					((ResizableIcon)icon).resize(factor);
+				}
+				setIcon(icon);
+			}
+			return this;
+    }
+
+  }
+  
+
 
 }

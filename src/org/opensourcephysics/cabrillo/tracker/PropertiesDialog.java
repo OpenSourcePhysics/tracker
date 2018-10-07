@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -184,15 +184,12 @@ public class PropertiesDialog extends JDialog {
 		    type = videoType==null? 
 		    		video.getClass().getSimpleName(): 
 		    		videoType.getDescription();
-		    // eliminate extension list and replace with video engine if ffmpeg or QT
+		    // eliminate extension list and replace with video engine if ffmpeg
 		    int n = type.lastIndexOf("("); //$NON-NLS-1$
 		    if (n>-1) {
 		    	type = type.substring(0, n);
 		    	if (video.getClass().getSimpleName().contains(VideoIO.ENGINE_FFMPEG)) {
 		    		type += "(FFMPeg)"; //$NON-NLS-1$
-		    	}
-		    	else if (video.getClass().getSimpleName().contains(VideoIO.ENGINE_QUICKTIME)) {
-		    		type += "(QuickTime)"; //$NON-NLS-1$
 		    	}
 		    }
 		    size = video.getImage().getWidth()+" x "+video.getImage().getHeight(); //$NON-NLS-1$

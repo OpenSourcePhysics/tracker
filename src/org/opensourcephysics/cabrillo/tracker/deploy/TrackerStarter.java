@@ -1,7 +1,7 @@
 /*
  * The tracker.deploy package defines classes for launching and installing Tracker.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,12 +40,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.nio.charset.Charset;
 
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
+
 import org.opensourcephysics.cabrillo.tracker.Tracker;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
@@ -70,7 +73,7 @@ public class TrackerStarter {
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
 	static String exceptions = ""; //$NON-NLS-1$
-	static String qtJavaWarning, ffmpegWarning, starterWarning;
+	static String ffmpegWarning, starterWarning;
 	static String trackerHome, userHome, javaHome, ffmpegHome, userDocuments;
 	static String startLogPath;
 	static FilenameFilter trackerJarFilter = new TrackerJarFilter();
@@ -81,24 +84,29 @@ public class TrackerStarter {
 	static String[] executables;
 	static String logText = ""; //$NON-NLS-1$
 	static String javaCommand = "java"; //$NON-NLS-1$
-	static String preferredVM;
+	static String preferredVM, bundledVM;
 	static String snapshot = "-snapshot"; //$NON-NLS-1$
 	static boolean debug = false;
 	static boolean log = true;
-	static boolean use32BitMode = false;
 	static boolean relaunching = false;
 	static boolean launching = false;
 	static int port = 12321;
 	static Thread launchThread, exitThread;
+	static boolean abortExit;
 	static int exitCounter = 0;
 	
 	static {
 		// identify codeBaseDir
 		try {
 			newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-			URL url = TrackerStarter.class.getProtectionDomain().getCodeSource()
-					.getLocation();
-			starterJarFile = new File(url.toURI());
+			URL url = TrackerStarter.class.getProtectionDomain().getCodeSource().getLocation();
+			java.net.URI uri = url.toURI();
+			String path = uri.toString();
+			if (path.startsWith("jar:")) { //$NON-NLS-1$
+				path = path.substring(4, path.length());
+			}
+			uri = new java.net.URI(path);
+			starterJarFile = new File(uri);
 			codeBaseDir = starterJarFile.getParentFile();
 			OSPRuntime.setLaunchJarPath(starterJarFile.getAbsolutePath());
 		} catch (Exception ex) {
@@ -107,19 +115,16 @@ public class TrackerStarter {
 		}
 		// get user home, java home and ffmpeg home
 		try {
-			userHome = System.getProperty("user.home"); //$NON-NLS-1$
+			userHome = OSPRuntime.getUserHome();
 			javaHome = System.getProperty("java.home"); //$NON-NLS-1$
 			if (OSPRuntime.isWindows()) {
-				userDocuments = WinRegistry
-						.readString(
-								WinRegistry.HKEY_CURRENT_USER,
-								"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", //$NON-NLS-1$
-								"Personal"); //$NON-NLS-1$
-			} else {
+				userDocuments = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
+			} 
+			else {
 				userDocuments = userHome + "/Documents"; //$NON-NLS-1$
-				if (!new File(userDocuments).exists()) {
-					userDocuments = null;
-				}
+			}
+			if (!new File(userDocuments).exists()) {
+				userDocuments = null;
 			}
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
@@ -135,7 +140,7 @@ public class TrackerStarter {
 		relaunching = false;
 		logText = ""; //$NON-NLS-1$
 		logMessage("launch initiated by user"); //$NON-NLS-1$
-
+		
   	if (OSPRuntime.isMac()) {
   		// create launchThread to instantiate OSXServices and launch Tracker
 		  launchThread = new Thread(new Runnable() {
@@ -148,6 +153,8 @@ public class TrackerStarter {
 						constructor.newInstance();
 						logMessage("OSXServices running"); //$NON-NLS-1$
 					} catch (Exception ex) {
+						logMessage("OSXServices failed"); //$NON-NLS-1$
+					} catch (Error err) {
 						logMessage("OSXServices failed"); //$NON-NLS-1$
 					}
 					// wait a short time for OSXServices to handle openFile event
@@ -169,7 +176,7 @@ public class TrackerStarter {
 			launchThread.start();				  
 		}
   	else {
-  		// for Windows and LInux, launch Tracker immediately with default args
+  		// for Windows and Linux, launch Tracker immediately with default args
 			launchTracker(args);					 
   	}
 	}
@@ -181,6 +188,7 @@ public class TrackerStarter {
 	public static void launchTracker(String[] args) {
 		if (launching) return;
 		launching = true;
+		logMessage("TrackerStarter runnning in jre: " + javaHome); //$NON-NLS-1$
 		
 		launchThread = null;
 		
@@ -273,6 +281,7 @@ public class TrackerStarter {
 	 * @param writeToLog true to write the results to the start log
 	 */
 	public static String findTrackerHome(boolean writeToLog) throws Exception {
+		if (trackerHome!=null) return trackerHome;
 		// first determine if code base directory is trackerHome
 		if (codeBaseDir != null) {
 			if (writeToLog) logMessage("code base: " + codeBaseDir.getPath()); //$NON-NLS-1$
@@ -437,6 +446,34 @@ public class TrackerStarter {
 		if (writeToLog) logMessage("using ffmpegHome: " + ffmpegHome); //$NON-NLS-1$
 		return ffmpegHome;
 	}
+	
+	/**
+	 * Finds the bundled Java vm, if any.
+	 */
+	public static String findBundledVM() {
+		if (bundledVM!=null) return bundledVM;
+		try {
+			findTrackerHome(false);
+		} catch (Exception e) {}
+		
+		File jre = null;
+		if (OSPRuntime.isWindows()) {
+			jre = JREFinder.getFinder().getDefaultJRE(32, trackerHome, false);
+		}
+		else if (OSPRuntime.isMac()) {
+			File home = new File(trackerHome);
+			String path = home.getParent()+"/PlugIns/Java.runtime"; //$NON-NLS-1$
+			jre = JREFinder.getFinder().getDefaultJRE(64, path, false);
+		}
+		else {
+			jre = JREFinder.getFinder().getDefaultJRE(OSPRuntime.getVMBitness(), trackerHome, false);
+		}
+		if (jre != null && jre.exists()) {
+			return jre.getPath();
+		}
+		return null;
+	}
+
 
 	// /**
 	// * Finds all available Java VMs and returns their paths in a Set<String>[].
@@ -455,7 +492,7 @@ public class TrackerStarter {
 	 * Exits gracefully by giving information to the user.
 	 */
 	private static void exitGracefully(String jarPath) {
-//		if (exitTimer!=null) exitTimer.stop();
+		if (exitThread!=null) abortExit = true;
 		if (exceptions.equals("")) //$NON-NLS-1$
 			exceptions = "None"; //$NON-NLS-1$
 		String startLogLine = ""; //$NON-NLS-1$
@@ -466,9 +503,8 @@ public class TrackerStarter {
 			JOptionPane
 					.showMessageDialog(
 							null,
-							"Tracker could not be started automatically due to" + newline //$NON-NLS-1$
-									+ "the problem(s) listed below.  However, you may be able to" + newline //$NON-NLS-1$
-									+ "start it directly by double-clicking the jar file" + newline //$NON-NLS-1$
+							"Tracker could not be started due to the problem(s) listed below." + newline //$NON-NLS-1$
+									+ "However, you may be able to start it by double-clicking the file" + newline //$NON-NLS-1$
 									+ jarPath
 									+ "." + newline + newline //$NON-NLS-1$
 									+ startLogLine
@@ -552,14 +588,6 @@ public class TrackerStarter {
 		if (!prefsXMLControl.failedToRead()) {
 			logMessage("loading starter preferences from: " + prefsPath); //$NON-NLS-1$
 			
-			// preferred vm bitness
-//			String systemProperty = System.getProperty(PREFERRED_VM_BITNESS);
-//			if (systemProperty!=null) {
-//				use32BitMode = "32".equals(systemProperty); //$NON-NLS-1$
-//				logMessage("system property "+PREFERRED_VM_BITNESS+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
-//			}
-			use32BitMode = prefsXMLControl.getBoolean("32-bit"); //$NON-NLS-1$
-			
 			// preferred tracker jar
 			String jar = null;
 			String systemProperty = System.getProperty(PREFERRED_TRACKER_JAR);
@@ -592,27 +620,35 @@ public class TrackerStarter {
 
 			// preferred java vm
 			preferredVM = null;
-//			systemProperty = System.getProperty(PREFERRED_JAVA_VM);
-//			if (systemProperty!=null) {
-//				loaded = true;
-//				preferredVM = systemProperty;
-//				logMessage("system property "+PREFERRED_JAVA_VM+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
-//			}
 			if (prefsXMLControl.getPropertyNames().contains("java_vm")) { //$NON-NLS-1$
 				loaded = true;
 				preferredVM = prefsXMLControl.getString("java_vm"); //$NON-NLS-1$
 			}
 			if (preferredVM!=null) {
+				logMessage("preferred java VM: " + preferredVM); //$NON-NLS-1$
 				File javaFile = OSPRuntime.getJavaFile(preferredVM);
-				if (javaFile != null && javaFile.exists()) {
+				if (javaFile != null) {
 					javaCommand = XML.stripExtension(javaFile.getPath());
-					logMessage("preferred java VM: " + javaCommand); //$NON-NLS-1$
-				} else {
-					logMessage("preferred java VM invalid--using default instead"); //$NON-NLS-1$
+				} 
+				else {
+					logMessage("preferred java VM invalid"); //$NON-NLS-1$
 					preferredVM = null;
-					javaCommand = "java"; //$NON-NLS-1$
 				}
-
+			}
+			if (preferredVM==null) {
+					// look for bundled jre
+				bundledVM = findBundledVM();
+				if (bundledVM != null) {
+					File javaFile = OSPRuntime.getJavaFile(bundledVM);
+					if (javaFile!=null) {
+						preferredVM = bundledVM;
+						logMessage("no preferred java VM, using bundled VM: "+bundledVM); //$NON-NLS-1$
+						javaCommand = XML.stripExtension(javaFile.getPath());
+					}
+				} 
+				else {
+					logMessage("no preferred or bundled java VM, using default"); //$NON-NLS-1$
+				}
 			}
 
 			// preferred executables to run prior to starting Tracker
@@ -770,7 +806,6 @@ public class TrackerStarter {
 			cmd.add("-Xmx" + memorySize + "m"); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 		if (OSPRuntime.isMac()) {
-			cmd.add(use32BitMode ? "-d32" : "-d64"); //$NON-NLS-1$ //$NON-NLS-2$
 			cmd.add("-Xdock:name=Tracker"); //$NON-NLS-1$
 		}
 		
@@ -799,9 +834,8 @@ public class TrackerStarter {
 		}
 		else env.remove("MEMORY_SIZE"); //$NON-NLS-1$ 
 
-		// remove ffmpeg and qtJava warnings that may have been set by previous versions of TrackerStarter
+		// remove ffmpeg warnings that may have been set by previous versions of TrackerStarter
 		env.remove("FFMPEG_WARNING"); //$NON-NLS-1$ 
-		env.remove("QTJAVA_WARNING"); //$NON-NLS-1$ 
 		if (starterWarning!=null) {
 			env.put("STARTER_WARNING", starterWarning); //$NON-NLS-1$ 
 		}
@@ -870,8 +904,10 @@ public class TrackerStarter {
 		if (exitThread==null) {
 			exitThread = new Thread(new Runnable() {
 				public void run() {
+					abortExit = false;
 					while (exitCounter<10) {
 						try {
+							if (abortExit) return;
 							Thread.sleep(100);
 							exitCounter++;
 						} catch (InterruptedException e) {
@@ -923,16 +959,6 @@ public class TrackerStarter {
     		logMessage("try to start with smaller memory size "+memorySize+"MB"); //$NON-NLS-1$ //$NON-NLS-2$
     		startTracker(jarPath, args);
     	}
-	    // if process failed due to unsupported 32-bit VM, change bitness and try again
-	    else if (errors.indexOf("32-bit")>-1) { //$NON-NLS-1$
-	    	use32BitMode = false;
-    		logMessage("try to start in 64-bit mode"); //$NON-NLS-1$
-    		
-				// assemble warning to pass to Tracker as an environment variable
-    		starterWarning = "The Java VM was started in 64-bit mode (32-bit not support)."; //$NON-NLS-1$
-
-    		startTracker(jarPath, args);
-	    }
 	    else {
   			exceptions += errors + newline;
   			exitGracefully(jarPath);

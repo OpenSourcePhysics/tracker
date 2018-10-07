@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1097,7 +1097,7 @@ public class LineProfileStep extends Step {
       	line.keyFrames.add(n);
     	}      
       repaint();
-      track.support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+      track.support.firePropertyChange("step", null, n); //$NON-NLS-1$
     }
 
     /**
@@ -1182,7 +1182,7 @@ public class LineProfileStep extends Step {
       	line.keyFrames.add(n);
     	}      
       repaint();
-      track.support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+      track.support.firePropertyChange("step", null, n); //$NON-NLS-1$
     }
 
     /**

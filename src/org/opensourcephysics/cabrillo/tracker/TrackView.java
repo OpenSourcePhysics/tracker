@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ public abstract class TrackView extends JScrollPane
     trackID = track.getID();
     trackerPanel = panel;
     trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener("units", this); //$NON-NLS-1$
     parent = view;
   }
 
@@ -59,6 +60,7 @@ public abstract class TrackView extends JScrollPane
 	    track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
     }
     trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener("units", this); //$NON-NLS-1$
     trackerPanel = null;
   }
 

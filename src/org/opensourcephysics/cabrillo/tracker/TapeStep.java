@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -226,6 +226,8 @@ public class TapeStep extends Step {
    * @return the default TPoint
    */
   public TPoint getDefaultPoint() {
+  	if (worldLength==0) return handle;
+  	if (tape.initialCalibration) return points[1];
   	TPoint p = tape.trackerPanel.getSelectedPoint();
     if (p==points[0]) return points[0];
     if (p==points[1]) return points[1];
@@ -292,6 +294,8 @@ public class TapeStep extends Step {
       // get new text layout
       double tapeLength = getTapeLength(!tape.isStickMode());
       String s = tape.getFormattedLength(tapeLength);
+      s += trackerPanel.getUnits(tape, TapeMeasure.dataVariables[1]);    
+
       TextLayout layout = new TextLayout(s, textLayoutFont, frc);
       textLayouts.put(trackerPanel, layout);
       // get layout position (bottom left corner of text)
@@ -342,6 +346,9 @@ public class TapeStep extends Step {
     double dy = (end1.getY() - end2.getY()) / scaleY;
     tapeAngle = Math.atan2(dy, dx);
     xAxisToTapeAngle = tapeAngle - axisTiltAngle;
+    if (Double.isNaN(xAxisToTapeAngle)) {
+    	xAxisToTapeAngle = 0;
+    }
     tape.angleField.setValue(xAxisToTapeAngle);   
   	double length = fromEnds? Math.sqrt(dx*dx + dy*dy): worldLength;
   	tape.magField.setValue(length);
@@ -368,7 +375,7 @@ public class TapeStep extends Step {
     length = Math.abs(length);
     length = Math.max(length, TapeMeasure.MIN_LENGTH);
     double factor = getTapeLength(!tape.isStickMode()) / length;
-    if (factor==1) return;
+    if (factor==1 || factor==0 || Double.isInfinite(factor) || Double.isNaN(factor)) return;
     
     XMLControl trackControl = new XMLControlElement(tape);
     if (tape.isReadOnly()) {
@@ -755,7 +762,7 @@ public class TapeStep extends Step {
       	tape.keyFrames.add(n);
     	}      
       
-      if (tape.isStickMode()) {
+      if (tape.isStickMode() && worldLength>0) {
         ImageCoordSystem coords = tape.trackerPanel.getCoords();
         coords.setAdjusting(isAdjusting());
 	      double newLength = getTapeLength(true); // newly calculated

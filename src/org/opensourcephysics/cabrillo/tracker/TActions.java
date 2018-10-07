@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -149,6 +149,7 @@ public class TActions {
     final AbstractAction openAction = new AbstractAction(TrackerRes.getString("TActions.Action.Open"), icon) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
       	trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
@@ -181,6 +182,7 @@ public class TActions {
         }
         URL url = res.getURL();
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
       	trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
@@ -319,6 +321,7 @@ public class TActions {
         boolean visible = !axes.isVisible();
         axes.setVisible(visible);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.hideMouseBox();
         if (visible && trackerPanel.getSelectedTrack() == null)
         	trackerPanel.setSelectedTrack(axes);
@@ -406,6 +409,7 @@ public class TActions {
         pointMass.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(pointMass);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(pointMass);
         
         if (!Tracker.markAtCurrentFrame) {
@@ -438,6 +442,7 @@ public class TActions {
         cm.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(cm);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(cm);
         CenterOfMassInspector cmInspector = cm.getInspector();
         cmInspector.setVisible(true);
@@ -452,6 +457,7 @@ public class TActions {
         vec.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(vec);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(vec);
         if (!Tracker.markAtCurrentFrame) {
         	trackerPanel.getPlayer().setStepNumber(0);
@@ -467,6 +473,7 @@ public class TActions {
         sum.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(sum);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(sum);
         VectorSumInspector sumInspector = sum.getInspector();
         sumInspector.setVisible(true);
@@ -480,6 +487,7 @@ public class TActions {
         offset.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(offset);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(offset);
         trackerPanel.getAxes().setVisible(true);
       }
@@ -492,6 +500,7 @@ public class TActions {
         cal.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(cal);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(cal);
         trackerPanel.getAxes().setVisible(true);
       }
@@ -504,6 +513,7 @@ public class TActions {
         lineProfile.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(lineProfile);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(lineProfile);
       }
     };
@@ -515,6 +525,7 @@ public class TActions {
         rgb.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(rgb);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(rgb);
         if (!Tracker.markAtCurrentFrame) {
         	trackerPanel.getPlayer().setStepNumber(0);
@@ -529,6 +540,7 @@ public class TActions {
         model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(model);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(model);
         FunctionTool inspector = model.getModelBuilder();
         model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
@@ -543,6 +555,7 @@ public class TActions {
         model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(model);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(model);
         FunctionTool inspector = model.getModelBuilder();
         model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
@@ -557,6 +570,7 @@ public class TActions {
         model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(model);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(model);
         FunctionTool inspector = model.getModelBuilder();
         model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
@@ -571,6 +585,7 @@ public class TActions {
         model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(model);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(model);
         FunctionTool inspector = model.getModelBuilder();
         model.setStartFrame(trackerPanel.getPlayer().getVideoClip().getStartFrameNumber());
@@ -625,13 +640,17 @@ public class TActions {
         TapeMeasure tape = new TapeMeasure();
         tape.setReadOnly(true);
         tape.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
-      	// place tape above center of mat
-      	Rectangle rect = trackerPanel.getMat().mat;
-        double x = rect.width/2;
-        double y = rect.height/2;
-				tape.createStep(0, x-50, y-20, x+50, y-20);
+      	// place tape at center of viewport
+      	MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
+        Rectangle rect = mainView.scrollPane.getViewport().getViewRect();
+        int xpix = rect.x+rect.width/2;
+        int ypix = rect.y+rect.height/2;
+        double x = trackerPanel.pixToX(xpix);
+        double y = trackerPanel.pixToY(ypix);
+				tape.createStep(0, x-50, y, x+50, y); // length 100 image units
         trackerPanel.addTrack(tape);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(tape);
       }
     };
@@ -643,13 +662,18 @@ public class TActions {
       	Protractor protractor = new Protractor();
         protractor.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(protractor);
-      	// place protractor above center of mat
-      	Rectangle rect = trackerPanel.getMat().mat;
-        double x = rect.width/2;
-        double y = rect.height/2;
+      	// place protractor at center of viewport
+      	MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
+        Rectangle rect = mainView.scrollPane.getViewport().getViewRect();
+        int xpix = rect.x+rect.width/2;
+        int ypix = rect.y+rect.height/2;
+        double x = trackerPanel.pixToX(xpix);
+        double y = trackerPanel.pixToY(ypix);
         ProtractorStep step = (ProtractorStep)protractor.getStep(0);
-        step.handle.setXY(x, y-30);        	
+        double h = Math.abs(step.end1.y-step.end2.y);
+        step.handle.setXY(x, y+h/2);        	
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(protractor);
       }
     };
@@ -661,6 +685,7 @@ public class TActions {
         track.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(track);
         trackerPanel.setSelectedPoint(null);
+        trackerPanel.selectedSteps.clear();
         trackerPanel.setSelectedTrack(track);
       }
     };

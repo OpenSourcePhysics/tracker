@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.text.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 import java.awt.*;
@@ -53,10 +54,35 @@ public class TapeMeasure extends TTrack {
 	protected static final double MIN_LENGTH = 1.0E-30;
   @SuppressWarnings("javadoc")
 	public static final float[] BROKEN_LINE = new float[] {10, 1};
-  protected static String[]	variableList;
+  protected static String[]	dataVariables;
+  protected static String[]	formatVariables; // also used for fieldVariables
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
 
   static {
-  	variableList = new String[] {"t", "length", Tracker.THETA, "step", "frame"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+  	dataVariables = new String[] {"t", "L", Tracker.THETA, "step", "frame"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+  	formatVariables = new String[] {"t", "L", Tracker.THETA}; //$NON-NLS-1$ //$NON-NLS-2$ 
+		
+  	// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[0]); 
+		formatMap.put(formatVariables[0], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[1]); 
+		formatMap.put(formatVariables[1], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[2]); 
+		formatMap.put(formatVariables[2], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("TapeMeasure.Label.Length")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("TapeMeasure.Label.TapeAngle")); //$NON-NLS-1$ 
+
   }
 
   // instance fields
@@ -72,6 +98,8 @@ public class TapeMeasure extends TTrack {
   protected boolean stickMode;
   protected boolean isStepChangingScale;
 	protected boolean notYetShown = true;
+	protected boolean initialCalibration;
+  protected JLabel end1Label, end2Label, lengthLabel;
 	protected Footprint[] tapeFootprints, stickFootprints;
   protected TreeSet<Integer> lengthKeyFrames = new TreeSet<Integer>(); // applies to sticks only
   protected JMenuItem attachmentItem;
@@ -85,10 +113,10 @@ public class TapeMeasure extends TTrack {
 		defaultColors = new Color[] {new Color(204, 0, 0)};
 		
     // assign default plot variables
-    setProperty("xVarPlot0", variableList[0]); //$NON-NLS-1$ 
-    setProperty("yVarPlot0", variableList[1]); //$NON-NLS-1$ 
-    setProperty("xVarPlot1", variableList[0]); //$NON-NLS-1$ 
-    setProperty("yVarPlot1", variableList[2]); //$NON-NLS-1$
+    setProperty("xVarPlot0", dataVariables[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot0", dataVariables[1]); //$NON-NLS-1$ 
+    setProperty("xVarPlot1", dataVariables[0]); //$NON-NLS-1$ 
+    setProperty("yVarPlot1", dataVariables[2]); //$NON-NLS-1$
 
     // assign default table variables: length and angle
     setProperty("tableVar0", "0"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -111,7 +139,7 @@ public class TapeMeasure extends TTrack {
   	partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
     hint = TrackerRes.getString("TapeMeasure.Hint"); //$NON-NLS-1$
     // create input field and panel
-    inputField = new NumberField(9) {
+    inputField = new TrackNumberField() {
       @Override
       public void setFixedPattern(String pattern) {
       	super.setFixedPattern(pattern);
@@ -132,6 +160,12 @@ public class TapeMeasure extends TTrack {
     inputPanel.add(inputField);
     // eliminate minimum of magField
     magField.setMinValue(Double.NaN);
+    end1Label = new JLabel();
+    end2Label = new JLabel();
+    lengthLabel = new JLabel();
+    end1Label.setBorder(xLabel.getBorder());
+    end2Label.setBorder(xLabel.getBorder());
+    lengthLabel.setBorder(xLabel.getBorder());
     keyFrames.add(0);
     lengthKeyFrames.add(0);
     // add inputField action listener to exit editing mode
@@ -170,6 +204,7 @@ public class TapeMeasure extends TTrack {
         if (isLocked()) return;
         int n = trackerPanel.getFrameNumber();
         TapeStep step = (TapeStep)getStep(n);
+        if (step==null) return;
         Rectangle bounds = step.layoutBounds.get(trackerPanel);
         if (bounds != null &&
             bounds.contains(e.getPoint())) {
@@ -202,7 +237,7 @@ public class TapeMeasure extends TTrack {
         setFixedLength(fixedLengthItem.isSelected());
       }
     });
-  	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+  	attachmentItem = new JMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Attach")); //$NON-NLS-1$
   	attachmentItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	ImageCoordSystem coords = TapeMeasure.this.trackerPanel.getCoords();
@@ -230,6 +265,10 @@ public class TapeMeasure extends TTrack {
           TapeStep step = (TapeStep)getStep(n);
           // replace with key frame step
           step = getKeyStep(step);
+          String rawText = magField.getText();
+        	if (!TapeMeasure.this.isReadOnly()) {
+	          checkLengthUnits(rawText);
+        	}
           step.setTapeLength(magField.getValue());
           dataValid = false;
   	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
@@ -286,7 +325,7 @@ public class TapeMeasure extends TTrack {
     	TapeStep keyStep = (TapeStep)getStep(n);
       for (int i = 0; i < steps.length; i++) {
       	TapeStep step = (TapeStep)steps.getStep(i);
-      	if (step==null) continue;
+      	if (step==null || keyStep==null) continue;
         step.getEnd1().setLocation(keyStep.getEnd1());
         step.getEnd2().setLocation(keyStep.getEnd2());
         hasSteps = true;
@@ -329,6 +368,7 @@ public class TapeMeasure extends TTrack {
     	TapeStep keyStep = (TapeStep)getStep(n);
       for (int i = 0; i < steps.length; i++) {
       	TapeStep step = (TapeStep)steps.getStep(i);
+      	if (step==null || keyStep==null) continue;
         step.worldLength = keyStep.worldLength;
       }
       trackerPanel.repaint();
@@ -436,7 +476,7 @@ public class TapeMeasure extends TTrack {
     	// stretch or squeeze stick to keep constant world length
     	int n = trackerPanel.getFrameNumber();
     	TapeStep step = (TapeStep)getStep(n);
-    	step.adjustTipsToLength();
+    	if (step!=null) step.adjustTipsToLength();
     	if (!isFixedPosition()) {
       	keyFrames.add(n);
     	}      
@@ -449,11 +489,12 @@ public class TapeMeasure extends TTrack {
     }
     if (name.equals("stepnumber")) { //$NON-NLS-1$
       if (trackerPanel.getSelectedTrack() == this) {
-	      TapeStep step = (TapeStep)getStep(trackerPanel.getFrameNumber());     
-	      step.getTapeLength(!isStickMode());
+	      TapeStep step = (TapeStep)getStep(trackerPanel.getFrameNumber());
+	      if (step!=null) step.getTapeLength(!isStickMode());
 	      boolean enabled = isFieldsEnabled();
 	      magField.setEnabled(enabled);
 	      angleField.setEnabled(enabled);
+	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
       }
     }
     else if (name.equals("locked")) { //$NON-NLS-1$
@@ -512,23 +553,55 @@ public class TapeMeasure extends TTrack {
    */
   public Step createStep(int n, double x, double y) {
     TapeStep step = (TapeStep)getStep(n);
-    TPoint[] pts = step.getPoints();
-    TPoint p = trackerPanel==null? null: trackerPanel.getSelectedPoint();
-    if (p==null) {
-    	p = step.getEnd1();
-    	if (trackerPanel!=null)
-    		trackerPanel.setSelectedPoint(p);
+    if (step==null) {
+    	// create new step of length zero
+  	  step = new TapeStep(this, n, x, y, x, y);
+	    step.worldLength = step.getTapeLength(true);    	
+	    step.setFootprint(getFootprint());
+	    steps = new StepArray(step); // autofill
+	    step = (TapeStep)getStep(n); // must do this since line above changes n to 0
     }
-    if (p==pts[0] || p==pts[1]) {
-    	p.setLocation(x, y);
-      keyFrames.add(n);
-    	step.worldLength = step.getTapeLength(true);
+    else if (step.worldLength==0) {
+  		initialCalibration = true;
+  		// always mark step 0 when initializing
+  		step = (TapeStep)getStep(0);
+    	// set location of end2 and select readout for entering length
+      step.getEnd2().setLocation(x, y);    	
+	    step.worldLength = step.getTapeLength(true);
+	    EventQueue.invokeLater(new Runnable() {
+	    	public void run() {
+	    		trackerPanel.setSelectedPoint(null);
+	    	}
+	    });
+	    final TapeStep theStep = step;
+	    Timer timer = new Timer(400, new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+	    		setEditing(true, theStep);
+				}	    	
+	    });
+	    timer.setRepeats(false);
+	    timer.start();
+    }
+    else {
+	    TPoint[] pts = step.getPoints();
+	    TPoint p = trackerPanel==null? null: trackerPanel.getSelectedPoint();
+	    if (p==null) {
+	    	p = pts[0];
+	    }
+	    if (p==pts[0] || p==pts[1]) {
+	    	p.setXY(x, y);
+	    	if (trackerPanel!=null) {
+	    		trackerPanel.setSelectedPoint(p);
+	    	}
+	    }
     }
     return step;
   }
 
   /**
    * Mimics step creation by setting end positions of an existing step.
+   * If no existing step, creates one and autofills array
    *
    * @param n the frame number
    * @param x1 the x coordinate of end1 in image space
@@ -563,11 +636,17 @@ public class TapeMeasure extends TTrack {
    */
   public TPoint autoMarkAt(int n, double x, double y) {
     TapeStep step = (TapeStep)getStep(n);
+    if (step==null || step.worldLength==0) {
+    	return null;
+    }
     int index = getTargetIndex();
-    ImageCoordSystem coords = trackerPanel.getCoords();
-    coords.setFixedScale(false);
-    this.setFixedPosition(false);
     TPoint p = step.getPoints()[index];
+    if (p==null) return null;
+    setFixedPosition(false);
+    if (isStickMode()) {
+	    ImageCoordSystem coords = trackerPanel.getCoords();
+	    coords.setFixedScale(false);
+    }
   	p.setAdjusting(true);
   	p.setXY(x, y);
   	p.setAdjusting(false);
@@ -640,6 +719,9 @@ public class TapeMeasure extends TTrack {
    * @return true if autotrackable
    */
   protected boolean isAutoTrackable() {
+	  int n = trackerPanel.getFrameNumber();
+    TapeStep step = (TapeStep)getStep(n);
+    if (step==null || step.worldLength==0) return false;
   	return true;
   }
   
@@ -650,7 +732,7 @@ public class TapeMeasure extends TTrack {
    * @return true if autotrackable
    */
   protected boolean isAutoTrackable(int pointIndex) {
-  	return pointIndex<2;
+  	return isAutoTrackable() && pointIndex<2;
   }
   
   /**
@@ -700,6 +782,7 @@ public class TapeMeasure extends TTrack {
     // add items
     fixedPositionItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
     fixedPositionItem.setSelected(isFixedPosition());
+    TapeStep step = (TapeStep)steps.getStep(0);
     boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
     boolean hasAttachments = attachments!=null;
     if (hasAttachments) {
@@ -709,7 +792,7 @@ public class TapeMeasure extends TTrack {
     	}
     }
     // put fixed position item after locked item
-    fixedPositionItem.setEnabled(canBeFixed && !hasAttachments);
+    fixedPositionItem.setEnabled(canBeFixed && !hasAttachments && step!=null && step.worldLength>0);
     for (int i=0; i<menu.getItemCount(); i++) {
     	if (menu.getItem(i)==lockedItem) {
 		  	menu.insert(fixedPositionItem, i+1);
@@ -718,7 +801,8 @@ public class TapeMeasure extends TTrack {
     }
   	
     // insert the attachments dialog item at beginning
-  	attachmentItem.setText(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
+    attachmentItem.setEnabled(step!=null && step.worldLength>0);
+  	attachmentItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Attach")); //$NON-NLS-1$
     menu.insert(attachmentItem, 0);
   	menu.insertSeparator(1);
   	
@@ -744,17 +828,66 @@ public class TapeMeasure extends TTrack {
   	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     magLabel.setText(TrackerRes.getString("TapeMeasure.Label.Length")); //$NON-NLS-1$
     magField.setToolTipText(TrackerRes.getString("TapeMeasure.Field.Magnitude.Tooltip")); //$NON-NLS-1$
+    magField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));    
+
+    // put step number into label and add to list
+    stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+    VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+    int n = clip.frameToStep(trackerPanel.getFrameNumber());
+    stepValueLabel.setText(n+":"); //$NON-NLS-1$
     list.add(stepSeparator);
-    list.add(magLabel);
-    list.add(magField);
-		angleLabel.setText(TrackerRes.getString("TapeMeasure.Label.TapeAngle")); //$NON-NLS-1$
-		angleField.setToolTipText(TrackerRes.getString("TapeMeasure.Field.TapeAngle.Tooltip")); //$NON-NLS-1$
-    list.add(magSeparator);
-    list.add(angleLabel);
-    list.add(angleField);
-    boolean enabled = isFieldsEnabled();
-    magField.setEnabled(enabled);
-    angleField.setEnabled(enabled);
+    
+    // look for newly created tapes
+	  n = trackerPanel.getFrameNumber();
+    TapeStep step = (TapeStep)getStep(n);
+    
+    // add world coordinate fields and labels
+    boolean exists = step!=null;
+    boolean complete = exists && step.worldLength>0;
+    String s = TrackerRes.getString("TapeMeasure.End.Name"); //$NON-NLS-1$
+    String unmarked = TrackerRes.getString("TTrack.Label.Unmarked"); //$NON-NLS-1$    
+    if (!exists) {
+      end1Label.setText(s+" 1: "+unmarked); //$NON-NLS-1$
+      end1Label.setForeground(Color.red.darker());
+      list.add(end1Label);
+    }
+    else if (!complete) {
+      end1Label.setText(s+" 1: "+TrackerRes.getString("TapeMeasure.Label.Marked")); //$NON-NLS-1$ //$NON-NLS-2$
+      end1Label.setForeground(Color.green.darker());
+      list.add(end1Label);
+	    list.add(magSeparator);
+      end2Label.setText(s+" 2: "+unmarked); //$NON-NLS-1$
+      end2Label.setForeground(Color.red.darker());
+      list.add(end2Label);
+    }
+    else if (initialCalibration) {
+      end1Label.setText(s+" 1: "+TrackerRes.getString("TapeMeasure.Label.Marked")); //$NON-NLS-1$ //$NON-NLS-2$
+      end1Label.setForeground(Color.green.darker());
+      list.add(end1Label);
+	    list.add(magSeparator);
+      end2Label.setText(s+" 2: "+TrackerRes.getString("TapeMeasure.Label.Marked")); //$NON-NLS-1$ //$NON-NLS-2$
+      end2Label.setForeground(Color.green.darker());
+      list.add(end2Label);
+      list.add(tSeparator);
+      lengthLabel.setText(TrackerRes.getString("TapeMeasure.Label.EnterLength.Text")); //$NON-NLS-1$
+      lengthLabel.setForeground(Color.red.darker());
+      list.add(lengthLabel);
+    }
+    else {
+      list.add(stepLabel);
+      list.add(stepValueLabel);
+      list.add(tSeparator);
+	    list.add(magLabel);
+	    list.add(magField);
+			angleLabel.setText(TrackerRes.getString("TapeMeasure.Label.TapeAngle")); //$NON-NLS-1$
+			angleField.setToolTipText(TrackerRes.getString("TapeMeasure.Field.TapeAngle.Tooltip")); //$NON-NLS-1$
+	    list.add(magSeparator);
+	    list.add(angleLabel);
+	    list.add(angleField);
+	    boolean enabled = isFieldsEnabled();
+	    magField.setEnabled(enabled);
+	    angleField.setEnabled(enabled);
+    }
     return list;
   }
 
@@ -773,12 +906,27 @@ public class TapeMeasure extends TTrack {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     int n = trackerPanel.getFrameNumber();
     TapeStep step = (TapeStep)getStep(n);
-    if (step==null) return null;
-    TPoint[] pts = step.points;
+    if (step==null) {
+      partName = null;
+      hint = TrackerRes.getString("TapeMeasure.MarkEnd.Hint")+" 1"; //$NON-NLS-1$ //$NON-NLS-2$      		
+    	return null;
+    }
     if (trackerPanel.getPlayer().getVideoClip().includesFrame(n)) {
+    	TPoint[] pts = step.points;
     	TPoint p = trackerPanel.getSelectedPoint();
       Interactive ia = step.findInteractive(trackerPanel, xpix, ypix);
-      if (ia == null) {
+      if (step.worldLength==0) {
+      	if (ia instanceof TapeStep.Tip || ia instanceof TapeStep.Handle) {
+      		ia = step.handle;
+	        partName = TrackerRes.getString("TapeMeasure.End.Name")+" 1"; //$NON-NLS-1$ //$NON-NLS-2$
+	        hint = TrackerRes.getString("TapeMeasure.Handle.Hint"); //$NON-NLS-1$
+      	}
+      	else {
+	        partName = null;
+	        hint = TrackerRes.getString("TapeMeasure.MarkEnd.Hint")+" 2"; //$NON-NLS-1$ //$NON-NLS-2$      		
+      	}
+      }
+      else if (ia == null) {
         if (p==pts[0] || p==pts[1]) {
           partName = TrackerRes.getString("TapeMeasure.End.Name"); //$NON-NLS-1$
           if (isStickMode() && !isReadOnly())
@@ -812,7 +960,6 @@ public class TapeMeasure extends TTrack {
       		hint = TrackerRes.getString("CalibrationTapeMeasure.Readout.Magnitude.Hint"); //$NON-NLS-1$
       	else
       		hint = TrackerRes.getString("TapeMeasure.Readout.Magnitude.Hint"); //$NON-NLS-1$
-      	trackerPanel.setMessage(getMessage());
       } 
       return ia;
     }
@@ -835,12 +982,12 @@ public class TapeMeasure extends TTrack {
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
     // assign column names to the datasets
-    String time = variableList[0]; 
+    String time = dataVariables[0]; 
     if (!length.getColumnName(0).equals(time)) { // not yet initialized
-    	length.setXYColumnNames(time, variableList[1]); 
-    	angle.setXYColumnNames(time, variableList[2]);
-	    stepNum.setXYColumnNames(time, variableList[3]); 
-	    frameNum.setXYColumnNames(time, variableList[4]); 
+    	length.setXYColumnNames(time, dataVariables[1]); 
+    	angle.setXYColumnNames(time, dataVariables[2]);
+	    stepNum.setXYColumnNames(time, dataVariables[3]); 
+	    frameNum.setXYColumnNames(time, dataVariables[4]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -898,10 +1045,11 @@ public class TapeMeasure extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	numberFields.clear();
-  	numberFields.put(variableList[0], new NumberField[] {tField});
-  	numberFields.put(variableList[1], new NumberField[] {magField, inputField});
-  	numberFields.put(variableList[2], new NumberField[] {angleField});
+  	if (numberFields.isEmpty()) {
+	  	numberFields.put(dataVariables[0], new NumberField[] {tField});
+	  	numberFields.put(dataVariables[1], new NumberField[] {magField, inputField});
+	  	numberFields.put(dataVariables[2], new NumberField[] {angleField});
+  	}
   	return numberFields;
   }
   
@@ -912,21 +1060,63 @@ public class TapeMeasure extends TTrack {
    */
   protected JPopupMenu getInputFieldPopup() {
   	JPopupMenu popup = new JPopupMenu();
-		JMenuItem item = new JMenuItem();
-		final String[] selected = new String[] {variableList[1]}; 
-		item.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {              		
-        NumberFormatSetter dialog = NumberFormatSetter.getFormatSetter(TapeMeasure.this, selected);
-        FontSizer.setFonts(dialog, FontSizer.getLevel());
-        dialog.pack();     
-  	    dialog.setVisible(true);
-      }
-    });
-		item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
-		popup.add(item);
+    if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
+	  	JMenu numberMenu = new JMenu(TrackerRes.getString("Popup.Menu.Numbers")); //$NON-NLS-1$
+			popup.add(numberMenu);
+			if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
+				JMenuItem item = new JMenuItem();
+				final String[] selected = new String[] {dataVariables[1]}; 
+				item.addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent e) {              		
+		        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, TapeMeasure.this, selected);
+		  	    dialog.setVisible(true);
+		      }
+		    });
+				item.setText(TrackerRes.getString("Popup.MenuItem.Formats")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+				numberMenu.add(item);
+			}			
+			if (trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$
+				JMenuItem item = new JMenuItem();
+				item.addActionListener(new ActionListener() {
+		      public void actionPerformed(ActionEvent e) {              		
+		        UnitsDialog dialog = trackerPanel.getUnitsDialog();
+		  	    dialog.setVisible(true);
+		      }
+		    });
+				item.setText(TrackerRes.getString("Popup.MenuItem.Units")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+				numberMenu.add(item);
+			}
+  		popup.addSeparator();
+    }
+    
+    boolean hasLengthUnit = trackerPanel.lengthUnit!=null; 
+    boolean hasMassUnit = trackerPanel.massUnit!=null; 
+    if (hasLengthUnit && hasMassUnit) {
+  		JMenuItem item = new JMenuItem();
+  		final boolean vis = trackerPanel.isUnitsVisible();
+  		item.addActionListener(new ActionListener() {
+        public void actionPerformed(ActionEvent e) {              		
+          trackerPanel.setUnitsVisible(!vis);
+          TTrackBar.getTrackbar(trackerPanel).refresh();
+          Step step = getStep(trackerPanel.getFrameNumber());     
+          step.repaint();
+        }
+      });
+  		item.setText(vis? TrackerRes.getString("TTrack.MenuItem.HideUnits"): //$NON-NLS-1$
+  				TrackerRes.getString("TTrack.MenuItem.ShowUnits")); //$NON-NLS-1$
+  		popup.add(item);
+    }
 		return popup;
   }
   
+  @Override
+  public void setFontLevel(int level) {
+  	super.setFontLevel(level);
+  	Object[] objectsToSize = new Object[]
+  			{end1Label, end2Label, lengthLabel};
+    FontSizer.setFonts(objectsToSize, level);
+  }
+
 //__________________________ protected and private methods _______________________
 
   /**
@@ -993,7 +1183,7 @@ public class TapeMeasure extends TTrack {
     }
 
     // check length only if in stick mode
-  	if (isStickMode()) {
+  	if (isStickMode() || step.worldLength==0) {
   	  keyStep = (TapeStep)steps.getStep(isFixedLength()? 0: lengthKey);
   		different = keyStep.worldLength!=step.worldLength;
       if (different) {
@@ -1014,6 +1204,7 @@ public class TapeMeasure extends TTrack {
    * @param target the tape step that handles the edit process
    */
   private void setEditing(boolean edit, TapeStep target) {
+  	final String rawText = inputField.getText();
     editing = edit;
     if ((readOnly || isStickMode()) && !editing) {
     	// if not fixed, add target frame to key frames
@@ -1027,7 +1218,9 @@ public class TapeMeasure extends TTrack {
       public void run() {
         if (editing) {
         	trackerPanel.setSelectedTrack(TapeMeasure.this);
+        	FontSizer.setFonts(inputField, FontSizer.getLevel());
           inputField.setForeground(footprint.getColor());
+          inputField.setUnits(trackerPanel.getUnits(TapeMeasure.this, dataVariables[1]));    
           Rectangle bounds = step.layoutBounds.get(trackerPanel);
           bounds.grow(3, 3);
           bounds.setLocation(bounds.x+1, bounds.y);
@@ -1051,18 +1244,53 @@ public class TapeMeasure extends TTrack {
         }
         else { // end editing
         	step.drawLayoutBounds = false;
-          step.setTapeLength(inputField.getValue());
+        	if (!TapeMeasure.this.isReadOnly()) {
+	          checkLengthUnits(rawText);
+        	}
+          if (step.worldLength>0) {
+          	step.setTapeLength(inputField.getValue());
+	      		step.repaint(trackerPanel);
+          }
         	inputField.setSigFigs(4);
-          trackerPanel.add(glassPanel, BorderLayout.CENTER);
           trackerPanel.remove(inputPanel);
+          trackerPanel.add(glassPanel, BorderLayout.CENTER);
           dataValid = false;
   	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
           trackerPanel.revalidate();
           trackerPanel.repaint();
+      		initialCalibration = false;
+	    		TTrackBar.getTrackbar(trackerPanel).refresh();
         }
       }
     };
     EventQueue.invokeLater(runner);
+  }
+  
+  private void checkLengthUnits(String rawText) {
+    String[] split = rawText.split(" "); //$NON-NLS-1$
+    if (split.length>1) {
+    	// find first character not ""
+    	for (int i=1; i< split.length; i++) {
+    		if (!"".equals(split[i])) { //$NON-NLS-1$
+      		if (split[i].equals(trackerPanel.getLengthUnit())) {
+	          trackerPanel.setUnitsVisible(true);
+      		}
+      		else {
+      			int response = JOptionPane.showConfirmDialog(trackerPanel.getTFrame(), 
+      					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Message") //$NON-NLS-1$
+      					+" \""+split[i]+"\" ?",  //$NON-NLS-1$ //$NON-NLS-2$
+      					TrackerRes.getString("TapeMeasure.Dialog.ChangeLengthUnit.Title"),  //$NON-NLS-1$
+      					JOptionPane.YES_NO_OPTION);
+      			if (response==JOptionPane.YES_OPTION) {
+	          	trackerPanel.setLengthUnit(split[i]);
+	          	trackerPanel.setUnitsVisible(true);
+      			}
+      		}
+        	break;
+    		}
+    	}
+    }
+
   }
   
   /**

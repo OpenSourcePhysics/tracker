@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ import javax.swing.*;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -482,7 +483,9 @@ public abstract class TrackChooserTView extends JPanel implements TView {
       		if (coords.isAdjusting()) return;
       	}
         TrackView trackView = getTrackView(track);
-        trackView.refresh(trackerPanel.getFrameNumber());
+        TPoint pt = trackerPanel.getSelectedPoint();
+        Step step = track.getStep(pt, trackerPanel);
+        trackView.refresh(step==null? trackerPanel.getFrameNumber(): step.getFrameNumber());
       }
     }
     else if (name.equals("data")) {             // data has changed //$NON-NLS-1$

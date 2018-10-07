@@ -179,7 +179,10 @@ public class ModelFunctionPanel extends FunctionPanel {
 		String name = e.getPropertyName();
  	  if (e.getSource() == paramEditor && name.equals("edit")) { //$NON-NLS-1$
 	  	initEditor.getTable().selectOnFocus = false;
- 	  }
+ 	  } 
+ 	  else if (name.equals("angles_in_radians") && model.trackerPanel!=null) {   //$NON-NLS-1$
+ 	  	model.trackerPanel.getTFrame().setAnglesInRadians((Boolean)e.getNewValue());
+	  }
 	}
 	
 	@Override
@@ -211,6 +214,6 @@ public class ModelFunctionPanel extends FunctionPanel {
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston MA 02111-1307 USA
  * or view the license online at http://www.gnu.org/copyleft/gpl.html
  *
- * Copyright (c) 2017  The Open Source Physics project
+ * Copyright (c) 2018  The Open Source Physics project
  *                     http://www.opensourcephysics.org
  */

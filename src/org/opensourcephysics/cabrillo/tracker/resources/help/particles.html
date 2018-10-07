@@ -9,12 +9,12 @@
 	</head>
 
 	<body>
-		<h1> Particle Models</h1>
+		<h1><a name="model0" id="model0"></a>Particle Models</h1>
 		<p align="center">
 			<img src="../help_images/particle.gif">
         </p>
 		<p>A <strong>particle model</strong> track is a mathematical model of a point mass. The step positions of the particle are determined by the parameters of the model rather than being marked with the mouse.</p>
-		<p>There are two types of particle models: <strong>kinematic</strong> and <strong>dynamic</strong>. A kinematic particle defines position functions of time (<a href="particles.html#fig4">Figure 4</a>), while a dynamic particle defines force functions and initial conditions for numerical ODE solvers (<a href="particles.html#fig1">Figure 1</a>). Dynamic particles may be defined in either <strong>cartesian</strong> or <strong>polar</strong> coordinates.</p>
+		<p>There are two types of particle models: <strong>kinematic</strong> and <strong>dynamic</strong>. A kinematic particle defines position functions of time (Figure 4), while a dynamic particle defines force functions and initial conditions for numerical ODE solvers (Figure 1). Dynamic particles may be defined in either <strong>cartesian</strong> or <strong>polar</strong> coordinates.</p>
 		<p>Model particles have a <strong>start</strong> and <strong>end</strong> frame that define the frames of the video in which they are drawn. This makes it possible to define multiple models that apply at different times in the same video.</p>
 		<p>A dynamic particle may use a <strong>launcher</strong> (point mass) to set its initial position and velocity. Launchers can be quite powerful--for more information, see <a href="#launching">Launching dynamic particles</a>.</p>
 <p>A particle model has a settable mass and generates motion data and vectors just like any other point mass. See <a href="pointmass.html">point mass</a> for additional information.</p>
@@ -23,19 +23,19 @@
 <h3><a id="model_builder" name="model_builder"></a>1. Building particle models</h3>
 		<p>Particle model properties are displayed and edited using the Model Builder tool. To use the builder, choose <strong>Model Builder...</strong> from the model's track menu.</p>
 		<p align="center">
-			<a id="fig1" name="fig1"></a><img src="../help_images/model_builder.gif">
+			<img src="../help_images/model_builder.gif">
 </p>						
         <h5>Fig. 1 Model Builder with a dynamic particle model of a simple projectile</h5>
 		<p>Functions and parameters are defined by entering expressions that are &quot;parsed&quot; (interpreted) by the OSP parser. The values of parameters are constants while those of functions depend on input variables such as x, y, t, etc. The parser recognizes the following elements:</p>
 		<ul>
-            <li><strong>Numbers </strong>in decimal or scientific notation (e.g., 1.0E-3)
-            <li><strong>Names</strong> of parameters, functions and other input variables 
-            <li><strong>Constants</strong> e and pi
-            <li><strong>Arithmetic operators</strong> + - * / ^ 
-            <li><strong>Boolean operators</strong> = &gt; &lt; &lt;= &gt;= &lt;&gt; &amp; | ! 
-            <li><strong>Parentheses</strong> to control order of operation
-            <li><strong>Mathematical functions</strong> shown in Table 1
-            <li><strong>If statements</strong> in the form <em>if(conditional statement, expression1, expression2)</em>. Expression1 is evaluated if the conditional statement is true and expression2 is evaluated if it is false. For example, if (x &lt; 0, x^2, -x^2) is a valid function expression.
+            <li><strong>Numbers </strong>in decimal or scientific notation (e.g., 1.0E-3)</li>
+            <li><strong>Names</strong> of parameters, functions and other input variables</li> 
+            <li><strong>Constants</strong> e and pi</li>
+            <li><strong>Arithmetic operators</strong> + - * / ^ </li>
+            <li><strong>Boolean operators</strong> = &gt; &lt; &lt;= &gt;= &lt;&gt; &amp; | ! </li>
+            <li><strong>Parentheses</strong> to control order of operation</li>
+            <li><strong>Mathematical functions</strong> shown in Table 1</li>
+            <li><strong>If statements</strong> in the form <em>if(conditional statement, expression1, expression2)</em>. Expression1 is evaluated if the conditional statement is true and expression2 is evaluated if it is false. For example, if (x &lt; 0, x^2, -x^2) is a valid function expression.</li>
         </ul>
         <div align="center">
             <table border="1">
@@ -99,11 +99,11 @@
             <li>Single or multiple table rows can be copied or cut to the clipboard for <strong>pasting</strong> into other Model Builder tables. 
         </ol>
 		<p align="center">
-			<a id="fig4" name="fig4"></a><img src="../help_images/model_builder_support.gif">
+			<img src="../help_images/model_builder_support.gif">
 </p>
 		<h5>Fig. 4 Using a support function to simplify expressions</h5>
         
-	<h3>2. Adjusting numerical values</h3>
+	<h3><a name="model2" id="model2"></a>2. Adjusting numerical values</h3>
 		<p>Numerical values can be easily adjusted by clicking in a green control area and dragging the mouse to the right or left. The control area is displayed below the list of variables in the popup editor whenever the expression is a number as shown in Fig. 5.</p>
 		<p align="center">
 			<img src="../help_images/model_builder_adjust.gif">
@@ -128,7 +128,7 @@
 		</p>
 		<h5>Fig. 6 Defining a launcher to set initial conditions</h5>
         
-    <h3><a id="stamping" name="stamping"></a>3. Stamping a point mass</h3>
+    <h3><a id="stamping" name="stamping"></a>4. Stamping a point mass</h3>
 <p>The positions of a model's steps (on the video image) are determined by (a) the model expressions, parameters and/or data and (b) the origin, tilt and scale of the coordinate system. This means if you change the axes or the calibration of the video the steps will move. But sometimes it is useful to have the steps behave like a standard point mass: stay fixed on the image so when you change the coordinate system the steps don't move but instead the world data changes. Creating a point mass that clones a model is called <strong>stamping a point mass</strong>.</p>
 		<p>To stamp a point mass from a model, choose the <strong>Stamp Point Mass</strong> menu item from the model's track menu. For an <a href="datatrack.html">External Model</a>, the Stamp Point Mass item is in the <strong>Points</strong> submenus. The stamped point mass is given the name of the model plus "stampX" where X is a number. A single model may stamp multiple point masses with varying parameters for comparison or editing.</p>
 </body>

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -789,6 +789,12 @@ public class VectorStep extends Step
     public boolean isShort() {
     	return tip.distanceSq(tail) < 25;
     }
+    
+    @Override
+    public boolean isStepEditTrigger() {
+    	if (getTrack() instanceof PointMass) return false;
+    	return super.isStepEditTrigger();
+    }
 
   }
 
@@ -865,11 +871,12 @@ public class VectorStep extends Step
           y = m.getMass() * y;
         }
       }
-      track.xField.setValue(x);
-      track.yField.setValue(y);
-      track.magField.setValue(Math.sqrt(x * x + y * y));
+      NumberField[] fields = track.getNumberFieldsForStep(VectorStep.this);
+      fields[0].setValue(x); 
+      fields[1].setValue(y); 
+      fields[2].setValue(Math.sqrt(x * x + y * y)); 
       double theta = Math.atan2(y, x);
-      track.angleField.setValue(theta);
+      fields[3].setValue(theta); 
       super.showCoordinates(vidPanel);
     }
 

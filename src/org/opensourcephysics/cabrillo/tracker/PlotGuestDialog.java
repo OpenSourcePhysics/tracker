@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,10 +43,12 @@ public class PlotGuestDialog extends JDialog {
   // instance fields
   protected TrackPlottingPanel plot;
   protected TrackerPanel trackerPanel;
-  protected JButton okButton;
+  protected JButton okButton, selectAllButton;
   protected JPanel checkboxPanel;
   protected ActionListener listener;
   protected TitledBorder instructions;
+  protected TreeSet<Integer> allTracks = new TreeSet<Integer>();
+  protected boolean allTracksSelected;
 
   /**
    * Constructs a PlotGuestDialog.
@@ -86,7 +88,7 @@ public class PlotGuestDialog extends JDialog {
     JPanel inspectorPanel = new JPanel(new BorderLayout());
     setContentPane(inspectorPanel);
     // create checkboxPanel
-    checkboxPanel = new JPanel(new GridLayout(0, 1));
+    checkboxPanel = new JPanel(new GridLayout(0, 2));
     Border etched = BorderFactory.createEtchedBorder();
     instructions = BorderFactory.createTitledBorder(etched,""); //$NON-NLS-1$
     checkboxPanel.setBorder(instructions);
@@ -99,15 +101,32 @@ public class PlotGuestDialog extends JDialog {
         setVisible(false);
       }
     });
+    // create compareAllButton
+    selectAllButton = new JButton(TrackerRes.getString("PlotGuestDialog.Button.SelectAll.Text")); //$NON-NLS-1$
+    selectAllButton.setForeground(new Color(0, 0, 102));
+    selectAllButton.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	for (Integer id: allTracks) {
+		      TTrack track = TTrack.getTrack(id);
+		      if (allTracksSelected) {
+		      	plot.removeGuest(track);
+		      }
+		      else plot.addGuest(track);
+      	}
+      	plot.plotData();
+      	updateDisplay();
+      }
+    });
     // create buttonbar at bottom
-    JPanel buttonbar = new JPanel(new GridLayout(1, 3));
+    JPanel buttonbar = new JPanel();
     buttonbar.setBorder(BorderFactory.createEmptyBorder(1, 0, 3, 0));
     inspectorPanel.add(buttonbar, BorderLayout.SOUTH);
-    Box box = Box.createHorizontalBox();
-    buttonbar.add(box);
+//    Box box = Box.createHorizontalBox();
+//    buttonbar.add(box);
+    buttonbar.add(selectAllButton);
     buttonbar.add(okButton);
-    box = Box.createHorizontalBox();
-    buttonbar.add(box);
+//    box = Box.createHorizontalBox();
+//    buttonbar.add(box);
   }
 
   /**
@@ -118,22 +137,56 @@ public class PlotGuestDialog extends JDialog {
     setTitle(track.getName());
     instructions.setTitle(TrackerRes.getString("PlotGuestDialog.Instructions")); //$NON-NLS-1$
     // make checkboxes for all similar tracks in trackerPanel
-    checkboxPanel.removeAll();   
     Class<? extends TTrack> type = track instanceof PointMass? PointMass.class:
     	track instanceof Vector? Vector.class: track.getClass();
     ArrayList<? extends TTrack> tracks = trackerPanel.getDrawables(type);
     tracks.removeAll(trackerPanel.calibrationTools);
     tracks.remove(track);
+    int tracksPerColumn = 8;
+    int cols = 1+(tracks.size()-1)/tracksPerColumn;
+    checkboxPanel.setLayout(new GridLayout(0, cols));
+    checkboxPanel.removeAll(); 
+    int counter = 0;
+    int h = 0;
+    Box box = Box.createVerticalBox();
+    allTracks.clear();
+    allTracksSelected = true;
     for (TTrack next: tracks) {
+    	allTracks.add(next.getID());
       JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(
           next.getName(), next.getFootprint().getIcon(21, 16));
       checkbox.setBorderPainted(false);
       // check the checkbox if next is a guest
       checkbox.setSelected(plot.guests.contains(next));
+      allTracksSelected = allTracksSelected && checkbox.isSelected();
       checkbox.setActionCommand(String.valueOf(next.getID()));
       checkbox.addActionListener(listener);
-      checkboxPanel.add(checkbox);
+      box.add(checkbox);
+      h = checkbox.getPreferredSize().height;
+      counter++;
+      if (counter%tracksPerColumn==0) {
+        checkboxPanel.add(box);
+        counter = 0;
+        if (checkboxPanel.getComponentCount()<cols) {
+        	box = Box.createVerticalBox();
+        }
+      }
     }
+    
+    if (checkboxPanel.getComponentCount()<cols) {
+    	// add last box and pad its bottom if not the first
+    	if (checkboxPanel.getComponentCount()>0) {
+	    	int n = tracksPerColumn - box.getComponentCount();
+	    	box.add(Box.createVerticalStrut(n*h));
+    	}
+      checkboxPanel.add(box);
+    }
+    if (allTracksSelected) {
+    	
+    }
+    selectAllButton.setText(allTracksSelected? 
+    		TrackerRes.getString("PlotGuestDialog.Button.SelectNone.Text"): //$NON-NLS-1$
+    		TrackerRes.getString("PlotGuestDialog.Button.SelectAll.Text")); //$NON-NLS-1$
   	FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
     pack();
     repaint();

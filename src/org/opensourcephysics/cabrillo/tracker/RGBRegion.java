@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,11 +50,46 @@ public class RGBRegion extends TTrack {
   // static fields
   protected static int defaultRadius = 10;
   protected static int defaultMaxRadius = 100;
-  protected static String[]	variableList;
+  protected static String[]	dataVariables;
+  protected static String[] fieldVariables; // associated with number fields
+  protected static String[] formatVariables; // used by NumberFormatSetter
+  protected static Map<String, ArrayList<String>> formatMap;
+  protected static Map<String, String> formatDescriptionMap;
 
   static {
-  	variableList = new String[] {"t", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
+  	dataVariables = new String[] {"t", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
   			"G", "B", "luma", "pixels", "step", "frame"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+  	fieldVariables = new String[] {"t", "x", "y"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
+  	formatVariables = new String[] {"t", "xy", "RGB", "luma"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+  	
+  	// assemble format map
+		formatMap = new HashMap<String, ArrayList<String>>();		
+		ArrayList<String> list = new ArrayList<String>();
+		list.add(dataVariables[0]); 
+		formatMap.put(formatVariables[0], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[1]); 
+		list.add(dataVariables[2]); 
+		formatMap.put(formatVariables[1], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[3]); 
+		list.add(dataVariables[4]); 
+		list.add(dataVariables[5]); 
+		formatMap.put(formatVariables[2], list);
+		
+		list = new ArrayList<String>();
+		list.add(dataVariables[6]); 
+		formatMap.put(formatVariables[3], list);
+		
+		// assemble format description map
+		formatDescriptionMap = new HashMap<String, String>();
+		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("PointMass.Position.Name")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("LineProfile.Description.RGB")); //$NON-NLS-1$ 
+		formatDescriptionMap.put(formatVariables[3], TrackerRes.getString("LineProfile.Data.Brightness")); //$NON-NLS-1$ 
+
   }
 
   // instance fields
@@ -79,7 +114,7 @@ public class RGBRegion extends TTrack {
     // assign a default name
     setName(TrackerRes.getString("RGBRegion.New.Name")); //$NON-NLS-1$
     // assign default plot variables
-    setProperty("yVarPlot0", variableList[6]); //$NON-NLS-1$
+    setProperty("yVarPlot0", dataVariables[6]); //$NON-NLS-1$
     setProperty("yMinPlot0", new Double(0)); //$NON-NLS-1$
     setProperty("yMaxPlot0", new Double(255)); //$NON-NLS-1$
     // assign default table variables: x, y and luma
@@ -97,6 +132,8 @@ public class RGBRegion extends TTrack {
     hint = TrackerRes.getString("RGBRegion.Unmarked.Hint"); //$NON-NLS-1$
     // create toolbar components
     radiusLabel = new JLabel();
+    Border empty = BorderFactory.createEmptyBorder(0, 4, 0, 2);
+    radiusLabel.setBorder(empty);
     radiusField = new IntegerField(2);
     radiusField.setMinValue(1);
     // radius focus listener
@@ -115,6 +152,7 @@ public class RGBRegion extends TTrack {
         radiusField.requestFocusInWindow();
       }
     });
+    radiusField.addMouseListener(formatMouseListener);
     fixedPositionItem = new JCheckBoxMenuItem(TrackerRes.getString("RGBRegion.MenuItem.Fixed")); //$NON-NLS-1$
     fixedPositionItem.addItemListener(new ItemListener() {
       public void itemStateChanged(ItemEvent e) {
@@ -261,6 +299,7 @@ public class RGBRegion extends TTrack {
       // deselect selected point to trigger possible undo, then reselect it
       TPoint selection = trackerPanel.getSelectedPoint();
       trackerPanel.setSelectedPoint(null);
+      trackerPanel.selectedSteps.clear();
     	XMLControl state = new XMLControlElement(step);
     	
       if (isFixedRadius()) {
@@ -496,7 +535,7 @@ public class RGBRegion extends TTrack {
    * @param trackerPanel the tracker panel
    */
   protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
-    if (trackerPanel == null || data == null) return;
+    if (refreshDataLater || trackerPanel == null || data == null) return;
     dataFrames.clear();
   	// get valid step at current frameNumber
     int frame = trackerPanel.getFrameNumber();
@@ -516,17 +555,17 @@ public class RGBRegion extends TTrack {
     Dataset stepNum = data.getDataset(count++);
     Dataset frameNum = data.getDataset(count++);
     // assign column names to the datasets
-    String time = variableList[0]; 
+    String time = dataVariables[0]; 
     if (!x.getColumnName(0).equals(time)) { // not yet initialized
-	    x.setXYColumnNames(time, variableList[1]); 
-	    y.setXYColumnNames(time, variableList[2]); 
-	    r.setXYColumnNames(time, variableList[3]); 
-	    g.setXYColumnNames(time, variableList[4]); 
-	    b.setXYColumnNames(time, variableList[5]); 
-	    luma.setXYColumnNames(time, variableList[6]); 
-	    pixels.setXYColumnNames(time, variableList[7]); 
-	    stepNum.setXYColumnNames(time, variableList[8]); 
-	    frameNum.setXYColumnNames(time, variableList[9]); 
+	    x.setXYColumnNames(time, dataVariables[1]); 
+	    y.setXYColumnNames(time, dataVariables[2]); 
+	    r.setXYColumnNames(time, dataVariables[3]); 
+	    g.setXYColumnNames(time, dataVariables[4]); 
+	    b.setXYColumnNames(time, dataVariables[5]); 
+	    luma.setXYColumnNames(time, dataVariables[6]); 
+	    pixels.setXYColumnNames(time, dataVariables[7]); 
+	    stepNum.setXYColumnNames(time, dataVariables[8]); 
+	    frameNum.setXYColumnNames(time, dataVariables[9]); 
     }
     else for (int i = 0; i < count; i++) {
     	data.getDataset(i).clear();
@@ -628,12 +667,41 @@ public class RGBRegion extends TTrack {
   public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
     ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     radiusLabel.setText(TrackerRes.getString("RGBRegion.Label.Radius")); //$NON-NLS-1$
-    Border empty = BorderFactory.createEmptyBorder(0, 4, 0, 2);
-    radiusLabel.setBorder(empty);
     list.add(radiusLabel);
     radiusField.setIntValue(getRadius());
     radiusField.setEnabled(!isLocked());
     list.add(radiusField);
+    
+	  int n = trackerPanel.getFrameNumber();
+    Step step = getStep(n);
+    if (step==null) return list;
+    
+    stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+  	xLabel.setText(dataVariables[1]); 
+  	yLabel.setText(dataVariables[2]); 
+    xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+    yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
+
+    xField.setEnabled(!isLocked());
+    yField.setEnabled(!isLocked());
+    
+    // put step number into label
+    stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
+    VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+    n = clip.frameToStep(n);
+    stepValueLabel.setText(n+":"); //$NON-NLS-1$
+
+    list.add(stepSeparator);
+    list.add(stepLabel);
+    list.add(stepValueLabel);
+    list.add(tSeparator);
+    list.add(xLabel);
+    list.add(xField);
+    list.add(xSeparator);
+    list.add(yLabel);
+    list.add(yField);
+    list.add(ySeparator);
+
     return list;
   }
 
@@ -646,23 +714,27 @@ public class RGBRegion extends TTrack {
    */
   public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
                                              TPoint point) {
-    Step step = getStep(point, trackerPanel);
+  	
     ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
-    if (step == null) return list;
-    int n = step.getFrameNumber();
-    n = trackerPanel.getPlayer().getVideoClip().frameToStep(n);
-    xField.setEnabled(!isLocked());
-    yField.setEnabled(!isLocked());
-    list.add(stepSeparator);
-    list.add(stepLabel);
-    list.add(stepValueLabel);
-    list.add(tSeparator);
-    list.add(xLabel);
-    list.add(xField);
-    list.add(xSeparator);
-    list.add(yLabel);
-    list.add(yField);
-    list.add(ySeparator);
+//    if (getStep(point, trackerPanel)==null) return list;
+//
+//  	xLabel.setText(dataVariables[1]); 
+//  	yLabel.setText(dataVariables[2]); 
+//    xField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+//    yField.setUnits(trackerPanel.getUnits(this, dataVariables[2]));
+//
+//    xField.setEnabled(!isLocked());
+//    yField.setEnabled(!isLocked());
+//    list.add(stepSeparator);
+//    list.add(stepLabel);
+//    list.add(stepValueLabel);
+//    list.add(tSeparator);
+//    list.add(xLabel);
+//    list.add(xField);
+//    list.add(xSeparator);
+//    list.add(yLabel);
+//    list.add(yField);
+//    list.add(ySeparator);
     return list;
   }
 
@@ -693,8 +765,14 @@ public class RGBRegion extends TTrack {
       	dataValid = false;
   	    int n = trackerPanel.getFrameNumber();
   	    RGBStep step = (RGBStep)getStep(n);
-  	    if (step != null) radiusField.setIntValue(step.radius);
+  	    if (step != null) {
+  	    	radiusField.setIntValue(step.radius);
+		      Point2D p = step.position.getWorldPosition(trackerPanel);
+		      xField.setValue(p.getX());
+		      yField.setValue(p.getY());
+  	    }
   	    radiusField.setEnabled(!isLocked() && step != null);
+	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
 //        support.firePropertyChange(e); // to views
       }
       else if (name.equals("image")) { //$NON-NLS-1$
@@ -729,26 +807,27 @@ public class RGBRegion extends TTrack {
 
   @Override
   public Map<String, NumberField[]> getNumberFields() {
-  	numberFields.clear();
-  	numberFields.put(variableList[0], new NumberField[] {tField});
-  	numberFields.put(variableList[1], new NumberField[] {xField});
-  	numberFields.put(variableList[2], new NumberField[] {yField});
+  	if (numberFields.isEmpty()) {
+	  	numberFields.put(dataVariables[0], new NumberField[] {tField});
+	  	numberFields.put(dataVariables[1], new NumberField[] {xField});
+	  	numberFields.put(dataVariables[2], new NumberField[] {yField});
+  	}
   	return numberFields;
   }
   
 //__________________________ private methods ___________________________
 
   /**
-   * Sets the position of the currently selected point based on the values
+   * Sets the position of the current step based on the values
    * in the x and y fields.
    */
   private void setPositionFromFields() {
     double xValue = xField.getValue();
     double yValue = yField.getValue();
-    TPoint p = trackerPanel.getSelectedPoint();
     int n = trackerPanel.getFrameNumber();
-    Step step = getStep(n);
-    if (step != null && p != null) {
+    RGBStep step = (RGBStep)getStep(n);    
+    if (step != null) {
+    	TPoint p = step.position;
       ImageCoordSystem coords = trackerPanel.getCoords();
       double x = coords.worldToImageX(n, xValue, yValue);
       double y = coords.worldToImageY(n, xValue, yValue);

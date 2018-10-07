@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2017  Douglas Brown
+ * Copyright (c) 2018  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,6 +75,7 @@ public class TButton extends JButton {
     				&& track != track.trackerPanel.getSelectedTrack()) {
     			track.trackerPanel.setSelectedTrack(track);
     			track.trackerPanel.setSelectedPoint(null);
+          track.trackerPanel.selectedSteps.clear();
         	hidePopup = true;
         }
     	}
