@@ -534,7 +534,7 @@ public class NumberFormatDialog extends JDialog {
   	
   	// get pattern from track NumberField if possible
   	NumberField[] fields = track.getNumberFields().get(name);
-  	if (fields!=null) {
+  	if (fields!=null && fields.length>0) {
   		return fields[0].getFixedPattern();
   	}
   	
