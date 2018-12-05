@@ -2406,7 +2406,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       evolveRateLabel = new JLabel();
       evolveRateLabel.setOpaque(false);
       evolveRateLabel.addMouseListener(mouseOverListener);
-      
+
       SpinnerModel model = new SpinnerNumberModel(defaultEvolveRate, 0, maxEvolveRate, maxEvolveRate/20);
       evolveSpinner = new TallSpinner(model, trackDropdown);
       evolveSpinner.addMouseListenerToAll(mouseOverListener);
@@ -2438,10 +2438,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     			stop(true, false);
         	setChanged();
         }
-    	};
-    	evolveSpinner.addChangeListener(listener);     
-    	setAlphaFromRate((Integer)evolveSpinner.getValue());
-    	
+      };
+      evolveSpinner.addChangeListener(listener);
+      setAlphaFromRate((Integer)evolveSpinner.getValue());
+
       acceptLabel = new JLabel();
       acceptLabel.setOpaque(false);
       acceptLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
@@ -2453,8 +2453,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         	goodMatch = (Integer)acceptSpinner.getValue();
         	setChanged();
         }
-    	};
-    	acceptSpinner.addChangeListener(listener);      
+      };
+      acceptSpinner.addChangeListener(listener);
 
       flowpanel = new JPanel();
       flowpanel.setOpaque(false);
@@ -3164,7 +3164,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       	trackDropdown.setSelectedItem(toSelect);
       }
       trackDropdown.setName(null);
-      
+
       // refresh pointDropdown
       toSelect = null;
       pointDropdown.setName("refresh"); //$NON-NLS-1$
@@ -3223,12 +3223,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     	};
       if (SwingUtilities.isEventDispatchThread()) runner.run();
       else SwingUtilities.invokeLater(runner);
-    	
+
     }
-    
+
     /**
      * Replaces the template icons with new ones.
-     * 
+     *
      * @param keyFrame the key frame with the template matcher
      */
     protected void replaceIcons(final KeyFrame keyFrame) {
@@ -3255,7 +3255,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     	};
       if (SwingUtilities.isEventDispatchThread()) runner.run();
       else SwingUtilities.invokeLater(runner);
-    	
+
     }
 
     /**
@@ -3268,7 +3268,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       	textPane.setText(TrackerRes.getString("AutoTracker.Info.NoVideo")); //$NON-NLS-1$
       	return;
     	}
-      
+
       // blue instructions if no track
       textPane.setForeground(Color.blue);
       TTrack track = getTrack();
@@ -3276,7 +3276,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       	textPane.setText(TrackerRes.getString("AutoTracker.Info.SelectTrack")); //$NON-NLS-1$
       	return;
     	}
-      
+
       // blue instructions if no key frame
       int n = trackerPanel.getFrameNumber();
       FrameData frame = getFrame(n);
@@ -3302,17 +3302,17 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	    	textPane.setText(getSearchInstructions());
 	      return;
       }
-      
+
     	//  actively searching: show frame status
       textPane.setForeground(Color.blue);
       int code = getStatusCode(n);
     	double[] peakWidthAndHeight = frame.getMatchWidthAndHeight();
     	textPane.setText(getStatusInfo(code, n, peakWidthAndHeight));
     }
-        
+
     /**
      * Returns the template instructions.
-     * 
+     *
      * @return the instructions
      */
     protected String getTemplateInstructions() {
@@ -3332,10 +3332,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     	buf.append(TrackerRes.getString("AutoTracker.Info.Mask.Tip")); //$NON-NLS-1$
     	return buf.toString();
     }
-    
+
     /**
      * Returns the search instructions.
-     * 
+     *
      * @return the instructions
      */
     protected String getSearchInstructions() {
@@ -3357,7 +3357,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
     /**
      * Returns the target instructions.
-     * 
+     *
      * @return the instructions
      */
     protected String getTargetInstructions() {
@@ -3372,7 +3372,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
     /**
      * Returns the status text for a given frame number and status code.
-     * 
+     *
      * @param code the status code (integer 0-9)
      * @param n the frame number
      * @param peakWidthAndHeight the match data
@@ -3380,7 +3380,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
      */
     protected String getStatusInfo(int code, int n, double[] peakWidthAndHeight) {
     	StringBuffer buf = new StringBuffer();
-    	buf.append(TrackerRes.getString("AutoTracker.Info.Frame")+" "+n); //$NON-NLS-1$ //$NON-NLS-2$    	
+    	buf.append(TrackerRes.getString("AutoTracker.Info.Frame")+" "+n); //$NON-NLS-1$ //$NON-NLS-2$
     	switch(code) {
 	    	case 0: // keyframe
 	      	textPane.setForeground(Color.blue);
@@ -3422,7 +3422,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	      	textPane.setForeground(Color.red);
 	      	buf.append(": "); //$NON-NLS-1$
 	      	if (lineSpread>=0) {
-		      	buf.append(TrackerRes.getString("AutoTracker.Info.NoMatchOnAxis")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$	      		
+		      	buf.append(TrackerRes.getString("AutoTracker.Info.NoMatchOnAxis")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.RetryOnAxis")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	}
 	      	else {
@@ -3493,7 +3493,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	      	textPane.setForeground(Color.red);
 	      	buf.append(": "); //$NON-NLS-1$
 	      	if (lineSpread>=0) {
-		      	buf.append(TrackerRes.getString("AutoTracker.Info.NoMatchOnAxis")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$	      		
+		      	buf.append(TrackerRes.getString("AutoTracker.Info.NoMatchOnAxis")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.RetryOnAxis")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	}
 	      	else {
@@ -3508,7 +3508,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	      	textPane.setForeground(Color.red);
 	      	buf.append(": "); //$NON-NLS-1$
 	      	if (lineSpread>=0) {
-		      	buf.append(TrackerRes.getString("AutoTracker.Info.NoMatchOnAxis")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$	      		
+		      	buf.append(TrackerRes.getString("AutoTracker.Info.NoMatchOnAxis")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.RetryOnAxis")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	}
 	      	else {
@@ -3522,10 +3522,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     	}
     	return buf.toString();
     }
-    
+
     protected void prepareForFixedSearch(boolean fixed) {
     	ignoreChanges = true;
-    	if (fixed) {   		
+    	if (fixed) {
     		prevEvolution = (Integer)evolveSpinner.getValue();
     		prevLookAhead = lookAheadCheckbox.isSelected();
     		prevOneD = oneDCheckbox.isSelected();
@@ -3541,16 +3541,16 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     		oneDCheckbox.setSelected(prevOneD);
     	}
     	evolveSpinner.setEnabled(!fixed);
-    	evolveRateLabel.setEnabled(!fixed);  		
+    	evolveRateLabel.setEnabled(!fixed);
     	lookAheadCheckbox.setEnabled(!fixed);
   		oneDCheckbox.setEnabled(!fixed);
       JFormattedTextField tf = ((JSpinner.DefaultEditor)evolveSpinner.getEditor()).getTextField();
     	tf.setDisabledTextColor(fixed? Color.GRAY.brighter(): Color.BLACK);
     	ignoreChanges = false;
     }
-    
+
   }
-  
+
   /**
    * Gets the match data as a delimited string with "columns" for frame number, match score,
    * target x and target y.
