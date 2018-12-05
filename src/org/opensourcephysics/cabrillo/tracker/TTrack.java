@@ -139,6 +139,10 @@ public abstract class TTrack implements Interactive,
   protected String[] customNumberFormats;
   private int ID; // unique ID number 
 
+  // For autoskipping while autotracking
+  public boolean skippedStepWarningSuppress = false;
+
+
   /**
    * Constructs a TTrack.
    */
