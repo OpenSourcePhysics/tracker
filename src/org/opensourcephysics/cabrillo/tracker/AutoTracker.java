@@ -911,8 +911,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	frame.decided = false; // default
 
   	// set template to be matched
-    matcher.setTemplate(frame.getTemplateToMatch()); 
-  	
+    matcher.setTemplate(frame.getTemplateToMatch());
+
     // get location, width and height of match
   	TPoint p = null;
   	BufferedImage image = video.getImage();
@@ -920,7 +920,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  	double theta = trackerPanel.getCoords().getAngle(n);
 	  	double x0 = trackerPanel.getCoords().getOriginX(n);
 	  	double y0 = trackerPanel.getCoords().getOriginY(n);
-			p = matcher.getMatchLocation(image, searchRect, x0, y0, theta, lineSpread); // may be null
+	  	p = matcher.getMatchLocation(image, searchRect, x0, y0, theta, lineSpread); // may be null
   	}
   	else {
   		p = matcher.getMatchLocation(image, searchRect); // may be null
@@ -929,35 +929,37 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	if (matchWidthAndHeight[1]<goodMatch && frame.isAutoMarked()) {
   		frame.trackPoint = null;
   	}
-  	
+
   	// save match data and searched frames
   	frame.setMatchWidthAndHeight(matchWidthAndHeight);
   	frame.searched = true;
     // if p is null or match is poor, then clear match points
   	if (p==null || matchWidthAndHeight[1] < possibleMatch) {
-      frame.setMatchPoints(null);
+        frame.setMatchPoints(null);
   		return null;
   	}
-  	
+
     // successfully found good or possible match: save match data
     BufferedImage match = matcher.getMatchImage();
     BufferedImage img = createMagnifiedImage(match);
   	frame.setMatchIcon(new ImageIcon(img));
-		Rectangle rect = frame.getKeyFrame().getMask().getBounds();
-		TPoint center = new TPoint(p.x+maskCenter.x-rect.getX(), p.y+maskCenter.y-rect.getY());
-		TPoint corner = new TPoint(center.x+cornerFactor*(maskCorner.x-maskCenter.x),
-				center.y+cornerFactor*(maskCorner.y-maskCenter.y));
+	Rectangle rect = frame.getKeyFrame().getMask().getBounds();
+	TPoint center = new TPoint(p.x+maskCenter.x-rect.getX(), p.y+maskCenter.y-rect.getY());
+	TPoint corner = new TPoint(
+	    center.x+cornerFactor*(maskCorner.x-maskCenter.x),
+        center.y+cornerFactor*(maskCorner.y-maskCenter.y)
+    );
     frame.setMatchPoints(new TPoint[] {center, corner, p});
-    
+
     // if good match found then build evolved template and return match target
   	if (matchWidthAndHeight[1]>=goodMatch) {
   		buildEvolvedTemplate(frame);
   		return getMatchTarget(center);
   	}
-  	
+
     return null;
   }
-  
+
   /**
    * Builds an evolved template based on data in the specified FrameData
    * and the current video image.
@@ -983,7 +985,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		matcher.setIndex(frame.getFrameNumber());
 	}
 
-  
+
   /**
    * Creates a TemplateMatcher based on the current image and mask.
    *
@@ -995,7 +997,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     FrameData frame = getFrame(n);
     KeyFrame keyFrame = frame.getKeyFrame();
   	if (video!=null && keyFrame!=null) {
-      // create template image
+  		// create template image
   		Shape mask = keyFrame.getMask();
   		BufferedImage source = video.getImage();
   		Rectangle rect = mask.getBounds();
@@ -1003,24 +1005,24 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   				rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
   		templateImage.createGraphics().drawImage(source, -rect.x, -rect.y, null);
   		// translate mask to (0, 0) relative to template
-      transform.setToTranslation(-rect.x, -rect.y);
-      Shape templateRegion = transform.createTransformedShape(mask);
+      	transform.setToTranslation(-rect.x, -rect.y);
+      	Shape templateRegion = transform.createTransformedShape(mask);
   		return new TemplateMatcher(templateImage, templateRegion);
   	}
   	return null;
   }
-  
+
   // indexFrameData maps point index to frameData
   protected Map<Integer, Map<Integer, FrameData>> getIndexFrameData() {
     TTrack track = getTrack();
   	Map<Integer, Map<Integer, FrameData>> indexFrameData  = trackFrameData.get(track);
   	if (indexFrameData==null) {
-  		indexFrameData = new TreeMap<Integer, Map<Integer, FrameData>>();  		
+  		indexFrameData = new TreeMap<Integer, Map<Integer, FrameData>>();
   		trackFrameData.put(track, indexFrameData);
   	}
   	return indexFrameData;
   }
-  
+
   // frameData maps frame number to individual FrameData objects
   protected Map<Integer, FrameData> getFrameData(int index) {
   	Map<Integer, FrameData> frameData = getIndexFrameData().get(index);
@@ -1030,13 +1032,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	}
   	return frameData;
   }
-  
+
   protected Map<Integer, FrameData> getFrameData() {
     TTrack track = getTrack();
   	int index = track==null? 0: track.getTargetIndex();
   	return getFrameData(index);
   }
-  
+
   protected FrameData getFrame(int frameNumber) {
   	FrameData frame = getFrameData().get(frameNumber);
   	if (frame==null) {
@@ -1047,7 +1049,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	}
   	return frame;
   }
-  
+
   protected int getIndex(TPoint p) {
   	int n = p.getFrameNumber(trackerPanel);
     TTrack track = getTrack();
@@ -1061,11 +1063,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	}
   	return -1;
   }
-  
+
   protected TTrack getTrack() {
     return TTrack.getTrack(trackID);
   }
-  
+
   /**
    * Erases the current mark.
    */
@@ -1074,7 +1076,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   		trackerPanel.addDirtyRegion(mark.getBounds(false)); // old bounds
   	mark = null;
   }
-  
+
   /**
    * Repaints this object.
    */
@@ -1084,7 +1086,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   		trackerPanel.addDirtyRegion(mark.getBounds(false)); // new bounds
     trackerPanel.repaintDirtyRegion();
   }
-  
+
   /**
    * Disposes of this autotracker.
    */
@@ -1102,7 +1104,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	trackerPanel.autoTracker = null;
   	trackerPanel = null;
   }
-  
+
   @Override
   public void finalize() {
   	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
@@ -1122,30 +1124,30 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     if (mark==null) {
     	int k = getStatusCode(n);
     	// refresh target icon on wizard label
-      Color c = track.getFootprint().getColor();
-      target_footprint.setColor(c);
-      inactive_target_footprint.setColor(c);
-      corner_footprint.setColor(c);
+      	Color c = track.getFootprint().getColor();
+		target_footprint.setColor(c);
+		inactive_target_footprint.setColor(c);
+		corner_footprint.setColor(c);
     	// define marks for center, corners, target and selection
     	Mark searchCornerMark=null, maskCornerMark=null,
     			targetMark=null, selectionMark=null;
     	// set up transform
-      AffineTransform toScreen = trackerPanel.getPixelTransform();
-      if (!trackerPanel.isDrawingInImageSpace()) {
-        toScreen.concatenate(trackerPanel.getCoords().getToWorldTransform(n));
-      }
-      // get selected point and define the corresponding screen point
-      final TPoint selection = trackerPanel.getSelectedPoint();
-      Point selectionPt = null;
-      // refresh search and mask draw and hit shapes
-      try {
+        AffineTransform toScreen = trackerPanel.getPixelTransform();
+        if (!trackerPanel.isDrawingInImageSpace()) {
+      		toScreen.concatenate(trackerPanel.getCoords().getToWorldTransform(n));
+      	}
+		// get selected point and define the corresponding screen point
+		final TPoint selection = trackerPanel.getSelectedPoint();
+		Point selectionPt = null;
+		// refresh search and mask draw and hit shapes
+		try {
 				searchShape = toScreen.createTransformedShape(searchRect2D);
 				searchHitShape = solid.createStrokedShape(searchShape);
 				maskShape = toScreen.createTransformedShape(keyFrame.getMask());
 				maskHitShape = solid.createStrokedShape(maskShape);
-			} catch (Exception e) {
-				return null;
-			}
+		} catch (Exception e) {
+			return null;
+		}
       // check to see if a handle is selected
       if (selection == maskHandle)
       	selectionPt = maskVisible? maskHandle.getScreenPosition(trackerPanel): null;
@@ -1173,14 +1175,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       }
       // create target mark
       screenPoints[0] = keyFrame.getTarget().getScreenPosition(trackerPanel);
-      if (selection == keyFrame.getTarget()) 
+      if (selection == keyFrame.getTarget())
       	selectionPt = targetVisible? screenPoints[0]: null;
       else {
 	     	targetMark = target_footprint.getMark(screenPoints);
       }
       // if a match has been found, create match shapes
       TPoint[] matchPts = frame.getMatchPoints();
-      if (matchPts == null || frame.isKeyFrame() || k==5) 
+      if (matchPts == null || frame.isKeyFrame() || k==5)
       	matchShape = null;
       else {
       	Point p1 = matchPts[0].getScreenPosition(trackerPanel);
@@ -1190,7 +1192,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         screenPoints[0] = getMatchTarget(matchPts[0]).getScreenPosition(trackerPanel);
 //      	matchTargetMark = inactive_target_footprint.getMark(screenPoints);
       }
-      // if anything is selected, create a selection mark 
+      // if anything is selected, create a selection mark
       if (selectionPt != null) {
         transform.setToTranslation(selectionPt.x, selectionPt.y);
         final Shape selectedShape
@@ -1222,7 +1224,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
           int n = trackerPanel.getFrameNumber();
           FrameData frame = getFrame(n);
           boolean isKeyFrame = frame!=null && frame.isKeyFrame();
-          if (targetVisible) {	          
+          if (targetVisible) {
 	          // draw the target
 	          if (isKeyFrame) {
 		          if (markTarget != null)
@@ -1236,15 +1238,15 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
           if (maskVisible && isKeyFrame) {
 	          g.setStroke(stroke);
           	g.draw(maskShape);
-            if (markMaskCorner != null) 
+            if (markMaskCorner != null)
             	markMaskCorner.draw(g, false);
           }
-          if (searchVisible || !isKeyFrame) {	          
+          if (searchVisible || !isKeyFrame) {
 	          // draw the searchRect
 	          g.setStroke(dashed);
 	          g.draw(searchShape);
-	          if (markSearchCorner != null) 
-	          	markSearchCorner.draw(g, false);	          
+	          if (markSearchCorner != null)
+	          	markSearchCorner.draw(g, false);
           }
           // draw the selected point
           if (markSelection != null) markSelection.draw(g, false);
@@ -1271,7 +1273,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   /**
    * Returns the target for a specified match center point.
-   * 
+   *
    * @param center the center point
    * @return the target
    */
@@ -1279,11 +1281,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	int n = trackerPanel.getFrameNumber();
     double[] offset = getFrame(n).getTargetOffset();
   	return new TPoint(center.x+offset[0], center.y+offset[1]);
-  }  
-  
+  }
+
   /**
    * Returns the center point for a specified match target.
-   * 
+   *
    * @param target the target
    * @return the center
    */
@@ -1291,19 +1293,19 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	int n = trackerPanel.getFrameNumber();
     double[] offset = getFrame(n).getTargetOffset();
   	return new TPoint(target.x-offset[0], target.y-offset[1]);
-  }  
-  
+  }
+
   /**
    * Deletes the match data at a specified frame number.
-   * 
+   *
    * @param n the frame number
    */
   protected void delete(int n) {
 		trackerPanel.repaint();
     FrameData frame = getFrame(n);
     frame.clear();
-  } 
-  
+  }
+
   /**
    * Clears all existing steps and match data for the current point index.
    */
@@ -1339,11 +1341,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	    player.setStepNumber(player.getVideoClip().frameToStep(n));
 	  }
   	repaint();
-  }  
-  
+  }
+
   /**
    * Refreshes the key frame to reflect current center and corner positions.
-   * 
+   *
    * @param keyFrame the KeyFrame
    */
   protected void refreshKeyFrame(KeyFrame keyFrame) {
