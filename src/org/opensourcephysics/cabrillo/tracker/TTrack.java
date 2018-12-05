@@ -57,7 +57,7 @@ public abstract class TTrack implements Interactive,
   protected static JTextPane skippedStepWarningTextpane;
   protected static JCheckBox skippedStepWarningCheckbox;
   protected static JButton closeButton;
-	protected static boolean skippedStepWarningOn = true;
+  protected static boolean skippedStepWarningOn = true;
   protected static NameDialog nameDialog;
   protected static int nextID = 1;
   protected static HashMap<Integer, TTrack> activeTracks = new HashMap<Integer, TTrack>();
@@ -119,11 +119,11 @@ public abstract class TTrack implements Interactive,
   protected Object[][] constantsLoadedFromXML;
   protected String[] dataDescriptions;
   protected boolean dataValid; // true if data is valid
-	protected boolean refreshDataLater;
+  protected boolean refreshDataLater;
   protected int[] preferredColumnOrder;
   protected ArrayList<Integer> dataFrames = new ArrayList<Integer>();
   protected String partName, hint;
-	protected int stepSizeWhenFirstMarked;
+  protected int stepSizeWhenFirstMarked;
   protected TreeSet<Integer> keyFrames = new TreeSet<Integer>();
   // for autotracking
   protected boolean autoTrackerMarking;
