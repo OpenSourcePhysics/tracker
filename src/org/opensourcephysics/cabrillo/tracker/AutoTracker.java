@@ -3627,29 +3627,4 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	return buf.toString();
   }
 
-
-  /**
-   * Spinner model to continuously cycle through all choices
-   */
-  static class SpinnerTumbleModel extends SpinnerListModel {
-  	SpinnerTumbleModel(ArrayList<String> values) {
-  		super(values);
-  	}
-    public Object getNextValue() {
-      Object value = super.getNextValue();
-      if((value==null)&&(getList().size()>0)) {
-        value = getList().get(0);
-      }
-      return value;
-    }
-    public Object getPreviousValue() {
-      Object value = super.getPreviousValue();
-      int n = getList().size();
-      if((value==null)&&(n>0)) {
-        value = getList().get(n-1);
-      }
-      return value;
-    }
-  }
 }
-
