@@ -128,7 +128,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   private boolean maskVisible, targetVisible, searchVisible;
   private Runnable stepper;
   private boolean stepping, active, paused, marking, lookAhead=true;
-  private int goodMatch=4, possibleMatch=1, evolveAlpha=63;
+  private int goodMatch=4, possibleMatch=1, evolveAlpha=63, autoskipCount=2;
+  private int autoskipsRemained = 0;
   /* trackFrameData maps tracks to indexFrameData which maps point index
   to frameData which maps frame number to individual FrameData objects */
   private Map<TTrack, Map<Integer, Map<Integer, FrameData>>> trackFrameData
@@ -348,11 +349,18 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   			p = track.autoMarkAt(n, p.x, p.y);
   			frame.setAutoMarkPoint(p);
   			track.autoTrackerMarking = false;
+  			// We can perform autoskips if needed
+  			autoskipsRemained = autoskipCount;
 	    	return true;
 	    }
-	    if (p==null) {
-	    	frame.setMatchIcon(null);
-	    }
+		if (p==null) {
+			if(autoskipsRemained > 0){
+				autoskipsRemained--;
+				track.skippedStepWarningSuppress = true;
+				return true;
+			}
+			frame.setMatchIcon(null);
+		}
     }
   	return false;
   }
@@ -2015,7 +2023,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	private JComboBox trackDropdown, pointDropdown;
   	private boolean isVisible, changed, hidePopup;
     private JTextArea textPane;
-    protected JToolBar templateToolbar, searchToolbar, targetToolbar, imageToolbar, trackToolbar;
+    protected JToolBar templateToolbar, searchToolbar, targetToolbar, imageToolbar, trackToolbar, autoskipToolbar;
     private JPanel startPanel, followupPanel, infoPanel, northPanel, targetPanel;
     private JLabel templateImageLabel, matchImageLabel, acceptLabel, templateLabel;
     private JLabel frameLabel, evolveRateLabel, searchLabel, targetLabel;
@@ -2027,6 +2035,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     private Timer timer;
     private boolean ignoreChanges, isPrevValid, prevLookAhead, prevOneD;
     private int prevEvolution;
+
+    private JLabel autoskipLabel;
+    private TallSpinner autoskipSpinner;
 
     /**
      * Constructs a Wizard.
@@ -2456,6 +2467,22 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       };
       acceptSpinner.addChangeListener(listener);
 
+      autoskipLabel = new JLabel();
+      autoskipLabel.setOpaque(false);
+      autoskipLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+      model = new SpinnerNumberModel(autoskipCount, 0, 10, 1);
+      autoskipSpinner = new TallSpinner(model, trackDropdown);
+      autoskipSpinner.addMouseListenerToAll(mouseOverListener);
+      listener = new ChangeListener() {
+          public void stateChanged(ChangeEvent e) {
+              autoskipCount = (Integer)autoskipSpinner.getValue();
+              setChanged();
+          }
+      };
+      autoskipSpinner.addChangeListener(listener);
+
+
+
       flowpanel = new JPanel();
       flowpanel.setOpaque(false);
       flowpanel.add(evolveRateLabel);
@@ -2464,7 +2491,18 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       flowpanel.add(acceptSpinner);
       templateToolbar.add(templateLabel);
       templateToolbar.add(flowpanel);
-      
+
+      autoskipToolbar = new JToolBar();
+      autoskipToolbar.setFloatable(false);
+      autoskipToolbar.addMouseListener(mouseOverListener);
+      flowpanel = new JPanel();
+      flowpanel.setOpaque(false);
+      flowpanel.add(autoskipLabel);
+      flowpanel.add(autoskipSpinner);
+      autoskipToolbar.add(flowpanel);
+
+
+
       // create search toolbar
       searchToolbar = new JToolBar();
       searchToolbar.setFloatable(false);
@@ -2888,6 +2926,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
       JPanel controlPanel = new JPanel(new GridLayout(0, 1));
       controlPanel.add(templateToolbar);
+      controlPanel.add(autoskipToolbar);
       controlPanel.add(searchToolbar);
       controlPanel.add(targetToolbar);
 
@@ -2961,6 +3000,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		      trackLabel.setText(TrackerRes.getString("AutoTracker.Label.Track")); //$NON-NLS-1$
 		      pointLabel.setText(TrackerRes.getString("AutoTracker.Label.Point")); //$NON-NLS-1$
 		      evolveRateLabel.setText(TrackerRes.getString("AutoTracker.Label.EvolutionRate")); //$NON-NLS-1$
+              autoskipLabel.setText(TrackerRes.getString("AutoTracker.Label.Autoskip")); //$NON-NLS-1$
 		      closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
 		      helpButton.setText(TrackerRes.getString("Dialog.Button.Help")); //$NON-NLS-1$
 		      acceptButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.Accept")); //$NON-NLS-1$
