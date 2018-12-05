@@ -2011,7 +2011,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	private JPopupMenu popup;
   	private JButton closeButton, helpButton, deleteButton, keyFrameButton;
   	private JButton acceptButton, skipButton;
-  	private JSpinner evolveSpinner, acceptSpinner;
+  	private TallSpinner evolveSpinner, acceptSpinner;
   	private JComboBox trackDropdown, pointDropdown;
   	private boolean isVisible, changed, hidePopup;
     private JTextArea textPane;
@@ -2409,10 +2409,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       
       SpinnerModel model = new SpinnerNumberModel(defaultEvolveRate, 0, maxEvolveRate, maxEvolveRate/20);
       evolveSpinner = new TallSpinner(model, trackDropdown);
-      for (int i = 0; i<evolveSpinner.getComponentCount(); i++)
-      	evolveSpinner.getComponent(i).addMouseListener(mouseOverListener);
-      JFormattedTextField tf = ((JSpinner.DefaultEditor)evolveSpinner.getEditor()).getTextField();
-      tf.setFormatterFactory(new JFormattedTextField.AbstractFormatterFactory() {
+      evolveSpinner.addMouseListenerToAll(mouseOverListener);
+      evolveSpinner.getTextField().setFormatterFactory(new JFormattedTextField.AbstractFormatterFactory() {
       	public JFormattedTextField.AbstractFormatter getFormatter(JFormattedTextField tf) {
       		JFormattedTextField.AbstractFormatter formatter
       				= new JFormattedTextField.AbstractFormatter() {
@@ -2426,9 +2424,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       		return formatter;
       	}
       });
-      tf.addMouseListener(mouseOverListener);
-    	tf.setEnabled(false);
-    	tf.setDisabledTextColor(Color.BLACK);
+
       ChangeListener listener = new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
         	if (ignoreChanges) return;
@@ -2451,12 +2447,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       acceptLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
       model = new SpinnerNumberModel(goodMatch, possibleMatch, 10, 1);
       acceptSpinner = new TallSpinner(model, trackDropdown);
-      for (int i = 0; i<acceptSpinner.getComponentCount(); i++)
-      	acceptSpinner.getComponent(i).addMouseListener(mouseOverListener);
-      tf = ((JSpinner.DefaultEditor)acceptSpinner.getEditor()).getTextField();
-    	tf.setEnabled(false);
-    	tf.setDisabledTextColor(Color.BLACK);
-    	tf.addMouseListener(mouseOverListener);
+      acceptSpinner.addMouseListenerToAll(mouseOverListener);
       listener = new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
         	goodMatch = (Integer)acceptSpinner.getValue();
@@ -3644,14 +3635,27 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	TallSpinner(SpinnerModel model, Component heightComponent) {
   		super(model);
   		comp = heightComponent;
+        JFormattedTextField tf = getTextField();
+        tf.setEnabled(false);
+        tf.setDisabledTextColor(Color.BLACK);
   	}
     public Dimension getPreferredSize() {
   		Dimension dim = super.getPreferredSize();
   		dim.height=comp.getPreferredSize().height;
   		return dim;
     }
+    public JFormattedTextField getTextField() {
+  	    return ((JSpinner.DefaultEditor)getEditor()).getTextField();
+    }
+    public void addMouseListenerToAll(MouseAdapter mouseOverListener){
+        for (int i = 0; i < getComponentCount(); i++) {
+            getComponent(i).addMouseListener(mouseOverListener);
+        }
+        getTextField().addMouseListener(mouseOverListener);
+    }
+
   }
- 
+
   /**
    * Spinner model to continuously cycle through all choices
    */
