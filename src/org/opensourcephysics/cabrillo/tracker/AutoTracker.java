@@ -1050,7 +1050,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   protected FrameData getFrame(int frameNumber) {
   	FrameData frame = getFrameData().get(frameNumber);
   	if (frame==null) {
-      TTrack track = getTrack();
+  		TTrack track = getTrack();
     	int index = track==null? 0: track.getTargetIndex();
   		frame = new FrameData(index, frameNumber);
   		getFrameData().put(frameNumber, frame);
@@ -3009,28 +3009,29 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		      oneDCheckbox.setText(TrackerRes.getString("AutoTracker.Wizard.Checkbox.XAxis")); //$NON-NLS-1$
 		      lookAheadCheckbox.setText(TrackerRes.getString("AutoTracker.Wizard.Checkbox.LookAhead")); //$NON-NLS-1$
 		      matchImageLabel.setText(frame.getMatchIcon()==null? null:
-		    		TrackerRes.getString("AutoTracker.Label.Match")); //$NON-NLS-1$     
+		    		TrackerRes.getString("AutoTracker.Label.Match")); //$NON-NLS-1$
 		      templateImageLabel.setText(keyFrame==null? null:
-		      	TrackerRes.getString("AutoTracker.Label.Template")); //$NON-NLS-1$  
+		      	TrackerRes.getString("AutoTracker.Label.Template")); //$NON-NLS-1$
 
 		      if (trackerPanel.getVideo()!=null) {
 		    		boolean running = stepping && !paused;
-		        startButton.setIcon(stepping? stopIcon: searchIcon);
-						startButton.setText(stepping?
-								TrackerRes.getString("AutoTracker.Wizard.Button.Stop"): //$NON-NLS-1$
-								TrackerRes.getString("AutoTracker.Wizard.Button.Search")); //$NON-NLS-1$
-						startButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.Search.Tooltip")); //$NON-NLS-1$
-						FontSizer.setFonts(startButton, FontSizer.getLevel());
-						searchThisButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis")); //$NON-NLS-1$
-						searchThisButton.setEnabled(!running);
-						searchThisButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis.Tooltip")); //$NON-NLS-1$
-						searchNextButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext")); //$NON-NLS-1$
-						searchNextButton.setEnabled(!running);
-						searchNextButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext.Tooltip")); //$NON-NLS-1$
-		    	}
-		      
+		            startButton.setIcon(stepping? stopIcon: searchIcon);
+                    startButton.setText(stepping?
+                            TrackerRes.getString("AutoTracker.Wizard.Button.Stop"):  //$NON-NLS-1$
+                            TrackerRes.getString("AutoTracker.Wizard.Button.Search") //$NON-NLS-1$
+                    );
+                    startButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.Search.Tooltip")); //$NON-NLS-1$
+                    FontSizer.setFonts(startButton, FontSizer.getLevel());
+                    searchThisButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis")); //$NON-NLS-1$
+                    searchThisButton.setEnabled(!running);
+                    searchThisButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis.Tooltip")); //$NON-NLS-1$
+                    searchNextButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext")); //$NON-NLS-1$
+                    searchNextButton.setEnabled(!running);
+                    searchNextButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext.Tooltip")); //$NON-NLS-1$
+		      }
+
 		      // set label sizes
-		      FontRenderContext frc = new FontRenderContext(null, false, false); 
+		      FontRenderContext frc = new FontRenderContext(null, false, false);
 		      Font font = frameLabel.getFont();
 		      int w = 0;
 		      Rectangle2D rect = font.getStringBounds(searchLabel.getText()+"   ", frc); //$NON-NLS-1$
@@ -3108,16 +3109,16 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 		      deleteButton.setEnabled(deleteButtonEnabled);
 		      keyFrameButton.setEnabled(keyFrame!=null);
-		      
+
 					// rebuild followup panel
 					followupPanel.removeAll();
 					if (code==2 || code==8) { // possible match
-						acceptButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.Accept")); //$NON-NLS-1$			      
-          	followupPanel.add(acceptButton);						
+						acceptButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.Accept")); //$NON-NLS-1$
+          	followupPanel.add(acceptButton);
 					}
 					if (code==2 || code==3 || code==4 || code==8 || code==9) { // searched but not automarked
-			      skipButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.Skip")); //$NON-NLS-1$			      
-          	followupPanel.add(skipButton);						
+			      skipButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.Skip")); //$NON-NLS-1$
+          	followupPanel.add(skipButton);
 					}
       		repaint();
         }
@@ -3155,27 +3156,29 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
      * Refreshes the visible components of this wizard.
      */
     protected void refreshGUI() {
-      TTrack track = getTrack();
-    	if (track!=null && this.isVisible())
-    		track.setMarkByDefault(false);
+        TTrack track = getTrack();
+    	if (track!=null && this.isVisible()) {
+            track.setMarkByDefault(false);
+        }
     	Runnable runner = new Runnable() {
     		public void run() {
     			if (trackerPanel==null) return;
     			refreshDropdowns();
-          refreshStrings();
-        	refreshIcons();
-          refreshButtons();
-          refreshInfo();
-        	refreshDrawingFlags();
-          pack();
-          if (textPaneSize==null)
-            refreshTextPaneSize();
-    		}
+                refreshStrings();
+                refreshIcons();
+                refreshButtons();
+                refreshInfo();
+                refreshDrawingFlags();
+                pack();
+                if (textPaneSize==null) {
+                    refreshTextPaneSize();
+                }
+        	}
     	};
-      if (SwingUtilities.isEventDispatchThread()) runner.run();
-      else SwingUtilities.invokeLater(runner);
+        if (SwingUtilities.isEventDispatchThread()) runner.run();
+        else SwingUtilities.invokeLater(runner);
     }
-    
+
     /**
      * Refreshes the dropdown lists.
      */
