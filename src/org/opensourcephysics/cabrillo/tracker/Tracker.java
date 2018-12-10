@@ -169,7 +169,7 @@ public class Tracker {
   static boolean showHintsByDefault = true;
   static int recentFilesSize = 6;
   static int preferredMemorySize = -1;
-  static String lookAndFeel, preferredLocale, preferredDecimalSeparator;
+  static String lookAndFeel, preferredLocale, preferredDecimalSeparator, additionalDecimalSeparators;
   static String preferredJRE, preferredTrackerJar, preferredPointMassFootprint;
   static int checkForUpgradeInterval = 0;
   static int preferredFontLevel = 0, preferredFontLevelPlus = 0;
@@ -2106,6 +2106,8 @@ public class Tracker {
       		control.setValue("locale", Tracker.preferredLocale); //$NON-NLS-1$
       	if (Tracker.preferredDecimalSeparator!=null)
       		control.setValue("decimal_separator", Tracker.preferredDecimalSeparator); //$NON-NLS-1$
+		if (Tracker.additionalDecimalSeparators!=null)
+			control.setValue("additional_decimal_separators", Tracker.additionalDecimalSeparators); //$NON-NLS-1$
       	if (Tracker.preferredFontLevel>0) {
       		control.setValue("font_size", Tracker.preferredFontLevel); //$NON-NLS-1$
       	}
@@ -2229,6 +2231,10 @@ public class Tracker {
       		Tracker.preferredDecimalSeparator = control.getString("decimal_separator"); //$NON-NLS-1$
       		OSPRuntime.setPreferredDecimalSeparator(preferredDecimalSeparator);
       	}
+  	    if (control.getPropertyNames().contains("additional_decimal_separators")) { //$NON-NLS-1$
+			Tracker.additionalDecimalSeparators = control.getString("additional_decimal_separators"); //$NON-NLS-1$
+			OSPRuntime.setAdditionalDecimalSeparators(additionalDecimalSeparators);
+	    }
       	if (control.getPropertyNames().contains("run")) //$NON-NLS-1$
       		Tracker.prelaunchExecutables = (String[])control.getObject("run"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("locale")) //$NON-NLS-1$

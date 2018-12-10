@@ -35,8 +35,7 @@ import java.net.URL;
 
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
 
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
@@ -103,6 +102,8 @@ public class PrefsDialog extends JDialog {
   protected JRadioButton markStickEndsButton, centerStickButton;
   protected JRadioButton videoFastButton, videoSlowButton;
   protected JRadioButton defaultDecimalButton, periodDecimalButton, commaDecimalButton;
+  protected JLabel customDecimalSeparatorsLabel;
+  protected JTextField customDecimalSeparators;
   protected Tracker.Version[] trackerVersions;
   protected boolean relaunching, refreshing;
   
@@ -110,7 +111,7 @@ public class PrefsDialog extends JDialog {
   protected Set<String> prevEnabled = new TreeSet<String>();
   protected int prevMemory, prevRecentCount, prevUpgradeInterval, prevFontLevel, prevFontLevelPlus, prevTrailLengthIndex;
   protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine, prevDecimalSeparator,
-  		prevPointmassFootprint;
+		  prevAdditionalDecimalSeparators, prevPointmassFootprint;
   protected boolean prevHints, prevRadians, prevFastFFMPeg, prevCenterCalibrationStick, prevWarnVariableDuration,
   		prevWarnNoVideoEngine, prevWarnFFMPegError, prevWarnFFMPegVersion, prevShowGaps, prevMarkAtCurrentFrame,
   		prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed, prevZoomMouseWheel, prevAutofill;
@@ -484,11 +485,38 @@ public class PrefsDialog extends JDialog {
     ButtonGroup group = new ButtonGroup();
     group.add(defaultDecimalButton);
     group.add(periodDecimalButton);
-    group.add(commaDecimalButton);    
-    decimalSubPanel.add(defaultDecimalButton);
-    decimalSubPanel.add(periodDecimalButton);
-    decimalSubPanel.add(commaDecimalButton);
-    
+    group.add(commaDecimalButton);
+
+
+	  customDecimalSeparatorsLabel = new JLabel();
+
+      // Custom decimal separators
+	  customDecimalSeparators = new JTextField(Tracker.additionalDecimalSeparators,8);
+
+	  customDecimalSeparators.getDocument().addDocumentListener(new DocumentListener() {
+		  public void changedUpdate(DocumentEvent e) {
+			  act();
+		  }
+		  public void removeUpdate(DocumentEvent e) {
+			  act();
+		  }
+		  public void insertUpdate(DocumentEvent e) {
+			  act();
+		  }
+
+		  public void act() {
+			  Tracker.additionalDecimalSeparators = customDecimalSeparators.getText();
+			  OSPRuntime.setAdditionalDecimalSeparators(Tracker.additionalDecimalSeparators);
+		  }
+	  });
+
+
+	  decimalSubPanel.add(defaultDecimalButton);
+	  decimalSubPanel.add(periodDecimalButton);
+	  decimalSubPanel.add(commaDecimalButton);
+	  decimalSubPanel.add(customDecimalSeparatorsLabel);
+	  decimalSubPanel.add(customDecimalSeparators);
+
     // font level subpanel
     JPanel fontSubPanel = new JPanel();
     horz.add(fontSubPanel);
@@ -1414,6 +1442,7 @@ public class PrefsDialog extends JDialog {
 		prevHints = Tracker.showHintsByDefault;
 		prevRadians = Tracker.isRadians;
 		prevDecimalSeparator = Tracker.preferredDecimalSeparator;
+		prevAdditionalDecimalSeparators = Tracker.additionalDecimalSeparators;
 		prevJRE = Tracker.preferredJRE;
 		prevTrackerJar = Tracker.preferredTrackerJar;
 		prevExecutables = Tracker.prelaunchExecutables;
@@ -1445,6 +1474,7 @@ public class PrefsDialog extends JDialog {
 		Tracker.showHintsByDefault = prevHints;
 		Tracker.isRadians = prevRadians;
 		Tracker.preferredDecimalSeparator = prevDecimalSeparator;
+	    Tracker.additionalDecimalSeparators = prevAdditionalDecimalSeparators;
 		Tracker.preferredJRE = prevJRE;
 		Tracker.preferredTrackerJar = prevTrackerJar;
 		Tracker.prelaunchExecutables = prevExecutables;
@@ -1513,9 +1543,13 @@ public class PrefsDialog extends JDialog {
     defaultDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Default")); //$NON-NLS-1$
     periodDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Period")); //$NON-NLS-1$
     commaDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Comma")); //$NON-NLS-1$
-    defaultDecimalButton.setSelected(OSPRuntime.getPreferredDecimalSeparator()==null);
-    periodDecimalButton.setSelected(".".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
-    commaDecimalButton.setSelected(",".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
+	customDecimalSeparatorsLabel.setText(TrackerRes.getString("NumberFormatSetter.Label.DecimalSeparator.CustomDecimalSeparators")); //$NON-NLS-1$
+
+	  defaultDecimalButton.setSelected(OSPRuntime.getPreferredDecimalSeparator()==null);
+	  periodDecimalButton.setSelected(".".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
+	  commaDecimalButton.setSelected(",".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
+	  customDecimalSeparators.setText(OSPRuntime.getAdditionalDecimalSeparators());
+
     cancelButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
     saveButton.setText(TrackerRes.getString("ConfigInspector.Button.SaveAsDefault")); //$NON-NLS-1$
     okButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
