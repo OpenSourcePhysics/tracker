@@ -610,44 +610,47 @@ public class Tracker {
    * @return 0 if equal, 1 if ver1>ver2, -1 if ver1<ver2
    */
   public static int compareVersions(String ver1, String ver2) {
-  	// deal with null values
-  	if (ver1==null || ver2==null) {
-  		return 0;
-  	}
-  	// typical newer semantic version "4.9.10" or 5.0.0.171230
-  	// typical older version "4.97"
-    String[] v1 = ver1.trim().split("\\."); //$NON-NLS-1$
-    String[] v2 = ver2.trim().split("\\."); //$NON-NLS-1$
-    // beta version arrays have length 4
-    // newer semantic version arrays have length 3
-    // older version arrays have length 2
-    
-    // truncate beta versions to length 3
-    if (v1.length==4) {
-    	v1 = new String[] {v1[0], v1[1], v1[2]};
-    }
-    if (v2.length==4) {
-    	v2 = new String[] {v2[0], v2[1], v2[2]};
-    }
+  	try {
+		// deal with null values
+		if (ver1 == null || ver2 == null) {
+			return 0;
+		}
+		// typical newer semantic version "4.9.10" or 5.0.0.171230
+		// typical older version "4.97"
+		String[] v1 = ver1.trim().split("\\."); //$NON-NLS-1$
+		String[] v2 = ver2.trim().split("\\."); //$NON-NLS-1$
+		// beta version arrays have length 4
+		// newer semantic version arrays have length 3
+		// older version arrays have length 2
 
-  	if (v2.length>v1.length) {
-  		// v1 is older version, v2 is newer
-  		return -1;
-  	}
-  	if (v1.length>v2.length) {
-  		// v2 is older version, v1 is newer
-  		return 1;
-  	}
-  	// both arrays have the same length
-    for (int i=0; i<v1.length; i++) {
-      if (Integer.parseInt(v1[i]) < Integer.parseInt(v2[i])) {
-        return -1;
-      }
-      else if (Integer.parseInt(v1[i]) > Integer.parseInt(v2[i])) {
-        return 1;
-      }
-    }
-  	return 0;  	
+		// truncate beta versions to length 3
+		if (v1.length == 4) {
+			v1 = new String[]{v1[0], v1[1], v1[2]};
+		}
+		if (v2.length == 4) {
+			v2 = new String[]{v2[0], v2[1], v2[2]};
+		}
+
+		if (v2.length > v1.length) {
+			// v1 is older version, v2 is newer
+			return -1;
+		}
+		if (v1.length > v2.length) {
+			// v2 is older version, v1 is newer
+			return 1;
+		}
+		// both arrays have the same length
+		for (int i = 0; i < v1.length; i++) {
+			if (Integer.parseInt(v1[i]) < Integer.parseInt(v2[i])) {
+				return -1;
+			} else if (Integer.parseInt(v1[i]) > Integer.parseInt(v2[i])) {
+				return 1;
+			}
+		}
+		return 0;
+	}catch(Exception e){
+  		return 0;
+	}
   }
   
 
