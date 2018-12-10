@@ -1474,9 +1474,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   protected boolean canStep() {
   	VideoPlayer player = trackerPanel.getPlayer();
-  	int stepNumber = player.getStepNumber();
-  	int endStepNumber = player.getVideoClip().getStepCount()-1;
-    return stepNumber < endStepNumber;
+    int stepNumber = player.getStepNumber();
+  	if(!player.getVideoClip().reverse) {
+		int endStepNumber = player.getVideoClip().getStepCount() - 1;
+		return stepNumber < endStepNumber;
+	}else{
+  		return stepNumber > 0;
+	}
+
   }
 
   protected boolean isDrawingKeyFrameFor(TTrack track, int index) {
@@ -1886,16 +1891,25 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	    return matchWidthAndHeight;
     }
 
-    KeyFrame getKeyFrame() {
-    	if (this.isKeyFrame()) return (KeyFrame)this;
-      Map<Integer, FrameData> frames = getFrameData(index);
-    	for (int i=frameNum; i>=0; i--) {
-    		FrameData frame = frames.get(i);
-    		if (frame!=null && frame.isKeyFrame())
-    			return (KeyFrame)frame;
-    	}
-    	return null;
-    }
+	  KeyFrame getKeyFrame() {
+		  if (this.isKeyFrame()) return (KeyFrame) this;
+		  Map<Integer, FrameData> frames = getFrameData(index);
+		  if (!trackerPanel.getPlayer().getVideoClip().reverse) {
+			  for (int i = frameNum; i >= 0; i--) {
+				  FrameData frame = frames.get(i);
+				  if (frame != null && frame.isKeyFrame())
+					  return (KeyFrame) frame;
+			  }
+		  } else {
+			  int fin = trackerPanel.getPlayer().getVideoClip().getFrameCount();
+			  for (int i = frameNum; i < fin; i++) {
+				  FrameData frame = frames.get(i);
+				  if (frame != null && frame.isKeyFrame())
+					  return (KeyFrame) frame;
+			  }
+		  }
+		  return null;
+	  }
 
     int getIndex() {
     	return index;
