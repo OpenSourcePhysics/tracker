@@ -1508,36 +1508,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   }
 
-  protected boolean moveRectIntoImage(Rectangle2D searchRect) {
-  	// if needed, modify search rectangle to keep it within the video image
-  	BufferedImage image = trackerPanel.getVideo().getImage();
-  	int w = image.getWidth();
-  	int h = image.getHeight();
-		Point2D corner = new Point2D.Double(searchRect.getX(), searchRect.getY());
-		Dimension dim = new Dimension((int)searchRect.getWidth(), (int)searchRect.getHeight());
-
-  	boolean changed = false;
-		// reduce size if needed
-		if (w < dim.width || h < dim.height) {
-			changed = true;
-			dim.setSize(Math.min(w, dim.width), Math.min(h, dim.height));
-			searchRect.setFrame(corner, dim);
-		}
-
-		// move corner point if needed
-		double x = Math.max(0, corner.getX());
-		x = Math.min(x, w-dim.width);
-		double y = Math.max(0, corner.getY());
-		y = Math.min(y, h-dim.height);
-		if (x!=corner.getX() || y!=corner.getY()) {
-			changed = true;
-			corner.setLocation(x, y);
-			searchRect.setFrame(corner, dim);
-		}
-
-		return changed;
-  }
-
   /**
    * Gets the available derivatives of the specified order. These are NOT time
    * derivatives, but simply differences in pixel units: order 1 is deltaPosition,
