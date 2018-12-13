@@ -211,35 +211,34 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * @param newTrack the track
    */
   protected void setTrack(TTrack newTrack) {
-  	if (newTrack!=null && !newTrack.isAutoTrackable())
-  		newTrack = null;
-    TTrack track = getTrack();
-  	if (track==newTrack) return;
-  	if (track!=null) {
-    	track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-    	track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-    	track.removePropertyChangeListener("color", this); //$NON-NLS-1$
-    	track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-  	}
-  	track = newTrack;
-  	if (track!=null) {
-  		trackID = track.getID();
-  		trackerPanel.setSelectedTrack(track);
-	  	track.addPropertyChangeListener("step", this); //$NON-NLS-1$
-	  	track.addPropertyChangeListener("name", this); //$NON-NLS-1$
-    	track.addPropertyChangeListener("color", this); //$NON-NLS-1$
-    	track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
-	  	track.setVisible(true);
-			int n = trackerPanel.getFrameNumber();
-	    FrameData frame = getFrame(n);
-			TPoint[] searchPts = frame.getSearchPoints(true);
-			if (searchPts != null)
-				setSearchPoints(searchPts[0], searchPts[1]);
-  	}
-  	else {
-  		trackID = -1;
-  	}
-  	wizard.refreshGUI();
+	  if (newTrack != null && !newTrack.isAutoTrackable())
+		  newTrack = null;
+	  TTrack track = getTrack();
+	  if (track == newTrack) return;
+	  if (track != null) {
+		  track.removePropertyChangeListener("step", this); //$NON-NLS-1$
+		  track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+		  track.removePropertyChangeListener("color", this); //$NON-NLS-1$
+		  track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+	  }
+	  track = newTrack;
+	  if (track != null) {
+		  trackID = track.getID();
+		  trackerPanel.setSelectedTrack(track);
+		  track.addPropertyChangeListener("step", this); //$NON-NLS-1$
+		  track.addPropertyChangeListener("name", this); //$NON-NLS-1$
+		  track.addPropertyChangeListener("color", this); //$NON-NLS-1$
+		  track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
+		  track.setVisible(true);
+		  int n = trackerPanel.getFrameNumber();
+		  FrameData frame = getFrame(n);
+		  TPoint[] searchPts = frame.getSearchPoints(true);
+		  if (searchPts != null)
+			  setSearchPoints(searchPts[0], searchPts[1]);
+	  } else {
+		  trackID = -1;
+	  }
+	  wizard.refreshGUI();
   }
 
   /**
@@ -694,21 +693,21 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * Refreshes the search rectangle based on the current center and corner points.
    */
   public void refreshSearchRect() {
-  	// set searchRect according to current search center and corner
-  	searchRect2D.setFrameFromCenter(searchCenter, searchCorner);
-  	// move searchRect into the video image if needed
-  	if (moveRectIntoImage(searchRect2D)) { // true if moved
-  		// set search center and corner locations to reflect new searchRect
-  		searchCenter.setLocation(searchRect2D.getCenterX(), searchRect2D.getCenterY());
-  		searchCorner.setLocation(searchRect2D.getMaxX(), searchRect2D.getMaxY());
-  	}
+	  // set searchRect according to current search center and corner
+	  searchRect2D.setFrameFromCenter(searchCenter, searchCorner);
+	  // move searchRect into the video image if needed
+	  if (BufferedImageUtils.moveRectIntoImage(searchRect2D, trackerPanel.getVideo().getImage())) { // true if moved
+		  // set search center and corner locations to reflect new searchRect
+		  searchCenter.setLocation(searchRect2D.getCenterX(), searchRect2D.getCenterY());
+		  searchCorner.setLocation(searchRect2D.getMaxX(), searchRect2D.getMaxY());
+	  }
 
-  	// save the search points in the current frame
-  	int n = trackerPanel.getFrameNumber();
-		FrameData frame = getFrame(n);
-  	TPoint[] pts = new TPoint[] {new TPoint(searchCenter), new TPoint(searchCorner)};
-  	frame.setSearchPoints(pts);
-		repaint();
+	  // save the search points in the current frame
+	  int n = trackerPanel.getFrameNumber();
+	  FrameData frame = getFrame(n);
+	  TPoint[] pts = new TPoint[]{new TPoint(searchCenter), new TPoint(searchCorner)};
+	  frame.setSearchPoints(pts);
+	  repaint();
   }
 
   /**
@@ -1620,39 +1619,38 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    */
   protected class Handle extends TPoint {
 
-    /**
-     * Overrides TPoint setXY method.
-     *
-     * @param x the x coordinate
-     * @param y the y coordinate
-     */
-    public void setXY(double x, double y) {
-    	double dx = x-getX();
-    	double dy = y-getY();
-    	super.setXY(x, y);
-	    	int n = trackerPanel.getFrameNumber();
-	    if (this == searchHandle) {
-	    	searchCenter.x += dx;
-	    	searchCenter.y += dy;
-	    	searchCorner.x += dx;
-	    	searchCorner.y += dy;
-	    	refreshSearchRect();
-        wizard.setChanged();
-    	}
-	    else {
-	    	maskCenter.x += dx;
-	    	maskCenter.y += dy;
-	    	maskCorner.x += dx;
-	    	maskCorner.y += dy;
-	      KeyFrame keyFrame = getFrame(n).getKeyFrame();
-	      keyFrame.getMaskPoints()[0].setLocation(maskCenter);
-	      keyFrame.getMaskPoints()[1].setLocation(maskCorner);
-	      Target target = keyFrame.getTarget();
-	      keyFrame.setTargetOffset(target.x-maskCenter.x, target.y-maskCenter.y);
-	      refreshKeyFrame(keyFrame);
-	    }
-      clearSearchPointsDownstream();
-    }
+	  /**
+	   * Overrides TPoint setXY method.
+	   *
+	   * @param x the x coordinate
+	   * @param y the y coordinate
+	   */
+	  public void setXY(double x, double y) {
+		  double dx = x - getX();
+		  double dy = y - getY();
+		  super.setXY(x, y);
+		  int n = trackerPanel.getFrameNumber();
+		  if (this == searchHandle) {
+			  searchCenter.x += dx;
+			  searchCenter.y += dy;
+			  searchCorner.x += dx;
+			  searchCorner.y += dy;
+			  refreshSearchRect();
+			  wizard.setChanged();
+		  } else {
+			  maskCenter.x += dx;
+			  maskCenter.y += dy;
+			  maskCorner.x += dx;
+			  maskCorner.y += dy;
+			  KeyFrame keyFrame = getFrame(n).getKeyFrame();
+			  keyFrame.getMaskPoints()[0].setLocation(maskCenter);
+			  keyFrame.getMaskPoints()[1].setLocation(maskCorner);
+			  Target target = keyFrame.getTarget();
+			  keyFrame.setTargetOffset(target.x - maskCenter.x, target.y - maskCenter.y);
+			  refreshKeyFrame(keyFrame);
+		  }
+		  clearSearchPointsDownstream();
+	  }
 
     /**
      * Sets the location of this point to the specified screen position.
@@ -1713,20 +1711,20 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
-      super.setXY(x, y);
-    	int n = trackerPanel.getFrameNumber();
-    	FrameData frame = getFrame(n);
-      KeyFrame keyFrame = frame.getKeyFrame();
-      keyFrame.setTargetOffset(x-maskCenter.x, y-maskCenter.y);
-      TTrack track = getTrack();
-			track.autoTrackerMarking = track.isAutoAdvance();
-			TPoint p = track.autoMarkAt(n, getX(), getY());
-			frame.setAutoMarkPoint(p);
-			track.autoTrackerMarking = false;
-			repaint();
-			track.repaint();
-    }
+	public void setXY(double x, double y) {
+		super.setXY(x, y);
+		int n = trackerPanel.getFrameNumber();
+		FrameData frame = getFrame(n);
+		KeyFrame keyFrame = frame.getKeyFrame();
+		keyFrame.setTargetOffset(x - maskCenter.x, y - maskCenter.y);
+		TTrack track = getTrack();
+		track.autoTrackerMarking = track.isAutoAdvance();
+		TPoint p = track.autoMarkAt(n, getX(), getY());
+		frame.setAutoMarkPoint(p);
+		track.autoTrackerMarking = false;
+		repaint();
+		track.repaint();
+	}
   }
 
   /**
@@ -1818,15 +1816,18 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	/**
   	 * Returns true if the evolved template is both different and appropriate.
   	 */
-  	boolean newTemplateExists() {
-  		if (isKeyFrame()) return false;
-			TemplateMatcher matcher = getTemplateMatcher();
-			if (matcher==null) return false;
-  		boolean different = matcher.getAlphas()[0]!=templateAlpha
-  				|| matcher.hashCode()!=matcherHashCode;
-  		boolean appropriate = matcher.getIndex()<frameNum;
-  		return different && appropriate;
-  	}
+	boolean newTemplateExists() {
+		if (isKeyFrame())
+			return false;
+		TemplateMatcher matcher = getTemplateMatcher();
+		if (matcher == null)
+			return false;
+		boolean different = matcher.getAlphas()[0] != templateAlpha
+				|| matcher.hashCode() != matcherHashCode;
+		// TODO: reverse ?
+		boolean appropriate = matcher.getIndex() < frameNum;
+		return different && appropriate;
+	}
 
   	/**
   	 * Returns the previously matched template.
