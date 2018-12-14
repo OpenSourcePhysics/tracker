@@ -3115,7 +3115,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					Toolkit.getDefaultToolkit().beep();
 					String s = "\"" + newName + "\" "; //$NON-NLS-1$ //$NON-NLS-2$
 					badNameLabel.setText(s + TrackerRes.getString("TTrack.Dialog.Name.BadName")); //$NON-NLS-1$
-					TTrack.NameDialog nameDialog = TTrack.getNameDialog(track);
+					TrackNameDialog nameDialog = TTrack.getNameDialog(track);
 					nameDialog.getContentPane().add(badNameLabel, BorderLayout.SOUTH);
 					nameDialog.pack();
 	        nameDialog.setVisible(true);
