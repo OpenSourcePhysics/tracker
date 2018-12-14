@@ -974,23 +974,23 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * @param frame the FrameData frame
    */
   protected void buildEvolvedTemplate(FrameData frame) {
-  	TPoint[] matchPts = frame.getMatchPoints();
-  	if (matchPts==null) return; // can't build template without a match
+	  TPoint[] matchPts = frame.getMatchPoints();
+	  if (matchPts == null) return; // can't build template without a match
 //  	System.out.println("building evolved for "+frame.getFrameNumber());
-    TemplateMatcher matcher = getTemplateMatcher();
-    matcher.setTemplate(frame.getTemplate());
-    matcher.setWorkingPixels(frame.getWorkingPixels());
-		Rectangle rect = frame.getKeyFrame().getMask().getBounds();
-		// get new image to rebuild template
-		int x = (int)Math.round(matchPts[2].getX());
-		int y = (int)Math.round(matchPts[2].getY());
-		BufferedImage source = trackerPanel.getVideo().getImage();
-		BufferedImage matchImage = new BufferedImage(
-				rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
-		matchImage.createGraphics().drawImage(source, -x, -y, null);
-		matcher.buildTemplate(matchImage, evolveAlpha, 0);
-		matcher.setIndex(frame.getFrameNumber());
-	}
+	  TemplateMatcher matcher = getTemplateMatcher();
+	  matcher.setTemplate(frame.getTemplate());
+	  matcher.setWorkingPixels(frame.getWorkingPixels());
+	  Rectangle rect = frame.getKeyFrame().getMask().getBounds();
+	  // get new image to rebuild template
+	  int x = (int) Math.round(matchPts[2].getX());
+	  int y = (int) Math.round(matchPts[2].getY());
+	  BufferedImage source = trackerPanel.getVideo().getImage();
+	  BufferedImage matchImage = new BufferedImage(
+			  rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
+	  matchImage.createGraphics().drawImage(source, -x, -y, null);
+	  matcher.buildTemplate(matchImage, evolveAlpha, 0);
+	  matcher.setIndex(frame.getFrameNumber());
+  }
 
 
   /**
