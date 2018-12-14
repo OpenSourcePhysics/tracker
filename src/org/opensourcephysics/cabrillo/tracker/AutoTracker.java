@@ -109,6 +109,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   // instance fields
   private TrackerPanel trackerPanel;
+  private AutotrackerOptions options;
   private int trackID;
   private Wizard wizard;
   private Shape match = new Ellipse2D.Double();
@@ -127,8 +128,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   private Point[] screenPoints = {new Point()}; // used for footprints
   private boolean maskVisible, targetVisible, searchVisible;
   private Runnable stepper;
-  private boolean stepping, active, paused, marking, lookAhead=true;
-  private int goodMatch=4, possibleMatch=1, evolveAlpha=63, autoskipCount=2;
+  private boolean stepping, active, paused, marking;
   private int autoskipsRemained = 0;
   /* trackFrameData maps tracks to indexFrameData which maps point index
   to frameData which maps frame number to individual FrameData objects */
@@ -155,6 +155,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
 	  trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
 	  trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+
+	  options = new AutotrackerOptions();
+
 	  stepper = new Runnable() {
 		  public void run() {
 			  TTrack track = getTrack();
@@ -341,7 +344,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	    double[] peakWidthAndHeight = frame.getMatchWidthAndHeight();
 	    if (p != null
                 && (Double.isInfinite(peakWidthAndHeight[1])
-                || (peakWidthAndHeight[1] >= goodMatch))
+                || options.isMatchGood(peakWidthAndHeight[1]))
         ) {
   			marking = true;
   			track.autoTrackerMarking = track.isAutoAdvance();
@@ -349,7 +352,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   			frame.setAutoMarkPoint(p);
   			track.autoTrackerMarking = false;
   			// We can perform autoskips if needed
-  			autoskipsRemained = autoskipCount;
+  			autoskipsRemained = options.getAutoskipCount();
 	    	return true;
 	    }
 		if (p==null) {
@@ -399,7 +402,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   	// set predictedTarget to prev position
 		predictedTarget.setLocation(prevPoints[0].getX(), prevPoints[0].getY());
-  	if (!lookAhead || prevPoints[1]==null) {
+  	if (!options.isLookAhead() || prevPoints[1]==null) {
   		// no recent velocity or acceleration data available
     	success = true;
   	}
@@ -860,7 +863,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			TPoint[] searchPts = frame.getSearchPoints(true);
 			if (searchPts != null)
 				setSearchPoints(searchPts[0], searchPts[1]);
-			else if (lookAhead && keyFrame!=null) {
+			else if (options.isLookAhead() && keyFrame!=null) {
 				TPoint prediction = getPredictedMatchTarget(n);
 	  		if (prediction != null) {
 	  			setSearchPoints(getMatchCenter(prediction), null);
@@ -933,7 +936,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   		p = matcher.getMatchLocation(image, searchRect); // may be null
   	}
   	double[] matchWidthAndHeight = matcher.getMatchWidthAndHeight();
-  	if (matchWidthAndHeight[1]<goodMatch && frame.isAutoMarked()) {
+  	if (!options.isMatchGood(matchWidthAndHeight[1]) && frame.isAutoMarked()) {
   		frame.trackPoint = null;
   	}
 
@@ -941,7 +944,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	frame.setMatchWidthAndHeight(matchWidthAndHeight);
   	frame.searched = true;
     // if p is null or match is poor, then clear match points
-  	if (p==null || matchWidthAndHeight[1] < possibleMatch) {
+  	if (p==null || !options.isMatchPossible(matchWidthAndHeight[1])) {
         frame.setMatchPoints(null);
   		return null;
   	}
@@ -959,7 +962,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     frame.setMatchPoints(new TPoint[] {center, corner, p});
 
     // if good match found then build evolved template and return match target
-  	if (matchWidthAndHeight[1]>=goodMatch) {
+  	if (options.isMatchGood(matchWidthAndHeight[1])) {
   		buildEvolvedTemplate(frame);
   		return getMatchTarget(center);
   	}
@@ -988,7 +991,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  BufferedImage matchImage = new BufferedImage(
 			  rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
 	  matchImage.createGraphics().drawImage(source, -x, -y, null);
-	  matcher.buildTemplate(matchImage, evolveAlpha, 0);
+	  matcher.buildTemplate(matchImage, options.getEvolveAlpha(), 0);
 	  matcher.setIndex(frame.getFrameNumber());
   }
 
@@ -1439,8 +1442,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     double[] widthAndHeight = frame.getMatchWidthAndHeight();
     if (frame.isMarked()) { // frame is marked (includes always-marked tracks like axes, calibration points, etc)
     	if (frame.isAutoMarked()) { // automarked
-    		if (widthAndHeight[1]> goodMatch) return 1; // automarked with good match
-    		return 6; // accepted by user
+    		return options.isMatchGood(widthAndHeight[1]) ?
+					1: // automarked with good match
+					6; // accepted by user
     	}
     	// not automarked
       TTrack track = getTrack();
@@ -1453,18 +1457,22 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     	}
   		if (frame.searched) {
 	    	if (isCalibrationTool) {
-		    	if (widthAndHeight[1]>possibleMatch) return 8; // possible match for calibration
-		    	return 9; // no match found, existing mark or calibration
+	    		return options.isMatchPossible(widthAndHeight[1]) ?
+						8: // possible match for calibration
+		    			9; // no match found, existing mark or calibration
 	    	}
-	    	if (frame.decided) return 5; // manually marked by user
-	    	if (widthAndHeight[1]>possibleMatch) return 8; // possible match, already marked
-	    	return 9; // no match found, existing mark or calibration
+	    	if (frame.decided)
+	    		return 5; // manually marked by user
+			return options.isMatchPossible(widthAndHeight[1]) ?
+	    			8: // possible match, already marked
+	    			9; // no match found, existing mark or calibration
   		}
     	return 7; // never searched
     }
   	if (frame.searched) { // frame unmarked but searched
-  		if (widthAndHeight[1]<possibleMatch) return 3; // no match found
-  		return 2; // possible match found but not marked
+  		return options.isMatchPossible(widthAndHeight[1])?
+				2: // possible match found but not marked
+				3; // no match found
   	}
   	// frame is unmarked and unsearched
 		if (widthAndHeight==null) return 7; // never searched
@@ -2120,13 +2128,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   //_____________________________ protected methods ____________________________
 
-    protected void setAlphaFromRate(int evolveRate) {
-    	double max = maxEvolveRate;
-    	int alpha = (int)(1.0*evolveRate*255/max);
-    	if (evolveRate>=max) alpha = 255;
-    	if (evolveRate<=0) alpha = 0;
-    	evolveAlpha=alpha;
-    }
+
 
     /**
      * Creates the visible components.
@@ -2426,7 +2428,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         public void stateChanged(ChangeEvent e) {
         	if (ignoreChanges) return;
         	Integer i = (Integer)evolveSpinner.getValue();
-        	setAlphaFromRate(i);
+        	options.setEvolveAlphaFromRate(i);
         	int n = trackerPanel.getFrameNumber();
         	FrameData frame = getFrame(n);
         	buildEvolvedTemplate(frame);
@@ -2437,17 +2439,17 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         }
       };
       evolveSpinner.addChangeListener(listener);
-      setAlphaFromRate((Integer)evolveSpinner.getValue());
+      options.setEvolveAlphaFromRate((Integer)evolveSpinner.getValue()); // TODO: redundant?
 
       acceptLabel = new JLabel();
       acceptLabel.setOpaque(false);
       acceptLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-      model = new SpinnerNumberModel(goodMatch, possibleMatch, 10, 1);
+      model = new SpinnerNumberModel(options.getGoodMatch(), options.getPossibleMatch(), 10, 1);
       acceptSpinner = new TallSpinner(model, trackDropdown);
       acceptSpinner.addMouseListenerToAll(mouseOverListener);
       listener = new ChangeListener() {
         public void stateChanged(ChangeEvent e) {
-        	goodMatch = (Integer)acceptSpinner.getValue();
+        	options.setGoodMatch((Integer)acceptSpinner.getValue()); // TODO: accept strings
         	setChanged();
         }
       };
@@ -2456,12 +2458,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       autoskipLabel = new JLabel();
       autoskipLabel.setOpaque(false);
       autoskipLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-      model = new SpinnerNumberModel(autoskipCount, 0, 10, 1);
+      model = new SpinnerNumberModel(options.getAutoskipCount(), 0, 10, 1);
       autoskipSpinner = new TallSpinner(model, trackDropdown);
       autoskipSpinner.addMouseListenerToAll(mouseOverListener);
       listener = new ChangeListener() {
           public void stateChanged(ChangeEvent e) {
-              autoskipCount = (Integer)autoskipSpinner.getValue();
+              options.setAutoskipCount((Integer)autoskipSpinner.getValue());
               setChanged();
           }
       };
@@ -2521,10 +2523,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       lookAheadCheckbox = new JCheckBox();
       lookAheadCheckbox.addMouseListener(mouseOverListener);
       lookAheadCheckbox.setOpaque(false);
-      lookAheadCheckbox.setSelected(lookAhead);
+      lookAheadCheckbox.setSelected(options.isLookAhead());
       lookAheadCheckbox.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-        	lookAhead = lookAheadCheckbox.isSelected();
+        	options.setLookAhead(lookAheadCheckbox.isSelected());
         	setChanged();
         }
       });
