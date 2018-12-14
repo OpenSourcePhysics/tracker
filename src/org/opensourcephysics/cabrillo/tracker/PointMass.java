@@ -286,6 +286,7 @@ public class PointMass extends TTrack {
   protected JMenuItem aTailsToOriginItem;
   protected JMenuItem aTailsToPositionItem;
   protected JMenuItem autotrackItem;
+  protected JMenuItem movingAverageItem;
   protected JCheckBoxMenuItem vVisibleItem;
   protected JCheckBoxMenuItem aVisibleItem;
   protected boolean vAtOrigin, aAtOrigin;
@@ -2039,6 +2040,34 @@ public class PointMass extends TTrack {
 	  trackerPanel.repaintDirtyRegion();
   }
 
+	public void applyMovingAverage(int width) {
+		if (width < 1) {
+			return;
+		}
+		updatePositionData();
+		double[] xDataWorking = Arrays.copyOfRange(xData, 0, xData.length);
+		double[] yDataWorking = Arrays.copyOfRange(yData, 0, yData.length);
+		boolean[] validDataWorking = Arrays.copyOfRange(validData, 0, validData.length);
+		for (int i = 0; i < validDataWorking.length; i++) {
+			double xCumulated = 0, yCumulated = 0;
+			int pointsFound = 0;
+			for (int j = i; j > i - width && j >= 0; j--) {
+				if (validDataWorking[j]) {
+					pointsFound++;
+					xCumulated += xDataWorking[j];
+					yCumulated += yDataWorking[j];
+				}
+			}
+			if (pointsFound != 0) {
+				TPoint p = new TPoint();
+				p.setWorldPosition(xCumulated / pointsFound, yCumulated / pointsFound, trackerPanel);
+				createStep(i, p.getX(), p.getY());
+			}
+		}
+		repaint();
+	}
+
+
   /**
    * Gets the rotational data.
    * 
@@ -2385,6 +2414,8 @@ public class PointMass extends TTrack {
       menu.add(clearStepsItem);
       menu.add(deleteTrackItem);
     }
+    // moving average
+	  menu.add(movingAverageItem);
     return menu;
   }
 
@@ -2735,7 +2766,16 @@ public class PointMass extends TTrack {
         trackerPanel.repaint();
       }
     });
-    vFootprintMenu = new JMenu();
+	  movingAverageItem = new JMenuItem(TrackerRes.getString("PointMass.MenuItem.MovingAverage")); //$NON-NLS-1$
+	  movingAverageItem.addActionListener(new ActionListener() {
+		  public void actionPerformed(ActionEvent e) {
+			  MovingAverageDialog dlg = new MovingAverageDialog(trackerPanel, PointMass.this);
+			  dlg.setVisible(true);
+			  trackerPanel.repaint();
+		  }
+	  });
+
+	  vFootprintMenu = new JMenu();
     aFootprintMenu = new JMenu();
     velocityMenu = new JMenu();
     accelerationMenu = new JMenu();
