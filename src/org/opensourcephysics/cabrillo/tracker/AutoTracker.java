@@ -109,7 +109,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   // instance fields
   private TrackerPanel trackerPanel;
-  private AutotrackerOptions options;
+  private AutoTrackerOptions options;
   private int trackID;
   private Wizard wizard;
   private Shape match = new Ellipse2D.Double();
@@ -156,7 +156,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
 	  trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
 
-	  options = new AutotrackerOptions();
+	  options = new AutoTrackerOptions();
 
 	  stepper = new Runnable() {
 		  public void run() {
