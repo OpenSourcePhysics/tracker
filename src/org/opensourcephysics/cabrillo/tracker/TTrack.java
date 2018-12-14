@@ -88,7 +88,7 @@ public abstract class TTrack implements Interactive,
   protected Point2D point = new Point2D.Double();
   protected ArrayList<Component> toolbarTrackComponents = new ArrayList<Component>();
   protected ArrayList<Component> toolbarPointComponents = new ArrayList<Component>();
-  protected TextLineLabel xLabel, yLabel, magLabel, angleLabel;
+  protected TTrackTextLineLabel xLabel, yLabel, magLabel, angleLabel;
   protected JLabel tLabel, stepLabel, tValueLabel, stepValueLabel;
   protected NumberField tField, xField, yField, magField;
   protected DecimalField angleField;
@@ -289,17 +289,17 @@ public abstract class TTrack implements Interactive,
     };
 
     // create labels and fields
-    xLabel = new TextLineLabel(); 
+    xLabel = new TTrackTextLineLabel();
     xField = new TrackNumberField();
-    yLabel = new TextLineLabel(); 
+    yLabel = new TTrackTextLineLabel();
     yField = new TrackNumberField();
-    magLabel = new TextLineLabel(); 
+    magLabel = new TTrackTextLineLabel();
     magField = new TrackNumberField();
     magField.setMinValue(0);
     xField.addMouseListener(formatMouseListener);
     yField.addMouseListener(formatMouseListener);
     magField.addMouseListener(formatMouseListener);
-    angleLabel = new TextLineLabel(); 
+    angleLabel = new TTrackTextLineLabel();
     angleField = new TrackDecimalField(1);
     angleField.addMouseListener(formatAngleMouseListener);
     Border empty = BorderFactory.createEmptyBorder(0, 3, 0, 3);
@@ -3048,96 +3048,17 @@ public abstract class TTrack implements Interactive,
   	
   }
 
-  /**
-   * A DrawingPanel that mimics the look of a JLabel but can display subscripts.
-   */
-  protected static class TextLineLabel extends DrawingPanel {
-    DrawableTextLine textLine;
-    JLabel label;
-    int w;
-    
-    /**
-     * Constructor
-     */
-    TextLineLabel() {
-    	textLine = new DrawableTextLine("", 0, -4.5); //$NON-NLS-1$
-	    textLine.setJustification(TextLine.CENTER);
-	    addDrawable(textLine);
-	    label = new JLabel();
-	    textLine.setFont(label.getFont());
-	    textLine.setColor(label.getForeground());
-    }
-    
-    /**
-     * Constructor with initial text
-     */
-    TextLineLabel(String text) {
-    	this();
-    	setText(text);
-    }
-    
-    /**
-     * Sets the text to be displayed. Accepts subscript notation eg v_{x}.
-     * 
-     * @param text the text
-     */
-    void setText(String text) {
-    	if (text==null) text = ""; //$NON-NLS-1$
-    	if (text.equals(textLine.getText())) return;
-    	w =-1;
-      textLine.setText(text);
-      if (text.contains("_{")) { //$NON-NLS-1$
-      	text = TeXParser.removeSubscripting(text);
-      }
-      // use label to set initial preferred size
-      label.setText(text);
-      java.awt.Dimension dim = label.getPreferredSize();
-      dim.width += 4;
-      setPreferredSize(dim);
-    }
-    
-    @Override
-    public Font getFont() {
-    	if (textLine!=null) return textLine.getFont();
-    	return super.getFont();
-    }
-    
-    @Override
-    public void setFont(Font font) {
-      if (textLine!=null) {
-      	textLine.setFont(font);
-      	w = -1;
-      }
-      else super.setFont(font);
-    }
-    
-    @Override
-    public void paintComponent(Graphics g) {
-      setPixelScale(); // sets the pixel scale and the world-to-pixel AffineTransform
-  		((Graphics2D) g).setRenderingHint(
-					RenderingHints.KEY_TEXT_ANTIALIASING,
-					RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    	textLine.draw(this, g);
-    	if (w==-1) {
-        // check preferred size and adjust if needed
-    		w = textLine.getWidth(g);
-    		Dimension dim = getPreferredSize();
-    		if (dim.width>w+4 || dim.width<w+4) {
-    			dim.width = w+4;
-    			setPreferredSize(dim);
-    			Container c = getParent();
-    			while (c!=null) {
-    				if (c instanceof TTrackBar) {
-    					((TTrackBar)c).refresh();
-    					break;
-    				}
-    			}
-    		}
-    	}
-    }
-    
-  }
-  
+	protected static class TTrackTextLineLabel extends TextLineLabel {
+		@Override
+		public void processParent(Container c){
+			while (c != null) {
+				if (c instanceof TTrackBar) {
+					((TTrackBar) c).refresh();
+					break;
+				}
+			}
+		}
+	}
   
   /**
    * A dialog used to set the name of a track.

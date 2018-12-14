@@ -76,7 +76,7 @@ public class Calibration extends TTrack {
   // instance fields
   protected NumberField x1Field, y1Field;
   protected JLabel point1MissingLabel, point2MissingLabel;
-  protected TextLineLabel x1Label, y1Label;
+  protected TTrackTextLineLabel x1Label, y1Label;
   private Component[] fieldSeparators = new Component[3];
   private Component axisSeparator;
   protected JComboBox axisDropdown;
@@ -780,8 +780,8 @@ public class Calibration extends TTrack {
     point2MissingLabel = new JLabel();
     point1MissingLabel.setBorder(xLabel.getBorder());
     point2MissingLabel.setBorder(yLabel.getBorder());
-    x1Label = new TextLineLabel(); 
-    y1Label = new TextLineLabel(); 
+    x1Label = new TTrackTextLineLabel();
+    y1Label = new TTrackTextLineLabel();
     x1Label.setBorder(xLabel.getBorder());
     y1Label.setBorder(yLabel.getBorder());
     fieldSeparators[0] = Box.createRigidArea(new Dimension(4, 4));
