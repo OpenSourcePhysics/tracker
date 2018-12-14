@@ -147,62 +147,61 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * @param panel the TrackerPanel
    */
   public AutoTracker(TrackerPanel panel) {
-  	trackerPanel = panel;
-  	trackerPanel.addDrawable(this);
-  	trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
-  	trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
-  	trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
-  	trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
-  	trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
-  	trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
-    stepper = new Runnable() {
-      public void run() {
-        TTrack track = getTrack();
-      	if (!active || track==null) {
-      		return;
-      	}
-      	// if never pausing, don't look ahead
-      	boolean moveSearchArea = !neverPause;
-  	    if (markCurrentFrame(moveSearchArea) || neverPause) {
-  	    	// successfully found/marked a good match
-  	    	if (!canStep()) { // reached the end
-  	    		stop(true, true);
-  	    		return;
-  	    	}
-    	    if (stepping) { // move to the next step
-    	    	wizard.refreshInfo();
-    	    	repaint();
-    	    	trackerPanel.getPlayer().step();
-    	    	return;
-    	    }
-    	    // not stepping, so stop
-    	    stop(true, true);
-  	    }
-  	    else { // failed to find or mark a match, so pause or stop
-  	    	if (!stepping)
-  	    		stop(true, false);
-  	    	else {
-	  	    	paused = true;
-	  	  		if (track instanceof PointMass) {
-	  	  			PointMass pointMass = (PointMass)track;
-	  	  			pointMass.updateDerivatives();
-	  	  		}
-	  	  		track.firePropertyChange("steps", null, null); //$NON-NLS-1$
-		      	wizard.refreshGUI();
-  	    	}
-  	    }
-      	repaint();
-      }
-    };
-    wizard = new Wizard();
-    // place near top right corner of frame
-    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-		TFrame frame = trackerPanel.getTFrame();
-		Point frameLoc = frame.getLocationOnScreen();
-		int w = wizard.getWidth()+8;
-		int x = Math.min(screen.width-w, frameLoc.x+frame.getWidth()-w);
-		int y = trackerPanel.getLocationOnScreen().y;
-    wizard.setLocation(x, y);
+	  trackerPanel = panel;
+	  trackerPanel.addDrawable(this);
+	  trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+	  trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
+	  trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+	  trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
+	  trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
+	  trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+	  stepper = new Runnable() {
+		  public void run() {
+			  TTrack track = getTrack();
+			  if (!active || track == null) {
+				  return;
+			  }
+			  // if never pausing, don't look ahead
+			  boolean moveSearchArea = !neverPause;
+			  if (markCurrentFrame(moveSearchArea) || neverPause) {
+				  // successfully found/marked a good match
+				  if (!canStep()) { // reached the end
+					  stop(true, true);
+					  return;
+				  }
+				  if (stepping) { // move to the next step
+					  wizard.refreshInfo();
+					  repaint();
+					  trackerPanel.getPlayer().step();
+					  return;
+				  }
+				  // not stepping, so stop
+				  stop(true, true);
+			  } else { // failed to find or mark a match, so pause or stop
+				  if (!stepping)
+					  stop(true, false);
+				  else {
+					  paused = true;
+					  if (track instanceof PointMass) {
+						  PointMass pointMass = (PointMass) track;
+						  pointMass.updateDerivatives();
+					  }
+					  track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+					  wizard.refreshGUI();
+				  }
+			  }
+			  repaint();
+		  }
+	  };
+	  wizard = new Wizard();
+	  // place near top right corner of frame
+	  Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+	  TFrame frame = trackerPanel.getTFrame();
+	  Point frameLoc = frame.getLocationOnScreen();
+	  int w = wizard.getWidth() + 8;
+	  int x = Math.min(screen.width - w, frameLoc.x + frame.getWidth() - w);
+	  int y = trackerPanel.getLocationOnScreen().y;
+	  wizard.setLocation(x, y);
   }
 
   /**
@@ -214,7 +213,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  if (newTrack != null && !newTrack.isAutoTrackable())
 		  newTrack = null;
 	  TTrack track = getTrack();
-	  if (track == newTrack) return;
+	  if (track == newTrack)
+	  	  return;
 	  if (track != null) {
 		  track.removePropertyChangeListener("step", this); //$NON-NLS-1$
 		  track.removePropertyChangeListener("name", this); //$NON-NLS-1$
@@ -1308,7 +1308,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * @param n the frame number
    */
   protected void delete(int n) {
-		trackerPanel.repaint();
+  	trackerPanel.repaint();
     FrameData frame = getFrame(n);
     frame.clear();
   }
@@ -1760,16 +1760,16 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	 *
   	 * @param matcher the template matcher
   	 */
-  	void setTemplate(TemplateMatcher matcher) {
-  		template = matcher.getTemplate();
-  		templateAlpha = matcher.getAlphas()[0];
-			workingPixels = matcher.getWorkingPixels(workingPixels);
-			matcherHashCode = matcher.hashCode();
-			// refresh icons
-			setMatchIcon(null);
-  		BufferedImage img = createMagnifiedImage(template);
-	  	setTemplateIcon(new ImageIcon(img));
-  	}
+	void setTemplate(TemplateMatcher matcher) {
+		template = matcher.getTemplate();
+		templateAlpha = matcher.getAlphas()[0];
+		workingPixels = matcher.getWorkingPixels(workingPixels);
+		matcherHashCode = matcher.hashCode();
+		// refresh icons
+		setMatchIcon(null);
+		BufferedImage img = createMagnifiedImage(template);
+		setTemplateIcon(new ImageIcon(img));
+	}
 
   	/**
   	 * Returns the template to match. Replaces the existing template if
@@ -1832,19 +1832,20 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   		searchPoints = points;
   	}
 
-  	TPoint[] getSearchPoints(boolean inherit) {
-  		if (!inherit || searchPoints!=null || this.isKeyFrame()) return searchPoints;
-      Map<Integer, FrameData> frames = getFrameData(index);
-    	for (int i=frameNum; i>=0; i--) {
-    		FrameData frame = frames.get(i);
-    		if (frame!=null) {
-    			if (frame.searchPoints!=null || frame.isKeyFrame()) {
-    				return frame.searchPoints;
-    			}
-    		}
-    	}
-  		return null;
-    }
+	  TPoint[] getSearchPoints(boolean inherit) {
+		  if (!inherit || searchPoints != null || this.isKeyFrame()) return searchPoints;
+		  Map<Integer, FrameData> frames = getFrameData(index);
+		  //TODO: reverse?
+		  for (int i = frameNum; i >= 0; i--) {
+			  FrameData frame = frames.get(i);
+			  if (frame != null) {
+				  if (frame.searchPoints != null || frame.isKeyFrame()) {
+					  return frame.searchPoints;
+				  }
+			  }
+		  }
+		  return null;
+	  }
 
   	void setMatchPoints(TPoint[] points) {
   		matchPoints = points;
