@@ -157,6 +157,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 	  options = new AutoTrackerOptions();
 
+	  options.changes.addPropertyChangeListener("maskWidth" , propertyChangeEvent -> refreshCurrentMask());
+	  options.changes.addPropertyChangeListener("maskHeight", propertyChangeEvent -> refreshCurrentMask());
+
+
 	  stepper = new Runnable() {
 		  public void run() {
 			  TTrack track = getTrack();
@@ -255,7 +259,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	Target target = new Target();
   	Shape mask = new Ellipse2D.Double();
   	maskCenter.setLocation(x, y);
-  	maskCorner.setLocation(x+defaultMaskSize[0], y+defaultMaskSize[1]);
+  	//refreshMaskCorner();
+  	maskCorner.setLocation(x+options.getMaskWidth()/2, y+options.getMaskHeight()/2);
   	searchCenter.setLocation(x, y);
   	searchCorner.setLocation(x+defaultSearchSize[0], y+defaultSearchSize[1]);
   	Map<Integer, FrameData> frames = getFrameData();
@@ -631,6 +636,18 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     return null;
   }
 
+	/**
+	 * Refreshes the position of maskCorner
+	 * basing on the position of maskCenter
+	 * and the width and height specified by the options
+	 */
+	private void refreshMaskCorner(){
+		maskCorner.setLocation(
+				maskCenter.x + options.getMaskWidth ()/(2*cornerFactor),
+				maskCenter.y + options.getMaskHeight()/(2*cornerFactor)
+		);
+	}
+
   /**
    * Determines if this autotracker is in active use
    *
@@ -992,6 +1009,43 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  matchImage.createGraphics().drawImage(source, -x, -y, null);
 	  matcher.buildTemplate(matchImage, options.getEvolveAlpha(), 0);
 	  matcher.setIndex(frame.getFrameNumber());
+  }
+
+  private void refreshCurrentMask(){
+	/*
+  	int n = trackerPanel.getFrameNumber();
+	  FrameData frame = getFrame(n);
+	  KeyFrame keyFrame = frame.getKeyFrame();
+	  Shape mask = keyFrame.getMask();
+
+	  if(mask instanceof RectangularShape){
+		  RectangularShape rect = (RectangularShape) mask;
+		  rect.setFrameFromCenter(
+		  		maskCenter.x, maskCenter.y,
+				maskCenter.x + options.getMaskWidth()/2, maskCenter.y + options.getMaskHeight()/2
+		  );
+	  }
+	  maskCorner.setLocation(
+			  maskCenter.x + options.getMaskWidth ()/(2*cornerFactor),
+			  maskCenter.y + options.getMaskHeight()/(2*cornerFactor)
+	  );
+	  //refreshKeyFrame(keyFrame);
+	  //repaint(); // TODO: is this necessary?
+	  //wizard.refreshGUI();
+	  clearSearchPointsDownstream();
+	  //wizard.refreshIcons();
+	  */
+
+		maskCorner.setXY(
+			maskCenter.x + options.getMaskWidth ()/(2*cornerFactor),
+		    maskCenter.y + options.getMaskHeight()/(2*cornerFactor)
+		);
+
+/*
+	  maskCorner.x = maskCenter.x + options.getMaskWidth ()/(2*cornerFactor);
+	  maskCorner.y = maskCenter.y + options.getMaskHeight()/(2*cornerFactor);
+	  trackerPanel.repaint();
+*/
   }
 
 
@@ -1384,6 +1438,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		  ellipse.setFrameFromCenter(maskCenter.x, maskCenter.y,
 				  maskCenter.x + dx, maskCenter.y + dy);
 	  }
+	  //options.setMaskWidth (2*(maskCorner.x- maskCenter.x));
+	  //options.setMaskHeight(2*(maskCorner.y- maskCenter.y));
 	  wizard.replaceIcons(keyFrame);
 	  // get the marked point and set target position AFTER refreshing keyFrame
 	  TPoint p = keyFrame.getMarkedPoint();
@@ -1669,7 +1725,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       	refreshSearchRect();
         wizard.setChanged();
       }
-      else {
+      else { // this == maskCorner
+      	//options.setMaskWidth ((maskCorner.x - maskCenter.x)*(2*cornerFactor));
+      	//options.setMaskHeight((maskCorner.y - maskCenter.y)*(2*cornerFactor));
         refreshKeyFrame(getFrame(n).getKeyFrame());
       }
       clearSearchPointsDownstream();
@@ -1966,6 +2024,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   		this.mask = mask;
   		this.target = target;
   		maskPoints[0].setLocation(maskCenter);
+  		//refreshMaskCorner();
   		maskPoints[1].setLocation(maskCorner);
   	}
 
@@ -2032,7 +2091,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     private JLabel autoskipLabel;
     private TallSpinner autoskipSpinner;
 
-    /**
+	private JLabel templateWidthLabel, templateHeightLabel;
+	private TallSpinner templateWidthSpinner, templateHeightSpinner;
+
+	  /**
      * Constructs a Wizard.
      */
     public Wizard() {
@@ -2454,6 +2516,23 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       };
       acceptSpinner.addChangeListener(listener);
 
+		templateWidthLabel = new JLabel();
+		templateWidthLabel.setOpaque(false);
+		templateWidthLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		model = new SpinnerNumberModel(options.getMaskWidth(), 1, 1000, 1);
+		templateWidthSpinner = new TallSpinner(model, trackDropdown);
+		templateWidthSpinner.addMouseListenerToAll(mouseOverListener);
+		listener = new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				options.setMaskWidth((Double)templateWidthSpinner.getValue()); // TODO: accept strings
+				setChanged();
+			}
+		};
+		templateWidthSpinner.addChangeListener(listener);
+
+
+
+
       autoskipLabel = new JLabel();
       autoskipLabel.setOpaque(false);
       autoskipLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
@@ -2476,6 +2555,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       flowpanel.add(evolveSpinner);
       flowpanel.add(acceptLabel);
       flowpanel.add(acceptSpinner);
+
+      flowpanel.add(templateWidthSpinner);
+
       templateToolbar.add(templateLabel);
       templateToolbar.add(flowpanel);
 
