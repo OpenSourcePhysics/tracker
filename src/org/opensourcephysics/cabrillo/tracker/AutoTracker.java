@@ -88,7 +88,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	private static double[] defaultMaskSize = {9, 9};
 	private static double[] defaultSearchSize = {40, 40};
 	private static int templateIconMagnification = 2;
-	private static int predictionLookback = 4;
+	private static int predictionLookback = 4;  // TODO: to options?
   static boolean neverPause = true;
 
   static {
