@@ -1358,40 +1358,40 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * @param keyFrame the KeyFrame
    */
   protected void refreshKeyFrame(KeyFrame keyFrame) {
-  	Shape mask = keyFrame.getMask();
-  	if (mask instanceof Ellipse2D.Double) {
-  		// prevent the mask from being too small to contain any pixels
-      keyFrame.getMaskPoints()[0].setLocation(maskCenter);
-      keyFrame.getMaskPoints()[1].setLocation(maskCorner);
-  		Ellipse2D.Double ellipse = (Ellipse2D.Double)mask;
-			double sin = maskCenter.sin(maskCorner);
-			double cos = maskCenter.cos(maskCorner);
-			if (Double.isNaN(sin)) {
-				sin = -0.707;
-				cos = 0.707;
-			}
-  		double d = Math.max(minMaskRadius, maskCenter.distance(maskCorner));
-  		double dx = d*cornerFactor*cos;
-  		double dy = -d*cornerFactor*sin;
-  		if (Math.abs(dx) < 1) {
-  			if (dx > 0) dx = 1;
-  			else dx = -1;
-  		}
-  		if (Math.abs(dy) < 1) {
-  			if (dy > 0) dy = 1;
-  			else dy = -1;
-  		}
-  		ellipse.setFrameFromCenter(maskCenter.x, maskCenter.y,
-  				maskCenter.x + dx, maskCenter.y + dy);
-  	}
-  	wizard.replaceIcons(keyFrame);
+	  Shape mask = keyFrame.getMask();
+	  if (mask instanceof Ellipse2D.Double) {
+		  // prevent the mask from being too small to contain any pixels
+		  keyFrame.getMaskPoints()[0].setLocation(maskCenter);
+		  keyFrame.getMaskPoints()[1].setLocation(maskCorner);
+		  Ellipse2D.Double ellipse = (Ellipse2D.Double) mask;
+		  double sin = maskCenter.sin(maskCorner);
+		  double cos = maskCenter.cos(maskCorner);
+		  if (Double.isNaN(sin)) {
+			  sin = -0.707;
+			  cos = 0.707;
+		  }
+		  double d = Math.max(minMaskRadius, maskCenter.distance(maskCorner));
+		  double dx = d * cornerFactor * cos;
+		  double dy = -d * cornerFactor * sin;
+		  if (Math.abs(dx) < 1) {
+			  if (dx > 0) dx = 1;
+			  else dx = -1;
+		  }
+		  if (Math.abs(dy) < 1) {
+			  if (dy > 0) dy = 1;
+			  else dy = -1;
+		  }
+		  ellipse.setFrameFromCenter(maskCenter.x, maskCenter.y,
+				  maskCenter.x + dx, maskCenter.y + dy);
+	  }
+	  wizard.replaceIcons(keyFrame);
 	  // get the marked point and set target position AFTER refreshing keyFrame
-  	TPoint p = keyFrame.getMarkedPoint();
-  	if (p!=null)
-  		keyFrame.getTarget().setXY(p.getX(), p.getY());
-    search(true, false); // search this frame only
-		repaint();
-		wizard.repaint();
+	  TPoint p = keyFrame.getMarkedPoint();
+	  if (p != null)
+		  keyFrame.getTarget().setXY(p.getX(), p.getY());
+	  search(true, false); // search this frame only
+	  repaint();
+	  wizard.repaint();
   }
 
   protected BufferedImage createMagnifiedImage(BufferedImage source) {
