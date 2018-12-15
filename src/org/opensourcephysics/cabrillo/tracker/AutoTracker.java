@@ -83,8 +83,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	private static double cornerFactor = 0.9;
 	private static BasicStroke solidBold = new BasicStroke(2), solid = new BasicStroke();
 	private static BasicStroke dotted, dashed;
-	private static int maxEvolveRate = 100; // percent
-	private static int defaultEvolveRate = maxEvolveRate/5;
+	private static int defaultEvolveRate = AutoTrackerOptions.maxEvolveRate/5;
 	private static Icon searchIcon, stopIcon, graySearchIcon;
 	private static double[] defaultMaskSize = {9, 9};
 	private static double[] defaultSearchSize = {40, 40};
@@ -2406,7 +2405,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       evolveRateLabel.setOpaque(false);
       evolveRateLabel.addMouseListener(mouseOverListener);
 
-      SpinnerModel model = new SpinnerNumberModel(defaultEvolveRate, 0, maxEvolveRate, maxEvolveRate/20);
+      SpinnerModel model = new SpinnerNumberModel(defaultEvolveRate, 0, options.maxEvolveRate, options.maxEvolveRate/20);
       evolveSpinner = new TallSpinner(model, trackDropdown);
       evolveSpinner.addMouseListenerToAll(mouseOverListener);
       evolveSpinner.getTextField().setFormatterFactory(new JFormattedTextField.AbstractFormatterFactory() {
