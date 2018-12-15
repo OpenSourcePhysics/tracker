@@ -12,7 +12,7 @@ package org.opensourcephysics.cabrillo.tracker;
  *
  * @author Nikolai Avdeev aka NickKolok
  */
-public class AutoTrackerOptions {
+public class AutoTrackerOptions implements Cloneable {
 	private int goodMatch=4, possibleMatch=1, evolveAlpha=63, autoskipCount=2;
 	private boolean lookAhead=true;
 	public static final int maxEvolveRate = 100;
