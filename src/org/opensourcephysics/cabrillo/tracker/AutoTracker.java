@@ -200,14 +200,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		  }
 	  };
 	  wizard = new Wizard();
-	  // place near top right corner of frame
-	  Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-	  TFrame frame = trackerPanel.getTFrame();
-	  Point frameLoc = frame.getLocationOnScreen();
-	  int w = wizard.getWidth() + 8;
-	  int x = Math.min(screen.width - w, frameLoc.x + frame.getWidth() - w);
-	  int y = trackerPanel.getLocationOnScreen().y;
-	  wizard.setLocation(x, y);
   }
 
   /**
@@ -2100,7 +2092,20 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       super(trackerPanel.getTFrame(), false);
       createGUI();
       pack();
+      locateOnFrame();
     }
+
+    private void locateOnFrame(){
+		// place near top right corner of frame
+		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+		TFrame frame = trackerPanel.getTFrame();
+		Point frameLoc = frame.getLocationOnScreen();
+		int w = getWidth() + 8;
+		int x = Math.min(screen.width - w, frameLoc.x + frame.getWidth() - w);
+		int y = trackerPanel.getLocationOnScreen().y;
+		setLocation(x, y);
+	}
+
 
     /**
      * Responds to property change events. This listens for "tab" from TFrame.
