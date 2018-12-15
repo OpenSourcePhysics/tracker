@@ -3228,31 +3228,31 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     /**
      * Refreshes the template icons.
      */
-    protected void refreshIcons() {
-    	Runnable runner = new Runnable() {
-    		public void run() {
-    	    TTrack track = getTrack();
-    			if (getTemplateMatcher()==null || track==null) {
-    				templateImageLabel.setIcon(null);
-    				matchImageLabel.setIcon(null);
-    				return;
-    			}
-    			int n = trackerPanel.getFrameNumber();
-    	  	FrameData frame = getFrame(n);
-    			// set match icon
-      		Icon icon = frame.getMatchIcon();
-  	    	matchImageLabel.setIcon(icon);
-  	    	// set template icon
-	  	    icon = frame.getTemplateIcon();
-  	    	if (icon==null) {
-  	    		frame.getTemplateToMatch(); // loads new template and sets template icon
-  	    		icon = frame.getTemplateIcon();
-  	    	}
-  	    	templateImageLabel.setIcon(icon);
-    		}
-    	};
-      if (SwingUtilities.isEventDispatchThread()) runner.run();
-      else SwingUtilities.invokeLater(runner);
+	protected void refreshIcons() {
+		Runnable runner = new Runnable() {
+			public void run() {
+				TTrack track = getTrack();
+				if (getTemplateMatcher() == null || track == null) {
+					templateImageLabel.setIcon(null);
+					matchImageLabel.setIcon(null);
+					return;
+				}
+				int n = trackerPanel.getFrameNumber();
+				FrameData frame = getFrame(n);
+				// set match icon
+				Icon icon = frame.getMatchIcon();
+				matchImageLabel.setIcon(icon);
+				// set template icon
+				icon = frame.getTemplateIcon();
+				if (icon == null) {
+					frame.getTemplateToMatch(); // loads new template and sets template icon
+					icon = frame.getTemplateIcon();
+				}
+				templateImageLabel.setIcon(icon);
+			}
+		};
+		if (SwingUtilities.isEventDispatchThread()) runner.run();
+		else SwingUtilities.invokeLater(runner);
 
     }
 
