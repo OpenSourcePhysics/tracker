@@ -1707,32 +1707,31 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     }
   }
 
-  /**
-   * A corner point used for resizing.
-   */
-  protected class Corner extends TPoint {
+	/**
+	 * A corner point used for resizing.
+	 */
+	protected class Corner extends TPoint {
 
-    /**
-     * Overrides TPoint setXY method.
-     *
-     * @param x the x coordinate
-     * @param y the y coordinate
-     */
-    public void setXY(double x, double y) {
-      super.setXY(x, y);
-    	int n = trackerPanel.getFrameNumber();
-      if (this == searchCorner) {
-      	refreshSearchRect();
-        wizard.setChanged();
-      }
-      else { // this == maskCorner
-      	//options.setMaskWidth ((maskCorner.x - maskCenter.x)*(2*cornerFactor));
-      	//options.setMaskHeight((maskCorner.y - maskCenter.y)*(2*cornerFactor));
-        refreshKeyFrame(getFrame(n).getKeyFrame());
-      }
-      clearSearchPointsDownstream();
-    }
-  }
+		/**
+		 * Overrides TPoint setXY method.
+		 *
+		 * @param x the x coordinate
+		 * @param y the y coordinate
+		 */
+		public void setXY(double x, double y) {
+			super.setXY(x, y);
+			if (this == searchCorner) {
+				refreshSearchRect();
+				wizard.setChanged();
+			} else { // this == maskCorner
+				options.setMaskWidth ((maskCorner.x - maskCenter.x)*(2*cornerFactor));
+				options.setMaskHeight((maskCorner.y - maskCenter.y)*(2*cornerFactor));
+				int n = trackerPanel.getFrameNumber();
+				refreshKeyFrame(getFrame(n).getKeyFrame());
+			}
+			clearSearchPointsDownstream();
+		}
+	}
 
   /**
    * A point that defines the target location relative to the mask center.
@@ -2529,7 +2528,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 		};
 		templateWidthSpinner.addChangeListener(listener);
-
+		templateWidthSpinner.setEnabled(true);
+		options.changes.addPropertyChangeListener("maskWidth", new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+				templateWidthSpinner.setValue(options.getMaskWidth());
+			}
+		});
 
 
 
