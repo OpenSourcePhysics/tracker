@@ -2502,7 +2502,26 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 		});
 
-
+		templateHeightLabel = new JLabel("Height");
+		templateHeightLabel.setOpaque(false);
+		templateHeightLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
+		model = new SpinnerNumberModel(options.getMaskHeight(), 1, 1000, 1);
+		templateHeightSpinner = new TallSpinner(model, trackDropdown);
+		templateHeightSpinner.addMouseListenerToAll(mouseOverListener);
+		listener = new ChangeListener() {
+			public void stateChanged(ChangeEvent e) {
+				options.setMaskHeight((Double)templateHeightSpinner.getValue()); // TODO: accept strings
+				setChanged();
+			}
+		};
+		templateHeightSpinner.addChangeListener(listener);
+		templateHeightSpinner.getTextField().setEnabled(true);
+		options.changes.addPropertyChangeListener("maskHeight", new PropertyChangeListener() {
+			@Override
+			public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
+				templateHeightSpinner.setValue(options.getMaskHeight());
+			}
+		});
 
       autoskipLabel = new JLabel();
       autoskipLabel.setOpaque(false);
@@ -2527,7 +2546,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       flowpanel.add(acceptLabel);
       flowpanel.add(acceptSpinner);
 
+      flowpanel.add(templateWidthLabel);
       flowpanel.add(templateWidthSpinner);
+      flowpanel.add(templateHeightLabel);
+      flowpanel.add(templateHeightSpinner);
 
       templateToolbar.add(templateLabel);
       templateToolbar.add(flowpanel);
