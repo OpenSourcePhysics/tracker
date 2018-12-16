@@ -2494,7 +2494,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 		};
 		templateWidthSpinner.addChangeListener(listener);
-		templateWidthSpinner.setEnabled(true);
+		templateWidthSpinner.getTextField().setEnabled(true);
 		options.changes.addPropertyChangeListener("maskWidth", new PropertyChangeListener() {
 			@Override
 			public void propertyChange(PropertyChangeEvent propertyChangeEvent) {
