@@ -2027,7 +2027,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	private JComboBox trackDropdown, pointDropdown;
   	private boolean isVisible, changed, hidePopup;
     private JTextArea textPane;
-    protected JToolBar templateToolbar, searchToolbar, targetToolbar, imageToolbar, trackToolbar, autoskipToolbar;
+    protected JToolBar templateToolbar, geometryToolbar, searchToolbar, targetToolbar, imageToolbar, trackToolbar, autoskipToolbar;
     private JPanel startPanel, followupPanel, infoPanel, northPanel, targetPanel;
     private JLabel templateImageLabel, matchImageLabel, acceptLabel, templateLabel;
     private JLabel frameLabel, evolveRateLabel, searchLabel, targetLabel;
@@ -2523,7 +2523,18 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 		});
 
-      autoskipLabel = new JLabel();
+		geometryToolbar = new JToolBar();
+		geometryToolbar.setFloatable(false);
+		geometryToolbar.addMouseListener(mouseOverListener);
+
+		JPanel geompanel = new JPanel();
+		geometryToolbar.add(geompanel);
+		geompanel.add(templateWidthLabel);
+		geompanel.add(templateWidthSpinner);
+		geompanel.add(templateHeightLabel);
+		geompanel.add(templateHeightSpinner);
+
+		autoskipLabel = new JLabel();
       autoskipLabel.setOpaque(false);
       autoskipLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
       model = new SpinnerNumberModel(options.getAutoskipCount(), 0, 10, 1);
@@ -2545,11 +2556,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       flowpanel.add(evolveSpinner);
       flowpanel.add(acceptLabel);
       flowpanel.add(acceptSpinner);
-
-      flowpanel.add(templateWidthLabel);
-      flowpanel.add(templateWidthSpinner);
-      flowpanel.add(templateHeightLabel);
-      flowpanel.add(templateHeightSpinner);
 
       templateToolbar.add(templateLabel);
       templateToolbar.add(flowpanel);
@@ -2988,6 +2994,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
       JPanel controlPanel = new JPanel(new GridLayout(0, 1));
       controlPanel.add(templateToolbar);
+      controlPanel.add(geometryToolbar);
       controlPanel.add(autoskipToolbar);
       controlPanel.add(searchToolbar);
       controlPanel.add(targetToolbar);
