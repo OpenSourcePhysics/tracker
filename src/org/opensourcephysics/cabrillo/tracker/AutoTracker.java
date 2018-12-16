@@ -1003,41 +1003,16 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  matcher.setIndex(frame.getFrameNumber());
   }
 
-  private void refreshCurrentMask(){
-	/*
-  	int n = trackerPanel.getFrameNumber();
-	  FrameData frame = getFrame(n);
-	  KeyFrame keyFrame = frame.getKeyFrame();
-	  Shape mask = keyFrame.getMask();
-
-	  if(mask instanceof RectangularShape){
-		  RectangularShape rect = (RectangularShape) mask;
-		  rect.setFrameFromCenter(
-		  		maskCenter.x, maskCenter.y,
-				maskCenter.x + options.getMaskWidth()/2, maskCenter.y + options.getMaskHeight()/2
-		  );
-	  }
-	  maskCorner.setLocation(
-			  maskCenter.x + options.getMaskWidth ()/(2*cornerFactor),
-			  maskCenter.y + options.getMaskHeight()/(2*cornerFactor)
-	  );
-	  //refreshKeyFrame(keyFrame);
-	  //repaint(); // TODO: is this necessary?
-	  //wizard.refreshGUI();
-	  clearSearchPointsDownstream();
-	  //wizard.refreshIcons();
-	  */
-
+	/**
+	 * Refreshes current position of the mask corner
+	 * according to current position of mask center
+	 * and the information from AutoTrackerOptions object.
+	 */
+	private void refreshCurrentMask(){
 		maskCorner.setXY(
 			maskCenter.x + options.getMaskWidth ()/(2*cornerFactor),
 		    maskCenter.y + options.getMaskHeight()/(2*cornerFactor)
 		);
-
-/*
-	  maskCorner.x = maskCenter.x + options.getMaskWidth ()/(2*cornerFactor);
-	  maskCorner.y = maskCenter.y + options.getMaskHeight()/(2*cornerFactor);
-	  trackerPanel.repaint();
-*/
   }
 
 
