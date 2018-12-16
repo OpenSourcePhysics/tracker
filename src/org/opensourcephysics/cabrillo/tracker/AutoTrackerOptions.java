@@ -16,7 +16,7 @@ import java.beans.PropertyChangeSupport;
  */
 public class AutoTrackerOptions implements Cloneable {
 	private int goodMatch=4, possibleMatch=1, evolveAlpha=63, autoskipCount=2;
-	private double maskWidth=8.0, maskHeight=8.0;
+	private double maskWidth=16.0, maskHeight=16.0;
 	private boolean lookAhead=true;
 	public static final int maxEvolveRate = 100;
 
