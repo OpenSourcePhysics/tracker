@@ -2481,7 +2481,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       };
       acceptSpinner.addChangeListener(listener);
 
-		templateWidthLabel = new JLabel();
+		templateWidthLabel = new JLabel("Width");
 		templateWidthLabel.setOpaque(false);
 		templateWidthLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 		model = new SpinnerNumberModel(options.getMaskWidth(), 1, 1000, 1);
