@@ -251,7 +251,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	Target target = new Target();
   	Shape mask = new Ellipse2D.Double();
   	maskCenter.setLocation(x, y);
-  	//refreshMaskCorner();
   	maskCorner.setLocation(x+options.getMaskWidth()/2, y+options.getMaskHeight()/2);
   	searchCenter.setLocation(x, y);
   	searchCorner.setLocation(x+defaultSearchSize[0], y+defaultSearchSize[1]);
@@ -627,18 +626,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     }
     return null;
   }
-
-	/**
-	 * Refreshes the position of maskCorner
-	 * basing on the position of maskCenter
-	 * and the width and height specified by the options
-	 */
-	private void refreshMaskCorner(){
-		maskCorner.setLocation(
-				maskCenter.x + options.getMaskWidth ()/(2*cornerFactor),
-				maskCenter.y + options.getMaskHeight()/(2*cornerFactor)
-		);
-	}
 
   /**
    * Determines if this autotracker is in active use
@@ -1990,7 +1977,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   		this.mask = mask;
   		this.target = target;
   		maskPoints[0].setLocation(maskCenter);
-  		//refreshMaskCorner();
   		maskPoints[1].setLocation(maskCorner);
   	}
 
