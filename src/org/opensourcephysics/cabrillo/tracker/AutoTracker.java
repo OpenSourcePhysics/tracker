@@ -179,7 +179,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				  if (stepping) { // move to the next step
 					  wizard.refreshInfo();
 					  repaint();
-					  trackerPanel.getPlayer().step();
+					  control.step();
 					  return;
 				  }
 				  // not stepping, so stop
