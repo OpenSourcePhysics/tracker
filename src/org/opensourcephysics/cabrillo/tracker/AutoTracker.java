@@ -139,7 +139,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   private double[][] derivatives2 = new double[predictionLookback-1][];
   private double[][] derivatives3 = new double[predictionLookback-1][];
 
-  private AutoTrackerControl control = new TrackerPanelControl();
+  private AutoTrackerControl  control  = new TrackerPanelControl ();
+  private AutoTrackerFeedback feedback = new TrackerPanelFeedback();
 
   /**
    * Constructs an AutoTracker for a specified TrackerPanel.
@@ -225,7 +226,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  track = newTrack;
 	  if (track != null) {
 		  trackID = track.getID();
-		  trackerPanel.setSelectedTrack(track);
+		  feedback.setSelectedTrack(track);
 		  track.addPropertyChangeListener("step", this); //$NON-NLS-1$
 		  track.addPropertyChangeListener("name", this); //$NON-NLS-1$
 		  track.addPropertyChangeListener("color", this); //$NON-NLS-1$
@@ -250,11 +251,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * @param y the mask center y
    */
   protected void addKeyFrame(TPoint p, double x, double y) {
-  	Target target = new Target();
-  	maskCenter.setLocation(x, y);
-  	maskCorner.setLocation(x+options.getMaskWidth()/2, y+options.getMaskHeight()/2);
-  	searchCenter.setLocation(x, y);
-  	searchCorner.setLocation(x+defaultSearchSize[0], y+defaultSearchSize[1]);
+  	feedback.onBeforeAddKeyframe(x,y);
 
   	int n = control.getFrameNumber();
   	Shape mask = new Ellipse2D.Double();
@@ -262,7 +259,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	KeyFrame keyFrame = new KeyFrame(
   			p,
 			mask,
-			target,
+			new TPoint(), // TODO: create options.targetOffset and use it! Currently target == (0,0)
 			getIndex(p),
 			new TPoint(x, y),
 			new TPoint(x+options.getMaskWidth()/2, y+options.getMaskHeight()/2)
@@ -270,12 +267,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	frames.put(n, keyFrame);
   	clearSearchPointsDownstream();
 
-  	refreshSearchRect();
-    refreshKeyFrame(keyFrame);
-    getWizard().setVisible(true);
-//  getWizard().refreshGUI();
-//  search(false, false); // don't skip this frame and don't keep stepping
-    trackerPanel.repaint();
+  	feedback.onAfterAddKeyframe(keyFrame);
   }
 
   /**
@@ -370,7 +362,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   public boolean prepareMarking(int frameNumber){
 	  TTrack track = getTrack();
 	  if (track==null) return false;
-	  trackerPanel.setSelectedTrack(track);
+	  feedback.setSelectedTrack(track);
 	  return true;
   }
   /**
@@ -3842,6 +3834,33 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  @Override
 	  public ImageCoordSystem getCoords() {
 		  return trackerPanel.getCoords();
+	  }
+  }
+
+  class TrackerPanelFeedback extends AutoTrackerFeedback {
+	  @Override
+	  public void setSelectedTrack(TTrack track){
+	  	trackerPanel.setSelectedTrack(track);
+	  }
+
+	  @Override
+	  public void onBeforeAddKeyframe(double x, double y){
+		  Target target = new Target();
+		  maskCenter.setLocation(x, y);
+		  maskCorner.setLocation(x+options.getMaskWidth()/2, y+options.getMaskHeight()/2);
+		  searchCenter.setLocation(x, y);
+		  searchCorner.setLocation(x+defaultSearchSize[0], y+defaultSearchSize[1]);
+	  }
+
+	  @Override
+	  public void onAfterAddKeyframe(KeyFrame keyFrame){
+		  refreshSearchRect();
+		  refreshKeyFrame(keyFrame);
+		  getWizard().setVisible(true);
+//  getWizard().refreshGUI();
+//  search(false, false); // don't skip this frame and don't keep stepping
+		  trackerPanel.repaint();
+
 	  }
   }
 
