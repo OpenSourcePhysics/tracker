@@ -42,6 +42,10 @@ import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
+import org.opensourcephysics.cabrillo.tracker.AutoTrackerCore.KeyFrame;
+import org.opensourcephysics.cabrillo.tracker.AutoTrackerCore.FrameData;
+
+
 /**
  * A TTrack draws a series of visible Steps on a TrackerPanel.
  * This is an abstract class that cannot be instantiated directly.
@@ -2730,7 +2734,7 @@ public abstract class TTrack implements Interactive,
   			AutoTracker autoTracker = trackerPanel.getAutoTracker();
 	    	if (autoTracker.getTrack()==null || autoTracker.getTrack()==this) {
 	    		int n = trackerPanel.getFrameNumber();
-	    		AutoTracker.KeyFrame key = autoTracker.getFrame(n).getKeyFrame();
+	    		KeyFrame key = autoTracker.getFrame(n).getKeyFrame();
 	    		if (key==null)
 	    			return TMouseHandler.autoTrackMarkCursor;
 	    	}  			

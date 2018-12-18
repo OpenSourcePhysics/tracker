@@ -33,6 +33,9 @@ import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 
+import org.opensourcephysics.cabrillo.tracker.AutoTrackerCore.KeyFrame;
+import org.opensourcephysics.cabrillo.tracker.AutoTrackerCore.FrameData;
+
 /**
  * This is a Step for a CoordAxes. It is used for displaying the axes and for
  * setting the origin, angle and/or scale of an ImageCoordSystem.
@@ -140,7 +143,7 @@ public class CoordAxesStep extends Step {
       if (hitShape != null && hitShape.intersects(hitRect)) {
     		if (autoTracker!=null && autoTracker.getTrack()==track && track.getTargetIndex()==1) {
 	    		int n = track.trackerPanel.getFrameNumber();
-	    		AutoTracker.FrameData frame = autoTracker.getFrame(n);
+	    		FrameData frame = autoTracker.getFrame(n);
 	    		if (frame==frame.getKeyFrame()) {
 	    			return null;
 	    		}
@@ -153,7 +156,7 @@ public class CoordAxesStep extends Step {
     	if (ia==origin) {
     		if (autoTracker!=null && autoTracker.getTrack()==track && track.getTargetIndex()==0) {
 	    		int n = track.trackerPanel.getFrameNumber();
-	    		AutoTracker.FrameData frame = autoTracker.getFrame(n);
+	    		FrameData frame = autoTracker.getFrame(n);
 	    		if (frame==frame.getKeyFrame()) {
 	    			return null;
 	    		}

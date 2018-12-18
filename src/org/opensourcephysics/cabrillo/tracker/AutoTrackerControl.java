@@ -64,4 +64,6 @@ public interface AutoTrackerControl {
 	 * @return ImageCoordinateSystem
 	 */
 	ImageCoordSystem getCoords();
+
+	boolean isVideoValid();
 }

@@ -33,6 +33,10 @@ import javax.swing.text.JTextComponent;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 
+import org.opensourcephysics.cabrillo.tracker.AutoTrackerCore.KeyFrame;
+import org.opensourcephysics.cabrillo.tracker.AutoTrackerCore.FrameData;
+
+
 /**
  * A general purpose mouse handler for a trackerPanel.
  *
@@ -141,7 +145,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
         TrackControl.getControl(trackerPanel).popup.setVisible(false);
         marking = selectedTrack!=null 
         		&& trackerPanel.getCursor()==selectedTrack.getMarkingCursor(e);
-        AutoTracker.KeyFrame keyFrame = getActiveKeyFrame(autoTracker);
+        KeyFrame keyFrame = getActiveKeyFrame(autoTracker);
         if (marking) {
         	iad = null;
         	boolean autotrackTrigger = isAutoTrackTrigger(e) && selectedTrack.isAutoTrackable();
@@ -198,13 +202,13 @@ public class TMouseHandler implements InteractiveMouseHandler {
           			|| selectedTrack instanceof PerspectiveTrack 
           			|| selectedTrack instanceof Protractor) {
           		if (autoTracker.getTrack()==selectedTrack) {
-        	    	AutoTracker.FrameData frame = autoTracker.getFrame(frameNumber);
+        	    	FrameData frame = autoTracker.getFrame(frameNumber);
 		          	if (frame.getKeyFrame()==null) {
 		          		target.setXY(trackerPanel.getMouseX(), trackerPanel.getMouseY());
 		          	}
           		}
           	}
-          	autoTracker.addKeyFrame(target, 
+          	autoTracker.core.addKeyFrame(target,
           		trackerPanel.getMouseX(), trackerPanel.getMouseY());
     	  		TTrackBar.getTrackbar(trackerPanel).refresh();
           }
@@ -422,12 +426,13 @@ public class TMouseHandler implements InteractiveMouseHandler {
   	return false;
   }
 
-  protected AutoTracker.KeyFrame getActiveKeyFrame(AutoTracker autoTracker) {
+  protected KeyFrame getActiveKeyFrame(AutoTracker autoTracker) {
 		if (selectedTrack!=null && autoTracker.getWizard().isVisible()
-				&& autoTracker.getTrack()==selectedTrack) {
-  		AutoTracker.FrameData frame = autoTracker.getFrame(frameNumber);
+				&& autoTracker.getTrack()==selectedTrack
+		) {
+  			FrameData frame = autoTracker.getFrame(frameNumber);
 			if (frame!=null && frame.getKeyFrame()==frame) {
-				return (AutoTracker.KeyFrame)frame;
+				return (KeyFrame)frame;
 			}
 		}
   	return null;
