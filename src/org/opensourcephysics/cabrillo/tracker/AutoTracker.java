@@ -967,7 +967,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
     // get location, width and height of match
   	TPoint p = null;
-  	BufferedImage image = video.getImage();
+  	BufferedImage image = control.getImage();
   	if (lineSpread>=0) {
 	  	double theta = control.getCoords().getAngle(n);
 	  	double x0 = control.getCoords().getOriginX(n);
