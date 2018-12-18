@@ -701,7 +701,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   public boolean isInteracting(TTrack track) {
 		if (getTrack()==track) {
   		int n = track.trackerPanel.getFrameNumber();
-  		AutoTracker.FrameData frame = getFrame(n);
+  		FrameData frame = getFrame(n);
   		return frame!=null && frame==frame.getKeyFrame() && isInteracting();
 		}
 		return false;
