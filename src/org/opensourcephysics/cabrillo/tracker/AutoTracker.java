@@ -550,7 +550,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	if (predict) {
   		TPoint prediction = getPredictedMatchTarget(n);
   		if (prediction != null) {
-  			TPoint p = getMatchCenter(prediction);
+  			TPoint p = core.getMatchCenter(prediction);
   			setSearchPoints(p, null);
   		}
   	}
@@ -862,7 +862,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			else if (options.isLookAhead() && keyFrame!=null) {
 				TPoint prediction = getPredictedMatchTarget(n);
 	  		if (prediction != null) {
-	  			setSearchPoints(getMatchCenter(prediction), null);
+	  			setSearchPoints(core.getMatchCenter(prediction), null);
 	  	  	// save search center and corner points
 	  	  	TPoint[] pts = new TPoint[] {new TPoint(searchCenter), new TPoint(searchCorner)};
 	      	frame.setSearchPoints(pts);
@@ -1191,17 +1191,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	return new TPoint(center.x+offset[0], center.y+offset[1]);
   }
 
-  /**
-   * Returns the center point for a specified match target.
-   *
-   * @param target the target
-   * @return the center
-   */
-  protected TPoint getMatchCenter(TPoint target) {
-  	int n = control.getFrameNumber();
-    double[] offset = getFrame(n).getTargetOffset();
-  	return new TPoint(target.x-offset[0], target.y-offset[1]);
-  }
 
   /**
    * Deletes the match data at a specified frame number.
@@ -1251,6 +1240,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	repaint();
   }
 
+
+  // GUI ?
   /**
    * Refreshes the key frame to reflect current center and corner positions.
    *
@@ -1296,6 +1287,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   }
 
 
+  // GUI
   /**
    * Gets the match shape for the specified center and frame corner positions.
    *
@@ -1311,6 +1303,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	return null;
   }
 
+  // GUI
   protected boolean isDrawingKeyFrameFor(TTrack track, int index) {
   	int n = control.getFrameNumber();
   	if (getTrack()==track && wizard.isVisible() && getFrame(n).isKeyFrame()) {
