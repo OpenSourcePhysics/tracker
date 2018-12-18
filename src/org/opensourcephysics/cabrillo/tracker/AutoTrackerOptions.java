@@ -16,6 +16,7 @@ import java.beans.PropertyChangeSupport;
  */
 public class AutoTrackerOptions implements Cloneable {
 	private int goodMatch=4, possibleMatch=1, evolveAlpha=63, autoskipCount=2;
+	private int lineSpread = -1;  // positive for 1D, negative for 2D tracking
 	private double maskWidth=16.0, maskHeight=16.0;
 	private boolean lookAhead=true;
 	public static final int maxEvolveRate = 100;
@@ -83,6 +84,7 @@ public class AutoTrackerOptions implements Cloneable {
 	public void setLookAhead(boolean lookAhead) {
 		this.lookAhead = lookAhead;
 	}
+
 	public double getMaskWidth() {
 		return maskWidth;
 	}
@@ -107,6 +109,19 @@ public class AutoTrackerOptions implements Cloneable {
 		double old = this.maskHeight;
 		this.maskHeight = maskHeight;
 		changes.firePropertyChange("maskHeight", old, this.maskHeight);
+	}
+
+	public int getLineSpread() {
+		return lineSpread;
+	}
+
+	public void setLineSpread(int spread) {
+		if(this.lineSpread == spread){
+			return;
+		}
+		double old = this.lineSpread;
+		this.lineSpread = spread;
+		changes.firePropertyChange("lineSpread", old, this.lineSpread);
 	}
 
 	// TODO: fire messages for all properties

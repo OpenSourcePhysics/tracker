@@ -129,7 +129,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   private Runnable stepper;
   private boolean stepping, active, paused, marking;
   private int autoskipsRemained = 0;
-  private int lineSpread = -1; // positive for 1D, negative for 2D tracking
   private boolean isInteracting;
   private double[][] derivatives1 = new double[predictionLookback-1][];
   private double[][] derivatives2 = new double[predictionLookback-1][];
@@ -926,11 +925,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     // get location, width and height of match
   	TPoint p = null;
   	BufferedImage image = control.getImage();
-  	if (lineSpread>=0) {
+  	if (options.getLineSpread()>=0) {
 	  	double theta = control.getCoords().getAngle(n);
 	  	double x0 = control.getCoords().getOriginX(n);
 	  	double y0 = control.getCoords().getOriginY(n);
-	  	p = matcher.getMatchLocation(image, searchRect, x0, y0, theta, lineSpread); // may be null
+	  	p = matcher.getMatchLocation(image, searchRect, x0, y0, theta, options.getLineSpread()); // may be null
   	}
   	else {
   		p = matcher.getMatchLocation(image, searchRect); // may be null
@@ -2084,10 +2083,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       oneDCheckbox = new JCheckBox();
       oneDCheckbox.addMouseListener(mouseOverListener);
       oneDCheckbox.setOpaque(false);
-      oneDCheckbox.setSelected(lineSpread>=0);
+      oneDCheckbox.setSelected(options.getLineSpread()>=0);
       oneDCheckbox.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-        	lineSpread = oneDCheckbox.isSelected()? 0: -1;
+        	options.setLineSpread(oneDCheckbox.isSelected()? 0: -1);
         	setChanged();
         	if (oneDCheckbox.isSelected()) {
         		int n = trackerPanel.getFrameNumber();
@@ -2878,7 +2877,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
      */
     protected String getSearchInstructions() {
     	StringBuffer buf = new StringBuffer();
-     	if (lineSpread>=0)
+     	if (options.getLineSpread()>=0)
      		buf.append(TrackerRes.getString("AutoTracker.Info.SearchOnAxis")); //$NON-NLS-1$
      	else
       	buf.append(TrackerRes.getString("AutoTracker.Info.Search")); //$NON-NLS-1$
@@ -2941,7 +2940,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	      	textPane.setForeground(Color.red);
 	      	buf.append(" ("+TrackerRes.getString("AutoTracker.Info.MatchScore")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	buf.append(" "+format.format(peakWidthAndHeight[1])+"): "); //$NON-NLS-1$ //$NON-NLS-2$
-	      	if (lineSpread>=0) {
+	      	if (options.getLineSpread()>=0) {
 		      	buf.append(TrackerRes.getString("AutoTracker.Info.PossibleOnAxis")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Accept")); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.RetryOnAxis")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -2959,7 +2958,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	    	case 3: // no match was found
 	      	textPane.setForeground(Color.red);
 	      	buf.append(": "); //$NON-NLS-1$
-	      	if (lineSpread>=0) {
+	      	if (options.getLineSpread()>=0) {
 		      	buf.append(TrackerRes.getString("AutoTracker.Info.NoMatchOnAxis")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.RetryOnAxis")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	}
@@ -2975,7 +2974,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	    	case 4: // searchRect failed (no video image or x-axis inside)
 	      	textPane.setForeground(Color.red);
 	      	buf.append(": "); //$NON-NLS-1$
-	      	if (lineSpread>=0) { // 1D tracking
+	      	if (options.getLineSpread()>=0) { // 1D tracking
 		      	buf.append(TrackerRes.getString("AutoTracker.Info.OutsideXAxis")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.RetryOnAxis")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	}
@@ -3013,7 +3012,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	      	textPane.setForeground(Color.blue);
 	      	buf.append(" ("+TrackerRes.getString("AutoTracker.Info.MatchScore")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	buf.append(" "+format.format(peakWidthAndHeight[1])+"): "); //$NON-NLS-1$ //$NON-NLS-2$
-	      	if (lineSpread>=0) {
+	      	if (options.getLineSpread()>=0) {
 		      	buf.append(TrackerRes.getString("AutoTracker.Info.PossibleReplace")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Replace")); //$NON-NLS-1$ //$NON-NLS-2$
 	      		buf.append("\n"+TrackerRes.getString("AutoTracker.Info.Keep")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -3030,7 +3029,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	    	case 9: //  no match found, existing mark or calibration tool
 	      	textPane.setForeground(Color.red);
 	      	buf.append(": "); //$NON-NLS-1$
-	      	if (lineSpread>=0) {
+	      	if (options.getLineSpread()>=0) {
 		      	buf.append(TrackerRes.getString("AutoTracker.Info.NoMatchOnAxis")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.RetryOnAxis")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	}
@@ -3045,7 +3044,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	    	case 10: // no match found, already marked
 	      	textPane.setForeground(Color.red);
 	      	buf.append(": "); //$NON-NLS-1$
-	      	if (lineSpread>=0) {
+	      	if (options.getLineSpread()>=0) {
 		      	buf.append(TrackerRes.getString("AutoTracker.Info.NoMatchOnAxis")+"\n"); //$NON-NLS-1$ //$NON-NLS-2$
 				  	buf.append("\n"+TrackerRes.getString("AutoTracker.Info.RetryOnAxis")); //$NON-NLS-1$ //$NON-NLS-2$
 	      	}
