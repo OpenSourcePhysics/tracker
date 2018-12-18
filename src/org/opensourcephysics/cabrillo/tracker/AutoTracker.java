@@ -375,8 +375,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    */
   public TPoint getPredictedMatchTarget(int frameNumber) {
   	boolean success = false;
-  	VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-  	int stepNumber = clip.frameToStep(frameNumber);
+  	int stepNumber = control.frameToStep(frameNumber);
 
   	// get position data at previous steps
   	TPoint[] prevPoints = new TPoint[predictionLookback];
@@ -384,7 +383,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	if (stepNumber>0 && track!=null) {
   		for (int j = 0; j<predictionLookback; j++) {
   			if (stepNumber-j-1 >= 0) {
-  				int n = clip.stepToFrame(stepNumber-j-1);
+  				int n = control.stepToFrame(stepNumber-j-1);
   		    FrameData frame = getFrame(n);
   		    if (track.steps.isAutofill() && !frame.searched)
   		    	prevPoints[j] = null;
@@ -670,7 +669,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * @return the template matcher
    */
   public TemplateMatcher getTemplateMatcher() {
-  	if (trackerPanel==null) return null;
+  	if (control==null) return null;
   	int n = control.getFrameNumber();
   	KeyFrame keyFrame = getFrame(n).getKeyFrame();
   	if (keyFrame==null)
@@ -1876,7 +1875,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  KeyFrame getKeyFrame() {
 		  if (this.isKeyFrame()) return (KeyFrame) this;
 		  Map<Integer, FrameData> frames = getFrameData(index);
-		  if (!trackerPanel.getPlayer().getVideoClip().reverse) {
+		  if (!control.isReverse()) {
 			  for (int i = frameNum; i >= 0; i--) {
 				  FrameData frame = frames.get(i);
 				  if (frame != null && frame.isKeyFrame())
@@ -1965,7 +1964,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	private TemplateMatcher matcher;
 
   	KeyFrame(TPoint keyPt, Shape mask, Target target) {
-  		super(AutoTracker.this.getIndex(keyPt), keyPt.getFrameNumber(trackerPanel));
+  		super(AutoTracker.this.getIndex(keyPt), control.getFrameNumber());
   		this.mask = mask;
   		this.target = target;
   		maskPoints[0].setLocation(maskCenter);
@@ -3760,6 +3759,21 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		  } else {
 			  return stepNumber > 0;
 		  }
+	  }
+
+	  @Override
+	  public boolean isReverse() {
+		  return trackerPanel.getPlayer().getVideoClip().reverse;
+	  }
+
+	  @Override
+	  public int stepToFrame(int stepNumber) {
+		  return trackerPanel.getPlayer().getVideoClip().stepToFrame(stepNumber);
+	  }
+
+	  @Override
+	  public int frameToStep(int frameNumber) {
+		  return trackerPanel.getPlayer().getVideoClip().frameToStep(frameNumber);
 	  }
   }
 

@@ -23,4 +23,26 @@ public interface AutoTrackerControl {
 	 * @return true, if can perform step(), false otherwise
 	 */
 	boolean canStep();
+
+	/**
+	 * @return true if the video should be played in reverted direction
+	 */
+	boolean isReverse();
+
+	/**
+	 * Converts step number to frame number.
+	 *
+	 * @param stepNumber the step number
+	 * @return the frame number
+	 */
+	int stepToFrame(int stepNumber);
+
+	/**
+	 * Converts frame number to step number. A frame number that falls
+	 * between two steps maps to the previous step.
+	 *
+	 * @param frameNumber the frame number
+	 * @return the step number
+	 */
+	int frameToStep(int frameNumber);
 }
