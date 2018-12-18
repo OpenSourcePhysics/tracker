@@ -1,9 +1,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
-import org.opensourcephysics.media.core.ImageCoordSystem;
-import org.opensourcephysics.media.core.TPoint;
-import org.opensourcephysics.media.core.TemplateMatcher;
-import org.opensourcephysics.media.core.Video;
+import org.opensourcephysics.media.core.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -16,6 +13,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class AutoTrackerCore {
+	private static int templateIconMagnification = 2;
+
 	public AutoTrackerOptions options;
 	private AutoTrackerControl control;
 	private AutoTrackerFeedback feedback;
@@ -416,8 +415,23 @@ public class AutoTrackerCore {
 			return frameNum;
 		}
 
+
+		protected ImageIcon createMagnifiedIcon(BufferedImage source) {
+			return new ImageIcon(
+					BufferedImageUtils.createMagnifiedImage(
+							source,
+							templateIconMagnification,
+							BufferedImage.TYPE_INT_ARGB
+					)
+			);
+		}
+
 		Icon getTemplateIcon() {
 			return templateIcon;
+		}
+
+		void setTemplateImage(BufferedImage image) {
+			setTemplateIcon(createMagnifiedIcon(image));
 		}
 
 		void setTemplateIcon(Icon icon) {
@@ -428,10 +442,13 @@ public class AutoTrackerCore {
 			return matchIcon;
 		}
 
+		void setMatchImage(BufferedImage image) {
+			setMatchIcon(createMagnifiedIcon(image));
+		}
+
 		void setMatchIcon(Icon icon) {
 			matchIcon = icon;
 		}
-
 		/**
 		 * Sets the template to the current template of a TemplateMatcher.
 		 *
@@ -443,7 +460,9 @@ public class AutoTrackerCore {
 			workingPixels = matcher.getWorkingPixels(workingPixels);
 			matcherHashCode = matcher.hashCode();
 
-			feedback.onTemplateSetForFrame(this, template);
+			// refresh icons
+			setMatchIcon(null);
+			setTemplateImage(template);
 		}
 
 		/**

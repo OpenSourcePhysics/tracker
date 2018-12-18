@@ -89,9 +89,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	private static BasicStroke dotted, dashed;
 	private static int defaultEvolveRate = AutoTrackerOptions.maxEvolveRate/5;
 	private static Icon searchIcon, stopIcon, graySearchIcon;
-	private static double[] defaultMaskSize = {9, 9};
 	private static double[] defaultSearchSize = {40, 40};
-	private static int templateIconMagnification = 2;
 	private static int predictionLookback = 4;  // TODO: to options?
   static boolean neverPause = true;
 
@@ -952,9 +950,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	}
 
     // successfully found good or possible match: save match data
-    BufferedImage match = matcher.getMatchImage();
-    BufferedImage img = createMagnifiedImage(match);
-  	frame.setMatchIcon(new ImageIcon(img));
+  	frame.setMatchImage(matcher.getMatchImage());
 	Rectangle rect = frame.getKeyFrame().getMask().getBounds();
 	TPoint center = new TPoint(p.x+maskCenter.x-rect.getX(), p.y+maskCenter.y-rect.getY());
 	TPoint corner = new TPoint(
@@ -1304,14 +1300,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  wizard.repaint();
   }
 
-  protected BufferedImage createMagnifiedImage(BufferedImage source) {
-		BufferedImage image = new BufferedImage(
-				templateIconMagnification*source.getWidth(),
-				templateIconMagnification*source.getHeight(),
-				BufferedImage.TYPE_INT_ARGB);
-		image.createGraphics().drawImage(source, 0, 0, image.getWidth(), image.getHeight(), null);
-		return image;
-  }
 
   /**
    * Gets the match shape for the specified center and frame corner positions.
@@ -3297,14 +3285,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			  track.setVisible(true);
 		  }
 
-	  }
-
-	  @Override
-	  public void onTemplateSetForFrame(FrameData frameData, BufferedImage template) {
-		  // refresh icons
-		  frameData.setMatchIcon(null);
-		  BufferedImage img = createMagnifiedImage(template);
-		  frameData.setTemplateIcon(new ImageIcon(img));
 	  }
   }
 
