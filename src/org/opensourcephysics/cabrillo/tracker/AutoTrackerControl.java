@@ -1,5 +1,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
+import org.opensourcephysics.media.core.ImageCoordSystem;
+
 import java.awt.image.BufferedImage;
 
 public interface AutoTrackerControl {
@@ -45,4 +47,14 @@ public interface AutoTrackerControl {
 	 * @return the step number
 	 */
 	int frameToStep(int frameNumber);
+
+	/**
+	 * @return total quantity of frames
+	 */
+	int getFrameCount();
+
+	/**
+	 * @return ImageCoordinateSystem
+	 */
+	ImageCoordSystem getCoords();
 }

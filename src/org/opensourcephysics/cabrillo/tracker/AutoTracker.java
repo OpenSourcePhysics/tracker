@@ -325,6 +325,46 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	}
   }
 
+	/**
+	 * Called when a position has been marked
+	 * @param n Frame number
+	 * @param p Marked point
+	 * @return
+	 */
+  public boolean onMarked(int n, TPoint p){
+	  TTrack track = getTrack();
+	  if (track==null) return false;
+	  track.autoTrackerMarking = track.isAutoAdvance();
+	  p = track.autoMarkAt(n, p.x, p.y);
+	  getFrame(n).setAutoMarkPoint(p);
+	  track.autoTrackerMarking = false;
+	  return true;
+  }
+
+	/**
+	 * Called when a frame has been skipped
+	 * @param n Frame number
+	 * @return
+	 */
+  public boolean onSkipped(int n){
+	getTrack().skippedStepWarningSuppress = true;
+	return true;
+  }
+
+	/**
+	 * @param n Frame number
+	 * @return true if current frame should not be marked
+	 */
+	public boolean isStepComplete(int n){
+  	return getTrack().isStepComplete(n);
+  }
+
+  public boolean prepareMarking(int frameNumber){
+	  TTrack track = getTrack();
+	  if (track==null) return false;
+	  trackerPanel.setSelectedTrack(track);
+	  return true;
+  }
   /**
    * Marks a new step in the current frame if a match is found.
    *
@@ -332,13 +372,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * @return true if a new step was marked or skipped automatically
    */
   public boolean markCurrentFrame(boolean predictLoc) {
-    TTrack track = getTrack();
-  	if (track==null) return false;
-  	trackerPanel.setSelectedTrack(track);
     int n = control.getFrameNumber();
+	if(!prepareMarking(n)){
+		return false;
+	}
     FrameData frame = getFrame(n);
     KeyFrame keyFrame = frame.getKeyFrame();
-    if (keyFrame!=null && !track.isStepComplete(n)) {
+    if (keyFrame!=null && !isStepComplete(n)) {
 	    TPoint p = findMatchTarget(predictLoc);
 	    double[] peakWidthAndHeight = frame.getMatchWidthAndHeight();
 	    if (p != null
@@ -346,19 +386,17 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
                 || options.isMatchGood(peakWidthAndHeight[1]))
         ) {
   			marking = true;
-  			track.autoTrackerMarking = track.isAutoAdvance();
-  			p = track.autoMarkAt(n, p.x, p.y);
-  			frame.setAutoMarkPoint(p);
-  			track.autoTrackerMarking = false;
+
+  			boolean result = onMarked(n, p);
+
   			// We can perform autoskips if needed
   			autoskipsRemained = options.getAutoskipCount();
-	    	return true;
+	    	return result;
 	    }
 		if (p==null) {
 			if(autoskipsRemained > 0){
 				autoskipsRemained--;
-				track.skippedStepWarningSuppress = true;
-				return true;
+				return onSkipped(n);
 			}
 			frame.setMatchIcon(null);
 		}
@@ -925,9 +963,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	TPoint p = null;
   	BufferedImage image = video.getImage();
   	if (lineSpread>=0) {
-	  	double theta = trackerPanel.getCoords().getAngle(n);
-	  	double x0 = trackerPanel.getCoords().getOriginX(n);
-	  	double y0 = trackerPanel.getCoords().getOriginY(n);
+	  	double theta = control.getCoords().getAngle(n);
+	  	double x0 = control.getCoords().getOriginX(n);
+	  	double y0 = control.getCoords().getOriginY(n);
 	  	p = matcher.getMatchLocation(image, searchRect, x0, y0, theta, lineSpread); // may be null
   	}
   	else {
@@ -1882,7 +1920,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					  return (KeyFrame) frame;
 			  }
 		  } else {
-			  int fin = trackerPanel.getPlayer().getVideoClip().getFrameCount();
+			  int fin = control.getFrameCount();
 			  for (int i = frameNum; i < fin; i++) {
 				  FrameData frame = frames.get(i);
 				  if (frame != null && frame.isKeyFrame())
@@ -1896,15 +1934,17 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     	return index;
     }
 
+    //TODO:separate
     boolean isMarked() {
       TTrack track = getTrack();
     	return track!=null && track.getStep(frameNum)!=null;
     }
 
+    //TODO: to be splitted and overridden
     boolean isAutoMarked() {
     	if (autoMarkLoc==null || trackPoint==null) return false;
     	if (trackPoint instanceof CoordAxes.AnglePoint) {
-      	ImageCoordSystem coords = trackerPanel.getCoords();
+      	ImageCoordSystem coords = control.getCoords();
       	double theta = coords.getAngle(frameNum);
       	CoordAxes.AnglePoint p = (CoordAxes.AnglePoint)trackPoint;
     		return Math.abs(theta-p.getAngle())<0.001;
@@ -3774,6 +3814,16 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  @Override
 	  public int frameToStep(int frameNumber) {
 		  return trackerPanel.getPlayer().getVideoClip().frameToStep(frameNumber);
+	  }
+
+	  @Override
+	  public int getFrameCount() {
+		  return trackerPanel.getPlayer().getVideoClip().getFrameCount();
+	  }
+
+	  @Override
+	  public ImageCoordSystem getCoords() {
+		  return trackerPanel.getCoords();
 	  }
   }
 
