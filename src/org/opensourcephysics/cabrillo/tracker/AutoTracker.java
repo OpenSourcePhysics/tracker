@@ -957,7 +957,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     // if good match found then build evolved template and return match target
   	if (options.isMatchGood(matchWidthAndHeight[1])) {
   		core.buildEvolvedTemplate(frame);
-  		return getMatchTarget(center);
+  		return core.getMatchTarget(center);
   	}
 
     return null;
@@ -1097,7 +1097,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       	Point p2 = maskCenter.getScreenPosition(trackerPanel);
       	transform.setToTranslation(p1.x-p2.x, p1.y-p2.y);
         matchShape = toScreen.createTransformedShape(getMatchShape(matchPts));
-        screenPoints[0] = getMatchTarget(matchPts[0]).getScreenPosition(trackerPanel);
+        screenPoints[0] = core.getMatchTarget(matchPts[0]).getScreenPosition(trackerPanel);
 //      	matchTargetMark = inactive_target_footprint.getMark(screenPoints);
       }
       // if anything is selected, create a selection mark
@@ -1177,18 +1177,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       };
     }
     return mark;
-  }
-
-  /**
-   * Returns the target for a specified match center point.
-   *
-   * @param center the center point
-   * @return the target
-   */
-  protected TPoint getMatchTarget(TPoint center) {
-  	int n = control.getFrameNumber();
-    double[] offset = getFrame(n).getTargetOffset();
-  	return new TPoint(center.x+offset[0], center.y+offset[1]);
   }
 
 
@@ -2128,7 +2116,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         	core.buildEvolvedTemplate(frame);
         	// mark the target
     			marking = true;
-        	TPoint p = getMatchTarget(frame.getMatchPoints()[0]);
+        	TPoint p = core.getMatchTarget(frame.getMatchPoints()[0]);
           TTrack track = getTrack();
     			TPoint target = track.autoMarkAt(n, p.x, p.y);
     			frame.setAutoMarkPoint(target);
@@ -3029,7 +3017,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			  TPoint[] pts = next.getMatchPoints();
 			  if (pts!=null) {
 				  TPoint p = pts[0]; // center of the match
-				  p = getMatchTarget(p); // target position
+				  p = core.getMatchTarget(p); // target position
 				  Point2D pt = p.getWorldPosition(trackerPanel);
 				  String xval = xFormat.format(pt.getX());
 				  String yval = yFormat.format(pt.getY());

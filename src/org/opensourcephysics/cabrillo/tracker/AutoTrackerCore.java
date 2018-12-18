@@ -229,6 +229,18 @@ public class AutoTrackerCore {
 	}
 
 	/**
+	 * Returns the target for a specified match center point.
+	 *
+	 * @param center the center point
+	 * @return the target
+	 */
+	public TPoint getMatchTarget(TPoint center) {
+		int n = control.getFrameNumber();
+		double[] offset = getFrame(n).getTargetOffset();
+		return new TPoint(center.x+offset[0], center.y+offset[1]);
+	}
+
+	/**
 	 * Returns the center point for a specified match target.
 	 *
 	 * @param target the target
