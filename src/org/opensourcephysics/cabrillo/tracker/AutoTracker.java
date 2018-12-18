@@ -786,8 +786,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	Rectangle rect = frame.getKeyFrame().getMask().getBounds();
 	TPoint center = new TPoint(p.x+maskCenter.x-rect.getX(), p.y+maskCenter.y-rect.getY());
 	TPoint corner = new TPoint(
-	    center.x+cornerFactor*(maskCorner.x-maskCenter.x),
-        center.y+cornerFactor*(maskCorner.y-maskCenter.y)
+	    center.x+options.getMaskWidth ()/2,
+        center.y+options.getMaskHeight()/2
     );
     frame.setMatchPoints(new TPoint[] {center, corner, p});
 
