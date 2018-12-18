@@ -1,6 +1,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.TPoint;
 
 import java.awt.image.BufferedImage;
 
@@ -15,6 +16,12 @@ public interface AutoTrackerControl {
 	 * @return number of current frame
 	 */
 	int getFrameNumber();
+
+	/**
+	 * @return number of current frame
+	 * according to the point p
+	 */
+	int getFrameNumber(TPoint p);
 
 	/**
 	 * Gets the image of current frame

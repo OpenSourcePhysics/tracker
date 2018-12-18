@@ -1123,7 +1123,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   }
 
   protected int getIndex(TPoint p) {
-  	int n = p.getFrameNumber(trackerPanel);
+  	int n = control.getFrameNumber(p);
     TTrack track = getTrack();
   	Step step = track.getStep(n); // non-null if marked
   	if (step!=null) {
@@ -2016,7 +2016,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	private TemplateMatcher matcher;
 
   	KeyFrame(TPoint keyPt, Shape mask, TPoint target, int index, TPoint center, TPoint corner) {
-  		super(index, control.getFrameNumber());
+  		super(index, control.getFrameNumber(keyPt));
   		this.mask = mask;
   		this.target = target;
   		// TODO: calculate corner using mask and center
@@ -3795,6 +3795,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  @Override
 	  public int getFrameNumber() {
 		  return trackerPanel.getFrameNumber();
+	  }
+
+	  @Override
+	  public int getFrameNumber(TPoint p) {
+		  return p.getFrameNumber(trackerPanel);
 	  }
 
 	  @Override
