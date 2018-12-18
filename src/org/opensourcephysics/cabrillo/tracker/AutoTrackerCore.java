@@ -256,6 +256,71 @@ public class AutoTrackerCore {
 	}
 
 
+	/**
+	 * Determines the status code for a given frame. The status codes are:
+	 * 0: a key frame
+	 * 1: automarked with a good match
+	 * 2: possible match, not marked
+	 * 3: searched but no match found
+	 * 4: unable to search--search area outside image or x-axis
+	 * 5: manually marked by the user
+	 * 6: match accepted by the user
+	 * 7: never searched
+	 * 8: possible match but previously marked
+	 * 9: no match found but previously marked
+	 * 10: calibration tool possible match
+	 *
+	 * @param n the frame number
+	 * @return the status code
+	 */
+	protected int getStatusCode(int n) {
+		FrameData frame = getFrame(n);
+		if (frame.isKeyFrame()) return 0; // key frame
+		double[] widthAndHeight = frame.getMatchWidthAndHeight();
+		if (frame.isMarked()) { // frame is marked (includes always-marked tracks like axes, calibration points, etc)
+			if (frame.isAutoMarked()) { // automarked
+				return options.isMatchGood(widthAndHeight[1]) ?
+						1 : // automarked with good match
+						6; // accepted by user
+			}
+			// not automarked
+			TTrack track = getTrack();
+			boolean isCalibrationTool = track instanceof CoordAxes
+					|| track instanceof OffsetOrigin
+					|| track instanceof Calibration;
+			if (track instanceof TapeMeasure) {
+				TapeMeasure tape = (TapeMeasure) track;
+				isCalibrationTool = !tape.isReadOnly();
+			}
+			if (frame.searched) {
+				if (isCalibrationTool) {
+					return options.isMatchPossible(widthAndHeight[1]) ?
+							8 : // possible match for calibration
+							9; // no match found, existing mark or calibration
+				}
+				if (frame.decided)
+					return 5; // manually marked by user
+				return options.isMatchPossible(widthAndHeight[1]) ?
+						8 : // possible match, already marked
+						9; // no match found, existing mark or calibration
+			}
+			return 7; // never searched
+		}
+		if (frame.searched) { // frame unmarked but searched
+			return options.isMatchPossible(widthAndHeight[1]) ?
+					2 : // possible match found but not marked
+					3; // no match found
+		}
+		// frame is unmarked and unsearched
+		if (widthAndHeight == null) return 7; // never searched
+		return 4; // tried but unable to search
+	}
+
+
+
+
+
+
 	// indexFrameData maps point index to frameData
 	protected Map<Integer, Map<Integer, FrameData>> getIndexFrameData() {
 		TTrack track = getTrack();
