@@ -259,7 +259,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   	int n = control.getFrameNumber();
   	Map<Integer, FrameData> frames = getFrameData();
-  	KeyFrame keyFrame = new KeyFrame(p, mask, target);
+  	KeyFrame keyFrame = new KeyFrame(p, mask, target, getIndex(p), maskCenter, maskCorner);
   	frames.put(n, keyFrame);
   	clearSearchPointsDownstream();
   	refreshSearchRect();
@@ -588,6 +588,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	frame.setSearchPoints(pts);
   	return findMatchTarget(getSearchRect());
   }
+
+  public boolean isMarked(int frameNumber){
+	  TTrack track = getTrack();
+	  return track!=null && track.getStep(frameNumber)!=null;
+  }
+
 
   /**
    * Gets the wizard.
@@ -1934,13 +1940,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     	return index;
     }
 
-    //TODO:separate
     boolean isMarked() {
-      TTrack track = getTrack();
-    	return track!=null && track.getStep(frameNum)!=null;
+      return AutoTracker.this.isMarked(frameNum);
     }
 
-    //TODO: to be splitted and overridden
+    //TODO: to be splitted and overridden?
     boolean isAutoMarked() {
     	if (autoMarkLoc==null || trackPoint==null) return false;
     	if (trackPoint instanceof CoordAxes.AnglePoint) {
@@ -2003,12 +2007,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	private TPoint[] maskPoints = {new TPoint(), new TPoint()};
   	private TemplateMatcher matcher;
 
-  	KeyFrame(TPoint keyPt, Shape mask, TPoint target) {
-  		super(AutoTracker.this.getIndex(keyPt), control.getFrameNumber());
+  	KeyFrame(TPoint keyPt, Shape mask, TPoint target, int index, TPoint center, TPoint corner) {
+  		super(index, control.getFrameNumber());
   		this.mask = mask;
   		this.target = target;
-  		maskPoints[0].setLocation(maskCenter);
-  		maskPoints[1].setLocation(maskCorner);
+  		// TODO: calculate corner using mask and center
+  		maskPoints[0].setLocation(center);
+  		maskPoints[1].setLocation(corner);
   	}
 
     boolean isKeyFrame() {
