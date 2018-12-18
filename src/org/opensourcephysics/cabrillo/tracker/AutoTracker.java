@@ -1944,7 +1944,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       acceptButton = new JButton();
       acceptButton.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-        	int n = trackerPanel.getFrameNumber();
+        	// TODO: to core
+        	int n = control.getFrameNumber();
           FrameData frame = getFrame(n);
           // build evolved template
           TemplateMatcher matcher = core.getTemplateMatcher();
@@ -1960,7 +1961,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     			frame.decided = true;
     	    if (stepping && control.canStep()) {
     	    	paused = false;
-	  	    	trackerPanel.getPlayer().step();
+	  	    	control.step();
     	    }
     	    else {
 	        	stop(true, true);
