@@ -152,6 +152,84 @@ public class AutoTrackerCore {
 	}
 
 
+
+	/**
+	 * Gets the available derivatives of the specified order. These are NOT time
+	 * derivatives, but simply differences in pixel units: order 1 is deltaPosition,
+	 * order 2 is change in deltaPosition, order 3 is change in order 2. Note the
+	 * TPoint positions are in image units, not world units.
+	 *
+	 * @param positions an array of positions
+	 * @param order may be 1 (v), 2 (a) or 3 (jerk)
+	 * @return the derivative data
+	 */
+	public static double[][] getDerivatives(TPoint[] positions, int order, int lookback) {
+		// return null if insufficient data
+		if (positions.length<order+1) return null;
+
+		double[][] derivatives = new new double[lookback][]
+		if (order==1) { // velocity
+			for (int i=0; i<derivatives.length; i++) {
+				if (i>=positions.length-1) {
+					derivatives[i] = null;
+					continue;
+				}
+				TPoint loc0 = positions[i+1];
+				TPoint loc1 = positions[i];
+				if (loc0==null || loc1==null) {
+					derivatives[i] = null;
+					continue;
+				}
+				double x = loc1.getX() -loc0.getX();
+				double y = loc1.getY() -loc0.getY();
+				derivatives[i] = new double[] {x, y};
+			}
+			return derivatives;
+		}
+		else if (order==2) { // acceleration
+			for (int i=0; i<derivatives.length; i++) {
+				if (i>=positions.length-2) {
+					derivatives[i] = null;
+					continue;
+				}
+				TPoint loc0 = positions[i+2];
+				TPoint loc1 = positions[i+1];
+				TPoint loc2 = positions[i];
+				if (loc0==null || loc1==null || loc2==null) {
+					derivatives[i] = null;
+					continue;
+				}
+				double x = loc2.getX() - 2*loc1.getX() + loc0.getX();
+				double y = loc2.getY() - 2*loc1.getY() + loc0.getY();
+				derivatives[i] = new double[] {x, y};
+			}
+			return derivatives;
+		}
+		else if (order==3) { // jerk
+			for (int i=0; i<derivatives.length; i++) {
+				if (i>=positions.length-3) {
+					derivatives[i] = null;
+					continue;
+				}
+				TPoint loc0 = positions[i+3];
+				TPoint loc1 = positions[i+2];
+				TPoint loc2 = positions[i+1];
+				TPoint loc3 = positions[i];
+				if (loc0==null || loc1==null || loc2==null || loc3==null) {
+					derivatives[i] = null;
+					continue;
+				}
+				double x = loc3.getX() - 3*loc2.getX() + 3*loc1.getX() - loc0.getX();
+				double y = loc3.getY() - 3*loc2.getY() + 3*loc1.getY() - loc0.getY();
+				derivatives[i] = new double[] {x, y};
+			}
+			return derivatives;
+		}
+		return null;
+	}
+
+
+
 	/**
 	 * @return previous keyFrame, if any
 	 */

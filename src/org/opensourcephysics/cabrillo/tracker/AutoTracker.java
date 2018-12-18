@@ -119,7 +119,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   private Handle searchHandle = new Handle();
   private Corner searchCorner = new Corner();
   private TPoint searchCenter = new TPoint();
-  private TPoint predictedTarget = new TPoint();
   private Rectangle2D searchRect2D = new Rectangle2D.Double();
   private Shape searchShape, maskShape, matchShape;
   private Shape searchHitShape, maskHitShape;
@@ -130,9 +129,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   private boolean stepping, active, paused, marking;
   private int autoskipsRemained = 0;
   private boolean isInteracting;
-  private double[][] derivatives1 = new double[predictionLookback-1][];
-  private double[][] derivatives2 = new double[predictionLookback-1][];
-  private double[][] derivatives3 = new double[predictionLookback-1][];
 
   private AutoTrackerControl  control  = new TrackerPanelControl ();
   private AutoTrackerFeedback feedback = new TrackerPanelFeedback();
@@ -389,6 +385,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   public TPoint getPredictedMatchTarget(int frameNumber) {
   	boolean success = false;
   	int stepNumber = control.frameToStep(frameNumber);
+  	TPoint predictedTarget = new TPoint();
 
   	// get position data at previous steps
   	TPoint[] prevPoints = new TPoint[predictionLookback];
@@ -420,9 +417,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   	if (!success) {
 	  	// get derivatives
-	  	double[][] veloc = getDerivatives(prevPoints, 1);
-	  	double[][] accel = getDerivatives(prevPoints, 2);
-	   	double[][] jerk = getDerivatives(prevPoints, 3);
+	  	double[][] veloc = core.getDerivatives(prevPoints, 1, predictionLookback);
+	  	double[][] accel = core.getDerivatives(prevPoints, 2, predictionLookback);
+	   	double[][] jerk = core.getDerivatives(prevPoints, 3, predictionLookback);
 
 	   	double vxmax=0, vxmean=0, vymax=0, vymean=0;
 	   	int n = 0;
@@ -1322,80 +1319,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   		return frame.getIndex()==index;
   	}
   	return false;
-  }
-
-  /**
-   * Gets the available derivatives of the specified order. These are NOT time
-   * derivatives, but simply differences in pixel units: order 1 is deltaPosition,
-   * order 2 is change in deltaPosition, order 3 is change in order 2. Note the
-   * TPoint positions are in image units, not world units.
-   *
-   * @param positions an array of positions
-   * @param order may be 1 (v), 2 (a) or 3 (jerk)
-   * @return the derivative data
-   */
-  protected double[][] getDerivatives(TPoint[] positions, int order) {
-  	// return null if insufficient data
-  	if (positions.length<order+1) return null;
-
-  	if (order==1) { // velocity
-  		for (int i=0; i<derivatives1.length; i++) {
-  			if (i>=positions.length-1) {
-  				derivatives1[i] = null;
-  				continue;
-  			}
-  			TPoint loc0 = positions[i+1];
-  			TPoint loc1 = positions[i];
-  			if (loc0==null || loc1==null) {
-  				derivatives1[i] = null;
-  				continue;
-  			}
-  			double x = loc1.getX() -loc0.getX();
-  			double y = loc1.getY() -loc0.getY();
-  			derivatives1[i] = new double[] {x, y};
-  		}
-  		return derivatives1;
-  	}
-  	else if (order==2) { // acceleration
-  		for (int i=0; i<derivatives2.length; i++) {
-  			if (i>=positions.length-2) {
-  				derivatives2[i] = null;
-  				continue;
-  			}
-  			TPoint loc0 = positions[i+2];
-  			TPoint loc1 = positions[i+1];
-  			TPoint loc2 = positions[i];
-  			if (loc0==null || loc1==null || loc2==null) {
-  				derivatives2[i] = null;
-  				continue;
-  			}
-  			double x = loc2.getX() - 2*loc1.getX() + loc0.getX();
-  			double y = loc2.getY() - 2*loc1.getY() + loc0.getY();
-  			derivatives2[i] = new double[] {x, y};
-  		}
-  		return derivatives2;
-   	}
-  	else if (order==3) { // jerk
-  		for (int i=0; i<derivatives3.length; i++) {
-  			if (i>=positions.length-3) {
-  				derivatives3[i] = null;
-  				continue;
-  			}
-  			TPoint loc0 = positions[i+3];
-  			TPoint loc1 = positions[i+2];
-  			TPoint loc2 = positions[i+1];
-  			TPoint loc3 = positions[i];
-  			if (loc0==null || loc1==null || loc2==null || loc3==null) {
-  				derivatives3[i] = null;
-  				continue;
-  			}
-  			double x = loc3.getX() - 3*loc2.getX() + 3*loc1.getX() - loc0.getX();
-  			double y = loc3.getY() - 3*loc2.getY() + 3*loc1.getY() - loc0.getY();
-  			derivatives3[i] = new double[] {x, y};
-  		}
-  		return derivatives3;
-  	}
-  	return null;
   }
 
 //____________________ inner TPoint classes ______________________
