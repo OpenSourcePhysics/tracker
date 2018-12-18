@@ -90,7 +90,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	private static int defaultEvolveRate = AutoTrackerOptions.maxEvolveRate/5;
 	private static Icon searchIcon, stopIcon, graySearchIcon;
 	private static double[] defaultSearchSize = {40, 40};
-	private static int predictionLookback = 4;  // TODO: to options?
   static boolean neverPause = true;
 
   static {
@@ -388,10 +387,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	TPoint predictedTarget = new TPoint();
 
   	// get position data at previous steps
-  	TPoint[] prevPoints = new TPoint[predictionLookback];
+  	TPoint[] prevPoints = new TPoint[options.getPredictionLookback()];
     TTrack track = getTrack();
   	if (stepNumber>0 && track!=null) {
-  		for (int j = 0; j<predictionLookback; j++) {
+  		for (int j = 0; j<options.getPredictionLookback(); j++) {
   			if (stepNumber-j-1 >= 0) {
   				int n = control.stepToFrame(stepNumber-j-1);
   		    FrameData frame = getFrame(n);
@@ -417,9 +416,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
   	if (!success) {
 	  	// get derivatives
-	  	double[][] veloc = core.getDerivatives(prevPoints, 1, predictionLookback);
-	  	double[][] accel = core.getDerivatives(prevPoints, 2, predictionLookback);
-	   	double[][] jerk = core.getDerivatives(prevPoints, 3, predictionLookback);
+	  	double[][] veloc = core.getDerivatives(prevPoints, 1, options.getPredictionLookback());
+	  	double[][] accel = core.getDerivatives(prevPoints, 2, options.getPredictionLookback());
+	   	double[][] jerk = core.getDerivatives(prevPoints, 3, options.getPredictionLookback());
 
 	   	double vxmax=0, vxmean=0, vymax=0, vymean=0;
 	   	int n = 0;

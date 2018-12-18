@@ -19,6 +19,8 @@ public class AutoTrackerOptions implements Cloneable {
 	private int lineSpread = -1;  // positive for 1D, negative for 2D tracking
 	private double maskWidth=16.0, maskHeight=16.0;
 	private boolean lookAhead=true;
+
+	private int predictionLookback = 4;
 	public static final int maxEvolveRate = 100;
 
 	// TODO: make private?
@@ -119,10 +121,24 @@ public class AutoTrackerOptions implements Cloneable {
 		if(this.lineSpread == spread){
 			return;
 		}
-		double old = this.lineSpread;
+		int old = this.lineSpread;
 		this.lineSpread = spread;
 		changes.firePropertyChange("lineSpread", old, this.lineSpread);
 	}
+
+	public int getPredictionLookback() {
+		return predictionLookback;
+	}
+
+	public void setPredictionLookback(int predictionLookback) {
+		if(this.predictionLookback == predictionLookback){
+			return;
+		}
+		this.predictionLookback = predictionLookback;
+		int old = this.predictionLookback;
+		changes.firePropertyChange("predictionLookback", old, predictionLookback);
+	}
+
 
 	// TODO: fire messages for all properties
 	// TODO: cloning without cloning `changes`

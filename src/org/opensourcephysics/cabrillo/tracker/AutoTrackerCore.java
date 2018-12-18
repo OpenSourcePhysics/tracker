@@ -167,7 +167,7 @@ public class AutoTrackerCore {
 		// return null if insufficient data
 		if (positions.length<order+1) return null;
 
-		double[][] derivatives = new new double[lookback][]
+		double[][] derivatives = new double[lookback][];
 		if (order==1) { // velocity
 			for (int i=0; i<derivatives.length; i++) {
 				if (i>=positions.length-1) {
