@@ -251,17 +251,25 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    */
   protected void addKeyFrame(TPoint p, double x, double y) {
   	Target target = new Target();
-  	Shape mask = new Ellipse2D.Double();
   	maskCenter.setLocation(x, y);
   	maskCorner.setLocation(x+options.getMaskWidth()/2, y+options.getMaskHeight()/2);
   	searchCenter.setLocation(x, y);
   	searchCorner.setLocation(x+defaultSearchSize[0], y+defaultSearchSize[1]);
 
   	int n = control.getFrameNumber();
+  	Shape mask = new Ellipse2D.Double();
   	Map<Integer, FrameData> frames = getFrameData();
-  	KeyFrame keyFrame = new KeyFrame(p, mask, target, getIndex(p), maskCenter, maskCorner);
+  	KeyFrame keyFrame = new KeyFrame(
+  			p,
+			mask,
+			target,
+			getIndex(p),
+			new TPoint(x, y),
+			new TPoint(x+options.getMaskWidth()/2, y+options.getMaskHeight()/2)
+	);
   	frames.put(n, keyFrame);
   	clearSearchPointsDownstream();
+
   	refreshSearchRect();
     refreshKeyFrame(keyFrame);
     getWizard().setVisible(true);
