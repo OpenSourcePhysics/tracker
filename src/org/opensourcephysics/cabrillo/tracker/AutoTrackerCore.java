@@ -253,6 +253,171 @@ public class AutoTrackerCore {
 	}
 
 	/**
+	 * Gets the predicted target point in a specified video frame,
+	 * based on previously marked steps.
+	 *
+	 * @param frameNumber the frame number
+	 * @return the predicted target
+	 */
+	public TPoint getPredictedMatchTarget(int frameNumber) {
+		boolean success = false;
+		int stepNumber = control.frameToStep(frameNumber);
+		TPoint predictedTarget = new TPoint();
+
+		// get position data at previous steps
+		TPoint[] prevPoints = new TPoint[options.getPredictionLookback()];
+		TTrack track = getTrack();
+		if (stepNumber>0 && track!=null) {
+			for (int j = 0; j<options.getPredictionLookback(); j++) {
+				if (stepNumber-j-1 >= 0) {
+					int n = control.stepToFrame(stepNumber-j-1);
+					FrameData frame = getFrame(n);
+					if (track.steps.isAutofill() && !frame.searched)
+						prevPoints[j] = null;
+					else {
+						prevPoints[j] = frame.getMarkedPoint();
+					}
+				}
+			}
+		}
+
+		// return null (no prediction) if there is no recent position data
+		if (prevPoints[0]==null)
+			return null;
+
+		// set predictedTarget to prev position
+		predictedTarget.setLocation(prevPoints[0].getX(), prevPoints[0].getY());
+		if (!options.isLookAhead() || prevPoints[1]==null) {
+			// no recent velocity or acceleration data available
+			success = true;
+		}
+
+		if (!success) {
+			// get derivatives
+			double[][] veloc = getDerivatives(prevPoints, 1, options.getPredictionLookback());
+			double[][] accel = getDerivatives(prevPoints, 2, options.getPredictionLookback());
+			double[][] jerk = getDerivatives(prevPoints, 3, options.getPredictionLookback());
+
+			double vxmax=0, vxmean=0, vymax=0, vymean=0;
+			int n = 0;
+			for (int i=0; i< veloc.length; i++) {
+				if (veloc[i]!=null) {
+					n++;
+					vxmax = Math.max(vxmax, Math.abs(veloc[i][0]));
+					vxmean += veloc[i][0];
+					vymax = Math.max(vymax, Math.abs(veloc[i][1]));
+					vymean += veloc[i][1];
+				}
+			}
+			vxmean = Math.abs(vxmean/n);
+			vymean = Math.abs(vymean/n);
+
+			double axmax=0, axmean=0, aymax=0, aymean=0;
+			n = 0;
+			for (int i=0; i< accel.length; i++) {
+				if (accel[i]!=null) {
+					n++;
+					axmax = Math.max(axmax, Math.abs(accel[i][0]));
+					axmean += accel[i][0];
+					aymax = Math.max(aymax, Math.abs(accel[i][1]));
+					aymean += accel[i][1];
+				}
+			}
+			axmean = Math.abs(axmean/n);
+			aymean = Math.abs(aymean/n);
+
+			double jxmax=0, jxmean=0, jymax=0, jymean=0;
+			n = 0;
+			for (int i=0; i< jerk.length; i++) {
+				if (jerk[i]!=null) {
+					n++;
+					jxmax = Math.max(jxmax, Math.abs(jerk[i][0]));
+					jxmean += jerk[i][0];
+					jymax = Math.max(jymax, Math.abs(jerk[i][1]));
+					jymean += jerk[i][1];
+				}
+			}
+			jxmean = Math.abs(jxmean/n);
+			jymean = Math.abs(jymean/n);
+
+			boolean xVelocValid = prevPoints[2]==null || Math.abs(accel[0][0])<vxmean;
+			boolean yVelocValid = prevPoints[2]==null || Math.abs(accel[0][1])<vymean;
+			boolean xAccelValid = prevPoints[2]!=null && (prevPoints[3]==null || Math.abs(jerk[0][0])<axmean);
+			boolean yAccelValid = prevPoints[2]!=null && (prevPoints[3]==null || Math.abs(jerk[0][1])<aymean);
+//			boolean velocValid = prevPoints[2]==null || (accel[0][0]<vxmean && accel[0][1]<vymean);
+//			boolean accelValid = prevPoints[2]!=null && (prevPoints[3]==null || (jerk[0][0]<axmean && jerk[0][1]<aymean));
+
+			if (xAccelValid) {
+				// base x-coordinate prediction on acceleration
+				TPoint loc0 = prevPoints[2];
+				TPoint loc1 = prevPoints[1];
+				TPoint loc2 = prevPoints[0];
+				double x = 3*loc2.getX() - 3*loc1.getX() + loc0.getX();
+				predictedTarget.setLocation(x, predictedTarget.y);
+				success = true;
+			}
+			else if (xVelocValid) {
+				// else base x-coordinate prediction on velocity
+				TPoint loc0 = prevPoints[1];
+				TPoint loc1 = prevPoints[0];
+				double x = 2*loc1.getX() -loc0.getX();
+				predictedTarget.setLocation(x, predictedTarget.y);
+				success = true;
+			}
+			if (yAccelValid) {
+				// base y-coordinate prediction on acceleration
+				TPoint loc0 = prevPoints[2];
+				TPoint loc1 = prevPoints[1];
+				TPoint loc2 = prevPoints[0];
+				double y = 3*loc2.getY() - 3*loc1.getY() + loc0.getY();
+				predictedTarget.setLocation(predictedTarget.x, y);
+				success = true;
+			}
+			else if (yVelocValid) {
+				// else base y-coordinate prediction on velocity
+				TPoint loc0 = prevPoints[1];
+				TPoint loc1 = prevPoints[0];
+				double y = 2*loc1.getY() -loc0.getY();
+				predictedTarget.setLocation(predictedTarget.x, y);
+				success = true;
+			}
+//			if (accelValid) {
+//				// base prediction on acceleration
+//				TPoint loc0 = prevPoints[2];
+//				TPoint loc1 = prevPoints[1];
+//				TPoint loc2 = prevPoints[0];
+//				double x = 3*loc2.getX() - 3*loc1.getX() + loc0.getX();
+//				double y = 3*loc2.getY() - 3*loc1.getY() + loc0.getY();
+//	  		predictedTarget.setLocation(x, y);
+//	    	success = true;
+//			}
+//			else if (velocValid) {
+//				// else base prediction on velocity
+//				TPoint loc0 = prevPoints[1];
+//				TPoint loc1 = prevPoints[0];
+//				double x = 2*loc1.getX() -loc0.getX();
+//				double y = 2*loc1.getY() -loc0.getY();
+//	  		predictedTarget.setLocation(x, y);
+//	    	success = true;
+//			}
+		}
+		if (success) {
+			// make sure prediction is within the video image
+			BufferedImage image = control.getImage();
+			int w = image.getWidth();
+			int h = image.getHeight();
+			predictedTarget.x = Math.max(predictedTarget.x, 0);
+			predictedTarget.x = Math.min(predictedTarget.x, w);
+			predictedTarget.y = Math.max(predictedTarget.y, 0);
+			predictedTarget.y = Math.min(predictedTarget.y, h);
+			return predictedTarget;
+		}
+		return null;
+	}
+
+
+
+	/**
 	 * @return previous keyFrame, if any
 	 */
 	public KeyFrame deleteKeyFrame(int n){
