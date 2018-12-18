@@ -604,7 +604,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	}
     hitRect.setLocation(xpix - hitRect.width/2, ypix - hitRect.height/2);
     if (targetVisible) {
-    	Target target = keyFrame.getTarget();
+    	TPoint target = keyFrame.getTarget();
 	    if (hitRect.contains(target.getScreenPosition(trackerPanel))) {
 	    	isInteracting = true;
 	    	return target;
@@ -1623,7 +1623,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			  KeyFrame keyFrame = getFrame(n).getKeyFrame();
 			  keyFrame.getMaskPoints()[0].setLocation(maskCenter);
 			  keyFrame.getMaskPoints()[1].setLocation(maskCorner);
-			  Target target = keyFrame.getTarget();
+			  TPoint target = keyFrame.getTarget();
 			  keyFrame.setTargetOffset(target.x - maskCenter.x, target.y - maskCenter.y);
 			  refreshKeyFrame(keyFrame);
 		  }
@@ -1959,11 +1959,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   protected class KeyFrame extends FrameData {
 
   	private Shape mask;
-  	private Target target;
+  	private TPoint target;
   	private TPoint[] maskPoints = {new TPoint(), new TPoint()};
   	private TemplateMatcher matcher;
 
-  	KeyFrame(TPoint keyPt, Shape mask, Target target) {
+  	KeyFrame(TPoint keyPt, Shape mask, TPoint target) {
   		super(AutoTracker.this.getIndex(keyPt), control.getFrameNumber());
   		this.mask = mask;
   		this.target = target;
@@ -1979,7 +1979,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   		return mask;
     }
 
-    Target getTarget() {
+    TPoint getTarget() {
     	return target;
     }
 
