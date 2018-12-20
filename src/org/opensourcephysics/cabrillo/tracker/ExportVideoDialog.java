@@ -111,12 +111,12 @@ public class ExportVideoDialog extends JDialog {
   public static void refreshFormats() {
 		formats.clear(); 
 		formatDescriptions.clear();  
-		// eliminate xuggle types if VideoIO engine is NONE
+		// eliminate ffmpeg types if VideoIO engine is NONE
   	ArrayList<VideoType> unwanted = new ArrayList<VideoType>();
-  	boolean skipXuggle = VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
+  	boolean skipFFMPeg = VideoIO.getEngine().equals(VideoIO.ENGINE_NONE);
   	for (String ext: VideoIO.VIDEO_EXTENSIONS) {
-    	if (skipXuggle)
-    		unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_XUGGLE, ext));
+    	if (skipFFMPeg)
+    		unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_FFMPEG, ext));
   	}
 		for (VideoType next: VideoIO.getVideoTypes()) {
       if (next.canRecord() && !unwanted.contains(next)) {
@@ -585,7 +585,7 @@ public class ExportVideoDialog extends JDialog {
   /**
    * Gets the smallest acceptable dimension >= a specified width and height.
    * This is a work-around to avoid image artifacts introduced by the converter 
-   * in xuggle.
+   * in ffmpeg.
    * 
    * @param w the desired width
    * @param h the desired height
@@ -601,7 +601,7 @@ public class ExportVideoDialog extends JDialog {
   }
   
   /**
-   * Determines if a width and height are acceptable (for xuggle).
+   * Determines if a width and height are acceptable (for ffmpeg).
    * 
    * @param w the width
    * @param h the height

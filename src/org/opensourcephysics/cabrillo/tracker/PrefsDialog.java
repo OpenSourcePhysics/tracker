@@ -35,8 +35,7 @@ import java.net.URL;
 
 import javax.swing.*;
 import javax.swing.border.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
+import javax.swing.event.*;
 import javax.swing.filechooser.FileFilter;
 
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
@@ -47,7 +46,7 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.IntegerField;
 import org.opensourcephysics.media.core.VideoIO;
-import org.opensourcephysics.tools.DiagnosticsForXuggle;
+import org.opensourcephysics.tools.DiagnosticsForFFMPeg;
 import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
@@ -82,7 +81,7 @@ public class PrefsDialog extends JDialog {
   protected JPanel configPanel, runtimePanel, videoPanel, generalPanel, trackPanel, displayPanel;
   protected TitledBorder checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
   	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
-  	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
+  	videoTypeSubPanelBorder, videoSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
   	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, 
   	resetToStep0SubPanelBorder, decimalSeparatorBorder, mouseWheelSubPanelBorder, calibrationStickSubPanelBorder,
   	dataGapSubPanelBorder, trailLengthSubPanelBorder, pointmassFootprintSubPanelBorder;
@@ -91,18 +90,20 @@ public class PrefsDialog extends JDialog {
   protected JLabel memoryLabel, recentSizeLabel, lookFeelLabel, cacheLabel, 
   		versionLabel, runLabel;
   protected JCheckBox defaultMemoryCheckbox, hintsCheckbox, vidWarningCheckbox, showGapsCheckbox,
-  		xuggleErrorCheckbox, variableDurationCheckBox, resetToStep0Checkbox, autofillCheckbox;
+  		ffmpegErrorCheckbox, variableDurationCheckBox, resetToStep0Checkbox, autofillCheckbox;
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
   protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, trailLengthDropdown,
   		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown, footprintDropdown;
   protected JRadioButton vm32Button, vm64Button;
-  protected JRadioButton xuggleButton, noEngineButton;
+  protected JRadioButton ffmpegButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
   protected JRadioButton scrubButton, zoomButton;
   protected JRadioButton markStickEndsButton, centerStickButton;
-  protected JRadioButton xuggleFastButton, xuggleSlowButton;
+  protected JRadioButton videoFastButton, videoSlowButton;
   protected JRadioButton defaultDecimalButton, periodDecimalButton, commaDecimalButton;
+  protected JLabel customDecimalSeparatorsLabel;
+  protected JTextField customDecimalSeparators;
   protected Tracker.Version[] trackerVersions;
   protected boolean relaunching, refreshing;
   
@@ -110,9 +111,9 @@ public class PrefsDialog extends JDialog {
   protected Set<String> prevEnabled = new TreeSet<String>();
   protected int prevMemory, prevRecentCount, prevUpgradeInterval, prevFontLevel, prevFontLevelPlus, prevTrailLengthIndex;
   protected String prevLookFeel, prevLocaleName, prevJRE, prevTrackerJar, prevEngine, prevDecimalSeparator,
-  		prevPointmassFootprint;
-  protected boolean prevHints, prevRadians, prevFastXuggle, prevCenterCalibrationStick, prevWarnVariableDuration,
-  		prevWarnNoVideoEngine, prevWarnXuggleError, prevWarnXuggleVersion, prevShowGaps, prevMarkAtCurrentFrame,
+		  prevAdditionalDecimalSeparators, prevPointmassFootprint;
+  protected boolean prevHints, prevRadians, prevFastFFMPeg, prevCenterCalibrationStick, prevWarnVariableDuration,
+  		prevWarnNoVideoEngine, prevWarnFFMPegError, prevWarnFFMPegVersion, prevShowGaps, prevMarkAtCurrentFrame,
   		prevClearCacheOnExit, prevUse32BitVM, prevWarnCopyFailed, prevZoomMouseWheel, prevAutofill;
   protected File prevCache;
   protected String[] prevExecutables;
@@ -162,7 +163,7 @@ public class PrefsDialog extends JDialog {
 		TitledBorder[] borders = new TitledBorder[] {
 		  checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
 	  	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
-	  	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
+	  	videoTypeSubPanelBorder, videoSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
 	  	cacheSubPanelBorder, logLevelSubPanelBorder, upgradeSubPanelBorder, fontSubPanelBorder, 
 	  	resetToStep0SubPanelBorder, decimalSeparatorBorder, mouseWheelSubPanelBorder, calibrationStickSubPanelBorder,
 	  	dataGapSubPanelBorder, trailLengthSubPanelBorder, pointmassFootprintSubPanelBorder};
@@ -484,11 +485,38 @@ public class PrefsDialog extends JDialog {
     ButtonGroup group = new ButtonGroup();
     group.add(defaultDecimalButton);
     group.add(periodDecimalButton);
-    group.add(commaDecimalButton);    
-    decimalSubPanel.add(defaultDecimalButton);
-    decimalSubPanel.add(periodDecimalButton);
-    decimalSubPanel.add(commaDecimalButton);
-    
+    group.add(commaDecimalButton);
+
+
+	  customDecimalSeparatorsLabel = new JLabel();
+
+      // Custom decimal separators
+	  customDecimalSeparators = new JTextField(Tracker.additionalDecimalSeparators,8);
+
+	  customDecimalSeparators.getDocument().addDocumentListener(new DocumentListener() {
+		  public void changedUpdate(DocumentEvent e) {
+			  act();
+		  }
+		  public void removeUpdate(DocumentEvent e) {
+			  act();
+		  }
+		  public void insertUpdate(DocumentEvent e) {
+			  act();
+		  }
+
+		  public void act() {
+			  Tracker.additionalDecimalSeparators = customDecimalSeparators.getText();
+			  OSPRuntime.setAdditionalDecimalSeparators(Tracker.additionalDecimalSeparators);
+		  }
+	  });
+
+
+	  decimalSubPanel.add(defaultDecimalButton);
+	  decimalSubPanel.add(periodDecimalButton);
+	  decimalSubPanel.add(commaDecimalButton);
+	  decimalSubPanel.add(customDecimalSeparatorsLabel);
+	  decimalSubPanel.add(customDecimalSeparators);
+
     // font level subpanel
     JPanel fontSubPanel = new JPanel();
     horz.add(fontSubPanel);
@@ -858,7 +886,7 @@ public class PrefsDialog extends JDialog {
     box = Box.createVerticalBox();
     videoPanel.add(box, BorderLayout.CENTER);
     
-    boolean xuggleInstalled = DiagnosticsForXuggle.getXuggleJar()!=null;
+    boolean ffmpegInstalled = DiagnosticsForFFMPeg.hasFFMPegJars();
 
     // videoType subpanel
     JPanel videoTypeSubPanel = new JPanel();
@@ -868,22 +896,22 @@ public class PrefsDialog extends JDialog {
     		TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
     videoTypeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoTypeSubPanelBorder));    
 
-    xuggleButton = new JRadioButton();
-    xuggleButton.setOpaque(false);
-    xuggleButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
-    xuggleButton.addItemListener(new ItemListener() {
+    ffmpegButton = new JRadioButton();
+    ffmpegButton.setOpaque(false);
+    ffmpegButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    ffmpegButton.addItemListener(new ItemListener() {
     	public void itemStateChanged(ItemEvent e) {
-        xuggleFastButton.setEnabled(xuggleButton.isSelected());
-        xuggleSlowButton.setEnabled(xuggleButton.isSelected());
-        xuggleErrorCheckbox.setEnabled(xuggleButton.isSelected());
-     		if (!xuggleButton.isSelected()) return;
-      	// Windows: if xuggle 3.4 and 64-bit, set preferred VM to 32-bit and inform user    		
-    		if (OSPRuntime.isWindows() && DiagnosticsForXuggle.guessXuggleVersion()==3.4 && vm64Button.isSelected()) {
+        videoFastButton.setEnabled(ffmpegButton.isSelected());
+        videoSlowButton.setEnabled(ffmpegButton.isSelected());
+        ffmpegErrorCheckbox.setEnabled(ffmpegButton.isSelected());
+     		if (!ffmpegButton.isSelected()) return;
+      	// Windows: if ffmpeg and 64-bit, set preferred VM to 32-bit and inform user    		
+    		if (OSPRuntime.isWindows() && vm64Button.isSelected()) {
       		boolean has32BitVM = JREFinder.getFinder().getDefaultJRE(32, Tracker.trackerHome, true)!=null;
       		if (has32BitVM) {
 	      		vm32Button.setSelected(true);
 		      	JOptionPane.showMessageDialog(frame,
-	          		TrackerRes.getString("PrefsDialog.Dialog.SwitchToXuggle32.Message"),    //$NON-NLS-1$
+	          		TrackerRes.getString("PrefsDialog.Dialog.SwitchToFFMPeg32.Message"),    //$NON-NLS-1$
 	              TrackerRes.getString("PrefsDialog.Dialog.SwitchVM.Title"),    //$NON-NLS-1$
 	              JOptionPane.INFORMATION_MESSAGE);
       		}
@@ -892,7 +920,7 @@ public class PrefsDialog extends JDialog {
       					TrackerRes.getString("PrefsDialog.Button.ShowHelpNow"),    //$NON-NLS-1$
 	              TrackerRes.getString("Dialog.Button.OK")}; //$NON-NLS-1$
       			int response = JOptionPane.showOptionDialog(frame,
-	          		TrackerRes.getString("PrefsDialog.Dialog.No32bitVMXuggle.Message")+"\n"+ //$NON-NLS-1$ //$NON-NLS-2$
+	          		TrackerRes.getString("PrefsDialog.Dialog.No32bitVMFFMPeg.Message")+"\n"+ //$NON-NLS-1$ //$NON-NLS-2$
 	          		TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message"), //$NON-NLS-1$
 	              TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Title"), //$NON-NLS-1$
 	              JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
@@ -904,7 +932,7 @@ public class PrefsDialog extends JDialog {
       	}
     	}
     });
-    xuggleButton.setEnabled(xuggleInstalled);
+    ffmpegButton.setEnabled(ffmpegInstalled);
     
     noEngineButton= new JRadioButton();
     noEngineButton.setOpaque(false);
@@ -916,31 +944,31 @@ public class PrefsDialog extends JDialog {
     	}
     });
 
-    videoTypeSubPanel.add(xuggleButton);
+    videoTypeSubPanel.add(ffmpegButton);
     videoTypeSubPanel.add(noEngineButton);
     
-    // xuggle speed subpanel
-    JPanel xuggleSpeedSubPanel = new JPanel();
-    box.add(xuggleSpeedSubPanel);
-    xuggleSpeedSubPanel.setBackground(color);
-    xuggleSpeedSubPanelBorder = BorderFactory.createTitledBorder(
-    		TrackerRes.getString("PrefsDialog.Xuggle.Speed.BorderTitle")); //$NON-NLS-1$
-    if (!xuggleInstalled)
-    	xuggleSpeedSubPanelBorder.setTitleColor(GUIUtils.getDisabledTextColor());
-    xuggleSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, xuggleSpeedSubPanelBorder));    
+    // video speed subpanel
+    JPanel videoSpeedSubPanel = new JPanel();
+    box.add(videoSpeedSubPanel);
+    videoSpeedSubPanel.setBackground(color);
+    videoSpeedSubPanelBorder = BorderFactory.createTitledBorder(
+    		TrackerRes.getString("PrefsDialog.FFMPeg.Speed.BorderTitle")); //$NON-NLS-1$
+    if (!ffmpegInstalled)
+    	videoSpeedSubPanelBorder.setTitleColor(GUIUtils.getDisabledTextColor());
+    videoSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoSpeedSubPanelBorder));    
     buttonGroup = new ButtonGroup();
-    xuggleFastButton = new JRadioButton();
-    xuggleFastButton.setOpaque(false);
-    xuggleFastButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
-    xuggleFastButton.setSelected(xuggleInstalled && Tracker.isXuggleFast);
-    buttonGroup.add(xuggleFastButton);
-    xuggleSlowButton = new JRadioButton();
-    xuggleSlowButton.setOpaque(false);
-    xuggleSlowButton.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
-    xuggleSlowButton.setSelected(xuggleInstalled && !Tracker.isXuggleFast);
-    buttonGroup.add(xuggleSlowButton);
-    xuggleSpeedSubPanel.add(xuggleFastButton);
-    xuggleSpeedSubPanel.add(xuggleSlowButton);
+    videoFastButton = new JRadioButton();
+    videoFastButton.setOpaque(false);
+    videoFastButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+    videoFastButton.setSelected(ffmpegInstalled && Tracker.isVideoFast);
+    buttonGroup.add(videoFastButton);
+    videoSlowButton = new JRadioButton();
+    videoSlowButton.setOpaque(false);
+    videoSlowButton.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
+    videoSlowButton.setSelected(ffmpegInstalled && !Tracker.isVideoFast);
+    buttonGroup.add(videoSlowButton);
+    videoSpeedSubPanel.add(videoFastButton);
+    videoSpeedSubPanel.add(videoSlowButton);
         
     // warnings subpanel
     vidWarningCheckbox = new JCheckBox();
@@ -951,12 +979,12 @@ public class PrefsDialog extends JDialog {
       	Tracker.warnNoVideoEngine = vidWarningCheckbox.isSelected();
       }
     });
-    xuggleErrorCheckbox = new JCheckBox();
-    xuggleErrorCheckbox.setOpaque(false);
-    xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
-    xuggleErrorCheckbox.addActionListener(new ActionListener() {
+    ffmpegErrorCheckbox = new JCheckBox();
+    ffmpegErrorCheckbox.setOpaque(false);
+    ffmpegErrorCheckbox.setSelected(Tracker.warnFFMPegError);
+    ffmpegErrorCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	Tracker.warnXuggleError = xuggleErrorCheckbox.isSelected();
+      	Tracker.warnFFMPegError = ffmpegErrorCheckbox.isSelected();
       }
     });
     variableDurationCheckBox = new JCheckBox();
@@ -987,12 +1015,12 @@ public class PrefsDialog extends JDialog {
 
     warningsNorthPanel.add(vidWarningCheckbox);
     warningsNorthPanel.add(variableDurationCheckBox);
-    warningsCenterPanel.add(xuggleErrorCheckbox);
+    warningsCenterPanel.add(ffmpegErrorCheckbox);
     
-    // set selected states of engine buttons AFTER creating the xugglefast, xuggleslow and warnxuggle buttons
-    if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)
-    		&& VideoIO.getVideoType("Xuggle", null)!=null) { //$NON-NLS-1$
-	    xuggleButton.setSelected(true);
+    // set selected states of engine buttons AFTER creating the videofast, videoslow and warnffmpeg buttons
+    if (VideoIO.getEngine().equals(VideoIO.ENGINE_FFMPEG)
+    		&& VideoIO.getVideoType("FFMPeg", null)!=null) { //$NON-NLS-1$
+	    ffmpegButton.setSelected(true);
     }
     else noEngineButton.setSelected(true);
 
@@ -1373,13 +1401,13 @@ public class PrefsDialog extends JDialog {
     
     // add engine buttons to buttongroups
     buttonGroup = new ButtonGroup();
-    buttonGroup.add(xuggleButton);
+    buttonGroup.add(ffmpegButton);
     buttonGroup.add(noEngineButton);
     
     // enable/disable buttons
-    xuggleFastButton.setEnabled(xuggleButton.isSelected());
-    xuggleSlowButton.setEnabled(xuggleButton.isSelected());
-    xuggleErrorCheckbox.setEnabled(xuggleButton.isSelected());
+    videoFastButton.setEnabled(ffmpegButton.isSelected());
+    videoSlowButton.setEnabled(ffmpegButton.isSelected());
+    ffmpegErrorCheckbox.setEnabled(ffmpegButton.isSelected());
     if (OSPRuntime.isWindows()) {
     	Runnable runner = new Runnable() {
     		public void run() {
@@ -1414,12 +1442,12 @@ public class PrefsDialog extends JDialog {
 		prevHints = Tracker.showHintsByDefault;
 		prevRadians = Tracker.isRadians;
 		prevDecimalSeparator = Tracker.preferredDecimalSeparator;
-		prevFastXuggle = Tracker.isXuggleFast;
+		prevAdditionalDecimalSeparators = Tracker.additionalDecimalSeparators;
 		prevJRE = Tracker.preferredJRE;
 		prevTrackerJar = Tracker.preferredTrackerJar;
 		prevExecutables = Tracker.prelaunchExecutables;
 		prevWarnNoVideoEngine = Tracker.warnNoVideoEngine;
-		prevWarnXuggleError = Tracker.warnXuggleError;
+		prevWarnFFMPegError = Tracker.warnFFMPegError;
 		prevWarnVariableDuration = Tracker.warnVariableDuration;
 		prevMarkAtCurrentFrame = Tracker.markAtCurrentFrame;
 		prevCache = ResourceLoader.getOSPCache();
@@ -1446,12 +1474,12 @@ public class PrefsDialog extends JDialog {
 		Tracker.showHintsByDefault = prevHints;
 		Tracker.isRadians = prevRadians;
 		Tracker.preferredDecimalSeparator = prevDecimalSeparator;
-		Tracker.isXuggleFast = prevFastXuggle;
+	    Tracker.additionalDecimalSeparators = prevAdditionalDecimalSeparators;
 		Tracker.preferredJRE = prevJRE;
 		Tracker.preferredTrackerJar = prevTrackerJar;
 		Tracker.prelaunchExecutables = prevExecutables;
 		Tracker.warnNoVideoEngine = prevWarnNoVideoEngine;
-		Tracker.warnXuggleError = prevWarnXuggleError;
+		Tracker.warnFFMPegError = prevWarnFFMPegError;
 		Tracker.warnVariableDuration = prevWarnVariableDuration;
 		Tracker.scrubMouseWheel = prevZoomMouseWheel;
 		Tracker.markAtCurrentFrame = prevMarkAtCurrentFrame;
@@ -1501,7 +1529,7 @@ public class PrefsDialog extends JDialog {
     memorySubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Memory.BorderTitle")); //$NON-NLS-1$
     runSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Run.BorderTitle")); //$NON-NLS-1$
     videoTypeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
-    xuggleSpeedSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Xuggle.Speed.BorderTitle")); //$NON-NLS-1$
+    videoSpeedSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.FFMPeg.Speed.BorderTitle")); //$NON-NLS-1$
     warningsSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.NoVideoWarning.BorderTitle")); //$NON-NLS-1$
     recentSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.RecentFiles.BorderTitle")); //$NON-NLS-1$
     cacheSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.CacheFiles.BorderTitle")); //$NON-NLS-1$
@@ -1515,9 +1543,13 @@ public class PrefsDialog extends JDialog {
     defaultDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Default")); //$NON-NLS-1$
     periodDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Period")); //$NON-NLS-1$
     commaDecimalButton.setText(TrackerRes.getString("NumberFormatSetter.Button.DecimalSeparator.Comma")); //$NON-NLS-1$
-    defaultDecimalButton.setSelected(OSPRuntime.getPreferredDecimalSeparator()==null);
-    periodDecimalButton.setSelected(".".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
-    commaDecimalButton.setSelected(",".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
+	customDecimalSeparatorsLabel.setText(TrackerRes.getString("NumberFormatSetter.Label.DecimalSeparator.CustomDecimalSeparators")); //$NON-NLS-1$
+
+	  defaultDecimalButton.setSelected(OSPRuntime.getPreferredDecimalSeparator()==null);
+	  periodDecimalButton.setSelected(".".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
+	  commaDecimalButton.setSelected(",".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
+	  customDecimalSeparators.setText(OSPRuntime.getAdditionalDecimalSeparators());
+
     cancelButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
     saveButton.setText(TrackerRes.getString("ConfigInspector.Button.SaveAsDefault")); //$NON-NLS-1$
     okButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
@@ -1541,7 +1573,7 @@ public class PrefsDialog extends JDialog {
     showGapsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.ShowGaps.Text")); //$NON-NLS-1$    
     vm32Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.32BitVM")); //$NON-NLS-1$
     vm64Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.64BitVM")); //$NON-NLS-1$
-    xuggleButton.setText(TrackerRes.getString("PrefsDialog.Button.Xuggle")); //$NON-NLS-1$
+    ffmpegButton.setText(TrackerRes.getString("PrefsDialog.Button.FFMPeg")); //$NON-NLS-1$
   	noEngineButton.setText(TrackerRes.getString("PrefsDialog.Button.NoEngine")); //$NON-NLS-1$
     radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
     degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
@@ -1549,11 +1581,9 @@ public class PrefsDialog extends JDialog {
     markStickEndsButton.setText(TrackerRes.getString("PrefsDialog.Button.MarkEnds")); //$NON-NLS-1$
     centerStickButton.setText(TrackerRes.getString("PrefsDialog.Button.Center")); //$NON-NLS-1$
     scrubButton.setText(TrackerRes.getString("PrefsDialog.Button.Scrub")); //$NON-NLS-1$
-    xuggleFastButton.setText(TrackerRes.getString("PrefsDialog.Xuggle.Fast")); //$NON-NLS-1$
-    xuggleSlowButton.setText(TrackerRes.getString("PrefsDialog.Xuggle.Slow")); //$NON-NLS-1$
     vidWarningCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfNoEngine")); //$NON-NLS-1$    
     variableDurationCheckBox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnVariableDuration")); //$NON-NLS-1$    
-    xuggleErrorCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfXuggleError")); //$NON-NLS-1$    
+    ffmpegErrorCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfFFMPegError")); //$NON-NLS-1$    
     setTabTitle(configPanel, TrackerRes.getString("PrefsDialog.Tab.Configuration.Title")); //$NON-NLS-1$
     setTabTitle(runtimePanel, TrackerRes.getString("PrefsDialog.Tab.Runtime.Title")); //$NON-NLS-1$
     setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
@@ -1722,7 +1752,7 @@ public class PrefsDialog extends JDialog {
 			toolbar.refresh(true);
 		}
     Tracker.isRadians = radiansButton.isSelected();
-		Tracker.isXuggleFast = xuggleFastButton.isSelected();
+		Tracker.isVideoFast = videoFastButton.isSelected();
 		if (frame!=null) frame.setAnglesInRadians(Tracker.isRadians);
     // save the tracker and tracker_starter preferences
     String path = Tracker.savePreferences();
@@ -1777,7 +1807,7 @@ public class PrefsDialog extends JDialog {
     // warnings
     vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
     variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
-    xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
+    ffmpegErrorCheckbox.setSelected(Tracker.warnFFMPegError);
     // locale
     int index = 0;
     for (int i=0; i<Tracker.locales.length; i++) {
@@ -1889,8 +1919,8 @@ public class PrefsDialog extends JDialog {
     trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
     
     // video
-    if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)) {
-	    xuggleButton.setSelected(true);
+    if (VideoIO.getEngine().equals(VideoIO.ENGINE_FFMPEG)) {
+	    ffmpegButton.setSelected(true);
     }
     repaint();
   	refreshing = false;

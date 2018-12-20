@@ -81,7 +81,7 @@ public class TrackerIO extends VideoIO {
     		if (e.getPropertyName().equals("ffmpeg_error")) { //$NON-NLS-1$
     			if (!isffmpegError) { // first error thrown
     				isffmpegError = true;
-    				if (!Tracker.warnXuggleError) {
+    				if (!Tracker.warnFFMPegError) {
     					if (e.getNewValue()!=null) {
 	  						String s = e.getNewValue().toString();
 	  						int n = s.indexOf("]"); //$NON-NLS-1$
@@ -91,7 +91,7 @@ public class TrackerIO extends VideoIO {
     					}
   						return;
   					}
-    	    	// warn user that a Xuggle error has occurred
+    	    	// warn user that a FFMPeg error has occurred
     	    	Box box = Box.createVerticalBox();
     	    	box.add(new JLabel(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Message1"))); //$NON-NLS-1$
     	    	String error = e.getNewValue().toString();
@@ -124,7 +124,7 @@ public class TrackerIO extends VideoIO {
     		    dontShowAgainButton.setForeground(new Color(0, 0, 102));
     		    dontShowAgainButton.addActionListener(new ActionListener() {
     		      public void actionPerformed(ActionEvent e) {
-    	    			Tracker.warnXuggleError = false;
+    	    			Tracker.warnFFMPegError = false;
     		        dialog.setVisible(false);
     		      }
     		    });
@@ -447,6 +447,7 @@ public class TrackerIO extends VideoIO {
       chooser.setMultiSelectionEnabled(false);
       result = chooser.showSaveDialog(null);
     	File file = chooser.getSelectedFile();
+      chooser.resetChoosableFileFilters();
       chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
 	    if(result==JFileChooser.APPROVE_OPTION && canWrite(file)) {
 	      return new File[] {file};
@@ -612,7 +613,7 @@ public class TrackerIO extends VideoIO {
    */
   public static Video getVideo(String path, VideoType vidType) {
   	boolean logConsole = OSPLog.isConsoleMessagesLogged();
-  	if (!Tracker.warnXuggleError)
+  	if (!Tracker.warnFFMPegError)
   		OSPLog.setConsoleMessagesLogged(false); 
   	if (path.startsWith("file:")) //$NON-NLS-1$
   		path = ResourceLoader.getNonURIPath(path);
@@ -684,9 +685,9 @@ public class TrackerIO extends VideoIO {
         String engine = VideoIO.getEngine();
         if (requestedType==null) {
 	        String ext = XML.getExtension(path);        
-	        if (!engine.equals(VideoIO.ENGINE_XUGGLE)) {
-	        	VideoType xuggleType = VideoIO.getVideoType("Xuggle", ext); //$NON-NLS-1$
-	        	if (xuggleType!=null) otherEngines.add(xuggleType);
+	        if (!engine.equals(VideoIO.ENGINE_FFMPEG)) {
+	        	VideoType ffmpegType = VideoIO.getVideoType("FFMPeg", ext); //$NON-NLS-1$
+	        	if (ffmpegType!=null) otherEngines.add(ffmpegType);
 	        }
         }
         if (otherEngines.isEmpty()) {
@@ -702,7 +703,7 @@ public class TrackerIO extends VideoIO {
         	video = VideoIO.getVideo(path, otherEngines, setAsDefaultBox, frame);
 		    	if (video!=null && setAsDefaultBox.isSelected()) {
 		    		String typeName = video.getClass().getSimpleName();
-		    		String newEngine = typeName.indexOf("Xuggle")>-1? VideoIO.ENGINE_XUGGLE: //$NON-NLS-1$
+		    		String newEngine = typeName.indexOf("FFMPeg")>-1? VideoIO.ENGINE_FFMPEG: //$NON-NLS-1$
 		    			VideoIO.ENGINE_NONE;
 		    		VideoIO.setEngine(newEngine);
 	  				PrefsDialog prefs = frame.getPrefsDialog();

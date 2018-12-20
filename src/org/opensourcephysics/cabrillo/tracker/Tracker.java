@@ -66,8 +66,8 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.0.6"; //$NON-NLS-1$
-  public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
+  public static final String VERSION = "5.1.0.0"; //$NON-NLS-1$
+  public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown, Nikolai Avdeev"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -78,7 +78,7 @@ public class Tracker {
 	static final String THETA = TeXParser.parseTeX("$\\theta"); //$NON-NLS-1$
 	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
 	static final String ALPHA = TeXParser.parseTeX("$\\alpha"); //$NON-NLS-1$
-	static final String DEGREES = "\u00B0"; //$NON-NLS-1$
+	static final String DEGREES = "°"; //$NON-NLS-1$
 	static final String SQUARED = "\u00b2"; //$NON-NLS-1$
 	static final String DOT = "\u00b7"; //$NON-NLS-1$
   static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
@@ -119,10 +119,11 @@ public class Tracker {
 	  "number.formats", "number.units", "text.columns", "plot.compare",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	  "config.saveWithData", "data.builder", "data.tool"};  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   static Set<String> defaultConfig;
-  static boolean xuggleCopied;
+  static boolean ffmpegCopied;
   static String[] mainArgs;
   static JFrame splash;
-  public static Icon trackerLogoIcon, ospLogoIcon;
+  static Icon trackerLogoIcon, ospLogoIcon;
+  static JLabel tipOfTheDayLabel;
   static JProgressBar progressBar;
   static String counterPath = "http://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
   static String newerVersion; // new version available if non-null
@@ -131,7 +132,7 @@ public class Tracker {
   static String trackerDownloadFolder = "/upgrade/"; //$NON-NLS-1$
   static String author = "Douglas Brown"; //$NON-NLS-1$
   static String osp = "Open Source Physics"; //$NON-NLS-1$
-  static AbstractAction aboutXuggleAction, aboutThreadsAction;
+  static AbstractAction aboutFFMPegAction, aboutThreadsAction;
   static Action aboutTrackerAction, readmeAction;
   static Action aboutJavaAction, startLogAction, trackerPrefsAction;
   private static Tracker sharedTracker;
@@ -168,12 +169,12 @@ public class Tracker {
   static boolean showHintsByDefault = true;
   static int recentFilesSize = 6;
   static int preferredMemorySize = -1;
-  static String lookAndFeel, preferredLocale, preferredDecimalSeparator;
+  static String lookAndFeel, preferredLocale, preferredDecimalSeparator, additionalDecimalSeparators;
   static String preferredJRE, preferredTrackerJar, preferredPointMassFootprint;
   static int checkForUpgradeInterval = 0;
   static int preferredFontLevel = 0, preferredFontLevelPlus = 0;
-  static boolean isRadians, isXuggleFast;
-  static boolean warnXuggleError=true, warnNoVideoEngine=true;
+  static boolean isRadians, isVideoFast;
+  static boolean warnFFMPegError=true, warnNoVideoEngine=true;
   static boolean warnVariableDuration=true;
   static String[] prelaunchExecutables = new String[0];
   static Map<String, String[]> autoloadMap = new TreeMap<String, String[]>();
@@ -384,16 +385,16 @@ public class Tracker {
     splash.setLocation(x-size.width/2, y-size.height/2);
 
   	// set up videos extensions to extract from jars
-  	// this list should agree with xuggle video types below
+  	// this list should agree with ffmpeg video types below
   	for (String ext: VideoIO.VIDEO_EXTENSIONS) { // {"mov", "avi", "mp4"}
       ResourceLoader.addExtractExtension(ext);
   	}
     
-    // add Xuggle video types, if available, using reflection
+    // add FFMPeg video types, if available, using reflection
   	try {
-			String xuggleIOName = "org.opensourcephysics.media.xuggle.XuggleIO"; //$NON-NLS-1$
-			Class<?> xuggleIOClass = Class.forName(xuggleIOName);
-			Method method = xuggleIOClass.getMethod("registerWithVideoIO", (Class[]) null);  //$NON-NLS-1$
+			String ffmpegIOName = "org.opensourcephysics.media.ffmpeg.FFMPegIO"; //$NON-NLS-1$
+			Class<?> ffmpegIOClass = Class.forName(ffmpegIOName);
+			Method method = ffmpegIOClass.getMethod("registerWithVideoIO", (Class[]) null);  //$NON-NLS-1$
 			method.invoke(null, (Object[]) null);
 		} catch (Exception ex) {
 		}    
@@ -516,7 +517,7 @@ public class Tracker {
 		OSPRuntime.setLookAndFeel(true, lookAndFeel);
     frame = new TFrame();
     Diagnostics.setDialogOwner(frame);
-    DiagnosticsForXuggle.setDialogOwner(frame);
+    DiagnosticsForFFMPeg.setDialogOwner(frame);
     // set up the Java VM exit mechanism when used as application
     if ( org.opensourcephysics.display.OSPRuntime.applet == null) {
       frame.addWindowListener(new WindowAdapter() {
@@ -609,44 +610,47 @@ public class Tracker {
    * @return 0 if equal, 1 if ver1>ver2, -1 if ver1<ver2
    */
   public static int compareVersions(String ver1, String ver2) {
-  	// deal with null values
-  	if (ver1==null || ver2==null) {
-  		return 0;
-  	}
-  	// typical newer semantic version "4.9.10" or 5.0.0.171230
-  	// typical older version "4.97"
-    String[] v1 = ver1.trim().split("\\."); //$NON-NLS-1$
-    String[] v2 = ver2.trim().split("\\."); //$NON-NLS-1$
-    // beta version arrays have length 4
-    // newer semantic version arrays have length 3
-    // older version arrays have length 2
-    
-    // truncate beta versions to length 3
-    if (v1.length==4) {
-    	v1 = new String[] {v1[0], v1[1], v1[2]};
-    }
-    if (v2.length==4) {
-    	v2 = new String[] {v2[0], v2[1], v2[2]};
-    }
+  	try {
+		// deal with null values
+		if (ver1 == null || ver2 == null) {
+			return 0;
+		}
+		// typical newer semantic version "4.9.10" or 5.0.0.171230
+		// typical older version "4.97"
+		String[] v1 = ver1.trim().split("\\."); //$NON-NLS-1$
+		String[] v2 = ver2.trim().split("\\."); //$NON-NLS-1$
+		// beta version arrays have length 4
+		// newer semantic version arrays have length 3
+		// older version arrays have length 2
 
-  	if (v2.length>v1.length) {
-  		// v1 is older version, v2 is newer
-  		return -1;
-  	}
-  	if (v1.length>v2.length) {
-  		// v2 is older version, v1 is newer
-  		return 1;
-  	}
-  	// both arrays have the same length
-    for (int i=0; i<v1.length; i++) {
-      if (Integer.parseInt(v1[i]) < Integer.parseInt(v2[i])) {
-        return -1;
-      }
-      else if (Integer.parseInt(v1[i]) > Integer.parseInt(v2[i])) {
-        return 1;
-      }
-    }
-  	return 0;  	
+		// truncate beta versions to length 3
+		if (v1.length == 4) {
+			v1 = new String[]{v1[0], v1[1], v1[2]};
+		}
+		if (v2.length == 4) {
+			v2 = new String[]{v2[0], v2[1], v2[2]};
+		}
+
+		if (v2.length > v1.length) {
+			// v1 is older version, v2 is newer
+			return -1;
+		}
+		if (v1.length > v2.length) {
+			// v2 is older version, v1 is newer
+			return 1;
+		}
+		// both arrays have the same length
+		for (int i = 0; i < v1.length; i++) {
+			if (Integer.parseInt(v1[i]) < Integer.parseInt(v2[i])) {
+				return -1;
+			} else if (Integer.parseInt(v1[i]) > Integer.parseInt(v2[i])) {
+				return 1;
+			}
+		}
+		return 0;
+	}catch(Exception e){
+  		return 0;
+	}
   }
   
 
@@ -898,9 +902,9 @@ public class Tracker {
         Diagnostics.aboutJava();
       }
     };
-    aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
+    aboutFFMPegAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutFFMPeg"), null) { //$NON-NLS-1$
       public void actionPerformed(ActionEvent e) {
-      	DiagnosticsForXuggle.aboutXuggle("Tracker"); //$NON-NLS-1$
+      	DiagnosticsForFFMPeg.aboutFFMPeg("Tracker"); //$NON-NLS-1$
       }
     };
     aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
@@ -1220,18 +1224,12 @@ public class Tracker {
   }
 
   /**
-   * Checks and updates Xuggle resources.
+   * Checks and updates FFMPeg resources.
    * 
    * @return true if any resources were updated
    */
   protected static boolean updateResources() {
   	boolean updated = false;
-  	// copy xuggle files to Tracker home, if needed
-		try {
-			File trackerDir = new File(TrackerStarter.findTrackerHome(false));
-			updated = DiagnosticsForXuggle.copyXuggleJarsTo(trackerDir);
-		} catch (Exception e) {
-		}
     return updated; 	
   }
 
@@ -1467,13 +1465,13 @@ public class Tracker {
       }
   	}
     
-    // save current trackerHome and xuggleHome in OSP preferences 
+    // save current trackerHome and ffmpegHome in OSP preferences 
     if (trackerHome!=null && new File(trackerHome, "tracker.jar").exists()) {   	 //$NON-NLS-1$
     	OSPRuntime.setPreference("TRACKER_HOME", trackerHome); //$NON-NLS-1$
     }
-  	String xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
-    if (xuggleHome!=null) {
-    	OSPRuntime.setPreference("XUGGLE_HOME", xuggleHome); //$NON-NLS-1$
+  	String ffmpegHome = System.getenv("FFMPEG_HOME"); //$NON-NLS-1$
+    if (ffmpegHome!=null) {
+    	OSPRuntime.setPreference("FFMPEG_HOME", ffmpegHome); //$NON-NLS-1$
     }
     OSPRuntime.savePreferences();
     
@@ -1532,7 +1530,7 @@ public class Tracker {
    * @param args array of tracker or video file names
    */
   public static void main(String[] args) {
-//		String[] vars = {"TRACKER_HOME", "XUGGLE_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+//		String[] vars = {"TRACKER_HOME", "FFMPEG_HOME", "DYLD_LIBRARY_PATH"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 //		for (String next: vars) {
 //			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
 //		}
@@ -1587,7 +1585,7 @@ public class Tracker {
 	    }
 	    boolean needsJavaVM = javaPath!=null && !javaCommand.equals(javaPath);
 	    
-			// update Xuggle
+			// update FFMPeg
 			boolean updated = updateResources();
 			
 			// compare memory with requested size(s)
@@ -1608,19 +1606,19 @@ public class Tracker {
 					needsEnvironment = true;
 				}
 				else {
-					String xuggleDir = TrackerStarter.findXuggleHome(trackerDir, false);
-					String xuggleEnv = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
-					if (xuggleDir!=null && !xuggleDir.equals(xuggleEnv)) {
+					String ffmpegDir = TrackerStarter.findFFMPegHome(trackerDir, false);
+					String ffmpegEnv = System.getenv("FFMPEG_HOME"); //$NON-NLS-1$
+					if (ffmpegDir!=null && !ffmpegDir.equals(ffmpegEnv)) {
 						needsEnvironment = true;					
 					}
 					else {
-						if (xuggleDir!=null) {
-							String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
-							String xugglePath = xuggleDir+File.separator+subdir;
+						if (ffmpegDir!=null && !OSPRuntime.isLinux()) {
+							String subdir = OSPRuntime.isWindows()? "bin":"lib" ; //$NON-NLS-1$ //$NON-NLS-2$
+							String ffmpegPath = ffmpegDir+File.separator+subdir;
 							String pathName = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
 								OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
 							String pathEnv = System.getenv(pathName);
-							if (pathEnv==null || !pathEnv.contains(xugglePath)) {
+							if (pathEnv==null || !pathEnv.contains(ffmpegPath)) {
 								needsEnvironment = true;					
 							}
 						}
@@ -1711,13 +1709,13 @@ public class Tracker {
 //    warnNoVideoEngine = false; // for PLATO
     if (warnNoVideoEngine && VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {    	
     	// warn user that there is no working video engine
-    	boolean xuggleInstalled = DiagnosticsForXuggle.guessXuggleVersion()==3.4;
+    	boolean ffmpegInstalled = DiagnosticsForFFMPeg.hasFFMPegJars();
     	
     	ArrayList<String> message = new ArrayList<String>();    	
 			boolean showRelaunchDialog = false;
 	    	
     	// no engine installed
-    	if (!xuggleInstalled) {
+    	if (!ffmpegInstalled) {
     		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message1")); //$NON-NLS-1$
     		message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message2")); //$NON-NLS-1$
     		message.add(" "); //$NON-NLS-1$
@@ -2087,14 +2085,12 @@ public class Tracker {
       		control.setValue("trail_length", TToolBar.trailLengthNames[Tracker.trailLengthIndex]); //$NON-NLS-1$
       	if (Tracker.centerCalibrationStick) // false by default
       		control.setValue("center_stick", Tracker.centerCalibrationStick); //$NON-NLS-1$
-      	if (Tracker.isXuggleFast) // false by default
-      		control.setValue("xuggle_fast", Tracker.isXuggleFast); //$NON-NLS-1$
       	if (!Tracker.warnNoVideoEngine) // true by default
       		control.setValue("warn_no_engine", Tracker.warnNoVideoEngine); //$NON-NLS-1$
       	if (!Tracker.warnVariableDuration) // true by default
       		control.setValue("warn_variable_frame_duration", Tracker.warnVariableDuration); //$NON-NLS-1$
-      	if (!Tracker.warnXuggleError) // true by default
-      		control.setValue("warn_xuggle_error", Tracker.warnXuggleError); //$NON-NLS-1$
+      	if (!Tracker.warnFFMPegError) // true by default
+      		control.setValue("warn_ffmpeg_error", Tracker.warnFFMPegError); //$NON-NLS-1$
       	// always save preferred tracker.jar
       	String jar = Tracker.preferredTrackerJar==null? 
       			"tracker.jar": Tracker.preferredTrackerJar; //$NON-NLS-1$
@@ -2113,6 +2109,8 @@ public class Tracker {
       		control.setValue("locale", Tracker.preferredLocale); //$NON-NLS-1$
       	if (Tracker.preferredDecimalSeparator!=null)
       		control.setValue("decimal_separator", Tracker.preferredDecimalSeparator); //$NON-NLS-1$
+		if (Tracker.additionalDecimalSeparators!=null)
+			control.setValue("additional_decimal_separators", Tracker.additionalDecimalSeparators); //$NON-NLS-1$
       	if (Tracker.preferredFontLevel>0) {
       		control.setValue("font_size", Tracker.preferredFontLevel); //$NON-NLS-1$
       	}
@@ -2203,7 +2201,7 @@ public class Tracker {
         Tracker.enableAutofill = control.getBoolean("enable_autofill"); //$NON-NLS-1$
         Tracker.showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
         Tracker.centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
-    		Tracker.isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
+    		Tracker.isVideoFast = control.getBoolean("ffmpeg_fast"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("trail_length")) { //$NON-NLS-1$
       		String name = control.getString("trail_length"); //$NON-NLS-1$
       		for (int i=0; i<TToolBar.trailLengthNames.length; i++) {
@@ -2212,8 +2210,8 @@ public class Tracker {
       	}
       	if (control.getPropertyNames().contains("warn_no_engine")) //$NON-NLS-1$
       		Tracker.warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
-      	if (control.getPropertyNames().contains("warn_xuggle_error")) //$NON-NLS-1$
-      		Tracker.warnXuggleError = control.getBoolean("warn_xuggle_error"); //$NON-NLS-1$
+      	if (control.getPropertyNames().contains("warn_ffmpeg_error")) //$NON-NLS-1$
+      		Tracker.warnFFMPegError = control.getBoolean("warn_ffmpeg_error"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("warn_variable_frame_duration")) //$NON-NLS-1$
       		Tracker.warnVariableDuration = control.getBoolean("warn_variable_frame_duration"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("show_hints")) { //$NON-NLS-1$
@@ -2236,6 +2234,10 @@ public class Tracker {
       		Tracker.preferredDecimalSeparator = control.getString("decimal_separator"); //$NON-NLS-1$
       		OSPRuntime.setPreferredDecimalSeparator(preferredDecimalSeparator);
       	}
+  	    if (control.getPropertyNames().contains("additional_decimal_separators")) { //$NON-NLS-1$
+			Tracker.additionalDecimalSeparators = control.getString("additional_decimal_separators"); //$NON-NLS-1$
+			OSPRuntime.setAdditionalDecimalSeparators(additionalDecimalSeparators);
+	    }
       	if (control.getPropertyNames().contains("run")) //$NON-NLS-1$
       		Tracker.prelaunchExecutables = (String[])control.getObject("run"); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("locale")) //$NON-NLS-1$
@@ -2271,7 +2273,7 @@ public class Tracker {
   	    	  addRecent(next.toString(), true); // add at end
   	    	}
       	}
-    		// added Dec 2104
+    		// added Dec 2014
       	Tracker.preferredAutoloadSearchPaths = (String[])control.getObject("autoload_search_paths"); //$NON-NLS-1$
       	// load autoload_exclusions: added Dec 2014
       	if (control.getPropertyNames().contains("autoload_exclusions")) { //$NON-NLS-1$

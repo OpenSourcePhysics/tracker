@@ -42,6 +42,10 @@ import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.controls.*;
 
+import org.opensourcephysics.cabrillo.tracker.AutoTrackerCore.KeyFrame;
+import org.opensourcephysics.cabrillo.tracker.AutoTrackerCore.FrameData;
+
+
 /**
  * A TTrack draws a series of visible Steps on a TrackerPanel.
  * This is an abstract class that cannot be instantiated directly.
@@ -57,8 +61,8 @@ public abstract class TTrack implements Interactive,
   protected static JTextPane skippedStepWarningTextpane;
   protected static JCheckBox skippedStepWarningCheckbox;
   protected static JButton closeButton;
-	protected static boolean skippedStepWarningOn = true;
-  protected static NameDialog nameDialog;
+  protected static boolean skippedStepWarningOn = true;
+  protected static TrackNameDialog nameDialog;
   protected static int nextID = 1;
   protected static HashMap<Integer, TTrack> activeTracks = new HashMap<Integer, TTrack>();
   protected static FontRenderContext frc
@@ -88,7 +92,7 @@ public abstract class TTrack implements Interactive,
   protected Point2D point = new Point2D.Double();
   protected ArrayList<Component> toolbarTrackComponents = new ArrayList<Component>();
   protected ArrayList<Component> toolbarPointComponents = new ArrayList<Component>();
-  protected TextLineLabel xLabel, yLabel, magLabel, angleLabel;
+  protected TTrackTextLineLabel xLabel, yLabel, magLabel, angleLabel;
   protected JLabel tLabel, stepLabel, tValueLabel, stepValueLabel;
   protected NumberField tField, xField, yField, magField;
   protected DecimalField angleField;
@@ -119,11 +123,11 @@ public abstract class TTrack implements Interactive,
   protected Object[][] constantsLoadedFromXML;
   protected String[] dataDescriptions;
   protected boolean dataValid; // true if data is valid
-	protected boolean refreshDataLater;
+  protected boolean refreshDataLater;
   protected int[] preferredColumnOrder;
   protected ArrayList<Integer> dataFrames = new ArrayList<Integer>();
   protected String partName, hint;
-	protected int stepSizeWhenFirstMarked;
+  protected int stepSizeWhenFirstMarked;
   protected TreeSet<Integer> keyFrames = new TreeSet<Integer>();
   // for autotracking
   protected boolean autoTrackerMarking;
@@ -138,6 +142,10 @@ public abstract class TTrack implements Interactive,
   protected MouseAdapter formatMouseListener, formatAngleMouseListener;
   protected String[] customNumberFormats;
   private int ID; // unique ID number 
+
+  // For autoskipping while autotracking
+  public boolean skippedStepWarningSuppress = false;
+
 
   /**
    * Constructs a TTrack.
@@ -285,17 +293,17 @@ public abstract class TTrack implements Interactive,
     };
 
     // create labels and fields
-    xLabel = new TextLineLabel(); 
+    xLabel = new TTrackTextLineLabel();
     xField = new TrackNumberField();
-    yLabel = new TextLineLabel(); 
+    yLabel = new TTrackTextLineLabel();
     yField = new TrackNumberField();
-    magLabel = new TextLineLabel(); 
+    magLabel = new TTrackTextLineLabel();
     magField = new TrackNumberField();
     magField.setMinValue(0);
     xField.addMouseListener(formatMouseListener);
     yField.addMouseListener(formatMouseListener);
     magField.addMouseListener(formatMouseListener);
-    angleLabel = new TextLineLabel(); 
+    angleLabel = new TTrackTextLineLabel();
     angleField = new TrackDecimalField(1);
     angleField.addMouseListener(formatAngleMouseListener);
     Border empty = BorderFactory.createEmptyBorder(0, 3, 0, 3);
@@ -2726,7 +2734,7 @@ public abstract class TTrack implements Interactive,
   			AutoTracker autoTracker = trackerPanel.getAutoTracker();
 	    	if (autoTracker.getTrack()==null || autoTracker.getTrack()==this) {
 	    		int n = trackerPanel.getFrameNumber();
-	    		AutoTracker.KeyFrame key = autoTracker.getFrame(n).getKeyFrame();
+	    		KeyFrame key = autoTracker.getFrame(n).getKeyFrame();
 	    		if (key==null)
 	    			return TMouseHandler.autoTrackMarkCursor;
 	    	}  			
@@ -2847,158 +2855,6 @@ public abstract class TTrack implements Interactive,
   	}
   	return null;
   }
-  
-//______________________ inner StepArray class _______________________
-
-  protected class StepArray {
-
-    // instance fields
-    protected int delta = 5;
-    protected Step[] array = new Step[delta];
-    private boolean autofill = false;
-
-    /**
-     * Constructs a default StepArray.
-     */
-    public StepArray() {/** empty block */}
-
-    /**
-     * Constructs an autofill StepArray and fills the array with clones
-     * of the specified step.
-     *
-     * @param step the step to fill the array with
-     */
-    public StepArray(Step step) {
-      autofill = true;
-      step.n = 0;
-      array[0] = step;
-      fill(array, step);
-    }
-
-    /**
-     * Constructs an autofill StepArray and fills the array with clones
-     * of the specified step.
-     *
-     * @param step the step to fill the array with
-     * @param increment the array sizing increment
-     */
-    public StepArray(Step step, int increment) {
-    	this(step);
-      delta = increment;
-    }
-
-    /**
-     * Gets the step at the specified index. May return null.
-     *
-     * @param n the array index
-     * @return the step
-     */
-    public Step getStep(int n) {    	
-      if (n >= array.length) {
-      	int len = Math.max(n+delta, n-array.length+1);
-      	setLength(len);
-      }
-      return array[n];
-    }
-
-    /**
-     * Sets the step at the specified index. Accepts a null step argument
-     * for non-autofill arrays.
-     *
-     * @param n the array index
-     * @param step the new step
-     */
-    public void setStep(int n, Step step) {
-      if (autofill && step == null) return;
-      if (n >= array.length) {
-      	int len = Math.max(n+delta, n-array.length+1);
-      	setLength(len);
-      }
-      synchronized(array) {
-        array[n] = step;
-      }
-    }
-
-    /**
-     * Determines if this step array contains the specified step.
-     *
-     * @param step the new step
-     * @return <code>true</code> if this contains the step
-     */
-    public boolean contains(Step step) {
-      synchronized(array) {
-        for (int i = 0; i < array.length; i++)
-          if (array[i] == step) return true;
-      }
-      return false;
-    }
-
-    /**
-     * Sets the length of the array.
-     *
-     * @param len the new length of the array
-     */
-    public void setLength(int len) {
-      Step[] newArray = new Step[len];
-      System.arraycopy(array, 0, newArray, 0, Math.min(len, array.length));
-      if (len > array.length && autofill) {
-        Step step = array[array.length - 1];
-        fill(newArray, step);
-      }
-      array = newArray;
-    }
-    
-    /**
-     * Determines if this is empty.
-     *
-     * @return true if empty
-     */
-    public boolean isEmpty() {
-      synchronized(array) {
-        for (int i = 0; i < array.length; i++)
-          if (array[i]!=null) return false;
-      }
-    	return true;
-    }
-
-    /**
-     * Determines if the specified step is preceded by a lower index step.
-     * 
-     * @param n the step index
-     * @return true if the step is preceded
-     */
-    public boolean isPreceded(int n) {
-      synchronized(array) {
-      	int k = Math.min(n, array.length);
-        for (int i = 0; i < k; i++)
-          if (array[i]!=null) return true;
-      }
-    	return false;
-    }
-    
-    public boolean isAutofill() {
-    	return autofill;
-    }
-
-    //__________________________ private methods _________________________
-
-    /**
-     * Replaces null elements of the the array with clones of the
-     * specified step.
-     *
-     * @param array the Step[] to fill
-     * @param step the step to clone
-     */
-    private void fill(Step[] array, Step step) {
-      for (int n = 0; n < array.length; n++) {
-        if (array[n] == null) {
-          Step clone = (Step)step.clone();
-          clone.n = n;
-          array[n] = clone;
-        }
-      }
-    }
-  } // end StepArray class
 
   /**
    * A NumberField that resizes itself for display on a TTrackBar.
@@ -3038,153 +2894,17 @@ public abstract class TTrack implements Interactive,
   	
   }
 
-  /**
-   * A DrawingPanel that mimics the look of a JLabel but can display subscripts.
-   */
-  protected static class TextLineLabel extends DrawingPanel {
-    DrawableTextLine textLine;
-    JLabel label;
-    int w;
-    
-    /**
-     * Constructor
-     */
-    TextLineLabel() {
-    	textLine = new DrawableTextLine("", 0, -4.5); //$NON-NLS-1$
-	    textLine.setJustification(TextLine.CENTER);
-	    addDrawable(textLine);
-	    label = new JLabel();
-	    textLine.setFont(label.getFont());
-	    textLine.setColor(label.getForeground());
-    }
-    
-    /**
-     * Constructor with initial text
-     */
-    TextLineLabel(String text) {
-    	this();
-    	setText(text);
-    }
-    
-    /**
-     * Sets the text to be displayed. Accepts subscript notation eg v_{x}.
-     * 
-     * @param text the text
-     */
-    void setText(String text) {
-    	if (text==null) text = ""; //$NON-NLS-1$
-    	if (text.equals(textLine.getText())) return;
-    	w =-1;
-      textLine.setText(text);
-      if (text.contains("_{")) { //$NON-NLS-1$
-      	text = TeXParser.removeSubscripting(text);
-      }
-      // use label to set initial preferred size
-      label.setText(text);
-      java.awt.Dimension dim = label.getPreferredSize();
-      dim.width += 4;
-      setPreferredSize(dim);
-    }
-    
-    @Override
-    public Font getFont() {
-    	if (textLine!=null) return textLine.getFont();
-    	return super.getFont();
-    }
-    
-    @Override
-    public void setFont(Font font) {
-      if (textLine!=null) {
-      	textLine.setFont(font);
-      	w = -1;
-      }
-      else super.setFont(font);
-    }
-    
-    @Override
-    public void paintComponent(Graphics g) {
-      setPixelScale(); // sets the pixel scale and the world-to-pixel AffineTransform
-  		((Graphics2D) g).setRenderingHint(
-					RenderingHints.KEY_TEXT_ANTIALIASING,
-					RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-    	textLine.draw(this, g);
-    	if (w==-1) {
-        // check preferred size and adjust if needed
-    		w = textLine.getWidth(g);
-    		Dimension dim = getPreferredSize();
-    		if (dim.width>w+4 || dim.width<w+4) {
-    			dim.width = w+4;
-    			setPreferredSize(dim);
-    			Container c = getParent();
-    			while (c!=null) {
-    				if (c instanceof TTrackBar) {
-    					((TTrackBar)c).refresh();
-    					break;
-    				}
-    			}
-    		}
-    	}
-    }
-    
-  }
-  
-  
-  /**
-   * A dialog used to set the name of a track.
-   */
-  protected static class NameDialog extends JDialog {
-  	
-  	JLabel nameLabel;
-  	JTextField nameField;
-  	TTrack target;
-  	TrackerPanel trackerPanel;
-  	
-  	// constructor
-  	NameDialog(TrackerPanel panel) {  		
-  		super(panel.getTFrame(), null, true);
-  		trackerPanel = panel;
-      setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-      addWindowListener(new WindowAdapter() {
-        public void windowClosing(WindowEvent e) {
-        	String newName = nameField.getText();
-        	if (target != null) 
-        		trackerPanel.setTrackName(target, newName, true);
-        }
-      });
-      nameField = new JTextField(20);
-      nameField.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-        	String newName = nameField.getText();
-        	if (target != null) 
-        		trackerPanel.setTrackName(target, newName, true);
-        }
-      });
-      nameLabel = new JLabel();
-      JToolBar bar = new JToolBar();
-      bar.setFloatable(false);
-      bar.add(nameLabel);
-      bar.add(nameField);
-      JPanel contentPane = new JPanel(new BorderLayout());
-      contentPane.add(bar, BorderLayout.CENTER);
-      setContentPane(contentPane);
-  	}
-  	
-    /**
-     * Sets the track.
-     * 
-     * @param track the track
-     */
-  	void setTrack(TTrack track) {
-  		target = track;
-      // initial text is current track name
-  		FontSizer.setFonts(this, FontSizer.getLevel());
-    	setTitle(TrackerRes.getString("TTrack.Dialog.Name.Title")); //$NON-NLS-1$
-    	nameLabel.setText(TrackerRes.getString("TTrack.Dialog.Name.Label")); //$NON-NLS-1$
-    	nameField.setText(track.getName());
-    	nameField.selectAll();
-    	pack();
-  	}
-  }
+	protected static class TTrackTextLineLabel extends TextLineLabel {
+		@Override
+		public void processParent(Container c){
+			while (c != null) {
+				if (c instanceof TTrackBar) {
+					((TTrackBar) c).refresh();
+					break;
+				}
+			}
+		}
+	}
 
   /**
    * Returns an ObjectLoader to save and load data for this class.
@@ -3350,9 +3070,9 @@ public abstract class TTrack implements Interactive,
     }
   }
   
-  protected static NameDialog getNameDialog(TTrack track) {
+  protected static TrackNameDialog getNameDialog(TTrack track) {
   	if (nameDialog==null && track.trackerPanel!=null) {
-      nameDialog = new NameDialog(track.trackerPanel);
+      nameDialog = new TrackNameDialog(track.trackerPanel);
       Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
       int x = (dim.width - nameDialog.getBounds().width) / 2;
       int y = (dim.height - nameDialog.getBounds().height) / 2;

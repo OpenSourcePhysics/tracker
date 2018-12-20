@@ -286,6 +286,7 @@ public class PointMass extends TTrack {
   protected JMenuItem aTailsToOriginItem;
   protected JMenuItem aTailsToPositionItem;
   protected JMenuItem autotrackItem;
+  protected JMenuItem movingAverageItem;
   protected JCheckBoxMenuItem vVisibleItem;
   protected JCheckBoxMenuItem aVisibleItem;
   protected boolean vAtOrigin, aAtOrigin;
@@ -419,7 +420,7 @@ public class PointMass extends TTrack {
     }
 	  support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
     // check independent point masses for skipped steps during marking
-    if (skippedStepWarningOn && steps.isPreceded(n) && trackerPanel!=null && !isDependent()
+    if (skippedStepWarningOn && !skippedStepWarningSuppress && steps.isPreceded(n) && trackerPanel!=null && !isDependent()
     		&& !AutoTracker.neverPause) {
     	VideoClip clip = trackerPanel.getPlayer().getVideoClip();
     	int stepNumber = clip.frameToStep(n);
@@ -1816,7 +1817,26 @@ public class PointMass extends TTrack {
   	}
   }
 
-  /**
+	/**
+	 * Updates coordinate arrays
+	 */
+	private void updatePositionData() {
+		for (int i = 0; i < validData.length; i++)
+			validData[i] = false;
+		Step[] stepArray = steps.array;
+		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		for (int n = 0; n < stepArray.length; n++) {
+			if (stepArray[n] != null && clip.includesFrame(n)) {
+				PositionStep step = (PositionStep) stepArray[n];
+				Point2D p = step.getPosition().getWorldPosition(trackerPanel);
+				xData[n] = p.getX(); // worldspace position
+				yData[n] = p.getY(); // worldspace position
+				validData[n] = true;
+			}
+		}
+	}
+
+	/**
    * Updates all velocity and acceleration steps on all TrackerPanels.
    */
   protected void updateDerivatives() {
@@ -1887,153 +1907,166 @@ public class PointMass extends TTrack {
    * @param stepCount the step count
    */
   protected void updateDerivatives(TrackerPanel trackerPanel,
-  		int startFrame, int stepCount) {
-		if (trackerPanel instanceof WorldTView
-				&& !((WorldTView)trackerPanel).isSelectedView())
-			return;
-    VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-    // initialize data arrays
-    if (xData.length < steps.array.length) {
-      derivData[1] = xData = new double[steps.array.length + 5];
-      derivData[2] = yData = new double[steps.array.length + 5];
-      derivData[3] = validData = new boolean[steps.array.length + 5];
-    }
-    // set up derivative parameters
-    params[1] = startFrame;
-    params[2] = clip.getStepSize();
-    params[3] = stepCount;
-    // set up position data
-    for (int i = 0; i < validData.length; i++)
-      validData[i] = false;
-    Step[] stepArray = steps.array;
-    for (int n = 0; n < stepArray.length; n++) {
-      if (stepArray[n] != null && clip.includesFrame(n)) {
-        PositionStep step = (PositionStep) stepArray[n];
-        Point2D p = step.getPosition().getWorldPosition(trackerPanel);
-        xData[n] = p.getX(); // worldspace position
-        yData[n] = p.getY(); // worldspace position
-        validData[n] = true;
-      }
-    }
-    // unlock track while updating
-    boolean isLocked = locked; // save for later restoration
-    locked = false;
-    boolean labelsVisible = isLabelsVisible(trackerPanel);
-    
-    // evaluate derivatives in worldspace coordinates
-    double[] xDeriv1; // first deriv
-    double[] yDeriv1; // first deriv
-    double[] xDeriv2; // second deriv
-    double[] yDeriv2; // second deriv
+								   int startFrame, int stepCount) {
+	  if (trackerPanel instanceof WorldTView
+			  && !((WorldTView) trackerPanel).isSelectedView())
+		  return;
+	  VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+	  // initialize data arrays
+	  if (xData.length < steps.length) {
+		  derivData[1] = xData = new double[steps.length + 5];
+		  derivData[2] = yData = new double[steps.length + 5];
+		  derivData[3] = validData = new boolean[steps.length + 5];
+	  }
+	  // set up derivative parameters
+	  params[1] = startFrame;
+	  params[2] = clip.getStepSize();
+	  params[3] = stepCount;
+
+	  updatePositionData();
+
+	  // unlock track while updating
+	  boolean isLocked = locked; // save for later restoration
+	  locked = false;
+	  boolean labelsVisible = isLabelsVisible(trackerPanel);
+
+	  // evaluate derivatives in worldspace coordinates
+	  double[] xDeriv1; // first deriv
+	  double[] yDeriv1; // first deriv
+	  double[] xDeriv2; // second deriv
+	  double[] yDeriv2; // second deriv
 //    FINITE_DIFF = 0;
 //  	protected static final int BOUNCE_DETECT = 1;
 //  	protected static final int FINITE_DIFF_VSPREAD2
-    if (algorithm==BOUNCE_DETECT) {
-	    params[0] = bounceDerivsSpill; // spill
-	    Object[] result = bounceDerivs.evaluate(derivData);    	
-	    xDeriv1 = (double[]) result[0];
-	    yDeriv1 = (double[]) result[1];
-	    xDeriv2 = (double[]) result[2];
-	    yDeriv2 = (double[]) result[3];
-    }
-    else {
-	    params[0] = algorithm==FINITE_DIFF_VSPILL2? 2: vDerivSpill; // spill
-	    Object[] result = vDeriv.evaluate(derivData);    	
-	    xDeriv1 = (double[]) result[0];
-	    yDeriv1 = (double[]) result[1];
-	    params[0] = aDerivSpill; // spill
-	    result = aDeriv.evaluate(derivData);
-	    xDeriv2 = (double[]) result[2];
-	    yDeriv2 = (double[]) result[3];
-    }
+	  if (algorithm == BOUNCE_DETECT) {
+		  params[0] = bounceDerivsSpill; // spill
+		  Object[] result = bounceDerivs.evaluate(derivData);
+		  xDeriv1 = (double[]) result[0];
+		  yDeriv1 = (double[]) result[1];
+		  xDeriv2 = (double[]) result[2];
+		  yDeriv2 = (double[]) result[3];
+	  } else {
+		  params[0] = algorithm == FINITE_DIFF_VSPILL2 ? 2 : vDerivSpill; // spill
+		  Object[] result = vDeriv.evaluate(derivData);
+		  xDeriv1 = (double[]) result[0];
+		  yDeriv1 = (double[]) result[1];
+		  params[0] = aDerivSpill; // spill
+		  result = aDeriv.evaluate(derivData);
+		  xDeriv2 = (double[]) result[2];
+		  yDeriv2 = (double[]) result[3];
+	  }
 
-    // create, delete and/or set components of velocity vectors
-    StepArray array = vMap.get(trackerPanel);
-    int endFrame = startFrame+(stepCount-1)*clip.getStepSize();
-    int end = Math.min(endFrame, xDeriv1.length-1);
-    for (int n = startFrame; n <= end; n++) {
-      VectorStep v = (VectorStep) array.getStep(n);
-      if ((Double.isNaN(xDeriv1[n])  || !validData[n]) && v == null)
-        continue;
-      if (!Double.isNaN(xDeriv1[n]) && validData[n]) {
-        double x = trackerPanel.getCoords().
-            worldToImageXComponent(n, xDeriv1[n], yDeriv1[n]);
-        double y = trackerPanel.getCoords().
-            worldToImageYComponent(n, xDeriv1[n], yDeriv1[n]);
-        if (v == null) { // create new vector
-          TPoint p = ( (PositionStep) getStep(n)).getPosition();
-          v = new VectorStep(this, n, p.getX(), p.getY(), x, y);
-          v.setTipEnabled(false);
-          v.getHandle().setStepEditTrigger(true);
-          v.setDefaultPointIndex(2); // handle
-          v.setFootprint(vFootprint);
-          v.setLabelVisible(labelsVisible);
-          v.setRolloverVisible(!labelsVisible);
-          v.attach(p);
-          array.setStep(n, v);
-          trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
-        }
-        else if ( (int) (100 * v.getXComponent()) != (int) (100 * x) ||
-                 (int) (100 * v.getYComponent()) != (int) (100 * y)) {
-          trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
-          v.attach(v.getAttachmentPoint());
-          v.setXYComponents(x, y);
-          trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
-        }
-        else
-          v.attach(v.getAttachmentPoint());
-      }
-      else {
-        array.setStep(n, null);
-        trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
-      }
-    }
-    
-    // create, delete and/or set components of accel vectors
-    array = aMap.get(trackerPanel);
-    end = Math.min(endFrame, xDeriv2.length-1);
-    for (int n = startFrame; n <= end; n++) {
-      VectorStep a = (VectorStep) array.getStep(n);
-      if ((Double.isNaN(xDeriv2[n]) || !validData[n]) && a == null)
-        continue;
-      if (!Double.isNaN(xDeriv2[n]) && validData[n]) {
-        double x = trackerPanel.getCoords().
-            worldToImageXComponent(n, xDeriv2[n], yDeriv2[n]);
-        double y = trackerPanel.getCoords().
-            worldToImageYComponent(n, xDeriv2[n], yDeriv2[n]);
-        if (a == null) {
-          TPoint p = ( (PositionStep) getStep(n)).getPosition();
-          a = new VectorStep(this, n, p.getX(), p.getY(), x, y);
-          a.getHandle().setStepEditTrigger(true);
-          a.setTipEnabled(false);
-          a.setDefaultPointIndex(2); // handle
-          a.setFootprint(aFootprint);
-          a.setLabelVisible(labelsVisible);
-          a.setRolloverVisible(!labelsVisible);
-          a.attach(p);
-          array.setStep(n, a);
-          trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
-        }
-        else if ( (int) (100 * a.getXComponent()) != (int) (100 * x) ||
-                 (int) (100 * a.getYComponent()) != (int) (100 * y)) {
-          trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
-          a.attach(a.getAttachmentPoint());
-          a.setXYComponents(x, y);
-          trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
-        }
-        else
-          a.attach(a.getAttachmentPoint());
-      }
-      else {
-        array.setStep(n, null);
-        trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
-      }
-    }
-    // restore locked state
-    locked = isLocked;
-    // repaint dirty region
-    trackerPanel.repaintDirtyRegion();
+	  // create, delete and/or set components of velocity vectors
+	  StepArray array = vMap.get(trackerPanel);
+	  int endFrame = startFrame + (stepCount - 1) * clip.getStepSize();
+	  int end = Math.min(endFrame, xDeriv1.length - 1);
+	  for (int n = startFrame; n <= end; n++) {
+		  VectorStep v = (VectorStep) array.getStep(n);
+		  if ((Double.isNaN(xDeriv1[n]) || !validData[n]) && v == null)
+			  continue;
+		  if (!Double.isNaN(xDeriv1[n]) && validData[n]) {
+			  double x = trackerPanel.getCoords().
+					  worldToImageXComponent(n, xDeriv1[n], yDeriv1[n]);
+			  double y = trackerPanel.getCoords().
+					  worldToImageYComponent(n, xDeriv1[n], yDeriv1[n]);
+			  if (v == null) { // create new vector
+				  TPoint p = ((PositionStep) getStep(n)).getPosition();
+				  v = new VectorStep(this, n, p.getX(), p.getY(), x, y);
+				  v.setTipEnabled(false);
+				  v.getHandle().setStepEditTrigger(true);
+				  v.setDefaultPointIndex(2); // handle
+				  v.setFootprint(vFootprint);
+				  v.setLabelVisible(labelsVisible);
+				  v.setRolloverVisible(!labelsVisible);
+				  v.attach(p);
+				  array.setStep(n, v);
+				  trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
+			  } else if ((int) (100 * v.getXComponent()) != (int) (100 * x) ||
+					  (int) (100 * v.getYComponent()) != (int) (100 * y)) {
+				  trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
+				  v.attach(v.getAttachmentPoint());
+				  v.setXYComponents(x, y);
+				  trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
+			  } else
+				  v.attach(v.getAttachmentPoint());
+		  } else {
+			  array.setStep(n, null);
+			  trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
+		  }
+	  }
+
+	  // create, delete and/or set components of accel vectors
+	  array = aMap.get(trackerPanel);
+	  end = Math.min(endFrame, xDeriv2.length - 1);
+	  for (int n = startFrame; n <= end; n++) {
+		  VectorStep a = (VectorStep) array.getStep(n);
+		  if ((Double.isNaN(xDeriv2[n]) || !validData[n]) && a == null)
+			  continue;
+		  if (!Double.isNaN(xDeriv2[n]) && validData[n]) {
+			  double x = trackerPanel.getCoords().
+					  worldToImageXComponent(n, xDeriv2[n], yDeriv2[n]);
+			  double y = trackerPanel.getCoords().
+					  worldToImageYComponent(n, xDeriv2[n], yDeriv2[n]);
+			  if (a == null) {
+				  TPoint p = ((PositionStep) getStep(n)).getPosition();
+				  a = new VectorStep(this, n, p.getX(), p.getY(), x, y);
+				  a.getHandle().setStepEditTrigger(true);
+				  a.setTipEnabled(false);
+				  a.setDefaultPointIndex(2); // handle
+				  a.setFootprint(aFootprint);
+				  a.setLabelVisible(labelsVisible);
+				  a.setRolloverVisible(!labelsVisible);
+				  a.attach(p);
+				  array.setStep(n, a);
+				  trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
+			  } else if (
+			  		(int) (100 * a.getXComponent()) != (int) (100 * x) ||
+					(int) (100 * a.getYComponent()) != (int) (100 * y)
+			  ) {
+				  trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
+				  a.attach(a.getAttachmentPoint());
+				  a.setXYComponents(x, y);
+				  trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
+			  } else
+				  a.attach(a.getAttachmentPoint());
+		  } else {
+			  array.setStep(n, null);
+			  trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
+		  }
+	  }
+	  // restore locked state
+	  locked = isLocked;
+	  // repaint dirty region
+	  trackerPanel.repaintDirtyRegion();
   }
+
+	public void applyMovingAverage(int width) {
+		if (width < 1) {
+			return;
+		}
+		updatePositionData();
+		double[] xDataWorking = Arrays.copyOfRange(xData, 0, xData.length);
+		double[] yDataWorking = Arrays.copyOfRange(yData, 0, yData.length);
+		boolean[] validDataWorking = Arrays.copyOfRange(validData, 0, validData.length);
+		for (int i = 0; i < validDataWorking.length; i++) {
+			double xCumulated = 0, yCumulated = 0;
+			int pointsFound = 0;
+			for (int j = i; j > i - width && j >= 0; j--) {
+				if (validDataWorking[j]) {
+					pointsFound++;
+					xCumulated += xDataWorking[j];
+					yCumulated += yDataWorking[j];
+				}
+			}
+			if (pointsFound != 0) {
+				TPoint p = new TPoint();
+				p.setWorldPosition(xCumulated / pointsFound, yCumulated / pointsFound, trackerPanel);
+				createStep(i, p.getX(), p.getY());
+			}
+		}
+		repaint();
+	}
+
 
   /**
    * Gets the rotational data.
@@ -2042,12 +2075,12 @@ public class PointMass extends TTrack {
    */
   protected Object[] getRotationData() {
     // initialize data arrays once, for all panels
-    if (xData.length < steps.array.length) {
-      derivData[1] = xData = new double[steps.array.length + 5];
-      derivData[2] = yData = new double[steps.array.length + 5];
-      derivData[3] = validData = new boolean[steps.array.length + 5];
+    if (xData.length < steps.length) {
+      derivData[1] = xData = new double[steps.length + 5];
+      derivData[2] = yData = new double[steps.length + 5];
+      derivData[3] = validData = new boolean[steps.length + 5];
     }
-    for (int i = 0; i < steps.array.length; i++)
+    for (int i = 0; i < steps.length; i++)
       validData[i] = false;
     // set up derivative parameters
     VideoClip clip = trackerPanel.getPlayer().getVideoClip();
@@ -2103,12 +2136,12 @@ public class PointMass extends TTrack {
    */
   protected Object[] getRotationData(int startFrame, int stepCount) {
     // initialize data arrays once, for all panels
-    if (xData.length < steps.array.length) {
-      derivData[1] = xData = new double[steps.array.length + 5];
-      derivData[2] = yData = new double[steps.array.length + 5];
-      derivData[3] = validData = new boolean[steps.array.length + 5];
+    if (xData.length < steps.length) {
+      derivData[1] = xData = new double[steps.length + 5];
+      derivData[2] = yData = new double[steps.length + 5];
+      derivData[3] = validData = new boolean[steps.length + 5];
     }
-    for (int i = 0; i < steps.array.length; i++)
+    for (int i = 0; i < steps.length; i++)
       validData[i] = false;
     // set up derivative parameters
     VideoClip clip = trackerPanel.getPlayer().getVideoClip();
@@ -2246,7 +2279,7 @@ public class PointMass extends TTrack {
         updateDerivatives();
 	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
         int stepSize = trackerPanel.getPlayer().getVideoClip().getStepSize();
-        if (skippedStepWarningOn
+        if (skippedStepWarningOn && !skippedStepWarningSuppress
         		&& stepSizeWhenFirstMarked>1
         		&& stepSize!=stepSizeWhenFirstMarked) {
         	JDialog warning = getStepSizeWarningDialog();
@@ -2381,6 +2414,8 @@ public class PointMass extends TTrack {
       menu.add(clearStepsItem);
       menu.add(deleteTrackItem);
     }
+    // moving average
+	  menu.add(movingAverageItem);
     return menu;
   }
 
@@ -2731,7 +2766,16 @@ public class PointMass extends TTrack {
         trackerPanel.repaint();
       }
     });
-    vFootprintMenu = new JMenu();
+	  movingAverageItem = new JMenuItem(TrackerRes.getString("PointMass.MenuItem.MovingAverage")); //$NON-NLS-1$
+	  movingAverageItem.addActionListener(new ActionListener() {
+		  public void actionPerformed(ActionEvent e) {
+			  MovingAverageDialog dlg = new MovingAverageDialog(trackerPanel, PointMass.this);
+			  dlg.setVisible(true);
+			  trackerPanel.repaint();
+		  }
+	  });
+
+	  vFootprintMenu = new JMenu();
     aFootprintMenu = new JMenu();
     velocityMenu = new JMenu();
     accelerationMenu = new JMenu();

@@ -246,7 +246,6 @@ public class CircleFitter extends TTrack {
     // originToCenter item
     originToCenterItem = new JMenuItem();
     originToCenterItem.addActionListener(new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
 				setCoordsOriginToCenter();
 			}  		
@@ -255,7 +254,6 @@ public class CircleFitter extends TTrack {
     // clearPoints item
     clearPointsItem = new JMenuItem();
     clearPointsItem.addActionListener(new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
 				XMLControl control = new XMLControlElement(CircleFitter.this);
 				boolean changed = false;

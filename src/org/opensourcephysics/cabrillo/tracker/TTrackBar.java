@@ -36,7 +36,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
+import org.opensourcephysics.cabrillo.tracker.TTrack.TTrackTextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
@@ -476,7 +476,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
               if(jc instanceof NumberField) {
               	dim.width = Math.max(numberFieldWidth, dim.width);
               }
-              else if (jc instanceof TextLineLabel) {
+              else if (jc instanceof TTrackTextLineLabel) {
               	dim.width = w;                	
               }
               jc.setPreferredSize(dim);
@@ -501,7 +501,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
                 if(jc instanceof NumberField) {
                 	dim.width = Math.max(numberFieldWidth, dim.width);
                 }
-                else if (jc instanceof TextLineLabel) {
+                else if (jc instanceof TTrackTextLineLabel) {
                 	dim.width = w;                	
                 }
                 jc.setPreferredSize(dim);
