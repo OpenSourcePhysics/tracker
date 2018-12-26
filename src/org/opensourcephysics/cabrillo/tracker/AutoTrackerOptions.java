@@ -1,5 +1,8 @@
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.awt.*;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeSupport;
 
 /**
@@ -19,6 +22,7 @@ public class AutoTrackerOptions implements Cloneable {
 	private int lineSpread = -1;  // positive for 1D, negative for 2D tracking
 	private double maskWidth=16.0, maskHeight=16.0;
 	private boolean lookAhead=true;
+	private int maskShapeType = 0; // 0 for ellipse, 1 for rect
 
 	private int predictionLookback = 4;
 	public static final int maxEvolveRate = 100;
@@ -139,7 +143,26 @@ public class AutoTrackerOptions implements Cloneable {
 		changes.firePropertyChange("predictionLookback", old, predictionLookback);
 	}
 
+	public int getMaskShapeType() {
+		return maskShapeType;
+	}
 
+	public void setMaskShapeType(int maskShapeType) {
+		if(this.maskShapeType == maskShapeType){
+			return;
+		}
+		this.maskShapeType = maskShapeType;
+		int old = this.maskShapeType;
+		changes.firePropertyChange("maskShapeType", old, maskShapeType);
+	}
+
+	public Shape getMaskShape(){
+		switch(maskShapeType){
+			case 0: return new Ellipse2D.Double(0,0,maskWidth,maskHeight);
+			case 1: return new Rectangle2D.Double(0,0,maskWidth,maskHeight);
+			default: return null;
+		}
+	}
 	// TODO: fire messages for all properties
 	// TODO: cloning without cloning `changes`
 	// TODO: fire message only if the property has been changed indeed

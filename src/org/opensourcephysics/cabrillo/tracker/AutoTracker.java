@@ -110,7 +110,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   // instance fields
   private TrackerPanel trackerPanel;
   private Wizard wizard;
-  private Shape match = new Ellipse2D.Double();
   private double minMaskRadius = 4;
   private Handle maskHandle = new Handle();
   private Corner maskCorner = new Corner();
@@ -149,12 +148,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
 	  trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
 
-
-
 	  options = core.options; // TODO: do we need this?
 
 	  options.changes.addPropertyChangeListener("maskWidth" , propertyChangeEvent -> refreshCurrentMask());
 	  options.changes.addPropertyChangeListener("maskHeight", propertyChangeEvent -> refreshCurrentMask());
+	  options.changes.addPropertyChangeListener("maskShapeType", propertyChangeEvent ->
+			  refreshKeyFrame(core.getFrame(control.getFrameNumber()).getKeyFrame()));
+
 
 
 	  stepper = new Runnable() {
@@ -598,21 +598,20 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			boolean needsRepaint = false;
 			TPoint prev = (TPoint)e.getOldValue();
 			if (wizard.isVisible()) {
-				if (prev instanceof Corner && keyFrame!=null) {
+				if (prev instanceof Corner && keyFrame != null) {
 					needsRepaint = true;
 					// restore corner positions
 					Shape mask = keyFrame.getMask();
-			  	if (mask instanceof Ellipse2D.Double) {
-			  		Ellipse2D.Double circle = (Ellipse2D.Double)mask;
-			  		maskCorner.x = maskCenter.x + circle.width/(2*cornerFactor);
-			  		maskCorner.y = maskCenter.y + circle.height/(2*cornerFactor);
-			  	}
-			  	searchCorner.x = searchRect2D.getMaxX();
-			  	searchCorner.y = searchRect2D.getMaxY();
+					if (mask instanceof RectangularShape) {
+						RectangularShape circle = (RectangularShape) mask;
+						maskCorner.x = maskCenter.x + circle.getWidth() / (2 * cornerFactor);
+						maskCorner.y = maskCenter.y + circle.getHeight() / (2 * cornerFactor);
+					}
+					searchCorner.x = searchRect2D.getMaxX();
+					searchCorner.y = searchRect2D.getMaxY();
+				} else if (prev instanceof Handle || prev instanceof Target) {
+					needsRepaint = true;
 				}
-				else if (prev instanceof Handle || prev instanceof Target) {
-	    		needsRepaint = true;
-	    	}
 			}
     	Step step = trackerPanel.getSelectedStep();
 			TPoint next = (TPoint)e.getNewValue();
@@ -933,7 +932,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       	Point p1 = matchPts[0].getScreenPosition(trackerPanel);
       	Point p2 = maskCenter.getScreenPosition(trackerPanel);
       	transform.setToTranslation(p1.x-p2.x, p1.y-p2.y);
-        matchShape = toScreen.createTransformedShape(getMatchShape(matchPts));
+        matchShape = toScreen.createTransformedShape(getMatchShape(matchPts, frame));
         screenPoints[0] = core.getMatchTarget(matchPts[0]).getScreenPosition(trackerPanel);
 //      	matchTargetMark = inactive_target_footprint.getMark(screenPoints);
       }
@@ -1074,11 +1073,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    */
   protected void refreshKeyFrame(KeyFrame keyFrame) {
 	  Shape mask = keyFrame.getMask();
-	  if (mask instanceof Ellipse2D.Double) {
+	  if (mask instanceof RectangularShape) {
 		  // prevent the mask from being too small to contain any pixels
 		  keyFrame.getMaskPoints()[0].setLocation(maskCenter);
 		  keyFrame.getMaskPoints()[1].setLocation(maskCorner);
-		  Ellipse2D.Double ellipse = (Ellipse2D.Double) mask;
+		  RectangularShape ellipse = (RectangularShape) mask;
 		  double sin = maskCenter.sin(maskCorner);
 		  double cos = maskCenter.cos(maskCorner);
 		  if (Double.isNaN(sin)) {
@@ -1117,15 +1116,17 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
    * Gets the match shape for the specified center and frame corner positions.
    *
    * @param pts TPoint[] {center, frame corner}
+   * @param frame
    * @return a shape suitable for drawing
    */
-  protected Shape getMatchShape(TPoint[] pts) {
-  	if (match instanceof Ellipse2D.Double) {
-  		Ellipse2D.Double ellipse = (Ellipse2D.Double)match;
-  		ellipse.setFrameFromCenter(pts[0], pts[1]);
-  		return ellipse;
-  	}
-  	return null;
+  protected Shape getMatchShape(TPoint[] pts, FrameData frame) {
+	  Shape match = frame.getKeyFrame().getMask();
+	  if (match instanceof RectangularShape) {
+		  RectangularShape ellipse = (RectangularShape) ((RectangularShape) match).clone();
+		  ellipse.setFrameFromCenter(pts[0], pts[1]);
+		  return ellipse;
+	  }
+	  return null;
   }
 
   // GUI
@@ -1275,7 +1276,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     private JLabel frameLabel, evolveRateLabel, searchLabel, targetLabel;
     private JLabel pointLabel, trackLabel;
     protected Dimension textPaneSize;
-    private JCheckBox lookAheadCheckbox, oneDCheckbox;
+    private JCheckBox lookAheadCheckbox, oneDCheckbox, rectShapeCheckbox;
     private Object mouseOverObj;
     private MouseAdapter mouseOverListener;
     private Timer timer;
@@ -1765,6 +1766,16 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 		});
 
+		rectShapeCheckbox = new JCheckBox("Rectangular");
+		rectShapeCheckbox.addMouseListener(mouseOverListener);
+		rectShapeCheckbox.setOpaque(false);
+		rectShapeCheckbox.setSelected(options.getMaskShapeType() == 1);
+		rectShapeCheckbox.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				options.setMaskShapeType(rectShapeCheckbox.isSelected() ? 1 : 0);
+				setChanged();
+			}
+		});
 		geometryToolbar = new JToolBar();
 		geometryToolbar.setFloatable(false);
 		geometryToolbar.addMouseListener(mouseOverListener);
@@ -1775,6 +1786,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		geompanel.add(templateWidthSpinner);
 		geompanel.add(templateHeightLabel);
 		geompanel.add(templateHeightSpinner);
+		geompanel.add(rectShapeCheckbox);
 
 		autoskipLabel = new JLabel();
       autoskipLabel.setOpaque(false);

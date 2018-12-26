@@ -64,7 +64,7 @@ public class AutoTrackerCore {
 		feedback.onBeforeAddKeyframe(x,y);
 
 		int n = control.getFrameNumber();
-		Shape mask = new Ellipse2D.Double();
+		Shape mask = options.getMaskShape();
 		Map<Integer, FrameData> frames = getFrameData();
 		KeyFrame keyFrame = new KeyFrame(
 				p,
