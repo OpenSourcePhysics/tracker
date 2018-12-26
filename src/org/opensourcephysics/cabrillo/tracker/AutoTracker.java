@@ -1979,13 +1979,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
     		// eliminate match icon?
 //    		frame.setMatchIcon(null);
     		// step to the next frame if possible
-    	    if (control.canStep()) {
-    	    	paused = false;
-	  	    	trackerPanel.getPlayer().step();
-    	    }
-    	    else {
-	        	stop(true, false);
-    	    }
+			if (control.canStep()) {
+				paused = false;
+				control.step();
+			} else {
+				stop(true, false);
+			}
         }
       });
       skipButton.addKeyListener(kl);
