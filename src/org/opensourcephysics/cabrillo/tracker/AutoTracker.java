@@ -1977,7 +1977,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
             FrameData frame = getFrame(n);
             frame.decided = true;
     		// eliminate match icon?
-//    		frame.setMatchIcon(null);
+			//frame.setMatchIcon(null);
     		// step to the next frame if possible
 			if (control.canStep()) {
 				paused = false;
@@ -2851,7 +2851,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	  @Override
 	  public void step() {
 		  trackerPanel.getPlayer().step();
-		  //wizard.refreshGUI(); // TODO: redundant?
 	  }
 
 	  @Override
