@@ -24,5 +24,7 @@ sudo apt-get update
 sudo apt-get install osptracker
 ```
 
+(you may need to enable `universe` repo in some Ubuntu versions to install `ffmpeg`).
+
 RPM-based:
 see https://software.opensuse.org//download.html?project=home%3ANickKolok%3Aosptracker&package=osptracker
