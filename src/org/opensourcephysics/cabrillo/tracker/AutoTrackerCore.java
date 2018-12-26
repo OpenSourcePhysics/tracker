@@ -151,6 +151,20 @@ public class AutoTrackerCore {
 		matcher.setIndex(frame.getFrameNumber());
 	}
 
+	public void forceAccept(int frameNumber) {
+		FrameData frame = getFrame(frameNumber);
+		// build evolved template
+		TemplateMatcher matcher = getTemplateMatcher();
+		matcher.setTemplate(frame.getTemplate());
+		matcher.setWorkingPixels(frame.getWorkingPixels());
+		buildEvolvedTemplate(frame);
+		// mark the target
+		TPoint p = getMatchTarget(frame.getMatchPoints()[0]);
+		TTrack track = getTrack();
+		TPoint target = track.autoMarkAt(frameNumber, p.x, p.y);
+		frame.setAutoMarkPoint(target);
+		frame.decided = true;
+	}
 
 
 	/**

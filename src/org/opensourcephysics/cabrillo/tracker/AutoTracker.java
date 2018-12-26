@@ -1943,31 +1943,18 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
       acceptButton = new JButton();
       acceptButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-        	// TODO: to core
-        	int n = control.getFrameNumber();
-          FrameData frame = getFrame(n);
-          // build evolved template
-          TemplateMatcher matcher = core.getTemplateMatcher();
-        	matcher.setTemplate(frame.getTemplate());
-        	matcher.setWorkingPixels(frame.getWorkingPixels());
-        	core.buildEvolvedTemplate(frame);
-        	// mark the target
-    			marking = true;
-        	TPoint p = core.getMatchTarget(frame.getMatchPoints()[0]);
-          TTrack track = getTrack();
-    			TPoint target = track.autoMarkAt(n, p.x, p.y);
-    			frame.setAutoMarkPoint(target);
-    			frame.decided = true;
-    	    if (stepping && control.canStep()) {
-    	    	paused = false;
-	  	    	control.step();
-    	    }
-    	    else {
-	        	stop(true, true);
-    	    }
-        }
-      });
+		  public void actionPerformed(ActionEvent e) {
+			  marking = true;
+			  int n = control.getFrameNumber();
+			  core.forceAccept(n);
+			  if (stepping && control.canStep()) {
+				  paused = false;
+				  control.step();
+			  } else {
+				  stop(true, true);
+			  }
+		  }
+	  });
       acceptButton.addKeyListener(kl);
 
       skipButton = new JButton();
