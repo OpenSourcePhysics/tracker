@@ -2008,25 +2008,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       	public void actionPerformed(ActionEvent e) {
       		// clear this match and step
         	int n = trackerPanel.getFrameNumber();
-			// TODO: to core!
-      		Map<Integer, FrameData> frameData = core.getFrameData();
-      		FrameData frame = frameData.get(n);
-      		if (!frame.isKeyFrame()) {
-	        	frameData.get(n).clear();
-	        	frameData.remove(n);
-      		}
-      		else {
-      			frame.clear();
-      		}
-
-          TTrack track = getTrack();
-        	boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
-        	if (!isAlwaysMarked && track.getSteps().length>n)
-        		track.getSteps()[n] = null;
+        	core.deleteFrame(n);
         	refreshGUI();
         	AutoTracker.this.repaint();
-        	track.dataValid = false;
-        	track.firePropertyChange("data", null, track); //$NON-NLS-1$
       	}
     	};
 
@@ -2034,30 +2018,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       	public void actionPerformed(ActionEvent e) {
       		// clear later matches and steps
       		int n = trackerPanel.getFrameNumber();
-      		ArrayList<Integer> toRemove = new ArrayList<Integer>();
-			// TODO: to core!
-      		Map<Integer, FrameData> frameData = core.getFrameData();
-      		for (int i: frameData.keySet()) {
-      			if (i<=n) continue;
-      			FrameData frame = frameData.get(i);
-      			frame.clear();
-      			toRemove.add(i);
-      		}
-      		for (int i: toRemove) {
-      			frameData.remove(i);
-      		}
-          TTrack track = getTrack();
-        	boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
-        	if (!isAlwaysMarked) {
-	      		Step[] steps = track.getSteps();
-	        	for (int i = n+1; i < steps.length; i++) {
-	        		steps[i] = null;
-	        	}
-        	}
+      		core.deleteLater(n);
         	refreshGUI();
         	AutoTracker.this.repaint();
-        	track.dataValid = false;
-			  	track.firePropertyChange("data", null, track); //$NON-NLS-1$
       	}
     	};
 
@@ -2073,35 +2036,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
         public void actionPerformed(ActionEvent e) {
         	// first determine what can be deleted
         	int n = trackerPanel.getFrameNumber();
-        	// TODO: to core!
-            TTrack track = getTrack();
-        	boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
-        	boolean hasThis = false;
-        	boolean isKeyFrame = getFrame(n).isKeyFrame();
-
-        	// count steps and look for this and later points/matches
-        	int stepCount = 0;
-        	boolean hasLater = false;
-        	if (isAlwaysMarked) {
-        		Map<Integer, FrameData> frameData = core.getFrameData();
-        		for (Integer i: frameData.keySet()) {
-        			FrameData frame = frameData.get(i);
-        			if (frame.trackPoint==null) continue;
-        			hasLater = hasLater || i>n;
-        			hasThis = hasThis || i==n;
-	        		stepCount++;
-        		}
-        	}
-        	else {
-        		hasThis = track.getStep(n)!=null;
-	        	Step[] steps = track.getSteps();
-	        	for (int i = 0; i< steps.length; i++) {
-	        		if (steps[i]!=null) {
-	        			hasLater = hasLater || i>n;
-		        		stepCount++;
-	        		}
-	        	}
-        	}
+        	boolean[] summary = core.getDeletableSummary(n);
+        	boolean
+					isAlwaysMarked = summary[0],
+					isKeyFrame     = summary[1],
+					hasThis        = summary[2],
+					hasLater       = summary[3],
+					hasNotOnlyThis = summary[4];
 
         	// now build the popup menu with suitable delete items
           JPopupMenu popup = new JPopupMenu();
@@ -2124,7 +2065,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	          popup.add(item);
 	          item.addActionListener(deleteLaterAction);
           }
-          if (stepCount>0 && !(stepCount==1 && hasThis)) {
+          if (hasNotOnlyThis) {
 	          JMenuItem item = new JMenuItem(TrackerRes.getString("AutoTracker.Wizard.Menuitem.DeleteAll")); //$NON-NLS-1$
 	          popup.add(item);
 	          item.addActionListener(deleteAllAction);

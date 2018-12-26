@@ -429,7 +429,88 @@ public class AutoTrackerCore {
 		return null;
 	}
 
+	public boolean[] getDeletableSummary(int n){
+		TTrack track = getTrack();
+		boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
+		boolean hasThis = false;
+		boolean isKeyFrame = getFrame(n).isKeyFrame();
 
+		// count steps and look for this and later points/matches
+		int stepCount = 0;
+		boolean hasLater = false;
+		if (isAlwaysMarked) {
+			Map<Integer, FrameData> frameData = getFrameData();
+			for (Integer i: frameData.keySet()) {
+				FrameData frame = frameData.get(i);
+				if (frame.trackPoint==null) continue;
+				hasLater = hasLater || i>n;
+				hasThis = hasThis || i==n;
+				stepCount++;
+			}
+		}
+		else {
+			hasThis = track.getStep(n)!=null;
+			Step[] steps = track.getSteps();
+			for (int i = 0; i< steps.length; i++) {
+				if (steps[i]!=null) {
+					hasLater = hasLater || i>n;
+					stepCount++;
+				}
+			}
+		}
+		return new boolean[]{
+				isAlwaysMarked,
+				isKeyFrame,
+				hasThis,
+				hasLater,
+				stepCount>0 && !(stepCount==1 && hasThis)
+		};
+	}
+
+
+	public void deleteLater(int n){
+		ArrayList<Integer> toRemove = new ArrayList<Integer>();
+		// TODO: to core!
+		Map<Integer, FrameData> frameData = getFrameData();
+		for (int i: frameData.keySet()) {
+			if (i<=n) continue;
+			FrameData frame = frameData.get(i);
+			frame.clear();
+			toRemove.add(i);
+		}
+		for (int i: toRemove) {
+			frameData.remove(i);
+		}
+		TTrack track = getTrack();
+		boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
+		if (!isAlwaysMarked) {
+			Step[] steps = track.getSteps();
+			for (int i = n+1; i < steps.length; i++) {
+				steps[i] = null;
+			}
+		}
+		track.dataValid = false;
+		track.firePropertyChange("data", null, track); //$NON-NLS-1$
+
+	}
+
+	public void deleteFrame(int n){
+		Map<Integer, FrameData> frameData = getFrameData();
+		FrameData frame = frameData.get(n);
+		if (!frame.isKeyFrame()) {
+			frameData.get(n).clear();
+			frameData.remove(n);
+		} else {
+			frame.clear();
+		}
+
+		TTrack track = getTrack();
+		boolean isAlwaysMarked = track.steps.isAutofill() || track instanceof CoordAxes;
+		if (!isAlwaysMarked && track.getSteps().length>n)
+			track.getSteps()[n] = null;
+		track.dataValid = false;
+		track.firePropertyChange("data", null, track); //$NON-NLS-1$
+	}
 
 	/**
 	 * @return previous keyFrame, if any
