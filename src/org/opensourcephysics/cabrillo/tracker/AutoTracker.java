@@ -68,7 +68,7 @@ import org.opensourcephysics.cabrillo.tracker.AutoTrackerCore.FrameData;
  *
  * @author Douglas Brown
  */
-public class AutoTracker implements Interactive, Trackable, PropertyChangeListener {
+public class AutoTracker implements Trackable, PropertyChangeListener {
 
 	// static fields
 	private static Rectangle hitRect = new Rectangle(-4, -4, 8, 8);
@@ -710,51 +710,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				stop(true, false);
 			} else wizard.refreshGUI();
 		}
-	}
-
-	// implements Interactive & Measurable methods
-	public void setEnabled(boolean enabled) {
-	}
-
-	public boolean isEnabled() {
-		return true;
-	}
-
-	public void setXY(double x, double y) {
-	}
-
-	public void setX(double x) {
-	}
-
-	public void setY(double y) {
-	}
-
-	public double getX() {
-		return 0;
-	}
-
-	public double getY() {
-		return 0;
-	}
-
-	public double getXMin() {
-		return 0;
-	}
-
-	public double getXMax() {
-		return 0;
-	}
-
-	public double getYMin() {
-		return 0;
-	}
-
-	public double getYMax() {
-		return 0;
-	}
-
-	public boolean isMeasured() {
-		return false;
 	}
 
 //_______________________________ protected methods _________________________
