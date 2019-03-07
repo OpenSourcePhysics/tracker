@@ -559,7 +559,7 @@ public class NumberFormatDialog extends JDialog {
     
     // look in defaultFormatPatterns 
     patterns = NumberFormatDialog.defaultFormatPatterns.get(type);
-    if (patterns.get(name)!=null) {
+    if (patterns!=null && patterns.get(name)!=null) {
     	return patterns.get(name);
     }
     
