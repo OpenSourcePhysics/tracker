@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2018  Douglas Brown
+ * Copyright (c) 2019  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,8 +66,8 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.0.6"; //$NON-NLS-1$
-  public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
+  public static final String VERSION = "5.0.7"; //$NON-NLS-1$
+  public static final String COPYRIGHT = "Copyright (c) 2019 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -231,7 +231,7 @@ public class Tracker {
 			new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
 			new Locale("pl"), // polish //$NON-NLS-1$
 			new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
-			new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
+			OSPRuntime.PORTUGUESE, // Portugal portuguese
 			new Locale("sk"), // slovak //$NON-NLS-1$
 			new Locale("sl"), // slovenian //$NON-NLS-1$
 			new Locale("sv"), // swedish //$NON-NLS-1$

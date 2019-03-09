@@ -1,7 +1,7 @@
 /*
  * The tracker.deploy package defines classes for launching and installing Tracker.
  *
- * Copyright (c) 2018  Douglas Brown
+ * Copyright (c) 2019  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,8 +73,8 @@ public class TrackerStarter {
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
 	static String exceptions = ""; //$NON-NLS-1$
-	static String xuggleWarning, starterWarning;
-	static String trackerHome, userHome, javaHome, xuggleHome, userDocuments;
+	static String xuggleWarning, ffmpegWarning, starterWarning;
+	static String trackerHome, userHome, javaHome, xuggleHome, ffmpegHome, userDocuments;
 	static String startLogPath;
 	static FilenameFilter trackerJarFilter = new TrackerJarFilter();
 	static File codeBaseDir, starterJarFile;
@@ -188,7 +188,7 @@ public class TrackerStarter {
 	public static void launchTracker(String[] args) {
 		if (launching) return;
 		launching = true;
-		logMessage("TrackerStarter runnning in jre: " + javaHome); //$NON-NLS-1$
+		logMessage("TrackerStarter running in jre: " + javaHome); //$NON-NLS-1$
 		
 		launchThread = null;
 		
@@ -284,7 +284,9 @@ public class TrackerStarter {
 		if (trackerHome!=null) return trackerHome;
 		// first determine if code base directory is trackerHome
 		if (codeBaseDir != null) {
-			if (writeToLog) logMessage("code base: " + codeBaseDir.getPath()); //$NON-NLS-1$
+			if (writeToLog) {
+				logMessage("TrackerStarter jar: " + starterJarFile); //$NON-NLS-1$
+			}
 			// accept if the directory has any tracker jars in it
 			try {
 				String[] fileNames = codeBaseDir.list(trackerJarFilter);
@@ -475,19 +477,6 @@ public class TrackerStarter {
 	}
 
 
-	// /**
-	// * Finds all available Java VMs and returns their paths in a Set<String>[].
-	// * Returned array[0] is 32-bit VMs, array[1] is 64-bit VMs.
-	// * @return Set<String>[] of available VMs
-	// */
-	// private static ArrayList<Set<String>> findVMs() {
-	// ArrayList<Set<String>> results = new ArrayList<Set<String>>();
-	// ExtensionsManager javaManager = ExtensionsManager.getManager();
-	// results.add(javaManager.getAllJREs(32));
-	// results.add(javaManager.getAllJREs(64));
-	// return results;
-	// }
-	//
 	/**
 	 * Exits gracefully by giving information to the user.
 	 */
@@ -834,8 +823,9 @@ public class TrackerStarter {
 		}
 		else env.remove("MEMORY_SIZE"); //$NON-NLS-1$ 
 
-		// remove xuggle warnings that may have been set by previous versions of TrackerStarter
+		// remove xuggle and ffmpeg warnings that may have been set by previous versions of TrackerStarter
 		env.remove("XUGGLE_WARNING"); //$NON-NLS-1$ 
+		env.remove("FFMPEG_WARNING"); //$NON-NLS-1$ 
 		if (starterWarning!=null) {
 			env.put("STARTER_WARNING", starterWarning); //$NON-NLS-1$ 
 		}
@@ -867,8 +857,12 @@ public class TrackerStarter {
 				
 				env.put(pathEnvironment, pathValue);
 				logMessage("setting "+pathEnvironment+" = " + pathValue); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			
+			}			
+		}
+		
+		if (ffmpegHome!=null && new File(ffmpegHome).exists()) {
+			env.put("FFMPEG_HOME", ffmpegHome); //$NON-NLS-1$ 
+			logMessage("setting FFMPEG_HOME = " + ffmpegHome); //$NON-NLS-1$
 		}
 		
 		// add TRACKER_RELAUNCH to process environment if relaunching
@@ -892,14 +886,16 @@ public class TrackerStarter {
 		}
 		logMessage("executing command: " + message); //$NON-NLS-1$ 
 
-		// write codeBase tracker_start log
-		writeCodeBaseLog();
-
-		// write the tracker_start log and set environment variable
+		// write the user tracker_start log and set environment variable
 		startLogPath = writeUserLog();
 		if (startLogPath!=null)
 			env.put("START_LOG", startLogPath); //$NON-NLS-1$
 		
+		// write codeBase tracker_start log
+		writeCodeBaseLog();
+
+		// start exit thread that waits a second before exiting 
+		// to give time to start the new process
 		exitCounter = 0;
 		if (exitThread==null) {
 			exitThread = new Thread(new Runnable() {
@@ -920,7 +916,7 @@ public class TrackerStarter {
 			exitThread.start();
 		}
 		
-		// start the Tracker process and wait for it to finish
+		// start the new Tracker process and wait for it to finish
 		// note that successful process should not return until Tracker is exited
 		final Process process = builder.start();
 		int result = process.waitFor();
@@ -971,25 +967,30 @@ public class TrackerStarter {
 	}
 
 	private static String writeUserLog() {
-		if ("".equals(logText) || trackerHome==null) //$NON-NLS-1$
+		if ("".equals(logText) || trackerHome==null) { //$NON-NLS-1$
 			return null;
+		}	
 
+		// define "user log" file
 		File file = null;
-		if (new File(trackerHome).canWrite())
+		// check if can write to OSP.prefs directory
+		File ospPrefsFile = OSPRuntime.getPreferencesFile();
+		if (ospPrefsFile != null && ospPrefsFile.getParentFile().canWrite()) {
+			file = new File(ospPrefsFile.getParentFile(), LOG_FILE_NAME);
+		}
+		// check if can write to Tracker file in user documents
+		if (file == null && userDocuments != null && new File(userDocuments+"/Tracker").canWrite()) { //$NON-NLS-1$
+			file = new File(userDocuments+"/Tracker", LOG_FILE_NAME); //$NON-NLS-1$
+		}		
+		// check if can write to tracker home
+		if (file==null && new File(trackerHome).canWrite()) {
 			file = new File(trackerHome, LOG_FILE_NAME);
-		if (userDocuments != null && new File(userDocuments).canWrite()) {
-			if (new File(userDocuments + "/Tracker").canWrite()) { //$NON-NLS-1$
-				file = new File(userDocuments + "/Tracker", LOG_FILE_NAME); //$NON-NLS-1$
-			}
-			else {
-				file = new File(userDocuments, LOG_FILE_NAME);			
-			}
 		}
 		
 		if (file==null) return null;
 		
 		addLogHeader();
-		logMessage("writing start log to "+file.getAbsolutePath()); //$NON-NLS-1$
+		logMessage("writing user start log to "+file.getAbsolutePath()); //$NON-NLS-1$
 
 		try {
 			FileOutputStream stream = new FileOutputStream(file);
@@ -1019,7 +1020,7 @@ public class TrackerStarter {
 		if (codeBaseDir!=null && codeBaseDir.canWrite()) {
 			addLogHeader();
 			File file = new File(codeBaseDir, LOG_FILE_NAME);
-			logMessage("writing start log to "+file.getAbsolutePath()); //$NON-NLS-1$
+			logMessage("writing code base start log "+file.getAbsolutePath()); //$NON-NLS-1$
 			try {
 				FileOutputStream stream = new FileOutputStream(file);
 				Charset charset = Charset.forName(encoding);
