@@ -36,6 +36,7 @@ import javax.swing.event.*;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.controls.*;
+import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.*;
 
@@ -1366,6 +1367,13 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       }
     });
     helpMenu.add(helpItem);
+    JMenuItem webHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerHelpOnline")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    webHelpItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+      	OSPDesktop.displayURL("https://"+Tracker.trackerWebsite+"/help/frameset.html"); //$NON-NLS-1$ //$NON-NLS-2$
+      }
+    });
+    helpMenu.add(webHelpItem);
     
     if (Tracker.trackerHome!=null && Tracker.readmeAction!=null) 
     	helpMenu.add(Tracker.readmeAction);
