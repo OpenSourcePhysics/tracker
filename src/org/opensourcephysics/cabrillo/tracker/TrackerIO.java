@@ -878,6 +878,7 @@ public class TrackerIO extends VideoIO {
 	  		if (!VideoIO.isCanceled()) {
 	        monitorDialog.close();
 	      	open(trkFiles, frame, tempFiles); // this also adds tempFile paths to trackerPanel
+	      	// add TRZ, ZIP and JAR paths to recent files
 	        Tracker.addRecent(nonURIPath, false); // add at beginning
 	      	return;
 	  		}
@@ -908,8 +909,6 @@ public class TrackerIO extends VideoIO {
         trackerPanel = (TrackerPanel)control.loadObject(trackerPanel);
         
         trackerPanel.frame = frame;
-        trackerPanel.defaultFileName = XML.getName(path);
-        trackerPanel.openedFromPath = path;
 
         // find page view files and add to TrackerPanel.pageViewFilePaths
 				findPageViewFiles(control, trackerPanel.pageViewFilePaths);
@@ -919,7 +918,19 @@ public class TrackerIO extends VideoIO {
         		trackerPanel.supplementalFilePaths.add(s);
         	}
         }
-        trackerPanel.setDataFile(new File(ResourceLoader.getNonURIPath(path)));
+  	  	boolean isZippedTRK = xmlPath!=null && 
+  					(xmlPath.contains(".zip!") || xmlPath.contains(".trz!") || xmlPath.contains(".jar!")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        if (isZippedTRK) {
+        	String parent = Tracker.recentFiles.get(0);
+          trackerPanel.openedFromPath = parent;
+          trackerPanel.defaultFileName = XML.getName(parent);
+        }
+        else {
+          trackerPanel.defaultFileName = XML.getName(path);
+          trackerPanel.openedFromPath = path;
+        	trackerPanel.setDataFile(new File(ResourceLoader.getNonURIPath(path)));
+        }
+        
       	if (monitorDialog.isVisible()) 
       		monitorDialog.setProgress(80);
         if (VideoIO.isCanceled()) return;
@@ -962,12 +973,12 @@ public class TrackerIO extends VideoIO {
     monitorDialog.close();
   	rawPath = XML.forwardSlash(rawPath);
   	if (xmlPath!=null && 
-  			(xmlPath.contains(".zip!") ||   //$NON-NLS-1$
-  			xmlPath.contains(".trz!") ||   //$NON-NLS-1$
-  			xmlPath.contains(".jar!"))) { //$NON-NLS-1$
+  			!xmlPath.contains(".zip!") &&   //$NON-NLS-1$
+  			!xmlPath.contains(".trz!") &&   //$NON-NLS-1$
+  			!xmlPath.contains(".jar!")) { //$NON-NLS-1$
   		rawPath = XML.forwardSlash(xmlPath);
+	    Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
   	}
-    Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
     TMenuBar.getMenuBar(trackerPanel).refresh();
     TTrackBar.refreshMemoryButton();
     trackerPanel.changed = panelChanged;

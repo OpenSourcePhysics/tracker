@@ -279,6 +279,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     if (getDataFile() != null) {
       return XML.forwardSlash(getDataFile().getPath());
     }
+    if (openedFromPath != null) {
+      return openedFromPath;
+    }
     if (getVideo() != null) {
       String path = (String) getVideo().getProperty("absolutePath"); //$NON-NLS-1$
       if (path != null) {
