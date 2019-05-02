@@ -1955,7 +1955,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
         int i = getSelectedTab();
         if (i < 0) return;
         TrackerPanel panel = getTrackerPanel(i);
-        if (!panel.isEnabled("file.close")) return; //$NON-NLS-1$
+        if (panel==null || !panel.isEnabled("file.close")) return; //$NON-NLS-1$
       	if (OSPRuntime.isPopupTrigger(e)) {
           closeItem.setText(TrackerRes.getString("TActions.Action.Close") + " \"" //$NON-NLS-1$ //$NON-NLS-2$
                             + tabbedPane.getTitleAt(getSelectedTab()) + "\""); //$NON-NLS-1$
