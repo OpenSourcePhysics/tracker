@@ -775,7 +775,7 @@ public class TrackerIO extends VideoIO {
 				String trkForTFrame = null;
 				
 				// sort the zip file contents
-	  		Set<String> contents = ResourceLoader.getZipContents(path);
+	  		Collection<String> contents = ResourceLoader.getZipContents(path);
 				for (String next: contents) {
 					if (next.endsWith(".trk")) { //$NON-NLS-1$
 						String s = ResourceLoader.getURIPath(path+"!/"+next); //$NON-NLS-1$
@@ -885,6 +885,7 @@ public class TrackerIO extends VideoIO {
         monitorDialog.close();
 	  		return;
     	}
+    	
     	// load data from trk file
       XMLControlElement control = new XMLControlElement();
       xmlPath = control.read(path);
@@ -892,6 +893,7 @@ public class TrackerIO extends VideoIO {
       monitorDialog.stop();
     	if (monitorDialog.isVisible()) 
     		monitorDialog.setProgress(20);
+    	
       Class<?> type = control.getObjectClass();
       if(TrackerPanel.class.isAssignableFrom(type)) {
         XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
@@ -922,8 +924,14 @@ public class TrackerIO extends VideoIO {
   					(xmlPath.contains(".zip!") || xmlPath.contains(".trz!") || xmlPath.contains(".jar!")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
         if (isZippedTRK) {
         	String parent = Tracker.recentFiles.get(0);
+        	String parentName = XML.stripExtension(XML.getName(parent));
+        	String tabName = XML.stripExtension(XML.getName(xmlPath));
+        	if (tabName.startsWith(parentName) && parentName.length()+1<tabName.length()) {
+        		tabName = tabName.substring(parentName.length()+1, tabName.length());
+        	}
+        	else tabName = XML.getName(parent);
           trackerPanel.openedFromPath = parent;
-          trackerPanel.defaultFileName = XML.getName(parent);
+          trackerPanel.defaultFileName = tabName;
         }
         else {
           trackerPanel.defaultFileName = XML.getName(path);
@@ -941,6 +949,13 @@ public class TrackerIO extends VideoIO {
         frame.showTrackControl(trackerPanel);
         frame.showNotes(trackerPanel);
         frame.refresh();
+      	if (control.failedToRead()) {
+	        JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
+	        		"\""+XML.getName(path)+"\" "+   //$NON-NLS-1$ //$NON-NLS-2$
+	        		TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Message"), //$NON-NLS-1$
+	            TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Title"),   //$NON-NLS-1$
+	            JOptionPane.WARNING_MESSAGE);
+      	}
       } 
       else if(TFrame.class.isAssignableFrom(type)) {
         monitorDialog.close();
