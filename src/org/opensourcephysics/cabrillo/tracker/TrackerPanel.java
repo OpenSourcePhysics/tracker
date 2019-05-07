@@ -851,6 +851,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
       track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
       track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
+      track.removePropertyChangeListener("transform", this); //$NON-NLS-1$
       TFrame frame = getTFrame();
     	if (frame!=null) frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
 
@@ -919,8 +920,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       coords.addPropertyChangeListener(this);
       int n = getFrameNumber();
       getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
-      firePropertyChange("coords", null, coords); //$NON-NLS-1$
-      firePropertyChange("transform", null, null); //$NON-NLS-1$
+      try {
+				firePropertyChange("coords", null, coords); //$NON-NLS-1$
+				firePropertyChange("transform", null, null); //$NON-NLS-1$
+			} catch (Exception e) {
+			}
     }
     else video.setCoords(_coords);
   }
