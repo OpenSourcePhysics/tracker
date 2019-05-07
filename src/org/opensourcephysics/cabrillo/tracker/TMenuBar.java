@@ -1367,13 +1367,21 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       }
     });
     helpMenu.add(helpItem);
-    JMenuItem webHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TrackerHelpOnline")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
-    webHelpItem.addActionListener(new ActionListener() {
+    JMenuItem translatedHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TranslatedHelp")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    translatedHelpItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	OSPDesktop.displayURL("https://"+Tracker.trackerWebsite+"/help/frameset.html"); //$NON-NLS-1$ //$NON-NLS-2$
+      	String lang = TrackerRes.locale.getLanguage();
+      	if ("en".equals(lang)) { //$NON-NLS-1$
+      		OSPDesktop.displayURL("https://"+Tracker.trackerWebsite+"/help/frameset.html"); //$NON-NLS-1$ //$NON-NLS-2$
+      	}
+      	else {
+      		String helpURL = "https://translate.google.com/translate?hl=en&sl=en&tl="+lang //$NON-NLS-1$
+      									+ "&u=http://physlets.org/tracker/help/frameset.html"; //$NON-NLS-1$
+      		OSPDesktop.displayURL(helpURL);      
+      	}
       }
     });
-    helpMenu.add(webHelpItem);
+    helpMenu.add(translatedHelpItem);
     
     if (Tracker.trackerHome!=null && Tracker.readmeAction!=null) 
     	helpMenu.add(Tracker.readmeAction);
