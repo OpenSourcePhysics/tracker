@@ -38,6 +38,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.border.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -93,11 +94,13 @@ public class ExportZipDialog extends JDialog {
   protected TFrame frame;
   protected AddedFilesDialog addedFilesDialog;
   protected Icon openIcon;
-  protected JPanel videoPanel, thumbnailPanel, centerPanel, imagePanel;
+  protected JPanel videoPanel, tabsPanel, thumbnailPanel, centerPanel, imagePanel;
   protected Box metadataBox;
-  protected TitledBorder videoBorder, thumbnailBorder, metadataBorder;
+  protected TitledBorder videoBorder, thumbnailBorder, metadataBorder, tabsBorder;
   protected JButton saveButton, closeButton, addFilesButton, thumbnailButton, loadHTMLButton, helpButton;
   protected JComboBox formatDropdown;
+  protected ArrayList<EntryField> tabTitleFields = new ArrayList<EntryField>();
+  protected ArrayList<JCheckBox> tabCheckboxes = new ArrayList<JCheckBox>();
   protected JLabel formatLabel, authorLabel, contactLabel, descriptionLabel, keywordsLabel;
   protected JLabel thumbnailDisplay, urlLabel, titleLabel, htmlLabel;
   protected JCheckBox clipCheckbox, showThumbnailCheckbox;
@@ -107,7 +110,7 @@ public class ExportZipDialog extends JDialog {
   protected JTextArea filelistPane, descriptionPane;  
   protected VideoListener videoExportListener;
   protected XMLControl control;
-	protected boolean addThumbnail=true;
+	protected boolean addThumbnail=true, isWaitingForVideo=false;
 	protected ArrayList<ParticleModel> badModels; // particle models with start frames not included in clip
 	protected String videoIOPreferredExtension;
   
@@ -135,6 +138,15 @@ public class ExportZipDialog extends JDialog {
 	  	zipExporter.htmlField.setForeground(zipExporter.htmlField.getEmptyForeground());
 	  	zipExporter.htmlField.setBackground(Color.white);
 			zipExporter.clipCheckbox.setSelected(panel.getVideo()!=null);			
+  		if (panel.openedFromPath!=null) {
+  			File htmlFile = new File(panel.openedFromPath);
+  			if (TrackerIO.trzFileFilter.accept(htmlFile)) {
+  				String baseName = XML.stripExtension(XML.getName(panel.openedFromPath));
+  				String htmlPath = panel.openedFromPath+"!/html/"+baseName+"_info.html"; //$NON-NLS-1$ //$NON-NLS-2$
+  				htmlFile = new File(htmlPath);
+  				zipExporter.refreshFieldsFromHTML(htmlFile);
+  			}
+  		}
 	  	zipExporter.titleField.requestFocusInWindow();
 	  }
   	zipExporter.refreshFormatDropdown();
@@ -219,6 +231,7 @@ public class ExportZipDialog extends JDialog {
     // video panel
     videoPanel = new JPanel();
 	  clipCheckbox = new JCheckBox();
+	  clipCheckbox.setSelected(true);
     clipCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	refreshGUI();
@@ -232,6 +245,9 @@ public class ExportZipDialog extends JDialog {
     videoPanel.add(clipCheckbox);
     videoPanel.add(formatLabel);
     videoPanel.add(formatDropdown);
+    
+    // tabs panel 
+    tabsPanel = new JPanel();
                  	      
     // button bar   
     JPanel buttonbar = new JPanel();
@@ -263,7 +279,7 @@ public class ExportZipDialog extends JDialog {
         }
       	// if saving clip, warn if there are particle models with start frames not included in clip
       	if (clipCheckbox.isSelected()) {
-	      	badModels = getModelsNotInClip();
+	      	badModels = getModelsNotInClips();
 	      	if (!badModels.isEmpty()) {
 	    	    // show names of bad models and offer to exclude them from export
 	    	    String names = ""; //$NON-NLS-1$
@@ -288,76 +304,26 @@ public class ExportZipDialog extends JDialog {
 	    	  	}
 	      	}
       	}
-
-      	ArrayList<File> zipList = defineTarget();
+      	
+      	// define the target filename and create empty zip list
+      	final ArrayList<File> zipList = defineTarget();
       	if (zipList==null) return;
       	setVisible(false);      	     	
-      	// add thumbnail image
-      	String thumbPath = addThumbnail(zipList);      	
-      	// add HTML info file
-      	addHTMLInfo(thumbPath, zipList);
-      	// export video clip
-      	if (clipCheckbox.isSelected()) {
-      		VideoType format = ExportVideoDialog.formats.get(formatDropdown.getSelectedItem());
-      		videoExporter.setFormat(formatDropdown.getSelectedItem());
-      		// add videoExportListener to save zip file when video is finished
-      		videoExportListener.setTargetList(zipList);
-      		videoExportListener.setDialog(videoExporter);
-          videoExporter.addPropertyChangeListener("video_saved", videoExportListener);  //$NON-NLS-1$
-          videoExporter.addPropertyChangeListener("video_cancelled", videoExportListener);     //$NON-NLS-1$
-      		String extension = format.getDefaultExtension();
-      		targetVideo = getVideoTarget(extension);
-      		// save VideoIO preferred export format
-      		videoIOPreferredExtension = VideoIO.getPreferredExportExtension();
-      		// render the video (also sets VideoIO preferred extension to this one)
-      		videoExporter.exportFullSizeVideo(targetVideo);
-      	}      	
-      	else { // original or no video
-    	  	Video vid = trackerPanel.getVideo();
-      		if (vid!=null && vid.getProperty("absolutePath")!=null) { //$NON-NLS-1$
-      	  	String originalPath = (String)vid.getProperty("absolutePath"); //$NON-NLS-1$
-      			// copy or extract original video to target directory
-      	  	String vidDir = getTempDirectory()+videoSubdirectory;
-        		targetVideo = vidDir+"/"+XML.getName(originalPath); //$NON-NLS-1$
-      	  	new File(vidDir).mkdirs();
-    		    if (!copyOrExtractFile(originalPath, new File(targetVideo))) {
-    	  	  	javax.swing.JOptionPane.showMessageDialog(
-    	  	  			ExportZipDialog.this,	    			
-    	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Message"), //$NON-NLS-1$ 
-    	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Title"), //$NON-NLS-1$ 
-    	  	  			javax.swing.JOptionPane.ERROR_MESSAGE);
-    	  	  	return;
-    		    }
-      	  	// if image video, then copy/extract additional image files
-            if (vid instanceof ImageVideo) {
-            	ImageVideo imageVid = (ImageVideo)vid;
-            	String[] paths = imageVid.getValidPaths();
-            	// first path is originalPath relative to base
-            	int n = originalPath.indexOf(XML.getName(paths[0]));
-            	if (n>0) {
-            		String base = originalPath.substring(0, n);
-	            	for (String path: paths) {
-	            		String name = XML.getName(path);
-	            		path = base+name;
-	            		if (path.equals(originalPath)) continue;
-	            		File target = new File(vidDir+"/"+name); //$NON-NLS-1$
-	        		    if (!copyOrExtractFile(path, target)) {
-	        	  	  	javax.swing.JOptionPane.showMessageDialog(
-	        	  	  			ExportZipDialog.this,	    			
-	        	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Message"), //$NON-NLS-1$ 
-	        	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Title"), //$NON-NLS-1$ 
-	        	  	  			javax.swing.JOptionPane.ERROR_MESSAGE);
-	        	  	  	return;
-	        		    }
-	            	}
-            	}
-            }
+
+      	// use separate thread to add files to the ziplist and create the TRZ file
+      	Runnable runner = new Runnable() {
+      		public void run() {
+		      	String thumbPath = addThumbnail(zipList);      	
+		      	addHTMLInfo(thumbPath, zipList);      	
+          	addVideosAndTRKs(zipList);
+          	addFiles(zipList);
+          	saveZip(zipList);
       		}
-      		// explicitly save zip here, since no videoExportListener to do it
-	    		saveZip(zipList);
-      	}
-      }
+      	};
+      	new Thread(runner).start();      	
+      }     
     });
+    
     closeButton = new JButton();
     closeButton.setForeground(labelColor);
     closeButton.addActionListener(new ActionListener() {
@@ -370,7 +336,7 @@ public class ExportZipDialog extends JDialog {
     buttonbar.add(saveButton);
     buttonbar.add(closeButton);
     
-    Border toolbarBorder = BorderFactory.createEmptyBorder(6, 4, 2, 4);
+    Border toolbarBorder = BorderFactory.createEmptyBorder(2, 4, 2, 4);
     
     // metadata
     metadataBox = Box.createVerticalBox();
@@ -520,7 +486,7 @@ public class ExportZipDialog extends JDialog {
       }
     });
     showThumbnailCheckbox = new JCheckBox();
-    showThumbnailCheckbox.setSelected(true);
+    showThumbnailCheckbox.setSelected(false);
     showThumbnailCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	if (showThumbnailCheckbox.isSelected()) {
@@ -536,7 +502,9 @@ public class ExportZipDialog extends JDialog {
     thumbnailPanel = new JPanel(new BorderLayout());
     imagePanel = new JPanel();
     imagePanel.add(thumbnailDisplay);
-    thumbnailPanel.add(imagePanel, BorderLayout.CENTER);
+    if (showThumbnailCheckbox.isSelected()) {
+    	thumbnailPanel.add(imagePanel, BorderLayout.CENTER);
+    }
     JPanel panel = new JPanel();
     panel.add(thumbnailButton);
     panel.add(showThumbnailCheckbox);
@@ -551,8 +519,11 @@ public class ExportZipDialog extends JDialog {
     
     // assemble    
     centerPanel = new JPanel(new BorderLayout());
-	  centerPanel.add(videoPanel, BorderLayout.NORTH);  		
-    centerPanel.add(thumbnailPanel, BorderLayout.SOUTH);    
+    JPanel upper = new JPanel(new BorderLayout());
+	  upper.add(tabsPanel, BorderLayout.NORTH);  		
+	  upper.add(videoPanel, BorderLayout.SOUTH);  		
+    centerPanel.add(upper, BorderLayout.NORTH);    
+    centerPanel.add(thumbnailPanel, BorderLayout.CENTER);    
     contentPane.add(metadataBox, BorderLayout.NORTH);
     contentPane.add(centerPanel, BorderLayout.CENTER);
     contentPane.add(buttonbar, BorderLayout.SOUTH);
@@ -565,6 +536,9 @@ public class ExportZipDialog extends JDialog {
     labels.add(titleLabel);
     labels.add(htmlLabel);
     
+  	tabsBorder = BorderFactory.createTitledBorder(""); //$NON-NLS-1$
+  	tabsPanel.setBorder(tabsBorder);
+  	tabsBorder.setTitleColor(labelColor);
   	videoBorder = BorderFactory.createTitledBorder(""); //$NON-NLS-1$
   	videoPanel.setBorder(videoBorder);
   	videoBorder.setTitleColor(labelColor);
@@ -601,6 +575,7 @@ public class ExportZipDialog extends JDialog {
     // borders
   	metadataBorder.setTitle(TrackerRes.getString("ZipResourceDialog.Border.Title.Documentation")); //$NON-NLS-1$
     videoBorder.setTitle(TrackerRes.getString("ZipResourceDialog.Border.Title.Video")); //$NON-NLS-1$
+    tabsBorder.setTitle(TrackerRes.getString("ExportZipDialog.Border.Title.Tabs")); //$NON-NLS-1$
     thumbnailBorder.setTitle(TrackerRes.getString("ZipResourceDialog.Border.Title.Thumbnail")); //$NON-NLS-1$
     
     // buttons
@@ -661,15 +636,6 @@ public class ExportZipDialog extends JDialog {
       next.setAlignmentY(Box.TOP_ALIGNMENT);
     }
     
-  	// video panel
-    boolean hasVideo = trackerPanel.getVideo()!=null;
-    clipCheckbox.setEnabled(hasVideo);
-    if (!hasVideo) {
-    	clipCheckbox.setSelected(false);
-    }
-  	formatDropdown.setEnabled(clipCheckbox.isSelected());
-  	formatLabel.setEnabled(clipCheckbox.isSelected());    	
-  	
   	// set html field properties
   	String path = htmlField.getText().trim();
   	Resource res = null;
@@ -695,8 +661,105 @@ public class ExportZipDialog extends JDialog {
   	urlLabel.setEnabled(res==null);
   	descriptionPane.setEnabled(res==null);
   	descriptionLabel.setEnabled(res==null);
-  		
+  	
+  	// tabsPanel
+  	// get list of current tab titles
+		ArrayList<String> currentTabs = new ArrayList<String>();
+		for (int i=0; i<frame.getTabCount(); i++) {
+			currentTabs.add(frame.getTabTitle(i));
+		}
+		
+		// add checkboxes and entry fields if needed
+  	final String equalsign = " ="; //$NON-NLS-1$
+  	if (tabCheckboxes.size()>currentTabs.size()) {
+  		ArrayList<JCheckBox> tempboxes = new ArrayList<JCheckBox>();
+  		ArrayList<EntryField> tempfields = new ArrayList<EntryField>();
+  		// collect checkboxes and entry fields found in current tabs
+  		for (int i=0; i<tabCheckboxes.size(); i++) {
+  			String s = tabCheckboxes.get(i).getText();
+  			if (s.endsWith(equalsign)) {
+  				s = s.substring(0, equalsign.length());
+  			}
+        if (currentTabs.contains(s)) {
+        	tempboxes.add(tabCheckboxes.get(i));
+        	tempfields.add(tabTitleFields.get(i));
+        }
+  		}
+  		tabCheckboxes = tempboxes;
+  		tabTitleFields = tempfields;
+  	}
+  	if (tabCheckboxes.size()<currentTabs.size()) {
+  		// compare current tab names with previous existing tabs
+  		for (int i=0; i<tabCheckboxes.size(); i++) { 
+  			JCheckBox existing = tabCheckboxes.get(i);
+  			if (!existing.getText().equals(currentTabs.get(i))) {
+  	      EntryField field = tabTitleFields.get(i);
+  	      // strip extension for initial tab title
+  	      String s = XML.stripExtension(currentTabs.get(i));
+  	      field.setText(s);  				
+  	      field.setBackground(Color.WHITE);
+  			}
+  		}
+  		// add new checkboxes and entry fields
+  		for (int i=tabCheckboxes.size(); i<frame.getTabCount(); i++) { 
+  			JCheckBox cb = new JCheckBox();
+  			cb.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						refreshGUI();
+						// request focus
+						JCheckBox cb = (JCheckBox)e.getSource();
+						cb.requestFocusInWindow();
+					}
+  			});
+  			if (i==frame.getSelectedTab()) {
+  				cb.setSelected(true);
+  			}
+	      tabCheckboxes.add(cb);
+	      EntryField field = new EntryField();
+	      // strip extension for initial tab title
+	      String s = XML.stripExtension(currentTabs.get(i));
+	      field.setText(s);
+	      tabTitleFields.add(field);
+	      field.setBackground(Color.WHITE);
+  		}  		
+  	}
+  	
+  	// reassemble tabs panel
+  	if (tabCheckboxes.size()==frame.getTabCount()) { // should always be true at this point
+      tabsPanel.removeAll();
+      Box stack = Box.createVerticalBox();
+			tabsPanel.add(stack);
+      Box box = null;
+  		for (int i=0; i<frame.getTabCount(); i++) {
+  			if (i%3==0) {
+  				box = Box.createHorizontalBox();
+	  			stack.add(box);
+  			}
+  			JCheckBox next = tabCheckboxes.get(i);
+  			next.setText(next.isSelected()? currentTabs.get(i)+" =": currentTabs.get(i)); //$NON-NLS-1$
+  			box.add(next);
+  			if (next.isSelected()) {
+  				box.add(tabTitleFields.get(i));
+  			}
+  			box.add(Box.createHorizontalStrut(6));
+   		}
+  	}
+  	
+  	// enable video panel if any tabs have videos
+    boolean hasVideo = trackerPanel.getVideo()!=null;
+		for (int i=0; i<frame.getTabCount(); i++) { 
+			hasVideo = hasVideo || (frame.getTrackerPanel(i)!=null && frame.getTrackerPanel(i).getVideo()!=null);
+		}
+    clipCheckbox.setEnabled(hasVideo);
+    if (!hasVideo) {
+    	clipCheckbox.setSelected(false);
+    }
+  	formatDropdown.setEnabled(clipCheckbox.isSelected());
+  	formatLabel.setEnabled(clipCheckbox.isSelected());    	
+  	  		
 		pack();
+		repaint();
   }
   
   /**
@@ -742,59 +805,176 @@ public class ExportZipDialog extends JDialog {
 				keywordsField.setText(value);
 				keywordsField.setBackground(Color.white);
 			}
+			else if ("description".contains(key.toLowerCase())) { //$NON-NLS-1$
+				descriptionPane.setText(value);
+				descriptionPane.setBackground(Color.white);
+			}
+			else if ("url".contains(key.toLowerCase())) { //$NON-NLS-1$
+				urlField.setText(value);
+				urlField.setBackground(Color.white);
+			}
 		}
   }
-
+  
   /**
-   * Saves the zip resource. This adds the trk, video and other files to those
-   * already in the zip list, then zips the whole list. 
+   * Add videos and TRK files to the zip list.  
    * @param zipList the list of files to be zipped
    */
-  private void saveZip(ArrayList<File> zipList) {
-  	// add video file or directory if target video exists
-  	File videoFile = null;
-  	if (targetVideo!=null) {
-  		videoFile = new File(targetVideo);
-  		if (!"".equals(videoSubdirectory)) { //$NON-NLS-1$
-  			videoFile = videoFile.getParentFile();
-  			// delete XML file, if any, from video directory
-  			File xmlFile = null;
-  			for (File next: videoFile.listFiles()) {
-  				if (next.getName().endsWith(".xml")) { //$NON-NLS-1$
-  					xmlFile = next;
-  					break;
-  				}
-  			}
-  			if (xmlFile!=null) xmlFile.delete();
-  		}
-  		zipList.add(videoFile);
-  	}
-  	// get TrackerPanel XMLControl
-    XMLControl control = new XMLControlElement(trackerPanel);
-  	// modify video path, clip settings of XMLControl
-  	if (clipCheckbox.isSelected()) {
-  		modifyControlForClip(control, targetVideo);
-  	}
-  	else if (trackerPanel.getVideo()!=null) {
-	    XMLControl videoControl = control.getChildControl("videoclip").getChildControl("video"); //$NON-NLS-1$ //$NON-NLS-2$
-	    if (videoControl!=null) {
-	    	videoControl.setValue("path", XML.getPathRelativeTo(targetVideo, getTempDirectory())); //$NON-NLS-1$
-	    }	
-  	}
-  	
-  	// add local HTML files
-  	ArrayList<String> htmlPaths = getHTMLPaths(control);
-  	if (!htmlPaths.isEmpty()) {
-	  	String xml = control.toXML();
-	  	for (String next: htmlPaths) {
-	  		String path = copyAndAddHTMLPage(next, zipList);
-	  		if (path!=null) {
-	  			xml = substitutePathInText(xml, next, path, ">", "<"); //$NON-NLS-1$ //$NON-NLS-2$
+  private void addVideosAndTRKs(final ArrayList<File> zipList) {
+		isWaitingForVideo = false;
+		final String[] videoPath = new String[1];
+		videoExporter.setFormat(formatDropdown.getSelectedItem());
+		final PropertyChangeListener listener = new PropertyChangeListener() {
+	  	public void propertyChange(PropertyChangeEvent e) {
+	  		videoPath[0] = null; // stays null if video_cancelled
+	  		if (e.getPropertyName().equals("video_saved")) { //$NON-NLS-1$
+	  			// videoPath is new value from event (different from original path for image videos)
+	  			videoPath[0] = e.getNewValue().toString();    	  			
 	  		}
+    		isWaitingForVideo = false;
 	  	}
-	  	control = new XMLControlElement(xml);
-  	}
-  	// add added files
+		};
+    videoExporter.addPropertyChangeListener("video_saved", listener);  //$NON-NLS-1$
+    videoExporter.addPropertyChangeListener("video_cancelled", listener);     //$NON-NLS-1$
+		// save VideoIO preferred export format
+		videoIOPreferredExtension = VideoIO.getPreferredExportExtension();
+		
+  	// process TrackerPanels according to checkbox status
+		for (int i = 0; i<tabCheckboxes.size(); i++) {
+			JCheckBox box = tabCheckboxes.get(i);
+			if (!box.isSelected()) continue;
+  		TrackerPanel nextTrackerPanel = frame.getTrackerPanel(i);
+  		if (nextTrackerPanel==null) continue;
+  		
+  		// get tab title to add to video and TRK names
+  		String tabTitle = i>=tabTitleFields.size()? null: tabTitleFields.get(i).getText().trim();
+  		String trkPath = getTRKTarget(tabTitle);
+  		
+  		// export or copy video, if any
+    	if (clipCheckbox.isSelected()) {
+	    	// export video clip using videoExporter
+      	videoExporter.setTrackerPanel(nextTrackerPanel);
+    		// define the path for the exported video
+    		VideoType format = ExportVideoDialog.formats.get(formatDropdown.getSelectedItem());
+    		String extension = format.getDefaultExtension();
+    		videoPath[0] = getVideoTarget(tabTitle, extension);
+    		// set the waiting flag
+    		isWaitingForVideo = true;
+    		// render the video (also sets VideoIO preferred extension to this one)
+    		videoExporter.exportFullSizeVideo(videoPath[0]);
+    	}      	
+    	else { // original or no video
+  	  	Video vid = nextTrackerPanel.getVideo();
+    		if (vid!=null && vid.getProperty("absolutePath")!=null) { //$NON-NLS-1$
+    	  	String originalPath = (String)vid.getProperty("absolutePath"); //$NON-NLS-1$
+    			// copy or extract original video to target directory
+    	  	String vidDir = getTempDirectory()+videoSubdirectory;
+      		videoPath[0] = vidDir+"/"+XML.getName(originalPath); //$NON-NLS-1$
+      		// check if target video file already exists
+      		boolean videoexists = new File(videoPath[0]).exists();
+      		if (!videoexists) {
+	    	  	new File(vidDir).mkdirs();
+	  		    if (!copyOrExtractFile(originalPath, new File(videoPath[0]))) {
+	  	  	  	javax.swing.JOptionPane.showMessageDialog(
+	  	  	  			ExportZipDialog.this,	    			
+	  	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Message"), //$NON-NLS-1$ 
+	  	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Title"), //$NON-NLS-1$ 
+	  	  	  			javax.swing.JOptionPane.ERROR_MESSAGE);
+	  	  	  	return;
+	  		    }
+      		}
+    	  	// if image video, then copy/extract additional image files
+          if (vid instanceof ImageVideo) {
+          	ImageVideo imageVid = (ImageVideo)vid;
+          	String[] paths = imageVid.getValidPaths();
+          	// first path is originalPath relative to base
+          	int n = originalPath.indexOf(XML.getName(paths[0]));
+          	if (n>0) {
+          		String base = originalPath.substring(0, n);
+            	for (String path: paths) {
+            		String name = XML.getName(path);
+            		path = base+name;
+            		if (path.equals(originalPath)) continue;
+            		File target = new File(vidDir+"/"+name); //$NON-NLS-1$
+        		    if (!copyOrExtractFile(path, target)) {
+        	  	  	javax.swing.JOptionPane.showMessageDialog(
+        	  	  			ExportZipDialog.this,	    			
+        	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Message"), //$NON-NLS-1$ 
+        	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Title"), //$NON-NLS-1$ 
+        	  	  			javax.swing.JOptionPane.ERROR_MESSAGE);
+        	  	  	return;
+        		    }
+            	}
+          	}
+          }
+    		}   		
+    	} // end setting up video 
+    	
+    	// wait for video to be ready--when isWaitingForVideo is false
+    	while (isWaitingForVideo) {
+    		try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+    	}
+    	// video should be ready at this point
+    	// add video file to ziplist
+    	if (videoPath[0]!=null) {
+    		File videoFile = new File(videoPath[0]);
+    		// add to ziplist unless it is a duplicate
+    		if (!zipList.contains(videoFile)) {
+    			zipList.add(videoFile);
+    		}
+    	}
+    	
+    	// create and modify TrackerPanel XMLControl
+      XMLControl control = new XMLControlElement(nextTrackerPanel);
+    	// modify video path, clip settings of XMLControl
+    	if (clipCheckbox.isSelected()) {
+    		modifyControlForClip(nextTrackerPanel, control, videoPath[0], trkPath);
+    	}
+    	else if (nextTrackerPanel.getVideo()!=null) {
+  	    XMLControl videoControl = control.getChildControl("videoclip").getChildControl("video"); //$NON-NLS-1$ //$NON-NLS-2$
+  	    if (videoControl!=null) {
+  	    	videoControl.setValue("path", XML.getPathRelativeTo(videoPath[0], getTempDirectory())); //$NON-NLS-1$
+  	    }	
+    	}
+    	
+    	// add local HTML files to zipList and modify XMLControl accordingly
+    	ArrayList<String> htmlPaths = getHTMLPaths(control);
+    	if (!htmlPaths.isEmpty()) {
+  	  	String xml = control.toXML();
+  	  	for (String nextHTMLPath: htmlPaths) {
+  	  		String path = copyAndAddHTMLPage(nextHTMLPath, zipList);
+  	  		if (path!=null) {
+  	  			xml = substitutePathInText(xml, nextHTMLPath, path, ">", "<"); //$NON-NLS-1$ //$NON-NLS-2$
+  	  		}
+  	  	}
+  	  	control = new XMLControlElement(xml);
+    	}
+    	
+    	// write XMLControl to TRK file and add to zipList
+      trkPath = control.write(trkPath);    
+      File trkFile = new File(trkPath);
+  		// add to ziplist unless it is a duplicate
+  		if (!zipList.contains(trkFile)) {
+  			zipList.add(trkFile);
+  		}
+    	
+  	} // end of nextTrackerPanel
+  	
+    videoExporter.removePropertyChangeListener("video_saved", listener);  //$NON-NLS-1$
+    videoExporter.removePropertyChangeListener("video_cancelled", listener);     //$NON-NLS-1$
+  } 
+  
+  /**
+   * Adds "added files" to the zip list
+   * @param zipList the list of files to be zipped
+   */
+  private void addFiles(ArrayList<File> zipList) {
+  	
+  	// add "added files"
   	for (File file: addedFilesDialog.addedFiles) {
   		String next = file.getAbsolutePath();
   		boolean isHTML = XML.getExtension(next).startsWith("htm"); //$NON-NLS-1$
@@ -809,21 +989,27 @@ public class ExportZipDialog extends JDialog {
   		}
   	}
   	
-  	// add trk file
-    String trkPath = control.write(getTRKTarget());    
-    File trkFile = new File(trkPath);
-  	zipList.add(0, trkFile);
-  	
+  }
+
+  /**
+   * Saves a zip resource containing the files in the list. 
+   * @param zipList the list of files to be zipped
+   */
+  private void saveZip(ArrayList<File> zipList) {  	
   	// define zip target and compress with JarTool
   	File target = new File(getZIPTarget());
   	if (JarTool.compress(zipList, target, null)) {
-  		// delete temp directory
-  		File temp = new File(getTempDirectory());
-      if (!ResourceLoader.deleteFile(temp)) {
-      	// unable to delete directory
-      }
   		// offer to open the newly created zip file
   		openZip(target.getAbsolutePath());
+  		// delete temp directory after short delay
+      Timer timer = new Timer(1000, new ActionListener() {
+        public void actionPerformed(ActionEvent e) {
+      		File temp = new File(getTempDirectory());
+          ResourceLoader.deleteFile(temp);
+         }
+      });
+  		timer.setRepeats(false);
+  		timer.start();
   	}
   }
   
@@ -846,6 +1032,8 @@ public class ExportZipDialog extends JDialog {
     if (!"".equals(author)) metadata.put("author", author); //$NON-NLS-1$ //$NON-NLS-2$
     if (!"".equals(contact)) metadata.put("contact", contact); //$NON-NLS-1$ //$NON-NLS-2$
     if (!"".equals(keywords)) metadata.put("keywords", keywords); //$NON-NLS-1$ //$NON-NLS-2$
+    if (!"".equals(description)) metadata.put("description", description); //$NON-NLS-1$ //$NON-NLS-2$
+    if (!"".equals(uri)) metadata.put("URL", uri); //$NON-NLS-1$ //$NON-NLS-2$
     
     String htmlCode = LibraryResource.getHTMLCode(title, LibraryResource.TRACKER_TYPE,
     		thumbPath, description, author, contact, uri, null, metadata);
@@ -995,9 +1183,8 @@ public class ExportZipDialog extends JDialog {
    * @param toModify the XMLControl to be modified 
    * @param videoPath the exported video path (may be null)
    */
-  private void modifyControlForClip(XMLControl toModify, String videoPath) {
-    String trkPath = getTRKTarget();
-    VideoPlayer player = trackerPanel.getPlayer();
+  private void modifyControlForClip(TrackerPanel tPanel, XMLControl toModify, String videoPath, String trkPath) {
+    VideoPlayer player = tPanel.getPlayer();
     
     // videoclip--convert frame count, start frame, step size and frame shift but not start time or step count
     XMLControl clipXMLControl = toModify.getChildControl("videoclip"); //$NON-NLS-1$
@@ -1187,31 +1374,33 @@ public class ExportZipDialog extends JDialog {
         		else if (TapeMeasure.class.equals(trackType)) {
     	        array = trackControl.getObject("framedata"); //$NON-NLS-1$
     	        TapeMeasure.FrameData[] tapeKeyFrames = (TapeMeasure.FrameData[])array;
-    	        newFrameNumbers.clear();
-    	        newFrameNum = 0;
-    	        int newKeysLength = 0;
-    	        int nonNullIndex = 0; 
-    	        for (int i = 0; i<=realClip.getEndFrameNumber(); i++) {
-    	        	if (i<tapeKeyFrames.length && tapeKeyFrames[i]!=null) {
-    	        		nonNullIndex = i;
-    	        	}
-    	        	if (!realClip.includesFrame(i)) continue;
-    	        	newFrameNum = realClip.frameToStep(i); // new frame number equals step number
-    	        	if (nonNullIndex>-1) {
-	    	        	newFrameNumbers.put(newFrameNum, nonNullIndex); 
-	    	        	newKeysLength = newFrameNum+1;
-    	        		nonNullIndex = -1;
-    	        	}
-    	        	else if (i<tapeKeyFrames.length) {
-	    	        	newFrameNumbers.put(newFrameNum, i);    	        	    	        		
-	    	        	newKeysLength = newFrameNum+1;
-    	        	}
-    	        }
-    	        TapeMeasure.FrameData[] newKeys = new TapeMeasure.FrameData[newKeysLength];
-    	        for (Integer k: newFrameNumbers.keySet()) {
-    	        	newKeys[k] = tapeKeyFrames[newFrameNumbers.get(k)];
-    	        }
-    	        trackControl.setValue("framedata", newKeys);        			 //$NON-NLS-1$
+    	        if (tapeKeyFrames.length>0) {
+	    	        newFrameNumbers.clear();
+	    	        newFrameNum = 0;
+	    	        int newKeysLength = 0;
+	    	        int nonNullIndex = 0; 
+	    	        for (int i = 0; i<=realClip.getEndFrameNumber(); i++) {
+	    	        	if (i<tapeKeyFrames.length && tapeKeyFrames[i]!=null) {
+	    	        		nonNullIndex = i;
+	    	        	}
+	    	        	if (!realClip.includesFrame(i)) continue;
+	    	        	newFrameNum = realClip.frameToStep(i); // new frame number equals step number
+	    	        	if (nonNullIndex>-1) {
+		    	        	newFrameNumbers.put(newFrameNum, nonNullIndex); 
+		    	        	newKeysLength = newFrameNum+1;
+	    	        		nonNullIndex = -1;
+	    	        	}
+	    	        	else if (i<tapeKeyFrames.length) {
+		    	        	newFrameNumbers.put(newFrameNum, i);    	        	    	        		
+		    	        	newKeysLength = newFrameNum+1;
+	    	        	}
+	    	        }
+	    	        TapeMeasure.FrameData[] newKeys = new TapeMeasure.FrameData[newKeysLength];
+	    	        for (Integer k: newFrameNumbers.keySet()) {
+	    	        	newKeys[k] = tapeKeyFrames[newFrameNumbers.get(k)];
+	    	        }
+	    	        trackControl.setValue("framedata", newKeys);        			 //$NON-NLS-1$
+	        		}
         		}
 
         		else if (Protractor.class.equals(trackType)) {
@@ -1249,19 +1438,28 @@ public class ExportZipDialog extends JDialog {
   }
   
   /**
-   * Returns a list of particle models with start frames not included in the video clip.
+   * Returns a list of particle models with start frames not included in the video clips.
    * These models cannot be exported.
    */
-  private ArrayList<ParticleModel> getModelsNotInClip() {
-  	VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-  	ArrayList<ParticleModel> models = trackerPanel.getDrawables(ParticleModel.class);
-  	for (Iterator<ParticleModel> it = models.iterator(); it.hasNext();) {
-  		ParticleModel model = it.next();
-  		if (clip.includesFrame(model.getStartFrame())) {
-  			it.remove();
-  		}
-  	}
-  	return models;
+  private ArrayList<ParticleModel> getModelsNotInClips() {
+  	ArrayList<ParticleModel> allModels = new ArrayList<ParticleModel>();
+  	// process TrackerPanels according to checkbox status
+		for (int i = 0; i<tabCheckboxes.size(); i++) {
+			JCheckBox box = tabCheckboxes.get(i);
+			if (!box.isSelected()) continue;
+  		TrackerPanel nextTrackerPanel = frame.getTrackerPanel(i);
+  		if (nextTrackerPanel==null) continue;
+    	VideoClip clip = nextTrackerPanel.getPlayer().getVideoClip();
+    	ArrayList<ParticleModel> models = nextTrackerPanel.getDrawables(ParticleModel.class);
+    	for (Iterator<ParticleModel> it = models.iterator(); it.hasNext();) {
+    		ParticleModel model = it.next();
+    		if (clip.includesFrame(model.getStartFrame())) {
+    			it.remove();
+    		}
+    	}
+    	allModels.addAll(models);
+		}
+  	return allModels;
   }
 
   
@@ -1425,26 +1623,30 @@ public class ExportZipDialog extends JDialog {
    *
    * @param path the path to the zip file
    */
-  private void openZip(String path) {
-  	int response = javax.swing.JOptionPane.showConfirmDialog(
-  			frame,	    			
-  			TrackerRes.getString("ZipResourceDialog.Complete.Message1") //$NON-NLS-1$ 
-  			+" \""+XML.getName(path)+"\".\n" //$NON-NLS-1$ //$NON-NLS-2$
-  			+TrackerRes.getString("ZipResourceDialog.Complete.Message2"), //$NON-NLS-1$ 
-  			TrackerRes.getString("ZipResourceDialog.Complete.Title"), //$NON-NLS-1$ 
-  			javax.swing.JOptionPane.YES_NO_OPTION, 
-  			javax.swing.JOptionPane.QUESTION_MESSAGE);
-  	if (response == javax.swing.JOptionPane.YES_OPTION) {
-  		frame.loadedFiles.remove(path);
-  		final File file = new File(path);
-      Runnable runner = new Runnable() {
-      	public void run() {
-	    		TrackerIO.open(file, frame);
+  private void openZip(final String path) {
+    Runnable runner1 = new Runnable() {
+    	public void run() {
+      	int response = javax.swing.JOptionPane.showConfirmDialog(
+      			frame,	    			
+      			TrackerRes.getString("ZipResourceDialog.Complete.Message1") //$NON-NLS-1$ 
+      			+" \""+XML.getName(path)+"\".\n" //$NON-NLS-1$ //$NON-NLS-2$
+      			+TrackerRes.getString("ZipResourceDialog.Complete.Message2"), //$NON-NLS-1$ 
+      			TrackerRes.getString("ZipResourceDialog.Complete.Title"), //$NON-NLS-1$ 
+      			javax.swing.JOptionPane.YES_NO_OPTION, 
+      			javax.swing.JOptionPane.QUESTION_MESSAGE);
+      	if (response == javax.swing.JOptionPane.YES_OPTION) {
+      		frame.loadedFiles.remove(path);
+      		final File file = new File(path);
+          Runnable runner = new Runnable() {
+          	public void run() {
+    	    		TrackerIO.open(file, frame);
+          	}
+          };
+          SwingUtilities.invokeLater(runner);
       	}
-      };
-      SwingUtilities.invokeLater(runner);
-  	}
-  	
+    	}
+    };
+    SwingUtilities.invokeLater(runner1);  	
   }
   
   /**
@@ -1501,14 +1703,18 @@ public class ExportZipDialog extends JDialog {
   	return new ArrayList<File>();
   }
   
-  private String getTRKTarget() {
-  	return getTempDirectory()+targetName+".trk"; //$NON-NLS-1$
+  private String getTRKTarget(String tabTitle) {
+  	if (tabTitle==null || "".equals(tabTitle.trim()))  //$NON-NLS-1$
+  		return getTempDirectory()+targetName+".trk"; //$NON-NLS-1$
+  	else return getTempDirectory()+targetName+"_"+tabTitle+".trk"; //$NON-NLS-1$ //$NON-NLS-2$
   }
   
-  private String getVideoTarget(String extension) {
+  private String getVideoTarget(String tabTitle, String extension) {
   	String vidDir = getTempDirectory()+videoSubdirectory;
   	new File(vidDir).mkdirs();
-  	return vidDir+"/"+targetName+"."+extension; //$NON-NLS-1$ //$NON-NLS-2$
+  	if (tabTitle==null || "".equals(tabTitle.trim()))  //$NON-NLS-1$
+  		return vidDir+"/"+targetName+"."+extension; //$NON-NLS-1$ //$NON-NLS-2$
+  	else return vidDir+"/"+targetName+"_"+tabTitle+"."+extension; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   }
   
   private String getZIPTarget() {
@@ -1541,7 +1747,7 @@ public class ExportZipDialog extends JDialog {
     		// restore VideoIO preferred extension
     		VideoIO.setPreferredExportExtension(videoIOPreferredExtension);
 
-	      saveZip(target);
+//	      saveZip(target);
   		}
     	// clean up ExportVideoDialog
   		if (dialog!=null) {
@@ -1773,6 +1979,14 @@ public class ExportZipDialog extends JDialog {
       addFocusListener(focusListener);
       addActionListener(actionListener);
       getDocument().addDocumentListener(documentListener);
+  	}
+  	
+  	public Dimension getPreferredSize() {
+  		Dimension dim = super.getPreferredSize();
+  		dim.width = Math.max(dim.width, 30);
+  		dim.width = Math.min(dim.width, 100);
+  		dim.width += 4;
+  		return dim;
   	}
   	
   	protected String getDefaultText() {
