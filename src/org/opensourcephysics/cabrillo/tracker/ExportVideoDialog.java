@@ -100,8 +100,7 @@ public class ExportVideoDialog extends JDialog {
   	// refresh format dropdown
 		videoExporter.refreshFormatDropdown(VideoIO.getPreferredExportExtension());
 		
-  	videoExporter.trackerPanel = panel;
-  	videoExporter.refreshGUI();
+  	videoExporter.setTrackerPanel(panel);
   	return videoExporter;
   }
   
@@ -582,6 +581,11 @@ public class ExportVideoDialog extends JDialog {
 		pack();
   }
   
+  public void setTrackerPanel(TrackerPanel panel) {
+  	trackerPanel = panel;
+  	refreshGUI();
+  }
+  
   /**
    * Gets the smallest acceptable dimension >= a specified width and height.
    * This is a work-around to avoid image artifacts introduced by the converter 
@@ -718,8 +722,8 @@ public class ExportVideoDialog extends JDialog {
 				return;
 			}
 		} catch (IOException ex) {
-			JOptionPane.showMessageDialog(trackerPanel, ex.getMessage(),
-        	"Error", JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
+			JOptionPane.showMessageDialog(trackerPanel, ex,
+        	"Exception error creating video", JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
 		}
 		// deal with special case of single image
 		if (clip.getStepCount()==1) {
@@ -732,8 +736,8 @@ public class ExportVideoDialog extends JDialog {
 					recorder.reset();
 				}
 			} catch (IOException ex) {
-  			JOptionPane.showMessageDialog(trackerPanel, ex.getMessage(),
-          	"Error", JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
+  			JOptionPane.showMessageDialog(trackerPanel, ex,
+          	"Exception error ading frame", JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
 			}
 		}
 		// step thru video and record images
@@ -818,8 +822,8 @@ public class ExportVideoDialog extends JDialog {
 	  							playControl.step();
 	  						}
 	        		} catch (Exception ex) {
-	        			JOptionPane.showMessageDialog(trackerPanel, ex.getMessage(),
-	                	"Error", JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
+	        			JOptionPane.showMessageDialog(trackerPanel, ex,
+	                	"Exception saving video: ", JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
 	  				    monitor.close();
 	  						playControl.removePropertyChangeListener("stepnumber", listener); //$NON-NLS-1$
 	  				    // restore original magnification and video visibility
@@ -848,8 +852,8 @@ public class ExportVideoDialog extends JDialog {
 					System.gc();
 					playControl.step();
     		} catch (Exception ex) {
-    			JOptionPane.showMessageDialog(trackerPanel, ex.getMessage(),
-            	"Error", JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
+    			JOptionPane.showMessageDialog(trackerPanel, ex,
+            	"Exception error adding image", JOptionPane.WARNING_MESSAGE); //$NON-NLS-1$
 			    monitor.close();
 			    // restore original magnification and video visibility
 					trackerPanel.setMagnification(magnification);
