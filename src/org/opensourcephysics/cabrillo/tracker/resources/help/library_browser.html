@@ -9,57 +9,58 @@
  	</head>
 
 	<body>
-		<h1><a name="lib0" id="lib0"></a>Digital Library Browser</h1>
-		<p>The Digital Library Browser (&quot;DL browser&quot;) enables users to browse and search collections of  <strong>library resources</strong> such as videos and Tracker experiments, including <a href="zip_resource.html">Tracker ZIP files</a>. Collections may be located on a local drive or remote server.</p>
+		<h1><a name="lib0" id="lib0"></a>Library Browser</h1>
+		<p>The Library Browser enables users to browse and search <strong>collections</strong> of <strong>resources</strong> such as videos, <a href="datafile.html">Tracker tab files</a> (.trk) and <a href="zip_resource.html">Tracker project files</a> (.trz). Collections may be located on a local drive or remote server.</p>
 		<p>When a resource of interest is found, it  can be immediately opened in Tracker with just a double-click.</p>
 <p align="center"> <img src="../help_images/library_browser.gif" alt="OSP Digital Library Browser"> </p>
 
-<h3><a name="lib1" id="lib1"></a>1. Opening a collection</h3>
-<p>Opening a collection displays it in a <strong>tab</strong> with a tree  in the left pane and an HTML page in the right pane as shown above. The title of the tab is the name of the root node of the collection.</p>
-<p>There are three ways to open a collection:</p>
+<h3><a name="lib1" id="lib1"></a>1. Opening a collection or resource file</h3>
+<p>Opening a collection displays it in a <strong>tab</strong> with a tree  in the left pane and an HTML page in the right pane as shown above. The title of the tab is the name of the collection. </p>
+<p>Opening a resource file such as a video or Tracker project adds it to the <strong>Recent Local Files</strong> collection and displays that collection in a tab.</p>
   <p align="center"> 
   <img src="../help_images/library_browser_collections_menu.gif" alt="Library browser collections menu" align="top">
             <img src="../help_images/spacer.gif">
     <img src="../help_images/library_browser_open.gif" alt="Library browser open menu" align="top">
   </p>
   <p align="center"><img src="../help_images/library_browser_toolbar_load.gif" alt="Library browser loading URL on toolbar" align="absmiddle"></p>
+<p>There are three ways to open a collection or resource file (shown above):</p>
 <ol>
   <li>Choose a collection by name from the <strong>Collections</strong> menu or <strong>File|Open Recent</strong> menu.</li>
-  <li>Choose the <strong>File|Open...</strong> menu item and use the file chooser to open a library resource or collection on a local drive. Collections may be either:</li>
+  <li>Choose the <strong>File|Open...</strong> menu item and use the file chooser to open a file or collection on a local drive. Collections may be either:</li>
   
   	    <ol type="a">  
-        <li><strong>Directories</strong> containing OSP resources. The  library resources in the directory are displayed in the tree.</li>
-        <li><strong>XML documents</strong> previously saved by the DL browser.</li>
+        <li><strong>Directories</strong> containing resource files. The  resources in the directory are displayed in the tree.</li>
+        <li><strong>XML documents</strong> previously saved by the library browser.</li>
 	    </ol>  
   
-  <li>Enter a collection  path directly into the toolbar <strong>URL</strong> field as with a web browser.</li>
+  <li>Enter a  path directly into the toolbar <strong>URL</strong> field as with a web browser.</li>
 </ol>
 
-<h3><a name="browse" id="browse"></a>2. Library resources</h3>
-<p>Each  node in a collection tree represents a library resource or subcollection and has the following properties:</p>
+<h3><a name="browse" id="browse"></a>2. Resource properties</h3>
+<p>Each  resource is represented by a node in a collection tree. Nodes may also be subcollections. Every resource has the following properties:</p>
 <ol>
   <li><strong>Name</strong>: identifies the resource. Displayed as the node name in the tree.</li>
-  <li><strong>Type</strong>:  may be <em>Collection, Tracker experiment, EJS model, Video, Image, HTML page, PDF document, </em>or<em> Other</em>. Displayed as the node icon in the tree.</li>
+  <li><strong>Type</strong>:  may be <em>Collection, Tracker project, EJS model, Video, Image, HTML page, PDF document, </em>or<em> Other</em>. Displayed as the node icon in the tree.</li>
   <li><strong>HTML page</strong>: describes the resource and provides links to additional information. Displayed in the right pane when the node is selected. If no HTML page is defined, the right pane displays the node name, type and (for videos) thumbnail image.</li>
   <li><strong>Metadata</strong>: searchable author names, contact information and keywords. Displayed in the tooltip when the mouse hovers over the node.</li>
   <li><strong>Target</strong>: the resource file itself. Displayed  in the URL field on the toolbar when the node is selected. Opened in Tracker (and/or  HTML browser or PDF viewer) when the node is double-clicked or the toolbar <strong>Load</strong> button is clicked. Some nodes (e.g. collection nodes) have no target.</li>
 </ol>
 
-<p>A <strong>Tracker ZIP file</strong> is a library resource that consists of a  zip file containing an entire Tracker experiment, including tracker file, video clip, HTML/PDF documentation and metadata. Using Tracker to create a Tracker ZIP file is the easiest and most convenient way to package and share a Tracker experiment. For more information see <a href="zip_resource,html">Tracker ZIP Files</a>.</p>
+<p>A <strong>Tracker project file</strong> is a resource that consists of a  zip file containing an entire Tracker project, including one or more Tracker tabs with associated videos, HTML/PDF documentation and metadata. For more information see <a href="zip_resource,html">Tracker Projects</a>.</p>
 <h3><a name="lib3" id="lib3"></a>3. The OSP cache</h3>
-<p>In order to increase performance and provide a searchable database, some files are stored in the Open Source Physics (OSP) cache on the local machine when collections are opened in the DL browser.</p>
+<p>In order to increase performance and provide a searchable database, some files are stored in the Open Source Physics (OSP) cache on the local machine when collections are opened in the library browser.</p>
 <ol>
   <li>Searchable XML documents that describe the collections and contain references to the actual resource files.</li>
-  <li>HTML pages (and associated images) extracted from ZIP resources.</li>
+  <li>HTML pages (and associated images) extracted from zip files.</li>
   <li>Thumbnail images of videos and ComPADRE Digital Library resources.</li>
-  <li>Library resource target files that are downloaded from the web when loading into Tracker.</li>
+  <li>Resource files that are downloaded from the web when loading into Tracker.</li>
 </ol>
 <p>Choose the <strong>Manage|Cache...</strong> menu item to view the status of the OSP cache in the <strong>Library Manager</strong>. Click a <strong>Clear</strong> button to clear cached HTML pages, thumbnails and OSP resources from a particular server. Click the Clear All button to clear the entire cache. <strong>Note</strong>: searchable cached XML documents are managed separately, and are NOT deleted when clearing the cache.</p>
   <p align="center"><img src="../help_images/library_manager_cache.gif" alt="Library manager displaying cache tab"></p>
   <p>Reopening a web-based collection that has been previously cached does NOT reload the collection from the web but instead opens the cached XML file. This speeds up the process considerably. To delete the cached XML file and reload the web collection from its source, select the root node and click the Refresh button <img src="../help_images/refresh_button.gif" alt="refresh button" align="absmiddle"> on the toolbar. Local collections are always opened directly, not from the cache. </p>
 
 <h3><a name="lib4" id="lib4"></a>4. Searching for resources</h3>
-<p>To search for resources enter a search term or phrase into the toolbar <strong>Search</strong> field. Search terms are compared with resource names, resource types, author names, contact information, keywords and other metadata defined by a resource. Search terms are case-insensitive but must be matched in their entirety. <strong>Note</strong>: only resources defined in  searchable cached XML documents can be discovered. For this reason, it is recommended that you open all collections of interest when first using the DL browser (be sure to leave them open long enough to fully load and save themselves in the cache--for some collections this can take several minutes).</p>
+<p>To search for resources enter a search term or phrase into the toolbar <strong>Search</strong> field. Search terms are compared with resource names, resource types, author names, contact information, keywords and other metadata defined by a resource. Search terms are case-insensitive but must be matched in their entirety. <strong>Note</strong>: only resources defined in  searchable cached XML documents can be discovered. For this reason, it is recommended that you open all collections of interest when first using the library browser (be sure to leave them open long enough to fully load and save themselves in the cache--for some collections this can take several minutes).</p>
 <p>Search results are displayed in a new tab.</p>
 <p align="center"><img src="../help_images/library_browser_search_results.gif" alt=""></p>
 
@@ -70,14 +71,14 @@
 <p align="center"><img src="../help_images/library_manager_search.gif" alt="Library manager displaying search tab"></p>
 
 <h3><a name="lib5" id="lib5"></a>5. Managing collections</h3>
-<p>The DL browser provides direct access to collections in the following digital libraries, available in the <strong>Collections</strong> menu:</p>
+<p>The library browser provides direct access to collections in the following digital libraries, available in the <strong>Collections</strong> menu:</p>
 <ol>
   <li>A local library called <strong>My Library,</strong> managed by the user and discussed in this section.</li>
   <li>The <a href="library_browser.html#compadre"><strong>ComPADRE Digital Library</strong></a>, a part of the National Science Digital Library system.</li>
   <li>The<strong> Tracker Home Library</strong>, managed by Douglas Brown, author of Tracker.</li>
   <li>The <strong>Shared Library</strong> containing collections contributed by other educators and students. To find out how to share your own collections, see<a href="library_browser.html#compadre">Building the shared and ComPADRE libraries</a>. </li>
 </ol>
-<p>My Library initially contains a single local collection called <strong>My Collection</strong> to which the user can add resources as described in <a href="library_browser.html#sharing">Editing local collections</a> below. But it is easy to customize My Library by adding your own favorite collections.</p>
+<p>My Library initially contains the <strong>Recent Local Files</strong> collection which shows all recently opened resources and the editable <strong>My Collection</strong> collection to which the user can add resources as described in <a href="library_browser.html#sharing">Editing local collections</a> below. It is easy to customize My Library by adding your own favorite collections.</p>
 <p align="center"><img src="../help_images/library_browser_my_library.gif" alt="My Library menu"></p>
 <p>There are two ways to add a collection to My Library:</p>
 <ol>
@@ -87,11 +88,11 @@
 <p align="center"><img src="../help_images/library_manager_my_library.gif" alt="Library manager displaying My Library tab"></p>
 
 <p>The Library Manager also enables you to rename, reorder and/or remove collections from My Library. To rename a collection, select it and edit the name in the <strong>Name</strong> field. To reorder or remove a collection, select it and use the buttons provided. <strong>Note</strong>: renaming a collection changes only its menu name, not its tab title.</p>
-<h3><a name="lib6" id="lib6"></a>6. Creating resources and collections</h3>
-<p><strong>Resources</strong>: library resources may have the following targets:</p>
+<h3><a name="lib6" id="lib6"></a>6. Creating and sharing resources and collections</h3>
+<p><strong>Resources</strong>: resources may be one of the following:</p>
 <ol>
-  <li><strong>Tracker experiments</strong>: TRK tracker file or ZIP file containing a tracker file. Associated video and/or <a href="pageview.html">page view</a> HTML files must accompany the target. Opened in Tracker.</li>
-  <li><strong>Videos and images</strong>: video or image file. Opened in Tracker.</li>
+  <li><strong>Tracker tab or project</strong>: TRK or TRZ file. Opened in Tracker.</li>
+  <li><strong>Video or image</strong>: video or image file. Opened in Tracker.</li>
   <li><strong>HTML pages</strong>: HTML file. Opened in the default HTML browser.</li>
   <li><strong>PDF documents</strong>: PDF file. Opened in the default PDF viewer.</li>
 </ol>
@@ -99,8 +100,8 @@
 <ol>
   <li><strong>Live collections</strong>: This is the easiest option.</li>
     <ol type="a">
-  <li><strong>Local</strong>: put the resource targets into a  local directory and open the directory in the DL browser. <strong>Optional but recommended</strong>: add HTML information files to the same directory (see below).</li>
-  <li><strong>Web</strong>: put the resource targets along with the OSP <strong> Digital Library PHP script</strong> into a directory on a server (see <a href="http://www.cabrillo.edu/~dbrown/tracker/library/_share/sharing.html">Sharing Your Tracker Collection</a>) and open the URL path to the script in the DL browser.   <strong>Optional but recommended</strong>: add HTML information files to the server directory (see below). <strong>Note</strong>: the server must  run the PHP script. You may have to change the script  extension. Check with your web administrator if unsure. </li>
+  <li><strong>Local</strong>: put the resources into a  local directory and open the directory in the library browser. <strong>Optional but recommended</strong>: add HTML information files to the same directory (see below).</li>
+  <li><strong>Web</strong>: put the resources along with the OSP <strong> Digital Library PHP script</strong> into a directory on a server (see <a href="http://physlets.org/tracker/library/_share/sharing.html">Sharing Your Tracker Collection</a>) and open the URL path to the script in the library browser.   <strong>Optional but recommended</strong>: add an HTML information file to the server directory (see below). <strong>Note</strong>: the server must  run the PHP script. You may have to change the script  extension. Check with your web administrator if unsure. </li>
     </ol>
   
   <li><strong>XML collections</strong>: This is the most flexible option.</li>
@@ -109,11 +110,11 @@
       <li>Use <strong>File|New Collection...</strong> to create a new empty XML collection or  <strong>File|Save Collection As...</strong> to create an XML copy of an open collection.</li>
       <li>Edit the XML collection as described in <a href="library_browser.html#editing">Editing XML collections</a>.</li>
       <li>To share the XML collection on the web, see <a href="library_browser.html#sharing">Uploading XML collections to the web</a>.</li>
-      <li>Open the URL path to the XML file in the DL browser.</li>
+      <li>Open the URL path to the XML file in the library browser.</li>
     </ol>
 </ol>
 <h3><a name="html_info" id="html_info"></a>7. HTML information files for live collections</h3>
-    <p>Resources in live collections (with the notable exception of <a href="zip_resource.html">Tracker ZIP files</a>) will have minimal documentation and  metadata unless you add correctly named and coded HTML information files to the same directory. For effective HTML information files, use the following guidelines:</p>
+    <p>Resources in live collections (with the notable exception of <a href="zip_resource.html">Tracker projects</a>) will have minimal documentation and  metadata unless you add correctly named and coded HTML information files to the same directory. For effective HTML information files, use the following guidelines:</p>
     <ol>
       <li><strong>Filename</strong>: strip the extension and append &quot;_info.html&quot; to the name of the PHP script or resource target file (e.g.  &quot;<em>library_collection_info.html</em>&quot; for  script &quot;<em>library_collection.php</em>&quot;, &quot;<em>wheels_info.html</em>&quot; for local directory &quot;<em>wheels</em>&quot;, &quot;<em>loop2_info.html</em>&quot; for tracker file &quot;<em>loop2.trk</em>&quot; or video file &quot;<em>loop2.flv</em>&quot;).</li>
       <li><strong>Title</strong>: set the &lt;title&gt;  in the HTML &lt;head&gt; section to the desired resource or collection name (e.g. <em>&lt;title&gt;Modeling a Hot Wheels Loop&lt;/title&gt;</em>).</li>
@@ -122,11 +123,11 @@
           <em>&lt;meta name=&quot;author&quot; content=&quot;Douglas Brown&quot;&gt;<br>&lt;meta name=&quot;contact&quot; content=&quot;Cabrillo College&quot;&gt;<br>&lt;meta name=&quot;keywords&quot; content=&quot;circular motion, centripetal acceleration, toy truck, Newton's second law&quot;&gt;</em>
         </blockquote>
       
-      <li><strong>Body</strong>: include a brief description of the collection or resource, including image and hyperlinks if desired. Remember that the HTML pane in the DL browser may be small. Extensive documentation and/or instructions should be in separate HTML and/or PDF resources.</li>    
+      <li><strong>Body</strong>: include a brief description of the collection or resource, including image and hyperlinks if desired. Remember that the HTML pane in the library browser may be small. Extensive documentation and/or instructions should be in separate HTML and/or PDF resources.</li>    
       </ol>
     <h3><a name="editing" id="editing"></a>8. Editing XML collections</h3>
 		<p>An XML collection saved on a local drive is  editable by default unless it has been set to read-only by the operating system.</p>
-        <p>To edit a local collection, open it in the DL browser and click the <strong>Open Editor</strong> button on  the toolbar.</p>
+        <p>To edit a local collection, open it in the library browser and click the <strong>Open Editor</strong> button on  the toolbar.</p>
         <p align="center"><img src="../help_images/library_browser_toolbar_edit.gif" alt="Library Browser Open Editor button"></p>
 <p>The editor displays (a) a button bar for creating and organizing resource nodes and (b) data fields for describing and defining the resources themselves.</p>
 <p align="center"><img src="../help_images/library_browser_editing.gif" alt="Library Browser with collection editor open"></p>
@@ -142,14 +143,14 @@
 <p><strong>Data fields:</strong> the data fields display the following resource properties:</p>
 <ul>
   <li><strong>Name</strong>: the node name displayed in the tree.</li>
-  <li><strong>Type</strong>: the type of resource. May be <em>Collection, Tracker Experiment</em>, <em>EJS Model</em>, <em>Video</em>, <em>Image, HTML Page</em>, <em>PDF Document</em>, or <em>Other</em>.</li>
+  <li><strong>Type</strong>: the type of resource. May be <em>Collection, Tracker Project</em>, <em>EJS Model</em>, <em>Video</em>, <em>Image, HTML Page</em>, <em>PDF Document</em>, or <em>Other</em>.</li>
   <li><strong>HTML File</strong> (optional): the path to the file displayed in the HTML pane when the node is selected. The path may be absolute or relative to the base URL (<a href="library_browser.html#paths">see discussion below</a>).</li>
   <li><strong>Base URL</strong> (optional): the base URL used to resolve relative paths for the HTML and resource files.</li>
   <li><strong>Resource</strong> (disabled for collection nodes): the path to the resource target file. The path may be absolute or relative to the base URL (<a href="library_browser.html#paths">see discussion below</a>).</li>
 </ul>
 <p><strong>Metadata fields:</strong> clicking the Show Metadata button displays the following additional fields (not shown in the figure above):</p>
 <ul>
-  <li><strong>Author</strong>: the authors of the experiment.</li>
+  <li><strong>Author</strong>: the authors of the project.</li>
   <li><strong>Contact</strong>: contact information for the authors (e.g. institution, email, etc.).</li>
   <li><strong>Keywords</strong>: searchable keywords and phrases. It is common, but not required, to separate key phrases with commas.</li>
   <li><strong>Metadata</strong> (dropdown list of metadata names and values): additional metadata names and values of any kind can be entered here.</li>
@@ -165,18 +166,18 @@
     <p>To convert an absolute path to relative (or vice-versa), right-click the Resource or HTML File field and choose <strong>Set to relative</strong> (or <strong>Set to absolute</strong>) from the popup menu.</p>
         <h3><a name="sharing" id="sharing"></a>10. Uploading XML collections to the web</h3>
     <p>XML collections can only be created, edited and saved on a local drive. But by uploading your resources to the web and changing the base URL of your collection, your XML  collection becomes completely portable--you may email the XML file to others, post it on the web or share it on a local network.</p>
-    <p>To put your  local collection on the web, open the XML file in the DL browser and follow these steps (this assumes you have assembled your resource target and HTML files locally and used relative paths in the collection editor as described above):</p>
+    <p>To put your  local collection on the web, open the XML file in the library browser and follow these steps (this assumes you have assembled your resource target and HTML files locally and used relative paths in the collection editor as described above):</p>
     <ol>
-            <li>Identify  the server directory you will use for your web collection (e.g. &quot;<em>www.my_institution.edu/my_shared_experiments</em>&quot;).</li>
-            <li>Upload your library resource files (including subdirectories, if any) to the server directory.</li>
+            <li>Identify  the server directory you will use for your web collection (e.g. &quot;<em>www.my_institution.edu/my_shared_projects</em>&quot;).</li>
+            <li>Upload your resource files (including subdirectories, if any) to the server directory.</li>
             <li>Open the collection editor, and select the root node.</li>
-            <li>Change the base URL to the server  directory URL path (e.g. &quot;<em>http://www.my_institution.edu/my_shared_experiments</em>&quot;).</li>
+            <li>Change the base URL to the server  directory URL path (e.g. &quot;<em>http://www.my_institution.edu/my_shared_projects</em>&quot;).</li>
             <li>If needed, change the base URL of other subcollections or resources in your collection.</li>
             <li>Browse your collection to verify that the web resources are available and behaving as expected.</li>
             <li>Save the modified XML collection file (or <strong>Save As</strong> to preserve the original).</li>
     </ol>
 <h3><a name="compadre" id="compadre"></a>11. Building the Shared and ComPADRE libraries</h3>
-        <p>The <strong>Shared Library</strong> contains collections contributed by other Tracker users, and we encourage you to help build the library by developing and hosting web-based collections (Tracker experiments and/or videos) and emailing the collection path to the Shared Library editor, Douglas Brown (dobrown at cabrillo dot edu). Collections that are added to the library are immediately available from the <strong>Collections|Shared Library</strong> menu visible to all Tracker users.</p>
+        <p>The <strong>Shared Library</strong> contains collections contributed by other Tracker users, and we encourage you to help build the library by developing and hosting web-based collections (Tracker projects and/or videos) and emailing the collection path to the Shared Library editor, Douglas Brown (dobrown at cabrillo dot edu). Collections that are added to the library are immediately available from the <strong>Collections|Shared Library</strong> menu visible to all Tracker users.</p>
         <p>The <strong>ComPADRE Digital Library</strong>, a part of the National Science Digital Library system, is a growing network of educational resource collections supporting teachers and students in Physics and Astronomy. As a user you may explore collections designed to meet your specific needs and help build the network by recommending resources, commenting on resources, and starting or joining discussions. For more information, see &lt;<b><a href="http://www.compadre.org/OSP/">http://www.compadre.org/OSP/</a></b>&gt;. To recommend an OSP resource for ComPADRE, visit the Suggest a Resource page at &lt;<b><a href="http://www.compadre.org/osp/items/suggest.cfm">http://www.compadre.org/osp/items/suggest.cfm</a></b>&gt;. Contact the OSP Collection editor, Wolfgang Christian, for additional information.</p>
 	</body>
 
