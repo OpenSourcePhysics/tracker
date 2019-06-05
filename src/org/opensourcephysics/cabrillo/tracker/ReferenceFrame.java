@@ -54,6 +54,7 @@ public class ReferenceFrame extends ImageCoordSystem
     super(coords.getLength());
     this.originTrack = originTrack;
     this.coords = coords;
+    ignoreUpdateRequests = true;
     setFixedOrigin(false);
     setFixedAngle(coords.isFixedAngle());
     setFixedScale(coords.isFixedScale());
@@ -66,6 +67,8 @@ public class ReferenceFrame extends ImageCoordSystem
     }
     setOrigins();
     lockEnabled = true;
+    ignoreUpdateRequests = false;
+    updateAllTransforms();
   }
 
   /**
@@ -132,6 +135,12 @@ public class ReferenceFrame extends ImageCoordSystem
         if (originTrack.isEmpty()) setOrigins();
       }
     }
+  }
+
+  @Override
+  protected void updateAllTransforms() {
+  	if (ignoreUpdateRequests) return;
+    super.updateAllTransforms();
   }
 
   /**
