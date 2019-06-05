@@ -249,9 +249,17 @@ public class PrefsDialog extends JDialog {
   				TrackerPanel next = frame.getTrackerPanel(i);
   				if (!next.save()) return;
   				File datafile = next.getDataFile();
+  				if (datafile==null) {
+  					String path = next.openedFromPath;
+  					if (path!=null) {
+  						datafile = new File(path);
+  					}
+  				}
   				if (datafile!=null) {
   	    		String fileName = datafile.getAbsolutePath();
-  	    		filenames.add(fileName);
+  	    		if (!filenames.contains(fileName)) {
+	  	    		filenames.add(fileName);
+  	    		}
   				}
   			}
   			String[] args = filenames.isEmpty()? null: filenames.toArray(new String[0]);

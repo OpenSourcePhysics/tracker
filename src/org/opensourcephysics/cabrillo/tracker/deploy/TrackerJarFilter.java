@@ -49,7 +49,7 @@ public class TrackerJarFilter implements FilenameFilter {
   		}
 
       String[] intArray = version.split("\\."); //$NON-NLS-1$
-      if (intArray.length<=3) {
+      if (intArray.length<=4) {
       	try {
       		for (int i=0; i<intArray.length; i++) {
       			Integer.parseInt(intArray[i].trim());

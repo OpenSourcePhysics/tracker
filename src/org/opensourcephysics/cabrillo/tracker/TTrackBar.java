@@ -36,6 +36,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
@@ -82,9 +83,39 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		    	      	
-		    	      	TTrack track = trackerPanel.getSelectedTrack();
 		    	      	
+		    	    		ArrayList<String> filenames = new ArrayList<String>();
+		    	  			for (int i = 0; i<frame.getTabCount(); i++) {
+		    	  				TrackerPanel next = frame.getTrackerPanel(i);
+		    	  				if (!next.save()) return;
+		    	  				File datafile = next.getDataFile();
+		    	  				if (datafile==null) {
+		    	  					String path = next.openedFromPath;
+		    	  					if (path!=null) {
+		    	  						datafile = new File(path);
+		    	  					}
+		    	  				}
+		    	  				if (datafile!=null) {
+		    	  	    		String fileName = datafile.getAbsolutePath();
+		    	  	    		if (!filenames.contains(fileName)) {
+			    	  	    		filenames.add(fileName);
+		    	  	    		}
+		    	  				}
+		    	  			}
+
+		    	      	LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
+		    	      	treePanel.refreshSelectedNode();
+		    	      	
+//		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		    	      	
+//		    	      	TTrack track = trackerPanel.getSelectedTrack();
+
+		    	      	
+//		    	      	Tracker.checkedForNewerVersion = false;
+//					  			Tracker.testString = "9.9.9";
+//					  			Tracker.loadCurrentVersion(true, false);
+//					  			Tracker.testString = null;
+
+
 		    	      	
 //			    	    	Map<String, String> map = System.getenv();
 //			    	    	for (String key: map.keySet()) {
@@ -105,7 +136,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		  	    			}
 		    	      }
 		    	    });
-	    				testTimer.setInitialDelay(20);
+	    				testTimer.setInitialDelay(0);
 	    				testTimer.setRepeats(false);
 	    				testTimer.start();
 	    			} // end timer is null

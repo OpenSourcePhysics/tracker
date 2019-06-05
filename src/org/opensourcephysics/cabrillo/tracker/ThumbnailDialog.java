@@ -183,6 +183,15 @@ public class ThumbnailDialog extends JDialog {
   }
   
   /**
+   * Gets the size of the thumbnail image.
+   * 
+   * @return a Dimension
+   */
+  public Dimension getThumbnailSize() {
+    return sizes.get(sizeDropdown.getSelectedItem());
+  }
+  
+  /**
    * Sets the image format (filename extension).
    *
    * @param format "png" or "jpg"
@@ -203,6 +212,14 @@ public class ThumbnailDialog extends JDialog {
    */
   public String getFormat() {
   	return formatNames[formatDropdown.getSelectedIndex()];
+  }
+  
+  @Override
+  public void setVisible(boolean vis) {
+  	super.setVisible(vis);
+  	if (!vis && ExportZipDialog.hasDialog(trackerPanel) && ExportZipDialog.getDialog(trackerPanel).isVisible) {
+  		ExportZipDialog.getDialog(trackerPanel).refreshThumbnailGUI();
+  	}
   }
   
 //_____________________ private constructor and methods ____________________________
