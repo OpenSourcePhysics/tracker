@@ -199,7 +199,7 @@ public class TActions {
       public void actionPerformed(ActionEvent e) {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
-	      	frame.getLibraryBrowser().setVisible(true);
+        	frame.getLibraryBrowser().setVisible(true);
         }
       }
     };

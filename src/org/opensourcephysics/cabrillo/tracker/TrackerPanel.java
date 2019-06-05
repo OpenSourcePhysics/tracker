@@ -943,33 +943,67 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         break;
       }
     }
-    if (pm != null) {
-      ImageCoordSystem coords = getCoords();
-      boolean wasRefFrame = coords instanceof ReferenceFrame;
-      while (coords instanceof ReferenceFrame) {
-        coords = ( (ReferenceFrame) coords).getCoords();
-      }
-      setCoords(new ReferenceFrame(coords, pm));
-      // special case: if pm is a particle model and wasRefFrame is true,
-      // refresh steps of pm after setting new ReferenceFrame
-      if (pm instanceof ParticleModel && wasRefFrame) {
-      	((ParticleModel)pm).lastValidFrame = -1;
-      	((ParticleModel)pm).refreshSteps();
-      }      
-      setSelectedPoint(null);
-      selectedSteps.clear();
-      repaint();
-    }
-    else {
-      ImageCoordSystem coords = getCoords();
-      if (coords instanceof ReferenceFrame) {
-        coords = ( (ReferenceFrame) coords).getCoords();
-        setCoords(coords);
-        setSelectedPoint(null);
-        selectedSteps.clear();
-        repaint();
-      }
-    }
+    final PointMass thePM = pm;
+    Runnable runner = new Runnable() {
+    	public void run() {
+        if (thePM != null) {
+          ImageCoordSystem coords = getCoords();
+          boolean wasRefFrame = coords instanceof ReferenceFrame;
+          while (coords instanceof ReferenceFrame) {
+            coords = ( (ReferenceFrame) coords).getCoords();
+          }
+          setCoords(new ReferenceFrame(coords, thePM));
+          // special case: if pm is a particle model and wasRefFrame is true,
+          // refresh steps of pm after setting new ReferenceFrame
+          if (thePM instanceof ParticleModel && wasRefFrame) {
+          	((ParticleModel)thePM).lastValidFrame = -1;
+          	((ParticleModel)thePM).refreshSteps();
+          }      
+          setSelectedPoint(null);
+          selectedSteps.clear();
+          repaint();
+        }
+        else {
+          ImageCoordSystem coords = getCoords();
+          if (coords instanceof ReferenceFrame) {
+            coords = ( (ReferenceFrame) coords).getCoords();
+            setCoords(coords);
+            setSelectedPoint(null);
+            selectedSteps.clear();
+            repaint();
+          }
+        }
+   		
+    	}
+    };
+    new Thread(runner).start();
+//    if (pm != null) {
+//      ImageCoordSystem coords = getCoords();
+//      boolean wasRefFrame = coords instanceof ReferenceFrame;
+//      while (coords instanceof ReferenceFrame) {
+//        coords = ( (ReferenceFrame) coords).getCoords();
+//      }
+//      setCoords(new ReferenceFrame(coords, pm));
+//      // special case: if pm is a particle model and wasRefFrame is true,
+//      // refresh steps of pm after setting new ReferenceFrame
+//      if (pm instanceof ParticleModel && wasRefFrame) {
+//      	((ParticleModel)pm).lastValidFrame = -1;
+//      	((ParticleModel)pm).refreshSteps();
+//      }      
+//      setSelectedPoint(null);
+//      selectedSteps.clear();
+//      repaint();
+//    }
+//    else {
+//      ImageCoordSystem coords = getCoords();
+//      if (coords instanceof ReferenceFrame) {
+//        coords = ( (ReferenceFrame) coords).getCoords();
+//        setCoords(coords);
+//        setSelectedPoint(null);
+//        selectedSteps.clear();
+//        repaint();
+//      }
+//    }
 
   }
 
@@ -3085,16 +3119,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	ExportVideoDialog.videoExporter.trackerPanel = null;
     	ExportVideoDialog.videoExporter.views.clear();
     }
-    if (ExportZipDialog.zipExporter!=null && ExportZipDialog.zipExporter.trackerPanel==this) {
-    	ExportZipDialog.zipExporter.trackerPanel = null;
-    	ExportZipDialog.zipExporter.badModels.clear();
-    	ExportZipDialog.zipExporter.videoExporter.trackerPanel = null;
-    	ExportZipDialog.zipExporter.videoExporter.views.clear();
-    }
     if (ThumbnailDialog.thumbnailDialog!=null && ThumbnailDialog.thumbnailDialog.trackerPanel==this) {
     	ThumbnailDialog.thumbnailDialog.trackerPanel = null;   	
     }
-    NumberFormatDialog.dispose(this);
+    ExportZipDialog.dispose(this);
+    NumberFormatDialog.dispose(this);    
     filterClasses.clear();
     selectingPanel = null;
     frame = null;

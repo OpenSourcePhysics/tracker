@@ -474,7 +474,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
    * @return the tab count
    */
   public int getTabCount() {
-    return tabbedPane.getComponentCount();
+    return tabbedPane.getTabCount();
   }
 
   /**
@@ -845,8 +845,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       if (trackerPanel != null) {
         // replace menu bar
       	TMenuBar menuBar = getMenuBar(trackerPanel);
-        setJMenuBar(menuBar);
-      	menuBar.refresh();
+      	if (menuBar!=null) {
+	        setJMenuBar(menuBar);
+	      	menuBar.refresh();
+      	}
       	// show hint
         if (Tracker.startupHintShown) {
         	trackerPanel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
@@ -1051,7 +1053,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
           super.setDividerLocation(loc);
         cur = getDividerLocation();
         boolean open =  (1.0 * cur / max) < 0.98;
-        TMenuBar.getMenuBar(trackerPanel).rightPaneItem.setSelected(open);
+        TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+        if (menubar!=null) {
+        	menubar.rightPaneItem.setSelected(open);
+        }
       }
     };
     panes[1] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // plot/table split
@@ -1066,7 +1071,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
           super.setDividerLocation(loc);
         cur = getDividerLocation();
         boolean open =  (1.0 * cur / max) < 0.98;
-        TMenuBar.getMenuBar(trackerPanel).bottomPaneItem.setSelected(open);
+        TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+        if (menubar!=null) {
+        	menubar.bottomPaneItem.setSelected(open);
+        }
       }
     };
     panes[3] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) { // world/html
@@ -1330,9 +1338,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   		trackerPanel.setFontLevel(level);
   	}
   	
-  	if (ExportZipDialog.zipExporter!=null) {
-  		ExportZipDialog.zipExporter.setFontLevel(level);
-  	}
+  	ExportZipDialog.setFontLevels(level);
   	if (ExportVideoDialog.videoExporter!=null) {
   		ExportVideoDialog.videoExporter.setFontLevel(level);
   	}
@@ -1384,8 +1390,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   protected LibraryBrowser getLibraryBrowser() {
     if (libraryBrowser == null) {
     	LibraryComPADRE.desiredOSPType = "Tracker"; //$NON-NLS-1$
-    	JDialog dialog = new JDialog(this, false);
-    	libraryBrowser = LibraryBrowser.getBrowser(dialog);
+//    	JDialog dialog = new JDialog(this, false);
+    	libraryBrowser = LibraryBrowser.getBrowser(null);
+//    	libraryBrowser = LibraryBrowser.getBrowser(dialog);
     	libraryBrowser.addOSPLibrary(LibraryBrowser.TRACKER_LIBRARY);
     	libraryBrowser.addOSPLibrary(LibraryBrowser.SHARED_LIBRARY);
     	libraryBrowser.addComPADRECollection(LibraryComPADRE.TRACKER_SERVER_TREE+LibraryComPADRE.PRIMARY_ONLY);
@@ -1421,7 +1428,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   					accept = accept || lcTarget.endsWith("."+ext); //$NON-NLS-1$
     			}
   				if (accept) {
-		  			libraryBrowser.setVisible(false);
+//		  			libraryBrowser.setVisible(false);
 		        Resource res = ResourceLoader.getResourceZipURLsOK(target);
   					if (res!=null) {
   						ArrayList<String> urlPaths = new ArrayList<String>();
@@ -1449,10 +1456,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	  		}
 	  	});
   		libraryBrowser.setFontLevel(FontSizer.getLevel());
-      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-      int x = (dim.width - dialog.getBounds().width) / 2;
-      int y = (dim.height - dialog.getBounds().height) / 2;
-      dialog.setLocation(x, y);
+//      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+//      int x = (dim.width - dialog.getBounds().width) / 2;
+//      int y = (dim.height - dialog.getBounds().height) / 2;
+//      dialog.setLocation(x, y);
     }
     return libraryBrowser;
   }
@@ -1864,10 +1871,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
         TrackerPanel oldPanel = prevPanel;
         
         // hide exportZipDialog
-        if (ExportZipDialog.zipExporter!=null) {
-        	ExportZipDialog.zipExporter.setVisible(false);
-        	ExportZipDialog.zipExporter.trackerPanel = null;
-        }        
       	if (ExportVideoDialog.videoExporter!=null) {
       		ExportVideoDialog.videoExporter.trackerPanel = null;
       	}
@@ -2003,27 +2006,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
         }
       });
       fileMenu.add(openItem);
-      // open url item
-      JMenuItem openURLItem = new JMenuItem(TrackerRes.getString("TActions.Action.OpenURL")); //$NON-NLS-1$
-      openURLItem.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          Object input = JOptionPane.showInputDialog(TFrame.this, 
-          		TrackerRes.getString("TActions.Dialog.OpenURL.Message") //$NON-NLS-1$
-          		+":                             ", //$NON-NLS-1$
-          		TrackerRes.getString("TActions.Dialog.OpenURL.Title"),   //$NON-NLS-1$
-              JOptionPane.PLAIN_MESSAGE, null, null, null);
-          if(input==null || input.toString().trim().equals("")) { //$NON-NLS-1$
-            return;
-          }
-          Resource res = ResourceLoader.getResource(input.toString().trim());
-          URL url = res.getURL();
-          if (url==null) return;
-          TFrame.this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          TrackerIO.open(url, TFrame.this);
-          TFrame.this.setCursor(Cursor.getDefaultCursor());
-        }
-      });
-      fileMenu.add(openURLItem);
       // open recent menu
       recentMenu = new JMenu();
       fileMenu.add(recentMenu);

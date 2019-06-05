@@ -50,6 +50,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   // static fields
   private static Map<TrackerPanel, TMenuBar> menuBars = new HashMap<TrackerPanel, TMenuBar>();
   private static XMLControl control = new XMLControlElement();
+  private static Set<TrackerPanel> trackerPanels = new HashSet<TrackerPanel>();
 
   // instance fields
   protected TrackerPanel trackerPanel;
@@ -60,7 +61,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   protected JMenu fileMenu;
   protected JMenuItem newTabItem;
   protected JMenuItem openItem;
-  protected JMenuItem openURLItem;
   protected JMenuItem openBrowserItem;
   protected JMenu openRecentMenu;
   protected JMenuItem closeItem;
@@ -192,15 +192,21 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
    * Returns a TMenuBar for the specified trackerPanel.
    *
    * @param  panel the tracker panel
-   * @return a TMenuBar
+   * @return a TMenuBar. May return null during instantiation.
    */
-  public static synchronized TMenuBar getMenuBar(TrackerPanel panel) {
-    TMenuBar bar = menuBars.get(panel);
-    if (bar == null) {
+  public static TMenuBar getMenuBar(TrackerPanel panel) {
+  	TMenuBar bar;
+  	synchronized(menuBars) {
+	    bar = menuBars.get(panel);
+  	}
+    if (bar == null && !trackerPanels.contains(panel)) {
+    	trackerPanels.add(panel);
       bar = new TMenuBar(panel);
-      menuBars.put(panel, bar);
+    	synchronized(menuBars) {
+	      menuBars.put(panel, bar);
+    	}
     }
-    return bar;
+	  return bar;
   }
   
   /**
@@ -209,10 +215,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
    * @param  panel the tracker panel
    * @return a TMenuBar
    */
-  public static synchronized TMenuBar getNewMenuBar(TrackerPanel panel) {
+  public static TMenuBar getNewMenuBar(TrackerPanel panel) {
     TMenuBar bar = new TMenuBar(panel);
-    menuBars.put(panel, bar);
-    return bar;
+  	synchronized(menuBars) {
+	    menuBars.put(panel, bar);
+  	}
+	  return bar;
   }
   
   protected void loadVideoMenu(JMenu vidMenu) {
@@ -223,7 +231,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
    * Clears all menubars. This forces creation of new menus using new locale.
    */
   public static void clear() {
-  	menuBars.clear();
+  	synchronized(menuBars) {
+  		menuBars.clear();
+  	}
   }
   
   /**
@@ -294,8 +304,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       // open item
       openItem = new JMenuItem(actions.get("open")); //$NON-NLS-1$
       openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
-      // open URL item
-      openURLItem = new JMenuItem(actions.get("openURL")); //$NON-NLS-1$
       // open library browser item
       openBrowserItem = new JMenuItem(actions.get("openBrowser")); //$NON-NLS-1$
       // open recent
@@ -319,7 +327,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       // export zip item
       exportZipItem = new JMenuItem(actions.get("saveZip")); //$NON-NLS-1$
       exportZipItem.setText(TrackerRes.getString("TMenuBar.MenuItem.ExportZIP")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
-      exportMenu.add(exportZipItem);
+//      exportMenu.add(exportZipItem);
       // export video item
       exportVideoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.VideoClip")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
       exportVideoItem.addActionListener(new ActionListener() {
@@ -1344,14 +1352,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     final JMenu helpMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Help")); //$NON-NLS-1$
     
     // Tracker help items
-    JMenuItem startItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.GettingStarted")); //$NON-NLS-1$
+    JMenuItem startItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.GettingStarted")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
     startItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-        Container c = helpMenu.getTopLevelAncestor();
-        if (c instanceof TFrame) {
-          TFrame frame = (TFrame) c;
-	        frame.showHelp("gettingstarted", 0); //$NON-NLS-1$
-        }
+    		String quickStartURL = "https://www.youtube.com/watch?v=n4Eqy60yYUY"; //$NON-NLS-1$
+    		OSPDesktop.displayURL(quickStartURL);            	
+//        Container c = helpMenu.getTopLevelAncestor();
+//        if (c instanceof TFrame) {
+//          TFrame frame = (TFrame) c;
+//	        frame.showHelp("gettingstarted", 0); //$NON-NLS-1$
+//        }
       }
     });
     helpMenu.add(startItem);    
@@ -1367,21 +1377,48 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       }
     });
     helpMenu.add(helpItem);
-    JMenuItem translatedHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.TranslatedHelp")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
-    translatedHelpItem.addActionListener(new ActionListener() {
+    JMenuItem onlineHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.OnlineHelp")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    onlineHelpItem.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	String lang = TrackerRes.locale.getLanguage();
       	if ("en".equals(lang)) { //$NON-NLS-1$
       		OSPDesktop.displayURL("https://"+Tracker.trackerWebsite+"/help/frameset.html"); //$NON-NLS-1$ //$NON-NLS-2$
       	}
       	else {
-      		String helpURL = "https://translate.google.com/translate?hl=en&sl=en&tl="+lang //$NON-NLS-1$
-      									+ "&u=http://physlets.org/tracker/help/frameset.html"; //$NON-NLS-1$
-      		OSPDesktop.displayURL(helpURL);      
+		    	String english = Locale.ENGLISH.getDisplayLanguage(TrackerRes.locale);
+		    	String language = TrackerRes.locale.getDisplayLanguage(TrackerRes.locale);
+		    	String message = TrackerRes.getString("TMenuBar.Dialog.Translate.Message1") //$NON-NLS-1$
+		    			+"\n"+TrackerRes.getString("TMenuBar.Dialog.Translate.Message2")+" "+language+"." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+    					+"\n"+TrackerRes.getString("TMenuBar.Dialog.Translate.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
+		    	int response = javax.swing.JOptionPane.showOptionDialog(
+		    			trackerPanel.getTFrame(), 
+		    			message,
+		    			TrackerRes.getString("TMenuBar.Dialog.Translate.Title"), //$NON-NLS-1$ 
+		    			JOptionPane.YES_NO_CANCEL_OPTION, 
+		    			javax.swing.JOptionPane.QUESTION_MESSAGE,
+		    			null, 
+		    			new String[] {english, language, TrackerRes.getString("Dialog.Button.Cancel")},  //$NON-NLS-1$
+		    			language);
+		    	if (response == 1) { // language translation
+	      		String helpURL = "https://translate.google.com/translate?hl=en&sl=en&tl="+lang //$NON-NLS-1$
+								+ "&u=http://physlets.org/tracker/help/frameset.html"; //$NON-NLS-1$
+	      		OSPDesktop.displayURL(helpURL);      
+		    	}
+		    	else if (response == 0) { // english
+	      		OSPDesktop.displayURL("https://"+Tracker.trackerWebsite+"/help/frameset.html"); //$NON-NLS-1$ //$NON-NLS-2$
+		    	}
       	}
       }
     });
-    helpMenu.add(translatedHelpItem);
+    helpMenu.add(onlineHelpItem);
+    JMenuItem discussionHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.ForumHelp")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
+    discussionHelpItem.addActionListener(new ActionListener() {
+      public void actionPerformed(ActionEvent e) {
+    		String helpURL = "https://www.compadre.org/osp/bulletinboard/ForumDetails.cfm?FID=57"; //$NON-NLS-1$
+    		OSPDesktop.displayURL(helpURL);      
+      }
+    });
+    helpMenu.add(discussionHelpItem);
     
     if (Tracker.trackerHome!=null && Tracker.readmeAction!=null) 
     	helpMenu.add(Tracker.readmeAction);
@@ -1713,7 +1750,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             if (fileMenu.getItemCount() > 0)
               fileMenu.addSeparator();
             fileMenu.add(openItem);
-            fileMenu.add(openURLItem);
+//            fileMenu.add(openURLItem);
             TFrame frame = trackerPanel.getTFrame();
             if (frame!=null) {
             	frame.refreshOpenRecentMenu(openRecentMenu);
@@ -1725,7 +1762,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 						if (fileMenu.getItemCount() > 0)
 						   fileMenu.addSeparator();
 						if (trackerPanel.isEnabled("file.open")) fileMenu.add(openBrowserItem); //$NON-NLS-1$
-						if (trackerPanel.isEnabled("file.export")) fileMenu.add(saveZipAsItem); //$NON-NLS-1$
+//						if (trackerPanel.isEnabled("file.export")) fileMenu.add(saveZipAsItem); //$NON-NLS-1$
 					}
 					if (trackerPanel.isEnabled("file.close")) { //$NON-NLS-1$
             if (fileMenu.getItemCount() > 0)
@@ -1741,9 +1778,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
               fileMenu.add(saveItem);
             if (trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
               fileMenu.add(saveAsItem);
-              if (trackerPanel.getVideo()!=null) {
-              	fileMenu.add(saveVideoAsItem);
-              }
+//              if (trackerPanel.getVideo()!=null) {
+//              	fileMenu.add(saveVideoAsItem);
+//              }
+  						fileMenu.add(saveZipAsItem);
               fileMenu.add(saveTabsetAsItem);
             }
           }

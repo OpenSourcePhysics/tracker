@@ -25,6 +25,8 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.FontRenderContext;
@@ -34,6 +36,7 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
@@ -64,6 +67,7 @@ import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.JarTool;
 import org.opensourcephysics.tools.LaunchBuilder;
 import org.opensourcephysics.tools.LibraryResource;
+import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -90,7 +94,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   protected static Color labelColor = new Color(0, 0, 102);
   protected static String preferredExtension = DEFAULT_VIDEO_EXTENSION;
   protected static boolean trimToClip = false;
-  protected static int maxLineLength = 25, minWidth = 300;
+  protected static int maxLineLength = 30, minWidth = 350;
 
   // instance fields
 	protected ExportVideoDialog videoExporter;
@@ -146,6 +150,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     if (dialog == null) {
     	dialog = new ExportZipDialog(panel);
     	zipDialogs.put(panel, dialog);
+    	dialog.setResizable(false);
     	dialog.frame.addPropertyChangeListener("tab", dialog); //$NON-NLS-1$
     	dialog.setFontLevel(FontSizer.getLevel());
     	dialog.control = new XMLControlElement(panel);
@@ -154,13 +159,47 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     	dialog.htmlField.setText(dialog.htmlField.getDefaultText());
     	dialog.htmlField.setForeground(dialog.htmlField.getEmptyForeground());
     	dialog.htmlField.setBackground(Color.white);
-    	dialog.titleField.setText(dialog.titleField.getDefaultText());
-    	dialog.titleField.setForeground(dialog.titleField.getEmptyForeground());
-    	dialog.titleField.setBackground(Color.white);
   		if (panel.openedFromPath!=null) {
   			File htmlFile = new File(panel.openedFromPath);
   			if (TrackerIO.trzFileFilter.accept(htmlFile)) {
   				String baseName = XML.stripExtension(XML.getName(panel.openedFromPath));
+  				
+  				// find "added files" in the TRZ
+  				try {
+						ZipFile zipFile = new ZipFile(panel.openedFromPath);
+						Enumeration zipEntries = zipFile.entries();
+						while (zipEntries.hasMoreElements()) {
+							ZipEntry nextEntry = (ZipEntry)zipEntries.nextElement();
+							// ignore entries pointing to subdirectories other than html
+							String name = XML.forwardSlash(nextEntry.toString());
+							if (name.contains("/")) { //$NON-NLS-1$
+								if (!name.contains("html/") || name.contains("_info.")) { //$NON-NLS-1$ //$NON-NLS-2$
+									continue;
+								}
+							}
+							// ignore thumbnails
+		  				if (name.contains("_thumbnail")) { //$NON-NLS-1$
+								continue;
+		  				}
+							
+							String path = panel.openedFromPath+"!/"+name; //$NON-NLS-1$
+							File file = new File(path);
+							// ignore TRK files
+							if (TrackerIO.trkFileFilter.accept(file)) {
+								continue;
+							}
+							
+		        	if (file!=null && !dialog.addedFiles.contains(file)) {
+		        		dialog.addedFiles.add(file);
+		        	}
+						}
+        		dialog.refreshFileList();
+        		dialog.refreshSupportFilesGUI();
+						zipFile.close();
+					} catch (IOException e) {
+					}
+  				
+  				// refresh fields from HTML
   				String htmlPath = panel.openedFromPath+"!/html/"+baseName+"_info.html"; //$NON-NLS-1$ //$NON-NLS-2$
   				htmlFile = new File(htmlPath);
   				dialog.refreshFieldsFromHTML(htmlFile);
@@ -173,7 +212,9 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   				currentTabTitle = next;
   			}
   		}
-  		dialog.titleField.setText(XML.stripExtension(currentTabTitle));
+  		if ("".equals(dialog.titleField.getText())) { //$NON-NLS-1$
+  			dialog.titleField.setText(XML.stripExtension(currentTabTitle));
+  		}
   		dialog.titleField.requestFocusInWindow();
   		dialog.refreshFormatDropdown();
     }
@@ -333,12 +374,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     titleLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 2));
     titleTitleBox.add(titleLabel);
     titleField = new EntryField(30);
-    titleField.getDocument().addDocumentListener(new DocumentAdapter() {
-      @Override
-    	public void documentChanged(DocumentEvent e) {
-      	refreshSaveButton();
-      }
-    });
     Box space = Box.createHorizontalBox();
     space.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 4));
     space.add(titleField);
@@ -413,7 +448,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     videoPanel = new JPanel(new BorderLayout());
 	  clipCheckbox = new JCheckBox();
 	  clipCheckbox.setSelected(trimToClip);
-	  clipCheckbox.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 6));
+//	  clipCheckbox.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 6));
     clipCheckbox.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
       	refreshVideosGUI();
@@ -828,11 +863,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     JPanel southUpper = new JPanel(new BorderLayout());
     JPanel southLower = new JPanel(new BorderLayout());
     southCenterPanel.add(southUpper, BorderLayout.NORTH);    
-    southCenterPanel.add(southLower, BorderLayout.SOUTH);    
+    southCenterPanel.add(southLower, BorderLayout.CENTER);    
     
     JPanel centerPanel = new JPanel(new BorderLayout());
     centerPanel.add(northCenterPanel, BorderLayout.NORTH);    
-    centerPanel.add(southCenterPanel, BorderLayout.SOUTH);  
+    centerPanel.add(southCenterPanel, BorderLayout.CENTER);  
     
     contentPane.add(titlePanel, BorderLayout.NORTH);
     contentPane.add(centerPanel, BorderLayout.CENTER);
@@ -901,7 +936,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     // buttons
     clipCheckbox.setText(TrackerRes.getString("ZipResourceDialog.Checkbox.TrimVideo")); //$NON-NLS-1$
     helpButton.setText(TrackerRes.getString("Dialog.Button.Help")); //$NON-NLS-1$  
-    saveButton.setText(TrackerRes.getString("ExportZipDialog.Button.SaveZip.Text")); //$NON-NLS-1$
+    saveButton.setText(TrackerRes.getString("ExportZipDialog.Button.SaveZip.Text")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
     closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
     thumbnailButton.setText(TrackerRes.getString("ZipResourceDialog.Button.ThumbnailSettings")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
     showThumbnailCheckbox.setText(TrackerRes.getString("ZipResourceDialog.Checkbox.PreviewThumbnail")); //$NON-NLS-1$
@@ -983,7 +1018,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   	descriptionPane.setEnabled(res==null);
   	
 		if (trackerPanel!=null) {
-	  	refreshSaveButton();
 			refreshDescriptionGUI();
 			refreshTabsGUI();
 			refreshVideosGUI();
@@ -994,19 +1028,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	  }
 		pack();
 		repaint();
-  }
-  
-  /**
-   * Enables/disables the save button.
-   */
-  private void refreshSaveButton() {
-  	// enable saveButton only if at least one tab is selected
-		int selectedTabCount = 0;
-		for (int i = 0; i<tabCheckboxes.size(); i++) {
-			if (tabCheckboxes.get(i).isSelected()) 
-				selectedTabCount++;
-		}
-		saveButton.setEnabled(selectedTabCount>0);
   }
   
   /**
@@ -1064,12 +1085,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     tabsLabel.setText(title+":"); //$NON-NLS-1$
   	// get list of current tab titles and the TrackerPanel tab title
     String currentTabTitle = null;
+    int currentTabNumber = 0;
     ArrayList<String> currentTabs = new ArrayList<String>();
 		for (int i=0; i<frame.getTabCount(); i++) {
 			String next = frame.getTabTitle(i);
 			currentTabs.add(next);
 			if (frame.getTrackerPanel(i)==trackerPanel) {
 				currentTabTitle = next;
+				currentTabNumber = i;
 			}
 		}
 		
@@ -1155,28 +1178,37 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     tabsPanel.add(tabsTitleBox, BorderLayout.NORTH);
     
     Box stack = Box.createVerticalBox();
-    Box box = null;
     int selectedCount = 0;
 		for (int i=0; i<frame.getTabCount(); i++) {
-			if (i%3==0) {
-				box = Box.createHorizontalBox();
-				box.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 0));
-  			stack.add(box);
-			}
-			JCheckBox next = tabCheckboxes.get(i);
+			Box box = Box.createHorizontalBox();
+			box.setBorder(BorderFactory.createEmptyBorder(2, 4, 0, 4));
+			stack.add(box);
+			JLabel label = new JLabel(currentTabs.get(i));
+			label.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 4));
+			JCheckBox checkbox = tabCheckboxes.get(i);
 			// disable the checkbox of the current tab--always selected
-			next.setEnabled(!next.getText().equals(currentTabTitle+equalsign));
-			next.setText(next.isSelected()? currentTabs.get(i)+equalsign: currentTabs.get(i));
-			box.add(next);
-			if (next.isSelected()) {
+			checkbox.setEnabled(i!=currentTabNumber);
+			EntryField field = tabTitleFields.get(i);
+			field.setEnabled(checkbox.isSelected());
+			
+
+			box.add(checkbox);
+			box.add(label);
+			if (checkbox.isSelected()) {
+				label.setText(label.getText()+equalsign);
+				box.add(field);
+			}
+			else {
+				box.add(Box.createHorizontalGlue());
+			}
+			
+			if (checkbox.isSelected()) {
 				selectedCount++;
-				box.add(tabTitleFields.get(i));
 				String tabName = tabTitleFields.get(i).getText().trim();
 				if (tabName.length()==0) {
 					tabName = currentTabs.get(i);
 				}
 			}
-			box.add(Box.createHorizontalStrut(4));
  		}
 		
 		String strippedTabTitle = XML.stripExtension(currentTabTitle);
@@ -1544,6 +1576,9 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
         	  	  			javax.swing.JOptionPane.ERROR_MESSAGE);
         	  	  	return;
         		    }
+    		    		if (!zipList.contains(target)) {
+    		    			zipList.add(target);
+    		    		}        		    
             	}
           	}
           }
@@ -1639,17 +1674,19 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   private void addFiles(ArrayList<File> zipList) {
   	
   	// add "added files"
+  	// some may be in zip or TRZ files
   	for (File file: addedFiles) {
-  		String next = file.getAbsolutePath();
-  		boolean isHTML = XML.getExtension(next).startsWith("htm"); //$NON-NLS-1$
+  		String path = file.getAbsolutePath();  		
+  		boolean isHTML = XML.getExtension(path).startsWith("htm"); //$NON-NLS-1$
   		if (isHTML) {
-  			copyAndAddHTMLPage(next, zipList);
+  			copyAndAddHTMLPage(path, zipList);
   		}
   		else {
     		String dir = getTempDirectory();
-    		File targetFile = new File(dir, XML.getName(next));
-    		VideoIO.copyFile(file, targetFile);
-  			zipList.add(targetFile);
+    		File targetFile = new File(dir, XML.getName(path));
+    		if (copyOrExtractFile(path, targetFile)) {
+    			zipList.add(targetFile);
+    		}
   		}
   	}
   	
@@ -2371,6 +2408,16 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
           		// open the TRZ in the Library Browser
     	      	frame.getLibraryBrowser().open(path);
     	      	frame.getLibraryBrowser().setVisible(true);
+    	        Timer timer = new Timer(1000, new ActionListener() {
+    	          public void actionPerformed(ActionEvent e) {
+    	          	LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
+    	          	if (treePanel!=null) {
+    		    				treePanel.refreshSelectedNode();
+    	          	}
+    	          }
+    	        });
+    	        timer.setRepeats(false);
+    	        timer.start();
           	}
           };
           SwingUtilities.invokeLater(runner);
@@ -2392,10 +2439,10 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     chooser.setAcceptAllFileFilterUsed(false);
     chooser.addChoosableFileFilter(TrackerIO.trzFileFilter);
     chooser.setFileFilter(TrackerIO.trzFileFilter);
-    String title = titleField.getText().trim().replaceAll(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
-    if (!"".equals(title)) { //$NON-NLS-1$
-    	chooser.setSelectedFile(new File(title+".trz")); //$NON-NLS-1$
-    }
+//    String title = titleField.getText().trim().replaceAll(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
+//    if (!"".equals(title)) { //$NON-NLS-1$
+//    	chooser.setSelectedFile(new File(title+".trz")); //$NON-NLS-1$
+//    }
     chooser.setAccessory(null);
     chooser.setMultiSelectionEnabled(false);
     int result = chooser.showSaveDialog(null);
@@ -2668,6 +2715,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   		public void documentChanged(DocumentEvent e) {
       	JTextComponent field = (JTextComponent)e.getDocument().getProperty("parent"); //$NON-NLS-1$
       	field.setBackground(Color.yellow);
+    		field.setForeground(defaultForeground);
       }
   	};
   	
@@ -2678,7 +2726,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
       		field.setText(null);
 	    		field.setForeground(defaultForeground);
       	}
-      	field.selectAll();
+//      	field.selectAll();
 	      field.setBackground(Color.white);
       }
       public void focusLost(FocusEvent e) {
@@ -2700,6 +2748,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
       public void actionPerformed(ActionEvent e) {
       	EntryField field = (EntryField)e.getSource();
         field.setBackground(Color.white);
+    		field.setForeground(defaultForeground);
       }
     };
     
