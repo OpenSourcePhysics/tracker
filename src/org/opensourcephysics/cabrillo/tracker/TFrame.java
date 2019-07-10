@@ -53,7 +53,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
   // static fields
   protected static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
-  protected static String helpPathWeb = "http://physlets.org/tracker/help/"; //$NON-NLS-1$
+  protected static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
   static Color yellow = new Color(255, 255, 105);
 
   // instance fields

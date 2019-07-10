@@ -1390,8 +1390,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		    	String message = TrackerRes.getString("TMenuBar.Dialog.Translate.Message1") //$NON-NLS-1$
 		    			+"\n"+TrackerRes.getString("TMenuBar.Dialog.Translate.Message2")+" "+language+"." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
     					+"\n"+TrackerRes.getString("TMenuBar.Dialog.Translate.Message3"); //$NON-NLS-1$ //$NON-NLS-2$
+		    	TFrame frame = trackerPanel==null? null: trackerPanel.getTFrame();
 		    	int response = javax.swing.JOptionPane.showOptionDialog(
-		    			trackerPanel.getTFrame(), 
+		    			frame, 
 		    			message,
 		    			TrackerRes.getString("TMenuBar.Dialog.Translate.Title"), //$NON-NLS-1$ 
 		    			JOptionPane.YES_NO_CANCEL_OPTION, 
@@ -1401,7 +1402,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		    			language);
 		    	if (response == 1) { // language translation
 	      		String helpURL = "https://translate.google.com/translate?hl=en&sl=en&tl="+lang //$NON-NLS-1$
-								+ "&u=http://physlets.org/tracker/help/frameset.html"; //$NON-NLS-1$
+								+ "&u=https://physlets.org/tracker/help/frameset.html"; //$NON-NLS-1$
 	      		OSPDesktop.displayURL(helpURL);      
 		    	}
 		    	else if (response == 0) { // english
