@@ -649,7 +649,7 @@ public class TrackerIO extends VideoIO {
   		return;
   	}
   	frame.loadedFiles.add(nonURIPath);
-  	if (!path.startsWith("http:")) //$NON-NLS-1$
+  	if (!path.startsWith("http")) //$NON-NLS-1$
 			path = nonURIPath;
 
   	// create progress monitor  	
@@ -666,7 +666,7 @@ public class TrackerIO extends VideoIO {
     if(videoFileFilter.accept(testFile)) { 
     	OSPLog.finest("opening video path "+path); //$NON-NLS-1$
 			// download web videos to the OSP cache
-			if (path.startsWith("http:")) { //$NON-NLS-1$
+			if (path.startsWith("http")) { //$NON-NLS-1$
   			String name = XML.getName(path);
   			name = ResourceLoader.getNonURIPath(name);
   			File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
@@ -763,7 +763,7 @@ public class TrackerIO extends VideoIO {
     		monitorDialog.stop();
   			String name = XML.getName(ResourceLoader.getNonURIPath(path));
   			// download web files to OSP cache
-  			boolean isWebPath = path.startsWith("http:/"); //$NON-NLS-1$
+  			boolean isWebPath = path.startsWith("http"); //$NON-NLS-1$
   			if (isWebPath) {
 					File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
 					if (localFile!=null) {

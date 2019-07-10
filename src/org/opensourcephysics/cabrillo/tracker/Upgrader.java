@@ -77,7 +77,7 @@ public class Upgrader {
 		int responseCode = 0; // code 200 = "OK"
 		// look for upgrade tracker.jar
  		final String jarFileName = "tracker-"+Tracker.newerVersion+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
-		final String upgradeURL = ResourceLoader.getString("http://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
+		final String upgradeURL = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
 		if (upgradeURL!=null && Tracker.trackerHome!=null) {
   		String upgradeFile = upgradeURL.trim()+jarFileName;
   		try {
@@ -112,7 +112,7 @@ public class Upgrader {
 	private void upgradeWindows(final boolean[] failed) {
 		// check for upgrade installer
  		final String jarFileName = "tracker-"+Tracker.newerVersion+".jar"; //$NON-NLS-1$ //$NON-NLS-2$
-		final String upgradeURL = ResourceLoader.getString("http://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
+		final String upgradeURL = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
 		final String upgradeInstallerName = "TrackerUpgrade-"+Tracker.newerVersion+"-windows-installer.exe"; //$NON-NLS-1$ //$NON-NLS-2$
 		final String upgradeInstallerURL = upgradeURL.trim()+upgradeInstallerName;
 		int responseCode = 0;
@@ -305,7 +305,7 @@ public class Upgrader {
 	
 	private void upgradeOSX(final boolean[] failed) {
 		// see if a TrackerUpgrade zip is available
-		final String upgradeURL = ResourceLoader.getString("http://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
+		final String upgradeURL = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
 		final String zipFileName = "TrackerUpgrade-"+Tracker.newerVersion+"-osx-installer.zip"; //$NON-NLS-1$ //$NON-NLS-2$
 		final String zipURL = upgradeURL.trim()+zipFileName;
 		int responseCode = 0;
@@ -424,7 +424,7 @@ public class Upgrader {
 	}
 	
 	private void upgradeLinux(final boolean[] failed) {
-		final String upgradeURL = ResourceLoader.getString("http://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
+		final String upgradeURL = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
 		// see if a TrackerUpgrade file is available
 		int bitness = OSPRuntime.getVMBitness();
 		// see if a TrackerUpgrade zip is available

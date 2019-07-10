@@ -2329,7 +2329,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	  	
 	  	// if local stylesheet is found, copy it
 	  	String css = ResourceLoader.getStyleSheetFromHTMLCode(html);
-	  	if (css!=null && !css.startsWith("http:")) { //$NON-NLS-1$
+	  	if (css!=null && !css.startsWith("http")) { //$NON-NLS-1$
 	  		res = ResourceLoader.getResource(XML.getResolvedPath(css, htmlBasePath));
 	  		if (res!=null) {
 	  			// copy css file into HTMLTarget directory

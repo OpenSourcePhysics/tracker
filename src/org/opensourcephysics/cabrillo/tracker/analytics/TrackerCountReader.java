@@ -2,7 +2,7 @@
  * Open Source Physics software is free software as described near the bottom of this code file.
  *
  * For additional information and documentation on Open Source Physics please see:
- * <http://www.opensourcephysics.org/>
+ * <https://www.compadre.org/osp/>
  */
 
 package org.opensourcephysics.cabrillo.tracker.analytics;
@@ -43,11 +43,11 @@ public class TrackerCountReader extends JFrame {
 	private String downloadListFile = "list__list"; //$NON-NLS-1$
 	private String launchClearPage = "clear_"; //$NON-NLS-1$
 	private String downloadClearFile = "clear__clear"; //$NON-NLS-1$
-	private String launchPHPPath = "http://physlets.org/tracker/counter/counter.php?page="; //$NON-NLS-1$
-	private String downloadPHPPath = "http://physlets.org/tracker/installers/download.php?file="; //$NON-NLS-1$
+	private String launchPHPPath = "https://physlets.org/tracker/counter/counter.php?page="; //$NON-NLS-1$
+	private String downloadPHPPath = "https://physlets.org/tracker/installers/download.php?file="; //$NON-NLS-1$
 	private String[] actions = {"read launch counts", "read downloads", "version", "list launch log failures", "list download failures",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"clear launch log failures", "clear download failures", "test launch log", "test downloads"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-	private String[] versions = {"all", "5.0.7", "5.0.6", "5.0.5", "5.0.4", "5.0.3", "5.0.2",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$
+	private String[] versions = {"all", "5.1.0", "5.0.7", "5.0.6", "5.0.5", "5.0.4", "5.0.3", "5.0.2",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$ //$NON-NLS-7$ //$NON-NLS-8$
 			"5.0.1", "5.0.0", "4.11.0", "4.10.0", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			"4.9.8", "4.97", "4.96", "4.95", "4.94",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ 
 			"4.93", "4.92", "4.91", "4.90"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -337,6 +337,6 @@ public class TrackerCountReader extends JFrame {
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston MA 02111-1307 USA
  * or view the license online at http://www.gnu.org/copyleft/gpl.html
  *
- * Copyright (c) 2018  The Open Source Physics project
- *                     http://www.opensourcephysics.org
+ * Copyright (c) 2019  The Open Source Physics project
+ *                     https://www.compadre.org/osp
  */
