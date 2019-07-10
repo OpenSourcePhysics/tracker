@@ -3449,7 +3449,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	    String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
 	    // if ver is null then must be an older version
 	    if (fileVersion!=null) {
-	    	int result = Tracker.compareVersions(fileVersion, Tracker.VERSION);
+	  		int result = 0;
+	  		try {
+	  			result = Tracker.compareVersions(fileVersion, Tracker.VERSION);
+	  		} catch (Exception e) {
+	  		}
 	    	if (result>0) {  // file is newer version than Tracker
 	    		JOptionPane.showMessageDialog(trackerPanel, 
 	    				TrackerRes.getString("TrackerPanel.Dialog.Version.Message1") //$NON-NLS-1$

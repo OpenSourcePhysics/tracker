@@ -67,7 +67,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.1.0"; //$NON-NLS-1$
+  public static final String VERSION = "5.1.1"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2019 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -126,7 +126,7 @@ public class Tracker {
   static JFrame splash;
   public static Icon trackerLogoIcon, ospLogoIcon;
   static JProgressBar progressBar;
-  static String counterPath = "http://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
+  static String counterPath = "https://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
   static String latestVersion; // last version for which user has been informed
   static String newerVersion; // new version available if non-null
   static boolean checkedForNewerVersion = false; // true if checked for new version
@@ -640,8 +640,16 @@ public class Tracker {
     if (v2.length==3 && v2[2].length()>2) {
     	v2[2] = v2[2].substring(0, 1);
     }
+    
+    // verify that both versions can be parsed to integers
+    for (int i=0; i<v1.length; i++) {
+      Integer.parseInt(v1[i]);
+    }
+    for (int i=0; i<v2.length; i++) {
+      Integer.parseInt(v2[i]);
+    }
 
-  	if (v2.length>v1.length) {
+    if (v2.length>v1.length) {
   		// v1 is older version, v2 is newer
   		return -1;
   	}
@@ -679,7 +687,7 @@ public class Tracker {
         + "https://"+Tracker.trackerWebsite + newline + newline //$NON-NLS-1$
         + TrackerRes.getString("Tracker.About.ProjectOf") + newline //$NON-NLS-1$
         + "Open Source Physics" + newline //$NON-NLS-1$
-        + "www.opensourcephysics.org" + newline; //$NON-NLS-1$
+        + "www.compadre.org/osp" + newline; //$NON-NLS-1$
     String translator = TrackerRes.getString("Tracker.About.Translator"); //$NON-NLS-1$
     if (!translator.equals("")) { //$NON-NLS-1$
     	aboutString += newline+TrackerRes.getString("Tracker.About.TranslationBy") //$NON-NLS-1$
@@ -1295,7 +1303,7 @@ public class Tracker {
    * @param logToFile true to log in to the PHP counter 
    */
   protected static void loadCurrentVersion(boolean ignoreInterval, boolean logToFile) {  	
-		if (!ResourceLoader.isURLAvailable("http://www.opensourcephysics.org")) { //$NON-NLS-1$
+		if (!ResourceLoader.isURLAvailable("https://www.compadre.org/osp")) { //$NON-NLS-1$
 			return;
 		}
   	if (checkedForNewerVersion) return;
@@ -1327,7 +1335,11 @@ public class Tracker {
 		if (testOn && testString!=null) {
 			newVersion = testString;			
 		}
-		int result = compareVersions(newVersion, VERSION);
+		int result = 0;
+		try {
+			result = compareVersions(newVersion, VERSION);
+		} catch (Exception e) {
+		}
 		if (result>0) { // newer version available
 			newerVersion = newVersion;
 			TFrame tFrame = null;
@@ -1345,7 +1357,11 @@ public class Tracker {
 	    // show dialog if this is a first-time-seen upgrade version
 //	    if (testOn) latestVersion = null; // for testing only
 	    String testVersion = latestVersion==null? VERSION: latestVersion;
-			result = compareVersions(newVersion, testVersion);
+			result = 0;
+			try {
+				result = compareVersions(newVersion, testVersion);
+			} catch (Exception e) {
+			}
 	    if (result==1 && tFrame!=null) {
   			Object[] options = new Object[] {
   					TrackerRes.getString("Tracker.Dialog.NewVersion.Button.Upgrade"),    //$NON-NLS-1$
