@@ -50,7 +50,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
   // static fields
   private static Map<TrackerPanel, TMenuBar> menuBars = new HashMap<TrackerPanel, TMenuBar>();
   private static XMLControl control = new XMLControlElement();
-  private static Set<TrackerPanel> trackerPanels = new HashSet<TrackerPanel>();
 
   // instance fields
   protected TrackerPanel trackerPanel;
@@ -196,12 +195,13 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
    */
   public static TMenuBar getMenuBar(TrackerPanel panel) {
   	TMenuBar bar;
+  	boolean exists = false;
   	synchronized(menuBars) {
 	    bar = menuBars.get(panel);
+	    exists = menuBars.keySet().contains(panel);
   	}
-    if (bar == null && !trackerPanels.contains(panel)) {
-    	trackerPanels.add(panel);
-      bar = new TMenuBar(panel);
+    if (bar == null && !exists) {
+      bar = new TMenuBar(panel); // this can be slow
     	synchronized(menuBars) {
 	      menuBars.put(panel, bar);
     	}
