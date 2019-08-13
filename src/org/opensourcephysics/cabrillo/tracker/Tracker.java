@@ -1228,7 +1228,7 @@ public class Tracker {
     // set the default decimal separator
   	char separator = new DecimalFormat().getDecimalFormatSymbols().getDecimalSeparator();
   	// deal with special case pt_PT
-  	if (localeName.equals("pt_PT")) { //$NON-NLS-1$
+  	if ("pt_PT".equals(localeName)) { //$NON-NLS-1$
   		separator = ',';
   	}
     OSPRuntime.setDefaultDecimalSeparator(separator);
