@@ -67,7 +67,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.1.1"; //$NON-NLS-1$
+  public static final String VERSION = "5.1.2"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2019 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -240,6 +240,7 @@ public class Tracker {
 			new Locale("sv"), // swedish //$NON-NLS-1$
 			new Locale("th", "TH"), // Thailand thai //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("tr"), // turkish //$NON-NLS-1$
+//			new Locale("uk"), // ukrainian //$NON-NLS-1$
 			new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
 			Locale.CHINA, // simplified chinese
 			Locale.TAIWAN}; // traditional chinese
@@ -1225,8 +1226,12 @@ public class Tracker {
     	}
     }
     // set the default decimal separator
-    OSPRuntime.setDefaultDecimalSeparator(
-    		new DecimalFormat().getDecimalFormatSymbols().getDecimalSeparator());
+  	char separator = new DecimalFormat().getDecimalFormatSymbols().getDecimalSeparator();
+  	// deal with special case pt_PT
+  	if (localeName.equals("pt_PT")) { //$NON-NLS-1$
+  		separator = ',';
+  	}
+    OSPRuntime.setDefaultDecimalSeparator(separator);
   }
 
   /**
@@ -1303,7 +1308,7 @@ public class Tracker {
    * @param logToFile true to log in to the PHP counter 
    */
   protected static void loadCurrentVersion(boolean ignoreInterval, boolean logToFile) {  	
-		if (!ResourceLoader.isURLAvailable("https://www.compadre.org/osp")) { //$NON-NLS-1$
+		if (!ResourceLoader.isURLAvailable(ResourceLoader.TRACKER_TEST_URL)) {
 			return;
 		}
   	if (checkedForNewerVersion) return;
