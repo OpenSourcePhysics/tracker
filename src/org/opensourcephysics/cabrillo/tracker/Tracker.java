@@ -67,8 +67,8 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.1.2"; //$NON-NLS-1$
-  public static final String COPYRIGHT = "Copyright (c) 2019 Douglas Brown"; //$NON-NLS-1$
+  public static final String VERSION = "5.1.3"; //$NON-NLS-1$
+  public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
