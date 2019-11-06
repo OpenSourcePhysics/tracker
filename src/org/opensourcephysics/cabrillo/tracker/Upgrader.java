@@ -27,10 +27,11 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Desktop;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -306,16 +307,16 @@ public class Upgrader {
 	private void upgradeOSX(final boolean[] failed) {
 		// see if a TrackerUpgrade zip is available
 		final String upgradeURL = ResourceLoader.getString("https://physlets.org/tracker/upgradeURL.txt"); //$NON-NLS-1$
-		final String zipFileName = "TrackerUpgrade-"+Tracker.newerVersion+"-osx-installer.zip"; //$NON-NLS-1$ //$NON-NLS-2$
-		final String zipURL = upgradeURL.trim()+zipFileName;
+		final String dmgFileName = "TrackerUpgrade-"+Tracker.newerVersion+"-osx-installer.dmg"; //$NON-NLS-1$ //$NON-NLS-2$
+		final String dmgURL = upgradeURL.trim()+dmgFileName;
 		int responseCode = 0;
 		try {
-	    URL url = new URL(zipURL);
+	    URL url = new URL(dmgURL);
 	    HttpURLConnection huc = (HttpURLConnection)url.openConnection();
 	    responseCode = huc.getResponseCode();
   	} catch (Exception ex) {
   	}
-		if (responseCode==200) { // upgrade installer exists
+		if (responseCode==200)  { // upgrade installer exists
   		File downloadDir = OSPRuntime.getDownloadDir();
   		// let user choose
   		downloadDir = chooseDownloadDirectory(frame, downloadDir);
@@ -337,55 +338,79 @@ public class Upgrader {
 			}
 			else {
 				final File downloads = downloadDir;
-				// download, unzip and run installer in separate thread
+				// download, mount dmg and run installer in separate thread
     		Runnable runner = new Runnable() {
     			public void run() {
+  	    		File dmgFile = new File(downloads, dmgFileName);
     				String appName = "TrackerUpgrade-"+Tracker.newerVersion+"-osx-installer.app"; //$NON-NLS-1$ //$NON-NLS-2$
   					// show relaunching dialog during download
     				downloadLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Upgrade.Text") //$NON-NLS-1$
-    						+" "+downloads.getPath()+"/"+appName+".")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+    						+" "+dmgFile.getPath()+".")); //$NON-NLS-1$ //$NON-NLS-2$
     				relaunchLabel.setText(""); //$NON-NLS-1$
     				upgradeDialog.pack();
     				// center on TFrame
     		    upgradeDialog.setLocationRelativeTo(frame);
     				upgradeDialog.setVisible(true);
     				
-    				// download zip file
-  	    		File zipFile = new File(downloads, zipFileName);
-  	    		zipFile = ResourceLoader.download(zipURL, zipFile, true);
-  	    		if (zipFile!=null && zipFile.exists()) {
-  	    			// use ditto to unzip
-  	    			String path = zipFile.getPath();
+    				// download dmg file
+  	    		dmgFile = ResourceLoader.download(dmgURL, dmgFile, true);
+  	    		if (dmgFile!=null && dmgFile.exists()) {
+  	    			// use hdiutil to mount
+  	    			String path = dmgFile.getPath();
   	    			ArrayList<String> cmd = new ArrayList<String>();
-    	    		cmd.add("ditto"); //$NON-NLS-1$
-    	    		cmd.add("-x"); //$NON-NLS-1$
-    	    		cmd.add("-k"); //$NON-NLS-1$
-    	    		cmd.add("-rsrcFork"); //$NON-NLS-1$
+    	    		cmd.add("hdiutil"); //$NON-NLS-1$
+    	    		cmd.add("attach"); //$NON-NLS-1$
+    	    		cmd.add("-noverify"); //$NON-NLS-1$
+    	    		cmd.add("-autoopen"); //$NON-NLS-1$
     	    		cmd.add(path);
-    	    		cmd.add(downloads.getPath());			  	  	    			
       				try {
 	    	    		ProcessBuilder builder = new ProcessBuilder(cmd);
 								Process p = builder.start();
-      					// wait for process to finish, then delete zip file
-      	        p.waitFor();		
-      	        zipFile.delete();
-      	        // upgrade installer should now be unzipped      	        
+								// read output of the process
+								BufferedReader reader = 
+		                new BufferedReader(new InputStreamReader(p.getInputStream()));
+								StringBuilder blder = new StringBuilder();
+								String line = null;
+								while ( (line = reader.readLine()) != null) {
+									blder.append(line);
+								}
+								String output = blder.toString(); // output is  /dev node, tab, mount point
+								String[] chunks = output.split("\t"); //$NON-NLS-1$
+								// wait for process to finish
+      	        p.waitFor();
+      	        
+     	        //      	        dmgFile.delete();
+      	        // upgrade installer dmg should now be mounted      	        
         				closeUpgradeDialog();
-      	        File appFile = new File(downloads, appName);
-  	    				// get OK to run installer
-		          	int ans = JOptionPane.showConfirmDialog(frame, 
-		          			TrackerRes.getString("Upgrader.Dialog.Downloaded.Message1")+" "+appFile.getPath()+"." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		          			+XML.NEW_LINE+TrackerRes.getString("Upgrader.Dialog.Downloaded.Message2")+XML.NEW_LINE,  //$NON-NLS-1$
-		          			TrackerRes.getString("TTrackBar.Dialog.Download.Title"),  //$NON-NLS-1$
-		          			JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
-		          	if (ans!=JOptionPane.OK_OPTION) {
-		          		return;
-		          	}
+        				
+  	  	    		if (chunks.length>1) {
+  	  	    			String volume = chunks[chunks.length-1];
+  	  	    			File installer = new File(volume, appName);
+  	  	    			
+      	        
+	  	    				// get OK to run installer
+			          	int ans = JOptionPane.showConfirmDialog(frame, 
+			          			TrackerRes.getString("Upgrader.Dialog.Downloaded.Message1")+" "+installer.getCanonicalPath()+"." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			          			+XML.NEW_LINE+TrackerRes.getString("Upgrader.Dialog.Downloaded.Message2")+XML.NEW_LINE,  //$NON-NLS-1$
+			          			TrackerRes.getString("TTrackBar.Dialog.Download.Title"),  //$NON-NLS-1$
+			          			JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
+			          	if (ans!=JOptionPane.OK_OPTION) {
+			          		return;
+			          	}
 	
-      	        // run upgrade installer
-  	  	    		File installer = new File(downloads, appName);
-  	  	    		if (installer!=null && installer.exists()) {
-		    	    		Desktop.getDesktop().open(new File(installer.getPath()));
+			          	// run upgrade installer
+		  	    			cmd = new ArrayList<String>();
+		    	    		cmd.add("open"); //$NON-NLS-1$
+		    	    		cmd.add(installer.getCanonicalPath());
+									try {
+										builder = new ProcessBuilder(cmd);
+										p = builder.start();
+									} catch (Exception ex) {
+			      				OSPLog.warning("exception: "+ex); //$NON-NLS-1$
+				  	    		failed[0] = true;	  	    			
+									}
+		      	      p.waitFor();
+		      	        
 		    	    		// exit Tracker
 					    		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 					    		if (trackerPanel!=null) {
@@ -395,9 +420,10 @@ public class Upgrader {
 					    		else {
 					    			System.exit(0);
 					    		}
+  	  	    		
   	  	    		}
 		  	    		else {
-		      				OSPLog.warning("failed to unzip upgrade installer"); //$NON-NLS-1$
+		      				OSPLog.warning("failed to mount upgrade installer"); //$NON-NLS-1$
 			  	    		failed[0] = true;	  	    			
 		  	    		}
 							} catch (Exception ex) {
@@ -406,7 +432,7 @@ public class Upgrader {
 							}
   	    		}	  	  	    		
   	    		else {
-      				OSPLog.warning("failed to download zipped upgrade installer"); //$NON-NLS-1$
+      				OSPLog.warning("failed to download upgrade installer"); //$NON-NLS-1$
 	  	    		failed[0] = true;	  	    			
   	    		} 	  	    			
       			if (failed[0]) {
@@ -421,6 +447,10 @@ public class Upgrader {
     		new Thread(runner).start();
 			}
 		}
+		else {
+			OSPLog.warning("no upgrade installer found on server"); //$NON-NLS-1$
+			failed[0] = true;
+		}	  	    		
 	}
 	
 	private void upgradeLinux(final boolean[] failed) {
@@ -553,9 +583,11 @@ public class Upgrader {
 	}
 	
 	private void closeUpgradeDialog() {
-		upgradeDialog.setVisible(false);
-		upgradeDialog.dispose();
-		upgradeDialog = null;
+		if (upgradeDialog!=null) {
+			upgradeDialog.setVisible(false);
+			upgradeDialog.dispose();
+			upgradeDialog = null;
+		}
 	}
 	
   /**

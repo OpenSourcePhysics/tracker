@@ -49,6 +49,7 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.JREFinder;
+import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
@@ -183,7 +184,7 @@ public class TrackerStarter {
 
 	/**
 	 * Launches a new instance of Tracker.
-	 * @param args array of filenames
+	 * @param args array of filenames. The first arg may be a preferred tracker.jar.
 	 */
 	public static void launchTracker(String[] args) {
 		if (launching) return;
@@ -200,7 +201,7 @@ public class TrackerStarter {
 			}
 		}
 		logMessage("launching with main arguments: " + argString); //$NON-NLS-1$
-		String jarPath = null;
+		
 
 		// find Tracker home
 		try {
@@ -225,6 +226,7 @@ public class TrackerStarter {
 		loadPreferences();
 
 		// determine which tracker jar to launch
+		String jarPath = null;		
 		try {
 			jarPath = getTrackerJarPath();
 		} catch (Exception ex) {
@@ -577,19 +579,40 @@ public class TrackerStarter {
 		if (!prefsXMLControl.failedToRead()) {
 			logMessage("loading starter preferences from: " + prefsPath); //$NON-NLS-1$
 			
+			String jar = null; // preferred jar name to be determined
+			
+			// load a temp prefs file if any
+			File tempFile = OSPRuntime.getDownloadDir();
+			tempFile = new File(tempFile, "tracker_prefs.temp"); //$NON-NLS-1$
+			Resource res = ResourceLoader.getResource(tempFile.getPath());
+			if (res!=null) {
+				trackerJarPath = res.getString().trim();
+				jar = XML.getName(trackerJarPath);
+	    	System.setProperty(TrackerStarter.TRACKER_NEW_VERSION, trackerJarPath);
+				logMessage("temporary preference: " + trackerJarPath); //$NON-NLS-1$ 
+				tempFile.delete();
+				if (!tempFile.exists()) {
+					logMessage("deleted " + tempFile.getPath()); //$NON-NLS-1$ 
+				}
+				else {
+					logMessage("unable to delete " + tempFile.getPath()); //$NON-NLS-1$ 
+				}
+			}
+						
 			// preferred tracker jar
-			String jar = null;
 			String systemProperty = System.getProperty(PREFERRED_TRACKER_JAR);
-			if (systemProperty!=null) {
+
+			if (jar==null && systemProperty!=null) {
 				loaded = true;
 				trackerJarPath = systemProperty;
 				jar = XML.getName(trackerJarPath);
 				logMessage("system property "+PREFERRED_TRACKER_JAR+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
 			}
-			else if (prefsXMLControl.getPropertyNames().contains("tracker_jar")) { //$NON-NLS-1$
+			else if (jar==null && prefsXMLControl.getPropertyNames().contains("tracker_jar")) { //$NON-NLS-1$
 				loaded = true;
 				jar = prefsXMLControl.getString("tracker_jar"); //$NON-NLS-1$
 			}
+
 			if (jar!=null && !jar.equals("tracker.jar")) { //$NON-NLS-1$
 				int dot = jar.indexOf(".jar"); //$NON-NLS-1$
 				String ver = jar.substring(8, dot);
@@ -606,6 +629,7 @@ public class TrackerStarter {
 					logMessage("version number not valid: " + ver); //$NON-NLS-1$
 				}
 			}
+
 
 			// preferred java vm
 			preferredVM = null;
@@ -639,6 +663,7 @@ public class TrackerStarter {
 					logMessage("no preferred or bundled java VM, using default"); //$NON-NLS-1$
 				}
 			}
+
 
 			// preferred executables to run prior to starting Tracker
 			if (prefsXMLControl.getPropertyNames().contains("run")) { //$NON-NLS-1$
@@ -691,6 +716,7 @@ public class TrackerStarter {
 				logMessage("using default memory size: " + preferredMemorySize + " MB"); //$NON-NLS-1$ //$NON-NLS-2$				
 			}
 			
+
 			if (!loaded)
 				logMessage("no starter preferences found in " + prefsPath); //$NON-NLS-1$      		
 		}
