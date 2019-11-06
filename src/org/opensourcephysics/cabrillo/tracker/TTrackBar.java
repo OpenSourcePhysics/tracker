@@ -36,7 +36,6 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
@@ -84,37 +83,14 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
 		    	      	
-		    	    		ArrayList<String> filenames = new ArrayList<String>();
-		    	  			for (int i = 0; i<frame.getTabCount(); i++) {
-		    	  				TrackerPanel next = frame.getTrackerPanel(i);
-		    	  				if (!next.save()) return;
-		    	  				File datafile = next.getDataFile();
-		    	  				if (datafile==null) {
-		    	  					String path = next.openedFromPath;
-		    	  					if (path!=null) {
-		    	  						datafile = new File(path);
-		    	  					}
-		    	  				}
-		    	  				if (datafile!=null) {
-		    	  	    		String fileName = datafile.getAbsolutePath();
-		    	  	    		if (!filenames.contains(fileName)) {
-			    	  	    		filenames.add(fileName);
-		    	  	    		}
-		    	  				}
-		    	  			}
-
-		    	      	LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
-		    	      	treePanel.refreshSelectedNode();
-		    	      	
 //		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		    	      	
 //		    	      	TTrack track = trackerPanel.getSelectedTrack();
 
 		    	      	
 //		    	      	Tracker.checkedForNewerVersion = false;
-//					  			Tracker.testString = "9.9.9";
+//					  			Tracker.testString = "5.1.3";
 //					  			Tracker.loadCurrentVersion(true, false);
 //					  			Tracker.testString = null;
-
 
 		    	      	
 //			    	    	Map<String, String> map = System.getenv();
@@ -123,12 +99,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 //			    	    	}
 //			    	    	for (Object key: System.getProperties().keySet()) {
 //			    	    		System.out.println("property "+key+" = "+System.getProperties().get(key));
-//			    	    	}
-
-		    	      			    	      	
-//			          	Tracker.newerVersion = "5.0.2"; //$NON-NLS-1$
-//		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-//		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
+//			    	    	}		    	      			    	      	
 		    	      			    	      	
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
