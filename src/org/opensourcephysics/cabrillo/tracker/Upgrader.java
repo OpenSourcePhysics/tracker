@@ -388,15 +388,15 @@ public class Upgrader {
   	  	    			File installer = new File(volume, appName);
   	  	    			
       	        
-	  	    				// get OK to run installer
-			          	int ans = JOptionPane.showConfirmDialog(frame, 
-			          			TrackerRes.getString("Upgrader.Dialog.Downloaded.Message1")+" "+installer.getCanonicalPath()+"." //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			          			+XML.NEW_LINE+TrackerRes.getString("Upgrader.Dialog.Downloaded.Message2")+XML.NEW_LINE,  //$NON-NLS-1$
-			          			TrackerRes.getString("TTrackBar.Dialog.Download.Title"),  //$NON-NLS-1$
-			          			JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
-			          	if (ans!=JOptionPane.OK_OPTION) {
-			          		return;
-			          	}
+//	  	    				// get OK to run installer
+//			          	int ans = JOptionPane.showConfirmDialog(frame, 
+//			          			TrackerRes.getString("Upgrader.Dialog.Downloaded.Message1") //$NON-NLS-1$ 
+//			          			+XML.NEW_LINE+TrackerRes.getString("Upgrader.Dialog.Downloaded.Message2")+XML.NEW_LINE,  //$NON-NLS-1$
+//			          			TrackerRes.getString("TTrackBar.Dialog.Download.Title"),  //$NON-NLS-1$
+//			          			JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE);
+//			          	if (ans!=JOptionPane.OK_OPTION) {
+//			          		return;
+//			          	}
 	
 			          	// run upgrade installer
 		  	    			cmd = new ArrayList<String>();

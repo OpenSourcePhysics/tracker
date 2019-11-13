@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,7 +50,6 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.JREFinder;
-import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
@@ -151,8 +151,10 @@ public class TrackerStarter {
 					try {
 						Class<?> OSXClass = Class.forName(className);
 						Constructor<?> constructor = OSXClass.getConstructor();
-						constructor.newInstance();
-						logMessage("OSXServices running"); //$NON-NLS-1$
+						Object OSXServices = constructor.newInstance();
+						Method m = OSXClass.getDeclaredMethod("getStatus", (Class<?>[])null); //$NON-NLS-1$
+						Object status = m.invoke(OSXServices, (Object[])null);	
+						logMessage(""+status); //$NON-NLS-1$
 					} catch (Exception ex) {
 						logMessage("OSXServices failed"); //$NON-NLS-1$
 					} catch (Error err) {
@@ -192,6 +194,19 @@ public class TrackerStarter {
 		logMessage("TrackerStarter running in jre: " + javaHome); //$NON-NLS-1$
 		
 		launchThread = null;
+		
+		// look for new version tracker jar as first argument
+		if (args!=null && args.length>0 && (args[0].contains("tracker.jar")  //$NON-NLS-1$
+					|| (args[0].contains("tracker-") && args[0].contains(".jar")))) { //$NON-NLS-1$ //$NON-NLS-2$
+    	System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, args[0]);
+    	System.setProperty(TrackerStarter.TRACKER_NEW_VERSION, args[0]);
+    	String[] newArgs = new String[args.length-1];
+    	if (newArgs.length>0) {
+    		System.arraycopy(args, 1, newArgs, 0, newArgs.length);
+    		args = newArgs;
+    	}
+    	else args = null;
+		}
 		
 		String argString = null;
 		if (args != null && args.length > 0) {
@@ -581,24 +596,6 @@ public class TrackerStarter {
 			
 			String jar = null; // preferred jar name to be determined
 			
-			// load a temp prefs file if any
-			File tempFile = OSPRuntime.getDownloadDir();
-			tempFile = new File(tempFile, "tracker_prefs.temp"); //$NON-NLS-1$
-			Resource res = ResourceLoader.getResource(tempFile.getPath());
-			if (res!=null) {
-				trackerJarPath = res.getString().trim();
-				jar = XML.getName(trackerJarPath);
-	    	System.setProperty(TrackerStarter.TRACKER_NEW_VERSION, trackerJarPath);
-				logMessage("temporary preference: " + trackerJarPath); //$NON-NLS-1$ 
-				tempFile.delete();
-				if (!tempFile.exists()) {
-					logMessage("deleted " + tempFile.getPath()); //$NON-NLS-1$ 
-				}
-				else {
-					logMessage("unable to delete " + tempFile.getPath()); //$NON-NLS-1$ 
-				}
-			}
-						
 			// preferred tracker jar
 			String systemProperty = System.getProperty(PREFERRED_TRACKER_JAR);
 
@@ -809,6 +806,15 @@ public class TrackerStarter {
 	private static void startTracker(String jarPath, String[] args)
 			throws Exception {
 
+		String newVersionURL = System.getProperty(TRACKER_NEW_VERSION);
+		// pig turn this off
+//		// if new version has been installed, run in bundled JRE
+//		if (newVersionURL!=null &&  bundledVM != null) {
+//			File javaFile = OSPRuntime.getJavaFile(bundledVM);
+//			if (javaFile!=null) {
+//				javaCommand = XML.stripExtension(javaFile.getPath());
+//			} 			
+//		}
 		// assemble the command
 		final ArrayList<String> cmd = new ArrayList<String>();
 		if (javaCommand.equals("java") && javaHome != null) { //$NON-NLS-1$
@@ -898,7 +904,6 @@ public class TrackerStarter {
 		else env.remove(TRACKER_RELAUNCH);
 		
 		// add TRACKER_NEW_VERSION to process environment if launching a new version
-		String newVersionURL = System.getProperty(TRACKER_NEW_VERSION);
 		if (newVersionURL!=null) {
 			logMessage("setting "+TRACKER_NEW_VERSION+" = " + newVersionURL); //$NON-NLS-1$ //$NON-NLS-2$ 
 			env.put(TRACKER_NEW_VERSION, newVersionURL);

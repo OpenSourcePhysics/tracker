@@ -797,8 +797,9 @@ public class Tracker {
 		      String slash = System.getProperty("file.separator", "/"); //$NON-NLS-1$//$NON-NLS-2$
 	        String path = Tracker.trackerHome+slash+readmeFileName;
 	        if (OSPRuntime.isMac()) {
-	        	String dir = new File(Tracker.trackerHome).getParent();
-	        	path = dir+slash+readmeFileName;
+	        	// OSX trackerHome=/Applications/Tracker.app/Contents/Java
+	        	// but we want /usr/local/tracker
+	        	path = "/usr/local/tracker/"+readmeFileName; //$NON-NLS-1$
 	        }
 	        String s = ResourceLoader.getString(path);
 	        if (s==null || "".equals(s)) { //$NON-NLS-1$
@@ -1889,10 +1890,12 @@ public class Tracker {
 
 		final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
 		if (newVersionURL!=null) {
-  		final File target = new File(trackerHome, "tracker.jar"); //$NON-NLS-1$
-      Timer timer = new Timer(2000, new ActionListener() {
+       Timer timer = new Timer(2000, new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-	    		ResourceLoader.download(newVersionURL, target, true);
+        	if (OSPRuntime.isWindows()) {
+				 		File target = new File(trackerHome, "tracker.jar"); //$NON-NLS-1$
+		    		ResourceLoader.download(newVersionURL, target, true);
+        	}
 	    		// check preferences: if not default tracker.jar, ask user to change to default
 	    		if (Tracker.preferredTrackerJar!=null && !"tracker.jar".equals(Tracker.preferredTrackerJar)) { //$NON-NLS-1$
 	    			String prefVers = Tracker.preferredTrackerJar.substring(8, Tracker.preferredTrackerJar.lastIndexOf(".")); //$NON-NLS-1$
@@ -1904,8 +1907,9 @@ public class Tracker {
 		    				title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 		    		if (response==JOptionPane.YES_OPTION) {
 		    			Tracker.preferredTrackerJar = null;
-		    			Tracker.savePreferences();
 		    		}
+//  					Tracker.preferredJRE = null;  // reset preferredJRE to the bundled JRE // pig is this needed now?
+	    			Tracker.savePreferences();
 	    		}
         }
       });

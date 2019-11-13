@@ -36,6 +36,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
@@ -85,14 +86,12 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		    	      	
 //		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		    	      	
 //		    	      	TTrack track = trackerPanel.getSelectedTrack();
-
 		    	      	
-//		    	      	Tracker.checkedForNewerVersion = false;
-//					  			Tracker.testString = "5.1.3";
-//					  			Tracker.loadCurrentVersion(true, false);
-//					  			Tracker.testString = null;
-
-		    	      	
+		    	      	Tracker.checkedForNewerVersion = false;
+					  			Tracker.testString = "5.1.3"; //$NON-NLS-1$
+					  			Tracker.loadCurrentVersion(true, false);
+					  			Tracker.testString = null;
+					  			
 //			    	    	Map<String, String> map = System.getenv();
 //			    	    	for (String key: map.keySet()) {
 //			    	    		System.out.println("environment "+key+" = "+map.get(key));
