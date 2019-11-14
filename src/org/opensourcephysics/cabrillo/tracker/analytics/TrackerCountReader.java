@@ -233,7 +233,19 @@ public class TrackerCountReader extends JFrame {
 					// typical Tracker-4.9.8-linux-32bit-installer.run
 					// typical Tracker-4.9.8-linux-64bit-installer.run
 					String osname = os[j];
-					String ext = osname.equals("windows")? ".exe": osname.equals("osx")? ".zip": ".run"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+					String ext = osname.equals("windows")? ".exe": osname.equals("osx")? ".dmg": ".run"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+					if (osname.equals("osx")) { // change ext to "zip" for versions earlier than 5.1.3 //$NON-NLS-1$
+						// if index of version 5.1.3 is smaller than index of  then i must be older version
+						for (int k=0; k<versions.length; k++) {
+							if (versions[k].equals(ver[i])) {
+								break;
+							}
+							if (versions[k].equals("5.1.3")) { //$NON-NLS-1$
+								ext = ".zip"; //$NON-NLS-1$
+								break;
+							}
+						}
+					}
 					if (osname.equals("linux")) { //$NON-NLS-1$
 						osname = "linux-32bit"; //$NON-NLS-1$
 					}

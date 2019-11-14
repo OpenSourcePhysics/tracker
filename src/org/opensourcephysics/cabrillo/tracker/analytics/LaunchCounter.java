@@ -7,6 +7,7 @@
 
 package org.opensourcephysics.cabrillo.tracker.analytics;
 
+import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -19,6 +20,8 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.tools.Resource;
 
 /**
@@ -33,6 +36,7 @@ public class LaunchCounter {
 	static String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 
   public static void main(String[] args) {
+		Toolkit.getDefaultToolkit().beep();
   	
     // create StringBuffer and append date/time
     StringBuffer buffer = new StringBuffer();
@@ -53,7 +57,9 @@ public class LaunchCounter {
 		
 		// write the new contents to dataFile
 		write(contents, dataFile);
-  }
+
+		Toolkit.getDefaultToolkit().beep();
+}
   
   /**
    * Reads the first line of the data file and returns an array of file names.

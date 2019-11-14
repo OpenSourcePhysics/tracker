@@ -7,6 +7,7 @@
 
 package org.opensourcephysics.cabrillo.tracker.analytics;
 
+import java.awt.Toolkit;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -20,6 +21,7 @@ import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.tools.Resource;
 
 /**
@@ -34,6 +36,8 @@ public class DownloadCounter {
 	static String NEW_LINE = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 	
   public static void main(String[] args) {
+  	
+		Toolkit.getDefaultToolkit().beep();
     
     // create StringBuffer and append date/time
     StringBuffer buffer = new StringBuffer();
@@ -54,6 +58,8 @@ public class DownloadCounter {
 		
 		// write the new contents to dataFile
 		write(contents, dataFile);
+		Toolkit.getDefaultToolkit().beep();
+
   }
   
   /**
@@ -131,6 +137,7 @@ public class DownloadCounter {
   }
 	
   static String getDownloadCount(String filename) {
+  	// https://physlets.org/tracker/installers/download.php?file=
   	String path = "https://physlets.org/tracker/installers/download.php?file="+filename+"__read"; //$NON-NLS-1$ //$NON-NLS-2$
     try {
 			URL url = new URL(path);
