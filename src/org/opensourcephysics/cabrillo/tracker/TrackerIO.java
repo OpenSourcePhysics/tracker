@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2018  Douglas Brown
+ * Copyright (c) 2019  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,8 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.LibraryResource;
+import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -648,7 +650,7 @@ public class TrackerIO extends VideoIO {
   		return;
   	}
   	frame.loadedFiles.add(nonURIPath);
-  	if (!path.startsWith("http:")) //$NON-NLS-1$
+  	if (!path.startsWith("http")) //$NON-NLS-1$
 			path = nonURIPath;
 
   	// create progress monitor  	
@@ -665,7 +667,7 @@ public class TrackerIO extends VideoIO {
     if(videoFileFilter.accept(testFile)) { 
     	OSPLog.finest("opening video path "+path); //$NON-NLS-1$
 			// download web videos to the OSP cache
-			if (path.startsWith("http:")) { //$NON-NLS-1$
+			if (path.startsWith("http")) { //$NON-NLS-1$
   			String name = XML.getName(path);
   			name = ResourceLoader.getNonURIPath(name);
   			File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
@@ -731,7 +733,10 @@ public class TrackerIO extends VideoIO {
       		monitorDialog.setProgress(95);
         JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
         pane.setDividerLocation(frame.defaultRightDivider);
-        TMenuBar.getMenuBar(trackerPanel).refresh();
+        TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+        if (menubar!=null) {
+        	menubar.refresh();
+        }
         trackerPanel.setVideo(video);
         // panel is changed if video imported into existing trackerPanel
         panelChanged = existingPanel!=null;
@@ -759,7 +764,7 @@ public class TrackerIO extends VideoIO {
     		monitorDialog.stop();
   			String name = XML.getName(ResourceLoader.getNonURIPath(path));
   			// download web files to OSP cache
-  			boolean isWebPath = path.startsWith("http:/"); //$NON-NLS-1$
+  			boolean isWebPath = path.startsWith("http"); //$NON-NLS-1$
   			if (isWebPath) {
 					File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
 					if (localFile!=null) {
@@ -776,7 +781,7 @@ public class TrackerIO extends VideoIO {
 				String trkForTFrame = null;
 				
 				// sort the zip file contents
-	  		Set<String> contents = ResourceLoader.getZipContents(path);
+	  		Collection<String> contents = ResourceLoader.getZipContents(path);
 				for (String next: contents) {
 					if (next.endsWith(".trk")) { //$NON-NLS-1$
 						String s = ResourceLoader.getURIPath(path+"!/"+next); //$NON-NLS-1$
@@ -787,12 +792,13 @@ public class TrackerIO extends VideoIO {
 						pdfFiles.add(next);
 					}
 					else if (next.endsWith(".html") || next.endsWith(".htm")) { //$NON-NLS-1$ //$NON-NLS-2$
-						// exclude HTML info files (name "<zipname>_info")
+						// handle HTML info files (name "<zipname>_info")
 						String baseName = XML.stripExtension(name);
 						String nextName = XML.getName(next);
-						if (XML.stripExtension(nextName).equals(baseName+"_info"))  //$NON-NLS-1$
+						if (XML.stripExtension(nextName).equals(baseName+"_info")) { //$NON-NLS-1$
 							continue;
-						
+						}
+						// add non-info html files to list
 						htmlFiles.add(next);
 					}
 					// collect other files in top directory except thumbnails
@@ -879,19 +885,22 @@ public class TrackerIO extends VideoIO {
 	  		if (!VideoIO.isCanceled()) {
 	        monitorDialog.close();
 	      	open(trkFiles, frame, tempFiles); // this also adds tempFile paths to trackerPanel
+	      	// add TRZ, ZIP and JAR paths to recent files
 	        Tracker.addRecent(nonURIPath, false); // add at beginning
 	      	return;
 	  		}
         monitorDialog.close();
 	  		return;
     	}
-    	// load data from trk file
+    	
+    	// load data from TRK file
       XMLControlElement control = new XMLControlElement();
       xmlPath = control.read(path);
       if (VideoIO.isCanceled()) return;
       monitorDialog.stop();
     	if (monitorDialog.isVisible()) 
     		monitorDialog.setProgress(20);
+    	
       Class<?> type = control.getObjectClass();
       if(TrackerPanel.class.isAssignableFrom(type)) {
         XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
@@ -909,8 +918,6 @@ public class TrackerIO extends VideoIO {
         trackerPanel = (TrackerPanel)control.loadObject(trackerPanel);
         
         trackerPanel.frame = frame;
-        trackerPanel.defaultFileName = XML.getName(path);
-        trackerPanel.openedFromPath = path;
 
         // find page view files and add to TrackerPanel.pageViewFilePaths
 				findPageViewFiles(control, trackerPanel.pageViewFilePaths);
@@ -920,7 +927,39 @@ public class TrackerIO extends VideoIO {
         		trackerPanel.supplementalFilePaths.add(s);
         	}
         }
-        trackerPanel.setDataFile(new File(ResourceLoader.getNonURIPath(path)));
+  	  	boolean isZippedTRK = xmlPath!=null && 
+  					(xmlPath.contains(".zip!") || xmlPath.contains(".trz!") || xmlPath.contains(".jar!")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+        if (isZippedTRK) {
+        	String parent = xmlPath.substring(0, xmlPath.indexOf("!")); //$NON-NLS-1$
+        	parent = ResourceLoader.getNonURIPath(parent); // strip protocol
+        	String parentName = XML.stripExtension(XML.getName(parent));
+        	String tabName = XML.stripExtension(XML.getName(xmlPath));
+        	if (tabName.startsWith(parentName) && parentName.length()+1<tabName.length()) {
+        		tabName = tabName.substring(parentName.length()+1, tabName.length());
+        	}
+          trackerPanel.openedFromPath = parent;
+          trackerPanel.defaultFileName = tabName;
+          
+					String html = ResourceLoader.getString(parent+"!/html/"+parentName+"_info.html"); //$NON-NLS-1$ //$NON-NLS-2$
+					ArrayList<String[]> metadata = ExportZipDialog.getMetadataFromHTML(html);
+					for (int i=0; i<metadata.size(); i++) {
+						String[] meta = metadata.get(i);
+						String key = meta[0];
+						String value = meta[1];
+						if (trackerPanel.author==null && LibraryResource.META_AUTHOR.toLowerCase().contains(key.toLowerCase())) {
+				      trackerPanel.author = value;
+						}
+						else if (trackerPanel.contact==null && LibraryResource.META_CONTACT.toLowerCase().contains(key.toLowerCase())) {
+				      trackerPanel.contact = value;
+						}
+					}
+        }
+        else {
+          trackerPanel.defaultFileName = XML.getName(path);
+          trackerPanel.openedFromPath = path;
+        	trackerPanel.setDataFile(new File(ResourceLoader.getNonURIPath(path)));
+        }
+        
       	if (monitorDialog.isVisible()) 
       		monitorDialog.setProgress(80);
         if (VideoIO.isCanceled()) return;
@@ -931,15 +970,27 @@ public class TrackerIO extends VideoIO {
         frame.showTrackControl(trackerPanel);
         frame.showNotes(trackerPanel);
         frame.refresh();
-      } 
+      	if (control.failedToRead()) {
+	        JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
+	        		"\""+XML.getName(path)+"\" "+   //$NON-NLS-1$ //$NON-NLS-2$
+	        		TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Message"), //$NON-NLS-1$
+	            TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Title"),   //$NON-NLS-1$
+	            JOptionPane.WARNING_MESSAGE);
+      	}
+      } // end of TRK section
+      
       else if(TFrame.class.isAssignableFrom(type)) {
         monitorDialog.close();
       	control.loadObject(frame);
       	rawPath = XML.forwardSlash(rawPath); 
         Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
         trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-        if (trackerPanel!=null)
-        	TMenuBar.getMenuBar(trackerPanel).refresh();
+        if (trackerPanel!=null) {
+          TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+          if (menubar!=null) {
+          	menubar.refresh();
+          }
+        }
       	return;
       } 
       else if(!control.failedToRead()) {
@@ -963,13 +1014,16 @@ public class TrackerIO extends VideoIO {
     monitorDialog.close();
   	rawPath = XML.forwardSlash(rawPath);
   	if (xmlPath!=null && 
-  			(xmlPath.contains(".zip!") ||   //$NON-NLS-1$
-  			xmlPath.contains(".trz!") ||   //$NON-NLS-1$
-  			xmlPath.contains(".jar!"))) { //$NON-NLS-1$
+  			!xmlPath.contains(".zip!") &&   //$NON-NLS-1$
+  			!xmlPath.contains(".trz!") &&   //$NON-NLS-1$
+  			!xmlPath.contains(".jar!")) { //$NON-NLS-1$
   		rawPath = XML.forwardSlash(xmlPath);
+	    Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
   	}
-    Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
-    TMenuBar.getMenuBar(trackerPanel).refresh();
+    TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+    if (menubar!=null) {
+    	menubar.refresh();
+    }
     TTrackBar.refreshMemoryButton();
     trackerPanel.changed = panelChanged;
   }
@@ -996,22 +1050,56 @@ public class TrackerIO extends VideoIO {
     }
     
   	frame.loadedFiles.clear();
-    // open in separate background thread if flagged
     final String path = XML.getAbsolutePath(file);
     final VideoType vidType = selectedType;
-    Runnable runner = new Runnable() {
+    
+    // open all files in Tracker
+    Runnable tabOpener = new Runnable() {
     	public void run() {
-      	OSPLog.finest("opening File"); //$NON-NLS-1$
+      	OSPLog.finest("opening file in tab"); //$NON-NLS-1$
         open(path, null, frame, vidType, null);
       }
     };
+    // open in separate background thread if flagged
     if (loadInSeparateThread) {
-      Thread opener = new Thread(runner);
+      Thread opener = new Thread(tabOpener);
       opener.setPriority(Thread.NORM_PRIORITY);
       opener.setDaemon(true);
-      opener.start(); 
+      opener.start();
     }
-    else runner.run();
+    else {
+    	tabOpener.run();
+    }
+    
+    // also open TRZ files in library browser
+    if (trzFileFilter.accept(new File(path))) {
+	    Runnable libraryOpener = new Runnable() {
+	    	public void run() {
+	      	OSPLog.finest("opening file in library browser"); //$NON-NLS-1$
+	        frame.getLibraryBrowser().open(path);
+//		      frame.getLibraryBrowser().setVisible(true); 
+	        Timer timer = new Timer(1000, new ActionListener() {
+	          public void actionPerformed(ActionEvent e) {
+	          	LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
+	          	if (treePanel!=null) {
+		    				treePanel.refreshSelectedNode();
+	          	}
+	          }
+	        });
+	        timer.setRepeats(false);
+	        timer.start();
+	      }
+	    };
+	    if (loadInSeparateThread) {
+	    	Thread opener = new Thread(libraryOpener);
+	      opener.setPriority(Thread.NORM_PRIORITY);
+	      opener.setDaemon(true);
+	      opener.start();
+	    }
+	    else {
+	    	libraryOpener.run();
+	    }
+	  }
   }
 
   /**
@@ -1071,7 +1159,22 @@ public class TrackerIO extends VideoIO {
     Runnable runner = new Runnable() {
     	public void run() {
         open(path, null, frame, null, null);
-      }
+    		// also open TRZ files in the Library Browser
+        if (trzFileFilter.accept(new File(path))) {
+	      	frame.getLibraryBrowser().open(path);
+//	      	frame.getLibraryBrowser().setVisible(true);
+	        Timer timer = new Timer(1000, new ActionListener() {
+	          public void actionPerformed(ActionEvent e) {
+	          	LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
+	          	if (treePanel!=null) {
+		    				treePanel.refreshSelectedNode();
+	          	}
+	          }
+	        });
+	        timer.setRepeats(false);
+	        timer.start();
+        }
+    	}
     };
     if (loadInSeparateThread) {
       Thread opener = new Thread(runner);

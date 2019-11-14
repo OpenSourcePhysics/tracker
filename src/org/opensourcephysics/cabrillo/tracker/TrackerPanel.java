@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2018  Douglas Brown
+ * Copyright (c) 2019  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -278,6 +278,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
   public String getToolTipPath() {
     if (getDataFile() != null) {
       return XML.forwardSlash(getDataFile().getPath());
+    }
+    if (openedFromPath != null) {
+      return openedFromPath;
     }
     if (getVideo() != null) {
       String path = (String) getVideo().getProperty("absolutePath"); //$NON-NLS-1$
@@ -848,6 +851,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
       track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
       track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
+      track.removePropertyChangeListener("transform", this); //$NON-NLS-1$
       TFrame frame = getTFrame();
     	if (frame!=null) frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
 
@@ -916,8 +920,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       coords.addPropertyChangeListener(this);
       int n = getFrameNumber();
       getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
-      firePropertyChange("coords", null, coords); //$NON-NLS-1$
-      firePropertyChange("transform", null, null); //$NON-NLS-1$
+      try {
+				firePropertyChange("coords", null, coords); //$NON-NLS-1$
+				firePropertyChange("transform", null, null); //$NON-NLS-1$
+			} catch (Exception e) {
+			}
     }
     else video.setCoords(_coords);
   }
@@ -936,33 +943,67 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
         break;
       }
     }
-    if (pm != null) {
-      ImageCoordSystem coords = getCoords();
-      boolean wasRefFrame = coords instanceof ReferenceFrame;
-      while (coords instanceof ReferenceFrame) {
-        coords = ( (ReferenceFrame) coords).getCoords();
-      }
-      setCoords(new ReferenceFrame(coords, pm));
-      // special case: if pm is a particle model and wasRefFrame is true,
-      // refresh steps of pm after setting new ReferenceFrame
-      if (pm instanceof ParticleModel && wasRefFrame) {
-      	((ParticleModel)pm).lastValidFrame = -1;
-      	((ParticleModel)pm).refreshSteps();
-      }      
-      setSelectedPoint(null);
-      selectedSteps.clear();
-      repaint();
-    }
-    else {
-      ImageCoordSystem coords = getCoords();
-      if (coords instanceof ReferenceFrame) {
-        coords = ( (ReferenceFrame) coords).getCoords();
-        setCoords(coords);
-        setSelectedPoint(null);
-        selectedSteps.clear();
-        repaint();
-      }
-    }
+    final PointMass thePM = pm;
+    Runnable runner = new Runnable() {
+    	public void run() {
+        if (thePM != null) {
+          ImageCoordSystem coords = getCoords();
+          boolean wasRefFrame = coords instanceof ReferenceFrame;
+          while (coords instanceof ReferenceFrame) {
+            coords = ( (ReferenceFrame) coords).getCoords();
+          }
+          setCoords(new ReferenceFrame(coords, thePM));
+          // special case: if pm is a particle model and wasRefFrame is true,
+          // refresh steps of pm after setting new ReferenceFrame
+          if (thePM instanceof ParticleModel && wasRefFrame) {
+          	((ParticleModel)thePM).lastValidFrame = -1;
+          	((ParticleModel)thePM).refreshSteps();
+          }      
+          setSelectedPoint(null);
+          selectedSteps.clear();
+          repaint();
+        }
+        else {
+          ImageCoordSystem coords = getCoords();
+          if (coords instanceof ReferenceFrame) {
+            coords = ( (ReferenceFrame) coords).getCoords();
+            setCoords(coords);
+            setSelectedPoint(null);
+            selectedSteps.clear();
+            repaint();
+          }
+        }
+   		
+    	}
+    };
+    new Thread(runner).start();
+//    if (pm != null) {
+//      ImageCoordSystem coords = getCoords();
+//      boolean wasRefFrame = coords instanceof ReferenceFrame;
+//      while (coords instanceof ReferenceFrame) {
+//        coords = ( (ReferenceFrame) coords).getCoords();
+//      }
+//      setCoords(new ReferenceFrame(coords, pm));
+//      // special case: if pm is a particle model and wasRefFrame is true,
+//      // refresh steps of pm after setting new ReferenceFrame
+//      if (pm instanceof ParticleModel && wasRefFrame) {
+//      	((ParticleModel)pm).lastValidFrame = -1;
+//      	((ParticleModel)pm).refreshSteps();
+//      }      
+//      setSelectedPoint(null);
+//      selectedSteps.clear();
+//      repaint();
+//    }
+//    else {
+//      ImageCoordSystem coords = getCoords();
+//      if (coords instanceof ReferenceFrame) {
+//        coords = ( (ReferenceFrame) coords).getCoords();
+//        setCoords(coords);
+//        setSelectedPoint(null);
+//        selectedSteps.clear();
+//        repaint();
+//      }
+//    }
 
   }
 
@@ -3078,16 +3119,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	ExportVideoDialog.videoExporter.trackerPanel = null;
     	ExportVideoDialog.videoExporter.views.clear();
     }
-    if (ExportZipDialog.zipExporter!=null && ExportZipDialog.zipExporter.trackerPanel==this) {
-    	ExportZipDialog.zipExporter.trackerPanel = null;
-    	ExportZipDialog.zipExporter.badModels.clear();
-    	ExportZipDialog.zipExporter.videoExporter.trackerPanel = null;
-    	ExportZipDialog.zipExporter.videoExporter.views.clear();
-    }
     if (ThumbnailDialog.thumbnailDialog!=null && ThumbnailDialog.thumbnailDialog.trackerPanel==this) {
     	ThumbnailDialog.thumbnailDialog.trackerPanel = null;   	
     }
-    NumberFormatDialog.dispose(this);
+    ExportZipDialog.dispose(this);
+    NumberFormatDialog.dispose(this);    
     filterClasses.clear();
     selectingPanel = null;
     frame = null;
@@ -3413,7 +3449,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	    String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
 	    // if ver is null then must be an older version
 	    if (fileVersion!=null) {
-	    	int result = Tracker.compareVersions(fileVersion, Tracker.VERSION);
+	  		int result = 0;
+	  		try {
+	  			result = Tracker.compareVersions(fileVersion, Tracker.VERSION);
+	  		} catch (Exception e) {
+	  		}
 	    	if (result>0) {  // file is newer version than Tracker
 	    		JOptionPane.showMessageDialog(trackerPanel, 
 	    				TrackerRes.getString("TrackerPanel.Dialog.Version.Message1") //$NON-NLS-1$

@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2018  Douglas Brown
+ * Copyright (c) 2019  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.*;
+import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.*;
 
@@ -66,8 +67,8 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.0.6"; //$NON-NLS-1$
-  public static final String COPYRIGHT = "Copyright (c) 2018 Douglas Brown"; //$NON-NLS-1$
+  public static final String VERSION = "5.1.3"; //$NON-NLS-1$
+  public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
       Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
@@ -86,6 +87,7 @@ public class Tracker {
   // for testing
   static boolean timeLogEnabled = false;
   static boolean testOn = false;
+  static String testString;
   
   // define static fields
   static String trackerHome;
@@ -125,7 +127,8 @@ public class Tracker {
   static Icon trackerLogoIcon, ospLogoIcon;
   static JLabel tipOfTheDayLabel;
   static JProgressBar progressBar;
-  static String counterPath = "http://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
+  static String counterPath = "https://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
+  static String latestVersion; // last version for which user has been informed
   static String newerVersion; // new version available if non-null
   static boolean checkedForNewerVersion = false; // true if checked for new version
   static String trackerWebsite = "physlets.org/tracker"; //$NON-NLS-1$
@@ -232,12 +235,13 @@ public class Tracker {
 			new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
 			new Locale("pl"), // polish //$NON-NLS-1$
 			new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
-			new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
+			OSPRuntime.PORTUGUESE, // Portugal portuguese
 			new Locale("sk"), // slovak //$NON-NLS-1$
 			new Locale("sl"), // slovenian //$NON-NLS-1$
 			new Locale("sv"), // swedish //$NON-NLS-1$
 			new Locale("th", "TH"), // Thailand thai //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("tr"), // turkish //$NON-NLS-1$
+//			new Locale("uk"), // ukrainian //$NON-NLS-1$
 			new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
 			Locale.CHINA, // simplified chinese
 			Locale.TAIWAN}; // traditional chinese
@@ -455,9 +459,9 @@ public class Tracker {
   }
 
   /**
-   * Constructs Tracker and loads the named xml files.
+   * Constructs Tracker and loads the named TRK or TRZ files.
    *
-   * @param names an array of xml, video or zip file names
+   * @param names an array of TRK, video or TRZ file names
    */
   private Tracker(String[] names, boolean addTabIfEmpty, boolean showSplash) {
   	// set font level resize and center splash frame
@@ -614,13 +618,14 @@ public class Tracker {
   	if (ver1==null || ver2==null) {
   		return 0;
   	}
-  	// typical newer semantic version "4.9.10" or 5.0.0.171230
+  	// typical newer semantic version "4.9.10" or 5.0.7.190504 beta or 5.0.7190504 beta
   	// typical older version "4.97"
     String[] v1 = ver1.trim().split("\\."); //$NON-NLS-1$
     String[] v2 = ver2.trim().split("\\."); //$NON-NLS-1$
-    // beta version arrays have length 4
+    // newer beta version arrays have length 4
     // newer semantic version arrays have length 3
     // older version arrays have length 2
+    // older beta arrays may have length 3--truncate last number string to one digit
     
     // truncate beta versions to length 3
     if (v1.length==4) {
@@ -630,7 +635,23 @@ public class Tracker {
     	v2 = new String[] {v2[0], v2[1], v2[2]};
     }
 
-  	if (v2.length>v1.length) {
+    // truncate last number if a long beta number
+    if (v1.length==3 && v1[2].length()>2) {
+    	v1[2] = v1[2].substring(0, 1);
+    }
+    if (v2.length==3 && v2[2].length()>2) {
+    	v2[2] = v2[2].substring(0, 1);
+    }
+    
+    // verify that both versions can be parsed to integers
+    for (int i=0; i<v1.length; i++) {
+      Integer.parseInt(v1[i]);
+    }
+    for (int i=0; i<v2.length; i++) {
+      Integer.parseInt(v2[i]);
+    }
+
+    if (v2.length>v1.length) {
   		// v1 is older version, v2 is newer
   		return -1;
   	}
@@ -668,7 +689,7 @@ public class Tracker {
         + "https://"+Tracker.trackerWebsite + newline + newline //$NON-NLS-1$
         + TrackerRes.getString("Tracker.About.ProjectOf") + newline //$NON-NLS-1$
         + "Open Source Physics" + newline //$NON-NLS-1$
-        + "www.opensourcephysics.org" + newline; //$NON-NLS-1$
+        + "www.compadre.org/osp" + newline; //$NON-NLS-1$
     String translator = TrackerRes.getString("Tracker.About.Translator"); //$NON-NLS-1$
     if (!translator.equals("")) { //$NON-NLS-1$
     	aboutString += newline+TrackerRes.getString("Tracker.About.TranslationBy") //$NON-NLS-1$
@@ -777,8 +798,9 @@ public class Tracker {
 		      String slash = System.getProperty("file.separator", "/"); //$NON-NLS-1$//$NON-NLS-2$
 	        String path = Tracker.trackerHome+slash+readmeFileName;
 	        if (OSPRuntime.isMac()) {
-	        	String dir = new File(Tracker.trackerHome).getParent();
-	        	path = dir+slash+readmeFileName;
+	        	// OSX trackerHome=/Applications/Tracker.app/Contents/Java
+	        	// but we want /usr/local/tracker
+	        	path = "/usr/local/tracker/"+readmeFileName; //$NON-NLS-1$
 	        }
 	        String s = ResourceLoader.getString(path);
 	        if (s==null || "".equals(s)) { //$NON-NLS-1$
@@ -1206,8 +1228,12 @@ public class Tracker {
     	}
     }
     // set the default decimal separator
-    OSPRuntime.setDefaultDecimalSeparator(
-    		new DecimalFormat().getDecimalFormatSymbols().getDecimalSeparator());
+  	char separator = new DecimalFormat().getDecimalFormatSymbols().getDecimalSeparator();
+  	// deal with special case pt_PT
+  	if ("pt_PT".equals(localeName)) { //$NON-NLS-1$
+  		separator = ',';
+  	}
+    OSPRuntime.setDefaultDecimalSeparator(separator);
   }
 
   /**
@@ -1278,7 +1304,7 @@ public class Tracker {
    * @param logToFile true to log in to the PHP counter 
    */
   protected static void loadCurrentVersion(boolean ignoreInterval, boolean logToFile) {  	
-		if (!ResourceLoader.isURLAvailable("http://www.opensourcephysics.org")) { //$NON-NLS-1$
+		if (!ResourceLoader.isURLAvailable(ResourceLoader.TRACKER_TEST_URL)) {
 			return;
 		}
   	if (checkedForNewerVersion) return;
@@ -1293,9 +1319,9 @@ public class Tracker {
   	
 	 	// send data as page name to get latest version from PHP script
 	  // typical pre-4.97 version: "4.90" or "4.61111227"
-  	// typical post-4.97 version: "4.9.8" or "4.10.0170504" or "5.0.1"
+  	// typical post-4.97 version: "4.9.8" or "4.10.0.170504" or "5.0.1"
 		String pageName = getPHPPageName(logToFile);
-		String latestVersion = loginGetLatestVersion(pageName);
+		String newVersion = loginGetLatestVersion(pageName);
 		
   	if (!ignoreInterval) {
 	  	// check to see if upgrade interval has passed
@@ -1307,9 +1333,16 @@ public class Tracker {
   	
   	// interval has passed or ignored, so check for upgrades  	
 		lastMillisChecked = millis;
-		int result = compareVersions(latestVersion, VERSION);
+		if (testOn && testString!=null) {
+			newVersion = testString;			
+		}
+		int result = 0;
+		try {
+			result = compareVersions(newVersion, VERSION);
+		} catch (Exception e) {
+		}
 		if (result>0) { // newer version available
-			newerVersion = latestVersion;
+			newerVersion = newVersion;
 			TFrame tFrame = null;
 	    Frame[] frames = Frame.getFrames();
 	    for(int i = 0, n = frames.length; i<n; i++) {
@@ -1322,7 +1355,52 @@ public class Tracker {
 	  			 }
 	       }
 	    }
-		}		
+	    // show dialog if this is a first-time-seen upgrade version
+//	    if (testOn) latestVersion = null; // for testing only
+	    String testVersion = latestVersion==null? VERSION: latestVersion;
+			result = 0;
+			try {
+				result = compareVersions(newVersion, testVersion);
+			} catch (Exception e) {
+			}
+	    if (result==1 && tFrame!=null) {
+  			Object[] options = new Object[] {
+  					TrackerRes.getString("Tracker.Dialog.NewVersion.Button.Upgrade"),    //$NON-NLS-1$
+  					TrackerRes.getString("TTrackBar.Popup.MenuItem.LearnMore"), //$NON-NLS-1$
+  					TrackerRes.getString("Tracker.Dialog.NewVersion.Button.Later")}; //$NON-NLS-1$
+  			String message = TrackerRes.getString("Tracker.Dialog.NewVersion.Message1")+" "+newVersion; //$NON-NLS-1$ //$NON-NLS-2$
+  			message += " "+TrackerRes.getString("Tracker.Dialog.NewVersion.Message2");  //$NON-NLS-1$//$NON-NLS-2$
+  			message += "  "+TrackerRes.getString("Tracker.Dialog.NewVersion.Message3");  //$NON-NLS-1$//$NON-NLS-2$
+  			message += "\n"+TrackerRes.getString("Tracker.Dialog.NewVersion.Message4");  //$NON-NLS-1$//$NON-NLS-2$
+  			JTextPane pane = new JTextPane();
+  			pane.setOpaque(false);
+  			pane.setText(message);
+  			JCheckBox checkbox = new JCheckBox(TrackerRes.getString("TTrack.Dialog.SkippedStepWarning.Checkbox")); //$NON-NLS-1$
+  			
+  			Box b = Box.createHorizontalBox();
+  			b.add(checkbox);
+  			b.add(Box.createHorizontalGlue());
+  			Box box = Box.createVerticalBox();
+  			box.add(pane);
+  			box.add(b);
+  			int response = JOptionPane.showOptionDialog(tFrame, box,
+            TrackerRes.getString("Tracker.Dialog.NewVersion.Title"), //$NON-NLS-1$
+            JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE, TRACKER_ICON, options, options[0]);
+  			
+  			if (response==0) {
+  				// upgrade
+  				new Upgrader(tFrame).upgrade();
+  			}
+  			else if (response==1) {
+					// go to Tracker change log
+	    		String websiteURL = "https://"+Tracker.trackerWebsite+"/change_log.html"; //$NON-NLS-1$ //$NON-NLS-2$
+	    		OSPDesktop.displayURL(websiteURL);
+  			}
+  			if (checkbox.isSelected()) {
+    			latestVersion = newVersion;
+  			}
+    	}
+    }      
   }
   
   /**
@@ -1807,10 +1885,12 @@ public class Tracker {
 
 		final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
 		if (newVersionURL!=null) {
-  		final File target = new File(trackerHome, "tracker.jar"); //$NON-NLS-1$
-      Timer timer = new Timer(2000, new ActionListener() {
+       Timer timer = new Timer(2000, new ActionListener() {
         public void actionPerformed(ActionEvent e) {
-	    		ResourceLoader.download(newVersionURL, target, true);
+        	if (OSPRuntime.isWindows()) {
+				 		File target = new File(trackerHome, "tracker.jar"); //$NON-NLS-1$
+		    		ResourceLoader.download(newVersionURL, target, true);
+        	}
 	    		// check preferences: if not default tracker.jar, ask user to change to default
 	    		if (Tracker.preferredTrackerJar!=null && !"tracker.jar".equals(Tracker.preferredTrackerJar)) { //$NON-NLS-1$
 	    			String prefVers = Tracker.preferredTrackerJar.substring(8, Tracker.preferredTrackerJar.lastIndexOf(".")); //$NON-NLS-1$
@@ -1822,8 +1902,9 @@ public class Tracker {
 		    				title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 		    		if (response==JOptionPane.YES_OPTION) {
 		    			Tracker.preferredTrackerJar = null;
-		    			Tracker.savePreferences();
 		    		}
+//  					Tracker.preferredJRE = null;  // reset preferredJRE to the bundled JRE // pig is this needed now?
+	    			Tracker.savePreferences();
 	    		}
         }
       });
@@ -1991,7 +2072,7 @@ public class Tracker {
   	
   	public boolean isValid() {
 	    String[] v = this.ver.trim().split("\\."); //$NON-NLS-1$
-	    if (v.length==2 || v.length==3) {
+	    if (v.length>=2 && v.length<=4) {
 	    	for (int i=0; i<v.length; i++) {
 	    		try {
 	    			Integer.parseInt(v[i].trim());
@@ -2006,14 +2087,20 @@ public class Tracker {
 
 		@Override
 		public int compareTo(Object o) {
-	  	// typical newer semantic version "4.9.10" 
+	  	// typical newer semantic version "4.9.10" or "5.0.7.190518"
 	  	// typical older version "4.97"
 			
 			// split at decimal points
 	    String[] v1 = this.ver.trim().split("\\."); //$NON-NLS-1$
 	    String[] v2 = ((Version)o).ver.trim().split("\\."); //$NON-NLS-1$
-	    // newer semantic version arrays have length 3
+	    // newer semantic version arrays have length 3 or 4--truncate to 3
 	    // older version arrays have length 2
+	    if (v1.length==4) {
+	    	v1 = new String[] {v1[0], v1[1], v1[2]};
+	    }
+	    if (v2.length==4) {
+	    	v2 = new String[] {v2[0], v2[1], v2[2]};
+	    }
 	 
 	  	if (v2.length>v1.length) {
 	  		// v1 is older version, v2 is newer
@@ -2119,6 +2206,9 @@ public class Tracker {
       	control.setValue("upgrade_interval", Tracker.checkForUpgradeInterval); //$NON-NLS-1$
       	int lastChecked = (int)(Tracker.lastMillisChecked/1000L);
       	control.setValue("last_checked", lastChecked); //$NON-NLS-1$
+      	if (Tracker.latestVersion!=null) {
+      		control.setValue("latest_version", Tracker.latestVersion); //$NON-NLS-1$
+      	}
       	JFileChooser chooser = VideoIO.getChooser();
       	File file = chooser.getCurrentDirectory();
         String userDir = System.getProperty("user.dir"); //$NON-NLS-1$
@@ -2248,6 +2338,8 @@ public class Tracker {
       		Tracker.checkForUpgradeInterval = control.getInt("upgrade_interval"); //$NON-NLS-1$
       		Tracker.lastMillisChecked = control.getInt("last_checked")*1000L; //$NON-NLS-1$
       	}
+      	Tracker.latestVersion = control.getString("latest_version"); //$NON-NLS-1$
+
       	if (control.getPropertyNames().contains("file_chooser_directory")) //$NON-NLS-1$
       		OSPRuntime.chooserDir = control.getString("file_chooser_directory"); //$NON-NLS-1$
       	

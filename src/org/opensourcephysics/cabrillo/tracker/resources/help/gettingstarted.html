@@ -28,9 +28,9 @@
 		<p>Note that the order of the buttons on the toolbar mirrors the steps used to analyze a video. For more information about Tracker's user interface, including user customization, see <a href="interface.html">user interface</a>.</p>
         
 		<h3><a name="open" id="open"></a>1. Open a video or tracker file</h3>
-		<p>Click the <strong>Open</strong> button <img src="../help_images/open_button.gif" align="absmiddle">  or <strong>File|Open File </strong>menu item and select a digital video (mov, avi, mp4, flv, wmv, etc.), tracker data file (.trk), or zipped tracker file (.zip) to open. You can also open still and animated image files (.jpg, .gif, .png), numbered sequences of image files, and images pasted from the clipboard.</p>
+		<p>Click the <strong>Open</strong> button <img src="../help_images/open_button.gif" align="absmiddle">  or <strong>File|Open File </strong>menu item and select a digital video (mov, avi, mp4, flv, wmv, etc.), tracker file (.trk), or  tracker project (.trz) to open. You can also open still and animated image files (.jpg, .gif, .png), numbered sequences of image files, and images pasted from the clipboard.</p>
 		<p>Play, scan or step through the video using the <strong>video player</strong>. For more information see <a href="videos.html">videos</a>.</p>
-		<p>Another option is to open the <strong>OSP Digital Library  Browser</strong> by clicking the <strong>Open Library Browser</strong> button or choosing the <strong>File|Open Library Browser </strong>menu item. The library browser enables you to browse and access collections of digital library resources including videos and tracker files.  For help using the OSP Digital Library Browser, choose its <strong>Help|Library Browser Help</strong> menu item.</p>
+		<p>Another option is to open the <strong>OSP Library  Browser</strong> by clicking the <strong>Open Library Browser</strong> button or choosing the <strong>File|Open Library Browser </strong>menu item. The library browser enables you to browse and access collections of digital resources including videos and tracker files.  For help using the OSP Library Browser, choose its <strong>Help|Library Browser Help</strong> menu item.</p>
         <p align="center">
           <img src="../help_images/library_browser.gif">
     	</p>
@@ -44,19 +44,15 @@
 		</p>
         
 		<h3><a name="scale" id="scale"></a>3. Calibrate the scale</h3>
-		<p>Click the <strong>Calibration</strong> button <img src="../help_images/tape_button.gif" align="absmiddle"> and select the <a href="stick.html">calibration stick</a>.</p>
-		<p align="center">
-        	<img src="../help_images/stick.gif">
-        </p>
-		<p>Drag the ends of the calibration stick to a video feature with known length (for example, a meter stick). Then click the readout to select it and enter the known length (plus units if desired). For example, in the figures below the scale is set in meter units using a video image of a white PVC pipe with black stripes every 10 cm.</p>
+		<p>Click the <strong>Calibration</strong> button <img src="../help_images/tape_button.gif" align="absmiddle"> and select the <a href="stick.html">calibration stick</a>. Shift-click on a video feature with known length (for example, a meter stick) to mark one end of the stick, then shift-click again for the second end (or, if automatically marked, drag the ends of the stick to the video feature). Then click the readout to select it and enter the known length (plus units if desired). For example, in the figures below the scale is set in meter units using a video image of a white PVC pipe with black stripes every 10 cm.</p>
 		<p align="center">
 			<img src="../help_images/stick_readout1.gif">
 			<img src="../help_images/stick_readout2.gif">
-		</p>
+</p>
 		<p align="center">
 			<img src="../help_images/stick_readout3.gif">
 			<img src="../help_images/stick_readout4.gif">
-		</p>
+</p>
 		<p>For more information see <a href="stick.html">calibration stick</a>, or for an alternate way to calibrate the video consider a <a href="calibration.html">calibration point pair</a>.</p>
 
 		<h3><a name="axes" id="axes"></a>4. Set the reference frame origin and angle</h3>
@@ -113,10 +109,11 @@
 			<img src="../help_images/data_tool.gif">
         </p>
         
-		<h3><a name="save" id="save"></a>7. Save your work in a tracker (.trk) file</h3>
-		<p>Click the <strong>Save</strong> button <img src="../help_images/save_button.gif" align="absmiddle"> or <strong>File|Save As...</strong> menu item to save your work in an XML-based <strong>tracker file</strong> with the extension &quot;.trk&quot;. When a saved tracker file is opened, Tracker loads the video, sets the clip and coordinate system properties, and rebuilds all tracks, custom variables and views. For more information see <a href="datafile.html">tracker files</a>.</p>
+		<h3><a name="save" id="save"></a>7. Save your work in a Tracker tab (.trk) or Tracker project (.trz) file</h3>
+		<p>Click the <strong>Save Tab</strong> button <img src="../help_images/save_button.gif" align="absmiddle"> or <strong>File|Save Tab As...</strong> menu item to save your work in an <strong>Tracker tab file</strong> with extension &quot;.trk&quot;. When a saved Tracker tab file is opened, Tracker loads the video, sets the clip and coordinate system properties, and rebuilds all tracks, custom variables and views. Note that a Tracker tab file does NOT include the video itself, only a reference to the video. For more information see <a href="datafile.html">Tracker tab files</a>.</p>
+		<p>Click the <strong>Save Project </strong> button <img src="../help_images/export_zip_button.gif" align="absmiddle"> or <strong>File|Save Project As...</strong> menu item to save your work in an <strong>Tracker project file</strong> with extension &quot;.trz&quot;. Tracker projects are the best way to save and share your work since they DO include the videos along with PDF and/or HTML documentation and thus are fully self-contained.  With searchable keywords and other metadata, you can browse and find projects easily with the <a href="library_browser.html">Library Browser</a>. For more information see <a href="zip_resource.html">Tracker projects</a>.</p>
 
-		<h3><a name="export" id="export"></a>8. Export track data to a spreadsheet</h3>
+<h3><a name="export" id="export"></a>8. Export track data to a spreadsheet</h3>
 		<p>Tracker's <strong>Datatable View</strong> displays track data in a table. To change the variables included in the table, click the <strong>Data</strong> button and select from the list displayed.</p>
 		<p>Data can be easily exported from the datatable by copying to the clipboard and pasting into a spreadsheet or other application. To copy, select the desired data in the table, then right-click and choose <strong>Copy Data</strong> from the popup menu. For more information see <a href="tableview.html">datatable view</a>.</p>
 		<p align="center">

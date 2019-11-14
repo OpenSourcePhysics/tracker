@@ -1,7 +1,7 @@
 /*
  * The tracker.deploy package defines classes for launching and installing Tracker.
  *
- * Copyright (c) 2018  Douglas Brown
+ * Copyright (c) 2019  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -150,8 +151,10 @@ public class TrackerStarter {
 					try {
 						Class<?> OSXClass = Class.forName(className);
 						Constructor<?> constructor = OSXClass.getConstructor();
-						constructor.newInstance();
-						logMessage("OSXServices running"); //$NON-NLS-1$
+						Object OSXServices = constructor.newInstance();
+						Method m = OSXClass.getDeclaredMethod("getStatus", (Class<?>[])null); //$NON-NLS-1$
+						Object status = m.invoke(OSXServices, (Object[])null);	
+						logMessage(""+status); //$NON-NLS-1$
 					} catch (Exception ex) {
 						logMessage("OSXServices failed"); //$NON-NLS-1$
 					} catch (Error err) {
@@ -183,14 +186,27 @@ public class TrackerStarter {
 
 	/**
 	 * Launches a new instance of Tracker.
-	 * @param args array of filenames
+	 * @param args array of filenames. The first arg may be a preferred tracker.jar.
 	 */
 	public static void launchTracker(String[] args) {
 		if (launching) return;
 		launching = true;
-		logMessage("TrackerStarter runnning in jre: " + javaHome); //$NON-NLS-1$
+		logMessage("TrackerStarter running in jre: " + javaHome); //$NON-NLS-1$
 		
 		launchThread = null;
+		
+		// look for new version tracker jar as first argument
+		if (args!=null && args.length>0 && (args[0].contains("tracker.jar")  //$NON-NLS-1$
+					|| (args[0].contains("tracker-") && args[0].contains(".jar")))) { //$NON-NLS-1$ //$NON-NLS-2$
+    	System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, args[0]);
+    	System.setProperty(TrackerStarter.TRACKER_NEW_VERSION, args[0]);
+    	String[] newArgs = new String[args.length-1];
+    	if (newArgs.length>0) {
+    		System.arraycopy(args, 1, newArgs, 0, newArgs.length);
+    		args = newArgs;
+    	}
+    	else args = null;
+		}
 		
 		String argString = null;
 		if (args != null && args.length > 0) {
@@ -200,7 +216,7 @@ public class TrackerStarter {
 			}
 		}
 		logMessage("launching with main arguments: " + argString); //$NON-NLS-1$
-		String jarPath = null;
+		
 
 		// find Tracker home
 		try {
@@ -225,6 +241,7 @@ public class TrackerStarter {
 		loadPreferences();
 
 		// determine which tracker jar to launch
+		String jarPath = null;		
 		try {
 			jarPath = getTrackerJarPath();
 		} catch (Exception ex) {
@@ -284,7 +301,9 @@ public class TrackerStarter {
 		if (trackerHome!=null) return trackerHome;
 		// first determine if code base directory is trackerHome
 		if (codeBaseDir != null) {
-			if (writeToLog) logMessage("code base: " + codeBaseDir.getPath()); //$NON-NLS-1$
+			if (writeToLog) {
+				logMessage("TrackerStarter jar: " + starterJarFile); //$NON-NLS-1$
+			}
 			// accept if the directory has any tracker jars in it
 			try {
 				String[] fileNames = codeBaseDir.list(trackerJarFilter);
@@ -475,19 +494,6 @@ public class TrackerStarter {
 	}
 
 
-	// /**
-	// * Finds all available Java VMs and returns their paths in a Set<String>[].
-	// * Returned array[0] is 32-bit VMs, array[1] is 64-bit VMs.
-	// * @return Set<String>[] of available VMs
-	// */
-	// private static ArrayList<Set<String>> findVMs() {
-	// ArrayList<Set<String>> results = new ArrayList<Set<String>>();
-	// ExtensionsManager javaManager = ExtensionsManager.getManager();
-	// results.add(javaManager.getAllJREs(32));
-	// results.add(javaManager.getAllJREs(64));
-	// return results;
-	// }
-	//
 	/**
 	 * Exits gracefully by giving information to the user.
 	 */
@@ -588,19 +594,22 @@ public class TrackerStarter {
 		if (!prefsXMLControl.failedToRead()) {
 			logMessage("loading starter preferences from: " + prefsPath); //$NON-NLS-1$
 			
+			String jar = null; // preferred jar name to be determined
+			
 			// preferred tracker jar
-			String jar = null;
 			String systemProperty = System.getProperty(PREFERRED_TRACKER_JAR);
-			if (systemProperty!=null) {
+
+			if (jar==null && systemProperty!=null) {
 				loaded = true;
 				trackerJarPath = systemProperty;
 				jar = XML.getName(trackerJarPath);
 				logMessage("system property "+PREFERRED_TRACKER_JAR+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
 			}
-			else if (prefsXMLControl.getPropertyNames().contains("tracker_jar")) { //$NON-NLS-1$
+			else if (jar==null && prefsXMLControl.getPropertyNames().contains("tracker_jar")) { //$NON-NLS-1$
 				loaded = true;
 				jar = prefsXMLControl.getString("tracker_jar"); //$NON-NLS-1$
 			}
+
 			if (jar!=null && !jar.equals("tracker.jar")) { //$NON-NLS-1$
 				int dot = jar.indexOf(".jar"); //$NON-NLS-1$
 				String ver = jar.substring(8, dot);
@@ -617,6 +626,7 @@ public class TrackerStarter {
 					logMessage("version number not valid: " + ver); //$NON-NLS-1$
 				}
 			}
+
 
 			// preferred java vm
 			preferredVM = null;
@@ -650,6 +660,7 @@ public class TrackerStarter {
 					logMessage("no preferred or bundled java VM, using default"); //$NON-NLS-1$
 				}
 			}
+
 
 			// preferred executables to run prior to starting Tracker
 			if (prefsXMLControl.getPropertyNames().contains("run")) { //$NON-NLS-1$
@@ -702,6 +713,7 @@ public class TrackerStarter {
 				logMessage("using default memory size: " + preferredMemorySize + " MB"); //$NON-NLS-1$ //$NON-NLS-2$				
 			}
 			
+
 			if (!loaded)
 				logMessage("no starter preferences found in " + prefsPath); //$NON-NLS-1$      		
 		}
@@ -794,6 +806,15 @@ public class TrackerStarter {
 	private static void startTracker(String jarPath, String[] args)
 			throws Exception {
 
+		String newVersionURL = System.getProperty(TRACKER_NEW_VERSION);
+		// pig turn this off
+//		// if new version has been installed, run in bundled JRE
+//		if (newVersionURL!=null &&  bundledVM != null) {
+//			File javaFile = OSPRuntime.getJavaFile(bundledVM);
+//			if (javaFile!=null) {
+//				javaCommand = XML.stripExtension(javaFile.getPath());
+//			} 			
+//		}
 		// assemble the command
 		final ArrayList<String> cmd = new ArrayList<String>();
 		if (javaCommand.equals("java") && javaHome != null) { //$NON-NLS-1$
@@ -867,8 +888,12 @@ public class TrackerStarter {
 				
 				env.put(pathEnvironment, pathValue);
 				logMessage("setting "+pathEnvironment+" = " + pathValue); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			
+			}			
+		}
+		
+		if (ffmpegHome!=null && new File(ffmpegHome).exists()) {
+			env.put("FFMPEG_HOME", ffmpegHome); //$NON-NLS-1$ 
+			logMessage("setting FFMPEG_HOME = " + ffmpegHome); //$NON-NLS-1$
 		}
 		
 		// add TRACKER_RELAUNCH to process environment if relaunching
@@ -878,7 +903,6 @@ public class TrackerStarter {
 		else env.remove(TRACKER_RELAUNCH);
 		
 		// add TRACKER_NEW_VERSION to process environment if launching a new version
-		String newVersionURL = System.getProperty(TRACKER_NEW_VERSION);
 		if (newVersionURL!=null) {
 			logMessage("setting "+TRACKER_NEW_VERSION+" = " + newVersionURL); //$NON-NLS-1$ //$NON-NLS-2$ 
 			env.put(TRACKER_NEW_VERSION, newVersionURL);
@@ -892,14 +916,16 @@ public class TrackerStarter {
 		}
 		logMessage("executing command: " + message); //$NON-NLS-1$ 
 
-		// write codeBase tracker_start log
-		writeCodeBaseLog();
-
-		// write the tracker_start log and set environment variable
+		// write the user tracker_start log and set environment variable
 		startLogPath = writeUserLog();
 		if (startLogPath!=null)
 			env.put("START_LOG", startLogPath); //$NON-NLS-1$
 		
+		// write codeBase tracker_start log
+		writeCodeBaseLog();
+
+		// start exit thread that waits a second before exiting 
+		// to give time to start the new process
 		exitCounter = 0;
 		if (exitThread==null) {
 			exitThread = new Thread(new Runnable() {
@@ -920,7 +946,7 @@ public class TrackerStarter {
 			exitThread.start();
 		}
 		
-		// start the Tracker process and wait for it to finish
+		// start the new Tracker process and wait for it to finish
 		// note that successful process should not return until Tracker is exited
 		final Process process = builder.start();
 		int result = process.waitFor();
@@ -971,25 +997,30 @@ public class TrackerStarter {
 	}
 
 	private static String writeUserLog() {
-		if ("".equals(logText) || trackerHome==null) //$NON-NLS-1$
+		if ("".equals(logText) || trackerHome==null) { //$NON-NLS-1$
 			return null;
+		}	
 
+		// define "user log" file
 		File file = null;
-		if (new File(trackerHome).canWrite())
+		// check if can write to OSP.prefs directory
+		File ospPrefsFile = OSPRuntime.getPreferencesFile();
+		if (ospPrefsFile != null && ospPrefsFile.getParentFile().canWrite()) {
+			file = new File(ospPrefsFile.getParentFile(), LOG_FILE_NAME);
+		}
+		// check if can write to Tracker file in user documents
+		if (file == null && userDocuments != null && new File(userDocuments+"/Tracker").canWrite()) { //$NON-NLS-1$
+			file = new File(userDocuments+"/Tracker", LOG_FILE_NAME); //$NON-NLS-1$
+		}		
+		// check if can write to tracker home
+		if (file==null && new File(trackerHome).canWrite()) {
 			file = new File(trackerHome, LOG_FILE_NAME);
-		if (userDocuments != null && new File(userDocuments).canWrite()) {
-			if (new File(userDocuments + "/Tracker").canWrite()) { //$NON-NLS-1$
-				file = new File(userDocuments + "/Tracker", LOG_FILE_NAME); //$NON-NLS-1$
-			}
-			else {
-				file = new File(userDocuments, LOG_FILE_NAME);			
-			}
 		}
 		
 		if (file==null) return null;
 		
 		addLogHeader();
-		logMessage("writing start log to "+file.getAbsolutePath()); //$NON-NLS-1$
+		logMessage("writing user start log to "+file.getAbsolutePath()); //$NON-NLS-1$
 
 		try {
 			FileOutputStream stream = new FileOutputStream(file);
@@ -1019,7 +1050,7 @@ public class TrackerStarter {
 		if (codeBaseDir!=null && codeBaseDir.canWrite()) {
 			addLogHeader();
 			File file = new File(codeBaseDir, LOG_FILE_NAME);
-			logMessage("writing start log to "+file.getAbsolutePath()); //$NON-NLS-1$
+			logMessage("writing code base start log "+file.getAbsolutePath()); //$NON-NLS-1$
 			try {
 				FileOutputStream stream = new FileOutputStream(file);
 				Charset charset = Charset.forName(encoding);

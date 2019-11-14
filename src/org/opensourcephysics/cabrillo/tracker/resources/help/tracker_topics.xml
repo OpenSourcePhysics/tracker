@@ -320,7 +320,7 @@
         </property>
         <property name="item" type="object">
         <object class="org.opensourcephysics.tools.LaunchNode">
-            <property name="name" type="string">Tracker Files</property>
+            <property name="name" type="string">Tracker Tab Files</property>
             <property name="html" type="array" class="[[Ljava.lang.String;">
                 <property name="[0]" type="array" class="[Ljava.lang.String;">
                     <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/datafile.html</property>
@@ -331,7 +331,7 @@
         </property>
         <property name="item" type="object">
         <object class="org.opensourcephysics.tools.LaunchNode">
-            <property name="name" type="string">Tracker ZIP Files</property>
+            <property name="name" type="string">Tracker Projects</property>
             <property name="html" type="array" class="[[Ljava.lang.String;">
                 <property name="[0]" type="array" class="[Ljava.lang.String;">
                     <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/zip_resource.html</property>
@@ -342,7 +342,7 @@
         </property>
         <property name="item" type="object">
         <object class="org.opensourcephysics.tools.LaunchNode">
-            <property name="name" type="string">Digital Library Browser</property>
+            <property name="name" type="string">Library Browser</property>
             <property name="html" type="array" class="[[Ljava.lang.String;">
                 <property name="[0]" type="array" class="[Ljava.lang.String;">
                     <property name="[1]" type="string">/org/opensourcephysics/cabrillo/tracker/resources/help/library_browser.html</property>

@@ -9,12 +9,13 @@
 	</head>
 
 	<body>
-		<h1><a name="trk0" id="trk0"></a>Tracker Files</h1>
-		<p>Tracker saves the state of individual tabs (video clip, coordinate system, tracks and views) in xml-based<strong> tracker files</strong> with the extension &quot;<strong>trk</strong>&quot;. When a saved tracker file is opened, the saved state is reproduced in a new tab.</p>
+		<h1><a name="trk0" id="trk0"></a>Tracker Tab Files</h1>
+		<p>Tracker saves the state of individual tabs (video clip, coordinate system, tracks and views) in xml-based<strong> Tracker tab files</strong> with the extension &quot;<strong>trk</strong>&quot;. When a saved tracker tab is opened, the saved state is reproduced in a new tab.</p>
 		<p>You can also save a <strong><a href="datafile.html#tabset">tabset</a></strong> that references several tabs (individual tabs must be saved first). The tabset is a separate tracker (.trk) file that, when opened, loads all the tabs at once.</p>
-		<p>Step positions saved in tracker files are in image (pixel) coordinates, so they are not suitable for direct analysis. To access the world data associated with a track, use a <a href="tableview.html">datatable view</a> or export the data to a <a href="datafile.html#datafile">delimited text file</a>.</p>
+		<p>Note that Tracker tab and tabset files do NOT include the videos themselves, only references to the videos. By contrast, <strong><a href="zip_resource.html">Tracker project files</a></strong> with extension &quot;<strong>trz</strong>&quot;  DO include the videos along with PDF and/or HTML documentation and thus are fully self-contained.  With searchable keywords and other metadata, you can browse and find Tracker projects easily with the <a href="library_browser.html">Library Browser</a>.</p>
+<p>Step positions saved in tracker files are in image (pixel) coordinates, so they are not suitable for direct analysis. To access the world data associated with a track, use a <a href="tableview.html">datatable view</a> or export the data to a <a href="datafile.html#datafile">delimited text file</a>.</p>
         
-		<h3><a name="trk1" id="trk1"></a>1. Opening a tracker file from a local drive</h3>
+		<h3><a name="trk1" id="trk1"></a>1. Opening a tracker tab file from a local drive</h3>
 		<p>Bring up the open dialog with the <strong>Open</strong> button or <strong>File|Open File</strong> menu item, select the desired file, and click Open.</p>
 		<p align="center">
 		    <img src="../help_images/open_button.gif" align="top">
@@ -29,7 +30,7 @@
 			<img src="../help_images/tab_title.gif">
 		</p>
         
-		<h3><a name="trk2" id="trk2"></a>2. Opening a tracker file from the web</h3>
+		<h3><a name="trk2" id="trk2"></a>2. Opening a Tracker tab file from the web</h3>
         <p>Choose the <strong>File|Open URL </strong>menu item and enter a known URL in the dialog to open a tracker file directly from the web.</p>
         <p align="center">
             <img src="../help_images/open_URL_menu.gif" align="top">
@@ -51,7 +52,7 @@
 		<h3><a name="tabset" id="tabset"></a>4. Saving a tabset</h3>
 		<p>Save a tabset by choosing the <strong>File|Save Tabset As...</strong> menu item. You will first be prompted to save open tabs that have not previously been saved. All currently open tabs will be included in the tabset tracker file.</p>
         
-		<h3><a name="import" id="import"></a>5. Importing from a tracker file</h3>
+		<h3><a name="import" id="import"></a>5. Importing from a Tracker tab file</h3>
 		<p>Videos, tracks and/or the coordinate system from a tracker file can be imported into an existing tab using the <strong>Import|Tracker File</strong> menu item from the File menu.</p>
 		<p align="center">
 			<img src="../help_images/import_menu.gif">
@@ -61,7 +62,7 @@
 			<img src="../help_images/import_choices.gif">
         </p>
         
-		<h3><a name="trk6" id="trk6"></a>6. Editing a tracker file directly</h3>
+		<h3><a name="trk6" id="trk6"></a>6. Editing a tracker tab file directly</h3>
 		<p>A tracker file is easily human-read and edited with any text editor. The xml format conforms to the doctype specification defined in osp10.dtd.</p>
         
 		<h3><a name="datafile" id="datafile"></a>7. Saving data in a text file</h3>

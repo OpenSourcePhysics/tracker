@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2018  Douglas Brown
+ * Copyright (c) 2019  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
+
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
@@ -82,22 +83,22 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	    				testTimer = new Timer(500, new ActionListener() {
 		    	      public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
-		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		    	      	
-		    	      	TTrack track = trackerPanel.getSelectedTrack();
 		    	      	
+//		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		    	      	
+//		    	      	TTrack track = trackerPanel.getSelectedTrack();
 		    	      	
+		    	      	Tracker.checkedForNewerVersion = false;
+					  			Tracker.testString = "5.1.3"; //$NON-NLS-1$
+					  			Tracker.loadCurrentVersion(true, false);
+					  			Tracker.testString = null;
+					  			
 //			    	    	Map<String, String> map = System.getenv();
 //			    	    	for (String key: map.keySet()) {
 //			    	    		System.out.println("environment "+key+" = "+map.get(key));
 //			    	    	}
 //			    	    	for (Object key: System.getProperties().keySet()) {
 //			    	    		System.out.println("property "+key+" = "+System.getProperties().get(key));
-//			    	    	}
-
-		    	      			    	      	
-//			          	Tracker.newerVersion = "5.0.2"; //$NON-NLS-1$
-//		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-//		    	      	TTrackBar.getTrackbar(trackerPanel).refresh();
+//			    	    	}		    	      			    	      	
 		    	      			    	      	
 		    	      	if (!testTimer.isRepeats()) {
 		  	    				testTimer.stop();
@@ -105,7 +106,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		  	    			}
 		    	      }
 		    	    });
-	    				testTimer.setInitialDelay(20);
+	    				testTimer.setInitialDelay(0);
 	    				testTimer.setRepeats(false);
 	    				testTimer.start();
 	    			} // end timer is null

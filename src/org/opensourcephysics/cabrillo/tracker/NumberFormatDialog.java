@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2018  Douglas Brown
+ * Copyright (c) 2019  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -534,7 +534,7 @@ public class NumberFormatDialog extends JDialog {
   	
   	// get pattern from track NumberField if possible
   	NumberField[] fields = track.getNumberFields().get(name);
-  	if (fields!=null) {
+  	if (fields!=null && fields.length>0) {
   		return fields[0].getFixedPattern();
   	}
   	
@@ -559,7 +559,7 @@ public class NumberFormatDialog extends JDialog {
     
     // look in defaultFormatPatterns 
     patterns = NumberFormatDialog.defaultFormatPatterns.get(type);
-    if (patterns.get(name)!=null) {
+    if (patterns!=null && patterns.get(name)!=null) {
     	return patterns.get(name);
     }
     

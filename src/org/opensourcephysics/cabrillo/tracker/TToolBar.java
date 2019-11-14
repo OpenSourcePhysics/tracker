@@ -2,7 +2,7 @@
  * The tracker package defines a set of video/image analysis tools
  * built on the Open Source Physics framework by Wolfgang Christian.
  *
- * Copyright (c) 2018  Douglas Brown
+ * Copyright (c) 2019  Douglas Brown
  *
  * Tracker is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -202,11 +202,23 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         String extension = XML.getExtension(fileName);
         if (extension==null || !extension.equals("trk")) //$NON-NLS-1$
         	fileName = XML.stripExtension(fileName)+".trk"; //$NON-NLS-1$
-        saveButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Save.Tooltip") //$NON-NLS-1$
-        		+ " \"" + fileName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+        saveButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Save.Tooltip")); //$NON-NLS-1$
     	}
     });
     saveZipButton = new TButton(actions.get("saveZip")); //$NON-NLS-1$
+    saveZipButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+      	final ExportZipDialog zipDialog = ExportZipDialog.getDialog(trackerPanel);
+      	final boolean isVis = zipDialog.isVisible();
+				Runnable runner = new Runnable() {
+					public void run() {
+						zipDialog.setVisible(!isVis);
+					}
+				};
+				SwingUtilities.invokeLater(runner);
+			} 		
+  	});
     // clip settings button
     clipSettingsDialogListener = new ComponentAdapter() {
     	public void componentHidden(ComponentEvent e) {      	
@@ -872,36 +884,32 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	        if (trackerPanel.isEnabled("file.save")) { //$NON-NLS-1$
 	        	add(saveButton);
 	        }
-          boolean showLib = trackerPanel.isEnabled("file.library") //$NON-NLS-1$
-          		&& (trackerPanel.isEnabled("file.open") || trackerPanel.isEnabled("file.export")); //$NON-NLS-1$ //$NON-NLS-2$
-	        if (showLib && getComponentCount()>0)
-	        	add(getSeparator());
-	        if (trackerPanel.isEnabled("file.open") && trackerPanel.isEnabled("file.library")) { //$NON-NLS-1$ //$NON-NLS-2$
+	        if (getComponentCount()>0) add(getSeparator());
+	        if (trackerPanel.isEnabled("file.library")) { //$NON-NLS-1$
 	        	add(openBrowserButton);
-	        }
-	        if (trackerPanel.isEnabled("file.export") && trackerPanel.isEnabled("file.library")) { //$NON-NLS-1$ //$NON-NLS-2$
-	        	add(saveZipButton);
+		        if (trackerPanel.isEnabled("file.save")) { //$NON-NLS-1$
+		        	add(saveZipButton);
+		        }
 	        }
         }
-        if (getComponentCount()>0)
-        	add(getSeparator()); // first separator
-        boolean addSecondSeparator = false;
+        if (getComponentCount()>0) add(getSeparator());
+        boolean addSeparator = false;
         if (trackerPanel.isEnabled("button.clipSettings")) {//$NON-NLS-1$
         	add(clipSettingsButton);
-        	addSecondSeparator = true;
+        	addSeparator = true;
         }
         if (trackerPanel.isEnabled("calibration.stick") //$NON-NLS-1$
         		|| trackerPanel.isEnabled("calibration.tape") //$NON-NLS-1$
         		|| trackerPanel.isEnabled("calibration.points") //$NON-NLS-1$
         		|| trackerPanel.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
         	add(calibrationButton);
-        	addSecondSeparator = true;
+        	addSeparator = true;
         }
         if (trackerPanel.isEnabled("button.axes")) {//$NON-NLS-1$
         	add(axesButton);
-        	addSecondSeparator = true;
+        	addSeparator = true;
         }
-        if (addSecondSeparator)
+        if (addSeparator)
         	add(getSeparator());
         if (trackerPanel.isCreateTracksEnabled()) {
         	add(newTrackButton);
