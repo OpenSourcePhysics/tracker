@@ -67,7 +67,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.1.3"; //$NON-NLS-1$
+  public static final String VERSION = "5.1.3200219"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -1908,7 +1908,6 @@ public class Tracker {
 		    		if (response==JOptionPane.YES_OPTION) {
 		    			Tracker.preferredTrackerJar = null;
 		    		}
-//  					Tracker.preferredJRE = null;  // reset preferredJRE to the bundled JRE // pig is this needed now?
 	    			Tracker.savePreferences();
 	    		}
         }
@@ -2135,6 +2134,20 @@ public class Tracker {
   static class Preferences {
   	
     /**
+     * Constructor loads default prefs if found.
+     */
+  	Preferences() {
+  		if (trackerHome!=null) {
+	      File defaultPrefsFile = new File(trackerHome, "tracker.prefs.default"); //$NON-NLS-1$
+	      if (defaultPrefsFile.exists()) {
+	      String defaultPrefsPath = defaultPrefsFile.getAbsolutePath();
+	      	XMLControl control = new XMLControlElement(defaultPrefsPath);
+	      	control.loadObject(this);
+	      }
+  		}
+  	}
+  	
+    /**
      * Returns an ObjectLoader to save and load data for this class.
      *
      * @return the object loader
@@ -2349,7 +2362,6 @@ public class Tracker {
 
       	if (control.getPropertyNames().contains("file_chooser_directory")) //$NON-NLS-1$
       		OSPRuntime.chooserDir = control.getString("file_chooser_directory"); //$NON-NLS-1$
-      	
       	// preferred video engine
       	VideoIO.setPreferredExportExtension(control.getString("export_extension")); //$NON-NLS-1$
       	if (control.getPropertyNames().contains("zip_export_extension")) //$NON-NLS-1$
