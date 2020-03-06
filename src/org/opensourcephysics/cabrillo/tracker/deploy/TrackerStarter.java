@@ -807,7 +807,6 @@ public class TrackerStarter {
 			throws Exception {
 
 		String newVersionURL = System.getProperty(TRACKER_NEW_VERSION);
-		// pig turn this off
 //		// if new version has been installed, run in bundled JRE
 //		if (newVersionURL!=null &&  bundledVM != null) {
 //			File javaFile = OSPRuntime.getJavaFile(bundledVM);
