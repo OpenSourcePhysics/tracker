@@ -66,8 +66,8 @@ import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.JarTool;
 import org.opensourcephysics.tools.LaunchBuilder;
+import org.opensourcephysics.tools.LibraryCollection;
 import org.opensourcephysics.tools.LibraryResource;
-import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -136,7 +136,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	protected ArrayList<ParticleModel> badModels; // particle models with start frames not included in clip
 	protected String videoIOPreferredExtension;
   protected boolean isVisible;
-  
+  protected boolean isSaveComplete;
+  protected boolean isSaveCancelled;
   
   /**
    * Returns an ExportZipDialog for a TrackerPanel.
@@ -1695,7 +1696,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   /**
    * Saves a zip resource to a target defined with a file chooser
    */
-  private void saveZipAs() {  	
+  protected void saveZipAs() {  	
+  	isSaveComplete = isSaveCancelled = false;
     String description = descriptionPane.getText().trim();
     if (!"".equals(description) && "".equals(trackerPanel.getDescription())) { //$NON-NLS-1$ //$NON-NLS-2$
     	trackerPanel.setDescription(description);
@@ -1724,6 +1726,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   	  			javax.swing.JOptionPane.YES_NO_CANCEL_OPTION, 
   	  			javax.swing.JOptionPane.WARNING_MESSAGE);
   	  	if (response!=javax.swing.JOptionPane.YES_OPTION) {
+  	  		isSaveCancelled = true;
   	  		return;
   	  	}
     	}
@@ -1731,8 +1734,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   	
   	// define the target filename and create empty zip list
   	final ArrayList<File> zipList = defineTarget();
-  	if (zipList==null) return;
-  	setVisible(false);      	     	
+  	if (zipList==null) {
+  		isSaveCancelled = true;
+  		return;
+  	}
+  	setVisible(false); 
 
   	// use separate thread to add files to the ziplist and create the TRZ file
   	Runnable runner = new Runnable() {
@@ -1741,7 +1747,24 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
       	addHTMLInfo(thumbPath, zipList);      	
       	addVideosAndTRKs(zipList);
       	addFiles(zipList);
-      	saveZip(zipList);
+      	File target = saveZip(zipList);
+      	if (target!=null) {
+	      	isSaveComplete = true;
+	    		// offer to open the newly created zip file
+	    		openZip(target.getAbsolutePath());
+	    		// delete temp directory after short delay
+	        Timer timer = new Timer(1000, new ActionListener() {
+	          public void actionPerformed(ActionEvent e) {
+	        		File temp = new File(getTempDirectory());
+	            ResourceLoader.deleteFile(temp);
+	           }
+	        });
+	    		timer.setRepeats(false);
+	    		timer.start();
+      	}
+      	else {
+      		isSaveCancelled = true;
+      	}
   		}
   	};
   	new Thread(runner).start();      	
@@ -1750,23 +1773,15 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   /**
    * Saves a zip resource containing the files in the list. 
    * @param zipList the list of files to be zipped
+   * @return the zipped File, or null if cancelled or failed
    */
-  private void saveZip(ArrayList<File> zipList) {  	
+  private File saveZip(ArrayList<File> zipList) {  	
   	// define zip target and compress with JarTool
   	File target = new File(getZIPTarget());
   	if (JarTool.compress(zipList, target, null)) {
-  		// offer to open the newly created zip file
-  		openZip(target.getAbsolutePath());
-  		// delete temp directory after short delay
-      Timer timer = new Timer(1000, new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-      		File temp = new File(getTempDirectory());
-          ResourceLoader.deleteFile(temp);
-         }
-      });
-  		timer.setRepeats(false);
-  		timer.start();
+  		return target;
   	}
+  	return null;
   }
   
   /**
@@ -2405,19 +2420,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
           	public void run() {
           		// open the TRZ in a Tracker tab
           		TrackerIO.open(new File(path), frame);
-          		// open the TRZ in the Library Browser
-    	      	frame.getLibraryBrowser().open(path);
-    	      	frame.getLibraryBrowser().setVisible(true);
-    	        Timer timer = new Timer(1000, new ActionListener() {
-    	          public void actionPerformed(ActionEvent e) {
-    	          	LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
-    	          	if (treePanel!=null) {
-    		    				treePanel.refreshSelectedNode();
-    	          	}
-    	          }
-    	        });
-    	        timer.setRepeats(false);
-    	        timer.start();
           	}
           };
           SwingUtilities.invokeLater(runner);
@@ -2439,10 +2441,46 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     chooser.setAcceptAllFileFilterUsed(false);
     chooser.addChoosableFileFilter(TrackerIO.trzFileFilter);
     chooser.setFileFilter(TrackerIO.trzFileFilter);
-//    String title = titleField.getText().trim().replaceAll(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
-//    if (!"".equals(title)) { //$NON-NLS-1$
-//    	chooser.setSelectedFile(new File(title+".trz")); //$NON-NLS-1$
-//    }
+    File dir = chooser.getCurrentDirectory();
+        
+    // get collection of files currently open in Tracker
+    ArrayList<File> trackerFiles = new ArrayList<File>();
+		for (int i=0; i<frame.getTabCount(); i++) {
+			String path = frame.getTrackerPanel(i).openedFromPath;
+			if (path!=null) {
+				trackerFiles.add(new File(path));
+			}
+		}
+    // get collection of recent files open in library browser
+  	ArrayList<File> recentFiles = new ArrayList<File>();
+  	if (frame.libraryBrowser!=null) {
+    	LibraryCollection collection = frame.libraryBrowser.getRecentCollection();
+    	int k = frame.libraryBrowser.getTabIndexFromPath(collection.getCollectionPath());
+    	if (k>-1) {
+    		LibraryResource[] resources = collection.getResources();
+    		for (k=0; k<resources.length; k++) {
+    			recentFiles.add(new File(resources[k].getBasePath(), resources[k].getTarget()));
+    		}
+    	}
+  	}
+
+    String title = titleField.getText().trim().replaceAll(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    if (!"".equals(title)) { //$NON-NLS-1$
+    	File file = new File(dir, title+".trz"); //$NON-NLS-1$
+    	// increment suggested filename if currently open in Tracker or Library Browser
+    	boolean checkOpenFiles = true;
+    	int n = 1;
+    	while (checkOpenFiles) { 
+    		// check tracker files and recent files
+  			if (trackerFiles.contains(file) || recentFiles.contains(file)) {
+  				n++;
+  				file = new File(dir, title+"_"+n+".trz"); //$NON-NLS-1$ //$NON-NLS-2$
+  				continue;
+  			}   			
+    		checkOpenFiles = false;
+    	}
+    	chooser.setSelectedFile(file);
+    }
     chooser.setAccessory(null);
     chooser.setMultiSelectionEnabled(false);
     int result = chooser.showSaveDialog(null);
@@ -2455,18 +2493,26 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     
   	// check that target is not currently open in Tracker--can't overwrite open TRZ
   	if (chooserFile.exists()) {
-  		for (int i=0; i<frame.getTabCount(); i++) {
-  			String path = frame.getTrackerPanel(i).openedFromPath;
-  			if (path!=null && path.equals(XML.forwardSlash(chooserFile.getPath()))) {
-    	  	javax.swing.JOptionPane.showMessageDialog(
-    	  			frame,	    			
-    	  			TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Message"), //$NON-NLS-1$
-    	  			TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Title"), //$NON-NLS-1$ 
-    	  			javax.swing.JOptionPane.WARNING_MESSAGE);
-  				return defineTarget();
-  			}
+  		if (trackerFiles.contains(chooserFile)) {
+  	  	javax.swing.JOptionPane.showMessageDialog(
+  	  			frame,	    			
+  	  			TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Message") //$NON-NLS-1$
+  	  			+"\n"+TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Message2"),  //$NON-NLS-1$//$NON-NLS-2$
+  	  			TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Title"), //$NON-NLS-1$ 
+  	  			javax.swing.JOptionPane.WARNING_MESSAGE);
+				return defineTarget();
+  		}
+  		if (recentFiles.contains(chooserFile)) {
+  	  	javax.swing.JOptionPane.showMessageDialog(
+  	  			frame,	    			
+  	  			TrackerRes.getString("ExportZipDialog.Dialog.FailedToOverwrite.Message") //$NON-NLS-1$
+  	  			+"\n"+TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Message2"),  //$NON-NLS-1$//$NON-NLS-2$
+  	  			TrackerRes.getString("ExportZipDialog.Dialog.CannotOverwrite.Title"), //$NON-NLS-1$ 
+  	  			javax.swing.JOptionPane.WARNING_MESSAGE);
+				return defineTarget();
   		}
   	}
+  	// check that user wishes to overwrite duplicate file
   	if (!TrackerIO.canWrite(chooserFile)) {
   		return null;
   	}
