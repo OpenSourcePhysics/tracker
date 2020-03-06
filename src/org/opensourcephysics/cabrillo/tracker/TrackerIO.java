@@ -250,7 +250,10 @@ public class TrackerIO extends VideoIO {
 	  	VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 	  	if (clip.getVideoPath()!=null) {	  		
 	  		File dir = new File(clip.getVideoPath()).getParentFile();
-	  		chooser.setCurrentDirectory(dir);
+	  		File cacheFile = ResourceLoader.getOSPCache();
+	  		// prevent chooser directory from pointing to the OSP cache
+	  		if (!dir.getAbsolutePath().contains(cacheFile.getAbsolutePath()))
+	  			chooser.setCurrentDirectory(dir);
 	    }
   	}
   	
