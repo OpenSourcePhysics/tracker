@@ -1483,7 +1483,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
    * Add videos and TRK files to the zip list.  
    * @param zipList the list of files to be zipped
    */
-  private void addVideosAndTRKs(final ArrayList<File> zipList) {
+  private boolean addVideosAndTRKs(final ArrayList<File> zipList) {
 		isWaitingForVideo = false;
 		final String[] videoPath = new String[1];
 		videoExporter.setFormat(formatDropdown.getSelectedItem());
@@ -1553,7 +1553,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	  	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Message"), //$NON-NLS-1$ 
 	  	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Title"), //$NON-NLS-1$ 
 	  	  	  			javax.swing.JOptionPane.ERROR_MESSAGE);
-	  	  	  	return;
+	  	  	  	return false;
 	  		    }
       		}
     	  	// if image video, then copy/extract additional image files
@@ -1575,7 +1575,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
         	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Message"), //$NON-NLS-1$ 
         	  	  			TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Title"), //$NON-NLS-1$ 
         	  	  			javax.swing.JOptionPane.ERROR_MESSAGE);
-        	  	  	return;
+        	  	  	return false;
         		    }
     		    		if (!zipList.contains(target)) {
     		    			zipList.add(target);
@@ -1627,6 +1627,9 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     			zipList.add(videoFile);
     		}
     	}
+    	else {
+    		return false;
+    	}
     	
     	// create and modify TrackerPanel XMLControl
       XMLControl control = new XMLControlElement(nextTrackerPanel);
@@ -1666,6 +1669,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   	
     videoExporter.removePropertyChangeListener("video_saved", listener);  //$NON-NLS-1$
     videoExporter.removePropertyChangeListener("video_cancelled", listener);     //$NON-NLS-1$
+    return true;
   } 
   
   /**
@@ -1745,10 +1749,10 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   		public void run() {
       	String thumbPath = addThumbnail(zipList);      	
       	addHTMLInfo(thumbPath, zipList);      	
-      	addVideosAndTRKs(zipList);
+      	boolean videoSaved = addVideosAndTRKs(zipList);     	
       	addFiles(zipList);
       	File target = saveZip(zipList);
-      	if (target!=null) {
+      	if (target!=null && videoSaved) {
 	      	isSaveComplete = true;
 	    		// offer to open the newly created zip file
 	    		openZip(target.getAbsolutePath());
@@ -1767,7 +1771,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
       	}
   		}
   	};
-  	new Thread(runner).start();      	
+  	new Thread(runner).start();
   }
   
   /**

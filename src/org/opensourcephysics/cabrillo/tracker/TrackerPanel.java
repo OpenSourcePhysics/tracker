@@ -691,29 +691,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     	if (openedFromPath!=null && openedFromPath.toLowerCase().endsWith(".trz")) { //$NON-NLS-1$
       	ExportZipDialog zipDialog = ExportZipDialog.getDialog(this);
 		    zipDialog.saveZipAs();
-		    int timeStep = 0;
-		    int maxTimeStep = 100; // x300ms = 30 seconds
-		    boolean ignoreTimeStep = false;
-		    while(timeStep<maxTimeStep || ignoreTimeStep) {
-		    	if (zipDialog.isSaveComplete || zipDialog.isSaveCancelled) break;
-		    	timeStep++;
-			    try {
-						Thread.sleep(300); // 300 ms
-					} catch (InterruptedException e) {
-					}
-			    if (timeStep==maxTimeStep) {
-			      int j = JOptionPane.showConfirmDialog(this.getTopLevelAncestor(),
-                TrackerRes.getString("TrackerPanel.Dialog.ContinueSave.Message"), //$NON-NLS-1$ 
-                TrackerRes.getString("TrackerPanel.Dialog.ContinueSave.Title"), //$NON-NLS-1$
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE);
-			    	if (j==JOptionPane.YES_OPTION) {
-			    		ignoreTimeStep = true;
-			    	}
-			    }
-		    }
 		    changed = zipDialog.isSaveCancelled;
-				return zipDialog.isSaveComplete;
+				return false; // "cancel" when saving TRZ since takes time and runs in a separate process
     	}
     	else {
 	      File file = VideoIO.save(getDataFile(), this);
