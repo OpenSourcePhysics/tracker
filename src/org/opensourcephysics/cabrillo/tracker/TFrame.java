@@ -1047,7 +1047,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
         int cur = getDividerLocation();
         int max = getMaximumDividerLocation();
         if (loc == max) {
-          super.setDividerLocation(1.0);
+            // BH 2020.02.09 Java bug here. 
+            // super.setDividerLocation(double) will call this method again, infinitely.
+        	// here I substitute the result of double location 1.0 to not trigger that.
+        	// Probably not caught in Java because Java can return a location > max, actually (987 > 983),
+        	// which is probably a Java bug.
+        	//super.setDividerLocation(1.0);
+        	super.setDividerLocation(getWidth() - getDividerSize());
         }
         else if (loc != cur)
           super.setDividerLocation(loc);
@@ -1065,7 +1071,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
         int cur = getDividerLocation();
         int max = getMaximumDividerLocation();
         if (loc == max) {
-          super.setDividerLocation(1.0);
+            // BH 2020.02.09 Java bug here. 
+            // super.setDividerLocation(double) will call this method again, infinitely.
+        	// here I substitute the result of double location 1.0 to not trigger that.
+        	// super.setDividerLocation(1.0);
+        	super.setDividerLocation(getHeight() - getDividerSize());
         }
         else if (loc != cur)
           super.setDividerLocation(loc);

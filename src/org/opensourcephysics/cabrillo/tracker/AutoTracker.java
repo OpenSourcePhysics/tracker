@@ -2096,14 +2096,25 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       //  	private JComboBox trackDropdown, pointDropdown;
   		JComboBox[] dropdowns = new JComboBox[] {trackDropdown, pointDropdown};
   		for (JComboBox next: dropdowns) {
-  			int n = next.getSelectedIndex();
+  			Object o = next.getSelectedItem();
+//  			int n = next.getSelectedIndex();
   			Object[] items = new Object[next.getItemCount()];
   			for (int i=0; i<items.length; i++) {
   				items[i] = next.getItemAt(i);
   			}
   			DefaultComboBoxModel model = new DefaultComboBoxModel(items);
   			next.setModel(model);
-  			next.setSelectedItem(n);
+  			System.out.println(">AutoTracker "+next.getName()+"<" + " " + next.getSelectedIndex());
+  			// BH 2020.02.09 Java bug this was "n" where n was the integer index
+  			// but Java needs an Object here, not an index. 
+  			// Now that it is functioning, a second bug showed up in the action listener
+  			if (next == pointDropdown) {
+  				next.setName("refresh");
+  				next.setSelectedItem(o);
+  				next.setName("");
+  			} else {
+  				next.setSelectedItem(o);
+  			}
   		}
   		refreshStrings(); // also resets label sizes
   		pack();
@@ -2539,6 +2550,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       		dim.height = trackDropdown.getPreferredSize().height;
       		return dim;
         }
+        
+        public void setSelectedItem(Object o) {
+        	super.setSelectedItem(o);
+        }
       };
       pointDropdown.addMouseListener(mouseOverListener);
       for (int i = 0; i<pointDropdown.getComponentCount(); i++) {
@@ -2551,8 +2566,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
           if(item!=null) {
 	        	stop(true, false);
             TTrack track = getTrack();
-          	track.setTargetIndex(item);
-      			int n = trackerPanel.getFrameNumber();
+            track.setTargetIndex(item);    
+      		int n = trackerPanel.getFrameNumber();
       	    FrameData frame = getFrame(n);
       			TPoint[] searchPts = frame.getSearchPoints(true);
       			if (searchPts != null)
@@ -2942,77 +2957,74 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
      */
     protected void refreshStrings() {
     	Runnable runner = new Runnable() {
-    		public void run() {
-          int n = trackerPanel.getFrameNumber();
-	  	    FrameData frame = getFrame(n);
-	  	    FrameData keyFrame = frame.getKeyFrame();
-	  	    
-		      // set titles and labels of GUI elements
-	  			String title = TrackerRes.getString("AutoTracker.Wizard.Title"); //$NON-NLS-1$		      
-	  	    TTrack track = getTrack();
-	  			if (track!=null) {
-	  				int index = track.getTargetIndex();
-	  				title += ": "+track.getName()+" "+track.getTargetDescription(index); //$NON-NLS-1$ //$NON-NLS-2$
-	  			}
-	  			setTitle(title);
-	  			
-		      frameLabel.setText(TrackerRes.getString("AutoTracker.Label.Frame")+" "+n+":"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		      searchLabel.setText(
-		      		TrackerRes.getString("AutoTracker.Label.Search") + ":"); //$NON-NLS-1$ //$NON-NLS-2$
-		      targetLabel.setText(
-		      		TrackerRes.getString("AutoTracker.Label.Target")+":"); //$NON-NLS-1$ //$NON-NLS-2$
-		      templateLabel.setText(
-		      		TrackerRes.getString("AutoTracker.Label.Template")+":"); //$NON-NLS-1$ //$NON-NLS-2$
-		      acceptLabel.setText(TrackerRes.getString("AutoTracker.Label.Automark")); //$NON-NLS-1$
-		      trackLabel.setText(TrackerRes.getString("AutoTracker.Label.Track")); //$NON-NLS-1$
-		      pointLabel.setText(TrackerRes.getString("AutoTracker.Label.Point")); //$NON-NLS-1$
-		      evolveRateLabel.setText(TrackerRes.getString("AutoTracker.Label.EvolutionRate")); //$NON-NLS-1$
-		      closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
-		      helpButton.setText(TrackerRes.getString("Dialog.Button.Help")); //$NON-NLS-1$
-		      acceptButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.Accept")); //$NON-NLS-1$
-		      keyFrameButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.ShowKeyFrame")); //$NON-NLS-1$
-		      deleteButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.Delete")); //$NON-NLS-1$
-		      oneDCheckbox.setText(TrackerRes.getString("AutoTracker.Wizard.Checkbox.XAxis")); //$NON-NLS-1$
-		      lookAheadCheckbox.setText(TrackerRes.getString("AutoTracker.Wizard.Checkbox.LookAhead")); //$NON-NLS-1$
-		      matchImageLabel.setText(frame.getMatchIcon()==null? null:
-		    		TrackerRes.getString("AutoTracker.Label.Match")); //$NON-NLS-1$     
-		      templateImageLabel.setText(keyFrame==null? null:
-		      	TrackerRes.getString("AutoTracker.Label.Template")); //$NON-NLS-1$  
+				public void run() {
+					int n = trackerPanel.getFrameNumber();
+					FrameData frame = getFrame(n);
+					FrameData keyFrame = frame.getKeyFrame();
 
-		      if (trackerPanel.getVideo()!=null) {
-		    		boolean running = stepping && !paused;
-		        startButton.setIcon(stepping? stopIcon: searchIcon);
-						startButton.setText(stepping?
-								TrackerRes.getString("AutoTracker.Wizard.Button.Stop"): //$NON-NLS-1$
-								TrackerRes.getString("AutoTracker.Wizard.Button.Search")); //$NON-NLS-1$
+					// set titles and labels of GUI elements
+					String title = TrackerRes.getString("AutoTracker.Wizard.Title"); //$NON-NLS-1$
+					TTrack track = getTrack();
+					if (track != null) {
+						int index = track.getTargetIndex();
+						title += ": " + track.getName() + " " + track.getTargetDescription(index); //$NON-NLS-1$ //$NON-NLS-2$
+					}
+					setTitle(title);
+					frameLabel.setText(TrackerRes.getString("AutoTracker.Label.Frame") + " " + n + ":"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					searchLabel.setText(TrackerRes.getString("AutoTracker.Label.Search") + ":"); //$NON-NLS-1$ //$NON-NLS-2$
+					targetLabel.setText(TrackerRes.getString("AutoTracker.Label.Target") + ":"); //$NON-NLS-1$ //$NON-NLS-2$
+					templateLabel.setText(TrackerRes.getString("AutoTracker.Label.Template") + ":"); //$NON-NLS-1$ //$NON-NLS-2$
+					acceptLabel.setText(TrackerRes.getString("AutoTracker.Label.Automark")); //$NON-NLS-1$
+					trackLabel.setText(TrackerRes.getString("AutoTracker.Label.Track")); //$NON-NLS-1$
+					pointLabel.setText(TrackerRes.getString("AutoTracker.Label.Point")); //$NON-NLS-1$
+					evolveRateLabel.setText(TrackerRes.getString("AutoTracker.Label.EvolutionRate")); //$NON-NLS-1$
+					closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+					helpButton.setText(TrackerRes.getString("Dialog.Button.Help")); //$NON-NLS-1$
+					acceptButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.Accept")); //$NON-NLS-1$
+					keyFrameButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.ShowKeyFrame")); //$NON-NLS-1$
+					deleteButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.Delete")); //$NON-NLS-1$
+					oneDCheckbox.setText(TrackerRes.getString("AutoTracker.Wizard.Checkbox.XAxis")); //$NON-NLS-1$
+					lookAheadCheckbox.setText(TrackerRes.getString("AutoTracker.Wizard.Checkbox.LookAhead")); //$NON-NLS-1$
+					matchImageLabel.setText(
+							frame.getMatchIcon() == null ? null : TrackerRes.getString("AutoTracker.Label.Match")); //$NON-NLS-1$
+					templateImageLabel
+							.setText(keyFrame == null ? null : TrackerRes.getString("AutoTracker.Label.Template")); //$NON-NLS-1$
+
+					if (trackerPanel.getVideo() != null) {
+						boolean running = stepping && !paused;
+						startButton.setIcon(stepping ? stopIcon : searchIcon);
+						startButton.setText(stepping ? TrackerRes.getString("AutoTracker.Wizard.Button.Stop") : //$NON-NLS-1$
+						TrackerRes.getString("AutoTracker.Wizard.Button.Search")); //$NON-NLS-1$
 						startButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.Search.Tooltip")); //$NON-NLS-1$
 						FontSizer.setFonts(startButton, FontSizer.getLevel());
 						searchThisButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis")); //$NON-NLS-1$
 						searchThisButton.setEnabled(!running);
-						searchThisButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis.Tooltip")); //$NON-NLS-1$
+						searchThisButton
+								.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis.Tooltip")); //$NON-NLS-1$
 						searchNextButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext")); //$NON-NLS-1$
 						searchNextButton.setEnabled(!running);
-						searchNextButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext.Tooltip")); //$NON-NLS-1$
-		    	}
-		      
-		      // set label sizes
-		      FontRenderContext frc = new FontRenderContext(null, false, false); 
-		      Font font = frameLabel.getFont();
-		      int w = 0;
-		      Rectangle2D rect = font.getStringBounds(searchLabel.getText()+"   ", frc); //$NON-NLS-1$
-		      w = Math.max(w, (int) rect.getWidth()+4);
-		      rect = font.getStringBounds(frameLabel.getText()+"   ", frc); //$NON-NLS-1$
-		      w = Math.max(w, (int) rect.getWidth()+4);
-		      rect = font.getStringBounds(templateLabel.getText()+"   ", frc); //$NON-NLS-1$
-		      w = Math.max(w, (int) rect.getWidth()+4);
-		      rect = font.getStringBounds(targetLabel.getText()+"   ", frc); //$NON-NLS-1$
-		      w = Math.max(w, (int) rect.getWidth()+4);
-		      Dimension labelSize = new Dimension(w, 20);
-		      frameLabel.setPreferredSize(labelSize);
-		      templateLabel.setPreferredSize(labelSize);
-		      searchLabel.setPreferredSize(labelSize);
-		      targetLabel.setPreferredSize(labelSize);
-    		}
+						searchNextButton
+								.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext.Tooltip")); //$NON-NLS-1$
+					}
+
+					// set label sizes
+					FontRenderContext frc = new FontRenderContext(null, false, false);
+					Font font = frameLabel.getFont();
+					int w = 0;
+					Rectangle2D rect = font.getStringBounds(searchLabel.getText() + "   ", frc); //$NON-NLS-1$
+					w = Math.max(w, (int) rect.getWidth() + 4);
+					rect = font.getStringBounds(frameLabel.getText() + "   ", frc); //$NON-NLS-1$
+					w = Math.max(w, (int) rect.getWidth() + 4);
+					rect = font.getStringBounds(templateLabel.getText() + "   ", frc); //$NON-NLS-1$
+					w = Math.max(w, (int) rect.getWidth() + 4);
+					rect = font.getStringBounds(targetLabel.getText() + "   ", frc); //$NON-NLS-1$
+					w = Math.max(w, (int) rect.getWidth() + 4);
+					Dimension labelSize = new Dimension(w, 20);
+					frameLabel.setPreferredSize(labelSize);
+					templateLabel.setPreferredSize(labelSize);
+					searchLabel.setPreferredSize(labelSize);
+					targetLabel.setPreferredSize(labelSize);
+				}
     	};
       if (SwingUtilities.isEventDispatchThread()) runner.run();
       else SwingUtilities.invokeLater(runner);
@@ -3142,64 +3154,64 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       else SwingUtilities.invokeLater(runner);
     }
     
-    /**
-     * Refreshes the dropdown lists.
-     */
-    protected void refreshDropdowns() {
-    	// refresh trackDropdown
-      Object toSelect = null;
-      trackDropdown.setName("refresh"); //$NON-NLS-1$
-      trackDropdown.removeAllItems();
-      TTrack track = getTrack();
-      for (TTrack next: trackerPanel.getTracks()) {
-      	if (!next.isAutoTrackable()) continue;
-      	Icon icon = next.getFootprint().getIcon(21, 16);
-        Object[] item = new Object[] {icon, next.getName()};
-        trackDropdown.addItem(item);
-        if (next==track) {
-        	toSelect = item;
-        }
-      }
-      if (track==null) {
-      	Object[] emptyItem = new Object[] {null, "           "}; //$NON-NLS-1$
-      	trackDropdown.insertItemAt(emptyItem, 0);
-      	toSelect = emptyItem;
-      }
-      // select desired item
-      if (toSelect!=null) {
-      	trackDropdown.setSelectedItem(toSelect);
-      }
-      trackDropdown.setName(null);
-      
-      // refresh pointDropdown
-      toSelect = null;
-      pointDropdown.setName("refresh"); //$NON-NLS-1$
-      pointDropdown.removeAllItems();
-	  	if (track!=null) {
-	  		int target = track.getTargetIndex();
-	  		toSelect = track.getTargetDescription(target);
-		  	for (int i = 0; i<track.getStepLength(); i++) {
-		  		String s = track.getTargetDescription(i);
-		  		if (track.isAutoTrackable(i) && s!=null) {
-		      	pointDropdown.addItem(s);
-		  		}
-		  	}
-	  	}
-	  	else {
-      	pointDropdown.addItem("         "); //$NON-NLS-1$
-	  	}
-	  	if (toSelect!=null) {
-	  		pointDropdown.setSelectedItem(toSelect);
-	  	}
-      pointDropdown.setName(""); //$NON-NLS-1$
+		/**
+		 * Refreshes the dropdown lists.
+		 */
+		protected void refreshDropdowns() {
+			// refresh trackDropdown
+			Object toSelect = null;
+			trackDropdown.setName("refresh"); //$NON-NLS-1$
+			trackDropdown.removeAllItems();
+			TTrack track = getTrack();
+			for (TTrack next : trackerPanel.getTracks()) {
+				if (!next.isAutoTrackable())
+					continue;
+				Icon icon = next.getFootprint().getIcon(21, 16);
+				Object[] item = new Object[] { icon, next.getName() };
+				trackDropdown.addItem(item);
+				if (next == track) {
+					toSelect = item;
+				}
+			}
+			if (track == null) {
+				Object[] emptyItem = new Object[] { null, "           " }; //$NON-NLS-1$
+				trackDropdown.insertItemAt(emptyItem, 0);
+				toSelect = emptyItem;
+			}
+			// select desired item
+			if (toSelect != null) {
+				trackDropdown.setSelectedItem(toSelect);
+			}
+			trackDropdown.setName(null);
 
-      Runnable runner = new Runnable() {
-      	public void run() {
-          startButton.requestFocusInWindow();
-      	}
-      };
-      SwingUtilities.invokeLater(runner);
-    }
+			// refresh pointDropdown
+			toSelect = null;
+			pointDropdown.setName("refresh"); //$NON-NLS-1$
+			pointDropdown.removeAllItems();
+			if (track != null) {
+				int target = track.getTargetIndex();
+				toSelect = track.getTargetDescription(target);
+				for (int i = 0; i < track.getStepLength(); i++) {
+					String s = track.getTargetDescription(i);
+					if (track.isAutoTrackable(i) && s != null) {
+						pointDropdown.addItem(s);
+					}
+				}
+			} else {
+				pointDropdown.addItem("         "); //$NON-NLS-1$
+			}
+			if (toSelect != null) {
+				pointDropdown.setSelectedItem(toSelect);
+			}
+			pointDropdown.setName(""); //$NON-NLS-1$
+
+			Runnable runner = new Runnable() {
+				public void run() {
+					startButton.requestFocusInWindow();
+				}
+			};
+			SwingUtilities.invokeLater(runner);
+		}
 
     /**
      * Refreshes the template icons.

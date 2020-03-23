@@ -98,8 +98,12 @@ public class TrackerStarter {
 	
 	static {
 		// identify codeBaseDir
-		try {
-			newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+		newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
+		/**
+		 * @j2sNative 
+		 */
+		{
+		try {			
 			URL url = TrackerStarter.class.getProtectionDomain().getCodeSource().getLocation();
 			java.net.URI uri = url.toURI();
 			String path = uri.toString();
@@ -113,6 +117,7 @@ public class TrackerStarter {
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
+		}
 		}
 		// get user home, java home and xuggle home
 		try {
@@ -297,7 +302,7 @@ public class TrackerStarter {
 	 * 
 	 * @param writeToLog true to write the results to the start log
 	 */
-	public static String findTrackerHome(boolean writeToLog) throws Exception {
+	public static String findTrackerHome(boolean writeToLog) {//throws Exception {
 		if (trackerHome!=null) return trackerHome;
 		// first determine if code base directory is trackerHome
 		if (codeBaseDir != null) {
@@ -342,8 +347,9 @@ public class TrackerStarter {
 			}
 		}
 
-		if (trackerHome == null)
-			throw new NullPointerException("trackerhome not found"); //$NON-NLS-1$
+		// BH more graceful to return null here
+//		if (trackerHome == null)
+//			throw new NullPointerException("trackerhome not found"); //$NON-NLS-1$
 		if (writeToLog) logMessage("using trackerhome: " + trackerHome); //$NON-NLS-1$
 		
 		return trackerHome;
@@ -398,7 +404,7 @@ public class TrackerStarter {
       }
   	}
   	// replace first file with newest if different
-  	if (newestFileFound!=firstFileFound) {
+  	if (newestFileFound != null && newestFileFound!=firstFileFound) {
   		ResourceLoader.copyAllFiles(newestFileFound, firstFileFound);
   		controls.put(firstFileFound, controls.get(newestFileFound));
   	}
@@ -729,6 +735,10 @@ public class TrackerStarter {
 			return trackerJarPath;
 		}
 		String jarPath = null;
+		/**
+		 * @j2sNative
+		 */
+		{
 		String jarHome = OSPRuntime.isMac() ? codeBaseDir.getAbsolutePath()
 				: trackerHome;
 		if (OSPRuntime.isMac()) {
@@ -795,6 +805,7 @@ public class TrackerStarter {
 			}
 		}
 		throw new NullPointerException("No Tracker jar files found in " + jarHome); //$NON-NLS-1$
+		}
 	}
 
 	/**

@@ -36,6 +36,7 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.*;
 
+import org.opensourcephysics.cabrillo.tracker.TrackerPanel.TrackerPanelMainStarter;
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
@@ -49,7 +50,69 @@ import org.opensourcephysics.tools.*;
  */
 public class TrackerPanel extends VideoPanel implements Scrollable {
 
-  // static fields
+	/**
+	 * BH a class to start Tracker asynchronously from main
+	 * @author hansonr
+	 *
+	 */
+  static class TrackerPanelMainStarter {
+	  
+	  private Tracker tracker;
+
+	TrackerPanelMainStarter(String path, Frame launcherFrame) {
+//	    Tracker.updateResources();
+		    // get the shared tracker and add tabs
+		    tracker = Tracker.getTracker(new Runnable() {
+
+				@Override
+				public void run() {
+				    final TFrame frame = tracker.getFrame();
+				    final LaunchNode node = Launcher.activeNode;
+				  	frame.addPropertyChangeListener("tab", new PropertyChangeListener() { //$NON-NLS-1$
+						  public void propertyChange(PropertyChangeEvent e) {
+						  	TrackerPanel trackerPanel = (TrackerPanel)e.getNewValue();
+						  	if (trackerPanel.defaultFileName.equals(XML.getName(path))) {
+				  		  	frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+				          frame.showTrackControl(trackerPanel);
+				          frame.showNotes(trackerPanel);
+				          frame.refresh();
+				          final int n = frame.getTab(trackerPanel);
+				          // set up the LaunchNode action and listener
+				          if (node != null) {
+				            final Action action = new javax.swing.AbstractAction() {
+				              public void actionPerformed(ActionEvent e) {
+				              	TrackerPanel trackerPanel = frame.getTrackerPanel(n);
+				                frame.removeTab(trackerPanel);
+				                if (frame.getTabCount() == 0) frame.setVisible(false);
+				              }
+				            };
+				            node.addTerminateAction(action);
+				            frame.tabbedPane.addContainerListener(new java.awt.event.ContainerAdapter() {
+				              public void componentRemoved(ContainerEvent e) {
+				                Component tab = frame.tabbedPane.getComponentAt(n);
+				                if (e.getChild() == tab) {
+				                  node.terminate(action);
+				                }
+				              }
+				            });
+				          }
+						  	}
+						  }
+						});
+				    TrackerIO.open(path, frame);
+				    frame.setVisible(true);
+				    if (frame.isIconified()) frame.setState(Frame.NORMAL);
+				    if (launcherFrame != null)
+				    	launcherFrame.setCursor(Cursor.getDefaultCursor());
+				}
+		    	
+		    });
+
+	  }
+
+	}
+
+// static fields
   /** The minimum zoom level */
   public static final double MIN_ZOOM = 0.15;
   /** The maximum zoom level */
@@ -2730,48 +2793,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     }
     if (launcherFrame != null)
     	launcherFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-//    Tracker.updateResources();
-    // get the shared tracker and add tabs
-    Tracker tracker = Tracker.getTracker();
-    final TFrame frame = tracker.getFrame();
-  	final String path = args[0];
-    final LaunchNode node = Launcher.activeNode;
-  	frame.addPropertyChangeListener("tab", new PropertyChangeListener() { //$NON-NLS-1$
-		  public void propertyChange(PropertyChangeEvent e) {
-		  	TrackerPanel trackerPanel = (TrackerPanel)e.getNewValue();
-		  	if (trackerPanel.defaultFileName.equals(XML.getName(path))) {
-  		  	frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
-          frame.showTrackControl(trackerPanel);
-          frame.showNotes(trackerPanel);
-          frame.refresh();
-          final int n = frame.getTab(trackerPanel);
-          // set up the LaunchNode action and listener
-          if (node != null) {
-            final Action action = new javax.swing.AbstractAction() {
-              public void actionPerformed(ActionEvent e) {
-              	TrackerPanel trackerPanel = frame.getTrackerPanel(n);
-                frame.removeTab(trackerPanel);
-                if (frame.getTabCount() == 0) frame.setVisible(false);
-              }
-            };
-            node.addTerminateAction(action);
-            frame.tabbedPane.addContainerListener(new java.awt.event.ContainerAdapter() {
-              public void componentRemoved(ContainerEvent e) {
-                Component tab = frame.tabbedPane.getComponentAt(n);
-                if (e.getChild() == tab) {
-                  node.terminate(action);
-                }
-              }
-            });
-          }
-		  	}
-		  }
-		});
-    TrackerIO.open(path, frame);
-    frame.setVisible(true);
-    if (frame.isIconified()) frame.setState(Frame.NORMAL);
-    if (launcherFrame != null)
-    	launcherFrame.setCursor(Cursor.getDefaultCursor());
+    new TrackerPanelMainStarter(args[0], launcherFrame);
   }
   
   protected void addCalibrationTool(String name, TTrack tool) {

@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<html>
+
+	<head>
+		<meta http-equiv="content-type" content="text/html;charset=iso-8859-1">
+		<title>Data Tool Help</title>
+        <style>
+			body {
+				font-family: Arial, Helvetica, sans-serif;
+				color: black;
+				background-color: #FFFFFF;
+			}
+			
+			
+			h1 {
+				font-size: 24pt;
+				margin-top: 12px;
+				margin-bottom: 8px;
+				padding-top: 20px;
+				padding-bottom: 12px;
+				line-height: 22px;
+				color: #52677f;
+				text-align: center
+			}
+			
+			h2 {
+				font-size: 16pt;
+				margin-top: 12px;
+				padding-top: 10px;
+				line-height: 24px;
+				color: #52677f;
+				text-align: left
+			}
+			
+			h3 {
+				font-size: 14pt;
+				color: #52677f;
+			}
+			
+			h4, ul, ol, blockquote {
+				margin-top: 12pt;
+				margin-bottom: 8pt;
+			}
+			
+			h5 {
+			  font-size: 10pt;
+			  margin-top: 10pt;
+			  margin-bottom: 0pt;
+			  line-height: 12px;
+			  text-align: center
+			}
+			
+			p, #content li, td, li, blockquote, h4, th, #subnav {
+				font-size: 12pt;
+				line-height: 16pt;
+			}
+			
+			a:link { color: blue }
+			a:visited { color: purple }
+			address {
+			  margin-top: 1em;
+			  padding-top: 1em;
+			  border-top: thin dotted 
+			}
+			table {
+				margin-top: 24px;
+			}
+		</style>
+	</head>
+
+	<body bgcolor="#ffffff">
+		<a id="top" name="top"></a>
+		<h1>Data Tool Help</h1>
+		<h3>Note: connect to the internet for better help including screen shots.</h3>
+<p>The Data Tool is an Open Source Physics (OSP) application that enables users to analyze data organized into table columns and displayed in named tabs. Data can be transferred directly from  OSP applications like EJS and Tracker, imported from spreadsheets and other data sources via text files or the clipboard, or entered directly from the keyboard.</p>
+		<p>Tabs may be <strong>editable</strong> or <strong>non-editable</strong>. Both types of tabs provide the same plotting and analysis capabilities, but only editable tabs permit the user to enter or edit values in table cells. The editable status of a tab is indicated by a green &quot;editable&quot; or red &quot;non-editable&quot; label in the lower right corner of the tab.</p>
+		<p>You can make an editable clone of a non-editable tab by right-clicking the tab and choosing <em>Clone Tab|Editable</em> from the popup menu.</p>
+		<p>Data Tool works under Windows, OS X or Linux as long as Java 1.6 or later is installed. <strong>Note</strong>: Mac users, please substitute &quot;control-click&quot; for &quot;right-click&quot; to access popup menus.</p>
+        <p><font face="Arial,Helvetica,Geneva,Swiss,SunSans-Regular">This help file contains the following sections:</font></p>
+		<ol>
+			<li><a href="#entering">Entering and importing data</a>
+			<li><a href="#editing">Editing data</a>
+			<li><a href="#plotting">Plotting and formatting data</a>
+			<li><a href="#stats">Statistical data</a>
+			<li><a href="#analyzing">Analyzing data</a>
+			<li><a href="#fitting">Fitting mathematical models to data</a>
+			<li><a href="#fourier">Fourier analysis</a>
+			<li><a href="#building">Building data functions</a>
+			<li><a href="#saving">Saving and exporting</a>
+		</ol>
+	<p>&nbsp;</p>
+	<h3><a id="entering" name="entering"></a>1. Entering and importing data</h3>
+<p><b>Entering data (editable tabs only).</b> Click the <em>New Column...</em> button and enter a name in the popup dialog to create a new table column. The first cell in the column is automatically selected for data entry--simply type in a value (numbers only) and hit the enter key to move to the next cell. New rows are added as needed. Values may be entered in decimal form or in scientific notation using the letter E to mean &quot;ten to the power of.&quot; For example, the number 345.6 may be entered as 345.6, 3.456E2, or even 3456E-1.</p>
+		<p><b>Importing data.</b> Data can be imported from files, by pasting from the clipboard, or by direct transfer from other OSP applications. To import data from a file, choose the <em>File|Open...</em> menu item and select the file using the file chooser. To import data via the clipboard, first copy the data from the source application (spreadsheet, Logger Pro, etc.) and then choose either the <em>Edit|Paste|New Tab</em> menu item to open the data in a new tab or <em>Edit|Paste|New Columns</em> menu item to add the data to an existing tab. To transfer data directly from other OSP applications (Tracker, EJS, etc.) choose the popup &quot;Analyze...&quot; or menubar &quot;Window|Data Tool&quot; or &quot;Tools|Data Tool&quot; item in that application. </p>
+		<p><b>Refreshing OSP data (non-editable tabs only).</b> Data transferred from Tracker and other OSP applications remains connected to its original source. If the source data changes (e.g., if a model parameter is changed), click the &quot;Refresh&quot; button to update the data in the Data Tool tab.</p>
+<p><a href="#top">Back to top</a></p>
+
+<h3><a id="editing" name="editing"></a>2. Editing data</h3>
+	<p><b>Editing cell contents (editable tabs only).</b> Double-click a cell to edit its contents. The current contents (if any) are selected so that typing immediately begins a new value. While typing, the cell turns yellow to indicate the contents have changed. Hit the enter key to enter the new value and move to the next cell.</p>
+		<p><b>Sorting rows.</b> Single-click a column header to sort the rows in ascending order of the values in that column. This is often useful for selecting a subset of cells whose values fall in a desired range. Single-click the row column header or double-click any column header to sort by row number.</p>
+		<p><b>Selecting cells.</b> Multiple data points can be selected, and selected points are highlighted, in both the table and plot. To select cells in the table, click a cell with the mouse, or drag to select multiple cells. Control-click to add or remove cells from the selection, or shift-click to select all cells between the previous and newly clicked cell. To select points in the plot, click a point or drag the mouse to draw a rectangle and select the points inside. Control-drag to add points to the selection, or control-click individual points to add or remove them.</p>
+		<p><b>Selecting rows or columns.</b> Double-click a row number or column header to select the whole row or column. Control-click to add or remove to the selection, or shift-click to select all rows or columns between the previous and newly clicked one. Double-click the row column header or right-click a table cell and choose the popup <em>Select All Cells</em> item to select all cells.</p>
+		<p><b>Clearing the selection.</b> Single-click a row number or the gray area below the table, or right-click a table cell and choose the popup <em>Clear Selection</em> item to clear the selection (i.e., deselect all cells). Note that clicking a column header does not clear the selection, but instead sorts the rows as described above.</p>
+	<p><b>Copying cell contents.</b> Right-click a cell or group of selected cells and choose the popup <em>Copy Contents</em> item to copy the selected cell values to the clipboard. Right-click selected row numbers or column headers and choose the appropriate popup item to copy entire rows or columns. Copied contents are suitable for pasting into a spreadsheet or other  application.</p>
+		<p><b>Deleting cell contents (editable tabs only).</b> Hit the delete key to delete the contents of all selected cells.</p>
+		<p><b>Deleting cells (editable tabs only).</b> Right-click a cell or group of selected cells and choose the popup <em>Delete Cells</em> item to delete them. <strong>Note</strong>: deleting a cell is not the same as deleting its contents. When a cell is deleted, it is removed completely from the table, and cells below it are shifted up (i.e., to lower row numbers).</p>
+		<p><b>Cutting cell contents (editable tabs only).</b> Right-click a cell or group of selected cells and choose the popup <em>Cut Contents</em> item to cut the selected cell values to the clipboard.  Cut contents are suitable for pasting into a spreadsheet or other application.</p>
+		<p><b>Cutting rows (editable tabs only).</b> Right-click a row number and choose the popup<em> Cut Rows</em> item to copy the selected rows   to the clipboard and remove the rows from the table.   Cut rows are suitable for pasting into a spreadsheet or other  application. <strong>Note</strong>: when a row is cut, rows below it are renumbered.</p>
+		<p><b>Inserting cells (editable tabs only).</b> Right-click a cell or group of selected cells and choose the popup <em>Insert Cells</em> item to insert new empty cells. The existing (selected) cells are shifted down (i.e., to higher row numbers) to accomodate the inserted cells. Right-click selected row numbers and choose the appropriate popup item to insert new rows or to add an empty end row.</p>
+		<p><b>Pasting cells (editable tabs only).</b> Right-click a cell or group of selected cells and choose the popup <em>Paste Cells</em> or <em>Paste Insert Cells</em> item to paste the clipboard contents. Pasting the cells replaces the current cell values, while paste-inserting inserts new cells and shifts the existing cells down (i.e., to higher row numbers). Right-click selected row numbers and choose the popup <em>Paste Insert Rows</em> item to paste-insert entire rows.</p>
+		<p><b>Copying or cutting columns.</b> To copy or cut one or more table columns, select the columns, then right-click a column header and choose the popup <em>Copy Columns</em> or <em>Cut Columns</em> item. Cut columns are immediately removed from the table.</p>
+		<p><b>Cloning columns.</b> To clone one or more table columns, select the columns, then right-click a column header and choose the popup <em>Clone Columns</em> item.</p>
+		<p><b>Renaming columns (editable tabs only).</b> To change the name of an existing column, right-click the column header and choose the popup <em>Rename Column...</em> item. Column names must be unique and can contain no spaces. An underscore in a name causes subsequent characters to be subscripted.</p>
+		<p><b>Undoing edits.</b> Choose the <em>Edit|Undo</em> or <em>Edit|Redo</em> menu item to undo or redo edits. There is no limit to the number of edits that can be undone.		</p>
+<p><a href="#top">Back to top</a></p>
+
+	<h3><a id="plotting" name="plotting"></a>3. Plotting and formatting data</h3>
+	<p><b>Formatting columns.</b> To control the number format of the data columns, right-click a column header and choose the popup <em>Format Columns...</em> item to display the Number Format dialog. In the dialog, select the names of the columns you wish to format. Use the shift and control keys to add or remove names from the selection. Enter the desired format into the format field to apply it to the selected columns. The sample field shows the result of the format applied to the number PI. </p>
+		<p>Typical number formats include (a) &quot;0&quot; for whole numbers only, (b) &quot;0.000&quot; for decimal numbers rounded to three places, (c) &quot;0.00E0&quot; for scientific notation with two decimal places, and (d) blank for default formatting. Trailing characters may also be used to show units.</p>
+		<p><a id="axes" name="axes"></a><b>Defining plot axes.</b> The leftmost data column in the data table defines the independent variable plotted along the horizontal axis. The second leftmost column defines the principal dependent variable plotted along the vertical axis. The (x, y) points defined by these leftmost two columns are called the <strong>working data</strong> (see <a href="#analyzing">Analyzing Data</a>) and are always visible on the plot. Other table columns are visible only when desired (see below), and are also plotted along the vertical axis.</p>
+		<p>To change the independent variable do one of the following:</p>
+		<ol>
+			<li>Drag the header of any table column into the leftmost position.</li>
+	  	  	<li>Move the mouse over the horizontal axis label (variable name) until a small square is drawn arond the label, then click and select the desired variable from the popup menu.</li>
+</ol>
+		<p>To change the principal dependent variable do one of the following:</p>
+		<ol>
+			<li>Drag the header of any table column into the second leftmost position.</li>
+		  	<li>Move the mouse over the vertical axis label (variable name) until a small square is drawn arond the label, then click and select the desired variable from the popup menu.</li>
+	</ol>
+		<p><b>Setting plot visibility and styles.</b> Controls to set the visibility and style of the point markers and connecting lines associated with table columns are displayed directly above the column names. Select the appropriate checkboxes to draw markers and/or lines for the desired column. Click the &quot;style&quot; cell to display a dialog for setting the shape, size and color of the markers and lines.</p>
+		<p><b>Scaling plot axes.</b> The plot axes autoscale by default. There are several options for setting the horizontal and/or vertical scale manually:</p>
+		<ol>
+			<li>Right-drag on the plot to mark a region of interest, then choose <em>Zoom In</em> from the popup menu to zoom in on the marked region. The popup menu also enables you to zoom out, autoscale, or display a dialog for setting limits and/or autoscale properties for both ends of both axes.</li>
+		  	<li>Move the mouse near the center section of an axis until a double-ended arrow appears, then click and drag the axis to &quot;move&quot; the plot along that axis without zooming.</li>
+		  	<li>Move the mouse near either end of an axis until a single-ended arrow appears, then click and drag the axis to &quot;zoom&quot; that end while keeping the opposite end unchanged.</li>
+		  	<li>Hold down the Alt key until a four-way arrow appears, then click and drag to &quot;move&quot; the plot in any direction without zooming.</li>
+		  	<li>Move the mouse near either end of an axis to display a popup field and checkbox for setting the limit and/or autoscale property for that axis end.		</li>
+	</ol>
+<p><a href="#top">Back to top</a></p>
+    
+	<h3><a id="stats" name="stats"></a>4. Statistical data</h3>
+	<p><b>Displaying the statistics table.</b> Click the <em>Analyze</em> button on the toolbar and check the Statistics checkbox to display statistical data for all table columns. Statistical data include the minimum, maximum, mean, standard deviation, standard error and number of data points in the sample. The correlation coefficient (R-squared) for the working data (leftmost two columns) is shown in the status bar at the bottom of the tab.</p>
+		<p><b>Selecting the sample data.</b> Select a subset of points to restrict the statistical sample.</p>
+<p><a href="#top">Back to top</a></p>
+        
+		<h3><a id="analyzing" name="analyzing"></a>5. Analyzing data</h3>
+<p><b>Defining the working data.</b> The leftmost two data columns, identified by the yellow and green cells in the plot properties table, define the <strong>working data</strong> for analysis and curve fitting purposes. To change the working data, drag the headers of the desired table columns or click the axis labels and choose from the popup choices as described in <a href="#axes">Defining plot axes</a>.</p>
+		<p><b>Measuring coordinates.</b> Click the <em>Measure</em> button on the toolbar and check the <em>Coordinates</em> checkbox to automatically identify and display the coordinates of the working data point nearest the horizontal mouse position. Press the space key while holding down the shift key (shift-space) to freeze the measurement; click the plot or press space again to unfreeze.</p>
+		<p><b>Measuring slopes.</b> Click the <em>Measure</em> button on the toolbar and check the <em>Slope</em> checkbox to automatically display the slope line and value at the working data point nearest the horizontal mouse position. The slope approximates the derivative of the curve connecting the working data points.  Press the space key while holding down the shift key (shift-space) to freeze the measurement; click the plot or press space again to unfreeze. Press the S key while holding down the shift key (shift-S) to stretch the slope line to the plot boundaries; repeat to reduce the length to the original.</p>
+	<p><b>Measuring areas.</b> Click the <em>Measure</em> button on the toolbar and check the <em>Area</em> checkbox to automatically display the area between the working data and the horizontal axis within adjustable upper and lower limits. Areas, drawn in a gray shade, are positive above the horizontal axis and negative below the axis. The area approximates the integral under the curve connecting the working data points. To adjust the limits, move the mouse over either limit line until a double-ended arrow appears, then drag left or right.</p>
+<p><a href="#top">Back to top</a></p>
+        
+		<h3><a id="fitting" name="fitting"></a>6. Fitting mathematical models to data</h3>
+<p><b>Selecting the fit data.</b> The curve fitter fits a mathematical model to the selected working data. To change the working data, drag the headers of the desired table columns into the leftmost (yellow and green) positions or click the axis labels and choose from the popup choices as described in <a href="#axes">Defining plot axes</a>. To further refine the curve fitting process, select a subset of points. Only the selected points are included in the fit.</p>
+		<p><b>Displaying the curve fitter.</b> Click the <em>Analyze</em> button on the toolbar and check the <em>Curve Fits</em> checkbox to display the <strong>curve fitter</strong>. The curve fitter draws an analytical fit function on the plot and determines the rms deviation between the fit function values and the vertical working data values (green column, selected rows). Typically, a fit is <strong>optimized</strong> by varying parameters of the function to minimize the rms deviation, which is displayed in a field near the bottom.</p>
+<p><b>Selecting the fit function.</b> Select a fit name from the dropdown list. The fit function equation is displayed in a field and the function parameter names and values are listed in a table.</p>
+		<p><b>Setting the fit color.</b> The color of the fit line drawn on the plot is displayed on a small button to the right of the fit equation field. To change the fit color, click the button and choose a color from the color chooser.</p>
+		<p><b>Adjusting fit parameters.</b> To vary a parameter, click in its value cell. Type in a new value, or use the up and down arrow buttons to increase or decrease the parameter value in increments equal to a fixed percent of its starting value. To change the increment size click the percent display and select from the popup choices.</p>
+<p><b>Using autofit.</b> Click the <em>Autofit</em> checkbox to automatically optimize the parameters. <strong>Note:</strong> for most custom fit functions (see below), parameters must be manually set to reasonable starting values before autofitting. </p>
+		<p><b>Estimating the uncertainty of autofit parameters.</b> When you hover the mouse over the parameter value field the tooltip will display the uncertainty in the parameter, if known. </p>
+<p><b>Measuring fit coordinates, slopes and areas.</b> The coordinate, slope and area measurement tools described in  <a href="#analyzing">Analyzing data</a> can also be applied to a fit function. To measure the fit function instead of the data, hold down the option key or click the <em>Measure</em> button on the toolbar and check the <em>Measure Fit</em> checkbox.</p>
+		<p><b>Shifting the origin for measurements and fits.</b> It is often useful to offset data along one or both axes, particularly when fitting mathematical models--for example, fitting an exponential decay function to experimental data requires 2 fewer parameters if the data starts at time zero and decays to a &quot;final&quot; (asymptotic) value of zero. The Data Tool enables you to apply such origin shifts by clicking the <em>Measure</em> button on the toolbar and checking the <em>Shift Origin</em> checkbox. Adjust the origin shift for either working data variable by (a) dragging the origin or either axis on the plot, (b) pressing the arrow keys on the keyboard to move one pixel at a time (10 pixels with the shift key down), (c) entering values directly in the Origin fields on the toolbar, or (d) pressing the up and down arrow buttons next to the Origin fields to change the value by increments of 1%. <strong>Note:</strong> when data is shifted, variables are displayed with a &quot;prime&quot; (e.g., x becomes x') to distinguish them from the unshifted data, and the data cannot be edited. To edit the data, uncheck the <em>Shift Origin</em> checkbox.</p>
+<p><b>Defining custom fit functions.</b> Click the <em>Fit Builder</em> button to define a custom fit function using the <strong>Fit Builder</strong>. Define parameters for the function, change parameter and function names, and enter parameter and function expressions as desired. Note that function expressions are always defined using the generic independent variable &quot;x&quot;. The actual variable (e.g.&quot;t&quot; in this example) is substituted when the function is used to fit the data. Once a custom function has been defined it is available by name from the dropdown list and behaves in all ways like the built-in functions (i.e., parameters may be adjusted or autofit as described above). Complete help for the fit builder is available from the Help button in the fit builder itself.</p>
+<p><b>Saving and loading fit functions.</b> Custom fit functions can be saved in XML files for easy reloading into the Data Tool. To save one or more functions in an XML file, click the Save (icon) button, select the functions to save in the <em>Save Fit Functions</em> dialog, assign the file an appropriate name and save. To load saved functions, click the Open (icon) button, select the desired XML file, select the functions to load in the <em>Load Fit Functions</em> dialog and click OK.</p>
+	<p><b>Autoloading fit functions.</b> Saved fit functions can also be loaded into the Data Tool automatically when launched. To autoload the functions, simply move or copy the XML file into one of the autoload search directories. By default, the autoload search directories include the directory in which the Data Tool itself (jar file) is located, the user home directory, and a platform-dependent &quot;OSP&quot; application support directory. Click the <em>Autoload</em> button on the Fit Builder to inspect and manage the search directories and autoloaded functions using the <strong>Autoload Manager</strong>.</p>
+<p><a href="#top">Back to top</a></p>
+
+<h3><a id="fourier" name="fourier"></a>7. Fourier analysis</h3>
+		<p>Fourier analysis is the representation of an arbitrary function as a sum of sines and cosines. Data Tool implements a <strong>Fast Fourier Transform</strong> (FFT) that converts a set of data with equally spaced x-values  (often time) to a frequency <strong>spectrum</strong> that shows the amplitude of the sine component, cosine component and power as a function of frequency.</p>
+<p><b>Displaying the Fourier spectrum.</b> Click the <em>Analyze</em> button on the toolbar and check the <em>Fourier Spectrum</em> checkbox to display the Fourier spectrum of the <a href="#axes">working data</a>.</p>
+<p><b>Plot variables.</b> Power versus frequency is plotted by default. Click the checkboxes below the plot to change the plot display.
+<p><b>Working data requirements.</b> The Fourier spectrum is only meaningful if the working data (source) has <strong>equally spaced x-values</strong>. The spectrum is &quot;live&quot; and updates itself automatically when the working data changes (by, for example, selecting a subset of the source data or dragging a new data column to the green vertical-axis position).        
+<p><a href="#top">Back to top</a></p>
+
+<h3><a id="building" name="building"></a>8. Building data functions</h3>
+	<p><b>Displaying the data builder.</b> Click the <em>Data Builder</em> button to display the <strong>Data Builder</strong>. The data builder enables users to define new data columns that are functions of existing columns.</p>
+	<p><b>Defining data functions.</b> Click the Add button in the &quot;Data Functions&quot; section to define a new data function. The data function column is immediately added to the table and becomes available for plotting, fitting, or as input to other data functions. Define parameters for the function, change parameter and function names, and enter parameter and function expressions as desired. Complete help for the data builder is available from the Help button in the data builder itself.
+<p><a href="#top">Back to top</a></p>
+        
+		<h3><a id="saving" name="saving"></a>9. Saving and exporting</h3>
+<p><b>Saving tabs.</b> Choose the <em>File|Save Tab</em> or <em>File|Save Tab As...</em> menu item to save the currently selected tab as an xml file. Saving a tab includes not only all data columns, but also the column visibility and styles, custom data functions, fit functions and parameter values, etc. To open a saved tab, choose the <em>File|Open...</em> menu item.</p>
+		<p><b>Exporting data.</b> Data can be exported to a file or to other applications via the clipboard. If any table cells are selected, only those cells will be included in the exported data. To export data to a file, choose the <em>File|Export Data...</em> menu item and save the file using the file chooser. To export data via the clipboard, copy the data using either the <em>Edit|Copy|Data</em> menu item or by right-clicking the table as described above, then paste into the target application (spreadsheet, etc.). 
+		<p><b>Exporting images.</b> Choose the <em>Edit|Copy|Image</em> menu item to copy an image of the currently selected tab, then paste the image into a target application (word processor, etc). This is useful for lab notes or other documentation where the plot and/or fit results are needed.
+<p><a href="#top">Back to top</a></p>
+	</body>
+
+</html>

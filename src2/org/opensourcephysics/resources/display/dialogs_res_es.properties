@@ -1,0 +1,19 @@
+# This is the default dialogs.properties file
+# Translated by Francisco Esquembre
+AUTOSCALE_AUTOSCALE=Autoescalado
+AUTOSCALE_AUTO=Auto
+AUTOSCALE_OK=Aceptar
+AUTOSCALE_ZOOM_WARNING=No es posible zoom con autoescalado.
+SCALE_SCALE=Escala
+SCALE_MIN=Mín
+SCALE_MAX=Máx
+SCALE_AUTO=Auto
+SCALE_CANCEL=Cancelar
+SCALE_OK=Aceptar
+
+LOG_SCALE=Escala Logarítmica
+LOG_X=Log x
+LOG_Y=Log y
+LOG_OK=Aceptar
+LOG_WARNING=No hay logaritmo para números <=0.
+

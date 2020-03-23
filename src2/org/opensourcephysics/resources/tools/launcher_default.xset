@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object class="org.opensourcephysics.tools.Launcher$LaunchSet">
+    <property name="width" type="int">580</property>
+    <property name="height" type="int">384</property>
+    <property name="divider" type="int">160</property>
+    <property name="default_look_and_feel" type="boolean">true</property>
+    <property name="launch_nodes" type="collection" class="java.util.ArrayList">
+        <property name="item" type="object">
+        <object class="org.opensourcephysics.tools.LaunchNode">
+            <property name="name" type="string">Open Source Physics</property>
+            <property name="description" type="string"><![CDATA[Empty Launcher.
+
+Use the File menu to Open or Edit an "xset" file. An "xset" file is an xml document that specifies programs and html pages to be displayed in Launcher.
+            ]]></property>
+            <property name="author" type="string">Wolfgang Christian</property>
+        </object>
+        </property>
+    </property>
+    <property name="editor_enabled" type="boolean">true</property>
+</object>

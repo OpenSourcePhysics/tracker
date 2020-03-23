@@ -1,0 +1,73 @@
+<html xmlns:v="urn:schemas-microsoft-com:vml" 
+xmlns:o="urn:schemas-microsoft-com:office:office">
+  <head>
+    <title>OSP Digital Library Browser</title>
+    <link rel="stylesheet" type="text/css" href="http://www.cabrillo.edu/~dbrown/tracker/dl.css">
+  </head>
+  <body > 
+  <h1>OSP Digital Library Browser Help</h1>
+  <div align="center">
+  <p><strong>Note: connect to the internet to see screen shots with this help file.</strong></p>
+  </div>
+<p>The Digital Library Browser is an Open Source Physics (OSP) application that enables users to browse, organize and access collections of digital library resources such as EJS models and Tracker experiments. Collections are stored as XML documents that contain references to the actual resource files. Collections and resources may be located on a local drive or remote server.</p>
+  <h2>1. Opening a collection</h2>
+<p>To open a collection, choose from the <strong>Collections</strong> menu or enter a collection URL or path directly in the toolbar as with a web browser. <a href="#local">Local collections</a> can also be opened with a file chooser using the <strong>File|Open Collection...</strong> menu item.</p>
+<p>Collections are opened in tabs that display a tree in the left pane and an HTML pane in the right. The title of the tab is the root node of the collection. </p>    
+<p>To close a collection, right-click the tab and choose <strong>Close</strong> from the popup menu.. </p>    
+  <h2> 2. Browsing and accessing resources</h2>
+<p>Each tree node in a collection is a resource or sub-collection. Click a node to display a brief description of the resource in the HTML pane and its URL  in the toolbar. Double-click to download and/or open the resource in EJS or Tracker.</p>
+<p>You may also enter a resource URL directly in the toolbar and open the resource by hitting the enter key or clicking the <strong>Load</strong> button next to the URL field. Resources loaded directly from the toolbar need not be part of a collection.</p>
+  <h2> 3. My Library</h2>
+<p>The OSP Digital Library Browser provides access to collections in three digital library systems: (1) the <a href="#compadre">ComPADRE Digital Library</a>, a part of the National Science Digital Library system, (2) the <a href="#compadre">EJS and Tracker Libraries</a> maintained by OSP, and (3) a local library called <em>My Library</em> which is managed by the user. </p>
+<p>My Library initially contains a single <a href="#local">local collection</a> called My Collection to which the user can add resources as described below. But it is easy to add additional collections to My Library:</p>
+<ul>
+  <li>Open the  collection in a tab, then right-click the tab and choose <strong>Add this to My Library</strong> from the popup menu. You will be prompted to assign the collection a name for the Collections menu.</li>
+  <li>Open the <a href="#manager">Collections Manager</a>, click the <strong>Add</strong> button in the My Library tab and enter the collection URL in the Add Collection dialog. You will be prompted to assign the collection a name for the Collections menu.</li>
+</ul>
+  <h2> <a name="manager"></a>4. Collections Manager</h2>
+<p>The Collections Manager enables users to add, remove, rename and organize the collections in My Library. To open the Collections Manager choose <strong>Organize Collections...</strong> from the Collections menu.</p>
+<p>Select a collection to displays its URL path, then use the buttons to remove, reorder or rename the collection. Note: renaming a collection changes only its menu name, not its root node name (tab title).</p>
+<h2><a name="local" id="local"></a>5. Creating and editing local collections</h2>
+<p>Users can easily create their own collections and store them as XML documents on a local drive. By default every user starts out with a single (empty) local collection called My Collection to which they can add resources as described below. To create a new local collection, choose <strong>File|New Collection...</strong>. To make a local copy of an open collection, choose <strong>File|Save Collection As...</strong>. </p>
+<p>To edit a local collection, click the <strong>Open Editor</strong> button on the toolbar. The editor displays a button bar for creating and organizing resource nodes and data fields for describing and defining the resources themselves.</p>
+<p><strong>Button bar</strong>: the button bar provides the following buttons:</p>
+<ul>
+  <li><strong>Add Resource</strong> and <strong>Add Collection</strong> (available only when a collection node is selected): click to add a new resource or sub-collection node to the selected node.</li>
+  <li><strong>Copy Node</strong> and <strong>Cut Node</strong>: click to copy or cut the selected node to the clipboard. Note: the only way to delete a node is to cut it.</li>
+  <li><strong>Paste Node</strong> (available only when a collection node is selected): click to add the clipboard node to the selected node.</li>
+  <li><strong>Move Up</strong> and <strong>Move Down</strong>: click to change the position of the selected node.</li>
+</ul>
+<p>These button actions can also be executed by right-clicking a node and selecting the action from the popup menu. Note: the <strong>Copy Node</strong> action is available by right-clicking any node in any collection, even when not editing. This enables users to easily add any resource to their own collection.</p>
+<p><strong>Data fields</strong>: the data fields display the following resource properties:</p>
+<ul>
+  <li><strong>Name</strong>: the node name displayed in the tree.</li>
+  <li><strong>Type</strong>: the type of resource. May be <em>Collection, Tracker Experiment</em>, <em>EJS Model</em>, <em>Video</em>, <em>HTML Page</em>, or <em>Other</em>.</li>
+  <li><strong>HTML File</strong> (optional): the URL path to the file displayed in the HTML pane when the node is selected. The path may be absolute or relative to the base URL (<a href="#paths">see discussion below</a>).</li>
+  <li><strong>Base URL</strong> (optional): the base URL used to resolve relative paths for the HTML and resource files.</li>
+  <li><strong>Resource</strong> (disabled for collection nodes): the URL path to the resource file. The path may be absolute or relative to the base URL (<a href="#paths">see discussion below</a>).</li>
+</ul>
+<h2> <a name="paths"></a>6. Absolute and relative paths</h2>
+<p>URL paths for resource and HTML files may be absolute or relative to the base URL. In general, relative paths are preferable for the following reasons:</p>
+<ul>
+  <li>The base URL can be defined for an entire collection or sub-collection. Child resources inherit the parent base URL automatically, making it unnecessary to re-enter a path repeatedly. When a resource inherits from its parent the path is displayed in a pale green color. To override the parent, simply enter a new path in the Base URL field.</li>
+  <li>It is  faster, easier and more accurate to enter and read short (relative) resource and HTML file names.</li>
+  <li>If the actual resource and HTML files are stored in a directory structure that can be moved and/or uploaded as a unit, then the entire collection file can be updated by changing only the base URL(s).</li>
+  </ul>
+<p>To convert an absolute path to relative (or vice-versa), right-click the Resource or HTML File field and choose <strong>Set to relative</strong> (or <strong>Set to absolute</strong>) from the popup menu.</p>
+<h2> 7. Sharing collections</h2>
+<p>Share a collection using the following steps:</p>
+<ul>
+  <li>Upload  the resource and HTML files to a web server or local network.</li>
+  <li>Edit the collection  base URL(s) to point to the correct location(s).</li>
+  <li>Share  the collection file (XML document) as desired. </li>
+  </ul>
+<p>Note: if the resources are on a web server, the collection file can be located anywhere. Uploading to a server makes it available to all, but you could also e-mail it directly to students or colleagues.</p>
+<h2><a name="compadre"></a>8. Building the ComPADRE and OSP Libraries</h2>
+<p>The <strong>ComPADRE Digital Library</strong>, a part of the National Science Digital Library system, is a growing network of educational resource 
+  collections supporting teachers and students in Physics and Astronomy. As a user you may explore collections designed to meet 
+  your specific needs and help build the network by recommending resources, commenting on resources, and starting or joining 
+  discussions. For more information, see &lt;<b><a href="http://www.compadre.org/OSP/">http://www.compadre.org/OSP/</a></b>&gt;. To recommend an OSP resource for ComPADRE, visit the Suggest a Resource page at &lt;<b><a href="http://www.compadre.org/osp/items/suggest.cfm">http://www.compadre.org/osp/items/suggest.cfm</a></b>&gt;. Contact the 
+  OSP Collection editor, Wolfgang Christian, for additional information.</p>
+<p>The <strong>OSP EJS Library</strong> and <strong>OSP Tracker Library</strong> are maintained by Paco Esquembre and Douglas Brown, respectively. We encourage users to help build these libraries by developing web-based collections (EJS models, Tracker experiments and/or videos) and sending us the links to and descriptions of the collections. Collections that are added to an OSP library are immediately available from the Collections menu in the OSP Digital Library Browser. To recommend a collection for the OSP Tracker Library, see &lt;<b><a href="http://www.cabrillo.edu/~dbrown/tracker/">http://www.cabrillo.edu/~dbrown/tracker/</a></b>&gt;.</p>
+</body>
+</html>
