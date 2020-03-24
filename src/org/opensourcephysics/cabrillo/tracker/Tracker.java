@@ -233,8 +233,8 @@ public class Tracker {
 			new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$ 
 			new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
 			new Locale("pl"), // polish //$NON-NLS-1$
-			new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
-			OSPRuntime.PORTUGUESE, // Portugal portuguese
+			//new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$ 
+			//OSPRuntime.PORTUGUESE, // Portugal portuguese
 			new Locale("sk"), // slovak //$NON-NLS-1$
 			new Locale("sl"), // slovenian //$NON-NLS-1$
 			new Locale("sv"), // swedish //$NON-NLS-1$

@@ -1,0 +1,49 @@
+#j2s configuration file
+ 
+#enable the Java2Script transpiler -- comment out to disable
+j2s.compiler.status=enable
+
+
+# destination directory for all JavaScript
+j2s.site.directory=site
+
+# uncomment j2s.* lines to process:
+
+# a semicolon-separated list of package-level file paths to be excluded
+#j2s.excluded.paths=test;testng
+
+# output file name for logging methods declared - delete the file to regenerate a listing 
+#j2s.log.methods.declared=methodsDeclared.csv
+
+#output file name for logging methods called - delete the file to regenerate a listing
+#j2s.log.methods.called=methodsCalled.csv
+
+#if set, every instance of methods called will be logged
+#otherwise, only the first call to a method will be logged 
+#output will be comma-separated: called method,caller class 
+#j2s.log.all.calls=true
+
+# a semicolon-separated list of packages that contain classes for which the method names
+# in their classes should not be "qualified" to indicate their parameter types. 
+# This option is useful if you have an API interface in Java that refers to JavaScript 
+# methods such as calling window or jQuery functions or the methods in Clazz or J2S. 
+# The classes must not have any methods that are overloaded - with the
+# same name but different paramater type, as JavaScript will only see the last one.
+#j2s.compiler.nonqualified.packages=org.jmol.api.js;jspecview.api.js
+
+# uncomment to add debugging output. Start eclipse with the -consoleLog option to see output.
+#j2s.compiler.mode=debug
+
+# a semicolon-separated list of from->to listings of package (foo.) or class (foo.bar) 
+# replacements to be made. This option allows for having one class or package used in Java
+# and another used in JavaScript. Take care with this. All methods in both packages must
+# have exactly the same parameter signature. We use it in Jalview to provide a minimal
+# JavaScript implementation of a large third-party library while still using that library's
+# jar file in Java.
+#j2s.class.replacements=org.apache.log4j.->jalview.javascript.log4j.
+
+# uncomment and change if you do not want to use a template.html file that is created for you
+# in your project directory. A default template file will be created by the transpiler 
+# directory if there is none there already.
+#j2s.template.html=template.html
+

@@ -3651,7 +3651,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	      				// pass the tab control to the DataTool and get back the newly added tab
 	      				ArrayList<DataToolTab> addedTabs = null;
 								try {
-									addedTabs = tool.addTabs(tabControl);
+									//addedTabs = tool.addTabs(tabControl);
 								} catch (Exception e) {
 								}
 	      				if (addedTabs==null || addedTabs.isEmpty()) continue;
