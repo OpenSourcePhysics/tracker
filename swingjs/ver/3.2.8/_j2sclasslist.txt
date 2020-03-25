@@ -332,8 +332,12 @@ sun/font/FontDesignMetrics.js
 sun/swing/DefaultLookup.js
 sun/swing/SwingLazyValue.js
 sun/text/resources/FormatData.js
-sun/text/resources/FormatData_en.js
+sun/text/resources/en/FormatData_en.js
 sun/util/resources/LocaleData.js
+sun/util/locale/BaseLocale.js
+sun/util/locale/LocaleUtils.js
+sun/util/locale/provider/LocaleProviderAdapter.js
+sun/util/locale/provider/LocaleDataMetaInfo.js
 swingjs/a2s/A2SContainer.js
 swingjs/a2s/A2SEvent.js
 swingjs/a2s/A2SListener.js
