@@ -93,7 +93,7 @@ public class AnalyticParticle
     	dt = trackerPanel.getPlayer().getMeanStepDuration() / (1000*tracePtsPerStep);
       VideoClip clip = trackerPanel.getPlayer().getVideoClip();
       // find last frame included in both model and clip
-  		int end = Math.min(getEndFrame(), clip.getLastFrameNumber());
+  		int end = Math.min(getEndFrame(), clip.getFrameCount()-1);
   		while (end>getStartFrame() && !clip.includesFrame(end)) {
   			end--;
   		}
@@ -119,7 +119,7 @@ public class AnalyticParticle
     	// mark a step at firstFrameInClip
 	  	steps.setLength(firstFrameInClip+1);
 	    PositionStep step = (PositionStep)getStep(firstFrameInClip);
-	  	for (int i = 0; i<steps.array.length; i++) {
+	  	for (int i = 0; i<steps.length; i++) {
 	  		if (i<firstFrameInClip)
 	  			steps.setStep(i, null);
 	  		else if (step==null) {

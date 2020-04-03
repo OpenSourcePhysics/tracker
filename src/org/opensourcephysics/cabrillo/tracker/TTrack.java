@@ -2853,9 +2853,10 @@ public abstract class TTrack implements Interactive,
   protected class StepArray {
 
     // instance fields
-    protected int delta = 5;
-    protected Step[] array = new Step[delta];
+    protected int length = 5;
+    protected Step[] array = new Step[length];
     private boolean autofill = false;
+    protected int delta = 5;
 
     /**
      * Constructs a default StepArray.
@@ -2872,7 +2873,7 @@ public abstract class TTrack implements Interactive,
       autofill = true;
       step.n = 0;
       array[0] = step;
-      fill(array, step);
+      fill(step);
     }
 
     /**
@@ -2883,8 +2884,12 @@ public abstract class TTrack implements Interactive,
      * @param increment the array sizing increment
      */
     public StepArray(Step step, int increment) {
-    	this(step);
+      autofill = true;
+      step.n = 0;
+      array[0] = step;
+      length = increment;
       delta = increment;
+      fill(step);
     }
 
     /**
@@ -2894,8 +2899,8 @@ public abstract class TTrack implements Interactive,
      * @return the step
      */
     public Step getStep(int n) {    	
-      if (n >= array.length) {
-      	int len = Math.max(n+delta, n-array.length+1);
+      if (n >= length) {
+      	int len = Math.max(n+delta, n-length+1);
       	setLength(len);
       }
       return array[n];
@@ -2910,8 +2915,8 @@ public abstract class TTrack implements Interactive,
      */
     public void setStep(int n, Step step) {
       if (autofill && step == null) return;
-      if (n >= array.length) {
-      	int len = Math.max(n+delta, n-array.length+1);
+      if (n >= length) {
+      	int len = Math.max(n+delta, n-length+1);
       	setLength(len);
       }
       synchronized(array) {
@@ -2939,13 +2944,16 @@ public abstract class TTrack implements Interactive,
      * @param len the new length of the array
      */
     public void setLength(int len) {
-      Step[] newArray = new Step[len];
-      System.arraycopy(array, 0, newArray, 0, Math.min(len, array.length));
-      if (len > array.length && autofill) {
-        Step step = array[array.length - 1];
-        fill(newArray, step);
-      }
-      array = newArray;
+      synchronized(array) {
+        Step[] newArray = new Step[len];
+        System.arraycopy(array, 0, newArray, 0, Math.min(len, length));
+        array = newArray;
+        if (len > length && autofill) {
+          Step step = array[length - 1];
+          length = len;
+          fill(step);
+        } else length = len;
+      }      
     }
     
     /**
@@ -2986,17 +2994,15 @@ public abstract class TTrack implements Interactive,
      * Replaces null elements of the the array with clones of the
      * specified step.
      *
-     * @param array the Step[] to fill
      * @param step the step to clone
      */
-    private void fill(Step[] array, Step step) {
-      for (int n = 0; n < array.length; n++) {
+    private void fill(Step step) {
+      for (int n = 0; n < length; n++)
         if (array[n] == null) {
           Step clone = (Step)step.clone();
           clone.n = n;
           array[n] = clone;
         }
-      }
     }
   } // end StepArray class
 

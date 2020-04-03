@@ -142,8 +142,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     stretchOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/stretch_on.gif")); //$NON-NLS-1$
     xmassOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/x_mass.gif")); //$NON-NLS-1$
     xmassOnIcon = new ResizableIcon(Tracker.class.getResource("resources/images/x_mass_on.gif")); //$NON-NLS-1$
-    fontSmallerIcon = new ResizableIcon(Tracker.class.getResource("resources/images/font_smaller.gif")); //$NON-NLS-1$
-    fontBiggerIcon = new ResizableIcon(Tracker.class.getResource("resources/images/font_bigger.gif")); //$NON-NLS-1$
     fontSmallerDisabledIcon = new ResizableIcon(Tracker.class.getResource("resources/images/font_smaller_disabled.gif")); //$NON-NLS-1$
     fontBiggerDisabledIcon = new ResizableIcon(Tracker.class.getResource("resources/images/font_bigger_disabled.gif")); //$NON-NLS-1$
     autotrackerOffIcon = new ResizableIcon(Tracker.class.getResource("resources/images/autotrack_off.gif")); //$NON-NLS-1$
@@ -502,25 +500,25 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       }
     };
     
-    // font buttons
+   // font buttons
     fontSmallerButton = new TButton(fontSmallerIcon);
     fontSmallerButton.setDisabledIcon(fontSmallerDisabledIcon);
     fontSmallerButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	int i = FontSizer.getLevel();
-      	FontSizer.setLevel(i-1);
-      	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
-      	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
+    	int i = FontSizer.getLevel();
+    	FontSizer.setLevel(i-1);
+    	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
+    	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
       }
     });
     fontBiggerButton = new TButton(fontBiggerIcon);
     fontBiggerButton.setDisabledIcon(fontBiggerDisabledIcon);
     fontBiggerButton.addActionListener(new ActionListener() {
       public void actionPerformed(ActionEvent e) {
-      	int i = FontSizer.getLevel();
-      	FontSizer.setLevel(i+1);
-      	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
-      	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
+    	int i = FontSizer.getLevel();
+    	FontSizer.setLevel(i+1);
+    	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
+    	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
       }
     });
 
@@ -757,8 +755,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
         newTrackButton.setToolTipText(TrackerRes.getString("TrackControl.Button.NewTrack.ToolTip")); //$NON-NLS-1$
         trackControlButton.setToolTipText(TrackerRes.getString("TToolBar.Button.TrackControl.Tooltip")); //$NON-NLS-1$
         autotrackerButton.setToolTipText(TrackerRes.getString("TToolBar.Button.AutoTracker.Tooltip")); //$NON-NLS-1$
-        fontSmallerButton.setToolTipText(TrackerRes.getString("TrackControl.Button.FontSmaller.ToolTip")); //$NON-NLS-1$
-        fontBiggerButton.setToolTipText(TrackerRes.getString("TrackControl.Button.FontBigger.ToolTip")); //$NON-NLS-1$
       	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
       	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
         if (trackerPanel.getPlayer()!=null) {
@@ -952,11 +948,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		        add(stretchButton);
 	        if (trackerPanel.isEnabled("button.xMass")) //$NON-NLS-1$
 		        add(xMassButton);
-	        add(getSeparator());
         }
-        add(fontSmallerButton);
-        add(fontBiggerButton);
-        add(getSeparator());
         add(toolbarFiller);
         if (trackerPanel.isEnabled("button.drawing")) //$NON-NLS-1$
         	add(drawingButton);

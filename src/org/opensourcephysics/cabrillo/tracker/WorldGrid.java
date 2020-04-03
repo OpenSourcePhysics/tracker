@@ -73,7 +73,6 @@ public class WorldGrid implements Trackable {
   	dotted = new BasicStroke(2,BasicStroke.CAP_BUTT,BasicStroke.JOIN_MITER,8,DOTTED_LINE,0);
 	}
 	
-	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
 		if (!visible || (!showMajorX && !showMajorY)) return;
 		Graphics2D g2 = (Graphics2D)g;

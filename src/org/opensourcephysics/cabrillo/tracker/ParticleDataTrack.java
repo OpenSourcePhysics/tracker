@@ -1242,7 +1242,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
   @Override
 	protected void reset() {
 		// clear existing steps
-		for (int i=0; i<steps.array.length; i++) {
+		for (int i=0; i<steps.length; i++) {
 			Step step = steps.getStep(i);
 			if (step!=null) {
 				step.erase();
@@ -1270,7 +1270,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	  
   	// mark a step at firstFrameInVideoClip unless dataclip length is zero
   	steps.setLength(firstFrameInVideoClip+1);
-  	for (int i = 0; i<steps.array.length; i++) {
+  	for (int i = 0; i<steps.length; i++) {
   		if (i<firstFrameInVideoClip || index==-1)
   			steps.setStep(i, null);
   		else {
@@ -1292,13 +1292,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		stepCounter = 0;
 	}
   
-	@Override
 	public void setData(Data data, Object source) throws Exception {
 		setData(data);
 		setSource(source);
 	}
 
-	@Override
 	public VideoPanel getVideoPanel() {
 		return trackerPanel;
 	}
@@ -1780,7 +1778,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			shapeIcons = icons;
 		}
 		
-		@Override
 		public void paintIcon(Component c, Graphics g, int x, int y) {
 			if (shapeIcons.size()==1) {
 				shapeIcons.get(0).paintIcon(c, g, x, y);
@@ -1804,12 +1801,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 		}
 	
-		@Override
 		public int getIconWidth() {
 			return shapeIcons.get(0).getIconWidth();
 		}
 	
-		@Override
 		public int getIconHeight() {
 			return shapeIcons.get(0).getIconHeight();
 		}

@@ -106,7 +106,6 @@ public class DataTrackTimeControl extends JPanel implements PropertyChangeListen
     return dim;
   }
 
-	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		refreshGUI();
 	}

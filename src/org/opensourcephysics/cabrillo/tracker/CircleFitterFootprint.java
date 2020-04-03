@@ -184,7 +184,6 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @return the hit shapes
    */
-  @Override
   public Shape[] getHitShapes() {
     return hitShapes.toArray(new Shape[hitShapes.size()]);
   }

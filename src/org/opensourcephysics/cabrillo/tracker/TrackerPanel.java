@@ -525,7 +525,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     track.addPropertyChangeListener("model_end", this); //$NON-NLS-1$
     // update track control and dataTool
     if (trackControl!=null && trackControl.isVisible()) trackControl.refresh();
-    if (dataBuilder != null && !getSystemDrawables().contains(track)) {   	
+    if (getDataBuilder() != null && !getSystemDrawables().contains(track)) {   	
     	FunctionPanel panel = createFunctionPanel(track);
     	dataBuilder.addPanel(track.getName(), panel);
     	dataBuilder.setSelectedPanel(track.getName());  	
@@ -2294,14 +2294,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       }
       if (getVideo() != null) {
         getVideo().setProperty("measure", null); //$NON-NLS-1$
-        // if xuggle video, set smooth play per preferences
+        // if ffmpeg video, set smooth play per preferences
         VideoType videoType = (VideoType)video.getProperty("video_type"); //$NON-NLS-1$
-        if (videoType!=null	&& videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_XUGGLE)) {
-          boolean smooth = !Tracker.isXuggleFast;
+        if (videoType!=null	&& videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_FFMPEG)) {
+          boolean smooth = !Tracker.isVideoFast;
         	try {
-      			String xuggleName = "org.opensourcephysics.media.xuggle.XuggleVideo"; //$NON-NLS-1$
-      			Class<?> xuggleClass = Class.forName(xuggleName);
-      			Method method = xuggleClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
+      			String ffmpegName = "org.opensourcephysics.media.ffmpeg.FFMPegVideo"; //$NON-NLS-1$
+      			Class<?> ffmpegClass = Class.forName(ffmpegName);
+      			Method method = ffmpegClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
       			method.invoke(video, new Object[] {smooth});
       		} catch (Exception ex) {
       		}    
@@ -3444,7 +3444,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
      * @return the loaded object
      */
     public Object loadObject(XMLControl control, Object obj) {
-      final TrackerPanel trackerPanel = (TrackerPanel)obj;
+      TrackerPanel trackerPanel = (TrackerPanel)obj;
 	    // load and check if a newer Tracker version created this file
 	    String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
 	    // if ver is null then must be an older version
@@ -3655,7 +3655,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 								} catch (Exception e) {
 								}
 	      				if (addedTabs==null || addedTabs.isEmpty()) continue;
-	      				final DataToolTab tab = addedTabs.get(0);
+	      				DataToolTab tab = addedTabs.get(0);
 	      				
 	      				// set the owner of the tab to the specified track
 	      				String trackname = tab.getOwnerName();
@@ -3665,7 +3665,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	      				tab.setOwner(trackname, data);
 	      				
 	      				// set up a DataRefreshTool and send it to the tab
-	              final DataRefreshTool refresher = DataRefreshTool.getTool(data);	              
+	              DataRefreshTool refresher = DataRefreshTool.getTool(data);	              
 	            	DatasetManager toSend = new DatasetManager();
 	            	toSend.setID(data.getID());
 	              try {
@@ -3674,17 +3674,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	              catch (RemoteException ex) {ex.printStackTrace();}
 	              
 	              // set the tab column IDs to the track data IDs and add track data to the refresher
-	              Runnable refreshRunner = new Runnable() {
-	              	public void run() {
-	  	              for (TTrack tt: trackerPanel.getTracks()) {
-	  	              	Data trackData = tt.getData(trackerPanel);
-	  	              	if (tab.setOwnedColumnIDs(tt.getName(), trackData)) { // true if track owns one or more columns
-	  	              		refresher.addData(trackData);
-	  	              	}
-	  	              }
+	              for (TTrack tt: trackerPanel.getTracks()) {
+	              	Data trackData = tt.getData(trackerPanel);
+	              	if (tab.setOwnedColumnIDs(tt.getName(), trackData)) { // true if track owns one or more columns
+	              		refresher.addData(trackData);
 	              	}
-	              };
-	              SwingUtilities.invokeLater(refreshRunner);
+	              }
 	              // tab is now fully "wired" for refreshing by tracks
 	      			}    					
     				}

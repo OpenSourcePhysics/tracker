@@ -74,8 +74,8 @@ public class TrackerStarter {
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
 	static String exceptions = ""; //$NON-NLS-1$
-	static String xuggleWarning, ffmpegWarning, starterWarning;
-	static String trackerHome, userHome, javaHome, xuggleHome, ffmpegHome, userDocuments;
+	static String ffmpegWarning, starterWarning;
+	static String trackerHome, userHome, javaHome, ffmpegHome, userDocuments;
 	static String startLogPath;
 	static FilenameFilter trackerJarFilter = new TrackerJarFilter();
 	static File codeBaseDir, starterJarFile;
@@ -114,7 +114,7 @@ public class TrackerStarter {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
 		}
-		// get user home, java home and xuggle home
+		// get user home, java home and ffmpeg home
 		try {
 			userHome = OSPRuntime.getUserHome();
 			javaHome = System.getProperty("java.home"); //$NON-NLS-1$
@@ -229,9 +229,9 @@ public class TrackerStarter {
 			exitGracefully(null);
 		}
 
-		// find Xuggle home
+		// find FFMPeg home
 		try {
-			xuggleHome = findXuggleHome(trackerHome, true);
+			ffmpegHome = findFFMPegHome(trackerHome, true);
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
@@ -413,57 +413,57 @@ public class TrackerStarter {
 	}
 
 	/**
-	 * Finds the Xuggle home directory and sets/returns the static variable xuggleHome.
+	 * Finds the FFMPeg home directory and sets/returns the static variable ffmpegHome.
 	 * 
 	 * @param trackerHome the Tracker home directory (may be null)
 	 * @param writeToLog true to write results to the start log
 	 */
-	public static String findXuggleHome(String trackerHome, boolean writeToLog) throws Exception {
-		// first see if xuggleHome is child or sibling of trackerHome
+	public static String findFFMPegHome(String trackerHome, boolean writeToLog) throws Exception {
+		// first see if ffmpegHome is child or sibling of trackerHome
 		if (trackerHome!=null) {
 			File trackerHomeDir = new File(trackerHome);
-			File f = new File(trackerHomeDir, "Xuggle"); //$NON-NLS-1$
+			File f = new File(trackerHomeDir, "FFMPeg"); //$NON-NLS-1$
 			if (!f.exists() || !f.isDirectory()) {
-				f = new File(trackerHomeDir.getParentFile(), "Xuggle"); //$NON-NLS-1$
+				f = new File(trackerHomeDir.getParentFile(), "FFMPeg"); //$NON-NLS-1$
 			}
 			if ((!f.exists()||!f.isDirectory()) && OSPRuntime.isMac()) {
-				f = new File("/usr/local/xuggler"); //$NON-NLS-1$
+				f = new File("/usr/local/ffmpeg"); //$NON-NLS-1$
 			}
 			if (f.exists() && f.isDirectory()) {
-				xuggleHome = f.getPath();
-				if (writeToLog) logMessage("xugglehome found relative to trackerhome: "+xuggleHome); //$NON-NLS-1$
+				ffmpegHome = f.getPath();
+				if (writeToLog) logMessage("ffmpegHome found relative to trackerhome: "+ffmpegHome); //$NON-NLS-1$
 			}
 		}
 		
 		// if not found, check OSP preferences
-		if (xuggleHome==null) {
-			xuggleHome = (String)OSPRuntime.getPreference("XUGGLE_HOME"); //$NON-NLS-1$
-			if (writeToLog) logMessage("osp.prefs XUGGLE_HOME: " + xuggleHome); //$NON-NLS-1$
-			if (xuggleHome!=null && !fileExists(xuggleHome)) {
-				xuggleHome = null;
-				if (writeToLog) logMessage("XUGGLE_HOME directory no longer exists"); //$NON-NLS-1$
+		if (ffmpegHome==null) {
+			ffmpegHome = (String)OSPRuntime.getPreference("FFMPEG_HOME"); //$NON-NLS-1$
+			if (writeToLog) logMessage("osp.prefs FFMPEG_HOME: " + ffmpegHome); //$NON-NLS-1$
+			if (ffmpegHome!=null && !fileExists(ffmpegHome)) {
+				ffmpegHome = null;
+				if (writeToLog) logMessage("FFMPEG_HOME directory no longer exists"); //$NON-NLS-1$
 			}	
 		}
 
-		// if still not found, look for xuggleHome in environment variable
-		if (xuggleHome==null) {
+		// if not yet found, look for ffmpegHome in environment variable
+		if (ffmpegHome==null) {
 			try {
-				xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
+				ffmpegHome = System.getenv("FFMPEG_HOME"); //$NON-NLS-1$
 			} catch (Exception ex) {
 				exceptions += ex.getClass().getSimpleName()
 						+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
 			}
-			if (writeToLog) logMessage("environment variable XUGGLE_HOME: " + xuggleHome); //$NON-NLS-1$
-			if (xuggleHome!=null && !fileExists(xuggleHome)) {
-				xuggleHome = null;
-				if (writeToLog) logMessage("XUGGLE_HOME directory no longer exists"); //$NON-NLS-1$
+			if (writeToLog) logMessage("environment variable FFMPEG_HOME: " + ffmpegHome); //$NON-NLS-1$
+			if (ffmpegHome!=null && !fileExists(ffmpegHome)) {
+				ffmpegHome = null;
+				if (writeToLog) logMessage("FFMPEG_HOME directory no longer exists"); //$NON-NLS-1$
 			}			
 		}
 
-		if (xuggleHome==null)
-			throw new NullPointerException("xugglehome not found"); //$NON-NLS-1$
-		if (writeToLog) logMessage("using xugglehome: " + xuggleHome); //$NON-NLS-1$
-		return xuggleHome;
+		if (ffmpegHome==null)
+			throw new NullPointerException("ffmpegHome not found"); //$NON-NLS-1$
+		if (writeToLog) logMessage("using ffmpegHome: " + ffmpegHome); //$NON-NLS-1$
+		return ffmpegHome;
 	}
 	
 	/**
@@ -855,36 +855,35 @@ public class TrackerStarter {
 		}
 		else env.remove("MEMORY_SIZE"); //$NON-NLS-1$ 
 
-		// remove xuggle and ffmpeg warnings that may have been set by previous versions of TrackerStarter
-		env.remove("XUGGLE_WARNING"); //$NON-NLS-1$ 
+		// remove ffmpeg warnings that may have been set by previous versions of TrackerStarter
 		env.remove("FFMPEG_WARNING"); //$NON-NLS-1$ 
 		if (starterWarning!=null) {
 			env.put("STARTER_WARNING", starterWarning); //$NON-NLS-1$ 
 		}
 		else env.remove("STARTER_WARNING"); //$NON-NLS-1$ 
 		
-		// add TRACKER_HOME, XUGGLE_HOME and PATH to environment
+		// add TRACKER_HOME, FFMPEG_HOME and PATH to environment
 		if (trackerHome!=null) { 
 			env.put("TRACKER_HOME", trackerHome); //$NON-NLS-1$ 
 			logMessage("setting TRACKER_HOME = " + trackerHome); //$NON-NLS-1$
 		}
-		if (xuggleHome!=null && new File(xuggleHome).exists()) {
-			env.put("XUGGLE_HOME", xuggleHome); //$NON-NLS-1$ 
-			logMessage("setting XUGGLE_HOME = " + xuggleHome); //$NON-NLS-1$
+		if (ffmpegHome!=null && new File(ffmpegHome).exists()) {
+			env.put("FFMPEG_HOME", ffmpegHome); //$NON-NLS-1$ 
+			logMessage("setting FFMPEG_HOME = " + ffmpegHome); //$NON-NLS-1$
 
 			String pathEnvironment = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
 				OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
 			
 			String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
-			String xugglePath = xuggleHome+File.separator+subdir;
-			if (new File(xugglePath).exists()) {
+			String ffmpegPath = ffmpegHome+File.separator+subdir;
+			if (new File(ffmpegPath).exists()) {
 				// get current PATH
 				String pathValue = env.get(pathEnvironment);
 				if (pathValue==null) pathValue = ""; //$NON-NLS-1$
 				
-				// add xuggle path at beginning of current PATH
-				if (!pathValue.startsWith(xugglePath)) {
-					pathValue = xugglePath+File.pathSeparator+pathValue;
+				// add ffmpeg path at beginning of current PATH
+				if (!pathValue.startsWith(ffmpegPath)) {
+					pathValue = ffmpegPath+File.pathSeparator+pathValue;
 				}
 				
 				env.put(pathEnvironment, pathValue);
