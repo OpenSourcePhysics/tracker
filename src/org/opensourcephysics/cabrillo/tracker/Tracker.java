@@ -67,7 +67,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.1.3200219"; //$NON-NLS-1$
+  public static final String VERSION = "5.1.4"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -2138,9 +2138,15 @@ public class Tracker {
      */
   	Preferences() {
   		if (trackerHome!=null) {
+  			// find tracker.prefs.default file
 	      File defaultPrefsFile = new File(trackerHome, "tracker.prefs.default"); //$NON-NLS-1$
+	      if (!defaultPrefsFile.exists() && OSPRuntime.isMac()) {
+	      	defaultPrefsFile = new File(trackerHome).getParentFile();
+	  	    defaultPrefsFile = new File(defaultPrefsFile, "Resources/tracker.prefs.default"); //$NON-NLS-1$
+	      }
+	      // load default preferences if file is found
 	      if (defaultPrefsFile.exists()) {
-	      String defaultPrefsPath = defaultPrefsFile.getAbsolutePath();
+	      	String defaultPrefsPath = defaultPrefsFile.getAbsolutePath();
 	      	XMLControl control = new XMLControlElement(defaultPrefsPath);
 	      	control.loadObject(this);
 	      }
