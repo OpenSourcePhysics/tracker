@@ -2439,8 +2439,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
    * @return empty List<File> to fill with files to be zipped
    */
   protected ArrayList<File> defineTarget() {
-  	// show file chooser to get directory and zip name
-    JFileChooser chooser = TrackerIO.getChooser();
+  	// use VideoIO file chooser to get directory and zip name
+    JFileChooser chooser = TrackerIO.getChooser(); // initialized to OSPRuntime.chooserDir 
     chooser.setDialogTitle(TrackerRes.getString("ZipResourceDialog.FileChooser.SaveZip.Title"));  //$NON-NLS-1$
     chooser.setAcceptAllFileFilterUsed(false);
     chooser.addChoosableFileFilter(TrackerIO.trzFileFilter);
@@ -2469,6 +2469,17 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   	}
 
     String title = titleField.getText().trim().replaceAll(" ", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    if ("".equals(title)) { //$NON-NLS-1$
+  		for (int i=0; i<frame.getTabCount(); i++) {
+  			if (frame.getTrackerPanel(i)==trackerPanel) {
+  				title = frame.getTabTitle(i);
+  				title = XML.stripExtension(title);
+  			}
+  		}
+    }
+    if ("".equals(title)) { //$NON-NLS-1$
+    	title = TrackerRes.getString("TrackerPanel.NewTab.Name"); //$NON-NLS-1$
+    }    
     if (!"".equals(title)) { //$NON-NLS-1$
     	File file = new File(dir, title+".trz"); //$NON-NLS-1$
     	// increment suggested filename if currently open in Tracker or Library Browser
