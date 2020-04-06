@@ -350,7 +350,6 @@ swingjs/a2s/ScrollPane.js
 swingjs/a2s/TextArea.js
 swingjs/a2s/TextField.js
 swingjs/api/Interface.js
-swingjs/api/JSUtilI.js
 swingjs/api/js/DOMNode.js
 swingjs/api/js/HTML5CanvasContext2D.js
 swingjs/api/js/JSInterface.js

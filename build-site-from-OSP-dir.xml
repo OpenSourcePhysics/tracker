@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<!--
+ BH 2018.08.12
+
+ - requires tools/ant-contrib.jar
+  
+ - creates the site/ directory if it does not exist
+ - unzip libjs/*.zip into site/swingjs/j2s
+ - unzips swingjs/SwingJS-site.zip into site/
+ - copies non-java resources from resources/ into site/swingjs/j2s
+ 
+-->
+
+<project name="swingjs-project" default="tosite" basedir="."
+ xmlns:if="ant:if"
+    xmlns:unless="ant:unless">
+	
+  <target name="tosite">
+  	  	
+  	<!-- input directories -->
+  	
+  	<!-- location of ant-contrib.jar -->
+  	<property name="tools.dir" value = "tools" />
+
+ 	<!-- SwingjS_site zip file (could be varied if versioning is needed) -->
+  	<property name="swingjs.zip" value="swingjs/SwingJS-site.zip" />
+
+  	<!-- location of third-party jar contents as precompiled zipped .js files to copy to site
+  	including OSP.zip    -->
+  	
+  	<property name="libjs.dir" value="libjs" />
+
+  	
+  	<!-- non-Java resources to copy to site/swingjs/j2s -->
+    <property name="resource.dir" value="resources" />  
+  	
+  	<!-- non-Java resources to copy to site/ -->
+    <property name="site-resource.dir" value="site-resources" />  	  	
+
+ 	<!-- OSP JS library to copy to site/ -->
+    <property name="osp.j2s.dir" value="../osp/site/swingjs/j2s" />  
+  	
+  		<!-- output directories -->
+
+  	<property name="site.dir" value="site" />
+  	<property name="j2s.dir" value="${site.dir}/swingjs/j2s" />
+
+    <!-- <for  ...> construct needs ant-contrib.jar -->
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath>
+        <pathelement location="${tools.dir}/ant-contrib.jar" />
+      </classpath>
+    </taskdef>
+
+	<!-- unzip all libjs zip files into j2s
+	
+	   all zip files placed in libjs will be processed
+	   
+	   this includes OSP.zip, even though we are copying it from osp.j2s.dir as well
+
+
+  	<for param="file.zip">
+  	  <path>
+  	    <fileset dir="${libjs.dir}" includes="*.zip"/>
+  	  </path>
+  	  <sequential>
+  	  	 	<unzip src="@{file.zip}" dest="${j2s.dir}" overwrite="true"/>  	
+  	  </sequential>
+  	</for>
+
+	 -->
+  	
+  	<!-- unzip SwingJS-site.zip 
+  	
+  	  we do this separately, as we want it done last 
+  	
+  	-->
+
+  	<unzip src="${swingjs.zip}" dest="${site.dir}/" overwrite="true"/>  	
+
+  	<echo> Copying ${osp.j2s.dir} files into ${j2s.dir} </echo>
+  	<copy todir="${j2s.dir}">
+      <fileset dir="${osp.j2s.dir}">
+      	<include name="**"/>
+  	</fileset>
+    </copy>
+  	 
+  	
+ 	<!-- transfer resources -->
+
+  	<echo> Copying ${site-resource.dir} files into ${site.dir} </echo>
+  	<copy todir="${site.dir}">
+      <fileset dir="${site-resource.dir}" erroronmissingdir="false" >
+      	<include name="**"/>
+  	</fileset>
+    </copy>
+  	<echo> Copying ${resource.dir} files into ${j2s.dir} </echo>
+   	<copy todir="${j2s.dir}">
+      <fileset dir="${resource.dir}">
+      	<include name="**"/>
+  	</fileset>
+    </copy>
+      		
+
+  	
+</target>
+	
+
+</project>
