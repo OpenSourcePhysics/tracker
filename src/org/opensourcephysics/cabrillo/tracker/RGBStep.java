@@ -144,7 +144,7 @@ public class RGBStep extends Step {
   	}
     Mark mark = marks.get(trackerPanel);
     if (mark == null) {
-      transform = trackerPanel.getPixelTransform();
+      trackerPanel.getPixelTransform(transform);
       if (!trackerPanel.isDrawingInImageSpace()) {
         transform.concatenate(trackerPanel.getCoords().getToWorldTransform(n));
       }

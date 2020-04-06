@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object class="org.opensourcephysics.cabrillo.tracker.Tracker$Preferences">
+    <property name="mark_current_frame" type="boolean">true</property>
+    <property name="tracker_jar" type="string">tracker.jar</property>
+    <property name="cache" type="string">tmp\Cache</property>
+    <property name="upgrade_interval" type="int">0</property>
+    <property name="last_checked" type="int">1581112281</property>
+    <property name="recent_files" type="collection" class="java.util.ArrayList">
+        <property name="item" type="string">C:/Users/hansonr/git/tracker/tmp/Cache/osp-www_compadre_org/osp/document/tracker_solar_rotation.zip</property>
+    </property>
+</object>

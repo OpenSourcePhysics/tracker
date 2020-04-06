@@ -2627,7 +2627,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
     super.scale();
     // erase all tracks if pixel transform has changed
     if (!pixelTransform.equals(prevPixelTransform)) {
-      prevPixelTransform = getPixelTransform();
+    	if (prevPixelTransform == null)
+    		prevPixelTransform = new AffineTransform();
+      getPixelTransform(prevPixelTransform);
       eraseAll();
     }
     // load track control if TFrame is known

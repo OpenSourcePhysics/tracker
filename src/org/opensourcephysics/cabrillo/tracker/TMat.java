@@ -61,39 +61,37 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
     refresh();
   }
 
-  /**
-   * Draws the image mat on the panel.
-   *
-   * @param panel the drawing panel requesting the drawing
-   * @param g the graphics context on which to draw
-   */
-  public void draw(DrawingPanel panel, Graphics g) {
-    if (!(panel instanceof VideoPanel) || !isVisible()) return;
-    VideoPanel vidPanel = (VideoPanel) panel;
-    Graphics2D g2 = (Graphics2D)g;
-    // save graphics transform and paint
-    AffineTransform gat = g2.getTransform();
-    Paint gpaint = g2.getPaint();
-    // transform world to screen
-    g2.transform(vidPanel.getPixelTransform());
-    // transform image to world if not drawing in image space
-    if (!vidPanel.isDrawingInImageSpace()) {
-      ImageCoordSystem coords = vidPanel.getCoords();
-      int n = vidPanel.getFrameNumber();
-      g2.transform(coords.getToWorldTransform(n));
-    }
-    // draw the mat
-    g2.setPaint(paint);
-    g2.fill(mat);
-    // restore graphics transform and paint
-    g2.setTransform(gat);
-    g2.setPaint(gpaint);
-    // save drawing bounds for use when exporting videos
-    Shape asDrawn = vidPanel.getPixelTransform().createTransformedShape(mat);
-    Rectangle2D rect2D = asDrawn.getBounds2D();
-    drawingBounds = new Rectangle((int)Math.round(rect2D.getMinX()), 
-    		(int)Math.round(rect2D.getMinY()),(int)rect2D.getWidth(),(int)rect2D.getHeight());
-  }
+  private AffineTransform trTM = new AffineTransform();
+	/**
+	 * Draws the image mat on the panel.
+	 *
+	 * @param panel the drawing panel requesting the drawing
+	 * @param g     the graphics context on which to draw
+	 */
+	public void draw(DrawingPanel panel, Graphics g) {
+		if (!(panel instanceof VideoPanel) || !isVisible())
+			return;
+		VideoPanel vidPanel = (VideoPanel) panel;
+		Graphics2D g2 = (Graphics2D) g.create();
+		// transform world to screen
+		g2.transform(vidPanel.getPixelTransform(trTM));
+		// transform image to world if not drawing in image space
+		if (!vidPanel.isDrawingInImageSpace()) {
+			ImageCoordSystem coords = vidPanel.getCoords();
+			int n = vidPanel.getFrameNumber();
+			g2.transform(coords.getToWorldTransform(n));
+		}
+		// draw the mat
+		g2.setPaint(paint);
+		g2.fill(mat);
+		// restore graphics transform and paint
+		// save drawing bounds for use when exporting videos
+		Shape asDrawn = vidPanel.transformShape(mat);
+		Rectangle2D rect2D = asDrawn.getBounds2D();
+		drawingBounds = new Rectangle((int) Math.round(rect2D.getMinX()), (int) Math.round(rect2D.getMinY()),
+				(int) rect2D.getWidth(), (int) rect2D.getHeight());
+		g2.dispose();
+	}
   
   public void setTrackerPanel(TrackerPanel panel) {
   	if (panel==null || trackerPanel==panel) return;

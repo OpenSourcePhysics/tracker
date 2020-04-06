@@ -1638,26 +1638,30 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
       clearSearchPointsDownstream();
     }
     
-    /**
-     * Sets the location of this point to the specified screen position.
-     *
-     * @param x the x screen position
-     * @param y the y screen position
-     * @param vidPanel the trackerPanel doing the drawing
-     */
-    public void setScreenLocation(int x, int y, VideoPanel vidPanel) {
-      if (screenPt == null) screenPt = new Point();
-      if (worldPt == null) worldPt = new Point2D.Double();
-      screenPt.setLocation(x, y);
-      AffineTransform toScreen = vidPanel.getPixelTransform();
-      try {
-        toScreen.inverseTransform(screenPt, worldPt);
-      } catch(NoninvertibleTransformException ex) {
-        ex.printStackTrace();
-      }
-  		setLocation(worldPt);
-    	repaint();
-    }
+		/**
+		 * Sets the location of this point to the specified screen position.
+		 *
+		 * @param x        the x screen position
+		 * @param y        the y screen position
+		 * @param vidPanel the trackerPanel doing the drawing
+		 */
+		public void setScreenLocation(int x, int y, VideoPanel vidPanel) {
+			if (screenPt == null) {
+				screenPt = new Point();
+				toScreen = new AffineTransform();
+			}
+			if (worldPt == null)
+				worldPt = new Point2D.Double();
+			screenPt.setLocation(x, y);
+			vidPanel.getPixelTransform(toScreen);
+			try {
+				toScreen.inverseTransform(screenPt, worldPt);
+			} catch (NoninvertibleTransformException ex) {
+				ex.printStackTrace();
+			}
+			setLocation(worldPt);
+			repaint();
+		}
   }
   
   /**

@@ -86,44 +86,30 @@ public class PencilCaption extends InteractiveTextLine {
 
 	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
-		if (graphics==null) refreshBounds(g);
-		graphics = g.create();
-		if (getText()==null || getText().trim().equals("")) return; //$NON-NLS-1$
-  	if (panel instanceof TrackerPanel) {
-	  	TrackerPanel trackerPanel = (TrackerPanel)panel;
-	  	if (trackerPanel.isDrawingInImageSpace()) {
-	  		refreshBounds(g);
-	  		Color c = g.getColor();
-	  		g.setColor(color);
-	  		AffineTransform toPixels = panel.getPixelTransform();
-	      Point2D pt = new Point2D.Double(x, y);
-	      pt = toPixels.transform(pt, pt);
-	    	double mag = trackerPanel.getMagnification();
-	      Graphics2D g2 = (Graphics2D) g;
-	      g2.translate(pt.getX(), pt.getY());
-	  	  g2.scale(mag, mag);
-	      textLine.drawText(g2, 0, 0);
-	  	  g2.scale(1/mag, 1/mag);
-	      g2.translate(-pt.getX(), -pt.getY());
-	      g.setColor(c);
-	  	}
-  	}
-  	else {
-  		Color c = g.getColor();
-  		g.setColor(color);
-  		AffineTransform toPixels = panel.getPixelTransform();
-      Point2D pt = new Point2D.Double(x, y);
-      pt = toPixels.transform(pt, pt);
-    	double mag = panel.getXPixPerUnit();
-      Graphics2D g2 = (Graphics2D) g;
-      g2.translate(pt.getX(), pt.getY());
-  	  g2.scale(mag, mag);
-      textLine.drawText(g2, 0, 0);
-  	  g2.scale(1/mag, 1/mag);
-      g2.translate(-pt.getX(), -pt.getY());
-      g.setColor(c);
-  	}
-  }
+		boolean refreshed = (graphics == null);
+		if (refreshed)
+			refreshBounds(graphics = g);
+		if (getText() == null || getText().trim().equals("")) //$NON-NLS-1$
+			return;
+		Graphics2D g2 = (Graphics2D) g.create();
+		double mag;
+		if (panel instanceof TrackerPanel) {
+			TrackerPanel trackerPanel = (TrackerPanel) panel;
+			if (!trackerPanel.isDrawingInImageSpace())
+				return;
+			if (!refreshed)
+				refreshBounds(g);
+			mag = trackerPanel.getMagnification();
+		} else {
+			mag = panel.getXPixPerUnit();
+		}
+		g2.setColor(color);
+		getPixelPt(panel);
+		g2.translate(pixelPt.x, pixelPt.y);
+		g2.scale(mag, mag);
+		textLine.drawText(g2, 0, 0);
+		g2.dispose();
+	}
 	
   @Override
   public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
