@@ -886,7 +886,7 @@ public class PrefsDialog extends JDialog {
         xuggleErrorCheckbox.setEnabled(xuggleButton.isSelected());
      		if (!xuggleButton.isSelected()) return;
       	// Windows: if xuggle 3.4 and 64-bit, set preferred VM to 32-bit and inform user    		
-    		if (OSPRuntime.isWindows() && DiagnosticsForXuggle.guessXuggleVersion()==3.4 && vm64Button.isSelected()) {
+    		if (!OSPRuntime.isJS && OSPRuntime.isWindows() && DiagnosticsForXuggle.guessXuggleVersion()==3.4 && vm64Button.isSelected()) {
       		boolean has32BitVM = JREFinder.getFinder().getDefaultJRE(32, Tracker.trackerHome, true)!=null;
       		if (has32BitVM) {
 	      		vm32Button.setSelected(true);
