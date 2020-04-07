@@ -50,6 +50,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.JTextComponent;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -1584,7 +1585,10 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
           	}
           }
     		}   		
-    	} // end setting up video 
+      	else if (vid==null) {
+      		 
+      	}
+    	}  // end setting up video
     	
     	// wait for video to be ready--when isWaitingForVideo is false
     	while (isWaitingForVideo) {
@@ -1627,7 +1631,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     			zipList.add(videoFile);
     		}
     	}
-    	else {
+    	else if (vid!=null) {
     		return false;
     	}
     	
@@ -2585,6 +2589,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   		path = path.substring(0, len) + append;
   	}
   	existingTabTitles.add(path);
+  	OSPLog.config("TRK target "+path+".trk"); //$NON-NLS-1$ //$NON-NLS-2$
   	return path+".trk"; //$NON-NLS-1$
   }
   
