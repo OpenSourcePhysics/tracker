@@ -2135,7 +2135,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
         refreshing = false;
       }
     };
-    if (SwingUtilities.isEventDispatchThread()) runner.run();
+    if (OSPRuntime.isJS || SwingUtilities.isEventDispatchThread()) runner.run();
     else SwingUtilities.invokeLater(runner); 
   }
 

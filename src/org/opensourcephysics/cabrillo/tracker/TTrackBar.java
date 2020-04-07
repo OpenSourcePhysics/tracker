@@ -41,6 +41,7 @@ import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 
 /**
@@ -528,7 +529,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
         repaint();
     	}
     };
-    if (SwingUtilities.isEventDispatchThread()) runner.run();
+    if (OSPRuntime.isJS || SwingUtilities.isEventDispatchThread()) runner.run();
     else SwingUtilities.invokeLater(runner); 
   }
   

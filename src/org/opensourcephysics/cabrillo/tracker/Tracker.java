@@ -24,36 +24,94 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.io.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.*;
-import java.util.jar.JarFile;
-import java.util.logging.Level;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.Registry;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.awt.*;
-import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.jar.JarFile;
+import java.util.logging.Level;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextPane;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.WindowConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.MouseInputAdapter;
 
+import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
+import org.opensourcephysics.controls.ConsoleLevel;
+import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.controls.XMLProperty;
+import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
-import org.opensourcephysics.js.JSUtil;
-import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
-import org.opensourcephysics.controls.*;
-import org.opensourcephysics.desktop.OSPDesktop;
-import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.tools.*;
+import org.opensourcephysics.media.core.DataTrackSupport;
+import org.opensourcephysics.media.core.Video;
+import org.opensourcephysics.media.core.VideoIO;
+import org.opensourcephysics.tools.Diagnostics;
+import org.opensourcephysics.tools.DiagnosticsForThreads;
+import org.opensourcephysics.tools.DiagnosticsForXuggle;
+import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.JREFinder;
+import org.opensourcephysics.tools.LaunchNode;
+import org.opensourcephysics.tools.Launcher;
+import org.opensourcephysics.tools.Resource;
+import org.opensourcephysics.tools.ResourceLoader;
 
 import javajs.async.SwingJSUtils.StateHelper;
 
@@ -178,7 +236,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static int checkForUpgradeInterval = 0;
 	static int preferredFontLevel = 0, preferredFontLevelPlus = 0;
 	static boolean isRadians, isXuggleFast;
-	static boolean warnXuggleError = true, warnNoVideoEngine = true;
+	static boolean warnXuggleError = true;
+	static boolean warnNoVideoEngine = !OSPRuntime.isJS;
 	static boolean warnVariableDuration = true;
 	static String[] prelaunchExecutables = new String[0];
 	static Map<String, String[]> autoloadMap = new TreeMap<String, String[]>();
@@ -402,15 +461,17 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			ResourceLoader.addExtractExtension(ext);
 		}
 
-		// add Xuggle video types, if available, using reflection
-		try {
-			String xuggleIOName = "org.opensourcephysics.media.xuggle.XuggleIO"; //$NON-NLS-1$
-			Class<?> xuggleIOClass = Class.forName(xuggleIOName);
-			Method method = xuggleIOClass.getMethod("registerWithVideoIO", (Class[]) null); //$NON-NLS-1$
-			method.invoke(null, (Object[]) null);
-		} catch (Exception ex) {
+		if (!OSPRuntime.isJS) {
+			// BH 2020.04.06 no xuggle for SwingJS
+			// add Xuggle video types, if available, using reflection
+			try {
+				String xuggleIOName = "org.opensourcephysics.media.xuggle.XuggleIO"; //$NON-NLS-1$
+				Class<?> xuggleIOClass = Class.forName(xuggleIOName);
+				Method method = xuggleIOClass.getMethod("registerWithVideoIO", (Class[]) null); //$NON-NLS-1$
+				method.invoke(null, (Object[]) null);
+			} catch (Exception ex) {
+			}
 		}
-
 		VideoIO.setDefaultXMLExtension("trk"); //$NON-NLS-1$
 
 		// create pdf help button
@@ -543,7 +604,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		OSPRuntime.setLookAndFeel(true, lookAndFeel);
 		frame = new TFrame();
 		Diagnostics.setDialogOwner(frame);
-		DiagnosticsForXuggle.setDialogOwner(frame);
+		if (!OSPRuntime.isJS) {
+			DiagnosticsForXuggle.setDialogOwner(frame);
+		}
 		// set up the Java VM exit mechanism when used as application
 		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
 			frame.addWindowListener(new WindowAdapter() {
@@ -701,7 +764,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 */
 	public static void showAboutTracker() {
 		String newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-		String vers = Tracker.VERSION;
+		String vers = VERSION;
 		// typical beta version 4.10.0170514
 		if (vers.length() > 7 || testOn)
 			vers += " BETA"; //$NON-NLS-1$
@@ -709,7 +772,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		if (date != null)
 			vers = vers + "   " + date; //$NON-NLS-1$
 		String aboutString = "Tracker " //$NON-NLS-1$
-				+ vers + newline + Tracker.COPYRIGHT + newline + "https://" + Tracker.trackerWebsite + newline + newline //$NON-NLS-1$
+				+ vers + newline + COPYRIGHT + newline + "https://" + trackerWebsite + newline + newline //$NON-NLS-1$
 				+ TrackerRes.getString("Tracker.About.ProjectOf") + newline //$NON-NLS-1$
 				+ "Open Source Physics" + newline //$NON-NLS-1$
 				+ "www.compadre.org/osp" + newline; //$NON-NLS-1$
@@ -720,7 +783,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		}
 		if (Tracker.trackerHome != null) {
 			aboutString += newline + TrackerRes.getString("Tracker.About.TrackerHome") //$NON-NLS-1$
-					+ newline + Tracker.trackerHome + newline;
+					+ newline + trackerHome + newline;
 		}
 		loadCurrentVersion(true, false);
 		if (newerVersion != null) {
@@ -816,9 +879,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		// Tracker README
 		readmeAction = new AbstractAction(TrackerRes.getString("Tracker.Readme") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
 			public void actionPerformed(ActionEvent e) {
-				if (readmeDialog == null && Tracker.trackerHome != null) {
+				if (readmeDialog == null && trackerHome != null) {
 					String slash = System.getProperty("file.separator", "/"); //$NON-NLS-1$//$NON-NLS-2$
-					String path = Tracker.trackerHome + slash + readmeFileName;
+					String path = trackerHome + slash + readmeFileName;
 					if (OSPRuntime.isMac()) {
 						// OSX trackerHome=/Applications/Tracker.app/Contents/Java
 						// but we want /usr/local/tracker
@@ -905,7 +968,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 						}
 						trackerPrefsDialog = new JDialog((Frame) null, true);
 						trackerPrefsDialog.setTitle(TrackerRes.getString("ConfigInspector.Title") + ": " + //$NON-NLS-1$ //$NON-NLS-2$
-						XML.forwardSlash(Tracker.prefsPath));
+						XML.forwardSlash(prefsPath));
 						trackerPrefsTextArea = new JTextArea();
 						trackerPrefsTextArea.setEditable(false);
 						trackerPrefsTextArea.setTabSize(2);
@@ -932,22 +995,25 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			};
 		}
 
-		// about Java
-		aboutJavaAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutJava"), null) { //$NON-NLS-1$
-			public void actionPerformed(ActionEvent e) {
-				Diagnostics.aboutJava();
-			}
-		};
-		aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
-			public void actionPerformed(ActionEvent e) {
-				DiagnosticsForXuggle.aboutXuggle("Tracker"); //$NON-NLS-1$
-			}
-		};
-		aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
-			public void actionPerformed(ActionEvent e) {
-				DiagnosticsForThreads.aboutThreads();
-			}
-		};
+		if (!OSPRuntime.isJS) {
+			// about Java
+			aboutJavaAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutJava"), null) { //$NON-NLS-1$
+				public void actionPerformed(ActionEvent e) {
+					Diagnostics.aboutJava();
+				}
+			};
+
+			aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
+				public void actionPerformed(ActionEvent e) {
+					DiagnosticsForXuggle.aboutXuggle("Tracker"); //$NON-NLS-1$
+				}
+			};
+			aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
+				public void actionPerformed(ActionEvent e) {
+					DiagnosticsForThreads.aboutThreads();
+				}
+			};
+		}
 	}
 
 //  /**
@@ -1322,7 +1388,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
 					+ " " + Tracker.newerVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
 					+ TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message2") //$NON-NLS-1$
-					+ XML.NEW_LINE + "https://" + Tracker.trackerWebsite; //$NON-NLS-1$
+					+ XML.NEW_LINE + "https://" + trackerWebsite; //$NON-NLS-1$
 		}
 		TFrame frame = trackerPanel == null ? null : trackerPanel.getTFrame();
 		JOptionPane.showMessageDialog(frame, message, TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Title"), //$NON-NLS-1$
@@ -1427,7 +1493,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					new Upgrader(tFrame).upgrade();
 				} else if (response == 1) {
 					// go to Tracker change log
-					String websiteURL = "https://" + Tracker.trackerWebsite + "/change_log.html"; //$NON-NLS-1$ //$NON-NLS-2$
+					String websiteURL = "https://" + trackerWebsite + "/change_log.html"; //$NON-NLS-1$ //$NON-NLS-2$
 					OSPDesktop.displayURL(websiteURL);
 				}
 				if (checkbox.isSelected()) {
@@ -1615,7 +1681,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 * @return true if the cursor is zoonIn
 	 */
 	protected static boolean isZoomInCursor(Cursor cursor) {
-		return cursor == Tracker.zoomInCursor && Tracker.zoomInCursor != Cursor.getDefaultCursor();
+		return cursor == zoomInCursor && zoomInCursor != Cursor.getDefaultCursor();
 	}
 
 	/**
@@ -1638,7 +1704,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 * @return true if the cursor is zoomOut
 	 */
 	protected static boolean isZoomOutCursor(Cursor cursor) {
-		return cursor == Tracker.zoomOutCursor && Tracker.zoomOutCursor != Cursor.getDefaultCursor();
+		return cursor == zoomOutCursor && zoomOutCursor != Cursor.getDefaultCursor();
 	}
 
 	/**
@@ -1673,7 +1739,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		boolean isTracker = false;
 
-		if (JSUtil.isJS) {
+		if (OSPRuntime.isJS) {
 			isTracker = true;
 		} else {
 			JarFile jarfile = OSPRuntime.getLaunchJar();
@@ -1807,10 +1873,11 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		}
 
 		final TFrame frame = tracker.getFrame();
-		frame.setVisible(true);
+		if (!OSPRuntime.isJS)
+			frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		if (!JSUtil.isJS) {
+		if (!OSPRuntime.isJS) {
 			// create and register DataTrackTool
 			Runnable runner = new Runnable() {
 				public void run() {
@@ -1843,7 +1910,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 //    warnNoVideoEngine = false; // for PLATO
 		if (warnNoVideoEngine && VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {
 			// warn user that there is no working video engine
-			boolean xuggleInstalled = DiagnosticsForXuggle.guessXuggleVersion() == 3.4;
+			boolean xuggleInstalled = !OSPRuntime.isJS && DiagnosticsForXuggle.guessXuggleVersion() == 3.4;
 
 			ArrayList<String> message = new ArrayList<String>();
 			boolean showRelaunchDialog = false;
@@ -1936,7 +2003,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			JOptionPane.showMessageDialog(null, box, TrackerRes.getString("Tracker.Dialog.StarterWarning.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
 		}
-		if (!JSUtil.isJS) {
+		if (!OSPRuntime.isJS) {
 
 			final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
 			if (newVersionURL != null) {
@@ -1947,12 +2014,12 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 							ResourceLoader.download(newVersionURL, target, true);
 						}
 						// check preferences: if not default tracker.jar, ask user to change to default
-						if (Tracker.preferredTrackerJar != null && !"tracker.jar".equals(Tracker.preferredTrackerJar)) { //$NON-NLS-1$
-							String prefVers = Tracker.preferredTrackerJar.substring(8,
-									Tracker.preferredTrackerJar.lastIndexOf(".")); //$NON-NLS-1$
+						if (preferredTrackerJar != null && !"tracker.jar".equals(preferredTrackerJar)) { //$NON-NLS-1$
+							String prefVers = preferredTrackerJar.substring(8,
+									preferredTrackerJar.lastIndexOf(".")); //$NON-NLS-1$
 							String s1 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message1") //$NON-NLS-1$
 									+ " " //$NON-NLS-1$
-									+ Tracker.VERSION;
+									+ VERSION;
 							String s2 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message2") //$NON-NLS-1$
 									+ " " //$NON-NLS-1$
 									+ prefVers;
@@ -1962,10 +2029,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 									s1 + XML.NEW_LINE + s2 + XML.NEW_LINE + s3, title, JOptionPane.YES_NO_OPTION,
 									JOptionPane.QUESTION_MESSAGE);
 							if (response == JOptionPane.YES_OPTION) {
-								Tracker.preferredTrackerJar = null;
+								preferredTrackerJar = null;
 							}
-//  					Tracker.preferredJRE = null;  // reset preferredJRE to the bundled JRE // pig is this needed now?
-							Tracker.savePreferences();
+//  					preferredJRE = null;  // reset preferredJRE to the bundled JRE // pig is this needed now?
+							savePreferences();
 						}
 					}
 				});
@@ -1981,6 +2048,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			memoryTimer.setRepeats(true);
 			memoryTimer.start();
 		}
+		if (OSPRuntime.isJS)
+			frame.setVisible(true);
 	}
 
 	/**
@@ -2216,64 +2285,64 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			 */
 			public void saveObject(XMLControl control, Object obj) {
 				// save only non-default values
-				if (!Tracker.preferredLogLevel.equals(Tracker.DEFAULT_LOG_LEVEL)) // true by default
-					control.setValue("log_level", Tracker.preferredLogLevel.getName()); //$NON-NLS-1$
-				if (!Tracker.showHintsByDefault) // true by default
-					control.setValue("show_hints", Tracker.showHintsByDefault); //$NON-NLS-1$
-				if (Tracker.isRadians) // false by default
-					control.setValue("radians", Tracker.isRadians); //$NON-NLS-1$
-				if (Tracker.markAtCurrentFrame) // false by default
-					control.setValue("mark_current_frame", Tracker.markAtCurrentFrame); //$NON-NLS-1$
-				if (Tracker.scrubMouseWheel) // false by default
-					control.setValue("scrub_mousewheel", Tracker.scrubMouseWheel); //$NON-NLS-1$
-				if (Tracker.enableAutofill) // false by default
-					control.setValue("enable_autofill", Tracker.enableAutofill); //$NON-NLS-1$
-				if (Tracker.showGaps) // false by default
-					control.setValue("show_gaps", Tracker.showGaps); //$NON-NLS-1$
-				if (Tracker.trailLengthIndex != TToolBar.trailLengths.length - 2)
-					control.setValue("trail_length", TToolBar.trailLengthNames[Tracker.trailLengthIndex]); //$NON-NLS-1$
-				if (Tracker.centerCalibrationStick) // false by default
-					control.setValue("center_stick", Tracker.centerCalibrationStick); //$NON-NLS-1$
-				if (Tracker.isXuggleFast) // false by default
-					control.setValue("xuggle_fast", Tracker.isXuggleFast); //$NON-NLS-1$
-				if (!Tracker.warnNoVideoEngine) // true by default
-					control.setValue("warn_no_engine", Tracker.warnNoVideoEngine); //$NON-NLS-1$
-				if (!Tracker.warnVariableDuration) // true by default
-					control.setValue("warn_variable_frame_duration", Tracker.warnVariableDuration); //$NON-NLS-1$
-				if (!Tracker.warnXuggleError) // true by default
-					control.setValue("warn_xuggle_error", Tracker.warnXuggleError); //$NON-NLS-1$
+				if (!preferredLogLevel.equals(DEFAULT_LOG_LEVEL)) // true by default
+					control.setValue("log_level", preferredLogLevel.getName()); //$NON-NLS-1$
+				if (!showHintsByDefault) // true by default
+					control.setValue("show_hints", showHintsByDefault); //$NON-NLS-1$
+				if (isRadians) // false by default
+					control.setValue("radians", isRadians); //$NON-NLS-1$
+				if (markAtCurrentFrame) // false by default
+					control.setValue("mark_current_frame", markAtCurrentFrame); //$NON-NLS-1$
+				if (scrubMouseWheel) // false by default
+					control.setValue("scrub_mousewheel", scrubMouseWheel); //$NON-NLS-1$
+				if (enableAutofill) // false by default
+					control.setValue("enable_autofill", enableAutofill); //$NON-NLS-1$
+				if (showGaps) // false by default
+					control.setValue("show_gaps", showGaps); //$NON-NLS-1$
+				if (trailLengthIndex != TToolBar.trailLengths.length - 2)
+					control.setValue("trail_length", TToolBar.trailLengthNames[trailLengthIndex]); //$NON-NLS-1$
+				if (centerCalibrationStick) // false by default
+					control.setValue("center_stick", centerCalibrationStick); //$NON-NLS-1$
+				if (isXuggleFast) // false by default
+					control.setValue("xuggle_fast", isXuggleFast); //$NON-NLS-1$
+				if (!warnNoVideoEngine) // true by default
+					control.setValue("warn_no_engine", warnNoVideoEngine); //$NON-NLS-1$
+				if (!warnVariableDuration) // true by default
+					control.setValue("warn_variable_frame_duration", warnVariableDuration); //$NON-NLS-1$
+				if (!warnXuggleError) // true by default
+					control.setValue("warn_xuggle_error", warnXuggleError); //$NON-NLS-1$
 				// always save preferred tracker.jar
-				String jar = Tracker.preferredTrackerJar == null ? "tracker.jar" : Tracker.preferredTrackerJar; //$NON-NLS-1$
+				String jar = preferredTrackerJar == null ? "tracker.jar" : preferredTrackerJar; //$NON-NLS-1$
 				control.setValue("tracker_jar", jar); //$NON-NLS-1$
-				if (Tracker.preferredJRE != null)
-					control.setValue("java_vm", Tracker.preferredJRE); //$NON-NLS-1$
-				if (Tracker.preferredPointMassFootprint != null)
-					control.setValue("pointmass_footprint", Tracker.preferredPointMassFootprint); //$NON-NLS-1$
-				if (Tracker.preferredMemorySize > -1) // -1 by default
-					control.setValue("memory_size", Tracker.preferredMemorySize); //$NON-NLS-1$
-				if (Tracker.lookAndFeel != null)
-					control.setValue("look_feel", Tracker.lookAndFeel); //$NON-NLS-1$
-				if (Tracker.prelaunchExecutables.length > 0)
-					control.setValue("run", Tracker.prelaunchExecutables); //$NON-NLS-1$
-				if (Tracker.preferredLocale != null)
-					control.setValue("locale", Tracker.preferredLocale); //$NON-NLS-1$
-				if (Tracker.preferredDecimalSeparator != null)
-					control.setValue("decimal_separator", Tracker.preferredDecimalSeparator); //$NON-NLS-1$
-				if (Tracker.preferredFontLevel > 0) {
-					control.setValue("font_size", Tracker.preferredFontLevel); //$NON-NLS-1$
+				if (preferredJRE != null)
+					control.setValue("java_vm", preferredJRE); //$NON-NLS-1$
+				if (preferredPointMassFootprint != null)
+					control.setValue("pointmass_footprint", preferredPointMassFootprint); //$NON-NLS-1$
+				if (preferredMemorySize > -1) // -1 by default
+					control.setValue("memory_size", preferredMemorySize); //$NON-NLS-1$
+				if (lookAndFeel != null)
+					control.setValue("look_feel", lookAndFeel); //$NON-NLS-1$
+				if (prelaunchExecutables.length > 0)
+					control.setValue("run", prelaunchExecutables); //$NON-NLS-1$
+				if (preferredLocale != null)
+					control.setValue("locale", preferredLocale); //$NON-NLS-1$
+				if (preferredDecimalSeparator != null)
+					control.setValue("decimal_separator", preferredDecimalSeparator); //$NON-NLS-1$
+				if (preferredFontLevel > 0) {
+					control.setValue("font_size", preferredFontLevel); //$NON-NLS-1$
 				}
-				if (Tracker.preferredFontLevelPlus > 0) {
-					control.setValue("font_size_plus", Tracker.preferredFontLevelPlus); //$NON-NLS-1$
+				if (preferredFontLevelPlus > 0) {
+					control.setValue("font_size_plus", preferredFontLevelPlus); //$NON-NLS-1$
 				}
 				if (ResourceLoader.getOSPCache() != null) {
 					File cache = ResourceLoader.getOSPCache();
 					control.setValue("cache", cache.getPath()); //$NON-NLS-1$
 				}
-				control.setValue("upgrade_interval", Tracker.checkForUpgradeInterval); //$NON-NLS-1$
-				int lastChecked = (int) (Tracker.lastMillisChecked / 1000L);
+				control.setValue("upgrade_interval", checkForUpgradeInterval); //$NON-NLS-1$
+				int lastChecked = (int) (lastMillisChecked / 1000L);
 				control.setValue("last_checked", lastChecked); //$NON-NLS-1$
-				if (Tracker.latestVersion != null) {
-					control.setValue("latest_version", Tracker.latestVersion); //$NON-NLS-1$
+				if (latestVersion != null) {
+					control.setValue("latest_version", latestVersion); //$NON-NLS-1$
 				}
 				JFileChooser chooser = VideoIO.getChooser();
 				File file = chooser.getCurrentDirectory();
@@ -2287,20 +2356,20 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				if (!ExportZipDialog.preferredExtension.equals(ExportZipDialog.DEFAULT_VIDEO_EXTENSION))
 					control.setValue("zip_export_extension", ExportZipDialog.preferredExtension); //$NON-NLS-1$
 
-				if (Tracker.recentFilesSize != 6) // 6 items by default
-					control.setValue("max_recent", Tracker.recentFilesSize); //$NON-NLS-1$
-				if (!Tracker.recentFiles.isEmpty()) // empty by default
-					control.setValue("recent_files", Tracker.recentFiles); //$NON-NLS-1$
-				if (Tracker.preferredAutoloadSearchPaths != null) {
+				if (recentFilesSize != 6) // 6 items by default
+					control.setValue("max_recent", recentFilesSize); //$NON-NLS-1$
+				if (!recentFiles.isEmpty()) // empty by default
+					control.setValue("recent_files", recentFiles); //$NON-NLS-1$
+				if (preferredAutoloadSearchPaths != null) {
 					// added Dec 2104
 					control.setValue("autoload_search_paths", preferredAutoloadSearchPaths); //$NON-NLS-1$
 				}
-				if (!Tracker.autoloadMap.isEmpty()) {
+				if (!autoloadMap.isEmpty()) {
 					// added Dec 2104
-					String[][] autoloadData = new String[Tracker.autoloadMap.size()][];
+					String[][] autoloadData = new String[autoloadMap.size()][];
 					int i = 0;
-					for (String filePath : Tracker.autoloadMap.keySet()) {
-						String[] functions = Tracker.autoloadMap.get(filePath);
+					for (String filePath : autoloadMap.keySet()) {
+						String[] functions = autoloadMap.get(filePath);
 						String[] fileAndFunctions = new String[functions.length + 1];
 						fileAndFunctions[0] = filePath;
 						System.arraycopy(functions, 0, fileAndFunctions, 1, functions.length);
@@ -2309,9 +2378,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					}
 					control.setValue("autoload_exclusions", autoloadData); //$NON-NLS-1$
 				}
-				if (!Tracker.dataFunctionControlStrings.isEmpty()) {
+				if (!dataFunctionControlStrings.isEmpty()) {
 					// deprecated Dec 2014: this is for legacy preferences
-					control.setValue("data_functions", Tracker.dataFunctionControlStrings); //$NON-NLS-1$
+					control.setValue("data_functions", dataFunctionControlStrings); //$NON-NLS-1$
 				}
 				if (defaultConfig != null && !areEqual(defaultConfig, getFullConfig())) { // defaultConfig by default
 					Configuration config = new Configuration(defaultConfig);
@@ -2340,61 +2409,61 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			public Object loadObject(XMLControl control, Object obj) {
 				Level logLevel = OSPLog.parseLevel(control.getString("log_level")); //$NON-NLS-1$
 				if (logLevel != null) {
-					Tracker.preferredLogLevel = logLevel;
+					preferredLogLevel = logLevel;
 					OSPLog.setLevel(logLevel);
 					if (logLevel == Level.ALL) {
 						OSPLog.showLogInvokeLater();
 					}
 				}
-				Tracker.isRadians = control.getBoolean("radians"); //$NON-NLS-1$
-				Tracker.markAtCurrentFrame = control.getBoolean("mark_current_frame"); //$NON-NLS-1$
-				Tracker.scrubMouseWheel = control.getBoolean("scrub_mousewheel"); //$NON-NLS-1$
-				Tracker.enableAutofill = control.getBoolean("enable_autofill"); //$NON-NLS-1$
-				Tracker.showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
-				Tracker.centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
-				Tracker.isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
+				isRadians = control.getBoolean("radians"); //$NON-NLS-1$
+				markAtCurrentFrame = control.getBoolean("mark_current_frame"); //$NON-NLS-1$
+				scrubMouseWheel = control.getBoolean("scrub_mousewheel"); //$NON-NLS-1$
+				enableAutofill = control.getBoolean("enable_autofill"); //$NON-NLS-1$
+				showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
+				centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
+				isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
 				if (control.getPropertyNames().contains("trail_length")) { //$NON-NLS-1$
 					String name = control.getString("trail_length"); //$NON-NLS-1$
 					for (int i = 0; i < TToolBar.trailLengthNames.length; i++) {
 						if (TToolBar.trailLengthNames[i].equals(name))
-							Tracker.trailLengthIndex = i;
+							trailLengthIndex = i;
 					}
 				}
 				if (control.getPropertyNames().contains("warn_no_engine")) //$NON-NLS-1$
-					Tracker.warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
+					warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
 				if (control.getPropertyNames().contains("warn_xuggle_error")) //$NON-NLS-1$
-					Tracker.warnXuggleError = control.getBoolean("warn_xuggle_error"); //$NON-NLS-1$
+					warnXuggleError = control.getBoolean("warn_xuggle_error"); //$NON-NLS-1$
 				if (control.getPropertyNames().contains("warn_variable_frame_duration")) //$NON-NLS-1$
-					Tracker.warnVariableDuration = control.getBoolean("warn_variable_frame_duration"); //$NON-NLS-1$
+					warnVariableDuration = control.getBoolean("warn_variable_frame_duration"); //$NON-NLS-1$
 				if (control.getPropertyNames().contains("show_hints")) { //$NON-NLS-1$
-					Tracker.showHintsByDefault = control.getBoolean("show_hints"); //$NON-NLS-1$
-					Tracker.showHints = Tracker.showHintsByDefault;
-					Tracker.startupHintShown = !Tracker.showHints;
+					showHintsByDefault = control.getBoolean("show_hints"); //$NON-NLS-1$
+					showHints = showHintsByDefault;
+					startupHintShown = !showHints;
 				}
 				if (control.getPropertyNames().contains("java_vm")) { //$NON-NLS-1$
-					Tracker.preferredJRE = control.getString("java_vm"); //$NON-NLS-1$
-					if (OSPRuntime.getJavaFile(Tracker.preferredJRE) == null) {
-						Tracker.preferredJRE = null;
+					preferredJRE = control.getString("java_vm"); //$NON-NLS-1$
+					if (OSPRuntime.getJavaFile(preferredJRE) == null) {
+						preferredJRE = null;
 					}
 				}
-				Tracker.preferredPointMassFootprint = control.getString("pointmass_footprint"); //$NON-NLS-1$
+				preferredPointMassFootprint = control.getString("pointmass_footprint"); //$NON-NLS-1$
 				if (control.getPropertyNames().contains("memory_size")) //$NON-NLS-1$
-					Tracker.requestedMemorySize = control.getInt("memory_size"); //$NON-NLS-1$
+					requestedMemorySize = control.getInt("memory_size"); //$NON-NLS-1$
 				if (control.getPropertyNames().contains("look_feel")) //$NON-NLS-1$
-					Tracker.lookAndFeel = control.getString("look_feel"); //$NON-NLS-1$
+					lookAndFeel = control.getString("look_feel"); //$NON-NLS-1$
 				if (control.getPropertyNames().contains("decimal_separator")) { //$NON-NLS-1$
-					Tracker.preferredDecimalSeparator = control.getString("decimal_separator"); //$NON-NLS-1$
+					preferredDecimalSeparator = control.getString("decimal_separator"); //$NON-NLS-1$
 					OSPRuntime.setPreferredDecimalSeparator(preferredDecimalSeparator);
 				}
 				if (control.getPropertyNames().contains("run")) //$NON-NLS-1$
-					Tracker.prelaunchExecutables = (String[]) control.getObject("run"); //$NON-NLS-1$
+					prelaunchExecutables = (String[]) control.getObject("run"); //$NON-NLS-1$
 				if (control.getPropertyNames().contains("locale")) //$NON-NLS-1$
 					setPreferredLocale(control.getString("locale")); //$NON-NLS-1$
 				if (control.getPropertyNames().contains("font_size")) { //$NON-NLS-1$
-					Tracker.preferredFontLevel = control.getInt("font_size"); //$NON-NLS-1$
-					Tracker.preferredFontLevelPlus = control.getInt("font_size_plus"); //$NON-NLS-1$
-					if (Tracker.preferredFontLevelPlus == Integer.MIN_VALUE) {
-						Tracker.preferredFontLevelPlus = 0;
+					preferredFontLevel = control.getInt("font_size"); //$NON-NLS-1$
+					preferredFontLevelPlus = control.getInt("font_size_plus"); //$NON-NLS-1$
+					if (preferredFontLevelPlus == Integer.MIN_VALUE) {
+						preferredFontLevelPlus = 0;
 					}
 				}
 				// set cache only if it has not yet been set
@@ -2402,10 +2471,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					setCache(control.getString("cache")); //$NON-NLS-1$
 				}
 				if (control.getPropertyNames().contains("upgrade_interval")) { //$NON-NLS-1$
-					Tracker.checkForUpgradeInterval = control.getInt("upgrade_interval"); //$NON-NLS-1$
-					Tracker.lastMillisChecked = control.getInt("last_checked") * 1000L; //$NON-NLS-1$
+					checkForUpgradeInterval = control.getInt("upgrade_interval"); //$NON-NLS-1$
+					lastMillisChecked = control.getInt("last_checked") * 1000L; //$NON-NLS-1$
 				}
-				Tracker.latestVersion = control.getString("latest_version"); //$NON-NLS-1$
+				latestVersion = control.getString("latest_version"); //$NON-NLS-1$
 
 				if (control.getPropertyNames().contains("file_chooser_directory")) //$NON-NLS-1$
 					OSPRuntime.chooserDir = control.getString("file_chooser_directory"); //$NON-NLS-1$
@@ -2416,7 +2485,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					ExportZipDialog.preferredExtension = control.getString("zip_export_extension"); //$NON-NLS-1$
 
 				if (control.getPropertyNames().contains("max_recent")) //$NON-NLS-1$
-					Tracker.recentFilesSize = control.getInt("max_recent"); //$NON-NLS-1$
+					recentFilesSize = control.getInt("max_recent"); //$NON-NLS-1$
 				if (control.getPropertyNames().contains("recent_files")) { //$NON-NLS-1$
 					ArrayList<?> recent = ArrayList.class.cast(control.getObject("recent_files")); //$NON-NLS-1$
 					for (Object next : recent) {
@@ -2424,7 +2493,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					}
 				}
 				// added Dec 2104
-				Tracker.preferredAutoloadSearchPaths = (String[]) control.getObject("autoload_search_paths"); //$NON-NLS-1$
+				preferredAutoloadSearchPaths = (String[]) control.getObject("autoload_search_paths"); //$NON-NLS-1$
 				// load autoload_exclusions: added Dec 2014
 				if (control.getPropertyNames().contains("autoload_exclusions")) { //$NON-NLS-1$
 					String[][] autoloadData = (String[][]) control.getObject("autoload_exclusions"); //$NON-NLS-1$
@@ -2432,7 +2501,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 						String filePath = XML.forwardSlash(next[0]);
 						String[] functions = new String[next.length - 1];
 						System.arraycopy(next, 1, functions, 0, functions.length);
-						Tracker.autoloadMap.put(filePath, functions);
+						autoloadMap.put(filePath, functions);
 					}
 				}
 
@@ -2440,7 +2509,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				// legacy files)
 				if (control.getPropertyNames().contains("data_functions")) { //$NON-NLS-1$
 					Collection<String> autoloads = (Collection<String>) control.getObject("data_functions"); //$NON-NLS-1$
-					Tracker.dataFunctionControlStrings.addAll(autoloads);
+					dataFunctionControlStrings.addAll(autoloads);
 				}
 
 				XMLControl child = control.getChildControl("configuration"); //$NON-NLS-1$
@@ -2449,7 +2518,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					setDefaultConfig(config.enabled);
 				}
 				// always load "tracker_jar"
-				Tracker.preferredTrackerJar = control.getString("tracker_jar"); //$NON-NLS-1$
+				preferredTrackerJar = control.getString("tracker_jar"); //$NON-NLS-1$
 				return obj;
 			}
 		}

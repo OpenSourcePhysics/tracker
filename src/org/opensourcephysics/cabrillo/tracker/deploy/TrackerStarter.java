@@ -303,7 +303,7 @@ public class TrackerStarter {
 	 * @param writeToLog true to write the results to the start log
 	 */
 	public static String findTrackerHome(boolean writeToLog) {//throws Exception {
-		if (trackerHome!=null) return trackerHome;
+		if (trackerHome!=null || OSPRuntime.isJS) return trackerHome;
 		// first determine if code base directory is trackerHome
 		if (codeBaseDir != null) {
 			if (writeToLog) {
