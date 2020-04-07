@@ -245,6 +245,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static boolean markAtCurrentFrame = true;
 	static boolean scrubMouseWheel, centerCalibrationStick, enableAutofill, showGaps, hideLabels;
 	static int trailLengthIndex = TToolBar.trailLengths.length - 2;
+	private static boolean declareLocales = !OSPRuntime.isJS;
 
 	// the only instance field!
 	private TFrame frame;
@@ -279,66 +280,74 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		grabCursor = GUIUtils.createCustomCursor(grab, new Point(14, 10), "Grab", Cursor.HAND_CURSOR); //$NON-NLS-1$
 
 		// create static objects AFTER they are defined above
-		locales = new Locale[] { Locale.ENGLISH, // SwingJS -- only this one is declared statically
-				new Locale("ar"), // arabic //$NON-NLS-1$
-				new Locale("cs"), // czech //$NON-NLS-1$
-				new Locale("da"), // danish //$NON-NLS-1$
-				new Locale("de"), // Locale.GERMAN,
-				new Locale("el", "GR"), // greek //$NON-NLS-1$ //$NON-NLS-2$
-				new Locale("es"), // spanish //$NON-NLS-1$
-				new Locale("fi"), // finnish //$NON-NLS-1$
-				new Locale("fr"), // Locale.FRENCH,
-				new Locale("hu", "HU"), // hungarian //$NON-NLS-1$ //$NON-NLS-2$
-				new Locale("in"), // indonesian //$NON-NLS-1$
-				new Locale("it"), // Locale.ITALIAN,
-				new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
-				new Locale("ko"), // korean //$NON-NLS-1$
-				new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$
-				new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
-				new Locale("pl"), // polish //$NON-NLS-1$
-				new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$
-				new Locale("pt", "PT"), //$NON-NLS-1$
-				// BH missing PORTUGUESE?
-//			OSPRuntime.PORTUGUESE, // Portugal portuguese
-				new Locale("sk"), // slovak //$NON-NLS-1$
-				new Locale("sl"), // slovenian //$NON-NLS-1$
-				new Locale("sv"), // swedish //$NON-NLS-1$
-				new Locale("th", "TH"), // Thailand thai //$NON-NLS-1$ //$NON-NLS-2$
-				new Locale("tr"), // turkish //$NON-NLS-1$
-//			new Locale("uk"), // ukrainian //$NON-NLS-1$
-				new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
-				new Locale("zh", "CN"), // Locale.CHINA, // simplified chinese
-				new Locale("zh", "TW"), // Locale.TAIWAN // traditional chinese
-		};
 
-		// pig last updated March 2018
-		incompleteLocales = new Object[][] { { new Locale("cs"), "2013" }, // czech //$NON-NLS-1$ //$NON-NLS-2$
-				{ new Locale("fi"), "2013" }, // finnish //$NON-NLS-1$ //$NON-NLS-2$
-				{ new Locale("sk"), "2011" }, // slovak //$NON-NLS-1$ //$NON-NLS-2$
-				{ new Locale("in"), "2013" } };// indonesian //$NON-NLS-1$ //$NON-NLS-2$
+		if (declareLocales) {
+			locales = new Locale[] { Locale.ENGLISH, // SwingJS -- only this one is declared statically
+					new Locale("ar"), // arabic //$NON-NLS-1$
+					new Locale("cs"), // czech //$NON-NLS-1$
+					new Locale("da"), // danish //$NON-NLS-1$
+					new Locale("de"), // Locale.GERMAN,
+					new Locale("el", "GR"), // greek //$NON-NLS-1$ //$NON-NLS-2$
+					new Locale("es"), // spanish //$NON-NLS-1$
+					new Locale("fi"), // finnish //$NON-NLS-1$
+					new Locale("fr"), // Locale.FRENCH,
+					new Locale("hu", "HU"), // hungarian //$NON-NLS-1$ //$NON-NLS-2$
+					new Locale("in"), // indonesian //$NON-NLS-1$
+					new Locale("it"), // Locale.ITALIAN,
+					new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
+					new Locale("ko"), // korean //$NON-NLS-1$
+					new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$
+					new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
+					new Locale("pl"), // polish //$NON-NLS-1$
+					new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$
+					new Locale("pt", "PT"), //$NON-NLS-1$
+					// BH missing PORTUGUESE?
+//			OSPRuntime.PORTUGUESE, // Portugal portuguese
+					new Locale("sk"), // slovak //$NON-NLS-1$
+					new Locale("sl"), // slovenian //$NON-NLS-1$
+					new Locale("sv"), // swedish //$NON-NLS-1$
+					new Locale("th", "TH"), // Thailand thai //$NON-NLS-1$ //$NON-NLS-2$
+					new Locale("tr"), // turkish //$NON-NLS-1$
+//			new Locale("uk"), // ukrainian //$NON-NLS-1$
+					new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
+					new Locale("zh", "CN"), // Locale.CHINA, // simplified chinese
+					new Locale("zh", "TW"), // Locale.TAIWAN // traditional chinese
+			};
+			// pig last updated March 2018
+			incompleteLocales = new Object[][] { { new Locale("cs"), "2013" }, // czech //$NON-NLS-1$ //$NON-NLS-2$
+					{ new Locale("fi"), "2013" }, // finnish //$NON-NLS-1$ //$NON-NLS-2$
+					{ new Locale("sk"), "2011" }, // slovak //$NON-NLS-1$ //$NON-NLS-2$
+					{ new Locale("in"), "2013" } };// indonesian //$NON-NLS-1$ //$NON-NLS-2$
+
+		} else {
+			locales = new Locale[] { Locale.ENGLISH, // SwingJS -- only this one is declared statically
+			};
+			incompleteLocales = new Object[][] {};
+		}
 
 		setDefaultConfig(getFullConfig());
 		loadPreferences();
-		// load current version after a delay to allow video engines to load
-		// and every 24 hours thereafter (if program is left running)
-		Timer timer = new Timer(86400000, new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				Runnable runner = new Runnable() {
-					public void run() {
-						checkedForNewerVersion = false;
-						loadCurrentVersion(false, true);
-					}
-				};
-				Thread opener = new Thread(runner);
-				opener.setPriority(Thread.NORM_PRIORITY);
-				opener.setDaemon(true);
-				opener.start();
-			}
-		});
-		timer.setInitialDelay(10000);
-		timer.setRepeats(true);
-		timer.start();
-
+		if (!OSPRuntime.isJS) {
+			// load current version after a delay to allow video engines to load
+			// and every 24 hours thereafter (if program is left running)
+			Timer timer = new Timer(86400000, new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					Runnable runner = new Runnable() {
+						public void run() {
+							checkedForNewerVersion = false;
+							loadCurrentVersion(false, true);
+						}
+					};
+					Thread opener = new Thread(runner);
+					opener.setPriority(Thread.NORM_PRIORITY);
+					opener.setDaemon(true);
+					opener.start();
+				}
+			});
+			timer.setInitialDelay(10000);
+			timer.setRepeats(true);
+			timer.start();
+		}
 		xmlFilter = new java.io.FileFilter() {
 			// accept only *.xml files.
 			public boolean accept(File f) {
@@ -545,8 +554,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		// always
 		// non null).
 		initClass();
-		helper = new StateHelper(this);
-		helper.next(STATE_INIT);
+//		helper = new StateHelper(this);
+//		helper.next(STATE_INIT);
 		// set font level resize and center splash frame
 		FontSizer.setFonts(splash, FontSizer.getLevel());
 		splash.pack();
@@ -2059,8 +2068,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 */
 	protected static void setProgress(int progress) {
 		// BH 2020.02.11 Allow for multiple identifyable cycles
-		if (progress > STATE_INIT && progress < STATE_DONE)
-			progressBar.setValue(progress % 1000);
+//		if (progress > STATE_INIT && progress < STATE_DONE)
+//			progressBar.setValue(progress % 1000);
 	}
 
 	/**
@@ -2524,18 +2533,18 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		}
 	}
 
-	private final static int STATE_INIT = 0;
-	private final static int STATE_DONE = 9999;
-	private final int stateDelay = 1;
-	private StateHelper helper;
+//	private final static int STATE_INIT = 0;
+//	private final static int STATE_DONE = 9999;
+//	private final int stateDelay = 1;
+	//private StateHelper helper;
 	
 	@Override
 	public boolean stateLoop() {
-		switch (helper.getState()) {
-		case STATE_INIT:
-			
-		
-		}
+//		switch (helper.getState()) {
+//		case STATE_INIT:
+//			
+//		
+//		}
 		return false;
 	}
 

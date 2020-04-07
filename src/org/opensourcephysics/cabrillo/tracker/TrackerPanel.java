@@ -1606,7 +1606,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
    * @param msg the message
    */
   public void setMessage(String msg) {
-  	if (!OSPRuntime.isMac()) super.setMessage(msg);
+	  // BH 2020.04.06 this is a VERY expensive operation. 
+  	if (!OSPRuntime.isJS && !OSPRuntime.isMac()) super.setMessage(msg);
   }
   
   /**
