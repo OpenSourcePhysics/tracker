@@ -17,6 +17,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.net.URL;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -47,7 +48,7 @@ public class TrackerCountReader extends JFrame {
 	private String downloadPHPPath = "https://physlets.org/tracker/installers/download.php?file="; //$NON-NLS-1$
 	private String[] actions = {"read launch counts", "read downloads", "version", "list launch log failures", "list download failures",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"clear launch log failures", "clear download failures", "test launch log", "test downloads"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-	private String[] versions = {"all", "5.1.3",   //$NON-NLS-1$//$NON-NLS-2$
+	private String[] versions = {"all", "5.", "4.", "5.1.4", "5.1.3",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"5.1.2", "5.1.1", "5.1.0", "5.0.7", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			"5.0.6", "5.0.5", "5.0.4", "5.0.3", "5.0.2", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ 
 			"5.0.1", "5.0.0", "4.11.0", "4.10.0", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -149,10 +150,24 @@ public class TrackerCountReader extends JFrame {
 					}
 					else { // action is "read..." or "test..."
 						if (versionDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
-							ver = new String[versions.length-1];
-							for (int i=0; i<ver.length; i++) {
-								ver[i] = versions[i+1];
+							ArrayList<String> vers = new ArrayList<String>();
+							for (int i=0; i<versions.length; i++) {
+								if (versions[i].length() >= 4) {
+									vers.add(versions[i]);
+								}
 							}
+							ver = vers.toArray(new String[vers.size()]);
+						}
+						else if (versionDropdown.getSelectedItem().equals("4.") //$NON-NLS-1$
+								|| versionDropdown.getSelectedItem().equals("5.")) { //$NON-NLS-1$
+							ArrayList<String> vers = new ArrayList<String>();
+							String s = versionDropdown.getSelectedItem().toString();
+							for (int i=0; i<versions.length; i++) {
+								if (versions[i].startsWith(s) && !versions[i].equals(s)) {
+									vers.add(versions[i]);
+								}
+							}
+							ver = vers.toArray(new String[vers.size()]);
 						}
 						else {
 							ver = new String[] {versionDropdown.getSelectedItem().toString()};
