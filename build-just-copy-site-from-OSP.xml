@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<project name="swingjs-project" default="tosite" basedir="."
+ xmlns:if="ant:if"
+    xmlns:unless="ant:unless">
+	
+  <target name="tosite">
+  	  	
+  	<!-- input directories -->
+  	
+  	<!-- location of ant-contrib.jar -->
+  	<property name="tools.dir" value = "tools" />
+
+ 	<!-- OSP JS library to copy to site/ -->
+    <property name="osp.j2s.dir" value="../osp/site/swingjs/j2s" />  
+  	
+  		<!-- output directories -->
+
+  	<property name="site.dir" value="site" />
+  	<property name="j2s.dir" value="${site.dir}/swingjs/j2s" />
+
+    <!-- <for  ...> construct needs ant-contrib.jar -->
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath>
+        <pathelement location="${tools.dir}/ant-contrib.jar" />
+      </classpath>
+    </taskdef>
+
+
+  	<echo> Copying ${osp.j2s.dir} files into ${j2s.dir} </echo>
+  	<copy todir="${j2s.dir}">
+      <fileset dir="${osp.j2s.dir}">
+      	<include name="**"/>
+  	</fileset>
+    </copy>
+  	 
+  	
+</target>
+	
+
+</project>
