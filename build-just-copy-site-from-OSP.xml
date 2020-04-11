@@ -11,12 +11,11 @@
   	<property name="tools.dir" value = "tools" />
 
  	<!-- OSP JS library to copy to site/ -->
-    <property name="osp.j2s.dir" value="../osp/site/swingjs/j2s" />  
+    <property name="osp.swingjs.dir" value="../osp/site/swingjs" />  
   	
   		<!-- output directories -->
 
-  	<property name="site.dir" value="site" />
-  	<property name="j2s.dir" value="${site.dir}/swingjs/j2s" />
+  	<property name="swingjs.dir" value="site/swingjs/" />
 
     <!-- <for  ...> construct needs ant-contrib.jar -->
     <taskdef resource="net/sf/antcontrib/antlib.xml">
@@ -26,9 +25,9 @@
     </taskdef>
 
 
-  	<echo> Copying ${osp.j2s.dir} files into ${j2s.dir} </echo>
-  	<copy todir="${j2s.dir}">
-      <fileset dir="${osp.j2s.dir}">
+  	<echo> Copying ${osp.swingjs.dir} files into ${swingjs.dir} </echo>
+  	<copy todir="${swingjs.dir}">
+      <fileset dir="${osp.swingjs.dir}">
       	<include name="**"/>
   	</fileset>
     </copy>
