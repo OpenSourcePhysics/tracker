@@ -4,8 +4,13 @@
     <property name="tracker_jar" type="string">tracker.jar</property>
     <property name="cache" type="string">tmp\Cache</property>
     <property name="upgrade_interval" type="int">0</property>
-    <property name="last_checked" type="int">1581112281</property>
+    <property name="last_checked" type="int">1586746731</property>
     <property name="recent_files" type="collection" class="java.util.ArrayList">
-        <property name="item" type="string">C:/Users/hansonr/git/tracker/tmp/Cache/osp-www_compadre_org/osp/document/tracker_solar_rotation.zip</property>
+        <property name="item" type="string">C:/temp/car.trz</property>
+        <property name="item" type="string">C:/Users/hansonr/git/tracker/tmp/Cache/osp-www_compadre_org/osp/document/Car_in_a_loop_with_friction.trz</property>
+        <property name="item" type="string">C:/Users/hansonr/git/tracker/tmp/Cache/osp-www_compadre_org/osp/document/SlidingLadder.trz</property>
+        <property name="item" type="string">C:/Users/hansonr/git/tracker/tmp/Cache/osp-www_compadre_org/osp/document/InfluenceOfSpinning.trz</property>
+        <property name="item" type="string">C:/Users/hansonr/git/tracker/tmp/Cache/osp-www_compadre_org/osp/document/fast_lane_slide_inclined_plane.zip</property>
+        <property name="item" type="string">C:/Users/hansonr/git/tracker/tmp/Cache/osp-www_compadre_org/osp/document/TwoBallCollision.trz</property>
     </property>
 </object>

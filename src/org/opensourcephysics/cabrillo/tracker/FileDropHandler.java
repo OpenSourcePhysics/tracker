@@ -24,11 +24,6 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.io.File;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.StringTokenizer;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.datatransfer.DataFlavor;
@@ -38,13 +33,14 @@ import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
 import java.awt.dnd.DropTargetListener;
+import java.io.File;
+import java.util.List;
 
 import javax.swing.JOptionPane;
 import javax.swing.TransferHandler;
 import javax.swing.filechooser.FileFilter;
 
 import org.opensourcephysics.controls.OSPLog;
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.ImageVideoType;
 import org.opensourcephysics.media.core.VideoFileFilter;
@@ -54,6 +50,7 @@ import org.opensourcephysics.media.core.VideoFileFilter;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class FileDropHandler extends TransferHandler {
 	
   static final String URI_LIST_MIME_TYPE = "text/uri-list;class=java.lang.String"; //$NON-NLS-1$
@@ -64,147 +61,155 @@ public class FileDropHandler extends TransferHandler {
 	
 	TFrame frame;
 	DataFlavor uriListFlavor; // for Linux
-	List<?> dropList;
-	Component dropComponent;
-	DropTargetListener dropListener = new DropListener();
+//	List<File> dropList;
+//	Component dropComponent;
+	//DropTargetListener dropListener = new DropListener();
 	
 	/**
 	 * Constructor.
+	 * 
 	 * @param frame the TFrame that will be the drop target
 	 */
 	public FileDropHandler(TFrame frame) {
 		this.frame = frame;
-	  try {
-	    uriListFlavor = new DataFlavor(URI_LIST_MIME_TYPE);
-	  } catch (ClassNotFoundException e) {
-	    e.printStackTrace();
-	  }
+		try {
+			uriListFlavor = new DataFlavor(URI_LIST_MIME_TYPE);
+		} catch (ClassNotFoundException e) {
+			// not possible - it's java.lang.String
+		}
 	}
 	
-  @Override
-  public boolean canImport(TransferHandler.TransferSupport support) {
-    if (support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
-    		|| (OSPRuntime.isLinux()&&support.isDataFlavorSupported(uriListFlavor))) {
-	  	if (dropList==null && support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-	  		try {
-	  			Transferable t = support.getTransferable();
-	  			dropList = getFileList(t);
-	  			dropComponent = support.getComponent();
-	  			dropComponent.getDropTarget().addDropTargetListener(dropListener);
-				} catch (Exception ex) {
-				} 
-	  	}
-  		boolean isImport = false;
-	  	if (dropList!=null && dropComponent instanceof TrackerPanel) {
-	      if (dropList.size()==1) {
-	      	File file = (File)dropList.get(0);
-	      	if (videoFilter.accept(file)) {
-	      		isImport = true;
-	      	}
-	      }
-	  	}
-      if (!isImport) {
-        support.setDropAction(TransferHandler.COPY);
-      }
-      return true;
-    }
-    return false;
-  }
+	Boolean isDropOK = null;
+	
+	@Override
+	public boolean canImport(TransferHandler.TransferSupport support) {
+
+		System.out.println("action=" + support.getDropAction() + support.getComponent().getClass().getName());
+		if (!support.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
+			return false;
+		List<File> dropList = getFileList(support.getTransferable());
+//		Component dropComponent;
+//				// BH no longer necessary see since Java 7
+//				// https://stackoverflow.com/questions/811248/how-can-i-use-drag-and-drop-in-swing-to-get-file-path
+//				// || (OSPRuntime.isLinux()&&
+//				//|| support.isDataFlavorSupported(uriListFlavor)
+//				) {
+//			if (dropList == null) {// && haveFileFlavor) {
+//				try {
+//					Transferable t = support.getTransferable();
+//					dropList = getFileList(t);
+//					dropComponent = support.getComponent();
+////					dropComponent.getDropTarget().addDropTargetListener(dropListener);
+//				} catch (Exception ex) {
+//				}
+//			}
+//			System.out.println("Is this necessary??");
+		if (!haveVideo(support.getComponent(), dropList))
+			support.setDropAction(TransferHandler.COPY);
+		return true;
+	}
   
-  @Override
-  public boolean importData(TransferHandler.TransferSupport support) {
-    if (!canImport(support)) {
-      return false;
-    }
-    List<?> fileList = getFileList(support.getTransferable());
-    try {
-		  // define frameNumber for insertions
+	private boolean haveVideo(Component c, List<File> dropList) {
+		return (dropList != null && dropList.size() == 1 
+				&& c instanceof TrackerPanel
+				&& videoFilter.accept((File) dropList.get(0)));
+	}
+
+	@Override
+	public boolean importData(TransferHandler.TransferSupport support) {
+		if (!canImport(support)) {
+			return false;
+		}
+		List<File> fileList = getFileList(support.getTransferable());
+		try {
+			// define frameNumber for insertions
 			int frameNumber = 0;
 			// get target tracker panel, if any
-			TrackerPanel targetPanel = null;
-      if (support.getComponent() instanceof TrackerPanel) {
-		  	targetPanel = (TrackerPanel)support.getComponent();    		
-			}
+			TrackerPanel targetPanel = (support.getComponent() instanceof TrackerPanel
+					? (TrackerPanel) support.getComponent()
+					: null);
 			if (targetPanel != null) {
 				targetPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		  	frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		  	if (targetPanel.getVideo() != null) {
-		  		frameNumber = targetPanel.getVideo().getFrameNumber(); 
-		  	}
+				frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+				if (targetPanel.getVideo() != null) {
+					frameNumber = targetPanel.getVideo().getFrameNumber();
+				}
 			}
-		  // load the files
-		  for (int j = 0; j < fileList.size(); j++) {
-		  	final File file = (File)fileList.get(j);
-		  	OSPLog.finest("dropped file: "+file.getAbsolutePath()); //$NON-NLS-1$
-		  	// if dropAction is COPY then open in new tab
-		  	if (support.getDropAction()==TransferHandler.COPY) {
-		      TrackerIO.open(file, frame);
-		  	}
-		  	// if targetPanel has image video and file is image, add after current frame
-		  	else if (targetPanel != null 
-		  			&& targetPanel.getVideo() instanceof ImageVideo 
-		  			&& isImageFile(file)) {
-		  		File[] added = TrackerIO.insertImagesIntoVideo(
-		  				new File[] {file}, targetPanel, frameNumber+1);
-		  		frameNumber += added.length;
-		  	}      		
-		  	// if targetPanel not null and file is video then import
-		  	else if (targetPanel != null && videoFilter.accept(file)) {
-		      // open in separate background thread
-		  		final TFrame frame = targetPanel.getTFrame();
-		  		final int n = frame.getTab(targetPanel);
-		      Runnable runner = new Runnable() {
-		      	public void run() {
-		      		TrackerPanel trackerPanel = frame.getTrackerPanel(n);
-		        	TrackerIO.importVideo(file, trackerPanel, null);            
-		        }
-		      };
-		      if (TrackerIO.loadInSeparateThread) {
-		        Thread opener = new Thread(runner);
-		        opener.setPriority(Thread.NORM_PRIORITY);
-		        opener.setDaemon(true);
-		        opener.start(); 
-		      }
-		      else runner.run();
-		  	}
-		  	// else inform user that file is not acceptable
-		  	else {
-					JOptionPane.showMessageDialog(frame, 
-		  				"\""+file.getName()+"\" "  //$NON-NLS-1$ //$NON-NLS-2$
-		  				+ TrackerRes.getString("FileDropHandler.Dialog.BadFile.Message"), //$NON-NLS-1$
-		  				TrackerRes.getString("FileDropHandler.Dialog.BadFile.Title"),  //$NON-NLS-1$
-		  				JOptionPane.WARNING_MESSAGE);
-		  	}
-		  }
+			// load the files
+			for (int j = 0; j < fileList.size(); j++) {
+				final File file = (File) fileList.get(j);
+				OSPLog.finest("dropped file: " + file.getAbsolutePath()); //$NON-NLS-1$
+				// if dropAction is COPY then open in new tab
+				if (support.getDropAction() == TransferHandler.COPY) {
+					TrackerIO.open(file, frame);
+				} else if (targetPanel != null && targetPanel.getVideo() instanceof ImageVideo && isImageFile(file)) {
+					// if targetPanel has image video and file is image, add after current frame
+					File[] added = TrackerIO.insertImagesIntoVideo(new File[] { file }, targetPanel, frameNumber + 1);
+					frameNumber += added.length;
+				} else if (targetPanel != null && videoFilter.accept(file)) {
+					// if targetPanel not null and file is video then import
+					// open in separate background thread
+					final TFrame frame = targetPanel.getTFrame();
+					final int n = frame.getTab(targetPanel);
+					Runnable runner = new Runnable() {
+						public void run() {
+							TrackerPanel trackerPanel = frame.getTrackerPanel(n);
+							TrackerIO.importVideo(file, trackerPanel, null);
+						}
+					};
+					if (TrackerIO.loadInSeparateThread) {
+						Thread opener = new Thread(runner);
+						opener.setPriority(Thread.NORM_PRIORITY);
+						opener.setDaemon(true);
+						opener.start();
+					} else {
+						runner.run();
+					}
+				} else {
+					// else inform user that file is not acceptable
+					JOptionPane.showMessageDialog(frame, "\"" + file.getName() + "\" " //$NON-NLS-1$ //$NON-NLS-2$
+							+ TrackerRes.getString("FileDropHandler.Dialog.BadFile.Message"), //$NON-NLS-1$
+							TrackerRes.getString("FileDropHandler.Dialog.BadFile.Title"), //$NON-NLS-1$
+							JOptionPane.WARNING_MESSAGE);
+				}
+			}
 		} catch (Exception e) {
+			return false;
+		} finally {
 			frame.setCursor(Cursor.getDefaultCursor());
-		  return false;
 		}
-		frame.setCursor(Cursor.getDefaultCursor());
-  	return true;
-  }
+		return true;
+	}
   
 	/**
 	 * Gets the file list from a Transferable.
+	 * 
+	 * Since Java 7 there is no issue with Linux.
+	 * 
 	 * @param t the Transferable
 	 * @return a List of files
 	 */
-  private List<?> getFileList(Transferable t) {
-    // expected data is a List of Files
-  	List<?> fileList = null;  	
-    try {
-      // get the data from the Transferable
-    	if (OSPRuntime.isLinux()) {
-    		String uriList = (String) t.getTransferData(uriListFlavor);
-    		fileList = uriListToFileList(uriList);    		
-    	}
-    	else {
-        Object data = t.getTransferData(DataFlavor.javaFileListFlavor);
-        fileList = List.class.cast(data);
-    	}
-    } catch (Exception ex) {
-    }
-  	return fileList;
+  @SuppressWarnings("unchecked")
+  private List<File> getFileList(Transferable t) {
+	  try {
+		  return (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+	  } catch (Exception e) {
+		  return null;
+	  }
+	
+//    // expected data is a List of Files
+//  	List<File> fileList = null;  	
+//    try {
+//      // get the data from the Transferable
+//    	// BH always check for List<File> first, as it will have the data.
+//        fileList = (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+//        if (fileList == null) {
+//        	//if (OSPRuntime.isLinux()) {
+//    		fileList = uriListToFileList((String) t.getTransferData(uriListFlavor));    		
+//    	}
+//    } catch (Exception ex) {
+//    }
+//  	return fileList;
   }
 
 	/**
@@ -218,54 +223,57 @@ public class FileDropHandler extends TransferHandler {
 		}
   	return false;
   }
-  
-	/**
-	 * Converts a URIList (String) to a List of files.
-	 * @param data the URIList String
-	 * @return a List of files
-	 */
-  private static List<File> uriListToFileList(String data) {
-    List<File> list = new ArrayList<File>();
-    StringTokenizer st = new StringTokenizer(data, "\r\n"); //$NON-NLS-1$
-    for (; st.hasMoreTokens();) {
-      String s = st.nextToken();
-      if (s.startsWith("#")) { //$NON-NLS-1$
-        // skip comments
-        continue;
-      }
-      try {
-        URI uri = new URI(s);
-        File file = new File(uri);
-        list.add(file);
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-    return list;
-  }
-  
-	/**
-	 * Inner DropTargetListener to reset the dropList to null when entering, exiting
-	 * or dropping on a drop target.
-	 */
-  private class DropListener extends DropTargetAdapter {
-  	
-  	@Override
-	  public void dragEnter(DropTargetDragEvent dtde) {
-	    dropList = null;
-	  }
 
-  	@Override
-	  public void dragExit(DropTargetEvent dte) {
-	    dropList = null;
-	  }
-
-  	@Override
-		public void drop(DropTargetDropEvent e) {
-  		dropList = null;
-		}
-
-  }
+// BH unnecessary since Java 7
+//	/**
+//	 * Converts a URIList (String) to a List of files.
+//	 * @param data the URIList String
+//	 * @return a List of files
+//	 */
+//  private static List<File> uriListToFileList(String data) {
+//    List<File> list = new ArrayList<File>();
+//    StringTokenizer st = new StringTokenizer(data, "\r\n"); //$NON-NLS-1$
+//    for (; st.hasMoreTokens();) {
+//      String s = st.nextToken();
+//      if (s.startsWith("#")) { //$NON-NLS-1$
+//        // skip comments
+//        continue;
+//      }
+//      try {
+//        URI uri = new URI(s);
+//        File file = new File(uri);
+//        list.add(file);
+//      } catch (Exception e) {
+//        e.printStackTrace();
+//      }
+//    }
+//    return list;
+//  }
+//  
+//	/**
+//	 * BH - Why is this necessary? Never seen this....
+//	 * 
+//	 * Inner DropTargetListener to reset the dropList to null when entering, exiting
+//	 * or dropping on a drop target.
+//	 */
+//  private class DropListener extends DropTargetAdapter {
+//  	
+//  	@Override
+//	  public void dragEnter(DropTargetDragEvent dtde) {
+//	    dropList = null;
+//	  }
+//
+//  	@Override
+//	  public void dragExit(DropTargetEvent dte) {
+//	    dropList = null;
+//	  }
+//
+//  	@Override
+//		public void drop(DropTargetDropEvent e) {
+//  		dropList = null;
+//		}
+//
+//  }
 
 }
 
