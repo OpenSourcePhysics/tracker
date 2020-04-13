@@ -29,6 +29,7 @@ import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.*;
+import java.util.function.Function;
 import java.awt.*;
 import java.awt.datatransfer.*;
 import java.awt.event.ActionEvent;
@@ -53,6 +54,8 @@ import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
+
+import javajs.async.AsyncFileChooser;
 
 /**
  * This provides static methods for managing video and text input/output.
@@ -337,189 +340,186 @@ public class TrackerIO extends VideoIO {
     return file;
   }
 
-  /**
-   * Displays a file chooser and returns the chosen files.
-   *
-   * @param type may be open, open video, save, insert image, export file, 
-   * 				import file, save tabset, open data, open trk
-   * @return the files, or null if no files chosen
-   */
-  public static File[] getChooserFiles(String type) {
-    JFileChooser chooser = getChooser();
-    int result = JFileChooser.CANCEL_OPTION;
-    // open tracker or video file
-  	if (type.toLowerCase().equals("open")) { //$NON-NLS-1$
-	    chooser.setMultiSelectionEnabled(false);
-	    chooser.setAccessory(videoEnginePanel);
-	    videoEnginePanel.reset();
-	    chooser.setAcceptAllFileFilterUsed(true);
-    	chooser.addChoosableFileFilter(videoAndTrkFileFilter);
-    	chooser.setFileFilter(videoAndTrkFileFilter);
-      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title"));        //$NON-NLS-1$
-	    result = chooser.showOpenDialog(null);
-    	File file = chooser.getSelectedFile();
-	    chooser.removeChoosableFileFilter(videoAndTrkFileFilter); 
-      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
-      chooser.resetChoosableFileFilters();
-	    if(result==JFileChooser.APPROVE_OPTION) {
-	      return new File[] {file};
-	    }
-	    return null;
-  	}  
-    // open tracker file
-  	if (type.toLowerCase().equals("open trk")) { //$NON-NLS-1$
-	    chooser.setMultiSelectionEnabled(false);
-	    chooser.setAccessory(null);
-	    chooser.setAcceptAllFileFilterUsed(true);
-    	chooser.addChoosableFileFilter(trkFileFilter);
-    	chooser.setFileFilter(trkFileFilter);
-      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title"));        //$NON-NLS-1$
-	    result = chooser.showOpenDialog(null);
-    	File file = chooser.getSelectedFile();
-      chooser.resetChoosableFileFilters();
-      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
-	    if(result==JFileChooser.APPROVE_OPTION) {
-	      return new File[] {file};
-	    }
-	    return null;
-  	}  
-    // open any file
-  	if (type.toLowerCase().equals("open any")) { //$NON-NLS-1$
-	    chooser.setMultiSelectionEnabled(false);
-      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title"));        //$NON-NLS-1$
-	    result = chooser.showOpenDialog(null);
-    	File file = chooser.getSelectedFile();
-      chooser.resetChoosableFileFilters();
-      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
-	    if(result==JFileChooser.APPROVE_OPTION) {
-	      return new File[] {file};
-	    }
-	    return null;
-  	}  
-    if(type.toLowerCase().equals("open video")) { // open video //$NON-NLS-1$
-      chooser.setMultiSelectionEnabled(false);
-	    chooser.setAccessory(videoEnginePanel);
-	    videoEnginePanel.reset();
-      chooser.setAcceptAllFileFilterUsed(true);
-      chooser.addChoosableFileFilter(videoFileFilter);
-    	chooser.setFileFilter(videoFileFilter);
-      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title"));        //$NON-NLS-1$
-      result = chooser.showOpenDialog(null);
-    	File file = chooser.getSelectedFile();
-      chooser.resetChoosableFileFilters();
-      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
-	    if(result==JFileChooser.APPROVE_OPTION) {
-	      return new File[] {file};
-	    }
-	    return null;
-    } 
-    if (type.toLowerCase().equals("open data")) { // open text data file //$NON-NLS-1$
-      chooser.setMultiSelectionEnabled(false);
-      chooser.setAcceptAllFileFilterUsed(true);
-      chooser.addChoosableFileFilter(txtFileFilter);
-//      chooser.setFileFilter(chooser.getAcceptAllFileFilter());
-      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenData.Title"));        //$NON-NLS-1$
-      result = chooser.showOpenDialog(null);
-    	File file = chooser.getSelectedFile();
-      chooser.resetChoosableFileFilters();
-      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
-	    if(result==JFileChooser.APPROVE_OPTION) {
-	      return new File[] {file};
-	    }
-	    return null;
-    } 
-    if (type.toLowerCase().equals("open ejs")) { // open ejs //$NON-NLS-1$
-      chooser.setMultiSelectionEnabled(false);
-      chooser.setAcceptAllFileFilterUsed(true);
-      chooser.addChoosableFileFilter(jarFileFilter);
-//      chooser.setFileFilter(chooser.getAcceptAllFileFilter());
-      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenEJS.Title"));        //$NON-NLS-1$
-      result = chooser.showOpenDialog(null);
-    	File file = chooser.getSelectedFile();
-      chooser.resetChoosableFileFilters();
-      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
-	    if(result==JFileChooser.APPROVE_OPTION) {
-	      return new File[] {file};
-	    }
-	    return null;
-    } 
-    if (type.toLowerCase().equals("save")) { // save a file //$NON-NLS-1$
-	    chooser.setAccessory(null);
-    	// note this sets no file filters nor title
-      chooser.setMultiSelectionEnabled(false);
-      result = chooser.showSaveDialog(null);
-    	File file = chooser.getSelectedFile();
-      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
-	    if(result==JFileChooser.APPROVE_OPTION && canWrite(file)) {
-	      return new File[] {file};
-	    }
-	    return null;
-    } 
-  	// import elements from a tracker file
-  	if (type.toLowerCase().equals("import file")) { //$NON-NLS-1$
-	    chooser.setAccessory(null);
-	    chooser.setMultiSelectionEnabled(false);
-	    chooser.setAcceptAllFileFilterUsed(true);
-    	chooser.addChoosableFileFilter(trkFileFilter);
-    	chooser.setFileFilter(trkFileFilter);
-      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Import.Title")); //$NON-NLS-1$
-	    result = chooser.showOpenDialog(null);
-    	File file = chooser.getSelectedFile();
-      chooser.resetChoosableFileFilters();
-      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
-	    if(result==JFileChooser.APPROVE_OPTION) {
-	      return new File[] {file};
-	    }
-	    return null;
-  	} 
-  	// export elements to a tracker file
-  	if (type.toLowerCase().equals("export file")) { //$NON-NLS-1$
-	    chooser.setAccessory(null);
-	    chooser.setMultiSelectionEnabled(false);
-	    chooser.setAcceptAllFileFilterUsed(true);
-    	chooser.addChoosableFileFilter(trkFileFilter);
-    	chooser.setFileFilter(trkFileFilter);
-      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Export.Title")); //$NON-NLS-1$
-	    result = chooser.showSaveDialog(null);
-    	File file = chooser.getSelectedFile();
-      chooser.resetChoosableFileFilters();
-      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
-	    if(result==JFileChooser.APPROVE_OPTION) {
-	      return new File[] {file};
-	    }
-	    return null;
-  	} 
-  	// save a tabset file
-  	if (type.toLowerCase().equals("save tabset")) { //$NON-NLS-1$
-	    chooser.setAccessory(null);
-	    chooser.setAcceptAllFileFilterUsed(false);
-      chooser.addChoosableFileFilter(trkFileFilter);
-      chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.SaveTabset.Title"));        //$NON-NLS-1$
-      String filename = "";                //$NON-NLS-1$
-      File file = new File(filename+"."+defaultXMLExt);                                      //$NON-NLS-1$
-      String parent = XML.getDirectoryPath(filename);
-      if(!parent.equals("")) {                                                          //$NON-NLS-1$
-        XML.createFolders(parent);
-        chooser.setCurrentDirectory(new File(parent));
-      }
-      chooser.setSelectedFile(file);
-      result = chooser.showSaveDialog(null);
-    	file = chooser.getSelectedFile();
-      chooser.resetChoosableFileFilters();
-      chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
-      if(result==JFileChooser.APPROVE_OPTION) {
-        if(!defaultXMLExt.equals(getExtension(file))) {
-          filename = XML.stripExtension(file.getPath());
-          file = new File(filename+"."+defaultXMLExt); //$NON-NLS-1$
-        }
-        return new File[] {file};
-      }   
-      return null;
-  	}  	
-  	return VideoIO.getChooserFiles(type);
-  }
+
+	/**
+	 * A Stop-gap method to allow Java-only functionality.
+	 * 
+	 * @param type
+	 * @return
+	 */
+	@Deprecated
+	public static File[] getChooserFiles(String type) {
+		return getChooserFilesAsync(type, null);
+	}
+
+	/**
+	 * Displays a file chooser and returns the chosen files.
+	 *
+	 * @param type may be open, open video, save, insert image, export file, import
+	 *             file, save tabset, open data, open trk
+	 * @return the files, or null if no files chosen
+	 */
+	public static File[] getChooserFilesAsync(String type, Function<File[], Void> processFiles) {
+	
+		// BH Java will run all this synchronously anyway. 
+		AsyncFileChooser chooser = getChooser();
+		// open tracker or video file
+
+		Runnable resetChooser = new Runnable() {
+
+			@Override
+			public void run() {
+				chooser.resetChoosableFileFilters();
+				chooser.setSelectedFile(null);
+			}
+			
+		};
+		
+		Runnable okOpen = new Runnable() {
+
+			@Override
+			public void run() {
+				File file = chooser.getSelectedFile();
+				resetChooser.run();
+				if (processFiles != null)
+					processFiles.apply(new File[] { file });
+			}
+
+		};
+		
+		Runnable okSave = new Runnable() {
+
+			@Override
+			public void run() {
+				File file = chooser.getSelectedFile();
+				resetChooser.run();
+				if (canWrite(file))
+					processFiles.apply(new File[] { file });
+			}
+
+		};
+		File ret = null;
+		boolean isSave = false;
+		if (type.toLowerCase().equals("open")) { //$NON-NLS-1$
+			chooser.setMultiSelectionEnabled(false);
+			chooser.setAccessory(videoEnginePanel);
+			videoEnginePanel.reset();
+			chooser.setAcceptAllFileFilterUsed(true);
+			chooser.addChoosableFileFilter(videoAndTrkFileFilter);
+			chooser.setFileFilter(videoAndTrkFileFilter);
+			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title")); //$NON-NLS-1$
+			chooser.showOpenDialog(null, okOpen, resetChooser);
+		} else if (type.toLowerCase().equals("open trk")) { //$NON-NLS-1$
+			// open tracker file
+			chooser.setMultiSelectionEnabled(false);
+			chooser.setAccessory(null);
+			chooser.setAcceptAllFileFilterUsed(true);
+			chooser.addChoosableFileFilter(trkFileFilter);
+			chooser.setFileFilter(trkFileFilter);
+			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title")); //$NON-NLS-1$
+			chooser.showOpenDialog(null, okOpen, resetChooser);
+		} else if (type.toLowerCase().equals("open any")) { //$NON-NLS-1$
+			// open any file
+			chooser.setMultiSelectionEnabled(false);
+			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title")); //$NON-NLS-1$
+			chooser.showOpenDialog(null, okOpen, resetChooser);
+		} else if (type.toLowerCase().equals("open video")) { // open video //$NON-NLS-1$
+			chooser.setMultiSelectionEnabled(false);
+			chooser.setAccessory(videoEnginePanel);
+			videoEnginePanel.reset();
+			chooser.setAcceptAllFileFilterUsed(true);
+			chooser.addChoosableFileFilter(videoFileFilter);
+			chooser.setFileFilter(videoFileFilter);
+			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title")); //$NON-NLS-1$
+			chooser.showOpenDialog(null, okOpen, resetChooser);
+		} else if (type.toLowerCase().equals("open data")) { // open text data file //$NON-NLS-1$
+			chooser.setMultiSelectionEnabled(false);
+			chooser.setAcceptAllFileFilterUsed(true);
+			chooser.addChoosableFileFilter(txtFileFilter);
+			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenData.Title")); //$NON-NLS-1$
+			chooser.showOpenDialog(null, okOpen, resetChooser);
+		} else if (type.toLowerCase().equals("open ejs")) { // open ejs //$NON-NLS-1$
+			chooser.setMultiSelectionEnabled(false);
+			chooser.setAcceptAllFileFilterUsed(true);
+			chooser.addChoosableFileFilter(jarFileFilter);
+			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenEJS.Title")); //$NON-NLS-1$
+			chooser.showOpenDialog(null, okOpen, resetChooser);
+		} else if (type.toLowerCase().equals("import file")) { //$NON-NLS-1$
+			// import elements from a tracker file
+			chooser.setAccessory(null);
+			chooser.setMultiSelectionEnabled(false);
+			chooser.setAcceptAllFileFilterUsed(true);
+			chooser.addChoosableFileFilter(trkFileFilter);
+			chooser.setFileFilter(trkFileFilter);
+			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Import.Title")); //$NON-NLS-1$
+			chooser.showOpenDialog(null, okOpen, resetChooser);
+		} else if (type.toLowerCase().equals("export file")) { //$NON-NLS-1$
+			// export elements to a tracker file
+			isSave = true;
+			chooser.setAccessory(null);
+			chooser.setMultiSelectionEnabled(false);
+			chooser.setAcceptAllFileFilterUsed(true);
+			chooser.addChoosableFileFilter(trkFileFilter);
+			chooser.setFileFilter(trkFileFilter);
+			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Export.Title")); //$NON-NLS-1$
+			chooser.showSaveDialog(null, okSave, resetChooser);
+		} else if (type.toLowerCase().equals("save")) { // save a file //$NON-NLS-1$
+			isSave = true;
+			chooser.setAccessory(null);
+			// note this sets no file filters nor title
+			chooser.setMultiSelectionEnabled(false);
+			chooser.showSaveDialog(null, okSave, resetChooser);
+		} else if (type.toLowerCase().equals("save tabset")) { //$NON-NLS-1$
+			isSave = true;
+			// save a tabset file
+			chooser.setAccessory(null);
+			chooser.setAcceptAllFileFilterUsed(false);
+			chooser.addChoosableFileFilter(trkFileFilter);
+			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.SaveTabset.Title")); //$NON-NLS-1$
+			String filename = ""; //$NON-NLS-1$
+			File file = new File(filename + "." + defaultXMLExt); //$NON-NLS-1$
+			String parent = XML.getDirectoryPath(filename);
+			if (!parent.equals("")) { //$NON-NLS-1$
+				XML.createFolders(parent);
+				chooser.setCurrentDirectory(new File(parent));
+			}
+			chooser.setSelectedFile(file);
+			chooser.showSaveDialog(null, new Runnable() {
+
+				@Override
+				public void run() {
+					resetChooser.run();
+					if (processFiles != null) {
+						processFiles.apply(new File[] { fixXML(chooser) });
+					}
+				}
+
+			}, resetChooser);
+			ret = (processFiles != null || chooser.getSelectedOption() != JFileChooser.APPROVE_OPTION ?  null : fixXML(chooser));
+		} else {
+			return VideoIO.getChooserFilesAsync(type, processFiles);
+		}
+		ret = processChoose(chooser, ret, processFiles != null);
+		return (ret == null || isSave && !canWrite(ret) ? null : new File[] { ret });
+	}
   
-  /**
+
+  	protected static File fixXML(AsyncFileChooser chooser) {
+	  	File file = chooser.getSelectedFile();
+		if (!defaultXMLExt.equals(getExtension(file))) {
+			String filename = XML.stripExtension(file.getPath());
+			File f = new File(filename + "." + defaultXMLExt); //$NON-NLS-1$
+			if (OSPRuntime.isJS) {
+				// BH transfer the bytes
+				OSPRuntime.jsutil.setFileBytes(f, OSPRuntime.jsutil.getBytes(file));
+				OSPRuntime.cacheJSFile(f, true);
+			}
+			file = f;
+		}
+		return file;
+	}
+
+/**
    * Displays a file chooser and returns the chosen file, adding or changing
    * the extension to match the specified extension.
    *
@@ -584,6 +584,8 @@ public class TrackerIO extends VideoIO {
    * @return true if the file can be written 
    */
   public static boolean canWrite(File file) {
+	  if (OSPRuntime.isJS)
+		  return true;
     if (file.exists() && !file.canWrite()) {
   		JOptionPane.showMessageDialog(null, 
   				ControlsRes.getString("Dialog.ReadOnly.Message"),  //$NON-NLS-1$
@@ -1184,45 +1186,43 @@ public class TrackerIO extends VideoIO {
     else runner.run();
   }
 
-  /**
-   * Imports xml data into a tracker panel from a file selected with a chooser. 
-   * The user selects the elements to import with a ListChooser.
-   *
-   * @param trackerPanel the tracker panel
-   * @return the file
-   */
-  public static File importFile(TrackerPanel trackerPanel) {
-    File[] files = getChooserFiles("import file"); //$NON-NLS-1$
-    if (files == null) {
-      return null;
-    }
-    File file = files[0];
-  	OSPLog.fine("importing from "+file); //$NON-NLS-1$
-    XMLControlElement control = new XMLControlElement(file.getAbsolutePath());
-    Class<?> type = control.getObjectClass();
-    if (TrackerPanel.class.equals(type)) {
-      // create the list chooser
-      ListChooser dialog = new ListChooser(
-          TrackerRes.getString("TrackerIO.Dialog.Import.Title"), //$NON-NLS-1$
-          TrackerRes.getString("TrackerIO.Dialog.Import.Message"), //$NON-NLS-1$
-          trackerPanel);
-      // choose the elements and load the tracker panel
-      if (choose(control, dialog)) {
-        trackerPanel.changed = true;
-        control.loadObject(trackerPanel);
-      }
-    }
-		else {
-      JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
-          TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Message") //$NON-NLS-1$
-  				+ " "+ XML.getName(XML.getAbsolutePath(file)), //$NON-NLS-1$
-      		TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Title"), //$NON-NLS-1$
-      		JOptionPane.WARNING_MESSAGE);
-      return null;
+	/**
+	 * Imports xml data into a tracker panel from a file selected with a chooser.
+	 * The user selects the elements to import with a ListChooser.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @return the file
+	 */
+	public static File importFile(TrackerPanel trackerPanel) {
+		File[] files = getChooserFiles("import file"); //$NON-NLS-1$
+		if (files == null) {
+			return null;
 		}
-    TTrackBar.refreshMemoryButton();
-    return file;
-  }
+		File file = files[0];
+		OSPLog.fine("importing from " + file); //$NON-NLS-1$
+		XMLControlElement control = new XMLControlElement(file.getAbsolutePath());
+		Class<?> type = control.getObjectClass();
+		if (TrackerPanel.class.equals(type)) {
+			// create the list chooser
+			ListChooser dialog = new ListChooser(TrackerRes.getString("TrackerIO.Dialog.Import.Title"), //$NON-NLS-1$
+					TrackerRes.getString("TrackerIO.Dialog.Import.Message"), //$NON-NLS-1$
+					trackerPanel);
+			// choose the elements and load the tracker panel
+			if (choose(control, dialog)) {
+				trackerPanel.changed = true;
+				control.loadObject(trackerPanel);
+			}
+		} else {
+			JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+					TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Message") //$NON-NLS-1$
+							+ " " + XML.getName(XML.getAbsolutePath(file)), //$NON-NLS-1$
+					TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Title"), //$NON-NLS-1$
+					JOptionPane.WARNING_MESSAGE);
+			return null;
+		}
+		TTrackBar.refreshMemoryButton();
+		return file;
+	}
   
   /**
    * Saves a video to a file by copying the original. If the file is null,
@@ -1997,6 +1997,7 @@ public class TrackerIO extends VideoIO {
   }
 }
 
+@SuppressWarnings("serial")
 class MonitorDialog extends JDialog {
 	
 	JProgressBar monitor;

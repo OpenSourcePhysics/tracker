@@ -41,6 +41,7 @@ import javax.swing.TransferHandler;
 import javax.swing.filechooser.FileFilter;
 
 import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.ImageVideoType;
 import org.opensourcephysics.media.core.VideoFileFilter;
@@ -138,6 +139,7 @@ public class FileDropHandler extends TransferHandler {
 			// load the files
 			for (int j = 0; j < fileList.size(); j++) {
 				final File file = (File) fileList.get(j);
+				OSPRuntime.cacheJSFile(file, true);
 				OSPLog.finest("dropped file: " + file.getAbsolutePath()); //$NON-NLS-1$
 				// if dropAction is COPY then open in new tab
 				if (support.getDropAction() == TransferHandler.COPY) {
