@@ -84,8 +84,6 @@ public class FileDropHandler extends TransferHandler {
 	
 	@Override
 	public boolean canImport(TransferHandler.TransferSupport support) {
-
-		System.out.println("action=" + support.getDropAction() + support.getComponent().getClass().getName());
 		if (!support.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
 			return false;
 		List<File> dropList = getFileList(support.getTransferable());
@@ -104,7 +102,6 @@ public class FileDropHandler extends TransferHandler {
 //				} catch (Exception ex) {
 //				}
 //			}
-//			System.out.println("Is this necessary??");
 		if (!haveVideo(support.getComponent(), dropList))
 			support.setDropAction(TransferHandler.COPY);
 		return true;
@@ -143,7 +140,7 @@ public class FileDropHandler extends TransferHandler {
 				OSPLog.finest("dropped file: " + file.getAbsolutePath()); //$NON-NLS-1$
 				// if dropAction is COPY then open in new tab
 				if (support.getDropAction() == TransferHandler.COPY) {
-					TrackerIO.open(file, frame);
+					TrackerIO.openTabFile(file, frame);
 				} else if (targetPanel != null && targetPanel.getVideo() instanceof ImageVideo && isImageFile(file)) {
 					// if targetPanel has image video and file is image, add after current frame
 					File[] added = TrackerIO.insertImagesIntoVideo(new File[] { file }, targetPanel, frameNumber + 1);

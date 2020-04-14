@@ -24,13 +24,17 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.beans.*;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -41,8 +45,35 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.beans.PropertyChangeEvent;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JEditorPane;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -649,13 +680,15 @@ public class PageTView extends JPanel implements TView {
         public void hyperlinkUpdate(HyperlinkEvent e) {
           if(data.hyperlinksEnabled
           		&& e.getEventType()==HyperlinkEvent.EventType.ACTIVATED) {
-            try {
-              if(!org.opensourcephysics.desktop.OSPDesktop.browse(e.getURL().toURI())) {
-                // try the old way
-                org.opensourcephysics.desktop.ostermiller.Browser.init();
-                org.opensourcephysics.desktop.ostermiller.Browser.displayURL(e.getURL().toString());
-              }
-            } catch(Exception ex) {}
+            	OSPDesktop.displayURL(e.getURL().toString());
+// BH consolidated
+//            try {
+//              if(!org.opensourcephysics.desktop.OSPDesktop.browse(e.getURL().toURI())) {
+//                // try the old way
+//                org.opensourcephysics.desktop.ostermiller.Browser.init();
+//                org.opensourcephysics.desktop.ostermiller.Browser.displayURL(e.getURL().toString());
+//              }
+//            } catch(Exception ex) {}
           }
         }
       };

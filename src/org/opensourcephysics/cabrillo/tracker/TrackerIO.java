@@ -24,31 +24,80 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.io.*;
-import java.net.URL;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.*;
-import java.util.function.Function;
-import java.awt.*;
-import java.awt.datatransfer.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
-import java.awt.print.*;
+import java.awt.print.PageFormat;
+import java.awt.print.Printable;
+import java.awt.print.PrinterException;
+import java.awt.print.PrinterJob;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Writer;
+import java.net.URL;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.Function;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.JSplitPane;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileFilter;
 
-import org.opensourcephysics.controls.*;
+import org.opensourcephysics.controls.ControlsRes;
+import org.opensourcephysics.controls.ListChooser;
+import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.desktop.OSPDesktop;
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.Renderable;
+import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.ImageVideo;
+import org.opensourcephysics.media.core.MediaRes;
+import org.opensourcephysics.media.core.Video;
+import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoIO;
+import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.LibraryTreePanel;
@@ -66,8 +115,8 @@ public class TrackerIO extends VideoIO {
 
 	protected static final String TAB="\t", SPACE=" ",  //$NON-NLS-1$ //$NON-NLS-2$
   		COMMA=",", SEMICOLON=";"; //$NON-NLS-1$ //$NON-NLS-2$
-  protected static FileFilter zipFileFilter, trkFileFilter, trzFileFilter;
-  protected static FileFilter videoAndTrkFileFilter, txtFileFilter, jarFileFilter;
+  protected static SingleExtFileFilter zipFileFilter, trkFileFilter, trzFileFilter;
+  protected static SingleExtFileFilter videoAndTrkFileFilter, txtFileFilter, jarFileFilter;
   protected static String defaultDelimiter = TAB;  // tab delimiter by default
   protected static String delimiter = defaultDelimiter;
   protected static Map<String, String> delimiters = new TreeMap<String, String>();
@@ -80,156 +129,111 @@ public class TrackerIO extends VideoIO {
   protected static double defaultBadFrameTolerance = 0.2;
   protected static boolean dataCopiedToClipboard;
 
-  static {
-  	ffmpegListener = new PropertyChangeListener() {
-    	public void propertyChange(PropertyChangeEvent e) {
-    		if (e.getPropertyName().equals("ffmpeg_error")) { //$NON-NLS-1$
-    			if (!isffmpegError) { // first error thrown
-    				isffmpegError = true;
-    				if (!Tracker.warnXuggleError) {
-    					if (e.getNewValue()!=null) {
-	  						String s = e.getNewValue().toString();
-	  						int n = s.indexOf("]"); //$NON-NLS-1$
-	  						if (n>-1) s = s.substring(n+1);
-	  						s += TrackerRes.getString("TrackerIO.ErrorFFMPEG.LogMessage"); //$NON-NLS-1$
-	  						OSPLog.warning(s);
-    					}
-  						return;
-  					}
-    	    	// warn user that a Xuggle error has occurred
-    	    	Box box = Box.createVerticalBox();
-    	    	box.add(new JLabel(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Message1"))); //$NON-NLS-1$
-    	    	String error = e.getNewValue().toString();
-    	    	int n = error.lastIndexOf("]"); //$NON-NLS-1$
-    	    	if (n>-1) {
-    	    		error = error.substring(n+1).trim();
-    	    	}
-     	    	box.add(new JLabel("  ")); //$NON-NLS-1$
-     	    	JLabel erLabel = new JLabel("\""+error+"\""); //$NON-NLS-1$ //$NON-NLS-2$
-     	    	erLabel.setBorder(BorderFactory.createEmptyBorder(0, 60, 0, 0));
-    	    	box.add(erLabel);
-     	    	box.add(new JLabel("  ")); //$NON-NLS-1$
-     	      box.add(new JLabel(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Message2"))); //$NON-NLS-1$
-    	    	
-    	    	box.add(new JLabel("  ")); //$NON-NLS-1$
-    	    	box.setBorder(BorderFactory.createEmptyBorder(20, 15, 0, 15));
-    	    	
-    				final JDialog dialog = new JDialog(theFrame, false);
-    				JPanel contentPane = new JPanel(new BorderLayout());
-    				dialog.setContentPane(contentPane);
-    				contentPane.add(box, BorderLayout.CENTER);
-    		    JButton closeButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
-    		    closeButton.setForeground(new Color(0, 0, 102));
-    		    closeButton.addActionListener(new ActionListener() {
-    		      public void actionPerformed(ActionEvent e) {
-    		        dialog.setVisible(false);
-    		      }
-    		    });
-    		    JButton dontShowAgainButton = new JButton(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
-    		    dontShowAgainButton.setForeground(new Color(0, 0, 102));
-    		    dontShowAgainButton.addActionListener(new ActionListener() {
-    		      public void actionPerformed(ActionEvent e) {
-    	    			Tracker.warnXuggleError = false;
-    		        dialog.setVisible(false);
-    		      }
-    		    });
-    		    JPanel buttonbar = new JPanel();
-    		    buttonbar.add(dontShowAgainButton);
-    		    buttonbar.add(closeButton);
-    		    buttonbar.setBorder(BorderFactory.createEtchedBorder());
-    				contentPane.add(buttonbar, BorderLayout.SOUTH);
-    				FontSizer.setFonts(dialog, FontSizer.getLevel());
-    				dialog.pack();
-    				dialog.setTitle(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Title")); //$NON-NLS-1$
-    		    // center dialog on the screen
-    		    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    		    int x = (dim.width - dialog.getBounds().width) / 2;
-    		    int y = (dim.height - dialog.getBounds().height) / 2;
-    		    dialog.setLocation(x, y);
-    				dialog.setVisible(true);
-    			}
-    		}
-    	}
-    };
-    OSPLog.getOSPLog().addPropertyChangeListener(ffmpegListener);
-    zipFileFilter = new FileFilter() {
-      public boolean accept(File f) {
-        if (f == null) return false;
-        if (f.isDirectory()) return true;
-        String extension = VideoIO.getExtension(f);
-        if ("zip".equals(extension)) return true; //$NON-NLS-1$
-        return false;
-      }
-      public String getDescription() {
-      	return TrackerRes.getString("TrackerIO.ZipFileFilter.Description"); //$NON-NLS-1$
-      }
-    };
-    trkFileFilter = new FileFilter() {
-      public boolean accept(File f) {
-        if (f == null) return false;
-        if (zipFileFilter.accept(f)) return true;
-        if (trzFileFilter.accept(f)) return true;
-        if (f.isDirectory()) return true;
-        String extension = VideoIO.getExtension(f);
-        if ("trk".equals(extension)) return true; //$NON-NLS-1$
-        return false;
-      }
-      public String getDescription() {
-      	return TrackerRes.getString("TrackerIO.DataFileFilter.Description"); //$NON-NLS-1$
-      }
-    };
-    trzFileFilter = new FileFilter() {
-      public boolean accept(File f) {
-        if (f == null) return false;
-        if (f.isDirectory()) return true;
-        String extension = VideoIO.getExtension(f);
-        if ("trz".equals(extension)) return true; //$NON-NLS-1$
-        return false;
-      }
-      public String getDescription() {
-      	return TrackerRes.getString("TrackerIO.ZIPResourceFilter.Description"); //$NON-NLS-1$
-      }
-    };
-    videoAndTrkFileFilter = new FileFilter() {
-      public boolean accept(File f) {
-        if (f == null) return false;
-        if (trkFileFilter.accept(f)) return true; // also accepts zip and trz
-        if (videoFileFilter.accept(f)) return true;
-        return false;
-      }
-      public String getDescription() {
-      	return TrackerRes.getString("TrackerIO.VideoAndDataFileFilter.Description"); //$NON-NLS-1$
-      }
-    };
-    txtFileFilter = new FileFilter() {
-      public boolean accept(File f) {
-        if (f == null) return false;
-        if (f.isDirectory()) return true;
-        String extension = VideoIO.getExtension(f);
-        if ("txt".equals(extension)) return true; //$NON-NLS-1$
-        return false;
-      }
-      public String getDescription() {
-      	return TrackerRes.getString("TrackerIO.TextFileFilter.Description"); //$NON-NLS-1$
-      }
-    };
-    jarFileFilter = new FileFilter() {
-      public boolean accept(File f) {
-        if (f == null) return false;
-        if (f.isDirectory()) return true;
-        String extension = VideoIO.getExtension(f);
-        if ("jar".equals(extension)) return true; //$NON-NLS-1$
-        return false;
-      }
-      public String getDescription() {
-      	return TrackerRes.getString("TrackerIO.JarFileFilter.Description"); //$NON-NLS-1$
-      }
-    };
-    delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Tab"), TAB); //$NON-NLS-1$
-    delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Space"), SPACE); //$NON-NLS-1$
-    delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Comma"), COMMA); //$NON-NLS-1$
-    delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Semicolon"), SEMICOLON); //$NON-NLS-1$
-  }
+	static {
+		ffmpegListener = new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent e) {
+				if (e.getPropertyName().equals("ffmpeg_error")) { //$NON-NLS-1$
+					if (!isffmpegError) { // first error thrown
+						isffmpegError = true;
+						if (!Tracker.warnXuggleError) {
+							if (e.getNewValue() != null) {
+								String s = e.getNewValue().toString();
+								int n = s.indexOf("]"); //$NON-NLS-1$
+								if (n > -1)
+									s = s.substring(n + 1);
+								s += TrackerRes.getString("TrackerIO.ErrorFFMPEG.LogMessage"); //$NON-NLS-1$
+								OSPLog.warning(s);
+							}
+							return;
+						}
+						// warn user that a Xuggle error has occurred
+						Box box = Box.createVerticalBox();
+						box.add(new JLabel(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Message1"))); //$NON-NLS-1$
+						String error = e.getNewValue().toString();
+						int n = error.lastIndexOf("]"); //$NON-NLS-1$
+						if (n > -1) {
+							error = error.substring(n + 1).trim();
+						}
+						box.add(new JLabel("  ")); //$NON-NLS-1$
+						JLabel erLabel = new JLabel("\"" + error + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+						erLabel.setBorder(BorderFactory.createEmptyBorder(0, 60, 0, 0));
+						box.add(erLabel);
+						box.add(new JLabel("  ")); //$NON-NLS-1$
+						box.add(new JLabel(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Message2"))); //$NON-NLS-1$
+
+						box.add(new JLabel("  ")); //$NON-NLS-1$
+						box.setBorder(BorderFactory.createEmptyBorder(20, 15, 0, 15));
+
+						final JDialog dialog = new JDialog(theFrame, false);
+						JPanel contentPane = new JPanel(new BorderLayout());
+						dialog.setContentPane(contentPane);
+						contentPane.add(box, BorderLayout.CENTER);
+						JButton closeButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+						closeButton.setForeground(new Color(0, 0, 102));
+						closeButton.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent e) {
+								dialog.setVisible(false);
+							}
+						});
+						JButton dontShowAgainButton = new JButton(
+								TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
+						dontShowAgainButton.setForeground(new Color(0, 0, 102));
+						dontShowAgainButton.addActionListener(new ActionListener() {
+							public void actionPerformed(ActionEvent e) {
+								Tracker.warnXuggleError = false;
+								dialog.setVisible(false);
+							}
+						});
+						JPanel buttonbar = new JPanel();
+						buttonbar.add(dontShowAgainButton);
+						buttonbar.add(closeButton);
+						buttonbar.setBorder(BorderFactory.createEtchedBorder());
+						contentPane.add(buttonbar, BorderLayout.SOUTH);
+						FontSizer.setFonts(dialog, FontSizer.getLevel());
+						dialog.pack();
+						dialog.setTitle(TrackerRes.getString("TrackerIO.Dialog.ErrorFFMPEG.Title")); //$NON-NLS-1$
+						// center dialog on the screen
+						Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+						int x = (dim.width - dialog.getBounds().width) / 2;
+						int y = (dim.height - dialog.getBounds().height) / 2;
+						dialog.setLocation(x, y);
+						dialog.setVisible(true);
+					}
+				}
+			}
+		};
+		OSPLog.getOSPLog().addPropertyChangeListener(ffmpegListener);
+		
+		zipFileFilter = new SingleExtFileFilter("zip", TrackerRes.getString("TrackerIO.ZipFileFilter.Description")); //$NON-NLS-1$  //$NON-NLS-2$
+		trzFileFilter = new SingleExtFileFilter("trz", TrackerRes.getString("TrackerIO.ZIPResourceFilter.Description")); //$NON-NLS-1$ //$NON-NLS-2$
+		txtFileFilter = new SingleExtFileFilter("txt", TrackerRes.getString("TrackerIO.TextFileFilter.Description")); //$NON-NLS-1$ //$NON-NLS-2$
+		jarFileFilter = new SingleExtFileFilter("jar", TrackerRes.getString("TrackerIO.JarFileFilter.Description")); //$NON-NLS-1$ //$NON-NLS-2$
+
+		trkFileFilter = new SingleExtFileFilter("trk", TrackerRes.getString("TrackerIO.DataFileFilter.Description")) {
+
+			public boolean accept(File f, boolean checkDir) {
+				return (checkDir && f.isDirectory()
+						|| zipFileFilter.accept(f, false) 
+						|| trzFileFilter.accept(f, false)
+						|| super.accept(f, false));
+			}
+
+		};
+		
+		videoAndTrkFileFilter = new SingleExtFileFilter(null, TrackerRes.getString("TrackerIO.VideoAndDataFileFilter.Description")) { //$NON-NLS-1$  //$NON-NLS-2$
+			public boolean accept(File f, boolean checkDir) {
+				return (checkDir && f.isDirectory()
+						|| trkFileFilter.accept(f, false)
+						|| videoFileFilter.accept(f, false)
+						|| super.accept(f, false));
+			}
+		};
+		
+		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Tab"), TAB); //$NON-NLS-1$
+		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Space"), SPACE); //$NON-NLS-1$
+		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Comma"), COMMA); //$NON-NLS-1$
+		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Semicolon"), SEMICOLON); //$NON-NLS-1$
+	}
   
   /**
    * private constructor to prevent instantiation
@@ -544,8 +548,7 @@ public class TrackerIO extends VideoIO {
 	      public boolean accept(File f) {
 	        if (f == null) return false;
 	        if (f.isDirectory()) return true;
-	        String extension = VideoIO.getExtension(f);
-	        if (ext.equals(extension)) return true;
+	        if (ext.equals(VideoIO.getExtension(f))) return true;
 	        return false;
 	      }
 	      public String getDescription() {
@@ -625,247 +628,252 @@ public class TrackerIO extends VideoIO {
     return video;
   }
 
-  /**
-   * Loads data or a video from a specified path into a TrackerPanel.
-   *
-   * @param path the absolute path of a file or url
-   * @param existingPanel a TrackerPanel to load (may be null)
-   * @param frame the frame for the TrackerPanel
-   * @param vidType a preferred VideoType (may be null)
-   * @param desktopFiles a list of HTML and/or PDF files to open on the desktop (may be null)
-   */
-  private static void open(String path, TrackerPanel existingPanel, TFrame frame, VideoType vidType, ArrayList<String> desktopFiles) {
-  	OSPLog.finer("opening "+path); //$NON-NLS-1$
-  	String rawPath = path;
-  	path = ResourceLoader.getURIPath(path);
+	/**
+	 * Loads data or a video from a specified path into a TrackerPanel.
+	 *
+	 * @param path          the absolute path of a file or url
+	 * @param existingPanel a TrackerPanel to load (may be null)
+	 * @param frame         the frame for the TrackerPanel
+	 * @param vidType       a preferred VideoType (may be null)
+	 * @param desktopFiles  a list of HTML and/or PDF files to open on the desktop
+	 *                      (may be null)
+	 */
+	private static void openTabPath(String path, TrackerPanel existingPanel, TFrame frame, VideoType vidType,
+			ArrayList<String> desktopFiles) {
+		OSPLog.finer("opening " + path); //$NON-NLS-1$
+		String rawPath = path;
+		path = ResourceLoader.getURIPath(path);
 
-  	isffmpegError  = false;
-  	theFrame = frame;
+		isffmpegError = false;
+		theFrame = frame;
 		VideoIO.setCanceled(false);
-  	// prevent circular references when loading tabsets
+		// prevent circular references when loading tabsets
 		String nonURIPath = ResourceLoader.getNonURIPath(path);
 		if (rawPath.startsWith("//") && nonURIPath.startsWith("/") && !nonURIPath.startsWith("//")) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			nonURIPath = "/"+nonURIPath; //$NON-NLS-1$
-  	if (frame.loadedFiles.contains(nonURIPath)) {
-    	OSPLog.finest("path already loaded "+nonURIPath); //$NON-NLS-1$
-  		return;
-  	}
-  	frame.loadedFiles.add(nonURIPath);
-  	if (!path.startsWith("http")) //$NON-NLS-1$
+			nonURIPath = "/" + nonURIPath; //$NON-NLS-1$
+		if (frame.loadedFiles.contains(nonURIPath)) {
+			OSPLog.finest("path already loaded " + nonURIPath); //$NON-NLS-1$
+			return;
+		}
+		frame.loadedFiles.add(nonURIPath);
+		if (!path.startsWith("http")) //$NON-NLS-1$
 			path = nonURIPath;
 
-  	// create progress monitor  	
-  	String fileName = XML.getName(path);
-  	File testFile = new File(fileName);
-    TrackerPanel trackerPanel = existingPanel==null? new TrackerPanel(): existingPanel;
-    boolean panelChanged = trackerPanel.changed;
-  	// create progress monitor
-  	MonitorDialog monitorDialog = new MonitorDialog(frame, path);
-  	monitorDialog.setVisible(true);
-  	monitors.add(monitorDialog);
-    
-  	String xmlPath = null;
-    if(videoFileFilter.accept(testFile)) { 
-    	OSPLog.finest("opening video path "+path); //$NON-NLS-1$
+		// create progress monitor
+		TrackerPanel trackerPanel = existingPanel == null ? new TrackerPanel() : existingPanel;
+		boolean panelChanged = trackerPanel.changed;
+		// create progress monitor
+		MonitorDialog monitorDialog = new MonitorDialog(frame, path);
+		monitorDialog.setVisible(true);
+		monitors.add(monitorDialog);
+
+		String xmlPath = null;
+
+		String fileName = XML.getName(path);
+		File testFile = new File(fileName);
+		// BH note - this file is not likely to exist without its pathname.
+		// changed to just check extensions, not if directory (which requires an
+		// existence check)
+		if (videoFileFilter.accept(testFile, false)) {
+			OSPLog.finest("opening video path " + path); //$NON-NLS-1$
 			// download web videos to the OSP cache
 			if (path.startsWith("http")) { //$NON-NLS-1$
-  			String name = XML.getName(path);
-  			name = ResourceLoader.getNonURIPath(name);
-  			File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
-				if (localFile!=null) {
+				String name = XML.getName(path);
+				name = ResourceLoader.getNonURIPath(name);
+				File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
+				if (localFile != null) {
 					path = localFile.toURI().toString();
 				}
 			}
 
-    	// attempt to load video
+			// attempt to load video
 			VideoType requestedType = vidType;
-    	Video video = getVideo(path, vidType);
-    	monitorDialog.stop();
-      if (video==null && !VideoIO.isCanceled()) {
-      	// video failed to load
-        // determine if other engines are available for the video extension
-        ArrayList<VideoType> otherEngines = new ArrayList<VideoType>();
-        String engine = VideoIO.getEngine();
-        if (requestedType==null) {
-	        String ext = XML.getExtension(path);        
-	        if (!engine.equals(VideoIO.ENGINE_XUGGLE)) {
-	        	VideoType xuggleType = VideoIO.getVideoType("Xuggle", ext); //$NON-NLS-1$
-	        	if (xuggleType!=null) otherEngines.add(xuggleType);
-	        }
-        }
-        if (otherEngines.isEmpty()) {
-          monitorDialog.close();
-	        JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
-	        		MediaRes.getString("VideoIO.Dialog.BadVideo.Message")+"\n\n"+path, //$NON-NLS-1$ //$NON-NLS-2$
-	        		MediaRes.getString("VideoClip.Dialog.BadVideo.Title"),                                          //$NON-NLS-1$
-	            JOptionPane.WARNING_MESSAGE); 
-        }
-        else {
-      		// provide immediate way to open with other engines
-    			JCheckBox setAsDefaultBox = new JCheckBox(MediaRes.getString("VideoIO.Dialog.TryDifferentEngine.Checkbox")); //$NON-NLS-1$
-        	video = VideoIO.getVideo(path, otherEngines, setAsDefaultBox, frame);
-		    	if (video!=null && setAsDefaultBox.isSelected()) {
-		    		String typeName = video.getClass().getSimpleName();
-		    		String newEngine = typeName.indexOf("Xuggle")>-1? VideoIO.ENGINE_XUGGLE: //$NON-NLS-1$
-		    			VideoIO.ENGINE_NONE;
-		    		VideoIO.setEngine(newEngine);
-	  				PrefsDialog prefs = frame.getPrefsDialog();
-	  				prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
-	  				frame.showPrefsDialog();
-		    	}
+			Video video = getVideo(path, vidType);
+			monitorDialog.stop();
+			if (video == null && !VideoIO.isCanceled()) {
+				// video failed to load
+				// determine if other engines are available for the video extension
+				ArrayList<VideoType> otherEngines = new ArrayList<VideoType>();
+				String engine = VideoIO.getEngine();
+				if (requestedType == null) {
+					String ext = XML.getExtension(path);
+					if (!engine.equals(VideoIO.ENGINE_XUGGLE)) {
+						VideoType xuggleType = VideoIO.getVideoType("Xuggle", ext); //$NON-NLS-1$
+						if (xuggleType != null)
+							otherEngines.add(xuggleType);
+					}
+				}
+				if (otherEngines.isEmpty()) {
+					monitorDialog.close();
+					JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+							MediaRes.getString("VideoIO.Dialog.BadVideo.Message") + "\n\n" + path, //$NON-NLS-1$ //$NON-NLS-2$
+							MediaRes.getString("VideoClip.Dialog.BadVideo.Title"), //$NON-NLS-1$
+							JOptionPane.WARNING_MESSAGE);
+				} else {
+					// provide immediate way to open with other engines
+					JCheckBox setAsDefaultBox = new JCheckBox(
+							MediaRes.getString("VideoIO.Dialog.TryDifferentEngine.Checkbox")); //$NON-NLS-1$
+					video = VideoIO.getVideo(path, otherEngines, setAsDefaultBox, frame);
+					if (video != null && setAsDefaultBox.isSelected()) {
+						String typeName = video.getClass().getSimpleName();
+						String newEngine = typeName.indexOf("Xuggle") > -1 ? VideoIO.ENGINE_XUGGLE : //$NON-NLS-1$
+								VideoIO.ENGINE_NONE;
+						VideoIO.setEngine(newEngine);
+						PrefsDialog prefs = frame.getPrefsDialog();
+						prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
+						frame.showPrefsDialog();
+					}
 
-        }
-      }
-			if (video==null) {
+				}
+			}
+			if (video == null) {
 				monitorDialog.close();
 				return;
 			}
-      if (!VideoIO.isCanceled()) {
-      	if (monitorDialog.isVisible()) 
-      		monitorDialog.setProgress(85);
-      	vidType = (VideoType)video.getProperty("video_type"); //$NON-NLS-1$
-      	OSPLog.finer(video.getProperty("path")+" opened as "+ //$NON-NLS-1$ //$NON-NLS-2$
-      			vidType.getClass().getSimpleName()+" "+vidType.getDescription()); //$NON-NLS-1$
-      	trackerPanel.frame = frame;
-        if (VideoIO.isCanceled()) return;
-        
-        frame.addTab(trackerPanel);
-      	if (monitorDialog.isVisible()) 
-      		monitorDialog.setProgress(95);
-        JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
-        pane.setDividerLocation(frame.defaultRightDivider);
-        TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
-        if (menubar!=null) {
-        	menubar.refresh();
-        }
-        trackerPanel.setVideo(video);
-        // panel is changed if video imported into existing trackerPanel
-        panelChanged = existingPanel!=null;
-        if (video.getFrameCount() == 1) {
-          trackerPanel.getPlayer().getVideoClip().setStepCount(10);
-        }
-        // if new trackerPanel, move coords origin to center of video
-        if (existingPanel==null) {
-	        ImageCoordSystem coords  = trackerPanel.getCoords();
-	        coords.setAllOriginsXY(video.getWidth()/2, video.getHeight()/2);
-        }
-        trackerPanel.repaint();
-        frame.setSelectedTab(trackerPanel);
-        monitorDialog.close();
-        // check for video frames with durations that vary by 20% from average
-        if (Tracker.warnVariableDuration)
-        	findBadVideoFrames(trackerPanel, defaultBadFrameTolerance, 
-        			true, true, true); // show dialog only if bad frames found, and include "don't show again" button
-      } 
-    } 
-    else { // load data from zip, trz or trk file
+			if (!VideoIO.isCanceled()) {
+				if (monitorDialog.isVisible())
+					monitorDialog.setProgress(85);
+				vidType = (VideoType) video.getProperty("video_type"); //$NON-NLS-1$
+				OSPLog.finer(video.getProperty("path") + " opened as " + //$NON-NLS-1$ //$NON-NLS-2$
+						vidType.getClass().getSimpleName() + " " + vidType.getDescription()); //$NON-NLS-1$
+				trackerPanel.frame = frame;
+				if (VideoIO.isCanceled())
+					return;
+
+				frame.addTab(trackerPanel);
+				if (monitorDialog.isVisible())
+					monitorDialog.setProgress(95);
+				JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
+				pane.setDividerLocation(frame.defaultRightDivider);
+				TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+				if (menubar != null) {
+					menubar.refresh();
+				}
+				trackerPanel.setVideo(video);
+				// panel is changed if video imported into existing trackerPanel
+				panelChanged = existingPanel != null;
+				if (video.getFrameCount() == 1) {
+					trackerPanel.getPlayer().getVideoClip().setStepCount(10);
+				}
+				// if new trackerPanel, move coords origin to center of video
+				if (existingPanel == null) {
+					ImageCoordSystem coords = trackerPanel.getCoords();
+					coords.setAllOriginsXY(video.getWidth() / 2, video.getHeight() / 2);
+				}
+				trackerPanel.repaint();
+				frame.setSelectedTab(trackerPanel);
+				monitorDialog.close();
+				// check for video frames with durations that vary by 20% from average
+				if (Tracker.warnVariableDuration)
+					findBadVideoFrames(trackerPanel, defaultBadFrameTolerance, true, true, true); // show dialog only if
+																									// bad frames found,
+																									// and include
+																									// "don't show
+																									// again" button
+			}
+		} else { // load data from zip, trz or trk file
 			Map<String, String> pageViewTabs = new HashMap<String, String>(); // pageView tabs that display html files
 
-    	if (zipFileFilter.accept(testFile) || trzFileFilter.accept(testFile)) {
-    		monitorDialog.stop();
-  			String name = XML.getName(ResourceLoader.getNonURIPath(path));
-  			// download web files to OSP cache
-  			boolean isWebPath = path.startsWith("http"); //$NON-NLS-1$
-  			if (isWebPath) {
+			if (zipFileFilter.accept(testFile, false) || trzFileFilter.accept(testFile, false)) {
+				monitorDialog.stop();
+				String name = XML.getName(ResourceLoader.getNonURIPath(path));
+				// download web files to OSP cache
+				boolean isWebPath = path.startsWith("http"); //$NON-NLS-1$
+				if (isWebPath) {
 					File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
-					if (localFile!=null) {
+					if (localFile != null) {
 						// set path to downloaded file
 						path = localFile.toURI().toString();
-			    	OSPLog.finest("downloaded zip file: "+path); //$NON-NLS-1$
-					} 				
-  			}
-	  			
+						OSPLog.finest("downloaded zip file: " + path); //$NON-NLS-1$
+					}
+				}
+
 				ArrayList<String> trkFiles = new ArrayList<String>(); // all trk files found in zip
 				final ArrayList<String> htmlFiles = new ArrayList<String>(); // supplemental html files found in zip
 				final ArrayList<String> pdfFiles = new ArrayList<String>(); // all pdf files found in zip
 				final ArrayList<String> otherFiles = new ArrayList<String>(); // other files found in zip
 				String trkForTFrame = null;
-				
+
 				// sort the zip file contents
-	  		Collection<String> contents = ResourceLoader.getZipContents(path);
-				for (String next: contents) {
+				Collection<String> contents = ResourceLoader.getZipContents(path);
+				for (String next : contents) {
 					if (next.endsWith(".trk")) { //$NON-NLS-1$
-						String s = ResourceLoader.getURIPath(path+"!/"+next); //$NON-NLS-1$
-			    	OSPLog.finest("found trk file "+s); //$NON-NLS-1$
+						String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
+						OSPLog.finest("found trk file " + s); //$NON-NLS-1$
 						trkFiles.add(s);
-					}
-					else if (next.endsWith(".pdf")) { //$NON-NLS-1$
+					} else if (next.endsWith(".pdf")) { //$NON-NLS-1$
 						pdfFiles.add(next);
-					}
-					else if (next.endsWith(".html") || next.endsWith(".htm")) { //$NON-NLS-1$ //$NON-NLS-2$
+					} else if (next.endsWith(".html") || next.endsWith(".htm")) { //$NON-NLS-1$ //$NON-NLS-2$
 						// handle HTML info files (name "<zipname>_info")
 						String baseName = XML.stripExtension(name);
 						String nextName = XML.getName(next);
-						if (XML.stripExtension(nextName).equals(baseName+"_info")) { //$NON-NLS-1$
+						if (XML.stripExtension(nextName).equals(baseName + "_info")) { //$NON-NLS-1$
 							continue;
 						}
 						// add non-info html files to list
 						htmlFiles.add(next);
 					}
 					// collect other files in top directory except thumbnails
-					else if (next.indexOf("thumbnail")==-1 && next.indexOf("/")==-1) { //$NON-NLS-1$ //$NON-NLS-2$
-						String s = ResourceLoader.getURIPath(path+"!/"+next); //$NON-NLS-1$
-			    	OSPLog.finest("found other file "+s); //$NON-NLS-1$
+					else if (next.indexOf("thumbnail") == -1 && next.indexOf("/") == -1) { //$NON-NLS-1$ //$NON-NLS-2$
+						String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
+						OSPLog.finest("found other file " + s); //$NON-NLS-1$
 						otherFiles.add(next);
 					}
 				}
 				if (trkFiles.isEmpty() && pdfFiles.isEmpty() && htmlFiles.isEmpty() && otherFiles.isEmpty()) {
 					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
-      		JOptionPane.showMessageDialog(frame, 
-      				s+" \""+name+"\".", //$NON-NLS-1$ //$NON-NLS-2$
-      				TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
-      				JOptionPane.WARNING_MESSAGE);
+					JOptionPane.showMessageDialog(frame, s + " \"" + name + "\".", //$NON-NLS-1$ //$NON-NLS-2$
+							TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
+							JOptionPane.WARNING_MESSAGE);
 					return;
 				}
-				
+
 				// find page view filenames in TrackerPanel xmlControls
 				// also look for trk for TFrame
 				if (!trkFiles.isEmpty()) {
 					ArrayList<String> trkNames = new ArrayList<String>();
-					for (String next: trkFiles) {
+					for (String next : trkFiles) {
 						trkNames.add(XML.stripExtension(XML.getName(next)));
 						XMLControl control = new XMLControlElement(next);
 						if (control.getObjectClassName().endsWith("TrackerPanel")) { //$NON-NLS-1$
 							findPageViewFiles(control, pageViewTabs);
-						}
-						else if (trkForTFrame==null
-								&& control.getObjectClassName().endsWith("TFrame")) { //$NON-NLS-1$
+						} else if (trkForTFrame == null && control.getObjectClassName().endsWith("TFrame")) { //$NON-NLS-1$
 							trkForTFrame = next;
 						}
 					}
 					if (!htmlFiles.isEmpty()) {
 						// remove page view HTML files
 						String[] paths = htmlFiles.toArray(new String[htmlFiles.size()]);
-						for (String htmlPath: paths) {
+						for (String htmlPath : paths) {
 							boolean isPageView = false;
-							for (String page: pageViewTabs.keySet()) {
+							for (String page : pageViewTabs.keySet()) {
 								isPageView = isPageView || htmlPath.endsWith(page);
 							}
 							if (isPageView) {
 								htmlFiles.remove(htmlPath);
 							}
 							// discard HTML <trkname>_info files
-							for (String trkName: trkNames) {
-								if (htmlPath.contains(trkName+"_info.")) { //$NON-NLS-1$
+							for (String trkName : trkNames) {
+								if (htmlPath.contains(trkName + "_info.")) { //$NON-NLS-1$
 									htmlFiles.remove(htmlPath);
-								}								
+								}
 							}
 						}
 					}
-					if (trkForTFrame!=null) {
+					if (trkForTFrame != null) {
 						trkFiles.clear();
 						trkFiles.add(trkForTFrame);
 					}
 				}
-				
+
 				// unzip pdf/html/other files into temp directory and open on desktop
-				final ArrayList<String> tempFiles = new ArrayList<String>();		
+				final ArrayList<String> tempFiles = new ArrayList<String>();
 				if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty() || !otherFiles.isEmpty()) {
-					File temp = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$			
+					File temp = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
 					Set<File> files = ResourceLoader.unzip(path, temp, true);
 					for (File next : files) {
 						next.deleteOnExit();
-		        // add PDF/HTML/other files to tempFiles
+						// add PDF/HTML/other files to tempFiles
 						String relPath = XML.getPathRelativeTo(next.getPath(), temp.getPath());
 						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath) || otherFiles.contains(relPath)) {
 							String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());
@@ -873,161 +881,164 @@ public class TrackerIO extends VideoIO {
 						}
 					}
 					// open tempfiles on the desktop
-		  		Runnable runner = new Runnable() {
+					Runnable displayURLRunner = new Runnable() {
 						public void run() {
-			        for (String path: tempFiles) {
-			        	OSPDesktop.displayURL(path);
-			        }
+							for (String path : tempFiles) {
+								OSPDesktop.displayURL(path);
+							}
 						}
 					};
-					new Thread(runner).start();
+					if (OSPRuntime.skipDisplayOfPDF) {
+						OSPLog.warning("TrackerIO skipping displaying of " + path);
+					} else {
+						Thread displayURLOpener = new Thread(displayURLRunner);
+						displayURLOpener.setName("displayURLOpener");
+						displayURLOpener.start();
+					}
 				}
 				// load trk files into Tracker
-	  		if (!VideoIO.isCanceled()) {
-	        monitorDialog.close();
-	      	open(trkFiles, frame, tempFiles); // this also adds tempFile paths to trackerPanel
-	      	// add TRZ, ZIP and JAR paths to recent files
-	        Tracker.addRecent(nonURIPath, false); // add at beginning
-	      	return;
-	  		}
-        monitorDialog.close();
-	  		return;
-    	}
-    	
-    	// load data from TRK file
-      XMLControlElement control = new XMLControlElement();
-      xmlPath = control.read(path);
-      if (VideoIO.isCanceled()) return;
-      monitorDialog.stop();
-    	if (monitorDialog.isVisible()) 
-    		monitorDialog.setProgress(20);
-    	
-      Class<?> type = control.getObjectClass();
-      if(TrackerPanel.class.isAssignableFrom(type)) {
-        XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
-        if (child != null) {
-        	int count = child.getInt("video_framecount"); //$NON-NLS-1$
-          child = child.getChildControl("video"); //$NON-NLS-1$
-          if (child != null) {
-          	String vidPath = child.getString("path"); //$NON-NLS-1$
-          	monitorDialog.setName(vidPath);
-          	monitorDialog.setFrameCount(count);
-          }
-        }
+				if (!VideoIO.isCanceled()) {
+					monitorDialog.close();
+					openCollection(trkFiles, frame, tempFiles); // this also adds tempFile paths to trackerPanel
+					// add TRZ, ZIP and JAR paths to recent files
+					Tracker.addRecent(nonURIPath, false); // add at beginning
+					return;
+				}
+				monitorDialog.close();
+				return;
+			}
 
-        // should the line below finish (in SwingWorker?) before continuing?
-        trackerPanel = (TrackerPanel)control.loadObject(trackerPanel);
-        
-        trackerPanel.frame = frame;
+			// load data from TRK file
+			XMLControlElement control = new XMLControlElement();
+			xmlPath = control.read(path);
+			if (VideoIO.isCanceled())
+				return;
+			monitorDialog.stop();
+			if (monitorDialog.isVisible())
+				monitorDialog.setProgress(20);
 
-        // find page view files and add to TrackerPanel.pageViewFilePaths
+			Class<?> type = control.getObjectClass();
+			if (TrackerPanel.class.isAssignableFrom(type)) {
+				XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
+				if (child != null) {
+					int count = child.getInt("video_framecount"); //$NON-NLS-1$
+					child = child.getChildControl("video"); //$NON-NLS-1$
+					if (child != null) {
+						String vidPath = child.getString("path"); //$NON-NLS-1$
+						monitorDialog.setName(vidPath);
+						monitorDialog.setFrameCount(count);
+					}
+				}
+
+				// should the line below finish (in SwingWorker?) before continuing?
+				trackerPanel = (TrackerPanel) control.loadObject(trackerPanel);
+
+				trackerPanel.frame = frame;
+
+				// find page view files and add to TrackerPanel.pageViewFilePaths
 				findPageViewFiles(control, trackerPanel.pageViewFilePaths);
-        
-        if (desktopFiles!=null) {
-        	for (String s: desktopFiles) {
-        		trackerPanel.supplementalFilePaths.add(s);
-        	}
-        }
-  	  	boolean isZippedTRK = xmlPath!=null && 
-  					(xmlPath.contains(".zip!") || xmlPath.contains(".trz!") || xmlPath.contains(".jar!")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-        if (isZippedTRK) {
-        	String parent = xmlPath.substring(0, xmlPath.indexOf("!")); //$NON-NLS-1$
-        	parent = ResourceLoader.getNonURIPath(parent); // strip protocol
-        	String parentName = XML.stripExtension(XML.getName(parent));
-        	String tabName = XML.stripExtension(XML.getName(xmlPath));
-        	if (tabName.startsWith(parentName) && parentName.length()+1<tabName.length()) {
-        		tabName = tabName.substring(parentName.length()+1, tabName.length());
-        	}
-          trackerPanel.openedFromPath = parent;
-          trackerPanel.defaultFileName = tabName;
-          
-					String html = ResourceLoader.getString(parent+"!/html/"+parentName+"_info.html"); //$NON-NLS-1$ //$NON-NLS-2$
+
+				if (desktopFiles != null) {
+					for (String s : desktopFiles) {
+						trackerPanel.supplementalFilePaths.add(s);
+					}
+				}
+				boolean isZippedTRK = xmlPath != null
+						&& (xmlPath.contains(".zip!") || xmlPath.contains(".trz!") || xmlPath.contains(".jar!")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				if (isZippedTRK) {
+					String parent = xmlPath.substring(0, xmlPath.indexOf("!")); //$NON-NLS-1$
+					parent = ResourceLoader.getNonURIPath(parent); // strip protocol
+					String parentName = XML.stripExtension(XML.getName(parent));
+					String tabName = XML.stripExtension(XML.getName(xmlPath));
+					if (tabName.startsWith(parentName) && parentName.length() + 1 < tabName.length()) {
+						tabName = tabName.substring(parentName.length() + 1, tabName.length());
+					}
+					trackerPanel.openedFromPath = parent;
+					trackerPanel.defaultFileName = tabName;
+
+					String html = ResourceLoader.getString(parent + "!/html/" + parentName + "_info.html"); //$NON-NLS-1$ //$NON-NLS-2$
 					ArrayList<String[]> metadata = ExportZipDialog.getMetadataFromHTML(html);
-					for (int i=0; i<metadata.size(); i++) {
+					for (int i = 0; i < metadata.size(); i++) {
 						String[] meta = metadata.get(i);
 						String key = meta[0];
 						String value = meta[1];
-						if (trackerPanel.author==null && LibraryResource.META_AUTHOR.toLowerCase().contains(key.toLowerCase())) {
-				      trackerPanel.author = value;
-						}
-						else if (trackerPanel.contact==null && LibraryResource.META_CONTACT.toLowerCase().contains(key.toLowerCase())) {
-				      trackerPanel.contact = value;
+						if (trackerPanel.author == null
+								&& LibraryResource.META_AUTHOR.toLowerCase().contains(key.toLowerCase())) {
+							trackerPanel.author = value;
+						} else if (trackerPanel.contact == null
+								&& LibraryResource.META_CONTACT.toLowerCase().contains(key.toLowerCase())) {
+							trackerPanel.contact = value;
 						}
 					}
-        }
-        else {
-          trackerPanel.defaultFileName = XML.getName(path);
-          trackerPanel.openedFromPath = path;
-        	trackerPanel.setDataFile(new File(ResourceLoader.getNonURIPath(path)));
-        }
-        
-      	if (monitorDialog.isVisible()) 
-      		monitorDialog.setProgress(80);
-        if (VideoIO.isCanceled()) return;
-        frame.addTab(trackerPanel);
-      	if (monitorDialog.isVisible()) 
-      		monitorDialog.setProgress(90);
-        frame.setSelectedTab(trackerPanel);
-        frame.showTrackControl(trackerPanel);
-        frame.showNotes(trackerPanel);
-        frame.refresh();
-      	if (control.failedToRead()) {
-	        JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
-	        		"\""+XML.getName(path)+"\" "+   //$NON-NLS-1$ //$NON-NLS-2$
-	        		TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Message"), //$NON-NLS-1$
-	            TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Title"),   //$NON-NLS-1$
-	            JOptionPane.WARNING_MESSAGE);
-      	}
-      } // end of TRK section
-      
-      else if(TFrame.class.isAssignableFrom(type)) {
-        monitorDialog.close();
-      	control.loadObject(frame);
-      	rawPath = XML.forwardSlash(rawPath); 
-        Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
-        trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-        if (trackerPanel!=null) {
-          TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
-          if (menubar!=null) {
-          	menubar.refresh();
-          }
-        }
-      	return;
-      } 
-      else if(!control.failedToRead()) {
-        monitorDialog.close();
-        JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
-        		"\""+XML.getName(path)+"\" "+   //$NON-NLS-1$ //$NON-NLS-2$
-        		MediaRes.getString("VideoIO.Dialog.XMLMismatch.Message"), //$NON-NLS-1$
-            MediaRes.getString("VideoIO.Dialog.XMLMismatch.Title"),   //$NON-NLS-1$
-            JOptionPane.WARNING_MESSAGE);
-        return;
-      } 
-      else {
-        monitorDialog.close();
-        JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
-        		MediaRes.getString("VideoIO.Dialog.BadFile.Message")+  //$NON-NLS-1$
-        		ResourceLoader.getNonURIPath(path));
-        return;
-      }
-    }
-    
-    monitorDialog.close();
-  	rawPath = XML.forwardSlash(rawPath);
-  	if (xmlPath!=null && 
-  			!xmlPath.contains(".zip!") &&   //$NON-NLS-1$
-  			!xmlPath.contains(".trz!") &&   //$NON-NLS-1$
-  			!xmlPath.contains(".jar!")) { //$NON-NLS-1$
-  		rawPath = XML.forwardSlash(xmlPath);
-	    Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
-  	}
-    TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
-    if (menubar!=null) {
-    	menubar.refresh();
-    }
-    TTrackBar.refreshMemoryButton();
-    trackerPanel.changed = panelChanged;
-  }
+				} else {
+					trackerPanel.defaultFileName = XML.getName(path);
+					trackerPanel.openedFromPath = path;
+					trackerPanel.setDataFile(new File(ResourceLoader.getNonURIPath(path)));
+				}
+
+				if (monitorDialog.isVisible())
+					monitorDialog.setProgress(80);
+				if (VideoIO.isCanceled())
+					return;
+				frame.addTab(trackerPanel);
+				if (monitorDialog.isVisible())
+					monitorDialog.setProgress(90);
+				frame.setSelectedTab(trackerPanel);
+				frame.showTrackControl(trackerPanel);
+				frame.showNotes(trackerPanel);
+				frame.refresh();
+				if (control.failedToRead()) {
+					JOptionPane.showMessageDialog(trackerPanel.getTFrame(), "\"" + XML.getName(path) + "\" " + //$NON-NLS-1$ //$NON-NLS-2$
+							TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Message"), //$NON-NLS-1$
+							TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Title"), //$NON-NLS-1$
+							JOptionPane.WARNING_MESSAGE);
+				}
+			} // end of TRK section
+
+			else if (TFrame.class.isAssignableFrom(type)) {
+				monitorDialog.close();
+				control.loadObject(frame);
+				rawPath = XML.forwardSlash(rawPath);
+				Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
+				trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+				if (trackerPanel != null) {
+					TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+					if (menubar != null) {
+						menubar.refresh();
+					}
+				}
+				return;
+			} else if (!control.failedToRead()) {
+				monitorDialog.close();
+				JOptionPane.showMessageDialog(trackerPanel.getTFrame(), "\"" + XML.getName(path) + "\" " + //$NON-NLS-1$ //$NON-NLS-2$
+						MediaRes.getString("VideoIO.Dialog.XMLMismatch.Message"), //$NON-NLS-1$
+						MediaRes.getString("VideoIO.Dialog.XMLMismatch.Title"), //$NON-NLS-1$
+						JOptionPane.WARNING_MESSAGE);
+				return;
+			} else {
+				monitorDialog.close();
+				JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+						MediaRes.getString("VideoIO.Dialog.BadFile.Message") + //$NON-NLS-1$
+								ResourceLoader.getNonURIPath(path));
+				return;
+			}
+		}
+
+		monitorDialog.close();
+		rawPath = XML.forwardSlash(rawPath);
+		if (xmlPath != null && !xmlPath.contains(".zip!") && //$NON-NLS-1$
+				!xmlPath.contains(".trz!") && //$NON-NLS-1$
+				!xmlPath.contains(".jar!")) { //$NON-NLS-1$
+			rawPath = XML.forwardSlash(xmlPath);
+			Tracker.addRecent(ResourceLoader.getNonURIPath(rawPath), false); // add at beginning
+		}
+		TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+		if (menubar != null) {
+			menubar.refresh();
+		}
+		TTrackBar.refreshMemoryButton();
+		trackerPanel.changed = panelChanged;
+	}
 
   /**
    * Loads data or a video from a specified file into a new TrackerPanel.
@@ -1036,7 +1047,7 @@ public class TrackerIO extends VideoIO {
    * @param file the file to be loaded (may be null)
    * @param frame the frame for the TrackerPanel
    */
-  public static void open(File file, final TFrame frame) {
+  public static void openTabFile(File file, final TFrame frame) {
   	VideoType selectedType = null;
   	if(file==null) {
       File[] files = getChooserFiles("open"); //$NON-NLS-1$
@@ -1055,26 +1066,28 @@ public class TrackerIO extends VideoIO {
     final VideoType vidType = selectedType;
     
     // open all files in Tracker
-    Runnable tabOpener = new Runnable() {
+    Runnable openTabPathRunnable = new Runnable() {
     	public void run() {
       	OSPLog.finest("opening file in tab"); //$NON-NLS-1$
-        open(path, null, frame, vidType, null);
+        openTabPath(path, null, frame, vidType, null);
       }
     };
     // open in separate background thread if flagged
     if (loadInSeparateThread) {
-      Thread opener = new Thread(tabOpener);
-      opener.setPriority(Thread.NORM_PRIORITY);
-      opener.setDaemon(true);
-      opener.start();
+      Thread openTabPathOpener = new Thread(openTabPathRunnable);
+      openTabPathOpener.setName("openTabPath");
+      openTabPathOpener.setPriority(Thread.NORM_PRIORITY);
+      openTabPathOpener.setDaemon(true);
+      openTabPathOpener.start();
     }
     else {
-    	tabOpener.run();
+    	openTabPathRunnable.run();
     }
     
     // also open TRZ files in library browser
-    if (trzFileFilter.accept(new File(path))) {
-	    Runnable libraryOpener = new Runnable() {
+    // BH! Q: this was effectively TRUE -- "any directory is OK" why?
+    if (trzFileFilter.accept(new File(path),false)) {
+	    Runnable libraryRunnable = new Runnable() {
 	    	public void run() {
 	      	OSPLog.finest("opening file in library browser"); //$NON-NLS-1$
 	        frame.getLibraryBrowser().open(path);
@@ -1092,13 +1105,15 @@ public class TrackerIO extends VideoIO {
 	      }
 	    };
 	    if (loadInSeparateThread) {
-	    	Thread opener = new Thread(libraryOpener);
-	      opener.setPriority(Thread.NORM_PRIORITY);
-	      opener.setDaemon(true);
-	      opener.start();
+	    	Thread libraryOpener = new Thread(libraryRunnable);
+	    	libraryOpener.setName("libraryOpener");
+	        
+	      libraryOpener.setPriority(Thread.NORM_PRIORITY);
+	      libraryOpener.setDaemon(true);
+	      libraryOpener.start();
 	    }
 	    else {
-	    	libraryOpener.run();
+	    	libraryRunnable.run();
 	    }
 	  }
   }
@@ -1115,7 +1130,7 @@ public class TrackerIO extends VideoIO {
     }
     final String path = url.toExternalForm();
   	OSPLog.finest("opening URL"); //$NON-NLS-1$
-  	open(path, frame);
+  	loadDataOrVideo(path, frame);
   }
 
   /**
@@ -1125,27 +1140,28 @@ public class TrackerIO extends VideoIO {
    * @param frame the frame for the TrackerPanels
    * @param desktopFiles supplemental HTML and PDF files to load on the desktop
    */
-  public static void open(final Collection<String> urlPaths, final TFrame frame, final ArrayList<String> desktopFiles) {
+  public static void openCollection(final Collection<String> urlPaths, final TFrame frame, final ArrayList<String> desktopFiles) {
     if(urlPaths==null || urlPaths.isEmpty()) {
       return;
     }
   	frame.loadedFiles.clear();
     // open in separate background thread if flagged
-    Runnable runner = new Runnable() {
+    Runnable tabRunner = new Runnable() {
     	public void run() {
     		for (String path: urlPaths) {
 			  	OSPLog.finest("opening URL "+path); //$NON-NLS-1$
-	        open(path, null, frame, null, desktopFiles);
+	        openTabPath(path, null, frame, null, desktopFiles);
     		}
       }
     };
     if (loadInSeparateThread) {
-      Thread opener = new Thread(runner);
-      opener.setPriority(Thread.NORM_PRIORITY);
-      opener.setDaemon(true);
-      opener.start(); 
+      Thread tabOpener = new Thread(tabRunner);
+      tabOpener.setName("tabOpener");
+      tabOpener.setPriority(Thread.NORM_PRIORITY);
+      tabOpener.setDaemon(true);
+      tabOpener.start(); 
     }
-    else runner.run();
+    else tabRunner.run();
   }
 
   /**
@@ -1154,14 +1170,16 @@ public class TrackerIO extends VideoIO {
    * @param path the path
    * @param frame the frame for the TrackerPanel
    */
-  public static void open(final String path, final TFrame frame) {
+  public static void loadDataOrVideo(final String path, final TFrame frame) {
   	frame.loadedFiles.clear();
     // open in separate background thread if flagged
-    Runnable runner = new Runnable() {
+    Runnable loadDataOrVideoRunner = new Runnable() {
     	public void run() {
-        open(path, null, frame, null, null);
+        openTabPath(path, null, frame, null, null);
     		// also open TRZ files in the Library Browser
-        if (trzFileFilter.accept(new File(path))) {
+        
+        // BH Q: was TRUE, meaning any directory would be accepted here?
+        if (trzFileFilter.accept(new File(path), false)) {
 	      	frame.getLibraryBrowser().open(path);
 //	      	frame.getLibraryBrowser().setVisible(true);
 	        Timer timer = new Timer(1000, new ActionListener() {
@@ -1178,12 +1196,13 @@ public class TrackerIO extends VideoIO {
     	}
     };
     if (loadInSeparateThread) {
-      Thread opener = new Thread(runner);
-      opener.setPriority(Thread.NORM_PRIORITY);
-      opener.setDaemon(true);
-      opener.start(); 
+      Thread loadDataOrVideoThread = new Thread(loadDataOrVideoRunner);
+      loadDataOrVideoThread.setName("loadDataOrVideo");
+      loadDataOrVideoThread.setPriority(Thread.NORM_PRIORITY);
+      loadDataOrVideoThread.setDaemon(true);
+      loadDataOrVideoThread.start(); 
     }
-    else runner.run();
+    else loadDataOrVideoRunner.run();
   }
 
 	/**
@@ -1269,19 +1288,21 @@ public class TrackerIO extends VideoIO {
     final VideoType vidType = videoEnginePanel.getSelectedVideoType();
     // open in separate background thread if flagged
     final File theFile = files[0];
-    Runnable runner = new Runnable() {
-    	public void run() {
-      	TrackerIO.importVideo(theFile, trackerPanel, vidType);            
-      	OSPLog.finest("completed importing file "+theFile); //$NON-NLS-1$
-      }
-    };
+    Runnable importVideoRunner = new Runnable() {
+			public void run() {
+				TrackerIO.importVideo(theFile, trackerPanel, vidType);
+				OSPLog.finest("completed importing file " + theFile); //$NON-NLS-1$
+			}
+	    };
     if (loadInSeparateThread) {
-      Thread opener = new Thread(runner);
-      opener.setPriority(Thread.NORM_PRIORITY);
-      opener.setDaemon(true);
-      opener.start(); 
+      Thread importVideoOpener = new Thread(importVideoRunner);
+      importVideoOpener.setName("importVideo");
+      
+      importVideoOpener.setPriority(Thread.NORM_PRIORITY);
+      importVideoOpener.setDaemon(true);
+      importVideoOpener.start(); 
     }
-    else runner.run();
+    else importVideoRunner.run();
   }
 
   /**
@@ -1296,7 +1317,7 @@ public class TrackerIO extends VideoIO {
   	OSPLog.finest("importing file: "+path);  	 //$NON-NLS-1$
   	TFrame frame = trackerPanel.getTFrame();
   	frame.loadedFiles.clear();
-  	open(path, trackerPanel, frame, vidType, null);
+  	openTabPath(path, trackerPanel, frame, vidType, null);
   }
   
   /**

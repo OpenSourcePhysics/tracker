@@ -1214,7 +1214,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	        	if (selected != null) {
 	        		selected.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 	        	}
-        		TrackerIO.open(path, TFrame.this);
+        		TrackerIO.loadDataOrVideo(path, TFrame.this);
 //	        	if (url!=null)
 //	        		TrackerIO.open(url, TFrame.this);
 //	        	else 
@@ -1443,7 +1443,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   					if (res!=null) {
   						ArrayList<String> urlPaths = new ArrayList<String>();
   						urlPaths.add(target);
-  						TrackerIO.open(urlPaths, TFrame.this, null);
+  						TrackerIO.openCollection(urlPaths, TFrame.this, null);
   					}
   					else {
 							String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
@@ -2011,7 +2011,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       openItem.addActionListener(new ActionListener() {
         public void actionPerformed(ActionEvent e) {
           TFrame.this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          TrackerIO.open((File)null, TFrame.this);
+          TrackerIO.openTabFile((File)null, TFrame.this);
           TFrame.this.setCursor(Cursor.getDefaultCursor());
         }
       });
@@ -2319,7 +2319,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       		}
       		if (res!=null && !videoFilter.accept(file)) {
       			if (dataFile==null) dataFile = file;
-      			TrackerIO.open(file, frame);
+      			TrackerIO.openTabFile(file, frame);
       		}
       	}
       	TrackerIO.loadInSeparateThread = prev;

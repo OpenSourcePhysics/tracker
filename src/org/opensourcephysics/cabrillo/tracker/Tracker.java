@@ -579,7 +579,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					rootXMLPath = names[i].substring(0, names[i].lastIndexOf("/") + 1); //$NON-NLS-1$
 					OSPLog.fine("Setting rootPath: " + rootXMLPath); //$NON-NLS-1$
 				}
-				TrackerIO.open(names[i], frame);
+				TrackerIO.loadDataOrVideo(names[i], frame);
 			}
 		} else if (addTabIfEmpty) {
 			// add an empty tab if requested

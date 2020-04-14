@@ -2404,7 +2404,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
           Runnable runner = new Runnable() {
           	public void run() {
           		// open the TRZ in a Tracker tab
-          		TrackerIO.open(new File(path), frame);
+          		TrackerIO.openTabFile(new File(path), frame);
           		// open the TRZ in the Library Browser
     	      	frame.getLibraryBrowser().open(path);
     	      	frame.getLibraryBrowser().setVisible(true);

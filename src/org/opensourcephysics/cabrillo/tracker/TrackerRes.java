@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.*;
+import java.util.ResourceBundle.Control;
 
 import javax.swing.event.SwingPropertyChangeSupport;
 
@@ -40,9 +41,13 @@ public class TrackerRes {
 
 	// static fields
 	static Locale locale = Locale.getDefault();
+	// BH 2020.04.13 using explicit FORMAT_PROPERTIES here to avoid three attempts
+	// to load .js files
 	static ResourceBundle res = ResourceBundle.getBundle(
 					"org.opensourcephysics.cabrillo.tracker.resources.tracker",  //$NON-NLS-1$
-					locale);
+					locale, Control.getControl(Control.FORMAT_PROPERTIES));
+
+
 	static Object resObj = new TrackerRes();
   static PropertyChangeSupport support = new SwingPropertyChangeSupport(resObj);
 

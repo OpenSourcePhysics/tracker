@@ -154,7 +154,7 @@ public class TActions {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
         	frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          TrackerIO.open((File)null, frame);
+          TrackerIO.openTabFile((File)null, frame);
         	frame.setCursor(Cursor.getDefaultCursor());
         }
       }

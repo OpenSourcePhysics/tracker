@@ -809,7 +809,7 @@ public class ExportVideoDialog extends JDialog {
 	  					    		final File file = new File(savedFilePath);
 	  					        Runnable runner = new Runnable() {
 	  					        	public void run() {
-	  							    		TrackerIO.open(file, frame);
+	  							    		TrackerIO.openTabFile(file, frame);
 	  					        	}
 	  					        };
 	  					        SwingUtilities.invokeLater(runner);
