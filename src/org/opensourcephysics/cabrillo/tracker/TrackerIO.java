@@ -869,7 +869,7 @@ public class TrackerIO extends VideoIO {
 				// unzip pdf/html/other files into temp directory and open on desktop
 				final ArrayList<String> tempFiles = new ArrayList<String>();
 				if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty() || !otherFiles.isEmpty()) {
-					File temp = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
+					File temp = new File(OSPRuntime.tempDir); //$NON-NLS-1$
 					Set<File> files = ResourceLoader.unzip(path, temp, true);
 					for (File next : files) {
 						next.deleteOnExit();
@@ -1911,7 +1911,7 @@ public class TrackerIO extends VideoIO {
 					int n = zipPath.indexOf("!/"); //$NON-NLS-1$
 					// extract files from jar, zip or trz files into temp directory
 					if (n>0) {
-						File target = new File(System.getProperty("java.io.tmpdir")); //$NON-NLS-1$
+						File target = new File(OSPRuntime.tempDir); //$NON-NLS-1$
 						zipPath = zipPath.substring(0, n);
 						ResourceLoader.unzip(zipPath, target, true); // overwrite
 						target = new File(target, path);
