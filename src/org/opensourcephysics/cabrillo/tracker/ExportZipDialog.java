@@ -1851,7 +1851,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   	}
   	// if file is in zip or jar, then extract it
   	else if (lowercase.contains("trz!") || lowercase.contains("jar!") || lowercase.contains("zip!")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	    targetFile = JarTool.extract(filePath, targetFile);  		
+	    targetFile = ResourceLoader.extract(filePath, targetFile);  		
   	}
   	// otherwise copy it      	  	
   	else VideoIO.copyFile(new File(filePath), targetFile);
