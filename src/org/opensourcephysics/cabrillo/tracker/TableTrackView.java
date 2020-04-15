@@ -1946,7 +1946,7 @@ public class TableTrackView extends TrackView {
   public class HeaderUnitsRenderer extends DataTable.HeaderRenderer {
 
 		public HeaderUnitsRenderer(DataTable table, TableCellRenderer renderer) {
-			table.super(renderer);
+			table.super(renderer); 
 		}
 		
 		@Override
