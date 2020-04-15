@@ -1667,6 +1667,8 @@ public class TrackerIO extends VideoIO {
     try {
       Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
       Transferable data = clipboard.getContents(null);
+      if (data == null)
+    	  return false;
       XMLControl control = new XMLControlElement();
       control.readXML((String)data.getTransferData(DataFlavor.stringFlavor));
       Class<?> type = control.getObjectClass();
