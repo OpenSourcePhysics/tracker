@@ -1053,42 +1053,56 @@ public class TrackerIO extends VideoIO {
    * @param frame the frame for the TrackerPanel
    */
   public static void openTabFile(File file, final TFrame frame) {
-  	VideoType selectedType = null;
-  	if(file==null) {
-      File[] files = getChooserFiles("open"); //$NON-NLS-1$
-      if(files!=null) {
-        file = files[0];
-        selectedType = videoEnginePanel.getSelectedVideoType();
-      }
-    }
-    if(file==null) {
-    	OSPLog.finer("no file to open"); //$NON-NLS-1$
-      return;
-    }
-    
-  	frame.loadedFiles.clear();
-    final String path = XML.getAbsolutePath(file);
-    final VideoType vidType = selectedType;
-    
-    // open all files in Tracker
-    Runnable openTabPathRunnable = new Runnable() {
-    	public void run() {
-      	OSPLog.finest("opening file in tab"); //$NON-NLS-1$
-        openTabPath(path, null, frame, vidType, null);
-      }
-    };
-    // open in separate background thread if flagged
-    if (loadInSeparateThread) {
-      Thread openTabPathOpener = new Thread(openTabPathRunnable);
-      openTabPathOpener.setName("openTabPath");
-      openTabPathOpener.setPriority(Thread.NORM_PRIORITY);
-      openTabPathOpener.setDaemon(true);
-      openTabPathOpener.start();
-    }
-    else {
-    	openTabPathRunnable.run();
-    }
+	  openTabFileAsync(file, frame, null);
   }
+
+	public static void openTabFileAsync(File file, final TFrame frame, Runnable whenDone) {
+		if (file == null) {
+			getChooserFilesAsync("open", new Function<File[], Void>() {
+
+				@Override
+				public Void apply(File[] files) {
+					File file = null;
+					if (files != null) {
+						file = files[0];
+					}
+					if (file == null) {
+						OSPLog.finer("no file to open"); //$NON-NLS-1$
+					} else {
+						openTabFileAsyncFinally(frame, file, videoEnginePanel.getSelectedVideoType());
+					}
+					return null;
+				}
+
+			}); // $NON-NLS-1$
+		} else {
+			openTabFileAsyncFinally(frame, file, null);
+		}
+	}
+	
+	static protected void openTabFileAsyncFinally(TFrame frame, File file, VideoType selectedType) {
+		frame.loadedFiles.clear();
+		final String path = XML.getAbsolutePath(file);
+		final VideoType vidType = selectedType;
+
+		// open all files in Tracker
+		Runnable openTabPathRunnable = new Runnable() {
+			public void run() {
+				OSPLog.finest("opening file in tab"); //$NON-NLS-1$
+				openTabPath(path, null, frame, vidType, null);
+			}
+		};
+		// open in separate background thread if flagged
+		if (loadInSeparateThread) {
+			Thread openTabPathOpener = new Thread(openTabPathRunnable);
+			openTabPathOpener.setName("openTabPath");
+			openTabPathOpener.setPriority(Thread.NORM_PRIORITY);
+			openTabPathOpener.setDaemon(true);
+			openTabPathOpener.start();
+		} else {
+			openTabPathRunnable.run();
+		}
+	}
 
   private static void addToLibrary(TFrame frame, String path) {
 	    // also open TRZ files in library browser

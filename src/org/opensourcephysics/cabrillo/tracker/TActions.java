@@ -25,6 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
+import java.util.function.Function;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -84,6 +85,7 @@ public class TActions {
    * @param trackerPanel the TrackerPanel
    * @return the Map
    */
+  @SuppressWarnings("serial")
   public static Map<String, AbstractAction> getActions(final TrackerPanel trackerPanel) {
     Map<String, AbstractAction> actions = actionMaps.get(trackerPanel);
     if (actions != null) return actions;
@@ -595,44 +597,63 @@ public class TActions {
       }
     };
     actions.put("dynamicSystem", dynamicSystemAction); //$NON-NLS-1$
+
     // new DataTrack from text file item
     AbstractAction dataTrackAction = new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
-        // choose file and import data
-      	File[] files = TrackerIO.getChooserFiles("open data"); //$NON-NLS-1$
-        if (files==null) {
-        	return;
-        }
-        String filePath = files[0].getAbsolutePath();
-	      trackerPanel.importData(filePath, null);        
-      }
+			public void actionPerformed(ActionEvent e) {
+				// choose file and import data
+				TrackerIO.getChooserFilesAsync("open data", new Function<File[], Void>() { //$NON-NLS-1$
+
+					@Override
+					public Void apply(File[] files) {
+						if (files == null) {
+							return null;
+						}
+						String filePath = files[0].getAbsolutePath();
+						trackerPanel.importData(filePath, null);
+						return null;
+					}
+
+				});
+			}
     };
     actions.put("dataTrack", dataTrackAction); //$NON-NLS-1$
+
     // new DataTrack from ejs item
-    AbstractAction dataTrackfromEJSAction = new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
-        // choose file and get its data
-      	File[] files = TrackerIO.getChooserFiles("open ejs"); //$NON-NLS-1$
-        if (files==null) {
-        	return;
-        }
-        String filePath = files[0].getAbsolutePath();
-        String ext = XML.getExtension(filePath);
-        if ("jar".equals(ext)) { //$NON-NLS-1$
-        	if (!DataTrackTool.isDataSource(filePath)) {
-        		String jarName = TrackerRes.getString("TActions.Action.DataTrack.Unsupported.JarFile") //$NON-NLS-1$
-        				+ " \""+XML.getName(filePath)+"\" "; //$NON-NLS-1$ //$NON-NLS-2$
-      			JOptionPane.showMessageDialog(trackerPanel.getTFrame(), 
-      					jarName+TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Message")+".", //$NON-NLS-1$ //$NON-NLS-2$
-      					TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Title"), //$NON-NLS-1$
-      					JOptionPane.WARNING_MESSAGE);
-      			return;
-        	}
-        	DataTrackTool.launchDataSource(filePath, true);
-        }
-      }
-    };
+		AbstractAction dataTrackfromEJSAction = new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), //$NON-NLS-1$
+				null) {
+			public void actionPerformed(ActionEvent e) {
+				// choose file and get its data
+				TrackerIO.getChooserFilesAsync("open ejs", new Function<File[], Void>() { //$NON-NLS-1$
+
+					@Override
+					public Void apply(File[] files) {
+						if (files == null) {
+							return null;
+						}
+						String filePath = files[0].getAbsolutePath();
+						String ext = XML.getExtension(filePath);
+						if ("jar".equals(ext)) { //$NON-NLS-1$
+							if (DataTrackTool.isDataSource(filePath)) {
+								DataTrackTool.launchDataSource(filePath, true);
+							} else {
+								String jarName = TrackerRes.getString("TActions.Action.DataTrack.Unsupported.JarFile") //$NON-NLS-1$
+										+ " \"" + XML.getName(filePath) + "\" "; //$NON-NLS-1$ //$NON-NLS-2$
+								JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+										jarName + TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Message") //$NON-NLS-1$
+												+ ".", //$NON-NLS-1$
+										TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Title"), //$NON-NLS-1$
+										JOptionPane.WARNING_MESSAGE);
+							}
+						}
+						return null;
+					}
+
+				});
+			}
+		};
     actions.put("dataTrackFromEJS", dataTrackfromEJSAction); //$NON-NLS-1$
+    
     // new (read-only) tape measure
     String s = TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$
     AbstractAction tapeAction = new AbstractAction(s, null) {
