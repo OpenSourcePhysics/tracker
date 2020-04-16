@@ -2009,11 +2009,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       JMenuItem openItem = new JMenuItem(TrackerRes.getString("TActions.Action.Open"), icon); //$NON-NLS-1$
       openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
       openItem.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          TFrame.this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-          TrackerIO.openTabFile((File)null, TFrame.this);
-          TFrame.this.setCursor(Cursor.getDefaultCursor());
-        }
+				public void actionPerformed(ActionEvent e) {
+					TrackerIO.openTabFile((File) null, TFrame.this);
+				}
       });
       fileMenu.add(openItem);
       // open recent menu
@@ -2271,64 +2269,65 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
       return null;
     }
 
-    /**
-     * Loads an object with data from an XMLControl.
-     *
-     * @param control the control
-     * @param obj the object
-     * @return the loaded object
-     */
-    public Object loadObject(XMLControl control, Object obj) {
-    	TFrame frame = (TFrame) obj;
-    	FileFilter videoFilter = new VideoFileFilter();
-      String[][] tabs = (String[][])control.getObject("tabs"); //$NON-NLS-1$
+		/**
+		 * Loads an object with data from an XMLControl.
+		 *
+		 * @param control the control
+		 * @param obj     the object
+		 * @return the loaded object
+		 */
+		public Object loadObject(XMLControl control, Object obj) {
+			TFrame frame = (TFrame) obj;
+			FileFilter videoFilter = new VideoFileFilter();
+			String[][] tabs = (String[][]) control.getObject("tabs"); //$NON-NLS-1$
 			String base = control.getString("basepath"); //$NON-NLS-1$
 			File dataFile = null;
-      if (tabs!=null) {
-      	boolean prev = TrackerIO.loadInSeparateThread;
-      	TrackerIO.loadInSeparateThread = false;
-      	for (String[] next: tabs) {
-      		File file = null;
-      		Resource res = null;
-      		if (base!=null) {
-      			file = new File(base, next[1]); // next[1] is relative path
-      			res = ResourceLoader.getResource(file.getPath());
-      		}
-      		if (res==null) {
-      			file = new File(XML.getUserDirectory(), next[1]);
-      			res = ResourceLoader.getResource(file.getPath());
-      		}
-      		if (res==null && next[0]!=null) {
-      			file = new File(next[0]); // next[0] is absolute path
-      			res = ResourceLoader.getResource(file.getPath());
-      		}
-      		if (res==null) {
-            int i = JOptionPane.showConfirmDialog(frame, "\""+next[1]+"\" "                                       //$NON-NLS-1$ //$NON-NLS-2$
-                +MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message"),                                  //$NON-NLS-1$
-                TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"),                                   //$NON-NLS-1$
-                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-            if(i==JOptionPane.YES_OPTION) {
-              TrackerIO.getChooser().setSelectedFile(file);
-              java.io.File[] files = TrackerIO.getChooserFiles("open");                                         //$NON-NLS-1$
-              if(files!=null) {
-                file = files[0];
-              }
-              else continue;
-            }
-            else continue;
-      		}
-      		if (res!=null && !videoFilter.accept(file)) {
-      			if (dataFile==null) dataFile = file;
-      			TrackerIO.openTabFile(file, frame);
-      		}
-      	}
-      	TrackerIO.loadInSeparateThread = prev;
-      }
-      int n = frame.getTab(dataFile);
-      OSPLog.finest("selecting first tabset tab at index "+n); //$NON-NLS-1$
-      frame.setSelectedTab(n);
-      return obj;
-    }
+			if (tabs != null) {
+				boolean prev = TrackerIO.loadInSeparateThread;
+				TrackerIO.loadInSeparateThread = false;
+				for (String[] next : tabs) {
+					File file = null;
+					Resource res = null;
+					if (base != null) {
+						file = new File(base, next[1]); // next[1] is relative path
+						res = ResourceLoader.getResource(file.getPath());
+					}
+					if (res == null) {
+						file = new File(XML.getUserDirectory(), next[1]);
+						res = ResourceLoader.getResource(file.getPath());
+					}
+					if (res == null && next[0] != null) {
+						file = new File(next[0]); // next[0] is absolute path
+						res = ResourceLoader.getResource(file.getPath());
+					}
+					if (res == null) {
+						int i = JOptionPane.showConfirmDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
+								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message"), //$NON-NLS-1$
+								TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
+								JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+						if (i == JOptionPane.YES_OPTION) {
+							TrackerIO.getChooser().setSelectedFile(file);
+							java.io.File[] files = TrackerIO.getChooserFiles("open"); //$NON-NLS-1$
+							if (files != null) {
+								file = files[0];
+							} else
+								continue;
+						} else
+							continue;
+					}
+					if (res != null && !videoFilter.accept(file)) {
+						if (dataFile == null)
+							dataFile = file;
+						TrackerIO.openTabFile(file, frame);
+					}
+				}
+				TrackerIO.loadInSeparateThread = prev;
+			}
+			int n = frame.getTab(dataFile);
+			OSPLog.finest("selecting first tabset tab at index " + n); //$NON-NLS-1$
+			frame.setSelectedTab(n);
+			return obj;
+		}
   }
 
 

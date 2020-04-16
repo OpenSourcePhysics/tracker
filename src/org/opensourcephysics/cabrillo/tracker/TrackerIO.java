@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -1040,85 +1041,105 @@ public class TrackerIO extends VideoIO {
 		trackerPanel.changed = panelChanged;
 	}
 
-  /**
-   * Loads data or a video from a specified file into a new TrackerPanel.
-   * If file is null, a file chooser is displayed.
-   *
-   * @param file the file to be loaded (may be null)
-   * @param frame the frame for the TrackerPanel
-   */
-  public static void openTabFile(File file, final TFrame frame) {
-  	VideoType selectedType = null;
-  	if(file==null) {
-      File[] files = getChooserFiles("open"); //$NON-NLS-1$
-      if(files!=null) {
-        file = files[0];
-        selectedType = videoEnginePanel.getSelectedVideoType();
-      }
-    }
-    if(file==null) {
-    	OSPLog.finer("no file to open"); //$NON-NLS-1$
-      return;
-    }
-    
-  	frame.loadedFiles.clear();
-    final String path = XML.getAbsolutePath(file);
-    final VideoType vidType = selectedType;
-    
-    // open all files in Tracker
-    Runnable openTabPathRunnable = new Runnable() {
-    	public void run() {
-      	OSPLog.finest("opening file in tab"); //$NON-NLS-1$
-        openTabPath(path, null, frame, vidType, null);
-      }
-    };
-    // open in separate background thread if flagged
-    if (loadInSeparateThread) {
-      Thread openTabPathOpener = new Thread(openTabPathRunnable);
-      openTabPathOpener.setName("openTabPath");
-      openTabPathOpener.setPriority(Thread.NORM_PRIORITY);
-      openTabPathOpener.setDaemon(true);
-      openTabPathOpener.start();
-    }
-    else {
-    	openTabPathRunnable.run();
-    }
-    
-    // also open TRZ files in library browser
-    // BH! Q: this was effectively TRUE -- "any directory is OK" why?
-    if (trzFileFilter.accept(new File(path),false)) {
-	    Runnable libraryRunnable = new Runnable() {
-	    	public void run() {
-	      	OSPLog.finest("opening file in library browser"); //$NON-NLS-1$
-	        frame.getLibraryBrowser().open(path);
-//		      frame.getLibraryBrowser().setVisible(true); 
-	        Timer timer = new Timer(1000, new ActionListener() {
-	          public void actionPerformed(ActionEvent e) {
-	          	LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
-	          	if (treePanel!=null) {
-		    				treePanel.refreshSelectedNode();
-	          	}
-	          }
-	        });
-	        timer.setRepeats(false);
-	        timer.start();
-	      }
-	    };
-	    if (loadInSeparateThread) {
-	    	Thread libraryOpener = new Thread(libraryRunnable);
-	    	libraryOpener.setName("libraryOpener");
-	        
-	      libraryOpener.setPriority(Thread.NORM_PRIORITY);
-	      libraryOpener.setDaemon(true);
-	      libraryOpener.start();
-	    }
-	    else {
-	    	libraryRunnable.run();
-	    }
-	  }
-  }
+	/**
+	 * Loads data or a video from a specified file into a new TrackerPanel. If file
+	 * is null, a file chooser is displayed.
+	 *
+	 * @param file  the file to be loaded (may be null)
+	 * @param frame the frame for the TrackerPanel
+	 */
+	public static void openTabFile(File file, final TFrame frame) {
+		VideoType selectedType = null;
+		if (file == null) {
+			getChooserFilesAsync("open", new Function<File[], Void>() {//$NON-NLS-1$
 
-  /**
+				@Override
+				public Void apply(File[] files) {
+					if (files != null) {
+						File file = files[0];
+						// BH might not be able to do this in JavaScript
+						VideoType selectedType = videoEnginePanel.getSelectedVideoType();
+						openFileSynchronously(file, frame, selectedType);
+					}
+					return null;
+				}
+			});
+			return;
+		}
+		openFileSynchronously(file, frame, selectedType);
+	}
+
+	private static void openFileSynchronously(File file, TFrame frame, VideoType selectedType) {
+		if (file == null) {
+			OSPLog.finer("no file to open"); //$NON-NLS-1$
+			return;
+		}
+
+		frame.loadedFiles.clear();
+		final String path = XML.getAbsolutePath(file);
+		final VideoType vidType = selectedType;
+
+		// open all files in Tracker
+		Runnable openTabPathRunnable = new Runnable() {
+			public void run() {
+				OSPLog.finest("opening file in tab"); //$NON-NLS-1$
+				openTabPath(path, null, frame, vidType, null);
+				processOpenedFile(frame, path);
+			}
+		};
+		// open in separate background thread if flagged
+		if (loadInSeparateThread) {
+			frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			Thread openTabPathOpener = new Thread(openTabPathRunnable);
+			openTabPathOpener.setName("openTabPath");
+			openTabPathOpener.setPriority(Thread.NORM_PRIORITY);
+			openTabPathOpener.setDaemon(true);
+			openTabPathOpener.start();
+		} else {
+			openTabPathRunnable.run();
+		}
+	}
+
+	protected static void processOpenedFile(TFrame frame, String path) {
+		frame.setCursor(Cursor.getDefaultCursor());
+
+		// also open TRZ files in library browser
+		// BH! Q: this was effectively TRUE -- "any directory is OK" why?
+		if (trzFileFilter.accept(new File(path), false)) {
+			Runnable libraryRunnable = new Runnable() {
+				public void run() {
+					OSPLog.finest("opening file in library browser"); //$NON-NLS-1$
+					frame.getLibraryBrowser().open(path);
+//		      frame.getLibraryBrowser().setVisible(true); 
+					Timer timer = new Timer(1000, new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
+							if (treePanel != null) {
+								treePanel.refreshSelectedNode();
+							}
+						}
+					});
+					timer.setRepeats(false);
+					timer.start();
+				}
+			};
+			if (loadInSeparateThread) {
+				Thread libraryOpener = new Thread(libraryRunnable);
+				libraryOpener.setName("libraryOpener");
+
+				libraryOpener.setPriority(Thread.NORM_PRIORITY);
+				libraryOpener.setDaemon(true);
+				libraryOpener.start();
+			} else {
+			}
+			libraryRunnable.run();
+		}
+
+		// TODO Auto-generated method stub
+
+	}
+
+/**
    * Loads data or a video from a specified url into a new TrackerPanel.
    *
    * @param url the url to be loaded
