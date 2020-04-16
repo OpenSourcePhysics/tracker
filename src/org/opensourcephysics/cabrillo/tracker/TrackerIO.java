@@ -1159,7 +1159,7 @@ public class TrackerIO extends VideoIO {
 					OSPLog.finest("opening URL " + path); //$NON-NLS-1$
 					openTabPath(path, null, frame, null, desktopFiles);
 				}
-				if (trzPath != null)
+				if (trzPath != null && OSPRuntime.autoAddLibrary)
 					addToLibrary(frame, trzPath);
 			}
     };
