@@ -1443,7 +1443,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   					if (res!=null) {
   						ArrayList<String> urlPaths = new ArrayList<String>();
   						urlPaths.add(target);
-  						TrackerIO.openCollection(urlPaths, TFrame.this, null);
+  						TrackerIO.openCollection(urlPaths, TFrame.this, null, null);
   					}
   					else {
 							String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$

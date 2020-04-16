@@ -364,8 +364,8 @@ public class TrackerIO extends VideoIO {
 	 * @return the files, or null if no files chosen
 	 */
 	public static File[] getChooserFilesAsync(String type, Function<File[], Void> processFiles) {
-	
-		// BH Java will run all this synchronously anyway. 
+
+		// BH Java will run all this synchronously anyway.
 		AsyncFileChooser chooser = getChooser();
 		// open tracker or video file
 
@@ -376,21 +376,22 @@ public class TrackerIO extends VideoIO {
 				chooser.resetChoosableFileFilters();
 				chooser.setSelectedFile(null);
 			}
-			
+
 		};
-		
+
 		Runnable okOpen = new Runnable() {
 
 			@Override
 			public void run() {
-				File file = chooser.getSelectedFile();
-				resetChooser.run();
-				if (processFiles != null)
+				if (processFiles != null) {
+					File file = chooser.getSelectedFile();
+					resetChooser.run();
 					processFiles.apply(new File[] { file });
+				}
 			}
 
 		};
-		
+
 		Runnable okSave = new Runnable() {
 
 			@Override
@@ -499,11 +500,15 @@ public class TrackerIO extends VideoIO {
 				}
 
 			}, resetChooser);
-			ret = (processFiles != null || chooser.getSelectedOption() != JFileChooser.APPROVE_OPTION ?  null : fixXML(chooser));
+			ret = (processFiles != null || chooser.getSelectedOption() != JFileChooser.APPROVE_OPTION ? null
+					: fixXML(chooser));
 		} else {
 			return VideoIO.getChooserFilesAsync(type, processFiles);
 		}
 		ret = processChoose(chooser, ret, processFiles != null);
+		if (processFiles == null) {
+			resetChooser.run();
+		}
 		return (ret == null || isSave && !canWrite(ret) ? null : new File[] { ret });
 	}
   
@@ -899,7 +904,7 @@ public class TrackerIO extends VideoIO {
 				// load trk files into Tracker
 				if (!VideoIO.isCanceled()) {
 					monitorDialog.close();
-					openCollection(trkFiles, frame, tempFiles); // this also adds tempFile paths to trackerPanel
+					openCollection(trkFiles, frame, tempFiles, path); // this also adds tempFile paths to trackerPanel
 					// add TRZ, ZIP and JAR paths to recent files
 					Tracker.addRecent(nonURIPath, false); // add at beginning
 					return;
@@ -1083,42 +1088,44 @@ public class TrackerIO extends VideoIO {
     else {
     	openTabPathRunnable.run();
     }
-    
-    // also open TRZ files in library browser
-    // BH! Q: this was effectively TRUE -- "any directory is OK" why?
-    if (trzFileFilter.accept(new File(path),false)) {
-	    Runnable libraryRunnable = new Runnable() {
-	    	public void run() {
-	      	OSPLog.finest("opening file in library browser"); //$NON-NLS-1$
-	        frame.getLibraryBrowser().open(path);
-//		      frame.getLibraryBrowser().setVisible(true); 
-	        Timer timer = new Timer(1000, new ActionListener() {
-	          public void actionPerformed(ActionEvent e) {
-	          	LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
-	          	if (treePanel!=null) {
-		    				treePanel.refreshSelectedNode();
-	          	}
-	          }
-	        });
-	        timer.setRepeats(false);
-	        timer.start();
-	      }
-	    };
-	    if (loadInSeparateThread) {
-	    	Thread libraryOpener = new Thread(libraryRunnable);
-	    	libraryOpener.setName("libraryOpener");
-	        
-	      libraryOpener.setPriority(Thread.NORM_PRIORITY);
-	      libraryOpener.setDaemon(true);
-	      libraryOpener.start();
-	    }
-	    else {
-	    	libraryRunnable.run();
-	    }
-	  }
   }
 
-  /**
+  private static void addToLibrary(TFrame frame, String path) {
+	    // also open TRZ files in library browser
+	    // BH! Q: this was effectively TRUE -- "any directory is OK" why?
+	    if (trzFileFilter.accept(new File(path),false)) {
+		    Runnable libraryRunnable = new Runnable() {
+		    	public void run() {
+		      	OSPLog.finest("opening file in library browser"); //$NON-NLS-1$
+		        frame.getLibraryBrowser().open(path);
+//			      frame.getLibraryBrowser().setVisible(true); 
+		        Timer timer = new Timer(1000, new ActionListener() {
+		          public void actionPerformed(ActionEvent e) {
+		          	LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
+		          	if (treePanel!=null) {
+			    				treePanel.refreshSelectedNode();
+		          	}
+		          }
+		        });
+		        timer.setRepeats(false);
+		        timer.start();
+		      }
+		    };
+		    if (loadInSeparateThread) {
+		    	Thread libraryOpener = new Thread(libraryRunnable);
+		    	libraryOpener.setName("libraryOpener");
+		        
+		      libraryOpener.setPriority(Thread.NORM_PRIORITY);
+		      libraryOpener.setDaemon(true);
+		      libraryOpener.start();
+		    }
+		    else {
+		    	libraryRunnable.run();
+		    }
+		  }
+  }
+
+/**
    * Loads data or a video from a specified url into a new TrackerPanel.
    *
    * @param url the url to be loaded
@@ -1140,19 +1147,21 @@ public class TrackerIO extends VideoIO {
    * @param frame the frame for the TrackerPanels
    * @param desktopFiles supplemental HTML and PDF files to load on the desktop
    */
-  public static void openCollection(final Collection<String> urlPaths, final TFrame frame, final ArrayList<String> desktopFiles) {
+  public static void openCollection(final Collection<String> urlPaths, final TFrame frame, final ArrayList<String> desktopFiles, String trzPath) {
     if(urlPaths==null || urlPaths.isEmpty()) {
       return;
     }
   	frame.loadedFiles.clear();
     // open in separate background thread if flagged
     Runnable tabRunner = new Runnable() {
-    	public void run() {
-    		for (String path: urlPaths) {
-			  	OSPLog.finest("opening URL "+path); //$NON-NLS-1$
-	        openTabPath(path, null, frame, null, desktopFiles);
-    		}
-      }
+			public void run() {
+				for (String path : urlPaths) {
+					OSPLog.finest("opening URL " + path); //$NON-NLS-1$
+					openTabPath(path, null, frame, null, desktopFiles);
+				}
+				if (trzPath != null)
+					addToLibrary(frame, trzPath);
+			}
     };
     if (loadInSeparateThread) {
       Thread tabOpener = new Thread(tabRunner);
