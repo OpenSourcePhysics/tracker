@@ -7,7 +7,7 @@
 	top: 100px;
 	left: 100px;
 	width: 500px;
-	height: 275px; #
+	height: 281px; #
 	margin: 0 auto; #
 	padding: 20px;
 	background: orange;
@@ -18,7 +18,7 @@
 	top: 0px;
 	left: 0px;
 	width: 500px;
-	height: 275px;
+	height: 281px;
 	z-index: 1000; #
 	margin: 0 auto; #
 	padding: 20px;
@@ -38,7 +38,7 @@
 			<td width=600 valign="top">
 				<div class="content">
 					<video id="player" src="duet.mp4" autoplay loop></video>
-					<canvas style="height: 275px" id="cover" width="500" height="275"
+					<canvas style="height: 281px" id="cover" width="500" height="281"
 						class="cover" onmouseenter="covertest(1)"
 						onclick="test(event)" onmouseleave="covertest(0)">
 					</canvas>
@@ -56,7 +56,7 @@
 				<button onclick=doAction(-4)>capture image</button>
 				<button onclick=doAction(-5)>save image</button>	
 				<button onclick=doAction(-3) style="float: right">clear output</button>
-				<br><canvas id="capture" style="width: 500px; height: 275px"></canvas></td>
+				<br><canvas id="capture" style="width: 500px; height: 281px"></canvas></td>
 		</tr>
 	</table>
 	<script>
@@ -82,10 +82,11 @@ covertest = function(isenter) {
 var lastTime = 0;
 
 videoListener = function(event) {
+  var video = document.getElementById("player");
   var t = event.target.currentTime;
   var dt = t - lastTime;
   lastTime = t;
-  output((new Date) + "\nt=" + t + " dt=" + dt + "\n");
+  output((new Date) + "\nt=" + t + " dt=" + dt + " w=" + video.videoWidth + " h=" + video.videoHeight + "\n");
 }
 
 output = function(msg) {
