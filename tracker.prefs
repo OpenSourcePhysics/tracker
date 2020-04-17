@@ -7,8 +7,8 @@
     <property name="last_checked" type="int">1586746731</property>
     <property name="file_chooser_directory" type="string">c:/temp</property>
     <property name="recent_files" type="collection" class="java.util.ArrayList">
-        <property name="item" type="string">C:/temp/car.trz</property>
         <property name="item" type="string">c:/temp/car.trz</property>
+        <property name="item" type="string">C:/temp/car.trz</property>
         <property name="item" type="string">C:/Users/hansonr/git/tracker/tmp/Cache/osp-www_compadre_org/osp/document/Car_in_a_loop_with_friction.trz</property>
         <property name="item" type="string">C:/Users/hansonr/git/tracker/tmp/Cache/osp-www_compadre_org/osp/document/SlidingLadder.trz</property>
         <property name="item" type="string">C:/Users/hansonr/git/tracker/tmp/Cache/osp-www_compadre_org/osp/document/InfluenceOfSpinning.trz</property>
