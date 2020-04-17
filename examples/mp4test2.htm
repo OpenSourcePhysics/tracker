@@ -1,63 +1,72 @@
 <html>
 <head>
+<meta charset="utf-8">
 <style>
 .content {
-  position:absolute;
-  top:100px;
-  left:100px;
-  width: 500px;
-  height: 275px;
-  #margin: 0 auto;
-  #padding: 20px;
-  background:orange;
+	position: absolute;
+	top: 100px;
+	left: 100px;
+	width: 500px;
+	height: 275px; #
+	margin: 0 auto; #
+	padding: 20px;
+	background: orange;
 }
+
 .cover {
-  position:absolute;
-  top:0px;
-  left:0px;
-  width: 500px;
-  height: 275px;
-  z-index:1000;
-  #margin: 0 auto;
-  #padding: 20px;
-  background:rgba(0, 0, 0, 0);
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 500px;
+	height: 275px;
+	z-index: 1000; #
+	margin: 0 auto; #
+	padding: 20px;
+	background: rgba(0, 0, 0, 0);
 }
+
 .content video {
-  width: 100%;
-  z-index:100;
-  display: block;
+	width: 100%;
+	z-index: 100;
+	display: block;
 }
 </style>
 </head>
-<body>
-<table>
-<tr><td width=600>
-<div class="content">
-  <video id="player"  src="duet.mp4" autoplay loop></video>
-<canvas style="height:200px" id="cover" width="500" height="200" class="cover"
- onmouseenter="covertest(1)" 
- onmousemove="test(event)" 
- onmouseleave="covertest(0)">
-</canvas>
-</div>
-</td><td>
-<textarea id="output" style="width:600px;height:400px;overflow:auto"></textarea>
-<br>
-<button onclick=nextFrame(-1)>play</button>
-<button onclick=nextFrame(-2)>pause</button>
-<button onclick=nextFrame()>next frame</button>
-<button onclick=nextFrame(-3)>clear output</button>
-
-</td></tr>
-</table>
-<script>
+<body onload="doAction(-3)">
+	<table border=1>
+		<tr>
+			<td width=600 valign="top">
+				<div class="content">
+					<video id="player" src="duet.mp4" autoplay loop></video>
+					<canvas style="height: 275px" id="cover" width="500" height="275"
+						class="cover" onmouseenter="covertest(1)"
+						onclick="test(event)" onmouseleave="covertest(0)">
+					</canvas>
+					<br>
+						Click on the video to add a point.
+					
+				</div>
+			</td>
+			<td valign="top"><textarea id="output"
+					style="width: 650px; height: 200px; overflow: auto"></textarea> <br>
+				<button onclick=doAction(-1)>play</button>
+				<button onclick=doAction(-2)>pause</button>
+				<button onclick=doAction(2)>previous frame</button>
+				<button onclick=doAction(1)>next frame</button>
+				<button onclick=doAction(-4)>capture image</button>
+				<button onclick=doAction(-5)>save image</button>	
+				<button onclick=doAction(-3) style="float: right">clear output</button>
+				<br><canvas id="capture" style="width: 500px; height: 275px"></canvas></td>
+		</tr>
+	</table>
+	<script>
 test = function(e) {
   var canvas = document.getElementById("cover");
   var video = document.getElementById("player");
   var ctx = canvas.getContext("2d");
   var x = e.x - canvas.parentElement.offsetLeft
   var y = e.y - canvas.parentElement.offsetTop
-  document.title = "x=" + x + " y=" + y + " time=" + video.currentTime
+  output("x=" + x + " y=" + y + " time=" + video.currentTime);
   ctx.fillStyle="red" 
   ctx.fillRect(x,y-5,1,10);
   ctx.fillRect(x-5,y,10,1);
@@ -76,35 +85,58 @@ videoListener = function(event) {
   var t = event.target.currentTime;
   var dt = t - lastTime;
   lastTime = t;
-  document.getElementById("output").value += (new Date) + "\nt=" + t + " dt=" + dt + "\n\n";
-  document.getElementById("output").scrollTop = 100000
+  output((new Date) + "\nt=" + t + " dt=" + dt + "\n");
 }
 
-nextFrame = function(f) {
+output = function(msg) {
+	document.getElementById("output").value += msg + "\n";
+	document.getElementById("output").scrollTop = 1000000;
+}
+doAction = function(f) {
   var p = document.getElementById("player")
   f || (f = 0);
   switch (f) {
   case -1:
-     p.play();
-     break;
+	p.play();
+	break;
   case -2:
-     p.pause();
-     break;
+	p.pause();
+	break;
   case -3:
-     document.getElementById("output").value = "";
-     break;
-  default:
-     p.seekToNextFrame();
-     p.pause(); 
-     break;
+	document.getElementById("output").value = "";
+	break;
+  case -4:
+    captureImage();
+    break;
+  case -5:
+	  alert('Please download the JavaScript version of Tracker for this functionality.' + String.fromCodePoint(0x1F609));
+	  break;
+  case 1:
+  	try {
+		p.seekToNextFrame();
+    } catch (e){
+    	p.currentTime += 0.033334;
+    }
+	p.pause(); 
+	break;
+  case 2:
+    p.currentTime -= 0.033334;
+	p.pause(); 
+	break;
   }
+}
+
+captureImage = function() {
+    var canvas = document.getElementById("capture");
+    var video = document.getElementById("player")
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 }
 
 document.getElementById("player").addEventListener("timeupdate", videoListener);
 
 </script>
-
-Run your mouse over the MP4 that is running. See also <a href="https://www.elstel.org/html5video/Html5VideoScripting.html.en">Html5VideoScripting.html</a>
-
 </body>
 </html>
