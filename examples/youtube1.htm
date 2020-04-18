@@ -4,8 +4,6 @@
 <style>
 .content {
 	position: absolute;
-	top: 100px;
-	left: 100px;
 	width: 500px;
 	height: 281px; #
 	margin: 0 auto; #
@@ -17,11 +15,8 @@
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	width: 500px;
-	height: 281px;
 	z-index: 1000; #
 	margin: 0 auto; #
-	padding: 20px;
 	background: rgba(0, 0, 0, 0);
 }
 
@@ -30,43 +25,79 @@
 	z-index: 100;
 	display: block;
 }
+
+.content iframe {
+	z-index: 100;
+	display: block;
+}
+
+.imagesize {
+	width: 560px;
+	height: 315px;
+}
+
+.coversize {
+	width: 560px;
+	height: 270px;
+}
+
 </style>
+<script>
+getField = function(key) {
+	var q = document.location.search || "";
+	q && (q = "&" + q.substring(1));
+	q += "&" + key + "=";
+	return q.split(key + "=")[1].split("&")[0];
+}
+youtubeid = getField("id") ||"UuaJX9xWJYU";
+youtubetime = +(getField("start") || 0);
+youtube = "https://www.youtube.com/embed/" + youtubeid + "?start=" + youtubetime;
+</script>
 </head>
 <body onload="doAction('stopMarking')">
 	<table border=1>
 		<tr>
 			<td width=600 valign="top">
 				<div class="content">
-					<video id="player" src="duet.mp4" autoplay loop></video>
-					<canvas style="height: 281px" id="cover" width="500" height="281"
-						class="cover" onmouseenter="covertest(1)"
+<iframe id="iframe" width="560" height="315" frameborder="0" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"></iframe>					
+<canvas id="cover" width="560" height="270" class="cover coversize" onmouseenter="covertest(1)"
 						onclick="test(event)" onmouseleave="covertest(0)">
 					</canvas>
 					<br>
 						Click on the video to add a point.
+				<br>
+				<button id="btn_play" onclick=doAction("play")>play</button>
+				<button id="btn_pause" onclick=doAction("pause")>pause</button>
+				<button id="btn_prev" onclick=doAction("prev")>previous frame</button>
+				<button id="btn_next" onclick=doAction("next")>next frame</button>
+				<button id="btn_startMarking" onclick=doAction("startMarking")>start marking</button>
+				<button id="btn_stopMarking" onclick=doAction("stopMarking")>stop marking</button>
+				<br>
+				<button id="btn_capture" onclick=doAction("capture")>capture image</button>
 					
 				</div>
 			</td>
-			<td valign="top"><textarea id="output"
-					style="width: 650px; height: 200px; overflow: auto"></textarea> <br>
-				<button onclick=doAction("play")>play</button>
-				<button onclick=doAction("pause")>pause</button>
-				<button onclick=doAction("prev")>previous frame</button>
-				<button onclick=doAction("next")>next frame</button>
-				<button onclick=doAction("capture")>capture image</button>
-				<button onclick=doAction("save")>save image</button>	
-				<button onclick=doAction("clear") style="float: right">clear output</button>
+			<td valign="top"><textarea style="width:600px;height:200px" id="output"
+					style="overflow: auto"></textarea> <br>
+				<button id="btn_save" onclick=doAction("save")>save image</button>	
+				<button id="btn_clear" onclick=doAction("clear") style="float: right">clear output</button>
 				<br><canvas id="capture" style="width: 500px; height: 281px"></canvas></td>
 		</tr>
 	</table>
 	<script>
+	
+if (youtube) {
+	document.getElementById("btn_play").style.display="none";
+	document.getElementById("btn_pause").style.display="none";
+	document.getElementById("btn_save").style.display="none";
+	document.getElementById("btn_capture").style.display="none";	
+}
 test = function(e) {
   var canvas = document.getElementById("cover");
-  var video = document.getElementById("player");
   var ctx = canvas.getContext("2d");
   var x = e.x - canvas.parentElement.offsetLeft
   var y = e.y - canvas.parentElement.offsetTop
-  output("x=" + x + " y=" + y + " time=" + video.currentTime);
+  output("x=" + x + " y=" + y);
   ctx.fillStyle="red" 
   ctx.fillRect(x,y-5,1,10);
   ctx.fillRect(x-5,y,10,1);
@@ -94,9 +125,16 @@ output = function(msg) {
 	document.getElementById("output").scrollTop = 1000000;
 }
 doAction = function(f) {
-  var p = document.getElementById("player")
   f || (f = 0);
+  var b = false;
   switch (f) {
+  case "startMarking":
+	  b = true;
+	  // fall through
+  case "stopMarking":
+	  var canvas = document.getElementById("cover");
+	  canvas.style.display = (b ? "block" : "none");	  
+	break;  
   case "play":
 	p.play();
 	break;
@@ -113,6 +151,7 @@ doAction = function(f) {
 	  alert('Please download the JavaScript version of Tracker for this functionality.' + String.fromCodePoint(0x1F609));
 	  break;
   case "next":
+	  b = true;
   	try {
 		p.seekToNextFrame();
     } catch (e){
@@ -135,9 +174,11 @@ captureImage = function() {
 
     canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
 }
-
-document.getElementById("player").addEventListener("timeupdate", videoListener);
-
+if (youtube) {
+	document.getElementById("iframe").src = youtube;
+} else {
+	document.getElementById("player").addEventListener("timeupdate", videoListener);
+}
 </script>
 </body>
 </html>
