@@ -30,7 +30,8 @@
 </style>
 </head>
 <body>
-
+<table>
+<tr><td width=600>
 <div class="content">
   <video id="player"  src="jmoljana.mp4" autoplay loop muted></video>
 <canvas id="cover" width="500" height="275" class="cover"
@@ -39,7 +40,10 @@
  onmouseleave="covertest(0)">
 </canvas>
 </div>
-
+</td><td>
+<textarea id="output" style="width:600px;height:400px;overflow:auto"></textarea>
+</td></tr>
+</table>
 <script>
 test = function(e) {
   var canvas = document.getElementById("cover");
@@ -59,6 +63,19 @@ test = function(e) {
 covertest = function(isenter) {
   document.body.style.background=(isenter?"#aaa" : null)
 }
+
+var lastTime = 0;
+
+videoListener = function(event) {
+  var t = event.target.currentTime;
+  var dt = t - lastTime;
+  lastTime = t;
+  document.getElementById("output").value += (new Date) + "\nt=" + t + " dt=" + dt + "\n\n";
+
+}
+
+document.getElementById("player").addEventListener("timeupdate", videoListener);
+
 </script>
 
 Run your mouse over the MP4 that is running. See also <a href="https://www.elstel.org/html5video/Html5VideoScripting.html.en">Html5VideoScripting.html</a>
