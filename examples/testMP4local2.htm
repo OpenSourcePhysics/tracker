@@ -32,7 +32,8 @@
 }
 </style>
 </head>
-<body onload="doAction(-3)">
+<body onload="doAction('stopMarking')">
+Test of reading a page-local MP4 file.
 	<table border=1>
 		<tr>
 			<td width=600 valign="top">
@@ -49,13 +50,13 @@
 			</td>
 			<td valign="top"><textarea id="output"
 					style="width: 650px; height: 200px; overflow: auto"></textarea> <br>
-				<button onclick=doAction(-1)>play</button>
-				<button onclick=doAction(-2)>pause</button>
-				<button onclick=doAction(2)>previous frame</button>
-				<button onclick=doAction(1)>next frame</button>
-				<button onclick=doAction(-4)>capture image</button>
-				<button onclick=doAction(-5)>save image</button>	
-				<button onclick=doAction(-3) style="float: right">clear output</button>
+				<button onclick=doAction("play")>play</button>
+				<button onclick=doAction("pause")>pause</button>
+				<button onclick=doAction("prev")>previous frame</button>
+				<button onclick=doAction("next")>next frame</button>
+				<button onclick=doAction("capture")>capture image</button>
+				<button onclick=doAction("save")>save image</button>	
+				<button onclick=doAction("clear") style="float: right">clear output</button>
 				<br><canvas id="capture" style="width: 500px; height: 281px"></canvas></td>
 		</tr>
 	</table>
@@ -97,22 +98,22 @@ doAction = function(f) {
   var p = document.getElementById("player")
   f || (f = 0);
   switch (f) {
-  case -1:
+  case "play":
 	p.play();
 	break;
-  case -2:
+  case "pause":
 	p.pause();
 	break;
-  case -3:
+  case "clear":
 	document.getElementById("output").value = "";
 	break;
-  case -4:
+  case "capture":
     captureImage();
     break;
-  case -5:
+  case "save":
 	  alert('Please download the JavaScript version of Tracker for this functionality.' + String.fromCodePoint(0x1F609));
 	  break;
-  case 1:
+  case "next":
   	try {
 		p.seekToNextFrame();
     } catch (e){
@@ -120,7 +121,7 @@ doAction = function(f) {
     }
 	p.pause(); 
 	break;
-  case 2:
+  case "prev":
     p.currentTime -= 0.033334;
 	p.pause(); 
 	break;

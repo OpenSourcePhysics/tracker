@@ -1,0 +1,85 @@
+<html>
+<head>
+<style>
+.content {
+  position:absolute;
+  top:100px;
+  left:100px;
+  width: 500px;
+  height: 275px;
+  #margin: 0 auto;
+  #padding: 20px;
+  background:orange;
+}
+.cover {
+  position:absolute;
+  top:0px;
+  left:0px;
+  width: 500px;
+  height: 275px;
+  z-index:1000;
+  #margin: 0 auto;
+  #padding: 20px;
+  background:rgba(0, 0, 0, 0);
+}
+.content video {
+  width: 100%;
+  z-index:100;
+  display: block;
+}
+</style>
+</head>
+<body>
+Test of reading a page-local MP4 file.
+<table>
+<tr><td width=600>
+<div class="content">
+  <video id="player"  src="jmoljana.mp4" autoplay loop muted></video>
+<canvas id="cover" width="500" height="275" class="cover"
+ onmouseenter="covertest(1)" 
+ onmousemove="test(event)" 
+ onmouseleave="covertest(0)">
+</canvas>
+</div>
+</td><td>
+<textarea id="output" style="width:600px;height:400px;overflow:auto"></textarea>
+</td></tr>
+</table>
+<script>
+test = function(e) {
+  var canvas = document.getElementById("cover");
+  var video = document.getElementById("player");
+  var ctx = canvas.getContext("2d");
+  var x = e.x - canvas.parentElement.offsetLeft
+  var y = e.y - canvas.parentElement.offsetTop
+  document.title = "x=" + x + " y=" + y + " time=" + video.currentTime
+  ctx.fillStyle="red" 
+  ctx.fillRect(x,y-5,1,10);
+  ctx.fillRect(x-5,y,10,1);
+  ctx.beginPath();
+  ctx.arc(x, y, 1, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+covertest = function(isenter) {
+  document.body.style.background=(isenter?"#aaa" : null)
+}
+
+var lastTime = 0;
+
+videoListener = function(event) {
+  var t = event.target.currentTime;
+  var dt = t - lastTime;
+  lastTime = t;
+  document.getElementById("output").value += (new Date) + "\nt=" + t + " dt=" + dt + "\n\n";
+
+}
+
+document.getElementById("player").addEventListener("timeupdate", videoListener);
+
+</script>
+
+Run your mouse over the MP4 that is running. See also <a href="https://www.elstel.org/html5video/Html5VideoScripting.html.en">Html5VideoScripting.html</a>
+
+</body>
+</html>

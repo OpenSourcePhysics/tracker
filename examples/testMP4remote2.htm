@@ -1,0 +1,144 @@
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+.content {
+	position: absolute;
+	top: 100px;
+	left: 100px;
+	width: 500px;
+	height: 281px; #
+	margin: 0 auto; #
+	padding: 20px;
+	background: orange;
+}
+
+.cover {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 500px;
+	height: 281px;
+	z-index: 1000; #
+	margin: 0 auto; #
+	padding: 20px;
+	background: rgba(0, 0, 0, 0);
+}
+
+.content video {
+	width: 100%;
+	z-index: 100;
+	display: block;
+}
+</style>
+</head>
+<body onload="doAction('stopMarking')">
+Test of reading a page-local MP4 file.
+	<table border=1>
+		<tr>
+			<td width=600 valign="top">
+				<div class="content">
+					<video id="player" src="https://r1---sn-vgqsrnee.googlevideo.com/videoplayback?expire=1587253049&ei=2TqbXpXqFciAkwawza3oCg&ip=107.167.67.140&id=o-AGHn89cqR_geDAoCEMePxdDaWJWX_0N7Fjc762EJRqOA&itag=18&source=youtube&requiressl=yes&vprv=1&mime=video%2Fmp4&gir=yes&clen=65694526&ratebypass=yes&dur=839.772&lmt=1394397875347507&fvip=1&c=WEB&sparams=expire%2Cei%2Cip%2Cid%2Citag%2Csource%2Crequiressl%2Cvprv%2Cmime%2Cgir%2Cclen%2Cratebypass%2Cdur%2Clmt&sig=AJpPlLswRQIhAIONG5sJ5ZZtV2sdwXdDyPqZynF_dhl6UU8adGPLEnjAAiAL6pBHFiygitUCY9TBwrVsyMdzAiZztWiWwMqPkd225g%3D%3D&title=Schleicher+ASK-21+Full+Glider+Flight+|+Soaring+in+Minnesota+|+Stanton+Airfield&dl=1&redirect_counter=1&rm=sn-a5mry7e&req_id=a3d7e8bce82536e2&cms_redirect=yes&ipbypass=yes&mh=aQ&mip=66.216.239.156&mm=31&mn=sn-vgqsrnee&ms=au&mt=1587231387&mv=m&mvi=0&pl=20&lsparams=ipbypass,mh,mip,mm,mn,ms,mv,mvi,pl&lsig=ALrAebAwRgIhALMW0Y1VFadbJWhlsZ06b9M9lJOr3IC5HuExvDmvRnHXAiEAyvQuLj3ROY9JsR6ryy9oGU3ECVvrOkMju2pCEQ-eU5w%3D" autoplay loop></video>
+					<canvas style="height: 281px" id="cover" width="500" height="281"
+						class="cover" onmouseenter="covertest(1)"
+						onclick="test(event)" onmouseleave="covertest(0)">
+					</canvas>
+					<br>
+						Click on the video to add a point.
+					
+				</div>
+			</td>
+			<td valign="top"><textarea id="output"
+					style="width: 650px; height: 200px; overflow: auto"></textarea> <br>
+				<button onclick=doAction("play")>play</button>
+				<button onclick=doAction("pause")>pause</button>
+				<button onclick=doAction("prev")>previous frame</button>
+				<button onclick=doAction("next")>next frame</button>
+				<button onclick=doAction("capture")>capture image</button>
+				<button onclick=doAction("save")>save image</button>	
+				<button onclick=doAction("clear") style="float: right">clear output</button>
+				<br><canvas id="capture" style="width: 500px; height: 281px"></canvas></td>
+		</tr>
+	</table>
+	<script>
+test = function(e) {
+  var canvas = document.getElementById("cover");
+  var video = document.getElementById("player");
+  var ctx = canvas.getContext("2d");
+  var x = e.x - canvas.parentElement.offsetLeft
+  var y = e.y - canvas.parentElement.offsetTop
+  output("x=" + x + " y=" + y + " time=" + video.currentTime);
+  ctx.fillStyle="red" 
+  ctx.fillRect(x,y-5,1,10);
+  ctx.fillRect(x-5,y,10,1);
+  ctx.beginPath();
+  ctx.arc(x, y, 1, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+covertest = function(isenter) {
+  document.body.style.background=(isenter?"#aaa" : null)
+}
+
+var lastTime = 0;
+
+videoListener = function(event) {
+  var video = document.getElementById("player");
+  var t = event.target.currentTime;
+  var dt = t - lastTime;
+  lastTime = t;
+  output((new Date) + "\nt=" + t + " dt=" + dt + " w=" + video.videoWidth + " h=" + video.videoHeight + "\n");
+}
+
+output = function(msg) {
+	document.getElementById("output").value += msg + "\n";
+	document.getElementById("output").scrollTop = 1000000;
+}
+doAction = function(f) {
+  var p = document.getElementById("player")
+  f || (f = 0);
+  switch (f) {
+  case "play":
+	p.play();
+	break;
+  case "pause":
+	p.pause();
+	break;
+  case "clear":
+	document.getElementById("output").value = "";
+	break;
+  case "capture":
+    captureImage();
+    break;
+  case "save":
+	  alert('Please download the JavaScript version of Tracker for this functionality.' + String.fromCodePoint(0x1F609));
+	  break;
+  case "next":
+  	try {
+		p.seekToNextFrame();
+    } catch (e){
+    	p.currentTime += 0.033334;
+    }
+	p.pause(); 
+	break;
+  case "prev":
+    p.currentTime -= 0.033334;
+	p.pause(); 
+	break;
+  }
+}
+
+captureImage = function() {
+    var canvas = document.getElementById("capture");
+    var video = document.getElementById("player")
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+}
+
+document.getElementById("player").addEventListener("timeupdate", videoListener);
+
+</script>
+</body>
+</html>
