@@ -46,6 +46,7 @@ import org.opensourcephysics.tools.TristateCheckBox;
  * A FunctionTool for building data functions for track data.
  */
 public class TrackDataBuilder extends FunctionTool {
+	private static Icon openIcon, saveIcon;
 	
 	private TrackerPanel trackerPanel;
 	private JButton loadButton, saveButton, autoloadButton;
@@ -81,8 +82,12 @@ public class TrackDataBuilder extends FunctionTool {
 	 */
 	protected void createButtons() {
 		// create loadButton
-    String imageFile = "/org/opensourcephysics/resources/tools/images/open.gif"; //$NON-NLS-1$
-    Icon openIcon  = ResourceLoader.getIcon(imageFile);
+		if (openIcon==null) {
+		    String imageFile = "/org/opensourcephysics/resources/tools/images/open.gif"; //$NON-NLS-1$
+		    openIcon  = ResourceLoader.getIcon(imageFile);			
+		    imageFile = "/org/opensourcephysics/resources/tools/images/save.gif"; //$NON-NLS-1$
+		    saveIcon = ResourceLoader.getIcon(imageFile);
+		}
 		loadButton = new JButton(openIcon);
 		loadButton.addActionListener(new ActionListener() {
 		  public void actionPerformed(ActionEvent e) {
@@ -245,8 +250,6 @@ public class TrackDataBuilder extends FunctionTool {
 		});
 
 		// create saveButton
-    imageFile = "/org/opensourcephysics/resources/tools/images/save.gif"; //$NON-NLS-1$
-    Icon saveIcon = ResourceLoader.getIcon(imageFile);
 		saveButton = new JButton(saveIcon);
 		
 		final ActionListener saveBuilderAction = new ActionListener() {

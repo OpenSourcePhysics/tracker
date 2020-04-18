@@ -457,12 +457,12 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		versionPanel.setBorder(BorderFactory.createLineBorder(lightblue));
 		contentPane.add(versionPanel, BorderLayout.SOUTH);
 
-		splash.pack();
-		Dimension size = splash.getSize();
-		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		int x = dim.width / 2;
-		int y = 3 * dim.height / 5; // below center
-		splash.setLocation(x - size.width / 2, y - size.height / 2);
+//		splash.pack();
+//		Dimension size = splash.getSize();
+//		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+//		int x = dim.width / 2;
+//		int y = 3 * dim.height / 5; // below center
+//		splash.setLocation(x - size.width / 2, y - size.height / 2);
 
 		// set up videos extensions to extract from jars
 		// this list should agree with xuggle video types below
@@ -551,19 +551,21 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		// but that does not work in JavaScript, because when the class is first loaded
 		// there is no JSAppletViewer or JSDummyApplet "top" level object set yet.
 		// We run initClass once, based on loading the default locale once (which is
-		// always
-		// non null).
+		// always non null).
 		initClass();
 //		helper = new StateHelper(this);
 //		helper.next(STATE_INIT);
-		// set font level resize and center splash frame
-		FontSizer.setFonts(splash, FontSizer.getLevel());
-		splash.pack();
-		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-		int x = (dim.width - splash.getBounds().width) / 2;
-		int y = (dim.height - splash.getBounds().height) / 2;
-		splash.setLocation(x, y);
-		splash.setVisible(showSplash);
+
+		if (showSplash && !OSPRuntime.isJS) {
+			// set font level resize and center splash frame
+			FontSizer.setFonts(splash, FontSizer.getLevel());
+			splash.pack();
+			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+			int x = (dim.width - splash.getBounds().width) / 2;
+			int y = (dim.height - splash.getBounds().height) / 2;
+			splash.setLocation(x, y);
+		}
+		splash.setVisible(showSplash && !OSPRuntime.isJS);
 		
 		createFrame();
 		Tracker.setProgress(5);
@@ -1665,8 +1667,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		if (xuggleHome != null) {
 			OSPRuntime.setPreference("XUGGLE_HOME", xuggleHome); //$NON-NLS-1$
 		}
-		OSPRuntime.savePreferences();
-
+		if (!OSPRuntime.isJS) {
+			OSPRuntime.savePreferences();
+		}
 		return prefsPath;
 	}
 
