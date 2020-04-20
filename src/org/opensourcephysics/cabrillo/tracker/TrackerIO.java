@@ -98,6 +98,8 @@ import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoType;
+import org.opensourcephysics.media.mov.MovieFactory;
+import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.LibraryTreePanel;
@@ -262,7 +264,7 @@ public class TrackerIO extends VideoIO {
   	}
   	
   	boolean isNew = file==null;
-  	file = VideoIO.save(file, trackerPanel, 
+  	file = save(file, trackerPanel, 
   			TrackerRes.getString("TrackerIO.Dialog.SaveTab.Title")); //$NON-NLS-1$
   	chooser.removeChoosableFileFilter(trkFileFilter);
   	chooser.setAcceptAllFileFilterUsed(true);
@@ -313,7 +315,7 @@ public class TrackerIO extends VideoIO {
         continue;
       }
     	getChooser().setAccessory(null);
-      File newFile = VideoIO.save(null, trackerPanel, 
+      File newFile = save(null, trackerPanel, 
       		TrackerRes.getString("TrackerIO.Dialog.SaveTab.Title")); //$NON-NLS-1$
       if (newFile==null) {
       	return null;
@@ -407,8 +409,7 @@ public class TrackerIO extends VideoIO {
 		boolean isSave = false;
 		if (type.toLowerCase().equals("open")) { //$NON-NLS-1$
 			chooser.setMultiSelectionEnabled(false);
-			chooser.setAccessory(videoEnginePanel);
-			videoEnginePanel.reset();
+			addVideoAccessory(chooser);
 			chooser.setAcceptAllFileFilterUsed(true);
 			chooser.addChoosableFileFilter(videoAndTrkFileFilter);
 			chooser.setFileFilter(videoAndTrkFileFilter);
@@ -430,8 +431,7 @@ public class TrackerIO extends VideoIO {
 			chooser.showOpenDialog(null, okOpen, resetChooser);
 		} else if (type.toLowerCase().equals("open video")) { // open video //$NON-NLS-1$
 			chooser.setMultiSelectionEnabled(false);
-			chooser.setAccessory(videoEnginePanel);
-			videoEnginePanel.reset();
+			addVideoAccessory(chooser);
 			chooser.setAcceptAllFileFilterUsed(true);
 			chooser.addChoosableFileFilter(videoFileFilter);
 			chooser.setFileFilter(videoFileFilter);
@@ -503,7 +503,7 @@ public class TrackerIO extends VideoIO {
 			ret = (processFiles != null || chooser.getSelectedOption() != JFileChooser.APPROVE_OPTION ? null
 					: fixXML(chooser));
 		} else {
-			return VideoIO.getChooserFilesAsync(type, processFiles);
+			return getChooserFilesAsync(type, processFiles);
 		}
 		ret = processChoose(chooser, ret, processFiles != null);
 		if (processFiles == null) {
@@ -513,7 +513,14 @@ public class TrackerIO extends VideoIO {
 	}
   
 
-  	protected static File fixXML(AsyncFileChooser chooser) {
+  	private static void addVideoAccessory(AsyncFileChooser chooser) {
+		if (OSPRuntime.isJS)
+			return;
+		chooser.setAccessory(getVideoEnginePanel());
+		getVideoEnginePanel().reset();
+	}
+
+	protected static File fixXML(AsyncFileChooser chooser) {
 	  	File file = chooser.getSelectedFile();
 		if (!defaultXMLExt.equals(getExtension(file))) {
 			String filename = XML.stripExtension(file.getPath());
@@ -553,7 +560,7 @@ public class TrackerIO extends VideoIO {
 	      public boolean accept(File f) {
 	        if (f == null) return false;
 	        if (f.isDirectory()) return true;
-	        if (ext.equals(VideoIO.getExtension(f))) return true;
+	        if (ext.equals(getExtension(f))) return true;
 	        return false;
 	      }
 	      public String getDescription() {
@@ -614,24 +621,22 @@ public class TrackerIO extends VideoIO {
     return true;
   }
 
-  /**
-   * Returns a video from a specified path. May return null.
-   * Overrides VideoIO method.
-   *
-   * @param path the path
-   * @param vidType a requested video type (may be null)
-   * @return the video
-   */
-  public static Video getVideo(String path, VideoType vidType) {
-  	boolean logConsole = OSPLog.isConsoleMessagesLogged();
-  	if (!Tracker.warnXuggleError)
-  		OSPLog.setConsoleMessagesLogged(false); 
-  	if (path.startsWith("file:")) //$NON-NLS-1$
-  		path = ResourceLoader.getNonURIPath(path);
-    Video video = VideoIO.getVideo(path, vidType);
+	/**
+	 * Returns a video from a specified path. May return null. Overrides VideoIO
+	 * method.
+	 *
+	 * @param path    the path
+	 * @param vidType a requested video type (may be null)
+	 * @return the video
+	 */
+	private static Video getTrackerVideo(String path, VideoType vidType) {
+		boolean logConsole = OSPLog.isConsoleMessagesLogged();
+		if (!Tracker.warnXuggleError)
+			OSPLog.setConsoleMessagesLogged(false);
+		Video video = getVideo(path, vidType);
 		OSPLog.setConsoleMessagesLogged(logConsole);
-    return video;
-  }
+		return video;
+	}
 
 	/**
 	 * Loads data or a video from a specified path into a TrackerPanel.
@@ -651,7 +656,7 @@ public class TrackerIO extends VideoIO {
 
 		isffmpegError = false;
 		theFrame = frame;
-		VideoIO.setCanceled(false);
+		setCanceled(false);
 		// prevent circular references when loading tabsets
 		String nonURIPath = ResourceLoader.getNonURIPath(path);
 		if (rawPath.startsWith("//") && nonURIPath.startsWith("/") && !nonURIPath.startsWith("//")) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -693,17 +698,18 @@ public class TrackerIO extends VideoIO {
 
 			// attempt to load video
 			VideoType requestedType = vidType;
-			Video video = getVideo(path, vidType);
+			Video video = getTrackerVideo(path, vidType);
 			monitorDialog.stop();
-			if (video == null && !VideoIO.isCanceled()) {
+			if (video == null && !isCanceled()) {
 				// video failed to load
 				// determine if other engines are available for the video extension
 				ArrayList<VideoType> otherEngines = new ArrayList<VideoType>();
-				String engine = VideoIO.getEngine();
+				String engine = MovieFactory.getEngine();
 				if (requestedType == null) {
 					String ext = XML.getExtension(path);
-					if (!engine.equals(VideoIO.ENGINE_XUGGLE)) {
-						VideoType xuggleType = VideoIO.getVideoType("Xuggle", ext); //$NON-NLS-1$
+					// BH! was equals
+					if (!engine.startsWith(ENGINE_XUGGLE)) {
+						VideoType xuggleType = getVideoType(ENGINE_XUGGLE, ext); //$NON-NLS-1$
 						if (xuggleType != null)
 							otherEngines.add(xuggleType);
 					}
@@ -720,10 +726,9 @@ public class TrackerIO extends VideoIO {
 							MediaRes.getString("VideoIO.Dialog.TryDifferentEngine.Checkbox")); //$NON-NLS-1$
 					video = VideoIO.getVideo(path, otherEngines, setAsDefaultBox, frame);
 					if (video != null && setAsDefaultBox.isSelected()) {
-						String typeName = video.getClass().getSimpleName();
-						String newEngine = typeName.indexOf("Xuggle") > -1 ? VideoIO.ENGINE_XUGGLE : //$NON-NLS-1$
-								VideoIO.ENGINE_NONE;
-						VideoIO.setEngine(newEngine);
+						String newEngine = (video instanceof MovieVideoI ?
+								ENGINE_XUGGLE : ENGINE_NONE);
+						MovieFactory.setEngine(newEngine);
 						PrefsDialog prefs = frame.getPrefsDialog();
 						prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
 						frame.showPrefsDialog();
@@ -735,14 +740,14 @@ public class TrackerIO extends VideoIO {
 				monitorDialog.close();
 				return;
 			}
-			if (!VideoIO.isCanceled()) {
+			if (!isCanceled()) {
 				if (monitorDialog.isVisible())
 					monitorDialog.setProgress(85);
 				vidType = (VideoType) video.getProperty("video_type"); //$NON-NLS-1$
 				OSPLog.finer(video.getProperty("path") + " opened as " + //$NON-NLS-1$ //$NON-NLS-2$
 						vidType.getClass().getSimpleName() + " " + vidType.getDescription()); //$NON-NLS-1$
 				trackerPanel.frame = frame;
-				if (VideoIO.isCanceled())
+				if (isCanceled())
 					return;
 
 				frame.addTab(trackerPanel);
@@ -902,7 +907,7 @@ public class TrackerIO extends VideoIO {
 					}
 				}
 				// load trk files into Tracker
-				if (!VideoIO.isCanceled()) {
+				if (!isCanceled()) {
 					monitorDialog.close();
 					openCollection(trkFiles, frame, tempFiles, path); // this also adds tempFile paths to trackerPanel
 					// add TRZ, ZIP and JAR paths to recent files
@@ -916,7 +921,7 @@ public class TrackerIO extends VideoIO {
 			// load data from TRK file
 			XMLControlElement control = new XMLControlElement();
 			xmlPath = control.read(path);
-			if (VideoIO.isCanceled())
+			if (isCanceled())
 				return;
 			monitorDialog.stop();
 			if (monitorDialog.isVisible())
@@ -983,7 +988,7 @@ public class TrackerIO extends VideoIO {
 
 				if (monitorDialog.isVisible())
 					monitorDialog.setProgress(80);
-				if (VideoIO.isCanceled())
+				if (isCanceled())
 					return;
 				frame.addTab(trackerPanel);
 				if (monitorDialog.isVisible())
@@ -1069,7 +1074,7 @@ public class TrackerIO extends VideoIO {
 					if (file == null) {
 						OSPLog.finer("no file to open"); //$NON-NLS-1$
 					} else {
-						openTabFileAsyncFinally(frame, file, videoEnginePanel.getSelectedVideoType());
+						openTabFileAsyncFinally(frame, file, getVideoEnginePanel().getSelectedVideoType());
 					}
 					return null;
 				}
@@ -1308,7 +1313,7 @@ public class TrackerIO extends VideoIO {
     if (files==null || files.length==0) {
       return;
     }
-    final VideoType vidType = videoEnginePanel.getSelectedVideoType();
+    final VideoType vidType = getVideoEnginePanel().getSelectedVideoType();
     // open in separate background thread if flagged
     final File theFile = files[0];
     Runnable importVideoRunner = new Runnable() {

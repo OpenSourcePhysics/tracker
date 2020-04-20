@@ -35,6 +35,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
@@ -1622,19 +1623,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           playAllStepsItem.setSelected(clip.isPlayAllSteps());
           videoMenu.add(playAllStepsItem);
           // smooth play item for xuggle videos
-          boolean isXuggleVideo = false;
-          VideoType videoType = (VideoType)video.getProperty("video_type"); //$NON-NLS-1$
-          if (videoType!=null && videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_XUGGLE)) {
-      			String xuggleName = "org.opensourcephysics.media.xuggle.XuggleVideo"; //$NON-NLS-1$
-          	try {
-        			Class<?> xuggleClass = Class.forName(xuggleName);
-        			Method method = xuggleClass.getMethod("isSmoothPlay", (Class[])null);  //$NON-NLS-1$
-        			Boolean smooth = (Boolean)method.invoke(video, (Object[])null);
-            	playXuggleSmoothlyItem.setSelected(smooth);
-              videoMenu.add(playXuggleSmoothlyItem);
-              isXuggleVideo = true;
-        		} catch (Exception ex) {
-        		}              	
+          boolean isXtractorType = video instanceof MovieVideoI;
+          if (isXtractorType) {
+          	playXuggleSmoothlyItem.setSelected(((MovieVideoI) video).isSmoothPlay());
+            videoMenu.add(playXuggleSmoothlyItem);
           }
           // video filters menu
           if (trackerPanel.isEnabled("video.filters")) { //$NON-NLS-1$
@@ -1691,7 +1683,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             videoMenu.add(filtersMenu);
           }
           videoMenu.addSeparator();
-      		if (isXuggleVideo) videoMenu.add(checkDurationsItem);
+      		if (isXtractorType) videoMenu.add(checkDurationsItem);
       		videoMenu.add(aboutVideoItem);
         }
         // update save and close items

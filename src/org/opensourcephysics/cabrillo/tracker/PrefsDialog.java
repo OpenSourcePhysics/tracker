@@ -47,7 +47,8 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.IntegerField;
 import org.opensourcephysics.media.core.VideoIO;
-import org.opensourcephysics.tools.DiagnosticsForXuggle;
+import org.opensourcephysics.media.mov.MovieFactory;
+import org.opensourcephysics.media.xuggle.DiagnosticsForXuggle;
 import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
@@ -866,7 +867,7 @@ public class PrefsDialog extends JDialog {
     box = Box.createVerticalBox();
     videoPanel.add(box, BorderLayout.CENTER);
     
-    boolean xuggleInstalled = DiagnosticsForXuggle.getXuggleJar()!=null;
+    boolean xuggleInstalled = MovieFactory.isEngineInstalled(VideoIO.ENGINE_XUGGLE);
 
     // videoType subpanel
     JPanel videoTypeSubPanel = new JPanel();
@@ -998,8 +999,9 @@ public class PrefsDialog extends JDialog {
     warningsCenterPanel.add(xuggleErrorCheckbox);
     
     // set selected states of engine buttons AFTER creating the xugglefast, xuggleslow and warnxuggle buttons
-    if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)
-    		&& VideoIO.getVideoType("Xuggle", null)!=null) { //$NON-NLS-1$
+    // BH! 2020.04.20 was "equals"
+    if (MovieFactory.getEngine().startsWith(VideoIO.ENGINE_XUGGLE)
+    		&& VideoIO.getVideoType(VideoIO.ENGINE_XUGGLE, null)!=null) { //$NON-NLS-1$
 	    xuggleButton.setSelected(true);
     }
     else noEngineButton.setSelected(true);
@@ -1432,7 +1434,7 @@ public class PrefsDialog extends JDialog {
 		prevMarkAtCurrentFrame = Tracker.markAtCurrentFrame;
 		prevCache = ResourceLoader.getOSPCache();
 		prevUpgradeInterval = Tracker.checkForUpgradeInterval;
-		prevEngine = VideoIO.getEngine();
+		prevEngine = MovieFactory.getEngine();
 		prevZoomMouseWheel = Tracker.scrubMouseWheel;
 		prevCenterCalibrationStick = Tracker.centerCalibrationStick;
 		prevAutofill = Tracker.enableAutofill;
@@ -1897,7 +1899,8 @@ public class PrefsDialog extends JDialog {
     trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
     
     // video
-    if (VideoIO.getEngine().equals(VideoIO.ENGINE_XUGGLE)) {
+    // BH! was "equals"
+    if (MovieFactory.getEngine().startsWith(VideoIO.ENGINE_XUGGLE)) {
 	    xuggleButton.setSelected(true);
     }
     repaint();

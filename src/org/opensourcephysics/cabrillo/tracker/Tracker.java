@@ -103,9 +103,10 @@ import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.DataTrackSupport;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoIO;
+import org.opensourcephysics.media.mov.MovieFactory;
+import org.opensourcephysics.media.xuggle.DiagnosticsForXuggle;
 import org.opensourcephysics.tools.Diagnostics;
 import org.opensourcephysics.tools.DiagnosticsForThreads;
-import org.opensourcephysics.tools.DiagnosticsForXuggle;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.LaunchNode;
@@ -1527,7 +1528,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			Locale locale = Locale.getDefault();
 			String language = locale.getLanguage();
 			String country = locale.getCountry();
-			String engine = VideoIO.getEngine();
+			String engine = MovieFactory.getEngine();
 			String os = "unknownOS"; //$NON-NLS-1$
 			try { // system properties may not be readable in some environments
 				os = System.getProperty("os.name", "unknownOS").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1920,7 +1921,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		}
 
 //    warnNoVideoEngine = false; // for PLATO
-		if (warnNoVideoEngine && VideoIO.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {
+		if (warnNoVideoEngine && MovieFactory.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {
 			// warn user that there is no working video engine
 			boolean xuggleInstalled = !OSPRuntime.isJS && DiagnosticsForXuggle.guessXuggleVersion() == 3.4;
 

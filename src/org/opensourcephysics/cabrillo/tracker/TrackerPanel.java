@@ -41,6 +41,7 @@ import org.opensourcephysics.cabrillo.tracker.TrackerPanel.TrackerPanelMainStart
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.tools.*;
 
 /**
@@ -2360,19 +2361,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
       if (getMat() != null) {
         getMat().isValidMeasure = false;
       }
-      if (getVideo() != null) {
-        getVideo().setProperty("measure", null); //$NON-NLS-1$
-        // if xuggle video, set smooth play per preferences
-        VideoType videoType = (VideoType)video.getProperty("video_type"); //$NON-NLS-1$
-        if (videoType!=null	&& videoType.getClass().getSimpleName().contains(VideoIO.ENGINE_XUGGLE)) {
-          boolean smooth = !Tracker.isXuggleFast;
-        	try {
-      			String xuggleName = "org.opensourcephysics.media.xuggle.XuggleVideo"; //$NON-NLS-1$
-      			Class<?> xuggleClass = Class.forName(xuggleName);
-      			Method method = xuggleClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
-      			method.invoke(video, new Object[] {smooth});
-      		} catch (Exception ex) {
-      		}    
+      if (video != null) {
+        video.setProperty("measure", null); //$NON-NLS-1$
+        if (video instanceof MovieVideoI) {
+            // if xuggle video, set smooth play per preferences
+          ((MovieVideoI) video).setSmoothPlay(!Tracker.isXuggleFast);
         }
       }
       changed = true;

@@ -71,7 +71,10 @@ videoListener = function(event) {
   var t = event.target.currentTime;
   var dt = t - lastTime;
   lastTime = t;
-  document.getElementById("output").value += (new Date) + "\nt=" + t + " dt=" + dt + "\n\n";
+  var video = document.getElementById("player");
+  document.getElementById("output").value += (new Date) + "\nt=" + t + " dt=" + dt 
+  + " width=" + video.videoWidth + " height=" + video.videoHeight
+  + "\n\n";
 
 }
 

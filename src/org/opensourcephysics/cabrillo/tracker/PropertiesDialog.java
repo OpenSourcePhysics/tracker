@@ -41,6 +41,7 @@ import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoType;
+import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -188,9 +189,8 @@ public class PropertiesDialog extends JDialog {
 		    int n = type.lastIndexOf("("); //$NON-NLS-1$
 		    if (n>-1) {
 		    	type = type.substring(0, n);
-		    	if (video.getClass().getSimpleName().contains(VideoIO.ENGINE_XUGGLE)) {
+		    	if (video instanceof MovieVideoI)
 		    		type += "(Xuggle)"; //$NON-NLS-1$
-		    	}
 		    }
 		    size = video.getImage().getWidth()+" x "+video.getImage().getHeight(); //$NON-NLS-1$
 		    length = video.getFrameCount()+" "; //$NON-NLS-1$
