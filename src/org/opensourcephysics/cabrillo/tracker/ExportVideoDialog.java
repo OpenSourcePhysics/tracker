@@ -50,7 +50,7 @@ import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.core.VideoRecorder;
 import org.opensourcephysics.media.core.VideoType;
-//import org.opensourcephysics.media.mov.MovieFactory;
+import org.opensourcephysics.media.mov.MovieFactory;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -114,12 +114,12 @@ public class ExportVideoDialog extends JDialog {
 		formatDescriptions.clear();  
 		// eliminate xuggle types if VideoIO engine is NONE
   	ArrayList<VideoType> unwanted = new ArrayList<VideoType>();
-//  	boolean skipXuggle = MovieFactory.getEngine().equals(VideoIO.ENGINE_NONE);
-//  	for (String ext: VideoIO.VIDEO_EXTENSIONS) {
-//    	if (skipXuggle) {
-//    		unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_XUGGLE, ext));
-//    	}
-//  	}
+  	boolean skipXuggle = OSPRuntime.cantCreateMovieFiles || MovieFactory.getEngine().equals(VideoIO.ENGINE_NONE);
+  	for (String ext: VideoIO.VIDEO_EXTENSIONS) {
+    	if (skipXuggle) {
+    		unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_XUGGLE, ext));
+    	}
+  	}
 		for (VideoType next: VideoIO.getVideoTypes()) {
       if (next.canRecord() && !unwanted.contains(next)) {
       	formats.put(next.getDescription(), next);
