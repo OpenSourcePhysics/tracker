@@ -35,7 +35,7 @@ import javax.swing.*;
 import javax.swing.event.*;
 
 import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.media.mov.MovieVideoI;
+//import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.controls.*;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
@@ -1623,11 +1623,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           playAllStepsItem.setSelected(clip.isPlayAllSteps());
           videoMenu.add(playAllStepsItem);
           // smooth play item for xuggle videos
-          boolean isXtractorType = video instanceof MovieVideoI;
-          if (isXtractorType) {
-          	playXuggleSmoothlyItem.setSelected(((MovieVideoI) video).isSmoothPlay());
-            videoMenu.add(playXuggleSmoothlyItem);
-          }
+//          boolean isXtractorType = video instanceof MovieVideoI;
+//          if (isXtractorType) {
+//          	playXuggleSmoothlyItem.setSelected(((MovieVideoI) video).isSmoothPlay());
+//            videoMenu.add(playXuggleSmoothlyItem);
+//          }
           // video filters menu
           if (trackerPanel.isEnabled("video.filters")) { //$NON-NLS-1$
             // clear filters menu
@@ -1683,7 +1683,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
             videoMenu.add(filtersMenu);
           }
           videoMenu.addSeparator();
-      		if (isXtractorType) videoMenu.add(checkDurationsItem);
+//      		if (isXtractorType) videoMenu.add(checkDurationsItem);
       		videoMenu.add(aboutVideoItem);
         }
         // update save and close items
