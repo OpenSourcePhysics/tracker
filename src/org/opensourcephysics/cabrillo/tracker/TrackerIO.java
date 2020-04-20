@@ -704,12 +704,11 @@ public class TrackerIO extends VideoIO {
 				// video failed to load
 				// determine if other engines are available for the video extension
 				ArrayList<VideoType> otherEngines = new ArrayList<VideoType>();
-				String engine = MovieFactory.getEngine();
 				if (requestedType == null) {
+					String engine = MovieFactory.getEngine();
 					String ext = XML.getExtension(path);
-					// BH! was equals
-					if (!engine.startsWith(ENGINE_XUGGLE)) {
-						VideoType xuggleType = getVideoType(ENGINE_XUGGLE, ext); //$NON-NLS-1$
+					if (!VideoIO.isNameLikeMovieEngine(engine)) {
+						VideoType xuggleType = getVideoType(engine, ext); //$NON-NLS-1$
 						if (xuggleType != null)
 							otherEngines.add(xuggleType);
 					}
@@ -726,9 +725,8 @@ public class TrackerIO extends VideoIO {
 							MediaRes.getString("VideoIO.Dialog.TryDifferentEngine.Checkbox")); //$NON-NLS-1$
 					video = VideoIO.getVideo(path, otherEngines, setAsDefaultBox, frame);
 					if (video != null && setAsDefaultBox.isSelected()) {
-						String newEngine = (video instanceof MovieVideoI ?
-								ENGINE_XUGGLE : ENGINE_NONE);
-						MovieFactory.setEngine(newEngine);
+						MovieFactory.setEngine(video instanceof MovieVideoI ?
+								VideoIO.getMovieEngineName() : ENGINE_NONE);
 						PrefsDialog prefs = frame.getPrefsDialog();
 						prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
 						frame.showPrefsDialog();

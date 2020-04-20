@@ -114,10 +114,10 @@ public class ExportVideoDialog extends JDialog {
 		formatDescriptions.clear();  
 		// eliminate xuggle types if VideoIO engine is NONE
   	ArrayList<VideoType> unwanted = new ArrayList<VideoType>();
-  	boolean skipXuggle = OSPRuntime.cantCreateMovieFiles || MovieFactory.getEngine().equals(VideoIO.ENGINE_NONE);
+  	boolean skipXuggle = !OSPRuntime.canCreateMovieFiles || MovieFactory.getEngine().equals(VideoIO.ENGINE_NONE);
   	for (String ext: VideoIO.VIDEO_EXTENSIONS) {
     	if (skipXuggle) {
-    		unwanted.add(VideoIO.getVideoType(VideoIO.ENGINE_XUGGLE, ext));
+    		unwanted.add(VideoIO.getVideoType(VideoIO.getMovieEngineName(), ext));
     	}
   	}
 		for (VideoType next: VideoIO.getVideoTypes()) {
