@@ -298,60 +298,73 @@ public class TrackerStarter {
 	}
 
 	/**
-	 * Finds the Tracker home directory and sets/returns the static variable trackerHome.
+	 * Finds the Tracker home directory and sets/returns the static variable
+	 * trackerHome.
 	 * 
 	 * @param writeToLog true to write the results to the start log
 	 */
-	public static String findTrackerHome(boolean writeToLog) {//throws Exception {
-		if (trackerHome!=null || OSPRuntime.isJS) return trackerHome;
-		// first determine if code base directory is trackerHome
-		if (codeBaseDir != null) {
-			if (writeToLog) {
-				logMessage("TrackerStarter jar: " + starterJarFile); //$NON-NLS-1$
-			}
-			// accept if the directory has any tracker jars in it
-			try {
-				String[] fileNames = codeBaseDir.list(trackerJarFilter);
-				if (fileNames != null && fileNames.length > 0) {
-					trackerHome = codeBaseDir.getPath();
-					if (writeToLog) logMessage("code base accepted as trackerhome based on contents"); //$NON-NLS-1$
+	public static String findTrackerHome(boolean writeToLog) {// throws Exception {
+		if (trackerHome != null || OSPRuntime.isJS)
+			return trackerHome;
+
+		/**
+		 * Java only; transpiler may ignore
+		 * 
+		 * @j2sNative
+		 * 
+		 */
+		{
+			// first determine if code base directory is trackerHome
+			if (codeBaseDir != null) {
+				if (writeToLog) {
+					logMessage("TrackerStarter jar: " + starterJarFile); //$NON-NLS-1$
 				}
-			} catch (Exception ex) {
-				exceptions += ex.getClass().getSimpleName()
-						+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
+				// accept if the directory has any tracker jars in it
+				try {
+					String[] fileNames = codeBaseDir.list(trackerJarFilter);
+					if (fileNames != null && fileNames.length > 0) {
+						trackerHome = codeBaseDir.getPath();
+						if (writeToLog)
+							logMessage("code base accepted as trackerhome based on contents"); //$NON-NLS-1$
+					}
+				} catch (Exception ex) {
+					exceptions += ex.getClass().getSimpleName() + ": " + ex.getMessage() + newline; //$NON-NLS-1$
+				}
 			}
-		}
 
-		// if needed, try another way to see if current directory has tracker.jar
-		if (trackerHome == null) {
-			File file = new File((String) null, "tracker.jar"); //$NON-NLS-1$
-			String dir = file.getAbsoluteFile().getParent();
-			if (fileExists(file.getAbsolutePath())) {
-				trackerHome = dir;
-				if (writeToLog) logMessage("parent directory accepted as trackerhome based on contents"); //$NON-NLS-1$
+			// if needed, try another way to see if current directory has tracker.jar
+			if (trackerHome == null) {
+				File file = new File((String) null, "tracker.jar"); //$NON-NLS-1$
+				String dir = file.getAbsoluteFile().getParent();
+				if (fileExists(file.getAbsolutePath())) {
+					trackerHome = dir;
+					if (writeToLog)
+						logMessage("parent directory accepted as trackerhome based on contents"); //$NON-NLS-1$
+				}
 			}
-		}
 
-		// if not found locally, look for (legacy) environment variable
-		if (trackerHome == null) {
-			try {
-				trackerHome = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
-			} catch (Exception ex) {
-				exceptions += ex.getClass().getSimpleName()
-						+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
+			// if not found locally, look for (legacy) environment variable
+			if (trackerHome == null) {
+				try {
+					trackerHome = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
+				} catch (Exception ex) {
+					exceptions += ex.getClass().getSimpleName() + ": " + ex.getMessage() + newline; //$NON-NLS-1$
+				}
+				if (writeToLog)
+					logMessage("environment variable TRACKER_HOME: " + trackerHome); //$NON-NLS-1$
+				if (trackerHome != null && !fileExists(trackerHome)) {
+					trackerHome = null;
+					if (writeToLog)
+						logMessage("TRACKER_HOME directory no longer exists"); //$NON-NLS-1$
+				}
 			}
-			if (writeToLog) logMessage("environment variable TRACKER_HOME: " + trackerHome); //$NON-NLS-1$
-			if (trackerHome != null && !fileExists(trackerHome)) {
-				trackerHome = null;
-				if (writeToLog) logMessage("TRACKER_HOME directory no longer exists"); //$NON-NLS-1$
-			}
-		}
 
-		// BH more graceful to return null here
+			// BH more graceful to return null here
 //		if (trackerHome == null)
 //			throw new NullPointerException("trackerhome not found"); //$NON-NLS-1$
-		if (writeToLog) logMessage("using trackerhome: " + trackerHome); //$NON-NLS-1$
-		
+			if (writeToLog)
+				logMessage("using trackerhome: " + trackerHome); //$NON-NLS-1$
+		}
 		return trackerHome;
 	}
 	

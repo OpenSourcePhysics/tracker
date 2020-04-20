@@ -1748,13 +1748,25 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			start(args);
 	}
 
+	/**
+	 * 
+	 * @param args
+	 * @return true if we can start
+	 */
 	private static boolean initializeJava(String[] args) {
 
-		boolean isTracker = false;
+		if (OSPRuntime.isJS)
+			return true;
 
-		if (OSPRuntime.isJS) {
-			isTracker = true;
-		} else {
+
+		/**
+		 * Java only; transpiler can ignore.
+		 * 
+		 * @j2sNative
+		 * 
+		 */
+		{
+			boolean isTracker = false;
 			JarFile jarfile = OSPRuntime.getLaunchJar();
 			try {
 				java.util.jar.Attributes att = jarfile.getManifest().getMainAttributes();
@@ -1762,100 +1774,100 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				isTracker = mainclass.toString().endsWith("Tracker"); //$NON-NLS-1$
 			} catch (Exception ex) {
 			}
-		}
 
-		// determine if relaunch is needed
-		boolean isRelaunch = args != null && args.length > 0 && "relaunch".equals(args[args.length - 1]); //$NON-NLS-1$
-		if (isRelaunch) {
-			String[] newargs = new String[args.length - 1];
-			System.arraycopy(args, 0, newargs, 0, newargs.length);
-			args = newargs;
-		} else {
-			// versions 4.87+ use environment variable to indicate relaunch
-			String s = System.getenv(TrackerStarter.TRACKER_RELAUNCH);
-			isRelaunch = "true".equals(s); //$NON-NLS-1$
-		}
-
-		// get memory size requested in environment, if any
-		String memoryEnvironment = System.getenv("MEMORY_SIZE"); //$NON-NLS-1$
-		// get current memory (maximum heap) size
-		java.lang.management.MemoryMXBean memory = java.lang.management.ManagementFactory.getMemoryMXBean();
-		long currentMemory = memory.getHeapMemoryUsage().getMax() / (1024 * 1024);
-
-		if (!isRelaunch) {
-			String javaCommand = System.getProperty("java.home"); //$NON-NLS-1$
-			javaCommand = XML.forwardSlash(javaCommand) + "/bin/java"; //$NON-NLS-1$
-			String javaPath = preferredJRE;
-			if (javaPath != null) {
-				File javaFile = OSPRuntime.getJavaFile(javaPath);
-				if (javaFile != null) {
-					javaPath = XML.stripExtension(XML.forwardSlash(javaFile.getPath()));
-				} else
-					javaPath = null;
-			}
-			boolean needsJavaVM = javaPath != null && !javaCommand.equals(javaPath);
-
-			// update Xuggle
-			boolean updated = updateResources();
-
-			// compare memory with requested size(s)
-			if (memoryEnvironment != null) {
-				originalMemoryRequest = requestedMemorySize;
-				requestedMemorySize = Integer.parseInt(memoryEnvironment);
+			// determine if relaunch is needed
+			boolean isRelaunch = args != null && args.length > 0 && "relaunch".equals(args[args.length - 1]); //$NON-NLS-1$
+			if (isRelaunch) {
+				String[] newargs = new String[args.length - 1];
+				System.arraycopy(args, 0, newargs, 0, newargs.length);
+				args = newargs;
+			} else {
+				// versions 4.87+ use environment variable to indicate relaunch
+				String s = System.getenv(TrackerStarter.TRACKER_RELAUNCH);
+				isRelaunch = "true".equals(s); //$NON-NLS-1$
 			}
 
-			boolean needsMemory = requestedMemorySize > 10
-					&& (currentMemory < 9 * requestedMemorySize / 10 || currentMemory > 11 * requestedMemorySize / 10);
+			// get memory size requested in environment, if any
+			String memoryEnvironment = System.getenv("MEMORY_SIZE"); //$NON-NLS-1$
+			// get current memory (maximum heap) size
+			java.lang.management.MemoryMXBean memory = java.lang.management.ManagementFactory.getMemoryMXBean();
+			long currentMemory = memory.getHeapMemoryUsage().getMax() / (1024 * 1024);
 
-			// check environment
-			boolean needsEnvironment = false;
-			try {
-				// BH SwingJS just avoiding unnecessary exception triggering
-				String trackerDir = TrackerStarter.findTrackerHome(false);
-				if (trackerDir != null) {
-					String trackerEnv = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
-					if (trackerDir != null && !trackerDir.equals(trackerEnv)) {
-						needsEnvironment = true;
-					} else {
-						String xuggleDir = TrackerStarter.findXuggleHome(trackerDir, false);
-						String xuggleEnv = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
-						if (xuggleDir != null && !xuggleDir.equals(xuggleEnv)) {
+			if (!isRelaunch) {
+				String javaCommand = System.getProperty("java.home"); //$NON-NLS-1$
+				javaCommand = XML.forwardSlash(javaCommand) + "/bin/java"; //$NON-NLS-1$
+				String javaPath = preferredJRE;
+				if (javaPath != null) {
+					File javaFile = OSPRuntime.getJavaFile(javaPath);
+					if (javaFile != null) {
+						javaPath = XML.stripExtension(XML.forwardSlash(javaFile.getPath()));
+					} else
+						javaPath = null;
+				}
+				boolean needsJavaVM = javaPath != null && !javaCommand.equals(javaPath);
+
+				// update Xuggle
+				boolean updated = updateResources();
+
+				// compare memory with requested size(s)
+				if (memoryEnvironment != null) {
+					originalMemoryRequest = requestedMemorySize;
+					requestedMemorySize = Integer.parseInt(memoryEnvironment);
+				}
+
+				boolean needsMemory = requestedMemorySize > 10 && (currentMemory < 9 * requestedMemorySize / 10
+						|| currentMemory > 11 * requestedMemorySize / 10);
+
+				// check environment
+				boolean needsEnvironment = false;
+				try {
+					// BH SwingJS just avoiding unnecessary exception triggering
+					String trackerDir = TrackerStarter.findTrackerHome(false);
+					if (trackerDir != null) {
+						String trackerEnv = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
+						if (trackerDir != null && !trackerDir.equals(trackerEnv)) {
 							needsEnvironment = true;
 						} else {
-							if (xuggleDir != null) {
-								String subdir = OSPRuntime.isWindows() ? "bin" : "lib"; //$NON-NLS-1$ //$NON-NLS-2$
-								String xugglePath = xuggleDir + File.separator + subdir;
-								String pathName = OSPRuntime.isWindows() ? "Path" : //$NON-NLS-1$
-										OSPRuntime.isMac() ? "DYLD_LIBRARY_PATH" : "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
-								String pathEnv = System.getenv(pathName);
-								if (pathEnv == null || !pathEnv.contains(xugglePath)) {
-									needsEnvironment = true;
+							String xuggleDir = TrackerStarter.findXuggleHome(trackerDir, false);
+							String xuggleEnv = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
+							if (xuggleDir != null && !xuggleDir.equals(xuggleEnv)) {
+								needsEnvironment = true;
+							} else {
+								if (xuggleDir != null) {
+									String subdir = OSPRuntime.isWindows() ? "bin" : "lib"; //$NON-NLS-1$ //$NON-NLS-2$
+									String xugglePath = xuggleDir + File.separator + subdir;
+									String pathName = OSPRuntime.isWindows() ? "Path" : //$NON-NLS-1$
+											OSPRuntime.isMac() ? "DYLD_LIBRARY_PATH" : "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
+									String pathEnv = System.getenv(pathName);
+									if (pathEnv == null || !pathEnv.contains(xugglePath)) {
+										needsEnvironment = true;
+									}
 								}
 							}
 						}
 					}
+
+				} catch (Exception e) {
 				}
 
-			} catch (Exception e) {
-			}
+				// attempt to relaunch if needed
+				if (isTracker && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
+					mainArgs = args;
+					if (requestedMemorySize <= 10) {
+						requestedMemorySize = TrackerStarter.DEFAULT_MEMORY_SIZE;
+					}
+					System.setProperty(TrackerStarter.PREFERRED_MEMORY_SIZE, String.valueOf(requestedMemorySize));
+					System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, OSPRuntime.getLaunchJarPath());
 
-			// attempt to relaunch if needed
-			if (isTracker && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
-				mainArgs = args;
-				if (requestedMemorySize <= 10) {
-					requestedMemorySize = TrackerStarter.DEFAULT_MEMORY_SIZE;
+					TrackerStarter.relaunch(mainArgs, true);
+					return false;
 				}
-				System.setProperty(TrackerStarter.PREFERRED_MEMORY_SIZE, String.valueOf(requestedMemorySize));
-				System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, OSPRuntime.getLaunchJarPath());
-
-				TrackerStarter.relaunch(mainArgs, true);
-				return false;
 			}
+			preferredMemorySize = requestedMemorySize;
+			if (requestedMemorySize < 0)
+				requestedMemorySize = (int) (currentMemory + 2);
+			return true;
 		}
-		preferredMemorySize = requestedMemorySize;
-		if (requestedMemorySize < 0)
-			requestedMemorySize = (int) (currentMemory + 2);
-		return true;
 	}
 
 	/**
