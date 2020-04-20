@@ -25,6 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.awt.*;
@@ -595,16 +596,26 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
           chooser.setFileFilter(LaunchBuilder.getPDFFilter());
       	}
       	
-        File[] files = TrackerIO.getChooserFiles("open any"); //$NON-NLS-1$
+      	File[] files = TrackerIO.getChooserFilesAsync("open any", new Function<File[], Void>() { //$NON-NLS-1$
+
+			@Override
+			public Void apply(File[] files) {
+				if (files == null) {
+					return null;
+				}
+		      	if (!addedFiles.contains(files[0])) {
+		        	addedFiles.add(files[0]);
+		          refreshFileList();
+		          refreshSupportFilesGUI();
+		      	}
+				return null;
+			}
+
+		});
       	recentAddFilesFilter = chooser.getFileFilter();
         chooser.removeChoosableFileFilter(LaunchBuilder.getHTMLFilter());
         chooser.removeChoosableFileFilter(LaunchBuilder.getPDFFilter());
       	if (files==null) return; // cancelled by user
-      	if (!addedFiles.contains(files[0])) {
-        	addedFiles.add(files[0]);
-          refreshFileList();
-          refreshSupportFilesGUI();
-      	}
       }
     });
     removeButton = new TButton();
@@ -719,12 +730,22 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setDialogTitle(TrackerRes.getString("ZipResourceDialog.FileChooser.OpenHTML.Title"));  //$NON-NLS-1$
         chooser.setFileFilter(LaunchBuilder.getHTMLFilter());
-      	File[] files = TrackerIO.getChooserFiles("open any"); //$NON-NLS-1$
+
+      	File[] files = TrackerIO.getChooserFilesAsync("open any", new Function<File[], Void>() { //$NON-NLS-1$
+
+			@Override
+			public Void apply(File[] files) {
+				if (files == null) {
+					return null;
+				}
+		        htmlField.setText(XML.getRelativePath(files[0].getPath()));    
+		        refreshFieldsFromHTML(files[0]);
+			    refreshGUI();
+				return null;
+			}
+		});
         chooser.removeChoosableFileFilter(LaunchBuilder.getHTMLFilter());
       	if (files==null) return; // cancelled by user
-        htmlField.setText(XML.getRelativePath(files[0].getPath()));    
-        refreshFieldsFromHTML(files[0]);
-	      refreshGUI();
       }
 
     });
