@@ -1,0 +1,51 @@
+Video loading in Tracker
+
+A VideoType does the actual loading using getVideo(path).
+
+VideoType interface: 
+
+	public Video getVideo(String path);
+	public boolean isType(Video video);
+	public VideoRecorder getRecorder();
+	public boolean canRecord();
+	public String getDescription();
+	public String getDefaultExtension();
+	public VideoFileFilter[] getFileFilters();
+	public VideoFileFilter getDefaultFileFilter();
+	
+VideoIO manages a list of VideoTypes using these methods:
+
+	void addVideoType(VideoType)
+	VideoType getVideoType(String name, String extension)
+	VideoType[] getVideoTypesForEngine(String engine)
+	
+VideoType implementations:
+
+	ImageVideoType, in media.core (Tracker uses 2 instances, one for jpg/jpeg and another for png)
+	GifVideoType, in media.gif (1 instance)
+	XuggleVideoType, in media.xuggle (XuggleIO adds numerous instances with different ext--some can record, others not)
+	QTVideoType--no longer used
+	JSVideoType, in media.mov
+	
+An "Engine" is a separate library that can be used to implement VideoTypes but is not always available.
+The QT engine required QTJava.zip and QuickTime. The Xuggle engine requires a xuggle folder with various subdirs.
+
+All classes that use a given engine (even if they don't access the engine directly) are in that engine's media package
+so that if desired that engine can be excluded by excluding the package when building (eg as is the case now for QT).
+
+The media.xuggle package originally contained:
+	XuggleVideoType		constructor takes extension
+	XuggleVideo			extends VideoAdapter which requires a rawImage (before filtering, etc) and handles all drawing
+	XuggleVideoRecorder	extends ScratchVideoRecorder
+	XuggleIO			adds XuggleVideoTypes to VideoIO. Called by reflection when attempting to load engine
+	XuggleThumbnailTool	used by LibraryBrowser to get thumbnail images of videos on the web (not used by Tracker)
+
+I think the new JS is an engine since it may not be available on some browsers. 
+If it is ALWAYS available there is no need to think of it as an engine.
+
+Currently we have a media.mov package and I'm fine with that for the JSVideoType although I would prefer something like movJS.
+But in that case it should contain these files (we can add JSVideoRecorder later):
+
+	JSVideoType
+	JSVideo	
+	
