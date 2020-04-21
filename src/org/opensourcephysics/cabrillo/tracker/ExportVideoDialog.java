@@ -117,7 +117,7 @@ public class ExportVideoDialog extends JDialog {
   	boolean skipXuggle = !OSPRuntime.canCreateMovieFiles || MovieFactory.getEngine().equals(VideoIO.ENGINE_NONE);
   	for (String ext: VideoIO.VIDEO_EXTENSIONS) {
     	if (skipXuggle) {
-    		unwanted.add(VideoIO.getVideoType(VideoIO.getMovieEngineName(), ext));
+    		unwanted.add(VideoIO.getVideoType(VideoIO.getMovieEngineBaseName(), ext));
     	}
   	}
 		for (VideoType next: VideoIO.getVideoTypes()) {

@@ -707,7 +707,7 @@ public class TrackerIO extends VideoIO {
 				if (requestedType == null) {
 					String engine = MovieFactory.getEngine();
 					String ext = XML.getExtension(path);
-					if (!VideoIO.isNameLikeMovieEngine(engine)) {
+					if (!VideoIO.isMovieEngine(engine)) {
 						VideoType xuggleType = getVideoType(engine, ext); //$NON-NLS-1$
 						if (xuggleType != null)
 							otherEngines.add(xuggleType);
@@ -726,7 +726,7 @@ public class TrackerIO extends VideoIO {
 					video = VideoIO.getVideo(path, otherEngines, setAsDefaultBox, frame);
 					if (video != null && setAsDefaultBox.isSelected()) {
 						MovieFactory.setEngine(video instanceof MovieVideoI ?
-								VideoIO.getMovieEngineName() : ENGINE_NONE);
+								VideoIO.getMovieEngineBaseName() : ENGINE_NONE);
 						PrefsDialog prefs = frame.getPrefsDialog();
 						prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
 						frame.showPrefsDialog();
