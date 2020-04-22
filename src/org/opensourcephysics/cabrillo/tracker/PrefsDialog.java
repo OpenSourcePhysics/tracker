@@ -993,9 +993,7 @@ public class PrefsDialog extends JDialog {
 
 		// set selected states of engine buttons AFTER creating the xugglefast,
 		// xuggleslow and warnxuggle buttons
-		String movieEngine = MovieFactory.getEngine();
-		if (VideoIO.isMovieEngine(movieEngine) 
-				&& VideoIO.getVideoType(movieEngine, null) != null) {
+		if (MovieFactory.getEngine() != VideoIO.ENGINE_NONE) {
 			movieEngineButton.setSelected(true);
 		} else
 			noEngineButton.setSelected(true);
@@ -1898,7 +1896,7 @@ public class PrefsDialog extends JDialog {
     trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
     
     // video
-    if (VideoIO.isMovieEngine(MovieFactory.getEngine())) {
+    if (MovieFactory.getEngine() != VideoIO.ENGINE_NONE) {
 	    movieEngineButton.setSelected(true);
     }
     repaint();

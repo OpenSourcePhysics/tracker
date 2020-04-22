@@ -24,22 +24,71 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.beans.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Image;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.lang.reflect.Method;
-import java.util.*;
-import java.awt.datatransfer.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Map;
+import java.util.TreeMap;
 
-import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
+import javax.swing.Action;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JSeparator;
+import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-import org.opensourcephysics.media.core.*;
 //import org.opensourcephysics.media.mov.MovieVideoI;
-import org.opensourcephysics.controls.*;
+import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.tools.*;
+import org.opensourcephysics.media.core.Filter;
+import org.opensourcephysics.media.core.FilterStack;
+import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.ImageVideo;
+import org.opensourcephysics.media.core.MediaRes;
+import org.opensourcephysics.media.core.Video;
+import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoPlayer;
+import org.opensourcephysics.media.xuggle.XuggleVideoI;
+import org.opensourcephysics.tools.DataTool;
+import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionTool;
 
 /**
  * This is the main menu for Tracker.
@@ -1001,21 +1050,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     // play xuggle smoothly item
     playXuggleSmoothlyItem = new JCheckBoxMenuItem(TrackerRes.getString("XuggleVideo.MenuItem.SmoothPlay")); //$NON-NLS-1$
     playXuggleSmoothlyItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
-        Video video = trackerPanel.getVideo();
-  			String xuggleName = "org.opensourcephysics.media.xuggle.XuggleVideo"; //$NON-NLS-1$
-        if (video==null || !(video.getClass().getName().equals(xuggleName))) return;
-        if (e.getStateChange() == ItemEvent.SELECTED ||
-            e.getStateChange() == ItemEvent.DESELECTED) {
-          boolean smooth = playXuggleSmoothlyItem.isSelected();
-        	try {
-      			Class<?> xuggleClass = Class.forName(xuggleName);
-      			Method method = xuggleClass.getMethod("setSmoothPlay", new Class[] {Boolean.class});  //$NON-NLS-1$
-      			method.invoke(video, new Object[] {smooth});
-      		} catch (Exception ex) {
-      		}    
-        }
-      }
+			public void itemStateChanged(ItemEvent e) {
+				Video video = trackerPanel.getVideo();
+				if (video instanceof XuggleVideoI) {
+					if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {
+						((XuggleVideoI) video).setSmoothPlay(playXuggleSmoothlyItem.isSelected());
+					}
+				}
+			}
     });
     //  checkDurationsItem   
     checkDurationsItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CheckFrameDurations")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1623,11 +1665,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           playAllStepsItem.setSelected(clip.isPlayAllSteps());
           videoMenu.add(playAllStepsItem);
           // smooth play item for xuggle videos
-//          boolean isXtractorType = video instanceof MovieVideoI;
-//          if (isXtractorType) {
-//          	playXuggleSmoothlyItem.setSelected(((MovieVideoI) video).isSmoothPlay());
-//            videoMenu.add(playXuggleSmoothlyItem);
-//          }
+          if (video instanceof XuggleVideoI) {
+          	playXuggleSmoothlyItem.setSelected(((XuggleVideoI) video).isSmoothPlay());
+            videoMenu.add(playXuggleSmoothlyItem);
+          }
           // video filters menu
           if (trackerPanel.isEnabled("video.filters")) { //$NON-NLS-1$
             // clear filters menu

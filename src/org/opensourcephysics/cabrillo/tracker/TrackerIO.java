@@ -703,17 +703,13 @@ public class TrackerIO extends VideoIO {
 			if (video == null && !isCanceled()) {
 				// video failed to load
 				// determine if other engines are available for the video extension
-				ArrayList<VideoType> otherEngines = new ArrayList<VideoType>();
+				ArrayList<VideoType> movieEngines = new ArrayList<VideoType>();
 				if (requestedType == null) {
-					String engine = MovieFactory.getEngine();
-					String ext = XML.getExtension(path);
-					if (!VideoIO.isMovieEngine(engine)) {
-						VideoType xuggleType = getVideoType(engine, ext); //$NON-NLS-1$
-						if (xuggleType != null)
-							otherEngines.add(xuggleType);
-					}
+					VideoType movieType = getMovieType(XML.getExtension(path));
+					if (movieType != null)
+						movieEngines.add(movieType);
 				}
-				if (otherEngines.isEmpty()) {
+				if (movieEngines.isEmpty()) {
 					monitorDialog.close();
 					JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
 							MediaRes.getString("VideoIO.Dialog.BadVideo.Message") + "\n\n" + path, //$NON-NLS-1$ //$NON-NLS-2$
@@ -723,7 +719,7 @@ public class TrackerIO extends VideoIO {
 					// provide immediate way to open with other engines
 					JCheckBox setAsDefaultBox = new JCheckBox(
 							MediaRes.getString("VideoIO.Dialog.TryDifferentEngine.Checkbox")); //$NON-NLS-1$
-					video = VideoIO.getVideo(path, otherEngines, setAsDefaultBox, frame);
+					video = VideoIO.getVideo(path, movieEngines, setAsDefaultBox, frame);
 					if (video != null && setAsDefaultBox.isSelected()) {
 						MovieFactory.setEngine(video instanceof MovieVideoI ?
 								VideoIO.getMovieEngineBaseName() : ENGINE_NONE);
