@@ -858,7 +858,7 @@ public class PrefsDialog extends JDialog {
 		box = Box.createVerticalBox();
 		videoPanel.add(box, BorderLayout.CENTER);
 
-		boolean movieEngineInstalled = MovieFactory.isEngineInstalled(VideoIO.getMovieEngineBaseName());
+		boolean movieEngineInstalled = (MovieFactory.getEngine() != VideoIO.ENGINE_NONE);
 
 		// videoType subpanel
 		JPanel videoTypeSubPanel = new JPanel();

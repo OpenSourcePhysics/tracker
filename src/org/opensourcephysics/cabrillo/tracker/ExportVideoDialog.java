@@ -106,27 +106,18 @@ public class ExportVideoDialog extends JDialog {
   	return videoExporter;
   }
   
-  /**
-   * Refreshes the format set.
-   */
-  public static void refreshFormats() {
-		formats.clear(); 
-		formatDescriptions.clear();  
+	/**
+	 * Refreshes the format set.
+	 */
+	public static void refreshFormats() {
+		formats.clear();
+		formatDescriptions.clear();
 		// eliminate xuggle types if VideoIO engine is NONE
-  	ArrayList<VideoType> unwanted = new ArrayList<VideoType>();
-  	boolean skipXuggle = !OSPRuntime.canCreateMovieFiles || MovieFactory.getEngine().equals(VideoIO.ENGINE_NONE);
-  	for (String ext: VideoIO.VIDEO_EXTENSIONS) {
-    	if (skipXuggle) {
-    		unwanted.add(VideoIO.getVideoType(VideoIO.getMovieEngineBaseName(), ext));
-    	}
-  	}
-		for (VideoType next: VideoIO.getVideoTypes()) {
-      if (next.canRecord() && !unwanted.contains(next)) {
-      	formats.put(next.getDescription(), next);
-      	formatDescriptions.add(next.getDescription());
-      }
-    }
-  }
+		for (VideoType next : VideoIO.getVideoTypes(true)) {
+			formats.put(next.getDescription(), next);
+			formatDescriptions.add(next.getDescription());
+		}
+	}
   
   protected Object[] getFormats() {
   	return formatDescriptions.toArray();

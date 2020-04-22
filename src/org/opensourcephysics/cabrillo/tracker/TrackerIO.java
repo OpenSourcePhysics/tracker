@@ -68,7 +68,6 @@ import java.util.function.Function;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -98,8 +97,6 @@ import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoType;
-import org.opensourcephysics.media.mov.MovieFactory;
-import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.LibraryTreePanel;
@@ -703,31 +700,12 @@ public class TrackerIO extends VideoIO {
 			if (video == null && !isCanceled()) {
 				// video failed to load
 				// determine if other engines are available for the video extension
-				ArrayList<VideoType> movieEngines = new ArrayList<VideoType>();
-				if (requestedType == null) {
-					VideoType movieType = getMovieType(XML.getExtension(path));
-					if (movieType != null)
-						movieEngines.add(movieType);
-				}
-				if (movieEngines.isEmpty()) {
-					monitorDialog.close();
-					JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
-							MediaRes.getString("VideoIO.Dialog.BadVideo.Message") + "\n\n" + path, //$NON-NLS-1$ //$NON-NLS-2$
-							MediaRes.getString("VideoClip.Dialog.BadVideo.Title"), //$NON-NLS-1$
-							JOptionPane.WARNING_MESSAGE);
-				} else {
-					// provide immediate way to open with other engines
-					JCheckBox setAsDefaultBox = new JCheckBox(
-							MediaRes.getString("VideoIO.Dialog.TryDifferentEngine.Checkbox")); //$NON-NLS-1$
-					video = VideoIO.getVideo(path, movieEngines, setAsDefaultBox, frame);
-					if (video != null && setAsDefaultBox.isSelected()) {
-						MovieFactory.setEngine(video instanceof MovieVideoI ?
-								VideoIO.getMovieEngineBaseName() : ENGINE_NONE);
-						PrefsDialog prefs = frame.getPrefsDialog();
-						prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
-						frame.showPrefsDialog();
-					}
-
+				boolean[] setAsDefault = new boolean[1];
+				video = VideoIO.getAvailableEngineFromDialog(video, path, frame, requestedType == null, setAsDefault);
+				if (setAsDefault[0]) {
+					PrefsDialog prefs = frame.getPrefsDialog();
+					prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
+					frame.showPrefsDialog();
 				}
 			}
 			if (video == null) {
@@ -873,7 +851,7 @@ public class TrackerIO extends VideoIO {
 				// unzip pdf/html/other files into temp directory and open on desktop
 				final ArrayList<String> tempFiles = new ArrayList<String>();
 				if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty() || !otherFiles.isEmpty()) {
-					File temp = new File(OSPRuntime.tempDir); //$NON-NLS-1$
+					File temp = new File(OSPRuntime.tempDir); // $NON-NLS-1$
 					Set<File> files = ResourceLoader.unzip(path, temp, true);
 					for (File next : files) {
 						next.deleteOnExit();
