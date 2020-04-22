@@ -4,21 +4,47 @@ Also what are the contents of a TRZ file
 Common source/destination basepaths used:
 1. installdir (defaults win: C:\Program Files (x86)\Tracker; osx: /usr/local/tracker) 
 	typ contents: README, install.log, uninstaller, tracker.prefs.default
+
+
+[ JS null; equivalent could be j2s/tracker, i.e. File("/tracker"), or Info.prefs:xxxx ]
+
+
 2. trackerhome/codebase (defaults win: installdir; osx: /Applications/Tracker.app/Contents/Java) 
 	typ contents: tracker.jar, tracker_starter.jar, tracker_start.log, tracker.prefs
+
+[ JS null; equivalent could be j2s/tracker, i.e. File("/tracker"), or Info.prefs:xxxx ]
+
 3. userhome (~) (OSPRuntime.getUserHome()) 
 	typ contents: tracker.prefs
+
+[ JS currently the web page path, such as site/, i.e. URL("https://./") 
+   -- note that this is not a valid Java URL, but it is in JS ]
+
 4. appdata (defaults win: ~\AppData\Local\OSP; osx ~/Library/Application Support/OSP) 
 	typ contents: tracker.prefs, osp.prefs, my_library.xml, tracker_start.log, my_collection.xml, recent_collection.xml
+
+[ JS equivalent is System property java.io.tmpdir, i.e. File("/TEMP/") ]
+
 5. cache (ResourceLoader.getOSPCache()) (defaults win: appdata\Cache; osx: ~/Library/Caches/OSP) 
 	typ contents: TRZ and other files downloaded from web, in subfolders by server
+
+[ JS equivalent is System property java.io.tmpdir, i.e. File("/TEMP/") ]
+
 6. search cache (ResourceLoader.getSearchCache()) (always cache/Search) 
 	typ contents: library resource xml files searched by Library Browser, in subfolders by server]
+
+[ JS equivalent is System property java.io.tmpdir, i.e. File("/TEMP/") ]
+
 7. trackerdocs (default ~/Documents/Tracker)
 	typ contents (if installed by installer): experiments folder with TRK files, video folder with video files
 	typ contents: tracker_start.log
+
+[ JS no equivalent ]
+
 8. temp (System.getProperty("java.io.tmpdir"))
 	typ contents: PDF, HTML and other files temporarily extracted for display on desktop
+
+[ JS same as Java; same as 4,5, and 6. i.e. File("/TEMP/") ]
 
 	
 TRZ contents: for file "name.trz"
@@ -37,6 +63,8 @@ Actions that involve reading/writing:
 	-launch Tracker in new Process
 	-write tracker_start.log in appdata and codebase (if writable)
 
+[ JS null; equivalent could be command-line URL fields that do this, or Info{} values that provide prefs ]
+
 2. start Tracker with Tracker.main()
 	-load first tracker.prefs found in OSPRuntime.getDefaultSerchPaths() {appdata, userhome, codebase}
 	-display splash screen (can be turned off)
@@ -44,21 +72,31 @@ Actions that involve reading/writing:
 	-load TRK or TRZ args, if any
 	-read latest version number from physlets server
 
+[ JS null; equivalent could be command-line URL fields that do this, or Info{} values that provide prefs ]
+
+
 3. load video file
 	-if web file, download to cache and load cached file
 	-VideoType implementation uses getVideo(name) to create Video object
 	-ImageVideo constructor has boolean to immediately load all images into memory or load from files only when needed
 
+[ JS no difference - working but needs optimization ]
+
 4. load TRK file
 	-if web file, download to cache and load cached file
 	-load video file(s) from relative path
 	-load xml properties into TrackerPanel tab
+
+[ JS no difference - working ]
 	
 5. load TRZ file
 	-if web file, download to cache and load cached file
 	-if TRZ contains video file with ext in extractExtensions, extract to same directory as TRZ
 	-load TRK without extracting
 	-extract PDF, HTML and other files to temp, display in default desktop app
+
+[ JS no difference, except HTML is a problem for images, which must either be http/https or blob-based data URIs ]
+
 	
 6. save TRZ tab "tabname" with project title "name" in directory dir
 	-create name_temp subdirectory in dir
@@ -69,20 +107,31 @@ Actions that involve reading/writing:
 	-compress contents of name_temp
 	-delete name_temp
 	
+[ JS no difference expected ]
+
 7. save changes when closing tab
 	-for non-TRZ tab: overwrite TRK file or use chooser
 	-for TRZ tab: save new TRZ with chooser (CANNOT OVERWRITE)
+
+[ JS no difference expected, but these will have to go to user downloads; overwriting is not even an option ]
 	
 8. exit Tracker
 	-write tracker.prefs in all OSPRuntime.getDefaultSerchPaths() {appdata, userhome, codebase}
 	-write osp.prefs in appdata
 
+[ JS ? Save prefs to downloads and then allow drag/drop or opening of that manually? Ignore? ]
+
 9. open Library Browser
 	-read appdata/my_library.xml and load previous tabs
 	
+[ JS n/a ? ]
+
+
 10. load some_collection.xml from web into Library Browser
 	-load xml properties into library browser tab tree
 	-write some_collection_xml.xml in search cache
+
+[ JS no difference? Q: So no thumbnails here? ]
 
 11. load Tracker OSP collection from ComPADRE into Library Browser
 	-check cache and load cached xml file, if any (Refresh button clears cached file and resends query)
@@ -91,9 +140,17 @@ Actions that involve reading/writing:
 	-process tree nodes in background and extract/download thumbnail images to cache (no overwrite)
 	-write collection xml in search cache
 	
+[ JS is working; "refresh" would simply be "reload this web page" since there can't be any persistent local cache ]
+[ JS issue with thumbnails -- not clear to me what benefit this is except faster response when browsing. Could be synchronous? ]
+
 12. search for topic keywords in Library Browser
 	-read collection xml files in search cache
 
+[ JS no difference ]
+
+
+
+[ None of the following relates to JS, I think. ]
 	
 JAVA INSTALLATION
 Installed files: Windows
