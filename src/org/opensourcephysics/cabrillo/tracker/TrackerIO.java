@@ -64,6 +64,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
+import java.util.zip.ZipEntry;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -777,8 +778,8 @@ public class TrackerIO extends VideoIO {
 				String trkForTFrame = null;
 
 				// sort the zip file contents
-				Collection<String> contents = ResourceLoader.getZipContents(path);
-				for (String next : contents) {
+				Map<String, ZipEntry> contents = ResourceLoader.getZipContents(path);
+				for (String next : contents.keySet()) {
 					if (next.endsWith(".trk")) { //$NON-NLS-1$
 						String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
 						OSPLog.finest("found trk file " + s); //$NON-NLS-1$
@@ -851,6 +852,8 @@ public class TrackerIO extends VideoIO {
 				// unzip pdf/html/other files into temp directory and open on desktop
 				final ArrayList<String> tempFiles = new ArrayList<String>();
 				if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty() || !otherFiles.isEmpty()) {
+					if (OSPRuntime.unzipFiles) {
+					
 					File temp = new File(OSPRuntime.tempDir); // $NON-NLS-1$
 					Set<File> files = ResourceLoader.unzip(path, temp, true);
 					for (File next : files) {
@@ -860,7 +863,12 @@ public class TrackerIO extends VideoIO {
 						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath) || otherFiles.contains(relPath)) {
 							String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());
 							tempFiles.add(tempPath);
-						}
+						 }
+					}
+					} else {
+						tempFiles.addAll(htmlFiles);
+						tempFiles.addAll(pdfFiles);
+						tempFiles.addAll(otherFiles);
 					}
 					// open tempfiles on the desktop
 					Runnable displayURLRunner = new Runnable() {
@@ -1884,59 +1892,61 @@ public class TrackerIO extends VideoIO {
   		customDelimiters.remove(selected);
   }
   
-  /**
-   * Finds page view file paths in an XMLControl and maps the page view path to the URL path
-   * of the file. If the page view path refers to a file inside a trk, zip or jar file, then 
-   * all files in the jar are extracted and the URL path points to the extracted HTML file.
-   * This ensures that the HTML page can be opened on the desktop.
-   */
-  private static void findPageViewFiles(XMLControl control, Map<String, String> pageViewFiles) {
+	/**
+	 * Finds page view file paths in an XMLControl and maps the page view path to
+	 * the URL path of the file. If the page view path refers to a file inside a
+	 * trk, zip or jar file, then all files in the jar are extracted and the URL
+	 * path points to the extracted HTML file. This ensures that the HTML page can
+	 * be opened on the desktop.
+	 */
+	private static void findPageViewFiles(XMLControl control, Map<String, String> pageViewFiles) {
 		// extract page view filenames from control xml
 		String xml = control.toXML();
 		// basic unit is a tab with title and text
 		String token = "PageTView$TabView"; //$NON-NLS-1$
 		int j = xml.indexOf(token);
-		while (j>-1) { // found page view tab
-			xml = xml.substring(j+token.length());
+		while (j > -1) { // found page view tab
+			xml = xml.substring(j + token.length());
 			// get text and check if it is a loadable path
 			token = "<property name=\"text\" type=\"string\">"; //$NON-NLS-1$
 			j = xml.indexOf(token);
-			String path = xml.substring(j+token.length());
+			String path = xml.substring(j + token.length());
 			j = path.indexOf("</property>"); //$NON-NLS-1$
 			path = path.substring(0, j);
 			if (path.endsWith(".html") || path.endsWith(".htm")) { //$NON-NLS-1$ //$NON-NLS-2$
 				Resource res = ResourceLoader.getResource(path);
-				if (res!=null) {
+				if (res != null) {
 					// found an HTML file, so add it to the map
 					String urlPath = res.getURL().toExternalForm();
-					String zipPath = ResourceLoader.getNonURIPath(res.getAbsolutePath());
-					int n = zipPath.indexOf("!/"); //$NON-NLS-1$
-					// extract files from jar, zip or trz files into temp directory
-					if (n>0) {
-						File target = new File(OSPRuntime.tempDir); //$NON-NLS-1$
-						zipPath = zipPath.substring(0, n);
-						ResourceLoader.unzip(zipPath, target, true); // overwrite
-						target = new File(target, path);
-						if (target.exists()) {
-							res = ResourceLoader.getResource(target.getAbsolutePath());
-							urlPath = res.getURL().toExternalForm();
-						}
-						else {
-							path = null;
+					if (OSPRuntime.unzipFiles) {
+						String zipPath = ResourceLoader.getNonURIPath(res.getAbsolutePath());
+						int n = zipPath.indexOf("!/"); //$NON-NLS-1$
+						// extract files from jar, zip or trz files into temp directory
+						if (n > 0) {
+							File target = new File(OSPRuntime.tempDir); // $NON-NLS-1$
+							zipPath = zipPath.substring(0, n);
+							ResourceLoader.unzip(zipPath, target, true); // overwrite
+							target = new File(target, path);
+							if (target.exists()) {
+								res = ResourceLoader.getResource(target.getAbsolutePath());
+								urlPath = res.getURL().toExternalForm();
+							} else {
+								path = null;
+							}
 						}
 					}
-					if (path!=null) {
+					if (path != null) {
 						pageViewFiles.put(path, urlPath);
 					}
-				}				
+				}
 			}
-			
+
 			// look for the next tab
 			token = "PageTView$TabView"; //$NON-NLS-1$
 			j = xml.indexOf(token);
 		}
 
-  }
+	}
 
   /**
    * ComponentImage class for printing and copying images of components.
