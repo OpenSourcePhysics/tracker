@@ -1867,7 +1867,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   private boolean copyOrExtractFile(String filePath, File targetFile) {
   	String lowercase = filePath.toLowerCase();
   	// if file is on server, download it
-  	if (filePath.startsWith("http")) { //$NON-NLS-1$
+  	if (ResourceLoader.isHTTP(filePath)) {
   		targetFile = ResourceLoader.download(filePath, targetFile, false);
   	}
   	// if file is in zip or jar, then extract it
@@ -2350,7 +2350,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	  	
 	  	// if local stylesheet is found, copy it
 	  	String css = ResourceLoader.getStyleSheetFromHTMLCode(html);
-	  	if (css!=null && !css.startsWith("http")) { //$NON-NLS-1$
+	  	if (css!=null && !ResourceLoader.isHTTP(css)) {
 	  		res = ResourceLoader.getResource(XML.getResolvedPath(css, htmlBasePath));
 	  		if (res!=null) {
 	  			// copy css file into HTMLTarget directory

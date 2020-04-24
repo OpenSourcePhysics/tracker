@@ -664,7 +664,7 @@ public class TrackerIO extends VideoIO {
 			return;
 		}
 		frame.loadedFiles.add(nonURIPath);
-		if (!path.startsWith("http")) //$NON-NLS-1$
+		if (!ResourceLoader.isHTTP(path))
 			path = nonURIPath;
 
 		// create progress monitor
@@ -685,7 +685,7 @@ public class TrackerIO extends VideoIO {
 		if (videoFileFilter.accept(testFile, false)) {
 			OSPLog.finest("opening video path " + path); //$NON-NLS-1$
 			// download web videos to the OSP cache
-			if (path.startsWith("http")) { //$NON-NLS-1$
+			if (ResourceLoader.isHTTP(path)) {
 				String name = XML.getName(path);
 				name = ResourceLoader.getNonURIPath(name);
 				File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
@@ -761,7 +761,7 @@ public class TrackerIO extends VideoIO {
 				monitorDialog.stop();
 				String name = XML.getName(ResourceLoader.getNonURIPath(path));
 				// download web files to OSP cache
-				boolean isWebPath = path.startsWith("http"); //$NON-NLS-1$
+				boolean isWebPath = ResourceLoader.isHTTP(path);
 				if (isWebPath) {
 					File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
 					if (localFile != null) {
@@ -853,18 +853,19 @@ public class TrackerIO extends VideoIO {
 				final ArrayList<String> tempFiles = new ArrayList<String>();
 				if (!htmlFiles.isEmpty() || !pdfFiles.isEmpty() || !otherFiles.isEmpty()) {
 					if (OSPRuntime.unzipFiles) {
-					
-					File temp = new File(OSPRuntime.tempDir); // $NON-NLS-1$
-					Set<File> files = ResourceLoader.unzip(path, temp, true);
-					for (File next : files) {
-						next.deleteOnExit();
-						// add PDF/HTML/other files to tempFiles
-						String relPath = XML.getPathRelativeTo(next.getPath(), temp.getPath());
-						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath) || otherFiles.contains(relPath)) {
-							String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());
-							tempFiles.add(tempPath);
-						 }
-					}
+
+						File temp = new File(OSPRuntime.tempDir); // $NON-NLS-1$
+						Set<File> files = ResourceLoader.unzip(path, temp, true);
+						for (File next : files) {
+							next.deleteOnExit();
+							// add PDF/HTML/other files to tempFiles
+							String relPath = XML.getPathRelativeTo(next.getPath(), temp.getPath());
+							if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath)
+									|| otherFiles.contains(relPath)) {
+								String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());
+								tempFiles.add(tempPath);
+							}
+						}
 					} else {
 						tempFiles.addAll(htmlFiles);
 						tempFiles.addAll(pdfFiles);
