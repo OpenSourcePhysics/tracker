@@ -1760,7 +1760,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			return true;
 		}
 
-
 		/**
 		 * Java only; transpiler can ignore.
 		 * 
@@ -1768,15 +1767,17 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		 * 
 		 */
 		{
-			boolean isTracker = false;
+			boolean isTrackerJar = false;
 			JarFile jarfile = OSPRuntime.getLaunchJar();
-			try {
-				java.util.jar.Attributes att = jarfile.getManifest().getMainAttributes();
-				Object mainclass = att.getValue("Main-Class"); //$NON-NLS-1$
-				isTracker = mainclass.toString().endsWith("Tracker"); //$NON-NLS-1$
-			} catch (Exception ex) {
-			}
+			if (jarfile != null) {
+				try {
+					java.util.jar.Attributes att = jarfile.getManifest().getMainAttributes();
+					Object mainclass = att.getValue("Main-Class"); //$NON-NLS-1$
+					isTrackerJar = mainclass.toString().endsWith("Tracker"); //$NON-NLS-1$
+				} catch (Exception ex) {
+				}
 
+			}
 			// determine if relaunch is needed
 			boolean isRelaunch = args != null && args.length > 0 && "relaunch".equals(args[args.length - 1]); //$NON-NLS-1$
 			if (isRelaunch) {
@@ -1853,7 +1854,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				}
 
 				// attempt to relaunch if needed
-				if (isTracker && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
+				if (isTrackerJar && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
 					mainArgs = args;
 					if (requestedMemorySize <= 10) {
 						requestedMemorySize = TrackerStarter.DEFAULT_MEMORY_SIZE;
