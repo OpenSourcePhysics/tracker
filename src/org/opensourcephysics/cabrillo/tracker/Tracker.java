@@ -328,7 +328,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		setDefaultConfig(getFullConfig());
 		loadPreferences();
-		if (!OSPRuntime.isJS) {
+		if (!OSPRuntime.isJS) /** @j2sNative */ {
 			// load current version after a delay to allow video engines to load
 			// and every 24 hours thereafter (if program is left running)
 			Timer timer = new Timer(86400000, new ActionListener() {
@@ -471,7 +471,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			ResourceLoader.addExtractExtension(ext);
 		}
 
-		if (!OSPRuntime.isJS) {
+		if (!OSPRuntime.isJS) /** @j2sNative */ {
 			// BH 2020.04.06 no xuggle for SwingJS
 			// add Xuggle video types, if available, using reflection
 			try {
@@ -1007,7 +1007,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			};
 		}
 
-		if (!OSPRuntime.isJS) {
+		if (!OSPRuntime.isJS) /** @j2sNative */ {
 			// about Java
 			aboutJavaAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutJava"), null) { //$NON-NLS-1$
 				public void actionPerformed(ActionEvent e) {
@@ -1755,8 +1755,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 */
 	private static boolean initializeJava(String[] args) {
 
-		if (OSPRuntime.isJS)
+		if (OSPRuntime.isJS) {
+			originalMemoryRequest = requestedMemorySize;
 			return true;
+		}
 
 
 		/**
@@ -1902,7 +1904,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		if (!OSPRuntime.isJS) {
+		if (!OSPRuntime.isJS) /** @j2sNative */ {
 			// create and register DataTrackTool
 			Runnable runner = new Runnable() {
 				public void run() {
@@ -1922,7 +1924,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		TTrackBar.refreshMemoryButton();
 
 		// inform user if memory size was reduced
-		if (originalMemoryRequest > requestedMemorySize) {
+		if (!OSPRuntime.isJS && originalMemoryRequest > requestedMemorySize) {
 			JOptionPane.showMessageDialog(frame, TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message1") + " " //$NON-NLS-1$ //$NON-NLS-2$
 					+ originalMemoryRequest + "MB\n" + //$NON-NLS-1$
 					TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message2") + " " + requestedMemorySize //$NON-NLS-1$ //$NON-NLS-2$
@@ -2028,7 +2030,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			JOptionPane.showMessageDialog(null, box, TrackerRes.getString("Tracker.Dialog.StarterWarning.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
 		}
-		if (!OSPRuntime.isJS) {
+		if (!OSPRuntime.isJS) /** @j2sNative */ {
 
 			final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
 			if (newVersionURL != null) {
