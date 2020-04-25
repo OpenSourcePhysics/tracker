@@ -277,7 +277,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		// create grab cursor
 		imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/grab.gif"; //$NON-NLS-1$
-		Image grab = ResourceLoader.getImage(imageFile);
+		Image grab = ((ImageIcon) getIcon(imageFile)).getImage();
 		grabCursor = GUIUtils.createCustomCursor(grab, new Point(14, 10), "Grab", Cursor.HAND_CURSOR); //$NON-NLS-1$
 
 		// create static objects AFTER they are defined above
@@ -536,8 +536,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		// osp uses resources/[type]/images/.... not just resources/images/....
 		int pt;
 		if (OSPRuntime.isJS
-				&& ((pt = resource.indexOf("physics/resources/")) >= 0 || resource.startsWith("resources/images/"))) {
-			String imagePath = (pt >= 0 ? resource : "$/tracker/" + resource.substring(10));
+				&& ((pt = resource.indexOf("physics/resources/")) >= 0 || resource.startsWith("resources/images/"))) {			
+			String imagePath = (pt >= 0 ? resource 
+					: "/org/opensourcephysics/cabrillo/tracker/resources/images.zip!/tracker" + resource.substring(16));
 			URL ret = ResourceLoader.getImageZipResource(imagePath);
 			if (ret != null)
 				return ret;
