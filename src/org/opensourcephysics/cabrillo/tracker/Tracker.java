@@ -133,10 +133,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown"; //$NON-NLS-1$
 	/** the tracker icon */
 	public static final ImageIcon TRACKER_ICON = new ImageIcon(
-			Tracker.class.getResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
+			Tracker.getClassResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
 	/** a larger tracker icon */
 	public static final ImageIcon TRACKER_ICON_256 = new ImageIcon(
-			Tracker.class.getResource("resources/images/tracker_icon_256.png")); //$NON-NLS-1$
+			Tracker.getClassResource("resources/images/tracker_icon_256.png")); //$NON-NLS-1$
 
 	static final String THETA = TeXParser.parseTeX("$\\theta"); //$NON-NLS-1$
 	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
@@ -271,9 +271,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		// get logo icons with ResourceLoader so launch jar file is identified
 		String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/tracker_logo.png"; //$NON-NLS-1$
-		trackerLogoIcon = ResourceLoader.getIcon(imageFile);
+		trackerLogoIcon = getIcon(imageFile);
 		imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/osp_logo_url.png"; //$NON-NLS-1$
-		ospLogoIcon = ResourceLoader.getIcon(imageFile);
+		ospLogoIcon = getIcon(imageFile);
 
 		// create grab cursor
 		imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/grab.gif"; //$NON-NLS-1$
@@ -504,6 +504,45 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			}
 		};
 		new Thread(runner).start();
+	}
+
+	/**
+	 * Get an icon, possible retrieving the image from images.zip 
+	 * 
+	 * allow ResourceLoader to check for an image in images.zip
+	 * 
+	 * @param imagePath an absolute path in Tracker or OSP
+	 * @return an image from 
+	 */
+	public static Icon getIcon(String imagePath) {
+		// /org/opensourcephysics/cabrillo/tracker/resources/images/osp_logo_url.png
+		// /org/opensourcephysics/resources/tools/images/open.gif
+		if (OSPRuntime.isJS) {
+			URL url = getClassResource(imagePath.indexOf("/tracker/") < 0 ? imagePath : imagePath.substring(imagePath.indexOf("resources")));
+			if (url != null)
+				return new ImageIcon(url);
+		}
+		return ResourceLoader.getIcon(imagePath);
+	}
+
+	/**
+	 * If JavaScript and an image, get an image from images.zip, or standard
+	 * Class.getResource() if not.
+	 * 
+	 * @param resource "resources/...." or "/org/opensourcephysics/resources/...."
+	 * @return URL (with byte[ ] in _streamData if isJS)
+	 */
+	public static URL getClassResource(String resource) {
+		// osp uses resources/[type]/images/.... not just resources/images/....
+		int pt;
+		if (OSPRuntime.isJS
+				&& ((pt = resource.indexOf("physics/resources/")) >= 0 || resource.startsWith("resources/images/"))) {
+			String imagePath = (pt >= 0 ? resource : "$/tracker/" + resource.substring(10));
+			URL ret = ResourceLoader.getImageZipResource(imagePath);
+			if (ret != null)
+				return ret;
+		}
+		return Tracker.class.getResource(resource);
 	}
 
 	/**

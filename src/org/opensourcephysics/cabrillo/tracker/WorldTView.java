@@ -68,7 +68,7 @@ public class WorldTView extends TrackerPanel implements TView {
     setPreferredSize(new Dimension(240, 180));
     setShowCoordinates(false);
     icon = new ImageIcon(
-        Tracker.class.getResource("resources/images/axes.gif")); //$NON-NLS-1$
+        Tracker.getClassResource("resources/images/axes.gif")); //$NON-NLS-1$
     // world view button
     worldViewButton = new TButton();
     toolbarComponents.add(worldViewButton);

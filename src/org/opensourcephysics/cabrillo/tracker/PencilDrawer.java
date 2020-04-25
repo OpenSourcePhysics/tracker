@@ -57,7 +57,7 @@ public class PencilDrawer {
 		lightStroke = new BasicStroke(2);
 		heavyStroke = new BasicStroke(4);
     ImageIcon icon = new ImageIcon(
-        Tracker.class.getResource("resources/images/pencil_cursor.gif")); //$NON-NLS-1$
+        Tracker.getClassResource("resources/images/pencil_cursor.gif")); //$NON-NLS-1$
     pencilCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(1, 15), 
     		TrackerRes.getString("PencilDrawer.Cursor.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$
 	  Color[] baseColors = {Color.BLACK, Color.RED, Color.GREEN, Color.BLUE,

@@ -830,7 +830,7 @@ public class PrefsDialog extends JDialog {
 		});
 		runField.addActionListener(setRunAction);
 
-		Icon openFileIcon = new ImageIcon(Tracker.class.getResource("resources/images/open.gif")); //$NON-NLS-1$
+		Icon openFileIcon = new ImageIcon(Tracker.getClassResource("resources/images/open.gif")); //$NON-NLS-1$
 		setRunButton = new TButton(openFileIcon);
 		setRunButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {

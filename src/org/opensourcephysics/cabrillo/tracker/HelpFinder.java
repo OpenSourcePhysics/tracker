@@ -336,7 +336,7 @@ public class HelpFinder {
 	
 	private static void initialize() {
 		// initialize the maps
-  	URL url = Tracker.class.getResource("resources/help/tracker_topics.xml"); //$NON-NLS-1$
+  	URL url = Tracker.getClassResource("resources/help/tracker_topics.xml"); //$NON-NLS-1$
   	String xml = ResourceLoader.getString(url.toExternalForm());
   	XMLControl control = new XMLControlElement(xml);
   	ArrayList<LaunchNode> children = (ArrayList<LaunchNode>)control.getObject("child_nodes"); //$NON-NLS-1$

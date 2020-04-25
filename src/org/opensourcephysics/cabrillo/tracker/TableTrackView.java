@@ -60,8 +60,8 @@ public class TableTrackView extends TrackView {
 	static final String DEFINED_AS = ": "; //$NON-NLS-1$
 	static Icon skipsOffIcon, skipsOnIcon;
 	static {
-		skipsOnIcon =  new ResizableIcon(Tracker.class.getResource("resources/images/skips_on.gif")); //$NON-NLS-1$
-		skipsOffIcon =  new ResizableIcon(Tracker.class.getResource("resources/images/skips_off.gif")); //$NON-NLS-1$
+		skipsOnIcon =  new ResizableIcon(Tracker.getClassResource("resources/images/skips_on.gif")); //$NON-NLS-1$
+		skipsOffIcon =  new ResizableIcon(Tracker.getClassResource("resources/images/skips_off.gif")); //$NON-NLS-1$
 	}
 
   // instance fields

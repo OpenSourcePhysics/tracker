@@ -85,7 +85,7 @@ public class CoordAxes extends TTrack {
   
   static {
   	gridOptionsIcon = new ImageIcon(
-        Tracker.class.getResource("resources/images/restore.gif")); //$NON-NLS-1$
+        Tracker.getClassResource("resources/images/restore.gif")); //$NON-NLS-1$
   	gridOptionsIcon = new ResizableIcon(gridOptionsIcon);
   }
 	

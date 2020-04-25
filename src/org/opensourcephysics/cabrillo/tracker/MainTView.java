@@ -636,7 +636,7 @@ public class MainTView extends JPanel implements TView {
    */
   public Icon getViewIcon() {
     return new ImageIcon(
-        Tracker.class.getResource("resources/images/video_on.gif")); //$NON-NLS-1$
+        Tracker.getClassResource("resources/images/video_on.gif")); //$NON-NLS-1$
   }
 
   /**

@@ -72,7 +72,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   protected JPopupMenu selectPopup = new JPopupMenu();
 
   static {
-  	smallSelectIcon =  new ImageIcon(Tracker.class.getResource("resources/images/small_select.gif")); //$NON-NLS-1$
+  	smallSelectIcon =  new ImageIcon(Tracker.getClassResource("resources/images/small_select.gif")); //$NON-NLS-1$
   	smallSelectIcon = new ResizableIcon(smallSelectIcon);
   	if (Tracker.testOn) {
 	  	testButton = new JButton("test"); //$NON-NLS-1$

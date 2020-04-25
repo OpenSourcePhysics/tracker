@@ -2102,7 +2102,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
 			fileMenu.addSeparator();
 			// open file item
-			Icon icon = new ImageIcon(Tracker.class.getResource("resources/images/open.gif")); //$NON-NLS-1$
+			Icon icon = new ImageIcon(Tracker.getClassResource("resources/images/open.gif")); //$NON-NLS-1$
 			JMenuItem openItem = new JMenuItem(TrackerRes.getString("TActions.Action.Open"), icon); //$NON-NLS-1$
 			openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
 			openItem.addActionListener(new ActionListener() {
@@ -2119,7 +2119,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			refreshOpenRecentMenu(recentMenu);
 			fileMenu.addSeparator();
 			// openBrowser item
-			icon = new ImageIcon(Tracker.class.getResource("resources/images/open_catalog.gif")); //$NON-NLS-1$
+			icon = new ImageIcon(Tracker.getClassResource("resources/images/open_catalog.gif")); //$NON-NLS-1$
 			JMenuItem openBrowserItem = new JMenuItem(TrackerRes.getString("TActions.Action.OpenBrowser"), icon); //$NON-NLS-1$
 			openBrowserItem.addActionListener(new ActionListener() {
 				public void actionPerformed(ActionEvent e) {

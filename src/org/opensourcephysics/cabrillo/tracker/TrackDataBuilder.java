@@ -84,9 +84,9 @@ public class TrackDataBuilder extends FunctionTool {
 		// create loadButton
 		if (openIcon==null) {
 		    String imageFile = "/org/opensourcephysics/resources/tools/images/open.gif"; //$NON-NLS-1$
-		    openIcon  = ResourceLoader.getIcon(imageFile);			
+		    openIcon  = Tracker.getIcon(imageFile);			
 		    imageFile = "/org/opensourcephysics/resources/tools/images/save.gif"; //$NON-NLS-1$
-		    saveIcon = ResourceLoader.getIcon(imageFile);
+		    saveIcon = Tracker.getIcon(imageFile);
 		}
 		loadButton = new JButton(openIcon);
 		loadButton.addActionListener(new ActionListener() {

@@ -58,7 +58,7 @@ public class PencilCaption extends InteractiveTextLine {
   static Font baseFont = new Font("SansSerif", Font.PLAIN, 32); //$NON-NLS-1$
 	static {
     ImageIcon icon = new ImageIcon(
-        Tracker.class.getResource("resources/images/hand_cursor.gif")); //$NON-NLS-1$
+        Tracker.getClassResource("resources/images/hand_cursor.gif")); //$NON-NLS-1$
 		handCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(5, 0), 
     	"Hand", Cursor.DEFAULT_CURSOR); //$NON-NLS-1$ 
 	  XML.setLoader(PencilCaption.class, PencilCaption.getLoader());
