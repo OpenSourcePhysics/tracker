@@ -4,6 +4,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="libraries/xuggle-xuggler.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/osp"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/osp-video-engines"/>
 	<classpathentry kind="src" path="src2"/>
 	<!--  this needs to be osp.jar, but we don't have that yet -->
 	<classpathentry kind="output" path="bin"/>
