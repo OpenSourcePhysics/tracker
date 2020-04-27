@@ -698,7 +698,8 @@ public class TrackerIO extends VideoIO {
 			VideoType requestedType = vidType;
 			Video video = getTrackerVideo(path, vidType);
 			monitorDialog.stop();
-			if (video == null && !isCanceled()) {
+			if (!OSPRuntime.isJS && video == null && !isCanceled()) {
+				
 				// video failed to load
 				// determine if other engines are available for the video extension
 				boolean[] setAsDefault = new boolean[1];

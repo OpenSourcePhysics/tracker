@@ -104,7 +104,6 @@ import org.opensourcephysics.media.core.DataTrackSupport;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.mov.MovieFactory;
-import org.opensourcephysics.media.xuggle.DiagnosticsForXuggle;
 import org.opensourcephysics.tools.Diagnostics;
 import org.opensourcephysics.tools.DiagnosticsForThreads;
 import org.opensourcephysics.tools.FontSizer;
@@ -113,8 +112,6 @@ import org.opensourcephysics.tools.LaunchNode;
 import org.opensourcephysics.tools.Launcher;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
-
-import javajs.async.SwingJSUtils.StateHelper;
 
 /**
  * This is the default Tracker application.
@@ -656,9 +653,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		OSPRuntime.setLookAndFeel(true, lookAndFeel);
 		frame = new TFrame();
 		Diagnostics.setDialogOwner(frame);
-		if (!OSPRuntime.isJS) {
-			DiagnosticsForXuggle.setDialogOwner(frame);
-		}
 		// set up the Java VM exit mechanism when used as application
 		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
 			frame.addWindowListener(new WindowAdapter() {
@@ -1057,7 +1051,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 			aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
 				public void actionPerformed(ActionEvent e) {
-					DiagnosticsForXuggle.aboutXuggle("Tracker"); //$NON-NLS-1$
+					MovieFactory.getVideoProperty("about:Tracker"); //$NON-NLS-1$
 				}
 			};
 			aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
@@ -1397,8 +1391,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			// BH SwingJS just avoiding unnecessary exception triggering
 			String home = TrackerStarter.findTrackerHome(false);
 			if (home != null) {
-				File trackerDir = new File(home);
-				updated = DiagnosticsForXuggle.copyXuggleJarsTo(trackerDir);
+				updated = ((Boolean) MovieFactory.getVideoProperty("copyJars:" + home)).booleanValue();
 			}
 		} catch (Exception e) {
 		}
@@ -1568,7 +1561,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			Locale locale = Locale.getDefault();
 			String language = locale.getLanguage();
 			String country = locale.getCountry();
-			String engine = MovieFactory.getEngine();
+			String engine = MovieFactory.getMovieVideoName(false);
 			String os = "unknownOS"; //$NON-NLS-1$
 			try { // system properties may not be readable in some environments
 				os = System.getProperty("os.name", "unknownOS").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1976,9 +1969,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		}
 
 //    warnNoVideoEngine = false; // for PLATO
-		if (warnNoVideoEngine && MovieFactory.getDefaultEngine().equals(VideoIO.ENGINE_NONE)) {
+		if (warnNoVideoEngine && !MovieFactory.hasVideoEngine()) {
 			// warn user that there is no working video engine
-			boolean xuggleInstalled = !OSPRuntime.isJS && DiagnosticsForXuggle.guessXuggleVersion() == 3.4;
+			boolean xuggleInstalled = !OSPRuntime.isJS && MovieFactory.hasVideoEngine();
 
 			ArrayList<String> message = new ArrayList<String>();
 			boolean showRelaunchDialog = false;

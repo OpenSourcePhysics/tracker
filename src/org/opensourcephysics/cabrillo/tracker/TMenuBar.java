@@ -85,7 +85,7 @@ import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPlayer;
-import org.opensourcephysics.media.xuggle.XuggleVideoI;
+import org.opensourcephysics.media.mov.PluginVideoI;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
@@ -1052,9 +1052,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     playXuggleSmoothlyItem.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				Video video = trackerPanel.getVideo();
-				if (video instanceof XuggleVideoI) {
+				if (video instanceof PluginVideoI) {
 					if (e.getStateChange() == ItemEvent.SELECTED || e.getStateChange() == ItemEvent.DESELECTED) {
-						((XuggleVideoI) video).setSmoothPlay(playXuggleSmoothlyItem.isSelected());
+						((PluginVideoI) video).setSmoothPlay(playXuggleSmoothlyItem.isSelected());
 					}
 				}
 			}
@@ -1665,8 +1665,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
           playAllStepsItem.setSelected(clip.isPlayAllSteps());
           videoMenu.add(playAllStepsItem);
           // smooth play item for xuggle videos
-          if (video instanceof XuggleVideoI) {
-          	playXuggleSmoothlyItem.setSelected(((XuggleVideoI) video).isSmoothPlay());
+          if (video instanceof PluginVideoI) {
+          	playXuggleSmoothlyItem.setSelected(((PluginVideoI) video).isSmoothPlay());
             videoMenu.add(playXuggleSmoothlyItem);
           }
           // video filters menu

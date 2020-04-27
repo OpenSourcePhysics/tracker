@@ -24,17 +24,65 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.util.logging.Level;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.logging.Level;
 
-import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.ListCellRenderer;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileFilter;
@@ -46,11 +94,9 @@ import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.IntegerField;
-import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.mov.MovieFactory;
-import org.opensourcephysics.media.xuggle.DiagnosticsForXuggle;
-import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.ResourceLoader;
 
 /**
@@ -858,7 +904,7 @@ public class PrefsDialog extends JDialog {
 		box = Box.createVerticalBox();
 		videoPanel.add(box, BorderLayout.CENTER);
 
-		boolean movieEngineInstalled = (MovieFactory.getEngine() != VideoIO.ENGINE_NONE);
+		boolean movieEngineInstalled = MovieFactory.hasVideoEngine();
 
 		// videoType subpanel
 		JPanel videoTypeSubPanel = new JPanel();
@@ -879,7 +925,8 @@ public class PrefsDialog extends JDialog {
 				if (!movieEngineButton.isSelected())
 					return;
 				// Windows: if xuggle 3.4 and 64-bit, set preferred VM to 32-bit and inform user
-				if (!OSPRuntime.isJS && OSPRuntime.isWindows() && DiagnosticsForXuggle.guessXuggleVersion() == 3.4
+				if (!OSPRuntime.isJS && OSPRuntime.isWindows() 
+						&& MovieFactory.hasVideoEngine()
 						&& vm64Button.isSelected()) {
 					boolean has32BitVM = JREFinder.getFinder().getDefaultJRE(32, Tracker.trackerHome, true) != null;
 					if (has32BitVM) {
@@ -993,7 +1040,7 @@ public class PrefsDialog extends JDialog {
 
 		// set selected states of engine buttons AFTER creating the xugglefast,
 		// xuggleslow and warnxuggle buttons
-		if (MovieFactory.getEngine() != VideoIO.ENGINE_NONE) {
+		if (MovieFactory.hasVideoEngine()) {
 			movieEngineButton.setSelected(true);
 		} else
 			noEngineButton.setSelected(true);
@@ -1431,7 +1478,7 @@ public class PrefsDialog extends JDialog {
 		prevMarkAtCurrentFrame = Tracker.markAtCurrentFrame;
 		prevCache = ResourceLoader.getOSPCache();
 		prevUpgradeInterval = Tracker.checkForUpgradeInterval;
-		prevEngine = MovieFactory.getEngine();
+		prevEngine = MovieFactory.getMovieVideoName(false);
 		prevZoomMouseWheel = Tracker.scrubMouseWheel;
 		prevCenterCalibrationStick = Tracker.centerCalibrationStick;
 		prevAutofill = Tracker.enableAutofill;
@@ -1896,7 +1943,7 @@ public class PrefsDialog extends JDialog {
     trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
     
     // video
-    if (MovieFactory.getEngine() != VideoIO.ENGINE_NONE) {
+    if (MovieFactory.hasVideoEngine()) {
 	    movieEngineButton.setSelected(true);
     }
     repaint();
