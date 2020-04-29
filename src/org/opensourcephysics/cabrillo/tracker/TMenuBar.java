@@ -1464,7 +1464,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
     });
     helpMenu.add(discussionHelpItem);
     
-    if (Tracker.trackerHome!=null && Tracker.readmeAction!=null) 
+    if (!OSPRuntime.isJS && Tracker.trackerHome!=null && Tracker.readmeAction!=null) 
     	helpMenu.add(Tracker.readmeAction);
     
     // hints item
@@ -1553,7 +1553,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       	Tracker.showUpgradeStatus(trackerPanel);
       }
     });
-    helpMenu.add(checkForUpgradeItem);    
+    if (!OSPRuntime.isJS) {
+    	helpMenu.add(checkForUpgradeItem);    
+    }
 
     if (Tracker.aboutTrackerAction != null) helpMenu.add(Tracker.aboutTrackerAction);
     return helpMenu;

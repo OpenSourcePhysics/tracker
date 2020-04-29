@@ -41,7 +41,9 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -95,6 +97,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
+import org.opensourcephysics.controls.XML.ObjectLoader;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.GUIUtils;
@@ -1048,10 +1051,14 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					Diagnostics.aboutJava();
 				}
 			};
-
 			aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
 				public void actionPerformed(ActionEvent e) {
-					MovieFactory.getVideoProperty("about:Tracker"); //$NON-NLS-1$
+					// call DiagnosticsForXuggle.aboutXuggle by reflection
+					try {
+						Class<?> clas = Class.forName("org.opensourcephysics.media.xuggle.DiagnosticsForXuggle"); //$NON-NLS-1$
+						Method method = clas.getMethod("aboutXuggle", new Class[] {String.class}); //$NON-NLS-1$
+						method.invoke(null, new Object[] {"Tracker"}); //$NON-NLS-1$
+					} catch (Exception e1) {}
 				}
 			};
 			aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
