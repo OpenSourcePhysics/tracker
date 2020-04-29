@@ -465,12 +465,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 //		int y = 3 * dim.height / 5; // below center
 //		splash.setLocation(x - size.width / 2, y - size.height / 2);
 
-		// set up videos extensions to extract from jars
-		// this list should agree with xuggle video types below
-		for (String ext : VideoIO.VIDEO_EXTENSIONS) { // {"mov", "avi", "mp4"}
-			ResourceLoader.addExtractExtension(ext);
-		}
-
 		if (!OSPRuntime.isJS) /** @j2sNative */ {
 			// BH 2020.04.06 no xuggle for SwingJS
 			// add Xuggle video types, if available, using reflection
