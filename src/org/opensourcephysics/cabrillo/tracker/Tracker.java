@@ -1390,10 +1390,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		// copy xuggle files to Tracker home, if needed
 		try {
 			// BH SwingJS just avoiding unnecessary exception triggering
-			String home = TrackerStarter.findTrackerHome(false);
-			if (home != null) {
-				updated = ((Boolean) MovieFactory.getVideoProperty("copyJars:" + home)).booleanValue();
-			}
+//			String home = TrackerStarter.findTrackerHome(false);
+//			if (home != null) {
+//				updated = ((Boolean) MovieFactory.getVideoProperty("copyJars:" + home)).booleanValue();
+//			}
 		} catch (Exception e) {
 		}
 		return updated;
