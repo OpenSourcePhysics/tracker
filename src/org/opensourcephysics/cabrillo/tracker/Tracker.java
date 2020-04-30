@@ -1387,14 +1387,18 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 */
 	protected static boolean updateResources() {
 		boolean updated = false;
-		// copy xuggle files to Tracker home, if needed
-		try {
-			// BH SwingJS just avoiding unnecessary exception triggering
-//			String home = TrackerStarter.findTrackerHome(false);
-//			if (home != null) {
-//				updated = ((Boolean) MovieFactory.getVideoProperty("copyJars:" + home)).booleanValue();
-//			}
-		} catch (Exception e) {
+		if (!OSPRuntime.isJS) /** @j2sNative */ {			
+			// copy xuggle files to Tracker home, if needed
+			try {
+				String home = TrackerStarter.findTrackerHome(false);
+				if (home != null) {
+					// call DiagnosticsForXuggle.copyXuggleJarsTo by reflection
+					Class<?> clas = Class.forName("org.opensourcephysics.media.xuggle.DiagnosticsForXuggle"); //$NON-NLS-1$
+					Method method = clas.getMethod("copyXuggleJarsTo", new Class[] {File.class}); //$NON-NLS-1$
+					Object result = method.invoke(null, new Object[] {new File(home)});
+					updated = (Boolean)result;
+				}		
+			} catch (Exception e) {}
 		}
 		return updated;
 	}
