@@ -1231,7 +1231,9 @@ public class TapeMeasure extends TTrack {
           }
           inputField.setBounds(bounds);
           glassPanel = trackerPanel.getGlassPanel();
-          trackerPanel.remove(glassPanel);
+          if (glassPanel != null) {
+        	  trackerPanel.remove(glassPanel);
+          }
           trackerPanel.add(inputPanel, BorderLayout.CENTER);
           Border space = BorderFactory.createEmptyBorder(0, 1, 1, 0);
           Color color = getFootprint().getColor();
@@ -1253,7 +1255,9 @@ public class TapeMeasure extends TTrack {
           }
         	inputField.setSigFigs(4);
           trackerPanel.remove(inputPanel);
-          trackerPanel.add(glassPanel, BorderLayout.CENTER);
+          if (glassPanel != null) {
+        	  trackerPanel.add(glassPanel, BorderLayout.CENTER);
+          } 
           dataValid = false;
   	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
           trackerPanel.revalidate();

@@ -118,6 +118,7 @@ import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPlayer;
+import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LaunchPanel;
@@ -868,7 +869,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (name.equals("datafile") || name.equals("video")) { // from TrackerPanel //$NON-NLS-1$ //$NON-NLS-2$
 			TrackerPanel trackerPanel = (TrackerPanel) e.getSource();
 			refreshTab(trackerPanel);
-		} else if (name.equals("progress")) { // from currently loading (xuggle) video //$NON-NLS-1$
+		} else if (name.equals(MovieVideoI.PROPERTY_VIDEO_PROGRESS)) { // from currently loading (xuggle) video //$NON-NLS-1$
 			Object val = e.getNewValue();
 			String vidName = XML.forwardSlash((String) e.getOldValue());
 			try {
@@ -888,7 +889,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					break;
 				}
 			}
-		} else if (name.equals("stalled")) { // from stalled xuggle video //$NON-NLS-1$
+		} else if (name.equals(MovieVideoI.PROPERTY_VIDEO_STALLED)) { // from stalled xuggle video //$NON-NLS-1$
 			String fileName = XML.getName((String) e.getNewValue());
 			String s = TrackerRes.getString("TFrame.Dialog.StalledVideo.Message0") //$NON-NLS-1$
 					+ "\n" + TrackerRes.getString("TFrame.Dialog.StalledVideo.Message1") //$NON-NLS-1$ //$NON-NLS-2$

@@ -846,8 +846,10 @@ public class Protractor extends TTrack {
             }
           }
           inputField.setBounds(bounds);
-          glassPanel = trackerPanel.getGlassPanel();
-          trackerPanel.remove(glassPanel);
+       	  glassPanel = trackerPanel.getGlassPanel();
+       	  if (glassPanel != null) {
+        	  trackerPanel.remove(glassPanel);
+          }
           trackerPanel.add(inputPanel, BorderLayout.CENTER);
           Border space = BorderFactory.createEmptyBorder(0, 1, 1, 0);
           Color color = getFootprint().getColor();
@@ -862,7 +864,9 @@ public class Protractor extends TTrack {
         	step.drawLayoutBounds = false;
           step.setProtractorAngle(inputField.getValue());
         	inputField.setSigFigs(4);
-          trackerPanel.add(glassPanel, BorderLayout.CENTER);
+          if (glassPanel != null) {	
+        	  trackerPanel.add(glassPanel, BorderLayout.CENTER);
+          }
           trackerPanel.remove(inputPanel);
           dataValid = false;
   	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
