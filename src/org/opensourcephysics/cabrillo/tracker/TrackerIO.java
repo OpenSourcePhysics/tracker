@@ -765,7 +765,7 @@ public class TrackerIO extends VideoIO {
 				boolean isWebPath = ResourceLoader.isHTTP(path);
 				if (isWebPath) {
 					File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
-					if (localFile != null) {
+					if (localFile != null && OSPRuntime.unzipFiles) {
 						// set path to downloaded file
 						path = localFile.toURI().toString();
 						OSPLog.finest("downloaded zip file: " + path); //$NON-NLS-1$

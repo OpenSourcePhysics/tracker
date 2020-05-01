@@ -3503,8 +3503,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// load the video clip
 			XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
 			if (child != null) {
+				if (!OSPRuntime.unzipFiles) {
+					child.setBasepath(control.getBasepath());
+				}
+				// BH consider not extracting these. 
 //      	Video existingVideo = trackerPanel.getVideo();
 				VideoClip clip = (VideoClip) control.getObject("videoclip"); //$NON-NLS-1$
+
+				
 				// if newly loaded clip has no video use existing video, if any
 //        if (clip.getVideo()==null && existingVideo!=null) {
 //        	VideoClip existingClip = trackerPanel.getPlayer().getVideoClip();
@@ -3729,6 +3735,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 			}
 			return trackerPanel;
+		}
+
+		private void checkAddBasepath(XMLControl control, XMLControl child) {
+			if (!OSPRuntime.unzipFiles && child instanceof XMLControlElement
+					&& child.getBasepath() == null) {
+				child.setBasepath(control.getBasepath());
+			}
 		}
 	}
 }
