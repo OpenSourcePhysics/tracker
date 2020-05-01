@@ -148,7 +148,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	// for testing
 	static boolean timeLogEnabled = false;
-	static boolean testOn = false;
+	static boolean testOn = true;
 	static String testString;
 
 	// define static fields
@@ -465,17 +465,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 //		int y = 3 * dim.height / 5; // below center
 //		splash.setLocation(x - size.width / 2, y - size.height / 2);
 
-		if (!OSPRuntime.isJS) /** @j2sNative */ {
-			// BH 2020.04.06 no xuggle for SwingJS
-			// add Xuggle video types, if available, using reflection
-			try {
-				String xuggleIOName = "org.opensourcephysics.media.xuggle.XuggleIO"; //$NON-NLS-1$
-				Class<?> xuggleIOClass = Class.forName(xuggleIOName);
-				Method method = xuggleIOClass.getMethod("registerWithVideoIO", (Class[]) null); //$NON-NLS-1$
-				method.invoke(null, (Object[]) null);
-			} catch (Exception ex) {
-			}
-		}
 		VideoIO.setDefaultXMLExtension("trk"); //$NON-NLS-1$
 
 		// create pdf help button
@@ -530,9 +519,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		// osp uses resources/[type]/images/.... not just resources/images/....
 		int pt;
 		if (OSPRuntime.isJS
-				&& ((pt = resource.indexOf("physics/resources/")) >= 0 || resource.startsWith("resources/images/"))) {			
+				&& ((pt = resource.indexOf("physics/resources/")) >= 0 || resource.startsWith("resources/images/"))) {			 //$NON-NLS-1$ //$NON-NLS-2$
 			String imagePath = (pt >= 0 ? resource 
-					: "/org/opensourcephysics/cabrillo/tracker/resources/images.zip!/tracker" + resource.substring(16));
+					: "/org/opensourcephysics/cabrillo/tracker/resources/images.zip!/tracker" + resource.substring(16)); //$NON-NLS-1$
 			URL ret = ResourceLoader.getImageZipResource(imagePath);
 			if (ret != null)
 				return ret;
@@ -919,84 +908,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				showAboutTracker();
 			}
 		};
-		// Tracker README
-		readmeAction = new AbstractAction(TrackerRes.getString("Tracker.Readme") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
-			public void actionPerformed(ActionEvent e) {
-				if (readmeDialog == null && trackerHome != null) {
-					String slash = System.getProperty("file.separator", "/"); //$NON-NLS-1$//$NON-NLS-2$
-					String path = trackerHome + slash + readmeFileName;
-					if (OSPRuntime.isMac()) {
-						// OSX trackerHome=/Applications/Tracker.app/Contents/Java
-						// but we want /usr/local/tracker
-						path = "/usr/local/tracker/" + readmeFileName; //$NON-NLS-1$
-					}
-					String s = ResourceLoader.getString(path);
-					if (s == null || "".equals(s)) { //$NON-NLS-1$
-						s = TrackerRes.getString("Tracker.Readme.NotFound") + ": " + path; //$NON-NLS-1$ //$NON-NLS-2$
-						JOptionPane.showMessageDialog(null, s, TrackerRes.getString("Tracker.Readme.NotFound"), //$NON-NLS-1$
-								JOptionPane.WARNING_MESSAGE);
-						return;
-					}
-					readmeDialog = new JDialog((Frame) null, true);
-					readmeDialog.setTitle(TrackerRes.getString("Tracker.Readme")); //$NON-NLS-1$
-					JTextArea textPane = new JTextArea();
-					textPane.setEditable(false);
-					textPane.setTabSize(2);
-					textPane.setLineWrap(true);
-					textPane.setWrapStyleWord(true);
-					JScrollPane scroller = new JScrollPane(textPane);
-					readmeDialog.setContentPane(scroller);
-					textPane.setText(s);
-					textPane.setCaretPosition(0);
-					readmeDialog.setSize(600, 600);
-					FontSizer.setFonts(readmeDialog, FontSizer.getLevel());
-					// center on screen
-					Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-					int x = (dim.width - readmeDialog.getBounds().width) / 2;
-					int y = (dim.height - readmeDialog.getBounds().height) / 2;
-					readmeDialog.setLocation(x, y);
-				}
-				readmeDialog.setVisible(true);
-			}
-		};
-
-		// Start log
-		final String startLogPath = System.getenv("START_LOG"); //$NON-NLS-1$
-		if (startLogPath != null) {
-			startLogAction = new AbstractAction(TrackerRes.getString("Tracker.StartLog") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
-				public void actionPerformed(ActionEvent e) {
-					if (startLogDialog == null) {
-						String s = ResourceLoader.getString(startLogPath);
-						if (s == null || "".equals(s)) { //$NON-NLS-1$
-							s = TrackerRes.getString("Tracker.StartLog.NotFound") + ": " + startLogPath; //$NON-NLS-1$ //$NON-NLS-2$
-							JOptionPane.showMessageDialog(null, s,
-									TrackerRes.getString("Tracker.startLogPath.NotFound"), //$NON-NLS-1$
-									JOptionPane.WARNING_MESSAGE);
-							return;
-						}
-						startLogDialog = new JDialog((Frame) null, true);
-						startLogDialog.setTitle(TrackerRes.getString("Tracker.StartLog")); //$NON-NLS-1$
-						JTextArea textPane = new JTextArea();
-						textPane.setEditable(false);
-						textPane.setTabSize(2);
-						textPane.setLineWrap(true);
-						textPane.setWrapStyleWord(true);
-						JScrollPane scroller = new JScrollPane(textPane);
-						startLogDialog.setContentPane(scroller);
-						textPane.setText(s);
-						textPane.setCaretPosition(0);
-						FontSizer.setFonts(startLogDialog, FontSizer.getLevel());
-						startLogDialog.setSize(600, 600);
-						// center on screen
-						Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-						int x = (dim.width - startLogDialog.getBounds().width) / 2;
-						int y = (dim.height - startLogDialog.getBounds().height) / 2;
-						startLogDialog.setLocation(x, y);
-					}
-					startLogDialog.setVisible(true);
-				}
-			};
-		}
 
 		if (prefsPath != null) {
 			trackerPrefsAction = new AbstractAction(TrackerRes.getString("Tracker.Prefs.MenuItem.Text") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -1039,28 +950,109 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		}
 
 		if (!OSPRuntime.isJS) /** @j2sNative */ {
+			// Tracker README
+			readmeAction = new AbstractAction(TrackerRes.getString("Tracker.Readme") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
+				public void actionPerformed(ActionEvent e) {
+					if (readmeDialog == null && trackerHome != null) {
+						String slash = System.getProperty("file.separator", "/"); //$NON-NLS-1$//$NON-NLS-2$
+						String path = trackerHome + slash + readmeFileName;
+						if (OSPRuntime.isMac()) {
+							// OSX trackerHome=/Applications/Tracker.app/Contents/Java
+							// but we want /usr/local/tracker
+							path = "/usr/local/tracker/" + readmeFileName; //$NON-NLS-1$
+						}
+						String s = ResourceLoader.getString(path);
+						if (s == null || "".equals(s)) { //$NON-NLS-1$
+							s = TrackerRes.getString("Tracker.Readme.NotFound") + ": " + path; //$NON-NLS-1$ //$NON-NLS-2$
+							JOptionPane.showMessageDialog(null, s, TrackerRes.getString("Tracker.Readme.NotFound"), //$NON-NLS-1$
+									JOptionPane.WARNING_MESSAGE);
+							return;
+						}
+						readmeDialog = new JDialog((Frame) null, true);
+						readmeDialog.setTitle(TrackerRes.getString("Tracker.Readme")); //$NON-NLS-1$
+						JTextArea textPane = new JTextArea();
+						textPane.setEditable(false);
+						textPane.setTabSize(2);
+						textPane.setLineWrap(true);
+						textPane.setWrapStyleWord(true);
+						JScrollPane scroller = new JScrollPane(textPane);
+						readmeDialog.setContentPane(scroller);
+						textPane.setText(s);
+						textPane.setCaretPosition(0);
+						readmeDialog.setSize(600, 600);
+						FontSizer.setFonts(readmeDialog, FontSizer.getLevel());
+						// center on screen
+						Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+						int x = (dim.width - readmeDialog.getBounds().width) / 2;
+						int y = (dim.height - readmeDialog.getBounds().height) / 2;
+						readmeDialog.setLocation(x, y);
+					}
+					readmeDialog.setVisible(true);
+				}
+			};
+
+			// Start log
+			final String startLogPath = System.getenv("START_LOG"); //$NON-NLS-1$
+			if (startLogPath != null) {
+				startLogAction = new AbstractAction(TrackerRes.getString("Tracker.StartLog") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
+					public void actionPerformed(ActionEvent e) {
+						if (startLogDialog == null) {
+							String s = ResourceLoader.getString(startLogPath);
+							if (s == null || "".equals(s)) { //$NON-NLS-1$
+								s = TrackerRes.getString("Tracker.StartLog.NotFound") + ": " + startLogPath; //$NON-NLS-1$ //$NON-NLS-2$
+								JOptionPane.showMessageDialog(null, s,
+										TrackerRes.getString("Tracker.startLogPath.NotFound"), //$NON-NLS-1$
+										JOptionPane.WARNING_MESSAGE);
+								return;
+							}
+							startLogDialog = new JDialog((Frame) null, true);
+							startLogDialog.setTitle(TrackerRes.getString("Tracker.StartLog")); //$NON-NLS-1$
+							JTextArea textPane = new JTextArea();
+							textPane.setEditable(false);
+							textPane.setTabSize(2);
+							textPane.setLineWrap(true);
+							textPane.setWrapStyleWord(true);
+							JScrollPane scroller = new JScrollPane(textPane);
+							startLogDialog.setContentPane(scroller);
+							textPane.setText(s);
+							textPane.setCaretPosition(0);
+							FontSizer.setFonts(startLogDialog, FontSizer.getLevel());
+							startLogDialog.setSize(600, 600);
+							// center on screen
+							Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+							int x = (dim.width - startLogDialog.getBounds().width) / 2;
+							int y = (dim.height - startLogDialog.getBounds().height) / 2;
+							startLogDialog.setLocation(x, y);
+						}
+						startLogDialog.setVisible(true);
+					}
+				};
+			}
+			
 			// about Java
 			aboutJavaAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutJava"), null) { //$NON-NLS-1$
 				public void actionPerformed(ActionEvent e) {
 					Diagnostics.aboutJava();
 				}
 			};
-			aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
-				public void actionPerformed(ActionEvent e) {
-					// call DiagnosticsForXuggle.aboutXuggle by reflection
-					try {
-						Class<?> clas = Class.forName("org.opensourcephysics.media.xuggle.DiagnosticsForXuggle"); //$NON-NLS-1$
-						Method method = clas.getMethod("aboutXuggle", new Class[] {String.class}); //$NON-NLS-1$
-						method.invoke(null, new Object[] {"Tracker"}); //$NON-NLS-1$
-					} catch (Exception e1) {}
-				}
-			};
+			
+			// about Xuggle--only if xuggle resources present
+			if (MovieFactory.xuggleIsPresent) {
+				aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
+					public void actionPerformed(ActionEvent e) {
+						MovieFactory.showAbout(MovieFactory.ENGINE_XUGGLE, "Tracker"); //$NON-NLS-1$
+					}
+				};
+			}
+			
+			// about threads
 			aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
 				public void actionPerformed(ActionEvent e) {
 					DiagnosticsForThreads.aboutThreads();
 				}
 			};
 		}
+		
 	}
 
 //  /**
@@ -1381,22 +1373,15 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	}
 
 	/**
-	 * Checks and updates Xuggle resources.
+	 * Checks and updates video engine resources if needed.
 	 * 
 	 * @return true if any resources were updated
 	 */
 	protected static boolean updateResources() {
-		boolean updated = false;
-		// copy xuggle files to Tracker home, if needed
-		try {
-			// BH SwingJS just avoiding unnecessary exception triggering
-//			String home = TrackerStarter.findTrackerHome(false);
-//			if (home != null) {
-//				updated = ((Boolean) MovieFactory.getVideoProperty("copyJars:" + home)).booleanValue();
-//			}
-		} catch (Exception e) {
-		}
-		return updated;
+		String[] updatedEngines = MovieFactory.getUpdatedVideoEngines();
+		return updatedEngines!=null 
+				&& updatedEngines.length>0 
+				&& updatedEngines[0].equals(MovieFactory.ENGINE_XUGGLE);
 	}
 
 	/**
@@ -1843,7 +1828,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				}
 				boolean needsJavaVM = javaPath != null && !javaCommand.equals(javaPath);
 
-				// update Xuggle
+				// update video engine resources
 				boolean updated = updateResources();
 
 				// compare memory with requested size(s)
