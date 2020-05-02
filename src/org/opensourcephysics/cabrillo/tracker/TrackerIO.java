@@ -268,7 +268,7 @@ public class TrackerIO extends VideoIO {
   	chooser.setAcceptAllFileFilterUsed(true);
   	if (isNew && file!=null) {
       Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-      TMenuBar.getMenuBar(trackerPanel).refresh();
+      trackerPanel.refreshMenuBar("TrackerIO.save");
   	}
   	return file;
   }
@@ -339,8 +339,7 @@ public class TrackerIO extends VideoIO {
     XMLControl xmlControl = new XMLControlElement(frame);
     xmlControl.write(XML.getAbsolutePath(file));
     Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-    TMenuBar.getMenuBar(trackerPanel).refresh();
+	frame.getTrackerPanel(frame.getSelectedTab()).refreshMenuBar("TrackerIO.saveTabset");
     return file;
   }
 
@@ -731,7 +730,7 @@ public class TrackerIO extends VideoIO {
 				pane.setDividerLocation(frame.defaultRightDivider);
 				TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
 				if (menubar != null) {
-					menubar.refresh();
+					menubar.refresh("TrackerIO.openTabPath- before setVideo");
 				}
 				trackerPanel.setVideo(video);
 				// panel is changed if video imported into existing trackerPanel
@@ -996,7 +995,7 @@ public class TrackerIO extends VideoIO {
 				if (trackerPanel != null) {
 					TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
 					if (menubar != null) {
-						menubar.refresh();
+						menubar.refresh("TrackerIO.openTabPath2");
 					}
 				}
 				return;
@@ -1026,7 +1025,7 @@ public class TrackerIO extends VideoIO {
 		}
 		TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
 		if (menubar != null) {
-			menubar.refresh();
+			menubar.refresh("TrackerIO.openTabPath - atEnd");
 		}
 		TTrackBar.refreshMemoryButton();
 		trackerPanel.changed = panelChanged;
@@ -1277,7 +1276,7 @@ public class TrackerIO extends VideoIO {
   	boolean success = ResourceLoader.copyAllFiles(new File(source), file);
   	if (success) {
 	  	Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-	    TMenuBar.getMenuBar(trackerPanel).refresh();
+	  	trackerPanel.refreshMenuBar("TrackerIO.saveVideo success");
 	  	return file;
   	}
   	return null;

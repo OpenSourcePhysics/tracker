@@ -3190,7 +3190,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			TTrack.nameDialog.setVisible(false);
 			TTrack.nameDialog.getContentPane().remove(badNameLabel);
     }
-		TMenuBar.getMenuBar(this).refresh();
+    refreshMenuBar("TrackerPanel.setTrackName");
   }
 
   /**
@@ -3743,6 +3743,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				child.setBasepath(control.getBasepath());
 			}
 		}
+	}
+
+	public void refreshMenuBar(String whereFrom) {
+		TMenuBar.getMenuBar(this).refresh(whereFrom);
 	}
 }
 

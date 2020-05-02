@@ -1186,7 +1186,7 @@ public class PrefsDialog extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				Tracker.recentFiles.clear();
 				if (trackerPanel != null)
-					TMenuBar.getMenuBar(trackerPanel).refresh();
+					trackerPanel.refreshMenuBar("PrefsDialog.clearRecent");
 				clearRecentButton.setEnabled(false);
 			}
 		});
@@ -1747,7 +1747,9 @@ public class PrefsDialog extends JDialog {
     Integer val = (Integer)recentSizeSpinner.getValue();
     Tracker.setRecentSize(val);
     
-    if (trackerPanel!=null) TMenuBar.getMenuBar(trackerPanel).refresh();
+    if (trackerPanel!=null) 
+		trackerPanel.refreshMenuBar("PrefsDialog.applyPrefs");
+
   	// update preferred memory size
     if (defaultMemoryCheckbox.isSelected())
   		Tracker.preferredMemorySize = -1;

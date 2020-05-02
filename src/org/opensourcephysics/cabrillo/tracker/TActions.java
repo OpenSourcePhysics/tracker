@@ -782,7 +782,7 @@ public class TActions {
         trackerPanel.setVideo(null);
         trackerPanel.repaint();
         trackerPanel.setImageSize(640, 480);
-        TMenuBar.getMenuBar(trackerPanel).refresh();
+        trackerPanel.refreshMenuBar("TActions.openVideo");
       }
     };
     actions.put("closeVideo", closeVideoAction); //$NON-NLS-1$

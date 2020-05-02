@@ -865,11 +865,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param e the property change event
 	 */
 	public void propertyChange(PropertyChangeEvent e) {
+		TrackerPanel trackerPanel;
 		String name = e.getPropertyName();
-		if (name.equals("datafile") || name.equals("video")) { // from TrackerPanel //$NON-NLS-1$ //$NON-NLS-2$
-			TrackerPanel trackerPanel = (TrackerPanel) e.getSource();
+		switch (name) {
+		case "datafile":
+		case "video": // from TrackerPanel //$NON-NLS-1$ //$NON-NLS-2$
+			trackerPanel = (TrackerPanel) e.getSource();
 			refreshTab(trackerPanel);
-		} else if (name.equals(MovieVideoI.PROPERTY_VIDEO_PROGRESS)) { // from currently loading (xuggle) video //$NON-NLS-1$
+		break; case MovieVideoI.PROPERTY_VIDEO_PROGRESS: // from currently loading (xuggle) video //$NON-NLS-1$
 			Object val = e.getNewValue();
 			String vidName = XML.forwardSlash((String) e.getOldValue());
 			try {
@@ -889,7 +892,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					break;
 				}
 			}
-		} else if (name.equals(MovieVideoI.PROPERTY_VIDEO_STALLED)) { // from stalled xuggle video //$NON-NLS-1$
+		break; case MovieVideoI.PROPERTY_VIDEO_STALLED: // from stalled xuggle video //$NON-NLS-1$
 			String fileName = XML.getName((String) e.getNewValue());
 			String s = TrackerRes.getString("TFrame.Dialog.StalledVideo.Message0") //$NON-NLS-1$
 					+ "\n" + TrackerRes.getString("TFrame.Dialog.StalledVideo.Message1") //$NON-NLS-1$ //$NON-NLS-2$
@@ -914,7 +917,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				if (monitor != null)
 					monitor.close();
 			}
-		} else if (name.equals("locale")) { // from TrackerRes //$NON-NLS-1$
+		break; case "locale": // from TrackerRes //$NON-NLS-1$
 			// clear the existing menubars and actions
 			TMenuBar.clear();
 			TActions.clear();
@@ -927,7 +930,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			while (it.hasNext()) {
 				Object[] array = it.next();
 				MainTView mainView = (MainTView) array[0];
-				TrackerPanel trackerPanel = mainView.getTrackerPanel();
+				trackerPanel = mainView.getTrackerPanel();
 				boolean changed = trackerPanel.changed; // save changed state and restore below
 				array[4] = TMenuBar.getMenuBar(trackerPanel);
 				CoordAxes axes = trackerPanel.getAxes();
@@ -941,13 +944,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				trackbar.refresh();
 			}
 			// replace current menubar
-			TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
+			trackerPanel = getTrackerPanel(getSelectedTab());
 			if (trackerPanel != null) {
 				// replace menu bar
 				TMenuBar menuBar = getMenuBar(trackerPanel);
 				if (menuBar != null) {
 					setJMenuBar(menuBar);
-					menuBar.refresh();
+					menuBar.refresh("TFrame.prop change locale");
 				}
 				// show hint
 				if (Tracker.startupHintShown) {
@@ -1294,8 +1297,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 							Tracker.recentFiles.remove(e.getActionCommand());
 							int n = getSelectedTab();
 							if (n > -1) {
-								TrackerPanel trackerPanel = getTrackerPanel(n);
-								TMenuBar.getMenuBar(trackerPanel).refresh();
+								getTrackerPanel(n).refreshMenuBar("TFrame.openRecent");
 							} else {
 								refreshOpenRecentMenu(recentMenu);
 							}
@@ -1341,7 +1343,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (i < 0)
 			return;
 		TrackerPanel trackerPanel = getTrackerPanel(i);
-		getMenuBar(trackerPanel).refresh();
+		getMenuBar(trackerPanel).refresh("TFrame.refresh");
 		getToolBar(trackerPanel).refresh(true);
 		getTrackBar(trackerPanel).refresh();
 		for (Container next : getViews(trackerPanel)) {
@@ -1972,6 +1974,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// add listener to change menubar, toolbar, track control when tab changes
 		tabbedPane.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
+				OSPLog.debug("TFrame state changed " + e.toString());
 				TrackerPanel newPanel = null;
 				TrackerPanel oldPanel = prevPanel;
 
@@ -2417,7 +2420,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						continue;
 					}
 				}
-				// BH but if the file is set in the prev block, res is still null. So this will not work?
+				// BH but if the file is set in the prev block, res is still null. So this will
+				// not work?
 				if (res != null && !videoFilter.accept(file)) {
 					if (dataFile == null)
 						dataFile = file;
@@ -2446,7 +2450,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 
 		// BH 2020.04.16 just a sketch; not implemented yet.
-		
 
 		/**
 		 * The same as above, just asynchronous (untested).
@@ -2463,14 +2466,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			new State(control, frame, whenDone, (String[][]) tabs).start();
 		}
-		
+
 		/**
-		 * The essential SwingJS state machine works in Java and JavaScript and consists of:
+		 * The essential SwingJS state machine works in Java and JavaScript and consists
+		 * of:
 		 * 
 		 * 1) a set of all possible states (as final static int) Typically, these are
 		 * INIT, LOOP (or NEXT), and DONE, but they could be far more complex.
 		 * 
-		 * 2) a set of final and nonfinal fields that persist only as long as the state exists.
+		 * 2) a set of final and nonfinal fields that persist only as long as the state
+		 * exists.
 		 * 
 		 * 3) at least one loop defining the course of actions for the state.
 		 * 
@@ -2478,16 +2483,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		 * complete, you can provide a "whenDone" Function or Runnable. Or configure it
 		 * any way you want.
 		 * 
-		 * Action can be interrupted (reversibly) any time by calling stateHelper.interrupt().
+		 * Action can be interrupted (reversibly) any time by calling
+		 * stateHelper.interrupt().
 		 * 
-		 * Action can be made synchronous or restarted using stateHelper.next(STATE_XXX) or asynchronous
-		 * using stateHelper.delayedState(ms, STATE_XXX).
+		 * Action can be made synchronous or restarted using stateHelper.next(STATE_XXX)
+		 * or asynchronous using stateHelper.delayedState(ms, STATE_XXX).
 		 * 
 		 * @author hansonr
 		 *
 		 */
 		private class State implements StateMachine {
-			
+
 			// possible states
 
 			final static int STATE_IDLE = -1; // used sometimes for animation holds; not used in this class
@@ -2497,20 +2503,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			final static int STATE_DONE = 2;
 
 			private final StateHelper stateHelper;
-			private final TFrame                 frame;
-			private final XMLControl             control;
-			private final String[][]             tabs;
-			private final String                 base;
-			private final VideoFileFilter        videoFilter;
-			private final boolean                wasLoadThread;
+			private final TFrame frame;
+			private final XMLControl control;
+			private final String[][] tabs;
+			private final String base;
+			private final VideoFileFilter videoFilter;
+			private final boolean wasLoadThread;
 			private final Function<Object, Void> whenDone;
 
-			private int                    index;
-			private File                   dataFile;
+			private int index;
+			private File dataFile;
 
-			public State(XMLControl control, TFrame frame, Function<Object, Void> whenDone,
-					String[][] tabs) {
-				
+			public State(XMLControl control, TFrame frame, Function<Object, Void> whenDone, String[][] tabs) {
+
 				this.whenDone = whenDone;
 				this.control = control;
 				this.frame = frame;
@@ -2521,12 +2526,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				stateHelper = new StateHelper(this);
 				TrackerIO.loadInSeparateThread = false;
 			}
-			
+
 			public void start() {
 				stateHelper.next(STATE_INIT);
-				
+
 			}
-			
+
 			@Override
 			public synchronized boolean stateLoop() {
 
@@ -2601,7 +2606,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					TrackerIO.openTabFile(file, frame);
 				}
 			}
-
 
 		}
 

@@ -380,8 +380,7 @@ public class Undo {
   }
 
   private static void refreshMenus(TrackerPanel panel) {
-  	TMenuBar menubar = TMenuBar.getMenuBar(panel);
-    if (menubar != null) menubar.refresh();
+	panel.refreshMenuBar("Undo.refreshMenus");
   }
 
 //______________________ inner UndoableEdit classes ______________________

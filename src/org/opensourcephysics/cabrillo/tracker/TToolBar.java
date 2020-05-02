@@ -710,76 +710,82 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
    */
   protected void refresh(final boolean refreshTrackProperties) {
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh"); //$NON-NLS-1$
-    Runnable runner = new Runnable() {
+	OSPRuntime.postEvent(new Runnable() {
     	public void run() {
-        refreshing = true; // signals listeners that items are being refreshed
-        refreshZoomButton();
-        calibrationButton.refresh();
-        drawingButton.refresh();
-        stretchButton.setSelected(vStretch>1 || aStretch>1);
-        stretchOffItem.setText(TrackerRes.getString("TToolBar.MenuItem.StretchOff")); //$NON-NLS-1$
-        stretchOffItem.setEnabled(vStretch>1 || aStretch>1);
-        // refresh stretch items
-        Enumeration<AbstractButton> en = vGroup.getElements();
-        for (;en.hasMoreElements();) {
-        	AbstractButton next = en.nextElement();
-        	if (next.getActionCommand().equals(String.valueOf(vStretch))) {
-        		next.setSelected(true);
-        	}
-        }
-        en = aGroup.getElements();
-        for (;en.hasMoreElements();) {
-        	AbstractButton next = en.nextElement();
-        	if (next.getActionCommand().equals(String.valueOf(aStretch))) {
-        		next.setSelected(true);
-        	}
-        }
-        
-        vStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
-        aStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
-        openButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Open.Tooltip")); //$NON-NLS-1$
-        openBrowserButton.setToolTipText(TrackerRes.getString("TToolBar.Button.OpenBrowser.Tooltip")); //$NON-NLS-1$
-        saveZipButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SaveZip.Tooltip")); //$NON-NLS-1$
-        clipSettingsButton.setToolTipText(MediaRes.getString("VideoPlayer.Button.ClipSettings.ToolTip")); //$NON-NLS-1$
-        axesButton.setToolTipText(TrackerRes.getString("TToolbar.Button.AxesVisible.Tooltip")); //$NON-NLS-1$
-        zoomButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Zoom.Tooltip")); //$NON-NLS-1$
-        notesButton.setToolTipText(TrackerRes.getString("TActions.Action.Description")); //$NON-NLS-1$
-        refreshButton.setToolTipText(TrackerRes.getString("TToolbar.Button.Refresh.Tooltip")); //$NON-NLS-1$
-        desktopButton.setToolTipText(TrackerRes.getString("TToolbar.Button.Desktop.Tooltip")); //$NON-NLS-1$
-        pVisButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Positions.ToolTip")); //$NON-NLS-1$
-        vVisButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Velocities.ToolTip")); //$NON-NLS-1$
-        aVisButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Accelerations.ToolTip")); //$NON-NLS-1$
-        xMassButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Xmass.ToolTip")); //$NON-NLS-1$
-        trailButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Trails.ToolTip")); //$NON-NLS-1$
-        labelsButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Labels.ToolTip")); //$NON-NLS-1$
-        stretchButton.setToolTipText(TrackerRes.getString("TrackControl.Button.StretchVectors.ToolTip")); //$NON-NLS-1$
-        traceVisButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Trace.ToolTip")); //$NON-NLS-1$
-        newTrackButton.setText(TrackerRes.getString("TrackControl.Button.NewTrack")); //$NON-NLS-1$
-        newTrackButton.setToolTipText(TrackerRes.getString("TrackControl.Button.NewTrack.ToolTip")); //$NON-NLS-1$
-        trackControlButton.setToolTipText(TrackerRes.getString("TToolBar.Button.TrackControl.Tooltip")); //$NON-NLS-1$
-        autotrackerButton.setToolTipText(TrackerRes.getString("TToolBar.Button.AutoTracker.Tooltip")); //$NON-NLS-1$
-        fontSmallerButton.setToolTipText(TrackerRes.getString("TrackControl.Button.FontSmaller.ToolTip")); //$NON-NLS-1$
-        fontBiggerButton.setToolTipText(TrackerRes.getString("TrackControl.Button.FontBigger.ToolTip")); //$NON-NLS-1$
-      	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
-      	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
-        if (trackerPanel.getPlayer()!=null) {
+    		refreshAsync(refreshTrackProperties);
+    	}
+    });
+  }
+
+  protected void refreshAsync(boolean refreshTrackProperties) {
+      refreshing = true; // signals listeners that items are being refreshed
+      refreshZoomButton();
+      calibrationButton.refresh();
+      drawingButton.refresh();
+      stretchButton.setSelected(vStretch>1 || aStretch>1);
+      stretchOffItem.setText(TrackerRes.getString("TToolBar.MenuItem.StretchOff")); //$NON-NLS-1$
+      stretchOffItem.setEnabled(vStretch>1 || aStretch>1);
+      // refresh stretch items
+      Enumeration<AbstractButton> en = vGroup.getElements();
+      for (;en.hasMoreElements();) {
+      	AbstractButton next = en.nextElement();
+      	if (next.getActionCommand().equals(String.valueOf(vStretch))) {
+      		next.setSelected(true);
+      	}
+      }
+      en = aGroup.getElements();
+      for (;en.hasMoreElements();) {
+      	AbstractButton next = en.nextElement();
+      	if (next.getActionCommand().equals(String.valueOf(aStretch))) {
+      		next.setSelected(true);
+      	}
+      }
+      
+      vStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
+      aStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
+      openButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Open.Tooltip")); //$NON-NLS-1$
+      openBrowserButton.setToolTipText(TrackerRes.getString("TToolBar.Button.OpenBrowser.Tooltip")); //$NON-NLS-1$
+      saveZipButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SaveZip.Tooltip")); //$NON-NLS-1$
+      clipSettingsButton.setToolTipText(MediaRes.getString("VideoPlayer.Button.ClipSettings.ToolTip")); //$NON-NLS-1$
+      axesButton.setToolTipText(TrackerRes.getString("TToolbar.Button.AxesVisible.Tooltip")); //$NON-NLS-1$
+      zoomButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Zoom.Tooltip")); //$NON-NLS-1$
+      notesButton.setToolTipText(TrackerRes.getString("TActions.Action.Description")); //$NON-NLS-1$
+      refreshButton.setToolTipText(TrackerRes.getString("TToolbar.Button.Refresh.Tooltip")); //$NON-NLS-1$
+      desktopButton.setToolTipText(TrackerRes.getString("TToolbar.Button.Desktop.Tooltip")); //$NON-NLS-1$
+      pVisButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Positions.ToolTip")); //$NON-NLS-1$
+      vVisButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Velocities.ToolTip")); //$NON-NLS-1$
+      aVisButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Accelerations.ToolTip")); //$NON-NLS-1$
+      xMassButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Xmass.ToolTip")); //$NON-NLS-1$
+      trailButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Trails.ToolTip")); //$NON-NLS-1$
+      labelsButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Labels.ToolTip")); //$NON-NLS-1$
+      stretchButton.setToolTipText(TrackerRes.getString("TrackControl.Button.StretchVectors.ToolTip")); //$NON-NLS-1$
+      traceVisButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Trace.ToolTip")); //$NON-NLS-1$
+      newTrackButton.setText(TrackerRes.getString("TrackControl.Button.NewTrack")); //$NON-NLS-1$
+      newTrackButton.setToolTipText(TrackerRes.getString("TrackControl.Button.NewTrack.ToolTip")); //$NON-NLS-1$
+      trackControlButton.setToolTipText(TrackerRes.getString("TToolBar.Button.TrackControl.Tooltip")); //$NON-NLS-1$
+      autotrackerButton.setToolTipText(TrackerRes.getString("TToolBar.Button.AutoTracker.Tooltip")); //$NON-NLS-1$
+      fontSmallerButton.setToolTipText(TrackerRes.getString("TrackControl.Button.FontSmaller.ToolTip")); //$NON-NLS-1$
+      fontBiggerButton.setToolTipText(TrackerRes.getString("TrackControl.Button.FontBigger.ToolTip")); //$NON-NLS-1$
+    	fontSmallerButton.setEnabled(FontSizer.getLevel()>0);
+    	fontBiggerButton.setEnabled(FontSizer.getLevel()<FontSizer.MAX_LEVEL);
+      if (trackerPanel.getPlayer()!=null) {
 	        VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 	        ClipInspector inspector = clip.getClipInspector();
 	        clipSettingsButton.setSelected(inspector!=null && inspector.isVisible());
-      	}
-        CoordAxes axes = trackerPanel.getAxes();
-        if (axes != null) {
-        	axesButton.setSelected(axes.isVisible());
-        	axes.removePropertyChangeListener("visible", TToolBar.this); //$NON-NLS-1$
-          axes.addPropertyChangeListener("visible", TToolBar.this); //$NON-NLS-1$
-        }
-        ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
-        trackControlButton.setEnabled(!tracks.isEmpty());
-        autotrackerButton.setEnabled(trackerPanel.getVideo()!=null);
-        // count independent masses
-        double totalMass = 0;
-        int massCount = 0;
-        for (TTrack track: tracks) {
+    	}
+      CoordAxes axes = trackerPanel.getAxes();
+      if (axes != null) {
+      	axesButton.setSelected(axes.isVisible());
+      	axes.removePropertyChangeListener("visible", TToolBar.this); //$NON-NLS-1$
+        axes.addPropertyChangeListener("visible", TToolBar.this); //$NON-NLS-1$
+      }
+      ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
+      trackControlButton.setEnabled(!tracks.isEmpty());
+      autotrackerButton.setEnabled(trackerPanel.getVideo()!=null);
+      // count independent masses
+      double totalMass = 0;
+      int massCount = 0;
+      for (TTrack track: tracks) {
 	        if (track instanceof PointMass 
 	        		&& !(track instanceof CenterOfMass)
 	        		&& !(track instanceof DynamicSystem)) {
@@ -787,10 +793,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	          totalMass += p.getMass();
 	          massCount++;
 	        }
-        }
-        // refresh all tracks
-        if (refreshTrackProperties) {
-        	for (TTrack track: trackerPanel.getTracks()) {
+      }
+      // refresh all tracks
+      if (refreshTrackProperties) {
+      	for (TTrack track: trackerPanel.getTracks()) {
 	          track.removePropertyChangeListener("locked", TToolBar.this); //$NON-NLS-1$
 	          track.addPropertyChangeListener("locked", TToolBar.this); //$NON-NLS-1$
 	          // refresh track display properties from current button states
@@ -847,22 +853,22 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	          }
 	        }
 	    	}
-        TPoint pt = trackerPanel.getSelectedPoint();
-        if (pt != null) pt.showCoordinates(trackerPanel);
+      TPoint pt = trackerPanel.getSelectedPoint();
+      if (pt != null) pt.showCoordinates(trackerPanel);
 
-        // set trails icon
-        for (int i = 0; i < trailLengths.length; i++) {
-          if (trailLength == trailLengths[i]) {
-          	trailButton.setIcon(trailIcons[i]);
-          	FontSizer.setFonts(trailButton, FontSizer.getLevel());
-          }
+      // set trails icon
+      for (int i = 0; i < trailLengths.length; i++) {
+        if (trailLength == trailLengths[i]) {
+        	trailButton.setIcon(trailIcons[i]);
+        	FontSizer.setFonts(trailButton, FontSizer.getLevel());
         }
-        
-        // refresh pageViewTabs list
-        pageViewTabs.clear();
-        TFrame frame = trackerPanel.getTFrame();
-        if (frame!=null) {
-        TView[][] views = frame.getTViews(trackerPanel);
+      }
+      
+      // refresh pageViewTabs list
+      pageViewTabs.clear();
+      TFrame frame = trackerPanel.getTFrame();
+      if (frame!=null) {
+      TView[][] views = frame.getTViews(trackerPanel);
 	        for (TView[] next: views) {
 	        	if (next==null) continue;
 	        	for (TView view: next) {
@@ -878,11 +884,11 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	        	}
 	        }
 	        sortPageViewTabs();
-        }
+      }
 
-        // assemble buttons
-        removeAll();
-        if ( org.opensourcephysics.display.OSPRuntime.applet == null) {
+      // assemble buttons
+      removeAll();
+      if ( org.opensourcephysics.display.OSPRuntime.applet == null) {
 	        if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
 	        	add(openButton);
 	        }
@@ -896,47 +902,47 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		        	add(saveZipButton);
 		        }
 	        }
-        }
-        if (getComponentCount()>0) add(getSeparator());
-        boolean addSeparator = false;
-        if (trackerPanel.isEnabled("button.clipSettings")) {//$NON-NLS-1$
-        	add(clipSettingsButton);
-        	addSeparator = true;
-        }
-        if (trackerPanel.isEnabled("calibration.stick") //$NON-NLS-1$
-        		|| trackerPanel.isEnabled("calibration.tape") //$NON-NLS-1$
-        		|| trackerPanel.isEnabled("calibration.points") //$NON-NLS-1$
-        		|| trackerPanel.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
-        	add(calibrationButton);
-        	addSeparator = true;
-        }
-        if (trackerPanel.isEnabled("button.axes")) {//$NON-NLS-1$
-        	add(axesButton);
-        	addSeparator = true;
-        }
-        if (addSeparator)
-        	add(getSeparator());
-        if (trackerPanel.isCreateTracksEnabled()) {
-        	add(newTrackButton);
-        }
-        add(trackControlButton);
-        if (trackerPanel.isEnabled("track.autotrack")) //$NON-NLS-1$
-        	add(autotrackerButton);
+      }
+      if (getComponentCount()>0) add(getSeparator());
+      boolean addSeparator = false;
+      if (trackerPanel.isEnabled("button.clipSettings")) {//$NON-NLS-1$
+      	add(clipSettingsButton);
+      	addSeparator = true;
+      }
+      if (trackerPanel.isEnabled("calibration.stick") //$NON-NLS-1$
+      		|| trackerPanel.isEnabled("calibration.tape") //$NON-NLS-1$
+      		|| trackerPanel.isEnabled("calibration.points") //$NON-NLS-1$
+      		|| trackerPanel.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
+      	add(calibrationButton);
+      	addSeparator = true;
+      }
+      if (trackerPanel.isEnabled("button.axes")) {//$NON-NLS-1$
+      	add(axesButton);
+      	addSeparator = true;
+      }
+      if (addSeparator)
       	add(getSeparator());
-        add(zoomButton);
-        add(getSeparator());
-        if (trackerPanel.isEnabled("button.trails") //$NON-NLS-1$
-        		|| trackerPanel.isEnabled("button.labels")) { //$NON-NLS-1$
+      if (trackerPanel.isCreateTracksEnabled()) {
+      	add(newTrackButton);
+      }
+      add(trackControlButton);
+      if (trackerPanel.isEnabled("track.autotrack")) //$NON-NLS-1$
+      	add(autotrackerButton);
+    	add(getSeparator());
+      add(zoomButton);
+      add(getSeparator());
+      if (trackerPanel.isEnabled("button.trails") //$NON-NLS-1$
+      		|| trackerPanel.isEnabled("button.labels")) { //$NON-NLS-1$
 	        if (trackerPanel.isEnabled("button.trails")) //$NON-NLS-1$
 	        	add(trailButton);
 	        if (trackerPanel.isEnabled("button.labels")) //$NON-NLS-1$
 	        	add(labelsButton);
 	        add(getSeparator());
-        }
-        if (trackerPanel.isEnabled("button.path") //$NON-NLS-1$
-        		|| trackerPanel.isEnabled("button.x") //$NON-NLS-1$
-        		|| trackerPanel.isEnabled("button.v") //$NON-NLS-1$
-        		|| trackerPanel.isEnabled("button.a") ) {//$NON-NLS-1$
+      }
+      if (trackerPanel.isEnabled("button.path") //$NON-NLS-1$
+      		|| trackerPanel.isEnabled("button.x") //$NON-NLS-1$
+      		|| trackerPanel.isEnabled("button.v") //$NON-NLS-1$
+      		|| trackerPanel.isEnabled("button.a") ) {//$NON-NLS-1$
 	        if (trackerPanel.isEnabled("button.path")) //$NON-NLS-1$
 	        	add(traceVisButton);
 	        if (trackerPanel.isEnabled("button.x")) //$NON-NLS-1$
@@ -946,40 +952,36 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	        if (trackerPanel.isEnabled("button.a")) //$NON-NLS-1$
 	        	add(aVisButton);
 	        add(getSeparator());
-        }
-        if (trackerPanel.isEnabled("button.stretch") //$NON-NLS-1$
-        		|| trackerPanel.isEnabled("button.xMass")) { //$NON-NLS-1$
+      }
+      if (trackerPanel.isEnabled("button.stretch") //$NON-NLS-1$
+      		|| trackerPanel.isEnabled("button.xMass")) { //$NON-NLS-1$
 	        if (trackerPanel.isEnabled("button.stretch")) //$NON-NLS-1$
 		        add(stretchButton);
 	        if (trackerPanel.isEnabled("button.xMass")) //$NON-NLS-1$
 		        add(xMassButton);
 	        add(getSeparator());
-        }
-        add(fontSmallerButton);
-        add(fontBiggerButton);
-        add(getSeparator());
-        add(toolbarFiller);
-        if (trackerPanel.isEnabled("button.drawing")) //$NON-NLS-1$
-        	add(drawingButton);
-        add(desktopButton);
-        add(notesButton);
-        boolean hasPageURLs = !pageViewTabs.isEmpty();
-        desktopButton.setEnabled(hasPageURLs || !trackerPanel.supplementalFilePaths.isEmpty());
-        add(refreshButton);
-        
-        FontSizer.setFonts(newTrackButton, FontSizer.getLevel());
-        FontSizer.setFonts(zoomButton, FontSizer.getLevel());
-        
-        validate();
-        repaint();
-        refreshing = false;
-    	}
-    };
-    if (OSPRuntime.isJS || SwingUtilities.isEventDispatchThread()) runner.run();
-    else SwingUtilities.invokeLater(runner); 
+      }
+      add(fontSmallerButton);
+      add(fontBiggerButton);
+      add(getSeparator());
+      add(toolbarFiller);
+      if (trackerPanel.isEnabled("button.drawing")) //$NON-NLS-1$
+      	add(drawingButton);
+      add(desktopButton);
+      add(notesButton);
+      boolean hasPageURLs = !pageViewTabs.isEmpty();
+      desktopButton.setEnabled(hasPageURLs || !trackerPanel.supplementalFilePaths.isEmpty());
+      add(refreshButton);
+      
+      FontSizer.setFonts(newTrackButton, FontSizer.getLevel());
+      FontSizer.setFonts(zoomButton, FontSizer.getLevel());
+      
+      validate();
+      repaint();
+      refreshing = false;
   }
 
-  /**
+/**
    * Disposes of this toolbar
    */
   public void dispose() {
@@ -1065,36 +1067,37 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
     }
   }
   
-  /**
-   * Refreshes and returns the "new tracks" popup menu.
-   *
-   * @return the popup
-   */
-  protected JPopupMenu getNewTracksPopup() {
-    newPopup.removeAll();
-    TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
-    menubar.refresh();
-  	for (Component c: menubar.newTrackItems) {
-      newPopup.add(c);
-      if (c==menubar.newDataTrackMenu) {
-        // disable newDataTrackPasteItem unless pastable data is on the clipboard
-        menubar.newDataTrackPasteItem.setEnabled(false);
-        Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-        Transferable data = clipboard.getContents(null);
-        if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-          try {
-          	String s = (String)data.getTransferData(DataFlavor.stringFlavor);
-          	menubar.newDataTrackPasteItem.setEnabled(ParticleDataTrack.getImportableDataName(s)!=null);
-          } catch (Exception ex) {}
-        }      	
-      }
-  	}
-    if (menubar.cloneMenu.getItemCount()>0 && trackerPanel.isEnabled("new.clone")) { //$NON-NLS-1$
-    	newPopup.addSeparator();
-      newPopup.add(menubar.cloneMenu);    
-    }
-    return newPopup;
-  }
+	/**
+	 * Refreshes and returns the "new tracks" popup menu.
+	 *
+	 * @return the popup
+	 */
+	protected JPopupMenu getNewTracksPopup() {
+		newPopup.removeAll();
+		TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+		menubar.refresh("TToolBar.getNewTracksPopup");
+		for (Component c : menubar.newTrackItems) {
+			newPopup.add(c);
+			if (c == menubar.newDataTrackMenu) {
+				// disable newDataTrackPasteItem unless pastable data is on the clipboard
+				menubar.newDataTrackPasteItem.setEnabled(false);
+				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+				Transferable data = clipboard.getContents(null);
+				if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+					try {
+						String s = (String) data.getTransferData(DataFlavor.stringFlavor);
+						menubar.newDataTrackPasteItem.setEnabled(ParticleDataTrack.getImportableDataName(s) != null);
+					} catch (Exception ex) {
+					}
+				}
+			}
+		}
+		if (menubar.cloneMenu.getItemCount() > 0 && trackerPanel.isEnabled("new.clone")) { //$NON-NLS-1$
+			newPopup.addSeparator();
+			newPopup.add(menubar.cloneMenu);
+		}
+		return newPopup;
+	}
   
   public static JButton getSeparator() {
   	JButton b = new JButton(separatorIcon);

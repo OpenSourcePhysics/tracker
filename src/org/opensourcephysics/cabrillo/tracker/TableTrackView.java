@@ -467,7 +467,7 @@ public class TableTrackView extends TrackView {
     	}
     }
     // set highlighted rows if found
-    Runnable runner = new Runnable() {
+	OSPRuntime.postEvent(new Runnable() {
       public synchronized void run() {
     		dataTable.clearSelection();
       	if (highlightRows.isEmpty()) {
@@ -486,9 +486,7 @@ public class TableTrackView extends TrackView {
 				int cols = dataTable.getColumnCount();
 				dataTable.setColumnSelectionInterval(0, cols-1);
       }
-    };
-    if(SwingUtilities.isEventDispatchThread()) runner.run();
-    else SwingUtilities.invokeLater(runner);
+    });
 
   }
 
