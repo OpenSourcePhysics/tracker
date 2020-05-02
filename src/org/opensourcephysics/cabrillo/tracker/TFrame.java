@@ -2235,6 +2235,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param trackerPanel the tracker panel
 	 */
 	private void initialize(TrackerPanel trackerPanel) {
+		TMenuBar.getMenuBar(trackerPanel).setAllowRefresh(false);
 		// add a background mat if none exists
 		if (trackerPanel.getMat() == null) {
 			trackerPanel.addDrawable(new TMat(trackerPanel)); // constructor adds mat to panel
@@ -2308,6 +2309,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// set initial format patterns for existing tracks
 		trackerPanel.setInitialFormatPatterns();
 		Tracker.setProgress(90);
+		TMenuBar.getMenuBar(trackerPanel).setAllowRefresh(true);
 	}
 
 	/**

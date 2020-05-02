@@ -102,6 +102,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	private static Map<TrackerPanel, TMenuBar> menuBars = new HashMap<TrackerPanel, TMenuBar>();
 	private static XMLControl control = new XMLControlElement();
 
+	private boolean allowRefresh = true;
+	
+	public void setAllowRefresh(boolean b) {
+		allowRefresh = b;
+	}
+	
 	// instance fields
 	protected TrackerPanel trackerPanel;
 	protected TFrame frame;
@@ -1602,7 +1608,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	 * @param whereFrom 
 	 */
 	protected void refresh(String whereFrom) {
-
+		if (!allowRefresh)
+			return;
 		OSPRuntime.postEvent(new Runnable() {
 			public synchronized void run() {
 				refreshAll(whereFrom);
@@ -1616,7 +1623,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 
 		refreshing = true; // signals listeners that items are being refreshed
 		if (OSPRuntime.isJS) {
-			OSPRuntime.jsutil.setUIEnabled(TMenuBar.this, false);
+			// signals SwingJS that there is no need to do anything with the DOM during this process
+			// of rebuilding the menu. 
+			OSPRuntime.jsutil.setUIEnabled(this, false);
 		}
 		refreshFileMenu();
 		refreshEditMenu();
@@ -1624,9 +1633,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		refreshCoordsMenu();
 		refreshTrackMenu();
 		refreshHelpMenu();
-		FontSizer.setFonts(TMenuBar.this, FontSizer.getLevel());
+		FontSizer.setFonts(this, FontSizer.getLevel());
 		if (OSPRuntime.isJS) {
-			OSPRuntime.jsutil.setUIEnabled(TMenuBar.this, true);
+			OSPRuntime.jsutil.setUIEnabled(this, true);
 		}
 		refreshing = false;
 
