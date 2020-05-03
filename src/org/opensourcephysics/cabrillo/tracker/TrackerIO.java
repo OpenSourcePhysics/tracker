@@ -697,18 +697,18 @@ public class TrackerIO extends VideoIO {
 			VideoType requestedType = vidType;
 			Video video = getTrackerVideo(path, vidType);
 			monitorDialog.stop();
-			if (!OSPRuntime.isJS && video == null && !isCanceled()) {
-				
-				// video failed to load
-				// determine if other engines are available for the video extension
-				boolean[] setAsDefault = new boolean[1];
-				video = VideoIO.getAvailableEngineFromDialog(video, path, frame, requestedType == null, setAsDefault);
-				if (setAsDefault[0]) {
-					PrefsDialog prefs = frame.getPrefsDialog();
-					prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
-					frame.showPrefsDialog();
-				}
-			}
+//			if (!OSPRuntime.isJS && video == null && !isCanceled()) {
+//				
+//				// video failed to load
+//				// determine if other engines are available for the video extension
+//				boolean[] setAsDefault = new boolean[1];
+//				video = VideoIO.getAvailableEngineFromDialog(video, path, frame, requestedType == null, setAsDefault);
+//				if (setAsDefault[0]) {
+//					PrefsDialog prefs = frame.getPrefsDialog();
+//					prefs.tabbedPane.setSelectedComponent(prefs.videoPanel);
+//					frame.showPrefsDialog();
+//				}
+//			}
 			if (video == null) {
 				monitorDialog.close();
 				return;

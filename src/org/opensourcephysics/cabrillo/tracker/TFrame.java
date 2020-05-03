@@ -141,10 +141,16 @@ import javajs.async.SwingJSUtils.StateMachine;
 public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	// static fields
-	protected static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
-	protected static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
-	static Color yellow = new Color(255, 255, 105);
+	protected final static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
+	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
+	protected final static Color yellow = new Color(255, 255, 105);
 
+
+	private final static int VIEW_PLOT  = 0;
+	private final static int VIEW_TABLE = 1;
+	private final static int VIEW_WORLD = 2;
+	private final static int VIEW_TEXT  = 3;
+	
 	// instance fields
 	private JToolBar playerBar;
 	private JPopupMenu popup = new JPopupMenu();
@@ -284,8 +290,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			} else { // has custom views
 				Iterator<Object> it = trackerPanel.selectedViewsProperty.getPropertyContent().iterator();
 				int i = -1;
-				while (it.hasNext() && i < views.length) {
-					i++;
+				while (it.hasNext() && ++i < views.length) {
 					if (views[i] instanceof TViewChooser) {
 						TViewChooser chooser = (TViewChooser) views[i];
 						XMLProperty next = (XMLProperty) it.next();
@@ -687,10 +692,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		panel.add(panes[0], BorderLayout.CENTER);
 		panes[0].setLeftComponent(panes[2]);
 		panes[0].setRightComponent(panes[1]);
-		panes[1].setTopComponent(views[0]);
-		panes[1].setBottomComponent(views[1]);
 		panes[2].setTopComponent(mainView);
 		panes[2].setBottomComponent(panes[3]);
+		panes[1].setTopComponent(views[0]);
+		panes[1].setBottomComponent(views[1]);
 		panes[3].setRightComponent(views[2]);
 		panes[3].setLeftComponent(views[3]);
 		// add toolbars at north position
@@ -1120,6 +1125,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return a Container[numberOfViews] array of views
 	 */
 	private Container[] createViews(TrackerPanel trackerPanel) {
+		if (!Tracker.allowViews) {
+			OSPLog.debug("TFrame allowViews is false");
+			return new Container[4];
+		}
 		TViewChooser chooser1 = new TViewChooser(trackerPanel);
 		chooser1.setSelectedView(chooser1.getView(TrackerRes.getString("TFrame.View.Plot"))); //$NON-NLS-1$
 		TViewChooser chooser2 = new TViewChooser(trackerPanel);
@@ -1434,6 +1443,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param level the desired font level
 	 */
 	public void setFontLevel(int level) {
+		if (!OSPRuntime.allowSetFonts)
+			return;
 		try {
 			super.setFontLevel(level);
 		} catch (Exception e) {
@@ -1974,7 +1985,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// add listener to change menubar, toolbar, track control when tab changes
 		tabbedPane.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				OSPLog.debug("TFrame state changed " + e.toString());
+				OSPLog.debug("TFrame state changed " + e.getSource().getClass().getName());
 				TrackerPanel newPanel = null;
 				TrackerPanel oldPanel = prevPanel;
 

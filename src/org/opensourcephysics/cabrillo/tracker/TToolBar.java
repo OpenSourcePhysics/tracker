@@ -614,12 +614,12 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
       	popup.add(item);
       	popup.addSeparator();
       	item = new JCheckBoxMenuItem(TrackerRes.getString("TToolbar.Button.Refresh.Popup.AutoRefresh")); //$NON-NLS-1$
-      	item.setSelected(trackerPanel.isAutoRefresh);
+      	item.setSelected(trackerPanel.getAutoRefresh());
       	item.addActionListener(new ActionListener() {
       		public void actionPerformed(ActionEvent e) {
       			JMenuItem item = (JMenuItem)e.getSource();
-	          trackerPanel.isAutoRefresh = item.isSelected();
-	          if (trackerPanel.isAutoRefresh) {
+	          trackerPanel.setAutoRefresh(item.isSelected());
+	          if (trackerPanel.getAutoRefresh()) {
 		          trackerPanel.refreshTrackData();
 		          trackerPanel.eraseAll();
 		          trackerPanel.repaintDirtyRegion();

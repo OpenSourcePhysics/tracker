@@ -123,7 +123,7 @@ public abstract class TrackView extends JScrollPane
   }
   
   protected boolean isRefreshEnabled() {
-  	return trackerPanel.isAutoRefresh && parent.isTrackViewDisplayed(getTrack());
+  	return trackerPanel.getAutoRefresh() && parent.isTrackViewDisplayed(getTrack());
   }
 
 }

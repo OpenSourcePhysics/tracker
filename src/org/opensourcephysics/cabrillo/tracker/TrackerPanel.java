@@ -55,997 +55,1018 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	/**
 	 * BH a class to start Tracker asynchronously from main
+	 * 
 	 * @author hansonr
 	 *
 	 */
-  static class TrackerPanelMainStarter {
-	  
-	  private Tracker tracker;
+	static class TrackerPanelMainStarter {
 
-	TrackerPanelMainStarter(String path, Frame launcherFrame) {
+		private Tracker tracker;
+
+		TrackerPanelMainStarter(String path, Frame launcherFrame) {
 //	    Tracker.updateResources();
-		    // get the shared tracker and add tabs
-		    tracker = Tracker.getTracker(new Runnable() {
+			// get the shared tracker and add tabs
+			tracker = Tracker.getTracker(new Runnable() {
 
 				@Override
 				public void run() {
-				    final TFrame frame = tracker.getFrame();
-				    final LaunchNode node = Launcher.activeNode;
-				  	frame.addPropertyChangeListener("tab", new PropertyChangeListener() { //$NON-NLS-1$
-						  public void propertyChange(PropertyChangeEvent e) {
-						  	TrackerPanel trackerPanel = (TrackerPanel)e.getNewValue();
-						  	if (trackerPanel.defaultFileName.equals(XML.getName(path))) {
-				  		  	frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
-				          frame.showTrackControl(trackerPanel);
-				          frame.showNotes(trackerPanel);
-				          frame.refresh();
-				          final int n = frame.getTab(trackerPanel);
-				          // set up the LaunchNode action and listener
-				          if (node != null) {
-				            final Action action = new javax.swing.AbstractAction() {
-				              public void actionPerformed(ActionEvent e) {
-				              	TrackerPanel trackerPanel = frame.getTrackerPanel(n);
-				                frame.removeTab(trackerPanel);
-				                if (frame.getTabCount() == 0) frame.setVisible(false);
-				              }
-				            };
-				            node.addTerminateAction(action);
-				            frame.tabbedPane.addContainerListener(new java.awt.event.ContainerAdapter() {
-				              public void componentRemoved(ContainerEvent e) {
-				                Component tab = frame.tabbedPane.getComponentAt(n);
-				                if (e.getChild() == tab) {
-				                  node.terminate(action);
-				                }
-				              }
-				            });
-				          }
-						  	}
-						  }
-						});
-				    TrackerIO.loadDataOrVideo(path, frame);
-				    frame.setVisible(true);
-				    if (frame.isIconified()) frame.setState(Frame.NORMAL);
-				    if (launcherFrame != null)
-				    	launcherFrame.setCursor(Cursor.getDefaultCursor());
+					final TFrame frame = tracker.getFrame();
+					final LaunchNode node = Launcher.activeNode;
+					frame.addPropertyChangeListener("tab", new PropertyChangeListener() { //$NON-NLS-1$
+						public void propertyChange(PropertyChangeEvent e) {
+							TrackerPanel trackerPanel = (TrackerPanel) e.getNewValue();
+							if (trackerPanel.defaultFileName.equals(XML.getName(path))) {
+								frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+								frame.showTrackControl(trackerPanel);
+								frame.showNotes(trackerPanel);
+								frame.refresh();
+								final int n = frame.getTab(trackerPanel);
+								// set up the LaunchNode action and listener
+								if (node != null) {
+									final Action action = new javax.swing.AbstractAction() {
+										public void actionPerformed(ActionEvent e) {
+											TrackerPanel trackerPanel = frame.getTrackerPanel(n);
+											frame.removeTab(trackerPanel);
+											if (frame.getTabCount() == 0)
+												frame.setVisible(false);
+										}
+									};
+									node.addTerminateAction(action);
+									frame.tabbedPane.addContainerListener(new java.awt.event.ContainerAdapter() {
+										public void componentRemoved(ContainerEvent e) {
+											Component tab = frame.tabbedPane.getComponentAt(n);
+											if (e.getChild() == tab) {
+												node.terminate(action);
+											}
+										}
+									});
+								}
+							}
+						}
+					});
+					TrackerIO.loadDataOrVideo(path, frame);
+					frame.setVisible(true);
+					if (frame.isIconified())
+						frame.setState(Frame.NORMAL);
+					if (launcherFrame != null)
+						launcherFrame.setCursor(Cursor.getDefaultCursor());
 				}
-		    	
-		    });
 
-	  }
+			});
+
+		}
 
 	}
 
 // static fields
-  /** The minimum zoom level */
-  public static final double MIN_ZOOM = 0.15;
-  /** The maximum zoom level */
-  public static final double MAX_ZOOM = 12;
-  /** The zoom step size */
-  public static final double ZOOM_STEP = Math.pow(2, 1.0/6);
-  /** The fixed zoom levels */
-  public static final double[] ZOOM_LEVELS = {0.25, 0.5, 1, 2, 4, 8}; 
-  /** Calibration tool types */
+	/** The minimum zoom level */
+	public static final double MIN_ZOOM = 0.15;
+	/** The maximum zoom level */
+	public static final double MAX_ZOOM = 12;
+	/** The zoom step size */
+	public static final double ZOOM_STEP = Math.pow(2, 1.0 / 6);
+	/** The fixed zoom levels */
+	public static final double[] ZOOM_LEVELS = { 0.25, 0.5, 1, 2, 4, 8 };
+	/** Calibration tool types */
 	@SuppressWarnings("javadoc")
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
-  protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
+	protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
 
-  // instance fields
-  protected double defaultImageBorder;
-  protected String description = ""; //$NON-NLS-1$
-  protected TPoint selectedPoint;
-  protected Step selectedStep;
-  protected TrackerPanel selectingPanel;
-  protected TTrack selectedTrack;
-  protected TPoint newlyMarkedPoint;
-  protected Rectangle dirty;
-  protected AffineTransform prevPixelTransform;
-  protected double zoom = 1;
-  protected JScrollPane scrollPane;
-  protected JPopupMenu popup;
-  protected Set<String> enabled; // enabled GUI features (subset of full_config)
-  protected TPoint snapPoint; // used for origin snap
-  protected TFrame frame;
-  protected BufferedImage renderedImage, matImage; // for video recording
-  protected XMLControl currentState, currentCoords, currentSteps;
-  protected TPoint pointState = new TPoint();
-  protected MouseEvent mEvent;
-  protected TMouseHandler mouseHandler;
-  protected JLabel badNameLabel = new JLabel();
-  protected TrackDataBuilder dataBuilder;
-  protected boolean dataToolVisible;
-  protected XMLProperty viewsProperty; // TFrame loads views
-  protected XMLProperty selectedViewsProperty; // TFrame sets selected views
-  protected double[] dividerLocs; // TFrame sets dividers
-  protected Point zoomCenter; // used when loading
-  protected Map<Filter, Point> visibleFilters; // TFrame sets locations of filter inspectors
-  protected int trackControlX = Integer.MIN_VALUE, trackControlY; // TFrame sets track control location
-  protected int infoX = Integer.MIN_VALUE, infoY; // TFrame sets info dialog location
-  protected JPanel noData = new JPanel();
-  protected JLabel[] noDataLabels = new JLabel[2];
-  protected boolean isEmpty;
-  protected String defaultSavePath, openedFromPath;
-  protected ModelBuilder modelBuilder;
-  protected TrackControl trackControl;
-  protected boolean isModelBuilderVisible;
-  protected boolean isShiftKeyDown, isControlKeyDown;
-  protected ArrayList<TTrack>calibrationTools = new ArrayList<TTrack>();
-  protected Set<TTrack>visibleTools = new HashSet<TTrack>();
-  protected String author, contact;
-  protected AutoTracker autoTracker;
-  protected DerivativeAlgorithmDialog algorithmDialog;
-  protected AttachmentDialog attachmentDialog;
-  protected PlotGuestDialog guestsDialog;
-  protected UnitsDialog unitsDialog;
-  protected boolean isAutoRefresh = true;
+	// instance fields
+	protected double defaultImageBorder;
+	protected String description = ""; //$NON-NLS-1$
+	protected TPoint selectedPoint;
+	protected Step selectedStep;
+	protected TrackerPanel selectingPanel;
+	protected TTrack selectedTrack;
+	protected TPoint newlyMarkedPoint;
+	protected Rectangle dirty;
+	protected AffineTransform prevPixelTransform;
+	protected double zoom = 1;
+	protected JScrollPane scrollPane;
+	protected JPopupMenu popup;
+	protected Set<String> enabled; // enabled GUI features (subset of full_config)
+	protected TPoint snapPoint; // used for origin snap
+	protected TFrame frame;
+	protected BufferedImage renderedImage, matImage; // for video recording
+	protected XMLControl currentState, currentCoords, currentSteps;
+	protected TPoint pointState = new TPoint();
+	protected MouseEvent mEvent;
+	protected TMouseHandler mouseHandler;
+	protected JLabel badNameLabel = new JLabel();
+	protected TrackDataBuilder dataBuilder;
+	protected boolean dataToolVisible;
+	protected XMLProperty viewsProperty; // TFrame loads views
+	protected XMLProperty selectedViewsProperty; // TFrame sets selected views
+	protected double[] dividerLocs; // TFrame sets dividers
+	protected Point zoomCenter; // used when loading
+	protected Map<Filter, Point> visibleFilters; // TFrame sets locations of filter inspectors
+	protected int trackControlX = Integer.MIN_VALUE, trackControlY; // TFrame sets track control location
+	protected int infoX = Integer.MIN_VALUE, infoY; // TFrame sets info dialog location
+	protected JPanel noData = new JPanel();
+	protected JLabel[] noDataLabels = new JLabel[2];
+	protected boolean isEmpty;
+	protected String defaultSavePath, openedFromPath;
+	protected ModelBuilder modelBuilder;
+	protected TrackControl trackControl;
+	protected boolean isModelBuilderVisible;
+	protected boolean isShiftKeyDown, isControlKeyDown;
+	protected ArrayList<TTrack> calibrationTools = new ArrayList<TTrack>();
+	protected Set<TTrack> visibleTools = new HashSet<TTrack>();
+	protected String author, contact;
+	protected AutoTracker autoTracker;
+	protected DerivativeAlgorithmDialog algorithmDialog;
+	protected AttachmentDialog attachmentDialog;
+	protected PlotGuestDialog guestsDialog;
+	protected UnitsDialog unitsDialog;
+	private boolean isAutoRefresh = true;
 	protected TreeSet<String> supplementalFilePaths = new TreeSet<String>(); // HTML/PDF URI paths
 	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
-  protected StepSet selectedSteps = new StepSet(this);
-  protected boolean hideDescriptionWhenLoaded;
-  protected PropertyChangeListener massParamListener, massChangeListener;
-  protected Map<Class<? extends TTrack>, TreeMap<String, String>> formatPatterns 
-  	= new HashMap<Class<? extends TTrack>, TreeMap<String,String>>();
-  protected String lengthUnit="m", massUnit="kg", timeUnit="s"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-  protected boolean unitsVisible = true; // visible by default
-  protected TCoordinateStringBuilder coordStringBuilder;
+	protected StepSet selectedSteps = new StepSet(this);
+	protected boolean hideDescriptionWhenLoaded;
+	protected PropertyChangeListener massParamListener, massChangeListener;
+	protected Map<Class<? extends TTrack>, TreeMap<String, String>> formatPatterns = new HashMap<Class<? extends TTrack>, TreeMap<String, String>>();
+	protected String lengthUnit = "m", massUnit = "kg", timeUnit = "s"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	protected boolean unitsVisible = true; // visible by default
+	protected TCoordinateStringBuilder coordStringBuilder;
 
-  /**
-   * Constructs a blank TrackerPanel with a player.
-   */
-  public TrackerPanel() {
-    this(null);
-  }
+	/**
+	 * Constructs a blank TrackerPanel with a player.
+	 */
+	public TrackerPanel() {
+		this(null);
+	}
 
-  /**
-   * Constructs a TrackerPanel with a video and player.
-   *
-   * @param video the video
-   */
-  public TrackerPanel(Video video) {
-    super(video);
-    popup = new JPopupMenu() {
-  		public void setVisible(boolean vis) {
-  			super.setVisible(vis);
-  			if (!vis) zoomBox.hide();
-  		}
-  	};
-    zoomBox.setShowUndraggedBox(false);
-    // remove the interactive panel mouse controller
-    removeMouseListener(mouseController);
-    removeMouseMotionListener(mouseController);
-    // create and add a new mouse controller for tracker
-    mouseController = new TMouseController();
-    addMouseListener(mouseController);
-    addMouseMotionListener(mouseController);
-    // set new CoordinateStringBuilder
-    coordStringBuilder = new TCoordinateStringBuilder();
-    setCoordinateStringBuilder(coordStringBuilder);
-    
-    // set fonts of message boxes and noDataLabels
-    Font font = new JTextField().getFont();
-    trMessageBox.setMessageFont(font);
-    tlMessageBox.setMessageFont(font);
-    brMessageBox.setMessageFont(font);
-    blMessageBox.setMessageFont(font);
-    
-    badNameLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-    Box box = Box.createVerticalBox();
-    noData.add(box);
-    for (int i = 0; i < 2; i++) {
-    	noDataLabels[i] = new JLabel();
-    	noDataLabels[i].setFont(font);
-    	noDataLabels[i].setAlignmentX(0.5f);
-    	box.add(noDataLabels[i]);
-    }
-  	noData.setOpaque(false);
-    player.setInspectorButtonVisible(false);
-    player.addPropertyChangeListener("stepbutton", this); //$NON-NLS-1$
-    player.addPropertyChangeListener("backbutton", this); //$NON-NLS-1$
-    player.addPropertyChangeListener("inframe", this); //$NON-NLS-1$
-    player.addPropertyChangeListener("outframe", this); //$NON-NLS-1$
-    player.addPropertyChangeListener("slider", this); //$NON-NLS-1$
-    player.addPropertyChangeListener("playing", this); //$NON-NLS-1$
-
-    massParamListener = new PropertyChangeListener() {
-		  public void propertyChange(PropertyChangeEvent e) {
-		  	if ("m".equals(e.getOldValue())) { //$NON-NLS-1$
-		  		ParamEditor paramEditor = (ParamEditor)e.getSource();
-		  		Parameter param = (Parameter)paramEditor.getObject("m"); //$NON-NLS-1$
-		  		FunctionPanel panel = paramEditor.getFunctionPanel();		  		
-		  		PointMass m = (PointMass)getTrack(panel.getName());
-		  		if (m!=null && m.getMass()!=param.getValue()) {
-		      	m.setMass(param.getValue());
-		      	m.massField.setValue(m.getMass());
-		      }
-		  	}
-		  }
+	/**
+	 * Constructs a TrackerPanel with a video and player.
+	 *
+	 * @param video the video
+	 */
+	public TrackerPanel(Video video) {
+		super(video);
+		popup = new JPopupMenu() {
+			public void setVisible(boolean vis) {
+				super.setVisible(vis);
+				if (!vis)
+					zoomBox.hide();
+			}
 		};
-    massChangeListener = new PropertyChangeListener() {
-		  public void propertyChange(PropertyChangeEvent e) {
-		  	PointMass pm = (PointMass)e.getSource();
-		  	FunctionPanel panel = dataBuilder.getPanel(pm.getName());
-		  	if (panel==null) return;
-		  	ParamEditor paramEditor = panel.getParamEditor();
-		  	Parameter param = (Parameter)paramEditor.getObject("m"); //$NON-NLS-1$
-		  	double newMass = (Double)e.getNewValue();
-		    if (newMass != param.getValue()) {
-		    	paramEditor.setExpression("m", String.valueOf(newMass), false); //$NON-NLS-1$
-		  	}
-		  }
+		zoomBox.setShowUndraggedBox(false);
+		// remove the interactive panel mouse controller
+		removeMouseListener(mouseController);
+		removeMouseMotionListener(mouseController);
+		// create and add a new mouse controller for tracker
+		mouseController = new TMouseController();
+		addMouseListener(mouseController);
+		addMouseMotionListener(mouseController);
+		// set new CoordinateStringBuilder
+		coordStringBuilder = new TCoordinateStringBuilder();
+		setCoordinateStringBuilder(coordStringBuilder);
+
+		// set fonts of message boxes and noDataLabels
+		Font font = new JTextField().getFont();
+		trMessageBox.setMessageFont(font);
+		tlMessageBox.setMessageFont(font);
+		brMessageBox.setMessageFont(font);
+		blMessageBox.setMessageFont(font);
+
+		badNameLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+		Box box = Box.createVerticalBox();
+		noData.add(box);
+		for (int i = 0; i < 2; i++) {
+			noDataLabels[i] = new JLabel();
+			noDataLabels[i].setFont(font);
+			noDataLabels[i].setAlignmentX(0.5f);
+			box.add(noDataLabels[i]);
+		}
+		noData.setOpaque(false);
+		player.setInspectorButtonVisible(false);
+		player.addPropertyChangeListener("stepbutton", this); //$NON-NLS-1$
+		player.addPropertyChangeListener("backbutton", this); //$NON-NLS-1$
+		player.addPropertyChangeListener("inframe", this); //$NON-NLS-1$
+		player.addPropertyChangeListener("outframe", this); //$NON-NLS-1$
+		player.addPropertyChangeListener("slider", this); //$NON-NLS-1$
+		player.addPropertyChangeListener("playing", this); //$NON-NLS-1$
+
+		massParamListener = new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent e) {
+				if ("m".equals(e.getOldValue())) { //$NON-NLS-1$
+					ParamEditor paramEditor = (ParamEditor) e.getSource();
+					Parameter param = (Parameter) paramEditor.getObject("m"); //$NON-NLS-1$
+					FunctionPanel panel = paramEditor.getFunctionPanel();
+					PointMass m = (PointMass) getTrack(panel.getName());
+					if (m != null && m.getMass() != param.getValue()) {
+						m.setMass(param.getValue());
+						m.massField.setValue(m.getMass());
+					}
+				}
+			}
 		};
-    
-    // 
-	if (!(this instanceof WorldTView)) {
-    	getDataBuilder(); // so autoloaded datafunctions are available to tracks
-    }
-    configure();
-  }
+		massChangeListener = new PropertyChangeListener() {
+			public void propertyChange(PropertyChangeEvent e) {
+				PointMass pm = (PointMass) e.getSource();
+				FunctionPanel panel = dataBuilder.getPanel(pm.getName());
+				if (panel == null)
+					return;
+				ParamEditor paramEditor = panel.getParamEditor();
+				Parameter param = (Parameter) paramEditor.getObject("m"); //$NON-NLS-1$
+				double newMass = (Double) e.getNewValue();
+				if (newMass != param.getValue()) {
+					paramEditor.setExpression("m", String.valueOf(newMass), false); //$NON-NLS-1$
+				}
+			}
+		};
 
-  /**
-   * Overrides VideoPanel setVideo method.
-   *
-   * @param newVideo the video
-   */
-  public void setVideo(Video newVideo) {
-  	XMLControl state = null;
-  	boolean undoable = true;
-  	Video oldVideo = getVideo();
-  	if (newVideo!=oldVideo && oldVideo instanceof ImageVideo) {
-  		ImageVideo vid = (ImageVideo)getVideo();
-  		vid.saveInvalidImages();
-  		undoable = vid.isFileBased();
-  	}
-  	if (newVideo!=oldVideo && undoable) {
-  		state = new XMLControlElement(getPlayer().getVideoClip());
-  	}  	
-  	if (newVideo!=oldVideo && oldVideo!=null) {
-  		// clear filters from old video
-  		TActions.getAction("clearFilters", this).actionPerformed(null); //$NON-NLS-1$
-  	}
-    super.setVideo(newVideo, true); // play all steps by default
-    if (state != null) {
-  		state = new XMLControlElement(state.toXML());
-  		Undo.postVideoReplace(this, state);
-    }
-    TMat mat = getMat();
-    if (mat != null) mat.refresh();
-    if (modelBuilder!=null) {
-    	modelBuilder.refreshSpinners();
-    }
-    firePropertyChange("image", null, null);  // to tracks & views //$NON-NLS-1$
-  }
+		//
+		if (!(this instanceof WorldTView)) {
+			getDataBuilder(); // so autoloaded datafunctions are available to tracks
+		}
+		configure();
+	}
 
-  /**
-   * Gets the title for tabs, menus, etc.
-   *
-   * @return the title
-   */
-  public String getTitle() {
-    if (getDataFile() != null) {
-      return getDataFile().getName();
-    }
-    if (defaultFileName != null) {
-      return defaultFileName;
-    }
-    if (getVideo() != null) {
-      String name = (String) getVideo().getProperty("name"); //$NON-NLS-1$
-      if (name != null) {
-        name = XML.forwardSlash(name);
-        int i = name.lastIndexOf("/"); //$NON-NLS-1$
-        if (i >= 0) name = name.substring(i + 1);
-        return name;
-      }
-    }
-    return TrackerRes.getString("TrackerPanel.NewTab.Name"); //$NON-NLS-1$
-  }
+	/**
+	 * Overrides VideoPanel setVideo method.
+	 *
+	 * @param newVideo the video
+	 */
+	public void setVideo(Video newVideo) {
+		XMLControl state = null;
+		boolean undoable = true;
+		Video oldVideo = getVideo();
+		if (newVideo != oldVideo && oldVideo instanceof ImageVideo) {
+			ImageVideo vid = (ImageVideo) getVideo();
+			vid.saveInvalidImages();
+			undoable = vid.isFileBased();
+		}
+		if (newVideo != oldVideo && undoable) {
+			state = new XMLControlElement(getPlayer().getVideoClip());
+		}
+		if (newVideo != oldVideo && oldVideo != null) {
+			// clear filters from old video
+			TActions.getAction("clearFilters", this).actionPerformed(null); //$NON-NLS-1$
+		}
+		super.setVideo(newVideo, true); // play all steps by default
+		if (state != null) {
+			state = new XMLControlElement(state.toXML());
+			Undo.postVideoReplace(this, state);
+		}
+		TMat mat = getMat();
+		if (mat != null)
+			mat.refresh();
+		if (modelBuilder != null) {
+			modelBuilder.refreshSpinners();
+		}
+		firePropertyChange("image", null, null); // to tracks & views //$NON-NLS-1$
+	}
 
-  /**
-   * Gets the path used as tooltip for the tab.
-   *
-   * @return the path
-   */
-  public String getToolTipPath() {
-    if (getDataFile() != null) {
-      return XML.forwardSlash(getDataFile().getPath());
-    }
-    if (openedFromPath != null) {
-      return openedFromPath;
-    }
-    if (getVideo() != null) {
-      String path = (String) getVideo().getProperty("absolutePath"); //$NON-NLS-1$
-      if (path != null) {
-        return XML.forwardSlash(path);
-      }
-    }
-    return null;
-  }
+	/**
+	 * Gets the title for tabs, menus, etc.
+	 *
+	 * @return the title
+	 */
+	public String getTitle() {
+		if (getDataFile() != null) {
+			return getDataFile().getName();
+		}
+		if (defaultFileName != null) {
+			return defaultFileName;
+		}
+		if (getVideo() != null) {
+			String name = (String) getVideo().getProperty("name"); //$NON-NLS-1$
+			if (name != null) {
+				name = XML.forwardSlash(name);
+				int i = name.lastIndexOf("/"); //$NON-NLS-1$
+				if (i >= 0)
+					name = name.substring(i + 1);
+				return name;
+			}
+		}
+		return TrackerRes.getString("TrackerPanel.NewTab.Name"); //$NON-NLS-1$
+	}
 
-  /**
-   * Gets the description of this panel.
-   *
-   * @return the description
-   */
-  public String getDescription() {
-    return description;
-  }
+	/**
+	 * Gets the path used as tooltip for the tab.
+	 *
+	 * @return the path
+	 */
+	public String getToolTipPath() {
+		if (getDataFile() != null) {
+			return XML.forwardSlash(getDataFile().getPath());
+		}
+		if (openedFromPath != null) {
+			return openedFromPath;
+		}
+		if (getVideo() != null) {
+			String path = (String) getVideo().getProperty("absolutePath"); //$NON-NLS-1$
+			if (path != null) {
+				return XML.forwardSlash(path);
+			}
+		}
+		return null;
+	}
 
-  /**
-   * Sets the description of this panel.
-   *
-   * @param desc a description
-   */
-  public void setDescription(String desc) {
-  	if (desc == null) desc = ""; //$NON-NLS-1$
-    description = desc;
-  }
+	/**
+	 * Gets the description of this panel.
+	 *
+	 * @return the description
+	 */
+	public String getDescription() {
+		return description;
+	}
 
-  /**
-   * Gets the model builder.
-   *
-   * @return the model builder
-   */
-  public ModelBuilder getModelBuilder() {
-  	if (modelBuilder == null) {
-  		// create and size model builder
-  		modelBuilder = new ModelBuilder(this);  			
-  		modelBuilder.setFontLevel(FontSizer.getLevel());
-  		modelBuilder.refreshLayout();
+	/**
+	 * Sets the description of this panel.
+	 *
+	 * @param desc a description
+	 */
+	public void setDescription(String desc) {
+		if (desc == null)
+			desc = ""; //$NON-NLS-1$
+		description = desc;
+	}
+
+	/**
+	 * Gets the model builder.
+	 *
+	 * @return the model builder
+	 */
+	public ModelBuilder getModelBuilder() {
+		if (modelBuilder == null) {
+			// create and size model builder
+			modelBuilder = new ModelBuilder(this);
+			modelBuilder.setFontLevel(FontSizer.getLevel());
+			modelBuilder.refreshLayout();
 			modelBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
 			// show model builder
 			try {
-		    // place near top right corner of frame
-		    Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+				// place near top right corner of frame
+				Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
 				TFrame frame = getTFrame();
 				Point frameLoc = frame.getLocationOnScreen();
-				int w = modelBuilder.getWidth()+8;
-				int x = Math.min(screen.width-w, frameLoc.x+frame.getWidth()-w);
+				int w = modelBuilder.getWidth() + 8;
+				int x = Math.min(screen.width - w, frameLoc.x + frame.getWidth() - w);
 				int y = getLocationOnScreen().y;
 				modelBuilder.setLocation(x, y);
+			} catch (Exception ex) {
+				/** empty block */
 			}
-			catch(Exception ex) {/** empty block */}
-  	}
-  	return modelBuilder;
-  }
-  
-  /**
-   * Adds the specified rectangle to the dirty region. The dirty region
-   * is repainted when repaintDirtyRegion is called. A null dirtyRect
-   * argument is ignored.
-   *
-   * @param dirtyRect the dirty rectangle
-   */
-  public void addDirtyRegion(Rectangle dirtyRect) {
-    if (dirty == null) dirty = dirtyRect;
-    else if (dirtyRect != null) dirty.add(dirtyRect);
-  }
+		}
+		return modelBuilder;
+	}
 
-  /**
-   * Repaints the dirty region.
-   */
-  public void repaintDirtyRegion() {
-    if (dirty != null) {
-    	synchronized(dirty) {
-	      dirty.grow(2, 2);
-	      repaint(dirty);
-	    }
-      dirty = null;
-  	}
-  }
+	/**
+	 * Adds the specified rectangle to the dirty region. The dirty region is
+	 * repainted when repaintDirtyRegion is called. A null dirtyRect argument is
+	 * ignored.
+	 *
+	 * @param dirtyRect the dirty rectangle
+	 */
+	public void addDirtyRegion(Rectangle dirtyRect) {
+		if (dirty == null)
+			dirty = dirtyRect;
+		else if (dirtyRect != null)
+			dirty.add(dirtyRect);
+	}
 
-  /**
-   * Gets a list of TTracks being drawn on this panel.
-   *
-   * @return a list of tracks
-   */
-  public ArrayList<TTrack> getTracks() {
-    return getDrawables(TTrack.class);
-  }
+	/**
+	 * Repaints the dirty region.
+	 */
+	public void repaintDirtyRegion() {
+		if (dirty != null) {
+			synchronized (dirty) {
+				dirty.grow(2, 2);
+				repaint(dirty);
+			}
+			dirty = null;
+		}
+	}
 
-  /**
-   * Gets the list of user-controlled TTracks on this panel.
-   *
-   * @return a list of tracks under direct user control
-   */
-  public ArrayList<TTrack> getUserTracks() {
-    ArrayList<TTrack> tracks = getTracks();
-    tracks.remove(getAxes());
-    tracks.removeAll(calibrationTools);
-    ArrayList<PerspectiveTrack> list = getDrawables(PerspectiveTrack.class);
-    tracks.removeAll(list);
-    // remove child ParticleDataTracks
-    for (ParticleDataTrack next: getDrawables(ParticleDataTrack.class)) {
-    	if (next.getLeader()!=next) {
-    		tracks.remove(next);
-    	}
-    }
-    return tracks;
-  }
+	/**
+	 * Gets a list of TTracks being drawn on this panel.
+	 *
+	 * @return a list of tracks
+	 */
+	public ArrayList<TTrack> getTracks() {
+		return getDrawables(TTrack.class);
+	}
 
-  /**
-   * Gets the list of TTracks to save with this panel.
-   *
-   * @return a list of tracks to save
-   */
-  public ArrayList<TTrack> getTracksToSave() {
-    ArrayList<TTrack> tracks = getTracks();
-    // remove child ParticleDataTracks
-    for (ParticleDataTrack next: getDrawables(ParticleDataTrack.class)) {
-    	if (next.getLeader()!=next) {
-    		tracks.remove(next);
-    	}
-    }
-    return tracks;
-  }
+	/**
+	 * Gets the list of user-controlled TTracks on this panel.
+	 *
+	 * @return a list of tracks under direct user control
+	 */
+	public ArrayList<TTrack> getUserTracks() {
+		ArrayList<TTrack> tracks = getTracks();
+		tracks.remove(getAxes());
+		tracks.removeAll(calibrationTools);
+		ArrayList<PerspectiveTrack> list = getDrawables(PerspectiveTrack.class);
+		tracks.removeAll(list);
+		// remove child ParticleDataTracks
+		for (ParticleDataTrack next : getDrawables(ParticleDataTrack.class)) {
+			if (next.getLeader() != next) {
+				tracks.remove(next);
+			}
+		}
+		return tracks;
+	}
 
-  /**
-   * Gets the first track with the specified name
-   *
-   * @param name the name of the track
-   * @return the track
-   */
-  public TTrack getTrack(String name) {
-    for (TTrack track: getTracks()) {
-      if (track.getName().equals(name)) return track;
-      if (track.getName("track").equals(name)) return track; //$NON-NLS-1$
-    }
-    return null;
-  }
+	/**
+	 * Gets the list of TTracks to save with this panel.
+	 *
+	 * @return a list of tracks to save
+	 */
+	public ArrayList<TTrack> getTracksToSave() {
+		ArrayList<TTrack> tracks = getTracks();
+		// remove child ParticleDataTracks
+		for (ParticleDataTrack next : getDrawables(ParticleDataTrack.class)) {
+			if (next.getLeader() != next) {
+				tracks.remove(next);
+			}
+		}
+		return tracks;
+	}
 
-  /**
-   * Adds a track.
-   *
-   * @param track the track to add
-   */
-  public synchronized void addTrack(TTrack track) {
-  	if (track == null) return;
-    TTrack.activeTracks.put(track.getID(), track);
-    // set trackerPanel property if not yet set
-    if (track.trackerPanel == null) {
-      track.setTrackerPanel(this);
-    }
-    boolean showTrackControl = true;
-    // set angle format of the track
-    if (getTFrame()!=null)
-    	track.setAnglesInRadians(getTFrame().anglesInRadians);
-    // special case: axes
-    if (track instanceof CoordAxes) {
-    	showTrackControl = false;
-      if (getAxes()!=null) 
-      	removeDrawable(getAxes()); // only one axes at a time
-      super.addDrawable(track);
-      moveToBack(track);
-      WorldGrid grid = getGrid();
-      if (grid != null) {
-        moveToBack(grid); // put grid behind axes
-      }
-      TMat mat = getMat();
-      if (mat != null) {
-        moveToBack(mat); // put mat behind grid
-      }
-    }
-    // special case: same calibration tool added again?
-    else if (calibrationTools.contains(track)) {
-    	showTrackControl = false;
-      super.addDrawable(track);
-    }
-    // special case: calibration tape or stick
-    else if (track instanceof TapeMeasure 
-    		&& !((TapeMeasure)track).isReadOnly()) {
-    	showTrackControl = false;
-      calibrationTools.add(track);
-      visibleTools.add(track);
-    	super.addDrawable(track);
-    }
-    // special case: offset origin or calibration points
-    else if (track instanceof OffsetOrigin
-    		|| track instanceof Calibration) { 
-    	showTrackControl = false;
-      calibrationTools.add(track);
-      visibleTools.add(track);
-    	super.addDrawable(track);
-    }
-    // special case: perspective track
-    else if (track instanceof PerspectiveTrack) { 
-    	showTrackControl = false;
-    	super.addDrawable(track);
-    }
-    // special case: ParticleDataTrack may add extra points
-    else if (track instanceof ParticleDataTrack) { 
-    	super.addDrawable(track);
-    	final ParticleDataTrack dt = (ParticleDataTrack)track;
-    	if (dt.allPoints().size()>1) {
-	    	Runnable runner = new Runnable() {
-	    		public void run() {
-	      		for (ParticleDataTrack child: dt.allPoints()) {
-	      			if (child==dt) continue;
-	      			addTrack(child);
-	      		}
-		  			TFrame frame = getTFrame();
-		  			if (frame!=null && TrackerPanel.this.isShowing()) {
-			        TView[][] views = frame.getTViews(TrackerPanel.this);
-			        for (TView[] next: views) {
-			        	for  (TView view: next) {
-			        		if (view instanceof TrackChooserTView) {
-			        			((TrackChooserTView)view).setSelectedTrack(dt);
-			        		} 
-			        	}
-			        }
-		  			}
-	    		}
-	    	};
-	    	SwingUtilities.invokeLater(runner);
-    	}
-    }
-    // all other tracks (point mass, vector, particle model, line profile, etc)
-    else {
-      // set track name--prevents duplicate names
-      setTrackName(track, track.getName(), false);
-    	super.addDrawable(track);
-    }
-    
-    // all tracks handled below
-    addPropertyChangeListener(track); // track listens for all properties
-    track.addPropertyChangeListener("step", this); //$NON-NLS-1$
-    track.addPropertyChangeListener("steps", this); //$NON-NLS-1$
-    track.addPropertyChangeListener("name", this); //$NON-NLS-1$
-    track.addPropertyChangeListener("mass", this); //$NON-NLS-1$
-    track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
-    track.addPropertyChangeListener("model_start", this); //$NON-NLS-1$
-    track.addPropertyChangeListener("model_end", this); //$NON-NLS-1$
-    // update track control and dataTool
-    if (trackControl!=null && trackControl.isVisible()) trackControl.refresh();
-    if (dataBuilder != null && !getSystemDrawables().contains(track)) {   	
-    	FunctionPanel panel = createFunctionPanel(track);
-    	dataBuilder.addPanel(track.getName(), panel);
-    	dataBuilder.setSelectedPanel(track.getName());  	
-    }
-    // set length of coord system before firing property change (speeds loading up of very long tracks)
-    int len = track.getSteps().length;
-    len = Math.max(len, getCoords().getLength());
-    getCoords().setLength(len);
-    
-    // set font level
-    track.setFontLevel(FontSizer.getLevel());
-    
-    // notify views
-    firePropertyChange("track", null, track); // to views //$NON-NLS-1$
-    
-    // set default NumberField format patterns
-		if (getTFrame()!=null) {
+	/**
+	 * Gets the first track with the specified name
+	 *
+	 * @param name the name of the track
+	 * @return the track
+	 */
+	public TTrack getTrack(String name) {
+		for (TTrack track : getTracks()) {
+			if (track.getName().equals(name))
+				return track;
+			if (track.getName("track").equals(name)) //$NON-NLS-1$
+				return track;
+		}
+		return null;
+	}
+
+	/**
+	 * Adds a track.
+	 *
+	 * @param track the track to add
+	 */
+	public synchronized void addTrack(TTrack track) {
+		if (track == null)
+			return;
+		TTrack.activeTracks.put(track.getID(), track);
+		// set trackerPanel property if not yet set
+		if (track.trackerPanel == null) {
+			track.setTrackerPanel(this);
+		}
+		boolean showTrackControl = true;
+		// set angle format of the track
+		if (getTFrame() != null)
+			track.setAnglesInRadians(getTFrame().anglesInRadians);
+		// special case: axes
+		if (track instanceof CoordAxes) {
+			showTrackControl = false;
+			if (getAxes() != null)
+				removeDrawable(getAxes()); // only one axes at a time
+			super.addDrawable(track);
+			moveToBack(track);
+			WorldGrid grid = getGrid();
+			if (grid != null) {
+				moveToBack(grid); // put grid behind axes
+			}
+			TMat mat = getMat();
+			if (mat != null) {
+				moveToBack(mat); // put mat behind grid
+			}
+		}
+		// special case: same calibration tool added again?
+		else if (calibrationTools.contains(track)) {
+			showTrackControl = false;
+			super.addDrawable(track);
+		}
+		// special case: calibration tape or stick
+		else if (track instanceof TapeMeasure && !((TapeMeasure) track).isReadOnly()) {
+			showTrackControl = false;
+			calibrationTools.add(track);
+			visibleTools.add(track);
+			super.addDrawable(track);
+		}
+		// special case: offset origin or calibration points
+		else if (track instanceof OffsetOrigin || track instanceof Calibration) {
+			showTrackControl = false;
+			calibrationTools.add(track);
+			visibleTools.add(track);
+			super.addDrawable(track);
+		}
+		// special case: perspective track
+		else if (track instanceof PerspectiveTrack) {
+			showTrackControl = false;
+			super.addDrawable(track);
+		}
+		// special case: ParticleDataTrack may add extra points
+		else if (track instanceof ParticleDataTrack) {
+			super.addDrawable(track);
+			final ParticleDataTrack dt = (ParticleDataTrack) track;
+			if (dt.allPoints().size() > 1) {
+				Runnable runner = new Runnable() {
+					public void run() {
+						for (ParticleDataTrack child : dt.allPoints()) {
+							if (child == dt)
+								continue;
+							addTrack(child);
+						}
+						TFrame frame = getTFrame();
+						if (frame != null && TrackerPanel.this.isShowing()) {
+							TView[][] views = frame.getTViews(TrackerPanel.this);
+							for (TView[] next : views) {
+								for (TView view : next) {
+									if (view instanceof TrackChooserTView) {
+										((TrackChooserTView) view).setSelectedTrack(dt);
+									}
+								}
+							}
+						}
+					}
+				};
+				SwingUtilities.invokeLater(runner);
+			}
+		}
+		// all other tracks (point mass, vector, particle model, line profile, etc)
+		else {
+			// set track name--prevents duplicate names
+			setTrackName(track, track.getName(), false);
+			super.addDrawable(track);
+		}
+
+		// all tracks handled below
+		addPropertyChangeListener(track); // track listens for all properties
+		track.addPropertyChangeListener("step", this); //$NON-NLS-1$
+		track.addPropertyChangeListener("steps", this); //$NON-NLS-1$
+		track.addPropertyChangeListener("name", this); //$NON-NLS-1$
+		track.addPropertyChangeListener("mass", this); //$NON-NLS-1$
+		track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
+		track.addPropertyChangeListener("model_start", this); //$NON-NLS-1$
+		track.addPropertyChangeListener("model_end", this); //$NON-NLS-1$
+		// update track control and dataTool
+		if (trackControl != null && trackControl.isVisible())
+			trackControl.refresh();
+		if (dataBuilder != null && !getSystemDrawables().contains(track)) {
+			FunctionPanel panel = createFunctionPanel(track);
+			dataBuilder.addPanel(track.getName(), panel);
+			dataBuilder.setSelectedPanel(track.getName());
+		}
+		// set length of coord system before firing property change (speeds loading up
+		// of very long tracks)
+		int len = track.getSteps().length;
+		len = Math.max(len, getCoords().getLength());
+		getCoords().setLength(len);
+
+		// set font level
+		track.setFontLevel(FontSizer.getLevel());
+
+		// notify views
+		firePropertyChange("track", null, track); // to views //$NON-NLS-1$
+
+		// set default NumberField format patterns
+		if (getTFrame() != null) {
 			setInitialFormatPatterns(track);
 		}
-	  
-    changed = true;
-    if (showTrackControl && getTFrame()!=null && this.isShowing()) {
-    	TrackControl.getControl(this).setVisible(true);
-    }
-    
-    // select new track in autotracker
-    if (autoTracker!=null && track!=getAxes()) {
-    	autoTracker.setTrack(track);
-    }
-  }
-  
-  /**
-   * Determines if the specified track is currently displayed in a table or plot view.
-   * 
-   * @param track the track
-   * @return true if displayed in a plot or table view
-   */
-  protected boolean isTrackViewDisplayed(TTrack track) { 
-  	boolean displayed = false;
-		TFrame frame = getTFrame();
-		if (frame!=null && TrackerPanel.this.isShowing()) {
-      TView[][] views = frame.getTViews(TrackerPanel.this);
-      for (TView[] next: views) {
-      	for  (TView view: next) {
-      		if (view instanceof TrackChooserTView) {
-      			displayed = displayed || ((TrackChooserTView)view).isTrackViewDisplayed(track);
-      		} 
-      	}
-      }
+
+		changed = true;
+		if (showTrackControl && getTFrame() != null && this.isShowing()) {
+			TrackControl.getControl(this).setVisible(true);
 		}
-  	return displayed;
-  }
-  
-  /**
-   * Creates a new FunctionPanel for a track.
-   * 
-   * @param track the track
-   * @return the FunctionPanel
-   */
-  protected FunctionPanel createFunctionPanel(TTrack track) {
-  	DatasetManager data = track.getData(this);
-    FunctionPanel panel = new DataFunctionPanel(data);
-  	panel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
-  	Class<?> type = track.getClass();
-  	if (PointMass.class.isAssignableFrom(type))
-  		panel.setDescription(PointMass.class.getName());
-  	else if (Vector.class.isAssignableFrom(type))
-  		panel.setDescription(Vector.class.getName());
-  	else if (RGBRegion.class.isAssignableFrom(type))
-  		panel.setDescription(RGBRegion.class.getName());
-  	else if (LineProfile.class.isAssignableFrom(type))
-  		panel.setDescription(LineProfile.class.getName());
-  	else panel.setDescription(type.getName());
-    final ParamEditor paramEditor = panel.getParamEditor();
-    if (track instanceof PointMass) {
-    	PointMass pm = (PointMass)track;
-	  	Parameter param = (Parameter)paramEditor.getObject("m"); //$NON-NLS-1$
-	  	if (param==null) {
-	  		param = new Parameter("m", String.valueOf(pm.getMass())); //$NON-NLS-1$
-	  		param.setDescription(TrackerRes.getString("ParticleModel.Parameter.Mass.Description")); //$NON-NLS-1$
-	      paramEditor.addObject(param, false);
-	  	}
-  		param.setNameEditable(false); // mass name not editable
-  		paramEditor.addPropertyChangeListener("edit", massParamListener); //$NON-NLS-1$
-  		pm.addPropertyChangeListener("mass", massChangeListener); //$NON-NLS-1$
-    }
-    return panel;
-  }
 
-  /**
-   * Removes a track.
-   *
-   * @param track the track to remove
-   */
-  public synchronized void removeTrack(TTrack track) {
-  	if (!getDrawables(track.getClass()).contains(track)) return;
-    removePropertyChangeListener(track);
-    track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-    track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
-    track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-    track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-    track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-    track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
-    track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
-    TFrame frame = getTFrame();
-  	if (frame!=null) frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
-    super.removeDrawable(track);
-    if (dataBuilder != null) dataBuilder.removePanel(track.getName());
+		// select new track in autotracker
+		if (autoTracker != null && track != getAxes()) {
+			autoTracker.setTrack(track);
+		}
+	}
+
+	/**
+	 * Determines if the specified track is currently displayed in a table or plot
+	 * view.
+	 * 
+	 * @param track the track
+	 * @return true if displayed in a plot or table view
+	 */
+	protected boolean isTrackViewDisplayed(TTrack track) {
+		boolean displayed = false;
+		TFrame frame = getTFrame();
+		if (frame != null && TrackerPanel.this.isShowing()) {
+			TView[][] views = frame.getTViews(TrackerPanel.this);
+			for (TView[] next : views) {
+				for (TView view : next) {
+					if (view instanceof TrackChooserTView) {
+						displayed = displayed || ((TrackChooserTView) view).isTrackViewDisplayed(track);
+					}
+				}
+			}
+		}
+		return displayed;
+	}
+
+	/**
+	 * Creates a new FunctionPanel for a track.
+	 * 
+	 * @param track the track
+	 * @return the FunctionPanel
+	 */
+	protected FunctionPanel createFunctionPanel(TTrack track) {
+		DatasetManager data = track.getData(this);
+		FunctionPanel panel = new DataFunctionPanel(data);
+		panel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
+		Class<?> type = track.getClass();
+		if (PointMass.class.isAssignableFrom(type))
+			panel.setDescription(PointMass.class.getName());
+		else if (Vector.class.isAssignableFrom(type))
+			panel.setDescription(Vector.class.getName());
+		else if (RGBRegion.class.isAssignableFrom(type))
+			panel.setDescription(RGBRegion.class.getName());
+		else if (LineProfile.class.isAssignableFrom(type))
+			panel.setDescription(LineProfile.class.getName());
+		else
+			panel.setDescription(type.getName());
+		final ParamEditor paramEditor = panel.getParamEditor();
+		if (track instanceof PointMass) {
+			PointMass pm = (PointMass) track;
+			Parameter param = (Parameter) paramEditor.getObject("m"); //$NON-NLS-1$
+			if (param == null) {
+				param = new Parameter("m", String.valueOf(pm.getMass())); //$NON-NLS-1$
+				param.setDescription(TrackerRes.getString("ParticleModel.Parameter.Mass.Description")); //$NON-NLS-1$
+				paramEditor.addObject(param, false);
+			}
+			param.setNameEditable(false); // mass name not editable
+			paramEditor.addPropertyChangeListener("edit", massParamListener); //$NON-NLS-1$
+			pm.addPropertyChangeListener("mass", massChangeListener); //$NON-NLS-1$
+		}
+		return panel;
+	}
+
+	/**
+	 * Removes a track.
+	 *
+	 * @param track the track to remove
+	 */
+	public synchronized void removeTrack(TTrack track) {
+		if (!getDrawables(track.getClass()).contains(track))
+			return;
+		removePropertyChangeListener(track);
+		track.removePropertyChangeListener("step", this); //$NON-NLS-1$
+		track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+		track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+		track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
+		track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+		track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
+		track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
+		TFrame frame = getTFrame();
+		if (frame != null)
+			frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
+		super.removeDrawable(track);
+		if (dataBuilder != null)
+			dataBuilder.removePanel(track.getName());
 //    if (modelBuilder != null) modelBuilder.removePanel(track.getName());
-    if (getSelectedTrack()==track)
-    	setSelectedTrack(null);
-    // notify views and other listeners
-    firePropertyChange("track", track, null); //$NON-NLS-1$
-    TTrack.activeTracks.remove(track.getID());
-    changed = true;
-  }
+		if (getSelectedTrack() == track)
+			setSelectedTrack(null);
+		// notify views and other listeners
+		firePropertyChange("track", track, null); //$NON-NLS-1$
+		TTrack.activeTracks.remove(track.getID());
+		changed = true;
+	}
 
-  /**
-   * Determines if the specified track is in this tracker panel.
-   *
-   * @param track the track to look for
-   * @return <code>true</code> if this contains the track
-   */
-  public boolean containsTrack(TTrack track) {
-    for (TTrack next: getTracks()) {
-      if (track == next) return true;
-    }
-    return false;
-  }
+	/**
+	 * Determines if the specified track is in this tracker panel.
+	 *
+	 * @param track the track to look for
+	 * @return <code>true</code> if this contains the track
+	 */
+	public boolean containsTrack(TTrack track) {
+		for (TTrack next : getTracks()) {
+			if (track == next)
+				return true;
+		}
+		return false;
+	}
 
-  /**
-   * Erases all tracks in this tracker panel.
-   */
-  public void eraseAll() {
-    for (TTrack track: getTracks()) {
-      track.erase();
-    }
-  }
+	/**
+	 * Erases all tracks in this tracker panel.
+	 */
+	public void eraseAll() {
+		for (TTrack track : getTracks()) {
+			track.erase();
+		}
+	}
 
-  /**
-   * Gives the user an opportunity to save this to a trk file if changed.
-   *
-   * @return <code>false</code> if the user cancels, otherwise <code>true</code>
-   */
-  public boolean save() {
-    if (!changed) return true;
-    if (org.opensourcephysics.display.OSPRuntime.applet != null) return true;
-    String name = getTitle();
-    // eliminate extension if no data file
-    if (getDataFile() == null) {
-      int i = name.lastIndexOf('.');
-      if (i > 0) {
-        name = name.substring(0, i);
-      }
-    }
-    int i = JOptionPane.showConfirmDialog(this.getTopLevelAncestor(),
-                                          TrackerRes.getString("TrackerPanel.Dialog.SaveChanges.Message") + " \"" + name + "\"?", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-                                          TrackerRes.getString("TrackerPanel.Dialog.SaveChanges.Title"), //$NON-NLS-1$
-                                          JOptionPane.YES_NO_CANCEL_OPTION,
-                                          JOptionPane.QUESTION_MESSAGE);
-    if (i == JOptionPane.YES_OPTION) {
-    	restoreViews();
-      File file = VideoIO.save(getDataFile(), this);
-      if (file==null) return false;
-    }
-    else if (i == JOptionPane.CLOSED_OPTION || i == JOptionPane.CANCEL_OPTION) {
-      return false;
-    }
-    changed = false;
-    return true;
-  }
+	/**
+	 * Gives the user an opportunity to save this to a trk file if changed.
+	 *
+	 * @return <code>false</code> if the user cancels, otherwise <code>true</code>
+	 */
+	public boolean save() {
+		if (!changed)
+			return true;
+		if (org.opensourcephysics.display.OSPRuntime.applet != null)
+			return true;
+		String name = getTitle();
+		// eliminate extension if no data file
+		if (getDataFile() == null) {
+			int i = name.lastIndexOf('.');
+			if (i > 0) {
+				name = name.substring(0, i);
+			}
+		}
+		int i = JOptionPane.showConfirmDialog(this.getTopLevelAncestor(),
+				TrackerRes.getString("TrackerPanel.Dialog.SaveChanges.Message") + " \"" + name + "\"?", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				TrackerRes.getString("TrackerPanel.Dialog.SaveChanges.Title"), //$NON-NLS-1$
+				JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+		if (i == JOptionPane.YES_OPTION) {
+			restoreViews();
+			File file = VideoIO.save(getDataFile(), this);
+			if (file == null)
+				return false;
+		} else if (i == JOptionPane.CLOSED_OPTION || i == JOptionPane.CANCEL_OPTION) {
+			return false;
+		}
+		changed = false;
+		return true;
+	}
 
-  /**
-   * Overrides VideoPanel getDrawables method.
-   *
-   * @return a list of Drawable objects
-   */
-  public ArrayList<Drawable> getDrawables() {
-    ArrayList<Drawable> list = super.getDrawables();
-    TTrack track = getSelectedTrack();
-    if (track != null && list.contains(track) && track != getAxes()) {
-      // put selected track at the front so paints on top
-      list.remove(track);
-      list.add(track);
-    }
-    // put mat behind everything
-    TMat mat = getMat();
-    if (mat != null && list.get(0) != mat) {
-      list.remove(mat);
-      list.add(0, mat);
-    }
-    // show noData message if panel is empty
-    if (getVideo() == null && getUserTracks().isEmpty()) {
-    	isEmpty = true;
-    	if (this instanceof WorldTView) {
-	    	noDataLabels[0].setText(TrackerRes.getString("WorldTView.Label.NoData")); //$NON-NLS-1$
-	    	noDataLabels[1].setText(null);    		
-    	}
-    	else {
-      	noDataLabels[0].setText(TrackerRes.getString("TrackerPanel.Message.NoData0")); //$NON-NLS-1$
-      	noDataLabels[1].setText(TrackerRes.getString("TrackerPanel.Message.NoData1")); //$NON-NLS-1$
-    	}
-      add(noData, BorderLayout.NORTH);
-    }
-    else {
-    	isEmpty = false;
-    	remove(noData);
-    }
-    return list;
-  }
+	/**
+	 * Overrides VideoPanel getDrawables method.
+	 *
+	 * @return a list of Drawable objects
+	 */
+	public ArrayList<Drawable> getDrawables() {
+		ArrayList<Drawable> list = super.getDrawables();
+		TTrack track = getSelectedTrack();
+		if (track != null && list.contains(track) && track != getAxes()) {
+			// put selected track at the front so paints on top
+			list.remove(track);
+			list.add(track);
+		}
+		// put mat behind everything
+		TMat mat = getMat();
+		if (mat != null && list.get(0) != mat) {
+			list.remove(mat);
+			list.add(0, mat);
+		}
+		// show noData message if panel is empty
+		if (getVideo() == null && getUserTracks().isEmpty()) {
+			isEmpty = true;
+			if (this instanceof WorldTView) {
+				noDataLabels[0].setText(TrackerRes.getString("WorldTView.Label.NoData")); //$NON-NLS-1$
+				noDataLabels[1].setText(null);
+			} else {
+				noDataLabels[0].setText(TrackerRes.getString("TrackerPanel.Message.NoData0")); //$NON-NLS-1$
+				noDataLabels[1].setText(TrackerRes.getString("TrackerPanel.Message.NoData1")); //$NON-NLS-1$
+			}
+			add(noData, BorderLayout.NORTH);
+		} else {
+			isEmpty = false;
+			remove(noData);
+		}
+		return list;
+	}
 
-  /**
-   * Gets the list of system Drawables.
-   *
-   * @return a list of Drawable objects
-   */
-  public ArrayList<Drawable> getSystemDrawables() {
-    ArrayList<Drawable> list = new ArrayList<Drawable>();
-    Drawable drawable = getMat();
-    if (drawable != null) 
-    	list.add(drawable);
-    drawable = getAxes();
-    if (drawable != null) 
-    	list.add(drawable);
-   	for (TTrack next: calibrationTools) {
-   		list.add(next);
-  	}
-    return list;
-  }
+	/**
+	 * Gets the list of system Drawables.
+	 *
+	 * @return a list of Drawable objects
+	 */
+	public ArrayList<Drawable> getSystemDrawables() {
+		ArrayList<Drawable> list = new ArrayList<Drawable>();
+		Drawable drawable = getMat();
+		if (drawable != null)
+			list.add(drawable);
+		drawable = getAxes();
+		if (drawable != null)
+			list.add(drawable);
+		for (TTrack next : calibrationTools) {
+			list.add(next);
+		}
+		return list;
+	}
 
-  /**
-   * Overrides VideoPanel addDrawable method.
-   *
-   * @param drawable the drawable object
-   */
-  public synchronized void addDrawable(Drawable drawable) {
-    if (drawable instanceof TTrack) {
-    	addTrack((TTrack)drawable);
-    }
-    else {
-    	super.addDrawable(drawable);
-    }
-  }
+	/**
+	 * Overrides VideoPanel addDrawable method.
+	 *
+	 * @param drawable the drawable object
+	 */
+	public synchronized void addDrawable(Drawable drawable) {
+		if (drawable instanceof TTrack) {
+			addTrack((TTrack) drawable);
+		} else {
+			super.addDrawable(drawable);
+		}
+	}
 
-  /**
-   * Moves a drawable behind all others except the video.
-   *
-   * @param drawable the drawable object
-   */
-  public synchronized void moveToBack(Drawable drawable) {
-    if (drawable != null && drawableList.contains(drawable)) {
-      synchronized(drawableList) {
-	      drawableList.remove(drawable);
-	      if (drawable instanceof TMat) // put mat at back
-	      	drawableList.add(0, drawable);
-	      else {
-	      	int index = getMat() == null? 0: 1; // put in front of mat, if any
-	      	if (getVideo() != null) index++; // put in front of video, if any
-	      	drawableList.add(index, drawable);
-	      }
-      }
-    }
-  }
+	/**
+	 * Moves a drawable behind all others except the video.
+	 *
+	 * @param drawable the drawable object
+	 */
+	public synchronized void moveToBack(Drawable drawable) {
+		if (drawable != null && drawableList.contains(drawable)) {
+			synchronized (drawableList) {
+				drawableList.remove(drawable);
+				if (drawable instanceof TMat) // put mat at back
+					drawableList.add(0, drawable);
+				else {
+					int index = getMat() == null ? 0 : 1; // put in front of mat, if any
+					if (getVideo() != null)
+						index++; // put in front of video, if any
+					drawableList.add(index, drawable);
+				}
+			}
+		}
+	}
 
-  /**
-   * Overrides VideoPanel removeDrawable method.
-   *
-   * @param drawable the drawable object
-   */
-  public synchronized void removeDrawable(Drawable drawable) {
-    if (drawable instanceof TTrack) removeTrack((TTrack)drawable);
-    else super.removeDrawable(drawable);
-  }
+	/**
+	 * Overrides VideoPanel removeDrawable method.
+	 *
+	 * @param drawable the drawable object
+	 */
+	public synchronized void removeDrawable(Drawable drawable) {
+		if (drawable instanceof TTrack)
+			removeTrack((TTrack) drawable);
+		else
+			super.removeDrawable(drawable);
+	}
 
+	/**
+	 * Overrides VideoPanel removeObjectsOfClass method.
+	 *
+	 * @param c the class to remove
+	 */
+	public synchronized <T extends Drawable> void removeObjectsOfClass(Class<T> c) {
+		if (TTrack.class.isAssignableFrom(c)) { // objects are TTracks
+			// remove propertyChangeListeners
+			ArrayList<T> removed = getObjectOfClass(c);
+			Iterator<T> it = removed.iterator();
+			while (it.hasNext()) {
+				TTrack track = (TTrack) it.next();
+				removePropertyChangeListener(track);
+				track.removePropertyChangeListener("step", this); //$NON-NLS-1$
+				track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+				track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+				track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
+				track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+				track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
+				track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
+				TFrame frame = getTFrame();
+				if (frame != null)
+					frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
+			}
+			super.removeObjectsOfClass(c);
+			// notify views
+			for (Object next : removed) {
+				TTrack track = (TTrack) next;
+				firePropertyChange("track", track, null); //$NON-NLS-1$
+			}
+			changed = true;
+		} else
+			super.removeObjectsOfClass(c);
+	}
 
-  /**
-   * Overrides VideoPanel removeObjectsOfClass method.
-   *
-   * @param c the class to remove
-   */
-  public synchronized <T extends Drawable> void removeObjectsOfClass(Class<T> c) {
-    if (TTrack.class.isAssignableFrom(c)) { // objects are TTracks
-      // remove propertyChangeListeners
-    	ArrayList<T> removed = getObjectOfClass(c);
-      Iterator<T> it = removed.iterator();
-      while(it.hasNext()) {
-        TTrack track = (TTrack)it.next();
-        removePropertyChangeListener(track);
-        track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-        track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
-        track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-        track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-        track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-        track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
-        track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
-        TFrame frame = getTFrame();
-      	if (frame!=null) frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
-      }
-      super.removeObjectsOfClass(c);
-      // notify views
-      for (Object next: removed) {
-      	TTrack track = (TTrack)next;
-	      firePropertyChange("track", track, null); //$NON-NLS-1$
-      }
-      changed = true;
-    }
-    else super.removeObjectsOfClass(c);
-  }
+	/**
+	 * Overrides VideoPanel clear method.
+	 */
+	public synchronized void clear() {
+		setSelectedTrack(null);
+		selectedPoint = null;
+		ArrayList<TTrack> tracks = getTracks();
+		for (TTrack track : tracks) {
+			removePropertyChangeListener(track);
+			track.removePropertyChangeListener("step", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("transform", this); //$NON-NLS-1$
+			TFrame frame = getTFrame();
+			if (frame != null)
+				frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
 
-  /**
-   * Overrides VideoPanel clear method.
-   */
-  public synchronized void clear() {
-  	setSelectedTrack(null);
-  	selectedPoint = null;
-  	ArrayList<TTrack> tracks = getTracks();
-    for (TTrack track: tracks) {
-      removePropertyChangeListener(track);
-      track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("transform", this); //$NON-NLS-1$
-      TFrame frame = getTFrame();
-    	if (frame!=null) frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
+			// handle case when track is the origin of current reference frame
+			ImageCoordSystem coords = getCoords();
+			if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == track) {
+				// set coords to underlying coords
+				coords = ((ReferenceFrame) coords).getCoords();
+				setCoords(coords);
+			}
+		}
+		TMat mat = getMat();
+		if (mat != null) {
+			mat.cleanup();
+		}
+		super.clear(); // clears all drawables except video
+		if (dataBuilder != null) {
+			dataBuilder.clearPanels();
+			dataBuilder.setVisible(false);
+		}
+		if (modelBuilder != null) {
+			modelBuilder.clearPanels();
+			modelBuilder.setVisible(false);
+		}
+		// notify views and other listeners
+		firePropertyChange("clear", null, null); //$NON-NLS-1$
+		// remove tracks from TTrack.activeTracks
+		for (TTrack track : tracks) {
+			TTrack.activeTracks.remove(track.getID());
+		}
+		changed = true;
+	}
 
-      // handle case when track is the origin of current reference frame
-    	ImageCoordSystem coords = getCoords();
-      if (coords instanceof ReferenceFrame && 
-      				((ReferenceFrame)coords).getOriginTrack() == track) {
-        // set coords to underlying coords
-        coords = ( (ReferenceFrame) coords).getCoords();
-      	setCoords(coords);
-      }    	
-    }
-    TMat mat = getMat();
-    if (mat!=null) {
-    	mat.cleanup();
-    }
-    super.clear(); // clears all drawables except video
-    if (dataBuilder != null) {
-    	dataBuilder.clearPanels();
-    	dataBuilder.setVisible(false);
-    }
-    if (modelBuilder != null) {
-    	modelBuilder.clearPanels();
-    	modelBuilder.setVisible(false);
-    }
-    // notify views and other listeners
-    firePropertyChange("clear", null, null); //$NON-NLS-1$
-    // remove tracks from TTrack.activeTracks
-    for (TTrack track: tracks) {
-	    TTrack.activeTracks.remove(track.getID());   	
-    }
-    changed = true;
-  }
+	/**
+	 * Clears all tracks.
+	 */
+	public synchronized void clearTracks() {
+		ArrayList<TTrack> removed = getTracks();
+		// get background drawables to replace after clearing
+		ArrayList<Drawable> keepers = getSystemDrawables();
+		clear();
+		// replace keepers
+		for (Drawable drawable : keepers) {
+			if (drawable instanceof TMat) {
+				((TMat) drawable).setTrackerPanel(this);
+			}
+			addDrawable(drawable);
+			removed.remove(drawable);
+		}
+		for (TTrack track : removed) {
+			track.dispose();
+		}
+	}
 
-  /**
-   * Clears all tracks.
-   */
-  public synchronized void clearTracks() {
-  	ArrayList<TTrack> removed = getTracks();
-    // get background drawables to replace after clearing
-    ArrayList<Drawable> keepers = getSystemDrawables();
-    clear();
-    // replace keepers
-    for (Drawable drawable: keepers) {
-    	if (drawable instanceof TMat) {
-    		((TMat)drawable).setTrackerPanel(this);
-    	}
-      addDrawable(drawable);
-      removed.remove(drawable);
-    }
-    for (TTrack track: removed) {
-   	 track.dispose();
-    }
-  }
-
-  /**
-   * Overrides VideoPanel setCoords method.
-   *
-   * @param _coords the new image coordinate system
-   */
-  public void setCoords(ImageCoordSystem _coords) {
-    if (_coords == null || _coords == coords) return;
-    if (video == null) {
-      coords.removePropertyChangeListener(this);
-      coords = _coords;
-      coords.addPropertyChangeListener(this);
-      int n = getFrameNumber();
-      getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
-      try {
+	/**
+	 * Overrides VideoPanel setCoords method.
+	 *
+	 * @param _coords the new image coordinate system
+	 */
+	public void setCoords(ImageCoordSystem _coords) {
+		if (_coords == null || _coords == coords)
+			return;
+		if (video == null) {
+			coords.removePropertyChangeListener(this);
+			coords = _coords;
+			coords.addPropertyChangeListener(this);
+			int n = getFrameNumber();
+			getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
+			try {
 				firePropertyChange("coords", null, coords); //$NON-NLS-1$
 				firePropertyChange("transform", null, null); //$NON-NLS-1$
 			} catch (Exception e) {
 			}
-    }
-    else video.setCoords(_coords);
-  }
-  
-  /**
-   * Sets the reference frame by name. If the name is null or not found, 
-   * the default reference frame is used.
-   *
-   * @param trackName the name of a point mass
-   */
-  public void setReferenceFrame(String trackName) {
-    PointMass pm = null;
-    for (PointMass m: getDrawables(PointMass.class)) {
-      if (m.getName().equals(trackName)) {
-        pm = m;
-        break;
-      }
-    }
-    final PointMass thePM = pm;
-    Runnable runner = new Runnable() {
-    	public void run() {
-        if (thePM != null) {
-          ImageCoordSystem coords = getCoords();
-          boolean wasRefFrame = coords instanceof ReferenceFrame;
-          while (coords instanceof ReferenceFrame) {
-            coords = ( (ReferenceFrame) coords).getCoords();
-          }
-          setCoords(new ReferenceFrame(coords, thePM));
-          // special case: if pm is a particle model and wasRefFrame is true,
-          // refresh steps of pm after setting new ReferenceFrame
-          if (thePM instanceof ParticleModel && wasRefFrame) {
-          	((ParticleModel)thePM).lastValidFrame = -1;
-          	((ParticleModel)thePM).refreshSteps();
-          }      
-          setSelectedPoint(null);
-          selectedSteps.clear();
-          repaint();
-        }
-        else {
-          ImageCoordSystem coords = getCoords();
-          if (coords instanceof ReferenceFrame) {
-            coords = ( (ReferenceFrame) coords).getCoords();
-            setCoords(coords);
-            setSelectedPoint(null);
-            selectedSteps.clear();
-            repaint();
-          }
-        }
-   		
-    	}
-    };
-    new Thread(runner).start();
+		} else
+			video.setCoords(_coords);
+	}
+
+	/**
+	 * Sets the reference frame by name. If the name is null or not found, the
+	 * default reference frame is used.
+	 *
+	 * @param trackName the name of a point mass
+	 */
+	public void setReferenceFrame(String trackName) {
+		PointMass pm = null;
+		for (PointMass m : getDrawables(PointMass.class)) {
+			if (m.getName().equals(trackName)) {
+				pm = m;
+				break;
+			}
+		}
+		final PointMass thePM = pm;
+		Runnable runner = new Runnable() {
+			public void run() {
+				if (thePM != null) {
+					ImageCoordSystem coords = getCoords();
+					boolean wasRefFrame = coords instanceof ReferenceFrame;
+					while (coords instanceof ReferenceFrame) {
+						coords = ((ReferenceFrame) coords).getCoords();
+					}
+					setCoords(new ReferenceFrame(coords, thePM));
+					// special case: if pm is a particle model and wasRefFrame is true,
+					// refresh steps of pm after setting new ReferenceFrame
+					if (thePM instanceof ParticleModel && wasRefFrame) {
+						((ParticleModel) thePM).lastValidFrame = -1;
+						((ParticleModel) thePM).refreshSteps();
+					}
+					setSelectedPoint(null);
+					selectedSteps.clear();
+					repaint();
+				} else {
+					ImageCoordSystem coords = getCoords();
+					if (coords instanceof ReferenceFrame) {
+						coords = ((ReferenceFrame) coords).getCoords();
+						setCoords(coords);
+						setSelectedPoint(null);
+						selectedSteps.clear();
+						repaint();
+					}
+				}
+
+			}
+		};
+		new Thread(runner).start();
 //    if (pm != null) {
 //      ImageCoordSystem coords = getCoords();
 //      boolean wasRefFrame = coords instanceof ReferenceFrame;
@@ -1074,611 +1095,632 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //      }
 //    }
 
-  }
+	}
 
-  /**
-   * Gets the coordinate axes.
-   *
-   * @return the CoordAxes
-   */
-  public CoordAxes getAxes() {
-  	ArrayList<CoordAxes> list = getDrawables(CoordAxes.class);
-    if (!list.isEmpty()) return list.get(0);
-    return null;
-  }
+	/**
+	 * Gets the coordinate axes.
+	 *
+	 * @return the CoordAxes
+	 */
+	public CoordAxes getAxes() {
+		ArrayList<CoordAxes> list = getDrawables(CoordAxes.class);
+		if (!list.isEmpty())
+			return list.get(0);
+		return null;
+	}
 
-  /**
-   * Gets the mat.
-   *
-   * @return the first TMat in the drawable list
-   */
-  public TMat getMat() {
-    ArrayList<TMat> list = getDrawables(TMat.class);
-    if (!list.isEmpty()) return list.get(0);
-    return null;
-  }
+	/**
+	 * Gets the mat.
+	 *
+	 * @return the first TMat in the drawable list
+	 */
+	public TMat getMat() {
+		ArrayList<TMat> list = getDrawables(TMat.class);
+		if (!list.isEmpty())
+			return list.get(0);
+		return null;
+	}
 
-  /**
-   * Gets the grid.
-   *
-   * @return the first Grid in the drawable list
-   */
-  public WorldGrid getGrid() {
-    ArrayList<WorldGrid> list = getDrawables(WorldGrid.class);
-    if (!list.isEmpty()) return list.get(0);
-    return null;
-  }
+	/**
+	 * Gets the grid.
+	 *
+	 * @return the first Grid in the drawable list
+	 */
+	public WorldGrid getGrid() {
+		ArrayList<WorldGrid> list = getDrawables(WorldGrid.class);
+		if (!list.isEmpty())
+			return list.get(0);
+		return null;
+	}
 
-  /**
-   * Gets the origin snap point.
-   *
-   * @return the snap point
-   */
-  public TPoint getSnapPoint() {
-  	if (snapPoint == null) snapPoint = new TPoint();
-    return snapPoint;
-  }
+	/**
+	 * Gets the origin snap point.
+	 *
+	 * @return the snap point
+	 */
+	public TPoint getSnapPoint() {
+		if (snapPoint == null)
+			snapPoint = new TPoint();
+		return snapPoint;
+	}
 
-  /**
-   * Sets the selected track.
-   *
-   * @param track the track to select
-   */
-  public void setSelectedTrack(TTrack track) {
-    if (selectedTrack == track) return;
-    if (track!=null 
-    		&& track instanceof ParticleModel
-    		&& ((ParticleModel)track).refreshing)
-    	return;
-    TTrack prevTrack = selectedTrack;
-    selectedTrack = track;
-    if (Tracker.showHints && track != null) setMessage(track.getMessage());
-    else setMessage(""); //$NON-NLS-1$
-    firePropertyChange("selectedtrack", prevTrack, track); //$NON-NLS-1$
+	/**
+	 * Sets the selected track.
+	 *
+	 * @param track the track to select
+	 */
+	public void setSelectedTrack(TTrack track) {
+		if (selectedTrack == track)
+			return;
+		if (track != null && track instanceof ParticleModel && ((ParticleModel) track).refreshing)
+			return;
+		TTrack prevTrack = selectedTrack;
+		selectedTrack = track;
+		if (Tracker.showHints && track != null)
+			setMessage(track.getMessage());
+		else
+			setMessage(""); //$NON-NLS-1$
+		firePropertyChange("selectedtrack", prevTrack, track); //$NON-NLS-1$
 		coordStringBuilder.setUnitsAndPatterns(track, "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
-  }
+	}
 
-  /**
-   * Gets the selected track.
-   *
-   * @return the selected track
-   */
-  public TTrack getSelectedTrack() {
-    return selectedTrack;
-  }
+	/**
+	 * Gets the selected track.
+	 *
+	 * @return the selected track
+	 */
+	public TTrack getSelectedTrack() {
+		return selectedTrack;
+	}
 
-  /**
-   * Sets the selected point. Also sets the selected step, track, and selecting panel.
-   *
-   * @param point the point to receive actions
-   */
-  public void setSelectedPoint(TPoint point) {
-    if (point == selectedPoint && point == null) return;
-    TPoint prevPoint = selectedPoint;
-    if (prevPoint!=null) {
-    	prevPoint.setAdjusting(false);
-    }
-    selectedPoint = point;
-    // determine if selected steps or previous point has changed 
-    boolean stepsChanged = !selectedSteps.isEmpty() && selectedSteps.isChanged();
-    // determine if newly selected step is in selectedSteps
-    if (selectedSteps.size()>1) {
-      boolean newStepSelected = false;
-      if (point!=null) {
-    		// find associated step
-    		Step step = null;
-        for (TTrack track: getTracks()) {
-        	step = track.getStep(point, this);
-        	if (step != null) {
-        		newStepSelected = selectedSteps.contains(step);
-        		break;
-        	}
-        }
-      }
-      if (newStepSelected) {
-        firePropertyChange("selectedpoint", prevPoint, point); //$NON-NLS-1$
-      	selectedSteps.isModified = false;
-        return;
-      }
-    }
-    boolean prevPointChanged = currentState!=null && prevPoint != null && prevPoint != point && prevPoint != newlyMarkedPoint
-    				&& (prevPoint.x != pointState.x || prevPoint.y != pointState.y);
-    if (selectedPoint==null) {
-    	newlyMarkedPoint = null;
-    }
-    // post undo edit if selectedSteps or previous point has changed 
-    if (stepsChanged || prevPointChanged) {
-    	boolean trackEdit = false;
-    	boolean coordsEdit = false;
-    	if (prevPointChanged) {
-	    	trackEdit = prevPoint.isTrackEditTrigger() && getSelectedTrack() != null;
-	    	coordsEdit = prevPoint.isCoordsEditTrigger();
-    	}
-    	else { // steps have changed 
-    		trackEdit = selectedSteps.getTracks().length==1;
-    	}
-    	if (trackEdit && coordsEdit) {
-    		Undo.postTrackAndCoordsEdit(getSelectedTrack(), currentState, currentCoords);    		
-    	}
-    	else if (trackEdit) {
-    		if (stepsChanged) {
-      		if (!selectedSteps.isModified) {
-      			selectedSteps.clear(); // posts undoable edit if changed
-      		}
-    		}
-    		else {
-    			Undo.postTrackEdit(getSelectedTrack(), currentState);
-    		}
-    	}
-    	else if (coordsEdit) {
-    		Undo.postCoordsEdit(this, currentState);
-    	}
-    	else if (prevPoint!=null && prevPoint.isStepEditTrigger()) {
-    		Undo.postStepEdit(selectedStep, currentState);
-    	}
-    	else if (prevPoint instanceof LineProfileStep.LineEnd) {
-    		prevPoint.setTrackEditTrigger(true);
-    	}
-    }
-    if (selectedStep != null) selectedStep.repaint();
-    if (point == null) {
-      selectedStep = null;
-      selectingPanel = null;
-      currentState = null;
-      currentCoords = null;
-    }
-    else {  // find track and step (if any) associated with selected point
-      TTrack track = null;
-      Step step = null;
-      Iterator<TTrack> it = getTracks().iterator();
-      while(it.hasNext()) {
-        track = it.next();
-        step = track.getStep(point, this);
-        if (step != null) break;
-      }
-      selectedStep = step;
-      if (step == null) { // non-track TPoint was selected
-        boolean ignore = autoTracker!=null 
-        	&& autoTracker.getWizard().isVisible()
-        	&& (point instanceof AutoTracker.Corner
-        			|| point instanceof AutoTracker.Handle
-        			|| point instanceof AutoTracker.Target);
-        if (!ignore) setSelectedTrack(null);
-      }
-      else { // TPoint is associated with a step and track
-        setSelectedTrack(track);
-        step.repaint();
-        // save position and state of newly selected point and/or track
-        if (prevPoint != point) {
-        	boolean trackEdit = point.isTrackEditTrigger();
-        	boolean coordsEdit = point.isCoordsEditTrigger();
-	        pointState.setLocation(point);
-	        if (trackEdit && coordsEdit) {
-	        	currentState = new XMLControlElement(track);
-	        	currentCoords = new XMLControlElement(getCoords());
-	        }
-	        else if (trackEdit) {
-	        	currentState = new XMLControlElement(track);
-	      		if (!selectedSteps.contains(step) && !selectedSteps.isModified) {
-	        		selectedSteps.clear();
-	        	}
-	        }
-	        else if (coordsEdit) {
-	        	currentState = new XMLControlElement(getCoords());
-	        }
-	        else if (point.isStepEditTrigger()) {
-	        	currentState = new XMLControlElement(step);
-	        }
-        }
-      }
-      selectingPanel = this;
-      requestFocusInWindow();
-    }
-    if (selectedStep!=null) selectedSteps.add(selectedStep);
-  	selectedSteps.isModified = false;
-    firePropertyChange("selectedpoint", prevPoint, point); //$NON-NLS-1$
-  }
+	/**
+	 * Sets the selected point. Also sets the selected step, track, and selecting
+	 * panel.
+	 *
+	 * @param point the point to receive actions
+	 */
+	public void setSelectedPoint(TPoint point) {
+		if (point == selectedPoint && point == null)
+			return;
+		TPoint prevPoint = selectedPoint;
+		if (prevPoint != null) {
+			prevPoint.setAdjusting(false);
+		}
+		selectedPoint = point;
+		// determine if selected steps or previous point has changed
+		boolean stepsChanged = !selectedSteps.isEmpty() && selectedSteps.isChanged();
+		// determine if newly selected step is in selectedSteps
+		if (selectedSteps.size() > 1) {
+			boolean newStepSelected = false;
+			if (point != null) {
+				// find associated step
+				Step step = null;
+				for (TTrack track : getTracks()) {
+					step = track.getStep(point, this);
+					if (step != null) {
+						newStepSelected = selectedSteps.contains(step);
+						break;
+					}
+				}
+			}
+			if (newStepSelected) {
+				firePropertyChange("selectedpoint", prevPoint, point); //$NON-NLS-1$
+				selectedSteps.isModified = false;
+				return;
+			}
+		}
+		boolean prevPointChanged = currentState != null && prevPoint != null && prevPoint != point
+				&& prevPoint != newlyMarkedPoint && (prevPoint.x != pointState.x || prevPoint.y != pointState.y);
+		if (selectedPoint == null) {
+			newlyMarkedPoint = null;
+		}
+		// post undo edit if selectedSteps or previous point has changed
+		if (stepsChanged || prevPointChanged) {
+			boolean trackEdit = false;
+			boolean coordsEdit = false;
+			if (prevPointChanged) {
+				trackEdit = prevPoint.isTrackEditTrigger() && getSelectedTrack() != null;
+				coordsEdit = prevPoint.isCoordsEditTrigger();
+			} else { // steps have changed
+				trackEdit = selectedSteps.getTracks().length == 1;
+			}
+			if (trackEdit && coordsEdit) {
+				Undo.postTrackAndCoordsEdit(getSelectedTrack(), currentState, currentCoords);
+			} else if (trackEdit) {
+				if (stepsChanged) {
+					if (!selectedSteps.isModified) {
+						selectedSteps.clear(); // posts undoable edit if changed
+					}
+				} else {
+					Undo.postTrackEdit(getSelectedTrack(), currentState);
+				}
+			} else if (coordsEdit) {
+				Undo.postCoordsEdit(this, currentState);
+			} else if (prevPoint != null && prevPoint.isStepEditTrigger()) {
+				Undo.postStepEdit(selectedStep, currentState);
+			} else if (prevPoint instanceof LineProfileStep.LineEnd) {
+				prevPoint.setTrackEditTrigger(true);
+			}
+		}
+		if (selectedStep != null)
+			selectedStep.repaint();
+		if (point == null) {
+			selectedStep = null;
+			selectingPanel = null;
+			currentState = null;
+			currentCoords = null;
+		} else { // find track and step (if any) associated with selected point
+			TTrack track = null;
+			Step step = null;
+			Iterator<TTrack> it = getTracks().iterator();
+			while (it.hasNext()) {
+				track = it.next();
+				step = track.getStep(point, this);
+				if (step != null)
+					break;
+			}
+			selectedStep = step;
+			if (step == null) { // non-track TPoint was selected
+				boolean ignore = autoTracker != null && autoTracker.getWizard().isVisible()
+						&& (point instanceof AutoTracker.Corner || point instanceof AutoTracker.Handle
+								|| point instanceof AutoTracker.Target);
+				if (!ignore)
+					setSelectedTrack(null);
+			} else { // TPoint is associated with a step and track
+				setSelectedTrack(track);
+				step.repaint();
+				// save position and state of newly selected point and/or track
+				if (prevPoint != point) {
+					boolean trackEdit = point.isTrackEditTrigger();
+					boolean coordsEdit = point.isCoordsEditTrigger();
+					pointState.setLocation(point);
+					if (trackEdit && coordsEdit) {
+						currentState = new XMLControlElement(track);
+						currentCoords = new XMLControlElement(getCoords());
+					} else if (trackEdit) {
+						currentState = new XMLControlElement(track);
+						if (!selectedSteps.contains(step) && !selectedSteps.isModified) {
+							selectedSteps.clear();
+						}
+					} else if (coordsEdit) {
+						currentState = new XMLControlElement(getCoords());
+					} else if (point.isStepEditTrigger()) {
+						currentState = new XMLControlElement(step);
+					}
+				}
+			}
+			selectingPanel = this;
+			requestFocusInWindow();
+		}
+		if (selectedStep != null)
+			selectedSteps.add(selectedStep);
+		selectedSteps.isModified = false;
+		firePropertyChange("selectedpoint", prevPoint, point); //$NON-NLS-1$
+	}
 
-  /**
-   * Gets the selected point.
-   *
-   * @return the selected point
-   */
-  public TPoint getSelectedPoint() {
-    return selectedPoint;
-  }
+	/**
+	 * Gets the selected point.
+	 *
+	 * @return the selected point
+	 */
+	public TPoint getSelectedPoint() {
+		return selectedPoint;
+	}
 
-  /**
-   * Gets the selected step.
-   *
-   * @return the selected step
-   */
-  public Step getSelectedStep() {
-    return selectedStep;
-  }
+	/**
+	 * Gets the selected step.
+	 *
+	 * @return the selected step
+	 */
+	public Step getSelectedStep() {
+		return selectedStep;
+	}
 
-  /**
-   * Gets the selecting tracker panel.
-   *
-   * @return the selecting tracker panel
-   */
-  public TrackerPanel getSelectingPanel() {
-    return selectingPanel;
-  }
+	/**
+	 * Gets the selecting tracker panel.
+	 *
+	 * @return the selecting tracker panel
+	 */
+	public TrackerPanel getSelectingPanel() {
+		return selectingPanel;
+	}
 
-  /**
-   * Sets the magnification.
-   *
-   * @param magnification the desired magnification
-   */
-  public void setMagnification(double magnification) {
-  	if (Double.isNaN(magnification)) return;
-  	if (magnification==0) return;
-    double prevZoom = getMagnification();
-    Dimension prevSize = getPreferredSize();
+	/**
+	 * Sets the magnification.
+	 *
+	 * @param magnification the desired magnification
+	 */
+	public void setMagnification(double magnification) {
+		if (Double.isNaN(magnification))
+			return;
+		if (magnification == 0)
+			return;
+		double prevZoom = getMagnification();
+		Dimension prevSize = getPreferredSize();
 		Point p1 = new TPoint(0, 0).getScreenPosition(this);
-    if (prevSize.width==1 && prevSize.height==1) { // zoomed to fit
-    	double w = getImageWidth();
-    	double h = getImageHeight();
-    	Point p2 = new TPoint(w, h).getScreenPosition(this);
-    	prevSize.width = p2.x-p1.x;
-    	prevSize.height =  p2.y-p1.y;
-    }
-  	if (magnification < 0) {
-      setPreferredSize(new Dimension(1, 1));
-  	}
-  	else {
-      zoom = Math.max(magnification, MIN_ZOOM);
-      zoom = Math.min(zoom, MAX_ZOOM);
-      int w = (int)(imageWidth*zoom);
-      int h = (int)(imageHeight*zoom);
-      Dimension size = new Dimension(w, h);
-      setPreferredSize(size);
-  	}
-    firePropertyChange("magnification", prevZoom, getMagnification()); //$NON-NLS-1$
-  	// scroll and revalidate
-  	MainTView view = getTFrame()==null? null: getTFrame().getMainView(this);
-  	if (view != null) {
-  		view.scrollPane.revalidate();
-  		view.scrollToZoomCenter(getPreferredSize(), prevSize, p1);
-      eraseAll();
-      repaint();
-  	}
-  	zoomBox.hide();
-  }
+		if (prevSize.width == 1 && prevSize.height == 1) { // zoomed to fit
+			double w = getImageWidth();
+			double h = getImageHeight();
+			Point p2 = new TPoint(w, h).getScreenPosition(this);
+			prevSize.width = p2.x - p1.x;
+			prevSize.height = p2.y - p1.y;
+		}
+		if (magnification < 0) {
+			setPreferredSize(new Dimension(1, 1));
+		} else {
+			zoom = Math.max(magnification, MIN_ZOOM);
+			zoom = Math.min(zoom, MAX_ZOOM);
+			int w = (int) (imageWidth * zoom);
+			int h = (int) (imageHeight * zoom);
+			Dimension size = new Dimension(w, h);
+			setPreferredSize(size);
+		}
+		firePropertyChange("magnification", prevZoom, getMagnification()); //$NON-NLS-1$
+		// scroll and revalidate
+		MainTView view = getTFrame() == null ? null : getTFrame().getMainView(this);
+		if (view != null) {
+			view.scrollPane.revalidate();
+			view.scrollToZoomCenter(getPreferredSize(), prevSize, p1);
+			eraseAll();
+			repaint();
+		}
+		zoomBox.hide();
+	}
 
-  /**
-   * Gets the magnification.
-   *
-   * @return the magnification
-   */
-  public double getMagnification() {
+	/**
+	 * Gets the magnification.
+	 *
+	 * @return the magnification
+	 */
+	public double getMagnification() {
 		if (getPreferredSize().width == 1) { // zoomed to fit
 			double w = getImageWidth();
 			double h = getImageHeight();
 			Dimension size = getSize();
-			return Math.min(size.width/w, size.height/h);
+			return Math.min(size.width / w, size.height / h);
 		}
-    return zoom;
-  }
+		return zoom;
+	}
 
-  /**
-   * Sets the image width in image units. Overrides VideoPanel method.
-   *
-   * @param w the width
-   */
-  public void setImageWidth(double w) {
-    setImageSize(w, getImageHeight());
-  }
+	/**
+	 * Sets the image width in image units. Overrides VideoPanel method.
+	 *
+	 * @param w the width
+	 */
+	public void setImageWidth(double w) {
+		setImageSize(w, getImageHeight());
+	}
 
-  /**
-   * Sets the image height in image units. Overrides VideoPanel method.
-   *
-   * @param h the height
-   */
-  public void setImageHeight(double h) {
-    setImageSize(getImageWidth(), h);
-  }
+	/**
+	 * Sets the image height in image units. Overrides VideoPanel method.
+	 *
+	 * @param h the height
+	 */
+	public void setImageHeight(double h) {
+		setImageSize(getImageWidth(), h);
+	}
 
-  /**
-   * Sets the image size in image units.
-   *
-   * @param w the width
-   * @param h the height
-   */
-  public void setImageSize(double w, double h) {
-    super.setImageWidth(w);
-    super.setImageHeight(h);
-    TMat mat = getMat();
-    if (mat != null) mat.refresh();
-    if (getPreferredSize().width > 10) {
-      setMagnification(getMagnification());
-    }
-    eraseAll();
-    repaint();
-    firePropertyChange("size", null, null); //$NON-NLS-1$
-  }
+	/**
+	 * Sets the image size in image units.
+	 *
+	 * @param w the width
+	 * @param h the height
+	 */
+	public void setImageSize(double w, double h) {
+		super.setImageWidth(w);
+		super.setImageHeight(h);
+		TMat mat = getMat();
+		if (mat != null)
+			mat.refresh();
+		if (getPreferredSize().width > 10) {
+			setMagnification(getMagnification());
+		}
+		eraseAll();
+		repaint();
+		firePropertyChange("size", null, null); //$NON-NLS-1$
+	}
 
-  /**
-   * Sets the scroll pane.
-   *
-   * @param scroller the scroll pane containing this panel
-   */
-  public void setScrollPane(JScrollPane scroller) {
-    scrollPane = scroller;
-  }
+	/**
+	 * Sets the scroll pane.
+	 *
+	 * @param scroller the scroll pane containing this panel
+	 */
+	public void setScrollPane(JScrollPane scroller) {
+		scrollPane = scroller;
+	}
 
-  /**
-   * Gets the preferred scrollable viewport size.
-   *
-   * @return the preferred scrollable viewport size
-   */
-  public Dimension getPreferredScrollableViewportSize() {
-    return getPreferredSize();
-  }
+	/**
+	 * Gets the preferred scrollable viewport size.
+	 *
+	 * @return the preferred scrollable viewport size
+	 */
+	public Dimension getPreferredScrollableViewportSize() {
+		return getPreferredSize();
+	}
 
-  /**
-   * Gets the scrollable unit increment.
-   *
-   * @param visibleRect the rectangle currently visible in the scrollpane
-   * @param orientation the orientation of the scrollbar
-   * @param direction the direction of movement of the scrollbar
-   * @return the scrollable unit increment
-   */
-  public int getScrollableUnitIncrement(Rectangle visibleRect,
-                                         int orientation,
-                                         int direction) {
-    return 20;
-  }
+	/**
+	 * Gets the scrollable unit increment.
+	 *
+	 * @param visibleRect the rectangle currently visible in the scrollpane
+	 * @param orientation the orientation of the scrollbar
+	 * @param direction   the direction of movement of the scrollbar
+	 * @return the scrollable unit increment
+	 */
+	public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
+		return 20;
+	}
 
-  /**
-   * Gets the scrollable block increment.
-   *
-   * @param visibleRect the rectangle currently visible in the scrollpane
-   * @param orientation the orientation of the scrollbar
-   * @param direction the direction of movement of the scrollbar
-   * @return the scrollable block increment
-   */
-  public int getScrollableBlockIncrement(Rectangle visibleRect,
-                                         int orientation,
-                                         int direction) {
-    int unitIncrement = getScrollableUnitIncrement(
-                        visibleRect, orientation, direction);
-    if (orientation == SwingConstants.HORIZONTAL)
-        return visibleRect.width - unitIncrement;
-    return visibleRect.height - unitIncrement;
-  }
+	/**
+	 * Gets the scrollable block increment.
+	 *
+	 * @param visibleRect the rectangle currently visible in the scrollpane
+	 * @param orientation the orientation of the scrollbar
+	 * @param direction   the direction of movement of the scrollbar
+	 * @return the scrollable block increment
+	 */
+	public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
+		int unitIncrement = getScrollableUnitIncrement(visibleRect, orientation, direction);
+		if (orientation == SwingConstants.HORIZONTAL)
+			return visibleRect.width - unitIncrement;
+		return visibleRect.height - unitIncrement;
+	}
 
-  /**
-   * Gets whether this tracks the viewport width in a scrollpane.
-   *
-   * @return <code>true</code> if this tracks the width
-   */
-  public boolean getScrollableTracksViewportWidth() {
-    if (scrollPane == null) return true;
-    Dimension panelDim = getPreferredSize();
-    Rectangle viewRect = scrollPane.getViewport().getViewRect();
-    return viewRect.width > panelDim.width;
-  }
+	/**
+	 * Gets whether this tracks the viewport width in a scrollpane.
+	 *
+	 * @return <code>true</code> if this tracks the width
+	 */
+	public boolean getScrollableTracksViewportWidth() {
+		if (scrollPane == null)
+			return true;
+		Dimension panelDim = getPreferredSize();
+		Rectangle viewRect = scrollPane.getViewport().getViewRect();
+		return viewRect.width > panelDim.width;
+	}
 
-  /**
-   * Gets whether this tracks the viewport height.
-   *
-   * @return <code>true</code> if this tracks the height
-   */
-  public boolean getScrollableTracksViewportHeight() {
-    if (scrollPane == null) return true;
-    Dimension panelDim = getPreferredSize();
-    Rectangle viewRect = scrollPane.getViewport().getViewRect();
-    return viewRect.height > panelDim.height;
-  }
+	/**
+	 * Gets whether this tracks the viewport height.
+	 *
+	 * @return <code>true</code> if this tracks the height
+	 */
+	public boolean getScrollableTracksViewportHeight() {
+		if (scrollPane == null)
+			return true;
+		Dimension panelDim = getPreferredSize();
+		Rectangle viewRect = scrollPane.getViewport().getViewRect();
+		return viewRect.height > panelDim.height;
+	}
 
-  /**
-   * Gets the units visibility.
-   *
-   * @return <code>true</code> if units are displayed
-   */
-  public boolean isUnitsVisible() {
-    return unitsVisible && lengthUnit!=null && massUnit!=null; 
-  }
+	/**
+	 * Gets the units visibility.
+	 *
+	 * @return <code>true</code> if units are displayed
+	 */
+	public boolean isUnitsVisible() {
+		return unitsVisible && lengthUnit != null && massUnit != null;
+	}
 
-  /**
-   * Sets the units visibility.
-   *
-   * @param visible <code>true</code> to display units
-   */
-  public void setUnitsVisible(boolean visible) {
-  	if (visible==unitsVisible) return;
-    unitsVisible = visible;
+	/**
+	 * Sets the units visibility.
+	 *
+	 * @param visible <code>true</code> to display units
+	 */
+	public void setUnitsVisible(boolean visible) {
+		if (visible == unitsVisible)
+			return;
+		unitsVisible = visible;
 		TTrackBar.getTrackbar(this).refresh();
 		coordStringBuilder.setUnitsAndPatterns(getSelectedTrack(), "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
-		if (getSelectedPoint()!=null) {
+		if (getSelectedPoint() != null) {
 			getSelectedPoint().showCoordinates(this);
 		}
 		firePropertyChange("units", false, true); //$NON-NLS-1$
-  }
+	}
 
-  /**
-   * Gets the mass unit.
-   *
-   * @return the mass unit
-   */
-  public String getMassUnit() {
-    return massUnit;
-  }
+	/**
+	 * Gets the mass unit.
+	 *
+	 * @return the mass unit
+	 */
+	public String getMassUnit() {
+		return massUnit;
+	}
 
-  /**
-   * Sets the mass unit.
-   *
-   * @param unit the mass unit
-   * @return true if unit was changed
-   */
-  public boolean setMassUnit(String unit) {
-  	if (unit!=null) unit = unit.trim();
-  	if ("".equals(unit)) unit = null; //$NON-NLS-1$
-  	if (massUnit!=null && massUnit.equals(unit)) return false;
-  	if (massUnit==null && unit==null) return false;
-  	// prevent numbers being set as units
-  	try {
+	/**
+	 * Sets the mass unit.
+	 *
+	 * @param unit the mass unit
+	 * @return true if unit was changed
+	 */
+	public boolean setMassUnit(String unit) {
+		if (unit != null)
+			unit = unit.trim();
+		if ("".equals(unit)) //$NON-NLS-1$
+			unit = null;
+		if (massUnit != null && massUnit.equals(unit))
+			return false;
+		if (massUnit == null && unit == null)
+			return false;
+		// prevent numbers being set as units
+		try {
 			Double.parseDouble(unit);
 			return false;
 		} catch (Exception e) {
 		}
-    massUnit = unit;
+		massUnit = unit;
 		TTrackBar.getTrackbar(this).refresh();
 		firePropertyChange("units", false, true); //$NON-NLS-1$
-    return true;
-  }
+		return true;
+	}
 
-  /**
-   * Gets the length unit.
-   *
-   * @return the length unit
-   */
-  public String getLengthUnit() {
-    return lengthUnit;
-  }
+	/**
+	 * Gets the length unit.
+	 *
+	 * @return the length unit
+	 */
+	public String getLengthUnit() {
+		return lengthUnit;
+	}
 
-  /**
-   * Sets the length unit.
-   *
-   * @param unit the length unit
-   * @return true if unit was changed
-   */
-  public boolean setLengthUnit(String unit) {
-  	if (unit!=null) unit = unit.trim();
-  	if ("".equals(unit)) unit = null; //$NON-NLS-1$
-  	if (lengthUnit!=null && lengthUnit.equals(unit)) return false;
-  	if (lengthUnit==null && unit==null) return false;
-  	// prevent numbers being set as units
-  	try {
+	/**
+	 * Sets the length unit.
+	 *
+	 * @param unit the length unit
+	 * @return true if unit was changed
+	 */
+	public boolean setLengthUnit(String unit) {
+		if (unit != null)
+			unit = unit.trim();
+		if ("".equals(unit)) //$NON-NLS-1$
+			unit = null;
+		if (lengthUnit != null && lengthUnit.equals(unit))
+			return false;
+		if (lengthUnit == null && unit == null)
+			return false;
+		// prevent numbers being set as units
+		try {
 			Double.parseDouble(unit);
 			return false;
 		} catch (Exception e) {
 		}
-    lengthUnit = unit;
+		lengthUnit = unit;
 		TTrackBar.getTrackbar(this).refresh();
 		coordStringBuilder.setUnitsAndPatterns(getSelectedTrack(), "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
-		if (getSelectedPoint()!=null) {
+		if (getSelectedPoint() != null) {
 			getSelectedPoint().showCoordinates(this);
 		}
 		firePropertyChange("units", false, true); //$NON-NLS-1$
-    return true;
-  }
+		return true;
+	}
 
-  /**
-   * Gets the units for a given track and variable.
-   *
-   * @param track the track
-   * @param var the variable
-   * @return the units
-   */
-  public String getUnits(TTrack track, String var) {
-  	if (!isUnitsVisible()) return ""; //$NON-NLS-1$
-    String dimensions = NumberFormatDialog.getVariableDimensions(track.getClass(), var);
-    if (dimensions==null) return ""; //$NON-NLS-1$
-    String sp = " "; //$NON-NLS-1$
-    String d = Tracker.DOT;
-    String sq = Tracker.SQUARED;
-    if (dimensions.equals("T")) return sp+timeUnit; //$NON-NLS-1$
-    if (dimensions.equals("M")) return sp+massUnit; //$NON-NLS-1$
-    if (dimensions.equals("L")) return sp+lengthUnit; //$NON-NLS-1$
-    if (dimensions.equals("L/T")) return sp+lengthUnit+"/"+timeUnit; //$NON-NLS-1$ //$NON-NLS-2$
-    if (dimensions.equals("L/TT")) return sp+lengthUnit+"/"+timeUnit+sq; //$NON-NLS-1$ //$NON-NLS-2$
-    if (dimensions.equals("ML/T")) return sp+massUnit+d+lengthUnit+"/"+timeUnit; //$NON-NLS-1$ //$NON-NLS-2$
-    if (dimensions.equals("ML/TT")) return sp+massUnit+d+lengthUnit+"/"+timeUnit+sq; //$NON-NLS-1$ //$NON-NLS-2$
-    if (dimensions.equals("MLL/TT")) return sp+massUnit+d+lengthUnit+sq+"/"+timeUnit+sq; //$NON-NLS-1$ //$NON-NLS-2$
-    TFrame frame = getTFrame();
-    String angUnit = frame!=null && frame.anglesInRadians? "": Tracker.DEGREES; //$NON-NLS-1$
-    if (dimensions.equals("A/T")) return sp+angUnit+"/"+timeUnit; //$NON-NLS-1$ //$NON-NLS-2$
-    if (dimensions.equals("A/TT")) return sp+angUnit+"/"+timeUnit+sq; //$NON-NLS-1$ //$NON-NLS-2$
-    return ""; //$NON-NLS-1$
-  }
+	/**
+	 * Gets the units for a given track and variable.
+	 *
+	 * @param track the track
+	 * @param var   the variable
+	 * @return the units
+	 */
+	public String getUnits(TTrack track, String var) {
+		if (!isUnitsVisible())
+			return ""; //$NON-NLS-1$
+		String dimensions = NumberFormatDialog.getVariableDimensions(track.getClass(), var);
+		if (dimensions == null)
+			return ""; //$NON-NLS-1$
+		String sp = " "; //$NON-NLS-1$
+		String d = Tracker.DOT;
+		String sq = Tracker.SQUARED;
+		if (dimensions.equals("T")) //$NON-NLS-1$
+			return sp + timeUnit;
+		if (dimensions.equals("M")) //$NON-NLS-1$
+			return sp + massUnit;
+		if (dimensions.equals("L")) //$NON-NLS-1$
+			return sp + lengthUnit;
+		if (dimensions.equals("L/T")) //$NON-NLS-1$
+			return sp + lengthUnit + "/" + timeUnit; //$NON-NLS-1$
+		if (dimensions.equals("L/TT")) //$NON-NLS-1$
+			return sp + lengthUnit + "/" + timeUnit + sq; //$NON-NLS-1$
+		if (dimensions.equals("ML/T")) //$NON-NLS-1$
+			return sp + massUnit + d + lengthUnit + "/" + timeUnit; //$NON-NLS-1$
+		if (dimensions.equals("ML/TT")) //$NON-NLS-1$
+			return sp + massUnit + d + lengthUnit + "/" + timeUnit + sq; //$NON-NLS-1$
+		if (dimensions.equals("MLL/TT")) //$NON-NLS-1$
+			return sp + massUnit + d + lengthUnit + sq + "/" + timeUnit + sq; //$NON-NLS-1$
+		TFrame frame = getTFrame();
+		String angUnit = frame != null && frame.anglesInRadians ? "" : Tracker.DEGREES; //$NON-NLS-1$
+		if (dimensions.equals("A/T")) //$NON-NLS-1$
+			return sp + angUnit + "/" + timeUnit; //$NON-NLS-1$
+		if (dimensions.equals("A/TT")) //$NON-NLS-1$
+			return sp + angUnit + "/" + timeUnit + sq; //$NON-NLS-1$
+		return ""; //$NON-NLS-1$
+	}
 
-  /**
-   * Returns true if mouse coordinates are displayed. Overrides VideoPanel
-   * method to report false if a point is selected.
-   *
-   * @return <code>true</code> if mouse coordinates are displayed
-   */
-  public boolean isShowCoordinates() {
-    return showCoordinates && getSelectedPoint() == null;
-  }
+	/**
+	 * Returns true if mouse coordinates are displayed. Overrides VideoPanel method
+	 * to report false if a point is selected.
+	 *
+	 * @return <code>true</code> if mouse coordinates are displayed
+	 */
+	public boolean isShowCoordinates() {
+		return showCoordinates && getSelectedPoint() == null;
+	}
 
-  /**
-   * Shows a message in BR corner. Overrides DrawingPanel method.
-   *
-   * @param msg the message
-   */
-  public void setMessage(String msg) {
-	  // BH 2020.04.06 this is a VERY expensive operation. 
-  	if (!OSPRuntime.isJS && !OSPRuntime.isMac()) super.setMessage(msg);
-  }
-  
-  /**
-   * Imports Data from a data string (delimited fields) into a DataTrack.
-   * The data string must be parsable by DataTool. If the string is a path,
-   * an attempt is made to get the data string with ResourceLoader. 
-   * 
-   * Source object (model) may be String path, JPanel controlPanel, Tool tool, etc
-   * 
-   * @param dataString delimited fields parsable by DataTool, or a path to a Resource
-   * @param source the data source (may be null)
-   * @return the DataTrack with the Data (may return null)
-   */
-  protected DataTrack importData(String dataString, Object source) {
-  	if (dataString==null) {
-  		// inform user
-			JOptionPane.showMessageDialog(frame, 
-					TrackerRes.getString("TrackerPanel.Dialog.NoData.Message"), //$NON-NLS-1$
+	/**
+	 * Shows a message in BR corner. Overrides DrawingPanel method.
+	 *
+	 * @param msg the message
+	 */
+	public void setMessage(String msg) {
+		// BH 2020.04.06 this is a VERY expensive operation.
+		if (!OSPRuntime.isJS && !OSPRuntime.isMac())
+			super.setMessage(msg);
+	}
+
+	/**
+	 * Imports Data from a data string (delimited fields) into a DataTrack. The data
+	 * string must be parsable by DataTool. If the string is a path, an attempt is
+	 * made to get the data string with ResourceLoader.
+	 * 
+	 * Source object (model) may be String path, JPanel controlPanel, Tool tool, etc
+	 * 
+	 * @param dataString delimited fields parsable by DataTool, or a path to a
+	 *                   Resource
+	 * @param source     the data source (may be null)
+	 * @return the DataTrack with the Data (may return null)
+	 */
+	protected DataTrack importData(String dataString, Object source) {
+		if (dataString == null) {
+			// inform user
+			JOptionPane.showMessageDialog(frame, TrackerRes.getString("TrackerPanel.Dialog.NoData.Message"), //$NON-NLS-1$
 					TrackerRes.getString("TrackerPanel.Dialog.NoData.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
-  		return null;
-  	}
-  	// if dataString is parsable data, parse and import it
+			return null;
+		}
+		// if dataString is parsable data, parse and import it
 		DatasetManager data = DataTool.parseData(dataString, null);
-		if (data!=null) {
-      DataTrack dt = importData(data, source);
-      if (dt instanceof ParticleDataTrack) {
-      	ParticleDataTrack pdt = (ParticleDataTrack)dt;
-      	pdt.prevDataString = dataString;
-      }
-      return dt;
-    }
-  	
-  	// assume dataString is a resource path, read the resource and call this again with path as source
+		if (data != null) {
+			DataTrack dt = importData(data, source);
+			if (dt instanceof ParticleDataTrack) {
+				ParticleDataTrack pdt = (ParticleDataTrack) dt;
+				pdt.prevDataString = dataString;
+			}
+			return dt;
+		}
+
+		// assume dataString is a resource path, read the resource and call this again
+		// with path as source
 		String path = dataString;
-  	return importData(ResourceLoader.getString(path), path);
-  }
-  
-  /**
-   * Imports Data from a source into a DataTrack. 
-   * Data must include "x" and "y" columns (may be unnamed), may include "t". 
-   * DataTrack is the first one found that matches the Data name or ID.
-   * If none found, a new DataTrack is created.
-   * Source object (model) may be String path, JPanel controlPanel, Tool tool, null, etc
-   * 
-   * @param data the Data to import
-   * @param source the data source (may be null)
-   * @return the DataTrack with the Data (may return null)
-   */
-  @Override
-  public DataTrack importData(Data data, Object source) {
-  	if (data==null) return null;
-  	
-  	// find DataTrack with matching name or ID
-  	ParticleDataTrack dataTrack = ParticleDataTrack.getTrackForData(data, this);
-  	
-  	// load data into DataTrack
-  	try {
-	  	// create a new DataTrack if none exists
-    	if (dataTrack==null) {
-    		dataTrack = new ParticleDataTrack(data, source);
+		return importData(ResourceLoader.getString(path), path);
+	}
+
+	/**
+	 * Imports Data from a source into a DataTrack. Data must include "x" and "y"
+	 * columns (may be unnamed), may include "t". DataTrack is the first one found
+	 * that matches the Data name or ID. If none found, a new DataTrack is created.
+	 * Source object (model) may be String path, JPanel controlPanel, Tool tool,
+	 * null, etc
+	 * 
+	 * @param data   the Data to import
+	 * @param source the data source (may be null)
+	 * @return the DataTrack with the Data (may return null)
+	 */
+	@Override
+	public DataTrack importData(Data data, Object source) {
+		if (data == null)
+			return null;
+
+		// find DataTrack with matching name or ID
+		ParticleDataTrack dataTrack = ParticleDataTrack.getTrackForData(data, this);
+
+		// load data into DataTrack
+		try {
+			// create a new DataTrack if none exists
+			if (dataTrack == null) {
+				dataTrack = new ParticleDataTrack(data, source);
 				int i = getDrawables(PointMass.class).size();
 				dataTrack.setColorToDefault(i);
 				addTrack(dataTrack);
 				setSelectedPoint(null);
-        selectedSteps.clear();
+				selectedSteps.clear();
 				setSelectedTrack(dataTrack);
 				dataTrack.getDataClip().setClipLength(-1); // sets clip length to data length
 				VideoClip videoClip = getPlayer().getVideoClip();
@@ -1693,1483 +1735,1473 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //						} catch (InterruptedException e) {
 //						}
 //			      firePropertyChange("stepnumber", null, getPlayer().getStepNumber());    // to views //$NON-NLS-1$
-						target.firePropertyChange("data", null, null); //$NON-NLS-1$						
+						target.firePropertyChange("data", null, null); //$NON-NLS-1$
 					}
 				};
 				EventQueue.invokeLater(runner);
 //				new Thread(runner).start();
-    	}
-    	else {
-      	// set data for existing DataTrack
-  			dataTrack.setData(data);
-    	}
+			} else {
+				// set data for existing DataTrack
+				dataTrack.setData(data);
+			}
 		} catch (Exception e) {
 			// inform user
-			JOptionPane.showMessageDialog(frame, 
-					TrackerRes.getString("TrackerPanel.Dialog.Exception.Message")+":" //$NON-NLS-1$ //$NON-NLS-2$
-					+e.getClass().getSimpleName()+": "+e.getMessage(), //$NON-NLS-1$
+			JOptionPane.showMessageDialog(frame, TrackerRes.getString("TrackerPanel.Dialog.Exception.Message") + ":" //$NON-NLS-1$ //$NON-NLS-2$
+					+ e.getClass().getSimpleName() + ": " + e.getMessage(), //$NON-NLS-1$
 					TrackerRes.getString("TrackerPanel.Dialog.Exception.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
-			OSPLog.warning(e.getClass().getSimpleName()+": "+e.getMessage()); //$NON-NLS-1$
+			OSPLog.warning(e.getClass().getSimpleName() + ": " + e.getMessage()); //$NON-NLS-1$
 			dataTrack = null;
 		}
 		return dataTrack;
-  }
+	}
 
-  /**
-   * Refreshes all data in tracks and views.
-   */
-  protected void refreshTrackData() {
-  	// turn on autorefresh
-  	boolean auto = isAutoRefresh;
-  	isAutoRefresh = true;
-    firePropertyChange("transform", null, null); //$NON-NLS-1$
-    // restore autorefresh
-  	isAutoRefresh = auto;
-  }
+	/**
+	 * Refreshes all data in tracks and views.
+	 */
+	protected void refreshTrackData() {
+		// turn on autorefresh
+		OSPLog.debug("TrackerPanel.refreshTrackData " + Tracker.allowDataRefresh);
+		if (!Tracker.allowDataRefresh)
+			return;
+		boolean auto = getAutoRefresh();
+		isAutoRefresh = true;
+		firePropertyChange("transform", null, null); //$NON-NLS-1$
+		isAutoRefresh = auto;
+	}
 
-  @Override
-  protected void refreshDecimalSeparators() {
-  	super.refreshDecimalSeparators();
-  	// refresh the trackbar decimal separators
+	@Override
+	protected void refreshDecimalSeparators() {
+		super.refreshDecimalSeparators();
+		// refresh the trackbar decimal separators
 		TTrackBar.getTrackbar(this).refreshDecimalSeparators();
-		
-  	// refresh all plot and table views
+
+		// refresh all plot and table views
 		refreshTrackData();
-		
+
 		// refresh modelbuilder and databuilder
-		if (modelBuilder!=null) {
+		if (modelBuilder != null) {
 			modelBuilder.refreshGUI();
 		}
-		if (dataBuilder!=null) {
+		if (dataBuilder != null) {
 			dataBuilder.refreshGUI();
 		}
 		// refresh DataTool
-		if (frame!=null && frame.getTrackerPanel(frame.getSelectedTab())==this) {
+		if (frame != null && frame.getTrackerPanel(frame.getSelectedTab()) == this) {
 			DataTool.getTool().refreshDecimalSeparators();
 		}
-		
+
 		// repaint tracks with readouts
-		for (TapeMeasure tape: getDrawables(TapeMeasure.class)) {
+		for (TapeMeasure tape : getDrawables(TapeMeasure.class)) {
 			tape.inputField.getFormat(); // sets decimal separator
 			tape.repaint(this);
 		}
-		for (Protractor p: getDrawables(Protractor.class)) {
+		for (Protractor p : getDrawables(Protractor.class)) {
 			p.inputField.getFormat(); // sets decimal separator
 			p.xField.getFormat(); // sets decimal separator
 			p.yField.getFormat(); // sets decimal separator
 			p.repaint(this);
 		}
-		
-  }
-  
-  /**
-   * Gets the most recent mouse event.
-   *
-   * @return the MouseEvent
-   */
-  protected MouseEvent getMouseEvent() {
-  	return mouseEvent;
-  }
 
-  /**
-   * Gets the popup menu. Overrides DrawingPanel method.
-   */
-  public JPopupMenu getPopupMenu() {
-  	if (getTFrame()==null) return super.getPopupMenu();
-  	MainTView mainView = getTFrame().getMainView(this);
-  	return mainView.getPopupMenu();
-  }
+	}
 
-  /**
-   * Gets the units dialog.
-   * 
-   * @return the units dialog
-   */
-  public UnitsDialog getUnitsDialog() {
-    if (unitsDialog == null) {
-    	unitsDialog = new UnitsDialog(this);
-    	unitsDialog.setFontLevel(FontSizer.getLevel());
-      // center on screen
-      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-      int x = (dim.width - unitsDialog.getBounds().width) / 2;
-      int y = (dim.height - unitsDialog.getBounds().height) / 2;
-      unitsDialog.setLocation(x, y);
-    }
-    else {
-    	unitsDialog.setFontLevel(FontSizer.getLevel());
-    }
-    return unitsDialog;
-  }
+	/**
+	 * Gets the most recent mouse event.
+	 *
+	 * @return the MouseEvent
+	 */
+	protected MouseEvent getMouseEvent() {
+		return mouseEvent;
+	}
 
-  /**
-   * Gets the attachment dialog for attaching measuring tool points to point masses.
-   * 
-   * @param track a measuring tool
-   * @return the attachment dialog
-   */
-  public AttachmentDialog getAttachmentDialog(TTrack track) {
-    if (attachmentDialog == null) {
-    	attachmentDialog = new AttachmentDialog(track);
-    	attachmentDialog.setFontLevel(FontSizer.getLevel());
-      // center on screen
-      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-      int x = (dim.width - attachmentDialog.getBounds().width) / 2;
-      int y = (dim.height - attachmentDialog.getBounds().height) / 2;
-      attachmentDialog.setLocation(x, y);
-    }
-    else {
-    	attachmentDialog.setFontLevel(FontSizer.getLevel());
-    	attachmentDialog.setMeasuringTool(track);
-    }
-    return attachmentDialog;
-  }
+	/**
+	 * Gets the popup menu. Overrides DrawingPanel method.
+	 */
+	public JPopupMenu getPopupMenu() {
+		OSPLog.debug("TrackerPanel.getPopupMenu " + Tracker.allowMenuRefresh);
+		if (!Tracker.allowMenuRefresh)
+			return null;
 
-  /**
-   * Gets the plot guest dialog for comparing multiple track data in a single plot.
-   * 
-   * @param plot a TrackPlottingPanel
-   * @return the plot guest dialog
-   */
-  public PlotGuestDialog getPlotGuestDialog(TrackPlottingPanel plot) {
-    if (guestsDialog == null) {
-    	guestsDialog = new PlotGuestDialog(this);
-    	guestsDialog.setPlot(plot);
-  		FontSizer.setFonts(guestsDialog, FontSizer.getLevel());
-      // center on screen
-      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-      int x = (dim.width - guestsDialog.getBounds().width) / 2;
-      int y = (dim.height - guestsDialog.getBounds().height) / 2;
-      guestsDialog.setLocation(x, y);
-    }
-    else {
-    	guestsDialog.setPlot(plot);
-  		FontSizer.setFonts(guestsDialog, FontSizer.getLevel());
-    }
-    guestsDialog.pack();
-    return guestsDialog;
-  }
+		if (getTFrame() == null)
+			return super.getPopupMenu();
+		MainTView mainView = getTFrame().getMainView(this);
+		return mainView.getPopupMenu();
+	}
 
-  /**
-   * Gets the data builder for defining custom data functions.
-   * @return the data builder
-   */
-  protected FunctionTool getDataBuilder() {
-  	if (dataBuilder == null) { // create new tool if none exists
-  		dataBuilder = new TrackDataBuilder(this);
-		dataBuilder.setHelpPath("data_builder_help.html"); //$NON-NLS-1$
-  		dataBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
-  		dataBuilder.addPropertyChangeListener("function", this); //$NON-NLS-1$
-  		dataBuilder.addPropertyChangeListener("visible", this); //$NON-NLS-1$
-  		dataBuilder.setFontLevel(FontSizer.getLevel());
-  	}
-  	return dataBuilder;
-  }
-  
-  /**
-   * Gets the Algorithms dialog.
-   *
-   * @return the properties dialog
-   */
-  protected DerivativeAlgorithmDialog getAlgorithmDialog() {
-  	if (algorithmDialog==null) {
-  		algorithmDialog = new DerivativeAlgorithmDialog(this);
-  		algorithmDialog.setFontLevel(FontSizer.getLevel());
-  	}
-    return algorithmDialog;
-  }
- 
-  /**
-   * Refreshes the TFrame info dialog if visible.
-   */
-  protected void refreshNotesDialog() {
-    TFrame frame = getTFrame();
-    if (frame != null && frame.notesDialog.isVisible()) {
-    	frame.saveNotesAction.actionPerformed(null);
-    	TTrack track = getSelectedTrack();
-    	if (track != null) {
-    		frame.notesTextPane.setText(track.getDescription());
-        frame.notesDialog.setName(track.getName());
-        frame.notesDialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$ 
-        				+ " \"" + track.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-    	}
-    	else {
-    		frame.notesTextPane.setText(getDescription());
-        frame.notesDialog.setName(null);
-        String tabName = frame.getTabTitle(frame.getSelectedTab());
-        frame.notesDialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$
-        				+ " \"" + tabName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-    	}
-    	frame.notesTextPane.setBackground(Color.WHITE);
-    	frame.cancelNotesDialogButton.setEnabled(false);
-    	frame.closeNotesDialogButton.setEnabled(true);
-    	TrackerPanel panel = frame.getTrackerPanel(frame.getSelectedTab());
-    	frame.displayWhenLoadedCheckbox.setEnabled(panel!=null);
-    	if (panel!=null) {
-    		frame.displayWhenLoadedCheckbox.setSelected(!panel.hideDescriptionWhenLoaded);
-    	}
+	/**
+	 * Gets the units dialog.
+	 * 
+	 * @return the units dialog
+	 */
+	public UnitsDialog getUnitsDialog() {
+		if (unitsDialog == null) {
+			unitsDialog = new UnitsDialog(this);
+			unitsDialog.setFontLevel(FontSizer.getLevel());
+			// center on screen
+			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+			int x = (dim.width - unitsDialog.getBounds().width) / 2;
+			int y = (dim.height - unitsDialog.getBounds().height) / 2;
+			unitsDialog.setLocation(x, y);
+		} else {
+			unitsDialog.setFontLevel(FontSizer.getLevel());
+		}
+		return unitsDialog;
+	}
 
-    	frame.notesTextPane.setEditable(isEnabled("notes.edit")); //$NON-NLS-1$
-    }
-  }
-  
-  /**
-   * Gets the alphabet index for setting the name letter suffix and color
-   * of a track.
-   * 
-   * @param name the default name with no letter suffix
-   * @param connector the string connecting the name and letter
-   * @return the index of the first available letter suffix
-   */
-  protected int getAlphabetIndex(String name, String connector) {
-  	for (int i=0; i< alphabet.length(); i++) {
-	  	String letter = alphabet.substring(i, i+1);
-	  	String proposed = name+connector+letter;
-	  	boolean isTaken = false;
-	  	for (TTrack track: getTracks()) {
+	/**
+	 * Gets the attachment dialog for attaching measuring tool points to point
+	 * masses.
+	 * 
+	 * @param track a measuring tool
+	 * @return the attachment dialog
+	 */
+	public AttachmentDialog getAttachmentDialog(TTrack track) {
+		if (attachmentDialog == null) {
+			attachmentDialog = new AttachmentDialog(track);
+			attachmentDialog.setFontLevel(FontSizer.getLevel());
+			// center on screen
+			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+			int x = (dim.width - attachmentDialog.getBounds().width) / 2;
+			int y = (dim.height - attachmentDialog.getBounds().height) / 2;
+			attachmentDialog.setLocation(x, y);
+		} else {
+			attachmentDialog.setFontLevel(FontSizer.getLevel());
+			attachmentDialog.setMeasuringTool(track);
+		}
+		return attachmentDialog;
+	}
+
+	/**
+	 * Gets the plot guest dialog for comparing multiple track data in a single
+	 * plot.
+	 * 
+	 * @param plot a TrackPlottingPanel
+	 * @return the plot guest dialog
+	 */
+	public PlotGuestDialog getPlotGuestDialog(TrackPlottingPanel plot) {
+		if (guestsDialog == null) {
+			guestsDialog = new PlotGuestDialog(this);
+			guestsDialog.setPlot(plot);
+			FontSizer.setFonts(guestsDialog, FontSizer.getLevel());
+			// center on screen
+			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+			int x = (dim.width - guestsDialog.getBounds().width) / 2;
+			int y = (dim.height - guestsDialog.getBounds().height) / 2;
+			guestsDialog.setLocation(x, y);
+		} else {
+			guestsDialog.setPlot(plot);
+			FontSizer.setFonts(guestsDialog, FontSizer.getLevel());
+		}
+		guestsDialog.pack();
+		return guestsDialog;
+	}
+
+	/**
+	 * Gets the data builder for defining custom data functions.
+	 * 
+	 * @return the data builder
+	 */
+	protected FunctionTool getDataBuilder() {
+		if (dataBuilder == null) { // create new tool if none exists
+			dataBuilder = new TrackDataBuilder(this);
+			dataBuilder.setHelpPath("data_builder_help.html"); //$NON-NLS-1$
+			dataBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
+			dataBuilder.addPropertyChangeListener("function", this); //$NON-NLS-1$
+			dataBuilder.addPropertyChangeListener("visible", this); //$NON-NLS-1$
+			dataBuilder.setFontLevel(FontSizer.getLevel());
+		}
+		return dataBuilder;
+	}
+
+	/**
+	 * Gets the Algorithms dialog.
+	 *
+	 * @return the properties dialog
+	 */
+	protected DerivativeAlgorithmDialog getAlgorithmDialog() {
+		if (algorithmDialog == null) {
+			algorithmDialog = new DerivativeAlgorithmDialog(this);
+			algorithmDialog.setFontLevel(FontSizer.getLevel());
+		}
+		return algorithmDialog;
+	}
+
+	/**
+	 * Refreshes the TFrame info dialog if visible.
+	 */
+	protected void refreshNotesDialog() {
+		TFrame frame = getTFrame();
+		if (frame != null && frame.notesDialog.isVisible()) {
+			frame.saveNotesAction.actionPerformed(null);
+			TTrack track = getSelectedTrack();
+			if (track != null) {
+				frame.notesTextPane.setText(track.getDescription());
+				frame.notesDialog.setName(track.getName());
+				frame.notesDialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$
+						+ " \"" + track.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+			} else {
+				frame.notesTextPane.setText(getDescription());
+				frame.notesDialog.setName(null);
+				String tabName = frame.getTabTitle(frame.getSelectedTab());
+				frame.notesDialog.setTitle(TrackerRes.getString("TActions.Dialog.Description.Title") //$NON-NLS-1$
+						+ " \"" + tabName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			frame.notesTextPane.setBackground(Color.WHITE);
+			frame.cancelNotesDialogButton.setEnabled(false);
+			frame.closeNotesDialogButton.setEnabled(true);
+			TrackerPanel panel = frame.getTrackerPanel(frame.getSelectedTab());
+			frame.displayWhenLoadedCheckbox.setEnabled(panel != null);
+			if (panel != null) {
+				frame.displayWhenLoadedCheckbox.setSelected(!panel.hideDescriptionWhenLoaded);
+			}
+
+			frame.notesTextPane.setEditable(isEnabled("notes.edit")); //$NON-NLS-1$
+		}
+	}
+
+	/**
+	 * Gets the alphabet index for setting the name letter suffix and color of a
+	 * track.
+	 * 
+	 * @param name      the default name with no letter suffix
+	 * @param connector the string connecting the name and letter
+	 * @return the index of the first available letter suffix
+	 */
+	protected int getAlphabetIndex(String name, String connector) {
+		for (int i = 0; i < alphabet.length(); i++) {
+			String letter = alphabet.substring(i, i + 1);
+			String proposed = name + connector + letter;
+			boolean isTaken = false;
+			for (TTrack track : getTracks()) {
 				String nextName = track.getName();
-				isTaken = isTaken || proposed.equals(nextName); 
-	  	}
-	  	if (!isTaken) return i;
-  	}
-  	return 0;
-  }
-  
-  /**
-   * Restores the views to a non-maximized state.
-   */
-  protected void restoreViews() {
-  	// find maximized view and restore
-  	TFrame frame = getTFrame();
-    if (frame !=null) {
-	    Container[] views = frame.getViews(this);
-	  	for (int i = 0; i<views.length; i++) {
-	    	if (views[i] instanceof TViewChooser) {
-	    		TViewChooser chooser = (TViewChooser)views[i];
-	    		if (chooser.maximized) {
-	    			chooser.restore();
-	    			break;
-	    		}
-	    	}
-	    }
-    }
-  }
+				isTaken = isTaken || proposed.equals(nextName);
+			}
+			if (!isTaken)
+				return i;
+		}
+		return 0;
+	}
 
-  /**
-   * Configures this panel.
-   */
-  protected void configure() {
-    coords.removePropertyChangeListener(this);
-    coords.addPropertyChangeListener(this);
-    addKeyListener(new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-        	if (!isShiftKeyDown) {
-        		isShiftKeyDown = true;
-	        	boolean marking = setCursorForMarking(true, e);
-	          if (selectedTrack!=null && marking!=selectedTrack.isMarking) {
-	          	selectedTrack.setMarking(marking);
-	          }
-        	}
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
-        	if (!isControlKeyDown) {
-        		isControlKeyDown = true;
-	        	boolean marking = setCursorForMarking(isShiftKeyDown, e);
-	          if (selectedTrack!=null && marking!=selectedTrack.isMarking) {
-	          	selectedTrack.setMarking(marking);
-	          }
-        	}
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_ENTER
-        		&& selectedTrack!=null
-        		&& getCursor() == selectedTrack.getMarkingCursor(e)
-        		&& getFrameNumber()>0) {
-        	int n = getFrameNumber();
-        	Step step = selectedTrack.getStep(n-1);
-        	if (step!=null) {
-        		Step clone = null;
-        		if (selectedTrack.getClass()==PointMass.class) {
-	        		TPoint p = ((PositionStep)step).getPosition();
-	            clone = selectedTrack.createStep(n, p.x, p.y);
-	        		((PointMass)selectedTrack).keyFrames.add(n);
-        		}
-        		else if (selectedTrack.getClass()==Vector.class) {
-        			VectorStep s = (VectorStep)step;
-	        		TPoint tail = s.getTail();
-	        		TPoint tip = s.getTip();
-	        		Vector vector = (Vector)selectedTrack;
-	        		double dx = tip.x-tail.x;
-	        		double dy = tip.y-tail.y;
-	            clone = vector.createStep(n, tail.x, tail.y, dx, dy);
-        		}
-						if (clone!=null && selectedTrack.isAutoAdvance()) {
-		          getPlayer().step();
- 		          hideMouseBox();
+	/**
+	 * Restores the views to a non-maximized state.
+	 */
+	protected void restoreViews() {
+		// find maximized view and restore
+		TFrame frame = getTFrame();
+		if (frame != null) {
+			Container[] views = frame.getViews(this);
+			for (int i = 0; i < views.length; i++) {
+				if (views[i] instanceof TViewChooser) {
+					TViewChooser chooser = (TViewChooser) views[i];
+					if (chooser.maximized) {
+						chooser.restore();
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Configures this panel.
+	 */
+	protected void configure() {
+		coords.removePropertyChangeListener(this);
+		coords.addPropertyChangeListener(this);
+		addKeyListener(new KeyAdapter() {
+			public void keyPressed(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+					if (!isShiftKeyDown) {
+						isShiftKeyDown = true;
+						boolean marking = setCursorForMarking(true, e);
+						if (selectedTrack != null && marking != selectedTrack.isMarking) {
+							selectedTrack.setMarking(marking);
 						}
-						else {
-	            setMouseCursor(Cursor.getDefaultCursor());
-	            if (clone!=null) {
-		            setSelectedPoint(clone.getDefaultPoint());
-		            selectedTrack.repaint(clone);
-	            }
+					}
+				} else if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+					if (!isControlKeyDown) {
+						isControlKeyDown = true;
+						boolean marking = setCursorForMarking(isShiftKeyDown, e);
+						if (selectedTrack != null && marking != selectedTrack.isMarking) {
+							selectedTrack.setMarking(marking);
 						}
-        	}
-        }
-        else handleKeyPress(e);
-      }
-      public void keyReleased(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
-      		isShiftKeyDown = false;
-        	boolean marking = setCursorForMarking(false, e);
-          if (selectedTrack!=null && marking!=selectedTrack.isMarking) {
-          	selectedTrack.setMarking(marking);
-          }
-        }
-        else if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
-      		isControlKeyDown = false;
-        	boolean marking = setCursorForMarking(isShiftKeyDown, e);
-          if (selectedTrack!=null && marking!=selectedTrack.isMarking) {
-          	selectedTrack.setMarking(marking);
-          }
-        }
-      }
-    });
-    // set default properties
-    setDrawingInImageSpace(true);
-    setPreferredSize(new Dimension(1, 1));
-    // load default configuration file
-    enabled = Tracker.getDefaultConfig();
-    changed = false;
-  }
+					}
+				} else if (e.getKeyCode() == KeyEvent.VK_ENTER && selectedTrack != null
+						&& getCursor() == selectedTrack.getMarkingCursor(e) && getFrameNumber() > 0) {
+					int n = getFrameNumber();
+					Step step = selectedTrack.getStep(n - 1);
+					if (step != null) {
+						Step clone = null;
+						if (selectedTrack.getClass() == PointMass.class) {
+							TPoint p = ((PositionStep) step).getPosition();
+							clone = selectedTrack.createStep(n, p.x, p.y);
+							((PointMass) selectedTrack).keyFrames.add(n);
+						} else if (selectedTrack.getClass() == Vector.class) {
+							VectorStep s = (VectorStep) step;
+							TPoint tail = s.getTail();
+							TPoint tip = s.getTip();
+							Vector vector = (Vector) selectedTrack;
+							double dx = tip.x - tail.x;
+							double dy = tip.y - tail.y;
+							clone = vector.createStep(n, tail.x, tail.y, dx, dy);
+						}
+						if (clone != null && selectedTrack.isAutoAdvance()) {
+							getPlayer().step();
+							hideMouseBox();
+						} else {
+							setMouseCursor(Cursor.getDefaultCursor());
+							if (clone != null) {
+								setSelectedPoint(clone.getDefaultPoint());
+								selectedTrack.repaint(clone);
+							}
+						}
+					}
+				} else
+					handleKeyPress(e);
+			}
 
-  /**
-   * Sets the cursor to a crosshair when the selected
-   * track is marking and is unmarked on the current frame.
-   * Also displays hints as a side effect.
-   *
-   * @param invert true to invert the normal state
-   * @param e an input event
-   * @return true if marking (ie next mouse click will mark a TPoint)
-   */
-  protected boolean setCursorForMarking(boolean invert, InputEvent e) {
-  	if (Tracker.isZoomInCursor(getCursor())
-  			|| Tracker.isZoomOutCursor(getCursor())) return false;
-    boolean markable = false;
-    boolean marking = false;
-    selectedTrack = getSelectedTrack();
-    int n = getFrameNumber();
-    if (selectedTrack != null) {
-      markable = !(selectedTrack.isStepComplete(n)
-                || selectedTrack.isLocked()
-                || popup.isVisible());
-      marking = markable
-                && (selectedTrack.isMarkByDefault() != invert);
-    }
-    Interactive iad = getTracks().isEmpty() || mouseEvent==null? null: getInteractive();
-    if (marking) {
-      setMouseCursor(selectedTrack.getMarkingCursor(e));
-      if (Tracker.showHints) {
-	      if (selectedTrack instanceof PointMass) {
-	      	if (selectedTrack.getStep(n)==null)
-	      		setMessage(TrackerRes.getString("PointMass.Hint.Marking")); //$NON-NLS-1$
-	      	else
-	      		setMessage(TrackerRes.getString("PointMass.Remarking.Hint")); //$NON-NLS-1$
-	      }
-	      else if (selectedTrack instanceof Vector)
-	      	if (selectedTrack.getStep(n)==null)
-	      		setMessage(TrackerRes.getString("Vector.Hint.Marking")); //$NON-NLS-1$
-	      	else
-	      		setMessage(TrackerRes.getString("Vector.Remarking.Hint")); //$NON-NLS-1$
-	      else if (selectedTrack instanceof LineProfile)
-	      	setMessage(TrackerRes.getString("LineProfile.Hint.Marking")); //$NON-NLS-1$
-	      else if (selectedTrack instanceof RGBRegion)
-	      	setMessage(TrackerRes.getString("RGBRegion.Hint.Marking")); //$NON-NLS-1$
-      }
-      else setMessage(""); //$NON-NLS-1$
-    }
-    else if (iad instanceof TPoint) {
-      setMouseCursor(Cursor.getPredefinedCursor(Cursor.
-          HAND_CURSOR));
-      // identify associated track and display its hint
-      for (TTrack track: getTracks()) {
-      	Step step = track.getStep((TPoint)iad, this);
-        if (step != null) {
-        	setMessage(track.getMessage());
-        	break;
-        }
-      }
-    }
-    else {  // no point selected
-      setMouseCursor(Cursor.getDefaultCursor());
-      // display selected track hint
-      if (Tracker.showHints && selectedTrack != null) {
-      	setMessage(selectedTrack.getMessage());
-      }
-      else if (!Tracker.startupHintShown || getVideo() != null 
-      		|| !getUserTracks().isEmpty()) {
-      	Tracker.startupHintShown = false;
-      	if (!Tracker.showHints) setMessage(""); //$NON-NLS-1$
-        // show hints
-      	else if (getVideo() == null) // no video
-    			setMessage(TrackerRes.getString("TrackerPanel.NoVideo.Hint")); //$NON-NLS-1$
-    		else if (TToolBar.getToolbar(this).notYetCalibrated) {
-        	if (getVideo().getWidth() == 720
-        			&& getVideo().getFilterStack().isEmpty()) // DV video format
-      			setMessage(TrackerRes.getString("TrackerPanel.DVVideo.Hint")); //$NON-NLS-1$
-        	else if (getPlayer().getVideoClip().isDefaultState())
-      			setMessage(TrackerRes.getString("TrackerPanel.SetClip.Hint")); //$NON-NLS-1$
-        	else setMessage(TrackerRes.getString("TrackerPanel.CalibrateVideo.Hint")); //$NON-NLS-1$
-    		}
-      	else if (getAxes()!=null && getAxes().notyetShown)
-    			setMessage(TrackerRes.getString("TrackerPanel.ShowAxes.Hint")); //$NON-NLS-1$
-    		else if (getUserTracks().isEmpty())
-    			setMessage(TrackerRes.getString("TrackerPanel.NoTracks.Hint")); //$NON-NLS-1$
-      	else setMessage(""); //$NON-NLS-1$
-      }
-    }
-    return marking;
-  }
+			public void keyReleased(KeyEvent e) {
+				if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+					isShiftKeyDown = false;
+					boolean marking = setCursorForMarking(false, e);
+					if (selectedTrack != null && marking != selectedTrack.isMarking) {
+						selectedTrack.setMarking(marking);
+					}
+				} else if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+					isControlKeyDown = false;
+					boolean marking = setCursorForMarking(isShiftKeyDown, e);
+					if (selectedTrack != null && marking != selectedTrack.isMarking) {
+						selectedTrack.setMarking(marking);
+					}
+				}
+			}
+		});
+		// set default properties
+		setDrawingInImageSpace(true);
+		setPreferredSize(new Dimension(1, 1));
+		// load default configuration file
+		enabled = Tracker.getDefaultConfig();
+		changed = false;
+	}
 
-  /**
-   * Handles keypress events for selected points.
-   *
-   * @param e the key event
-   */
-  protected void handleKeyPress(KeyEvent e) {
-    if (e.getKeyCode()== KeyEvent.VK_F1) {
-      TFrame frame = getTFrame();
-      if (frame != null) {
-      	if (selectedTrack == null)
-      		frame.showHelp("help", 0); //$NON-NLS-1$
-      	else if (selectedTrack instanceof CoordAxes)
-      		frame.showHelp("axes", 0); //$NON-NLS-1$
-      	else if (selectedTrack instanceof TapeMeasure)
-      		frame.showHelp("tape", 0); //$NON-NLS-1$
-      	else if (selectedTrack instanceof OffsetOrigin)
-      		frame.showHelp("offset", 0); //$NON-NLS-1$
-      	else if (selectedTrack instanceof Calibration)
-      		frame.showHelp("calibration", 0); //$NON-NLS-1$
-      	else if (selectedTrack instanceof PointMass)
-      		frame.showHelp("pointmass", 0); //$NON-NLS-1$
-      	else if (selectedTrack instanceof CenterOfMass)
-      		frame.showHelp("cm", 0); //$NON-NLS-1$
-      	else if (selectedTrack instanceof Vector)
-      		frame.showHelp("vector", 0); //$NON-NLS-1$
-      	else if (selectedTrack instanceof VectorSum)
-      		frame.showHelp("vectorsum", 0); //$NON-NLS-1$
-      	else if (selectedTrack instanceof LineProfile)
-      		frame.showHelp("profile", 0); //$NON-NLS-1$
-      	else if (selectedTrack instanceof RGBRegion)
-      		frame.showHelp("rgbregion", 0); //$NON-NLS-1$
-      	else if (selectedTrack instanceof ParticleModel)
-      		frame.showHelp("particle", 0); //$NON-NLS-1$
-      }
-      return;
-    }
-    
-    if (e.getKeyCode()== KeyEvent.VK_SPACE) {
-      TTrack track = getSelectedTrack();
-      if (track != null) {
-        Step step = getSelectedStep();
-        if (step != null) {
-          if (e.isControlDown() || e.isShiftDown())
-            step = track.getPreviousVisibleStep(step, this);
-          else
-            step = track.getNextVisibleStep(step, this);
-          if (step != null) {
-            TPoint p = step.getDefaultPoint();
-            p.showCoordinates(this);
-            setSelectedPoint(p);
-          }
-        }
-      }
-      return;
-    }
-    
-    if (e.getKeyCode()== KeyEvent.VK_DELETE) {
-      // delete selected steps
-      deleteSelectedSteps();      
-      if (selectedPoint!=null && selectingPanel==this) {
-      	deletePoint(selectedPoint);
-      }
-      return;
-    }
-    
+	/**
+	 * Sets the cursor to a crosshair when the selected track is marking and is
+	 * unmarked on the current frame. Also displays hints as a side effect.
+	 *
+	 * @param invert true to invert the normal state
+	 * @param e      an input event
+	 * @return true if marking (ie next mouse click will mark a TPoint)
+	 */
+	protected boolean setCursorForMarking(boolean invert, InputEvent e) {
+		if (Tracker.isZoomInCursor(getCursor()) || Tracker.isZoomOutCursor(getCursor()))
+			return false;
+		boolean markable = false;
+		boolean marking = false;
+		selectedTrack = getSelectedTrack();
+		int n = getFrameNumber();
+		if (selectedTrack != null) {
+			markable = !(selectedTrack.isStepComplete(n) || selectedTrack.isLocked() || popup.isVisible());
+			marking = markable && (selectedTrack.isMarkByDefault() != invert);
+		}
+		Interactive iad = getTracks().isEmpty() || mouseEvent == null ? null : getInteractive();
+		if (marking) {
+			setMouseCursor(selectedTrack.getMarkingCursor(e));
+			if (Tracker.showHints) {
+				if (selectedTrack instanceof PointMass) {
+					if (selectedTrack.getStep(n) == null)
+						setMessage(TrackerRes.getString("PointMass.Hint.Marking")); //$NON-NLS-1$
+					else
+						setMessage(TrackerRes.getString("PointMass.Remarking.Hint")); //$NON-NLS-1$
+				} else if (selectedTrack instanceof Vector)
+					if (selectedTrack.getStep(n) == null)
+						setMessage(TrackerRes.getString("Vector.Hint.Marking")); //$NON-NLS-1$
+					else
+						setMessage(TrackerRes.getString("Vector.Remarking.Hint")); //$NON-NLS-1$
+				else if (selectedTrack instanceof LineProfile)
+					setMessage(TrackerRes.getString("LineProfile.Hint.Marking")); //$NON-NLS-1$
+				else if (selectedTrack instanceof RGBRegion)
+					setMessage(TrackerRes.getString("RGBRegion.Hint.Marking")); //$NON-NLS-1$
+			} else
+				setMessage(""); //$NON-NLS-1$
+		} else if (iad instanceof TPoint) {
+			setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			// identify associated track and display its hint
+			for (TTrack track : getTracks()) {
+				Step step = track.getStep((TPoint) iad, this);
+				if (step != null) {
+					setMessage(track.getMessage());
+					break;
+				}
+			}
+		} else { // no point selected
+			setMouseCursor(Cursor.getDefaultCursor());
+			// display selected track hint
+			if (Tracker.showHints && selectedTrack != null) {
+				setMessage(selectedTrack.getMessage());
+			} else if (!Tracker.startupHintShown || getVideo() != null || !getUserTracks().isEmpty()) {
+				Tracker.startupHintShown = false;
+				if (!Tracker.showHints)
+					setMessage(""); //$NON-NLS-1$
+				// show hints
+				else if (getVideo() == null) // no video
+					setMessage(TrackerRes.getString("TrackerPanel.NoVideo.Hint")); //$NON-NLS-1$
+				else if (TToolBar.getToolbar(this).notYetCalibrated) {
+					if (getVideo().getWidth() == 720 && getVideo().getFilterStack().isEmpty()) // DV video format
+						setMessage(TrackerRes.getString("TrackerPanel.DVVideo.Hint")); //$NON-NLS-1$
+					else if (getPlayer().getVideoClip().isDefaultState())
+						setMessage(TrackerRes.getString("TrackerPanel.SetClip.Hint")); //$NON-NLS-1$
+					else
+						setMessage(TrackerRes.getString("TrackerPanel.CalibrateVideo.Hint")); //$NON-NLS-1$
+				} else if (getAxes() != null && getAxes().notyetShown)
+					setMessage(TrackerRes.getString("TrackerPanel.ShowAxes.Hint")); //$NON-NLS-1$
+				else if (getUserTracks().isEmpty())
+					setMessage(TrackerRes.getString("TrackerPanel.NoTracks.Hint")); //$NON-NLS-1$
+				else
+					setMessage(""); //$NON-NLS-1$
+			}
+		}
+		return marking;
+	}
 
-    // move selected point(s) when arrow key pressed
-    double delta = e.isShiftDown()? 10: 1;
-    double dx = 0, dy = 0;
-    switch(e.getKeyCode()) {
-	    case KeyEvent.VK_UP:
-	      dy = -delta;
-	      break;
-	
-	    case KeyEvent.VK_DOWN:
-	      dy = delta;
-	      break;
-	
-	    case KeyEvent.VK_RIGHT:
-	      dx = delta;
-	      break;
-	
-	    case KeyEvent.VK_LEFT:
-	      dx = -delta;
-	      break;
-    }
+	/**
+	 * Handles keypress events for selected points.
+	 *
+	 * @param e the key event
+	 */
+	protected void handleKeyPress(KeyEvent e) {
+		if (e.getKeyCode() == KeyEvent.VK_F1) {
+			TFrame frame = getTFrame();
+			if (frame != null) {
+				if (selectedTrack == null)
+					frame.showHelp("help", 0); //$NON-NLS-1$
+				else if (selectedTrack instanceof CoordAxes)
+					frame.showHelp("axes", 0); //$NON-NLS-1$
+				else if (selectedTrack instanceof TapeMeasure)
+					frame.showHelp("tape", 0); //$NON-NLS-1$
+				else if (selectedTrack instanceof OffsetOrigin)
+					frame.showHelp("offset", 0); //$NON-NLS-1$
+				else if (selectedTrack instanceof Calibration)
+					frame.showHelp("calibration", 0); //$NON-NLS-1$
+				else if (selectedTrack instanceof PointMass)
+					frame.showHelp("pointmass", 0); //$NON-NLS-1$
+				else if (selectedTrack instanceof CenterOfMass)
+					frame.showHelp("cm", 0); //$NON-NLS-1$
+				else if (selectedTrack instanceof Vector)
+					frame.showHelp("vector", 0); //$NON-NLS-1$
+				else if (selectedTrack instanceof VectorSum)
+					frame.showHelp("vectorsum", 0); //$NON-NLS-1$
+				else if (selectedTrack instanceof LineProfile)
+					frame.showHelp("profile", 0); //$NON-NLS-1$
+				else if (selectedTrack instanceof RGBRegion)
+					frame.showHelp("rgbregion", 0); //$NON-NLS-1$
+				else if (selectedTrack instanceof ParticleModel)
+					frame.showHelp("particle", 0); //$NON-NLS-1$
+			}
+			return;
+		}
 
-    if (dx == 0 && dy == 0) return;
-    selectedSteps.setChanged(true);
-    for (Step step: selectedSteps) {
-    	TPoint point = step.points[0];
-    	if (point==selectedPoint) continue;
-	    Point p = point.getScreenPosition(this);
-	    p.setLocation(p.x + dx, p.y + dy);
-	    point.setScreenPosition(p.x, p.y, this, e);
-    }
-    if (selectedPoint!=null) {
-	    Point p = selectedPoint.getScreenPosition(this);
-	    p.setLocation(p.x + dx, p.y + dy);
-	    selectedPoint.setScreenPosition(p.x, p.y, this, e);
-    }
-    // check selected point since setting screen position can deselect it!
-    if (selectedPoint != null)
-    	selectedPoint.showCoordinates(this);
-    else setMessage("", 0);  //$NON-NLS-1$
-    if (selectedStep == null) repaint();
-  }
+		if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+			TTrack track = getSelectedTrack();
+			if (track != null) {
+				Step step = getSelectedStep();
+				if (step != null) {
+					if (e.isControlDown() || e.isShiftDown())
+						step = track.getPreviousVisibleStep(step, this);
+					else
+						step = track.getNextVisibleStep(step, this);
+					if (step != null) {
+						TPoint p = step.getDefaultPoint();
+						p.showCoordinates(this);
+						setSelectedPoint(p);
+					}
+				}
+			}
+			return;
+		}
 
-  /**
-   * Returns true if this is the default configuration.
-   *
-   * @return true if this is the default configuration
-   */
-  public boolean isDefaultConfiguration() {
-  	return Tracker.areEqual(getEnabled(), Tracker.defaultConfig);
-  }
+		if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+			// delete selected steps
+			deleteSelectedSteps();
+			if (selectedPoint != null && selectingPanel == this) {
+				deletePoint(selectedPoint);
+			}
+			return;
+		}
 
-  /**
-   * Gets the enabled property set.
-   *
-   * @return the set of enabled properties
-   */
-  public Set<String> getEnabled() {
-  	if (enabled == null) enabled = new TreeSet<String>();
-    return enabled;
-  }
+		// move selected point(s) when arrow key pressed
+		double delta = e.isShiftDown() ? 10 : 1;
+		double dx = 0, dy = 0;
+		switch (e.getKeyCode()) {
+		case KeyEvent.VK_UP:
+			dy = -delta;
+			break;
 
-  /**
-   * Sets the enabled property set.
-   *
-   * @param enable the set of enabled properties
-   */
-  public void setEnabled(Set<String> enable) {
-  	if (enable != null) {
-  		enabled = getEnabled();
-  		enabled.clear();
-  		enabled.addAll(enable);
-  	}
-  }
+		case KeyEvent.VK_DOWN:
+			dy = delta;
+			break;
 
-  /**
-   * Gets the enabled state for the specified key.
-   *
-   * @param key the string key
-   * @return true if enabled
-   */
-  public boolean isEnabled(String key) {
-    if (key == null) return false;
-    return getEnabled().contains(key);
-  }
+		case KeyEvent.VK_RIGHT:
+			dx = delta;
+			break;
 
-  /**
-   * Sets the enabled state for the specified key.
-   *
-   * @param key the string key
-   * @param enable true to enable the key
-   */
-  public void setEnabled(String key, boolean enable) {
-    if (key == null) return;
-    if (enable) getEnabled().add(key);
-    else getEnabled().remove(key);
-  }
-  
-  /**
-   * REturns true if any new.trackType is enabled.
-   *
-   * @return true if enabled
-   */
-  public boolean isCreateTracksEnabled() {
-  	return isEnabled("new.pointMass")  //$NON-NLS-1$
-  			|| isEnabled("new.cm")  //$NON-NLS-1$
-        || isEnabled("new.vector")  //$NON-NLS-1$
-        || isEnabled("new.vectorSum")  //$NON-NLS-1$
-				|| isEnabled("new.lineProfile")  //$NON-NLS-1$
-				|| isEnabled("new.RGBRegion")  //$NON-NLS-1$
-				|| isEnabled("new.tapeMeasure")  //$NON-NLS-1$
-				|| isEnabled("new.protractor")  //$NON-NLS-1$
-				|| isEnabled("new.circleFitter")  //$NON-NLS-1$
-				|| isEnabled("new.analyticParticle")  //$NON-NLS-1$
-				|| isEnabled("new.dynamicParticle")  //$NON-NLS-1$
-				|| isEnabled("new.dynamicTwoBody")  //$NON-NLS-1$
-				|| isEnabled("new.dataTrack");  //$NON-NLS-1$
-  }
+		case KeyEvent.VK_LEFT:
+			dx = -delta;
+			break;
+		}
 
-  /**
-   * Responds to property change events.
-   *
-   * @param e the property change event
-   */
-  public void propertyChange(PropertyChangeEvent e) {
-    String name = e.getPropertyName();
-    Tracker.logTime(getClass().getSimpleName()+hashCode()+" property change "+name); //$NON-NLS-1$
-    if (name.equals("size")) super.propertyChange(e); //$NON-NLS-1$
-    if (name.equals("step") || name.equals("steps")) { // from tracks/steps //$NON-NLS-1$ //$NON-NLS-2$
-      TTrack track = (TTrack)e.getSource();
-      track.dataValid = false;
-      if (!track.isDependent()) {    // ignore dependent tracks
-        changed = true;
-      }
-      if (track==getSelectedTrack()) {
-      	TPoint p = getSelectedPoint();
-      	if (p!=null)
-      		p.showCoordinates(this);
-      }
-      repaint();
-      if (name.equals("steps")) { //$NON-NLS-1$
-		  	TTrackBar.getTrackbar(this).refresh();
-      }
-    }
-    else if (name.equals("mass")) {                    // from point masses //$NON-NLS-1$
-      firePropertyChange("mass", null, null);          // to motion control //$NON-NLS-1$
-    }
-    else if (name.equals("name")) {                    // from tracks //$NON-NLS-1$
-      refreshNotesDialog(); 
-    }
-    else if (name.equals("footprint")) {               // from tracks //$NON-NLS-1$
-      Footprint footprint = (Footprint)e.getNewValue();
-      if (footprint instanceof ArrowFootprint)
-        firePropertyChange("footprint", null, null);   // to track control //$NON-NLS-1$
-    }
-    else if (name.equals("videoclip")) {               // from videoPlayer //$NON-NLS-1$
-      // replace coords and videoclip listeners
-      ImageCoordSystem oldCoords = coords;
-      coords.removePropertyChangeListener(this);
-      super.propertyChange(e);       // replaces video, videoclip listeners, (possibly) coords
-      coords.addPropertyChangeListener(this);
-      firePropertyChange("coords", oldCoords, coords); // to tracks //$NON-NLS-1$
-      firePropertyChange("video", null, null);        // to TMenuBar & views //$NON-NLS-1$
-      if (getMat() != null) {
-        getMat().isValidMeasure = false;
-      }
-      if (video != null) {
-        video.setProperty("measure", null); //$NON-NLS-1$
-        if (video instanceof PluginVideoI) {
-            // if xuggle video, set smooth play per preferences
-          ((PluginVideoI) video).setSmoothPlay(!Tracker.isXuggleFast);
-        }
-      }
-      changed = true;
-    }
-    else if (name.equals("stepnumber")) {              // from videoPlayer //$NON-NLS-1$
-      setSelectedPoint(null);
-      selectedSteps.clear();
-      if (getVideo() != null && !getVideo().getFilterStack().isEmpty()) {
-        Iterator<Filter> it = getVideo().getFilterStack().getFilters().iterator();
-        while (it.hasNext()) {
-        	Object next = it.next();
-        	if (next instanceof SumFilter) {
-        		SumFilter f = (SumFilter)next;
-        		f.addNextImage();
-        	}
-        }
-      }
-      repaint();
-      VideoCaptureTool grabber = VideoGrabber.VIDEO_CAPTURE_TOOL;
-      if (grabber != null && grabber.isVisible() && grabber.isRecording()) {
-      	Runnable runner = new Runnable() {
-      		public void run() {
-      			renderMat();
-      			VideoGrabber.getTool().addFrame(matImage);
-      		}
-      	};
-      	EventQueue.invokeLater(runner);
-      }
-      
-      // show crosshair cursor if shift key down or automarking
-      boolean invertCursor = isShiftKeyDown;
-      setCursorForMarking(invertCursor, null);
+		if (dx == 0 && dy == 0)
+			return;
+		selectedSteps.setChanged(true);
+		for (Step step : selectedSteps) {
+			TPoint point = step.points[0];
+			if (point == selectedPoint)
+				continue;
+			Point p = point.getScreenPosition(this);
+			p.setLocation(p.x + dx, p.y + dy);
+			point.setScreenPosition(p.x, p.y, this, e);
+		}
+		if (selectedPoint != null) {
+			Point p = selectedPoint.getScreenPosition(this);
+			p.setLocation(p.x + dx, p.y + dy);
+			selectedPoint.setScreenPosition(p.x, p.y, this, e);
+		}
+		// check selected point since setting screen position can deselect it!
+		if (selectedPoint != null)
+			selectedPoint.showCoordinates(this);
+		else
+			setMessage("", 0); //$NON-NLS-1$
+		if (selectedStep == null)
+			repaint();
+	}
 
-      firePropertyChange("stepnumber", null, e.getNewValue());    // to views //$NON-NLS-1$
-    }
-    else if (name.equals("coords")) {                  // from video //$NON-NLS-1$
-      // replace coords and listeners
-      coords.removePropertyChangeListener(this);
-      coords  = (ImageCoordSystem)e.getNewValue();
-      coords.addPropertyChangeListener(this);
-      firePropertyChange("coords", null, coords);       // to tracks //$NON-NLS-1$
-      firePropertyChange("transform", null, null);      // to tracks/views //$NON-NLS-1$
-    }
-    else if (name.equals("image")) {                    // from video //$NON-NLS-1$
-      firePropertyChange("image", null, null);          // to tracks/views //$NON-NLS-1$
-      
-      Video video = getVideo();
-      TMenuBar.getMenuBar(this).refreshMatSizes(video);
-      repaint();
-    }
-    else if (name.equals("filterChanged")) {            // from video //$NON-NLS-1$
-    	Filter filter = (Filter)e.getNewValue();
-  		String prevState = (String)e.getOldValue();
-	    XMLControl control = new XMLControlElement(prevState);	
-	    Undo.postFilterEdit(this, filter, control);
-    }
-    else if (name.equals("videoVisible")) {             // from video //$NON-NLS-1$
-      firePropertyChange("videoVisible", null, null);   // to views //$NON-NLS-1$
-      repaint();
-    }
-    else if (name.equals("transform")) {                // from coords //$NON-NLS-1$
-      changed = true;
-      firePropertyChange("transform", null, null);      // to tracks/views //$NON-NLS-1$
-    }
-    else if (name.equals("locked")) {                   // from coords //$NON-NLS-1$
-      firePropertyChange("locked", null, null);         // to tracker frame //$NON-NLS-1$
-    }
-    else if (name.equals("playing")) {                  // from player //$NON-NLS-1$
-      if (!((Boolean) e.getNewValue()).booleanValue()) {
-	    	for (ParticleModel next: getDrawables(ParticleModel.class)) {
-	    		next.refreshDerivsIfNeeded();
-	    	}
-      }
-    }
-    else if (name.equals("startframe") ||               // from videoClip //$NON-NLS-1$
-             name.equals("stepsize") ||                 // from videoClip //$NON-NLS-1$
-             name.equals("stepcount") ||                // from videoClip //$NON-NLS-1$
-             name.equals("starttime") ||                // from videoClip //$NON-NLS-1$
-             name.equals("adjusting") ||                // from videoClip //$NON-NLS-1$
-             name.equals("frameduration")) {            // from clipControl //$NON-NLS-1$
-      changed = true;
-  		if (modelBuilder!=null) modelBuilder.refreshSpinners();
-      if (getMat() != null) {
-        getMat().isValidMeasure = false;
-      }
-      if (getVideo() != null) {
-        getVideo().setProperty("measure", null); //$NON-NLS-1$
-      }
-      firePropertyChange("data", null, null);           // to views //$NON-NLS-1$
-      if (name.equals("stepsize") //$NON-NLS-1$
-      		|| name.equals("stepcount") //$NON-NLS-1$
-      		|| name.equals("starttime") //$NON-NLS-1$
-      		|| name.equals("frameduration") //$NON-NLS-1$
-      		|| name.equals("startframe")) //$NON-NLS-1$
-        firePropertyChange(name, null, null);     // to pointmass
-      else if (name.equals("adjusting")) //$NON-NLS-1$
-        firePropertyChange("adjusting", null, e.getNewValue()); // to particle models //$NON-NLS-1$
-      if (getSelectedPoint() != null) {
-        getSelectedPoint().showCoordinates(this);
-        TFrame frame = getTFrame();
-        if (frame !=null) frame.getTrackBar(this).refresh();
-      }
-      for (TTrack track: getUserTracks())
-      	track.erase(this);
-      repaint();
-    }
-    else if (getVideo()==null && name.equals("framecount")) { //$NON-NLS-1$
-  		if (modelBuilder!=null) modelBuilder.refreshSpinners();
-    }
-    else if (name.equals("function")) {  // from DataBuilder //$NON-NLS-1$
-    	changed = true;
-      firePropertyChange("function", null, e.getNewValue()); // to views //$NON-NLS-1$
-    }
-    else if (name.equals("panel") && e.getSource() == modelBuilder) { //$NON-NLS-1$
-    	FunctionPanel panel = (FunctionPanel)e.getNewValue();
-    	if (panel != null) { // new particle model panel added
-    		TTrack track = getTrack(panel.getName());
-    		if (track != null) {
+	/**
+	 * Returns true if this is the default configuration.
+	 *
+	 * @return true if this is the default configuration
+	 */
+	public boolean isDefaultConfiguration() {
+		return Tracker.areEqual(getEnabled(), Tracker.defaultConfig);
+	}
+
+	/**
+	 * Gets the enabled property set.
+	 *
+	 * @return the set of enabled properties
+	 */
+	public Set<String> getEnabled() {
+		if (enabled == null)
+			enabled = new TreeSet<String>();
+		return enabled;
+	}
+
+	/**
+	 * Sets the enabled property set.
+	 *
+	 * @param enable the set of enabled properties
+	 */
+	public void setEnabled(Set<String> enable) {
+		if (enable != null) {
+			enabled = getEnabled();
+			enabled.clear();
+			enabled.addAll(enable);
+		}
+	}
+
+	/**
+	 * Gets the enabled state for the specified key.
+	 *
+	 * @param key the string key
+	 * @return true if enabled
+	 */
+	public boolean isEnabled(String key) {
+		if (key == null)
+			return false;
+		return getEnabled().contains(key);
+	}
+
+	/**
+	 * Sets the enabled state for the specified key.
+	 *
+	 * @param key    the string key
+	 * @param enable true to enable the key
+	 */
+	public void setEnabled(String key, boolean enable) {
+		if (key == null)
+			return;
+		if (enable)
+			getEnabled().add(key);
+		else
+			getEnabled().remove(key);
+	}
+
+	/**
+	 * REturns true if any new.trackType is enabled.
+	 *
+	 * @return true if enabled
+	 */
+	public boolean isCreateTracksEnabled() {
+		return isEnabled("new.pointMass") //$NON-NLS-1$
+				|| isEnabled("new.cm") //$NON-NLS-1$
+				|| isEnabled("new.vector") //$NON-NLS-1$
+				|| isEnabled("new.vectorSum") //$NON-NLS-1$
+				|| isEnabled("new.lineProfile") //$NON-NLS-1$
+				|| isEnabled("new.RGBRegion") //$NON-NLS-1$
+				|| isEnabled("new.tapeMeasure") //$NON-NLS-1$
+				|| isEnabled("new.protractor") //$NON-NLS-1$
+				|| isEnabled("new.circleFitter") //$NON-NLS-1$
+				|| isEnabled("new.analyticParticle") //$NON-NLS-1$
+				|| isEnabled("new.dynamicParticle") //$NON-NLS-1$
+				|| isEnabled("new.dynamicTwoBody") //$NON-NLS-1$
+				|| isEnabled("new.dataTrack"); //$NON-NLS-1$
+	}
+
+	/**
+	 * Responds to property change events.
+	 *
+	 * @param e the property change event
+	 */
+	public void propertyChange(PropertyChangeEvent e) {
+		String name = e.getPropertyName();
+		Tracker.logTime(getClass().getSimpleName() + hashCode() + " property change " + name); //$NON-NLS-1$
+		if (name.equals("size")) //$NON-NLS-1$
+			super.propertyChange(e);
+		if (name.equals("step") || name.equals("steps")) { // from tracks/steps //$NON-NLS-1$ //$NON-NLS-2$
+			TTrack track = (TTrack) e.getSource();
+			track.dataValid = false;
+			if (!track.isDependent()) { // ignore dependent tracks
+				changed = true;
+			}
+			if (track == getSelectedTrack()) {
+				TPoint p = getSelectedPoint();
+				if (p != null)
+					p.showCoordinates(this);
+			}
+			repaint();
+			if (name.equals("steps")) { //$NON-NLS-1$
+				TTrackBar.getTrackbar(this).refresh();
+			}
+		} else if (name.equals("mass")) { // from point masses //$NON-NLS-1$
+			firePropertyChange("mass", null, null); // to motion control //$NON-NLS-1$
+		} else if (name.equals("name")) { // from tracks //$NON-NLS-1$
+			refreshNotesDialog();
+		} else if (name.equals("footprint")) { // from tracks //$NON-NLS-1$
+			Footprint footprint = (Footprint) e.getNewValue();
+			if (footprint instanceof ArrowFootprint)
+				firePropertyChange("footprint", null, null); // to track control //$NON-NLS-1$
+		} else if (name.equals("videoclip")) { // from videoPlayer //$NON-NLS-1$
+			// replace coords and videoclip listeners
+			ImageCoordSystem oldCoords = coords;
+			coords.removePropertyChangeListener(this);
+			super.propertyChange(e); // replaces video, videoclip listeners, (possibly) coords
+			coords.addPropertyChangeListener(this);
+			firePropertyChange("coords", oldCoords, coords); // to tracks //$NON-NLS-1$
+			firePropertyChange("video", null, null); // to TMenuBar & views //$NON-NLS-1$
+			if (getMat() != null) {
+				getMat().isValidMeasure = false;
+			}
+			if (video != null) {
+				video.setProperty("measure", null); //$NON-NLS-1$
+				if (video instanceof PluginVideoI) {
+					// if xuggle video, set smooth play per preferences
+					((PluginVideoI) video).setSmoothPlay(!Tracker.isXuggleFast);
+				}
+			}
+			changed = true;
+		} else if (name.equals("stepnumber")) { // from videoPlayer //$NON-NLS-1$
+			setSelectedPoint(null);
+			selectedSteps.clear();
+			if (getVideo() != null && !getVideo().getFilterStack().isEmpty()) {
+				Iterator<Filter> it = getVideo().getFilterStack().getFilters().iterator();
+				while (it.hasNext()) {
+					Object next = it.next();
+					if (next instanceof SumFilter) {
+						SumFilter f = (SumFilter) next;
+						f.addNextImage();
+					}
+				}
+			}
+			repaint();
+			VideoCaptureTool grabber = VideoGrabber.VIDEO_CAPTURE_TOOL;
+			if (grabber != null && grabber.isVisible() && grabber.isRecording()) {
+				Runnable runner = new Runnable() {
+					public void run() {
+						renderMat();
+						VideoGrabber.getTool().addFrame(matImage);
+					}
+				};
+				EventQueue.invokeLater(runner);
+			}
+
+			// show crosshair cursor if shift key down or automarking
+			boolean invertCursor = isShiftKeyDown;
+			setCursorForMarking(invertCursor, null);
+
+			firePropertyChange("stepnumber", null, e.getNewValue()); // to views //$NON-NLS-1$
+		} else if (name.equals("coords")) { // from video //$NON-NLS-1$
+			// replace coords and listeners
+			coords.removePropertyChangeListener(this);
+			coords = (ImageCoordSystem) e.getNewValue();
+			coords.addPropertyChangeListener(this);
+			firePropertyChange("coords", null, coords); // to tracks //$NON-NLS-1$
+			firePropertyChange("transform", null, null); // to tracks/views //$NON-NLS-1$
+		} else if (name.equals("image")) { // from video //$NON-NLS-1$
+			firePropertyChange("image", null, null); // to tracks/views //$NON-NLS-1$
+
+			Video video = getVideo();
+			TMenuBar.getMenuBar(this).refreshMatSizes(video);
+			repaint();
+		} else if (name.equals("filterChanged")) { // from video //$NON-NLS-1$
+			Filter filter = (Filter) e.getNewValue();
+			String prevState = (String) e.getOldValue();
+			XMLControl control = new XMLControlElement(prevState);
+			Undo.postFilterEdit(this, filter, control);
+		} else if (name.equals("videoVisible")) { // from video //$NON-NLS-1$
+			firePropertyChange("videoVisible", null, null); // to views //$NON-NLS-1$
+			repaint();
+		} else if (name.equals("transform")) { // from coords //$NON-NLS-1$
+			changed = true;
+			firePropertyChange("transform", null, null); // to tracks/views //$NON-NLS-1$
+		} else if (name.equals("locked")) { // from coords //$NON-NLS-1$
+			firePropertyChange("locked", null, null); // to tracker frame //$NON-NLS-1$
+		} else if (name.equals("playing")) { // from player //$NON-NLS-1$
+			if (!((Boolean) e.getNewValue()).booleanValue()) {
+				for (ParticleModel next : getDrawables(ParticleModel.class)) {
+					next.refreshDerivsIfNeeded();
+				}
+			}
+		} else if (name.equals("startframe") || // from videoClip //$NON-NLS-1$
+				name.equals("stepsize") || // from videoClip //$NON-NLS-1$
+				name.equals("stepcount") || // from videoClip //$NON-NLS-1$
+				name.equals("starttime") || // from videoClip //$NON-NLS-1$
+				name.equals("adjusting") || // from videoClip //$NON-NLS-1$
+				name.equals("frameduration")) { // from clipControl //$NON-NLS-1$
+			changed = true;
+			if (modelBuilder != null)
+				modelBuilder.refreshSpinners();
+			if (getMat() != null) {
+				getMat().isValidMeasure = false;
+			}
+			if (getVideo() != null) {
+				getVideo().setProperty("measure", null); //$NON-NLS-1$
+			}
+			firePropertyChange("data", null, null); // to views //$NON-NLS-1$
+			if (name.equals("stepsize") //$NON-NLS-1$
+					|| name.equals("stepcount") //$NON-NLS-1$
+					|| name.equals("starttime") //$NON-NLS-1$
+					|| name.equals("frameduration") //$NON-NLS-1$
+					|| name.equals("startframe")) //$NON-NLS-1$
+				firePropertyChange(name, null, null); // to pointmass
+			else if (name.equals("adjusting")) //$NON-NLS-1$
+				firePropertyChange("adjusting", null, e.getNewValue()); // to particle models //$NON-NLS-1$
+			if (getSelectedPoint() != null) {
+				getSelectedPoint().showCoordinates(this);
+				TFrame frame = getTFrame();
+				if (frame != null)
+					frame.getTrackBar(this).refresh();
+			}
+			for (TTrack track : getUserTracks())
+				track.erase(this);
+			repaint();
+		} else if (getVideo() == null && name.equals("framecount")) { //$NON-NLS-1$
+			if (modelBuilder != null)
+				modelBuilder.refreshSpinners();
+		} else if (name.equals("function")) { // from DataBuilder //$NON-NLS-1$
+			changed = true;
+			firePropertyChange("function", null, e.getNewValue()); // to views //$NON-NLS-1$
+		} else if (name.equals("panel") && e.getSource() == modelBuilder) { //$NON-NLS-1$
+			FunctionPanel panel = (FunctionPanel) e.getNewValue();
+			if (panel != null) { // new particle model panel added
+				TTrack track = getTrack(panel.getName());
+				if (track != null) {
 //    			setSelectedTrack(track);
-    			ParticleModel model = (ParticleModel)track;
-    			modelBuilder.setSpinnerStartFrame(model.getStartFrame());
-      		int end = model.getEndFrame();
-      		if (end==Integer.MAX_VALUE) {
-      			end = getPlayer().getVideoClip().getLastFrameNumber();
-      		}
-      		modelBuilder.setSpinnerEndFrame(end);
-    		}
-    	}
-  		modelBuilder.refreshSpinners();
-  		String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$  
-    	panel = modelBuilder.getSelectedPanel();
-    	if (panel!=null) {
-    		TTrack track = getTrack(panel.getName());
-    		if (track != null) {
-    			String type = track.getClass().getSimpleName();
-    			title += ": "+TrackerRes.getString(type+".Builder.Title"); //$NON-NLS-1$ //$NON-NLS-2$
-    		}
-    	}
-  		modelBuilder.setTitle(title);
-    }
-    else if (name.equals("model_start")) { //$NON-NLS-1$
-    	ParticleModel model = (ParticleModel)e.getSource();
-    	if (model.getName().equals(getModelBuilder().getSelectedName())) {
-    		modelBuilder.setSpinnerStartFrame(e.getNewValue());
-    	}
-    }
-    else if (name.equals("model_end")) { //$NON-NLS-1$
-    	ParticleModel model = (ParticleModel)e.getSource();
-    	if (model.getName().equals(getModelBuilder().getSelectedName())) {
-	  		int end = (Integer)e.getNewValue();
-	  		if (end==Integer.MAX_VALUE) {
-	  			end = getPlayer().getVideoClip().getLastFrameNumber();
-	  		}
-	  		modelBuilder.setSpinnerEndFrame(end);
-    	}
-    }
+					ParticleModel model = (ParticleModel) track;
+					modelBuilder.setSpinnerStartFrame(model.getStartFrame());
+					int end = model.getEndFrame();
+					if (end == Integer.MAX_VALUE) {
+						end = getPlayer().getVideoClip().getLastFrameNumber();
+					}
+					modelBuilder.setSpinnerEndFrame(end);
+				}
+			}
+			modelBuilder.refreshSpinners();
+			String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$
+			panel = modelBuilder.getSelectedPanel();
+			if (panel != null) {
+				TTrack track = getTrack(panel.getName());
+				if (track != null) {
+					String type = track.getClass().getSimpleName();
+					title += ": " + TrackerRes.getString(type + ".Builder.Title"); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+			}
+			modelBuilder.setTitle(title);
+		} else if (name.equals("model_start")) { //$NON-NLS-1$
+			ParticleModel model = (ParticleModel) e.getSource();
+			if (model.getName().equals(getModelBuilder().getSelectedName())) {
+				modelBuilder.setSpinnerStartFrame(e.getNewValue());
+			}
+		} else if (name.equals("model_end")) { //$NON-NLS-1$
+			ParticleModel model = (ParticleModel) e.getSource();
+			if (model.getName().equals(getModelBuilder().getSelectedName())) {
+				int end = (Integer) e.getNewValue();
+				if (end == Integer.MAX_VALUE) {
+					end = getPlayer().getVideoClip().getLastFrameNumber();
+				}
+				modelBuilder.setSpinnerEndFrame(end);
+			}
+		}
 //    else if (name.equals("frameshift")) {                  // from video clip //$NON-NLS-1$
 //      firePropertyChange("frameshift", null, e.getNewValue()); // to tracks //$NON-NLS-1$    	
 //    }
-    else if (name.equals("radian_angles")) { // angle format has changed //$NON-NLS-1$
-      firePropertyChange("radian_angles", null, e.getNewValue()); // to tracks //$NON-NLS-1$    	
-    }
-    else if (name.equals("fixed_origin") //$NON-NLS-1$
-    		|| name.equals("fixed_angle") //$NON-NLS-1$
-    		|| name.equals("fixed_scale")) { //$NON-NLS-1$
-    	changed = true;
-      firePropertyChange(name, e.getOldValue(), e.getNewValue()); // to tracks
-    }
-    else if (e.getSource() == dataBuilder && name.equals("visible")) { //$NON-NLS-1$
-      dataToolVisible = ((Boolean)e.getNewValue()).booleanValue();
-    }
-    else if (e.getSource() instanceof Filter && name.equals("visible")) { //$NON-NLS-1$
-    	setSelectedPoint(null);
-      selectedSteps.clear();
-    }
-    else if (name.equals("perspective")) { //$NON-NLS-1$
-    	if (e.getNewValue()!=null) {
-    		PerspectiveFilter filter = (PerspectiveFilter)e.getNewValue();
-    		TTrack track = new PerspectiveTrack(filter);
-    		addTrack(track);
-    	}
-    	else if (e.getOldValue()!=null) {
-      	// clean up deleted perspective track and filter
-    		PerspectiveFilter filter = (PerspectiveFilter)e.getOldValue();
-      	PerspectiveTrack track = PerspectiveTrack.filterMap.get(filter);
-    		if (track!=null) {
-    			removeTrack(track);
-    			track.dispose();
-    			filter.setVideoPanel(null);
-    		}
-    	}
-    }
-    else if (Tracker.showHints) {
-    	Tracker.startupHintShown = false;
-    	if (name.equals("stepbutton")) { //$NON-NLS-1$
-      	if (!((Boolean)e.getNewValue()).booleanValue()) setMessage(""); //$NON-NLS-1$
-      	else setMessage(TrackerRes.getString("VideoPlayer.Step.Hint")); //$NON-NLS-1$	
-      }
-      else if (name.equals("backbutton")) { //$NON-NLS-1$    	
-      	if (!((Boolean)e.getNewValue()).booleanValue()) setMessage(""); //$NON-NLS-1$
-      	else setMessage(TrackerRes.getString("VideoPlayer.Back.Hint")); //$NON-NLS-1$	
-      }
-      else if (name.equals("inframe")) { //$NON-NLS-1$  
-      	if (!((Boolean)e.getNewValue()).booleanValue()) setMessage(""); //$NON-NLS-1$
-      	else setMessage(TrackerRes.getString("VideoPlayer.StartFrame.Hint")); //$NON-NLS-1$	
-      }
-      else if (name.equals("outframe")) { //$NON-NLS-1$  
-      	if (!((Boolean)e.getNewValue()).booleanValue()) setMessage(""); //$NON-NLS-1$
-      	else setMessage(TrackerRes.getString("VideoPlayer.EndFrame.Hint")); //$NON-NLS-1$	
-      }
-      else if (name.equals("slider")) { //$NON-NLS-1$  
-      	if (!((Boolean)e.getNewValue()).booleanValue()) setMessage(""); //$NON-NLS-1$
-      	else setMessage(TrackerRes.getString("VideoPlayer.Slider.Hint")); //$NON-NLS-1$	
-      }
-    }
-    // move vector snap point if origin may have moved
-    if (name.equals("videoclip") ||  //$NON-NLS-1$
-    				name.equals("transform") || //$NON-NLS-1$
-    				name.equals("stepnumber") || //$NON-NLS-1$
-    				name.equals("coords")) { //$NON-NLS-1$
-      int n = getFrameNumber();
-      getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
-    }
-    Tracker.logTime("end TrackerPanel property change "+name); //$NON-NLS-1$
-  }
-
-  /**
-   * Overrides VideoPanel setImageBorder method to set the image border.
-   *
-   * @param borderFraction the border fraction
-   */
-  public void setImageBorder(double borderFraction) {
-    super.setImageBorder(borderFraction);
-    defaultImageBorder = getImageBorder();
-  }
-
-  /**
-   * Overrides VideoPanel getFilePath method.
-   *
-   * @return the relative path to the file
-   */
-  public String getFilePath() {
-  	if (defaultSavePath == null) return super.getFilePath();
-    return defaultSavePath;
-  }
-
-  /**
-   * Overrides DrawingPanel scale method.
-   */
-  public void scale() {
-  	TMat mat = getMat();
-  	if (mat != null) {
-  		xOffset = mat.getXOffset();
-  		yOffset = mat.getYOffset();
-  	}
-    super.scale();
-    // erase all tracks if pixel transform has changed
-    if (!pixelTransform.equals(prevPixelTransform)) {
-    	if (prevPixelTransform == null)
-    		prevPixelTransform = new AffineTransform();
-      getPixelTransform(prevPixelTransform);
-      eraseAll();
-    }
-    // load track control if TFrame is known
-    TFrame frame = getTFrame();
-    if (frame !=null && trackControl==null) 
-    	trackControl = TrackControl.getControl(this);
-    
-  }
-
-  /**
-   * Overrides DrawingPanel setMouseCursor method.
-   * This blocks the crosshair cursor (from iad mouse controller)
-   * so that Tracker can set cursors for marking tracks.
-   *
-   * @param cursor the requested cursor
-   */
-  public void setMouseCursor(Cursor cursor) {
-  	if (PencilDrawer.isDrawing(this) && cursor==Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)) {
-  		return;
-  	}
-    if (cursor!=Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)
-    		&& !Tracker.isZoomInCursor(cursor)
-    		&& !Tracker.isZoomOutCursor(cursor)) {
-    	super.setMouseCursor(cursor);
-    }
-  }
-
-	/**
-	* Sets the font level.
-	*
-	* @param level the desired font level
-	*/
-	public void setFontLevel(int level) {
-		super.setFontLevel(level);
-		if (frame==null) return;
-		// refresh views
-    TView[][] views = frame.getTViews(this);
-    if (views==null) return;
-    for (TView[] viewset: views) {
-    	if (viewset==null) continue;
-    	for (TView view: viewset) {
-    		view.refresh();
-    	}
-    }
-    TTrackBar trackbar = TTrackBar.getTrackbar(this);
-    trackbar.setFontLevel(level);
-    trackbar.refresh();
-    TToolBar.getToolbar(this).refresh(false);
-    // replace the menubar to get new accelerator fonts
-    TMenuBar menubar = TMenuBar.getNewMenuBar(this);
-    frame.setMenuBar(this, menubar);
-    // select the correct fontSize menu radiobutton
-    if (menubar.fontSizeGroup!=null) {
-	    Enumeration<AbstractButton> e = menubar.fontSizeGroup.getElements();
-	    for (; e.hasMoreElements();) {
-	      AbstractButton button = e.nextElement();
-	      int i = Integer.parseInt(button.getActionCommand());
-	      if(i==FontSizer.getLevel()) {
-	        button.setSelected(true);
-	      }
-	    }
-    }
-    
-    for (TTrack track: getTracks()) {
-    	track.setFontLevel(level);      	
-    }
-    TrackControl.getControl(this).refresh();
-    if (modelBuilder!=null) {
-    	modelBuilder.setFontLevel(level);
-    }
-    if (dataBuilder!=null) {
-    	dataBuilder.setFontLevel(level);
-    }
-    if (autoTracker!=null) {
-    	autoTracker.getWizard().setFontLevel(level);
-    }
-    if (attachmentDialog!=null) {
-    	attachmentDialog.setFontLevel(level);
-    }
-    PencilDrawer drawer = PencilDrawer.getDrawer(this);
-    if (drawer.drawingControl!=null && drawer.drawingControl.isVisible()) {
-    	drawer.drawingControl.setFontLevel(level);
-    }
-    Video video = getVideo();
-    if (video!=null) {
-    	FilterStack filterStack = video.getFilterStack();
-    	for (Filter filter: filterStack.getFilters()) {
-        JDialog inspector = filter.getInspector();
-        if (inspector != null) {
-          FontSizer.setFonts(inspector, level);
-          inspector.pack();
-        }
-    	}
-    }
-    if (algorithmDialog!=null) {
-    	algorithmDialog.setFontLevel(level);
-    }
+		else if (name.equals("radian_angles")) { // angle format has changed //$NON-NLS-1$
+			firePropertyChange("radian_angles", null, e.getNewValue()); // to tracks //$NON-NLS-1$
+		} else if (name.equals("fixed_origin") //$NON-NLS-1$
+				|| name.equals("fixed_angle") //$NON-NLS-1$
+				|| name.equals("fixed_scale")) { //$NON-NLS-1$
+			changed = true;
+			firePropertyChange(name, e.getOldValue(), e.getNewValue()); // to tracks
+		} else if (e.getSource() == dataBuilder && name.equals("visible")) { //$NON-NLS-1$
+			dataToolVisible = ((Boolean) e.getNewValue()).booleanValue();
+		} else if (e.getSource() instanceof Filter && name.equals("visible")) { //$NON-NLS-1$
+			setSelectedPoint(null);
+			selectedSteps.clear();
+		} else if (name.equals("perspective")) { //$NON-NLS-1$
+			if (e.getNewValue() != null) {
+				PerspectiveFilter filter = (PerspectiveFilter) e.getNewValue();
+				TTrack track = new PerspectiveTrack(filter);
+				addTrack(track);
+			} else if (e.getOldValue() != null) {
+				// clean up deleted perspective track and filter
+				PerspectiveFilter filter = (PerspectiveFilter) e.getOldValue();
+				PerspectiveTrack track = PerspectiveTrack.filterMap.get(filter);
+				if (track != null) {
+					removeTrack(track);
+					track.dispose();
+					filter.setVideoPanel(null);
+				}
+			}
+		} else if (Tracker.showHints) {
+			Tracker.startupHintShown = false;
+			if (name.equals("stepbutton")) { //$NON-NLS-1$
+				if (!((Boolean) e.getNewValue()).booleanValue())
+					setMessage(""); //$NON-NLS-1$
+				else
+					setMessage(TrackerRes.getString("VideoPlayer.Step.Hint")); //$NON-NLS-1$
+			} else if (name.equals("backbutton")) { //$NON-NLS-1$
+				if (!((Boolean) e.getNewValue()).booleanValue())
+					setMessage(""); //$NON-NLS-1$
+				else
+					setMessage(TrackerRes.getString("VideoPlayer.Back.Hint")); //$NON-NLS-1$
+			} else if (name.equals("inframe")) { //$NON-NLS-1$
+				if (!((Boolean) e.getNewValue()).booleanValue())
+					setMessage(""); //$NON-NLS-1$
+				else
+					setMessage(TrackerRes.getString("VideoPlayer.StartFrame.Hint")); //$NON-NLS-1$
+			} else if (name.equals("outframe")) { //$NON-NLS-1$
+				if (!((Boolean) e.getNewValue()).booleanValue())
+					setMessage(""); //$NON-NLS-1$
+				else
+					setMessage(TrackerRes.getString("VideoPlayer.EndFrame.Hint")); //$NON-NLS-1$
+			} else if (name.equals("slider")) { //$NON-NLS-1$
+				if (!((Boolean) e.getNewValue()).booleanValue())
+					setMessage(""); //$NON-NLS-1$
+				else
+					setMessage(TrackerRes.getString("VideoPlayer.Slider.Hint")); //$NON-NLS-1$
+			}
+		}
+		// move vector snap point if origin may have moved
+		if (name.equals("videoclip") || //$NON-NLS-1$
+				name.equals("transform") || //$NON-NLS-1$
+				name.equals("stepnumber") || //$NON-NLS-1$
+				name.equals("coords")) { //$NON-NLS-1$
+			int n = getFrameNumber();
+			getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
+		}
+		Tracker.logTime("end TrackerPanel property change " + name); //$NON-NLS-1$
 	}
 
-  /**
-   * Returns true if an event starts or ends a zoom operation. Used by
-   * OptionController. Overrides DrawingPanel method.
-   *
-   * @param e a mouse event
-   * @return true if a zoom event
-   */
-  public boolean isZoomEvent(MouseEvent e) {
-  	return super.isZoomEvent(e) || Tracker.isZoomInCursor(getCursor());
-  }
+	/**
+	 * Overrides VideoPanel setImageBorder method to set the image border.
+	 *
+	 * @param borderFraction the border fraction
+	 */
+	public void setImageBorder(double borderFraction) {
+		super.setImageBorder(borderFraction);
+		defaultImageBorder = getImageBorder();
+	}
 
-  /**
-   * Overrides InteractivePanel getInteractive method.
-   * This checks the selected track (if any) first.
-   *
-   * @return the interactive drawable identified by the most recent mouse event
-   */
-  public Interactive getInteractive() {
-  	mEvent = mouseEvent; // to provide visibility to Tracker package
-    Interactive iad = null;
-    TTrack track = getSelectedTrack();
-    if (track!=null && this.getCursor()==track.getMarkingCursor(mEvent))
-    	return null;
-    if (track!=null && (track.isDependent() || track == getAxes())) {
-      iad = getAxes().findInteractive(
-      				this, mouseEvent.getX(), mouseEvent.getY());
-    }
-    if (iad==null && track!=null && track!=getAxes()
-        && !calibrationTools.contains(track)) {
-      iad = track.findInteractive(this, mouseEvent.getX(), mouseEvent.getY());
-    }
-    if (iad!=null) return iad;
-    return super.getInteractive();
-  }
+	/**
+	 * Overrides VideoPanel getFilePath method.
+	 *
+	 * @return the relative path to the file
+	 */
+	public String getFilePath() {
+		if (defaultSavePath == null)
+			return super.getFilePath();
+		return defaultSavePath;
+	}
 
-  @Override
-  public XYCoordinateStringBuilder getXYCoordinateStringBuilder(TPoint point) {
-  	return coordStringBuilder;
-  }
+	/**
+	 * Overrides DrawingPanel scale method.
+	 */
+	public void scale() {
+		TMat mat = getMat();
+		if (mat != null) {
+			xOffset = mat.getXOffset();
+			yOffset = mat.getYOffset();
+		}
+		super.scale();
+		// erase all tracks if pixel transform has changed
+		if (!pixelTransform.equals(prevPixelTransform)) {
+			if (prevPixelTransform == null)
+				prevPixelTransform = new AffineTransform();
+			getPixelTransform(prevPixelTransform);
+			eraseAll();
+		}
+		// load track control if TFrame is known
+		TFrame frame = getTFrame();
+		if (frame != null && trackControl == null)
+			trackControl = TrackControl.getControl(this);
 
-  @Override
-  public void finalize() {
-  	OSPLog.finer(getClass().getSimpleName()+" recycled by garbage collector"); //$NON-NLS-1$
-  }
-  
-  /**
-   * Main entry point when used as application.  Note: only args[0] is read.
-   *
-   * @param args args[0] may be an xml file
-   */
-  public static void main(String[] args) {
-  	// if no argument, pass call to Tracker
-  	if (args==null || args.length==0) {
-  		Tracker.main(args);
-  		return;
-  	}
+	}
 
-  	Frame launcherFrame = null;
-    Frame[] frames = Frame.getFrames();
-    for(int i = 0, n = frames.length; i<n; i++) {
-       if (frames[i].getName().equals("LauncherTool")) { //$NON-NLS-1$
-      	 launcherFrame = frames[i];
-      	 break;
-       }
-    }
-    if (launcherFrame != null)
-    	launcherFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-    new TrackerPanelMainStarter(args[0], launcherFrame);
-  }
-  
-  protected void addCalibrationTool(String name, TTrack tool) {
-  	calibrationTools.add(tool);
-  	addTrack(tool);
-  }
-  
-  protected BufferedImage renderMat() {
-		if (renderedImage == null
-				|| renderedImage.getWidth() != getWidth() 
+	/**
+	 * Overrides DrawingPanel setMouseCursor method. This blocks the crosshair
+	 * cursor (from iad mouse controller) so that Tracker can set cursors for
+	 * marking tracks.
+	 *
+	 * @param cursor the requested cursor
+	 */
+	public void setMouseCursor(Cursor cursor) {
+		if (PencilDrawer.isDrawing(this) && cursor == Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)) {
+			return;
+		}
+		if (cursor != Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR) && !Tracker.isZoomInCursor(cursor)
+				&& !Tracker.isZoomOutCursor(cursor)) {
+			super.setMouseCursor(cursor);
+		}
+	}
+
+	/**
+	 * Sets the font level.
+	 *
+	 * @param level the desired font level
+	 */
+	public void setFontLevel(int level) {
+		super.setFontLevel(level);
+		if (frame == null)
+			return;
+		// refresh views
+		TView[][] views = frame.getTViews(this);
+		if (views == null)
+			return;
+		for (TView[] viewset : views) {
+			if (viewset == null)
+				continue;
+			for (TView view : viewset) {
+				view.refresh();
+			}
+		}
+		TTrackBar trackbar = TTrackBar.getTrackbar(this);
+		trackbar.setFontLevel(level);
+		trackbar.refresh();
+		TToolBar.getToolbar(this).refresh(false);
+		// replace the menubar to get new accelerator fonts
+		TMenuBar menubar = TMenuBar.getNewMenuBar(this);
+		frame.setMenuBar(this, menubar);
+		// select the correct fontSize menu radiobutton
+		if (menubar.fontSizeGroup != null) {
+			Enumeration<AbstractButton> e = menubar.fontSizeGroup.getElements();
+			for (; e.hasMoreElements();) {
+				AbstractButton button = e.nextElement();
+				int i = Integer.parseInt(button.getActionCommand());
+				if (i == FontSizer.getLevel()) {
+					button.setSelected(true);
+				}
+			}
+		}
+
+		for (TTrack track : getTracks()) {
+			track.setFontLevel(level);
+		}
+		TrackControl.getControl(this).refresh();
+		if (modelBuilder != null) {
+			modelBuilder.setFontLevel(level);
+		}
+		if (dataBuilder != null) {
+			dataBuilder.setFontLevel(level);
+		}
+		if (autoTracker != null) {
+			autoTracker.getWizard().setFontLevel(level);
+		}
+		if (attachmentDialog != null) {
+			attachmentDialog.setFontLevel(level);
+		}
+		PencilDrawer drawer = PencilDrawer.getDrawer(this);
+		if (drawer.drawingControl != null && drawer.drawingControl.isVisible()) {
+			drawer.drawingControl.setFontLevel(level);
+		}
+		Video video = getVideo();
+		if (video != null) {
+			FilterStack filterStack = video.getFilterStack();
+			for (Filter filter : filterStack.getFilters()) {
+				JDialog inspector = filter.getInspector();
+				if (inspector != null) {
+					FontSizer.setFonts(inspector, level);
+					inspector.pack();
+				}
+			}
+		}
+		if (algorithmDialog != null) {
+			algorithmDialog.setFontLevel(level);
+		}
+	}
+
+	/**
+	 * Returns true if an event starts or ends a zoom operation. Used by
+	 * OptionController. Overrides DrawingPanel method.
+	 *
+	 * @param e a mouse event
+	 * @return true if a zoom event
+	 */
+	public boolean isZoomEvent(MouseEvent e) {
+		return super.isZoomEvent(e) || Tracker.isZoomInCursor(getCursor());
+	}
+
+	/**
+	 * Overrides InteractivePanel getInteractive method. This checks the selected
+	 * track (if any) first.
+	 *
+	 * @return the interactive drawable identified by the most recent mouse event
+	 */
+	public Interactive getInteractive() {
+		mEvent = mouseEvent; // to provide visibility to Tracker package
+		Interactive iad = null;
+		TTrack track = getSelectedTrack();
+		if (track != null && this.getCursor() == track.getMarkingCursor(mEvent))
+			return null;
+		if (track != null && (track.isDependent() || track == getAxes())) {
+			iad = getAxes().findInteractive(this, mouseEvent.getX(), mouseEvent.getY());
+		}
+		if (iad == null && track != null && track != getAxes() && !calibrationTools.contains(track)) {
+			iad = track.findInteractive(this, mouseEvent.getX(), mouseEvent.getY());
+		}
+		if (iad != null)
+			return iad;
+		return super.getInteractive();
+	}
+
+	@Override
+	public XYCoordinateStringBuilder getXYCoordinateStringBuilder(TPoint point) {
+		return coordStringBuilder;
+	}
+
+	@Override
+	public void finalize() {
+		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
+	}
+
+	/**
+	 * Main entry point when used as application. Note: only args[0] is read.
+	 *
+	 * @param args args[0] may be an xml file
+	 */
+	public static void main(String[] args) {
+		// if no argument, pass call to Tracker
+		if (args == null || args.length == 0) {
+			Tracker.main(args);
+			return;
+		}
+
+		Frame launcherFrame = null;
+		Frame[] frames = Frame.getFrames();
+		for (int i = 0, n = frames.length; i < n; i++) {
+			if (frames[i].getName().equals("LauncherTool")) { //$NON-NLS-1$
+				launcherFrame = frames[i];
+				break;
+			}
+		}
+		if (launcherFrame != null)
+			launcherFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		new TrackerPanelMainStarter(args[0], launcherFrame);
+	}
+
+	protected void addCalibrationTool(String name, TTrack tool) {
+		calibrationTools.add(tool);
+		addTrack(tool);
+	}
+
+	protected BufferedImage renderMat() {
+		if (renderedImage == null || renderedImage.getWidth() != getWidth()
 				|| renderedImage.getHeight() != getHeight()) {
 			renderedImage = new BufferedImage(getWidth(), getHeight(), BufferedImage.TYPE_INT_RGB);
 		}
 		render(renderedImage);
-  	Rectangle rect = getMat().drawingBounds;
-		if (matImage == null
-				|| matImage.getWidth() != rect.width 
-				|| matImage.getHeight() != rect.height) {
+		Rectangle rect = getMat().drawingBounds;
+		if (matImage == null || matImage.getWidth() != rect.width || matImage.getHeight() != rect.height) {
 			matImage = new BufferedImage(rect.width, rect.height, BufferedImage.TYPE_INT_RGB);
 		}
-  	Graphics g = matImage.getGraphics();
-  	g.drawImage(renderedImage, -rect.x, -rect.y, null);
-  	return matImage;
-  }
-  
-  /**
-   * Deletes a point.
-   *
-   * @param pt the point to delete
-   */
-  protected void deletePoint(TPoint pt) {
-    Iterator<TTrack> it = getTracks().iterator();
-    while (it.hasNext()) {
-      TTrack track = it.next();
-      Step step = track.getStep(pt, this);
-      if (step != null) {
-        step = track.deleteStep(step.n);
-        if (step == null) return;
-        setSelectedPoint(null);
-        selectedSteps.clear();
-        hideMouseBox();
-        return;
-      }
-    }
-  }
+		Graphics g = matImage.getGraphics();
+		g.drawImage(renderedImage, -rect.x, -rect.y, null);
+		return matImage;
+	}
 
-  /**
-   * Deletes the selected steps, if any.
-   */
-  protected void deleteSelectedSteps() {
-  	ArrayList<Object[]> changes = new ArrayList<Object[]>();
-  	int nMin=Integer.MAX_VALUE, nMax=-1;
-		for (TTrack track: getTracks()) {
+	/**
+	 * Deletes a point.
+	 *
+	 * @param pt the point to delete
+	 */
+	protected void deletePoint(TPoint pt) {
+		Iterator<TTrack> it = getTracks().iterator();
+		while (it.hasNext()) {
+			TTrack track = it.next();
+			Step step = track.getStep(pt, this);
+			if (step != null) {
+				step = track.deleteStep(step.n);
+				if (step == null)
+					return;
+				setSelectedPoint(null);
+				selectedSteps.clear();
+				hideMouseBox();
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Deletes the selected steps, if any.
+	 */
+	protected void deleteSelectedSteps() {
+		ArrayList<Object[]> changes = new ArrayList<Object[]>();
+		int nMin = Integer.MAX_VALUE, nMax = -1;
+		for (TTrack track : getTracks()) {
 			boolean isChanged = false;
 			XMLControl control = new XMLControlElement(track);
-			for (Step step: selectedSteps) {
-		   	if (step.getTrack()==track) {
-		   		if (track.isLocked()) {
-		   			step.erase();
-		   		}
-		   		else {
-			    	int n = step.getFrameNumber();
-			      track.steps.setStep(n, null);
-			      for (String columnName: track.textColumnNames) {
-			      	String[] entries = track.textColumnEntries.get(columnName);
-			      	if (entries.length>n) {
-			      		entries[n] = null;
-			      	}
-			      }
-			      AutoTracker autoTracker = getAutoTracker();
-			      if (autoTracker.getTrack()==track) {
-			      	autoTracker.delete(n);
-			      }
-			      nMin = Math.min(nMin, n);
-			      nMax = Math.max(nMax, n);
-			      isChanged = true;
-		   		}
-		   	}
-		  }
-		  if (isChanged) {
-		    changes.add(new Object[] {track, control});
-		    if (track instanceof PointMass) {
-		      VideoClip clip = getPlayer().getVideoClip();
-		      
-		      int startFrame = Math.max(nMin-2*clip.getStepSize(), clip.getStartFrameNumber());
-		      int stepCount = 4 + (nMax-nMin)/clip.getStepSize();
-		    	((PointMass)track).updateDerivatives(startFrame, stepCount);
-		    	
-		    }
-		    track.firePropertyChange("steps", null, null); //$NON-NLS-1$
-		  }
+			for (Step step : selectedSteps) {
+				if (step.getTrack() == track) {
+					if (track.isLocked()) {
+						step.erase();
+					} else {
+						int n = step.getFrameNumber();
+						track.steps.setStep(n, null);
+						for (String columnName : track.textColumnNames) {
+							String[] entries = track.textColumnEntries.get(columnName);
+							if (entries.length > n) {
+								entries[n] = null;
+							}
+						}
+						AutoTracker autoTracker = getAutoTracker();
+						if (autoTracker.getTrack() == track) {
+							autoTracker.delete(n);
+						}
+						nMin = Math.min(nMin, n);
+						nMax = Math.max(nMax, n);
+						isChanged = true;
+					}
+				}
+			}
+			if (isChanged) {
+				changes.add(new Object[] { track, control });
+				if (track instanceof PointMass) {
+					VideoClip clip = getPlayer().getVideoClip();
+
+					int startFrame = Math.max(nMin - 2 * clip.getStepSize(), clip.getStartFrameNumber());
+					int stepCount = 4 + (nMax - nMin) / clip.getStepSize();
+					((PointMass) track).updateDerivatives(startFrame, stepCount);
+
+				}
+				track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+			}
 		}
-		selectedSteps.clear();	
+		selectedSteps.clear();
 		if (!changes.isEmpty()) {
 			Undo.postMultiTrackEdit(changes);
 		}
-  }
+	}
 
-  /**
-   * Overrides VideoPanel scale method to handle zoom
-   *
-   * @param drawables the list of drawable objects
-   */
-  protected void scale(ArrayList<Drawable> drawables) {
-    if (drawingInImageSpace) {
-      if (getPreferredSize().width < 2) // zoomed to fit
-        super.setImageBorder(defaultImageBorder);
-      else {
-        // set image border so video size remains fixed
-        double w = getMagnification() * imageWidth;
-        double wBorder = (getWidth() - w) * 0.5 / w;
-        double h = getMagnification() * imageHeight;
-        double hBorder = (getHeight() - h) * 0.5 / h;
-        double border = Math.min(wBorder, hBorder);
-        super.setImageBorder(Math.max(border, defaultImageBorder));
-      }
-    }
-    super.scale(drawables);
-  }
-  
-  /**
-   * Paints this component. Overrides DrawingPanel method to log times
-   * @param g the graphics context
-   */
-  public void paintComponent(Graphics g) {
+	/**
+	 * Overrides VideoPanel scale method to handle zoom
+	 *
+	 * @param drawables the list of drawable objects
+	 */
+	protected void scale(ArrayList<Drawable> drawables) {
+		if (drawingInImageSpace) {
+			if (getPreferredSize().width < 2) // zoomed to fit
+				super.setImageBorder(defaultImageBorder);
+			else {
+				// set image border so video size remains fixed
+				double w = getMagnification() * imageWidth;
+				double wBorder = (getWidth() - w) * 0.5 / w;
+				double h = getMagnification() * imageHeight;
+				double hBorder = (getHeight() - h) * 0.5 / h;
+				double border = Math.min(wBorder, hBorder);
+				super.setImageBorder(Math.max(border, defaultImageBorder));
+			}
+		}
+		super.scale(drawables);
+	}
+
+	/**
+	 * Paints this component. Overrides DrawingPanel method to log times
+	 * 
+	 * @param g the graphics context
+	 */
+	public void paintComponent(Graphics g) {
 //    Tracker.logTime(getClass().getSimpleName()+hashCode()+" painting"); //$NON-NLS-1$
-    super.paintComponent(g);
-    if (zoomCenter!=null && isShowing() && getTFrame()!=null && scrollPane!=null) {
-      final Rectangle rect = scrollPane.getViewport().getViewRect();
-      int x = zoomCenter.x - rect.width/2;
-      int y = zoomCenter.y -rect.height/2;
-      rect.setLocation(x, y);
-    	zoomCenter = null;
-  		scrollRectToVisible(rect);
-    }
-    showFilterInspectors();
-  }
-  
-  /**
-   * Gets the default image width for new empty panels
-   * @return width
-   */
-  protected static double getDefaultImageWidth() {
-  	return defaultWidth;
-  }
+		super.paintComponent(g);
+		if (zoomCenter != null && isShowing() && getTFrame() != null && scrollPane != null) {
+			final Rectangle rect = scrollPane.getViewport().getViewRect();
+			int x = zoomCenter.x - rect.width / 2;
+			int y = zoomCenter.y - rect.height / 2;
+			rect.setLocation(x, y);
+			zoomCenter = null;
+			scrollRectToVisible(rect);
+		}
+		showFilterInspectors();
+	}
 
-  /**
-   * Gets the default image height for new empty panels
-   * @return height
-   */
-  protected static double getDefaultImageHeight() {
-  	return defaultHeight;
-  }
-  
-  /**
-   * Gets the TFrame parent of this panel
-   * @return the TFrame, if any
-   */
-  protected TFrame getTFrame() {
-  	if (frame == null) {
-	    Container c = getTopLevelAncestor();
-	    if (c instanceof TFrame) {
-	    	frame = (TFrame)c;
-	    }
-  	}
-    return frame;
-  }
-  
-  /**
-   * Gets the autotracker for this panel
-   * @return the autotracker, if any
-   */
-  protected AutoTracker getAutoTracker() {
-  	if (autoTracker==null) {
-  		autoTracker = new AutoTracker(this);
-  		autoTracker.getWizard().setFontLevel(FontSizer.getLevel());
-  	}
-  	return autoTracker;
-  }
-  
-  /**
-   * Gets the default format patterns for a specified track type
-   * 
-   * @param trackType the track type
-   * @return a map of variable name to pattern
-   */
-  protected TreeMap<String, String> getFormatPatterns(Class<? extends TTrack> trackType) {
-    TreeMap<String, String> patterns = formatPatterns.get(trackType);
-    if (patterns==null) {
-    	patterns = new TreeMap<String, String>();
-  		formatPatterns.put(trackType, patterns);
-  		// initialize with default patterns
-    	TreeMap<String, String> defaultPatterns = NumberFormatDialog.defaultFormatPatterns.get(trackType);
-    	if (defaultPatterns!=null) {
-    		patterns.putAll(defaultPatterns);
-    	}
-    	// initialize for additional trackType variables
-			for (String var: TTrack.getAllVariables(trackType)) {
+	/**
+	 * Gets the default image width for new empty panels
+	 * 
+	 * @return width
+	 */
+	protected static double getDefaultImageWidth() {
+		return defaultWidth;
+	}
+
+	/**
+	 * Gets the default image height for new empty panels
+	 * 
+	 * @return height
+	 */
+	protected static double getDefaultImageHeight() {
+		return defaultHeight;
+	}
+
+	/**
+	 * Gets the TFrame parent of this panel
+	 * 
+	 * @return the TFrame, if any
+	 */
+	protected TFrame getTFrame() {
+		if (frame == null) {
+			Container c = getTopLevelAncestor();
+			if (c instanceof TFrame) {
+				frame = (TFrame) c;
+			}
+		}
+		return frame;
+	}
+
+	/**
+	 * Gets the autotracker for this panel
+	 * 
+	 * @return the autotracker, if any
+	 */
+	protected AutoTracker getAutoTracker() {
+		if (autoTracker == null) {
+			autoTracker = new AutoTracker(this);
+			autoTracker.getWizard().setFontLevel(FontSizer.getLevel());
+		}
+		return autoTracker;
+	}
+
+	/**
+	 * Gets the default format patterns for a specified track type
+	 * 
+	 * @param trackType the track type
+	 * @return a map of variable name to pattern
+	 */
+	protected TreeMap<String, String> getFormatPatterns(Class<? extends TTrack> trackType) {
+		TreeMap<String, String> patterns = formatPatterns.get(trackType);
+		if (patterns == null) {
+			patterns = new TreeMap<String, String>();
+			formatPatterns.put(trackType, patterns);
+			// initialize with default patterns
+			TreeMap<String, String> defaultPatterns = NumberFormatDialog.defaultFormatPatterns.get(trackType);
+			if (defaultPatterns != null) {
+				patterns.putAll(defaultPatterns);
+			}
+			// initialize for additional trackType variables
+			for (String var : TTrack.getAllVariables(trackType)) {
 				if (!patterns.containsKey(var)) {
 					patterns.put(var, ""); //$NON-NLS-1$
 				}
 			}
-    }
-  	return patterns;
-  }
-  
-  /**
-   * Sets the initial default format patterns for all track types and existing tracks
-   */
-  protected void setInitialFormatPatterns() {
-  	for (Class<? extends TTrack> type: NumberFormatDialog.getFormattableTrackTypes()) {
-  		getFormatPatterns(type);
-  	}
-  	for (TTrack track: getTracks()) {
-  		setInitialFormatPatterns(track);
-  	}
-  }
-  
-  /**
-   * Sets the initial default format patterns for a specified track 
-   * 
-   * @param track the track
-   */
-  protected void setInitialFormatPatterns(TTrack track) {
-    // set default NumberField format patterns
-    Class<? extends TTrack> trackType = NumberFormatDialog.getTrackType(track);
-    TreeMap<String, String> patterns = getFormatPatterns(trackType);
-  	for (String name: patterns.keySet()) {
-  		NumberFormatDialog.setFormatPattern(track, name, patterns.get(name));
-  	}
-  	// set custom formats AFTER setting default patterns
-	  if (track.customNumberFormats!=null) {
-	  	track.getData(this);
-    	for (int i=0; i<track.customNumberFormats.length-1; i=i+2) {
-    		String name = track.customNumberFormats[i];
-    		String pattern = track.customNumberFormats[i+1];
-    		NumberFormatDialog.setFormatPattern(track, name, pattern);
-    	}
-    	track.customNumberFormats = null;
-	  }  		
-  }
-  
-  /**
-   * Disposes of this panel
-   */
-  protected void dispose() {
+		}
+		return patterns;
+	}
 
-  	refreshTimer.stop();
-  	zoomTimer.stop();
-  	refreshTimer = zoomTimer = null;
-  	offscreenImage = null;
-  	workingImage = null;
-  			
-  	FontSizer.removePropertyChangeListener("level", guiChangeListener); //$NON-NLS-1$
-    ToolsRes.removePropertyChangeListener("locale", guiChangeListener); //$NON-NLS-1$
-    removeMouseListener(mouseController);
-    removeMouseMotionListener(mouseController);
-    mouseController = null;
-    removeMouseListener(optionController);
-    removeMouseMotionListener(optionController);
-    optionController = null;
-    VideoClip clip = player.getVideoClip();
-    clip.removePropertyChangeListener(player);
-    clip.removePropertyChangeListener("startframe", this); //$NON-NLS-1$
-    clip.removePropertyChangeListener("stepsize", this);   //$NON-NLS-1$
-    clip.removePropertyChangeListener("stepcount", this);  //$NON-NLS-1$
-    clip.removePropertyChangeListener("framecount", this);  //$NON-NLS-1$
-    clip.removePropertyChangeListener("starttime", this);  //$NON-NLS-1$
-    clip.removePropertyChangeListener("adjusting", this);  //$NON-NLS-1$
-    if(video!=null) {
-      video.removePropertyChangeListener("coords", this);          //$NON-NLS-1$
-      video.removePropertyChangeListener("image", this);           //$NON-NLS-1$
-      video.removePropertyChangeListener("filterChanged", this);           //$NON-NLS-1$
-      video.removePropertyChangeListener("videoVisible", this);    //$NON-NLS-1$
-      video.removePropertyChangeListener("size", this);            //$NON-NLS-1$
-    }
-    ClipControl clipControl = player.getClipControl();
-    clipControl.removePropertyChangeListener(player);
-    player.removePropertyChangeListener("stepbutton", this); //$NON-NLS-1$
-    player.removePropertyChangeListener("backbutton", this); //$NON-NLS-1$
-    player.removePropertyChangeListener("inframe", this); //$NON-NLS-1$
-    player.removePropertyChangeListener("outframe", this); //$NON-NLS-1$
-    player.removePropertyChangeListener("slider", this); //$NON-NLS-1$
-    player.removePropertyChangeListener("playing", this); //$NON-NLS-1$
-    player.removePropertyChangeListener("videoclip", this);     //$NON-NLS-1$
-    player.removePropertyChangeListener("stepnumber", this);    //$NON-NLS-1$
-    player.removePropertyChangeListener("frameduration", this); //$NON-NLS-1$
-    player.stop();
-    remove(player);
-    player = null;
-    coords.removePropertyChangeListener(this);
-    coords = null;
-    for (Integer n: TTrack.activeTracks.keySet()) {
-    	TTrack track = TTrack.activeTracks.get(n);
-    	removePropertyChangeListener(track);
-      track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("visible", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("image", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("data", this); //$NON-NLS-1$
-    }
-    // dispose of autotracker, modelbuilder, databuilder, other dialogs    
-    if (autoTracker!=null) {
-    	autoTracker.dispose();
-    	autoTracker = null;
-    }
-    if (modelBuilder!=null) {
+	/**
+	 * Sets the initial default format patterns for all track types and existing
+	 * tracks
+	 */
+	protected void setInitialFormatPatterns() {
+		for (Class<? extends TTrack> type : NumberFormatDialog.getFormattableTrackTypes()) {
+			getFormatPatterns(type);
+		}
+		for (TTrack track : getTracks()) {
+			setInitialFormatPatterns(track);
+		}
+	}
+
+	/**
+	 * Sets the initial default format patterns for a specified track
+	 * 
+	 * @param track the track
+	 */
+	protected void setInitialFormatPatterns(TTrack track) {
+		// set default NumberField format patterns
+		Class<? extends TTrack> trackType = NumberFormatDialog.getTrackType(track);
+		TreeMap<String, String> patterns = getFormatPatterns(trackType);
+		for (String name : patterns.keySet()) {
+			NumberFormatDialog.setFormatPattern(track, name, patterns.get(name));
+		}
+		// set custom formats AFTER setting default patterns
+		if (track.customNumberFormats != null) {
+			track.getData(this);
+			for (int i = 0; i < track.customNumberFormats.length - 1; i = i + 2) {
+				String name = track.customNumberFormats[i];
+				String pattern = track.customNumberFormats[i + 1];
+				NumberFormatDialog.setFormatPattern(track, name, pattern);
+			}
+			track.customNumberFormats = null;
+		}
+	}
+
+	/**
+	 * Disposes of this panel
+	 */
+	protected void dispose() {
+
+		refreshTimer.stop();
+		zoomTimer.stop();
+		refreshTimer = zoomTimer = null;
+		offscreenImage = null;
+		workingImage = null;
+
+		FontSizer.removePropertyChangeListener("level", guiChangeListener); //$NON-NLS-1$
+		ToolsRes.removePropertyChangeListener("locale", guiChangeListener); //$NON-NLS-1$
+		removeMouseListener(mouseController);
+		removeMouseMotionListener(mouseController);
+		mouseController = null;
+		removeMouseListener(optionController);
+		removeMouseMotionListener(optionController);
+		optionController = null;
+		VideoClip clip = player.getVideoClip();
+		clip.removePropertyChangeListener(player);
+		clip.removePropertyChangeListener("startframe", this); //$NON-NLS-1$
+		clip.removePropertyChangeListener("stepsize", this); //$NON-NLS-1$
+		clip.removePropertyChangeListener("stepcount", this); //$NON-NLS-1$
+		clip.removePropertyChangeListener("framecount", this); //$NON-NLS-1$
+		clip.removePropertyChangeListener("starttime", this); //$NON-NLS-1$
+		clip.removePropertyChangeListener("adjusting", this); //$NON-NLS-1$
+		if (video != null) {
+			video.removePropertyChangeListener("coords", this); //$NON-NLS-1$
+			video.removePropertyChangeListener("image", this); //$NON-NLS-1$
+			video.removePropertyChangeListener("filterChanged", this); //$NON-NLS-1$
+			video.removePropertyChangeListener("videoVisible", this); //$NON-NLS-1$
+			video.removePropertyChangeListener("size", this); //$NON-NLS-1$
+		}
+		ClipControl clipControl = player.getClipControl();
+		clipControl.removePropertyChangeListener(player);
+		player.removePropertyChangeListener("stepbutton", this); //$NON-NLS-1$
+		player.removePropertyChangeListener("backbutton", this); //$NON-NLS-1$
+		player.removePropertyChangeListener("inframe", this); //$NON-NLS-1$
+		player.removePropertyChangeListener("outframe", this); //$NON-NLS-1$
+		player.removePropertyChangeListener("slider", this); //$NON-NLS-1$
+		player.removePropertyChangeListener("playing", this); //$NON-NLS-1$
+		player.removePropertyChangeListener("videoclip", this); //$NON-NLS-1$
+		player.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+		player.removePropertyChangeListener("frameduration", this); //$NON-NLS-1$
+		player.stop();
+		remove(player);
+		player = null;
+		coords.removePropertyChangeListener(this);
+		coords = null;
+		for (Integer n : TTrack.activeTracks.keySet()) {
+			TTrack track = TTrack.activeTracks.get(n);
+			removePropertyChangeListener(track);
+			track.removePropertyChangeListener("step", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("visible", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("image", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("data", this); //$NON-NLS-1$
+		}
+		// dispose of autotracker, modelbuilder, databuilder, other dialogs
+		if (autoTracker != null) {
+			autoTracker.dispose();
+			autoTracker = null;
+		}
+		if (modelBuilder != null) {
 			modelBuilder.removePropertyChangeListener("panel", this); //$NON-NLS-1$
 			modelBuilder.dispose();
 			modelBuilder = null;
-    }
-    if (dataBuilder!=null) {
-  		dataBuilder.removePropertyChangeListener("panel", this); //$NON-NLS-1$
-  		dataBuilder.removePropertyChangeListener("function", this); //$NON-NLS-1$
-  		dataBuilder.removePropertyChangeListener("visible", this); //$NON-NLS-1$
-  		dataBuilder.dispose();
-  		dataBuilder = null;
-    }
-    if (attachmentDialog!=null) {
-    	attachmentDialog.dispose();
-    	attachmentDialog = null;
-    }
-    if (algorithmDialog!=null) {
-    	algorithmDialog.trackerPanel = null;
-    	algorithmDialog = null;
-    }
-    if (guestsDialog!=null) {
-    	guestsDialog.dispose();
-    	guestsDialog = null;
-    }
-    PencilDrawer.dispose(this);
-    if (ExportDataDialog.dataExporter!=null && ExportDataDialog.dataExporter.trackerPanel==this) {
-    	ExportDataDialog.dataExporter.trackerPanel = null;
-    	ExportDataDialog.dataExporter.tableDropdown.removeAllItems();
-    	ExportDataDialog.dataExporter.tables.clear();
-    	ExportDataDialog.dataExporter.trackNames.clear();
-    }
-    if (ExportVideoDialog.videoExporter!=null && ExportVideoDialog.videoExporter.trackerPanel==this) {
-    	ExportVideoDialog.videoExporter.trackerPanel = null;
-    	ExportVideoDialog.videoExporter.views.clear();
-    }
-    if (ThumbnailDialog.thumbnailDialog!=null && ThumbnailDialog.thumbnailDialog.trackerPanel==this) {
-    	ThumbnailDialog.thumbnailDialog.trackerPanel = null;   	
-    }
-    ExportZipDialog.dispose(this);
-    NumberFormatDialog.dispose(this);    
-    filterClasses.clear();
-    selectingPanel = null;
-    frame = null;
-    renderedImage = null;
-    matImage = null;
-    selectedSteps = null;
-    removeAll();
-  }
-  
-  /**
-   * Sets the name of a track. This checks the name against those of existing 
-   * tracks and prompts the user for a new name if a duplicate is found.
-   * After three failed attempts, a unique name is formed by appending a number.
-   * 
-   * @param track the track to name
-   * @param newName the proposed name
-   * @param postEdit true to post an undoable edit
-   */
-  protected void setTrackName(TTrack track, String newName, boolean postEdit) {
-		for (Drawable next: getDrawables()) {
-			if (next == track) continue;
+		}
+		if (dataBuilder != null) {
+			dataBuilder.removePropertyChangeListener("panel", this); //$NON-NLS-1$
+			dataBuilder.removePropertyChangeListener("function", this); //$NON-NLS-1$
+			dataBuilder.removePropertyChangeListener("visible", this); //$NON-NLS-1$
+			dataBuilder.dispose();
+			dataBuilder = null;
+		}
+		if (attachmentDialog != null) {
+			attachmentDialog.dispose();
+			attachmentDialog = null;
+		}
+		if (algorithmDialog != null) {
+			algorithmDialog.trackerPanel = null;
+			algorithmDialog = null;
+		}
+		if (guestsDialog != null) {
+			guestsDialog.dispose();
+			guestsDialog = null;
+		}
+		PencilDrawer.dispose(this);
+		if (ExportDataDialog.dataExporter != null && ExportDataDialog.dataExporter.trackerPanel == this) {
+			ExportDataDialog.dataExporter.trackerPanel = null;
+			ExportDataDialog.dataExporter.tableDropdown.removeAllItems();
+			ExportDataDialog.dataExporter.tables.clear();
+			ExportDataDialog.dataExporter.trackNames.clear();
+		}
+		if (ExportVideoDialog.videoExporter != null && ExportVideoDialog.videoExporter.trackerPanel == this) {
+			ExportVideoDialog.videoExporter.trackerPanel = null;
+			ExportVideoDialog.videoExporter.views.clear();
+		}
+		if (ThumbnailDialog.thumbnailDialog != null && ThumbnailDialog.thumbnailDialog.trackerPanel == this) {
+			ThumbnailDialog.thumbnailDialog.trackerPanel = null;
+		}
+		ExportZipDialog.dispose(this);
+		NumberFormatDialog.dispose(this);
+		filterClasses.clear();
+		selectingPanel = null;
+		frame = null;
+		renderedImage = null;
+		matImage = null;
+		selectedSteps = null;
+		removeAll();
+	}
+
+	/**
+	 * Sets the name of a track. This checks the name against those of existing
+	 * tracks and prompts the user for a new name if a duplicate is found. After
+	 * three failed attempts, a unique name is formed by appending a number.
+	 * 
+	 * @param track    the track to name
+	 * @param newName  the proposed name
+	 * @param postEdit true to post an undoable edit
+	 */
+	protected void setTrackName(TTrack track, String newName, boolean postEdit) {
+		for (Drawable next : getDrawables()) {
+			if (next == track)
+				continue;
 			if (next instanceof TTrack) {
-				String nextName = ((TTrack)next).getName();
+				String nextName = ((TTrack) next).getName();
 				if (newName.equals(nextName)) {
 					Toolkit.getDefaultToolkit().beep();
 					String s = "\"" + newName + "\" "; //$NON-NLS-1$ //$NON-NLS-2$
@@ -3177,114 +3209,114 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					TTrack.NameDialog nameDialog = TTrack.getNameDialog(track);
 					nameDialog.getContentPane().add(badNameLabel, BorderLayout.SOUTH);
 					nameDialog.pack();
-	        nameDialog.setVisible(true);
+					nameDialog.setVisible(true);
 					return;
 				}
 			}
 		}
-  	XMLControl control = new XMLControlElement(new TrackProperties(track));
+		XMLControl control = new XMLControlElement(new TrackProperties(track));
 		track.setName(newName);
-    if (postEdit)
-    	Undo.postTrackDisplayEdit(track, control);
-    if (TTrack.nameDialog!=null) {
+		if (postEdit)
+			Undo.postTrackDisplayEdit(track, control);
+		if (TTrack.nameDialog != null) {
 			TTrack.nameDialog.setVisible(false);
 			TTrack.nameDialog.getContentPane().remove(badNameLabel);
-    }
-    refreshMenuBar("TrackerPanel.setTrackName");
-  }
+		}
+		refreshMenuBar("TrackerPanel.setTrackName");
+	}
 
-  /**
-   * Shows the visible filter inspectors, if any.
-   */
-  protected void showFilterInspectors() {
-	  // show filter inspectors
-	  if (visibleFilters != null) {
-	  	TFrame frame = getTFrame();
-	    Iterator<Filter> it = visibleFilters.keySet().iterator();
-	    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-	    while (it.hasNext()) {
-	    	Filter filter = it.next();
-	    	Point p = visibleFilters.get(filter);
-	    	Dialog inspector = filter.getInspector();
-				int x = Math.max(p.x + (frame==null? 0: frame.getLocation().x), 0);
-				x = Math.min(x, dim.width-inspector.getWidth());
-				int y = Math.max(p.y + (frame==null? 0: frame.getLocation().y), 0);
-				y = Math.min(y, dim.height-inspector.getHeight());
-	    	inspector.setLocation(x, y);
-	    	inspector.setVisible(true);
-	    }
-	    visibleFilters.clear();
-	    visibleFilters = null;
-	  }
-  }
-  
 	/**
-   * This inner class extends IADMouseController to set the cursor
-   * and show selected point coordinates.
-   */
-  private class TMouseController extends IADMouseController {
-      /**
-       * Handle the mouse released event.
-       * 
-       * @param e the mouse event
-       */
-      public void mouseReleased(MouseEvent e) {
-        super.mouseReleased(e); // hides blmessagebox
-        if (getSelectedPoint() != null) {
-          getSelectedPoint().showCoordinates(TrackerPanel.this);
-        }
-      }
+	 * Shows the visible filter inspectors, if any.
+	 */
+	protected void showFilterInspectors() {
+		// show filter inspectors
+		if (visibleFilters != null) {
+			TFrame frame = getTFrame();
+			Iterator<Filter> it = visibleFilters.keySet().iterator();
+			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+			while (it.hasNext()) {
+				Filter filter = it.next();
+				Point p = visibleFilters.get(filter);
+				Dialog inspector = filter.getInspector();
+				int x = Math.max(p.x + (frame == null ? 0 : frame.getLocation().x), 0);
+				x = Math.min(x, dim.width - inspector.getWidth());
+				int y = Math.max(p.y + (frame == null ? 0 : frame.getLocation().y), 0);
+				y = Math.min(y, dim.height - inspector.getHeight());
+				inspector.setLocation(x, y);
+				inspector.setVisible(true);
+			}
+			visibleFilters.clear();
+			visibleFilters = null;
+		}
+	}
 
-      /**
-       * Handle the mouse entered event.
-       *
-       * @param e the mouse event
-       */
-      public void mouseEntered(MouseEvent e) {
-        super.mouseEntered(e);
-  			if (PencilDrawer.isDrawing(TrackerPanel.this)) {
-  				setMouseCursor(PencilDrawer.getDrawer(TrackerPanel.this).getPencilCursor());
-  			}
-  			else setMouseCursor(Cursor.getDefaultCursor());
-      }
+	/**
+	 * This inner class extends IADMouseController to set the cursor and show
+	 * selected point coordinates.
+	 */
+	private class TMouseController extends IADMouseController {
+		/**
+		 * Handle the mouse released event.
+		 * 
+		 * @param e the mouse event
+		 */
+		public void mouseReleased(MouseEvent e) {
+			super.mouseReleased(e); // hides blmessagebox
+			if (getSelectedPoint() != null) {
+				getSelectedPoint().showCoordinates(TrackerPanel.this);
+			}
+		}
 
-      /**
-       * Handle the mouse exited event.
-       *
-       * @param e the mouse event
-       */
-      public void mouseExited(MouseEvent e) {
-        super.mouseExited(e);
-        isShiftKeyDown = false;
-        if (getSelectedPoint()==null) {
-        	blMessageBox.setText(null);
-        }
-        setMouseCursor(Cursor.getDefaultCursor());
-      }
+		/**
+		 * Handle the mouse entered event.
+		 *
+		 * @param e the mouse event
+		 */
+		public void mouseEntered(MouseEvent e) {
+			super.mouseEntered(e);
+			if (PencilDrawer.isDrawing(TrackerPanel.this)) {
+				setMouseCursor(PencilDrawer.getDrawer(TrackerPanel.this).getPencilCursor());
+			} else
+				setMouseCursor(Cursor.getDefaultCursor());
+		}
 
-      /**
-       * Handle the mouse entered event.
-       *
-       * @param e the mouse event
-       */
-      public void mouseMoved(MouseEvent e) {
-        if(showCoordinates && getSelectedPoint()==null) {
-          String s = coordinateStrBuilder.getCoordinateString(TrackerPanel.this, e);
-          blMessageBox.setText(s);
-        }
-        super.mouseMoved(e);
-      }
+		/**
+		 * Handle the mouse exited event.
+		 *
+		 * @param e the mouse event
+		 */
+		public void mouseExited(MouseEvent e) {
+			super.mouseExited(e);
+			isShiftKeyDown = false;
+			if (getSelectedPoint() == null) {
+				blMessageBox.setText(null);
+			}
+			setMouseCursor(Cursor.getDefaultCursor());
+		}
 
-  }
-  
-  /**
-   * Returns an XML.ObjectLoader to save and load object data.
-   *
-   * @return the XML.ObjectLoader
-   */
-  public static XML.ObjectLoader getLoader() {
-    return new Loader();
-  }
+		/**
+		 * Handle the mouse entered event.
+		 *
+		 * @param e the mouse event
+		 */
+		public void mouseMoved(MouseEvent e) {
+			if (showCoordinates && getSelectedPoint() == null) {
+				String s = coordinateStrBuilder.getCoordinateString(TrackerPanel.this, e);
+				blMessageBox.setText(s);
+			}
+			super.mouseMoved(e);
+		}
+
+	}
+
+	/**
+	 * Returns an XML.ObjectLoader to save and load object data.
+	 *
+	 * @return the XML.ObjectLoader
+	 */
+	public static XML.ObjectLoader getLoader() {
+		return new Loader();
+	}
 
 	/**
 	 * A class to save and load object data.
@@ -3506,11 +3538,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				if (!OSPRuntime.unzipFiles) {
 					child.setBasepath(control.getBasepath());
 				}
-				// BH consider not extracting these. 
+				// BH consider not extracting these.
 //      	Video existingVideo = trackerPanel.getVideo();
 				VideoClip clip = (VideoClip) control.getObject("videoclip"); //$NON-NLS-1$
 
-				
 				// if newly loaded clip has no video use existing video, if any
 //        if (clip.getVideo()==null && existingVideo!=null) {
 //        	VideoClip existingClip = trackerPanel.getPlayer().getVideoClip();
@@ -3738,8 +3769,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		private void checkAddBasepath(XMLControl control, XMLControl child) {
-			if (!OSPRuntime.unzipFiles && child instanceof XMLControlElement
-					&& child.getBasepath() == null) {
+			if (!OSPRuntime.unzipFiles && child instanceof XMLControlElement && child.getBasepath() == null) {
 				child.setBasepath(control.getBasepath());
 			}
 		}
@@ -3748,5 +3778,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public void refreshMenuBar(String whereFrom) {
 		TMenuBar.getMenuBar(this).refresh(whereFrom);
 	}
-}
 
+	public boolean getAutoRefresh() {
+		return isAutoRefresh && Tracker.allowDataRefresh;
+	}
+
+	public void setAutoRefresh(boolean b) {
+		if (Tracker.allowDataRefresh)
+			isAutoRefresh = b;
+	}
+}

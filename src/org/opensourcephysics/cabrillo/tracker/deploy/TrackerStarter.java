@@ -374,6 +374,10 @@ public class TrackerStarter {
 	 * @return the loaded XMLControl, or null if no preferences file found
 	 */
 	public static XMLControl findPreferences() {
+		if (OSPRuntime.isJS)
+			return null;
+		
+		
   	// look for all prefs files in OSPRuntime.getDefaultSearchPaths()
 		// and in current directory
     Map<File, XMLControl> controls = new HashMap<File, XMLControl>();

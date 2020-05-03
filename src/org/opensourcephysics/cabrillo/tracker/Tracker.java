@@ -123,6 +123,12 @@ import org.opensourcephysics.tools.ResourceLoader;
  */
 public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
+	public static boolean allowDataRefresh = false;
+	public static boolean allowPlotRefresh = false;
+	public static boolean allowMenuRefresh = false;
+	public static boolean allowViews = false;
+		
+	
 	static {
 		XML.setLoader(Preferences.class, new Preferences.Loader());
 	}
@@ -328,7 +334,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		setDefaultConfig(getFullConfig());
 		loadPreferences();
-		if (!OSPRuntime.isJS) /** @j2sNative */ {
+		if (!OSPRuntime.isJS) /** @j2sNative */
+		{
 			// load current version after a delay to allow video engines to load
 			// and every 24 hours thereafter (if program is left running)
 			Timer timer = new Timer(86400000, new ActionListener() {
@@ -360,23 +367,30 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				return false;
 			}
 		};
-		autoloadDataFunctions();
 
-		// check for upgrade intervals
 		checkForUpgradeChoices = new ArrayList<String>();
 		checkForUpgradeIntervals = new HashMap<String, Integer>();
-		String s = "PrefsDialog.Upgrades.Always"; //$NON-NLS-1$
-		checkForUpgradeChoices.add(s);
-		checkForUpgradeIntervals.put(s, 0);
-		s = "PrefsDialog.Upgrades.Weekly"; //$NON-NLS-1$
-		checkForUpgradeChoices.add(s);
-		checkForUpgradeIntervals.put(s, 7);
-		s = "PrefsDialog.Upgrades.Monthly"; //$NON-NLS-1$
-		checkForUpgradeChoices.add(s);
-		checkForUpgradeIntervals.put(s, 30);
-		s = "PrefsDialog.Upgrades.Never"; //$NON-NLS-1$
-		checkForUpgradeChoices.add(s);
-		checkForUpgradeIntervals.put(s, 10000);
+
+		if (!OSPRuntime.isJS) /** @j2sNative */
+		{
+
+			autoloadDataFunctions();
+
+			// check for upgrade intervals
+			String s = "PrefsDialog.Upgrades.Always"; //$NON-NLS-1$
+			checkForUpgradeChoices.add(s);
+			checkForUpgradeIntervals.put(s, 0);
+			s = "PrefsDialog.Upgrades.Weekly"; //$NON-NLS-1$
+			checkForUpgradeChoices.add(s);
+			checkForUpgradeIntervals.put(s, 7);
+			s = "PrefsDialog.Upgrades.Monthly"; //$NON-NLS-1$
+			checkForUpgradeChoices.add(s);
+			checkForUpgradeIntervals.put(s, 30);
+			s = "PrefsDialog.Upgrades.Never"; //$NON-NLS-1$
+			checkForUpgradeChoices.add(s);
+			checkForUpgradeIntervals.put(s, 10000);
+
+		}
 
 		// create splash frame
 		Color darkred = new Color(153, 0, 0);
@@ -1547,7 +1561,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			Locale locale = Locale.getDefault();
 			String language = locale.getLanguage();
 			String country = locale.getCountry();
-			String engine = MovieFactory.getMovieVideoName(false);
+			String engine = getMovieVideoName(false);
 			String os = "unknownOS"; //$NON-NLS-1$
 			try { // system properties may not be readable in some environments
 				os = System.getProperty("os.name", "unknownOS").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1566,6 +1580,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			}
 		}
 		return page;
+	}
+
+	public static String getMovieVideoName(boolean b) {
+		return "Xuggle";
 	}
 
 	/**

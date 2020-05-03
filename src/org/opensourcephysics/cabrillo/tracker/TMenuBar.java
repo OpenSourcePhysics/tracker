@@ -298,9 +298,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		//BH first of three? refresh();
 	}
 
-	public void addNotify() {
-		super.addNotify();
-	}
 	/**
 	 * Sets the TrackerPanel for this menu bar
 	 *
@@ -1619,14 +1616,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 
 	protected void refreshAll(String whereFrom) {
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
-		OSPLog.debug("TMenuBar.refresh - rebuilding TMenuBar " + whereFrom);
-
+		OSPLog.debug("TMenuBar.refresh - rebuilding TMenuBar " + whereFrom + " " + Tracker.allowMenuRefresh);
+		if (!Tracker.allowMenuRefresh)
+			return;
 		refreshing = true; // signals listeners that items are being refreshed
 		if (OSPRuntime.isJS) {
 			// signals SwingJS that there is no need to do anything with the DOM during this process
 			// of rebuilding the menu. 
 			OSPRuntime.jsutil.setUIEnabled(this, false);
 		}
+		// AysncSwingWorker here?
 		refreshFileMenu();
 		refreshEditMenu();
 		refreshVideoMenu();
