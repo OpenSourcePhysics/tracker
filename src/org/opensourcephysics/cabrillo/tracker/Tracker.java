@@ -1547,7 +1547,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			Locale locale = Locale.getDefault();
 			String language = locale.getLanguage();
 			String country = locale.getCountry();
-			String engine = MovieFactory.getMovieVideoName(false);
+			String engine = MovieFactory.getMovieEngineName(false);
 			String os = "unknownOS"; //$NON-NLS-1$
 			try { // system properties may not be readable in some environments
 				os = System.getProperty("os.name", "unknownOS").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$

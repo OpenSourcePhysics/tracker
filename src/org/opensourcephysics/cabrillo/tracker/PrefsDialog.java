@@ -1478,7 +1478,7 @@ public class PrefsDialog extends JDialog {
 		prevMarkAtCurrentFrame = Tracker.markAtCurrentFrame;
 		prevCache = ResourceLoader.getOSPCache();
 		prevUpgradeInterval = Tracker.checkForUpgradeInterval;
-		prevEngine = MovieFactory.getMovieVideoName(false);
+		prevEngine = MovieFactory.getMovieEngineName(false);
 		prevZoomMouseWheel = Tracker.scrubMouseWheel;
 		prevCenterCalibrationStick = Tracker.centerCalibrationStick;
 		prevAutofill = Tracker.enableAutofill;
