@@ -42,7 +42,7 @@ import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.media.mov.MovieVideoI;
-import org.opensourcephysics.media.mov.PluginVideoI;
+import org.opensourcephysics.media.mov.SmoothPlayable;
 import org.opensourcephysics.tools.*;
 
 /**
@@ -2401,9 +2401,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 			if (video != null) {
 				video.setProperty("measure", null); //$NON-NLS-1$
-				if (video instanceof PluginVideoI) {
+				if (video instanceof SmoothPlayable) {
 					// if xuggle video, set smooth play per preferences
-					((PluginVideoI) video).setSmoothPlay(!Tracker.isXuggleFast);
+					((SmoothPlayable) video).setSmoothPlay(!Tracker.isXuggleFast);
 				}
 			}
 			changed = true;
