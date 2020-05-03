@@ -123,10 +123,10 @@ import org.opensourcephysics.tools.ResourceLoader;
  */
 public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
-	public static boolean allowDataRefresh = false;
-	public static boolean allowPlotRefresh = false;
-	public static boolean allowMenuRefresh = false;
-	public static boolean allowViews = false;
+	public static boolean allowDataRefresh = !OSPRuntime.isBHTest;
+	public static boolean allowPlotRefresh = !OSPRuntime.isBHTest;
+	public static boolean allowMenuRefresh = !OSPRuntime.isBHTest;
+	public static boolean allowViews = !OSPRuntime.isBHTest;
 		
 	
 	static {
