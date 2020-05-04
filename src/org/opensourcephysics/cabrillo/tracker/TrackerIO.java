@@ -406,7 +406,6 @@ public class TrackerIO extends VideoIO {
 		boolean isSave = false;
 		if (type.toLowerCase().equals("open")) { //$NON-NLS-1$
 			chooser.setMultiSelectionEnabled(false);
-			addVideoAccessory(chooser);
 			chooser.setAcceptAllFileFilterUsed(true);
 			chooser.addChoosableFileFilter(videoAndTrkFileFilter);
 			chooser.setFileFilter(videoAndTrkFileFilter);
@@ -428,7 +427,6 @@ public class TrackerIO extends VideoIO {
 			chooser.showOpenDialog(null, okOpen, resetChooser);
 		} else if (type.toLowerCase().equals("open video")) { // open video //$NON-NLS-1$
 			chooser.setMultiSelectionEnabled(false);
-			addVideoAccessory(chooser);
 			chooser.setAcceptAllFileFilterUsed(true);
 			chooser.addChoosableFileFilter(videoFileFilter);
 			chooser.setFileFilter(videoFileFilter);
@@ -509,14 +507,6 @@ public class TrackerIO extends VideoIO {
 		return (ret == null || isSave && !canWrite(ret) ? null : new File[] { ret });
 	}
   
-
-  	private static void addVideoAccessory(AsyncFileChooser chooser) {
-		if (OSPRuntime.isJS)
-			return;
-		chooser.setAccessory(getVideoEnginePanel());
-		getVideoEnginePanel().reset();
-	}
-
 	protected static File fixXML(AsyncFileChooser chooser) {
 	  	File file = chooser.getSelectedFile();
 		if (!defaultXMLExt.equals(getExtension(file))) {
@@ -1042,12 +1032,12 @@ public class TrackerIO extends VideoIO {
 					if (file == null) {
 						OSPLog.finer("no file to open"); //$NON-NLS-1$
 					} else {
-						openTabFileAsyncFinally(frame, file, getVideoEnginePanel().getSelectedVideoType());
+						openTabFileAsyncFinally(frame, file, null);
 					}
 					return null;
 				}
 
-			}); // $NON-NLS-1$
+			});
 		} else {
 			openTabFileAsyncFinally(frame, file, null);
 		}
@@ -1277,28 +1267,54 @@ public class TrackerIO extends VideoIO {
   public static void importVideo(final TrackerPanel trackerPanel) {
     JFileChooser chooser = getChooser();
     chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.ImportVideo.Title")); //$NON-NLS-1$
-    File[] files = getChooserFiles("open video"); //$NON-NLS-1$
-    if (files==null || files.length==0) {
-      return;
-    }
-    final VideoType vidType = getVideoEnginePanel().getSelectedVideoType();
-    // open in separate background thread if flagged
-    final File theFile = files[0];
-    Runnable importVideoRunner = new Runnable() {
-			public void run() {
-				TrackerIO.importVideo(theFile, trackerPanel, vidType);
-				OSPLog.finest("completed importing file " + theFile); //$NON-NLS-1$
+    // 2020.04.03 DB changed chooser to async
+		getChooserFilesAsync("open video", new Function<File[], Void>() {//$NON-NLS-1$
+
+			@Override
+			public Void apply(File[] files) {
+				final File file = (files == null ? null : files[0]);
+				if (file != null) {
+			    Runnable importVideoRunner = new Runnable() {
+						public void run() {
+							TrackerIO.importVideo(file, trackerPanel, null);
+							OSPLog.finest("completed importing file " + file); //$NON-NLS-1$
+						}
+				    };
+			    if (loadInSeparateThread) {
+			      Thread importVideoOpener = new Thread(importVideoRunner);
+			      importVideoOpener.setName("importVideo");
+			      
+			      importVideoOpener.setPriority(Thread.NORM_PRIORITY);
+			      importVideoOpener.setDaemon(true);
+			      importVideoOpener.start(); 
+			    }
+			    else importVideoRunner.run();
+				}
+				return null;
 			}
-	    };
-    if (loadInSeparateThread) {
-      Thread importVideoOpener = new Thread(importVideoRunner);
-      importVideoOpener.setName("importVideo");
-      
-      importVideoOpener.setPriority(Thread.NORM_PRIORITY);
-      importVideoOpener.setDaemon(true);
-      importVideoOpener.start(); 
-    }
-    else importVideoRunner.run();
+
+		}); 
+//    File[] files = getChooserFiles("open video"); //$NON-NLS-1$
+//    if (files==null || files.length==0) {
+//      return;
+//    }
+//    // open in separate background thread if flagged
+//    final File theFile = files[0];
+//    Runnable importVideoRunner = new Runnable() {
+//			public void run() {
+//				TrackerIO.importVideo(theFile, trackerPanel, null);
+//				OSPLog.finest("completed importing file " + theFile); //$NON-NLS-1$
+//			}
+//	    };
+//    if (loadInSeparateThread) {
+//      Thread importVideoOpener = new Thread(importVideoRunner);
+//      importVideoOpener.setName("importVideo");
+//      
+//      importVideoOpener.setPriority(Thread.NORM_PRIORITY);
+//      importVideoOpener.setDaemon(true);
+//      importVideoOpener.start(); 
+//    }
+//    else importVideoRunner.run();
   }
 
   /**
@@ -1306,7 +1322,7 @@ public class TrackerIO extends VideoIO {
    *
    * @param file the video file
    * @param trackerPanel the tracker panel
-   * @param vidType the preferred video type
+   * @param vidType the preferred video type (may be null)
    */
   public static void importVideo(File file, TrackerPanel trackerPanel, VideoType vidType) {
   	String path = XML.getAbsolutePath(file);
