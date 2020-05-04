@@ -51,7 +51,7 @@ abstract public class ParticleModel extends PointMass {
 	// static fields
 	protected static int tracePtsPerStep = 10;
 	protected static boolean loading = false;
-	protected static Point2D nan = new Point2D.Double(Double.NaN, Double.NaN);
+	protected static Point2D.Double nan = new Point2D.Double(Double.NaN, Double.NaN);
 	protected static double xLimit = 8000, yLimit = 6000; // too far off screen
 	protected static NumberFormat timeFormat = NumberFormat.getNumberInstance();
 
@@ -108,6 +108,7 @@ abstract public class ParticleModel extends PointMass {
 	 * @param panel the drawing panel requesting the drawing
 	 * @param _g    the graphics context on which to draw
 	 */
+	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
 		if (!(panel instanceof TrackerPanel) || trackerPanel == null)
 			return;
@@ -129,6 +130,7 @@ abstract public class ParticleModel extends PointMass {
 			positionModelBuilder();
 			if (showModelBuilder)
 				SwingUtilities.invokeLater(new Runnable() {
+					@Override
 					public void run() {
 						showModelBuilder = false;
 						modelBuilder.setVisible(true);
@@ -175,6 +177,7 @@ abstract public class ParticleModel extends PointMass {
 	/**
 	 * Removes this particle from all panels that draw it. Overrides TTrack method.
 	 */
+	@Override
 	public void delete() {
 		FunctionTool modelBuilder = null;
 		if (trackerPanel != null && trackerPanel.modelBuilder != null) {
@@ -193,6 +196,7 @@ abstract public class ParticleModel extends PointMass {
 	 * 
 	 * @param e the property change event
 	 */
+	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		super.propertyChange(e);
 		if (trackerPanel == null)
@@ -277,6 +281,7 @@ abstract public class ParticleModel extends PointMass {
 	 * 
 	 * @return the mass
 	 */
+	@Override
 	public double getMass() {
 		Parameter massParam = (Parameter) getParamEditor().getObject("m"); //$NON-NLS-1$
 		if (massParam != null)
@@ -289,6 +294,7 @@ abstract public class ParticleModel extends PointMass {
 	 * 
 	 * @param mass the mass
 	 */
+	@Override
 	public void setMass(double mass) {
 		super.setMass(mass);
 		mass = super.getMass();
@@ -306,6 +312,7 @@ abstract public class ParticleModel extends PointMass {
 	 * 
 	 * @param name the name
 	 */
+	@Override
 	public void setName(String name) {
 		String prevName = getName();
 		super.setName(name);
@@ -328,6 +335,7 @@ abstract public class ParticleModel extends PointMass {
 	 *
 	 * @return true if autotrackable
 	 */
+	@Override
 	protected boolean isAutoTrackable() {
 		return false;
 	}
@@ -340,6 +348,7 @@ abstract public class ParticleModel extends PointMass {
 	 * @param ypix  the y pixel position on the panel
 	 * @return the first step or motion vector that is hit
 	 */
+	@Override
 	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
 		Interactive ia = super.findInteractive(panel, xpix, ypix);
 		if (ia instanceof PositionStep.Position) {
@@ -354,6 +363,7 @@ abstract public class ParticleModel extends PointMass {
 	 * 
 	 * @param locked ignored
 	 */
+	@Override
 	public void setLocked(boolean locked) {/** empty block */
 	}
 
@@ -362,6 +372,7 @@ abstract public class ParticleModel extends PointMass {
 	 * 
 	 * @return <code>true</code> if this track is dependent
 	 */
+	@Override
 	public boolean isDependent() {
 		return true;
 	}
@@ -372,6 +383,7 @@ abstract public class ParticleModel extends PointMass {
 	 * @param n the frame number
 	 * @return <code>true</code> always since gets data from model
 	 */
+	@Override
 	public boolean isStepComplete(int n) {
 		return true;
 	}
@@ -382,11 +394,13 @@ abstract public class ParticleModel extends PointMass {
 	 * @param trackerPanel the tracker panel
 	 * @return a menu
 	 */
+	@Override
 	public JMenu getMenu(TrackerPanel trackerPanel) {
 		if (modelBuilderItem == null) {
 			// create the model item
 			modelBuilderItem = new JMenuItem();
 			modelBuilderItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					positionModelBuilder();
 					getModelBuilder().setVisible(true);
@@ -396,6 +410,7 @@ abstract public class ParticleModel extends PointMass {
 			useDefaultRefFrameItem = new JCheckBoxMenuItem();
 			useDefaultRefFrameItem.setSelected(!useDefaultReferenceFrame);
 			useDefaultRefFrameItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					setUseDefaultReferenceFrame(!useDefaultRefFrameItem.isSelected());
 					if (ParticleModel.this.trackerPanel.getCoords() instanceof ReferenceFrame) {
@@ -407,6 +422,7 @@ abstract public class ParticleModel extends PointMass {
 			// create the stamp item
 			stampItem = new JMenuItem();
 			stampItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					refreshSteps();
 					PointMass pm = new PointMass();
@@ -496,6 +512,7 @@ abstract public class ParticleModel extends PointMass {
 	 * @param point        the TPoint
 	 * @return a list of components
 	 */
+	@Override
 	public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel, TPoint point) {
 		ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
 		xField.setEnabled(false);
@@ -573,6 +590,7 @@ abstract public class ParticleModel extends PointMass {
 	 *
 	 * @param panel the TrackerPanel
 	 */
+	@Override
 	protected void setTrackerPanel(TrackerPanel panel) {
 		super.setTrackerPanel(panel);
 		if (panel != null) {
@@ -593,6 +611,7 @@ abstract public class ParticleModel extends PointMass {
 	 *
 	 * @param radians <code>true</code> for radians, false for degrees
 	 */
+	@Override
 	protected void setAnglesInRadians(boolean radians) {
 		super.setAnglesInRadians(radians);
 		functionPanel.initEditor.setAnglesInDegrees(!radians);
@@ -633,9 +652,10 @@ abstract public class ParticleModel extends PointMass {
 
 	/**
 	 * Gets the next trace positions. Subclasses override to get positions based on
-	 * model.
+	 * model. Value is stored in the points field
+	 * @return TODO
 	 */
-	abstract Point2D[] getNextTracePositions();
+	abstract boolean getNextTracePositions();
 
 	/**
 	 * Resets model parameters and sets position(s) for start frame. Most of the
@@ -645,6 +665,10 @@ abstract public class ParticleModel extends PointMass {
 //		invalidWarningShown = false;	
 	}
 
+	protected Point2D.Double[] points;
+	protected int myPoint = 0;
+	
+	private ParticleModel[] me = new ParticleModel[] {this};
 	/**
 	 * Gets the particle models associated with this model. By default this model is
 	 * returned.
@@ -652,7 +676,7 @@ abstract public class ParticleModel extends PointMass {
 	 * @return array of particle models associated with this model
 	 */
 	protected ParticleModel[] getModels() {
-		return new ParticleModel[] { this };
+		return me;
 	}
 
 	protected boolean isModelsVisible() {
@@ -681,7 +705,7 @@ abstract public class ParticleModel extends PointMass {
 			refreshing = prev;
 		}
 	}
-
+	
 	/**
 	 * Refreshes step positions.
 	 */
@@ -741,17 +765,18 @@ abstract public class ParticleModel extends PointMass {
 				int stepNumber = i + 1;
 				int frameNumber = start + (int) (stepNumber * stepSize);
 				time = startTime + stepNumber * dt;
-				Point2D[] points = getNextTracePositions();
-				if (points == null)
+				if (!getNextTracePositions())
 					continue;
 				AffineTransform transform = coords.getToImageTransform(frameNumber);
 				for (int j = 0; j < models.length; j++) {
 					transform.transform(points[j], points[j]);
 					// determine if point is invalid due to out of bounds
-					boolean valid = Math.abs(points[j].getX()) < xLimit && Math.abs(points[j].getY()) < yLimit;
+					boolean valid = Math.abs(points[j].x) < xLimit 
+							&& Math.abs(points[j].y) < yLimit;
 					if (!valid && !invalidWarningShown) {
 						invalidWarningShown = true;
 						Runnable runner = new Runnable() { // avoids deadlock?
+							@Override
 							public void run() {
 //            		if (invalidWarningShown) return;
 								JOptionPane.showMessageDialog(trackerPanel,
@@ -763,8 +788,8 @@ abstract public class ParticleModel extends PointMass {
 						};
 						SwingUtilities.invokeLater(runner);
 					}
-					models[j].traceX[models[j].prevX.length + i] = valid ? points[j].getX() : Double.NaN;
-					models[j].traceY[models[j].prevY.length + i] = valid ? points[j].getY() : Double.NaN;
+					models[j].traceX[models[j].prevX.length + i] = valid ? points[j].x : Double.NaN;
+					models[j].traceY[models[j].prevY.length + i] = valid ? points[j].y : Double.NaN;
 					if (stepNumber % tracePtsPerStep == 0) { // refresh position step
 						saveState(frameNumber);
 						PositionStep step = (PositionStep) models[j].getStep(frameNumber);
@@ -785,7 +810,8 @@ abstract public class ParticleModel extends PointMass {
 			if (startUpdate > clip.getStepSize())
 				startUpdate -= clip.getStepSize();
 			lastValidFrame = end;
-			for (ParticleModel next : models) {
+			for (int m = 0, nm = models.length; m < nm; m++) {
+				ParticleModel next = models[m];
 				next.steps.setLength(end + 1);
 				coords = trackerPanel.getCoords(); // get active coords
 				// special treatment if this is the origin of current reference frame
@@ -801,9 +827,10 @@ abstract public class ParticleModel extends PointMass {
 						if (step == null)
 							continue;
 						AffineTransform transform = coords.getToImageTransform(frameNumber);
-						next.point.setLocation(0, 0);
-						transform.transform(next.point, next.point);
-						step.getPosition().setPosition(next.point); // this method is fast
+						Point2D.Double point = next.points[next.myPoint];
+						point.setLocation(0, 0);
+						transform.transform(point, point);
+						step.getPosition().setPosition(point); // this method is fast
 					}
 					next.refreshing = prev; // restore refreshing value
 					if (!refreshDerivsLater) {
@@ -993,6 +1020,7 @@ abstract public class ParticleModel extends PointMass {
 		param.setDescription(TrackerRes.getString("ParticleModel.Parameter.InitialTime.Description")); //$NON-NLS-1$
 		functionPanel.getInitEditor().addObject(param, false);
 		massParamListener = new PropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				if ("m".equals(e.getOldValue())) { //$NON-NLS-1$
 					if ("m".equals(e.getOldValue())) { //$NON-NLS-1$
@@ -1007,6 +1035,7 @@ abstract public class ParticleModel extends PointMass {
 		getParamEditor().addPropertyChangeListener(massParamListener);
 
 		timeParamListener = new PropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				if (refreshing)
 					return;
@@ -1104,6 +1133,7 @@ abstract public class ParticleModel extends PointMass {
 		 * @param control the control to save to
 		 * @param obj     the object to save
 		 */
+		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			ParticleModel p = (ParticleModel) obj;
 			// save mass
@@ -1159,6 +1189,7 @@ abstract public class ParticleModel extends PointMass {
 		 * @param control the control with the object data
 		 * @return the newly created object
 		 */
+		@Override
 		public Object createObject(XMLControl control) {
 			return null;
 		}
@@ -1170,6 +1201,7 @@ abstract public class ParticleModel extends PointMass {
 		 * @param obj     the object
 		 * @return the loaded object
 		 */
+		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			// load track data
 			XML.getLoader(TTrack.class).loadObject(control, obj);

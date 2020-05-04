@@ -84,7 +84,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	private DataClip dataClip;
 	private Data sourceData;
 	private double[] xData = { 0 }, yData = { 0 }, tData = { 0 };
-	private Point2D[] tracePosition; // used by getNextTracePositions() method
 	private int stepCounter;
 	private Object dataSource; // may be ParticleDataTrack leader
 	private boolean useDataTime;
@@ -129,7 +128,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 */
 	private ParticleDataTrack(Object source) {
 		dataSource = source;
-		tracePosition = new Point2D[] { point };
+		points = new Point2D.Double[] { new Point2D.Double() };
 		tracePtsPerStep = 1;
 
 		// set footprint and model footprint
@@ -147,6 +146,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		linesMenu = new JMenu();
 
 		allFootprintsListener = new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				String footprintName = e.getActionCommand();
 				if (getFootprint().getName().equals(footprintName))
@@ -165,6 +165,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 		};
 		allCircleFootprintsListener = new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 
 				XMLControl control = new XMLControlElement(new TrackProperties(ParticleDataTrack.this));
@@ -191,6 +192,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 		allColorItem = new JMenuItem();
 		allColorItem.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color color = getColor();
 				Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
@@ -206,6 +208,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		});
 		lineColorItem = new JMenuItem();
 		lineColorItem.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color color = getColor();
 				Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
@@ -218,6 +221,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		});
 		linesVisibleCheckbox = new JCheckBoxMenuItem();
 		linesVisibleCheckbox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (refreshing)
 					return;
@@ -228,6 +232,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		});
 		linesClosedCheckbox = new JCheckBoxMenuItem();
 		linesClosedCheckbox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (refreshing)
 					return;
@@ -241,6 +246,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		});
 		linesBoldCheckbox = new JCheckBoxMenuItem();
 		linesBoldCheckbox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (refreshing)
 					return;
@@ -387,6 +393,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return a menu
 	 */
+	@Override
 	public JMenu getMenu(TrackerPanel trackerPanel) {
 		if (getLeader() != this) {
 			return getPointMenu(trackerPanel);
@@ -526,6 +533,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			frame.checkClipboardListener();
 			final int h = TTrackBar.getTrackbar(trackerPanel).toolbarComponentHeight;
 			getLeader().reloadButton = new JButton() {
+				@Override
 				public Dimension getMaximumSize() {
 					Dimension dim = super.getMaximumSize();
 					dim.height = h;
@@ -540,6 +548,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			getLeader().reloadButton.setBorder(BorderFactory.createCompoundBorder(line, space));
 
 			getLeader().reloadButton.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					int tab = frame.getSelectedTab();
 					TrackerPanel panel = frame.getTrackerPanel(tab);
@@ -916,6 +925,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * 
 	 * @return the data (may return null)
 	 */
+	@Override
 	public Data getData() {
 		return sourceData;
 	}
@@ -925,6 +935,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * 
 	 * @return the source (may return null)
 	 */
+	@Override
 	public Object getSource() {
 		return dataSource;
 	}
@@ -943,6 +954,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * 
 	 * @return the data clip
 	 */
+	@Override
 	public DataClip getDataClip() {
 		if (dataClip == null) {
 			dataClip = new DataClip();
@@ -1012,6 +1024,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * 
 	 * @return true if time data is available
 	 */
+	@Override
 	public boolean isTimeDataAvailable() {
 		if (dataClip == null || getVideoClip() == null)
 			return false;
@@ -1024,6 +1037,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * 
 	 * @return the start time (assumed in seconds), or Double.NaN if unavailable
 	 */
+	@Override
 	public double getVideoStartTime() {
 		if (!isTimeDataAvailable())
 			return Double.NaN;
@@ -1037,6 +1051,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * 
 	 * @return the frame duration (assumed in seconds), or Double.NaN if unavailable
 	 */
+	@Override
 	public double getFrameDuration() {
 		if (!isTimeDataAvailable())
 			return Double.NaN;
@@ -1118,14 +1133,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	}
 
 	@Override
-	Point2D[] getNextTracePositions() {
+	boolean getNextTracePositions() {
 		stepCounter++;
 		int index = getDataIndexAtVideoStepNumber(stepCounter);
 		if (index < 0 || index >= xData.length || index >= yData.length) {
-			return null;
+			return false;
 		}
-		point.setLocation(xData[index], yData[index]);
-		return tracePosition;
+		points[myPoint].setLocation(xData[index], yData[index]);
+		return true;
 	}
 
 	/**
@@ -1268,6 +1283,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		while (useDefault && coords instanceof ReferenceFrame) {
 			coords = ((ReferenceFrame) coords).getCoords();
 		}
+		
+		Point2D.Double point = points[myPoint];
 
 		// get data index and firstFrameInVideoClip
 		VideoClip vidClip = getVideoClip();
@@ -1285,7 +1302,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			if (i < firstFrameInVideoClip || index == -1)
 				steps.setStep(i, null);
 			else {
-				PositionStep step = createPositionStep(this, i, point.getX(), point.getY());
+				PositionStep step = createPositionStep(this, i, point.x, point.y);
 				step.setFootprint(getFootprint());
 				steps.setStep(i, step);
 				refreshData(data, trackerPanel, firstFrameInVideoClip, 1);
@@ -1297,8 +1314,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		getAArray(trackerPanel).setLength(0);
 
 		// reset trace data
-		traceX = new double[] { point.getX() };
-		traceY = new double[] { point.getY() };
+		traceX = new double[] { point.x };
+		traceY = new double[] { point.y };
 		lastValidFrame = firstFrameInVideoClip;
 		stepCounter = 0;
 	}
@@ -1717,6 +1734,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		param.setDescription(TrackerRes.getString("ParticleModel.Parameter.InitialTime.Description")); //$NON-NLS-1$
 		functionPanel.getInitEditor().addObject(param, false);
 		getInitEditor().addPropertyChangeListener(new PropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				if (refreshing)
 					return;
@@ -1841,6 +1859,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 */
 	static class Loader implements XML.ObjectLoader {
 
+		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			ParticleDataTrack dataTrack = (ParticleDataTrack) obj;
 			// save mass
@@ -1900,6 +1919,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 		}
 
+		@Override
 		public Object createObject(XMLControl control) {
 			double[][] coreData = new double[3][];
 			coreData[0] = (double[]) control.getObject("x"); //$NON-NLS-1$
@@ -1920,6 +1940,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			return new ParticleDataTrack(coreData, pointData);
 		}
 
+		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			ParticleDataTrack dataTrack = (ParticleDataTrack) obj;
 			// load track data and mass

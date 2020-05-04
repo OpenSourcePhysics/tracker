@@ -1566,7 +1566,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				}
 				double x = loc1.getX() - loc0.getX();
 				double y = loc1.getY() - loc0.getY();
-				derivatives1[i] = new double[] { x, y };
+				if (derivatives1[i] == null) {
+					derivatives1[i] = new double[] { x, y };
+				} else {
+					derivatives1[i][0] = x;
+					derivatives1[i][1] = y;
+					
+				}
 			}
 			return derivatives1;
 		} else if (order == 2) { // acceleration
@@ -1584,7 +1590,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				}
 				double x = loc2.getX() - 2 * loc1.getX() + loc0.getX();
 				double y = loc2.getY() - 2 * loc1.getY() + loc0.getY();
-				derivatives2[i] = new double[] { x, y };
+				if (derivatives2[i] == null) {
+					derivatives2[i] = new double[] { x, y };
+				} else {
+					derivatives2[i][0] = x;
+					derivatives2[i][1] = y;
+					
+				}
 			}
 			return derivatives2;
 		} else if (order == 3) { // jerk
@@ -1603,7 +1615,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				}
 				double x = loc3.getX() - 3 * loc2.getX() + 3 * loc1.getX() - loc0.getX();
 				double y = loc3.getY() - 3 * loc2.getY() + 3 * loc1.getY() - loc0.getY();
-				derivatives3[i] = new double[] { x, y };
+				if (derivatives3[i] == null) {
+					derivatives3[i] = new double[] { x, y };
+				} else {
+					derivatives3[i][0] = x;
+					derivatives3[i][1] = y;
+					
+				}
 			}
 			return derivatives3;
 		}

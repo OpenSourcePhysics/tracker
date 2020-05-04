@@ -393,9 +393,9 @@ public class PositionStep extends Step {
      *
      * @param point the image position
      */
-    void setPosition(Point2D point) {
-      this.x = point.getX();    	
-      this.y = point.getY();    	
+    void setPosition(Point2D.Double point) {
+      this.x = point.x;    	
+      this.y = point.y;    	
     }
     
     /**

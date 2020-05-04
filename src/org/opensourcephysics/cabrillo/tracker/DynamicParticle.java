@@ -57,7 +57,6 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	protected ODESolver solver = new RK4(this);
 	protected int iterationsPerStep = 100;
 	protected DynamicSystem system;
-	protected Point2D[] points;
 	protected HashMap<Integer, double[]> frameStates = new HashMap<Integer, double[]>();
 	protected ModelBooster modelBooster = new ModelBooster();
 
@@ -67,7 +66,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	public DynamicParticle() {
 		// create initial condition parameters
 		initializeInitEditor();
-		points = new Point2D[] { point };
+		points = new Point2D.Double[] { new Point2D.Double() };
 	}
 
 	/**
@@ -76,6 +75,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * @param panel the drawing panel requesting the drawing
 	 * @param _g    the graphics context on which to draw
 	 */
+	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
 		// if a booster is named, set the booster to the named point mass
 		if (boosterName != null && panel instanceof TrackerPanel) {
@@ -99,6 +99,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 *
 	 * @return the display name
 	 */
+	@Override
 	public String getDisplayName() {
 		String s = getName();
 		if (system == null)
@@ -111,6 +112,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * Deletes this particle. Overrides ParticleModel method to warn user if this is
 	 * part of a DynamicSystem.
 	 */
+	@Override
 	public void delete() {
 		// if this is part of a system, warn user
 		if (system != null) {
@@ -135,6 +137,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	/**
 	 * Refreshes step positions.
 	 */
+	@Override
 	protected void refreshSteps() {
 		if (system == null)
 			super.refreshSteps();
@@ -144,6 +147,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * Resets parameters, initializes solver and sets position(s) for start frame or
 	 * first clip frame following.
 	 */
+	@Override
 	public void reset() {
 		if (system != null)
 			return;
@@ -235,6 +239,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * 
 	 * @return the state
 	 */
+	@Override
 	public double[] getState() {
 		if (system != null) {
 			return system.getState(this);
@@ -247,6 +252,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * 
 	 * @param frameNumber the frame number
 	 */
+	@Override
 	protected void saveState(int frameNumber) {
 		frameStates.put(frameNumber, getState().clone());
 	}
@@ -257,6 +263,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * @param frameNumber the frame number
 	 * @return true if state successfully restored
 	 */
+	@Override
 	protected boolean restoreState(int frameNumber) {
 		double[] savedState = frameStates.get(frameNumber);
 		if (savedState != null) {
@@ -266,6 +273,8 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		return false;
 	}
 
+	private double[] temp = new double[2];
+	
 	/**
 	 * Gets the rate {vx, ax, vy, ay, 1} based on a specified state {x, vx, y, vy,
 	 * t}.
@@ -273,13 +282,14 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * @param state the state
 	 * @param rate  the rate of change of the state
 	 */
+	@Override
 	public void getRate(double[] state, double[] rate) {
-		double[] f = getXYForces(state);
+	    getXYForces(state, temp);
 		// rate is {vx, ax, vy, ay, 1}
 		rate[0] = state[1]; // dx/dt = vx
-		rate[1] = f[0] / getMass(); // dvx/dt = ax
+		rate[1] = temp[0] / getMass(); // dvx/dt = ax
 		rate[2] = state[3]; // dy/dt = vy
-		rate[3] = f[1] / getMass(); // dvy/dt = ay
+		rate[3] = temp[1] / getMass(); // dvy/dt = ay
 		rate[4] = 1; // dt/dt = 1
 	}
 
@@ -321,6 +331,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * 
 	 * @return the start frame
 	 */
+	@Override
 	public int getStartFrame() {
 		if (system != null)
 			return system.getStartFrame();
@@ -332,6 +343,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * 
 	 * @param n the desired start frame
 	 */
+	@Override
 	public void setStartFrame(int n) {
 		if (system != null) {
 			system.setStartFrame(n);
@@ -349,6 +361,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * 
 	 * @return the end frame
 	 */
+	@Override
 	public int getEndFrame() {
 		if (system != null)
 			return system.getEndFrame();
@@ -360,6 +373,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * 
 	 * @param n the desired end frame
 	 */
+	@Override
 	public void setEndFrame(int n) {
 		if (system != null)
 			system.setEndFrame(n);
@@ -372,14 +386,13 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * t}.
 	 * 
 	 * @param cartesianState the state
-	 * @return the forces
+	 * @param ret the forces [fx, fy]
 	 */
-	protected double[] getXYForces(double[] cartesianState) {
+	protected void getXYForces(double[] cartesianState, double[] ret) {
 		UserFunction[] f = getFunctionEditor().getMainFunctions();
 		// state is {x, vx, y, vy, t}
-		double fx = f[0].evaluate(cartesianState);
-		double fy = f[1].evaluate(cartesianState);
-		return new double[] { fx, fy };
+		ret[0] = f[0].evaluate(cartesianState);
+		ret[1] = f[1].evaluate(cartesianState);
 	}
 
 	/**
@@ -415,6 +428,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	/**
 	 * Creates and initializes the ModelFunctionPanel.
 	 */
+	@Override
 	protected void initializeFunctionPanel() {
 		// create panel
 		functionEditor = new UserFunctionEditor();
@@ -441,12 +455,13 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * 
 	 * @return an array of points at the trace positions
 	 */
-	protected Point2D[] getNextTracePositions() {
+	@Override
+	protected boolean getNextTracePositions() {
 		for (int i = 0; i < iterationsPerStep; i++) {
 			solver.step();
 		}
 		setTracePositions(getState());
-		return points;
+		return true;
 	}
 
 	/**
@@ -625,6 +640,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		 * 
 		 * @param e the event
 		 */
+		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (booster == null)
 				return;
@@ -675,6 +691,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		 * @param control the control to save to
 		 * @param obj     the object to save
 		 */
+		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			// save particle model data
 			DynamicParticle p = (DynamicParticle) obj;
@@ -692,6 +709,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		 * @param control the control with the object data
 		 * @return the newly created object
 		 */
+		@Override
 		public Object createObject(XMLControl control) {
 			return new DynamicParticle();
 		}
@@ -703,6 +721,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		 * @param obj     the object
 		 * @return the loaded object
 		 */
+		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			DynamicParticle p = (DynamicParticle) obj;
 			try {

@@ -394,8 +394,8 @@ public class CenterOfMass extends PointMass {
       	cmStep.getPosition().setXY(x, y);
       }
       else {
-      	point.setLocation(x, y);
-      	cmStep.getPosition().setPosition(point);
+      	points[0].setLocation(x, y);
+      	cmStep.getPosition().setPosition(points[0]);
       }
     }
     locked = true;

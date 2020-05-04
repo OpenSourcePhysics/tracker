@@ -85,7 +85,7 @@ public abstract class TTrack implements Interactive,
   protected HashMap<String, Object> properties = new HashMap<String, Object>();
   protected DatasetManager data;
   protected HashMap<TrackerPanel, double[]> worldBounds = new HashMap<TrackerPanel, double[]>();
-  protected Point2D point = new Point2D.Double();
+  protected final Point2D.Double[] points = new Point2D.Double[] { new Point2D.Double() };
   protected ArrayList<Component> toolbarTrackComponents = new ArrayList<Component>();
   protected ArrayList<Component> toolbarPointComponents = new ArrayList<Component>();
   protected TextLineLabel xLabel, yLabel, magLabel, angleLabel;
