@@ -30,6 +30,7 @@ import javax.swing.JOptionPane;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -148,7 +149,7 @@ public class CalibrationStep extends Step {
         public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           g.setPaint(color);
-          g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+          if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
           for (int i = 0; i < points.length; i++) {
             if (shapes[i] != null) g.fill(shapes[i]);

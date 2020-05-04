@@ -30,6 +30,8 @@ import java.util.*;
 
 import javax.swing.*;
 
+import org.opensourcephysics.controls.OSPLog;
+
 /**
  * This displays a view of a single track on a TrackerPanel.
  *
@@ -123,7 +125,9 @@ public abstract class TrackView extends JScrollPane
   }
   
   protected boolean isRefreshEnabled() {
-  	return trackerPanel.getAutoRefresh() && parent.isTrackViewDisplayed(getTrack());
+	  
+  	return Tracker.allowDataRefresh &&  			
+  			trackerPanel.getAutoRefresh() && parent.isTrackViewDisplayed(getTrack());
   }
 
 }

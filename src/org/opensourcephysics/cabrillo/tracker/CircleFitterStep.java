@@ -756,8 +756,9 @@ public class CircleFitterStep extends Step {
     	TTrack track = getTrack();
     	if (this.attachedTo!=null && track.trackerPanel!=null) {
     		ArrayList<PointMass> masses = track.trackerPanel.getDrawables(PointMass.class);
-    		for (PointMass next: masses) {
-    			Step step = next.getStep(attachedTo, track.trackerPanel);
+    		for (int i = 0, n = masses.size(); i < n; i++) {
+    			PointMass m = masses.get(i);
+    			Step step = m.getStep(attachedTo, track.trackerPanel);
     			if (step!=null) return step;
     		}
     	}

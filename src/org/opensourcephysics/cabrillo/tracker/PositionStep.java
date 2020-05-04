@@ -218,7 +218,7 @@ public class PositionStep extends Step {
           = transform.createTransformedShape(selectionShape);
         mark = new Mark() {
           public void draw(Graphics2D g, boolean highlighted) {
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+            if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
             Paint gpaint = g.getPaint();
             g.setPaint(color);

@@ -28,6 +28,8 @@ import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.*;
 
+import org.opensourcephysics.display.OSPRuntime;
+
 /**
  * This Icon centers and fills the shape specified in its constructor.
  *
@@ -123,17 +125,15 @@ public class ShapeIcon implements Icon {
    * @param y the y coordinate of the icon
    */
   public void paintIcon(Component c, Graphics _g, int x, int y) {
-    Graphics2D g = (Graphics2D)_g;
+    Graphics2D g = (Graphics2D)_g.create();
     AffineTransform at = AffineTransform.getTranslateInstance(
                          x + offsetX, y + offsetY);
 
     // save current graphics paint and clip
-    Paint gPaint = g.getPaint();
-    Shape gClip = g.getClip();
 
     // render shape(s)
     g.setPaint(color);
-    g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+    if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                        RenderingHints.VALUE_ANTIALIAS_ON);
     g.clipRect(x, y, w, h);
 
@@ -148,7 +148,6 @@ public class ShapeIcon implements Icon {
       g.fill(at.createTransformedShape(decoration));
     }
     // restore graphics paint and clip
-    g.setPaint(gPaint);
-    g.setClip(gClip);
+    g.dispose();
   }
 }

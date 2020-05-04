@@ -32,6 +32,7 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import org.opensourcephysics.cabrillo.tracker.Vector;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -102,28 +103,28 @@ public class VectorSumInspector extends JDialog
     updateDisplay();
   }
 
-  /**
-   * Disposes of this inpector.
-   */
-  public void dispose() {
-    checkboxPanel.removeAll();
-    if (trackerPanel != null) {
-      trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-      Iterator<Vector> it = trackerPanel.getDrawables(Vector.class).iterator();
-      while (it.hasNext()) {
-        Vector v = it.next();
-        v.removePropertyChangeListener("name", this); //$NON-NLS-1$
-        v.removePropertyChangeListener("color", this); //$NON-NLS-1$
-        v.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      }
-      TFrame frame = trackerPanel.getTFrame();
-      if (frame != null) {
-        frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
-      }
-      trackerPanel = null;
-    }
-    super.dispose();
-  }
+	/**
+	 * Disposes of this inpector.
+	 */
+	public void dispose() {
+		checkboxPanel.removeAll();
+		if (trackerPanel != null) {
+			trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+			ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
+			for (int k = 0, n = list.size(); k < n; k++) {
+				Vector v = list.get(k);
+				v.removePropertyChangeListener("name", this); //$NON-NLS-1$
+				v.removePropertyChangeListener("color", this); //$NON-NLS-1$
+				v.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+			}
+			TFrame frame = trackerPanel.getTFrame();
+			if (frame != null) {
+				frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+			}
+			trackerPanel = null;
+		}
+		super.dispose();
+	}
 
   /**
    * Responds to property change events. VectorSumInspector listens for the
@@ -146,37 +147,37 @@ public class VectorSumInspector extends JDialog
     else updateDisplay();
   }
 
-  /**
-   * Updates this inspector to show sum's current vectors.
-   */
-  protected void updateDisplay() {
-    setTitle(TrackerRes.getString("VectorSumInspector.Title") //$NON-NLS-1$
-             + " \"" + sum.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-    // make checkboxes for all vectors (but not vector sums) in tracker panel
-    checkboxPanel.removeAll();
-    Iterator<Vector> it = trackerPanel.getDrawables(Vector.class).iterator();
-    while (it.hasNext()) {
-      Vector v = it.next();
-      v.removePropertyChangeListener("name", this); //$NON-NLS-1$
-      v.removePropertyChangeListener("color", this); //$NON-NLS-1$
-      v.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      v.addPropertyChangeListener("name", this); //$NON-NLS-1$
-      v.addPropertyChangeListener("color", this); //$NON-NLS-1$
-      v.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
-      if (v instanceof VectorSum) continue; // don't include other sums
-      JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(
-          v.getName(), v.getFootprint().getIcon(21, 16));
-      // check the checkbox and show components if vector is in the sum
-      if (sum.contains(v)) {
-        checkbox.setSelected(true);
-      }
-      checkbox.addActionListener(listener);
-      checkboxPanel.add(checkbox);
-    }
-  	FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
-    pack();
-    repaint();
-  }
+	/**
+	 * Updates this inspector to show sum's current vectors.
+	 */
+	protected void updateDisplay() {
+		setTitle(TrackerRes.getString("VectorSumInspector.Title") //$NON-NLS-1$
+				+ " \"" + sum.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+		// make checkboxes for all vectors (but not vector sums) in tracker panel
+		checkboxPanel.removeAll();
+		ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
+		for (int k = 0, n = list.size(); k < n; k++) {
+			Vector v = list.get(k);
+			v.removePropertyChangeListener("name", this); //$NON-NLS-1$
+			v.removePropertyChangeListener("color", this); //$NON-NLS-1$
+			v.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+			v.addPropertyChangeListener("name", this); //$NON-NLS-1$
+			v.addPropertyChangeListener("color", this); //$NON-NLS-1$
+			v.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
+			if (v instanceof VectorSum)
+				continue; // don't include other sums
+			JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(v.getName(), v.getFootprint().getIcon(21, 16));
+			// check the checkbox and show components if vector is in the sum
+			if (sum.contains(v)) {
+				checkbox.setSelected(true);
+			}
+			checkbox.addActionListener(listener);
+			checkboxPanel.add(checkbox);
+		}
+		FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
+		pack();
+		repaint();
+	}
 
 //_____________________________ private methods ____________________________
 
@@ -245,19 +246,21 @@ public class VectorSumInspector extends JDialog
      }
   }
 
-  /**
-   * Gets the vector with the specified name.
-   *
-   * @param name name of the vector
-   * @return the vector
-   */
-  private Vector getVector(String name) {
-    if (trackerPanel != null) {
-      ArrayList<Vector> tracks = trackerPanel.getDrawables(Vector.class);
-      for (Vector v: tracks) {
-        if (v.getName() == name) return v;
-      }
-    }
-    return null;
-  }
+	/**
+	 * Gets the vector with the specified name.
+	 *
+	 * @param name name of the vector
+	 * @return the vector
+	 */
+	private Vector getVector(String name) {
+		if (trackerPanel != null) {
+			ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
+			for (int k = 0, n = list.size(); k < n; k++) {
+				Vector v = list.get(k);
+				if (v.getName() == name)
+					return v;
+			}
+		}
+		return null;
+	}
 }

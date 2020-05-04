@@ -1201,7 +1201,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				final Shape selectedShape = transform.createTransformedShape(selectionShape);
 				selectionMark = new Mark() {
 					public void draw(Graphics2D g, boolean highlighted) {
-						g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+						if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 						g.fill(selectedShape);
 					}
 
@@ -1220,7 +1220,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					Paint gpaint = g.getPaint();
 					Color c = track.getFootprint().getColor();
 					g.setPaint(c);
-					g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+					if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					BasicStroke stroke = (BasicStroke) g.getStroke();
 					int n = trackerPanel.getFrameNumber();
 					FrameData frame = getFrame(n);

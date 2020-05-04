@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
 
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -141,7 +142,7 @@ public class OffsetOriginStep extends Step {
       mark = new Mark() {
         public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
-          g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+          if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
           g.setPaint(color);
           g.fill(fillShape);

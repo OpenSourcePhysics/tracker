@@ -90,28 +90,29 @@ public class VectorSum extends Vector {
     update();
   }
 
-  /**
-   * Overrides Vector draw method.
-   *
-   * @param panel the drawing panel requesting the drawing
-   * @param _g the graphics context on which to draw
-   */
-  public void draw(DrawingPanel panel, Graphics _g) {
-    // add vectors listed in vectorNames (this occurs on initial loading)
-    if (!vectorNames.isEmpty() && panel.getClass().equals(TrackerPanel.class)) {
-      TrackerPanel trackerPanel = (TrackerPanel) panel;
-      Iterator<String> it = vectorNames.iterator();
-      while (it.hasNext()) {
-        String name = it.next();
-        for (Vector v: trackerPanel.getDrawables(Vector.class)) {
-          if (v.getName().equals(name))
-            addVector(v);
-        }
-      }
-      vectorNames.clear();
-    }
-    super.draw(panel, _g);
-  }
+	/**
+	 * Overrides Vector draw method.
+	 *
+	 * @param panel the drawing panel requesting the drawing
+	 * @param _g    the graphics context on which to draw
+	 */
+	public void draw(DrawingPanel panel, Graphics _g) {
+		// add vectors listed in vectorNames (this occurs on initial loading)
+		if (!vectorNames.isEmpty() && panel.getClass().equals(TrackerPanel.class)) {
+			TrackerPanel trackerPanel = (TrackerPanel) panel;
+			for (int i = 0, ni = vectorNames.size(); i < ni; i++) {
+				String name = vectorNames.get(i);
+				ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
+				for (int k = 0, n = list.size(); k < n; k++) {
+					Vector v = list.get(k);
+					if (v.getName().equals(name))
+						addVector(v);
+				}
+			}
+			vectorNames.clear();
+		}
+		super.draw(panel, _g);
+	}
 
   /**
    * Finds the interactive drawable object located at the specified

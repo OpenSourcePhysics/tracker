@@ -126,26 +126,26 @@ public class DynamicSystemInspector extends JDialog
     isVisible = vis;
   }
 
-  /**
-   * Disposes of this inspector.
-   */
-  public void dispose() {
-    if (trackerPanel != null) {
-      trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-      Iterator<DynamicParticle> it = trackerPanel.getDrawables(DynamicParticle.class).iterator();
-      while (it.hasNext()) {
-        PointMass p = it.next();
-        p.removePropertyChangeListener("name", this); //$NON-NLS-1$
-        p.removePropertyChangeListener("color", this); //$NON-NLS-1$
-        p.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      }
-      TFrame frame = trackerPanel.getTFrame();
-      if (frame != null) {
-        frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
-      }
-    }
-    super.dispose();
-  }
+	/**
+	 * Disposes of this inspector.
+	 */
+	public void dispose() {
+		if (trackerPanel != null) {
+			trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+			ArrayList<DynamicParticle> list = trackerPanel.getDrawables(DynamicParticle.class);
+			for (int i = 0, ni = list.size(); i < ni; i++) {
+				DynamicParticle p = list.get(ni);
+				p.removePropertyChangeListener("name", this); //$NON-NLS-1$
+				p.removePropertyChangeListener("color", this); //$NON-NLS-1$
+				p.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+			}
+			TFrame frame = trackerPanel.getTFrame();
+			if (frame != null) {
+				frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+			}
+		}
+		super.dispose();
+	}
 
 //_____________________________ private methods ____________________________
 
@@ -154,114 +154,109 @@ public class DynamicSystemInspector extends JDialog
    */
   private void createGUI() {
     changeParticleListener = new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	final JButton button = (JButton)e.getSource();
-      	final int n = button==changeButtons[0]? 0: 1;
-      	final Action cloneAction = TActions.getAction("cloneTrack", trackerPanel); //$NON-NLS-1$
-      	final Action cartesianAction = TActions.getAction("dynamicParticle", trackerPanel); //$NON-NLS-1$
-      	final Action polarAction = TActions.getAction("dynamicParticlePolar", trackerPanel); //$NON-NLS-1$
-        JPopupMenu popup = new JPopupMenu();
-        boolean hasPopupItems = false;
-  	    JMenu cloneMenu = new JMenu(
-  	    		TrackerRes.getString("TMenuBar.MenuItem.Clone")); //$NON-NLS-1$
-  	    Iterator<DynamicParticle> it = trackerPanel.getDrawables(DynamicParticle.class).iterator();
-  	    while (it.hasNext()) {
-  	    	DynamicParticle p = it.next();
-  	      if (p instanceof DynamicSystem) continue; // no other systems
-  	      // add items to clone menu
-  	    	final JMenuItem cloneItem = new JMenuItem(p.getName(), p.getFootprint().getIcon(21, 16));
-  	    	cloneItem.setActionCommand(p.getName());
-  	    	cloneItem.addActionListener(new ActionListener() {
-			      public void actionPerformed(ActionEvent e) {
-			      	newParticle = null;
-			      	cloneAction.actionPerformed(e);
-	          	if (newParticle!=null) {
-	          		newParticle.getModelBuilder();
-		          	selectedParticles[n] = newParticle;
-				      	updateSystem();
-	          	}
-			      }
-			    });
-  	    	cloneMenu.add(cloneItem);
-  	      if (p==selectedParticles[0] 
-  	          || p==selectedParticles[1]
-          		|| p.system!=null) continue;
-  	      // add items to popup menu
-  	      hasPopupItems = true;
-  	    	final JMenuItem item = new JMenuItem(p.getName(), p.getFootprint().getIcon(21, 16)) {
-  	    		public Dimension getPreferredSize() {
-  	    			Dimension dim = super.getPreferredSize();
-  	    			int w = button.getPreferredSize().width-2;
-  	    			dim.width = Math.max(w, dim.width);
-  	    			return dim;
-  	    		}
-  	    	};
-  	    	item.addActionListener(new ActionListener() {
-			      public void actionPerformed(ActionEvent e) {
-	          	selectedParticles[n] = getParticle(item.getText());
-	          	updateSystem();
-			      }
-			    });
-  	    	popup.add(item);
-  	    }
-  	    if (hasPopupItems)
-  	    	popup.addSeparator();
-  	    JMenu newMenu = new JMenu(
-  	    		TrackerRes.getString("TrackControl.Button.NewTrack"))  { //$NON-NLS-1$
-	    		public Dimension getPreferredSize() {
-	    			Dimension dim = super.getPreferredSize();
-	    			int w = button.getPreferredSize().width-2;
-	    			dim.width = Math.max(w, dim.width);
-	    			return dim;
-	    		}
-  	    };
-  	    popup.add(newMenu);
-  	    
-  	    JMenuItem cartesianItem = new JMenuItem(
-  	    		TrackerRes.getString("TMenuBar.MenuItem.Cartesian")); //$NON-NLS-1$
-  	    cartesianItem.addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent e) {
-		      	newParticle = null;
-          	cartesianAction.actionPerformed(e);
-          	if (newParticle!=null) {
-          		newParticle.getModelBuilder();
-	          	selectedParticles[n] = newParticle;
-			      	updateSystem();
-          	}
-		      }
-		    });
-  	    newMenu.add(cartesianItem);
-  	    JMenuItem polarItem = new JMenuItem(
-  	    		TrackerRes.getString("TMenuBar.MenuItem.Polar")); //$NON-NLS-1$
-  	    polarItem.addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent e) {
-		      	newParticle = null;
-          	polarAction.actionPerformed(e);
-          	if (newParticle!=null) {
-          		newParticle.getModelBuilder();
-	          	selectedParticles[n] = newParticle;
-			      	updateSystem();
-          	}
-		      }
-		    });
-  	    newMenu.add(polarItem);
-  	    if (cloneMenu.getItemCount() > 0)
-  	    	popup.add(cloneMenu);
-  	    JMenuItem noneItem = new JMenuItem(
-  	    		TrackerRes.getString("DynamicSystemInspector.ParticleName.None")); //$NON-NLS-1$
-  	    noneItem.addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent e) {
-		      	newParticle = null;
-          	selectedParticles[n] = null;
-		      	updateSystem();
-		      }
-		    });
-  	    popup.addSeparator();
-  	    popup.add(noneItem); 	    
-  	    
-      	FontSizer.setFonts(popup, FontSizer.getLevel());
-        popup.show(button, 0, button.getHeight());
-      }
+			public void actionPerformed(ActionEvent e) {
+				final JButton button = (JButton) e.getSource();
+				final int n = button == changeButtons[0] ? 0 : 1;
+				final Action cloneAction = TActions.getAction("cloneTrack", trackerPanel); //$NON-NLS-1$
+				final Action cartesianAction = TActions.getAction("dynamicParticle", trackerPanel); //$NON-NLS-1$
+				final Action polarAction = TActions.getAction("dynamicParticlePolar", trackerPanel); //$NON-NLS-1$
+				JPopupMenu popup = new JPopupMenu();
+				boolean hasPopupItems = false;
+				JMenu cloneMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Clone")); //$NON-NLS-1$
+				ArrayList<DynamicParticle> list = trackerPanel.getDrawables(DynamicParticle.class);
+				for (int i = 0, ni = list.size(); i < ni; i++) {
+					DynamicParticle p = list.get(ni);
+					if (p instanceof DynamicSystem)
+						continue; // no other systems
+					// add items to clone menu
+					final JMenuItem cloneItem = new JMenuItem(p.getName(), p.getFootprint().getIcon(21, 16));
+					cloneItem.setActionCommand(p.getName());
+					cloneItem.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							newParticle = null;
+							cloneAction.actionPerformed(e);
+							if (newParticle != null) {
+								newParticle.getModelBuilder();
+								selectedParticles[n] = newParticle;
+								updateSystem();
+							}
+						}
+					});
+					cloneMenu.add(cloneItem);
+					if (p == selectedParticles[0] || p == selectedParticles[1] || p.system != null)
+						continue;
+					// add items to popup menu
+					hasPopupItems = true;
+					final JMenuItem item = new JMenuItem(p.getName(), p.getFootprint().getIcon(21, 16)) {
+						public Dimension getPreferredSize() {
+							Dimension dim = super.getPreferredSize();
+							int w = button.getPreferredSize().width - 2;
+							dim.width = Math.max(w, dim.width);
+							return dim;
+						}
+					};
+					item.addActionListener(new ActionListener() {
+						public void actionPerformed(ActionEvent e) {
+							selectedParticles[n] = getParticle(item.getText());
+							updateSystem();
+						}
+					});
+					popup.add(item);
+				}
+				if (hasPopupItems)
+					popup.addSeparator();
+				JMenu newMenu = new JMenu(TrackerRes.getString("TrackControl.Button.NewTrack")) { //$NON-NLS-1$
+					public Dimension getPreferredSize() {
+						Dimension dim = super.getPreferredSize();
+						int w = button.getPreferredSize().width - 2;
+						dim.width = Math.max(w, dim.width);
+						return dim;
+					}
+				};
+				popup.add(newMenu);
+
+				JMenuItem cartesianItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Cartesian")); //$NON-NLS-1$
+				cartesianItem.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						newParticle = null;
+						cartesianAction.actionPerformed(e);
+						if (newParticle != null) {
+							newParticle.getModelBuilder();
+							selectedParticles[n] = newParticle;
+							updateSystem();
+						}
+					}
+				});
+				newMenu.add(cartesianItem);
+				JMenuItem polarItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Polar")); //$NON-NLS-1$
+				polarItem.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						newParticle = null;
+						polarAction.actionPerformed(e);
+						if (newParticle != null) {
+							newParticle.getModelBuilder();
+							selectedParticles[n] = newParticle;
+							updateSystem();
+						}
+					}
+				});
+				newMenu.add(polarItem);
+				if (cloneMenu.getItemCount() > 0)
+					popup.add(cloneMenu);
+				JMenuItem noneItem = new JMenuItem(TrackerRes.getString("DynamicSystemInspector.ParticleName.None")); //$NON-NLS-1$
+				noneItem.addActionListener(new ActionListener() {
+					public void actionPerformed(ActionEvent e) {
+						newParticle = null;
+						selectedParticles[n] = null;
+						updateSystem();
+					}
+				});
+				popup.addSeparator();
+				popup.add(noneItem);
+
+				FontSizer.setFonts(popup, FontSizer.getLevel());
+				popup.show(button, 0, button.getHeight());
+			}
     };
   	selectListener = new MouseAdapter() {
   		public void mousePressed(MouseEvent e) {
@@ -361,19 +356,21 @@ public class DynamicSystemInspector extends JDialog
   	this.setVisible(true);
   }
 
-  /**
-   * Gets the particle with the specified name.
-   *
-   * @param name name of the particle
-   * @return the particle
-   */
-  private DynamicParticle getParticle(String name) {
-    ArrayList<DynamicParticle> particles = trackerPanel.getDrawables(DynamicParticle.class);
-    for (DynamicParticle p: particles) {
-      if (p.getName().equals(name)) return p;
-    }
-    return null;
-  }
+	/**
+	 * Gets the particle with the specified name.
+	 *
+	 * @param name name of the particle
+	 * @return the particle
+	 */
+	private DynamicParticle getParticle(String name) {
+		ArrayList<DynamicParticle> list = trackerPanel.getDrawables(DynamicParticle.class);
+		for (int i = 0, ni = list.size(); i < ni; i++) {
+			DynamicParticle p = list.get(ni);
+			if (p.getName().equals(name))
+				return p;
+		}
+		return null;
+	}
 
   /**
    * Updates this inspector to show the system's current particles.

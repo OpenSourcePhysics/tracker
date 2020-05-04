@@ -240,7 +240,7 @@ public class CoordAxesStep extends Step {
         public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           g.setPaint(color);
-          g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+          if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
           for (int i = 0; i < 2; i++) {
             if (fillShapes[i] != null)

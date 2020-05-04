@@ -37,6 +37,7 @@ import java.util.HashSet;
 
 import javax.swing.Icon;
 
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -167,7 +168,7 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
       public void draw(Graphics2D g, boolean highlighted) {
         Color gcolor = g.getColor();
         g.setColor(color);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+        if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
         g.fill(shape);
         g.setColor(gcolor);

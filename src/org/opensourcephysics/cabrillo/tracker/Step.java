@@ -228,27 +228,25 @@ public abstract class Step implements Cloneable {
   	marks.clear();
   }
 
-  /**
-   * Draws this step.
-   *
-   * @param panel the drawing panel requesting the drawing
-   * @param g the graphics context on which to draw
-   */
-  public void draw(DrawingPanel panel, Graphics g) {
-  	TTrack track = getTrack();
-		if (track.trackerPanel==panel) {
-			AutoTracker autoTracker = track.trackerPanel.getAutoTracker();
-			if (autoTracker.isInteracting(track)) return;
+	/**
+	 * Draws this step.
+	 *
+	 * @param panel the drawing panel requesting the drawing
+	 * @param g     the graphics context on which to draw
+	 */
+	public void draw(DrawingPanel panel, Graphics g) {
+		TTrack track = getTrack();
+		if (track.trackerPanel == panel && track.trackerPanel.getAutoTracker().isInteracting(track)) {
+			return;
 		}
-    TrackerPanel trackerPanel = (TrackerPanel)panel;
-    boolean highlighted = (trackerPanel.getFrameNumber() == n);
-    if (trackerPanel.autoTracker!=null 
-    		&& trackerPanel.autoTracker.getWizard().isVisible()
-    		&& trackerPanel.autoTracker.getTrack()==track) {
-    	highlighted = false;
-    }
-    getMark(trackerPanel).draw((Graphics2D)g, highlighted);
-  }
+		TrackerPanel trackerPanel = (TrackerPanel) panel;
+		boolean highlighted = (trackerPanel.getFrameNumber() == n);
+		if (trackerPanel.autoTracker != null && trackerPanel.autoTracker.getWizard().isVisible()
+				&& trackerPanel.autoTracker.getTrack() == track) {
+			highlighted = false;
+		}
+		getMark(trackerPanel).draw((Graphics2D) g, highlighted);
+	}
 
   /**
    * Finds the Interactive located at the specified pixel position.

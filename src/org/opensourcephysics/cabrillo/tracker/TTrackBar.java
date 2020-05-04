@@ -74,7 +74,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   static {
   	smallSelectIcon =  new ImageIcon(Tracker.getClassResource("resources/images/small_select.gif")); //$NON-NLS-1$
   	smallSelectIcon = new ResizableIcon(smallSelectIcon);
-  	if (Tracker.testOn) {
+  	if (!OSPRuntime.isJS && Tracker.testOn) {
 	  	testButton = new JButton("test"); //$NON-NLS-1$
 	  	testButton.addActionListener(new ActionListener() {
 	  		public void actionPerformed(ActionEvent e) {

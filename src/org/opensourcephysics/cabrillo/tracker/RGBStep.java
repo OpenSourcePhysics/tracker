@@ -166,7 +166,7 @@ public class RGBStep extends Step {
         public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           g.setPaint(footprint.getColor());
-          g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
+          if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
           		RenderingHints.VALUE_ANTIALIAS_ON);
           g.setStroke(stroke);
           if (square != null) g.fill(square);

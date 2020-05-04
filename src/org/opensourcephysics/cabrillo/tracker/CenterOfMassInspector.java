@@ -119,28 +119,28 @@ public class CenterOfMassInspector extends JDialog
     isVisible = vis;
   }
 
-  /**
-   * Disposes of this inspector.
-   */
-  public void dispose() {
-    checkboxPanel.removeAll();
-    if (trackerPanel != null) {
-      trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-      Iterator<PointMass> it = trackerPanel.getDrawables(PointMass.class).iterator();
-      while (it.hasNext()) {
-        PointMass p = it.next();
-        p.removePropertyChangeListener("name", this); //$NON-NLS-1$
-        p.removePropertyChangeListener("color", this); //$NON-NLS-1$
-        p.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      }
-      TFrame frame = trackerPanel.getTFrame();
-      if (frame != null) {
-        frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
-      }
-      trackerPanel = null;
-    }
-    super.dispose();
-  }
+	/**
+	 * Disposes of this inspector.
+	 */
+	public void dispose() {
+		checkboxPanel.removeAll();
+		if (trackerPanel != null) {
+			trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+			ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
+			for (int i = 0, n = masses.size(); i < n; i++) {
+				PointMass p = masses.get(i);
+				p.removePropertyChangeListener("name", this); //$NON-NLS-1$
+				p.removePropertyChangeListener("color", this); //$NON-NLS-1$
+				p.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+			}
+			TFrame frame = trackerPanel.getTFrame();
+			if (frame != null) {
+				frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+			}
+			trackerPanel = null;
+		}
+		super.dispose();
+	}
 
 //_____________________________ private methods ____________________________
 
@@ -201,41 +201,44 @@ public class CenterOfMassInspector extends JDialog
    * @return the point mass
    */
   private PointMass getPointMass(String name) {
+	  
     ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
-    for (PointMass m: masses) {
+	for (int i = 0, n = masses.size(); i < n; i++) {
+		PointMass m = masses.get(i);
       if (m.getName() == name) return m;
     }
     return null;
   }
 
-  /**
-   * Updates this inspector to show cm's current masses.
-   */
-  protected void updateDisplay() {
-    setTitle(TrackerRes.getString("CenterOfMassInspector.Title") //$NON-NLS-1$
-             + " \"" + cm.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-    // make checkboxes for all point masses in tracker panel
-    checkboxPanel.removeAll();
-    Iterator<PointMass> it = trackerPanel.getDrawables(PointMass.class).iterator();
-    while (it.hasNext()) {
-      PointMass m = it.next();
-      m.removePropertyChangeListener("name", this); //$NON-NLS-1$
-      m.removePropertyChangeListener("color", this); //$NON-NLS-1$
-      m.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-      m.addPropertyChangeListener("name", this); //$NON-NLS-1$
-      m.addPropertyChangeListener("color", this); //$NON-NLS-1$
-      m.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
-      if (m instanceof CenterOfMass) continue; // don't include other cms
-      JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(
-          m.getName(), m.getFootprint().getIcon(21, 16));
-      // check the checkbox if m is in the cm
-      if (cm.containsMass(m)) checkbox.setSelected(true);
-      checkbox.addActionListener(listener);
-      checkboxPanel.add(checkbox);
-    }
-  	FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
-    pack();
-    repaint();
-  }
+	/**
+	 * Updates this inspector to show cm's current masses.
+	 */
+	protected void updateDisplay() {
+		setTitle(TrackerRes.getString("CenterOfMassInspector.Title") //$NON-NLS-1$
+				+ " \"" + cm.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+		// make checkboxes for all point masses in tracker panel
+		checkboxPanel.removeAll();
+		ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
+		for (int i = 0, n = masses.size(); i < n; i++) {
+			PointMass m = masses.get(i);
+			m.removePropertyChangeListener("name", this); //$NON-NLS-1$
+			m.removePropertyChangeListener("color", this); //$NON-NLS-1$
+			m.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+			m.addPropertyChangeListener("name", this); //$NON-NLS-1$
+			m.addPropertyChangeListener("color", this); //$NON-NLS-1$
+			m.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
+			if (m instanceof CenterOfMass)
+				continue; // don't include other cms
+			JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(m.getName(), m.getFootprint().getIcon(21, 16));
+			// check the checkbox if m is in the cm
+			if (cm.containsMass(m))
+				checkbox.setSelected(true);
+			checkbox.addActionListener(listener);
+			checkboxPanel.add(checkbox);
+		}
+		FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
+		pack();
+		repaint();
+	}
 
 }

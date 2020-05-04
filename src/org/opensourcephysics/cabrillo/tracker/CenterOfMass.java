@@ -90,32 +90,32 @@ public class CenterOfMass extends PointMass {
     update();
   }
 
-  /**
-   * Overrides PointMass draw method.
-   *
-   * @param panel the drawing panel requesting the drawing
-   * @param _g the graphics context on which to draw
-   */
-  public void draw(DrawingPanel panel, Graphics _g) {
-    // add masses listed in massNames
-    if (!massNames.isEmpty() && panel instanceof TrackerPanel) {
-      TrackerPanel trackerPanel = (TrackerPanel) panel;
-      if (trackerPanel instanceof WorldTView) {
-      	trackerPanel = ((WorldTView)trackerPanel).getTrackerPanel();
-      }
-      ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
-      Iterator<String> it = massNames.iterator();
-      while (it.hasNext()) {
-        String name = it.next();
-        for (PointMass mass: masses) {
-          if (mass.getName().equals(name))
-            addMass(mass);
-        }
-      }
-      massNames.clear();
-    }
-    super.draw(panel, _g);
-  }
+	/**
+	 * Overrides PointMass draw method.
+	 *
+	 * @param panel the drawing panel requesting the drawing
+	 * @param _g    the graphics context on which to draw
+	 */
+	public void draw(DrawingPanel panel, Graphics _g) {
+		// add masses listed in massNames
+		if (!massNames.isEmpty() && panel instanceof TrackerPanel) {
+			TrackerPanel trackerPanel = (TrackerPanel) panel;
+			if (trackerPanel instanceof WorldTView) {
+				trackerPanel = ((WorldTView) trackerPanel).getTrackerPanel();
+			}
+			ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
+			for (int i = 0, n = massNames.size(); i < n; i++) {
+				String name = massNames.get(i);
+				for (int m = 0, nm = masses.size(); m < nm; m++) {
+					PointMass mass = masses.get(m);
+					if (mass.getName().equals(name))
+						addMass(mass);
+				}
+			}
+			massNames.clear();
+		}
+		super.draw(panel, _g);
+	}
 
   /**
    * Adds a mass to the cm system.
@@ -287,21 +287,23 @@ public class CenterOfMass extends PointMass {
     else super.propertyChange(e);
   }
 
-  /**
-   * Cleans up associated resources when this track is deleted or cleared.
-   */
-  protected void dispose() {
-  	super.dispose();
-    for (PointMass m: masses) {
-      if (m!=null) {
-        m.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-        m.removePropertyChangeListener("step", this); //$NON-NLS-1$
-        m.removePropertyChangeListener("steps", this); //$NON-NLS-1$
-      }
-    }
-    masses = new PointMass[0];
-		if (inspector != null) inspector.dispose();
-  }
+	/**
+	 * Cleans up associated resources when this track is deleted or cleared.
+	 */
+	protected void dispose() {
+		super.dispose();
+		for (int i = 0, n = masses.length; i < n; i++) {
+			PointMass m = masses[i];
+			if (m != null) {
+				m.removePropertyChangeListener("mass", this); //$NON-NLS-1$
+				m.removePropertyChangeListener("step", this); //$NON-NLS-1$
+				m.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+			}
+		}
+		masses = new PointMass[0];
+		if (inspector != null)
+			inspector.dispose();
+	}
 
   /**
    * Updates all cm steps.

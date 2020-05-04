@@ -955,7 +955,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				TMenuBar menuBar = getMenuBar(trackerPanel);
 				if (menuBar != null) {
 					setJMenuBar(menuBar);
-					menuBar.refresh("TFrame.prop change locale");
+					menuBar.refresh(TMenuBar.FROM_LOCALE);
 				}
 				// show hint
 				if (Tracker.startupHintShown) {
@@ -1281,66 +1281,69 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param menu the menu to refresh
 	 */
 	public void refreshOpenRecentMenu(final JMenu menu) {
-		synchronized (Tracker.recentFiles) {
-			menu.setText(TrackerRes.getString("TMenuBar.Menu.OpenRecent")); //$NON-NLS-1$
-			menu.setEnabled(!Tracker.recentFiles.isEmpty());
-			if (openRecentAction == null) {
-				openRecentAction = new AbstractAction() {
-					public void actionPerformed(ActionEvent e) {
-						String path = e.getActionCommand();
-						URL url = null;
-						File file = new File(path);
-						if (!file.exists()) {
-							int n = path.indexOf("!"); //$NON-NLS-1$
-							if (n > -1) {
-								file = new File(path.substring(0, n));
+		if (!OSPRuntime.isJS) /** @j2sNative */
+		{
+			synchronized (Tracker.recentFiles) {
+				menu.setText(TrackerRes.getString("TMenuBar.Menu.OpenRecent")); //$NON-NLS-1$
+				menu.setEnabled(!Tracker.recentFiles.isEmpty());
+				if (openRecentAction == null) {
+					openRecentAction = new AbstractAction() {
+						public void actionPerformed(ActionEvent e) {
+							String path = e.getActionCommand();
+							URL url = null;
+							File file = new File(path);
+							if (!file.exists()) {
+								int n = path.indexOf("!"); //$NON-NLS-1$
+								if (n > -1) {
+									file = new File(path.substring(0, n));
+								}
 							}
-						}
-						if (!file.exists()) {
-							try {
-								url = new URL(e.getActionCommand());
-							} catch (MalformedURLException e1) {
+							if (!file.exists()) {
+								try {
+									url = new URL(e.getActionCommand());
+								} catch (MalformedURLException e1) {
+								}
 							}
-						}
-						if (!file.exists() && url == null) {
-							Tracker.recentFiles.remove(e.getActionCommand());
-							int n = getSelectedTab();
-							if (n > -1) {
-								getTrackerPanel(n).refreshMenuBar("TFrame.openRecent");
-							} else {
-								refreshOpenRecentMenu(recentMenu);
+							if (!file.exists() && url == null) {
+								Tracker.recentFiles.remove(e.getActionCommand());
+								int n = getSelectedTab();
+								if (n > -1) {
+									getTrackerPanel(n).refreshMenuBar("TFrame.openRecent");
+								} else {
+									refreshOpenRecentMenu(recentMenu);
+								}
+								JOptionPane.showMessageDialog(TFrame.this,
+										TrackerRes.getString("TFrame.Dialog.FileNotFound.Message") //$NON-NLS-1$
+												+ "\n" + MediaRes.getString("VideoIO.Dialog.Label.Path") + ": " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+												+ e.getActionCommand(),
+										TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
+										JOptionPane.WARNING_MESSAGE);
+								return;
 							}
-							JOptionPane.showMessageDialog(TFrame.this,
-									TrackerRes.getString("TFrame.Dialog.FileNotFound.Message") //$NON-NLS-1$
-											+ "\n" + MediaRes.getString("VideoIO.Dialog.Label.Path") + ": " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-											+ e.getActionCommand(),
-									TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
-									JOptionPane.WARNING_MESSAGE);
-							return;
-						}
-						TrackerPanel selected = getTrackerPanel(getSelectedTab());
-						if (selected != null) {
-							selected.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-						}
-						TrackerIO.loadDataOrVideo(path, TFrame.this);
+							TrackerPanel selected = getTrackerPanel(getSelectedTab());
+							if (selected != null) {
+								selected.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+							}
+							TrackerIO.loadDataOrVideo(path, TFrame.this);
 //	        	if (url!=null)
 //	        		TrackerIO.open(url, TFrame.this);
 //	        	else 
 //	        		TrackerIO.open(file, TFrame.this);
-						setCursor(Cursor.getDefaultCursor());
-					}
-				};
+							setCursor(Cursor.getDefaultCursor());
+						}
+					};
+				}
+				menu.removeAll();
+				menu.setEnabled(!Tracker.recentFiles.isEmpty());
+				for (String next : Tracker.recentFiles) {
+					JMenuItem item = new JMenuItem(XML.getName(next));
+					item.setActionCommand(next);
+					item.setToolTipText(next);
+					item.addActionListener(openRecentAction);
+					menu.add(item);
+				}
+				FontSizer.setFonts(menu, FontSizer.getLevel());
 			}
-			menu.removeAll();
-			menu.setEnabled(!Tracker.recentFiles.isEmpty());
-			for (String next : Tracker.recentFiles) {
-				JMenuItem item = new JMenuItem(XML.getName(next));
-				item.setActionCommand(next);
-				item.setToolTipText(next);
-				item.addActionListener(openRecentAction);
-				menu.add(item);
-			}
-			FontSizer.setFonts(menu, FontSizer.getLevel());
 		}
 	}
 
@@ -1841,9 +1844,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					try {
 						for (int i = 0; i < getTabCount(); i++) {
 							TrackerPanel trackerPanel = getTrackerPanel(i);
-							ArrayList<DataTrack> dataTracks = trackerPanel.getDrawables(DataTrack.class);
+							ArrayList<DataTrack> list = trackerPanel.getDrawables(DataTrack.class);
 							// do any tracks have null source?
-							for (DataTrack next : dataTracks) {
+							for (int m = 0, n = list.size(); m < n; m++) {
+								DataTrack next = list.get(m);
 								if (next.getSource() == null) {
 									// null source, so data is pasted
 									needListener = true;
@@ -2236,7 +2240,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		coordsMenu.setEnabled(false);
 		defaultMenuBar.add(coordsMenu);
 		// help menu
-		JMenu helpMenu = TMenuBar.getTrackerHelpMenu(null);
+		JMenu helpMenu = TMenuBar.getTrackerHelpMenu(null, null);
 		defaultMenuBar.add(helpMenu);
 	}
 

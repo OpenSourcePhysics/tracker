@@ -33,6 +33,7 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -179,7 +180,7 @@ public class CircleFootprint implements Footprint, Cloneable {
       public void draw(Graphics2D g, boolean highlighted) {
         Paint gpaint = g.getPaint();
         g.setPaint(color);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+        if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
         g.fill(shape);
         g.setPaint(highlightColor);

@@ -1381,7 +1381,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			}
 		});
 		// help menu
-		helpMenu = getTrackerHelpMenu(trackerPanel);
+		helpMenu = getTrackerHelpMenu(trackerPanel, null);
 		add(helpMenu);
 		// empty menu items
 		emptyVideoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Empty")); //$NON-NLS-1$
@@ -1397,11 +1397,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	 *
 	 * @return the help menu
 	 */
-	protected static JMenu getTrackerHelpMenu(final TrackerPanel trackerPanel) {
+	protected static JMenu getTrackerHelpMenu(final TrackerPanel trackerPanel, JMenu hMenu) {
 		// help menu
 		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-		final JMenu helpMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Help")); //$NON-NLS-1$
+		if (hMenu == null)
+			hMenu = new JMenu();
+		else 
+			hMenu.removeAll();
+		hMenu.setText(TrackerRes.getString("TMenuBar.Menu.Help")); //$NON-NLS-1$
 
+		JMenu helpMenu = hMenu;
 		// Tracker help items
 		JMenuItem startItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.GettingStarted") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		startItem.addActionListener(new ActionListener() {
@@ -1614,6 +1619,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		});
 	}
 
+	public final static String FROM_LOCALE = "locale";
+	
 	protected void refreshAll(String whereFrom) {
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
 		OSPLog.debug("TMenuBar.refresh - rebuilding TMenuBar " + whereFrom + " " + Tracker.allowMenuRefresh);
@@ -1641,10 +1648,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	}
 
 	protected void refreshHelpMenu() {
-		// replace help menu
-		TMenuBar.this.remove(helpMenu);
-		helpMenu = getTrackerHelpMenu(trackerPanel);
-		TMenuBar.this.add(helpMenu);
+		getTrackerHelpMenu(trackerPanel, helpMenu);
 	}
 
 	protected void refreshTrackMenu() {
@@ -2092,7 +2096,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		fixedAngleItem.setEnabled(defaultCoords && !coords.isLocked());
 		boolean stickAttached = false;
 		ArrayList<TapeMeasure> tapes = trackerPanel.getDrawables(TapeMeasure.class);
-		for (TapeMeasure tape : tapes) {
+		for (int i = 0, n = tapes.size(); i < n; i++) {
+			TapeMeasure tape = tapes.get(i);
 			if (tape.isStickMode() && tape.attachments != null
 					&& (tape.attachments[0] != null || tape.attachments[1] != null)) {
 				stickAttached = true;

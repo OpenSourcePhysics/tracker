@@ -31,6 +31,7 @@ import java.beans.PropertyChangeEvent;
 
 import javax.swing.*;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.*;
@@ -97,6 +98,8 @@ public class PlotTrackView extends TrackView {
 	public void refresh(int frameNumber) {
 		if (!isRefreshEnabled())
 			return;
+		OSPLog.debug("PlotTrackView.refresh");
+
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		TTrack track = getTrack();
 		if (track == null)
