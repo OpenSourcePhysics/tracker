@@ -981,8 +981,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		for (int i = 0; i < views.length; i++) {
 			if (views[i] instanceof TViewChooser) {
 				TViewChooser chooser = (TViewChooser) views[i];
-				if (chooser.getSelectedView() instanceof PlotTView) {
-					PlotTView plotView = (PlotTView) chooser.getSelectedView();
+        TView tview = chooser.getSelectedView();
+				if (tview!=null && tview instanceof PlotTView) {
+					PlotTView plotView = (PlotTView) tview;
 					TrackView view = plotView.getTrackView(plotView.getSelectedTrack());
 					if (view != null && view.equals(plotTrackView)) {
 						return chooser;

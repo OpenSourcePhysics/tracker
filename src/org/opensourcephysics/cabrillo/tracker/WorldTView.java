@@ -421,7 +421,7 @@ public class WorldTView extends TrackerPanel implements TView {
   	while (c!=null) {
   		if (c instanceof TViewChooser) {
   			TViewChooser chooser = (TViewChooser)c;
-  			if (chooser.getSelectedView() == this)
+  			if (this==chooser.getSelectedView())
   				return true;
   		}
   		c = c.getParent();

@@ -354,13 +354,13 @@ public class ExportVideoDialog extends JDialog {
       	if (c[i] instanceof TViewChooser) {
           TViewChooser chooser = (TViewChooser)c[i];
           TView tview = chooser.getSelectedView();
-          if (tview instanceof WorldTView) {
+          if (tview!=null && tview instanceof WorldTView) {
 	          s = tview.getViewName() + number;
 	          WorldTView worldView = (WorldTView)tview;
 	          views.put(s, worldView);
 	        	viewDropdown.addItem(s);
           }
-          else if (tview instanceof PlotTView) {
+          else if (tview!=null && tview instanceof PlotTView) {
 	          s = tview.getViewName() + number;
 	          PlotTView plotView = (PlotTView)tview;
 	          TTrack track = plotView.getSelectedTrack();

@@ -306,7 +306,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
         selectedTrack = ((TrackChooserTView)selectedView).getSelectedTrack();
       }
     }
-    selectedView = view;
+    selectedView = view; // cannot be null
     // initialize and refresh newly selected view
     selectedView.init();
     ((JComponent)selectedView).addPropertyChangeListener("trackview", this); //$NON-NLS-1$
@@ -478,11 +478,13 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
   protected void refreshToolbar() {
     toolbar.removeAll();
     toolbar.add(chooserButton);
+    if (selectedView!=null) {
     ArrayList<Component> list = selectedView.getToolBarComponents();
     if (list != null) {
       for (Component c: list) {
       	toolbar.add(c);
       }
+    }
     }
     toolbar.add(toolbarFiller);
     toolbar.add(maximizeButton);

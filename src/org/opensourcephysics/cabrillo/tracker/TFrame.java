@@ -280,7 +280,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						Class<?> viewType = controls[i].getObjectClass();
 						TView view = chooser.getView(viewType);
 						if (view != null) {
-							if (chooser.getSelectedView() != view) {
+			        TView tview = chooser.getSelectedView();
+							if (tview!=null && tview != view) {
 								chooser.setSelectedView(view);
 							}
 							controls[i].loadObject(view);
@@ -772,7 +773,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		for (int i = 0; i < selectedViews.length; i++) {
 			if (views[i] instanceof TViewChooser) {
 				TViewChooser chooser = (TViewChooser) views[i];
-				selectedViews[i] = chooser.getSelectedView().getViewName();
+        TView tview = chooser.getSelectedView();
+				selectedViews[i] = tview==null? null: tview.getViewName();
 			}
 		}
 		return selectedViews;

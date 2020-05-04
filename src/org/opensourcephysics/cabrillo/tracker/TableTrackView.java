@@ -675,8 +675,9 @@ public class TableTrackView extends TrackView {
   	for (int i = 0; i < views.length; i++) {
       if (views[i] instanceof TViewChooser) {
         TViewChooser chooser = (TViewChooser)views[i];
-        if (chooser.getSelectedView() instanceof TableTView) {
-        	TableTView tableView = (TableTView)chooser.getSelectedView();
+        TView tview = chooser.getSelectedView();
+        if (tview!=null && tview instanceof TableTView) {
+        	TableTView tableView = (TableTView)tview;
         	TrackView view = tableView.getTrackView(tableView.getSelectedTrack());
         	if (view.equals(TableTrackView.this)) {
             return chooser;
@@ -1891,8 +1892,9 @@ public class TableTrackView extends TrackView {
 	    	for (int i = 0; i < views.length; i++) {
 	        if (views[i] instanceof TViewChooser) {
 	          TViewChooser chooser = (TViewChooser)views[i];
-	          if (chooser.getSelectedView() instanceof TableTView) {
-	          	TableTView tableView = (TableTView)chooser.getSelectedView();
+	          TView tview = chooser.getSelectedView();
+	          if (tview!=null && tview instanceof TableTView) {
+	          	TableTView tableView = (TableTView)tview;
 	          	TrackView view = tableView.getTrackView(tableView.getSelectedTrack());
 	          	if (view != null && view.equals(TableTrackView.this)) {
 	          		chooser.refreshToolbar();

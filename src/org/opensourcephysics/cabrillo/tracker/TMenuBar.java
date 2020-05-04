@@ -517,7 +517,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 						String viewname = null;
 						if (views[i] instanceof TViewChooser) {
 							TViewChooser chooser = (TViewChooser) views[i];
-							viewname = chooser.getSelectedView().getViewName();
+			        TView tview = chooser.getSelectedView();
+							viewname = tview==null? TrackerRes.getString("TFrame.View.Unknown"): tview.getViewName();
 						} else
 							viewname = TrackerRes.getString("TFrame.View.Unknown"); //$NON-NLS-1$
 						copyViewImageItems[i].setText(viewname + " (" + (i + 1) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -2380,7 +2381,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 				if (c[i] instanceof TViewChooser) {
 					TViewChooser chooser = (TViewChooser) c[i];
 					TView tview = chooser.getSelectedView();
-					if (tview instanceof TableTView) {
+					if (tview!=null && tview instanceof TableTView) {
 						TableTView tableView = (TableTView) tview;
 						TTrack track = tableView.getSelectedTrack();
 						if (track != null) {
