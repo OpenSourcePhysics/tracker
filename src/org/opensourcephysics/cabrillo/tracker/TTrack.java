@@ -48,6 +48,7 @@ import org.opensourcephysics.controls.*;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public abstract class TTrack implements Interactive,
                                         Trackable,
                                         PropertyChangeListener {
@@ -97,7 +98,7 @@ public abstract class TTrack implements Interactive,
   protected Border fieldBorder;
   protected Component tSeparator, xSeparator, ySeparator, magSeparator,
       angleSeparator, stepSeparator;
-  protected JMenu menu;
+  protected JMenu track_submenu;
   protected boolean autoAdvance;
   protected boolean markByDefault = false, isMarking = false;
   protected JCheckBoxMenuItem visibleItem;
@@ -155,7 +156,8 @@ public abstract class TTrack implements Interactive,
     tValueLabel = new JLabel();
     tValueLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
     tField = new TrackDecimalField(3) {
-    	public void setValue(double value) {
+    	@Override
+		public void setValue(double value) {
     		super.setValue(value);
     		tValueLabel.setText("("+tField.getText()+")"); //$NON-NLS-1$ //$NON-NLS-2$
     	}
@@ -196,7 +198,8 @@ public abstract class TTrack implements Interactive,
 		      		JMenuItem item = new JMenuItem();
 		      		final String[] selected = fieldName;
 		      		item.addActionListener(new ActionListener() {
-		            public void actionPerformed(ActionEvent e) {              		
+		            @Override
+					public void actionPerformed(ActionEvent e) {              		
 		              NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, TTrack.this, selected);
 		        	    dialog.setVisible(true);
 		            }
@@ -208,7 +211,8 @@ public abstract class TTrack implements Interactive,
 	          if (hasUnits && trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$
 		      		JMenuItem item = new JMenuItem();
 		      		item.addActionListener(new ActionListener() {
-		            public void actionPerformed(ActionEvent e) {              		
+		            @Override
+					public void actionPerformed(ActionEvent e) {              		
 		              UnitsDialog dialog = trackerPanel.getUnitsDialog();
 		        	    dialog.setVisible(true);
 		            }
@@ -223,7 +227,8 @@ public abstract class TTrack implements Interactive,
 	      		JMenuItem item = new JMenuItem();
 	      		final boolean vis = trackerPanel.isUnitsVisible();
 	      		item.addActionListener(new ActionListener() {
-	            public void actionPerformed(ActionEvent e) {              		
+	            @Override
+				public void actionPerformed(ActionEvent e) {              		
 	              trackerPanel.setUnitsVisible(!vis);
 	            }
 	          });
@@ -254,7 +259,8 @@ public abstract class TTrack implements Interactive,
       		JMenuItem item = new JMenuItem();
       		final boolean radians = field.getConversionFactor()==1;
       		item.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            @Override
+			public void actionPerformed(ActionEvent e) {
             	TFrame frame = trackerPanel.getTFrame();
             	frame.setAnglesInRadians(!radians);
             }
@@ -269,7 +275,8 @@ public abstract class TTrack implements Interactive,
       			item = new JMenuItem();
 	      		final String[] selected = new String[] {fieldName};
 	      		item.addActionListener(new ActionListener() {
-	            public void actionPerformed(ActionEvent e) {
+	            @Override
+				public void actionPerformed(ActionEvent e) {
 	              NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, TTrack.this, selected);
 	        	    dialog.setVisible(true);
 	            }
@@ -325,7 +332,8 @@ public abstract class TTrack implements Interactive,
     clearStepsItem = new JMenuItem();
     colorItem = new JMenuItem();
     colorItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	Color color = getColor();
       	Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
         if (newColor!=color) {
@@ -338,14 +346,16 @@ public abstract class TTrack implements Interactive,
 
     nameItem = new JMenuItem();
     nameItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         getNameDialog(TTrack.this).setVisible(true);
       }
     });
     footprintMenu = new JMenu();
     descriptionItem = new JMenuItem();
     descriptionItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         if (trackerPanel != null) {
           TFrame frame = trackerPanel.getTFrame();
           if (frame != null) {
@@ -359,7 +369,8 @@ public abstract class TTrack implements Interactive,
     });
     dataBuilderItem = new JMenuItem();
     dataBuilderItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	if (trackerPanel != null) {
 	      	trackerPanel.getDataBuilder().setSelectedPanel(getName());
 	      	trackerPanel.getDataBuilder().setVisible(true);
@@ -367,13 +378,15 @@ public abstract class TTrack implements Interactive,
       }
     });
     visibleItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
         setVisible(visibleItem.isSelected());
         TTrack.this.repaint();
       }
     });
     trailVisibleItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
         setTrailVisible(trailVisibleItem.isSelected());
         if (!TTrack.this.isTrailVisible()) {
           // clear selected point on panels if nec
@@ -394,32 +407,38 @@ public abstract class TTrack implements Interactive,
       }
     });
     markByDefaultItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setMarkByDefault(markByDefaultItem.isSelected());
       }
     });
     autoAdvanceItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setAutoAdvance(autoAdvanceItem.isSelected());
       }
     });
     lockedItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setLocked(lockedItem.isSelected());
       }
     });
     deleteTrackItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	delete(); 
       }
     });
     deleteStepItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	trackerPanel.deletePoint(trackerPanel.getSelectedPoint());
       }
     });
     clearStepsItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	if (isLocked()) return;
         XMLControl control = new XMLControlElement(TTrack.this);
     		for (int n = 0; n < getSteps().length; n++) {
@@ -442,7 +461,8 @@ public abstract class TTrack implements Interactive,
       }
     });
     footprintListener = new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         String footprintName = e.getActionCommand();
         if (getFootprint().getName().equals(footprintName)) return;
         XMLControl control = new XMLControlElement(new TrackProperties(TTrack.this));
@@ -451,7 +471,8 @@ public abstract class TTrack implements Interactive,
       }
     };
     circleFootprintListener = new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	footprintListener.actionPerformed(e);
       	CircleFootprint cfp = (CircleFootprint)getFootprint();
       	cfp.showProperties(TTrack.this);
@@ -689,7 +710,8 @@ public abstract class TTrack implements Interactive,
   	final JColorChooser chooser = new JColorChooser();
   	chooser.setColor(color);
   	ActionListener cancelListener = new ActionListener() {
-  		public void actionPerformed(ActionEvent e) {
+  		@Override
+		public void actionPerformed(ActionEvent e) {
   			chooser.setColor(color);
   		}
   	};
@@ -776,7 +798,8 @@ public abstract class TTrack implements Interactive,
    *
    * @return a description of this object
    */
-  public String toString() {
+  @Override
+public String toString() {
     return getClass().getSimpleName()+" "+name; //$NON-NLS-1$
   }
 
@@ -1938,7 +1961,8 @@ public abstract class TTrack implements Interactive,
   protected void refreshAttachmentsLater() {
   	// use timer with 2 second delay
     Timer timer = new Timer(2000, new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	// save changed state
       	boolean changed = trackerPanel!=null && trackerPanel.changed;
       	refreshAttachments();
@@ -2068,52 +2092,52 @@ public abstract class TTrack implements Interactive,
       footprintMenu.add(item);
     }
     // return a new menu every time
-    menu = new JMenu(getName("track")); //$NON-NLS-1$
-    menu.setIcon(getFootprint().getIcon(21, 16));
+    track_submenu = new JMenu(getName("track")); //$NON-NLS-1$
+    track_submenu.setIcon(getFootprint().getIcon(21, 16));
     // add name and description items
     if (trackerPanel.isEnabled("track.name") || //$NON-NLS-1$
         trackerPanel.isEnabled("track.description")) { //$NON-NLS-1$
-      if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount()-1) != null)
-        menu.addSeparator();
+      if (track_submenu.getItemCount() > 0 && track_submenu.getItem(track_submenu.getItemCount()-1) != null)
+        track_submenu.addSeparator();
       if (trackerPanel.isEnabled("track.name")) //$NON-NLS-1$
-        menu.add(nameItem);
+        track_submenu.add(nameItem);
       if (trackerPanel.isEnabled("track.description")) //$NON-NLS-1$
-        menu.add(descriptionItem);
+        track_submenu.add(descriptionItem);
     }
     // add color and footprint items
     if (trackerPanel.isEnabled("track.color") || //$NON-NLS-1$
         trackerPanel.isEnabled("track.footprint")) { //$NON-NLS-1$
-      if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount()-1) != null)
-        menu.addSeparator();
+      if (track_submenu.getItemCount() > 0 && track_submenu.getItem(track_submenu.getItemCount()-1) != null)
+        track_submenu.addSeparator();
       if (trackerPanel.isEnabled("track.color")) //$NON-NLS-1$
-        menu.add(colorItem);
+        track_submenu.add(colorItem);
       if (trackerPanel.isEnabled("track.footprint")) //$NON-NLS-1$
-        menu.add(footprintMenu);
+        track_submenu.add(footprintMenu);
     }
     // add visible, trail and locked items
     if (trackerPanel.isEnabled("track.visible") || //$NON-NLS-1$
         trackerPanel.isEnabled("track.locked")) { //$NON-NLS-1$
-      if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount()-1) != null)
-        menu.addSeparator();
+      if (track_submenu.getItemCount() > 0 && track_submenu.getItem(track_submenu.getItemCount()-1) != null)
+        track_submenu.addSeparator();
       if (trackerPanel.isEnabled("track.visible")) //$NON-NLS-1$
-        menu.add(visibleItem);
+        track_submenu.add(visibleItem);
       if (trackerPanel.isEnabled("track.locked")) //$NON-NLS-1$
-        menu.add(lockedItem);
+        track_submenu.add(lockedItem);
     }
     // add dataBuilder item if viewable and enabled
     if (this.isViewable() && trackerPanel.isEnabled("data.builder")) { //$NON-NLS-1$
-      if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount()-1) != null)
-        menu.addSeparator();
-      menu.add(dataBuilderItem);
+      if (track_submenu.getItemCount() > 0 && track_submenu.getItem(track_submenu.getItemCount()-1) != null)
+        track_submenu.addSeparator();
+      track_submenu.add(dataBuilderItem);
     	
     }
     // add clear steps and delete items
     if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
-      if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount()-1) != null)
-        menu.addSeparator();
-      menu.add(deleteTrackItem);
+      if (track_submenu.getItemCount() > 0 && track_submenu.getItem(track_submenu.getItemCount()-1) != null)
+        track_submenu.addSeparator();
+      track_submenu.add(deleteTrackItem);
     }
-    return menu;
+    return track_submenu;
   }
 
   /**
@@ -2262,7 +2286,8 @@ public abstract class TTrack implements Interactive,
    * @param panel the drawing panel requesting the drawing
    * @param _g the graphics context on which to draw
    */
-  public void draw(DrawingPanel panel, Graphics _g) {
+  @Override
+public void draw(DrawingPanel panel, Graphics _g) {
     loadAttachmentsFromNames(true);
     if (!(panel instanceof TrackerPanel) || !visible) return;
     TrackerPanel trackerPanel = (TrackerPanel)panel;
@@ -2297,7 +2322,8 @@ public abstract class TTrack implements Interactive,
    * @param ypix the y pixel position on the panel
    * @return the first step TPoint that is hit
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
     if (!(panel instanceof TrackerPanel) || !visible) return null;
     TrackerPanel trackerPanel = (TrackerPanel)panel;
@@ -2334,7 +2360,8 @@ public abstract class TTrack implements Interactive,
    *
    * @return 0
    */
-  public double getX () {
+  @Override
+public double getX () {
     return 0;
   }
 
@@ -2343,7 +2370,8 @@ public abstract class TTrack implements Interactive,
    *
    * @return 0
    */
-  public double getY () {
+  @Override
+public double getY () {
     return 0;
   }
 
@@ -2352,14 +2380,16 @@ public abstract class TTrack implements Interactive,
    *
    * @param x the x position
    */
-  public void setX(double x) {/** implemented by subclasses */}
+  @Override
+public void setX(double x) {/** implemented by subclasses */}
 
   /**
    * Empty setY method.
    *
    * @param y the y position
    */
-  public void setY(double y) {/** implemented by subclasses */}
+  @Override
+public void setY(double y) {/** implemented by subclasses */}
 
   /**
    * Empty setXY method.
@@ -2367,14 +2397,16 @@ public abstract class TTrack implements Interactive,
    * @param x the x position
    * @param y the y position
    */
-  public void setXY(double x, double y) {/** implemented by subclasses */}
+  @Override
+public void setXY(double x, double y) {/** implemented by subclasses */}
 
   /**
    * Sets whether this responds to mouse hits.
    *
    * @param enabled <code>true</code> if this responds to mouse hits.
    */
-  public void setEnabled(boolean enabled) {
+  @Override
+public void setEnabled(boolean enabled) {
     this.enabled = enabled;
   }
 
@@ -2383,7 +2415,8 @@ public abstract class TTrack implements Interactive,
    *
    * @return <code>true</code> if this responds to mouse hits.
    */
-  public boolean isEnabled() {
+  @Override
+public boolean isEnabled() {
     return enabled;
   }
 
@@ -2392,7 +2425,8 @@ public abstract class TTrack implements Interactive,
    *
    * @return <code>false</code> since TTrack knows only its image coordinates
    */
-  public boolean isMeasured() {
+  @Override
+public boolean isMeasured() {
     return !isEmpty();
   }
 
@@ -2401,7 +2435,8 @@ public abstract class TTrack implements Interactive,
    *
    * @return 0
    */
-  public double getXMin() {
+  @Override
+public double getXMin() {
     return getX();
   }
 
@@ -2410,7 +2445,8 @@ public abstract class TTrack implements Interactive,
    *
    * @return 0
    */
-  public double getXMax() {
+  @Override
+public double getXMax() {
     return getX();
   }
 
@@ -2419,7 +2455,8 @@ public abstract class TTrack implements Interactive,
    *
    * @return 0
    */
-  public double getYMin() {
+  @Override
+public double getYMin() {
     return getY();
   }
 
@@ -2428,7 +2465,8 @@ public abstract class TTrack implements Interactive,
    *
    * @return 0
    */
-  public double getYMax() {
+  @Override
+public double getYMax() {
     return getY();
   }
 
@@ -2510,7 +2548,8 @@ public abstract class TTrack implements Interactive,
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (e.getSource() instanceof TrackerPanel) {
       TrackerPanel trackerPanel = (TrackerPanel)e.getSource();
@@ -2744,7 +2783,8 @@ public abstract class TTrack implements Interactive,
     		&& trackerPanel.getTFrame()!=null) {
     	skippedStepWarningDialog = new JDialog(trackerPanel.getTFrame(), true);
     	skippedStepWarningDialog.addWindowListener(new WindowAdapter() {
-        public void windowClosing(WindowEvent e) {
+        @Override
+		public void windowClosing(WindowEvent e) {
         	skippedStepWarningOn = !skippedStepWarningCheckbox.isSelected();
         }
     	});
@@ -2762,7 +2802,8 @@ public abstract class TTrack implements Interactive,
     	skippedStepWarningCheckbox.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 30));
     	closeButton = new JButton();
     	closeButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
         	skippedStepWarningOn = !skippedStepWarningCheckbox.isSelected();
         	skippedStepWarningDialog.setVisible(false);
         }
@@ -3145,7 +3186,8 @@ public abstract class TTrack implements Interactive,
   		trackerPanel = panel;
       setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
       addWindowListener(new WindowAdapter() {
-        public void windowClosing(WindowEvent e) {
+        @Override
+		public void windowClosing(WindowEvent e) {
         	String newName = nameField.getText();
         	if (target != null) 
         		trackerPanel.setTrackName(target, newName, true);
@@ -3153,7 +3195,8 @@ public abstract class TTrack implements Interactive,
       });
       nameField = new JTextField(20);
       nameField.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
         	String newName = nameField.getText();
         	if (target != null) 
         		trackerPanel.setTrackName(target, newName, true);
@@ -3206,7 +3249,8 @@ public abstract class TTrack implements Interactive,
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       TTrack track = (TTrack)obj;
       // name
       control.setValue("name", track.getName()); //$NON-NLS-1$
@@ -3288,7 +3332,8 @@ public abstract class TTrack implements Interactive,
      * @param control the XMLControl with the object data
      * @return the newly created object
      */
-    public Object createObject(XMLControl control){
+    @Override
+	public Object createObject(XMLControl control){
       return null;
     }
 
@@ -3299,7 +3344,8 @@ public abstract class TTrack implements Interactive,
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       TTrack track = (TTrack) obj;
       boolean locked = track.isLocked();
       track.setLocked(false);

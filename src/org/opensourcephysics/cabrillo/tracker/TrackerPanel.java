@@ -24,27 +24,108 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.beans.*;
-import java.io.File;
-import java.lang.reflect.Method;
-import java.rmi.RemoteException;
-import java.util.*;
-import java.util.List;
-import java.util.function.Consumer;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dialog;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ContainerEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.io.File;
+import java.rmi.RemoteException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.function.Consumer;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTextField;
+import javax.swing.Scrollable;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
-import org.opensourcephysics.cabrillo.tracker.TrackerPanel.TrackerPanelMainStarter;
-import org.opensourcephysics.controls.*;
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.media.mov.MovieVideoI;
+import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.controls.XMLProperty;
+import org.opensourcephysics.controls.XMLPropertyElement;
+import org.opensourcephysics.display.Data;
+import org.opensourcephysics.display.DatasetManager;
+import org.opensourcephysics.display.DisplayRes;
+import org.opensourcephysics.display.Drawable;
+import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.media.core.ClipControl;
+import org.opensourcephysics.media.core.ClipInspector;
+import org.opensourcephysics.media.core.DataTrack;
+import org.opensourcephysics.media.core.Filter;
+import org.opensourcephysics.media.core.FilterStack;
+import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.ImageVideo;
+import org.opensourcephysics.media.core.MediaRes;
+import org.opensourcephysics.media.core.PerspectiveFilter;
+import org.opensourcephysics.media.core.SumFilter;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.Video;
+import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoGrabber;
+import org.opensourcephysics.media.core.VideoIO;
+import org.opensourcephysics.media.core.VideoPanel;
+import org.opensourcephysics.media.core.XYCoordinateStringBuilder;
 import org.opensourcephysics.media.mov.SmoothPlayable;
-import org.opensourcephysics.tools.*;
+import org.opensourcephysics.tools.DataFunctionPanel;
+import org.opensourcephysics.tools.DataRefreshTool;
+import org.opensourcephysics.tools.DataTool;
+import org.opensourcephysics.tools.DataToolTab;
+import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionPanel;
+import org.opensourcephysics.tools.FunctionTool;
+import org.opensourcephysics.tools.LaunchNode;
+import org.opensourcephysics.tools.Launcher;
+import org.opensourcephysics.tools.LocalJob;
+import org.opensourcephysics.tools.ParamEditor;
+import org.opensourcephysics.tools.Parameter;
+import org.opensourcephysics.tools.ResourceLoader;
+import org.opensourcephysics.tools.ToolsRes;
+import org.opensourcephysics.tools.VideoCaptureTool;
 
 /**
  * This extends VideoPanel to manage and draw TTracks. It is Tracker's main view
@@ -52,6 +133,7 @@ import org.opensourcephysics.tools.*;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	/**
@@ -74,6 +156,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					final TFrame frame = tracker.getFrame();
 					final LaunchNode node = Launcher.activeNode;
 					frame.addPropertyChangeListener("tab", new PropertyChangeListener() { //$NON-NLS-1$
+						@Override
 						public void propertyChange(PropertyChangeEvent e) {
 							TrackerPanel trackerPanel = (TrackerPanel) e.getNewValue();
 							if (trackerPanel.defaultFileName.equals(XML.getName(path))) {
@@ -85,6 +168,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 								// set up the LaunchNode action and listener
 								if (node != null) {
 									final Action action = new javax.swing.AbstractAction() {
+										@Override
 										public void actionPerformed(ActionEvent e) {
 											TrackerPanel trackerPanel = frame.getTrackerPanel(n);
 											frame.removeTab(trackerPanel);
@@ -94,6 +178,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 									};
 									node.addTerminateAction(action);
 									frame.tabbedPane.addContainerListener(new java.awt.event.ContainerAdapter() {
+										@Override
 										public void componentRemoved(ContainerEvent e) {
 											Component tab = frame.tabbedPane.getComponentAt(n);
 											if (e.getChild() == tab) {
@@ -129,7 +214,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/** The fixed zoom levels */
 	public static final double[] ZOOM_LEVELS = { 0.25, 0.5, 1, 2, 4, 8 };
 	/** Calibration tool types */
-	@SuppressWarnings("javadoc")
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
 	protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
@@ -207,6 +291,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public TrackerPanel(Video video) {
 		super(video);
 		popup = new JPopupMenu() {
+			@Override
 			public void setVisible(boolean vis) {
 				super.setVisible(vis);
 				if (!vis)
@@ -251,6 +336,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		player.addPropertyChangeListener("playing", this); //$NON-NLS-1$
 
 		massParamListener = new PropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				if ("m".equals(e.getOldValue())) { //$NON-NLS-1$
 					ParamEditor paramEditor = (ParamEditor) e.getSource();
@@ -265,6 +351,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 		};
 		massChangeListener = new PropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				PointMass pm = (PointMass) e.getSource();
 				FunctionPanel panel = dataBuilder.getPanel(pm.getName());
@@ -291,6 +378,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param newVideo the video
 	 */
+	@Override
 	public void setVideo(Video newVideo) {
 		XMLControl state = null;
 		boolean undoable = true;
@@ -343,7 +431,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				return name;
 			}
 		}
-		return TrackerRes.getString("TrackerPanel.NewTab.Name"); //$NON-NLS-1$
+		return TrackerRes.getString("NewTab.Name"); //$NON-NLS-1$
 	}
 
 	/**
@@ -573,6 +661,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			final ParticleDataTrack dt = (ParticleDataTrack) track;
 			if (dt.allPoints().size() > 1) {
 				Runnable runner = new Runnable() {
+					@Override
 					public void run() {
 						for (ParticleDataTrack child : dt.allPoints()) {
 							if (child == dt)
@@ -804,6 +893,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @return a list of Drawable objects
 	 */
+	@Override
 	public ArrayList<Drawable> getDrawables() {
 		ArrayList<Drawable> list = super.getDrawables();
 		TTrack track = getSelectedTrack();
@@ -860,6 +950,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param drawable the drawable object
 	 */
+	@Override
 	public synchronized void addDrawable(Drawable drawable) {
 		if (drawable instanceof TTrack) {
 			addTrack((TTrack) drawable);
@@ -894,6 +985,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param drawable the drawable object
 	 */
+	@Override
 	public synchronized void removeDrawable(Drawable drawable) {
 		if (drawable instanceof TTrack)
 			removeTrack((TTrack) drawable);
@@ -906,6 +998,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param c the class to remove
 	 */
+	@Override
 	public synchronized <T extends Drawable> void removeObjectsOfClass(Class<T> c) {
 		if (TTrack.class.isAssignableFrom(c)) { // objects are TTracks
 			// remove propertyChangeListeners
@@ -938,6 +1031,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Overrides VideoPanel clear method.
 	 */
+	@Override
 	public synchronized void clear() {
 		setSelectedTrack(null);
 		selectedPoint = null;
@@ -1016,6 +1110,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param _coords the new image coordinate system
 	 */
+	@Override
 	public void setCoords(ImageCoordSystem _coords) {
 		if (_coords == null || _coords == coords)
 			return;
@@ -1052,6 +1147,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		final PointMass thePM = pm;
 		Runnable runner = new Runnable() {
+			@Override
 			public void run() {
 				if (thePM != null) {
 					ImageCoordSystem coords = getCoords();
@@ -1405,6 +1501,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param w the width
 	 */
+	@Override
 	public void setImageWidth(double w) {
 		setImageSize(w, getImageHeight());
 	}
@@ -1414,6 +1511,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param h the height
 	 */
+	@Override
 	public void setImageHeight(double h) {
 		setImageSize(getImageWidth(), h);
 	}
@@ -1452,6 +1550,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @return the preferred scrollable viewport size
 	 */
+	@Override
 	public Dimension getPreferredScrollableViewportSize() {
 		return getPreferredSize();
 	}
@@ -1464,6 +1563,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param direction   the direction of movement of the scrollbar
 	 * @return the scrollable unit increment
 	 */
+	@Override
 	public int getScrollableUnitIncrement(Rectangle visibleRect, int orientation, int direction) {
 		return 20;
 	}
@@ -1476,6 +1576,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param direction   the direction of movement of the scrollbar
 	 * @return the scrollable block increment
 	 */
+	@Override
 	public int getScrollableBlockIncrement(Rectangle visibleRect, int orientation, int direction) {
 		int unitIncrement = getScrollableUnitIncrement(visibleRect, orientation, direction);
 		if (orientation == SwingConstants.HORIZONTAL)
@@ -1488,6 +1589,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @return <code>true</code> if this tracks the width
 	 */
+	@Override
 	public boolean getScrollableTracksViewportWidth() {
 		if (scrollPane == null)
 			return true;
@@ -1501,6 +1603,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @return <code>true</code> if this tracks the height
 	 */
+	@Override
 	public boolean getScrollableTracksViewportHeight() {
 		if (scrollPane == null)
 			return true;
@@ -1658,6 +1761,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @return <code>true</code> if mouse coordinates are displayed
 	 */
+	@Override
 	public boolean isShowCoordinates() {
 		return showCoordinates && getSelectedPoint() == null;
 	}
@@ -1667,6 +1771,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param msg the message
 	 */
+	@Override
 	public void setMessage(String msg) {
 		// BH 2020.04.06 this is a VERY expensive operation.
 		if (!OSPRuntime.isJS && !OSPRuntime.isMac())
@@ -1747,6 +1852,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				dataTrack.getModelBuilder().setVisible(true);
 				final ParticleDataTrack target = dataTrack;
 				final Runnable runner = new Runnable() {
+					@Override
 					public void run() {
 //						try {
 //							Thread.sleep(500);
@@ -1838,6 +1944,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Gets the popup menu. Overrides DrawingPanel method.
 	 */
+	@Override
 	public JPopupMenu getPopupMenu() {
 		OSPLog.debug("TrackerPanel.getPopupMenu " + Tracker.allowMenuRefresh);
 		if (!Tracker.allowMenuRefresh)
@@ -2032,6 +2139,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		coords.removePropertyChangeListener(this);
 		coords.addPropertyChangeListener(this);
 		addKeyListener(new KeyAdapter() {
+			@Override
 			public void keyPressed(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
 					if (!isShiftKeyDown) {
@@ -2083,6 +2191,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					handleKeyPress(e);
 			}
 
+			@Override
 			public void keyReleased(KeyEvent e) {
 				if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
 					isShiftKeyDown = false;
@@ -2385,6 +2494,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param e the property change event
 	 */
+	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " property change " + name); //$NON-NLS-1$
@@ -2449,6 +2559,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			VideoCaptureTool grabber = VideoGrabber.VIDEO_CAPTURE_TOOL;
 			if (grabber != null && grabber.isVisible() && grabber.isRecording()) {
 				Runnable runner = new Runnable() {
+					@Override
 					public void run() {
 						renderMat();
 						VideoGrabber.getTool().addFrame(matImage);
@@ -2653,6 +2764,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param borderFraction the border fraction
 	 */
+	@Override
 	public void setImageBorder(double borderFraction) {
 		super.setImageBorder(borderFraction);
 		defaultImageBorder = getImageBorder();
@@ -2663,6 +2775,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @return the relative path to the file
 	 */
+	@Override
 	public String getFilePath() {
 		if (defaultSavePath == null)
 			return super.getFilePath();
@@ -2672,6 +2785,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Overrides DrawingPanel scale method.
 	 */
+	@Override
 	public void scale() {
 		TMat mat = getMat();
 		if (mat != null) {
@@ -2700,6 +2814,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param cursor the requested cursor
 	 */
+	@Override
 	public void setMouseCursor(Cursor cursor) {
 		if (PencilDrawer.isDrawing(this) && cursor == Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)) {
 			return;
@@ -2715,6 +2830,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param level the desired font level
 	 */
+	@Override
 	public void setFontLevel(int level) {
 		super.setFontLevel(level);
 		if (frame == null)
@@ -2733,19 +2849,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		trackbar.refresh();
 		TToolBar.getToolbar(this).refresh(false);
 		// replace the menubar to get new accelerator fonts
-		TMenuBar menubar = TMenuBar.getNewMenuBar(this);
-		frame.setMenuBar(this, menubar);
+		// TMenuBar menubar =
+		TMenuBar.newMenuBar(frame, this);
 		// select the correct fontSize menu radiobutton
-		if (menubar.fontSizeGroup != null) {
-			Enumeration<AbstractButton> e = menubar.fontSizeGroup.getElements();
-			for (; e.hasMoreElements();) {
-				AbstractButton button = e.nextElement();
-				int i = Integer.parseInt(button.getActionCommand());
-				if (i == FontSizer.getLevel()) {
-					button.setSelected(true);
-				}
-			}
-		}
+//		if (menubar.fontSizeGroup != null) {
+//			Enumeration<AbstractButton> e = menubar.fontSizeGroup.getElements();
+//			for (; e.hasMoreElements();) {
+//				AbstractButton button = e.nextElement();
+//				int i = Integer.parseInt(button.getActionCommand());
+//				if (i == FontSizer.getLevel()) {
+//					button.setSelected(true);
+//				}
+//			}
+//		}
 
 		ArrayList<TTrack> list = getTracks();
 		for (int it = 0, n = list.size(); it < n; it++) {
@@ -2771,7 +2887,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		Video video = getVideo();
 		if (video != null) {
 			ArrayList<Filter> filters = video.getFilterStack().getFilters();
-						for (int i = 0, n = filters.size(); i < n; i++) {
+			for (int i = 0, n = filters.size(); i < n; i++) {
 				Filter filter = filters.get(i);
 				JDialog inspector = filter.getInspector();
 				if (inspector != null) {
@@ -2792,6 +2908,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param e a mouse event
 	 * @return true if a zoom event
 	 */
+	@Override
 	public boolean isZoomEvent(MouseEvent e) {
 		return super.isZoomEvent(e) || Tracker.isZoomInCursor(getCursor());
 	}
@@ -2802,6 +2919,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @return the interactive drawable identified by the most recent mouse event
 	 */
+	@Override
 	public Interactive getInteractive() {
 		mEvent = mouseEvent; // to provide visibility to Tracker package
 		Interactive iad = null;
@@ -2954,6 +3072,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 *
 	 * @param drawables the list of drawable objects
 	 */
+	@Override
 	protected void scale(ArrayList<Drawable> drawables) {
 		if (drawingInImageSpace) {
 			if (getPreferredSize().width < 2) // zoomed to fit
@@ -2976,6 +3095,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * 
 	 * @param g the graphics context
 	 */
+	@Override
 	public void paintComponent(Graphics g) {
 //    Tracker.logTime(getClass().getSimpleName()+hashCode()+" painting"); //$NON-NLS-1$
 		super.paintComponent(g);
@@ -3296,6 +3416,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		 * 
 		 * @param e the mouse event
 		 */
+		@Override
 		public void mouseReleased(MouseEvent e) {
 			super.mouseReleased(e); // hides blmessagebox
 			if (getSelectedPoint() != null) {
@@ -3308,6 +3429,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		 *
 		 * @param e the mouse event
 		 */
+		@Override
 		public void mouseEntered(MouseEvent e) {
 			super.mouseEntered(e);
 			if (PencilDrawer.isDrawing(TrackerPanel.this)) {
@@ -3321,6 +3443,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		 *
 		 * @param e the mouse event
 		 */
+		@Override
 		public void mouseExited(MouseEvent e) {
 			super.mouseExited(e);
 			isShiftKeyDown = false;
@@ -3335,6 +3458,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		 *
 		 * @param e the mouse event
 		 */
+		@Override
 		public void mouseMoved(MouseEvent e) {
 			if (showCoordinates && getSelectedPoint() == null) {
 				String s = coordinateStrBuilder.getCoordinateString(TrackerPanel.this, e);
@@ -3365,6 +3489,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		 * @param control the control to save to
 		 * @param obj     the TrackerPanel object to save
 		 */
+		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			// turn off XML writing of null final array elements
 			boolean writeNullFinalArrayElements = XMLPropertyElement.defaultWriteNullFinalArrayElements;
@@ -3525,6 +3650,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		 * @param control the control
 		 * @return the newly created object
 		 */
+		@Override
 		public Object createObject(XMLControl control) {
 			return new TrackerPanel();
 		}
@@ -3536,6 +3662,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		 * @param obj     the object
 		 * @return the loaded object
 		 */
+		@Override
 		@SuppressWarnings("unchecked")
 		public Object loadObject(XMLControl control, Object obj) {
 			final TrackerPanel trackerPanel = (TrackerPanel) obj;
@@ -3645,7 +3772,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				for (int ip = 0; ip < patterns.length; ip++) {
 					try {
 						String[] next = patterns[ip];
-						@SuppressWarnings("unchecked")
 						Class<? extends TTrack> type = (Class<? extends TTrack>) Class.forName(next[0]);
 						TreeMap<String, String> patternMap = trackerPanel.getFormatPatterns(type);
 						for (int i = 1; i < next.length - 1; i = i + 2) {
@@ -3659,7 +3785,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
 			if (tracks != null) {
 				for (int i = 0, n = tracks.size(); i < n; i++) {
-						trackerPanel.addTrack((TTrack) tracks.get(i));
+					trackerPanel.addTrack((TTrack) tracks.get(i));
 				}
 			}
 			// load drawing scenes saved in vers 4.11.0+
@@ -3778,6 +3904,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 										// set the tab column IDs to the track data IDs and add track data to the
 										// refresher
 										Runnable refreshRunner = new Runnable() {
+											@Override
 											public void run() {
 												for (TTrack tt : trackerPanel.getTracks()) {
 													Data trackData = tt.getData(trackerPanel);
@@ -3806,11 +3933,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return trackerPanel;
 		}
 
-		private void checkAddBasepath(XMLControl control, XMLControl child) {
-			if (!OSPRuntime.unzipFiles && child instanceof XMLControlElement && child.getBasepath() == null) {
-				child.setBasepath(control.getBasepath());
-			}
-		}
 	}
 
 	public void refreshMenuBar(String whereFrom) {
@@ -3825,4 +3947,275 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (Tracker.allowDataRefresh)
 			isAutoRefresh = b;
 	}
+
+	public JPopupMenu updatePopup() {
+		MainTView mainTView = getTFrame().getMainView(this);		
+		JPopupMenu popup = this.popup;
+		// see if a track has been clicked
+		boolean trackClicked = false;
+		Interactive iad = getInteractive();
+		// first look at TPoints
+		if (iad instanceof TPoint) {
+			TPoint p = (TPoint) iad;
+			TTrack track = null;
+			Step step = null;
+			Iterator<TTrack> it = getTracks().iterator();
+			while (it.hasNext()) {
+				track = it.next();
+				step = track.getStep(p, this);
+				if (step != null)
+					break;
+			}
+			if (step != null) { // found clicked track
+				trackClicked = true;
+				Step prev = selectedStep;
+				selectedStep = step;
+				if (track instanceof ParticleDataTrack) {
+					popup = ((ParticleDataTrack) track).getPointMenu(this).getPopupMenu();
+				} else {
+					popup = track.getMenu(this).getPopupMenu();
+				}
+				selectedStep = prev;
+			}
+		}
+		// look for direct track clicks
+		if (iad instanceof TTrack) {
+			trackClicked = true;
+			final TTrack track = (TTrack) iad;
+			if (track instanceof TapeMeasure) {
+				popup = ((TapeMeasure) track).getInputFieldPopup();
+			} else if (track instanceof Protractor) {
+				popup = ((Protractor) track).getInputFieldPopup();
+			} else {
+				popup = track.getMenu(this).getPopupMenu();
+			}
+		}
+		if (!trackClicked) { // video or non-track TPoint was clicked
+			popup.removeAll();
+			// add zoom menus
+			JMenuItem item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ZoomIn")); //$NON-NLS-1$
+			popup.add(item);
+			item.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					mainTView.zoomIn(false);
+				}
+			});
+			item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ZoomOut")); //$NON-NLS-1$
+			popup.add(item);
+			item.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					mainTView.zoomOut(false);
+				}
+			});
+			item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ZoomToFit")); //$NON-NLS-1$
+			popup.add(item);
+			item.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					setMagnification(-1);
+					TToolBar toolbar = TToolBar.getToolbar(TrackerPanel.this);
+					toolbar.refreshZoomButton();
+				}
+			});
+
+			// selection items
+			DrawingPanel.ZoomBox zoomBox = getZoomBox();
+			if (zoomBox.isDragged() && isStepsInZoomBox()) {
+				popup.addSeparator();
+				item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.Select")); //$NON-NLS-1$
+				item.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						handleStepsInZoomBox(true);
+					}
+				});
+				popup.add(item);
+				item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.Deselect")); //$NON-NLS-1$
+				item.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						handleStepsInZoomBox(false);
+					}
+				});
+				popup.add(item);
+			}
+
+			// clip setting item
+			if (isEnabled("button.clipSettings")) {//$NON-NLS-1$
+				if (popup.getComponentCount() > 0)
+					popup.addSeparator();
+				item = new JMenuItem(MediaRes.getString("ClipInspector.Title") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+				item.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						VideoClip clip = getPlayer().getVideoClip();
+						ClipControl clipControl = getPlayer().getClipControl();
+						TFrame frame = getTFrame();
+						ClipInspector inspector = clip.getClipInspector(clipControl, frame);
+						if (inspector.isVisible()) {
+							return;
+						}
+						FontSizer.setFonts(inspector, FontSizer.getLevel());
+						inspector.pack();
+						Point p0 = new Frame().getLocation();
+						Point loc = inspector.getLocation();
+						if ((loc.x == p0.x) && (loc.y == p0.y)) {
+							// center inspector on the main view
+							Rectangle rect = getVisibleRect();
+							Point p = frame.getMainView(TrackerPanel.this).scrollPane.getLocationOnScreen();
+							int x = p.x + (rect.width - inspector.getBounds().width) / 2;
+							int y = p.y + (rect.height - inspector.getBounds().height) / 2;
+							inspector.setLocation(x, y);
+						}
+						inspector.initialize();
+						inspector.setVisible(true);
+						mainTView.refresh();
+					}
+				});
+				popup.add(item);
+			}
+			if (isEnabled("edit.copyImage")) { //$NON-NLS-1$
+				popup.addSeparator();
+				// copy image item
+				Action copyImageAction = new AbstractAction(TrackerRes.getString("TMenuBar.Menu.CopyImage")) { //$NON-NLS-1$
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						BufferedImage image = new TrackerIO.ComponentImage(TrackerPanel.this).getImage();
+						DrawingPanel.ZoomBox zoomBox = getZoomBox();
+						if (zoomBox.isDragged()) {
+							Rectangle zRect = zoomBox.reportZoom();
+							BufferedImage image2 = new BufferedImage(zRect.width, zRect.height, image.getType());
+							Graphics2D g = image2.createGraphics();
+							g.drawImage(image, -zRect.x, -zRect.y, null);
+							TrackerIO.copyImage(image2);
+						} else
+							TrackerIO.copyImage(image);
+					}
+				};
+				JMenuItem copyImageItem = new JMenuItem(copyImageAction);
+				popup.add(copyImageItem);
+				// snapshot item
+				Action snapshotAction = new AbstractAction(DisplayRes.getString("DisplayPanel.Snapshot_menu_item")) { //$NON-NLS-1$
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						snapshot();
+					}
+				};
+				JMenuItem snapshotItem = new JMenuItem(snapshotAction);
+				popup.add(snapshotItem);
+			}
+
+			TMenuBar.refreshPopup(this, TMenuBar.MAINTVIEW_POPUP, popup, true);
+			// video properties item
+			Action vidPropsAction = TActions.getAction("aboutVideo", this); //$NON-NLS-1$
+			JMenuItem propertiesItem = new JMenuItem(vidPropsAction);
+			popup.addSeparator();
+			propertiesItem.setText(TrackerRes.getString("TActions.AboutVideo")); //$NON-NLS-1$
+			popup.add(propertiesItem);
+
+			// print menu item
+			if (isEnabled("file.print")) { //$NON-NLS-1$
+				if (popup.getComponentCount() > 0)
+					popup.addSeparator();
+				Action printAction = TActions.getAction("print", this); //$NON-NLS-1$
+				popup.add(printAction);
+			}
+			// add help item
+			if (popup.getComponentCount() > 0)
+				popup.addSeparator();
+			JMenuItem helpItem = new JMenuItem(TrackerRes.getString("Tracker.Popup.MenuItem.Help")); //$NON-NLS-1$
+			helpItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					TFrame frame = getTFrame();
+					if (frame != null) {
+						frame.showHelp("GUI", 0); //$NON-NLS-1$
+					}
+				}
+			});
+			popup.add(helpItem);
+		}
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		return popup;
+	}
+
+	private void handleStepsInZoomBox(boolean add) {
+		// determine what steps are in selection (zoom) box
+		DrawingPanel.ZoomBox zoomBox = getZoomBox();
+		Rectangle zRect = zoomBox.reportZoom();
+		ArrayList<TTrack> tracks = getTracks();
+		HashSet<TTrack> changedTracks = new HashSet<TTrack>();
+		for (TTrack track : tracks) {
+			// search only visible PointMass tracks for now
+			if (!track.isVisible() || track.getClass() != PointMass.class)
+				continue;
+			if (!((PointMass) track).isPositionVisible(this))
+				continue;
+			for (Step step : track.getSteps()) {
+				if (step == null || !track.isStepVisible(step, this))
+					continue;
+				// need look only at points[0] for PositionStep
+				TPoint p = step.getPoints()[0];
+				if (p == null || Double.isNaN(p.getX()))
+					continue;
+				if (zRect.contains(p.getScreenPosition(this))) {
+					changedTracks.add(track);
+					if (add) {
+						selectedSteps.add(step);
+					} else {
+						selectedSteps.remove(step);
+					}
+					step.erase();
+				}
+			}
+		}
+		if (add && selectedSteps.size() == 1) {
+			Step step = selectedSteps.toArray(new Step[1])[0];
+			setSelectedPoint(step.points[0]);
+		} else if (selectedSteps.size() > 1) {
+			setSelectedPoint(null);
+		}
+		for (TTrack track : changedTracks) {
+			track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+		}
+	}
+
+	protected boolean isStepsInZoomBox() {
+		// look for a step in the zoom box
+		DrawingPanel.ZoomBox zoomBox = getZoomBox();
+		Rectangle zRect = zoomBox.reportZoom();
+		ArrayList<TTrack> tracks = getTracks();
+		for (TTrack track : tracks) {
+			// search only visible PointMass tracks for now
+			if (!track.isVisible() || track.getClass() != PointMass.class)
+				continue;
+			if (!((PointMass) track).isPositionVisible(this))
+				continue;
+			for (Step step : track.getSteps()) {
+				if (step == null)
+					continue;
+				// need look only at points[0] for PositionStep
+				TPoint p = step.getPoints()[0];
+				if (p == null || Double.isNaN(p.getX()))
+					continue;
+				if (zRect.contains(p.getScreenPosition(this))) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	public void setVideoVisible(boolean visible) {
+		if (video == null)
+			return;
+		video.setVisible(visible);
+		getPlayer().getClipControl().videoVisible = visible;
+		setVideo(video); // triggers image change event
+	}
+		  
+
+
 }

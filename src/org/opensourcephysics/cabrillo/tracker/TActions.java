@@ -94,7 +94,8 @@ public class TActions {
     actionMaps.put(trackerPanel, actions);
     // clear tracks
     final AbstractAction clearTracksAction = new AbstractAction(TrackerRes.getString("TActions.Action.ClearTracks"), null) { //$NON-NLS-1$
-     public void actionPerformed(ActionEvent e) {
+     @Override
+	public void actionPerformed(ActionEvent e) {
        // check for locked tracks and get list of xml strings for undoableEdit
      	 ArrayList<String> xml= new ArrayList<String>();
        boolean locked = false;
@@ -122,22 +123,19 @@ public class TActions {
     actions.put("clearTracks", clearTracksAction); //$NON-NLS-1$
     // new tab
     AbstractAction newTabAction = new AbstractAction(TrackerRes.getString("TActions.Action.NewTab"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
-          TrackerPanel newPanel = new TrackerPanel();
-          frame.addTab(newPanel);
-          frame.setSelectedTab(newPanel);
-          JSplitPane pane = frame.getSplitPane(newPanel, 0);
-          pane.setDividerLocation(frame.defaultRightDivider);
-          frame.refresh();
+        	frame.addTrackerPane(true);
         }
       }
     };
     actions.put("newTab", newTabAction); //$NON-NLS-1$
     // pastexml
     AbstractAction pasteAction = new AbstractAction(TrackerRes.getString("TActions.Action.Paste")) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         if (!TrackerIO.pasteXML(trackerPanel)) {
         	// pasting XML failed, so try to paste data
         	String dataString = DataTool.paste();
@@ -149,7 +147,8 @@ public class TActions {
     // open
     Icon icon = new ResizableIcon(Tracker.getClassResource("resources/images/open.gif")); //$NON-NLS-1$
     final AbstractAction openAction = new AbstractAction(TrackerRes.getString("TActions.Action.Open"), icon) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         trackerPanel.setSelectedPoint(null);
         trackerPanel.selectedSteps.clear();
       	trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -164,7 +163,8 @@ public class TActions {
     actions.put("open", openAction); //$NON-NLS-1$
     // open url
     final AbstractAction openURLAction = new AbstractAction(TrackerRes.getString("TActions.Action.OpenURL")) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         Object input = JOptionPane.showInputDialog(trackerPanel.getTFrame(), 
         		TrackerRes.getString("TActions.Dialog.OpenURL.Message") //$NON-NLS-1$
         		+":                             ", //$NON-NLS-1$
@@ -198,7 +198,8 @@ public class TActions {
     // openBrowser
     icon = new ResizableIcon(Tracker.getClassResource("resources/images/open_catalog.gif")); //$NON-NLS-1$
     final AbstractAction openBrowserAction = new AbstractAction(TrackerRes.getString("TActions.Action.OpenBrowser"), icon) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
         	frame.getLibraryBrowser().setVisible(true);
@@ -208,7 +209,8 @@ public class TActions {
     actions.put("openBrowser", openBrowserAction); //$NON-NLS-1$
     // properties
     final AbstractAction propertiesAction = new AbstractAction(TrackerRes.getString("TActions.Action.Properties")) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
 	      	frame.getPropertiesDialog(trackerPanel).setVisible(true);
@@ -218,7 +220,8 @@ public class TActions {
     actions.put("properties", propertiesAction); //$NON-NLS-1$
     // close tab
     AbstractAction closeAction = new AbstractAction(TrackerRes.getString("TActions.Action.Close")) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
           frame.removeTab(trackerPanel);
@@ -228,7 +231,8 @@ public class TActions {
     actions.put("close", closeAction); //$NON-NLS-1$
     // close all tabs
     AbstractAction closeAllAction = new AbstractAction(TrackerRes.getString("TActions.Action.CloseAll")) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
           frame.removeAllTabs();
@@ -238,14 +242,16 @@ public class TActions {
     actions.put("closeAll", closeAllAction); //$NON-NLS-1$
     // import file
     AbstractAction importAction = new AbstractAction(TrackerRes.getString("TActions.Action.ImportTRK")) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TrackerIO.importFile(trackerPanel);
       }
     };
     actions.put("import", importAction); //$NON-NLS-1$
     // import data
     AbstractAction importDataAction = new AbstractAction(TrackerRes.getString("TActions.Action.ImportData")) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	getAction("dataTrack", trackerPanel).actionPerformed(e); //$NON-NLS-1$
       }
     };
@@ -253,7 +259,8 @@ public class TActions {
     // save current tab
     icon = new ResizableIcon(Tracker.getClassResource("resources/images/save.gif")); //$NON-NLS-1$
     AbstractAction saveAction = new AbstractAction(TrackerRes.getString("TActions.Action.Save"), icon) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TrackerIO.save(trackerPanel.getDataFile(), trackerPanel);
         trackerPanel.refreshNotesDialog();
       }
@@ -261,7 +268,8 @@ public class TActions {
     actions.put("save", saveAction); //$NON-NLS-1$
     // save tab as
     AbstractAction saveAsAction = new AbstractAction(TrackerRes.getString("TActions.Action.SaveAs"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TrackerIO.save(null, trackerPanel);
         trackerPanel.refreshNotesDialog();
       }
@@ -270,7 +278,8 @@ public class TActions {
     // save zip resource
     icon = new ResizableIcon(Tracker.getClassResource("resources/images/save_zip.gif")); //$NON-NLS-1$
     AbstractAction saveZipAction = new AbstractAction(TrackerRes.getString("TActions.Action.SaveZip")+"...", icon) { //$NON-NLS-1$ //$NON-NLS-2$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	ExportZipDialog zipDialog = ExportZipDialog.getDialog(trackerPanel);
       	zipDialog.setVisible(true);
       }
@@ -278,7 +287,8 @@ public class TActions {
     actions.put("saveZip", saveZipAction); //$NON-NLS-1$
     // save tabset as
     AbstractAction saveTabsetAsAction = new AbstractAction(TrackerRes.getString("TActions.Action.SaveFrame"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TrackerIO.saveTabset(null, trackerPanel.getTFrame());
         trackerPanel.refreshNotesDialog();
       }
@@ -286,21 +296,24 @@ public class TActions {
     actions.put("saveTabsetAs", saveTabsetAsAction); //$NON-NLS-1$
     // save video
     AbstractAction saveVideoAction = new AbstractAction(TrackerRes.getString("TActions.Action.SaveVideoAs")) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TrackerIO.saveVideo(null, trackerPanel);
       }
     };
     actions.put("saveVideo", saveVideoAction); //$NON-NLS-1$
     // export file
     AbstractAction exportAction = new AbstractAction(TrackerRes.getString("TActions.Action.ImportTRK")) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TrackerIO.exportFile(trackerPanel);
       }
     };
     actions.put("export", exportAction); //$NON-NLS-1$
     // delete track
     AbstractAction deleteTrackAction = new AbstractAction(TrackerRes.getString("TActions.Action.Delete"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         // action command is name of track to delete
         TTrack track = trackerPanel.getTrack(e.getActionCommand());
         if (track != null) track.delete();
@@ -308,7 +321,8 @@ public class TActions {
     };
     actions.put("deleteTrack", deleteTrackAction); //$NON-NLS-1$
     AbstractAction configAction = new AbstractAction(TrackerRes.getString("TActions.Action.Config"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	TFrame frame = trackerPanel.getTFrame();
       	frame.showPrefsDialog();
       }
@@ -317,7 +331,8 @@ public class TActions {
     // axesVisible
     icon = new ResizableIcon(Tracker.getClassResource("resources/images/axes.gif")); //$NON-NLS-1$
     AbstractAction axesVisibleAction = new AbstractAction(TrackerRes.getString("TActions.Action.AxesVisible"), icon) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	CoordAxes axes = trackerPanel.getAxes();
         if (axes == null) return;
         boolean visible = !axes.isVisible();
@@ -335,7 +350,8 @@ public class TActions {
     actions.put("axesVisible", axesVisibleAction); //$NON-NLS-1$
     // videoFilter
     AbstractAction videoFilterAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         Video video = trackerPanel.getVideo();
         if (video == null) return;
         FilterStack filterStack = video.getFilterStack();
@@ -367,7 +383,8 @@ public class TActions {
     // about video
     AbstractAction aboutVideoAction = new AbstractAction(
     		TrackerRes.getString("TActions.AboutVideo"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
 	      	PropertiesDialog dialog = frame.getPropertiesDialog(trackerPanel);
@@ -380,13 +397,15 @@ public class TActions {
     actions.put("aboutVideo", aboutVideoAction); //$NON-NLS-1$
     // print
     AbstractAction printAction = new AbstractAction(TrackerRes.getString("TActions.Action.Print"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         new TrackerIO.ComponentImage(trackerPanel).print();
       }
     };
     actions.put("print", printAction); //$NON-NLS-1$
     // exit
     AbstractAction exitAction = new AbstractAction(TrackerRes.getString("TActions.Action.Exit"), null) { //$NON-NLS-1$
+			@Override
 			public void actionPerformed(ActionEvent e) {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
@@ -406,7 +425,8 @@ public class TActions {
     actions.put("exit", exitAction); //$NON-NLS-1$
     // new point mass
     AbstractAction pointMassAction = new AbstractAction(TrackerRes.getString("PointMass.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         PointMass pointMass = new PointMass();
         pointMass.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(pointMass);
@@ -439,7 +459,8 @@ public class TActions {
     actions.put("pointMass", pointMassAction); //$NON-NLS-1$
     // new center of mass
     AbstractAction cmAction = new AbstractAction(TrackerRes.getString("CenterOfMass.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         CenterOfMass cm = new CenterOfMass();
         cm.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(cm);
@@ -454,7 +475,8 @@ public class TActions {
     // new vector
     AbstractAction vectorAction = new AbstractAction(
         TrackerRes.getString("Vector.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         Vector vec = new Vector();
         vec.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(vec);
@@ -470,7 +492,8 @@ public class TActions {
     // new vector sum
     AbstractAction vectorSumAction = new AbstractAction(
         TrackerRes.getString("VectorSum.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         VectorSum sum = new VectorSum();
         sum.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(sum);
@@ -484,7 +507,8 @@ public class TActions {
     actions.put("vectorSum", vectorSumAction); //$NON-NLS-1$
     // new offset origin item
     AbstractAction offsetOriginAction = new AbstractAction(TrackerRes.getString("OffsetOrigin.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         OffsetOrigin offset = new OffsetOrigin();
         offset.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(offset);
@@ -497,7 +521,8 @@ public class TActions {
     actions.put("offsetOrigin", offsetOriginAction); //$NON-NLS-1$
     // new calibration item
     AbstractAction calibrationAction = new AbstractAction(TrackerRes.getString("Calibration.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         Calibration cal = new Calibration();
         cal.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(cal);
@@ -510,7 +535,8 @@ public class TActions {
     actions.put("calibration", calibrationAction); //$NON-NLS-1$
     // new line profile item
     AbstractAction lineProfileAction = new AbstractAction(TrackerRes.getString("LineProfile.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TTrack lineProfile = new LineProfile();
         lineProfile.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(lineProfile);
@@ -522,7 +548,8 @@ public class TActions {
     actions.put("lineProfile", lineProfileAction); //$NON-NLS-1$
     // new RGBRegion item
     AbstractAction rgbRegionAction = new AbstractAction(TrackerRes.getString("RGBRegion.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TTrack rgb = new RGBRegion();
         rgb.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(rgb);
@@ -537,7 +564,8 @@ public class TActions {
     actions.put("rgbRegion", rgbRegionAction); //$NON-NLS-1$
     // new analytic particle item
     AbstractAction analyticParticleAction = new AbstractAction(TrackerRes.getString("AnalyticParticle.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         final AnalyticParticle model = new AnalyticParticle();
         model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(model);
@@ -552,7 +580,8 @@ public class TActions {
     actions.put("analyticParticle", analyticParticleAction); //$NON-NLS-1$
     // new dynamic particle item
     AbstractAction dynamicParticleAction = new AbstractAction(TrackerRes.getString("DynamicParticle.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         DynamicParticle model = new DynamicParticle();
         model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(model);
@@ -567,7 +596,8 @@ public class TActions {
     actions.put("dynamicParticle", dynamicParticleAction); //$NON-NLS-1$
     // new dynamic particle polar item
     AbstractAction dynamicParticlePolarAction = new AbstractAction(TrackerRes.getString("DynamicParticlePolar.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         DynamicParticle model = new DynamicParticlePolar();
         model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(model);
@@ -582,7 +612,8 @@ public class TActions {
     actions.put("dynamicParticlePolar", dynamicParticlePolarAction); //$NON-NLS-1$
     // new dynamic system item
     AbstractAction dynamicSystemAction = new AbstractAction(TrackerRes.getString("DynamicSystem.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	DynamicSystem model = new DynamicSystem();
         model.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(model);
@@ -600,6 +631,7 @@ public class TActions {
 
     // new DataTrack from text file item
     AbstractAction dataTrackAction = new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				// choose file and import data
 				TrackerIO.getChooserFilesAsync("open data", new Function<File[], Void>() { //$NON-NLS-1$
@@ -622,6 +654,7 @@ public class TActions {
     // new DataTrack from ejs item
 		AbstractAction dataTrackfromEJSAction = new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), //$NON-NLS-1$
 				null) {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				// choose file and get its data
 				TrackerIO.getChooserFilesAsync("open ejs", new Function<File[], Void>() { //$NON-NLS-1$
@@ -657,7 +690,8 @@ public class TActions {
     // new (read-only) tape measure
     String s = TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$
     AbstractAction tapeAction = new AbstractAction(s, null) {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TapeMeasure tape = new TapeMeasure();
         tape.setReadOnly(true);
         tape.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
@@ -679,7 +713,8 @@ public class TActions {
     // new protractor
     AbstractAction protractorAction = new AbstractAction(
         TrackerRes.getString("Protractor.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	Protractor protractor = new Protractor();
         protractor.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(protractor);
@@ -701,7 +736,8 @@ public class TActions {
     actions.put("protractor", protractorAction); //$NON-NLS-1$
     // new circle track
     AbstractAction circleFitterAction = new AbstractAction(TrackerRes.getString("CircleFitter.Name"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         CircleFitter track = new CircleFitter();
         track.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
         trackerPanel.addTrack(track);
@@ -713,7 +749,8 @@ public class TActions {
     actions.put("circleFitter", circleFitterAction); //$NON-NLS-1$
     // clone track action
     AbstractAction cloneTrackAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	String name = e.getActionCommand();
       	TTrack track = trackerPanel.getTrack(name);
       	if (track != null) {
@@ -748,7 +785,8 @@ public class TActions {
     actions.put("cloneTrack", cloneTrackAction); //$NON-NLS-1$
     // clear filters action
     final AbstractAction clearFiltersAction = new AbstractAction(TrackerRes.getString("TActions.Action.ClearFilters"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         Video video = trackerPanel.getVideo();
         if (video != null) {
         	ArrayList<String> xml = new ArrayList<String>();
@@ -771,14 +809,16 @@ public class TActions {
     actions.put("clearFilters", clearFiltersAction); //$NON-NLS-1$
     // open video
     AbstractAction openVideoAction = new AbstractAction(TrackerRes.getString("TActions.Action.ImportVideo"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TrackerIO.importVideo(trackerPanel);
       }
     };
     actions.put("openVideo", openVideoAction); //$NON-NLS-1$
     // close video
     AbstractAction closeVideoAction = new AbstractAction(TrackerRes.getString("TActions.Action.CloseVideo"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         trackerPanel.setVideo(null);
         trackerPanel.repaint();
         trackerPanel.setImageSize(640, 480);
@@ -788,7 +828,8 @@ public class TActions {
     actions.put("closeVideo", closeVideoAction); //$NON-NLS-1$
     // reference frame
     AbstractAction refFrameAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         JMenuItem item = (JMenuItem) e.getSource();
         trackerPanel.setReferenceFrame(item.getActionCommand());
       }

@@ -576,8 +576,12 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	public Tracker(Video video) {
 		createFrame();
 		// add a tracker panel with the video
-		TrackerPanel trackerPanel = new TrackerPanel(video);
-		frame.addTab(trackerPanel);
+		frame.addTab(new TrackerPanel(video), new Runnable(){
+
+			@Override
+			public void run() {
+				// just to allow this to be asynchronous
+			}});
 	}
 
 	/**
@@ -627,14 +631,20 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		} else if (addTabIfEmpty) {
 			// add an empty tab if requested
 			TrackerPanel trackerPanel = new TrackerPanel();
-			frame.addTab(trackerPanel);
-			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
-			pane.setDividerLocation(frame.defaultRightDivider);
-			if (showHints) {
-				startupHintShown = true;
-				trackerPanel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
-			}
-			Tracker.setProgress(100);
+			frame.addTab(trackerPanel, new Runnable() {
+
+				@Override
+				public void run() {
+					JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
+					pane.setDividerLocation(frame.defaultRightDivider);
+					if (showHints) {
+						startupHintShown = true;
+						trackerPanel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
+					}
+					Tracker.setProgress(100);
+				}
+				
+			});
 		}
 	}
 

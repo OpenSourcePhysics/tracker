@@ -700,7 +700,7 @@ public class TrackerIO extends VideoIO {
 				if (isCanceled())
 					return;
 
-				frame.addTab(trackerPanel);
+				frame.addTab(trackerPanel, null);
 				if (monitorDialog.isVisible())
 					monitorDialog.setProgress(95);
 				JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
@@ -948,7 +948,7 @@ public class TrackerIO extends VideoIO {
 					monitorDialog.setProgress(80);
 				if (isCanceled())
 					return;
-				frame.addTab(trackerPanel);
+				frame.addTab(trackerPanel, null);
 				if (monitorDialog.isVisible())
 					monitorDialog.setProgress(90);
 				frame.setSelectedTab(trackerPanel);
@@ -1274,21 +1274,21 @@ public class TrackerIO extends VideoIO {
 			public Void apply(File[] files) {
 				final File file = (files == null ? null : files[0]);
 				if (file != null) {
-			    Runnable importVideoRunner = new Runnable() {
+					Runnable importVideoRunner = new Runnable() {
 						public void run() {
 							TrackerIO.importVideo(file, trackerPanel, null);
 							OSPLog.finest("completed importing file " + file); //$NON-NLS-1$
 						}
-				    };
-			    if (loadInSeparateThread) {
-			      Thread importVideoOpener = new Thread(importVideoRunner);
-			      importVideoOpener.setName("importVideo");
-			      
-			      importVideoOpener.setPriority(Thread.NORM_PRIORITY);
-			      importVideoOpener.setDaemon(true);
-			      importVideoOpener.start(); 
-			    }
-			    else importVideoRunner.run();
+					};
+					if (loadInSeparateThread) {
+						Thread importVideoOpener = new Thread(importVideoRunner);
+						importVideoOpener.setName("importVideo");
+
+						importVideoOpener.setPriority(Thread.NORM_PRIORITY);
+						importVideoOpener.setDaemon(true);
+						importVideoOpener.start();
+					} else
+						importVideoRunner.run();
 				}
 				return null;
 			}

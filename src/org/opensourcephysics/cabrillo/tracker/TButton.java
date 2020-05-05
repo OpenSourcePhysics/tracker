@@ -35,6 +35,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class TButton extends JButton {
 	
 	private int trackID;
@@ -49,7 +50,8 @@ public class TButton extends JButton {
 		setOpaque(false);
 		setBorderPainted(false);
     addMouseListener(new MouseAdapter() {
-    	public void mouseEntered(MouseEvent e) {
+    	@Override
+		public void mouseEntered(MouseEvent e) {
     		setBorderPainted(true);
         hidePopup = popup!=null && popup.isVisible();
         TTrack track = getTrack();
@@ -65,11 +67,13 @@ public class TButton extends JButton {
       	}    		
     	}
 
-    	public void mouseExited(MouseEvent e) {
+    	@Override
+		public void mouseExited(MouseEvent e) {
     		setBorderPainted(false);
     	}
 
-    	public void mousePressed(MouseEvent e) {
+    	@Override
+		public void mousePressed(MouseEvent e) {
         TTrack track = getTrack();
     		if (track!=null && track.trackerPanel!=null
     				&& track != track.trackerPanel.getSelectedTrack()) {
@@ -80,21 +84,21 @@ public class TButton extends JButton {
         }
     	}
 
-    	public void mouseClicked(MouseEvent e) {
-    		popup = getPopup();
-    		if (popup!=null) {
-    			if (e.getClickCount()==2)
-    				hidePopup = false;
-	        if (hidePopup) {
-	          hidePopup = false;
-	          popup.setVisible(false);
-	        }
-	        else {
-	          hidePopup = true;
-	          popup.show(TButton.this, 0, TButton.this.getHeight());
-	        }
-    		}
-    	}
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				popup = getPopup();
+				if (popup != null) {
+					if (e.getClickCount() == 2)
+						hidePopup = false;
+					if (hidePopup) {
+						hidePopup = false;
+						popup.setVisible(false);
+					} else {
+						hidePopup = true;
+						popup.show(TButton.this, 0, TButton.this.getHeight());
+					}
+				}
+			}
     });
   }
   
@@ -181,21 +185,21 @@ public class TButton extends JButton {
   	return TTrack.getTrack(trackID);
   }
   
-  /**
-   * Gets a popup menu to display. If a track is associated with this button,
-   * the track menu is returned, but subclasses can override this method
-   * to return any popup menu.
-   *
-   * @return the popup menu, or null if none
-   */
-  protected JPopupMenu getPopup() {
-    TTrack track = getTrack();
-  	if (track!=null && track.trackerPanel!=null) {
-    	JMenu trackMenu = track.getMenu(track.trackerPanel);
-    	FontSizer.setFonts(trackMenu, FontSizer.getLevel());
-  		return trackMenu.getPopupMenu();
-  	}
-  	return null;
-  }
+	/**
+	 * Gets the TMenuBar's trackMenu popup menu to display. If a track is associated with this button, the
+	 * track menu is returned, but subclasses can override this method to return any
+	 * popup menu.
+	 *
+	 * @return the popup menu, or null if none
+	 */
+	protected JPopupMenu getPopup() {
+		TTrack track = getTrack();
+		if (track != null && track.trackerPanel != null) {
+			JMenu trackMenu = track.getMenu(track.trackerPanel);
+			FontSizer.setFonts(trackMenu, FontSizer.getLevel());
+			return trackMenu.getPopupMenu();
+		}
+		return null;
+	}
 
 }

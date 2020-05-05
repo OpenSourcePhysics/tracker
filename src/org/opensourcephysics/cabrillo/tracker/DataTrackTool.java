@@ -59,193 +59,192 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 		frame = tFrame;		
 	}
 
-  /**
-   * Sends a job to this tool and specifies a tool to reply to. The job xml must
-   * define either a Data object or DataTrackSupport.Message object. Data must
-   * include (x, y) coordinates and and may define other properties as well. The optional
-   * replyTo Tool may also be a (JPanel) source control panel for the DataTrack.
-   *
-   * @param job the Job
-   * @param replyTo the tool to notify when the job is complete (may be null)
-   * @throws RemoteException
-   */
-  public void send(Job job, Tool replyTo) throws RemoteException {
-    // read the job's XML into an XMLControl
-    XMLControl control = new XMLControlElement();
-    control.readXML(job.getXML());
-    if (control.failedToRead()) {
-      return;
-    }
-    
-    // get the source ID and check for handshake
+	/**
+	 * Sends a job to this tool and specifies a tool to reply to. The job xml must
+	 * define either a Data object or DataTrackSupport.Message object. Data must
+	 * include (x, y) coordinates and and may define other properties as well. The
+	 * optional replyTo Tool may also be a (JPanel) source control panel for the
+	 * DataTrack.
+	 *
+	 * @param job     the Job
+	 * @param replyTo the tool to notify when the job is complete (may be null)
+	 * @throws RemoteException
+	 */
+	public void send(Job job, Tool replyTo) throws RemoteException {
+		// read the job's XML into an XMLControl
+		XMLControl control = new XMLControlElement();
+		control.readXML(job.getXML());
+		if (control.failedToRead()) {
+			return;
+		}
+
+		// get the source ID and check for handshake
 		int sourceID = control.getInt("sourceID"); //$NON-NLS-1$
-  	if (control.getBoolean("handshake")) { //$NON-NLS-1$
-  		// save replyTo tool
+		if (control.getBoolean("handshake")) { //$NON-NLS-1$
+			// save replyTo tool
 			replyToTools.put(sourceID, replyTo);
-  		// save jarPath
+			// save jarPath
 			jarPaths.put(sourceID, control.getString("jar_path")); //$NON-NLS-1$
 			// send handshake reply
-	  	job.setXML(control.toXML());
+			job.setXML(control.toXML());
 			replyTo.send(job, null);
 			return;
-  	}
-  	
-  	// see if a video path has been sent
+		}
+
+		// see if a video path has been sent
 		String videoFullPath = control.getString("video"); //$NON-NLS-1$
-		
+
 		// extract the video if needed, before loading TRK
 		File videoFile = null;
-		if (videoFullPath!=null) {
-  		videoFile = findFile(videoFullPath, sourceID);
-  	}
+		if (videoFullPath != null) {
+			videoFile = findFile(videoFullPath, sourceID);
+		}
 
 		boolean videoLoadedByTRK = false;
-  	
+
 		// load TRK file
-  	if (control.getPropertyNames().contains("trk")) { //$NON-NLS-1$
-  		String path = control.getString("trk"); //$NON-NLS-1$
-  		File trkFile = findFile(path, sourceID);
-  		if (trkFile==null || !trkFile.exists()) {
-        int result = JOptionPane.showConfirmDialog(frame,
-        		TrackerRes.getString("DataTrackTool.Dialog.FileNotFound.Message1") //$NON-NLS-1$
-    				+" \""+path+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-        		+"\n"+TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Message2"), //$NON-NLS-1$ //$NON-NLS-2$
-    				TrackerRes.getString("DataTrackTool.Dialog.FileNotFound.Title"),  //$NON-NLS-1$
-    				JOptionPane.ERROR_MESSAGE);
-        if (result==JOptionPane.YES_OPTION) {
-          java.io.File[] files = TrackerIO.getChooserFiles("open trk");  //$NON-NLS-1$
-          if (files!=null && files.length>0) {
-          	trkFile = files[0];
-          }
-        }
-  		}
-  		if (trkFile!=null) {
-  	    XMLControlElement trkControl = new XMLControlElement(trkFile.getAbsolutePath());
-  	    Class<?> type = trkControl.getObjectClass();
-  	    if (!TrackerPanel.class.equals(type)) {
-  	      JOptionPane.showMessageDialog(frame, 
-  	          TrackerRes.getString("DataTrackTool.Dialog.InvalidTRK.Message") //$NON-NLS-1$
-  	  				+ ": \""+ trkFile.getAbsolutePath()+"\"", //$NON-NLS-1$ //$NON-NLS-2$
-  	      		TrackerRes.getString("DataTrackTool.Dialog.InvalidTRK.Title"), //$NON-NLS-1$
-  	      		JOptionPane.WARNING_MESSAGE);
-  	    }
-  	    else {
-  	    	OSPLog.fine("loading TRK file "+trkFile.getAbsolutePath()); //$NON-NLS-1$
-  	    	// extract video if needed
-  	    	XMLControl childControl = trkControl.getChildControl("videoclip"); //$NON-NLS-1$
-  	    	if (childControl!=null) {
-  	    		childControl = childControl.getChildControl("video"); //$NON-NLS-1$
-  	    	}
-  	    	if (childControl!=null) {
-	  	  		String trkVidPath = childControl.getString("path"); //$NON-NLS-1$
-	  	  		File vidFile = null;
-	  	  		// video path relative to EjsS base, videoPath==full path?	  	  		
-	  	  		// check to see if the full path contains base from which TRK path is relative
-	  	    	if (videoFullPath!=null) {
-	  	    		vidFile = new File(videoFullPath);
-  	    			if (vidFile.exists()) {
-  	    				File parentFile = vidFile.getParentFile();
-  	    				while (parentFile!=null) {
-  	    					String base = parentFile.getAbsolutePath();
-  	    					String target = XML.getResolvedPath(trkVidPath, base);
-  	    					if (new File(target).exists()) {
-  	    						videoLoadedByTRK = true;
-	  	    					ResourceLoader.addSearchPath(base);
-	  	    					break;
-  	    					}
-  	    					parentFile = parentFile.getParentFile();
-  	    				}
-  	    			}  	    			
-	  	    	}
-	  	    	
-	  	    	if (vidFile==null) {
-		  	  		vidFile = findFile(trkVidPath, sourceID);	  	    		
-		  	  		if (vidFile!=null) {
-		  	  			String jarPath = jarPaths.get(sourceID);
-		  	  			if (jarPath!=null) {
-		  	  				ResourceLoader.addSearchPath(XML.getDirectoryPath(jarPath));
-		  	  			}
-		  	  		}
-	  	    	}
-  	    	}
-  	    	
-  	    	// create and load new TrackerPanel
-  				TrackerPanel trackerPanel = new TrackerPanel();
-	        trkControl.loadObject(trackerPanel);
-	        trackerPanel.defaultFileName = XML.getName(path);
-	        trackerPanel.openedFromPath = trkFile.getAbsolutePath();
-	        trackerPanel.setDataFile(trkFile);
-					frame.addTab(trackerPanel);
-					frame.setSelectedTab(trackerPanel);
-	        Tracker.addRecent(trkFile.getAbsolutePath(), false); // add at beginning
-  	    }
-  		}
-  	}
-  	
-  	// get the target TrackerPanel
-		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		
-		if (trackerPanel==null) {
-			trackerPanel = new TrackerPanel();
-			frame.addTab(trackerPanel);
-		}
-		
-		// import video only if not loaded by TRK
-		if (!videoLoadedByTRK && videoFullPath!=null) {
-			if (videoFile==null || !videoFile.exists()) {
-	      int result = JOptionPane.showConfirmDialog(trackerPanel,
-	      		TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Message1") //$NON-NLS-1$
-	  				+" \""+videoFullPath+"\"" //$NON-NLS-1$ //$NON-NLS-2$
-	      		+"\n"+TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Message2"), //$NON-NLS-1$ //$NON-NLS-2$
-	  				TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Title"),  //$NON-NLS-1$
-	  				JOptionPane.ERROR_MESSAGE);
-	      if (result==JOptionPane.YES_OPTION) {
-	        java.io.File[] files = VideoIO.getChooserFiles("open video");  //$NON-NLS-1$
-	        if (files!=null && files.length>0) {
-	        	videoFile = files[0];
-	        }
-	      }
+		if (control.getPropertyNames().contains("trk")) { //$NON-NLS-1$
+			String path = control.getString("trk"); //$NON-NLS-1$
+			File trkFile = findFile(path, sourceID);
+			if (trkFile == null || !trkFile.exists()) {
+				int result = JOptionPane.showConfirmDialog(frame,
+						TrackerRes.getString("DataTrackTool.Dialog.FileNotFound.Message1") //$NON-NLS-1$
+								+ " \"" + path + "\"" //$NON-NLS-1$ //$NON-NLS-2$
+								+ "\n" + TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Message2"), //$NON-NLS-1$ //$NON-NLS-2$
+						TrackerRes.getString("DataTrackTool.Dialog.FileNotFound.Title"), //$NON-NLS-1$
+						JOptionPane.ERROR_MESSAGE);
+				if (result == JOptionPane.YES_OPTION) {
+					java.io.File[] files = TrackerIO.getChooserFiles("open trk"); //$NON-NLS-1$
+					if (files != null && files.length > 0) {
+						trkFile = files[0];
+					}
+				}
 			}
-			if (videoFile!=null) {
-	    	OSPLog.fine("importing video file "+videoFile.getAbsolutePath()); //$NON-NLS-1$
+			if (trkFile != null) {
+				XMLControlElement trkControl = new XMLControlElement(trkFile.getAbsolutePath());
+				Class<?> type = trkControl.getObjectClass();
+				if (!TrackerPanel.class.equals(type)) {
+					JOptionPane.showMessageDialog(frame, TrackerRes.getString("DataTrackTool.Dialog.InvalidTRK.Message") //$NON-NLS-1$
+							+ ": \"" + trkFile.getAbsolutePath() + "\"", //$NON-NLS-1$ //$NON-NLS-2$
+							TrackerRes.getString("DataTrackTool.Dialog.InvalidTRK.Title"), //$NON-NLS-1$
+							JOptionPane.WARNING_MESSAGE);
+				} else {
+					OSPLog.fine("loading TRK file " + trkFile.getAbsolutePath()); //$NON-NLS-1$
+					// extract video if needed
+					XMLControl childControl = trkControl.getChildControl("videoclip"); //$NON-NLS-1$
+					if (childControl != null) {
+						childControl = childControl.getChildControl("video"); //$NON-NLS-1$
+					}
+					if (childControl != null) {
+						String trkVidPath = childControl.getString("path"); //$NON-NLS-1$
+						File vidFile = null;
+						// video path relative to EjsS base, videoPath==full path?
+						// check to see if the full path contains base from which TRK path is relative
+						if (videoFullPath != null) {
+							vidFile = new File(videoFullPath);
+							if (vidFile.exists()) {
+								File parentFile = vidFile.getParentFile();
+								while (parentFile != null) {
+									String base = parentFile.getAbsolutePath();
+									String target = XML.getResolvedPath(trkVidPath, base);
+									if (new File(target).exists()) {
+										videoLoadedByTRK = true;
+										ResourceLoader.addSearchPath(base);
+										break;
+									}
+									parentFile = parentFile.getParentFile();
+								}
+							}
+						}
+
+						if (vidFile == null) {
+							vidFile = findFile(trkVidPath, sourceID);
+							if (vidFile != null) {
+								String jarPath = jarPaths.get(sourceID);
+								if (jarPath != null) {
+									ResourceLoader.addSearchPath(XML.getDirectoryPath(jarPath));
+								}
+							}
+						}
+					}
+
+					// create and load new TrackerPanel
+					TrackerPanel trackerPanel = new TrackerPanel();
+					trkControl.loadObject(trackerPanel);
+					trackerPanel.defaultFileName = XML.getName(path);
+					trackerPanel.openedFromPath = trkFile.getAbsolutePath();
+					trackerPanel.setDataFile(trkFile);
+					frame.addTab(trackerPanel, null);
+					frame.setSelectedTab(trackerPanel);
+					Tracker.addRecent(trkFile.getAbsolutePath(), false); // add at beginning
+				}
+			}
+		}
+
+		// get the target TrackerPanel
+		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+		if (trackerPanel == null) {
+			trackerPanel = new TrackerPanel();
+			frame.addTab(trackerPanel, null);
+		}
+
+		// import video only if not loaded by TRK
+		if (!videoLoadedByTRK && videoFullPath != null) {
+			if (videoFile == null || !videoFile.exists()) {
+				int result = JOptionPane.showConfirmDialog(trackerPanel,
+						TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Message1") //$NON-NLS-1$
+								+ " \"" + videoFullPath + "\"" //$NON-NLS-1$ //$NON-NLS-2$
+								+ "\n" + TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Message2"), //$NON-NLS-1$ //$NON-NLS-2$
+						TrackerRes.getString("DataTrackTool.Dialog.VideoNotFound.Title"), //$NON-NLS-1$
+						JOptionPane.ERROR_MESSAGE);
+				if (result == JOptionPane.YES_OPTION) {
+					java.io.File[] files = VideoIO.getChooserFiles("open video"); //$NON-NLS-1$
+					if (files != null && files.length > 0) {
+						videoFile = files[0];
+					}
+				}
+			}
+			if (videoFile != null) {
+				OSPLog.fine("importing video file " + videoFile.getAbsolutePath()); //$NON-NLS-1$
 				TrackerIO.importVideo(videoFile, trackerPanel, null);
 			}
 		}
 		// set video properties
-  	if (control.getPropertyNames().contains("videoStartFrame")) { //$NON-NLS-1$
-  		int start = control.getInt("videoStartFrame"); //$NON-NLS-1$
-    	OSPLog.fine("setting start frame to "+start); //$NON-NLS-1$
-  		trackerPanel.getPlayer().getVideoClip().setStartFrameNumber(start);
-  	}
-  	if (control.getPropertyNames().contains("videoEndFrame")) { //$NON-NLS-1$
-  		int end = control.getInt("videoEndFrame"); //$NON-NLS-1$
-    	OSPLog.fine("setting end frame to "+end); //$NON-NLS-1$
-  		trackerPanel.getPlayer().getVideoClip().setEndFrameNumber(end);
-  	}
-  	if (control.getPropertyNames().contains("videoStepSize")) { //$NON-NLS-1$
-  		int size = control.getInt("videoStepSize"); //$NON-NLS-1$
-  		trackerPanel.getPlayer().getVideoClip().setStepSize(size);
-  	}
-  	if (control.getPropertyNames().contains("stepNumber")) { //$NON-NLS-1$
-  		int step = control.getInt("stepNumber"); //$NON-NLS-1$
-    	OSPLog.fine("setting step size to "+step); //$NON-NLS-1$
-  		trackerPanel.getPlayer().setStepNumber(step);
-  	}
-  	if (control.getPropertyNames().contains("frameNumber")) { //$NON-NLS-1$
-  		int frame = control.getInt("frameNumber"); //$NON-NLS-1$
-  		int step = trackerPanel.getPlayer().getVideoClip().frameToStep(frame);
-    	OSPLog.fine("setting step number to "+step); //$NON-NLS-1$
-  		trackerPanel.getPlayer().setStepNumber(step);
-  	}
-  	if (control.getPropertyNames().contains("deleteTracks")) { //$NON-NLS-1$
-  		String[] trackNames = (String[])control.getObject("deleteTracks"); //$NON-NLS-1$
-  		for (String next: trackNames) {
-  			ParticleDataTrack track = findParticleDataTrack(trackerPanel, next, -1);
-  			if (track!=null) {
-  	    	OSPLog.fine("deleting track "+track.getName()); //$NON-NLS-1$
-  				track.delete();
-  			}
-  		}
-  	}
+		if (control.getPropertyNames().contains("videoStartFrame")) { //$NON-NLS-1$
+			int start = control.getInt("videoStartFrame"); //$NON-NLS-1$
+			OSPLog.fine("setting start frame to " + start); //$NON-NLS-1$
+			trackerPanel.getPlayer().getVideoClip().setStartFrameNumber(start);
+		}
+		if (control.getPropertyNames().contains("videoEndFrame")) { //$NON-NLS-1$
+			int end = control.getInt("videoEndFrame"); //$NON-NLS-1$
+			OSPLog.fine("setting end frame to " + end); //$NON-NLS-1$
+			trackerPanel.getPlayer().getVideoClip().setEndFrameNumber(end);
+		}
+		if (control.getPropertyNames().contains("videoStepSize")) { //$NON-NLS-1$
+			int size = control.getInt("videoStepSize"); //$NON-NLS-1$
+			trackerPanel.getPlayer().getVideoClip().setStepSize(size);
+		}
+		if (control.getPropertyNames().contains("stepNumber")) { //$NON-NLS-1$
+			int step = control.getInt("stepNumber"); //$NON-NLS-1$
+			OSPLog.fine("setting step size to " + step); //$NON-NLS-1$
+			trackerPanel.getPlayer().setStepNumber(step);
+		}
+		if (control.getPropertyNames().contains("frameNumber")) { //$NON-NLS-1$
+			int frame = control.getInt("frameNumber"); //$NON-NLS-1$
+			int step = trackerPanel.getPlayer().getVideoClip().frameToStep(frame);
+			OSPLog.fine("setting step number to " + step); //$NON-NLS-1$
+			trackerPanel.getPlayer().setStepNumber(step);
+		}
+		if (control.getPropertyNames().contains("deleteTracks")) { //$NON-NLS-1$
+			String[] trackNames = (String[]) control.getObject("deleteTracks"); //$NON-NLS-1$
+			for (String next : trackNames) {
+				ParticleDataTrack track = findParticleDataTrack(trackerPanel, next, -1);
+				if (track != null) {
+					OSPLog.fine("deleting track " + track.getName()); //$NON-NLS-1$
+					track.delete();
+				}
+			}
+		}
 //  	if (control.getPropertyNames().contains("trk")) { //$NON-NLS-1$
 //  		String path = control.getString("trk"); //$NON-NLS-1$
 //  		File trkFile = findFile(path, sourceID);
@@ -284,42 +283,42 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 //  	    }
 //  		}
 //  	}
-  	  	
-  	// get the data, if any
-		Data data = (Data)control.getObject("data"); //$NON-NLS-1$
+
+		// get the data, if any
+		Data data = (Data) control.getObject("data"); //$NON-NLS-1$
 		boolean append = control.getBoolean("append"); //$NON-NLS-1$
-		
-  	// get the target DataTrack
-    DataTrack dataTrack = loadData(trackerPanel, data, append);	
-    if (dataTrack==null && data!=null) {
-    	dataTrack = trackerPanel.importData(data, replyTo);
-    }
-    if (dataTrack==null) {
-    	String name = control.getString("dataName"); //$NON-NLS-1$
-    	int dataID = control.getInt("dataID"); //$NON-NLS-1$
-    	dataTrack = findParticleDataTrack(trackerPanel, name, dataID);
-    	if (dataTrack!=null) {
-    		try {
+
+		// get the target DataTrack
+		DataTrack dataTrack = loadData(trackerPanel, data, append);
+		if (dataTrack == null && data != null) {
+			dataTrack = trackerPanel.importData(data, replyTo);
+		}
+		if (dataTrack == null) {
+			String name = control.getString("dataName"); //$NON-NLS-1$
+			int dataID = control.getInt("dataID"); //$NON-NLS-1$
+			dataTrack = findParticleDataTrack(trackerPanel, name, dataID);
+			if (dataTrack != null) {
+				try {
 					dataTrack.setData(data, replyTo);
 				} catch (Exception e) {
 				}
-    	}
-    }
-    
-    // set DataTrack properties
-    if (dataTrack!=null) {
-    	if (control.getPropertyNames().contains("useDataTime") && dataTrack.getVideoPanel()!=null) { //$NON-NLS-1$
-	    	boolean useTrackTime = control.getBoolean("useDataTime"); //$NON-NLS-1$
-    		VideoPlayer player = dataTrack.getVideoPanel().getPlayer();
-    		player.getClipControl().setTimeSource(useTrackTime? dataTrack: null);
-    		player.refresh();
-    		if (dataTrack instanceof ParticleDataTrack) {
-    			((ParticleDataTrack)dataTrack).refreshInitialTime();
-    		}
-    	}
+			}
+		}
 
-    }
-  }
+		// set DataTrack properties
+		if (dataTrack != null) {
+			if (control.getPropertyNames().contains("useDataTime") && dataTrack.getVideoPanel() != null) { //$NON-NLS-1$
+				boolean useTrackTime = control.getBoolean("useDataTime"); //$NON-NLS-1$
+				VideoPlayer player = dataTrack.getVideoPanel().getPlayer();
+				player.getClipControl().setTimeSource(useTrackTime ? dataTrack : null);
+				player.refresh();
+				if (dataTrack instanceof ParticleDataTrack) {
+					((ParticleDataTrack) dataTrack).refreshInitialTime();
+				}
+			}
+
+		}
+	}
   
   /**
    * Sends a message to a replyTo tool in the form of a String-to-String mapping.

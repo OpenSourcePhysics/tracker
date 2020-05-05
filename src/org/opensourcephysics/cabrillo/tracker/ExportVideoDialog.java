@@ -24,21 +24,46 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.EventQueue;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.TreeSet;
 
-import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.ProgressMonitor;
+import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 
 import org.opensourcephysics.controls.XML;
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.DeinterlaceFilter;
 import org.opensourcephysics.media.core.ImageVideoRecorder;
@@ -50,7 +75,6 @@ import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.core.VideoRecorder;
 import org.opensourcephysics.media.core.VideoType;
-import org.opensourcephysics.media.mov.MovieFactory;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -58,6 +82,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class ExportVideoDialog extends JDialog {
 	
 	protected static ExportVideoDialog videoExporter; // singleton
@@ -70,7 +95,7 @@ public class ExportVideoDialog extends JDialog {
   protected TrackerPanel trackerPanel;
   protected JButton saveAsButton, closeButton;
   protected JComponent sizePanel, viewPanel, contentPanel, formatPanel;
-  protected JComboBox formatDropdown, viewDropdown, sizeDropdown, contentDropdown;
+  protected JComboBox<String> formatDropdown, viewDropdown, sizeDropdown, contentDropdown;
   protected JLabel clipPropertiesLabel;
   protected AffineTransform transform = new AffineTransform();
   protected BufferedImage sizedImage;
@@ -189,16 +214,17 @@ public class ExportVideoDialog extends JDialog {
     // size panel
     sizes = new HashMap<Object, Dimension>();
     sizePanel = Box.createVerticalBox();
-    sizeDropdown = new JComboBox();
+    sizeDropdown = new JComboBox<String>();
   	sizePanel.add(sizeDropdown);
     
     // view panel
     views = new HashMap<Object, JComponent>();
     viewPanel = new JPanel(new GridLayout(0, 1));
-    viewDropdown = new JComboBox();
+    viewDropdown = new JComboBox<>();
     viewPanel.add(viewDropdown);
     viewDropdown.addItemListener(new ItemListener() {
-    	public void itemStateChanged(ItemEvent e) {
+    	@Override
+		public void itemStateChanged(ItemEvent e) {
     		if (e.getStateChange()==ItemEvent.SELECTED) {
     			if (!isRefreshing)
     				refreshDropdowns();
@@ -208,10 +234,11 @@ public class ExportVideoDialog extends JDialog {
     
     // content panel
     contentPanel = new JPanel(new GridLayout(0, 1));
-    contentDropdown = new JComboBox();
+    contentDropdown = new JComboBox<>();
   	contentPanel.add(contentDropdown);
   	contentDropdown.addItemListener(new ItemListener() {
-    	public void itemStateChanged(ItemEvent e) {
+    	@Override
+		public void itemStateChanged(ItemEvent e) {
     		if (isRefreshing) return;
     		if (e.getStateChange()==ItemEvent.DESELECTED) {
     			prevContentItem = e.getItem();
@@ -251,7 +278,7 @@ public class ExportVideoDialog extends JDialog {
     
     // format panel
     formatPanel = new JPanel(new GridLayout(0, 1));
-    formatDropdown = new JComboBox();
+    formatDropdown = new JComboBox<>();
     formatPanel.add(formatDropdown);
     
     // assemble 
@@ -266,7 +293,8 @@ public class ExportVideoDialog extends JDialog {
     saveAsButton = new JButton();
     saveAsButton.setForeground(new Color(0, 0, 102));
     saveAsButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         VideoType format = formats.get(formatDropdown.getSelectedItem());
         Dimension size = sizes.get(sizeDropdown.getSelectedItem());
         render(format, size, true, null);
@@ -275,7 +303,8 @@ public class ExportVideoDialog extends JDialog {
     closeButton = new JButton();
     closeButton.setForeground(new Color(0, 0, 102));
     closeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
@@ -559,15 +588,17 @@ public class ExportVideoDialog extends JDialog {
   public void setFontLevel(int level) {
 		FontSizer.setFonts(this, level);
 		// refresh the dropdowns
-		JComboBox[] dropdowns = new JComboBox[] {formatDropdown, viewDropdown, 
+		JComboBox<?>[] dropdowns = new JComboBox<?>[] {formatDropdown, viewDropdown, 
 				sizeDropdown, contentDropdown};
-		for (JComboBox next: dropdowns) {
+		for (JComboBox<?> cb: dropdowns) {
+			@SuppressWarnings("unchecked")
+			JComboBox<String> next = (JComboBox<String>) cb;
 			int n = next.getSelectedIndex();
-			Object[] items = new Object[next.getItemCount()];
+			String[] items = new String[next.getItemCount()];
 			for (int i=0; i<items.length; i++) {
-				items[i] = next.getItemAt(i);
+				items[i] = (String) next.getItemAt(i);
 			}
-			DefaultComboBoxModel model = new DefaultComboBoxModel(items);
+			DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(items);
 			next.setModel(model);
 			next.setSelectedItem(n);
 		}
@@ -615,19 +646,14 @@ public class ExportVideoDialog extends JDialog {
   	return false;
   }
   
-  /**
-   * Controls the visibility of the video.
-   * 
-   * @param visible true to show the video
-   */
-  private void setVideoVisible(boolean visible) {
-  	if (trackerPanel.getVideo()==null) return;
-  	TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
-  	JCheckBoxMenuItem button = menubar.videoVisibleItem;
-  	if (button.isSelected()!=visible) {
-  		button.doClick(0);
-  	}
-  }
+	/**
+	 * Controls the visibility of the video.
+	 * 
+	 * @param visible true to show the video
+	 */
+	private void setVideoVisible(boolean visible) {
+		trackerPanel.setVideoVisible(visible);
+	}
   
   /**
    * Renders a video of the entire current clip. The video format and size 
@@ -748,10 +774,12 @@ public class ExportVideoDialog extends JDialog {
 			
 	  	// create "stepnumber" PropertyChangeListener to add frames
 	  	listener = new PropertyChangeListener() {
-	  		public void propertyChange(PropertyChangeEvent e) {
+	  		@Override
+			public void propertyChange(PropertyChangeEvent e) {
 	  			final int progress = ((Integer)e.getNewValue()).intValue()+1;
 	      	Runnable runner = new Runnable() {
-	      		public void run() {
+	      		@Override
+				public void run() {
 	  					if (monitor.isCanceled()) {
 	  		    		firePropertyChange("video_cancelled", null, null); //$NON-NLS-1$
 	  				    monitor.close();
@@ -802,7 +830,8 @@ public class ExportVideoDialog extends JDialog {
 	  					    		frame.loadedFiles.remove(savedFilePath);
 	  					    		final File file = new File(savedFilePath);
 	  					        Runnable runner = new Runnable() {
-	  					        	public void run() {
+	  					        	@Override
+									public void run() {
 	  							    		TrackerIO.openTabFile(file, frame);
 	  					        	}
 	  					        };

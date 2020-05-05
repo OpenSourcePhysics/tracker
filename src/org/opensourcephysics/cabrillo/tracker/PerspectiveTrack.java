@@ -180,9 +180,9 @@ public class PerspectiveTrack extends TTrack {
    * @return a menu
    */
   public JMenu getMenu(TrackerPanel trackerPanel) {
-    menu = new JMenu(getName());
-    menu.setIcon(getFootprint().getIcon(21, 16));
-    return menu;
+    track_submenu = new JMenu(getName());
+    track_submenu.setIcon(getFootprint().getIcon(21, 16));
+    return track_submenu;
   }
 	
 	/**
