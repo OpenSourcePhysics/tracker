@@ -67,7 +67,7 @@ public class Tracker {
 
   // define static constants
   /** tracker version and copyright */
-  public static final String VERSION = "5.1.4"; //$NON-NLS-1$
+  public static final String VERSION = "5.1.5"; //$NON-NLS-1$
   public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown"; //$NON-NLS-1$
   /** the tracker icon */
   public static final ImageIcon TRACKER_ICON = new ImageIcon(
@@ -320,20 +320,11 @@ public class Tracker {
     		BevelBorder.RAISED, grayblue, darkgrayblue));
     splash.setContentPane(contentPane);
     MouseInputAdapter splashMouseListener = new MouseInputAdapter() {
-    	Point mouseLoc;
-    	Point splashLoc;
       public void mousePressed(MouseEvent e) {
-      	splashLoc = splash.getLocation(); // original screen position of splash
-      	mouseLoc = e.getPoint(); // original screen position of mouse
-      	mouseLoc.x += splashLoc.x;
-      	mouseLoc.y += splashLoc.y;
+      	splash.setVisible(false);
+  	    splash.dispose();
+  	    splash = null;
       }
-      public void mouseDragged(MouseEvent e) {
-      	Point loc = splash.getLocation();
-      	loc.x += e.getPoint().x;
-      	loc.y += e.getPoint().y;
-      	splash.setLocation(splashLoc.x+loc.x-mouseLoc.x, splashLoc.y+loc.y-mouseLoc.y);
-      }   	
     };
     contentPane.addMouseListener(splashMouseListener);
     contentPane.addMouseMotionListener(splashMouseListener);
@@ -380,13 +371,6 @@ public class Tracker {
     versionPanel.setBorder(BorderFactory.createLineBorder(lightblue));
     contentPane.add(versionPanel, BorderLayout.SOUTH);
     
-    splash.pack();
-    Dimension size = splash.getSize();
-    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    int x = dim.width / 2;
-    int y = 3*dim.height/5;  // below center
-    splash.setLocation(x-size.width/2, y-size.height/2);
-
   	// set up videos extensions to extract from jars
   	// this list should agree with xuggle video types below
   	for (String ext: VideoIO.VIDEO_EXTENSIONS) { // {"mov", "avi", "mp4"}
@@ -463,14 +447,27 @@ public class Tracker {
    * @param names an array of TRK, video or TRZ file names
    */
   private Tracker(String[] names, boolean addTabIfEmpty, boolean showSplash) {
-  	// set font level resize and center splash frame
-  	FontSizer.setFonts(splash, FontSizer.getLevel());
-  	splash.pack();
-    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-    int x = (dim.width - splash.getBounds().width) / 2;
-    int y = (dim.height - splash.getBounds().height) / 2;
-    splash.setLocation(x, y);
-    splash.setVisible(showSplash);
+  	if (showSplash) {
+	  	// set font level resize and center splash frame
+	  	FontSizer.setFonts(splash, FontSizer.getLevel());
+	  	splash.pack();
+	    Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+	    int x = (dim.width - splash.getBounds().width) / 2;
+	    int y = (dim.height - splash.getBounds().height) / 2;
+	    splash.setLocation(x, y);
+	    splash.setVisible(true);
+	    Timer timer = new Timer(3000, new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+	      if (Tracker.splash!=null) {
+	        Tracker.splash.setVisible(false);
+	  	    Tracker.splash.dispose();
+	  	    Tracker.splash = null;
+	      }
+	    }
+	  });
+	  timer.setRepeats(false);
+	  timer.start();
+  	}
     createFrame();
     Tracker.setProgress(5);
     if (names != null) {
@@ -1932,6 +1929,11 @@ public class Tracker {
    */
   protected static void setProgress(int progress) {
     progressBar.setValue(progress);
+    if (progress==100 && Tracker.splash!=null) {
+      Tracker.splash.setVisible(false);
+	    Tracker.splash.dispose();
+	    Tracker.splash = null;
+    }
   }
 
   /**

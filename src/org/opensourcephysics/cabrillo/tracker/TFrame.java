@@ -918,20 +918,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     }
   }
 
-  public void setVisible(boolean visible) {
-    super.setVisible(visible);
-    if (!Tracker.splash.isVisible()) return;
-//    Tracker.setProgress(100);
-    // dispose of splash automatically after short time
-    Timer timer = new Timer(1500, new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-      	Tracker.splash.dispose();
-      }
-    });
-		timer.setRepeats(false);
-		timer.start();
-  }
-  
   /**
    * Sets the display units for angles.
    * 
