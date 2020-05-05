@@ -41,9 +41,6 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
@@ -97,7 +94,6 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
-import org.opensourcephysics.controls.XML.ObjectLoader;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.GUIUtils;
@@ -123,6 +119,7 @@ import org.opensourcephysics.tools.ResourceLoader;
  */
 public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
+	
 	public static boolean allowDataRefresh = !OSPRuntime.isBHTest;
 	public static boolean allowMenuRefresh = !OSPRuntime.isBHTest;
 	public static boolean allowViews = !OSPRuntime.isBHTest;
@@ -338,8 +335,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			// load current version after a delay to allow video engines to load
 			// and every 24 hours thereafter (if program is left running)
 			Timer timer = new Timer(86400000, new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					Runnable runner = new Runnable() {
+						@Override
 						public void run() {
 							checkedForNewerVersion = false;
 							loadCurrentVersion(false, true);
@@ -357,6 +356,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		}
 		xmlFilter = new java.io.FileFilter() {
 			// accept only *.xml files.
+			@Override
 			public boolean accept(File f) {
 				if (f == null || f.isDirectory())
 					return false;
@@ -411,6 +411,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			Point mouseLoc;
 			Point splashLoc;
 
+			@Override
 			public void mousePressed(MouseEvent e) {
 				splashLoc = splash.getLocation(); // original screen position of splash
 				mouseLoc = e.getPoint(); // original screen position of mouse
@@ -418,6 +419,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				mouseLoc.y += splashLoc.y;
 			}
 
+			@Override
 			public void mouseDragged(MouseEvent e) {
 				Point loc = splash.getLocation();
 				loc.x += e.getPoint().x;
@@ -483,6 +485,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		// create pdf help button
 		pdfHelpButton = new JButton(TrackerRes.getString("Tracker.Button.PDFHelp")); //$NON-NLS-1$
 		pdfHelpButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				try {
 					java.net.URL url = new java.net.URL("https://" + trackerWebsite + pdfHelpPath); //$NON-NLS-1$
@@ -495,6 +498,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		// find Java VMs in background thread so they are ready when needed
 		Runnable runner = new Runnable() {
+			@Override
 			public void run() {
 				JREFinder.getFinder().getJREs(32);
 			}
@@ -655,6 +659,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		// set up the Java VM exit mechanism when used as application
 		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
 			frame.addWindowListener(new WindowAdapter() {
+				@Override
 				public void windowClosing(WindowEvent e) {
 					// save preferences, but first clean up autoloadMap
 					ArrayList<String> dirs = new ArrayList<String>();
@@ -685,6 +690,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 							final boolean exit = frame.wishesToExit();
 							frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 							Runnable runner = new Runnable() {
+								@Override
 								public void run() {
 									if (exit)
 										frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -706,6 +712,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 								final boolean exit = frame.wishesToExit();
 								frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
 								Runnable runner = new Runnable() {
+									@Override
 									public void run() {
 										if (exit)
 											frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -917,6 +924,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	protected static void createActions() {
 		// about Tracker
 		aboutTrackerAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutTracker"), null) { //$NON-NLS-1$
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				showAboutTracker();
 			}
@@ -924,6 +932,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		if (prefsPath != null) {
 			trackerPrefsAction = new AbstractAction(TrackerRes.getString("Tracker.Prefs.MenuItem.Text") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (trackerPrefsDialog == null) {
 						String s = ResourceLoader.getString(prefsPath);
@@ -965,6 +974,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		if (!OSPRuntime.isJS) /** @j2sNative */ {
 			// Tracker README
 			readmeAction = new AbstractAction(TrackerRes.getString("Tracker.Readme") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (readmeDialog == null && trackerHome != null) {
 						String slash = System.getProperty("file.separator", "/"); //$NON-NLS-1$//$NON-NLS-2$
@@ -1008,6 +1018,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			final String startLogPath = System.getenv("START_LOG"); //$NON-NLS-1$
 			if (startLogPath != null) {
 				startLogAction = new AbstractAction(TrackerRes.getString("Tracker.StartLog") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
+					@Override
 					public void actionPerformed(ActionEvent e) {
 						if (startLogDialog == null) {
 							String s = ResourceLoader.getString(startLogPath);
@@ -1044,6 +1055,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			
 			// about Java
 			aboutJavaAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutJava"), null) { //$NON-NLS-1$
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					Diagnostics.aboutJava();
 				}
@@ -1052,6 +1064,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			// about Xuggle--only if xuggle resources present
 			if (MovieFactory.xuggleIsPresent) {
 				aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
+					@Override
 					public void actionPerformed(ActionEvent e) {
 						MovieFactory.showAbout(MovieFactory.ENGINE_XUGGLE, "Tracker"); //$NON-NLS-1$
 					}
@@ -1060,6 +1073,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			
 			// about threads
 			aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					DiagnosticsForThreads.aboutThreads();
 				}
@@ -1940,6 +1954,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		if (!OSPRuntime.isJS) /** @j2sNative */ {
 			// create and register DataTrackTool
 			Runnable runner = new Runnable() {
+				@Override
 				public void run() {
 					try {
 						dataTrackTool = new DataTrackTool(frame);
@@ -2016,6 +2031,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			box.add(new JLabel("  ")); //$NON-NLS-1$
 			final JCheckBox checkbox = new JCheckBox(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
 			checkbox.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					warnNoVideoEngine = !checkbox.isSelected();
 				}
@@ -2033,6 +2049,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				if (response == 0) {
 					// use prefs dialog to switch to 32-bit VM/default engine and relaunch
 					Runnable launcher = new Runnable() {
+						@Override
 						public void run() {
 							PrefsDialog prefs = frame.getPrefsDialog();
 							prefs.relaunch32Bit();
@@ -2068,6 +2085,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
 			if (newVersionURL != null) {
 				Timer timer = new Timer(2000, new ActionListener() {
+					@Override
 					public void actionPerformed(ActionEvent e) {
 						if (OSPRuntime.isWindows()) {
 							File target = new File(trackerHome, "tracker.jar"); //$NON-NLS-1$
@@ -2101,6 +2119,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			}
 
 			Timer memoryTimer = new Timer(5000, new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					TTrackBar.refreshMemoryButton();
 				}
@@ -2343,6 +2362,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			 * @param control the control to save to
 			 * @param obj     the object to save
 			 */
+			@Override
 			public void saveObject(XMLControl control, Object obj) {
 				// save only non-default values
 				if (!preferredLogLevel.equals(DEFAULT_LOG_LEVEL)) // true by default
@@ -2454,6 +2474,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			 * @param control the XMLControl with the object data
 			 * @return the newly created object
 			 */
+			@Override
 			public Object createObject(XMLControl control) {
 				return new Preferences();
 			}
@@ -2465,6 +2486,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			 * @param obj     the object
 			 * @return the loaded object
 			 */
+			@Override
 			@SuppressWarnings("unchecked")
 			public Object loadObject(XMLControl control, Object obj) {
 				Level logLevel = OSPLog.parseLevel(control.getString("log_level")); //$NON-NLS-1$
