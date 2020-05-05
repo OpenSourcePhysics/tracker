@@ -206,7 +206,7 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 			}
 			if (videoFile != null) {
 				OSPLog.fine("importing video file " + videoFile.getAbsolutePath()); //$NON-NLS-1$
-				TrackerIO.importVideo(videoFile, trackerPanel, null);
+				TrackerIO.importVideo(videoFile, trackerPanel, null, null);
 			}
 		}
 		// set video properties

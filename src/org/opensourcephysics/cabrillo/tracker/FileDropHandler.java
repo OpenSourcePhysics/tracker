@@ -28,11 +28,6 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
-import java.awt.dnd.DropTargetAdapter;
-import java.awt.dnd.DropTargetDragEvent;
-import java.awt.dnd.DropTargetDropEvent;
-import java.awt.dnd.DropTargetEvent;
-import java.awt.dnd.DropTargetListener;
 import java.io.File;
 import java.util.List;
 
@@ -151,9 +146,10 @@ public class FileDropHandler extends TransferHandler {
 					final TFrame frame = targetPanel.getTFrame();
 					final int n = frame.getTab(targetPanel);
 					Runnable runner = new Runnable() {
+						@Override
 						public void run() {
 							TrackerPanel trackerPanel = frame.getTrackerPanel(n);
-							TrackerIO.importVideo(file, trackerPanel, null);
+							TrackerIO.importVideo(file, trackerPanel, null, null);///TrackerIO.NULL_RUNNABLE);
 						}
 					};
 					if (TrackerIO.loadInSeparateThread) {

@@ -145,12 +145,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
 	protected final static Color yellow = new Color(255, 255, 105);
 
-
-	private final static int VIEW_PLOT  = 0;
+	private final static int VIEW_PLOT = 0;
 	private final static int VIEW_TABLE = 1;
 	private final static int VIEW_WORLD = 2;
-	private final static int VIEW_TEXT  = 3;
-	
+	private final static int VIEW_TEXT = 3;
+
 	// instance fields
 	private JToolBar playerBar;
 	private JPopupMenu popup = new JPopupMenu();
@@ -158,13 +157,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private JMenuBar defaultMenuBar;
 	private JMenu recentMenu;
 
-	private static final int PANEL_MAINVIEW   = 0;
-	private static final int PANEL_VIEWS       = 1;
-	private static final int PANEL_SPLITPANES  = 2;
-	private static final int PANEL_TOOLBAR     = 3;
-	private static final int PANEL_MENUBAR     = 4;
-	private static final int PANEL_TRACKBAR    = 5;
-	
+	private static final int PANEL_MAINVIEW = 0;
+	private static final int PANEL_VIEWS = 1;
+	private static final int PANEL_SPLITPANES = 2;
+	private static final int PANEL_TOOLBAR = 3;
+	private static final int PANEL_MENUBAR = 4;
+	private static final int PANEL_TRACKBAR = 5;
+
 	private Map<JPanel, Object[]> panelObjects = new HashMap<JPanel, Object[]>();
 	protected JTabbedPane tabbedPane;
 	protected JTextPane notesTextPane;
@@ -787,8 +786,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		for (int i = 0; i < selectedViews.length; i++) {
 			if (views[i] instanceof TViewChooser) {
 				TViewChooser chooser = (TViewChooser) views[i];
-        TView tview = chooser.getSelectedView();
-				selectedViews[i] = tview==null? null: tview.getViewName();
+				TView tview = chooser.getSelectedView();
+				selectedViews[i] = tview == null ? null : tview.getViewName();
 			}
 		}
 		return selectedViews;
@@ -894,27 +893,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		case "video": // from TrackerPanel //$NON-NLS-1$ //$NON-NLS-2$
 			trackerPanel = (TrackerPanel) e.getSource();
 			refreshTab(trackerPanel);
-		break; case MovieVideoI.PROPERTY_VIDEO_PROGRESS: // from currently loading (xuggle) video //$NON-NLS-1$
+			break;
+		case MovieVideoI.PROPERTY_VIDEO_PROGRESS: // from currently loading (xuggle) video //$NON-NLS-1$
 			Object val = e.getNewValue();
 			String vidName = XML.forwardSlash((String) e.getOldValue());
 			try {
 				framesLoaded = Integer.parseInt(val.toString());
 			} catch (Exception ex) {
 			}
-			for (MonitorDialog next : TrackerIO.monitors) {
-				String monitorName = XML.forwardSlash(next.getName());
-				if (monitorName.endsWith(vidName)) {
-					int progress = 20 + (framesLoaded / 20 % 60);
-					if (next.getFrameCount() != Integer.MIN_VALUE) {
-						progress = 20 + (int) (framesLoaded * 60.0 / next.getFrameCount());
-					}
-					next.setProgress(progress);
-					next.setTitle(
-							TrackerRes.getString("TFrame.ProgressDialog.Title.FramesLoaded") + ": " + framesLoaded); //$NON-NLS-1$ //$NON-NLS-2$
-					break;
-				}
-			}
-		break; case MovieVideoI.PROPERTY_VIDEO_STALLED: // from stalled xuggle video //$NON-NLS-1$
+			TrackerIO.setProgress(vidName, val.toString(), framesLoaded);
+			break;
+		case MovieVideoI.PROPERTY_VIDEO_STALLED: // from stalled xuggle video //$NON-NLS-1$
 			String fileName = XML.getName((String) e.getNewValue());
 			String s = TrackerRes.getString("TFrame.Dialog.StalledVideo.Message0") //$NON-NLS-1$
 					+ "\n" + TrackerRes.getString("TFrame.Dialog.StalledVideo.Message1") //$NON-NLS-1$ //$NON-NLS-2$
@@ -927,19 +916,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[] { stop, wait }, stop);
 			if (response == 0) { // user chose to stop loading
 				VideoIO.setCanceled(true);
-				MonitorDialog monitor = null;
-				for (MonitorDialog next : TrackerIO.monitors) {
-					String monitorName = XML.forwardSlash(next.getName());
-					String videoName = XML.forwardSlash(fileName);
-					if (monitorName.endsWith(videoName)) {
-						monitor = next;
-						break;
-					}
-				}
-				if (monitor != null)
-					monitor.close();
+				TrackerIO.closeMonitor(fileName);
 			}
-		break; case "locale": // from TrackerRes //$NON-NLS-1$
+			break;
+		case "locale": // from TrackerRes //$NON-NLS-1$
 			// clear the existing menubars and actions
 			TMenuBar.clear();
 			TActions.clear();
@@ -969,7 +949,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			trackerPanel = getTrackerPanel(getSelectedTab());
 			if (trackerPanel != null) {
 				// replace menu bar
-				
+
 				TMenuBar menuBar = getMenuBar(trackerPanel);
 				if (menuBar != null) {
 					setJMenuBar(menuBar);
@@ -2596,21 +2576,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	}
 
-	public void addTrackerPane(boolean changedState) {		
-        TrackerPanel newPanel = new TrackerPanel();
-        if (!changedState)
-        	newPanel.changed = false;
-        addTab(newPanel, new Runnable() {
+	public void addTrackerPane(boolean changedState) {
+		TrackerPanel newPanel = new TrackerPanel();
+		if (!changedState)
+			newPanel.changed = false;
+		addTab(newPanel, new Runnable() {
 
 			@Override
 			public void run() {
-		        setSelectedTab(newPanel);
-		        JSplitPane pane = getSplitPane(newPanel, 0);
-		        pane.setDividerLocation(defaultRightDivider);
-		        refresh();
+				setSelectedTab(newPanel);
+				JSplitPane pane = getSplitPane(newPanel, 0);
+				pane.setDividerLocation(defaultRightDivider);
+				refresh();
 			}
-        	
-        });
+
+		});
 	}
 
 }
