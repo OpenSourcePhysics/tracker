@@ -540,12 +540,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return getDrawables(TTrack.class);
 	}
 
+	private ArrayList<TTrack> userTracks;
+	
 	/**
 	 * Gets the list of user-controlled TTracks on this panel.
 	 *
 	 * @return a list of tracks under direct user control
 	 */
 	public ArrayList<TTrack> getUserTracks() {
+		if (userTracks != null)
+			return userTracks;
 		ArrayList<TTrack> tracks = getTracks();
 		tracks.remove(getAxes());
 		tracks.removeAll(calibrationTools);
@@ -559,7 +563,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				tracks.remove(track);
 			}
 		}
-		return tracks;
+		return userTracks = tracks;
 	}
 
 	/**
@@ -606,6 +610,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public synchronized void addTrack(TTrack track) {
 		if (track == null)
 			return;
+		userTracks = null;
 		TTrack.activeTracks.put(track.getID(), track);
 		// set trackerPanel property if not yet set
 		if (track.trackerPanel == null) {
@@ -804,6 +809,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public synchronized void removeTrack(TTrack track) {
 		if (!getDrawables(track.getClass()).contains(track))
 			return;
+		userTracks = null;
 		removePropertyChangeListener(track);
 		track.removePropertyChangeListener("step", this); //$NON-NLS-1$
 		track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
@@ -3380,7 +3386,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			TTrack.nameDialog.setVisible(false);
 			TTrack.nameDialog.getContentPane().remove(badNameLabel);
 		}
-		refreshMenuBar("TrackerPanel.setTrackName");
+		TMenuBar.refreshMenus(this, TMenuBar.REFRESH_TPANEL_SETTRACKNAME);
 	}
 
 	/**
@@ -3933,10 +3939,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return trackerPanel;
 		}
 
-	}
-
-	public void refreshMenuBar(String whereFrom) {
-		TMenuBar.getMenuBar(this).refresh(whereFrom);
 	}
 
 	public boolean getAutoRefresh() {

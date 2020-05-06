@@ -953,7 +953,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				TMenuBar menuBar = getMenuBar(trackerPanel);
 				if (menuBar != null) {
 					setJMenuBar(menuBar);
-					menuBar.refresh(TMenuBar.REFRESH_LOCALE);
+					menuBar.refresh(TMenuBar.REFRESH_TFRAME_LOCALE);
 				}
 				// show hint
 				if (Tracker.startupHintShown) {
@@ -1308,7 +1308,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 								Tracker.recentFiles.remove(e.getActionCommand());
 								int n = getSelectedTab();
 								if (n > -1) {
-									getTrackerPanel(n).refreshMenuBar("TFrame.openRecent");
+									TMenuBar.refreshMenus(getTrackerPanel(n),TMenuBar.REFRESH_TFRAME_OPENRECENT);
 								} else {
 									refreshOpenRecentMenu(recentMenu);
 								}
@@ -1355,7 +1355,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (i < 0)
 			return;
 		TrackerPanel trackerPanel = getTrackerPanel(i);
-		getMenuBar(trackerPanel).refresh("TFrame.refresh");
+		getMenuBar(trackerPanel).refresh(TMenuBar.REFRESH_TFRAME);
 		getToolBar(trackerPanel).refresh(true);
 		getTrackBar(trackerPanel).refresh();
 		for (Container next : getViews(trackerPanel)) {

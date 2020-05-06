@@ -104,6 +104,7 @@ import org.opensourcephysics.tools.ResourceLoader;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class PrefsDialog extends JDialog {
 
   // static constants
@@ -268,6 +269,7 @@ public class PrefsDialog extends JDialog {
 		// ok button
 		okButton = new JButton();
 		okButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				applyPrefs();
 				setVisible(false);
@@ -279,6 +281,7 @@ public class PrefsDialog extends JDialog {
 		// cancel button
 		cancelButton = new JButton();
 		cancelButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				revert();
 				setVisible(false);
@@ -291,6 +294,7 @@ public class PrefsDialog extends JDialog {
 		// relaunch button
 		relaunchButton = new JButton();
 		relaunchButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				applyPrefs();
 				ArrayList<String> filenames = new ArrayList<String>();
@@ -343,6 +347,7 @@ public class PrefsDialog extends JDialog {
 		// apply button
 		applyButton = new JButton();
 		applyButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				updateConfig();
 				refreshGUI();
@@ -352,6 +357,7 @@ public class PrefsDialog extends JDialog {
 		// create all and none buttons
 		allButton = new JButton();
 		allButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Component[] checkboxes = checkPanel.getComponents();
 				for (int i = 0; i < checkboxes.length; i++) {
@@ -362,6 +368,7 @@ public class PrefsDialog extends JDialog {
 		});
 		noneButton = new JButton();
 		noneButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Component[] checkboxes = checkPanel.getComponents();
 				for (int i = 0; i < checkboxes.length; i++) {
@@ -373,6 +380,7 @@ public class PrefsDialog extends JDialog {
 		// save button
 		saveButton = new JButton();
 		saveButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				saveConfigAsDefault();
 			}
@@ -420,6 +428,7 @@ public class PrefsDialog extends JDialog {
 		}
 		lookFeelDropdown.setSelectedItem(selectedItem);
 		lookFeelDropdown.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				String lf = lookFeelDropdown.getSelectedItem().toString().toUpperCase();
 				if (!lf.equals(Tracker.lookAndFeel)) {
@@ -452,6 +461,7 @@ public class PrefsDialog extends JDialog {
 		}
 		languageDropdown.setSelectedIndex(selectedIndex);
 		languageDropdown.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				int index = languageDropdown.getSelectedIndex();
 				if (index == 0)
@@ -493,6 +503,7 @@ public class PrefsDialog extends JDialog {
 		hintsCheckbox.setOpaque(false);
 		hintsCheckbox.setSelected(Tracker.showHintsByDefault);
 		hintsCheckbox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.showHintsByDefault = hintsCheckbox.isSelected();
 			}
@@ -561,6 +572,7 @@ public class PrefsDialog extends JDialog {
 		}
 		fontSizeDropdown.setSelectedIndex(preferredLevel);
 		fontSizeDropdown.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				int preferredLevel = fontSizeDropdown.getSelectedIndex();
 				Tracker.preferredFontLevel = Math.min(preferredLevel, 3);
@@ -603,6 +615,7 @@ public class PrefsDialog extends JDialog {
 			}
 		};
 		footprintDropdown.setAction(new AbstractAction() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (refreshing)
 					return;
@@ -660,6 +673,7 @@ public class PrefsDialog extends JDialog {
 		}
 		versionDropdown.setSelectedIndex(preferred);
 		versionDropdown.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				Object ver = versionDropdown.getSelectedItem();
 				String jar = null;
@@ -695,6 +709,7 @@ public class PrefsDialog extends JDialog {
 		vm32Button.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
 		vm32Button.setSelected(vmBitness == 32);
 		vm32Button.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!vm32Button.isSelected())
 					return;
@@ -710,6 +725,7 @@ public class PrefsDialog extends JDialog {
 		vm64Button.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
 		vm64Button.setSelected(vmBitness == 64);
 		vm64Button.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!vm64Button.isSelected())
 					return;
@@ -749,6 +765,7 @@ public class PrefsDialog extends JDialog {
 		memorySubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.Memory.BorderTitle")); //$NON-NLS-1$
 		memorySubPanel.setBorder(BorderFactory.createCompoundBorder(etched, memorySubPanelBorder));
 		memorySubPanel.addMouseListener(new MouseAdapter() {
+			@Override
 			public void mousePressed(MouseEvent e) {
 				requestFocusInWindow();
 			}
@@ -759,6 +776,7 @@ public class PrefsDialog extends JDialog {
 		memoryField = new IntegerField(4);
 		memoryField.setMinValue(Tracker.minimumMemorySize);
 		memoryField.addFocusListener(new FocusAdapter() {
+			@Override
 			public void focusLost(FocusEvent e) {
 				if (memorySize != memoryField.getIntValue()) {
 					memorySize = memoryField.getIntValue();
@@ -766,6 +784,7 @@ public class PrefsDialog extends JDialog {
 			}
 		});
 		memoryField.addMouseListener(new MouseAdapter() {
+			@Override
 			public void mousePressed(MouseEvent e) {
 				if (defaultMemoryCheckbox.isSelected()) {
 					defaultMemoryCheckbox.doClick(0);
@@ -773,11 +792,13 @@ public class PrefsDialog extends JDialog {
 			}
 		});
 		memoryField.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				memorySize = memoryField.getIntValue();
 			}
 		});
 		defaultMemoryCheckbox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				boolean selected = defaultMemoryCheckbox.isSelected();
 				if (selected) {
@@ -814,6 +835,7 @@ public class PrefsDialog extends JDialog {
 		runSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, runSubPanelBorder));
 
 		final Action setRunAction = new AbstractAction() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				String path = runField.getText();
 				int n = (Integer) runSpinner.getValue();
@@ -852,6 +874,7 @@ public class PrefsDialog extends JDialog {
 		JSpinner.NumberEditor editor = new JSpinner.NumberEditor(runSpinner);
 		runSpinner.setEditor(editor);
 		runSpinner.addChangeListener(new ChangeListener() {
+			@Override
 			public void stateChanged(ChangeEvent e) {
 				if (runField.getBackground() == Color.yellow) {
 					setRunAction.actionPerformed(null);
@@ -864,11 +887,13 @@ public class PrefsDialog extends JDialog {
 		runField = new JTextField(27);
 		runSubPanel.add(runField);
 		runField.addKeyListener(new KeyAdapter() {
+			@Override
 			public void keyPressed(KeyEvent e) {
 				runField.setBackground(Color.yellow);
 			}
 		});
 		runField.addFocusListener(new FocusAdapter() {
+			@Override
 			public void focusLost(FocusEvent e) {
 				if (runField.getBackground() == Color.yellow)
 					setRunAction.actionPerformed(null);
@@ -879,6 +904,7 @@ public class PrefsDialog extends JDialog {
 		Icon openFileIcon = new ImageIcon(Tracker.getClassResource("resources/images/open.gif")); //$NON-NLS-1$
 		setRunButton = new TButton(openFileIcon);
 		setRunButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				int result = JFileChooser.CANCEL_OPTION;
 				File f = Tracker.trackerHome == null ? new File(".") : new File(Tracker.trackerHome); //$NON-NLS-1$
@@ -918,6 +944,7 @@ public class PrefsDialog extends JDialog {
 		movieEngineButton.setOpaque(false);
 		movieEngineButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
 		movieEngineButton.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				xuggleFastButton.setEnabled(movieEngineButton.isSelected());
 				xuggleSlowButton.setEnabled(movieEngineButton.isSelected());
@@ -957,6 +984,7 @@ public class PrefsDialog extends JDialog {
 		noEngineButton.setOpaque(false);
 		noEngineButton.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
 		noEngineButton.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (!noEngineButton.isSelected())
 					return;
@@ -996,6 +1024,7 @@ public class PrefsDialog extends JDialog {
 		vidWarningCheckbox.setOpaque(false);
 		vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
 		vidWarningCheckbox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.warnNoVideoEngine = vidWarningCheckbox.isSelected();
 			}
@@ -1004,6 +1033,7 @@ public class PrefsDialog extends JDialog {
 		xuggleErrorCheckbox.setOpaque(false);
 		xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
 		xuggleErrorCheckbox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.warnXuggleError = xuggleErrorCheckbox.isSelected();
 			}
@@ -1012,6 +1042,7 @@ public class PrefsDialog extends JDialog {
 		variableDurationCheckBox.setOpaque(false);
 		variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
 		variableDurationCheckBox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.warnVariableDuration = variableDurationCheckBox.isSelected();
 			}
@@ -1067,6 +1098,7 @@ public class PrefsDialog extends JDialog {
 		resetToStep0Checkbox.setOpaque(false);
 		resetToStep0Checkbox.setSelected(!Tracker.markAtCurrentFrame);
 		resetToStep0Checkbox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.markAtCurrentFrame = !resetToStep0Checkbox.isSelected();
 			}
@@ -1096,6 +1128,7 @@ public class PrefsDialog extends JDialog {
 		calibrationStickSubPanel.add(markStickEndsButton);
 		calibrationStickSubPanel.add(centerStickButton);
 		ActionListener calStickAction = new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.centerCalibrationStick = centerStickButton.isSelected();
 			}
@@ -1128,6 +1161,7 @@ public class PrefsDialog extends JDialog {
 		mouseWheelSubPanel.add(zoomButton);
 		mouseWheelSubPanel.add(scrubButton);
 		ActionListener mouseWheelAction = new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.scrubMouseWheel = scrubButton.isSelected();
 			}
@@ -1147,6 +1181,7 @@ public class PrefsDialog extends JDialog {
 		showGapsCheckbox.setOpaque(false);
 		showGapsCheckbox.setSelected(Tracker.showGaps);
 		showGapsCheckbox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.showGaps = showGapsCheckbox.isSelected();
 			}
@@ -1157,6 +1192,7 @@ public class PrefsDialog extends JDialog {
 		autofillCheckbox.setOpaque(false);
 		autofillCheckbox.setSelected(Tracker.enableAutofill);
 		autofillCheckbox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.enableAutofill = autofillCheckbox.isSelected();
 				if (trackerPanel != null) {
@@ -1183,10 +1219,10 @@ public class PrefsDialog extends JDialog {
 		clearRecentButton = new JButton();
 		clearRecentButton.setEnabled(!Tracker.recentFiles.isEmpty());
 		clearRecentButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.recentFiles.clear();
-				if (trackerPanel != null)
-					trackerPanel.refreshMenuBar("PrefsDialog.clearRecent");
+				TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_PREFS_CLEARRECENT);
 				clearRecentButton.setEnabled(false);
 			}
 		});
@@ -1223,6 +1259,7 @@ public class PrefsDialog extends JDialog {
 		cacheField = new JTextField(27);
 		cacheNorthPanel.add(cacheField);
 		final Action setCacheAction = new AbstractAction() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				String cachePath = XML.stripExtension(cacheField.getText());
 				Tracker.setCache(cachePath);
@@ -1230,11 +1267,13 @@ public class PrefsDialog extends JDialog {
 			}
 		};
 		cacheField.addKeyListener(new KeyAdapter() {
+			@Override
 			public void keyPressed(KeyEvent e) {
 				cacheField.setBackground(Color.yellow);
 			}
 		});
 		cacheField.addFocusListener(new FocusAdapter() {
+			@Override
 			public void focusLost(FocusEvent e) {
 				if (cacheField.getBackground() == Color.yellow)
 					setCacheAction.actionPerformed(null);
@@ -1244,6 +1283,7 @@ public class PrefsDialog extends JDialog {
 
 		browseCacheButton = new TButton(openFileIcon);
 		browseCacheButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				File cache = ResourceLoader.getOSPCache();
 				Desktop desktop = Desktop.getDesktop();
@@ -1263,6 +1303,7 @@ public class PrefsDialog extends JDialog {
 		cacheSouthPanel.setBackground(color);
 		clearHostButton = new JButton();
 		clearHostButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				// get list of host directories
 				File cache = ResourceLoader.getOSPCache();
@@ -1273,6 +1314,7 @@ public class PrefsDialog extends JDialog {
 				// make popup menu with items to clear individual hosts
 				JPopupMenu popup = new JPopupMenu();
 				ActionListener clearAction = new ActionListener() {
+					@Override
 					public void actionPerformed(ActionEvent e) {
 						for (File host : hosts) {
 							if (host.getAbsolutePath().equals(e.getActionCommand())) {
@@ -1306,6 +1348,7 @@ public class PrefsDialog extends JDialog {
 
 		clearCacheButton = new JButton();
 		clearCacheButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				File cache = ResourceLoader.getOSPCache();
 				ResourceLoader.clearOSPCache(cache, false);
@@ -1316,6 +1359,7 @@ public class PrefsDialog extends JDialog {
 
 		setCacheButton = new JButton();
 		setCacheButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				File newCache = ResourceLoader.chooseOSPCache(frame);
 				if (newCache != null) {
@@ -1331,6 +1375,7 @@ public class PrefsDialog extends JDialog {
 		// check for upgrades subpanel
 		checkForUpgradeButton = new JButton();
 		checkForUpgradeButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.showUpgradeStatus(trackerPanel);
 			}
@@ -1350,6 +1395,7 @@ public class PrefsDialog extends JDialog {
 		}
 		logLevelDropdown.setSelectedItem(selected);
 		logLevelDropdown.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				String s = logLevelDropdown.getSelectedItem().toString();
 				Level level = OSPLog.parseLevel(s);
@@ -1377,6 +1423,7 @@ public class PrefsDialog extends JDialog {
 		}
 		checkForUpgradeDropdown.setSelectedItem(selected);
 		checkForUpgradeDropdown.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				String s = checkForUpgradeDropdown.getSelectedItem().toString();
 				for (String next : Tracker.checkForUpgradeChoices) {
@@ -1408,6 +1455,7 @@ public class PrefsDialog extends JDialog {
 		contentPane.add(mainButtonBar, BorderLayout.SOUTH);
 
 		tabbedPane.addChangeListener(new ChangeListener() {
+			@Override
 			public void stateChanged(ChangeEvent e) {
 				if (tabbedPane.getSelectedComponent() == runtimePanel) {
 					defaultMemoryCheckbox.setEnabled(!OSPRuntime.isWebStart());
@@ -1438,6 +1486,7 @@ public class PrefsDialog extends JDialog {
 		xuggleErrorCheckbox.setEnabled(movieEngineButton.isSelected());
 		if (OSPRuntime.isWindows()) {
 			Runnable runner = new Runnable() {
+				@Override
 				public void run() {
 					vm32Button.setEnabled(!JREFinder.getFinder().getJREs(32).isEmpty());
 					vm64Button.setEnabled(!JREFinder.getFinder().getJREs(64).isEmpty());
@@ -1630,7 +1679,8 @@ public class PrefsDialog extends JDialog {
   private void refreshJREDropdown(final int vmBitness) {
     // refresh JRE dropdown in background thread
   	Runnable runner = new Runnable() {
-  		public void run() {
+  		@Override
+		public void run() {
 				while (!JREFinder.isReady()) {
 					try {
 						Thread.sleep(200);
@@ -1638,6 +1688,7 @@ public class PrefsDialog extends JDialog {
 					}
   			}
 				Runnable refresher = new Runnable() {
+					@Override
 					public void run() {
 		  	    // replace items in dropdown
 		  	    jreDropdown.removeAllItems();
@@ -1746,9 +1797,7 @@ public class PrefsDialog extends JDialog {
     // update recent menu
     Integer val = (Integer)recentSizeSpinner.getValue();
     Tracker.setRecentSize(val);
-    
-    if (trackerPanel!=null) 
-		trackerPanel.refreshMenuBar("PrefsDialog.applyPrefs");
+    TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_PREFS_APPLYPREFS);
 
   	// update preferred memory size
     if (defaultMemoryCheckbox.isSelected())
@@ -2006,14 +2055,16 @@ public class PrefsDialog extends JDialog {
 		if (useJREFilter) {
 	    FileFilter folderFilter = new FileFilter() {
 	      // accept directories or "jre/jdk" files only
-	      public boolean accept(File f) {
+	      @Override
+		public boolean accept(File f) {
 	      	if (f==null) return false;
 	        if (f.isDirectory()) return true;
 	        if (f.getPath().indexOf("jre")>-1) return true; //$NON-NLS-1$
 	        if (f.getPath().indexOf("jdk")>-1) return true; //$NON-NLS-1$
 	        return false;
 	      }
-	      public String getDescription() {
+	      @Override
+		public String getDescription() {
 	        return TrackerRes.getString("PrefsDialog.FileFilter.JRE"); //$NON-NLS-1$
 	      } 	     	
 	    };
@@ -2038,7 +2089,8 @@ public class PrefsDialog extends JDialog {
 			setBorder(BorderFactory.createEmptyBorder(1, 3, 1, 0));
   	}
   	
-    public Component getListCellRendererComponent(JList list, Object val, int index,
+    @Override
+	public Component getListCellRendererComponent(JList list, Object val, int index,
         boolean selected, boolean hasFocus) {
 
       if (selected) {

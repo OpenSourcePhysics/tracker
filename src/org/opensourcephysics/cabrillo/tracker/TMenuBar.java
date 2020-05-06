@@ -252,6 +252,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	 * @return a TMenuBar. May return null during instantiation.
 	 */
 	public static TMenuBar getMenuBar(TrackerPanel panel) {
+		if (panel == null) 
+			return null;
 		synchronized (menuBars) {
 			if (!menuBars.containsKey(panel)) {
 				menuBars.put(panel, new TMenuBar(panel));
@@ -1710,8 +1712,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	 * @param track the track
 	 * @return the track's menu
 	 */
-	protected JMenu getMenu(TTrack track) {
+	protected JMenu createTrackMenu(TTrack track) {
 		JMenu menu = track.getMenu(trackerPanel);
+		menu.setName("track");
 		ImageCoordSystem coords = trackerPanel.getCoords();
 		if (coords.isLocked() && coords instanceof ReferenceFrame
 				&& track == ((ReferenceFrame) coords).getOriginTrack()) {
@@ -1754,12 +1757,27 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		});
 	}
 
-	static final String REFRESH_LOCALE = "TFrame.locale";
-	static final String REFRESH_TOOLBAR_POPUP = "TToolBar.popup";
-	static final String TTOOLBAR_TRACKS = "TTooBar.tracks";
-	static final String TFRAME_BOTTOM = "TFrame.bottom";
-	static final String TFRAME_RIGHT = "TFrame.right";
-	static final String MAINTVIEW_POPUP = "MainTView.popup";
+	static final String TTOOLBAR_TRACKS        = "TTooBar.tracks";
+	static final String TFRAME_BOTTOM          = "TFrame.bottom";
+	static final String TFRAME_RIGHT           = "TFrame.right";
+	static final String MAINTVIEW_POPUP        = "MainTView.popup";
+
+	static final String REFRESH_TFRAME_LOCALE            = "TFrame.locale";
+	static final String REFRESH_TOOLBAR_POPUP            = "TToolBar.popup";
+	static final String REFRESH_TFRAME                   = "TFrame.refresh";
+	static final String REFRESH_PROPERTY_                = "property:?";
+	static final String REFRESH_TRACKERIO_DONELOADING_   = "TrackerIO.doneLoading:?";
+	static final String REFRESH_TRACKERIO_OPENFRAME      = "TrackerIO.aferOpenFrame";
+	static final String REFRESH_TRACKERIO_BEFORESETVIDEO = "TrackerIO.beforeSetVideo";
+    static final String REFRESH_TRACKERIO_SAVE           = "TrackerIO.save";
+	static final String REFRESH_TRACKERIO_SAVETABSET     = "TrackerIO.saveTabset";
+	static final String REFRESH_TRACKERIO_SAVEVIDEO      = "TrackerIO.saveVideoOK";
+	static final String REFRESH_TPANEL_SETTRACKNAME      = "TrackerPanel.setTrackName";
+	static final String REFRESH_PREFS_CLEARRECENT        = "PrefsDialog.clearRecent";
+	static final String REFRESH_PREFS_APPLYPREFS         = "PrefsDialog.applyPrefs";
+	static final String REFRESH_TACTIONS_OPENVIDEO       = "TActions.openVideo";
+	static final String REFRESH_TFRAME_OPENRECENT        = "TFrame.openRecent";
+	static final String REFRESH_UNDO                     = "Undo.refreshMenus";
 	
 	protected void refreshAll(String whereFrom) {
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
@@ -1767,29 +1785,53 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		if (!Tracker.allowMenuRefresh)
 			return;
 		refreshing = true; // signals listeners that items are being refreshed
-		switch (whereFrom) {
-		case REFRESH_TOOLBAR_POPUP:
-			refreshTracksCreateMenu();
-			return;
-		}
-		
-		
-		
-		if (OSPRuntime.isJS) {
-			// signals SwingJS that there is no need to do anything with the DOM during this process
-			// of rebuilding the menu. 
-			OSPRuntime.jsutil.setUIEnabled(this, false);
-		}
-		// AysncSwingWorker here?
-		refreshFileMenu();
-		refreshEditMenu();
-		refreshVideoMenu();
-		refreshCoordsMenu();
-		refreshTrackMenu();
-		refreshHelpMenu();
-		FontSizer.setFonts(this, FontSizer.getLevel());
-		if (OSPRuntime.isJS) {
-			OSPRuntime.jsutil.setUIEnabled(this, true);
+		try {
+			switch (whereFrom) {
+			case REFRESH_TOOLBAR_POPUP:
+				refreshTracksCreateMenu();
+				break;
+			case REFRESH_TRACKERIO_SAVE:
+			case REFRESH_TRACKERIO_SAVETABSET:
+			case REFRESH_TRACKERIO_SAVEVIDEO:
+			case REFRESH_PROPERTY_:
+			case REFRESH_TACTIONS_OPENVIDEO:
+			case REFRESH_TRACKERIO_OPENFRAME:
+			case REFRESH_TRACKERIO_BEFORESETVIDEO:
+				break;
+			case REFRESH_TPANEL_SETTRACKNAME:
+				refreshTrackMenuTexts(trackerPanel.getUserTracks());
+				break;
+			case REFRESH_TFRAME_OPENRECENT:
+			case REFRESH_PREFS_CLEARRECENT:
+				refreshRecentFilesMenu();
+				break;
+			case REFRESH_TRACKERIO_DONELOADING_:
+			case REFRESH_PREFS_APPLYPREFS:
+			case REFRESH_UNDO:
+			case REFRESH_TFRAME_LOCALE:
+			case REFRESH_TFRAME:
+			default:
+
+				if (OSPRuntime.isJS) {
+					// signals SwingJS that there is no need to do anything with the DOM during this
+					// process
+					// of rebuilding the menu.
+					OSPRuntime.jsutil.setUIEnabled(this, false);
+				}
+				// AysncSwingWorker here?
+				refreshFileMenu();
+				refreshEditMenu();
+				refreshVideoMenu();
+				refreshCoordsMenu();
+				refreshTrackMenu();
+				refreshHelpMenu();
+				FontSizer.setFonts(this, FontSizer.getLevel());
+				if (OSPRuntime.isJS) {
+					OSPRuntime.jsutil.setUIEnabled(this, true);
+				}
+			}
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
 		refreshing = false;
 
@@ -1849,26 +1891,27 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		if (hasTracks && trackMenu.getItemCount() > 0)
 			trackMenu.addSeparator();
 		PointMass originTrack = getOriginTrack();
-		Iterator<TTrack> it = userTracks.iterator();
 		// for each track
-		while (it.hasNext()) {
-			track = it.next();
+		for (int i = 0, n = userTracks.size(); i < n; i++) {
+			track = userTracks.get(i);
 			track.removePropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
 			track.addPropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
 			String trackName = track.getName("track"); //$NON-NLS-1$
 			// add delete item to edit menu for each track
 			JMenuItem item = new JMenuItem(trackName);
+			item.setName("track");
 			item.setIcon(track.getIcon(21, 16, "track")); //$NON-NLS-1$
 			item.addActionListener(actions.get("deleteTrack")); //$NON-NLS-1$
 			item.setEnabled(!track.isLocked() || track.isDependent());
 			edit_deleteTracksMenu.add(item);
 			// add item to clone menu for each track
 			item = new JMenuItem(trackName);
+			item.setName("track");
 			item.setIcon(track.getIcon(21, 16, "track")); //$NON-NLS-1$
 			item.addActionListener(actions.get("cloneTrack")); //$NON-NLS-1$
 			track_cloneMenu.add(item);
 			// add each track's submenu to track menu
-			trackMenu.add(getMenu(track));
+			trackMenu.add(createTrackMenu(track));
 			// if track is point mass, add reference frame menu items
 			if (track instanceof PointMass) {
 				item = new JRadioButtonMenuItem(trackName);
@@ -1879,6 +1922,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 					item.setSelected(true);
 			}
 		}
+		refreshTrackMenuTexts(userTracks);
 		if (trackerPanel.isEnabled("edit.clear")) { //$NON-NLS-1$
 			if (edit_deleteTracksMenu.getItemCount() > 0)
 				edit_deleteTracksMenu.addSeparator();
@@ -1896,7 +1940,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 				track = axes;
 				track.removePropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
 				track.addPropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
-				trackMenu.add(getMenu(track));
+				trackMenu.add(createTrackMenu(track));
 			}
 			if (!trackerPanel.calibrationTools.isEmpty()) {
 				for (TTrack next : trackerPanel.getTracks()) {
@@ -1914,12 +1958,54 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 							continue;
 						next.removePropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
 						next.addPropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
-						trackMenu.add(getMenu(next));
+						trackMenu.add(createTrackMenu(next));
 					}
 				}
 			}
 		}
 		refreshTracksCreateMenu();
+	}
+
+	private void refreshTrackMenuTexts(ArrayList<TTrack> userTracks) {
+		int jd = 0, jc = 0, jt = 0;
+		for (int i = 0, n = userTracks.size(); i < n; i++) {
+			TTrack track = userTracks.get(i);
+			String trackName = track.getName("track"); //$NON-NLS-1$
+			jd = setNextTrackMenuText(edit_deleteTracksMenu, jd, trackName);
+			jc = setNextTrackMenuText(track_cloneMenu, jc, trackName);
+			jt = setNextTrackMenuText(trackMenu, jt, trackName);
+			if (track instanceof PointMass) {
+				((JMenuItem) edit_deleteTracksMenu.getMenuComponents()[i]).setText(trackName);
+				((JMenuItem) track_cloneMenu.getMenuComponents()[i]).setText(trackName);
+				((JMenu) trackMenu.getMenuComponents()[i]).setText(trackName);
+				((JMenuItem) coords_refFrameMenu.getMenuComponents()[i]).setText(trackName);
+			}
+		}
+	}
+
+	/**
+	 * somewhere in this menu are n JMenuItems that have the name "track". 
+	 * These are the ones that need renaming.
+	 * 
+	 * @param menu
+	 * @param j
+	 * @param trackName
+	 * @return
+	 */
+	private int setNextTrackMenuText(JMenu menu, int j, String trackName) {
+		Component c = null;
+		try {
+			int n = menu.getMenuComponentCount();
+		while (j < n && !("track".equals((c = menu.getMenuComponent(j)).getName()))) {
+			if (++j >= n)
+	 			return j;
+		}
+		if (c != null)
+			((JMenuItem) c).setText(trackName);
+		} catch (Throwable t) {
+			System.out.println("????" + t);
+		}
+		return j;
 	}
 
 	private void refreshTracksCreateMenu() {
@@ -2168,11 +2254,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 					fileMenu.addSeparator();
 				fileMenu.add(file_openItem);
 //    fileMenu.add(openURLItem);
-				TFrame frame = trackerPanel.getTFrame();
-				if (frame != null) {
-					frame.refreshOpenRecentMenu(file_openRecentMenu);
-					fileMenu.add(file_openRecentMenu);
-				}
+				fileMenu.add(file_openRecentMenu);
+				refreshRecentFilesMenu();
 			}
 			boolean showLib = trackerPanel.isEnabled("file.open") || trackerPanel.isEnabled("file.export"); //$NON-NLS-1$ //$NON-NLS-2$
 			if (showLib && trackerPanel.isEnabled("file.library")) { //$NON-NLS-1$
@@ -2226,6 +2309,13 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			if (fileMenu.getItemCount() > 0)
 				fileMenu.addSeparator();
 			fileMenu.add(file_exitItem);
+		}
+	}
+
+	private void refreshRecentFilesMenu() {
+		TFrame frame = trackerPanel.getTFrame();
+		if (frame != null) {
+			frame.refreshOpenRecentMenu(file_openRecentMenu);
 		}
 	}
 
@@ -2552,7 +2642,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		default:
 			return;
 		}
-		refresh("prop change " + e.getPropertyName()+ " " + e.getSource().getClass().getName());
+		refresh(REFRESH_PROPERTY_ + " " + e.getPropertyName());
 
 	}
 
@@ -2665,19 +2755,25 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	}
 
 	private void refreshMainTViewPopup(JPopupMenu popup, boolean isOpening) {
+		if (!isOpening) {
+			videoMenu.add(video_filtersMenu);
+			return;
+		}
 		// video filters menu
 		if (trackerPanel.getVideo() != null && trackerPanel.isEnabled("video.filters")) { //$NON-NLS-1$
-			JMenu filtersMenu = video_filtersMenu;
+		JMenu filtersMenu = video_filtersMenu;
 			if (filtersMenu.getItemCount() > 0) {
 				popup.addSeparator();
 				popup.add(filtersMenu);
 			}
 		}
-		JMenu tracksMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Tracks")); //$NON-NLS-1$
-		if (track_createMenu.getItemCount() == 0)
+		if (track_createMenu.getItemCount() == 0) {
+			 refreshTracksCreateMenu();
 			for (Component c : newTrackItems) {
 				track_createMenu.add(c);
 			}
+		}
+		JMenu tracksMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Tracks")); //$NON-NLS-1$
 		if (track_createMenu.getItemCount() > 0)
 			tracksMenu.add(track_createMenu);
 		if (track_cloneMenu.getItemCount() > 0 && trackerPanel.isEnabled("new.clone")) //$NON-NLS-1$
@@ -2689,9 +2785,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		if (!tracks.isEmpty()) {
 			if (tracksMenu.getItemCount() > 0)
 				tracksMenu.addSeparator();
-			Iterator<TTrack> it = tracks.iterator();
-			while (it.hasNext()) {
-				tracksMenu.add(getMenu(it.next()));
+			for (int i = 0, n = tracks.size(); i < n; i++) {
+				tracksMenu.add(createTrackMenu(tracks.get(i)));
 			}
 		}
 		// add axes and calibration tool items
@@ -2703,7 +2798,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			if (tracksMenu.getItemCount() > 0)
 				tracksMenu.addSeparator();
 			if (axes != null && trackerPanel.isEnabled("button.axes")) { //$NON-NLS-1$
-				tracksMenu.add(getMenu(axes));
+				tracksMenu.add(createTrackMenu(axes));
 			}
 			if (!trackerPanel.calibrationTools.isEmpty()) {
 				for (TTrack next : trackerPanel.getTracks()) {
@@ -2719,7 +2814,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 							continue;
 						if (next instanceof OffsetOrigin && !trackerPanel.isEnabled("calibration.offsetOrigin")) //$NON-NLS-1$
 							continue;
-						tracksMenu.add(getMenu(next));
+						tracksMenu.add(createTrackMenu(next));
 					}
 				}
 			}
@@ -2727,6 +2822,13 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		if (tracksMenu.getItemCount() > 0) {
 			popup.addSeparator();
 			popup.add(tracksMenu);
+		}
+	}
+
+	public static void refreshMenus(TrackerPanel trackerPanel, String whereFrom) {
+		TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+		if (menubar != null) {
+			menubar.refresh(whereFrom);
 		}
 	}
 }

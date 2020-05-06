@@ -299,7 +299,7 @@ public class TrackerIO extends VideoIO {
 		chooser.setAcceptAllFileFilterUsed(true);
 		if (isNew && file != null) {
 			Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-			trackerPanel.refreshMenuBar("TrackerIO.save");
+			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVE);
 		}
 		return file;
 	}
@@ -368,7 +368,7 @@ public class TrackerIO extends VideoIO {
 		XMLControl xmlControl = new XMLControlElement(frame);
 		xmlControl.write(XML.getAbsolutePath(file));
 		Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-		frame.getTrackerPanel(frame.getSelectedTab()).refreshMenuBar("TrackerIO.saveTabset");
+		TMenuBar.refreshMenus(frame.getTrackerPanel(frame.getSelectedTab()), TMenuBar.REFRESH_TRACKERIO_SAVETABSET);
 		return file;
 	}
 
@@ -938,7 +938,7 @@ public class TrackerIO extends VideoIO {
 		boolean success = ResourceLoader.copyAllFiles(new File(source), file);
 		if (success) {
 			Tracker.addRecent(XML.getAbsolutePath(file), false); // add at beginning
-			trackerPanel.refreshMenuBar("TrackerIO.saveVideo success");
+			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_SAVEVIDEO);
 			return file;
 		}
 		return null;
@@ -1849,12 +1849,7 @@ public class TrackerIO extends VideoIO {
 			control.loadObject(frame);
 			Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(rawPath)), false); // add at beginning
 			trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-			if (trackerPanel != null) {
-				TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
-				if (menubar != null) {
-					menubar.refresh("TrackerIO.openTabPath2");
-				}
-			}
+			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_OPENFRAME);
 			return 100;
 		}
 
@@ -2111,10 +2106,7 @@ public class TrackerIO extends VideoIO {
 //				monitorDialog.setProgress(95);
 			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
 			pane.setDividerLocation(frame.defaultRightDivider);
-			TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
-			if (menubar != null) {
-				menubar.refresh("TrackerIO.openTabPath- before setVideo");
-			}
+			// BH ?? TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_BEFORESETVIDEO);
 			trackerPanel.setVideo(video);
 			// panel is changed if video imported into existing trackerPanel
 			panelChanged = existingPanel != null;
@@ -2150,10 +2142,7 @@ public class TrackerIO extends VideoIO {
 				path = XML.forwardSlash(xmlPath);
 				Tracker.addRecent(ResourceLoader.getNonURIPath(path), false); // add at beginning
 			}
-			TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
-			if (menubar != null) {
-				menubar.refresh("TrackerIO.openTabPath - atEnd");
-			}
+			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_DONELOADING_ + " " + type);
 			TTrackBar.refreshMemoryButton();
 			trackerPanel.changed = panelChanged;
 			if (whenDone != null)

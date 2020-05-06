@@ -835,7 +835,7 @@ public class TActions {
 				trackerPanel.setVideo(null);
 				trackerPanel.repaint();
 				trackerPanel.setImageSize(640, 480);
-				trackerPanel.refreshMenuBar("TActions.openVideo");
+				TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TACTIONS_OPENVIDEO);
 			}
 		};
 		actions.put("closeVideo", closeVideoAction); //$NON-NLS-1$
