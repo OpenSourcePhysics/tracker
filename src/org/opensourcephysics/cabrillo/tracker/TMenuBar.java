@@ -1811,7 +1811,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			case REFRESH_TFRAME_LOCALE:
 			case REFRESH_TFRAME:
 			default:
-
+				OSPLog.debug("TMenuBar.refreshAll full rebuild");
 				if (OSPRuntime.isJS) {
 					// signals SwingJS that there is no need to do anything with the DOM during this
 					// process
@@ -1967,7 +1967,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	}
 
 	private void refreshTrackMenuTexts(ArrayList<TTrack> userTracks) {
-		int jd = 0, jc = 0, jt = 0;
+		int jd = 0, jc = 0, jt = 0, jp = 0;
 		for (int i = 0, n = userTracks.size(); i < n; i++) {
 			TTrack track = userTracks.get(i);
 			String trackName = track.getName("track"); //$NON-NLS-1$
@@ -1975,10 +1975,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			jc = setNextTrackMenuText(track_cloneMenu, jc, trackName);
 			jt = setNextTrackMenuText(trackMenu, jt, trackName);
 			if (track instanceof PointMass) {
-				((JMenuItem) edit_deleteTracksMenu.getMenuComponents()[i]).setText(trackName);
-				((JMenuItem) track_cloneMenu.getMenuComponents()[i]).setText(trackName);
-				((JMenu) trackMenu.getMenuComponents()[i]).setText(trackName);
-				((JMenuItem) coords_refFrameMenu.getMenuComponents()[i]).setText(trackName);
+				jp = setNextTrackMenuText(coords_refFrameMenu, jp, trackName);
 			}
 		}
 	}
