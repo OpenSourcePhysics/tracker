@@ -58,7 +58,8 @@ public class PositionVectorFootprint extends PointShapeFootprint {
    * @param points an array of points
    * @return the fill shape
    */
-  public Shape getShape(Point[] points) {
+  @Override
+public Shape getShape(Point[] points) {
   	super.getShape(points); // this sets up hitShapes[] at vector tip
     return arrow.getShape(points);
   }
@@ -70,7 +71,8 @@ public class PositionVectorFootprint extends PointShapeFootprint {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {
+  @Override
+public Icon getIcon(int w, int h) {
   	arrow.setColor(color);
     return arrow.getIcon(w, h);
   }
@@ -80,7 +82,8 @@ public class PositionVectorFootprint extends PointShapeFootprint {
    *
    * @param stroke the desired stroke
    */
-  public void setStroke(BasicStroke stroke) {
+  @Override
+public void setStroke(BasicStroke stroke) {
     arrow.setStroke(stroke);
   }
 
@@ -89,7 +92,8 @@ public class PositionVectorFootprint extends PointShapeFootprint {
    *
    * @return the stroke
    */
-  public BasicStroke getStroke() {
+  @Override
+public BasicStroke getStroke() {
     return arrow.getStroke();
   }
 
@@ -98,7 +102,8 @@ public class PositionVectorFootprint extends PointShapeFootprint {
    *
    * @param w the desired line width
    */
-  public void setLineWidth(double w) {
+  @Override
+public void setLineWidth(double w) {
     arrow.setLineWidth(w);
   }
 

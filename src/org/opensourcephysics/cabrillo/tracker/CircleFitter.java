@@ -168,7 +168,8 @@ public class CircleFitter extends TTrack {
   	keyFrames.add(0);
     fixedItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
     fixedItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
         setFixed(fixedItem.isSelected());
       }
     });
@@ -176,7 +177,8 @@ public class CircleFitter extends TTrack {
     // create attachment dialog item
   	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
   	attachmentItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	AttachmentDialog control = trackerPanel.getAttachmentDialog(CircleFitter.this);
       	control.setVisible(true);
       }
@@ -187,7 +189,8 @@ public class CircleFitter extends TTrack {
     
     // create actions, listeners, labels and fields for data points
     final Action dataPointAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	if (trackerPanel==null) return;
       	if (e!=null && e.getSource()==xDataField && xDataField.getBackground()!=Color.yellow) return;
       	if (e!=null && e.getSource()==yDataField && yDataField.getBackground()!=Color.yellow) return;
@@ -210,7 +213,8 @@ public class CircleFitter extends TTrack {
     };
     // focus listener
     FocusListener dataFieldFocusListener = new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
       	if (e.getSource()==xDataField && xDataField.getBackground()!=Color.yellow) return;
       	if (e.getSource()==yDataField && yDataField.getBackground()!=Color.yellow) return;
       	dataPointAction.actionPerformed(null);
@@ -281,7 +285,8 @@ public class CircleFitter extends TTrack {
     
     // pointCountButton
     pointCountButton = new TButton() {
-      protected JPopupMenu getPopup() {
+      @Override
+	protected JPopupMenu getPopup() {
       	// get and save currently selected TPoint to restore if needed
       	final TPoint selected = trackerPanel.getSelectedPoint();
       	JPopupMenu popup = new JPopupMenu();
@@ -291,6 +296,7 @@ public class CircleFitter extends TTrack {
 			  final ArrayList<DataPoint> pts = step.getValidDataPoints();
 			  VideoClip clip = trackerPanel.getPlayer().getVideoClip();
       	ActionListener selector = new ActionListener() {
+					@Override
 					public void actionPerformed(ActionEvent e) {
 						int i = Integer.parseInt(e.getActionCommand());
 						DataPoint p = pts.get(i);
@@ -344,11 +350,13 @@ public class CircleFitter extends TTrack {
       		item.addActionListener(selector);
       		final int index = i;
         	item.addMouseListener(new MouseAdapter() {
-        		public void mouseEntered(MouseEvent e) {
+        		@Override
+				public void mouseEntered(MouseEvent e) {
   						DataPoint p = pts.get(index);
   						trackerPanel.setSelectedPoint(p);
         		}
-        		public void mouseExited(MouseEvent e) {
+        		@Override
+				public void mouseExited(MouseEvent e) {
   						trackerPanel.setSelectedPoint(selected);
         		}
         	});
@@ -358,6 +366,7 @@ public class CircleFitter extends TTrack {
     		JMenuItem item = new JMenuItem(TrackerRes.getString("CircleFitter.MenuItem.CopyToClipboard.Text")); //$NON-NLS-1$
     		item.setToolTipText(TrackerRes.getString("CircleFitter.MenuItem.CopyToClipboard.Tooltip")); //$NON-NLS-1$
     		item.addActionListener(new ActionListener() {
+					@Override
 					public void actionPerformed(ActionEvent e) {
 						// copy buffer to the clipboard
 				    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -743,7 +752,8 @@ public class CircleFitter extends TTrack {
    * @param n the attachment point index
    * @return the description
    */
-  public String getAttachmentDescription(int n) {
+  @Override
+public String getAttachmentDescription(int n) {
 		if (attachToSteps) {
 			// attaching to steps
 	  	return attachmentForSteps[0]==null? // "new" when attachment is null
@@ -775,7 +785,8 @@ public class CircleFitter extends TTrack {
   	}
   	
   	Runnable runner = new Runnable() {
-  		public void run() {
+  		@Override
+		public void run() {
   			abortRefreshAttachments = false;
   			refreshingAttachments = true;
   	  	TTrack[] attachments = getAttachments();
@@ -1464,7 +1475,8 @@ public class CircleFitter extends TTrack {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       CircleFitter circleFitter = (CircleFitter)obj;
       // save track data
       XML.getLoader(TTrack.class).saveObject(control, obj);
@@ -1520,7 +1532,8 @@ public class CircleFitter extends TTrack {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control){
+    @Override
+	public Object createObject(XMLControl control){
       return new CircleFitter();
     }
 
@@ -1531,7 +1544,8 @@ public class CircleFitter extends TTrack {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	// check version
       double version = 4.91;
       XMLProperty parent = control.getParentProperty();

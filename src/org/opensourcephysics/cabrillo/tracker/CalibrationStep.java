@@ -97,7 +97,8 @@ public class CalibrationStep extends Step {
    *
    * @return the default TPoint
    */
-  public TPoint getDefaultPoint() {
+  @Override
+public TPoint getDefaultPoint() {
     if (points[1] == null) return points[0];
     if (cal.trackerPanel.getSelectedPoint()==points[0]) return points[0];
     return points[1];
@@ -109,7 +110,8 @@ public class CalibrationStep extends Step {
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
     Mark mark = marks.get(trackerPanel);
     TPoint selection = null;
     if (mark == null) {
@@ -146,7 +148,8 @@ public class CalibrationStep extends Step {
       // create mark
       final Color color = footprint.getColor();
       mark = new Mark() {
-        public void draw(Graphics2D g, boolean highlighted) {
+        @Override
+		public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           g.setPaint(color);
           if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -157,7 +160,8 @@ public class CalibrationStep extends Step {
           g.setPaint(gpaint);
         }
 
-        public Rectangle getBounds(boolean highlighted) {
+        @Override
+		public Rectangle getBounds(boolean highlighted) {
           Rectangle bounds = null;
           for (int i = 0; i < points.length; i++) {
             if (shapes[i] != null) {
@@ -178,7 +182,8 @@ public class CalibrationStep extends Step {
    *
    * @return a clone of this step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     CalibrationStep step = (CalibrationStep)super.clone();
     step.points[0] = step.new Position(points[0].x, points[0].y);
     if (points[1] != null) {
@@ -254,7 +259,8 @@ public class CalibrationStep extends Step {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     String s = "Calibration Points Step " + n //$NON-NLS-1$
            + " [" + format.format(worldX0) //$NON-NLS-1$
            + ", " + format.format(worldY0); //$NON-NLS-1$
@@ -467,7 +473,8 @@ public class CalibrationStep extends Step {
      * @param x the x position
      * @param y the y position
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       if (getTrack().isLocked()) return;
       // calibration points can't share the same image position
       int i = this == points[0]? 1: 0;
@@ -516,7 +523,8 @@ public class CalibrationStep extends Step {
      *
      * @param vidPanel the video panel
      */
-    public void showCoordinates(VideoPanel vidPanel) {
+    @Override
+	public void showCoordinates(VideoPanel vidPanel) {
       // put values into calibration x and y fields
     	if (this==points[0]) {
 	      cal.xField.setValue(worldX0);
@@ -534,7 +542,8 @@ public class CalibrationStep extends Step {
      *
      * @param adjusting true if being dragged
      */
-    public void setAdjusting(boolean adjusting) {
+    @Override
+	public void setAdjusting(boolean adjusting) {
     	boolean wasAdjusting = isAdjusting();
     	super.setAdjusting(adjusting);
     	if (wasAdjusting && !adjusting) {
@@ -566,7 +575,8 @@ public class CalibrationStep extends Step {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
     	CalibrationStep step = (CalibrationStep) obj;
     	double[] data = new double[] {step.worldX0, step.worldY0, step.worldX1, step.worldY1};
       control.setValue("world_coordinates", data); //$NON-NLS-1$
@@ -578,7 +588,8 @@ public class CalibrationStep extends Step {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
     	// this loader is not intended to be used to create new steps,
     	// but only for undo/redo step edits.
       return null;
@@ -591,7 +602,8 @@ public class CalibrationStep extends Step {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	CalibrationStep step = (CalibrationStep)obj;
       double[] data = (double[])control.getObject("world_coordinates"); //$NON-NLS-1$
       if (data!=null) {

@@ -129,7 +129,8 @@ public class CoordAxesStep extends Step {
    * @param ypix the y pixel position
    * @return the TPoint that is hit, or null
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     setHitRectCenter(xpix, ypix);
@@ -170,7 +171,8 @@ public class CoordAxesStep extends Step {
    * @param panel the drawing panel requesting the drawing
    * @param _g the graphics context on which to draw
    */
-  public void draw(DrawingPanel panel, Graphics _g) {
+  @Override
+public void draw(DrawingPanel panel, Graphics _g) {
   	TTrack track = getTrack();
 		if (track.trackerPanel==panel) {
 			AutoTracker autoTracker = track.trackerPanel.getAutoTracker();
@@ -188,7 +190,8 @@ public class CoordAxesStep extends Step {
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
     Mark mark = marks.get(trackerPanel);
     TPoint selection = null;
     if (mark == null) {
@@ -237,7 +240,8 @@ public class CoordAxesStep extends Step {
       // create mark to draw fillShapes
       final Color color = footprint.getColor();
       mark = new Mark() {
-        public void draw(Graphics2D g, boolean highlighted) {
+        @Override
+		public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           g.setPaint(color);
           if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -249,7 +253,8 @@ public class CoordAxesStep extends Step {
           g.setPaint(gpaint);
         }
 
-        public Rectangle getBounds(boolean highlighted) {
+        @Override
+		public Rectangle getBounds(boolean highlighted) {
           Rectangle bounds = getTrack().trackerPanel.getBounds();
           if (fillShapes[1] != null) {
             bounds.add(fillShapes[1].getBounds());
@@ -267,7 +272,8 @@ public class CoordAxesStep extends Step {
    *
    * @return the index, or -1 if not found
    */
-  public int getPointIndex(TPoint p) {
+  @Override
+public int getPointIndex(TPoint p) {
   	int i = super.getPointIndex(p);
   	if (i==-1) {
   		if (p instanceof CoordAxes.OriginPoint) return 0;
@@ -282,7 +288,8 @@ public class CoordAxesStep extends Step {
    * @param trackerPanel the tracker panel drawing the step
    * @return the bounding rectangle
    */
-  public Rectangle getBounds(TrackerPanel trackerPanel) {
+  @Override
+public Rectangle getBounds(TrackerPanel trackerPanel) {
     Rectangle bounds = getMark(trackerPanel).getBounds(false);
     return bounds;
   }
@@ -292,7 +299,8 @@ public class CoordAxesStep extends Step {
    *
    * @return a clone of this step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     CoordAxesStep step = (CoordAxesStep)super.clone();
     if (step != null) {
       step.handleShapes = new HashMap<TrackerPanel, Shape>();
@@ -305,7 +313,8 @@ public class CoordAxesStep extends Step {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     return "CoordAxesStep " + n; //$NON-NLS-1$
   }
 
@@ -339,7 +348,8 @@ public class CoordAxesStep extends Step {
      * @param x the x position
      * @param y the y position
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
     	TTrack track = getTrack();
       if (track.isLocked()) return;
       if (isAdjusting()) {
@@ -367,7 +377,8 @@ public class CoordAxesStep extends Step {
      *
      * @param adjusting true if being dragged
      */
-    public void setAdjusting(boolean adjusting) {
+    @Override
+	public void setAdjusting(boolean adjusting) {
     	boolean wasAdjusting = isAdjusting();
     	super.setAdjusting(adjusting);
     	if (wasAdjusting && !adjusting) {
@@ -394,7 +405,8 @@ public class CoordAxesStep extends Step {
      * @param x the x position
      * @param y the y position
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
     	TTrack track = getTrack();
       if (track.isLocked()) return;
       CoordAxes coordAxes = (CoordAxes)track;
@@ -438,7 +450,8 @@ public class CoordAxesStep extends Step {
      * @param vidPanel the video panel
      * @param e the input event making the request
      */
-    public void setScreenPosition(int x, int y,
+    @Override
+	public void setScreenPosition(int x, int y,
                                   VideoPanel vidPanel,
                                   InputEvent e) {
       if (e == null) {
@@ -459,7 +472,8 @@ public class CoordAxesStep extends Step {
      *
      * @param vidPanel the video panel
      */
-    public void showCoordinates(VideoPanel vidPanel) {
+    @Override
+	public void showCoordinates(VideoPanel vidPanel) {
       if (vidPanel instanceof TrackerPanel) {
         TrackerPanel trackerPanel = (TrackerPanel)vidPanel;
         if (!(this == trackerPanel.getSelectedPoint())) {
@@ -482,7 +496,8 @@ public class CoordAxesStep extends Step {
      *
      * @param adjusting true if being dragged
      */
-    public void setAdjusting(boolean adjusting) {
+    @Override
+	public void setAdjusting(boolean adjusting) {
     	boolean wasAdjusting = isAdjusting();
     	super.setAdjusting(adjusting);
     	if (wasAdjusting && !adjusting) {

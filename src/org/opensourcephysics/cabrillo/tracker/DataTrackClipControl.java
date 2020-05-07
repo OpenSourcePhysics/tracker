@@ -83,7 +83,8 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
     SpinnerModel spinModel = new SpinnerNumberModel(0, 0, 20, 1);
     videoInSpinner = new MySpinner(spinModel);
     ChangeListener listener = new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
+      @Override
+	public void stateChanged(ChangeEvent e) {
       	if (refreshing) return;
         int in = (Integer)videoInSpinner.getValue();
         if (in==dataTrack.getStartFrame()) {
@@ -100,7 +101,8 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
     spinModel = new SpinnerNumberModel(0, 0, 20, 1);
     dataInSpinner = new MySpinner(spinModel);
     listener = new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
+      @Override
+	public void stateChanged(ChangeEvent e) {
       	if (refreshing) return;
         int in = (Integer)dataInSpinner.getValue();
         if (in==dataTrack.getDataClip().getStartIndex()) {
@@ -118,7 +120,8 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
     spinModel = new SpinnerNumberModel(1, 1, 20, 1);
     dataClipLengthSpinner = new MySpinner(spinModel);
     listener = new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
+      @Override
+	public void stateChanged(ChangeEvent e) {
       	if (refreshing) return;
         int length = (Integer)dataClipLengthSpinner.getValue();
         if (length==dataTrack.getDataClip().getClipLength()) {
@@ -135,7 +138,8 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
     spinModel = new SpinnerNumberModel(1, 1, 10, 1);
     dataStrideSpinner = new MySpinner(spinModel);
     listener = new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
+      @Override
+	public void stateChanged(ChangeEvent e) {
       	if (refreshing) return;
         int n = (Integer)dataStrideSpinner.getValue();
         if (n==dataTrack.getDataClip().getStride()) {
@@ -596,7 +600,8 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   	public MySpinner (SpinnerModel model) {
   		super(model);
   	}
-  	public Dimension getPreferredSize() {
+  	@Override
+	public Dimension getPreferredSize() {
   		Dimension dim = super.getPreferredSize();
   		if (dataTrack instanceof ParticleDataTrack) {
   			ParticleDataTrack pdt = (ParticleDataTrack)dataTrack;

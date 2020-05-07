@@ -103,6 +103,7 @@ public class TrackerCountReader extends JFrame {
 		
 		sendButton = new JButton("Send"); //$NON-NLS-1$
 		sendButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (textArea.getForeground().equals(Color.RED.darker())) {
 					String text = textArea.getText().trim();
@@ -198,7 +199,8 @@ public class TrackerCountReader extends JFrame {
 		
 		textArea = new JTextArea();
 		textArea.addKeyListener(new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
+      @Override
+	public void keyPressed(KeyEvent e) {
       	textArea.setForeground(Color.RED.darker());
       }
     });

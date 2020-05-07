@@ -74,7 +74,8 @@ public class WorldTView extends TrackerPanel implements TView {
     toolbarComponents.add(worldViewButton);
     // copy image item
     Action copyImageAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         new TrackerIO.ComponentImage(WorldTView.this).copyToClipboard();
       }
     };
@@ -82,7 +83,8 @@ public class WorldTView extends TrackerPanel implements TView {
     // print menu item
     Action printAction = new AbstractAction(
     		TrackerRes.getString("TActions.Action.Print"), null) { //$NON-NLS-1$
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         new TrackerIO.ComponentImage(WorldTView.this).print();
       }
     };
@@ -90,7 +92,8 @@ public class WorldTView extends TrackerPanel implements TView {
     // help item
     helpItem = new JMenuItem();
     helpItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
 	        frame.showHelp("world", 0); //$NON-NLS-1$
@@ -98,7 +101,8 @@ public class WorldTView extends TrackerPanel implements TView {
       }
     });
     addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+	public void mousePressed(MouseEvent e) {
       	if (OSPRuntime.isPopupTrigger(e)) {
       		popup.removeAll();
 	        if (trackerPanel.isEnabled("edit.copyImage")) { //$NON-NLS-1$
@@ -123,7 +127,8 @@ public class WorldTView extends TrackerPanel implements TView {
       }
     });
     this.addComponentListener(new ComponentAdapter() {
-      public void componentResized(ComponentEvent e) {
+      @Override
+	public void componentResized(ComponentEvent e) {
         refresh();
       }
     });
@@ -132,7 +137,8 @@ public class WorldTView extends TrackerPanel implements TView {
   /**
    * Refreshes all tracks
    */
-  public void refresh() {
+  @Override
+public void refresh() {
   	worldViewButton.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
     // axes & tape items
   	CoordAxes axes = trackerPanel.getAxes();
@@ -162,7 +168,8 @@ public class WorldTView extends TrackerPanel implements TView {
   /**
    * Initializes this view
    */
-  public void init() {
+  @Override
+public void init() {
     cleanup();
     // add this view to tracker panel listeners
     // note "track" and "clear" not needed since forwarded from TViewChooser
@@ -182,7 +189,8 @@ public class WorldTView extends TrackerPanel implements TView {
   /**
    * Cleans up this view
    */
-  public void cleanup() {
+  @Override
+public void cleanup() {
     // remove this listener from tracker panel
     trackerPanel.removePropertyChangeListener("size", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("transform", this); //$NON-NLS-1$
@@ -201,7 +209,8 @@ public class WorldTView extends TrackerPanel implements TView {
   /**
    * Disposes of the view
    */
-  public void dispose() {
+  @Override
+public void dispose() {
   	cleanup();
     trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("radian_angles", this); //$NON-NLS-1$
@@ -221,7 +230,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @return the tracker panel being viewed
    */
-  public TrackerPanel getTrackerPanel() {
+  @Override
+public TrackerPanel getTrackerPanel() {
     return trackerPanel;
   }
 
@@ -230,7 +240,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @return the snap point
    */
-  public TPoint getSnapPoint() {
+  @Override
+public TPoint getSnapPoint() {
     return trackerPanel.getSnapPoint();
   }
 
@@ -240,7 +251,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @return the selected track
    */
-  public TTrack getSelectedTrack() {
+  @Override
+public TTrack getSelectedTrack() {
     return trackerPanel.getSelectedTrack();
   }
 
@@ -249,7 +261,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @param track the track to select
    */
-  public void setSelectedTrack(TTrack track) {
+  @Override
+public void setSelectedTrack(TTrack track) {
     trackerPanel.setSelectedTrack(track);
   }
 
@@ -258,7 +271,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @return the name of the view
    */
-  public String getViewName() {
+  @Override
+public String getViewName() {
     return TrackerRes.getString("TFrame.View.World"); //$NON-NLS-1$
   }
 
@@ -267,7 +281,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @return the icon for the view
    */
-  public Icon getViewIcon() {
+  @Override
+public Icon getViewIcon() {
     return icon;
   }
 
@@ -276,7 +291,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @return an ArrayList of components to be added to a toolbar
    */
-  public ArrayList<Component> getToolBarComponents() {
+  @Override
+public ArrayList<Component> getToolBarComponents() {
   	worldViewButton.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
     return toolbarComponents;
   }
@@ -286,7 +302,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @return false
    */
-  public boolean isCustomState() {
+  @Override
+public boolean isCustomState() {
   	return false;
   }
 
@@ -295,7 +312,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (name.equals("track")) {           // track has been added or removed //$NON-NLS-1$
       if (e.getOldValue()!=null) { // track removed
@@ -338,7 +356,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @return a list of Drawable objects
    */
-  public ArrayList<Drawable> getDrawables() {
+  @Override
+public ArrayList<Drawable> getDrawables() {
   	if (trackerPanel==null) {
   		return super.getDrawables();
   	}
@@ -363,7 +382,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @return the video player
    */
-  public VideoPlayer getPlayer() {
+  @Override
+public VideoPlayer getPlayer() {
     // workaround to prevent null pointer exception during instantiation
     if (trackerPanel == null) return super.getPlayer();
     return trackerPanel.getPlayer();
@@ -374,7 +394,8 @@ public class WorldTView extends TrackerPanel implements TView {
    *
    * @return the current image coordinate system
    */
-  public ImageCoordSystem getCoords() {
+  @Override
+public ImageCoordSystem getCoords() {
     // workaround to prevent null pointer exception during instantiation
     if (trackerPanel == null) return super.getCoords();
     return trackerPanel.getCoords();
@@ -384,7 +405,8 @@ public class WorldTView extends TrackerPanel implements TView {
    * Overrides TrackerPanel repaintDirtyRegion method. WorldView requires
    * a full repaint every time since it autoscales.
    */
-  public void repaintDirtyRegion() {
+  @Override
+public void repaintDirtyRegion() {
     if (dirty != null) {
       repaint();
       dirty = null;
@@ -396,14 +418,16 @@ public class WorldTView extends TrackerPanel implements TView {
    * 
    * @return null
    */
-  public Interactive getInteractive() {
+  @Override
+public Interactive getInteractive() {
   	return null;
   }
   
   /**
    * Configures this panel. Overrides TrackerPanel method.
    */
-  protected void configure() {
+  @Override
+protected void configure() {
     // set tiny preferred size so auto zooms to very small
     setPreferredSize(new Dimension(1, 1));
     coords.addPropertyChangeListener(this);
@@ -449,7 +473,8 @@ public class WorldTView extends TrackerPanel implements TView {
      * @param control the control to save to
      * @param obj the TrackerPanel object to save
      */
-    public void saveObject(XMLControl control, Object obj) {/** empty block */}
+    @Override
+	public void saveObject(XMLControl control, Object obj) {/** empty block */}
 
     /**
      * Creates an object.
@@ -457,7 +482,8 @@ public class WorldTView extends TrackerPanel implements TView {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control){
+    @Override
+	public Object createObject(XMLControl control){
       return null;
     }
 
@@ -468,7 +494,8 @@ public class WorldTView extends TrackerPanel implements TView {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       return obj;
     }
   }

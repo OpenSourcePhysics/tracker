@@ -75,7 +75,8 @@ public class OutlineFootprint extends LineFootprint {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {
+  @Override
+public Icon getIcon(int w, int h) {
     int scale = FontSizer.getIntegerFactor();
     w *= scale;
     h *= scale;
@@ -94,7 +95,8 @@ public class OutlineFootprint extends LineFootprint {
    *
    * @param stroke the desired stroke
    */
-  public void setStroke(BasicStroke stroke) {
+  @Override
+public void setStroke(BasicStroke stroke) {
     super.setStroke(stroke);
   }
 
@@ -104,7 +106,8 @@ public class OutlineFootprint extends LineFootprint {
    * @param points an array of Points
    * @return the shape
    */
-  public Shape getShape(Point[] points) {
+  @Override
+public Shape getShape(Point[] points) {
     Point p1 = points[0];
     Point p2 = points[1];
     double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);

@@ -105,7 +105,7 @@ public class FileDropHandler extends TransferHandler {
 	private boolean haveVideo(Component c, List<File> dropList) {
 		return (dropList != null && dropList.size() == 1 
 				&& c instanceof TrackerPanel
-				&& videoFilter.accept((File) dropList.get(0)));
+				&& videoFilter.accept(dropList.get(0)));
 	}
 
 	@Override
@@ -130,7 +130,7 @@ public class FileDropHandler extends TransferHandler {
 			}
 			// load the files
 			for (int j = 0; j < fileList.size(); j++) {
-				final File file = (File) fileList.get(j);
+				final File file = fileList.get(j);
 				OSPRuntime.cacheJSFile(file, true);
 				OSPLog.finest("dropped file: " + file.getAbsolutePath()); //$NON-NLS-1$
 				// if dropAction is COPY then open in new tab

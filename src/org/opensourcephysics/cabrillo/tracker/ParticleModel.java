@@ -97,7 +97,9 @@ abstract public class ParticleModel extends PointMass {
 		setFootprint(defaultFootprint.getName());
 		// assign a meaningful initial name
 		setName(TrackerRes.getString("ParticleModel.New.Name")); //$NON-NLS-1$
+		long t0 = System.currentTimeMillis();
 		initializeFunctionPanel();
+		OSPLog.debug("ParticleModel.initFunc " + (System.currentTimeMillis() - t0));
 		// set initial hint
 		hint = TrackerRes.getString("ParticleModel.Hint"); //$NON-NLS-1$
 	}

@@ -150,6 +150,7 @@ public class TrackerStarter {
   	if (OSPRuntime.isMac()) {
   		// create launchThread to instantiate OSXServices and launch Tracker
 		  launchThread = new Thread(new Runnable() {
+				@Override
 				public void run() {
 					// instantiate OSXServices
 					String className = "org.opensourcephysics.cabrillo.tracker.deploy.OSXServices"; //$NON-NLS-1$
@@ -288,6 +289,7 @@ public class TrackerStarter {
 		relaunching = secondTry;
 		launching = false;
 		Runnable runner = new Runnable() {
+			@Override
 			public void run() {
 				logText = ""; //$NON-NLS-1$
 				logMessage("relaunch initiated by Tracker"); //$NON-NLS-1$
@@ -376,63 +378,65 @@ public class TrackerStarter {
 	public static XMLControl findPreferences() {
 		if (OSPRuntime.isJS)
 			return null;
-		
-		
-  	// look for all prefs files in OSPRuntime.getDefaultSearchPaths()
+
+		// look for all prefs files in OSPRuntime.getDefaultSearchPaths()
 		// and in current directory
-    Map<File, XMLControl> controls = new HashMap<File, XMLControl>();
-  	File firstFileFound = null, newestFileFound = null;
-  	long modified = 0;
-  	
-  	for (int i=0; i<2; i++) {
+		Map<File, XMLControl> controls = new HashMap<File, XMLControl>();
+		File firstFileFound = null, newestFileFound = null;
+		long modified = 0;
+
+		for (int i = 0; i < 2; i++) {
 			String prefsFileName = PREFS_FILE_NAME;
-			if (i==1) {
+			if (i == 1) {
 				// add leading dot to fileName
-				prefsFileName = "."+prefsFileName; //$NON-NLS-1$
+				prefsFileName = "." + prefsFileName; //$NON-NLS-1$
 			}
-  		for (String path: OSPRuntime.getDefaultSearchPaths()) {
-	      String prefsPath = new File(path, prefsFileName).getAbsolutePath();
-	      XMLControl control = new XMLControlElement(prefsPath);
-	      if (!control.failedToRead() && control.getObjectClassName().endsWith("Preferences")) { //$NON-NLS-1$
-	      	File file = new File(prefsPath);
-	      	if (file.lastModified()>modified+50) {
-	      		newestFileFound = file;
-		      	modified = file.lastModified();
-	      	}
-	      	controls.put(file, control);
-	      	if (firstFileFound==null) {
-		      	firstFileFound = file;
-	      	}
-	      }
-  		}
-  		// look in current directory
-      String prefsPath = new File(prefsFileName).getAbsolutePath();
-      XMLControl control = new XMLControlElement(prefsPath);
-      if (!control.failedToRead() && control.getObjectClassName().endsWith("Preferences")) { //$NON-NLS-1$
-      	File file = new File(prefsPath);
-      	if (file.lastModified()>modified+50) {
-      		newestFileFound = file;
-	      	modified = file.lastModified();
-      	}
-      	controls.put(file, control);
-      	if (firstFileFound==null) {
-	      	firstFileFound = file;
-      	}
-      }
-  	}
-  	// replace first file with newest if different
-  	if (newestFileFound != null && newestFileFound!=firstFileFound) {
-  		ResourceLoader.copyAllFiles(newestFileFound, firstFileFound);
-  		controls.put(firstFileFound, controls.get(newestFileFound));
-  	}
-		
-  	// return control associated with first file found
-  	if (firstFileFound!=null) {
-  		XMLControl control = controls.get(firstFileFound);
-  		control.setValue("prefsPath", firstFileFound.getAbsolutePath()); //$NON-NLS-1$
-    	return control;
-  	}
-  	return null;
+			for (String path : OSPRuntime.getDefaultSearchPaths()) {
+				String prefsPath = new File(path, prefsFileName).getAbsolutePath();
+				File file = new File(prefsPath);
+				if (file.exists()) {
+					XMLControl control = new XMLControlElement(file);
+					if (!control.failedToRead() && control.getObjectClassName().endsWith("Preferences")) { //$NON-NLS-1$
+						if (file.lastModified() > modified + 50) {
+							newestFileFound = file;
+							modified = file.lastModified();
+						}
+						controls.put(file, control);
+						if (firstFileFound == null) {
+							firstFileFound = file;
+						}
+					}
+				}
+			}
+			// look in current directory
+			File file = new File(prefsFileName);
+			if (file.exists()) {
+				XMLControl control = new XMLControlElement(file);
+				if (!control.failedToRead() && control.getObjectClassName().endsWith("Preferences")) { //$NON-NLS-1$
+					if (file.lastModified() > modified + 50) {
+						newestFileFound = file;
+						modified = file.lastModified();
+					}
+					controls.put(file, control);
+					if (firstFileFound == null) {
+						firstFileFound = file;
+					}
+				}
+			}
+		}
+		// replace first file with newest if different
+		if (newestFileFound != null && newestFileFound != firstFileFound) {
+			ResourceLoader.copyAllFiles(newestFileFound, firstFileFound);
+			controls.put(firstFileFound, controls.get(newestFileFound));
+		}
+
+		// return control associated with first file found
+		if (firstFileFound != null) {
+			XMLControl control = controls.get(firstFileFound);
+			control.setValue("prefsPath", firstFileFound.getAbsolutePath()); //$NON-NLS-1$
+			return control;
+		}
+		return null;
 	}
 
 	/**
@@ -958,6 +962,7 @@ public class TrackerStarter {
 		exitCounter = 0;
 		if (exitThread==null) {
 			exitThread = new Thread(new Runnable() {
+				@Override
 				public void run() {
 					abortExit = false;
 					while (exitCounter<10) {

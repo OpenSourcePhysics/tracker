@@ -104,7 +104,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @return the name
    */
-  public String getName() {
+  @Override
+public String getName() {
     return name;
   }
 
@@ -113,7 +114,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @return the localized display name
    */
-  public String getDisplayName() {
+  @Override
+public String getDisplayName() {
   	return TrackerRes.getString(name);
   }
 
@@ -122,7 +124,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @return the length
    */
-  public int getLength() {
+  @Override
+public int getLength() {
     return 3;
   }
 
@@ -133,7 +136,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {  	
+  @Override
+public Icon getIcon(int w, int h) {  	
     int scale = FontSizer.getIntegerFactor();
     w *= scale;
     h *= scale;
@@ -161,11 +165,13 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    * @param points a Point array
    * @return the mark
    */
-  public Mark getMark(Point[] points) {
+  @Override
+public Mark getMark(Point[] points) {
     final Shape shape = getShape(points);
     final Color color = this.color;
     return new Mark() {
-      public void draw(Graphics2D g, boolean highlighted) {
+      @Override
+	public void draw(Graphics2D g, boolean highlighted) {
         Color gcolor = g.getColor();
         g.setColor(color);
         if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -174,7 +180,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
         g.setColor(gcolor);
       }
 
-      public Rectangle getBounds(boolean highlighted) {
+      @Override
+	public Rectangle getBounds(boolean highlighted) {
         return shape.getBounds();
       }
     };
@@ -195,7 +202,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @param stroke the desired stroke
    */
-  public void setStroke(BasicStroke stroke) {
+  @Override
+public void setStroke(BasicStroke stroke) {
     if (stroke == null) return;
     baseStroke = new BasicStroke(stroke.getLineWidth(),
                                   BasicStroke.CAP_BUTT,
@@ -210,7 +218,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @return the stroke
    */
-  public BasicStroke getStroke() {
+  @Override
+public BasicStroke getStroke() {
     return baseStroke;
   }
 
@@ -219,7 +228,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @param color the desired color
    */
-  public void setColor(Color color) {
+  @Override
+public void setColor(Color color) {
     this.color = color;
   }
 
@@ -228,7 +238,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    *
    * @return the color
    */
-  public Color getColor() {
+  @Override
+public Color getColor() {
     return color;
   }
   
@@ -276,7 +287,8 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
    * @param points an array of Points
    * @return the shape
    */
-  public Shape getShape(Point[] points) {
+  @Override
+public Shape getShape(Point[] points) {
     Point center = points[0];
     Point edge = points[1];
     hitShapes.clear();

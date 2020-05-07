@@ -362,7 +362,8 @@ public class HelpFinder {
   		}
   	};
     searchField.addKeyListener(new KeyAdapter() {
-      public void keyReleased(KeyEvent e) {
+      @Override
+	public void keyReleased(KeyEvent e) {
       	
         if(e.getKeyCode()==KeyEvent.VK_ENTER) {
           String searchPhrase = stripExtraSpace(searchField.getText(), " "); //$NON-NLS-1$

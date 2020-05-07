@@ -351,6 +351,7 @@ public class PointMass extends TTrack {
 	 *
 	 * @param color the desired color
 	 */
+	@Override
 	public void setColor(Color color) {
 		setVelocityColor(color);
 		setAccelerationColor(color);
@@ -387,6 +388,7 @@ public class PointMass extends TTrack {
 	 * @param y the y coordinate in image space
 	 * @return the new step
 	 */
+	@Override
 	public Step createStep(int n, double x, double y) {
 		if (isLocked())
 			return null;
@@ -436,6 +438,7 @@ public class PointMass extends TTrack {
 	 * @param n the frame number
 	 * @return the deleted step
 	 */
+	@Override
 	public Step deleteStep(int n) {
 		keyFrames.remove(n); // keyFrames are manually or auto-marked steps
 		Step step = super.deleteStep(n);
@@ -454,6 +457,7 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return the step containing the TPoint
 	 */
+	@Override
 	public Step getStep(TPoint point, TrackerPanel trackerPanel) {
 		if (point == null)
 			return null;
@@ -487,6 +491,7 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return the next step
 	 */
+	@Override
 	public Step getNextVisibleStep(Step step, TrackerPanel trackerPanel) {
 		Step[] steps = getSteps();
 		if (isVelocity(step))
@@ -520,6 +525,7 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return the previous step
 	 */
+	@Override
 	public Step getPreviousVisibleStep(Step step, TrackerPanel trackerPanel) {
 		Step[] steps = getSteps();
 		if (isVelocity(step))
@@ -551,6 +557,7 @@ public class PointMass extends TTrack {
 	 *
 	 * @return the footprint length
 	 */
+	@Override
 	public int getStepLength() {
 		return PositionStep.getLength();
 	}
@@ -560,6 +567,7 @@ public class PointMass extends TTrack {
 	 *
 	 * @return true if autotrackable
 	 */
+	@Override
 	protected boolean isAutoTrackable() {
 		return true;
 	}
@@ -577,6 +585,7 @@ public class PointMass extends TTrack {
 	 *
 	 * @return the footprint length
 	 */
+	@Override
 	public int getFootprintLength() {
 		return 1;
 	}
@@ -707,6 +716,7 @@ public class PointMass extends TTrack {
 	 * @param step the step that identifies the step array
 	 * @return the array of Footprints available
 	 */
+	@Override
 	public Footprint[] getFootprints(Step step) {
 		if (step == null)
 			return getFootprints();
@@ -723,6 +733,7 @@ public class PointMass extends TTrack {
 	 * @param name the name of the desired footprint
 	 * @param step the step that identifies the step array
 	 */
+	@Override
 	public void setFootprint(String name, Step step) {
 		if (step == null)
 			setFootprint(name);
@@ -740,6 +751,7 @@ public class PointMass extends TTrack {
 	 * @param step the step that identifies the step array
 	 * @return the footprint
 	 */
+	@Override
 	public Footprint getFootprint(Step step) {
 		if (step != null)
 			return step.footprint;
@@ -793,6 +805,7 @@ public class PointMass extends TTrack {
 	 *
 	 * @param level the desired font level
 	 */
+	@Override
 	public void setFontLevel(int level) {
 		super.setFontLevel(level);
 		Object[] objectsToSize = new Object[] { massLabel, massField };
@@ -1113,6 +1126,7 @@ public class PointMass extends TTrack {
 	 * @param pointIndex the points[] index
 	 * @return the description
 	 */
+	@Override
 	protected String getTargetDescription(int pointIndex) {
 		return TrackerRes.getString("PointMass.Position.Name"); //$NON-NLS-1$
 	}
@@ -1123,6 +1137,7 @@ public class PointMass extends TTrack {
 	 * @param data         the DatasetManager
 	 * @param trackerPanel the tracker panel
 	 */
+	@Override
 	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
 		if (refreshDataLater || trackerPanel == null || data == null)
 			return;
@@ -1290,6 +1305,7 @@ public class PointMass extends TTrack {
 	 * @param panel the drawing panel requesting the drawing
 	 * @param _g    the graphics context on which to draw
 	 */
+	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
 		if (!(panel instanceof TrackerPanel) || !visible)
 			return;
@@ -1375,6 +1391,7 @@ public class PointMass extends TTrack {
 	 * @param ypix  the y pixel position on the panel
 	 * @return the first step or motion vector that is hit
 	 */
+	@Override
 	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
 		if (!(panel instanceof TrackerPanel) || !visible)
 			return null;
@@ -1498,6 +1515,7 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return <code>true</code> if the step is visible
 	 */
+	@Override
 	public boolean isStepVisible(Step step, TrackerPanel trackerPanel) {
 		if (isPosition(step) && !isPositionVisible(trackerPanel))
 			return false;
@@ -2192,6 +2210,7 @@ public class PointMass extends TTrack {
 	/**
 	 * Overrides TTrack erase method to include v and a.
 	 */
+	@Override
 	public void erase() {
 		super.erase(); // erases all steps on all panels
 		Iterator<TrackerPanel> it = panels.iterator();
@@ -2214,6 +2233,7 @@ public class PointMass extends TTrack {
 	/**
 	 * Overrides TTrack remark method.
 	 */
+	@Override
 	public void remark() {
 		super.remark();
 		Iterator<TrackerPanel> it = panels.iterator();
@@ -2236,6 +2256,7 @@ public class PointMass extends TTrack {
 	 *
 	 * @param trackerPanel the tracker panel
 	 */
+	@Override
 	public void erase(TrackerPanel trackerPanel) {
 		super.erase(trackerPanel);
 		Step[] stepArray = getVelocities(trackerPanel);
@@ -2253,6 +2274,7 @@ public class PointMass extends TTrack {
 	 *
 	 * @param trackerPanel the tracker panel
 	 */
+	@Override
 	public void remark(TrackerPanel trackerPanel) {
 		super.remark(trackerPanel);
 		Step[] stepArray = getVelocities(trackerPanel);
@@ -2272,6 +2294,7 @@ public class PointMass extends TTrack {
 	 *
 	 * @param e the property change event
 	 */
+	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getSource() instanceof TrackerPanel) {
 			String name = e.getPropertyName();
@@ -2306,6 +2329,7 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return a menu
 	 */
+	@Override
 	public JMenu getMenu(TrackerPanel trackerPanel) {
 		JMenu menu = super.getMenu(trackerPanel);
 		// remove delete item from end
@@ -2322,6 +2346,7 @@ public class PointMass extends TTrack {
 		aFootprintMenu.setText(TrackerRes.getString("TTrack.MenuItem.Footprint")); //$NON-NLS-1$
 		vFootprintMenu.removeAll();
 		final ActionListener vFootprintListener = new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				String footprintName = e.getActionCommand();
 				if (getVelocityFootprint().getName().equals(footprintName))
@@ -2348,6 +2373,7 @@ public class PointMass extends TTrack {
 		}
 		aFootprintMenu.removeAll();
 		final ActionListener aFootprintListener = new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				String footprintName = e.getActionCommand();
 				if (getAccelerationFootprint().getName().equals(footprintName))
@@ -2428,6 +2454,7 @@ public class PointMass extends TTrack {
 	 * @param trackerPanel the tracker panel
 	 * @return a list of components
 	 */
+	@Override
 	public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
 		ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
 		list.add(massLabel);
@@ -2446,6 +2473,7 @@ public class PointMass extends TTrack {
 	 * @param point        the TPoint
 	 * @return a list of components
 	 */
+	@Override
 	public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel, TPoint point) {
 		Step step = getStep(point, trackerPanel);
 		ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
@@ -2555,6 +2583,7 @@ public class PointMass extends TTrack {
 	 */
 	static class Loader implements XML.ObjectLoader {
 
+		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			PointMass p = (PointMass) obj;
 			// save mass
@@ -2597,10 +2626,12 @@ public class PointMass extends TTrack {
 			control.setValue("keyFrames", keys); //$NON-NLS-1$
 		}
 
+		@Override
 		public Object createObject(XMLControl control) {
 			return new PointMass();
 		}
 
+		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			PointMass p = (PointMass) obj;
 			// load track data
@@ -2686,6 +2717,7 @@ public class PointMass extends TTrack {
 		massLabel.setBorder(BorderFactory.createEmptyBorder(0, 4, 0, 2));
 		massField = new TrackNumberField();
 		massField.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				String rawText = massField.getText();
 				setMass(massField.getValue());
@@ -2697,6 +2729,7 @@ public class PointMass extends TTrack {
 		massField.addMouseListener(formatMouseListener);
 		// add focus listener
 		massField.addFocusListener(new FocusAdapter() {
+			@Override
 			public void focusLost(FocusEvent e) {
 				if (massField.getBackground().equals(Color.yellow)) {
 					String rawText = massField.getText();
@@ -2709,6 +2742,7 @@ public class PointMass extends TTrack {
 		massField.setMinValue(MINIMUM_MASS);
 		massField.setBorder(xField.getBorder());
 		ChangeListener xyListener = new ChangeListener() {
+			@Override
 			public void stateChanged(ChangeEvent e) {
 				setXY();
 			}
@@ -2730,6 +2764,7 @@ public class PointMass extends TTrack {
 		xSpinner.addChangeListener(xyListener);
 		// xy action
 		Action xyAction = new AbstractAction() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				setXY();
 				((NumberField) e.getSource()).requestFocusInWindow();
@@ -2737,12 +2772,14 @@ public class PointMass extends TTrack {
 		};
 		// xy focus listener
 		FocusListener xyFocusListener = new FocusAdapter() {
+			@Override
 			public void focusLost(FocusEvent e) {
 				setXY();
 			}
 		};
 		// magAngle action
 		Action magAngleAction = new AbstractAction() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				setMagAngle();
 				((NumberField) e.getSource()).requestFocusInWindow();
@@ -2750,6 +2787,7 @@ public class PointMass extends TTrack {
 		};
 		// magAngle focus listener
 		FocusListener magAngleFocusListener = new FocusAdapter() {
+			@Override
 			public void focusLost(FocusEvent e) {
 				setMagAngle();
 			}
@@ -2766,6 +2804,7 @@ public class PointMass extends TTrack {
 		mSeparator = Box.createRigidArea(new Dimension(4, 4));
 		autotrackItem = new JMenuItem(TrackerRes.getString("PointMass.MenuItem.Autotrack")); //$NON-NLS-1$
 		autotrackItem.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				AutoTracker autotracker = trackerPanel.getAutoTracker();
 				autotracker.setTrack(PointMass.this);
@@ -2779,6 +2818,7 @@ public class PointMass extends TTrack {
 		accelerationMenu = new JMenu();
 		vColorItem = new JMenuItem();
 		vColorItem.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				// show color chooser dialog with color of velocity footprint
 				Color c = getVelocityFootprint().getColor();
@@ -2795,6 +2835,7 @@ public class PointMass extends TTrack {
 		});
 		aColorItem = new JMenuItem();
 		aColorItem.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				// show color chooser dialog with color of acceleration footprint
 				Color c = getAccelerationFootprint().getColor();
@@ -2827,6 +2868,7 @@ public class PointMass extends TTrack {
 		accelerationMenu.add(aTailsToOriginItem);
 		accelerationMenu.add(aTailsToPositionItem);
 		vVisibleItem.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// set velocity visibility on all panels that draw this
 				Iterator<TrackerPanel> it = PointMass.this.panels.iterator();
@@ -2838,6 +2880,7 @@ public class PointMass extends TTrack {
 			}
 		});
 		aVisibleItem.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// set accel visibility on all panels
 				Iterator<TrackerPanel> it = PointMass.this.panels.iterator();
@@ -2849,21 +2892,25 @@ public class PointMass extends TTrack {
 			}
 		});
 		vTailsToOriginItem.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				snapToOrigin("v"); //$NON-NLS-1$
 			}
 		});
 		aTailsToOriginItem.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				snapToOrigin("a"); //$NON-NLS-1$
 			}
 		});
 		vTailsToPositionItem.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				snapToPosition("v"); //$NON-NLS-1$
 			}
 		});
 		aTailsToPositionItem.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				snapToPosition("a"); //$NON-NLS-1$
 			}
@@ -3074,16 +3121,19 @@ public class PointMass extends TTrack {
 	 */
 	private static class FrameDataLoader implements XML.ObjectLoader {
 
+		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			FrameData data = (FrameData) obj;
 			control.setValue("x", data.x); //$NON-NLS-1$
 			control.setValue("y", data.y); //$NON-NLS-1$
 		}
 
+		@Override
 		public Object createObject(XMLControl control) {
 			return new FrameData();
 		}
 
+		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			FrameData data = (FrameData) obj;
 			data.x = control.getDouble("x"); //$NON-NLS-1$

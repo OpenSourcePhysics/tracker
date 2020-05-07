@@ -89,7 +89,8 @@ public class VectorStep extends Step
     super(track, n);
     tail = new Handle(x, y);
     middle = new TPoint(x, y) { // used for layout positioning
-      public int getFrameNumber(VideoPanel vidPanel) {
+      @Override
+	public int getFrameNumber(VideoPanel vidPanel) {
       	// needed to set layout position correctly on trails
         return VectorStep.this.n;
       }
@@ -371,7 +372,8 @@ public class VectorStep extends Step
    *
    * @param footprint the footprint
    */
-  public void setFootprint(Footprint footprint) {
+  @Override
+public void setFootprint(Footprint footprint) {
     if (footprint.getLength() >= 2)
       super.setFootprint(footprint);
   }
@@ -382,7 +384,8 @@ public class VectorStep extends Step
    * @param panel the drawing panel requesting the drawing
    * @param _g the graphics context on which to draw
    */
-  public void draw(DrawingPanel panel, Graphics _g) {
+  @Override
+public void draw(DrawingPanel panel, Graphics _g) {
     if (panel instanceof TrackerPanel) {
       TrackerPanel trackerPanel = (TrackerPanel) panel;
       Graphics2D g = (Graphics2D) _g;
@@ -419,7 +422,8 @@ public class VectorStep extends Step
    * @param ypix the y pixel position
    * @return the TPoint that is hit, or null
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     setHitRectCenter(xpix, ypix);
@@ -457,7 +461,8 @@ public class VectorStep extends Step
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
     Mark mark = marks.get(trackerPanel);
     TPoint selection = null;
     if (mark == null) {
@@ -543,7 +548,8 @@ public class VectorStep extends Step
         final Shape selectedShape
           = transform.createTransformedShape(selectionShape);
         mark = new Mark() {
-          public void draw(Graphics2D g, boolean highlighted) {
+          @Override
+		public void draw(Graphics2D g, boolean highlighted) {
             stepMark.draw(g, highlighted);
             Paint gpaint = g.getPaint();
             g.setPaint(color);
@@ -551,7 +557,8 @@ public class VectorStep extends Step
             g.setPaint(gpaint);
           }
 
-          public Rectangle getBounds(boolean highlighted) {
+          @Override
+		public Rectangle getBounds(boolean highlighted) {
             Rectangle bounds = selectedShape.getBounds();
             bounds.add(stepMark.getBounds(false));
             return bounds;
@@ -560,11 +567,13 @@ public class VectorStep extends Step
       }
       final Mark theMark = mark;
       mark = new Mark() {
-        public void draw(Graphics2D g, boolean highlighted) {
+        @Override
+		public void draw(Graphics2D g, boolean highlighted) {
         	if (!valid) return;
           theMark.draw(g, highlighted);
         }
-        public Rectangle getBounds(boolean highlighted) {
+        @Override
+		public Rectangle getBounds(boolean highlighted) {
           return theMark.getBounds(highlighted);
         }
       };
@@ -584,7 +593,8 @@ public class VectorStep extends Step
    * @param trackerPanel the tracker panel drawing the step
    * @return the bounding rectangle
    */
-  public Rectangle getBounds(TrackerPanel trackerPanel) {
+  @Override
+public Rectangle getBounds(TrackerPanel trackerPanel) {
     Rectangle bounds = getMark(trackerPanel).getBounds(false);
     bounds.add(layoutBounds.get(trackerPanel));
     return bounds;
@@ -596,7 +606,8 @@ public class VectorStep extends Step
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     if (e.getSource() == attachmentPoint)   // from TPoint
       tail.setXY(attachmentPoint.getX(), attachmentPoint.getY());
   }
@@ -616,7 +627,8 @@ public class VectorStep extends Step
    *
    * @return a clone of this step
    */
-  public VectorStep clone() {
+  @Override
+public VectorStep clone() {
     VectorStep step = (VectorStep)super.clone();
     if (step != null) {
       step.points[0] = step.tip = step.new Tip(tip.getX(), tip.getY());
@@ -624,7 +636,8 @@ public class VectorStep extends Step
       step.points[2] = step.handle = step.new Handle(handle.getX(), handle.getY());
       step.points[3] = step.visibleTip = step.new VisibleTip(visibleTip.getX(), visibleTip.getY());
       step.points[4] = step.middle = new TPoint(middle.getX(), middle.getY()) {
-        public int getFrameNumber(VideoPanel vidPanel) {
+        @Override
+		public int getFrameNumber(VideoPanel vidPanel) {
           return VectorStep.this.n;
         }
       };
@@ -642,7 +655,8 @@ public class VectorStep extends Step
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     return "VectorStep " + n //$NON-NLS-1$
             + " [" + format.format(tail.x) //$NON-NLS-1$
             + ", " + format.format(tail.y) //$NON-NLS-1$
@@ -719,7 +733,8 @@ public class VectorStep extends Step
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       double dx = x - getX();
       double dy = y - getY();
       tail.setLocation(tail.getX() + dx, tail.getY() + dy);
@@ -745,7 +760,8 @@ public class VectorStep extends Step
      * @param vidPanel the video panel drawing this step
      * @return the containing VectorStep frame number
      */
-    public int getFrameNumber(VideoPanel vidPanel) {
+    @Override
+	public int getFrameNumber(VideoPanel vidPanel) {
     	return n;
     }
 
@@ -754,7 +770,8 @@ public class VectorStep extends Step
      *
      * @param vidPanel the video panel
      */
-    public void showCoordinates(VideoPanel vidPanel) {
+    @Override
+	public void showCoordinates(VideoPanel vidPanel) {
       tip.showCoordinates(vidPanel);
       super.showCoordinates(vidPanel);
     }
@@ -776,7 +793,8 @@ public class VectorStep extends Step
      * @param yScreen the y screen position
      * @param trackerPanel the trackerPanel drawing this step
      */
-    public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
+    @Override
+	public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
     	setPositionOnLine(xScreen, yScreen, trackerPanel, visibleTip, tail);
     	repaint();
     }
@@ -818,7 +836,8 @@ public class VectorStep extends Step
      * @param x the x position
      * @param y the y position
      */
-    public void setLocation(double x, double y) {
+    @Override
+	public void setLocation(double x, double y) {
       super.setLocation(x, y);
       visibleTip.setVisibleTipLocation();
     }
@@ -829,7 +848,8 @@ public class VectorStep extends Step
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
     	TTrack track = getTrack();
       if (track.isLocked())
         return;
@@ -844,7 +864,8 @@ public class VectorStep extends Step
      *
      * @param vidPanel the video panel
      */
-    public void showCoordinates(VideoPanel vidPanel) {
+    @Override
+	public void showCoordinates(VideoPanel vidPanel) {
       vidPanel.hideMouseBox();
       // put vector components into x and y fields
       ImageCoordSystem coords = vidPanel.getCoords();
@@ -886,7 +907,8 @@ public class VectorStep extends Step
      * @param vidPanel the video panel drawing this step
      * @return the frame number
      */
-    public int getFrameNumber(VideoPanel vidPanel) {
+    @Override
+	public int getFrameNumber(VideoPanel vidPanel) {
       return n;
     }
     
@@ -912,7 +934,8 @@ public class VectorStep extends Step
      *
      * @param vidPanel the video panel
      */
-    public void showCoordinates(VideoPanel vidPanel) {
+    @Override
+	public void showCoordinates(VideoPanel vidPanel) {
       tip.showCoordinates(vidPanel);
       super.showCoordinates(vidPanel);
     }
@@ -946,7 +969,8 @@ public class VectorStep extends Step
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       double stretch = 1;
       if (footprint instanceof ArrowFootprint) {
         ArrowFootprint arrow = (ArrowFootprint) footprint;
@@ -963,7 +987,8 @@ public class VectorStep extends Step
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setLocation(double x, double y) {
+    @Override
+	public void setLocation(double x, double y) {
       super.setLocation(x, y);
       // move any linked vectors
       VectorChain chain = VectorStep.this.chain;
@@ -983,7 +1008,8 @@ public class VectorStep extends Step
      * @param vidPanel the video panel drawing this step
      * @return the frame number
      */
-    public int getFrameNumber(VideoPanel vidPanel) {
+    @Override
+	public int getFrameNumber(VideoPanel vidPanel) {
     	return n;
     }
   }
@@ -1010,7 +1036,8 @@ public class VectorStep extends Step
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       VectorStep step = (VectorStep) obj;
       boolean snap = (step.attachmentPoint != null);
       if (snap) control.setValue("snap", snap); //$NON-NLS-1$
@@ -1029,7 +1056,8 @@ public class VectorStep extends Step
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
     	// this loader is not intended to be used to create new steps,
     	// but only for undo/redo step edits. This is because the constructor
     	// requires knowledge of the Vector track this step belongs to.
@@ -1043,7 +1071,8 @@ public class VectorStep extends Step
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       VectorStep step = (VectorStep) obj;
       double x = control.getDouble("xtail"); //$NON-NLS-1$
       double y = control.getDouble("ytail"); //$NON-NLS-1$

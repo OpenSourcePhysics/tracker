@@ -319,7 +319,8 @@ public abstract class Step implements Cloneable {
         final Shape selectedShape
           = transform.createTransformedShape(selectionShape);
         mark = new Mark() {
-          public void draw(Graphics2D g, boolean highlighted) {
+          @Override
+		public void draw(Graphics2D g, boolean highlighted) {
             stepMark.draw(g, false);
             Paint gpaint = g.getPaint();
             g.setPaint(color);
@@ -327,7 +328,8 @@ public abstract class Step implements Cloneable {
             g.setPaint(gpaint);
           }
 
-          public Rectangle getBounds(boolean highlighted) {
+          @Override
+		public Rectangle getBounds(boolean highlighted) {
             Rectangle bounds = selectedShape.getBounds();
             bounds.add(stepMark.getBounds(false));
             return bounds;
@@ -336,11 +338,13 @@ public abstract class Step implements Cloneable {
       }
       final Mark theMark = mark;
       mark = new Mark() {
-        public void draw(Graphics2D g, boolean highlighted) {
+        @Override
+		public void draw(Graphics2D g, boolean highlighted) {
         	if (!valid) return;
           theMark.draw(g, false);
         }
-        public Rectangle getBounds(boolean highlighted) {
+        @Override
+		public Rectangle getBounds(boolean highlighted) {
           return theMark.getBounds(highlighted);
         }
       };
@@ -354,7 +358,8 @@ public abstract class Step implements Cloneable {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     return "Step " + n; //$NON-NLS-1$
   }
 
@@ -363,7 +368,8 @@ public abstract class Step implements Cloneable {
    *
    * @return a clone of this step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     try {
       Step step = (Step)super.clone();
       step.points = new TPoint[points.length];

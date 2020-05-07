@@ -98,7 +98,8 @@ public class PerspectiveTrack extends TTrack {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
   	String name = e.getPropertyName();
   	if (e.getSource()==filter) {
 	  	if (name.equals("color")) { //$NON-NLS-1$
@@ -165,7 +166,8 @@ public class PerspectiveTrack extends TTrack {
    * @param ypix the y pixel position on the panel
    * @return the first step TPoint that is hit
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
   	partName = null;
   	hint = null;
@@ -179,7 +181,8 @@ public class PerspectiveTrack extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(TrackerPanel trackerPanel) {
+  @Override
+public JMenu getMenu(TrackerPanel trackerPanel) {
     track_submenu = new JMenu(getName());
     track_submenu.setIcon(getFootprint().getIcon(21, 16));
     return track_submenu;
@@ -210,7 +213,8 @@ public class PerspectiveTrack extends TTrack {
    * @param trackerPanel the tracker panel holding the TPoint
    * @return the step associated with the TPoint
    */
-  public Step getStep(TPoint p, TrackerPanel trackerPanel) {
+  @Override
+public Step getStep(TPoint p, TrackerPanel trackerPanel) {
     if (p instanceof PerspectiveFilter.Corner) {
     	PerspectiveFilter.Corner corner = (PerspectiveFilter.Corner)p;
     	int i = filter.getCornerIndex(corner);
@@ -230,7 +234,8 @@ public class PerspectiveTrack extends TTrack {
    * @param n the frame number
    * @return the deleted step
    */
-  public Step deleteStep(int n) {
+  @Override
+public Step deleteStep(int n) {
     if (locked) return null;
     TPoint p = trackerPanel.getSelectedPoint();
     if (p instanceof PerspectiveFilter.Corner) {
@@ -266,7 +271,8 @@ public class PerspectiveTrack extends TTrack {
    * @param index the index
    * @return the step TPoint at the index
    */
-  public TPoint getMarkedPoint(int n, int index) {
+  @Override
+public TPoint getMarkedPoint(int n, int index) {
   	Step step = getStep(n);
   	return step.points[index];
   }

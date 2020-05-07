@@ -118,7 +118,8 @@ public class ProtractorStep extends Step {
    *
    * @param footprint the footprint
    */
-  public void setFootprint(Footprint footprint) {
+  @Override
+public void setFootprint(Footprint footprint) {
     if (footprint.getLength() >= 2)
       super.setFootprint(footprint);
   }
@@ -131,7 +132,8 @@ public class ProtractorStep extends Step {
    * @param ypix the y pixel position
    * @return the Interactive that is hit, or null
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     setHitRectCenter(xpix, ypix);
@@ -233,7 +235,8 @@ public class ProtractorStep extends Step {
    * @param panel the drawing panel requesting the drawing
    * @param _g the graphics context on which to draw
    */
-  public void draw(DrawingPanel panel, Graphics _g) {
+  @Override
+public void draw(DrawingPanel panel, Graphics _g) {
     // draw the mark
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     Graphics2D g = (Graphics2D)_g;
@@ -284,7 +287,8 @@ public class ProtractorStep extends Step {
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
     Mark mark = marks.get(trackerPanel);
     TPoint selection = null;
     if (mark == null) {
@@ -313,7 +317,8 @@ public class ProtractorStep extends Step {
         }
         selectedShape = transform.createTransformedShape(selectionShape);
         mark = new Mark() {
-          public void draw(Graphics2D g, boolean highlighted) {
+          @Override
+		public void draw(Graphics2D g, boolean highlighted) {
             stepMark.draw(g, false);
             Paint gpaint = g.getPaint();
             g.setPaint(color);
@@ -322,7 +327,8 @@ public class ProtractorStep extends Step {
             g.setPaint(gpaint);
           }
 
-          public Rectangle getBounds(boolean highlighted) {
+          @Override
+		public Rectangle getBounds(boolean highlighted) {
             Rectangle bounds = stepMark.getBounds(false);
             if (selectedShape != null)
             	bounds.add(selectedShape.getBounds());
@@ -407,7 +413,8 @@ public class ProtractorStep extends Step {
    * @param trackerPanel the tracker panel drawing the step
    * @return the bounding rectangle
    */
-  public Rectangle getBounds(TrackerPanel trackerPanel) {
+  @Override
+public Rectangle getBounds(TrackerPanel trackerPanel) {
     Rectangle bounds = getMark(trackerPanel).getBounds(false);
     bounds.add(layoutBounds.get(trackerPanel));
     bounds.add(layout1Bounds.get(trackerPanel));
@@ -469,7 +476,8 @@ public class ProtractorStep extends Step {
    *
    * @return a clone of this step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     ProtractorStep step = (ProtractorStep)super.clone();
     if (step != null) {
       step.points[0] = step.vertex = step.new Tip(vertex.getX(), vertex.getY());
@@ -498,7 +506,8 @@ public class ProtractorStep extends Step {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     return "ProtractorStep"; //$NON-NLS-1$
   }
 
@@ -600,7 +609,8 @@ public class ProtractorStep extends Step {
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       if (getTrack().locked) return;
       double dx = x - getX();
       double dy = y - getY();
@@ -629,7 +639,8 @@ public class ProtractorStep extends Step {
      * @param vidPanel the video panel drawing the step
      * @return the containing ProtractorStep frame number
      */
-    public int getFrameNumber(VideoPanel vidPanel) {
+    @Override
+	public int getFrameNumber(VideoPanel vidPanel) {
       return n();
     }
 
@@ -641,7 +652,8 @@ public class ProtractorStep extends Step {
      * @param yScreen the y screen position
      * @param trackerPanel the trackerPanel drawing this step
      */
-    public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
+    @Override
+	public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
       // determine which line is closest
     	setPositionOnLine(xScreen, yScreen, trackerPanel, vertex, end);
     	repaint();
@@ -674,7 +686,8 @@ public class ProtractorStep extends Step {
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       if (getTrack().locked) return;
       // keep distance from vertex >= 2*R
       if (this!=vertex) {
@@ -709,7 +722,8 @@ public class ProtractorStep extends Step {
      * @param vidPanel the video panel drawing the step
      * @return the containing ProtractorStep frame number
      */
-    public int getFrameNumber(VideoPanel vidPanel) {
+    @Override
+	public int getFrameNumber(VideoPanel vidPanel) {
       return n();
     }
     
@@ -739,7 +753,8 @@ public class ProtractorStep extends Step {
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       if (getTrack().locked) return;
       super.setXY(x, y);
       // rotate the protractor so midline passes thru rotator
@@ -782,7 +797,8 @@ public class ProtractorStep extends Step {
      * @param vidPanel the video panel drawing the step
      * @return the containing ProtractorStep frame number
      */
-    public int getFrameNumber(VideoPanel vidPanel) {
+    @Override
+	public int getFrameNumber(VideoPanel vidPanel) {
       return n();
     }
     

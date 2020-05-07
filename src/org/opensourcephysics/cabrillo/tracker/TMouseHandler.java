@@ -77,7 +77,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
    * @param panel the tracker panel
    * @param e the mouse event
    */
-  public void handleMouseAction(InteractivePanel panel,
+  @Override
+public void handleMouseAction(InteractivePanel panel,
                                 MouseEvent e) {
 
     if (!(panel instanceof TrackerPanel)) return;

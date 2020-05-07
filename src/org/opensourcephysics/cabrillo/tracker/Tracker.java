@@ -117,11 +117,12 @@ import org.opensourcephysics.tools.ResourceLoader;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	
 	public static boolean allowDataRefresh = !OSPRuntime.isBHTest;
-	public static boolean allowMenuRefresh = true;//!OSPRuntime.isBHTest;
+	public static boolean allowMenuRefresh = !OSPRuntime.isBHTest;
 	public static boolean allowViews = !OSPRuntime.isBHTest;
 		
 	
@@ -2282,7 +2283,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	/**
 	 * A class to compare version strings.
 	 */
-	public static class Version implements Comparable {
+	public static class Version implements Comparable<Version> {
 		String ver;
 
 		/**
@@ -2310,13 +2311,13 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		}
 
 		@Override
-		public int compareTo(Object o) {
+		public int compareTo(Version o) {
 			// typical newer semantic version "4.9.10" or "5.0.7.190518"
 			// typical older version "4.97"
 
 			// split at decimal points
 			String[] v1 = this.ver.trim().split("\\."); //$NON-NLS-1$
-			String[] v2 = ((Version) o).ver.trim().split("\\."); //$NON-NLS-1$
+			String[] v2 = o.ver.trim().split("\\."); //$NON-NLS-1$
 			// newer semantic version arrays have length 3 or 4--truncate to 3
 			// older version arrays have length 2
 			if (v1.length == 4) {

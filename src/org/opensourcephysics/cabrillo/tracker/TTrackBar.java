@@ -77,12 +77,14 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	if (!OSPRuntime.isJS && Tracker.testOn) {
 	  	testButton = new JButton("test"); //$NON-NLS-1$
 	  	testButton.addActionListener(new ActionListener() {
-	  		public void actionPerformed(ActionEvent e) {
+	  		@Override
+			public void actionPerformed(ActionEvent e) {
 	    		final TFrame frame = (TFrame)testButton.getTopLevelAncestor();
 	    		if (frame!=null && frame.getSelectedTab()>-1) {
 	    			if (testTimer==null) {
 	    				testTimer = new Timer(500, new ActionListener() {
-		    	      public void actionPerformed(ActionEvent e) {
+		    	      @Override
+					public void actionPerformed(ActionEvent e) {
 		    	  			// test action goes here
 		    	      	
 //		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		    	      	
@@ -121,12 +123,14 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     }
   	if (!OSPRuntime.isJS)  /** @j2sNative */ {
     memoryButton = new TButton() {
-    	public JPopupMenu getPopup() {
+    	@Override
+		public JPopupMenu getPopup() {
         JPopupMenu popup = new JPopupMenu();
   	    JMenuItem memoryItem = new JMenuItem(
   	    		TrackerRes.getString("TTrackBar.Memory.Menu.SetSize")); //$NON-NLS-1$
   	    popup.add(memoryItem);
 					memoryItem.addActionListener(new ActionListener() {
+						@Override
 						public void actionPerformed(ActionEvent e) {
 							TFrame frame = (TFrame) memoryButton.getTopLevelAncestor();
 							Object response = JOptionPane.showInputDialog(frame,
@@ -179,7 +183,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     Font font = memoryButton.getFont();
     memoryButton.setFont(font.deriveFont(Font.PLAIN, font.getSize()-1)); 
     memoryButton.addMouseListener(new MouseAdapter() {
-    	public void mouseEntered(MouseEvent e) {
+    	@Override
+		public void mouseEntered(MouseEvent e) {
         refreshMemoryButton();
     	}
     });
@@ -187,13 +192,15 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		Border line = BorderFactory.createLineBorder(Color.GRAY);
     memoryButton.setBorder(BorderFactory.createCompoundBorder(line, space));
     newVersionButton = new TButton() {
-    	public JPopupMenu getPopup() {
+    	@Override
+		public JPopupMenu getPopup() {
         JPopupMenu popup = new JPopupMenu();
   	    JMenuItem upgradeItem = new JMenuItem(
   	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.Upgrade")); //$NON-NLS-1$
   	    popup.add(upgradeItem);
   	    upgradeItem.addActionListener(new ActionListener() {
-  	    	public void actionPerformed(ActionEvent e) {
+  	    	@Override
+			public void actionPerformed(ActionEvent e) {
     				final TFrame frame = (TFrame)newVersionButton.getTopLevelAncestor();
     				new Upgrader(frame).upgrade();
   	    	}
@@ -203,7 +210,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.LearnMore")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
   	    popup.add(learnMoreItem);
   	    learnMoreItem.addActionListener(new ActionListener() {
-  	    	public void actionPerformed(ActionEvent e) {
+  	    	@Override
+			public void actionPerformed(ActionEvent e) {
   					// go to Tracker change log
   	    		String websiteurl = "https://"+Tracker.trackerWebsite+"/change_log.html"; //$NON-NLS-1$ //$NON-NLS-2$
   	    		OSPDesktop.displayURL(websiteurl);
@@ -213,7 +221,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.TrackerHomePage")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
   	    popup.add(homePageItem);
   	    homePageItem.addActionListener(new ActionListener() {
-  	    	public void actionPerformed(ActionEvent e) {
+  	    	@Override
+			public void actionPerformed(ActionEvent e) {
   					// go to Tracker web site
   	    		String websiteurl = "https://"+Tracker.trackerWebsite; //$NON-NLS-1$
   	    		OSPDesktop.displayURL(websiteurl);
@@ -223,7 +232,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   	    		TrackerRes.getString("TTrackBar.Popup.MenuItem.Ignore")); //$NON-NLS-1$
   	    popup.add(ignoreItem);
   	    ignoreItem.addActionListener(new ActionListener() {
-  	    	public void actionPerformed(ActionEvent e) {
+  	    	@Override
+			public void actionPerformed(ActionEvent e) {
   	    		Tracker.newerVersion = null;
   	    		Tracker.lastMillisChecked = System.currentTimeMillis();
   	    		TFrame frame = (TFrame)newVersionButton.getTopLevelAncestor();
@@ -244,7 +254,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     
   	}
     OSPLog.getOSPLog().addPropertyChangeListener("error", new PropertyChangeListener() { //$NON-NLS-1$
-    	public void propertyChange(PropertyChangeEvent e) {
+    	@Override
+		public void propertyChange(PropertyChangeEvent e) {
     		int type = Integer.parseInt(e.getNewValue().toString());
     		if (type == OSPLog.OUT_OF_MEMORY_ERROR) {
         	outOfMemory = true;
@@ -322,7 +333,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     setBorder(BorderFactory.createEmptyBorder(3, 0, 2, 0));
     // select button
     selectButton = new TButton(smallSelectIcon) {
-      protected JPopupMenu getPopup() {
+      @Override
+	protected JPopupMenu getPopup() {
       	return getSelectTrackPopup();
       }   	
     };
@@ -370,7 +382,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     // add calibration tools and axes at end
 //    final CoordAxes axes = trackerPanel.getAxes();
     final ActionListener listener = new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	JMenuItem item = (JMenuItem)e.getSource();
       	TTrack track = trackerPanel.getTrack(item.getText());
       	if (track==null) return;
@@ -430,6 +443,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected void refresh() {
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
 		Runnable runner = new Runnable() {
+			@Override
 			public void run() {
 				sizingField.setText("1234567"); //$NON-NLS-1$
 				numberFieldWidth = sizingField.getPreferredSize().width;
@@ -577,7 +591,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (name.equals("selectedtrack")) {  // selected track has changed //$NON-NLS-1$
       refresh();

@@ -125,7 +125,8 @@ public class PositionStep extends Step {
    * @param panel the drawing panel requesting the drawing
    * @param _g the graphics context on which to draw
    */
-  public void draw(DrawingPanel panel, Graphics _g) {
+  @Override
+public void draw(DrawingPanel panel, Graphics _g) {
   	TTrack track = getTrack();
 		if (track.trackerPanel==panel) {
 			AutoTracker autoTracker = track.trackerPanel.getAutoTracker();
@@ -158,7 +159,8 @@ public class PositionStep extends Step {
    * @param ypix the y pixel position
    * @return the TPoint that is hit, or null
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
     Interactive ia = super.findInteractive(panel, xpix, ypix);
     if (rolloverVisible) {
@@ -180,7 +182,8 @@ public class PositionStep extends Step {
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
     Mark mark = marks.get(trackerPanel);
     TPoint selection = null;
     if (mark == null) {
@@ -217,7 +220,8 @@ public class PositionStep extends Step {
         final Shape selectedShape
           = transform.createTransformedShape(selectionShape);
         mark = new Mark() {
-          public void draw(Graphics2D g, boolean highlighted) {
+          @Override
+		public void draw(Graphics2D g, boolean highlighted) {
             if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON);
             Paint gpaint = g.getPaint();
@@ -226,7 +230,8 @@ public class PositionStep extends Step {
             g.setPaint(gpaint);
           }
 
-          public Rectangle getBounds(boolean highlighted) {
+          @Override
+		public Rectangle getBounds(boolean highlighted) {
             return selectedShape.getBounds();
           }
         };
@@ -239,13 +244,15 @@ public class PositionStep extends Step {
     		final Mark normalMark = mark;
     		final PointMass m = (PointMass)getTrack();
         mark = new Mark() {
-          public void draw(Graphics2D g, boolean highlighted) {
+          @Override
+		public void draw(Graphics2D g, boolean highlighted) {
             normalMark.draw(g, highlighted);
             if (m.isAutofill()) {
             	autofillMark.draw(g, false);
             }
           }
-          public Rectangle getBounds(boolean highlighted) {
+          @Override
+		public Rectangle getBounds(boolean highlighted) {
             return normalMark.getBounds(highlighted).union(autofillMark.getBounds(highlighted));
           }
         };
@@ -253,13 +260,15 @@ public class PositionStep extends Step {
     	// don't draw anything if not valid
       final Mark theMark = mark;
       mark = new Mark() {
-        public void draw(Graphics2D g, boolean highlighted) {
+        @Override
+		public void draw(Graphics2D g, boolean highlighted) {
         	if (!valid) {
         		return;
         	}
           theMark.draw(g, highlighted);
         }
-        public Rectangle getBounds(boolean highlighted) {
+        @Override
+		public Rectangle getBounds(boolean highlighted) {
           return theMark.getBounds(highlighted);
         }
       };
@@ -294,7 +303,8 @@ public class PositionStep extends Step {
    * @param trackerPanel the tracker panel drawing the step
    * @return the bounding rectangle
    */
-  public Rectangle getBounds(TrackerPanel trackerPanel) {
+  @Override
+public Rectangle getBounds(TrackerPanel trackerPanel) {
     Rectangle bounds = getMark(trackerPanel).getBounds(false);
     Rectangle layoutRect = layoutBounds.get(trackerPanel);
     if (layoutRect!=null) {
@@ -308,7 +318,8 @@ public class PositionStep extends Step {
    *
    * @return a cloned step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     PositionStep step = (PositionStep)super.clone();
     if (step != null)
       step.points[0] = step.p = step.new Position(p.getX(), p.getY());
@@ -322,7 +333,8 @@ public class PositionStep extends Step {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     return "PositionStep " + n + " [" + format.format(p.x) //$NON-NLS-1$ //$NON-NLS-2$
                                + ", " + format.format(p.y) + "]"; //$NON-NLS-1$ //$NON-NLS-2$
   }
@@ -347,7 +359,8 @@ public class PositionStep extends Step {
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
   		PointMass track = (PointMass)getTrack();
       if (track.isLocked()) return;
       super.setXY(x, y);
@@ -366,7 +379,8 @@ public class PositionStep extends Step {
      *
      * @param vidPanel the video panel
      */
-    public void showCoordinates(VideoPanel vidPanel) {
+    @Override
+	public void showCoordinates(VideoPanel vidPanel) {
       // put values into pointmass x and y fields
     	TTrack track = getTrack();
       Point2D p = getWorldPosition(vidPanel);
@@ -384,7 +398,8 @@ public class PositionStep extends Step {
      * @param vidPanel the video panel being drawn
      * @return the frame number
      */
-    public int getFrameNumber(VideoPanel vidPanel) {
+    @Override
+	public int getFrameNumber(VideoPanel vidPanel) {
       return n;
     }
     
@@ -452,7 +467,8 @@ public class PositionStep extends Step {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       PositionStep step = (PositionStep) obj;
       control.setValue("x", step.p.x); //$NON-NLS-1$
       control.setValue("y", step.p.y); //$NON-NLS-1$
@@ -464,7 +480,8 @@ public class PositionStep extends Step {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
     	// this loader is not intended to be used to create new steps,
     	// but only for undo/redo step edits.
       return null;
@@ -477,7 +494,8 @@ public class PositionStep extends Step {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	PositionStep step = (PositionStep)obj;
     	double x = control.getDouble("x"); //$NON-NLS-1$
       double y = control.getDouble("y"); //$NON-NLS-1$

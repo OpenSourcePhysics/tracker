@@ -88,12 +88,14 @@ public class ThumbnailDialog extends JDialog {
   		thumbnailDialog = new ThumbnailDialog(panel);
   		FontSizer.setFonts(thumbnailDialog, FontSizer.getLevel());
   		fileChooserListener = new PropertyChangeListener() {
- 			  public void propertyChange(PropertyChangeEvent e) {
+ 			  @Override
+			public void propertyChange(PropertyChangeEvent e) {
  			  	if (chooserField!=null && e.getNewValue()!=null) {
 	 			  	VideoFileFilter filter = (VideoFileFilter)e.getNewValue();
 			  		final String ext = filter.getDefaultExtension();
 	 			    Runnable runner = new Runnable() {
-	 			      public void run() {
+	 			      @Override
+					public void run() {
 	 			        String name = XML.stripExtension(chooserField.getText())+"."+ext; //$NON-NLS-1$ 
 	 			        chooserField.setText(name);
 	 			      }
@@ -267,7 +269,8 @@ public class ThumbnailDialog extends JDialog {
     viewDropdown = new JComboBox(viewModel);
     viewPanel.add(viewDropdown);
     viewDropdown.addItemListener(new ItemListener() {
-    	public void itemStateChanged(ItemEvent e) {
+    	@Override
+		public void itemStateChanged(ItemEvent e) {
     		if (e.getStateChange()==ItemEvent.SELECTED) {
     			if (!isRefreshing)
     				refreshSizeDropdown();
@@ -292,7 +295,8 @@ public class ThumbnailDialog extends JDialog {
     saveAsButton = new JButton();
     saveAsButton.setForeground(new Color(0, 0, 102));
     saveAsButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
         saveThumbnail(null);
       }
@@ -300,7 +304,8 @@ public class ThumbnailDialog extends JDialog {
     closeButton = new JButton();
     closeButton.setForeground(new Color(0, 0, 102));
     closeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
         firePropertyChange("accepted", null, null); //$NON-NLS-1$
       }

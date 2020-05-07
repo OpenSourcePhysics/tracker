@@ -66,7 +66,8 @@ public class SecondDerivative implements Derivative {
    * @param data the input data
    * @return Object[] the result
    */
-  public Object[] evaluate(Object[] data) {
+  @Override
+public Object[] evaluate(Object[] data) {
     int[] params = (int[])data[0];
     spill = params[0];
     start = params[1];

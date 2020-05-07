@@ -402,7 +402,8 @@ public class Undo {
     	}
     }
 
-  	protected void load(String xml) {
+  	@Override
+	protected void load(String xml) {
    	  XMLControl control = new XMLControlElement(xml);
    	  TTrack track = panel.getTrack(trackName);
    	  if (track==null) return;
@@ -413,7 +414,8 @@ public class Undo {
   	  track.firePropertyChange("text_column", null, null); //$NON-NLS-1$
     }
     
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("Undo.Description.Edit")+" " //$NON-NLS-1$ //$NON-NLS-2$
       		+trackType; 
     }
@@ -438,14 +440,16 @@ public class Undo {
     	}   
     }
 
-  	protected void load(String xml) {
+  	@Override
+	protected void load(String xml) {
    	  XMLControl control = new XMLControlElement(xml);
   	  control.loadObject(step);
   	  step.erase();
   	  TTrackBar.getTrackbar(panel).refresh();
     }
   	
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("Undo.Description.Edit")+" " //$NON-NLS-1$ //$NON-NLS-2$
       		+trackType;
     }
@@ -473,17 +477,20 @@ public class Undo {
     	}   
     }
 
-    public void undo() throws CannotUndoException {
+    @Override
+	public void undo() throws CannotUndoException {
     	trackName = undoName;
     	super.undo();
     }
 
-    public void redo() throws CannotUndoException {
+    @Override
+	public void redo() throws CannotUndoException {
     	trackName = redoName;
     	super.redo();
     }
     
-  	protected void load(String xml) {
+  	@Override
+	protected void load(String xml) {
    	  XMLControl control = new XMLControlElement(xml);
   	  TrackProperties props = (TrackProperties)control.loadObject(null);
    	  TTrack track = panel.getTrack(trackName);
@@ -507,7 +514,8 @@ public class Undo {
   	  }
     }
   	
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("Undo.Description.Edit")+" " //$NON-NLS-1$ //$NON-NLS-2$
       		+trackType;
     }
@@ -523,13 +531,15 @@ public class Undo {
   		super(steps.trackerPanel, steps, control);
     }
 
-  	protected void load(String xml) {
+  	@Override
+	protected void load(String xml) {
    	  XMLControl control = new XMLControlElement(xml);
    	  StepSet steps = new StepSet(panel);
   	  control.loadObject(steps);
     }
   	
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("Undo.Description.Edit")+" " //$NON-NLS-1$ //$NON-NLS-2$
       		+TrackerRes.getString("Undo.Description.Steps"); //$NON-NLS-1$
     }
@@ -545,13 +555,15 @@ public class Undo {
   		super(panel, panel.getCoords(), control);
     }
 
-  	protected void load(String xml) {
+  	@Override
+	protected void load(String xml) {
    	  XMLControl control = new XMLControlElement(xml);
    	  ImageCoordSystem coords = panel.getCoords();
   	  control.loadObject(coords);
     }
   	
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("Undo.Description.Edit")+" " //$NON-NLS-1$ //$NON-NLS-2$
       		+TrackerRes.getString("TMenuBar.Menu.Coords"); //$NON-NLS-1$
     }
@@ -578,13 +590,15 @@ public class Undo {
   		this.added = added;
     }
 
-    public void undo() throws CannotUndoException {
+    @Override
+	public void undo() throws CannotUndoException {
     	super.undo();
     	if (added) removeImages();
     	else addImages();
     }
 
-    public void redo() throws CannotUndoException {
+    @Override
+	public void redo() throws CannotUndoException {
     	super.redo();
     	if (added) addImages();
     	else removeImages();
@@ -623,7 +637,8 @@ public class Undo {
   		}
     }
   	
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
     	if (added) {
 	      return TrackerRes.getString("Undo.Description.Add")+" " //$NON-NLS-1$ //$NON-NLS-2$
 	      		+TrackerRes.getString("Undo.Description.Images"); //$NON-NLS-1$
@@ -643,7 +658,8 @@ public class Undo {
   		super(panel, panel.getPlayer().getVideoClip(), control);
     }
 
-    public void undo() throws CannotUndoException {
+    @Override
+	public void undo() throws CannotUndoException {
     	// if ImageVideo, save invalid images
     	Video video = panel.getVideo();
     	if (video instanceof ImageVideo) {
@@ -654,7 +670,8 @@ public class Undo {
     	super.undo();
     }
 
-    public void redo() throws CannotUndoException {
+    @Override
+	public void redo() throws CannotUndoException {
     	// if ImageVideo, save invalid images
     	Video video = panel.getVideo();
     	if (video instanceof ImageVideo) {
@@ -665,7 +682,8 @@ public class Undo {
     	super.redo();
     }
     
-  	protected void load(String xml) {
+  	@Override
+	protected void load(String xml) {
   		// clear filters from old video
     	Video video = panel.getVideo();
     	if (video!=null) {
@@ -690,7 +708,8 @@ public class Undo {
       }
     }
   	
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("Undo.Description.Replace")+" " //$NON-NLS-1$ //$NON-NLS-2$
       		+TrackerRes.getString("Undo.Description.Video"); //$NON-NLS-1$
     }
@@ -715,12 +734,14 @@ public class Undo {
   	  redo = control.toXML();
     }
 
-    public void undo() throws CannotUndoException {
+    @Override
+	public void undo() throws CannotUndoException {
     	super.undo();
     	load(undo);
     }
 
-    public void redo() throws CannotUndoException {
+    @Override
+	public void redo() throws CannotUndoException {
     	super.redo();
     	load(redo);
     }
@@ -741,20 +762,23 @@ public class Undo {
   		editB = edit2;
     }
 
-    public void undo() throws CannotUndoException {
+    @Override
+	public void undo() throws CannotUndoException {
     	super.undo();
     	editA.undo();
     	editB.undo();
     }
 
-    public void redo() throws CannotUndoException {
+    @Override
+	public void redo() throws CannotUndoException {
     	super.redo();
     	editA.redo();
     	editB.redo();
     }
     
   	
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return editA.getPresentationName();
     }
 
@@ -781,7 +805,8 @@ public class Undo {
     	}   
     }
 
-    public void undo() throws CannotUndoException {
+    @Override
+	public void undo() throws CannotUndoException {
     	super.undo();
     	XMLControl control = new XMLControlElement(xml);
     	TTrack track = (TTrack)control.loadObject(null);
@@ -790,13 +815,15 @@ public class Undo {
       panel.requestFocus();
     }
 
-    public void redo() throws CannotUndoException {
+    @Override
+	public void redo() throws CannotUndoException {
     	super.redo();
     	TTrack track = TTrack.getTrack(trackID);
     	track.delete(false);
     }
     
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("Undo.Description.Delete")+" " //$NON-NLS-1$ //$NON-NLS-2$
       		+trackType;
     }
@@ -816,7 +843,8 @@ public class Undo {
     	panel = trackerPanel;
     }
 
-    public void undo() throws CannotUndoException {
+    @Override
+	public void undo() throws CannotUndoException {
     	super.undo();
     	Iterator<String> it = xml.iterator();
     	while (it.hasNext()) {
@@ -827,12 +855,14 @@ public class Undo {
       panel.requestFocus();
     }
 
-    public void redo() throws CannotUndoException {
+    @Override
+	public void redo() throws CannotUndoException {
     	super.redo();
       panel.clearTracks();
     }
   	
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("Undo.Description.Clear")+" " //$NON-NLS-1$ //$NON-NLS-2$
       		+TrackerRes.getString("Undo.Description.Tracks"); //$NON-NLS-1$
     }
@@ -862,7 +892,8 @@ public class Undo {
       filterName = MediaRes.getString("VideoFilter."+filterName); //$NON-NLS-1$
     }
 
-    public void undo() throws CannotUndoException {
+    @Override
+	public void undo() throws CannotUndoException {
     	super.undo();
       Video video = panel.getVideo();
       if (video != null) {
@@ -892,7 +923,8 @@ public class Undo {
       }
     }
 
-    public void redo() throws CannotUndoException {
+    @Override
+	public void redo() throws CannotUndoException {
     	super.redo();
       Video video = panel.getVideo();
       if (video != null) {
@@ -906,7 +938,8 @@ public class Undo {
       }
     }
     
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("Undo.Description.Delete")+" " //$NON-NLS-1$ //$NON-NLS-2$
       		+TrackerRes.getString("Undo.Description.Filter"); //$NON-NLS-1$
     }
@@ -926,7 +959,8 @@ public class Undo {
     	panel = trackerPanel;
     }
 
-    public void undo() throws CannotUndoException {
+    @Override
+	public void undo() throws CannotUndoException {
     	super.undo();
       Video video = panel.getVideo();
       if (video != null) {
@@ -947,7 +981,8 @@ public class Undo {
       }
     }
 
-    public void redo() throws CannotUndoException {
+    @Override
+	public void redo() throws CannotUndoException {
     	super.redo();
       Video video = panel.getVideo();
       if (video != null) {
@@ -963,7 +998,8 @@ public class Undo {
       }
     }
     
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("Undo.Description.Clear")+" " //$NON-NLS-1$ //$NON-NLS-2$
       		+TrackerRes.getString("TMenuBar.MenuItem.VideoFilters"); //$NON-NLS-1$
     }
@@ -991,7 +1027,8 @@ public class Undo {
       filterType = MediaRes.getString("VideoFilter."+filterType); //$NON-NLS-1$
     }
 
-  	protected void load(String xml) {
+  	@Override
+	protected void load(String xml) {
    	  XMLControl control = new XMLControlElement(xml);
       Video video = panel.getVideo();
       if (video != null) {      	
@@ -1008,7 +1045,8 @@ public class Undo {
       }
     }
   	
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("Undo.Description.Edit")+" "+filterType; //$NON-NLS-1$ //$NON-NLS-2$
     }
 

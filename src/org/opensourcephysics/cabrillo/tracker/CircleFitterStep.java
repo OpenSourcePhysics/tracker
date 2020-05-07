@@ -333,7 +333,8 @@ public class CircleFitterStep extends Step {
         }
         selectedShape = transform.createTransformedShape(selectionShape);
         mark = new Mark() {
-          public void draw(Graphics2D g, boolean highlighted) {
+          @Override
+		public void draw(Graphics2D g, boolean highlighted) {
             stepMark.draw(g, false);
             Paint gpaint = g.getPaint();
             g.setPaint(color);
@@ -342,7 +343,8 @@ public class CircleFitterStep extends Step {
             g.setPaint(gpaint);
           }
 
-          public Rectangle getBounds(boolean highlighted) {
+          @Override
+		public Rectangle getBounds(boolean highlighted) {
             Rectangle bounds = stepMark.getBounds(false);
             if (selectedShape != null) {
             	bounds.add(selectedShape.getBounds());
@@ -611,7 +613,8 @@ public class CircleFitterStep extends Step {
    *
    * @return a clone of this step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     CircleFitterStep step = (CircleFitterStep)super.clone();
     if (step != null) {
       step.points[0] = step.center = step.new CenterPoint(center.x, center.y);
@@ -658,7 +661,8 @@ public class CircleFitterStep extends Step {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
   	String s = ""; //$NON-NLS-1$
   	for (int i=0; i<dataPoints[0].length; i++) {
   		s += "\n"+i+": "+dataPoints[0][i]; //$NON-NLS-1$ //$NON-NLS-2$
@@ -707,7 +711,8 @@ public class CircleFitterStep extends Step {
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       if (getTrack().locked) return;
 
       if (circleFitter.isFixed()) {
@@ -785,7 +790,8 @@ public class CircleFitterStep extends Step {
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       return;
     }
 
@@ -811,7 +817,8 @@ public class CircleFitterStep extends Step {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       CircleFitterStep step = (CircleFitterStep) obj;
       // save data points
       DataPoint[] pts = step.dataPoints[0];
@@ -833,7 +840,8 @@ public class CircleFitterStep extends Step {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
     	// this loader is not intended to be used to create new steps,
     	// but only for undo/redo step edits.
       return null;
@@ -846,7 +854,8 @@ public class CircleFitterStep extends Step {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	CircleFitterStep step = (CircleFitterStep)obj;
     	if (step.circleFitter!=null && step.circleFitter.isFixed() && step.n!=0) {
     		step = (CircleFitterStep)step.circleFitter.getStep(0);
@@ -889,7 +898,8 @@ public class CircleFitterStep extends Step {
     	if (step.circleFitter!=null) {
     		final CircleFitterStep cstep = step;
     		Runnable runner = new Runnable() {
-    			public void run() {
+    			@Override
+				public void run() {
         		cstep.circleFitter.dataValid = false;
         		cstep.circleFitter.firePropertyChange("data", null, null); //$NON-NLS-1$
     			}

@@ -118,7 +118,8 @@ public class ExportDataDialog extends JDialog {
     delimiterDropdown = new JComboBox();
     delimiterPanel.add(delimiterDropdown);
     delimiterDropdown.addItemListener(new ItemListener() {
-    	public void itemStateChanged(ItemEvent e) {
+    	@Override
+		public void itemStateChanged(ItemEvent e) {
     		if (refreshing) return;
     		if (e.getStateChange()==ItemEvent.SELECTED) {
     			Object selected = delimiterDropdown.getSelectedItem();
@@ -185,7 +186,8 @@ public class ExportDataDialog extends JDialog {
     saveAsButton = new JButton();
     saveAsButton.setForeground(new Color(0, 0, 102));
     saveAsButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	JFileChooser chooser = TrackerIO.getChooser();
   	    chooser.setAcceptAllFileFilterUsed(true);
         chooser.setDialogTitle(TrackerRes.getString("ExportDataDialog.Chooser.SaveData.Title")); //$NON-NLS-1$
@@ -226,7 +228,8 @@ public class ExportDataDialog extends JDialog {
     closeButton = new JButton();
     closeButton.setForeground(new Color(0, 0, 102));
     closeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
@@ -392,7 +395,8 @@ public class ExportDataDialog extends JDialog {
       this.renderer = renderer;
     }
   	
-    public Component getListCellRendererComponent(JList list, Object value, int index,
+    @Override
+	public Component getListCellRendererComponent(JList list, Object value, int index,
         boolean isSelected, boolean cellHasFocus) {
       if (value instanceof JSeparator)
         return (JSeparator)value;

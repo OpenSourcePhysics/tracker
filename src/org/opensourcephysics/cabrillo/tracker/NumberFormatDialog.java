@@ -296,7 +296,8 @@ public class NumberFormatDialog extends JDialog {
     variableList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
     variableList.setVisibleRowCount(-1);
     variableList.addListSelectionListener(new ListSelectionListener() {
-    	public void valueChanged(ListSelectionEvent e) {
+    	@Override
+		public void valueChanged(ListSelectionEvent e) {
     		if (!e.getValueIsAdjusting()) {
     			int[] indices = variableList.getSelectedIndices();
       		showNumberFormatAndSample(indices);
@@ -924,7 +925,8 @@ public class NumberFormatDialog extends JDialog {
     // create buttons
     closeButton = new JButton(); 
     closeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
@@ -967,7 +969,8 @@ public class NumberFormatDialog extends JDialog {
     revertButton.addActionListener(resetAction);
     helpButton = new JButton(); 
     helpButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         String tab = "      ";                                                                                          //$NON-NLS-1$
         String nl = System.getProperty("line.separator", "/n");                                                         //$NON-NLS-1$ //$NON-NLS-2$
         JOptionPane.showMessageDialog(NumberFormatDialog.this, DisplayRes.getString("DataTable.NumberFormat.Help.Message1")+nl+ //$NON-NLS-1$
@@ -992,7 +995,8 @@ public class NumberFormatDialog extends JDialog {
     
     // create trackDropdown early since need it for spinners
     trackDropdown = new JComboBox() {
-      public Dimension getPreferredSize() {
+      @Override
+	public Dimension getPreferredSize() {
     		Dimension dim = super.getPreferredSize();
     		dim.height-=1;
     		return dim;
@@ -1000,7 +1004,8 @@ public class NumberFormatDialog extends JDialog {
     };
     trackDropdown.setRenderer(new TrackRenderer());
     trackDropdown.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	if ("refresh".equals(trackDropdown.getName())) return; //$NON-NLS-1$
         Object[] item = (Object[])trackDropdown.getSelectedItem();
         if (item!=null) {
@@ -1019,12 +1024,14 @@ public class NumberFormatDialog extends JDialog {
     sampleLabel = new JLabel();  
     patternField = new JTextField(6);
     patternField.setAction(new AbstractAction() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
         applyPattern(patternField.getText());
       }
     });
     patternField.addKeyListener(new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
+      @Override
+	public void keyPressed(KeyEvent e) {
       	final boolean revert = e.getKeyCode()!=KeyEvent.VK_ENTER
       			&& e.getKeyCode()!=KeyEvent.VK_0
       			&& e.getKeyCode()!=KeyEvent.VK_E
@@ -1048,7 +1055,8 @@ public class NumberFormatDialog extends JDialog {
           patternField.setBackground(Color.yellow);
           // apply new pattern
           Runnable runner = new Runnable() {
-            public void run() {
+            @Override
+			public void run() {
           		if (revert) patternField.setText(prevPattern);
 		          applyPattern(patternField.getText());
             }
@@ -1059,7 +1067,8 @@ public class NumberFormatDialog extends JDialog {
 
     });
     patternField.addFocusListener(new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
   			if (patternField.getBackground()==Color.yellow) {
 	        patternField.setBackground(Color.white);
 	        patternField.getAction().actionPerformed(null);

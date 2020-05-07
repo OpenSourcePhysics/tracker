@@ -139,7 +139,8 @@ public class PageTView extends JPanel implements TView {
   /**
    * Refreshes this view.
    */
-  public void refresh() {
+  @Override
+public void refresh() {
   	refreshTabs();
   	removeAll();
     pageButton.setText(TrackerRes.getString("PageTView.Button.Page")); //$NON-NLS-1$
@@ -162,19 +163,22 @@ public class PageTView extends JPanel implements TView {
   /**
    * Initializes this view
    */
-  public void init() {
+  @Override
+public void init() {
   }
 
   /**
    * Cleans up this view
    */
-  public void cleanup() {
+  @Override
+public void cleanup() {
   }
 
   /**
    * Disposes of the view
    */
-  public void dispose() {
+  @Override
+public void dispose() {
     for (TabView tab: tabs) {
     	tab.data.trackerPanel = null;
     }
@@ -187,7 +191,8 @@ public class PageTView extends JPanel implements TView {
    *
    * @return the tracker panel
    */
-  public TrackerPanel getTrackerPanel() {
+  @Override
+public TrackerPanel getTrackerPanel() {
     return trackerPanel;
   }
 
@@ -197,7 +202,8 @@ public class PageTView extends JPanel implements TView {
    *
    * @return the name of this view
    */
-  public String getViewName() {
+  @Override
+public String getViewName() {
   	return TrackerRes.getString("TFrame.View.Text"); //$NON-NLS-1$
   }
 
@@ -206,7 +212,8 @@ public class PageTView extends JPanel implements TView {
    *
    * @return the icon
    */
-  public Icon getViewIcon() {
+  @Override
+public Icon getViewIcon() {
   	return icon;
   }
 
@@ -215,7 +222,8 @@ public class PageTView extends JPanel implements TView {
    *
    * @return an ArrayList of components to be added to a toolbar
    */
-  public ArrayList<Component> getToolBarComponents() {
+  @Override
+public ArrayList<Component> getToolBarComponents() {
     return toolbarComponents;
   }
 
@@ -224,7 +232,8 @@ public class PageTView extends JPanel implements TView {
    *
    * @return true if in a custom state, false if in the default state
    */
-  public boolean isCustomState() {
+  @Override
+public boolean isCustomState() {
   	return tabs.size()>0;
   }
   
@@ -302,7 +311,8 @@ public class PageTView extends JPanel implements TView {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
   }
   
 //_________________________ protected and private methods _________________
@@ -317,12 +327,14 @@ public class PageTView extends JPanel implements TView {
     tabbedPane = new JTabbedPane(SwingConstants.TOP);
     tabbedPane.setBackground(trackerPanel.getBackground());
     tabbedPane.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
+      @Override
+	public void stateChanged(ChangeEvent e) {
       	refreshTitle();
       }
     });
     tabbedPane.addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+	public void mousePressed(MouseEvent e) {
       	tabbedPane.requestFocusInWindow();
       	if (OSPRuntime.isPopupTrigger(e)) {
       		// show popup menu
@@ -338,7 +350,8 @@ public class PageTView extends JPanel implements TView {
     // create the new tab button
     pageButton = new TButton() {
     	// override getMaximumSize method so has same height as chooser button
-	    public Dimension getMaximumSize() {
+	    @Override
+		public Dimension getMaximumSize() {
 	      Dimension dim = super.getMaximumSize();
 	      Dimension min = getMinimumSize();
 	    	Container c = getParent().getParent();
@@ -349,7 +362,8 @@ public class PageTView extends JPanel implements TView {
 	      return dim;
 	    } 
 	    
-	    public JPopupMenu getPopup() {
+	    @Override
+		public JPopupMenu getPopup() {
       	JPopupMenu popup = new JPopupMenu();
 	    	if (!trackerPanel.isEnabled("pageView.edit")) {//$NON-NLS-1$
 	        JMenuItem item = new JMenuItem(TrackerRes.getString("TTrack.MenuItem.Locked")); //$NON-NLS-1$
@@ -360,7 +374,8 @@ public class PageTView extends JPanel implements TView {
 	    	}
         JMenuItem item = new JMenuItem(TrackerRes.getString("TextTView.Button.NewTab")); //$NON-NLS-1$
         item.addActionListener(new ActionListener() {
-    	    public void actionPerformed(ActionEvent e) {
+    	    @Override
+			public void actionPerformed(ActionEvent e) {
     	    	TabView tab = new TabView(new TabData());
     	      int n = tabs.size()+1;
     	      if (n>1) {
@@ -374,7 +389,8 @@ public class PageTView extends JPanel implements TView {
         popup.add(item);
         item = new JMenuItem(TrackerRes.getString("TextTView.MenuItem.OpenHTML")); //$NON-NLS-1$
         item.addActionListener(new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
+          @Override
+		public void actionPerformed(ActionEvent e) {
             JFileChooser chooser = LaunchBuilder.getHTMLChooser();
             int result = chooser.showOpenDialog(trackerPanel);
             if(result==JFileChooser.APPROVE_OPTION) {
@@ -395,7 +411,8 @@ public class PageTView extends JPanel implements TView {
         popup.addSeparator();
         item = new JRadioButtonMenuItem(TrackerRes.getString("TTrack.MenuItem.Locked")); //$NON-NLS-1$
         item.addActionListener(new ActionListener() {
-    	    public void actionPerformed(ActionEvent e) {
+    	    @Override
+			public void actionPerformed(ActionEvent e) {
     	    	JMenuItem item = (JMenuItem)e.getSource();
     	    	locked = item.isSelected();
     	    }
@@ -411,7 +428,8 @@ public class PageTView extends JPanel implements TView {
   	tabTitleLabel.setOpaque(false);
   	tabTitleLabel.setForeground(Color.BLUE.darker());
   	tabTitleLabel.addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+	public void mousePressed(MouseEvent e) {
       	if ("".equals(tabTitleLabel.getText())) return; //$NON-NLS-1$
       	tabTitleLabel.requestFocusInWindow();
       	if (OSPRuntime.isPopupTrigger(e)) {
@@ -425,12 +443,14 @@ public class PageTView extends JPanel implements TView {
       	}
       }
       
-      public void mouseEntered(MouseEvent e) {
+      @Override
+	public void mouseEntered(MouseEvent e) {
       	if (!locked && trackerPanel.isEnabled("pageView.edit")) //$NON-NLS-1$
       		tabTitleLabel.setBorder(titleBorder);
       }
       
-      public void mouseExited(MouseEvent e) {
+      @Override
+	public void mouseExited(MouseEvent e) {
       	tabTitleLabel.setBorder(null);
       }
 
@@ -450,12 +470,14 @@ public class PageTView extends JPanel implements TView {
 		noTab.add(noTabLabel);
 		noTab.setBackground(getBackground());
 		noTab.addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+	public void mousePressed(MouseEvent e) {
       	if (OSPRuntime.isPopupTrigger(e)) {
         	JPopupMenu popup = new JPopupMenu();
           JMenuItem helpItem = new JMenuItem(TrackerRes.getString("Dialog.Button.Help")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
           helpItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            @Override
+			public void actionPerformed(ActionEvent e) {
               trackerPanel.getTFrame().showHelp("textview", 0); //$NON-NLS-1$
             }
           });
@@ -516,7 +538,8 @@ public class PageTView extends JPanel implements TView {
       int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 	    JMenuItem renameItem = new JMenuItem(TrackerRes.getString("TextTView.MenuItem.SetTitle")); //$NON-NLS-1$
 	    renameItem.addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent e) {
+	      @Override
+		public void actionPerformed(ActionEvent e) {
 					renameTab(tab);
 	      }
 	    });
@@ -524,7 +547,8 @@ public class PageTView extends JPanel implements TView {
 	    popup.add(renameItem);
 	    JMenuItem openItem = new JMenuItem(TrackerRes.getString("TextTView.MenuItem.OpenHTML")); //$NON-NLS-1$
 	    openItem.addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent e) {
+	      @Override
+		public void actionPerformed(ActionEvent e) {
 	        JFileChooser chooser = LaunchBuilder.getHTMLChooser();
 	        int result = chooser.showOpenDialog(trackerPanel);
 	        if(result==JFileChooser.APPROVE_OPTION) {
@@ -542,7 +566,8 @@ public class PageTView extends JPanel implements TView {
 	  	s += tab.data.title+"\""; //$NON-NLS-1$
 	    JMenuItem closeItem = new JMenuItem(s);
 	    closeItem.addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent e) {
+	      @Override
+		public void actionPerformed(ActionEvent e) {
 	      	removeTab(tab);
 	      }
 	    });
@@ -552,7 +577,8 @@ public class PageTView extends JPanel implements TView {
 	    	s = TrackerRes.getString("PageTView.MenuItem.OpenInBrowser"); //$NON-NLS-1$
 		    JMenuItem item = new JMenuItem(s);
 		    item.addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent e) {
+		      @Override
+			public void actionPerformed(ActionEvent e) {
           	OSPDesktop.displayURL(tab.data.url.toExternalForm());
 		      }
 		    });
@@ -566,7 +592,8 @@ public class PageTView extends JPanel implements TView {
 			    JMenuItem undoItem = new JMenuItem(s);
 			    undoItem.setAccelerator(KeyStroke.getKeyStroke('Z', keyMask));
 			    undoItem.addActionListener(new ActionListener() {
-			      public void actionPerformed(ActionEvent e) {
+			      @Override
+				public void actionPerformed(ActionEvent e) {
 			        tab.undoManager.undo();
 			      }
 			    });
@@ -579,7 +606,8 @@ public class PageTView extends JPanel implements TView {
 			    JMenuItem redoItem = new JMenuItem(s);
 			    redoItem.setAccelerator(KeyStroke.getKeyStroke('Y', keyMask));
 			    redoItem.addActionListener(new ActionListener() {
-			      public void actionPerformed(ActionEvent e) {
+			      @Override
+				public void actionPerformed(ActionEvent e) {
 			        tab.undoManager.redo();
 			      }
 			    });
@@ -592,7 +620,8 @@ public class PageTView extends JPanel implements TView {
   	s = TrackerRes.getString("Dialog.Button.Help")+"..."; //$NON-NLS-1$ //$NON-NLS-2$
     JMenuItem helpItem = new JMenuItem(s);
     helpItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         trackerPanel.getTFrame().showHelp("textview", 0); //$NON-NLS-1$
       }
     });
@@ -606,7 +635,8 @@ public class PageTView extends JPanel implements TView {
       // create the name dialog
       nameField = new JTextField(20);
       nameField.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
         	TabView tab = getSelectedTab();
         	tab.data.setTitle(nameField.getText());
         	refresh();
@@ -614,7 +644,8 @@ public class PageTView extends JPanel implements TView {
         }
       });
       nameField.addKeyListener(new KeyAdapter() {
-        public void keyPressed(KeyEvent e) {
+        @Override
+		public void keyPressed(KeyEvent e) {
           nameField.setBackground(Color.yellow);
         }
       });
@@ -625,7 +656,8 @@ public class PageTView extends JPanel implements TView {
       contentPane.add(bar, BorderLayout.CENTER);
 	    nameDialog = new JDialog(JOptionPane.getFrameForComponent(this), true);
 	    nameDialog.addWindowListener(new WindowAdapter() {
-	      public void windowClosing(WindowEvent e) {
+	      @Override
+		public void windowClosing(WindowEvent e) {
 	      	TabView tab = getSelectedTab();
         	tab.data.setTitle(nameField.getText());
 	      	refresh();
@@ -662,7 +694,8 @@ public class PageTView extends JPanel implements TView {
     	super(new BorderLayout());
     	data = tab;
     	class TextView extends JTextPane {
-        public void paintComponent(Graphics g) {
+        @Override
+		public void paintComponent(Graphics g) {
           if(OSPRuntime.antiAliasText) {
             Graphics2D g2 = (Graphics2D) g;
             RenderingHints rh = g2.getRenderingHints();
@@ -677,7 +710,8 @@ public class PageTView extends JPanel implements TView {
     	displayPane = new TextView();
       displayPane.setEditable(false);
       hyperlinkListener = new HyperlinkListener() {
-        public void hyperlinkUpdate(HyperlinkEvent e) {
+        @Override
+		public void hyperlinkUpdate(HyperlinkEvent e) {
           if(data.hyperlinksEnabled
           		&& e.getEventType()==HyperlinkEvent.EventType.ACTIVATED) {
             	OSPDesktop.displayURL(e.getURL().toString());
@@ -694,7 +728,8 @@ public class PageTView extends JPanel implements TView {
       };
       displayPane.addHyperlinkListener(hyperlinkListener);      
       displayPane.addKeyListener(new KeyAdapter() {
-        public void keyPressed(KeyEvent e) {
+        @Override
+		public void keyPressed(KeyEvent e) {
           if(e.getKeyCode()==KeyEvent.VK_Z && e.isControlDown()) {
           	if (undoManager.canUndo()) {
           		undoManager.undo();
@@ -708,7 +743,8 @@ public class PageTView extends JPanel implements TView {
         }
       });
       displayPane.addMouseListener(new MouseAdapter() {
-        public void mousePressed(MouseEvent e) {
+        @Override
+		public void mousePressed(MouseEvent e) {
         	if (OSPRuntime.isPopupTrigger(e)) {
         		// show popup menu        		
           	JPopupMenu popup = pageView.getPopup(pageView.getSelectedTab());
@@ -728,7 +764,8 @@ public class PageTView extends JPanel implements TView {
       editorPane.setContentType("text"); //$NON-NLS-1$
       editorPane.setEditable(true);
       editorPane.addMouseListener(new MouseAdapter() {
-        public void mousePressed(MouseEvent e) {
+        @Override
+		public void mousePressed(MouseEvent e) {
         	if (OSPRuntime.isPopupTrigger(e)) {
         		// show popup menu        		
           	JPopupMenu popup = pageView.getPopup(pageView.getSelectedTab());
@@ -737,7 +774,8 @@ public class PageTView extends JPanel implements TView {
         }
       });
       editorPane.addFocusListener(new FocusAdapter() {
-        public void focusLost(FocusEvent e) {
+        @Override
+		public void focusLost(FocusEvent e) {
         	if (editorPane.getBackground().equals(Color.yellow)) {
 	        	setUndoableText(editorPane.getText());
         	}
@@ -745,7 +783,8 @@ public class PageTView extends JPanel implements TView {
         }
       });
       editorPane.addKeyListener(new KeyAdapter() {
-        public void keyPressed(KeyEvent e) {
+        @Override
+		public void keyPressed(KeyEvent e) {
           if(e.getKeyCode()==KeyEvent.VK_Z && e.isControlDown()) {
           	setUndoableText(editorPane.getText());
   	        refreshView(false);
@@ -921,19 +960,22 @@ public class PageTView extends JPanel implements TView {
       prev = prevText;
     }
 
-    public void undo() throws CannotUndoException {
+    @Override
+	public void undo() throws CannotUndoException {
       super.undo();
       tab.data.setText(prev);
       tab.refreshView(false);
     }
 
-    public void redo() throws CannotUndoException {
+    @Override
+	public void redo() throws CannotUndoException {
       super.redo();
       tab.data.setText(text);
       tab.refreshView(false);
     }
 
-    public String getPresentationName() {
+    @Override
+	public String getPresentationName() {
       return TrackerRes.getString("TextTView.TextEdit.Description"); //$NON-NLS-1$
     }
 
@@ -950,7 +992,8 @@ public class PageTView extends JPanel implements TView {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       TabView tab = (TabView)obj;
       TabData data = tab.data;
       control.setValue("title", data.title); //$NON-NLS-1$
@@ -984,7 +1027,8 @@ public class PageTView extends JPanel implements TView {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control){
+    @Override
+	public Object createObject(XMLControl control){
     	String title = control.getString("title"); //$NON-NLS-1$
     	String text = control.getString("text"); //$NON-NLS-1$
       return new TabView(new TabData(title, text));
@@ -997,7 +1041,8 @@ public class PageTView extends JPanel implements TView {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       return obj;
     }
   }
@@ -1022,7 +1067,8 @@ public class PageTView extends JPanel implements TView {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       PageTView view = (PageTView)obj;
       control.setValue("tabs", view.tabs); //$NON-NLS-1$
       control.setValue("locked", view.locked); //$NON-NLS-1$
@@ -1034,7 +1080,8 @@ public class PageTView extends JPanel implements TView {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control){
+    @Override
+	public Object createObject(XMLControl control){
       return null;
     }
 
@@ -1045,7 +1092,8 @@ public class PageTView extends JPanel implements TView {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	PageTView view = (PageTView)obj;
     	view.locked = control.getBoolean("locked"); //$NON-NLS-1$
       // load the tabs

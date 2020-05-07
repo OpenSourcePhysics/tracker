@@ -289,7 +289,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
       if (e.getNewValue() == trackerPanel) {
         setVisible(isVisible);
@@ -396,7 +397,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		descriptionButton = new TButton();
 		descriptionButton.setToolTipText(TrackerRes.getString("ExportZipDialog.Button.Expand.Tooltip")); //$NON-NLS-1$
 		descriptionButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
      	 	String name = descriptionPanel.getName();
      	  descriptionPanel.setName(name==null? "visible": null); //$NON-NLS-1$
      	 	refreshGUI();
@@ -414,7 +416,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     descriptionPane.getDocument().putProperty("parent", descriptionPane); //$NON-NLS-1$
     descriptionPane.getDocument().addDocumentListener(EntryField.documentListener);
     descriptionPane.addFocusListener(new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
       	descriptionPane.setBackground(Color.white);
       	refreshDescriptionGUI();
       }
@@ -434,7 +437,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		tabsButton = new TButton();
 		tabsButton.setToolTipText(TrackerRes.getString("ExportZipDialog.Button.Expand.Tooltip")); //$NON-NLS-1$
 		tabsButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
      	 	String name = tabsPanel.getName();
      	  tabsPanel.setName(name==null? "visible": null); //$NON-NLS-1$
      	 	refreshGUI();
@@ -451,21 +455,24 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	  clipCheckbox.setSelected(trimToClip);
 //	  clipCheckbox.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 6));
     clipCheckbox.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	refreshVideosGUI();
       	clipCheckbox.requestFocusInWindow();
       	trimToClip = clipCheckbox.isSelected();
       }
     });
     formatDropdown = new JComboBox(videoExporter.getFormats()) {
-    	public Dimension getPreferredSize() {
+    	@Override
+		public Dimension getPreferredSize() {
     		Dimension dim = super.getPreferredSize();
     		dim.height = titleField.getPreferredSize().height;
     		return dim;
     	}
     };
     formatDropdown.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	refreshVideosGUI();
       	formatDropdown.requestFocusInWindow();
       }
@@ -483,7 +490,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     videoButton = new TButton();
     videoButton.setToolTipText(TrackerRes.getString("ExportZipDialog.Button.Expand.Tooltip")); //$NON-NLS-1$
     videoButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
      	 	String name = videoPanel.getName();
      	 	videoPanel.setName(name==null? "visible": null); //$NON-NLS-1$
      	 	refreshGUI();
@@ -508,7 +516,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     metaButton = new TButton();
     metaButton.setToolTipText(TrackerRes.getString("ExportZipDialog.Button.Expand.Tooltip")); //$NON-NLS-1$
     metaButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
      	 	String name = metaPanel.getName();
      	  metaPanel.setName(name==null? "visible": null); //$NON-NLS-1$
      	 	refreshGUI();
@@ -532,7 +541,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     thumbButton = new TButton();
     thumbButton.setToolTipText(TrackerRes.getString("ExportZipDialog.Button.Expand.Tooltip")); //$NON-NLS-1$
     thumbButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
      	 	String name = thumbnailPanel.getName();
      	 	thumbnailPanel.setName(name==null? "visible": null); //$NON-NLS-1$
      	 	refreshGUI();
@@ -556,7 +566,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     supportFilesButton = new TButton();
     supportFilesButton.setToolTipText(TrackerRes.getString("ExportZipDialog.Button.Expand.Tooltip")); //$NON-NLS-1$
     supportFilesButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
      	 	String name = supportFilesPanel.getName();
      	  supportFilesPanel.setName(name==null? "visible": null); //$NON-NLS-1$
      	 	refreshGUI();
@@ -569,20 +580,23 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     fileListModel = new DefaultListModel();
     fileList = new JList(fileListModel);
     fileList.addListSelectionListener(new ListSelectionListener() {
+			@Override
 			public void valueChanged(ListSelectionEvent e) {
 	      removeButton.setEnabled(fileList.getSelectedValue()!=null);
 			}      	
     });    
     // Add/remove buttons   
     addButton = new TButton() {
-    	public Dimension getMaximumSize() {
+    	@Override
+		public Dimension getMaximumSize() {
     		return getPreferredSize();
     	}
     };
     addButton.setContentAreaFilled(false);
     addButton.setForeground(labelColor);
     addButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	// show file chooser to add support files
         JFileChooser chooser = TrackerIO.getChooser();
         chooser.setDialogTitle(TrackerRes.getString("ZipResourceDialog.FileChooser.AddFile.Title"));  //$NON-NLS-1$
@@ -622,7 +636,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     removeButton.setContentAreaFilled(false);
     removeButton.setForeground(labelColor);
     removeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	String name = (String)fileList.getSelectedValue();
     		if (name!=null) {
         	for (Iterator<File> it = addedFiles.iterator(); it.hasNext();) {
@@ -641,7 +656,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		buttonbox.add(addButton, BorderLayout.NORTH);
 		buttonbox.add(removeButton, BorderLayout.SOUTH);
     JScrollPane scroller = new JScrollPane(fileList) {
-    	public Dimension getPreferredSize() {
+    	@Override
+		public Dimension getPreferredSize() {
     		int h = buttonbox.getPreferredSize().height;
     		return new Dimension(10, h);
     	}
@@ -668,7 +684,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     advancedButton = new TButton();
     advancedButton.setToolTipText(TrackerRes.getString("ExportZipDialog.Button.Expand.Tooltip")); //$NON-NLS-1$
     advancedButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
      	 	String name = advancedPanel.getName();
      	 	advancedPanel.setName(name==null? "visible": null); //$NON-NLS-1$
      	 	refreshGUI();
@@ -684,14 +701,16 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     helpButton = new JButton();
     helpButton.setForeground(new Color(0, 0, 102));
     helpButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         frame.showHelp("zip", 0); //$NON-NLS-1$
       }
     });
     saveButton = new JButton();
     saveButton.setForeground(labelColor);
     saveButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	saveZipAs();
       }     
     });
@@ -699,7 +718,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     closeButton = new JButton();
     closeButton.setForeground(labelColor);
     closeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
@@ -716,7 +736,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     htmlField = new EntryField(30);
     htmlField.setAlignmentY(JToolBar.TOP_ALIGNMENT);
     htmlField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	refreshAdvancedGUI();
       	htmlField.requestFocusInWindow();
       }
@@ -725,7 +746,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     loadHTMLButton.setContentAreaFilled(false);
     loadHTMLButton.setAlignmentY(JToolBar.TOP_ALIGNMENT);
     loadHTMLButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         JFileChooser chooser = TrackerIO.getChooser();
         chooser.setAcceptAllFileFilterUsed(false);
         chooser.setDialogTitle(TrackerRes.getString("ZipResourceDialog.FileChooser.OpenHTML.Title"));  //$NON-NLS-1$
@@ -764,7 +786,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		authorField.setBackground(Color.white);
     authorField.setAlignmentY(JToolBar.TOP_ALIGNMENT);
     authorField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	refreshMetadataGUI();
       	trackerPanel.author = authorField.getText().trim();
       	authorField.requestFocusInWindow();
@@ -784,7 +807,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     contactField.setBackground(Color.white);
     contactField.setAlignmentY(JToolBar.TOP_ALIGNMENT);
     contactField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	refreshMetadataGUI();
       	trackerPanel.contact = contactField.getText().trim();
       	contactField.requestFocusInWindow();
@@ -801,7 +825,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     keywordsField = new EntryField(30);
     keywordsField.setAlignmentY(JToolBar.TOP_ALIGNMENT);
     keywordsField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	refreshMetadataGUI();
       	keywordsField.requestFocusInWindow();
       }
@@ -817,7 +842,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     urlField = new EntryField(30);
     urlField.setAlignmentY(JToolBar.TOP_ALIGNMENT);
     urlField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	refreshAdvancedGUI();     	
       	urlField.requestFocusInWindow();
       }
@@ -843,7 +869,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     thumbnailButton = new JButton();
     thumbnailButton.setForeground(labelColor);
     thumbnailButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	ThumbnailDialog.getDialog(trackerPanel, false).setVisible(true);
       }
     });
@@ -852,7 +879,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     showThumbnailCheckbox = new JCheckBox();
     showThumbnailCheckbox.setSelected(false);
     showThumbnailCheckbox.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	if (showThumbnailCheckbox.isSelected()) {
       		refreshThumbnailImage();
           thumbnailPanel.add(thumbnailImagePanel, BorderLayout.SOUTH);
@@ -869,7 +897,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     }
   	ThumbnailDialog dialog = ThumbnailDialog.getDialog(trackerPanel, false);
   	dialog.addPropertyChangeListener("accepted", new PropertyChangeListener() { //$NON-NLS-1$
-		  public void propertyChange(PropertyChangeEvent e) {
+		  @Override
+		public void propertyChange(PropertyChangeEvent e) {
 		    refreshThumbnailImage();
 		  }
   	});
@@ -1083,7 +1112,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   		descriptionButton.setIcon(TViewChooser.maxIcon);
     	FontSizer.setFonts(descriptionPane, FontSizer.getLevel());
       JScrollPane scroller = new JScrollPane(descriptionPane) {
-      	public Dimension getPreferredSize() {
+      	@Override
+		public Dimension getPreferredSize() {
       		int w = super.getPreferredSize().width;
       		return new Dimension(w, 60);
       	}
@@ -1169,7 +1199,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   			}
 	      tabCheckboxes.add(cb);
 	      EntryField field = new EntryField() {
-	      	public Dimension getMaximumSize() {	      		
+	      	@Override
+			public Dimension getMaximumSize() {	      		
 	      		Dimension dim = super.getMaximumSize();
 	      		dim.height = titleField.getPreferredSize().height;
 	      		return dim;
@@ -1508,7 +1539,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		final String[] videoPath = new String[1];
 		videoExporter.setFormat(formatDropdown.getSelectedItem());
 		final PropertyChangeListener listener = new PropertyChangeListener() {
-	  	public void propertyChange(PropertyChangeEvent e) {
+	  	@Override
+		public void propertyChange(PropertyChangeEvent e) {
 	  		videoPath[0] = null; // set path to null if video_cancelled
 	  		if (e.getPropertyName().equals("video_saved")) { //$NON-NLS-1$
 	  			// videoPath is new value from event (different from original path for image videos)
@@ -1629,7 +1661,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     				}
     			}
     			if (xmlFile!=null) {
-    				XMLControl control = new XMLControlElement(xmlFile.getPath());
+    				XMLControl control = new XMLControlElement(xmlFile);
     				if (control.getObjectClassName().endsWith("ImageVideo")) { //$NON-NLS-1$
     					String[] paths = (String[])control.getObject("paths"); //$NON-NLS-1$
     					for (String path: paths) {
@@ -1757,7 +1789,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 
   	// use separate thread to add files to the ziplist and create the TRZ file
   	Runnable runner = new Runnable() {
-  		public void run() {
+  		@Override
+		public void run() {
       	String thumbPath = addThumbnail(zipList);      	
       	addHTMLInfo(thumbPath, zipList);      	
       	addVideosAndTRKs(zipList);
@@ -1780,7 +1813,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   		openZip(target.getAbsolutePath());
   		// delete temp directory after short delay
       Timer timer = new Timer(1000, new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
       		File temp = new File(getTempDirectory());
           ResourceLoader.deleteFile(temp);
          }
@@ -2411,7 +2445,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
    */
   private void openZip(final String path) {
     Runnable runner1 = new Runnable() {
-    	public void run() {
+    	@Override
+		public void run() {
       	int response = javax.swing.JOptionPane.showConfirmDialog(
       			frame,	    			
       			TrackerRes.getString("ZipResourceDialog.Complete.Message1") //$NON-NLS-1$ 
@@ -2423,14 +2458,16 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
       	if (response == javax.swing.JOptionPane.YES_OPTION) {
       		frame.loadedFiles.remove(path);
           Runnable runner = new Runnable() {
-          	public void run() {
+          	@Override
+			public void run() {
           		// open the TRZ in a Tracker tab
           		TrackerIO.openTabFile(new File(path), frame);
           		// open the TRZ in the Library Browser
     	      	frame.getLibraryBrowser().open(path);
     	      	frame.getLibraryBrowser().setVisible(true);
     	        Timer timer = new Timer(1000, new ActionListener() {
-    	          public void actionPerformed(ActionEvent e) {
+    	          @Override
+				public void actionPerformed(ActionEvent e) {
     	          	LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
     	          	if (treePanel!=null) {
     		    				treePanel.refreshSelectedNode();
@@ -2576,7 +2613,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   	ArrayList<File> target;
   	ExportVideoDialog dialog;
   	
-  	public void propertyChange(PropertyChangeEvent e) {
+  	@Override
+	public void propertyChange(PropertyChangeEvent e) {
   		if (e.getPropertyName().equals("video_saved") && target!=null) { //$NON-NLS-1$
   			// event's new value is saved file name (differ from original target name for image videos)
   			targetVideo = e.getNewValue().toString();
@@ -2715,7 +2753,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
       getDocument().addDocumentListener(documentListener);
   	}
   	
-  	public Dimension getPreferredSize() {
+  	@Override
+	public Dimension getPreferredSize() {
   		Dimension dim = super.getPreferredSize();
   		dim.width = Math.max(dim.width, 25);
   		dim.width = Math.min(dim.width, 100);
@@ -2741,7 +2780,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
   	};
   	
     static FocusListener focusListener = new FocusAdapter() {
-      public void focusGained(FocusEvent e) {
+      @Override
+	public void focusGained(FocusEvent e) {
       	EntryField field = (EntryField)e.getSource();
       	if (field.getDefaultText()!=null && field.getText().equals(field.getDefaultText())) {
       		field.setText(null);
@@ -2750,7 +2790,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 //      	field.selectAll();
 	      field.setBackground(Color.white);
       }
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
       	EntryField field = (EntryField)e.getSource();
       	boolean fire = field.getBackground()==Color.yellow;
       	if (field.getDefaultText()!=null && "".equals(field.getText())) { //$NON-NLS-1$
@@ -2766,7 +2807,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
     };
 
   	static ActionListener actionListener = new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	EntryField field = (EntryField)e.getSource();
         field.setBackground(Color.white);
     		field.setForeground(defaultForeground);
@@ -2811,7 +2853,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			setBorder(BorderFactory.createEmptyBorder(3, 4, 3, 0));
   	}
   	
-    public Component getListCellRendererComponent(JList list, Object val, int index,
+    @Override
+	public Component getListCellRendererComponent(JList list, Object val, int index,
         boolean selected, boolean hasFocus) {
 
       if (selected) {

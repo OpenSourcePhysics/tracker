@@ -55,7 +55,8 @@ public class PlotTView extends TrackChooserTView {
    *
    * @return the name
    */
-  public String getViewName() {
+  @Override
+public String getViewName() {
     return TrackerRes.getString("TFrame.View.Plot"); //$NON-NLS-1$
   }
 
@@ -64,7 +65,8 @@ public class PlotTView extends TrackChooserTView {
    *
    * @return the icon
    */
-  public Icon getViewIcon() {
+  @Override
+public Icon getViewIcon() {
     return icon;
   }
 
@@ -74,7 +76,8 @@ public class PlotTView extends TrackChooserTView {
    * @param track the track
    * @return the track view
    */
-  protected TrackView createTrackView(TTrack track) {
+  @Override
+protected TrackView createTrackView(TTrack track) {
     return new PlotTrackView(track, trackerPanel, this);
   }
 
@@ -124,7 +127,8 @@ public class PlotTView extends TrackChooserTView {
      * @param control the control to save to
      * @param obj the TrackerPanel object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       PlotTView view = (PlotTView)obj;
       TTrack track = view.getSelectedTrack();
       if (track != null) {
@@ -146,7 +150,8 @@ public class PlotTView extends TrackChooserTView {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control){
+    @Override
+	public Object createObject(XMLControl control){
       return null;
     }
 
@@ -157,7 +162,8 @@ public class PlotTView extends TrackChooserTView {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       PlotTView view = (PlotTView)obj;
       TTrack track = view.getTrack(control.getString("selected_track")); //$NON-NLS-1$
       if (track != null) {

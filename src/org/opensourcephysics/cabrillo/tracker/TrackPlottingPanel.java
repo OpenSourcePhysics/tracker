@@ -109,6 +109,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 		// make listeners for the button states
 		xListener = new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					JMenuItem item = (JMenuItem) e.getSource();
@@ -120,6 +121,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			}
 		};
 		yListener = new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					JMenuItem item = (JMenuItem) e.getSource();
@@ -131,6 +133,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			}
 		};
 		playerListener = new PropertyChangeListener() {
+			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				if (clickedStep == null)
 					return;
@@ -154,6 +157,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		addMouseListener(mouseListener);
 		addMouseMotionListener(mouseListener);
 		addKeyListener(new KeyAdapter() {
+			@Override
 			public void keyPressed(KeyEvent e) {
 				if (!plotTrackView.trackerPanel.getPlayer().isEnabled())
 					return;
@@ -192,6 +196,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		});
 	}
 
+	@Override
 	public void send(Job job, Tool replyTo) {
 		XMLControlElement control = new XMLControlElement();
 		try {
@@ -228,6 +233,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 *
 	 * @param label the x label.
 	 */
+	@Override
 	public void setXLabel(String label) {
 		dataset.setXYColumnNames(label, yLabel);
 		xLabel = label;
@@ -259,6 +265,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 *
 	 * @param label the y label
 	 */
+	@Override
 	public void setYLabel(String label) {
 		yLabel = label;
 		dataset.setXYColumnNames(xLabel, label);
@@ -290,6 +297,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 *
 	 * @param title the title.
 	 */
+	@Override
 	public void setTitle(String title) {
 		super.setTitle(title);
 		this.title = title;
@@ -340,6 +348,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	/**
 	 * Overrides DrawingPanel scale method
 	 */
+	@Override
 	public void scale(ArrayList<Drawable> list) {
 		if (autoscaleXMin && !autoscaleXMax) {
 			scaleXMin();
@@ -360,6 +369,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	/**
 	 * Gets the popup menu.
 	 */
+	@Override
 	public JPopupMenu getPopupMenu() {
 		OSPLog.debug("TrackPlottingPanel.getPopupMenu " + Tracker.allowMenuRefresh);
 		if (!Tracker.allowMenuRefresh)
@@ -464,9 +474,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	/**
 	 * Builds the default popup menu for this panel.
 	 */
+	@Override
 	protected void buildPopupmenu() {
 		if (popup == null) {
 			popup = new JPopupMenu() {
+				@Override
 				public void setVisible(boolean vis) {
 					super.setVisible(vis);
 					if (!vis)
@@ -479,6 +491,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			linesItem = new JCheckBoxMenuItem();
 			linesItem.setSelected(true);
 			linesItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					dataset.setConnected(linesItem.isSelected());
 					for (TTrack next : guests) {
@@ -493,6 +506,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			pointsItem = new JCheckBoxMenuItem();
 			pointsItem.setSelected(true);
 			pointsItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (pointsItem.isSelected()) {
 						dataset.setMarkerShape(Dataset.SQUARE);
@@ -514,18 +528,21 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			// showZero menu items
 			showXZeroItem = new JMenuItem();
 			showXZeroItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					showZeroOnAxis("x"); //$NON-NLS-1$
 				}
 			});
 			showYZeroItem = new JMenuItem();
 			showYZeroItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					showZeroOnAxis("y"); //$NON-NLS-1$
 				}
 			});
 			printItem = new JMenuItem();
 			printItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					// find TViewChooser that owns this view and print it
 					TViewChooser chooser = getOwner();
@@ -537,6 +554,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			// dataTool item
 			dataToolItem = new JMenuItem();
 			dataToolItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					DataTool tool = DataTool.getTool();
 					DataToolTab tab = tool.getTab(data);
@@ -675,6 +693,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			// algorithm item
 			algorithmItem = new JMenuItem();
 			algorithmItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					DerivativeAlgorithmDialog dialog = trackerPanel.getAlgorithmDialog();
 					TTrack track = TTrack.getTrack(trackID);
@@ -688,6 +707,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			});
 			// copy image item
 			Action copyImageAction = new AbstractAction() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					// find TViewChooser that owns this view and copy it
 					TViewChooser chooser = getOwner();
@@ -699,6 +719,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			copyImageItem = new JMenuItem(copyImageAction);
 			// dataBuilder item
 			dataFunctionListener = new AbstractAction() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					TTrack track = TTrack.getTrack(trackID);
 					trackerPanel.getDataBuilder().setSelectedPanel(track.getName());
@@ -710,6 +731,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			// help item
 			helpItem = new JMenuItem();
 			helpItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					Container c = getTopLevelAncestor();
 					if (c instanceof TFrame) {
@@ -721,6 +743,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			// mergeYAxesItem
 			mergeYScalesItem = new JMenuItem();
 			mergeYScalesItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					int n = plotTrackView.mainView.getComponentCount();
 					if (n == 2)
@@ -733,6 +756,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		// guests item
 		guestsItem = new JMenuItem();
 		guestsItem.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				PlotGuestDialog dialog = trackerPanel.getPlotGuestDialog(TrackPlottingPanel.this);
 				dialog.setVisible(true);
@@ -740,6 +764,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		});
 
 		Action selectAction = new AbstractAction() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				// find limits of zoom box
 				Rectangle rect = zoomBox.reportZoom();
@@ -834,6 +859,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * Overrides DrawingPanel method to prevent changes to glassPanel and deal with
 	 * multiple plots.
 	 */
+	@Override
 	protected Rectangle findViewRect() {
 		Rectangle rect = null;
 		Container parent = getParent();
@@ -1156,6 +1182,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param ymax
 	 * @param invalidateImage invalidates image if min/max have changed
 	 */
+	@Override
 	public void setPreferredMinMax(double xmin, double xmax, double ymin, double ymax, boolean invalidateImage) {
 		trackerPanel.changed = true;
 		isCustom = true;
@@ -1170,6 +1197,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param xmin
 	 * @param xmax
 	 */
+	@Override
 	public void setPreferredMinMaxX(double xmin, double xmax) {
 		trackerPanel.changed = true;
 		isCustom = true;
@@ -1184,6 +1212,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param ymin
 	 * @param ymax
 	 */
+	@Override
 	public void setPreferredMinMaxY(double ymin, double ymax) {
 		trackerPanel.changed = true;
 		isCustom = true;
@@ -1194,6 +1223,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * Overrides requestFocusInWindow. This declines the focus if scale setter is
 	 * visible.
 	 */
+	@Override
 	public boolean requestFocusInWindow() {
 		if (plotAxes.getScaleSetter().isVisible())
 			return false;
@@ -1486,6 +1516,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		}
 
 		// Overrides CartesianInteractive method
+		@Override
 		public ScaleSetter getScaleSetter() {
 			ScaleSetter setter = super.getScaleSetter();
 			FontSizer.setFonts(setter, FontSizer.getLevel());
@@ -1493,22 +1524,26 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		}
 
 		// Overrides CartesianInteractive method
+		@Override
 		protected boolean hasHorzVariablesPopup() {
 			return true;
 		}
 
 		// Overrides CartesianInteractive method
+		@Override
 		protected javax.swing.JPopupMenu getHorzVariablesPopup() {
 			FontSizer.setFonts(xPopup, FontSizer.getLevel());
 			return xPopup;
 		}
 
 		// Overrides CartesianInteractive method
+		@Override
 		protected boolean hasVertVariablesPopup() {
 			return true;
 		}
 
 		// Overrides CartesianInteractive method
+		@Override
 		protected javax.swing.JPopupMenu getVertVariablesPopup() {
 			FontSizer.setFonts(yPopup, FontSizer.getLevel());
 			return yPopup;
@@ -1523,18 +1558,21 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		int region;
 		Interactive iad;
 
+		@Override
 		public void mouseEntered(MouseEvent e) {
 			mouseEvent = e;
 			mouseAction = MOUSE_ENTERED;
 //      requestFocusInWindow();
 		}
 
+		@Override
 		public void mouseExited(MouseEvent e) {
 			mouseEvent = e;
 			mouseAction = MOUSE_EXITED;
 			setMouseCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		}
 
+		@Override
 		public void mouseMoved(MouseEvent e) {
 			mouseEvent = e;
 			mouseAction = MOUSE_MOVED;
@@ -1552,6 +1590,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			repaint();
 		}
 
+		@Override
 		public void mousePressed(MouseEvent e) {
 			mouseEvent = e;
 			mouseAction = MOUSE_PRESSED;
@@ -1599,6 +1638,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			}
 		}
 
+		@Override
 		public void mouseDragged(MouseEvent e) {
 			mouseEvent = e;
 			mouseAction = MOUSE_DRAGGED;
@@ -1615,6 +1655,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			repaint();
 		}
 
+		@Override
 		public void mouseReleased(MouseEvent e) {
 			mouseEvent = e;
 			mouseAction = MOUSE_RELEASED;
@@ -1626,6 +1667,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			}
 		}
 
+		@Override
 		public void mouseClicked(MouseEvent e) {
 			mouseEvent = e;
 			mouseAction = MOUSE_CLICKED;
@@ -1669,6 +1711,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		 * @param control the control to save to
 		 * @param obj     the TrackerPanel object to save
 		 */
+		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			TrackPlottingPanel plot = (TrackPlottingPanel) obj;
 			control.setValue("x_var", plot.getXVariable()); //$NON-NLS-1$
@@ -1707,6 +1750,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		 * @param control the control
 		 * @return the newly created object
 		 */
+		@Override
 		public Object createObject(XMLControl control) {
 			return null;
 		}
@@ -1718,6 +1762,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		 * @param obj     the object
 		 * @return the loaded object
 		 */
+		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			TrackPlottingPanel plot = (TrackPlottingPanel) obj;
 			String[] vars = new String[2];

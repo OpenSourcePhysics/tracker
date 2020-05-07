@@ -138,7 +138,8 @@ public class RGBRegion extends TTrack {
     radiusField.setMinValue(1);
     // radius focus listener
     final FocusListener radiusFocusListener = new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
       	if (radiusField.getBackground() == Color.yellow) {
       		setRadius(trackerPanel.getFrameNumber(), radiusField.getIntValue());
       	}
@@ -146,7 +147,8 @@ public class RGBRegion extends TTrack {
     };
     radiusField.addFocusListener(radiusFocusListener);
     radiusField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	radiusFocusListener.focusLost(null);
         radiusField.selectAll();
         radiusField.requestFocusInWindow();
@@ -155,20 +157,23 @@ public class RGBRegion extends TTrack {
     radiusField.addMouseListener(formatMouseListener);
     fixedPositionItem = new JCheckBoxMenuItem(TrackerRes.getString("RGBRegion.MenuItem.Fixed")); //$NON-NLS-1$
     fixedPositionItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
         setFixedPosition(fixedPositionItem.isSelected());
       }
     });
     fixedRadiusItem = new JCheckBoxMenuItem(TrackerRes.getString("RGBRegion.MenuItem.FixedRadius")); //$NON-NLS-1$
     fixedRadiusItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
         setFixedRadius(fixedRadiusItem.isSelected());
       }
     });
     radiusField.setBorder(fieldBorder);
     // position action
     Action positionAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	NumberField field = (NumberField)e.getSource();
       	if (field.getBackground() == Color.yellow) setPositionFromFields();
         field.selectAll();
@@ -177,7 +182,8 @@ public class RGBRegion extends TTrack {
     };
     // position focus listener
     FocusListener positionFocusListener = new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
       	NumberField field = (NumberField)e.getSource();
       	if (field.getBackground() == Color.yellow) setPositionFromFields();
       }
@@ -345,7 +351,8 @@ public class RGBRegion extends TTrack {
    * @param panel the drawing panel requesting the drawing
    * @param _g the graphics context on which to draw
    */
-  public void draw(DrawingPanel panel, Graphics _g) {
+  @Override
+public void draw(DrawingPanel panel, Graphics _g) {
   	if (isMarking && !(trackerPanel.getSelectedPoint() instanceof RGBStep.Position))
   		return;
   	super.draw(panel, _g);
@@ -359,7 +366,8 @@ public class RGBRegion extends TTrack {
    * @param ypix the y pixel position on the panel
    * @return the first step or motion vector that is hit
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
   	Interactive ia = super.findInteractive(panel, xpix, ypix);
     if (ia != null) {
@@ -395,14 +403,16 @@ public class RGBRegion extends TTrack {
    *
    * @param visible ignored
    */
-  public void setTrailVisible(boolean visible) {/** empty block */}
+  @Override
+public void setTrailVisible(boolean visible) {/** empty block */}
 
   /**
    * Gets the autoAdvance property. Overrides TTrack method.
    *
    * @return <code>false</code>
    */
-  public boolean isAutoAdvance() {
+  @Override
+public boolean isAutoAdvance() {
     return !isFixedPosition();
   }
 
@@ -414,7 +424,8 @@ public class RGBRegion extends TTrack {
    * @param y the y coordinate in image space
    * @return the step
    */
-  public Step createStep(int n, double x, double y) {
+  @Override
+public Step createStep(int n, double x, double y) {
     if (isLocked()) return null;
   	int frame = isFixedPosition()? 0: n;
     RGBStep step = (RGBStep)steps.getStep(frame);
@@ -442,7 +453,8 @@ public class RGBRegion extends TTrack {
    * @param n the frame number
    * @return the deleted step
    */
-  public Step deleteStep(int n) {
+  @Override
+public Step deleteStep(int n) {
     return null;
   }
 
@@ -452,7 +464,8 @@ public class RGBRegion extends TTrack {
    * @param n the frame number
    * @return the step
    */
-  public Step getStep(int n) {
+  @Override
+public Step getStep(int n) {
     RGBStep step = (RGBStep)steps.getStep(n);
 		refreshStep(step);
     return step;
@@ -463,7 +476,8 @@ public class RGBRegion extends TTrack {
    *
    * @return the footprint length
    */
-  public int getStepLength() {
+  @Override
+public int getStepLength() {
   	return RGBStep.getLength();
   }
 
@@ -475,7 +489,8 @@ public class RGBRegion extends TTrack {
    * @param y the y target coordinate in image space
    * @return the TPoint that was automarked
    */
-  public TPoint autoMarkAt(int n, double x, double y) {
+  @Override
+public TPoint autoMarkAt(int n, double x, double y) {
   	this.setFixedPosition(false);
   	return super.autoMarkAt(n, x, y);
   }
@@ -485,7 +500,8 @@ public class RGBRegion extends TTrack {
    *
    * @return true if autotrackable
    */
-  protected boolean isAutoTrackable() {
+  @Override
+protected boolean isAutoTrackable() {
   	return true;
   }
   
@@ -494,7 +510,8 @@ public class RGBRegion extends TTrack {
    *
    * @return the footprint length
    */
-  public int getFootprintLength() {
+  @Override
+public int getFootprintLength() {
     return 1;
   }
 
@@ -534,7 +551,8 @@ public class RGBRegion extends TTrack {
    * @param data the DatasetManager
    * @param trackerPanel the tracker panel
    */
-  protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
+  @Override
+protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
     if (refreshDataLater || trackerPanel == null || data == null) return;
     dataFrames.clear();
   	// get valid step at current frameNumber
@@ -638,7 +656,8 @@ public class RGBRegion extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(TrackerPanel trackerPanel) {
+  @Override
+public JMenu getMenu(TrackerPanel trackerPanel) {
     JMenu menu = super.getMenu(trackerPanel);
     fixedPositionItem.setText(TrackerRes.getString("RGBRegion.MenuItem.Fixed")); //$NON-NLS-1$
     fixedPositionItem.setSelected(isFixedPosition());
@@ -664,7 +683,8 @@ public class RGBRegion extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a list of components
    */
-  public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+  @Override
+public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
     ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     radiusLabel.setText(TrackerRes.getString("RGBRegion.Label.Radius")); //$NON-NLS-1$
     list.add(radiusLabel);
@@ -712,7 +732,8 @@ public class RGBRegion extends TTrack {
    * @param point the TPoint
    * @return a list of components
    */
-  public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
+  @Override
+public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
                                              TPoint point) {
   	
     ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
@@ -752,7 +773,8 @@ public class RGBRegion extends TTrack {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
   	if (trackerPanel != null) {
       if (maxRadius==defaultMaxRadius && trackerPanel.getVideo()!=null) {
      		BufferedImage image = trackerPanel.getVideo().getImage();
@@ -772,7 +794,7 @@ public class RGBRegion extends TTrack {
 		      yField.setValue(p.getY());
   	    }
   	    radiusField.setEnabled(!isLocked() && step != null);
-	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
+	      stepValueLabel.setText(e.getNewValue()+":"); //$NON-NLS-1$
 //        support.firePropertyChange(e); // to views
       }
       else if (name.equals("image")) { //$NON-NLS-1$
@@ -801,7 +823,8 @@ public class RGBRegion extends TTrack {
    *
    * @return the name of this track
    */
-  public String toString() {
+  @Override
+public String toString() {
     return TrackerRes.getString("RGBRegion.Name"); //$NON-NLS-1$
   }
 
@@ -918,7 +941,8 @@ public class RGBRegion extends TTrack {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
     	RGBRegion region = (RGBRegion) obj;
       // save track data
       XML.getLoader(TTrack.class).saveObject(control, obj);
@@ -976,7 +1000,8 @@ public class RGBRegion extends TTrack {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
     	RGBRegion region = new RGBRegion();
       return region;
     }
@@ -988,7 +1013,8 @@ public class RGBRegion extends TTrack {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	RGBRegion region = (RGBRegion) obj;
       // load track data
       XML.getLoader(TTrack.class).loadObject(control, obj);
@@ -1074,18 +1100,21 @@ public class RGBRegion extends TTrack {
   private static class FrameDataLoader
       implements XML.ObjectLoader {
 
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       FrameData data = (FrameData) obj;
       control.setValue("x", data.x); //$NON-NLS-1$
       control.setValue("y", data.y); //$NON-NLS-1$
       control.setValue("r", data.r); //$NON-NLS-1$
     }
 
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
       return new FrameData();
     }
 
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       FrameData data = (FrameData) obj;
       data.x = control.getDouble("x"); //$NON-NLS-1$
       data.y = control.getDouble("y"); //$NON-NLS-1$

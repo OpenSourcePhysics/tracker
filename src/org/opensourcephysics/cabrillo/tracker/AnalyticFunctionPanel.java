@@ -38,7 +38,8 @@ public class AnalyticFunctionPanel extends ModelFunctionPanel {
   /**
 	 * Refreshes the GUI.
 	 */
-  protected void refreshGUI() {
+  @Override
+protected void refreshGUI() {
   	super.refreshGUI();
   	functionEditor.setBorderTitle(TrackerRes.getString("AnalyticFunctionPanel.FunctionEditor.Border.Title")); //$NON-NLS-1$
   }

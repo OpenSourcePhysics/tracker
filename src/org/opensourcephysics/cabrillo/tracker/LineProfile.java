@@ -131,7 +131,8 @@ public class LineProfile extends TTrack {
     spreadLabel.setBorder(empty);
     spreadField = new IntegerField(3);
     spreadField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setSpread(spreadField.getIntValue());
         spreadField.setIntValue(getSpread());
         spreadField.selectAll();
@@ -140,10 +141,12 @@ public class LineProfile extends TTrack {
       }
     });
     spreadField.addFocusListener(new FocusAdapter() {
-      public void focusGained(FocusEvent e) {
+      @Override
+	public void focusGained(FocusEvent e) {
         spreadField.selectAll();
       }
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
         setSpread(spreadField.getIntValue());
         spreadField.setIntValue(getSpread());
         firePropertyChange("data", null, LineProfile.this); // to views //$NON-NLS-1$
@@ -154,7 +157,8 @@ public class LineProfile extends TTrack {
     // create fixed line item
     fixedLineItem = new JCheckBoxMenuItem(TrackerRes.getString("LineProfile.MenuItem.Fixed")); //$NON-NLS-1$
     fixedLineItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
         setFixed(fixedLineItem.isSelected());
       }
     });
@@ -165,7 +169,8 @@ public class LineProfile extends TTrack {
     		TrackerRes.getString("LineProfile.MenuItem.Horizontal")); //$NON-NLS-1$
     horizOrientationItem.setSelected(true);
     horizOrientationItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
       	if (trackerPanel == null) return;
       	XMLControl control = new XMLControlElement(LineProfile.this);
         isHorizontal = horizOrientationItem.isSelected();
@@ -264,7 +269,8 @@ public class LineProfile extends TTrack {
    * @param panel the drawing panel requesting the drawing
    * @param _g the graphics context on which to draw
    */
-  public void draw(DrawingPanel panel, Graphics _g) {
+  @Override
+public void draw(DrawingPanel panel, Graphics _g) {
     super.draw(panel, _g);
   }
 
@@ -273,7 +279,8 @@ public class LineProfile extends TTrack {
    *
    * @param visible ignored
    */
-  public void setTrailVisible(boolean visible) {/** empty block */}
+  @Override
+public void setTrailVisible(boolean visible) {/** empty block */}
 
   /**
    * Creates a new step.
@@ -283,7 +290,8 @@ public class LineProfile extends TTrack {
    * @param y the y coordinate in image space
    * @return the step
    */
-  public Step createStep(int n, double x, double y) {
+  @Override
+public Step createStep(int n, double x, double y) {
   	return createStep(n, x, y, x, y);
   }
 
@@ -343,7 +351,8 @@ public class LineProfile extends TTrack {
    * @param n the frame number
    * @return the deleted step
    */
-  public Step deleteStep(int n) {
+  @Override
+public Step deleteStep(int n) {
     return null;
   }
 
@@ -353,7 +362,8 @@ public class LineProfile extends TTrack {
    * @param n the frame number
    * @return the step
    */
-  public Step getStep(int n) {
+  @Override
+public Step getStep(int n) {
     LineProfileStep step = (LineProfileStep)steps.getStep(n);
     refreshStep(step);
     return step;
@@ -365,7 +375,8 @@ public class LineProfile extends TTrack {
    * @param n the frame number
    * @return <code>true</code> if the step is complete, otherwise false
    */
-  public boolean isStepComplete(int n) {
+  @Override
+public boolean isStepComplete(int n) {
     return getStep(n) != null;
   }
   
@@ -374,7 +385,8 @@ public class LineProfile extends TTrack {
    *
    * @return the footprint length
    */
-  public int getStepLength() {
+  @Override
+public int getStepLength() {
   	return LineProfileStep.getLength();
   }
 
@@ -383,7 +395,8 @@ public class LineProfile extends TTrack {
    *
    * @return the footprint length
    */
-  public int getFootprintLength() {
+  @Override
+public int getFootprintLength() {
     return 2;
   }
 
@@ -395,7 +408,8 @@ public class LineProfile extends TTrack {
    * @param ypix the y pixel position on the panel
    * @return the first step or motion vector that is hit
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
     DrawingPanel panel, int xpix, int ypix) {
     if (!(panel instanceof TrackerPanel) || !isVisible() || isLocked())
       return null;
@@ -434,7 +448,8 @@ public class LineProfile extends TTrack {
    * @param data the DatasetManager
    * @param trackerPanel the tracker panel
    */
-  protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
+  @Override
+protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
     if (refreshDataLater || trackerPanel == null || data == null) return;
     // get the datasets
     int count = 0;
@@ -493,7 +508,8 @@ public class LineProfile extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(TrackerPanel trackerPanel) {
+  @Override
+public JMenu getMenu(TrackerPanel trackerPanel) {
     JMenu menu = super.getMenu(trackerPanel);
     fixedLineItem.setText(TrackerRes.getString("LineProfile.MenuItem.Fixed")); //$NON-NLS-1$
     fixedLineItem.setSelected(isFixed());
@@ -518,7 +534,8 @@ public class LineProfile extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a collection of components
    */
-  public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+  @Override
+public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
     ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     spreadLabel.setText(TrackerRes.getString("LineProfile.Label.Spread")); //$NON-NLS-1$
     list.add(spreadLabel);
@@ -542,7 +559,8 @@ public class LineProfile extends TTrack {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
   	if (trackerPanel != null) {
       String name = e.getPropertyName();
       if (name.equals("stepnumber")) { //$NON-NLS-1$
@@ -566,7 +584,8 @@ public class LineProfile extends TTrack {
    *
    * @return the name of this track
    */
-  public String toString() {
+  @Override
+public String toString() {
     return TrackerRes.getString("LineProfile.Name"); //$NON-NLS-1$
   }
 
@@ -625,7 +644,8 @@ public class LineProfile extends TTrack {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       LineProfile profile = (LineProfile) obj;
       // save track data
       XML.getLoader(TTrack.class).saveObject(control, obj);
@@ -654,7 +674,8 @@ public class LineProfile extends TTrack {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
     	LineProfile profile = new LineProfile();
       return profile;
     }
@@ -666,7 +687,8 @@ public class LineProfile extends TTrack {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	LineProfile profile = (LineProfile) obj;
       // load track data
       XML.getLoader(TTrack.class).loadObject(control, obj);
@@ -729,7 +751,8 @@ public class LineProfile extends TTrack {
   private static class FrameDataLoader
       implements XML.ObjectLoader {
 
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       FrameData data = (FrameData) obj;
       control.setValue("x1", data.data[0]); //$NON-NLS-1$
       control.setValue("y1", data.data[1]); //$NON-NLS-1$
@@ -737,11 +760,13 @@ public class LineProfile extends TTrack {
       control.setValue("y2", data.data[3]); //$NON-NLS-1$
     }
 
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
       return new FrameData();
     }
 
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       FrameData data = (FrameData) obj;
       if (control.getPropertyNames().contains("x1")) { //$NON-NLS-1$
 	      data.data[0] = control.getDouble("x1"); //$NON-NLS-1$

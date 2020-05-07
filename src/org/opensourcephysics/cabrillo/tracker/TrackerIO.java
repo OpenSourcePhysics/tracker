@@ -1,27 +1,27 @@
- /*
- * The tracker package defines a set of video/image analysis tools
- * built on the Open Source Physics framework by Wolfgang Christian.
- *
- * Copyright (c) 2019  Douglas Brown
- *
- * Tracker is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3 of the License, or
- * (at your option) any later version.
- *
- * Tracker is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Tracker; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston MA 02111-1307 USA
- * or view the license online at <http://www.gnu.org/copyleft/gpl.html>
- *
- * For additional Tracker information and documentation, please see
- * <http://physlets.org/tracker/>.
- */
+/*
+* The tracker package defines a set of video/image analysis tools
+* built on the Open Source Physics framework by Wolfgang Christian.
+*
+* Copyright (c) 2019  Douglas Brown
+*
+* Tracker is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 3 of the License, or
+* (at your option) any later version.
+*
+* Tracker is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with Tracker; if not, write to the Free Software
+* Foundation, Inc., 59 Temple Place, Suite 330, Boston MA 02111-1307 USA
+* or view the license online at <http://www.gnu.org/copyleft/gpl.html>
+*
+* For additional Tracker information and documentation, please see
+* <http://physlets.org/tracker/>.
+*/
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
@@ -251,7 +251,7 @@ public class TrackerIO extends VideoIO {
 		};
 
 		videoAndTrkFileFilter = new SingleExtFileFilter(null,
-				TrackerRes.getString("TrackerIO.VideoAndDataFileFilter.Description")) { //$NON-NLS-1$ //$NON-NLS-2$
+				TrackerRes.getString("TrackerIO.VideoAndDataFileFilter.Description")) { //$NON-NLS-1$ 
 			@Override
 			public boolean accept(File f, boolean checkDir) {
 				return (checkDir && f.isDirectory() || trkFileFilter.accept(f, false)
@@ -890,15 +890,16 @@ public class TrackerIO extends VideoIO {
 		XMLControlElement control = new XMLControlElement(file.getAbsolutePath());
 		Class<?> type = control.getObjectClass();
 		if (TrackerPanel.class.equals(type)) {
-			// create the list chooser
-			ListChooser dialog = new ListChooser(TrackerRes.getString("TrackerIO.Dialog.Import.Title"), //$NON-NLS-1$
-					TrackerRes.getString("TrackerIO.Dialog.Import.Message"), //$NON-NLS-1$
-					trackerPanel);
 			// choose the elements and load the tracker panel
-			if (choose(control, dialog)) {
-				trackerPanel.changed = true;
-				control.loadObject(trackerPanel);
-			}
+			choose(trackerPanel, control, false, new Runnable() {
+
+				@Override
+				public void run() {
+					trackerPanel.changed = true;
+					control.loadObject(trackerPanel);
+				}
+
+			});
 		} else {
 			JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
 					TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Message") //$NON-NLS-1$
@@ -1195,47 +1196,48 @@ public class TrackerIO extends VideoIO {
 	 * @param trackerPanel the tracker panel
 	 * @return the file
 	 */
-	public static File exportFile(TrackerPanel trackerPanel) {
+	public static void exportFile(TrackerPanel trackerPanel) {
 		// create an XMLControl
 		XMLControl control = new XMLControlElement(trackerPanel);
-		// create a list chooser
-		ListChooser dialog = new ListChooser(TrackerRes.getString("TrackerIO.Dialog.Export.Title"), //$NON-NLS-1$
-				TrackerRes.getString("TrackerIO.Dialog.Export.Message"), //$NON-NLS-1$
-				trackerPanel);
-		// choose the elements
-		if (choose(control, dialog)) {
-			File[] files = getChooserFiles("export file"); //$NON-NLS-1$
-			if (files == null) {
-				return null;
+		choose(trackerPanel, control, true, new Runnable() {
+
+			@Override
+			public void run() {
+				File[] files = getChooserFiles("export file"); //$NON-NLS-1$
+				if (files == null) {
+					return;
+				}
+				File file = files[0];
+				if (!defaultXMLExt.equals(getExtension(file))) {
+					String filename = XML.stripExtension(file.getPath());
+					file = new File(filename + "." + defaultXMLExt); //$NON-NLS-1$
+				}
+				if (!canWrite(file))
+					return;
+				try {
+					Writer writer = new FileWriter(file);
+					control.write(writer);
+					return;// file;
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
 			}
-			File file = files[0];
-			if (!defaultXMLExt.equals(getExtension(file))) {
-				String filename = XML.stripExtension(file.getPath());
-				file = new File(filename + "." + defaultXMLExt); //$NON-NLS-1$
-			}
-			if (!canWrite(file))
-				return null;
-			try {
-				Writer writer = new FileWriter(file);
-				control.write(writer);
-				return file;
-			} catch (IOException ex) {
-				ex.printStackTrace();
-			}
-		}
-		return null;
+		});
 	}
 
 	/**
 	 * Displays a ListChooser with choices from the specified control. Modifies the
 	 * control and returns true if the OK button is clicked.
+	 * 
+	 * @param trackerPanel
 	 *
-	 * @param control the XMLControl
-	 * @param dialog  the dialog
+	 * @param control      the XMLControl
+	 * @param dialog       the dialog
 	 * @return <code>true</code> if OK button is clicked
 	 */
-	public static boolean choose(XMLControl control, ListChooser dialog) {
+	public static void choose(TrackerPanel trackerPanel, XMLControl control, boolean isExport, Runnable whenDone) {
 		// create the lists
+
 		ArrayList<XMLControl> choices = new ArrayList<XMLControl>();
 		ArrayList<String> names = new ArrayList<String>();
 		ArrayList<XMLControl> originals = new ArrayList<XMLControl>();
@@ -1282,56 +1284,72 @@ public class TrackerIO extends VideoIO {
 			}
 		}
 		// show the dialog for user input and make changes if approved
-		if (dialog.choose(choices, names)) {
-			// remove primitives from control
-			for (XMLProperty prop : primitives) {
-				control.setValue(prop.getPropertyName(), null);
-			}
-			control.getPropertyContent().removeAll(primitives);
-			// compare choices with originals and remove unwanted object content
-			boolean removeVideo = false;
-			for (XMLControl next : originals) {
-				if (next == vidControl) {
-					removeVideo = choices.contains(next);
-					continue;
-				} else if (next == vidClipControl) {
-					if (!choices.contains(next)) {
-						if (removeVideo) {
-							// remove video from clip property
-							XMLProperty prop = vidControl.getParentProperty();
-							vidClipControl.setValue("video", null); //$NON-NLS-1$
-							vidClipControl.getPropertyContent().remove(prop);
-						} else {
-							// remove video clip property entirely
-							XMLProperty prop = next.getParentProperty();
-							control.setValue(prop.getPropertyName(), null);
-							control.getPropertyContent().remove(prop);
+		XMLControl vControl = vidControl, vClipControl = vidClipControl;
+		ActionListener listener = new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// remove primitives from control
+				for (XMLProperty prop : primitives) {
+					control.setValue(prop.getPropertyName(), null);
+				}
+				control.getPropertyContent().removeAll(primitives);
+				// compare choices with originals and remove unwanted object content
+				boolean removeVideo = false;
+				for (XMLControl next : originals) {
+					if (next == vControl) {
+						removeVideo = choices.contains(next);
+						continue;
+					} else if (next == vClipControl) {
+						if (!choices.contains(next)) {
+							if (removeVideo) {
+								// remove video from clip property
+								XMLProperty prop = vControl.getParentProperty();
+								vClipControl.setValue("video", null); //$NON-NLS-1$
+								vClipControl.getPropertyContent().remove(prop);
+							} else {
+								// remove video clip property entirely
+								XMLProperty prop = next.getParentProperty();
+								control.setValue(prop.getPropertyName(), null);
+								control.getPropertyContent().remove(prop);
+							}
 						}
+						continue;
+					} else if (!choices.contains(next)) {
+						XMLProperty prop = next.getParentProperty();
+						XMLProperty parent = prop.getParentProperty();
+						if (parent == control) {
+							control.setValue(prop.getPropertyName(), null);
+						}
+						parent.getPropertyContent().remove(prop);
 					}
-					continue;
-				} else if (!choices.contains(next)) {
-					XMLProperty prop = next.getParentProperty();
-					XMLProperty parent = prop.getParentProperty();
-					if (parent == control) {
-						control.setValue(prop.getPropertyName(), null);
+				}
+				// if no tracks are selected, eliminate tracks property
+				boolean deleteTracks = true;
+				for (Object next : control.getPropertyContent()) {
+					XMLProperty prop = (XMLProperty) next;
+					if ("tracks".indexOf(prop.getPropertyName()) > -1) { //$NON-NLS-1$
+						deleteTracks = prop.getChildControls().length == 0;
 					}
-					parent.getPropertyContent().remove(prop);
 				}
-			}
-			// if no tracks are selected, eliminate tracks property
-			boolean deleteTracks = true;
-			for (Object next : control.getPropertyContent()) {
-				XMLProperty prop = (XMLProperty) next;
-				if ("tracks".indexOf(prop.getPropertyName()) > -1) { //$NON-NLS-1$
-					deleteTracks = prop.getChildControls().length == 0;
+				if (deleteTracks) {
+					control.setValue("tracks", null); //$NON-NLS-1$
 				}
+				whenDone.run();
 			}
-			if (deleteTracks) {
-				control.setValue("tracks", null); //$NON-NLS-1$
-			}
-			return true;
-		}
-		return false;
+
+		};
+
+		ListChooser dialog = (isExport ?
+		// create a list chooser
+				new ListChooser(TrackerRes.getString("TrackerIO.Dialog.Export.Title"), //$NON-NLS-1$
+						TrackerRes.getString("TrackerIO.Dialog.Export.Message"), //$NON-NLS-1$
+						trackerPanel, listener)
+				: new ListChooser(TrackerRes.getString("TrackerIO.Dialog.Import.Title"), //$NON-NLS-1$
+						TrackerRes.getString("TrackerIO.Dialog.Import.Message"), //$NON-NLS-1$
+						trackerPanel, listener));
+
+		dialog.choose(choices, names);
 	}
 
 	/**
@@ -1737,7 +1755,7 @@ public class TrackerIO extends VideoIO {
 
 		public AsyncLoad(String path, TrackerPanel existingPanel, TFrame frame, VideoType vidType,
 				ArrayList<String> desktopFiles, Runnable whenDone) {
-			super(frame, path, (true || whenDone == null ? 0 : 10), 0, 100);
+			super(frame, path, (whenDone == null ? 0 : 10), 0, 100);
 			this.path = this.name = path;
 			isAsync = (delayMillis > 0);
 			this.existingPanel = existingPanel;
@@ -2151,7 +2169,7 @@ public class TrackerIO extends VideoIO {
 
 		@Override
 		public void stop() {
-		   stopped = true;
+			stopped = true;
 		}
 
 		@Override
@@ -2182,7 +2200,7 @@ public class TrackerIO extends VideoIO {
 
 		@Override
 		public void setTitle(String title) {
-		   this.title = title;
+			this.title = title;
 		}
 	}
 

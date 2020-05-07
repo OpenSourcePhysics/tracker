@@ -83,6 +83,7 @@ public class ModelBuilder extends FunctionTool {
 		boosterDropdown = new JComboBox();
 		boosterDropdown.setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 0));
 		boosterDropdown.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (!boosterDropdown.isEnabled())
 					return;
@@ -119,6 +120,7 @@ public class ModelBuilder extends FunctionTool {
 		trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
 
 		setHelpAction(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				TFrame frame = trackerPanel.getTFrame();
 				if (frame != null) {
@@ -224,6 +226,7 @@ public class ModelBuilder extends FunctionTool {
 	 */
 	protected void refreshLayout() {
 		SwingUtilities.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				validate();
 				refreshGUI();
@@ -389,6 +392,7 @@ public class ModelBuilder extends FunctionTool {
 			spinModel = model;
 			prevMax = (Integer) spinModel.getMaximum();
 			addChangeListener(new ChangeListener() {
+				@Override
 				public void stateChanged(ChangeEvent e) {
 					ModelFunctionPanel panel = (ModelFunctionPanel) getSelectedPanel();
 					if (panel == null || panel.model == null || panel.model.refreshing)
@@ -408,6 +412,7 @@ public class ModelBuilder extends FunctionTool {
 			});
 		}
 
+		@Override
 		public Dimension getMinimumSize() {
 			Dimension dim = super.getMinimumSize();
 			dim.width += (int) (FontSizer.getFactor() * 4);

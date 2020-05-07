@@ -104,7 +104,8 @@ public class DerivativeAlgorithmDialog extends JDialog {
     choicebar.setBorder(BorderFactory.createCompoundBorder(empty, choiceBorder));
     ButtonGroup group = new ButtonGroup();
     Action chooser  = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	int i = Integer.parseInt(e.getActionCommand());
       	for (PointMass next: targetMasses) {
       		next.setAlgorithm(i);
@@ -126,7 +127,8 @@ public class DerivativeAlgorithmDialog extends JDialog {
     okButton = new JButton();
     okButton.setForeground(new Color(0, 0, 102));
     okButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
@@ -134,7 +136,8 @@ public class DerivativeAlgorithmDialog extends JDialog {
     cancelButton = new JButton();
     cancelButton.setForeground(new Color(0, 0, 102));
     cancelButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	revert();
         setVisible(false);
       }
@@ -222,7 +225,8 @@ public class DerivativeAlgorithmDialog extends JDialog {
   	}      			  	
   }
   
-  public void setVisible(boolean vis) {
+  @Override
+public void setVisible(boolean vis) {
   	initialize();
   	super.setVisible(vis);
   }

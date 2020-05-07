@@ -33,7 +33,6 @@ import java.awt.Point;
 import java.awt.Shape;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
 import javax.swing.ImageIcon;

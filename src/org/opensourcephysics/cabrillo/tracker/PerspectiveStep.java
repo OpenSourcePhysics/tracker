@@ -55,7 +55,8 @@ public class PerspectiveStep extends Step {
    * @param p the point
    * @return the index, or -1 if not found
    */
-  public int getPointIndex(TPoint p) {
+  @Override
+public int getPointIndex(TPoint p) {
   	if (p instanceof PerspectiveFilter.Corner) {
 	  	PerspectiveFilter.Corner corner = (PerspectiveFilter.Corner)p;
 	  	PerspectiveTrack ptrack = (PerspectiveTrack)getTrack();
@@ -73,7 +74,8 @@ public class PerspectiveStep extends Step {
    *
    * @return the default TPoint
    */
-  public TPoint getDefaultPoint() {
+  @Override
+public TPoint getDefaultPoint() {
   	PerspectiveTrack ptrack = (PerspectiveTrack)getTrack();
   	int index = ptrack.getTargetIndex();
     return ptrack.filter.getCorner(index);
@@ -85,7 +87,8 @@ public class PerspectiveStep extends Step {
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
     Mark mark = marks.get(trackerPanel);
     if (mark == null) {
       mark = footprint.getMark(screenPoints);
@@ -99,7 +102,8 @@ public class PerspectiveStep extends Step {
    *
    * @return a cloned step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     PerspectiveStep step = (PerspectiveStep)super.clone();
     step.points = new TPoint[] {new Corner(), new Corner(), new Corner(), new Corner()};
     return step;
@@ -110,7 +114,8 @@ public class PerspectiveStep extends Step {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     return "PerspectiveStep"; //$NON-NLS-1$
   }
 
@@ -119,7 +124,8 @@ public class PerspectiveStep extends Step {
    */
   public class Corner extends TPoint {
   	
-  	public void setXY(double x, double y) {
+  	@Override
+	public void setXY(double x, double y) {
   		super.setLocation(x, y);
 	  	PerspectiveTrack ptrack = (PerspectiveTrack)getTrack();
 	  	if (ptrack.trackerPanel!=null) {

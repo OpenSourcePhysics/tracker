@@ -72,7 +72,8 @@ public class MultiPositionStep extends PositionStep {
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
     Mark mark = marks.get(trackerPanel);
     if (mark == null) {
     	Mark aMark = null;
@@ -99,14 +100,16 @@ public class MultiPositionStep extends PositionStep {
       final Mark positionMark = super.getMark(trackerPanel);
       
       mark = new Mark() {
-        public void draw(Graphics2D g, boolean highlighted) {
+        @Override
+		public void draw(Graphics2D g, boolean highlighted) {
         	if (!valid) {
         		return;
         	}
           if (modelMark!=null) modelMark.draw(g, highlighted);
           positionMark.draw(g, highlighted);
         }
-        public Rectangle getBounds(boolean highlighted) {
+        @Override
+		public Rectangle getBounds(boolean highlighted) {
         	Rectangle bounds = positionMark.getBounds(highlighted);
         	if (modelMark!=null) bounds.union(modelMark.getBounds(highlighted));
           return bounds;
@@ -123,7 +126,8 @@ public class MultiPositionStep extends PositionStep {
    * @param trackerPanel the tracker panel drawing the step
    * @return the bounding rectangle
    */
-  public Rectangle getBounds(TrackerPanel trackerPanel) {
+  @Override
+public Rectangle getBounds(TrackerPanel trackerPanel) {
     Rectangle bounds = getMark(trackerPanel).getBounds(false);
     return bounds;
   }
@@ -133,7 +137,8 @@ public class MultiPositionStep extends PositionStep {
    *
    * @return a cloned step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     MultiPositionStep step = (MultiPositionStep)super.clone();
 //    if (step != null)
 //      step.points[0] = step.p = step.new Position(p.getX(), p.getY());
@@ -145,7 +150,8 @@ public class MultiPositionStep extends PositionStep {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     return "MultiPositionStep " + n + " [" + format.format(p.x) //$NON-NLS-1$ //$NON-NLS-2$
                                + ", " + format.format(p.y) + "]"; //$NON-NLS-1$ //$NON-NLS-2$
   }
@@ -170,7 +176,8 @@ public class MultiPositionStep extends PositionStep {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       PositionStep step = (PositionStep) obj;
       control.setValue("x", step.p.x); //$NON-NLS-1$
       control.setValue("y", step.p.y); //$NON-NLS-1$
@@ -182,7 +189,8 @@ public class MultiPositionStep extends PositionStep {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
     	// this loader is not intended to be used to create new steps,
     	// but only for undo/redo step edits.
       return null;
@@ -195,7 +203,8 @@ public class MultiPositionStep extends PositionStep {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	PositionStep step = (PositionStep)obj;
     	double x = control.getDouble("x"); //$NON-NLS-1$
       double y = control.getDouble("y"); //$NON-NLS-1$

@@ -87,7 +87,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
     toolbar = new JToolBar();
     toolbar.setFloatable(false);
     toolbar.addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+	public void mousePressed(MouseEvent e) {
       	toolbar.requestFocusInWindow();
       	if (e.getClickCount()==2) {
       		maximizeButton.doClick(0);
@@ -98,7 +99,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
         	JPopupMenu popup = new JPopupMenu();
           JMenuItem helpItem = new JMenuItem(TrackerRes.getString("Dialog.Button.Help")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
           helpItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            @Override
+			public void actionPerformed(ActionEvent e) {
             	if (view instanceof PageTView) {
             		trackerPanel.getTFrame().showHelp("textview", 0); //$NON-NLS-1$
             	}
@@ -123,10 +125,12 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
     add(toolbar, BorderLayout.NORTH);
     // chooser button
     chooserButton = new TButton() {
-    	protected JPopupMenu getPopup() {
+    	@Override
+		protected JPopupMenu getPopup() {
         // inner popup menu listener class
         ActionListener listener = new ActionListener() {
-          public void actionPerformed(ActionEvent e) {
+          @Override
+		public void actionPerformed(ActionEvent e) {
             // select the named view
             String name = e.getActionCommand();
             setSelectedView(getView(name));
@@ -155,7 +159,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
     maximizeButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
   	maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
     maximizeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
     		if (!maximized) {
     			maximize();
   			}
@@ -175,7 +180,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
    *
    * @return the tracker panel
    */
-  public Dimension getMinimumSize() {
+  @Override
+public Dimension getMinimumSize() {
     return new Dimension(0, 0);
   }
 
@@ -329,7 +335,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (name.equals("track")) {  // track added/removed //$NON-NLS-1$
       for (TView view: getViews()) {
@@ -535,7 +542,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
      * @param control the control to save to
      * @param obj the TrackerPanel object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       TViewChooser chooser = (TViewChooser)obj;
       // save the selected view
       control.setValue("selected_view", chooser.selectedView); //$NON-NLS-1$
@@ -547,7 +555,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control){
+    @Override
+	public Object createObject(XMLControl control){
       return null;
     }
 
@@ -558,7 +567,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       TViewChooser chooser = (TViewChooser)obj;
       TView view = (TView)control.getObject("selected_view"); //$NON-NLS-1$
       if (view != null) {

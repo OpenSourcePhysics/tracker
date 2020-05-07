@@ -230,7 +230,8 @@ public class StepSet extends HashSet<Step> {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       StepSet steps = (StepSet) obj;
       // assemble array of String[3]: each element is {track name, frame number, xml step state}
       String[][] stepsData;
@@ -261,7 +262,8 @@ public class StepSet extends HashSet<Step> {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
     	// this loader is not intended to be used to create new steps,
     	// but only for undo/redo stepset edits.
       return null;
@@ -274,7 +276,8 @@ public class StepSet extends HashSet<Step> {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       StepSet steps = (StepSet) obj;
       String[][] stepsData = (String[][])control.getObject("steps"); //$NON-NLS-1$
       TrackerPanel panel = steps.trackerPanel;

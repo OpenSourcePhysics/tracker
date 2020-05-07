@@ -146,6 +146,7 @@ public class PlotTrackView extends TrackView {
 	/**
 	 * Refreshes the GUI.
 	 */
+	@Override
 	void refreshGUI() {
 		linkCheckBox.setText(TrackerRes.getString("PlotTrackView.Checkbox.Synchronize")); //$NON-NLS-1$
 		linkCheckBox.setToolTipText(TrackerRes.getString("PlotTrackView.Checkbox.Synchronize.Tooltip")); //$NON-NLS-1$
@@ -165,6 +166,7 @@ public class PlotTrackView extends TrackView {
 	 *
 	 * @return an ArrayList of components to be added to a toolbar
 	 */
+	@Override
 	public ArrayList<Component> getToolBarComponents() {
 		return super.getToolBarComponents();
 	}
@@ -174,6 +176,7 @@ public class PlotTrackView extends TrackView {
 	 *
 	 * @return the view button
 	 */
+	@Override
 	public JButton getViewButton() {
 		return plotsButton;
 	}
@@ -183,6 +186,7 @@ public class PlotTrackView extends TrackView {
 	 *
 	 * @return true if in a custom state, false if in the default state
 	 */
+	@Override
 	public boolean isCustomState() {
 		int n = mainView.getComponentCount();
 		if (isCustom || n != defaultPlotCount)
@@ -217,6 +221,7 @@ public class PlotTrackView extends TrackView {
 		else
 			toolbarComponents.remove(linkCheckBox);
 		Runnable runner = new Runnable() {
+			@Override
 			public synchronized void run() {
 				TViewChooser chooser = plots[0].getOwner();
 				if (chooser != null)
@@ -245,6 +250,7 @@ public class PlotTrackView extends TrackView {
 	 *
 	 * @param e the property change event
 	 */
+	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
 		if (name.equals("track") && e.getNewValue() != null //$NON-NLS-1$ // track added
@@ -360,6 +366,7 @@ public class PlotTrackView extends TrackView {
 		popup = new JPopupMenu();
 		// make a listener for plot count items
 		ActionListener plotCountSetter = new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				JMenuItem item = (JMenuItem) e.getSource();
 				setPlotCount(Integer.parseInt(item.getText()));
@@ -380,6 +387,7 @@ public class PlotTrackView extends TrackView {
 		linkCheckBox = new JCheckBox();
 		linkCheckBox.setOpaque(false);
 		linkCheckBox.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				setXAxesLinked(linkCheckBox.isSelected());
 			}
@@ -387,6 +395,7 @@ public class PlotTrackView extends TrackView {
 		// plots button
 		plotsButton = new TButton() {
 			// override getMaximumSize method so has same height as chooser button
+			@Override
 			public Dimension getMaximumSize() {
 				Dimension dim = super.getMaximumSize();
 				Dimension min = getMinimumSize();
@@ -399,6 +408,7 @@ public class PlotTrackView extends TrackView {
 			}
 
 			// override getPopup method to return plotcount popup
+			@Override
 			public JPopupMenu getPopup() {
 				FontSizer.setFonts(popup, FontSizer.getLevel());
 				return popup;
@@ -426,6 +436,7 @@ public class PlotTrackView extends TrackView {
 		 * @param control the control to save to
 		 * @param obj     the TrackerPanel object to save
 		 */
+		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			PlotTrackView trackView = (PlotTrackView) obj;
 			control.setValue("track", trackView.getTrack().getName()); //$NON-NLS-1$
@@ -442,6 +453,7 @@ public class PlotTrackView extends TrackView {
 		 * @param control the control
 		 * @return the newly created object
 		 */
+		@Override
 		public Object createObject(XMLControl control) {
 			return null;
 		}
@@ -453,6 +465,7 @@ public class PlotTrackView extends TrackView {
 		 * @param obj     the object
 		 * @return the loaded object
 		 */
+		@Override
 		public Object loadObject(XMLControl control, Object obj) {
 			PlotTrackView trackView = (PlotTrackView) obj;
 			trackView.setXAxesLinked(control.getBoolean("linked")); //$NON-NLS-1$

@@ -100,7 +100,8 @@ public class RGBStep extends Step {
    * @param ypix the y pixel position
    * @return the TPoint that is hit, or null
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     setHitRectCenter(xpix, ypix);
@@ -115,7 +116,8 @@ public class RGBStep extends Step {
    * @param panel the drawing panel requesting the drawing
    * @param _g the graphics context on which to draw
    */
-  public void draw(DrawingPanel panel, Graphics _g) {
+  @Override
+public void draw(DrawingPanel panel, Graphics _g) {
     // draw the mark
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     Graphics2D g = (Graphics2D)_g;
@@ -134,7 +136,8 @@ public class RGBStep extends Step {
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
   	BasicStroke baseStroke = footprint.getStroke();
     int scale = FontSizer.getIntegerFactor();
     float lineWidth = Math.min(scale*baseStroke.getLineWidth(), radius/3);
@@ -163,7 +166,8 @@ public class RGBStep extends Step {
       final Shape square = position == trackerPanel.getSelectedPoint()?
       	transform.createTransformedShape(selectionShape): null;
       mark = new Mark() {
-        public void draw(Graphics2D g, boolean highlighted) {
+        @Override
+		public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           g.setPaint(footprint.getColor());
           if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
@@ -175,7 +179,8 @@ public class RGBStep extends Step {
           g.setPaint(gpaint);
         }
 
-        public Rectangle getBounds(boolean highlighted) {
+        @Override
+		public Rectangle getBounds(boolean highlighted) {
           return rgn.getBounds();
         }
       };
@@ -192,7 +197,8 @@ public class RGBStep extends Step {
    * @param trackerPanel the tracker panel drawing the step
    * @return the bounding rectangle
    */
-  public Rectangle getBounds(TrackerPanel trackerPanel) {
+  @Override
+public Rectangle getBounds(TrackerPanel trackerPanel) {
     Rectangle bounds = getMark(trackerPanel).getBounds(false);
     return bounds;
   }
@@ -211,7 +217,8 @@ public class RGBStep extends Step {
    *
    * @return a clone of this step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     RGBStep step = (RGBStep)super.clone();
     if (step != null) {
       step.hitShapes = new HashMap<TrackerPanel, Shape>();
@@ -229,7 +236,8 @@ public class RGBStep extends Step {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     return "RGBStep " + n //$NON-NLS-1$
            + " [" + format.format(position.x) //$NON-NLS-1$
            + ", " + format.format(position.y) + "]"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -317,7 +325,8 @@ public class RGBStep extends Step {
      * @param x the x coordinate
      * @param y the y coordinate
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
     	TTrack track = getTrack();
       if (track.isLocked()) return;
       if (rgbRegion.isFixedPosition()) {
@@ -341,7 +350,8 @@ public class RGBStep extends Step {
      *
      * @param vidPanel the video panel
      */
-    public void showCoordinates(VideoPanel vidPanel) {
+    @Override
+	public void showCoordinates(VideoPanel vidPanel) {
       // put values into x and y fields
     	TTrack track = getTrack();
       Point2D p = getWorldPosition(vidPanel);
@@ -356,7 +366,8 @@ public class RGBStep extends Step {
      * @param vidPanel the video panel being drawn
      * @return the frame number
      */
-    public int getFrameNumber(VideoPanel vidPanel) {
+    @Override
+	public int getFrameNumber(VideoPanel vidPanel) {
       return n;
     }
 
@@ -384,7 +395,8 @@ public class RGBStep extends Step {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       RGBStep step = (RGBStep) obj;
       control.setValue("x", step.position.x); //$NON-NLS-1$
       control.setValue("y", step.position.y); //$NON-NLS-1$
@@ -397,7 +409,8 @@ public class RGBStep extends Step {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
     	// this loader is not intended to be used to create new steps,
     	// but only for undo/redo step edits.
       return null;
@@ -410,7 +423,8 @@ public class RGBStep extends Step {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	RGBStep step = (RGBStep) obj;
       step.setRadius(control.getInt("radius")); //$NON-NLS-1$
     	double x = control.getDouble("x"); //$NON-NLS-1$

@@ -144,27 +144,31 @@ public class Vector extends TTrack {
     magLabel.setText("mag"); //$NON-NLS-1$
     // xy action
     Action xyAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setXYComponents();
         ((NumberField)e.getSource()).requestFocusInWindow();
       }
     };
     // xy focus listener
     FocusListener xyFocusListener = new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
         setXYComponents();
       }
     };
     // magnitude angle action
     Action magAngleAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setMagnitudeAngle();
         ((NumberField)e.getSource()).requestFocusInWindow();
       }
     };
     // magnitude angle focus listener
     FocusListener magAngleFocusListener = new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
         setMagnitudeAngle();
       }
     };
@@ -179,7 +183,8 @@ public class Vector extends TTrack {
     angleField.addFocusListener(magAngleFocusListener);
     // tails to origin item
     tailsToOriginItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         // snap all vectors to the snapPoint
         Iterator<TrackerPanel> it = Vector.this.panels.iterator();
         while (it.hasNext()) {
@@ -203,7 +208,8 @@ public class Vector extends TTrack {
     labelsVisibleItem = new JCheckBoxMenuItem(TrackerRes.getString("Vector.MenuItem.Label")); //$NON-NLS-1$
     labelsVisibleItem.setSelected(true);
     labelsVisibleItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
         Step[] steps = getSteps();
         for (int i = 0; i < steps.length; i++) {
           if (steps[i] != null) {
@@ -227,7 +233,8 @@ public class Vector extends TTrack {
    * @param y the y coordinate in image space
    * @return the new step
    */
-  public Step createStep(int n, double x, double y) {
+  @Override
+public Step createStep(int n, double x, double y) {
     VectorStep step = (VectorStep)getStep(n);
     if (step==null)
     	return createStep(n, x, y, 0, 0);
@@ -264,7 +271,8 @@ public class Vector extends TTrack {
    *
    * @return the footprint length
    */
-  public int getStepLength() {
+  @Override
+public int getStepLength() {
   	return VectorStep.getLength();
   }
 
@@ -273,7 +281,8 @@ public class Vector extends TTrack {
    *
    * @return the footprint length
    */
-  public int getFootprintLength() {
+  @Override
+public int getFootprintLength() {
     return 2;
   }
 
@@ -283,7 +292,8 @@ public class Vector extends TTrack {
    * @param panel the drawing panel requesting the drawing
    * @param _g the graphics context on which to draw
    */
-  public void draw(DrawingPanel panel, Graphics _g) {
+  @Override
+public void draw(DrawingPanel panel, Graphics _g) {
     if (panel instanceof TrackerPanel) {
       TrackerPanel trackerPanel = (TrackerPanel)panel;
       if (!isVectorsVisible(trackerPanel)) return;
@@ -307,7 +317,8 @@ public class Vector extends TTrack {
    *
    * @param locked <code>true</code> to lock this
    */
-  public void setLocked(boolean locked) {
+  @Override
+public void setLocked(boolean locked) {
     super.setLocked(locked);
     Step[] steps = getSteps();
     for (int i = 0; i < steps.length; i++) {
@@ -322,7 +333,8 @@ public class Vector extends TTrack {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     if (e.getSource() instanceof TrackerPanel) {
       String name = e.getPropertyName();
 			if (name.equals("adjusting")) { //$NON-NLS-1$
@@ -347,7 +359,8 @@ public class Vector extends TTrack {
    * @param data the DatasetManager
    * @param trackerPanel the tracker panel
    */
-  protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
+  @Override
+protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
     if (refreshDataLater || trackerPanel == null || data == null) return;
     dataFrames.clear();
     VideoPlayer player = trackerPanel.getPlayer();
@@ -425,7 +438,8 @@ public class Vector extends TTrack {
    * @param ypix the y pixel position on the panel
    * @return the first step TPoint that is hit
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
   	Interactive ia = super.findInteractive(panel, xpix, ypix);
   	if (ia == null) {
@@ -538,7 +552,8 @@ public class Vector extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(TrackerPanel trackerPanel) {
+  @Override
+public JMenu getMenu(TrackerPanel trackerPanel) {
     JMenu menu = super.getMenu(trackerPanel);
     // remove delete item from end
     if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
@@ -581,7 +596,8 @@ public class Vector extends TTrack {
    * @param trackerPanel the tracker panel
    * @return the DataSetManager
    */
-  public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+  @Override
+public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
     ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     return list;
   }
@@ -593,7 +609,8 @@ public class Vector extends TTrack {
    * @param point the TPoint
    * @return a list of components
    */
-  public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
+  @Override
+public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
                                              TPoint point) {
   	xLabel.setText(dataVariables[1]); 
   	yLabel.setText(dataVariables[2]); 
@@ -632,7 +649,8 @@ public class Vector extends TTrack {
    *
    * @return a description of this object
    */
-  public String toString() {
+  @Override
+public String toString() {
     return TrackerRes.getString("Vector.Name") + " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   }
 
@@ -671,7 +689,8 @@ public class Vector extends TTrack {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       Vector vec = (Vector) obj;
       // save track data
       XML.getLoader(TTrack.class).saveObject(control, obj);
@@ -691,7 +710,8 @@ public class Vector extends TTrack {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
       return new Vector();
     }
 
@@ -702,7 +722,8 @@ public class Vector extends TTrack {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       Vector vec = (Vector) obj;
       // load track data
       XML.getLoader(TTrack.class).loadObject(control, obj);
@@ -819,7 +840,8 @@ public class Vector extends TTrack {
   private static class FrameDataLoader
       implements XML.ObjectLoader {
 
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       FrameData data = (FrameData) obj;
       control.setValue("xtail", data.x); //$NON-NLS-1$
       control.setValue("ytail", data.y); //$NON-NLS-1$
@@ -829,11 +851,13 @@ public class Vector extends TTrack {
       }
     }
 
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
       return new FrameData();
     }
 
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       FrameData data = (FrameData) obj;
       double x = control.getDouble("xcomponent"); //$NON-NLS-1$
       if (!Double.isNaN(x)) {

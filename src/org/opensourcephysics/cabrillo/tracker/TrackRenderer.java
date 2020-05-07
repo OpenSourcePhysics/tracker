@@ -44,7 +44,8 @@ public class TrackRenderer extends JLabel implements ListCellRenderer {
     setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 0));
   }
 	
-  public Component getListCellRendererComponent(JList list,
+  @Override
+public Component getListCellRendererComponent(JList list,
                                                 Object value,
                                                 int index,
                                                 boolean isSelected,

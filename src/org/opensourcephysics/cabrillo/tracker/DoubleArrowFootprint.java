@@ -61,7 +61,8 @@ public class DoubleArrowFootprint extends LineFootprint {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {
+  @Override
+public Icon getIcon(int w, int h) {
     int scale = FontSizer.getIntegerFactor();
     w *= scale;
     h *= scale;
@@ -115,7 +116,8 @@ public class DoubleArrowFootprint extends LineFootprint {
    * @param points an array of Points
    * @return the shape
    */
-  public Shape getShape(Point[] points) {
+  @Override
+public Shape getShape(Point[] points) {
     return getShape(points, true);
   }
   

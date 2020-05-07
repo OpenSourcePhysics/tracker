@@ -72,7 +72,8 @@ public class VectorSumInspector extends JDialog
     }
     // listener for the checkboxes
     listener = new ActionListener() {
-      public void actionPerformed(ActionEvent e) {updateSum();}
+      @Override
+	public void actionPerformed(ActionEvent e) {updateSum();}
     };
     setTitle(TrackerRes.getString("VectorSumInspector.Title") //$NON-NLS-1$
              + " \"" + sum.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
@@ -87,7 +88,8 @@ public class VectorSumInspector extends JDialog
    *
    * @param vis true to show this inspector
    */
-  public void setVisible(boolean vis) {
+  @Override
+public void setVisible(boolean vis) {
   	if (vis) {
 	  	FontSizer.setFonts(this, FontSizer.getLevel());
 	  	pack();
@@ -106,6 +108,7 @@ public class VectorSumInspector extends JDialog
 	/**
 	 * Disposes of this inpector.
 	 */
+	@Override
 	public void dispose() {
 		checkboxPanel.removeAll();
 		if (trackerPanel != null) {
@@ -133,7 +136,8 @@ public class VectorSumInspector extends JDialog
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
       if (trackerPanel != null && e.getNewValue() == trackerPanel) {
         setVisible(isVisible);
@@ -203,7 +207,8 @@ public class VectorSumInspector extends JDialog
     okButton = new JButton(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
     okButton.setForeground(new Color(0, 0, 102));
     okButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });

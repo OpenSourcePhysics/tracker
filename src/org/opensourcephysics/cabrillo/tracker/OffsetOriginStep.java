@@ -111,7 +111,8 @@ public class OffsetOriginStep extends Step {
    * @param trackerPanel the tracker panel
    * @return the mark
    */
-  protected Mark getMark(TrackerPanel trackerPanel) {
+  @Override
+protected Mark getMark(TrackerPanel trackerPanel) {
     Mark mark = marks.get(trackerPanel);
     TPoint selection = null;
     if (mark == null) {
@@ -140,7 +141,8 @@ public class OffsetOriginStep extends Step {
       final Color color = footprint.getColor();
       final Shape fillShape = shape;
       mark = new Mark() {
-        public void draw(Graphics2D g, boolean highlighted) {
+        @Override
+		public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
@@ -149,7 +151,8 @@ public class OffsetOriginStep extends Step {
           g.setPaint(gpaint);
         }
 
-        public Rectangle getBounds(boolean highlighted) {
+        @Override
+		public Rectangle getBounds(boolean highlighted) {
           return fillShape.getBounds();
         }
       };
@@ -163,7 +166,8 @@ public class OffsetOriginStep extends Step {
    *
    * @return a clone of this step
    */
-  public Object clone() {
+  @Override
+public Object clone() {
     OffsetOriginStep step = (OffsetOriginStep)super.clone();
     step.points[0] = step.p = step.new Position(p.x, p.y);
     return step;
@@ -174,7 +178,8 @@ public class OffsetOriginStep extends Step {
    *
    * @return a descriptive string
    */
-  public String toString() {
+  @Override
+public String toString() {
     String s = "Offset Origin Step " + n //$NON-NLS-1$
            + " [" + format.format(worldX) //$NON-NLS-1$
            + ", " + format.format(worldY) //$NON-NLS-1$
@@ -216,7 +221,8 @@ public class OffsetOriginStep extends Step {
      * @param x the x position
      * @param y the y position
      */
-    public void setXY(double x, double y) {
+    @Override
+	public void setXY(double x, double y) {
       if (getTrack().isLocked()) return;
       if (isAdjusting()) {
       	lastX = x;
@@ -244,7 +250,8 @@ public class OffsetOriginStep extends Step {
      *
      * @param adjusting true if being dragged
      */
-    public void setAdjusting(boolean adjusting) {
+    @Override
+	public void setAdjusting(boolean adjusting) {
     	boolean wasAdjusting = isAdjusting();
     	super.setAdjusting(adjusting);
     	if (wasAdjusting && !adjusting) {
@@ -259,7 +266,8 @@ public class OffsetOriginStep extends Step {
      *
      * @param vidPanel the video panel
      */
-    public void showCoordinates(VideoPanel vidPanel) {
+    @Override
+	public void showCoordinates(VideoPanel vidPanel) {
       // put values into offset x and y fields
       offset.xField.setValue(worldX);
       offset.yField.setValue(worldY);

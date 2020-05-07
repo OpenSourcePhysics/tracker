@@ -68,6 +68,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
 	 * @param panel the drawing panel requesting the drawing
 	 * @param g     the graphics context on which to draw
 	 */
+	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
 		if (!(panel instanceof VideoPanel) || !isVisible())
 			return;
@@ -144,7 +145,8 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
    *
    * @return minimum x
    */
-  public double getXMin() {
+  @Override
+public double getXMin() {
     if (!isValidMeasure) getWorldBounds();
     return bounds.getMinX();
   }
@@ -154,7 +156,8 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
    *
    * @return maximum x
    */
-  public double getXMax() {
+  @Override
+public double getXMax() {
     if (!isValidMeasure) getWorldBounds();
     return bounds.getMaxX();
   }
@@ -164,7 +167,8 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
    *
    * @return minimum y
    */
-  public double getYMin() {
+  @Override
+public double getYMin() {
     if (!isValidMeasure) getWorldBounds();
     return bounds.getMinY();
   }
@@ -174,7 +178,8 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
    *
    * @return maximum y
    */
-  public double getYMax() {
+  @Override
+public double getYMax() {
     if (!isValidMeasure) getWorldBounds();
     return bounds.getMaxY();
   }
@@ -184,7 +189,8 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
    *
    * @return <code>true</code> if min/max values are valid
    */
-  public boolean isMeasured() {
+  @Override
+public boolean isMeasured() {
     return isVisible();
   }
 
@@ -247,7 +253,8 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     if (e.getPropertyName().equals("transform")) { //$NON-NLS-1$
       isValidMeasure = false;
     }

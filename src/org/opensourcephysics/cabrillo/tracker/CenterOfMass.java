@@ -96,6 +96,7 @@ public class CenterOfMass extends PointMass {
 	 * @param panel the drawing panel requesting the drawing
 	 * @param _g    the graphics context on which to draw
 	 */
+	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
 		// add masses listed in massNames
 		if (!massNames.isEmpty() && panel instanceof TrackerPanel) {
@@ -195,7 +196,8 @@ public class CenterOfMass extends PointMass {
    * @param ypix the y pixel position on the panel
    * @return the first step or motion vector that is hit
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
   	Interactive ia = super.findInteractive(panel, xpix, ypix);
     if (ia instanceof PositionStep.Position) {
@@ -222,14 +224,16 @@ public class CenterOfMass extends PointMass {
    *
    * @param locked ignored
    */
-  public void setLocked(boolean locked) {/** empty block */}
+  @Override
+public void setLocked(boolean locked) {/** empty block */}
 
   /**
    * Overrides PointMass setMass method. Mass is determined by masses.
    *
    * @param mass ignored
    */
-  public void setMass(double mass) {/** empty block */}
+  @Override
+public void setMass(double mass) {/** empty block */}
 
   /**
    * Overrides TTrack isStepComplete method. Always returns true.
@@ -237,7 +241,8 @@ public class CenterOfMass extends PointMass {
    * @param n the frame number
    * @return <code>true</code> always since cm gets data from point masses
    */
-  public boolean isStepComplete(int n) {
+  @Override
+public boolean isStepComplete(int n) {
     return true;
   }
 
@@ -246,7 +251,8 @@ public class CenterOfMass extends PointMass {
    *
    * @return <code>true</code> if this track is dependent
    */
-  public boolean isDependent() {
+  @Override
+public boolean isDependent() {
     return true;
   }
 
@@ -255,7 +261,8 @@ public class CenterOfMass extends PointMass {
    *
    * @return true if autotrackable
    */
-  protected boolean isAutoTrackable() {
+  @Override
+protected boolean isAutoTrackable() {
   	return false;
   }
   
@@ -266,7 +273,8 @@ public class CenterOfMass extends PointMass {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (name.equals("track") && e.getOldValue()!=null) { // track deleted //$NON-NLS-1$
       TTrack track = (TTrack)e.getOldValue();
@@ -290,6 +298,7 @@ public class CenterOfMass extends PointMass {
 	/**
 	 * Cleans up associated resources when this track is deleted or cleared.
 	 */
+	@Override
 	protected void dispose() {
 		super.dispose();
 		for (int i = 0, n = masses.length; i < n; i++) {
@@ -407,11 +416,13 @@ public class CenterOfMass extends PointMass {
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(TrackerPanel trackerPanel) {
+  @Override
+public JMenu getMenu(TrackerPanel trackerPanel) {
     // create a cm inspector item
     inspectorItem = new JMenuItem(TrackerRes.getString("CenterOfMass.MenuItem.Inspector")); //$NON-NLS-1$
     inspectorItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         CenterOfMassInspector inspector = getInspector();
         inspector.updateDisplay();
         inspector.setVisible(true);
@@ -447,7 +458,8 @@ public class CenterOfMass extends PointMass {
    * @param trackerPanel the tracker panel
    * @return the DataSetManager
    */
-  public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+  @Override
+public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
     ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     massField.setEnabled(false);
     return list;
@@ -460,7 +472,8 @@ public class CenterOfMass extends PointMass {
    * @param point the TPoint
    * @return a list of components
    */
-  public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
+  @Override
+public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
                                              TPoint point) {
     ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
     xField.setEnabled(false);
@@ -473,7 +486,8 @@ public class CenterOfMass extends PointMass {
    *
    * @return a description of this object
    */
-  public String toString() {
+  @Override
+public String toString() {
     return TrackerRes.getString("CenterOfMass.Name"); //$NON-NLS-1$
   }
 
@@ -497,7 +511,8 @@ public class CenterOfMass extends PointMass {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       CenterOfMass cm = (CenterOfMass)obj;
       // save mass names
       ArrayList<String> list = new ArrayList<String>();
@@ -516,7 +531,8 @@ public class CenterOfMass extends PointMass {
      * @param control an XMLControl
      * @return the newly created object
      */
-    public Object createObject(XMLControl control){
+    @Override
+	public Object createObject(XMLControl control){
       return new CenterOfMass();
     }
 
@@ -527,7 +543,8 @@ public class CenterOfMass extends PointMass {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       CenterOfMass cm = (CenterOfMass)obj;
       XML.getLoader(PointMass.class).loadObject(control, obj);
       // load mass names

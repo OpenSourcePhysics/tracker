@@ -96,6 +96,7 @@ public class VectorSum extends Vector {
 	 * @param panel the drawing panel requesting the drawing
 	 * @param _g    the graphics context on which to draw
 	 */
+	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
 		// add vectors listed in vectorNames (this occurs on initial loading)
 		if (!vectorNames.isEmpty() && panel.getClass().equals(TrackerPanel.class)) {
@@ -123,7 +124,8 @@ public class VectorSum extends Vector {
    * @param ypix the y pixel position on the panel
    * @return the first step TPoint that is hit
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
   	Interactive ia = super.findInteractive(panel, xpix, ypix);
   	if (ia instanceof VectorStep.Handle) {
@@ -213,7 +215,8 @@ public class VectorSum extends Vector {
    * @param yc ignored
    * @return the new step
    */
-  public Step createStep(int n, double x, double y, double xc, double yc) {
+  @Override
+public Step createStep(int n, double x, double y, double xc, double yc) {
     if (isLocked()) {
       tails.put(new Integer(n), new TPoint(x, y));
       update(n);
@@ -236,7 +239,8 @@ public class VectorSum extends Vector {
    *
    * @param locked ignored
    */
-  public void setLocked(boolean locked) {/** empty block */}
+  @Override
+public void setLocked(boolean locked) {/** empty block */}
 
   /**
    * Overrides TTrack isStepComplete method. Always returns true.
@@ -244,7 +248,8 @@ public class VectorSum extends Vector {
    * @param n the frame number
    * @return <code>true</code> always since sum gets data from vectors
    */
-  public boolean isStepComplete(int n) {
+  @Override
+public boolean isStepComplete(int n) {
     return true;
   }
 
@@ -253,7 +258,8 @@ public class VectorSum extends Vector {
    *
    * @return <code>true</code> since sum is dependent on its vectors
    */
-  public boolean isDependent() {
+  @Override
+public boolean isDependent() {
     return true;
   }
 
@@ -264,7 +270,8 @@ public class VectorSum extends Vector {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (name.equals("track") && e.getOldValue()!=null) { // track deleted //$NON-NLS-1$
       TTrack track = (TTrack)e.getOldValue();
@@ -283,7 +290,8 @@ public class VectorSum extends Vector {
   /**
    * Cleans up associated resources when this track is deleted or cleared.
    */
-  protected void dispose() {
+  @Override
+protected void dispose() {
   	super.dispose();
     for (Vector v: vectors) {
       if (v!=null) {
@@ -377,12 +385,14 @@ public class VectorSum extends Vector {
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(TrackerPanel trackerPanel) {
+  @Override
+public JMenu getMenu(TrackerPanel trackerPanel) {
     // create a vector sum inspector item
     inspectorItem = new JMenuItem(
         TrackerRes.getString("VectorSum.MenuItem.Inspector")); //$NON-NLS-1$
     inspectorItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         VectorSumInspector inspector = getInspector();
         inspector.updateDisplay();
         inspector.setVisible(true);
@@ -419,7 +429,8 @@ public class VectorSum extends Vector {
    * @param point the TPoint
    * @return a list of components
    */
-  public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
+  @Override
+public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
                                              TPoint point) {
     ArrayList<Component> list = super.getToolbarPointComponents(trackerPanel, point);
     xField.setEnabled(false);
@@ -432,7 +443,8 @@ public class VectorSum extends Vector {
    *
    * @return a description of this object
    */
-  public String toString() {
+  @Override
+public String toString() {
     return TrackerRes.getString("VectorSum.Name") + " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   }
 
@@ -456,7 +468,8 @@ public class VectorSum extends Vector {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       VectorSum sum = (VectorSum) obj;
       // save names of vectors in this sum
       ArrayList<String> list = new ArrayList<String>();
@@ -475,7 +488,8 @@ public class VectorSum extends Vector {
      * @param control the XMLControl with the object data
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
       return new VectorSum();
     }
 
@@ -486,7 +500,8 @@ public class VectorSum extends Vector {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       VectorSum sum = (VectorSum) obj;
       // load this vector data
       XML.getLoader(Vector.class).loadObject(control, obj);

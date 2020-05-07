@@ -69,7 +69,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
     // create combobox with custom renderer for tracks
     dropdown = new JComboBox() {
     	// override getMaximumSize method so has same height as chooser button
-	    public Dimension getMaximumSize() {
+	    @Override
+		public Dimension getMaximumSize() {
 	      Dimension dim = super.getMaximumSize();
 	      Dimension preferred = getPreferredSize();
 	      dim.width = preferred.width;
@@ -89,7 +90,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
     dropdown.setRenderer(renderer);
     // add ActionListener to select a track and display its trackview
     dropdown.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         if (refreshing) return;
         // show the trackView for the selected track
         Object item = dropdown.getSelectedItem();
@@ -158,12 +160,14 @@ public abstract class TrackChooserTView extends JPanel implements TView {
  	 noData.add(noDataLabel);
  	 noData.setBackground(getBackground());
 		noData.addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+	public void mousePressed(MouseEvent e) {
       	if (OSPRuntime.isPopupTrigger(e)) {
         	JPopupMenu popup = new JPopupMenu();
           JMenuItem helpItem = new JMenuItem(TrackerRes.getString("Dialog.Button.Help")+"..."); //$NON-NLS-1$ //$NON-NLS-2$
           helpItem.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
+            @Override
+			public void actionPerformed(ActionEvent e) {
             	if (TrackChooserTView.this instanceof TableTView) {
             		trackerPanel.getTFrame().showHelp("datatable", 0); //$NON-NLS-1$
             	}
@@ -183,7 +187,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
   /**
    * Refreshes the dropdown list and track views.
    */
-  public void refresh() {
+  @Override
+public void refresh() {
     Tracker.logTime(getClass().getSimpleName()+hashCode()+" refresh"); //$NON-NLS-1$
     refreshing = true;
     // get previously selected track
@@ -245,7 +250,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
   /**
    * Initializes this view
    */
-  public void init() {
+  @Override
+public void init() {
     cleanup();
     // add this listener to tracker panel
     trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
@@ -269,7 +275,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
   /**
    * Cleans up this view
    */
-  public void cleanup() {
+  @Override
+public void cleanup() {
     // remove this listener from tracker panel
     trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("transform", this); //$NON-NLS-1$
@@ -293,7 +300,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
   /**
    * Disposes of the view
    */
-  public void dispose() {
+  @Override
+public void dispose() {
   	cleanup();
   	for (TTrack next: trackViews.keySet()) {
   		trackViews.get(next).dispose();
@@ -315,7 +323,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
    *
    * @return the tracker panel
    */
-  public TrackerPanel getTrackerPanel() {
+  @Override
+public TrackerPanel getTrackerPanel() {
     return trackerPanel;
   }
 
@@ -381,14 +390,16 @@ public abstract class TrackChooserTView extends JPanel implements TView {
    *
    * @return the name of this view
    */
-  public abstract String getViewName();
+  @Override
+public abstract String getViewName();
 
   /**
    * Gets the toolbar components
    *
    * @return an ArrayList of components to be added to a toolbar
    */
-  public ArrayList<Component> getToolBarComponents() {
+  @Override
+public ArrayList<Component> getToolBarComponents() {
     toolbarComponents.clear();
     TrackView trackView = getTrackView(getSelectedTrack());
     if (trackView != null) {
@@ -408,7 +419,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
    *
    * @return true if in a custom state, false if in the default state
    */
-  public boolean isCustomState() {
+  @Override
+public boolean isCustomState() {
   	if (tracks.size()>1) {
   		// custom state if selected track is not the first in trackerPanel
   		for (TTrack track: trackerPanel.getUserTracks()) {
@@ -431,7 +443,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (name.equals("track")) {               // track has been added or removed //$NON-NLS-1$
       TTrack track = (TTrack)e.getOldValue();

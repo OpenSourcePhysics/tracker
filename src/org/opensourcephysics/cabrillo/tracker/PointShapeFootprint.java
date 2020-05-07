@@ -82,7 +82,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the name
    */
-  public String getName() {
+  @Override
+public String getName() {
     return name;
   }
 
@@ -91,7 +92,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the localized display name
    */
-  public String getDisplayName() {
+  @Override
+public String getDisplayName() {
   	return TrackerRes.getString(name);
   }
 
@@ -100,7 +102,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the length
    */
-  public int getLength() {
+  @Override
+public int getLength() {
     return 1;
   }
 
@@ -111,7 +114,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {
+  @Override
+public Icon getIcon(int w, int h) {
     int scale = FontSizer.getIntegerFactor();
     w *= scale;
     h *= scale;
@@ -127,11 +131,13 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    * @param points a Point array
    * @return the mark
    */
-  public Mark getMark(Point[] points) {
+  @Override
+public Mark getMark(Point[] points) {
     final Shape shape = getShape(points);
     final Shape highlight = this.highlight;
     return new Mark() {
-      public void draw(Graphics2D g, boolean highlighted) {
+      @Override
+	public void draw(Graphics2D g, boolean highlighted) {
         Paint gpaint = g.getPaint();
         g.setPaint(color);
         if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -141,7 +147,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
         g.setPaint(gpaint);
       }
 
-      public Rectangle getBounds(boolean highlighted) {
+      @Override
+	public Rectangle getBounds(boolean highlighted) {
         Rectangle bounds = shape.getBounds();
         if (highlighted) bounds.add(highlight.getBounds());
         return bounds;
@@ -154,7 +161,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the hit shapes
    */
-  public Shape[] getHitShapes() {
+  @Override
+public Shape[] getHitShapes() {
     return hitShapes;
   }
 
@@ -163,7 +171,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @param stroke the desired stroke
    */
-  public void setStroke(BasicStroke stroke) {
+  @Override
+public void setStroke(BasicStroke stroke) {
     baseStroke = stroke;
     if (stroke != null) {
       defaultWidth = stroke.getLineWidth();
@@ -175,7 +184,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the stroke
    */
-  public BasicStroke getStroke() {
+  @Override
+public BasicStroke getStroke() {
     return baseStroke;
   }
 
@@ -199,7 +209,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @param color the desired color
    */
-  public void setColor(Color color) {
+  @Override
+public void setColor(Color color) {
     this.color = color;
   }
 
@@ -208,7 +219,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    *
    * @return the color
    */
-  public Color getColor() {
+  @Override
+public Color getColor() {
     return color;
   }
 
@@ -218,7 +230,8 @@ public class PointShapeFootprint implements Footprint, Cloneable {
    * @param points an array of points
    * @return the fill shape
    */
-  public Shape getShape(Point[] points) {
+  @Override
+public Shape getShape(Point[] points) {
     Point p = points[0];
     transform.setToTranslation(p.x, p.y);
     int scale = FontSizer.getIntegerFactor();

@@ -33,7 +33,8 @@ import java.io.FilenameFilter;
  */
 public class TrackerJarFilter implements FilenameFilter {
 	
-  public boolean accept(File dir, String name) {
+  @Override
+public boolean accept(File dir, String name) {
     String fileName = getName(name).toLowerCase();
     if (!fileName.endsWith(".jar")) return false; //$NON-NLS-1$
     if (fileName.equals("tracker.jar")) return true; //$NON-NLS-1$

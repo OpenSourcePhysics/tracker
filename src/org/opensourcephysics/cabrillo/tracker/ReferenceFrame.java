@@ -78,7 +78,8 @@ public class ReferenceFrame extends ImageCoordSystem
    * @param fixed ignored
    * @param n the frame number
    */
-  public void setFixedOrigin(boolean fixed, int n) {
+  @Override
+public void setFixedOrigin(boolean fixed, int n) {
     super.setFixedOrigin(false, n);
   }
 
@@ -87,7 +88,8 @@ public class ReferenceFrame extends ImageCoordSystem
    *
    * @param locked <code>true</code> to lock the coordinate system
    */
-  public void setLocked(boolean locked) {
+  @Override
+public void setLocked(boolean locked) {
     if (locked) {
       originLocked = originTrack.isLocked();
       originTrack.setLocked(true);
@@ -104,7 +106,8 @@ public class ReferenceFrame extends ImageCoordSystem
    *
    * @return <code>true</code> if this is locked
    */
-  public boolean isLocked() {
+  @Override
+public boolean isLocked() {
     return lockEnabled && coords.isLocked();
   }
 
@@ -115,7 +118,8 @@ public class ReferenceFrame extends ImageCoordSystem
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (name.equals("step") || name.equals("steps")) // from PointMass //$NON-NLS-1$ //$NON-NLS-2$
       setOrigins();

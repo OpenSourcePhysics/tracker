@@ -69,7 +69,8 @@ public class TableTView extends TrackChooserTView {
    *
    * @return the name of the view
    */
-  public String getViewName() {
+  @Override
+public String getViewName() {
     return TrackerRes.getString("TFrame.View.Table"); //$NON-NLS-1$
   }
 
@@ -78,7 +79,8 @@ public class TableTView extends TrackChooserTView {
    *
    * @return the icon for this view
    */
-  public Icon getViewIcon() {
+  @Override
+public Icon getViewIcon() {
     return icon;
   }
 
@@ -88,7 +90,8 @@ public class TableTView extends TrackChooserTView {
    * @param track the track to be viewed
    * @return the view of the track
    */
-  protected TrackView createTrackView(TTrack track) {
+  @Override
+protected TrackView createTrackView(TTrack track) {
   	TableTrackView trackView = new TableTrackView(track, trackerPanel, this);
     FontSizer.setFonts(trackView, FontSizer.getLevel());
     return trackView;
@@ -99,7 +102,8 @@ public class TableTView extends TrackChooserTView {
    *
    * @param track the track to be selected
    */
-  public void setSelectedTrack(TTrack track) {
+  @Override
+public void setSelectedTrack(TTrack track) {
   	if (track == null) {
     	noDataLabel.setText(TrackerRes.getString("TableTView.Label.NoData")); //$NON-NLS-1$
   	}
@@ -121,7 +125,8 @@ public class TableTView extends TrackChooserTView {
   /**
    * Refreshes the dropdown list and track views.
    */
-  public void refresh() {
+  @Override
+public void refresh() {
   	super.refresh();
   	if (columnsDialog == null) return;
     FontSizer.setFonts(columnsDialog, FontSizer.getLevel());      
@@ -185,7 +190,8 @@ public class TableTView extends TrackChooserTView {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
       if (e.getNewValue() == trackerPanel && this.isVisible()) {
         if (columnsDialog != null) columnsDialog.setVisible(dialogVisible);
@@ -214,7 +220,8 @@ public class TableTView extends TrackChooserTView {
   /**
    * Cleans up this view
    */
-  public void cleanup() {
+  @Override
+public void cleanup() {
   	super.cleanup();
   	if (trackerPanel!=null && trackerPanel.getTFrame()!=null) {
   		trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
@@ -225,7 +232,8 @@ public class TableTView extends TrackChooserTView {
   	TFrame frame = trackerPanel.getTFrame();
     if (columnsDialog == null && frame != null) {
       columnsDialog = new JDialog(frame, false) {
-        public void setVisible(boolean vis) {
+        @Override
+		public void setVisible(boolean vis) {
           super.setVisible(vis);
           dialogVisible = vis;
         }    	    	
@@ -239,13 +247,15 @@ public class TableTView extends TrackChooserTView {
       // create close button
       closeButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
       closeButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
         	columnsDialog.setVisible(false);
         }
       });
       // create data function tool action
       ActionListener dataFunctionListener = new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
           TTrack track = getSelectedTrack();
           if (track != null) {
           	trackerPanel.getDataBuilder().setSelectedPanel(track.getName());
@@ -261,7 +271,8 @@ public class TableTView extends TrackChooserTView {
       textColumnButton = new JButton(TrackerRes.getString("TableTrackView.Menu.TextColumn.Text")); //$NON-NLS-1$
       textColumnButton.setToolTipText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Tooltip")); //$NON-NLS-1$
       textColumnButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
         	// show popup menu
   		    JPopupMenu popup = new JPopupMenu();
           TableTrackView trackView = (TableTrackView)getTrackView(getSelectedTrack());
@@ -320,7 +331,8 @@ public class TableTView extends TrackChooserTView {
      * @param control the control to save to
      * @param obj the TrackerPanel object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       TableTView view = (TableTView)obj;
       TTrack track = view.getSelectedTrack();
       if (track != null) { // contains at least one track
@@ -371,7 +383,8 @@ public class TableTView extends TrackChooserTView {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control){
+    @Override
+	public Object createObject(XMLControl control){
       return null;
     }
 
@@ -382,7 +395,8 @@ public class TableTView extends TrackChooserTView {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       TableTView view = (TableTView)obj;
       String[][] data = (String[][])control.getObject("track_columns"); //$NON-NLS-1$
       if (data != null) {
@@ -453,7 +467,8 @@ public class TableTView extends TrackChooserTView {
            	// move table columns after table is fully constructed
         		final TableColumnModel model = trackView.dataTable.getColumnModel();
         		Runnable runner = new Runnable() {
-        			public void run() {
+        			@Override
+					public void run() {
                 outer: for (int targetIndex=0; targetIndex<desiredIndexes.length; targetIndex++) {
                 	// find column with modelIndex and move to targetIndex
                 	for (int k=0; k<desiredIndexes.length; k++) {

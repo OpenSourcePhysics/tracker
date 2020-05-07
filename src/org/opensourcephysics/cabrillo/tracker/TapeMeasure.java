@@ -170,7 +170,8 @@ public class TapeMeasure extends TTrack {
     lengthKeyFrames.add(0);
     // add inputField action listener to exit editing mode
     inputField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         if (editing) {
           int n = trackerPanel.getFrameNumber();
           TapeStep tape = ((TapeStep)getStep(n));
@@ -180,10 +181,12 @@ public class TapeMeasure extends TTrack {
     });
     // add inputField focus listener
     inputField.addFocusListener(new FocusAdapter() {
-      public void focusGained(FocusEvent e) {
+      @Override
+	public void focusGained(FocusEvent e) {
         inputField.selectAll();
       }
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
         if (editing) {
           int n = trackerPanel.getFrameNumber();
           TapeStep tape = ((TapeStep)getStep(n));
@@ -193,14 +196,16 @@ public class TapeMeasure extends TTrack {
     });
     // add mouse listener to toggle editing mode
     editListener = new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+	public void mousePressed(MouseEvent e) {
         if (editing) {
           int n = trackerPanel.getFrameNumber();
           TapeStep tape = (TapeStep)getStep(n);
           setEditing(false, tape);
         }
       }
-      public void mouseClicked(MouseEvent e) {
+      @Override
+	public void mouseClicked(MouseEvent e) {
         if (isLocked()) return;
         int n = trackerPanel.getFrameNumber();
         TapeStep step = (TapeStep)getStep(n);
@@ -227,19 +232,22 @@ public class TapeMeasure extends TTrack {
     };
     fixedPositionItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
     fixedPositionItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
         setFixedPosition(fixedPositionItem.isSelected());
       }
     });
     fixedLengthItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.FixedLength")); //$NON-NLS-1$
     fixedLengthItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
         setFixedLength(fixedLengthItem.isSelected());
       }
     });
   	attachmentItem = new JMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Attach")); //$NON-NLS-1$
   	attachmentItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	ImageCoordSystem coords = TapeMeasure.this.trackerPanel.getCoords();
       	if (TapeMeasure.this.isStickMode() && coords.isFixedScale()) {
       		int result = JOptionPane.showConfirmDialog(TapeMeasure.this.trackerPanel.getTFrame(), 
@@ -256,7 +264,8 @@ public class TapeMeasure extends TTrack {
       }
     });
     final FocusListener magFocusListener = new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
       	if (magField.getBackground() == Color.yellow) {
           int n = trackerPanel.getFrameNumber();
         	// if not fixed, add frame number to key frames
@@ -277,13 +286,15 @@ public class TapeMeasure extends TTrack {
     };
     magField.addFocusListener(magFocusListener);
     magField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	magFocusListener.focusLost(null);
         magField.requestFocusInWindow();
       }
     });
     final FocusListener angleFocusListener = new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
       	if (angleField.getBackground() == Color.yellow) {
 	        int n = trackerPanel.getFrameNumber();
         	// if not fixed, add frame number to key frames
@@ -302,7 +313,8 @@ public class TapeMeasure extends TTrack {
     };
     angleField.addFocusListener(angleFocusListener);
     angleField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	angleFocusListener.focusLost(null);
         angleField.requestFocusInWindow();
       }
@@ -458,7 +470,8 @@ public class TapeMeasure extends TTrack {
    *
    * @param locked <code>true</code> to lock this
    */
-  public void setLocked(boolean locked) {
+  @Override
+public void setLocked(boolean locked) {
     super.setLocked(locked);
   	boolean enabled = isFieldsEnabled();
   	magField.setEnabled(enabled);
@@ -470,7 +483,8 @@ public class TapeMeasure extends TTrack {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (isStickMode() && name.equals("transform") && !isStepChangingScale) { //$NON-NLS-1$
     	// stretch or squeeze stick to keep constant world length
@@ -494,7 +508,7 @@ public class TapeMeasure extends TTrack {
 	      boolean enabled = isFieldsEnabled();
 	      magField.setEnabled(enabled);
 	      angleField.setEnabled(enabled);
-	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
+	      stepValueLabel.setText(e.getNewValue()+":"); //$NON-NLS-1$
       }
     }
     else if (name.equals("locked")) { //$NON-NLS-1$
@@ -516,7 +530,8 @@ public class TapeMeasure extends TTrack {
    *
    * @param visible <code>true</code> to show this track
    */
-  public void setVisible(boolean visible) {
+  @Override
+public void setVisible(boolean visible) {
   	super.setVisible(visible);
   	if (visible) notYetShown = false;
   }
@@ -526,14 +541,16 @@ public class TapeMeasure extends TTrack {
    *
    * @param visible ignored
    */
-  public void setTrailVisible(boolean visible) {/** empty block */}
+  @Override
+public void setTrailVisible(boolean visible) {/** empty block */}
 
   /**
    * Overrides TTrack isLocked method.
    *
    * @return <code>true</code> if this is locked
    */
-  public boolean isLocked() {
+  @Override
+public boolean isLocked() {
     boolean locked = super.isLocked();
     if (!readOnly && trackerPanel != null
     		&& !(trackerPanel.getSelectedPoint() instanceof TapeStep.Handle)) {
@@ -551,7 +568,8 @@ public class TapeMeasure extends TTrack {
    * @param y the y coordinate in image space
    * @return the step
    */
-  public Step createStep(int n, double x, double y) {
+  @Override
+public Step createStep(int n, double x, double y) {
     TapeStep step = (TapeStep)getStep(n);
     if (step==null) {
     	// create new step of length zero
@@ -569,7 +587,8 @@ public class TapeMeasure extends TTrack {
       step.getEnd2().setLocation(x, y);    	
 	    step.worldLength = step.getTapeLength(true);
 	    EventQueue.invokeLater(new Runnable() {
-	    	public void run() {
+	    	@Override
+			public void run() {
 	    		trackerPanel.setSelectedPoint(null);
 	    	}
 	    });
@@ -634,7 +653,8 @@ public class TapeMeasure extends TTrack {
    * @param y the y target coordinate in image space
    * @return the TPoint that was automarked
    */
-  public TPoint autoMarkAt(int n, double x, double y) {
+  @Override
+public TPoint autoMarkAt(int n, double x, double y) {
     TapeStep step = (TapeStep)getStep(n);
     if (step==null || step.worldLength==0) {
     	return null;
@@ -659,7 +679,8 @@ public class TapeMeasure extends TTrack {
    * @param n the frame number
    * @return the deleted step
    */
-  public Step deleteStep(int n) {
+  @Override
+public Step deleteStep(int n) {
     return null;
   }
 
@@ -669,7 +690,8 @@ public class TapeMeasure extends TTrack {
    * @param n the frame number
    * @return the step
    */
-  public Step getStep(int n) {
+  @Override
+public Step getStep(int n) {
     TapeStep step = (TapeStep)steps.getStep(n);
     refreshStep(step);
     return step;
@@ -680,7 +702,8 @@ public class TapeMeasure extends TTrack {
    *
    * @return the footprint length
    */
-  public int getStepLength() {
+  @Override
+public int getStepLength() {
   	return TapeStep.getLength();
   }
 
@@ -689,7 +712,8 @@ public class TapeMeasure extends TTrack {
    *
    * @return the footprint length
    */
-  public int getFootprintLength() {
+  @Override
+public int getFootprintLength() {
     return 2;
   }
 
@@ -709,7 +733,8 @@ public class TapeMeasure extends TTrack {
    *
    * @return <code>true</code> if this track is viewable
    */
-  public boolean isViewable() {
+  @Override
+public boolean isViewable() {
     return isReadOnly() && !isStickMode();
   }
 
@@ -718,7 +743,8 @@ public class TapeMeasure extends TTrack {
    *
    * @return true if autotrackable
    */
-  protected boolean isAutoTrackable() {
+  @Override
+protected boolean isAutoTrackable() {
 	  int n = trackerPanel.getFrameNumber();
     TapeStep step = (TapeStep)getStep(n);
     if (step==null || step.worldLength==0) return false;
@@ -731,7 +757,8 @@ public class TapeMeasure extends TTrack {
    * @param pointIndex the points[] index
    * @return true if autotrackable
    */
-  protected boolean isAutoTrackable(int pointIndex) {
+  @Override
+protected boolean isAutoTrackable(int pointIndex) {
   	return isAutoTrackable() && pointIndex<2;
   }
   
@@ -741,7 +768,8 @@ public class TapeMeasure extends TTrack {
    * @param pointIndex the index
    * @return the description
    */
-  protected String getTargetDescription(int pointIndex) {
+  @Override
+protected String getTargetDescription(int pointIndex) {
   	String s = TrackerRes.getString("Calibration.Point.Name"); //$NON-NLS-1$
   	return s+" "+(pointIndex+1); //$NON-NLS-1$
   }
@@ -751,7 +779,8 @@ public class TapeMeasure extends TTrack {
    * 
    * @return the attachments array
    */
-  public TTrack[] getAttachments() {
+  @Override
+public TTrack[] getAttachments() {
     if (attachments==null) {
     	attachments = new TTrack[2];
     }
@@ -769,7 +798,8 @@ public class TapeMeasure extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(TrackerPanel trackerPanel) {
+  @Override
+public JMenu getMenu(TrackerPanel trackerPanel) {
     // assemble the menu
     JMenu menu = super.getMenu(trackerPanel);
   	
@@ -824,7 +854,8 @@ public class TapeMeasure extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a list of components
    */
-  public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+  @Override
+public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
   	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
     magLabel.setText(TrackerRes.getString("TapeMeasure.Label.Length")); //$NON-NLS-1$
     magField.setToolTipText(TrackerRes.getString("TapeMeasure.Field.Magnitude.Tooltip")); //$NON-NLS-1$
@@ -899,7 +930,8 @@ public class TapeMeasure extends TTrack {
    * @param ypix the y pixel position on the panel
    * @return the first step or motion vector that is hit
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
     DrawingPanel panel, int xpix, int ypix) {
     if (!(panel instanceof TrackerPanel) || !isVisible())
       return null;
@@ -972,7 +1004,8 @@ public class TapeMeasure extends TTrack {
    * @param data the DatasetManager
    * @param trackerPanel the tracker panel
    */
-  protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
+  @Override
+protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
     if (refreshDataLater || trackerPanel == null || data == null) return;
     dataFrames.clear();
     // get the datasets
@@ -1029,7 +1062,8 @@ public class TapeMeasure extends TTrack {
    *
    * @param trackerPanel the tracker panel
    */
-  public void remark(TrackerPanel trackerPanel) {
+  @Override
+public void remark(TrackerPanel trackerPanel) {
   	super.remark(trackerPanel);
     displayState();
   }
@@ -1039,7 +1073,8 @@ public class TapeMeasure extends TTrack {
    *
    * @return the name of this track
    */
-  public String toString() {
+  @Override
+public String toString() {
     return TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$
   }
 
@@ -1067,7 +1102,8 @@ public class TapeMeasure extends TTrack {
 				JMenuItem item = new JMenuItem();
 				final String[] selected = new String[] {dataVariables[1]}; 
 				item.addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent e) {              		
+		      @Override
+			public void actionPerformed(ActionEvent e) {              		
 		        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, TapeMeasure.this, selected);
 		  	    dialog.setVisible(true);
 		      }
@@ -1078,7 +1114,8 @@ public class TapeMeasure extends TTrack {
 			if (trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$
 				JMenuItem item = new JMenuItem();
 				item.addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent e) {              		
+		      @Override
+			public void actionPerformed(ActionEvent e) {              		
 		        UnitsDialog dialog = trackerPanel.getUnitsDialog();
 		  	    dialog.setVisible(true);
 		      }
@@ -1095,7 +1132,8 @@ public class TapeMeasure extends TTrack {
   		JMenuItem item = new JMenuItem();
   		final boolean vis = trackerPanel.isUnitsVisible();
   		item.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {              		
+        @Override
+		public void actionPerformed(ActionEvent e) {              		
           trackerPanel.setUnitsVisible(!vis);
           TTrackBar.getTrackbar(trackerPanel).refresh();
           Step step = getStep(trackerPanel.getFrameNumber());     
@@ -1124,7 +1162,8 @@ public class TapeMeasure extends TTrack {
    *
    * @param panel the TrackerPanel
    */
-  protected void setTrackerPanel(TrackerPanel panel) {
+  @Override
+protected void setTrackerPanel(TrackerPanel panel) {
   	if (trackerPanel != null) { 
   		trackerPanel.removeMouseListener(editListener);
   		trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
@@ -1215,7 +1254,8 @@ public class TapeMeasure extends TTrack {
     }
     final TapeStep step = target;
     Runnable runner = new Runnable() {
-      public void run() {
+      @Override
+	public void run() {
         if (editing) {
         	trackerPanel.setSelectedTrack(TapeMeasure.this);
         	FontSizer.setFonts(inputField, FontSizer.getLevel());
@@ -1364,7 +1404,8 @@ public class TapeMeasure extends TTrack {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       TapeMeasure tape = (TapeMeasure)obj;
       // save track data
       XML.getLoader(TTrack.class).saveObject(control, obj);
@@ -1402,7 +1443,8 @@ public class TapeMeasure extends TTrack {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control){
+    @Override
+	public Object createObject(XMLControl control){
       return new TapeMeasure();
     }
 
@@ -1413,7 +1455,8 @@ public class TapeMeasure extends TTrack {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       TapeMeasure tape = (TapeMeasure)obj;
       tape.notYetShown = false;
       boolean locked = tape.isLocked();
@@ -1476,7 +1519,8 @@ public class TapeMeasure extends TTrack {
   private static class FrameDataLoader
       implements XML.ObjectLoader {
 
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       FrameData data = (FrameData) obj;
       control.setValue("x1", data.data[0]); //$NON-NLS-1$
       control.setValue("y1", data.data[1]); //$NON-NLS-1$
@@ -1484,11 +1528,13 @@ public class TapeMeasure extends TTrack {
       control.setValue("y2", data.data[3]); //$NON-NLS-1$
     }
 
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
       return new FrameData();
     }
 
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       FrameData data = (FrameData) obj;
       if (control.getPropertyNames().contains("x1")) { //$NON-NLS-1$
 	      data.data[0] = control.getDouble("x1"); //$NON-NLS-1$

@@ -126,7 +126,8 @@ public class Calibration extends TTrack {
    * @param y the y coordinate in image space
    * @return the new step
    */
-  public Step createStep(int n, double x, double y) {
+  @Override
+public Step createStep(int n, double x, double y) {
     if (isLocked()) return null;
     boolean success = true;
     CalibrationStep step = (CalibrationStep)getStep(n);
@@ -208,7 +209,8 @@ public class Calibration extends TTrack {
    * @param y the y target coordinate in image space
    * @return the TPoint that was automarked
    */
-  public TPoint autoMarkAt(int n, double x, double y) {
+  @Override
+public TPoint autoMarkAt(int n, double x, double y) {
     CalibrationStep step = (CalibrationStep)getStep(n);
     int index = getTargetIndex();
     ImageCoordSystem coords = trackerPanel.getCoords();
@@ -266,7 +268,8 @@ public class Calibration extends TTrack {
    * @param n the frame number
    * @return the step
    */
-  public Step getStep(int n) {
+  @Override
+public Step getStep(int n) {
   	CalibrationStep step = (CalibrationStep)steps.getStep(n);
     refreshStep(step);
     return step;
@@ -277,7 +280,8 @@ public class Calibration extends TTrack {
    *
    * @return <code>true</code> if this is locked
    */
-  public boolean isLocked() {
+  @Override
+public boolean isLocked() {
     boolean locked = super.isLocked();
     if (trackerPanel != null) {
       locked = locked || trackerPanel.getCoords().isLocked();
@@ -291,14 +295,16 @@ public class Calibration extends TTrack {
    *
    * @param visible ignored
    */
-  public void setTrailVisible(boolean visible) {/** empty block */}
+  @Override
+public void setTrailVisible(boolean visible) {/** empty block */}
 
   /**
    * Determines if at least one point in this track is autotrackable.
    *
    * @return true if autotrackable
    */
-  protected boolean isAutoTrackable() {
+  @Override
+protected boolean isAutoTrackable() {
   	return true;
   }
   
@@ -307,7 +313,8 @@ public class Calibration extends TTrack {
    *
    * @return the footprint length
    */
-  public int getStepLength() {
+  @Override
+public int getStepLength() {
   	return CalibrationStep.getLength();
   }
 
@@ -316,7 +323,8 @@ public class Calibration extends TTrack {
    *
    * @return the footprint length
    */
-  public int getFootprintLength() {
+  @Override
+public int getFootprintLength() {
     return 1;
   }
 
@@ -360,7 +368,8 @@ public class Calibration extends TTrack {
    *
    * @param name the name of the desired footprint
    */
-  public void setFootprint(String name) {
+  @Override
+public void setFootprint(String name) {
     super.setFootprint(name);
     setAxisType(axes);
   }
@@ -373,7 +382,8 @@ public class Calibration extends TTrack {
    * @param ypix the y pixel position on the panel
    * @return the first calibration point that is hit
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
       DrawingPanel panel, int xpix, int ypix) {
     if (!(panel instanceof TrackerPanel) ||
         !isVisible() ||
@@ -410,7 +420,8 @@ public class Calibration extends TTrack {
    *
    * @param locked <code>true</code> to lock this
    */
-  public void setLocked(boolean locked) {
+  @Override
+public void setLocked(boolean locked) {
     super.setLocked(locked);
   	boolean enabled = !isLocked();
     xField.setEnabled(enabled);
@@ -427,7 +438,8 @@ public class Calibration extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(TrackerPanel trackerPanel) {
+  @Override
+public JMenu getMenu(TrackerPanel trackerPanel) {
     JMenu menu = super.getMenu(trackerPanel);
     lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
     // remove end items and last separator
@@ -449,7 +461,8 @@ public class Calibration extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a list of components
    */
-  public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+  @Override
+public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
   	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
   	
   	// rebuild axisDropdown
@@ -596,7 +609,8 @@ public class Calibration extends TTrack {
    *
    * @param level the desired font level
    */
-  public void setFontLevel(int level) {
+  @Override
+public void setFontLevel(int level) {
   	super.setFontLevel(level);
   	Object[] objectsToSize = new Object[]
   			{point1MissingLabel, point2MissingLabel, x1Label, y1Label, x1Field, y1Field, axisLabel,
@@ -609,7 +623,8 @@ public class Calibration extends TTrack {
    *
    * @return the name of this track
    */
-  public String toString() {
+  @Override
+public String toString() {
     return TrackerRes.getString("Calibration.Name"); //$NON-NLS-1$
   }
 
@@ -628,12 +643,13 @@ public class Calibration extends TTrack {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (name.equals("stepnumber")) { //$NON-NLS-1$
       if (trackerPanel.getSelectedTrack() == this) {
         displayWorldCoordinates();
-	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
+	      stepValueLabel.setText(e.getNewValue()+":"); //$NON-NLS-1$
       }
     }
     else if (name.equals("locked")) { //$NON-NLS-1$
@@ -652,7 +668,8 @@ public class Calibration extends TTrack {
    *
    * @return the point index
    */
-  protected int getTargetIndex() {
+  @Override
+protected int getTargetIndex() {
 //    int n = trackerPanel.getFrameNumber();
 //    CalibrationStep step = (CalibrationStep)getStep(n);
 //    if (step!=null) {
@@ -671,7 +688,8 @@ public class Calibration extends TTrack {
    * @param pointIndex the points[] index
    * @return the description
    */
-  protected String getTargetDescription(int pointIndex) {
+  @Override
+protected String getTargetDescription(int pointIndex) {
   	String s = TrackerRes.getString("Calibration.Point.Name"); //$NON-NLS-1$
   	int n = trackerPanel.getFrameNumber();
     CalibrationStep step = (CalibrationStep)getStep(n);
@@ -740,13 +758,15 @@ public class Calibration extends TTrack {
   private void createGUI() {
     fixedCoordinatesItem = new JCheckBoxMenuItem(TrackerRes.getString("OffsetOrigin.MenuItem.Fixed")); //$NON-NLS-1$
     fixedCoordinatesItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
         setFixedCoordinates(fixedCoordinatesItem.isSelected());
       }
     });
     // create xy ActionListener and FocusListener
     ActionListener xyAction = new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	NumberField field = (NumberField)e.getSource();
       	if (field.getBackground().equals(Color.YELLOW)) {
       		setWorldCoordinatesFromFields();
@@ -755,7 +775,8 @@ public class Calibration extends TTrack {
       }
     };
     FocusListener xyFocusListener = new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
       	NumberField field = (NumberField)e.getSource();
       	if (field.getBackground().equals(Color.YELLOW)) {
       		setWorldCoordinatesFromFields();
@@ -845,7 +866,8 @@ public class Calibration extends TTrack {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       Calibration cal = (Calibration) obj;
       // save track data
       XML.getLoader(TTrack.class).saveObject(control, obj);
@@ -882,7 +904,8 @@ public class Calibration extends TTrack {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control) {
+    @Override
+	public Object createObject(XMLControl control) {
       return new Calibration();
     }
 
@@ -893,7 +916,8 @@ public class Calibration extends TTrack {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
       Calibration cal = (Calibration) obj;
       // load track data
       XML.getLoader(TTrack.class).loadObject(control, obj);

@@ -890,11 +890,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		String name = e.getPropertyName();
 		switch (name) {
 		case "datafile":
-		case "video": // from TrackerPanel //$NON-NLS-1$ //$NON-NLS-2$
+		case "video": // from TrackerPanel //$NON-NLS-1$ 
 			trackerPanel = (TrackerPanel) e.getSource();
 			refreshTab(trackerPanel);
 			break;
-		case MovieVideoI.PROPERTY_VIDEO_PROGRESS: // from currently loading (xuggle) video //$NON-NLS-1$
+		case MovieVideoI.PROPERTY_VIDEO_PROGRESS: // from currently loading (xuggle) video 
 			Object val = e.getNewValue();
 			String vidName = XML.forwardSlash((String) e.getOldValue());
 			try {
@@ -903,7 +903,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			TrackerIO.setProgress(vidName, val.toString(), framesLoaded);
 			break;
-		case MovieVideoI.PROPERTY_VIDEO_STALLED: // from stalled xuggle video //$NON-NLS-1$
+		case MovieVideoI.PROPERTY_VIDEO_STALLED: // from stalled xuggle video 
 			String fileName = XML.getName((String) e.getNewValue());
 			String s = TrackerRes.getString("TFrame.Dialog.StalledVideo.Message0") //$NON-NLS-1$
 					+ "\n" + TrackerRes.getString("TFrame.Dialog.StalledVideo.Message1") //$NON-NLS-1$ //$NON-NLS-2$

@@ -2288,6 +2288,9 @@ public String toString() {
    */
   @Override
 public void draw(DrawingPanel panel, Graphics _g) {
+	 if (this instanceof CoordAxes) {
+		 OSPLog.debug("COORDAXESDRAW");
+	 }
     loadAttachmentsFromNames(true);
     if (!(panel instanceof TrackerPanel) || !visible) return;
     TrackerPanel trackerPanel = (TrackerPanel)panel;

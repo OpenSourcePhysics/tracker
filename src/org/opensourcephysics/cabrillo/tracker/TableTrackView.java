@@ -54,6 +54,7 @@ import org.opensourcephysics.tools.*;
  * @author Douglas Brown
  * @author John Welch
  */
+@SuppressWarnings("serial")
 public class TableTrackView extends TrackView {
 	
 	// static fields
@@ -122,28 +123,33 @@ public class TableTrackView extends TrackView {
     setViewportView(dataTable);
     dataTable.setPreferredScrollableViewportSize(new Dimension(160, 200));
     addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+	public void mousePressed(MouseEvent e) {
       	dataTable.clearSelection();
       }
-      public void mouseEntered(MouseEvent e) {
+      @Override
+	public void mouseEntered(MouseEvent e) {
       	dataTable.requestFocusInWindow();
       }
     });
     dataTable.addMouseListener(new MouseAdapter() {
-      public void mouseEntered(MouseEvent e) {
+      @Override
+	public void mouseEntered(MouseEvent e) {
       	dataTable.requestFocusInWindow();
       }
     });
     // add key listener to start editing text column cells with space key
     dataTable.addKeyListener(new KeyAdapter() {
-      public void keyPressed(KeyEvent e) {
+      @Override
+	public void keyPressed(KeyEvent e) {
         if(e.getKeyCode()==KeyEvent.VK_SPACE) {
         	int row = dataTable.getSelectedRow();
         	int col = dataTable.getSelectedColumn();
           dataTable.editCellAt(row, col);
           textColumnEditor.field.selectAll();
           Runnable runner = new Runnable() {
-            public synchronized void run() {
+            @Override
+			public synchronized void run() {
               textColumnEditor.field.requestFocusInWindow();
             }
           };
@@ -155,7 +161,8 @@ public class TableTrackView extends TrackView {
 
     ListSelectionModel selectionModel = dataTable.getSelectionModel();
     selectionModel.addListSelectionListener(new ListSelectionListener() {
-      public void valueChanged(ListSelectionEvent e) {
+      @Override
+	public void valueChanged(ListSelectionEvent e) {
         selectedIndepVarValues.clear();
         int[] rows = dataTable.getSelectedRows(); // selected view rows
         for(int i = 0; i<rows.length; i++) {
@@ -198,7 +205,8 @@ public class TableTrackView extends TrackView {
    *
    * @param frameNumber the frame number
    */
-  public void refresh(int frameNumber) {
+  @Override
+public void refresh(int frameNumber) {
   	if (!forceRefresh && !isRefreshEnabled()) return;
 	OSPLog.debug("PlotTrackView.refresh");
   	forceRefresh = false;
@@ -315,7 +323,8 @@ public class TableTrackView extends TrackView {
   /**
    * Refreshes the GUI.
    */
-  void refreshGUI(){
+  @Override
+void refreshGUI(){
   	TTrack track = getTrack();
   	columnsButton.setText(TrackerRes.getString("TableTrackView.Button.SelectTableData")); //$NON-NLS-1$
     columnsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SelectTableData.ToolTip")); //$NON-NLS-1$
@@ -343,7 +352,8 @@ public class TableTrackView extends TrackView {
    *
    * @return an ArrayList of components to be added to a toolbar
    */
-  public ArrayList<Component> getToolBarComponents() {
+  @Override
+public ArrayList<Component> getToolBarComponents() {
   	toolbarComponents.remove(gapsButton);
   	// determine if track has gaps
   	TTrack track = getTrack();
@@ -361,7 +371,8 @@ public class TableTrackView extends TrackView {
    *
    * @return the view button
    */
-  public JButton getViewButton() {
+  @Override
+public JButton getViewButton() {
   	return columnsButton;
   }
   
@@ -370,7 +381,8 @@ public class TableTrackView extends TrackView {
    *
    * @return true if in a custom state, false if in the default state
    */
-  public boolean isCustomState() {
+  @Override
+public boolean isCustomState() {
   	if (!refreshed) {
   		forceRefresh = true;
   		refresh(trackerPanel.getFrameNumber());
@@ -436,7 +448,8 @@ public class TableTrackView extends TrackView {
     }
   }
 
-  protected void dispose() {
+  @Override
+protected void dispose() {
     data = null;
     getTrack().removePropertyChangeListener("text_column", this); //$NON-NLS-1$
     setViewportView(null);
@@ -469,7 +482,8 @@ public class TableTrackView extends TrackView {
     }
     // set highlighted rows if found
 	OSPRuntime.postEvent(new Runnable() {
-      public synchronized void run() {
+      @Override
+	public synchronized void run() {
     		dataTable.clearSelection();
       	if (highlightRows.isEmpty()) {
       		return;
@@ -559,7 +573,8 @@ public class TableTrackView extends TrackView {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
   	TTrack track = getTrack();
     if (((TableTView)parent).columnsDialog != null 
     			&& e.getPropertyName().equals("track") //$NON-NLS-1$
@@ -803,7 +818,8 @@ public class TableTrackView extends TrackView {
     // button to open column selection dialog box
     columnsButton = new TButton() {
     	// override getMaximumSize method so has same height as chooser button
-	    public Dimension getMaximumSize() {
+	    @Override
+		public Dimension getMaximumSize() {
 	      Dimension dim = super.getMaximumSize();
 	      Dimension min = getMinimumSize();
 	    	Container c = getParent();
@@ -819,7 +835,8 @@ public class TableTrackView extends TrackView {
 	    }    	    	
     };
     columnsButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	((TableTView)parent).showColumnsDialog(getTrack());
       }
     });
@@ -829,7 +846,8 @@ public class TableTrackView extends TrackView {
     // button to show gaps in data (skipped frames)  
     gapsButton = new TButton() {    	
     	// override getMaximumSize method so has same height as chooser button
-	    public Dimension getMaximumSize() {
+	    @Override
+		public Dimension getMaximumSize() {
 	      Dimension dim = super.getMaximumSize();
 	      Dimension min = getMinimumSize();
 	    	Container c = getParent();
@@ -850,7 +868,8 @@ public class TableTrackView extends TrackView {
 	    	JCheckBoxMenuItem item = new JCheckBoxMenuItem(TrackerRes.getString("TableTrackView.MenuItem.Gaps.GapsVisible")); //$NON-NLS-1$
 	    	item.setSelected(gapsButton.isSelected());
 		    item.addActionListener(new ActionListener() {
-		      public void actionPerformed(ActionEvent e) {
+		      @Override
+			public void actionPerformed(ActionEvent e) {
 		      	gapsButton.setSelected(!gapsButton.isSelected());
 		      	dataTable.skippedFramesRenderer.setVisible(gapsButton.isSelected());
 		      	if (gapsButton.isSelected()) {
@@ -865,7 +884,8 @@ public class TableTrackView extends TrackView {
 	    	if (Tracker.enableAutofill) {
 		    	item = new JCheckBoxMenuItem(TrackerRes.getString("TableTrackView.MenuItem.Gaps.AutoFill")); //$NON-NLS-1$
 			    item.addActionListener(new ActionListener() {
-			      public void actionPerformed(ActionEvent e) {
+			      @Override
+				public void actionPerformed(ActionEvent e) {
 	  	      	PointMass p = (PointMass)TableTrackView.this.getTrack();
 	  	      	p.setAutoFill(!p.isAutofill);
 	  	      	p.repaint();
@@ -889,20 +909,23 @@ public class TableTrackView extends TrackView {
     
     deleteDataFunctionItem = new JMenuItem();
     deleteDataFunctionItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	int index = Integer.parseInt(e.getActionCommand());
       	TTrack track = getTrack();
         FunctionTool tool = trackerPanel.getDataBuilder();
         FunctionPanel panel = tool.getPanel(track.getName());
         Dataset dataset = data.getDataset(index);
         // next line posts undo edit to FunctionPanel
-        panel.getFunctionEditor().removeObject(dataset, true);
+        if (dataset instanceof DataFunction)
+        	panel.getFunctionEditor().removeObject((DataFunction) dataset, true);
       }
     });
 
     goToFrameItem = new JMenuItem();
     goToFrameItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         try {
 					int row = Integer.parseInt(e.getActionCommand());
 					int frameNum = getFrameAtRow(row);
@@ -918,7 +941,8 @@ public class TableTrackView extends TrackView {
     numberMenu = new JMenu();
     formatDialogItem = new JMenuItem();
     formatDialogItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         int[] selected = dataTable.getSelectedColumns();        
         String[] selectedNames = new String[selected.length];
         for (int i=0; i<selectedNames.length; i++) {
@@ -931,34 +955,39 @@ public class TableTrackView extends TrackView {
     });
     showUnitsItem = new JMenuItem();
     showUnitsItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         trackerPanel.setUnitsVisible(!trackerPanel.isUnitsVisible());
   	  }	
     });
     setUnitsItem = new JMenuItem();
     setUnitsItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         UnitsDialog dialog = trackerPanel.getUnitsDialog();
   	    dialog.setVisible(true);
   	  }	
     });
     copyDataMenu = new JMenu();
     Action copyRawAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	TTrack track = getTrack();
         TrackerIO.copyTable(dataTable, false, track.getName());
       }
     };
     copyDataRawItem = new JMenuItem(copyRawAction);
     Action copyFormattedAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	TTrack track = getTrack();
         TrackerIO.copyTable(dataTable, true, track.getName());
       }
     };
     copyDataFormattedItem = new JMenuItem(copyFormattedAction);
     final Action setDelimiterAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TrackerIO.setDelimiter(e.getActionCommand());        
         refreshGUI();
       }
@@ -972,7 +1001,8 @@ public class TableTrackView extends TrackView {
     	delimiterButtonGroup.add(item);
     }
     Action addDelimiterAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	String delimiter = TrackerIO.delimiter;
       	Object response = JOptionPane.showInputDialog(TableTrackView.this, 
             TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Message"),      //$NON-NLS-1$
@@ -988,7 +1018,8 @@ public class TableTrackView extends TrackView {
     };
     addDelimiterItem = new JMenuItem(addDelimiterAction);
     Action removeDelimiterAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	String[] choices = TrackerIO.customDelimiters.values().toArray(new String[1]);
       	Object response = JOptionPane.showInputDialog(TableTrackView.this, 
             TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Message"),      //$NON-NLS-1$
@@ -1003,7 +1034,8 @@ public class TableTrackView extends TrackView {
     };
     removeDelimiterItem = new JMenuItem(removeDelimiterAction);
     Action copyImageAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	// find TViewChooser that owns this view and copy it
       	TViewChooser chooser = getOwner();
         if (chooser != null) {
@@ -1013,14 +1045,16 @@ public class TableTrackView extends TrackView {
     };
     copyImageItem = new JMenuItem(copyImageAction);
     Action snapshotAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         snapshot();
       }
     };
     // add and remove text column items
     createTextColumnItem = new JMenuItem();
     createTextColumnItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         String name = getUniqueColumnName(null, false);
       	TTrack track = getTrack();
         track.addTextColumn(name);
@@ -1042,7 +1076,8 @@ public class TableTrackView extends TrackView {
     // add dataBuilder item
     dataBuilderItem = new JMenuItem();
     dataBuilderItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	TTrack track = getTrack();
       	trackerPanel.getDataBuilder().setSelectedPanel(track.getName());
       	trackerPanel.getDataBuilder().setVisible(true);
@@ -1051,7 +1086,8 @@ public class TableTrackView extends TrackView {
     // add dataTool item
     dataToolItem = new JMenuItem();
     dataToolItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	TTrack track = getTrack();
       	DatasetManager toSend = new DatasetManager();
       	toSend.setID(data.getID());
@@ -1096,7 +1132,8 @@ public class TableTrackView extends TrackView {
     // add print item
     printItem = new JMenuItem();
     printItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	// find TViewChooser that owns this view and print it
       	TViewChooser chooser = getOwner();
         if (chooser != null) {
@@ -1107,7 +1144,8 @@ public class TableTrackView extends TrackView {
     // add help item last
     helpItem = new JMenuItem();
     helpItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         TFrame frame = trackerPanel.getTFrame();
         if (frame != null) {
 	        frame.showHelp("datatable", 0); //$NON-NLS-1$
@@ -1117,7 +1155,8 @@ public class TableTrackView extends TrackView {
     dataTable.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
   	dataTable.getTableHeader().setToolTipText(TrackerRes.getString("TableTrackView.Header.Tooltip"));          //$NON-NLS-1$
     dataTable.getTableHeader().addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+	public void mousePressed(MouseEvent e) {
         java.awt.Point mousePt = e.getPoint();
         int col = dataTable.columnAtPoint(mousePt);
         if (OSPRuntime.isPopupTrigger(e)) {
@@ -1171,7 +1210,8 @@ public class TableTrackView extends TrackView {
         }
       }
       
-      public void mouseClicked(MouseEvent e) {
+      @Override
+	public void mouseClicked(MouseEvent e) {
       	if (e.getClickCount()==2 || OSPRuntime.isPopupTrigger(e))
       		return;
         // single click: refresh selected rows
@@ -1181,7 +1221,8 @@ public class TableTrackView extends TrackView {
     });
     // data table: add right button mouse listener to copy data and double-click to select all
     dataTable.addMouseListener(new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+	public void mousePressed(MouseEvent e) {
       	if (e.getClickCount() == 2) {
       		dataTable.selectAll();
       	}
@@ -1221,7 +1262,8 @@ public class TableTrackView extends TrackView {
     InputMap im = dataTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
     KeyStroke k = KeyStroke.getKeyStroke(KeyEvent.VK_C, KeyEvent.CTRL_DOWN_MASK);
     Action newAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	TTrack track = getTrack();
         TrackerIO.copyTable(dataTable, false, track.getName()); // copy raw data
       }
@@ -1231,7 +1273,8 @@ public class TableTrackView extends TrackView {
     // override the pageUp and pageDown behaviors
     k = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0);
     newAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
   			if (!trackerPanel.getPlayer().isEnabled()) return;
       	trackerPanel.getPlayer().back();
       }
@@ -1239,7 +1282,8 @@ public class TableTrackView extends TrackView {
     am.put(im.get(k), newAction);
     k = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, KeyEvent.SHIFT_DOWN_MASK);
     newAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
   			if (!trackerPanel.getPlayer().isEnabled()) return;
 				int n = trackerPanel.getPlayer().getStepNumber()-5;
 				trackerPanel.getPlayer().setStepNumber(n);
@@ -1248,7 +1292,8 @@ public class TableTrackView extends TrackView {
     am.put(im.get(k), newAction);
     k = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0);
     newAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
   			if (!trackerPanel.getPlayer().isEnabled()) return;
       	trackerPanel.getPlayer().step();
       }
@@ -1256,7 +1301,8 @@ public class TableTrackView extends TrackView {
     am.put(im.get(k), newAction);
     k = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, KeyEvent.SHIFT_DOWN_MASK);
     newAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
   			if (!trackerPanel.getPlayer().isEnabled()) return;
 				int n = trackerPanel.getPlayer().getStepNumber()+5;
 				trackerPanel.getPlayer().setStepNumber(n);
@@ -1265,7 +1311,8 @@ public class TableTrackView extends TrackView {
     am.put(im.get(k), newAction);
     k = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0);
     newAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
   			if (!trackerPanel.getPlayer().isEnabled()) return;
   			trackerPanel.getPlayer().setStepNumber(0);
       }
@@ -1273,7 +1320,8 @@ public class TableTrackView extends TrackView {
     am.put(im.get(k), newAction);
     k = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
     newAction = new AbstractAction() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
   			if (!trackerPanel.getPlayer().isEnabled()) return;
   			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
   			trackerPanel.getPlayer().setStepNumber(clip.getStepCount()-1);
@@ -1340,7 +1388,8 @@ public class TableTrackView extends TrackView {
 	    		deleteTextColumnMenu.add(item);
 	    		item.setActionCommand(next);
 	    		item.addActionListener(new ActionListener() {
-	          public void actionPerformed(ActionEvent e) {
+	          @Override
+			public void actionPerformed(ActionEvent e) {
 	          	TTrack track = getTrack();
 	            track.removeTextColumn(e.getActionCommand());
 	          }
@@ -1353,7 +1402,8 @@ public class TableTrackView extends TrackView {
 	    		renameTextColumnMenu.add(item);
 	    		item.setActionCommand(next);
 	    		item.addActionListener(new ActionListener() {
-	          public void actionPerformed(ActionEvent e) {
+	          @Override
+			public void actionPerformed(ActionEvent e) {
 	          	String prev = e.getActionCommand();
 	            String name = getUniqueColumnName(prev, false);
 	            if (name!=null && !name.equals("") && !name.equals(prev)) { //$NON-NLS-1$
@@ -1495,7 +1545,8 @@ public class TableTrackView extends TrackView {
 	    	JMenuItem item = new JRadioButtonMenuItem(key);
 	    	item.setActionCommand(TrackerIO.customDelimiters.get(key));
 	    	item.addActionListener(new AbstractAction() {
-	        public void actionPerformed(ActionEvent e) {
+	        @Override
+			public void actionPerformed(ActionEvent e) {
 	          TrackerIO.setDelimiter(e.getActionCommand());        
 	        }
 	      });
@@ -1580,7 +1631,8 @@ public class TableTrackView extends TrackView {
       checkBoxes[i].setActionCommand(name);
       checkBoxes[i].setToolTipText(track.getDataDescription(i+1));
       checkBoxes[i].addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
         	if (refresh) refresh(trackerPanel.getFrameNumber());
         	trackerPanel.changed = true;
         }
@@ -1598,7 +1650,8 @@ public class TableTrackView extends TrackView {
       checkBoxes[i].setBorder(BorderFactory.createEmptyBorder(1, 5, 1, 0));
       checkBoxes[i].setActionCommand(name);
       checkBoxes[i].addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
         	JCheckBox item = (JCheckBox)e.getSource();
         	if (item.isSelected()) {
         		textColumnsVisible.add(e.getActionCommand());
@@ -1633,7 +1686,8 @@ public class TableTrackView extends TrackView {
    * A class to provide textColumn data for the dataTable.
    */
   class TextColumnTableModel extends AbstractTableModel {
-    public String getColumnName(int col) {    	
+    @Override
+	public String getColumnName(int col) {    	
     	int i = 0;    	
     	TTrack track = getTrack();
     	for (String name: track.getTextColumnNames()) {
@@ -1645,15 +1699,18 @@ public class TableTrackView extends TrackView {
       return "unknown"; //$NON-NLS-1$
     }
 
-    public int getRowCount() {
+    @Override
+	public int getRowCount() {
       return tableData.getRowCount();
     }
 
-    public int getColumnCount() {
+    @Override
+	public int getColumnCount() {
       return textColumnsVisible.size();
     }
 
-    public Object getValueAt(int row, int col) {
+    @Override
+	public Object getValueAt(int row, int col) {
       String columnName = getColumnName(col);
     	TTrack track = getTrack();
       // convert row to frame number
@@ -1674,7 +1731,8 @@ public class TableTrackView extends TrackView {
      * @param row the row index
      * @param col the column index
      */
-    public void setValueAt(Object value, int row, int col) {
+    @Override
+	public void setValueAt(Object value, int row, int col) {
       String columnName = getColumnName(col);
     	TTrack track = getTrack();
       // convert row to frame number
@@ -1694,12 +1752,14 @@ public class TableTrackView extends TrackView {
     }
 
 
-    public boolean isCellEditable(int row, int col) {
+    @Override
+	public boolean isCellEditable(int row, int col) {
     	TTrack track = getTrack();
       return !track.isLocked();
     }
 
-    public Class<?> getColumnClass(int col) {
+    @Override
+	public Class<?> getColumnClass(int col) {
       return String.class;
     }
 
@@ -1720,7 +1780,8 @@ public class TableTrackView extends TrackView {
       panel.setOpaque(false);
       field.setBorder(BorderFactory.createEmptyBorder(0, 1, 1, 0));
       field.addKeyListener(new KeyAdapter() {
-        public void keyPressed(KeyEvent e) {
+        @Override
+		public void keyPressed(KeyEvent e) {
           if(e.getKeyCode()==KeyEvent.VK_ENTER) {
             stopCellEditing();
           } else if(field.isEnabled()) {
@@ -1730,7 +1791,8 @@ public class TableTrackView extends TrackView {
 
       });
       field.addFocusListener(new FocusAdapter() {
-        public void focusLost(FocusEvent e) {
+        @Override
+		public void focusLost(FocusEvent e) {
         	// request focus immediately to keep it
           field.requestFocusInWindow();
         }
@@ -1738,7 +1800,8 @@ public class TableTrackView extends TrackView {
     }
 
     // Gets the component to be displayed while editing.
-    public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+    @Override
+	public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
       field.setBackground(Color.white);
       field.setSelectionColor(defaultEditingColor);
       field.setEditable(true);
@@ -1748,7 +1811,8 @@ public class TableTrackView extends TrackView {
     }
     
     // Determines when editing starts.
-    public boolean isCellEditable(EventObject e) {
+    @Override
+	public boolean isCellEditable(EventObject e) {
       if(e==null || e instanceof MouseEvent) {
       	TTrack track = getTrack();
       	return !track.isLocked();
@@ -1757,7 +1821,8 @@ public class TableTrackView extends TrackView {
     }
 
     // Called when editing is completed.
-    public Object getCellEditorValue() {
+    @Override
+	public Object getCellEditorValue() {
       dataTable.requestFocusInWindow();
       if(field.getBackground()!=Color.white) {
         field.setBackground(Color.white);

@@ -24,8 +24,22 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.GridLayout;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
@@ -36,26 +50,65 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.font.FontRenderContext;
-import java.awt.geom.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.NoninvertibleTransformException;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.beans.*;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFormattedTextField;
+import javax.swing.JLabel;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JSpinner;
+import javax.swing.JTextArea;
+import javax.swing.JToolBar;
+import javax.swing.SpinnerListModel;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.Timer;
-import javax.swing.border.*;
+import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.TableCellRenderer;
 
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.TemplateMatcher;
+import org.opensourcephysics.media.core.Trackable;
+import org.opensourcephysics.media.core.Video;
+import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoPanel;
+import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.ResourceLoader;
 
 /**
  * A class to automatically track a feature of interest in a video. This uses a
@@ -64,6 +117,7 @@ import org.opensourcephysics.tools.ResourceLoader;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class AutoTracker implements Interactive, Trackable, PropertyChangeListener {
 
 	// static fields
@@ -152,6 +206,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
 		stepper = new Runnable() {
+			@Override
 			public void run() {
 				TTrack track = getTrack();
 				if (!active || track == null) {
@@ -550,6 +605,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 * @param panel the drawing panel requesting the drawing
 	 * @param g     the graphics context on which to draw
 	 */
+	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
 		// don't draw this unless wizard is visible and a video exists
 		TTrack track = getTrack();
@@ -576,6 +632,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 * @param ypix  the y pixel position
 	 * @return the TPoint, or null if none
 	 */
+	@Override
 	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
 		isInteracting = false;
 		int n = trackerPanel.getFrameNumber();
@@ -734,6 +791,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 *
 	 * @param e the property change event
 	 */
+	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
 		TTrack track = getTrack();
@@ -856,46 +914,58 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	}
 
 	// implements Interactive & Measurable methods
+	@Override
 	public void setEnabled(boolean enabled) {
 	}
 
+	@Override
 	public boolean isEnabled() {
 		return true;
 	}
 
+	@Override
 	public void setXY(double x, double y) {
 	}
 
+	@Override
 	public void setX(double x) {
 	}
 
+	@Override
 	public void setY(double y) {
 	}
 
+	@Override
 	public double getX() {
 		return 0;
 	}
 
+	@Override
 	public double getY() {
 		return 0;
 	}
 
+	@Override
 	public double getXMin() {
 		return 0;
 	}
 
+	@Override
 	public double getXMax() {
 		return 0;
 	}
 
+	@Override
 	public double getYMin() {
 		return 0;
 	}
 
+	@Override
 	public double getYMax() {
 		return 0;
 	}
 
+	@Override
 	public boolean isMeasured() {
 		return false;
 	}
@@ -1200,11 +1270,13 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				transform.setToTranslation(selectionPt.x, selectionPt.y);
 				final Shape selectedShape = transform.createTransformedShape(selectionShape);
 				selectionMark = new Mark() {
+					@Override
 					public void draw(Graphics2D g, boolean highlighted) {
 						if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 						g.fill(selectedShape);
 					}
 
+					@Override
 					public Rectangle getBounds(boolean highlighted) {
 						return selectedShape.getBounds();
 					}
@@ -1216,6 +1288,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			final Mark markTarget = targetMark;
 			final Mark markSelection = selectionMark;
 			mark = new Mark() {
+				@Override
 				public void draw(Graphics2D g, boolean highlighted) {
 					Paint gpaint = g.getPaint();
 					Color c = track.getFootprint().getColor();
@@ -1256,6 +1329,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					g.setPaint(gpaint);
 				}
 
+				@Override
 				public Rectangle getBounds(boolean highlighted) {
 					Rectangle bounds = searchShape.getBounds();
 					if (markMaskCorner != null)
@@ -1641,6 +1715,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 * @param x the x coordinate
 		 * @param y the y coordinate
 		 */
+		@Override
 		public void setXY(double x, double y) {
 			double dx = x - getX();
 			double dy = y - getY();
@@ -1705,6 +1780,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 * @param x the x coordinate
 		 * @param y the y coordinate
 		 */
+		@Override
 		public void setXY(double x, double y) {
 			super.setXY(x, y);
 			int n = trackerPanel.getFrameNumber();
@@ -1730,6 +1806,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 * @param x the x coordinate
 		 * @param y the y coordinate
 		 */
+		@Override
 		public void setXY(double x, double y) {
 			super.setXY(x, y);
 			int n = trackerPanel.getFrameNumber();
@@ -2006,6 +2083,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			maskPoints[1].setLocation(maskCorner);
 		}
 
+		@Override
 		boolean isKeyFrame() {
 			return true;
 		}
@@ -2079,6 +2157,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 *
 		 * @param e the property change event
 		 */
+		@Override
 		public void propertyChange(PropertyChangeEvent e) {
 			if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
 				if (trackerPanel != null && e.getNewValue() == trackerPanel) {
@@ -2106,6 +2185,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 *
 		 * @param vis true to show this inspector
 		 */
+		@Override
 		public void setVisible(boolean vis) {
 			super.setVisible(vis);
 			TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
@@ -2189,6 +2269,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 //      setResizable(false);
 			KeyListener kl = new KeyAdapter() {
+				@Override
 				public void keyPressed(KeyEvent e) {
 					if (!trackerPanel.getPlayer().isEnabled())
 						return;
@@ -2222,6 +2303,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					}
 				}
 
+				@Override
 				public void keyReleased(KeyEvent e) {
 					// handle shift key release when wizard takes focus from TrackerPanel
 					if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
@@ -2234,6 +2316,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 			int delay = 500; // 1/2 second delay for mouseover action
 			timer = new Timer(delay, new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					refreshInfo();
 					refreshDrawingFlags();
@@ -2244,6 +2327,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			timer.setInitialDelay(delay);
 
 			mouseOverListener = new MouseAdapter() {
+				@Override
 				public void mouseEntered(MouseEvent e) {
 					Component c = (Component) e.getSource();
 					while (c.getParent() != null) {
@@ -2267,6 +2351,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					}
 				}
 
+				@Override
 				public void mouseExited(MouseEvent e) {
 					// restart timer to refresh
 					timer.restart();
@@ -2275,6 +2360,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				}
 			};
 			addWindowFocusListener(new java.awt.event.WindowAdapter() {
+				@Override
 				public void windowGainedFocus(java.awt.event.WindowEvent e) {
 					TTrack track = getTrack();
 					if (track != null)
@@ -2286,6 +2372,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 			// create trackDropdown early since need it for spinners
 			trackDropdown = new JComboBox() {
+				@Override
 				public Dimension getPreferredSize() {
 					Dimension dim = super.getPreferredSize();
 					dim.height -= 1;
@@ -2298,6 +2385,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 			trackDropdown.setRenderer(new TrackRenderer());
 			trackDropdown.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					if ("refresh".equals(trackDropdown.getName())) //$NON-NLS-1$
 						return;
@@ -2319,6 +2407,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			startButton = new JButton();
 			startButton.setDisabledIcon(graySearchIcon);
 			final ActionListener searchAction = new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					hidePopup = false;
 					if (stepping) {
@@ -2329,6 +2418,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			};
 
 			startButton.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (hidePopup) {
 						popup.setVisible(false);
@@ -2363,6 +2453,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 							item.setToolTipText(
 									TrackerRes.getString("AutoTracker.Wizard.MenuItem.CopyMatchScores.Tooltip")); //$NON-NLS-1$
 							item.addActionListener(new ActionListener() {
+								@Override
 								public void actionPerformed(ActionEvent e) {
 									hidePopup = false;
 									// get match score data string
@@ -2396,6 +2487,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			startPanel.add(startButton);
 			searchThisButton = new JButton();
 			searchThisButton.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					neverPause = (e.getModifiers() > 16);
 					search(true, false); // search this frame and stop
@@ -2405,6 +2497,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			startPanel.add(searchThisButton);
 			searchNextButton = new JButton();
 			searchNextButton.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					neverPause = (e.getModifiers() > 16);
 					search(false, false); // search next frame and stop
@@ -2463,12 +2556,15 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				evolveSpinner.getComponent(i).addMouseListener(mouseOverListener);
 			JFormattedTextField tf = ((JSpinner.DefaultEditor) evolveSpinner.getEditor()).getTextField();
 			tf.setFormatterFactory(new JFormattedTextField.AbstractFormatterFactory() {
+				@Override
 				public JFormattedTextField.AbstractFormatter getFormatter(JFormattedTextField tf) {
 					JFormattedTextField.AbstractFormatter formatter = new JFormattedTextField.AbstractFormatter() {
+						@Override
 						public String valueToString(Object value) throws ParseException {
 							return value.toString() + "%"; //$NON-NLS-1$
 						}
 
+						@Override
 						public Object stringToValue(String text) throws ParseException {
 							return Integer.parseInt(text.substring(0, text.length() - 1));
 						}
@@ -2480,6 +2576,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			tf.setEnabled(false);
 			tf.setDisabledTextColor(Color.BLACK);
 			ChangeListener listener = new ChangeListener() {
+				@Override
 				public void stateChanged(ChangeEvent e) {
 					if (ignoreChanges)
 						return;
@@ -2509,6 +2606,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			tf.setDisabledTextColor(Color.BLACK);
 			tf.addMouseListener(mouseOverListener);
 			listener = new ChangeListener() {
+				@Override
 				public void stateChanged(ChangeEvent e) {
 					goodMatch = (Integer) acceptSpinner.getValue();
 					setChanged();
@@ -2537,6 +2635,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			oneDCheckbox.setOpaque(false);
 			oneDCheckbox.setSelected(lineSpread >= 0);
 			oneDCheckbox.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					lineSpread = oneDCheckbox.isSelected() ? 0 : -1;
 					setChanged();
@@ -2559,6 +2658,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			lookAheadCheckbox.setOpaque(false);
 			lookAheadCheckbox.setSelected(lookAhead);
 			lookAheadCheckbox.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					lookAhead = lookAheadCheckbox.isSelected();
 					setChanged();
@@ -2588,12 +2688,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			pointLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 
 			pointDropdown = new JComboBox() {
+				@Override
 				public Dimension getPreferredSize() {
 					Dimension dim = super.getPreferredSize();
 					dim.height = trackDropdown.getPreferredSize().height;
 					return dim;
 				}
 
+				@Override
 				public void setSelectedItem(Object o) {
 					super.setSelectedItem(o);
 				}
@@ -2603,6 +2705,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				pointDropdown.getComponent(i).addMouseListener(mouseOverListener);
 			}
 			pointDropdown.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					if ("refresh".equals(pointDropdown.getName())) //$NON-NLS-1$
 						return;
@@ -2643,6 +2746,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			// create buttons
 			closeButton = new JButton();
 			closeButton.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					stop(true, true); // stop after the next search
 					setVisible(false);
@@ -2652,6 +2756,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 			helpButton = new JButton();
 			helpButton.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					trackerPanel.getTFrame().showHelp("autotracker", 0); //$NON-NLS-1$
 				}
@@ -2660,6 +2765,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 			acceptButton = new JButton();
 			acceptButton.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					int n = trackerPanel.getFrameNumber();
 					FrameData frame = getFrame(n);
@@ -2687,6 +2793,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 			skipButton = new JButton();
 			skipButton.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					// set decided flag
 					int n = trackerPanel.getFrameNumber();
@@ -2706,6 +2813,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			skipButton.addKeyListener(kl);
 
 			final Action deleteKeyFrameAction = new AbstractAction() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					int n = trackerPanel.getFrameNumber();
 					KeyFrame keyFrame = getFrame(n).getKeyFrame();
@@ -2777,6 +2885,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			};
 
 			final Action deleteThisAction = new AbstractAction() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					// clear this match and step
 					int n = trackerPanel.getFrameNumber();
@@ -2801,6 +2910,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			};
 
 			final Action deleteLaterAction = new AbstractAction() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					// clear later matches and steps
 					int n = trackerPanel.getFrameNumber();
@@ -2832,6 +2942,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			};
 
 			final Action deleteAllAction = new AbstractAction() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					// clears all matches and steps
 					reset();
@@ -2840,6 +2951,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 			deleteButton = new JButton();
 			deleteButton.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					// first determine what can be deleted
 					int n = trackerPanel.getFrameNumber();
@@ -2907,6 +3019,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 			keyFrameButton = new JButton();
 			keyFrameButton.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					// find all key frames
 					ArrayList<Integer> keyFrames = new ArrayList<Integer>();
@@ -2917,6 +3030,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 							keyFrames.add(i);
 					}
 					Action keyAction = new AbstractAction() {
+						@Override
 						public void actionPerformed(ActionEvent e) {
 							int i = Integer.parseInt(e.getActionCommand());
 							VideoClip clip = trackerPanel.getPlayer().getVideoClip();
@@ -2939,6 +3053,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 			// assemble content
 			infoPanel = new JPanel(new BorderLayout()) {
+				@Override
 				public Dimension getPreferredSize() {
 					if (textPaneSize != null)
 						return textPaneSize;
@@ -3002,6 +3117,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 */
 		protected void refreshStrings() {
 			OSPRuntime.postEvent(new Runnable() {
+				@Override
 				public void run() {
 					refreshStringsAsync();
 				}
@@ -3079,6 +3195,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 */
 		protected void refreshButtons() {
 			OSPRuntime.postEvent(new Runnable() {
+				@Override
 				public void run() {
 					refreshButtonsAsync();
 				}
@@ -3179,6 +3296,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			if (track != null && this.isVisible())
 				track.setMarkByDefault(false);
 			OSPRuntime.postEvent(new Runnable() {
+				@Override
 				public void run() {
 					refreshGUIAsync();
 				}
@@ -3250,6 +3368,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 			pointDropdown.setName(""); //$NON-NLS-1$
 			OSPRuntime.postEvent(new Runnable() {
+				@Override
 				public void run() {
 					startButton.requestFocusInWindow();
 				}
@@ -3261,6 +3380,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 */
 		protected void refreshIcons() {
 			OSPRuntime.postEvent(new Runnable() {
+				@Override
 				public void run() {
 					TTrack track = getTrack();
 					if (getTemplateMatcher() == null || track == null) {
@@ -3292,6 +3412,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 */
 		protected void replaceIcons(final KeyFrame keyFrame) {
 			OSPRuntime.postEvent(new Runnable() {
+				@Override
 				public void run() {
 					TTrack track = getTrack();
 					if (trackerPanel.getVideo() == null || track == null) {
@@ -3689,6 +3810,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			comp = heightComponent;
 		}
 
+		@Override
 		public Dimension getPreferredSize() {
 			Dimension dim = super.getPreferredSize();
 			dim.height = comp.getPreferredSize().height;
@@ -3704,6 +3826,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			super(values);
 		}
 
+		@Override
 		public Object getNextValue() {
 			Object value = super.getNextValue();
 			if ((value == null) && (getList().size() > 0)) {
@@ -3712,6 +3835,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			return value;
 		}
 
+		@Override
 		public Object getPreviousValue() {
 			Object value = super.getPreviousValue();
 			int n = getList().size();

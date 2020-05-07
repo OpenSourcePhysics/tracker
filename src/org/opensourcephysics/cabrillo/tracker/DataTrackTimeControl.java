@@ -40,12 +40,14 @@ public class DataTrackTimeControl extends JPanel implements PropertyChangeListen
 	protected void createGUI() {
 		videoButton = new JRadioButton();
 		videoButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				setTimeSourceToDataTrack(false);
 			}			
 		});
 		dataButton = new JRadioButton();
 		dataButton.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				setTimeSourceToDataTrack(true);
 			}			

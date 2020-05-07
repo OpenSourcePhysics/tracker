@@ -239,7 +239,8 @@ public class PencilControl extends JDialog {
 		};
 		undoButton.setDisabledIcon(undoDisabledIcon);
 		undoButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	undoManager.undo();
     		refreshGUI();
       }
@@ -255,7 +256,8 @@ public class PencilControl extends JDialog {
 		};
 		redoButton.setDisabledIcon(redoDisabledIcon);
 		redoButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	undoManager.redo();
     		refreshGUI();
       }
@@ -263,7 +265,8 @@ public class PencilControl extends JDialog {
 		
 		clearAllButton = new JButton();
 		clearAllButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	if (PencilDrawer.hasDrawings(trackerPanel)) {
       		postClearEdit(drawer.scenes);
       	}
@@ -316,7 +319,8 @@ public class PencilControl extends JDialog {
 		// create spinners
 		startFrameSpinner = new JSpinner();
 		startFrameSpinner.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
+      @Override
+	public void stateChanged(ChangeEvent e) {
       	if (selectedScene==null) return;
       	selectedScene.setStartFrame((Integer)startFrameSpinner.getValue());
       	Collections.sort(drawer.scenes);
@@ -327,7 +331,8 @@ public class PencilControl extends JDialog {
 		
 		endFrameSpinner = new JSpinner();
 		endFrameSpinner.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
+      @Override
+	public void stateChanged(ChangeEvent e) {
       	if (selectedScene==null) return;
       	selectedScene.setEndFrame((Integer)endFrameSpinner.getValue());
       	Collections.sort(drawer.scenes);
@@ -340,7 +345,8 @@ public class PencilControl extends JDialog {
 		fontSizeSpinner = new JSpinner(new SpinnerNumberModel(defaultFontSize, 12, 98, 2));
 		((JSpinner.DefaultEditor)fontSizeSpinner.getEditor()).getTextField().setEditable(false);
 		fontSizeSpinner.addChangeListener(new ChangeListener() {
-      public void stateChanged(ChangeEvent e) {
+      @Override
+	public void stateChanged(ChangeEvent e) {
       	if (selectedScene.getCaption()==null) return;
       	if (refreshing) return;
       	Font font = selectedScene.getCaption().getFont();
@@ -363,7 +369,8 @@ public class PencilControl extends JDialog {
 		};
 		sceneDropdown.setRenderer(new SceneDropdownRenderer());
 		sceneDropdown.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
       	PencilScene scene = (PencilScene)sceneDropdown.getSelectedItem();
       	if (scene==dummyScene) return;
@@ -378,7 +385,8 @@ public class PencilControl extends JDialog {
 		// create caption field
 		captionField = new JTextField(16);
 		captionField.addKeyListener(new KeyAdapter() {
-      public void keyReleased(KeyEvent e) {
+      @Override
+	public void keyReleased(KeyEvent e) {
       	if (e.getKeyCode()==KeyEvent.VK_ENTER) return;
       	String text = captionField.getText();
       	if (!selectedScene.isCaptionPositioned && !"".equals(text.trim())) { //$NON-NLS-1$
@@ -406,6 +414,7 @@ public class PencilControl extends JDialog {
       }
     });
 		postCaptionEditAction = new AbstractAction() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
       	String text = selectedScene.getCaption().getText().trim();
     		selectedScene.getCaption().setText(text);

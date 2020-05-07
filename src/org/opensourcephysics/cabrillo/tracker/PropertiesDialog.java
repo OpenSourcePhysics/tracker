@@ -39,7 +39,6 @@ import javax.swing.table.TableModel;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
-import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.tools.FontSizer;
@@ -147,7 +146,8 @@ public class PropertiesDialog extends JDialog {
     JButton button = new JButton(TrackerRes.getString("PropertiesDialog.Button.CopyFilePath")); //$NON-NLS-1$
     button.setForeground(new Color(0, 0, 102));
     button.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	trkTable.setRowSelectionInterval(1, 1);
       	trkTable.setColumnSelectionInterval(1, 1);
       	String s = trkTable.getValueAt(1, 1).toString();
@@ -236,7 +236,8 @@ public class PropertiesDialog extends JDialog {
 	    button = new JButton(TrackerRes.getString("PropertiesDialog.Button.CopyVideoPath")); //$NON-NLS-1$
 	    button.setForeground(new Color(0, 0, 102));
 	    button.addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent e) {
+	      @Override
+		public void actionPerformed(ActionEvent e) {
 	      	videoTable.setRowSelectionInterval(1, 1);
 	      	videoTable.setColumnSelectionInterval(1, 1);
 	      	String s = videoTable.getValueAt(1, 1).toString();
@@ -283,7 +284,8 @@ public class PropertiesDialog extends JDialog {
     okButton = new JButton(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
     okButton.setForeground(new Color(0, 0, 102));
     okButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	String s = authorField.getText();
       	trackerPanel.author = "".equals(s)? null: s; //$NON-NLS-1$
       	s = contactField.getText();
@@ -295,7 +297,8 @@ public class PropertiesDialog extends JDialog {
     cancelButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
     cancelButton.setForeground(new Color(0, 0, 102));
     cancelButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
@@ -330,45 +333,56 @@ public class PropertiesDialog extends JDialog {
    * A class to provide model data for the video table.
    */
   class VideoTableModel extends AbstractTableModel {
-    public int getRowCount() {return vidProps.length;}
+    @Override
+	public int getRowCount() {return vidProps.length;}
 
-    public int getColumnCount() {return 2;}
+    @Override
+	public int getColumnCount() {return 2;}
 
-    public Object getValueAt(int row, int col) {return col==0? vidProps[row]: vidValues[row];}
+    @Override
+	public Object getValueAt(int row, int col) {return col==0? vidProps[row]: vidValues[row];}
     
-    public String getColumnName(int col) {
+    @Override
+	public String getColumnName(int col) {
     	return col==0? TrackerRes.getString("PropertiesDialog.Header.Property"): //$NON-NLS-1$
     		TrackerRes.getString("PropertiesDialog.Header.Value"); //$NON-NLS-1$
     }
     
-    public Class<?> getColumnClass(int col) {return String.class;}
+    @Override
+	public Class<?> getColumnClass(int col) {return String.class;}
   }
   
   /**
    * A class to provide model data for the trk table.
    */
   class TRKTableModel extends AbstractTableModel {
-    public int getRowCount() {return trkProps.size();}
+    @Override
+	public int getRowCount() {return trkProps.size();}
 
-    public int getColumnCount() {return 2;}
+    @Override
+	public int getColumnCount() {return 2;}
 
-    public Object getValueAt(int row, int col) {
+    @Override
+	public Object getValueAt(int row, int col) {
     	return col==0? trkProps.get(row): trkValues.get(row);
     }
     
-    public String getColumnName(int col) {
+    @Override
+	public String getColumnName(int col) {
     	return col==0? TrackerRes.getString("PropertiesDialog.Header.Property"): //$NON-NLS-1$
     		TrackerRes.getString("PropertiesDialog.Header.Value"); //$NON-NLS-1$
     }
     
-    public Class<?> getColumnClass(int col) {return String.class;}
+    @Override
+	public Class<?> getColumnClass(int col) {return String.class;}
   }
   
   /**
    * A class to render table cells.
    */
   class PropertyCellRenderer extends DefaultTableCellRenderer {
-    public Component getTableCellRendererComponent(JTable table, Object val,
+    @Override
+	public Component getTableCellRendererComponent(JTable table, Object val,
         boolean selected, boolean hasFocus, int row, int col) {
 			setToolTipText(row==1 && col==1 && val!=null? val.toString(): null);
 			setBackground(Color.white);

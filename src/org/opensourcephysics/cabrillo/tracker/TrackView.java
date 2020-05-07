@@ -30,8 +30,6 @@ import java.util.*;
 
 import javax.swing.*;
 
-import org.opensourcephysics.controls.OSPLog;
-
 /**
  * This displays a view of a single track on a TrackerPanel.
  *
@@ -74,7 +72,8 @@ public abstract class TrackView extends JScrollPane
 
   abstract JButton getViewButton();
   
-  public String getName() {
+  @Override
+public String getName() {
   	TTrack track = getTrack();
     return track.getName();
   }
@@ -103,7 +102,8 @@ public abstract class TrackView extends JScrollPane
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
     if (name.equals("step")) { // from track //$NON-NLS-1$
     	Integer i = (Integer)e.getNewValue();

@@ -127,7 +127,8 @@ public class UnitsDialog extends JDialog {
     // close button
     closeButton = new JButton();
     closeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
@@ -263,7 +264,8 @@ public class UnitsDialog extends JDialog {
   	UnitField(int len) {
   		super(len);
       addKeyListener(new KeyAdapter() {
-        public void keyPressed(KeyEvent e) {      
+        @Override
+		public void keyPressed(KeyEvent e) {      
           if(e.getKeyCode()==KeyEvent.VK_ENTER) {
             setUnit(UnitField.this);
           } 
@@ -274,7 +276,8 @@ public class UnitsDialog extends JDialog {
 
       });
       addFocusListener(new FocusAdapter() {
-        public void focusLost(FocusEvent e) {
+        @Override
+		public void focusLost(FocusEvent e) {
     			if (getBackground()==Color.yellow) {
             setUnit(UnitField.this);
     			}

@@ -140,7 +140,8 @@ public class Upgrader {
 				// download and launch installer in separate thread
     		final File downloads = downloadDir;
     		Runnable runner = new Runnable() {
-    			public void run() {
+    			@Override
+				public void run() {
   	    		File installer = new File(downloads, upgradeInstallerName);
   					// show relaunching dialog during download
     				downloadLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Upgrade.Text") //$NON-NLS-1$
@@ -237,7 +238,8 @@ public class Upgrader {
     		return;
     	}
     		Runnable runner = new Runnable() {
-  			public void run() {
+  			@Override
+			public void run() {
 					// show relaunching dialog during downloads
   				downloadLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Text") //$NON-NLS-1$
   						+" "+Tracker.trackerHome+".")); //$NON-NLS-1$ //$NON-NLS-2$
@@ -340,7 +342,8 @@ public class Upgrader {
 				final File downloads = downloadDir;
 				// download, mount dmg and run installer in separate thread
     		Runnable runner = new Runnable() {
-    			public void run() {
+    			@Override
+				public void run() {
   	    		File dmgFile = new File(downloads, dmgFileName);
     				String appName = "TrackerUpgrade-"+Tracker.newerVersion+"-osx-installer.app"; //$NON-NLS-1$ //$NON-NLS-2$
   					// show relaunching dialog during download
@@ -484,7 +487,8 @@ public class Upgrader {
 				final File downloads = downloadDir;
 				// download and run installer in separate thread
     		Runnable runner = new Runnable() {
-    			public void run() {
+    			@Override
+				public void run() {
   					// show relaunching dialog during download
     				downloadLabel.setText((TrackerRes.getString("TTrackBar.Dialog.Relaunch.DownloadLabel.Upgrade.Text") //$NON-NLS-1$
     						+" "+downloads.getPath()+"/"+upgradeFileName+".")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -508,7 +512,8 @@ public class Upgrader {
   	    			field.setBackground(Color.white);
   	    			field.setEditable(false);
   	    			field.addMouseListener(new MouseAdapter() {
-  	    	    	public void mousePressed(MouseEvent e) {
+  	    	    	@Override
+					public void mousePressed(MouseEvent e) {
   	  	    			field.selectAll();
   	    	    	}
   	    	    });
@@ -600,7 +605,8 @@ public class Upgrader {
   private File chooseDownloadDirectory(Component parent, File likely) {
 
   	JFileChooser chooser = new JFileChooser() {
-      public void approveSelection() {
+      @Override
+	public void approveSelection() {
           if (getSelectedFile().isFile()) {
               return;
           } else
@@ -611,12 +617,14 @@ public class Upgrader {
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     javax.swing.filechooser.FileFilter folderFilter = new javax.swing.filechooser.FileFilter() {
       // accept directories only
-      public boolean accept(File f) {
+      @Override
+	public boolean accept(File f) {
       	if (f==null) return false;
       	if (f.getName().endsWith(".app")) return false; //$NON-NLS-1$
         return f.isDirectory();
       }
-      public String getDescription() {
+      @Override
+	public String getDescription() {
         return ToolsRes.getString("LibraryTreePanel.FolderFileFilter.Description"); //$NON-NLS-1$
       } 	     	
     };

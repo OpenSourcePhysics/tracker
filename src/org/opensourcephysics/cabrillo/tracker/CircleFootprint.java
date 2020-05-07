@@ -84,7 +84,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    *
    * @return the clone
    */
-  protected Object clone() throws CloneNotSupportedException {
+  @Override
+protected Object clone() throws CloneNotSupportedException {
   	CircleFootprint clone = (CircleFootprint)super.clone();
   	clone.circle = new Ellipse2D.Double();
   	return clone;
@@ -113,7 +114,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    *
    * @return the name
    */
-  public String getName() {
+  @Override
+public String getName() {
     return name;
   }
 
@@ -122,7 +124,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    *
    * @return the localized display name
    */
-  public String getDisplayName() {
+  @Override
+public String getDisplayName() {
   	return TrackerRes.getString(name);
   }
 
@@ -131,7 +134,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    *
    * @return the length
    */
-  public int getLength() {
+  @Override
+public int getLength() {
     return 1;
   }
 
@@ -142,7 +146,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {
+  @Override
+public Icon getIcon(int w, int h) {
     int scale = FontSizer.getIntegerFactor();
     w *= scale;
     h *= scale;
@@ -171,13 +176,15 @@ public class CircleFootprint implements Footprint, Cloneable {
    * @param points a Point array
    * @return the mark
    */
-  public Mark getMark(Point[] points) {
+  @Override
+public Mark getMark(Point[] points) {
     final Shape shape = getShape(points);
     final Shape outline = this.outline;
     final Shape highlight = this.highlight;
     final Shape spot = this.spot;
     return new Mark() {
-      public void draw(Graphics2D g, boolean highlighted) {
+      @Override
+	public void draw(Graphics2D g, boolean highlighted) {
         Paint gpaint = g.getPaint();
         g.setPaint(color);
         if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -196,7 +203,8 @@ public class CircleFootprint implements Footprint, Cloneable {
         g.setPaint(gpaint);
       }
 
-      public Rectangle getBounds(boolean highlighted) {
+      @Override
+	public Rectangle getBounds(boolean highlighted) {
         Rectangle bounds = shape.getBounds();
         if (highlighted) bounds.add(highlight.getBounds());
         return bounds;
@@ -209,7 +217,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    *
    * @return the hit shapes
    */
-  public Shape[] getHitShapes() {
+  @Override
+public Shape[] getHitShapes() {
     return hitShapes;
   }
 
@@ -218,7 +227,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    *
    * @param stroke the stroke
    */
-  public void setStroke(BasicStroke stroke) {
+  @Override
+public void setStroke(BasicStroke stroke) {
     baseOutlineStroke = stroke;
   	baseHighlightStroke = new BasicStroke(stroke.getLineWidth()+1.0f);
   }
@@ -228,7 +238,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    *
    * @return the stroke
    */
-  public BasicStroke getStroke() {
+  @Override
+public BasicStroke getStroke() {
     return null;
   }
 
@@ -237,7 +248,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    *
    * @param color the desired color
    */
-  public void setColor(Color color) {
+  @Override
+public void setColor(Color color) {
     this.color = new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
     highlightColor = new Color(color.getRed(), color.getGreen(), color.getBlue());
   }
@@ -247,7 +259,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    *
    * @return the color
    */
-  public Color getColor() {
+  @Override
+public Color getColor() {
     return highlightColor;
   }
 
@@ -377,7 +390,8 @@ public class CircleFootprint implements Footprint, Cloneable {
    * @param points an array of points
    * @return the fill shape
    */
-  public Shape getShape(Point[] points) {
+  @Override
+public Shape getShape(Point[] points) {
     Point p = points[0];
     transform.setToTranslation(p.x, p.y);
     int scale = FontSizer.getIntegerFactor();
@@ -450,7 +464,8 @@ public class CircleFootprint implements Footprint, Cloneable {
     	tf.setEnabled(false);
     	tf.setDisabledTextColor(Color.BLACK);
       ChangeListener listener = new ChangeListener() {
-        public void stateChanged(ChangeEvent e) {
+        @Override
+		public void stateChanged(ChangeEvent e) {
           int radius = (Integer)spinner.getValue();
           if (radius==r) return;
           setRadius(radius);
@@ -471,7 +486,8 @@ public class CircleFootprint implements Footprint, Cloneable {
       boldCheckbox.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
       boldCheckbox.setOpaque(false);
       boldCheckbox.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
   		  	float f = boldCheckbox.isSelected()? boldStrokeSize: plainStrokeSize;
   		  	setStroke(new BasicStroke(f));
   		  	if (trackerPanel!=null) {
@@ -488,7 +504,8 @@ public class CircleFootprint implements Footprint, Cloneable {
       spotCheckbox = new JCheckBox(TrackerRes.getString("CircleFootprint.Dialog.Checkbox.CenterSpot")); //$NON-NLS-1$
       spotCheckbox.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
       spotCheckbox.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
   		  	setSpotShown(spotCheckbox.isSelected());
   		  	if (trackerPanel!=null) {
 	          trackerPanel.changed = true;
@@ -506,7 +523,8 @@ public class CircleFootprint implements Footprint, Cloneable {
       contentPane.add(lower, BorderLayout.SOUTH);
       okButton = new JButton(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
       okButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
   		  	setVisible(false);
   		  	if (trackerPanel!=null) {
             TTrack track = TTrack.getTrack(trackID);
@@ -517,7 +535,8 @@ public class CircleFootprint implements Footprint, Cloneable {
       lower.add(okButton);
       cancelButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
       cancelButton.addActionListener(new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
+        @Override
+		public void actionPerformed(ActionEvent e) {
 	        setSpotShown(prevSpot);
 	        setStroke(new BasicStroke(prevStrokeSize));
 	        setRadius(prevRadius);

@@ -85,7 +85,8 @@ public class DoubleCrosshairFootprint extends LineFootprint {
    * @param h height of the icon
    * @return the icon
    */
-  public Icon getIcon(int w, int h) {
+  @Override
+public Icon getIcon(int w, int h) {
     int scale = FontSizer.getIntegerFactor();
     w *= scale;
     h *= scale;
@@ -112,7 +113,8 @@ public class DoubleCrosshairFootprint extends LineFootprint {
    *
    * @param stroke the desired stroke
    */
-  public void setStroke(BasicStroke stroke) {
+  @Override
+public void setStroke(BasicStroke stroke) {
     if (stroke == null) return;
     this.baseStroke = stroke;
   }
@@ -123,7 +125,8 @@ public class DoubleCrosshairFootprint extends LineFootprint {
    * @param points an array of Points
    * @return the shape
    */
-  public Shape getShape(Point[] points) {
+  @Override
+public Shape getShape(Point[] points) {
     Point p1 = points[0];
     Point p2 = points[1];
     

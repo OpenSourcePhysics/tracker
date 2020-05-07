@@ -85,7 +85,8 @@ public class TrackControl extends JDialog
     setContentPane(trackBarPanel);
     shiftKeyListener = new KeyAdapter() {
     	// transfers focus to trackerPanel for marking
-      public void keyPressed(KeyEvent e) {
+      @Override
+	public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
         	trackerPanel.requestFocus();
         	trackerPanel.requestFocusInWindow();
@@ -110,12 +111,14 @@ public class TrackControl extends JDialog
 //    trackerPanel.addPropertyChangeListener("color", this); //$NON-NLS-1$
   }
 
+	@Override
 	public Dimension getPreferredSize() {
 		Dimension dim = super.getPreferredSize();
     dim.width = Math.max(150, dim.width);
     return dim;
 	}
 	
+	@Override
 	public void setVisible(boolean vis) {
 		if (trackerPanel==null) return;
 		TFrame frame = trackerPanel.getTFrame();
@@ -141,7 +144,8 @@ public class TrackControl extends JDialog
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
       if (e.getNewValue() == trackerPanel) {
         setVisible(isVisible);
@@ -178,7 +182,8 @@ public class TrackControl extends JDialog
   /**
    * Disposes of this track control.
    */
-  public void dispose() {
+  @Override
+public void dispose() {
     if (trackerPanel != null) {
       trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
       trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$

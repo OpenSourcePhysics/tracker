@@ -138,7 +138,8 @@ public class Protractor extends TTrack {
     inputPanel.add(inputField);
     // add inputField action listener to exit editing mode
     inputField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         if (editing) {
           int n = trackerPanel.getFrameNumber();
           ProtractorStep step = ((ProtractorStep)getStep(n));
@@ -148,10 +149,12 @@ public class Protractor extends TTrack {
     });
     // add inputField focus listener
     inputField.addFocusListener(new FocusAdapter() {
-      public void focusGained(FocusEvent e) {
+      @Override
+	public void focusGained(FocusEvent e) {
         inputField.selectAll();
       }
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
         if (editing) {
           int n = trackerPanel.getFrameNumber();
           ProtractorStep step = ((ProtractorStep)getStep(n));
@@ -161,14 +164,16 @@ public class Protractor extends TTrack {
     });
     // add mouse listener to toggle editing mode
     editListener = new MouseAdapter() {
-      public void mousePressed(MouseEvent e) {
+      @Override
+	public void mousePressed(MouseEvent e) {
         if (editing) {
           int n = trackerPanel.getFrameNumber();
           ProtractorStep tape = (ProtractorStep)getStep(n);
           setEditing(false, tape);
         }
       }
-      public void mouseClicked(MouseEvent e) {
+      @Override
+	public void mouseClicked(MouseEvent e) {
         if (isLocked()) return;
         int n = trackerPanel.getFrameNumber();
         ProtractorStep step = (ProtractorStep)getStep(n);
@@ -194,19 +199,22 @@ public class Protractor extends TTrack {
     steps = new StepArray(step); // autofills
     fixedItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
     fixedItem.addItemListener(new ItemListener() {
-      public void itemStateChanged(ItemEvent e) {
+      @Override
+	public void itemStateChanged(ItemEvent e) {
         setFixed(fixedItem.isSelected());
       }
     });
   	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
   	attachmentItem.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	AttachmentDialog control = trackerPanel.getAttachmentDialog(Protractor.this);
       	control.setVisible(true);
       }
     });
     final FocusListener arcFocusListener = new FocusAdapter() {
-      public void focusLost(FocusEvent e) {
+      @Override
+	public void focusLost(FocusEvent e) {
       	if (angleField.getBackground() == Color.yellow) {
 	        int n = trackerPanel.getFrameNumber();
 	        ProtractorStep step = (ProtractorStep)getStep(n);
@@ -223,7 +231,8 @@ public class Protractor extends TTrack {
     };
     angleField.addFocusListener(arcFocusListener);
     angleField.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	arcFocusListener.focusLost(null);
       	angleField.requestFocusInWindow();
       }
@@ -266,7 +275,8 @@ public class Protractor extends TTrack {
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();    
     if (trackerPanel.getSelectedTrack() == this) {
       if (name.equals("stepnumber")) { //$NON-NLS-1$
@@ -275,7 +285,7 @@ public class Protractor extends TTrack {
   	    step.getFormattedLength(step.end1); // refreshes x field
   	    step.getFormattedLength(step.end2); // refreshes y field
   	    step.arcHighlight = null;
-	      stepValueLabel.setText((Integer)e.getNewValue()+":"); //$NON-NLS-1$
+	      stepValueLabel.setText(e.getNewValue()+":"); //$NON-NLS-1$
       }
       else if (name.equals("selectedpoint")) { //$NON-NLS-1$
       	TPoint p = trackerPanel.getSelectedPoint();
@@ -302,7 +312,8 @@ public class Protractor extends TTrack {
    *
    * @param visible ignored
    */
-  public void setTrailVisible(boolean visible) {/** empty block */}
+  @Override
+public void setTrailVisible(boolean visible) {/** empty block */}
 
   /**
    * Implements createStep but only mimics step creation since
@@ -313,7 +324,8 @@ public class Protractor extends TTrack {
    * @param y the y coordinate in image space
    * @return the step
    */
-  public Step createStep(int n, double x, double y) {
+  @Override
+public Step createStep(int n, double x, double y) {
     Step step = steps.getStep(n);
     TPoint[] pts = step.getPoints();
     TPoint p = trackerPanel==null? null: trackerPanel.getSelectedPoint();
@@ -356,7 +368,8 @@ public class Protractor extends TTrack {
    * @param y the y target coordinate in image space
    * @return the TPoint that was automarked
    */
-  public TPoint autoMarkAt(int n, double x, double y) {
+  @Override
+public TPoint autoMarkAt(int n, double x, double y) {
   	setFixed(false);
   	ProtractorStep step = (ProtractorStep)steps.getStep(n);
   	int i = getTargetIndex();
@@ -380,7 +393,8 @@ public class Protractor extends TTrack {
    * @param n the frame number
    * @return the deleted step
    */
-  public Step deleteStep(int n) {
+  @Override
+public Step deleteStep(int n) {
     return null;
   }
 
@@ -390,7 +404,8 @@ public class Protractor extends TTrack {
    * @param n the frame number
    * @return the step
    */
-  public Step getStep(int n) {
+  @Override
+public Step getStep(int n) {
     ProtractorStep step = (ProtractorStep)steps.getStep(n);
 		refreshStep(step);
     return step;
@@ -401,7 +416,8 @@ public class Protractor extends TTrack {
    *
    * @return the footprint length
    */
-  public int getStepLength() {
+  @Override
+public int getStepLength() {
   	return ProtractorStep.getLength();
   }
 
@@ -410,7 +426,8 @@ public class Protractor extends TTrack {
    *
    * @return true if autotrackable
    */
-  protected boolean isAutoTrackable() {
+  @Override
+protected boolean isAutoTrackable() {
   	return true;
   }
   
@@ -420,7 +437,8 @@ public class Protractor extends TTrack {
    * @param pointIndex the points[] index
    * @return true if autotrackable
    */
-  protected boolean isAutoTrackable(int pointIndex) {
+  @Override
+protected boolean isAutoTrackable(int pointIndex) {
   	return pointIndex<3;
   }
   
@@ -430,7 +448,8 @@ public class Protractor extends TTrack {
    * @param pointIndex the index
    * @return the description
    */
-  protected String getTargetDescription(int pointIndex) {
+  @Override
+protected String getTargetDescription(int pointIndex) {
   	if (pointIndex==0) return TrackerRes.getString("Protractor.Vertex.Name"); //$NON-NLS-1$
   	if (pointIndex==1) return TrackerRes.getString("Protractor.Base.Name"); //$NON-NLS-1$
   	return TrackerRes.getString("Protractor.End.Name"); //$NON-NLS-1$
@@ -441,7 +460,8 @@ public class Protractor extends TTrack {
    *
    * @return the footprint length
    */
-  public int getFootprintLength() {
+  @Override
+public int getFootprintLength() {
     return 3;
   }
 
@@ -451,7 +471,8 @@ public class Protractor extends TTrack {
    * @param data the DatasetManager
    * @param trackerPanel the tracker panel
    */
-  protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
+  @Override
+protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
     if (refreshDataLater || trackerPanel == null || data == null) return;
     dataFrames.clear();
     // get the datasets
@@ -522,7 +543,8 @@ public class Protractor extends TTrack {
    * 
    * @return the attachments array
    */
-  public TTrack[] getAttachments() {
+  @Override
+public TTrack[] getAttachments() {
     if (attachments==null) {
     	attachments = new TTrack[3];
     }
@@ -540,7 +562,8 @@ public class Protractor extends TTrack {
    * @param n the attachment point index
    * @return the description
    */
-  public String getAttachmentDescription(int n) {
+  @Override
+public String getAttachmentDescription(int n) {
   	// end1 is "base", end2 is "arm"
   	return n==0? TrackerRes.getString("AttachmentInspector.Label.Vertex"): //$NON-NLS-1$
   				 n==1? TrackerRes.getString("Protractor.Attachment.Arm"): //$NON-NLS-1$
@@ -553,7 +576,8 @@ public class Protractor extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a menu
    */
-  public JMenu getMenu(TrackerPanel trackerPanel) {
+  @Override
+public JMenu getMenu(TrackerPanel trackerPanel) {
     JMenu menu = super.getMenu(trackerPanel);
         
 //    lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
@@ -596,7 +620,8 @@ public class Protractor extends TTrack {
    * @param trackerPanel the tracker panel
    * @return a list of components
    */
-  public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
+  @Override
+public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel) {
   	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
   	
     stepLabel.setText(TrackerRes.getString("TTrack.Label.Step")); //$NON-NLS-1$
@@ -639,7 +664,8 @@ public class Protractor extends TTrack {
    * @param ypix the y pixel position on the panel
    * @return the first step or motion vector that is hit
    */
-  public Interactive findInteractive(
+  @Override
+public Interactive findInteractive(
     DrawingPanel panel, int xpix, int ypix) {
     if (!(panel instanceof TrackerPanel) || !isVisible())
       return null;
@@ -688,7 +714,8 @@ public class Protractor extends TTrack {
    *
    * @return the name of this track
    */
-  public String toString() {
+  @Override
+public String toString() {
     return TrackerRes.getString("Protractor.Name"); //$NON-NLS-1$
   }
 
@@ -713,7 +740,8 @@ public class Protractor extends TTrack {
 		JMenuItem item = new JMenuItem();
 		final boolean radians = angleField.getConversionFactor()==1;
 		item.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	TFrame frame = trackerPanel.getTFrame();
       	frame.setAnglesInRadians(!radians);
       }
@@ -727,7 +755,8 @@ public class Protractor extends TTrack {
 			item = new JMenuItem();
 			final String[] selected = new String[] {Tracker.THETA};
 			item.addActionListener(new ActionListener() {
-	      public void actionPerformed(ActionEvent e) {
+	      @Override
+		public void actionPerformed(ActionEvent e) {
 	      	TrackerPanel tp = Protractor.this.trackerPanel;
 	        NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(tp, Protractor.this, selected);
 	  	    dialog.setVisible(true);
@@ -747,7 +776,8 @@ public class Protractor extends TTrack {
    *
    * @param panel the TrackerPanel
    */
-  protected void setTrackerPanel(TrackerPanel panel) {
+  @Override
+protected void setTrackerPanel(TrackerPanel panel) {
   	if (trackerPanel != null) { 
   		trackerPanel.removeMouseListener(editListener);
   		trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
@@ -833,7 +863,8 @@ public class Protractor extends TTrack {
     }
     final ProtractorStep step = target;
     Runnable runner = new Runnable() {
-      public void run() {
+      @Override
+	public void run() {
         if (editing) {
         	trackerPanel.setSelectedTrack(Protractor.this);
           inputField.setForeground(footprint.getColor());
@@ -900,7 +931,8 @@ public class Protractor extends TTrack {
      * @param control the control to save to
      * @param obj the object to save
      */
-    public void saveObject(XMLControl control, Object obj) {
+    @Override
+	public void saveObject(XMLControl control, Object obj) {
       Protractor protractor = (Protractor)obj;
       // save track data
       XML.getLoader(TTrack.class).saveObject(control, obj);
@@ -933,7 +965,8 @@ public class Protractor extends TTrack {
      * @param control the control
      * @return the newly created object
      */
-    public Object createObject(XMLControl control){
+    @Override
+	public Object createObject(XMLControl control){
       return new Protractor();
     }
 
@@ -944,7 +977,8 @@ public class Protractor extends TTrack {
      * @param obj the object
      * @return the loaded object
      */
-    public Object loadObject(XMLControl control, Object obj) {
+    @Override
+	public Object loadObject(XMLControl control, Object obj) {
     	Protractor protractor = (Protractor)obj;
       // load track data
       XML.getLoader(TTrack.class).loadObject(control, obj);

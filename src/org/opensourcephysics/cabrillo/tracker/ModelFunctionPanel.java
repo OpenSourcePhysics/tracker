@@ -41,6 +41,7 @@ public class ModelFunctionPanel extends FunctionPanel {
 	 * 
 	 * @return a string describing the type of function
 	 */
+	@Override
 	public String getLabel() {
 		return TrackerRes.getString("ModelFunctionPanel.Label"); //$NON-NLS-1$
 	}
@@ -50,7 +51,8 @@ public class ModelFunctionPanel extends FunctionPanel {
    *
    * @return the display name
    */
-  public String getDisplayName() {
+  @Override
+public String getDisplayName() {
   	if (model != null)
   		return model.getDisplayName();
   	return super.getDisplayName();
@@ -77,6 +79,7 @@ public class ModelFunctionPanel extends FunctionPanel {
 	/**
 	 * Creates the GUI.
 	 */
+	@Override
 	protected void createGUI() {
 		super.createGUI();
 		initEditor = new InitialValueEditor(getParamEditor());
@@ -95,7 +98,8 @@ public class ModelFunctionPanel extends FunctionPanel {
    * 
    * @return the icon
    */
-  public Icon getIcon() {
+  @Override
+public Icon getIcon() {
   	if (model != null)
   		return model.getIcon(21, 16, "model"); //$NON-NLS-1$
     return null;
@@ -104,7 +108,8 @@ public class ModelFunctionPanel extends FunctionPanel {
   /**
 	 * Refreshes the GUI.
 	 */
-  protected void refreshGUI() {
+  @Override
+protected void refreshGUI() {
   	super.refreshGUI();
     initEditor.refreshGUI();
   }
@@ -112,7 +117,8 @@ public class ModelFunctionPanel extends FunctionPanel {
 	/**
    * Refreshes the functions.
    */
-  protected void refreshFunctions() {
+  @Override
+protected void refreshFunctions() {
   	if (paramEditor != null) {
     	UserFunction[] functions = ((UserFunctionEditor)functionEditor).getMainFunctions();
   		for (int i = 0; i < functions.length; i++) {
@@ -132,6 +138,7 @@ public class ModelFunctionPanel extends FunctionPanel {
 	/**
 	 * Clears the selection.
 	 */
+	@Override
 	protected void clearSelection() {
 		super.clearSelection();
   	initEditor.getTable().clearSelection();
@@ -140,7 +147,8 @@ public class ModelFunctionPanel extends FunctionPanel {
   /**
    * Disposes of this panel.
    */
-  protected void dispose() {
+  @Override
+protected void dispose() {
   	if (paramEditor==null) {
   		// already disposed!
   		return;
@@ -162,6 +170,7 @@ public class ModelFunctionPanel extends FunctionPanel {
 	 * 
 	 * @param editor the current editor
 	 */
+	@Override
 	protected void tabToNext(FunctionEditor editor) {
 		if (editor == paramEditor) {
 			initEditor.getTable().requestFocusInWindow();
@@ -174,6 +183,7 @@ public class ModelFunctionPanel extends FunctionPanel {
    *
    * @param e the event
    */
+	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		super.propertyChange(e);
 		String name = e.getPropertyName();

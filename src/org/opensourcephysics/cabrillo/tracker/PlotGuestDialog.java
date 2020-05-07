@@ -60,7 +60,8 @@ public class PlotGuestDialog extends JDialog {
     trackerPanel = panel;
     // listener for the checkboxes
     listener = new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem)e.getSource();
       	int id = Integer.parseInt(checkbox.getActionCommand());
 	      TTrack track = TTrack.getTrack(id);
@@ -97,7 +98,8 @@ public class PlotGuestDialog extends JDialog {
     okButton = new JButton(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
     okButton.setForeground(new Color(0, 0, 102));
     okButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
@@ -105,7 +107,8 @@ public class PlotGuestDialog extends JDialog {
     selectAllButton = new JButton(TrackerRes.getString("PlotGuestDialog.Button.SelectAll.Text")); //$NON-NLS-1$
     selectAllButton.setForeground(new Color(0, 0, 102));
     selectAllButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
       	for (Integer id: allTracks) {
 		      TTrack track = TTrack.getTrack(id);
 		      if (allTracksSelected) {

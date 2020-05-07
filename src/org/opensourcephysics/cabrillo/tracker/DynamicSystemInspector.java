@@ -97,7 +97,8 @@ public class DynamicSystemInspector extends JDialog
    *
    * @param e the property change event
    */
-  public void propertyChange(PropertyChangeEvent e) {
+  @Override
+public void propertyChange(PropertyChangeEvent e) {
     if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
       if (trackerPanel != null && e.getNewValue() == trackerPanel) {
         setVisible(isVisible);
@@ -121,7 +122,8 @@ public class DynamicSystemInspector extends JDialog
    *
    * @param vis true to show this inspector
    */
-  public void setVisible(boolean vis) {
+  @Override
+public void setVisible(boolean vis) {
     super.setVisible(vis);
     isVisible = vis;
   }
@@ -129,6 +131,7 @@ public class DynamicSystemInspector extends JDialog
 	/**
 	 * Disposes of this inspector.
 	 */
+	@Override
 	public void dispose() {
 		if (trackerPanel != null) {
 			trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
@@ -154,6 +157,7 @@ public class DynamicSystemInspector extends JDialog
    */
   private void createGUI() {
     changeParticleListener = new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				final JButton button = (JButton) e.getSource();
 				final int n = button == changeButtons[0] ? 0 : 1;
@@ -172,6 +176,7 @@ public class DynamicSystemInspector extends JDialog
 					final JMenuItem cloneItem = new JMenuItem(p.getName(), p.getFootprint().getIcon(21, 16));
 					cloneItem.setActionCommand(p.getName());
 					cloneItem.addActionListener(new ActionListener() {
+						@Override
 						public void actionPerformed(ActionEvent e) {
 							newParticle = null;
 							cloneAction.actionPerformed(e);
@@ -188,6 +193,7 @@ public class DynamicSystemInspector extends JDialog
 					// add items to popup menu
 					hasPopupItems = true;
 					final JMenuItem item = new JMenuItem(p.getName(), p.getFootprint().getIcon(21, 16)) {
+						@Override
 						public Dimension getPreferredSize() {
 							Dimension dim = super.getPreferredSize();
 							int w = button.getPreferredSize().width - 2;
@@ -196,6 +202,7 @@ public class DynamicSystemInspector extends JDialog
 						}
 					};
 					item.addActionListener(new ActionListener() {
+						@Override
 						public void actionPerformed(ActionEvent e) {
 							selectedParticles[n] = getParticle(item.getText());
 							updateSystem();
@@ -206,6 +213,7 @@ public class DynamicSystemInspector extends JDialog
 				if (hasPopupItems)
 					popup.addSeparator();
 				JMenu newMenu = new JMenu(TrackerRes.getString("TrackControl.Button.NewTrack")) { //$NON-NLS-1$
+					@Override
 					public Dimension getPreferredSize() {
 						Dimension dim = super.getPreferredSize();
 						int w = button.getPreferredSize().width - 2;
@@ -217,6 +225,7 @@ public class DynamicSystemInspector extends JDialog
 
 				JMenuItem cartesianItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Cartesian")); //$NON-NLS-1$
 				cartesianItem.addActionListener(new ActionListener() {
+					@Override
 					public void actionPerformed(ActionEvent e) {
 						newParticle = null;
 						cartesianAction.actionPerformed(e);
@@ -230,6 +239,7 @@ public class DynamicSystemInspector extends JDialog
 				newMenu.add(cartesianItem);
 				JMenuItem polarItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Polar")); //$NON-NLS-1$
 				polarItem.addActionListener(new ActionListener() {
+					@Override
 					public void actionPerformed(ActionEvent e) {
 						newParticle = null;
 						polarAction.actionPerformed(e);
@@ -245,6 +255,7 @@ public class DynamicSystemInspector extends JDialog
 					popup.add(cloneMenu);
 				JMenuItem noneItem = new JMenuItem(TrackerRes.getString("DynamicSystemInspector.ParticleName.None")); //$NON-NLS-1$
 				noneItem.addActionListener(new ActionListener() {
+					@Override
 					public void actionPerformed(ActionEvent e) {
 						newParticle = null;
 						selectedParticles[n] = null;
@@ -259,12 +270,14 @@ public class DynamicSystemInspector extends JDialog
 			}
     };
   	selectListener = new MouseAdapter() {
-  		public void mousePressed(MouseEvent e) {
+  		@Override
+		public void mousePressed(MouseEvent e) {
   			TButton button = (TButton)e.getSource();
   			TTrack track = getParticle(button.getText());
   			trackerPanel.setSelectedTrack(track);
   		}
-  		public void mouseExited(MouseEvent e) {
+  		@Override
+		public void mouseExited(MouseEvent e) {
   			closeButton.requestFocusInWindow();
   		}
   	};
@@ -285,7 +298,8 @@ public class DynamicSystemInspector extends JDialog
     	changeButtons[i].addActionListener(changeParticleListener);
     	particleLabels[i] = new JLabel(
     			TrackerRes.getString("DynamicSystemInspector.ParticleName.None")) { //$NON-NLS-1$
-    		public Dimension getPreferredSize() {
+    		@Override
+			public Dimension getPreferredSize() {
     			Dimension dim = super.getPreferredSize();
     			dim.height = systemButton.getPreferredSize().height;
     			return dim;
@@ -315,14 +329,16 @@ public class DynamicSystemInspector extends JDialog
     helpButton = new JButton();
     helpButton.setForeground(new Color(0, 0, 102));
     helpButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         trackerPanel.getTFrame().showHelp("system", 0); //$NON-NLS-1$
       }
     });
     closeButton = new JButton();
     closeButton.setForeground(new Color(0, 0, 102));
     closeButton.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
+      @Override
+	public void actionPerformed(ActionEvent e) {
         setVisible(false);
       }
     });
