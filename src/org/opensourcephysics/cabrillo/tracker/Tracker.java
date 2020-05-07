@@ -457,16 +457,16 @@ public class Tracker {
 	    splash.setLocation(x, y);
 	    splash.setVisible(true);
 	    Timer timer = new Timer(3000, new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-	      if (Tracker.splash!=null) {
-	        Tracker.splash.setVisible(false);
-	  	    Tracker.splash.dispose();
-	  	    Tracker.splash = null;
-	      }
-	    }
-	  });
-	  timer.setRepeats(false);
-	  timer.start();
+		    public void actionPerformed(ActionEvent e) {
+		      if (Tracker.splash!=null) {
+		        Tracker.splash.setVisible(false);
+		  	    Tracker.splash.dispose();
+		  	    Tracker.splash = null;
+		      }
+		    }
+		  });
+		  timer.setRepeats(false);
+		  timer.start();
   	}
     createFrame();
     Tracker.setProgress(5);
@@ -1485,7 +1485,7 @@ public class Tracker {
       String prefs_path = new File(path, fileName).getAbsolutePath();
       if (recommendedPath==null) recommendedPath = prefs_path;
       else recommendedPath += " or "+prefs_path; //$NON-NLS-1$
-    	XMLControl control = new XMLControlElement(new Preferences());
+    	XMLControl control = new XMLControlElement(new Preferences(true));
       if (control.write(prefs_path)!=null) {
       	prefsPath = prefs_path;
 	    	OSPLog.getOSPLog();
@@ -1511,7 +1511,7 @@ public class Tracker {
    */
   protected static String savePreferences() {
   	// save prefs file in current preferences path
-  	XMLControl control = new XMLControlElement(new Preferences());
+  	XMLControl control = new XMLControlElement(new Preferences(false));
   	if (prefsPath!=null) {
   		control.write(prefsPath);
   	}
@@ -1542,7 +1542,7 @@ public class Tracker {
       }
   	}
     
-    // save current trackerHome and xuggleHome in OSP preferences 
+    // save current trackerHome, xuggleHome and chooser dir in OSP preferences 
     if (trackerHome!=null && new File(trackerHome, "tracker.jar").exists()) {   	 //$NON-NLS-1$
     	OSPRuntime.setPreference("TRACKER_HOME", trackerHome); //$NON-NLS-1$
     }
@@ -1550,6 +1550,8 @@ public class Tracker {
     if (xuggleHome!=null) {
     	OSPRuntime.setPreference("XUGGLE_HOME", xuggleHome); //$NON-NLS-1$
     }
+  	// save filechooser directory
+  	OSPRuntime.setPreference("file_chooser_directory", OSPRuntime.chooserDir); //$NON-NLS-1$
     OSPRuntime.savePreferences();
     
 		return prefsPath;
@@ -1929,10 +1931,18 @@ public class Tracker {
    */
   protected static void setProgress(int progress) {
     progressBar.setValue(progress);
-    if (progress==100 && Tracker.splash!=null) {
-      Tracker.splash.setVisible(false);
-	    Tracker.splash.dispose();
-	    Tracker.splash = null;
+    if (progress==100) {
+	    Timer timer = new Timer(500, new ActionListener() {
+		    public void actionPerformed(ActionEvent e) {
+		      if (Tracker.splash!=null) {
+		        Tracker.splash.setVisible(false);
+		  	    Tracker.splash.dispose();
+		  	    Tracker.splash = null;
+		      }
+		    }
+		  });
+		  timer.setRepeats(false);
+		  timer.start();
     }
   }
 
@@ -2136,21 +2146,22 @@ public class Tracker {
   static class Preferences {
   	
     /**
-     * Constructor loads default prefs if found.
+     * Constructor loads (some) default prefs if requested and found.
      */
-  	Preferences() {
-  		if (trackerHome!=null) {
+  	Preferences(boolean loadDefaults) {
+  		if (trackerHome!=null && loadDefaults) {
   			// find tracker.prefs.default file
 	      File defaultPrefsFile = new File(trackerHome, "tracker.prefs.default"); //$NON-NLS-1$
 	      if (!defaultPrefsFile.exists() && OSPRuntime.isMac()) {
 	      	defaultPrefsFile = new File(trackerHome).getParentFile();
 	  	    defaultPrefsFile = new File(defaultPrefsFile, "Resources/tracker.prefs.default"); //$NON-NLS-1$
 	      }
-	      // load default preferences if file is found
+	      // load OSPRuntime.chooserDir if file is found
 	      if (defaultPrefsFile.exists()) {
 	      	String defaultPrefsPath = defaultPrefsFile.getAbsolutePath();
 	      	XMLControl control = new XMLControlElement(defaultPrefsPath);
-	      	control.loadObject(this);
+	      	if (control.getPropertyNames().contains("file_chooser_directory")) //$NON-NLS-1$
+	      		OSPRuntime.chooserDir = control.getString("file_chooser_directory"); //$NON-NLS-1$
 	      }
   		}
   	}
@@ -2240,8 +2251,10 @@ public class Tracker {
       	JFileChooser chooser = VideoIO.getChooser();
       	File file = chooser.getCurrentDirectory();
         String userDir = System.getProperty("user.dir"); //$NON-NLS-1$
-        if (!file.getAbsolutePath().equals(userDir)) // user.dir by default
-        	control.setValue("file_chooser_directory", XML.getAbsolutePath(file)); //$NON-NLS-1$
+        if (!file.getAbsolutePath().equals(userDir)) { // user.dir by default
+        	OSPRuntime.chooserDir = XML.getAbsolutePath(file);
+        	control.setValue("file_chooser_directory", OSPRuntime.chooserDir); //$NON-NLS-1$
+        }
         
         // video_engine--used by version 4.75+
         if (!VideoIO.getPreferredExportExtension().equals(VideoIO.DEFAULT_PREFERRED_EXPORT_EXTENSION))
@@ -2288,7 +2301,7 @@ public class Tracker {
        * @return the newly created object
        */
       public Object createObject(XMLControl control){
-        return new Preferences();
+        return new Preferences(false);
       }
 
       /**

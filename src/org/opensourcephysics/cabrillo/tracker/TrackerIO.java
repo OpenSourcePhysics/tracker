@@ -1962,7 +1962,7 @@ public class TrackerIO extends VideoIO {
       if (printerJob.printDialog()) {
         try {
           printerJob.print();
-        } catch(PrinterException pe) {
+        } catch(Throwable pe) {
           JOptionPane.showMessageDialog(c,
                TrackerRes.getString("TActions.Dialog.PrintError.Message"), //$NON-NLS-1$
                TrackerRes.getString("TActions.Dialog.PrintError.Title"), //$NON-NLS-1$

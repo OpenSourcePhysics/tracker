@@ -191,8 +191,10 @@ public class ExportDataDialog extends JDialog {
         chooser.setDialogTitle(TrackerRes.getString("ExportDataDialog.Chooser.SaveData.Title")); //$NON-NLS-1$
         chooser.setSelectedFile(new File(""));  //$NON-NLS-1$
         File[] files = TrackerIO.getChooserFiles("save"); //$NON-NLS-1$
-        if (files==null || files.length==0)
+        if (files==null || files.length==0) {
+          setVisible(false);
         	return;
+        }
       	DataTable table = tables.get(tableDropdown.getSelectedItem());
       	boolean asFormatted = formatDropdown.getSelectedItem().equals(
       			TrackerRes.getString("TableTrackView.MenuItem.Formatted")); //$NON-NLS-1$
@@ -221,6 +223,7 @@ public class ExportDataDialog extends JDialog {
       		StringBuffer buf = TrackerIO.getData(table, asFormatted);
           write(files[0], trackName+buf.toString());
       	}
+        setVisible(false);
       }
     });
     closeButton = new JButton();
