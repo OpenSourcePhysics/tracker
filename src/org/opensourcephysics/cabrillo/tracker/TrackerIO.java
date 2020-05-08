@@ -1883,7 +1883,6 @@ public class TrackerIO extends VideoIO {
 				}
 			}
 
-			// should the line below finish (in SwingWorker?) before continuing?
 			trackerPanel = (TrackerPanel) control.loadObject(trackerPanel);
 
 			trackerPanel.frame = frame;

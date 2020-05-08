@@ -117,6 +117,7 @@ import org.opensourcephysics.media.core.SumFilter;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.tools.FontSizer;
@@ -889,8 +890,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		TrackerPanel trackerPanel;
 		String name = e.getPropertyName();
 		switch (name) {
-		case "datafile":
-		case "video": // from TrackerPanel //$NON-NLS-1$ 
+		case VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO: // from TrackerPanel //$NON-NLS-1$ 
 			trackerPanel = (TrackerPanel) e.getSource();
 			refreshTab(trackerPanel);
 			break;
@@ -918,6 +919,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				VideoIO.setCanceled(true);
 				TrackerIO.closeMonitor(fileName);
 			}
+			break;
+		case MovieVideoI.PROPERTY_VIDEO_READY: // JSMovieVideo
 			break;
 		case "locale": // from TrackerRes //$NON-NLS-1$
 			// clear the existing menubars and actions

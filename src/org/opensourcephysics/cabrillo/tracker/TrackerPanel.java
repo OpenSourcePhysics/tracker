@@ -80,6 +80,7 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import org.opensourcephysics.media.core.VideoIO.FinalizableLoader;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
@@ -93,6 +94,7 @@ import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.media.core.AsyncVideoI;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.DataTrack;
@@ -135,6 +137,8 @@ import org.opensourcephysics.tools.VideoCaptureTool;
  */
 @SuppressWarnings("serial")
 public class TrackerPanel extends VideoPanel implements Scrollable {
+
+	public static final String PROPERTY_TRACKERPANEL_VIDEO = "video";
 
 	/**
 	 * BH a class to start Tracker asynchronously from main
@@ -216,6 +220,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/** Calibration tool types */
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
+	
+	
 	protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
 
 	// instance fields
@@ -275,7 +281,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected String lengthUnit = "m", massUnit = "kg", timeUnit = "s"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	protected boolean unitsVisible = true; // visible by default
 	protected TCoordinateStringBuilder coordStringBuilder;
-
+	
+	/**
+	 * for ASyncVideoI
+	 */
+	protected Loader loader; 
+	
+	private ArrayList<TTrack> userTracks;
+	
 	/**
 	 * Constructs a blank TrackerPanel with a player.
 	 */
@@ -540,8 +553,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return getDrawables(TTrack.class);
 	}
 
-	private ArrayList<TTrack> userTracks;
-	
 	/**
 	 * Gets the list of user-controlled TTracks on this panel.
 	 *
@@ -2536,7 +2547,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			super.propertyChange(e); // replaces video, videoclip listeners, (possibly) coords
 			coords.addPropertyChangeListener(this);
 			firePropertyChange("coords", oldCoords, coords); // to tracks //$NON-NLS-1$
-			firePropertyChange("video", null, null); // to TMenuBar & views //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TRACKERPANEL_VIDEO, null, null); // to TMenuBar & views //$NON-NLS-1$
 			if (getMat() != null) {
 				getMat().isValidMeasure = false;
 			}
@@ -3487,7 +3498,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * A class to save and load object data.
 	 */
-	static class Loader implements XML.ObjectLoader {
+	static class Loader implements XML.ObjectLoader, FinalizableLoader {
+
+		private XMLControl control;
+		private TrackerPanel trackerPanel;
+		private VideoClip clip;
 
 		/**
 		 * Saves object data.
@@ -3664,14 +3679,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		/**
 		 * Loads an object with data from an XMLControl.
 		 *
-		 * @param control the control
-		 * @param obj     the object
+		 * FinalizableLoader just extracts all necessary information from the control
+		 * for AsyncVideoI
+		 *
+		 * * @param control the control
+		 * 
+		 * @param obj the object
 		 * @return the loaded object
 		 */
 		@Override
-		@SuppressWarnings("unchecked")
 		public Object loadObject(XMLControl control, Object obj) {
-			final TrackerPanel trackerPanel = (TrackerPanel) obj;
+			this.control = control;
+			this.trackerPanel = (TrackerPanel) obj;
 			// load and check if a newer Tracker version created this file
 			String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
 			// if ver is null then must be an older version
@@ -3709,40 +3728,43 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				if (!OSPRuntime.unzipFiles) {
 					child.setBasepath(control.getBasepath());
 				}
-				// BH consider not extracting these.
-//      	Video existingVideo = trackerPanel.getVideo();
-				VideoClip clip = (VideoClip) control.getObject("videoclip"); //$NON-NLS-1$
+				clip = (VideoClip) control.getObject("videoclip"); //$NON-NLS-1$
+				Video video = clip.getVideo();
+				if (video instanceof AsyncVideoI) {
+					trackerPanel.loader = this;
+					return trackerPanel;
+				}
+			}
+			finalizeLoading();
+			return trackerPanel;
+		}
 
-				// if newly loaded clip has no video use existing video, if any
-//        if (clip.getVideo()==null && existingVideo!=null) {
-//        	VideoClip existingClip = trackerPanel.getPlayer().getVideoClip();
-//        	existingClip.setStartFrameNumber(clip.getStartFrameNumber());
-//        	existingClip.setStepSize(clip.getStepSize());
-//        	existingClip.setStepCount(clip.getStepCount());
-//        }
-//        else {
-				trackerPanel.getPlayer().setVideoClip(clip);
-				Video vid = clip.getVideo();
-				if (vid != null) {
-					FilterStack stack = vid.getFilterStack();
-					ArrayList<Filter> filters = stack.getFilters();
-					for (int i = 0, n = filters.size(); i < n; i++) {
-						Filter filter = filters.get(i);
-						filter.setVideoPanel(trackerPanel);
-						if (filter.inspectorX != Integer.MIN_VALUE) {
-							filter.inspectorVisible = true;
-							if (trackerPanel.visibleFilters == null) {
-								trackerPanel.visibleFilters = new HashMap<Filter, Point>();
-							}
-							Point p = new Point(filter.inspectorX, filter.inspectorY);
-							trackerPanel.visibleFilters.put(filter, p);
+		@SuppressWarnings("unchecked")
+		@Override
+		public void finalizeLoading() {
+			Video video = clip.getVideo();
+			if (video instanceof AsyncVideoI) {
+				clip.loader.finalizeLoading();
+			}
+			trackerPanel.getPlayer().setVideoClip(clip);
+			if (video != null) {
+				FilterStack stack = video.getFilterStack();
+				ArrayList<Filter> filters = stack.getFilters();
+				for (int i = 0, n = filters.size(); i < n; i++) {
+					Filter filter = filters.get(i);
+					filter.setVideoPanel(trackerPanel);
+					if (filter.inspectorX != Integer.MIN_VALUE) {
+						filter.inspectorVisible = true;
+						if (trackerPanel.visibleFilters == null) {
+							trackerPanel.visibleFilters = new HashMap<Filter, Point>();
 						}
+						Point p = new Point(filter.inspectorX, filter.inspectorY);
+						trackerPanel.visibleFilters.put(filter, p);
 					}
 				}
-//        }
 			}
 			// load the clip control
-			child = control.getChildControl("clipcontrol"); //$NON-NLS-1$
+			XMLControl child = control.getChildControl("clipcontrol"); //$NON-NLS-1$
 			if (child != null) {
 				ClipControl clipControl = trackerPanel.getPlayer().getClipControl();
 				child.loadObject(clipControl);
@@ -3936,7 +3958,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					}
 				}
 			}
-			return trackerPanel;
 		}
 
 	}
@@ -4219,5 +4240,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 		  
 
+	/**
+	 * Create the VideoClip with proper settings, now that the
+	 * AsyncVideoI has finished loading.
+	 */
+	public void finalizeLoading() {
+		loader.finalizeLoading();
+	}
 
 }
