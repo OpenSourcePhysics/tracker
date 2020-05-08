@@ -896,13 +896,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			refreshTab(trackerPanel);
 			break;
 		case MovieVideoI.PROPERTY_VIDEO_PROGRESS: // from currently loading (xuggle) video 
-			Object val = e.getNewValue();
+			Object val = e.getNewValue(); // may be null
 			String vidName = XML.forwardSlash((String) e.getOldValue());
-			try {
+			if (val != null) try {
 				framesLoaded = Integer.parseInt(val.toString());
+				TrackerIO.setProgress(vidName, val.toString(), framesLoaded);
 			} catch (Exception ex) {
 			}
-			TrackerIO.setProgress(vidName, val.toString(), framesLoaded);
 			break;
 		case MovieVideoI.PROPERTY_VIDEO_STALLED: // from stalled xuggle video 
 			String fileName = XML.getName((String) e.getNewValue());
