@@ -1383,6 +1383,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
     	libraryBrowser.addOSPLibrary(LibraryBrowser.SHARED_LIBRARY);
     	libraryBrowser.addComPADRECollection(LibraryComPADRE.TRACKER_SERVER_TREE+LibraryComPADRE.PRIMARY_ONLY);
 	    libraryBrowser.refreshCollectionsMenu();
+	    
     	libraryBrowser.addPropertyChangeListener("target", new PropertyChangeListener() { //$NON-NLS-1$
 	  		public void propertyChange(PropertyChangeEvent e) {
 	  			libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -1402,6 +1403,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	        				s+" \""+record.getName()+"\"", //$NON-NLS-1$ //$NON-NLS-2$
 	        				TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
 	        				JOptionPane.WARNING_MESSAGE);
+	  	  			libraryBrowser.setCursor(Cursor.getDefaultCursor());
 							return;
 						}
 					}
@@ -1442,10 +1444,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	  		}
 	  	});
   		libraryBrowser.setFontLevel(FontSizer.getLevel());
-//      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-//      int x = (dim.width - dialog.getBounds().width) / 2;
-//      int y = (dim.height - dialog.getBounds().height) / 2;
-//      dialog.setLocation(x, y);
+	    
     }
     return libraryBrowser;
   }
