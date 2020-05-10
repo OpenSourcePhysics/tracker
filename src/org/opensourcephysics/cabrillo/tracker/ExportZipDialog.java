@@ -1529,7 +1529,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			titleField.setText(title);
 			titleField.setBackground(Color.white);
 		}
-		ArrayList<String[]> metadata = getMetadataFromHTML(html);
+		ArrayList<String[]> metadata = TrackerIO.getMetadataFromHTML(html);
 		for (int i = metadata.size() - 1; i >= 0; i--) {
 			// go backwards so if multiple authors, first one in the list is only one
 			// changed
@@ -2692,34 +2692,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	}
 
 	/**
-	 * Returns the metadata, if any, defined in HTML code
-	 * 
-	 * @param htmlCode the HTML code
-	 * @return a Map containing metadata names to values found in the code
-	 */
-	public static ArrayList<String[]> getMetadataFromHTML(String htmlCode) {
-		ArrayList<String[]> results = new ArrayList<String[]>();
-		if (htmlCode == null)
-			return results;
-		String[] parts = htmlCode.split("<meta name=\""); //$NON-NLS-1$
-		for (int i = 1; i < parts.length; i++) { // ignore parts[0]
-			// parse metadata and add to array
-			int n = parts[i].indexOf("\">"); //$NON-NLS-1$
-			if (n > -1) {
-				parts[i] = parts[i].substring(0, n);
-				String divider = "\" content=\""; //$NON-NLS-1$
-				String[] subparts = parts[i].split(divider);
-				if (subparts.length > 1) {
-					String name = subparts[0];
-					String value = subparts[1];
-					results.add(new String[] { name, value });
-				}
-			}
-		}
-		return results;
-	}
-
-	/**
 	 * Replaces metadata in HTML code based on current text in metadata fields and
 	 * writes the result to a temporary file that is added to the jar, then deleted.
 	 * 
@@ -2728,7 +2700,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * @return the modified code
 	 */
 	private File writeTempHTMLTarget(String htmlCode, Resource res) {
-		if (res.getFile() == null)
+		if (htmlCode == null || res.getFile() == null)
 			return null;
 		String title = ResourceLoader.getTitleFromHTMLCode(htmlCode);
 		String newTitle = titleField.getText().trim();
@@ -2737,7 +2709,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			newTitle = "<title>" + newTitle + "</title>"; //$NON-NLS-1$ //$NON-NLS-2$
 			htmlCode = htmlCode.replace(title, newTitle);
 		}
-		ArrayList<String[]> metadata = getMetadataFromHTML(htmlCode);
+		ArrayList<String[]> metadata = TrackerIO.getMetadataFromHTML(htmlCode);
 		for (String type : LibraryResource.META_TYPES) {
 			String newValue = type.equals(LibraryResource.META_AUTHOR) ? authorField.getText().trim()
 					: type.equals(LibraryResource.META_CONTACT) ? contactField.getText().trim()

@@ -1772,7 +1772,7 @@ public class TrackerIO extends VideoIO {
 			case TYPE_ZIP:
 				return openTabPathZip(progress);
 			case TYPE_PANEL:
-				return olenTabPathPanel(progress);
+				return openTabPathPanel(progress);
 			case TYPE_FRAME:
 				return openTabPathFrame(progress);
 			case TYPE_VIDEO:
@@ -1871,7 +1871,7 @@ public class TrackerIO extends VideoIO {
 			return 100;
 		}
 
-		private int olenTabPathPanel(int progress) {
+		private int openTabPathPanel(int progress) {
 			XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
 			if (child != null) {
 				int count = child.getInt("video_framecount"); //$NON-NLS-1$
@@ -1909,17 +1909,19 @@ public class TrackerIO extends VideoIO {
 				trackerPanel.defaultFileName = tabName;
 
 				String html = ResourceLoader.getString(parent + "!/html/" + parentName + "_info.html"); //$NON-NLS-1$ //$NON-NLS-2$
-				ArrayList<String[]> metadata = ExportZipDialog.getMetadataFromHTML(html);
-				for (int i = 0; i < metadata.size(); i++) {
-					String[] meta = metadata.get(i);
-					String key = meta[0];
-					String value = meta[1];
-					if (trackerPanel.author == null
-							&& LibraryResource.META_AUTHOR.toLowerCase().contains(key.toLowerCase())) {
-						trackerPanel.author = value;
-					} else if (trackerPanel.contact == null
-							&& LibraryResource.META_CONTACT.toLowerCase().contains(key.toLowerCase())) {
-						trackerPanel.contact = value;
+				if (html != null) {
+					ArrayList<String[]> metadata = getMetadataFromHTML(html);
+					for (int i = 0; i < metadata.size(); i++) {
+						String[] meta = metadata.get(i);
+						String key = meta[0];
+						String value = meta[1];
+						if (trackerPanel.author == null
+								&& LibraryResource.META_AUTHOR.toLowerCase().contains(key.toLowerCase())) {
+							trackerPanel.author = value;
+						} else if (trackerPanel.contact == null
+								&& LibraryResource.META_CONTACT.toLowerCase().contains(key.toLowerCase())) {
+							trackerPanel.contact = value;
+						}
 					}
 				}
 			} else {
@@ -2350,6 +2352,34 @@ public class TrackerIO extends VideoIO {
 			}
 		}
 		monitors.clear();
+	}
+
+	/**
+	 * Returns the metadata, if any, defined in HTML code
+	 * 
+	 * @param htmlCode the HTML code
+	 * @return a Map containing metadata names to values found in the code
+	 */
+	public static ArrayList<String[]> getMetadataFromHTML(String htmlCode) {
+		ArrayList<String[]> results = new ArrayList<String[]>();
+		if (htmlCode == null)
+			return results;
+		String[] parts = htmlCode.split("<meta name=\""); //$NON-NLS-1$
+		for (int i = 1; i < parts.length; i++) { // ignore parts[0]
+			// parse metadata and add to array
+			int n = parts[i].indexOf("\">"); //$NON-NLS-1$
+			if (n > -1) {
+				parts[i] = parts[i].substring(0, n);
+				String divider = "\" content=\""; //$NON-NLS-1$
+ 				String[] subparts = parts[i].split(divider);
+				if (subparts.length > 1) {
+					String name = subparts[0];
+					String value = subparts[1];
+					results.add(new String[] { name, value });
+				}
+			}
+		}
+		return results;
 	}
 
 	static void setProgress(String name, String string, int framesLoaded) {
