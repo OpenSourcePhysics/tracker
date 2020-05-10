@@ -49,6 +49,7 @@ import javajs.async.AsyncFileChooser;
  */
 @SuppressWarnings("serial")
 public class TrackDataBuilder extends FunctionTool {
+
 	private static Icon openIcon, saveIcon;
 
 	private TrackerPanel trackerPanel;
@@ -66,9 +67,9 @@ public class TrackDataBuilder extends FunctionTool {
 		createButtons();
 		setToolbarComponents(new Component[] { loadButton, saveButton, Box.createHorizontalGlue(), autoloadButton });
 		setHelpPath("data_builder_help.html"); //$NON-NLS-1$
-		addPropertyChangeListener("panel", trackerPanel); //$NON-NLS-1$
-		addPropertyChangeListener("function", trackerPanel); //$NON-NLS-1$
-		addPropertyChangeListener("visible", trackerPanel); //$NON-NLS-1$
+		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
+		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); //$NON-NLS-1$
+		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_VISIBLE, trackerPanel); //$NON-NLS-1$
 		ArrayList<Drawable> nogos = trackerPanel.getSystemDrawables();
 		Iterator<TTrack> it = trackerPanel.getTracks().iterator();
 		while (it.hasNext()) {
@@ -866,8 +867,8 @@ public class TrackDataBuilder extends FunctionTool {
 	 */
 	@Override
 	public void dispose() {
-		removePropertyChangeListener("panel", trackerPanel); //$NON-NLS-1$
-		removePropertyChangeListener("function", trackerPanel); //$NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); //$NON-NLS-1$
 		removePropertyChangeListener("visible", trackerPanel); //$NON-NLS-1$
 		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
 		if (autoloadManager != null) {

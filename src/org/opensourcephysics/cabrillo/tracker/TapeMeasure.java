@@ -279,8 +279,7 @@ public class TapeMeasure extends TTrack {
 	          checkLengthUnits(rawText);
         	}
           step.setTapeLength(magField.getValue());
-          dataValid = false;
-  	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
+          invalidateData(null);
       	}
       }
     };
@@ -304,8 +303,7 @@ public class TapeMeasure extends TTrack {
           // replace with key frame step
           step = getKeyStep(step);
 	        step.setTapeAngle(angleField.getValue());
-          dataValid = false;
-  	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
+	        invalidateData(null);
 	        if (!isReadOnly())
 	        	trackerPanel.getAxes().setVisible(true);
       	}
@@ -347,8 +345,7 @@ public class TapeMeasure extends TTrack {
     if (fixed) {
     	keyFrames.clear();
     	keyFrames.add(0);
-      dataValid = false;
-    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
+    	invalidateData(null);
     	erase();
     }
     fixedPosition = fixed;
@@ -1298,8 +1295,7 @@ protected void setTrackerPanel(TrackerPanel panel) {
           if (glassPanel != null) {
         	  trackerPanel.add(glassPanel, BorderLayout.CENTER);
           } 
-          dataValid = false;
-  	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
+          invalidateData(null);
           trackerPanel.revalidate();
           trackerPanel.repaint();
       		initialCalibration = false;

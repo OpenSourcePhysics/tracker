@@ -142,6 +142,11 @@ import javajs.async.SwingJSUtils.StateMachine;
 public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	// static fields
+	
+	public static final String PROPERTY_TFRAME_TAB = "tab";
+	public static final String PROPERTY_TFRAME_RADIANANGLES = "radian_angles";
+	public static final String PROPERTY_TFRAME_WINDOWFOCUS = "windowfocus";
+
 	protected final static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
 	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
 	protected final static Color yellow = new Color(255, 255, 105);
@@ -428,7 +433,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 
 		// inform listeners
-		firePropertyChange("tab", trackerPanel, null); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TFRAME_TAB, trackerPanel, null); //$NON-NLS-1$
 
 		// clean up mouse handler
 		trackerPanel.mouseHandler.selectedTrack = null;
@@ -1051,7 +1056,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (anglesInRadians == inRadians)
 			return;
 		anglesInRadians = inRadians;
-		firePropertyChange("radian_angles", null, inRadians); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TFRAME_RADIANANGLES, null, inRadians); //$NON-NLS-1$
 	}
 
 	/**
@@ -1820,7 +1825,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		addWindowFocusListener(new WindowAdapter() {
 			@Override
 			public void windowGainedFocus(WindowEvent e) {
-				firePropertyChange("windowfocus", null, null); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TFRAME_WINDOWFOCUS, null, null); //$NON-NLS-1$
 			}
 		});
 		// create notes actions and dialog
@@ -2014,7 +2019,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				if (prefsDialog != null && prefsDialog.isVisible()) {
 					prefsDialog.refreshGUI();
 				}
-				firePropertyChange("tab", oldPanel, newPanel); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TFRAME_TAB, oldPanel, newPanel); //$NON-NLS-1$
 			}
 		});
 		closeItem = new JMenuItem();

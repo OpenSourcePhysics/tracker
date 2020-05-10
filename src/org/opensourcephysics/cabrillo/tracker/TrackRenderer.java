@@ -24,9 +24,13 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.*;
+import java.awt.Component;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.ListCellRenderer;
 
 import org.opensourcephysics.tools.FontSizer;
 
@@ -35,35 +39,32 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class TrackRenderer extends JLabel implements ListCellRenderer {
+@SuppressWarnings("serial")
+public class TrackRenderer extends JLabel implements ListCellRenderer<Object> {
 
 	TrackRenderer() {
-    setOpaque(true);
-    setHorizontalAlignment(LEFT);
-    setVerticalAlignment(CENTER);
-    setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 0));
-  }
-	
-  @Override
-public Component getListCellRendererComponent(JList list,
-                                                Object value,
-                                                int index,
-                                                boolean isSelected,
-                                                boolean cellHasFocus) {
-    if (isSelected) {
-      setBackground(list.getSelectionBackground());
-      setForeground(list.getSelectionForeground());
-    } else {
-      setBackground(list.getBackground());
-      setForeground(list.getForeground());
-    }
-    if (value != null) {
-      Object[] array = (Object[])value;
-      setText((String)array[1]);
-      setIcon((Icon)array[0]);
-      FontSizer.setFonts(this, FontSizer.getLevel());
-    }
-    return this;
-  }
-}
+		setOpaque(true);
+		setHorizontalAlignment(LEFT);
+		setVerticalAlignment(CENTER);
+		setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 0));
+	}
 
+	@Override
+	public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
+			boolean cellHasFocus) {
+		if (isSelected) {
+			setBackground(list.getSelectionBackground());
+			setForeground(list.getSelectionForeground());
+		} else {
+			setBackground(list.getBackground());
+			setForeground(list.getForeground());
+		}
+		if (value != null) {
+			Object[] array = (Object[]) value;
+			setText((String) array[1]);
+			setIcon((Icon) array[0]);
+			FontSizer.setFonts(this, FontSizer.getLevel());
+		}
+		return this;
+	}
+}

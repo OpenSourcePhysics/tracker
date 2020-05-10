@@ -787,8 +787,7 @@ public String toString() {
 	      tape.trackerPanel.getCoords().setScaleXY(n, scaleX, scaleY);
 	      tape.isStepChangingScale = false;
       }
-      tape.dataValid = false;
-      tape.firePropertyChange("data", null, tape); //$NON-NLS-1$
+      tape.invalidateData(tape);
       repaint();
     }
 

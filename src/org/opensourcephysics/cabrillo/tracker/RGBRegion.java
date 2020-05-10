@@ -784,7 +784,7 @@ public void propertyChange(PropertyChangeEvent e) {
       }
       String name = e.getPropertyName();
       if (name.equals("stepnumber")) { //$NON-NLS-1$
-      	dataValid = false;
+    	invalidateData(Boolean.FALSE);
   	    int n = trackerPanel.getFrameNumber();
   	    RGBStep step = (RGBStep)getStep(n);
   	    if (step != null) {
@@ -798,7 +798,7 @@ public void propertyChange(PropertyChangeEvent e) {
 //        support.firePropertyChange(e); // to views
       }
       else if (name.equals("image")) { //$NON-NLS-1$
-      	dataValid = false;
+      	invalidateData(Boolean.FALSE);
       	Video vid = trackerPanel.getVideo();
       	if (vid == null) clearData(); // no video
       	else if (!vid.isVisible()) // video invisible

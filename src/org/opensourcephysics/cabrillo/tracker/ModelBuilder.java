@@ -197,7 +197,7 @@ public class ModelBuilder extends FunctionTool {
 	public void dispose() {
 		trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
 		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
-		removePropertyChangeListener("panel", trackerPanel); //$NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
 		if (helpDialog != null) {
 			helpDialog.dispose();
 		}

@@ -41,7 +41,7 @@ import org.opensourcephysics.media.core.Trackable;
  *
  * @author Douglas Brown
  */
-public class PencilScene implements Trackable, Comparable, Interactive {
+public class PencilScene implements Trackable, Comparable<PencilScene>, Interactive {
 		
 	private PencilCaption caption;
 	private ArrayList<PencilDrawing> drawings = new ArrayList<PencilDrawing>();
@@ -273,8 +273,7 @@ public class PencilScene implements Trackable, Comparable, Interactive {
 	}
 
 	@Override
-	public int compareTo(Object o) {
-		PencilScene that = (PencilScene)o;
+	public int compareTo(PencilScene that) {
 		int diff = this.startframe - that.startframe;
 		return diff!=0? diff: (this.endframe - that.endframe);
 	}

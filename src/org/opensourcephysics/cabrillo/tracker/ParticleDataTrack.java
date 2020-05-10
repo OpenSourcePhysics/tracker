@@ -327,7 +327,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (trackerPanel != null) {
 			trackerPanel.setSelectedPoint(null);
 			trackerPanel.selectedSteps.clear();
-			trackerPanel.getTFrame().removePropertyChangeListener("windowfocus", this); //$NON-NLS-1$
+			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, this); //$NON-NLS-1$
 
 			// handle case when this is the origin of current reference frame
 			ImageCoordSystem coords = trackerPanel.getCoords();
@@ -564,7 +564,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					}
 				}
 			});
-			frame.addPropertyChangeListener("windowfocus", getLeader()); //$NON-NLS-1$
+			frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, getLeader()); //$NON-NLS-1$
 		}
 		if (autoPasteCheckbox == null) {
 			// also create autoPasteCheckbox
@@ -1197,17 +1197,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public void propertyChange(PropertyChangeEvent e) {
 		super.propertyChange(e);
 		// listen for changes to the video
-		if (e.getPropertyName().equals("video")) { //$NON-NLS-1$
-//			if (e.getPropertyName().equals("frameshift")) { //$NON-NLS-1$
-////				int frameshift = (Integer)e.getNewValue();
-//				VideoClip videoClip = getVideoPanel().getPlayer().getVideoClip();
-//
-//				int startFrame = getStartFrame();
-//				startFrame = Math.max(startFrame, videoClip.getFirstFrameNumber());
-//				startFrame = Math.min(startFrame, videoClip.getLastFrameNumber());
-//						
-//				setStartFrame(startFrame);
-//			}
+		if (e.getPropertyName() == "video") { //$NON-NLS-1$
 			firePropertyChange("videoclip", null, null); //$NON-NLS-1$
 			lastValidFrame = -1;
 			repaint();
@@ -1221,7 +1211,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			repaint();
 		}
 		// listen for clipboard changes
-		else if (e.getPropertyName().equals("windowfocus") && trackerPanel != null //$NON-NLS-1$
+		else if (e.getPropertyName() == TFrame.PROPERTY_TFRAME_WINDOWFOCUS && trackerPanel != null //$NON-NLS-1$
 				&& trackerPanel.getTFrame() != null && trackerPanel == trackerPanel.getTFrame()
 						.getTrackerPanel(trackerPanel.getTFrame().getSelectedTab())) {
 			if (this == getLeader()) {

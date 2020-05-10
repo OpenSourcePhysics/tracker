@@ -211,7 +211,7 @@ abstract public class ParticleModel extends PointMass {
 				trackerPanel.changed = true;
 			lastValidFrame = -1;
 			break;
-		case "tab": //$NON-NLS-1$
+		case TFrame.PROPERTY_TFRAME_TAB: //$NON-NLS-1$
 			if (modelBuilder != null) {
 				if (trackerPanel != null && e.getNewValue() == trackerPanel && trackerPanel.isModelBuilderVisible) {
 					modelBuilder.setVisible(true);
@@ -630,9 +630,9 @@ abstract public class ParticleModel extends PointMass {
 	@Override
 	protected void dispose() {
 		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener("data", this); //$NON-NLS-1$
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_DATA, this); //$NON-NLS-1$
 			if (trackerPanel.getTFrame() != null) {
-				trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
+				trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
 			}
 		}
 		if (modelBuilder != null) {
@@ -991,7 +991,7 @@ abstract public class ParticleModel extends PointMass {
 			modelBuilder.addPanel(getName(), functionPanel);
 			modelBuilder.addPropertyChangeListener(this);
 			if (trackerPanel.getTFrame() != null) {
-				trackerPanel.getTFrame().addPropertyChangeListener("tab", this); //$NON-NLS-1$
+				trackerPanel.getTFrame().addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
 			}
 			if (getInitEditor().getValues()[0] == 0) {
 				refreshInitialTime();

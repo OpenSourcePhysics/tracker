@@ -43,6 +43,7 @@ import org.opensourcephysics.controls.XMLControl;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class WorldTView extends TrackerPanel implements TView {
 
   // instance fields

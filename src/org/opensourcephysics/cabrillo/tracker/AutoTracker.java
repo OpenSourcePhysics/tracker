@@ -2127,7 +2127,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		private JButton closeButton, helpButton, deleteButton, keyFrameButton;
 		private JButton acceptButton, skipButton;
 		private JSpinner evolveSpinner, acceptSpinner;
-		private JComboBox trackDropdown, pointDropdown;
+		private JComboBox<Object> trackDropdown, pointDropdown;
 		private boolean isVisible, changed, hidePopup;
 		private JTextArea textPane;
 		protected JToolBar templateToolbar, searchToolbar, targetToolbar, imageToolbar, trackToolbar;
@@ -2212,31 +2212,33 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			Object[] buttons = new Object[] { acceptButton, skipButton };
 			FontSizer.setFonts(buttons, FontSizer.getLevel());
 			// private JComboBox trackDropdown, pointDropdown;
-			JComboBox[] dropdowns = new JComboBox[] { trackDropdown, pointDropdown };
-			for (JComboBox next : dropdowns) {
-				Object o = next.getSelectedItem();
-//  			int n = next.getSelectedIndex();
-				Object[] items = new Object[next.getItemCount()];
-				for (int i = 0; i < items.length; i++) {
-					items[i] = next.getItemAt(i);
-				}
-				DefaultComboBoxModel model = new DefaultComboBoxModel(items);
-				next.setModel(model);
-				System.out.println(">AutoTracker " + next.getName() + "<" + " " + next.getSelectedIndex());
-				// BH 2020.02.09 Java bug this was "n" where n was the integer index
-				// but Java needs an Object here, not an index.
-				// Now that it is functioning, a second bug showed up in the action listener
-				if (next == pointDropdown) {
-					next.setName("refresh");
-					next.setSelectedItem(o);
-					next.setName("");
-				} else {
-					next.setSelectedItem(o);
-				}
-			}
+			setFontLevel(trackDropdown);
+			setFontLevel(pointDropdown);
 			refreshStrings(); // also resets label sizes
 			pack();
 
+		}
+
+		private void setFontLevel(JComboBox<Object> next) {
+			Object o = next.getSelectedItem();
+//			int n = next.getSelectedIndex();
+			Object[] items = new Object[next.getItemCount()];
+			for (int i = 0; i < items.length; i++) {
+				items[i] = next.getItemAt(i);
+			}
+			DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<Object>(items);
+			next.setModel(model);
+			System.out.println(">AutoTracker " + next.getName() + "<" + " " + next.getSelectedIndex());
+			// BH 2020.02.09 Java bug this was "n" where n was the integer index
+			// but Java needs an Object here, not an index.
+			// Now that it is functioning, a second bug showed up in the action listener
+			if (next == pointDropdown) {
+				next.setName("refresh");
+				next.setSelectedItem(o);
+				next.setName("");
+			} else {
+				next.setSelectedItem(o);
+			}
 		}
 
 		@Override
@@ -2371,7 +2373,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			setContentPane(contentPane);
 
 			// create trackDropdown early since need it for spinners
-			trackDropdown = new JComboBox() {
+			trackDropdown = new JComboBox<Object>() {
 				@Override
 				public Dimension getPreferredSize() {
 					Dimension dim = super.getPreferredSize();
@@ -2687,7 +2689,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			pointLabel.setOpaque(false);
 			pointLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
 
-			pointDropdown = new JComboBox() {
+			pointDropdown = new JComboBox<Object>() {
 				@Override
 				public Dimension getPreferredSize() {
 					Dimension dim = super.getPreferredSize();
@@ -2904,8 +2906,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 						track.getSteps()[n] = null;
 					refreshGUI();
 					AutoTracker.this.repaint();
-					track.dataValid = false;
-					track.firePropertyChange("data", null, track); //$NON-NLS-1$
+					track.invalidateData(track);
 				}
 			};
 
@@ -2936,8 +2937,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					}
 					refreshGUI();
 					AutoTracker.this.repaint();
-					track.dataValid = false;
-					track.firePropertyChange("data", null, track); //$NON-NLS-1$
+					track.invalidateData(track);
 				}
 			};
 

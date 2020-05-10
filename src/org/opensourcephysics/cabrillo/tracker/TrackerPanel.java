@@ -111,6 +111,7 @@ import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoGrabber;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPanel;
+import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.core.XYCoordinateStringBuilder;
 import org.opensourcephysics.media.mov.SmoothPlayable;
 import org.opensourcephysics.tools.DataFunctionPanel;
@@ -139,6 +140,24 @@ import org.opensourcephysics.tools.VideoCaptureTool;
 public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	public static final String PROPERTY_TRACKERPANEL_VIDEO = "video";
+	public static final String PROPERTY_TRACKERPANEL_TRACK = "track";
+	public static final String PROPERTY_TRACKERPANEL_DATA = "data";
+	public static final String PROPERTY_TRACKERPANEL_TRANSFORM = "transform";
+	public static final String PROPERTY_TRACKERPANEL_COORDS = "coords";
+	public static final String PROPERTY_TRACKERPANEL_IMAGE = "image";
+	public static final String PROPERTY_TRACKERPANEL_CLEAR = "clear";
+	public static final String PROPERTY_TRACKERPANEL_SELECTEDTRACK = "selectedtrack";
+	public static final String PROPERTY_TRACKERPANEL_SELECTEDPOINT = "selectedpoint";
+	public static final String PROPERTY_TRACKERPANEL_MAGNIFICATION = "magnification";
+	public static final String PROPERTY_TRACKERPANEL_SIZE = "size";
+	public static final String PROPERTY_TRACKERPANEL_UNITS = "units";
+	public static final String PROPERTY_TRACKERPANEL_MASS = "mass";
+	public static final String PROPERTY_TRACKERPANEL_FOOTPRINT = "footprint";
+	public static final String PROPERTY_TRACKERPANEL_STEPNUMBER = "stepnumber";
+	public static final String PROPERTY_TRACKERPANEL_VIDEOVISIBLE = "videovisible";
+	public static final String PROPERTY_TRACKERPANEL_LOCKED = "locked";
+	public static final String PROPERTY_TRACKERPANEL_RADIANANGLES = TFrame.PROPERTY_TFRAME_RADIANANGLES;
+	public static final String PROPERTY_TRACKERPANEL_TAB = "tab";
 
 	/**
 	 * BH a class to start Tracker asynchronously from main
@@ -159,12 +178,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				public void run() {
 					final TFrame frame = tracker.getFrame();
 					final LaunchNode node = Launcher.activeNode;
-					frame.addPropertyChangeListener("tab", new PropertyChangeListener() { //$NON-NLS-1$
+					frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, new PropertyChangeListener() { //$NON-NLS-1$
 						@Override
 						public void propertyChange(PropertyChangeEvent e) {
 							TrackerPanel trackerPanel = (TrackerPanel) e.getNewValue();
 							if (trackerPanel.defaultFileName.equals(XML.getName(path))) {
-								frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+								frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
 								frame.showTrackControl(trackerPanel);
 								frame.showNotes(trackerPanel);
 								frame.refresh();
@@ -220,8 +239,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/** Calibration tool types */
 	public static final String STICK = "Stick", TAPE = "CalibrationTapeMeasure", //$NON-NLS-1$ //$NON-NLS-2$
 			CALIBRATION = "Calibration", OFFSET = "OffsetOrigin"; //$NON-NLS-1$ //$NON-NLS-2$
-	
-	
+
 	protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
 
 	// instance fields
@@ -281,14 +299,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected String lengthUnit = "m", massUnit = "kg", timeUnit = "s"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	protected boolean unitsVisible = true; // visible by default
 	protected TCoordinateStringBuilder coordStringBuilder;
-	
+
 	/**
 	 * for ASyncVideoI
 	 */
-	protected Loader loader; 
-	
+	protected Loader loader;
+
 	private ArrayList<TTrack> userTracks;
-	
+
 	/**
 	 * Constructs a blank TrackerPanel with a player.
 	 */
@@ -341,12 +359,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		noData.setOpaque(false);
 		player.setInspectorButtonVisible(false);
-		player.addPropertyChangeListener("stepbutton", this); //$NON-NLS-1$
-		player.addPropertyChangeListener("backbutton", this); //$NON-NLS-1$
-		player.addPropertyChangeListener("inframe", this); //$NON-NLS-1$
-		player.addPropertyChangeListener("outframe", this); //$NON-NLS-1$
-		player.addPropertyChangeListener("slider", this); //$NON-NLS-1$
-		player.addPropertyChangeListener("playing", this); //$NON-NLS-1$
+		player.addListener(this);
 
 		massParamListener = new PropertyChangeListener() {
 			@Override
@@ -419,7 +432,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (modelBuilder != null) {
 			modelBuilder.refreshSpinners();
 		}
-		firePropertyChange("image", null, null); // to tracks & views //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_IMAGE, null, null); // to tracks & views //$NON-NLS-1$
 	}
 
 	/**
@@ -499,7 +512,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			modelBuilder = new ModelBuilder(this);
 			modelBuilder.setFontLevel(FontSizer.getLevel());
 			modelBuilder.refreshLayout();
-			modelBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
+			modelBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this); //$NON-NLS-1$
 			// show model builder
 			try {
 				// place near top right corner of frame
@@ -709,13 +722,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		// all tracks handled below
 		addPropertyChangeListener(track); // track listens for all properties
-		track.addPropertyChangeListener("step", this); //$NON-NLS-1$
-		track.addPropertyChangeListener("steps", this); //$NON-NLS-1$
-		track.addPropertyChangeListener("name", this); //$NON-NLS-1$
-		track.addPropertyChangeListener("mass", this); //$NON-NLS-1$
-		track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
-		track.addPropertyChangeListener("model_start", this); //$NON-NLS-1$
-		track.addPropertyChangeListener("model_end", this); //$NON-NLS-1$
+		track.addListener(this);
 		// update track control and dataTool
 		if (trackControl != null && trackControl.isVisible())
 			trackControl.refresh();
@@ -734,7 +741,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		track.setFontLevel(FontSizer.getLevel());
 
 		// notify views
-		firePropertyChange("track", null, track); // to views //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_TRACK, null, track); // to views //$NON-NLS-1$
 
 		// set default NumberField format patterns
 		if (getTFrame() != null) {
@@ -821,17 +828,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (!getDrawables(track.getClass()).contains(track))
 			return;
 		userTracks = null;
-		removePropertyChangeListener(track);
-		track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-		track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
-		track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-		track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-		track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-		track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
-		track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
-		TFrame frame = getTFrame();
-		if (frame != null)
-			frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
+		removeMyListenerFrom(track);
 		super.removeDrawable(track);
 		if (dataBuilder != null)
 			dataBuilder.removePanel(track.getName());
@@ -839,9 +836,24 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (getSelectedTrack() == track)
 			setSelectedTrack(null);
 		// notify views and other listeners
-		firePropertyChange("track", track, null); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_TRACK, track, null); //$NON-NLS-1$
 		TTrack.activeTracks.remove(track.getID());
 		changed = true;
+	}
+
+	private void removeMyListenerFrom(TTrack track) {
+		removePropertyChangeListener(track);
+		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
+		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEPS, this); //$NON-NLS-1$
+		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
+		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELSTART, this); //$NON-NLS-1$
+		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELEND, this); //$NON-NLS-1$
+		TFrame frame = getTFrame();
+		if (frame != null)
+			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, track); //$NON-NLS-1$
+
 	}
 
 	/**
@@ -1021,24 +1033,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// remove propertyChangeListeners
 			ArrayList<T> removed = getObjectOfClass(c);
 			for (int i = 0, n = removed.size(); i < n; i++) {
-				TTrack track = (TTrack) removed.get(i);
-				removePropertyChangeListener(track);
-				track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-				track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
-				track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-				track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-				track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-				track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
-				track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
-				TFrame frame = getTFrame();
-				if (frame != null)
-					frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
+				removeMyListenerFrom((TTrack) removed.get(i));
 			}
 			super.removeObjectsOfClass(c);
 			// notify views
 			for (Object next : removed) {
 				TTrack track = (TTrack) next;
-				firePropertyChange("track", track, null); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TRACKERPANEL_TRACK, track, null); //$NON-NLS-1$
 			}
 			changed = true;
 		} else
@@ -1053,21 +1054,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		setSelectedTrack(null);
 		selectedPoint = null;
 		ArrayList<TTrack> list = getTracks();
-		for (int it = 0, n = list.size(); it < n; it++) {
-			TTrack track = list.get(it);
-			removePropertyChangeListener(track);
-			track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("transform", this); //$NON-NLS-1$
-			TFrame frame = getTFrame();
-			if (frame != null)
-				frame.removePropertyChangeListener("tab", track); //$NON-NLS-1$
-
+		for (int i = 0, n = list.size(); i < n; i++) {
+			TTrack track = list.get(i);
+			removeMyListenerFrom(track);
 			// handle case when track is the origin of current reference frame
 			ImageCoordSystem coords = getCoords();
 			if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == track) {
@@ -1090,7 +1079,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			modelBuilder.setVisible(false);
 		}
 		// notify views and other listeners
-		firePropertyChange("clear", null, null); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_CLEAR, null, null); //$NON-NLS-1$
 		// remove tracks from TTrack.activeTracks
 		for (int it = 0, n = list.size(); it < n; it++) {
 			TTrack track = list.get(it);
@@ -1138,8 +1127,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			int n = getFrameNumber();
 			getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
 			try {
-				firePropertyChange("coords", null, coords); //$NON-NLS-1$
-				firePropertyChange("transform", null, null); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TRACKERPANEL_COORDS, null, coords); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TRACKERPANEL_TRANSFORM, null, null); //$NON-NLS-1$
 			} catch (Exception e) {
 			}
 		} else
@@ -1289,7 +1278,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			setMessage(track.getMessage());
 		else
 			setMessage(""); //$NON-NLS-1$
-		firePropertyChange("selectedtrack", prevTrack, track); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_SELECTEDTRACK, prevTrack, track); //$NON-NLS-1$
 		coordStringBuilder.setUnitsAndPatterns(track, "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
 	}
 
@@ -1335,7 +1324,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 			}
 			if (newStepSelected) {
-				firePropertyChange("selectedpoint", prevPoint, point); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TRACKERPANEL_SELECTEDPOINT, prevPoint, point); //$NON-NLS-1$
 				selectedSteps.isModified = false;
 				return;
 			}
@@ -1426,7 +1415,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (selectedStep != null)
 			selectedSteps.add(selectedStep);
 		selectedSteps.isModified = false;
-		firePropertyChange("selectedpoint", prevPoint, point); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_SELECTEDPOINT, prevPoint, point); //$NON-NLS-1$
 	}
 
 	/**
@@ -1486,7 +1475,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			Dimension size = new Dimension(w, h);
 			setPreferredSize(size);
 		}
-		firePropertyChange("magnification", prevZoom, getMagnification()); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_MAGNIFICATION, prevZoom, getMagnification()); //$NON-NLS-1$
 		// scroll and revalidate
 		MainTView view = getTFrame() == null ? null : getTFrame().getMainView(this);
 		if (view != null) {
@@ -1550,7 +1539,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		eraseAll();
 		repaint();
-		firePropertyChange("size", null, null); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_SIZE, null, null); //$NON-NLS-1$
 	}
 
 	/**
@@ -1652,7 +1641,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (getSelectedPoint() != null) {
 			getSelectedPoint().showCoordinates(this);
 		}
-		firePropertyChange("units", false, true); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true); //$NON-NLS-1$
 	}
 
 	/**
@@ -1687,7 +1676,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		massUnit = unit;
 		TTrackBar.getTrackbar(this).refresh();
-		firePropertyChange("units", false, true); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true); //$NON-NLS-1$
 		return true;
 	}
 
@@ -1727,7 +1716,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (getSelectedPoint() != null) {
 			getSelectedPoint().showCoordinates(this);
 		}
-		firePropertyChange("units", false, true); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_UNITS, false, true); //$NON-NLS-1$
 		return true;
 	}
 
@@ -1865,22 +1854,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				dataTrack.getDataClip().setClipLength(-1); // sets clip length to data length
 				VideoClip videoClip = getPlayer().getVideoClip();
 				dataTrack.setStartFrame(videoClip.getStartFrameNumber());
-				dataTrack.firePropertyChange("data", null, null); //$NON-NLS-1$
+				dataTrack.firePropertyChange(PROPERTY_TRACKERPANEL_DATA, null, null); //$NON-NLS-1$
 				dataTrack.getModelBuilder().setVisible(true);
 				final ParticleDataTrack target = dataTrack;
 				final Runnable runner = new Runnable() {
 					@Override
 					public void run() {
-//						try {
-//							Thread.sleep(500);
-//						} catch (InterruptedException e) {
-//						}
-//			      firePropertyChange("stepnumber", null, getPlayer().getStepNumber());    // to views //$NON-NLS-1$
-						target.firePropertyChange("data", null, null); //$NON-NLS-1$
+						target.firePropertyChange(PROPERTY_TRACKERPANEL_DATA, null, null); //$NON-NLS-1$
 					}
 				};
 				EventQueue.invokeLater(runner);
-//				new Thread(runner).start();
 			} else {
 				// set data for existing DataTrack
 				dataTrack.setData(data);
@@ -1905,7 +1888,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		OSPLog.debug("TrackerPanel.refreshTrackData " + Tracker.allowDataRefresh);
 		boolean auto = getAutoRefresh();
 		isAutoRefresh = true;
-		firePropertyChange("transform", null, null); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TRACKERPANEL_TRANSFORM, null, null); //$NON-NLS-1$
 		isAutoRefresh = auto;
 	}
 
@@ -2050,9 +2033,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (dataBuilder == null) { // create new tool if none exists
 			dataBuilder = new TrackDataBuilder(this);
 			dataBuilder.setHelpPath("data_builder_help.html"); //$NON-NLS-1$
-			dataBuilder.addPropertyChangeListener("panel", this); //$NON-NLS-1$
-			dataBuilder.addPropertyChangeListener("function", this); //$NON-NLS-1$
-			dataBuilder.addPropertyChangeListener("visible", this); //$NON-NLS-1$
+			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this); //$NON-NLS-1$
+			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this); //$NON-NLS-1$
+			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_VISIBLE, this); //$NON-NLS-1$
 			dataBuilder.setFontLevel(FontSizer.getLevel());
 		}
 		return dataBuilder;
@@ -2513,13 +2496,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
+		boolean doSnap = false;
 		String name = e.getPropertyName();
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " property change " + name); //$NON-NLS-1$
-		if (name.equals("size")) //$NON-NLS-1$
+		TTrack track;
+		switch (name) {
+		case "size": //$NON-NLS-1$
 			super.propertyChange(e);
-		if (name.equals("step") || name.equals("steps")) { // from tracks/steps //$NON-NLS-1$ //$NON-NLS-2$
-			TTrack track = (TTrack) e.getSource();
-			track.dataValid = false;
+			break;
+		case TTrack.PROPERTY_TTRACK_STEP: // $NON-NLS-1$
+		case TTrack.PROPERTY_TTRACK_STEPS: // from tracks/steps //$NON-NLS-1$
+			track = (TTrack) e.getSource();
+			track.invalidateData(Boolean.FALSE);
 			if (!track.isDependent()) { // ignore dependent tracks
 				changed = true;
 			}
@@ -2529,24 +2517,28 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					p.showCoordinates(this);
 			}
 			repaint();
-			if (name.equals("steps")) { //$NON-NLS-1$
+			if (name == TTrack.PROPERTY_TTRACK_STEPS) { // $NON-NLS-1$
 				TTrackBar.getTrackbar(this).refresh();
 			}
-		} else if (name.equals("mass")) { // from point masses //$NON-NLS-1$
-			firePropertyChange("mass", null, null); // to motion control //$NON-NLS-1$
-		} else if (name.equals("name")) { // from tracks //$NON-NLS-1$
+			break;
+		case TTrack.PROPERTY_TTRACK_MASS: // from point masses //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TRACKERPANEL_MASS, null, null); // to motion control //$NON-NLS-1$
+			break;
+		case TTrack.PROPERTY_TTRACK_NAME: // from tracks //$NON-NLS-1$
 			refreshNotesDialog();
-		} else if (name.equals("footprint")) { // from tracks //$NON-NLS-1$
+			break;
+		case TTrack.PROPERTY_TTRACK_FOOTPRINT: // from tracks //$NON-NLS-1$
 			Footprint footprint = (Footprint) e.getNewValue();
 			if (footprint instanceof ArrowFootprint)
-				firePropertyChange("footprint", null, null); // to track control //$NON-NLS-1$
-		} else if (name.equals("videoclip")) { // from videoPlayer //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TRACKERPANEL_FOOTPRINT, null, null); // to track control //$NON-NLS-1$
+			break;
+		case VideoPlayer.PROPERTY_VIDEOPLAYER_VIDEOCLIP: // from videoPlayer //$NON-NLS-1$
 			// replace coords and videoclip listeners
 			ImageCoordSystem oldCoords = coords;
 			coords.removePropertyChangeListener(this);
 			super.propertyChange(e); // replaces video, videoclip listeners, (possibly) coords
 			coords.addPropertyChangeListener(this);
-			firePropertyChange("coords", oldCoords, coords); // to tracks //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TRACKERPANEL_COORDS, oldCoords, coords); // to tracks //$NON-NLS-1$
 			firePropertyChange(PROPERTY_TRACKERPANEL_VIDEO, null, null); // to TMenuBar & views //$NON-NLS-1$
 			if (getMat() != null) {
 				getMat().isValidMeasure = false;
@@ -2558,8 +2550,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					((SmoothPlayable) video).setSmoothPlay(!Tracker.isXuggleFast);
 				}
 			}
+			doSnap = true;
 			changed = true;
-		} else if (name.equals("stepnumber")) { // from videoPlayer //$NON-NLS-1$
+			break;
+		case VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER: // from videoPlayer //$NON-NLS-1$
 			setSelectedPoint(null);
 			selectedSteps.clear();
 			if (getVideo() != null && !getVideo().getFilterStack().isEmpty()) {
@@ -2589,46 +2583,57 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			boolean invertCursor = isShiftKeyDown;
 			setCursorForMarking(invertCursor, null);
 
-			firePropertyChange("stepnumber", null, e.getNewValue()); // to views //$NON-NLS-1$
-		} else if (name.equals("coords")) { // from video //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TRACKERPANEL_STEPNUMBER, null, e.getNewValue()); // to views //$NON-NLS-1$
+			doSnap = true;
+			break;
+		case Video.PROPERTY_VIDEO_COORDS: // from video //$NON-NLS-1$
 			// replace coords and listeners
 			coords.removePropertyChangeListener(this);
 			coords = (ImageCoordSystem) e.getNewValue();
 			coords.addPropertyChangeListener(this);
-			firePropertyChange("coords", null, coords); // to tracks //$NON-NLS-1$
-			firePropertyChange("transform", null, null); // to tracks/views //$NON-NLS-1$
-		} else if (name.equals("image")) { // from video //$NON-NLS-1$
-			firePropertyChange("image", null, null); // to tracks/views //$NON-NLS-1$
-
+			firePropertyChange(PROPERTY_TRACKERPANEL_COORDS, null, coords); // to tracks //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TRACKERPANEL_TRANSFORM, null, null); // to tracks/views //$NON-NLS-1$
+			doSnap = true;
+			break;
+		case Video.PROPERTY_VIDEO_IMAGE: // from video //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TRACKERPANEL_IMAGE, null, null); // to tracks/views //$NON-NLS-1$
 			Video video = getVideo();
 			TMenuBar.getMenuBar(this).refreshMatSizes(video);
 			repaint();
-		} else if (name.equals("filterChanged")) { // from video //$NON-NLS-1$
+			break;
+		case Video.PROPERTY_VIDEO_FILTERCHANGED: // from video //$NON-NLS-1$
 			Filter filter = (Filter) e.getNewValue();
 			String prevState = (String) e.getOldValue();
 			XMLControl control = new XMLControlElement(prevState);
 			Undo.postFilterEdit(this, filter, control);
-		} else if (name.equals("videoVisible")) { // from video //$NON-NLS-1$
-			firePropertyChange("videoVisible", null, null); // to views //$NON-NLS-1$
+			break;
+		case Video.PROPERTY_VIDEO_VIDEOVISIBLE: // from video //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TRACKERPANEL_VIDEOVISIBLE, null, null); // to views //$NON-NLS-1$
 			repaint();
-		} else if (name.equals("transform")) { // from coords //$NON-NLS-1$
+			break;
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // from coords //$NON-NLS-1$
 			changed = true;
-			firePropertyChange("transform", null, null); // to tracks/views //$NON-NLS-1$
-		} else if (name.equals("locked")) { // from coords //$NON-NLS-1$
-			firePropertyChange("locked", null, null); // to tracker frame //$NON-NLS-1$
-		} else if (name.equals("playing")) { // from player //$NON-NLS-1$
+			doSnap = true;
+
+			firePropertyChange(PROPERTY_TRACKERPANEL_TRANSFORM, null, null); // to tracks/views //$NON-NLS-1$
+			break;
+		case ImageCoordSystem.PROPERTY_COORDS_LOCKED: // from coords //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TRACKERPANEL_LOCKED, null, null); // to tracker frame //$NON-NLS-1$
+			break;
+		case VideoPlayer.PROPERTY_VIDEOPLAYER_PLAYING: // from player //$NON-NLS-1$
 			if (!((Boolean) e.getNewValue()).booleanValue()) {
 				ArrayList<ParticleModel> list = getDrawables(ParticleModel.class);
 				for (int m = 0, n = list.size(); m < n; m++) {
 					list.get(m).refreshDerivsIfNeeded();
 				}
 			}
-		} else if (name.equals("startframe") || // from videoClip //$NON-NLS-1$
-				name.equals("stepsize") || // from videoClip //$NON-NLS-1$
-				name.equals("stepcount") || // from videoClip //$NON-NLS-1$
-				name.equals("starttime") || // from videoClip //$NON-NLS-1$
-				name.equals("adjusting") || // from videoClip //$NON-NLS-1$
-				name.equals("frameduration")) { // from clipControl //$NON-NLS-1$
+			break;
+		case VideoClip.PROPERTY_VIDEOCLIP_STARTFRAME: // from videoClip //$NON-NLS-1$
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE: // from videoClip //$NON-NLS-1$
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT: // from videoClip //$NON-NLS-1$
+		case VideoClip.PROPERTY_VIDEOCLIP_STARTTIME: // from videoClip //$NON-NLS-1$
+		case VideoClip.PROPERTY_VIDEOCLIP_ADJUSTING: // from videoClip //$NON-NLS-1$
+		case ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION: {// from clipControl //$NON-NLS-1$
 			changed = true;
 			if (modelBuilder != null)
 				modelBuilder.refreshSpinners();
@@ -2638,15 +2643,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (getVideo() != null) {
 				getVideo().setProperty("measure", null); //$NON-NLS-1$
 			}
-			firePropertyChange("data", null, null); // to views //$NON-NLS-1$
-			if (name.equals("stepsize") //$NON-NLS-1$
-					|| name.equals("stepcount") //$NON-NLS-1$
-					|| name.equals("starttime") //$NON-NLS-1$
-					|| name.equals("frameduration") //$NON-NLS-1$
-					|| name.equals("startframe")) //$NON-NLS-1$
-				firePropertyChange(name, null, null); // to pointmass
-			else if (name.equals("adjusting")) //$NON-NLS-1$
-				firePropertyChange("adjusting", null, e.getNewValue()); // to particle models //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TRACKERPANEL_DATA, null, null); // to views //$NON-NLS-1$
+			firePropertyChange(VideoClip.PROPERTY_VIDEOCLIP_ADJUSTING, null,
+					name == VideoClip.PROPERTY_VIDEOCLIP_ADJUSTING ? e.getNewValue() : null); // to particle models
+																								// //$NON-NLS-1$
 			if (getSelectedPoint() != null) {
 				getSelectedPoint().showCoordinates(this);
 				TFrame frame = getTFrame();
@@ -2655,48 +2655,56 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 			ArrayList<TTrack> list = getUserTracks();
 			for (int it = 0, ni = list.size(); it < ni; it++) {
-				TTrack track = list.get(it);
-				track.erase(this);
+				list.get(it).erase(this);
 			}
 			repaint();
-		} else if (getVideo() == null && name.equals("framecount")) { //$NON-NLS-1$
-			if (modelBuilder != null)
+		}
+			break;
+		case "framecount": //$NON-NLS-1$
+			if (getVideo() == null && modelBuilder != null)
 				modelBuilder.refreshSpinners();
-		} else if (name.equals("function")) { // from DataBuilder //$NON-NLS-1$
+			break;
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: // from DataBuilder //$NON-NLS-1$
 			changed = true;
 			firePropertyChange("function", null, e.getNewValue()); // to views //$NON-NLS-1$
-		} else if (name.equals("panel") && e.getSource() == modelBuilder) { //$NON-NLS-1$
-			FunctionPanel panel = (FunctionPanel) e.getNewValue();
-			if (panel != null) { // new particle model panel added
-				TTrack track = getTrack(panel.getName());
-				if (track != null) {
+			break;
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL:
+			if (e.getSource() == modelBuilder) { // $NON-NLS-1$
+				FunctionPanel panel = (FunctionPanel) e.getNewValue();
+				if (panel != null) { // new particle model panel added
+					track = getTrack(panel.getName());
+					if (track != null) {
 //    			setSelectedTrack(track);
-					ParticleModel model = (ParticleModel) track;
-					modelBuilder.setSpinnerStartFrame(model.getStartFrame());
-					int end = model.getEndFrame();
-					if (end == Integer.MAX_VALUE) {
-						end = getPlayer().getVideoClip().getLastFrameNumber();
+						ParticleModel model = (ParticleModel) track;
+						modelBuilder.setSpinnerStartFrame(model.getStartFrame());
+						int end = model.getEndFrame();
+						if (end == Integer.MAX_VALUE) {
+							end = getPlayer().getVideoClip().getLastFrameNumber();
+						}
+						modelBuilder.setSpinnerEndFrame(end);
 					}
-					modelBuilder.setSpinnerEndFrame(end);
 				}
-			}
-			modelBuilder.refreshSpinners();
-			String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$
-			panel = modelBuilder.getSelectedPanel();
-			if (panel != null) {
-				TTrack track = getTrack(panel.getName());
-				if (track != null) {
-					String type = track.getClass().getSimpleName();
-					title += ": " + TrackerRes.getString(type + ".Builder.Title"); //$NON-NLS-1$ //$NON-NLS-2$
+				modelBuilder.refreshSpinners();
+				String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$
+				panel = modelBuilder.getSelectedPanel();
+				if (panel != null) {
+					track = getTrack(panel.getName());
+					if (track != null) {
+						String type = track.getClass().getSimpleName();
+						title += ": " + TrackerRes.getString(type + ".Builder.Title"); //$NON-NLS-1$ //$NON-NLS-2$
+					}
 				}
+				modelBuilder.setTitle(title);
 			}
-			modelBuilder.setTitle(title);
-		} else if (name.equals("model_start")) { //$NON-NLS-1$
+			break;
+		case TTrack.PROPERTY_TTRACK_MODELSTART: { //$NON-NLS-1$
 			ParticleModel model = (ParticleModel) e.getSource();
 			if (model.getName().equals(getModelBuilder().getSelectedName())) {
 				modelBuilder.setSpinnerStartFrame(e.getNewValue());
 			}
-		} else if (name.equals("model_end")) { //$NON-NLS-1$
+		}
+			break;
+		case TTrack.PROPERTY_TTRACK_MODELEND: { //$NON-NLS-1$
 			ParticleModel model = (ParticleModel) e.getSource();
 			if (model.getName().equals(getModelBuilder().getSelectedName())) {
 				int end = (Integer) e.getNewValue();
@@ -2706,72 +2714,88 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				modelBuilder.setSpinnerEndFrame(end);
 			}
 		}
-//    else if (name.equals("frameshift")) {                  // from video clip //$NON-NLS-1$
-//      firePropertyChange("frameshift", null, e.getNewValue()); // to tracks //$NON-NLS-1$    	
-//    }
-		else if (name.equals("radian_angles")) { // angle format has changed //$NON-NLS-1$
-			firePropertyChange("radian_angles", null, e.getNewValue()); // to tracks //$NON-NLS-1$
-		} else if (name.equals("fixed_origin") //$NON-NLS-1$
-				|| name.equals("fixed_angle") //$NON-NLS-1$
-				|| name.equals("fixed_scale")) { //$NON-NLS-1$
+			break;
+		case TFrame.PROPERTY_TFRAME_RADIANANGLES: // angle format has changed //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TRACKERPANEL_RADIANANGLES, null, e.getNewValue()); // to tracks //$NON-NLS-1$
+			break;
+		case "fixed_origin": //$NON-NLS-1$
+		case "fixed_angle": //$NON-NLS-1$
+		case "fixed_scale": //$NON-NLS-1$
 			changed = true;
 			firePropertyChange(name, e.getOldValue(), e.getNewValue()); // to tracks
-		} else if (e.getSource() == dataBuilder && name.equals("visible")) { //$NON-NLS-1$
+			break;
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_VISIBLE: // $NON-NLS-1$
 			dataToolVisible = ((Boolean) e.getNewValue()).booleanValue();
-		} else if (e.getSource() instanceof Filter && name.equals("visible")) { //$NON-NLS-1$
-			setSelectedPoint(null);
+			break;
+		case Filter.PROPERTY_FILTER_VISIBLE:
 			selectedSteps.clear();
-		} else if (name.equals("perspective")) { //$NON-NLS-1$
+			setSelectedPoint(null);
+			break;
+		case "perspective": //$NON-NLS-1$
 			if (e.getNewValue() != null) {
-				PerspectiveFilter filter = (PerspectiveFilter) e.getNewValue();
-				TTrack track = new PerspectiveTrack(filter);
+				PerspectiveFilter filt = (PerspectiveFilter) e.getNewValue();
+				track = new PerspectiveTrack(filt);
 				addTrack(track);
 			} else if (e.getOldValue() != null) {
 				// clean up deleted perspective track and filter
-				PerspectiveFilter filter = (PerspectiveFilter) e.getOldValue();
-				PerspectiveTrack track = PerspectiveTrack.filterMap.get(filter);
-				if (track != null) {
-					removeTrack(track);
-					track.dispose();
-					filter.setVideoPanel(null);
+				PerspectiveFilter filt1 = (PerspectiveFilter) e.getOldValue();
+				PerspectiveTrack trk = PerspectiveTrack.filterMap.get(filt1);
+				if (trk != null) {
+					removeTrack(trk);
+					trk.dispose();
+					filt1.setVideoPanel(null);
 				}
 			}
-		} else if (Tracker.showHints) {
-			Tracker.startupHintShown = false;
-			if (name.equals("stepbutton")) { //$NON-NLS-1$
-				if (!((Boolean) e.getNewValue()).booleanValue())
-					setMessage(""); //$NON-NLS-1$
-				else
-					setMessage(TrackerRes.getString("VideoPlayer.Step.Hint")); //$NON-NLS-1$
-			} else if (name.equals("backbutton")) { //$NON-NLS-1$
-				if (!((Boolean) e.getNewValue()).booleanValue())
-					setMessage(""); //$NON-NLS-1$
-				else
-					setMessage(TrackerRes.getString("VideoPlayer.Back.Hint")); //$NON-NLS-1$
-			} else if (name.equals("inframe")) { //$NON-NLS-1$
-				if (!((Boolean) e.getNewValue()).booleanValue())
-					setMessage(""); //$NON-NLS-1$
-				else
-					setMessage(TrackerRes.getString("VideoPlayer.StartFrame.Hint")); //$NON-NLS-1$
-			} else if (name.equals("outframe")) { //$NON-NLS-1$
-				if (!((Boolean) e.getNewValue()).booleanValue())
-					setMessage(""); //$NON-NLS-1$
-				else
-					setMessage(TrackerRes.getString("VideoPlayer.EndFrame.Hint")); //$NON-NLS-1$
-			} else if (name.equals("slider")) { //$NON-NLS-1$
-				if (!((Boolean) e.getNewValue()).booleanValue())
-					setMessage(""); //$NON-NLS-1$
-				else
-					setMessage(TrackerRes.getString("VideoPlayer.Slider.Hint")); //$NON-NLS-1$
+			break;
+		case VideoPlayer.PROPERTY_VIDEOPLAYER_STEPBUTTON:
+		case VideoPlayer.PROPERTY_VIDEOPLAYER_BACKBUTTON:
+		case VideoPlayer.PROPERTY_VIDEOPLAYER_SLIDER:
+		case "inframe": // BH! never fired??
+		case "outframe":// BH! never fired??
+			if (Tracker.showHints) {
+				Tracker.startupHintShown = false;
+				switch (name) {
+				case "stepbutton": //$NON-NLS-1$
+					if (!((Boolean) e.getNewValue()).booleanValue())
+						setMessage(""); //$NON-NLS-1$
+					else
+						setMessage(TrackerRes.getString("VideoPlayer.Step.Hint")); //$NON-NLS-1$
+					break;
+				case "backbutton": //$NON-NLS-1$
+					if (!((Boolean) e.getNewValue()).booleanValue())
+						setMessage(""); //$NON-NLS-1$
+					else
+						setMessage(TrackerRes.getString("VideoPlayer.Back.Hint")); //$NON-NLS-1$
+					break;
+				case "slider": //$NON-NLS-1$
+					if (!((Boolean) e.getNewValue()).booleanValue())
+						setMessage(""); //$NON-NLS-1$
+					else
+						setMessage(TrackerRes.getString("VideoPlayer.Slider.Hint")); //$NON-NLS-1$
+					break;
+				case "inframe": //$NON-NLS-1$
+					// BH! never fired??
+					if (!((Boolean) e.getNewValue()).booleanValue())
+						setMessage(""); //$NON-NLS-1$
+					else
+						setMessage(TrackerRes.getString("VideoPlayer.StartFrame.Hint")); //$NON-NLS-1$
+					break;
+				case "outframe": //$NON-NLS-1$
+					// BH! never fired?
+					if (!((Boolean) e.getNewValue()).booleanValue())
+						setMessage(""); //$NON-NLS-1$
+					else
+						setMessage(TrackerRes.getString("VideoPlayer.EndFrame.Hint")); //$NON-NLS-1$
+					break;
+				}
+
 			}
 		}
-		// move vector snap point if origin may have moved
-		if (name.equals("videoclip") || //$NON-NLS-1$
-				name.equals("transform") || //$NON-NLS-1$
-				name.equals("stepnumber") || //$NON-NLS-1$
-				name.equals("coords")) { //$NON-NLS-1$
+		if (doSnap) {
+			// move vector snap point if origin may have moved
 			int n = getFrameNumber();
 			getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
+
 		}
 		Tracker.logTime("end TrackerPanel property change " + name); //$NON-NLS-1$
 	}
@@ -3075,7 +3099,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					((PointMass) track).updateDerivatives(startFrame, stepCount);
 
 				}
-				track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 			}
 		}
 		selectedSteps.clear();
@@ -3262,30 +3286,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		optionController = null;
 		VideoClip clip = player.getVideoClip();
 		clip.removePropertyChangeListener(player);
-		clip.removePropertyChangeListener("startframe", this); //$NON-NLS-1$
-		clip.removePropertyChangeListener("stepsize", this); //$NON-NLS-1$
-		clip.removePropertyChangeListener("stepcount", this); //$NON-NLS-1$
-		clip.removePropertyChangeListener("framecount", this); //$NON-NLS-1$
-		clip.removePropertyChangeListener("starttime", this); //$NON-NLS-1$
-		clip.removePropertyChangeListener("adjusting", this); //$NON-NLS-1$
+		clip.removeListener(this);
 		if (video != null) {
-			video.removePropertyChangeListener("coords", this); //$NON-NLS-1$
-			video.removePropertyChangeListener("image", this); //$NON-NLS-1$
-			video.removePropertyChangeListener("filterChanged", this); //$NON-NLS-1$
-			video.removePropertyChangeListener("videoVisible", this); //$NON-NLS-1$
-			video.removePropertyChangeListener("size", this); //$NON-NLS-1$
+			video.removeListener(this);
 		}
 		ClipControl clipControl = player.getClipControl();
 		clipControl.removePropertyChangeListener(player);
-		player.removePropertyChangeListener("stepbutton", this); //$NON-NLS-1$
-		player.removePropertyChangeListener("backbutton", this); //$NON-NLS-1$
-		player.removePropertyChangeListener("inframe", this); //$NON-NLS-1$
-		player.removePropertyChangeListener("outframe", this); //$NON-NLS-1$
-		player.removePropertyChangeListener("slider", this); //$NON-NLS-1$
-		player.removePropertyChangeListener("playing", this); //$NON-NLS-1$
-		player.removePropertyChangeListener("videoclip", this); //$NON-NLS-1$
-		player.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
-		player.removePropertyChangeListener("frameduration", this); //$NON-NLS-1$
+		player.removeListener(this);
 		player.stop();
 		remove(player);
 		player = null;
@@ -3294,17 +3301,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack track = TTrack.activeTracks.get(n);
 			removePropertyChangeListener(track);
-			track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("model_start", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("model_end", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("visible", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("image", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("data", this); //$NON-NLS-1$
+			track.removeListener(this);
 		}
 		// dispose of autotracker, modelbuilder, databuilder, other dialogs
 		if (autoTracker != null) {
@@ -3312,14 +3309,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			autoTracker = null;
 		}
 		if (modelBuilder != null) {
-			modelBuilder.removePropertyChangeListener("panel", this); //$NON-NLS-1$
+			modelBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this); //$NON-NLS-1$
 			modelBuilder.dispose();
 			modelBuilder = null;
 		}
 		if (dataBuilder != null) {
-			dataBuilder.removePropertyChangeListener("panel", this); //$NON-NLS-1$
-			dataBuilder.removePropertyChangeListener("function", this); //$NON-NLS-1$
-			dataBuilder.removePropertyChangeListener("visible", this); //$NON-NLS-1$
+			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this); //$NON-NLS-1$
+			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this); //$NON-NLS-1$
+			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_VISIBLE, this); //$NON-NLS-1$
 			dataBuilder.dispose();
 			dataBuilder = null;
 		}
@@ -3972,7 +3969,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	public JPopupMenu updatePopup() {
-		MainTView mainTView = getTFrame().getMainView(this);		
+		MainTView mainTView = getTFrame().getMainView(this);
 		JPopupMenu popup = this.popup;
 		// see if a track has been clicked
 		boolean trackClicked = false;
@@ -4201,7 +4198,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			setSelectedPoint(null);
 		}
 		for (TTrack track : changedTracks) {
-			track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+			track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 		}
 	}
 
@@ -4238,11 +4235,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		getPlayer().getClipControl().videoVisible = visible;
 		setVideo(video); // triggers image change event
 	}
-		  
 
 	/**
-	 * Create the VideoClip with proper settings, now that the
-	 * AsyncVideoI has finished loading.
+	 * Create the VideoClip with proper settings, now that the AsyncVideoI has
+	 * finished loading.
 	 */
 	public void finalizeLoading() {
 		loader.finalizeLoading();

@@ -78,6 +78,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class PencilControl extends JDialog {
 	
 	static PencilScene dummyScene = new PencilScene();
@@ -94,7 +95,7 @@ public class PencilControl extends JDialog {
 	private PencilDrawer drawer;
 	private TrackerPanel trackerPanel;
 	private PencilScene selectedScene;
-  private JComboBox sceneDropdown;
+  private JComboBox<PencilScene> sceneDropdown;
   private DrawingPanel canvas;
   private JLabel drawingLabel, captionLabel, framesLabel, toLabel;
   private JSpinner startFrameSpinner, endFrameSpinner;
@@ -359,7 +360,7 @@ public class PencilControl extends JDialog {
     });
 		
 		// create dropdown
-		sceneDropdown = new JComboBox() {
+		sceneDropdown = new JComboBox<PencilScene>() {
   		@Override
       public Dimension getMaximumSize() {
   			Dimension dim = super.getMaximumSize();
@@ -792,7 +793,7 @@ public class PencilControl extends JDialog {
   /**
    * Custom renderer for scene dropdown. List items are PencilScenes.
    */
-  private class SceneDropdownRenderer extends JLabel implements ListCellRenderer {
+  private class SceneDropdownRenderer extends JLabel implements ListCellRenderer<PencilScene> {
 
 	  /**
 	   * Private constructor
@@ -805,8 +806,8 @@ public class PencilControl extends JDialog {
     }
   	
   	@Override
-    public Component getListCellRendererComponent(JList list,
-                                                  Object value,
+    public Component getListCellRendererComponent(@SuppressWarnings("rawtypes") JList list,
+                                                  PencilScene value,
                                                   int index,
                                                   boolean isSelected,
                                                   boolean cellHasFocus) {

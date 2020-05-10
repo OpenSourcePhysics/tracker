@@ -712,8 +712,7 @@ public String toString() {
       	protractor.keyFrames.add(n);
     	}      
       repaint();
-	  	protractor.dataValid = false;
-	  	protractor.firePropertyChange("data", null, protractor); //$NON-NLS-1$
+      	protractor.invalidateData(protractor);
     }
 
     /**

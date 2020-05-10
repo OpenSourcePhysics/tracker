@@ -899,8 +899,7 @@ protected void setTrackerPanel(TrackerPanel panel) {
         	  trackerPanel.add(glassPanel, BorderLayout.CENTER);
           }
           trackerPanel.remove(inputPanel);
-          dataValid = false;
-  	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
+          invalidateData(null);
           trackerPanel.revalidate();
           trackerPanel.repaint();
         }
