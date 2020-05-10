@@ -1416,7 +1416,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
   					accept = accept || lcTarget.endsWith("."+ext); //$NON-NLS-1$
     			}
   				if (accept) {
-//		  			libraryBrowser.setVisible(false);
 		        Resource res = ResourceLoader.getResourceZipURLsOK(target);
   					if (res!=null) {
   						ArrayList<String> urlPaths = new ArrayList<String>();
@@ -1429,7 +1428,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	        				s+" \""+XML.getName(target)+"\"", //$NON-NLS-1$ //$NON-NLS-2$
 	        				TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
 	        				JOptionPane.WARNING_MESSAGE);
-			  			libraryBrowser.setVisible(true);
   					}
   				}
 
