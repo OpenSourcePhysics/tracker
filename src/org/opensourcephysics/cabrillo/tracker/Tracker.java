@@ -1768,11 +1768,11 @@ public class Tracker {
 		};
 		new Thread(runner).start();
     
-    LaunchNode node = Launcher.activeNode;
-    if (node != null) {
-      frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
-    }
-    TTrackBar.refreshMemoryButton();
+//    LaunchNode node = Launcher.activeNode;
+//    if (node != null) {
+//      frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
+//    }
+//    TTrackBar.refreshMemoryButton();
     
     // inform user if memory size was reduced
   	if (originalMemoryRequest>requestedMemorySize) {
@@ -1920,6 +1920,7 @@ public class Tracker {
       	TTrackBar.refreshMemoryButton();
       }				    	      
     });
+		memoryTimer.setInitialDelay(1000);
   	memoryTimer.setRepeats(true);
   	memoryTimer.start();
   }
