@@ -183,8 +183,7 @@ public class LineProfile extends TTrack {
 	        	Undo.postTrackEdit(LineProfile.this, control);
         }
         trackerPanel.getTFrame().getToolBar(trackerPanel).refresh(false);
-        dataValid = false;
-        support.firePropertyChange("data", null, null); // to views //$NON-NLS-1$
+        invalidateData(null);
       }
     });
     orientationMenu.add(horizOrientationItem);
@@ -250,7 +249,7 @@ public class LineProfile extends TTrack {
     if (!loading)
     	Undo.postTrackEdit(this, control);
     repaint();
-  	dataValid = false;
+    invalidateData(Boolean.FALSE);
   }
 
   /**
@@ -553,31 +552,35 @@ public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel)
     FontSizer.setFonts(objectsToSize, level);
   }
 
-  /**
-   * Responds to property change events. LineProfile listens for the following
-   * events: "stepnumber", "image" and "transform" from TrackerPanel.
-   *
-   * @param e the property change event
-   */
-  @Override
-public void propertyChange(PropertyChangeEvent e) {
-  	if (trackerPanel != null) {
-      String name = e.getPropertyName();
-      if (name.equals("stepnumber")) { //$NON-NLS-1$
-      	dataValid = false;
-      }
-      else if (name.equals("image")) { //$NON-NLS-1$
-      	dataValid = false;
-        support.firePropertyChange(e); // to views
-      }
-      else if (name.equals("transform") && !steps.isEmpty()) { //$NON-NLS-1$
-    		int n = trackerPanel.getFrameNumber();
-        LineProfileStep step = (LineProfileStep)steps.getStep(n);
-        refreshStep(step);
-      }
-  	}
-    super.propertyChange(e); // handled by TTrack
-  }
+	/**
+	 * Responds to property change events. LineProfile listens for the following
+	 * events: "stepnumber", "image" and "transform" from TrackerPanel.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		if (trackerPanel != null) {
+			String name = e.getPropertyName();
+			switch (name) {
+			case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
+				invalidateData(Boolean.FALSE);
+				break;
+			case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
+				invalidateData(Boolean.FALSE);
+				support.firePropertyChange(e); // to view
+				break;
+			case TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM:
+				if (!steps.isEmpty()) { // $NON-NLS-1$
+					int n = trackerPanel.getFrameNumber();
+					LineProfileStep step = (LineProfileStep) steps.getStep(n);
+					refreshStep(step);
+				}
+				break;
+			}
+		}
+		super.propertyChange(e); // handled by TTrack
+	}
 
   /**
    * Overrides Object toString method.

@@ -16,6 +16,7 @@ import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
 
+@SuppressWarnings("serial")
 public class DataTrackTimeControl extends JPanel implements PropertyChangeListener {
 	
 	protected DataTrack dataTrack;

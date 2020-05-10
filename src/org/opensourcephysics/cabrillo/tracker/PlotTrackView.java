@@ -42,6 +42,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class PlotTrackView extends TrackView {
 
 	// instance fields

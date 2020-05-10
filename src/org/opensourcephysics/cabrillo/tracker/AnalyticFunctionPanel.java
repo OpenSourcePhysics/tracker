@@ -14,6 +14,7 @@ import org.opensourcephysics.tools.*;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class AnalyticFunctionPanel extends ModelFunctionPanel {
 
   /**

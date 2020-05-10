@@ -44,6 +44,7 @@ import org.opensourcephysics.controls.*;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class PointMass extends TTrack {
 
 	// static constants
@@ -414,7 +415,7 @@ public class PointMass extends TTrack {
 		if (!autoTrackerMarking && trackerPanel != null && trackerPanel.getAutoRefresh()) {
 			updateDerivatives(n);
 		}
-		support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+		support.firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
 		// check independent point masses for skipped steps during marking
 		if (skippedStepWarningOn && steps.isPreceded(n) && trackerPanel != null && !isDependent()
 				&& !AutoTracker.neverPause) {
@@ -789,9 +790,8 @@ public class PointMass extends TTrack {
 		mass = Math.abs(mass);
 		mass = Math.max(mass, MINIMUM_MASS);
 		this.mass = mass;
-		dataValid = false;
 		firePropertyChange("mass", null, new Double(mass)); //$NON-NLS-1$
-		firePropertyChange("data", null, PointMass.this); // to views //$NON-NLS-1$
+		invalidateData(this);// to views
 		// store the mass in the data properties
 		if (data != null) {
 			Double m = getMass();
@@ -884,7 +884,7 @@ public class PointMass extends TTrack {
 			algorithm = type;
 			refreshDataLater = false;
 			updateDerivatives();
-			support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 		}
 	}
 
@@ -1002,7 +1002,7 @@ public class PointMass extends TTrack {
 		}
 		refreshDataLater = false;
 		updateDerivatives();
-		support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+		support.firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 		// post undoable edit if changes made
 		if (changed) {
 			Undo.postTrackEdit(this, control);
@@ -1057,7 +1057,7 @@ public class PointMass extends TTrack {
 		refreshDataLater = !refreshData;
 		if (refreshData)
 			updateDerivatives(firstStep, lastStep - firstStep);
-		support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 		// post undoable edit if changes made
 		if (changed) {
 			Undo.postTrackEdit(this, control);
@@ -2298,29 +2298,41 @@ public class PointMass extends TTrack {
 	public void propertyChange(PropertyChangeEvent e) {
 		if (e.getSource() instanceof TrackerPanel) {
 			String name = e.getPropertyName();
-			if (name.equals("transform")) { //$NON-NLS-1$
-				dataValid = false;
+			switch (name) {
+			case TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM:
 				updateDerivatives();
-				support.firePropertyChange("data", null, null); //$NON-NLS-1$
-			} else if (name.equals("stepsize")) { //$NON-NLS-1$
-				dataValid = false;
+				invalidateData(null);
+				break;
+			case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE:
 				updateDerivatives();
-				support.firePropertyChange("data", null, null); //$NON-NLS-1$
+				invalidateData(null);
 				int stepSize = trackerPanel.getPlayer().getVideoClip().getStepSize();
 				if (skippedStepWarningOn && stepSizeWhenFirstMarked > 1 && stepSize != stepSizeWhenFirstMarked) {
 					JDialog warning = getStepSizeWarningDialog();
 					if (warning != null)
 						warning.setVisible(true);
 				}
-			} else if (name.equals("adjusting")) { //$NON-NLS-1$
+				break;
+			case VideoClip.PROPERTY_VIDEOCLIP_ADJUSTING:
 				refreshDataLater = (Boolean) e.getNewValue();
 				if (!refreshDataLater) { // stopped adjusting
 					updateDerivatives();
-					support.firePropertyChange("data", null, null); //$NON-NLS-1$
+					fireDataButDontInvalidateIt();
 				}
+				break;
 			}
+			super.propertyChange(e);
+
 		}
-		super.propertyChange(e);
+	}
+
+	/**
+	 * BH! Is this intentional ?
+	 * @param newObject
+	 */
+	private void fireDataButDontInvalidateIt() {
+		// should this be invalidateData(null) ?
+		firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
 	}
 
 	/**
@@ -2691,7 +2703,8 @@ public class PointMass extends TTrack {
 				}
 
 				p.updateDerivatives();
-				p.support.firePropertyChange("data", null, null); //$NON-NLS-1$
+				// BH! don't set dataValid = false???
+				p.fireDataButDontInvalidateIt();
 			}
 			int[] keys = (int[]) control.getObject("keyFrames"); //$NON-NLS-1$
 			if (keys != null) {

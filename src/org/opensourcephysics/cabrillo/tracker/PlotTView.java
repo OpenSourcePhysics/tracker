@@ -35,6 +35,7 @@ import org.opensourcephysics.controls.XMLProperty;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class PlotTView extends TrackChooserTView {
 
   protected Icon icon;

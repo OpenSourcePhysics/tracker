@@ -34,6 +34,7 @@ import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPanel;
 
+@SuppressWarnings("serial")
 public class DataTrackClipControl extends JPanel implements PropertyChangeListener {
 	
 	static Color videoColor=Color.WHITE;

@@ -38,6 +38,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class PlotGuestDialog extends JDialog {
 
   // instance fields

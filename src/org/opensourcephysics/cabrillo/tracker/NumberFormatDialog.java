@@ -82,6 +82,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class NumberFormatDialog extends JDialog {
 
 	private static Map<TrackerPanel, NumberFormatDialog> formatSetters 
@@ -146,7 +147,7 @@ public class NumberFormatDialog extends JDialog {
   TrackerPanel trackerPanel;
   int trackID = -1;
   JButton closeButton, helpButton, revertButton;
-  JComboBox trackDropdown;
+  JComboBox<Object> trackDropdown;
   JLabel patternLabel, sampleLabel;
   JTextField patternField;
   NumberField sampleField;
@@ -157,7 +158,7 @@ public class NumberFormatDialog extends JDialog {
   Map<TTrack, TreeMap<String, String>> prevTrackPatterns 
   	= new HashMap<TTrack, TreeMap<String, String>>();
   JPanel variablePanel, applyToPanel, unitsPanel, decimalSeparatorPanel;
-  JList variableList = new JList();
+  JList<String> variableList = new JList<String>();
   JScrollPane variableScroller;
   JRadioButton trackOnlyButton, trackTypeButton, dimensionButton;
   JRadioButton defaultDecimalButton, periodDecimalButton, commaDecimalButton;
@@ -292,7 +293,7 @@ public class NumberFormatDialog extends JDialog {
   	}
 
     // create variable list and add to scroller
-    variableList = new JList(displayedNames);
+    variableList = new JList<String>(displayedNames);
     variableList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
     variableList.setVisibleRowCount(-1);
     variableList.addListSelectionListener(new ListSelectionListener() {
@@ -851,7 +852,7 @@ public class NumberFormatDialog extends JDialog {
   	}
   	else if (trackTypeButton.isSelected()) {
 	  	// apply to the variable in all tracks of same type 
-  		Class trackType = getTrackType(track);
+  		Class<? extends TTrack> trackType = getTrackType(track);
   		ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
   		for (TTrack next: tracks) {
   			if (!trackType.isAssignableFrom(next.getClass())) continue;
@@ -994,7 +995,7 @@ public class NumberFormatDialog extends JDialog {
     });
     
     // create trackDropdown early since need it for spinners
-    trackDropdown = new JComboBox() {
+    trackDropdown = new JComboBox<Object>() {
       @Override
 	public Dimension getPreferredSize() {
     		Dimension dim = super.getPreferredSize();

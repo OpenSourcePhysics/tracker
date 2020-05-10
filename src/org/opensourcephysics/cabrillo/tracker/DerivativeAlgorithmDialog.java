@@ -41,6 +41,7 @@ import java.util.ArrayList;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class DerivativeAlgorithmDialog extends JDialog {
 	
   protected TrackerPanel trackerPanel;

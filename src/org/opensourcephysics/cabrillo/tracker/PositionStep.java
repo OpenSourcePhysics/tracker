@@ -41,6 +41,7 @@ import java.util.*;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class PositionStep extends Step {
 	
 	private static Point[] twoPoints = new Point[2];

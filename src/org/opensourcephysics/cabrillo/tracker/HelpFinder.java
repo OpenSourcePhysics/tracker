@@ -62,6 +62,7 @@ import org.opensourcephysics.tools.Launcher.HTMLPane;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class HelpFinder {
 	
 	// map of pagekey to map of anchor to text lines
@@ -334,6 +335,7 @@ public class HelpFinder {
 		return results;
 	}
 	
+	@SuppressWarnings("unchecked")
 	private static void initialize() {
 		// initialize the maps
   	URL url = Tracker.getClassResource("resources/help/tracker_topics.xml"); //$NON-NLS-1$

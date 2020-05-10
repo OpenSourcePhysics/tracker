@@ -47,6 +47,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class ExportDataDialog extends JDialog {
 	
 	protected static ExportDataDialog dataExporter; // singleton
@@ -55,7 +56,10 @@ public class ExportDataDialog extends JDialog {
   protected TrackerPanel trackerPanel;
   protected JButton saveAsButton, closeButton;
   protected JComponent tablePanel, delimiterPanel, contentPanel, formatPanel;
-  protected JComboBox formatDropdown, delimiterDropdown, tableDropdown, contentDropdown;
+  protected JComboBox<String> formatDropdown;
+  protected JComboBox<Object> delimiterDropdown;
+  protected JComboBox<String> tableDropdown;
+  protected JComboBox<String> contentDropdown;
   protected HashMap<Object, DataTable> tables;
   protected HashMap<DataTable, String> trackNames;
   protected boolean refreshing;
@@ -110,12 +114,12 @@ public class ExportDataDialog extends JDialog {
     tables = new HashMap<Object, DataTable>();
     trackNames = new HashMap<DataTable, String>();
     tablePanel = Box.createVerticalBox();
-    tableDropdown = new JComboBox();
+    tableDropdown = new JComboBox<>();
   	tablePanel.add(tableDropdown);
     
     // delimiter panel
     delimiterPanel = new JPanel(new GridLayout(0, 1));
-    delimiterDropdown = new JComboBox();
+    delimiterDropdown = new JComboBox<>();
     delimiterPanel.add(delimiterDropdown);
     delimiterDropdown.addItemListener(new ItemListener() {
     	@Override
@@ -161,17 +165,16 @@ public class ExportDataDialog extends JDialog {
     		}
     	}
     });
-    ListCellRenderer renderer = delimiterDropdown.getRenderer();
-    delimiterDropdown.setRenderer(new SeparatorRenderer(renderer));
+    delimiterDropdown.setRenderer(new SeparatorRenderer(delimiterDropdown.getRenderer()));
     
     // content panel
     contentPanel = new JPanel(new GridLayout(0, 1));
-    contentDropdown = new JComboBox();
+    contentDropdown = new JComboBox<>();
   	contentPanel.add(contentDropdown);
     
     // format panel
     formatPanel = new JPanel(new GridLayout(0, 1));
-    formatDropdown = new JComboBox();
+    formatDropdown = new JComboBox<>();
     formatPanel.add(formatDropdown);
     
     // assemble 
@@ -387,16 +390,16 @@ public class ExportDataDialog extends JDialog {
   /**
    * Custom renderer to separator in dropdown list
    */
-  class SeparatorRenderer extends JLabel implements ListCellRenderer {
+  class SeparatorRenderer extends JLabel implements ListCellRenderer<Object> {
   	
-  	ListCellRenderer renderer;
+  	ListCellRenderer<Object> renderer;
 
-  	SeparatorRenderer(ListCellRenderer renderer) {
+  	SeparatorRenderer(ListCellRenderer<Object> renderer) {
       this.renderer = renderer;
     }
   	
     @Override
-	public Component getListCellRendererComponent(JList list, Object value, int index,
+	public Component getListCellRendererComponent(JList<?> list, Object value, int index,
         boolean isSelected, boolean cellHasFocus) {
       if (value instanceof JSeparator)
         return (JSeparator)value;
