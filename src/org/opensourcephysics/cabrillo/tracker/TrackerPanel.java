@@ -2644,7 +2644,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				getVideo().setProperty("measure", null); //$NON-NLS-1$
 			}
 			firePropertyChange(PROPERTY_TRACKERPANEL_DATA, null, null); // to views //$NON-NLS-1$
-			firePropertyChange(VideoClip.PROPERTY_VIDEOCLIP_ADJUSTING, null,
+			firePropertyChange(name, null,
 					name == VideoClip.PROPERTY_VIDEOCLIP_ADJUSTING ? e.getNewValue() : null); // to particle models
 																								// //$NON-NLS-1$
 			if (getSelectedPoint() != null) {
@@ -2725,11 +2725,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			firePropertyChange(name, e.getOldValue(), e.getNewValue()); // to tracks
 			break;
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_VISIBLE: // $NON-NLS-1$
-			dataToolVisible = ((Boolean) e.getNewValue()).booleanValue();
+			if (e.getSource() == dataBuilder)
+				dataToolVisible = ((Boolean) e.getNewValue()).booleanValue();
 			break;
 		case Filter.PROPERTY_FILTER_VISIBLE:
-			selectedSteps.clear();
 			setSelectedPoint(null);
+			selectedSteps.clear();
 			break;
 		case "perspective": //$NON-NLS-1$
 			if (e.getNewValue() != null) {
@@ -2755,19 +2756,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (Tracker.showHints) {
 				Tracker.startupHintShown = false;
 				switch (name) {
-				case "stepbutton": //$NON-NLS-1$
+				case VideoPlayer.PROPERTY_VIDEOPLAYER_STEPBUTTON: //$NON-NLS-1$
 					if (!((Boolean) e.getNewValue()).booleanValue())
 						setMessage(""); //$NON-NLS-1$
 					else
 						setMessage(TrackerRes.getString("VideoPlayer.Step.Hint")); //$NON-NLS-1$
 					break;
-				case "backbutton": //$NON-NLS-1$
+				case VideoPlayer.PROPERTY_VIDEOPLAYER_BACKBUTTON: //$NON-NLS-1$
 					if (!((Boolean) e.getNewValue()).booleanValue())
 						setMessage(""); //$NON-NLS-1$
 					else
 						setMessage(TrackerRes.getString("VideoPlayer.Back.Hint")); //$NON-NLS-1$
 					break;
-				case "slider": //$NON-NLS-1$
+				case VideoPlayer.PROPERTY_VIDEOPLAYER_SLIDER: //$NON-NLS-1$
 					if (!((Boolean) e.getNewValue()).booleanValue())
 						setMessage(""); //$NON-NLS-1$
 					else
