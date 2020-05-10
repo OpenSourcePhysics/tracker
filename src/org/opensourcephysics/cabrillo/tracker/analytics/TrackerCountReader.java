@@ -55,7 +55,7 @@ public class TrackerCountReader extends JFrame {
 			"4.93", "4.92", "4.91", "4.90"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] OSs = {"all", "windows", "osx", "linux"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] engines = {"all", "Xuggle", "none"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
-	JComboBox actionDropdown, versionDropdown, osDropdown, engineDropdown;
+	JComboBox<String> actionDropdown, versionDropdown, osDropdown, engineDropdown;
 	JLabel actionLabel, versionLabel, osLabel, engineLabel;
 
 	JTextArea textArea;
@@ -72,10 +72,10 @@ public class TrackerCountReader extends JFrame {
 		osLabel = new JLabel("OS"); //$NON-NLS-1$
 		engineLabel = new JLabel("Engine"); //$NON-NLS-1$
 		
-		actionDropdown = new JComboBox(actions);
-		versionDropdown = new JComboBox(versions);
-		osDropdown = new JComboBox(OSs);
-		engineDropdown = new JComboBox(engines);
+		actionDropdown = new JComboBox<>(actions);
+		versionDropdown = new JComboBox<>(versions);
+		osDropdown = new JComboBox<>(OSs);
+		engineDropdown = new JComboBox<>(engines);
 		actionDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
 		versionDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
 		osDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));

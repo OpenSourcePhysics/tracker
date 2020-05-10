@@ -65,8 +65,8 @@ public class ThumbnailDialog extends JDialog {
   protected TrackerPanel trackerPanel;
   protected JButton saveAsButton, closeButton;
   protected JComponent sizePanel, viewPanel, formatPanel;
-  protected JComboBox formatDropdown, viewDropdown, sizeDropdown;
-  protected DefaultComboBoxModel formatModel, viewModel;
+  protected JComboBox<String> formatDropdown, viewDropdown, sizeDropdown;
+  protected DefaultComboBoxModel<String> formatModel, viewModel;
   protected AffineTransform transform = new AffineTransform();
   protected BufferedImage sizedImage;
   protected HashMap<Object, Dimension> sizes;
@@ -260,13 +260,13 @@ public class ThumbnailDialog extends JDialog {
     // size panel
     sizes = new HashMap<Object, Dimension>();
     sizePanel = Box.createVerticalBox();
-    sizeDropdown = new JComboBox();
+    sizeDropdown = new JComboBox<>();
   	sizePanel.add(sizeDropdown);
     
     // view panel
     viewPanel = Box.createVerticalBox();
-    viewModel = new DefaultComboBoxModel();
-    viewDropdown = new JComboBox(viewModel);
+    viewModel = new DefaultComboBoxModel<>();
+    viewDropdown = new JComboBox<>(viewModel);
     viewPanel.add(viewDropdown);
     viewDropdown.addItemListener(new ItemListener() {
     	@Override
@@ -280,8 +280,8 @@ public class ThumbnailDialog extends JDialog {
    
     // format panel
     formatPanel = Box.createVerticalBox();
-    formatModel = new DefaultComboBoxModel();
-    formatDropdown = new JComboBox(formatModel);
+    formatModel = new DefaultComboBoxModel<>();
+    formatDropdown = new JComboBox<>(formatModel);
     formatPanel.add(formatDropdown);
     
     // assemble 
