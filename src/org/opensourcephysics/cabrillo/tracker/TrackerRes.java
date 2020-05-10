@@ -25,12 +25,11 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.*;
-import java.util.ResourceBundle.Control;
+import java.util.Locale;
+import java.util.MissingResourceException;
 
 import javax.swing.event.SwingPropertyChangeSupport;
 
-import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.ResourceLoader.Bundle;
 
@@ -51,9 +50,7 @@ public class TrackerRes {
 					"org.opensourcephysics.cabrillo.tracker.resources.tracker",  //$NON-NLS-1$
 					locale);
 
-
-	static Object resObj = new TrackerRes();
-  static PropertyChangeSupport support = new SwingPropertyChangeSupport(resObj);
+	static PropertyChangeSupport support = new SwingPropertyChangeSupport(new TrackerRes());
 
 	/**
 	 * Private constructor to prevent instantiation.

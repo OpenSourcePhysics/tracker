@@ -224,7 +224,7 @@ public class RGBRegion extends TTrack {
 	    keyFrames.add(0);
   		clearData();
   		refreshData(data, trackerPanel);
-  		support.firePropertyChange("data", null, null); //$NON-NLS-1$
+  		firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
     }
     if (!loading) {
     	Undo.postTrackEdit(this, control);
@@ -270,7 +270,7 @@ public class RGBRegion extends TTrack {
 	    radiusKeyFrames.add(0);
   		clearData();
   		refreshData(data, trackerPanel);
-  		support.firePropertyChange("data", null, null); //$NON-NLS-1$
+  		firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
     }
     if (!loading) {
     	Undo.postTrackEdit(this, control);
@@ -443,7 +443,7 @@ public Step createStep(int n, double x, double y) {
       keyFrames.add(n);
   		Undo.postTrackEdit(this, currentState);
     }
-    support.firePropertyChange("step", null, n); //$NON-NLS-1$
+    firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$
     return getStep(n);
   }
 
@@ -795,7 +795,7 @@ public void propertyChange(PropertyChangeEvent e) {
   	    }
   	    radiusField.setEnabled(!isLocked() && step != null);
 	      stepValueLabel.setText(e.getNewValue()+":"); //$NON-NLS-1$
-//        support.firePropertyChange(e); // to views
+//        firePropertyChange(e); // to views
       }
       else if (name.equals("image")) { //$NON-NLS-1$
       	invalidateData(Boolean.FALSE);

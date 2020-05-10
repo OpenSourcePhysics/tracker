@@ -47,6 +47,7 @@ import org.opensourcephysics.media.core.*;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 	// static fields
@@ -328,10 +329,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			guestDataset = new HighlightableDataset();
 			guestDatasets.put(guest, guestDataset);
 		}
-		guest.removePropertyChangeListener("step", plotTrackView); //$NON-NLS-1$
-		guest.removePropertyChangeListener("steps", plotTrackView); //$NON-NLS-1$
-		guest.addPropertyChangeListener("step", plotTrackView); //$NON-NLS-1$
-		guest.addPropertyChangeListener("steps", plotTrackView); //$NON-NLS-1$
+		guest.removeStepListener(plotTrackView); //$NON-NLS-1$
+		guest.addStepListener(plotTrackView); //$NON-NLS-1$
 	}
 
 	/**
@@ -341,8 +340,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	public void removeGuest(TTrack guest) {
 		guests.remove(guest);
-		guest.removePropertyChangeListener("step", plotTrackView); //$NON-NLS-1$
-		guest.removePropertyChangeListener("steps", plotTrackView); //$NON-NLS-1$
+		guest.removeStepListener(plotTrackView); //$NON-NLS-1$
 	}
 
 	/**
@@ -1358,16 +1356,15 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	protected void setPlotTrackView(PlotTrackView view) {
 		plotTrackView = view;
 		VideoPlayer player = plotTrackView.trackerPanel.getPlayer();
-		player.removePropertyChangeListener("stepnumber", playerListener); //$NON-NLS-1$
-		player.addPropertyChangeListener("stepnumber", playerListener); //$NON-NLS-1$
+		player.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$
+		player.addPropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$
 	}
 
 	protected void dispose() {
 		VideoPlayer player = plotTrackView.trackerPanel.getPlayer();
-		player.removePropertyChangeListener("stepnumber", playerListener); //$NON-NLS-1$
+		player.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$
 		for (TTrack guest : guests) {
-			guest.removePropertyChangeListener("step", plotTrackView); //$NON-NLS-1$
-			guest.removePropertyChangeListener("steps", plotTrackView); //$NON-NLS-1$
+			guest.removeStepListener(plotTrackView); //$NON-NLS-1$
 		}
 		guests.clear();
 		guestDatasets.clear();

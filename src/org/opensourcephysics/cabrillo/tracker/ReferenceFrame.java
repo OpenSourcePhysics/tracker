@@ -59,8 +59,7 @@ public class ReferenceFrame extends ImageCoordSystem
     setFixedAngle(coords.isFixedAngle());
     setFixedScale(coords.isFixedScale());
     coords.addPropertyChangeListener("transform", this); //$NON-NLS-1$
-    originTrack.addPropertyChangeListener("step", this); //$NON-NLS-1$
-    originTrack.addPropertyChangeListener("steps", this); //$NON-NLS-1$
+    originTrack.addStepListener(this);
     for (int n = 0; n < coords.getLength(); n++) {
       setScaleXY(n, coords.getScaleX(n), coords.getScaleY(n));
       setCosineSine(n, coords.getCosine(n),  coords.getSine(n));
@@ -203,7 +202,7 @@ public void propertyChange(PropertyChangeEvent e) {
     }
     firePropChange = true;
     // fire property change for overall updates
-    support.firePropertyChange("transform", null, null); //$NON-NLS-1$
+    support.firePropertyChange(PROPERTY_COORDS_TRANSFORM, null, null); //$NON-NLS-1$
   }
 
 }

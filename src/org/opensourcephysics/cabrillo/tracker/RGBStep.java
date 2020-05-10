@@ -342,7 +342,7 @@ public String toString() {
         dataValid = false; // this step's data is invalid      
     	}      
       repaint();
-      track.support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+      track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
     }
 
     /**

@@ -495,7 +495,7 @@ public void propertyChange(PropertyChangeEvent e) {
     if (name.equals("adjusting") && e.getSource() instanceof TrackerPanel) { //$NON-NLS-1$
 			refreshDataLater = (Boolean)e.getNewValue();
 			if (!refreshDataLater) {  // stopped adjusting
-	    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
+	    	firePropertyChange("data", null, null); //$NON-NLS-1$
 			}
     }
     if (name.equals("stepnumber")) { //$NON-NLS-1$

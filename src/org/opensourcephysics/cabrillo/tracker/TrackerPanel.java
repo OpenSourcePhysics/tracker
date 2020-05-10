@@ -359,7 +359,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		noData.setOpaque(false);
 		player.setInspectorButtonVisible(false);
-		player.addListener(this);
+		player.addActionListener(this);
+		player.addFrameListener(this);
 
 		massParamListener = new PropertyChangeListener() {
 			@Override
@@ -1122,8 +1123,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		if (video == null) {
 			coords.removePropertyChangeListener(this);
+			_coords.addPropertyChangeListener(this);
 			coords = _coords;
-			coords.addPropertyChangeListener(this);
 			int n = getFrameNumber();
 			getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
 			try {
@@ -2501,7 +2502,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " property change " + name); //$NON-NLS-1$
 		TTrack track;
 		switch (name) {
-		case "size": //$NON-NLS-1$
+		case Video.PROPERTY_VIDEO_SIZE: //$NON-NLS-1$
 			super.propertyChange(e);
 			break;
 		case TTrack.PROPERTY_TTRACK_STEP: // $NON-NLS-1$
@@ -3281,7 +3282,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		ClipControl clipControl = player.getClipControl();
 		clipControl.removePropertyChangeListener(player);
-		player.removeListener(this);
+		player.removeActionListener(this);
+		player.removeFrameListener(this);
 		player.stop();
 		remove(player);
 		player = null;
