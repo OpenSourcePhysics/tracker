@@ -315,11 +315,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
   	wizard.refreshGUI();
   	if (update) {
       TTrack track = getTrack();
-			if (track instanceof PointMass) {
+			if (track!=null && track instanceof PointMass) {
 				PointMass pointMass = (PointMass)track;
 				pointMass.updateDerivatives();
 			}
-	  	track.firePropertyChange("steps", null, null); //$NON-NLS-1$ 		
+	  	if (track!=null) track.firePropertyChange("steps", null, null); //$NON-NLS-1$ 		
   	}
   }
   
