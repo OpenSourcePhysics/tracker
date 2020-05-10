@@ -306,6 +306,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
       openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
       // open library browser item
       openBrowserItem = new JMenuItem(actions.get("openBrowser")); //$NON-NLS-1$
+      openBrowserItem.setAccelerator(KeyStroke.getKeyStroke('B', keyMask));
       // open recent
       openRecentMenu = new JMenu();
       // import menu
