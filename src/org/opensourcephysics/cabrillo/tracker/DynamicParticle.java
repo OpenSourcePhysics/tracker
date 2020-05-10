@@ -186,7 +186,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 					}
 					models[i].traceX = new double[0];
 					models[i].traceY = new double[0];
-					models[i].support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+					models[i].firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 				}
 				return;
 			}
@@ -229,7 +229,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 				models[i].traceX = new double[] { points[i].getX() };
 				models[i].traceY = new double[] { points[i].getY() };
 				step.getPosition().setPosition(points[i]); // this method is fast
-				models[i].support.firePropertyChange("step", null, firstFrameInClip); //$NON-NLS-1$
+				models[i].firePropertyChange(PROPERTY_TTRACK_STEP, null, firstFrameInClip); //$NON-NLS-1$
 			}
 		}
 	}
@@ -624,14 +624,12 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		 */
 		public void setBooster(PointMass pm) {
 			if (booster != null) {
-				booster.removePropertyChangeListener("step", this); //$NON-NLS-1$
-				booster.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+				booster.removeStepListener(this);
 			}
 			booster = pm;
 			if (booster != null) {
 				boost();
-				booster.addPropertyChangeListener("step", this); //$NON-NLS-1$
-				booster.addPropertyChangeListener("steps", this); //$NON-NLS-1$
+				booster.addStepListener(this);
 			}
 		}
 

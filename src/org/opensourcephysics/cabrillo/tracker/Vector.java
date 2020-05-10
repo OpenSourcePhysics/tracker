@@ -115,7 +115,8 @@ public class Vector extends TTrack {
   /**
    * Constructs a Vector.
    */
-  public Vector() {
+  @SuppressWarnings("serial")
+public Vector() {
     super();
 		defaultColors = new Color[] {
 				Color.magenta, Color.cyan, Color.blue, Color.red};
@@ -262,7 +263,7 @@ public Step createStep(int n, double x, double y) {
     step.setFirePropertyChangeEvents(true);
     steps.setStep(n, step);
     step.setFootprint(getFootprint());    	
-    support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+    firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
     return step;
   }
 
@@ -340,7 +341,7 @@ public void propertyChange(PropertyChangeEvent e) {
 			if (name.equals("adjusting")) { //$NON-NLS-1$
 				refreshDataLater = (Boolean)e.getNewValue();
 				if (!refreshDataLater) {  // stopped adjusting
-		    	support.firePropertyChange("data", null, null); //$NON-NLS-1$
+					firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
 				}
 			}
     }

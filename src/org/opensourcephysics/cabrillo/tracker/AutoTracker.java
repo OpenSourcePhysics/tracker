@@ -267,19 +267,19 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		if (track == newTrack)
 			return;
 		if (track != null) {
-			track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("color", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 		}
 		track = newTrack;
 		if (track != null) {
 			trackID = track.getID();
 			trackerPanel.setSelectedTrack(track);
-			track.addPropertyChangeListener("step", this); //$NON-NLS-1$
-			track.addPropertyChangeListener("name", this); //$NON-NLS-1$
-			track.addPropertyChangeListener("color", this); //$NON-NLS-1$
-			track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 			track.setVisible(true);
 			int n = trackerPanel.getFrameNumber();
 			FrameData frame = getFrame(n);

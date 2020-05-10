@@ -110,7 +110,7 @@ public Step createStep(int n, double x, double y) {
       step = new OffsetOriginStep(this, n, x, y);
       step.setFootprint(getFootprint());
       steps = new StepArray(step);
-      support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+      firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
     }
     else if (trackerPanel!=null) {
     	XMLControl currentState = new XMLControlElement(this);

@@ -37,1056 +37,1051 @@ import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * This is a Step that represents a vector. It is used when tracking
- * vector objects (eg Force) or displaying the motion of a PointMass.
+ * This is a Step that represents a vector. It is used when tracking vector
+ * objects (eg Force) or displaying the motion of a PointMass.
  *
  * @author Douglas Brown
  */
-public class VectorStep extends Step
-                        implements PropertyChangeListener {
-  // static fields
-  protected static boolean pointSnapEnabled = true;
-  protected static boolean vectorSnapEnabled = true;
-  protected static double snapDistance = 8;
-  protected static Map<TrackerPanel, Set<VectorStep>> vectors 
-  		= new HashMap<TrackerPanel, Set<VectorStep>>();
-  protected static TPoint tipPoint = new TPoint(); // used for layout position
-  protected static TPoint tailPoint = new TPoint(); // used for layout position
+@SuppressWarnings("serial")
+public class VectorStep extends Step implements PropertyChangeListener {
+	// static fields
+	protected static boolean pointSnapEnabled = true;
+	protected static boolean vectorSnapEnabled = true;
+	protected static double snapDistance = 8;
+	protected static Map<TrackerPanel, Set<VectorStep>> vectors = new HashMap<TrackerPanel, Set<VectorStep>>();
+	protected static TPoint tipPoint = new TPoint(); // used for layout position
+	protected static TPoint tailPoint = new TPoint(); // used for layout position
 
-  // instance fields
-  protected TPoint tail;
-  protected TPoint tip;
-  protected TPoint middle;
-  protected Handle handle;
-  protected VisibleTip visibleTip;
-  protected int dx, dy; // used when snapped to origin
-  protected boolean tipEnabled = true;
-  protected Map<TrackerPanel, Shape> tipShapes = new HashMap<TrackerPanel, Shape>();
-  protected Map<TrackerPanel, Shape> shaftShapes = new HashMap<TrackerPanel, Shape>();
-  protected TPoint attachmentPoint; // tail is attached to this pt
-  protected VectorChain chain;
-  protected boolean brandNew = true;
-  protected boolean firePropertyChangeEvents = false;
-  protected boolean labelVisible = true;
-  protected boolean rolloverVisible = false;
-  protected boolean valid;
-  protected Map<TrackerPanel, TextLayout> textLayouts = new HashMap<TrackerPanel, TextLayout>();
-  protected Map<TrackerPanel, Rectangle> layoutBounds = new HashMap<TrackerPanel, Rectangle>();
+	// instance fields
+	protected TPoint tail;
+	protected TPoint tip;
+	protected TPoint middle;
+	protected Handle handle;
+	protected VisibleTip visibleTip;
+	protected int dx, dy; // used when snapped to origin
+	protected boolean tipEnabled = true;
+	protected Map<TrackerPanel, Shape> tipShapes = new HashMap<TrackerPanel, Shape>();
+	protected Map<TrackerPanel, Shape> shaftShapes = new HashMap<TrackerPanel, Shape>();
+	protected TPoint attachmentPoint; // tail is attached to this pt
+	protected VectorChain chain;
+	protected boolean brandNew = true;
+	protected boolean firePropertyChangeEvents = false;
+	protected boolean labelVisible = true;
+	protected boolean rolloverVisible = false;
+	protected boolean valid;
+	protected Map<TrackerPanel, TextLayout> textLayouts = new HashMap<TrackerPanel, TextLayout>();
+	protected Map<TrackerPanel, Rectangle> layoutBounds = new HashMap<TrackerPanel, Rectangle>();
 
-  /**
-   * Constructs a VectorStep with specified imagespace tail
-   * coordinates and vector components.
-   *
-   * @param track the track
-   * @param n the frame number
-   * @param x the x coordinate
-   * @param y the y coordinate
-   * @param xc the x component
-   * @param yc the y component
-   */
-  public VectorStep(TTrack track, int n, double x, double y,
-                    double xc, double yc) {
-    super(track, n);
-    tail = new Handle(x, y);
-    middle = new TPoint(x, y) { // used for layout positioning
-      @Override
-	public int getFrameNumber(VideoPanel vidPanel) {
-      	// needed to set layout position correctly on trails
-        return VectorStep.this.n;
-      }
-    };
-    tip = new Tip(x, y);
-    handle = new Handle(x, y);
-    handle.setStepEditTrigger(true);
-    visibleTip = new VisibleTip(x, y);
-    points = new TPoint[] {tip, tail, handle, visibleTip, middle};
-    screenPoints = new Point[getLength()];
-    tip.setLocation(x + xc, y + yc);
-  }
+	/**
+	 * Constructs a VectorStep with specified imagespace tail coordinates and vector
+	 * components.
+	 *
+	 * @param track the track
+	 * @param n     the frame number
+	 * @param x     the x coordinate
+	 * @param y     the y coordinate
+	 * @param xc    the x component
+	 * @param yc    the y component
+	 */
+	public VectorStep(TTrack track, int n, double x, double y, double xc, double yc) {
+		super(track, n);
+		tail = new Handle(x, y);
+		middle = new TPoint(x, y) { // used for layout positioning
+			@Override
+			public int getFrameNumber(VideoPanel vidPanel) {
+				// needed to set layout position correctly on trails
+				return VectorStep.this.n;
+			}
+		};
+		tip = new Tip(x, y);
+		handle = new Handle(x, y);
+		handle.setStepEditTrigger(true);
+		visibleTip = new VisibleTip(x, y);
+		points = new TPoint[] { tip, tail, handle, visibleTip, middle };
+		screenPoints = new Point[getLength()];
+		tip.setLocation(x + xc, y + yc);
+	}
 
-  /**
-   * Gets the tip.
-   *
-   * @return the tip
-   */
-  public TPoint getTip() {
-    return tip;
-  }
+	/**
+	 * Gets the tip.
+	 *
+	 * @return the tip
+	 */
+	public TPoint getTip() {
+		return tip;
+	}
 
-  /**
-   * Gets the tail.
-   *
-   * @return the tail
-   */
-  public TPoint getTail() {
-    return tail;
-  }
+	/**
+	 * Gets the tail.
+	 *
+	 * @return the tail
+	 */
+	public TPoint getTail() {
+		return tail;
+	}
 
-  /**
-   * Gets the handle.
-   *
-   * @return the handle
-   */
-  public TPoint getHandle() {
-    return handle;
-  }
+	/**
+	 * Gets the handle.
+	 *
+	 * @return the handle
+	 */
+	public TPoint getHandle() {
+		return handle;
+	}
 
-  /**
-   * Gets the visible tip point.
-   *
-   * @return the visible tip
-   */
-  public TPoint getVisibleTip() {
-    return visibleTip;
-  }
+	/**
+	 * Gets the visible tip point.
+	 *
+	 * @return the visible tip
+	 */
+	public TPoint getVisibleTip() {
+		return visibleTip;
+	}
 
-  /**
-   * Sets the x component.
-   *
-   * @param x the x component
-   */
-  public void setXComponent(double x) {
-    tip.setX(tail.getX() + x);
-  }
+	/**
+	 * Sets the x component.
+	 *
+	 * @param x the x component
+	 */
+	public void setXComponent(double x) {
+		tip.setX(tail.getX() + x);
+	}
 
-  /**
-   * Sets the y component.
-   *
-   * @param y the y component
-   */
-  public void setYComponent(double y) {
-    tip.setY(tail.getY() + y);
-  }
+	/**
+	 * Sets the y component.
+	 *
+	 * @param y the y component
+	 */
+	public void setYComponent(double y) {
+		tip.setY(tail.getY() + y);
+	}
 
-  /**
-   * Sets the x and y components.
-   *
-   * @param x the x component
-   * @param y the y component
-   */
-  public void setXYComponents(double x, double y) {
-    tip.setXY(tail.getX() + x, tail.getY() + y);
-  }
+	/**
+	 * Sets the x and y components.
+	 *
+	 * @param x the x component
+	 * @param y the y component
+	 */
+	public void setXYComponents(double x, double y) {
+		tip.setXY(tail.getX() + x, tail.getY() + y);
+	}
 
-  /**
-   * Gets the x component.
-   *
-   * @return the x component
-   */
-  public double getXComponent() {
-    return tip.getX() - tail.getX();
-  }
+	/**
+	 * Gets the x component.
+	 *
+	 * @return the x component
+	 */
+	public double getXComponent() {
+		return tip.getX() - tail.getX();
+	}
 
-  /**
-   * Gets the y component.
-   *
-   * @return the y component
-   */
-  public double getYComponent() {
-    return tip.getY() - tail.getY();
-  }
+	/**
+	 * Gets the y component.
+	 *
+	 * @return the y component
+	 */
+	public double getYComponent() {
+		return tip.getY() - tail.getY();
+	}
 
-  /**
-   * Gets the vector label visibility.
-   *
-   * @return <code>true</code> if label is visible
-   */
-  public boolean isLabelVisible() {
-    return labelVisible;
-  }
+	/**
+	 * Gets the vector label visibility.
+	 *
+	 * @return <code>true</code> if label is visible
+	 */
+	public boolean isLabelVisible() {
+		return labelVisible;
+	}
 
-  /**
-   * Sets the vector label visibility.
-   *
-   * @param visible <code>true</code> to make label visible
-   */
-  public void setLabelVisible(boolean visible) {
-    labelVisible = visible;
-  }
+	/**
+	 * Sets the vector label visibility.
+	 *
+	 * @param visible <code>true</code> to make label visible
+	 */
+	public void setLabelVisible(boolean visible) {
+		labelVisible = visible;
+	}
 
-  /**
-   * Gets the rollover visibility.
-   *
-   * @return <code>true</code> if labels are visible on rollover only
-   */
-  public boolean isRolloverVisible() {
-    return rolloverVisible;
-  }
+	/**
+	 * Gets the rollover visibility.
+	 *
+	 * @return <code>true</code> if labels are visible on rollover only
+	 */
+	public boolean isRolloverVisible() {
+		return rolloverVisible;
+	}
 
-  /**
-   * Sets the rollover visibility.
-   *
-   * @param visible <code>true</code> to make labels visible on rollover only
-   */
-  public void setRolloverVisible(boolean visible) {
-    rolloverVisible = visible;
-  }
+	/**
+	 * Sets the rollover visibility.
+	 *
+	 * @param visible <code>true</code> to make labels visible on rollover only
+	 */
+	public void setRolloverVisible(boolean visible) {
+		rolloverVisible = visible;
+	}
 
-  /**
-   * Enables and disables snap-to-point.
-   *
-   * @param enabled <code>true</code> to enable snap-to-point
-   */
-  public static void setPointSnapEnabled(boolean enabled) {
-    pointSnapEnabled = enabled;
-  }
+	/**
+	 * Enables and disables snap-to-point.
+	 *
+	 * @param enabled <code>true</code> to enable snap-to-point
+	 */
+	public static void setPointSnapEnabled(boolean enabled) {
+		pointSnapEnabled = enabled;
+	}
 
-  /**
-   * Gets whether snap-to-point is enabled.
-   *
-   * @return <code>true</code> if snap-to-point is enabled
-   */
-  public static boolean isPointSnapEnabled() {
-    return pointSnapEnabled;
-  }
+	/**
+	 * Gets whether snap-to-point is enabled.
+	 *
+	 * @return <code>true</code> if snap-to-point is enabled
+	 */
+	public static boolean isPointSnapEnabled() {
+		return pointSnapEnabled;
+	}
 
-  /**
-   * Enables and disables snap-to-vector.
-   *
-   * @param enabled <code>true</code> to enable snap-to-vector
-   */
-  public static void setVectorSnapEnabled(boolean enabled) {
-    vectorSnapEnabled = enabled;
-  }
+	/**
+	 * Enables and disables snap-to-vector.
+	 *
+	 * @param enabled <code>true</code> to enable snap-to-vector
+	 */
+	public static void setVectorSnapEnabled(boolean enabled) {
+		vectorSnapEnabled = enabled;
+	}
 
-  /**
-   * Gets whether snap-to-vector is enabled.
-   *
-   * @return <code>true</code> if snap-to-vector is enabled
-   */
-  public static boolean isVectorSnapEnabled() {
-    return vectorSnapEnabled;
-  }
+	/**
+	 * Gets whether snap-to-vector is enabled.
+	 *
+	 * @return <code>true</code> if snap-to-vector is enabled
+	 */
+	public static boolean isVectorSnapEnabled() {
+		return vectorSnapEnabled;
+	}
 
-  /**
-   * Snaps to point or vector within snapDistance of tail.
-   *
-   * @param trackerPanel the tracker panel drawing this
-   */
-  public void snap(TrackerPanel trackerPanel) {
-    TPoint p = null;
-    if (pointSnapEnabled) {
-      // snap to position
-    	TTrack track = getTrack();
-      if (track instanceof PointMass) {
-        p = ((PositionStep)track.getStep(n)).getPosition();
-        if (p.distance(tail) < snapDistance) {
-          attach(p);
-          return;
-        }
-      }
-      // snap to origin if brand new or axes visible
-      p = trackerPanel.getSnapPoint();
-      CoordAxes axes = trackerPanel.getAxes();
-      if (brandNew || (axes != null && axes.isVisible())) {
-        if (p.distance(tail) < snapDistance) {
-          attach(p);
-          return;
-        }
-      }
-    }
-    if (vectorSnapEnabled) {
-       // don't link sum vectors
-      if (getTrack() instanceof VectorSum) return;
-      // try to link to other vectors
-      Set<VectorStep> c = vectors.get(trackerPanel);
-      if (c != null) {
-        Iterator<VectorStep> it = c.iterator();
-        while(it.hasNext()) {
-          VectorStep vec = it.next();
-          if (!vec.valid) continue;
-          if (!getTrack().isStepVisible(vec, trackerPanel)) continue;
-          p = vec.getVisibleTip();
-          if (p.distance(tail) > snapDistance) continue;
-          if (vec == this) continue;
-          VectorChain chain = vec.getChain();
-          if (chain == null) {
-            chain = new VectorChain(vec);
-            chain.add(this);
-            break;
-          }
-          else if (chain.getEnd() == vec) {
-            chain.add(this);
-            break;
-          }
-        }
-      }
-    }
-  }
+	/**
+	 * Snaps to point or vector within snapDistance of tail.
+	 *
+	 * @param trackerPanel the tracker panel drawing this
+	 */
+	public void snap(TrackerPanel trackerPanel) {
+		TPoint p = null;
+		if (pointSnapEnabled) {
+			// snap to position
+			TTrack track = getTrack();
+			if (track instanceof PointMass) {
+				p = ((PositionStep) track.getStep(n)).getPosition();
+				if (p.distance(tail) < snapDistance) {
+					attach(p);
+					return;
+				}
+			}
+			// snap to origin if brand new or axes visible
+			p = trackerPanel.getSnapPoint();
+			CoordAxes axes = trackerPanel.getAxes();
+			if (brandNew || (axes != null && axes.isVisible())) {
+				if (p.distance(tail) < snapDistance) {
+					attach(p);
+					return;
+				}
+			}
+		}
+		if (vectorSnapEnabled) {
+			// don't link sum vectors
+			if (getTrack() instanceof VectorSum)
+				return;
+			// try to link to other vectors
+			Set<VectorStep> c = vectors.get(trackerPanel);
+			if (c != null) {
+				Iterator<VectorStep> it = c.iterator();
+				while (it.hasNext()) {
+					VectorStep vec = it.next();
+					if (!vec.valid)
+						continue;
+					if (!getTrack().isStepVisible(vec, trackerPanel))
+						continue;
+					p = vec.getVisibleTip();
+					if (p.distance(tail) > snapDistance)
+						continue;
+					if (vec == this)
+						continue;
+					VectorChain chain = vec.getChain();
+					if (chain == null) {
+						chain = new VectorChain(vec);
+						chain.add(this);
+						break;
+					} else if (chain.getEnd() == vec) {
+						chain.add(this);
+						break;
+					}
+				}
+			}
+		}
+	}
 
-  /**
-   * Gets the vector chain containing this vector, if any.
-   *
-   * @return the chain
-   */
-  public VectorChain getChain() {
-    return chain;
-  }
+	/**
+	 * Gets the vector chain containing this vector, if any.
+	 *
+	 * @return the chain
+	 */
+	public VectorChain getChain() {
+		return chain;
+	}
 
-  /**
-   * Attaches the tail of this vector to the specified point.
-   * Detaches if the point is null.
-   *
-   * @param pt the attachment point
-   */
-  public void attach(TPoint pt) {
-    if (attachmentPoint != null)
-      attachmentPoint.removePropertyChangeListener(this);
-    attachmentPoint = pt;
-    if (pt == null) return;
-    pt.addPropertyChangeListener(this);
-    if (pt.getX() != tail.getX() || pt.getY() != tail.getY()) {
-      tail.setXY(pt.getX(), pt.getY());
-    }
-  }
+	/**
+	 * Attaches the tail of this vector to the specified point. Detaches if the
+	 * point is null.
+	 *
+	 * @param pt the attachment point
+	 */
+	public void attach(TPoint pt) {
+		if (attachmentPoint != null)
+			attachmentPoint.removePropertyChangeListener(this);
+		attachmentPoint = pt;
+		if (pt == null)
+			return;
+		pt.addPropertyChangeListener(this);
+		if (pt.getX() != tail.getX() || pt.getY() != tail.getY()) {
+			tail.setXY(pt.getX(), pt.getY());
+		}
+	}
 
-  /**
-   * Gets the attachment point.
-   *
-   * @return the attachment point
-   */
-  public TPoint getAttachmentPoint() {
-    return attachmentPoint;
-  }
+	/**
+	 * Gets the attachment point.
+	 *
+	 * @return the attachment point
+	 */
+	public TPoint getAttachmentPoint() {
+		return attachmentPoint;
+	}
 
-  /**
-   * Enables and disables the interactivity of the tip.
-   *
-   * @param enabled <code>true</code> to enable the tip
-   */
-  public void setTipEnabled(boolean enabled) {
-    tipEnabled = enabled;
-  }
+	/**
+	 * Enables and disables the interactivity of the tip.
+	 *
+	 * @param enabled <code>true</code> to enable the tip
+	 */
+	public void setTipEnabled(boolean enabled) {
+		tipEnabled = enabled;
+	}
 
-  /**
-   * Gets whether the tip is enabled.
-   *
-   * @return <code>true</code> if the tip is enabled
-   */
-  public boolean isTipEnabled() {
-    return tipEnabled;
-  }
+	/**
+	 * Gets whether the tip is enabled.
+	 *
+	 * @return <code>true</code> if the tip is enabled
+	 */
+	public boolean isTipEnabled() {
+		return tipEnabled;
+	}
 
-  /**
-   * Overrides Step setFootprint method.
-   *
-   * @param footprint the footprint
-   */
-  @Override
-public void setFootprint(Footprint footprint) {
-    if (footprint.getLength() >= 2)
-      super.setFootprint(footprint);
-  }
+	/**
+	 * Overrides Step setFootprint method.
+	 *
+	 * @param footprint the footprint
+	 */
+	@Override
+	public void setFootprint(Footprint footprint) {
+		if (footprint.getLength() >= 2)
+			super.setFootprint(footprint);
+	}
 
-  /**
-   * Overrides Step draw method.
-   *
-   * @param panel the drawing panel requesting the drawing
-   * @param _g the graphics context on which to draw
-   */
-  @Override
-public void draw(DrawingPanel panel, Graphics _g) {
-    if (panel instanceof TrackerPanel) {
-      TrackerPanel trackerPanel = (TrackerPanel) panel;
-      Graphics2D g = (Graphics2D) _g;
-      if (brandNew && !(trackerPanel instanceof WorldTView)) {
-        snap(trackerPanel);
-        brandNew = false;
-      }
-      super.draw(trackerPanel, g);
-      Set<VectorStep> c = vectors.get(trackerPanel);
-      if (c == null) {
-        c = new HashSet<VectorStep>();
-        vectors.put(trackerPanel, c);
-      }
-      c.add(this);
-      if (labelVisible) {
-        TextLayout layout = textLayouts.get(trackerPanel);
-        Point p = getLayoutPosition(trackerPanel, layout);
-        Paint gpaint = g.getPaint();
-        Font gfont = g.getFont();
-        g.setPaint(footprint.getColor());
-        g.setFont(textLayoutFont);
-        layout.draw(g, p.x, p.y);
-        g.setPaint(gpaint);
-        g.setFont(gfont);
-      }
-    }
-  }
+	/**
+	 * Overrides Step draw method.
+	 *
+	 * @param panel the drawing panel requesting the drawing
+	 * @param _g    the graphics context on which to draw
+	 */
+	@Override
+	public void draw(DrawingPanel panel, Graphics _g) {
+		if (panel instanceof TrackerPanel) {
+			TrackerPanel trackerPanel = (TrackerPanel) panel;
+			Graphics2D g = (Graphics2D) _g;
+			if (brandNew && !(trackerPanel instanceof WorldTView)) {
+				snap(trackerPanel);
+				brandNew = false;
+			}
+			super.draw(trackerPanel, g);
+			Set<VectorStep> c = vectors.get(trackerPanel);
+			if (c == null) {
+				c = new HashSet<VectorStep>();
+				vectors.put(trackerPanel, c);
+			}
+			c.add(this);
+			if (labelVisible) {
+				TextLayout layout = textLayouts.get(trackerPanel);
+				Point p = getLayoutPosition(trackerPanel, layout);
+				Paint gpaint = g.getPaint();
+				Font gfont = g.getFont();
+				g.setPaint(footprint.getColor());
+				g.setFont(textLayoutFont);
+				layout.draw(g, p.x, p.y);
+				g.setPaint(gpaint);
+				g.setFont(gfont);
+			}
+		}
+	}
 
-  /**
-   * Overrides Step findInteractive method.
-   *
-   * @param panel the drawing panel
-   * @param xpix the x pixel position
-   * @param ypix the y pixel position
-   * @return the TPoint that is hit, or null
-   */
-  @Override
-public Interactive findInteractive(
-         DrawingPanel panel, int xpix, int ypix) {
-    TrackerPanel trackerPanel = (TrackerPanel)panel;
-    setHitRectCenter(xpix, ypix);
-    // look for origin hit and return null so axes can get selected
-    Point origin = trackerPanel.getSnapPoint().getScreenPosition(trackerPanel);
-    if (hitRect.contains(origin)) return null;
-    // look for shaft hit
-    Shape hitShape = shaftShapes.get(trackerPanel);
-    if (hitShape != null && hitShape.intersects(hitRect)) {
-      if (rolloverVisible && !labelVisible) {
-        labelVisible = true;
-        this.repaint();
-      }
-      // alt or shift down to select tip of very short vectors
-      if (!trackerPanel.mEvent.isAltDown() && !trackerPanel.mEvent.isShiftDown())
-      	return handle;
-    }
-    if (tipEnabled) {
-      // look for tip hit
-      hitShape = tipShapes.get(trackerPanel);
-      if (hitShape != null && hitShape.intersects(hitRect)) {
-        return visibleTip;
-      }
-    }
-    if (rolloverVisible && labelVisible) {
-      labelVisible = false;
-      this.repaint();
-    }
-    return null;
-  }
+	/**
+	 * Overrides Step findInteractive method.
+	 *
+	 * @param panel the drawing panel
+	 * @param xpix  the x pixel position
+	 * @param ypix  the y pixel position
+	 * @return the TPoint that is hit, or null
+	 */
+	@Override
+	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
+		TrackerPanel trackerPanel = (TrackerPanel) panel;
+		setHitRectCenter(xpix, ypix);
+		// look for origin hit and return null so axes can get selected
+		Point origin = trackerPanel.getSnapPoint().getScreenPosition(trackerPanel);
+		if (hitRect.contains(origin))
+			return null;
+		// look for shaft hit
+		Shape hitShape = shaftShapes.get(trackerPanel);
+		if (hitShape != null && hitShape.intersects(hitRect)) {
+			if (rolloverVisible && !labelVisible) {
+				labelVisible = true;
+				this.repaint();
+			}
+			// alt or shift down to select tip of very short vectors
+			if (!trackerPanel.mEvent.isAltDown() && !trackerPanel.mEvent.isShiftDown())
+				return handle;
+		}
+		if (tipEnabled) {
+			// look for tip hit
+			hitShape = tipShapes.get(trackerPanel);
+			if (hitShape != null && hitShape.intersects(hitRect)) {
+				return visibleTip;
+			}
+		}
+		if (rolloverVisible && labelVisible) {
+			labelVisible = false;
+			this.repaint();
+		}
+		return null;
+	}
 
-  /**
-   * Overrides Step getMark method.
-   *
-   * @param trackerPanel the tracker panel
-   * @return the mark
-   */
-  @Override
-protected Mark getMark(TrackerPanel trackerPanel) {
-    Mark mark = marks.get(trackerPanel);
-    TPoint selection = null;
-    if (mark == null) {
-      tip.setLocation(tip.getX(), tip.getY()); // sets visible tip position
-      middle.center(visibleTip, tail);
-      // determine if this step is selected
-      selection = trackerPanel.getSelectedPoint();
-      Point p = null;
-      // get screen points
-      valid = true;
-      for (int n = 0; n < points.length; n++) {
-      	valid = valid && !Double.isNaN(points[n].getX()) && !Double.isNaN(points[n].getY());
-        screenPoints[n] = points[n].getScreenPosition(trackerPanel);
-        if (selection == points[n]) p = screenPoints[n];
-      }
-      // move screen points on WorldTView if snapped to origin
-    	if (trackerPanel instanceof WorldTView) {
-    		WorldTView view = (WorldTView)trackerPanel;
-    		if (attachmentPoint == view.getSnapPoint()) {
-    			Point origin = view.getSnapPoint().getScreenPosition(view);
-    			dx = origin.x - screenPoints[1].x;
-    			dy = origin.y - screenPoints[1].y;
-          for (int n = 0; n < screenPoints.length; n++) {
-            screenPoints[n].x += dx;
-            screenPoints[n].y += dy;
-          }    			
-          if (p != null) {
-          	p.x += dx;
-          	p.y += dy;
-          }
-    		}
-      }
-      // get new text layout
-      // determine whether to show xMass
-      TrackerPanel panel = trackerPanel;
-      if (panel instanceof WorldTView) {
-        panel = ((WorldTView)panel).getTrackerPanel();
-      }
-      boolean xMass = TToolBar.getToolbar(panel).xMassButton.isSelected();
-    	TTrack track = getTrack();
-      String s = track.getName() + " "; //$NON-NLS-1$
-      if (track instanceof PointMass) {
-        PointMass m = (PointMass)track;
-        if (m.isVelocity(this)) {
-          s = xMass? 
-          	TrackerRes.getString("VectorStep.Label.Momentum") + " ": //$NON-NLS-1$ //$NON-NLS-2$  
-          	TrackerRes.getString("VectorStep.Label.Velocity") + " "; //$NON-NLS-1$ //$NON-NLS-2$
-        }
-        else if (m.isAcceleration(this)) {
-          s = xMass? 
-          	TrackerRes.getString("VectorStep.Label.NetForce") + " ": //$NON-NLS-1$ //$NON-NLS-2$ 
-          	TrackerRes.getString("VectorStep.Label.Acceleration") + " "; //$NON-NLS-1$ //$NON-NLS-2$
-        }
-      }
-      VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-      if (clip.getStepCount() != 1) {
-        s += clip.frameToStep(getFrameNumber());
-      }
-      TextLayout layout = new TextLayout(s, textLayoutFont, frc);
-      textLayouts.put(trackerPanel, layout);
-      // get layout position (bottom left corner of text)
-      Point lp = getLayoutPosition(trackerPanel, layout);
-      Rectangle bounds = layoutBounds.get(trackerPanel);
-      if (bounds == null) {
-        bounds = new Rectangle();
-        layoutBounds.put(trackerPanel, bounds);
-      }
-      Rectangle2D rect = layout.getBounds();
-      // set bounds (top left corner and size)
-      bounds.setRect(lp.x, lp.y - rect.getHeight(),
-                     rect.getWidth(), rect.getHeight());
-      // create basic vector mark
-      mark = footprint.getMark(screenPoints);
-      // if selected, draw selection shape on top of basic mark
-      if (p != null) {
-        transform.setToTranslation(p.x, p.y);
-        int scale = FontSizer.getIntegerFactor();
-        if (scale>1) {
-        	transform.scale(scale, scale);
-        }
-        final Color color = footprint.getColor();
-        final Mark stepMark = mark;
-        final Shape selectedShape
-          = transform.createTransformedShape(selectionShape);
-        mark = new Mark() {
-          @Override
-		public void draw(Graphics2D g, boolean highlighted) {
-            stepMark.draw(g, highlighted);
-            Paint gpaint = g.getPaint();
-            g.setPaint(color);
-            g.fill(selectedShape);
-            g.setPaint(gpaint);
-          }
+	/**
+	 * Overrides Step getMark method.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @return the mark
+	 */
+	@Override
+	protected Mark getMark(TrackerPanel trackerPanel) {
+		Mark mark = marks.get(trackerPanel);
+		TPoint selection = null;
+		if (mark == null) {
+			tip.setLocation(tip.getX(), tip.getY()); // sets visible tip position
+			middle.center(visibleTip, tail);
+			// determine if this step is selected
+			selection = trackerPanel.getSelectedPoint();
+			Point p = null;
+			// get screen points
+			valid = true;
+			for (int n = 0; n < points.length; n++) {
+				valid = valid && !Double.isNaN(points[n].getX()) && !Double.isNaN(points[n].getY());
+				screenPoints[n] = points[n].getScreenPosition(trackerPanel);
+				if (selection == points[n])
+					p = screenPoints[n];
+			}
+			// move screen points on WorldTView if snapped to origin
+			if (trackerPanel instanceof WorldTView) {
+				WorldTView view = (WorldTView) trackerPanel;
+				if (attachmentPoint == view.getSnapPoint()) {
+					Point origin = view.getSnapPoint().getScreenPosition(view);
+					dx = origin.x - screenPoints[1].x;
+					dy = origin.y - screenPoints[1].y;
+					for (int n = 0; n < screenPoints.length; n++) {
+						screenPoints[n].x += dx;
+						screenPoints[n].y += dy;
+					}
+					if (p != null) {
+						p.x += dx;
+						p.y += dy;
+					}
+				}
+			}
+			// get new text layout
+			// determine whether to show xMass
+			TrackerPanel panel = trackerPanel;
+			if (panel instanceof WorldTView) {
+				panel = ((WorldTView) panel).getTrackerPanel();
+			}
+			boolean xMass = TToolBar.getToolbar(panel).xMassButton.isSelected();
+			TTrack track = getTrack();
+			String s = track.getName() + " "; //$NON-NLS-1$
+			if (track instanceof PointMass) {
+				PointMass m = (PointMass) track;
+				if (m.isVelocity(this)) {
+					s = xMass ? TrackerRes.getString("VectorStep.Label.Momentum") + " " : //$NON-NLS-1$ //$NON-NLS-2$
+							TrackerRes.getString("VectorStep.Label.Velocity") + " "; //$NON-NLS-1$ //$NON-NLS-2$
+				} else if (m.isAcceleration(this)) {
+					s = xMass ? TrackerRes.getString("VectorStep.Label.NetForce") + " " : //$NON-NLS-1$ //$NON-NLS-2$
+							TrackerRes.getString("VectorStep.Label.Acceleration") + " "; //$NON-NLS-1$ //$NON-NLS-2$
+				}
+			}
+			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+			if (clip.getStepCount() != 1) {
+				s += clip.frameToStep(getFrameNumber());
+			}
+			TextLayout layout = new TextLayout(s, textLayoutFont, frc);
+			textLayouts.put(trackerPanel, layout);
+			// get layout position (bottom left corner of text)
+			Point lp = getLayoutPosition(trackerPanel, layout);
+			Rectangle bounds = layoutBounds.get(trackerPanel);
+			if (bounds == null) {
+				bounds = new Rectangle();
+				layoutBounds.put(trackerPanel, bounds);
+			}
+			Rectangle2D rect = layout.getBounds();
+			// set bounds (top left corner and size)
+			bounds.setRect(lp.x, lp.y - rect.getHeight(), rect.getWidth(), rect.getHeight());
+			// create basic vector mark
+			mark = footprint.getMark(screenPoints);
+			// if selected, draw selection shape on top of basic mark
+			if (p != null) {
+				transform.setToTranslation(p.x, p.y);
+				int scale = FontSizer.getIntegerFactor();
+				if (scale > 1) {
+					transform.scale(scale, scale);
+				}
+				final Color color = footprint.getColor();
+				final Mark stepMark = mark;
+				final Shape selectedShape = transform.createTransformedShape(selectionShape);
+				mark = new Mark() {
+					@Override
+					public void draw(Graphics2D g, boolean highlighted) {
+						stepMark.draw(g, highlighted);
+						Paint gpaint = g.getPaint();
+						g.setPaint(color);
+						g.fill(selectedShape);
+						g.setPaint(gpaint);
+					}
 
-          @Override
-		public Rectangle getBounds(boolean highlighted) {
-            Rectangle bounds = selectedShape.getBounds();
-            bounds.add(stepMark.getBounds(false));
-            return bounds;
-          }
-        };
-      }
-      final Mark theMark = mark;
-      mark = new Mark() {
-        @Override
-		public void draw(Graphics2D g, boolean highlighted) {
-        	if (!valid) return;
-          theMark.draw(g, highlighted);
-        }
-        @Override
-		public Rectangle getBounds(boolean highlighted) {
-          return theMark.getBounds(highlighted);
-        }
-      };
-      marks.put(trackerPanel, mark);
-      if (valid) {
-	      Shape[] shapes = footprint.getHitShapes();
-	      tipShapes.put(trackerPanel, shapes[0]);
-	      shaftShapes.put(trackerPanel, shapes[2]);
-      }
-    }
-    return mark;
-  }
+					@Override
+					public Rectangle getBounds(boolean highlighted) {
+						Rectangle bounds = selectedShape.getBounds();
+						bounds.add(stepMark.getBounds(false));
+						return bounds;
+					}
+				};
+			}
+			final Mark theMark = mark;
+			mark = new Mark() {
+				@Override
+				public void draw(Graphics2D g, boolean highlighted) {
+					if (!valid)
+						return;
+					theMark.draw(g, highlighted);
+				}
 
-  /**
-   * Overrides Step getBounds method.
-   *
-   * @param trackerPanel the tracker panel drawing the step
-   * @return the bounding rectangle
-   */
-  @Override
-public Rectangle getBounds(TrackerPanel trackerPanel) {
-    Rectangle bounds = getMark(trackerPanel).getBounds(false);
-    bounds.add(layoutBounds.get(trackerPanel));
-    return bounds;
-  }
+				@Override
+				public Rectangle getBounds(boolean highlighted) {
+					return theMark.getBounds(highlighted);
+				}
+			};
+			marks.put(trackerPanel, mark);
+			if (valid) {
+				Shape[] shapes = footprint.getHitShapes();
+				tipShapes.put(trackerPanel, shapes[0]);
+				shaftShapes.put(trackerPanel, shapes[2]);
+			}
+		}
+		return mark;
+	}
 
-  /**
-   * Responds to property change events. VectorStep receives the
-   * following events: "location" from an attached TPoint.
-   *
-   * @param e the property change event
-   */
-  @Override
-public void propertyChange(PropertyChangeEvent e) {
-    if (e.getSource() == attachmentPoint)   // from TPoint
-      tail.setXY(attachmentPoint.getX(), attachmentPoint.getY());
-  }
+	/**
+	 * Overrides Step getBounds method.
+	 *
+	 * @param trackerPanel the tracker panel drawing the step
+	 * @return the bounding rectangle
+	 */
+	@Override
+	public Rectangle getBounds(TrackerPanel trackerPanel) {
+		Rectangle bounds = getMark(trackerPanel).getBounds(false);
+		bounds.add(layoutBounds.get(trackerPanel));
+		return bounds;
+	}
 
-  /**
-   * Sets firePropertyChangeEvents flag.
-   *
-   * @param fireEvents <code>true</code> to request this to fire property
-   * change events
-   */
-  public void setFirePropertyChangeEvents(boolean fireEvents) {
-    firePropertyChangeEvents = fireEvents;
-  }
+	/**
+	 * Responds to property change events. VectorStep receives the following events:
+	 * "location" from an attached TPoint.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		if (e.getSource() == attachmentPoint) // from TPoint
+			tail.setXY(attachmentPoint.getX(), attachmentPoint.getY());
+	}
 
-  /**
-   * Clones this Step.
-   *
-   * @return a clone of this step
-   */
-  @Override
-public VectorStep clone() {
-    VectorStep step = (VectorStep)super.clone();
-    if (step != null) {
-      step.points[0] = step.tip = step.new Tip(tip.getX(), tip.getY());
-      step.points[1] = step.tail = step.new Handle(tail.getX(), tail.getY());
-      step.points[2] = step.handle = step.new Handle(handle.getX(), handle.getY());
-      step.points[3] = step.visibleTip = step.new VisibleTip(visibleTip.getX(), visibleTip.getY());
-      step.points[4] = step.middle = new TPoint(middle.getX(), middle.getY()) {
-        @Override
+	/**
+	 * Sets firePropertyChangeEvents flag.
+	 *
+	 * @param fireEvents <code>true</code> to request this to fire property change
+	 *                   events
+	 */
+	public void setFirePropertyChangeEvents(boolean fireEvents) {
+		firePropertyChangeEvents = fireEvents;
+	}
+
+	/**
+	 * Clones this Step.
+	 *
+	 * @return a clone of this step
+	 */
+	@Override
+	public VectorStep clone() {
+		VectorStep step = (VectorStep) super.clone();
+		if (step != null) {
+			step.points[0] = step.tip = step.new Tip(tip.getX(), tip.getY());
+			step.points[1] = step.tail = step.new Handle(tail.getX(), tail.getY());
+			step.points[2] = step.handle = step.new Handle(handle.getX(), handle.getY());
+			step.points[3] = step.visibleTip = step.new VisibleTip(visibleTip.getX(), visibleTip.getY());
+			step.points[4] = step.middle = new TPoint(middle.getX(), middle.getY()) {
+				@Override
+				public int getFrameNumber(VideoPanel vidPanel) {
+					return VectorStep.this.n;
+				}
+			};
+			step.tipShapes = new HashMap<TrackerPanel, Shape>();
+			step.shaftShapes = new HashMap<TrackerPanel, Shape>();
+			step.textLayouts = new HashMap<TrackerPanel, TextLayout>();
+			step.layoutBounds = new HashMap<TrackerPanel, Rectangle>();
+			step.setFirePropertyChangeEvents(firePropertyChangeEvents);
+		}
+		return step;
+	}
+
+	/**
+	 * Returns a String describing this.
+	 *
+	 * @return a descriptive string
+	 */
+	@Override
+	public String toString() {
+		return "VectorStep " + n //$NON-NLS-1$
+				+ " [" + format.format(tail.x) //$NON-NLS-1$
+				+ ", " + format.format(tail.y) //$NON-NLS-1$
+				+ ", " + format.format(getXComponent()) //$NON-NLS-1$
+				+ ", " + format.format(getYComponent()) + "]"; //$NON-NLS-1$ //$NON-NLS-2$
+	}
+
+	/**
+	 * Gets TextLayout screen position.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @param layout       the text layout
+	 * @return the screen position point
+	 */
+	private Point getLayoutPosition(TrackerPanel trackerPanel, TextLayout layout) {
+		Point p = middle.getScreenPosition(trackerPanel);
+		// move p on WorldTView if snapped to origin
+		if (trackerPanel instanceof WorldTView && attachmentPoint == ((WorldTView) trackerPanel).getSnapPoint()) {
+			p.x += dx;
+			p.y += dy;
+		}
+		Rectangle2D bounds = layout.getBounds();
+		double w = bounds.getWidth();
+		double h = bounds.getHeight();
+		// the following code is to find the line angle on a world view
+		tipPoint.setLocation(tip);
+		tailPoint.setLocation(tail);
+		if (!trackerPanel.isDrawingInImageSpace()) {
+			AffineTransform at = trackerPanel.getCoords().getToWorldTransform(n);
+			at.transform(tipPoint, tipPoint);
+			tipPoint.y = -tipPoint.y;
+			at.transform(tailPoint, tailPoint);
+			tailPoint.y = -tailPoint.y;
+		}
+		double cos = tailPoint.cos(tipPoint);
+		double sin = tailPoint.sin(tipPoint);
+		double d = 4 + Math.abs(w * sin / 2) + Math.abs(h * cos / 2);
+		if (cos >= 0) // first/fourth quadrants
+			p.setLocation((int) (p.x - d * sin - w / 2), (int) (p.y - d * cos + h / 2));
+		else // second/third quadrants
+			p.setLocation((int) (p.x + d * sin - w / 2), (int) (p.y + d * cos + h / 2));
+		return p;
+	}
+
+	/**
+	 * Gets the step length.
+	 *
+	 * @return the length of the points array
+	 */
+	public static int getLength() {
+		return 5;
+	}
+
+	// ______________________ inner Handle class ________________________
+
+	class Handle extends Step.Handle {
+
+		/**
+		 * Constructs a Handle with specified image coordinates.
+		 *
+		 * @param x the x coordinate
+		 * @param y the y coordinate
+		 */
+		public Handle(double x, double y) {
+			super(x, y);
+			setStepEditTrigger(true);
+		}
+
+		/**
+		 * Overrides TPoint setXY method to move both tip and tail.
+		 *
+		 * @param x the x coordinate
+		 * @param y the y coordinate
+		 */
+		@Override
+		public void setXY(double x, double y) {
+			double dx = x - getX();
+			double dy = y - getY();
+			tail.setLocation(tail.getX() + dx, tail.getY() + dy);
+			tip.setLocation(tip.getX() + dx, tip.getY() + dy);
+			setLocation(x, y);
+			// detach if moved away from attachment point
+			if (attachmentPoint != null && attachmentPoint.distance(tail) > 1) {
+				// attempt to break chain if this is linked
+				if (chain != null && attachmentPoint instanceof VisibleTip) {
+					chain.breakAt(VectorStep.this);
+				} else {
+					attach(null);
+				}
+			}
+			if (firePropertyChangeEvents)
+				getTrack().firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
+			repaint();
+		}
+
+		/**
+		 * Overrides TPoint getFrameNumber method.
+		 *
+		 * @param vidPanel the video panel drawing this step
+		 * @return the containing VectorStep frame number
+		 */
+		@Override
 		public int getFrameNumber(VideoPanel vidPanel) {
-          return VectorStep.this.n;
-        }
-      };
-      step.tipShapes = new HashMap<TrackerPanel, Shape>();
-      step.shaftShapes = new HashMap<TrackerPanel, Shape>();
-      step.textLayouts = new HashMap<TrackerPanel, TextLayout>();
-      step.layoutBounds = new HashMap<TrackerPanel, Rectangle>();
-      step.setFirePropertyChangeEvents(firePropertyChangeEvents);
-    }
-    return step;
-  }
+			return n;
+		}
 
-  /**
-   * Returns a String describing this.
-   *
-   * @return a descriptive string
-   */
-  @Override
-public String toString() {
-    return "VectorStep " + n //$NON-NLS-1$
-            + " [" + format.format(tail.x) //$NON-NLS-1$
-            + ", " + format.format(tail.y) //$NON-NLS-1$
-            + ", " + format.format(getXComponent()) //$NON-NLS-1$
-            + ", " + format.format(getYComponent()) + "]"; //$NON-NLS-1$ //$NON-NLS-2$
-  }
+		/**
+		 * Overrides TPoint showCoordinates method.
+		 *
+		 * @param vidPanel the video panel
+		 */
+		@Override
+		public void showCoordinates(VideoPanel vidPanel) {
+			tip.showCoordinates(vidPanel);
+			super.showCoordinates(vidPanel);
+		}
 
-  /**
-   * Gets TextLayout screen position.
-   *
-   * @param trackerPanel the tracker panel
-   * @param layout the text layout
-   * @return the screen position point
-   */
-  private Point getLayoutPosition(TrackerPanel trackerPanel,
-                                  TextLayout layout) {
-    Point p = middle.getScreenPosition(trackerPanel);
-    // move p on WorldTView if snapped to origin
-  	if (trackerPanel instanceof WorldTView &&
-  			attachmentPoint == ((WorldTView)trackerPanel).getSnapPoint()) {
-  		p.x += dx;
-      p.y += dy;
-    }
-    Rectangle2D bounds = layout.getBounds();
-    double w = bounds.getWidth();
-    double h = bounds.getHeight();
-    // the following code is to find the line angle on a world view
-  	tipPoint.setLocation(tip);
-  	tailPoint.setLocation(tail);
-    if (!trackerPanel.isDrawingInImageSpace()) {
-    	AffineTransform at = trackerPanel.getCoords().getToWorldTransform(n);
-    	at.transform(tipPoint, tipPoint);
-    	tipPoint.y = -tipPoint.y;
-    	at.transform(tailPoint, tailPoint);
-    	tailPoint.y = -tailPoint.y;
-    }
-    double cos = tailPoint.cos(tipPoint);
-    double sin = tailPoint.sin(tipPoint);
-    double d = 4 + Math.abs(w*sin/2) + Math.abs(h*cos/2);
-    if (cos >= 0)    // first/fourth quadrants
-      p.setLocation((int)(p.x - d*sin - w/2), (int)(p.y - d*cos + h/2));
-    else             // second/third quadrants
-      p.setLocation((int)(p.x + d*sin - w/2), (int)(p.y + d*cos + h/2));
-    return p;
-  }
+		/**
+		 * Snaps to nearby attachment point, if any.
+		 *
+		 * @param trackerPanel the tracker panel with attachment points
+		 */
+		public void snap(TrackerPanel trackerPanel) {
+			VectorStep.this.snap(trackerPanel);
+		}
 
-  /**
-   * Gets the step length.
-   *
-   * @return the length of the points array
-   */
-  public static int getLength() {
-    return 5;
-  }
+		/**
+		 * Sets the position of this handle on the line nearest the specified screen
+		 * position.
+		 *
+		 * @param xScreen      the x screen position
+		 * @param yScreen      the y screen position
+		 * @param trackerPanel the trackerPanel drawing this step
+		 */
+		@Override
+		public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
+			setPositionOnLine(xScreen, yScreen, trackerPanel, visibleTip, tail);
+			repaint();
+		}
 
-  //______________________ inner Handle class ________________________
+		/**
+		 * Returns true if this vector is very short.
+		 *
+		 * @return true if short
+		 */
+		public boolean isShort() {
+			return tip.distanceSq(tail) < 25;
+		}
 
-  class Handle extends Step.Handle {
+		@Override
+		public boolean isStepEditTrigger() {
+			if (getTrack() instanceof PointMass)
+				return false;
+			return super.isStepEditTrigger();
+		}
 
-    /**
-     * Constructs a Handle with specified image coordinates.
-     *
-     * @param x the x coordinate
-     * @param y the y coordinate
-     */
-    public Handle(double x, double y) {
-      super(x, y);
-      setStepEditTrigger(true);
-    }
+	}
 
-    /**
-     * Overrides TPoint setXY method to move both tip and tail.
-     *
-     * @param x the x coordinate
-     * @param y the y coordinate
-     */
-    @Override
-	public void setXY(double x, double y) {
-      double dx = x - getX();
-      double dy = y - getY();
-      tail.setLocation(tail.getX() + dx, tail.getY() + dy);
-      tip.setLocation(tip.getX() + dx, tip.getY() + dy);
-      setLocation(x, y);
-      // detach if moved away from attachment point
-      if (attachmentPoint != null &&
-          attachmentPoint.distance(tail) > 1) {
-        // attempt to break chain if this is linked
-        if (chain != null && attachmentPoint instanceof VisibleTip) {
-          chain.breakAt(VectorStep.this);
-        }
-        else attach(null);
-      }
-      if (firePropertyChangeEvents)
-        getTrack().support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
-      repaint();
-    }
+	// ______________________ inner Tip class ________________________
 
-    /**
-     * Overrides TPoint getFrameNumber method.
-     *
-     * @param vidPanel the video panel drawing this step
-     * @return the containing VectorStep frame number
-     */
-    @Override
-	public int getFrameNumber(VideoPanel vidPanel) {
-    	return n;
-    }
+	class Tip extends TPoint {
 
-    /**
-     * Overrides TPoint showCoordinates method.
-     *
-     * @param vidPanel the video panel
-     */
-    @Override
-	public void showCoordinates(VideoPanel vidPanel) {
-      tip.showCoordinates(vidPanel);
-      super.showCoordinates(vidPanel);
-    }
+		/**
+		 * Constructs a Tip with specified image coordinates.
+		 *
+		 * @param x the x coordinate
+		 * @param y the y coordinate
+		 */
+		public Tip(double x, double y) {
+			super(x, y);
+		}
 
-    /**
-     * Snaps to nearby attachment point, if any.
-     *
-     * @param trackerPanel the tracker panel with attachment points
-     */
-    public void snap(TrackerPanel trackerPanel) {
-      VectorStep.this.snap(trackerPanel);
-    }
+		/**
+		 * Overrides TPoint setLocation method.
+		 *
+		 * @param x the x position
+		 * @param y the y position
+		 */
+		@Override
+		public void setLocation(double x, double y) {
+			super.setLocation(x, y);
+			visibleTip.setVisibleTipLocation();
+		}
 
-    /**
-     * Sets the position of this handle on the line nearest the specified
-     * screen position.
-     *
-     * @param xScreen the x screen position
-     * @param yScreen the y screen position
-     * @param trackerPanel the trackerPanel drawing this step
-     */
-    @Override
-	public void setPositionOnLine(int xScreen, int yScreen, TrackerPanel trackerPanel) {
-    	setPositionOnLine(xScreen, yScreen, trackerPanel, visibleTip, tail);
-    	repaint();
-    }
+		/**
+		 * Overrides TPoint setXY method.
+		 *
+		 * @param x the x coordinate
+		 * @param y the y coordinate
+		 */
+		@Override
+		public void setXY(double x, double y) {
+			TTrack track = getTrack();
+			if (track.isLocked())
+				return;
+			super.setXY(x, y);
+			if (firePropertyChangeEvents)
+				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
+			repaint();
+		}
 
-    /**
-     * Returns true if this vector is very short.
-     *
-     * @return true if short
-     */
-    public boolean isShort() {
-    	return tip.distanceSq(tail) < 25;
-    }
-    
-    @Override
-    public boolean isStepEditTrigger() {
-    	if (getTrack() instanceof PointMass) return false;
-    	return super.isStepEditTrigger();
-    }
+		/**
+		 * Overrides TPoint showCoordinates method.
+		 *
+		 * @param vidPanel the video panel
+		 */
+		@Override
+		public void showCoordinates(VideoPanel vidPanel) {
+			vidPanel.hideMouseBox();
+			// put vector components into x and y fields
+			ImageCoordSystem coords = vidPanel.getCoords();
+			double x = coords.imageToWorldXComponent(n, getXComponent(), getYComponent());
+			double y = coords.imageToWorldYComponent(n, getXComponent(), getYComponent());
+			TTrack track = getTrack();
+			if (track instanceof PointMass) {
+				TrackerPanel trackerPanel = (TrackerPanel) vidPanel;
+				PointMass m = (PointMass) track;
+				if (m.isVelocity(VectorStep.this)) {
+					double dt = vidPanel.getPlayer().getStepTime(1) / 1000;
+					x = x / dt;
+					y = y / dt;
+				} else if (m.isAcceleration(VectorStep.this)) {
+					double dt = vidPanel.getPlayer().getStepTime(1) / 1000;
+					x = x / (dt * dt);
+					y = y / (dt * dt);
+				}
+				if (TToolBar.getToolbar(trackerPanel).xMassButton.isSelected()) {
+					x = m.getMass() * x;
+					y = m.getMass() * y;
+				}
+			}
+			NumberField[] fields = track.getNumberFieldsForStep(VectorStep.this);
+			fields[0].setValue(x);
+			fields[1].setValue(y);
+			fields[2].setValue(Math.sqrt(x * x + y * y));
+			double theta = Math.atan2(y, x);
+			fields[3].setValue(theta);
+			super.showCoordinates(vidPanel);
+		}
 
-  }
+		/**
+		 * Overrides TPoint getFrameNumber method.
+		 *
+		 * @param vidPanel the video panel drawing this step
+		 * @return the frame number
+		 */
+		@Override
+		public int getFrameNumber(VideoPanel vidPanel) {
+			return n;
+		}
 
-  //______________________ inner Tip class ________________________
-
-  class Tip extends TPoint {
-
-    /**
-     * Constructs a Tip with specified image coordinates.
-     *
-     * @param x the x coordinate
-     * @param y the y coordinate
-     */
-    public Tip(double x, double y) {
-      super(x, y);
-    }
-
-    /**
-     * Overrides TPoint setLocation method.
-     *
-     * @param x the x position
-     * @param y the y position
-     */
-    @Override
-	public void setLocation(double x, double y) {
-      super.setLocation(x, y);
-      visibleTip.setVisibleTipLocation();
-    }
-
-    /**
-     * Overrides TPoint setXY method.
-     *
-     * @param x the x coordinate
-     * @param y the y coordinate
-     */
-    @Override
-	public void setXY(double x, double y) {
-    	TTrack track = getTrack();
-      if (track.isLocked())
-        return;
-      super.setXY(x, y);
-      if (firePropertyChangeEvents)
-        track.support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
-      repaint();
-    }
-
-    /**
-     * Overrides TPoint showCoordinates method.
-     *
-     * @param vidPanel the video panel
-     */
-    @Override
-	public void showCoordinates(VideoPanel vidPanel) {
-      vidPanel.hideMouseBox();
-      // put vector components into x and y fields
-      ImageCoordSystem coords = vidPanel.getCoords();
-      double x = coords.imageToWorldXComponent(n, getXComponent(),
-                                               getYComponent());
-      double y = coords.imageToWorldYComponent(n, getXComponent(),
-                                               getYComponent());
-    	TTrack track = getTrack();
-      if (track instanceof PointMass) {
-        TrackerPanel trackerPanel = (TrackerPanel)vidPanel;
-        PointMass m = (PointMass) track;
-        if (m.isVelocity(VectorStep.this)) {
-          double dt = vidPanel.getPlayer().getStepTime(1) / 1000;
-          x = x / dt;
-          y = y / dt;
-        }
-        else if (m.isAcceleration(VectorStep.this)) {
-          double dt = vidPanel.getPlayer().getStepTime(1) / 1000;
-          x = x / (dt * dt);
-          y = y / (dt * dt);
-        }
-        if (TToolBar.getToolbar(trackerPanel).xMassButton.isSelected()) {
-          x = m.getMass() * x;
-          y = m.getMass() * y;
-        }
-      }
-      NumberField[] fields = track.getNumberFieldsForStep(VectorStep.this);
-      fields[0].setValue(x); 
-      fields[1].setValue(y); 
-      fields[2].setValue(Math.sqrt(x * x + y * y)); 
-      double theta = Math.atan2(y, x);
-      fields[3].setValue(theta); 
-      super.showCoordinates(vidPanel);
-    }
-
-    /**
-     * Overrides TPoint getFrameNumber method.
-     *
-     * @param vidPanel the video panel drawing this step
-     * @return the frame number
-     */
-    @Override
-	public int getFrameNumber(VideoPanel vidPanel) {
-      return n;
-    }
-    
-  }
+	}
 
 //______________________ inner VisibleTip class ________________________
 
-  class VisibleTip extends TPoint {
+	class VisibleTip extends TPoint {
 
-    /**
-     * Constructs a VisibleTip with specified image coordinates.
-     *
-     * @param x the x coordinate
-     * @param y the y coordinate
-     */
-    public VisibleTip(double x, double y) {
-      super(x, y);
-      setStepEditTrigger(true);
-    }
+		/**
+		 * Constructs a VisibleTip with specified image coordinates.
+		 *
+		 * @param x the x coordinate
+		 * @param y the y coordinate
+		 */
+		public VisibleTip(double x, double y) {
+			super(x, y);
+			setStepEditTrigger(true);
+		}
 
-    /**
-     * Overrides TPoint showCoordinates method.
-     *
-     * @param vidPanel the video panel
-     */
-    @Override
-	public void showCoordinates(VideoPanel vidPanel) {
-      tip.showCoordinates(vidPanel);
-      super.showCoordinates(vidPanel);
-    }
+		/**
+		 * Overrides TPoint showCoordinates method.
+		 *
+		 * @param vidPanel the video panel
+		 */
+		@Override
+		public void showCoordinates(VideoPanel vidPanel) {
+			tip.showCoordinates(vidPanel);
+			super.showCoordinates(vidPanel);
+		}
 
-    /**
-     * Gets this point's parent vector step.
-     *
-     * @return the step
-     */
-    public VectorStep getStep() {
-      return VectorStep.this;
-    }
+		/**
+		 * Gets this point's parent vector step.
+		 *
+		 * @return the step
+		 */
+		public VectorStep getStep() {
+			return VectorStep.this;
+		}
 
-    /**
-     * Sets the location relative to the tail and tip.
-     */
-    public void setVisibleTipLocation() {
-      double stretch = 1;
-      if (footprint instanceof ArrowFootprint) {
-        ArrowFootprint arrow = (ArrowFootprint) footprint;
-        stretch = arrow.getStretch();
-      }
-      double x = getTail().getX() + stretch * (getTip().getX() - getTail().getX());
-      double y = getTail().getY() + stretch * (getTip().getY() - getTail().getY());
-      setLocation(x, y);
-    }
+		/**
+		 * Sets the location relative to the tail and tip.
+		 */
+		public void setVisibleTipLocation() {
+			double stretch = 1;
+			if (footprint instanceof ArrowFootprint) {
+				ArrowFootprint arrow = (ArrowFootprint) footprint;
+				stretch = arrow.getStretch();
+			}
+			double x = getTail().getX() + stretch * (getTip().getX() - getTail().getX());
+			double y = getTail().getY() + stretch * (getTip().getY() - getTail().getY());
+			setLocation(x, y);
+		}
 
-    /**
-     * Overrides TPoint setXY method.
-     *
-     * @param x the x coordinate
-     * @param y the y coordinate
-     */
-    @Override
-	public void setXY(double x, double y) {
-      double stretch = 1;
-      if (footprint instanceof ArrowFootprint) {
-        ArrowFootprint arrow = (ArrowFootprint) footprint;
-        stretch = arrow.getStretch();
-      }
-      double xx = getTail().getX() + (x - getTail().getX()) / stretch;
-      double yy = getTail().getY() + (y - getTail().getY()) / stretch;
-      tip.setXY(xx, yy);
-    }
+		/**
+		 * Overrides TPoint setXY method.
+		 *
+		 * @param x the x coordinate
+		 * @param y the y coordinate
+		 */
+		@Override
+		public void setXY(double x, double y) {
+			double stretch = 1;
+			if (footprint instanceof ArrowFootprint) {
+				ArrowFootprint arrow = (ArrowFootprint) footprint;
+				stretch = arrow.getStretch();
+			}
+			double xx = getTail().getX() + (x - getTail().getX()) / stretch;
+			double yy = getTail().getY() + (y - getTail().getY()) / stretch;
+			tip.setXY(xx, yy);
+		}
 
-    /**
-     * Overrides TPoint setLocation method.
-     *
-     * @param x the x coordinate
-     * @param y the y coordinate
-     */
-    @Override
-	public void setLocation(double x, double y) {
-      super.setLocation(x, y);
-      // move any linked vectors
-      VectorChain chain = VectorStep.this.chain;
-      if (chain != null) {
-        int i = chain.indexOf(VectorStep.this);
-        if (i < chain.size() - 1) {
-          VectorStep vec = chain.get(i + 1);
-          vec.getTail().setXY(x, y);
-          return;
-        }
-      }
-    }
+		/**
+		 * Overrides TPoint setLocation method.
+		 *
+		 * @param x the x coordinate
+		 * @param y the y coordinate
+		 */
+		@Override
+		public void setLocation(double x, double y) {
+			super.setLocation(x, y);
+			// move any linked vectors
+			VectorChain chain = VectorStep.this.chain;
+			if (chain != null) {
+				int i = chain.indexOf(VectorStep.this);
+				if (i < chain.size() - 1) {
+					VectorStep vec = chain.get(i + 1);
+					vec.getTail().setXY(x, y);
+					return;
+				}
+			}
+		}
 
-    /**
-     * Overrides TPoint getFrameNumber method.
-     *
-     * @param vidPanel the video panel drawing this step
-     * @return the frame number
-     */
-    @Override
-	public int getFrameNumber(VideoPanel vidPanel) {
-    	return n;
-    }
-  }
+		/**
+		 * Overrides TPoint getFrameNumber method.
+		 *
+		 * @param vidPanel the video panel drawing this step
+		 * @return the frame number
+		 */
+		@Override
+		public int getFrameNumber(VideoPanel vidPanel) {
+			return n;
+		}
+	}
 
 //__________________________ static methods ___________________________
 
-  /**
-   * Returns an ObjectLoader to save and load data for this class.
-   *
-   * @return the object loader
-   */
-  public static XML.ObjectLoader getLoader() {
-    return new Loader();
-  }
+	/**
+	 * Returns an ObjectLoader to save and load data for this class.
+	 *
+	 * @return the object loader
+	 */
+	public static XML.ObjectLoader getLoader() {
+		return new Loader();
+	}
 
-  /**
-   * A class to save and load data for this class.
-   */
-  static class Loader implements XML.ObjectLoader {
+	/**
+	 * A class to save and load data for this class.
+	 */
+	static class Loader implements XML.ObjectLoader {
 
-    /**
-     * Saves an object's data to an XMLControl.
-     *
-     * @param control the control to save to
-     * @param obj the object to save
-     */
-    @Override
-	public void saveObject(XMLControl control, Object obj) {
-      VectorStep step = (VectorStep) obj;
-      boolean snap = (step.attachmentPoint != null);
-      if (snap) control.setValue("snap", snap); //$NON-NLS-1$
-      control.setValue("xtail", step.getTail().x); //$NON-NLS-1$
-      control.setValue("ytail", step.getTail().y); //$NON-NLS-1$
-      if (!step.getTrack().isDependent() && 
-      				!(step.getTrack() instanceof PointMass)) {
-        control.setValue("xtip", step.getTip().x); //$NON-NLS-1$
-        control.setValue("ytip", step.getTip().y); //$NON-NLS-1$      	
-      }
-    }
+		/**
+		 * Saves an object's data to an XMLControl.
+		 *
+		 * @param control the control to save to
+		 * @param obj     the object to save
+		 */
+		@Override
+		public void saveObject(XMLControl control, Object obj) {
+			VectorStep step = (VectorStep) obj;
+			boolean snap = (step.attachmentPoint != null);
+			if (snap)
+				control.setValue("snap", snap); //$NON-NLS-1$
+			control.setValue("xtail", step.getTail().x); //$NON-NLS-1$
+			control.setValue("ytail", step.getTail().y); //$NON-NLS-1$
+			if (!step.getTrack().isDependent() && !(step.getTrack() instanceof PointMass)) {
+				control.setValue("xtip", step.getTip().x); //$NON-NLS-1$
+				control.setValue("ytip", step.getTip().y); //$NON-NLS-1$
+			}
+		}
 
-    /**
-     * Creates a new object with data from an XMLControl.
-     *
-     * @param control the control
-     * @return the newly created object
-     */
-    @Override
-	public Object createObject(XMLControl control) {
-    	// this loader is not intended to be used to create new steps,
-    	// but only for undo/redo step edits. This is because the constructor
-    	// requires knowledge of the Vector track this step belongs to.
-      return null;
-    }
+		/**
+		 * Creates a new object with data from an XMLControl.
+		 *
+		 * @param control the control
+		 * @return the newly created object
+		 */
+		@Override
+		public Object createObject(XMLControl control) {
+			// this loader is not intended to be used to create new steps,
+			// but only for undo/redo step edits. This is because the constructor
+			// requires knowledge of the Vector track this step belongs to.
+			return null;
+		}
 
-    /**
-     * Loads an object with data from an XMLControl.
-     *
-     * @param control the control
-     * @param obj the object
-     * @return the loaded object
-     */
-    @Override
-	public Object loadObject(XMLControl control, Object obj) {
-      VectorStep step = (VectorStep) obj;
-      double x = control.getDouble("xtail"); //$NON-NLS-1$
-      double y = control.getDouble("ytail"); //$NON-NLS-1$
-      step.getTail().setXY(x, y);
-      if (!step.getTrack().isDependent() && 
-      				!(step.getTrack() instanceof PointMass)) {
-        x = control.getDouble("xtip"); //$NON-NLS-1$
-        y = control.getDouble("ytip"); //$NON-NLS-1$
-        step.getTip().setXY(x, y);
-      }
-      if (control.getBoolean("snap")) //$NON-NLS-1$
-      	step.snap(step.getTrack().trackerPanel); 
-      return obj;
-    }
-  }
+		/**
+		 * Loads an object with data from an XMLControl.
+		 *
+		 * @param control the control
+		 * @param obj     the object
+		 * @return the loaded object
+		 */
+		@Override
+		public Object loadObject(XMLControl control, Object obj) {
+			VectorStep step = (VectorStep) obj;
+			double x = control.getDouble("xtail"); //$NON-NLS-1$
+			double y = control.getDouble("ytail"); //$NON-NLS-1$
+			step.getTail().setXY(x, y);
+			if (!step.getTrack().isDependent() && !(step.getTrack() instanceof PointMass)) {
+				x = control.getDouble("xtip"); //$NON-NLS-1$
+				y = control.getDouble("ytip"); //$NON-NLS-1$
+				step.getTip().setXY(x, y);
+			}
+			if (control.getBoolean("snap")) //$NON-NLS-1$
+				step.snap(step.getTrack().trackerPanel);
+			return obj;
+		}
+	}
 }
-

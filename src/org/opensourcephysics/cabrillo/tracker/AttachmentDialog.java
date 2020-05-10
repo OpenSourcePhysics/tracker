@@ -698,8 +698,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			TTrack measuringTool = TTrack.getTrack(trackID);
 			TTrack[] attachments = measuringTool.getAttachments();
 			if (attachments[row] != null) {
-				attachments[row].removePropertyChangeListener("step", measuringTool); //$NON-NLS-1$
-				attachments[row].removePropertyChangeListener("steps", measuringTool); //$NON-NLS-1$
+				attachments[row].removeStepListener(measuringTool); //$NON-NLS-1$
 			}
 			attachments[row] = obj == dummyMass ? null : (PointMass) obj;
 			measuringTool.refreshAttachments();

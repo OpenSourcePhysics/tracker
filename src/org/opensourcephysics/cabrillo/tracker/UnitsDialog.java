@@ -37,6 +37,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class UnitsDialog extends JDialog {
 	
   final static Color _RED = new Color(255, 160, 180);

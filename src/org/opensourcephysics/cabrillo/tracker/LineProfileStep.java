@@ -1107,7 +1107,7 @@ public String toString() {
       	line.keyFrames.add(n);
     	}      
       repaint();
-      track.support.firePropertyChange("step", null, n); //$NON-NLS-1$
+      track.firePropertyChange("step", null, n); //$NON-NLS-1$
     }
 
     /**
@@ -1195,7 +1195,7 @@ public String toString() {
       	line.keyFrames.add(n);
     	}      
       repaint();
-      track.support.firePropertyChange("step", null, n); //$NON-NLS-1$
+      track.firePropertyChange("step", null, n); //$NON-NLS-1$
     }
 
     /**

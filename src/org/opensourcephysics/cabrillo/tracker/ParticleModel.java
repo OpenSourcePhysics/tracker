@@ -847,9 +847,9 @@ abstract public class ParticleModel extends PointMass {
 					next.aTailsToOriginItem.doClick();
 				if (!refreshDerivsLater) {
 					if (singleStep)
-						next.support.firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+						next.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
 					else
-						next.support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+						next.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 				}
 				// erase refreshed steps
 				for (int i = start + 1; i <= end; i++) {
@@ -927,7 +927,7 @@ abstract public class ParticleModel extends PointMass {
 			next.updateDerivatives(end - 2, lastValidFrame - end + 2);
 			// restore state
 			restoreState(end);
-			next.support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+			next.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 			next.locked = true;
 		}
 		lastValidFrame = end;

@@ -415,7 +415,7 @@ public class PointMass extends TTrack {
 		if (!autoTrackerMarking && trackerPanel != null && trackerPanel.getAutoRefresh()) {
 			updateDerivatives(n);
 		}
-		support.firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
 		// check independent point masses for skipped steps during marking
 		if (skippedStepWarningOn && steps.isPreceded(n) && trackerPanel != null && !isDependent()
 				&& !AutoTracker.neverPause) {
@@ -645,7 +645,7 @@ public class PointMass extends TTrack {
 						if (stepArray[j] != null)
 							stepArray[j].setFootprint(vFootprint);
 				}
-				support.firePropertyChange("footprint", null, vFootprint); //$NON-NLS-1$
+				firePropertyChange(TTrack.PROPERTY_TTRACK_FOOTPRINT, null, vFootprint); //$NON-NLS-1$
 				repaint();
 				return;
 			}
@@ -706,7 +706,7 @@ public class PointMass extends TTrack {
 							stepArray[j].setFootprint(aFootprint);
 				}
 				repaint();
-				support.firePropertyChange("footprint", null, aFootprint); //$NON-NLS-1$
+				firePropertyChange(TTrack.PROPERTY_TTRACK_FOOTPRINT, null, aFootprint); //$NON-NLS-1$
 				return;
 			}
 	}
@@ -1002,7 +1002,7 @@ public class PointMass extends TTrack {
 		}
 		refreshDataLater = false;
 		updateDerivatives();
-		support.firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 		// post undoable edit if changes made
 		if (changed) {
 			Undo.postTrackEdit(this, control);

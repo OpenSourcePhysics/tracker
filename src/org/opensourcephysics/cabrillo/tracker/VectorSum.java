@@ -81,7 +81,7 @@ public class VectorSum extends Vector {
     this.vectors = vectors;
     setColor(defaultColors[0]);
     for (int i = 0; i < vectors.length; i++) {
-      vectors[i].addPropertyChangeListener("step", this); //$NON-NLS-1$
+      vectors[i].addPropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
     }
     locked = true;
     // set initial hint
@@ -153,7 +153,7 @@ public Interactive findInteractive(
       System.arraycopy(vectors, 0, newVectors, 0, vectors.length);
       newVectors[vectors.length] = vec;
       vectors = newVectors;
-      vec.addPropertyChangeListener("step", this); //$NON-NLS-1$
+      vec.addPropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
     }
     update();
   }
@@ -167,7 +167,7 @@ public Interactive findInteractive(
     synchronized(vectors) {
       for (int i = 0; i < vectors.length; i++)
         if (vectors[i] == vec) {
-          vec.removePropertyChangeListener("step", this); //$NON-NLS-1$
+          vec.removePropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
           Vector[] newVectors = new Vector[vectors.length - 1];
           System.arraycopy(vectors, 0, newVectors, 0, i);
           System.arraycopy(vectors, i+1, newVectors, i, newVectors.length-i);
@@ -266,7 +266,7 @@ public boolean isDependent() {
   /**
    * Responds to property change events. VectorSum listens for the
    * following events: "track" from tracker panel, "color", "footprint"
-   * and "step" from Vector.
+   * and PROPERTY_TTRACK_STEP from Vector.
    *
    * @param e the property change event
    */
@@ -279,7 +279,7 @@ public void propertyChange(PropertyChangeEvent e) {
         removeVector((Vector)track);
     }
     if (e.getSource() instanceof Vector) {
-      if (name.equals("step")){ //$NON-NLS-1$
+      if (name.equals(PROPERTY_TTRACK_STEP)){ //$NON-NLS-1$
         int n = ((Integer)e.getNewValue()).intValue();
         update(n);
       }
@@ -295,7 +295,7 @@ protected void dispose() {
   	super.dispose();
     for (Vector v: vectors) {
       if (v!=null) {
-      	v.removePropertyChangeListener("step", this); //$NON-NLS-1$
+      	v.removePropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
       }
     }
     vectors = new Vector[0];

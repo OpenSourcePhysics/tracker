@@ -345,9 +345,8 @@ public class DynamicSystem extends DynamicParticlePolar {
 				particle.system = null;
 				particle.inSystem = false;
 				particle.refreshInitialTime();
-				particle.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-				particle.removePropertyChangeListener("step", this); //$NON-NLS-1$
-				particle.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+				particle.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
+				particle.removeStepListener(this);
 				particle.lastValidFrame = -1;
 				particle.repaint();
 				if (systemInspector != null) {
@@ -373,11 +372,9 @@ public class DynamicSystem extends DynamicParticlePolar {
 		for (int i = 0; i < n; i++) {
 			points[i] = new Point2D.Double();
 			particles[i].removePropertyChangeListener("mass", this); //$NON-NLS-1$
-			particles[i].removePropertyChangeListener("step", this); //$NON-NLS-1$
-			particles[i].removePropertyChangeListener("steps", this); //$NON-NLS-1$
+			particles[i].removeStepListener(this);
 			particles[i].addPropertyChangeListener("mass", this); //$NON-NLS-1$
-			particles[i].addPropertyChangeListener("step", this); //$NON-NLS-1$
-			particles[i].addPropertyChangeListener("steps", this); //$NON-NLS-1$
+			particles[i].addStepListener(this);
 			particles[i].system = this;
 			particles[i].refreshInitialTime();
 			if (systemInspector != null) {
@@ -394,10 +391,10 @@ public class DynamicSystem extends DynamicParticlePolar {
 			modelBuilder.refreshDropdown(null);
 		if (n == 0 && steps != noSteps) {
 			steps = noSteps;
-			support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+			firePropertyChange("steps", null, null); //$NON-NLS-1$
 		} else if (n > 0 && steps != realSteps) {
 			steps = realSteps;
-			support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+			firePropertyChange("steps", null, null); //$NON-NLS-1$
 		}
 		lastValidFrame = -1;
 		repaint();
@@ -704,8 +701,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 	protected void dispose() {
 		for (int i = 0; i < particles.length; i++) {
 			particles[i].removePropertyChangeListener("mass", this); //$NON-NLS-1$
-			particles[i].removePropertyChangeListener("step", this); //$NON-NLS-1$
-			particles[i].removePropertyChangeListener("steps", this); //$NON-NLS-1$
+			particles[i].removeStepListener(this);
 			particles[i].system = null;
 		}
 		super.dispose();

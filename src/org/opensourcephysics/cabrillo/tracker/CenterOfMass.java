@@ -79,9 +79,8 @@ public class CenterOfMass extends PointMass {
     this.masses = masses;
     setColor(defaultColors[0]);
     for (int i = 0; i < masses.length; i++) {
-      masses[i].addPropertyChangeListener("mass", this); //$NON-NLS-1$
-      masses[i].addPropertyChangeListener("step", this); //$NON-NLS-1$
-      masses[i].addPropertyChangeListener("steps", this); //$NON-NLS-1$
+      masses[i].addPropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
+      masses[i].addStepListener(this);
     }
     locked = true;
     // set initial hint
@@ -133,9 +132,8 @@ public class CenterOfMass extends PointMass {
       System.arraycopy(masses, 0, newMasses, 0, masses.length);
       newMasses[masses.length] = m;
       masses = newMasses;
-      m.addPropertyChangeListener("mass", this); //$NON-NLS-1$
-      m.addPropertyChangeListener("step", this); //$NON-NLS-1$
-      m.addPropertyChangeListener("steps", this); //$NON-NLS-1$
+      m.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this);
+      m.addStepListener(this);
     }
     update();
   }
@@ -149,9 +147,8 @@ public class CenterOfMass extends PointMass {
     synchronized(masses) {
       for (int i = 0; i < masses.length; i++)
         if (masses[i] == m) {
-          m.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-          m.removePropertyChangeListener("step", this); //$NON-NLS-1$
-          m.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+          m.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
+          m.removeStepListener(this);
           PointMass[] newMasses = new PointMass[masses.length - 1];
           System.arraycopy(masses, 0, newMasses, 0, i);
           System.arraycopy(masses, i+1, newMasses, i, newMasses.length-i);
@@ -304,9 +301,8 @@ public void propertyChange(PropertyChangeEvent e) {
 		for (int i = 0, n = masses.length; i < n; i++) {
 			PointMass m = masses[i];
 			if (m != null) {
-				m.removePropertyChangeListener("mass", this); //$NON-NLS-1$
-				m.removePropertyChangeListener("step", this); //$NON-NLS-1$
-				m.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+				m.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
+				m.removeStepListener(this);
 			}
 		}
 		masses = new PointMass[0];
@@ -329,7 +325,7 @@ public void propertyChange(PropertyChangeEvent e) {
     for (int n = 0; n < length; n++)
       update(n, false);
 	  updateDerivatives();
-	  support.firePropertyChange("steps", null, null); //$NON-NLS-1$
+	  firePropertyChange("steps", null, null); //$NON-NLS-1$
     repaint();
     // update inspector, if visible
     if (inspector != null &&

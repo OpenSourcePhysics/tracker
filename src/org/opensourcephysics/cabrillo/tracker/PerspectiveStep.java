@@ -130,7 +130,7 @@ public String toString() {
 	  	PerspectiveTrack ptrack = (PerspectiveTrack)getTrack();
 	  	if (ptrack.trackerPanel!=null) {
 	  		int n = ptrack.trackerPanel.getFrameNumber();
-	  	  ptrack.support.firePropertyChange("step", null, n); //$NON-NLS-1$	  		
+	  	  ptrack.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$	  		
 	  	}
   	}
   }

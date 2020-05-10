@@ -43,13 +43,14 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public abstract class TrackChooserTView extends JPanel implements TView {
 
   // instance fields
   protected TrackerPanel trackerPanel;
   protected Map<TTrack, TrackView> trackViews = new HashMap<TTrack, TrackView>(); // maps track to its trackView
   protected Map<Object, TTrack> tracks = new HashMap<Object, TTrack>(); // maps dropdown items to track
-  protected JComboBox dropdown;
+  protected JComboBox<Object> dropdown;
   protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
   protected boolean refreshing;
   protected TTrack selectedTrack;
@@ -67,7 +68,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
     init();
     setBackground(panel.getBackground());
     // create combobox with custom renderer for tracks
-    dropdown = new JComboBox() {
+    dropdown = new JComboBox<Object>() {
     	// override getMaximumSize method so has same height as chooser button
 	    @Override
 		public Dimension getMaximumSize() {
@@ -106,27 +107,23 @@ public abstract class TrackChooserTView extends JPanel implements TView {
           TrackView prevView = null;
           if (prevTrack != null) {
             prevView = getTrackView(prevTrack);
-            prevTrack.removePropertyChangeListener("step", prevView); //$NON-NLS-1$
-            prevTrack.removePropertyChangeListener("steps", prevView); //$NON-NLS-1$
+            prevTrack.removeStepListener(prevView);
             if (prevView instanceof PlotTrackView) {
             	PlotTrackView plotView = (PlotTrackView)prevView;
               for (TrackPlottingPanel plot: plotView.plots) {
 	            	for (TTrack guest: plot.guests) {
-	            		guest.removePropertyChangeListener("step", prevView); //$NON-NLS-1$
-	            		guest.removePropertyChangeListener("steps", prevView); //$NON-NLS-1$          		
+	            		guest.removeStepListener(prevView);          		
 	            	}
               }
             }
           }
           // add step propertyChangeListener to new track
-          track.addPropertyChangeListener("step", trackView); //$NON-NLS-1$
-          track.addPropertyChangeListener("steps", trackView); //$NON-NLS-1$
+          track.addStepListener(trackView);
           if (trackView instanceof PlotTrackView) {
           	PlotTrackView plotView = (PlotTrackView)trackView;
             for (TrackPlottingPanel plot: plotView.plots) {
 	          	for (TTrack guest: plot.guests) {
-	          		guest.addPropertyChangeListener("step", trackView); //$NON-NLS-1$
-	          		guest.addPropertyChangeListener("steps", trackView); //$NON-NLS-1$  
+	          		guest.addStepListener(trackView);  
 	          	}
             }
           }

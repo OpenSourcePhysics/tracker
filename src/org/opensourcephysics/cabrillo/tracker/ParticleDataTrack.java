@@ -715,7 +715,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			next.name = fullName;
 		}
 		if (changed) {
-			support.firePropertyChange("name", null, null); //$NON-NLS-1$
+			firePropertyChange(TTrack.PROPERTY_TTRACK_NAME, null, null); //$NON-NLS-1$
 		}
 	}
 
@@ -810,7 +810,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public void setColor(Color color) {
 		super.setColor(color);
 		if (getLeader() != this) {
-			getLeader().support.firePropertyChange("color", null, color); //$NON-NLS-1$
+			getLeader().firePropertyChange(TTrack.PROPERTY_TTRACK_COLOR, null, color); //$NON-NLS-1$
 		}
 	}
 
@@ -822,7 +822,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public void setLineColor(Color color) {
 		if (getLeader() == this) {
 			modelFootprint.setColor(color);
-			support.firePropertyChange("color", null, color); //$NON-NLS-1$
+			firePropertyChange(TTrack.PROPERTY_TTRACK_COLOR, null, color); //$NON-NLS-1$
 			erase();
 			if (trackerPanel != null) {
 				trackerPanel.repaint();
@@ -834,7 +834,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public void setFootprint(String name) {
 		super.setFootprint(name);
 		if (getLeader() != this) {
-			getLeader().support.firePropertyChange("footprint", null, getLeader().footprint); //$NON-NLS-1$
+			getLeader().firePropertyChange(TTrack.PROPERTY_TTRACK_FOOTPRINT, null, getLeader().footprint); //$NON-NLS-1$
 		}
 	}
 

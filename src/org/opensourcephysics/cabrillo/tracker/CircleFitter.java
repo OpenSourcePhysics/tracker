@@ -454,7 +454,7 @@ public class CircleFitter extends TTrack {
 		} else if (name.equals("adjusting")) { //$NON-NLS-1$
 			refreshDataLater = (Boolean) e.getNewValue();
 			if (!refreshDataLater) { // stopped adjusting
-				support.firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
 			}
 		}
 		super.propertyChange(e);
@@ -582,9 +582,7 @@ public class CircleFitter extends TTrack {
 	@Override
 	protected void dispose() {
 		for (Integer n : activeTracks.keySet()) {
-			TTrack track = activeTracks.get(n);
-			track.removePropertyChangeListener("step", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("steps", this); //$NON-NLS-1$
+			activeTracks.get(n).removeStepListener(this);
 		}
 		if (attachmentForSteps != null) {
 			for (int i = 0; i < attachmentForSteps.length; i++) {
@@ -821,11 +819,9 @@ public class CircleFitter extends TTrack {
 			if (attachments[i] != null) {
 				hasAttachments = true;
 				// refresh listeners
-				attachments[i].removePropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
-				attachments[i].removePropertyChangeListener(PROPERTY_TTRACK_STEPS, this); //$NON-NLS-1$
-				attachments[i].addPropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
-				attachments[i].addPropertyChangeListener(PROPERTY_TTRACK_STEPS, this); //$NON-NLS-1$
-			}
+				attachments[i].removeStepListener(this);
+				attachments[i].addStepListener(this);
+							}
 		}
 		if (hasAttachments) {
 			boolean change = trackerPanel.changed;
@@ -1184,14 +1180,16 @@ public class CircleFitter extends TTrack {
 	@Override
 	protected void setTrackerPanel(TrackerPanel panel) {
 		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+			trackerPanel.removePropertyChangeListener(
+					TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this); //$NON-NLS-1$
 			if (trackerPanel.getTFrame() != null) {
-				trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
+				trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
 			}
 		}
 		super.setTrackerPanel(panel);
 		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+			trackerPanel.addPropertyChangeListener(
+					TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this); //$NON-NLS-1$
 		}
 		setFixed(isFixed());
 	}
