@@ -2,7 +2,6 @@ package com.xuggle.xuggler.video;
 
 import java.awt.image.BufferedImage;
 
-import com.xuggle.xuggler.IPixelFormat.Type;
 import com.xuggle.xuggler.IVideoPicture;
 
 public class ConverterFactory {

@@ -172,7 +172,8 @@ public class OSXServices {
 			tracker = app;
 		}
 		
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
 		public Object invoke(Object proxy, Method m, Object[] args) throws Throwable {
       try {
         if (m.getName().equals("handleAbout")) { //$NON-NLS-1$

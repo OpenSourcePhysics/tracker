@@ -44,7 +44,7 @@ public class ModelBuilder extends FunctionTool {
 	private TrackerPanel trackerPanel;
 	private JLabel startFrameLabel, endFrameLabel, boosterLabel;
 	private ModelFrameSpinner startFrameSpinner, endFrameSpinner;
-	private JComboBox boosterDropdown;
+	private JComboBox<Object> boosterDropdown;
 
 	/**
 	 * Constructor.
@@ -80,7 +80,7 @@ public class ModelBuilder extends FunctionTool {
 		// create booster label and dropdown
 		boosterLabel = new JLabel();
 		boosterLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
-		boosterDropdown = new JComboBox();
+		boosterDropdown = new JComboBox<>();
 		boosterDropdown.setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 0));
 		boosterDropdown.addActionListener(new ActionListener() {
 			@Override

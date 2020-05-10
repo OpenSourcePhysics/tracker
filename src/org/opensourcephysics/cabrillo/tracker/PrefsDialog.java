@@ -142,8 +142,9 @@ public class PrefsDialog extends JDialog {
   		xuggleErrorCheckbox, variableDurationCheckBox, resetToStep0Checkbox, autofillCheckbox;
   protected int memorySize = Tracker.requestedMemorySize;
   protected JSpinner recentSizeSpinner, runSpinner;
-  protected JComboBox lookFeelDropdown, languageDropdown, jreDropdown, trailLengthDropdown,
-  		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown, footprintDropdown;
+  protected JComboBox<String> lookFeelDropdown, languageDropdown, jreDropdown, trailLengthDropdown,
+  		checkForUpgradeDropdown, versionDropdown, logLevelDropdown, fontSizeDropdown;
+  protected JComboBox<Footprint> footprintDropdown;
   protected JRadioButton vm32Button, vm64Button;
   protected JRadioButton movieEngineButton, noEngineButton;
   protected JRadioButton radiansButton, degreesButton;
@@ -215,15 +216,16 @@ public class PrefsDialog extends JDialog {
 	  	resetToStep0SubPanelBorder, decimalSeparatorBorder, mouseWheelSubPanelBorder, calibrationStickSubPanelBorder,
 	  	dataGapSubPanelBorder, trailLengthSubPanelBorder, pointmassFootprintSubPanelBorder};
 		FontSizer.setFonts(borders, level); 
-		JComboBox[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, fontSizeDropdown, 
+		@SuppressWarnings("unchecked")
+		JComboBox<String>[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, fontSizeDropdown, 
 				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown, footprintDropdown};
-		for (JComboBox next: dropdowns) {
+		for (JComboBox<String> next: dropdowns) {
 			int n = next.getSelectedIndex();
-			Object[] items = new Object[next.getItemCount()];
+			String[] items = new String[next.getItemCount()];
 			for (int i=0; i<items.length; i++) {
 				items[i] = next.getItemAt(i);
 			}
-			DefaultComboBoxModel model = new DefaultComboBoxModel(items);
+			DefaultComboBoxModel<String> model = new DefaultComboBoxModel<String>(items);
 			next.setModel(model);
 			next.setSelectedItem(n);
 		}
@@ -411,7 +413,7 @@ public class PrefsDialog extends JDialog {
 
 		lfSubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.LookFeel.BorderTitle")); //$NON-NLS-1$
 		lfSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, lfSubPanelBorder));
-		lookFeelDropdown = new JComboBox();
+		lookFeelDropdown = new JComboBox<String>();
 		lookFeelDropdown.addItem(OSPRuntime.DEFAULT_LF.toLowerCase());
 		Object selectedItem = OSPRuntime.DEFAULT_LF;
 		// get alphabetical list of look/feel types
@@ -444,7 +446,7 @@ public class PrefsDialog extends JDialog {
 		langSubPanel.setBackground(color);
 		langSubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.Language.BorderTitle")); //$NON-NLS-1$
 		langSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, langSubPanelBorder));
-		languageDropdown = new JComboBox();
+		languageDropdown = new JComboBox<String>();
 		languageDropdown.addItem(TrackerRes.getString("PrefsDialog.Language.Default")); //$NON-NLS-1$
 		int index = 0, selectedIndex = 0;
 		for (Locale next : Tracker.locales) {
@@ -561,7 +563,7 @@ public class PrefsDialog extends JDialog {
 		fontSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, fontSubPanelBorder));
 
 		// create font size dropdown
-		fontSizeDropdown = new JComboBox();
+		fontSizeDropdown = new JComboBox<String>();
 		String defaultLevel = TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"); //$NON-NLS-1$
 		fontSizeDropdown.addItem(defaultLevel);
 		int preferredLevel = Tracker.preferredFontLevel + Tracker.preferredFontLevelPlus;
@@ -593,7 +595,7 @@ public class PrefsDialog extends JDialog {
 		pointmassFootprintSubPanelBorder = BorderFactory
 				.createTitledBorder(TrackerRes.getString("PrefsDialog.PointMassFootprint.BorderTitle")); //$NON-NLS-1$
 		footprintSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, pointmassFootprintSubPanelBorder));
-		footprintDropdown = new JComboBox();
+		footprintDropdown = new JComboBox<Footprint>();
 		footprintDropdown.setRenderer(new FootprintRenderer());
 		Footprint[] footprints = new Footprint[PointMass.footprintNames.length];
 		for (int i = 0; i < footprints.length; i++) {
@@ -637,7 +639,7 @@ public class PrefsDialog extends JDialog {
 		trailLengthSubPanelBorder = BorderFactory
 				.createTitledBorder(TrackerRes.getString("PrefsDialog.Trails.BorderTitle")); //$NON-NLS-1$
 		trailLengthSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, trailLengthSubPanelBorder));
-		trailLengthDropdown = new JComboBox();
+		trailLengthDropdown = new JComboBox<String>();
 		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
 		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
 		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
@@ -658,7 +660,7 @@ public class PrefsDialog extends JDialog {
 				.createTitledBorder(TrackerRes.getString("PrefsDialog.Version.BorderTitle")); //$NON-NLS-1$
 		versionSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, versionSubPanelBorder));
 		int preferred = 0;
-		versionDropdown = new JComboBox();
+		versionDropdown = new JComboBox<String>();
 		for (int i = 0; i < trackerVersions.length; i++) {
 			String next = trackerVersions[i].ver;
 			if (next.equals("0")) { //$NON-NLS-1$
@@ -749,7 +751,7 @@ public class PrefsDialog extends JDialog {
 		});
 		jreNorthPanel.add(vm64Button);
 
-		jreDropdown = new JComboBox();
+		jreDropdown = new JComboBox<String>();
 		jreSouthPanel.add(jreDropdown);
 		refreshJREDropdown(vmBitness);
 
@@ -1380,7 +1382,7 @@ public class PrefsDialog extends JDialog {
 				Tracker.showUpgradeStatus(trackerPanel);
 			}
 		});
-		logLevelDropdown = new JComboBox();
+		logLevelDropdown = new JComboBox<String>();
 		defaultLevel = TrackerRes.getString("PrefsDialog.Version.Default").toUpperCase(); //$NON-NLS-1$
 		defaultLevel += " (" + Tracker.DEFAULT_LOG_LEVEL.toString().toLowerCase() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 		String selected = defaultLevel;
@@ -1412,7 +1414,7 @@ public class PrefsDialog extends JDialog {
 		logLevelSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, logLevelSubPanelBorder));
 		logLevelSubPanel.add(logLevelDropdown);
 
-		checkForUpgradeDropdown = new JComboBox();
+		checkForUpgradeDropdown = new JComboBox<String>();
 		selected = null;
 		for (String next : Tracker.checkForUpgradeChoices) {
 			String s = TrackerRes.getString(next);
@@ -1923,7 +1925,7 @@ public class PrefsDialog extends JDialog {
     // footprint dropdown
     selected = 0;
     for (int i = 0; i<footprintDropdown.getItemCount(); i++) {
-    	Footprint footprint = (Footprint)footprintDropdown.getItemAt(i);
+    	Footprint footprint = footprintDropdown.getItemAt(i);
     	if (Tracker.preferredPointMassFootprint!=null 
     			&& Tracker.preferredPointMassFootprint.startsWith(footprint.getName())) {
     		selected = i;
@@ -2082,7 +2084,7 @@ public class PrefsDialog extends JDialog {
   /**
    * A class to render footprints for a dropdown 
    */
-  class FootprintRenderer extends JLabel implements ListCellRenderer {
+  class FootprintRenderer extends JLabel implements ListCellRenderer<Footprint> {
   	
   	FootprintRenderer() {
 			setOpaque(true);
@@ -2090,7 +2092,7 @@ public class PrefsDialog extends JDialog {
   	}
   	
     @Override
-	public Component getListCellRendererComponent(JList list, Object val, int index,
+	public Component getListCellRendererComponent(JList<? extends Footprint> list, Footprint val, int index,
         boolean selected, boolean hasFocus) {
 
       if (selected) {

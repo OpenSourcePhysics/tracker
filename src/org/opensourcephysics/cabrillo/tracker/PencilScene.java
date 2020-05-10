@@ -373,7 +373,8 @@ public class PencilScene implements Trackable, Comparable<PencilScene>, Interact
       return scene;
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public Object loadObject(XMLControl control, Object obj) {
     	PencilScene scene = (PencilScene) obj;
     	int[] frames = (int[])control.getObject("frame_range"); //$NON-NLS-1$

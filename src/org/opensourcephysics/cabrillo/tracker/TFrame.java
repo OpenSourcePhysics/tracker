@@ -151,10 +151,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
 	protected final static Color yellow = new Color(255, 255, 105);
 
-	private final static int VIEW_PLOT = 0;
-	private final static int VIEW_TABLE = 1;
-	private final static int VIEW_WORLD = 2;
-	private final static int VIEW_TEXT = 3;
+//	private final static int VIEW_PLOT = 0;
+//	private final static int VIEW_TABLE = 1;
+//	private final static int VIEW_WORLD = 2;
+//	private final static int VIEW_TEXT = 3;
 
 	// instance fields
 	private JToolBar playerBar;
