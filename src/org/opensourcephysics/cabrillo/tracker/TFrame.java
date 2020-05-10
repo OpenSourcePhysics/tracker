@@ -942,7 +942,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				MainTView mainView = (MainTView) objects[PANEL_MAINVIEW];
 				trackerPanel = mainView.getTrackerPanel();
 				boolean changed = trackerPanel.changed; // save changed state and restore below
-				objects[PANEL_MENUBAR] = getMenuBar(trackerPanel);
+				// replace the stored menubar
+				objects[PANEL_MENUBAR] = TMenuBar.getMenuBar(trackerPanel);
 				CoordAxes axes = trackerPanel.getAxes();
 				if (axes != null) {
 					axes.setName(TrackerRes.getString("CoordAxes.New.Name")); //$NON-NLS-1$
@@ -953,11 +954,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				TTrackBar trackbar = (TTrackBar) objects[PANEL_TRACKBAR];
 				trackbar.refresh();
 			}
-			// replace current menubar
 			trackerPanel = getTrackerPanel(getSelectedTab());
 			if (trackerPanel != null) {
-				// replace menu bar
-
+				// replace current menubar
 				TMenuBar menuBar = getMenuBar(trackerPanel);
 				if (menuBar != null) {
 					setJMenuBar(menuBar);
