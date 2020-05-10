@@ -51,43 +51,54 @@ import org.opensourcephysics.controls.*;
 @SuppressWarnings("serial")
 public abstract class TTrack implements Interactive, Trackable, PropertyChangeListener {
 
-	public static final String PROPERTY_TTRACK_FOOTPRINT = "footprint";
-	public static final String PROPERTY_TTRACK_MASS = "mass";
-	public static final String PROPERTY_TTRACK_MODELEND = "model_end";
-	public static final String PROPERTY_TTRACK_MODELSTART = "model_start";
-	public static final String PROPERTY_TTRACK_NAME = "name";
-	public static final String PROPERTY_TTRACK_STEP = "step";
-	public static final String PROPERTY_TTRACK_STEPS = "steps";
+	public static final String PROPERTY_TTRACK_FOOTPRINT = "footprint"; //$NON-NLS-1$
+	public static final String PROPERTY_TTRACK_MASS = "mass"; //$NON-NLS-1$
+	public static final String PROPERTY_TTRACK_MODELEND = "model_end"; //$NON-NLS-1$
+	public static final String PROPERTY_TTRACK_MODELSTART = "model_start"; //$NON-NLS-1$
+	public static final String PROPERTY_TTRACK_NAME = "name"; //$NON-NLS-1$
+	public static final String PROPERTY_TTRACK_STEP = "step"; //$NON-NLS-1$
+	public static final String PROPERTY_TTRACK_STEPS = "steps"; //$NON-NLS-1$
 	
-	public static final String PROPERTY_TTRACK_VISIBLE = "visible";
-	public static final String PROPERTY_TTRACK_DATA = "data";
-	public static final String PROPERTY_TTRACK_COLOR = "color";
-	
+	public static final String PROPERTY_TTRACK_VISIBLE = "visible"; //$NON-NLS-1$
+	public static final String PROPERTY_TTRACK_DATA = "data"; //$NON-NLS-1$
+	public static final String PROPERTY_TTRACK_COLOR = "color"; //$NON-NLS-1$
 
+	public static final String PROPERTY_TTRACK_ADJUSTING = "adjusting";
+	private static final String PROPERTY_TTRACK_LOCKED = "locked";
+	
 
 	public void addListener(PropertyChangeListener c) {
-		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c); // $NON-NLS-1$
-		addPropertyChangeListener(PROPERTY_TTRACK_MASS, c); // $NON-NLS-1$
-		addPropertyChangeListener(PROPERTY_TTRACK_NAME, c); // $NON-NLS-1$
-		addPropertyChangeListener(PROPERTY_TTRACK_MODELEND, c); // $NON-NLS-1$
-		addPropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c); // $NON-NLS-1$
-		addPropertyChangeListener(PROPERTY_TTRACK_STEP, c); // $NON-NLS-1$
-		addPropertyChangeListener(PROPERTY_TTRACK_STEPS, c); // $NON-NLS-1$
+		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c); 
+		addPropertyChangeListener(PROPERTY_TTRACK_MASS, c); 
+		addPropertyChangeListener(PROPERTY_TTRACK_NAME, c); 
+		addPropertyChangeListener(PROPERTY_TTRACK_MODELEND, c); 
+		addPropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c); 
+		addStepListener(c);
+		
 	}
 
 	public void removeListener(PropertyChangeListener c) {
-		removePropertyChangeListener(PROPERTY_TTRACK_DATA, c); // $NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_TTRACK_MASS, c); // $NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_TTRACK_NAME, c); // $NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c); // $NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_TTRACK_MODELEND, c); // $NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c); // $NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_TTRACK_STEP, c); // $NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_TTRACK_STEPS, c); // $NON-NLS-1$
-
-		removePropertyChangeListener("visible", c); //$NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_TTRACK_DATA, c); 
+		removePropertyChangeListener(PROPERTY_TTRACK_MASS, c); 
+		removePropertyChangeListener(PROPERTY_TTRACK_NAME, c); 
+		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c); 
+		removePropertyChangeListener(PROPERTY_TTRACK_MODELEND, c); 
+		removePropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c); 
+		removeStepListener(c);
+		// these three are not in add?
+		removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, c); //$NON-NLS-1$
 		removePropertyChangeListener("stepnumber", c); //$NON-NLS-1$
 		removePropertyChangeListener("image", c); //$NON-NLS-1$
+	}
+
+	public void addStepListener(PropertyChangeListener c) {
+		addPropertyChangeListener(PROPERTY_TTRACK_STEP, c);
+		addPropertyChangeListener(PROPERTY_TTRACK_STEPS, c);
+	}
+
+	public void removeStepListener(PropertyChangeListener c) {
+		removePropertyChangeListener(PROPERTY_TTRACK_STEP, c);
+		removePropertyChangeListener(PROPERTY_TTRACK_STEPS, c);
 	}
 
 	protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
@@ -529,7 +540,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public void setVisible(boolean visible) {
 		Boolean prev = new Boolean(this.visible);
 		this.visible = visible;
-		support.firePropertyChange(PROPERTY_TTRACK_VISIBLE, prev, new Boolean(visible)); // $NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_VISIBLE, prev, new Boolean(visible)); // $NON-NLS-1$
 		if (trackerPanel != null)
 			trackerPanel.repaint();
 	}
@@ -629,7 +640,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 */
 	public void setLocked(boolean locked) {
 		this.locked = locked;
-		support.firePropertyChange("locked", null, new Boolean(locked)); //$NON-NLS-1$
+		firePropertyChange(TTrack.PROPERTY_TTRACK_LOCKED, null, new Boolean(locked)); //$NON-NLS-1$
 	}
 
 	/**
@@ -715,7 +726,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				}
 			}
 		}
-		support.firePropertyChange("color", null, color); //$NON-NLS-1$
+		firePropertyChange(TTrack.PROPERTY_TTRACK_COLOR, null, color); //$NON-NLS-1$
 	}
 
 	/**
@@ -812,7 +823,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 					trackerPanel.modelBuilder.refreshBoosterDropdown();
 				}
 			}
-			support.firePropertyChange("name", prevName, name); //$NON-NLS-1$
+			firePropertyChange(TTrack.PROPERTY_TTRACK_NAME, prevName, name); //$NON-NLS-1$
 		}
 	}
 
@@ -999,7 +1010,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 						}
 					}
 				}
-				support.firePropertyChange("footprint", null, footprint); //$NON-NLS-1$
+				firePropertyChange(TTrack.PROPERTY_TTRACK_FOOTPRINT, null, footprint); //$NON-NLS-1$
 				return;
 			}
 		}
@@ -1109,7 +1120,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				}
 			}
 			Undo.postTrackEdit(this, control);
-			support.firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
 		}
 		return step;
 	}
@@ -2067,10 +2078,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		for (int i = 0; i < attachments.length; i++) {
 			TTrack targetTrack = attachments[i];
 			if (targetTrack != null) {
-				targetTrack.removePropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
-				targetTrack.removePropertyChangeListener(PROPERTY_TTRACK_STEPS, this); //$NON-NLS-1$
-				targetTrack.addPropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
-				targetTrack.addPropertyChangeListener(PROPERTY_TTRACK_STEPS, this); //$NON-NLS-1$
+				targetTrack.removeStepListener(this); //$NON-NLS-1$
+				targetTrack.addStepListener(this); //$NON-NLS-1$
 				// attach/detach points
 				for (int n = clip.getStartFrameNumber(); n <= clip.getEndFrameNumber(); n++) {
 					Step targetStep = targetTrack.getStep(n);
