@@ -699,7 +699,7 @@ public String toString() {
       profile.setLocked(false);
       profile.loading = true;
       // load orientation
-      if (control.getPropertyNames().contains("horizontal")) //$NON-NLS-1$
+      if (control.getPropertyNamesRaw().contains("horizontal")) //$NON-NLS-1$
       	profile.isHorizontal = control.getBoolean("horizontal"); //$NON-NLS-1$
       else profile.isHorizontal = !control.getBoolean("rotates"); //$NON-NLS-1$
       if (profile.isHorizontal)
@@ -711,7 +711,7 @@ public String toString() {
         profile.setSpread(i);
       }
       // load fixed before steps data
-      if (control.getPropertyNames().contains("fixed")) //$NON-NLS-1$
+      if (control.getPropertyNamesRaw().contains("fixed")) //$NON-NLS-1$
       	profile.fixedLine = control.getBoolean("fixed"); //$NON-NLS-1$
       // load step data
       profile.keyFrames.clear();
@@ -771,7 +771,7 @@ public String toString() {
     @Override
 	public Object loadObject(XMLControl control, Object obj) {
       FrameData data = (FrameData) obj;
-      if (control.getPropertyNames().contains("x1")) { //$NON-NLS-1$
+      if (control.getPropertyNamesRaw().contains("x1")) { //$NON-NLS-1$
 	      data.data[0] = control.getDouble("x1"); //$NON-NLS-1$
 	      data.data[1] = control.getDouble("y1"); //$NON-NLS-1$
 	      data.data[2] = control.getDouble("x2"); //$NON-NLS-1$

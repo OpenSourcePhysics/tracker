@@ -730,13 +730,13 @@ protected class OriginPoint extends TPoint {
       CoordAxes axes = (CoordAxes)obj;
       axes.notyetShown = false;
       
-      if (control.getPropertyNames().contains("grid_visible")) { //$NON-NLS-1$
+      if (control.getPropertyNamesRaw().contains("grid_visible")) { //$NON-NLS-1$
       	axes.setGridVisible(control.getBoolean("grid_visible")); //$NON-NLS-1$
       }
-      if (control.getPropertyNames().contains("grid_alpha")) { //$NON-NLS-1$
+      if (control.getPropertyNamesRaw().contains("grid_alpha")) { //$NON-NLS-1$
       	axes.grid.setAlpha(control.getInt("grid_alpha")); //$NON-NLS-1$
       }
-      if (control.getPropertyNames().contains("grid_RGB")) { //$NON-NLS-1$
+      if (control.getPropertyNamesRaw().contains("grid_RGB")) { //$NON-NLS-1$
       	Color color = new Color(control.getInt("grid_RGB")); //$NON-NLS-1$
       	axes.grid.setColor(color);
       }

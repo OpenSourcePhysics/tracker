@@ -169,6 +169,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private static final int PANEL_TOOLBAR = 3;
 	private static final int PANEL_MENUBAR = 4;
 	private static final int PANEL_TRACKBAR = 5;
+	
+	public static boolean haveExportDialog = false;
+	public static boolean haveThumbnailDialog = false;
 
 	private Map<JPanel, Object[]> panelObjects = new HashMap<JPanel, Object[]>();
 	protected JTabbedPane tabbedPane;
@@ -925,9 +928,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				TrackerIO.closeMonitor(fileName);
 			}
 			break;
-		case MovieVideoI.PROPERTY_VIDEO_READY: // JSMovieVideo
-			break;
-		case "locale": // from TrackerRes //$NON-NLS-1$
+		case TrackerRes.PROPERTY_TRACKERRES_LOCALE: // from TrackerRes //$NON-NLS-1$
 			// clear the existing menubars and actions
 			TMenuBar.clear();
 			TActions.clear();
@@ -1399,13 +1400,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			trackerPanel.setFontLevel(level);
 		}
 
-		ExportZipDialog.setFontLevels(level);
-		if (ExportVideoDialog.videoExporter != null) {
-			ExportVideoDialog.videoExporter.setFontLevel(level);
+		if (haveExportDialog) {
+			// lazy initialization
+			ExportZipDialog.setFontLevels(level);
+			if (ExportVideoDialog.videoExporter != null) {
+				ExportVideoDialog.videoExporter.setFontLevel(level);
+			}
 		}
-		if (ThumbnailDialog.thumbnailDialog != null) {
-			FontSizer.setFonts(ThumbnailDialog.thumbnailDialog, level);
-			ThumbnailDialog.thumbnailDialog.refreshGUI();
+		if (haveThumbnailDialog) {
+			// lazy initialization
+			if (ThumbnailDialog.thumbnailDialog != null) {
+				FontSizer.setFonts(ThumbnailDialog.thumbnailDialog, level);
+				ThumbnailDialog.thumbnailDialog.refreshGUI();
+			}
 		}
 		if (prefsDialog != null) {
 			prefsDialog.refreshGUI();
@@ -1413,6 +1420,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (libraryBrowser != null) {
 			libraryBrowser.setFontLevel(level);
 		}
+		
 		FontSizer.setFonts(notesDialog, level);
 		FontSizer.setFonts(OSPLog.getOSPLog(), level);
 		if (Tracker.readmeDialog != null) {
@@ -1944,10 +1952,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				TrackerPanel oldPanel = prevPanel;
 
 				// hide exportZipDialog
-				if (ExportVideoDialog.videoExporter != null) {
+				if (haveExportDialog && ExportVideoDialog.videoExporter != null) {
 					ExportVideoDialog.videoExporter.trackerPanel = null;
 				}
-				if (ThumbnailDialog.thumbnailDialog != null) {
+				if (haveThumbnailDialog && ThumbnailDialog.thumbnailDialog != null) {
 					ThumbnailDialog.thumbnailDialog.trackerPanel = null;
 				}
 				// update prefsDialog

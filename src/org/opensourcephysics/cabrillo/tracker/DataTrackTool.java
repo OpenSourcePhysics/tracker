@@ -104,7 +104,7 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 		boolean videoLoadedByTRK = false;
 
 		// load TRK file
-		if (control.getPropertyNames().contains("trk")) { //$NON-NLS-1$
+		if (control.getPropertyNamesRaw().contains("trk")) { //$NON-NLS-1$
 			String path = control.getString("trk"); //$NON-NLS-1$
 			File trkFile = findFile(path, sourceID);
 			if (trkFile == null || !trkFile.exists()) {
@@ -211,32 +211,32 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 			}
 		}
 		// set video properties
-		if (control.getPropertyNames().contains("videoStartFrame")) { //$NON-NLS-1$
+		if (control.getPropertyNamesRaw().contains("videoStartFrame")) { //$NON-NLS-1$
 			int start = control.getInt("videoStartFrame"); //$NON-NLS-1$
 			OSPLog.fine("setting start frame to " + start); //$NON-NLS-1$
 			trackerPanel.getPlayer().getVideoClip().setStartFrameNumber(start);
 		}
-		if (control.getPropertyNames().contains("videoEndFrame")) { //$NON-NLS-1$
+		if (control.getPropertyNamesRaw().contains("videoEndFrame")) { //$NON-NLS-1$
 			int end = control.getInt("videoEndFrame"); //$NON-NLS-1$
 			OSPLog.fine("setting end frame to " + end); //$NON-NLS-1$
 			trackerPanel.getPlayer().getVideoClip().setEndFrameNumber(end);
 		}
-		if (control.getPropertyNames().contains("videoStepSize")) { //$NON-NLS-1$
+		if (control.getPropertyNamesRaw().contains("videoStepSize")) { //$NON-NLS-1$
 			int size = control.getInt("videoStepSize"); //$NON-NLS-1$
 			trackerPanel.getPlayer().getVideoClip().setStepSize(size);
 		}
-		if (control.getPropertyNames().contains("stepNumber")) { //$NON-NLS-1$
+		if (control.getPropertyNamesRaw().contains("stepNumber")) { //$NON-NLS-1$
 			int step = control.getInt("stepNumber"); //$NON-NLS-1$
 			OSPLog.fine("setting step size to " + step); //$NON-NLS-1$
 			trackerPanel.getPlayer().setStepNumber(step);
 		}
-		if (control.getPropertyNames().contains("frameNumber")) { //$NON-NLS-1$
+		if (control.getPropertyNamesRaw().contains("frameNumber")) { //$NON-NLS-1$
 			int frame = control.getInt("frameNumber"); //$NON-NLS-1$
 			int step = trackerPanel.getPlayer().getVideoClip().frameToStep(frame);
 			OSPLog.fine("setting step number to " + step); //$NON-NLS-1$
 			trackerPanel.getPlayer().setStepNumber(step);
 		}
-		if (control.getPropertyNames().contains("deleteTracks")) { //$NON-NLS-1$
+		if (control.getPropertyNamesRaw().contains("deleteTracks")) { //$NON-NLS-1$
 			String[] trackNames = (String[]) control.getObject("deleteTracks"); //$NON-NLS-1$
 			for (String next : trackNames) {
 				ParticleDataTrack track = findParticleDataTrack(trackerPanel, next, -1);
@@ -246,7 +246,7 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 				}
 			}
 		}
-//  	if (control.getPropertyNames().contains("trk")) { //$NON-NLS-1$
+//  	if (control.getPropertyNamesRaw().contains("trk")) { //$NON-NLS-1$
 //  		String path = control.getString("trk"); //$NON-NLS-1$
 //  		File trkFile = findFile(path, sourceID);
 //  		if (trkFile==null || !trkFile.exists()) {
@@ -308,7 +308,7 @@ public class DataTrackTool extends UnicastRemoteObject implements Tool {
 
 		// set DataTrack properties
 		if (dataTrack != null) {
-			if (control.getPropertyNames().contains("useDataTime") && dataTrack.getVideoPanel() != null) { //$NON-NLS-1$
+			if (control.getPropertyNamesRaw().contains("useDataTime") && dataTrack.getVideoPanel() != null) { //$NON-NLS-1$
 				boolean useTrackTime = control.getBoolean("useDataTime"); //$NON-NLS-1$
 				VideoPlayer player = dataTrack.getVideoPanel().getPlayer();
 				player.getClipControl().setTimeSource(useTrackTime ? dataTrack : null);

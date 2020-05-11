@@ -632,7 +632,7 @@ public class TrackerStarter {
 				jar = XML.getName(trackerJarPath);
 				logMessage("system property "+PREFERRED_TRACKER_JAR+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
 			}
-			else if (jar==null && prefsXMLControl.getPropertyNames().contains("tracker_jar")) { //$NON-NLS-1$
+			else if (jar==null && prefsXMLControl.getPropertyNamesRaw().contains("tracker_jar")) { //$NON-NLS-1$
 				loaded = true;
 				jar = prefsXMLControl.getString("tracker_jar"); //$NON-NLS-1$
 			}
@@ -657,7 +657,7 @@ public class TrackerStarter {
 
 			// preferred java vm
 			preferredVM = null;
-			if (prefsXMLControl.getPropertyNames().contains("java_vm")) { //$NON-NLS-1$
+			if (prefsXMLControl.getPropertyNamesRaw().contains("java_vm")) { //$NON-NLS-1$
 				loaded = true;
 				preferredVM = prefsXMLControl.getString("java_vm"); //$NON-NLS-1$
 			}
@@ -690,7 +690,7 @@ public class TrackerStarter {
 
 
 			// preferred executables to run prior to starting Tracker
-			if (prefsXMLControl.getPropertyNames().contains("run")) { //$NON-NLS-1$
+			if (prefsXMLControl.getPropertyNamesRaw().contains("run")) { //$NON-NLS-1$
 				loaded = true;
 				executables = (String[]) prefsXMLControl.getObject("run"); //$NON-NLS-1$
 				for (int i = 0; i < executables.length; i++) {
@@ -729,7 +729,7 @@ public class TrackerStarter {
 				} catch (NumberFormatException e) {
 				}
 			}
-			else if (prefsXMLControl.getPropertyNames().contains("memory_size")) { //$NON-NLS-1$
+			else if (prefsXMLControl.getPropertyNamesRaw().contains("memory_size")) { //$NON-NLS-1$
 				preferredMemorySize = prefsXMLControl.getInt("memory_size"); //$NON-NLS-1$
 			}
 			if (preferredMemorySize>0) {

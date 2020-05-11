@@ -2444,7 +2444,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				// video_engine--used by version 4.75+
 				if (!VideoIO.getPreferredExportExtension().equals(VideoIO.DEFAULT_PREFERRED_EXPORT_EXTENSION))
 					control.setValue("export_extension", VideoIO.getPreferredExportExtension()); //$NON-NLS-1$
-				if (!ExportZipDialog.preferredExtension.equals(ExportZipDialog.DEFAULT_VIDEO_EXTENSION))
+				if (!ExportZipDialog.preferredExtension.equals(VideoIO.DEFAULT_VIDEO_EXTENSION))
 					control.setValue("zip_export_extension", ExportZipDialog.preferredExtension); //$NON-NLS-1$
 
 				if (recentFilesSize != 6) // 6 items by default
@@ -2515,44 +2515,44 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
 				centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
 				isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
-				if (control.getPropertyNames().contains("trail_length")) { //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("trail_length")) { //$NON-NLS-1$
 					String name = control.getString("trail_length"); //$NON-NLS-1$
 					for (int i = 0; i < TToolBar.trailLengthNames.length; i++) {
 						if (TToolBar.trailLengthNames[i].equals(name))
 							trailLengthIndex = i;
 					}
 				}
-				if (control.getPropertyNames().contains("warn_no_engine")) //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("warn_no_engine")) //$NON-NLS-1$
 					warnNoVideoEngine = control.getBoolean("warn_no_engine"); //$NON-NLS-1$
-				if (control.getPropertyNames().contains("warn_xuggle_error")) //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("warn_xuggle_error")) //$NON-NLS-1$
 					warnXuggleError = control.getBoolean("warn_xuggle_error"); //$NON-NLS-1$
-				if (control.getPropertyNames().contains("warn_variable_frame_duration")) //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("warn_variable_frame_duration")) //$NON-NLS-1$
 					warnVariableDuration = control.getBoolean("warn_variable_frame_duration"); //$NON-NLS-1$
-				if (control.getPropertyNames().contains("show_hints")) { //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("show_hints")) { //$NON-NLS-1$
 					showHintsByDefault = control.getBoolean("show_hints"); //$NON-NLS-1$
 					showHints = showHintsByDefault;
 					startupHintShown = !showHints;
 				}
-				if (control.getPropertyNames().contains("java_vm")) { //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("java_vm")) { //$NON-NLS-1$
 					preferredJRE = control.getString("java_vm"); //$NON-NLS-1$
 					if (OSPRuntime.getJavaFile(preferredJRE) == null) {
 						preferredJRE = null;
 					}
 				}
 				preferredPointMassFootprint = control.getString("pointmass_footprint"); //$NON-NLS-1$
-				if (control.getPropertyNames().contains("memory_size")) //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("memory_size")) //$NON-NLS-1$
 					requestedMemorySize = control.getInt("memory_size"); //$NON-NLS-1$
-				if (control.getPropertyNames().contains("look_feel")) //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("look_feel")) //$NON-NLS-1$
 					lookAndFeel = control.getString("look_feel"); //$NON-NLS-1$
-				if (control.getPropertyNames().contains("decimal_separator")) { //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("decimal_separator")) { //$NON-NLS-1$
 					preferredDecimalSeparator = control.getString("decimal_separator"); //$NON-NLS-1$
 					OSPRuntime.setPreferredDecimalSeparator(preferredDecimalSeparator);
 				}
-				if (control.getPropertyNames().contains("run")) //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("run")) //$NON-NLS-1$
 					prelaunchExecutables = (String[]) control.getObject("run"); //$NON-NLS-1$
-				if (control.getPropertyNames().contains("locale")) //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("locale")) //$NON-NLS-1$
 					setPreferredLocale(control.getString("locale")); //$NON-NLS-1$
-				if (control.getPropertyNames().contains("font_size")) { //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("font_size")) { //$NON-NLS-1$
 					preferredFontLevel = control.getInt("font_size"); //$NON-NLS-1$
 					preferredFontLevelPlus = control.getInt("font_size_plus"); //$NON-NLS-1$
 					if (preferredFontLevelPlus == Integer.MIN_VALUE) {
@@ -2563,23 +2563,23 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				if (ResourceLoader.getOSPCache() == null) {
 					setCache(control.getString("cache")); //$NON-NLS-1$
 				}
-				if (control.getPropertyNames().contains("upgrade_interval")) { //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("upgrade_interval")) { //$NON-NLS-1$
 					checkForUpgradeInterval = control.getInt("upgrade_interval"); //$NON-NLS-1$
 					lastMillisChecked = control.getInt("last_checked") * 1000L; //$NON-NLS-1$
 				}
 				latestVersion = control.getString("latest_version"); //$NON-NLS-1$
 
-				if (control.getPropertyNames().contains("file_chooser_directory")) //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("file_chooser_directory")) //$NON-NLS-1$
 					OSPRuntime.chooserDir = control.getString("file_chooser_directory"); //$NON-NLS-1$
 
 				// preferred video engine
 				VideoIO.setPreferredExportExtension(control.getString("export_extension")); //$NON-NLS-1$
-				if (control.getPropertyNames().contains("zip_export_extension")) //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("zip_export_extension")) //$NON-NLS-1$
 					ExportZipDialog.preferredExtension = control.getString("zip_export_extension"); //$NON-NLS-1$
 
-				if (control.getPropertyNames().contains("max_recent")) //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("max_recent")) //$NON-NLS-1$
 					recentFilesSize = control.getInt("max_recent"); //$NON-NLS-1$
-				if (control.getPropertyNames().contains("recent_files")) { //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("recent_files")) { //$NON-NLS-1$
 					ArrayList<?> recent = ArrayList.class.cast(control.getObject("recent_files")); //$NON-NLS-1$
 					for (Object next : recent) {
 						addRecent(next.toString(), true); // add at end
@@ -2588,7 +2588,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				// added Dec 2104
 				preferredAutoloadSearchPaths = (String[]) control.getObject("autoload_search_paths"); //$NON-NLS-1$
 				// load autoload_exclusions: added Dec 2014
-				if (control.getPropertyNames().contains("autoload_exclusions")) { //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("autoload_exclusions")) { //$NON-NLS-1$
 					String[][] autoloadData = (String[][]) control.getObject("autoload_exclusions"); //$NON-NLS-1$
 					for (String[] next : autoloadData) {
 						String filePath = XML.forwardSlash(next[0]);
@@ -2600,7 +2600,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 				// load autoloadable data function strings (deprecated Dec 2014: this is for
 				// legacy files)
-				if (control.getPropertyNames().contains("data_functions")) { //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("data_functions")) { //$NON-NLS-1$
 					Collection<String> autoloads = (Collection<String>) control.getObject("data_functions"); //$NON-NLS-1$
 					dataFunctionControlStrings.addAll(autoloads);
 				}

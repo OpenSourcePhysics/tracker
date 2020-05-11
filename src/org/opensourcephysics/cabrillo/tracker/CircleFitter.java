@@ -1585,11 +1585,11 @@ public class CircleFitter extends TTrack {
 			// load attachment data
 			circleFitter.attachToSteps = control.getBoolean("attach_to_steps"); //$NON-NLS-1$
 			circleFitter.isRelativeFrameNumbers = control.getBoolean("relative_frames"); //$NON-NLS-1$
-			if (control.getPropertyNames().contains("absolute_start")) //$NON-NLS-1$
+			if (control.getPropertyNamesRaw().contains("absolute_start")) //$NON-NLS-1$
 				circleFitter.absoluteStart = control.getInt("absolute_start"); //$NON-NLS-1$
-			if (control.getPropertyNames().contains("attachment_framecount")) //$NON-NLS-1$
+			if (control.getPropertyNamesRaw().contains("attachment_framecount")) //$NON-NLS-1$
 				circleFitter.attachmentFrameCount = control.getInt("attachment_framecount"); //$NON-NLS-1$
-			if (control.getPropertyNames().contains("relative_start")) //$NON-NLS-1$
+			if (control.getPropertyNamesRaw().contains("relative_start")) //$NON-NLS-1$
 				circleFitter.relativeStart = control.getInt("relative_start"); //$NON-NLS-1$
 			// load step attachment track
 			String name = control.getString("step_attachment"); //$NON-NLS-1$

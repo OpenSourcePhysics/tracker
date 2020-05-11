@@ -870,7 +870,7 @@ public class Calibration extends TTrack {
 						continue;
 					CalibrationStep step = (CalibrationStep) steps[i];
 					stepData[i] = new double[] { step.worldX0, step.worldY0, step.worldX1, step.worldY1 };
-					if (!control.getPropertyNames().contains("worldX0")) { //$NON-NLS-1$
+					if (!control.getPropertyNamesRaw().contains("worldX0")) { //$NON-NLS-1$
 						// include these for backward compatibility
 						control.setValue("worldX0", step.worldX0); //$NON-NLS-1$
 						control.setValue("worldY0", step.worldY0); //$NON-NLS-1$
@@ -919,7 +919,7 @@ public class Calibration extends TTrack {
 								Calibration.XY_AXES);
 			}
 			// load fixed coordinates
-			if (control.getPropertyNames().contains("fixed_coordinates")) //$NON-NLS-1$
+			if (control.getPropertyNamesRaw().contains("fixed_coordinates")) //$NON-NLS-1$
 				cal.fixedCoordinates = control.getBoolean("fixed_coordinates"); //$NON-NLS-1$
 			cal.keyFrames.clear();
 			// create step array if needed

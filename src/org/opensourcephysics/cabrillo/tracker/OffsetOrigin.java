@@ -565,7 +565,7 @@ protected String getTargetDescription(int pointIndex) {
 	        if (steps[i] == null || !offset.keyFrames.contains(i)) continue;
 	      	OffsetOriginStep step = (OffsetOriginStep)steps[i];
 	      	stepData[i] = new double[] {step.worldX, step.worldY};
-	      	if (!control.getPropertyNames().contains("worldX")) { //$NON-NLS-1$
+	      	if (!control.getPropertyNamesRaw().contains("worldX")) { //$NON-NLS-1$
 	      		// include these for backward compatibility
 	  	      control.setValue("worldX", step.worldX); //$NON-NLS-1$
 	  	      control.setValue("worldY", step.worldY); //$NON-NLS-1$
@@ -601,7 +601,7 @@ protected String getTargetDescription(int pointIndex) {
       boolean locked = offset.isLocked();
       offset.setLocked(false);
       // load fixed coordinates
-      if (control.getPropertyNames().contains("fixed_coordinates")) //$NON-NLS-1$
+      if (control.getPropertyNamesRaw().contains("fixed_coordinates")) //$NON-NLS-1$
       	offset.fixedCoordinates = control.getBoolean("fixed_coordinates"); //$NON-NLS-1$
       offset.keyFrames.clear();
       // create step array if needed

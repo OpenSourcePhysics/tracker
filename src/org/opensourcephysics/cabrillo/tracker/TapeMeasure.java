@@ -1484,7 +1484,7 @@ protected void setTrackerPanel(TrackerPanel panel) {
       // load fixed position
       tape.fixedPosition = control.getBoolean("fixedtape"); //$NON-NLS-1$
       // load fixed length
-      if (control.getPropertyNames().contains("fixedlength")) //$NON-NLS-1$
+      if (control.getPropertyNamesRaw().contains("fixedlength")) //$NON-NLS-1$
       	tape.fixedLength = control.getBoolean("fixedlength"); //$NON-NLS-1$
       // load readOnly
       tape.setReadOnly(control.getBoolean("readonly")); //$NON-NLS-1$
@@ -1532,7 +1532,7 @@ protected void setTrackerPanel(TrackerPanel panel) {
     @Override
 	public Object loadObject(XMLControl control, Object obj) {
       FrameData data = (FrameData) obj;
-      if (control.getPropertyNames().contains("x1")) { //$NON-NLS-1$
+      if (control.getPropertyNamesRaw().contains("x1")) { //$NON-NLS-1$
 	      data.data[0] = control.getDouble("x1"); //$NON-NLS-1$
 	      data.data[1] = control.getDouble("y1"); //$NON-NLS-1$
 	      data.data[2] = control.getDouble("x2"); //$NON-NLS-1$

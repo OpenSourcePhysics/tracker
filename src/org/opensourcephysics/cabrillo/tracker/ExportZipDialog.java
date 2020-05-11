@@ -124,15 +124,16 @@ import org.opensourcephysics.tools.ResourceLoader;
 @SuppressWarnings("serial")
 public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 
-	protected static final String DEFAULT_VIDEO_EXTENSION = "jpg"; //$NON-NLS-1$
-
+	static {
+		TFrame.haveExportDialog = true;
+	}
 	// static fields
 	private static Map<TrackerPanel, ExportZipDialog> zipDialogs = new HashMap<TrackerPanel, ExportZipDialog>();
 	protected static String videoSubdirectory = "videos"; //$NON-NLS-1$
 	protected static String htmlSubdirectory = "html"; //$NON-NLS-1$
 	protected static String imageSubdirectory = "images"; //$NON-NLS-1$
 	protected static Color labelColor = new Color(0, 0, 102);
-	protected static String preferredExtension = DEFAULT_VIDEO_EXTENSION;
+	protected static String preferredExtension = VideoIO.DEFAULT_VIDEO_EXTENSION; // JPG
 	protected static boolean trimToClip = false;
 	protected static int maxLineLength = 30, minWidth = 350;
 
@@ -2909,6 +2910,13 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			return this;
 		}
 
+	}
+
+	public static void thumbnailDialogClosed(TrackerPanel trackerPanel) {
+		ExportZipDialog d = getDialog(trackerPanel);
+		if (d.isVisible) {
+	  		d.refreshThumbnailGUI();
+	  	}
 	}
 
 }

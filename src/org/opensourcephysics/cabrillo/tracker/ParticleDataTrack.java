@@ -1960,7 +1960,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				dataTrack.startFrameUndefined = true;
 			}
 			// load modelFootprint properties
-			if (control.getPropertyNames().contains("model_footprint")) { //$NON-NLS-1$
+			if (control.getPropertyNamesRaw().contains("model_footprint")) { //$NON-NLS-1$
 				dataTrack.setModelFootprint(control.getString("model_footprint")); //$NON-NLS-1$
 				dataTrack.modelFootprintVisible = control.getBoolean("model_footprint_visible"); //$NON-NLS-1$
 				dataTrack.modelFootprint.setColor((Color) control.getObject("model_footprint_color")); //$NON-NLS-1$

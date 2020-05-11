@@ -1230,7 +1230,7 @@ public void propertyChange(PropertyChangeEvent e) {
       toolbar.xMassButton.setSelected(control.getBoolean("multiply_by_mass")); //$NON-NLS-1$
       toolbar.trailLength = control.getInt("trail_length"); //$NON-NLS-1$   
       toolbar.vStretch = control.getInt("stretch"); //$NON-NLS-1$
-      if (control.getPropertyNames().contains("stretch_acceleration")) { //$NON-NLS-1$ 
+      if (control.getPropertyNamesRaw().contains("stretch_acceleration")) { //$NON-NLS-1$ 
       	toolbar.aStretch = control.getInt("stretch_acceleration"); //$NON-NLS-1$  
       }
       else toolbar.aStretch = toolbar.vStretch;

@@ -1802,9 +1802,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				double ymax = control.getDouble("ymax"); //$NON-NLS-1$
 				plot.setPreferredMinMax(xmin, xmax, ymin, ymax, false);
 			}
-			if (control.getPropertyNames().contains("lines")) //$NON-NLS-1$
+			if (control.getPropertyNamesRaw().contains("lines")) //$NON-NLS-1$
 				plot.dataset.setConnected(control.getBoolean("lines")); //$NON-NLS-1$
-			if (control.getPropertyNames().contains("points")) { //$NON-NLS-1$
+			if (control.getPropertyNamesRaw().contains("points")) { //$NON-NLS-1$
 				if (control.getBoolean("points")) { //$NON-NLS-1$
 					plot.dataset.setMarkerShape(Dataset.SQUARE);
 				} else

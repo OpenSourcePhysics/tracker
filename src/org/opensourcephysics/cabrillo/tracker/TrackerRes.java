@@ -42,6 +42,8 @@ import org.opensourcephysics.tools.ResourceLoader.Bundle;
 
 public class TrackerRes {
 
+	public static final String PROPERTY_TRACKERRES_LOCALE = "locale"; //$NON-NLS-1$
+	
 	// static fields
 	static Locale locale = Locale.getDefault();
 	// BH 2020.04.13 using explicit FORMAT_PROPERTIES here to avoid three attempts
@@ -89,7 +91,7 @@ public class TrackerRes {
 		org.opensourcephysics.media.core.MediaRes.setLocale(loc);
 		org.opensourcephysics.controls.ControlsRes.setLocale(loc);
 		org.opensourcephysics.tools.ToolsRes.setLocale(loc);
-		support.firePropertyChange("locale", prev, locale); //$NON-NLS-1$
+		support.firePropertyChange(PROPERTY_TRACKERRES_LOCALE, prev, locale); //$NON-NLS-1$
 	}
 	
   /**
@@ -99,14 +101,13 @@ public class TrackerRes {
    * @param listener the object requesting property change notification
    */
 	public static void addPropertyChangeListener(String property, PropertyChangeListener listener) {
-    if (property.equals("locale")) //$NON-NLS-1$
+    if (property.equals(PROPERTY_TRACKERRES_LOCALE)) 
     	support.addPropertyChangeListener(property, listener);
   }
 
   /**
    * Removes a PropertyChangeListener.
    *
-   * @param property the name of the property (only "locale" accepted) 
    * @param listener the listener requesting removal
    */
 	public static void removePropertyChangeListener(String property, PropertyChangeListener listener) {
