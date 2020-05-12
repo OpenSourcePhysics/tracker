@@ -242,15 +242,22 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       mark = new Mark() {
         @Override
 		public void draw(Graphics2D g, boolean highlighted) {
-          Paint gpaint = g.getPaint();
-          g.setPaint(color);
-          if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+          Graphics2D g2 = (Graphics2D) g.create();
+          g2.setPaint(color);
+          g2.setStroke(new BasicStroke(1.8f));
+          if (OSPRuntime.setRenderingHints) g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
           for (int i = 0; i < 2; i++) {
-            if (fillShapes[i] != null)
-              g.fill(fillShapes[i]);
+            if (fillShapes[i] != null) {
+            	// BH 2020.05.11 for some reason, HTML5 needs to draw this
+            	// the lines are very close together, and it seems to miss them.
+            	if (OSPRuntime.isJS)
+            		g2.draw(fillShapes[i]);
+            	else
+            		g2.fill(fillShapes[i]);
+            }
           }
-          g.setPaint(gpaint);
+          g2.dispose();
         }
 
         @Override
