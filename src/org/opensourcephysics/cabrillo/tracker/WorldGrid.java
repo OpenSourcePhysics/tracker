@@ -44,21 +44,21 @@ import org.opensourcephysics.media.core.Trackable;
  * @author Douglas Brown
  */
 public class WorldGrid implements Trackable {
-	
-	private static final float[] DASHED_LINE = new float[] {1, 8};
-	private static final float[] DOTTED_LINE = new float[] {2, 2};
+
+	private static final float[] DASHED_LINE = new float[] { 1, 8 };
+	private static final float[] DOTTED_LINE = new float[] { 2, 2 };
 	private static Stroke dashed, dotted;
 	private static int defaultAlpha = 128;
 	private static Color defaultColor = new Color(128, 128, 128, defaultAlpha);
-	
+
 	ArrayList<Line2D> dashedLines = new ArrayList<Line2D>();
 	ArrayList<Line2D> dottedLines = new ArrayList<Line2D>();
-	TPoint[] viewCorners = {new TPoint(), new TPoint(), new TPoint(), new TPoint()};
+	TPoint[] viewCorners = { new TPoint(), new TPoint(), new TPoint(), new TPoint() };
 	Point2D[] worldCorners = new Point2D[4];
-	TPoint[] lineEnds = {new TPoint(), new TPoint()};
+	TPoint[] lineEnds = { new TPoint(), new TPoint() };
 	double[] minMaxWorldValues = new double[4];
 	int[] minMaxIndices = new int[4];
-	boolean showMajorX=true, showMinorX=true, showMajorY=true, showMinorY=true;
+	boolean showMajorX = true, showMinorX = true, showMajorY = true, showMinorY = true;
 	private int alpha = defaultAlpha;
 	private Color lineColor = defaultColor;
 	private boolean visible;
@@ -69,86 +69,87 @@ public class WorldGrid implements Trackable {
 	 * @param panel a TrackerPanel
 	 */
 	public WorldGrid() {
-  	dashed = new BasicStroke(2,BasicStroke.CAP_BUTT,BasicStroke.JOIN_MITER,8,DASHED_LINE,0);
-  	dotted = new BasicStroke(2,BasicStroke.CAP_BUTT,BasicStroke.JOIN_MITER,8,DOTTED_LINE,0);
+		dashed = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8, DASHED_LINE, 0);
+		dotted = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8, DOTTED_LINE, 0);
 	}
-	
+
 	@Override
 	public void draw(DrawingPanel panel, Graphics g) {
-		if (!visible || (!showMajorX && !showMajorY)) return;
-		Graphics2D g2 = (Graphics2D)g;
-		TrackerPanel trackerPanel = (TrackerPanel)panel;
+		if (!visible || (!showMajorX && !showMajorY))
+			return;
+		Graphics2D g2 = (Graphics2D) g;
+		TrackerPanel trackerPanel = (TrackerPanel) panel;
 		// find world coordinates of corners of the visible trackerPanel view
 		Rectangle rect = trackerPanel.getVisibleRect();
-		for (int i=0; i<4; i++) {
+		for (int i = 0; i < 4; i++) {
 			switch (i) {
-				case 0: // top left
-					viewCorners[i].setScreenPosition(rect.x, rect.y, trackerPanel);
-					break;
-				case 1: // top right
-					viewCorners[i].setScreenPosition(rect.x+rect.width, rect.y, trackerPanel);
-					break;
-				case 2: // bottom left
-					viewCorners[i].setScreenPosition(rect.x, rect.y+rect.height, trackerPanel);
-					break;
-				default: // bottom right
-					viewCorners[i].setScreenPosition(rect.x+rect.width, rect.y+rect.height, trackerPanel);
+			case 0: // top left
+				viewCorners[i].setScreenPosition(rect.x, rect.y, trackerPanel);
+				break;
+			case 1: // top right
+				viewCorners[i].setScreenPosition(rect.x + rect.width, rect.y, trackerPanel);
+				break;
+			case 2: // bottom left
+				viewCorners[i].setScreenPosition(rect.x, rect.y + rect.height, trackerPanel);
+				break;
+			default: // bottom right
+				viewCorners[i].setScreenPosition(rect.x + rect.width, rect.y + rect.height, trackerPanel);
 			}
 			worldCorners[i] = viewCorners[i].getWorldPosition(trackerPanel);
-			if (i==0) {
+			if (i == 0) {
 				minMaxWorldValues[0] = minMaxWorldValues[1] = worldCorners[i].getX();
 				minMaxWorldValues[2] = minMaxWorldValues[3] = worldCorners[i].getY();
-			}
-			else {
+			} else {
 				minMaxWorldValues[0] = Math.min(minMaxWorldValues[0], worldCorners[i].getX()); // xMin
 				minMaxWorldValues[1] = Math.max(minMaxWorldValues[1], worldCorners[i].getX()); // xMax
 				minMaxWorldValues[2] = Math.min(minMaxWorldValues[2], worldCorners[i].getY()); // yMin
-				minMaxWorldValues[3] = Math.max(minMaxWorldValues[3], worldCorners[i].getY()); // yMax				
+				minMaxWorldValues[3] = Math.max(minMaxWorldValues[3], worldCorners[i].getY()); // yMax
 			}
 		}
-		
+
 		// determine a world delta between lines at least 30 pixels apart
-		int lineCount = Math.min(60, rect.width/25);
+		int lineCount = Math.min(60, rect.width / 25);
 		// make a first approximation
-		double delta = (minMaxWorldValues[1]-minMaxWorldValues[0])/lineCount;
-		
+		double delta = (minMaxWorldValues[1] - minMaxWorldValues[0]) / lineCount;
+
 		// find power of ten
 		double pow = 1;
-		while (pow*10 < delta) pow *= 10;
-		while (pow > delta) pow /= 10;
+		while (pow * 10 < delta)
+			pow *= 10;
+		while (pow > delta)
+			pow /= 10;
 
 		// get "significand" and increase to nearest 2, 5 or 10
-		double significand = delta/pow; // number between 1 and 10
+		double significand = delta / pow; // number between 1 and 10
 		int minorSpacing = 10;
 		int majorSpacing = 100;
-		if (significand<2) {
+		if (significand < 2) {
 			minorSpacing = 2;
 			majorSpacing = 10;
-		}
-		else if (significand<5) {
+		} else if (significand < 5) {
 			minorSpacing = 5;
 			majorSpacing = 10;
 		}
-		
+
 		// determine final value of delta
-		delta = minorSpacing*pow;
-		
+		delta = minorSpacing * pow;
+
 		// determine which lines to draw
-		for (int i=0; i<4; i++) {
-			minMaxIndices[i] = (int)(minMaxWorldValues[i]/delta);
+		for (int i = 0; i < 4; i++) {
+			minMaxIndices[i] = (int) (minMaxWorldValues[i] / delta);
 		}
-		
+
 		dashedLines.clear();
 		dottedLines.clear();
-		
+
 		// create x-grid lines parallel to y-axis
 		if (showMajorX) {
-			for (int i=minMaxIndices[0]-1; i<minMaxIndices[1]+1; i++) {
-				boolean isMajor = (i*minorSpacing)%majorSpacing==0;
-				if (!isMajor && !showMinorX) 
+			for (int i = minMaxIndices[0] - 1; i < minMaxIndices[1] + 1; i++) {
+				boolean isMajor = (i * minorSpacing) % majorSpacing == 0;
+				if (!isMajor && !showMinorX)
 					continue;
-				ArrayList<Line2D> lines = isMajor? dottedLines: dashedLines;
-				double x = i*delta;
+				ArrayList<Line2D> lines = isMajor ? dottedLines : dashedLines;
+				double x = i * delta;
 				Line2D line = new Line2D.Double();
 				lines.add(line);
 				// set line end points to world positions (x, yMin) and (x, yMax)
@@ -158,15 +159,15 @@ public class WorldGrid implements Trackable {
 				line.setLine(lineEnds[0].getScreenPosition(trackerPanel), lineEnds[1].getScreenPosition(trackerPanel));
 			}
 		}
-		
+
 		// create y-grid lines parallel to x-axis
 		if (showMajorY) {
-			for (int i=minMaxIndices[2]-1; i<minMaxIndices[3]+1; i++) {
-				boolean isMajor = (i*minorSpacing)%majorSpacing==0;
-				if (!isMajor && !showMinorY) 
+			for (int i = minMaxIndices[2] - 1; i < minMaxIndices[3] + 1; i++) {
+				boolean isMajor = (i * minorSpacing) % majorSpacing == 0;
+				if (!isMajor && !showMinorY)
 					continue;
-				ArrayList<Line2D> lines = isMajor? dottedLines: dashedLines;
-				double y = i*delta;
+				ArrayList<Line2D> lines = isMajor ? dottedLines : dashedLines;
+				double y = i * delta;
 				Line2D line = new Line2D.Double();
 				lines.add(line);
 				// set line end points to world positions (xMin, y) and (xMax, y)
@@ -176,30 +177,30 @@ public class WorldGrid implements Trackable {
 				line.setLine(lineEnds[0].getScreenPosition(trackerPanel), lineEnds[1].getScreenPosition(trackerPanel));
 			}
 		}
-		
+
 		// prepare to draw lines
 		// save original color and stroke
 		Color color = g2.getColor();
 		Stroke stroke = g2.getStroke();
-		
+
 		// set color and stroke for dashed lines
 		g2.setPaint(lineColor);
 		g2.setStroke(dashed);
-		for (int i=0; i<dashedLines.size(); i++) {
-	    g2.draw(dashedLines.get(i));
+		for (int i = 0; i < dashedLines.size(); i++) {
+			g2.draw(dashedLines.get(i));
 		}
-		
+
 		// set color and stroke for dotted lines
 		g2.setStroke(dotted);
-		for (int i=0; i<dottedLines.size(); i++) {
-	    g2.draw(dottedLines.get(i));
+		for (int i = 0; i < dottedLines.size(); i++) {
+			g2.draw(dottedLines.get(i));
 		}
-		
+
 		// restore original color and stroke
 		g2.setStroke(stroke);
 		g2.setColor(color);
 	}
-	
+
 	/**
 	 * Gets the color.
 	 *
@@ -208,18 +209,18 @@ public class WorldGrid implements Trackable {
 	public Color getColor() {
 		return lineColor;
 	}
-	
+
 	/**
 	 * Sets the color.
 	 *
 	 * @param color the desired line color
 	 */
 	public void setColor(Color color) {
-		if (color!=null) {
+		if (color != null) {
 			lineColor = new Color(color.getRed(), color.getGreen(), color.getBlue(), alpha);
 		}
 	}
-	
+
 	/**
 	 * Gets the alpha.
 	 *
@@ -228,7 +229,7 @@ public class WorldGrid implements Trackable {
 	public int getAlpha() {
 		return alpha;
 	}
-	
+
 	/**
 	 * Sets the alpha.
 	 *
@@ -240,24 +241,24 @@ public class WorldGrid implements Trackable {
 		this.alpha = alpha;
 		setColor(lineColor);
 	}
-	
-  /**
-   * Sets the visibility of the axes.
-   *
-   * @param isVisible true if the axes are visible
-   */
-  public void setVisible(boolean isVisible) {
-    visible = isVisible;
-  }
 
-  /**
-   * Gets the visibility of the axes.
-   *
-   * @return true if the axes is drawn
-   */
-  public boolean isVisible() {
-    return visible;
-  }
+	/**
+	 * Sets the visibility of the axes.
+	 *
+	 * @param isVisible true if the axes are visible
+	 */
+	public void setVisible(boolean isVisible) {
+		visible = isVisible;
+	}
+
+	/**
+	 * Gets the visibility of the axes.
+	 *
+	 * @return true if the axes is drawn
+	 */
+	public boolean isVisible() {
+		return visible;
+	}
 
 	/**
 	 * Determines if the color or alpha has been customized.
@@ -267,7 +268,7 @@ public class WorldGrid implements Trackable {
 	public boolean isCustom() {
 		return !defaultColor.equals(lineColor);
 	}
-	
+
 	/**
 	 * Sets the visibility of the major x grid lines.
 	 *
@@ -303,5 +304,5 @@ public class WorldGrid implements Trackable {
 	public void setMinorYGridVisible(boolean visible) {
 		showMinorY = visible;
 	}
-	
+
 }

@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.*;
 import java.awt.image.*;
 
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.TPoint;
 
 /**
@@ -56,7 +57,7 @@ public class TRegion extends Polygon {
     width = image.getWidth();
     height = image.getHeight();
     pixels = new int[width * height];
-    image.getRaster().getDataElements(0, 0, width, height, pixels);
+    OSPRuntime.getRaster(image).getDataElements(0, 0, width, height, pixels);
     this.x0 = x0;
     this.y0 = y0;
     findEdge();

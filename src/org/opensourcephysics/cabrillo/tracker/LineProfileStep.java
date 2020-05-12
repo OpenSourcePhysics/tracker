@@ -460,7 +460,7 @@ public String toString() {
         int n = trackerPanel.getFrameNumber();
         AffineTransform at = trackerPanel.getCoords().getToWorldTransform(n);
         // fill pixels array with pixel data
-        image.getRaster().getDataElements(pixXMin, pixYMin, w, h, pixels);
+        OSPRuntime.getRaster(image).getDataElements(pixXMin, pixYMin, w, h, pixels);
         // step along length of the line
         for (int i = 0; i < len; i++) {
         	Corner end0 = corners[leadingIndex][0];
@@ -1017,7 +1017,7 @@ public String toString() {
         int n = trackerPanel.getFrameNumber();
         AffineTransform at = trackerPanel.getCoords().getToWorldTransform(n);
         // fill pixels array with pixel data
-        image.getRaster().getDataElements(x0, y0, length, width, pixels);
+        OSPRuntime.getRaster(image).getDataElements(x0, y0, length, width, pixels);
         // step along length of the line
         for (int i = 0; i < length; i++) {
           // step through pixels across line width at each point

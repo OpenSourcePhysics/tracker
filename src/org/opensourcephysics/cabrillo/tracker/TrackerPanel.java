@@ -2558,8 +2558,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				for (int i = 0, n = filters.size(); i < n; i++) {
 					Filter next = filters.get(i);
 					if (next instanceof SumFilter) {
-						SumFilter f = (SumFilter) next;
-						f.addNextImage();
+						((SumFilter) next).addNextImage();
 					}
 				}
 			}
