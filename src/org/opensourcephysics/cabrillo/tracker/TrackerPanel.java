@@ -453,7 +453,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				return name;
 			}
 		}
-		return TrackerRes.getString("NewTab.Name"); //$NON-NLS-1$
+		return TrackerRes.getString("TrackerPanel.NewTab.Name"); //$NON-NLS-1$
 	}
 
 	/**
