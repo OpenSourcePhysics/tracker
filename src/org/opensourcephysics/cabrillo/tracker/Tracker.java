@@ -122,7 +122,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	
 	public static boolean allowDataRefresh = !OSPRuntime.isBHTest;
-	public static boolean allowMenuRefresh = !OSPRuntime.isBHTest;
+	public static boolean allowMenuRefresh = true;//!OSPRuntime.isBHTest;
 	public static boolean allowViews = !OSPRuntime.isBHTest;
 		
 	
