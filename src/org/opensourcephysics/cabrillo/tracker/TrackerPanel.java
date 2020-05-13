@@ -338,10 +338,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		// set fonts of message boxes and noDataLabels
 		Font font = new JTextField().getFont();
-		trMessageBox.setMessageFont(font);
-		tlMessageBox.setMessageFont(font);
-		brMessageBox.setMessageFont(font);
-		blMessageBox.setMessageFont(font);
 
 		badNameLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 		Box box = Box.createVerticalBox();
@@ -3449,7 +3445,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			super.mouseExited(e);
 			isShiftKeyDown = false;
 			if (getSelectedPoint() == null) {
-				blMessageBox.setText(null);
+				messages.setMessage(null, 0); //BL message box
 			}
 			setMouseCursor(Cursor.getDefaultCursor());
 		}
@@ -3463,7 +3459,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		public void mouseMoved(MouseEvent e) {
 			if (showCoordinates && getSelectedPoint() == null) {
 				String s = coordinateStrBuilder.getCoordinateString(TrackerPanel.this, e);
-				blMessageBox.setText(s);
+				messages.setMessage(s, 0); //BL message box
 			}
 			super.mouseMoved(e);
 		}

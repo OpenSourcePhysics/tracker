@@ -91,7 +91,6 @@ public class TapeMeasure extends TTrack {
   protected boolean editing = false;
   protected final NumberField inputField;
   protected JPanel inputPanel;
-  protected JPanel glassPanel;
   protected NumberFormat format;
   protected MouseListener editListener;
   protected boolean readOnly;
@@ -1267,10 +1266,6 @@ protected void setTrackerPanel(TrackerPanel panel) {
             }
           }
           inputField.setBounds(bounds);
-          glassPanel = trackerPanel.getGlassPanel();
-          if (glassPanel != null) {
-        	  trackerPanel.remove(glassPanel);
-          }
           trackerPanel.add(inputPanel, BorderLayout.CENTER);
           Border space = BorderFactory.createEmptyBorder(0, 1, 1, 0);
           Color color = getFootprint().getColor();
@@ -1292,9 +1287,6 @@ protected void setTrackerPanel(TrackerPanel panel) {
           }
         	inputField.setSigFigs(4);
           trackerPanel.remove(inputPanel);
-          if (glassPanel != null) {
-        	  trackerPanel.add(glassPanel, BorderLayout.CENTER);
-          } 
           invalidateData(null);
           trackerPanel.revalidate();
           trackerPanel.repaint();

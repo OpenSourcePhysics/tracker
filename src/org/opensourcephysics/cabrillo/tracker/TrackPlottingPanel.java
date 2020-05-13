@@ -102,12 +102,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		coordStringBuilder = new TCoordinateStringBuilder();
 		setCoordinateStringBuilder(coordStringBuilder);
 
-		Font font = new JTextField().getFont();
-		trMessageBox.setMessageFont(font);
-		tlMessageBox.setMessageFont(font);
-		brMessageBox.setMessageFont(font);
-		blMessageBox.setMessageFont(font);
-
 		// make listeners for the button states
 		xListener = new ItemListener() {
 			@Override
@@ -1631,7 +1625,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			}
 			if (showCoordinates) {
 				String s = coordinateStrBuilder.getCoordinateString(TrackPlottingPanel.this, e);
-				blMessageBox.setText(s);
+				messages.setMessage(s, 0); // BL message box
 			}
 		}
 
@@ -1660,7 +1654,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			if (!(track instanceof LineProfile) && getInteractive() != null)
 				setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			if (getCursor() == Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)) {
-				blMessageBox.setText(null);
+	      messages.setMessage(null, 0);  //BL message box
 			}
 		}
 
