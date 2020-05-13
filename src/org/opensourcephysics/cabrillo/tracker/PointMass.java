@@ -1260,10 +1260,11 @@ public class PointMass extends TTrack {
    * @param _g the graphics context on which to draw
    */
   public void draw(DrawingPanel panel, Graphics _g) {
-    if (!(panel instanceof TrackerPanel) || !visible) return;
+    if (!(panel instanceof TrackerPanel)) return;
     TrackerPanel trackerPanel = (TrackerPanel)panel;
-    Graphics2D g = (Graphics2D)_g;
     panels.add(trackerPanel);   // keep a list of drawing panels
+    if (!visible) return;
+    Graphics2D g = (Graphics2D)_g;
     VideoClip clip = trackerPanel.getPlayer().getVideoClip();
     int n = trackerPanel.getFrameNumber();
     int stepSize = clip.getStepSize();

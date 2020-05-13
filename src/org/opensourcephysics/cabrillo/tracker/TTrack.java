@@ -2264,9 +2264,10 @@ public abstract class TTrack implements Interactive,
    */
   public void draw(DrawingPanel panel, Graphics _g) {
     loadAttachmentsFromNames(true);
-    if (!(panel instanceof TrackerPanel) || !visible) return;
+    if (!(panel instanceof TrackerPanel)) return;
     TrackerPanel trackerPanel = (TrackerPanel)panel;
     panels.add(trackerPanel);   // keep a list of tracker panels
+    if (!visible) return;
     Graphics2D g = (Graphics2D)_g;
     int n = trackerPanel.getFrameNumber();
     int stepSize = trackerPanel.getPlayer().getVideoClip().getStepSize();
