@@ -1831,7 +1831,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 				}
 			}
 		} catch (Throwable t) {
-			t.printStackTrace();
+			System.out.println(t);//t.printStackTrace();
 		}
 		refreshing = false;
 

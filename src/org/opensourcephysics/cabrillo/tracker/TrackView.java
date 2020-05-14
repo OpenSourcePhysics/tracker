@@ -36,7 +36,7 @@ import javax.swing.*;
  * @author Douglas Brown
  */
 @SuppressWarnings("serial")
-public abstract class TrackView extends JScrollPane implements PropertyChangeListener {
+public abstract class TrackView extends JScrollPane implements org.opensourcephysics.tools.FontSizer.IconOwner, PropertyChangeListener {
 
 	// instance fields
 	private int trackID;
@@ -77,7 +77,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		return track.getName();
 	}
 
-	Icon getIcon() {
+	public Icon getIcon() {
 		TTrack track = getTrack();
 		return track.getIcon(21, 16, "point"); //$NON-NLS-1$
 	}
