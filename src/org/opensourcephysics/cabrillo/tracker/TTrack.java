@@ -186,6 +186,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected MouseAdapter formatMouseListener, formatAngleMouseListener;
 	protected String[] customNumberFormats;
 	private int ID; // unique ID number
+	private int myFontLevel;
 
 	/**
 	 * Constructs a TTrack.
@@ -502,10 +503,12 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 					PointMass p = (PointMass) TTrack.this;
 					p.updateDerivatives();
 				}
-				AutoTracker autoTracker = trackerPanel.getAutoTracker();
-				if (autoTracker.getTrack() == TTrack.this)
-					autoTracker.reset();
-				autoTracker.getWizard().setVisible(false);
+				AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
+				if (autoTracker != null) {
+					if (autoTracker.getTrack() == TTrack.this)
+						autoTracker.reset();
+					autoTracker.getWizard().setVisible(false);
+				}
 				firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 				trackerPanel.repaint();
 			}
@@ -1363,9 +1366,11 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @param level the desired font level
 	 */
 	public void setFontLevel(int level) {
-		Object[] objectsToSize = new Object[] { tLabel, xLabel, yLabel, magLabel, angleLabel, stepLabel, tValueLabel,
+		Object[] objectsToSize = new Object[] { 
+				tLabel,
+				xLabel, yLabel, magLabel, angleLabel, stepLabel, tValueLabel,
 				stepValueLabel, tField, xField, yField, magField, angleField };
-		FontSizer.setFonts(objectsToSize, level);
+		FontSizer.setFonts(objectsToSize);
 	}
 
 	/**
@@ -2275,8 +2280,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			if (stepArray[j] != null)
 				stepArray[j].erase();
 		if (trackerPanel != null && trackerPanel.autoTracker != null) {
-			AutoTracker autoTracker = trackerPanel.getAutoTracker();
-			if (autoTracker.getWizard().isVisible() && autoTracker.getTrack() == this) {
+			AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
+			if (autoTracker != null && autoTracker.getWizard().isVisible() && autoTracker.getTrack() == this) {
 				autoTracker.erase();
 			}
 		}
@@ -2313,7 +2318,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			if (stepArray[j] != null)
 				stepArray[j].erase(trackerPanel);
 		if (trackerPanel.autoTracker != null) {
-			AutoTracker autoTracker = trackerPanel.getAutoTracker();
+			AutoTracker autoTracker = trackerPanel.getAutoTracker(true);
 			if (autoTracker.getWizard().isVisible() && autoTracker.getTrack() == this) {
 				autoTracker.erase();
 			}
@@ -2848,7 +2853,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 
 			if (this instanceof CoordAxes || this instanceof PerspectiveTrack || this instanceof TapeMeasure
 					|| this instanceof Protractor) {
-				AutoTracker autoTracker = trackerPanel.getAutoTracker();
+				// BH! requires autotracker?
+				AutoTracker autoTracker = trackerPanel.getAutoTracker(true);
 				if (autoTracker.getTrack() == null || autoTracker.getTrack() == this) {
 					int n = trackerPanel.getFrameNumber();
 					AutoTracker.KeyFrame key = autoTracker.getFrame(n).getKeyFrame();

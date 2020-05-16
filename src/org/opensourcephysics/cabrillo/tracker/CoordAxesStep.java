@@ -121,62 +121,61 @@ public class CoordAxesStep extends Step {
     return handleEnabled;
   }
 
-  /**
-   * Overrides Step findInteractive method.
-   *
-   * @param panel the drawing panel
-   * @param xpix the x pixel position
-   * @param ypix the y pixel position
-   * @return the TPoint that is hit, or null
-   */
-  @Override
-public Interactive findInteractive(
-         DrawingPanel panel, int xpix, int ypix) {
-    TrackerPanel trackerPanel = (TrackerPanel)panel;
-    setHitRectCenter(xpix, ypix);
-  	TTrack track = getTrack();
-    AutoTracker autoTracker = track.trackerPanel==null? null: track.trackerPanel.getAutoTracker();
-    if (handleEnabled) {
-      Shape hitShape = handleShapes.get(trackerPanel);
-      if (hitShape != null && hitShape.intersects(hitRect)) {
-    		if (autoTracker!=null && autoTracker.getTrack()==track && track.getTargetIndex()==1) {
-	    		int n = track.trackerPanel.getFrameNumber();
-	    		AutoTracker.FrameData frame = autoTracker.getFrame(n);
-	    		if (frame==frame.getKeyFrame()) {
-	    			return null;
-	    		}
-    		}      	
-        return handle;
-      }
-    }
-    if (originEnabled && !track.isLocked()) {
-    	Interactive ia = super.findInteractive(panel, xpix, ypix);
-    	if (ia==origin) {
-    		if (autoTracker!=null && autoTracker.getTrack()==track && track.getTargetIndex()==0) {
-	    		int n = track.trackerPanel.getFrameNumber();
-	    		AutoTracker.FrameData frame = autoTracker.getFrame(n);
-	    		if (frame==frame.getKeyFrame()) {
-	    			return null;
-	    		}
-    		}      	
-    		return origin;
-    	}
-    }
-    return null;
-  }
+	/**
+	 * Overrides Step findInteractive method.
+	 *
+	 * @param panel the drawing panel
+	 * @param xpix  the x pixel position
+	 * @param ypix  the y pixel position
+	 * @return the TPoint that is hit, or null
+	 */
+	@Override
+	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
+		TrackerPanel trackerPanel = (TrackerPanel) panel;
+		setHitRectCenter(xpix, ypix);
+		TTrack track = getTrack();
+		AutoTracker autoTracker = track.trackerPanel == null ? null : track.trackerPanel.getAutoTracker(false);
+		if (handleEnabled) {
+			Shape hitShape = handleShapes.get(trackerPanel);
+			if (hitShape != null && hitShape.intersects(hitRect)) {
+				if (autoTracker != null && autoTracker.getTrack() == track && track.getTargetIndex() == 1) {
+					int n = track.trackerPanel.getFrameNumber();
+					AutoTracker.FrameData frame = autoTracker.getFrame(n);
+					if (frame == frame.getKeyFrame()) {
+						return null;
+					}
+				}
+				return handle;
+			}
+		}
+		if (originEnabled && !track.isLocked()) {
+			Interactive ia = super.findInteractive(panel, xpix, ypix);
+			if (ia == origin) {
+				if (autoTracker != null && autoTracker.getTrack() == track && track.getTargetIndex() == 0) {
+					int n = track.trackerPanel.getFrameNumber();
+					AutoTracker.FrameData frame = autoTracker.getFrame(n);
+					if (frame == frame.getKeyFrame()) {
+						return null;
+					}
+				}
+				return origin;
+			}
+		}
+		return null;
+	}
 
-  /**
-   * Overrides Step draw method.
-   *
-   * @param panel the drawing panel requesting the drawing
-   * @param _g the graphics context on which to draw
-   */
+	/**
+	 * Overrides Step draw method.
+	 *
+	 * @param panel the drawing panel requesting the drawing
+	 * @param _g    the graphics context on which to draw
+	 */
   @Override
 public void draw(DrawingPanel panel, Graphics _g) {
   	TTrack track = getTrack();
 		if (track.trackerPanel==panel) {
-			AutoTracker autoTracker = track.trackerPanel.getAutoTracker();
-			if (autoTracker.isInteracting(track)) return;
+			AutoTracker autoTracker = track.trackerPanel.getAutoTracker(false);
+			if (autoTracker != null && autoTracker.isInteracting(track)) return;
 		}
     // draw the axes
     TrackerPanel trackerPanel = (TrackerPanel)panel;
@@ -209,7 +208,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       fillShapes[0] = footprint.getShape(screenPoints);
       path.reset();
       path.moveTo(p0.x + 15, p0.y);
-      path.lineTo(p0.x + 3000, p0.y);
+      path.lineTo(p0.x + 500, p0.y);
       Shape hitShape = path;
       // rotate axes and x-axis hit shape about origin if drawing in image space
       if (trackerPanel.isDrawingInImageSpace()) {
@@ -244,14 +243,14 @@ protected Mark getMark(TrackerPanel trackerPanel) {
 		public void draw(Graphics2D g, boolean highlighted) {
           Graphics2D g2 = (Graphics2D) g.create();
           g2.setPaint(color);
-          g2.setStroke(new BasicStroke(1.8f));
+          g2.setStroke(new BasicStroke(2f));
           if (OSPRuntime.setRenderingHints) g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
           for (int i = 0; i < 2; i++) {
             if (fillShapes[i] != null) {
             	// BH 2020.05.11 for some reason, HTML5 needs to draw this
             	// the lines are very close together, and it seems to miss them.
-            	if (OSPRuntime.isJS)
+            	if (OSPRuntime.drawDontFillAxes)
             		g2.draw(fillShapes[i]);
             	else
             		g2.fill(fillShapes[i]);

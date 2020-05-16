@@ -56,6 +56,8 @@ public class TrackDataBuilder extends FunctionTool {
 	private JButton loadButton, saveButton, autoloadButton;
 	private AutoloadManager autoloadManager;
 
+	private int myFontLevel;
+
 	/**
 	 * Constructor.
 	 * 
@@ -444,8 +446,10 @@ public class TrackDataBuilder extends FunctionTool {
 		if (autoloadButton == null)
 			return;
 		level = Math.max(0, level);
-		Object[] toSize = new Object[] { loadButton, saveButton, autoloadButton };
-		FontSizer.setFonts(toSize, level);
+		if (myFontLevel != FontSizer.getLevel()) {
+			Object[] toSize = new Object[] { loadButton, saveButton, autoloadButton };
+			myFontLevel = FontSizer.setFonts(toSize, level);
+		}
 		for (String name : panels.keySet()) {
 			TTrack track = trackerPanel.getTrack(name);
 			FunctionPanel panel = panels.get(name);

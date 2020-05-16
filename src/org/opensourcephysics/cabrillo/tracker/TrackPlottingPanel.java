@@ -1510,7 +1510,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		@Override
 		public ScaleSetter getScaleSetter() {
 			ScaleSetter setter = super.getScaleSetter();
-			FontSizer.setFonts(setter, FontSizer.getLevel());
+			FontSizer.setFonts(setter);
 			return setter;
 		}
 

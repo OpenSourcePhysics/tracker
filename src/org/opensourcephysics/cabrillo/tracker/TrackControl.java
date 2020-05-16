@@ -56,6 +56,8 @@ public class TrackControl extends JDialog
   protected int trackCount;
   protected boolean isVisible;
   protected KeyListener shiftKeyListener;
+
+private int myFontLevel;
   
   /**
    * Gets the track control for the specified tracker panel.
@@ -264,7 +266,7 @@ public void dispose() {
       trackBars[barIndex].add(button);
       trackCount++;
     }
-  	FontSizer.setFonts(this, FontSizer.getLevel());
+    FontSizer.setFonts(this);
     pack();
     repaint();
     if (trackCount==0)

@@ -253,6 +253,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	// the only instance field!
 	private TFrame frame;
+	private int splashFontLevel;
 
 	private static void initClass() {
 		if (defaultLocale != null)
@@ -604,7 +605,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		if (showSplash && !OSPRuntime.isJS) {
 			// set font level resize and center splash frame
-			FontSizer.setFonts(splash, FontSizer.getLevel());
+			splashFontLevel = 
+			FontSizer.setFonts(splash);
 			splash.pack();
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			int x = (dim.width - splash.getBounds().width) / 2;

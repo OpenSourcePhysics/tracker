@@ -63,7 +63,7 @@ public class TrackRenderer extends JLabel implements ListCellRenderer<Object> {
 			Object[] array = (Object[]) value;
 			setText((String) array[1]);
 			setIcon((Icon) array[0]);
-			FontSizer.setFonts(this, FontSizer.getLevel());
+			FontSizer.setFonts(this);
 		}
 		return this;
 	}

@@ -117,6 +117,7 @@ public class PageTView extends JPanel implements TView {
   protected Box.Filler filler = (Box.Filler)Box.createHorizontalGlue();
   protected Border titleBorder;
   protected boolean locked;
+private int myFontLevel;
   
   static {
   	XML.setLoader(TabView.class, new TabLoader());
@@ -154,7 +155,7 @@ public void refresh() {
     else {
     	add(tabbedPane, BorderLayout.CENTER);
     }
-		FontSizer.setFonts(this, FontSizer.getLevel());
+  	FontSizer.setFonts(this);
 
     validate();
     repaint();

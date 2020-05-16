@@ -1148,7 +1148,7 @@ public String toString() {
   	super.setFontLevel(level);
   	Object[] objectsToSize = new Object[]
   			{end1Label, end2Label, lengthLabel};
-    FontSizer.setFonts(objectsToSize, level);
+    FontSizer.setFonts(objectsToSize);
   }
 
 //__________________________ protected and private methods _______________________

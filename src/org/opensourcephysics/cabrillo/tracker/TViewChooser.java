@@ -68,6 +68,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
   protected int[] dividerLocs = new int[4];
   protected int dividerSize;
   protected boolean maximized;
+private int myFontLevel;
 
   /**
    * Constructs a TViewChooser.
@@ -479,25 +480,25 @@ public void propertyChange(PropertyChangeEvent e) {
     addView(new PageTView(trackerPanel));
   }
 
-  /**
-   * Refreshes the toolbar
-   */
-  protected void refreshToolbar() {
-    toolbar.removeAll();
-    toolbar.add(chooserButton);
-    if (selectedView!=null) {
-    ArrayList<Component> list = selectedView.getToolBarComponents();
-    if (list != null) {
-      for (Component c: list) {
-      	toolbar.add(c);
-      }
-    }
-    }
-    toolbar.add(toolbarFiller);
-    toolbar.add(maximizeButton);
-    FontSizer.setFonts(toolbar, FontSizer.getLevel());
-    toolbar.repaint();
-  }
+	/**
+	 * Refreshes the toolbar
+	 */
+	protected void refreshToolbar() {
+		toolbar.removeAll();
+		toolbar.add(chooserButton);
+		if (selectedView != null) {
+			ArrayList<Component> list = selectedView.getToolBarComponents();
+			if (list != null) {
+				for (Component c : list) {
+					toolbar.add(c);
+				}
+			}
+		}
+		toolbar.add(toolbarFiller);
+		toolbar.add(maximizeButton);
+		FontSizer.setFonts(toolbar);
+		toolbar.repaint();
+	}
 
   /**
    * Refreshes the viewPanel.

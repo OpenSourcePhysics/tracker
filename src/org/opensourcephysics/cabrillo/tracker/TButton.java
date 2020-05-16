@@ -167,7 +167,7 @@ public class TButton extends JButton {
 		  setText(track.getName(context)); 
 		  setToolTipText(TrackerRes.getString("TButton.Track.ToolTip") //$NON-NLS-1$
 		  		+" "+track.getName(context));  //$NON-NLS-1$
-		  FontSizer.setFonts(this, FontSizer.getLevel());
+		  FontSizer.setFont(this);
   	}
   	else {
   		trackID = -1;

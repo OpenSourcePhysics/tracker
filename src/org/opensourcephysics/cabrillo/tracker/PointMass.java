@@ -445,10 +445,14 @@ public class PointMass extends TTrack {
 		Step step = super.deleteStep(n);
 		if (step != null)
 			updateDerivatives(n);
-		AutoTracker autoTracker = trackerPanel.getAutoTracker();
-		if (autoTracker.getTrack() == this)
-			autoTracker.delete(n);
+		deleteAutoTrackerStep(n);
 		return step;
+	}
+
+	protected void deleteAutoTrackerStep(int n) {
+		AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
+		if (autoTracker != null && autoTracker.getTrack() == this)
+			autoTracker.delete(n);
 	}
 
 	/**
@@ -808,8 +812,8 @@ public class PointMass extends TTrack {
 	@Override
 	public void setFontLevel(int level) {
 		super.setFontLevel(level);
-		Object[] objectsToSize = new Object[] { massLabel, massField };
-		FontSizer.setFonts(objectsToSize, level);
+		FontSizer.setFont(massLabel);
+		FontSizer.setFont(massField);
 	}
 
 	/**
@@ -2819,7 +2823,7 @@ public class PointMass extends TTrack {
 		autotrackItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				AutoTracker autotracker = trackerPanel.getAutoTracker();
+				AutoTracker autotracker = trackerPanel.getAutoTracker(true);
 				autotracker.setTrack(PointMass.this);
 				autotracker.getWizard().setVisible(true);
 				trackerPanel.repaint();

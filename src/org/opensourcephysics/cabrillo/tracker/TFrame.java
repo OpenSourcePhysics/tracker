@@ -253,10 +253,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (getTab(trackerPanel) < 0) {
 			// tab does not already exist
 			// listen for changes that affect tab title
-			trackerPanel.addPropertyChangeListener("datafile", this); //$NON-NLS-1$
-			trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
+			trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); //$NON-NLS-1$
+			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); //$NON-NLS-1$
 			// set up trackerPanel to listen for angle format property change
-			addPropertyChangeListener("radian_angles", trackerPanel); //$NON-NLS-1$
+			addPropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); //$NON-NLS-1$
 			// create the tab
 			JPanel panel = new JPanel(new BorderLayout());
 			// create the tab panel components
@@ -347,7 +347,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			setViews(trackerPanel, views);
 			initialize(trackerPanel);
-			FontSizer.setFonts(panel, FontSizer.getLevel());
+			
+			FontSizer.setFonts(panel);
 			// inform all tracks of current angle display format
 			for (TTrack track : trackerPanel.getTracks()) {
 				track.setAnglesInRadians(anglesInRadians);
@@ -1345,12 +1346,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				menu.setEnabled(!Tracker.recentFiles.isEmpty());
 				for (String next : Tracker.recentFiles) {
 					JMenuItem item = new JMenuItem(XML.getName(next));
+					FontSizer.setFont(item);
 					item.setActionCommand(next);
 					item.setToolTipText(next);
 					item.addActionListener(openRecentAction);
 					menu.add(item);
 				}
-				FontSizer.setFonts(menu, FontSizer.getLevel());
 			}
 		}
 	}

@@ -93,7 +93,7 @@ public Icon getViewIcon() {
   @Override
 protected TrackView createTrackView(TTrack track) {
   	TableTrackView trackView = new TableTrackView(track, trackerPanel, this);
-    FontSizer.setFonts(trackView, FontSizer.getLevel());
+    FontSizer.setFonts(trackView); // for resizable icon onl
     return trackView;
   }
 
@@ -129,7 +129,7 @@ public void setSelectedTrack(TTrack track) {
 public void refresh() {
   	super.refresh();
   	if (columnsDialog == null) return;
-    FontSizer.setFonts(columnsDialog, FontSizer.getLevel());      
+    FontSizer.setFonts(columnsDialog);      
 		closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
 		defineButton.setText(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
 		defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
@@ -174,7 +174,7 @@ public void refresh() {
     trackView.refreshColumnCheckboxes();
     contentPane.add(trackView.columnsScroller);
 	  contentPane.add(buttonPanel);
-    FontSizer.setFonts(contentPane, FontSizer.getLevel());      
+    FontSizer.setFonts(contentPane);      
     contentPane.setPreferredSize(null);
     Dimension dim = contentPane.getPreferredSize();
     dim.height = Math.min(dim.height, 300);

@@ -80,6 +80,7 @@ import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import org.opensourcephysics.cabrillo.tracker.AutoTracker.Wizard;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
@@ -3060,8 +3061,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 								entries[n] = null;
 							}
 						}
-						AutoTracker autoTracker = getAutoTracker();
-						if (autoTracker.getTrack() == track) {
+						AutoTracker autoTracker = getAutoTracker(false);
+						if (autoTracker != null && autoTracker.getTrack() == track) {
 							autoTracker.delete(n);
 						}
 						nMin = Math.min(nMin, n);
@@ -3170,10 +3171,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * 
 	 * @return the autotracker, if any
 	 */
-	protected AutoTracker getAutoTracker() {
-		if (autoTracker == null) {
+	protected AutoTracker getAutoTracker(boolean forceNew) {
+		if (autoTracker == null && forceNew) {
 			autoTracker = new AutoTracker(this);
-			autoTracker.getWizard().setFontLevel(FontSizer.getLevel());
+			
+			Wizard wizard = autoTracker.getWizard();
+			FontSizer.setFonts(wizard);
 		}
 		return autoTracker;
 	}
@@ -3251,14 +3254,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	protected void dispose() {
 
+		super.dispose();
 		refreshTimer.stop();
 		zoomTimer.stop();
 		refreshTimer = zoomTimer = null;
 		offscreenImage = null;
 		workingImage = null;
 
-		FontSizer.removePropertyChangeListener("level", guiChangeListener); //$NON-NLS-1$
-		ToolsRes.removePropertyChangeListener("locale", guiChangeListener); //$NON-NLS-1$
 		removeMouseListener(mouseController);
 		removeMouseMotionListener(mouseController);
 		mouseController = null;

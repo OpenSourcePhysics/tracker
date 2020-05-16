@@ -469,19 +469,21 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 				// ignore when menu is about to close
 				if (!editMenu.isPopupMenuVisible())
 					return;
-				
+
 				// enable deleteSelectedPoint item if a selection exists
 				Step step = trackerPanel.getSelectedStep();
 				TTrack track = trackerPanel.getSelectedTrack();
 				boolean cantDeleteSteps = track == null || track.isLocked() || track.isDependent();
 				edit_delTracks_deleteSelectedPointItem.setEnabled(!cantDeleteSteps && step != null);
-				
+
 				// refresh paste item
-				// DB refreshPassteItem only needed if clipboard contents changed since last time
+				// DB refreshPassteItem only needed if clipboard contents changed since last
+				// time
 				refreshPasteItem();
-				
+
 				// refresh copyData menu
-				// DB as above, getDataViews() only changes when a TableTrackView is displayed/hidden
+				// DB as above, getDataViews() only changes when a TableTrackView is
+				// displayed/hidden
 				TreeMap<Integer, TableTrackView> dataViews = getDataViews();
 				edit_copyDataMenu.removeAll();
 				edit_copyDataMenu.setEnabled(!dataViews.isEmpty());
@@ -503,9 +505,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 						menu.setText(text + " (" + key + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 					}
 				}
-				
+
 				// refresh copyImage menu--include only open views
-				// DB copyImageMenu needs refresh only when a view has been opened/closed/changed
+				// DB copyImageMenu needs refresh only when a view has been
+				// opened/closed/changed
 				edit_copyImageMenu.remove(edit_copyFrameImageItem);
 				final Container[] views = trackerPanel.getTFrame().getViews(trackerPanel);
 				// check that array size is correct and if not, make new menu items
@@ -531,8 +534,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 						String viewname = null;
 						if (views[i] instanceof TViewChooser) {
 							TViewChooser chooser = (TViewChooser) views[i];
-			        TView tview = chooser.getSelectedView();
-							viewname = tview==null? TrackerRes.getString("TFrame.View.Unknown"): tview.getViewName();
+							TView tview = chooser.getSelectedView();
+							viewname = tview == null ? TrackerRes.getString("TFrame.View.Unknown")
+									: tview.getViewName();
 						} else
 							viewname = TrackerRes.getString("TFrame.View.Unknown"); //$NON-NLS-1$
 						edit_copyViewImageItems[i].setText(viewname + " (" + (i + 1) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -544,10 +548,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 					}
 				}
 				edit_copyImageMenu.add(edit_copyFrameImageItem);
-				 // end refresh copyImageMenu
-				
-				FontSizer.setFonts(editMenu, FontSizer.getLevel());
-				editMenu.revalidate();
+				// end refresh copyImageMenu
+
+//				FontSizer.setFonts(editMenu);
+//				editMenu.revalidate();
 			}
 		});
 		add(editMenu);
@@ -1294,7 +1298,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			public void mousePressed(MouseEvent e) {
 				// DB refreshWindowMenu needs work--currently totally rebuilds entire Window menu
 				refreshWindowMenu();
-				FontSizer.setFonts(windowMenu, FontSizer.getLevel());
+				FontSizer.setFonts(windowMenu);
 			}
 		});
 		add(windowMenu);
@@ -1517,7 +1521,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			});
 			menubar.windowMenu.add(tabItem);
 		}
-		menubar.windowMenu.revalidate();
+		FontSizer.setMenuFonts(menubar.windowMenu);
 	}
 
 
@@ -1703,6 +1707,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 
 		if (Tracker.aboutTrackerAction != null)
 			helpMenu.add(Tracker.aboutTrackerAction);
+		FontSizer.setMenuFonts(helpMenu);
 		return helpMenu;
 	}
 
@@ -1738,7 +1743,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			axesVisibleItem.setSelected(track.isVisible());
 			menu.insert(axesVisibleItem, i);
 		}
-		FontSizer.setFonts(menu, FontSizer.getLevel());
+		FontSizer.setFonts(menu);
 		return menu;
 	}
 
@@ -1825,7 +1830,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 				refreshCoordsMenu();
 				refreshTrackMenu();
 				refreshHelpMenu();
-				FontSizer.setFonts(this, FontSizer.getLevel());
+				
+				//FontSizer.setFonts(this, FontSizer.getLevel());
 				if (OSPRuntime.isJS) {
 					OSPRuntime.jsutil.setUIEnabled(this, true);
 				}
@@ -1940,7 +1946,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 				track = axes;
 				track.removePropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
 				track.addPropertyChangeListener("locked", TMenuBar.this); //$NON-NLS-1$
-				trackMenu.add(createTrackMenu(track));
+//				trackMenu.add(createTrackMenu(track));
 			}
 			if (!trackerPanel.calibrationTools.isEmpty()) {
 				for (TTrack next : trackerPanel.getTracks()) {
@@ -2229,6 +2235,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		if (editMenu.getItemCount() > 0)
 			editMenu.addSeparator();
 		editMenu.add(edit_configItem);
+		FontSizer.setMenuFonts(editMenu);
 	}
 
 	protected void refreshFileMenu() {
@@ -2307,6 +2314,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 				fileMenu.addSeparator();
 			fileMenu.add(file_exitItem);
 		}
+		FontSizer.setMenuFonts(fileMenu);
 	}
 
 	private void refreshRecentFilesMenu() {
@@ -2380,6 +2388,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		PointMass originTrack = getOriginTrack();
 		if (originTrack == null)
 			defaultRefFrameItem.setSelected(true);
+		FontSizer.setMenuFonts(coordsMenu);
 	}
 
 	/**
@@ -2524,8 +2533,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		if (coordsMenu.getItemCount() == 0) {
 			coordsMenu.add(coords_emptyCoordsItem);
 		}
-
-
+		FontSizer.setMenuFonts(videoMenu);
 	}
 	
 	protected void refreshPasteItem() {

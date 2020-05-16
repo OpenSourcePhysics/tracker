@@ -3162,7 +3162,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				startButton.setText(stepping ? TrackerRes.getString("AutoTracker.Wizard.Button.Stop") : //$NON-NLS-1$
 						TrackerRes.getString("AutoTracker.Wizard.Button.Search")); //$NON-NLS-1$
 				startButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.Search.Tooltip")); //$NON-NLS-1$
-				FontSizer.setFonts(startButton, FontSizer.getLevel());
+				FontSizer.setFont(startButton);
 				searchThisButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis")); //$NON-NLS-1$
 				searchThisButton.setEnabled(!running);
 				searchThisButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis.Tooltip")); //$NON-NLS-1$

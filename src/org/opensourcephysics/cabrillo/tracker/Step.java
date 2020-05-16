@@ -249,7 +249,9 @@ public abstract class Step implements Cloneable {
 	 */
 	public void draw(DrawingPanel panel, Graphics g) {
 		TTrack track = getTrack();
-		if (track.trackerPanel == panel && track.trackerPanel.getAutoTracker().isInteracting(track)) {
+		AutoTracker t;
+		if (track.trackerPanel == panel && (t = track.trackerPanel.getAutoTracker(false))
+				!= null && t.isInteracting(track)) {
 			return;
 		}
 		TrackerPanel trackerPanel = (TrackerPanel) panel;
@@ -272,14 +274,14 @@ public abstract class Step implements Cloneable {
 	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
 		TTrack track = getTrack();
 		boolean highlighted = track.trackerPanel.getFrameNumber() == getFrameNumber();
-		AutoTracker autoTracker = track.trackerPanel.getAutoTracker();
+		AutoTracker autoTracker = track.trackerPanel.getAutoTracker(false);
 		TrackerPanel trackerPanel = (TrackerPanel) panel;
 		setHitRectCenter(xpix, ypix);
 		for (int i = 0; i < points.length; i++) {
 			if (points[i] == null || Double.isNaN(points[i].getX()))
 				continue;
 			if (hitRect.contains(points[i].getScreenPosition(trackerPanel))) {
-				if (highlighted && autoTracker.isDrawingKeyFrameFor(track, i))
+				if (highlighted && autoTracker != null && autoTracker.isDrawingKeyFrameFor(track, i))
 					return null;
 				return points[i];
 			}
