@@ -68,6 +68,8 @@ import javax.swing.KeyStroke;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 //import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.controls.OSPLog;
@@ -340,14 +342,22 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		// file menu
 		fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File")); //$NON-NLS-1$
 		add(fileMenu);
-		fileMenu.addMouseListener(new MouseAdapter() {
+		fileMenu.addMenuListener(new MenuListener() {
+			
 			@Override
-			public void mouseEntered(MouseEvent e) {
-				mousePressed(e);
+			public void menuDeselected(MenuEvent e) {
+				// TODO Auto-generated method stub
+				
 			}
 
 			@Override
-			public void mousePressed(MouseEvent e) {
+			public void menuCanceled(MenuEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void menuSelected(MenuEvent e) {	
 				// ignore when menu is about to close
 				if (!fileMenu.isPopupMenuVisible())
 					return;
@@ -457,101 +467,24 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			file_exitItem.setAccelerator(KeyStroke.getKeyStroke('Q', keyMask));
 		}
 		// edit menu
-		editMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Edit")); //$NON-NLS-1$
-		editMenu.addMouseListener(new MouseAdapter() {
+		editMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Edit"));//$NON-NLS-1$
+		editMenu.addMenuListener(new MenuListener() {
+			
 			@Override
-			public void mouseEntered(MouseEvent e) {
-				mousePressed(e);
+			public void menuDeselected(MenuEvent e) {
+				// TODO Auto-generated method stub
+				
 			}
 
 			@Override
-			public void mousePressed(MouseEvent e) {
-				// ignore when menu is about to close
-				if (!editMenu.isPopupMenuVisible())
-					return;
+			public void menuCanceled(MenuEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
 
-				// enable deleteSelectedPoint item if a selection exists
-				Step step = trackerPanel.getSelectedStep();
-				TTrack track = trackerPanel.getSelectedTrack();
-				boolean cantDeleteSteps = track == null || track.isLocked() || track.isDependent();
-				edit_delTracks_deleteSelectedPointItem.setEnabled(!cantDeleteSteps && step != null);
-
-				// refresh paste item
-				// DB refreshPassteItem only needed if clipboard contents changed since last
-				// time
-				refreshPasteItem();
-
-				// refresh copyData menu
-				// DB as above, getDataViews() only changes when a TableTrackView is
-				// displayed/hidden
-				TreeMap<Integer, TableTrackView> dataViews = getDataViews();
-				edit_copyDataMenu.removeAll();
-				edit_copyDataMenu.setEnabled(!dataViews.isEmpty());
-				if (dataViews.isEmpty()) {
-					edit_copyDataMenu.setText(TrackerRes.getString("TableTrackView.Action.CopyData")); //$NON-NLS-1$
-				} else if (dataViews.size() == 1) {
-					Integer key = dataViews.firstKey();
-					TableTrackView view = dataViews.get(key);
-					view.refreshCopyDataMenu(edit_copyDataMenu);
-					String text = edit_copyDataMenu.getText();
-					edit_copyDataMenu.setText(text + " (" + key + ")"); //$NON-NLS-1$ //$NON-NLS-2$
-				} else {
-					edit_copyDataMenu.setText(TrackerRes.getString("TableTrackView.Action.CopyData")); //$NON-NLS-1$
-					for (int key : dataViews.keySet()) {
-						TableTrackView view = dataViews.get(key);
-						JMenu menu = new JMenu();
-						edit_copyDataMenu.add(view.refreshCopyDataMenu(menu));
-						String text = menu.getText();
-						menu.setText(text + " (" + key + ")"); //$NON-NLS-1$ //$NON-NLS-2$
-					}
-				}
-
-				// refresh copyImage menu--include only open views
-				// DB copyImageMenu needs refresh only when a view has been
-				// opened/closed/changed
-				edit_copyImageMenu.remove(edit_copyFrameImageItem);
-				final Container[] views = trackerPanel.getTFrame().getViews(trackerPanel);
-				// check that array size is correct and if not, make new menu items
-				if (edit_copyViewImageItems.length != views.length) {
-					Action copyView = new AbstractAction() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							int i = Integer.parseInt(e.getActionCommand());
-							new TrackerIO.ComponentImage(views[i]).copyToClipboard();
-						}
-					};
-					edit_copyViewImageItems = new JMenuItem[views.length];
-					for (int i = 0; i < views.length; i++) {
-						edit_copyViewImageItems[i] = new JMenuItem();
-						String command = String.valueOf(i);
-						edit_copyViewImageItems[i].setActionCommand(command);
-						edit_copyViewImageItems[i].setAction(copyView);
-					}
-				}
-				// add menu items for open views
-				for (int i = 0; i < views.length; i++) {
-					if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
-						String viewname = null;
-						if (views[i] instanceof TViewChooser) {
-							TViewChooser chooser = (TViewChooser) views[i];
-							TView tview = chooser.getSelectedView();
-							viewname = tview == null ? TrackerRes.getString("TFrame.View.Unknown")
-									: tview.getViewName();
-						} else
-							viewname = TrackerRes.getString("TFrame.View.Unknown"); //$NON-NLS-1$
-						edit_copyViewImageItems[i].setText(viewname + " (" + (i + 1) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
-						String command = String.valueOf(i);
-						edit_copyViewImageItems[i].setActionCommand(command);
-						edit_copyImageMenu.add(edit_copyViewImageItems[i]);
-					} else {
-						edit_copyImageMenu.remove(edit_copyViewImageItems[i]);
-					}
-				}
-				edit_copyImageMenu.add(edit_copyFrameImageItem);
-				// end refresh copyImageMenu
-
-//				FontSizer.setFonts(editMenu);
-//				editMenu.revalidate();
+			@Override
+			public void menuSelected(MenuEvent e) {	
+				setupEditMenu();
 			}
 		});
 		add(editMenu);
@@ -905,76 +838,23 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		measuringToolsMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.MeasuringTools")); //$NON-NLS-1$
 		// video menu
 		videoMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Video")); //$NON-NLS-1$
-		videoMenu.addMouseListener(new MouseAdapter() {
+		videoMenu.addMenuListener(new MenuListener() {
+			
 			@Override
-			public void mouseEntered(MouseEvent e) {
-				mousePressed(e);
+			public void menuDeselected(MenuEvent e) {
+				// TODO Auto-generated method stub
+				
 			}
 
 			@Override
-			public void mousePressed(MouseEvent e) {
-				// enable paste image item if clipboard contains image data
-				Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-				Transferable data = clipboard.getContents(null);
-				boolean b = data != null && data.isDataFlavorSupported(DataFlavor.imageFlavor);
-				video_pasteImageMenu.setEnabled(b);
-				video_pasteImageItem.setEnabled(b);
+			public void menuCanceled(MenuEvent e) {
+				// TODO Auto-generated method stub
 				
-				// enable pasteFilterItem if VideoFilter xml on clipboard
-				// DB this only needs checking when clipboard contents have changed
-				boolean filterOnClipboard = false;
-				String pasteFilterText = TrackerRes.getString("TActions.Action.Paste"); //$NON-NLS-1$
-				String xml = DataTool.paste();
-				if (xml != null && xml.contains("<?xml")) { //$NON-NLS-1$
-					XMLControl control = new XMLControlElement(xml);
-					filterOnClipboard = Filter.class.isAssignableFrom(control.getObjectClass());
-					if (filterOnClipboard) {
-						String filterName = control.getObjectClass().getSimpleName();
-						int i = filterName.indexOf("Filter"); //$NON-NLS-1$
-						if (i > 0 && i < filterName.length() - 1) {
-							filterName = filterName.substring(0, i);
-						}
-						filterName = MediaRes.getString("VideoFilter." + filterName); //$NON-NLS-1$
-						pasteFilterText += " " + filterName; //$NON-NLS-1$
-					}
-				}
-				pasteFilterItem.setEnabled(filterOnClipboard);
-				pasteFilterItem.setText(pasteFilterText);
-				
-				// refresh video filters menu
-				// DB this only changes when a video filter is added or removed
-				Video video = trackerPanel.getVideo();
-				if (video != null) {
-					boolean vis = trackerPanel.getPlayer().getClipControl().videoVisible;
-					video_videoVisibleItem.setSelected(video.isVisible() || vis);
-					// replace filters menu if used in popup
-					// DB maybe using same menu in popup is not good idea??
-					boolean showFiltersMenu = trackerPanel.isEnabled("video.filters"); //$NON-NLS-1$
-					boolean hasNoFiltersMenu = true;
-					for (int i = 0; i < videoMenu.getItemCount(); i++) {
-						JMenuItem item = videoMenu.getItem(i);
-						if (item == video_filtersMenu)
-							hasNoFiltersMenu = false;
-					}
-					if (hasNoFiltersMenu && showFiltersMenu) {
-						videoMenu.remove(checkDurationsItem);
-						videoMenu.remove(video_aboutVideoItem);
-						int i = videoMenu.getMenuComponentCount() - 1;
-						for (; i >= 0; i--) {
-							Component next = videoMenu.getMenuComponent(i);
-							if (next instanceof JMenuItem)
-								break;
-							videoMenu.remove(next);
-						}
-						videoMenu.addSeparator();
-						videoMenu.add(video_filtersMenu);
-						videoMenu.addSeparator();
-						videoMenu.remove(checkDurationsItem);
-						videoMenu.add(video_aboutVideoItem);
-					}
-				}
+			}
 
-				videoMenu.revalidate();
+			@Override
+			public void menuSelected(MenuEvent e) {	
+				setupVideoMenu();
 			}
 		});
 		add(videoMenu);
@@ -1129,17 +1009,25 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		trackMenu.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				refresh("menuItem.trackMenu.stateChanged");
+//BH!				refresh("menuItem.trackMenu.stateChanged");
 			}
 		});
-		trackMenu.addMouseListener(new MouseAdapter() {
+		trackMenu.addMenuListener(new MenuListener() {
+			
 			@Override
-			public void mouseEntered(MouseEvent e) {
-				mousePressed(e);
+			public void menuDeselected(MenuEvent e) {
+				// TODO Auto-generated method stub
+				
 			}
 
 			@Override
-			public void mousePressed(MouseEvent e) {
+			public void menuCanceled(MenuEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void menuSelected(MenuEvent e) {	
 				// ignore when menu is about to close
 				if (!trackMenu.isPopupMenuVisible())
 					return;
@@ -1170,7 +1058,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		coordsMenu.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				refresh("menuItem.coordsMenu.stateChanged");
+//BH!				refresh("menuItem.coordsMenu.stateChanged");
 			}
 		});
 		add(coordsMenu);
@@ -1288,14 +1176,22 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		});
 		// window menu
 		windowMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Window")); //$NON-NLS-1$
-		windowMenu.addMouseListener(new MouseAdapter() {
+		windowMenu.addMenuListener(new MenuListener() {
+			
 			@Override
-			public void mouseEntered(MouseEvent e) {
-				mousePressed(e);
+			public void menuDeselected(MenuEvent e) {
+				// TODO Auto-generated method stub
+				
 			}
 
 			@Override
-			public void mousePressed(MouseEvent e) {
+			public void menuCanceled(MenuEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void menuSelected(MenuEvent e) {	
 				// DB refreshWindowMenu needs work--currently totally rebuilds entire Window menu
 				refreshWindowMenu();
 				FontSizer.setFonts(windowMenu);
@@ -1448,6 +1344,156 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		video_emptyTracksItem.setEnabled(false);
 		coords_emptyCoordsItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Empty")); //$NON-NLS-1$
 		coords_emptyCoordsItem.setEnabled(false);
+	}
+
+	protected void setupVideoMenu() {
+		// enable paste image item if clipboard contains image data
+		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+		Transferable data = clipboard.getContents(null);
+		boolean b = data != null && data.isDataFlavorSupported(DataFlavor.imageFlavor);
+		video_pasteImageMenu.setEnabled(b);
+		video_pasteImageItem.setEnabled(b);
+		
+		// enable pasteFilterItem if VideoFilter xml on clipboard
+		// DB this only needs checking when clipboard contents have changed
+		boolean filterOnClipboard = false;
+		String pasteFilterText = TrackerRes.getString("TActions.Action.Paste"); //$NON-NLS-1$
+		String xml = DataTool.paste();
+		if (xml != null && xml.contains("<?xml")) { //$NON-NLS-1$
+			XMLControl control = new XMLControlElement(xml);
+			filterOnClipboard = Filter.class.isAssignableFrom(control.getObjectClass());
+			if (filterOnClipboard) {
+				String filterName = control.getObjectClass().getSimpleName();
+				int i = filterName.indexOf("Filter"); //$NON-NLS-1$
+				if (i > 0 && i < filterName.length() - 1) {
+					filterName = filterName.substring(0, i);
+				}
+				filterName = MediaRes.getString("VideoFilter." + filterName); //$NON-NLS-1$
+				pasteFilterText += " " + filterName; //$NON-NLS-1$
+			}
+		}
+		pasteFilterItem.setEnabled(filterOnClipboard);
+		pasteFilterItem.setText(pasteFilterText);
+		
+		// refresh video filters menu
+		// DB this only changes when a video filter is added or removed
+		Video video = trackerPanel.getVideo();
+		if (video != null) {
+			boolean vis = trackerPanel.getPlayer().getClipControl().videoVisible;
+			video_videoVisibleItem.setSelected(video.isVisible() || vis);
+			// replace filters menu if used in popup
+			// DB maybe using same menu in popup is not good idea??
+			boolean showFiltersMenu = trackerPanel.isEnabled("video.filters"); //$NON-NLS-1$
+			boolean hasNoFiltersMenu = true;
+			for (int i = 0; i < videoMenu.getItemCount(); i++) {
+				JMenuItem item = videoMenu.getItem(i);
+				if (item == video_filtersMenu)
+					hasNoFiltersMenu = false;
+			}
+			if (hasNoFiltersMenu && showFiltersMenu) {
+				videoMenu.remove(checkDurationsItem);
+				videoMenu.remove(video_aboutVideoItem);
+				int i = videoMenu.getMenuComponentCount() - 1;
+				for (; i >= 0; i--) {
+					Component next = videoMenu.getMenuComponent(i);
+					if (next instanceof JMenuItem)
+						break;
+					videoMenu.remove(next);
+				}
+				videoMenu.addSeparator();
+				videoMenu.add(video_filtersMenu);
+				videoMenu.addSeparator();
+				videoMenu.remove(checkDurationsItem);
+				videoMenu.add(video_aboutVideoItem);
+			}
+		}
+//		videoMenu.revalidate();
+	}
+
+	protected void setupEditMenu() {
+
+		// enable deleteSelectedPoint item if a selection exists
+		Step step = trackerPanel.getSelectedStep();
+		TTrack track = trackerPanel.getSelectedTrack();
+		boolean cantDeleteSteps = track == null || track.isLocked() || track.isDependent();
+		edit_delTracks_deleteSelectedPointItem.setEnabled(!cantDeleteSteps && step != null);
+
+		// refresh paste item
+		// DB refreshPassteItem only needed if clipboard contents changed since last
+		// time
+		refreshPasteItem();
+
+		// refresh copyData menu
+		// DB as above, getDataViews() only changes when a TableTrackView is
+		// displayed/hidden
+		TreeMap<Integer, TableTrackView> dataViews = getDataViews();
+		edit_copyDataMenu.removeAll();
+		edit_copyDataMenu.setEnabled(!dataViews.isEmpty());
+		if (dataViews.isEmpty()) {
+			edit_copyDataMenu.setText(TrackerRes.getString("TableTrackView.Action.CopyData")); //$NON-NLS-1$
+		} else if (dataViews.size() == 1) {
+			Integer key = dataViews.firstKey();
+			TableTrackView view = dataViews.get(key);
+			view.refreshCopyDataMenu(edit_copyDataMenu);
+			String text = edit_copyDataMenu.getText();
+			edit_copyDataMenu.setText(text + " (" + key + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+		} else {
+			edit_copyDataMenu.setText(TrackerRes.getString("TableTrackView.Action.CopyData")); //$NON-NLS-1$
+			for (int key : dataViews.keySet()) {
+				TableTrackView view = dataViews.get(key);
+				JMenu menu = new JMenu();
+				edit_copyDataMenu.add(view.refreshCopyDataMenu(menu));
+				String text = menu.getText();
+				menu.setText(text + " (" + key + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		}
+
+		// refresh copyImage menu--include only open views
+		// DB copyImageMenu needs refresh only when a view has been
+		// opened/closed/changed
+		edit_copyImageMenu.remove(edit_copyFrameImageItem);
+		final Container[] views = trackerPanel.getTFrame().getViews(trackerPanel);
+		// check that array size is correct and if not, make new menu items
+		if (edit_copyViewImageItems.length != views.length) {
+			Action copyView = new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					int i = Integer.parseInt(e.getActionCommand());
+					new TrackerIO.ComponentImage(views[i]).copyToClipboard();
+				}
+			};
+			edit_copyViewImageItems = new JMenuItem[views.length];
+			for (int i = 0; i < views.length; i++) {
+				edit_copyViewImageItems[i] = new JMenuItem();
+				String command = String.valueOf(i);
+				edit_copyViewImageItems[i].setActionCommand(command);
+				edit_copyViewImageItems[i].setAction(copyView);
+			}
+		}
+		// add menu items for open views
+		for (int i = 0; i < views.length; i++) {
+			if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
+				String viewname = null;
+				if (views[i] instanceof TViewChooser) {
+					TViewChooser chooser = (TViewChooser) views[i];
+					TView tview = chooser.getSelectedView();
+					viewname = tview == null ? TrackerRes.getString("TFrame.View.Unknown")
+							: tview.getViewName();
+				} else
+					viewname = TrackerRes.getString("TFrame.View.Unknown"); //$NON-NLS-1$
+				edit_copyViewImageItems[i].setText(viewname + " (" + (i + 1) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
+				String command = String.valueOf(i);
+				edit_copyViewImageItems[i].setActionCommand(command);
+				edit_copyImageMenu.add(edit_copyViewImageItems[i]);
+			} else {
+				edit_copyImageMenu.remove(edit_copyViewImageItems[i]);
+			}
+		}
+		edit_copyImageMenu.add(edit_copyFrameImageItem);
+		// end refresh copyImageMenu
+
+//		FontSizer.setFonts(editMenu);
+//		editMenu.revalidate();
 	}
 
 	/**

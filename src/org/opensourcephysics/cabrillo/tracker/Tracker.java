@@ -674,90 +674,109 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			frame.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
-					// save preferences, but first clean up autoloadMap
-					ArrayList<String> dirs = new ArrayList<String>();
-					if (preferredAutoloadSearchPaths != null) {
-						for (String path : preferredAutoloadSearchPaths)
-							dirs.add(path);
-					} else
-						dirs.addAll(getDefaultAutoloadSearchPaths());
-
-					for (Iterator<String> it = autoloadMap.keySet().iterator(); it.hasNext();) {
-						String filePath = it.next();
-						String parentPath = XML.getDirectoryPath(filePath);
-						boolean keep = false;
-						for (String dir : dirs) {
-							keep = keep || parentPath.equals(dir);
-						}
-						if (!keep || !new File(filePath).exists()) {
-							it.remove();
-						}
-					}
-					savePreferences();
-					if (frame.libraryBrowser != null) {
-						boolean canceled = !frame.libraryBrowser.exit();
-						if (canceled) {
-							// exiting is canceled so temporarily change close operation
-							// to DO_NOTHING and return
-							final int op = frame.getDefaultCloseOperation();
-							final boolean exit = frame.wishesToExit();
-							frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-							Runnable runner = new Runnable() {
-								@Override
-								public void run() {
-									if (exit)
-										frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-									frame.setDefaultCloseOperation(op);
-								}
-							};
-							EventQueue.invokeLater(runner);
-							return;
-						}
-					}
-					// remove all tabs
-					for (int i = frame.getTabCount() - 1; i >= 0; i--) {
-						// save/close tabs in try/catch block so always closes
-						try {
-							if (!frame.getTrackerPanel(i).save()) {
-								// exiting is canceled so temporarily change close operation
-								// to DO_NOTHING and return
-								final int op = frame.getDefaultCloseOperation();
-								final boolean exit = frame.wishesToExit();
-								frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-								Runnable runner = new Runnable() {
-									@Override
-									public void run() {
-										if (exit)
-											frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-										frame.setDefaultCloseOperation(op);
-									}
-								};
-								EventQueue.invokeLater(runner);
-								return;
-							}
-							frame.removeTab(frame.getTrackerPanel(i));
-						} catch (Exception ex) {
-						}
-					}
-
-					// hide the frame
-					frame.setVisible(false);
-
-					// unregister the DataTrackTool and inform RMI clients
-					if (dataTrackTool != null) { // BH 2020.02.09 not in JavaScript
-						dataTrackTool.trackerExiting();
-						unregisterRemoteTool(dataTrackTool);
-					}
-					// exit the system if frame wishes to exit
-					if (frame.wishesToExit() && frame.getDefaultCloseOperation() == WindowConstants.DISPOSE_ON_CLOSE) {
-						System.exit(0);
-					}
+					onWindowClosing();
 				}
 			});
 		}
 	}
 
 //________________________________  static methods ____________________________
+
+	protected void onWindowClosing() {
+		
+		if (OSPRuntime.isJS) {
+			System.exit(0);
+			return; // Necessary for SwingJS
+		}
+		
+		// save preferences, but first clean up autoloadMap
+		ArrayList<String> dirs = new ArrayList<String>();
+		if (preferredAutoloadSearchPaths != null) {
+			for (String path : preferredAutoloadSearchPaths)
+				dirs.add(path);
+		} else
+			dirs.addAll(getDefaultAutoloadSearchPaths());
+
+		for (Iterator<String> it = autoloadMap.keySet().iterator(); it.hasNext();) {
+			String filePath = it.next();
+			String parentPath = XML.getDirectoryPath(filePath);
+			boolean keep = false;
+			for (String dir : dirs) {
+				keep = keep || parentPath.equals(dir);
+			}
+			if (!keep || !new File(filePath).exists()) {
+				it.remove();
+			}
+		}
+		savePreferences();
+		
+		boolean doClose = (frame.wishesToExit()
+				&& frame.getDefaultCloseOperation() == WindowConstants.DISPOSE_ON_CLOSE);
+	
+		
+		
+		if (frame.libraryBrowser != null) {
+			boolean canceled = !frame.libraryBrowser.exit();
+			if (canceled) {
+				// exiting is canceled so temporarily change close operation
+				// to DO_NOTHING and return
+				final int op = frame.getDefaultCloseOperation();
+				final boolean exit = frame.wishesToExit();
+				frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+				Runnable runner = new Runnable() {
+					@Override
+					public void run() {
+						if (exit)
+							frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+						frame.setDefaultCloseOperation(op);
+					}
+				};
+				EventQueue.invokeLater(runner);
+				return;
+			}
+		}
+		
+		// unregister the DataTrackTool and inform RMI clients
+		if (dataTrackTool != null) { // BH 2020.02.09 not in JavaScript
+			dataTrackTool.trackerExiting();
+			unregisterRemoteTool(dataTrackTool);
+		}
+		// exit the system if frame wishes to exit
+		if (doClose) {
+			System.exit(0);
+		} else {
+			// remove all tabs
+			for (int i = frame.getTabCount() - 1; i >= 0; i--) {
+				// save/close tabs in try/catch block so always closes
+				try {
+					if (!frame.getTrackerPanel(i).save()) {
+						// exiting is canceled so temporarily change close operation
+						// to DO_NOTHING and return
+						final int op = frame.getDefaultCloseOperation();
+						final boolean exit = frame.wishesToExit();
+						frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+						Runnable runner = new Runnable() {
+							@Override
+							public void run() {
+								if (exit)
+									frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+								frame.setDefaultCloseOperation(op);
+							}
+						};
+						EventQueue.invokeLater(runner);
+						return;
+					}
+					frame.removeTab(frame.getTrackerPanel(i));
+				} catch (Exception ex) {
+				}
+			}
+
+			// hide the frame
+			frame.setVisible(false);
+
+
+		}
+	}
 
 	/**
 	 * Compares version strings.
