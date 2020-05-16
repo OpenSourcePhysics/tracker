@@ -1743,7 +1743,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			axesVisibleItem.setSelected(track.isVisible());
 			menu.insert(axesVisibleItem, i);
 		}
-		FontSizer.setFonts(menu);
+		FontSizer.setMenuFonts(menu);
 		return menu;
 	}
 
