@@ -253,7 +253,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	// the only instance field!
 	private TFrame frame;
-	private int splashFontLevel;
 
 	private static void initClass() {
 		if (defaultLocale != null)
@@ -517,13 +516,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 * @return an image from 
 	 */
 	public static Icon getIcon(String imagePath) {
-		// /org/opensourcephysics/cabrillo/tracker/resources/images/osp_logo_url.png
-		// /org/opensourcephysics/resources/tools/images/open.gif
-		if (OSPRuntime.isJS) {
-			URL url = getClassResource(imagePath.indexOf("/tracker/") < 0 ? imagePath : imagePath.substring(imagePath.indexOf("resources")));
-			if (url != null)
-				return new ImageIcon(url);
-		}
 		return ResourceLoader.getIcon(imagePath);
 	}
 
@@ -535,17 +527,11 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 * @return URL (with byte[ ] in _streamData if isJS)
 	 */
 	public static URL getClassResource(String resource) {
-		// osp uses resources/[type]/images/.... not just resources/images/....
-		int pt;
-		if (OSPRuntime.isJS
-				&& ((pt = resource.indexOf("physics/resources/")) >= 0 || resource.startsWith("resources/images/"))) {			 //$NON-NLS-1$ //$NON-NLS-2$
-			String imagePath = (pt >= 0 ? resource 
-					: "/org/opensourcephysics/cabrillo/tracker/resources/images.zip!/tracker" + resource.substring(16)); //$NON-NLS-1$
-			URL ret = ResourceLoader.getImageZipResource(imagePath);
-			if (ret != null)
-				return ret;
+		if (OSPRuntime.isJS) {
+			return ResourceLoader.getAssetURL(resource);
+		} else {
+			return Tracker.class.getResource(resource);
 		}
-		return Tracker.class.getResource(resource);
 	}
 
 	/**
@@ -605,7 +591,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		if (showSplash && !OSPRuntime.isJS) {
 			// set font level resize and center splash frame
-			splashFontLevel = 
 			FontSizer.setFonts(splash);
 			splash.pack();
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
