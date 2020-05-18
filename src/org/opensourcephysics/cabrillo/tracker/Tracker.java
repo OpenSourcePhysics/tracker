@@ -527,11 +527,14 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 * @return URL (with byte[ ] in _streamData if isJS)
 	 */
 	public static URL getClassResource(String resource) {
-		if (OSPRuntime.isJS) {
+//		if (OSPRuntime.isJS) {
+		// Ah! Just a problem with full path rather than relative path for classLoader.
+			if (resource.startsWith("resource"))
+				resource = "org/opensourcephysics/cabrillo/tracker/" + resource;
 			return ResourceLoader.getAssetURL(resource);
-		} else {
-			return Tracker.class.getResource(resource);
-		}
+//		} else {
+//			return Tracker.class.getResource(resource);
+//		}
 	}
 
 	/**

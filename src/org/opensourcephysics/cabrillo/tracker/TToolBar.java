@@ -154,6 +154,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	public int myPopupFontLevel;
 
 	static {
+		
 		newTrackIcon = new ResizableIcon(Tracker.getClassResource("resources/images/poof.gif")); //$NON-NLS-1$
 		trackControlIcon = new ResizableIcon(Tracker.getClassResource("resources/images/track_control.gif")); //$NON-NLS-1$
 		trackControlOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/track_control_on.gif")); //$NON-NLS-1$
