@@ -1466,55 +1466,58 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			libraryBrowser.addOSPLibrary(LibraryBrowser.SHARED_LIBRARY);
 			libraryBrowser.addComPADRECollection(LibraryComPADRE.TRACKER_SERVER_TREE + LibraryComPADRE.PRIMARY_ONLY);
 			libraryBrowser.refreshCollectionsMenu();
-			libraryBrowser.addPropertyChangeListener("target", new PropertyChangeListener() { //$NON-NLS-1$
-				@Override
-				public void propertyChange(PropertyChangeEvent e) {
-					libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-					LibraryResource record = (LibraryResource) e.getNewValue();
-					String target = XML.getResolvedPath(record.getTarget(), record.getBasePath());
-					target = ResourceLoader.getURIPath(target);
+			libraryBrowser.addPropertyChangeListener(LibraryBrowser.PROPERTY_LIBRARY_TARGET, new PropertyChangeListener() { //$NON-NLS-1$
+						@Override
+						public void propertyChange(PropertyChangeEvent e) {
+							libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+							LibraryResource record = (LibraryResource) e.getNewValue();
+							String target = XML.getResolvedPath(record.getTarget(), record.getBasePath());
+							target = ResourceLoader.getURIPath(target);
 
-					// download comPADRE targets to osp cache
-					if (target.indexOf("document/ServeFile.cfm?") > -1) { //$NON-NLS-1$
-						String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
-						try {
-							File file = ResourceLoader.downloadToOSPCache(target, fileName, false);
-							target = file.toURI().toString();
-						} catch (Exception ex) {
-							String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
-							JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + record.getName() + "\"", //$NON-NLS-1$ //$NON-NLS-2$
-									TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
-									JOptionPane.WARNING_MESSAGE);
-							return;
-						}
-					}
+							// download comPADRE targets to osp cache
+							if (target.indexOf("document/ServeFile.cfm?") > -1) { //$NON-NLS-1$
+								String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
+								try {
+									File file = ResourceLoader.downloadToOSPCache(target, fileName, false);
+									target = file.toURI().toString();
+								} catch (Exception ex) {
+									String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
+									JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + record.getName() + "\"", //$NON-NLS-1$ //$NON-NLS-2$
+											TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
+											JOptionPane.WARNING_MESSAGE);
+									return;
+								}
+							}
 
-					String lcTarget = target.toLowerCase();
-					boolean accept = lcTarget.endsWith(".trk"); //$NON-NLS-1$
-					accept = accept || lcTarget.endsWith(".zip"); //$NON-NLS-1$
-					accept = accept || lcTarget.endsWith(".trz"); //$NON-NLS-1$
-					for (String ext : VideoIO.getVideoExtensions()) {
-						accept = accept || lcTarget.endsWith("." + ext); //$NON-NLS-1$
-					}
-					if (accept) {
+							String lcTarget = target.toLowerCase();
+							boolean accept = lcTarget.endsWith(".trk"); //$NON-NLS-1$
+							accept = accept || lcTarget.endsWith(".zip"); //$NON-NLS-1$
+							accept = accept || lcTarget.endsWith(".trz"); //$NON-NLS-1$
+							if (!accept) {
+								for (String ext : VideoIO.getVideoExtensions()) {
+									accept = accept || lcTarget.endsWith("." + ext); //$NON-NLS-1$
+								}
+							}
+							if (accept) {
 //		  			libraryBrowser.setVisible(false);
-						Resource res = ResourceLoader.getResourceZipURLsOK(target);
-						if (res != null) {
-							ArrayList<String> urlPaths = new ArrayList<String>();
-							urlPaths.add(target);
-							TrackerIO.openCollection(urlPaths, TFrame.this, null, null);
-						} else {
-							String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
-							JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
-									TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
-									JOptionPane.WARNING_MESSAGE);
-							libraryBrowser.setVisible(true);
-						}
-					}
+								Resource res = ResourceLoader.getResourceZipURLsOK(target);
+								if (res != null) {
+									ArrayList<String> urlPaths = new ArrayList<String>();
+									urlPaths.add(target);
+									TrackerIO.openCollection(urlPaths, TFrame.this, null, null);
+								} else {
+									String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
+									JOptionPane.showMessageDialog(libraryBrowser,
+											s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
+											TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
+											JOptionPane.WARNING_MESSAGE);
+									libraryBrowser.setVisible(true);
+								}
+							}
 
-					libraryBrowser.setCursor(Cursor.getDefaultCursor());
-					TFrame.this.requestFocus();
-				}
+							libraryBrowser.setCursor(Cursor.getDefaultCursor());
+							TFrame.this.requestFocus();
+						}
 			});
 			LibraryBrowser.fireHelpEvent = true;
 			libraryBrowser.addPropertyChangeListener("help", new PropertyChangeListener() { //$NON-NLS-1$

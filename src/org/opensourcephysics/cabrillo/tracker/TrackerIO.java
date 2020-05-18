@@ -814,7 +814,7 @@ public class TrackerIO extends VideoIO {
 				}
 			}
 		};
-		if (loadInSeparateThread) {
+		if (!OSPRuntime.isJS && loadInSeparateThread) {
 			Thread tabOpener = new Thread(tabRunner);
 			tabOpener.setName("tabOpener");
 			tabOpener.setPriority(Thread.NORM_PRIORITY);
