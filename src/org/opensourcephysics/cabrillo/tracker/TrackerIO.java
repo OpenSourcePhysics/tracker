@@ -39,8 +39,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
@@ -75,7 +73,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
 import javax.swing.JSplitPane;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileFilter;
@@ -668,7 +665,7 @@ public class TrackerIO extends VideoIO {
 	 */
 	private static void openTabPath(String path, TrackerPanel existingPanel, TFrame frame, VideoType vidType,
 			ArrayList<String> desktopFiles, Runnable whenDone) {
-
+		OSPLog.debug("TrackerIO openTabPath " + path); //$NON-NLS-1$
 		new AsyncLoad(path, existingPanel, frame, vidType, desktopFiles, whenDone).execute();//Synchronously(); // for now
 	}
 
@@ -713,59 +710,12 @@ public class TrackerIO extends VideoIO {
 		final VideoType vidType = selectedType;
 
 		// open all files in Tracker
-		Runnable openTabPathRunnable = new Runnable() {
+		run("openTabPath", new Runnable() {
 			@Override
 			public void run() {
-				OSPLog.finest("opening file in tab"); //$NON-NLS-1$
 				openTabPath(path, null, frame, vidType, null, NULL_RUNNABLE);
 			}
-		};
-		// open in separate background thread if flagged
-		if (loadInSeparateThread) {
-			Thread openTabPathOpener = new Thread(openTabPathRunnable);
-			openTabPathOpener.setName("openTabPath");
-			openTabPathOpener.setPriority(Thread.NORM_PRIORITY);
-			openTabPathOpener.setDaemon(true);
-			openTabPathOpener.start();
-		} else {
-			openTabPathRunnable.run();
-		}
-	}
-
-	private static void addToLibrary(TFrame frame, String path) {
-		// also open TRZ files in library browser
-		// BH! Q: this was effectively TRUE -- "any directory is OK" why?
-		if (trzFileFilter.accept(new File(path), false)) {
-			Runnable libraryRunnable = new Runnable() {
-				@Override
-				public void run() {
-					OSPLog.finest("opening file in library browser"); //$NON-NLS-1$
-					frame.getLibraryBrowser().open(path);
-//			      frame.getLibraryBrowser().setVisible(true); 
-					Timer timer = new Timer(1000, new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
-							if (treePanel != null) {
-								treePanel.refreshSelectedNode();
-							}
-						}
-					});
-					timer.setRepeats(false);
-					timer.start();
-				}
-			};
-			if (loadInSeparateThread) {
-				Thread libraryOpener = new Thread(libraryRunnable);
-				libraryOpener.setName("libraryOpener");
-
-				libraryOpener.setPriority(Thread.NORM_PRIORITY);
-				libraryOpener.setDaemon(true);
-				libraryOpener.start();
-			} else {
-				libraryRunnable.run();
-			}
-		}
+		});
 	}
 
 	/**
@@ -779,49 +729,55 @@ public class TrackerIO extends VideoIO {
 			return;
 		}
 		final String path = url.toExternalForm();
-		OSPLog.finest("opening URL"); //$NON-NLS-1$
-		loadDataOrVideo(path, frame);
+		OSPLog.debug("TrackerIO opening URL"); //$NON-NLS-1$
+		addToLibraryIfTRZ(path, frame);
 	}
 
 	/**
-	 * Loads a set of trk or video files into new TrackerPanels.
+	 * Loads a set of trk, trz, zip, or video files into one or more new TrackerPanels (tabs).
 	 *
-	 * @param urlPaths     an array of URL paths to be loaded
+	 * @param uriPaths     an array of URL paths to be loaded
 	 * @param frame        the frame for the TrackerPanels
 	 * @param desktopFiles supplemental HTML and PDF files to load on the desktop
+	 * @param trzPath      path to TRZ file, if that is the source
 	 */
-	public static void openCollection(final Collection<String> urlPaths, final TFrame frame,
+	public static void openCollection(final Collection<String> uriPaths, final TFrame frame,
 			final ArrayList<String> desktopFiles, String trzPath) {
-		if (urlPaths == null || urlPaths.isEmpty()) {
+		if (uriPaths == null || uriPaths.isEmpty()) {
 			return;
 		}
 		frame.loadedFiles.clear();
-		// open in separate background thread if flagged
-		Runnable tabRunner = new Runnable() {
+		Runnable whenDone = (trzPath != null && OSPRuntime.autoAddLibrary ? new Runnable() {
+
 			@Override
 			public void run() {
-				for (String path : urlPaths) {
-					OSPLog.finest("opening URL " + path); //$NON-NLS-1$
-					openTabPath(path, null, frame, null, desktopFiles, new Runnable() {
+				addToLibrary(frame, trzPath);
+			}
 
-						@Override
-						public void run() {
-							if (trzPath != null && OSPRuntime.autoAddLibrary)
-								addToLibrary(frame, trzPath);
-						}
-
-					});
+		} : null);
+		
+		// open in separate background thread if flagged
+		run("tabOpener", new Runnable() {
+			@Override
+			public void run() {
+				for (String uriPath : uriPaths) {
+					OSPLog.debug("TrackerIO opening URL " + uriPath); //$NON-NLS-1$
+					openTabPath(uriPath, null, frame, null, desktopFiles, whenDone);
 				}
 			}
-		};
-		if (!OSPRuntime.isJS && loadInSeparateThread) {
-			Thread tabOpener = new Thread(tabRunner);
-			tabOpener.setName("tabOpener");
-			tabOpener.setPriority(Thread.NORM_PRIORITY);
-			tabOpener.setDaemon(true);
-			tabOpener.start();
-		} else
-			tabRunner.run();
+		});
+	}
+
+	private static void run(String name, Runnable r) {
+		if (loadInSeparateThread) {
+			Thread t = new Thread(r);
+			t.setName(name);
+			t.setPriority(Thread.NORM_PRIORITY);
+			t.setDaemon(true);
+			t.start();
+		} else {
+			r.run();
+		}
 	}
 
 	/**
@@ -830,47 +786,35 @@ public class TrackerIO extends VideoIO {
 	 * @param path  the path
 	 * @param frame the frame for the TrackerPanel
 	 */
-	public static void loadDataOrVideo(final String path, final TFrame frame) {
+	public static void addToLibraryIfTRZ(final String path, final TFrame frame) {
 		frame.loadedFiles.clear();
 		// open in separate background thread if flagged
-		Runnable loadDataOrVideoRunner = new Runnable() {
+		if (trzFileFilter.accept(new File(path), false))
+			addToLibrary(frame, path);
+	}
+
+	private static void addToLibrary(TFrame frame, String path) {
+		// also open TRZ files in library browser
+		// BH! Q: this was effectively TRUE -- "any directory is OK" why?
+		run ("addToLibrary", new Runnable() {
 			@Override
 			public void run() {
-				openTabPath(path, null, frame, null, null, new Runnable() {
-
+				OSPLog.debug("TrackerIO addToLibrary " + path); //$NON-NLS-1$
+				frame.getLibraryBrowser().open(path);
+//			      frame.getLibraryBrowser().setVisible(true); 
+				Timer timer = new Timer(1000, new ActionListener() {
 					@Override
-					public void run() {
-						// also open TRZ files in the Library Browser
-
-						// BH Q: was TRUE, meaning any directory would be accepted here?
-						if (trzFileFilter.accept(new File(path), false)) {
-							frame.getLibraryBrowser().open(path);
-//			      	frame.getLibraryBrowser().setVisible(true);
-							Timer timer = new Timer(1000, new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
-									if (treePanel != null) {
-										treePanel.refreshSelectedNode();
-									}
-								}
-							});
-							timer.setRepeats(false);
-							timer.start();
+					public void actionPerformed(ActionEvent e) {
+						LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
+						if (treePanel != null) {
+							treePanel.refreshSelectedNode();
 						}
 					}
-
 				});
+				timer.setRepeats(false);
+				timer.start();
 			}
-		};
-		if (loadInSeparateThread) {
-			Thread loadDataOrVideoThread = new Thread(loadDataOrVideoRunner);
-			loadDataOrVideoThread.setName("loadDataOrVideo");
-			loadDataOrVideoThread.setPriority(Thread.NORM_PRIORITY);
-			loadDataOrVideoThread.setDaemon(true);
-			loadDataOrVideoThread.start();
-		} else
-			loadDataOrVideoRunner.run();
+		});
 	}
 
 	/**
@@ -960,21 +904,12 @@ public class TrackerIO extends VideoIO {
 			public Void apply(File[] files) {
 				final File file = (files == null ? null : files[0]);
 				if (file != null) {
-					Runnable importVideoRunner = new Runnable() {
+					run("importVideo", new Runnable() {
 						@Override
 						public void run() {
 							TrackerIO.importVideo(file, trackerPanel, null, whenDone);
 						}
-					};
-					if (loadInSeparateThread) {
-						Thread importVideoOpener = new Thread(importVideoRunner);
-						importVideoOpener.setName("importVideo");
-
-						importVideoOpener.setPriority(Thread.NORM_PRIORITY);
-						importVideoOpener.setDaemon(true);
-						importVideoOpener.start();
-					} else
-						importVideoRunner.run();
+					});
 				}
 				return null;
 			}
@@ -989,7 +924,7 @@ public class TrackerIO extends VideoIO {
 //    Runnable importVideoRunner = new Runnable() {
 //			public void run() {
 //				TrackerIO.importVideo(theFile, trackerPanel, null);
-//				OSPLog.finest("completed importing file " + theFile); //$NON-NLS-1$
+//				OSPLog.debug("TrackerIO completed importing file " + theFile); //$NON-NLS-1$
 //			}
 //	    };
 //    if (loadInSeparateThread) {
@@ -1012,7 +947,7 @@ public class TrackerIO extends VideoIO {
 	 */
 	public static void importVideo(File file, TrackerPanel trackerPanel, VideoType vidType, Runnable whenDone) {
 		String path = XML.getAbsolutePath(file);
-		OSPLog.finest("importing file: " + path); //$NON-NLS-1$
+		OSPLog.debug("TrackerIO importing file: " + path); //$NON-NLS-1$
 		TFrame frame = trackerPanel.getTFrame();
 		frame.loadedFiles.clear();
 		openTabPath(path, trackerPanel, frame, vidType, null, whenDone);
@@ -1801,7 +1736,7 @@ public class TrackerIO extends VideoIO {
 			if (rawPath.startsWith("//") && nonURIPath.startsWith("/") && !nonURIPath.startsWith("//")) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				nonURIPath = "/" + nonURIPath; //$NON-NLS-1$
 			if (frame.loadedFiles.contains(nonURIPath)) {
-				OSPLog.finest("path already loaded " + nonURIPath); //$NON-NLS-1$
+				OSPLog.debug("TrackerIO path already loaded " + nonURIPath); //$NON-NLS-1$
 				return;
 			}
 			frame.loadedFiles.add(nonURIPath);
@@ -1961,7 +1896,7 @@ public class TrackerIO extends VideoIO {
 				if (localFile != null && OSPRuntime.unzipFiles) {
 					// set path to downloaded file
 					path = localFile.toURI().toString();
-					OSPLog.finest("downloaded zip file: " + path); //$NON-NLS-1$
+					OSPLog.debug("TrackerIO downloaded zip file: " + path); //$NON-NLS-1$
 				}
 			}
 
@@ -1976,7 +1911,7 @@ public class TrackerIO extends VideoIO {
 			for (String next : contents.keySet()) {
 				if (next.endsWith(".trk")) { //$NON-NLS-1$
 					String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
-					OSPLog.finest("found trk file " + s); //$NON-NLS-1$
+					OSPLog.debug("TrackerIO found trk file " + s); //$NON-NLS-1$
 					trkFiles.add(s);
 				} else if (next.endsWith(".pdf")) { //$NON-NLS-1$
 					pdfFiles.add(next);
@@ -1993,7 +1928,7 @@ public class TrackerIO extends VideoIO {
 				// collect other files in top directory except thumbnails
 				else if (next.indexOf("thumbnail") == -1 && next.indexOf("/") == -1) { //$NON-NLS-1$ //$NON-NLS-2$
 					String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
-					OSPLog.finest("found other file " + s); //$NON-NLS-1$
+					OSPLog.debug("TrackerIO found other file " + s); //$NON-NLS-1$
 					otherFiles.add(next);
 				}
 			}
@@ -2065,17 +2000,16 @@ public class TrackerIO extends VideoIO {
 					tempFiles.addAll(otherFiles);
 				}
 				// open tempfiles on the desktop
-				Runnable displayURLRunner = new Runnable() {
-					@Override
-					public void run() {
-						for (String path : tempFiles) {
-							OSPDesktop.displayURL(path);
-						}
-					}
-				};
 				if (OSPRuntime.skipDisplayOfPDF) {
-					OSPLog.warning("TrackerIO skipping displaying of " + path);
 				} else {
+					Runnable displayURLRunner = new Runnable() {
+						@Override
+						public void run() {
+							for (String path : tempFiles) {
+								OSPDesktop.displayURL(path);
+							}
+						}
+					};
 					Thread displayURLOpener = new Thread(displayURLRunner);
 					displayURLOpener.setName("displayURLOpener");
 					displayURLOpener.start();
@@ -2092,7 +2026,7 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private int openTabPathVideo(int progress) {
-			OSPLog.finest("opening video path " + path); //$NON-NLS-1$
+			OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
 			// download web videos to the OSP cache
 			if (ResourceLoader.isHTTP(path)) {
 				String name = XML.getName(path);
@@ -2205,113 +2139,113 @@ public class TrackerIO extends VideoIO {
 		}
 	}
 
-	static class MonitorDialog extends JDialog implements TrackerMonitor {
-
-		JProgressBar monitor;
-		Timer timer;
-		int frameCount = Integer.MIN_VALUE;
-
-		MonitorDialog(TFrame frame, String path) {
-			super(frame, false);
-			setName(path);
-			JPanel contentPane = new JPanel(new BorderLayout());
-			setContentPane(contentPane);
-			monitor = new JProgressBar(0, 100);
-			monitor.setValue(0);
-			monitor.setStringPainted(true);
-			// make timer to step progress forward slowly
-			timer = new Timer(300, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					if (!isVisible())
-						return;
-					int progress = monitor.getValue() + 1;
-					if (progress <= 20)
-						monitor.setValue(progress);
-				}
-			});
-			timer.setRepeats(true);
-			this.addWindowListener(new WindowAdapter() {
-				@Override
-				public void windowClosing(WindowEvent e) {
-					VideoIO.setCanceled(true);
-				}
-			});
-//	  	// give user a way to close unwanted dialog: double-click
-//	  	addMouseListener(new MouseAdapter() {
-//	  		public void mouseClicked(MouseEvent e) {
-//	  			if (e.getClickCount()==2) {
-//	        	close();
-//	  			}
-//	  		}
-//	  	});
-			JPanel progressPanel = new JPanel(new BorderLayout());
-			progressPanel.setBorder(BorderFactory.createEmptyBorder(4, 30, 8, 30));
-			progressPanel.add(monitor, BorderLayout.CENTER);
-			progressPanel.setOpaque(false);
-			JLabel label = new JLabel(TrackerRes.getString("Tracker.Splash.Loading") //$NON-NLS-1$
-					+ " \"" + XML.getName(path) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-			JPanel labelbar = new JPanel();
-			labelbar.add(label);
-			JButton cancelButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
-			cancelButton.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					VideoIO.setCanceled(true);
-					close();
-				}
-			});
-			JPanel buttonbar = new JPanel();
-			buttonbar.add(cancelButton);
-			contentPane.add(labelbar, BorderLayout.NORTH);
-			contentPane.add(progressPanel, BorderLayout.CENTER);
-			contentPane.add(buttonbar, BorderLayout.SOUTH);
-			FontSizer.setFonts(contentPane, FontSizer.getLevel());
-			pack();
-			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-			int x = (dim.width - getBounds().width) / 2;
-			int y = (dim.height - getBounds().height) / 2;
-			setLocation(x, y);
-			timer.start();
-		}
-
-		@Override
-		public void stop() {
-			timer.stop();
-		}
-
-		@Override
-		public void restart() {
-			monitor.setValue(0);
-			frameCount = Integer.MIN_VALUE;
-			// restart timer
-			timer.start();
-		}
-
-		@Override
-		public void setProgressAsync(int progress) {
-			monitor.setValue(progress);
-		}
-
-		@Override
-		public void setFrameCount(int count) {
-			frameCount = count;
-		}
-
-		@Override
-		public int getFrameCount() {
-			return frameCount;
-		}
-
-		@Override
-		public void close() {
-			timer.stop();
-			setVisible(false);
-			TrackerIO.monitors.remove(this);
-			dispose();
-		}
-
-	}
+//	static class MonitorDialog extends JDialog implements TrackerMonitor {
+//
+//		JProgressBar monitor;
+//		Timer timer;
+//		int frameCount = Integer.MIN_VALUE;
+//
+//		MonitorDialog(TFrame frame, String path) {
+//			super(frame, false);
+//			setName(path);
+//			JPanel contentPane = new JPanel(new BorderLayout());
+//			setContentPane(contentPane);
+//			monitor = new JProgressBar(0, 100);
+//			monitor.setValue(0);
+//			monitor.setStringPainted(true);
+//			// make timer to step progress forward slowly
+//			timer = new Timer(300, new ActionListener() {
+//				@Override
+//				public void actionPerformed(ActionEvent e) {
+//					if (!isVisible())
+//						return;
+//					int progress = monitor.getValue() + 1;
+//					if (progress <= 20)
+//						monitor.setValue(progress);
+//				}
+//			});
+//			timer.setRepeats(true);
+//			this.addWindowListener(new WindowAdapter() {
+//				@Override
+//				public void windowClosing(WindowEvent e) {
+//					VideoIO.setCanceled(true);
+//				}
+//			});
+////	  	// give user a way to close unwanted dialog: double-click
+////	  	addMouseListener(new MouseAdapter() {
+////	  		public void mouseClicked(MouseEvent e) {
+////	  			if (e.getClickCount()==2) {
+////	        	close();
+////	  			}
+////	  		}
+////	  	});
+//			JPanel progressPanel = new JPanel(new BorderLayout());
+//			progressPanel.setBorder(BorderFactory.createEmptyBorder(4, 30, 8, 30));
+//			progressPanel.add(monitor, BorderLayout.CENTER);
+//			progressPanel.setOpaque(false);
+//			JLabel label = new JLabel(TrackerRes.getString("Tracker.Splash.Loading") //$NON-NLS-1$
+//					+ " \"" + XML.getName(path) + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+//			JPanel labelbar = new JPanel();
+//			labelbar.add(label);
+//			JButton cancelButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
+//			cancelButton.addActionListener(new ActionListener() {
+//				@Override
+//				public void actionPerformed(ActionEvent e) {
+//					VideoIO.setCanceled(true);
+//					close();
+//				}
+//			});
+//			JPanel buttonbar = new JPanel();
+//			buttonbar.add(cancelButton);
+//			contentPane.add(labelbar, BorderLayout.NORTH);
+//			contentPane.add(progressPanel, BorderLayout.CENTER);
+//			contentPane.add(buttonbar, BorderLayout.SOUTH);
+//			FontSizer.setFonts(contentPane, FontSizer.getLevel());
+//			pack();
+//			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+//			int x = (dim.width - getBounds().width) / 2;
+//			int y = (dim.height - getBounds().height) / 2;
+//			setLocation(x, y);
+//			timer.start();
+//		}
+//
+//		@Override
+//		public void stop() {
+//			timer.stop();
+//		}
+//
+//		@Override
+//		public void restart() {
+//			monitor.setValue(0);
+//			frameCount = Integer.MIN_VALUE;
+//			// restart timer
+//			timer.start();
+//		}
+//
+//		@Override
+//		public void setProgressAsync(int progress) {
+//			monitor.setValue(progress);
+//		}
+//
+//		@Override
+//		public void setFrameCount(int count) {
+//			frameCount = count;
+//		}
+//
+//		@Override
+//		public int getFrameCount() {
+//			return frameCount;
+//		}
+//
+//		@Override
+//		public void close() {
+//			timer.stop();
+//			setVisible(false);
+//			TrackerIO.monitors.remove(this);
+//			dispose();
+//		}
+//
+//	}
 
 	/**
 	 * Transferable class for copying images to the system clipboard.

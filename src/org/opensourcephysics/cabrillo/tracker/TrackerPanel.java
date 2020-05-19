@@ -214,7 +214,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							}
 						}
 					});
-					TrackerIO.loadDataOrVideo(path, frame);
+					TrackerIO.addToLibraryIfTRZ(path, frame);
 					frame.setVisible(true);
 					if (frame.isIconified())
 						frame.setState(Frame.NORMAL);

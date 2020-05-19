@@ -2214,8 +2214,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			// private JComboBox trackDropdown, pointDropdown;
 			setFontLevel(trackDropdown);
 			setFontLevel(pointDropdown);
+			if (trackerPanel == null)
+				return;
 			refreshStrings(); // also resets label sizes
-			pack();
+//			pack();
 
 		}
 
@@ -3125,6 +3127,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		}
 
 		protected void refreshStringsAsync() {
+			if (trackerPanel == null)
+				return;
 			int n = trackerPanel.getFrameNumber();
 			FrameData frame = getFrame(n);
 			FrameData keyFrame = frame.getKeyFrame();
@@ -3309,8 +3313,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			refreshDropdowns();
 			refreshStrings();
 			refreshIcons();
-			refreshButtons();
-			refreshInfo();
+				refreshButtons();
+				refreshInfo();
 			refreshDrawingFlags();
 			pack();
 			if (textPaneSize == null)
