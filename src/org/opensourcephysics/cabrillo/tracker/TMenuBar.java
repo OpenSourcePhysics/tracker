@@ -2882,4 +2882,5 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			menubar.refresh(whereFrom);
 		}
 	}
+
 }

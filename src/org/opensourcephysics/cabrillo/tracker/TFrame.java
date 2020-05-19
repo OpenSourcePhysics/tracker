@@ -1387,7 +1387,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (!OSPRuntime.allowSetFonts)
 			return;
 		try {
-			super.setFontLevel(level);
+			super.setFontLevel(level);			
+			if (libraryBrowser != null) {
+				libraryBrowser.setFontLevel(level);
+			}
+			
 		} catch (Exception e) {
 		}
 		if (tabbedPane == null)

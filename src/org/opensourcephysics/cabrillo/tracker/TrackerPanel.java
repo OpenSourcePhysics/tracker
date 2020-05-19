@@ -2863,8 +2863,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (views == null)
 			return;
 		for (int i = 0, n = views.length; i < n; i++) {
-			for (int j = 0, nj = views[i].length; j < nj; j++) {
-				views[i][j].refresh();
+			if (views[i] != null) {
+				for (int j = 0, nj = views[i].length; j < nj; j++)
+					views[i][j].refresh();
 			}
 		}
 		TTrackBar trackbar = TTrackBar.getTrackbar(this);
@@ -2873,7 +2874,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		TToolBar.getToolbar(this).refresh(false);
 		// replace the menubar to get new accelerator fonts
 		// TMenuBar menubar =
-		TMenuBar.newMenuBar(frame, this);
+		
 		// select the correct fontSize menu radiobutton
 //		if (menubar.fontSizeGroup != null) {
 //			Enumeration<AbstractButton> e = menubar.fontSizeGroup.getElements();
