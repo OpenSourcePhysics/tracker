@@ -1298,47 +1298,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					openRecentAction = new AbstractAction() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							String path = e.getActionCommand();
-							URL url = null;
-							File file = new File(path);
-							if (!file.exists()) {
-								int n = path.indexOf("!"); //$NON-NLS-1$
-								if (n > -1) {
-									file = new File(path.substring(0, n));
-								}
-							}
-							if (!file.exists()) {
-								try {
-									url = new URL(e.getActionCommand());
-								} catch (MalformedURLException e1) {
-								}
-							}
-							if (!file.exists() && url == null) {
-								Tracker.recentFiles.remove(e.getActionCommand());
-								int n = getSelectedTab();
-								if (n > -1) {
-									TMenuBar.refreshMenus(getTrackerPanel(n),TMenuBar.REFRESH_TFRAME_OPENRECENT);
-								} else {
-									refreshOpenRecentMenu(recentMenu);
-								}
-								JOptionPane.showMessageDialog(TFrame.this,
-										TrackerRes.getString("TFrame.Dialog.FileNotFound.Message") //$NON-NLS-1$
-												+ "\n" + MediaRes.getString("VideoIO.Dialog.Label.Path") + ": " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-												+ e.getActionCommand(),
-										TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
-										JOptionPane.WARNING_MESSAGE);
-								return;
-							}
-							TrackerPanel selected = getTrackerPanel(getSelectedTab());
-							if (selected != null) {
-								selected.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-							}
-							TrackerIO.addToLibraryIfTRZ(path, TFrame.this);
-//	        	if (url!=null)
-//	        		TrackerIO.open(url, TFrame.this);
-//	        	else 
-//	        		TrackerIO.open(file, TFrame.this);
-							setCursor(Cursor.getDefaultCursor());
+							doRecentFiles(e.getActionCommand());
 						}
 					};
 				}
@@ -1354,6 +1314,44 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 			}
 		}
+	}
+
+	protected void doRecentFiles(String path) {
+		URL url = null;
+		File file = new File(path);
+		if (!file.exists()) {
+			int n = path.indexOf("!"); //$NON-NLS-1$
+			if (n >= 0 && !(file = new File(path.substring(0, n))).exists()) {
+				try {
+					url = new URL(path);
+				} catch (MalformedURLException e1) {
+				}
+			}
+		}
+		if (!file.exists() && url == null) {
+			Tracker.recentFiles.remove(path);
+			int n = getSelectedTab();
+			if (n > -1) {
+				TMenuBar.refreshMenus(getTrackerPanel(n), TMenuBar.REFRESH_TFRAME_OPENRECENT);
+			} else {
+				refreshOpenRecentMenu(recentMenu);
+			}
+			JOptionPane.showMessageDialog(TFrame.this, TrackerRes.getString("TFrame.Dialog.FileNotFound.Message") //$NON-NLS-1$
+					+ "\n" + MediaRes.getString("VideoIO.Dialog.Label.Path") + ": " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+					+ path, TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
+					JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		TrackerPanel selected = getTrackerPanel(getSelectedTab());
+		if (selected != null) {
+			selected.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		}
+		TrackerIO.open(path, TFrame.this);
+//		if (url!=null)
+//		TrackerIO.open(url, TFrame.this);
+//		else 
+//		TrackerIO.open(file, TFrame.this);
+		setCursor(Cursor.getDefaultCursor());
 	}
 
 	/**

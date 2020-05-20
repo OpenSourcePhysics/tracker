@@ -730,7 +730,7 @@ public class TrackerIO extends VideoIO {
 		}
 		final String path = url.toExternalForm();
 		OSPLog.debug("TrackerIO opening URL"); //$NON-NLS-1$
-		addToLibraryIfTRZ(path, frame);
+		open(path, frame);
 	}
 
 	/**
@@ -786,11 +786,16 @@ public class TrackerIO extends VideoIO {
 	 * @param path  the path
 	 * @param frame the frame for the TrackerPanel
 	 */
-	public static void addToLibraryIfTRZ(final String path, final TFrame frame) {
+	public static void open(final String path, final TFrame frame) {
 		frame.loadedFiles.clear();
-		// open in separate background thread if flagged
-		if (trzFileFilter.accept(new File(path), false))
-			addToLibrary(frame, path);
+        openTabPath(path, null, frame, null, null, trzFileFilter.accept(new File(path), false) ? new Runnable() {
+
+			@Override
+			public void run() {
+				addToLibrary(frame, path);
+			}
+        	
+        } : null);
 	}
 
 	private static void addToLibrary(TFrame frame, String path) {
