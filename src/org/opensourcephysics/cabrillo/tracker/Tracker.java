@@ -857,14 +857,16 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			aboutString += newline + TrackerRes.getString("Tracker.About.TrackerHome") //$NON-NLS-1$
 					+ newline + trackerHome + newline;
 		}
-		loadCurrentVersion(true, false);
-		if (newerVersion != null) {
-			aboutString += newline + TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
-					+ " " + newerVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
-					+ TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message2") //$NON-NLS-1$
-					+ newline + "https://" + trackerWebsite + newline; //$NON-NLS-1$
-		} else {
-			aboutString += newline + TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
+		if (!OSPRuntime.isJS) /** @j2sNative */ {
+			loadCurrentVersion(true, false);
+			if (newerVersion != null) {
+				aboutString += newline + TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
+						+ " " + newerVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
+						+ TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message2") //$NON-NLS-1$
+						+ newline + "https://" + trackerWebsite + newline; //$NON-NLS-1$
+			} else {
+				aboutString += newline + TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
+			}
 		}
 		JOptionPane.showMessageDialog(null, aboutString, TrackerRes.getString("Tracker.Dialog.AboutTracker.Title"), //$NON-NLS-1$
 				JOptionPane.INFORMATION_MESSAGE);
