@@ -60,7 +60,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -95,6 +94,8 @@ import org.opensourcephysics.tools.LaunchBuilder;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
+import javajs.async.AsyncFileChooser;
+
 /**
  * This displays html or plain text in one or more tabs.
  *
@@ -117,7 +118,7 @@ public class PageTView extends JPanel implements TView {
   protected Box.Filler filler = (Box.Filler)Box.createHorizontalGlue();
   protected Border titleBorder;
   protected boolean locked;
-private int myFontLevel;
+  private int myFontLevel;
   
   static {
   	XML.setLoader(TabView.class, new TabLoader());
@@ -391,20 +392,23 @@ public void propertyChange(PropertyChangeEvent e) {
         item = new JMenuItem(TrackerRes.getString("TextTView.MenuItem.OpenHTML")); //$NON-NLS-1$
         item.addActionListener(new ActionListener() {
           @Override
-		public void actionPerformed(ActionEvent e) {
-            JFileChooser chooser = LaunchBuilder.getHTMLChooser();
-            int result = chooser.showOpenDialog(trackerPanel);
-            if(result==JFileChooser.APPROVE_OPTION) {
-              File file = chooser.getSelectedFile();
-              TabView tab = getSelectedTab();
-              if (tab==null) {
-              	tab = new TabView(new TabData());
-              	addTab(tab);
-              }
-            	tab.setUndoableText(XML.getAbsolutePath(file));
-              refresh();
-              OSPRuntime.chooserDir = XML.getDirectoryPath(file.getPath());
-            }
+          public void actionPerformed(ActionEvent e) {
+          	AsyncFileChooser chooser = OSPRuntime.getChooser();
+        		chooser.setFileFilter(LaunchBuilder.getHTMLFilter());
+            chooser.showOpenDialog(trackerPanel, new Runnable() {
+            	@Override
+							public void run() {
+                File file = chooser.getSelectedFile();
+                TabView tab = getSelectedTab();
+                if (tab==null) {
+                	tab = new TabView(new TabData());
+                	addTab(tab);
+                }
+              	tab.setUndoableText(XML.getAbsolutePath(file));
+                refresh();
+                OSPRuntime.chooserDir = XML.getDirectoryPath(file.getPath());
+            	}
+            }, null);
           }
         });
         item.setEnabled(!locked);
@@ -549,15 +553,18 @@ public void propertyChange(PropertyChangeEvent e) {
 	    JMenuItem openItem = new JMenuItem(TrackerRes.getString("TextTView.MenuItem.OpenHTML")); //$NON-NLS-1$
 	    openItem.addActionListener(new ActionListener() {
 	      @Override
-		public void actionPerformed(ActionEvent e) {
-	        JFileChooser chooser = LaunchBuilder.getHTMLChooser();
-	        int result = chooser.showOpenDialog(trackerPanel);
-	        if(result==JFileChooser.APPROVE_OPTION) {
-	          File file = chooser.getSelectedFile();
-	        	tab.setUndoableText(XML.getAbsolutePath(file));
-	          refresh();
-	          OSPRuntime.chooserDir = XML.getDirectoryPath(file.getPath());
-	        }
+	      public void actionPerformed(ActionEvent e) {
+        	AsyncFileChooser chooser = OSPRuntime.getChooser();
+      		chooser.setFileFilter(LaunchBuilder.getHTMLFilter());
+          chooser.showOpenDialog(trackerPanel, new Runnable() {
+          	@Override
+						public void run() {
+  	          File file = chooser.getSelectedFile();
+  	        	tab.setUndoableText(XML.getAbsolutePath(file));
+  	          refresh();
+  	          OSPRuntime.chooserDir = XML.getDirectoryPath(file.getPath());
+          	}
+          }, null);
 	      }
 	    });
 	    openItem.setEnabled(!locked);
