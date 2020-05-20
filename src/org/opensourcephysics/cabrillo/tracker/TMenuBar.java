@@ -1868,27 +1868,23 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 			case REFRESH_TFRAME_LOCALE:
 			case REFRESH_TFRAME:
 			default:
-				OSPLog.debug("TMenuBar.refreshAll full rebuild");
+				OSPLog.debug(Performance.timeCheckStr("TMenuBar refreshAll full rebuild start", Performance.TIME_MARK));
 				if (OSPRuntime.isJS) {
 					// signals SwingJS that there is no need to do anything with the DOM during this
 					// process
 					// of rebuilding the menu.
 					OSPRuntime.jsutil.setUIEnabled(this, false);
 				}
-				// AysncSwingWorker here?
-				OSPLog.debug(Performance.timeCheckStr("refreshAll start", Performance.TIME_RESET));
-								refreshFileMenu();
-				OSPLog.debug(Performance.timeCheckStr("refreshAll File", Performance.TIME_MARK));
+				long t0 = Performance.now(0);
+				refreshFileMenu();
 				refreshEditMenu();
-				OSPLog.debug(Performance.timeCheckStr("refreshAll Edit", Performance.TIME_MARK));
 				refreshVideoMenu();
-				OSPLog.debug(Performance.timeCheckStr("refreshAll Video", Performance.TIME_MARK));
 				refreshCoordsMenu();
-				OSPLog.debug(Performance.timeCheckStr("refreshAll Coords", Performance.TIME_MARK));
 				refreshTrackMenu();
-				OSPLog.debug(Performance.timeCheckStr("refreshAll Track", Performance.TIME_MARK));
 				refreshHelpMenu();
-				OSPLog.debug(Performance.timeCheckStr("refreshAll Help", Performance.TIME_MARK));
+
+				OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar.refreshAll");
+				
 				
 				//FontSizer.setFonts(this, FontSizer.getLevel());
 				if (OSPRuntime.isJS) {

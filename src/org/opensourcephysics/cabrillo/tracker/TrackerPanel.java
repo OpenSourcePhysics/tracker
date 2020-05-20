@@ -3258,12 +3258,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected void dispose() {
 
 		long t0 = Performance.now(0);
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose start", Performance.TIME_RESET));
-
 		super.dispose();
 		
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose super", Performance.TIME_MARK));
-
 		refreshTimer.stop();
 		zoomTimer.stop();
 		refreshTimer = zoomTimer = null;
@@ -3293,20 +3289,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			removePropertyChangeListener(track);
 			track.removeListener(this);
 		}
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose removeListeners", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose removeListeners", Performance.TIME_MARK));
 
 		player.stop();
 		remove(player);
 		player = null;
 		
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose stop player", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose stop player", Performance.TIME_MARK));
 
 		// dispose of autotracker, modelbuilder, databuilder, other dialogs
 		if (autoTracker != null) {
 			autoTracker.dispose();
 			autoTracker = null;
 		}
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose autoTracker", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose autoTracker", Performance.TIME_MARK));
 		if (modelBuilder != null) {
 			modelBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this); 
 			modelBuilder.dispose();
@@ -3319,7 +3315,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			dataBuilder.dispose();
 			dataBuilder = null;
 		}
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose builders", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose builders", Performance.TIME_MARK));
 		if (attachmentDialog != null) {
 			attachmentDialog.dispose();
 			attachmentDialog = null;
@@ -3332,7 +3328,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			guestsDialog.dispose();
 			guestsDialog = null;
 		}
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose dialogs", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose dialogs", Performance.TIME_MARK));
 
 		PencilDrawer.dispose(this);
 		if (TFrame.haveExportDialog && ExportDataDialog.dataExporter != null && ExportDataDialog.dataExporter.trackerPanel == this) {
@@ -3349,7 +3345,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			ExportZipDialog.dispose(this);
 		
 		
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose export dialogs", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose export dialogs", Performance.TIME_MARK));
 
 		if (TFrame.haveThumbnailDialog && ThumbnailDialog.thumbnailDialog != null && ThumbnailDialog.thumbnailDialog.trackerPanel == this) {
 			ThumbnailDialog.thumbnailDialog.trackerPanel = null;
@@ -3363,12 +3359,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		matImage = null;
 		selectedSteps = null;
 		
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose number, thumbnail dialogs", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose number, thumbnail dialogs", Performance.TIME_MARK));
 
 
 		removeAll();
 		
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose removeall", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose removeall", Performance.TIME_MARK));
 
 		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.dispose");
 	}

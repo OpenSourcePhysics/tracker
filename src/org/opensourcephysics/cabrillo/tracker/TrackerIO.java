@@ -1713,24 +1713,31 @@ public class TrackerIO extends VideoIO {
 			
 			
 			frame.holdPainting(true);
-
-			OSPLog.debug("TrackerIO.asyncLoad " + path + " started");
+			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad start " + path, Performance.TIME_MARK));
 			t0 = Performance.now(0);
 		}
 
 		@Override
 		public int doInBackgroundAsync(int progress) {
+			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad " + type + " start " + progress + " " + path, Performance.TIME_MARK));
 			switch (type) {
 			case TYPE_ZIP:
-				return openTabPathZip(progress);
+				progress = openTabPathZip(progress);
+				break;
 			case TYPE_PANEL:
-				return openTabPathPanel(progress);
+				progress = openTabPathPanel(progress);
+				break;
 			case TYPE_FRAME:
-				return openTabPathFrame(progress);
+				progress = openTabPathFrame(progress);
+				break;
 			case TYPE_VIDEO:
-				return openTabPathVideo(progress);
+				progress = openTabPathVideo(progress);
+				break;
+			default:
+				return 100;
 			}
-			return 100;
+			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad " + type + " end " + progress + " " + path, Performance.TIME_MARK));
+			return progress;
 		}
 
 		@Override
@@ -2112,9 +2119,10 @@ public class TrackerIO extends VideoIO {
 			}
 			trackerPanel.changed = panelChanged;
 			frame.holdPainting(false);
-			OSPLog.debug("TrackerIO.asyncLoad " + path + " done");
+			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad done1 " + path, Performance.TIME_MARK));
 			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_DONELOADING_ + " " + type);
 			TTrackBar.refreshMemoryButton();
+			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad done2 " + path, Performance.TIME_MARK));
 			OSPLog.debug("!!! " + Performance.now(t0) + " AyncLoad " + path);
 
 			if (whenDone != null)

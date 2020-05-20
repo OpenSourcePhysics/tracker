@@ -112,6 +112,8 @@ import org.opensourcephysics.tools.Launcher;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
+import javajs.async.SwingJSUtils.Performance;
+
 /**
  * This is the default Tracker application.
  *
@@ -1794,6 +1796,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 * @param args array of tracker or video file names
 	 */
 	public static void main(String[] args) {
+
+		OSPLog.debug(Performance.timeCheckStr("Tracker.main start", Performance.TIME_RESET));
 
 		initClass();
 
