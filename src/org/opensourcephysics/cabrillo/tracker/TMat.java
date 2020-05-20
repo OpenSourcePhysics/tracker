@@ -215,10 +215,10 @@ public boolean isMeasured() {
     		h = dim.height;
     	}
     	else {
-        BufferedImage vidImage = video.getImage();
-        if (vidImage != null) {
-        	w = vidImage.getWidth();
-        	h = vidImage.getHeight();
+			Dimension d = video.getImageSize();
+        if (d.width > 0) {
+        	w = d.width;
+        	h = d.height;
         }
     	}
     }

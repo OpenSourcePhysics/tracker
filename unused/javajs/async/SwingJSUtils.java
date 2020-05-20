@@ -561,4 +561,77 @@ public class SwingJSUtils {
         return new BufferedInputStream(new ByteArrayInputStream(s.getBytes()));
 	}
 
+	public static class Performance {
+
+	  public final static int TIME_RESET = 0;
+
+	  public final static int TIME_MARK = 1;
+
+	  public static final int TIME_SET = 2;
+
+	  public static final int TIME_GET = 3;
+
+	  public static long time, mark, set, duration;
+
+	  /**
+	   * typical usage:
+	   * 
+	   * Performance.timeCheck(null, Platform.TIME_MARK);
+	   * 
+	   * ...
+	   * 
+	   * Performance.timeCheck("some message", Platform.TIME_MARK);
+	   * 
+	   * reset...[set/mark]n...get
+	   * 
+	   * @param msg
+	   * @param mode
+	   */
+	  public static void timeCheck(String msg, int mode)
+	  {
+	    long t = System.currentTimeMillis();
+	    switch (mode)
+	    {
+	    case TIME_RESET:
+	      time = mark = t;
+	      duration = 0;
+	      if (msg != null)
+	      {
+	        System.err.println("Platform: timer reset\t\t\t" + msg);
+	      }
+	      break;
+	    case TIME_MARK:
+	      if (set > 0)
+	      {
+	        // total time between set/mark points
+	        duration += (t - set);
+	      }
+	      else
+	      {
+	        if (time == 0)
+	        {
+	          time = mark = t;
+	        }
+	        if (msg != null)
+	        {
+	          System.err.println("Platform: timer mark\t" + ((t - time) / 1000f)
+	                  + "\t" + ((t - mark) / 1000f) + "\t" + msg);
+	        }
+	        mark = t;
+	      }
+	      break;
+	    case TIME_SET:
+	      set = t;
+	      break;
+	    case TIME_GET:
+	      if (msg != null)
+	      {
+	        System.err.println("Platform: timer get\t" + ((t - time) / 1000f)
+	                + "\t" + ((duration) / 1000f) + "\t" + msg);
+	      }
+	      set = 0;
+	      break;
+	    }
+	  }
+	}
 }

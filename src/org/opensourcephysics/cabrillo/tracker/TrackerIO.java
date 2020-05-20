@@ -788,14 +788,15 @@ public class TrackerIO extends VideoIO {
 	 */
 	public static void open(final String path, final TFrame frame) {
 		frame.loadedFiles.clear();
-        openTabPath(path, null, frame, null, null, trzFileFilter.accept(new File(path), false) ? new Runnable() {
+        openTabPath(path, null, frame, null, null, new Runnable() {
 
 			@Override
 			public void run() {
-				addToLibrary(frame, path);
+				if(trzFileFilter.accept(new File(path), false))
+					addToLibrary(frame, path);
 			}
         	
-        } : null);
+        });
 	}
 
 	private static void addToLibrary(TFrame frame, String path) {
@@ -804,7 +805,10 @@ public class TrackerIO extends VideoIO {
 		run ("addToLibrary", new Runnable() {
 			@Override
 			public void run() {
-				OSPLog.debug("TrackerIO addToLibrary " + path); //$NON-NLS-1$
+				OSPLog.debug("skipping TrackerIO addToLibrary " + path); //$NON-NLS-1$
+				
+				if (true) return;
+				
 				frame.getLibraryBrowser().open(path);
 //			      frame.getLibraryBrowser().setVisible(true); 
 				Timer timer = new Timer(1000, new ActionListener() {
@@ -1704,6 +1708,9 @@ public class TrackerIO extends VideoIO {
 			this.desktopFiles = desktopFiles;
 			this.whenDone = whenDone;
 			monitors.add(this);
+			frame.holdPainting(true);
+
+			OSPLog.debug("TrackerIO.asyncLoad " + path + " started");
 		}
 
 		@Override
@@ -1729,7 +1736,6 @@ public class TrackerIO extends VideoIO {
 		@Override
 		public void initAsync() {
 
-			OSPLog.finer("opening " + path); //$NON-NLS-1$
 			rawPath = path;
 			path = ResourceLoader.getURIPath(path);
 
@@ -1823,9 +1829,7 @@ public class TrackerIO extends VideoIO {
 				}
 			}
 
-			trackerPanel = (TrackerPanel) control.loadObject(trackerPanel);
-
-			trackerPanel.frame = frame;
+			trackerPanel = (TrackerPanel) control.loadObject(trackerPanel, (Object) frame);
 
 			// find page view files and add to TrackerPanel.pageViewFilePaths
 			findPageViewFiles(control, trackerPanel.pageViewFilePaths);
@@ -2100,9 +2104,11 @@ public class TrackerIO extends VideoIO {
 				path = XML.forwardSlash(xmlPath);
 				Tracker.addRecent(ResourceLoader.getNonURIPath(path), false); // add at beginning
 			}
+			trackerPanel.changed = panelChanged;
+			frame.holdPainting(false);
+			OSPLog.debug("TrackerIO.asyncLoad " + path + " done");
 			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_DONELOADING_ + " " + type);
 			TTrackBar.refreshMemoryButton();
-			trackerPanel.changed = panelChanged;
 			if (whenDone != null)
 				whenDone.run();
 		}
@@ -2110,6 +2116,7 @@ public class TrackerIO extends VideoIO {
 		@Override
 		public void stop() {
 			stopped = true;
+			frame.holdPainting(false);
 		}
 
 		@Override
@@ -2121,6 +2128,12 @@ public class TrackerIO extends VideoIO {
 		public void close() {
 			cancelAsync();
 			setProgress(100);
+		}
+		
+		@Override 
+		public void cancelAsync() {
+			super.cancelAsync();
+			frame.holdPainting(false);
 		}
 
 		@Override

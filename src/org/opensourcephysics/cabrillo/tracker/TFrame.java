@@ -32,6 +32,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
+import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -243,6 +244,39 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		addTab(trackerPanel, null);
 	}
 
+	/**
+	 * All repaints funnel through this method
+	 * 
+	 */
+	@Override
+	public void repaint(long time, int x, int y, int w, int h) {
+		if (!isVisible())
+			return;
+		OSPLog.debug("TFrame repaint");
+		// TFrame.addTab -> initialize -> TrackerPanel.addTrack -> fire(PROPERTY_TRACKERPANEL_TRACK) 
+		//   -> TViewChooser -> PlotTView -> TFrame.repaint();
+		
+		
+		// Window.resize -> BorderLayout.layoutContainer -> JRootPane.reshape -> TFrame.repaint()
+		
+		super.repaint(time, x, y, w, h);
+	}
+	
+	/**
+	 * Swing does not use this method. It's only for AWT.
+	 * 
+	 */
+	@Override
+	public void update(Graphics g) {
+		super.paint(g);
+	}
+
+	@Override
+	public void paint(Graphics g) {
+		// RepaintManager.paintDirtyRegions -> TFrame.paint(g)
+		super.paint(g);
+	}
+	
 	/**
 	 * Adds a tab that displays the specified tracker panel.
 	 *
@@ -1358,6 +1392,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Refreshes the GUI.
 	 */
 	public void refresh() {
+		clearHoldPainting();
 		int i = getSelectedTab();
 		if (i < 0)
 			return;
@@ -2628,4 +2663,41 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		});
 	}
 
+	/**
+	 * a nonnegative number; when 0 we are painting; when positive, some operation
+	 * is holding repaints
+	 * 
+	 */
+	private int paintHold = 0;
+	
+	/**
+	 * Increment/decrement the paintHold counter. Will not decrement below 0.
+	 *  
+	 * @param b true to increment the counter; false to decrement
+	 * 
+	 */
+	public void holdPainting(boolean b) {
+		paintHold += (b ? 1 : paintHold > 0 ? -1 : 0);
+		OSPLog.debug("TFrame.paintHold=" + paintHold);
+		if (b || paintHold == 0)
+			tabbedPane.setVisible(!b);
+	}
+
+	/**
+	 * check the paintHold counter
+	 * 
+	 * @return true if paintHold is zero
+	 * 
+	 */
+	public boolean isPainting() {
+		return paintHold == 0;
+	}
+	
+	/**
+	 * For emergency use only!
+	 * 
+	 */
+	public void clearHoldPainting() {
+		paintHold = 0;
+	}
 }

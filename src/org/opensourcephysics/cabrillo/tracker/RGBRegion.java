@@ -777,10 +777,7 @@ public ArrayList<Component> getToolbarPointComponents(TrackerPanel trackerPanel,
 public void propertyChange(PropertyChangeEvent e) {
   	if (trackerPanel != null) {
       if (maxRadius==defaultMaxRadius && trackerPanel.getVideo()!=null) {
-     		BufferedImage image = trackerPanel.getVideo().getImage();
-      	maxRadius = image.getHeight()/2;
-      	maxRadius = Math.min(maxRadius, image.getWidth()/2);
-      	maxRadius -= 1;
+    	  setMaxRadius(trackerPanel.getVideo());
       }
       String name = e.getPropertyName();
       if (name.equals("stepnumber")) { //$NON-NLS-1$
@@ -807,10 +804,7 @@ public void propertyChange(PropertyChangeEvent e) {
       		clearData();
       	else dataHidden = false;
       	if (vid!=null) {
-      		BufferedImage image = vid.getImage();
-        	maxRadius = image.getHeight()/2;
-        	maxRadius = Math.min(maxRadius, image.getWidth()/2);
-        	maxRadius -= 1;
+      		setMaxRadius(vid);
       	}
         support.firePropertyChange(e); // to views
       }
@@ -818,7 +812,12 @@ public void propertyChange(PropertyChangeEvent e) {
     super.propertyChange(e); // handled by TTrack
   }
 
-  /**
+	private void setMaxRadius(Video video) {
+		Dimension d = video.getImageSize();
+		maxRadius = Math.min(d.height / 2, d.width / 2) - 1;
+	}
+
+/**
    * Overrides Object toString method.
    *
    * @return the name of this track

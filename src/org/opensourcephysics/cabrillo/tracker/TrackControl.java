@@ -127,8 +127,10 @@ private int myFontLevel;
 		if (!positioned && vis) {
 			if (frame.isVisible()) {
 				MainTView view = frame.getMainView(trackerPanel);
-				Point p = view.getLocationOnScreen();
-		    setLocation(p.x, p.y);
+				if (view.isDisplayable()) { // BH added; otherwise p is null
+					Point p = view.getLocationOnScreen();
+					setLocation(p.x, p.y);
+				}
 		    positioned = true;
 			}
 			else return;

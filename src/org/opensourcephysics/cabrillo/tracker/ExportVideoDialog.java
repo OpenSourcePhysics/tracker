@@ -467,8 +467,10 @@ public class ExportVideoDialog extends JDialog {
 		if (view==trackerPanel) {
 	  	int contentIndex = contentDropdown.getSelectedIndex();
 			if (contentIndex==1 || contentIndex==3) { // video only or deinterlaced video
-				BufferedImage image = trackerPanel.getVideo().getImage();
-				fullSize = getAcceptedDimension(image.getWidth(), image.getHeight());
+				Dimension d = trackerPanel.getVideo().getImageSize();
+				int w = d.width;
+				int h = d.height;
+				fullSize = getAcceptedDimension(w, h);
 	  		s = fullSize.width+"x"+fullSize.height; //$NON-NLS-1$
 	  		s += " ("+TrackerRes.getString("ExportVideoDialog.VideoSize")+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  		sizeDropdown.addItem(s);

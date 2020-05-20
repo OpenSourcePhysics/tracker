@@ -57,7 +57,7 @@ public class TRegion extends Polygon {
     width = image.getWidth();
     height = image.getHeight();
     pixels = new int[width * height];
-    OSPRuntime.getRaster(image).getDataElements(0, 0, width, height, pixels);
+    image.getRaster().getDataElements(0, 0, width, height, pixels);
     this.x0 = x0;
     this.y0 = y0;
     findEdge();

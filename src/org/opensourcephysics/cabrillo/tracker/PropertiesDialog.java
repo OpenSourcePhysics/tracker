@@ -192,7 +192,10 @@ public class PropertiesDialog extends JDialog {
 		    	if (video instanceof MovieVideoI)
 		    		type += "(Xuggle)"; //$NON-NLS-1$
 		    }
-		    size = video.getImage().getWidth()+" x "+video.getImage().getHeight(); //$NON-NLS-1$
+			Dimension d = video.getImageSize();
+			int w = d.width;
+			int h = d.height;
+		    size = w +" x " + h; //$NON-NLS-1$
 		    length = video.getFrameCount()+" "; //$NON-NLS-1$
 		    length += TrackerRes.getString("TActions.Dialog.AboutVideo.Frames"); //$NON-NLS-1$
 //		    double duration = video.getDuration()/1000.0;

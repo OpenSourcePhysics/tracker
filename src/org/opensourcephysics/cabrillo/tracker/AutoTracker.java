@@ -555,13 +555,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		}
 		if (success) {
 			// make sure prediction is within the video image
-			BufferedImage image = trackerPanel.getVideo().getImage();
-			int w = image.getWidth();
-			int h = image.getHeight();
+			Dimension d = trackerPanel.getVideo().getImageSize();
 			predictedTarget.x = Math.max(predictedTarget.x, 0);
-			predictedTarget.x = Math.min(predictedTarget.x, w);
+			predictedTarget.x = Math.min(predictedTarget.x, d.width);
 			predictedTarget.y = Math.max(predictedTarget.y, 0);
-			predictedTarget.y = Math.min(predictedTarget.y, h);
+			predictedTarget.y = Math.min(predictedTarget.y, d.height);
 			return predictedTarget;
 		}
 		return null;
@@ -761,9 +759,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	protected void setSearchPoints(TPoint center, TPoint corner) {
 		if (corner == null) {
 			// make sure search rectangle is within the video image
-			BufferedImage image = trackerPanel.getVideo().getImage();
-			int w = image.getWidth();
-			int h = image.getHeight();
+			Dimension d = trackerPanel.getVideo().getImageSize();
+			int w = d.width;
+			int h = d.height;
 			int setbackX = searchRect2D.getBounds().width / 2;
 			int setbackY = searchRect2D.getBounds().height / 2;
 			center.x = Math.max(center.x, setbackX);
@@ -1583,9 +1581,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 	protected boolean moveRectIntoImage(Rectangle2D searchRect) {
 		// if needed, modify search rectangle to keep it within the video image
-		BufferedImage image = trackerPanel.getVideo().getImage();
-		int w = image.getWidth();
-		int h = image.getHeight();
+		Dimension d = trackerPanel.getVideo().getImageSize();
+		int w = d.width;
+		int h = d.height;
 		Point2D corner = new Point2D.Double(searchRect.getX(), searchRect.getY());
 		Dimension dim = new Dimension((int) searchRect.getWidth(), (int) searchRect.getHeight());
 

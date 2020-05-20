@@ -125,7 +125,10 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 
 	protected boolean isRefreshEnabled() {
 
-		return Tracker.allowDataRefresh && trackerPanel.getAutoRefresh() && parent.isTrackViewDisplayed(getTrack());
+		return Tracker.allowDataRefresh 
+				&& trackerPanel.getAutoRefresh() 
+				&& trackerPanel.frame.isPainting()
+				&& parent.isTrackViewDisplayed(getTrack());
 	}
 
 }

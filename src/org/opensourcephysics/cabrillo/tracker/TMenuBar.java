@@ -1798,8 +1798,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	 * @param whereFrom 
 	 */
 	protected void refresh(String whereFrom) {
-		if (!allowRefresh)
+		if (!allowRefresh || getFrame() != null && !frame.isPainting()) {
+			OSPLog.debug("TMenuBar.refresh skipping " + whereFrom );
 			return;
+		}
 		OSPRuntime.postEvent(new Runnable() {
 			@Override
 			public synchronized void run() {
@@ -1832,7 +1834,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	
 	protected void refreshAll(String whereFrom) {
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
-		OSPLog.debug("TMenuBar.refresh - rebuilding TMenuBar " + whereFrom + " " + Tracker.allowMenuRefresh);
+		OSPLog.debug("TMenuBar.refreshAll - rebuilding TMenuBar "
+		+ whereFrom + " haveFrame=" + (frame != null));
 		if (!Tracker.allowMenuRefresh)
 			return;
 		refreshing = true; // signals listeners that items are being refreshed
@@ -2742,8 +2745,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		int vidWidth = 1;
 		int vidHeight = 1;
 		if (video != null) {
-			vidWidth = video.getImage().getWidth();
-			vidHeight = video.getImage().getHeight();
+			Dimension d = trackerPanel.getVideo().getImageSize();
+			vidWidth = d.width;
+			vidHeight = d.height;
 			String s = TrackerRes.getString("TMenuBar.Menu.Video"); //$NON-NLS-1$
 			String description = " (" + s.toLowerCase() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 			edit_matsize_videoSizeItem.setText(vidWidth + "x" + vidHeight + description); //$NON-NLS-1$
@@ -2879,6 +2883,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	public static void refreshMenus(TrackerPanel trackerPanel, String whereFrom) {
 		TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
 		if (menubar != null) {
+			menubar.frame = trackerPanel.getTFrame();
 			menubar.refresh(whereFrom);
 		}
 	}

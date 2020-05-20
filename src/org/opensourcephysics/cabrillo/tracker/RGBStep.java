@@ -272,7 +272,7 @@ public String toString() {
 	        int[] pixels = new int[h*w];
 	        int n = 0, r = 0, g = 0, b = 0;
 	        // fill pixels array with pixel data
-	        OSPRuntime.getRaster(image).getDataElements(x0, y0, w, h, pixels);
+	        image.getRaster().getDataElements(x0, y0, w, h, pixels);
 	        // step thru pixels horizontally
 	        for (int i = 0; i < w; i++) {
 	          // step vertically
