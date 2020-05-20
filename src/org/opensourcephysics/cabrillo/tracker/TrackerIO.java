@@ -103,6 +103,7 @@ import org.opensourcephysics.tools.ResourceLoader;
 
 import javajs.async.AsyncFileChooser;
 import javajs.async.AsyncSwingWorker;
+import javajs.async.SwingJSUtils.Performance;
 
 /**
  * This provides static methods for managing video and text input/output.
@@ -1696,6 +1697,7 @@ public class TrackerIO extends VideoIO {
 		private String name;
 		private String title;    // BH TODO
 		private boolean stopped; // BH TODO
+		private long t0;
 
 		public AsyncLoad(String path, TrackerPanel existingPanel, TFrame frame, VideoType vidType,
 				ArrayList<String> desktopFiles, Runnable whenDone) {
@@ -1708,9 +1710,12 @@ public class TrackerIO extends VideoIO {
 			this.desktopFiles = desktopFiles;
 			this.whenDone = whenDone;
 			monitors.add(this);
+			
+			
 			frame.holdPainting(true);
 
 			OSPLog.debug("TrackerIO.asyncLoad " + path + " started");
+			t0 = Performance.now(0);
 		}
 
 		@Override
@@ -1736,6 +1741,7 @@ public class TrackerIO extends VideoIO {
 		@Override
 		public void initAsync() {
 
+			
 			rawPath = path;
 			path = ResourceLoader.getURIPath(path);
 
@@ -2109,6 +2115,8 @@ public class TrackerIO extends VideoIO {
 			OSPLog.debug("TrackerIO.asyncLoad " + path + " done");
 			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_DONELOADING_ + " " + type);
 			TTrackBar.refreshMemoryButton();
+			OSPLog.debug("!!! " + Performance.now(t0) + " AyncLoad " + path);
+
 			if (whenDone != null)
 				whenDone.run();
 		}

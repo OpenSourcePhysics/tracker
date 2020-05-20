@@ -131,6 +131,7 @@ import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
+import javajs.async.SwingJSUtils.Performance;
 import javajs.async.SwingJSUtils.StateHelper;
 import javajs.async.SwingJSUtils.StateMachine;
 
@@ -455,6 +456,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param trackerPanel the tracker panel
 	 */
 	public void removeTab(TrackerPanel trackerPanel) {
+		OSPLog.debug(Performance.timeCheckStr("TrackIO.removeTab start", Performance.TIME_GET));
+
 		int tab = getTab(trackerPanel);
 		if (tab == -1)
 			return; // tab doesn't exist
@@ -577,6 +580,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			refreshOpenRecentMenu(recentMenu);
 			setJMenuBar(defaultMenuBar);
 		}
+		
+		OSPLog.debug(Performance.timeCheckStr("TrackIO.removeTab end", Performance.TIME_GET));
+
 	}
 
 	/**

@@ -91,6 +91,9 @@ import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 
+import javajs.async.SwingJSUtils;
+import javajs.async.SwingJSUtils.Performance;
+
 /**
  * This is the main menu for Tracker.
  *
@@ -1873,12 +1876,19 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 					OSPRuntime.jsutil.setUIEnabled(this, false);
 				}
 				// AysncSwingWorker here?
-				refreshFileMenu();
+				OSPLog.debug(Performance.timeCheckStr("refreshAll start", Performance.TIME_RESET));
+								refreshFileMenu();
+				OSPLog.debug(Performance.timeCheckStr("refreshAll File", Performance.TIME_MARK));
 				refreshEditMenu();
+				OSPLog.debug(Performance.timeCheckStr("refreshAll Edit", Performance.TIME_MARK));
 				refreshVideoMenu();
+				OSPLog.debug(Performance.timeCheckStr("refreshAll Video", Performance.TIME_MARK));
 				refreshCoordsMenu();
+				OSPLog.debug(Performance.timeCheckStr("refreshAll Coords", Performance.TIME_MARK));
 				refreshTrackMenu();
+				OSPLog.debug(Performance.timeCheckStr("refreshAll Track", Performance.TIME_MARK));
 				refreshHelpMenu();
+				OSPLog.debug(Performance.timeCheckStr("refreshAll Help", Performance.TIME_MARK));
 				
 				//FontSizer.setFonts(this, FontSizer.getLevel());
 				if (OSPRuntime.isJS) {

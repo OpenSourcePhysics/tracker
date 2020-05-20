@@ -130,6 +130,8 @@ import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.VideoCaptureTool;
 
+import javajs.async.SwingJSUtils.Performance;
+
 /**
  * This extends VideoPanel to manage and draw TTracks. It is Tracker's main view
  * and repository of a video and its associated tracks.
@@ -3255,7 +3257,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	protected void dispose() {
 
+		long t0 = Performance.now(0);
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose start", Performance.TIME_RESET));
+
 		super.dispose();
+		
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose super", Performance.TIME_MARK));
+
 		refreshTimer.stop();
 		zoomTimer.stop();
 		refreshTimer = zoomTimer = null;
@@ -3278,21 +3286,27 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		clipControl.removePropertyChangeListener(player);
 		player.removeActionListener(this);
 		player.removeFrameListener(this);
-		player.stop();
-		remove(player);
-		player = null;
 		coords.removePropertyChangeListener(this);
-		coords = null;
+		coords = null;		
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack track = TTrack.activeTracks.get(n);
 			removePropertyChangeListener(track);
 			track.removeListener(this);
 		}
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose removeListeners", Performance.TIME_MARK));
+
+		player.stop();
+		remove(player);
+		player = null;
+		
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose stop player", Performance.TIME_MARK));
+
 		// dispose of autotracker, modelbuilder, databuilder, other dialogs
 		if (autoTracker != null) {
 			autoTracker.dispose();
 			autoTracker = null;
 		}
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose autoTracker", Performance.TIME_MARK));
 		if (modelBuilder != null) {
 			modelBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this); 
 			modelBuilder.dispose();
@@ -3305,6 +3319,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			dataBuilder.dispose();
 			dataBuilder = null;
 		}
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose builders", Performance.TIME_MARK));
 		if (attachmentDialog != null) {
 			attachmentDialog.dispose();
 			attachmentDialog = null;
@@ -3317,6 +3332,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			guestsDialog.dispose();
 			guestsDialog = null;
 		}
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose dialogs", Performance.TIME_MARK));
+
 		PencilDrawer.dispose(this);
 		if (TFrame.haveExportDialog && ExportDataDialog.dataExporter != null && ExportDataDialog.dataExporter.trackerPanel == this) {
 			ExportDataDialog.dataExporter.trackerPanel = null;
@@ -3328,11 +3345,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			ExportVideoDialog.videoExporter.trackerPanel = null;
 			ExportVideoDialog.videoExporter.views.clear();
 		}
+		if (TFrame.haveExportDialog)
+			ExportZipDialog.dispose(this);
+		
+		
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose export dialogs", Performance.TIME_MARK));
+
 		if (TFrame.haveThumbnailDialog && ThumbnailDialog.thumbnailDialog != null && ThumbnailDialog.thumbnailDialog.trackerPanel == this) {
 			ThumbnailDialog.thumbnailDialog.trackerPanel = null;
 		}
-		if (TFrame.haveExportDialog)
-			ExportZipDialog.dispose(this);
+
 		NumberFormatDialog.dispose(this);
 		filterClasses.clear();
 		selectingPanel = null;
@@ -3340,7 +3362,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		renderedImage = null;
 		matImage = null;
 		selectedSteps = null;
+		
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose number, thumbnail dialogs", Performance.TIME_MARK));
+
+
 		removeAll();
+		
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose removeall", Performance.TIME_MARK));
+
+		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.dispose");
 	}
 
 	/**
