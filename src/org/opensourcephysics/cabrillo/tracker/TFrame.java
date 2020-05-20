@@ -2398,23 +2398,31 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					res = ResourceLoader.getResource(file.getPath());
 				}
 				if (res == null) {
-					int i = JOptionPane.showConfirmDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
-							+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message"), //$NON-NLS-1$
-							TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
-							JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-					if (i == JOptionPane.YES_OPTION) {
-						TrackerIO.getChooser().setSelectedFile(file);
-						java.io.File[] files = TrackerIO.getChooserFiles("open"); //$NON-NLS-1$
-						if (files != null) {
-							file = files[0];
+					if (OSPRuntime.isJS) {
+						JOptionPane.showMessageDialog(frame, 
+						"\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
+						+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message")); //$NON-NLS-1$
+						continue;
+					} else /** @j2sNative */ {
+						int i = JOptionPane.showConfirmDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
+								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message"), //$NON-NLS-1$
+								TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
+								JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+						if (i == JOptionPane.YES_OPTION) {
+							TrackerIO.getChooser().setSelectedFile(file);
+							@SuppressWarnings("deprecation")
+							java.io.File[] files = TrackerIO.getChooserFiles("open"); //$NON-NLS-1$
+							if (files != null) {
+								file = files[0];
+							} else {
+								continue;
+							}
 						} else {
 							continue;
 						}
-					} else {
-						continue;
 					}
 				}
-				// BH but if the file is set in the prev block, res is still null. So this will
+				// BH! but if the file is set in the prev block, res is still null. So this will
 				// not work?
 				if (res != null && !videoFilter.accept(file)) {
 					if (dataFile == null)

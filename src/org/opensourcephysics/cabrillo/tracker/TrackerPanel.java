@@ -128,7 +128,6 @@ import org.opensourcephysics.tools.LocalJob;
 import org.opensourcephysics.tools.ParamEditor;
 import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.ResourceLoader;
-import org.opensourcephysics.tools.ToolsRes;
 import org.opensourcephysics.tools.VideoCaptureTool;
 
 /**
@@ -3253,6 +3252,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Disposes of this panel
 	 */
+	@Override
 	protected void dispose() {
 
 		super.dispose();

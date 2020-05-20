@@ -1690,8 +1690,8 @@ public class TrackerIO extends VideoIO {
 		private int type = TYPE_UNK;
 		private int frameCount;
 		private String name;
-		private String title;
-		private boolean stopped;
+		private String title;    // BH TODO
+		private boolean stopped; // BH TODO
 
 		public AsyncLoad(String path, TrackerPanel existingPanel, TFrame frame, VideoType vidType,
 				ArrayList<String> desktopFiles, Runnable whenDone) {
