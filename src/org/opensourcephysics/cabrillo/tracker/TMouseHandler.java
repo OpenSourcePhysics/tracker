@@ -103,8 +103,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
 		Component focusOwner = focuser.getFocusOwner();
 		// BH! Do we always have to do this?
 		
-		AutoTracker autoTracker = trackerPanel.getAutoTracker(true);
-		if (autoTracker.getTrack() == null)
+		AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
+		if (autoTracker !=null && autoTracker.getTrack() == null)
 			autoTracker.setTrack(trackerPanel.getSelectedTrack());
 
 		switch (trackerPanel.getMouseAction()) {
@@ -123,7 +123,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				iad = null;
 			}
 			if (selectedTrack != null) {
-				if (autoTracker.getWizard().isVisible() && autoTracker.getTrack() == selectedTrack) {
+				if (autoTracker != null && autoTracker.getWizard().isVisible() && autoTracker.getTrack() == selectedTrack) {
 					Step step = selectedTrack.getStep(frameNumber);
 					if (step != null) {
 						selectedTrack.repaint(step);
@@ -195,6 +195,11 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					TPoint target = step.getPoints()[index];
 					// remark step target if Axes/Tape/Protractor/Perspective selected and no
 					// keyframe exists
+					// make sure autoTracker is instantiated at this point
+					if (autoTracker==null) {
+						autoTracker = trackerPanel.getAutoTracker(true);
+						autoTracker.setTrack(trackerPanel.getSelectedTrack());
+					}
 					if (selectedTrack instanceof CoordAxes || selectedTrack instanceof TapeMeasure
 							|| selectedTrack instanceof PerspectiveTrack || selectedTrack instanceof Protractor) {
 						if (autoTracker.getTrack() == selectedTrack) {
@@ -217,7 +222,9 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				}
 
 				selectedTrack.setTargetIndex(nextIndex);
-				autoTracker.getWizard().refreshGUI();
+				if (autoTracker != null && autoTracker.getWizard().isVisible()) {
+					autoTracker.getWizard().refreshGUI();
+				}
 			} else if (iad instanceof TPoint) {
 				// select a clicked TPoint
 				p = (TPoint) iad;
@@ -418,6 +425,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
   }
 
   protected AutoTracker.KeyFrame getActiveKeyFrame(AutoTracker autoTracker) {
+  	if (autoTracker==null) return null;
 		if (selectedTrack!=null && autoTracker.getWizard().isVisible()
 				&& autoTracker.getTrack()==selectedTrack) {
   		AutoTracker.FrameData frame = autoTracker.getFrame(frameNumber);
