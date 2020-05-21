@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dialog;
@@ -41,7 +40,6 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ContainerEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -122,8 +120,6 @@ import org.opensourcephysics.tools.DataToolTab;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
-import org.opensourcephysics.tools.LaunchNode;
-import org.opensourcephysics.tools.Launcher;
 import org.opensourcephysics.tools.LocalJob;
 import org.opensourcephysics.tools.ParamEditor;
 import org.opensourcephysics.tools.Parameter;
@@ -161,73 +157,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final String PROPERTY_TRACKERPANEL_RADIANANGLES = TFrame.PROPERTY_TFRAME_RADIANANGLES;
 	public static final String PROPERTY_TRACKERPANEL_TAB = "tab";
 
-	/**
-	 * BH a class to start Tracker asynchronously from main
-	 * 
-	 * @author hansonr
-	 *
-	 */
-	static class TrackerPanelMainStarter {
-
-		private Tracker tracker;
-
-		TrackerPanelMainStarter(String path, Frame launcherFrame) {
-//	    Tracker.updateResources();
-			// get the shared tracker and add tabs
-			tracker = Tracker.getTracker(new Runnable() {
-
-				@Override
-				public void run() {
-					final TFrame frame = tracker.getFrame();
-					final LaunchNode node = Launcher.activeNode;
-					frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, new PropertyChangeListener() { 
-						@Override
-						public void propertyChange(PropertyChangeEvent e) {
-							TrackerPanel trackerPanel = (TrackerPanel) e.getNewValue();
-							if (trackerPanel.defaultFileName.equals(XML.getName(path))) {
-								frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
-								frame.showTrackControl(trackerPanel);
-								frame.showNotes(trackerPanel);
-								frame.refresh();
-								final int n = frame.getTab(trackerPanel);
-								// set up the LaunchNode action and listener
-								if (node != null) {
-									final Action action = new javax.swing.AbstractAction() {
-										@Override
-										public void actionPerformed(ActionEvent e) {
-											TrackerPanel trackerPanel = frame.getTrackerPanel(n);
-											frame.removeTab(trackerPanel);
-											if (frame.getTabCount() == 0)
-												frame.setVisible(false);
-										}
-									};
-									node.addTerminateAction(action);
-									frame.tabbedPane.addContainerListener(new java.awt.event.ContainerAdapter() {
-										@Override
-										public void componentRemoved(ContainerEvent e) {
-											Component tab = frame.tabbedPane.getComponentAt(n);
-											if (e.getChild() == tab) {
-												node.terminate(action);
-											}
-										}
-									});
-								}
-							}
-						}
-					});
-					TrackerIO.open(path, frame);
-					frame.setVisible(true);
-					if (frame.isIconified())
-						frame.setState(Frame.NORMAL);
-					if (launcherFrame != null)
-						launcherFrame.setCursor(Cursor.getDefaultCursor());
-				}
-
-			});
-
-		}
-
-	}
 
 // static fields
 	/** The minimum zoom level */
@@ -2974,31 +2903,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	public void finalize() {
 		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
-	}
-
-	/**
-	 * Main entry point when used as application. Note: only args[0] is read.
-	 *
-	 * @param args args[0] may be an xml file
-	 */
-	public static void main(String[] args) {
-		// if no argument, pass call to Tracker
-		if (args == null || args.length == 0) {
-			Tracker.main(args);
-			return;
-		}
-
-		Frame launcherFrame = null;
-		Frame[] frames = Frame.getFrames();
-		for (int i = 0, n = frames.length; i < n; i++) {
-			if (frames[i].getName().equals("LauncherTool")) { //$NON-NLS-1$
-				launcherFrame = frames[i];
-				break;
-			}
-		}
-		if (launcherFrame != null)
-			launcherFrame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		new TrackerPanelMainStarter(args[0], launcherFrame);
 	}
 
 	protected void addCalibrationTool(String name, TTrack tool) {
