@@ -2316,7 +2316,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				}
 			};
 
-			int delay = 500; // 1/2 second delay for mouseover action
+			int delay = 100; // 100ms delay for mouseover action
 			timer = new Timer(delay, new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -2324,9 +2324,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					refreshDrawingFlags();
 					erase();
 					trackerPanel.repaint();
+					OSPLog.debug("pig timer ");
 				}
 			});
 			timer.setInitialDelay(delay);
+			timer.setRepeats(false);
 
 			mouseOverListener = new MouseAdapter() {
 				@Override
