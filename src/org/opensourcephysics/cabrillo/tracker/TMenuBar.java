@@ -39,8 +39,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
@@ -85,13 +83,13 @@ import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.mov.SmoothPlayable;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 
-import javajs.async.SwingJSUtils;
 import javajs.async.SwingJSUtils.Performance;
 
 /**
@@ -317,24 +315,24 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		if (panel == null || panel == trackerPanel)
 			return;
 		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener("locked", this); //$NON-NLS-1$
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
-			trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
-			trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
-			trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
-			trackerPanel.removePropertyChangeListener("size", this); //$NON-NLS-1$
-			trackerPanel.removePropertyChangeListener("datafile", this); //$NON-NLS-1$
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOCKED, this); 
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); 
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); 
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); 
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); 
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); 
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SIZE, this); 
+			trackerPanel.removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); 
 		}
 		trackerPanel = panel;
-		trackerPanel.addPropertyChangeListener("locked", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("size", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("datafile", this); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOCKED, this); 
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); 
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); 
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); 
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); 
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); 
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SIZE, this); 
+		trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); 
 	}
 
 	/**
@@ -343,7 +341,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	protected void createGUI() {
 		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 		// file menu
-		fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File")); //$NON-NLS-1$
+		fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File")); 
 		add(fileMenu);
 		fileMenu.addMenuListener(new MenuListener() {
 			
@@ -375,7 +373,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		});
 		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
 			// new tab item
-			file_newTabItem = new JMenuItem(actions.get("newTab")); //$NON-NLS-1$
+			file_newTabItem = new JMenuItem(actions.get("newTab")); 
 			file_newTabItem.setAccelerator(KeyStroke.getKeyStroke('N', keyMask));
 			fileMenu.addSeparator();
 			// open item
@@ -2669,14 +2667,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
-		case "selectedtrack": // selected track has changed //$NON-NLS-1$
-		case "datafile": // datafile has changed //$NON-NLS-1$
-		case "selectedpoint": // selected point has changed //$NON-NLS-1$
-		case "video": // video has changed //$NON-NLS-1$
-		case "size": // image size has changed //$NON-NLS-1$
-		case "locked": // track or coords locked/unlocked //$NON-NLS-1$
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK: // selected track has changed //$NON-NLS-1$
+		case VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE: // datafile has changed //$NON-NLS-1$
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT: // selected point has changed //$NON-NLS-1$
+		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO: // video has changed //$NON-NLS-1$
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SIZE: // image size has changed //$NON-NLS-1$
+		case TrackerPanel.PROPERTY_TRACKERPANEL_LOCKED: // track or coords locked/unlocked //$NON-NLS-1$
 			break;
-		case "filter": // filter has been added or removed //$NON-NLS-1$
+		case FilterStack.PROPERTY_FILTER_FILTER: // filter has been added or removed //$NON-NLS-1$
 			if (refreshing) {
 				return;
 			}
@@ -2689,14 +2687,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK: // track has been added or removed //$NON-NLS-1$
 			if (e.getOldValue() instanceof TTrack) { // track has been removed
 				TTrack track = (TTrack) e.getOldValue();
-				track.removePropertyChangeListener("locked", this); //$NON-NLS-1$
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); //$NON-NLS-1$
 				trackerPanel.setSelectedTrack(null);
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR: // tracks have been cleared //$NON-NLS-1$
 			for (Integer n : TTrack.activeTracks.keySet()) {
 				TTrack track = TTrack.activeTracks.get(n);
-				track.removePropertyChangeListener("locked", this); //$NON-NLS-1$
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); //$NON-NLS-1$
 			}
 			break;
 		default:

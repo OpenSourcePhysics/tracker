@@ -1045,6 +1045,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public synchronized void clear() {
+		long t0 = Performance.now(0);
 		setSelectedTrack(null);
 		selectedPoint = null;
 		ArrayList<TTrack> list = getTracks();
@@ -1073,13 +1074,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			modelBuilder.setVisible(false);
 		}
 		// notify views and other listeners
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.clear fire CLEAR0", Performance.TIME_MARK));
 		firePropertyChange(PROPERTY_TRACKERPANEL_CLEAR, null, null); 
+		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.clear fire CLEAR1", Performance.TIME_MARK));
 		// remove tracks from TTrack.activeTracks
 		for (int it = 0, n = list.size(); it < n; it++) {
 			TTrack track = list.get(it);
 			TTrack.activeTracks.remove(track.getID());
 		}
 		changed = true;
+		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.clear");
 	}
 
 	/**
