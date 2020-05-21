@@ -3543,9 +3543,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			}
 			// data functions and constants
 			track.constantsLoadedFromXML = (Object[][]) control.getObject("constants"); //$NON-NLS-1$
-			Iterator<Object> it = control.getPropertyContent().iterator();
+			Iterator<XMLProperty> it = control.getPropsRaw().iterator();
 			while (it.hasNext()) {
-				XMLProperty prop = (XMLProperty) it.next();
+				XMLProperty prop = it.next();
 				if (prop.getPropertyName().equals("data_functions")) { //$NON-NLS-1$
 					track.dataProp = prop;
 				}

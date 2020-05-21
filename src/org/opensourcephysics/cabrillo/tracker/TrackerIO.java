@@ -1214,9 +1214,9 @@ public class TrackerIO extends VideoIO {
 			names.add(name);
 		}
 		// add track controls and gather primitives
-		Iterator<Object> it = control.getPropertyContent().iterator();
+		Iterator<XMLProperty> it = control.getPropsRaw().iterator();
 		while (it.hasNext()) {
-			XMLProperty prop = (XMLProperty) it.next();
+			XMLProperty prop = it.next();
 			if ("tracks".indexOf(prop.getPropertyName()) != -1) { //$NON-NLS-1$
 				children = prop.getChildControls();
 				for (int i = 0; i < children.length; i++) {

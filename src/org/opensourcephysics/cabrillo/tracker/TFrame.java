@@ -1502,33 +1502,40 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	protected LibraryBrowser getLibraryBrowser() {
 		if (libraryBrowser == null) {
-			LibraryComPADRE.desiredOSPType = "Tracker"; //$NON-NLS-1$
+			try {
+				LibraryComPADRE.desiredOSPType = "Tracker"; //$NON-NLS-1$
 //    	JDialog dialog = new JDialog(this, false);
-			libraryBrowser = LibraryBrowser.getBrowser(null);
+				libraryBrowser = LibraryBrowser.getBrowser(null);
 //    	libraryBrowser = LibraryBrowser.getBrowser(dialog);
-			libraryBrowser.addOSPLibrary(LibraryBrowser.TRACKER_LIBRARY);
-			libraryBrowser.addOSPLibrary(LibraryBrowser.SHARED_LIBRARY);
-			libraryBrowser.addComPADRECollection(LibraryComPADRE.TRACKER_SERVER_TREE + LibraryComPADRE.PRIMARY_ONLY);
-			libraryBrowser.refreshCollectionsMenu();
-			libraryBrowser.addPropertyChangeListener(LibraryBrowser.PROPERTY_LIBRARY_TARGET, new PropertyChangeListener() { //$NON-NLS-1$
-						@Override
-						public void propertyChange(PropertyChangeEvent e) {
-							openLibraryResource((LibraryResource) e.getNewValue());
-							TFrame.this.requestFocus();
-						}
-			});
-			LibraryBrowser.fireHelpEvent = true;
-			libraryBrowser.addPropertyChangeListener("help", new PropertyChangeListener() { //$NON-NLS-1$
-				@Override
-				public void propertyChange(PropertyChangeEvent e) {
-					showHelp("library", 0); //$NON-NLS-1$
-				}
-			});
-			libraryBrowser.setFontLevel(FontSizer.getLevel());
+				libraryBrowser.addOSPLibrary(LibraryBrowser.TRACKER_LIBRARY);
+				libraryBrowser.addOSPLibrary(LibraryBrowser.SHARED_LIBRARY);
+				libraryBrowser
+						.addComPADRECollection(LibraryComPADRE.TRACKER_SERVER_TREE + LibraryComPADRE.PRIMARY_ONLY);
+				libraryBrowser.refreshCollectionsMenu();
+				libraryBrowser.addPropertyChangeListener(LibraryBrowser.PROPERTY_LIBRARY_TARGET,
+						new PropertyChangeListener() { // $NON-NLS-1$
+							@Override
+							public void propertyChange(PropertyChangeEvent e) {
+								openLibraryResource((LibraryResource) e.getNewValue());
+								TFrame.this.requestFocus();
+							}
+						});
+				LibraryBrowser.fireHelpEvent = true;
+				libraryBrowser.addPropertyChangeListener("help", new PropertyChangeListener() { //$NON-NLS-1$
+					@Override
+					public void propertyChange(PropertyChangeEvent e) {
+						showHelp("library", 0); //$NON-NLS-1$
+					}
+				});
+				libraryBrowser.setFontLevel(FontSizer.getLevel());
 //      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 //      int x = (dim.width - dialog.getBounds().width) / 2;
 //      int y = (dim.height - dialog.getBounds().height) / 2;
 //      dialog.setLocation(x, y);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		return libraryBrowser;
 	}

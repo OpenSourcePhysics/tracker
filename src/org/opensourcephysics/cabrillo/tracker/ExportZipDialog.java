@@ -2115,8 +2115,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			toModify.setValue("tracks", tracks); //$NON-NLS-1$
 		}
 		// then modify frame references in track XMLcontrols
-		for (Object next : toModify.getPropertyContent()) {
-			if (next instanceof XMLProperty) {
+		for (XMLProperty next : toModify.getPropsRaw()) {
 				XMLProperty prop = (XMLProperty) next;
 				if (prop.getPropertyName().equals("tracks")) { //$NON-NLS-1$
 					for (Object obj : prop.getPropertyContent()) {
@@ -2303,7 +2302,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 						}
 					}
 				}
-			}
 
 		}
 	}

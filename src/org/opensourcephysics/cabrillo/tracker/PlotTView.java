@@ -185,9 +185,9 @@ protected TrackView createTrackView(TTrack track) {
       	// end legacy code
       }
 	    // load the track_views property, if any
-      java.util.List<Object> props = control.getPropertyContent();
-	    for (int i = 0; i < props.size(); i++) {
-	      XMLProperty prop = (XMLProperty)props.get(i);
+      java.util.List<XMLProperty> props = control.getPropsRaw();
+	    for (int i = 0, n = props.size(); i < n; i++) {
+	      XMLProperty prop = props.get(i);
 	      if (prop.getPropertyName().equals("track_views")) { //$NON-NLS-1$
 	      	XMLControl[] controls = prop.getChildControls();
 	      	for (int j = 0; j < controls.length; j++) {

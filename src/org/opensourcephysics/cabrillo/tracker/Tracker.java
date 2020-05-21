@@ -902,10 +902,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					ArrayList<String[]> expandedFunctions = new ArrayList<String[]>();
 
 					// look through XMLControl for data functions
-					for (Object next : control.getPropertyContent()) {
-						if (next instanceof XMLProperty && ((XMLProperty) next).getPropertyName().equals("functions")) { //$NON-NLS-1$
+					for (XMLProperty next : control.getPropsRaw()) {
+						if (next.getPropertyName().equals("functions")) { //$NON-NLS-1$
 							// found DataFunctionPanels
-							XMLControl[] panels = ((XMLProperty) next).getChildControls();
+							XMLControl[] panels = next.getChildControls();
 							inner: for (XMLControl panelControl : panels) {
 								String trackType = panelControl.getString("description"); //$NON-NLS-1$
 								@SuppressWarnings("unchecked")
@@ -1287,9 +1287,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 					Class<?> type = control.getObjectClass();
 					if (type != null && TrackDataBuilder.class.isAssignableFrom(type)) {
-						for (Object next : control.getPropertyContent()) {
-							if (next instanceof XMLProperty
-									&& ((XMLProperty) next).getPropertyName().equals("functions")) { //$NON-NLS-1$
+						for (XMLProperty next : control.getPropsRaw()) {
+							if (next.getPropertyName().equals("functions")) { //$NON-NLS-1$
 								// found DataFunctionPanels
 								ArrayList<XMLControl> controls = new ArrayList<XMLControl>();
 								XMLControl[] panels = ((XMLProperty) next).getChildControls();

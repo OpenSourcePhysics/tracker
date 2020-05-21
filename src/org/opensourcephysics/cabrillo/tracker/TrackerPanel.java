@@ -3716,11 +3716,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading ref and config ", Performance.TIME_MARK));
 
 				// load the selected_views property
-				java.util.List<Object> props = control.getPropertyContent();
+				List<XMLProperty> props = control.getPropsRaw();
 				trackerPanel.selectedViewsProperty = null;
 				trackerPanel.viewsProperty = null;
 				for (int n = 0, i = props.size(); --i >= 0 && n < 2;) {
-					XMLProperty prop = (XMLProperty) props.get(i);
+					XMLProperty prop = props.get(i);
 					switch (prop.getPropertyName()) {
 					case "selected_views":
 						trackerPanel.selectedViewsProperty = prop;
@@ -3769,9 +3769,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// load DataTool tabs
 				if (control.getPropertyNamesRaw().contains("datatool_tabs")) { //$NON-NLS-1$
 					DataTool tool = DataTool.getTool();
-					for (Object o : control.getPropertyContent()) {
-						if (o instanceof XMLProperty) {
-							XMLProperty prop = (XMLProperty) o;
+					for (XMLProperty prop : control.getPropsRaw()) {
 							if (prop.getPropertyName().equals("datatool_tabs")) { //$NON-NLS-1$
 								for (XMLControl tabControl : prop.getChildControls()) {
 									// pass the tab control to the DataTool and get back the newly added tab
@@ -3786,7 +3784,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 									});
 								}
-							}
 						}
 					}
 				}

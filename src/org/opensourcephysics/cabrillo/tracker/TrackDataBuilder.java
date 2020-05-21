@@ -250,11 +250,10 @@ public class TrackDataBuilder extends FunctionTool {
 
 		// find the first DataFunctionPanel with same track type
 		XMLControl target = null;
-		outerLoop: for (Object next : control.getPropertyContent()) {
-			if (next instanceof XMLProperty
-					&& ((XMLProperty) next).getPropertyName().equals("functions")) { //$NON-NLS-1$
+		outerLoop: for (XMLProperty next : control.getPropsRaw()) {
+			if (next.getPropertyName().equals("functions")) { //$NON-NLS-1$
 				// found DataFunctionPanels
-				XMLControl[] panels = ((XMLProperty) next).getChildControls();
+				XMLControl[] panels = next.getChildControls();
 				for (XMLControl panelControl : panels) {
 					String trackType = panelControl.getString("description"); //$NON-NLS-1$
 					if (trackType == null || panelTrackType == null
@@ -606,9 +605,7 @@ public class TrackDataBuilder extends FunctionTool {
 		Map<String, XMLControl> xmlControlMap = new TreeMap<String, XMLControl>();
 		Map<String, ArrayList<Parameter>> parameterMap = new TreeMap<String, ArrayList<Parameter>>();
 		Map<String, ArrayList<String[]>> functionMap = new TreeMap<String, ArrayList<String[]>>();
-		for (Object obj : control.getPropertyContent()) {
-			if (obj instanceof XMLProperty) {
-				XMLProperty prop = (XMLProperty) obj;
+		for (XMLProperty prop : control.getPropsRaw()) {
 				for (XMLControl xmlControl : prop.getChildControls()) {
 					if (xmlControl.getObjectClass() != DataFunctionPanel.class)
 						continue;
@@ -654,7 +651,6 @@ public class TrackDataBuilder extends FunctionTool {
 						params.add(p);
 					}
 				}
-			}
 		}
 
 		for (String trackType : functionMap.keySet()) {
@@ -757,10 +753,8 @@ public class TrackDataBuilder extends FunctionTool {
 	 * @param filePath     the path to the XML file read by the XMLControl
 	 */
 	private void eliminateExcludedFunctions(XMLControl panelControl, String filePath) {
-		for (Object prop : panelControl.getPropertyContent()) {
-			if (prop instanceof XMLProperty && ((XMLProperty) prop).getPropertyName().equals("functions")) { //$NON-NLS-1$
-				// found functions
-				XMLProperty functions = (XMLProperty) prop;
+		for (XMLProperty functions : panelControl.getPropsRaw()) {
+			if (functions.getPropertyName().equals("functions")) { //$NON-NLS-1$
 				java.util.List<Object> items = functions.getPropertyContent();
 				ArrayList<XMLProperty> toRemove = new ArrayList<XMLProperty>();
 				for (Object child : items) {
