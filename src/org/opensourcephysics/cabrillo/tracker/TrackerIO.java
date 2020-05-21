@@ -678,6 +678,7 @@ public class TrackerIO extends VideoIO {
 	 * @param frame the frame for the TrackerPanel
 	 */
 	public static void openTabFile(File file, final TFrame frame) {
+		OSPLog.debug("TrackerIO openTabFile " + file); //$NON-NLS-1$
 		openTabFileAsync(file, frame, null);
 	}
 
@@ -717,6 +718,25 @@ public class TrackerIO extends VideoIO {
 				openTabPath(path, null, frame, vidType, null, NULL_RUNNABLE);
 			}
 		});
+	}
+	
+	/**
+	 * Returns a clean TrackerPanel.
+	 * Uses the blank untitled TrackerPanel in frame tab 0 if it is unchanged
+	 *
+	 * @param frame
+	 * @return a clean TrackerPanel.
+	 */
+	static private TrackerPanel getCleanTrackerPanel(TFrame frame) {
+		if (frame.getTabCount() > 0) {
+			TrackerPanel existingPanel = frame.getTrackerPanel(0);
+			String title = frame.tabbedPane.getTitleAt(0);
+			if (title.equals(TrackerRes.getString("TrackerPanel.NewTab.Name")) //$NON-NLS-1$
+			&& !existingPanel.changed) {
+				return existingPanel;
+			}
+		}
+		return new TrackerPanel();
 	}
 
 	/**
@@ -789,7 +809,8 @@ public class TrackerIO extends VideoIO {
 	 */
 	public static void open(final String path, final TFrame frame) {
 		frame.loadedFiles.clear();
-        openTabPath(path, null, frame, null, null, new Runnable() {
+		OSPLog.debug("TrackerIO open " + path); //$NON-NLS-1$
+    openTabPath(path, null, frame, null, null, new Runnable() {
 
 			@Override
 			public void run() {
@@ -797,7 +818,7 @@ public class TrackerIO extends VideoIO {
 					addToLibrary(frame, path);
 			}
         	
-        });
+    });
 	}
 
 	private static void addToLibrary(TFrame frame, String path) {
@@ -1767,7 +1788,7 @@ public class TrackerIO extends VideoIO {
 			if (!ResourceLoader.isHTTP(path))
 				path = nonURIPath;
 
-			trackerPanel = existingPanel == null ? new TrackerPanel() : existingPanel;
+			trackerPanel = existingPanel == null ? getCleanTrackerPanel(frame) : existingPanel;
 
 			panelChanged = trackerPanel.changed;
 //			// create progress monitor
