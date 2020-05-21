@@ -105,8 +105,8 @@ private int myFontLevel;
     pack();
     popup = new JPopupMenu();
     trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("mass", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("data", this); //$NON-NLS-1$
@@ -160,14 +160,14 @@ public void propertyChange(PropertyChangeEvent e) {
         isVisible = vis;
       }
     }
-    else if (e.getPropertyName().equals("track") && e.getOldValue()!=null) { //$NON-NLS-1$
+    else if (e.getPropertyName().equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) && e.getOldValue()!=null) { //$NON-NLS-1$
       // track has been deleted, so remove all listeners from it
     	TTrack track = (TTrack)e.getOldValue();
       track.removePropertyChangeListener("name", this); //$NON-NLS-1$
       track.removePropertyChangeListener("color", this); //$NON-NLS-1$
       track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
     }
-    else if (e.getPropertyName().equals("clear")) {     // tracks have been cleared //$NON-NLS-1$
+    else if (e.getPropertyName().equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) {     // tracks have been cleared //$NON-NLS-1$
       for (Integer n: TTrack.activeTracks.keySet()) {
       	TTrack track = TTrack.activeTracks.get(n);
         track.removePropertyChangeListener("name", this); //$NON-NLS-1$
@@ -189,8 +189,8 @@ public void propertyChange(PropertyChangeEvent e) {
   @Override
 public void dispose() {
     if (trackerPanel != null) {
-      trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-      trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+      trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+      trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
       trackerPanel.removePropertyChangeListener("mass", this); //$NON-NLS-1$
       trackerPanel.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
       trackerPanel.removePropertyChangeListener("data", this); //$NON-NLS-1$

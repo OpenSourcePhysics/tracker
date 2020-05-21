@@ -456,8 +456,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param trackerPanel the tracker panel
 	 */
 	public void removeTab(TrackerPanel trackerPanel) {
-		OSPLog.debug(Performance.timeCheckStr("TrackIO.removeTab start", Performance.TIME_GET));
-
+		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab start", Performance.TIME_MARK));
+		long t0 = Performance.now(0);
 		int tab = getTab(trackerPanel);
 		if (tab == -1)
 			return; // tab doesn't exist
@@ -581,7 +581,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setJMenuBar(defaultMenuBar);
 		}
 		
-		OSPLog.debug(Performance.timeCheckStr("TrackIO.removeTab end", Performance.TIME_GET));
+		OSPLog.debug("!!! " + Performance.now(t0) + " TFrame.removeTab");
+		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab end", Performance.TIME_MARK));
 
 	}
 

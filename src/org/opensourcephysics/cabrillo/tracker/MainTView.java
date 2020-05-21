@@ -332,14 +332,14 @@ public void refresh() {
    */
   @Override
 public void init() {
-    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
-    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
     // add this listener to tracks
     for (TTrack track: trackerPanel.getTracks()){
-      track.removePropertyChangeListener("color", this); //$NON-NLS-1$
-      track.addPropertyChangeListener("color", this); //$NON-NLS-1$
+      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+      track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
     }
   }
 
@@ -349,8 +349,8 @@ public void init() {
   @Override
 public void cleanup() {
     // remove this listener from tracker panel
-    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
     // remove this listener from all tracks
     for (Integer n: TTrack.activeTracks.keySet()) {
     	TTrack track = TTrack.activeTracks.get(n);
@@ -448,7 +448,7 @@ public boolean isCustomState() {
   @Override
 public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("track") || name.equals("clear")) { // track has been added or removed //$NON-NLS-1$ //$NON-NLS-2$
+    if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) || name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) { // track has been added or removed //$NON-NLS-1$ //$NON-NLS-2$
       refresh();
     }
     else if (name.equals("color")) { // track color has changed //$NON-NLS-1$

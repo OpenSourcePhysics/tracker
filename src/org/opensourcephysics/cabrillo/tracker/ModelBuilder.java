@@ -117,7 +117,7 @@ public class ModelBuilder extends FunctionTool {
 		boosterDropdown.setRenderer(renderer);
 		refreshBoosterDropdown();
 
-		trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 
 		setHelpAction(new ActionListener() {
 			@Override
@@ -181,7 +181,7 @@ public class ModelBuilder extends FunctionTool {
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getPropertyName().equals("track")) { //$NON-NLS-1$
+		if (e.getPropertyName().equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK)) { //$NON-NLS-1$
 			refreshBoosterDropdown();
 			refreshLayout();
 		} else
@@ -195,7 +195,7 @@ public class ModelBuilder extends FunctionTool {
 
 	@Override
 	public void dispose() {
-		trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
 		if (helpDialog != null) {

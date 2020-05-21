@@ -122,12 +122,10 @@ import javajs.async.SwingJSUtils.Performance;
 @SuppressWarnings("serial")
 public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
-	
 	public static boolean allowDataRefresh = !OSPRuntime.isBHTest;
-	public static boolean allowMenuRefresh = true;//!OSPRuntime.isBHTest;
+	public static boolean allowMenuRefresh = true;// !OSPRuntime.isBHTest;
 	public static boolean allowViews = !OSPRuntime.isBHTest;
-		
-	
+
 	static {
 		XML.setLoader(Preferences.class, new Preferences.Loader());
 	}
@@ -510,12 +508,12 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	}
 
 	/**
-	 * Get an icon, possible retrieving the image from images.zip 
+	 * Get an icon, possible retrieving the image from images.zip
 	 * 
 	 * allow ResourceLoader to check for an image in images.zip
 	 * 
 	 * @param imagePath an absolute path in Tracker or OSP
-	 * @return an image from 
+	 * @return an image from
 	 */
 	public static Icon getIcon(String imagePath) {
 		return ResourceLoader.getIcon(imagePath);
@@ -531,9 +529,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	public static URL getClassResource(String resource) {
 //		if (OSPRuntime.isJS) {
 		// Ah! Just a problem with full path rather than relative path for classLoader.
-			if (resource.startsWith("resource"))
-				resource = "org/opensourcephysics/cabrillo/tracker/" + resource;
-			return ResourceLoader.getAssetURL(resource);
+		if (resource.startsWith("resource"))
+			resource = "org/opensourcephysics/cabrillo/tracker/" + resource;
+		return ResourceLoader.getAssetURL(resource);
 //		} else {
 //			return Tracker.class.getResource(resource);
 //		}
@@ -569,12 +567,13 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	public Tracker(Video video) {
 		createFrame();
 		// add a tracker panel with the video
-		frame.addTab(new TrackerPanel(video), new Runnable(){
+		frame.addTab(new TrackerPanel(video), new Runnable() {
 
 			@Override
 			public void run() {
 				// just to allow this to be asynchronous
-			}});
+			}
+		});
 	}
 
 	/**
@@ -604,7 +603,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			splash.setLocation(x, y);
 		}
 		splash.setVisible(showSplash && !OSPRuntime.isJS);
-		
+
 		createFrame();
 		Tracker.setProgress(5);
 		if (names != null) {
@@ -636,7 +635,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					}
 					Tracker.setProgress(100);
 				}
-				
+
 			});
 		}
 	}
@@ -673,12 +672,12 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 //________________________________  static methods ____________________________
 
 	protected void onWindowClosing() {
-		
+
 		if (OSPRuntime.isJS) {
 			System.exit(0);
 			return; // Necessary for SwingJS
 		}
-		
+
 		// save preferences, but first clean up autoloadMap
 		ArrayList<String> dirs = new ArrayList<String>();
 		if (preferredAutoloadSearchPaths != null) {
@@ -699,12 +698,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			}
 		}
 		savePreferences();
-		
+
 		boolean doClose = (frame.wishesToExit()
 				&& frame.getDefaultCloseOperation() == WindowConstants.DISPOSE_ON_CLOSE);
-	
-		
-		
+
 		if (frame.libraryBrowser != null) {
 			boolean canceled = !frame.libraryBrowser.exit();
 			if (canceled) {
@@ -725,7 +722,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				return;
 			}
 		}
-		
+
 		// unregister the DataTrackTool and inform RMI clients
 		if (dataTrackTool != null) { // BH 2020.02.09 not in JavaScript
 			dataTrackTool.trackerExiting();
@@ -763,7 +760,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 			// hide the frame
 			frame.setVisible(false);
-
 
 		}
 	}
@@ -859,7 +855,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			aboutString += newline + TrackerRes.getString("Tracker.About.TrackerHome") //$NON-NLS-1$
 					+ newline + trackerHome + newline;
 		}
-		if (!OSPRuntime.isJS) /** @j2sNative */ {
+		if (!OSPRuntime.isJS) /** @j2sNative */
+		{
 			loadCurrentVersion(true, false);
 			if (newerVersion != null) {
 				aboutString += newline + TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
@@ -995,7 +992,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			};
 		}
 
-		if (!OSPRuntime.isJS) /** @j2sNative */ {
+		if (!OSPRuntime.isJS) /** @j2sNative */
+		{
 			// Tracker README
 			readmeAction = new AbstractAction(TrackerRes.getString("Tracker.Readme") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
 				@Override
@@ -1076,7 +1074,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					}
 				};
 			}
-			
+
 			// about Java
 			aboutJavaAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutJava"), null) { //$NON-NLS-1$
 				@Override
@@ -1084,7 +1082,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					Diagnostics.aboutJava();
 				}
 			};
-			
+
 			// about Xuggle--only if xuggle resources present
 			if (MovieFactory.xuggleIsPresent) {
 				aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
@@ -1094,7 +1092,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					}
 				};
 			}
-			
+
 			// about threads
 			aboutThreadsAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutThreads"), null) { //$NON-NLS-1$
 				@Override
@@ -1103,7 +1101,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				}
 			};
 		}
-		
+
 	}
 
 //  /**
@@ -1430,8 +1428,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 */
 	protected static boolean updateResources() {
 		String[] updatedEngines = MovieFactory.getUpdatedVideoEngines();
-		return updatedEngines!=null 
-				&& updatedEngines.length>0 
+		return updatedEngines != null && updatedEngines.length > 0
 				&& updatedEngines[0].equals(MovieFactory.ENGINE_XUGGLE);
 	}
 
@@ -1977,7 +1974,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		if (!OSPRuntime.isJS) /** @j2sNative */ {
+		if (!OSPRuntime.isJS) /** @j2sNative */
+		{
 			// create and register DataTrackTool
 			Runnable runner = new Runnable() {
 				@Override
@@ -2106,7 +2104,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			JOptionPane.showMessageDialog(null, box, TrackerRes.getString("Tracker.Dialog.StarterWarning.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
 		}
-		if (!OSPRuntime.isJS) /** @j2sNative */ {
+		if (!OSPRuntime.isJS) /** @j2sNative */
+		{
 
 			final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
 			if (newVersionURL != null) {
@@ -2119,8 +2118,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 						}
 						// check preferences: if not default tracker.jar, ask user to change to default
 						if (preferredTrackerJar != null && !"tracker.jar".equals(preferredTrackerJar)) { //$NON-NLS-1$
-							String prefVers = preferredTrackerJar.substring(8,
-									preferredTrackerJar.lastIndexOf(".")); //$NON-NLS-1$
+							String prefVers = preferredTrackerJar.substring(8, preferredTrackerJar.lastIndexOf(".")); //$NON-NLS-1$
 							String s1 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message1") //$NON-NLS-1$
 									+ " " //$NON-NLS-1$
 									+ VERSION;
@@ -2635,8 +2633,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 //	private final static int STATE_INIT = 0;
 //	private final static int STATE_DONE = 9999;
 //	private final int stateDelay = 1;
-	//private StateHelper helper;
-	
+	// private StateHelper helper;
+
 	@Override
 	public boolean stateLoop() {
 //		switch (helper.getState()) {

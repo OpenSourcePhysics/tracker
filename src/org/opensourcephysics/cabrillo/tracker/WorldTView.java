@@ -213,7 +213,7 @@ public void cleanup() {
   @Override
 public void dispose() {
   	cleanup();
-    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("radian_angles", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("function", this); //$NON-NLS-1$
     coords.removePropertyChangeListener(this);
@@ -316,7 +316,7 @@ public boolean isCustomState() {
   @Override
 public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("track")) {           // track has been added or removed //$NON-NLS-1$
+    if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK)) {           // track has been added or removed //$NON-NLS-1$
       if (e.getOldValue()!=null) { // track removed
       	TTrack removed = (TTrack)e.getOldValue();
       	removed.removePropertyChangeListener("color", this); //$NON-NLS-1$
@@ -324,7 +324,7 @@ public void propertyChange(PropertyChangeEvent e) {
       }
       refresh();
     }
-    else if (name.equals("clear")) {           // tracks have been cleared //$NON-NLS-1$
+    else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) {           // tracks have been cleared //$NON-NLS-1$
       for (Integer n: TTrack.activeTracks.keySet()) {
       	TTrack track = TTrack.activeTracks.get(n);
         track.removePropertyChangeListener("color", this); //$NON-NLS-1$

@@ -24,23 +24,89 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.beans.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.font.FontRenderContext;
-import java.awt.geom.*;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JColorChooser;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.JTextPane;
+import javax.swing.JToolBar;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.Timer;
-import javax.swing.border.*;
-import javax.swing.event.*;
+import javax.swing.WindowConstants;
+import javax.swing.border.Border;
+import javax.swing.event.SwingPropertyChangeSupport;
 
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.controls.XMLProperty;
+import org.opensourcephysics.display.DataFunction;
+import org.opensourcephysics.display.Dataset;
+import org.opensourcephysics.display.DatasetManager;
+import org.opensourcephysics.display.DrawableTextLine;
+import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.TeXParser;
+import org.opensourcephysics.display.TextLine;
+import org.opensourcephysics.media.core.DecimalField;
+import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.NumberField;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.Trackable;
+import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.controls.*;
 
 /**
  * A TTrack draws a series of visible Steps on a TrackerPanel. This is an
@@ -64,7 +130,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public static final String PROPERTY_TTRACK_COLOR = "color"; //$NON-NLS-1$
 
 	public static final String PROPERTY_TTRACK_ADJUSTING = "adjusting";
-	private static final String PROPERTY_TTRACK_LOCKED = "locked";
+	public static final String PROPERTY_TTRACK_LOCKED = "locked";
 	
 
 	public void addListener(PropertyChangeListener c) {

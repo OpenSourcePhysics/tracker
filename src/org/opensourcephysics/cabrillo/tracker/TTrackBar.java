@@ -299,8 +299,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
    */
   private TTrackBar(TrackerPanel panel) {
     trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
     createGUI();
@@ -605,10 +605,10 @@ public void propertyChange(PropertyChangeEvent e) {
     else if (name.equals("selectedpoint")) {  // selected point has changed //$NON-NLS-1$
       refresh();
     }
-    else if (name.equals("track")) {  // tracks have been added or removed //$NON-NLS-1$
+    else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK)) {  // tracks have been added or removed //$NON-NLS-1$
       refresh();
     }
-    else if (name.equals("clear")) {  // tracks have been cleared //$NON-NLS-1$
+    else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) {  // tracks have been cleared //$NON-NLS-1$
   		for (Integer n: TTrack.activeTracks.keySet()) {
   			TTrack track = TTrack.activeTracks.get(n);
 	  		track.removePropertyChangeListener("name", TTrackBar.this); //$NON-NLS-1$
@@ -626,8 +626,8 @@ public void propertyChange(PropertyChangeEvent e) {
   public void dispose() {
   	trackbars.remove(trackerPanel);
     removeAll();
-    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
     for (Integer n: TTrack.activeTracks.keySet()) {

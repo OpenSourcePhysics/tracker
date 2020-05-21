@@ -62,7 +62,7 @@ public class CenterOfMassInspector extends JDialog
     cm = track;
     trackerPanel = cm.trackerPanel;
     if (trackerPanel != null) {
-    	trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+    	trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
       TFrame frame = trackerPanel.getTFrame();
       if (frame != null) {
         frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
@@ -129,7 +129,7 @@ public void setVisible(boolean vis) {
 	public void dispose() {
 		checkboxPanel.removeAll();
 		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 			ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
 			for (int i = 0, n = masses.size(); i < n; i++) {
 				PointMass p = masses.get(i);

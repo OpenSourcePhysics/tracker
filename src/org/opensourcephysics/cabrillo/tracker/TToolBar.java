@@ -224,8 +224,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 */
 	private TToolBar(TrackerPanel panel) {
 		trackerPanel = panel;
-		trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("magnification", this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
@@ -1069,16 +1069,16 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	public void dispose() {
 		toolbars.remove(trackerPanel);
 		removeAll();
-		trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("magnification", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); //$NON-NLS-1$
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack track = TTrack.activeTracks.get(n);
-			track.removePropertyChangeListener("locked", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("visible", this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
 		}
 		pageViewTabs.clear();
 		trackerPanel = null;
@@ -1098,25 +1098,28 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
-		if (name.equals("video")) { // video has changed //$NON-NLS-1$
+		switch (name) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
+		case TTrack.PROPERTY_TTRACK_LOCKED:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
 			refresh(false);
-		} else if (name.equals("selectedtrack")) { // selected track has changed //$NON-NLS-1$
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
 			// refresh info dialog if visible
 			trackerPanel.refreshNotesDialog();
 			refresh(false);
-		} else if (name.equals("magnification")) { // magnification has changed //$NON-NLS-1$
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION:
 			refreshZoomButton();
-		} else if (name.equals("visible")) { // axes or calibration tool visibility //$NON-NLS-1$
+			break;
+		case TTrack.PROPERTY_TTRACK_VISIBLE:
 			if (e.getSource() == trackerPanel.getAxes()) {
 				axesButton.setSelected(trackerPanel.getAxes().isVisible());
 			} else {
 				calibrationButton.refresh();
 			}
-		} else if (name.equals("locked")) { // track has been locked or unlocked //$NON-NLS-1$
-			refresh(false);
-		} else if (name.equals("selectedpoint")) { // selected point has changed //$NON-NLS-1$
-			refresh(false);
-		} else if (name.equals("track")) { // track has been added or removed //$NON-NLS-1$
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			if (e.getOldValue() != null) { // track has been removed
 				TTrack track = (TTrack) e.getOldValue();
 				trackerPanel.calibrationTools.remove(track);
@@ -1128,9 +1131,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				}
 			}
 			refresh(true);
-		} else if (name.equals("clear")) { // tracks have been cleared //$NON-NLS-1$
-			for (Integer n : TTrack.activeTracks.keySet()) {
-				TTrack track = TTrack.activeTracks.get(n);
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
+			for (TTrack track : TTrack.activeTracks.values()) {
 				trackerPanel.calibrationTools.remove(track);
 				trackerPanel.visibleTools.remove(track);
 				track.removePropertyChangeListener("visible", this); //$NON-NLS-1$
@@ -1138,6 +1141,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 			calibrationButton.setSelected(false);
 			refresh(true);
+			break;
 		}
 	}
 

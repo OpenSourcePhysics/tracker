@@ -64,7 +64,7 @@ public class VectorSumInspector extends JDialog
     this.sum = sum;
     trackerPanel = sum.trackerPanel;
     if (trackerPanel != null) {
-      trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+      trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
       TFrame frame = trackerPanel.getTFrame();
       if (frame != null) {
         frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
@@ -112,7 +112,7 @@ public void setVisible(boolean vis) {
 	public void dispose() {
 		checkboxPanel.removeAll();
 		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 			ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
 			for (int k = 0, n = list.size(); k < n; k++) {
 				Vector v = list.get(k);

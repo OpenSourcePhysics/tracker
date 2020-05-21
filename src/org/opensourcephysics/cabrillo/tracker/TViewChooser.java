@@ -78,8 +78,8 @@ private int myFontLevel;
   public TViewChooser(TrackerPanel panel) {
     super(new BorderLayout());
     trackerPanel = panel;
-    trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
     // viewPanel
     viewPanel = new JPanel(new CardLayout());
     viewPanel.setBorder(BorderFactory.createEtchedBorder());
@@ -339,13 +339,13 @@ public Dimension getMinimumSize() {
   @Override
 public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("track")) {  // track added/removed //$NON-NLS-1$
+    if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK)) {  // track added/removed //$NON-NLS-1$
       for (TView view: getViews()) {
       	view.propertyChange(e);
       }
       refreshToolbar();
     }
-    else if (name.equals("clear")) {  // tracks cleared //$NON-NLS-1$
+    else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) {  // tracks cleared //$NON-NLS-1$
       for (TView view: getViews()) {
       	view.propertyChange(e);
       }
@@ -368,8 +368,8 @@ public void propertyChange(PropertyChangeEvent e) {
     }
     views.clear();
     selectedView = null;
-    trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
     viewPanel.removeAll();
     toolbar.removeAll();
     trackerPanel = null;

@@ -273,7 +273,7 @@ public boolean isDependent() {
   @Override
 public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("track") && e.getOldValue()!=null) { // track deleted //$NON-NLS-1$
+    if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) && e.getOldValue()!=null) { // track deleted //$NON-NLS-1$
       TTrack track = (TTrack)e.getOldValue();
       if (track instanceof Vector)
         removeVector((Vector)track);

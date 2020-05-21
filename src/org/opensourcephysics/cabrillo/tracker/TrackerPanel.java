@@ -3122,7 +3122,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public void paintComponent(Graphics g) {
-//    Tracker.logTime(getClass().getSimpleName()+hashCode()+" painting"); //$NON-NLS-1$
+		long t0 = Performance.now(0);
 		super.paintComponent(g);
 		if (zoomCenter != null && isShowing() && getTFrame() != null && scrollPane != null) {
 			final Rectangle rect = scrollPane.getViewport().getViewRect();
@@ -3133,6 +3133,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			scrollRectToVisible(rect);
 		}
 		showFilterInspectors();
+		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.paintComponent");
 	}
 
 	/**
@@ -3541,10 +3542,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		public void finalizeLoading() {
 			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
 			trackerPanel.frame = (TFrame) ((XMLControlElement) control).getData();
+			long t0 = Performance.now(0);
+			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
+
 			try {
 				trackerPanel.frame.holdPainting(true);
 				OSPLog.debug("TrackerPanel.finalizeLoading start");
+
+				
+				
 				Video video = finalizeClip();
+				
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading finalizeClip", Performance.TIME_MARK));
+
 				// load and check if a newer Tracker version created this file
 				String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
 				// if ver is null then must be an older version
@@ -3592,18 +3602,26 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 					}
 				}
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading load metadata", Performance.TIME_MARK));
+
 				// load the clip control
 				XMLControl child = control.getChildControl("clipcontrol"); //$NON-NLS-1$
 				if (child != null) {
 					ClipControl clipControl = trackerPanel.getPlayer().getClipControl();
 					child.loadObject(clipControl);
 				}
+				
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading clipControl ", Performance.TIME_MARK));
+
 				// load the toolbar
 				child = control.getChildControl("toolbar"); //$NON-NLS-1$
 				if (child != null) {
 					TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
 					child.loadObject(toolbar);
 				}
+				
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading toolbar", Performance.TIME_MARK));
+
 				// load the coords
 				child = control.getChildControl("coords"); //$NON-NLS-1$
 				if (child != null) {
@@ -3612,6 +3630,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					int n = trackerPanel.getFrameNumber();
 					trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
 				}
+				
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading coords", Performance.TIME_MARK));
+
 				// load units and unit visibility
 				if (control.getPropertyNamesRaw().contains("length_unit")) { //$NON-NLS-1$
 					trackerPanel.lengthUnit = control.getString("length_unit"); //$NON-NLS-1$
@@ -3638,6 +3659,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 					}
 				}
+				
+
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading number formats", Performance.TIME_MARK));
+
 				// load the tracks
 				ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
 				if (tracks != null) {
@@ -3645,6 +3670,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						trackerPanel.addTrack((TTrack) tracks.get(i));
 					}
 				}
+				
+
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading load tracks", Performance.TIME_MARK));
+
 				// load drawing scenes saved in vers 4.11.0+
 				ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
 				if (scenes != null) {
@@ -3665,6 +3694,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					}
 				}
 
+
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading scenes and pencil ", Performance.TIME_MARK));
+
 				// load the reference frame
 				String rfName = control.getString("referenceframe"); //$NON-NLS-1$
 				if (rfName != null) {
@@ -3675,6 +3707,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				if (config != null) {
 					trackerPanel.enabled = config.enabled;
 				}
+				
+
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading ref and config ", Performance.TIME_MARK));
+
 				// load the selected_views property
 				java.util.List<Object> props = control.getPropertyContent();
 				trackerPanel.selectedViewsProperty = null;
@@ -3692,6 +3728,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						break;
 					}
 				}
+				
+
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading props ", Performance.TIME_MARK));
+
 				// load the dividers
 				trackerPanel.dividerLocs = (double[]) control.getObject("dividers"); //$NON-NLS-1$
 				// load the track control location
@@ -3714,6 +3754,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					int y = control.getInt("center_y"); //$NON-NLS-1$
 					trackerPanel.zoomCenter = new Point(x, y);
 				}
+				
+
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading misc ", Performance.TIME_MARK));
+
 				// set selected track
 				String name = control.getString("selectedtrack"); //$NON-NLS-1$
 				trackerPanel.setSelectedTrack(name == null ? null : trackerPanel.getTrack(name));
@@ -3727,67 +3771,67 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							if (prop.getPropertyName().equals("datatool_tabs")) { //$NON-NLS-1$
 								for (XMLControl tabControl : prop.getChildControls()) {
 									// pass the tab control to the DataTool and get back the newly added tab
-									Consumer<ArrayList<DataToolTab>> whenDone = new Consumer<ArrayList<DataToolTab>>() {
+									tool.addTabs(tabControl, new Consumer<ArrayList<DataToolTab>>() {
 										// BH 2020.03.25 TODO not tested
 
 										@Override
 										public void accept(ArrayList<DataToolTab> addedTabs) {
-											if (addedTabs == null || addedTabs.isEmpty())
-												return;
-											final DataToolTab tab = addedTabs.get(0);
-
-											// set the owner of the tab to the specified track
-											String trackname = tab.getOwnerName();
-											TTrack track = trackerPanel.getTrack(trackname);
-											if (track == null)
-												return;
-											Data data = track.getData(trackerPanel);
-											tab.setOwner(trackname, data);
-
-											// set up a DataRefreshTool and send it to the tab
-											final DataRefreshTool refresher = DataRefreshTool.getTool(data);
-											DatasetManager toSend = new DatasetManager();
-											toSend.setID(data.getID());
-											try {
-												tab.send(new LocalJob(toSend), refresher);
-											} catch (RemoteException ex) {
-												ex.printStackTrace();
-											}
-
-											// set the tab column IDs to the track data IDs and add track data to the
-											// refresher
-											Runnable refreshRunner = new Runnable() {
-												@Override
-												public void run() {
-													for (TTrack tt : trackerPanel.getTracks()) {
-														Data trackData = tt.getData(trackerPanel);
-														if (tab.setOwnedColumnIDs(tt.getName(), trackData)) { // true if
-																												// track
-																												// owns
-																												// one
-																												// or
-																												// more
-																												// columns
-															refresher.addData(trackData);
-														}
-													}
-												}
-											};
-											SwingUtilities.invokeLater(refreshRunner);
-											// tab is now fully "wired" for refreshing by tracks
+											if (addedTabs != null && !addedTabs.isEmpty())
+												setDataTabs(trackerPanel, addedTabs);
 										}
 
-									};
-									tool.addTabs(tabControl, whenDone);
+									});
 								}
 							}
 						}
 					}
 				}
+
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading datatool ", Performance.TIME_MARK));
+
 			} finally {
+				OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
 				trackerPanel.frame.holdPainting(false);
 				OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
+		}
+
+		protected void setDataTabs(TrackerPanel trackerPanel, ArrayList<DataToolTab> addedTabs) {
+			final DataToolTab tab = addedTabs.get(0);
+
+			// set the owner of the tab to the specified track
+			String trackname = tab.getOwnerName();
+			TTrack track = trackerPanel.getTrack(trackname);
+			if (track == null)
+				return;
+			Data data = track.getData(trackerPanel);
+			tab.setOwner(trackname, data);
+
+			// set up a DataRefreshTool and send it to the tab
+			final DataRefreshTool refresher = DataRefreshTool.getTool(data);
+			DatasetManager toSend = new DatasetManager();
+			toSend.setID(data.getID());
+			try {
+				tab.send(new LocalJob(toSend), refresher);
+			} catch (RemoteException ex) {
+				ex.printStackTrace();
+			}
+
+			// set the tab column IDs to the track data IDs and add track data to the
+			// refresher
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					for (TTrack tt : trackerPanel.getTracks()) {
+						Data trackData = tt.getData(trackerPanel);
+						if (tab.setOwnedColumnIDs(tt.getName(), trackData)) { 
+							// true if track owns one or more columns
+							refresher.addData(trackData);
+						}
+					}
+				}
+			});
+			// tab is now fully "wired" for refreshing by tracks
 		}
 
 		/**

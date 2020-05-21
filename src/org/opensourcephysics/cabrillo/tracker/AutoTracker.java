@@ -201,8 +201,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		trackerPanel.addDrawable(this);
 		trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
 		stepper = new Runnable() {
@@ -847,14 +847,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				repaint();
 		} else if (name.equals("selectedtrack") && wizard != null) { //$NON-NLS-1$
 			wizard.refreshGUI();
-		} else if (name.equals("track") && e.getOldValue() != null) { //$NON-NLS-1$
+		} else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) && e.getOldValue() != null) { //$NON-NLS-1$
 			// track has been deleted
 			TTrack deletedTrack = (TTrack) e.getOldValue();
 			trackFrameData.remove(deletedTrack);
 			if (deletedTrack == track) {
 				setTrack(null);
 			}
-		} else if (name.equals("clear")) { //$NON-NLS-1$
+		} else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) { //$NON-NLS-1$
 			// tracks have been cleared
 			trackFrameData.clear();
 			setTrack(null);
@@ -1167,8 +1167,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		trackerPanel.removeDrawable(this);
 		trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
 		setTrack(null);

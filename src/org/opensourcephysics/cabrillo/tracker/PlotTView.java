@@ -192,7 +192,7 @@ protected TrackView createTrackView(TTrack track) {
 	      	XMLControl[] controls = prop.getChildControls();
 	      	for (int j = 0; j < controls.length; j++) {
 	      		// get name of track, find its track view and load it
-	      		String trackName = controls[j].getString("track"); //$NON-NLS-1$
+	      		String trackName = controls[j].getString(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK); //$NON-NLS-1$
 	          track = view.getTrack(trackName);
 	          if (track != null) {
 	            PlotTrackView trackView = (PlotTrackView)view.getTrackView(track);

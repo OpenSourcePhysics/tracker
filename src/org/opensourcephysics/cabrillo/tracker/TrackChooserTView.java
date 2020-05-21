@@ -139,7 +139,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
           firePropertyChange("trackview", trackView, prevView); //$NON-NLS-1$
           // inform track views
           PropertyChangeEvent event = 
-          	new PropertyChangeEvent(this, "track", null, track); //$NON-NLS-1$
+          	new PropertyChangeEvent(this, TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, null, track); //$NON-NLS-1$
           Iterator<TTrack> it = trackViews.keySet().iterator();
           while (it.hasNext()) {
           	TTrack nextTrack = it.next();
@@ -251,7 +251,7 @@ public void refresh() {
 public void init() {
     cleanup();
     // add this listener to tracker panel
-    trackerPanel.addPropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("transform", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener("image", this); //$NON-NLS-1$
@@ -275,7 +275,7 @@ public void init() {
   @Override
 public void cleanup() {
     // remove this listener from tracker panel
-    trackerPanel.removePropertyChangeListener("clear", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("transform", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("image", this); //$NON-NLS-1$
@@ -443,7 +443,7 @@ public boolean isCustomState() {
   @Override
 public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("track")) {               // track has been added or removed //$NON-NLS-1$
+    if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK)) {               // track has been added or removed //$NON-NLS-1$
       TTrack track = (TTrack)e.getOldValue();
       if (track != null) {
         track.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
@@ -465,7 +465,7 @@ public void propertyChange(PropertyChangeEvent e) {
       track = (TTrack)e.getNewValue();
       if (track != null) setSelectedTrack(track);
     }
-    else if (name.equals("clear")) {     // tracks have been cleared //$NON-NLS-1$
+    else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) {     // tracks have been cleared //$NON-NLS-1$
       for (Integer n: TTrack.activeTracks.keySet()) {
       	TTrack track = TTrack.activeTracks.get(n);
         track.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$

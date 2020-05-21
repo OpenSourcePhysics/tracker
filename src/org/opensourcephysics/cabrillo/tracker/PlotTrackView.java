@@ -254,7 +254,7 @@ public class PlotTrackView extends TrackView {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
-		if (name.equals("track") && e.getNewValue() != null //$NON-NLS-1$ // track added
+		if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) && e.getNewValue() != null //$NON-NLS-1$ // track added
 				&& !(e.getSource() instanceof WorldTView)) {
 			for (TrackPlottingPanel plot : getPlots()) {
 				plot.plotAxes.hideScaleSetter();
@@ -440,7 +440,7 @@ public class PlotTrackView extends TrackView {
 		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			PlotTrackView trackView = (PlotTrackView) obj;
-			control.setValue("track", trackView.getTrack().getName()); //$NON-NLS-1$
+			control.setValue(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, trackView.getTrack().getName()); //$NON-NLS-1$
 			TrackPlottingPanel[] plots = trackView.getPlots();
 			for (int i = 0; i < plots.length; i++) {
 				control.setValue("plot" + i, plots[i]); //$NON-NLS-1$

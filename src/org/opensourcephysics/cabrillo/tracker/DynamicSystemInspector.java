@@ -72,7 +72,7 @@ public class DynamicSystemInspector extends JDialog
     particleCount = 2;
     trackerPanel = system.trackerPanel;
     if (trackerPanel != null) {
-    	trackerPanel.addPropertyChangeListener("track", this); //$NON-NLS-1$
+    	trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
       TFrame frame = trackerPanel.getTFrame();
       if (frame != null) {
         frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
@@ -109,7 +109,7 @@ public void propertyChange(PropertyChangeEvent e) {
         isVisible = vis;
       }
     }
-    else if (e.getPropertyName().equals("track") //$NON-NLS-1$
+    else if (e.getPropertyName().equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) //$NON-NLS-1$
     		&& e.getNewValue() instanceof DynamicParticle) {
     	newParticle = (DynamicParticle)e.getNewValue();
     	updateDisplay();
@@ -134,7 +134,7 @@ public void setVisible(boolean vis) {
 	@Override
 	public void dispose() {
 		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener("track", this); //$NON-NLS-1$
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 			ArrayList<DynamicParticle> list = trackerPanel.getDrawables(DynamicParticle.class);
 			for (int i = 0, ni = list.size(); i < ni; i++) {
 				DynamicParticle p = list.get(ni);
