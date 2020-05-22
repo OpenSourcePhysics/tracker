@@ -150,7 +150,7 @@ private int myFontLevel;
    */
   @Override
 public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
+    if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
       if (e.getNewValue() == trackerPanel) {
         setVisible(isVisible);
       }
@@ -196,7 +196,7 @@ public void dispose() {
       trackerPanel.removePropertyChangeListener("data", this); //$NON-NLS-1$
       TFrame frame = trackerPanel.getTFrame();
       if (frame != null) {
-        frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+        frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
       }
       controls.remove(trackerPanel);
       trackerPanel.trackControl = null;
@@ -275,8 +275,8 @@ public void dispose() {
     	setVisible(false);
     TFrame frame = trackerPanel.getTFrame();
     if (frame != null) {
-      frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
-      frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
+      frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
+      frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
     }
   }
 

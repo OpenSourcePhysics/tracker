@@ -155,7 +155,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final String PROPERTY_TRACKERPANEL_VIDEOVISIBLE = "videovisible";
 	public static final String PROPERTY_TRACKERPANEL_LOCKED = "locked";
 	public static final String PROPERTY_TRACKERPANEL_RADIANANGLES = TFrame.PROPERTY_TFRAME_RADIANANGLES;
-	public static final String PROPERTY_TRACKERPANEL_TAB = "tab";
 
 
 // static fields

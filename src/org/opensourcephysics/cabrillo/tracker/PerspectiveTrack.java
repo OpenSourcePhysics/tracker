@@ -75,7 +75,7 @@ public class PerspectiveTrack extends TTrack {
     filter.addPropertyChangeListener("color", this); //$NON-NLS-1$
     filter.addPropertyChangeListener("visible", this); //$NON-NLS-1$
     filter.addPropertyChangeListener("enabled", this); //$NON-NLS-1$
-    filter.addPropertyChangeListener("tab", this); //$NON-NLS-1$
+    filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_TAB, this); //$NON-NLS-1$
     filter.addPropertyChangeListener("cornerlocation", this); //$NON-NLS-1$
     filter.addPropertyChangeListener("fixed", this); //$NON-NLS-1$
 	}
@@ -87,7 +87,7 @@ public class PerspectiveTrack extends TTrack {
     filter.removePropertyChangeListener("color", this); //$NON-NLS-1$
     filter.removePropertyChangeListener("visible", this); //$NON-NLS-1$
     filter.removePropertyChangeListener("enabled", this); //$NON-NLS-1$
-    filter.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+    filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_TAB, this); //$NON-NLS-1$
     filter.removePropertyChangeListener("cornerlocation", this); //$NON-NLS-1$
     filter.removePropertyChangeListener("fixed", this); //$NON-NLS-1$
   	filter = null;
@@ -105,7 +105,7 @@ public void propertyChange(PropertyChangeEvent e) {
 	  	if (name.equals("color")) { //$NON-NLS-1$
 	  		setColor((Color)e.getNewValue());
 	  	}
-	  	else if (name.equals("enabled") || name.equals("tab") || name.equals("visible")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	  	else if (name.equals("enabled") || name.equals(Filter.PROPERTY_FILTER_TAB) || name.equals("visible")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  		if (trackerPanel.getSelectedTrack()==this) {
   				trackerPanel.setSelectedPoint(null);
           trackerPanel.selectedSteps.clear();

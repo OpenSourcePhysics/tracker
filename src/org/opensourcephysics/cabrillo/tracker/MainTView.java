@@ -372,13 +372,15 @@ public void dispose() {
 	  	frame.removeAll();
 	    ((JDialog)frame).dispose();
 	  }
+    playerBar.removeAll();
+    playerBar = null;
+    
+    // DB! maybe don't need below here
     // remove mouse and key listeners
     trackerPanel.removeMouseListener(mouseAdapter);
     trackerPanel.removeMouseWheelListener(mouseAdapter);
     trackerPanel.removeKeyListener(keyAdapter);
 
-    playerBar.removeAll();
-    playerBar = null;
     scrollPane.setViewportView(null);
     scrollPane = null;
     removeAll();

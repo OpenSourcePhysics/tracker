@@ -67,7 +67,7 @@ public class VectorSumInspector extends JDialog
       trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
       TFrame frame = trackerPanel.getTFrame();
       if (frame != null) {
-        frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
+        frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
       }
     }
     // listener for the checkboxes
@@ -122,7 +122,7 @@ public void setVisible(boolean vis) {
 			}
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
-				frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
 			}
 			trackerPanel = null;
 		}
@@ -132,13 +132,13 @@ public void setVisible(boolean vis) {
   /**
    * Responds to property change events. VectorSumInspector listens for the
    * following events: "color", "footprint" and "name" from Vector, "track"
-   * from TrackerPanel, and "tab" from TFrame.
+   * from TrackerPanel, and TFrame.PROPERTY_TFRAME_TAB.
    *
    * @param e the property change event
    */
   @Override
 public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
+    if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
       if (trackerPanel != null && e.getNewValue() == trackerPanel) {
         setVisible(isVisible);
       }
