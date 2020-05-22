@@ -458,6 +458,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	static final String REFRESH_TFRAME_OPENRECENT        = "TFrame.openRecent";
 	static final String REFRESH_UNDO                     = "Undo.refreshMenus";
 	
+	boolean refreshTracksCreate, refreshTrackTexts, refreshRecentFiles;
+	
 	protected void refreshAll(String whereFrom) {
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
 		OSPLog.debug("TMenuBar.refreshAll - rebuilding TMenuBar "
@@ -468,7 +470,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		try {
 			switch (whereFrom) {
 			case REFRESH_TOOLBAR_POPUP:
-				refreshTracksCreateMenu();
+				refreshTracksCreate = true;
 				break;
 			case REFRESH_TRACKERIO_SAVE:
 			case REFRESH_TRACKERIO_SAVETABSET:
@@ -479,11 +481,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			case REFRESH_TRACKERIO_BEFORESETVIDEO:
 				break;
 			case REFRESH_TPANEL_SETTRACKNAME:
-				refreshTrackMenuTexts(trackerPanel.getUserTracks());
+				refreshTrackTexts = true;
 				break;
 			case REFRESH_TFRAME_OPENRECENT:
 			case REFRESH_PREFS_CLEARRECENT:
-				refreshRecentFilesMenu();
+				refreshRecentFiles = true;
 				break;
 			case REFRESH_TRACKERIO_DONELOADING_:
 			case REFRESH_PREFS_APPLYPREFS:
@@ -1720,7 +1722,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					fileMenu.add(file_openItem);
 //	    fileMenu.add(openURLItem);
 					fileMenu.add(file_openRecentMenu);
-					refreshRecentFilesMenu();
 				}
 				boolean showLib = trackerPanel.isEnabled("file.open") || trackerPanel.isEnabled("file.export"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (showLib && trackerPanel.isEnabled("file.library")) { //$NON-NLS-1$
@@ -1776,9 +1777,15 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				fileMenu.add(file_exitItem);
 			}
 			FontSizer.setMenuFonts(fileMenu);
+			refreshRecentFiles = true;
 			setMenuTainted(MENU_FILE, false);
 		}
 		if (selecting) {
+			if (refreshRecentFiles) {
+				refreshRecentFilesMenu();
+				refreshRecentFiles = false;
+			}
+
 			// disable export data menu if no tables to export
 			// DB getDataViews() only changes when a TableTrackView is displayed/hidden
 			file_export_dataItem.setEnabled(!getDataViews().isEmpty());
@@ -2281,7 +2288,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 						item.setSelected(true);
 				}
 			}
-			refreshTrackMenuTexts(userTracks);
 			if (trackerPanel.isEnabled("edit.clear")) { //$NON-NLS-1$
 				if (edit_deleteTracksMenu.getItemCount() > 0)
 					edit_deleteTracksMenu.addSeparator();
@@ -2322,10 +2328,19 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					}
 				}
 			}
-			refreshTracksCreateMenu();
+			refreshTracksCreate = true;
+			refreshTrackTexts = true;
 			setMenuTainted(MENU_TRACK, false);
 		}
 		if (selecting) {
+			if (refreshTracksCreate) {
+				refreshTracksCreateMenu();
+				refreshTracksCreate = false;
+			}
+			if (refreshTrackTexts) {
+				refreshTrackMenuTexts();
+				refreshTrackTexts = false;
+			}
 			// DB createMenu is empty ONLY if all track types are excluded in
 			// Preferences--VERY rare
 			if (track_createMenu.getItemCount() > 0)
@@ -2346,7 +2361,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		}
 	}
 
-	private void refreshTrackMenuTexts(ArrayList<TTrack> userTracks) {
+	private void refreshTrackMenuTexts() {
+		ArrayList<TTrack> userTracks = trackerPanel.getUserTracks();
 		int jd = 0, jc = 0, jt = 0, jp = 0;
 		for (int i = 0, n = userTracks.size(); i < n; i++) {
 			TTrack track = userTracks.get(i);
