@@ -180,7 +180,7 @@ public abstract class Step implements Cloneable {
 	public void erase(TrackerPanel trackerPanel) {
 		if (marks.get(trackerPanel) == null)
 			return; // already dirty
-		trackerPanel.addDirtyRegion(getBounds(trackerPanel)); // old bounds
+		trackerPanel.addDirtyRegion(null);//getBounds(trackerPanel)); // old bounds
 		marks.put(trackerPanel, null); // triggers new mark
 	}
 
@@ -193,7 +193,7 @@ public abstract class Step implements Cloneable {
 	 */
 	public void remark(TrackerPanel trackerPanel) {
 		erase(trackerPanel);
-		trackerPanel.addDirtyRegion(getBounds(trackerPanel)); // new bounds
+		trackerPanel.addDirtyRegion(null);//getBounds(trackerPanel)); // new bounds
 	}
 
 	/**

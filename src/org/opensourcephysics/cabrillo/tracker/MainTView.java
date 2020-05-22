@@ -90,7 +90,9 @@ public class MainTView extends JPanel implements TView {
     		TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
     		toolbar.refreshZoomButton();
     		trackerPanel.eraseAll();
+    		OSPLog.debug("MainTView scrollpane resize" + e);
     		trackerPanel.repaint();
+
     	}
     });
   	SwingUtilities.replaceUIActionMap(scrollPane, null);
@@ -584,5 +586,6 @@ public void propertyChange(PropertyChangeEvent e) {
 		}
 		trackerPanel.setMagnification(m2);  
   }
+  
   
 }

@@ -182,6 +182,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected TTrack selectedTrack;
 	protected TPoint newlyMarkedPoint;
 	protected Rectangle dirty;
+	private boolean tainted; 
 	protected AffineTransform prevPixelTransform;
 	protected double zoom = 1;
 	protected JScrollPane scrollPane;
@@ -461,21 +462,28 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param dirtyRect the dirty rectangle
 	 */
 	public void addDirtyRegion(Rectangle dirtyRect) {
+		
+		tainted = true;
+		
 		if (dirty == null)
 			dirty = dirtyRect;
-		else if (dirtyRect != null)
-			dirty.add(dirtyRect);
+		return;
+//		else if (dirtyRect != null)
+//			dirty.add(dirtyRect);
 	}
 
 	/**
 	 * Repaints the dirty region.
 	 */
 	public void repaintDirtyRegion() {
-		if (dirty != null) {
-			synchronized (dirty) {
-				dirty.grow(2, 2);
-				repaint(dirty);
-			}
+		
+		if (tainted || dirty != null) {
+//			synchronized (dirty) {
+//				dirty.grow(2, 2);
+			repaint();
+//				repaint(dirty);
+//			}
+			tainted = false;
 			dirty = null;
 		}
 	}
@@ -3030,8 +3038,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public void paintComponent(Graphics g) {
+		
 		long t0 = Performance.now(0);
+
+		if (!frame.isPainting())
+			return;
+
 		super.paintComponent(g);
+
+
+
 		if (zoomCenter != null && isShowing() && getTFrame() != null && scrollPane != null) {
 			final Rectangle rect = scrollPane.getViewport().getViewRect();
 			int x = zoomCenter.x - rect.width / 2;
@@ -3451,17 +3467,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
 			trackerPanel.frame = (TFrame) ((XMLControlElement) control).getData();
 			long t0 = Performance.now(0);
-			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
+			//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
 
 			try {
 				trackerPanel.frame.holdPainting(true);
-				OSPLog.debug("TrackerPanel.finalizeLoading start");
+				//OSPLog.debug("TrackerPanel.finalizeLoading start");
 
 				
 				
 				Video video = finalizeClip();
 				
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading finalizeClip", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading finalizeClip", Performance.TIME_MARK));
 
 				// load and check if a newer Tracker version created this file
 				String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
@@ -3510,7 +3526,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 					}
 				}
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading load metadata", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading load metadata", Performance.TIME_MARK));
 
 				// load the clip control
 				XMLControl child = control.getChildControl("clipcontrol"); //$NON-NLS-1$
@@ -3519,7 +3535,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					child.loadObject(clipControl);
 				}
 				
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading clipControl ", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading clipControl ", Performance.TIME_MARK));
 
 				// load the toolbar
 				child = control.getChildControl("toolbar"); //$NON-NLS-1$
@@ -3528,7 +3544,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					child.loadObject(toolbar);
 				}
 				
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading toolbar", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading toolbar", Performance.TIME_MARK));
 
 				// load the coords
 				child = control.getChildControl("coords"); //$NON-NLS-1$
@@ -3539,7 +3555,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
 				}
 				
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading coords", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading coords", Performance.TIME_MARK));
 
 				// load units and unit visibility
 				if (control.getPropertyNamesRaw().contains("length_unit")) { //$NON-NLS-1$
@@ -3569,7 +3585,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 				
 
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading number formats", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading number formats", Performance.TIME_MARK));
 
 				// load the tracks
 				ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
@@ -3580,7 +3596,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 				
 
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading load tracks", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading load tracks", Performance.TIME_MARK));
 
 				// load drawing scenes saved in vers 4.11.0+
 				ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
@@ -3603,7 +3619,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 
 
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading scenes and pencil ", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading scenes and pencil ", Performance.TIME_MARK));
 
 				// load the reference frame
 				String rfName = control.getString("referenceframe"); //$NON-NLS-1$
@@ -3617,7 +3633,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 				
 
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading ref and config ", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading ref and config ", Performance.TIME_MARK));
 
 				// load the selected_views property
 				List<XMLProperty> props = control.getPropsRaw();
@@ -3638,7 +3654,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 				
 
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading props ", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading props ", Performance.TIME_MARK));
 
 				// load the dividers
 				trackerPanel.dividerLocs = (double[]) control.getObject("dividers"); //$NON-NLS-1$
@@ -3664,7 +3680,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 				
 
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading misc ", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading misc ", Performance.TIME_MARK));
 
 				// set selected track
 				String name = control.getString("selectedtrack"); //$NON-NLS-1$
@@ -3692,11 +3708,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					}
 				}
 
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading datatool ", Performance.TIME_MARK));
+				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading datatool ", Performance.TIME_MARK));
 
 			} finally {
 				OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
-				trackerPanel.frame.holdPainting(false);
 				OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
 		}
@@ -4180,6 +4195,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	
+	private static int repaintCount = 0;
 	/**
 	 * All repaints funnel through this method
 	 * 
@@ -4188,7 +4204,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public void repaint(long time, int x, int y, int w, int h) {
 		if (!isVisible() || frame == null || !frame.isPainting())
 			return;
-		OSPLog.debug("TrackerPanel repaint");
+//		String s = /** @j2sNative  Clazz._getStackTrace() || */null;
+		OSPLog.debug("TrackerPanel repaint " + (++repaintCount));
+		
 		
 		super.repaint(time, x, y, w, h);
 	}
@@ -4198,4 +4216,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		super.setVisible(b);
 	}
 	
+	
+
 }

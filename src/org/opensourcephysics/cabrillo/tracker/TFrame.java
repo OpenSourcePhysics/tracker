@@ -1470,7 +1470,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Refreshes the GUI.
 	 */
 	public void refresh() {
-		clearHoldPainting();
 		int i = getSelectedTab();
 		if (i < 0)
 			return;
@@ -2764,8 +2763,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void holdPainting(boolean b) {
 		paintHold += (b ? 1 : paintHold > 0 ? -1 : 0);
 		OSPLog.debug("TFrame.paintHold=" + paintHold);
-		if (b || paintHold == 0)
-			tabbedPane.setVisible(!b);
+//		if (b || paintHold == 0)
+//			tabbedPane.setVisible(!b);
 	}
 
 	/**
@@ -2783,6 +2782,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * 
 	 */
 	public void clearHoldPainting() {
+		if (paintHold != 0) {
+			OSPLog.debug("TFrame.paintHold cleared ");
+		}
+		
 		paintHold = 0;
 	}
 }

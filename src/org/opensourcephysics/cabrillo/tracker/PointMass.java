@@ -2029,18 +2029,18 @@ public class PointMass extends TTrack {
 					v.setRolloverVisible(!labelsVisible);
 					v.attach(p);
 					array.setStep(n, v);
-					trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
+					trackerPanel.addDirtyRegion(null);//v.getBounds(trackerPanel));
 				} else if ((int) (100 * v.getXComponent()) != (int) (100 * x)
 						|| (int) (100 * v.getYComponent()) != (int) (100 * y)) {
-					trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
+					trackerPanel.addDirtyRegion(null);//v.getBounds(trackerPanel));
 					v.attach(v.getAttachmentPoint());
 					v.setXYComponents(x, y);
-					trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
+					trackerPanel.addDirtyRegion(null);//v.getBounds(trackerPanel));
 				} else
 					v.attach(v.getAttachmentPoint());
 			} else {
 				array.setStep(n, null);
-				trackerPanel.addDirtyRegion(v.getBounds(trackerPanel));
+				trackerPanel.addDirtyRegion(null);//v.getBounds(trackerPanel));
 			}
 		}
 
@@ -2065,18 +2065,18 @@ public class PointMass extends TTrack {
 					a.setRolloverVisible(!labelsVisible);
 					a.attach(p);
 					array.setStep(n, a);
-					trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
+					trackerPanel.addDirtyRegion(null);//a.getBounds(trackerPanel));
 				} else if ((int) (100 * a.getXComponent()) != (int) (100 * x)
 						|| (int) (100 * a.getYComponent()) != (int) (100 * y)) {
-					trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
+					trackerPanel.addDirtyRegion(null);//a.getBounds(trackerPanel));
 					a.attach(a.getAttachmentPoint());
 					a.setXYComponents(x, y);
-					trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
+					trackerPanel.addDirtyRegion(null);//a.getBounds(trackerPanel));
 				} else
 					a.attach(a.getAttachmentPoint());
 			} else {
 				array.setStep(n, null);
-				trackerPanel.addDirtyRegion(a.getBounds(trackerPanel));
+				trackerPanel.addDirtyRegion(null);//a.getBounds(trackerPanel));
 			}
 		}
 		// restore locked state

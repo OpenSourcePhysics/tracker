@@ -402,17 +402,17 @@ public ImageCoordSystem getCoords() {
     return trackerPanel.getCoords();
   }
 
-  /**
-   * Overrides TrackerPanel repaintDirtyRegion method. WorldView requires
-   * a full repaint every time since it autoscales.
-   */
-  @Override
-public void repaintDirtyRegion() {
-    if (dirty != null) {
-      repaint();
-      dirty = null;
-    }
-  }
+//  /**
+//   * Overrides TrackerPanel repaintDirtyRegion method. WorldView requires
+//   * a full repaint every time since it autoscales.
+//   */
+//  @Override
+//public void repaintDirtyRegion() {
+//    if (dirty != null) {
+//      repaint();
+//      dirty = null;
+//    }
+//  }
 
   /**
    * Overrides InteractivePanel getInteractive method.

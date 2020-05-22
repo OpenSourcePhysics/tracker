@@ -1146,7 +1146,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 */
 	protected void erase() {
 		if (mark != null)
-			trackerPanel.addDirtyRegion(mark.getBounds(false)); // old bounds
+			trackerPanel.addDirtyRegion(null);//mark.getBounds(false)); // old bounds
 		mark = null;
 	}
 
@@ -1156,7 +1156,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	protected void repaint() {
 		erase();
 		if (getMark() != null)
-			trackerPanel.addDirtyRegion(mark.getBounds(false)); // new bounds
+			trackerPanel.addDirtyRegion(null);//mark.getBounds(false)); // new bounds
 		trackerPanel.repaintDirtyRegion();
 	}
 

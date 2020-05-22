@@ -74,6 +74,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileFilter;
 
@@ -1732,8 +1733,9 @@ public class TrackerIO extends VideoIO {
 			this.whenDone = whenDone;
 			monitors.add(this);
 			
-			
-			frame.holdPainting(true);
+
+			if (type == TYPE_ZIP)
+				frame.holdPainting(true);
 			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad start " + path, Performance.TIME_MARK));
 			t0 = Performance.now(0);
 		}
@@ -2138,22 +2140,38 @@ public class TrackerIO extends VideoIO {
 				path = XML.forwardSlash(xmlPath);
 				Tracker.addRecent(ResourceLoader.getNonURIPath(path), false); // add at beginning
 			}
+			
 			trackerPanel.changed = panelChanged;
-			frame.holdPainting(false);
-			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad done1 " + path, Performance.TIME_MARK));
-			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_DONELOADING_ + " " + type);
 			TTrackBar.refreshMemoryButton();
-			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad done2 " + path, Performance.TIME_MARK));
+
+			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_DONELOADING_ + " " + type);						
+
+			if (type == 2) {
+				frame.clearHoldPainting();
+				trackerPanel.repaint();
+			}
+			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad done " + path, Performance.TIME_MARK));
 			OSPLog.debug("!!! " + Performance.now(t0) + " AyncLoad " + path);
 
-			if (whenDone != null)
-				whenDone.run();
+			if (whenDone == null) {
+			} else {
+				SwingUtilities.invokeLater(new Runnable() {
+
+					@Override
+					public void run() {
+						whenDone.run();
+					}
+				});;
+				
+			}
+			
+
 		}
 
 		@Override
 		public void stop() {
 			stopped = true;
-			frame.holdPainting(false);
+			frame.clearHoldPainting();
 		}
 
 		@Override
@@ -2170,7 +2188,7 @@ public class TrackerIO extends VideoIO {
 		@Override 
 		public void cancelAsync() {
 			super.cancelAsync();
-			frame.holdPainting(false);
+			frame.clearHoldPainting();
 		}
 
 		@Override
