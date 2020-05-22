@@ -780,10 +780,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); 
 		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELSTART, this); 
 		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELEND, this); 
-		TFrame frame = getTFrame();
-		if (frame != null)
-			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, track); 
-
+		if (track instanceof ParticleModel) {
+			TFrame frame = getTFrame();
+			if (frame != null)
+				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, track); 
+		}
 	}
 
 	/**
