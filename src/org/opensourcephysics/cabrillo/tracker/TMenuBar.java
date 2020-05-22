@@ -88,6 +88,8 @@ import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 
+import javajs.async.SwingJSUtils.Performance;
+
 /**
  * This is the main menu for Tracker.
  *
@@ -1606,6 +1608,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	 */
 	public void refreshWindowMenu(boolean opening) {
 
+		long t0 = Performance.now(0);
+
 		if (isTainted(MENU_WINDOW)) {
 			setMenuTainted(MENU_WINDOW, false);
 		}
@@ -1677,6 +1681,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 			FontSizer.setMenuFonts(windowMenu);
 		}
+		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar window refresh");
 	}
 
 	/**
@@ -1716,6 +1721,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	}
 
 	protected void refreshFileMenu(boolean opening) {
+
+		long t0 = Performance.now(0);
+
 		if (isTainted(MENU_FILE)) {
 			// refresh file menu
 			fileMenu.removeAll();
@@ -1809,6 +1817,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// DB changes when tab is opened or closed
 			file_saveTabsetAsItem.setEnabled(frame != null && frame.getTabCount() > 1);
 		}		
+		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar file refresh");
 	}
 
 	private void refreshRecentFilesMenu() {
@@ -1819,6 +1828,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	}
 
 	protected void refreshEditMenu(boolean opening) {
+
+		long t0 = Performance.now(0);
+
 		if (isTainted(MENU_EDIT)) {
 			boolean hasTracks = !trackerPanel.getUserTracks().isEmpty();
 			editMenu.removeAll();
@@ -1962,9 +1974,13 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (opening) {
 			setupEditMenu();
 		}
+		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar edit refresh");
 	}
 
 	protected void refreshCoordsMenu(boolean opening) {
+
+		long t0 = Performance.now(0);
+
 		if (isTainted(MENU_COORDS)) {
 			// refresh coords menu
 			coordsMenu.removeAll();
@@ -2034,7 +2050,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (opening) {
 			// nothing to do
 		}
-		
+		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar coords refresh");
+
 	}
 
 	/**
@@ -2047,6 +2064,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	}
 
 	protected void refreshVideoMenu(boolean opening) {
+
+		long t0 = Performance.now(0);
+
 		if (isTainted(MENU_VIDEO)) {
 			Video video = trackerPanel.getVideo();
 			boolean hasVideo = (video != null);
@@ -2187,6 +2207,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (opening) {
 			setupVideoMenu();
 		}
+		
+		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar video refresh");
+
 	}
 	
 	protected void refreshPasteItem() {
@@ -2255,6 +2278,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	}
 	
 	protected void refreshTrackMenu(boolean opening) {
+		
+		long t0 = Performance.now(0);
 
 		if (isTainted(MENU_TRACK)) {
 			ArrayList<TTrack> userTracks = trackerPanel.getUserTracks();
@@ -2375,6 +2400,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				}
 			}
 		}
+		
+		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar track refresh");
+
 	}
 
 	private void refreshTrackMenuTexts() {

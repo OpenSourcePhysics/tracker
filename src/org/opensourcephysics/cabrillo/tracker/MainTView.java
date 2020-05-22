@@ -87,12 +87,11 @@ public class MainTView extends JPanel implements TView {
     scrollPane.addComponentListener(new ComponentAdapter() {
     	@Override
 		public void componentResized(ComponentEvent e) {
-    		TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
-    		toolbar.refreshZoomButton();
+    		if (!getTopLevelAncestor().isVisible())
+    			return;
+    		TToolBar.getToolbar(trackerPanel).refreshZoomButton();
     		trackerPanel.eraseAll();
-    		OSPLog.debug("MainTView scrollpane resize" + e);
     		trackerPanel.repaint();
-
     	}
     });
   	SwingUtilities.replaceUIActionMap(scrollPane, null);
