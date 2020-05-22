@@ -98,8 +98,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 
 	private static Map<TrackerPanel, TMenuBar> menubars = new HashMap<TrackerPanel, TMenuBar>();
 
-	private XMLControlElement control = new XMLControlElement();
-
 	static final String POPUPMENU_TTOOLBAR_TRACKS        = "TToolBar.tracks";
 	static final String POPUPMENU_TFRAME_BOTTOM          = "TFrame.bottom";
 	static final String POPUPMENU_TFRAME_RIGHT           = "TFrame.right";
@@ -1231,12 +1229,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		video_pasteFilterItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String xml = DataTool.paste();
-				XMLControl control = new XMLControlElement(xml);
-				Video video = trackerPanel.getVideo();
-				FilterStack stack = video.getFilterStack();
-				Filter filter = (Filter) control.loadObject(null);
-				stack.addFilter(filter);
+				Filter filter = (Filter) new XMLControlElement(DataTool.paste()).loadObject(null);
+				trackerPanel.getVideo().getFilterStack().addFilter(filter);
 				filter.setVideoPanel(trackerPanel);
 			}
 		});
@@ -2196,7 +2190,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	}
 	
 	protected void refreshPasteItem() {
-		// enable and refresh paste item if clipboard contains xml string data		
+		// enable and refresh paste item if clipboard contains xml string data
 		String paste = actions.get("paste").getValue(Action.NAME).toString(); //$NON-NLS-1$
 		edit_pasteItem.setText(paste);
 		edit_pasteItem.setEnabled(false);
@@ -2205,6 +2199,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
 			try {
 				String s = (String) data.getTransferData(DataFlavor.stringFlavor);
+				XMLControlElement control = new XMLControlElement();
 				control.readXML(s);
 				Class<?> type = control.getObjectClass();
 				if (control.failedToRead() && ParticleDataTrack.getImportableDataName(s) != null) {
@@ -2212,8 +2207,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					edit_pasteItem.setEnabled(true);
 					edit_pasteItem.setText(paste);
 				} else if (TTrack.class.isAssignableFrom(type)) {
-					edit_pasteItem.setEnabled(true);
 					String name = control.getString("name"); //$NON-NLS-1$
+					edit_pasteItem.setEnabled(true);
 					edit_pasteItem.setText(paste + " " + name); //$NON-NLS-1$
 				} else if (ImageCoordSystem.class.isAssignableFrom(type)) {
 					edit_pasteItem.setEnabled(true);
