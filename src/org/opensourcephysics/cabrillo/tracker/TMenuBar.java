@@ -53,7 +53,6 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
-import javax.swing.DefaultButtonModel;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -64,7 +63,6 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -1730,7 +1728,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			FontSizer.setMenuFonts(fileMenu);
 			refreshRecentFiles = true;
 			setMenuTainted(MENU_FILE, false);
-			if (opening) refireMenuOpen(fileMenu);
 		}
 		if (opening) {
 			if (refreshRecentFiles) {
@@ -1899,8 +1896,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			editMenu.add(edit_configItem);
 			FontSizer.setMenuFonts(editMenu);
 			setMenuTainted(MENU_EDIT, false);
-			if (opening) refireMenuOpen(editMenu);
-
 		}
 		if (opening) {
 			setupEditMenu();
@@ -1991,7 +1986,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				coordsMenu.add(coords_emptyCoordsItem);
 			}
 			setMenuTainted(MENU_COORDS, false);
-			if (opening) refireMenuOpen(coordsMenu);
 		}
 		if (opening) {
 			// nothing to do
@@ -2326,7 +2320,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			refreshTracksCreate = true;
 			refreshTrackTexts = true;
 			setMenuTainted(MENU_TRACK, false);
-			if (opening) refireMenuOpen(tracksMenu);
 		}
 		if (opening) {
 			if (refreshTracksCreate) {
@@ -2565,23 +2558,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 			FontSizer.setMenuFonts(windowMenu);
 			setMenuTainted(MENU_WINDOW, false);
-			if (opening) refireMenuOpen(windowMenu);
 		}
 		if (opening) {
 		}
 		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar window refresh");
-	}
-
-	private void refireMenuOpen(JMenu menu) {
-//		menu.setPopupMenuVisible(false);
-//		SwingUtilities.invokeLater(new Runnable() {
-//
-//			@Override
-//			public void run() {
-//				menu.setPopupMenuVisible(true);
-//			}
-//			
-//		});
 	}
 
 	protected void refreshHelpMenu(boolean opening) {
