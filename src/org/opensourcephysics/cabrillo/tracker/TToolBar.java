@@ -370,7 +370,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		newTrackButton = new TButton(newTrackIcon) {
 			@Override
 			protected JPopupMenu getPopup() {
-				TMenuBar.refreshPopup(trackerPanel, TMenuBar.TTOOLBAR_TRACKS, newPopup, true);
+				TMenuBar.refreshPopup(trackerPanel, TMenuBar.POPUPMENU_TTOOLBAR_TRACKS, newPopup, true);
 				return newPopup;
 			}
 		};

@@ -1294,7 +1294,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					super.setDividerLocation(loc);
 				cur = getDividerLocation();
 				boolean open = (1.0 * cur / max) < 0.98;
-				TMenuBar.setSelectedItem(trackerPanel, TMenuBar.TFRAME_RIGHT, open);
+				TMenuBar.setSelectedItem(trackerPanel, TMenuBar.POPUPMENU_TFRAME_RIGHT, open);
 			}
 		};
 		panes[1] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // plot/table split
@@ -1313,7 +1313,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					super.setDividerLocation(loc);
 				cur = getDividerLocation();
 				boolean open = (1.0 * cur / max) < 0.98;
-				TMenuBar.setSelectedItem(trackerPanel, TMenuBar.TFRAME_BOTTOM, open);
+				TMenuBar.setSelectedItem(trackerPanel, TMenuBar.POPUPMENU_TFRAME_BOTTOM, open);
 			}
 		};
 		panes[3] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) { // world/html
@@ -2333,8 +2333,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		coordsMenu.setEnabled(false);
 		defaultMenuBar.add(coordsMenu);
 		// help menu
-		JMenu helpMenu = TMenuBar.getTrackerHelpMenu(null, null);
-		defaultMenuBar.add(helpMenu);
+		defaultMenuBar.add(TMenuBar.getTrackerHelpMenu(null, null));
 	}
 
 	/**

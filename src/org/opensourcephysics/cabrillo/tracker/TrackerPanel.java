@@ -4085,7 +4085,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				popup.add(snapshotItem);
 			}
 
-			TMenuBar.refreshPopup(this, TMenuBar.MAINTVIEW_POPUP, popup, true);
+			TMenuBar.refreshPopup(this, TMenuBar.POPUPMENU_MAINTVIEW_POPUP, popup, true);
 			// video properties item
 			Action vidPropsAction = TActions.getAction("aboutVideo", this); //$NON-NLS-1$
 			JMenuItem propertiesItem = new JMenuItem(vidPropsAction);
