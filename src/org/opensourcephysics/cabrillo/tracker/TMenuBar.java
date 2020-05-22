@@ -409,6 +409,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 //			OSPRuntime.jsutil.setUIEnabled(this, false);
 //		}
 
+		OSPLog.debug("TMenuBar menu "+ ((JMenu) e.getSource()).getName());
 		switch (((JMenu) e.getSource()).getName()) {
 		case "file":
 			refreshFileMenu(true);
@@ -1450,6 +1451,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		}
 	}
 	protected void setupVideoMenu() {
+		OSPLog.debug(" TMenuBar video setup");
 		// enable paste image item if clipboard contains image data
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		Transferable data = clipboard.getContents(null);
@@ -1990,6 +1992,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		long t0 = Performance.now(0);
 
 		if (isTainted(MENU_VIDEO)) {
+			OSPLog.debug("tainted TMenuBar video refresh");
 			Video video = trackerPanel.getVideo();
 			boolean hasVideo = (video != null);
 			videoMenu.removeAll();
@@ -2022,8 +2025,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// pasteImage items
 			if (importEnabled)
 				videoMenu.add(hasVideo ? video_pasteImageMenu : video_pasteImageItem);
-			if (!hasVideo)
+			if (!hasVideo) {
+				setupVideoMenu();
+				OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar video refresh");
 				return;
+			}
 			boolean isEditableVideo = importEnabled && video instanceof ImageVideo && ((ImageVideo) video).isEditable();
 			if (isEditableVideo && importEnabled) {
 				video_pasteImageMenu.add(video_pasteImageBeforeItem);
@@ -2118,7 +2124,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			FontSizer.setMenuFonts(videoMenu);
 			setMenuTainted(MENU_VIDEO, false);
 			if (opening) {
-				OSPLog.debug("TMenuBar.video1");
+				setupVideoMenu();
+				OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar video refresh");
+				OSPLog.debug("TMenuBar refireMenuOpen video");
 				refireMenuOpen(videoMenu);
 				return;
 			}
