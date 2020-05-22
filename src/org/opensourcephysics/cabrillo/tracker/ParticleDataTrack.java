@@ -394,12 +394,12 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @return a menu
 	 */
 	@Override
-	public JMenu getMenu(TrackerPanel trackerPanel) {
+	public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
 		if (getLeader() != this) {
 			return getPointMenu(trackerPanel);
 		}
 
-		JMenu menu = super.getMenu(trackerPanel);
+		JMenu menu = super.getMenu(trackerPanel, menu0);
 		menu.setIcon(getIcon(21, 16, "model")); //$NON-NLS-1$
 		menu.removeAll();
 
@@ -492,7 +492,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		footprintMenu.setText(TrackerRes.getString("TTrack.MenuItem.Footprint")); //$NON-NLS-1$
 		velocityMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
 		accelerationMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
-		JMenu menu = getLeader() != this ? super.getMenu(trackerPanel) : new JMenu();
+		JMenu menu = getLeader() != this ? super.getMenu(trackerPanel, null) : new JMenu();
 		menu.setText(getPointName());
 		menu.setIcon(getFootprint().getIcon(21, 16));
 		menu.removeAll();

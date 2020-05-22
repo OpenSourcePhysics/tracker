@@ -397,7 +397,7 @@ abstract public class ParticleModel extends PointMass {
 	 * @return a menu
 	 */
 	@Override
-	public JMenu getMenu(TrackerPanel trackerPanel) {
+	public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
 		if (modelBuilderItem == null) {
 			// create the model item
 			modelBuilderItem = new JMenuItem();
@@ -460,7 +460,7 @@ abstract public class ParticleModel extends PointMass {
 		stampItem.setText(stamp + " " + pm); //$NON-NLS-1$
 		stampItem.setToolTipText(TrackerRes.getString("ParticleModel.MenuItem.Stamp.Tooltip")); //$NON-NLS-1$
 		// assemble the menu
-		JMenu menu = super.getMenu(trackerPanel);
+		JMenu menu = super.getMenu(trackerPanel, menu0);
 
 		// remove unwanted menu items and separators
 		menu.remove(autotrackItem);

@@ -1617,7 +1617,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	 * @return the track's menu
 	 */
 	protected JMenu createTrackMenu(TTrack track) {
-		JMenu menu = track.getMenu(trackerPanel);
+		JMenu menu = track.getMenu(trackerPanel, null);
 		menu.setName("track");
 		ImageCoordSystem coords = trackerPanel.getCoords();
 		if (coords.isLocked() && coords instanceof ReferenceFrame

@@ -67,6 +67,7 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -3951,7 +3952,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				if (track instanceof ParticleDataTrack) {
 					popup = ((ParticleDataTrack) track).getPointMenu(this).getPopupMenu();
 				} else {
-					popup = track.getMenu(this).getPopupMenu();
+					popup = track.getMenu(this, new JMenu()).getPopupMenu();
 				}
 				selectedStep = prev;
 			}
@@ -3965,7 +3966,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			} else if (track instanceof Protractor) {
 				popup = ((Protractor) track).getInputFieldPopup();
 			} else {
-				popup = track.getMenu(this).getPopupMenu();
+				popup = track.getMenu(this, null).getPopupMenu();
 			}
 		}
 		if (!trackClicked) { // video or non-track TPoint was clicked

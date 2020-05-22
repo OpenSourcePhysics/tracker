@@ -200,7 +200,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 	 * @return a menu
 	 */
 	@Override
-	public JMenu getMenu(TrackerPanel trackerPanel) {
+	public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
 		// create a system inspector item
 		systemInspectorItem = new JMenuItem(TrackerRes.getString("DynamicSystem.MenuItem.Inspector")); //$NON-NLS-1$
 		systemInspectorItem.addActionListener(new ActionListener() {
@@ -212,7 +212,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 			}
 		});
 		// assemble the menu
-		JMenu menu = super.getMenu(trackerPanel);
+		JMenu menu = super.getMenu(trackerPanel, menu0);
 		menu.add(systemInspectorItem, 1);
 		return menu;
 	}

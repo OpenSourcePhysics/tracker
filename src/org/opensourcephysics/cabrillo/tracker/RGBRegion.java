@@ -657,8 +657,11 @@ protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
    * @return a menu
    */
   @Override
-public JMenu getMenu(TrackerPanel trackerPanel) {
-    JMenu menu = super.getMenu(trackerPanel);
+public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
+    JMenu menu = super.getMenu(trackerPanel, menu0);
+	if (menu0 == null)
+		return menu;
+
     fixedPositionItem.setText(TrackerRes.getString("RGBRegion.MenuItem.Fixed")); //$NON-NLS-1$
     fixedPositionItem.setSelected(isFixedPosition());
     fixedRadiusItem.setText(TrackerRes.getString("RGBRegion.MenuItem.FixedRadius")); //$NON-NLS-1$

@@ -576,8 +576,11 @@ public String getAttachmentDescription(int n) {
    * @return a menu
    */
   @Override
-public JMenu getMenu(TrackerPanel trackerPanel) {
-    JMenu menu = super.getMenu(trackerPanel);
+public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
+    JMenu menu = super.getMenu(trackerPanel, menu0);
+	if (menu0 == null)
+		return menu;
+
         
 //    lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
     fixedItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$

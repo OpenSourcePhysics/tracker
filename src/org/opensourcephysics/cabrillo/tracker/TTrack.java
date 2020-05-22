@@ -82,6 +82,8 @@ import javax.swing.SwingConstants;
 import javax.swing.Timer;
 import javax.swing.WindowConstants;
 import javax.swing.border.Border;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.event.SwingPropertyChangeSupport;
 
 import org.opensourcephysics.controls.OSPLog;
@@ -2188,10 +2190,34 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * method and add track-specific menu items.
 	 *
 	 * @param trackerPanel the tracker panel
+	 * @param menu0 TODO
 	 * @return a menu
 	 */
-	public JMenu getMenu(TrackerPanel trackerPanel) {
-		JMenu menu = new JMenu(getName("track")); //$NON-NLS-1$
+	public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu) {
+		boolean dynamic = (menu == null);
+		if (dynamic) {
+			JMenu menu0 = new JMenu();
+			menu0.setText(getName("track"));
+			menu0.addMenuListener(new MenuListener() {
+
+				@Override
+				public void menuSelected(MenuEvent e) {
+					menu0.removeAll();
+					getMenu(trackerPanel, menu0);
+				}
+
+				@Override
+				public void menuDeselected(MenuEvent e) {
+				}
+
+				@Override
+				public void menuCanceled(MenuEvent e) {
+				}
+				
+			});
+			return menu0;
+		}
+		menu.setText(getName("track"));
 		// prepare menu items
 		visibleItem.setText(TrackerRes.getString("TTrack.MenuItem.Visible")); //$NON-NLS-1$
 		trailVisibleItem.setText(TrackerRes.getString("TTrack.MenuItem.TrailVisible")); //$NON-NLS-1$

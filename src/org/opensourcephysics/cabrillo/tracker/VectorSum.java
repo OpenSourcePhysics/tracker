@@ -386,7 +386,7 @@ protected void dispose() {
    * @return a menu
    */
   @Override
-public JMenu getMenu(TrackerPanel trackerPanel) {
+public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
     // create a vector sum inspector item
     inspectorItem = new JMenuItem(
         TrackerRes.getString("VectorSum.MenuItem.Inspector")); //$NON-NLS-1$
@@ -399,7 +399,7 @@ public JMenu getMenu(TrackerPanel trackerPanel) {
       }
     });
     // assemble the menu
-    JMenu menu = super.getMenu(trackerPanel);
+    JMenu menu = super.getMenu(trackerPanel, menu0);
     // remove unwanted menu items and separators
     menu.remove(lockedItem);
     menu.remove(autoAdvanceItem);

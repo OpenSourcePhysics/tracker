@@ -413,7 +413,7 @@ public void propertyChange(PropertyChangeEvent e) {
    * @return a menu
    */
   @Override
-public JMenu getMenu(TrackerPanel trackerPanel) {
+public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
     // create a cm inspector item
     inspectorItem = new JMenuItem(TrackerRes.getString("CenterOfMass.MenuItem.Inspector")); //$NON-NLS-1$
     inspectorItem.addActionListener(new ActionListener() {
@@ -425,7 +425,7 @@ public JMenu getMenu(TrackerPanel trackerPanel) {
       }
     });
     // assemble the menu
-    JMenu menu = super.getMenu(trackerPanel);
+    JMenu menu = super.getMenu(trackerPanel, menu0);
     // remove unwanted menu items and separators
     menu.remove(lockedItem);
     menu.remove(autoAdvanceItem);

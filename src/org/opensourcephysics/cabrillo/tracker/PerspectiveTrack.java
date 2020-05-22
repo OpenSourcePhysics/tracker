@@ -182,8 +182,10 @@ public Interactive findInteractive(
 	 * @return a menu
 	 */
 	@Override
-	public JMenu getMenu(TrackerPanel trackerPanel) {
-		JMenu menu = new JMenu(getName());
+	public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu) {
+		if (menu == null)
+			menu = new JMenu();
+		menu.setText(getName("track")); //$NON-NLS-1$
 		menu.setIcon(getFootprint().getIcon(21, 16));
 		return menu;
 	}

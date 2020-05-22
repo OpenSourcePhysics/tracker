@@ -1006,8 +1006,10 @@ public class CircleFitter extends TTrack {
 	}
 
 	@Override
-	public JMenu getMenu(TrackerPanel trackerPanel) {
-		JMenu menu = super.getMenu(trackerPanel);
+	public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu0) {
+		JMenu menu = super.getMenu(trackerPanel, menu0);
+		if (menu0 == null)
+			return menu;
 
 		originToCenterItem.setText(TrackerRes.getString("CircleFitter.MenuItem.OriginToCenter")); //$NON-NLS-1$
 		originToCenterItem.setEnabled(!trackerPanel.getCoords().isLocked());

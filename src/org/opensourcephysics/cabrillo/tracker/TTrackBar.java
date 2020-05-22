@@ -320,7 +320,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
    * @return the popup menu
    */
   protected JPopupMenu getPopup(TTrack track) {
-    JMenu trackMenu = track.getMenu(trackerPanel);
+    JMenu trackMenu = track.getMenu(trackerPanel, new JMenu());
   	FontSizer.setFonts(trackMenu, FontSizer.getLevel());
     return trackMenu.getPopupMenu();
   }
@@ -353,7 +353,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
       		}
       		// else return leader's menu
       		ParticleDataTrack dt = ((ParticleDataTrack)track).getLeader();
-      		JMenu trackMenu = dt.getMenu(track.trackerPanel);
+      		JMenu trackMenu = dt.getMenu(track.trackerPanel, null);
 	        FontSizer.setFonts(trackMenu, FontSizer.getLevel());
 	      	return trackMenu.getPopupMenu();
       	}
