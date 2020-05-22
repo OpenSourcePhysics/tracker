@@ -28,7 +28,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -3345,7 +3344,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			for (Filter filter : visibleFilters.keySet()) {
 				Point p = visibleFilters.get(filter);
-				Dialog inspector = filter.getInspector();
+				JDialog inspector = filter.getInspector();
 				int x = Math.max(p.x + (frame == null ? 0 : frame.getLocation().x), 0);
 				x = Math.min(x, dim.width - inspector.getWidth());
 				int y = Math.max(p.y + (frame == null ? 0 : frame.getLocation().y), 0);
