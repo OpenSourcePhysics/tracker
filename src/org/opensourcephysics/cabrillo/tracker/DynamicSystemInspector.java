@@ -75,7 +75,7 @@ public class DynamicSystemInspector extends JDialog
     	trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
       TFrame frame = trackerPanel.getTFrame();
       if (frame != null) {
-        frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
+        frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
       }
     }
     setResizable(false);
@@ -93,13 +93,13 @@ public class DynamicSystemInspector extends JDialog
 
   /**
    * Responds to property change events. This listens for the
-   * following events: "tab" from TFrame.
+   * following events: TFrame.PROPERTY_TFRAME_TAB from TFrame.
    *
    * @param e the property change event
    */
   @Override
 public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
+    if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
       if (trackerPanel != null && e.getNewValue() == trackerPanel) {
         setVisible(isVisible);
       }
@@ -144,7 +144,7 @@ public void setVisible(boolean vis) {
 			}
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
-				frame.removePropertyChangeListener("tab", this); //$NON-NLS-1$
+				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
 			}
 		}
 		super.dispose();

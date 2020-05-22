@@ -164,7 +164,7 @@ public class PencilControl extends JDialog {
 		};
     TFrame frame = trackerPanel.getTFrame();
     if (frame != null) {
-      frame.addPropertyChangeListener("tab", tabListener); //$NON-NLS-1$
+      frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, tabListener); //$NON-NLS-1$
     }
 		clipListener = new PropertyChangeListener() {
 			@Override
@@ -738,7 +738,7 @@ public class PencilControl extends JDialog {
 		trackerPanel.removePropertyChangeListener("stepcount", clipListener); //$NON-NLS-1$
     TFrame frame = trackerPanel.getTFrame();
     if (frame != null) {
-      frame.removePropertyChangeListener("tab", tabListener); //$NON-NLS-1$
+      frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, tabListener); //$NON-NLS-1$
     }
 		setSelectedScene(null);
   }

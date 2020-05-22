@@ -2144,12 +2144,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 			FontSizer.setMenuFonts(videoMenu);
 			setMenuTainted(MENU_VIDEO, false);
-			if (opening) {
-				OSPLog.debug("TMenuBar.video1");
-				refireMenuOpen(videoMenu);
-				return;
-			}
-
 		}
 		if (opening) {
 			setupVideoMenu();

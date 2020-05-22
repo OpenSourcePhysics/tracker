@@ -191,7 +191,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			dialog = new ExportZipDialog(panel);
 			zipDialogs.put(panel, dialog);
 			dialog.setResizable(false);
-			dialog.frame.addPropertyChangeListener("tab", dialog); //$NON-NLS-1$
+			dialog.frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, dialog); //$NON-NLS-1$
 			dialog.setFontLevel(FontSizer.getLevel());
 			dialog.control = new XMLControlElement(panel);
 			dialog.videoExporter = ExportVideoDialog.getDialog(panel);
@@ -331,7 +331,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
+		if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
 			if (e.getNewValue() == trackerPanel) {
 				setVisible(isVisible);
 			} else if (e.getNewValue() == null && e.getOldValue() == trackerPanel) {
@@ -354,7 +354,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		ExportZipDialog dialog = zipDialogs.remove(panel);
 		if (dialog != null) {
 			dialog.setVisible(false);
-			dialog.frame.removePropertyChangeListener("tab", dialog); //$NON-NLS-1$
+			dialog.frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, dialog); //$NON-NLS-1$
 			dialog.trackerPanel = null;
 		}
 	}

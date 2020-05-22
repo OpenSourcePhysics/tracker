@@ -155,7 +155,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public static final String PROPERTY_TRACKERPANEL_VIDEOVISIBLE = "videovisible";
 	public static final String PROPERTY_TRACKERPANEL_LOCKED = "locked";
 	public static final String PROPERTY_TRACKERPANEL_RADIANANGLES = TFrame.PROPERTY_TFRAME_RADIANANGLES;
-	public static final String PROPERTY_TRACKERPANEL_TAB = "tab";
 
 
 // static fields
@@ -781,10 +780,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); 
 		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELSTART, this); 
 		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MODELEND, this); 
-		TFrame frame = getTFrame();
-		if (frame != null)
-			frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, track); 
-
+		if (track instanceof ParticleModel) {
+			TFrame frame = getTFrame();
+			if (frame != null)
+				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, track); 
+		}
 	}
 
 	/**

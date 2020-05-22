@@ -1182,9 +1182,6 @@ public class CircleFitter extends TTrack {
 		if (trackerPanel != null) {
 			trackerPanel.removePropertyChangeListener(
 					TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this); //$NON-NLS-1$
-			if (trackerPanel.getTFrame() != null) {
-				trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
-			}
 		}
 		super.setTrackerPanel(panel);
 		if (trackerPanel != null) {

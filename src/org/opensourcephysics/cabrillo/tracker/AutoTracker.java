@@ -2151,16 +2151,17 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		}
 
 		/**
-		 * Responds to property change events. This listens for "tab" from TFrame.
+		 * Responds to property change events. This listens for TFrame.PROPERTY_TFRAME_TAB.
 		 *
 		 * @param e the property change event
 		 */
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals("tab")) { //$NON-NLS-1$
-				if (trackerPanel != null && e.getNewValue() == trackerPanel) {
+			if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
+				// this tab has been selected or deselected
+				if (trackerPanel != null && e.getNewValue() == trackerPanel) { // selected
 					setVisible(isVisible);
-				} else {
+				} else { // deselected
 					boolean vis = isVisible;
 					setVisible(false);
 					isVisible = vis;
@@ -2243,9 +2244,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 		@Override
 		public void dispose() {
-			trackerPanel.getTFrame().removePropertyChangeListener("tab", this); //$NON-NLS-1$
+			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
 			timer.stop();
 			timer = null;
+			trackerPanel = null;
 			super.dispose();
 		}
 
@@ -2267,7 +2269,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		protected void createGUI() {
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
-				frame.addPropertyChangeListener("tab", this); //$NON-NLS-1$
+				frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
 			}
 //      setResizable(false);
 			KeyListener kl = new KeyAdapter() {
