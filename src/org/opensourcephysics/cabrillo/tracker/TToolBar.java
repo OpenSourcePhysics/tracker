@@ -67,6 +67,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 import org.opensourcephysics.cabrillo.tracker.PageTView.TabView;
 import org.opensourcephysics.controls.OSPLog;
@@ -148,10 +149,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected ComponentListener clipSettingsDialogListener;
 	protected JPopupMenu zoomPopup = new JPopupMenu();
 	protected ArrayList<PageTView.TabData> pageViewTabs = new ArrayList<PageTView.TabData>();
-
-	private int myFontLevel;
-
-	public int myPopupFontLevel;
 
 	static {
 		
@@ -780,28 +777,41 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		zoomButton.setText(zoomFormat.format(zoom) + "%"); //$NON-NLS-1$
 	}
 
+	private Timer refreshTimer;
+
+	private boolean disposed;
+	
 	/**
-	 * Refreshes the GUI.
+	 * Refreshes the GUI using a private singleton timer.
 	 * 
 	 * @param refreshTrackProperties true to refresh the track display properties
 	 */
-	protected void refresh(final boolean refreshTrackProperties) {
-		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
-		OSPRuntime.postEvent(new Runnable() {
+	protected synchronized void refresh(final boolean refreshTrackProperties) {
+		if (disposed)
+			return;
+		if (refreshTimer != null) {
+			refreshTimer.stop();
+		}
+		refreshTimer = new Timer(200, new ActionListener() {
+
 			@Override
-			public void run() {
-				refreshAsync(refreshTrackProperties);
+			public void actionPerformed(ActionEvent e) {
+				if (!disposed)
+					refreshAsync(refreshTrackProperties);	
+				refreshTimer = null;
 			}
+			
 		});
+		refreshTimer.setRepeats(false);
+		refreshTimer.start();
 	}
 
 	protected void refreshAsync(boolean refreshTrackProperties) {
+		OSPLog.debug("TToolBar refresh async");
 		refreshing = true; // signals listeners that items are being refreshed
 		refreshZoomButton();
 		calibrationButton.refresh();
 		int newLevel = FontSizer.getLevel();
-		boolean resizeIcons = (newLevel != myFontLevel);
-		myFontLevel = newLevel;
 		drawingButton.refresh();
 		stretchButton.setSelected(vStretch > 1 || aStretch > 1);
 		stretchOffItem.setText(TrackerRes.getString("TToolBar.MenuItem.StretchOff")); //$NON-NLS-1$
@@ -1067,6 +1077,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 * Disposes of this toolbar
 	 */
 	public void dispose() {
+		disposed = true;
+		refreshTimer.stop();
+		refreshTimer = null;
 		toolbars.remove(trackerPanel);
 		removeAll();
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
