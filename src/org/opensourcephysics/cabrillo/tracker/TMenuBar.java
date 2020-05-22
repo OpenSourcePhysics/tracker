@@ -104,6 +104,27 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	static final String POPUPMENU_TFRAME_BOTTOM          = "TFrame.bottom";
 	static final String POPUPMENU_TFRAME_RIGHT           = "TFrame.right";
 	static final String POPUPMENU_MAINTVIEW_POPUP        = "MainTView.popup";
+
+	
+	/*
+	 * tainting:
+	 * 
+	 * When, in the course of business, it is necessary to adjust the menubar menus,
+	 * rather than actually do that at that moment -- since the menus aren't
+	 * actually open -- what we do instead is to "taint" specific menu items
+	 * (possibly all).
+	 * 
+	 * Then, using a MenuListener (which is "this"), just before the menu popup
+	 * appears, we implement those adjustments. This can slow the popup action a
+	 * bit, but hopefully not too much. It certainly is not noticeable in Java.
+	 * 
+	 * In addition, some menus have standard updates that they always need. In that
+	 * case, any tainted tasks are carried out first, then the standard update is
+	 * applied.
+	 * 
+	 * Bob Hanson 2020.05.22
+	 */
+	
 	
 	private final static int MENU_FILE      = 1 << 0;
 	private final static int MENU_EDIT      = 1 << 1;
@@ -1586,15 +1607,15 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	/**
 	 * Refreshes the Window menu for a TrackerPanel.
 	 * 
-	 * @param selecting    TODO
+	 * @param opening    TODO
 	 * @param trackerPanel the TrackerPanel
 	 */
-	public void refreshWindowMenu(boolean selecting) {
+	public void refreshWindowMenu(boolean opening) {
 
 		if (isTainted(MENU_WINDOW)) {
 			setMenuTainted(MENU_WINDOW, false);
 		}
-		if (selecting) {
+		if (opening) {
 			TFrame frame = trackerPanel.getTFrame();
 			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
 			int max = pane.getMaximumDividerLocation();
@@ -1700,7 +1721,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		return menu;
 	}
 
-	protected void refreshFileMenu(boolean selecting) {
+	protected void refreshFileMenu(boolean opening) {
 		if (isTainted(MENU_FILE)) {
 			// refresh file menu
 			fileMenu.removeAll();
@@ -1780,7 +1801,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			refreshRecentFiles = true;
 			setMenuTainted(MENU_FILE, false);
 		}
-		if (selecting) {
+		if (opening) {
 			if (refreshRecentFiles) {
 				refreshRecentFilesMenu();
 				refreshRecentFiles = false;
@@ -1803,7 +1824,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		}
 	}
 
-	protected void refreshEditMenu(boolean selecting) {
+	protected void refreshEditMenu(boolean opening) {
 		if (isTainted(MENU_EDIT)) {
 			boolean hasTracks = !trackerPanel.getUserTracks().isEmpty();
 			editMenu.removeAll();
@@ -1944,12 +1965,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			FontSizer.setMenuFonts(editMenu);
 			setMenuTainted(MENU_EDIT, false);
 		}
-		if (selecting) {
+		if (opening) {
 			setupEditMenu();
 		}
 	}
 
-	protected void refreshCoordsMenu(boolean selecting) {
+	protected void refreshCoordsMenu(boolean opening) {
 		if (isTainted(MENU_COORDS)) {
 			// refresh coords menu
 			coordsMenu.removeAll();
@@ -2016,7 +2037,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			FontSizer.setMenuFonts(coordsMenu);
 			setMenuTainted(MENU_COORDS, false);
 		}
-		if (selecting) {
+		if (opening) {
 			// nothing to do
 		}
 		
@@ -2031,7 +2052,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		return (coords instanceof ReferenceFrame ? ((ReferenceFrame) coords).getOriginTrack() : null);
 	}
 
-	protected void refreshVideoMenu(boolean selecting) {
+	protected void refreshVideoMenu(boolean opening) {
 		if (isTainted(MENU_VIDEO)) {
 			Video video = trackerPanel.getVideo();
 			boolean hasVideo = (video != null);
@@ -2169,7 +2190,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			setMenuTainted(MENU_VIDEO, false);
 		}
 		
-		if (selecting) {
+		if (opening) {
 			setupVideoMenu();
 		}
 	}
@@ -2238,7 +2259,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		return newPopup;
 	}
 	
-	protected void refreshTrackMenu(boolean selecting) {
+	protected void refreshTrackMenu(boolean opening) {
 
 		if (isTainted(MENU_TRACK)) {
 			ArrayList<TTrack> userTracks = trackerPanel.getUserTracks();
@@ -2332,7 +2353,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			refreshTrackTexts = true;
 			setMenuTainted(MENU_TRACK, false);
 		}
-		if (selecting) {
+		if (opening) {
 			if (refreshTracksCreate) {
 				refreshTracksCreateMenu();
 				refreshTracksCreate = false;
@@ -2488,7 +2509,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		track_newTrackItems = track_createMenu.getMenuComponents();
 	}
 
-	protected void refreshHelpMenu(boolean selecting) {
+	protected void refreshHelpMenu(boolean opening) {
 		if (isTainted(MENU_HELP)) {
 			getTrackerHelpMenu(trackerPanel, helpMenu);
 			setMenuTainted(MENU_HELP, false);
