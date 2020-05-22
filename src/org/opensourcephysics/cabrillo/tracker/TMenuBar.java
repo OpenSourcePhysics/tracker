@@ -63,6 +63,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -145,12 +146,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			if (id == MENU_ALL)
 				status = MENU_ALL;
 			else
-				status |= 1 << id;
+				status |= id;
 		} else {
 			if (id == MENU_ALL)
 				status = 0;
 			else
-				status &= ~(1 << id);
+				status &= ~id;
 		}
 	}
 	
@@ -402,11 +403,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	 */
 	@Override
 	public void menuSelected(MenuEvent e) {
-		if (OSPRuntime.isJS) {
-			// signals SwingJS that there is no need to do anything with the DOM during this
-			// process of rebuilding the menu.
-			OSPRuntime.jsutil.setUIEnabled(this, false);
-		}
+//		if (OSPRuntime.isJS) {
+//			// signals SwingJS that there is no need to do anything with the DOM during this
+//			// process of rebuilding the menu.
+//			OSPRuntime.jsutil.setUIEnabled(this, false);
+//		}
 
 		switch (((JMenu) e.getSource()).getName()) {
 		case "file":
@@ -431,9 +432,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			refreshHelpMenu(true);
 			break;
 		}
-		if (OSPRuntime.isJS) {
-			OSPRuntime.jsutil.setUIEnabled(this, true);
-		}
+//		if (OSPRuntime.isJS) {
+//			OSPRuntime.jsutil.setUIEnabled(this, true);
+//		}
 	}
 
 	@Override
@@ -1239,8 +1240,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		video_clearFiltersItem = video_filtersMenu.add(actions.get("clearFilters")); //$NON-NLS-1$
 		video_emptyVideoItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Empty")); //$NON-NLS-1$
 		video_emptyVideoItem.setEnabled(false);
-		track_emptyTracksItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Empty")); //$NON-NLS-1$
-		track_emptyTracksItem.setEnabled(false);
 		add(videoMenu);		
 	}
 
@@ -1294,8 +1293,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		track_cloneMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Clone")); //$NON-NLS-1$
 		// measuring tools menu
 		track_measuringToolsMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.MeasuringTools")); //$NON-NLS-1$
-
-
+		track_emptyTracksItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Empty")); //$NON-NLS-1$
+		track_emptyTracksItem.setEnabled(false);
 		add(trackMenu);
 	}
 
@@ -1601,90 +1600,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	}
 
 	/**
-	 * Refreshes the Window menu for a TrackerPanel.
-	 * 
-	 * @param opening    TODO
-	 * @param trackerPanel the TrackerPanel
-	 */
-	public void refreshWindowMenu(boolean opening) {
-
-		long t0 = Performance.now(0);
-
-		if (isTainted(MENU_WINDOW)) {
-			setMenuTainted(MENU_WINDOW, false);
-		}
-		if (opening) {
-			TFrame frame = trackerPanel.getTFrame();
-			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
-			int max = pane.getMaximumDividerLocation();
-			int cur = pane.getDividerLocation();
-			double loc = 1.0 * cur / max;
-			// TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
-			window_rightPaneItem.setSelected(loc < 0.99);
-			pane = frame.getSplitPane(trackerPanel, 2);
-			max = pane.getMaximumDividerLocation();
-			cur = pane.getDividerLocation();
-			loc = 1.0 * cur / max;
-			window_bottomPaneItem.setSelected(loc < .99);
-			TrackControl tc = TrackControl.getControl(trackerPanel);
-			window_trackControlItem.setSelected(tc.isVisible());
-			window_trackControlItem.setEnabled(!tc.isEmpty());
-			window_notesItem.setSelected(frame.notesDialog.isVisible());
-			window_dataBuilderItem
-					.setSelected(trackerPanel.dataBuilder != null && trackerPanel.dataBuilder.isVisible());
-			window_dataToolItem.setSelected(DataTool.getTool().isVisible());
-
-			// rebuild window menu
-			windowMenu.removeAll();
-			boolean maximized = false;
-			Container[] views = frame.getViews(trackerPanel);
-			for (int i = 0; i < views.length; i++) {
-				if (views[i] instanceof TViewChooser) {
-					TViewChooser chooser = (TViewChooser) views[i];
-					if (chooser.maximized) {
-						maximized = true;
-						break;
-					}
-				}
-			}
-			if (maximized) {
-				windowMenu.add(window_restoreItem);
-			} else {
-				windowMenu.add(window_rightPaneItem);
-				windowMenu.add(window_bottomPaneItem);
-			}
-			windowMenu.addSeparator();
-			windowMenu.add(window_trackControlItem);
-			windowMenu.add(window_notesItem);
-			if (trackerPanel.isEnabled("data.builder") //$NON-NLS-1$
-					|| trackerPanel.isEnabled("data.tool")) { //$NON-NLS-1$
-				windowMenu.addSeparator();
-				if (trackerPanel.isEnabled("data.builder")) //$NON-NLS-1$
-					windowMenu.add(window_dataBuilderItem);
-				if (trackerPanel.isEnabled("data.tool")) //$NON-NLS-1$
-					windowMenu.add(window_dataToolItem);
-			}
-			for (int i = 0, n = frame.getTabCount(); i < n; i++) {
-				if (i == 0)
-					windowMenu.addSeparator();
-				JMenuItem tabItem = new JRadioButtonMenuItem(frame.getTabTitle(i));
-				tabItem.setActionCommand(String.valueOf(i));
-				tabItem.setSelected(i == frame.getSelectedTab());
-				tabItem.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						int j = Integer.parseInt(e.getActionCommand());
-						frame.setSelectedTab(j);
-					}
-				});
-				windowMenu.add(tabItem);
-			}
-			FontSizer.setMenuFonts(windowMenu);
-		}
-		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar window refresh");
-	}
-
-	/**
 	 * Gets the menu for the specified track.
 	 *
 	 * @param track the track
@@ -1802,6 +1717,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			FontSizer.setMenuFonts(fileMenu);
 			refreshRecentFiles = true;
 			setMenuTainted(MENU_FILE, false);
+			if (opening) refireMenuOpen(fileMenu);
 		}
 		if (opening) {
 			if (refreshRecentFiles) {
@@ -1970,6 +1886,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			editMenu.add(edit_configItem);
 			FontSizer.setMenuFonts(editMenu);
 			setMenuTainted(MENU_EDIT, false);
+			if (opening) refireMenuOpen(editMenu);
+
 		}
 		if (opening) {
 			setupEditMenu();
@@ -2045,7 +1963,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			if (originTrack == null)
 				coords_defaultRefFrameItem.setSelected(true);
 			FontSizer.setMenuFonts(coordsMenu);
+			if (coordsMenu.getItemCount() == 0) {
+				coordsMenu.add(coords_emptyCoordsItem);
+			}
 			setMenuTainted(MENU_COORDS, false);
+			if (opening) refireMenuOpen(coordsMenu);
 		}
 		if (opening) {
 			// nothing to do
@@ -2092,7 +2014,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			videoMenu.add(video_goToItem);
 			videoMenu.addSeparator();
 
-			if (importEnabled && hasVideo && video instanceof ImageVideo) {
+			if (importEnabled && video instanceof ImageVideo) {
 				video_editVideoItem.setSelected(((ImageVideo) video).isEditable());
 				videoMenu.add(video_editVideoItem);
 				videoMenu.addSeparator();
@@ -2128,7 +2050,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				videoMenu.add(video_playXuggleSmoothlyItem);
 			}
 			// video filters menu
-			if (trackerPanel.isEnabled("video.filters")) { //$NON-NLS-1$
+			if (hasVideo && trackerPanel.isEnabled("video.filters")) { //$NON-NLS-1$
 				// clear filters menu
 				video_filtersMenu.removeAll();
 				// add newFilter menu
@@ -2175,15 +2097,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					video_filtersMenu.addSeparator();
 					video_filtersMenu.add(video_clearFiltersItem);
 				}
-
 				if (videoMenu.getItemCount() > 0)
 					videoMenu.addSeparator();
 				videoMenu.add(video_filtersMenu);
+				videoMenu.addSeparator();
+//				if (isXtractorType) videoMenu.add(checkDurationsItem);
+					videoMenu.add(video_aboutVideoItem);
 			}
-			videoMenu.addSeparator();
-//		if (isXtractorType) videoMenu.add(checkDurationsItem);
-			videoMenu.add(video_aboutVideoItem);
-			
+
 			// hack to eliminate extra separator at end of video menu
 			int n = videoMenu.getMenuComponentCount();
 			if (n > 0 && videoMenu.getMenuComponent(n - 1) instanceof JSeparator) {
@@ -2194,20 +2115,19 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			if (videoMenu.getItemCount() == 0) {
 				videoMenu.add(video_emptyVideoItem);
 			}
-			if (trackMenu.getItemCount() == 0) {
-				trackMenu.add(track_emptyTracksItem);
-			}
-			if (coordsMenu.getItemCount() == 0) {
-				coordsMenu.add(coords_emptyCoordsItem);
-			}
 			FontSizer.setMenuFonts(videoMenu);
 			setMenuTainted(MENU_VIDEO, false);
+			if (opening) {
+				OSPLog.debug("TMenuBar.video1");
+				refireMenuOpen(videoMenu);
+				return;
+			}
+
 		}
-		
 		if (opening) {
 			setupVideoMenu();
 		}
-		
+
 		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar video refresh");
 
 	}
@@ -2369,9 +2289,13 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					}
 				}
 			}
+			if (trackMenu.getItemCount() == 0) {
+				trackMenu.add(track_emptyTracksItem);
+			}
 			refreshTracksCreate = true;
 			refreshTrackTexts = true;
 			setMenuTainted(MENU_TRACK, false);
+			if (opening) refireMenuOpen(trackMenu);
 		}
 		if (opening) {
 			if (refreshTracksCreate) {
@@ -2530,6 +2454,103 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			track_createMenu.add(calibrationToolsMenu);
 		}
 		track_newTrackItems = track_createMenu.getMenuComponents();
+	}
+
+	/**
+	 * Refreshes the Window menu for a TrackerPanel.
+	 * 
+	 * @param opening    TODO
+	 * @param trackerPanel the TrackerPanel
+	 */
+	public void refreshWindowMenu(boolean opening) {
+
+		long t0 = Performance.now(0);
+
+		if (isTainted(MENU_WINDOW)) {
+			TFrame frame = trackerPanel.getTFrame();
+			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
+			int max = pane.getMaximumDividerLocation();
+			int cur = pane.getDividerLocation();
+			double loc = 1.0 * cur / max;
+			// TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+			window_rightPaneItem.setSelected(loc < 0.99);
+			pane = frame.getSplitPane(trackerPanel, 2);
+			max = pane.getMaximumDividerLocation();
+			cur = pane.getDividerLocation();
+			loc = 1.0 * cur / max;
+			window_bottomPaneItem.setSelected(loc < .99);
+			TrackControl tc = TrackControl.getControl(trackerPanel);
+			window_trackControlItem.setSelected(tc.isVisible());
+			window_trackControlItem.setEnabled(!tc.isEmpty());
+			window_notesItem.setSelected(frame.notesDialog.isVisible());
+			window_dataBuilderItem
+					.setSelected(trackerPanel.dataBuilder != null && trackerPanel.dataBuilder.isVisible());
+			window_dataToolItem.setSelected(DataTool.getTool().isVisible());
+
+			// rebuild window menu
+			windowMenu.removeAll();
+			boolean maximized = false;
+			Container[] views = frame.getViews(trackerPanel);
+			for (int i = 0; i < views.length; i++) {
+				if (views[i] instanceof TViewChooser) {
+					TViewChooser chooser = (TViewChooser) views[i];
+					if (chooser.maximized) {
+						maximized = true;
+						break;
+					}
+				}
+			}
+			if (maximized) {
+				windowMenu.add(window_restoreItem);
+			} else {
+				windowMenu.add(window_rightPaneItem);
+				windowMenu.add(window_bottomPaneItem);
+			}
+			windowMenu.addSeparator();
+			windowMenu.add(window_trackControlItem);
+			windowMenu.add(window_notesItem);
+			if (trackerPanel.isEnabled("data.builder") //$NON-NLS-1$
+					|| trackerPanel.isEnabled("data.tool")) { //$NON-NLS-1$
+				windowMenu.addSeparator();
+				if (trackerPanel.isEnabled("data.builder")) //$NON-NLS-1$
+					windowMenu.add(window_dataBuilderItem);
+				if (trackerPanel.isEnabled("data.tool")) //$NON-NLS-1$
+					windowMenu.add(window_dataToolItem);
+			}
+			for (int i = 0, n = frame.getTabCount(); i < n; i++) {
+				if (i == 0)
+					windowMenu.addSeparator();
+				JMenuItem tabItem = new JRadioButtonMenuItem(frame.getTabTitle(i));
+				tabItem.setActionCommand(String.valueOf(i));
+				tabItem.setSelected(i == frame.getSelectedTab());
+				tabItem.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						int j = Integer.parseInt(e.getActionCommand());
+						frame.setSelectedTab(j);
+					}
+				});
+				windowMenu.add(tabItem);
+			}
+			FontSizer.setMenuFonts(windowMenu);
+			setMenuTainted(MENU_WINDOW, false);
+			if (opening) refireMenuOpen(windowMenu);
+		}
+		if (opening) {
+		}
+		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar window refresh");
+	}
+
+	private void refireMenuOpen(JMenu menu) {
+		menu.setPopupMenuVisible(false);
+		SwingUtilities.invokeLater(new Runnable() {
+
+			@Override
+			public void run() {
+				menu.setPopupMenuVisible(true);
+			}
+			
+		});
 	}
 
 	protected void refreshHelpMenu(boolean opening) {

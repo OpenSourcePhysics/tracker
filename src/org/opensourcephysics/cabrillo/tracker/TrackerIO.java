@@ -2143,13 +2143,13 @@ public class TrackerIO extends VideoIO {
 			
 			trackerPanel.changed = panelChanged;
 			TTrackBar.refreshMemoryButton();
-
-			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_DONELOADING_ + " " + type);						
-
 			if (type == 2) {
 				frame.clearHoldPainting();
 				trackerPanel.repaint();
 			}
+
+			TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TRACKERIO_DONELOADING_ + " " + type);						
+
 			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad done " + path, Performance.TIME_MARK));
 			OSPLog.debug("!!! " + Performance.now(t0) + " AyncLoad " + path);
 
