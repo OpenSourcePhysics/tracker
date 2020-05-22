@@ -210,7 +210,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected Map<String, NumberField[]> numberFields = new TreeMap<String, NumberField[]>();
 	protected Border fieldBorder;
 	protected Component tSeparator, xSeparator, ySeparator, magSeparator, angleSeparator, stepSeparator;
-	protected JMenu track_submenu;
 	protected boolean autoAdvance;
 	protected boolean markByDefault = false, isMarking = false;
 	protected JCheckBoxMenuItem visibleItem;
@@ -2192,6 +2191,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @return a menu
 	 */
 	public JMenu getMenu(TrackerPanel trackerPanel) {
+		JMenu menu = new JMenu(getName("track")); //$NON-NLS-1$
 		// prepare menu items
 		visibleItem.setText(TrackerRes.getString("TTrack.MenuItem.Visible")); //$NON-NLS-1$
 		trailVisibleItem.setText(TrackerRes.getString("TTrack.MenuItem.TrailVisible")); //$NON-NLS-1$
@@ -2238,52 +2238,51 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			footprintMenu.add(item);
 		}
 		// return a new menu every time
-		track_submenu = new JMenu(getName("track")); //$NON-NLS-1$
-		track_submenu.setIcon(getFootprint().getIcon(21, 16));
+		menu.setIcon(getFootprint().getIcon(21, 16));
 		// add name and description items
 		if (trackerPanel.isEnabled("track.name") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.description")) { //$NON-NLS-1$
-			if (track_submenu.getItemCount() > 0 && track_submenu.getItem(track_submenu.getItemCount() - 1) != null)
-				track_submenu.addSeparator();
+			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
+				menu.addSeparator();
 			if (trackerPanel.isEnabled("track.name")) //$NON-NLS-1$
-				track_submenu.add(nameItem);
+				menu.add(nameItem);
 			if (trackerPanel.isEnabled("track.description")) //$NON-NLS-1$
-				track_submenu.add(descriptionItem);
+				menu.add(descriptionItem);
 		}
 		// add color and footprint items
 		if (trackerPanel.isEnabled("track.color") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.footprint")) { //$NON-NLS-1$
-			if (track_submenu.getItemCount() > 0 && track_submenu.getItem(track_submenu.getItemCount() - 1) != null)
-				track_submenu.addSeparator();
+			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
+				menu.addSeparator();
 			if (trackerPanel.isEnabled("track.color")) //$NON-NLS-1$
-				track_submenu.add(colorItem);
+				menu.add(colorItem);
 			if (trackerPanel.isEnabled("track.footprint")) //$NON-NLS-1$
-				track_submenu.add(footprintMenu);
+				menu.add(footprintMenu);
 		}
 		// add visible, trail and locked items
 		if (trackerPanel.isEnabled("track.visible") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.locked")) { //$NON-NLS-1$
-			if (track_submenu.getItemCount() > 0 && track_submenu.getItem(track_submenu.getItemCount() - 1) != null)
-				track_submenu.addSeparator();
+			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
+				menu.addSeparator();
 			if (trackerPanel.isEnabled("track.visible")) //$NON-NLS-1$
-				track_submenu.add(visibleItem);
+				menu.add(visibleItem);
 			if (trackerPanel.isEnabled("track.locked")) //$NON-NLS-1$
-				track_submenu.add(lockedItem);
+				menu.add(lockedItem);
 		}
 		// add dataBuilder item if viewable and enabled
 		if (this.isViewable() && trackerPanel.isEnabled("data.builder")) { //$NON-NLS-1$
-			if (track_submenu.getItemCount() > 0 && track_submenu.getItem(track_submenu.getItemCount() - 1) != null)
-				track_submenu.addSeparator();
-			track_submenu.add(dataBuilderItem);
+			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
+				menu.addSeparator();
+			menu.add(dataBuilderItem);
 
 		}
 		// add clear steps and delete items
 		if (trackerPanel.isEnabled("track.delete")) { //$NON-NLS-1$
-			if (track_submenu.getItemCount() > 0 && track_submenu.getItem(track_submenu.getItemCount() - 1) != null)
-				track_submenu.addSeparator();
-			track_submenu.add(deleteTrackItem);
+			if (menu.getItemCount() > 0 && menu.getItem(menu.getItemCount() - 1) != null)
+				menu.addSeparator();
+			menu.add(deleteTrackItem);
 		}
-		return track_submenu;
+		return menu;
 	}
 
 	/**

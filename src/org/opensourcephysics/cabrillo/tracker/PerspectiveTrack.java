@@ -174,19 +174,19 @@ public Interactive findInteractive(
   	return null;
   }
   
-  /**
-   * Prepares menu items and returns a new menu.
-   * Subclasses should override this method and add track-specific menu items.
-   *
-   * @param trackerPanel the tracker panel
-   * @return a menu
-   */
-  @Override
-public JMenu getMenu(TrackerPanel trackerPanel) {
-    track_submenu = new JMenu(getName());
-    track_submenu.setIcon(getFootprint().getIcon(21, 16));
-    return track_submenu;
-  }
+	/**
+	 * Prepares menu items and returns a new menu. Subclasses should override this
+	 * method and add track-specific menu items.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @return a menu
+	 */
+	@Override
+	public JMenu getMenu(TrackerPanel trackerPanel) {
+		JMenu menu = new JMenu(getName());
+		menu.setIcon(getFootprint().getIcon(21, 16));
+		return menu;
+	}
 	
 	/**
 	 * Gets a message about this track to display in a message box.

@@ -881,7 +881,8 @@ public class TrackDataBuilder extends FunctionTool {
 		}
 		clearPanels();
 		selectedPanel = null;
-		trackerPanel.dataBuilder = null;
+		if (trackerPanel != null)
+			trackerPanel.dataBuilder = null;
 		trackerPanel = null;
 		super.dispose();
 	}
