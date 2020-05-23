@@ -63,7 +63,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 
 	// instance fields
 	protected TrackerPanel trackerPanel;
-	protected Map<TTrack, TrackView> trackViews = new HashMap<TTrack, TrackView>(); // maps track to its trackView
+	protected Map<TTrack, TrackView> trackViews; // maps track to its trackView
 	protected Map<Object, TTrack> tracks = new HashMap<Object, TTrack>(); // maps dropdown items to track
 	protected JComboBox<Object> dropdown;
 	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
@@ -81,6 +81,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		super(new CardLayout());
 		trackerPanel = panel;
 		init();
+		OSPLog.debug("TrackChooserTView ??? " + this);
 		setBackground(panel.getBackground());
 		// create combobox with custom renderer for tracks
 		dropdown = new JComboBox<Object>() {
@@ -108,61 +109,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		dropdown.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (refreshing)
-					return;
-				// show the trackView for the selected track
-				Object item = dropdown.getSelectedItem();
-				TTrack track = tracks.get(item);
-//        if (track==selectedTrack) return;
-				String name = (String) ((Object[]) item)[1];
-				if (track != null) {
-					trackerPanel.changed = true;
-					TrackView trackView = getTrackView(track);
-					// remove step propertyChangeListeners from prev selected track
-					TTrack prevTrack = selectedTrack;
-					TrackView prevView = null;
-					if (prevTrack != null) {
-						prevView = getTrackView(prevTrack);
-						prevTrack.removeStepListener(prevView);
-						if (prevView instanceof PlotTrackView) {
-							PlotTrackView plotView = (PlotTrackView) prevView;
-							for (TrackPlottingPanel plot : plotView.plots) {
-								for (TTrack guest : plot.guests) {
-									guest.removeStepListener(prevView);
-								}
-							}
-						}
-					}
-					// add step propertyChangeListener to new track
-					track.addStepListener(trackView);
-					if (trackView instanceof PlotTrackView) {
-						PlotTrackView plotView = (PlotTrackView) trackView;
-						for (TrackPlottingPanel plot : plotView.plots) {
-							for (TTrack guest : plot.guests) {
-								guest.addStepListener(trackView);
-							}
-						}
-					}
-					selectedTrack = track;
-					Step step = trackerPanel.getSelectedStep();
-					if (step != null && step.getTrack() == track)
-						trackView.refresh(step.getFrameNumber());
-					else
-						trackView.refresh(trackerPanel.getFrameNumber());
-					CardLayout layout = (CardLayout) getLayout();
-					layout.show(TrackChooserTView.this, name);
-					repaint();
-					firePropertyChange(TView.PROPERTY_TVIEW_TRACKVIEW, trackView, prevView);
-					// inform track views
-					PropertyChangeEvent event = new PropertyChangeEvent(this, TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
-							null, track);
-					Iterator<TTrack> it = trackViews.keySet().iterator();
-					while (it.hasNext()) {
-						TTrack nextTrack = it.next();
-						TrackView next = trackViews.get(nextTrack);
-						next.propertyChange(event);
-					}
-				}
+				dropDownAction();
 			}
 		});
 		// create the noData panel
@@ -194,6 +141,64 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				}
 			}
 		});
+	}
+
+	protected void dropDownAction() {
+		if (refreshing)
+			return;
+		// show the trackView for the selected track
+		Object item = dropdown.getSelectedItem();
+		TTrack track = tracks.get(item);
+//if (track==selectedTrack) return;
+		String name = (String) ((Object[]) item)[1];
+		if (track != null) {
+			trackerPanel.changed = true;
+			TrackView trackView = getTrackView(track);
+			// remove step propertyChangeListeners from prev selected track
+			TTrack prevTrack = selectedTrack;
+			TrackView prevView = null;
+			if (prevTrack != null) {
+				prevView = getTrackView(prevTrack);
+				prevTrack.removeStepListener(prevView);
+				if (prevView instanceof PlotTrackView) {
+					PlotTrackView plotView = (PlotTrackView) prevView;
+					for (TrackPlottingPanel plot : plotView.plots) {
+						for (TTrack guest : plot.guests) {
+							guest.removeStepListener(prevView);
+						}
+					}
+				}
+			}
+			// add step propertyChangeListener to new track
+			track.addStepListener(trackView);
+			if (trackView instanceof PlotTrackView) {
+				PlotTrackView plotView = (PlotTrackView) trackView;
+				for (TrackPlottingPanel plot : plotView.plots) {
+					for (TTrack guest : plot.guests) {
+						guest.addStepListener(trackView);
+					}
+				}
+			}
+			selectedTrack = track;
+			Step step = trackerPanel.getSelectedStep();
+			if (step != null && step.getTrack() == track)
+				trackView.refresh(step.getFrameNumber());
+			else
+				trackView.refresh(trackerPanel.getFrameNumber());
+			CardLayout layout = (CardLayout) getLayout();
+			layout.show(this, name);
+			repaint();
+			firePropertyChange(TView.PROPERTY_TVIEW_TRACKVIEW, trackView, prevView);
+			// inform track views
+			PropertyChangeEvent event = new PropertyChangeEvent(this, TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
+					null, track);
+			Iterator<TTrack> it = trackViews.keySet().iterator();
+			while (it.hasNext()) {
+				TTrack nextTrack = it.next();
+				TrackView next = trackViews.get(nextTrack);
+				next.propertyChange(event);
+			}
+		}
 	}
 
 	/**
@@ -395,7 +400,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 * @return the track view
 	 */
 	public TrackView getTrackView(TTrack track) {
-		return trackViews.get(track);
+		return (trackViews == null ? null : trackViews.get(track));
 	}
 
 	/**

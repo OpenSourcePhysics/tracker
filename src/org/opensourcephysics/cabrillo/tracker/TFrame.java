@@ -156,11 +156,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
 	protected final static Color yellow = new Color(255, 255, 105);
 
-//	private final static int VIEW_PLOT = 0;
-//	private final static int VIEW_TABLE = 1;
-//	private final static int VIEW_WORLD = 2;
-//	private final static int VIEW_TEXT = 3;
-
 	// instance fields
 	private JToolBar playerBar;
 	private JPopupMenu popup = new JPopupMenu();
@@ -168,12 +163,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private JMenuBar defaultMenuBar;
 	private JMenu recentMenu;
 
-	private static final int PANEL_MAINVIEW = 0;
-	private static final int PANEL_VIEWS = 1;
-	private static final int PANEL_SPLITPANES = 2;
-	private static final int PANEL_TOOLBAR = 3;
-	private static final int PANEL_MENUBAR = 4;
-	private static final int PANEL_TRACKBAR = 5;
+	private static final int TFRAME_MAINVIEW = 0;
+	private static final int TFRAME_VIEWS = 1;
+	private static final int TFRAME_SPLITPANES = 2;
+	private static final int TFRAME_TOOLBAR = 3;
+	private static final int TFRAME_MENUBAR = 4;
+	private static final int TFRAME_TRACKBAR = 5;
 	
 	public static boolean haveExportDialog = false;
 	public static boolean haveThumbnailDialog = false;
@@ -308,16 +303,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			JPanel panel = new JPanel(new BorderLayout());
 			// create the tab panel components
 			Tracker.setProgress(30);
-			MainTView mainView = getMainView(trackerPanel);
-			Container[] views = createViews(trackerPanel);
-			JSplitPane[] panes = getSplitPanes(trackerPanel);
+			Object[] objects = new Object[5];
+			objects[TFRAME_MAINVIEW] = getMainView(trackerPanel);
+			objects[TFRAME_VIEWS] = createViews(trackerPanel);
+			objects[TFRAME_SPLITPANES] = getSplitPanes(trackerPanel);
 			Tracker.setProgress(50);
-			TToolBar toolbar = getToolBar(trackerPanel);
+			objects[TFRAME_TOOLBAR] = getToolBar(trackerPanel);
 			Tracker.setProgress(60);
-			TMenuBar menubar = getMenuBar(trackerPanel);
-			TTrackBar trackbar = getTrackBar(trackerPanel);
+			objects[TFRAME_MENUBAR] = getMenuBar(trackerPanel);
+			objects[TFRAME_TRACKBAR] = getTrackBar(trackerPanel);
 			// put the components into the tabs map
-			Object[] objects = new Object[] { mainView, views, panes, toolbar, menubar, trackbar };
 			panelObjects.put(panel, objects);
 			// add the tab
 			setIgnoreRepaint(true);
@@ -572,9 +567,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// change menubar and show floating player of newly selected tab, if any
 		objects = panelObjects.get(tabbedPane.getSelectedComponent());
 		if (objects != null) {
-			setJMenuBar((JMenuBar) objects[PANEL_MENUBAR]);
-			((TTrackBar) objects[PANEL_TRACKBAR]).refresh();
-			playerBar = ((MainTView) objects[PANEL_MAINVIEW]).getPlayerBar();
+			setJMenuBar((JMenuBar) objects[TFRAME_MENUBAR]);
+			((TTrackBar) objects[TFRAME_TRACKBAR]).refresh();
+			playerBar = ((MainTView) objects[TFRAME_MAINVIEW]).getPlayerBar();
 			Container frame = playerBar.getTopLevelAncestor();
 			if (frame != null && frame != TFrame.this)
 				frame.setVisible(true);
@@ -601,7 +596,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			Object[] objects = panelObjects.get(tabbedPane.getComponentAt(i));
 			if (objects == null)
 				return -1;
-			MainTView mainView = (MainTView) objects[PANEL_MAINVIEW];
+			MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 			if (mainView.getTrackerPanel() == trackerPanel) {
 				return i;
 			}
@@ -624,7 +619,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				Object[] objects = panelObjects.get(tabbedPane.getComponentAt(i));
 				if (objects == null)
 					return -1;
-				MainTView mainView = (MainTView) objects[PANEL_MAINVIEW];
+				MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 				File file = mainView.getTrackerPanel().getDataFile();
 				if (file != null && path.equals(file.getCanonicalPath())) {
 					return i;
@@ -686,7 +681,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (tab < 0 || tab >= tabbedPane.getTabCount())
 			return null;
 		Object[] objects = panelObjects.get(tabbedPane.getComponentAt(tab));
-		MainTView mainView = (MainTView) objects[PANEL_MAINVIEW];
+		MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 		return mainView.getTrackerPanel();
 	}
 
@@ -749,27 +744,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		JPanel panel = (JPanel) tabbedPane.getComponentAt(tab);
 		panel.removeAll();
 		Object[] objects = panelObjects.get(panel);
-		Container[] views = (Container[]) objects[PANEL_VIEWS];
+		Container[] views = (Container[]) objects[TFRAME_VIEWS];
 		for (int i = 0; i < Math.min(newViews.length, views.length); i++) {
 			if (newViews[i] != null)
 				views[i] = newViews[i];
 		}
-		objects[PANEL_VIEWS] = views;
-		MainTView mainView = (MainTView) objects[PANEL_MAINVIEW];
-		JSplitPane[] panes = (JSplitPane[]) objects[PANEL_SPLITPANES];
-		panel.add(panes[0], BorderLayout.CENTER);
-		panes[0].setLeftComponent(panes[2]);
-		panes[0].setRightComponent(panes[1]);
-		panes[2].setTopComponent(mainView);
-		panes[2].setBottomComponent(panes[3]);
-		panes[1].setTopComponent(views[0]);
-		panes[1].setBottomComponent(views[1]);
-		panes[3].setRightComponent(views[2]);
-		panes[3].setLeftComponent(views[3]);
+		objects[TFRAME_VIEWS] = views;
+		MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
+		JSplitPane[] panes = (JSplitPane[]) objects[TFRAME_SPLITPANES];
+		panel.add(panes[SPLIT_MAIN], BorderLayout.CENTER);
+		panes[SPLIT_MAIN].setLeftComponent(panes[SPLIT_LEFT]);
+		panes[SPLIT_MAIN].setRightComponent(panes[SPLIT_RIGHT]);
+		panes[SPLIT_LEFT].setTopComponent(mainView);
+		panes[SPLIT_LEFT].setBottomComponent(panes[SPLIT_BOTTOM]);
+		panes[SPLIT_RIGHT].setTopComponent(views[TViewChooser.VIEW_PLOT]);
+		panes[SPLIT_RIGHT].setBottomComponent(views[TViewChooser.VIEW_TABLE]);
+		panes[SPLIT_BOTTOM].setRightComponent(views[TViewChooser.VIEW_WORLD]);
+		panes[SPLIT_BOTTOM].setLeftComponent(views[TViewChooser.VIEW_TEXT]);
 		// add toolbars at north position
 		Box north = Box.createVerticalBox();
-		north.add((JToolBar) objects[PANEL_TOOLBAR]);
-		north.add((TTrackBar) objects[PANEL_TRACKBAR]);
+		north.add((JToolBar) objects[TFRAME_TOOLBAR]);
+		north.add((TTrackBar) objects[TFRAME_TRACKBAR]);
 		panel.add(north, BorderLayout.NORTH);
 	}
 
@@ -783,7 +778,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		Object[] objects = getObjects(trackerPanel);
 		if (objects == null)
 			return new Container[4];
-		Container[] views = (Container[]) objects[PANEL_VIEWS];
+		Container[] views = (Container[]) objects[TFRAME_VIEWS];
 		return views.clone();
 	}
 
@@ -913,10 +908,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	JSplitPane getSplitPane(TrackerPanel trackerPanel, int paneIndex) {
 		JSplitPane[] panes = getSplitPanes(trackerPanel);
-		if (paneIndex < panes.length) {
-			return panes[paneIndex];
-		}
-		return null;
+		return (paneIndex < panes.length ? panes[paneIndex] : null);
 	}
 
 	/**
@@ -927,10 +919,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	public MainTView getMainView(TrackerPanel trackerPanel) {
 		Object[] objects = getObjects(trackerPanel);
-		if (objects != null) {
-			return (MainTView) objects[PANEL_MAINVIEW];
-		}
-		return new MainTView(trackerPanel);
+		return (objects == null ? new MainTView(trackerPanel) : (MainTView) objects[TFRAME_MAINVIEW]);
 	}
 
 	/**
@@ -985,19 +974,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			Iterator<Object[]> it = panelObjects.values().iterator();
 			while (it.hasNext()) {
 				Object[] objects = it.next();
-				MainTView mainView = (MainTView) objects[PANEL_MAINVIEW];
+				MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 				trackerPanel = mainView.getTrackerPanel();
 				boolean changed = trackerPanel.changed; // save changed state and restore below
 				// replace the stored menubar
-				objects[PANEL_MENUBAR] = TMenuBar.getMenuBar(trackerPanel);
+				objects[TFRAME_MENUBAR] = TMenuBar.getMenuBar(trackerPanel);
 				CoordAxes axes = trackerPanel.getAxes();
 				if (axes != null) {
 					axes.setName(TrackerRes.getString("CoordAxes.New.Name")); //$NON-NLS-1$
 				}
 				trackerPanel.changed = changed;
-				TToolBar toolbar = (TToolBar) objects[PANEL_TOOLBAR];
+				TToolBar toolbar = (TToolBar) objects[TFRAME_TOOLBAR];
 				toolbar.refresh(false);
-				TTrackBar trackbar = (TTrackBar) objects[PANEL_TRACKBAR];
+				TTrackBar trackbar = (TTrackBar) objects[TFRAME_TRACKBAR];
 				trackbar.refresh();
 			}
 			trackerPanel = getTrackerPanel(getSelectedTab());
@@ -1179,22 +1168,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param trackerPanel the tracker panel
 	 * @return a Container[numberOfViews] array of views
 	 */
-	private Container[] createViews(TrackerPanel trackerPanel) {
+	private static Container[] createViews(TrackerPanel trackerPanel) {
 		if (!Tracker.allowViews) {
 			OSPLog.debug("TFrame allowViews is false");
 			return new Container[4];
 		}
-		TViewChooser chooser1 = new TViewChooser(trackerPanel);
+		TViewChooser chooser1 = new TViewChooser(trackerPanel, TViewChooser.VIEW_PLOT);
 		chooser1.setSelectedView(chooser1.getView(TrackerRes.getString("TFrame.View.Plot"))); //$NON-NLS-1$
-		TViewChooser chooser2 = new TViewChooser(trackerPanel);
+		TViewChooser chooser2 = new TViewChooser(trackerPanel, TViewChooser.VIEW_TABLE);
 		chooser2.setSelectedView(chooser2.getView(TrackerRes.getString("TFrame.View.Table"))); //$NON-NLS-1$
-		TViewChooser chooser3 = new TViewChooser(trackerPanel);
+		TViewChooser chooser3 = new TViewChooser(trackerPanel, TViewChooser.VIEW_WORLD);
 		chooser3.setSelectedView(chooser3.getView(TrackerRes.getString("TFrame.View.World"))); //$NON-NLS-1$
-		TViewChooser chooser4 = new TViewChooser(trackerPanel);
+		TViewChooser chooser4 = new TViewChooser(trackerPanel, TViewChooser.VIEW_TEXT);
 		chooser4.setSelectedView(chooser4.getView(TrackerRes.getString("TFrame.View.Text"))); //$NON-NLS-1$
 		return new Container[] { chooser1, chooser2, chooser3, chooser4 };
 	}
 
+	private static final int SPLIT_MAIN   = 0;
+	private static final int SPLIT_RIGHT  = 1;
+	private static final int SPLIT_LEFT   = 2;
+	private static final int SPLIT_BOTTOM = 3;
+	
 	/**
 	 * Gets the split panes for the specified tracker panel.
 	 *
@@ -1204,10 +1198,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	JSplitPane[] getSplitPanes(final TrackerPanel trackerPanel) {
 		Object[] objects = getObjects(trackerPanel);
 		if (objects != null) {
-			return (JSplitPane[]) objects[PANEL_SPLITPANES];
+			return (JSplitPane[]) objects[TFRAME_SPLITPANES];
 		}
 		JSplitPane[] panes = new JSplitPane[4];
-		panes[0] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) { // right pane
+		panes[SPLIT_MAIN] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) { // right pane
 			// override setDividerLocation to update Window menu item
 			@Override
 			public void setDividerLocation(int loc) {
@@ -1226,8 +1220,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					super.setDividerLocation(loc);
 			}
 		};
-		panes[1] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // plot/table split
-		panes[2] = new JSplitPane(JSplitPane.VERTICAL_SPLIT) { // bottom pane
+		panes[SPLIT_RIGHT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // plot/table split
+		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT) { // bottom pane
 			@Override
 			public void setDividerLocation(int loc) {
 				int cur = getDividerLocation();
@@ -1242,7 +1236,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					super.setDividerLocation(loc);
 			}
 		};
-		panes[3] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) { // world/html
+		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) { // world/html
 			@Override
 			public void setDividerLocation(int loc) {
 				int cur = getDividerLocation();
@@ -1254,14 +1248,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					super.setDividerLocation(loc);
 			}
 		};
-		panes[0].setResizeWeight(1.0);
-		panes[1].setResizeWeight(0.5);
-		panes[2].setResizeWeight(1.0);
-		panes[3].setResizeWeight(0.5);
-		panes[0].setOneTouchExpandable(true);
-		panes[1].setOneTouchExpandable(true);
-		panes[2].setOneTouchExpandable(true);
-		panes[3].setOneTouchExpandable(true);
+		panes[SPLIT_MAIN].setResizeWeight(1.0);
+		panes[SPLIT_RIGHT].setResizeWeight(0.5);
+		panes[SPLIT_LEFT].setResizeWeight(1.0);
+		panes[SPLIT_BOTTOM].setResizeWeight(0.5);
+		panes[SPLIT_MAIN].setOneTouchExpandable(true);
+		panes[SPLIT_RIGHT].setOneTouchExpandable(true);
+		panes[SPLIT_LEFT].setOneTouchExpandable(true);
+		panes[SPLIT_BOTTOM].setOneTouchExpandable(true);
 		return panes;
 	}
 
@@ -1274,7 +1268,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public TToolBar getToolBar(TrackerPanel trackerPanel) {
 		Object[] objects = getObjects(trackerPanel);
 		if (objects != null) {
-			return (TToolBar) objects[PANEL_TOOLBAR];
+			return (TToolBar) objects[TFRAME_TOOLBAR];
 		}
 		return TToolBar.getToolbar(trackerPanel);
 	}
@@ -1287,8 +1281,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	public TMenuBar getMenuBar(TrackerPanel trackerPanel) {
 		Object[] objects = getObjects(trackerPanel);
-		if (objects != null && objects[PANEL_MENUBAR] != null) {
-			return (TMenuBar) objects[PANEL_MENUBAR];
+		if (objects != null && objects[TFRAME_MENUBAR] != null) {
+			return (TMenuBar) objects[TFRAME_MENUBAR];
 		}
 		return TMenuBar.getMenuBar(trackerPanel);
 	}
@@ -1302,7 +1296,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void setMenuBar(TrackerPanel trackerPanel, TMenuBar menubar) {
 		Object[] objects = getObjects(trackerPanel);
 		if (objects != null && objects.length > 4) {
-			objects[PANEL_MENUBAR] = menubar;
+			objects[TFRAME_MENUBAR] = menubar;
 			setJMenuBar(menubar);
 		}
 	}
@@ -1316,7 +1310,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public TTrackBar getTrackBar(TrackerPanel trackerPanel) {
 		Object[] objects = getObjects(trackerPanel);
 		if (objects != null) {
-			return (TTrackBar) objects[PANEL_TRACKBAR];
+			return (TTrackBar) objects[TFRAME_TRACKBAR];
 		}
 		return TTrackBar.getTrackbar(trackerPanel);
 	}
@@ -1818,9 +1812,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	private Object[] getObjects(TrackerPanel trackerPanel) {
 		int tab = getTab(trackerPanel);
-		if (tab >= 0)
-			return panelObjects.get(tabbedPane.getComponentAt(tab));
-		return null;
+		return (tab >= 0 ? panelObjects.get(tabbedPane.getComponentAt(tab)) : null);
 	}
 
 	/**
@@ -2044,7 +2036,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				// refresh current tab items
 				Object[] objects = panelObjects.get(tabbedPane.getSelectedComponent());
 				if (objects != null) {
-					MainTView mainView = (MainTView) objects[PANEL_MAINVIEW];
+					MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 					newPanel = mainView.getTrackerPanel();
 					prevPanel = newPanel;
 					// update prefsDialog
@@ -2056,9 +2048,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					JButton notesButton = getToolBar(newPanel).notesButton;
 					notesButton.setSelected(notesDialog.isVisible());
 					// refresh trackbar
-					((TTrackBar) objects[PANEL_TRACKBAR]).refresh();
+					((TTrackBar) objects[TFRAME_TRACKBAR]).refresh();
 					// refresh and replace menu bar
-					TMenuBar menubar = (TMenuBar) objects[PANEL_MENUBAR];
+					TMenuBar menubar = (TMenuBar) objects[TFRAME_MENUBAR];
 					refreshOpenRecentMenu(menubar.file_openRecentMenu);
 
 //          menubar.refresh();

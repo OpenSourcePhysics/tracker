@@ -47,7 +47,9 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	// constructor
 	protected TrackView(TTrack track, TrackerPanel panel, TrackChooserTView view) {
 		trackID = track.getID();
+		System.out.println("TrackView adding listener for " + this);
 		trackerPanel = panel;
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOADED, this); 
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); 
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_UNITS, this); 
 		parent = view;
@@ -58,8 +60,10 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 			TTrack track = TTrack.activeTracks.get(n);
 			track.removeStepListener(this);
 		}
-		trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("units", this); //$NON-NLS-1$
+		System.out.println("TrackView removing listener for " + this);
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOADED, this); 
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); 
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_UNITS, this); 
 		trackerPanel = null;
 	}
 
@@ -73,13 +77,11 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 
 	@Override
 	public String getName() {
-		TTrack track = getTrack();
-		return track.getName();
+		return getTrack().getName();
 	}
 
 	public Icon getIcon() {
-		TTrack track = getTrack();
-		return track.getIcon(21, 16, "point"); //$NON-NLS-1$
+		return getTrack().getIcon(21, 16, "point"); //$NON-NLS-1$
 	}
 
 	TTrack getTrack() {
@@ -108,17 +110,19 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		case TTrack.PROPERTY_TTRACK_STEP:
 			refresh((Integer) e.getNewValue());
 			break;
-		case TTrack.PROPERTY_TTRACK_STEPS:
-			refresh(trackerPanel.getFrameNumber());
-			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
 			Step step = trackerPanel.getSelectedStep();
 			TTrack track = getTrack();
 			if (step != null && trackerPanel.getSelectedTrack() == track) {
 				refresh(step.getFrameNumber());
-			} else {
-				refresh(trackerPanel.getFrameNumber());
+				break;
 			}
+			// fall through //
+		case TTrack.PROPERTY_TTRACK_STEPS:
+			refresh(trackerPanel.getFrameNumber());
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_LOADED:
+			refresh(trackerPanel.getFrameNumber());
 			break;
 		}
 	}

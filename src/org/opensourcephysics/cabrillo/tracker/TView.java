@@ -38,7 +38,9 @@ import javax.swing.*;
  */
 public interface TView extends PropertyChangeListener {
 
-  /**
+  String PROPERTY_TVIEW_TRACKVIEW = "trackview";
+
+/**
    * Initializes the view
    */
   public void init();

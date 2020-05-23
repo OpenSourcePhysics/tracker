@@ -131,8 +131,11 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public static final String PROPERTY_TTRACK_DATA = "data"; //$NON-NLS-1$
 	public static final String PROPERTY_TTRACK_COLOR = "color"; //$NON-NLS-1$
 
-	public static final String PROPERTY_TTRACK_ADJUSTING = "adjusting";
-	public static final String PROPERTY_TTRACK_LOCKED = "locked";
+	public static final String PROPERTY_TTRACK_ADJUSTING = "adjusting"; //$NON-NLS-1$
+	public static final String PROPERTY_TTRACK_LOCKED = "locked"; //$NON-NLS-1$
+
+	public static final String PROPERTY_TTRACK_TEXTCOLUMN = "text_column"; //$NON-NLS-1$
+			
 	
 
 	public void addListener(PropertyChangeListener c) {
@@ -253,7 +256,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected MouseAdapter formatMouseListener, formatAngleMouseListener;
 	protected String[] customNumberFormats;
 	private int ID; // unique ID number
-	private int myFontLevel;
 
 	/**
 	 * Constructs a TTrack.
@@ -1927,7 +1929,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		textColumnEntries.put(name, new String[0]);
 		Undo.postTrackEdit(this, control);
 		trackerPanel.changed = true;
-		this.firePropertyChange("text_column", null, name); //$NON-NLS-1$
+		this.firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, name); 
 		return true;
 	}
 
@@ -1948,7 +1950,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				textColumnNames.remove(name);
 				Undo.postTrackEdit(this, control);
 				trackerPanel.changed = true;
-				firePropertyChange("text_column", name, null); //$NON-NLS-1$
+				firePropertyChange(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, name, null); //$NON-NLS-1$
 				return true;
 			}
 		}
@@ -1986,7 +1988,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			}
 		}
 		trackerPanel.changed = true;
-		this.firePropertyChange("text_column", name, newName); //$NON-NLS-1$
+		this.firePropertyChange(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, name, newName); //$NON-NLS-1$
 		return true;
 	}
 
@@ -2050,7 +2052,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		entries[frameNumber] = text;
 		Undo.postTrackEdit(this, control);
 		trackerPanel.changed = true;
-		firePropertyChange("text_column", null, null); //$NON-NLS-1$
+		firePropertyChange(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, null, null); //$NON-NLS-1$
 		return true;
 	}
 
@@ -3607,6 +3609,12 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		dataValid = false;
 		if (newValue != Boolean.FALSE)
 			firePropertyChange(PROPERTY_TTRACK_DATA, null, newValue == Boolean.TRUE ? null : newValue);
+	}
+
+	public void notifyUndoLoaded() {
+		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); 
+		// TrackEdit is also used for text column edits
+		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, null); 
 	}
 
 }

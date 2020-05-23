@@ -67,6 +67,7 @@ public class PlotTrackView extends TrackView {
 	 */
 	public PlotTrackView(TTrack track, TrackerPanel panel, PlotTView view) {
 		super(track, panel, view);
+		OSPLog.debug("PlotTrackView constr for " + track);
 		// get the track data object (DatasetManager)
 		data = track.getData(trackerPanel);
 		// create the GUI

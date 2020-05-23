@@ -109,7 +109,7 @@ public class TableTrackView extends TrackView {
 	 */
 	public TableTrackView(TTrack track, TrackerPanel panel, TableTView view) {
 		super(track, panel, view);
-		track.addPropertyChangeListener("text_column", this); //$NON-NLS-1$
+		track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, this);
 		textColumnNames.addAll(track.getTextColumnNames());
 		// create the DataTable
 		textColumnEditor = new TextColumnEditor();
@@ -448,7 +448,7 @@ public class TableTrackView extends TrackView {
 	@Override
 	protected void dispose() {
 		data = null;
-		getTrack().removePropertyChangeListener("text_column", this); //$NON-NLS-1$
+		getTrack().removePropertyChangeListener(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, this); //$NON-NLS-1$
 		setViewportView(null);
 		columnsPanel.removeAll();
 		tableData.clear();
@@ -575,11 +575,14 @@ public class TableTrackView extends TrackView {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		TTrack track = getTrack();
-		if (((TableTView) parent).columnsDialog != null && e.getPropertyName().equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) //$NON-NLS-1$
-				&& e.getNewValue() == track) {
-			((TableTView) parent).refreshColumnsDialog(track);
-		}
-		if (e.getPropertyName().equals("text_column")) { //$NON-NLS-1$
+		switch (e.getPropertyName()) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_LOADED:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+			if (((TableTView) parent).columnsDialog != null && e.getNewValue() == track) {
+				((TableTView) parent).refreshColumnsDialog(track);
+			}
+			break;
+		case TTrack.PROPERTY_TTRACK_TEXTCOLUMN:
 			// look for added and removed column names
 			String added = null;
 			for (String name : track.getTextColumnNames()) {
@@ -615,11 +618,14 @@ public class TableTrackView extends TrackView {
 			// update local list of names
 			textColumnNames.clear();
 			textColumnNames.addAll(track.getTextColumnNames());
-
-		} else if (e.getPropertyName().equals("units")) { // from trackerPanel //$NON-NLS-1$
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_UNITS:
 			dataTable.getTableHeader().repaint();
-		} else
+			break;
+		default:
 			super.propertyChange(e);
+			break;
+		}
 	}
 
 	/**

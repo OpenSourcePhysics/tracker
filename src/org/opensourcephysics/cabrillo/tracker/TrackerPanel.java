@@ -28,7 +28,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Cursor;
-import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
@@ -138,24 +137,26 @@ import javajs.async.SwingJSUtils.Performance;
 @SuppressWarnings("serial")
 public class TrackerPanel extends VideoPanel implements Scrollable {
 
-	public static final String PROPERTY_TRACKERPANEL_VIDEO = "video";
-	public static final String PROPERTY_TRACKERPANEL_TRACK = "track";
-	public static final String PROPERTY_TRACKERPANEL_DATA = "data";
-	public static final String PROPERTY_TRACKERPANEL_TRANSFORM = "transform";
-	public static final String PROPERTY_TRACKERPANEL_COORDS = "coords";
-	public static final String PROPERTY_TRACKERPANEL_IMAGE = "image";
 	public static final String PROPERTY_TRACKERPANEL_CLEAR = "clear";
-	public static final String PROPERTY_TRACKERPANEL_SELECTEDTRACK = "selectedtrack";
-	public static final String PROPERTY_TRACKERPANEL_SELECTEDPOINT = "selectedpoint";
-	public static final String PROPERTY_TRACKERPANEL_MAGNIFICATION = "magnification";
-	public static final String PROPERTY_TRACKERPANEL_SIZE = "size";
-	public static final String PROPERTY_TRACKERPANEL_UNITS = "units";
-	public static final String PROPERTY_TRACKERPANEL_MASS = "mass";
+	public static final String PROPERTY_TRACKERPANEL_COORDS = "coords";
+	public static final String PROPERTY_TRACKERPANEL_DATA = "data";
 	public static final String PROPERTY_TRACKERPANEL_FOOTPRINT = "footprint";
-	public static final String PROPERTY_TRACKERPANEL_STEPNUMBER = "stepnumber";
-	public static final String PROPERTY_TRACKERPANEL_VIDEOVISIBLE = "videovisible";
+	public static final String PROPERTY_TRACKERPANEL_FUNCTION = "function";
+	public static final String PROPERTY_TRACKERPANEL_IMAGE = "image";
+	public static final String PROPERTY_TRACKERPANEL_LOADED = "loaded";
 	public static final String PROPERTY_TRACKERPANEL_LOCKED = "locked";
+	public static final String PROPERTY_TRACKERPANEL_MAGNIFICATION = "magnification";
+	public static final String PROPERTY_TRACKERPANEL_MASS = "mass";
 	public static final String PROPERTY_TRACKERPANEL_RADIANANGLES = TFrame.PROPERTY_TFRAME_RADIANANGLES;
+	public static final String PROPERTY_TRACKERPANEL_SELECTEDPOINT = "selectedpoint";
+	public static final String PROPERTY_TRACKERPANEL_SELECTEDTRACK = "selectedtrack";
+	public static final String PROPERTY_TRACKERPANEL_SIZE = "size";
+	public static final String PROPERTY_TRACKERPANEL_STEPNUMBER = "stepnumber";
+	public static final String PROPERTY_TRACKERPANEL_TRACK = "track";
+	public static final String PROPERTY_TRACKERPANEL_TRANSFORM = "transform";
+	public static final String PROPERTY_TRACKERPANEL_UNITS = "units";
+	public static final String PROPERTY_TRACKERPANEL_VIDEO = "video";
+	public static final String PROPERTY_TRACKERPANEL_VIDEOVISIBLE = "videovisible";
 
 
 // static fields
@@ -2603,7 +2604,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			break;
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: // from DataBuilder //$NON-NLS-1$
 			changed = true;
-			firePropertyChange("function", null, e.getNewValue()); // to views //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TRACKERPANEL_FUNCTION, null, e.getNewValue()); // to views //$NON-NLS-1$
 			break;
 		case FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL:
 			if (e.getSource() == modelBuilder) { 
@@ -4225,7 +4226,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public void setTFrame(TFrame frame) {
 		this.frame = frame;
 	}
+
+	public void notifyLoadingComplete() {
+		firePropertyChange(PROPERTY_TRACKERPANEL_LOADED, null, null);
+		repaint();
+	}
 	
-	
+
+	public void addPropertyChangeListener(String name, PropertyChangeListener listener) {
+		if (listener instanceof TrackView)
+			OSPLog.debug("Trackerpanel add " + name + listener);
+		super.addPropertyChangeListener(name, listener);
+	}
 
 }

@@ -154,35 +154,37 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if (!plotTrackView.trackerPanel.getPlayer().isEnabled())
+				TrackerPanel panel = plotTrackView.trackerPanel;
+				VideoPlayer player = panel.getPlayer();
+				if (!player.isEnabled())
 					return;
 				switch (e.getKeyCode()) {
 				case KeyEvent.VK_PAGE_UP:
 					if (e.isShiftDown()) {
-						int n = plotTrackView.trackerPanel.getPlayer().getStepNumber() - 5;
-						plotTrackView.trackerPanel.getPlayer().setStepNumber(n);
+						int n = player.getStepNumber() - 5;
+						player.setStepNumber(n);
 					} else
-						plotTrackView.trackerPanel.getPlayer().back();
+						player.back();
 					break;
 				case KeyEvent.VK_PAGE_DOWN:
 					if (e.isShiftDown()) {
-						int n = plotTrackView.trackerPanel.getPlayer().getStepNumber() + 5;
-						plotTrackView.trackerPanel.getPlayer().setStepNumber(n);
+						int n = player.getStepNumber() + 5;
+						player.setStepNumber(n);
 					} else
-						plotTrackView.trackerPanel.getPlayer().step();
+						player.step();
 					break;
 				case KeyEvent.VK_HOME:
-					plotTrackView.trackerPanel.getPlayer().setStepNumber(0);
+					player.setStepNumber(0);
 					break;
 				case KeyEvent.VK_END:
-					VideoClip clip = plotTrackView.trackerPanel.getPlayer().getVideoClip();
-					plotTrackView.trackerPanel.getPlayer().setStepNumber(clip.getStepCount() - 1);
+					VideoClip clip = player.getVideoClip();
+					player.setStepNumber(clip.getStepCount() - 1);
 					break;
 				case KeyEvent.VK_DELETE: // delete selected steps
-					plotTrackView.trackerPanel.deleteSelectedSteps();
-					if (plotTrackView.trackerPanel.selectedPoint != null
-							&& plotTrackView.trackerPanel.selectingPanel == plotTrackView.trackerPanel) {
-						plotTrackView.trackerPanel.deletePoint(plotTrackView.trackerPanel.selectedPoint);
+					panel.deleteSelectedSteps();
+					if (panel.selectedPoint != null
+							&& panel.selectingPanel == panel) {
+						panel.deletePoint(panel.selectedPoint);
 					}
 					return;
 
