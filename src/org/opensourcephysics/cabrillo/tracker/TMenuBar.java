@@ -2930,20 +2930,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		}
 	}
 
-	public static void setSelectedItem(TrackerPanel panel, String item, boolean open) {
-		TMenuBar menubar = getMenuBar(panel);
-		if (menubar != null) {
-			switch (item) {
-			case POPUPMENU_TFRAME_BOTTOM:
-				menubar.window_bottomPaneItem.setSelected(open);
-				break;
-			case POPUPMENU_TFRAME_RIGHT:
-				menubar.window_rightPaneItem.setSelected(open);
-				break;
-			}
-		}
-	}
-
 	public static void refreshPopup(TrackerPanel panel, String item, JPopupMenu menu, boolean isOpening) {
 		TMenuBar menubar = getMenuBar(panel);
 		if (menubar != null) {

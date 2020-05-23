@@ -453,12 +453,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.selectedStep = null;
 		trackerPanel.selectedTrack = null;	
 
-		// hide the info dialog if trackerPanel is in selected tab
+		// hide the info dialog if removing the currently selected tab
 		if (tab == getSelectedTab()) {
 			notesDialog.setVisible(false);
 		}
 
-		// inform listeners
+		// inform non-modal dialogs so they close: AutoTracker, CMInspector, DynamicSystemInspector,
+		// AttachmentDialog, ExportZipDialog, PencilControl, TableTView, TrackControl, VectorSumInspector
 		firePropertyChange(PROPERTY_TFRAME_TAB, trackerPanel, null); //$NON-NLS-1$
 
 		// clean up mouse handler
@@ -1220,9 +1221,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					super.setDividerLocation(getWidth() - getDividerSize());
 				} else if (loc != cur)
 					super.setDividerLocation(loc);
-				cur = getDividerLocation();
-				boolean open = (1.0 * cur / max) < 0.98;
-				TMenuBar.setSelectedItem(trackerPanel, TMenuBar.POPUPMENU_TFRAME_RIGHT, open);
 			}
 		};
 		panes[1] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // plot/table split
@@ -1239,9 +1237,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					super.setDividerLocation(getHeight() - getDividerSize());
 				} else if (loc != cur)
 					super.setDividerLocation(loc);
-				cur = getDividerLocation();
-				boolean open = (1.0 * cur / max) < 0.98;
-				TMenuBar.setSelectedItem(trackerPanel, TMenuBar.POPUPMENU_TFRAME_BOTTOM, open);
 			}
 		};
 		panes[3] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) { // world/html
