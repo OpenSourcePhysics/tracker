@@ -189,7 +189,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected JPopupMenu popup;
 	protected Set<String> enabled; // enabled GUI features (subset of full_config)
 	protected TPoint snapPoint; // used for origin snap
-	protected TFrame frame;
+	private TFrame frame;
 	protected BufferedImage renderedImage, matImage; // for video recording
 	protected XMLControl currentState, currentCoords, currentSteps;
 	protected TPoint pointState = new TPoint();
@@ -1845,7 +1845,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			dataBuilder.refreshGUI();
 		}
 		// refresh DataTool
-		if (frame != null && frame.getTrackerPanel(frame.getSelectedTab()) == this) {
+		if (getTFrame() != null && frame.getTrackerPanel(frame.getSelectedTab()) == this) {
 			DataTool.getTool().refreshDecimalSeparators();
 		}
 
@@ -2799,7 +2799,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	public void setFontLevel(int level) {
 		super.setFontLevel(level);
-		if (frame == null)
+		if (getTFrame() == null)
 			return;
 		// refresh views
 		TView[][] views = frame.getTViews(this);
@@ -3042,7 +3042,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		
 		long t0 = Performance.now(0);
 
-		if (!frame.isPainting())
+		if (getTFrame() == null || !frame.isPainting())
 			return;
 
 		super.paintComponent(g);
@@ -3466,6 +3466,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		@Override
 		public void finalizeLoading() {
 			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
+			// BH adds early setting of frame.
 			trackerPanel.frame = (TFrame) ((XMLControlElement) control).getData();
 			long t0 = Performance.now(0);
 			//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
@@ -4203,9 +4204,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public void repaint(long time, int x, int y, int w, int h) {
-		if (!isVisible() || frame == null || !frame.isPainting())
+		if (!isVisible() || getTFrame() == null || !frame.isPainting())
 			return;
+		// BH note that this check can prevent 85 repaint requests when 
+		// car.trz is loaded!
+		
 //		String s = /** @j2sNative  Clazz._getStackTrace() || */null;
+
 		OSPLog.debug("TrackerPanel repaint " + (++repaintCount));
 		
 		
@@ -4215,6 +4220,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	public void setVisible(boolean b) {
 		super.setVisible(b);
+	}
+
+	public void setTFrame(TFrame frame) {
+		this.frame = frame;
 	}
 	
 	

@@ -2071,6 +2071,7 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private int openTabPathVideo(int progress) {
+			trackerPanel.setTFrame(frame);
 			OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
 			// download web videos to the OSP cache
 			if (ResourceLoader.isHTTP(path)) {
@@ -2095,7 +2096,6 @@ public class TrackerIO extends VideoIO {
 			vidType = (VideoType) video.getProperty("video_type"); //$NON-NLS-1$
 			OSPLog.finer(video.getProperty("path") + " opened as " + //$NON-NLS-1$ //$NON-NLS-2$
 					vidType.getClass().getSimpleName() + " " + vidType.getDescription()); //$NON-NLS-1$
-			trackerPanel.frame = frame;
 			if (isCanceled())
 				return 100;
 

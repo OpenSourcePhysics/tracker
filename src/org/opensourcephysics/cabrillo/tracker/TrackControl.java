@@ -115,7 +115,7 @@ public class TrackControl extends JDialog
     trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FOOTPRINT, this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_DATA, this); //$NON-NLS-1$
 //    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-    Frame frame = trackerPanel.frame;
+    Frame frame = trackerPanel.getTFrame();
 	frame.addComponentListener(new ComponentAdapter() {
 	    public void componentMoved(ComponentEvent e) {
 	    	Point p = getLocation();
