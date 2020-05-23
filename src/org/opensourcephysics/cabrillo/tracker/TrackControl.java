@@ -24,16 +24,24 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.beans.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JToolBar;
 
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.tools.FontSizer;
@@ -59,7 +67,7 @@ public class TrackControl extends JDialog
   protected boolean isVisible;
   protected KeyListener shiftKeyListener;
 
-  protected Point ptF;
+  protected Point pt0;
 
   
   /**
@@ -115,19 +123,9 @@ public class TrackControl extends JDialog
     trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FOOTPRINT, this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_DATA, this); //$NON-NLS-1$
 //    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-    Frame frame = trackerPanel.getTFrame();
-	frame.addComponentListener(new ComponentAdapter() {
-	    public void componentMoved(ComponentEvent e) {
-	    	Point p = getLocation();
-	    	Point fp = frame.getLocation();
-	    	p.x += (fp.x - ptF.x);
-	    	p.y += (fp.y - ptF.y);
-	    	ptF = fp;
-	    	setLocation(p);
-	    }
-	});
-	ptF = frame.getLocation();
-
+    TFrame frame = trackerPanel.getTFrame();
+	pt0 = frame.getLocation();
+	frame.addFollower((Component) this, pt0);
   }
 
 	@Override
