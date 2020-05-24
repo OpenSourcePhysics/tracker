@@ -91,6 +91,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.Document;
 
@@ -596,7 +598,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				frame.setVisible(true);
 		} else {
 			// show defaultMenuBar
-			refreshOpenRecentMenu(recentMenu);
 			setJMenuBar(defaultMenuBar);
 		}
 		
@@ -1024,7 +1025,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 			} else {
 				// show defaultMenuBar
-				refreshOpenRecentMenu(recentMenu);
 				setJMenuBar(defaultMenuBar);
 			}
 			// refresh tabs
@@ -1382,10 +1382,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (!file.exists() && url == null) {
 			Tracker.recentFiles.remove(path);
 			int n = getSelectedTab();
-			if (n > -1) {
+			if (n >= 0) {
 				TMenuBar.refreshMenus(getTrackerPanel(n), TMenuBar.REFRESH_TFRAME_OPENRECENT);
-			} else {
-				refreshOpenRecentMenu(recentMenu);
 			}
 			JOptionPane.showMessageDialog(TFrame.this, TrackerRes.getString("TFrame.Dialog.FileNotFound.Message") //$NON-NLS-1$
 					+ "\n" + MediaRes.getString("VideoIO.Dialog.Label.Path") + ": " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -2055,7 +2053,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				Object[] objects = getObjects(tabbedPane.getSelectedIndex());
 				if (objects == null) {
 					// show defaultMenuBar
-					refreshOpenRecentMenu(recentMenu);
 					setJMenuBar(defaultMenuBar);
 				} else {
 					MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
@@ -2073,7 +2070,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					((TTrackBar) objects[TFRAME_TRACKBAR]).refresh();
 					// refresh and replace menu bar
 					TMenuBar menubar = (TMenuBar) objects[TFRAME_MENUBAR];
-					refreshOpenRecentMenu(menubar.file_openRecentMenu);
 
 //          menubar.refresh();
 					setJMenuBar(menubar);
@@ -2159,7 +2155,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// open recent menu
 			recentMenu = new JMenu();
 			fileMenu.add(recentMenu);
-			refreshOpenRecentMenu(recentMenu);
+			fileMenu.addMenuListener(new MenuListener() {
+
+				@Override
+				public void menuSelected(MenuEvent e) {
+					refreshOpenRecentMenu(recentMenu);
+					}
+
+				@Override
+				public void menuDeselected(MenuEvent e) {}
+
+				@Override
+				public void menuCanceled(MenuEvent e) {}
+				
+			});
+
 			fileMenu.addSeparator();
 			// openBrowser item
 			icon = new ImageIcon(Tracker.getClassResource("resources/images/open_catalog.gif")); //$NON-NLS-1$

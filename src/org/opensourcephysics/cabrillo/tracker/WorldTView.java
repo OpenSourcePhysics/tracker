@@ -212,6 +212,8 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	@Override
 	public void dispose() {
+		if (trackerPanel == null)
+			return;
 		cleanup();
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("radian_angles", this); //$NON-NLS-1$

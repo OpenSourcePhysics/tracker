@@ -3935,46 +3935,45 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public JPopupMenu updatePopup() {
 		MainTView mainTView = getTFrame().getMainView(this);
 		JPopupMenu popup = this.popup;
-		// see if a track has been clicked
-		boolean trackClicked = false;
-		Interactive iad = getInteractive();
-		// first look at TPoints
-		if (iad instanceof TPoint) {
-			TPoint p = (TPoint) iad;
-			TTrack track = null;
-			Step step = null;
-			Iterator<TTrack> it = getTracks().iterator();
-			while (it.hasNext()) {
-				track = it.next();
-				step = track.getStep(p, this);
-				if (step != null)
-					break;
-			}
-			if (step != null) { // found clicked track
-				trackClicked = true;
-				Step prev = selectedStep;
-				selectedStep = step;
-				if (track instanceof ParticleDataTrack) {
-					popup = ((ParticleDataTrack) track).getPointMenu(this).getPopupMenu();
-				} else {
-					popup = track.getMenu(this, new JMenu()).getPopupMenu();
+		try {
+			// see if a track has been clicked
+			Interactive iad = getInteractive();
+			// first look at TPoints
+			if (iad instanceof TPoint) {
+				TPoint p = (TPoint) iad;
+				TTrack track = null;
+				Step step = null;
+				Iterator<TTrack> it = getTracks().iterator();
+				while (it.hasNext()) {
+					track = it.next();
+					step = track.getStep(p, this);
+					if (step != null)
+						break;
 				}
-				selectedStep = prev;
+				if (step != null) { // found clicked track
+					Step prev = selectedStep;
+					selectedStep = step;
+					if (track instanceof ParticleDataTrack) {
+						popup = ((ParticleDataTrack) track).getPointMenu(this).getPopupMenu();
+					} else {
+						popup = track.getMenu(this, new JMenu()).getPopupMenu();
+					}
+					selectedStep = prev;
+					return popup;
+				}
+			} else if (iad instanceof TTrack) {
+				// look for direct track clicks
+				TTrack track = (TTrack) iad;
+				if (track instanceof TapeMeasure) {
+					popup = ((TapeMeasure) track).getInputFieldPopup();
+				} else if (track instanceof Protractor) {
+					popup = ((Protractor) track).getInputFieldPopup();
+				} else {
+					popup = track.getMenu(this, null).getPopupMenu();
+				}
+				return popup;
 			}
-		}
-		// look for direct track clicks
-		if (iad instanceof TTrack) {
-			trackClicked = true;
-			final TTrack track = (TTrack) iad;
-			if (track instanceof TapeMeasure) {
-				popup = ((TapeMeasure) track).getInputFieldPopup();
-			} else if (track instanceof Protractor) {
-				popup = ((Protractor) track).getInputFieldPopup();
-			} else {
-				popup = track.getMenu(this, null).getPopupMenu();
-			}
-		}
-		if (!trackClicked) { // video or non-track TPoint was clicked
+			// video or non-track TPoint was clicked
 			popup.removeAll();
 			// add zoom menus
 			JMenuItem item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ZoomIn")); //$NON-NLS-1$
@@ -4091,7 +4090,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				popup.add(snapshotItem);
 			}
 
-			TMenuBar.refreshPopup(this, TMenuBar.POPUPMENU_MAINTVIEW_POPUP, popup, true);
+			TMenuBar.refreshPopup(this, TMenuBar.POPUPMENU_MAINTVIEW_POPUP, popup);
 			// video properties item
 			Action vidPropsAction = TActions.getAction("aboutVideo", this); //$NON-NLS-1$
 			JMenuItem propertiesItem = new JMenuItem(vidPropsAction);
@@ -4120,9 +4119,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 			});
 			popup.add(helpItem);
+			return popup;
+		} finally {
+			FontSizer.setFonts(popup, FontSizer.getLevel());
 		}
-		FontSizer.setFonts(popup, FontSizer.getLevel());
-		return popup;
 	}
 
 	private void handleStepsInZoomBox(boolean add) {

@@ -74,7 +74,6 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.ClipInspector;
@@ -394,7 +393,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		newTrackButton = new TButton(newTrackIcon) {
 			@Override
 			protected JPopupMenu getPopup() {
-				TMenuBar.refreshPopup(trackerPanel, TMenuBar.POPUPMENU_TTOOLBAR_TRACKS, newPopup, true);
+				TMenuBar.refreshPopup(trackerPanel, TMenuBar.POPUPMENU_TTOOLBAR_TRACKS, newPopup);
 				return newPopup;
 			}
 		};

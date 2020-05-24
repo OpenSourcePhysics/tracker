@@ -315,6 +315,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	@Override
 	public void cleanup() {
 		// remove this listener from tracker panel
+		if (trackerPanel == null)
+			return;
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
@@ -335,6 +337,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	@Override
 	public void dispose() {
 		cleanup();
+		if (trackViews == null)
+			return;
 		for (TTrack next : trackViews.keySet()) {
 			trackViews.get(next).dispose();
 		}
