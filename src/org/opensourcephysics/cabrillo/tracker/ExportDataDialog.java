@@ -306,7 +306,7 @@ public class ExportDataDialog extends JDialog {
   	// tables
     selectedItem = tableDropdown.getSelectedItem();
     tableDropdown.removeAllItems();
-    Container[] c = trackerPanel.getTFrame().getViews(trackerPanel);
+    Container[] c = trackerPanel.getTFrame().getViewContainers(trackerPanel);
     boolean hasSelection = false;
     for (int i = 0; i < c.length; i++) {
       if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {

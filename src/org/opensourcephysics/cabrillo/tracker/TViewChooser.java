@@ -24,15 +24,34 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.beans.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.Icon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JSplitPane;
+import javax.swing.JToolBar;
 import javax.swing.border.Border;
 
-import org.opensourcephysics.controls.*;
+import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
@@ -55,7 +74,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 
 	// instance fields
 	protected TrackerPanel trackerPanel;
-	protected ArrayList<TView> views = new ArrayList<TView>();
 	protected TView selectedView;
 	protected JPanel viewPanel;
 	protected JToolBar toolbar;
@@ -67,12 +85,12 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	protected int dividerSize;
 	protected boolean maximized;
 	
-	private int myType;
+	protected int selType;
 	
-	final static int VIEW_PLOT  = 0;
-	final static int VIEW_TABLE = 1;
-	final static int VIEW_WORLD = 2;
-	final static int VIEW_TEXT  = 3;
+	
+	public int getSelectedType() {
+		return selType;
+	}
 	
 	/**
 	 * Constructs a TViewChooser.
@@ -81,7 +99,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 */
 	public TViewChooser(TrackerPanel panel, int type) {
 		super(new BorderLayout());
-		myType = type;
+		selType = type;
+		setName("TViewChooser " + selType);
 		trackerPanel = panel;
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
@@ -136,19 +155,18 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						// select the named view
-						String name = e.getActionCommand();
-						setSelectedView(getView(name));
+						int type = Integer.valueOf(e.getActionCommand());
+						setSelectedView(views[type]);
 					}
 				};
 				// add view items to popup
 				popup.removeAll();
 				JMenuItem item;
-				Iterator<TView> it = getViews().iterator();
-				while (it.hasNext()) {
-					TView view = it.next();
+				for (int i = 0; i < views.length; i++) {
+					TView view = views[i];
 					String name = view.getViewName();
 					item = new JMenuItem(name, new ResizableIcon(view.getViewIcon()));
-					item.setActionCommand(name);
+					item.setActionCommand("" + i);
 					item.addActionListener(listener);
 					popup.add(item);
 				}
@@ -175,7 +193,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			}
 		});
 		createDefaultViews();
-		refresh();
+//		refresh();
 	}
 
 	/**
@@ -203,50 +221,55 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * @param view the view being added
 	 */
 	public void addView(TView view) {
-		if (view == null || view.getTrackerPanel() != trackerPanel)
+		if (view == null || view.getTrackerPanel() != trackerPanel
+				|| views[view.getType()] != null && !views[view.getType()].isPlaceHolderOnly())
 			return;
-		if (getView(view.getClass()) != null)
+		views[view.getType()] = view;
+		view.refresh();
+		if (view.isCustomState())
 			return;
-		views.add(view);
 		view.cleanup();
 		refreshViewPanel();
 	}
 
-	/**
-	 * Adds a view of the tracker panel at a specified index
-	 *
-	 * @param index the list index desired
-	 * @param view  the view being added
-	 */
-	public void addView(int index, TView view) {
-		if (view.getTrackerPanel() != trackerPanel)
-			return;
-		if (getView(view.getClass()) != null)
-			return;
-		views.add(index, view);
-		view.cleanup();
-		refreshViewPanel();
-	}
-
-	/**
-	 * Removes a view from this chooser
-	 *
-	 * @param view the view requesting to be removed
-	 */
-	public void removeView(TView view) {
-		views.remove(view);
-		if (view == selectedView)
-			selectedView = null;
-		refreshViewPanel();
-	}
+//	/**
+//	 * Adds a view of the tracker panel at a specified index
+//	 *
+//	 * @param index the list index desired
+//	 * @param view  the view being added
+//	 */
+//	public void addView(int index, TView view) {
+//		if (view.getTrackerPanel() != trackerPanel)
+//			return;
+//		if (getView(view.getClass()) != null)
+//			return;
+//		views.add(index, view);
+//		view.cleanup();
+//		refreshViewPanel();
+//	}
+//
+//	/**
+//	 * Removes a view from this chooser
+//	 *
+//	 * @param view the view requesting to be removed
+//	 */
+//	public void removeView(TView view) {
+//		views.remove(view);
+//		if (view == selectedView)
+//			selectedView = null;
+//		refreshViewPanel();
+//	}
 
 	/**
 	 * Gets a list of the available views.
 	 *
 	 * @return the list of views
 	 */
-	public Collection<TView> getViews() {
-		return views;
+	public void removeView(TView view) {
+		views[view.getType()] = null;
+		if (view == selectedView)
+			selectedView = null;
+		refreshViewPanel();
 	}
 
 	/**
@@ -255,14 +278,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * @param viewName the name of the view
 	 * @return the view
 	 */
-	public TView getView(String viewName) {
-		Iterator<TView> it = getViews().iterator();
-		while (it.hasNext()) {
-			TView view = it.next();
-			if (view.getViewName().equals(viewName))
-				return view;
-		}
-		return null;
+	public TView[] getViews() {
+		return views;
 	}
 
 	/**
@@ -303,6 +320,11 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		return selectedView;
 	}
 
+	public void setSelectedView(int type) {
+		setSelectedView(views[type]);
+	}
+
+
 	/**
 	 * Selects the specified view
 	 *
@@ -311,8 +333,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	public void setSelectedView(TView view) {
 		if (view == null || selectedView == view)
 			return;
-		if (!getViews().contains(view)) {
-			addView(view);
+		if (view.isPlaceHolderOnly()) {
+			view = addView(view.getType());
 		}
 		trackerPanel.changed = true;
 		TTrack selectedTrack = null;
@@ -353,9 +375,9 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		switch (name) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
-			for (TView view : getViews()) {
-				view.propertyChange(e);
-			}
+			for (int i = 0; i < views.length; i++)
+				if (views[i] != null && !views[i].isPlaceHolderOnly())
+					views[i].propertyChange(e);
 			refreshToolbar();
 			break;
 		case TView.PROPERTY_TVIEW_TRACKVIEW:
@@ -374,7 +396,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			cl.removeLayoutComponent((JComponent) view);
 			view.dispose();
 		}
-		views.clear();
+		views = null;
 		selectedView = null;
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
@@ -399,7 +421,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		for (TView view : getViews())
 			if (view instanceof TrackChooserTView) {
 				TrackChooserTView chooser = (TrackChooserTView) view;
-				chooser.refreshMenus();
+				if (!chooser.isPlaceHolderOnly())
+					chooser.refreshMenus();
 			}
 	}
 
@@ -429,31 +452,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			pane.setDividerSize(0);
 		}
 		maximized = true;
-		Container[] views = frame.getViews(trackerPanel);
-		for (int i = 0; i < views.length; i++) {
-			if (TViewChooser.this == views[i]) {
-				switch (i) {
-				case 0:
-					frame.setDividerLocation(trackerPanel, 0, 0.0);
-					frame.setDividerLocation(trackerPanel, 1, 1.0);
-					break;
-				case 1:
-					frame.setDividerLocation(trackerPanel, 0, 0.0);
-					frame.setDividerLocation(trackerPanel, 1, 0.0);
-					break;
-				case 2:
-					frame.setDividerLocation(trackerPanel, 0, 1.0);
-					frame.setDividerLocation(trackerPanel, 2, 0.0);
-					frame.setDividerLocation(trackerPanel, 3, 0.0);
-					break;
-				case 3:
-					frame.setDividerLocation(trackerPanel, 0, 1.0);
-					frame.setDividerLocation(trackerPanel, 2, 0.0);
-					frame.setDividerLocation(trackerPanel, 3, 1.0);
+		frame.maximizeChooser(trackerPanel, selType);
 				}
-			}
-		}
-	}
 
 	/**
 	 * Restores this chooser and its views.
@@ -482,11 +482,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * Creates default views
 	 */
 	protected void createDefaultViews() {
-		addView(new PlotTView(trackerPanel));
-		addView(new TableTView(trackerPanel));
-		WorldTView worldView = new WorldTView(trackerPanel);
-		addView(worldView);
-		addView(new PageTView(trackerPanel));
+		views = new TView[] { new PlotTView(null), new TableTView(null), new WorldTView(null), new PageTView(null) };
 	}
 
 	/**
@@ -514,21 +510,22 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 */
 	private void refreshViewPanel() {
 		viewPanel.removeAll();
-		Iterator<TView> it = getViews().iterator();
-		while (it.hasNext()) {
-			TView view = it.next();
-			String name = view.getViewName();
-			viewPanel.add((JComponent) view, name);
+		for (int i = 0; i < views.length; i++) {
+			TView view = views[i];
+			if (view == null || view.isPlaceHolderOnly()) {
+				viewPanel.add(new JPanel());
+			} else {
+				viewPanel.add((JComponent) view, view.getViewName());
+			}
 		}
 		// reselect selected view, if any
-		if (selectedView != null && getViews().contains(selectedView))
+		if (selectedView != null && !views[selectedView.getType()].isPlaceHolderOnly())
 			setSelectedView(selectedView);
 		// otherwise select the first view in the list
 		else {
-			it = getViews().iterator();
-			if (it.hasNext()) {
-				setSelectedView(it.next());
-			}
+			for (int i = 0; i < views.length; i++)
+				if (!views[i].isPlaceHolderOnly())
+					setSelectedView(i);
 		}
 	}
 
@@ -586,6 +583,44 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			}
 			return obj;
 		}
+	}
+
+	TView[] views = new TView[4];
+	
+	TView addView(int type) {
+		TView view = null;
+		switch (type) {
+		case TView.VIEW_PLOT:
+			addView(view = new PlotTView(trackerPanel));
+			break;
+		case TView.VIEW_TABLE:
+			addView(view = new TableTView(trackerPanel));
+			break;
+		case TView.VIEW_WORLD:
+			addView(view = new WorldTView(trackerPanel));
+			break;
+		case TView.VIEW_TEXT:
+			addView(view = new PageTView(trackerPanel));
+			break;
+		}
+		return view;
+	}
+
+	TView getView(int type) {
+		if (type >= 0) {
+			return views[type];
+		}
+		for (int i = views.length; --i >= 0;) {
+			if (views[i] != null)
+				return views[i];
+		}
+		return null;
+	}
+
+
+	
+	public String toString() {
+		return this.getName();
 	}
 
 }

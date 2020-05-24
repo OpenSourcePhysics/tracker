@@ -376,7 +376,7 @@ public class ExportVideoDialog extends JDialog {
     views.put(s, trackerPanel);
   	viewDropdown.addItem(s);
   	// add additional open views
-    Container[] c = trackerPanel.getTFrame().getViews(trackerPanel);
+    Container[] c = trackerPanel.getTFrame().getViewContainers(trackerPanel);
     for (int i = 0; i < c.length; i++) {
       if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
         String number = " ("+(i+1)+")"; //$NON-NLS-1$ //$NON-NLS-2$

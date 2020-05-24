@@ -58,6 +58,8 @@ public class PlotTrackView extends TrackView {
 	protected int defaultPlotCount = 1;
 	private boolean isCustom;
 	protected boolean xAxesLinked;
+	
+
 
 	/**
 	 * Constructs a PlotTrackView for the specified track and trackerPanel.
@@ -66,7 +68,7 @@ public class PlotTrackView extends TrackView {
 	 * @param panel the tracker panel interpreting the track
 	 */
 	public PlotTrackView(TTrack track, TrackerPanel panel, PlotTView view) {
-		super(track, panel, view);
+		super(track, panel, view, TView.VIEW_PLOT);
 		OSPLog.debug("PlotTrackView constr for " + track);
 		// get the track data object (DatasetManager)
 		data = track.getData(trackerPanel);

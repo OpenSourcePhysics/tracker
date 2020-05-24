@@ -61,6 +61,8 @@ public class TableTView extends TrackChooserTView {
     super(panel);
     icon = new ImageIcon(
         Tracker.getClassResource("resources/images/datatable.gif")); //$NON-NLS-1$
+    if (panel == null)
+    	return;
     getColumnsDialog();
   }
 
@@ -527,4 +529,9 @@ public void cleanup() {
       return obj;
     }
   }
+
+@Override
+public int getType() {
+	return VIEW_TABLE;
+}
 }

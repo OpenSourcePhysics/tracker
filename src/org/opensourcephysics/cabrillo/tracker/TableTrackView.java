@@ -108,7 +108,7 @@ public class TableTrackView extends TrackView {
 	 * @param view  the TableTView that will display this
 	 */
 	public TableTrackView(TTrack track, TrackerPanel panel, TableTView view) {
-		super(track, panel, view);
+		super(track, panel, view, TView.VIEW_TABLE);
 		track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, this);
 		textColumnNames.addAll(track.getTextColumnNames());
 		// create the DataTable
@@ -693,9 +693,10 @@ public class TableTrackView extends TrackView {
 	protected TViewChooser getOwner() {
 		// find TViewChooser with this view and copy that
 		TFrame frame = trackerPanel.getTFrame();
-		Container[] views = frame.getViews(trackerPanel);
+		Container[] views = frame.getViewContainers(trackerPanel);
 		for (int i = 0; i < views.length; i++) {
 			if (views[i] instanceof TViewChooser) {
+				
 				TViewChooser chooser = (TViewChooser) views[i];
 				TView tview = chooser.getSelectedView();
 				if (tview != null && tview instanceof TableTView) {
@@ -1980,7 +1981,7 @@ public class TableTrackView extends TrackView {
 			// find TViewChooser with this view
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
-				Container[] views = frame.getViews(trackerPanel);
+				Container[] views = frame.getViewContainers(trackerPanel);
 				for (int i = 0; i < views.length; i++) {
 					if (views[i] instanceof TViewChooser) {
 						TViewChooser chooser = (TViewChooser) views[i];

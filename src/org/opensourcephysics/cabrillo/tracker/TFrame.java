@@ -57,10 +57,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
-import java.util.Map;
 import java.util.function.Function;
 
 import javax.swing.AbstractAction;
@@ -147,7 +145,33 @@ import javajs.async.SwingJSUtils.StateMachine;
 public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	// static fields
-	
+
+	private static class TTabPanel extends JPanel {
+
+		private Object[] objects;
+		private TrackerPanel trackerPanel;
+
+		public TTabPanel(TrackerPanel trackerPanel, Object[] objects) {
+			super(new BorderLayout());
+			this.trackerPanel = trackerPanel;
+			this.objects = objects;
+		}
+		
+		public TrackerPanel getTrackerPanel() {
+			return trackerPanel;
+		}
+		
+		public Object[] getObjects() {
+			return objects;
+		}
+
+		public void dispose() {
+			trackerPanel = null;
+			objects = null;
+		}
+
+	}
+
 	public static final String PROPERTY_TFRAME_TAB = "tab";
 	public static final String PROPERTY_TFRAME_RADIANANGLES = "radian_angles";
 	public static final String PROPERTY_TFRAME_WINDOWFOCUS = "windowfocus";
@@ -164,7 +188,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private JMenu recentMenu;
 
 	private static final int TFRAME_MAINVIEW = 0;
-	private static final int TFRAME_VIEWS = 1;
+	private static final int TFRAME_VIEWCONTAINERS = 1;
 	private static final int TFRAME_SPLITPANES = 2;
 	private static final int TFRAME_TOOLBAR = 3;
 	private static final int TFRAME_MENUBAR = 4;
@@ -173,7 +197,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public static boolean haveExportDialog = false;
 	public static boolean haveThumbnailDialog = false;
 
-	private Map<JPanel, Object[]> panelObjects = new HashMap<JPanel, Object[]>();
+//	private Map<JPanel, Object[]> panelObjects = new HashMap<JPanel, Object[]>();
 	protected JTabbedPane tabbedPane;
 	protected JTextPane notesTextPane;
 	protected Action saveNotesAction;
@@ -300,12 +324,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// set up trackerPanel to listen for angle format property change
 			addPropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); //$NON-NLS-1$
 			// create the tab
-			JPanel panel = new JPanel(new BorderLayout());
 			// create the tab panel components
 			Tracker.setProgress(30);
-			Object[] objects = new Object[5];
-			objects[TFRAME_MAINVIEW] = getMainView(trackerPanel);
-			objects[TFRAME_VIEWS] = createViews(trackerPanel);
+			Object[] objects = new Object[6];
+			MainTView mainView; 
+			objects[TFRAME_MAINVIEW] = mainView = getMainView(trackerPanel);
+			objects[TFRAME_VIEWCONTAINERS] = createViews(mainView, trackerPanel);
 			objects[TFRAME_SPLITPANES] = getSplitPanes(trackerPanel);
 			Tracker.setProgress(50);
 			objects[TFRAME_TOOLBAR] = getToolBar(trackerPanel);
@@ -313,7 +337,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			objects[TFRAME_MENUBAR] = getMenuBar(trackerPanel);
 			objects[TFRAME_TRACKBAR] = getTrackBar(trackerPanel);
 			// put the components into the tabs map
-			panelObjects.put(panel, objects);
+			TTabPanel panel = new TTabPanel(trackerPanel, objects);
 			// add the tab
 			setIgnoreRepaint(true);
 			String name = trackerPanel.getTitle();
@@ -327,17 +351,32 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		
 		// set views, etc for every trackerPanel that has them
-		Container[] views = getViews(trackerPanel);
+		Container[] viewContainers = getViewContainers(trackerPanel);
 		boolean hasViews = (trackerPanel.viewsProperty != null);
 		// select the views
 		if (trackerPanel.selectedViewsProperty != null) {
-			if (!hasViews) { // no custom views, just load and show selected views
+			if (hasViews) {
+				// has custom views
+				Iterator<Object> it = trackerPanel.selectedViewsProperty.getPropertyContent().iterator();
+				int i = -1;
+				while (it.hasNext() && ++i < viewContainers.length) {
+					if (viewContainers[i] instanceof TViewChooser) {
+						TViewChooser chooser = (TViewChooser) viewContainers[i];
+						XMLProperty next = (XMLProperty) it.next();
+						if (next == null)
+							continue;
+						String viewName = (String) next.getPropertyContent().get(0);
+						chooser.setSelectedView(chooser.getSelectedType());
+					}
+				}
+			} else {				
+				// no custom views, just load and show selected views
 				XMLControl[] controls = trackerPanel.selectedViewsProperty.getChildControls();
-				for (int i = 0; i < Math.min(controls.length, views.length); i++) {
+				for (int i = 0; i < Math.min(controls.length, viewContainers.length); i++) {
 					if (controls[i] == null)
 						continue;
-					if (views[i] instanceof TViewChooser) {
-						TViewChooser chooser = (TViewChooser) views[i];
+					if (viewContainers[i] instanceof TViewChooser) {
+						TViewChooser chooser = (TViewChooser) viewContainers[i];
 						Class<?> viewType = controls[i].getObjectClass();
 						TView view = chooser.getView(viewType);
 						if (view != null) {
@@ -347,19 +386,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 							}
 							controls[i].loadObject(view);
 						}
-					}
-				}
-			} else { // has custom views
-				Iterator<Object> it = trackerPanel.selectedViewsProperty.getPropertyContent().iterator();
-				int i = -1;
-				while (it.hasNext() && ++i < views.length) {
-					if (views[i] instanceof TViewChooser) {
-						TViewChooser chooser = (TViewChooser) views[i];
-						XMLProperty next = (XMLProperty) it.next();
-						if (next == null)
-							continue;
-						String viewName = (String) next.getPropertyContent().get(0);
-						chooser.setSelectedView(chooser.getView(viewName));
 					}
 				}
 			}
@@ -376,21 +402,22 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				String index = next.getPropertyName().substring(1);
 				index = index.substring(0, index.length() - 1);
 				int i = Integer.parseInt(index);
-				if (i < views.length && views[i] instanceof TViewChooser) {
+				if (i < viewContainers.length && viewContainers[i] instanceof TViewChooser) {
 					XMLControl[] elements = next.getChildControls();
-					TViewChooser chooser = (TViewChooser) views[i];
+					TViewChooser chooser = (TViewChooser) viewContainers[i];
 					for (int j = 0; j < elements.length; j++) {
 						Class<?> viewType = elements[j].getObjectClass();
 						TView view = chooser.getView(viewType);
 						if (view != null) {
 							elements[j].loadObject(view);
+							chooser.setSelectedView(view.getType());
 						}
 					}
 				}
 			}
 			trackerPanel.viewsProperty = null;
 		}
-		setViews(trackerPanel, views);
+		setViews(trackerPanel, viewContainers);
 		initialize(trackerPanel);
 			
 		JPanel panel = (JPanel)tabbedPane.getComponentAt(tab);
@@ -486,7 +513,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.setVideo(null);
 
 		// dispose of TViewChoosers and TViews
-		Container[] views = getViews(trackerPanel);
+		Container[] views = getViewContainers(trackerPanel);
 		for (int i = 0; i < views.length; i++) {
 			if (views[i] instanceof TViewChooser) {
 				TViewChooser chooser = (TViewChooser) views[i];
@@ -507,7 +534,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 
 		// get the tab panel and remove components from it
-		JPanel tabPanel = (JPanel) tabbedPane.getComponentAt(tab);
+		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
 		tabPanel.removeAll();
 
 		// remove the tab
@@ -546,14 +573,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 
 		// remove the components from the tabs map
-		Object[] objects = panelObjects.get(tabPanel);
-//  objects is {mainView, views, panes, toolbar, menubar, trackbar};
-		if (objects != null) {
-			for (int i = 0; i < objects.length; i++) {
-				objects[i] = null;
-			}
-		}
-		panelObjects.remove(tabPanel);
+		
+		tabPanel.dispose();
 
 		TActions.getActions(trackerPanel).clear();
 		TActions.actionMaps.remove(trackerPanel);
@@ -565,7 +586,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.dispose();
 
 		// change menubar and show floating player of newly selected tab, if any
-		objects = panelObjects.get(tabbedPane.getSelectedComponent());
+		Object[] objects = ((TTabPanel)tabbedPane.getSelectedComponent()).getObjects();
 		if (objects != null) {
 			setJMenuBar((JMenuBar) objects[TFRAME_MENUBAR]);
 			((TTrackBar) objects[TFRAME_TRACKBAR]).refresh();
@@ -593,13 +614,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	public int getTab(TrackerPanel trackerPanel) {
 		for (int i = 0; i < getTabCount(); i++) {
-			Object[] objects = panelObjects.get(tabbedPane.getComponentAt(i));
-			if (objects == null)
-				return -1;
-			MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
-			if (mainView.getTrackerPanel() == trackerPanel) {
+			TTabPanel panel = (TTabPanel) tabbedPane.getComponentAt(i);
+			if (panel.getTrackerPanel() == trackerPanel)
 				return i;
-			}
 		}
 		return -1;
 	}
@@ -616,11 +633,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		try {
 			String path = dataFile.getCanonicalPath();
 			for (int i = getTabCount() - 1; i >= 0; i--) {
-				Object[] objects = panelObjects.get(tabbedPane.getComponentAt(i));
-				if (objects == null)
-					return -1;
-				MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
-				File file = mainView.getTrackerPanel().getDataFile();
+				File file = ((TTabPanel) tabbedPane.getComponentAt(i)).getTrackerPanel().getDataFile();
 				if (file != null && path.equals(file.getCanonicalPath())) {
 					return i;
 				}
@@ -678,11 +691,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return the tracker panel
 	 */
 	public TrackerPanel getTrackerPanel(int tab) {
-		if (tab < 0 || tab >= tabbedPane.getTabCount())
-			return null;
-		Object[] objects = panelObjects.get(tabbedPane.getComponentAt(tab));
-		MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
-		return mainView.getTrackerPanel();
+		return (tab < 0 || tab >= tabbedPane.getTabCount() ? null
+				: ((TTabPanel) tabbedPane.getComponentAt(tab)).getTrackerPanel());
+	}
+
+	public Object[] getObjects(int tab) {
+		return (tab < 0 || tab >= tabbedPane.getTabCount() ? null
+				: ((TTabPanel) tabbedPane.getComponentAt(tab)).getObjects());
 	}
 
 	/**
@@ -726,7 +741,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void setView(TrackerPanel trackerPanel, Container view, int pane) {
 		if (view == null || pane > 3)
 			return;
-		Container[] views = getViews(trackerPanel);
+		Container[] views = getViewContainers(trackerPanel);
 		views[pane] = view;
 		setViews(trackerPanel, views);
 	}
@@ -735,21 +750,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Sets the views for the specified tracker panel.
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @param newViews     an array of up to 4 views
+	 * @param viewContainers     an array of up to 4 Container objects (TViewChoosers)
 	 */
-	public void setViews(TrackerPanel trackerPanel, Container[] newViews) {
-		if (newViews == null)
-			newViews = new Container[0];
+	public void setViews(TrackerPanel trackerPanel, Container[] viewContainers) {
+		if (viewContainers == null)
+			viewContainers = new Container[0];
 		int tab = getTab(trackerPanel);
-		JPanel panel = (JPanel) tabbedPane.getComponentAt(tab);
+		TTabPanel panel = (TTabPanel) tabbedPane.getComponentAt(tab);
 		panel.removeAll();
-		Object[] objects = panelObjects.get(panel);
-		Container[] views = (Container[]) objects[TFRAME_VIEWS];
-		for (int i = 0; i < Math.min(newViews.length, views.length); i++) {
-			if (newViews[i] != null)
-				views[i] = newViews[i];
+		Object[] objects = panel.getObjects();
+		Container[] containers = (Container[]) objects[TFRAME_VIEWCONTAINERS];
+		for (int i = 0; i < Math.min(viewContainers.length, containers.length); i++) {
+			if (viewContainers[i] != null)
+				containers[i] = viewContainers[i];
 		}
-		objects[TFRAME_VIEWS] = views;
+		objects[TFRAME_VIEWCONTAINERS] = containers;
 		MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 		JSplitPane[] panes = (JSplitPane[]) objects[TFRAME_SPLITPANES];
 		panel.add(panes[SPLIT_MAIN], BorderLayout.CENTER);
@@ -757,10 +772,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		panes[SPLIT_MAIN].setRightComponent(panes[SPLIT_RIGHT]);
 		panes[SPLIT_LEFT].setTopComponent(mainView);
 		panes[SPLIT_LEFT].setBottomComponent(panes[SPLIT_BOTTOM]);
-		panes[SPLIT_RIGHT].setTopComponent(views[TViewChooser.VIEW_PLOT]);
-		panes[SPLIT_RIGHT].setBottomComponent(views[TViewChooser.VIEW_TABLE]);
-		panes[SPLIT_BOTTOM].setRightComponent(views[TViewChooser.VIEW_WORLD]);
-		panes[SPLIT_BOTTOM].setLeftComponent(views[TViewChooser.VIEW_TEXT]);
+		panes[SPLIT_RIGHT].setTopComponent(containers[TView.VIEW_PLOT]);
+		panes[SPLIT_RIGHT].setBottomComponent(containers[TView.VIEW_TABLE]);
+		panes[SPLIT_BOTTOM].setRightComponent(containers[TView.VIEW_WORLD]);
+		panes[SPLIT_BOTTOM].setLeftComponent(containers[TView.VIEW_TEXT]);
 		// add toolbars at north position
 		Box north = Box.createVerticalBox();
 		north.add((JToolBar) objects[TFRAME_TOOLBAR]);
@@ -770,16 +785,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	/**
 	 * Gets the views for the specified tracker panel.
+	 * Typically TViewChoosers. 
+	 * 
+	 *  BH Deprecating because these are not TViews; they are TViewChoosers.
 	 *
 	 * @param trackerPanel the tracker panel
 	 * @return an objects of views
 	 */
 	public Container[] getViews(TrackerPanel trackerPanel) {
+		return getViewContainers(trackerPanel);
+	}
+
+	public Container[] getViewContainers(TrackerPanel trackerPanel) {
 		Object[] objects = getObjects(trackerPanel);
-		if (objects == null)
-			return new Container[4];
-		Container[] views = (Container[]) objects[TFRAME_VIEWS];
-		return views.clone();
+		Container[] ret = new Container[4];
+		if (objects != null)
+			for (int i = 0; i < 4; i++)
+				ret[i] = ((Container[]) objects[TFRAME_VIEWCONTAINERS])[i];
+		return ret;
 	}
 
 	/**
@@ -800,24 +823,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return an array of views
 	 */
 	public TView[][] getTViews(TrackerPanel trackerPanel, boolean customOnly) {
-		Container[] views = getViews(trackerPanel);
-		TView[][] array = new TView[views.length][];
+		Container[] containers = getViewContainers(trackerPanel);
+		TView[][] array = new TView[4][];
 		for (int i = 0; i < array.length; i++) {
-			if (views[i] instanceof TViewChooser) {
-				TViewChooser chooser = (TViewChooser) views[i];
-				Collection<TView> c = chooser.getViews();
-				array[i] = new TView[c.size()];
-				boolean empty = true;
-				Iterator<TView> it = c.iterator();
-				for (int j = 0; j < c.size(); j++) {
-					TView next = it.next();
+			if (containers[i] instanceof TViewChooser) {
+				TViewChooser chooser = (TViewChooser) containers[i];
+				TView[] views = chooser.getViews();
+				for (int j = 0; j < views.length; j++) {
+					TView next = views[i];
 					if (!customOnly || next.isCustomState()) {
+						if (array[i] == null)
+							array[i] = new TView[4];
 						array[i][j] = next;
-						empty = false;
 					}
 				}
-				if (empty)
-					array[i] = null;
 			}
 		}
 		return array;
@@ -830,7 +849,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return an array of TViews (some elements may be null)
 	 */
 	public String[] getSelectedTViews(TrackerPanel trackerPanel) {
-		Container[] views = getViews(trackerPanel);
+		Container[] views = getViewContainers(trackerPanel);
 		String[] selectedViews = new String[views.length];
 		for (int i = 0; i < selectedViews.length; i++) {
 			if (views[i] instanceof TViewChooser) {
@@ -971,9 +990,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// create new default menubar
 			createDefaultMenuBar();
 			// replace and refresh the stored menubars and toolbars
-			Iterator<Object[]> it = panelObjects.values().iterator();
-			while (it.hasNext()) {
-				Object[] objects = it.next();
+			for (int i = 0; i < getTabCount(); i++) {
+				Object[] objects = getObjects(i);
 				MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 				trackerPanel = mainView.getTrackerPanel();
 				boolean changed = trackerPanel.changed; // save changed state and restore below
@@ -1025,7 +1043,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				getToolBar(trackerPanel).refresh(false);
 				getTrackBar(trackerPanel).refresh();
 				// refresh views
-				Container[] views = getViews(trackerPanel);
+				Container[] views = getViewContainers(trackerPanel);
 				for (int j = 0; j < views.length; j++) {
 					if (views[j] instanceof TViewChooser) {
 						((TViewChooser) views[j]).refresh();
@@ -1164,23 +1182,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	/**
 	 * Creates the default views of the specified tracker panel.
+	 * @param mainView 
 	 *
 	 * @param trackerPanel the tracker panel
 	 * @return a Container[numberOfViews] array of views
 	 */
-	private static Container[] createViews(TrackerPanel trackerPanel) {
+	private static Container[] createViews(MainTView mainView, TrackerPanel trackerPanel) {
 		if (!Tracker.allowViews) {
 			OSPLog.debug("TFrame allowViews is false");
 			return new Container[4];
 		}
-		TViewChooser chooser1 = new TViewChooser(trackerPanel, TViewChooser.VIEW_PLOT);
-		chooser1.setSelectedView(chooser1.getView(TrackerRes.getString("TFrame.View.Plot"))); //$NON-NLS-1$
-		TViewChooser chooser2 = new TViewChooser(trackerPanel, TViewChooser.VIEW_TABLE);
-		chooser2.setSelectedView(chooser2.getView(TrackerRes.getString("TFrame.View.Table"))); //$NON-NLS-1$
-		TViewChooser chooser3 = new TViewChooser(trackerPanel, TViewChooser.VIEW_WORLD);
-		chooser3.setSelectedView(chooser3.getView(TrackerRes.getString("TFrame.View.World"))); //$NON-NLS-1$
-		TViewChooser chooser4 = new TViewChooser(trackerPanel, TViewChooser.VIEW_TEXT);
-		chooser4.setSelectedView(chooser4.getView(TrackerRes.getString("TFrame.View.Text"))); //$NON-NLS-1$
+		TViewChooser chooser1 = new TViewChooser(trackerPanel, TView.VIEW_PLOT);
+		chooser1.setSelectedView(TView.VIEW_PLOT); //$NON-NLS-1$
+		TViewChooser chooser2 = new TViewChooser(trackerPanel, TView.VIEW_TABLE);
+		chooser2.setSelectedView(TView.VIEW_TABLE); //$NON-NLS-1$
+		TViewChooser chooser3 = new TViewChooser(trackerPanel, TView.VIEW_WORLD);
+		chooser3.setSelectedView(TView.VIEW_WORLD); //$NON-NLS-1$
+		TViewChooser chooser4 = new TViewChooser(trackerPanel, TView.VIEW_TEXT);
+		chooser4.setSelectedView(TView.VIEW_TEXT); //$NON-NLS-1$
 		return new Container[] { chooser1, chooser2, chooser3, chooser4 };
 	}
 
@@ -1397,7 +1416,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		getMenuBar(trackerPanel).refresh(TMenuBar.REFRESH_TFRAME);
 		getToolBar(trackerPanel).refresh(true);
 		getTrackBar(trackerPanel).refresh();
-		for (Container next : getViews(trackerPanel)) {
+		for (Container next : getViewContainers(trackerPanel)) {
 			if (next instanceof TViewChooser) {
 				TViewChooser chooser = (TViewChooser) next;
 				chooser.refreshMenus();
@@ -1811,8 +1830,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return the object array
 	 */
 	private Object[] getObjects(TrackerPanel trackerPanel) {
-		int tab = getTab(trackerPanel);
-		return (tab >= 0 ? panelObjects.get(tabbedPane.getComponentAt(tab)) : null);
+		return getObjects(getTab(trackerPanel));
 	}
 
 	/**
@@ -2034,8 +2052,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					}
 				}
 				// refresh current tab items
-				Object[] objects = panelObjects.get(tabbedPane.getSelectedComponent());
-				if (objects != null) {
+				Object[] objects = getObjects(tabbedPane.getSelectedIndex());
+				if (objects == null) {
+					// show defaultMenuBar
+					refreshOpenRecentMenu(recentMenu);
+					setJMenuBar(defaultMenuBar);
+				} else {
 					MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 					newPanel = mainView.getTrackerPanel();
 					prevPanel = newPanel;
@@ -2066,10 +2088,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					if (vid != null) {
 						vid.getFilterStack().setInspectorsVisible(true);
 					}
-				} else {
-					// show defaultMenuBar
-					refreshOpenRecentMenu(recentMenu);
-					setJMenuBar(defaultMenuBar);
 				}
 				// update prefsDialog
 				if (prefsDialog != null && prefsDialog.isVisible()) {
@@ -2717,5 +2735,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		    	c.setLocation(p);
 		    }
 		});
+	}
+
+	public void maximizeChooser(TrackerPanel trackerPanel, int type) {
+		switch (type) {
+		case TView.VIEW_PLOT:
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);
+			setDividerLocation(trackerPanel, SPLIT_RIGHT, 1.0);
+			break;
+		case TView.VIEW_TABLE:
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);
+			setDividerLocation(trackerPanel, SPLIT_RIGHT, 0.0);
+			break;
+		case TView.VIEW_WORLD:
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
+			setDividerLocation(trackerPanel, SPLIT_LEFT, 0.0);
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 0.0);
+			break;
+		case TView.VIEW_TEXT:
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
+			setDividerLocation(trackerPanel, SPLIT_LEFT, 0.0);
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0);
+		}
 	}
 }

@@ -71,7 +71,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	protected TTrack selectedTrack;
 	protected JPanel noData;
 	protected JLabel noDataLabel;
-
+	
 	/**
 	 * Constructs a TrackChooserView for the specified tracker panel.
 	 *
@@ -79,6 +79,10 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 */
 	protected TrackChooserTView(TrackerPanel panel) {
 		super(new CardLayout());
+		if (panel == null) {
+			// just a place-holder 
+			return;
+		}
 		trackerPanel = panel;
 		init();
 		OSPLog.debug("TrackChooserTView ??? " + this);

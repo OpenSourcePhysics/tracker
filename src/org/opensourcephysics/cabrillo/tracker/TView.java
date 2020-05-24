@@ -38,61 +38,80 @@ import javax.swing.*;
  */
 public interface TView extends PropertyChangeListener {
 
-  String PROPERTY_TVIEW_TRACKVIEW = "trackview";
+	String PROPERTY_TVIEW_TRACKVIEW = "trackview";
 
-/**
-   * Initializes the view
-   */
-  public void init();
+	int VIEW_MAIN = -1;
+	int VIEW_PLOT = 0;
+	int VIEW_TABLE = 1;
+	int VIEW_WORLD = 2;
+	int VIEW_TEXT = 3;
 
-  /**
-   * Refreshes the view
-   */
-  public void refresh();
+	/**
+	 * Initializes the view
+	 */
+	public void init();
 
-  /**
-   * Cleans up the view
-   */
-  public void cleanup();
+	public int getType();
 
-  /**
-   * Disposes of the view
-   */
-  public void dispose();
+	/**
+	 * Refreshes the view
+	 */
+	public void refresh();
 
-  /**
-   * Gets the TrackerPanel containing the track data
-   *
-   * @return the tracker panel containing the data to be viewed
-   */
-  public TrackerPanel getTrackerPanel();
+	/**
+	 * Cleans up the view
+	 */
+	public void cleanup();
 
-  /**
-   * Gets the name of the view
-   *
-   * @return the name of the view
-   */
-  public String getViewName();
+	/**
+	 * Disposes of the view
+	 */
+	public void dispose();
 
-  /**
-   * Gets the icon for this view
-   *
-   * @return the icon for the view
-   */
-  public Icon getViewIcon();
+	/**
+	 * Gets the TrackerPanel containing the track data
+	 *
+	 * @return the tracker panel containing the data to be viewed
+	 */
+	public TrackerPanel getTrackerPanel();
 
-  /**
-   * Gets the toolbar components for this view
-   *
-   * @return an ArrayList of components to be added to a toolbar
-   */
-  public ArrayList<Component> getToolBarComponents();
+	/**
+	 * Gets the name of the view
+	 *
+	 * @return the name of the view
+	 */
+	public String getViewName();
 
-  /**
-   * Returns true if this view is in a custom state.
-   *
-   * @return true if in a custom state, false if in the default state
-   */
-  public boolean isCustomState();
+	/**
+	 * Gets the icon for this view
+	 *
+	 * @return the icon for the view
+	 */
+	public Icon getViewIcon();
+
+	/**
+	 * Gets the toolbar components for this view
+	 *
+	 * @return an ArrayList of components to be added to a toolbar
+	 */
+	public ArrayList<Component> getToolBarComponents();
+
+	/**
+	 * Returns true if this view is in a custom state.
+	 *
+	 * @return false
+	 */
+	default public boolean isCustomState() {
+		return false;
+	}
+
+	/**
+	 * Supply icon and name, but trackerPanel is null.
+	 * 
+	 * @return
+	 */
+	default public boolean isPlaceHolderOnly() {
+		return getTrackerPanel() == null;
+	}
 
 }
