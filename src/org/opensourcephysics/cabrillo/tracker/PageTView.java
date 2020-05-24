@@ -508,7 +508,7 @@ public class PageTView extends JPanel implements TView {
 		}
 		refreshTitle();
 		if (trackerPanel != null && refreshToolbar) {
-			TToolBar.getToolbar(trackerPanel).refresh(false);
+			TToolBar.getToolbar(trackerPanel).refresh(TToolBar.REFRESH_PAGETVIEW_TABS);
 		}
 	}
 
@@ -888,7 +888,7 @@ public class PageTView extends JPanel implements TView {
 			this.title = title;
 			if (trackerPanel != null) {
 				trackerPanel.changed = true;
-				TToolBar.getToolbar(trackerPanel).refresh(false);
+				TToolBar.getToolbar(trackerPanel).refresh(TToolBar.REFRESH_PAGETVIEW_TITLE);
 			}
 		}
 
@@ -935,7 +935,7 @@ public class PageTView extends JPanel implements TView {
 			}
 			if (trackerPanel != null) {
 				trackerPanel.changed = true;
-				TToolBar.getToolbar(trackerPanel).refresh(false);
+				TToolBar.getToolbar(trackerPanel).refresh(TToolBar.REFRESH_PAGETVIEW_URL);
 			}
 		}
 

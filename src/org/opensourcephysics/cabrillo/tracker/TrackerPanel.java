@@ -2150,6 +2150,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		setPreferredSize(new Dimension(1, 1));
 		// load default configuration file
 		enabled = Tracker.getDefaultConfig();
+		enabledCount++;
 		changed = false;
 	}
 
@@ -2365,6 +2366,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return enabled;
 	}
 
+	private int enabledCount;
 	/**
 	 * Sets the enabled property set.
 	 *
@@ -2375,6 +2377,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			enabled = getEnabled();
 			enabled.clear();
 			enabled.addAll(enable);
+			enabledCount++;
 		}
 	}
 
@@ -2815,7 +2818,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		TTrackBar trackbar = TTrackBar.getTrackbar(this);
 		trackbar.setFontLevel(level);
 		trackbar.refresh();
-		TToolBar.getToolbar(this).refresh(false);
+//		TToolBar.getToolbar(this).refresh(false);
 		// replace the menubar to get new accelerator fonts
 		// TMenuBar menubar =
 		
@@ -4233,10 +4236,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 	
 
-	public void addPropertyChangeListener(String name, PropertyChangeListener listener) {
-		if (listener instanceof TrackView)
-			OSPLog.debug("Trackerpanel add " + name + listener);
-		super.addPropertyChangeListener(name, listener);
+//	@Override
+//	public void addPropertyChangeListener(String name, PropertyChangeListener listener) {
+//		if (listener instanceof TrackView)
+//			OSPLog.debug("Trackerpanel add " + name + listener);
+//		super.addPropertyChangeListener(name, listener);
+//	}
+
+	public void taintEnabled() {
+		enabledCount++;
+	}
+	
+	public int getEnabledCount() {
+		return enabledCount;
 	}
 
 }

@@ -1003,7 +1003,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 				trackerPanel.changed = changed;
 				TToolBar toolbar = (TToolBar) objects[TFRAME_TOOLBAR];
-				toolbar.refresh(false);
+				toolbar.refresh(TToolBar.REFRESH_TFRAME_LOCALE);
 				TTrackBar trackbar = (TTrackBar) objects[TFRAME_TRACKBAR];
 				trackbar.refresh();
 			}
@@ -1040,7 +1040,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 				// refresh track controls and toolbars
 				TrackControl.getControl(trackerPanel).refresh();
-				getToolBar(trackerPanel).refresh(false);
+				getToolBar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_LOCALE2);
 				getTrackBar(trackerPanel).refresh();
 				// refresh views
 				Container[] views = getViewContainers(trackerPanel);
@@ -1413,8 +1413,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (i < 0)
 			return;
 		TrackerPanel trackerPanel = getTrackerPanel(i);
-		getMenuBar(trackerPanel).refresh(TMenuBar.REFRESH_TFRAME);
-		getToolBar(trackerPanel).refresh(true);
+		getMenuBar(trackerPanel).refresh(TMenuBar.REFRESH_TFRAME_REFRESH);
+		getToolBar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
 		getTrackBar(trackerPanel).refresh();
 		for (Container next : getViewContainers(trackerPanel)) {
 			if (next instanceof TViewChooser) {
@@ -1445,7 +1445,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		if (tabbedPane == null)
 			return;
-		FontSizer.setFonts(tabbedPane, level);
+//		FontSizer.setFonts(tabbedPane, level);
 
 		Step.textLayoutFont = FontSizer.getResizedFont(Step.textLayoutFont, level);
 

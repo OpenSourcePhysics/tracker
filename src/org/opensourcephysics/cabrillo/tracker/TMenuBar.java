@@ -458,7 +458,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	 */
 	protected void refresh(String whereFrom) {
 		if (!allowRefresh || getFrame() != null && !frame.isPainting()) {
-			OSPLog.debug("TMenuBar.refresh skipping " + whereFrom );
+			//OSPLog.debug("TMenuBar.refresh skipping " + whereFrom );
 			return;
 		}
 		OSPRuntime.postEvent(new Runnable() {
@@ -471,7 +471,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 
 	static final String REFRESH_TFRAME_LOCALE            = "TFrame.locale";
 	static final String REFRESH_TOOLBAR_POPUP            = "TToolBar.popup";
-	static final String REFRESH_TFRAME                   = "TFrame.refresh";
+	static final String REFRESH_TFRAME_REFRESH                   = "TFrame.refresh";
 	static final String REFRESH_PROPERTY_                = "property:?";
 	static final String REFRESH_TRACKERIO_OPENFRAME      = "TrackerIO.aferOpenFrame";
 	static final String REFRESH_TRACKERIO_BEFORESETVIDEO = "TrackerIO.beforeSetVideo";
@@ -489,8 +489,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	
 	protected void refreshAll(String whereFrom) {
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
-		OSPLog.debug("TMenuBar.refreshAll - rebuilding TMenuBar "
-		+ whereFrom + " haveFrame=" + (frame != null));
+		//OSPLog.debug("TMenuBar.refreshAll - rebuilding TMenuBar "+ whereFrom + " haveFrame=" + (frame != null));
 		if (!Tracker.allowMenuRefresh)
 			return;
 		refreshing = true; // signals listeners that items are being refreshed
@@ -517,7 +516,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			case REFRESH_PREFS_APPLYPREFS:
 			case REFRESH_UNDO:
 			case REFRESH_TFRAME_LOCALE:
-			case REFRESH_TFRAME:
+			case REFRESH_TFRAME_REFRESH:
 			default:
 				setMenuTainted(MENU_ALL, true);
 //				OSPLog.debug(Performance.timeCheckStr("TMenuBar refreshAll full rebuild start", Performance.TIME_MARK));
@@ -1653,7 +1652,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 
 	protected void refreshFileMenu(boolean opening) {
 
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 
 		if (isTainted(MENU_FILE)) {
 			// refresh file menu
@@ -1748,7 +1747,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// DB changes when tab is opened or closed
 			file_saveTabsetAsItem.setEnabled(frame != null && frame.getTabCount() > 1);
 		}		
-		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar file refresh");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar file refresh");
 	}
 
 	private void refreshRecentFilesMenu() {
@@ -1760,7 +1759,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 
 	protected void refreshEditMenu(boolean opening) {
 
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 
 		if (isTainted(MENU_EDIT)) {
 			boolean hasTracks = !trackerPanel.getUserTracks().isEmpty();
@@ -1916,12 +1915,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 
 
 		}
-		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar edit refresh");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar edit refresh");
 	}
 
 	protected void refreshCoordsMenu(boolean opening) {
 
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 
 		if (isTainted(MENU_COORDS)) {
 			// refresh coords menu
@@ -1995,7 +1994,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (opening) {
 			// nothing to do
 		}
-		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar coords refresh");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar coords refresh");
 
 	}
 
@@ -2010,7 +2009,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 
 	protected void refreshVideoMenu(boolean opening) {
 
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 
 		if (isTainted(MENU_VIDEO)) {
 			Video video = trackerPanel.getVideo();
@@ -2148,7 +2147,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			setupVideoMenu();
 		}
 
-		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar video refresh");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar video refresh");
 
 	}
 	
@@ -2219,7 +2218,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	
 	protected void refreshTracksMenu(boolean opening) {
 		
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 
 		if (isTainted(MENU_TRACK)) {
 			ArrayList<TTrack> userTracks = trackerPanel.getUserTracks();
@@ -2354,7 +2353,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 		}
 		
-		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar track refresh");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar track refresh");
 
 	}
 
@@ -2493,7 +2492,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	 */
 	public void refreshWindowMenu(boolean opening) {
 
-		long t0 = Performance.now(0);
+		//long t0 = Performance.now(0);
 
 		TFrame frame = trackerPanel.getTFrame();
 		JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
@@ -2516,7 +2515,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		window_dataToolItem.setSelected(DataTool.getTool().isVisible());
 
 		if (isTainted(MENU_WINDOW)) {
-			OSPLog.debug("TMenuBar window menu rebuild");
+			//OSPLog.debug("TMenuBar window menu rebuild");
 			// rebuild window menu
 			windowMenu.removeAll();
 			boolean maximized = false;
@@ -2570,7 +2569,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			setMenuTainted(MENU_WINDOW, false);
 		}
 		
-		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar window refresh");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar window refresh");
 	}
 
 	protected void refreshHelpMenu(boolean opening) {

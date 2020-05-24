@@ -1506,9 +1506,12 @@ public class PrefsDialog extends JDialog {
 		refreshGUI();
 	}
   
-  private void savePrevious() {
+	private void savePrevious() {
 		prevEnabled.clear();
-		if (trackerPanel!=null) prevEnabled.addAll(trackerPanel.getEnabled()); 
+		if (trackerPanel != null) {
+			prevEnabled.addAll(trackerPanel.getEnabled());
+			trackerPanel.taintEnabled();
+		}
 		prevLogLevel = Tracker.preferredLogLevel;
 		prevMemory = Tracker.preferredMemorySize;
 		prevLookFeel = Tracker.lookAndFeel;
@@ -1589,6 +1592,7 @@ public class PrefsDialog extends JDialog {
         trackerPanel.getEnabled().add(checkbox.getText());
       else
         trackerPanel.getEnabled().remove(checkbox.getText());
+      trackerPanel.taintEnabled();
     }
   }
   
@@ -1826,7 +1830,7 @@ public class PrefsDialog extends JDialog {
 			TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
 			toolbar.trailLength = TToolBar.trailLengths[Tracker.trailLengthIndex];
 	  	toolbar.trailButton.setSelected(toolbar.trailLength!=1);		
-			toolbar.refresh(true);
+			toolbar.refresh(TToolBar.REFRESH_PREFS_TRUE);
 		}
     Tracker.isRadians = radiansButton.isSelected();
 		Tracker.isXuggleFast = xuggleFastButton.isSelected();
@@ -1852,156 +1856,160 @@ public class PrefsDialog extends JDialog {
     Tracker.setDefaultConfig(enabled);
   }
   
-  /**
-   * Updates this dialog to show the TrackerPanel's current preferences.
-   */
-  protected void updateDisplay() {
-  	refreshing = true;
-  	// configuration
-    Component[] checkboxes = checkPanel.getComponents();
-    for (int i = 0; i < checkboxes.length; i++) {
-      // check the checkbox if its text is in the current config
-      JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem)checkboxes[i];
-      Set<String> enabled = trackerPanel!=null? trackerPanel.getEnabled(): Tracker.getDefaultConfig(); 
-      checkbox.setSelected(enabled.contains(checkbox.getText()));
-    }
-    // memory size
-  	defaultMemoryCheckbox.setSelected(Tracker.preferredMemorySize<0);
-  	memoryField.setEnabled(Tracker.preferredMemorySize>=0);
-  	memoryLabel.setEnabled(Tracker.preferredMemorySize>=0);
-    if (Tracker.preferredMemorySize>=0)
-    	memoryField.setValue(Tracker.preferredMemorySize);
-    else {
-  		memoryField.setText(null);
-    }
-    // look and feel
-    if (Tracker.lookAndFeel!=null)
-    	lookFeelDropdown.setSelectedItem(Tracker.lookAndFeel.toLowerCase());
-    // recent files
-    recentSizeSpinner.setValue(Tracker.recentFilesSize);
-    // hints
-    hintsCheckbox.setSelected(Tracker.showHintsByDefault);
-    // warnings
-    vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
-    variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
-    xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
-    // locale
-    int index = 0;
-    for (int i=0; i<Tracker.locales.length; i++) {
-    	Locale next = Tracker.locales[i];
-    	if (next.equals(Locale.getDefault())) {
-    		index = i+1;
-    		break;
-    	}
-    }
+	/**
+	 * Updates this dialog to show the TrackerPanel's current preferences.
+	 */
+	protected void updateDisplay() {
+		refreshing = true;
+		// configuration
+		Component[] checkboxes = checkPanel.getComponents();
+		for (int i = 0; i < checkboxes.length; i++) {
+			// check the checkbox if its text is in the current config
+			JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem) checkboxes[i];
+			Set<String> enabled = trackerPanel != null ? trackerPanel.getEnabled() : Tracker.getDefaultConfig();
+			checkbox.setSelected(enabled.contains(checkbox.getText()));
+		}
+		// memory size
+		defaultMemoryCheckbox.setSelected(Tracker.preferredMemorySize < 0);
+		memoryField.setEnabled(Tracker.preferredMemorySize >= 0);
+		memoryLabel.setEnabled(Tracker.preferredMemorySize >= 0);
+		if (Tracker.preferredMemorySize >= 0)
+			memoryField.setValue(Tracker.preferredMemorySize);
+		else {
+			memoryField.setText(null);
+		}
+		// look and feel
+		if (Tracker.lookAndFeel != null)
+			lookFeelDropdown.setSelectedItem(Tracker.lookAndFeel.toLowerCase());
+		// recent files
+		recentSizeSpinner.setValue(Tracker.recentFilesSize);
+		// hints
+		hintsCheckbox.setSelected(Tracker.showHintsByDefault);
+		// warnings
+		vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
+		variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
+		xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
+		// locale
+		int index = 0;
+		for (int i = 0; i < Tracker.locales.length; i++) {
+			Locale next = Tracker.locales[i];
+			if (next.equals(Locale.getDefault())) {
+				index = i + 1;
+				break;
+			}
+		}
 		languageDropdown.setSelectedIndex(index);
-    
-    // tracker jar
-    int selected = 0;
-    for (int i = 0, count = versionDropdown.getItemCount(); i<count; i++) {
-    	String next = versionDropdown.getItemAt(i).toString();
-    	if (Tracker.preferredTrackerJar!=null && Tracker.preferredTrackerJar.indexOf(next)>-1) {
-    		selected = i;
-    		break;
-    	}    	
-    }
-    if (versionDropdown.getItemCount()>selected) {
-    	versionDropdown.setSelectedIndex(selected);
-    }
-    
-    // JRE dropdown
-    selected = 0;
-    for (int i = 0, count = jreDropdown.getItemCount(); i<count; i++) {
-    	String next = jreDropdown.getItemAt(i).toString();
-    	if (next.equals(Tracker.preferredJRE)) {
-    		selected = i;
-    		break;
-    	}    	
-    }
-    if (jreDropdown.getItemCount()>selected) {
-    	jreDropdown.setSelectedIndex(selected);
-    }
-    
-    // footprint dropdown
-    selected = 0;
-    for (int i = 0; i<footprintDropdown.getItemCount(); i++) {
-    	Footprint footprint = footprintDropdown.getItemAt(i);
-    	if (Tracker.preferredPointMassFootprint!=null 
-    			&& Tracker.preferredPointMassFootprint.startsWith(footprint.getName())) {
-    		selected = i;
-    		if (footprint instanceof CircleFootprint) {
-        	CircleFootprint cfp = (CircleFootprint)footprint;
-        	int n = Tracker.preferredPointMassFootprint.indexOf("#"); //$NON-NLS-1$
-        	if (n>-1) {
-        		cfp.setProperties(Tracker.preferredPointMassFootprint.substring(n+1));
-        	}
-    		}
-    		break;
-    	}    	
-    }
-    if (footprintDropdown.getItemCount()>selected) {
-    	footprintDropdown.setSelectedIndex(selected);
-    }
-    
-    // log level
-    selected = 0;
-    if (!Tracker.preferredLogLevel.equals(Tracker.DEFAULT_LOG_LEVEL)) {
-	    for (int i = 1, count = logLevelDropdown.getItemCount(); i<count; i++) {
-	    	String next = logLevelDropdown.getItemAt(i).toString();
-	    	if (Tracker.preferredLogLevel.toString().equals(next)) {
-	    		selected = i;
-	    		break;
-	    	}    	
-	    }
-    }
-    if (logLevelDropdown.getItemCount()>selected) {
-    	logLevelDropdown.setSelectedIndex(selected);
-    }
-    
-    // checkForUpgrade
-    selected = 0;
-    for (int i = 1, count = Tracker.checkForUpgradeChoices.size(); i<count; i++) {
-    	String next = Tracker.checkForUpgradeChoices.get(i);
-    	if (Tracker.checkForUpgradeIntervals.get(next)==Tracker.checkForUpgradeInterval) {
-    		selected = i;
-    		break;
-    	}    	
-    }
-    if (checkForUpgradeDropdown.getItemCount()>selected) {
-    	checkForUpgradeDropdown.setSelectedIndex(selected);
-    }
-    
-    // show gaps
-    showGapsCheckbox.setSelected(Tracker.showGaps);
 
-    // autofill
-    autofillCheckbox.setSelected(Tracker.enableAutofill);
-    
-    // angle units
-    radiansButton.setSelected(Tracker.isRadians);
-    degreesButton.setSelected(!Tracker.isRadians);
-    
-    // new tracks reset to 0
-    resetToStep0Checkbox.setSelected(!Tracker.markAtCurrentFrame);
-    
-    // mousewheel action   
-    if (Tracker.scrubMouseWheel) scrubButton.setSelected(true);
-    else zoomButton.setSelected(true);
+		// tracker jar
+		int selected = 0;
+		for (int i = 0, count = versionDropdown.getItemCount(); i < count; i++) {
+			String next = versionDropdown.getItemAt(i).toString();
+			if (Tracker.preferredTrackerJar != null && Tracker.preferredTrackerJar.indexOf(next) > -1) {
+				selected = i;
+				break;
+			}
+		}
+		if (versionDropdown.getItemCount() > selected) {
+			versionDropdown.setSelectedIndex(selected);
+		}
 
-    // new calibration sticks
-    if (Tracker.centerCalibrationStick) centerStickButton.setSelected(true);
-    else markStickEndsButton.setSelected(true);
-    
-    // trail length
-    trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
-    
-    // video
-    if (MovieFactory.hasVideoEngine()) {
-	    movieEngineButton.setSelected(true);
-    }
-    repaint();
-  	refreshing = false;
-  }
+		// JRE dropdown
+		selected = 0;
+		for (int i = 0, count = jreDropdown.getItemCount(); i < count; i++) {
+			String next = jreDropdown.getItemAt(i).toString();
+			if (next.equals(Tracker.preferredJRE)) {
+				selected = i;
+				break;
+			}
+		}
+		if (jreDropdown.getItemCount() > selected) {
+			jreDropdown.setSelectedIndex(selected);
+		}
+
+		// footprint dropdown
+		selected = 0;
+		for (int i = 0; i < footprintDropdown.getItemCount(); i++) {
+			Footprint footprint = footprintDropdown.getItemAt(i);
+			if (Tracker.preferredPointMassFootprint != null
+					&& Tracker.preferredPointMassFootprint.startsWith(footprint.getName())) {
+				selected = i;
+				if (footprint instanceof CircleFootprint) {
+					CircleFootprint cfp = (CircleFootprint) footprint;
+					int n = Tracker.preferredPointMassFootprint.indexOf("#"); //$NON-NLS-1$
+					if (n > -1) {
+						cfp.setProperties(Tracker.preferredPointMassFootprint.substring(n + 1));
+					}
+				}
+				break;
+			}
+		}
+		if (footprintDropdown.getItemCount() > selected) {
+			footprintDropdown.setSelectedIndex(selected);
+		}
+
+		// log level
+		selected = 0;
+		if (!Tracker.preferredLogLevel.equals(Tracker.DEFAULT_LOG_LEVEL)) {
+			for (int i = 1, count = logLevelDropdown.getItemCount(); i < count; i++) {
+				String next = logLevelDropdown.getItemAt(i).toString();
+				if (Tracker.preferredLogLevel.toString().equals(next)) {
+					selected = i;
+					break;
+				}
+			}
+		}
+		if (logLevelDropdown.getItemCount() > selected) {
+			logLevelDropdown.setSelectedIndex(selected);
+		}
+
+		// checkForUpgrade
+		selected = 0;
+		for (int i = 1, count = Tracker.checkForUpgradeChoices.size(); i < count; i++) {
+			String next = Tracker.checkForUpgradeChoices.get(i);
+			if (Tracker.checkForUpgradeIntervals.get(next) == Tracker.checkForUpgradeInterval) {
+				selected = i;
+				break;
+			}
+		}
+		if (checkForUpgradeDropdown.getItemCount() > selected) {
+			checkForUpgradeDropdown.setSelectedIndex(selected);
+		}
+
+		// show gaps
+		showGapsCheckbox.setSelected(Tracker.showGaps);
+
+		// autofill
+		autofillCheckbox.setSelected(Tracker.enableAutofill);
+
+		// angle units
+		radiansButton.setSelected(Tracker.isRadians);
+		degreesButton.setSelected(!Tracker.isRadians);
+
+		// new tracks reset to 0
+		resetToStep0Checkbox.setSelected(!Tracker.markAtCurrentFrame);
+
+		// mousewheel action
+		if (Tracker.scrubMouseWheel)
+			scrubButton.setSelected(true);
+		else
+			zoomButton.setSelected(true);
+
+		// new calibration sticks
+		if (Tracker.centerCalibrationStick)
+			centerStickButton.setSelected(true);
+		else
+			markStickEndsButton.setSelected(true);
+
+		// trail length
+		trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
+
+		// video
+		if (MovieFactory.hasVideoEngine()) {
+			movieEngineButton.setSelected(true);
+		}
+		repaint();
+		refreshing = false;
+	}
   
   /**
    * Sets the title of a specified tab.

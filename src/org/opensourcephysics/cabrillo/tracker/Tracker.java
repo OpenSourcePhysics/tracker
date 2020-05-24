@@ -123,8 +123,8 @@ import javajs.async.SwingJSUtils.Performance;
 public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	public static boolean allowDataRefresh = !OSPRuntime.isBHTest;
-	public static boolean allowMenuRefresh = true;// !OSPRuntime.isBHTest;
-	public static boolean allowViews = !OSPRuntime.isBHTest;
+	public static boolean allowViews = true;//!OSPRuntime.isBHTest;
+	public static boolean allowMenuRefresh = true;
 
 	static {
 		XML.setLoader(Preferences.class, new Preferences.Loader());

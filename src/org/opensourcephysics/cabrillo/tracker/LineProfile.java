@@ -182,7 +182,7 @@ public class LineProfile extends TTrack {
 	        if (!loading)
 	        	Undo.postTrackEdit(LineProfile.this, control);
         }
-        trackerPanel.getTFrame().getToolBar(trackerPanel).refresh(false);
+        trackerPanel.getTFrame().getToolBar(trackerPanel).refresh(TToolBar.REFRESH_LINEPROFILE);
         invalidateData(null);
       }
     });
