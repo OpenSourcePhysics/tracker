@@ -1866,6 +1866,7 @@ public class TrackerIO extends VideoIO {
 			}
 
 			trackerPanel = (TrackerPanel) control.loadObject(trackerPanel, (Object) frame);
+			trackerPanel.setIgnoreRepaint(true);
 
 			// find page view files and add to TrackerPanel.pageViewFilePaths
 			findPageViewFiles(control, trackerPanel.pageViewFilePaths);
@@ -1920,6 +1921,7 @@ public class TrackerIO extends VideoIO {
 			frame.setSelectedTab(trackerPanel);
 			frame.showTrackControl(trackerPanel);
 			frame.showNotes(trackerPanel);
+			trackerPanel.setIgnoreRepaint(false);
 			frame.refresh();
 			if (control.failedToRead()) {
 				JOptionPane.showMessageDialog(trackerPanel.getTFrame(), "\"" + XML.getName(path) + "\" " + //$NON-NLS-1$ //$NON-NLS-2$
@@ -2116,7 +2118,7 @@ public class TrackerIO extends VideoIO {
 				ImageCoordSystem coords = trackerPanel.getCoords();
 				coords.setAllOriginsXY(video.getWidth() / 2, video.getHeight() / 2);
 			}
-			trackerPanel.repaint();
+			TFrame.repaintT(trackerPanel);
 			frame.setSelectedTab(trackerPanel);
 //			monitorDialog.close();
 			// check for video frames with durations that vary by 20% from average
@@ -2159,7 +2161,7 @@ public class TrackerIO extends VideoIO {
 					public void run() {
 						whenDone.run();
 					}
-				});;
+				});
 				
 			}
 			

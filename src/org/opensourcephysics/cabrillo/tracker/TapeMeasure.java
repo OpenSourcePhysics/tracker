@@ -342,7 +342,7 @@ public class TapeMeasure extends TTrack {
 				step.getEnd2().setLocation(keyStep.getEnd2());
 				hasSteps = true;
 			}
-			trackerPanel.repaint();
+			TFrame.repaintT(trackerPanel);
 		}
 		if (fixed) {
 			keyFrames.clear();
@@ -384,7 +384,7 @@ public class TapeMeasure extends TTrack {
 					continue;
 				step.worldLength = keyStep.worldLength;
 			}
-			trackerPanel.repaint();
+			TFrame.repaintT(trackerPanel);
 		}
 		if (fixed) {
 			lengthKeyFrames.clear();
@@ -1268,7 +1268,7 @@ public class TapeMeasure extends TTrack {
 					inputField.setBorder(BorderFactory.createCompoundBorder(line, space));
 					inputField.setValue(step.getTapeLength(!isStickMode()));
 					trackerPanel.revalidate();
-					trackerPanel.repaint();
+					TFrame.repaintT(trackerPanel);
 					inputField.requestFocus();
 				} else { // end editing
 					step.drawLayoutBounds = false;
@@ -1283,7 +1283,7 @@ public class TapeMeasure extends TTrack {
 					trackerPanel.remove(inputPanel);
 					invalidateData(null);
 					trackerPanel.revalidate();
-					trackerPanel.repaint();
+					TFrame.repaintT(trackerPanel);
 					initialCalibration = false;
 					TTrackBar.getTrackbar(trackerPanel).refresh();
 				}

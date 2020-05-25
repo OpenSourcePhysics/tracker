@@ -157,7 +157,7 @@ public class PencilDrawer {
 		for (PencilScene scene: scenes) {
 			scene.setVisible(vis);
 		}
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 	}
 	
   /**
@@ -216,7 +216,7 @@ public class PencilDrawer {
 		}
 		scenes.clear();
 		trackerPanel.changed = true;
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 	}
 	
   /**
@@ -229,7 +229,7 @@ public class PencilDrawer {
 		trackerPanel.removeDrawable(scene);
 		scenes.remove(scene);
 		trackerPanel.changed = true;
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 	}
 	
   /**
@@ -243,7 +243,7 @@ public class PencilDrawer {
 		scenes.add(scene);
   	Collections.sort(scenes);
 		trackerPanel.changed = true;
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 	}
 	
   /**
@@ -266,7 +266,7 @@ public class PencilDrawer {
 			drawingControl.setSelectedScene(scene);
 			drawingControl.refreshGUI();
 		}
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 		return scene;
 	}
 	
@@ -392,7 +392,7 @@ public class PencilDrawer {
       case InteractivePanel.MOUSE_DRAGGED:
       	if (newDrawing==null) break;
       	newDrawing.addPoint(trackerPanel.getMouseX(), trackerPanel.getMouseY());
-      	trackerPanel.repaint();
+      	TFrame.repaintT(trackerPanel);
         trackerPanel.setMouseCursor(getPencilCursor());
         break;
 
@@ -402,7 +402,7 @@ public class PencilDrawer {
       		getSelectedScene().getDrawings().remove(newDrawing);
 	      	if (newDrawing.getNumberOfPoints()<=1) {
 	      		// don't restore drawing with a single point
-	      		trackerPanel.repaint();
+	      		TFrame.repaintT(trackerPanel);
 	      	}
 	      	else {
 	      		// restore new drawing and post undoable edit

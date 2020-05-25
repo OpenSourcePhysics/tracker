@@ -326,7 +326,7 @@ public void propertyChange(PropertyChangeEvent e) {
       update(n, false);
 	  updateDerivatives();
 	  firePropertyChange("steps", null, null); //$NON-NLS-1$
-    repaint();
+	  repaint();
     // update inspector, if visible
     if (inspector != null &&
         inspector.isVisible()) {

@@ -197,7 +197,7 @@ protected boolean isAutoTrackable() {
     	trackerPanel.changed = true;
       int n = trackerPanel.getFrameNumber();
       steps = new StepArray(getStep(n));
-      trackerPanel.repaint();
+      TFrame.repaintT(trackerPanel);
     }
     if (fixed) {
     	keyFrames.clear();

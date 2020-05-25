@@ -337,7 +337,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 				fitter.refreshAttachments();
 				DefaultTableModel dm = (DefaultTableModel) table.getModel();
 				dm.fireTableDataChanged();
-				fitter.trackerPanel.repaint();
+				TFrame.repaintT(fitter.trackerPanel);
 			}
 		};
 
@@ -578,7 +578,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		if (changedLayout) {
 			pack();
 		}
-		repaint();
+		TFrame.repaintT(this);
 	}
 
 	public void setFontLevel(int level) {

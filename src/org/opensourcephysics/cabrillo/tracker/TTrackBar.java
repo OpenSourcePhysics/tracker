@@ -544,7 +544,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 					add(memoryButton);
 				}
 				revalidate();
-				repaint();
+				TFrame.repaintT(TTrackBar.this);
 			}
 		};
 		if (OSPRuntime.isJS || SwingUtilities.isEventDispatchThread()) {

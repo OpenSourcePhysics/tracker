@@ -229,7 +229,7 @@ public class RGBRegion extends TTrack {
     if (!loading) {
     	Undo.postTrackEdit(this, control);
     }
-    repaint();
+   repaint();
   }
 
   /**
@@ -275,7 +275,7 @@ public class RGBRegion extends TTrack {
     if (!loading) {
     	Undo.postTrackEdit(this, control);
     }
-    repaint();
+   repaint();
   }
 
   /**

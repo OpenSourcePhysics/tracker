@@ -127,12 +127,12 @@ public class WorldTView extends TrackerPanel implements TView {
 				}
 			}
 		});
-		this.addComponentListener(new ComponentAdapter() {
-			@Override
-			public void componentResized(ComponentEvent e) {
-				refresh();
-			}
-		});
+//		this.addComponentListener(new ComponentAdapter() {
+//			@Override
+//			public void componentResized(ComponentEvent e) {
+//				refresh();
+//			}
+//		});
 	}
 
 	/**
@@ -163,7 +163,7 @@ public class WorldTView extends TrackerPanel implements TView {
 				track.erase(this);
 			}
 		}
-		repaint();
+		TFrame.repaintT(this);
 	}
 
 	/**
@@ -328,7 +328,7 @@ public class WorldTView extends TrackerPanel implements TView {
 				name.equals("image") || // video image has changed //$NON-NLS-1$
 				name.equals("video") || // video has changed //$NON-NLS-1$
 				name.equals("videoVisible")) { // video visibility has changed //$NON-NLS-1$
-			repaint();
+			TFrame.repaintT(this);
 		} else if (name.equals("transform")) { // coords have changed //$NON-NLS-1$
 			refresh();
 		} else if (name.equals("size")) { // image size has changed //$NON-NLS-1$
@@ -400,7 +400,7 @@ public class WorldTView extends TrackerPanel implements TView {
 //  @Override
 //public void repaintDirtyRegion() {
 //    if (dirty != null) {
-//      repaint();
+//     TFrame.repaintT(this);
 //      dirty = null;
 //    }
 //  }

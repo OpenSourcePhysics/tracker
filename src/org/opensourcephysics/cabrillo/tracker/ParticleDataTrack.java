@@ -161,7 +161,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				}
 				// post edit
 				Undo.postTrackDisplayEdit(ParticleDataTrack.this, control);
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		};
 		allCircleFootprintsListener = new ActionListener() {
@@ -186,7 +186,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				}
 				// post edit
 				Undo.postTrackDisplayEdit(ParticleDataTrack.this, control);
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		};
 
@@ -227,7 +227,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					return;
 				modelFootprintVisible = linesVisibleCheckbox.isSelected();
 				erase();
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		});
 		linesClosedCheckbox = new JCheckBoxMenuItem();
@@ -240,7 +240,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				if (f instanceof MultiLineFootprint) {
 					((MultiLineFootprint) f).setClosed(linesClosedCheckbox.isSelected());
 					erase();
-					trackerPanel.repaint();
+					TFrame.repaintT(trackerPanel);
 				}
 			}
 		});
@@ -260,7 +260,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				}
 				getModelFootprint().setColor(c);
 				erase();
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		});
 		allFootprintsMenu = new JMenu();
@@ -751,7 +751,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			modelFootprints[i].setColor(colors[colors.length - 1]);
 		}
 		erase();
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 	}
 
 	/**
@@ -768,7 +768,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 		setModelFootprint(footprints[footprints.length - 1]);
 		erase();
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 	}
 
 	/**
@@ -825,7 +825,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			firePropertyChange(TTrack.PROPERTY_TTRACK_COLOR, null, color); //$NON-NLS-1$
 			erase();
 			if (trackerPanel != null) {
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		}
 	}
@@ -1073,7 +1073,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		for (ParticleDataTrack next : morePoints) {
 			next.lastValidFrame = -1;
 		}
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 		firePropertyChange("startframe", null, getStartFrame()); //$NON-NLS-1$
 		if (trackerPanel != null) {
 			trackerPanel.getModelBuilder().refreshSpinners();

@@ -191,7 +191,7 @@ public class PencilCaption extends InteractiveTextLine {
       case InteractivePanel.MOUSE_DRAGGED:
       	if (isSelected) {
 		  		setXY(trackerPanel.getMouseX()-offsetX, trackerPanel.getMouseY()-offsetY);
-		  		trackerPanel.repaint();
+		  		TFrame.repaintT(trackerPanel);
       	}
         break;
 

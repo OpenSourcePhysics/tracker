@@ -285,7 +285,7 @@ public void dispose() {
     }
     FontSizer.setFonts(this);
     pack();
-    repaint();
+   TFrame.repaintT(this);
     if (trackCount==0)
     	setVisible(false);
     TFrame frame = trackerPanel.getTFrame();

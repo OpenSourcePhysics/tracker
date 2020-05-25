@@ -412,7 +412,7 @@ public class CircleFitter extends TTrack {
 			CircleFitterStep source = (CircleFitterStep) getStep(n);
 			CircleFitterStep target = (CircleFitterStep) getStep(0);
 			target.copy(source);
-			trackerPanel.repaint();
+			TFrame.repaintT(trackerPanel);
 		}
 		fixedPosition = fixed;
 		if (fixed) { // refresh data and post undo only when fixing

@@ -1106,7 +1106,7 @@ public String toString() {
         setLocation(x, y);
       	line.keyFrames.add(n);
     	}      
-      repaint();
+     repaint();
       track.firePropertyChange("step", null, n); //$NON-NLS-1$
     }
 
@@ -1194,7 +1194,7 @@ public String toString() {
       	setLocation(getX()+dx, getY()+dy);
       	line.keyFrames.add(n);
     	}      
-      repaint();
+     repaint();
       track.firePropertyChange("step", null, n); //$NON-NLS-1$
     }
 

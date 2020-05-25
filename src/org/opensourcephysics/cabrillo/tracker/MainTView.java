@@ -91,7 +91,7 @@ public class MainTView extends JPanel implements TView {
 					return;
 				TToolBar.getToolbar(trackerPanel).refreshZoomButton();
 				trackerPanel.eraseAll();
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		});
 		SwingUtilities.replaceUIActionMap(scrollPane, null);
@@ -315,7 +315,7 @@ public class MainTView extends JPanel implements TView {
 					trackerPanel.scrollRectToVisible(scrollRect);
 				}
 				trackerPanel.eraseAll();
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		};
 		SwingUtilities.invokeLater(runner);
@@ -455,7 +455,7 @@ public class MainTView extends JPanel implements TView {
 																			// //$NON-NLS-1$ //$NON-NLS-2$
 			refresh();
 		} else if (name.equals("color")) { // track color has changed //$NON-NLS-1$
-			repaint();
+			TFrame.repaintT(this);
 		}
 	}
 

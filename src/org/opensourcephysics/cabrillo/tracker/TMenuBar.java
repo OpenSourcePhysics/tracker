@@ -462,7 +462,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	 * @param whereFrom 
 	 */
 	protected void refresh(String whereFrom) {
-		if (!allowRefresh || getFrame() != null && !frame.isPainting()) {
+		if (!allowRefresh || getFrame() != null && !frame.isPaintable()) {
 			//OSPLog.debug("TMenuBar.refresh skipping " + whereFrom );
 			return;
 		}

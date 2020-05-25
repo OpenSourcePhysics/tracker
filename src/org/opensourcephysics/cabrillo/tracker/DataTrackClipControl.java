@@ -93,7 +93,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         }
         dataTrack.setStartFrame(in);
         videoInSpinner.setValue(dataTrack.getStartFrame());
-        repaint();
+       TFrame.repaintT(DataTrackClipControl.this);
         videoInSpinner.requestFocusInWindow();
       }
   	};
@@ -111,7 +111,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         }
         dataTrack.getDataClip().setStartIndex(in);
         dataInSpinner.setValue(dataTrack.getDataClip().getStartIndex());
-        repaint();
+       TFrame.repaintT(DataTrackClipControl.this);
         dataInSpinner.requestFocusInWindow();
       }
   	};
@@ -130,7 +130,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         }
         dataTrack.getDataClip().setClipLength(length);
         dataClipLengthSpinner.setValue(dataTrack.getDataClip().getClipLength());
-        repaint();
+       TFrame.repaintT(DataTrackClipControl.this);
         dataClipLengthSpinner.requestFocusInWindow();
       }
   	};
@@ -148,7 +148,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         }
         dataTrack.getDataClip().setStride(n);
         dataStrideSpinner.setValue(dataTrack.getDataClip().getStride());
-        repaint();
+       TFrame.repaintT(DataTrackClipControl.this);
         dataStrideSpinner.requestFocusInWindow();
       }
   	};

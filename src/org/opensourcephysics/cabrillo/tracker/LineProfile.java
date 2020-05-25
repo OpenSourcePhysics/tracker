@@ -178,7 +178,7 @@ public class LineProfile extends TTrack {
 	        int n = trackerPanel.getFrameNumber();
 	        LineProfileStep step = (LineProfileStep)steps.getStep(n);
 	        refreshStep(step);
-	        trackerPanel.repaint();
+	        TFrame.repaintT(trackerPanel);
 	        if (!loading)
 	        	Undo.postTrackEdit(LineProfile.this, control);
         }
@@ -214,7 +214,7 @@ public class LineProfile extends TTrack {
       Step step = getStep(n);
       if (step!=null) {
 	      steps = new StepArray(getStep(n));
-	      trackerPanel.repaint();
+	      TFrame.repaintT(trackerPanel);
       }
     }
     if (fixed) {
@@ -248,7 +248,7 @@ public class LineProfile extends TTrack {
     this.spread = Math.min(spread, MAX_SPREAD);
     if (!loading)
     	Undo.postTrackEdit(this, control);
-    repaint();
+   repaint();
     invalidateData(Boolean.FALSE);
   }
 

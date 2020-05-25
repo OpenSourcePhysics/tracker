@@ -451,7 +451,7 @@ abstract public class ParticleModel extends PointMass {
 						int n = pt.getFrameNumber(ParticleModel.this.trackerPanel);
 						pm.createStep(n, pt.x, pt.y);
 					}
-					ParticleModel.this.trackerPanel.repaint();
+					TFrame.repaintT(trackerPanel);
 				}
 			});
 		}
@@ -544,7 +544,7 @@ abstract public class ParticleModel extends PointMass {
 		refreshInitialTime();
 		lastValidFrame = -1;
 		refreshSteps();
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 		firePropertyChange("model_start", null, getStartFrame()); //$NON-NLS-1$
 	}
 
@@ -575,7 +575,7 @@ abstract public class ParticleModel extends PointMass {
 		} else {
 			refreshSteps();
 		}
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 		firePropertyChange("model_end", null, getEndFrame()); //$NON-NLS-1$
 	}
 
@@ -861,7 +861,7 @@ abstract public class ParticleModel extends PointMass {
 				}
 				next.locked = true;
 			}
-			trackerPanel.repaint();
+			TFrame.repaintT(trackerPanel);
 		}
 	}
 
@@ -934,7 +934,7 @@ abstract public class ParticleModel extends PointMass {
 		}
 		lastValidFrame = end;
 		repaint();
-//		trackerPanel.repaint();
+//		TFrame.repaintT(trackerPanel);
 	}
 
 	/**

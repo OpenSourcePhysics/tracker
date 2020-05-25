@@ -1198,7 +1198,7 @@ public class PrefsDialog extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				Tracker.enableAutofill = autofillCheckbox.isSelected();
 				if (trackerPanel != null) {
-					trackerPanel.repaint();
+					TFrame.repaintT(trackerPanel);
 				}
 			}
 		});
@@ -2007,7 +2007,7 @@ public class PrefsDialog extends JDialog {
 		if (MovieFactory.hasVideoEngine()) {
 			movieEngineButton.setSelected(true);
 		}
-		repaint();
+		TFrame.repaintT(this);
 		refreshing = false;
 	}
   

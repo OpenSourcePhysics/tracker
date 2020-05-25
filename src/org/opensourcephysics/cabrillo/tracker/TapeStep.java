@@ -697,7 +697,7 @@ public String toString() {
         end2.setLocation(end2.getX() + dx, end2.getY() + dy);
       	tape.keyFrames.add(n);
     	}            
-      repaint();
+     repaint();
     }
 
     /**
@@ -788,7 +788,7 @@ public String toString() {
 	      tape.isStepChangingScale = false;
       }
       tape.invalidateData(tape);
-      repaint();
+     repaint();
     }
 
     /**

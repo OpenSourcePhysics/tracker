@@ -350,7 +350,7 @@ public class Calibration extends TTrack {
 			if (step != null) {
 				steps = new StepArray(getStep(n));
 			}
-			trackerPanel.repaint();
+			TFrame.repaintT(trackerPanel);
 		}
 		if (fixed) {
 			keyFrames.clear();

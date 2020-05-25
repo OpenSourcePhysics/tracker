@@ -312,7 +312,7 @@ public class PencilControl extends JDialog {
 			public void actionPerformed(ActionEvent e) {
       	if (refreshing || selectedScene==null) return;
       	selectedScene.setHeavy(heavyCheckbox.isSelected());
-      	trackerPanel.repaint();
+      	TFrame.repaintT(trackerPanel);
       	repaintCanvas();
 			} 			
 		});
@@ -325,7 +325,7 @@ public class PencilControl extends JDialog {
       	if (selectedScene==null) return;
       	selectedScene.setStartFrame((Integer)startFrameSpinner.getValue());
       	Collections.sort(drawer.scenes);
-      	trackerPanel.repaint();
+      	TFrame.repaintT(trackerPanel);
       	refreshGUI();
       }
     }); 
@@ -337,7 +337,7 @@ public class PencilControl extends JDialog {
       	if (selectedScene==null) return;
       	selectedScene.setEndFrame((Integer)endFrameSpinner.getValue());
       	Collections.sort(drawer.scenes);
-      	trackerPanel.repaint();
+      	TFrame.repaintT(trackerPanel);
       	refreshGUI();
       }
     });
@@ -354,7 +354,7 @@ public class PencilControl extends JDialog {
       	float size = (Integer)fontSizeSpinner.getValue();
       	font = font.deriveFont(size);
       	selectedScene.getCaption().setFont(font);
-      	trackerPanel.repaint();
+      	TFrame.repaintT(trackerPanel);
       	repaintCanvas();
       }
     });
@@ -411,7 +411,7 @@ public class PencilControl extends JDialog {
       	}
       	captionField.setBackground(Color.YELLOW);
       	refreshGUI();
-      	trackerPanel.repaint();
+      	TFrame.repaintT(trackerPanel);
       }
     });
 		postCaptionEditAction = new AbstractAction() {
@@ -664,7 +664,7 @@ public class PencilControl extends JDialog {
     }
 		refreshing = false;
 		pack();
-    repaint();
+   repaint();
 	}
 	
   /**
@@ -781,7 +781,7 @@ public class PencilControl extends JDialog {
 			drawer.color = color;
 			if (drawer.getSelectedScene()!=null) {
 				drawer.getSelectedScene().setColor(color);
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 			refreshGUI();
       trackerPanel.setMouseCursor(drawer.getPencilCursor());
@@ -853,7 +853,7 @@ public class PencilControl extends JDialog {
       scene.getDrawings().remove(drawing);
       setSelectedScene(scene);
       goToScene(scene);
-      trackerPanel.repaint();
+      TFrame.repaintT(trackerPanel);
     }
 
     @Override
@@ -862,7 +862,7 @@ public class PencilControl extends JDialog {
       scene.getDrawings().add(drawing);
       setSelectedScene(scene);
       goToScene(scene);
-      trackerPanel.repaint();
+      TFrame.repaintT(trackerPanel);
     }
 
     @Override
@@ -945,7 +945,7 @@ public class PencilControl extends JDialog {
       else {
       	goToScene(scenes.get(0));
       }
-  		trackerPanel.repaint();
+  		TFrame.repaintT(trackerPanel);
     }
 
     @Override
@@ -994,7 +994,7 @@ public class PencilControl extends JDialog {
       setSelectedScene(scene);
       goToScene(scene);
       captionField.setText(undoText);
-  		trackerPanel.repaint();
+  		TFrame.repaintT(trackerPanel);
   		repaintCanvas();
     }
 
@@ -1005,7 +1005,7 @@ public class PencilControl extends JDialog {
       setSelectedScene(scene);
       goToScene(scene);
       captionField.setText(redoText);
-  		trackerPanel.repaint();
+  		TFrame.repaintT(trackerPanel);
   		repaintCanvas();
     }
 

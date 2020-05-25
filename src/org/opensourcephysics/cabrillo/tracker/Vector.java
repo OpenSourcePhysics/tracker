@@ -219,7 +219,7 @@ public Vector() {
             step.erase();
           }
         }
-        repaint();
+       repaint();
       }
     });
   }

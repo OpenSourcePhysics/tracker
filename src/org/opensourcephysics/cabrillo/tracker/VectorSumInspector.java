@@ -180,7 +180,7 @@ public void propertyChange(PropertyChangeEvent e) {
 		}
 		FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
 		pack();
-		repaint();
+		TFrame.repaintT(this);
 	}
 
 //_____________________________ private methods ____________________________
@@ -247,7 +247,7 @@ public void propertyChange(PropertyChangeEvent e) {
            trackerPanel.getSelectedPoint() != null) {
          trackerPanel.getSelectedPoint().showCoordinates(trackerPanel);
        }
-       trackerPanel.repaint();
+       TFrame.repaintT(trackerPanel);
      }
   }
 

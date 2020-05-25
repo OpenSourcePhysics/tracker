@@ -250,7 +250,7 @@ public class Protractor extends TTrack {
     	trackerPanel.changed = true;
       int n = trackerPanel.getFrameNumber();
       steps = new StepArray(getStep(n));
-      trackerPanel.repaint();
+      TFrame.repaintT(trackerPanel);
     }
     fixedPosition = fixed;
     if (fixed) { // refresh data and post undo only when fixing
@@ -886,7 +886,7 @@ protected void setTrackerPanel(TrackerPanel panel) {
           inputField.setBorder(BorderFactory.createCompoundBorder(line, space));
           inputField.setValue(step.getProtractorAngle());
           trackerPanel.revalidate();
-          trackerPanel.repaint();
+          TFrame.repaintT(trackerPanel);
           inputField.requestFocus();
         }
         else { // end editing
@@ -896,7 +896,7 @@ protected void setTrackerPanel(TrackerPanel panel) {
           trackerPanel.remove(inputPanel);
           invalidateData(null);
           trackerPanel.revalidate();
-          trackerPanel.repaint();
+          TFrame.repaintT(trackerPanel);
         }
       }
     };

@@ -28,6 +28,7 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -365,7 +366,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		// show the view on the viewPanel
 		CardLayout cl = (CardLayout) (viewPanel.getLayout());
 		cl.show(viewPanel, selectedView.getViewName());
-		repaint();
+		TFrame.repaintT(this);
 		// refresh the toolbar
 		refreshToolbar();
 	}
@@ -625,7 +626,16 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	}
 
 
+	@Override
+	public void paint(Graphics g) {
+		if (trackerPanel == null || !trackerPanel.isPaintable()) {
+		  return;
+		}
+		super.paint(g);
+	}
 	
+	
+	@Override
 	public String toString() {
 		return this.getName();
 	}

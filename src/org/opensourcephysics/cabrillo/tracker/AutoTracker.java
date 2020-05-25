@@ -316,7 +316,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		getWizard().setVisible(true);
 //    getWizard().refreshGUI();
 //    search(false, false); // don't skip this frame and don't keep stepping
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 	}
 
 	/**
@@ -1381,7 +1381,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 * @param n the frame number
 	 */
 	protected void delete(int n) {
-		trackerPanel.repaint();
+		TFrame.repaintT(trackerPanel);
 		FrameData frame = getFrame(n);
 		frame.clear();
 	}
@@ -2325,7 +2325,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					refreshInfo();
 					refreshDrawingFlags();
 					erase();
-					trackerPanel.repaint();
+					TFrame.repaintT(trackerPanel);
 					OSPLog.debug("pig timer ");
 				}
 			});
@@ -2350,7 +2350,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 						refreshInfo();
 						refreshDrawingFlags();
 						erase();
-						trackerPanel.repaint();
+						TFrame.repaintT(trackerPanel);
 					} else {
 						// restart timer to refresh
 						timer.restart();
@@ -2656,7 +2656,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 						}
 						axes.setVisible(true);
 					}
-					trackerPanel.repaint();
+					TFrame.repaintT(trackerPanel);
 				}
 			});
 			lookAheadCheckbox = new JCheckBox();
@@ -2886,7 +2886,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					}
 					refreshGUI();
 					AutoTracker.this.repaint();
-					trackerPanel.repaint();
+					TFrame.repaintT(trackerPanel);
 				}
 			};
 

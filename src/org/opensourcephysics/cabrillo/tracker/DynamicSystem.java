@@ -511,7 +511,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		if (name.equals("mass") || name.equals("function")) { //$NON-NLS-1$ //$NON-NLS-2$
 			refreshSystemParameters();
 			if (trackerPanel != null)
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 		} else if (name.equals("name")) { //$NON-NLS-1$
 			refreshSystemParameters();
 		}

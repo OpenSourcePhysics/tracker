@@ -434,7 +434,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					autoTracker.setTrack(track);
 				}
 				autoTracker.getWizard().setVisible(autotrackerButton.isSelected());
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		});
 		final Action refreshAction = new AbstractAction() {
@@ -470,7 +470,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						trailLength = trailLengths[n];
 						trailButton.setSelected(trailLength != 1);
 						refresh(REFRESH__TRAIL_BUTTON_ACTION_TRUE);
-						trackerPanel.repaint();
+						TFrame.repaintT(trackerPanel);
 					}
 				};
 				ButtonGroup group = new ButtonGroup();
@@ -968,7 +968,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		
 		OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync validate", Performance.TIME_MARK));
 
-		repaint();
+		TFrame.repaintT(this);
 	}
 
 	private void checkEnabled(boolean refreshTracks) {
@@ -1562,7 +1562,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						hideCalibrationTool(track);
 					}
 				}
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			} else { // menuItem action
 						// see which item changed and show/hide corresponding tool
 				trackerPanel.setSelectedPoint(null);
@@ -1690,7 +1690,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					trackerPanel.selectedSteps.clear();
 					PencilDrawer drawer = PencilDrawer.getDrawer(trackerPanel);
 					drawer.setDrawingsVisible(drawingVisibleCheckbox.isSelected());
-					trackerPanel.repaint();
+					TFrame.repaintT(trackerPanel);
 				}
 			});
 			popup = new JPopupMenu();

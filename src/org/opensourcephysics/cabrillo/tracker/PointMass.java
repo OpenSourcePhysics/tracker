@@ -2829,7 +2829,7 @@ public class PointMass extends TTrack {
 				AutoTracker autotracker = trackerPanel.getAutoTracker(true);
 				autotracker.setTrack(PointMass.this);
 				autotracker.getWizard().setVisible(true);
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		});
 		vFootprintMenu = new JMenu();

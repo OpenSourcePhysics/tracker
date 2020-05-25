@@ -926,7 +926,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					thumbnailPanel.remove(thumbnailImagePanel);
 				}
 				pack();
-				repaint();
+				TFrame.repaintT(ExportZipDialog.this);
 			}
 		});
 		if (showThumbnailCheckbox.isSelected()) {
@@ -1122,7 +1122,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			refreshAdvancedGUI();
 		}
 		pack();
-		repaint();
+		TFrame.repaintT(this);
 	}
 
 	/**

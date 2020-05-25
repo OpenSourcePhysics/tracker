@@ -235,7 +235,7 @@ public class ModelBuilder extends FunctionTool {
 				height = Math.min((int) (0.95 * height), (int) (550 * (1 + fontLevel / 4.0)));
 				dim.height = height;
 				setSize(dim);
-				repaint();
+				TFrame.repaintT(ModelBuilder.this);
 			}
 		});
 

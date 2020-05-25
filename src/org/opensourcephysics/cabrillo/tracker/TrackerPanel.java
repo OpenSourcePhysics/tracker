@@ -481,7 +481,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (tainted || dirty != null) {
 //			synchronized (dirty) {
 //				dirty.grow(2, 2);
-			repaint();
+			TFrame.repaintT(this);
 //				repaint(dirty);
 //			}
 			tainted = false;
@@ -1105,7 +1105,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					}
 					setSelectedPoint(null);
 					selectedSteps.clear();
-					repaint();
+					TFrame.repaintT(TrackerPanel.this);
 				} else {
 					ImageCoordSystem coords = getCoords();
 					if (coords instanceof ReferenceFrame) {
@@ -1113,7 +1113,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						setCoords(coords);
 						setSelectedPoint(null);
 						selectedSteps.clear();
-						repaint();
+						TFrame.repaintT(TrackerPanel.this);
 					}
 				}
 
@@ -1135,7 +1135,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //      }      
 //      setSelectedPoint(null);
 //      selectedSteps.clear();
-//      repaint();
+//     TFrame.repaintT(this);
 //    }
 //    else {
 //      ImageCoordSystem coords = getCoords();
@@ -1144,7 +1144,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //        setCoords(coords);
 //        setSelectedPoint(null);
 //        selectedSteps.clear();
-//        repaint();
+//       TFrame.repaintT(this);
 //      }
 //    }
 
@@ -1417,7 +1417,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			view.scrollPane.revalidate();
 			view.scrollToZoomCenter(getPreferredSize(), prevSize, p1);
 			eraseAll();
-			repaint();
+			TFrame.repaintT(this);
 		}
 		zoomBox.hide();
 	}
@@ -1473,7 +1473,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			setMagnification(getMagnification());
 		}
 		eraseAll();
-		repaint();
+		TFrame.repaintT(this);
 		firePropertyChange(PROPERTY_TRACKERPANEL_SIZE, null, null); 
 	}
 
@@ -2339,9 +2339,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (selectedPoint != null)
 			selectedPoint.showCoordinates(this);
 		else
-			setMessage("", 0); //$NON-NLS-1$
+			setMessage("", DrawingPanel.BOTTOM_LEFT); //$NON-NLS-1$
 		if (selectedStep == null)
-			repaint();
+			TFrame.repaintT(this);
 	}
 
 	/**
@@ -2455,7 +2455,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				if (p != null)
 					p.showCoordinates(this);
 			}
-			repaint();
+			TFrame.repaintT(this);
 			if (name == TTrack.PROPERTY_TTRACK_STEPS) { 
 				TTrackBar.getTrackbar(this).refresh();
 			}
@@ -2504,7 +2504,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					}
 				}
 			}
-			repaint();
+			TFrame.repaintT(this);
 			VideoCaptureTool grabber = VideoGrabber.VIDEO_CAPTURE_TOOL;
 			if (grabber != null && grabber.isVisible() && grabber.isRecording()) {
 				Runnable runner = new Runnable() {
@@ -2537,7 +2537,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			firePropertyChange(PROPERTY_TRACKERPANEL_IMAGE, null, null); // to tracks/views //$NON-NLS-1$
 			Video video = getVideo();
 			TMenuBar.getMenuBar(this).refreshMatSizes(video);
-			repaint();
+			TFrame.repaintT(this);
 			break;
 		case Video.PROPERTY_VIDEO_FILTERCHANGED: // from video //$NON-NLS-1$
 			Filter filter = (Filter) e.getNewValue();
@@ -2547,7 +2547,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			break;
 		case Video.PROPERTY_VIDEO_VIDEOVISIBLE: // from video //$NON-NLS-1$
 			firePropertyChange(PROPERTY_TRACKERPANEL_VIDEOVISIBLE, null, null); // to views //$NON-NLS-1$
-			repaint();
+			TFrame.repaintT(this);
 			break;
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // from coords //$NON-NLS-1$
 			changed = true;
@@ -2596,7 +2596,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			for (int it = 0, ni = list.size(); it < ni; it++) {
 				list.get(it).erase(this);
 			}
-			repaint();
+			TFrame.repaintT(this);
 		}
 			break;
 		case "framecount": //$NON-NLS-1$
@@ -3033,7 +3033,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		super.scale(drawables);
 	}
-
+	
 	/**
 	 * Paints this component. Overrides DrawingPanel method to log times
 	 * 
@@ -3042,11 +3042,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	public void paintComponent(Graphics g) {
 		
-		long t0 = Performance.now(0);
-
-		if (getTFrame() == null || !frame.isPainting())
+		if (!isPaintable())
 			return;
-
+		
+		long t0 = Performance.now(0);
+		
 		super.paintComponent(g);
 
 
@@ -4198,7 +4198,21 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		setVideo(video); // triggers image change event
 	}
 
-	
+	public boolean isPaintable() {
+		if (!isVisible() || getHeight() <= 0 || getIgnoreRepaint() 
+				||  getTFrame() == null || !frame.isPaintable()) {
+			return false;
+		}
+		return true;
+	}
+
+	@Override
+	public void repaint() {
+		if (!isPaintable())
+			return;
+		super.repaint();
+	}
+
 	private static int repaintCount = 0;
 	/**
 	 * All repaints funnel through this method
@@ -4206,7 +4220,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public void repaint(long time, int x, int y, int w, int h) {
-		if (!isVisible() || getTFrame() == null || !frame.isPainting())
+		if (!isPaintable())
 			return;
 		// BH note that this check can prevent 85 repaint requests when 
 		// car.trz is loaded!
@@ -4229,8 +4243,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	public void notifyLoadingComplete() {
+		setIgnoreRepaint(false);
 		firePropertyChange(PROPERTY_TRACKERPANEL_LOADED, null, null);
-		repaint();
+		TFrame.repaintT(this);
 	}
 	
 

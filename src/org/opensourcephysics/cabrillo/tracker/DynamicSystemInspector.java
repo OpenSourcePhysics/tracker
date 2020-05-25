@@ -435,7 +435,7 @@ public void setVisible(boolean vis) {
   	changeButtons[particleCount-1].setEnabled(!empty);
   	changeButtons[0].requestFocusInWindow();
     pack();
-    repaint();
+   TFrame.repaintT(this);
   }
   
 }

@@ -243,7 +243,7 @@ public Step deleteStep(int n) {
     if (p instanceof PerspectiveFilter.Corner) {
     	PerspectiveFilter.Corner corner = (PerspectiveFilter.Corner)p;
     	filter.deleteKeyFrame(n, corner);
-    	trackerPanel.repaint();
+    	TFrame.repaintT(trackerPanel);
     }
     Step step = getStep(n);
     return step;

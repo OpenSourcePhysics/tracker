@@ -222,7 +222,7 @@ public class UnitsDialog extends JDialog {
     }
    
   	pack();
-    repaint();
+   TFrame.repaintT(this);
   }
   
   /**

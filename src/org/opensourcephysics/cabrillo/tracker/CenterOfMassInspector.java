@@ -196,7 +196,7 @@ public void setVisible(boolean vis) {
       if (!checkbox.isSelected() && cm.containsMass(m))
         cm.removeMass(m);
     }
-    cm.trackerPanel.repaint();
+    TFrame.repaintT(cm.trackerPanel);
   }
 
   /**
@@ -243,7 +243,7 @@ public void setVisible(boolean vis) {
 		}
 		FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
 		pack();
-		repaint();
+		TFrame.repaintT(this);
 	}
 
 }

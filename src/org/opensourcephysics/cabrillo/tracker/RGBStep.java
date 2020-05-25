@@ -341,7 +341,7 @@ public String toString() {
       	rgbRegion.keyFrames.add(n);
         dataValid = false; // this step's data is invalid      
     	}      
-      repaint();
+     repaint();
       track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
     }
 

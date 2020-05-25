@@ -358,7 +358,7 @@ public class TActions {
 					trackerPanel.setSelectedTrack(axes);
 				else if (!visible && trackerPanel.getSelectedTrack() == axes)
 					trackerPanel.setSelectedTrack(null);
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		};
 		actions.put("axesVisible", axesVisibleAction); //$NON-NLS-1$
@@ -390,7 +390,7 @@ public class TActions {
 						}
 					}
 				}
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		};
 		actions.put("videoFilter", videoFilterAction); //$NON-NLS-1$
@@ -833,7 +833,7 @@ public class TActions {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				trackerPanel.setVideo(null);
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 				trackerPanel.setImageSize(640, 480);
 				TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_TACTIONS_OPENVIDEO);
 			}

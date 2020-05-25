@@ -86,6 +86,7 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.ToolTipManager;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -146,9 +147,14 @@ import javajs.async.SwingJSUtils.StateMachine;
 @SuppressWarnings("serial")
 public class TFrame extends OSPFrame implements PropertyChangeListener {
 
+	
+	static {
+		ToolTipManager.sharedInstance().setDismissDelay(2000);
+	}
+
 	// static fields
 
-	private static class TTabPanel extends JPanel {
+	private class TTabPanel extends JPanel {
 
 		private Object[] objects;
 		private TrackerPanel trackerPanel;
@@ -165,6 +171,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		
 		public Object[] getObjects() {
 			return objects;
+		}
+		
+		@Override
+		public void paintComponent(Graphics g) {
+			if (!isPaintable())
+				return;
+			super.paintComponent(g);
 		}
 
 		public void dispose() {
@@ -275,7 +288,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	@Override
 	public void repaint(long time, int x, int y, int w, int h) {
-		if (!isVisible())
+		if (!isPaintable())
 			return;
 		OSPLog.debug("TFrame repaint");
 		// TFrame.addTab -> initialize -> TrackerPanel.addTrack -> fire(PROPERTY_TRACKERPANEL_TRACK) 
@@ -285,6 +298,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// Window.resize -> BorderLayout.layoutContainer -> JRootPane.reshape -> TFrame.repaint()
 		
 		super.repaint(time, x, y, w, h);
+	}
+	
+	/**
+	 * For optimization, finding out exactly who is repainting.
+	 * 
+	 * @param c
+	 */
+	public static void repaintT(Component c) {
+		if (c instanceof TrackerPanel && !((TrackerPanel) c).isPaintable()) {
+			return;
+		}
+		OSPLog.debug("TFrame.repaintT " + c.getClass().getName());
+		c.repaint();
 	}
 	
 	/**
@@ -316,9 +342,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				tabbedPane.setTitleAt(tab, name);
 				tabbedPane.setToolTipTextAt(tab, trackerPanel.getToolTipPath());
 			}
-			OSPLog.debug("AddTab existing tab " +tab);
+			OSPLog.debug("TFrame.addTab existing tab " +tab);
 		} else {
-			OSPLog.debug("AddTab new tab");
+			OSPLog.debug("TFrame.addTab new tab");
+			setIgnoreRepaint(true);
 			// tab does not already exist
 			// listen for changes that affect tab title
 			trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); //$NON-NLS-1$
@@ -341,7 +368,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// put the components into the tabs map
 			TTabPanel panel = new TTabPanel(trackerPanel, objects);
 			// add the tab
-			setIgnoreRepaint(true);
 			String name = trackerPanel.getTitle();
 			synchronized (tabbedPane) {
 				tabbedPane.addTab(name, panel);
@@ -2733,8 +2759,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return true if paintHold is zero
 	 * 
 	 */
-	public boolean isPainting() {
-		return paintHold == 0;
+	public boolean isPaintable() {
+		return //isVisible() && 
+				paintHold == 0
+				//&& !getIgnoreRepaint()
+				;
 	}
 	
 	/**

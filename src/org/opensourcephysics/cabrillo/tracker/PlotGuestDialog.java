@@ -193,7 +193,7 @@ public class PlotGuestDialog extends JDialog {
     		TrackerRes.getString("PlotGuestDialog.Button.SelectAll.Text")); //$NON-NLS-1$
   	FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
     pack();
-    repaint();
+   TFrame.repaintT(this);
   }
 
 }

@@ -579,7 +579,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 					autoTracker.getWizard().setVisible(false);
 				}
 				firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			}
 		});
 		footprintListener = new ActionListener() {
@@ -614,7 +614,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		this.visible = visible;
 		firePropertyChange(PROPERTY_TTRACK_VISIBLE, prev, new Boolean(visible)); // $NON-NLS-1$
 		if (trackerPanel != null)
-			trackerPanel.repaint();
+			TFrame.repaintT(trackerPanel);
 	}
 
 	/**
@@ -2741,11 +2741,11 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 					dataValid = false;
 				}
 				erase();
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 				break;
 			case TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION:
 				erase();
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 				break;
 			case VideoPanel.PROPERTY_VIDEOPANEL_IMAGESPACE:
 				erase(trackerPanel);

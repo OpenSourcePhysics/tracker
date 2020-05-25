@@ -452,7 +452,7 @@ public Rectangle getBounds(TrackerPanel trackerPanel) {
     double dx = d*Math.cos(theta);
     double dy = -d*Math.sin(theta);
     end2.setLocation(vertex.x+dx, vertex.y+dy);
-    repaint();
+   repaint();
 		Undo.postTrackEdit(protractor, state);
   }
 
@@ -630,7 +630,7 @@ public String toString() {
         end1.setLocation(end1.getX() + dx, end1.getY() + dy);
       	protractor.keyFrames.add(n);
     	}      
-      repaint();
+     repaint();
     }
 
     /**
@@ -711,7 +711,7 @@ public String toString() {
       	setLocation(x, y);
       	protractor.keyFrames.add(n);
     	}      
-      repaint();
+     repaint();
       	protractor.invalidateData(protractor);
     }
 

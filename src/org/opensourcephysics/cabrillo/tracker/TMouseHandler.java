@@ -384,7 +384,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				}
 			}
 			if (trackerPanel.getSelectedStep() == null)
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 			break;
 
 		// snap vectors and/or autoAdvance when releasing mouse

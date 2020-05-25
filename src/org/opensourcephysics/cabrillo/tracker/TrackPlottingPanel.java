@@ -49,6 +49,15 @@ import org.opensourcephysics.media.core.*;
  */
 @SuppressWarnings("serial")
 public class TrackPlottingPanel extends PlottingPanel implements Tool {
+	
+
+	@Override
+	public void repaint() {
+		if (trackerPanel == null || !trackerPanel.isPaintable()) {
+			return;
+		}
+		super.repaint();
+	}
 
 	// static fields
 	protected static final String DEFINED_AS = ": "; //$NON-NLS-1$
@@ -138,7 +147,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					pt.showCoordinates(plotTrackView.trackerPanel);
 				}
 				clickedStep = null;
-				repaint();
+				TFrame.repaintT(TrackPlottingPanel.this);
 			}
 		};
 		// create radio buttons and popups to set x and y variables
@@ -213,7 +222,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				}
 			}
 		}
-		repaint();
+		TFrame.repaintT(this);
 	}
 
 	/**
@@ -493,7 +502,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 						nextDataset.setConnected(linesItem.isSelected());
 					}
 					isCustom = true;
-					repaint();
+					TFrame.repaintT(TrackPlottingPanel.this);
 				}
 			});
 			// points menu item
@@ -516,7 +525,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 						}
 					}
 					isCustom = true;
-					repaint();
+					TFrame.repaintT(TrackPlottingPanel.this);
 				}
 			});
 			// showZero menu items
@@ -797,7 +806,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 						trackerPanel.selectedSteps.remove(step);
 					step.erase();
 				}
-				trackerPanel.repaint();
+				TFrame.repaintT(trackerPanel);
 				track.firePropertyChange("steps", null, null); //$NON-NLS-1$
 			}
 		};
@@ -886,7 +895,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				else
 					xmax = 0;
 				setPreferredMinMax(xmin, xmax, ymin, ymax);
-				repaint(); // repaint the panel with the new scale
+				TFrame.repaintT(this); // repaint the panel with the new scale
 				isCustom = true;
 			}
 		} else {
@@ -896,7 +905,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				else
 					ymax = 0;
 				setPreferredMinMax(xmin, xmax, ymin, ymax);
-				repaint(); // repaint the panel with the new scale
+				TFrame.repaintT(this); // repaint the panel with the new scale
 				isCustom = true;
 			}
 		}
@@ -1084,7 +1093,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			plotIndex = highlightIndices.toArray(new Integer[1])[0];
 		}
 		showPlotCoordinates(plotIndex);
-		repaint();
+// done in setMessage		TFrame.repaintT(this);
 	}
 
 	/**
@@ -1165,7 +1174,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			TTrack track = TTrack.getTrack(trackID);
 			msg = coordStringBuilder.getCoordinateString(track.trackerPanel, x, y);
 		}
-		setMessage(msg, 0);
+		setMessage(msg, DrawingPanel.BOTTOM_LEFT);
 	}
 
 	/**
@@ -1581,7 +1590,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				setToolTipText(TrackerRes.getString("TrackPlottingPanel.RightDrag.Hint")); //$NON-NLS-1$
 			else
 				setToolTipText(null);
-			repaint();
+//			TFrame.repaintT(TrackPlottingPanel.this);
 		}
 
 		@Override
@@ -1608,7 +1617,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 							else
 								steps.add(step);
 							step.erase();
-							trackerPanel.repaint();
+							TFrame.repaintT(trackerPanel);
 							track.firePropertyChange("steps", null, null); //$NON-NLS-1$
 						}
 					} else {
@@ -1642,11 +1651,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			if (getInteractive() == null) {
 				if (region != CartesianInteractive.INSIDE) {
 					setMouseCursor(Cursor.getDefaultCursor());
-					setMessage(null, 0);
+					setMessage(null, DrawingPanel.BOTTOM_LEFT);
 				} else
 					setMouseCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 			}
-			repaint();
+			TFrame.repaintT(TrackPlottingPanel.this);
 		}
 
 		@Override
