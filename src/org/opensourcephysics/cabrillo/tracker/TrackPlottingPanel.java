@@ -771,11 +771,12 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				double ymin = Math.min(y, y2);
 				double ymax = Math.max(y, y2);
 				// look for all points in the dataset that fall within limits
-				double[] xPoints = dataset.getXPoints();
-				double[] yPoints = dataset.getYPoints();
+				double[] xPoints = dataset.getXPointsRaw();
+				double[] yPoints = dataset.getYPointsRaw();
+				int len = dataset.getIndex();
 				TTrack track = TTrack.getTrack(trackID);
 				TreeSet<Integer> frames = new TreeSet<Integer>();
-				for (int i = 0; i < xPoints.length; i++) {
+				for (int i = 0; i < len; i++) {
 					if (Double.isNaN(xPoints[i]) || Double.isNaN(yPoints[i]))
 						continue;
 					if (xPoints[i] >= xmin && xPoints[i] <= xmax && yPoints[i] >= ymin && yPoints[i] <= ymax) {

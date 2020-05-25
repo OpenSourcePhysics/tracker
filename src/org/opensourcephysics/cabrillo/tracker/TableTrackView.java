@@ -279,7 +279,7 @@ public class TableTrackView extends TrackView {
 					if ("".equals(tooltip.trim())) //$NON-NLS-1$
 						tooltip = ""; //$NON-NLS-1$
 					dataTable.setUnits(yTitle, units, tooltip);
-					local.append(in.getXPoints(), yPoints);
+					local.append(in.getXPointsRaw(), yPoints, in.getIndex());
 					local.setXYColumnNames(xTitle, yTitle);
 					local.setYColumnVisible(true);
 				}
@@ -292,8 +292,8 @@ public class TableTrackView extends TrackView {
 				Dataset in = datasets.get(0);
 				String xTitle = in.getXColumnName();
 				Dataset local = tableData.getDataset(colCount++);
-				double[] x = in.getXPoints();
-				local.append(x, x);
+				double[] x = in.getXPointsRaw();
+				local.append(x, x, in.getIndex());
 				local.setXYColumnNames(xTitle, xTitle);
 				local.setYColumnVisible(false);
 			}

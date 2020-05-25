@@ -472,22 +472,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return; // user cancelled
 
 		// remove property change listeners
-		trackerPanel.removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); //$NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); // $NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
 
 		trackerPanel.selectedPoint = null;
 		trackerPanel.selectedStep = null;
-		trackerPanel.selectedTrack = null;	
+		trackerPanel.selectedTrack = null;
 
 		// hide the info dialog if removing the currently selected tab
 		if (tab == getSelectedTab()) {
 			notesDialog.setVisible(false);
 		}
 
-		// inform non-modal dialogs so they close: AutoTracker, CMInspector, DynamicSystemInspector,
-		// AttachmentDialog, ExportZipDialog, PencilControl, TableTView, TrackControl, VectorSumInspector
-		firePropertyChange(PROPERTY_TFRAME_TAB, trackerPanel, null); //$NON-NLS-1$
+		// inform non-modal dialogs so they close: AutoTracker, CMInspector,
+		// DynamicSystemInspector,
+		// AttachmentDialog, ExportZipDialog, PencilControl, TableTView, TrackControl,
+		// VectorSumInspector
+		firePropertyChange(PROPERTY_TFRAME_TAB, trackerPanel, null); // $NON-NLS-1$
 
 		// clean up mouse handler
 		trackerPanel.mouseHandler.selectedTrack = null;
@@ -543,8 +545,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		synchronized (tabbedPane) {
 			tabbedPane.remove(tabPanel);
 		}
-		
-		
+
 //		MainTView mainView = getMainView(trackerPanel);
 //		Container[] views = createViews(trackerPanel);
 //		JSplitPane[] panes = getSplitPanes(trackerPanel);
@@ -556,7 +557,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //		// put the components into the tabs map
 //		Object[] objects = new Object[] { mainView, views, panes, toolbar, menubar, trackbar };
 //		panelObjects.put(panel, objects);
-
 
 		// dispose of trackbar, toolbar, menubar AFTER removing tab
 		TToolBar toolbar = getToolBar(trackerPanel);
@@ -575,7 +575,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 
 		// remove the components from the tabs map
-		
+
 		tabPanel.dispose();
 
 		TActions.getActions(trackerPanel).clear();
@@ -588,7 +588,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.dispose();
 
 		// change menubar and show floating player of newly selected tab, if any
-		Object[] objects = ((TTabPanel)tabbedPane.getSelectedComponent()).getObjects();
+		TTabPanel panel = (TTabPanel) tabbedPane.getSelectedComponent();
+		if (panel == null)
+			return;
+		Object[] objects = panel.getObjects();
 		if (objects != null) {
 			setJMenuBar((JMenuBar) objects[TFRAME_MENUBAR]);
 			((TTrackBar) objects[TFRAME_TRACKBAR]).refresh();
@@ -600,7 +603,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// show defaultMenuBar
 			setJMenuBar(defaultMenuBar);
 		}
-		
+
 		OSPLog.debug("!!! " + Performance.now(t0) + " TFrame.removeTab");
 		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab end", Performance.TIME_MARK));
 
@@ -915,6 +918,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		JSplitPane[] panes = getSplitPanes(trackerPanel);
 		if (paneIndex < panes.length) {
 			panes[paneIndex].setDividerLocation(loc);
+			validate();
+		}
+	}
+
+	public void setDividerWeight(TrackerPanel trackerPanel, int paneIndex, double wt) {
+		JSplitPane[] panes = getSplitPanes(trackerPanel);
+		if (paneIndex < panes.length) {
+			panes[paneIndex].setResizeWeight(wt);
 			validate();
 		}
 	}
@@ -1267,6 +1278,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					super.setDividerLocation(loc);
 			}
 		};
+		setDefaultWeights(panes);
+		return panes;
+	}
+
+	public static void setDefaultWeights(JSplitPane[] panes) {
 		panes[SPLIT_MAIN].setResizeWeight(1.0);
 		panes[SPLIT_RIGHT].setResizeWeight(0.5);
 		panes[SPLIT_LEFT].setResizeWeight(1.0);
@@ -1275,7 +1291,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		panes[SPLIT_RIGHT].setOneTouchExpandable(true);
 		panes[SPLIT_LEFT].setOneTouchExpandable(true);
 		panes[SPLIT_BOTTOM].setOneTouchExpandable(true);
-		return panes;
 	}
 
 	/**
@@ -2752,6 +2767,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		case TView.VIEW_PLOT:
 			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);
 			setDividerLocation(trackerPanel, SPLIT_RIGHT, 1.0);
+			setDividerWeight(trackerPanel, SPLIT_MAIN, 0);
+			setDividerWeight(trackerPanel, SPLIT_RIGHT, 1);
 			break;
 		case TView.VIEW_TABLE:
 			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);

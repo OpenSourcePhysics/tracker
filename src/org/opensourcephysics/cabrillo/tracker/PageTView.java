@@ -183,6 +183,8 @@ public class PageTView extends JPanel implements TView {
 		for (TabView tab : tabs) {
 			tab.data.trackerPanel = null;
 		}
+		if (tabbedPane == null)
+			return;
 		tabbedPane.removeAll();
 		trackerPanel = null;
 	}

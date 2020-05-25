@@ -475,6 +475,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			pane.setDividerSize(dividerSize);
 			frame.setDividerLocation(trackerPanel, j, dividerLocs[j]);
 		}
+		TFrame.setDefaultWeights(frame.getSplitPanes(trackerPanel));
 		maximized = false;
 	}
 

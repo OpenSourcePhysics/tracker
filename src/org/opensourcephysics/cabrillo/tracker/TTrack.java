@@ -3049,8 +3049,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		String[] entries = this.textColumnEntries.get(textColumnName);
 		if (entries != null && entries.length > 0) {
 			DatasetManager data = getData(trackerPanel);
-			double[] x = data.getXPoints(0);
-			double[] values = new double[x.length];
+			double[] x = data.getDataset(0).getXPointsRaw();
+			int len = data.getDataset(0).getIndex();
+			double[] values = new double[len];
 			for (int i = 0; i < values.length; i++) {
 				if (entries.length > i) {
 					if (entries[i] == null) {
