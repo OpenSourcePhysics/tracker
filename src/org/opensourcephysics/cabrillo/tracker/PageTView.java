@@ -158,7 +158,7 @@ public class PageTView extends JPanel implements TView {
 		FontSizer.setFonts(this);
 
 		validate();
-		repaint();
+		TFrame.repaintT(this);
 	}
 
 	/**
@@ -763,7 +763,7 @@ public class PageTView extends JPanel implements TView {
 
 			// editor pane
 			editorPane = new TextView();
-			editorPane.setContentType("text"); //$NON-NLS-1$
+			editorPane.setContentType("text/plain"); //$NON-NLS-1$
 			editorPane.setEditable(true);
 			editorPane.addMouseListener(new MouseAdapter() {
 				@Override
@@ -826,17 +826,17 @@ public class PageTView extends JPanel implements TView {
 							displayPane.scrollToReference(data.url.getRef());
 						}
 					} catch (IOException e) {
-						displayPane.setContentType("text"); //$NON-NLS-1$
+						displayPane.setContentType("text/plain"); //$NON-NLS-1$
 						displayPane.setText(data.text);
 					}
 				} else {
-					displayPane.setContentType("text"); //$NON-NLS-1$
+					displayPane.setContentType("text/plain"); //$NON-NLS-1$
 					displayPane.setText(data.text);
 				}
 				displayPane.requestFocusInWindow();
 			}
 			revalidate();
-			repaint();
+			TFrame.repaintT(this);
 		}
 
 		void setUndoableText(String text) {
