@@ -386,8 +386,11 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		}
 		if (!track.isViewable() || !trackerPanel.containsTrack(track))
 			return;
-		if (track == selectedTrack && tracks.get(dropdown.getSelectedItem()) == track)
+		if (track == selectedTrack && tracks.get(dropdown.getSelectedItem()) == track) {
+			// just refresh the selected TrackView
+			getTrackView(selectedTrack).refresh(trackerPanel.getFrameNumber());
 			return;
+		}
 		Iterator<Object> it = tracks.keySet().iterator();
 		while (it.hasNext()) {
 			Object item = it.next();
