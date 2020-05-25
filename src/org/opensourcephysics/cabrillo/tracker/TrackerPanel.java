@@ -1013,9 +1013,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			modelBuilder.setVisible(false);
 		}
 		// notify views and other listeners
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.clear fire CLEAR0", Performance.TIME_MARK));
 		firePropertyChange(PROPERTY_TRACKERPANEL_CLEAR, null, null); 
-		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.clear fire CLEAR1", Performance.TIME_MARK));
 		// remove tracks from TTrack.activeTracks
 		for (int it = 0, n = list.size(); it < n; it++) {
 			TTrack track = list.get(it);
@@ -3473,17 +3471,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// BH adds early setting of frame.
 			trackerPanel.frame = (TFrame) ((XMLControlElement) control).getData();
 			long t0 = Performance.now(0);
-			//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
+			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
 
 			try {
 				trackerPanel.frame.holdPainting(true);
-				//OSPLog.debug("TrackerPanel.finalizeLoading start");
+				OSPLog.debug("TrackerPanel.finalizeLoading start");
 
 				
 				
 				Video video = finalizeClip();
 				
-				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading finalizeClip", Performance.TIME_MARK));
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading finalizeClip", Performance.TIME_MARK));
 
 				// load and check if a newer Tracker version created this file
 				String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
@@ -3532,7 +3530,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 					}
 				}
-				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading load metadata", Performance.TIME_MARK));
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading load metadata", Performance.TIME_MARK));
 
 				// load the clip control
 				XMLControl child = control.getChildControl("clipcontrol"); //$NON-NLS-1$
@@ -3541,7 +3539,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					child.loadObject(clipControl);
 				}
 				
-				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading clipControl ", Performance.TIME_MARK));
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading clipControl ", Performance.TIME_MARK));
 
 				// load the toolbar
 				child = control.getChildControl("toolbar"); //$NON-NLS-1$
@@ -3550,7 +3548,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					child.loadObject(toolbar);
 				}
 				
-				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading toolbar", Performance.TIME_MARK));
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading toolbar", Performance.TIME_MARK));
 
 				// load the coords
 				child = control.getChildControl("coords"); //$NON-NLS-1$
@@ -3561,7 +3559,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
 				}
 				
-				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading coords", Performance.TIME_MARK));
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading coords", Performance.TIME_MARK));
 
 				// load units and unit visibility
 				if (control.getPropertyNamesRaw().contains("length_unit")) { //$NON-NLS-1$
@@ -3591,7 +3589,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 				
 
-				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading number formats", Performance.TIME_MARK));
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading number formats", Performance.TIME_MARK));
 
 				// load the tracks
 				ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
@@ -3602,7 +3600,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 				
 
-				//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading load tracks", Performance.TIME_MARK));
+				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading load tracks", Performance.TIME_MARK));
 
 				// load drawing scenes saved in vers 4.11.0+
 				ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$

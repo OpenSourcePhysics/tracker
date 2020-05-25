@@ -41,6 +41,8 @@ import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.*;
 
+import javajs.async.SwingJSUtils.Performance;
+
 /**
  * A ParticleModel is a point mass whose positions are determined by a model.
  * 
@@ -97,9 +99,9 @@ abstract public class ParticleModel extends PointMass {
 		setFootprint(defaultFootprint.getName());
 		// assign a meaningful initial name
 		setName(TrackerRes.getString("ParticleModel.New.Name")); //$NON-NLS-1$
-		long t0 = System.currentTimeMillis();
+		long t0 = Performance.now(0);
 		initializeFunctionPanel();
-		OSPLog.debug("ParticleModel.initFunc " + (System.currentTimeMillis() - t0));
+		OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.initializeFunctionPanel");
 		// set initial hint
 		hint = TrackerRes.getString("ParticleModel.Hint"); //$NON-NLS-1$
 	}

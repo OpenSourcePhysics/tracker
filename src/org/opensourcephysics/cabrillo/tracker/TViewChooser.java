@@ -50,11 +50,14 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.border.Border;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
+
+import javajs.async.SwingJSUtils.Performance;
 
 /**
  * This is a panel with a toolbar for selecting and controlling TViews.
@@ -101,6 +104,9 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		super(new BorderLayout());
 		selType = type;
 		setName("TViewChooser " + selType);
+		
+		OSPLog.debug(Performance.timeCheckStr("TViewChooser " + type, Performance.TIME_MARK));
+
 		trackerPanel = panel;
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$

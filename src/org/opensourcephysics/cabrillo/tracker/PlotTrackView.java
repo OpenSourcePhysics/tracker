@@ -37,6 +37,8 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.tools.FontSizer;
 
+import javajs.async.SwingJSUtils.Performance;
+
 /**
  * This displays plot views of a track.
  *
@@ -69,7 +71,7 @@ public class PlotTrackView extends TrackView {
 	 */
 	public PlotTrackView(TTrack track, TrackerPanel panel, PlotTView view) {
 		super(track, panel, view, TView.VIEW_PLOT);
-		OSPLog.debug("PlotTrackView constr for " + track);
+		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr for " + track, Performance.TIME_MARK));
 		// get the track data object (DatasetManager)
 		data = track.getData(trackerPanel);
 		// create the GUI
