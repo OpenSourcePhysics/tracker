@@ -132,7 +132,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 					helpItem.addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							if (TrackChooserTView.this instanceof TableTView) {
+							if (TrackChooserTView.this.getViewType() == TView.VIEW_TABLE) {
 								trackerPanel.getTFrame().showHelp("datatable", 0); //$NON-NLS-1$
 							} else {
 								trackerPanel.getTFrame().showHelp("plot", 0); //$NON-NLS-1$

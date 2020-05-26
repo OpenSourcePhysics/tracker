@@ -635,7 +635,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							TView[][] views = frame.getTViews(TrackerPanel.this);
 							for (TView[] next : views) {
 								for (TView view : next) {
-									if (view instanceof TrackChooserTView) {
+									if (view != null && view instanceof TrackChooserTView) {
 										((TrackChooserTView) view).setSelectedTrack(dt);
 									}
 								}
@@ -700,19 +700,22 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @return true if displayed in a plot or table view
 	 */
 	protected boolean isTrackViewDisplayed(TTrack track) {
-		boolean displayed = false;
 		TFrame frame = getTFrame();
 		if (frame != null && TrackerPanel.this.isShowing()) {
 			TView[][] views = frame.getTViews(TrackerPanel.this);
 			for (TView[] next : views) {
-				for (TView view : next) {
-					if (view instanceof TrackChooserTView) {
-						displayed = displayed || ((TrackChooserTView) view).isTrackViewDisplayed(track);
+				for (int i = 0; i < next.length; i++) {
+					TView view = next[i];
+					if (view != null && 
+							(view.getViewType() == TView.VIEW_PLOT ||
+							view.getViewType() == TView.VIEW_TABLE) &&
+							((TrackChooserTView) view).isTrackViewDisplayed(track)) {
+						return true;
 					}
 				}
 			}
 		}
-		return displayed;
+		return false;
 	}
 
 	/**
@@ -2806,10 +2809,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (views == null)
 			return;
 		for (int i = 0, n = views.length; i < n; i++) {
-			if (views[i] != null) {
-				for (int j = 0, nj = views[i].length; j < nj; j++)
-					views[i][j].refresh();
-			}
+			for (int j = 0, nj = views[i].length; j < nj; j++)
+				views[i][j].refresh();
 		}
 		TTrackBar trackbar = TTrackBar.getTrackbar(this);
 		trackbar.setFontLevel(level);
@@ -3867,7 +3868,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					break;
 				}
 				// save the selected view types
-				int[] selectedViewTypes = frame.getSelectedTViewTypes(trackerPanel);
+				int[] selectedViewTypes = frame.getSelectedViewTypes(trackerPanel);
 				control.setValue("selected_view_types", selectedViewTypes); //$NON-NLS-1$
 
 				// save the toolbar for button states

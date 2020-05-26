@@ -1411,41 +1411,27 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				// send some data to the tool
 				boolean sent = false;
 				TView[][] views = getFrame().getTViews(trackerPanel);
-				String[] selectedViews = getFrame().getSelectedTViews(trackerPanel);
-				for (int i = 0; i < selectedViews.length; i++) {
-					String s = selectedViews[i];
-					if (s != null && s.toLowerCase().startsWith("plot") && i < views.length) { //$NON-NLS-1$
-						TView[] next = views[i];
-						for (TView view : next) {
-							if (view instanceof PlotTView) {
-								PlotTView v = (PlotTView) view;
-								TrackView trackView = v.getTrackView(v.getSelectedTrack());
-								PlotTrackView plotView = (PlotTrackView) trackView;
-								if (plotView != null) {
-									for (TrackPlottingPanel plot : plotView.getPlots()) {
-										plot.dataToolItem.doClick();
-										sent = true;
-									}
-								}
+				int[] selectedTypes = getFrame().getSelectedViewTypes(trackerPanel);
+				for (int i = 0; i < selectedTypes.length; i++) {
+					if (selectedTypes[i] == TView.VIEW_PLOT) { //$NON-NLS-1$
+						PlotTView v = (PlotTView) views[i][TView.VIEW_PLOT];						
+						PlotTrackView plotView = (PlotTrackView) v.getTrackView(v.getSelectedTrack());
+						if (plotView != null) {
+							for (TrackPlottingPanel plot : plotView.getPlots()) {
+								plot.dataToolItem.doClick();
+								sent = true;
 							}
 						}
 					}
 				}
 				// no plot views were visible, so look for table views
 				if (!sent) {
-					for (int i = 0; i < selectedViews.length; i++) {
-						String s = selectedViews[i];
-						if (s != null && s.toLowerCase().startsWith("table") && i < views.length) { //$NON-NLS-1$
-							TView[] next = views[i];
-							for (TView view : next) {
-								if (view instanceof TableTView) {
-									TableTView v = (TableTView) view;
-									TrackView trackView = v.getTrackView(v.getSelectedTrack());
-									TableTrackView tableView = (TableTrackView) trackView;
-									if (tableView != null) {
-										tableView.dataToolItem.doClick();
-									}
-								}
+					for (int i = 0; i < selectedTypes.length; i++) {
+						if (selectedTypes[i] == TView.VIEW_TABLE) { //$NON-NLS-1$
+							TableTView v = (TableTView) views[i][TView.VIEW_TABLE];
+							TableTrackView tableView = (TableTrackView) v.getTrackView(v.getSelectedTrack());
+							if (tableView != null) {
+								tableView.dataToolItem.doClick();
 							}
 						}
 					}
@@ -2651,7 +2637,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 						TView[][] views = frame.getTViews(panel);
 						for (TView[] next : views) {
 							for (TView view : next) {
-								if (view instanceof PlotTView) {
+								if (view != null && view.getViewType() == TView.VIEW_PLOT) {
 									PlotTView v = (PlotTView) view;
 									TrackView trackView = v.getTrackView(v.getSelectedTrack());
 									PlotTrackView plotView = (PlotTrackView) trackView;

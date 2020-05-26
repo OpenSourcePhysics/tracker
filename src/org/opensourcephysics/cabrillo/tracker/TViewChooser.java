@@ -132,14 +132,19 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 					helpItem.addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							if (view instanceof PageTView) {
+							switch(view.getViewType()) {
+							case TView.VIEW_PAGE:
 								trackerPanel.getTFrame().showHelp("textview", 0); //$NON-NLS-1$
-							} else if (view instanceof TableTView) {
+								break;
+							case TView.VIEW_TABLE:
 								trackerPanel.getTFrame().showHelp("datatable", 0); //$NON-NLS-1$
-							} else if (view instanceof PlotTView) {
+								break;
+							case TView.VIEW_PLOT:
 								trackerPanel.getTFrame().showHelp("plot", 0); //$NON-NLS-1$
-							} else if (view instanceof WorldTView) {
+								break;
+							case TView.VIEW_WORLD:
 								trackerPanel.getTFrame().showHelp("GUI", 0); //$NON-NLS-1$
+								break;
 							}
 						}
 					});

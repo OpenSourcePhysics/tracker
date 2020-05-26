@@ -849,30 +849,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param trackerPanel the tracker panel
 	 * @return int[4] of types selected in the TViewChoosers
 	 */
-	public int[] getSelectedTViewTypes(TrackerPanel trackerPanel) {
+	public int[] getSelectedViewTypes(TrackerPanel trackerPanel) {
 		TViewChooser[] choosers = getViewChoosers(trackerPanel);
 		int[] selectedViews = new int[4];
 		for (int i = 0; i < selectedViews.length; i++) {
 			selectedViews[i] = choosers[i].getSelectedViewType();
-		}
-		return selectedViews;
-	}
-
-	/**
-	 * Gets the selected TViews for the specified tracker panel.
-	 *
-	 * @param trackerPanel the tracker panel
-	 * @return an array of TViews (some elements may be null)
-	 */
-	public String[] getSelectedTViews(TrackerPanel trackerPanel) {
-		TViewChooser[] views = getViewChoosers(trackerPanel);
-		String[] selectedViews = new String[views.length];
-		for (int i = 0; i < selectedViews.length; i++) {
-			if (views[i] instanceof TViewChooser) {
-				TViewChooser chooser = (TViewChooser) views[i];
-				TView tview = chooser.getSelectedView();
-				selectedViews[i] = tview == null ? null : tview.getViewName();
-			}
 		}
 		return selectedViews;
 	}
