@@ -105,13 +105,4 @@ public interface TView extends PropertyChangeListener {
 		return false;
 	}
 
-	/**
-	 * Supply icon and name, but trackerPanel is null.
-	 * 
-	 * @return
-	 */
-	default public boolean isPlaceHolderOnly() {
-		return getTrackerPanel() == null;
-	}
-
 }

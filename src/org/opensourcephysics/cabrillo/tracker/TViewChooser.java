@@ -36,9 +36,6 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -222,82 +219,12 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	}
 
 	/**
-	 * Adds a view of the tracker panel
-	 *
-	 * @param view the view being added
-	 */
-	public void addView(TView view) {
-		if (view == null || view.getTrackerPanel() != trackerPanel
-				|| views[view.getType()] != null && !views[view.getType()].isPlaceHolderOnly())
-			return;
-		views[view.getType()] = view;
-		view.refresh();
-		if (view.isCustomState())
-			return;
-		view.cleanup();
-		refreshViewPanel();
-	}
-
-//	/**
-//	 * Adds a view of the tracker panel at a specified index
-//	 *
-//	 * @param index the list index desired
-//	 * @param view  the view being added
-//	 */
-//	public void addView(int index, TView view) {
-//		if (view.getTrackerPanel() != trackerPanel)
-//			return;
-//		if (getView(view.getClass()) != null)
-//			return;
-//		views.add(index, view);
-//		view.cleanup();
-//		refreshViewPanel();
-//	}
-//
-//	/**
-//	 * Removes a view from this chooser
-//	 *
-//	 * @param view the view requesting to be removed
-//	 */
-//	public void removeView(TView view) {
-//		views.remove(view);
-//		if (view == selectedView)
-//			selectedView = null;
-//		refreshViewPanel();
-//	}
-
-	/**
 	 * Gets the array of TViews.
 	 *
 	 * @return TView[]
 	 */
 	public TView[] getTViews() {
 		return tViews;
-	}
-
-	/**
-	 * Gets the view with the specified name. May return null.
-	 *
-	 * @param viewName the name of the view
-	 * @return the view
-	 */
-	public TView[] getViews() {
-		return views;
-	}
-
-	/**
-	 * Gets a collection of views castable to the specified class or interface.
-	 *
-	 * @param type the class
-	 * @return a collection of views
-	 */
-	public Collection<TView> getViews(Class<? extends TView> type) {
-		Collection<TView> list = new ArrayList<TView>();
-		for (TView view : list) {
-			if (type.isInstance(view))
-				list.add(view);
-		}
-		return list;
 	}
 
 	/**
@@ -613,39 +540,13 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			return obj;
 		}
 	}
-
-	TView[] views = new TView[4];
 	
-	TView addView(int type) {
-		TView view = null;
-		switch (type) {
-		case TView.VIEW_PLOT:
-			addView(view = new PlotTView(trackerPanel));
-			break;
-		case TView.VIEW_TABLE:
-			addView(view = new TableTView(trackerPanel));
-			break;
-		case TView.VIEW_WORLD:
-			addView(view = new WorldTView(trackerPanel));
-			break;
-		case TView.VIEW_PAGE:
-			addView(view = new PageTView(trackerPanel));
-			break;
-		}
-		return view;
-	}
-
 	TView getView(int type) {
-		if (type >= 0) {
-			return views[type];
-		}
-		for (int i = views.length; --i >= 0;) {
-			if (views[i] != null)
-				return views[i];
+		if (type >= 0 && type < tViews.length) {
+			return tViews[type];
 		}
 		return null;
 	}
-
 
 	@Override
 	public void paint(Graphics g) {

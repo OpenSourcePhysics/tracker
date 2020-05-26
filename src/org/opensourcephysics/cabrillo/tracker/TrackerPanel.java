@@ -199,8 +199,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected JLabel badNameLabel = new JLabel();
 	protected TrackDataBuilder dataBuilder;
 	protected boolean dataToolVisible;
-	protected XMLProperty viewsProperty; // TFrame loads views
-	protected XMLProperty selectedViewsProperty; // TFrame sets selected views
+	protected XMLProperty customViewsProperty; // TFrame loads views
+	protected XMLProperty selectedViewsProperty; // TFrame sets selected views--legacy pre-JS
+	protected XMLProperty selectedViewTypesProperty; // TFrame sets selected view types--JS
 	protected double[] dividerLocs; // TFrame sets dividers
 	protected Point zoomCenter; // used when loading
 	protected Map<Filter, Point> visibleFilters; // TFrame sets locations of filter inspectors
@@ -2054,18 +2055,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// find maximized view and restore
 		TFrame frame = getTFrame();
 		if (frame != null) {
-			Container[] views = frame.getViewChoosers(this);
-			for (int i = 0; i < views.length; i++) {
-				if (views[i] instanceof TViewChooser) {
-					TViewChooser chooser = (TViewChooser) views[i];
-					if (chooser.maximized) {
-						chooser.restore();
+			TViewChooser[] choosers = frame.getViewChoosers(this);
+			for (int i = 0; i < choosers.length; i++) {
+				if (choosers[i].maximized) {
+					choosers[i].restore();
 						break;
 					}
 				}
 			}
 		}
-	}
 
 	/**
 	 * Configures this panel.
@@ -3642,7 +3640,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// load the selected_views property
 				List<XMLProperty> props = control.getPropsRaw();
 				trackerPanel.selectedViewsProperty = null;
-				trackerPanel.viewsProperty = null;
+				trackerPanel.customViewsProperty = null;
 				for (int n = 0, i = props.size(); --i >= 0 && n < 2;) {
 					XMLProperty prop = props.get(i);
 					switch (prop.getPropertyName()) {
@@ -3650,8 +3648,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						trackerPanel.selectedViewsProperty = prop;
 						n++;
 						break;
+					case "selected_view_types":
+						trackerPanel.selectedViewTypesProperty = prop;
+						n++;
+						break;
 					case "views":
-						trackerPanel.viewsProperty = prop;
+						trackerPanel.customViewsProperty = prop;
 						n++;
 						break;
 					}
@@ -3864,14 +3866,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					control.setValue("views", customViews); //$NON-NLS-1$
 					break;
 				}
-				// save the selected views
-				String[] selectedViews = frame.getSelectedTViews(trackerPanel);
-				for (int i = 0; i < selectedViews.length; i++) {
-					if (selectedViews[i] == null)
-						continue;
-					control.setValue("selected_views", selectedViews); //$NON-NLS-1$
-					break;
-				}
+				// save the selected view types
+				int[] selectedViewTypes = frame.getSelectedTViewTypes(trackerPanel);
+				control.setValue("selected_view_types", selectedViewTypes); //$NON-NLS-1$
+
 				// save the toolbar for button states
 				TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
 				control.setValue("toolbar", toolbar); //$NON-NLS-1$

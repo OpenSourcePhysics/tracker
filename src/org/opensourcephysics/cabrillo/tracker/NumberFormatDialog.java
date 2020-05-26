@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Toolkit;
@@ -896,22 +895,18 @@ public class NumberFormatDialog extends JDialog {
    * @return ArrayList of table views
    */
   private static ArrayList<TableTrackView> getTableViews(TTrack track) {
-  	ArrayList<TableTrackView> dataViews = new ArrayList<TableTrackView>();
+  	ArrayList<TableTrackView> tableTrackViews = new ArrayList<TableTrackView>();
   	if (track==null || track.trackerPanel==null || frame==null) {
-  		return dataViews;
+  		return tableTrackViews;
   	}
-    Container[] c = frame.getViewChoosers(track.trackerPanel);
-    for (int i = 0; i < c.length; i++) {
-    	if (c[i] instanceof TViewChooser) {
-    		TableTView tableView = (TableTView) ((TViewChooser)c[i]).getView(TView.VIEW_TABLE);
-    		if (tableView != null && !tableView.isPlaceHolderOnly()) {
-	          TableTrackView trackView = (TableTrackView)tableView.getTrackView(track);
-	    			dataViews.add(trackView);
-	        }
-        
-    	}
+    TViewChooser[] choosers = frame.getViewChoosers(track.trackerPanel);
+    for (int i = 0; i < choosers.length; i++) {
+    	TableTView tableView = (TableTView) choosers[i].getView(TView.VIEW_TABLE);
+  		if (tableView != null) {
+  			tableTrackViews.add((TableTrackView)tableView.getTrackView(track));
+      }        
     }
-    return dataViews;
+    return tableTrackViews;
   }
   
   /**
