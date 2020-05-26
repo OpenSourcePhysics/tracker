@@ -203,7 +203,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private JMenu recentMenu;
 
 	private static final int TFRAME_MAINVIEW = 0;
-	private static final int TFRAME_VIEWCONTAINERS = 1;
+	private static final int TFRAME_VIEWCHOOSERS = 1;
 	private static final int TFRAME_SPLITPANES = 2;
 	private static final int TFRAME_TOOLBAR = 3;
 	private static final int TFRAME_MENUBAR = 4;
@@ -358,7 +358,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			Object[] objects = new Object[6];
 			MainTView mainView; 
 			objects[TFRAME_MAINVIEW] = mainView = getMainView(trackerPanel);
-			objects[TFRAME_VIEWCONTAINERS] = createViews(mainView, trackerPanel);
+			objects[TFRAME_VIEWCHOOSERS] = createViews(mainView, trackerPanel);
 			objects[TFRAME_SPLITPANES] = getSplitPanes(trackerPanel);
 			Tracker.setProgress(50);
 			objects[TFRAME_TOOLBAR] = getToolBar(trackerPanel);
@@ -379,7 +379,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		
 		// set views, etc for every trackerPanel that has them
-		Container[] viewContainers = getViewContainers(trackerPanel);
+		TViewChooser[] viewContainers = getViewChoosers(trackerPanel);
 		boolean hasViews = (trackerPanel.viewsProperty != null);
 		// select the views
 		if (trackerPanel.selectedViewsProperty != null) {
@@ -762,39 +762,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	/**
-	 * Sets the view for a specified tracker panel and pane.
-	 *
-	 * @param trackerPanel the tracker panel
-	 * @param view         the new view
-	 * @param pane         the pane number
-	 */
-	public void setView(TrackerPanel trackerPanel, Container view, int pane) {
-		if (view == null || pane > 3)
-			return;
-		Container[] views = getViewContainers(trackerPanel);
-		views[pane] = view;
-		setViews(trackerPanel, views);
-	}
-
-	/**
 	 * Sets the views for the specified tracker panel.
 	 *
 	 * @param trackerPanel the tracker panel
 	 * @param viewContainers     an array of up to 4 Container objects (TViewChoosers)
 	 */
-	public void setViews(TrackerPanel trackerPanel, Container[] viewContainers) {
+	public void setViews(TrackerPanel trackerPanel, TViewChooser[] viewContainers) {
 		if (viewContainers == null)
-			viewContainers = new Container[0];
+			viewContainers = new TViewChooser[0];
 		int tab = getTab(trackerPanel);
 		TTabPanel panel = (TTabPanel) tabbedPane.getComponentAt(tab);
 		panel.removeAll();
 		Object[] objects = panel.getObjects();
-		Container[] containers = (Container[]) objects[TFRAME_VIEWCONTAINERS];
+		TViewChooser[] containers = (TViewChooser[]) objects[TFRAME_VIEWCHOOSERS];
 		for (int i = 0; i < Math.min(viewContainers.length, containers.length); i++) {
 			if (viewContainers[i] != null)
 				containers[i] = viewContainers[i];
 		}
-		objects[TFRAME_VIEWCONTAINERS] = containers;
+		objects[TFRAME_VIEWCHOOSERS] = containers;
 		MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 		JSplitPane[] panes = (JSplitPane[]) objects[TFRAME_SPLITPANES];
 		panel.add(panes[SPLIT_MAIN], BorderLayout.CENTER);
@@ -811,6 +796,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		north.add((JToolBar) objects[TFRAME_TOOLBAR]);
 		north.add((TTrackBar) objects[TFRAME_TRACKBAR]);
 		panel.add(north, BorderLayout.NORTH);
+	}
+
+	/**
+	 * Gets the TViewChoosers for the specified tracker panel.
+	 * 
+	 * @param trackerPanel the tracker panel
+	 * @return array of TViewChooser
+	 */
+	public TViewChooser[] getViewChoosers(TrackerPanel trackerPanel) {
+		Object[] objects = getObjects(trackerPanel);
+		if (objects == null)
+			return new TViewChooser[4];
+		return (TViewChooser[]) objects[TFRAME_VIEWCHOOSERS];
 	}
 
 	/**
@@ -831,7 +829,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		Container[] ret = new Container[4];
 		if (objects != null)
 			for (int i = 0; i < 4; i++)
-				ret[i] = ((Container[]) objects[TFRAME_VIEWCONTAINERS])[i];
+				ret[i] = ((TViewChooser[]) objects[TFRAME_VIEWCHOOSERS])[i];
 		return ret;
 	}
 
@@ -870,6 +868,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 		}
 		return array;
+	}
+
+	/**
+	 * Gets the selected TViewTypes for the specified tracker panel.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @return int[4] of types selected in the TViewChoosers
+	 */
+	public int[] getSelectedTViewTypes(TrackerPanel trackerPanel) {
+		TViewChooser[] views = getViewChoosers(trackerPanel);
+		int[] selectedViews = new int[4];
+		for (int i = 0; i < selectedViews.length; i++) {
+			selectedViews[i] = views[i].getSelectedViewType();
+		}
+		return selectedViews;
 	}
 
 	/**
@@ -1080,7 +1093,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				getToolBar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_LOCALE2);
 				getTrackBar(trackerPanel).refresh();
 				// refresh views
-				Container[] views = getViewContainers(trackerPanel);
+				Container[] views = getViewChoosers(trackerPanel);
 				for (int j = 0; j < views.length; j++) {
 					if (views[j] instanceof TViewChooser) {
 						((TViewChooser) views[j]).refresh();
@@ -1224,10 +1237,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param trackerPanel the tracker panel
 	 * @return a Container[numberOfViews] array of views
 	 */
-	private static Container[] createViews(MainTView mainView, TrackerPanel trackerPanel) {
+	private static TViewChooser[] createViews(MainTView mainView, TrackerPanel trackerPanel) {
 		if (!Tracker.allowViews) {
 			OSPLog.debug("TFrame allowViews is false");
-			return new Container[4];
+			return new TViewChooser[4];
 		}
 		TViewChooser chooser1 = new TViewChooser(trackerPanel, TView.VIEW_PLOT);
 		chooser1.setSelectedView(TView.VIEW_PLOT); //$NON-NLS-1$
@@ -1237,7 +1250,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		chooser3.setSelectedView(TView.VIEW_WORLD); //$NON-NLS-1$
 		TViewChooser chooser4 = new TViewChooser(trackerPanel, TView.VIEW_TEXT);
 		chooser4.setSelectedView(TView.VIEW_TEXT); //$NON-NLS-1$
-		return new Container[] { chooser1, chooser2, chooser3, chooser4 };
+		return new TViewChooser[] { chooser1, chooser2, chooser3, chooser4 };
 	}
 
 	private static final int SPLIT_MAIN   = 0;

@@ -327,6 +327,15 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		return selectedView;
 	}
 
+	/**
+	 * Gets the selected view type
+	 *
+	 * @return the selected view
+	 */
+	public int getSelectedViewType() {
+		return selType;
+	}
+
 	public void setSelectedView(int type) {
 		setSelectedView(views[type]);
 	}
