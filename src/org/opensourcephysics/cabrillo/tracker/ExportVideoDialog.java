@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Graphics2D;
@@ -376,36 +375,33 @@ public class ExportVideoDialog extends JDialog {
     views.put(s, trackerPanel);
   	viewDropdown.addItem(s);
   	// add additional open views
-    Container[] c = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
-    for (int i = 0; i < c.length; i++) {
+    TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
+    for (int i = 0; i < choosers.length; i++) {
       if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
         String number = " ("+(i+1)+")"; //$NON-NLS-1$ //$NON-NLS-2$
-      	if (c[i] instanceof TViewChooser) {
-          TViewChooser chooser = (TViewChooser)c[i];
-          TView tview = chooser.getSelectedView();
-          if (tview!=null && tview instanceof WorldTView) {
-	          s = tview.getViewName() + number;
-	          WorldTView worldView = (WorldTView)tview;
-	          views.put(s, worldView);
-	        	viewDropdown.addItem(s);
-          }
-          else if (tview!=null && tview instanceof PlotTView) {
-	          s = tview.getViewName() + number;
-	          PlotTView plotView = (PlotTView)tview;
-	          TTrack track = plotView.getSelectedTrack();
-	          if (track!=null) {
-	          	PlotTrackView trackView = (PlotTrackView)plotView.getTrackView(track);
-	          	views.put(s, trackView);
-	          	viewDropdown.addItem(s);
-	          }
+        TView tview = choosers[i].getSelectedView();
+        if (tview!=null && tview.getViewType() == TView.VIEW_WORLD) {
+          s = tview.getViewName() + number;
+          WorldTView worldView = (WorldTView)tview;
+          views.put(s, worldView);
+        	viewDropdown.addItem(s);
+        }
+        else if (tview!=null && tview.getViewType() == TView.VIEW_PLOT) {
+          s = tview.getViewName() + number;
+          PlotTView plotView = (PlotTView)tview;
+          TTrack track = plotView.getSelectedTrack();
+          if (track!=null) {
+          	PlotTrackView trackView = (PlotTrackView)plotView.getTrackView(track);
+          	views.put(s, trackView);
+          	viewDropdown.addItem(s);
           }
         }
+      }
 //        else {
 //          s = TrackerRes.getString("TFrame.View.Unknown")+number; //$NON-NLS-1$
 //          views.put(s, c[i]);
 //        	viewDropdown.addItem(s);
 //        }
-      }
     }
     // add tab view
     s = TrackerRes.getString("TMenuBar.MenuItem.CopyFrame"); //$NON-NLS-1$

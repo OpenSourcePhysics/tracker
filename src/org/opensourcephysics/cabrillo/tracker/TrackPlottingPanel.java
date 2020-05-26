@@ -998,30 +998,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	/**
 	 * Gets the TViewChooser that owns (displays) this panel.
 	 * 
-	 * @return the TViewChooser
+	 * @return the TViewChooser. May return null.
 	 */
 	protected TViewChooser getOwner() {
-		if (trackerPanel == null)
-			return null;
-		// find TViewChooser with this view
-		TFrame frame = trackerPanel.getTFrame();
-		if (frame == null)
-			return null;
-		Container[] views = frame.getViewChoosers(trackerPanel);
-		for (int i = 0; i < views.length; i++) {
-			if (views[i] instanceof TViewChooser) {
-				TViewChooser chooser = (TViewChooser) views[i];
-        TView tview = chooser.getSelectedView();
-				if (tview!=null && tview instanceof PlotTView) {
-					PlotTView plotView = (PlotTView) tview;
-					TrackView view = plotView.getTrackView(plotView.getSelectedTrack());
-					if (view != null && view.equals(plotTrackView)) {
-						return chooser;
-					}
-				}
-			}
-		}
-		return null;
+		return plotTrackView.getOwner();
 	}
 
 	/**
@@ -1366,6 +1346,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		player.addPropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$
 	}
 
+	@Override
 	protected void dispose() {
 		VideoPlayer player = plotTrackView.trackerPanel.getPlayer();
 		player.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$

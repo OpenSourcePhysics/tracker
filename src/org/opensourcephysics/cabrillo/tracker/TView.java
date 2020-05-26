@@ -51,8 +51,6 @@ public interface TView extends PropertyChangeListener {
 	 */
 	public void init();
 
-	public int getType();
-
 	/**
 	 * Refreshes the view
 	 */
@@ -88,6 +86,13 @@ public interface TView extends PropertyChangeListener {
 	 * @return the icon for the view
 	 */
 	public Icon getViewIcon();
+
+	/**
+	 * Gets the type of view
+	 *
+	 * @return one of the defined types
+	 */
+	public int getViewType();
 
 	/**
 	 * Gets the toolbar components for this view

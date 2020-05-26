@@ -86,6 +86,16 @@ public Icon getViewIcon() {
     return TABLEVIEW_ICON;
   }
 
+	/**
+	 * Gets the type of view
+	 *
+	 * @return one of the defined types
+	 */
+	@Override
+	public int getViewType() {
+		return TView.VIEW_TABLE;
+	}
+
   /**
    * Creates a view for the specified track
    *
@@ -530,8 +540,4 @@ public void cleanup() {
     }
   }
 
-@Override
-public int getType() {
-	return VIEW_TABLE;
-}
 }

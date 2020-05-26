@@ -218,6 +218,16 @@ public class PageTView extends JPanel implements TView {
 	public Icon getViewIcon() {
   	return PAGEVIEW_ICON;
 	}
+	
+	/**
+	 * Gets the type of view
+	 *
+	 * @return one of the defined types
+	 */
+	@Override
+	public int getViewType() {
+		return TView.VIEW_PAGE;
+	}
 
 	/**
 	 * Gets the toolbar components
@@ -1108,8 +1118,4 @@ public class PageTView extends JPanel implements TView {
 		}
 	}
 
-	@Override
-	public int getType() {
-		return VIEW_PAGE;
-	}
 }

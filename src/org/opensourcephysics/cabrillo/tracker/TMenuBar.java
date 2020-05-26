@@ -643,13 +643,13 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		// printFrame item
 		file_printFrameItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.PrintFrame")); //$NON-NLS-1$
 		file_printFrameItem.setAccelerator(KeyStroke.getKeyStroke('P', keyMask));
-		file_printFrameItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Component c = trackerPanel.getTFrame();
-				new TrackerIO.ComponentImage(c).print();
-			}
-		});
+//		file_printFrameItem.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				Component c = trackerPanel.getTFrame();
+//				new TrackerIO.ComponentImage(c).print();
+//			}
+//		});
 		// exit item
 		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
 			file_exitItem = new JMenuItem(actions.get("exit")); //$NON-NLS-1$
@@ -1573,18 +1573,18 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		// DB copyImageMenu needs refresh only when a view has been
 		// opened/closed/changed
 		edit_copyImageMenu.remove(edit_copyFrameImageItem);
-		final Container[] views = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
+		final TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
 		// check that array size is correct and if not, make new menu items
-		if (edit_copyViewImageItems.length != views.length) {
+		if (edit_copyViewImageItems.length != choosers.length) {
 			Action copyView = new AbstractAction() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					int i = Integer.parseInt(e.getActionCommand());
-					new TrackerIO.ComponentImage(views[i]).copyToClipboard();
+					new TrackerIO.ComponentImage(choosers[i]).copyToClipboard();
 				}
 			};
-			edit_copyViewImageItems = new JMenuItem[views.length];
-			for (int i = 0; i < views.length; i++) {
+			edit_copyViewImageItems = new JMenuItem[choosers.length];
+			for (int i = 0; i < choosers.length; i++) {
 				edit_copyViewImageItems[i] = new JMenuItem();
 				String command = String.valueOf(i);
 				edit_copyViewImageItems[i].setActionCommand(command);
@@ -1592,16 +1592,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 		}
 		// add menu items for open views
-		for (int i = 0; i < views.length; i++) {
+		for (int i = 0; i < choosers.length; i++) {
 			if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
 				String viewname = null;
-				if (views[i] instanceof TViewChooser) {
-					TViewChooser chooser = (TViewChooser) views[i];
-					TView tview = chooser.getSelectedView();
-					viewname = tview == null ? TrackerRes.getString("TFrame.View.Unknown")
-							: tview.getViewName();
-				} else
-					viewname = TrackerRes.getString("TFrame.View.Unknown"); //$NON-NLS-1$
+				TView tview = choosers[i].getSelectedView();
+				viewname = tview == null ? TrackerRes.getString("TFrame.View.Unknown")
+						: tview.getViewName();
 				edit_copyViewImageItems[i].setText(viewname + " (" + (i + 1) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 				String command = String.valueOf(i);
 				edit_copyViewImageItems[i].setActionCommand(command);
@@ -2491,14 +2487,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// rebuild window menu
 			windowMenu.removeAll();
 			boolean maximized = false;
-			Container[] views = frame.getViewChoosers(trackerPanel);
-			for (int i = 0; i < views.length; i++) {
-				if (views[i] instanceof TViewChooser) {
-					TViewChooser chooser = (TViewChooser) views[i];
-					if (chooser.maximized) {
-						maximized = true;
-						break;
-					}
+			TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
+			for (int i = 0; i < choosers.length; i++) {
+				if (choosers[i].maximized) {
+					maximized = true;
+					break;
 				}
 			}
 			if (maximized) {
@@ -2822,21 +2815,18 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		TreeMap<Integer, TableTrackView> dataViews = new TreeMap<Integer, TableTrackView>();
 		if (trackerPanel.getTFrame() == null)
 			return dataViews;
-		Container[] c = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
-		for (int i = 0; i < c.length; i++) {
+		TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
+		for (int i = 0; i < choosers.length; i++) {
 			if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
-				if (c[i] instanceof TViewChooser) {
-					TViewChooser chooser = (TViewChooser) c[i];
-					TView tview = chooser.getSelectedView();
-					if (tview!=null && tview instanceof TableTView) {
-						TableTView tableView = (TableTView) tview;
-						TTrack track = tableView.getSelectedTrack();
-						if (track != null) {
-							for (Step step : track.getSteps()) {
-								if (step != null) {
-									TableTrackView trackView = (TableTrackView) tableView.getTrackView(track);
-									dataViews.put(i + 1, trackView);
-								}
+				TView tview = choosers[i].getSelectedView();
+				if (tview!=null && tview.getViewType() == TView.VIEW_TABLE) {
+					TableTView tableView = (TableTView) tview;
+					TTrack track = tableView.getSelectedTrack();
+					if (track != null) {
+						for (Step step : track.getSteps()) {
+							if (step != null) {
+								TableTrackView trackView = (TableTrackView) tableView.getTrackView(track);
+								dataViews.put(i + 1, trackView);
 							}
 						}
 					}

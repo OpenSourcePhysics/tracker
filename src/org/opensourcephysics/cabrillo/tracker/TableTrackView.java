@@ -686,32 +686,6 @@ public class TableTrackView extends TrackView {
 	}
 
 	/**
-	 * Gets the TViewChooser that owns (displays) this view.
-	 * 
-	 * @return the TViewChooser
-	 */
-	protected TViewChooser getOwner() {
-		// find TViewChooser with this view and copy that
-		TFrame frame = trackerPanel.getTFrame();
-		Container[] views = frame.getViewChoosers(trackerPanel);
-		for (int i = 0; i < views.length; i++) {
-			if (views[i] instanceof TViewChooser) {
-				
-				TViewChooser chooser = (TViewChooser) views[i];
-				TView tview = chooser.getSelectedView();
-				if (tview != null && tview instanceof TableTView) {
-					TableTView tableView = (TableTView) tview;
-					TrackView view = tableView.getTrackView(tableView.getSelectedTrack());
-					if (view.equals(TableTrackView.this)) {
-						return chooser;
-					}
-				}
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * Gets the frame number for a view row. Returns -1 if not found.
 	 *
 	 * @param row the table row
@@ -1978,23 +1952,12 @@ public class TableTrackView extends TrackView {
 				if (cols[i] < getColumnCount())
 					addColumnSelectionInterval(cols[i], cols[i]);
 			}
-			// find TViewChooser with this view
+			// refresh owner toolbar
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
-				Container[] views = frame.getViewChoosers(trackerPanel);
-				for (int i = 0; i < views.length; i++) {
-					if (views[i] instanceof TViewChooser) {
-						TViewChooser chooser = (TViewChooser) views[i];
-						TView tview = chooser.getSelectedView();
-						if (tview != null && tview instanceof TableTView) {
-							TableTView tableView = (TableTView) tview;
-							TrackView view = tableView.getTrackView(tableView.getSelectedTrack());
-							if (view != null && view.equals(TableTrackView.this)) {
-								chooser.refreshToolbar();
-							}
-						}
-					}
-				}
+				TViewChooser owner = getOwner();
+				if (owner != null)
+					owner.refreshToolbar();
 			}
 
 		}

@@ -432,7 +432,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						TView view = chooser.getTView(viewType);
 						if (view != null) {
 							elements[j].loadObject(view);
-							chooser.setSelectedViewType(view.getType());
+							chooser.setSelectedViewType(view.getViewType());
 						}
 					}
 				}

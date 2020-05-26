@@ -292,6 +292,16 @@ public class WorldTView extends TrackerPanel implements TView {
 	}
 
 	/**
+	 * Gets the type of view
+	 *
+	 * @return one of the defined types
+	 */
+	@Override
+	public int getViewType() {
+		return TView.VIEW_WORLD;
+	}
+
+	/**
 	 * Gets the toolbar components
 	 *
 	 * @return an ArrayList of components to be added to a toolbar
@@ -496,8 +506,4 @@ public class WorldTView extends TrackerPanel implements TView {
 		}
 	}
 
-	@Override
-	public int getType() {
-		return VIEW_WORLD;
-	}
 }

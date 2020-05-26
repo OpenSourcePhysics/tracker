@@ -24,6 +24,8 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.util.ArrayList;
+
 import javax.swing.*;
 
 import org.opensourcephysics.controls.XML;
@@ -68,6 +70,16 @@ public class PlotTView extends TrackChooserTView {
 	@Override
 	public Icon getViewIcon() {
     return PLOTVIEW_ICON;
+	}
+
+	/**
+	 * Gets the type of view
+	 *
+	 * @return one of the defined types
+	 */
+	@Override
+	public int getViewType() {
+		return TView.VIEW_PLOT;
 	}
 
 	/**
@@ -202,10 +214,5 @@ public class PlotTView extends TrackChooserTView {
 			}
 			return obj;
 		}
-	}
-
-	@Override
-	public int getType() {
-		   return VIEW_PLOT;
 	}
 }

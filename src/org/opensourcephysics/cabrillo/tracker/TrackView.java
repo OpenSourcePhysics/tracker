@@ -92,6 +92,24 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	}
 
 	/**
+	 * Gets the TViewChooser that owns (displays) this track view.
+	 * 
+	 * @return the TViewChooser. May return null if this is not displayed
+	 */
+	protected TViewChooser getOwner() {
+		// return TViewChooser with this view , if any
+		TFrame frame = trackerPanel.getTFrame();
+		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
+		for (int i = 0; i < choosers.length; i++) {
+			TView tview = choosers[i].getSelectedView();
+			if (tview != null && tview == parent && parent.getTrackView(parent.getSelectedTrack()) == this) {
+				return choosers[i];
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Gets toolbar components for toolbar of parent view
 	 *
 	 * @return an ArrayList of components to be added to a toolbar
