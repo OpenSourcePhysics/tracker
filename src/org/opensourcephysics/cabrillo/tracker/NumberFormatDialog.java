@@ -900,7 +900,7 @@ public class NumberFormatDialog extends JDialog {
   	if (track==null || track.trackerPanel==null || frame==null) {
   		return dataViews;
   	}
-    Container[] c = frame.getViewContainers(track.trackerPanel);
+    Container[] c = frame.getViewChoosers(track.trackerPanel);
     for (int i = 0; i < c.length; i++) {
     	if (c[i] instanceof TViewChooser) {
     		TableTView tableView = (TableTView) ((TViewChooser)c[i]).getView(TView.VIEW_TABLE);

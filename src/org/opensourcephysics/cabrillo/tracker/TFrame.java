@@ -394,7 +394,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						if (next == null)
 							continue;
 						String viewName = (String) next.getPropertyContent().get(0);
-						chooser.setSelectedView(chooser.getSelectedType());
+						chooser.setSelectedView(chooser.getSelectedViewType());
 					}
 				}
 			} else {				
@@ -543,7 +543,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.setVideo(null);
 
 		// dispose of TViewChoosers and TViews
-		Container[] views = getViewContainers(trackerPanel);
+		Container[] views = getViewChoosers(trackerPanel);
 		for (int i = 0; i < views.length; i++) {
 			if (views[i] instanceof TViewChooser) {
 				TViewChooser chooser = (TViewChooser) views[i];
@@ -812,7 +812,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	/**
-	 * Gets the views for the specified tracker panel.
+	 * Gets the TViewChoosers for the specified tracker panel.
 	 * Typically TViewChoosers. 
 	 * 
 	 *  BH Deprecating because these are not TViews; they are TViewChoosers.
@@ -820,13 +820,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param trackerPanel the tracker panel
 	 * @return an objects of views
 	 */
-	public Container[] getViews(TrackerPanel trackerPanel) {
+	public TViewChooser[] getViews(TrackerPanel trackerPanel) {
 		return getViewContainers(trackerPanel);
 	}
 
-	public Container[] getViewContainers(TrackerPanel trackerPanel) {
+	public TViewChooser[] getViewContainers(TrackerPanel trackerPanel) {
 		Object[] objects = getObjects(trackerPanel);
-		Container[] ret = new Container[4];
+		TViewChooser[] ret = new TViewChooser[4];
 		if (objects != null)
 			for (int i = 0; i < 4; i++)
 				ret[i] = ((TViewChooser[]) objects[TFRAME_VIEWCHOOSERS])[i];
@@ -851,7 +851,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return an array of views
 	 */
 	public TView[][] getTViews(TrackerPanel trackerPanel, boolean customOnly) {
-		Container[] containers = getViewContainers(trackerPanel);
+		Container[] containers = getViewChoosers(trackerPanel);
 		TView[][] array = new TView[4][];
 		for (int i = 0; i < array.length; i++) {
 			if (containers[i] instanceof TViewChooser) {
@@ -892,7 +892,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return an array of TViews (some elements may be null)
 	 */
 	public String[] getSelectedTViews(TrackerPanel trackerPanel) {
-		Container[] views = getViewContainers(trackerPanel);
+		Container[] views = getViewChoosers(trackerPanel);
 		String[] selectedViews = new String[views.length];
 		for (int i = 0; i < selectedViews.length; i++) {
 			if (views[i] instanceof TViewChooser) {
@@ -1468,7 +1468,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		getMenuBar(trackerPanel).refresh(TMenuBar.REFRESH_TFRAME_REFRESH);
 		getToolBar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
 		getTrackBar(trackerPanel).refresh();
-		for (Container next : getViewContainers(trackerPanel)) {
+		for (Container next : getViewChoosers(trackerPanel)) {
 			if (next instanceof TViewChooser) {
 				TViewChooser chooser = (TViewChooser) next;
 				chooser.refreshMenus();

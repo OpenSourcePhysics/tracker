@@ -2054,7 +2054,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// find maximized view and restore
 		TFrame frame = getTFrame();
 		if (frame != null) {
-			Container[] views = frame.getViewContainers(this);
+			Container[] views = frame.getViewChoosers(this);
 			for (int i = 0; i < views.length; i++) {
 				if (views[i] instanceof TViewChooser) {
 					TViewChooser chooser = (TViewChooser) views[i];

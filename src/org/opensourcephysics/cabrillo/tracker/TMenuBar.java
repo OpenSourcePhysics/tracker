@@ -1573,7 +1573,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		// DB copyImageMenu needs refresh only when a view has been
 		// opened/closed/changed
 		edit_copyImageMenu.remove(edit_copyFrameImageItem);
-		final Container[] views = trackerPanel.getTFrame().getViewContainers(trackerPanel);
+		final Container[] views = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
 		// check that array size is correct and if not, make new menu items
 		if (edit_copyViewImageItems.length != views.length) {
 			Action copyView = new AbstractAction() {
@@ -2491,7 +2491,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// rebuild window menu
 			windowMenu.removeAll();
 			boolean maximized = false;
-			Container[] views = frame.getViewContainers(trackerPanel);
+			Container[] views = frame.getViewChoosers(trackerPanel);
 			for (int i = 0; i < views.length; i++) {
 				if (views[i] instanceof TViewChooser) {
 					TViewChooser chooser = (TViewChooser) views[i];
@@ -2822,7 +2822,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		TreeMap<Integer, TableTrackView> dataViews = new TreeMap<Integer, TableTrackView>();
 		if (trackerPanel.getTFrame() == null)
 			return dataViews;
-		Container[] c = trackerPanel.getTFrame().getViewContainers(trackerPanel);
+		Container[] c = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
 		for (int i = 0; i < c.length; i++) {
 			if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
 				if (c[i] instanceof TViewChooser) {

@@ -89,13 +89,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	protected int dividerSize;
 	protected boolean maximized;
 	
-	protected int selType;
-	
-	
-	public int getSelectedType() {
-		return selType;
-	}
-	
+	protected int selectedType;
+		
 	/**
 	 * Constructs a TViewChooser.
 	 *
@@ -103,8 +98,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 */
 	public TViewChooser(TrackerPanel panel, int type) {
 		super(new BorderLayout());
-		selType = type;
-		setName("TViewChooser " + selType);
+		selectedType = type;
+		setName("TViewChooser " + selectedType);
 		
 		OSPLog.debug(Performance.timeCheckStr("TViewChooser " + type, Performance.TIME_MARK));
 
@@ -333,7 +328,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * @return the selected view
 	 */
 	public int getSelectedViewType() {
-		return selType;
+		return selectedType;
 	}
 
 	public void setSelectedView(int type) {
@@ -468,7 +463,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			pane.setDividerSize(0);
 		}
 		maximized = true;
-		frame.maximizeChooser(trackerPanel, selType);
+		frame.maximizeChooser(trackerPanel, selectedType);
 				}
 
 	/**

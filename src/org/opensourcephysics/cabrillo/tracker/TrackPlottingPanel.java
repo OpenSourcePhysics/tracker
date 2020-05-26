@@ -1007,7 +1007,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		TFrame frame = trackerPanel.getTFrame();
 		if (frame == null)
 			return null;
-		Container[] views = frame.getViewContainers(trackerPanel);
+		Container[] views = frame.getViewChoosers(trackerPanel);
 		for (int i = 0; i < views.length; i++) {
 			if (views[i] instanceof TViewChooser) {
 				TViewChooser chooser = (TViewChooser) views[i];
