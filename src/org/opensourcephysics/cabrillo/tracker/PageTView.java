@@ -1110,6 +1110,6 @@ public class PageTView extends JPanel implements TView {
 
 	@Override
 	public int getType() {
-		return VIEW_TEXT;
+		return VIEW_PAGE;
 	}
 }

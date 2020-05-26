@@ -44,7 +44,7 @@ public interface TView extends PropertyChangeListener {
 	int VIEW_PLOT = 0;
 	int VIEW_TABLE = 1;
 	int VIEW_WORLD = 2;
-	int VIEW_TEXT = 3;
+	int VIEW_PAGE = 3;
 
 	/**
 	 * Initializes the view
