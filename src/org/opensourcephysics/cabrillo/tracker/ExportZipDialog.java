@@ -1153,7 +1153,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		descriptionPanel.removeAll();
 		descriptionPanel.add(descriptionTitleBox, BorderLayout.NORTH);
 		if (descriptionPanel.getName() != null) {
-			descriptionButton.setIcon(TViewChooser.maxIcon);
+			descriptionButton.setIcon(TViewChooser.MAXIMIZE_ICON);
 			FontSizer.setFonts(descriptionPane, FontSizer.getLevel());
 			JScrollPane scroller = new JScrollPane(descriptionPane) {
 				@Override
@@ -1167,7 +1167,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			box.setBorder(BorderFactory.createEmptyBorder(2, 4, 2, 4));
 			descriptionPanel.add(box, BorderLayout.SOUTH);
 		} else {
-			descriptionButton.setIcon(TViewChooser.restoreIcon);
+			descriptionButton.setIcon(TViewChooser.RESTORE_ICON);
 		}
 	}
 
@@ -1309,11 +1309,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				strippedTabTitle);
 
 		if (tabsPanel.getName() != null) {
-			tabsButton.setIcon(TViewChooser.maxIcon);
+			tabsButton.setIcon(TViewChooser.MAXIMIZE_ICON);
 			FontSizer.setFonts(stack, FontSizer.getLevel());
 			tabsPanel.add(stack, BorderLayout.SOUTH);
 		} else {
-			tabsButton.setIcon(TViewChooser.restoreIcon);
+			tabsButton.setIcon(TViewChooser.RESTORE_ICON);
 		}
 	}
 
@@ -1352,7 +1352,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		videoPanel.add(videoTitleBox, BorderLayout.NORTH);
 
 		if (videoPanel.getName() != null) { // show expanded options
-			videoButton.setIcon(TViewChooser.maxIcon);
+			videoButton.setIcon(TViewChooser.MAXIMIZE_ICON);
 			Box panel = Box.createHorizontalBox();
 			panel.add(clipCheckbox);
 			panel.add(formatDropdown);
@@ -1360,7 +1360,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			FontSizer.setFonts(panel, FontSizer.getLevel());
 			videoPanel.add(panel, BorderLayout.SOUTH);
 		} else { // set restore icon
-			videoButton.setIcon(TViewChooser.restoreIcon);
+			videoButton.setIcon(TViewChooser.RESTORE_ICON);
 		}
 	}
 
@@ -1393,11 +1393,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		metaPanel.removeAll();
 		metaPanel.add(metaTitleBox, BorderLayout.NORTH);
 		if (metaPanel.getName() != null) {
-			metaButton.setIcon(TViewChooser.maxIcon);
+			metaButton.setIcon(TViewChooser.MAXIMIZE_ICON);
 			FontSizer.setFonts(metaFieldsBox, FontSizer.getLevel());
 			metaPanel.add(metaFieldsBox, BorderLayout.SOUTH);
 		} else {
-			metaButton.setIcon(TViewChooser.restoreIcon);
+			metaButton.setIcon(TViewChooser.RESTORE_ICON);
 		}
 
 	}
@@ -1416,7 +1416,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		thumbnailPanel.removeAll();
 		thumbnailPanel.add(thumbTitleBox, BorderLayout.NORTH);
 		if (thumbnailPanel.getName() != null) {
-			thumbButton.setIcon(TViewChooser.maxIcon);
+			thumbButton.setIcon(TViewChooser.MAXIMIZE_ICON);
 			JPanel panel = new JPanel();
 			panel.add(thumbnailButton);
 			panel.add(showThumbnailCheckbox);
@@ -1427,7 +1427,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				thumbnailPanel.add(thumbnailImagePanel, BorderLayout.SOUTH);
 			}
 		} else {
-			thumbButton.setIcon(TViewChooser.restoreIcon);
+			thumbButton.setIcon(TViewChooser.RESTORE_ICON);
 		}
 	}
 
@@ -1448,11 +1448,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		supportFilesPanel.add(supportFilesTitleBox, BorderLayout.NORTH);
 
 		if (supportFilesPanel.getName() != null) {
-			supportFilesButton.setIcon(TViewChooser.maxIcon);
+			supportFilesButton.setIcon(TViewChooser.MAXIMIZE_ICON);
 			FontSizer.setFonts(supportFilesBox, FontSizer.getLevel());
 			supportFilesPanel.add(supportFilesBox, BorderLayout.SOUTH);
 		} else {
-			supportFilesButton.setIcon(TViewChooser.restoreIcon);
+			supportFilesButton.setIcon(TViewChooser.RESTORE_ICON);
 		}
 	}
 
@@ -1481,11 +1481,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		advancedPanel.add(advancedTitleBox, BorderLayout.NORTH);
 
 		if (advancedPanel.getName() != null) {
-			advancedButton.setIcon(TViewChooser.maxIcon);
+			advancedButton.setIcon(TViewChooser.MAXIMIZE_ICON);
 			FontSizer.setFonts(advancedFieldsBox, FontSizer.getLevel());
 			advancedPanel.add(advancedFieldsBox, BorderLayout.SOUTH);
 		} else {
-			advancedButton.setIcon(TViewChooser.restoreIcon);
+			advancedButton.setIcon(TViewChooser.RESTORE_ICON);
 		}
 	}
 
