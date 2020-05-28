@@ -656,7 +656,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// all tracks handled below
 		addPropertyChangeListener(track); // track listens for all properties
 		track.addListener(this);
-		// update track control and dataTool
+		// update track control and dataBuilder
 		if (trackControl != null && trackControl.isVisible())
 			trackControl.refresh();
 		if (dataBuilder != null && !getSystemDrawables().contains(track)) {
@@ -673,7 +673,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// set font level
 		track.setFontLevel(FontSizer.getLevel());
 
-		// notify views
+		// notify views, also TrackControl
 		firePropertyChange(PROPERTY_TRACKERPANEL_TRACK, null, track); // to views //$NON-NLS-1$
 
 		// set default NumberField format patterns
@@ -875,7 +875,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			list.add(0, mat);
 		}
 		// show noData message if panel is empty
-		if (getVideo() == null && getUserTracks().isEmpty()) {
+		if (getVideo() == null && (userTracks == null || userTracks.isEmpty())) {
 			isEmpty = true;
 			if (this instanceof WorldTView) {
 				noDataLabels[0].setText(TrackerRes.getString("WorldTView.Label.NoData")); //$NON-NLS-1$
@@ -2209,7 +2209,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// display selected track hint
 			if (Tracker.showHints && selectedTrack != null) {
 				setMessage(selectedTrack.getMessage());
-			} else if (!Tracker.startupHintShown || getVideo() != null || !getUserTracks().isEmpty()) {
+			} else if (!Tracker.startupHintShown || getVideo() != null 
+					|| (userTracks != null && !userTracks.isEmpty())) {
 				Tracker.startupHintShown = false;
 				if (!Tracker.showHints)
 					setMessage(""); //$NON-NLS-1$
@@ -2225,7 +2226,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						setMessage(TrackerRes.getString("TrackerPanel.CalibrateVideo.Hint")); //$NON-NLS-1$
 				} else if (getAxes() != null && getAxes().notyetShown)
 					setMessage(TrackerRes.getString("TrackerPanel.ShowAxes.Hint")); //$NON-NLS-1$
-				else if (getUserTracks().isEmpty())
+				else if (userTracks == null || userTracks.isEmpty())
 					setMessage(TrackerRes.getString("TrackerPanel.NoTracks.Hint")); //$NON-NLS-1$
 				else
 					setMessage(""); //$NON-NLS-1$

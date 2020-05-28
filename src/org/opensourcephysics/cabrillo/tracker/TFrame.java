@@ -56,7 +56,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.function.Function;
@@ -356,8 +355,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// create the tab panel components
 			Tracker.setProgress(30);
 			Object[] objects = new Object[6];
-			MainTView mainView; 
-			objects[TFRAME_MAINVIEW] = mainView = getMainView(trackerPanel);
+			objects[TFRAME_MAINVIEW] = getMainView(trackerPanel);
 			objects[TFRAME_VIEWCHOOSERS] = createTViews(trackerPanel);
 			objects[TFRAME_SPLITPANES] = getSplitPanes(trackerPanel);
 			Tracker.setProgress(50);
@@ -374,14 +372,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				tab = getTab(trackerPanel);
 				tabbedPane.setToolTipTextAt(tab, trackerPanel.getToolTipPath());
 			}
-			// from now on trackerPanel's top level container is this TFrame,
+			// from here on trackerPanel's top level container is this TFrame,
 			// so trackerPanel.getFrame() method will return non-null
 		}
 		
-		// handle XMLproperties loaded from trk file:
-		// customViewsProperty: load TViews
-		// selectedViewTypesProperty: TFrame sets selected view types (after JS changes May 2020) 
-		// selectedViewsProperty: TFrame sets selected views (legacy pre-JS)
+		// handle XMLproperties loaded from trk file, if any:
+		// --customViewsProperty: load custom TViews
+		// --selectedViewTypesProperty: set selected view types (after May 2020) 
+		// --selectedViewsProperty: set selected views (legacy pre-2020)
 		
 		TViewChooser[] viewChoosers = getViewChoosers(trackerPanel);
 		if (trackerPanel.customViewsProperty != null) {

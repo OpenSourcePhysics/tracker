@@ -2233,8 +2233,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					|| trackerPanel.isEnabled("calibration.tape") //$NON-NLS-1$
 					|| trackerPanel.isEnabled("calibration.points") //$NON-NLS-1$
 					|| trackerPanel.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
-				if (tracksMenu.getItemCount() > 0)
-					tracksMenu.addSeparator();
+				boolean needsSeparator = tracksMenu.getItemCount() > 0;
 				if (axes != null && trackerPanel.isEnabled("button.axes")) { //$NON-NLS-1$
 					track = axes;
 					track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); 
@@ -2257,6 +2256,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 								continue;
 							next.removePropertyChangeListener("locked", this); //$NON-NLS-1$
 							next.addPropertyChangeListener("locked", this); //$NON-NLS-1$
+							if (needsSeparator) {
+								tracksMenu.addSeparator();
+								needsSeparator = false;
+							}
 							tracksMenu.add(createTrackMenu(next));
 						}
 					}
