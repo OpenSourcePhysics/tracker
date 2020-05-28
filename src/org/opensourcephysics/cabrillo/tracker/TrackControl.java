@@ -165,6 +165,7 @@ public class TrackControl extends JDialog
    */
   @Override
 public void propertyChange(PropertyChangeEvent e) {
+  	OSPLog.debug("TrackControl propertyChange "+e.getPropertyName());
     if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
       if (e.getNewValue() == trackerPanel) {
         setVisible(isVisible);
@@ -242,6 +243,7 @@ public void dispose() {
    */
   protected void refresh() {
   	if (trackerPanel==null) return;
+  	OSPLog.debug("TrackControl refresh");
     setTitle(TrackerRes.getString("TrackControl.Name")); //$NON-NLS-1$
     int perbar = 4;
     ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
