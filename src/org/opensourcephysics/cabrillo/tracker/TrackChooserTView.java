@@ -262,12 +262,10 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 * @return true if this TView is displayed and the track is selected
 	 */
 	protected boolean isTrackViewDisplayed(TTrack track) {
-		boolean displayed = track == getSelectedTrack();
-		Container c = getParent().getParent();
-		if (c instanceof TViewChooser) {
-			displayed = displayed && this == ((TViewChooser) c).getSelectedView();
-		}
-		return displayed;
+		if (track != getSelectedTrack())
+			return false;
+		TViewChooser c = (TViewChooser)getParent().getParent();
+		return (this == c.getSelectedView());
 	}
 
 	/**

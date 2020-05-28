@@ -320,7 +320,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 
 	/**
 	 * Selects the specified view type
-	 * TViews are created in this method the first time requested
+	 * Null TViews are created in this method when requested
 	 *
 	 * @param type int
 	 */
@@ -397,7 +397,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	}
 
 	/**
-	 * Refreshes this chooser and its views.
+	 * Refreshes this chooser and its current view.
 	 */
 	public void refresh() {
 		chooserButton.setToolTipText(TrackerRes.getString("TViewChooser.Button.Choose.Tooltip")); //$NON-NLS-1$
@@ -565,6 +565,12 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		}
 	}
 	
+	/**
+	 * Get the view of the specified type. May return null..
+	 *
+	 * @param type one of the define TView types
+	 * @return the TView. May be null.
+	 */
 	TView getView(int type) {
 		if (type >= 0 && type < tViews.length) {
 			return tViews[type];

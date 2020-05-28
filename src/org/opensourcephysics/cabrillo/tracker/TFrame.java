@@ -447,7 +447,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				if (next == null)
 					continue;
 				String viewName = ((String) next.getPropertyContent().get(0)).toLowerCase();
-				// hack to handle POSSIBLE name matches in pre-JS trk
+				// hack to handle POSSIBLE name matches in pre-JS trk (won't work for translated names)
 				int type = viewName.contains("plot")? TView.VIEW_PLOT:
 					viewName.contains("table")? TView.VIEW_TABLE:
 					viewName.contains("world")? TView.VIEW_WORLD:

@@ -2809,8 +2809,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (views == null)
 			return;
 		for (int i = 0, n = views.length; i < n; i++) {
-			for (int j = 0, nj = views[i].length; j < nj; j++)
-				views[i][j].refresh();
+			if (views[i] != null) {
+				for (int j = 0, nj = views[i].length; j < nj; j++)
+					views[i][j].refresh();
+			}
 		}
 		TTrackBar trackbar = TTrackBar.getTrackbar(this);
 		trackbar.setFontLevel(level);
