@@ -378,66 +378,88 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// so trackerPanel.getFrame() method will return non-null
 		}
 		
-		// set views, etc for every trackerPanel that has them
+		// handle XMLproperties loaded from trk file:
+		// customViewsProperty: load TViews
+		// selectedViewTypesProperty: TFrame sets selected view types (after JS changes May 2020) 
+		// selectedViewsProperty: TFrame sets selected views (legacy pre-JS)
+		
 		TViewChooser[] viewChoosers = getViewChoosers(trackerPanel);
-		boolean hasViews = (trackerPanel.customViewsProperty != null);
-		// select the views
-		if (trackerPanel.selectedViewsProperty != null) {
-			if (hasViews) {
-				// has custom views
-				Iterator<Object> it = trackerPanel.selectedViewsProperty.getPropertyContent().iterator();
-				int i = -1;
-				while (it.hasNext() && ++i < viewChoosers.length) {
-					XMLProperty next = (XMLProperty) it.next();
-					if (next == null)
-						continue;
-					// get type of view and load next--not done yet
-					viewChoosers[i].setSelectedViewType(viewChoosers[i].getSelectedViewType());
-				}
-			} else {				
-				// no custom views, just load and show selected views
-				XMLControl[] controls = trackerPanel.selectedViewsProperty.getChildControls();
-				for (int i = 0; i < Math.min(controls.length, viewChoosers.length); i++) {
-					if (controls[i] == null)
-						continue;
-					Class<?> viewClass = controls[i].getObjectClass();
-					TView view = viewChoosers[i].getTView(viewClass);
-					if (view != null) {
-						TView tview = viewChoosers[i].getSelectedView();
-						if (view != tview) {
-							viewChoosers[i].setSelectedView(view);
-						}
-						controls[i].loadObject(view);
-					}
-				}
-			}
-			trackerPanel.selectedViewsProperty = null;
-		}
-		// load the views
-		if (hasViews) {
+		if (trackerPanel.customViewsProperty != null) {
+			// load views in array TView[chooserIndex][viewtypeIndex]
 			java.util.List<Object> arrayItems = trackerPanel.customViewsProperty.getPropertyContent();
 			Iterator<Object> it = arrayItems.iterator();
 			while (it.hasNext()) {
 				XMLProperty next = (XMLProperty) it.next();
 				if (next == null)
 					continue;
-				String index = next.getPropertyName().substring(1);
-				index = index.substring(0, index.length() - 1);
-				int i = Integer.parseInt(index);
-				if (i < viewChoosers.length && viewChoosers[i] instanceof TViewChooser) {
-					XMLControl[] elements = next.getChildControls();
-					TViewChooser chooser = (TViewChooser) viewChoosers[i];
-					for (int j = 0; j < elements.length; j++) {
-						Class<?> viewType = elements[j].getObjectClass();
-						TView view = chooser.getTView(viewType);
+				try {
+					String index = next.getPropertyName().substring(1);
+					index = index.substring(0, index.length() - 1);
+					int chooserIndex = Integer.parseInt(index);
+					XMLControl[] viewControls = next.getChildControls();
+					for (int j = 0; j < viewControls.length; j++) {
+						Class<?> viewClass = viewControls[j].getObjectClass();
+						TView view = viewChoosers[chooserIndex].getTView(viewClass);
 						if (view != null) {
-							elements[j].loadObject(view);
-							chooser.setSelectedViewType(view.getViewType());
+							viewControls[j].loadObject(view);
+							viewChoosers[chooserIndex].refresh();
+							viewChoosers[chooserIndex].repaint();	
+//						viewChoosers[chooserIndex].setSelectedViewType(view.getViewType());
 						}
 					}
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
 				}
 			}
-			trackerPanel.customViewsProperty = null;
+			trackerPanel.customViewsProperty = null;			
+		}
+		// select the view types
+		if (trackerPanel.selectedViewTypesProperty != null) {
+			for (Object next: trackerPanel.selectedViewTypesProperty.getPropertyContent()) {
+				String viewTypeString = next.toString();
+				// typical next value:  "<property name="array" type="string">{0,1,2,3}</property>"
+				int n = viewTypeString.indexOf("{");
+				if (n>-1) {
+					viewTypeString = viewTypeString.substring(n+1);
+					try {
+						for (int i = 0; i< viewChoosers.length; i++) {
+							// set selected view types of TViewChoosers only if not default (viewType==i)
+							int viewType = Integer.parseInt(viewTypeString.substring(0, 1));
+							if (viewType != i) {
+								viewChoosers[i].setSelectedViewType(Integer.parseInt(viewTypeString.substring(0, 1)));
+								viewChoosers[i].refresh();
+								viewChoosers[i].repaint();
+							}
+							viewTypeString = viewTypeString.substring(2);
+						}
+					} catch (NumberFormatException e) {
+						e.printStackTrace();
+					}					
+				}
+			}
+			trackerPanel.selectedViewTypesProperty = null;			
+		}
+		if (trackerPanel.selectedViewsProperty != null) {
+			Iterator<Object> it = trackerPanel.selectedViewsProperty.getPropertyContent().iterator();
+			int i = -1;
+			while (it.hasNext() && ++i < viewChoosers.length) {
+				XMLProperty next = (XMLProperty) it.next();
+				if (next == null)
+					continue;
+				String viewName = ((String) next.getPropertyContent().get(0)).toLowerCase();
+				// hack to handle POSSIBLE name matches in pre-JS trk
+				int type = viewName.contains("plot")? TView.VIEW_PLOT:
+					viewName.contains("table")? TView.VIEW_TABLE:
+					viewName.contains("world")? TView.VIEW_WORLD:
+					viewName.contains("page")? TView.VIEW_PAGE: 
+					-1;
+				if (type != i) { // don't select default types (viewType==i)
+					viewChoosers[i].setSelectedViewType(type);
+					viewChoosers[i].refresh();
+					viewChoosers[i].repaint();	
+				}
+			}
+			trackerPanel.selectedViewsProperty = null;
 		}
 		setViews(trackerPanel, viewChoosers);
 		initialize(trackerPanel);
@@ -756,7 +778,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Sets the views for the specified tracker panel.
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @param viewChoosers     an array of up to 4 Container objects (TViewChoosers)
+	 * @param viewChoosers     an array of up to 4 TViewChoosers
 	 */
 	public void setViews(TrackerPanel trackerPanel, TViewChooser[] viewChoosers) {
 		if (viewChoosers == null)
@@ -817,7 +839,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 *
 	 * @param trackerPanel the tracker panel
 	 * @param customOnly   true to return only customized views
-	 * @return TView[][]
+	 * @return TView[4][4], may be null
 	 */
 	public TView[][] getTViews(TrackerPanel trackerPanel, boolean customOnly) {
 		TViewChooser[] choosers = getViewChoosers(trackerPanel);
@@ -859,13 +881,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	/**
-	 * Determines whether a view is open for the specified tracker panel.
+	 * Determines whether a TViewChooser is visible for the specified tracker panel.
 	 *
-	 * @param index        the view index
+	 * @param index the TViewChooser index
 	 * @param trackerPanel the tracker panel
-	 * @return true if it is open
+	 * @return true if it is visible
 	 */
-	public boolean isViewOpen(int index, TrackerPanel trackerPanel) {
+	public boolean isViewPaneVisible(int index, TrackerPanel trackerPanel) {
 		JSplitPane[] panes = getSplitPanes(trackerPanel);
 		double[] locs = new double[panes.length];
 		for (int i = 0; i < panes.length; i++) {
@@ -1046,12 +1068,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				TrackControl.getControl(trackerPanel).refresh();
 				getToolBar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_LOCALE2);
 				getTrackBar(trackerPanel).refresh();
-				// refresh views
-				TViewChooser[] views = getViewChoosers(trackerPanel);
-				for (int j = 0; j < views.length; j++) {
-					if (views[j] instanceof TViewChooser) {
-						((TViewChooser) views[j]).refresh();
-					}
+				// refresh view panes
+				TViewChooser[] choosers = getViewChoosers(trackerPanel);
+				for (int j = 0; j < choosers.length; j++) {
+					choosers[j].refresh();
 				}
 				// refresh autotracker
 				if (trackerPanel.autoTracker != null) {
@@ -1189,7 +1209,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param mainView 
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @return a Container[numberOfViews] array of views
+	 * @return a TViewChooser[numberOfViews] array.
 	 */
 	private static TViewChooser[] createTViews(TrackerPanel trackerPanel) {
 		if (!Tracker.allowViews) {

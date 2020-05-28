@@ -61,8 +61,6 @@ public class TableTView extends TrackChooserTView {
    */
   public TableTView(TrackerPanel panel) {
     super(panel);
-    if (panel == null)
-    	return;
     getColumnsDialog();
   }
 

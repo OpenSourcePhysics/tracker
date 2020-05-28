@@ -110,4 +110,23 @@ public interface TView extends PropertyChangeListener {
 		return false;
 	}
 
+	/**
+	 * Returns true if this view is in a visible pane.
+	 *
+	 * @return false
+	 */
+	default public boolean isViewPaneVisible() {
+		if (getTrackerPanel() == null || getTrackerPanel().getTFrame() == null)
+			return false;
+		TView[][] views = getTrackerPanel().getTFrame().getTViews(getTrackerPanel());
+		for (int i = 0; i < views.length; i++) {
+			for (int j = 0; j < views[i].length; j++) {
+				if (this == views[i][j]) {
+					return getTrackerPanel().getTFrame().isViewPaneVisible(i, getTrackerPanel());
+				}
+			}			
+		}
+		return false;
+	}
+
 }

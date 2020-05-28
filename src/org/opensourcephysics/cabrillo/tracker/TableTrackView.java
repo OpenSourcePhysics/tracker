@@ -210,7 +210,9 @@ public class TableTrackView extends TrackView {
 	public void refresh(int frameNumber) {
 		if (!forceRefresh && !isRefreshEnabled())
 			return;
-		OSPLog.debug("PlotTrackView.refresh");
+		if (!parent.isViewPaneVisible())
+			return;
+		OSPLog.debug("TableTrackView.refresh ");
 		forceRefresh = false;
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		dataTable.clearSelection();

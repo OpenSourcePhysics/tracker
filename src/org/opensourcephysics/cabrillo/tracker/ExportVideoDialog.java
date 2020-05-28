@@ -377,7 +377,7 @@ public class ExportVideoDialog extends JDialog {
   	// add additional open views
     TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
     for (int i = 0; i < choosers.length; i++) {
-      if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
+      if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
         String number = " ("+(i+1)+")"; //$NON-NLS-1$ //$NON-NLS-2$
         TView tview = choosers[i].getSelectedView();
         if (tview!=null && tview.getViewType() == TView.VIEW_WORLD) {

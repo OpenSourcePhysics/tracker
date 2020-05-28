@@ -1579,7 +1579,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		}
 		// add menu items for open views
 		for (int i = 0; i < choosers.length; i++) {
-			if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
+			if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
 				String viewname = null;
 				TView tview = choosers[i].getSelectedView();
 				viewname = tview == null ? TrackerRes.getString("TFrame.View.Unknown")
@@ -2803,7 +2803,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			return dataViews;
 		TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
 		for (int i = 0; i < choosers.length; i++) {
-			if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
+			if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
 				TView tview = choosers[i].getSelectedView();
 				if (tview!=null && tview.getViewType() == TView.VIEW_TABLE) {
 					TableTView tableView = (TableTView) tview;

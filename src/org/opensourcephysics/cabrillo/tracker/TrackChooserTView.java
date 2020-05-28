@@ -481,6 +481,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		TFrame frame;
 		TrackView view;
 		String name = e.getPropertyName();
+		OSPLog.debug("TrackChooserTView.propertyChange "+name);
 		switch (name) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			// track has been added
@@ -545,11 +546,16 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
-		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
-			// video image has changed
+			// step number has changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
 				view.refresh(trackerPanel.getFrameNumber());
 			}
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
+			// video image has changed
+//			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
+//				view.refresh(trackerPanel.getFrameNumber());
+//			}
 			break;
 		case TTrack.PROPERTY_TTRACK_COLOR:
 		case TTrack.PROPERTY_TTRACK_NAME:

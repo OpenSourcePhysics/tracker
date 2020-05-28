@@ -233,15 +233,33 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	}
 
 	/**
-	 * Gets the view of the specified class. May return null.
+	 * Gets the view of the specified class. Will create view if none exists.
 	 *
-	 * @param c the view class
+	 * @param c class PlotTView, TableTView, WorldTView, PageTView
 	 * @return the view
 	 */
 	public TView getTView(Class<?> c) {
+		// look for existing view
 		for (TView view : tViews) {
 			if (view != null && view.getClass() == c)
 				return view;
+		}
+		// create new view
+		if (PlotTView.class == c) {
+			tViews[TView.VIEW_PLOT] = new PlotTView(trackerPanel);
+			return tViews[TView.VIEW_PLOT];
+		}
+		if (TableTView.class == c) {
+			tViews[TView.VIEW_TABLE] = new TableTView(trackerPanel);
+			return tViews[TView.VIEW_TABLE];
+		}
+		if (WorldTView.class == c) {
+			tViews[TView.VIEW_WORLD] = new WorldTView(trackerPanel);
+			return tViews[TView.VIEW_WORLD];
+		}
+		if (PageTView.class == c) {
+			tViews[TView.VIEW_PAGE] = new PageTView(trackerPanel);
+			return tViews[TView.VIEW_PAGE];
 		}
 		return null;
 	}
@@ -265,7 +283,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	}
 
 	/**
-	 * Selects the specified view
+	 * Selects a view
 	 *
 	 * @param view the view to select
 	 */
@@ -341,6 +359,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
+		OSPLog.debug("TViewChooser.propertyChange "+name);
 		switch (name) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:

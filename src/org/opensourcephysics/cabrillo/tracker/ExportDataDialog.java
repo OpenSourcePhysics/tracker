@@ -309,7 +309,7 @@ public class ExportDataDialog extends JDialog {
     TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
     boolean hasSelection = false;
     for (int i = 0; i < choosers.length; i++) {
-      if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
+      if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
       	String number = " ("+(i+1)+")"; //$NON-NLS-1$ //$NON-NLS-2$
         TView view = choosers[i].getSelectedView();
         if (view.getViewType() == TView.VIEW_TABLE) {
