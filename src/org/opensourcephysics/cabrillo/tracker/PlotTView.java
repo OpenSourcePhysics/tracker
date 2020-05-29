@@ -24,8 +24,6 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.ArrayList;
-
 import javax.swing.*;
 
 import org.opensourcephysics.controls.XML;

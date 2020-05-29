@@ -2326,7 +2326,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					refreshDrawingFlags();
 					erase();
 					TFrame.repaintT(trackerPanel);
-					OSPLog.debug("pig timer ");
 				}
 			});
 			timer.setInitialDelay(delay);

@@ -85,7 +85,6 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		}
 		trackerPanel = panel;
 		init();
-		OSPLog.debug("TrackChooserTView ??? " + this);
 		setBackground(panel.getBackground());
 		// create combobox with custom renderer for tracks
 		dropdown = new JComboBox<Object>() {
@@ -479,7 +478,6 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		TFrame frame;
 		TrackView view;
 		String name = e.getPropertyName();
-		OSPLog.debug("TrackChooserTView.propertyChange "+name);
 		switch (name) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			// track has been added

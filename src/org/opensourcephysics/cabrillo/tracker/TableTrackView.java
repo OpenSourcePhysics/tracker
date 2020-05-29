@@ -211,7 +211,6 @@ public class TableTrackView extends TrackView {
 			return;
 		if (!parent.isViewPaneVisible())
 			return;
-		OSPLog.debug("TableTrackView.refresh ");
 		forceRefresh = false;
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		dataTable.clearSelection();

@@ -341,9 +341,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				tabbedPane.setTitleAt(tab, name);
 				tabbedPane.setToolTipTextAt(tab, trackerPanel.getToolTipPath());
 			}
-			OSPLog.debug("TFrame.addTab existing tab " +tab);
 		} else {
-			OSPLog.debug("TFrame.addTab new tab");
 			setIgnoreRepaint(true);
 			// tab does not already exist
 			// listen for changes that affect tab title
@@ -2034,7 +2032,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		tabbedPane.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				OSPLog.debug("TFrame state changed " + e.getSource().getClass().getName());
 				TrackerPanel newPanel = null;
 				TrackerPanel oldPanel = prevPanel;
 
@@ -2758,17 +2755,33 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		
 		paintHold = 0;
 	}
+	
 
+	/**
+	 * Adds a component to those following this frame. When the frame is displaced
+	 * the component will be displaced equally.
+	 *  
+	 * @param c the component
+	 * @param pt0 the initial location of this frame
+	 * 
+	 */
 	public void addFollower(Component c, Point pt0) {
 		addComponentListener(new ComponentAdapter() {
 		    @Override
 			public void componentMoved(ComponentEvent e) {
-		    	Point p = c.getLocation();
-		    	Point fp = getLocation();
-		    	p.x = (fp.x - pt0.x);
-		    	p.y = (fp.y - pt0.y);
-		    	c.setLocation(p);
-		    }
+		    // determine displacement
+	    	Point fp = getLocation();
+	    	int dx = fp.x - pt0.x;
+	    	int dy = fp.y - pt0.y;
+	    	// set pt0 to current location
+	    	pt0.x = fp.x;
+	    	pt0.y = fp.y;
+	    	// displace c
+	    	Point p = c.getLocation();
+	    	p.x += dx;
+	    	p.y += dy;
+	    	c.setLocation(p);
+	    }
 		});
 	}
 

@@ -118,7 +118,7 @@ import javajs.async.SwingJSUtils.Performance;
 @SuppressWarnings("serial")
 public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
-	public static boolean allowDataRefresh = !OSPRuntime.isBHTest;
+	public static boolean allowDataRefresh = true; // !OSPRuntime.isBHTest;
 	public static boolean allowViews = true;//!OSPRuntime.isBHTest;
 	public static boolean allowMenuRefresh = true;
 

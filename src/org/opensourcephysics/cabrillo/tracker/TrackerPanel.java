@@ -451,6 +451,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			} catch (Exception ex) {
 				/** empty block */
 			}
+			TFrame frame = getTFrame();
+			if (frame != null) {
+				frame.addFollower(modelBuilder, frame.getLocation());
+			}
+
 		}
 		return modelBuilder;
 	}
@@ -1824,7 +1829,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected void refreshTrackData() {
 		// turn on autorefresh
 		OSPLog.debug("TrackerPanel.refreshTrackData " + Tracker.allowDataRefresh);
-		boolean auto = getAutoRefresh();
+		boolean auto = isAutoRefresh;
 		isAutoRefresh = true;
 		firePropertyChange(PROPERTY_TRACKERPANEL_TRANSFORM, null, null); 
 		isAutoRefresh = auto;
@@ -3918,7 +3923,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	}
 
-	public boolean getAutoRefresh() {
+	public boolean isAutoRefresh() {
 		return isAutoRefresh && Tracker.allowDataRefresh;
 	}
 
