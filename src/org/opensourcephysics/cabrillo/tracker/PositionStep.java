@@ -371,8 +371,8 @@ public class PositionStep extends Step {
 					track.markInterpolatedSteps(PositionStep.this, true);
 				}
 				track.updateDerivatives(n);
+				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 			}
-			track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 		}
 
 		/**
