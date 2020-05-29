@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
 import java.lang.reflect.Constructor;
-import java.rmi.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -1110,12 +1109,8 @@ public class TableTrackView extends TrackView {
 				tool.setUseChooser(false);
 				tool.setSaveChangesOnClose(false);
 				DataRefreshTool refresher = DataRefreshTool.getTool(data);
-				try {
-					tool.send(new LocalJob(toSend), refresher);
-					tool.setVisible(true);
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
+				tool.send(new LocalJob(toSend), refresher);
+				tool.setVisible(true);
 			}
 		});
 		// add print item

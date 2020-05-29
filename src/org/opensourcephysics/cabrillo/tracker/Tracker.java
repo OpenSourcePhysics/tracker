@@ -42,9 +42,6 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.lang.reflect.Constructor;
 import java.net.URL;
-import java.rmi.Remote;
-import java.rmi.RemoteException;
-import java.rmi.registry.Registry;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -99,7 +96,6 @@ import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
-import org.opensourcephysics.media.core.DataTrackSupport;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.mov.MovieFactory;
@@ -226,9 +222,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static Collection<String> initialAutoloadSearchPaths = new TreeSet<String>();
 	static Map<String, ArrayList<XMLControl>> dataFunctionControls = new TreeMap<String, ArrayList<XMLControl>>();
 	static java.io.FileFilter xmlFilter;
-	static Registry registry; // used for RMI communication with EJS
-	static DataTrackTool dataTrackTool; // used for RMI communication with EJS
-	static boolean toolRegistered, toolNotFound;
 
 	// user-settable preferences saved/loaded by Preferences class
 	static Level preferredLogLevel = DEFAULT_LOG_LEVEL;
@@ -723,11 +716,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			}
 		}
 
-		// unregister the DataTrackTool and inform RMI clients
-		if (dataTrackTool != null) { // BH 2020.02.09 not in JavaScript
-			dataTrackTool.trackerExiting();
-			unregisterRemoteTool(dataTrackTool);
-		}
 		// exit the system if frame wishes to exit
 		if (doClose) {
 			System.exit(0);
@@ -1973,21 +1961,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		if (!OSPRuntime.isJS) /** @j2sNative */
-		{
-			// create and register DataTrackTool
-			Runnable runner = new Runnable() {
-				@Override
-				public void run() {
-					try {
-						dataTrackTool = new DataTrackTool(frame);
-						registerRemoteTool(dataTrackTool);
-					} catch (RemoteException e) {
-					}
-				}
-			};
-			new Thread(runner).start();
-		}
 		LaunchNode node = Launcher.activeNode;
 		if (node != null) {
 			frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
@@ -2176,87 +2149,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			Calendar cal = Calendar.getInstance();
 			OSPLog.info(sdf.format(cal.getTime()) + ": " + message); //$NON-NLS-1$
 		}
-	}
-
-	/**
-	 * Registers a Remote tool with the RMI registry.
-	 * 
-	 * @param remoteTool the Remote
-	 * @return true if successfully registered
-	 */
-	protected static boolean registerRemoteTool(Remote remoteTool) {
-		final String toolname = remoteTool.getClass().getSimpleName();
-
-//		// create thread to see if registry is running and tool registered
-//    Thread registryThread = new Thread() {
-//      public void run() {
-//        toolRegistered = false;
-//      	toolNotFound = false;
-//        try { 
-//          registry = java.rmi.registry.LocateRegistry.getRegistry(DataTrackSupport.PORT);
-//          registry.lookup(toolname);
-//	        toolRegistered = true;
-//        }
-//        catch (Exception exc) {
-//        	toolNotFound = true;
-//        }       	
-//      }      
-//    };
-//    
-//    // start thread and check every half-second to see if completed
-//    registryThread.setPriority(Thread.NORM_PRIORITY);
-//    registryThread.start();
-//    int attempts = 0;
-//    int maxAttempts = 8;
-//    while (attempts<=maxAttempts) {
-//      attempts++;
-//      if (toolRegistered || toolNotFound) {
-//        break;
-//      }
-//      try { Thread.sleep(500); }
-//      catch(Exception exc) {}
-//    }
-//    if (toolRegistered) {
-//      OSPLog.finest("Registry thread found registered tool "+toolname); //$NON-NLS-1$
-//    	return true;
-//    }
-//    
-//    OSPLog.finest("Killing registry thread and registering tool "+toolname); //$NON-NLS-1$
-//    registryThread.interrupt();
-
-		// register tool
-		try {
-			// create registry if needed
-			if (registry == null) {
-				registry = java.rmi.registry.LocateRegistry.createRegistry(DataTrackSupport.PORT);
-			}
-			registry.rebind(toolname, remoteTool);
-			OSPLog.fine(toolname + " successfully registered"); //$NON-NLS-1$
-			return true;
-		} catch (Exception ex) {
-			OSPLog.warning(ex.getMessage());
-		}
-		return false;
-	}
-
-	/**
-	 * Unregisters a Remote tool with the RMI registry.
-	 * 
-	 * @param remoteTool the Remote
-	 * @return true if successfully unregistered
-	 */
-	protected static boolean unregisterRemoteTool(Remote remoteTool) {
-		if (registry == null || remoteTool == null)
-			return false;
-		try {
-			String name = remoteTool.getClass().getSimpleName();
-			registry.unbind(name);
-			OSPLog.fine(name + " successfully unregistered"); //$NON-NLS-1$
-			return true;
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return false;
 	}
 
 	/**

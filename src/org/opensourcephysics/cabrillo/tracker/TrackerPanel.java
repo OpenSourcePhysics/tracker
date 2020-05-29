@@ -48,7 +48,6 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -3741,11 +3740,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			final DataRefreshTool refresher = DataRefreshTool.getTool(data);
 			DatasetManager toSend = new DatasetManager();
 			toSend.setID(data.getID());
-			try {
-				tab.send(new LocalJob(toSend), refresher);
-			} catch (RemoteException ex) {
-				ex.printStackTrace();
-			}
+			tab.send(new LocalJob(toSend), refresher);
 
 			// set the tab column IDs to the track data IDs and add track data to the
 			// refresher

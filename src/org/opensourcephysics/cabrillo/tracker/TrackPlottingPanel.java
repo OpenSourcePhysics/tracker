@@ -29,7 +29,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Constructor;
-import java.rmi.RemoteException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -205,11 +204,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	@Override
 	public void send(Job job, Tool replyTo) {
 		XMLControlElement control = new XMLControlElement();
-		try {
-			control.readXML(job.getXML());
-		} catch (RemoteException ex) {
-			ex.printStackTrace();
-		}
+		control.readXML(job.getXML());
 		ArrayList<Dataset> datasets = this.getObjectOfClass(Dataset.class);
 		Iterator<Dataset> it = control.getObjects(Dataset.class).iterator();
 		while (it.hasNext()) {
@@ -681,16 +676,12 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 						}
 					}
 					// get data tool and send it the job
-					try {
-						tool.send(new LocalJob(toSend), refresher);
-						tab = tool.getTab(toSend);
-						if (tab != null) {
-							tab.setWorkingColumns(xColName, yColName);
-						}
-						tool.setVisible(true);
-					} catch (RemoteException ex) {
-						ex.printStackTrace();
+					tool.send(new LocalJob(toSend), refresher);
+					tab = tool.getTab(toSend);
+					if (tab != null) {
+						tab.setWorkingColumns(xColName, yColName);
 					}
+					tool.setVisible(true);
 				}
 			});
 			// algorithm item
