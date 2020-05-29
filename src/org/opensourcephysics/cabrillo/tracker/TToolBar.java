@@ -600,7 +600,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				int i = FontSizer.getLevel();
 				FontSizer.setLevel(i - 1);
-				fontSmallerButton.setEnabled(FontSizer.getLevel() > 0);
+				fontSmallerButton.setEnabled(FontSizer.getLevel() > FontSizer.MIN_LEVEL);
 				fontBiggerButton.setEnabled(FontSizer.getLevel() < FontSizer.MAX_LEVEL);
 			}
 		});
@@ -611,7 +611,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				int i = FontSizer.getLevel();
 				FontSizer.setLevel(i + 1);
-				fontSmallerButton.setEnabled(FontSizer.getLevel() > 0);
+				fontSmallerButton.setEnabled(FontSizer.getLevel() > FontSizer.MIN_LEVEL);
 				fontBiggerButton.setEnabled(FontSizer.getLevel() < FontSizer.MAX_LEVEL);
 			}
 		});
@@ -998,7 +998,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 		}
 		setMenuText();
-		fontSmallerButton.setEnabled(FontSizer.getLevel() > 0);
+		fontSmallerButton.setEnabled(FontSizer.getLevel() > FontSizer.MIN_LEVEL);
 		fontBiggerButton.setEnabled(FontSizer.getLevel() < FontSizer.MAX_LEVEL);
 		if (trackerPanel.getPlayer() != null) {
 			VideoClip clip = trackerPanel.getPlayer().getVideoClip();

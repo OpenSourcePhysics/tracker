@@ -358,7 +358,7 @@ public class TActions {
 					trackerPanel.setSelectedTrack(axes);
 				else if (!visible && trackerPanel.getSelectedTrack() == axes)
 					trackerPanel.setSelectedTrack(null);
-				TFrame.repaintT(trackerPanel);
+//				TFrame.repaintT(trackerPanel);
 			}
 		};
 		actions.put("axesVisible", axesVisibleAction); //$NON-NLS-1$
