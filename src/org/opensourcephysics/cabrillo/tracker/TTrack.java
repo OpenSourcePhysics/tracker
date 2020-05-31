@@ -3338,7 +3338,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		@Override
 		public void paintComponent(Graphics g) {
 			setPixelScale(); // sets the pixel scale and the world-to-pixel AffineTransform
-			((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+			if (OSPRuntime.setRenderingHints) ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 					RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			textLine.draw(this, g);
 			if (w == -1) {

@@ -131,15 +131,16 @@ abstract public class ParticleModel extends PointMass {
 	public void drawMe(DrawingPanel panel, Graphics _g) {
 		// position and show model builder if requested during loading
 		if (inspectorX != Integer.MIN_VALUE && trackerPanel != null && trackerPanel.getTFrame() != null) {
-			positionModelBuilder();
-			if (showModelBuilder)
+			if (showModelBuilder) {
 				SwingUtilities.invokeLater(new Runnable() {
 					@Override
 					public void run() {
+						positionModelBuilder();
 						showModelBuilder = false;
 						modelBuilder.setVisible(true);
 					}
 				});
+			}
 		}
 		if (isVisible() && isTraceVisible()) {
 			// draw trace only if fixed coords & (non-worldview or no ref frame)
