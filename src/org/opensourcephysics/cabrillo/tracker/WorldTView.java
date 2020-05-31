@@ -46,13 +46,15 @@ import org.opensourcephysics.controls.XMLControl;
 @SuppressWarnings("serial")
 public class WorldTView extends TrackerPanel implements TView {
 
+  protected static final Icon WORLDVIEW_ICON =  new ImageIcon(
+      Tracker.getClassResource("resources/images/axes.gif")); //$NON-NLS-1$;
+
 	// instance fields
 	protected TrackerPanel trackerPanel;
-	protected Icon icon;
 	protected JMenuItem copyImageItem;
 	protected JMenuItem printItem;
 	protected JMenuItem helpItem;
-	protected JButton worldViewButton;
+  protected JLabel worldViewLabel;
 	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
 
 	/**
@@ -70,10 +72,10 @@ public class WorldTView extends TrackerPanel implements TView {
 		setDrawingInImageSpace(false);
 		setPreferredSize(new Dimension(240, 180));
 		setShowCoordinates(false);
-		icon = new ImageIcon(Tracker.getClassResource("resources/images/axes.gif")); //$NON-NLS-1$
 		// world view button
-		worldViewButton = new TButton();
-		toolbarComponents.add(worldViewButton);
+    worldViewLabel = new JLabel();
+    worldViewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
+    toolbarComponents.add(worldViewLabel);
 		// copy image item
 		Action copyImageAction = new AbstractAction() {
 			@Override
@@ -140,7 +142,7 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	@Override
 	public void refresh() {
-		worldViewButton.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
+  	worldViewLabel.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
 		// axes & tape items
 		CoordAxes axes = trackerPanel.getAxes();
 		if (axes != null) {
@@ -212,8 +214,6 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	@Override
 	public void dispose() {
-		if (trackerPanel == null)
-			return;
 		cleanup();
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("radian_angles", this); //$NON-NLS-1$
@@ -286,7 +286,17 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	@Override
 	public Icon getViewIcon() {
-		return icon;
+    return WORLDVIEW_ICON;
+	}
+
+	/**
+	 * Gets the type of view
+	 *
+	 * @return one of the defined types
+	 */
+	@Override
+	public int getViewType() {
+		return TView.VIEW_WORLD;
 	}
 
 	/**
@@ -296,7 +306,7 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	@Override
 	public ArrayList<Component> getToolBarComponents() {
-		worldViewButton.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
+  	worldViewLabel.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
 		return toolbarComponents;
 	}
 
@@ -494,8 +504,4 @@ public class WorldTView extends TrackerPanel implements TView {
 		}
 	}
 
-	@Override
-	public int getType() {
-		return VIEW_WORLD;
-	}
 }

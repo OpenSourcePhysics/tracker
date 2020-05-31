@@ -257,7 +257,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	private JMenuItem video_checkDurationsItem;
 	private JMenuItem video_emptyVideoItem;
 	// tracks menu
-	private JMenu tracksMenu;
+	private JMenu trackMenu;
 	private JMenu track_createMenu;
 	private JMenu track_cloneMenu;
 	private JMenu popupTracksMenu;
@@ -283,7 +283,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	private JMenu track_newDataTrackMenu;
 	private JMenuItem track_newDataTrackPasteItem;
 	private JMenuItem track_newDataTrackFromFileItem;
-	private JMenuItem track_newDataTrackFromEJSItem;
 	private JMenuItem track_dataTrackHelpItem;
 	private JMenuItem track_emptyTracksItem;
 	// coords menu
@@ -434,7 +433,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			refreshCoordsMenu(true);
 			break;
 		case "tracks":
-			refreshTracksMenu(true, tracksMenu.getPopupMenu());
+			refreshTrackMenu(true, trackMenu.getPopupMenu());
 			break;
 		case "window":
 			refreshWindowMenu(true);
@@ -643,13 +642,13 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		// printFrame item
 		file_printFrameItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.PrintFrame")); //$NON-NLS-1$
 		file_printFrameItem.setAccelerator(KeyStroke.getKeyStroke('P', keyMask));
-		file_printFrameItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Component c = trackerPanel.getTFrame();
-				new TrackerIO.ComponentImage(c).print();
-			}
-		});
+//		file_printFrameItem.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				Component c = trackerPanel.getTFrame();
+//				new TrackerIO.ComponentImage(c).print();
+//			}
+//		});
 		// exit item
 		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
 			file_exitItem = new JMenuItem(actions.get("exit")); //$NON-NLS-1$
@@ -1246,9 +1245,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	}
 
 	private void createTracksMenu(int keyMask) {
-		tracksMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Tracks")); //$NON-NLS-1$
+		trackMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Tracks")); //$NON-NLS-1$
 		popupTracksMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Tracks")); //$NON-NLS-1$
-		tracksMenu.setName("tracks");
+		trackMenu.setName("tracks");
 		
 // for debugging only
 //		trackMenu.setModel(new DefaultButtonModel() {
@@ -1258,10 +1257,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 //			}
 //			
 //		});
-		tracksMenu.addMenuListener(this);
+		trackMenu.addMenuListener(this);
 
 		// temporary, so at least it opens
-		tracksMenu.addSeparator();
+		trackMenu.addSeparator();
 
 		// axes visible item
 		track_axesVisibleItem = new JCheckBoxMenuItem(actions.get("axesVisible")); //$NON-NLS-1$
@@ -1279,8 +1278,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		track_newDataTrackMenu = new JMenu(TrackerRes.getString("ParticleDataTrack.Name")); //$NON-NLS-1$
 		track_newDataTrackFromFileItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.DataFile") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		track_newDataTrackFromFileItem.addActionListener(actions.get("dataTrack")); //$NON-NLS-1$
-		track_newDataTrackFromEJSItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.EJS") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-		track_newDataTrackFromEJSItem.addActionListener(actions.get("dataTrackFromEJS")); //$NON-NLS-1$
 		track_newDataTrackPasteItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Clipboard")); //$NON-NLS-1$
 		track_newDataTrackPasteItem.addActionListener(actions.get("paste")); //$NON-NLS-1$
 		track_dataTrackHelpItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.DataTrackHelp")); //$NON-NLS-1$
@@ -1310,7 +1307,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		track_measuringToolsMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.MeasuringTools")); //$NON-NLS-1$
 		track_emptyTracksItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.Empty")); //$NON-NLS-1$
 		track_emptyTracksItem.setEnabled(false);
-		add(tracksMenu);
+		add(trackMenu);
 	}
 
 	private void createWindowMenu(int keyMask) {
@@ -1411,41 +1408,27 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				// send some data to the tool
 				boolean sent = false;
 				TView[][] views = getFrame().getTViews(trackerPanel);
-				String[] selectedViews = getFrame().getSelectedTViews(trackerPanel);
-				for (int i = 0; i < selectedViews.length; i++) {
-					String s = selectedViews[i];
-					if (s != null && s.toLowerCase().startsWith("plot") && i < views.length) { //$NON-NLS-1$
-						TView[] next = views[i];
-						for (TView view : next) {
-							if (view instanceof PlotTView) {
-								PlotTView v = (PlotTView) view;
-								TrackView trackView = v.getTrackView(v.getSelectedTrack());
-								PlotTrackView plotView = (PlotTrackView) trackView;
-								if (plotView != null) {
-									for (TrackPlottingPanel plot : plotView.getPlots()) {
-										plot.dataToolItem.doClick();
-										sent = true;
-									}
-								}
+				int[] selectedTypes = getFrame().getSelectedViewTypes(trackerPanel);
+				for (int i = 0; i < selectedTypes.length; i++) {
+					if (selectedTypes[i] == TView.VIEW_PLOT) { //$NON-NLS-1$
+						PlotTView v = (PlotTView) views[i][TView.VIEW_PLOT];						
+						PlotTrackView plotView = (PlotTrackView) v.getTrackView(v.getSelectedTrack());
+						if (plotView != null) {
+							for (TrackPlottingPanel plot : plotView.getPlots()) {
+								plot.dataToolItem.doClick();
+								sent = true;
 							}
 						}
 					}
 				}
 				// no plot views were visible, so look for table views
 				if (!sent) {
-					for (int i = 0; i < selectedViews.length; i++) {
-						String s = selectedViews[i];
-						if (s != null && s.toLowerCase().startsWith("table") && i < views.length) { //$NON-NLS-1$
-							TView[] next = views[i];
-							for (TView view : next) {
-								if (view instanceof TableTView) {
-									TableTView v = (TableTView) view;
-									TrackView trackView = v.getTrackView(v.getSelectedTrack());
-									TableTrackView tableView = (TableTrackView) trackView;
-									if (tableView != null) {
-										tableView.dataToolItem.doClick();
-									}
-								}
+					for (int i = 0; i < selectedTypes.length; i++) {
+						if (selectedTypes[i] == TView.VIEW_TABLE) { //$NON-NLS-1$
+							TableTView v = (TableTView) views[i][TView.VIEW_TABLE];
+							TableTrackView tableView = (TableTrackView) v.getTrackView(v.getSelectedTrack());
+							if (tableView != null) {
+								tableView.dataToolItem.doClick();
 							}
 						}
 					}
@@ -1573,18 +1556,18 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		// DB copyImageMenu needs refresh only when a view has been
 		// opened/closed/changed
 		edit_copyImageMenu.remove(edit_copyFrameImageItem);
-		final Container[] views = trackerPanel.getTFrame().getViewContainers(trackerPanel);
+		final TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
 		// check that array size is correct and if not, make new menu items
-		if (edit_copyViewImageItems.length != views.length) {
+		if (edit_copyViewImageItems.length != choosers.length) {
 			Action copyView = new AbstractAction() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					int i = Integer.parseInt(e.getActionCommand());
-					new TrackerIO.ComponentImage(views[i]).copyToClipboard();
+					new TrackerIO.ComponentImage(choosers[i]).copyToClipboard();
 				}
 			};
-			edit_copyViewImageItems = new JMenuItem[views.length];
-			for (int i = 0; i < views.length; i++) {
+			edit_copyViewImageItems = new JMenuItem[choosers.length];
+			for (int i = 0; i < choosers.length; i++) {
 				edit_copyViewImageItems[i] = new JMenuItem();
 				String command = String.valueOf(i);
 				edit_copyViewImageItems[i].setActionCommand(command);
@@ -1592,16 +1575,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 		}
 		// add menu items for open views
-		for (int i = 0; i < views.length; i++) {
-			if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
+		for (int i = 0; i < choosers.length; i++) {
+			if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
 				String viewname = null;
-				if (views[i] instanceof TViewChooser) {
-					TViewChooser chooser = (TViewChooser) views[i];
-					TView tview = chooser.getSelectedView();
-					viewname = tview == null ? TrackerRes.getString("TFrame.View.Unknown")
-							: tview.getViewName();
-				} else
-					viewname = TrackerRes.getString("TFrame.View.Unknown"); //$NON-NLS-1$
+				TView tview = choosers[i].getSelectedView();
+				viewname = tview == null ? TrackerRes.getString("TFrame.View.Unknown")
+						: tview.getViewName();
 				edit_copyViewImageItems[i].setText(viewname + " (" + (i + 1) + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 				String command = String.valueOf(i);
 				edit_copyViewImageItems[i].setActionCommand(command);
@@ -1626,6 +1605,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	protected JMenu createTrackMenu(TTrack track) {
 		JMenu menu = track.getMenu(trackerPanel, null);
 		menu.setName("track");
+
 		ImageCoordSystem coords = trackerPanel.getCoords();
 		if (coords.isLocked() && coords instanceof ReferenceFrame
 				&& track == ((ReferenceFrame) coords).getOriginTrack()) {
@@ -2180,7 +2160,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 
 	}
 	
-	protected void refreshTracksMenu(boolean opening, JPopupMenu target) {
+	protected void refreshTrackMenu(boolean opening, JPopupMenu target) {
 		
 		//long t0 = Performance.now(0);
 
@@ -2191,16 +2171,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			CoordAxes axes = trackerPanel.getAxes();
 			TTrack track = trackerPanel.getSelectedTrack();
 			// refresh track menu
-			tracksMenu.removeAll();
+			trackMenu.removeAll();
 			track_cloneMenu.removeAll();
 			enabledCount = refreshTracksCreateMenu(track_createMenu, enabledCount);
 			if (track_createMenu.getItemCount() > 0)
-				tracksMenu.add(track_createMenu);
+				trackMenu.add(track_createMenu);
 			if (hasTracks && trackerPanel.isEnabled("new.clone")) //$NON-NLS-1$
-				tracksMenu.add(track_cloneMenu);
+				trackMenu.add(track_cloneMenu);
 
-			if (hasTracks && tracksMenu.getItemCount() > 0)
-				tracksMenu.addSeparator();
+			if (hasTracks && trackMenu.getItemCount() > 0)
+				trackMenu.addSeparator();
 			
 			PointMass originTrack = getOriginTrack();
 			
@@ -2242,7 +2222,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				
 				// add each track's submenu to track menu
 								
-				tracksMenu.add(createTrackMenu(track));
+				trackMenu.add(createTrackMenu(track));
 			
 			}
 			// add axes and calibration tools to track menu
@@ -2251,8 +2231,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					|| trackerPanel.isEnabled("calibration.tape") //$NON-NLS-1$
 					|| trackerPanel.isEnabled("calibration.points") //$NON-NLS-1$
 					|| trackerPanel.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
-				if (tracksMenu.getItemCount() > 0)
-					tracksMenu.addSeparator();
+				boolean needsSeparator = trackMenu.getItemCount() > 0;
 				if (axes != null && trackerPanel.isEnabled("button.axes")) { //$NON-NLS-1$
 					track = axes;
 					track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); 
@@ -2275,23 +2254,27 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 								continue;
 							next.removePropertyChangeListener("locked", this); //$NON-NLS-1$
 							next.addPropertyChangeListener("locked", this); //$NON-NLS-1$
-							tracksMenu.add(createTrackMenu(next));
+							if (needsSeparator) {
+								trackMenu.addSeparator();
+								needsSeparator = false;
+							}
+							trackMenu.add(createTrackMenu(next));
 						}
 					}
 				}
 			}
-			if (tracksMenu.getItemCount() == 0) {
-				tracksMenu.add(track_emptyTracksItem);
+			if (trackMenu.getItemCount() == 0) {
+				trackMenu.add(track_emptyTracksItem);
 			}
 			setMenuTainted(MENU_TRACK, false);
-			tracksMenuItems = tracksMenu.getMenuComponents();			
+			tracksMenuItems = trackMenu.getMenuComponents();			
 		}
 		if (opening) {
-			// could be tracksMenu or the toolbar Create popup
-			if (tracksMenu.getMenuComponentCount() == 0) {
+			// could be trackMenu or the toolbar Create popup
+			if (trackMenu.getMenuComponentCount() == 0) {
 				// no update was necessary; this must be due to popup menu stealing the items
 				for (int i = 0; i < tracksMenuItems.length; i++) {
-					tracksMenu.add(tracksMenuItems[i]);
+					trackMenu.add(tracksMenuItems[i]);
 				}
 			}
 			
@@ -2299,7 +2282,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				if (track_createMenu.getMenuComponentCount() > 0)
 					target.add(track_createMenu, 0);
 				if (hasTracks && trackerPanel.isEnabled("new.clone")) //$NON-NLS-1$
-					tracksMenu.add(track_cloneMenu, 1);
+					trackMenu.add(track_cloneMenu, 1);
 			}
 
 			// disable newDataTrackPasteItem unless pastable data is on the clipboard
@@ -2332,7 +2315,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				break;
 			case MENU_TRACK:
 				jc = setNextTrackMenuText(track_cloneMenu, jc, trackName);
-				jt = setNextTrackMenuText(tracksMenu, jt, trackName);
+				jt = setNextTrackMenuText(trackMenu, jt, trackName);
 				break;
 			case MENU_COORDS:
 				if (track instanceof PointMass) {
@@ -2418,7 +2401,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					menu.add(track_newDataTrackMenu);
 					track_newDataTrackMenu.removeAll();
 					track_newDataTrackMenu.add(track_newDataTrackFromFileItem);
-					track_newDataTrackMenu.add(track_newDataTrackFromEJSItem);
 					track_newDataTrackMenu.add(track_newDataTrackPasteItem);
 					track_newDataTrackMenu.addSeparator();
 					track_newDataTrackMenu.add(track_dataTrackHelpItem);
@@ -2491,14 +2473,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// rebuild window menu
 			windowMenu.removeAll();
 			boolean maximized = false;
-			Container[] views = frame.getViewContainers(trackerPanel);
-			for (int i = 0; i < views.length; i++) {
-				if (views[i] instanceof TViewChooser) {
-					TViewChooser chooser = (TViewChooser) views[i];
-					if (chooser.maximized) {
-						maximized = true;
-						break;
-					}
+			TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
+			for (int i = 0; i < choosers.length; i++) {
+				if (choosers[i].maximized) {
+					maximized = true;
+					break;
 				}
 			}
 			if (maximized) {
@@ -2658,7 +2637,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 						TView[][] views = frame.getTViews(panel);
 						for (TView[] next : views) {
 							for (TView view : next) {
-								if (view instanceof PlotTView) {
+								if (view != null && view.getViewType() == TView.VIEW_PLOT) {
 									PlotTView v = (PlotTView) view;
 									TrackView trackView = v.getTrackView(v.getSelectedTrack());
 									PlotTrackView plotView = (PlotTrackView) trackView;
@@ -2822,21 +2801,18 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		TreeMap<Integer, TableTrackView> dataViews = new TreeMap<Integer, TableTrackView>();
 		if (trackerPanel.getTFrame() == null)
 			return dataViews;
-		Container[] c = trackerPanel.getTFrame().getViewContainers(trackerPanel);
-		for (int i = 0; i < c.length; i++) {
-			if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
-				if (c[i] instanceof TViewChooser) {
-					TViewChooser chooser = (TViewChooser) c[i];
-					TView tview = chooser.getSelectedView();
-					if (tview!=null && tview instanceof TableTView) {
-						TableTView tableView = (TableTView) tview;
-						TTrack track = tableView.getSelectedTrack();
-						if (track != null) {
-							for (Step step : track.getSteps()) {
-								if (step != null) {
-									TableTrackView trackView = (TableTrackView) tableView.getTrackView(track);
-									dataViews.put(i + 1, trackView);
-								}
+		TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
+		for (int i = 0; i < choosers.length; i++) {
+			if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
+				TView tview = choosers[i].getSelectedView();
+				if (tview!=null && tview.getViewType() == TView.VIEW_TABLE) {
+					TableTView tableView = (TableTView) tview;
+					TTrack track = tableView.getSelectedTrack();
+					if (track != null) {
+						for (Step step : track.getSteps()) {
+							if (step != null) {
+								TableTrackView trackView = (TableTrackView) tableView.getTrackView(track);
+								dataViews.put(i + 1, trackView);
 							}
 						}
 					}
@@ -2919,7 +2895,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	 * @return the popup
 	 */
 	protected JPopupMenu refreshTracksPopup(JPopupMenu newPopup) {
-		refreshTracksMenu(true, newPopup);
+		refreshTrackMenu(true, newPopup);
 		newPopup.removeAll();
 		// this will remove these menus from trackMenu
 		newPopup.add(track_createMenu);
@@ -2939,7 +2915,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				popup.add(popupVideoFiltersMenu);
 			}
 		}
-		refreshTracksMenu(true, tracksMenu.getPopupMenu());
+		refreshTrackMenu(true, trackMenu.getPopupMenu());
 		addItems(popupTracksMenu, tracksMenuItems);
 		popup.addSeparator();
 		popup.add(popupTracksMenu);

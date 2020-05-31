@@ -103,8 +103,10 @@ import javajs.async.AsyncFileChooser;
  */
 public class PageTView extends JPanel implements TView {
 
+  protected static final Icon PAGEVIEW_ICON =  new ImageIcon(
+      Tracker.getClassResource("resources/images/html.gif")); //$NON-NLS-1$;
+
 	// instance fields
-	protected Icon icon;
 	protected TrackerPanel trackerPanel;
 	protected ArrayList<TabView> tabs = new ArrayList<TabView>();
 	protected JTabbedPane tabbedPane; // each tab is a TabView
@@ -129,8 +131,6 @@ public class PageTView extends JPanel implements TView {
 	 * @param panel the tracker panel
 	 */
 	protected PageTView(TrackerPanel panel) {
-		
-		icon = new ImageIcon(Tracker.getClassResource("resources/images/html.gif")); //$NON-NLS-1$
 		trackerPanel = panel;
 		if (panel == null)
 			return;
@@ -216,7 +216,17 @@ public class PageTView extends JPanel implements TView {
 	 */
 	@Override
 	public Icon getViewIcon() {
-		return icon;
+  	return PAGEVIEW_ICON;
+	}
+	
+	/**
+	 * Gets the type of view
+	 *
+	 * @return one of the defined types
+	 */
+	@Override
+	public int getViewType() {
+		return TView.VIEW_PAGE;
 	}
 
 	/**
@@ -1108,8 +1118,4 @@ public class PageTView extends JPanel implements TView {
 		}
 	}
 
-	@Override
-	public int getType() {
-		return VIEW_TEXT;
-	}
 }

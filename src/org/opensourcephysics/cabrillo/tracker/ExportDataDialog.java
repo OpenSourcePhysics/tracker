@@ -306,27 +306,24 @@ public class ExportDataDialog extends JDialog {
   	// tables
     selectedItem = tableDropdown.getSelectedItem();
     tableDropdown.removeAllItems();
-    Container[] c = trackerPanel.getTFrame().getViewContainers(trackerPanel);
+    TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
     boolean hasSelection = false;
-    for (int i = 0; i < c.length; i++) {
-      if (trackerPanel.getTFrame().isViewOpen(i, trackerPanel)) {
-        String number = " ("+(i+1)+")"; //$NON-NLS-1$ //$NON-NLS-2$
-      	if (c[i] instanceof TViewChooser) {
-          TViewChooser chooser = (TViewChooser)c[i];
-          TView tview = chooser.getSelectedView();
-          if (tview instanceof TableTView) {
-	          TableTView tableView = (TableTView)tview;
-	          TTrack track = tableView.getSelectedTrack();
-	          if (track!=null) {
-		          s = track.getName() + number;
-	          	TableTrackView trackView = (TableTrackView)tableView.getTrackView(track);
-	          	trackNames.put(trackView.dataTable, track.getName());
-		          tables.put(s, trackView.dataTable);
-		        	tableDropdown.addItem(s);
-		          int[] selectedRows = trackView.dataTable.getSelectedRows();
-		          if (selectedRows.length > 0) {
-		          	hasSelection = true;
-		          }
+    for (int i = 0; i < choosers.length; i++) {
+      if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
+      	String number = " ("+(i+1)+")"; //$NON-NLS-1$ //$NON-NLS-2$
+        TView view = choosers[i].getSelectedView();
+        if (view.getViewType() == TView.VIEW_TABLE) {
+          TableTView tableView = (TableTView)view;
+          TTrack track = tableView.getSelectedTrack();
+          if (track!=null) {
+	          s = track.getName() + number;
+          	TableTrackView trackView = (TableTrackView)tableView.getTrackView(track);
+          	trackNames.put(trackView.dataTable, track.getName());
+	          tables.put(s, trackView.dataTable);
+	        	tableDropdown.addItem(s);
+	          int[] selectedRows = trackView.dataTable.getSelectedRows();
+	          if (selectedRows.length > 0) {
+	          	hasSelection = true;
 	          }
           }
         }

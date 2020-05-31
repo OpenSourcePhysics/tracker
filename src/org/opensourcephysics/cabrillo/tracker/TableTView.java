@@ -44,8 +44,10 @@ import org.opensourcephysics.tools.FontSizer;
  */
 public class TableTView extends TrackChooserTView {
 
+  protected static final Icon TABLEVIEW_ICON =  new ImageIcon(
+      Tracker.getClassResource("resources/images/datatable.gif")); //$NON-NLS-1$;
+
   // instance fields
-  protected Icon icon;
   protected JDialog columnsDialog;
   protected JLabel trackLabel;
   protected JButton defineButton, closeButton, textColumnButton;
@@ -59,10 +61,6 @@ public class TableTView extends TrackChooserTView {
    */
   public TableTView(TrackerPanel panel) {
     super(panel);
-    icon = new ImageIcon(
-        Tracker.getClassResource("resources/images/datatable.gif")); //$NON-NLS-1$
-    if (panel == null)
-    	return;
     getColumnsDialog();
   }
 
@@ -83,8 +81,18 @@ public String getViewName() {
    */
   @Override
 public Icon getViewIcon() {
-    return icon;
+    return TABLEVIEW_ICON;
   }
+
+	/**
+	 * Gets the type of view
+	 *
+	 * @return one of the defined types
+	 */
+	@Override
+	public int getViewType() {
+		return TView.VIEW_TABLE;
+	}
 
   /**
    * Creates a view for the specified track
@@ -530,8 +538,4 @@ public void cleanup() {
     }
   }
 
-@Override
-public int getType() {
-	return VIEW_TABLE;
-}
 }

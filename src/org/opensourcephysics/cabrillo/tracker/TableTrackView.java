@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
 import java.lang.reflect.Constructor;
-import java.rmi.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -210,7 +209,8 @@ public class TableTrackView extends TrackView {
 	public void refresh(int frameNumber) {
 		if (!forceRefresh && !isRefreshEnabled())
 			return;
-		OSPLog.debug("PlotTrackView.refresh");
+		if (!parent.isViewPaneVisible())
+			return;
 		forceRefresh = false;
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		dataTable.clearSelection();
@@ -611,7 +611,7 @@ public class TableTrackView extends TrackView {
 			// else a text entry was changed
 			// refresh table and column visibility dialog
 			dataTable.refreshTable();
-			if (getParent() instanceof TableTView) {
+			if (parent.getViewType() == TView.VIEW_TABLE) {
 				TableTView view = (TableTView) getParent();
 				view.refreshColumnsDialog(track);
 			}
@@ -683,32 +683,6 @@ public class TableTrackView extends TrackView {
 			dataTable.setRowHeight(font.getSize() + 4);
 			dataTable.getTableHeader().setFont(font);
 		}
-	}
-
-	/**
-	 * Gets the TViewChooser that owns (displays) this view.
-	 * 
-	 * @return the TViewChooser
-	 */
-	protected TViewChooser getOwner() {
-		// find TViewChooser with this view and copy that
-		TFrame frame = trackerPanel.getTFrame();
-		Container[] views = frame.getViewContainers(trackerPanel);
-		for (int i = 0; i < views.length; i++) {
-			if (views[i] instanceof TViewChooser) {
-				
-				TViewChooser chooser = (TViewChooser) views[i];
-				TView tview = chooser.getSelectedView();
-				if (tview != null && tview instanceof TableTView) {
-					TableTView tableView = (TableTView) tview;
-					TrackView view = tableView.getTrackView(tableView.getSelectedTrack());
-					if (view.equals(TableTrackView.this)) {
-						return chooser;
-					}
-				}
-			}
-		}
-		return null;
 	}
 
 	/**
@@ -1073,8 +1047,8 @@ public class TableTrackView extends TrackView {
 				textColumnsVisible.add(name);
 				// refresh table and column visibility dialog
 				dataTable.refreshTable();
-				if (getParent() instanceof TableTView) {
-					TableTView view = (TableTView) getParent();
+				if (parent.getViewType() == TView.VIEW_TABLE) {
+					TableTView view = (TableTView) parent;
 					view.refreshColumnsDialog(track);
 				}
 			}
@@ -1134,12 +1108,8 @@ public class TableTrackView extends TrackView {
 				tool.setUseChooser(false);
 				tool.setSaveChangesOnClose(false);
 				DataRefreshTool refresher = DataRefreshTool.getTool(data);
-				try {
-					tool.send(new LocalJob(toSend), refresher);
-					tool.setVisible(true);
-				} catch (RemoteException ex) {
-					ex.printStackTrace();
-				}
+				tool.send(new LocalJob(toSend), refresher);
+				tool.setVisible(true);
 			}
 		});
 		// add print item
@@ -1978,23 +1948,12 @@ public class TableTrackView extends TrackView {
 				if (cols[i] < getColumnCount())
 					addColumnSelectionInterval(cols[i], cols[i]);
 			}
-			// find TViewChooser with this view
+			// refresh owner toolbar
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
-				Container[] views = frame.getViewContainers(trackerPanel);
-				for (int i = 0; i < views.length; i++) {
-					if (views[i] instanceof TViewChooser) {
-						TViewChooser chooser = (TViewChooser) views[i];
-						TView tview = chooser.getSelectedView();
-						if (tview != null && tview instanceof TableTView) {
-							TableTView tableView = (TableTView) tview;
-							TrackView view = tableView.getTrackView(tableView.getSelectedTrack());
-							if (view != null && view.equals(TableTrackView.this)) {
-								chooser.refreshToolbar();
-							}
-						}
-					}
-				}
+				TViewChooser owner = getOwner();
+				if (owner != null)
+					owner.refreshToolbar();
 			}
 
 		}

@@ -29,7 +29,6 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Constructor;
-import java.rmi.RemoteException;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
@@ -205,11 +204,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	@Override
 	public void send(Job job, Tool replyTo) {
 		XMLControlElement control = new XMLControlElement();
-		try {
-			control.readXML(job.getXML());
-		} catch (RemoteException ex) {
-			ex.printStackTrace();
-		}
+		control.readXML(job.getXML());
 		ArrayList<Dataset> datasets = this.getObjectOfClass(Dataset.class);
 		Iterator<Dataset> it = control.getObjects(Dataset.class).iterator();
 		while (it.hasNext()) {
@@ -681,16 +676,12 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 						}
 					}
 					// get data tool and send it the job
-					try {
-						tool.send(new LocalJob(toSend), refresher);
-						tab = tool.getTab(toSend);
-						if (tab != null) {
-							tab.setWorkingColumns(xColName, yColName);
-						}
-						tool.setVisible(true);
-					} catch (RemoteException ex) {
-						ex.printStackTrace();
+					tool.send(new LocalJob(toSend), refresher);
+					tab = tool.getTab(toSend);
+					if (tab != null) {
+						tab.setWorkingColumns(xColName, yColName);
 					}
+					tool.setVisible(true);
 				}
 			});
 			// algorithm item
@@ -998,30 +989,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	/**
 	 * Gets the TViewChooser that owns (displays) this panel.
 	 * 
-	 * @return the TViewChooser
+	 * @return the TViewChooser. May return null.
 	 */
 	protected TViewChooser getOwner() {
-		if (trackerPanel == null)
-			return null;
-		// find TViewChooser with this view
-		TFrame frame = trackerPanel.getTFrame();
-		if (frame == null)
-			return null;
-		Container[] views = frame.getViewContainers(trackerPanel);
-		for (int i = 0; i < views.length; i++) {
-			if (views[i] instanceof TViewChooser) {
-				TViewChooser chooser = (TViewChooser) views[i];
-        TView tview = chooser.getSelectedView();
-				if (tview!=null && tview instanceof PlotTView) {
-					PlotTView plotView = (PlotTView) tview;
-					TrackView view = plotView.getTrackView(plotView.getSelectedTrack());
-					if (view != null && view.equals(plotTrackView)) {
-						return chooser;
-					}
-				}
-			}
-		}
-		return null;
+		return plotTrackView.getOwner();
 	}
 
 	/**
@@ -1366,6 +1337,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		player.addPropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$
 	}
 
+	@Override
 	protected void dispose() {
 		VideoPlayer player = plotTrackView.trackerPanel.getPlayer();
 		player.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$

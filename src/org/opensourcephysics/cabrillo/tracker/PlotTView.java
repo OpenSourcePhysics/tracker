@@ -38,7 +38,8 @@ import org.opensourcephysics.controls.XMLProperty;
 @SuppressWarnings("serial")
 public class PlotTView extends TrackChooserTView {
 
-	protected Icon icon;
+  protected static final Icon PLOTVIEW_ICON =  new ImageIcon(
+      Tracker.getClassResource("resources/images/plot.gif")); //$NON-NLS-1$;
 
 	/**
 	 * Constructs a TrackChooserView for the specified tracker panel.
@@ -47,7 +48,6 @@ public class PlotTView extends TrackChooserTView {
 	 */
 	public PlotTView(TrackerPanel panel) {
 		super(panel);
-		icon = new ImageIcon(Tracker.getClassResource("resources/images/plot.gif")); //$NON-NLS-1$
 	}
 
 	/**
@@ -67,7 +67,17 @@ public class PlotTView extends TrackChooserTView {
 	 */
 	@Override
 	public Icon getViewIcon() {
-		return icon;
+    return PLOTVIEW_ICON;
+	}
+
+	/**
+	 * Gets the type of view
+	 *
+	 * @return one of the defined types
+	 */
+	@Override
+	public int getViewType() {
+		return TView.VIEW_PLOT;
 	}
 
 	/**
@@ -202,10 +212,5 @@ public class PlotTView extends TrackChooserTView {
 			}
 			return obj;
 		}
-	}
-
-	@Override
-	public int getType() {
-		   return VIEW_PLOT;
 	}
 }

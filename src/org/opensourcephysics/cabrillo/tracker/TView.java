@@ -44,14 +44,12 @@ public interface TView extends PropertyChangeListener {
 	int VIEW_PLOT = 0;
 	int VIEW_TABLE = 1;
 	int VIEW_WORLD = 2;
-	int VIEW_TEXT = 3;
+	int VIEW_PAGE = 3;
 
 	/**
 	 * Initializes the view
 	 */
 	public void init();
-
-	public int getType();
 
 	/**
 	 * Refreshes the view
@@ -90,6 +88,13 @@ public interface TView extends PropertyChangeListener {
 	public Icon getViewIcon();
 
 	/**
+	 * Gets the type of view
+	 *
+	 * @return one of the defined types
+	 */
+	public int getViewType();
+
+	/**
 	 * Gets the toolbar components for this view
 	 *
 	 * @return an ArrayList of components to be added to a toolbar
@@ -106,12 +111,22 @@ public interface TView extends PropertyChangeListener {
 	}
 
 	/**
-	 * Supply icon and name, but trackerPanel is null.
-	 * 
-	 * @return
+	 * Returns true if this view is in a visible pane.
+	 *
+	 * @return false
 	 */
-	default public boolean isPlaceHolderOnly() {
-		return getTrackerPanel() == null;
+	default public boolean isViewPaneVisible() {
+		if (getTrackerPanel() == null || getTrackerPanel().getTFrame() == null)
+			return false;
+		TView[][] views = getTrackerPanel().getTFrame().getTViews(getTrackerPanel());
+		for (int i = 0; i < views.length; i++) {
+			for (int j = 0; j < views[i].length; j++) {
+				if (this == views[i][j]) {
+					return getTrackerPanel().getTFrame().isViewPaneVisible(i, getTrackerPanel());
+				}
+			}			
+		}
+		return false;
 	}
 
 }

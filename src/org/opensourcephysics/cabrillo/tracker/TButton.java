@@ -80,7 +80,7 @@ public class TButton extends JButton {
     			track.trackerPanel.setSelectedTrack(track);
     			track.trackerPanel.setSelectedPoint(null);
           track.trackerPanel.selectedSteps.clear();
-        	hidePopup = true;
+//        	hidePopup = true;
         }
     	}
 
@@ -195,7 +195,7 @@ public class TButton extends JButton {
 	protected JPopupMenu getPopup() {
 		TTrack track = getTrack();
 		if (track != null && track.trackerPanel != null) {
-			JMenu trackMenu = track.getMenu(track.trackerPanel, null);
+			JMenu trackMenu = track.getMenu(track.trackerPanel, new JMenu());
 			FontSizer.setFonts(trackMenu, FontSizer.getLevel());
 			return trackMenu.getPopupMenu();
 		}

@@ -358,7 +358,7 @@ public class TActions {
 					trackerPanel.setSelectedTrack(axes);
 				else if (!visible && trackerPanel.getSelectedTrack() == axes)
 					trackerPanel.setSelectedTrack(null);
-				TFrame.repaintT(trackerPanel);
+//				TFrame.repaintT(trackerPanel);
 			}
 		};
 		actions.put("axesVisible", axesVisibleAction); //$NON-NLS-1$
@@ -661,42 +661,6 @@ public class TActions {
 			}
 		};
 		actions.put("dataTrack", dataTrackAction); //$NON-NLS-1$
-
-		// new DataTrack from ejs item
-		AbstractAction dataTrackfromEJSAction = new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), //$NON-NLS-1$
-				null) {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// choose file and get its data
-				TrackerIO.getChooserFilesAsync("open ejs", new Function<File[], Void>() { //$NON-NLS-1$
-
-					@Override
-					public Void apply(File[] files) {
-						if (files == null) {
-							return null;
-						}
-						String filePath = files[0].getAbsolutePath();
-						String ext = XML.getExtension(filePath);
-						if ("jar".equals(ext)) { //$NON-NLS-1$
-							if (DataTrackTool.isDataSource(filePath)) {
-								DataTrackTool.launchDataSource(filePath, true);
-							} else {
-								String jarName = TrackerRes.getString("TActions.Action.DataTrack.Unsupported.JarFile") //$NON-NLS-1$
-										+ " \"" + XML.getName(filePath) + "\" "; //$NON-NLS-1$ //$NON-NLS-2$
-								JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
-										jarName + TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Message") //$NON-NLS-1$
-												+ ".", //$NON-NLS-1$
-										TrackerRes.getString("TActions.Action.DataTrack.Unsupported.Title"), //$NON-NLS-1$
-										JOptionPane.WARNING_MESSAGE);
-							}
-						}
-						return null;
-					}
-
-				});
-			}
-		};
-		actions.put("dataTrackFromEJS", dataTrackfromEJSAction); //$NON-NLS-1$
 
 		// new (read-only) tape measure
 		String s = TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$

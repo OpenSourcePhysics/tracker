@@ -548,7 +548,7 @@ public String toString() {
     	super.setAdjusting(adjusting);
     	if (wasAdjusting && !adjusting) {
     		setXY(lastX, lastY);
-    		getTrack().firePropertyChange("step", null, n); //$NON-NLS-1$
+    		getTrack().firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$
     	}
     }
 

@@ -412,7 +412,7 @@ public class PointMass extends TTrack {
 			step.erase();
 		}
 		step.valid = true;
-		if (!autoTrackerMarking && trackerPanel != null && trackerPanel.getAutoRefresh()) {
+		if (!autoTrackerMarking && trackerPanel != null && trackerPanel.isAutoRefresh()) {
 			updateDerivatives(n);
 		}
 		firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$

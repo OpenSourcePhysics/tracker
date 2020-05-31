@@ -48,7 +48,6 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
-import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -199,8 +198,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected JLabel badNameLabel = new JLabel();
 	protected TrackDataBuilder dataBuilder;
 	protected boolean dataToolVisible;
-	protected XMLProperty viewsProperty; // TFrame loads views
-	protected XMLProperty selectedViewsProperty; // TFrame sets selected views
+	protected XMLProperty customViewsProperty; // TFrame loads views
+	protected XMLProperty selectedViewsProperty; // TFrame sets selected views--legacy pre-JS
+	protected XMLProperty selectedViewTypesProperty; // TFrame sets selected view types--JS
 	protected double[] dividerLocs; // TFrame sets dividers
 	protected Point zoomCenter; // used when loading
 	protected Map<Filter, Point> visibleFilters; // TFrame sets locations of filter inspectors
@@ -451,6 +451,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			} catch (Exception ex) {
 				/** empty block */
 			}
+			TFrame frame = getTFrame();
+			if (frame != null) {
+				frame.addFollower(modelBuilder, frame.getLocation());
+			}
+
 		}
 		return modelBuilder;
 	}
@@ -634,7 +639,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 							TView[][] views = frame.getTViews(TrackerPanel.this);
 							for (TView[] next : views) {
 								for (TView view : next) {
-									if (view instanceof TrackChooserTView) {
+									if (view != null && view instanceof TrackChooserTView) {
 										((TrackChooserTView) view).setSelectedTrack(dt);
 									}
 								}
@@ -655,7 +660,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// all tracks handled below
 		addPropertyChangeListener(track); // track listens for all properties
 		track.addListener(this);
-		// update track control and dataTool
+		// update track control and dataBuilder
 		if (trackControl != null && trackControl.isVisible())
 			trackControl.refresh();
 		if (dataBuilder != null && !getSystemDrawables().contains(track)) {
@@ -672,7 +677,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// set font level
 		track.setFontLevel(FontSizer.getLevel());
 
-		// notify views
+		// notify views, also TrackControl
 		firePropertyChange(PROPERTY_TRACKERPANEL_TRACK, null, track); // to views //$NON-NLS-1$
 
 		// set default NumberField format patterns
@@ -699,19 +704,22 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @return true if displayed in a plot or table view
 	 */
 	protected boolean isTrackViewDisplayed(TTrack track) {
-		boolean displayed = false;
 		TFrame frame = getTFrame();
 		if (frame != null && TrackerPanel.this.isShowing()) {
 			TView[][] views = frame.getTViews(TrackerPanel.this);
 			for (TView[] next : views) {
-				for (TView view : next) {
-					if (view instanceof TrackChooserTView) {
-						displayed = displayed || ((TrackChooserTView) view).isTrackViewDisplayed(track);
+				for (int i = 0; i < next.length; i++) {
+					TView view = next[i];
+					if (view != null && 
+							(view.getViewType() == TView.VIEW_PLOT ||
+							view.getViewType() == TView.VIEW_TABLE) &&
+							((TrackChooserTView) view).isTrackViewDisplayed(track)) {
+						return true;
 					}
 				}
 			}
 		}
-		return displayed;
+		return false;
 	}
 
 	/**
@@ -871,7 +879,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			list.add(0, mat);
 		}
 		// show noData message if panel is empty
-		if (getVideo() == null && getUserTracks().isEmpty()) {
+		if (getVideo() == null && (userTracks == null || userTracks.isEmpty())) {
 			isEmpty = true;
 			if (this instanceof WorldTView) {
 				noDataLabels[0].setText(TrackerRes.getString("WorldTView.Label.NoData")); //$NON-NLS-1$
@@ -1821,7 +1829,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected void refreshTrackData() {
 		// turn on autorefresh
 		OSPLog.debug("TrackerPanel.refreshTrackData " + Tracker.allowDataRefresh);
-		boolean auto = getAutoRefresh();
+		boolean auto = isAutoRefresh;
 		isAutoRefresh = true;
 		firePropertyChange(PROPERTY_TRACKERPANEL_TRANSFORM, null, null); 
 		isAutoRefresh = auto;
@@ -2054,18 +2062,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// find maximized view and restore
 		TFrame frame = getTFrame();
 		if (frame != null) {
-			Container[] views = frame.getViewContainers(this);
-			for (int i = 0; i < views.length; i++) {
-				if (views[i] instanceof TViewChooser) {
-					TViewChooser chooser = (TViewChooser) views[i];
-					if (chooser.maximized) {
-						chooser.restore();
+			TViewChooser[] choosers = frame.getViewChoosers(this);
+			for (int i = 0; i < choosers.length; i++) {
+				if (choosers[i].maximized) {
+					choosers[i].restore();
 						break;
 					}
 				}
 			}
 		}
-	}
 
 	/**
 	 * Configures this panel.
@@ -2208,7 +2213,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// display selected track hint
 			if (Tracker.showHints && selectedTrack != null) {
 				setMessage(selectedTrack.getMessage());
-			} else if (!Tracker.startupHintShown || getVideo() != null || !getUserTracks().isEmpty()) {
+			} else if (!Tracker.startupHintShown || getVideo() != null 
+					|| (userTracks != null && !userTracks.isEmpty())) {
 				Tracker.startupHintShown = false;
 				if (!Tracker.showHints)
 					setMessage(""); //$NON-NLS-1$
@@ -2224,7 +2230,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						setMessage(TrackerRes.getString("TrackerPanel.CalibrateVideo.Hint")); //$NON-NLS-1$
 				} else if (getAxes() != null && getAxes().notyetShown)
 					setMessage(TrackerRes.getString("TrackerPanel.ShowAxes.Hint")); //$NON-NLS-1$
-				else if (getUserTracks().isEmpty())
+				else if (userTracks == null || userTracks.isEmpty())
 					setMessage(TrackerRes.getString("TrackerPanel.NoTracks.Hint")); //$NON-NLS-1$
 				else
 					setMessage(""); //$NON-NLS-1$
@@ -3642,7 +3648,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// load the selected_views property
 				List<XMLProperty> props = control.getPropsRaw();
 				trackerPanel.selectedViewsProperty = null;
-				trackerPanel.viewsProperty = null;
+				trackerPanel.customViewsProperty = null;
 				for (int n = 0, i = props.size(); --i >= 0 && n < 2;) {
 					XMLProperty prop = props.get(i);
 					switch (prop.getPropertyName()) {
@@ -3650,8 +3656,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						trackerPanel.selectedViewsProperty = prop;
 						n++;
 						break;
+					case "selected_view_types":
+						trackerPanel.selectedViewTypesProperty = prop;
+						n++;
+						break;
 					case "views":
-						trackerPanel.viewsProperty = prop;
+						trackerPanel.customViewsProperty = prop;
 						n++;
 						break;
 					}
@@ -3735,11 +3745,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			final DataRefreshTool refresher = DataRefreshTool.getTool(data);
 			DatasetManager toSend = new DatasetManager();
 			toSend.setID(data.getID());
-			try {
-				tab.send(new LocalJob(toSend), refresher);
-			} catch (RemoteException ex) {
-				ex.printStackTrace();
-			}
+			tab.send(new LocalJob(toSend), refresher);
 
 			// set the tab column IDs to the track data IDs and add track data to the
 			// refresher
@@ -3864,14 +3870,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					control.setValue("views", customViews); //$NON-NLS-1$
 					break;
 				}
-				// save the selected views
-				String[] selectedViews = frame.getSelectedTViews(trackerPanel);
-				for (int i = 0; i < selectedViews.length; i++) {
-					if (selectedViews[i] == null)
-						continue;
-					control.setValue("selected_views", selectedViews); //$NON-NLS-1$
-					break;
-				}
+				// save the selected view types
+				int[] selectedViewTypes = frame.getSelectedViewTypes(trackerPanel);
+				control.setValue("selected_view_types", selectedViewTypes); //$NON-NLS-1$
+
 				// save the toolbar for button states
 				TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
 				control.setValue("toolbar", toolbar); //$NON-NLS-1$
@@ -3921,7 +3923,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 	}
 
-	public boolean getAutoRefresh() {
+	public boolean isAutoRefresh() {
 		return isAutoRefresh && Tracker.allowDataRefresh;
 	}
 

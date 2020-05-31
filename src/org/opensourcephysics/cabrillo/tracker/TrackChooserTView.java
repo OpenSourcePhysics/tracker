@@ -85,7 +85,6 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		}
 		trackerPanel = panel;
 		init();
-		OSPLog.debug("TrackChooserTView ??? " + this);
 		setBackground(panel.getBackground());
 		// create combobox with custom renderer for tracks
 		dropdown = new JComboBox<Object>() {
@@ -132,7 +131,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 					helpItem.addActionListener(new ActionListener() {
 						@Override
 						public void actionPerformed(ActionEvent e) {
-							if (TrackChooserTView.this instanceof TableTView) {
+							if (TrackChooserTView.this.getViewType() == TView.VIEW_TABLE) {
 								trackerPanel.getTFrame().showHelp("datatable", 0); //$NON-NLS-1$
 							} else {
 								trackerPanel.getTFrame().showHelp("plot", 0); //$NON-NLS-1$
@@ -262,12 +261,10 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 * @return true if this TView is displayed and the track is selected
 	 */
 	protected boolean isTrackViewDisplayed(TTrack track) {
-		boolean displayed = track == getSelectedTrack();
-		Container c = getParent().getParent();
-		if (c instanceof TViewChooser) {
-			displayed = displayed && this == ((TViewChooser) c).getSelectedView();
-		}
-		return displayed;
+		if (track != getSelectedTrack())
+			return false;
+		TViewChooser c = (TViewChooser)getParent().getParent();
+		return (this == c.getSelectedView());
 	}
 
 	/**
@@ -386,8 +383,11 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		}
 		if (!track.isViewable() || !trackerPanel.containsTrack(track))
 			return;
-		if (track == selectedTrack && tracks.get(dropdown.getSelectedItem()) == track)
+		if (track == selectedTrack && tracks.get(dropdown.getSelectedItem()) == track) {
+			// just refresh the selected TrackView
+			getTrackView(selectedTrack).refresh(trackerPanel.getFrameNumber());
 			return;
+		}
 		Iterator<Object> it = tracks.keySet().iterator();
 		while (it.hasNext()) {
 			Object item = it.next();
@@ -542,11 +542,16 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
-		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
-			// video image has changed
+			// step number has changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
 				view.refresh(trackerPanel.getFrameNumber());
 			}
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
+			// video image has changed
+//			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
+//				view.refresh(trackerPanel.getFrameNumber());
+//			}
 			break;
 		case TTrack.PROPERTY_TTRACK_COLOR:
 		case TTrack.PROPERTY_TTRACK_NAME:

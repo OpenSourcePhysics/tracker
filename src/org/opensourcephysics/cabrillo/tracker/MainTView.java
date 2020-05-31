@@ -585,8 +585,8 @@ public class MainTView extends JPanel implements TView {
 	}
 
 	@Override
-	public int getType() {
-		return VIEW_MAIN;
+	public int getViewType() {
+		return TView.VIEW_MAIN;
 	}
 
 }

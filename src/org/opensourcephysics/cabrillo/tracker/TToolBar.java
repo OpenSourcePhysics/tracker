@@ -600,7 +600,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				int i = FontSizer.getLevel();
 				FontSizer.setLevel(i - 1);
-				fontSmallerButton.setEnabled(FontSizer.getLevel() > 0);
+				fontSmallerButton.setEnabled(FontSizer.getLevel() > FontSizer.MIN_LEVEL);
 				fontBiggerButton.setEnabled(FontSizer.getLevel() < FontSizer.MAX_LEVEL);
 			}
 		});
@@ -611,7 +611,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				int i = FontSizer.getLevel();
 				FontSizer.setLevel(i + 1);
-				fontSmallerButton.setEnabled(FontSizer.getLevel() > 0);
+				fontSmallerButton.setEnabled(FontSizer.getLevel() > FontSizer.MIN_LEVEL);
 				fontBiggerButton.setEnabled(FontSizer.getLevel() < FontSizer.MAX_LEVEL);
 			}
 		});
@@ -677,13 +677,13 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				popup.add(item);
 				popup.addSeparator();
 				item = new JCheckBoxMenuItem(TrackerRes.getString("TToolbar.Button.Refresh.Popup.AutoRefresh")); //$NON-NLS-1$
-				item.setSelected(trackerPanel.getAutoRefresh());
+				item.setSelected(trackerPanel.isAutoRefresh());
 				item.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						JMenuItem item = (JMenuItem) e.getSource();
 						trackerPanel.setAutoRefresh(item.isSelected());
-						if (trackerPanel.getAutoRefresh()) {
+						if (trackerPanel.isAutoRefresh()) {
 							trackerPanel.refreshTrackData();
 							trackerPanel.eraseAll();
 							trackerPanel.repaintDirtyRegion();
@@ -962,11 +962,11 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 //		FontSizer.setFont(newTrackButton);
 //		FontSizer.setFont(zoomButton);
-		OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync 2", Performance.TIME_MARK));
+		OSPLog.debug(Performance.timeCheckStr("TToolBar rebuild", Performance.TIME_MARK));
 
 		validate();
 		
-		OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync validate", Performance.TIME_MARK));
+		OSPLog.debug(Performance.timeCheckStr("TToolBar rebuild validate", Performance.TIME_MARK));
 
 		TFrame.repaintT(this);
 	}
@@ -998,7 +998,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 		}
 		setMenuText();
-		fontSmallerButton.setEnabled(FontSizer.getLevel() > 0);
+		fontSmallerButton.setEnabled(FontSizer.getLevel() > FontSizer.MIN_LEVEL);
 		fontBiggerButton.setEnabled(FontSizer.getLevel() < FontSizer.MAX_LEVEL);
 		if (trackerPanel.getPlayer() != null) {
 			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
@@ -1039,12 +1039,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		if (frame != null) {
 			TView[][] views = frame.getTViews(trackerPanel);
 			for (TView[] next : views) {
-				if (next == null)
-					continue;
 				for (TView view : next) {
 					if (view == null)
 						continue;
-					if (view instanceof PageTView) {
+					if (view.getViewType() == TView.VIEW_PAGE) {
 						PageTView page = (PageTView) view;
 						for (TabView tab : page.tabs) {
 							if (tab.data.url != null) {

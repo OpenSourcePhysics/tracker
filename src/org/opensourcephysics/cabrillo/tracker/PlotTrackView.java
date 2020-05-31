@@ -102,10 +102,9 @@ public class PlotTrackView extends TrackView {
 
 	@Override
 	public void refresh(int frameNumber) {
-		if (!isRefreshEnabled())
+		if (!isRefreshEnabled() || !parent.isViewPaneVisible())
 			return;
-		OSPLog.debug("PlotTrackView.refresh");
-
+	 
 		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		TTrack track = getTrack();
 		if (track == null)

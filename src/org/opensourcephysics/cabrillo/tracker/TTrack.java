@@ -2188,11 +2188,11 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	/**
-	 * Prepares menu items and returns a new menu. Subclasses should override this
+	 * Prepares menu items and adds them to a menu. Subclasses should override this
 	 * method and add track-specific menu items.
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @param menu0 TODO
+	 * @param menu the menu. If null, a dynamic menu is returned that adds items only when selected 
 	 * @return a menu
 	 */
 	public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu) {
@@ -2200,6 +2200,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		if (dynamic) {
 			JMenu menu0 = new JMenu();
 			menu0.setText(getName("track"));
+			menu0.setIcon(getFootprint().getIcon(21, 16));
 			menu0.addMenuListener(new MenuListener() {
 
 				@Override
@@ -2220,6 +2221,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			return menu0;
 		}
 		menu.setText(getName("track"));
+		menu.setIcon(getFootprint().getIcon(21, 16));
 		// prepare menu items
 		visibleItem.setText(TrackerRes.getString("TTrack.MenuItem.Visible")); //$NON-NLS-1$
 		trailVisibleItem.setText(TrackerRes.getString("TTrack.MenuItem.TrailVisible")); //$NON-NLS-1$
@@ -2265,8 +2267,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			}
 			footprintMenu.add(item);
 		}
-		// return a new menu every time
-		menu.setIcon(getFootprint().getIcon(21, 16));
 		// add name and description items
 		if (trackerPanel.isEnabled("track.name") || //$NON-NLS-1$
 				trackerPanel.isEnabled("track.description")) { //$NON-NLS-1$
