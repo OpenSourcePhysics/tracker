@@ -901,6 +901,8 @@ public class NumberFormatDialog extends JDialog {
   	}
     TViewChooser[] choosers = frame.getViewChoosers(track.trackerPanel);
     for (int i = 0; i < choosers.length; i++) {
+    	if (choosers[i] == null)
+    		continue;
     	TableTView tableView = (TableTView) choosers[i].getView(TView.VIEW_TABLE);
   		if (tableView != null) {
   			tableTrackViews.add((TableTrackView)tableView.getTrackView(track));

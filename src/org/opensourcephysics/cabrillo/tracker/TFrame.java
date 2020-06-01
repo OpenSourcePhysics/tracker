@@ -96,6 +96,7 @@ import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.Document;
 
+import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
@@ -134,6 +135,7 @@ import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
+import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
 import javajs.async.SwingJSUtils.StateHelper;
 import javajs.async.SwingJSUtils.StateMachine;
@@ -478,37 +480,161 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	/**
+	 * Saves all tabs if user approved. Stops if any is canceled.
+	 * 
+	 * @param whenEachApproved Function to apply to each TrackerPanel unless canceled
+	 * @param whenAllApproved Runnable to run after all have run whenEachApproved
+	 * @param whenCanceled Runnable to run if canceled
+	 */
+	public void saveAllTabs(Function<TrackerPanel, Void> whenEachApproved, 
+			Runnable whenAllApproved, Runnable whenCanceled) {
+		// save all tabs in last-to-first order
+		final int[] tab = {getTabCount() - 1};
+		TrackerPanel trackerPanel = getTrackerPanel(tab[0]);		
+		Runnable approved = new Runnable() {
+			@Override
+			public void run() {
+				TrackerPanel trackerPanel = getTrackerPanel(tab[0]);
+				if (whenEachApproved != null) {
+					whenEachApproved.apply(trackerPanel);
+				}
+				tab[0]--;
+				if (tab[0] > -1) {
+					getTrackerPanel(tab[0]).save(this, whenCanceled);
+				}
+				else if (whenAllApproved != null)
+					whenAllApproved.run();
+			}
+		};
+		trackerPanel.save(approved, whenCanceled);
+	}
+	
+	protected void relaunchCurrentTabs() {
+		final ArrayList<String> filenames = new ArrayList<String>();
+		saveAllTabs(new Function<TrackerPanel, Void>() {
+			// for each approved
+			@Override
+			public Void apply(TrackerPanel trackerPanel) {
+				File datafile = trackerPanel.getDataFile();
+				if (datafile == null) {
+					String path = trackerPanel.openedFromPath;
+					if (path != null) {
+						datafile = new File(path);
+					}
+				}
+				if (datafile != null) {
+					String fileName = datafile.getAbsolutePath();
+					if (!filenames.contains(fileName)) {
+						filenames.add(fileName);
+					}
+				}
+				return null;
+			}
+			
+		}, new Runnable() {
+			// whenAllApproved
+			@Override
+			public void run() {
+				String[] args = filenames.isEmpty() ? null : filenames.toArray(new String[0]);
+				TrackerStarter.relaunch(args, false);
+				// TrackerStarter exits current VM after relaunching new one
+			}
+			
+		}, null); // no action when cancelled
+
+	}
+	
+	/**
 	 * Removes all tabs.
 	 */
 	public void removeAllTabs() {
-		// remove all tabs
-		for (int i = getTabCount() - 1; i >= 0; i--) {
-			// save/close tabs in try/catch block so always closes
-			try {
-				if (!getTrackerPanel(i).save()) {
-					// action is cancelled
-					return;
-				}
-				removeTab(getTrackerPanel(i));
-			} catch (Exception ex) {
+		saveAllTabs(new Function<TrackerPanel, Void>() {
+
+			@Override
+			public Void apply(TrackerPanel trackerPanel) {
+				// remove tab asynchronously
+				new TabRemover(trackerPanel).execute();
+				return null;
+			}
+			
+		}, null, null); // do nothing when all approved or when canceled
+	}
+	
+	/**
+	 * An AsyncSwingWorker to remove a tab.
+	 */
+	class TabRemover extends AsyncSwingWorker {
+		
+		TrackerPanel trackerPanel;
+		TTabPanel tabPanel;
+		
+		TabRemover(TrackerPanel trackerPanel) {
+			super(null, null, 1, 0, 1);
+			this.trackerPanel = trackerPanel;
+		}
+		
+		@Override
+		public void initAsync() {						
+			int tab = getTab(trackerPanel);
+			tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
+			// remove the tab immediately
+			synchronized (tabbedPane) {
+				tabbedPane.remove(tabPanel);
 			}
 		}
+
+		@Override
+		public int doInBackgroundAsync(int i) {
+			if (trackerPanel != null)
+				finishRemoveTab(trackerPanel, tabPanel);
+			return 1;
+		}
+
+		@Override
+		public void doneAsync() {
+		}
+	}
+	
+	/**
+	 * Removes a tracker panel tab.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @param tabPanel the TTabPanel
+	 */
+	public void removeTab(TrackerPanel trackerPanel) {
+		int tab = getTab(trackerPanel);
+		if (tab == -1)
+			return; // tab not found
+		Runnable whenSaved = new Runnable() {
+			@Override
+			public void run() {
+				// remove tab asynchronously
+				new TabRemover(trackerPanel).execute();
+			}
+		};
+		trackerPanel.save(whenSaved, null);
 	}
 
 	/**
-	 * Removes the tab that displays the specified tracker panel.
+	 * Finishes removing a tracker panel and it's TTabPanel.
 	 *
 	 * @param trackerPanel the tracker panel
+	 * @param tabPanel the TTabPanel
 	 */
-	public void removeTab(TrackerPanel trackerPanel) {
+	private void finishRemoveTab(TrackerPanel trackerPanel, TTabPanel tabPanel) {
 		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab start", Performance.TIME_MARK));
 		long t0 = Performance.now(0);
-		int tab = getTab(trackerPanel);
-		if (tab == -1)
-			return; // tab doesn't exist
-		if (!trackerPanel.save())
-			return; // user cancelled
 
+//		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
+//		// remove the tab
+//		synchronized (tabbedPane) {
+//			tabbedPane.remove(tabPanel);
+//		}
+		
+		// hide the info dialog if removing the currently selected tab
+//		if (tab == getSelectedTab()) {
+//			notesDialog.setVisible(false);
+//		}
 		// remove property change listeners
 		trackerPanel.removePropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
@@ -517,11 +643,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.selectedPoint = null;
 		trackerPanel.selectedStep = null;
 		trackerPanel.selectedTrack = null;
-
-		// hide the info dialog if removing the currently selected tab
-		if (tab == getSelectedTab()) {
-			notesDialog.setVisible(false);
-		}
 
 		// inform non-modal dialogs so they close: AutoTracker, CMInspector,
 		// DynamicSystemInspector,
@@ -554,14 +675,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// set the video to null
 		trackerPanel.setVideo(null);
 
+		Object[] objects = tabPanel.getObjects();
 		// dispose of TViewChoosers and TViews
-		TViewChooser[] views = getViewChoosers(trackerPanel);
+		TViewChooser[] views = (TViewChooser[]) objects[TFRAME_VIEWCHOOSERS];
 		for (int i = 0; i < views.length; i++) {
 			views[i].dispose();
 		}
 
 		// clean up main view--this is important as it disposes of floating JToolBar videoplayer
-		MainTView mainView = getMainView(trackerPanel);
+		MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 		mainView.dispose();
 		trackerPanel.setScrollPane(null);
 
@@ -572,14 +694,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			track.dispose();
 		}
 
-		// get the tab panel and remove components from it
-		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
-		tabPanel.removeAll();
-
-		// remove the tab
-		synchronized (tabbedPane) {
-			tabbedPane.remove(tabPanel);
-		}
+//		// get the tab panel and remove components from it
+//		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
+//		tabPanel.removeAll();
+//
+//		// remove the tab
+//		synchronized (tabbedPane) {
+//			tabbedPane.remove(tabPanel);
+//		}
 
 //		MainTView mainView = getMainView(trackerPanel);
 //		TViewChooser[] views = createViews(trackerPanel);
@@ -611,8 +733,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 		// remove the components from the tabs map
 
-		tabPanel.dispose();
-
 		TActions.getActions(trackerPanel).clear();
 		TActions.actionMaps.remove(trackerPanel);
 		if (prefsDialog != null) {
@@ -621,12 +741,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		Undo.undomap.remove(trackerPanel);
 
 		trackerPanel.dispose();
+		tabPanel.dispose();
 
 		// change menubar and show floating player of newly selected tab, if any
 		TTabPanel panel = (TTabPanel) tabbedPane.getSelectedComponent();
-		if (panel == null)
+		if (panel == null) {
+			OSPLog.debug("!!! " + Performance.now(t0) + " TFrame.removeTab");
 			return;
-		Object[] objects = panel.getObjects();
+		}
+		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab 8", Performance.TIME_MARK));
+		objects = panel.getObjects();
 		if (objects != null) {
 			setJMenuBar((JMenuBar) objects[TFRAME_MENUBAR]);
 			((TTrackBar) objects[TFRAME_TRACKBAR]).refresh();
@@ -638,9 +762,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// show defaultMenuBar
 			setJMenuBar(defaultMenuBar);
 		}
+		
+//		synchronized (tabbedPane) {
+//			tabbedPane.remove(tabPanel);
+//		}
 
 		OSPLog.debug("!!! " + Performance.now(t0) + " TFrame.removeTab");
-		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab end", Performance.TIME_MARK));
+//		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab end", Performance.TIME_MARK));
 
 	}
 

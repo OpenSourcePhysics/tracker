@@ -44,6 +44,8 @@ import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
+import javajs.async.AsyncSwingWorker;
+
 /**
  * This creates a map of action name to action for many common tracker actions.
  *
@@ -421,18 +423,31 @@ public class TActions {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				TFrame frame = trackerPanel.getTFrame();
-				if (frame != null) {
-					for (int i = 0; i < frame.getTabCount(); i++) {
-						// save tabs in try/catch block so always closes
-						try {
-							if (!frame.getTrackerPanel(i).save()) {
-								return;
-							}
-						} catch (Exception ex) {
-						}
-					}
+				if (frame != null) {					
+					// save tabs in try/catch block so always closes
+					 // pig
+//					try {
+//						int[] i = {0};
+//						TrackerPanel panel = frame.getTrackerPanel(i[0]);
+//						if (panel == null)
+//							System.exit(0);
+//						
+//						Runnable whenSaved = new Runnable() {
+//							@Override
+//							public void run() {
+//								i[0]++;
+//								TrackerPanel panel = frame.getTrackerPanel(i[0]);
+//								if (panel != null)
+//									panel.save(whenSaved, null);
+//								else 
+//									System.exit(0);
+//							}
+//						};
+//						panel.save(whenSaved, null);
+//					} catch (Exception ex) {
+//						System.exit(0);
+//					}
 				}
-				System.exit(0);
 			}
 		};
 		actions.put("exit", exitAction); //$NON-NLS-1$
@@ -467,7 +482,7 @@ public class TActions {
 				}
 			}
 		};
-		actions.put("pointMass", pointMassAction); //$NON-NLS-1$
+		actions.put("pointMass", getAsyncAction(pointMassAction)); //$NON-NLS-1$
 		// new center of mass
 		AbstractAction cmAction = new AbstractAction(TrackerRes.getString("CenterOfMass.Name"), null) { //$NON-NLS-1$
 			@Override
@@ -482,7 +497,7 @@ public class TActions {
 				cmInspector.setVisible(true);
 			}
 		};
-		actions.put("cm", cmAction); //$NON-NLS-1$
+		actions.put("cm", getAsyncAction(cmAction)); //$NON-NLS-1$
 		// new vector
 		AbstractAction vectorAction = new AbstractAction(TrackerRes.getString("Vector.Name"), null) { //$NON-NLS-1$
 			@Override
@@ -498,7 +513,7 @@ public class TActions {
 				}
 			}
 		};
-		actions.put("vector", vectorAction); //$NON-NLS-1$
+		actions.put("vector", getAsyncAction(vectorAction)); //$NON-NLS-1$
 		// new vector sum
 		AbstractAction vectorSumAction = new AbstractAction(TrackerRes.getString("VectorSum.Name"), null) { //$NON-NLS-1$
 			@Override
@@ -513,7 +528,7 @@ public class TActions {
 				sumInspector.setVisible(true);
 			}
 		};
-		actions.put("vectorSum", vectorSumAction); //$NON-NLS-1$
+		actions.put("vectorSum", getAsyncAction(vectorSumAction)); //$NON-NLS-1$
 		// new offset origin item
 		AbstractAction offsetOriginAction = new AbstractAction(TrackerRes.getString("OffsetOrigin.Name"), null) { //$NON-NLS-1$
 			@Override
@@ -527,7 +542,7 @@ public class TActions {
 				trackerPanel.getAxes().setVisible(true);
 			}
 		};
-		actions.put("offsetOrigin", offsetOriginAction); //$NON-NLS-1$
+		actions.put("offsetOrigin", getAsyncAction(offsetOriginAction)); //$NON-NLS-1$
 		// new calibration item
 		AbstractAction calibrationAction = new AbstractAction(TrackerRes.getString("Calibration.Name"), null) { //$NON-NLS-1$
 			@Override
@@ -541,7 +556,7 @@ public class TActions {
 				trackerPanel.getAxes().setVisible(true);
 			}
 		};
-		actions.put("calibration", calibrationAction); //$NON-NLS-1$
+		actions.put("calibration", getAsyncAction(calibrationAction)); //$NON-NLS-1$
 		// new line profile item
 		AbstractAction lineProfileAction = new AbstractAction(TrackerRes.getString("LineProfile.Name"), null) { //$NON-NLS-1$
 			@Override
@@ -554,7 +569,7 @@ public class TActions {
 				trackerPanel.setSelectedTrack(lineProfile);
 			}
 		};
-		actions.put("lineProfile", lineProfileAction); //$NON-NLS-1$
+		actions.put("lineProfile", getAsyncAction(lineProfileAction)); //$NON-NLS-1$
 		// new RGBRegion item
 		AbstractAction rgbRegionAction = new AbstractAction(TrackerRes.getString("RGBRegion.Name"), null) { //$NON-NLS-1$
 			@Override
@@ -570,7 +585,7 @@ public class TActions {
 				}
 			}
 		};
-		actions.put("rgbRegion", rgbRegionAction); //$NON-NLS-1$
+		actions.put("rgbRegion", getAsyncAction(rgbRegionAction)); //$NON-NLS-1$
 		// new analytic particle item
 		AbstractAction analyticParticleAction = new AbstractAction(TrackerRes.getString("AnalyticParticle.Name"), //$NON-NLS-1$
 				null) {
@@ -587,7 +602,7 @@ public class TActions {
 				inspector.setVisible(true);
 			}
 		};
-		actions.put("analyticParticle", analyticParticleAction); //$NON-NLS-1$
+		actions.put("analyticParticle", getAsyncAction(analyticParticleAction)); //$NON-NLS-1$
 		// new dynamic particle item
 		AbstractAction dynamicParticleAction = new AbstractAction(TrackerRes.getString("DynamicParticle.Name"), null) { //$NON-NLS-1$
 			@Override
@@ -603,7 +618,7 @@ public class TActions {
 				inspector.setVisible(true);
 			}
 		};
-		actions.put("dynamicParticle", dynamicParticleAction); //$NON-NLS-1$
+		actions.put("dynamicParticle", getAsyncAction(dynamicParticleAction)); //$NON-NLS-1$
 		// new dynamic particle polar item
 		AbstractAction dynamicParticlePolarAction = new AbstractAction(
 				TrackerRes.getString("DynamicParticlePolar.Name"), null) { //$NON-NLS-1$
@@ -620,7 +635,7 @@ public class TActions {
 				inspector.setVisible(true);
 			}
 		};
-		actions.put("dynamicParticlePolar", dynamicParticlePolarAction); //$NON-NLS-1$
+		actions.put("dynamicParticlePolar", getAsyncAction(dynamicParticlePolarAction)); //$NON-NLS-1$
 		// new dynamic system item
 		AbstractAction dynamicSystemAction = new AbstractAction(TrackerRes.getString("DynamicSystem.Name"), null) { //$NON-NLS-1$
 			@Override
@@ -638,7 +653,7 @@ public class TActions {
 				systemInspector.setVisible(true);
 			}
 		};
-		actions.put("dynamicSystem", dynamicSystemAction); //$NON-NLS-1$
+		actions.put("dynamicSystem", getAsyncAction(dynamicSystemAction)); //$NON-NLS-1$
 
 		// new DataTrack from text file item
 		AbstractAction dataTrackAction = new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
@@ -660,7 +675,7 @@ public class TActions {
 				});
 			}
 		};
-		actions.put("dataTrack", dataTrackAction); //$NON-NLS-1$
+		actions.put("dataTrack", getAsyncAction(dataTrackAction)); //$NON-NLS-1$
 
 		// new (read-only) tape measure
 		String s = TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$
@@ -684,7 +699,7 @@ public class TActions {
 				trackerPanel.setSelectedTrack(tape);
 			}
 		};
-		actions.put("tape", tapeAction); //$NON-NLS-1$
+		actions.put("tape", getAsyncAction(tapeAction)); //$NON-NLS-1$
 		// new protractor
 		AbstractAction protractorAction = new AbstractAction(TrackerRes.getString("Protractor.Name"), null) { //$NON-NLS-1$
 			@Override
@@ -707,7 +722,7 @@ public class TActions {
 				trackerPanel.setSelectedTrack(protractor);
 			}
 		};
-		actions.put("protractor", protractorAction); //$NON-NLS-1$
+		actions.put("protractor", getAsyncAction(protractorAction)); //$NON-NLS-1$
 		// new circle track
 		AbstractAction circleFitterAction = new AbstractAction(TrackerRes.getString("CircleFitter.Name"), null) { //$NON-NLS-1$
 			@Override
@@ -720,7 +735,7 @@ public class TActions {
 				trackerPanel.setSelectedTrack(track);
 			}
 		};
-		actions.put("circleFitter", circleFitterAction); //$NON-NLS-1$
+		actions.put("circleFitter", getAsyncAction(circleFitterAction)); //$NON-NLS-1$
 		// clone track action
 		AbstractAction cloneTrackAction = new AbstractAction() {
 			@Override
@@ -758,7 +773,7 @@ public class TActions {
 				}
 			}
 		};
-		actions.put("cloneTrack", cloneTrackAction); //$NON-NLS-1$
+		actions.put("cloneTrack", getAsyncAction(cloneTrackAction)); //$NON-NLS-1$
 		// clear filters action
 		final AbstractAction clearFiltersAction = new AbstractAction(
 				TrackerRes.getString("TActions.Action.ClearFilters"), null) { //$NON-NLS-1$
@@ -814,4 +829,33 @@ public class TActions {
 		actions.put("refFrame", refFrameAction); //$NON-NLS-1$
 		return actions;
 	}
+	
+	
+	private static AbstractAction getAsyncAction(Action a) {
+		Object nameObj = a.getValue(Action.NAME);
+		String name = nameObj == null? null: nameObj.toString();
+		return new AbstractAction(name) {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				new AsyncSwingWorker(null, null, 2, 0, 1) {
+					
+					@Override
+					public void initAsync() {						
+					}
+			
+					@Override
+					public int doInBackgroundAsync(int i) {
+						a.actionPerformed(e);
+						return 1;
+					}
+			
+					@Override
+					public void doneAsync() {
+					}
+			
+				}.execute();
+			}
+		};		
+	}
+
 }

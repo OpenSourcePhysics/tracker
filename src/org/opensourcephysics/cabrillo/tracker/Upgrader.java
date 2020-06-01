@@ -35,6 +35,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.function.Function;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -251,7 +252,7 @@ public class Upgrader {
   				
     			// download new tracker jar
 	    		File jarFile = new File(Tracker.trackerHome, jarFileName);
-  	    		String jarURL = upgradeURL.trim()+jarFileName;	  	    		
+  	    	String jarURL = upgradeURL.trim()+jarFileName;	  	    		
     			jarFile = ResourceLoader.download(jarURL, jarFile, true);
 
     			// also download new Tracker.exe if available
@@ -272,23 +273,47 @@ public class Upgrader {
 
 	    		if (jarFile!=null && jarFile.exists()) { // new jar successfully downloaded
 	    			// launch new Tracker version
-	      		ArrayList<String> filenames = new ArrayList<String>();
-	    			for (int i = 0; i<frame.getTabCount(); i++) {
-	    				TrackerPanel next = frame.getTrackerPanel(i);
-	    				if (!next.save()) {
-	    					// user aborted the relaunch
+	    			final String jarPath = jarFile.getAbsolutePath();
+	    			final ArrayList<String> filenames = new ArrayList<String>();
+	    			frame.saveAllTabs(new Function<TrackerPanel, Void>() {
+	    				// for each approved
+	    				@Override
+	    				public Void apply(TrackerPanel trackerPanel) {
+	    					File datafile = trackerPanel.getDataFile();
+	    					if (datafile == null) {
+	    						String path = trackerPanel.openedFromPath;
+	    						if (path != null) {
+	    							datafile = new File(path);
+	    						}
+	    					}
+	    					if (datafile != null) {
+	    						String fileName = datafile.getAbsolutePath();
+	    						if (!filenames.contains(fileName)) {
+	    							filenames.add(fileName);
+	    						}
+	    					}
+	    					return null;
+	    				}
+	    				
+	    			}, new Runnable() {
+	    				// whenAllApproved
+	    				@Override
+	    				public void run() {
+	    					String[] args = filenames.isEmpty() ? null : filenames.toArray(new String[0]);
+	  	  	    	System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, jarPath);
+	  	  	    	System.setProperty(TrackerStarter.TRACKER_NEW_VERSION, jarURL);
+	    					TrackerStarter.relaunch(args, false);
+	    					// TrackerStarter exits current VM after relaunching new one
+	    				}
+	    				
+	    			}, new Runnable() {
+	    				// when canceled
+	    				@Override
+	    				public void run() {
 	      				closeUpgradeDialog();
-	    					return;
 	    				}
-	    				File datafile = next.getDataFile();
-	    				if (datafile!=null) {
-	    	    		filenames.add(datafile.getAbsolutePath());
-	    				}
-	    			}
-	    			String[] args = filenames.isEmpty()? null: filenames.toArray(new String[0]);
-	  	    	System.setProperty(TrackerStarter.PREFERRED_TRACKER_JAR, jarFile.getAbsolutePath());
-	  	    	System.setProperty(TrackerStarter.TRACKER_NEW_VERSION, jarURL);
-	  	    	TrackerStarter.relaunch(args, false);
+	    				
+	    			}); 
 	    		}
 	    		else {
     				OSPLog.warning("failed to download new version"); //$NON-NLS-1$

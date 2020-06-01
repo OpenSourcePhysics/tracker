@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.beans.*;
 import java.io.File;
 import java.util.*;
+import java.util.function.Function;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -155,21 +156,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 												TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
 												JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 										if (ans == JOptionPane.YES_OPTION) {
+
 											Tracker.savePreferences();
-											ArrayList<String> filenames = new ArrayList<String>();
-											for (int i = 0; i < frame.getTabCount(); i++) {
-												TrackerPanel next = frame.getTrackerPanel(i);
-												if (!next.save())
-													return;
-												File datafile = next.getDataFile();
-												if (datafile != null) {
-													String fileName = datafile.getAbsolutePath();
-													filenames.add(fileName);
-												}
-											}
-											String[] args = filenames.isEmpty() ? null
-													: filenames.toArray(new String[0]);
-											TrackerStarter.relaunch(args, false);
+											frame.relaunchCurrentTabs();
 										}
 									}
 								} catch (Exception ex) {

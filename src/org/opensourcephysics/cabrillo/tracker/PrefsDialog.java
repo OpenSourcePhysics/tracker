@@ -49,6 +49,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.logging.Level;
 
 import javax.swing.AbstractAction;
@@ -299,28 +300,7 @@ public class PrefsDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				applyPrefs();
-				ArrayList<String> filenames = new ArrayList<String>();
-				for (int i = 0; i < frame.getTabCount(); i++) {
-					TrackerPanel next = frame.getTrackerPanel(i);
-					if (!next.save())
-						return;
-					File datafile = next.getDataFile();
-					if (datafile == null) {
-						String path = next.openedFromPath;
-						if (path != null) {
-							datafile = new File(path);
-						}
-					}
-					if (datafile != null) {
-						String fileName = datafile.getAbsolutePath();
-						if (!filenames.contains(fileName)) {
-							filenames.add(fileName);
-						}
-					}
-				}
-				String[] args = filenames.isEmpty() ? null : filenames.toArray(new String[0]);
-				TrackerStarter.relaunch(args, false);
-				// TrackerStarter exits current VM after relaunching new one
+				frame.relaunchCurrentTabs();
 			}
 		});
 

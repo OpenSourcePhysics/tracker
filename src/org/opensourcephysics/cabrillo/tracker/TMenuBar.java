@@ -2925,5 +2925,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		for (int i = 0; i < items.length; i++)
 			menu.add(items[i]);
 	}
-
 }
+
+

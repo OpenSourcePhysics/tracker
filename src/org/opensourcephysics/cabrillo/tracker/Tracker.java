@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Function;
 import java.util.jar.JarFile;
 import java.util.logging.Level;
 
@@ -84,6 +85,7 @@ import javax.swing.WindowConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.MouseInputAdapter;
 
+import org.opensourcephysics.cabrillo.tracker.TFrame.TabRemover;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.ConsoleLevel;
 import org.opensourcephysics.controls.OSPLog;
@@ -108,6 +110,7 @@ import org.opensourcephysics.tools.Launcher;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
+import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
 
 /**
@@ -720,35 +723,46 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		if (doClose) {
 			System.exit(0);
 		} else {
-			// remove all tabs
-			for (int i = frame.getTabCount() - 1; i >= 0; i--) {
-				// save/close tabs in try/catch block so always closes
-				try {
-					if (!frame.getTrackerPanel(i).save()) {
-						// exiting is canceled so temporarily change close operation
-						// to DO_NOTHING and return
-						final int op = frame.getDefaultCloseOperation();
-						final boolean exit = frame.wishesToExit();
-						frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-						Runnable runner = new Runnable() {
-							@Override
-							public void run() {
-								if (exit)
-									frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-								frame.setDefaultCloseOperation(op);
-							}
-						};
-						EventQueue.invokeLater(runner);
-						return;
-					}
-					frame.removeTab(frame.getTrackerPanel(i));
-				} catch (Exception ex) {
+			// remove the tabs but don't close if canceled
+			frame.saveAllTabs(new Function<TrackerPanel, Void>() {
+				// for each approved, remove tab
+				@Override
+				public Void apply(TrackerPanel trackerPanel) {
+					frame.new TabRemover(trackerPanel).execute();
+					return null;
 				}
-			}
-
-			// hide the frame
-			frame.setVisible(false);
-
+				
+			}, null, new Runnable() {
+				// if canceled
+				@Override
+				public void run() {
+					// exiting is canceled so temporarily change close operation
+					// to DO_NOTHING, hide the frame
+					int op = frame.getDefaultCloseOperation();
+					boolean exit = frame.wishesToExit();
+					frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+					// use AsyncSwingWorker to restore frame and default close op?
+					new AsyncSwingWorker(null, null, 2, 0, 1) {
+						
+						@Override
+						public void initAsync() {						
+						}
+				
+						@Override
+						public int doInBackgroundAsync(int i) {
+							return 1;
+						}
+				
+						@Override
+						public void doneAsync() {
+							frame.setVisible(true);
+							frame.setDefaultCloseOperation(exit? JFrame.EXIT_ON_CLOSE: op);
+						}
+				
+					}.execute();
+				}
+				// frame will always close now
+			});
 		}
 	}
 
