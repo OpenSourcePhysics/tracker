@@ -125,6 +125,7 @@ import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.VideoCaptureTool;
 
+import javajs.async.AsyncDialog;
 import javajs.async.SwingJSUtils.Performance;
 
 /**
@@ -825,15 +826,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
-	 * Gives the user an opportunity to save this to a trk file if changed.
-	 *
-	 * @return <code>false</code> if the user cancels, otherwise <code>true</code>
+	 * Saves this TrackerPanel if changed, then runs the appropriate Runnable
 	 */
-	public boolean save() {
-		if (!changed)
-			return true;
-		if (org.opensourcephysics.display.OSPRuntime.applet != null)
-			return true;
+	public void save(Runnable whenSaved, Runnable whenCanceled) {
+		if (!changed || org.opensourcephysics.display.OSPRuntime.applet != null) {
+			whenSaved.run();
+			return;
+		}
 		String name = getTitle();
 		// eliminate extension if no data file
 		if (getDataFile() == null) {
@@ -842,20 +841,48 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				name = name.substring(0, i);
 			}
 		}
-		int i = JOptionPane.showConfirmDialog(this.getTopLevelAncestor(),
-				TrackerRes.getString("TrackerPanel.Dialog.SaveChanges.Message") + " \"" + name + "\"?", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				TrackerRes.getString("TrackerPanel.Dialog.SaveChanges.Title"), //$NON-NLS-1$
-				JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
-		if (i == JOptionPane.YES_OPTION) {
-			restoreViews();
-			File file = VideoIO.save(getDataFile(), this);
-			if (file == null)
-				return false;
-		} else if (i == JOptionPane.CLOSED_OPTION || i == JOptionPane.CANCEL_OPTION) {
-			return false;
-		}
-		changed = false;
-		return true;
+		new AsyncDialog().showConfirmDialog(frame, 
+				TrackerRes.getString("TrackerPanel.Dialog.SaveChanges.Message") + " \"" + name + "\"?", 
+				TrackerRes.getString("TrackerPanel.Dialog.SaveChanges.Title"), 
+				new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				switch(e.getID()) {
+				case JOptionPane.YES_OPTION:
+					restoreViews();
+					File file = VideoIO.save(getDataFile(), TrackerPanel.this);
+					if (file == null) {
+						if (whenCanceled != null) {
+							whenCanceled.run();
+							break;
+						}
+					}
+					// if file != null, falls through to NO_OPTION
+				case JOptionPane.NO_OPTION:
+					changed = false;
+					if (whenSaved != null)
+						whenSaved.run();
+					break;
+				default: // canceled
+					if (whenCanceled != null)
+						whenCanceled.run();
+				}
+			}
+		});
+//		int i = JOptionPane.showConfirmDialog(this.getTopLevelAncestor(),
+//				TrackerRes.getString("TrackerPanel.Dialog.SaveChanges.Message") + " \"" + name + "\"?", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+//				TrackerRes.getString("TrackerPanel.Dialog.SaveChanges.Title"), //$NON-NLS-1$
+//				JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
+//		if (i == JOptionPane.YES_OPTION) {
+//			restoreViews();
+//			File file = VideoIO.save(getDataFile(), this);
+//			if (file == null)
+//				return false;
+//		} else if (i == JOptionPane.CLOSED_OPTION || i == JOptionPane.CANCEL_OPTION) {
+//			return false;
+//		}
+//		changed = false;
+//		return true;
 	}
 
 	/**
