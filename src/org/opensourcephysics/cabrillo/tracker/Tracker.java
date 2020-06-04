@@ -737,12 +737,13 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				@Override
 				public void run() {
 					// exiting is canceled so temporarily change close operation
-					// to DO_NOTHING, hide the frame
+					// to DO_NOTHING before the frame finishes closing
 					int op = frame.getDefaultCloseOperation();
 					boolean exit = frame.wishesToExit();
 					frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-					// use AsyncSwingWorker to restore frame and default close op?
-					new AsyncSwingWorker(null, null, 2, 0, 1) {
+					
+					// use AsyncSwingWorker to restore frame visibility and DefaultCloseOperation
+					new AsyncSwingWorker(null, null, 2, 0, 1) { // 2 ms delay
 						
 						@Override
 						public void initAsync() {						

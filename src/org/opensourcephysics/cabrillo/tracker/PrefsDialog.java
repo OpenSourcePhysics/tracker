@@ -219,7 +219,7 @@ public class PrefsDialog extends JDialog {
 		FontSizer.setFonts(borders, level); 
 		@SuppressWarnings("unchecked")
 		JComboBox<String>[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, fontSizeDropdown, 
-				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown, footprintDropdown};
+				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown};
 		for (JComboBox<String> next: dropdowns) {
 			int n = next.getSelectedIndex();
 			String[] items = new String[next.getItemCount()];
@@ -230,6 +230,14 @@ public class PrefsDialog extends JDialog {
 			next.setModel(model);
 			next.setSelectedItem(n);
 		}
+		int n = footprintDropdown.getSelectedIndex();
+		Footprint[] items = new Footprint[footprintDropdown.getItemCount()];
+		for (int i=0; i<items.length; i++) {
+			items[i] = footprintDropdown.getItemAt(i);
+		}
+		DefaultComboBoxModel<Footprint> model = new DefaultComboBoxModel<Footprint>(items);
+		footprintDropdown.setModel(model);
+		footprintDropdown.setSelectedItem(n);
   }
   
 //_____________________________ private methods ____________________________
