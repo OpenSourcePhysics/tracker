@@ -1215,39 +1215,41 @@ public class PrefsDialog extends JDialog {
 		if (OSPRuntime.isJS || Tracker.testOn)
 			box.add(mouseWheelSubPanel);
 		
-		// recent menu subpanel
-		JPanel recentSubPanel = new JPanel();
-		box.add(recentSubPanel);
-		recentSubPanel.setBackground(color);
-		recentSubPanelBorder = BorderFactory
-				.createTitledBorder(TrackerRes.getString("PrefsDialog.RecentFiles.BorderTitle")); //$NON-NLS-1$
-		recentSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, recentSubPanelBorder));
-		// create clear recent button
-		clearRecentButton = new JButton();
-		clearRecentButton.setEnabled(!Tracker.recentFiles.isEmpty());
-		clearRecentButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Tracker.recentFiles.clear();
-				TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_PREFS_CLEARRECENT);
-				clearRecentButton.setEnabled(false);
-			}
-		});
-		recentSubPanel.add(clearRecentButton);
-
-		// create recent size spinner
-		JPanel spinnerPanel = new JPanel();
-		spinnerPanel.setOpaque(false);
-		spinnerPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-		SpinnerModel model = new SpinnerNumberModel(Tracker.recentFilesSize, 0, 12, 1);
-		recentSizeSpinner = new JSpinner(model);
-		JSpinner.NumberEditor editor = new JSpinner.NumberEditor(recentSizeSpinner, "0"); //$NON-NLS-1$
-		editor.getTextField().setHorizontalAlignment(SwingConstants.LEFT);
-		recentSizeSpinner.setEditor(editor);
-		spinnerPanel.add(recentSizeSpinner);
-		recentSizeLabel = new JLabel();
-		spinnerPanel.add(recentSizeLabel);
-		recentSubPanel.add(spinnerPanel);
+		// recent menu subpanel--only for Java
+		if (!OSPRuntime.isJS && !Tracker.testOn) {
+			JPanel recentSubPanel = new JPanel();
+			box.add(recentSubPanel);
+			recentSubPanel.setBackground(color);
+			recentSubPanelBorder = BorderFactory
+					.createTitledBorder(TrackerRes.getString("PrefsDialog.RecentFiles.BorderTitle")); //$NON-NLS-1$
+			recentSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, recentSubPanelBorder));
+			// create clear recent button
+			clearRecentButton = new JButton();
+			clearRecentButton.setEnabled(!Tracker.recentFiles.isEmpty());
+			clearRecentButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					Tracker.recentFiles.clear();
+					TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_PREFS_CLEARRECENT);
+					clearRecentButton.setEnabled(false);
+				}
+			});
+			recentSubPanel.add(clearRecentButton);
+	
+			// create recent size spinner
+			JPanel spinnerPanel = new JPanel();
+			spinnerPanel.setOpaque(false);
+			spinnerPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
+			SpinnerModel model = new SpinnerNumberModel(Tracker.recentFilesSize, 0, 12, 1);
+			recentSizeSpinner = new JSpinner(model);
+			JSpinner.NumberEditor editor = new JSpinner.NumberEditor(recentSizeSpinner, "0"); //$NON-NLS-1$
+			editor.getTextField().setHorizontalAlignment(SwingConstants.LEFT);
+			recentSizeSpinner.setEditor(editor);
+			spinnerPanel.add(recentSizeSpinner);
+			recentSizeLabel = new JLabel();
+			spinnerPanel.add(recentSizeLabel);
+			recentSubPanel.add(spinnerPanel);
+		}
 
 		// cache subpanel only for Java
 		if (!OSPRuntime.isJS && !Tracker.testOn) {
@@ -1617,7 +1619,6 @@ public class PrefsDialog extends JDialog {
     langSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Language.BorderTitle")); //$NON-NLS-1$
     hintsSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Hints.BorderTitle")); //$NON-NLS-1$
     unitsSubPanelBorder.setTitle(TrackerRes.getString("TMenuBar.Menu.AngleUnits")); //$NON-NLS-1$
-    recentSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.RecentFiles.BorderTitle")); //$NON-NLS-1$
     logLevelSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.LogLevel.BorderTitle")); //$NON-NLS-1$
     fontSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
     resetToStep0SubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Marking.BorderTitle")); //$NON-NLS-1$
@@ -1633,8 +1634,6 @@ public class PrefsDialog extends JDialog {
     cancelButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
     okButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
     relaunchButton.setText(TrackerRes.getString("PrefsDialog.Button.Relaunch")); //$NON-NLS-1$
-    clearRecentButton.setText(TrackerRes.getString("PrefsDialog.Button.ClearRecent")); //$NON-NLS-1$
-    recentSizeLabel.setText(TrackerRes.getString("PrefsDialog.Label.RecentSize")); //$NON-NLS-1$
     hintsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.HintsOn")); //$NON-NLS-1$    
     resetToStep0Checkbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.ResetToZero.Text")); //$NON-NLS-1$    
     autofillCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.Autofill.Text")); //$NON-NLS-1$    
@@ -1655,6 +1654,7 @@ public class PrefsDialog extends JDialog {
 	    versionSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Version.BorderTitle")); //$NON-NLS-1$
 	    jreSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.JRE.BorderTitle")); //$NON-NLS-1$
 	    memorySubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Memory.BorderTitle")); //$NON-NLS-1$
+	    recentSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.RecentFiles.BorderTitle")); //$NON-NLS-1$
 	    defaultMemoryCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.DefaultSize")); //$NON-NLS-1$
 	    applyButton.setText(TrackerRes.getString("Dialog.Button.Apply")); //$NON-NLS-1$
 	    applyButton.setEnabled(trackerPanel!=null);
@@ -1682,6 +1682,8 @@ public class PrefsDialog extends JDialog {
 	    cacheSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.CacheFiles.BorderTitle")); //$NON-NLS-1$
 	    upgradeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Upgrades.BorderTitle")); //$NON-NLS-1$
 	    runSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Run.BorderTitle")); //$NON-NLS-1$
+	    clearRecentButton.setText(TrackerRes.getString("PrefsDialog.Button.ClearRecent")); //$NON-NLS-1$
+	    recentSizeLabel.setText(TrackerRes.getString("PrefsDialog.Label.RecentSize")); //$NON-NLS-1$
 	    setTabTitle(configPanel, TrackerRes.getString("PrefsDialog.Tab.Configuration.Title")); //$NON-NLS-1$
 	    setTabTitle(runtimePanel, TrackerRes.getString("PrefsDialog.Tab.Runtime.Title")); //$NON-NLS-1$
 	    setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
@@ -1818,10 +1820,6 @@ public class PrefsDialog extends JDialog {
    */
   private void applyPrefs() {
     // look/feel, language, video, hints, font size & decimal separator are set directly by components
-    // update recent menu
-    Integer val = (Integer)recentSizeSpinner.getValue();
-    Tracker.setRecentSize(val);
-    TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_PREFS_APPLYPREFS);
 
 		Tracker.showGaps = showGapsCheckbox.isSelected();
 		if (trailLengthDropdown != null) {
@@ -1837,6 +1835,10 @@ public class PrefsDialog extends JDialog {
     Tracker.isRadians = radiansButton.isSelected();
 		if (frame!=null) frame.setAnglesInRadians(Tracker.isRadians);
 		if (!OSPRuntime.isJS && !Tracker.testOn) {
+	    // update recent menu
+	    Integer val = (Integer)recentSizeSpinner.getValue();
+	    Tracker.setRecentSize(val);
+	    TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_PREFS_APPLYPREFS);
 	  	// update configuration
 	    updateConfig();
 			Tracker.isXuggleFast = xuggleFastButton.isSelected();
@@ -1889,8 +1891,6 @@ public class PrefsDialog extends JDialog {
 		// look and feel
 		if (Tracker.lookAndFeel != null)
 			lookFeelDropdown.setSelectedItem(Tracker.lookAndFeel.toLowerCase());
-		// recent files
-		recentSizeSpinner.setValue(Tracker.recentFilesSize);
 		// hints
 		hintsCheckbox.setSelected(Tracker.showHintsByDefault);
 		// locale
@@ -1972,6 +1972,8 @@ public class PrefsDialog extends JDialog {
 			markStickEndsButton.setSelected(true);
 
 		if (!OSPRuntime.isJS && !Tracker.testOn) {
+			// recent files
+			recentSizeSpinner.setValue(Tracker.recentFilesSize);
 			// configuration
 			Component[] checkboxes = checkPanel.getComponents();
 			for (int i = 0; i < checkboxes.length; i++) {
