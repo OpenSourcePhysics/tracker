@@ -85,7 +85,6 @@ import javax.swing.WindowConstants;
 import javax.swing.border.BevelBorder;
 import javax.swing.event.MouseInputAdapter;
 
-import org.opensourcephysics.cabrillo.tracker.TFrame.TabRemover;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.ConsoleLevel;
 import org.opensourcephysics.controls.OSPLog;
@@ -118,7 +117,6 @@ import javajs.async.SwingJSUtils.Performance;
  *
  * @author Douglas Brown
  */
-@SuppressWarnings("serial")
 public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	public static boolean allowDataRefresh = true; // !OSPRuntime.isBHTest;
@@ -243,7 +241,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static Map<String, String[]> autoloadMap = new TreeMap<String, String[]>();
 	static String[] preferredAutoloadSearchPaths;
 	static boolean markAtCurrentFrame = true;
-	static boolean scrubMouseWheel, centerCalibrationStick, enableAutofill, showGaps, hideLabels;
+	static boolean scrubMouseWheel, centerCalibrationStick, hideLabels;
+	static boolean enableAutofill = true, showGaps = true;
 	static int trailLengthIndex = TToolBar.trailLengths.length - 2;
 	private static boolean declareLocales = !OSPRuntime.isJS;
 
@@ -1697,21 +1696,31 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 * @return the path to the saved file
 	 */
 	protected static String savePreferences() {
-		// save prefs file in current preferences path
 		XMLControl control = new XMLControlElement(new Preferences());
-		if (prefsPath != null) {
-			control.write(prefsPath);
-		}
-
-		// save other existing prefs files
-		for (int i = 0; i < 2; i++) {
-			String fileName = TrackerStarter.PREFS_FILE_NAME;
-			if (i == 1) {
-				fileName = "." + fileName; //$NON-NLS-1$
+		if (!OSPRuntime.isJS) /** @j2sNative */ {
+			// save prefs file in current preferences path
+			if (prefsPath != null) {
+				control.write(prefsPath);
 			}
-			// update prefs files in OSPRuntime search paths, if any
-			for (String path : OSPRuntime.getDefaultSearchPaths()) {
-				File prefsFile = new File(path, fileName);
+	
+			// save other existing prefs files
+			for (int i = 0; i < 2; i++) {
+				String fileName = TrackerStarter.PREFS_FILE_NAME;
+				if (i == 1) {
+					fileName = "." + fileName; //$NON-NLS-1$
+				}
+				// update prefs files in OSPRuntime search paths, if any
+				for (String path : OSPRuntime.getDefaultSearchPaths()) {
+					File prefsFile = new File(path, fileName);
+					if (prefsFile.getAbsolutePath().equals(prefsPath)) {
+						continue;
+					}
+					if (prefsFile.exists() && prefsFile.canWrite()) {
+						control.write(prefsFile.getAbsolutePath());
+					}
+				}
+				// update prefs in current directory, if any
+				File prefsFile = new File(fileName);
 				if (prefsFile.getAbsolutePath().equals(prefsPath)) {
 					continue;
 				}
@@ -1719,28 +1728,22 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					control.write(prefsFile.getAbsolutePath());
 				}
 			}
-			// update prefs in current directory, if any
-			File prefsFile = new File(fileName);
-			if (prefsFile.getAbsolutePath().equals(prefsPath)) {
-				continue;
+	
+			// save current trackerHome and xuggleHome in OSP preferences
+			if (trackerHome != null && new File(trackerHome, "tracker.jar").exists()) { //$NON-NLS-1$
+				OSPRuntime.setPreference("TRACKER_HOME", trackerHome); //$NON-NLS-1$
 			}
-			if (prefsFile.exists() && prefsFile.canWrite()) {
-				control.write(prefsFile.getAbsolutePath());
+			String xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
+			if (xuggleHome != null) {
+				OSPRuntime.setPreference("XUGGLE_HOME", xuggleHome); //$NON-NLS-1$
 			}
-		}
-
-		// save current trackerHome and xuggleHome in OSP preferences
-		if (trackerHome != null && new File(trackerHome, "tracker.jar").exists()) { //$NON-NLS-1$
-			OSPRuntime.setPreference("TRACKER_HOME", trackerHome); //$NON-NLS-1$
-		}
-		String xuggleHome = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
-		if (xuggleHome != null) {
-			OSPRuntime.setPreference("XUGGLE_HOME", xuggleHome); //$NON-NLS-1$
-		}
-		if (!OSPRuntime.isJS) {
 			OSPRuntime.savePreferences();
+			return prefsPath;
 		}
-		return prefsPath;
+		else { // JS
+			// localStorage.setItem("trackerprefs", control.toXML());
+		}
+		return null;
 	}
 
 	/**
@@ -2305,10 +2308,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					control.setValue("mark_current_frame", markAtCurrentFrame); //$NON-NLS-1$
 				if (scrubMouseWheel) // false by default
 					control.setValue("scrub_mousewheel", scrubMouseWheel); //$NON-NLS-1$
-				if (enableAutofill) // false by default
-					control.setValue("enable_autofill", enableAutofill); //$NON-NLS-1$
-				if (showGaps) // false by default
+				if (!showGaps) // true by default
 					control.setValue("show_gaps", showGaps); //$NON-NLS-1$
+				if (!enableAutofill) // true by default
+					control.setValue("enable_autofill", enableAutofill); //$NON-NLS-1$
 				if (trailLengthIndex != TToolBar.trailLengths.length - 2)
 					control.setValue("trail_length", TToolBar.trailLengthNames[trailLengthIndex]); //$NON-NLS-1$
 				if (centerCalibrationStick) // false by default
@@ -2430,8 +2433,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				isRadians = control.getBoolean("radians"); //$NON-NLS-1$
 				markAtCurrentFrame = control.getBoolean("mark_current_frame"); //$NON-NLS-1$
 				scrubMouseWheel = control.getBoolean("scrub_mousewheel"); //$NON-NLS-1$
-				enableAutofill = control.getBoolean("enable_autofill"); //$NON-NLS-1$
-				showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("enable_autofill")) //$NON-NLS-1$
+					enableAutofill = control.getBoolean("enable_autofill"); //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("show_gaps")) //$NON-NLS-1$
+					showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
 				centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
 				isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("trail_length")) { //$NON-NLS-1$

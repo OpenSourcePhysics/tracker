@@ -49,7 +49,6 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.Function;
 import java.util.logging.Level;
 
 import javax.swing.AbstractAction;
@@ -128,7 +127,7 @@ public class PrefsDialog extends JDialog {
   protected JPanel checkPanel;
   protected JPanel mainButtonBar;
   protected JTabbedPane tabbedPane;
-  protected JPanel configPanel, runtimePanel, videoPanel, generalPanel, trackPanel, displayPanel;
+  protected JPanel configPanel, runtimePanel, videoPanel, generalPanel, actionsPanel, displayPanel;
   protected TitledBorder checkPanelBorder, lfSubPanelBorder, langSubPanelBorder, hintsSubPanelBorder,
   	unitsSubPanelBorder, versionSubPanelBorder, jreSubPanelBorder, memorySubPanelBorder, runSubPanelBorder, 
   	videoTypeSubPanelBorder, xuggleSpeedSubPanelBorder, warningsSubPanelBorder, recentSubPanelBorder, 
@@ -221,6 +220,8 @@ public class PrefsDialog extends JDialog {
 		JComboBox<String>[] dropdowns = new JComboBox[] {lookFeelDropdown, languageDropdown, fontSizeDropdown, 
 				jreDropdown, checkForUpgradeDropdown, versionDropdown, logLevelDropdown};
 		for (JComboBox<String> next: dropdowns) {
+			if (next == null) 
+				continue;
 			int n = next.getSelectedIndex();
 			String[] items = new String[next.getItemCount()];
 			for (int i=0; i<items.length; i++) {
@@ -230,14 +231,16 @@ public class PrefsDialog extends JDialog {
 			next.setModel(model);
 			next.setSelectedItem(n);
 		}
-		int n = footprintDropdown.getSelectedIndex();
-		Footprint[] items = new Footprint[footprintDropdown.getItemCount()];
-		for (int i=0; i<items.length; i++) {
-			items[i] = footprintDropdown.getItemAt(i);
+		if (footprintDropdown != null) {
+			int n = footprintDropdown.getSelectedIndex();
+			Footprint[] items = new Footprint[footprintDropdown.getItemCount()];
+			for (int i=0; i<items.length; i++) {
+				items[i] = footprintDropdown.getItemAt(i);
+			}
+			DefaultComboBoxModel<Footprint> model = new DefaultComboBoxModel<Footprint>(items);
+			footprintDropdown.setModel(model);
+			footprintDropdown.setSelectedItem(n);
 		}
-		DefaultComboBoxModel<Footprint> model = new DefaultComboBoxModel<Footprint>(items);
-		footprintDropdown.setModel(model);
-		footprintDropdown.setSelectedItem(n);
   }
   
 //_____________________________ private methods ____________________________
@@ -311,82 +314,85 @@ public class PrefsDialog extends JDialog {
 				frame.relaunchCurrentTabs();
 			}
 		});
-
-		// configuration panel
-		configPanel = new JPanel(new BorderLayout());
-		tabbedPane.addTab(null, configPanel);
 		Color color = Color.WHITE;
-		// config checkPanel
-		int n = 1 + Tracker.getFullConfig().size() / 2;
-		checkPanel = new JPanel(new GridLayout(n, 2));
-		checkPanel.setBackground(color);
-		checkPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("ConfigInspector.Border.Title")); //$NON-NLS-1$
-		checkPanel.setBorder(checkPanelBorder);
-		// config checkboxes
-		Iterator<String> it = Tracker.getFullConfig().iterator();
-		while (it.hasNext()) {
-			String item = it.next();
-			JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(item);
-			checkbox.setOpaque(false);
-			checkPanel.add(checkbox);
-		}
-		JScrollPane scroller = new JScrollPane(checkPanel);
-		scroller.getVerticalScrollBar().setUnitIncrement(16);
-		scroller.setPreferredSize(new Dimension(450, 200));
-		configPanel.add(scroller, BorderLayout.CENTER);
-		// apply button
-		applyButton = new JButton();
-		applyButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				updateConfig();
-				refreshGUI();
-				frame.refresh();
-			}
-		});
-		// create all and none buttons
-		allButton = new JButton();
-		allButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Component[] checkboxes = checkPanel.getComponents();
-				for (int i = 0; i < checkboxes.length; i++) {
-					JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem) checkboxes[i];
-					checkbox.setSelected(true);
-				}
-			}
-		});
-		noneButton = new JButton();
-		noneButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Component[] checkboxes = checkPanel.getComponents();
-				for (int i = 0; i < checkboxes.length; i++) {
-					JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem) checkboxes[i];
-					checkbox.setSelected(false);
-				}
-			}
-		});
-		// save button
-		saveButton = new JButton();
-		saveButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveConfigAsDefault();
-			}
-		});
-		JPanel configButtonBar = new JPanel();
-		configButtonBar.add(allButton);
-		configButtonBar.add(noneButton);
-		configButtonBar.add(applyButton);
-		configButtonBar.add(saveButton);
-		configPanel.add(configButtonBar, BorderLayout.NORTH);
 
+		// configuration panel for Java only
+		if (!OSPRuntime.isJS && !Tracker.testOn) {
+			configPanel = new JPanel(new BorderLayout());
+			tabbedPane.addTab(null, configPanel);
+			// config checkPanel
+			int n = 1 + Tracker.getFullConfig().size() / 2;
+			checkPanel = new JPanel(new GridLayout(n, 2));
+			checkPanel.setBackground(color);
+			checkPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("ConfigInspector.Border.Title")); //$NON-NLS-1$
+			checkPanel.setBorder(checkPanelBorder);
+			// config checkboxes
+			Iterator<String> it = Tracker.getFullConfig().iterator();
+			while (it.hasNext()) {
+				String item = it.next();
+				JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(item);
+				checkbox.setOpaque(false);
+				checkPanel.add(checkbox);
+			}
+			JScrollPane scroller = new JScrollPane(checkPanel);
+			scroller.getVerticalScrollBar().setUnitIncrement(16);
+			scroller.setPreferredSize(new Dimension(450, 200));
+			configPanel.add(scroller, BorderLayout.CENTER);
+			// apply button
+			applyButton = new JButton();
+			applyButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					updateConfig();
+					refreshGUI();
+					frame.refresh();
+				}
+			});
+			// create all and none buttons
+			allButton = new JButton();
+			allButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					Component[] checkboxes = checkPanel.getComponents();
+					for (int i = 0; i < checkboxes.length; i++) {
+						JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem) checkboxes[i];
+						checkbox.setSelected(true);
+					}
+				}
+			});
+			noneButton = new JButton();
+			noneButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					Component[] checkboxes = checkPanel.getComponents();
+					for (int i = 0; i < checkboxes.length; i++) {
+						JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem) checkboxes[i];
+						checkbox.setSelected(false);
+					}
+				}
+			});
+			// save button
+			saveButton = new JButton();
+			saveButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					saveConfigAsDefault();
+				}
+			});
+			JPanel configButtonBar = new JPanel();
+			configButtonBar.add(allButton);
+			configButtonBar.add(noneButton);
+			configButtonBar.add(applyButton);
+			configButtonBar.add(saveButton);
+			configPanel.add(configButtonBar, BorderLayout.NORTH);
+		} // end configuration panel
+		
 		Border etched = BorderFactory.createEtchedBorder();
 
 		// display panel
 		displayPanel = new JPanel(new BorderLayout());
 		tabbedPane.addTab(null, displayPanel);
+
 		Box box = Box.createVerticalBox();
 		displayPanel.add(box, BorderLayout.CENTER);
 
@@ -396,7 +402,7 @@ public class PrefsDialog extends JDialog {
 
 		// look and feel subpanel
 		JPanel lfSubPanel = new JPanel();
-		horz.add(lfSubPanel);
+//		horz.add(lfSubPanel);
 		lfSubPanel.setBackground(color);
 
 		lfSubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.LookFeel.BorderTitle")); //$NON-NLS-1$
@@ -462,6 +468,34 @@ public class PrefsDialog extends JDialog {
 			}
 		});
 		langSubPanel.add(languageDropdown);
+
+		// font level subpanel
+		JPanel fontSubPanel = new JPanel();
+		horz.add(fontSubPanel);
+		fontSubPanel.setBackground(color);
+		fontSubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
+		fontSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, fontSubPanelBorder));
+
+		// create font size dropdown
+		fontSizeDropdown = new JComboBox<String>();
+		String defaultLevel = TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"); //$NON-NLS-1$
+		fontSizeDropdown.addItem(defaultLevel);
+		int preferredLevel = Tracker.preferredFontLevel + Tracker.preferredFontLevelPlus;
+		int maxLevel = Math.max(preferredLevel, Tracker.maxFontLevel);
+		for (int i = 1; i <= maxLevel; i++) {
+			String s = "+" + i; //$NON-NLS-1$
+			fontSizeDropdown.addItem(s);
+		}
+		fontSizeDropdown.setSelectedIndex(preferredLevel);
+		fontSizeDropdown.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				int preferredLevel = fontSizeDropdown.getSelectedIndex();
+				Tracker.preferredFontLevel = Math.min(preferredLevel, 3);
+				Tracker.preferredFontLevelPlus = preferredLevel - Tracker.preferredFontLevel;
+			}
+		});
+		fontSubPanel.add(fontSizeDropdown);
 
 		// angle units and hints subpanels side by side
 		horz = Box.createHorizontalBox();
@@ -543,536 +577,512 @@ public class PrefsDialog extends JDialog {
 		decimalSubPanel.add(periodDecimalButton);
 		decimalSubPanel.add(commaDecimalButton);
 
-		// font level subpanel
-		JPanel fontSubPanel = new JPanel();
-		horz.add(fontSubPanel);
-		fontSubPanel.setBackground(color);
-		fontSubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
-		fontSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, fontSubPanelBorder));
+//		// footprint and trail length subpanels side by side
+//		horz = Box.createHorizontalBox();
+//		box.add(horz);
+//
+//		// pointmass footprint subpanel
+//		JPanel footprintSubPanel = new JPanel();
+//		horz.add(footprintSubPanel);
+//		footprintSubPanel.setBackground(color);
+//
+//		pointmassFootprintSubPanelBorder = BorderFactory
+//				.createTitledBorder(TrackerRes.getString("PrefsDialog.PointMassFootprint.BorderTitle")); //$NON-NLS-1$
+//		footprintSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, pointmassFootprintSubPanelBorder));
+//		footprintDropdown = new JComboBox<Footprint>();
+//		footprintDropdown.setRenderer(new FootprintRenderer());
+//		Footprint[] footprints = new Footprint[PointMass.footprintNames.length];
+//		for (int i = 0; i < footprints.length; i++) {
+//			String name = PointMass.footprintNames[i];
+//			if (name.equals("CircleFootprint.Circle")) { //$NON-NLS-1$
+//				footprints[i] = CircleFootprint.getFootprint(name);
+//			} else {
+//				footprints[i] = PointShapeFootprint.getFootprint(name);
+//			}
+//		}
+//		for (int i = 0; i < footprints.length; i++) {
+//			footprintDropdown.addItem(footprints[i]);
+//		}
+//		footprintSubPanel.add(footprintDropdown);
+//		final ActionListener al = new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				footprintDropdown.repaint();
+//			}
+//		};
+//		footprintDropdown.setAction(new AbstractAction() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				if (refreshing)
+//					return;
+//				Footprint footprint = (Footprint) footprintDropdown.getSelectedItem();
+//				if (footprint instanceof CircleFootprint) {
+//					CircleFootprint cfp = (CircleFootprint) footprint;
+//					cfp.showProperties(trackerPanel.getTFrame(), al);
+//					Tracker.preferredPointMassFootprint = footprint.getName() + "#" + cfp.getProperties(); //$NON-NLS-1$
+//				} else
+//					Tracker.preferredPointMassFootprint = footprint.getName();
+//			}
+//		});
+//
+//		// trailLength subpanel
+//		JPanel trailLengthSubPanel = new JPanel();
+//		horz.add(trailLengthSubPanel);
+//		trailLengthSubPanel.setBackground(color);
+//
+//		trailLengthSubPanelBorder = BorderFactory
+//				.createTitledBorder(TrackerRes.getString("PrefsDialog.Trails.BorderTitle")); //$NON-NLS-1$
+//		trailLengthSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, trailLengthSubPanelBorder));
+//		trailLengthDropdown = new JComboBox<String>();
+//		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
+//		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
+//		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
+//		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.FullTrail")); //$NON-NLS-1$
+//		trailLengthSubPanel.add(trailLengthDropdown);
+		// end display panel
 
-		// create font size dropdown
-		fontSizeDropdown = new JComboBox<String>();
-		String defaultLevel = TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize"); //$NON-NLS-1$
-		fontSizeDropdown.addItem(defaultLevel);
-		int preferredLevel = Tracker.preferredFontLevel + Tracker.preferredFontLevelPlus;
-		int maxLevel = Math.max(preferredLevel, Tracker.maxFontLevel);
-		for (int i = 1; i <= maxLevel; i++) {
-			String s = "+" + i; //$NON-NLS-1$
-			fontSizeDropdown.addItem(s);
-		}
-		fontSizeDropdown.setSelectedIndex(preferredLevel);
-		fontSizeDropdown.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				int preferredLevel = fontSizeDropdown.getSelectedIndex();
-				Tracker.preferredFontLevel = Math.min(preferredLevel, 3);
-				Tracker.preferredFontLevelPlus = preferredLevel - Tracker.preferredFontLevel;
-			}
-		});
-		fontSubPanel.add(fontSizeDropdown);
-
-		// footprint and trail length subpanels side by side
-		horz = Box.createHorizontalBox();
-		box.add(horz);
-
-		// pointmass footprint subpanel
-		JPanel footprintSubPanel = new JPanel();
-		horz.add(footprintSubPanel);
-		footprintSubPanel.setBackground(color);
-
-		pointmassFootprintSubPanelBorder = BorderFactory
-				.createTitledBorder(TrackerRes.getString("PrefsDialog.PointMassFootprint.BorderTitle")); //$NON-NLS-1$
-		footprintSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, pointmassFootprintSubPanelBorder));
-		footprintDropdown = new JComboBox<Footprint>();
-		footprintDropdown.setRenderer(new FootprintRenderer());
-		Footprint[] footprints = new Footprint[PointMass.footprintNames.length];
-		for (int i = 0; i < footprints.length; i++) {
-			String name = PointMass.footprintNames[i];
-			if (name.equals("CircleFootprint.Circle")) { //$NON-NLS-1$
-				footprints[i] = CircleFootprint.getFootprint(name);
-			} else {
-				footprints[i] = PointShapeFootprint.getFootprint(name);
-			}
-		}
-		for (int i = 0; i < footprints.length; i++) {
-			footprintDropdown.addItem(footprints[i]);
-		}
-		footprintSubPanel.add(footprintDropdown);
-		final ActionListener al = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				footprintDropdown.repaint();
-			}
-		};
-		footprintDropdown.setAction(new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (refreshing)
-					return;
-				Footprint footprint = (Footprint) footprintDropdown.getSelectedItem();
-				if (footprint instanceof CircleFootprint) {
-					CircleFootprint cfp = (CircleFootprint) footprint;
-					cfp.showProperties(trackerPanel.getTFrame(), al);
-					Tracker.preferredPointMassFootprint = footprint.getName() + "#" + cfp.getProperties(); //$NON-NLS-1$
-				} else
-					Tracker.preferredPointMassFootprint = footprint.getName();
-			}
-		});
-
-		// trailLength subpanel
-		JPanel trailLengthSubPanel = new JPanel();
-		horz.add(trailLengthSubPanel);
-		trailLengthSubPanel.setBackground(color);
-
-		trailLengthSubPanelBorder = BorderFactory
-				.createTitledBorder(TrackerRes.getString("PrefsDialog.Trails.BorderTitle")); //$NON-NLS-1$
-		trailLengthSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, trailLengthSubPanelBorder));
-		trailLengthDropdown = new JComboBox<String>();
-		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
-		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
-		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
-		trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.FullTrail")); //$NON-NLS-1$
-		trailLengthSubPanel.add(trailLengthDropdown);
-
-		// runtime panel
-		runtimePanel = new JPanel(new BorderLayout());
-		tabbedPane.addTab(null, runtimePanel);
-		box = Box.createVerticalBox();
-		runtimePanel.add(box, BorderLayout.CENTER);
-
-		// tracker version subpanel
-		JPanel versionSubPanel = new JPanel();
-		box.add(versionSubPanel);
-		versionSubPanel.setBackground(color);
-		versionSubPanelBorder = BorderFactory
-				.createTitledBorder(TrackerRes.getString("PrefsDialog.Version.BorderTitle")); //$NON-NLS-1$
-		versionSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, versionSubPanelBorder));
-		int preferred = 0;
-		versionDropdown = new JComboBox<String>();
-		for (int i = 0; i < trackerVersions.length; i++) {
-			String next = trackerVersions[i].ver;
-			if (next.equals("0")) { //$NON-NLS-1$
-				String s = TrackerRes.getString("PrefsDialog.Version.Default"); //$NON-NLS-1$
-				versionDropdown.addItem(s);
-			} else
-				versionDropdown.addItem(next);
-			if (Tracker.preferredTrackerJar != null && Tracker.preferredTrackerJar.indexOf("tracker-") > -1 //$NON-NLS-1$
-					&& Tracker.preferredTrackerJar.indexOf(next) > -1) {
-				preferred = i;
-			}
-		}
-		versionDropdown.setSelectedIndex(preferred);
-		versionDropdown.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				Object ver = versionDropdown.getSelectedItem();
-				String jar = null;
-				if (ver != null && !TrackerRes.getString("PrefsDialog.Version.Default").equals(ver)) { //$NON-NLS-1$
-					jar = "tracker-" + ver + ".jar"; //$NON-NLS-1$ //$NON-NLS-2$
-				}
-				if (jar == null && Tracker.preferredTrackerJar != null) {
-					Tracker.preferredTrackerJar = null;
-				} else if (jar != null && !jar.equals(Tracker.preferredTrackerJar)) {
-					Tracker.preferredTrackerJar = jar;
-				}
-			}
-		});
-		versionSubPanel.add(versionDropdown);
-
-		// jre subpanel
-		JPanel jreSubPanel = new JPanel(new BorderLayout());
-		box.add(jreSubPanel);
-		jreSubPanel.setBackground(color);
-		jreSubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.JRE.BorderTitle")); //$NON-NLS-1$
-		jreSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, jreSubPanelBorder));
-
-		JPanel jreNorthPanel = new JPanel();
-		jreNorthPanel.setBackground(color);
-		jreSubPanel.add(jreNorthPanel, BorderLayout.NORTH);
-		JPanel jreSouthPanel = new JPanel();
-		jreSouthPanel.setBackground(color);
-		jreSubPanel.add(jreSouthPanel, BorderLayout.SOUTH);
-
-		int vmBitness = OSPRuntime.getVMBitness();
-		vm32Button = new JRadioButton();
-		vm32Button.setOpaque(false);
-		vm32Button.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
-		vm32Button.setSelected(vmBitness == 32);
-		vm32Button.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (!vm32Button.isSelected())
-					return;
-				if (OSPRuntime.isWindows()) {
-					refreshJREDropdown(32);
-				}
-			}
-		});
-		jreNorthPanel.add(vm32Button);
-
-		vm64Button = new JRadioButton();
-		vm64Button.setOpaque(false);
-		vm64Button.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
-		vm64Button.setSelected(vmBitness == 64);
-		vm64Button.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (!vm64Button.isSelected())
-					return;
-				if (OSPRuntime.isMac()) {
-					refreshJREDropdown(64);
-				} else if (OSPRuntime.isWindows()) {
-					refreshJREDropdown(64);
-					// inform that no engine available in 64-bit VM
-					int selected = JOptionPane.showConfirmDialog(frame,
-							TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
-					TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message2") + "\n\n" + //$NON-NLS-1$ //$NON-NLS-2$
-					TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Question"), //$NON-NLS-1$
-							TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Title"), //$NON-NLS-1$
-							JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null);
-					if (selected != JOptionPane.YES_OPTION) {
-						vm32Button.setSelected(true); // revert to 32-bit VM
-					}
-					return;
-				}
-			}
-		});
-		jreNorthPanel.add(vm64Button);
-
-		jreDropdown = new JComboBox<String>();
-		jreSouthPanel.add(jreDropdown);
-		refreshJREDropdown(vmBitness);
-
-		// create button border
+		// create button border && openFileIcon
 		Border buttonBorder = BorderFactory.createEtchedBorder();
 		Border space = BorderFactory.createEmptyBorder(2, 2, 2, 2);
 		buttonBorder = BorderFactory.createCompoundBorder(buttonBorder, space);
+		Icon openFileIcon = new ImageIcon(Tracker.getClassResource("resources/images/open.gif")); //$NON-NLS-1$
 
-		// memory subpanel
-		JPanel memorySubPanel = new JPanel();
-		box.add(memorySubPanel);
-		memorySubPanel.setBackground(color);
-		memorySubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.Memory.BorderTitle")); //$NON-NLS-1$
-		memorySubPanel.setBorder(BorderFactory.createCompoundBorder(etched, memorySubPanelBorder));
-		memorySubPanel.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				requestFocusInWindow();
+		// runtime panel only for Java
+		if (!OSPRuntime.isJS && !Tracker.testOn) {
+			runtimePanel = new JPanel(new BorderLayout());
+			tabbedPane.addTab(null, runtimePanel);
+			box = Box.createVerticalBox();
+			runtimePanel.add(box, BorderLayout.CENTER);
+	
+			// tracker version subpanel
+			JPanel versionSubPanel = new JPanel();
+			box.add(versionSubPanel);
+			versionSubPanel.setBackground(color);
+			versionSubPanelBorder = BorderFactory
+					.createTitledBorder(TrackerRes.getString("PrefsDialog.Version.BorderTitle")); //$NON-NLS-1$
+			versionSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, versionSubPanelBorder));
+			int preferred = 0;
+			versionDropdown = new JComboBox<String>();
+			for (int i = 0; i < trackerVersions.length; i++) {
+				String next = trackerVersions[i].ver;
+				if (next.equals("0")) { //$NON-NLS-1$
+					String s = TrackerRes.getString("PrefsDialog.Version.Default"); //$NON-NLS-1$
+					versionDropdown.addItem(s);
+				} else
+					versionDropdown.addItem(next);
+				if (Tracker.preferredTrackerJar != null && Tracker.preferredTrackerJar.indexOf("tracker-") > -1 //$NON-NLS-1$
+						&& Tracker.preferredTrackerJar.indexOf(next) > -1) {
+					preferred = i;
+				}
 			}
-		});
-		defaultMemoryCheckbox = new JCheckBox();
-		defaultMemoryCheckbox.setOpaque(false);
-		memoryLabel = new JLabel("MB"); //$NON-NLS-1$
-		memoryField = new IntegerField(4);
-		memoryField.setMinValue(Tracker.minimumMemorySize);
-		memoryField.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				if (memorySize != memoryField.getIntValue()) {
+			versionDropdown.setSelectedIndex(preferred);
+			versionDropdown.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					Object ver = versionDropdown.getSelectedItem();
+					String jar = null;
+					if (ver != null && !TrackerRes.getString("PrefsDialog.Version.Default").equals(ver)) { //$NON-NLS-1$
+						jar = "tracker-" + ver + ".jar"; //$NON-NLS-1$ //$NON-NLS-2$
+					}
+					if (jar == null && Tracker.preferredTrackerJar != null) {
+						Tracker.preferredTrackerJar = null;
+					} else if (jar != null && !jar.equals(Tracker.preferredTrackerJar)) {
+						Tracker.preferredTrackerJar = jar;
+					}
+				}
+			});
+			versionSubPanel.add(versionDropdown);
+	
+			// jre subpanel
+			JPanel jreSubPanel = new JPanel(new BorderLayout());
+			box.add(jreSubPanel);
+			jreSubPanel.setBackground(color);
+			jreSubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.JRE.BorderTitle")); //$NON-NLS-1$
+			jreSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, jreSubPanelBorder));
+	
+			JPanel jreNorthPanel = new JPanel();
+			jreNorthPanel.setBackground(color);
+			jreSubPanel.add(jreNorthPanel, BorderLayout.NORTH);
+			JPanel jreSouthPanel = new JPanel();
+			jreSouthPanel.setBackground(color);
+			jreSubPanel.add(jreSouthPanel, BorderLayout.SOUTH);
+	
+			int vmBitness = OSPRuntime.getVMBitness();
+			vm32Button = new JRadioButton();
+			vm32Button.setOpaque(false);
+			vm32Button.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+			vm32Button.setSelected(vmBitness == 32);
+			vm32Button.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					if (!vm32Button.isSelected())
+						return;
+					if (OSPRuntime.isWindows()) {
+						refreshJREDropdown(32);
+					}
+				}
+			});
+			jreNorthPanel.add(vm32Button);
+	
+			vm64Button = new JRadioButton();
+			vm64Button.setOpaque(false);
+			vm64Button.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
+			vm64Button.setSelected(vmBitness == 64);
+			vm64Button.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					if (!vm64Button.isSelected())
+						return;
+					if (OSPRuntime.isMac()) {
+						refreshJREDropdown(64);
+					} else if (OSPRuntime.isWindows()) {
+						refreshJREDropdown(64);
+						// inform that no engine available in 64-bit VM
+						int selected = JOptionPane.showConfirmDialog(frame,
+								TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
+						TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Message2") + "\n\n" + //$NON-NLS-1$ //$NON-NLS-2$
+						TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Question"), //$NON-NLS-1$
+								TrackerRes.getString("PrefsDialog.Dialog.NoEngineIn64bitVM.Title"), //$NON-NLS-1$
+								JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null);
+						if (selected != JOptionPane.YES_OPTION) {
+							vm32Button.setSelected(true); // revert to 32-bit VM
+						}
+						return;
+					}
+				}
+			});
+			jreNorthPanel.add(vm64Button);
+	
+			jreDropdown = new JComboBox<String>();
+			jreSouthPanel.add(jreDropdown);
+			refreshJREDropdown(vmBitness);
+	
+			// memory subpanel
+			JPanel memorySubPanel = new JPanel();
+			box.add(memorySubPanel);
+			memorySubPanel.setBackground(color);
+			memorySubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.Memory.BorderTitle")); //$NON-NLS-1$
+			memorySubPanel.setBorder(BorderFactory.createCompoundBorder(etched, memorySubPanelBorder));
+			memorySubPanel.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mousePressed(MouseEvent e) {
+					requestFocusInWindow();
+				}
+			});
+			defaultMemoryCheckbox = new JCheckBox();
+			defaultMemoryCheckbox.setOpaque(false);
+			memoryLabel = new JLabel("MB"); //$NON-NLS-1$
+			memoryField = new IntegerField(4);
+			memoryField.setMinValue(Tracker.minimumMemorySize);
+			memoryField.addFocusListener(new FocusAdapter() {
+				@Override
+				public void focusLost(FocusEvent e) {
+					if (memorySize != memoryField.getIntValue()) {
+						memorySize = memoryField.getIntValue();
+					}
+				}
+			});
+			memoryField.addMouseListener(new MouseAdapter() {
+				@Override
+				public void mousePressed(MouseEvent e) {
+					if (defaultMemoryCheckbox.isSelected()) {
+						defaultMemoryCheckbox.doClick(0);
+					}
+				}
+			});
+			memoryField.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
 					memorySize = memoryField.getIntValue();
 				}
-			}
-		});
-		memoryField.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				if (defaultMemoryCheckbox.isSelected()) {
-					defaultMemoryCheckbox.doClick(0);
-				}
-			}
-		});
-		memoryField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				memorySize = memoryField.getIntValue();
-			}
-		});
-		defaultMemoryCheckbox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				boolean selected = defaultMemoryCheckbox.isSelected();
-				if (selected) {
-					memoryField.setEnabled(false);
-					memoryLabel.setEnabled(false);
-					memoryField.setText(null);
-				} else {
-					memoryField.setEnabled(true);
-					memoryLabel.setEnabled(true);
-					memoryField.setValue(memorySize);
-					memoryField.requestFocusInWindow();
-					memoryField.selectAll();
-				}
-			}
-		});
-		if (Tracker.preferredMemorySize > -1)
-			memoryField.setValue(Tracker.preferredMemorySize);
-		else {
-			defaultMemoryCheckbox.setSelected(true);
-			memoryField.setEnabled(false);
-			memoryLabel.setEnabled(false);
-			memoryField.setText(null);
-		}
-		memorySubPanel.add(defaultMemoryCheckbox);
-		memorySubPanel.add(Box.createRigidArea(new Dimension(40, 1)));
-		memorySubPanel.add(memoryField);
-		memorySubPanel.add(memoryLabel);
-
-		// run subpanel
-		JPanel runSubPanel = new JPanel();
-		box.add(runSubPanel);
-		runSubPanel.setBackground(color);
-		runSubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.Run.BorderTitle")); //$NON-NLS-1$
-		runSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, runSubPanelBorder));
-
-		final Action setRunAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String path = runField.getText();
-				int n = (Integer) runSpinner.getValue();
-				ArrayList<String> paths = new ArrayList<String>();
-				if (Tracker.prelaunchExecutables.length > n) { // deal with existing entry
-					if (path.equals(Tracker.prelaunchExecutables[n])) // no change
-						return;
-					if ("".equals(path)) { // eliminate entry //$NON-NLS-1$
-						Tracker.prelaunchExecutables[n] = path;
-						path = null; // done with this
-					} else { // change entry
-						Tracker.prelaunchExecutables[n] = path;
-						path = null; // done with this
+			});
+			defaultMemoryCheckbox.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					boolean selected = defaultMemoryCheckbox.isSelected();
+					if (selected) {
+						memoryField.setEnabled(false);
+						memoryLabel.setEnabled(false);
+						memoryField.setText(null);
+					} else {
+						memoryField.setEnabled(true);
+						memoryLabel.setEnabled(true);
+						memoryField.setValue(memorySize);
+						memoryField.requestFocusInWindow();
+						memoryField.selectAll();
 					}
 				}
-				// clean and relist existing entries
-				for (String next : Tracker.prelaunchExecutables) {
-					if (next != null && !"".equals(next) && !paths.contains(next)) //$NON-NLS-1$
-						paths.add(next);
-				}
-				// add new entry, if any
-				if (path != null && !"".equals(path) && !paths.contains(path)) //$NON-NLS-1$
-					paths.add(path);
-				Tracker.prelaunchExecutables = paths.toArray(new String[0]);
-				for (int i = 0; i < Tracker.prelaunchExecutables.length; i++) {
-					if (Tracker.prelaunchExecutables[i].equals(path)) {
-						runSpinner.setValue(i);
-						break;
-					}
-				}
-				refreshTextFields();
+			});
+			if (Tracker.preferredMemorySize > -1)
+				memoryField.setValue(Tracker.preferredMemorySize);
+			else {
+				defaultMemoryCheckbox.setSelected(true);
+				memoryField.setEnabled(false);
+				memoryLabel.setEnabled(false);
+				memoryField.setText(null);
 			}
-		};
-		SpinnerModel model = new SpinnerNumberModel(0, 0, 6, 1);
-		runSpinner = new JSpinner(model);
-		JSpinner.NumberEditor editor = new JSpinner.NumberEditor(runSpinner);
-		runSpinner.setEditor(editor);
-		runSpinner.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				if (runField.getBackground() == Color.yellow) {
-					setRunAction.actionPerformed(null);
-				} else {
+			memorySubPanel.add(defaultMemoryCheckbox);
+			memorySubPanel.add(Box.createRigidArea(new Dimension(40, 1)));
+			memorySubPanel.add(memoryField);
+			memorySubPanel.add(memoryLabel);
+	
+			// run subpanel
+			JPanel runSubPanel = new JPanel();
+			box.add(runSubPanel);
+			runSubPanel.setBackground(color);
+			runSubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.Run.BorderTitle")); //$NON-NLS-1$
+			runSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, runSubPanelBorder));
+	
+			final Action setRunAction = new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					String path = runField.getText();
+					int n = (Integer) runSpinner.getValue();
+					ArrayList<String> paths = new ArrayList<String>();
+					if (Tracker.prelaunchExecutables.length > n) { // deal with existing entry
+						if (path.equals(Tracker.prelaunchExecutables[n])) // no change
+							return;
+						if ("".equals(path)) { // eliminate entry //$NON-NLS-1$
+							Tracker.prelaunchExecutables[n] = path;
+							path = null; // done with this
+						} else { // change entry
+							Tracker.prelaunchExecutables[n] = path;
+							path = null; // done with this
+						}
+					}
+					// clean and relist existing entries
+					for (String next : Tracker.prelaunchExecutables) {
+						if (next != null && !"".equals(next) && !paths.contains(next)) //$NON-NLS-1$
+							paths.add(next);
+					}
+					// add new entry, if any
+					if (path != null && !"".equals(path) && !paths.contains(path)) //$NON-NLS-1$
+						paths.add(path);
+					Tracker.prelaunchExecutables = paths.toArray(new String[0]);
+					for (int i = 0; i < Tracker.prelaunchExecutables.length; i++) {
+						if (Tracker.prelaunchExecutables[i].equals(path)) {
+							runSpinner.setValue(i);
+							break;
+						}
+					}
 					refreshTextFields();
 				}
-			}
-		});
-		runSubPanel.add(runSpinner);
-		runField = new JTextField(27);
-		runSubPanel.add(runField);
-		runField.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				runField.setBackground(Color.yellow);
-			}
-		});
-		runField.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				if (runField.getBackground() == Color.yellow)
-					setRunAction.actionPerformed(null);
-			}
-		});
-		runField.addActionListener(setRunAction);
-
-		Icon openFileIcon = new ImageIcon(Tracker.getClassResource("resources/images/open.gif")); //$NON-NLS-1$
-		setRunButton = new TButton(openFileIcon);
-		setRunButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int result = JFileChooser.CANCEL_OPTION;
-				File f = Tracker.trackerHome == null ? new File(".") : new File(Tracker.trackerHome); //$NON-NLS-1$
-				JFileChooser chooser = getFileChooser(f, false);
-				chooser.setDialogTitle(TrackerRes.getString("PrefsDialog.FileChooser.Title.Run")); //$NON-NLS-1$
-				result = chooser.showOpenDialog(PrefsDialog.this);
-				if (result == JFileChooser.APPROVE_OPTION) {
-					File file = chooser.getSelectedFile();
-					if (file != null) {
-						runField.setText(file.getPath());
+			};
+			SpinnerModel model = new SpinnerNumberModel(0, 0, 6, 1);
+			runSpinner = new JSpinner(model);
+			JSpinner.NumberEditor editor = new JSpinner.NumberEditor(runSpinner);
+			runSpinner.setEditor(editor);
+			runSpinner.addChangeListener(new ChangeListener() {
+				@Override
+				public void stateChanged(ChangeEvent e) {
+					if (runField.getBackground() == Color.yellow) {
 						setRunAction.actionPerformed(null);
+					} else {
+						refreshTextFields();
 					}
 				}
-			}
-		});
-		setRunButton.setBorder(buttonBorder);
-		setRunButton.setContentAreaFilled(false);
-		runSubPanel.add(setRunButton);
-
-		// video panel
-		videoPanel = new JPanel(new BorderLayout());
-		tabbedPane.addTab(null, videoPanel);
-		box = Box.createVerticalBox();
-		videoPanel.add(box, BorderLayout.CENTER);
-
-		boolean movieEngineInstalled = MovieFactory.hasVideoEngine();
-
-		// videoType subpanel
-		JPanel videoTypeSubPanel = new JPanel();
-//    box.add(videoTypeSubPanel);
-		videoTypeSubPanel.setBackground(color);
-		videoTypeSubPanelBorder = BorderFactory
-				.createTitledBorder(TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
-		videoTypeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoTypeSubPanelBorder));
-
-		movieEngineButton = new JRadioButton();
-		movieEngineButton.setOpaque(false);
-		movieEngineButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
-		movieEngineButton.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				xuggleFastButton.setEnabled(movieEngineButton.isSelected());
-				xuggleSlowButton.setEnabled(movieEngineButton.isSelected());
-				xuggleErrorCheckbox.setEnabled(movieEngineButton.isSelected());
-				if (!movieEngineButton.isSelected())
-					return;
-				// Windows: if xuggle 3.4 and 64-bit, set preferred VM to 32-bit and inform user
-				if (!OSPRuntime.isJS && OSPRuntime.isWindows() 
-						&& MovieFactory.hasVideoEngine()
-						&& vm64Button.isSelected()) {
-					boolean has32BitVM = JREFinder.getFinder().getDefaultJRE(32, Tracker.trackerHome, true) != null;
-					if (has32BitVM) {
-						vm32Button.setSelected(true);
-						JOptionPane.showMessageDialog(frame,
-								TrackerRes.getString("PrefsDialog.Dialog.SwitchToXuggle32.Message"), //$NON-NLS-1$
-								TrackerRes.getString("PrefsDialog.Dialog.SwitchVM.Title"), //$NON-NLS-1$
-								JOptionPane.INFORMATION_MESSAGE);
-					} else { // help user download 32-bit VM
-						Object[] options = new Object[] { TrackerRes.getString("PrefsDialog.Button.ShowHelpNow"), //$NON-NLS-1$
-								TrackerRes.getString("Dialog.Button.OK") }; //$NON-NLS-1$
-						int response = JOptionPane.showOptionDialog(frame,
-								TrackerRes.getString("PrefsDialog.Dialog.No32bitVMXuggle.Message") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
-						TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message"), //$NON-NLS-1$
-								TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Title"), //$NON-NLS-1$
-								JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
-						noEngineButton.setSelected(true);
-						if (response == 0) {
-							frame.showHelp("install", 0); //$NON-NLS-1$
+			});
+			runSubPanel.add(runSpinner);
+			runField = new JTextField(27);
+			runSubPanel.add(runField);
+			runField.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyPressed(KeyEvent e) {
+					runField.setBackground(Color.yellow);
+				}
+			});
+			runField.addFocusListener(new FocusAdapter() {
+				@Override
+				public void focusLost(FocusEvent e) {
+					if (runField.getBackground() == Color.yellow)
+						setRunAction.actionPerformed(null);
+				}
+			});
+			runField.addActionListener(setRunAction);
+	
+			setRunButton = new TButton(openFileIcon);
+			setRunButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					int result = JFileChooser.CANCEL_OPTION;
+					File f = Tracker.trackerHome == null ? new File(".") : new File(Tracker.trackerHome); //$NON-NLS-1$
+					JFileChooser chooser = getFileChooser(f, false);
+					chooser.setDialogTitle(TrackerRes.getString("PrefsDialog.FileChooser.Title.Run")); //$NON-NLS-1$
+					result = chooser.showOpenDialog(PrefsDialog.this);
+					if (result == JFileChooser.APPROVE_OPTION) {
+						File file = chooser.getSelectedFile();
+						if (file != null) {
+							runField.setText(file.getPath());
+							setRunAction.actionPerformed(null);
 						}
 					}
 				}
-			}
-		});
-		movieEngineButton.setEnabled(movieEngineInstalled);
+			});
+			setRunButton.setBorder(buttonBorder);
+			setRunButton.setContentAreaFilled(false);
+			runSubPanel.add(setRunButton);
+		} // end runtime panel
 
-		noEngineButton = new JRadioButton();
-		noEngineButton.setOpaque(false);
-		noEngineButton.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
-		noEngineButton.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (!noEngineButton.isSelected())
-					return;
-				// BH! Doug, please check.
-//    		VideoIO.setEngine(VideoIO.ENGINE_NONE);
-			}
-		});
-
-		videoTypeSubPanel.add(movieEngineButton);
-		videoTypeSubPanel.add(noEngineButton);
-
-		// xuggle speed subpanel
-		JPanel xuggleSpeedSubPanel = new JPanel();
-		box.add(xuggleSpeedSubPanel);
-		xuggleSpeedSubPanel.setBackground(color);
-		xuggleSpeedSubPanelBorder = BorderFactory
-				.createTitledBorder(TrackerRes.getString("PrefsDialog.Xuggle.Speed.BorderTitle")); //$NON-NLS-1$
-		if (!movieEngineInstalled)
-			xuggleSpeedSubPanelBorder.setTitleColor(GUIUtils.getDisabledTextColor());
-		xuggleSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, xuggleSpeedSubPanelBorder));
-		buttonGroup = new ButtonGroup();
-		xuggleFastButton = new JRadioButton();
-		xuggleFastButton.setOpaque(false);
-		xuggleFastButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
-		xuggleFastButton.setSelected(movieEngineInstalled && Tracker.isXuggleFast);
-		buttonGroup.add(xuggleFastButton);
-		xuggleSlowButton = new JRadioButton();
-		xuggleSlowButton.setOpaque(false);
-		xuggleSlowButton.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
-		xuggleSlowButton.setSelected(movieEngineInstalled && !Tracker.isXuggleFast);
-		buttonGroup.add(xuggleSlowButton);
-		xuggleSpeedSubPanel.add(xuggleFastButton);
-		xuggleSpeedSubPanel.add(xuggleSlowButton);
-
-		// warnings subpanel
-		vidWarningCheckbox = new JCheckBox();
-		vidWarningCheckbox.setOpaque(false);
-		vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
-		vidWarningCheckbox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Tracker.warnNoVideoEngine = vidWarningCheckbox.isSelected();
-			}
-		});
-		xuggleErrorCheckbox = new JCheckBox();
-		xuggleErrorCheckbox.setOpaque(false);
-		xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
-		xuggleErrorCheckbox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Tracker.warnXuggleError = xuggleErrorCheckbox.isSelected();
-			}
-		});
-		variableDurationCheckBox = new JCheckBox();
-		variableDurationCheckBox.setOpaque(false);
-		variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
-		variableDurationCheckBox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Tracker.warnVariableDuration = variableDurationCheckBox.isSelected();
-			}
-		});
-		JPanel warningsSubPanel = new JPanel(new BorderLayout());
-		box.add(warningsSubPanel);
-		warningsSubPanel.setBackground(color);
-		warningsSubPanelBorder = BorderFactory
-				.createTitledBorder(TrackerRes.getString("PrefsDialog.NoVideoWarning.BorderTitle")); //$NON-NLS-1$
-		warningsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, warningsSubPanelBorder));
-		JPanel warningsNorthPanel = new JPanel();
-		warningsNorthPanel.setBackground(color);
-		warningsSubPanel.add(warningsNorthPanel, BorderLayout.NORTH);
-		JPanel warningsCenterPanel = new JPanel();
-		warningsCenterPanel.setBackground(color);
-		JPanel warningsSouthPanel = new JPanel();
-		warningsSouthPanel.setBackground(color);
-		JPanel centerSouthPanel = new JPanel(new BorderLayout());
-		centerSouthPanel.add(warningsCenterPanel, BorderLayout.NORTH);
-		centerSouthPanel.add(warningsSouthPanel, BorderLayout.CENTER);
-		warningsSubPanel.add(centerSouthPanel, BorderLayout.CENTER);
-
-		warningsNorthPanel.add(vidWarningCheckbox);
-		warningsNorthPanel.add(variableDurationCheckBox);
-		warningsCenterPanel.add(xuggleErrorCheckbox);
-
-		// set selected states of engine buttons AFTER creating the xugglefast,
-		// xuggleslow and warnxuggle buttons
-		if (MovieFactory.hasVideoEngine()) {
-			movieEngineButton.setSelected(true);
-		} else
-			noEngineButton.setSelected(true);
-
-		// track panel
-		trackPanel = new JPanel(new BorderLayout());
-		tabbedPane.addTab(null, trackPanel);
+		// video panel only for Java
+		if (!OSPRuntime.isJS && !Tracker.testOn) {
+			videoPanel = new JPanel(new BorderLayout());
+			tabbedPane.addTab(null, videoPanel);
+			box = Box.createVerticalBox();
+			videoPanel.add(box, BorderLayout.CENTER);
+	
+			boolean movieEngineInstalled = MovieFactory.hasVideoEngine();
+	
+			// videoType subpanel
+			JPanel videoTypeSubPanel = new JPanel();
+	//    box.add(videoTypeSubPanel);
+			videoTypeSubPanel.setBackground(color);
+			videoTypeSubPanelBorder = BorderFactory
+					.createTitledBorder(TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
+			videoTypeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, videoTypeSubPanelBorder));
+	
+			movieEngineButton = new JRadioButton();
+			movieEngineButton.setOpaque(false);
+			movieEngineButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+			movieEngineButton.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					xuggleFastButton.setEnabled(movieEngineButton.isSelected());
+					xuggleSlowButton.setEnabled(movieEngineButton.isSelected());
+					xuggleErrorCheckbox.setEnabled(movieEngineButton.isSelected());
+					if (!movieEngineButton.isSelected())
+						return;
+					// Windows: if xuggle 3.4 and 64-bit, set preferred VM to 32-bit and inform user
+					if (!OSPRuntime.isJS && OSPRuntime.isWindows() 
+							&& MovieFactory.hasVideoEngine()
+							&& vm64Button.isSelected()) {
+						boolean has32BitVM = JREFinder.getFinder().getDefaultJRE(32, Tracker.trackerHome, true) != null;
+						if (has32BitVM) {
+							vm32Button.setSelected(true);
+							JOptionPane.showMessageDialog(frame,
+									TrackerRes.getString("PrefsDialog.Dialog.SwitchToXuggle32.Message"), //$NON-NLS-1$
+									TrackerRes.getString("PrefsDialog.Dialog.SwitchVM.Title"), //$NON-NLS-1$
+									JOptionPane.INFORMATION_MESSAGE);
+						} else { // help user download 32-bit VM
+							Object[] options = new Object[] { TrackerRes.getString("PrefsDialog.Button.ShowHelpNow"), //$NON-NLS-1$
+									TrackerRes.getString("Dialog.Button.OK") }; //$NON-NLS-1$
+							int response = JOptionPane.showOptionDialog(frame,
+									TrackerRes.getString("PrefsDialog.Dialog.No32bitVMXuggle.Message") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
+							TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message"), //$NON-NLS-1$
+									TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Title"), //$NON-NLS-1$
+									JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
+							noEngineButton.setSelected(true);
+							if (response == 0) {
+								frame.showHelp("install", 0); //$NON-NLS-1$
+							}
+						}
+					}
+				}
+			});
+			movieEngineButton.setEnabled(movieEngineInstalled);
+	
+			noEngineButton = new JRadioButton();
+			noEngineButton.setOpaque(false);
+			noEngineButton.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
+			noEngineButton.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					if (!noEngineButton.isSelected())
+						return;
+					// BH! Doug, please check.
+	//    		VideoIO.setEngine(VideoIO.ENGINE_NONE);
+				}
+			});
+	
+			videoTypeSubPanel.add(movieEngineButton);
+			videoTypeSubPanel.add(noEngineButton);
+	
+			// xuggle speed subpanel
+			JPanel xuggleSpeedSubPanel = new JPanel();
+			box.add(xuggleSpeedSubPanel);
+			xuggleSpeedSubPanel.setBackground(color);
+			xuggleSpeedSubPanelBorder = BorderFactory
+					.createTitledBorder(TrackerRes.getString("PrefsDialog.Xuggle.Speed.BorderTitle")); //$NON-NLS-1$
+			if (!movieEngineInstalled)
+				xuggleSpeedSubPanelBorder.setTitleColor(GUIUtils.getDisabledTextColor());
+			xuggleSpeedSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, xuggleSpeedSubPanelBorder));
+			buttonGroup = new ButtonGroup();
+			xuggleFastButton = new JRadioButton();
+			xuggleFastButton.setOpaque(false);
+			xuggleFastButton.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 10));
+			xuggleFastButton.setSelected(movieEngineInstalled && Tracker.isXuggleFast);
+			buttonGroup.add(xuggleFastButton);
+			xuggleSlowButton = new JRadioButton();
+			xuggleSlowButton.setOpaque(false);
+			xuggleSlowButton.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 0));
+			xuggleSlowButton.setSelected(movieEngineInstalled && !Tracker.isXuggleFast);
+			buttonGroup.add(xuggleSlowButton);
+			xuggleSpeedSubPanel.add(xuggleFastButton);
+			xuggleSpeedSubPanel.add(xuggleSlowButton);
+	
+			// warnings subpanel
+			vidWarningCheckbox = new JCheckBox();
+			vidWarningCheckbox.setOpaque(false);
+			vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
+			vidWarningCheckbox.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					Tracker.warnNoVideoEngine = vidWarningCheckbox.isSelected();
+				}
+			});
+			xuggleErrorCheckbox = new JCheckBox();
+			xuggleErrorCheckbox.setOpaque(false);
+			xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
+			xuggleErrorCheckbox.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					Tracker.warnXuggleError = xuggleErrorCheckbox.isSelected();
+				}
+			});
+			variableDurationCheckBox = new JCheckBox();
+			variableDurationCheckBox.setOpaque(false);
+			variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
+			variableDurationCheckBox.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					Tracker.warnVariableDuration = variableDurationCheckBox.isSelected();
+				}
+			});
+			JPanel warningsSubPanel = new JPanel(new BorderLayout());
+			box.add(warningsSubPanel);
+			warningsSubPanel.setBackground(color);
+			warningsSubPanelBorder = BorderFactory
+					.createTitledBorder(TrackerRes.getString("PrefsDialog.NoVideoWarning.BorderTitle")); //$NON-NLS-1$
+			warningsSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, warningsSubPanelBorder));
+			JPanel warningsNorthPanel = new JPanel();
+			warningsNorthPanel.setBackground(color);
+			warningsSubPanel.add(warningsNorthPanel, BorderLayout.NORTH);
+			JPanel warningsCenterPanel = new JPanel();
+			warningsCenterPanel.setBackground(color);
+			JPanel warningsSouthPanel = new JPanel();
+			warningsSouthPanel.setBackground(color);
+			JPanel centerSouthPanel = new JPanel(new BorderLayout());
+			centerSouthPanel.add(warningsCenterPanel, BorderLayout.NORTH);
+			centerSouthPanel.add(warningsSouthPanel, BorderLayout.CENTER);
+			warningsSubPanel.add(centerSouthPanel, BorderLayout.CENTER);
+	
+			warningsNorthPanel.add(vidWarningCheckbox);
+			warningsNorthPanel.add(variableDurationCheckBox);
+			warningsCenterPanel.add(xuggleErrorCheckbox);
+	
+			// set selected states of engine buttons AFTER creating the xugglefast,
+			// xuggleslow and warnxuggle buttons
+			if (MovieFactory.hasVideoEngine()) {
+				movieEngineButton.setSelected(true);
+			} else
+				noEngineButton.setSelected(true);
+		} // end video panel
+		
+		// actions panel
+		actionsPanel = new JPanel(new BorderLayout());
+		tabbedPane.addTab(null, actionsPanel);
 		box = Box.createVerticalBox();
-		trackPanel.add(box, BorderLayout.CENTER);
+		actionsPanel.add(box, BorderLayout.CENTER);
 
-		// put marking and pointmass footprint subpanels side by side
 		horz = Box.createHorizontalBox();
 		box.add(horz);
 
@@ -1128,7 +1138,7 @@ public class PrefsDialog extends JDialog {
 
 		// mouse wheel subpanel
 		JPanel mouseWheelSubPanel = new JPanel();
-		box.add(mouseWheelSubPanel);
+		
 		mouseWheelSubPanel.setBackground(color);
 		mouseWheelSubPanelBorder = BorderFactory
 				.createTitledBorder(TrackerRes.getString("PrefsDialog.Mousewheel.BorderTitle")); //$NON-NLS-1$
@@ -1158,7 +1168,10 @@ public class PrefsDialog extends JDialog {
 		};
 		zoomButton.addActionListener(mouseWheelAction);
 		scrubButton.addActionListener(mouseWheelAction);
-
+		
+		if (!OSPRuntime.isJS && !Tracker.testOn)
+			box.add(mouseWheelSubPanel);
+		
 		// data gaps subpanel
 		JPanel dataGapSubPanel = new JPanel();
 		box.add(dataGapSubPanel);
@@ -1191,13 +1204,17 @@ public class PrefsDialog extends JDialog {
 			}
 		});
 		dataGapSubPanel.add(autofillCheckbox);
+		// end actions panel
 
-		// "general" panel
+		// general panel
 		generalPanel = new JPanel(new BorderLayout());
 		tabbedPane.addTab(null, generalPanel);
 		box = Box.createVerticalBox();
 		generalPanel.add(box, BorderLayout.CENTER);
 
+		if (OSPRuntime.isJS || Tracker.testOn)
+			box.add(mouseWheelSubPanel);
+		
 		// recent menu subpanel
 		JPanel recentSubPanel = new JPanel();
 		box.add(recentSubPanel);
@@ -1222,10 +1239,9 @@ public class PrefsDialog extends JDialog {
 		JPanel spinnerPanel = new JPanel();
 		spinnerPanel.setOpaque(false);
 		spinnerPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-		n = Tracker.recentFilesSize;
-		model = new SpinnerNumberModel(n, 0, 12, 1);
+		SpinnerModel model = new SpinnerNumberModel(Tracker.recentFilesSize, 0, 12, 1);
 		recentSizeSpinner = new JSpinner(model);
-		editor = new JSpinner.NumberEditor(recentSizeSpinner, "0"); //$NON-NLS-1$
+		JSpinner.NumberEditor editor = new JSpinner.NumberEditor(recentSizeSpinner, "0"); //$NON-NLS-1$
 		editor.getTextField().setHorizontalAlignment(SwingConstants.LEFT);
 		recentSizeSpinner.setEditor(editor);
 		spinnerPanel.add(recentSizeSpinner);
@@ -1233,143 +1249,138 @@ public class PrefsDialog extends JDialog {
 		spinnerPanel.add(recentSizeLabel);
 		recentSubPanel.add(spinnerPanel);
 
-		// cache subpanel
-		JPanel cacheSubPanel = new JPanel(new BorderLayout());
-		box.add(cacheSubPanel);
-		cacheSubPanel.setBackground(color);
-		cacheSubPanelBorder = BorderFactory
-				.createTitledBorder(TrackerRes.getString("PrefsDialog.CacheFiles.BorderTitle")); //$NON-NLS-1$
-		cacheSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, cacheSubPanelBorder));
-
-		// cacheNorthPanel: label, field and browse cache button
-		JPanel cacheNorthPanel = new JPanel();
-		cacheNorthPanel.setBackground(color);
-		cacheLabel = new JLabel();
-		cacheNorthPanel.add(cacheLabel);
-		cacheField = new JTextField(27);
-		cacheNorthPanel.add(cacheField);
-		final Action setCacheAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String cachePath = XML.stripExtension(cacheField.getText());
-				Tracker.setCache(cachePath);
-				refreshTextFields();
-			}
-		};
-		cacheField.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				cacheField.setBackground(Color.yellow);
-			}
-		});
-		cacheField.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusLost(FocusEvent e) {
-				if (cacheField.getBackground() == Color.yellow)
-					setCacheAction.actionPerformed(null);
-			}
-		});
-		cacheField.addActionListener(setCacheAction);
-
-		browseCacheButton = new TButton(openFileIcon);
-		browseCacheButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File cache = ResourceLoader.getOSPCache();
-				Desktop desktop = Desktop.getDesktop();
-				try {
-					desktop.open(cache);
-				} catch (IOException ex) {
+		// cache subpanel only for Java
+		if (!OSPRuntime.isJS && !Tracker.testOn) {
+			JPanel cacheSubPanel = new JPanel(new BorderLayout());
+			box.add(cacheSubPanel);
+			cacheSubPanel.setBackground(color);
+			cacheSubPanelBorder = BorderFactory
+					.createTitledBorder(TrackerRes.getString("PrefsDialog.CacheFiles.BorderTitle")); //$NON-NLS-1$
+			cacheSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, cacheSubPanelBorder));
+	
+			// cacheNorthPanel: label, field and browse cache button
+			JPanel cacheNorthPanel = new JPanel();
+			cacheNorthPanel.setBackground(color);
+			cacheLabel = new JLabel();
+			cacheNorthPanel.add(cacheLabel);
+			cacheField = new JTextField(27);
+			cacheNorthPanel.add(cacheField);
+			final Action setCacheAction = new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					String cachePath = XML.stripExtension(cacheField.getText());
+					Tracker.setCache(cachePath);
+					refreshTextFields();
 				}
-			}
-		});
-		browseCacheButton.setBorder(buttonBorder);
-		browseCacheButton.setContentAreaFilled(false);
-		cacheNorthPanel.add(browseCacheButton);
-		cacheSubPanel.add(cacheNorthPanel, BorderLayout.NORTH);
-
-		// cacheSouthPanel: clear cache button and set cache button
-		JPanel cacheSouthPanel = new JPanel();
-		cacheSouthPanel.setBackground(color);
-		clearHostButton = new JButton();
-		clearHostButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// get list of host directories
-				File cache = ResourceLoader.getOSPCache();
-				if (cache == null)
-					return;
-				final File[] hosts = cache.listFiles(ResourceLoader.OSP_CACHE_FILTER);
-
-				// make popup menu with items to clear individual hosts
-				JPopupMenu popup = new JPopupMenu();
-				ActionListener clearAction = new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						for (File host : hosts) {
-							if (host.getAbsolutePath().equals(e.getActionCommand())) {
-								ResourceLoader.clearOSPCacheHost(host);
-								refreshTextFields();
-								return;
+			};
+			cacheField.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyPressed(KeyEvent e) {
+					cacheField.setBackground(Color.yellow);
+				}
+			});
+			cacheField.addFocusListener(new FocusAdapter() {
+				@Override
+				public void focusLost(FocusEvent e) {
+					if (cacheField.getBackground() == Color.yellow)
+						setCacheAction.actionPerformed(null);
+				}
+			});
+			cacheField.addActionListener(setCacheAction);
+	
+			browseCacheButton = new TButton(openFileIcon);
+			browseCacheButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					File cache = ResourceLoader.getOSPCache();
+					Desktop desktop = Desktop.getDesktop();
+					try {
+						desktop.open(cache);
+					} catch (IOException ex) {
+					}
+				}
+			});
+			browseCacheButton.setBorder(buttonBorder);
+			browseCacheButton.setContentAreaFilled(false);
+			cacheNorthPanel.add(browseCacheButton);
+			cacheSubPanel.add(cacheNorthPanel, BorderLayout.NORTH);
+	
+			// cacheSouthPanel: clear cache button and set cache button
+			JPanel cacheSouthPanel = new JPanel();
+			cacheSouthPanel.setBackground(color);
+			clearHostButton = new JButton();
+			clearHostButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// get list of host directories
+					File cache = ResourceLoader.getOSPCache();
+					if (cache == null)
+						return;
+					final File[] hosts = cache.listFiles(ResourceLoader.OSP_CACHE_FILTER);
+	
+					// make popup menu with items to clear individual hosts
+					JPopupMenu popup = new JPopupMenu();
+					ActionListener clearAction = new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							for (File host : hosts) {
+								if (host.getAbsolutePath().equals(e.getActionCommand())) {
+									ResourceLoader.clearOSPCacheHost(host);
+									refreshTextFields();
+									return;
+								}
 							}
 						}
+					};
+					for (File next : hosts) {
+						String host = next.getName().substring(4).replace('_', '.');
+						long bytes = getFileSize(next);
+						long size = bytes / (1024 * 1024);
+						if (bytes > 0) {
+							if (size > 0)
+								host += " (" + size + " MB)"; //$NON-NLS-1$ //$NON-NLS-2$
+							else
+								host += " (" + bytes / 1024 + " kB)"; //$NON-NLS-1$ //$NON-NLS-2$
+						}
+						JMenuItem item = new JMenuItem(host);
+						item.setActionCommand(next.getAbsolutePath());
+						popup.add(item);
+						item.addActionListener(clearAction);
 					}
-				};
-				for (File next : hosts) {
-					String host = next.getName().substring(4).replace('_', '.');
-					long bytes = getFileSize(next);
-					long size = bytes / (1024 * 1024);
-					if (bytes > 0) {
-						if (size > 0)
-							host += " (" + size + " MB)"; //$NON-NLS-1$ //$NON-NLS-2$
-						else
-							host += " (" + bytes / 1024 + " kB)"; //$NON-NLS-1$ //$NON-NLS-2$
+					FontSizer.setFonts(popup, FontSizer.getLevel());
+					popup.show(clearHostButton, 0, clearHostButton.getHeight());
+				}
+			});
+			cacheSouthPanel.add(clearHostButton);
+	
+			clearCacheButton = new JButton();
+			clearCacheButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					File cache = ResourceLoader.getOSPCache();
+					ResourceLoader.clearOSPCache(cache, false);
+					refreshTextFields();
+				}
+			});
+			cacheSouthPanel.add(clearCacheButton);
+	
+			setCacheButton = new JButton();
+			setCacheButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					File newCache = ResourceLoader.chooseOSPCache(frame);
+					if (newCache != null) {
+						cacheField.setText(newCache.getPath());
+						setCacheAction.actionPerformed(null);
 					}
-					JMenuItem item = new JMenuItem(host);
-					item.setActionCommand(next.getAbsolutePath());
-					popup.add(item);
-					item.addActionListener(clearAction);
 				}
-				FontSizer.setFonts(popup, FontSizer.getLevel());
-				popup.show(clearHostButton, 0, clearHostButton.getHeight());
-			}
-		});
-		cacheSouthPanel.add(clearHostButton);
-
-		clearCacheButton = new JButton();
-		clearCacheButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File cache = ResourceLoader.getOSPCache();
-				ResourceLoader.clearOSPCache(cache, false);
-				refreshTextFields();
-			}
-		});
-		cacheSouthPanel.add(clearCacheButton);
-
-		setCacheButton = new JButton();
-		setCacheButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				File newCache = ResourceLoader.chooseOSPCache(frame);
-				if (newCache != null) {
-					cacheField.setText(newCache.getPath());
-					setCacheAction.actionPerformed(null);
-				}
-			}
-		});
-		cacheSouthPanel.add(setCacheButton);
-
-		cacheSubPanel.add(cacheSouthPanel, BorderLayout.SOUTH);
-
-		// check for upgrades subpanel
-		checkForUpgradeButton = new JButton();
-		checkForUpgradeButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Tracker.showUpgradeStatus(trackerPanel);
-			}
-		});
+			});
+			cacheSouthPanel.add(setCacheButton);
+	
+			cacheSubPanel.add(cacheSouthPanel, BorderLayout.SOUTH);
+		} // end cache subpanel
+		
+		// log level subpanel
 		logLevelDropdown = new JComboBox<String>();
 		defaultLevel = TrackerRes.getString("PrefsDialog.Version.Default").toUpperCase(); //$NON-NLS-1$
 		defaultLevel += " (" + Tracker.DEFAULT_LOG_LEVEL.toString().toLowerCase() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
@@ -1402,40 +1413,50 @@ public class PrefsDialog extends JDialog {
 		logLevelSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, logLevelSubPanelBorder));
 		logLevelSubPanel.add(logLevelDropdown);
 
-		checkForUpgradeDropdown = new JComboBox<String>();
-		selected = null;
-		for (String next : Tracker.checkForUpgradeChoices) {
-			String s = TrackerRes.getString(next);
-			checkForUpgradeDropdown.addItem(s);
-			if (Tracker.checkForUpgradeIntervals.get(next).equals(Tracker.checkForUpgradeInterval)) {
-				selected = s;
-			}
-		}
-		checkForUpgradeDropdown.setSelectedItem(selected);
-		checkForUpgradeDropdown.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				String s = checkForUpgradeDropdown.getSelectedItem().toString();
-				for (String next : Tracker.checkForUpgradeChoices) {
-					if (s.equals(TrackerRes.getString(next))) {
-						Tracker.checkForUpgradeInterval = Tracker.checkForUpgradeIntervals.get(next);
-						break;
-					}
+		// check for upgrades subpanel only for Java
+		if (!OSPRuntime.isJS && !Tracker.testOn) {
+			checkForUpgradeButton = new JButton();
+			checkForUpgradeButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					Tracker.showUpgradeStatus(trackerPanel);
+				}
+			});
+			checkForUpgradeDropdown = new JComboBox<String>();
+			selected = null;
+			for (String next : Tracker.checkForUpgradeChoices) {
+				String s = TrackerRes.getString(next);
+				checkForUpgradeDropdown.addItem(s);
+				if (Tracker.checkForUpgradeIntervals.get(next).equals(Tracker.checkForUpgradeInterval)) {
+					selected = s;
 				}
 			}
-		});
-		JPanel dropdownPanel = new JPanel();
-		dropdownPanel.setOpaque(false);
-		dropdownPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
-		JPanel upgradeSubPanel = new JPanel();
-		box.add(upgradeSubPanel);
-		upgradeSubPanel.setBackground(color);
-		upgradeSubPanelBorder = BorderFactory
-				.createTitledBorder(TrackerRes.getString("PrefsDialog.Upgrades.BorderTitle")); //$NON-NLS-1$
-		upgradeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, upgradeSubPanelBorder));
-		upgradeSubPanel.add(checkForUpgradeButton);
-		dropdownPanel.add(checkForUpgradeDropdown);
-		upgradeSubPanel.add(dropdownPanel);
+			checkForUpgradeDropdown.setSelectedItem(selected);
+			checkForUpgradeDropdown.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					String s = checkForUpgradeDropdown.getSelectedItem().toString();
+					for (String next : Tracker.checkForUpgradeChoices) {
+						if (s.equals(TrackerRes.getString(next))) {
+							Tracker.checkForUpgradeInterval = Tracker.checkForUpgradeIntervals.get(next);
+							break;
+						}
+					}
+				}
+			});
+			JPanel dropdownPanel = new JPanel();
+			dropdownPanel.setOpaque(false);
+			dropdownPanel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
+			JPanel upgradeSubPanel = new JPanel();
+			box.add(upgradeSubPanel);
+			upgradeSubPanel.setBackground(color);
+			upgradeSubPanelBorder = BorderFactory
+					.createTitledBorder(TrackerRes.getString("PrefsDialog.Upgrades.BorderTitle")); //$NON-NLS-1$
+			upgradeSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, upgradeSubPanelBorder));
+			upgradeSubPanel.add(checkForUpgradeButton);
+			dropdownPanel.add(checkForUpgradeDropdown);
+			upgradeSubPanel.add(dropdownPanel);
+		}
 
 		// main button bar
 		mainButtonBar = new JPanel();
@@ -1465,31 +1486,33 @@ public class PrefsDialog extends JDialog {
 		buttonGroup.add(vm32Button);
 		buttonGroup.add(vm64Button);
 
-		// add engine buttons to buttongroups
-		buttonGroup = new ButtonGroup();
-		buttonGroup.add(movieEngineButton);
-		buttonGroup.add(noEngineButton);
-
-		// enable/disable buttons
-		xuggleFastButton.setEnabled(movieEngineButton.isSelected());
-		xuggleSlowButton.setEnabled(movieEngineButton.isSelected());
-		xuggleErrorCheckbox.setEnabled(movieEngineButton.isSelected());
-		if (OSPRuntime.isWindows()) {
-			Runnable runner = new Runnable() {
-				@Override
-				public void run() {
-					vm32Button.setEnabled(!JREFinder.getFinder().getJREs(32).isEmpty());
-					vm64Button.setEnabled(!JREFinder.getFinder().getJREs(64).isEmpty());
-				}
-			};
-			new Thread(runner).start();
-		} else if (OSPRuntime.isLinux()) {
-			int bitness = OSPRuntime.getVMBitness();
-			vm32Button.setEnabled(bitness == 32);
-			vm64Button.setEnabled(bitness == 64);
-		} else if (OSPRuntime.isMac()) {
-			vm32Button.setEnabled(false);
-			vm64Button.setEnabled(true);
+		if (!OSPRuntime.isJS && !Tracker.testOn) {
+			// add engine buttons to buttongroups
+			buttonGroup = new ButtonGroup();
+			buttonGroup.add(movieEngineButton);
+			buttonGroup.add(noEngineButton);
+	
+			// enable/disable buttons
+			xuggleFastButton.setEnabled(movieEngineButton.isSelected());
+			xuggleSlowButton.setEnabled(movieEngineButton.isSelected());
+			xuggleErrorCheckbox.setEnabled(movieEngineButton.isSelected());
+			if (OSPRuntime.isWindows()) {
+				Runnable runner = new Runnable() {
+					@Override
+					public void run() {
+						vm32Button.setEnabled(!JREFinder.getFinder().getJREs(32).isEmpty());
+						vm64Button.setEnabled(!JREFinder.getFinder().getJREs(64).isEmpty());
+					}
+				};
+				new Thread(runner).start();
+			} else if (OSPRuntime.isLinux()) {
+				int bitness = OSPRuntime.getVMBitness();
+				vm32Button.setEnabled(bitness == 32);
+				vm64Button.setEnabled(bitness == 64);
+			} else if (OSPRuntime.isMac()) {
+				vm32Button.setEnabled(false);
+				vm64Button.setEnabled(true);
+			}
 		}
 		refreshGUI();
 	}
@@ -1557,14 +1580,16 @@ public class PrefsDialog extends JDialog {
 		Tracker.trailLengthIndex = prevTrailLengthIndex;
 		ResourceLoader.setOSPCache(prevCache);
 		Tracker.checkForUpgradeInterval = prevUpgradeInterval;
-		// reset JRE dropdown to initial state
-    int vmBitness = OSPRuntime.getVMBitness();
-    if (vmBitness==32) {
-    	vm32Button.setSelected(true);
-    }
-    else {
-    	vm64Button.setSelected(true);
-    }
+		if (!OSPRuntime.isJS && !Tracker.testOn) {
+			// reset JRE dropdown to initial state
+	    int vmBitness = OSPRuntime.getVMBitness();
+	    if (vmBitness==32) {
+	    	vm32Button.setSelected(true);
+	    }
+	    else {
+	    	vm64Button.setSelected(true);
+	    }
+		}
   }
   
   /**
@@ -1588,22 +1613,12 @@ public class PrefsDialog extends JDialog {
    * Refreshes the GUI.
    */
   protected void refreshGUI() {
-    checkPanelBorder.setTitle(TrackerRes.getString("ConfigInspector.Border.Title")); //$NON-NLS-1$
-    lfSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.LookFeel.BorderTitle")); //$NON-NLS-1$
+//    lfSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.LookFeel.BorderTitle")); //$NON-NLS-1$
     langSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Language.BorderTitle")); //$NON-NLS-1$
     hintsSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Hints.BorderTitle")); //$NON-NLS-1$
     unitsSubPanelBorder.setTitle(TrackerRes.getString("TMenuBar.Menu.AngleUnits")); //$NON-NLS-1$
-    versionSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Version.BorderTitle")); //$NON-NLS-1$
-    jreSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.JRE.BorderTitle")); //$NON-NLS-1$
-    memorySubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Memory.BorderTitle")); //$NON-NLS-1$
-    runSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Run.BorderTitle")); //$NON-NLS-1$
-    videoTypeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
-    xuggleSpeedSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Xuggle.Speed.BorderTitle")); //$NON-NLS-1$
-    warningsSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.NoVideoWarning.BorderTitle")); //$NON-NLS-1$
     recentSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.RecentFiles.BorderTitle")); //$NON-NLS-1$
-    cacheSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.CacheFiles.BorderTitle")); //$NON-NLS-1$
     logLevelSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.LogLevel.BorderTitle")); //$NON-NLS-1$
-    upgradeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Upgrades.BorderTitle")); //$NON-NLS-1$
     fontSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.FontSize.BorderTitle")); //$NON-NLS-1$
     resetToStep0SubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Marking.BorderTitle")); //$NON-NLS-1$
     mouseWheelSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Mousewheel.BorderTitle")); //$NON-NLS-1$
@@ -1616,55 +1631,72 @@ public class PrefsDialog extends JDialog {
     periodDecimalButton.setSelected(".".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
     commaDecimalButton.setSelected(",".equals(OSPRuntime.getPreferredDecimalSeparator())); //$NON-NLS-1$
     cancelButton.setText(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
-    saveButton.setText(TrackerRes.getString("ConfigInspector.Button.SaveAsDefault")); //$NON-NLS-1$
     okButton.setText(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
-    applyButton.setText(TrackerRes.getString("Dialog.Button.Apply")); //$NON-NLS-1$
-    applyButton.setEnabled(trackerPanel!=null);
-    allButton.setText(TrackerRes.getString("Dialog.Button.All")); //$NON-NLS-1$
-    noneButton.setText(TrackerRes.getString("Dialog.Button.None")); //$NON-NLS-1$
     relaunchButton.setText(TrackerRes.getString("PrefsDialog.Button.Relaunch")); //$NON-NLS-1$
     clearRecentButton.setText(TrackerRes.getString("PrefsDialog.Button.ClearRecent")); //$NON-NLS-1$
-    cacheLabel.setText(TrackerRes.getString("PrefsDialog.Label.Path")+":"); //$NON-NLS-1$ //$NON-NLS-2$
-    clearCacheButton.setToolTipText(TrackerRes.getString("PrefsDialog.Button.ClearCache.Tooltip")); //$NON-NLS-1$
-    clearHostButton.setText(TrackerRes.getString("PrefsDialog.Button.ClearHost")); //$NON-NLS-1$
-    clearHostButton.setToolTipText(TrackerRes.getString("PrefsDialog.Button.ClearHost.Tooltip")); //$NON-NLS-1$
-    setCacheButton.setText(TrackerRes.getString("PrefsDialog.Button.SetCache")); //$NON-NLS-1$
-    checkForUpgradeButton.setText(TrackerRes.getString("PrefsDialog.Button.CheckForUpgrade")); //$NON-NLS-1$
     recentSizeLabel.setText(TrackerRes.getString("PrefsDialog.Label.RecentSize")); //$NON-NLS-1$
-    defaultMemoryCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.DefaultSize")); //$NON-NLS-1$
     hintsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.HintsOn")); //$NON-NLS-1$    
     resetToStep0Checkbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.ResetToZero.Text")); //$NON-NLS-1$    
     autofillCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.Autofill.Text")); //$NON-NLS-1$    
     showGapsCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.ShowGaps.Text")); //$NON-NLS-1$    
-    vm32Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.32BitVM")); //$NON-NLS-1$
-    vm64Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.64BitVM")); //$NON-NLS-1$
-    movieEngineButton.setText(TrackerRes.getString("PrefsDialog.Button.Xuggle")); //$NON-NLS-1$
-  	noEngineButton.setText(TrackerRes.getString("PrefsDialog.Button.NoEngine")); //$NON-NLS-1$
     radiansButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Radians")); //$NON-NLS-1$
     degreesButton.setText(TrackerRes.getString("TMenuBar.MenuItem.Degrees")); //$NON-NLS-1$
     zoomButton.setText(TrackerRes.getString("PrefsDialog.Button.Zoom")); //$NON-NLS-1$
     markStickEndsButton.setText(TrackerRes.getString("PrefsDialog.Button.MarkEnds")); //$NON-NLS-1$
     centerStickButton.setText(TrackerRes.getString("PrefsDialog.Button.Center")); //$NON-NLS-1$
     scrubButton.setText(TrackerRes.getString("PrefsDialog.Button.Scrub")); //$NON-NLS-1$
-    xuggleFastButton.setText(TrackerRes.getString("PrefsDialog.Xuggle.Fast")); //$NON-NLS-1$
-    xuggleSlowButton.setText(TrackerRes.getString("PrefsDialog.Xuggle.Slow")); //$NON-NLS-1$
-    vidWarningCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfNoEngine")); //$NON-NLS-1$    
-    variableDurationCheckBox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnVariableDuration")); //$NON-NLS-1$    
-    xuggleErrorCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfXuggleError")); //$NON-NLS-1$    
-    setTabTitle(configPanel, TrackerRes.getString("PrefsDialog.Tab.Configuration.Title")); //$NON-NLS-1$
-    setTabTitle(runtimePanel, TrackerRes.getString("PrefsDialog.Tab.Runtime.Title")); //$NON-NLS-1$
-    setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
     setTabTitle(displayPanel, TrackerRes.getString("PrefsDialog.Tab.Display.Title")); //$NON-NLS-1$
-    setTabTitle(trackPanel, TrackerRes.getString("PrefsDialog.Tab.Actions.Title")); //$NON-NLS-1$
+    setTabTitle(actionsPanel, (!OSPRuntime.isJS && !Tracker.testOn)? 
+    		TrackerRes.getString("PrefsDialog.Tab.Actions.Title"):
+    		TrackerRes.getString("PrefsDialog.Tab.Tracking.Title")); //$NON-NLS-1$
     setTabTitle(generalPanel, TrackerRes.getString("PrefsDialog.Tab.General.Title")); //$NON-NLS-1$
-    refreshTextFields();
+		if (!OSPRuntime.isJS && !Tracker.testOn) {
+	    checkPanelBorder.setTitle(TrackerRes.getString("ConfigInspector.Border.Title")); //$NON-NLS-1$
+	    versionSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Version.BorderTitle")); //$NON-NLS-1$
+	    jreSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.JRE.BorderTitle")); //$NON-NLS-1$
+	    memorySubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Memory.BorderTitle")); //$NON-NLS-1$
+	    defaultMemoryCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.DefaultSize")); //$NON-NLS-1$
+	    applyButton.setText(TrackerRes.getString("Dialog.Button.Apply")); //$NON-NLS-1$
+	    applyButton.setEnabled(trackerPanel!=null);
+	    allButton.setText(TrackerRes.getString("Dialog.Button.All")); //$NON-NLS-1$
+	    noneButton.setText(TrackerRes.getString("Dialog.Button.None")); //$NON-NLS-1$
+	    cacheLabel.setText(TrackerRes.getString("PrefsDialog.Label.Path")+":"); //$NON-NLS-1$ //$NON-NLS-2$
+	    clearCacheButton.setToolTipText(TrackerRes.getString("PrefsDialog.Button.ClearCache.Tooltip")); //$NON-NLS-1$
+	    clearHostButton.setText(TrackerRes.getString("PrefsDialog.Button.ClearHost")); //$NON-NLS-1$
+	    clearHostButton.setToolTipText(TrackerRes.getString("PrefsDialog.Button.ClearHost.Tooltip")); //$NON-NLS-1$
+	    setCacheButton.setText(TrackerRes.getString("PrefsDialog.Button.SetCache")); //$NON-NLS-1$
+	    saveButton.setText(TrackerRes.getString("ConfigInspector.Button.SaveAsDefault")); //$NON-NLS-1$
+	    checkForUpgradeButton.setText(TrackerRes.getString("PrefsDialog.Button.CheckForUpgrade")); //$NON-NLS-1$
+	    vm32Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.32BitVM")); //$NON-NLS-1$
+	    vm64Button.setText(TrackerRes.getString("PrefsDialog.Checkbox.64BitVM")); //$NON-NLS-1$
+	    movieEngineButton.setText(TrackerRes.getString("PrefsDialog.Button.Xuggle")); //$NON-NLS-1$
+	  	noEngineButton.setText(TrackerRes.getString("PrefsDialog.Button.NoEngine")); //$NON-NLS-1$
+	    xuggleFastButton.setText(TrackerRes.getString("PrefsDialog.Xuggle.Fast")); //$NON-NLS-1$
+	    xuggleSlowButton.setText(TrackerRes.getString("PrefsDialog.Xuggle.Slow")); //$NON-NLS-1$
+	    vidWarningCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfNoEngine")); //$NON-NLS-1$    
+	    variableDurationCheckBox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnVariableDuration")); //$NON-NLS-1$    
+	    xuggleErrorCheckbox.setText(TrackerRes.getString("PrefsDialog.Checkbox.WarnIfXuggleError")); //$NON-NLS-1$    
+	    videoTypeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.VideoPref.BorderTitle")); //$NON-NLS-1$
+	    xuggleSpeedSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Xuggle.Speed.BorderTitle")); //$NON-NLS-1$
+	    warningsSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.NoVideoWarning.BorderTitle")); //$NON-NLS-1$
+	    cacheSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.CacheFiles.BorderTitle")); //$NON-NLS-1$
+	    upgradeSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Upgrades.BorderTitle")); //$NON-NLS-1$
+	    runSubPanelBorder.setTitle(TrackerRes.getString("PrefsDialog.Run.BorderTitle")); //$NON-NLS-1$
+	    setTabTitle(configPanel, TrackerRes.getString("PrefsDialog.Tab.Configuration.Title")); //$NON-NLS-1$
+	    setTabTitle(runtimePanel, TrackerRes.getString("PrefsDialog.Tab.Runtime.Title")); //$NON-NLS-1$
+	    setTabTitle(videoPanel, TrackerRes.getString("PrefsDialog.Tab.Video.Title")); //$NON-NLS-1$
+	    refreshTextFields();
+		}
+
     setFontLevel(FontSizer.getLevel());
     // refresh trail lengths
-    trailLengthDropdown.removeAllItems();
-    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
-    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
-    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
-    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.FullTrail")); //$NON-NLS-1$
+    if (trailLengthDropdown != null) {
+	    trailLengthDropdown.removeAllItems();
+	    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
+	    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
+	    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
+	    trailLengthDropdown.addItem(TrackerRes.getString("TrackControl.TrailMenu.FullTrail")); //$NON-NLS-1$
+    }
 
     pack();
     updateDisplay();
@@ -1786,43 +1818,48 @@ public class PrefsDialog extends JDialog {
    */
   private void applyPrefs() {
     // look/feel, language, video, hints, font size & decimal separator are set directly by components
-  	// update configuration
-    updateConfig();
     // update recent menu
     Integer val = (Integer)recentSizeSpinner.getValue();
     Tracker.setRecentSize(val);
     TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_PREFS_APPLYPREFS);
 
-  	// update preferred memory size
-    if (defaultMemoryCheckbox.isSelected())
-  		Tracker.preferredMemorySize = -1;
-    else
-    	Tracker.preferredMemorySize = memoryField.getIntValue();
-    // update preferred JRE
-		Object selected = jreDropdown.getSelectedItem();
-		if (selected !=null && !selected.equals(Tracker.preferredJRE)) {
-			if (selected.equals(TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"))) { //$NON-NLS-1$
-				Tracker.preferredJRE = null;
-			}
-			else if (selected.equals(TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"))) { //$NON-NLS-1$
-				Tracker.preferredJRE = null;
-			}
-			else {
-				Tracker.preferredJRE = selected.toString();
-			}
-		}
 		Tracker.showGaps = showGapsCheckbox.isSelected();
-		Tracker.trailLengthIndex = trailLengthDropdown.getSelectedIndex();
-		// refresh the toolbar
-		if (trackerPanel!=null) {
-			TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
-			toolbar.trailLength = TToolBar.trailLengths[Tracker.trailLengthIndex];
-	  	toolbar.trailButton.setSelected(toolbar.trailLength!=1);		
-			toolbar.refresh(TToolBar.REFRESH_PREFS_TRUE);
-		}
+		if (trailLengthDropdown != null) {
+			Tracker.trailLengthIndex = trailLengthDropdown.getSelectedIndex();
+			// refresh the toolbar
+			if (trackerPanel!=null) {
+				TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
+				toolbar.trailLength = TToolBar.trailLengths[Tracker.trailLengthIndex];
+		  	toolbar.trailButton.setSelected(toolbar.trailLength!=1);		
+				toolbar.refresh(TToolBar.REFRESH_PREFS_TRUE);
+			}
+	  }
     Tracker.isRadians = radiansButton.isSelected();
-		Tracker.isXuggleFast = xuggleFastButton.isSelected();
 		if (frame!=null) frame.setAnglesInRadians(Tracker.isRadians);
+		if (!OSPRuntime.isJS && !Tracker.testOn) {
+	  	// update configuration
+	    updateConfig();
+			Tracker.isXuggleFast = xuggleFastButton.isSelected();
+	  	// update preferred memory size
+	    if (defaultMemoryCheckbox.isSelected())
+	  		Tracker.preferredMemorySize = -1;
+	    else
+	    	Tracker.preferredMemorySize = memoryField.getIntValue();
+	    // update preferred JRE
+			Object selected = jreDropdown.getSelectedItem();
+			if (selected !=null && !selected.equals(Tracker.preferredJRE)) {
+				if (selected.equals(TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"))) { //$NON-NLS-1$
+					Tracker.preferredJRE = null;
+				}
+				else if (selected.equals(TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"))) { //$NON-NLS-1$
+					Tracker.preferredJRE = null;
+				}
+				else {
+					Tracker.preferredJRE = selected.toString();
+				}
+			}
+			
+		}		
     // save the tracker and tracker_starter preferences
     String path = Tracker.savePreferences();
 		if (path!=null)
@@ -1849,23 +1886,6 @@ public class PrefsDialog extends JDialog {
 	 */
 	protected void updateDisplay() {
 		refreshing = true;
-		// configuration
-		Component[] checkboxes = checkPanel.getComponents();
-		for (int i = 0; i < checkboxes.length; i++) {
-			// check the checkbox if its text is in the current config
-			JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem) checkboxes[i];
-			Set<String> enabled = trackerPanel != null ? trackerPanel.getEnabled() : Tracker.getDefaultConfig();
-			checkbox.setSelected(enabled.contains(checkbox.getText()));
-		}
-		// memory size
-		defaultMemoryCheckbox.setSelected(Tracker.preferredMemorySize < 0);
-		memoryField.setEnabled(Tracker.preferredMemorySize >= 0);
-		memoryLabel.setEnabled(Tracker.preferredMemorySize >= 0);
-		if (Tracker.preferredMemorySize >= 0)
-			memoryField.setValue(Tracker.preferredMemorySize);
-		else {
-			memoryField.setText(null);
-		}
 		// look and feel
 		if (Tracker.lookAndFeel != null)
 			lookFeelDropdown.setSelectedItem(Tracker.lookAndFeel.toLowerCase());
@@ -1873,10 +1893,6 @@ public class PrefsDialog extends JDialog {
 		recentSizeSpinner.setValue(Tracker.recentFilesSize);
 		// hints
 		hintsCheckbox.setSelected(Tracker.showHintsByDefault);
-		// warnings
-		vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
-		variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
-		xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
 		// locale
 		int index = 0;
 		for (int i = 0; i < Tracker.locales.length; i++) {
@@ -1888,55 +1904,35 @@ public class PrefsDialog extends JDialog {
 		}
 		languageDropdown.setSelectedIndex(index);
 
-		// tracker jar
-		int selected = 0;
-		for (int i = 0, count = versionDropdown.getItemCount(); i < count; i++) {
-			String next = versionDropdown.getItemAt(i).toString();
-			if (Tracker.preferredTrackerJar != null && Tracker.preferredTrackerJar.indexOf(next) > -1) {
-				selected = i;
-				break;
-			}
-		}
-		if (versionDropdown.getItemCount() > selected) {
-			versionDropdown.setSelectedIndex(selected);
-		}
-
-		// JRE dropdown
-		selected = 0;
-		for (int i = 0, count = jreDropdown.getItemCount(); i < count; i++) {
-			String next = jreDropdown.getItemAt(i).toString();
-			if (next.equals(Tracker.preferredJRE)) {
-				selected = i;
-				break;
-			}
-		}
-		if (jreDropdown.getItemCount() > selected) {
-			jreDropdown.setSelectedIndex(selected);
-		}
-
 		// footprint dropdown
-		selected = 0;
-		for (int i = 0; i < footprintDropdown.getItemCount(); i++) {
-			Footprint footprint = footprintDropdown.getItemAt(i);
-			if (Tracker.preferredPointMassFootprint != null
-					&& Tracker.preferredPointMassFootprint.startsWith(footprint.getName())) {
-				selected = i;
-				if (footprint instanceof CircleFootprint) {
-					CircleFootprint cfp = (CircleFootprint) footprint;
-					int n = Tracker.preferredPointMassFootprint.indexOf("#"); //$NON-NLS-1$
-					if (n > -1) {
-						cfp.setProperties(Tracker.preferredPointMassFootprint.substring(n + 1));
+		if (footprintDropdown != null) {
+			int selected = 0;
+			for (int i = 0; i < footprintDropdown.getItemCount(); i++) {
+				Footprint footprint = footprintDropdown.getItemAt(i);
+				if (Tracker.preferredPointMassFootprint != null
+						&& Tracker.preferredPointMassFootprint.startsWith(footprint.getName())) {
+					selected = i;
+					if (footprint instanceof CircleFootprint) {
+						CircleFootprint cfp = (CircleFootprint) footprint;
+						int n = Tracker.preferredPointMassFootprint.indexOf("#"); //$NON-NLS-1$
+						if (n > -1) {
+							cfp.setProperties(Tracker.preferredPointMassFootprint.substring(n + 1));
+						}
 					}
+					break;
 				}
-				break;
+			}
+			if (footprintDropdown.getItemCount() > selected) {
+				footprintDropdown.setSelectedIndex(selected);
 			}
 		}
-		if (footprintDropdown.getItemCount() > selected) {
-			footprintDropdown.setSelectedIndex(selected);
-		}
+
+		// trail length
+		if (trailLengthDropdown != null)
+			trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
 
 		// log level
-		selected = 0;
+		int selected = 0;
 		if (!Tracker.preferredLogLevel.equals(Tracker.DEFAULT_LOG_LEVEL)) {
 			for (int i = 1, count = logLevelDropdown.getItemCount(); i < count; i++) {
 				String next = logLevelDropdown.getItemAt(i).toString();
@@ -1948,19 +1944,6 @@ public class PrefsDialog extends JDialog {
 		}
 		if (logLevelDropdown.getItemCount() > selected) {
 			logLevelDropdown.setSelectedIndex(selected);
-		}
-
-		// checkForUpgrade
-		selected = 0;
-		for (int i = 1, count = Tracker.checkForUpgradeChoices.size(); i < count; i++) {
-			String next = Tracker.checkForUpgradeChoices.get(i);
-			if (Tracker.checkForUpgradeIntervals.get(next) == Tracker.checkForUpgradeInterval) {
-				selected = i;
-				break;
-			}
-		}
-		if (checkForUpgradeDropdown.getItemCount() > selected) {
-			checkForUpgradeDropdown.setSelectedIndex(selected);
 		}
 
 		// show gaps
@@ -1988,12 +1971,74 @@ public class PrefsDialog extends JDialog {
 		else
 			markStickEndsButton.setSelected(true);
 
-		// trail length
-		trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
+		if (!OSPRuntime.isJS && !Tracker.testOn) {
+			// configuration
+			Component[] checkboxes = checkPanel.getComponents();
+			for (int i = 0; i < checkboxes.length; i++) {
+				// check the checkbox if its text is in the current config
+				JCheckBoxMenuItem checkbox = (JCheckBoxMenuItem) checkboxes[i];
+				Set<String> enabled = trackerPanel != null ? trackerPanel.getEnabled() : Tracker.getDefaultConfig();
+				checkbox.setSelected(enabled.contains(checkbox.getText()));
+			}
+			
+			// warnings
+			vidWarningCheckbox.setSelected(Tracker.warnNoVideoEngine);
+			variableDurationCheckBox.setSelected(Tracker.warnVariableDuration);
+			xuggleErrorCheckbox.setSelected(Tracker.warnXuggleError);
 
-		// video
-		if (MovieFactory.hasVideoEngine()) {
-			movieEngineButton.setSelected(true);
+			// memory size
+			defaultMemoryCheckbox.setSelected(Tracker.preferredMemorySize < 0);
+			memoryField.setEnabled(Tracker.preferredMemorySize >= 0);
+			memoryLabel.setEnabled(Tracker.preferredMemorySize >= 0);
+			if (Tracker.preferredMemorySize >= 0)
+				memoryField.setValue(Tracker.preferredMemorySize);
+			else {
+				memoryField.setText(null);
+			}
+			// tracker jar
+			selected = 0;
+			for (int i = 0, count = versionDropdown.getItemCount(); i < count; i++) {
+				String next = versionDropdown.getItemAt(i).toString();
+				if (Tracker.preferredTrackerJar != null && Tracker.preferredTrackerJar.indexOf(next) > -1) {
+					selected = i;
+					break;
+				}
+			}
+			if (versionDropdown.getItemCount() > selected) {
+				versionDropdown.setSelectedIndex(selected);
+			}
+
+			// JRE dropdown
+			selected = 0;
+			for (int i = 0, count = jreDropdown.getItemCount(); i < count; i++) {
+				String next = jreDropdown.getItemAt(i).toString();
+				if (next.equals(Tracker.preferredJRE)) {
+					selected = i;
+					break;
+				}
+			}
+			if (jreDropdown.getItemCount() > selected) {
+				jreDropdown.setSelectedIndex(selected);
+			}
+
+			// video
+			if (MovieFactory.hasVideoEngine()) {
+				movieEngineButton.setSelected(true);
+			}
+			
+			// checkForUpgrade
+			selected = 0;
+			for (int i = 1, count = Tracker.checkForUpgradeChoices.size(); i < count; i++) {
+				String next = Tracker.checkForUpgradeChoices.get(i);
+				if (Tracker.checkForUpgradeIntervals.get(next) == Tracker.checkForUpgradeInterval) {
+					selected = i;
+					break;
+				}
+			}
+			if (checkForUpgradeDropdown.getItemCount() > selected) {
+				checkForUpgradeDropdown.setSelectedIndex(selected);
+			}
+
 		}
 		TFrame.repaintT(this);
 		refreshing = false;
