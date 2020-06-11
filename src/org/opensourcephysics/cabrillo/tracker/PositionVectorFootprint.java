@@ -97,14 +97,14 @@ public BasicStroke getStroke() {
     return arrow.getStroke();
   }
 
-  /**
-   * Sets the line width.
-   *
-   * @param w the desired line width
-   */
-  @Override
-public void setLineWidth(double w) {
-    arrow.setLineWidth(w);
-  }
-
+//  /**
+//   * Sets the line width.
+//   *
+//   * @param w the desired line width
+//   */
+//  @Override
+//public void setLineWidth(double w) {
+//    arrow.setLineWidth(w);
+//  }
+//
 }

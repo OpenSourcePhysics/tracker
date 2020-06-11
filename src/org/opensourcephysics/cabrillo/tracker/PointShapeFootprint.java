@@ -47,7 +47,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
   protected BasicStroke stroke;
   protected Color color = Color.black;
   protected Shape[] hitShapes = new Shape[1];
-  protected double defaultWidth = 1;
+//  protected double defaultWidth = 1;
 
   /**
    * Constructs a PointShapeFootprint with a point shape.
@@ -174,9 +174,9 @@ public Shape[] getHitShapes() {
   @Override
 public void setStroke(BasicStroke stroke) {
     baseStroke = stroke;
-    if (stroke != null) {
-      defaultWidth = stroke.getLineWidth();
-    }
+//    if (stroke != null) {
+//      defaultWidth = stroke.getLineWidth();
+//    }
   }
 
   /**
@@ -189,21 +189,21 @@ public BasicStroke getStroke() {
     return baseStroke;
   }
 
-  /**
-   * Sets the line width.
-   *
-   * @param w the desired line width
-   */
-  public void setLineWidth(double w) {
-    if (baseStroke == null) return;
-    baseStroke = new BasicStroke((float)w,
-                              BasicStroke.CAP_BUTT,
-                              BasicStroke.JOIN_MITER,
-                              8,
-                              baseStroke.getDashArray(),
-                              baseStroke.getDashPhase());
-  }
-
+//  /**
+//   * Sets the line width.
+//   *
+//   * @param w the desired line width
+//   */
+//  public void setLineWidth(double w) {
+//    if (baseStroke == null) return;
+//    baseStroke = new BasicStroke((float)w,
+//                              BasicStroke.CAP_BUTT,
+//                              BasicStroke.JOIN_MITER,
+//                              8,
+//                              baseStroke.getDashArray(),
+//                              baseStroke.getDashPhase());
+//  }
+//
   /**
    * Sets the color.
    *
