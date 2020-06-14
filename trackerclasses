@@ -1130,5 +1130,4 @@ java/awt/datatransfer/ClipboardOwner.js
 java/awt/datatransfer/StringSelection.js
 javax/xml/parsers/ParserConfigurationException.js
 org/xml/sax/SAXException.js
-swingjs/a2s/Frame.js
 swingjs/api/js/HTML5Video.js

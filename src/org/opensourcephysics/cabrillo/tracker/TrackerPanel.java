@@ -31,7 +31,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.Frame;
+//import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -64,6 +64,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -4069,7 +4070,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 						FontSizer.setFonts(inspector, FontSizer.getLevel());
 						inspector.pack();
-						Point p0 = new Frame().getLocation();
+						Point p0 = new JFrame().getLocation();
 						Point loc = inspector.getLocation();
 						if ((loc.x == p0.x) && (loc.y == p0.y)) {
 							// center inspector on the main view

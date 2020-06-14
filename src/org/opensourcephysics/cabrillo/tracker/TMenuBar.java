@@ -27,7 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.Frame;
+//import java.awt.Frame;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -54,6 +54,7 @@ import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -2670,7 +2671,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			logItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					Point p = new Frame().getLocation(); // default location of new frame or dialog
+					Point p = new JFrame().getLocation(); // default location of new frame or dialog
 					OSPLog log = OSPLog.getOSPLog();
 					FontSizer.setFonts(log, FontSizer.getLevel());
 					if (log.getLocation().x == p.x && log.getLocation().y == p.y) {
