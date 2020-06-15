@@ -89,8 +89,8 @@ public class LineProfileStep extends Step {
     handle = new Handle((x1+x2)/2, (y1+y2)/2);
     points = new TPoint[] {lineEnd0, lineEnd1, handle};
     screenPoints = new Point[getLength()];
-    xSegments = new TreeSet<GridSegment>();
-    ySegments = new TreeSet<GridSegment>();
+//    xSegments = new TreeSet<GridSegment>();
+//    ySegments = new TreeSet<GridSegment>();
     corners = new Corner[2][2];
 //    leadingCorners = new Corner[2];
 //    trailingCorners = new Corner[2];

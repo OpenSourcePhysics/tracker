@@ -42,7 +42,6 @@ public class Configuration {
    * Creates an empty Configuration.
    */
   public Configuration() {
-    enabled = new TreeSet<String>();
   }
 
   /**

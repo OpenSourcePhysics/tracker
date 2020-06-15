@@ -647,7 +647,7 @@ public class PrefsDialog extends JDialog {
 		buttonBorder = BorderFactory.createCompoundBorder(buttonBorder, space);
 		Icon openFileIcon = new ImageIcon(Tracker.getClassResource("resources/images/open.gif")); //$NON-NLS-1$
 
-		// runtime panel only for Java
+		// runtime pane--only for Java
 		if (!OSPRuntime.isJS && !Tracker.testOn) {
 			runtimePanel = new JPanel(new BorderLayout());
 			tabbedPane.addTab(null, runtimePanel);
@@ -923,7 +923,7 @@ public class PrefsDialog extends JDialog {
 			runSubPanel.add(setRunButton);
 		} // end runtime panel
 
-		// video panel only for Java
+		// video panel--only for Java
 		if (!OSPRuntime.isJS && !Tracker.testOn) {
 			videoPanel = new JPanel(new BorderLayout());
 			tabbedPane.addTab(null, videoPanel);
@@ -1251,7 +1251,7 @@ public class PrefsDialog extends JDialog {
 			recentSubPanel.add(spinnerPanel);
 		}
 
-		// cache subpanel only for Java
+		// cache subpanel--only for Java
 		if (!OSPRuntime.isJS && !Tracker.testOn) {
 			JPanel cacheSubPanel = new JPanel(new BorderLayout());
 			box.add(cacheSubPanel);
@@ -1415,7 +1415,7 @@ public class PrefsDialog extends JDialog {
 		logLevelSubPanel.setBorder(BorderFactory.createCompoundBorder(etched, logLevelSubPanelBorder));
 		logLevelSubPanel.add(logLevelDropdown);
 
-		// check for upgrades subpanel only for Java
+		// check for upgrades subpane--only for Java
 		if (!OSPRuntime.isJS && !Tracker.testOn) {
 			checkForUpgradeButton = new JButton();
 			checkForUpgradeButton.addActionListener(new ActionListener() {
