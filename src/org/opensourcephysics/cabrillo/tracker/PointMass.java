@@ -1326,6 +1326,7 @@ public class PointMass extends TTrack {
 			Step[] stepArray = steps.array;
 			int i0 = Math.max(shortTrail ?  n - (getTrailLength() - 1) * stepSize : 0 , 0);
 			n = Math.min(shortTrail ? n + 1 : stepArray.length , stepArray.length);
+			OSPLog.debug("pig PointMass drawing from "+i0+" to "+n);
 			for (int i = i0; i < n; i++) {
 				if (stepArray[i] != null) {
 					if (isStepVisible(stepArray[i], trackerPanel)) {
@@ -1679,13 +1680,13 @@ public class PointMass extends TTrack {
 	}
 
 	/**
-	 * Determines whether the specified step is a velocity step.
+	 * Determines whether the specified step is a velocity step for this point mass.
 	 *
 	 * @param step the step
 	 * @return <code>true</code> if the step is a velocity VectorStep
 	 */
 	public boolean isVelocity(Step step) {
-		return (step.type == Step.TYPE_VELOCITY);
+		return (step.type == Step.TYPE_VELOCITY && step.getTrack() == this);
 //		Iterator<TrackerPanel> it = panels.iterator();
 //		while (it.hasNext()) {
 //			TrackerPanel panel = it.next();
@@ -1767,13 +1768,13 @@ public class PointMass extends TTrack {
 	}
 
 	/**
-	 * Determines whether the specified step is an acceleration step.
+	 * Determines whether the specified step is an acceleration step for this point mass.
 	 *
 	 * @param step the step
 	 * @return <code>true</code> if the step is an acceleration VectorStep
 	 */
 	public boolean isAcceleration(Step step) {
-		return (step.type == Step.TYPE_ACCELERATION);
+		return (step.type == Step.TYPE_ACCELERATION && step.getTrack() == this);
 //
 //		Iterator<TrackerPanel> it = panels.iterator();
 //		while (it.hasNext()) {
