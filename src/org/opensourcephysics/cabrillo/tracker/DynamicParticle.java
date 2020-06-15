@@ -209,7 +209,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 			setTracePositions(getState());
 			AffineTransform transform = coords.getToImageTransform(firstFrameInClip);
 			for (int i = 0; i < models.length; i++) {
-				models[i].lastValidFrame = firstFrameInClip;
+				models[i].setLastValidFrame(firstFrameInClip);
 				models[i].steps.setLength(firstFrameInClip + 1);
 				PositionStep step = (PositionStep) models[i].getStep(firstFrameInClip);
 				for (int j = 0; j < models[i].steps.array.length; j++) {
@@ -333,9 +333,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 */
 	@Override
 	public int getStartFrame() {
-		if (system != null)
-			return system.getStartFrame();
-		return startFrame;
+		return (system == null ? startFrame : system.getStartFrame());
 	}
 
 	/**
@@ -393,8 +391,9 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		// state is {x, vx, y, vy, t}
 		ret[0] = f[0].evaluate(cartesianState);
 		ret[1] = f[1].evaluate(cartesianState);
+		nCalc += 2;
 	}
-
+	
 	/**
 	 * Resets the state variables {x, vx, y, vy, t}.
 	 */
@@ -599,7 +598,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		getInitEditor().setParameters(params);
 		if (system != null) {
 			system.refreshSystemParameters();
-			system.lastValidFrame = -1;
+			system.setLastValidFrame(-1);
 			system.refreshSteps();
 		} else {
 			reset();

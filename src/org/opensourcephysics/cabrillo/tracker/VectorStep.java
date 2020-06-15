@@ -84,7 +84,12 @@ public class VectorStep extends Step implements PropertyChangeListener {
 	 * @param yc    the y component
 	 */
 	public VectorStep(TTrack track, int n, double x, double y, double xc, double yc) {
+		this(track, n, x, y, xc, yc, Step.TYPE_UNKNOWN);
+	}
+	
+	public VectorStep(TTrack track, int n, double x, double y, double xc, double yc, int type) {
 		super(track, n);
+		this.type = type;
 		tail = new Handle(x, y);
 		middle = new TPoint(x, y) { // used for layout positioning
 			@Override

@@ -71,7 +71,7 @@ public class PlotTrackView extends TrackView {
 	 */
 	public PlotTrackView(TTrack track, TrackerPanel panel, PlotTView view) {
 		super(track, panel, view, TView.VIEW_PLOT);
-		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr for " + track, Performance.TIME_MARK));
+		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr0 for " + track, Performance.TIME_MARK));
 		// get the track data object (DatasetManager)
 		data = track.getData(trackerPanel);
 		// create the GUI
@@ -98,6 +98,7 @@ public class PlotTrackView extends TrackView {
 			}
 			plots[i].isCustom = false;
 		}
+		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr1 for " + track + " plots=" + plots.length, Performance.TIME_MARK));
 	}
 
 	@Override
@@ -105,7 +106,8 @@ public class PlotTrackView extends TrackView {
 		if (!isRefreshEnabled() || !parent.isViewPaneVisible())
 			return;
 	 
-		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
+		if (Tracker.timeLogEnabled)
+			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		TTrack track = getTrack();
 		if (track == null)
 			return;

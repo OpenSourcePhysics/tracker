@@ -151,7 +151,7 @@ public class AnalyticParticle extends ParticleModel {
 			traceX = new double[] { point.x };
 			traceY = new double[] { point.y };
 			step.getPosition().setPosition(point); // this method is fast
-			lastValidFrame = firstFrameInClip;
+			setLastValidFrame(firstFrameInClip);
 			firePropertyChange("step", null, firstFrameInClip); //$NON-NLS-1$
 		}
 	}

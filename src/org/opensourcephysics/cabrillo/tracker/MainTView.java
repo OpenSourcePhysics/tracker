@@ -85,13 +85,18 @@ public class MainTView extends JPanel implements TView {
 		setLayout(new BorderLayout());
 		scrollPane = new JScrollPane();
 		scrollPane.addComponentListener(new ComponentAdapter() {
+			Dimension lastDim;
 			@Override
 			public void componentResized(ComponentEvent e) {
 				if (!getTopLevelAncestor().isVisible())
 					return;
+				Dimension d;
+				if ((d = scrollPane.getSize()).equals(lastDim))
+					return;
+				lastDim = d;
 				TToolBar.getToolbar(trackerPanel).refreshZoomButton();
 				trackerPanel.eraseAll();
-				TFrame.repaintT(trackerPanel);
+			OSPLog.debug("MainTView testing no repaint");	//TFrame.repaintT(trackerPanel);
 			}
 		});
 		SwingUtilities.replaceUIActionMap(scrollPane, null);
@@ -365,7 +370,7 @@ public class MainTView extends JPanel implements TView {
 		// remove this listener from all tracks
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack track = TTrack.activeTracks.get(n);
-			track.removePropertyChangeListener("color", this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
 		}
 	}
 
@@ -450,12 +455,14 @@ public class MainTView extends JPanel implements TView {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
-		if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK)
-				|| name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) { // track has been added or removed
-																			// //$NON-NLS-1$ //$NON-NLS-2$
+		switch (name) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
 			refresh();
-		} else if (name.equals("color")) { // track color has changed //$NON-NLS-1$
+			break;
+		case TTrack.PROPERTY_TTRACK_COLOR:
 			TFrame.repaintT(this);
+			break;
 		}
 	}
 
@@ -589,4 +596,8 @@ public class MainTView extends JPanel implements TView {
 		return TView.VIEW_MAIN;
 	}
 
+	@Override
+	public Dimension getMinimumSize() {
+		return new Dimension(700,500); // BH ??? 
+	}
 }

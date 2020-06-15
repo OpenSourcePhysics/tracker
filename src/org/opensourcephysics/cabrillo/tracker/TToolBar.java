@@ -27,7 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.Frame;
+//import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -60,6 +60,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFrame;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -315,7 +316,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				}
 				FontSizer.setFonts(inspector, FontSizer.getLevel());
 				inspector.pack();
-				Point p0 = new Frame().getLocation();
+				Point p0 = new JFrame().getLocation();
 				Point loc = inspector.getLocation();
 				if ((loc.x == p0.x) && (loc.y == p0.y)) {
 					// center inspector on the main view
@@ -778,7 +779,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			frame.notesDialog.addWindowListener(infoListener);
 			// position info dialog if first time shown
 			// or if trackerPanel specifies location
-			Point p0 = new Frame().getLocation();
+			Point p0 = new JFrame().getLocation();
 			if (trackerPanel.infoX != Integer.MIN_VALUE || frame.notesDialog.getLocation().x == p0.x) {
 				int x, y;
 				Point p = frame.getLocationOnScreen();
@@ -823,6 +824,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected synchronized void refresh(String whereFrom) {
 		if (disposed)
 			return;
+		OSPLog.debug("TToolBar refresh from " + whereFrom);
 		boolean doRefresh = false;
 		switch (whereFrom) {
 		case REFRESH_PREFS_TRUE:
@@ -1071,6 +1073,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				massCount++;
 			}
 		}
+		boolean doRepaint = false;
 		for (TTrack track : tracks) {
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); //$NON-NLS-1$
 			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); //$NON-NLS-1$
@@ -1110,7 +1113,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						}
 					}
 				}
-				p.repaint();
+				doRepaint = true;
+				if (false)
+					p.repaint();
 			} else if (track instanceof Vector) {
 				Vector v = (Vector) track;
 				v.setLabelsVisible(labelsButton.isSelected());
@@ -1121,8 +1126,14 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						arrow.setStretch(vStretch);
 					}
 				}
-				v.repaint();
+				doRepaint = true;
+				if (false)
+					v.repaint();
 			}
+		}
+		if (doRepaint) {
+			// BH TODO are there more than one trackerPanel to paint ? These were from PointMass and Vectors
+			trackerPanel.repaint();
 		}
 	}
 

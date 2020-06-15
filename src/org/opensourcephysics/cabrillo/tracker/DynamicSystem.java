@@ -163,7 +163,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		if (particles.length == 0) {
 			return;
 		}
-		if (trackerPanel.getFrameNumber() > lastValidFrame) {
+		if (trackerPanel.getFrameNumber() > getLastValidFrame()) {
 			refreshSteps();
 		}
 		for (ParticleModel next : getModels()) {
@@ -347,7 +347,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 				particle.refreshInitialTime();
 				particle.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, this); //$NON-NLS-1$
 				particle.removeStepListener(this);
-				particle.lastValidFrame = -1;
+				particle.setLastValidFrame(-1);
 				particle.repaint();
 				if (systemInspector != null) {
 					particle.removePropertyChangeListener("name", systemInspector); //$NON-NLS-1$
@@ -396,7 +396,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 			steps = realSteps;
 			firePropertyChange("steps", null, null); //$NON-NLS-1$
 		}
-		lastValidFrame = -1;
+		setLastValidFrame(-1);
 		repaint();
 		return true;
 	}
@@ -504,7 +504,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 					return;
 				}
 			}
-			lastValidFrame = -1;
+			setLastValidFrame(-1);
 			refreshSteps();
 		} else
 			super.propertyChange(e);

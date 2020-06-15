@@ -2148,6 +2148,8 @@ public class TrackerIO extends VideoIO {
 			if (type == TYPE_PANEL) {
 				frame.clearHoldPainting();
 				trackerPanel.notifyLoadingComplete();
+//				TFrame.repaintT(trackerPanel);
+
 			}
 
 			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad done " + path, Performance.TIME_MARK));

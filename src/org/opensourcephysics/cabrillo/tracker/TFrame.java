@@ -307,8 +307,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param c
 	 */
 	public static void repaintT(Component c) {
-		if (c instanceof TrackerPanel && !((TrackerPanel) c).isPaintable()) {
-			return;
+		if (c instanceof TrackerPanel) {
+			if (!((TrackerPanel) c).isPaintable()) {
+				return;
+			}
+			((TrackerPanel) c).clearTainted();
 		}
 		OSPLog.debug("TFrame.repaintT " + c.getClass().getName());
 		c.repaint();

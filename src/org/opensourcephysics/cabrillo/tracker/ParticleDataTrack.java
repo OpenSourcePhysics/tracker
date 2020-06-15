@@ -1069,9 +1069,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		startFrame = n;
 		refreshInitialTime();
 		adjustVideoClip();
-		lastValidFrame = -1;
+		setLastValidFrame(-1);
 		for (ParticleDataTrack next : morePoints) {
-			next.lastValidFrame = -1;
+			next.setLastValidFrame(-1);
 		}
 		TFrame.repaintT(trackerPanel);
 		firePropertyChange("startframe", null, getStartFrame()); //$NON-NLS-1$
@@ -1199,7 +1199,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		// listen for changes to the video
 		if (e.getPropertyName() == "video") { //$NON-NLS-1$
 			firePropertyChange("videoclip", null, null); //$NON-NLS-1$
-			lastValidFrame = -1;
+			setLastValidFrame(-1);
 			repaint();
 		}
 		// listen for changes to the dataclip
@@ -1207,7 +1207,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			refreshInitialTime();
 			adjustVideoClip();
 			firePropertyChange("dataclip", null, null); //$NON-NLS-1$
-			lastValidFrame = -1;
+			setLastValidFrame(-1);
 			repaint();
 		}
 		// listen for clipboard changes
@@ -1306,7 +1306,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		// reset trace data
 		traceX = new double[] { point.x };
 		traceY = new double[] { point.y };
-		lastValidFrame = firstFrameInVideoClip;
+		setLastValidFrame(firstFrameInVideoClip);
 		stepCounter = 0;
 	}
 
@@ -1759,7 +1759,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		firePropertyChange("dataclip", null, dataClip); //$NON-NLS-1$
 		adjustVideoClip();
 		if (reset) {
-			lastValidFrame = -1;
+			setLastValidFrame(-1);
 			refreshSteps();
 			firePropertyChange("steps", null, null); //$NON-NLS-1$
 		}

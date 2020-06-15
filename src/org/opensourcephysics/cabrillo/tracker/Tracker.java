@@ -147,7 +147,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
 
 	// for testing
-	static boolean timeLogEnabled = false;
+	public static boolean timeLogEnabled = false;
 	static boolean testOn = true;
 	static String testString;
 
@@ -965,7 +965,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 									JOptionPane.WARNING_MESSAGE);
 							return;
 						}
-						trackerPrefsDialog = new JDialog((Frame) null, true);
+						trackerPrefsDialog = new JDialog((JFrame) null, true);
 						trackerPrefsDialog.setTitle(TrackerRes.getString("ConfigInspector.Title") + ": " + //$NON-NLS-1$ //$NON-NLS-2$
 						XML.forwardSlash(prefsPath));
 						trackerPrefsTextArea = new JTextArea();
@@ -1015,7 +1015,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 									JOptionPane.WARNING_MESSAGE);
 							return;
 						}
-						readmeDialog = new JDialog((Frame) null, true);
+						readmeDialog = new JDialog((JFrame) null, true);
 						readmeDialog.setTitle(TrackerRes.getString("Tracker.Readme")); //$NON-NLS-1$
 						JTextArea textPane = new JTextArea();
 						textPane.setEditable(false);
@@ -1053,7 +1053,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 										JOptionPane.WARNING_MESSAGE);
 								return;
 							}
-							startLogDialog = new JDialog((Frame) null, true);
+							startLogDialog = new JDialog((JFrame) null, true);
 							startLogDialog.setTitle(TrackerRes.getString("Tracker.StartLog")); //$NON-NLS-1$
 							JTextArea textPane = new JTextArea();
 							textPane.setEditable(false);
