@@ -259,7 +259,7 @@ public Step createStep(int n, double x, double y) {
   public Step createStep(int n, double x, double y, double xc, double yc) {
     if (locked) return null;
     VectorStep step = (VectorStep)getStep(n);
-    step = new VectorStep(this, n, x, y, xc, yc);
+    step = new VectorStep(this, n, x, y, xc, yc, Step.TYPE_UNKNOWN);
     step.setFirePropertyChangeEvents(true);
     steps.setStep(n, step);
     step.setFootprint(getFootprint());    	

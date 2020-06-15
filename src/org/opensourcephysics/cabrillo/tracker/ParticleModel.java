@@ -74,7 +74,7 @@ abstract public class ParticleModel extends PointMass {
 	protected double[] traceX = {}, traceY = {};
 	protected double[] prevX, prevY;
 	protected TPoint tracePt = new TPoint();
-	protected int lastValidFrame = -1; // used in draw method
+	private int lastValidFrame = -1; // used in draw method
 	protected double t0, dt = 0.1, time;
 	protected boolean refreshDerivsLater, refreshStepsLater;
 	protected boolean invalidWarningShown, startFrameUndefined;
@@ -83,6 +83,14 @@ abstract public class ParticleModel extends PointMass {
 	protected JMenuItem modelBuilderItem, useDefaultRefFrameItem, stampItem;
 	protected PropertyChangeListener massParamListener, timeParamListener;
 
+	protected void setLastValidFrame(int i) {
+		lastValidFrame = i;
+	}
+	
+	protected int getLastValidFrame() {
+		return lastValidFrame;
+	}
+	
 	/**
 	 * Constructs a ParticleModel.
 	 */
@@ -116,6 +124,7 @@ abstract public class ParticleModel extends PointMass {
 	public void draw(DrawingPanel panel, Graphics _g) {
 		if (!(panel instanceof TrackerPanel) || trackerPanel == null)
 			return;
+		OSPLog.debug("ParticleModel.draw frame " + trackerPanel.getFrameNumber() + "/" + lastValidFrame + " " + this);
 		if (isVisible() && trackerPanel.getFrameNumber() > lastValidFrame) {
 			refreshSteps();
 		}
@@ -212,7 +221,7 @@ abstract public class ParticleModel extends PointMass {
 		case "function":
 			if (!loading)
 				trackerPanel.changed = true;
-			lastValidFrame = -1;
+			setLastValidFrame(-1);
 			break;
 		case TFrame.PROPERTY_TFRAME_TAB: //$NON-NLS-1$
 			if (modelBuilder != null) {
@@ -240,13 +249,13 @@ abstract public class ParticleModel extends PointMass {
 		case "frameduration": //$NON-NLS-1$
 		case "startframe": //$NON-NLS-1$
 		case "stepsize": //$NON-NLS-1$
-			lastValidFrame = -1;
+			setLastValidFrame(-1);
 			break;
 		case "transform": //$NON-NLS-1$
 			// workaround to prevent infinite loop
 			ImageCoordSystem coords = trackerPanel.getCoords();
 			if (!(coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this)) {
-				lastValidFrame = -1;
+				setLastValidFrame(-1);
 			}
 			break;
 		}
@@ -419,7 +428,7 @@ abstract public class ParticleModel extends PointMass {
 				public void actionPerformed(ActionEvent e) {
 					setUseDefaultReferenceFrame(!useDefaultRefFrameItem.isSelected());
 					if (ParticleModel.this.trackerPanel.getCoords() instanceof ReferenceFrame) {
-						lastValidFrame = -1;
+						setLastValidFrame(-1);
 						refreshSteps();
 					}
 				}
@@ -543,7 +552,7 @@ abstract public class ParticleModel extends PointMass {
 			return;
 		startFrame = n;
 		refreshInitialTime();
-		lastValidFrame = -1;
+		setLastValidFrame(-1);
 		refreshSteps();
 		TFrame.repaintT(trackerPanel);
 		firePropertyChange("model_start", null, getStartFrame()); //$NON-NLS-1$
@@ -711,159 +720,168 @@ abstract public class ParticleModel extends PointMass {
 		}
 	}
 	
+
+	protected static int nCalc = 0;
+
 	/**
 	 * Refreshes step positions.
 	 */
 	protected void refreshSteps() {
 		locked = true;
-		if (refreshStepsLater)
-			return;
 		// return if this is an empty dynamic system
-		if (this instanceof DynamicSystem) {
-			DynamicSystem system = (DynamicSystem) this;
-			if (system.particles.length == 0)
+		if (refreshStepsLater || trackerPanel == null
+				|| this instanceof DynamicSystem && ((DynamicSystem) this).particles.length == 0)
+			return;
+		refreshDerivsLater = trackerPanel.getPlayer().getClipControl().isPlaying();
+		trackerPanel.getTFrame().holdPainting(true);
+		int n = trackerPanel.getFrameNumber();
+		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		// determine last frame to be marked (must satisfy both model and clip)
+		int end = Math.min(getEndFrame(), n);
+		int start = getStartFrame();
+		while (end > start && !clip.includesFrame(end)) {
+			end--;
+		}
+		if (end <= lastValidFrame)
+			return;
+		if (lastValidFrame == -1) {
+			reset(); // initializes model, sets lastValidFrame to marked frame, if any
+			if (lastValidFrame == -1 || end <= lastValidFrame)
 				return;
 		}
-		if (trackerPanel != null) {
-			refreshDerivsLater = trackerPanel.getPlayer().getClipControl().isPlaying();
-			int n = trackerPanel.getFrameNumber();
-			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-			// determine last frame to be marked (must satisfy both model and clip)
-			int end = Math.min(getEndFrame(), n);
-			while (end > getStartFrame() && !clip.includesFrame(end)) {
-				end--;
-			}
-			if (end <= lastValidFrame)
-				return;
-			if (lastValidFrame == -1) {
-				reset(); // initializes model, sets lastValidFrame to marked frame, if any
-				if (lastValidFrame == -1 || end <= lastValidFrame)
-					return;
-			}
-			int start = lastValidFrame;
+		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps0 " + start + " " + end + " " + nCalc,
+				Performance.TIME_MARK));
+		start = lastValidFrame;
+		if (Tracker.timeLogEnabled)
 			Tracker.logTime(
 					this.getClass().getSimpleName() + this.hashCode() + " refreshing steps " + start + " to " + end); //$NON-NLS-1$ //$NON-NLS-2$
-			boolean singleStep = (end - start == 1);
-			// step forward to end
-			ImageCoordSystem coords = trackerPanel.getCoords();
-			// get underlying coords if appropriate
-			boolean useDefault = isUseDefaultReferenceFrame();
-			while (useDefault && coords instanceof ReferenceFrame) {
-				coords = ((ReferenceFrame) coords).getCoords();
-			}
-			double startTime = t0 + dt * tracePtsPerStep * (start - getStartFrame()) / clip.getStepSize();
-			double stepSize = 1.0 * clip.getStepSize() / tracePtsPerStep;
-			int stepCount = (tracePtsPerStep * (end - start)) / clip.getStepSize();
-			ParticleModel[] models = getModels();
-			// prepare larger trace arrays and copy existing points into them
-			for (ParticleModel next : models) {
-				next.locked = false;
-				int traceLength = next.traceX.length + stepCount;
-				next.prevX = next.traceX;
-				next.prevY = next.traceY;
-				next.traceX = new double[traceLength];
-				next.traceY = new double[traceLength];
-				System.arraycopy(next.prevX, 0, next.traceX, 0, next.prevX.length);
-				System.arraycopy(next.prevY, 0, next.traceY, 0, next.prevY.length);
-			}
-			for (int i = 0; i < stepCount; i++) {
-				int stepNumber = i + 1;
-				int frameNumber = start + (int) (stepNumber * stepSize);
-				time = startTime + stepNumber * dt;
-				if (!getNextTracePositions())
-					continue;
-				AffineTransform transform = coords.getToImageTransform(frameNumber);
-				for (int j = 0; j < models.length; j++) {
-					transform.transform(points[j], points[j]);
-					// determine if point is invalid due to out of bounds
-					boolean valid = Math.abs(points[j].x) < xLimit 
-							&& Math.abs(points[j].y) < yLimit;
-					if (!valid && !invalidWarningShown) {
-						invalidWarningShown = true;
-						Runnable runner = new Runnable() { // avoids deadlock?
-							@Override
-							public void run() {
-//            		if (invalidWarningShown) return;
-								JOptionPane.showMessageDialog(trackerPanel,
-										TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message1") + XML.NEW_LINE //$NON-NLS-1$
-												+ TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message2"), //$NON-NLS-1$
-										TrackerRes.getString("ParticleModel.Dialog.Offscreen.Title"), //$NON-NLS-1$
-										JOptionPane.WARNING_MESSAGE);
-							}
-						};
-						SwingUtilities.invokeLater(runner);
-					}
-					models[j].traceX[models[j].prevX.length + i] = valid ? points[j].x : Double.NaN;
-					models[j].traceY[models[j].prevY.length + i] = valid ? points[j].y : Double.NaN;
-					if (stepNumber % tracePtsPerStep == 0) { // refresh position step
-						saveState(frameNumber);
-						PositionStep step = (PositionStep) models[j].getStep(frameNumber);
-						if (step == null) {
-							step = createPositionStep(models[j], frameNumber, 0, 0);
-							step.setFootprint(models[j].getFootprint());
-							models[j].steps.setStep(frameNumber, step);
-						}
-						step.getPosition().setPosition(valid ? points[j] : nan); // this method is fast
-					}
-				}
-			}
-			int count = 4 + (end - start);
-			int startUpdate = start;
-			// step back twice to pick up possible valid derivatives
-			if (startUpdate > clip.getStepSize())
-				startUpdate -= clip.getStepSize();
-			if (startUpdate > clip.getStepSize())
-				startUpdate -= clip.getStepSize();
-			lastValidFrame = end;
-			for (int m = 0, nm = models.length; m < nm; m++) {
-				ParticleModel next = models[m];
-				next.steps.setLength(end + 1);
-				coords = trackerPanel.getCoords(); // get active coords
-				// special treatment if this is the origin of current reference frame
-				if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == next) {
-					// set origins of reference frame
-					boolean prev = next.refreshing; // save refreshing value
-					next.refreshing = true;
-					((ReferenceFrame) coords).setOrigins();
-					// then set positions to zero wrt origins
-					for (int i = 0; i < clip.getStepCount(); i++) {
-						int frameNumber = clip.stepToFrame(i);
-						PositionStep step = (PositionStep) next.getStep(frameNumber);
-						if (step == null)
-							continue;
-						AffineTransform transform = coords.getToImageTransform(frameNumber);
-						Point2D.Double point = next.points[next.myPoint];
-						point.setLocation(0, 0);
-						transform.transform(point, point);
-						step.getPosition().setPosition(point); // this method is fast
-					}
-					next.refreshing = prev; // restore refreshing value
-					if (!refreshDerivsLater) {
-						next.updateDerivatives(startUpdate, count);
-					}
-				} else if (!refreshDerivsLater) {
-					next.updateDerivatives(startUpdate, count);
-				}
-				if (next.vAtOrigin)
-					next.vTailsToOriginItem.doClick();
-				if (next.aAtOrigin)
-					next.aTailsToOriginItem.doClick();
-				if (!refreshDerivsLater) {
-					if (singleStep)
-						next.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
-					else
-						next.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
-				}
-				// erase refreshed steps
-				for (int i = start + 1; i <= end; i++) {
-					Step step = next.getStep(i);
-					if (step != null)
-						step.erase();
-				}
-				next.locked = true;
-			}
-			TFrame.repaintT(trackerPanel);
+		boolean singleStep = (end - start == 1);
+		// step forward to end
+		ImageCoordSystem coords = trackerPanel.getCoords();
+		// get underlying coords if appropriate
+		boolean useDefault = isUseDefaultReferenceFrame();
+		while (useDefault && coords instanceof ReferenceFrame) {
+			coords = ((ReferenceFrame) coords).getCoords();
 		}
+		double startTime = t0 + dt * tracePtsPerStep * (start - getStartFrame()) / clip.getStepSize();
+		double stepSize = 1.0 * clip.getStepSize() / tracePtsPerStep;
+		int stepCount = (tracePtsPerStep * (end - start)) / clip.getStepSize();
+		ParticleModel[] models = getModels();
+		// prepare larger trace arrays and copy existing points into them
+		int nmodels = models.length;
+		for (int i = 0; i < nmodels; i++) {
+			ParticleModel model = models[i];
+			model.locked = false;
+			int traceLength = model.traceX.length + stepCount;
+			model.prevX = model.traceX;
+			model.prevY = model.traceY;
+			model.traceX = Arrays.copyOf(model.prevX, traceLength);
+			model.traceY = Arrays.copyOf(model.prevY, traceLength);
+//			model.traceY = new double[traceLength];
+//			System.arraycopy(model.prevX, 0, model.traceX, 0, model.prevX.length);
+//			System.arraycopy(model.prevY, 0, model.traceY, 0, model.prevY.length);
+		}
+
+		for (int i = 0; i < stepCount; i++) {
+			int stepNumber = i + 1;
+			int frameNumber = start + (int) (stepNumber * stepSize);
+			time = startTime + stepNumber * dt;
+			if (!getNextTracePositions())
+				continue;
+			AffineTransform transform = coords.getToImageTransform(frameNumber);
+			for (int j = 0; j < nmodels; j++) {
+				transform.transform(points[j], points[j]);
+				// determine if point is invalid due to out of bounds
+				boolean valid = Math.abs(points[j].x) < xLimit && Math.abs(points[j].y) < yLimit;
+				if (!valid && !invalidWarningShown) {
+					invalidWarningShown = true;
+					Runnable runner = new Runnable() { // avoids deadlock?
+						@Override
+						public void run() {
+//            		if (invalidWarningShown) return;
+							JOptionPane.showMessageDialog(trackerPanel,
+									TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message1") + XML.NEW_LINE //$NON-NLS-1$
+											+ TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message2"), //$NON-NLS-1$
+									TrackerRes.getString("ParticleModel.Dialog.Offscreen.Title"), //$NON-NLS-1$
+									JOptionPane.WARNING_MESSAGE);
+						}
+					};
+					SwingUtilities.invokeLater(runner);
+				}
+				models[j].traceX[models[j].prevX.length + i] = valid ? points[j].x : Double.NaN;
+				models[j].traceY[models[j].prevY.length + i] = valid ? points[j].y : Double.NaN;
+				if (stepNumber % tracePtsPerStep == 0) { // refresh position step
+					saveState(frameNumber);
+					PositionStep step = (PositionStep) models[j].getStep(frameNumber);
+					if (step == null) {
+						step = createPositionStep(models[j], frameNumber, 0, 0);
+						step.setFootprint(models[j].getFootprint());
+						models[j].steps.setStep(frameNumber, step);
+					}
+					step.getPosition().setPosition(valid ? points[j] : nan); // this method is fast
+				}
+			}
+		}
+		int count = 4 + (end - start);
+		int startUpdate = start;
+		// step back twice to pick up possible valid derivatives
+		if (startUpdate > clip.getStepSize())
+			startUpdate -= clip.getStepSize();
+		if (startUpdate > clip.getStepSize())
+			startUpdate -= clip.getStepSize();
+		setLastValidFrame(end);
+		for (int m = 0; m < nmodels; m++) {
+			ParticleModel model = models[m];
+			model.steps.setLength(end + 1);
+			coords = trackerPanel.getCoords(); // get active coords
+			// special treatment if this is the origin of current reference frame
+			if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == model) {
+				// set origins of reference frame
+				boolean prev = model.refreshing; // save refreshing value
+				model.refreshing = true;
+				((ReferenceFrame) coords).setOrigins();
+				// then set positions to zero wrt origins
+				for (int i = 0, ns = clip.getStepCount(); i < ns; i++) {
+					int frameNumber = clip.stepToFrame(i);
+					PositionStep step = (PositionStep) model.getStep(frameNumber);
+					if (step == null)
+						continue;
+					AffineTransform transform = coords.getToImageTransform(frameNumber);
+					Point2D.Double point = model.points[model.myPoint];
+					point.setLocation(0, 0);
+					transform.transform(point, point);
+					step.getPosition().setPosition(point); // this method is fast
+				}
+				model.refreshing = prev; // restore refreshing value
+//				if (!refreshDerivsLater) {
+//					model.updateDerivatives(startUpdate, count);
+//				}
+// BH this was duplicated with an else { } clause next.
+			}
+			if (!refreshDerivsLater) {
+				model.updateDerivatives(startUpdate, count);
+			}
+			if (model.vAtOrigin)
+				model.vTailsToOriginItem.doClick();
+			if (model.aAtOrigin)
+				model.aTailsToOriginItem.doClick();
+			if (!refreshDerivsLater) {
+				if (singleStep)
+					model.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n));
+				else
+					model.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
+			}
+			// erase refreshed steps
+			for (int i = start + 1; i <= end; i++) {
+				Step step = model.getStep(i);
+				if (step != null)
+					step.erase();
+			}
+			model.locked = true;
+		}
+		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps " + nCalc, Performance.TIME_MARK));
+		trackerPanel.getTFrame().holdPainting(false);
+		TFrame.repaintT(trackerPanel);
 	}
 
 	/**
@@ -933,7 +951,7 @@ abstract public class ParticleModel extends PointMass {
 			next.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 			next.locked = true;
 		}
-		lastValidFrame = end;
+		setLastValidFrame(end);
 		repaint();
 //		TFrame.repaintT(trackerPanel);
 	}

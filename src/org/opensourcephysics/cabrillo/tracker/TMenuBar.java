@@ -490,7 +490,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	static final String REFRESH_UNDO                     = "Undo.refreshMenus";
 	
 	protected void refreshAll(String whereFrom) {
-		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
+		if (Tracker.timeLogEnabled)
+			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
 		//OSPLog.debug("TMenuBar.refreshAll - rebuilding TMenuBar "+ whereFrom + " haveFrame=" + (frame != null));
 		if (!Tracker.allowMenuRefresh)
 			return;

@@ -147,7 +147,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
 
 	// for testing
-	static boolean timeLogEnabled = false;
+	public static boolean timeLogEnabled = false;
 	static boolean testOn = true;
 	static String testString;
 
