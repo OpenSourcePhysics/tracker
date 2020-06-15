@@ -38,6 +38,8 @@ import javax.swing.border.Border;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 
+import javajs.async.SwingJSUtils.Performance;
+
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
@@ -431,121 +433,130 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	 * Refreshes the GUI.
 	 */
 	protected void refresh() {
-		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
-		Runnable runner = new Runnable() {
-			@Override
-			public void run() {
-				sizingField.setText("1234567"); //$NON-NLS-1$
-				numberFieldWidth = sizingField.getPreferredSize().width;
-				selectButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SelectTrack.Tooltip")); //$NON-NLS-1$
-				TTrack track = trackButton.getTrack();
-				if (track != null) {
-					track.removePropertyChangeListener("name", TTrackBar.this); //$NON-NLS-1$
-					track.removePropertyChangeListener("color", TTrackBar.this); //$NON-NLS-1$
-					track.removePropertyChangeListener("footprint", TTrackBar.this); //$NON-NLS-1$
-					toolbarComponentHeight = trackButton.getPreferredSize().height;
-				} else {
-					CoordAxes axes = trackerPanel.getAxes();
-					if (axes != null) {
-						trackButton.setTrack(axes);
-						toolbarComponentHeight = trackButton.getPreferredSize().height;
-					}
-				}
-				removeAll();
-				Dimension dime = new Dimension(toolbarComponentHeight, toolbarComponentHeight);
-				selectButton.setPreferredSize(dime);
-				selectButton.setMaximumSize(dime);
-				add(selectButton);
-				trackButton.context = "track"; //$NON-NLS-1$
-				track = trackerPanel.getSelectedTrack();
-				if (track != null && !(track instanceof PerspectiveTrack)) {
-					if (track instanceof ParticleDataTrack) {
-						TPoint p = trackerPanel.getSelectedPoint();
-						if (p != null) {
-							Step step = track.getStep(p, trackerPanel);
-							if (step != null && step.getTrack() == track) {
-								trackButton.context = "point"; //$NON-NLS-1$
-							}
-						}
-					}
-					trackButton.setTrack(track);
-					// listen to tracks for property changes that affect icon or name
-					track.addPropertyChangeListener("name", TTrackBar.this); //$NON-NLS-1$
-					track.addPropertyChangeListener("color", TTrackBar.this); //$NON-NLS-1$
-					track.addPropertyChangeListener("footprint", TTrackBar.this); //$NON-NLS-1$
-					add(trackButton);
-					ArrayList<Component> list = track.getToolbarTrackComponents(trackerPanel);
-					for (Component c : list) {
-						if (c instanceof JComponent && !(c instanceof JButton) && !(c instanceof JCheckBox)) {
-							JComponent jc = (JComponent) c;
-							int w = jc.getPreferredSize().width;
-							jc.setMaximumSize(null);
-							jc.setPreferredSize(null);
-							Dimension dim = jc.getPreferredSize();
-							dim.height = toolbarComponentHeight;
-							if (jc instanceof NumberField) {
-								dim.width = Math.max(numberFieldWidth, dim.width);
-							} else if (jc instanceof TextLineLabel) {
-								dim.width = w;
-							}
-							jc.setPreferredSize(dim);
-							jc.setMaximumSize(dim);
-						}
-						add(c);
-					}
-					// selected point items
-					TPoint p = trackerPanel.getSelectedPoint();
-					if (p != null) {
-						// a point is selected
-						list = track.getToolbarPointComponents(trackerPanel, p);
-						for (Component c : list) {
-							if (c instanceof JComponent && !(c instanceof JButton)) {
-								JComponent jc = (JComponent) c;
-								int w = jc.getPreferredSize().width;
-								jc.setMaximumSize(null);
-								jc.setPreferredSize(null);
-								Dimension dim = jc.getPreferredSize();
-								dim.height = toolbarComponentHeight;
-								if (jc instanceof NumberField) {
-									dim.width = Math.max(numberFieldWidth, dim.width);
-								} else if (jc instanceof TextLineLabel) {
-									dim.width = w;
-								}
-								jc.setPreferredSize(dim);
-								jc.setMaximumSize(dim);
-							}
-							add(c);
-						}
-					}
-				}
-				add(toolbarEnd);
-				if (testButton != null) {
-					add(testButton);
-				}
-				if (!OSPRuntime.isJS) /** @j2sNative */
-				{
-					if (Tracker.newerVersion != null) {
-						String s = TrackerRes.getString("TTrackBar.Button.Version"); //$NON-NLS-1$
-						newVersionButton.setText(s + " " + Tracker.newerVersion); //$NON-NLS-1$
-						add(newVersionButton);
-					}
-					memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
-					// refreshMemoryButton();
-					add(memoryButton);
-				}
-				revalidate();
-				TFrame.repaintT(TTrackBar.this);
-			}
-		};
+		if (!trackerPanel.isPaintable())
+			return;
+		if (Tracker.timeLogEnabled)
+			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
 		if (OSPRuntime.isJS || SwingUtilities.isEventDispatchThread()) {
-			runner.run();
+			rebuild();
 		} else {
-			SwingUtilities.invokeLater(runner);
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					rebuild();
+				}
+			});
 		}
 
 	}
   
-  /**
+	protected void rebuild() {
+		sizingField.setText("1234567"); //$NON-NLS-1$
+		numberFieldWidth = sizingField.getPreferredSize().width;
+		selectButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SelectTrack.Tooltip")); //$NON-NLS-1$
+		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild0", Performance.TIME_MARK));
+
+		TTrack track = trackButton.getTrack();
+		if (track != null) {
+			track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("color", this); //$NON-NLS-1$
+			track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+			toolbarComponentHeight = trackButton.getPreferredSize().height;
+		} else {
+			CoordAxes axes = trackerPanel.getAxes();
+			if (axes != null) {
+				trackButton.setTrack(axes);
+				toolbarComponentHeight = trackButton.getPreferredSize().height;
+			}
+		}
+		removeAll();
+		Dimension dime = new Dimension(toolbarComponentHeight, toolbarComponentHeight);
+		selectButton.setPreferredSize(dime);
+		selectButton.setMaximumSize(dime);
+		add(selectButton);
+		trackButton.context = "track"; //$NON-NLS-1$
+		track = trackerPanel.getSelectedTrack();
+		if (track != null && !(track instanceof PerspectiveTrack)) {
+			if (track instanceof ParticleDataTrack) {
+				TPoint p = trackerPanel.getSelectedPoint();
+				if (p != null) {
+					Step step = track.getStep(p, trackerPanel);
+					if (step != null && step.getTrack() == track) {
+						trackButton.context = "point"; //$NON-NLS-1$
+					}
+				}
+			}
+			trackButton.setTrack(track);
+			// listen to tracks for property changes that affect icon or name
+			track.addPropertyChangeListener("name", this); //$NON-NLS-1$
+			track.addPropertyChangeListener("color", this); //$NON-NLS-1$
+			track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
+			add(trackButton);
+			ArrayList<Component> list = track.getToolbarTrackComponents(trackerPanel);
+			for (Component c : list) {
+				if (c instanceof JComponent && !(c instanceof JButton) && !(c instanceof JCheckBox)) {
+					JComponent jc = (JComponent) c;
+					int w = jc.getPreferredSize().width;
+					jc.setMaximumSize(null);
+					jc.setPreferredSize(null);
+					Dimension dim = jc.getPreferredSize();
+					dim.height = toolbarComponentHeight;
+					if (jc instanceof NumberField) {
+						dim.width = Math.max(numberFieldWidth, dim.width);
+					} else if (jc instanceof TextLineLabel) {
+						dim.width = w;
+					}
+					jc.setPreferredSize(dim);
+					jc.setMaximumSize(dim);
+				}
+				add(c);
+			}
+			// selected point items
+			TPoint p = trackerPanel.getSelectedPoint();
+			if (p != null) {
+				// a point is selected
+				list = track.getToolbarPointComponents(trackerPanel, p);
+				for (Component c : list) {
+					if (c instanceof JComponent && !(c instanceof JButton)) {
+						JComponent jc = (JComponent) c;
+						int w = jc.getPreferredSize().width;
+						jc.setMaximumSize(null);
+						jc.setPreferredSize(null);
+						Dimension dim = jc.getPreferredSize();
+						dim.height = toolbarComponentHeight;
+						if (jc instanceof NumberField) {
+							dim.width = Math.max(numberFieldWidth, dim.width);
+						} else if (jc instanceof TextLineLabel) {
+							dim.width = w;
+						}
+						jc.setPreferredSize(dim);
+						jc.setMaximumSize(dim);
+					}
+					add(c);
+				}
+			}
+		}
+		add(toolbarEnd);
+		if (testButton != null) {
+			add(testButton);
+		}
+		if (!OSPRuntime.isJS) /** @j2sNative */
+		{
+			if (Tracker.newerVersion != null) {
+				String s = TrackerRes.getString("TTrackBar.Button.Version"); //$NON-NLS-1$
+				newVersionButton.setText(s + " " + Tracker.newerVersion); //$NON-NLS-1$
+				add(newVersionButton);
+			}
+			memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
+			// refreshMemoryButton();
+			add(memoryButton);
+		}
+		revalidate();
+		TFrame.repaintT(this);
+			OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild1", Performance.TIME_MARK));
+	}
+
+/**
    *  Resizes a NumberField.
    *  
    *  @param field the number field
@@ -601,9 +612,9 @@ public void propertyChange(PropertyChangeEvent e) {
     else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) {  // tracks have been cleared //$NON-NLS-1$
   		for (Integer n: TTrack.activeTracks.keySet()) {
   			TTrack track = TTrack.activeTracks.get(n);
-	  		track.removePropertyChangeListener("name", TTrackBar.this); //$NON-NLS-1$
-	      track.removePropertyChangeListener("color", TTrackBar.this); //$NON-NLS-1$
-	      track.removePropertyChangeListener("footprint", TTrackBar.this); //$NON-NLS-1$
+	  		track.removePropertyChangeListener("name", this); //$NON-NLS-1$
+	      track.removePropertyChangeListener("color", this); //$NON-NLS-1$
+	      track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
   		}
   		trackButton.setTrack(null);
       refresh();

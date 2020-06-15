@@ -2745,7 +2745,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				break;
 			case TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION:
 				erase();
-				TFrame.repaintT(trackerPanel);
+//				TFrame.repaintT(trackerPanel);
 				break;
 			case VideoPanel.PROPERTY_VIDEOPANEL_IMAGESPACE:
 				erase(trackerPanel);

@@ -87,6 +87,10 @@ public abstract class Step implements Cloneable {
 			= new HashMap<TrackerPanel, Mark>();
 	protected int defaultIndex = 0; // array index of default TPoint
 	protected boolean dataVisible = true; // true if visible in plots, tables
+	public int type = Step.TYPE_UNKNOWN;
+	public final static int TYPE_ACCELERATION = 2;
+	public final static int TYPE_VELOCITY = 1;
+	public final static int TYPE_UNKNOWN = 0;
 
 	/**
 	 * Constructs a Step with the specified frame number.

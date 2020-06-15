@@ -209,7 +209,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 */
 	@Override
 	public void refresh() {
-		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
+		if (Tracker.timeLogEnabled)
+			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
 		refreshing = true;
 		// get previously selected track
 		TTrack selectedTrack = getSelectedTrack();

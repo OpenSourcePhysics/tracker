@@ -212,7 +212,8 @@ public class TableTrackView extends TrackView {
 		if (!parent.isViewPaneVisible())
 			return;
 		forceRefresh = false;
-		Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
+		if (Tracker.timeLogEnabled)
+			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		dataTable.clearSelection();
 		TTrack track = getTrack();
 		try {

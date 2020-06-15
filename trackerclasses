@@ -490,7 +490,7 @@ javax/swing/ListModel.js
 javax/swing/ListSelectionModel.js
 javax/swing/LookAndFeel.js
 javax/swing/MenuElement.js
-javax/swing/MenuSelectionManager.js 
+javax/swing/MenuSelectionManager.js
 javax/swing/MutableComboBoxModel.js
 javax/swing/Popup.js
 javax/swing/PopupFactory.js
