@@ -2482,6 +2482,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		case Video.PROPERTY_VIDEO_SIZE:
 		case AsyncVideoI.PROPERTY_ASYNCVIDEOI_READY:
 			super.propertyChange(e);
+			getTFrame().holdPainting(false);
+			TFrame.repaintT(this);
 			break;
 		case TTrack.PROPERTY_TTRACK_STEP:
 		case TTrack.PROPERTY_TTRACK_STEPS: // from tracks/steps //$NON-NLS-1$
@@ -3535,7 +3537,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// load and check if a newer Tracker version created this file
 				String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
 				// if ver is null then must be an older version
-				if (fileVersion != null) {
+				if (fileVersion != null && !OSPRuntime.isJS) {
 					int result = 0;
 					try {
 						result = Tracker.compareVersions(fileVersion, Tracker.VERSION);
