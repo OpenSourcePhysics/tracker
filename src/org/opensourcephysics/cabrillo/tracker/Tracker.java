@@ -2304,7 +2304,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					control.setValue("show_hints", showHintsByDefault); //$NON-NLS-1$
 				if (isRadians) // false by default
 					control.setValue("radians", isRadians); //$NON-NLS-1$
-				if (markAtCurrentFrame) // false by default
+				if (!markAtCurrentFrame) // true by default
 					control.setValue("mark_current_frame", markAtCurrentFrame); //$NON-NLS-1$
 				if (scrubMouseWheel) // false by default
 					control.setValue("scrub_mousewheel", scrubMouseWheel); //$NON-NLS-1$
@@ -2431,7 +2431,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					}
 				}
 				isRadians = control.getBoolean("radians"); //$NON-NLS-1$
-				markAtCurrentFrame = control.getBoolean("mark_current_frame"); //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("mark_current_frame")) //$NON-NLS-1$
+					markAtCurrentFrame = control.getBoolean("mark_current_frame"); //$NON-NLS-1$
 				scrubMouseWheel = control.getBoolean("scrub_mousewheel"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("enable_autofill")) //$NON-NLS-1$
 					enableAutofill = control.getBoolean("enable_autofill"); //$NON-NLS-1$
