@@ -642,6 +642,8 @@ public class PointMass extends TTrack {
 		for (int i = 0; i < vFootprints.length; i++)
 			if (name.equals(vFootprints[i].getName())) {
 				vFootprint = vFootprints[i];
+				if (trackerPanel == null)
+					return;
 				for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
 					TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
 					Step[] stepArray = getVArray(panel).array;
@@ -701,6 +703,8 @@ public class PointMass extends TTrack {
 		for (int i = 0; i < aFootprints.length; i++)
 			if (name.equals(aFootprints[i].getName())) {
 				aFootprint = aFootprints[i];
+				if (trackerPanel == null)
+					return;
 				for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
 					TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
 					Step[] stepArray = getAArray(panel).array;
@@ -2200,6 +2204,8 @@ public class PointMass extends TTrack {
 	 */
 	@Override
 	public void erase() {
+		if (trackerPanel == null)
+			return;
 		super.erase(); // erases all steps on all panels
 		for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
 			TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
