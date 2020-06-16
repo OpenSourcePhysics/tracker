@@ -694,7 +694,7 @@ public class PointMass extends TTrack {
 	}
 
 	/**
-	 * Sets the aceleration footprint.
+	 * Sets the acceleration footprint.
 	 *
 	 * @param name the name of the desired footprint
 	 */
@@ -1326,7 +1326,6 @@ public class PointMass extends TTrack {
 			Step[] stepArray = steps.array;
 			int i0 = Math.max(shortTrail ?  n - (getTrailLength() - 1) * stepSize : 0 , 0);
 			n = Math.min(shortTrail ? n + 1 : stepArray.length , stepArray.length);
-			OSPLog.debug("pig PointMass drawing from "+i0+" to "+n);
 			for (int i = i0; i < n; i++) {
 				if (stepArray[i] != null) {
 					if (isStepVisible(stepArray[i], trackerPanel)) {

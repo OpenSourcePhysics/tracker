@@ -1132,8 +1132,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 		}
 		if (doRepaint) {
-			// BH TODO are there more than one trackerPanel to paint ? These were from PointMass and Vectors
-			trackerPanel.repaint();
+			for (int i = 0; i < trackerPanel.panelAndViews.size(); i++) {
+				trackerPanel.panelAndViews.get(i).repaint();
+			}
 		}
 	}
 
