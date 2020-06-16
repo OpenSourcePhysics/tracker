@@ -360,11 +360,7 @@ protected void dispose() {
       }
       else {
         newStep = (VectorStep) createStep(n, 0, 0, x, y);
-        Iterator<TrackerPanel> it = panels.iterator();
-        while (it.hasNext()) {
-          TrackerPanel panel = it.next();
-          newStep.attach(panel.getSnapPoint());
-        }
+        newStep.attach(trackerPanel.getSnapPoint());
       }
       newStep.setTipEnabled(false);
       newStep.setDefaultPointIndex(2); // handle

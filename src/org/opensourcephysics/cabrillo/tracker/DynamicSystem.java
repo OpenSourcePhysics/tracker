@@ -119,7 +119,6 @@ public class DynamicSystem extends DynamicParticlePolar {
 	public void draw(DrawingPanel panel, Graphics _g) {
 		if (!(panel instanceof TrackerPanel) || trackerPanel == null)
 			return;
-		panels.add((TrackerPanel) panel); // keep a list of drawing panels
 		// add particles in particleNames
 		if (particleNames.length > 0) {
 			ArrayList<DynamicParticle> toAdd = new ArrayList<DynamicParticle>();

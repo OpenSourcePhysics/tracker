@@ -1132,8 +1132,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 		}
 		if (doRepaint) {
-			for (int i = 0; i < trackerPanel.panelAndViews.size(); i++) {
-				trackerPanel.panelAndViews.get(i).repaint();
+			for (int i = 0; i < trackerPanel.panelAndWorldViews.size(); i++) {
+				trackerPanel.panelAndWorldViews.get(i).repaint();
 			}
 		}
 	}

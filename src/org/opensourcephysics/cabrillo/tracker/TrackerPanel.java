@@ -233,7 +233,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected String lengthUnit = "m", massUnit = "kg", timeUnit = "s"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	protected boolean unitsVisible = true; // visible by default
 	protected TCoordinateStringBuilder coordStringBuilder;
-	protected ArrayList<TrackerPanel> panelAndViews = new ArrayList<TrackerPanel>();
+	protected ArrayList<TrackerPanel> panelAndWorldViews = new ArrayList<TrackerPanel>();
 
 	public String id;
 	private static int ids;
@@ -326,7 +326,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		//
 		if (!(this instanceof WorldTView)) {
 			getDataBuilder(); // so autoloaded datafunctions are available to tracks
-			panelAndViews.add(this);
+			panelAndWorldViews.add(this);
 		}
 		configure();
 	}

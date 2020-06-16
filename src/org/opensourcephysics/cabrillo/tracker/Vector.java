@@ -187,22 +187,18 @@ public Vector() {
       @Override
 	public void actionPerformed(ActionEvent e) {
         // snap all vectors to the snapPoint
-        Iterator<TrackerPanel> it = Vector.this.panels.iterator();
-        while (it.hasNext()) {
-          TrackerPanel panel = it.next();
-          TPoint p = panel.getSnapPoint();
-          Step[] steps = Vector.this.getSteps();
-          for (int i = 0; i < steps.length; i++) {
-            if (steps[i] != null) {
-              VectorStep v = (VectorStep)steps[i];
-              if (v.chain != null) v.chain.clear();
-              // detach any existing point
-              v.attach(null);
-              v.attach(p);
-            }
+        TPoint p = trackerPanel.getSnapPoint();
+        Step[] steps = Vector.this.getSteps();
+        for (int i = 0; i < steps.length; i++) {
+          if (steps[i] != null) {
+            VectorStep v = (VectorStep)steps[i];
+            if (v.chain != null) v.chain.clear();
+            // detach any existing point
+            v.attach(null);
+            v.attach(p);
           }
-          panel.repaint();
         }
+        trackerPanel.repaint();
       }
     });
     // labels visible item
@@ -756,34 +752,30 @@ public String toString() {
    * in the x and y fields.
    */
   private void setXYComponents() {
-    Iterator<TrackerPanel> it = panels.iterator();
-    while (it.hasNext()) {
-      TrackerPanel trackerPanel = it.next();
-      TPoint p = trackerPanel.getSelectedPoint();
-      VectorStep step = (VectorStep) getStep(p, trackerPanel);
-      if (step != null) {
-        ImageCoordSystem coords = trackerPanel.getCoords();
-        int n = trackerPanel.getFrameNumber();
-        double x = coords.worldToImageXComponent(n,
-                                                 xField.getValue(),
-                                                 yField.getValue());
-        double y = coords.worldToImageYComponent(n,
-                                                 xField.getValue(),
-                                                 yField.getValue());
-        step.setXYComponents(x, y);
-        x = coords.imageToWorldXComponent(n,
-                                          step.getXComponent(),
-                                          step.getYComponent());
-        y = coords.imageToWorldYComponent(n,
-                                          step.getXComponent(),
-                                          step.getYComponent());
-        xField.setValue(x);
-        yField.setValue(y);
-        magField.setValue(Math.sqrt(x*x + y*y));
-        double theta = Math.atan2(y, x);
-        angleField.setValue(theta);
-        p.showCoordinates(trackerPanel);
-      }
+    TPoint p = trackerPanel.getSelectedPoint();
+    VectorStep step = (VectorStep) getStep(p, trackerPanel);
+    if (step != null) {
+      ImageCoordSystem coords = trackerPanel.getCoords();
+      int n = trackerPanel.getFrameNumber();
+      double x = coords.worldToImageXComponent(n,
+                                               xField.getValue(),
+                                               yField.getValue());
+      double y = coords.worldToImageYComponent(n,
+                                               xField.getValue(),
+                                               yField.getValue());
+      step.setXYComponents(x, y);
+      x = coords.imageToWorldXComponent(n,
+                                        step.getXComponent(),
+                                        step.getYComponent());
+      y = coords.imageToWorldYComponent(n,
+                                        step.getXComponent(),
+                                        step.getYComponent());
+      xField.setValue(x);
+      yField.setValue(y);
+      magField.setValue(Math.sqrt(x*x + y*y));
+      double theta = Math.atan2(y, x);
+      angleField.setValue(theta);
+      p.showCoordinates(trackerPanel);
     }
   }
 
@@ -795,30 +787,26 @@ public String toString() {
     double theta = angleField.getValue();
     double xval = magField.getValue() * Math.cos(theta);
     double yval = magField.getValue() * Math.sin(theta);
-    Iterator<TrackerPanel> it = panels.iterator();
-    while (it.hasNext()) {
-      TrackerPanel trackerPanel = it.next();
-      TPoint p = trackerPanel.getSelectedPoint();
-      VectorStep step = (VectorStep) getStep(p, trackerPanel);
-      if (step != null) {
-        ImageCoordSystem coords = trackerPanel.getCoords();
-        int n = trackerPanel.getFrameNumber();
-        double x = coords.worldToImageXComponent(n, xval, yval);
-        double y = coords.worldToImageYComponent(n, xval, yval);
-        step.setXYComponents(x, y);
-        x = coords.imageToWorldXComponent(n,
-                                          step.getXComponent(),
-                                          step.getYComponent());
-        y = coords.imageToWorldYComponent(n,
-                                          step.getXComponent(),
-                                          step.getYComponent());
-        xField.setValue(x);
-        yField.setValue(y);
-        magField.setValue(Math.sqrt(x*x + y*y));
-        theta = Math.atan2(y, x);
-        angleField.setValue(theta);
-        p.showCoordinates(trackerPanel);
-      }
+    TPoint p = trackerPanel.getSelectedPoint();
+    VectorStep step = (VectorStep) getStep(p, trackerPanel);
+    if (step != null) {
+      ImageCoordSystem coords = trackerPanel.getCoords();
+      int n = trackerPanel.getFrameNumber();
+      double x = coords.worldToImageXComponent(n, xval, yval);
+      double y = coords.worldToImageYComponent(n, xval, yval);
+      step.setXYComponents(x, y);
+      x = coords.imageToWorldXComponent(n,
+                                        step.getXComponent(),
+                                        step.getYComponent());
+      y = coords.imageToWorldYComponent(n,
+                                        step.getXComponent(),
+                                        step.getYComponent());
+      xField.setValue(x);
+      yField.setValue(y);
+      magField.setValue(Math.sqrt(x*x + y*y));
+      theta = Math.atan2(y, x);
+      angleField.setValue(theta);
+      p.showCoordinates(trackerPanel);
     }
   }
 
