@@ -24,13 +24,27 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.geom.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.event.InputEvent;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Point2D;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -41,85 +55,84 @@ import org.opensourcephysics.tools.FontSizer;
  */
 public class CoordAxesStep extends Step {
 
-  // instance fields
-  private Origin origin;
-  private Handle handle;
-  private boolean originEnabled = true;
-  private boolean handleEnabled = true;
-  private Map<TrackerPanel, Shape> handleShapes = new HashMap<TrackerPanel, Shape>();
-  private Shape[] fillShapes = new Shape[2];
-  private GeneralPath path = new GeneralPath();
+	// instance fields
+	private Origin origin;
+	private Handle handle;
+	private boolean originEnabled = true;
+	private boolean handleEnabled = true;
+	private Map<TrackerPanel, Shape> handleShapes = new HashMap<TrackerPanel, Shape>();
+	private Shape[] fillShapes = new Shape[2];
+	private GeneralPath path = new GeneralPath();
 
-  /**
-   * Constructs an AxesStep.
-   *
-   * @param track the track
-   * @param n the frame number
-   */
-  public CoordAxesStep(CoordAxes track, int n) {
-    super(track, n);
-    origin = new Origin();
-    origin.setCoordsEditTrigger(true);
-    handle = new Handle();
-    handle.setCoordsEditTrigger(true);
-    points = new TPoint[] {origin, handle}; // origin is "default" point
-    screenPoints = new Point[1];
-  }
+	/**
+	 * Constructs an AxesStep.
+	 *
+	 * @param track the track
+	 * @param n     the frame number
+	 */
+	public CoordAxesStep(CoordAxes track, int n) {
+		super(track, n);
+		origin = new Origin();
+		origin.setCoordsEditTrigger(true);
+		handle = new Handle();
+		handle.setCoordsEditTrigger(true);
+		points = new TPoint[] { origin, handle }; // origin is "default" point
+		screenPoints = new Point[1];
+	}
 
-  /**
-   * Gets the origin.
-   *
-   * @return the origin
-   */
-  public TPoint getOrigin() {
-    return origin;
-  }
+	/**
+	 * Gets the origin.
+	 *
+	 * @return the origin
+	 */
+	public TPoint getOrigin() {
+		return origin;
+	}
 
-  /**
-   * Gets the handle.
-   *
-   * @return the origin
-   */
-  public TPoint getHandle() {
-    return handle;
-  }
+	/**
+	 * Gets the handle.
+	 *
+	 * @return the origin
+	 */
+	public TPoint getHandle() {
+		return handle;
+	}
 
-  /**
-  /**
-   * Enables and disables the interactivity of the origin.
-   *
-   * @param enabled <code>true</code> to enable the origin
-   */
-  public void setOriginEnabled(boolean enabled) {
-    originEnabled = enabled;
-  }
+	/**
+	 * /** Enables and disables the interactivity of the origin.
+	 *
+	 * @param enabled <code>true</code> to enable the origin
+	 */
+	public void setOriginEnabled(boolean enabled) {
+		originEnabled = enabled;
+	}
 
-  /**
-   * Gets whether the origin is enabled.
-   *
-   * @return <code>true</code> if the origin is enabled
-   */
-  public boolean isOriginEnabled() {
-    return originEnabled;
-  }
+	/**
+	 * Gets whether the origin is enabled.
+	 *
+	 * @return <code>true</code> if the origin is enabled
+	 */
+	public boolean isOriginEnabled() {
+		return originEnabled;
+	}
 
-  /**
-   * Enables and disables the interactivity of the handle.
-   *
-   * @param enabled <code>true</code> to enable the handle
-   */
-  public void setHandleEnabled(boolean enabled) {
-    handleEnabled = enabled;
-  }
+	/**
+	 * Enables and disables the interactivity of the handle.
+	 *
+	 * @param enabled <code>true</code> to enable the handle
+	 */
+	public void setHandleEnabled(boolean enabled) {
+		handleEnabled = enabled;
+	}
 
-  /**
-   * Gets whether the handle is enabled.
-   *
-   * @return <code>true</code> if the handle is enabled
-   */
-  public boolean isHandleEnabled() {
-    return handleEnabled;
-  }
+	/**
+	 * Gets whether the handle is enabled.
+	 *
+	 * @return <code>true</code> if the handle is enabled
+	 */
+	public boolean isHandleEnabled() {
+		return handleEnabled;
+	}
 
 	/**
 	 * Overrides Step findInteractive method.
@@ -170,346 +183,346 @@ public class CoordAxesStep extends Step {
 	 * @param panel the drawing panel requesting the drawing
 	 * @param _g    the graphics context on which to draw
 	 */
-  @Override
-public void draw(DrawingPanel panel, Graphics _g) {
-  	TTrack track = getTrack();
-		if (track.trackerPanel==panel) {
+	@Override
+	public void draw(DrawingPanel panel, Graphics _g) {
+		TTrack track = getTrack();
+		if (track.trackerPanel == panel) {
 			AutoTracker autoTracker = track.trackerPanel.getAutoTracker(false);
-			if (autoTracker != null && autoTracker.isInteracting(track)) return;
+			if (autoTracker != null && autoTracker.isInteracting(track))
+				return;
 		}
-    // draw the axes
-    TrackerPanel trackerPanel = (TrackerPanel)panel;
-    Graphics2D g = (Graphics2D)_g;
-    getMark(trackerPanel).draw(g, false); // no highlight
-  }
+		// draw the axes
+		TrackerPanel trackerPanel = (TrackerPanel) panel;
+		Graphics2D g = (Graphics2D) _g;
+		getMark(trackerPanel).draw(g, false); // no highlight
+	}
 
-  /**
-   * Overrides Step getMark method.
-   *
-   * @param trackerPanel the tracker panel
-   * @return the mark
-   */
-  @Override
-protected Mark getMark(TrackerPanel trackerPanel) {
-    Mark mark = marks.get(trackerPanel);
-    TPoint selection = null;
-    if (mark == null) {
-      selection = trackerPanel.getSelectedPoint();
-      // set origin location to coords origin
-      ImageCoordSystem coords = trackerPanel.getCoords();
-      int n = trackerPanel.getFrameNumber();
-    	TTrack track = getTrack();
-      if (track.trackerPanel != null) n = track.trackerPanel.getFrameNumber();
-      double x = coords.getOriginX(n);
-      double y = coords.getOriginY(n);
-      origin.setLocation(x, y);
-      // get default axes shape and handle hit shape (positive x-axis)
-      Point p0 = screenPoints[0] = origin.getScreenPosition(trackerPanel);
-      fillShapes[0] = footprint.getShape(screenPoints);
-      path.reset();
-      path.moveTo(p0.x + 15, p0.y);
-      path.lineTo(p0.x + 500, p0.y);
-      Shape hitShape = path;
-      // rotate axes and x-axis hit shape about origin if drawing in image space
-      if (trackerPanel.isDrawingInImageSpace()) {
-        double angle = coords.getAngle(n);
-        transform.setToRotation(-angle, p0.x, p0.y);
-        fillShapes[0] = transform.createTransformedShape(fillShapes[0]);
-        hitShape = transform.createTransformedShape(hitShape);
-      }
-      handleShapes.put(trackerPanel, hitShape);
-      // get selected point shape, if any
-      int scale = FontSizer.getIntegerFactor();
-      if (selection == origin) {
-        transform.setToTranslation(p0.x, p0.y);
-        if (scale>1) {
-        	transform.scale(scale, scale);
-        }
-        fillShapes[1] = transform.createTransformedShape(selectionShape);
-      }
-      else if (selection == handle) {
-        Point p1 = handle.getScreenPosition(trackerPanel);
-        transform.setToTranslation(p1.x, p1.y);
-        if (scale>1) {
-        	transform.scale(scale, scale);
-        }
-        fillShapes[1] = transform.createTransformedShape(selectionShape);
-      }
-      else fillShapes[1] = null;
-      // create mark to draw fillShapes
-      final Color color = footprint.getColor();
-      mark = new Mark() {
-        @Override
-		public void draw(Graphics2D g, boolean highlighted) {
-          Graphics2D g2 = (Graphics2D) g.create();
-          g2.setPaint(color);
-          g2.setStroke(new BasicStroke(2f));
-          if (OSPRuntime.setRenderingHints) g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-              RenderingHints.VALUE_ANTIALIAS_ON);
-          for (int i = 0; i < 2; i++) {
-            if (fillShapes[i] != null) {
-            	// BH 2020.05.11 for some reason, HTML5 needs to draw this
-            	// the lines are very close together, and it seems to miss them.
-            	if (OSPRuntime.drawDontFillAxes)
-            		g2.draw(fillShapes[i]);
-            	else
-            		g2.fill(fillShapes[i]);
-            }
-          }
-          g2.dispose();
-        }
+	/**
+	 * Overrides Step getMark method.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @return the mark
+	 */
+	@Override
+	protected Mark getMark(TrackerPanel trackerPanel) {
+		Mark mark = marks.get(trackerPanel);
+		TPoint selection = null;
+		if (mark == null) {
+			selection = trackerPanel.getSelectedPoint();
+			// set origin location to coords origin
+			ImageCoordSystem coords = trackerPanel.getCoords();
+			int n = trackerPanel.getFrameNumber();
+			TTrack track = getTrack();
+			if (track.trackerPanel != null)
+				n = track.trackerPanel.getFrameNumber();
+			double x = coords.getOriginX(n);
+			double y = coords.getOriginY(n);
+			origin.setLocation(x, y);
+			// get default axes shape and handle hit shape (positive x-axis)
+			Point p0 = screenPoints[0] = origin.getScreenPosition(trackerPanel);
+			fillShapes[0] = footprint.getShape(screenPoints);
+			path.reset();
+			path.moveTo(p0.x + 15, p0.y);
+			path.lineTo(p0.x + 500, p0.y);
+			Shape hitShape = path;
+			// rotate axes and x-axis hit shape about origin if drawing in image space
+			if (trackerPanel.isDrawingInImageSpace()) {
+				double angle = coords.getAngle(n);
+				transform.setToRotation(-angle, p0.x, p0.y);
+				fillShapes[0] = transform.createTransformedShape(fillShapes[0]);
+				hitShape = transform.createTransformedShape(hitShape);
+			}
+			handleShapes.put(trackerPanel, hitShape);
+			// get selected point shape, if any
+			int scale = FontSizer.getIntegerFactor();
+			if (selection == origin) {
+				transform.setToTranslation(p0.x, p0.y);
+				if (scale > 1) {
+					transform.scale(scale, scale);
+				}
+				fillShapes[1] = transform.createTransformedShape(selectionShape);
+			} else if (selection == handle) {
+				Point p1 = handle.getScreenPosition(trackerPanel);
+				transform.setToTranslation(p1.x, p1.y);
+				if (scale > 1) {
+					transform.scale(scale, scale);
+				}
+				fillShapes[1] = transform.createTransformedShape(selectionShape);
+			} else
+				fillShapes[1] = null;
+			// create mark to draw fillShapes
+			final Color color = footprint.getColor();
+			mark = new Mark() {
+				@Override
+				public void draw(Graphics2D g, boolean highlighted) {
+					Graphics2D g2 = (Graphics2D) g.create();
+					g2.setPaint(color);
+					g2.setStroke(new BasicStroke(2f));
+					if (OSPRuntime.setRenderingHints)
+						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+					for (int i = 0; i < 2; i++) {
+						if (fillShapes[i] != null) {
+							// BH 2020.05.11 for some reason, HTML5 needs to draw this
+							// the lines are very close together, and it seems to miss them.
+							if (OSPRuntime.drawDontFillAxes)
+								g2.draw(fillShapes[i]);
+							else
+								g2.fill(fillShapes[i]);
+						}
+					}
+					g2.dispose();
+				}
 
-        @Override
-		public Rectangle getBounds(boolean highlighted) {
-          Rectangle bounds = getTrack().trackerPanel.getBounds();
-          if (fillShapes[1] != null) {
-            bounds.add(fillShapes[1].getBounds());
-          }
-          return bounds;
-        }
-      };
-      marks.put(trackerPanel, mark);
-    }
-    return mark;
-  }
+				@Override
+				public Rectangle getBounds(boolean highlighted) {
+					Rectangle bounds = getTrack().trackerPanel.getBounds();
+					if (fillShapes[1] != null) {
+						bounds.add(fillShapes[1].getBounds());
+					}
+					return bounds;
+				}
+			};
+			marks.put(trackerPanel, mark);
+		}
+		return mark;
+	}
 
-  /**
-   * Overrides Step getPointIndex method.
-   *
-   * @return the index, or -1 if not found
-   */
-  @Override
-public int getPointIndex(TPoint p) {
-  	int i = super.getPointIndex(p);
-  	if (i==-1) {
-  		if (p instanceof CoordAxes.OriginPoint) return 0;
-  		if (p instanceof CoordAxes.AnglePoint) return 1;
-  	}
-    return i;
-  }
+	/**
+	 * Overrides Step getPointIndex method.
+	 *
+	 * @return the index, or -1 if not found
+	 */
+	@Override
+	public int getPointIndex(TPoint p) {
+		int i = super.getPointIndex(p);
+		if (i == -1) {
+			if (p instanceof CoordAxes.OriginPoint)
+				return 0;
+			if (p instanceof CoordAxes.AnglePoint)
+				return 1;
+		}
+		return i;
+	}
 
-  /**
-   * Overrides Step getBounds method.
-   *
-   * @param trackerPanel the tracker panel drawing the step
-   * @return the bounding rectangle
-   */
-  @Override
-public Rectangle getBounds(TrackerPanel trackerPanel) {
-    Rectangle bounds = getMark(trackerPanel).getBounds(false);
-    return bounds;
-  }
+	/**
+	 * Overrides Step getBounds method.
+	 *
+	 * @param trackerPanel the tracker panel drawing the step
+	 * @return the bounding rectangle
+	 */
+	@Override
+	public Rectangle getBounds(TrackerPanel trackerPanel) {
+		Rectangle bounds = getMark(trackerPanel).getBounds(false);
+		return bounds;
+	}
 
-  /**
-   * Clones this Step.
-   *
-   * @return a clone of this step
-   */
-  @Override
-public Object clone() {
-    CoordAxesStep step = (CoordAxesStep)super.clone();
-    if (step != null) {
-      step.handleShapes = new HashMap<TrackerPanel, Shape>();
-    }
-    return step;
-  }
+	/**
+	 * Clones this Step.
+	 *
+	 * @return a clone of this step
+	 */
+	@Override
+	public Object clone() {
+		CoordAxesStep step = (CoordAxesStep) super.clone();
+		if (step != null) {
+			step.handleShapes = new HashMap<TrackerPanel, Shape>();
+		}
+		return step;
+	}
 
-  /**
-   * Returns a String describing this.
-   *
-   * @return a descriptive string
-   */
-  @Override
-public String toString() {
-    return "CoordAxesStep " + n; //$NON-NLS-1$
-  }
+	/**
+	 * Returns a String describing this.
+	 *
+	 * @return a descriptive string
+	 */
+	@Override
+	public String toString() {
+		return "CoordAxesStep " + n; //$NON-NLS-1$
+	}
 
-  /**
-   * Gets the step length.
-   *
-   * @return the length of the points array
-   */
-  public static int getLength() {
-    return 2;
-  }
+	/**
+	 * Gets the step length.
+	 *
+	 * @return the length of the points array
+	 */
+	public static int getLength() {
+		return 2;
+	}
 
-  @Override
-  protected void dispose() {
-  	handleShapes.clear();
-  	super.dispose();
-  }
+	@Override
+	protected void dispose() {
+		handleShapes.clear();
+		super.dispose();
+	}
 
-  // ______________________ inner Origin class ________________________
+	// ______________________ inner Origin class ________________________
 
-  /**
-   * Inner class used to set the origin.
-   */
-  class Origin extends TPoint {
+	/**
+	 * Inner class used to set the origin.
+	 */
+	class Origin extends TPoint {
 
-    private double lastX, lastY;
-    
-    /**
-     * Overrides TPoint setXY method.
-     *
-     * @param x the x position
-     * @param y the y position
-     */
-    @Override
-	public void setXY(double x, double y) {
-    	TTrack track = getTrack();
-      if (track.isLocked()) return;
-      if (isAdjusting()) {
-      	lastX = x;
-      	lastY = y;
-      }
-      super.setXY(x, y);
-      TrackerPanel panel = track.trackerPanel;
-      if (panel != null) {
-        ImageCoordSystem coords = track.trackerPanel.getCoords();
-        coords.setAdjusting(isAdjusting());
-	      int n = panel.getFrameNumber();
-	      coords.setOriginXY(n, x, y);
-	      CoordAxes coordAxes = (CoordAxes)track;
-	      coordAxes.xField.setValue(coords.getOriginX(n));
-	      coordAxes.yField.setValue(coords.getOriginY(n));
-      }
-      if (isAdjusting()) {
-      	repaint();
-      }
-    }
-    
-    /**
-     * Overrides TPoint method.
-     *
-     * @param adjusting true if being dragged
-     */
-    @Override
-	public void setAdjusting(boolean adjusting) {
-    	boolean wasAdjusting = isAdjusting();
-    	super.setAdjusting(adjusting);
-    	if (wasAdjusting && !adjusting) {
-    		setXY(lastX, lastY);
-      	TTrack track = getTrack();
-    		track.firePropertyChange("step", null, track.trackerPanel.getFrameNumber()); //$NON-NLS-1$
-    	}
-    }
+		private double lastX, lastY;
 
+		/**
+		 * Overrides TPoint setXY method.
+		 *
+		 * @param x the x position
+		 * @param y the y position
+		 */
+		@Override
+		public void setXY(double x, double y) {
+			TTrack track = getTrack();
+			if (track.isLocked())
+				return;
+			if (isAdjusting()) {
+				lastX = x;
+				lastY = y;
+			}
+			super.setXY(x, y);
+			TrackerPanel panel = track.trackerPanel;
+			if (panel != null) {
+				ImageCoordSystem coords = track.trackerPanel.getCoords();
+				coords.setAdjusting(isAdjusting());
+				int n = panel.getFrameNumber();
+				coords.setOriginXY(n, x, y);
+				CoordAxes coordAxes = (CoordAxes) track;
+				coordAxes.xField.setValue(coords.getOriginX(n));
+				coordAxes.yField.setValue(coords.getOriginY(n));
+			}
+			if (isAdjusting()) {
+				repaint();
+			}
+		}
+
+		/**
+		 * Overrides TPoint method.
+		 *
+		 * @param adjusting true if being dragged
+		 */
+		@Override
+		public void setAdjusting(boolean adjusting) {
+			boolean wasAdjusting = isAdjusting();
+			super.setAdjusting(adjusting);
+			if (wasAdjusting && !adjusting) {
+				setXY(lastX, lastY);
+				TTrack track = getTrack();
+				track.firePropertyChange("step", null, track.trackerPanel.getFrameNumber()); //$NON-NLS-1$
+			}
+		}
+
+	}
+
+	// ______________________ inner Handle class ________________________
+
+	class Handle extends TPoint {
+
+		// instance fields
+		private double angleIncrement = 0;
+		protected Point2D.Double p = new Point2D.Double();
+		private double lastX, lastY;
+
+		/**
+		 * Overrides TPoint setXY method to set the angle of the x axis.
+		 *
+		 * @param x the x position
+		 * @param y the y position
+		 */
+		@Override
+		public void setXY(double x, double y) {
+			TTrack track = getTrack();
+			if (track.isLocked())
+				return;
+			CoordAxes coordAxes = (CoordAxes) track;
+			if (coordAxes.trackerPanel == null) {
+				super.setXY(x, y);
+				return;
+			}
+			if (angleIncrement >= Math.PI / 180) { // 1 degree of arc
+				// place handle at same distance from origin at closest permitted angle
+				p.setLocation(x, y);
+				double d = origin.distance(p);
+				double theta = origin.angle(p);
+				int i = Math.round((float) (theta / angleIncrement));
+				theta = i * angleIncrement;
+				x = origin.getX() + d * Math.cos(theta);
+				y = origin.getY() + d * Math.sin(theta);
+			}
+			if (isAdjusting()) {
+				lastX = x;
+				lastY = y;
+			}
+			super.setXY(x, y);
+			double cos = origin.cos(this);
+			double sin = origin.sin(this);
+			ImageCoordSystem coords = coordAxes.trackerPanel.getCoords();
+			coords.setAdjusting(isAdjusting());
+			int n = coordAxes.trackerPanel.getFrameNumber();
+			coords.setCosineSine(n, cos, sin);
+			coordAxes.angleField.setValue(coords.getAngle(n));
+			angleIncrement = 0;
+			if (isAdjusting()) {
+				repaint();
+			}
+		}
+
+		/**
+		 * Overrides TPoint setScreenPosition method.
+		 *
+		 * @param x        the screen x coordinate
+		 * @param y        the screen y coordinate
+		 * @param vidPanel the video panel
+		 * @param e        the input event making the request
+		 */
+		@Override
+		public void setScreenPosition(int x, int y, VideoPanel vidPanel, InputEvent e) {
+			if (e == null) {
+				angleIncrement = 0;
+			} else if (e.isShiftDown()) {
+				angleIncrement = Math.PI / 36; // 5 degrees
+			} else {
+				angleIncrement = 0;
+			}
+			setScreenPosition(x, y, vidPanel);
+		}
+
+		/**
+		 * Overrides TPoint showCoordinates method so handle position can be set to
+		 * mouse position when first selecting this handle
+		 *
+		 * @param vidPanel the video panel
+		 */
+		@Override
+		public void showCoordinates(VideoPanel vidPanel) {
+			if (vidPanel instanceof TrackerPanel) {
+				TrackerPanel trackerPanel = (TrackerPanel) vidPanel;
+				if (!(this == trackerPanel.getSelectedPoint())) {
+					// start by setting location to mouse point
+					setLocation(vidPanel.getMouseX(), vidPanel.getMouseY());
+					// then move to nearest point on x-axis
+					Point2D p = getWorldPosition(vidPanel);
+					p.setLocation(p.getX(), 0); // move to y = 0
+					int n = vidPanel.getFrameNumber();
+					AffineTransform toImage = vidPanel.getCoords().getToImageTransform(n);
+					toImage.transform(p, p);
+					setLocation(p);
+				}
+			}
+			super.showCoordinates(vidPanel);
+		}
+
+		/**
+		 * Overrides TPoint method.
+		 *
+		 * @param adjusting true if being dragged
+		 */
+		@Override
+		public void setAdjusting(boolean adjusting) {
+			boolean wasAdjusting = isAdjusting();
+			super.setAdjusting(adjusting);
+			if (wasAdjusting && !adjusting) {
+				setXY(lastX, lastY);
+			}
+		}
+	}
 }
-
-  //______________________ inner Handle class ________________________
-
-  class Handle extends TPoint {
-
-    // instance fields
-    private double angleIncrement = 0;
-    protected Point2D.Double p = new Point2D.Double();
-    private double lastX, lastY;
-
-    /**
-     * Overrides TPoint setXY method to set the angle of the x axis.
-     *
-     * @param x the x position
-     * @param y the y position
-     */
-    @Override
-	public void setXY(double x, double y) {
-    	TTrack track = getTrack();
-      if (track.isLocked()) return;
-      CoordAxes coordAxes = (CoordAxes)track;
-      if (coordAxes.trackerPanel == null) {
-        super.setXY(x, y);
-      	return;
-      }
-      if (angleIncrement >= Math.PI/180) { // 1 degree of arc
-        // place handle at same distance from origin at closest permitted angle
-        p.setLocation(x, y);
-        double d = origin.distance(p);
-        double theta = origin.angle(p);
-        int i = Math.round((float)(theta/angleIncrement));
-        theta = i * angleIncrement;
-        x = origin.getX() + d * Math.cos(theta);
-        y = origin.getY() + d * Math.sin(theta);
-      }
-      if (isAdjusting()) {
-      	lastX = x;
-      	lastY = y;
-      }
-      super.setXY(x, y);
-      double cos = origin.cos(this);
-      double sin = origin.sin(this);
-      ImageCoordSystem coords = coordAxes.trackerPanel.getCoords();
-      coords.setAdjusting(isAdjusting());
-      int n = coordAxes.trackerPanel.getFrameNumber();
-      coords.setCosineSine(n, cos, sin);
-      coordAxes.angleField.setValue(coords.getAngle(n));
-      angleIncrement = 0;
-      if (isAdjusting()) {
-      	repaint();
-      }
-    }
-
-    /**
-     * Overrides TPoint setScreenPosition method.
-     *
-     * @param x the screen x coordinate
-     * @param y the screen y coordinate
-     * @param vidPanel the video panel
-     * @param e the input event making the request
-     */
-    @Override
-	public void setScreenPosition(int x, int y,
-                                  VideoPanel vidPanel,
-                                  InputEvent e) {
-      if (e == null) {
-        angleIncrement = 0;
-      }
-      else if (e.isShiftDown()) {
-        angleIncrement = Math.PI/36; // 5 degrees
-      }
-      else {
-        angleIncrement = 0;
-      }
-      setScreenPosition(x, y, vidPanel);
-    }
-
-    /**
-     * Overrides TPoint showCoordinates method so handle position can be set
-     * to mouse position when first selecting this handle
-     *
-     * @param vidPanel the video panel
-     */
-    @Override
-	public void showCoordinates(VideoPanel vidPanel) {
-      if (vidPanel instanceof TrackerPanel) {
-        TrackerPanel trackerPanel = (TrackerPanel)vidPanel;
-        if (!(this == trackerPanel.getSelectedPoint())) {
-          // start by setting location to mouse point
-          setLocation(vidPanel.getMouseX(), vidPanel.getMouseY());
-          // then move to nearest point on x-axis
-          Point2D p = getWorldPosition(vidPanel);
-          p.setLocation(p.getX(), 0); // move to y = 0
-          int n = vidPanel.getFrameNumber();
-          AffineTransform toImage = vidPanel.getCoords().getToImageTransform(n);
-          toImage.transform(p, p);
-          setLocation(p);
-        }
-      }
-      super.showCoordinates(vidPanel);
-    }
-    
-    /**
-     * Overrides TPoint method.
-     *
-     * @param adjusting true if being dragged
-     */
-    @Override
-	public void setAdjusting(boolean adjusting) {
-    	boolean wasAdjusting = isAdjusting();
-    	super.setAdjusting(adjusting);
-    	if (wasAdjusting && !adjusting) {
-    		setXY(lastX, lastY);
-    	}
-    }
-  }
-}
-
