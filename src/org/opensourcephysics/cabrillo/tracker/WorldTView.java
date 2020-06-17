@@ -72,6 +72,7 @@ public class WorldTView extends TrackerPanel implements TView {
 		setDrawingInImageSpace(false);
 		setPreferredSize(new Dimension(240, 180));
 		setShowCoordinates(false);
+		trackerPanel.panelAndWorldViews.add(this);
 		// world view button
     worldViewLabel = new JLabel();
     worldViewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));

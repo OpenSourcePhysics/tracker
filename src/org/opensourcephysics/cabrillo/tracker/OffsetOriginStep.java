@@ -142,18 +142,13 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       final Shape fillShape = shape;
       mark = new Mark() {
         @Override
-		public void draw(Graphics2D g, boolean highlighted) {
+        public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
           g.setPaint(color);
           g.fill(fillShape);
           g.setPaint(gpaint);
-        }
-
-        @Override
-		public Rectangle getBounds(boolean highlighted) {
-          return fillShape.getBounds();
         }
       };
       marks.put(trackerPanel, mark);

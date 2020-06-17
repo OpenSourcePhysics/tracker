@@ -46,7 +46,7 @@ public class MultiLineFootprint extends LineFootprint {
 	protected boolean closed;
 
 	/**
-	 * Constructs a MultiLineFootprint.
+	 * Constructs a LineFootprint.
 	 *
 	 * @param name the name
 	 */
@@ -60,8 +60,8 @@ public class MultiLineFootprint extends LineFootprint {
 	 * @param name the name of the footprint
 	 * @return the footprint
 	 */
-	public static Footprint getFootprint(String name) {
-		return getFootprint(footprints, name);
+	public static MultiLineFootprint getFootprint(String name) {
+		return (MultiLineFootprint) getFootprint(footprints, name);
 	}
 
 	/**

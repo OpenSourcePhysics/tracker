@@ -1273,11 +1273,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 						if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 						g.fill(selectedShape);
 					}
-
-					@Override
-					public Rectangle getBounds(boolean highlighted) {
-						return selectedShape.getBounds();
-					}
 				};
 			}
 			// create final mark
@@ -1325,26 +1320,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 						markSelection.draw(g, false);
 					g.setStroke(stroke);
 					g.setPaint(gpaint);
-				}
-
-				@Override
-				public Rectangle getBounds(boolean highlighted) {
-					Rectangle bounds = searchShape.getBounds();
-					if (markMaskCorner != null)
-						bounds.add(markMaskCorner.getBounds(highlighted));
-					if (markSearchCorner != null)
-						bounds.add(markSearchCorner.getBounds(highlighted));
-					if (markTarget != null)
-						bounds.add(markTarget.getBounds(highlighted));
-					if (markSelection != null)
-						bounds.add(markSelection.getBounds(highlighted));
-					if (maskVisible)
-						bounds.add(maskShape.getBounds());
-					if (matchShape != null) {
-						bounds.add(matchShape.getBounds());
-//        		bounds.add(matchTargetMark.getBounds(highlighted));
-					}
-					return bounds;
 				}
 			};
 		}

@@ -53,7 +53,6 @@ import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -199,7 +198,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected Footprint defaultFootprint;
 	protected Color[] defaultColors = new Color[] { Color.red };
 	protected StepArray steps = new StepArray();
-	protected Collection<TrackerPanel> panels = new HashSet<TrackerPanel>();
 	protected PropertyChangeSupport support;
 	protected HashMap<String, Object> properties = new HashMap<String, Object>();
 	protected DatasetManager data;
@@ -508,11 +506,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			public void itemStateChanged(ItemEvent e) {
 				setTrailVisible(trailVisibleItem.isSelected());
 				if (!TTrack.this.isTrailVisible()) {
-					// clear selected point on panels if nec
-					Iterator<TrackerPanel> it = panels.iterator();
-					TrackerPanel panel;
-					while (it.hasNext()) {
-						panel = it.next();
+					for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
+						TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
 						Step step = panel.getSelectedStep();
 						if (step != null && step.getTrack() == TTrack.this) {
 							if (!(step.getFrameNumber() == panel.getFrameNumber())) {
@@ -648,9 +643,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		if (postEdit) {
 			Undo.postTrackDelete(this); // posts undoable edit
 		}
-		Iterator<TrackerPanel> it = panels.iterator();
-		while (it.hasNext()) {
-			TrackerPanel panel = it.next();
+		for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
+			TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
 			panel.removeTrack(this);
 		}
 		erase();
@@ -2394,9 +2388,11 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * Repaints all steps on all panels.
 	 */
 	public void repaint() {
+		if (trackerPanel == null)
+			return;
 		remark();
-		for (TrackerPanel next : panels) {
-			next.repaintDirtyRegion();
+		for (int i = 0; i < trackerPanel.panelAndWorldViews.size(); i++) {
+			trackerPanel.panelAndWorldViews.get(i).repaintDirtyRegion();
 		}
 	}
 
@@ -2449,9 +2445,10 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @param step the step
 	 */
 	public void repaint(Step step) {
-		Iterator<TrackerPanel> it = panels.iterator();
-		while (it.hasNext())
-			step.repaint(it.next());
+		for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
+			TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
+			step.repaint(panel);
+		}
 	}
 
 	/**
@@ -2466,7 +2463,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		if (!(panel instanceof TrackerPanel) || !visible)
 			return;
 		TrackerPanel trackerPanel = (TrackerPanel) panel;
-		panels.add(trackerPanel); // keep a list of tracker panels
 		Graphics2D g = (Graphics2D) _g;
 		int n = trackerPanel.getFrameNumber();
 		int stepSize = trackerPanel.getPlayer().getVideoClip().getStepSize();
@@ -2895,7 +2891,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * Disposes of resources when this track is deleted or cleared.
 	 */
 	protected void dispose() {
-		panels.clear();
 		properties.clear();
 		worldBounds.clear();
 		data = null;

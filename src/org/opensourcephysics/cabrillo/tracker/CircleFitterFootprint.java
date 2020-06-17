@@ -179,11 +179,6 @@ public Mark getMark(Point[] points) {
         g.fill(shape);
         g.setColor(gcolor);
       }
-
-      @Override
-	public Rectangle getBounds(boolean highlighted) {
-        return shape.getBounds();
-      }
     };
   }
 

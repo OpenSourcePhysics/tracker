@@ -177,11 +177,6 @@ public class LineFootprint implements Footprint, Cloneable {
 				g.setColor(gcolor);
 			}
 
-			@Override
-			public Rectangle getBounds(boolean highlighted) {
-				return shape.getBounds();
-			}
-
 
 		};
 	}

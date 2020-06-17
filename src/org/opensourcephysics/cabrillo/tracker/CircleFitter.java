@@ -608,7 +608,6 @@ public class CircleFitter extends TTrack {
 			}
 		}
 		attachmentNames = null;
-		panels.clear();
 		properties.clear();
 		worldBounds.clear();
 		data = null;

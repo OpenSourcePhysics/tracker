@@ -227,11 +227,6 @@ public class PositionStep extends Step {
 						g.fill(selectedShape);
 						g.setPaint(gpaint);
 					}
-
-					@Override
-					public Rectangle getBounds(boolean highlighted) {
-						return selectedShape.getBounds();
-					}
 				};
 			}
 			// we have a mark at this point
@@ -249,11 +244,6 @@ public class PositionStep extends Step {
 							autofillMark.draw(g, false);
 						}
 					}
-
-					@Override
-					public Rectangle getBounds(boolean highlighted) {
-						return normalMark.getBounds(highlighted).union(autofillMark.getBounds(highlighted));
-					}
 				};
 			}
 			// don't draw anything if not valid
@@ -265,11 +255,6 @@ public class PositionStep extends Step {
 						return;
 					}
 					theMark.draw(g, highlighted);
-				}
-
-				@Override
-				public Rectangle getBounds(boolean highlighted) {
-					return theMark.getBounds(highlighted);
 				}
 			};
 			marks.put(trackerPanel, mark);
@@ -295,22 +280,6 @@ public class PositionStep extends Step {
 			bounds.setRect(p.x, p.y - rect.getHeight(), rect.getWidth(), rect.getHeight());
 		}
 		return mark;
-	}
-
-	/**
-	 * Overrides Step getBounds method.
-	 *
-	 * @param trackerPanel the tracker panel drawing the step
-	 * @return the bounding rectangle
-	 */
-	@Override
-	public Rectangle getBounds(TrackerPanel trackerPanel) {
-		Rectangle bounds = getMark(trackerPanel).getBounds(false);
-		Rectangle layoutRect = layoutBounds.get(trackerPanel);
-		if (layoutRect != null) {
-			bounds.add(layoutRect);
-		}
-		return bounds;
 	}
 
 	/**

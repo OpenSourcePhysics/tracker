@@ -574,13 +574,6 @@ public class VectorStep extends Step implements PropertyChangeListener {
 						g.fill(selectedShape);
 						g.setPaint(gpaint);
 					}
-
-					@Override
-					public Rectangle getBounds(boolean highlighted) {
-						Rectangle bounds = selectedShape.getBounds();
-						bounds.add(stepMark.getBounds(false));
-						return bounds;
-					}
 				};
 			}
 			final Mark theMark = mark;
@@ -591,11 +584,6 @@ public class VectorStep extends Step implements PropertyChangeListener {
 						return;
 					theMark.draw(g, highlighted);
 				}
-
-				@Override
-				public Rectangle getBounds(boolean highlighted) {
-					return theMark.getBounds(highlighted);
-				}
 			};
 			marks.put(trackerPanel, mark);
 			if (valid) {
@@ -605,19 +593,6 @@ public class VectorStep extends Step implements PropertyChangeListener {
 			}
 		}
 		return mark;
-	}
-
-	/**
-	 * Overrides Step getBounds method.
-	 *
-	 * @param trackerPanel the tracker panel drawing the step
-	 * @return the bounding rectangle
-	 */
-	@Override
-	public Rectangle getBounds(TrackerPanel trackerPanel) {
-		Rectangle bounds = getMark(trackerPanel).getBounds(false);
-		bounds.add(layoutBounds.get(trackerPanel));
-		return bounds;
 	}
 
 	/**

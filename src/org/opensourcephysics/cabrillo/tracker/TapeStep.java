@@ -274,20 +274,12 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           	= transform.createTransformedShape(selectionShape);
         mark = new Mark() {
           @Override
-		public void draw(Graphics2D g, boolean highlighted) {
+          public void draw(Graphics2D g, boolean highlighted) {
             stepMark.draw(g, false);
             Paint gpaint = g.getPaint();
             g.setPaint(color);
             if (selectedShape != null) g.fill(selectedShape);
             g.setPaint(gpaint);
-          }
-
-          @Override
-		public Rectangle getBounds(boolean highlighted) {
-            Rectangle bounds = stepMark.getBounds(false);
-            if (selectedShape != null)
-            	bounds.add(selectedShape.getBounds());
-            return bounds;
           }
         };
       }
@@ -318,20 +310,6 @@ protected Mark getMark(TrackerPanel trackerPanel) {
                      rect.getWidth(), rect.getHeight());
     }
     return mark;
-  }
-
-  /**
-   * Overrides Step getBounds method.
-   *
-   * @param trackerPanel the tracker panel drawing the step
-   * @return the bounding rectangle
-   */
-  @Override
-public Rectangle getBounds(TrackerPanel trackerPanel) {
-    Rectangle bounds = getMark(trackerPanel).getBounds(false);
-    bounds.add(layoutBounds.get(trackerPanel));
-    bounds.grow(2, 2);
-    return bounds;
   }
 
   /**

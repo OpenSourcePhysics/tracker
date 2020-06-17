@@ -527,11 +527,6 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 				@Override
 				public void draw(Graphics2D g, boolean highlighted) {
 				}
-
-				@Override
-				public Rectangle getBounds(boolean highlighted) {
-					return null;
-				}
 	  		
 	  	};
 	  }

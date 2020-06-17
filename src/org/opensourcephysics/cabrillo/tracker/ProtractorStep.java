@@ -326,18 +326,6 @@ protected Mark getMark(TrackerPanel trackerPanel) {
             	g.fill(selectedShape);
             g.setPaint(gpaint);
           }
-
-          @Override
-		public Rectangle getBounds(boolean highlighted) {
-            Rectangle bounds = stepMark.getBounds(false);
-            if (selectedShape != null)
-            	bounds.add(selectedShape.getBounds());
-            if (vertexCircle != null)
-            	bounds.add(vertexCircle.getBounds());
-            if (arcHighlight != null)
-            	bounds.add(arcHighlight.getBounds());
-            return bounds;
-          }
         };
       }
       marks.put(trackerPanel, mark);
@@ -405,20 +393,6 @@ protected Mark getMark(TrackerPanel trackerPanel) {
     formatField.setFixedPattern(getTrack().xField.getFixedPattern());
     formatField.setFormatFor(length);
     return formatField.getFormat().format(length);
-  }
-
-  /**
-   * Overrides Step getBounds method.
-   *
-   * @param trackerPanel the tracker panel drawing the step
-   * @return the bounding rectangle
-   */
-  @Override
-public Rectangle getBounds(TrackerPanel trackerPanel) {
-    Rectangle bounds = getMark(trackerPanel).getBounds(false);
-    bounds.add(layoutBounds.get(trackerPanel));
-    bounds.add(layout1Bounds.get(trackerPanel));
-    return bounds;
   }
 
   /**

@@ -27,28 +27,19 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.*;
 
 /**
- * A Mark draws itself and has rectangular bounds. A track Step
- * has a Mark for each tracker panel on which it is drawn. The Mark
- * is created by the Step's Footprint.
+ * A Mark draws itself with an optional highlight. A track Step has a Mark for each tracker panel 
+ * on which it is drawn. The Mark is created by the Step's Footprint.
  *
  * @author Douglas Brown
  */
 public interface Mark {
 
   /**
-   * Draws this object.
+   * Draws this Mark.
    *
    * @param g the Graphics2D context
    * @param highlighted <code>true</code> to draw a highlighted version
    */
   public void draw(Graphics2D g, boolean highlighted);
-
-  /**
-   * Gets the bounds of this object.
-   *
-   * @param highlighted <code>true</code> to get the highlighted bounds
-   * @return the bounding rectangle
-   */
-  public Rectangle getBounds(boolean highlighted);
 
 }
