@@ -24,11 +24,15 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.*;
+import java.awt.BasicStroke;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.geom.Area;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -189,9 +193,11 @@ public synchronized Shape getShape(Point[] points) {
 			// see Java 2D API Graphics, by VJ Hardy (Sun, 2000) page 147
 			d = d - (float)(stroke.getLineWidth()*1.58) + 1;
 			// set up shaft hitShape
+
 			path.reset();
 			path.moveTo(0, 0);
 			path.lineTo(d-tipL, 0);
+			
 			hitShapes[2] = transform.createTransformedShape(path); // for shaft
 			hitShapes[1] = new Rectangle(p2.x-1, p2.y-1, 2, 2);    // for tail
 			// set up draw shape
@@ -199,8 +205,6 @@ public synchronized Shape getShape(Point[] points) {
 			path.moveTo(0, 0);
 			path.lineTo(d-tipL+tipW, 0);
 			Shape shaft = transform.createTransformedShape(path);
-			shaft = stroke.createStrokedShape(shaft);
-			Area area = new Area(shaft);
 			path.reset();
 			path.moveTo(d-tipL+tipW, 0);
 			path.lineTo(d-tipL, -tipW);
@@ -208,14 +212,16 @@ public synchronized Shape getShape(Point[] points) {
 			path.lineTo(d-tipL, tipW);
 			path.closePath();
 			Shape head = transform.createTransformedShape(path);
-			if (openHead) {
-				head = headStroke.createStrokedShape(head);
-			}
-			area.add(new Area(head));
-			if (!openHead) {
+			if (true || OSPRuntime.isJS) {
+				return new MultiShape(shaft, head).andFill(false, !openHead);
+			} else {
+				Area area = new Area(stroke.createStrokedShape(shaft));
+				if (!openHead) {
+					area.add(new Area(head));
+				}
 				area.add(new Area(headStroke.createStrokedShape(head)));
+				return area;
 			}
-			return area;
 		} catch (Exception e) { // occasionally throws path exception for reasons unknown!
 	    d = (float)(p1.distance(p2));
 			java.awt.geom.Line2D line = new java.awt.geom.Line2D.Double(0, 0, d, 0); 

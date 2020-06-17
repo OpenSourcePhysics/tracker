@@ -25,11 +25,23 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.awt.*;
-import java.awt.geom.*;
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.Stroke;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Ellipse2D;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Line2D;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 
-import javax.swing.*;
+import javax.swing.Icon;
 
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
@@ -41,331 +53,335 @@ import org.opensourcephysics.tools.FontSizer;
  */
 public class LineFootprint implements Footprint, Cloneable {
 
-  // instance fields
-  protected String name;
-  protected Shape highlight;
-  protected AffineTransform transform = new AffineTransform();
-  protected BasicStroke baseStroke = new BasicStroke();
-  protected BasicStroke stroke;
-  protected Color color = Color.black;
-  protected GeneralPath path = new GeneralPath();
-  protected Line2D line = new Line2D.Double();
-  protected Shape[] hitShapes = new Shape[3];
+	// instance fields
+	protected String name;
+	protected Shape highlight;
+	protected AffineTransform transform = new AffineTransform();
+	protected BasicStroke baseStroke = new BasicStroke();
+	protected BasicStroke stroke;
+	protected Color color = Color.black;
+	protected GeneralPath path = new GeneralPath();
+	protected Line2D line = new Line2D.Double();
+	protected Shape[] hitShapes = new Shape[3];
 
-  /**
-   * Constructs a LineFootprint.
-   *
-   * @param name the name
-   */
-  public LineFootprint(String name) {
-    this.name = name;
-  }
+	/**
+	 * Constructs a LineFootprint.
+	 *
+	 * @param name the name
+	 */
+	public LineFootprint(String name) {
+		this.name = name;
+	}
 
-  /**
-   * Gets a predefined LineFootprint.
-   *
-   * @param name the name of the footprint
-   * @return the footprint
-   */
-  public static Footprint getFootprint(String name) {
-    Iterator<LineFootprint> it = footprints.iterator();
-    while(it.hasNext()) {
-      LineFootprint footprint = it.next();
-      if (name == footprint.getName()) try {
-        return (LineFootprint)footprint.clone();
-      } catch(CloneNotSupportedException ex) {ex.printStackTrace();}
-    }
-    return null;
-  }
+	/**
+	 * Gets a predefined LineFootprint.
+	 *
+	 * @param name the name of the footprint
+	 * @return the footprint
+	 */
+	public static Footprint getFootprint(String name) {
+		return getFootprint(footprints, name);
+	}
+	
+	protected static Footprint getFootprint(Collection<LineFootprint> footprints, String name) {
+		Iterator<LineFootprint> it = footprints.iterator();
+		while (it.hasNext()) {
+			LineFootprint footprint = it.next();
+			if (name == footprint.getName())
+				try {
+					return (LineFootprint) footprint.clone();
+				} catch (CloneNotSupportedException ex) {
+				}
+		}
+		return null;
+	}
 
-  /**
-   * Gets the name of this footprint.
-   *
-   * @return the name
-   */
-  @Override
-public String getName() {
-    return name;
-  }
 
-  /**
-   * Gets the display name of the footprint.
-   *
-   * @return the localized display name
-   */
-  @Override
-public String getDisplayName() {
-  	return TrackerRes.getString(name);
-  }
+	/**
+	 * Gets the name of this footprint.
+	 *
+	 * @return the name
+	 */
+	@Override
+	public String getName() {
+		return name;
+	}
 
-  /**
-   * Gets the minimum point array length required by this footprint.
-   *
-   * @return the length
-   */
-  @Override
-public int getLength() {
-    return 2;
-  }
+	/**
+	 * Gets the display name of the footprint.
+	 *
+	 * @return the localized display name
+	 */
+	@Override
+	public String getDisplayName() {
+		return TrackerRes.getString(name);
+	}
 
-  /**
-   * Gets the icon.
-   *
-   * @param w width of the icon
-   * @param h height of the icon
-   * @return the icon
-   */
-  @Override
-public Icon getIcon(int w, int h) {
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
-    Point[] points = new Point[] {new Point(), new Point(w - 2, 2 - h)};
-    Shape shape = getShape(points);
-    ShapeIcon icon = new ShapeIcon(shape, w, h);
-    icon.setColor(color);
-    return icon;
-  }
+	/**
+	 * Gets the minimum point array length required by this footprint.
+	 *
+	 * @return the length
+	 */
+	@Override
+	public int getLength() {
+		return 2;
+	}
 
-  /**
-   * Gets the footprint mark.
-   *
-   * @param points a Point array
-   * @return the mark
-   */
-  @Override
-public Mark getMark(Point[] points) {
-    final Shape shape = getShape(points);
-    final Shape highlight = this.highlight;
-    final Color color = this.color;
-    return new Mark() {
-      @Override
-	public void draw(Graphics2D g, boolean highlighted) {
-        Color gcolor = g.getColor();
-        g.setColor(color);
-        if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                           RenderingHints.VALUE_ANTIALIAS_ON);
-        g.fill(shape);
-        if (highlighted && highlight!=null) {
-        	g.fill(highlight);
-        }
-        g.setColor(gcolor);
-      }
+	/**
+	 * Gets the icon.
+	 *
+	 * @param w width of the icon
+	 * @param h height of the icon
+	 * @return the icon
+	 */
+	@Override
+	public Icon getIcon(int w, int h) {
+		int scale = FontSizer.getIntegerFactor();
+		w *= scale;
+		h *= scale;
+		Point[] points = new Point[] { new Point(), new Point(w - 2, 2 - h) };
+		Shape shape = getShape(points);
+		ShapeIcon icon = new ShapeIcon(shape, w, h);
+		icon.setColor(color);
+		return icon;
+	}
 
-      @Override
-	public Rectangle getBounds(boolean highlighted) {
-        return shape.getBounds();
-      }
-    };
-  }
+	/**
+	 * Gets the footprint mark.
+	 *
+	 * @param points a Point array
+	 * @return the mark
+	 */
+	@Override
+	public Mark getMark(Point[] points) {
+		Shape shape = getShape(points);
+		boolean isMultiShape = (shape instanceof MultiShape);
 
-  /**
-   * Gets the hit shapes. Shape[0] is for p0, Shape[1] for p1
-   * and Shape[2] for the line
-   *
-   * @return the hit shapes
-   */
-  @Override
-public Shape[] getHitShapes() {
-    return hitShapes;
-  }
+		return new Mark() {
 
-  /**
-   * Sets the stroke.
-   *
-   * @param stroke the desired stroke
-   */
-  @Override
-public void setStroke(BasicStroke stroke) {
-    if (stroke == null) return;
-    this.baseStroke = new BasicStroke(stroke.getLineWidth(),
-                                  BasicStroke.CAP_BUTT,
-                                  BasicStroke.JOIN_MITER,
-                                  8,
-                                  stroke.getDashArray(),
-                                  stroke.getDashPhase());
-  }
+			@Override
+			public void draw(Graphics2D g, boolean highlighted) {
+				Color gcolor = g.getColor();
+				g.setColor(color);
+				if (OSPRuntime.setRenderingHints)
+					g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-  /**
-   * Gets the stroke.
-   *
-   * @return the stroke
-   */
-  @Override
-public BasicStroke getStroke() {
-    return baseStroke;
-  }
+				if (isMultiShape) {
+					((MultiShape) shape).draw(g);
+				} else {
+					g.fill(shape);
+				}
+				if (highlighted && highlight != null) {
+					g.fill(highlight);
+				}
+				g.setColor(gcolor);
+			}
 
-  /**
-   * Sets the dash array.
-   *
-   * @param dashArray the desired dash array
-   */
-  public void setDashArray(float[] dashArray) {
-    setStroke(new BasicStroke(baseStroke.getLineWidth(),
-                              BasicStroke.CAP_BUTT,
-                              BasicStroke.JOIN_MITER,
-                              8,
-                              dashArray,
-                              baseStroke.getDashPhase()));
-  }
+			@Override
+			public Rectangle getBounds(boolean highlighted) {
+				return shape.getBounds();
+			}
 
-  /**
-   * Sets the line width.
-   *
-   * @param w the desired line width
-   */
-  public void setLineWidth(double w) {
-    baseStroke = new BasicStroke((float)w,
-                              BasicStroke.CAP_BUTT,
-                              BasicStroke.JOIN_MITER,
-                              8,
-                              baseStroke.getDashArray(),
-                              baseStroke.getDashPhase());
-  }
 
-  /**
-   * Sets the color.
-   *
-   * @param color the desired color
-   */
-  @Override
-public void setColor(Color color) {
-    this.color = color;
-  }
+		};
+	}
 
-  /**
-   * Gets the color.
-   *
-   * @return the color
-   */
-  @Override
-public Color getColor() {
-    return color;
-  }
+	/**
+	 * Gets the hit shapes. Shape[0] is for p0, Shape[1] for p1 and Shape[2] for the
+	 * line
+	 *
+	 * @return the hit shapes
+	 */
+	@Override
+	public Shape[] getHitShapes() {
+		return hitShapes;
+	}
 
-  /**
-   * Gets the shape of this footprint.
-   *
-   * @param points an array of Points
-   * @return the shape
-   */
-  @Override
-public Shape getShape(Point[] points) {
-    Point p1 = points[0];
-    Point p2 = points[1];
-    line.setLine(p1, p2);
-    hitShapes[0] = new Rectangle(p1.x-1, p1.y-1, 2, 2); // for p1
-    hitShapes[1] = new Rectangle(p2.x-1, p2.y-1, 2, 2); // for p2
-    hitShapes[2] = (Line2D.Double)line.clone();         // for line
-    int scale = FontSizer.getIntegerFactor();
-  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
-  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
-  	}
-    return stroke.createStrokedShape(line);
-  }
+	/**
+	 * Sets the stroke.
+	 *
+	 * @param stroke the desired stroke
+	 */
+	@Override
+	public void setStroke(BasicStroke stroke) {
+		if (stroke == null)
+			return;
+		this.baseStroke = new BasicStroke(stroke.getLineWidth(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8,
+				stroke.getDashArray(), stroke.getDashPhase());
+	}
 
-  // static fields
-  private static Collection<LineFootprint> footprints = new HashSet<LineFootprint>();
+	/**
+	 * Gets the stroke.
+	 *
+	 * @return the stroke
+	 */
+	@Override
+	public BasicStroke getStroke() {
+		return baseStroke;
+	}
 
-  // static constants  
-  /** A dashed line pattern */
-  public static final float[] DASHED_LINE = new float[] {10, 4};
-  /** A dotted line pattern */
-  public static final float[] DOTTED_LINE = new float[] {2, 1};
-  protected static final Shape HIGHLIGHT;
-  private static final LineFootprint LINE;
-  private static final LineFootprint BOLD_LINE;
-  private static final LineFootprint OUTLINE;
-  private static final LineFootprint BOLD_OUTLINE;
-  private static final LineFootprint DOUBLE_ARROW;
-  private static final LineFootprint BOLD_DOUBLE_ARROW;
-  private static final ArrowFootprint ARROW;
-  private static final ArrowFootprint BOLD_ARROW;
-  private static final ArrowFootprint BIG_ARROW;
-  private static final ArrowFootprint DASH_ARROW;
-  private static final ArrowFootprint BOLD_DASH_ARROW;
-  private static final ArrowFootprint BIG_DASH_ARROW;
-  private static final DoubleCrosshairFootprint DOUBLE_TARGET;
-  private static final DoubleCrosshairFootprint BOLD_DOUBLE_TARGET;
+	/**
+	 * Sets the dash array.
+	 *
+	 * @param dashArray the desired dash array
+	 */
+	public void setDashArray(float[] dashArray) {
+		baseStroke = new BasicStroke(baseStroke.getLineWidth(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8, dashArray,
+				baseStroke.getDashPhase());
+	}
 
-  // static initializers
-  static {
-    // HIGHLIGHT
-    Ellipse2D circle = new Ellipse2D.Double();
-    circle.setFrame(-3, -3, 6, 6);
-    Stroke stroke = new BasicStroke(2);
-    HIGHLIGHT = stroke.createStrokedShape(circle);
+	/**
+	 * Sets the line width.
+	 *
+	 * @param w the desired line width
+	 */
+	public void setLineWidth(double w) {
+		baseStroke = new BasicStroke((float) w, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8,
+				baseStroke.getDashArray(), baseStroke.getDashPhase());
+	}
 
-    // LINE
-    LINE = new LineFootprint("Footprint.Line"); //$NON-NLS-1$
-    footprints.add(LINE);
+	/**
+	 * Sets the color.
+	 *
+	 * @param color the desired color
+	 */
+	@Override
+	public void setColor(Color color) {
+		this.color = color;
+	}
 
-    // BOLD_LINE
-    BOLD_LINE = new LineFootprint("Footprint.BoldLine"); //$NON-NLS-1$
-    BOLD_LINE.setStroke(new BasicStroke(2));
-    footprints.add(BOLD_LINE);
+	/**
+	 * Gets the color.
+	 *
+	 * @return the color
+	 */
+	@Override
+	public Color getColor() {
+		return color;
+	}
 
-    // OUTLINE
-    OUTLINE = new OutlineFootprint("Footprint.Outline"); //$NON-NLS-1$
-    footprints.add(OUTLINE);
+	/**
+	 * Gets the shape of this footprint.
+	 *
+	 * @param points an array of Points
+	 * @return the shape
+	 */
+	@Override
+	public Shape getShape(Point[] points) {
+		Point p1 = points[0];
+		Point p2 = points[1];
+		line.setLine(p1, p2);
+		hitShapes[0] = new Rectangle(p1.x - 1, p1.y - 1, 2, 2); // for p1
+		hitShapes[1] = new Rectangle(p2.x - 1, p2.y - 1, 2, 2); // for p2
+		hitShapes[2] = (Line2D.Double) line.clone(); // for line
+		int scale = FontSizer.getIntegerFactor();
+		if (stroke == null || stroke.getLineWidth() != scale * baseStroke.getLineWidth()) {
+			stroke = new BasicStroke(scale * baseStroke.getLineWidth());
+		}
+		return stroke.createStrokedShape(line);
+	}
 
-    // BOLD_OUTLINE
-    BOLD_OUTLINE = new OutlineFootprint("Footprint.BoldOutline"); //$NON-NLS-1$
-    BOLD_OUTLINE.setStroke(new BasicStroke(2));
-    footprints.add(BOLD_OUTLINE);
+	// static fields
+	private static Collection<LineFootprint> footprints = new HashSet<LineFootprint>();
 
-    // DOUBLE_ARROW
-    DOUBLE_ARROW = new DoubleArrowFootprint("Footprint.DoubleArrow"); //$NON-NLS-1$
-    footprints.add(DOUBLE_ARROW);
+	// static constants
+	/** A dashed line pattern */
+	public static final float[] DASHED_LINE = new float[] { 10, 4 };
+	/** A dotted line pattern */
+	public static final float[] DOTTED_LINE = new float[] { 2, 1 };
+	protected static final Shape HIGHLIGHT;
+	private static final LineFootprint LINE;
+	private static final LineFootprint BOLD_LINE;
+	private static final LineFootprint OUTLINE;
+	private static final LineFootprint BOLD_OUTLINE;
+	private static final LineFootprint DOUBLE_ARROW;
+	private static final LineFootprint BOLD_DOUBLE_ARROW;
+	private static final ArrowFootprint ARROW;
+	private static final ArrowFootprint BOLD_ARROW;
+	private static final ArrowFootprint BIG_ARROW;
+	private static final ArrowFootprint DASH_ARROW;
+	private static final ArrowFootprint BOLD_DASH_ARROW;
+	private static final ArrowFootprint BIG_DASH_ARROW;
+	private static final DoubleCrosshairFootprint DOUBLE_TARGET;
+	private static final DoubleCrosshairFootprint BOLD_DOUBLE_TARGET;
 
-    // BOLD_DOUBLE_ARROW
-    BOLD_DOUBLE_ARROW = new DoubleArrowFootprint("Footprint.BoldDoubleArrow"); //$NON-NLS-1$
-    BOLD_DOUBLE_ARROW.setStroke(new BasicStroke(2));
-    footprints.add(BOLD_DOUBLE_ARROW);
+	// static initializers
+	static {
+		// HIGHLIGHT
+		Ellipse2D circle = new Ellipse2D.Double();
+		circle.setFrame(-3, -3, 6, 6);
+		Stroke stroke = new BasicStroke(2);
+		HIGHLIGHT = stroke.createStrokedShape(circle);
 
-    // ARROW
-    ARROW = new ArrowFootprint("Footprint.Arrow"); //$NON-NLS-1$
-    footprints.add(ARROW);
+		// LINE
+		LINE = new LineFootprint("Footprint.Line"); //$NON-NLS-1$
+		footprints.add(LINE);
 
-    // BOLD_ARROW
-    BOLD_ARROW = new ArrowFootprint("Footprint.BoldArrow"); //$NON-NLS-1$
-    BOLD_ARROW.setStroke(new BasicStroke(2));
-    footprints.add(BOLD_ARROW);
+		// BOLD_LINE
+		BOLD_LINE = new LineFootprint("Footprint.BoldLine"); //$NON-NLS-1$
+		BOLD_LINE.setStroke(new BasicStroke(2));
+		footprints.add(BOLD_LINE);
 
-    // BIG_ARROW
-    BIG_ARROW = new ArrowFootprint("Footprint.BigArrow"); //$NON-NLS-1$
-    BIG_ARROW.setStroke(new BasicStroke(4));
-    BIG_ARROW.setTipLength(32);
-    footprints.add(BIG_ARROW);
+		// OUTLINE
+		OUTLINE = new OutlineFootprint("Footprint.Outline"); //$NON-NLS-1$
+		footprints.add(OUTLINE);
 
-    // DASH_ARROW
-    DASH_ARROW = new ArrowFootprint("Footprint.DashArrow"); //$NON-NLS-1$
-    DASH_ARROW.setDashArray(DASHED_LINE);
-    footprints.add(DASH_ARROW);
+		// BOLD_OUTLINE
+		BOLD_OUTLINE = new OutlineFootprint("Footprint.BoldOutline"); //$NON-NLS-1$
+		BOLD_OUTLINE.setStroke(new BasicStroke(2));
+		footprints.add(BOLD_OUTLINE);
 
-    // BOLD_DASH_ARROW
-    BOLD_DASH_ARROW = new ArrowFootprint("Footprint.BoldDashArrow"); //$NON-NLS-1$
-    BOLD_DASH_ARROW.setStroke(new BasicStroke(2));
-    BOLD_DASH_ARROW.setDashArray(DASHED_LINE);
-    footprints.add(BOLD_DASH_ARROW);
+		// DOUBLE_ARROW
+		DOUBLE_ARROW = new DoubleArrowFootprint("Footprint.DoubleArrow"); //$NON-NLS-1$
+		footprints.add(DOUBLE_ARROW);
 
-    // BIG_DASH_ARROW
-    BIG_DASH_ARROW = new ArrowFootprint("Footprint.BigDashArrow"); //$NON-NLS-1$
-    BIG_DASH_ARROW.setStroke(new BasicStroke(4));
-    BIG_DASH_ARROW.setDashArray(DASHED_LINE);
-    BIG_DASH_ARROW.setTipLength(32);
-    footprints.add(BIG_DASH_ARROW);
+		// BOLD_DOUBLE_ARROW
+		BOLD_DOUBLE_ARROW = new DoubleArrowFootprint("Footprint.BoldDoubleArrow"); //$NON-NLS-1$
+		BOLD_DOUBLE_ARROW.setStroke(new BasicStroke(2));
+		footprints.add(BOLD_DOUBLE_ARROW);
 
-    // DOUBLE_TARGET
-    DOUBLE_TARGET = new DoubleCrosshairFootprint("Footprint.DoubleTarget"); //$NON-NLS-1$
-    footprints.add(DOUBLE_TARGET);
+		// ARROW
+		ARROW = new ArrowFootprint("Footprint.Arrow"); //$NON-NLS-1$
+		footprints.add(ARROW);
 
-    // BOLD_DOUBLE_TARGET
-    BOLD_DOUBLE_TARGET = new DoubleCrosshairFootprint("Footprint.BoldDoubleTarget"); //$NON-NLS-1$
-    BOLD_DOUBLE_TARGET.setStroke(new BasicStroke(2));
-    footprints.add(BOLD_DOUBLE_TARGET);
+		// BOLD_ARROW
+		BOLD_ARROW = new ArrowFootprint("Footprint.BoldArrow"); //$NON-NLS-1$
+		BOLD_ARROW.setStroke(new BasicStroke(2));
+		footprints.add(BOLD_ARROW);
 
-  }
+		// BIG_ARROW
+		BIG_ARROW = new ArrowFootprint("Footprint.BigArrow"); //$NON-NLS-1$
+		BIG_ARROW.setStroke(new BasicStroke(4));
+		BIG_ARROW.setTipLength(32);
+		footprints.add(BIG_ARROW);
+
+		// DASH_ARROW
+		DASH_ARROW = new ArrowFootprint("Footprint.DashArrow"); //$NON-NLS-1$
+		DASH_ARROW.setDashArray(DASHED_LINE);
+		footprints.add(DASH_ARROW);
+
+		// BOLD_DASH_ARROW
+		BOLD_DASH_ARROW = new ArrowFootprint("Footprint.BoldDashArrow"); //$NON-NLS-1$
+		BOLD_DASH_ARROW.setStroke(new BasicStroke(2));
+		BOLD_DASH_ARROW.setDashArray(DASHED_LINE);
+		footprints.add(BOLD_DASH_ARROW);
+
+		// BIG_DASH_ARROW
+		BIG_DASH_ARROW = new ArrowFootprint("Footprint.BigDashArrow"); //$NON-NLS-1$
+		BIG_DASH_ARROW.setStroke(new BasicStroke(4));
+		BIG_DASH_ARROW.setDashArray(DASHED_LINE);
+		BIG_DASH_ARROW.setTipLength(32);
+		footprints.add(BIG_DASH_ARROW);
+
+		// DOUBLE_TARGET
+		DOUBLE_TARGET = new DoubleCrosshairFootprint("Footprint.DoubleTarget"); //$NON-NLS-1$
+		footprints.add(DOUBLE_TARGET);
+
+		// BOLD_DOUBLE_TARGET
+		BOLD_DOUBLE_TARGET = new DoubleCrosshairFootprint("Footprint.BoldDoubleTarget"); //$NON-NLS-1$
+		BOLD_DOUBLE_TARGET.setStroke(new BasicStroke(2));
+		footprints.add(BOLD_DOUBLE_TARGET);
+
+	}
+	
 }
-

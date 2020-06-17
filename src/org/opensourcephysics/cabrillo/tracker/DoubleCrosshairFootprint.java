@@ -169,9 +169,10 @@ public Shape getShape(Point[] points) {
   	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
   		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
   	}
-    Area area = new Area(stroke.createStrokedShape(target1));
-    area.add(new Area(stroke.createStrokedShape(target2)));
-    area.add(new Area(stroke.createStrokedShape(line)));
-    return area;
+  	return new MultiShape(target1, target2, line);
+//    Area area = new Area(stroke.createStrokedShape(target1));
+//    area.add(new Area(stroke.createStrokedShape(target2)));
+//    area.add(new Area(stroke.createStrokedShape(line)));
+//    return area;
   }
 }
