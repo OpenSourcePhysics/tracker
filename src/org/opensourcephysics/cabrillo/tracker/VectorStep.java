@@ -24,16 +24,33 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.beans.*;
-import java.util.*;
-import java.awt.*;
-import java.awt.font.*;
-import java.awt.geom.*;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Paint;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
+import java.awt.font.TextLayout;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.NumberField;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -48,9 +65,9 @@ public class VectorStep extends Step implements PropertyChangeListener {
 	protected static boolean pointSnapEnabled = true;
 	protected static boolean vectorSnapEnabled = true;
 	protected static double snapDistance = 8;
-	protected static Map<TrackerPanel, Set<VectorStep>> vectors = new HashMap<TrackerPanel, Set<VectorStep>>();
-	protected static TPoint tipPoint = new TPoint(); // used for layout position
-	protected static TPoint tailPoint = new TPoint(); // used for layout position
+	private static Map<String, List<VectorStep>> vectors = new HashMap<String, List<VectorStep>>();
+	protected TPoint tipPoint = new TPoint(); // used for layout position
+	protected TPoint tailPoint = new TPoint(); // used for layout position
 
 	// instance fields
 	protected TPoint tail;
@@ -293,19 +310,16 @@ public class VectorStep extends Step implements PropertyChangeListener {
 			if (getTrack() instanceof VectorSum)
 				return;
 			// try to link to other vectors
-			Set<VectorStep> c = vectors.get(trackerPanel);
+			List<VectorStep> c = vectors.get(trackerPanel.id);
 			if (c != null) {
-				Iterator<VectorStep> it = c.iterator();
-				while (it.hasNext()) {
-					VectorStep vec = it.next();
-					if (!vec.valid)
+				for (int i = 0, n = c.size(); i < n; i++) {
+					VectorStep vec = c.get(i);
+					if (!vec.valid || vec == this)
 						continue;
 					if (!getTrack().isStepVisible(vec, trackerPanel))
 						continue;
 					p = vec.getVisibleTip();
 					if (p.distance(tail) > snapDistance)
-						continue;
-					if (vec == this)
 						continue;
 					VectorChain chain = vec.getChain();
 					if (chain == null) {
@@ -402,12 +416,12 @@ public class VectorStep extends Step implements PropertyChangeListener {
 				brandNew = false;
 			}
 			super.draw(trackerPanel, g);
-			Set<VectorStep> c = vectors.get(trackerPanel);
+			List<VectorStep> c = vectors.get(trackerPanel.id);
 			if (c == null) {
-				c = new HashSet<VectorStep>();
-				vectors.put(trackerPanel, c);
+				vectors.put(trackerPanel.id, c = new ArrayList<VectorStep>());
 			}
-			c.add(this);
+			if (!c.contains(this))
+				c.add(this);
 			if (labelVisible) {
 				TextLayout layout = textLayouts.get(trackerPanel);
 				Point p = getLayoutPosition(trackerPanel, layout);
