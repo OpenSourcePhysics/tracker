@@ -294,17 +294,6 @@ public abstract class Step implements Cloneable {
 	}
 
 	/**
-	 * Gets the screen bounds of this step on the specified tracker panel.
-	 *
-	 * @param trackerPanel the tracker panel drawing the step
-	 * @return the bounding rectangle
-	 */
-	public Rectangle getBounds(TrackerPanel trackerPanel) {
-		boolean highlighted = (trackerPanel.getFrameNumber() == n);
-		return getMark(trackerPanel).getBounds(highlighted);
-	}
-
-	/**
 	 * Gets the mark for the specified panel.
 	 *
 	 * @param trackerPanel the tracker panel
@@ -345,13 +334,6 @@ public abstract class Step implements Cloneable {
 						g.fill(selectedShape);
 						g.setPaint(gpaint);
 					}
-
-					@Override
-					public Rectangle getBounds(boolean highlighted) {
-						Rectangle bounds = selectedShape.getBounds();
-						bounds.add(stepMark.getBounds(false));
-						return bounds;
-					}
 				};
 			}
 			final Mark theMark = mark;
@@ -361,11 +343,6 @@ public abstract class Step implements Cloneable {
 					if (!valid)
 						return;
 					theMark.draw(g, false);
-				}
-
-				@Override
-				public Rectangle getBounds(boolean highlighted) {
-					return theMark.getBounds(highlighted);
 				}
 			};
 			marks.put(trackerPanel, mark);

@@ -159,18 +159,6 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           }
           g.setPaint(gpaint);
         }
-
-        @Override
-		public Rectangle getBounds(boolean highlighted) {
-          Rectangle bounds = null;
-          for (int i = 0; i < points.length; i++) {
-            if (shapes[i] != null) {
-              if (bounds == null) bounds = shapes[i].getBounds();
-              else bounds.add(shapes[i].getBounds());
-            }
-          }
-          return bounds;
-        }
       };
       marks.put(trackerPanel, mark);
     }

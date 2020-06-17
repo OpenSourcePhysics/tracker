@@ -348,15 +348,6 @@ public class CircleFitterStep extends Step {
 							g.fill(selectedShape);
 						g.setPaint(gpaint);
 					}
-
-					@Override
-					public Rectangle getBounds(boolean highlighted) {
-						Rectangle bounds = stepMark.getBounds(false);
-						if (selectedShape != null) {
-							bounds.add(selectedShape.getBounds());
-						}
-						return bounds;
-					}
 				};
 			}
 			marks.put(trackerPanel, mark);

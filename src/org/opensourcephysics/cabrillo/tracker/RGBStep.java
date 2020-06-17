@@ -167,7 +167,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       	transform.createTransformedShape(selectionShape): null;
       mark = new Mark() {
         @Override
-		public void draw(Graphics2D g, boolean highlighted) {
+        public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           g.setPaint(footprint.getColor());
           if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
@@ -178,29 +178,12 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           g.draw(rgn);
           g.setPaint(gpaint);
         }
-
-        @Override
-		public Rectangle getBounds(boolean highlighted) {
-          return rgn.getBounds();
-        }
       };
       marks.put(trackerPanel, mark);
       // center is also the hit shape
       hitShapes.put(trackerPanel, cross);
     }
     return mark;
-  }
-
-  /**
-   * Overrides Step getBounds method.
-   *
-   * @param trackerPanel the tracker panel drawing the step
-   * @return the bounding rectangle
-   */
-  @Override
-public Rectangle getBounds(TrackerPanel trackerPanel) {
-    Rectangle bounds = getMark(trackerPanel).getBounds(false);
-    return bounds;
   }
 
   /**

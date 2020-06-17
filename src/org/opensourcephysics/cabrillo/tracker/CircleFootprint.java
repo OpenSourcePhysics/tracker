@@ -202,13 +202,6 @@ public Mark getMark(Point[] points) {
         }
         g.setPaint(gpaint);
       }
-
-      @Override
-	public Rectangle getBounds(boolean highlighted) {
-        Rectangle bounds = shape.getBounds();
-        if (highlighted) bounds.add(highlight.getBounds());
-        return bounds;
-      }
     };
   }
 

@@ -171,18 +171,13 @@ public Mark getMark(Point[] points) {
     final Color color = this.color;
     return new Mark() {
       @Override
-	public void draw(Graphics2D g, boolean highlighted) {
+      public void draw(Graphics2D g, boolean highlighted) {
         Color gcolor = g.getColor();
         g.setColor(color);
         if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
         g.fill(shape);
         g.setColor(gcolor);
-      }
-
-      @Override
-	public Rectangle getBounds(boolean highlighted) {
-        return shape.getBounds();
       }
     };
   }

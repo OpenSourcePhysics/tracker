@@ -101,35 +101,17 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       
       mark = new Mark() {
         @Override
-		public void draw(Graphics2D g, boolean highlighted) {
+        public void draw(Graphics2D g, boolean highlighted) {
         	if (!valid) {
         		return;
         	}
           if (modelMark!=null) modelMark.draw(g, highlighted);
           positionMark.draw(g, highlighted);
         }
-        @Override
-		public Rectangle getBounds(boolean highlighted) {
-        	Rectangle bounds = positionMark.getBounds(highlighted);
-        	if (modelMark!=null) bounds.union(modelMark.getBounds(highlighted));
-          return bounds;
-        }
       };
       marks.put(trackerPanel, mark);
     }
     return mark;
-  }
-
-  /**
-   * Overrides Step getBounds method.
-   *
-   * @param trackerPanel the tracker panel drawing the step
-   * @return the bounding rectangle
-   */
-  @Override
-public Rectangle getBounds(TrackerPanel trackerPanel) {
-    Rectangle bounds = getMark(trackerPanel).getBounds(false);
-    return bounds;
   }
 
   /**

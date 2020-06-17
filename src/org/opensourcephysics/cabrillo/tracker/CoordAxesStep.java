@@ -258,15 +258,6 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           }
           g2.dispose();
         }
-
-        @Override
-		public Rectangle getBounds(boolean highlighted) {
-          Rectangle bounds = getTrack().trackerPanel.getBounds();
-          if (fillShapes[1] != null) {
-            bounds.add(fillShapes[1].getBounds());
-          }
-          return bounds;
-        }
       };
       marks.put(trackerPanel, mark);
     }
@@ -286,18 +277,6 @@ public int getPointIndex(TPoint p) {
   		if (p instanceof CoordAxes.AnglePoint) return 1;
   	}
     return i;
-  }
-
-  /**
-   * Overrides Step getBounds method.
-   *
-   * @param trackerPanel the tracker panel drawing the step
-   * @return the bounding rectangle
-   */
-  @Override
-public Rectangle getBounds(TrackerPanel trackerPanel) {
-    Rectangle bounds = getMark(trackerPanel).getBounds(false);
-    return bounds;
   }
 
   /**
