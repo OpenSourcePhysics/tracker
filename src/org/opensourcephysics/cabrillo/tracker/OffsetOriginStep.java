@@ -123,7 +123,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       double y = coords.worldToImageY(n, worldX, worldY);
       p.setLocation(x, y);
       // get point shape
-      Shape shape;
+      MultiShape shape;
       selection = trackerPanel.getSelectedPoint();
       Point pt = points[0].getScreenPosition(trackerPanel);
       if (selection == points[0]) { // point is selected
@@ -132,14 +132,13 @@ protected Mark getMark(TrackerPanel trackerPanel) {
         if (scale>1) {
         	transform.scale(scale, scale);
         }
-        shape = transform.createTransformedShape(selectionShape);
+        shape = new MultiShape(transform.createTransformedShape(selectionShape)).andStroke(selectionStroke);
       }
       else { // point is not selected
         shape = footprint.getShape(new Point[] {pt});
       }
       // create mark
-      final Color color = footprint.getColor();
-      final Shape fillShape = shape;
+      Color color = footprint.getColor();
       mark = new Mark() {
         @Override
         public void draw(Graphics2D g, boolean highlighted) {
@@ -147,7 +146,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
           g.setPaint(color);
-          g.fill(fillShape);
+          shape.draw(g);
           g.setPaint(gpaint);
         }
       };

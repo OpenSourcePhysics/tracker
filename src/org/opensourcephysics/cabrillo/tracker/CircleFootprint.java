@@ -378,13 +378,13 @@ public Color getColor() {
   }
 
   /**
-   * Gets the fill shape for a specified point.
+   * Gets the draw shape for a specified point.
    *
    * @param points an array of points
-   * @return the fill shape
+   * @return the draw shape
    */
   @Override
-public Shape getShape(Point[] points) {
+public MultiShape getShape(Point[] points) {
     Point p = points[0];
     transform.setToTranslation(p.x, p.y);
     int scale = FontSizer.getIntegerFactor();
@@ -400,7 +400,7 @@ public Shape getShape(Point[] points) {
     outline = outlineStroke.createStrokedShape(c);
     spot = transform.createTransformedShape(center);
     hitShapes[0] = spot; // ignored by PointMass!
-    return c;
+    return new MultiShape(c);
   }
   
   private class CircleDialog extends JDialog {

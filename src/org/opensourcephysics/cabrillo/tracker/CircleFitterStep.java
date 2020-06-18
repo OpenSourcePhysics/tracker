@@ -61,7 +61,7 @@ public class CircleFitterStep extends Step {
 	protected Map<TrackerPanel, Shape> circleHitShapes = new HashMap<TrackerPanel, Shape>();
 	protected Map<TrackerPanel, Shape> centerHitShapes = new HashMap<TrackerPanel, Shape>();
 	protected ArrayList<Map<TrackerPanel, Shape>> pointHitShapes = new ArrayList<Map<TrackerPanel, Shape>>();
-	protected Shape selectedShape;
+	protected MultiShape selectedShape;
 
 	/**
 	 * Constructs an empty CircleFitterStep.
@@ -337,15 +337,14 @@ public class CircleFitterStep extends Step {
 				if (scale > 1) {
 					transform.scale(scale, scale);
 				}
-				selectedShape = transform.createTransformedShape(selectionShape);
+				selectedShape = new MultiShape(transform.createTransformedShape(selectionShape)).andStroke(selectionStroke);
 				mark = new Mark() {
 					@Override
 					public void draw(Graphics2D g, boolean highlighted) {
 						stepMark.draw(g, false);
 						Paint gpaint = g.getPaint();
 						g.setPaint(color);
-						if (selectedShape != null)
-							g.fill(selectedShape);
+						selectedShape.draw(g);
 						g.setPaint(gpaint);
 					}
 				};
@@ -354,17 +353,16 @@ public class CircleFitterStep extends Step {
 
 			// get new hit shapes
 			Shape[] shapes = footprint.getHitShapes();
-			circleHitShapes.put(trackerPanel, shapes[0]);
-			centerHitShapes.put(trackerPanel, shapes[1]);
-			if (shapes.length - 2 < pointHitShapes.size()) {
+			centerHitShapes.put(trackerPanel, shapes[0]);
+			if (shapes.length - 1 < pointHitShapes.size()) {
 				pointHitShapes.clear();
 			}
-			for (int i = 2; i < shapes.length; i++) {
-				if (pointHitShapes.size() <= i - 1) {
+			for (int i = 1; i < shapes.length; i++) {
+				if (pointHitShapes.size() <= i) {
 					Map<TrackerPanel, Shape> newMap = new HashMap<TrackerPanel, Shape>();
 					pointHitShapes.add(newMap);
 				}
-				Map<TrackerPanel, Shape> map = pointHitShapes.get(i - 2);
+				Map<TrackerPanel, Shape> map = pointHitShapes.get(i - 1);
 				map.put(trackerPanel, shapes[i]);
 			}
 

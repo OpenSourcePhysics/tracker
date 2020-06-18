@@ -24,12 +24,10 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.event.InputEvent;
@@ -61,7 +59,6 @@ public class CoordAxesStep extends Step {
 	private boolean originEnabled = true;
 	private boolean handleEnabled = true;
 	private Map<TrackerPanel, Shape> handleShapes = new HashMap<TrackerPanel, Shape>();
-	private Shape[] fillShapes = new Shape[2];
 	private GeneralPath path = new GeneralPath();
 
 	/**
@@ -206,9 +203,8 @@ public class CoordAxesStep extends Step {
 	@Override
 	protected Mark getMark(TrackerPanel trackerPanel) {
 		Mark mark = marks.get(trackerPanel);
-		TPoint selection = null;
 		if (mark == null) {
-			selection = trackerPanel.getSelectedPoint();
+			TPoint selection = trackerPanel.getSelectedPoint();
 			// set origin location to coords origin
 			ImageCoordSystem coords = trackerPanel.getCoords();
 			int n = trackerPanel.getFrameNumber();
@@ -220,7 +216,7 @@ public class CoordAxesStep extends Step {
 			origin.setLocation(x, y);
 			// get default axes shape and handle hit shape (positive x-axis)
 			Point p0 = screenPoints[0] = origin.getScreenPosition(trackerPanel);
-			fillShapes[0] = footprint.getShape(screenPoints);
+			Shape axesShape = footprint.getShape(screenPoints);
 			path.reset();
 			path.moveTo(p0.x + 15, p0.y);
 			path.lineTo(p0.x + 500, p0.y);
@@ -229,47 +225,45 @@ public class CoordAxesStep extends Step {
 			if (trackerPanel.isDrawingInImageSpace()) {
 				double angle = coords.getAngle(n);
 				transform.setToRotation(-angle, p0.x, p0.y);
-				fillShapes[0] = transform.createTransformedShape(fillShapes[0]);
+				if (axesShape instanceof MultiShape) {
+					axesShape = ((MultiShape)axesShape).transform(transform);
+				} else {
+					axesShape = transform.createTransformedShape(axesShape);
+				}
 				hitShape = transform.createTransformedShape(hitShape);
 			}
 			handleShapes.put(trackerPanel, hitShape);
 			// get selected point shape, if any
 			int scale = FontSizer.getIntegerFactor();
+			Shape selectedShape = null;
 			if (selection == origin) {
 				transform.setToTranslation(p0.x, p0.y);
 				if (scale > 1) {
 					transform.scale(scale, scale);
 				}
-				fillShapes[1] = transform.createTransformedShape(selectionShape);
+				selectedShape = transform.createTransformedShape(selectionShape);
 			} else if (selection == handle) {
 				Point p1 = handle.getScreenPosition(trackerPanel);
 				transform.setToTranslation(p1.x, p1.y);
 				if (scale > 1) {
 					transform.scale(scale, scale);
 				}
-				fillShapes[1] = transform.createTransformedShape(selectionShape);
-			} else
-				fillShapes[1] = null;
+				selectedShape = transform.createTransformedShape(selectionShape);
+			}
+			
 			// create mark to draw fillShapes
 			final Color color = footprint.getColor();
+			final MultiShape shape = selectedShape == null? new MultiShape(axesShape).andFill(true)
+					: new MultiShape(axesShape, selectedShape).andFill(true).andStroke(null, selectionStroke);
+			
 			mark = new Mark() {
 				@Override
 				public void draw(Graphics2D g, boolean highlighted) {
 					Graphics2D g2 = (Graphics2D) g.create();
 					g2.setPaint(color);
-					g2.setStroke(new BasicStroke(2f));
 					if (OSPRuntime.setRenderingHints)
 						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-					for (int i = 0; i < 2; i++) {
-						if (fillShapes[i] != null) {
-							// BH 2020.05.11 for some reason, HTML5 needs to draw this
-							// the lines are very close together, and it seems to miss them.
-							if (OSPRuntime.drawDontFillAxes)
-								g2.draw(fillShapes[i]);
-							else
-								g2.fill(fillShapes[i]);
-						}
-					}
+					shape.draw(g2);
 					g2.dispose();
 				}
 			};

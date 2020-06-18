@@ -99,7 +99,7 @@ public class MultiLineFootprint extends LineFootprint {
 	 * @return the shape
 	 */
 	@Override
-	public Shape getShape(Point[] points) {
+	public MultiShape getShape(Point[] points) {
 		int scale = FontSizer.getIntegerFactor();
 		if (stroke == null || stroke.getLineWidth() != scale * baseStroke.getLineWidth()) {
 			stroke = new BasicStroke(scale * baseStroke.getLineWidth());

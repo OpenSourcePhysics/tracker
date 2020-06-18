@@ -143,6 +143,7 @@ public class LineFootprint implements Footprint, Cloneable {
 		Shape shape = getShape(points);
 		ShapeIcon icon = new ShapeIcon(shape, w, h);
 		icon.setColor(color);
+		icon.setStroke(stroke);
 		return icon;
 	}
 
@@ -162,7 +163,9 @@ public class LineFootprint implements Footprint, Cloneable {
 			@Override
 			public void draw(Graphics2D g, boolean highlighted) {
 				Color gcolor = g.getColor();
+				Stroke gstroke = g.getStroke();
 				g.setColor(color);
+				g.setStroke(stroke);
 				if (OSPRuntime.setRenderingHints)
 					g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -175,6 +178,7 @@ public class LineFootprint implements Footprint, Cloneable {
 					g.fill(highlight);
 				}
 				g.setColor(gcolor);
+				g.setStroke(gstroke);
 			}
 
 
@@ -262,18 +266,35 @@ public class LineFootprint implements Footprint, Cloneable {
 	 * @return the shape
 	 */
 	@Override
-	public Shape getShape(Point[] points) {
-		Point p1 = points[0];
-		Point p2 = points[1];
-		line.setLine(p1, p2);
-		hitShapes[0] = new Rectangle(p1.x - 1, p1.y - 1, 2, 2); // for p1
-		hitShapes[1] = new Rectangle(p2.x - 1, p2.y - 1, 2, 2); // for p2
-		hitShapes[2] = (Line2D.Double) line.clone(); // for line
+	public MultiShape getShape(Point[] points) {
 		int scale = FontSizer.getIntegerFactor();
 		if (stroke == null || stroke.getLineWidth() != scale * baseStroke.getLineWidth()) {
 			stroke = new BasicStroke(scale * baseStroke.getLineWidth());
 		}
-		return stroke.createStrokedShape(line);
+		float lineWidth = stroke.getLineWidth();
+		Point p1 = points[0];
+		Point p2 = points[1];
+		// set up transform
+		double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);
+		transform.setToRotation(theta, p2.x, p2.y);
+		transform.translate(p2.x, p2.y);
+		
+		double d = p1.distance(p2); // length of the line
+		//set up hit shapes
+		hitShapes[0] = new Rectangle(p1.x - 1, p1.y - 1, 2, 2); // for p1
+		hitShapes[1] = new Rectangle(p2.x - 1, p2.y - 1, 2, 2); // for p2
+		line.setLine(p1, p2);
+		hitShapes[2] = (Line2D.Double) line.clone(); // for line
+		// set up draw shape
+		synchronized (path) {
+			path.reset();
+			path.moveTo(0, 0.5*lineWidth);
+			path.lineTo(d, 0.5*lineWidth);
+			path.lineTo(d, -0.5*lineWidth);
+			path.lineTo(0, -0.5*lineWidth);
+			path.closePath();
+		}
+		return new MultiShape(transform.createTransformedShape(path)).andFill(true);
 	}
 
 	// static fields

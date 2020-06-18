@@ -318,13 +318,17 @@ protected Mark getMark(TrackerPanel trackerPanel) {
         selectedShape = transform.createTransformedShape(selectionShape);
         mark = new Mark() {
           @Override
-		public void draw(Graphics2D g, boolean highlighted) {
+          public void draw(Graphics2D g, boolean highlighted) {
             stepMark.draw(g, false);
-            Paint gpaint = g.getPaint();
-            g.setPaint(color);
-            if (selectedShape != null) 
-            	g.fill(selectedShape);
-            g.setPaint(gpaint);
+            if (selectedShape != null) {
+  						Paint gpaint = g.getPaint();
+  						Stroke gstroke = g.getStroke();
+  						g.setPaint(color);
+  						g.setStroke(selectionStroke);
+  						g.draw(selectedShape);
+  						g.setPaint(gpaint);
+  						g.setStroke(gstroke);
+            }
           }
         };
       }

@@ -562,16 +562,16 @@ public class VectorStep extends Step implements PropertyChangeListener {
 				if (scale > 1) {
 					transform.scale(scale, scale);
 				}
-				final Color color = footprint.getColor();
-				final Mark stepMark = mark;
-				final Shape selectedShape = transform.createTransformedShape(selectionShape);
+				Color color = footprint.getColor();
+				Mark stepMark = mark;
+				MultiShape selectedShape = new MultiShape(transform.createTransformedShape(selectionShape)).andStroke(selectionStroke);
 				mark = new Mark() {
 					@Override
 					public void draw(Graphics2D g, boolean highlighted) {
 						stepMark.draw(g, highlighted);
 						Paint gpaint = g.getPaint();
 						g.setPaint(color);
-						g.fill(selectedShape);
+						selectedShape.draw(g);
 						g.setPaint(gpaint);
 					}
 				};

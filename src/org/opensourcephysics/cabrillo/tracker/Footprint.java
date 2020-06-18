@@ -85,7 +85,7 @@ public interface Footprint {
    * @param points a Point array
    * @return the shape
    */
-  public Shape getShape(Point[] points);
+  public MultiShape getShape(Point[] points);
 
   /**
    * Sets the stroke. Accepts only basic strokes.

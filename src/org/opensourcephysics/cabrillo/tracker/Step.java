@@ -61,6 +61,7 @@ public abstract class Step implements Cloneable {
 	// static fields
 	protected static Rectangle hitRect = new Rectangle(-4, -4, 8, 8);
 	protected static Shape selectionShape;
+	protected static Stroke selectionStroke;
 	protected static AffineTransform transform = new AffineTransform();
 	protected static NumberFormat format = NumberFormat.getNumberInstance(Locale.US);
 	protected static Font textLayoutFont = new JTextField().getFont();
@@ -69,8 +70,8 @@ public abstract class Step implements Cloneable {
 			false); // no fractional metrics
 
 	static {
-		Stroke stroke = new BasicStroke(2);
-		selectionShape = stroke.createStrokedShape(hitRect);
+		selectionStroke = new BasicStroke(2);
+		selectionShape = (Rectangle)hitRect.clone();
 		format.setMinimumIntegerDigits(1);
 		format.setMinimumFractionDigits(1);
 		format.setMaximumFractionDigits(2);
@@ -316,22 +317,23 @@ public abstract class Step implements Cloneable {
 					p = screenPoints[n];
 			}
 			mark = footprint.getMark(screenPoints);
+			
 			if (p != null) { // point is selected, so draw selection shape
 				transform.setToTranslation(p.x, p.y);
 				int scale = FontSizer.getIntegerFactor();
 				if (scale > 1) {
 					transform.scale(scale, scale);
 				}
-				final Color color = footprint.getColor();
-				final Mark stepMark = mark;
-				final Shape selectedShape = transform.createTransformedShape(selectionShape);
+				Color color = footprint.getColor();
+				Mark stepMark = mark;
+				MultiShape selectedShape = new MultiShape(transform.createTransformedShape(selectionShape)).andStroke(selectionStroke);
 				mark = new Mark() {
 					@Override
 					public void draw(Graphics2D g, boolean highlighted) {
 						stepMark.draw(g, false);
 						Paint gpaint = g.getPaint();
 						g.setPaint(color);
-						g.fill(selectedShape);
+						selectedShape.draw(g);
 						g.setPaint(gpaint);
 					}
 				};

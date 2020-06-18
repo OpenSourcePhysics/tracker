@@ -246,16 +246,16 @@ protected Mark getMark(TrackerPanel trackerPanel) {
         	transform.scale(scale, scale);
         }
         s = transform.createTransformedShape(selectionShape);
-        final Color color = footprint.getColor();
-        final Mark stepMark = mark;
-        final Shape selectedShape = s;
+        Color color = footprint.getColor();
+        Mark stepMark = mark;
+        MultiShape selectedShape = new MultiShape(s).andStroke(selectionStroke);
         mark = new Mark() {
           @Override
-		public void draw(Graphics2D g, boolean highlighted) {
+          public void draw(Graphics2D g, boolean highlighted) {
             stepMark.draw(g, false);
             Paint gpaint = g.getPaint();
             g.setPaint(color);
-            g.fill(selectedShape);
+            selectedShape.draw(g);
             g.setPaint(gpaint);
           }
         };

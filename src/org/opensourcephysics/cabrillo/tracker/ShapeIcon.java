@@ -28,6 +28,7 @@ import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.*;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.OSPRuntime;
 
 /**
@@ -46,6 +47,7 @@ public class ShapeIcon implements Icon {
   private Color decoColor = Color.black;
   private double offsetX;	// centers the shape horizontally
   private double offsetY;	// centers the shape vertically
+  private BasicStroke stroke;
 
   /**
    * Constructs a ShapeIcon.
@@ -99,6 +101,15 @@ public class ShapeIcon implements Icon {
   }
 
   /**
+   * Sets the stroke.
+   *
+   * @param stroke
+   */
+  public void setStroke(BasicStroke stroke) {
+    this.stroke = stroke;
+  }
+
+  /**
    * Gets the icon width.
    *
    * @return the icon width
@@ -142,7 +153,15 @@ public void paintIcon(Component c, Graphics _g, int x, int y) {
 
     // paint shape, if any
     if (shape!=null) {
-    	g.fill(at.createTransformedShape(shape));
+    	if (shape instanceof MultiShape) {
+    		Stroke gstroke = g.getStroke();
+    		if (stroke != null ) {
+    			g.setStroke(stroke);
+    		}
+				((MultiShape) shape).transform(at).draw(g);
+				g.setStroke(gstroke);
+    	} else
+    		g.fill(at.createTransformedShape(shape));
     }
     
     // paint decoration, if any

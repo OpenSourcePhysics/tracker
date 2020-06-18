@@ -130,6 +130,7 @@ public Icon getIcon(int w, int h) {
     Shape shape = getShape(points);
     ShapeIcon icon = new ShapeIcon(shape, w, h);
     icon.setColor(color);
+		icon.setStroke(stroke);
     return icon;
   }
 
@@ -140,7 +141,7 @@ public Icon getIcon(int w, int h) {
    * @return the shape
    */
   @Override
-public synchronized Shape getShape(Point[] points) {
+public synchronized MultiShape getShape(Point[] points) {
     Point p1 = points[0];
     Point p2 = points[1];
     if (points.length>3) {
@@ -212,20 +213,13 @@ public synchronized Shape getShape(Point[] points) {
 			path.lineTo(d-tipL, tipW);
 			path.closePath();
 			Shape head = transform.createTransformedShape(path);
-			if (true || OSPRuntime.isJS) {
-				return new MultiShape(shaft, head).andFill(false, !openHead);
-			} else {
-				Area area = new Area(stroke.createStrokedShape(shaft));
-				if (!openHead) {
-					area.add(new Area(head));
-				}
-				area.add(new Area(headStroke.createStrokedShape(head)));
-				return area;
-			}
+
+			return new MultiShape(shaft, head).andFill(false, !openHead);
+			
 		} catch (Exception e) { // occasionally throws path exception for reasons unknown!
 	    d = (float)(p1.distance(p2));
 			java.awt.geom.Line2D line = new java.awt.geom.Line2D.Double(0, 0, d, 0); 
-			return stroke.createStrokedShape(transform.createTransformedShape(line));
+			return new MultiShape(transform.createTransformedShape(line));
 		}
   }
 }

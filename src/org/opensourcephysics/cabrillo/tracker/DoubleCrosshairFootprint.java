@@ -25,8 +25,6 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
-import java.awt.geom.Area;
-import java.awt.geom.Line2D;
 
 import javax.swing.Icon;
 
@@ -87,24 +85,14 @@ public class DoubleCrosshairFootprint extends LineFootprint {
    */
   @Override
 public Icon getIcon(int w, int h) {
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
-  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
-  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
-  	}
-  	transform.setToScale(scale, scale);
-    Shape target = stroke.createStrokedShape(transform.createTransformedShape(targetShape));
-    Area area = new Area(target);
-    double x0 = scale*(size+2)-w;
-    double y0 = h-scale*(size+2);
-    double d = Math.sqrt(x0*x0+y0*y0);
-    double x1 = x0*scale*size/d;
-    double y1 = y0*scale*size/d;
-    Line2D line = new Line2D.Double(x0, y0, x1, y1);
-    area.add(new Area(stroke.createStrokedShape(line)));
-    ShapeIcon icon = new ShapeIcon(area, w, h);
-    icon.setColor(color);
+		int scale = FontSizer.getIntegerFactor();
+		w *= scale;
+		h *= scale;
+		Point[] points = new Point[] { new Point(), new Point(w - 2, 2 - h) };
+		Shape shape = getShape(points, false);
+		ShapeIcon icon = new ShapeIcon(shape, w, h);
+		icon.setColor(color);
+		icon.setStroke(stroke);
     return icon;
   }
 
@@ -126,17 +114,32 @@ public void setStroke(BasicStroke stroke) {
    * @return the shape
    */
   @Override
-public Shape getShape(Point[] points) {
+public MultiShape getShape(Point[] points) {
+    return getShape(points, true);
+  }
+  
+  /**
+   * Gets the shape of this footprint.
+   *
+   * @param points an array of Points
+   * @param bothEnds true to draw both ends (single end used for icon)
+   * @return the shape
+   */
+  private MultiShape getShape(Point[] points, boolean bothEnds) {
     Point p1 = points[0];
     Point p2 = points[1];
-    
-    // set up end shapes
-    transform.setToTranslation(p1.x, p1.y);
     int scale = FontSizer.getIntegerFactor();
+    // for line shapes
+    float d = (float)p1.distance(p2); // distance between ends
+    float center = d/2; // center point
+    float l = Math.max(d - scale*2*(size+3), size); // line length
+    
+    // set up crosshair end shapes
+    transform.setToTranslation(p1.x, p1.y);
     if (scale>1) {
     	transform.scale(scale, scale);
     }
-    Shape target1 = transform.createTransformedShape(targetShape);
+    Shape target1 = transform.createTransformedShape(targetShape);    
     hitShapes[0] = transform.createTransformedShape(hitShape); // end1
     transform.setToTranslation(p2.x, p2.y);
     if (scale>1) {
@@ -145,34 +148,32 @@ public Shape getShape(Point[] points) {
     Shape target2 = transform.createTransformedShape(targetShape);
     hitShapes[1] = transform.createTransformedShape(hitShape); // end2
     
-    // set up line shapes
-    float d = (float)p1.distance(p2); // distance between ends
-    float center = d/2; // center point
-    float l = Math.max(d - scale*2*(size+3), size); // line length
-    float f = 0.45f; // hit shape is 90% of line length
-    path.reset();
-    path.moveTo(center - f*l, 0);
-    path.lineTo(center + f*l, 0);
     double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);
     if (Double.isNaN(theta)) {
     	theta = 0;
     }
     transform.setToRotation(theta, p2.x, p2.y);
     transform.translate(p2.x, p2.y);
-    hitShapes[2] = transform.createTransformedShape(path); // line    
+    
+  	// set up line shapes
+    float f = 0.45f; // hit shape is 90% of line length
+    path.reset();
+    path.moveTo(center - f*l, 0);
+    path.lineTo(center + f*l, 0);
+    hitShapes[2] = transform.createTransformedShape(path); // line  
+    
     path.reset();
     path.moveTo(center - l/2, 0);
     path.lineTo(center + l/2, 0);
     Shape line = transform.createTransformedShape(path);
     
-    // set up drawing area
+    // set up stroke
   	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
   		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
   	}
-  	return new MultiShape(target1, target2, line);
-//    Area area = new Area(stroke.createStrokedShape(target1));
-//    area.add(new Area(stroke.createStrokedShape(target2)));
-//    area.add(new Area(stroke.createStrokedShape(line)));
-//    return area;
+  	
+    // return draw shape
+  	return bothEnds? new MultiShape(line, target1, target2): new MultiShape(line, target2);
   }
+
 }

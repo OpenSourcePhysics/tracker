@@ -129,7 +129,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       }
       // get point shapes
       selection = trackerPanel.getSelectedPoint();
-      final Shape[] shapes = new Shape[points.length];
+      final MultiShape[] shapes = new MultiShape[points.length];
       for (int i = 0; i < points.length; i++) {
         if (points[i] == null) continue;
         Point p = points[i].getScreenPosition(trackerPanel);
@@ -139,7 +139,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           if (scale>1) {
           	transform.scale(scale, scale);
           }
-          shapes[i] = transform.createTransformedShape(selectionShape);
+          shapes[i] = new MultiShape(transform.createTransformedShape(selectionShape)).andStroke(selectionStroke);
         }
         else { // point not selected
           shapes[i] = footprint.getShape(new Point[] {p});
@@ -149,13 +149,13 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       final Color color = footprint.getColor();
       mark = new Mark() {
         @Override
-		public void draw(Graphics2D g, boolean highlighted) {
+        public void draw(Graphics2D g, boolean highlighted) {
           Paint gpaint = g.getPaint();
           g.setPaint(color);
           if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
               RenderingHints.VALUE_ANTIALIAS_ON);
           for (int i = 0; i < points.length; i++) {
-            if (shapes[i] != null) g.fill(shapes[i]);
+            if (shapes[i] != null) shapes[i].draw(g);
           }
           g.setPaint(gpaint);
         }

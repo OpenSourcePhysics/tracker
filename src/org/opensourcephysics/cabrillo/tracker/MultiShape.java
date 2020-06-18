@@ -3,10 +3,12 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Arrays;
 
 /**
  * A simple class that allows for a set of shapes, each of which can be
@@ -43,20 +45,41 @@ import java.awt.geom.Rectangle2D;
  */
 class MultiShape implements Shape {
 
-	MultiShape(Shape... shapes) {
+	private Shape[] shapes;
+	private boolean[] fills;
+	private Stroke[] strokes;
+	
+  /**
+   * Constructor.
+   *
+   * @param shapes the shapes
+   */
+	public MultiShape(Shape... shapes) {
 		this.shapes = shapes;
 	}
 
-
+  /**
+   * Fills shapes rather than drawing them.
+   *
+   * @param fills true elements fill the corresponding shape in the constructor
+   * @return this MultiShape
+   */
 	public MultiShape andFill(boolean... fills) {
 		this.fills = fills;
 		return this;
 	}
 
+  /**
+   * Specifies Strokes to use when drawing.
+   *
+   * @param strokes the Strokes for the corresponding shapes in the constructor
+   * @return this MultiShape
+   */
+	public MultiShape andStroke(Stroke... strokes) {
+		this.strokes = strokes;
+		return this;
+	}
 
-	private Shape[] shapes;
-	private boolean[] fills;
-	
 	@Override
 	public Rectangle getBounds() {
 		Rectangle r = shapes[0].getBounds();
@@ -132,14 +155,96 @@ class MultiShape implements Shape {
 		return shapes[0].getPathIterator(at, flatness);
 	}
 
+  /**
+   * Draws the shapes.
+   *
+   * @param g graphics context
+   */
 	public void draw(Graphics2D g) {
 		for (int i = shapes.length; --i >= 0;) {
-			if (fills != null && i < fills.length && fills[i])
+			if (shapes[i] instanceof MultiShape) {
+				((MultiShape) shapes[i]).draw(g);
+			}
+			else if (fills != null && i < fills.length && fills[i])
 				g.fill(shapes[i]);
-			else
+			else if (strokes != null && i < strokes.length && strokes[i] != null) {
+				Stroke gstroke = g.getStroke();
+				g.setStroke(strokes[i]);
 				g.draw(shapes[i]);
+				g.setStroke(gstroke);
+			} else
+				g.draw(shapes[i]);
+		}		
+	}
+	
+  /**
+   * Transforms the shapes.
+   *
+   * @param transform the AffineTransform
+   * @return a new transformed MultiShape
+   */
+	public MultiShape transform(AffineTransform transform) {
+		Shape[] transformedShapes = new Shape[shapes.length];
+		for (int i = 0; i < shapes.length; i++) {
+			if (shapes[i] instanceof MultiShape) {
+				transformedShapes[i] = ((MultiShape) shapes[i]).transform(transform);
+			} else {
+				transformedShapes[i] = transform.createTransformedShape(shapes[i]);
+			}
 		}
-		
+		MultiShape shape = new MultiShape(transformedShapes);
+		if (fills != null)
+			shape.andFill(fills);
+		if (strokes != null)
+			shape.andStroke(strokes);
+		return shape;
+	}
+	
+  /**
+   * Adds a draw shape.
+   *
+   * @param shape the shape to add
+   * @param stroke the draw Stroke, may be null
+   * @return this MultiShape
+   */
+	public MultiShape addDrawShape(Shape shape, Stroke stroke) {
+		if (shape != null) {
+			int newLength = shapes.length + 1;
+			shapes = Arrays.copyOf(shapes, newLength);
+			shapes[newLength-1] = shape;
+			if (stroke != null) {
+				if (strokes != null) {
+					strokes = Arrays.copyOf(strokes, newLength);
+				}
+				else {
+					strokes = new Stroke[newLength];
+				}
+				strokes[newLength-1] = stroke;
+			}
+		}
+		return this;
+	}
+	
+  /**
+   * Adds a fill shape.
+   *
+   * @param shape the shape to add
+   * @return this MultiShape
+   */
+	public MultiShape addFillShape(Shape shape) {
+		if (shape != null) {
+			int newLength = shapes.length + 1;
+			shapes = Arrays.copyOf(shapes, newLength);
+			shapes[newLength-1] = shape;
+			if (fills != null) {
+				fills = Arrays.copyOf(fills, newLength);
+			}
+			else {
+				fills = new boolean[newLength];
+			}
+			fills[newLength-1] = true;
+		}
+		return this;
 	}
 	
 }

@@ -59,7 +59,7 @@ public class PositionVectorFootprint extends PointShapeFootprint {
    * @return the fill shape
    */
   @Override
-public Shape getShape(Point[] points) {
+public MultiShape getShape(Point[] points) {
   	super.getShape(points); // this sets up hitShapes[] at vector tip
     return arrow.getShape(points);
   }

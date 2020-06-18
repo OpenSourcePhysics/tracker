@@ -101,19 +101,20 @@ public void setStroke(BasicStroke stroke) {
   }
 
   /**
-   * Gets the shape of this footprint.
+   * Gets the draw shape of this footprint.
    *
    * @param points an array of Points
-   * @return the shape
+   * @return the draw shape
    */
   @Override
-public Shape getShape(Point[] points) {
+public MultiShape getShape(Point[] points) {
     Point p1 = points[0];
     Point p2 = points[1];
     double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);
     transform.setToRotation(theta, p2.x, p2.y);
     transform.translate(p2.x, p2.y);
     float d = (float)p1.distance(p2); // length of the line
+    
     // create outline
     path.reset();
     path.moveTo(0, -1 - spread);
@@ -121,6 +122,7 @@ public Shape getShape(Point[] points) {
     path.lineTo(d, 1 + spread);
     path.lineTo(d, -1 - spread);
     path.closePath();
+    
     // handle marker
     int w = Math.min(spread + 1, 4);
     path.moveTo(d/2, w);
@@ -137,7 +139,9 @@ public Shape getShape(Point[] points) {
   	if (stroke==null || stroke.getLineWidth()!=lineWidth) {
   		stroke = new BasicStroke(lineWidth);
   	}
+  	
     outline = stroke.createStrokedShape(outline);
+    
     // ceate hitshapes
     path.reset();
     path.moveTo(d, -1 - spread);
@@ -153,7 +157,8 @@ public Shape getShape(Point[] points) {
     path.moveTo(d * (0.5f + f), 0);
     path.lineTo(d * (0.5f - f), 0);
     hitShapes[2] = transform.createTransformedShape(path); // sides
-    return outline;
+    
+    return new MultiShape(outline);
   }
 }
 

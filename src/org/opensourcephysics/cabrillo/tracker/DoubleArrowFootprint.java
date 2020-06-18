@@ -25,11 +25,8 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
-import java.awt.geom.Area;
-
 import javax.swing.Icon;
 
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -115,7 +112,7 @@ public class DoubleArrowFootprint extends LineFootprint {
 	 * @return the shape
 	 */
 	@Override
-	public Shape getShape(Point[] points) {
+	public MultiShape getShape(Point[] points) {
 		return getShape(points, true);
 	}
 
@@ -126,7 +123,7 @@ public class DoubleArrowFootprint extends LineFootprint {
 	 * @param bothEnds true to draw both ends
 	 * @return the shape
 	 */
-	private Shape getShape(Point[] points, boolean bothEnds) {
+	private MultiShape getShape(Point[] points, boolean bothEnds) {
 		Point p1 = points[0];
 		Point p2 = points[1];
 		double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);
@@ -134,8 +131,6 @@ public class DoubleArrowFootprint extends LineFootprint {
 		transform.translate(p2.x, p2.y);
 		float d = (float) p1.distance(p2); // length of the line
 		// set arrowhead dimensions and stroke
-//    int tiplen = tipLength*scale;
-//    int tipL = Math.min(tiplen, Math.round(d-4));
 		int scale = FontSizer.getIntegerFactor();
 		int tipL = tipLength * scale;
 		if (bothEnds)
@@ -174,17 +169,22 @@ public class DoubleArrowFootprint extends LineFootprint {
 			path.moveTo(center - 0.45f * l, 0);
 			path.lineTo(center + 0.45f * l, 0);
 			hitShapes[2] = transform.createTransformedShape(path); // for shaft
-			// shorten d to account for the width of the stroke
+			// if open head, shorten d to account for the width of the stroke
 			// see Java 2D API Graphics, by VJ Hardy (Sun, 2000) page 147
-			float w = (float) (stroke.getLineWidth() * 1.58) - 1;
+//			float w = openHead? (float) (lineWidth * 1.58) - 1: 0;
+			
+			// DB 2020/06/17 changed multiplier to 2 for better results with MultiShape 
+			float w = openHead? (float) (lineWidth * 2) - 1: 0;
 			d = d - w;
 
 			// set up draw shape
 			path.reset();
-			path.moveTo(tipL + w - tipW, 0);
-			path.lineTo(bothEnds ? d - tipL + tipW : d, 0);
+			path.moveTo(tipL + w - tipW, 0.5f*lineWidth);
+			path.lineTo(bothEnds ? d - tipL + tipW : d, 0.5f*lineWidth);
+			path.lineTo(bothEnds ? d - tipL + tipW : d, -0.5f*lineWidth);
+			path.lineTo(tipL + w - tipW, -0.5f*lineWidth);
+			path.closePath();
 			Shape shaft = transform.createTransformedShape(path);
-			shaft = stroke.createStrokedShape(shaft);
 			path.reset();
 			path.moveTo(w + tipL - tipW, 0);
 			path.lineTo(w + tipL, tipW);
@@ -203,21 +203,8 @@ public class DoubleArrowFootprint extends LineFootprint {
 				end2 = transform.createTransformedShape(path);
 			}
 
-//			if (true || OSPRuntime.isJS) {
-				return (end2 == null ? new MultiShape(shaft, end1).andFill(false, !openHead)
-						:new MultiShape(shaft, end1, end2).andFill(false, !openHead, !openHead));
-//			}
-//			Area area = null;
-//			area = new Area(shaft);
-//			if (!openHead) {
-//				area.add(new Area(end1));
-//			}
-//			area.add(new Area(headStroke.createStrokedShape(end1)));
-//			if (!openHead) {
-//				area.add(new Area(end2));
-//			}
-//			area.add(new Area(headStroke.createStrokedShape(end2)));
-//			return area;
+			return (end2 == null ? new MultiShape(shaft, end1).andFill(true, !openHead)
+					:new MultiShape(shaft, end1, end2).andFill(true, !openHead, !openHead));
 		}
 	}
 

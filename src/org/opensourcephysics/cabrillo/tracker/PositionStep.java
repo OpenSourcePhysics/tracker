@@ -215,17 +215,20 @@ public class PositionStep extends Step {
 				if (scale > 1) {
 					transform.scale(scale, scale);
 				}
-				final Color color = footprint.getColor();
-				final Shape selectedShape = transform.createTransformedShape(selectionShape);
+				Color color = footprint.getColor();
+				Shape selectedShape = transform.createTransformedShape(selectionShape);
 				mark = new Mark() {
 					@Override
 					public void draw(Graphics2D g, boolean highlighted) {
 						if (OSPRuntime.setRenderingHints)
 							g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 						Paint gpaint = g.getPaint();
+						Stroke gstroke = g.getStroke();
 						g.setPaint(color);
-						g.fill(selectedShape);
+						g.setStroke(selectionStroke);
+						g.draw(selectedShape);
 						g.setPaint(gpaint);
+						g.setStroke(gstroke);
 					}
 				};
 			}

@@ -172,9 +172,15 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           g.setPaint(footprint.getColor());
           if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, 
           		RenderingHints.VALUE_ANTIALIAS_ON);
-          g.setStroke(stroke);
-          if (square != null) g.fill(square);
-          else g.draw(cross);
+          if (square != null) {
+						g.setStroke(selectionStroke);
+						g.draw(square);
+						g.setStroke(stroke);
+          }
+          else {
+	          g.setStroke(stroke);
+          	g.draw(cross);
+          }
           g.draw(rgn);
           g.setPaint(gpaint);
         }

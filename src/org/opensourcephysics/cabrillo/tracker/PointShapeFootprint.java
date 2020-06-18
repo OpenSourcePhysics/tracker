@@ -45,6 +45,7 @@ public class PointShapeFootprint implements Footprint, Cloneable {
   protected AffineTransform transform = new AffineTransform();
   protected BasicStroke baseStroke = new BasicStroke();
   protected BasicStroke stroke;
+  protected BasicStroke highlightStroke = new BasicStroke(2);
   protected Color color = Color.black;
   protected Shape[] hitShapes = new Shape[1];
 //  protected double defaultWidth = 1;
@@ -122,6 +123,7 @@ public Icon getIcon(int w, int h) {
 	  Shape shape = getShape(new Point[] {new Point()});
 	  ShapeIcon icon = new ShapeIcon(shape, w, h);
 	  icon.setColor(color);
+	  icon.setStroke(stroke);
 	  return icon;
   }
 
@@ -137,14 +139,25 @@ public Mark getMark(Point[] points) {
     final Shape highlight = this.highlight;
     return new Mark() {
       @Override
-	public void draw(Graphics2D g, boolean highlighted) {
+      public void draw(Graphics2D g, boolean highlighted) {
         Paint gpaint = g.getPaint();
+        Stroke gstroke = g.getStroke();
+        if (stroke != null)
+        	g.setStroke(stroke);
         g.setPaint(color);
         if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
-        g.fill(shape);
-        if (highlighted) g.fill(highlight);
+        if (shape instanceof MultiShape) {
+        	((MultiShape) shape).draw(g);
+        } else {
+        	g.fill(shape);
+        }
+        if (highlighted) {
+        	g.setStroke(highlightStroke);
+        	g.draw(highlight);
+        }
         g.setPaint(gpaint);
+        g.setStroke(gstroke);
       }
     };
   }
@@ -224,7 +237,7 @@ public Color getColor() {
    * @return the fill shape
    */
   @Override
-public Shape getShape(Point[] points) {
+public MultiShape getShape(Point[] points) {
     Point p = points[0];
     transform.setToTranslation(p.x, p.y);
     int scale = FontSizer.getIntegerFactor();
@@ -237,10 +250,10 @@ public Shape getShape(Point[] points) {
     	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
     		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
     	}
-      transformedShape = stroke.createStrokedShape(transformedShape);
     }
     hitShapes[0] = transformedShape;
-    return transformedShape;
+    return stroke != null ? new MultiShape(transformedShape)
+    		: new MultiShape(transformedShape).andFill(true);
   }
 
   // static fields
@@ -248,7 +261,7 @@ public Shape getShape(Point[] points) {
   		= new HashSet<PointShapeFootprint>();
 
   // static constants
-  private static final Shape HIGHLIGHT;
+  private static final Ellipse2D HIGHLIGHT;
   private static final PointShapeFootprint DIAMOND;
   private static final PointShapeFootprint BOLD_DIAMOND;
   private static final PointShapeFootprint SOLID_DIAMOND;
@@ -277,10 +290,8 @@ public Shape getShape(Point[] points) {
     float w = 3000; // pixel length of axes and line shapes
 
     // HIGHLIGHT
-    Ellipse2D circle = new Ellipse2D.Double();
-    circle.setFrame(-6, -6, 12, 12);
-    Stroke stroke = new BasicStroke(2);
-    HIGHLIGHT = stroke.createStrokedShape(circle);
+    HIGHLIGHT = new Ellipse2D.Double();
+    HIGHLIGHT.setFrame(-6, -6, 12, 12);
 
     // DIAMOND
     GeneralPath diamond = new GeneralPath();
@@ -314,6 +325,7 @@ public Shape getShape(Point[] points) {
     footprints.add(SOLID_TRIANGLE);
 
     // CIRCLE
+    Ellipse2D circle = new Ellipse2D.Double();
     circle.setFrame(-5, -5, 10, 10);
     CIRCLE = new PointShapeFootprint("Footprint.Circle", circle); //$NON-NLS-1$
     footprints.add(CIRCLE);

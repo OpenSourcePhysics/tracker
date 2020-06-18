@@ -167,17 +167,20 @@ public Icon getIcon(int w, int h) {
    */
   @Override
 public Mark getMark(Point[] points) {
-    final Shape shape = getShape(points);
+    final MultiShape shape = getShape(points);
     final Color color = this.color;
     return new Mark() {
       @Override
       public void draw(Graphics2D g, boolean highlighted) {
         Color gcolor = g.getColor();
+        Stroke gstroke = g.getStroke();
         g.setColor(color);
+        g.setStroke(stroke);
         if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
-        g.fill(shape);
+        shape.draw(g);
         g.setColor(gcolor);
+        g.setStroke(gstroke);
       }
     };
   }
@@ -300,22 +303,14 @@ public Color getColor() {
    * @return the shape
    */
   @Override
-public Shape getShape(Point[] points) {
+public MultiShape getShape(Point[] points) {
     Point vertex = points[0];
     Point end1 = points[1];
     Point end2 = points[2];
     int scale = FontSizer.getIntegerFactor();
     int r = scale*circle.getBounds().width/2;
     
-    // line1 and line2 shapes
-    line1.setLine(vertex, end1); // "fixed" x-axis: angles measured ccw from this
-    double d1 = vertex.distance(end1);
-    if (d1>1) adjustLineLength(line1, 1, (d1-r)/d1);
-    line2.setLine(vertex, end2); // "movable" arm
-    double d2 = vertex.distance(end2);    
-    if (d2>1) adjustLineLength(line2, 1, (d2-r)/d2);
-    
-    // end1 & end2 shapes
+    // set up strokes
   	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
   		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
   		arcStroke = new BasicStroke(scale);
@@ -332,18 +327,33 @@ public Shape getShape(Point[] points) {
           STIPPLED_LINE,
           stroke.getDashPhase());  
   	}
+  	
+    MultiShape drawMe = new MultiShape();
+    
+    // set up line shapes
+    line1.setLine(vertex, end1); // "fixed" x-axis: angles measured ccw from this
+    double d1 = vertex.distance(end1);
+    if (d1>1) adjustLineLength(line1, 1, (d1-r)/d1);
+    drawMe.addDrawShape((Line2D)line1.clone(), null);
+    
+    line2.setLine(vertex, end2); // "movable" arm
+    double d2 = vertex.distance(end2);    
+    if (d2>1) adjustLineLength(line2, 1, (d2-r)/d2);
+    drawMe.addDrawShape((Line2D)line2.clone(), armStroke);
+    
+    // add line end shapes
     transform.setToTranslation(end1.x, end1.y);
     if (scale>1) {
     	transform.scale(scale, scale);
-    }
+    }    
     Shape end1Shape = transform.createTransformedShape(circle);
-    end1Shape = stroke.createStrokedShape(end1Shape);
+    drawMe.addDrawShape(end1Shape, null);
     transform.setToTranslation(end2.x, end2.y);
     if (scale>1) {
     	transform.scale(scale, scale);
     }
     Shape end2Shape = transform.createTransformedShape(circle);
-    end2Shape = stroke.createStrokedShape(end2Shape);
+    drawMe.addDrawShape(end2Shape, null);
     
     // arc shape
     double theta1 = -Math.atan2(end1.y - vertex.y, end1.x - vertex.x);
@@ -358,9 +368,9 @@ public Shape getShape(Point[] points) {
     	transform.scale(scale, scale);
     }
     Shape arcShape = transform.createTransformedShape(arc);
+    drawMe.addDrawShape(arcShape, arcStroke);
     
     // arrowhead where arc hits line2
-    Shape dotShape = null;
     if (Math.abs(degrees)>10) {
 	    double xDot = vertex.getX() + scale*arcRadius*(end2.getX()-vertex.getX())/d2;
 	    double yDot = vertex.getY() + scale*arcRadius*(end2.getY()-vertex.getY())/d2;
@@ -372,15 +382,9 @@ public Shape getShape(Point[] points) {
 	    if (scale>1) {
 	    	transform.scale(scale, scale);
 	    }
-	    dotShape = transform.createTransformedShape(arrowhead);
+	    Shape arrowShape = transform.createTransformedShape(arrowhead);
+	    drawMe.addFillShape(arrowShape);
     }
-   
-    Area drawMe = new Area(stroke.createStrokedShape(line1)); // x-axis
-		drawMe.add(new Area(armStroke.createStrokedShape(line2))); // arm
-    drawMe.add(new Area(end1Shape));
-    drawMe.add(new Area(end2Shape));
-    drawMe.add(new Area(arcStroke.createStrokedShape(arcShape)));
-    if (dotShape!=null)  drawMe.add(new Area(dotShape));
     
     // hit shapes    
     transform.setToTranslation(vertex.x, vertex.y);
@@ -400,9 +404,9 @@ public Shape getShape(Point[] points) {
     hitShapes[2] = transform.createTransformedShape(hitShape); // end2
     if (d1>1) adjustLineLength(line1, (d1-scale*arcRadius-8)/d1, (d1-8)/d1);
     if (d2>1) adjustLineLength(line2, (d2-scale*arcRadius-8)/d2, (d2-8)/d2);
-    hitShapes[3] = baseStroke.createStrokedShape(line1);
-    hitShapes[4] = baseStroke.createStrokedShape(line2);
-    hitShapes[5] = baseStroke.createStrokedShape(arcShape);
+    hitShapes[3] = (Line2D)line1.clone();
+    hitShapes[4] = (Line2D)line2.clone();
+    hitShapes[5] = arcShape;
     
     return drawMe;
   }

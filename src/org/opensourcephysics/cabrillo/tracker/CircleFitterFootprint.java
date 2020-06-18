@@ -50,7 +50,6 @@ public class CircleFitterFootprint implements Footprint, Cloneable {
 
 	// static constants
   @SuppressWarnings("javadoc")
-  private static BasicStroke hitStroke = new BasicStroke(4);
   private static final CircleFitterFootprint CIRCLE_4, CIRCLE_7, 
   		CIRCLE_4_BOLD, CIRCLE_7_BOLD, CIRCLE_4_POINTS_ONLY;
   protected static final int MAX_RADIUS = 100000;
@@ -141,20 +140,18 @@ public Icon getIcon(int w, int h) {
     int scale = FontSizer.getIntegerFactor();
     w *= scale;
     h *= scale;
-    Shape shape = emptyHitShape;
   	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
   		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
   	}
+    MultiShape drawMe = new MultiShape();
     if (drawCircle) {
 	    iconArc.setArc(0, 0, scale*20, scale*20, 200, 140, Arc2D.OPEN);
-	  	shape = stroke.createStrokedShape(iconArc);
+	  	drawMe.addDrawShape(iconArc, stroke);
     }
-    Area area = new Area(shape);
     int r = markerSize/2;
     circle.setFrameFromCenter(scale*10, scale*20, scale*(10+r), scale*(20+r));
-  	shape = stroke.createStrokedShape(circle);
-  	area.add(new Area(shape));
-    ShapeIcon icon = new ShapeIcon(area, w, h);
+  	drawMe.addDrawShape((Ellipse2D)circle.clone(), stroke);
+    ShapeIcon icon = new ShapeIcon(drawMe, w, h);
     icon.setColor(color);
     return icon;
   }
@@ -167,17 +164,20 @@ public Icon getIcon(int w, int h) {
    */
   @Override
 public Mark getMark(Point[] points) {
-    final Shape shape = getShape(points);
+    final MultiShape shape = getShape(points);
     final Color color = this.color;
     return new Mark() {
       @Override
-	public void draw(Graphics2D g, boolean highlighted) {
+      public void draw(Graphics2D g, boolean highlighted) {
         Color gcolor = g.getColor();
+        Stroke gstroke = g.getStroke();
         g.setColor(color);
+        g.setStroke(stroke);
         if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
-        g.fill(shape);
+        shape.draw(g);
         g.setColor(gcolor);
+        g.setStroke(gstroke);
       }
     };
   }
@@ -283,18 +283,19 @@ public Color getColor() {
    * @return the shape
    */
   @Override
-public Shape getShape(Point[] points) {
+public MultiShape getShape(Point[] points) {
     Point center = points[0];
     Point edge = points[1];
     hitShapes.clear();
-    Area drawMe = new Area();
     int scale = FontSizer.getIntegerFactor();
   	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
   		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
   	}
-        
+     
+  	MultiShape drawMe = new MultiShape();
     // draw shapes only if there are 3 or more data points (plus center & edge)
     if (drawCircle && points.length>=5) {
+    	
     	// special case: infinite or very large radius, so draw straight line thru edge
     	if (Double.isInfinite(radius) || radius>MAX_RADIUS) {
     		double x = edge.getX();
@@ -316,29 +317,28 @@ public Shape getShape(Point[] points) {
 	      		line.setLine(x-len/slope, y-len, x+len/slope, y+len);	      		
 	      	}
       	}
-		    drawMe.add(new Area(stroke.createStrokedShape(line)));
-		    hitShapes.add(hitStroke.createStrokedShape(line));
+		    drawMe.addDrawShape(line, null);
     	}
     	else { // standard case
 	    	// circle
 	      circle.setFrameFromCenter(center.x, center.y, center.x+radius, center.y+radius);
-		    drawMe.add(new Area(stroke.createStrokedShape(circle)));
-		    hitShapes.add(stroke.createStrokedShape(circle));
+		    drawMe.addDrawShape(circle, null);
 	    
 	    	// center
 	      transform.setToTranslation(points[0].x, points[0].y);
 	      if (scale>1) {
 	      	transform.scale(scale, scale);
 	      }
-	      Shape s = transform.createTransformedShape(marker);
-	      drawMe.add(new Area(stroke.createStrokedShape(s)));
-		    hitShapes.add(stroke.createStrokedShape(s)); // center hit shape
-	      s = transform.createTransformedShape(crosshatch);
-	      drawMe.add(new Area(stroke.createStrokedShape(s)));	    
+	      Shape mark = transform.createTransformedShape(marker);
+		    drawMe.addDrawShape(mark, null);
+		    hitShapes.add(mark); // center hit shape
+		    
+	      Shape crosshair = transform.createTransformedShape(crosshatch);
+		    drawMe.addDrawShape(crosshair, null);
     	}
     }
-    while (hitShapes.size()<2) {
-	    hitShapes.add(emptyHitShape);  // add empty hit shapes to pad
+    if (hitShapes.size() == 0) {
+	    hitShapes.add(emptyHitShape);  // add empty hit shape
     }
         
     // always draw data points
@@ -348,11 +348,11 @@ public Shape getShape(Point[] points) {
       	transform.scale(scale, scale);
       }
       if (points[i]!=selectedPoint) {
-	      Shape s = transform.createTransformedShape(marker);
-      	drawMe.add(new Area(stroke.createStrokedShape(s)));
+	      Shape mark = transform.createTransformedShape(marker);
+		    drawMe.addDrawShape(mark, null);
 	      if (i>=2+markedPointCount) {
-	      	drawMe.add(new Area(s));
-	      }
+		    	drawMe.addFillShape(mark);
+		    }
       }
       hitShapes.add(transform.createTransformedShape(hitShape));
     }

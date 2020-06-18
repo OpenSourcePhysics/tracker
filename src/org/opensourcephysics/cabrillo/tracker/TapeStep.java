@@ -270,15 +270,15 @@ protected Mark getMark(TrackerPanel trackerPanel) {
         if (scale>1) {
         	transform.scale(scale, scale);
         }
-        final Shape selectedShape
-          	= transform.createTransformedShape(selectionShape);
+				MultiShape selectedShape = new MultiShape(transform.createTransformedShape(selectionShape)).andStroke(selectionStroke);
         mark = new Mark() {
           @Override
           public void draw(Graphics2D g, boolean highlighted) {
             stepMark.draw(g, false);
             Paint gpaint = g.getPaint();
             g.setPaint(color);
-            if (selectedShape != null) g.fill(selectedShape);
+            if (selectedShape != null) 
+            	selectedShape.draw(g);
             g.setPaint(gpaint);
           }
         };
