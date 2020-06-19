@@ -9,6 +9,7 @@ import java.awt.geom.PathIterator;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Arrays;
+import java.util.BitSet;
 
 /**
  * A simple class that allows for a set of shapes, each of which can be
@@ -46,35 +47,38 @@ import java.util.Arrays;
 class MultiShape implements Shape {
 
 	private Shape[] shapes;
-	private boolean[] fills;
+	private BitSet bsFills = new BitSet();
 	private Stroke[] strokes;
-	
-  /**
-   * Constructor.
-   *
-   * @param shapes the shapes
-   */
+
+	/**
+	 * Constructor.
+	 *
+	 * @param shapes the shapes
+	 */
 	public MultiShape(Shape... shapes) {
 		this.shapes = shapes;
 	}
 
-  /**
-   * Fills shapes rather than drawing them.
-   *
-   * @param fills true elements fill the corresponding shape in the constructor
-   * @return this MultiShape
-   */
+	/**
+	 * Fills shapes rather than drawing them.
+	 *
+	 * @param fills true elements fill the corresponding shape in the constructor
+	 * @return this MultiShape
+	 */
 	public MultiShape andFill(boolean... fills) {
-		this.fills = fills;
+		for (int i = 0; i < fills.length; i++)
+			if (fills[i]) {
+				bsFills.set(i);
+			}
 		return this;
 	}
 
-  /**
-   * Specifies Strokes to use when drawing.
-   *
-   * @param strokes the Strokes for the corresponding shapes in the constructor
-   * @return this MultiShape
-   */
+	/**
+	 * Specifies Strokes to use when drawing.
+	 *
+	 * @param strokes the Strokes for the corresponding shapes in the constructor
+	 * @return this MultiShape
+	 */
 	public MultiShape andStroke(Stroke... strokes) {
 		this.strokes = strokes;
 		return this;
@@ -144,7 +148,6 @@ class MultiShape implements Shape {
 		return false;
 	}
 
-	
 	@Override
 	public PathIterator getPathIterator(AffineTransform at) {
 		return shapes[0].getPathIterator(at);
@@ -155,17 +158,16 @@ class MultiShape implements Shape {
 		return shapes[0].getPathIterator(at, flatness);
 	}
 
-  /**
-   * Draws the shapes.
-   *
-   * @param g graphics context
-   */
+	/**
+	 * Draws the shapes.
+	 *
+	 * @param g graphics context
+	 */
 	public void draw(Graphics2D g) {
 		for (int i = shapes.length; --i >= 0;) {
 			if (shapes[i] instanceof MultiShape) {
 				((MultiShape) shapes[i]).draw(g);
-			}
-			else if (fills != null && i < fills.length && fills[i])
+			} else if (bsFills.get(i))
 				g.fill(shapes[i]);
 			else if (strokes != null && i < strokes.length && strokes[i] != null) {
 				Stroke gstroke = g.getStroke();
@@ -174,15 +176,15 @@ class MultiShape implements Shape {
 				g.setStroke(gstroke);
 			} else
 				g.draw(shapes[i]);
-		}		
+		}
 	}
-	
-  /**
-   * Transforms the shapes.
-   *
-   * @param transform the AffineTransform
-   * @return a new transformed MultiShape
-   */
+
+	/**
+	 * Transforms the shapes.
+	 *
+	 * @param transform the AffineTransform
+	 * @return a new transformed MultiShape
+	 */
 	public MultiShape transform(AffineTransform transform) {
 		Shape[] transformedShapes = new Shape[shapes.length];
 		for (int i = 0; i < shapes.length; i++) {
@@ -193,58 +195,50 @@ class MultiShape implements Shape {
 			}
 		}
 		MultiShape shape = new MultiShape(transformedShapes);
-		if (fills != null)
-			shape.andFill(fills);
+		shape.bsFills = (BitSet) bsFills.clone();
 		if (strokes != null)
 			shape.andStroke(strokes);
 		return shape;
 	}
-	
-  /**
-   * Adds a draw shape.
-   *
-   * @param shape the shape to add
-   * @param stroke the draw Stroke, may be null
-   * @return this MultiShape
-   */
+
+	/**
+	 * Adds a draw shape.
+	 *
+	 * @param shape  the shape to add
+	 * @param stroke the draw Stroke, may be null
+	 * @return this MultiShape
+	 */
 	public MultiShape addDrawShape(Shape shape, Stroke stroke) {
 		if (shape != null) {
 			int newLength = shapes.length + 1;
 			shapes = Arrays.copyOf(shapes, newLength);
-			shapes[newLength-1] = shape;
+			shapes[newLength - 1] = shape;
 			if (stroke != null) {
 				if (strokes != null) {
 					strokes = Arrays.copyOf(strokes, newLength);
-				}
-				else {
+				} else {
 					strokes = new Stroke[newLength];
 				}
-				strokes[newLength-1] = stroke;
+				strokes[newLength - 1] = stroke;
 			}
 		}
 		return this;
 	}
-	
-  /**
-   * Adds a fill shape.
-   *
-   * @param shape the shape to add
-   * @return this MultiShape
-   */
+
+	/**
+	 * Adds a fill shape.
+	 *
+	 * @param shape the shape to add
+	 * @return this MultiShape
+	 */
 	public MultiShape addFillShape(Shape shape) {
 		if (shape != null) {
-			int newLength = shapes.length + 1;
+			int newLength = shapes.length;
+			bsFills.set(newLength++);
 			shapes = Arrays.copyOf(shapes, newLength);
-			shapes[newLength-1] = shape;
-			if (fills != null) {
-				fills = Arrays.copyOf(fills, newLength);
-			}
-			else {
-				fills = new boolean[newLength];
-			}
-			fills[newLength-1] = true;
+			shapes[newLength - 1] = shape;
 		}
 		return this;
 	}
-	
+
 }
