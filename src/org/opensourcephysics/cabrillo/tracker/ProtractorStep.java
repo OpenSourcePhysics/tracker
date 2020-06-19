@@ -55,7 +55,7 @@ public class ProtractorStep extends Step {
   protected double line1Angle, line2Angle; // in radians
   protected boolean endsEnabled = true;
   protected boolean drawLayoutBounds, drawLayout1, drawLayout2;
-  protected Shape vertexCircle, arcHighlight;
+  protected MultiShape vertexCircle, arcHighlight;
   protected Map<TrackerPanel, Shape> vertexShapes = new HashMap<TrackerPanel, Shape>();
   protected Map<TrackerPanel, Shape> end1Shapes = new HashMap<TrackerPanel, Shape>();
   protected Map<TrackerPanel, Shape> end2Shapes = new HashMap<TrackerPanel, Shape>();
@@ -259,10 +259,10 @@ public void draw(DrawingPanel panel, Graphics _g) {
   	if (trackerPanel.getSelectedPoint()==vertex)
   		vertexCircle = null;
     if (vertexCircle!=null) {
-    	g.fill(vertexCircle);
+    	vertexCircle.draw(g);
     }
     if (arcHighlight!=null) {
-    	g.fill(arcHighlight);
+    	arcHighlight.draw(g);
     }
     
     // draw arm length layouts if visible

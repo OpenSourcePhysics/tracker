@@ -178,29 +178,36 @@ public Icon getIcon(int w, int h) {
    */
   @Override
 public Mark getMark(Point[] points) {
-    final Shape shape = getShape(points);
+    final MultiShape shape = getShape(points);
     final Shape outline = this.outline;
     final Shape highlight = this.highlight;
     final Shape spot = this.spot;
     return new Mark() {
       @Override
-	public void draw(Graphics2D g, boolean highlighted) {
+      public void draw(Graphics2D g, boolean highlighted) {
         Paint gpaint = g.getPaint();
-        g.setPaint(color);
+        Stroke gstroke = g.getStroke();
         if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
-        g.fill(shape);
+        
+        g.setPaint(color);
+        shape.draw(g);
+        
         g.setPaint(highlightColor);
         if (spotted) {
         	g.fill(spot);
         }
         if (outlined) {
-        	g.fill(outline);
+        	g.setStroke(outlineStroke);
+        	g.draw(outline);
         }
         if (highlighted) {
-        	g.fill(highlight);
+        	g.setStroke(highlightStroke);
+        	g.draw(highlight);
         }
+        
         g.setPaint(gpaint);
+        g.setStroke(gstroke);
       }
     };
   }
@@ -396,8 +403,8 @@ public MultiShape getShape(Point[] points) {
     	outlineStroke = new BasicStroke(scale*baseOutlineStroke.getLineWidth());
     	highlightStroke = new BasicStroke(scale*baseHighlightStroke.getLineWidth());
     }
-    highlight = highlightStroke.createStrokedShape(c);    
-    outline = outlineStroke.createStrokedShape(c);
+    highlight = transform.createTransformedShape(circle);    
+    outline = transform.createTransformedShape(circle);
     spot = transform.createTransformedShape(center);
     hitShapes[0] = spot; // ignored by PointMass!
     return new MultiShape(c);

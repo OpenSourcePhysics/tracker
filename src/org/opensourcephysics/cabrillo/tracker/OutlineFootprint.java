@@ -139,9 +139,7 @@ public MultiShape getShape(Point[] points) {
   	if (stroke==null || stroke.getLineWidth()!=lineWidth) {
   		stroke = new BasicStroke(lineWidth);
   	}
-  	
-    outline = stroke.createStrokedShape(outline);
-    
+  	    
     // ceate hitshapes
     path.reset();
     path.moveTo(d, -1 - spread);
@@ -158,7 +156,7 @@ public MultiShape getShape(Point[] points) {
     path.lineTo(d * (0.5f - f), 0);
     hitShapes[2] = transform.createTransformedShape(path); // sides
     
-    return new MultiShape(outline);
+    return new MultiShape(outline).andStroke(stroke);
   }
 }
 

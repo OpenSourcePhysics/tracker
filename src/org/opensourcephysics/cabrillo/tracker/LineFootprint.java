@@ -55,7 +55,7 @@ public class LineFootprint implements Footprint, Cloneable {
 
 	// instance fields
 	protected String name;
-	protected Shape highlight;
+	protected MultiShape highlight;
 	protected AffineTransform transform = new AffineTransform();
 	protected BasicStroke baseStroke = new BasicStroke();
 	protected BasicStroke stroke;
@@ -155,9 +155,8 @@ public class LineFootprint implements Footprint, Cloneable {
 	 */
 	@Override
 	public Mark getMark(Point[] points) {
-		Shape shape = getShape(points);
-		boolean isMultiShape = (shape instanceof MultiShape);
-
+		MultiShape shape = getShape(points);
+		MultiShape hilight = highlight;
 		return new Mark() {
 
 			@Override
@@ -169,13 +168,9 @@ public class LineFootprint implements Footprint, Cloneable {
 				if (OSPRuntime.setRenderingHints)
 					g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-				if (isMultiShape) {
-					((MultiShape) shape).draw(g);
-				} else {
-					g.fill(shape);
-				}
-				if (highlighted && highlight != null) {
-					g.fill(highlight);
+				shape.draw(g);
+				if (highlighted && hilight != null) {
+					hilight.draw(g);
 				}
 				g.setColor(gcolor);
 				g.setStroke(gstroke);
@@ -305,7 +300,7 @@ public class LineFootprint implements Footprint, Cloneable {
 	public static final float[] DASHED_LINE = new float[] { 10, 4 };
 	/** A dotted line pattern */
 	public static final float[] DOTTED_LINE = new float[] { 2, 1 };
-	protected static final Shape HIGHLIGHT;
+	protected static final MultiShape HIGHLIGHT;
 	private static final LineFootprint LINE;
 	private static final LineFootprint BOLD_LINE;
 	private static final LineFootprint OUTLINE;
@@ -327,7 +322,7 @@ public class LineFootprint implements Footprint, Cloneable {
 		Ellipse2D circle = new Ellipse2D.Double();
 		circle.setFrame(-3, -3, 6, 6);
 		Stroke stroke = new BasicStroke(2);
-		HIGHLIGHT = stroke.createStrokedShape(circle);
+		HIGHLIGHT = new MultiShape(circle).andStroke(stroke);
 
 		// LINE
 		LINE = new LineFootprint("Footprint.Line"); //$NON-NLS-1$

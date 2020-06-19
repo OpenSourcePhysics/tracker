@@ -155,7 +155,7 @@ public synchronized MultiShape getShape(Point[] points) {
     if (scale>1) {
     	transform.scale(scale, scale);
     }
-    highlight = transform.createTransformedShape(HIGHLIGHT);
+    highlight = HIGHLIGHT.transform(transform);
     
     transform.setToRotation(theta, p2.x, p2.y);
     transform.translate(p2.x, p2.y);

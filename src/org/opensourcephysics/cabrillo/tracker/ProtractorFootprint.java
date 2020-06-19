@@ -60,7 +60,7 @@ public class ProtractorFootprint implements Footprint, Cloneable {
   private static Collection<ProtractorFootprint> footprints 
 			= new HashSet<ProtractorFootprint>();
   private static Shape hitShape = new Ellipse2D.Double(-6, -6, 12, 12);
-  private static Shape arrowhead;
+  private static MultiShape arrowhead;
   private static Line2D line1 = new Line2D.Double(), line2 = new Line2D.Double();
   private static Point p = new Point();
   private static AffineTransform transform = new AffineTransform();
@@ -143,18 +143,15 @@ public Icon getIcon(int w, int h) {
           DOTTED_LINE,
           stroke.getDashPhase());  
   	}
-  	shape = stroke.createStrokedShape(shape);
-    Area area = new Area(shape);
+    MultiShape drawShape = new MultiShape(shape).andStroke(stroke);
     double x0 = scale*(radius+2)-w;
     double y0 = h-scale*(radius+2);
     double d = Math.sqrt(x0*x0+y0*y0);
     double x1 = x0*scale*radius/d;
     double y1 = y0*scale*radius/d;
-    Line2D line = new Line2D.Double(x0, y0, x1, y1);
-    area.add(new Area(stroke.createStrokedShape(line)));
-    line.setLine(x0, y0, radius-2, y0);
-    area.add(new Area(stroke.createStrokedShape(line)));
-    ShapeIcon icon = new ShapeIcon(area, w, h);
+    drawShape.addDrawShape(new Line2D.Double(x0, y0, x1, y1), stroke);
+    drawShape.addDrawShape(new Line2D.Double(x0, y0, radius-2, y0), stroke);
+    ShapeIcon icon = new ShapeIcon(drawShape, w, h);
     icon.setColor(color);
     return icon;
   }
@@ -249,7 +246,7 @@ public void setColor(Color color) {
    * @return the color
    */
   @Override
-public Color getColor() {
+  public Color getColor() {
     return color;
   }
   
@@ -259,15 +256,14 @@ public Color getColor() {
    * @param p the desired screen point of the circle
    * @return the circle shape
    */
-  public Shape getCircleShape(Point p) {
+  public MultiShape getCircleShape(Point p) {
   	transform.setToTranslation(p.x, p.y);
     int scale = FontSizer.getIntegerFactor();
     if (scale>1) {
     	transform.scale(scale, scale);
     }
   	Shape shape = transform.createTransformedShape(circle);
-  	shape = stroke.createStrokedShape(shape);
-  	return shape;
+  	return new MultiShape(shape).andStroke(stroke);
   }
 
   /**
@@ -278,21 +274,21 @@ public Color getColor() {
    * 
    * @return the arc-adjusting shape
    */
-  public Shape getArcAdjustShape(Point vertex, Point rotator) {
+  public MultiShape getArcAdjustShape(Point vertex, Point rotator) {
   	double theta = Math.toRadians(arc.getAngleStart()+arc.getAngleExtent()/2);
     int scale = FontSizer.getIntegerFactor();
 	  p.x = (int)Math.round(vertex.x + scale*arcRadius*Math.cos(theta));
 	  p.y = (int)Math.round(vertex.y - scale*arcRadius*Math.sin(theta));
-	  Shape circle = getCircleShape(p);
-    Area area = new Area(circle);
+	  MultiShape circle = getCircleShape(p);
+    MultiShape drawShape = new MultiShape(circle);
   	if (rotator!=null) {
       int r = circle.getBounds().width/2;
       double d = p.distance(rotator);
 		  line1.setLine(p.getX(), p.getY(), rotator.getX(), rotator.getY());
 	    if (d>1) adjustLineLength(line1, (d-r)/d, (d-6)/d);
-	    area.add(new Area(arcAdjustStroke.createStrokedShape(line1)));
+	    drawShape.addDrawShape((Line2D)line1.clone(), arcAdjustStroke);
   	}
-  	return area;
+  	return drawShape;
   }
 
   /**
@@ -382,7 +378,7 @@ public MultiShape getShape(Point[] points) {
 	    if (scale>1) {
 	    	transform.scale(scale, scale);
 	    }
-	    Shape arrowShape = transform.createTransformedShape(arrowhead);
+	    Shape arrowShape = arrowhead.transform(transform);
 	    drawMe.addFillShape(arrowShape);
     }
     
@@ -450,7 +446,7 @@ public MultiShape getShape(Point[] points) {
   	path.moveTo(-6, 2);
   	path.lineTo(0, 0);
   	path.lineTo(-6, -3);
-  	arrowhead = stroke.createStrokedShape(path);
+  	arrowhead = new MultiShape(path).andStroke(stroke);
   	  	
     // create standard footprints
     CIRCLE_3 = new ProtractorFootprint("ProtractorFootprint.Circle3", 3); //$NON-NLS-1$

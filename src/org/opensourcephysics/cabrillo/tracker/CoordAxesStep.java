@@ -216,7 +216,7 @@ public class CoordAxesStep extends Step {
 			origin.setLocation(x, y);
 			// get default axes shape and handle hit shape (positive x-axis)
 			Point p0 = screenPoints[0] = origin.getScreenPosition(trackerPanel);
-			Shape axesShape = footprint.getShape(screenPoints);
+			MultiShape axesShape = footprint.getShape(screenPoints);
 			path.reset();
 			path.moveTo(p0.x + 15, p0.y);
 			path.lineTo(p0.x + 500, p0.y);
@@ -225,11 +225,7 @@ public class CoordAxesStep extends Step {
 			if (trackerPanel.isDrawingInImageSpace()) {
 				double angle = coords.getAngle(n);
 				transform.setToRotation(-angle, p0.x, p0.y);
-				if (axesShape instanceof MultiShape) {
-					axesShape = ((MultiShape)axesShape).transform(transform);
-				} else {
-					axesShape = transform.createTransformedShape(axesShape);
-				}
+				axesShape = axesShape.transform(transform);
 				hitShape = transform.createTransformedShape(hitShape);
 			}
 			handleShapes.put(trackerPanel, hitShape);

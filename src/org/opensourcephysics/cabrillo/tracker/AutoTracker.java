@@ -39,6 +39,7 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
@@ -123,7 +124,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	// static fields
 	private static Rectangle hitRect = new Rectangle(-4, -4, 8, 8);
 	private static TPoint hitPt = new TPoint();
-	private static Shape selectionShape;
 	private static AffineTransform transform = new AffineTransform();
 	private static Footprint target_footprint = PointShapeFootprint.getFootprint("Footprint.BoldCrosshair"); //$NON-NLS-1$
 	private static Footprint inactive_target_footprint = PointShapeFootprint.getFootprint("Footprint.Crosshair"); //$NON-NLS-1$
@@ -146,7 +146,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	static {
 		dotted = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8, DOTTED_LINE, 0);
 		dashed = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8, DASHED_LINE, 0);
-		selectionShape = solidBold.createStrokedShape(hitRect);
 		format.setMinimumIntegerDigits(1);
 		format.setMinimumFractionDigits(1);
 		format.setMaximumFractionDigits(1);
@@ -1266,12 +1265,16 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			// if anything is selected, create a selection mark
 			if (selectionPt != null) {
 				transform.setToTranslation(selectionPt.x, selectionPt.y);
-				final Shape selectedShape = transform.createTransformedShape(selectionShape);
+				Shape selectedShape = transform.createTransformedShape(hitRect);
 				selectionMark = new Mark() {
 					@Override
 					public void draw(Graphics2D g, boolean highlighted) {
-						if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-						g.fill(selectedShape);
+						if (OSPRuntime.setRenderingHints) 
+							g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+						Stroke gstroke = g.getStroke();
+						g.setStroke(solidBold);
+						g.draw(selectedShape);
+						g.setStroke(gstroke);
 					}
 				};
 			}

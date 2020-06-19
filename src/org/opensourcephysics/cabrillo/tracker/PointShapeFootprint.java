@@ -135,7 +135,7 @@ public Icon getIcon(int w, int h) {
    */
   @Override
 public Mark getMark(Point[] points) {
-    final Shape shape = getShape(points);
+    final MultiShape shape = getShape(points);
     final Shape highlight = this.highlight;
     return new Mark() {
       @Override
@@ -147,11 +147,7 @@ public Mark getMark(Point[] points) {
         g.setPaint(color);
         if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
-        if (shape instanceof MultiShape) {
-        	((MultiShape) shape).draw(g);
-        } else {
-        	g.fill(shape);
-        }
+        shape.draw(g);
         if (highlighted) {
         	g.setStroke(highlightStroke);
         	g.draw(highlight);
