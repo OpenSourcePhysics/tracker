@@ -24,28 +24,89 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.lang.reflect.Constructor;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
+import javax.swing.AbstractCellEditor;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-import org.opensourcephysics.controls.*;
-import org.opensourcephysics.display.*;
+import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.display.DataFunction;
+import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.Dataset;
+import org.opensourcephysics.display.DatasetManager;
+import org.opensourcephysics.display.DisplayRes;
+import org.opensourcephysics.display.MeasuredImage;
+import org.opensourcephysics.display.OSPFrame;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
+import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.VideoClip;
-import org.opensourcephysics.tools.*;
+import org.opensourcephysics.tools.DataRefreshTool;
+import org.opensourcephysics.tools.DataTool;
+import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionPanel;
+import org.opensourcephysics.tools.FunctionTool;
+import org.opensourcephysics.tools.LocalJob;
+import org.opensourcephysics.tools.ToolsRes;
 
 /**
  * This displays a table view of a track on a TrackerPanel.
@@ -449,7 +510,7 @@ public class TableTrackView extends TrackView {
 	@Override
 	protected void dispose() {
 		data = null;
-		getTrack().removePropertyChangeListener(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, this); //$NON-NLS-1$
+		getTrack().removePropertyChangeListener(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, this); // $NON-NLS-1$
 		setViewportView(null);
 		columnsPanel.removeAll();
 		tableData.clear();
@@ -714,8 +775,7 @@ public class TableTrackView extends TrackView {
 				double[] vals = temp.get(i).getYPoints();
 				for (int j = 0; j < vals.length; j++) {
 					if (vals[j] == frame) {
-						SortDecorator decorator = (SortDecorator) dataTable.getModel();
-						return decorator.getSortedRow(j);
+						return dataTable.getSortedRow(j);
 					}
 				}
 			}
@@ -857,8 +917,7 @@ public class TableTrackView extends TrackView {
 						gapsButton.setSelected(!gapsButton.isSelected());
 						dataTable.skippedFramesRenderer.setVisible(gapsButton.isSelected());
 						if (gapsButton.isSelected()) {
-							SortDecorator decorator = (SortDecorator) dataTable.getModel();
-							decorator.reset();
+							dataTable.resetSort();
 						}
 						dataTable.repaint();
 						dataTable.getTableHeader().resizeAndRepaint();
@@ -1326,6 +1385,7 @@ public class TableTrackView extends TrackView {
 			}
 		}
 	}
+
 	protected JPopupMenu getPopup() {
 		numberMenu.setText(TrackerRes.getString("Popup.Menu.Numbers")); //$NON-NLS-1$
 		formatDialogItem.setText(TrackerRes.getString("Popup.MenuItem.Formats") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1690,7 +1750,7 @@ public class TableTrackView extends TrackView {
 	/**
 	 * A class to provide textColumn data for the dataTable.
 	 */
-	class TextColumnTableModel extends AbstractTableModel {
+	private class TextColumnTableModel extends DataTable.OSPTableModel {
 		@Override
 		public String getColumnName(int col) {
 			int i = 0;
@@ -1759,8 +1819,7 @@ public class TableTrackView extends TrackView {
 
 		@Override
 		public boolean isCellEditable(int row, int col) {
-			TTrack track = getTrack();
-			return !track.isLocked();
+			return !getTrack().isLocked();
 		}
 
 		@Override
@@ -1936,9 +1995,8 @@ public class TableTrackView extends TrackView {
 		public void refreshTable(int mode) {
 			// model for this table assumed to be a SortDecorator
 			// always reset the decorator before changing table structure
-			SortDecorator decorator = (SortDecorator) getModel();
-			int col = decorator.getSortedColumn();
-			decorator.reset();
+			int col = dataTableModel.getSortedColumn();
+			dataTableModel.resetSort();
 			// save selected rows and columns
 			int[] rows = getSelectedRows();
 			int[] cols = getSelectedColumns();
@@ -1974,9 +2032,7 @@ public class TableTrackView extends TrackView {
 
 		@Override
 		public boolean isCellEditable(int row, int col) {
-			// true only for text (String) columns
-			int i = dataTable.convertColumnIndexToModel(col);
-			return dataTable.getModel().getColumnClass(i).equals(String.class);
+			return dataTableModel.getColumnClass(convertColumnIndexToModel(col)).equals(String.class);
 		}
 
 		@Override
