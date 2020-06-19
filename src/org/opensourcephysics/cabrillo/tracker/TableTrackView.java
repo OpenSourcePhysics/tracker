@@ -298,7 +298,7 @@ public class TableTrackView extends TrackView {
 				local.setXYColumnNames(xTitle, xTitle);
 				local.setYColumnVisible(false);
 			}
-			dataTable.refreshTable();
+			dataTable.refreshTable(DataTable.MODE_FRAME);
 			refreshed = true;
 		} catch (Exception e) {
 		}
@@ -454,8 +454,7 @@ public class TableTrackView extends TrackView {
 		columnsPanel.removeAll();
 		tableData.clear();
 		tableData = null;
-		dataTable.clear();
-		dataTable.setRefreshDelay(-1); // stops the refresh timer
+		dataTable.dispose();
 		dataTable = null;
 		parent = null;
 		super.dispose();
@@ -611,7 +610,7 @@ public class TableTrackView extends TrackView {
 			}
 			// else a text entry was changed
 			// refresh table and column visibility dialog
-			dataTable.refreshTable();
+			dataTable.refreshTable(DataTable.MODE_COLUMN);
 			if (parent.getViewType() == TView.VIEW_TABLE) {
 				TableTView view = (TableTView) getParent();
 				view.refreshColumnsDialog(track);
@@ -1047,7 +1046,7 @@ public class TableTrackView extends TrackView {
 				// new column is visible by default
 				textColumnsVisible.add(name);
 				// refresh table and column visibility dialog
-				dataTable.refreshTable();
+				dataTable.refreshTable(DataTable.MODE_COLUMN);
 				if (parent.getViewType() == TView.VIEW_TABLE) {
 					TableTView view = (TableTView) parent;
 					view.refreshColumnsDialog(track);
@@ -1926,7 +1925,7 @@ public class TableTrackView extends TrackView {
 		}
 
 		@Override
-		public void refreshTable() {
+		public void refreshTable(int mode) {
 			// model for this table assumed to be a SortDecorator
 			// always reset the decorator before changing table structure
 			SortDecorator decorator = (SortDecorator) getModel();
@@ -1936,7 +1935,7 @@ public class TableTrackView extends TrackView {
 			int[] rows = getSelectedRows();
 			int[] cols = getSelectedColumns();
 			// refresh table
-			super.refreshTable();
+			super.refreshTable(mode);
 			// sort if needed
 			if (col > -1)
 				sort(col);
