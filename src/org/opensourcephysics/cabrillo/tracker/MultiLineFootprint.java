@@ -28,6 +28,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.BasicStroke;
 import java.awt.Point;
 import java.awt.Shape;
+import java.awt.geom.Area;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -124,21 +125,6 @@ public class MultiLineFootprint extends LineFootprint {
 			path.clone();
 		}
 		return new MultiShape(path);
-//  	
-//  but this will not work for dashed lines, I think.	
-//  	Area area = new Area();
-//  	for (int i=0; i<points.length-1; i++) {
-//      Point p1 = points[i];
-//      Point p2 = points[i+1];
-//      if (p1==null || p2==null) continue;
-//      line.setLine(p1, p2);
-//      area.add(new Area(stroke.createStrokedShape(line)));
-//  	}
-//  	if (closed && points.length>2 && points[0]!=null && points[points.length-1]!=null) {
-//      line.setLine(points[points.length-1], points[0]);
-//      area.add(new Area(stroke.createStrokedShape(line)));
-//  	}
-//    return area;
 	}
 
 	// static fields

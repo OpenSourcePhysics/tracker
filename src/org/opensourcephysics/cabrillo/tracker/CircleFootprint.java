@@ -153,18 +153,18 @@ public Icon getIcon(int w, int h) {
     h *= scale;
   	int realRadius = r;
   	setRadius(outlined? 5: 6);
-    Shape shape = getShape(new Point[] {new Point()});
-    Area area = null;
+    MultiShape shape = getShape(new Point[] {new Point()});
+    MultiShape decor = null;
     if (spotted) {
-      area = new Area(spot);    	
+      decor = new MultiShape(spot).andFill(true);    	
     }
     if (outlined) {
-    	if (area==null)
-    		area = new Area(outline);
+    	if (decor==null)
+    		decor = new MultiShape(outline);
     	else
-    		area.add(new Area(outline));
+    		decor.addDrawShape(outline, outlineStroke);
     }
-    ShapeIcon icon = new ShapeIcon(shape, area, w, h);
+    ShapeIcon icon = new ShapeIcon(shape, decor, w, h);
     icon.setColor(color, highlightColor);
   	setRadius(realRadius);
     return icon;

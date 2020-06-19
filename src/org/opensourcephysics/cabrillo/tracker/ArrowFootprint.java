@@ -28,11 +28,8 @@ import java.awt.BasicStroke;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import java.awt.geom.Area;
-
 import javax.swing.Icon;
 
-import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -127,7 +124,7 @@ public Icon getIcon(int w, int h) {
     w *= scale;
     h *= scale;
     Point[] points = new Point[] {new Point(), new Point(w - 2, 2 - h)};
-    Shape shape = getShape(points);
+    MultiShape shape = getShape(points);
     ShapeIcon icon = new ShapeIcon(shape, w, h);
     icon.setColor(color);
 		icon.setStroke(stroke);
@@ -155,7 +152,6 @@ public synchronized MultiShape getShape(Point[] points) {
     if (scale>1) {
     	transform.scale(scale, scale);
     }
-    highlight = HIGHLIGHT.transform(transform);
     
     transform.setToRotation(theta, p2.x, p2.y);
     transform.translate(p2.x, p2.y);
@@ -213,6 +209,8 @@ public synchronized MultiShape getShape(Point[] points) {
 			path.lineTo(d-tipL, tipW);
 			path.closePath();
 			Shape head = transform.createTransformedShape(path);
+			
+			highlight = new MultiShape(head).andFill(true);
 
 			return new MultiShape(shaft, head).andFill(false, !openHead);
 			

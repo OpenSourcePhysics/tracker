@@ -28,6 +28,7 @@ import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.*;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.OSPRuntime;
 
 /**
@@ -40,8 +41,8 @@ public class ShapeIcon implements Icon {
   // instance fields
   private int w;
   private int h;
-  private Shape shape;
-  private Shape decoration;
+  private MultiShape shape;
+  private MultiShape decoration;
   private Color color = Color.black;
   private Color decoColor = Color.black;
   private double offsetX;	// centers the shape horizontally
@@ -56,7 +57,7 @@ public class ShapeIcon implements Icon {
    * @param width width of the icon
    * @param height height of the icon
    */
-  public ShapeIcon(Shape shape, Shape decoration, int width, int height) {
+  public ShapeIcon(MultiShape shape, MultiShape decoration, int width, int height) {
     w = width;
     h = height;
     this.shape = shape;
@@ -75,7 +76,7 @@ public class ShapeIcon implements Icon {
    * @param width width of the icon
    * @param height height of the icon
    */
-  public ShapeIcon(Shape shape, int width, int height) {
+  public ShapeIcon(MultiShape shape, int width, int height) {
   	this(shape, null, width, height);
   }
 
@@ -142,8 +143,6 @@ public void paintIcon(Component c, Graphics _g, int x, int y) {
     AffineTransform at = AffineTransform.getTranslateInstance(
                          x + offsetX, y + offsetY);
 
-    // save current graphics paint and clip
-
     // render shape(s)
     g.setPaint(color);
     if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
@@ -152,21 +151,16 @@ public void paintIcon(Component c, Graphics _g, int x, int y) {
 
     // paint shape, if any
     if (shape!=null) {
-    	if (shape instanceof MultiShape) {
-    		Stroke gstroke = g.getStroke();
-    		if (stroke != null ) {
-    			g.setStroke(stroke);
-    		}
-				((MultiShape) shape).transform(at).draw(g);
-				g.setStroke(gstroke);
-    	} else
-    		g.fill(at.createTransformedShape(shape));
+    	if (stroke != null ) {
+  			g.setStroke(stroke);
+  		}
+			shape.transform(at).draw(g);
     }
     
     // paint decoration, if any
     if (decoration != null) {
       g.setPaint(decoColor);
-      g.fill(at.createTransformedShape(decoration));
+      decoration.transform(at).draw(g);
     }
     // restore graphics paint and clip
     g.dispose();

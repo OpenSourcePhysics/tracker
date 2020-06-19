@@ -37,6 +37,7 @@ import java.util.HashSet;
 
 import javax.swing.Icon;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -143,15 +144,17 @@ public Icon getIcon(int w, int h) {
   	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
   		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
   	}
-    MultiShape drawMe = new MultiShape();
+    MultiShape drawShape = new MultiShape();
     if (drawCircle) {
 	    iconArc.setArc(0, 0, scale*20, scale*20, 200, 140, Arc2D.OPEN);
-	  	drawMe.addDrawShape(iconArc, stroke);
+	  	drawShape.addDrawShape((Arc2D)iconArc.clone(), stroke);
     }
     int r = markerSize/2;
     circle.setFrameFromCenter(scale*10, scale*20, scale*(10+r), scale*(20+r));
-  	drawMe.addDrawShape((Ellipse2D)circle.clone(), stroke);
-    ShapeIcon icon = new ShapeIcon(drawMe, w, h);
+  	drawShape.addDrawShape((Ellipse2D)circle.clone(), stroke);
+  	transform.setToTranslation(0, 10);
+  	drawShape = drawShape.transform(transform);
+    ShapeIcon icon = new ShapeIcon(drawShape, w, h);
     icon.setColor(color);
     return icon;
   }

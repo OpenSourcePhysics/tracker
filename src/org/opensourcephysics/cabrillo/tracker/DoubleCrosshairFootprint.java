@@ -89,7 +89,7 @@ public Icon getIcon(int w, int h) {
 		w *= scale;
 		h *= scale;
 		Point[] points = new Point[] { new Point(), new Point(w - 2, 2 - h) };
-		Shape shape = getShape(points, false);
+		MultiShape shape = getShape(points, false);
 		ShapeIcon icon = new ShapeIcon(shape, w, h);
 		icon.setColor(color);
 		icon.setStroke(stroke);

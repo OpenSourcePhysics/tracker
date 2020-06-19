@@ -120,7 +120,7 @@ public Icon getIcon(int w, int h) {
     int scale = FontSizer.getIntegerFactor();
     w *= scale;
     h *= scale;
-	  Shape shape = getShape(new Point[] {new Point()});
+	  MultiShape shape = getShape(new Point[] {new Point()});
 	  ShapeIcon icon = new ShapeIcon(shape, w, h);
 	  icon.setColor(color);
 	  icon.setStroke(stroke);

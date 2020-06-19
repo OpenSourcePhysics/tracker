@@ -34,7 +34,6 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Ellipse2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
 import java.util.Collection;
@@ -140,7 +139,7 @@ public class LineFootprint implements Footprint, Cloneable {
 		w *= scale;
 		h *= scale;
 		Point[] points = new Point[] { new Point(), new Point(w - 2, 2 - h) };
-		Shape shape = getShape(points);
+		MultiShape shape = getShape(points);
 		ShapeIcon icon = new ShapeIcon(shape, w, h);
 		icon.setColor(color);
 		icon.setStroke(stroke);
@@ -300,7 +299,6 @@ public class LineFootprint implements Footprint, Cloneable {
 	public static final float[] DASHED_LINE = new float[] { 10, 4 };
 	/** A dotted line pattern */
 	public static final float[] DOTTED_LINE = new float[] { 2, 1 };
-	protected static final MultiShape HIGHLIGHT;
 	private static final LineFootprint LINE;
 	private static final LineFootprint BOLD_LINE;
 	private static final LineFootprint OUTLINE;
@@ -318,12 +316,6 @@ public class LineFootprint implements Footprint, Cloneable {
 
 	// static initializers
 	static {
-		// HIGHLIGHT
-		Ellipse2D circle = new Ellipse2D.Double();
-		circle.setFrame(-3, -3, 6, 6);
-		Stroke stroke = new BasicStroke(2);
-		HIGHLIGHT = new MultiShape(circle).andStroke(stroke);
-
 		// LINE
 		LINE = new LineFootprint("Footprint.Line"); //$NON-NLS-1$
 		footprints.add(LINE);
