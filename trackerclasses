@@ -142,12 +142,16 @@ java/awt/geom/Rectangle2D.js
 java/awt/geom/RectangularShape.js
 java/awt/image/BufferedImage.js
 java/awt/image/ColorModel.js
+java/awt/image/ComponentColorModel.js
+java/awt/image/ComponentSampleModel.js
 java/awt/image/DataBuffer.js
+java/awt/image/DataBufferByte.js
 java/awt/image/DataBufferInt.js
 java/awt/image/DirectColorModel.js
 java/awt/image/ImageConsumer.js
 java/awt/image/ImageObserver.js
 java/awt/image/PackedColorModel.js
+java/awt/image/PixelInterleavedSampleModel.js
 java/awt/image/Raster.js
 java/awt/image/RenderedImage.js
 java/awt/image/SampleModel.js
@@ -695,6 +699,7 @@ org/opensourcephysics/cabrillo/tracker/MainTView.js
 org/opensourcephysics/cabrillo/tracker/Mark.js
 org/opensourcephysics/cabrillo/tracker/ModelBuilder.js
 org/opensourcephysics/cabrillo/tracker/ModelFunctionPanel.js
+org/opensourcephysics/cabrillo/tracker/MultiShape.js
 org/opensourcephysics/cabrillo/tracker/NumberFormatDialog.js
 org/opensourcephysics/cabrillo/tracker/OffsetOrigin.js
 org/opensourcephysics/cabrillo/tracker/OutlineFootprint.js
@@ -940,6 +945,8 @@ sun/awt/geom/Edge.js
 sun/awt/geom/Order0.js
 sun/awt/geom/Order1.js
 sun/awt/geom/Order3.js
+sun/awt/image/ByteComponentRaster.js
+sun/awt/image/ByteInterleavedRaster.js
 sun/awt/image/DataStealer.js
 sun/awt/image/IntegerComponentRaster.js
 sun/awt/image/IntegerInterleavedRaster.js
