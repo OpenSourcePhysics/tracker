@@ -769,7 +769,7 @@ public class TrackerIO extends VideoIO {
 			return;
 		}
 		frame.loadedFiles.clear();
-		Runnable whenDone = (trzPath != null && OSPRuntime.autoAddLibrary ? new Runnable() {
+		Runnable whenDone = (trzPath != null ? new Runnable() {
 
 			@Override
 			public void run() {
@@ -825,12 +825,15 @@ public class TrackerIO extends VideoIO {
 	private static void addToLibrary(TFrame frame, String path) {
 		// also open TRZ files in library browser
 		// BH! Q: this was effectively TRUE -- "any directory is OK" why?
+		
+		if (!OSPRuntime.autoAddLibrary) {
+			OSPLog.debug("skipping TrackerIO addToLibrary " + path); //$NON-NLS-1$
+			return;
+		}
+		
 		run ("addToLibrary", new Runnable() {
 			@Override
 			public void run() {
-				OSPLog.debug("skipping TrackerIO addToLibrary " + path); //$NON-NLS-1$
-				
-				if (true) return;
 				
 				frame.getLibraryBrowser().open(path);
 //			      frame.getLibraryBrowser().setVisible(true); 

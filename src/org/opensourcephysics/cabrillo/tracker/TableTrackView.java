@@ -24,28 +24,89 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.lang.reflect.Constructor;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractButton;
+import javax.swing.AbstractCellEditor;
+import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.Icon;
+import javax.swing.InputMap;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 import javax.swing.border.Border;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-import org.opensourcephysics.controls.*;
-import org.opensourcephysics.display.*;
+import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.display.DataFunction;
+import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.Dataset;
+import org.opensourcephysics.display.DatasetManager;
+import org.opensourcephysics.display.DisplayRes;
+import org.opensourcephysics.display.MeasuredImage;
+import org.opensourcephysics.display.OSPFrame;
+import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
+import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.VideoClip;
-import org.opensourcephysics.tools.*;
+import org.opensourcephysics.tools.DataRefreshTool;
+import org.opensourcephysics.tools.DataTool;
+import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionPanel;
+import org.opensourcephysics.tools.FunctionTool;
+import org.opensourcephysics.tools.LocalJob;
+import org.opensourcephysics.tools.ToolsRes;
 
 /**
  * This displays a table view of a track on a TrackerPanel.
@@ -298,7 +359,7 @@ public class TableTrackView extends TrackView {
 				local.setXYColumnNames(xTitle, xTitle);
 				local.setYColumnVisible(false);
 			}
-			dataTable.refreshTable();
+			dataTable.refreshTable(DataTable.MODE_FRAME);
 			refreshed = true;
 		} catch (Exception e) {
 		}
@@ -449,13 +510,12 @@ public class TableTrackView extends TrackView {
 	@Override
 	protected void dispose() {
 		data = null;
-		getTrack().removePropertyChangeListener(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, this); //$NON-NLS-1$
+		getTrack().removePropertyChangeListener(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, this); // $NON-NLS-1$
 		setViewportView(null);
 		columnsPanel.removeAll();
 		tableData.clear();
 		tableData = null;
-		dataTable.clear();
-		dataTable.setRefreshDelay(-1); // stops the refresh timer
+		dataTable.dispose();
 		dataTable = null;
 		parent = null;
 		super.dispose();
@@ -611,7 +671,7 @@ public class TableTrackView extends TrackView {
 			}
 			// else a text entry was changed
 			// refresh table and column visibility dialog
-			dataTable.refreshTable();
+			dataTable.refreshTable(DataTable.MODE_COLUMN);
 			if (parent.getViewType() == TView.VIEW_TABLE) {
 				TableTView view = (TableTView) getParent();
 				view.refreshColumnsDialog(track);
@@ -715,8 +775,7 @@ public class TableTrackView extends TrackView {
 				double[] vals = temp.get(i).getYPoints();
 				for (int j = 0; j < vals.length; j++) {
 					if (vals[j] == frame) {
-						SortDecorator decorator = (SortDecorator) dataTable.getModel();
-						return decorator.getSortedRow(j);
+						return dataTable.getSortedRow(j);
 					}
 				}
 			}
@@ -858,8 +917,7 @@ public class TableTrackView extends TrackView {
 						gapsButton.setSelected(!gapsButton.isSelected());
 						dataTable.skippedFramesRenderer.setVisible(gapsButton.isSelected());
 						if (gapsButton.isSelected()) {
-							SortDecorator decorator = (SortDecorator) dataTable.getModel();
-							decorator.reset();
+							dataTable.resetSort();
 						}
 						dataTable.repaint();
 						dataTable.getTableHeader().resizeAndRepaint();
@@ -1047,7 +1105,7 @@ public class TableTrackView extends TrackView {
 				// new column is visible by default
 				textColumnsVisible.add(name);
 				// refresh table and column visibility dialog
-				dataTable.refreshTable();
+				dataTable.refreshTable(DataTable.MODE_COLUMN);
 				if (parent.getViewType() == TView.VIEW_TABLE) {
 					TableTView view = (TableTView) parent;
 					view.refreshColumnsDialog(track);
@@ -1074,43 +1132,7 @@ public class TableTrackView extends TrackView {
 		dataToolItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				TTrack track = getTrack();
-				DatasetManager toSend = new DatasetManager();
-				toSend.setID(data.getID());
-				toSend.setName(track.getName());
-				toSend.setXPointsLinked(true);
-				int colCount = 0;
-				ArrayList<Dataset> datasets = data.getDatasets();
-				// always include linked independent variable first
-				Dataset next = datasets.get(0);
-				XMLControlElement control = new XMLControlElement(next);
-				next = toSend.getDataset(colCount++);
-				control.loadObject(next, true, true);
-				next.setYColumnVisible(false);
-				next.setConnected(false);
-				next.setMarkerShape(Dataset.NO_MARKER);
-				for (int i = 0; i < checkBoxes.length; i++) {
-					if (checkBoxes[i].isSelected()) {
-						if (i >= datasets.size()) {
-							next = track.convertTextToDataColumn(checkBoxes[i].getActionCommand());
-							if (next == null)
-								continue;
-						} else
-							next = datasets.get(i);
-						control = new XMLControlElement(next);
-						next = toSend.getDataset(colCount++);
-						control.loadObject(next, true, true);
-						next.setMarkerColor(track.getColor());
-						next.setConnected(true);
-						next.setXColumnVisible(false);
-					}
-				}
-				DataTool tool = DataTool.getTool();
-				tool.setUseChooser(false);
-				tool.setSaveChangesOnClose(false);
-				DataRefreshTool refresher = DataRefreshTool.getTool(data);
-				tool.send(new LocalJob(toSend), refresher);
-				tool.setVisible(true);
+				dataToolAction();
 			}
 		});
 		// add print item
@@ -1141,55 +1163,7 @@ public class TableTrackView extends TrackView {
 		dataTable.getTableHeader().addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				java.awt.Point mousePt = e.getPoint();
-				int col = dataTable.columnAtPoint(mousePt);
-				if (OSPRuntime.isPopupTrigger(e)) {
-					if (dataTable.getRowCount() > 0 && dataTable.getSelectedRowCount() == 0) {
-						dataTable.setColumnSelectionInterval(col, col);
-						dataTable.setRowSelectionInterval(0, dataTable.getRowCount() - 1);
-					}
-					deleteDataFunctionItem.setActionCommand(""); //$NON-NLS-1$
-					// set action command of delete item if data function column selected
-					String colName = dataTable.getColumnName(col);
-					int index = data.getDatasetIndex(colName);
-					if (index > -1) {
-						Dataset dataset = data.getDataset(index);
-						if (dataset instanceof DataFunction) {
-							deleteDataFunctionItem.setActionCommand(String.valueOf(index));
-							String s = TrackerRes.getString("TableTrackView.MenuItem.DeleteDataFunction"); //$NON-NLS-1$
-							deleteDataFunctionItem.setText(s + " \"" + colName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-						}
-					}
-
-					goToFrameItem.setEnabled(false);
-					getPopup().show(dataTable.getTableHeader(), e.getX(), e.getY() + 8);
-				} else {
-					// double-click: select column and all rows
-					if (e.getClickCount() == 2) {
-						dataTable.setRowSelectionInterval(0, dataTable.getRowCount() - 1); // all rows
-						dataTable.setColumnSelectionInterval(col, col);
-						leadCol = col;
-						// sort by independent variable
-						dataTable.sort(0);
-					}
-					// control-click: add/remove columns to selection
-					else if (e.isControlDown()) {
-						if (dataTable.isColumnSelected(col)) {
-							dataTable.removeColumnSelectionInterval(col, col);
-						} else {
-							dataTable.addColumnSelectionInterval(col, col);
-							if (dataTable.getSelectedColumns().length == 1) {
-								leadCol = col;
-							}
-						}
-					}
-					// shift-click: extend selection
-					else if (e.isShiftDown() && dataTable.getSelectedRows().length > 0) {
-						if (leadCol < dataTable.getColumnCount()) {
-							dataTable.setColumnSelectionInterval(col, leadCol);
-						}
-					}
-				}
+				tableHeaderMousePressed(e);
 			}
 
 			@Override
@@ -1206,39 +1180,7 @@ public class TableTrackView extends TrackView {
 		dataTable.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				if (e.getClickCount() == 2) {
-					dataTable.selectAll();
-				}
-				if (OSPRuntime.isPopupTrigger(e)) {
-					java.awt.Point mousePt = e.getPoint();
-					int col = dataTable.columnAtPoint(mousePt);
-					deleteDataFunctionItem.setActionCommand(""); //$NON-NLS-1$
-					// set action command of delete item if data function column selected
-					String colName = dataTable.getColumnName(col);
-					int index = data.getDatasetIndex(colName);
-					if (index > -1) {
-						Dataset dataset = data.getDataset(index);
-						if (dataset instanceof DataFunction) {
-							deleteDataFunctionItem.setActionCommand(String.valueOf(index));
-							String s = TrackerRes.getString("TableTrackView.MenuItem.DeleteDataFunction"); //$NON-NLS-1$
-							deleteDataFunctionItem.setText(s + " \"" + colName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
-						}
-					}
-					// set action command and title of goToFrame item
-					int row = dataTable.rowAtPoint(mousePt);
-					goToFrameItem.setEnabled(row > -1);
-					if (goToFrameItem.isEnabled()) {
-						goToFrameItem.setActionCommand(String.valueOf(row));
-						String s = TrackerRes.getString("TableTrackView.Popup.Menuitem.GoToStep"); //$NON-NLS-1$
-						int frameNum = getFrameAtRow(row);
-						VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-						int stepNum = clip.frameToStep(frameNum);
-						s += " " + stepNum; //$NON-NLS-1$
-						goToFrameItem.setText(s);
-					}
-
-					getPopup().show(dataTable, e.getX() + 4, e.getY());
-				}
+				tableMousePressed(e);
 			}
 		});
 		// override the datatable CTRL-C behavior
@@ -1317,6 +1259,131 @@ public class TableTrackView extends TrackView {
 			}
 		};
 		am.put(im.get(k), newAction);
+	}
+
+	protected void dataToolAction() {
+		TTrack track = getTrack();
+		DatasetManager toSend = new DatasetManager();
+		toSend.setID(data.getID());
+		toSend.setName(track.getName());
+		toSend.setXPointsLinked(true);
+		int colCount = 0;
+		ArrayList<Dataset> datasets = data.getDatasets();
+		// always include linked independent variable first
+		Dataset next = datasets.get(0);
+		XMLControlElement control = new XMLControlElement(next);
+		next = toSend.getDataset(colCount++);
+		control.loadObject(next, true, true);
+		next.setYColumnVisible(false);
+		next.setConnected(false);
+		next.setMarkerShape(Dataset.NO_MARKER);
+		for (int i = 0; i < checkBoxes.length; i++) {
+			if (checkBoxes[i].isSelected()) {
+				if (i >= datasets.size()) {
+					next = track.convertTextToDataColumn(checkBoxes[i].getActionCommand());
+					if (next == null)
+						continue;
+				} else
+					next = datasets.get(i);
+				control = new XMLControlElement(next);
+				next = toSend.getDataset(colCount++);
+				control.loadObject(next, true, true);
+				next.setMarkerColor(track.getColor());
+				next.setConnected(true);
+				next.setXColumnVisible(false);
+			}
+		}
+		DataTool tool = DataTool.getTool();
+		tool.setUseChooser(false);
+		tool.setSaveChangesOnClose(false);
+		DataRefreshTool refresher = DataRefreshTool.getTool(data);
+		tool.send(new LocalJob(toSend), refresher);
+		tool.setVisible(true);
+	}
+
+	protected void tableMousePressed(MouseEvent e) {
+		if (e.getClickCount() == 2) {
+			dataTable.selectAll();
+		}
+		if (!OSPRuntime.isPopupTrigger(e))
+			return;
+
+		java.awt.Point mousePt = e.getPoint();
+		int col = dataTable.columnAtPoint(mousePt);
+		deleteDataFunctionItem.setActionCommand(""); //$NON-NLS-1$
+		// set action command of delete item if data function column selected
+		String colName = dataTable.getColumnName(col);
+		int index = data.getDatasetIndex(colName);
+		if (index > -1) {
+			Dataset dataset = data.getDataset(index);
+			if (dataset instanceof DataFunction) {
+				deleteDataFunctionItem.setActionCommand(String.valueOf(index));
+				String s = TrackerRes.getString("TableTrackView.MenuItem.DeleteDataFunction"); //$NON-NLS-1$
+				deleteDataFunctionItem.setText(s + " \"" + colName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+		}
+		// set action command and title of goToFrame item
+		int row = dataTable.rowAtPoint(mousePt);
+		goToFrameItem.setEnabled(row > -1);
+		if (goToFrameItem.isEnabled()) {
+			goToFrameItem.setActionCommand(String.valueOf(row));
+			String s = TrackerRes.getString("TableTrackView.Popup.Menuitem.GoToStep"); //$NON-NLS-1$
+			int frameNum = getFrameAtRow(row);
+			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+			int stepNum = clip.frameToStep(frameNum);
+			s += " " + stepNum; //$NON-NLS-1$
+			goToFrameItem.setText(s);
+		}
+		getPopup().show(dataTable, e.getX() + 4, e.getY());
+	}
+
+	protected void tableHeaderMousePressed(MouseEvent e) {
+		java.awt.Point mousePt = e.getPoint();
+		int col = dataTable.columnAtPoint(mousePt);
+		if (OSPRuntime.isPopupTrigger(e)) {
+			if (dataTable.getRowCount() > 0 && dataTable.getSelectedRowCount() == 0) {
+				dataTable.setColumnSelectionInterval(col, col);
+				dataTable.setRowSelectionInterval(0, dataTable.getRowCount() - 1);
+			}
+			deleteDataFunctionItem.setActionCommand(""); //$NON-NLS-1$
+			// set action command of delete item if data function column selected
+			String colName = dataTable.getColumnName(col);
+			int index = data.getDatasetIndex(colName);
+			if (index > -1) {
+				Dataset dataset = data.getDataset(index);
+				if (dataset instanceof DataFunction) {
+					deleteDataFunctionItem.setActionCommand(String.valueOf(index));
+					String s = TrackerRes.getString("TableTrackView.MenuItem.DeleteDataFunction"); //$NON-NLS-1$
+					deleteDataFunctionItem.setText(s + " \"" + colName + "\""); //$NON-NLS-1$ //$NON-NLS-2$
+				}
+			}
+			goToFrameItem.setEnabled(false);
+			getPopup().show(dataTable.getTableHeader(), e.getX(), e.getY() + 8);
+		} else {
+			// double-click: select column and all rows
+			if (e.getClickCount() == 2) {
+				dataTable.setRowSelectionInterval(0, dataTable.getRowCount() - 1); // all rows
+				dataTable.setColumnSelectionInterval(col, col);
+				leadCol = col;
+				// sort by independent variable
+				dataTable.sort(0);
+			} else if (e.isControlDown()) {
+				// control-click: add/remove columns to selection
+				if (dataTable.isColumnSelected(col)) {
+					dataTable.removeColumnSelectionInterval(col, col);
+				} else {
+					dataTable.addColumnSelectionInterval(col, col);
+					if (dataTable.getSelectedColumns().length == 1) {
+						leadCol = col;
+					}
+				}
+			} else if (e.isShiftDown() && dataTable.getSelectedRows().length > 0) {
+				// shift-click: extend selection
+				if (leadCol < dataTable.getColumnCount()) {
+					dataTable.setColumnSelectionInterval(col, leadCol);
+				}
+			}
+		}
 	}
 
 	protected JPopupMenu getPopup() {
@@ -1683,7 +1750,7 @@ public class TableTrackView extends TrackView {
 	/**
 	 * A class to provide textColumn data for the dataTable.
 	 */
-	class TextColumnTableModel extends AbstractTableModel {
+	private class TextColumnTableModel extends DataTable.OSPTableModel {
 		@Override
 		public String getColumnName(int col) {
 			int i = 0;
@@ -1752,8 +1819,7 @@ public class TableTrackView extends TrackView {
 
 		@Override
 		public boolean isCellEditable(int row, int col) {
-			TTrack track = getTrack();
-			return !track.isLocked();
+			return !getTrack().isLocked();
 		}
 
 		@Override
@@ -1926,17 +1992,16 @@ public class TableTrackView extends TrackView {
 		}
 
 		@Override
-		public void refreshTable() {
+		public void refreshTable(int mode) {
 			// model for this table assumed to be a SortDecorator
 			// always reset the decorator before changing table structure
-			SortDecorator decorator = (SortDecorator) getModel();
-			int col = decorator.getSortedColumn();
-			decorator.reset();
+			int col = dataTableModel.getSortedColumn();
+			dataTableModel.resetSort();
 			// save selected rows and columns
 			int[] rows = getSelectedRows();
 			int[] cols = getSelectedColumns();
 			// refresh table
-			super.refreshTable();
+			super.refreshTable(mode);
 			// sort if needed
 			if (col > -1)
 				sort(col);
@@ -1967,9 +2032,7 @@ public class TableTrackView extends TrackView {
 
 		@Override
 		public boolean isCellEditable(int row, int col) {
-			// true only for text (String) columns
-			int i = dataTable.convertColumnIndexToModel(col);
-			return dataTable.getModel().getColumnClass(i).equals(String.class);
+			return dataTableModel.getColumnClass(convertColumnIndexToModel(col)).equals(String.class);
 		}
 
 		@Override
