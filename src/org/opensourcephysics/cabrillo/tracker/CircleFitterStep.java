@@ -731,7 +731,7 @@ public class CircleFitterStep extends Step {
 			}
       if (doRefresh) circleFitter.refreshFields(n);
  	  	circleFitter.dataValid = false;
-	  	if (doRefresh) circleFitter.firePropertyChange("data", null, circleFitter); //$NON-NLS-1$
+	  	if (doRefresh) circleFitter.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, circleFitter); //$NON-NLS-1$
 			if (circleFitter.trackerPanel != null) {
 				circleFitter.trackerPanel.changed = true;
 			}

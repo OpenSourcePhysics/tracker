@@ -531,7 +531,7 @@ public void cleanup() {
         		trackView.setVisible(columns[i], true);
         	}
           trackView.refresh = true;
-          trackView.refresh(view.trackerPanel.getFrameNumber());
+          trackView.refresh(view.trackerPanel.getFrameNumber(), TrackView.REFRESH_COLUMNS);
         }
       }
       return obj;

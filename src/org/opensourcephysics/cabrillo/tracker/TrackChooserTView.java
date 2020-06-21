@@ -152,7 +152,10 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		// show the trackView for the selected track
 		Object item = dropdown.getSelectedItem();
 		TTrack track = tracks.get(item);
+		
 //if (track==selectedTrack) return;
+		// pig 
+		
 		String name = (String) ((Object[]) item)[1];
 		if (track != null) {
 			trackerPanel.changed = true;
@@ -185,9 +188,9 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			selectedTrack = track;
 			Step step = trackerPanel.getSelectedStep();
 			if (step != null && step.getTrack() == track)
-				trackView.refresh(step.getFrameNumber());
+				trackView.refresh(step.getFrameNumber(), TrackView.REFRESH_DATA_STRUCTURE);
 			else
-				trackView.refresh(trackerPanel.getFrameNumber());
+				trackView.refresh(trackerPanel.getFrameNumber(), TrackView.REFRESH_DATA_STRUCTURE);
 			CardLayout layout = (CardLayout) getLayout();
 			layout.show(this, name);
 			TFrame.repaintT(this);
@@ -276,11 +279,11 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		cleanup();
 		// add this listener to tracker panel
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM, this);
+		trackerPanel.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_DATA, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES, this);
+		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
+		trackerPanel.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
 		// add this listener to tracks
 		for (TTrack track : trackerPanel.getTracks()) {
@@ -316,11 +319,11 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		if (trackerPanel == null)
 			return;
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM, this);
+		trackerPanel.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_DATA, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES, this);
+		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
+		trackerPanel.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
 		// remove this listener from tracks
 		for (Integer n : TTrack.activeTracks.keySet()) {
@@ -384,9 +387,10 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		}
 		if (!track.isViewable() || !trackerPanel.containsTrack(track))
 			return;
+		// is track already selected?
 		if (track == selectedTrack && tracks.get(dropdown.getSelectedItem()) == track) {
 			// just refresh the selected TrackView
-			getTrackView(selectedTrack).refresh(trackerPanel.getFrameNumber());
+			getTrackView(selectedTrack).refresh(trackerPanel.getFrameNumber(), TrackView.REFRESH_STEPNUMBER);
 			return;
 		}
 		Iterator<Object> it = tracks.keySet().iterator();
@@ -467,9 +471,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	}
 
 	/**
-	 * Responds to property change events. This receives the following events:
-	 * "track", "transform" from trackerPanel; "name", "color", footprint" and
-	 * "data" from selected track.
+	 * Responds to property change events.
 	 *
 	 * @param e the property change event
 	 */
@@ -514,7 +516,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			if (frame != null)
 				frame.repaint();
 			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM: // coords have changed
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // coords have changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
 				// if track is a particle model, ignore if coords are adjusting
 				if (track instanceof ParticleModel) {
@@ -523,29 +525,31 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 						return;
 				}
 				Step step = track.getStep(trackerPanel.getSelectedPoint(), trackerPanel);
-				view.refresh(step == null ? trackerPanel.getFrameNumber() : step.getFrameNumber());
+				view.refresh(step == null ? trackerPanel.getFrameNumber() : step.getFrameNumber(), 
+						TrackView.REFRESH_STEPNUMBER);
 			}
 			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_DATA: // data has changed
+		case TTrack.PROPERTY_TTRACK_DATA: // data structure has changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
-				view.refresh(trackerPanel.getFrameNumber());
+				view.refresh(trackerPanel.getFrameNumber(), TrackView.REFRESH_DATA_STRUCTURE);
 			}
 			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION:
-		case TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION: // data function has changed
+		case TFrame.PROPERTY_TFRAME_RADIANANGLES:
 			// angle units have changed
 			// refresh views of all tracks
 			for (TTrack t : trackerPanel.getTracks()) {
 				if ((view = getTrackView(t)) != null) {
 					view.refreshGUI();
-					view.refresh(trackerPanel.getFrameNumber());
+					view.refresh(trackerPanel.getFrameNumber(), TrackView.REFRESH_STEPNUMBER);
 				}
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			// step number has changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
-				view.refresh(trackerPanel.getFrameNumber());
+				OSPLog.debug(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER+" pig ");
+				view.refresh(trackerPanel.getFrameNumber(), TrackView.REFRESH_STEPNUMBER);
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:

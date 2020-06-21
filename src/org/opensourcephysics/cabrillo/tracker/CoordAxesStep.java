@@ -376,7 +376,7 @@ public class CoordAxesStep extends Step {
 			if (wasAdjusting && !adjusting) {
 				setXY(lastX, lastY);
 				TTrack track = getTrack();
-				track.firePropertyChange("step", null, track.trackerPanel.getFrameNumber()); //$NON-NLS-1$
+				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, track.trackerPanel.getFrameNumber()); //$NON-NLS-1$
 			}
 		}
 

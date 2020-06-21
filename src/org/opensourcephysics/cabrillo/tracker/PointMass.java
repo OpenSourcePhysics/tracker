@@ -416,7 +416,7 @@ public class PointMass extends TTrack {
 		if (!autoTrackerMarking && trackerPanel != null && trackerPanel.isAutoRefresh()) {
 			updateDerivatives(n);
 		}
-		firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, new Integer(n)); //$NON-NLS-1$
 		// check independent point masses for skipped steps during marking
 		if (skippedStepWarningOn && steps.isPreceded(n) && trackerPanel != null && !isDependent()
 				&& !AutoTracker.neverPause) {
@@ -2281,8 +2281,7 @@ public class PointMass extends TTrack {
 	}
 
 	/**
-	 * Responds to property change events. PointMass listens for the following
-	 * events: "transform" from TrackerPanel.
+	 * Responds to property change events.
 	 *
 	 * @param e the property change event
 	 */
@@ -2291,7 +2290,7 @@ public class PointMass extends TTrack {
 		if (e.getSource() instanceof TrackerPanel) {
 			String name = e.getPropertyName();
 			switch (name) {
-			case TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM:
+			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 				updateDerivatives();
 				invalidateData(null);
 				break;
@@ -2305,7 +2304,7 @@ public class PointMass extends TTrack {
 						warning.setVisible(true);
 				}
 				break;
-			case VideoClip.PROPERTY_VIDEOCLIP_ADJUSTING:
+			case TPoint.PROPERTY_ADJUSTING:
 				refreshDataLater = (Boolean) e.getNewValue();
 				if (!refreshDataLater) { // stopped adjusting
 					updateDerivatives();

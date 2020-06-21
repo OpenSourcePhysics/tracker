@@ -438,20 +438,20 @@ public class CircleFitter extends TTrack {
 		if (trackerPanel.getSelectedTrack() == this) {
 			if (name.equals("stepnumber")) { //$NON-NLS-1$
 				TTrackBar.getTrackbar(trackerPanel).refresh();
-			} else if (name.equals("transform")) { //$NON-NLS-1$
+			} else if (name.equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM)) { //$NON-NLS-1$
 				refreshFields(trackerPanel.getFrameNumber());
 			}
 		}
 		if (name.equalsIgnoreCase("startframe") //$NON-NLS-1$
 				|| name.equalsIgnoreCase("stepcount") //$NON-NLS-1$
 				|| name.equalsIgnoreCase("stepsize") //$NON-NLS-1$
-				|| name.equalsIgnoreCase("step") //$NON-NLS-1$
-				|| name.equalsIgnoreCase("steps")) { //$NON-NLS-1$
+				|| name.equalsIgnoreCase(PROPERTY_TTRACK_STEP) //$NON-NLS-1$
+				|| name.equalsIgnoreCase(PROPERTY_TTRACK_STEPS)) { //$NON-NLS-1$
 
 			if (attachments != null) {
 				refreshAttachments();
 			}
-		} else if (name.equals("adjusting")) { //$NON-NLS-1$
+		} else if (name.equals(TPoint.PROPERTY_ADJUSTING)) { //$NON-NLS-1$
 			refreshDataLater = (Boolean) e.getNewValue();
 			if (!refreshDataLater) { // stopped adjusting
 				firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$

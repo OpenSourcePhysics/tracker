@@ -386,7 +386,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	
 	private void addListeners() {
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOADED, this); 
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOCKED, this); 
+		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); 
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); 
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); 
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); 
@@ -398,7 +398,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 
 	private void removeListeners() {
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOADED, this); 
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOCKED, this); 
+		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); 
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); 
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); 
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); 
@@ -2752,9 +2752,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	}
 
 	/**
-	 * Responds to the following events: "selectedtrack", "selectedpoint", "track",
-	 * "clear", "video" from tracker panel, "filter" from filter stack, "datafile"
-	 * from VideoPanel.
+	 * Responds to property change events.
 	 *
 	 * @param e the property change event
 	 */
@@ -2766,7 +2764,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT: // selected point has changed //$NON-NLS-1$
 		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO: // video has changed //$NON-NLS-1$
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SIZE: // image size has changed //$NON-NLS-1$
-		case TrackerPanel.PROPERTY_TRACKERPANEL_LOCKED: // track or coords locked/unlocked //$NON-NLS-1$
+		case TTrack.PROPERTY_TTRACK_LOCKED: // track or coords locked/unlocked //$NON-NLS-1$
 		case TrackerPanel.PROPERTY_TRACKERPANEL_LOADED: 
 			break;
 		case FilterStack.PROPERTY_FILTER_FILTER: // filter has been added or removed //$NON-NLS-1$

@@ -707,7 +707,7 @@ public String toString() {
 //    public void setLocation(double x, double y) {
 //    	super.setLocation(x, y);
 //    	protractor.dataValid = false;
-//    	protractor.firePropertyChange("data", null, protractor);
+//    	protractor.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, protractor);
 //    }
   }
   

@@ -111,7 +111,7 @@ public class AnalyticParticle extends ParticleModel {
 				}
 				traceX = new double[0];
 				traceY = new double[0];
-				firePropertyChange("steps", null, null); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 				return;
 			}
 			// find first frame included in both model and clip
@@ -153,7 +153,7 @@ public class AnalyticParticle extends ParticleModel {
 			traceY = new double[] { point.y };
 			step.getPosition().setPosition(point); // this method is fast
 			setLastValidFrame(firstFrameInClip);
-			firePropertyChange("step", null, firstFrameInClip); //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TTRACK_STEP, null, firstFrameInClip); //$NON-NLS-1$
 		}
 	}
 

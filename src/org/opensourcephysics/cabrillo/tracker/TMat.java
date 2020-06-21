@@ -27,8 +27,6 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.beans.*;
 import java.awt.*;
 import java.awt.geom.*;
-import java.awt.image.BufferedImage;
-
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 
@@ -99,7 +97,7 @@ public class TMat implements Measurable, Trackable, PropertyChangeListener {
     trackerPanel = panel;
     trackerPanel.addPropertyChangeListener("coords", this); //$NON-NLS-1$
     coords = trackerPanel.getCoords();
-    coords.addPropertyChangeListener("transform", this); //$NON-NLS-1$
+    coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
   }
 
   /**
@@ -198,10 +196,10 @@ public boolean isMeasured() {
    * Refreshes this mat.
    */
   public void refresh() {
-    // remove and add coords "transform" listener
-    coords.removePropertyChangeListener("transform", this); //$NON-NLS-1$
+    // remove and add coords ImageCoordSystem.PROPERTY_COORDS_TRANSFORM listener
+    coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
     coords = trackerPanel.getCoords();
-    coords.addPropertyChangeListener("transform", this); //$NON-NLS-1$
+    coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
     mat.width = (int) trackerPanel.getImageWidth();
     mat.height = (int) trackerPanel.getImageHeight();
   	int w = (int)TrackerPanel.getDefaultImageWidth();
@@ -247,15 +245,13 @@ public boolean isMeasured() {
   }
 
   /**
-   * Responds to property change events. TMat listens for the following
-   * events: "transform" from the tracker panel's image coordinate system
-   * and "coords" from the tracker panel
+   * Responds to property change events.
    *
    * @param e the property change event
    */
   @Override
 public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals("transform")) { //$NON-NLS-1$
+    if (e.getPropertyName().equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM)) { //$NON-NLS-1$
       isValidMeasure = false;
     }
     else if (e.getPropertyName().equals("coords")) { //$NON-NLS-1$
@@ -268,7 +264,7 @@ public void propertyChange(PropertyChangeEvent e) {
    */
   public void cleanup() {
     trackerPanel.removePropertyChangeListener("coords", this); //$NON-NLS-1$
-    coords.removePropertyChangeListener("transform", this); //$NON-NLS-1$
+    coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
     trackerPanel = null;
   }
   

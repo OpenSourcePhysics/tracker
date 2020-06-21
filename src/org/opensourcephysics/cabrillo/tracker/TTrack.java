@@ -130,12 +130,12 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public static final String PROPERTY_TTRACK_DATA = "data"; //$NON-NLS-1$
 	public static final String PROPERTY_TTRACK_COLOR = "color"; //$NON-NLS-1$
 
-	public static final String PROPERTY_TTRACK_ADJUSTING = "adjusting"; //$NON-NLS-1$
 	public static final String PROPERTY_TTRACK_LOCKED = "locked"; //$NON-NLS-1$
 
 	public static final String PROPERTY_TTRACK_TEXTCOLUMN = "text_column"; //$NON-NLS-1$
 			
-	
+	public static final Integer HINT_STEP_ADDED_OR_REMOVED = -2;
+	public static final Integer HINT_STEPS_SELECTED = -3;
 
 	public void addListener(PropertyChangeListener c) {
 		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c); 
@@ -1186,7 +1186,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				}
 			}
 			Undo.postTrackEdit(this, control);
-			firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, new Integer(n)); //$NON-NLS-1$
 		}
 		return step;
 	}
@@ -2731,7 +2731,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		if (e.getSource() instanceof TrackerPanel) {
 			TrackerPanel trackerPanel = (TrackerPanel) e.getSource();
 			switch (name) {
-			case TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM:
+			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 			case TrackerPanel.PROPERTY_TRACKERPANEL_COORDS:
 				if (!(this instanceof PointMass)) {
 					dataValid = false;
@@ -2746,10 +2746,10 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			case VideoPanel.PROPERTY_VIDEOPANEL_IMAGESPACE:
 				erase(trackerPanel);
 				break;
-			case TrackerPanel.PROPERTY_TRACKERPANEL_DATA:
+			case TTrack.PROPERTY_TTRACK_DATA:
 				dataValid = false;
 				break;
-			case TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES:
+			case TFrame.PROPERTY_TFRAME_RADIANANGLES:
 				setAnglesInRadians((Boolean) e.getNewValue());
 				break;
 			}

@@ -110,7 +110,7 @@ public Step createStep(int n, double x, double y) {
       step = new OffsetOriginStep(this, n, x, y);
       step.setFootprint(getFootprint());
       steps = new StepArray(step);
-      firePropertyChange("step", null, new Integer(n)); //$NON-NLS-1$
+      firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
     }
     else if (trackerPanel!=null) {
     	XMLControl currentState = new XMLControlElement(this);
@@ -158,7 +158,7 @@ public TPoint autoMarkAt(int n, double x, double y) {
 	    	p.setAdjusting(true);
 	    	p.setXY(x, y);
 	    	p.setAdjusting(false);
-	    	firePropertyChange("step", null, n); //$NON-NLS-1$
+	    	firePropertyChange(PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$
 	    	return p;
 	    }
     }

@@ -676,7 +676,8 @@ public class TActions {
 				});
 			}
 		};
-		actions.put("dataTrack", getAsyncAction(dataTrackAction, true)); //$NON-NLS-1$
+//		actions.put("dataTrack", getAsyncAction(dataTrackAction, true)); //$NON-NLS-1$
+		actions.put("dataTrack", dataTrackAction); //$NON-NLS-1$
 
 		// new (read-only) tape measure
 		String s = TrackerRes.getString("TapeMeasure.Name"); //$NON-NLS-1$

@@ -349,9 +349,9 @@ public class DynamicSystem extends DynamicParticlePolar {
 				particle.setLastValidFrame(-1);
 				particle.repaint();
 				if (systemInspector != null) {
-					particle.removePropertyChangeListener("name", systemInspector); //$NON-NLS-1$
-					particle.removePropertyChangeListener("color", systemInspector); //$NON-NLS-1$
-					particle.removePropertyChangeListener("footprint", systemInspector); //$NON-NLS-1$
+					particle.removePropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
+					particle.removePropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
+					particle.removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
 				}
 			}
 		}
@@ -377,12 +377,12 @@ public class DynamicSystem extends DynamicParticlePolar {
 			particles[i].system = this;
 			particles[i].refreshInitialTime();
 			if (systemInspector != null) {
-				particles[i].removePropertyChangeListener("name", systemInspector); //$NON-NLS-1$
-				particles[i].removePropertyChangeListener("color", systemInspector); //$NON-NLS-1$
-				particles[i].removePropertyChangeListener("footprint", systemInspector); //$NON-NLS-1$
-				particles[i].addPropertyChangeListener("name", systemInspector); //$NON-NLS-1$
-				particles[i].addPropertyChangeListener("color", systemInspector); //$NON-NLS-1$
-				particles[i].addPropertyChangeListener("footprint", systemInspector); //$NON-NLS-1$
+				particles[i].removePropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
+				particles[i].removePropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
+				particles[i].removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
+				particles[i].addPropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
+				particles[i].addPropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
+				particles[i].addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
 			}
 		}
 		refreshSystemParameters();
@@ -390,10 +390,10 @@ public class DynamicSystem extends DynamicParticlePolar {
 			modelBuilder.refreshDropdown(null);
 		if (n == 0 && steps != noSteps) {
 			steps = noSteps;
-			firePropertyChange("steps", null, null); //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 		} else if (n > 0 && steps != realSteps) {
 			steps = realSteps;
-			firePropertyChange("steps", null, null); //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 		}
 		setLastValidFrame(-1);
 		repaint();
@@ -493,7 +493,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
-		if (name.equals("transform")) { //$NON-NLS-1$
+		if (name.equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM)) { //$NON-NLS-1$
 			// workaround to prevent infinite loop
 			ImageCoordSystem coords = trackerPanel.getCoords();
 			if (coords instanceof ReferenceFrame) {
@@ -511,7 +511,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 			refreshSystemParameters();
 			if (trackerPanel != null)
 				TFrame.repaintT(trackerPanel);
-		} else if (name.equals("name")) { //$NON-NLS-1$
+		} else if (name.equals(PROPERTY_TTRACK_NAME)) { //$NON-NLS-1$
 			refreshSystemParameters();
 		}
 	}
@@ -534,9 +534,9 @@ public class DynamicSystem extends DynamicParticlePolar {
 		if (systemInspector == null) {
 			systemInspector = new DynamicSystemInspector(this);
 			systemInspector.setLocation(200, 200);
-			addPropertyChangeListener("name", systemInspector); //$NON-NLS-1$
-			addPropertyChangeListener("color", systemInspector); //$NON-NLS-1$
-			addPropertyChangeListener("footprint", systemInspector); //$NON-NLS-1$
+			addPropertyChangeListener(PROPERTY_TTRACK_NAME, systemInspector); //$NON-NLS-1$
+			addPropertyChangeListener(PROPERTY_TTRACK_COLOR, systemInspector); //$NON-NLS-1$
+			addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, systemInspector); //$NON-NLS-1$
 		}
 		return systemInspector;
 	}

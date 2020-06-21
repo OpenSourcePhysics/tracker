@@ -28,7 +28,6 @@ import java.awt.*;
 import java.awt.geom.*;
 import javax.swing.*;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.OSPRuntime;
 
 /**

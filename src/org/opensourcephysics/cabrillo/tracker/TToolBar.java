@@ -1114,8 +1114,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					}
 				}
 				doRepaint = true;
-				if (false)
-					p.repaint();
+//				if (false)
+//					p.repaint();
 			} else if (track instanceof Vector) {
 				Vector v = (Vector) track;
 				v.setLabelsVisible(labelsButton.isSelected());
@@ -1127,8 +1127,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					}
 				}
 				doRepaint = true;
-				if (false)
-					v.repaint();
+//				if (false)
+//					v.repaint();
 			}
 		}
 		if (doRepaint) {
@@ -1196,8 +1196,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	}
 
 	/**
-	 * Responds to the following events: "selectedtrack", "selectedpoint", "track"
-	 * from tracker panel, "locked" from tracks, "visible" from tape and axes.
+	 * Responds to the property change events.
 	 *
 	 * @param e the property change event
 	 */
@@ -1642,7 +1641,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		 */
 		void refresh() {
 			setToolTipText(TrackerRes.getString("TToolbar.Button.TapeVisible.Tooltip")); //$NON-NLS-1$
-			// add "visible" property change listeners to calibration tools
+			// add PROPERTY_TTRACK_VISIBLE property change listeners to calibration tools
 			for (TTrack track : trackerPanel.calibrationTools) {
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); //$NON-NLS-1$
 				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); //$NON-NLS-1$

@@ -87,6 +87,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DataFunction;
 import org.opensourcephysics.display.DataTable;
@@ -267,12 +268,14 @@ public class TableTrackView extends TrackView {
 	 * @param frameNumber the frame number
 	 */
 	@Override
-	public void refresh(int frameNumber) {
+	public void refresh(int frameNumber, int refreshType) {
 		if (!forceRefresh && !isRefreshEnabled())
 			return;
 		if (!parent.isViewPaneVisible())
 			return;
 		forceRefresh = false;
+		OSPLog.debug(refreshType+" pig          TableTrackView refresh ");
+
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		dataTable.clearSelection();
@@ -392,7 +395,7 @@ public class TableTrackView extends TrackView {
 //    track.dataValid = false; // triggers data refresh
 		track.getData(trackerPanel); // load the current data
 		refreshColumnCheckboxes();
-		refresh(trackerPanel.getFrameNumber());
+		refresh(trackerPanel.getFrameNumber(), REFRESH_STEPNUMBER);
 	}
 
 	/**
@@ -442,7 +445,7 @@ public class TableTrackView extends TrackView {
 	public boolean isCustomState() {
 		if (!refreshed) {
 			forceRefresh = true;
-			refresh(trackerPanel.getFrameNumber());
+			refresh(trackerPanel.getFrameNumber(), REFRESH_DATA_STRUCTURE);
 		}
 		// check displayed data columns--default is columns 0 and 1 only
 		int n = checkBoxes.length;
@@ -488,7 +491,7 @@ public class TableTrackView extends TrackView {
 			String name = track.getTextColumnNames().get(index - n);
 			textColumnsVisible.add(name);
 		}
-		refresh(trackerPanel.getFrameNumber());
+		refresh(trackerPanel.getFrameNumber(), REFRESH_COLUMNS);
 	}
 
 	/**
@@ -671,7 +674,9 @@ public class TableTrackView extends TrackView {
 			}
 			// else a text entry was changed
 			// refresh table and column visibility dialog
-			dataTable.refreshTable(DataTable.MODE_COLUMN);
+			dataTable.refreshTable(added == null && removed == null ? 
+					DataTable.MODE_FRAME:
+					DataTable.MODE_COLUMN);
 			if (parent.getViewType() == TView.VIEW_TABLE) {
 				TableTView view = (TableTView) getParent();
 				view.refreshColumnsDialog(track);
@@ -1698,7 +1703,7 @@ public class TableTrackView extends TrackView {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (refresh)
-						refresh(trackerPanel.getFrameNumber());
+						refresh(trackerPanel.getFrameNumber(), REFRESH_COLUMNS);
 					trackerPanel.changed = true;
 				}
 			});
@@ -1724,7 +1729,7 @@ public class TableTrackView extends TrackView {
 						textColumnsVisible.remove(e.getActionCommand());
 					}
 					if (refresh)
-						refresh(trackerPanel.getFrameNumber());
+						refresh(trackerPanel.getFrameNumber(), REFRESH_COLUMNS);
 					trackerPanel.changed = true;
 				}
 			});
@@ -1993,6 +1998,7 @@ public class TableTrackView extends TrackView {
 
 		@Override
 		public void refreshTable(int mode) {
+			OSPLog.debug("pig refresh datatable "+mode);
 			// model for this table assumed to be a SortDecorator
 			// always reset the decorator before changing table structure
 			int col = dataTableModel.getSortedColumn();

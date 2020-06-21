@@ -407,7 +407,7 @@ public MultiShape getShape(Point[] points) {
     outline = transform.createTransformedShape(circle);
     spot = transform.createTransformedShape(center);
     hitShapes[0] = spot; // ignored by PointMass!
-    return new MultiShape(c);
+    return new MultiShape(c).andFill(true);
   }
   
   private class CircleDialog extends JDialog {

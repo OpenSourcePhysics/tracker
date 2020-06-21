@@ -823,7 +823,7 @@ public class NumberFormatDialog extends JDialog {
     				}
     			}
     			if (trackChanged) {
-    				nextTrack.firePropertyChange("data", null, null); //$NON-NLS-1$   					
+    				nextTrack.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$   					
     	  		formatsChanged = true;
     			}
     		}
@@ -831,7 +831,7 @@ public class NumberFormatDialog extends JDialog {
   		else { // null dimensions
 	  		// apply to this track
   			if (setFormatPattern(track, displayName, pattern)) {
-  	  		track.firePropertyChange("data", null, null); //$NON-NLS-1$
+  	  		track.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
   	  		formatsChanged = true;
   	  	}
   			// apply to all other tracks with variable of same name and null dimensions
@@ -841,7 +841,7 @@ public class NumberFormatDialog extends JDialog {
     			for (String var: getDisplayNames(next)) {
     				if (var.equals(displayName) && getVariableDimensions(nextType, displayName)==null) {
         			if (setFormatPattern(next, displayName, pattern)) {
-        	  		next.firePropertyChange("data", null, null); //$NON-NLS-1$
+        	  		next.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
         	  		formatsChanged = true;
         	  	}    					
     				}
@@ -856,7 +856,7 @@ public class NumberFormatDialog extends JDialog {
   		for (TTrack next: tracks) {
   			if (!trackType.isAssignableFrom(next.getClass())) continue;
   			if (setFormatPattern(next, displayName, pattern)) {
-  	  		next.firePropertyChange("data", null, null); //$NON-NLS-1$
+  	  		next.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
   	  		formatsChanged = true;
   	  	}
   		}
@@ -866,7 +866,7 @@ public class NumberFormatDialog extends JDialog {
   	}
   	else if (setFormatPattern(track, displayName, pattern)) {
   		// apply to only this track
-  		track.firePropertyChange("data", null, null); //$NON-NLS-1$
+  		track.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
   		formatsChanged = true;
   	}
   	if (!wasChanged && formatsChanged) {
@@ -949,7 +949,7 @@ public class NumberFormatDialog extends JDialog {
             for(String name : names) {
 	          	fireEvent = setFormatPattern(next, name, patterns.get(name)) || fireEvent;
 	          	if (fireEvent) {
-	          		next.firePropertyChange("data", null, null); //$NON-NLS-1$
+	          		next.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
 	          	}
 	          }
           }

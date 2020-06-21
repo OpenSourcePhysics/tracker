@@ -116,9 +116,9 @@ public void setVisible(boolean vis) {
 			ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
 			for (int k = 0, n = list.size(); k < n; k++) {
 				Vector v = list.get(k);
-				v.removePropertyChangeListener("name", this); //$NON-NLS-1$
-				v.removePropertyChangeListener("color", this); //$NON-NLS-1$
-				v.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+				v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+				v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+				v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 			}
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
@@ -130,9 +130,7 @@ public void setVisible(boolean vis) {
 	}
 
   /**
-   * Responds to property change events. VectorSumInspector listens for the
-   * following events: "color", "footprint" and "name" from Vector, "track"
-   * from TrackerPanel, and TFrame.PROPERTY_TFRAME_TAB.
+   * Responds to property change events.
    *
    * @param e the property change event
    */
@@ -162,12 +160,12 @@ public void propertyChange(PropertyChangeEvent e) {
 		ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
 		for (int k = 0, n = list.size(); k < n; k++) {
 			Vector v = list.get(k);
-			v.removePropertyChangeListener("name", this); //$NON-NLS-1$
-			v.removePropertyChangeListener("color", this); //$NON-NLS-1$
-			v.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-			v.addPropertyChangeListener("name", this); //$NON-NLS-1$
-			v.addPropertyChangeListener("color", this); //$NON-NLS-1$
-			v.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
+			v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+			v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+			v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+			v.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+			v.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+			v.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 			if (v instanceof VectorSum)
 				continue; // don't include other sums
 			JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(v.getName(), v.getFootprint().getIcon(21, 16));

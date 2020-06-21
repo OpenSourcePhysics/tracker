@@ -29,6 +29,7 @@ import java.awt.BasicStroke;
 import java.awt.Point;
 import java.awt.Shape;
 import java.awt.geom.Area;
+import java.awt.geom.Line2D;
 import java.util.Collection;
 import java.util.HashSet;
 
@@ -47,12 +48,13 @@ public class MultiLineFootprint extends LineFootprint {
 	protected boolean closed;
 
 	/**
-	 * Constructs a LineFootprint.
+	 * Constructs a MultiLineFootprint.
 	 *
 	 * @param name the name
 	 */
 	public MultiLineFootprint(String name) {
 		super(name);
+		hitShapes = new Shape[0];
 	}
 
 	/**
@@ -105,46 +107,40 @@ public class MultiLineFootprint extends LineFootprint {
 		if (stroke == null || stroke.getLineWidth() != scale * baseStroke.getLineWidth()) {
 			stroke = new BasicStroke(scale * baseStroke.getLineWidth());
 		}
-
-		path.reset();
-		Point p2 = null;
-		boolean moveto = true;
-		for (int i = 0; i < points.length - 1; i++) {
-			Point p1 = points[i];
-			if (p1 == null || (p2 = points[i + 1]) == null) {
-				moveto = true;
-				continue;
-			}
-			if (moveto) {
-				path.moveTo(p1.x, p1.y);
-				moveto = false;
-			}
-			path.lineTo(p2.x, p2.y);
-		}
-		if (closed && points.length > 2 && points[0] != null && points[points.length - 1] != null) {
-			path.clone();
-		}
-		return new MultiShape(path);
+			
+		MultiShape drawShape = new MultiShape();
+  	for (int i=0; i<points.length-1; i++) {
+      Point p1 = points[i];
+      Point p2 = points[i+1];
+      if (p1==null || p2==null) continue;
+      line.setLine(p1, p2);
+      drawShape.addDrawShape((Line2D)line.clone(), null);
+  	}
+  	if (closed && points.length>2 && points[0]!=null && points[points.length-1]!=null) {
+      line.setLine(points[points.length-1], points[0]);
+      drawShape.addDrawShape((Line2D)line.clone(), null);
+  	}
+    return drawShape;
 	}
 
 	// static fields
 	private static Collection<LineFootprint> footprints = new HashSet<LineFootprint>();
 
 	// static constants
-	private static final MultiLineFootprint LINE;
-	private static final MultiLineFootprint BOLD_LINE;
+	private static final MultiLineFootprint MULTILINE;
+	private static final MultiLineFootprint BOLD_MULTILINE;
 
 	// static initializers
 	static {
 
 		// LINE
-		LINE = new MultiLineFootprint("Footprint.Lines"); //$NON-NLS-1$
-		footprints.add(LINE);
+		MULTILINE = new MultiLineFootprint("Footprint.MultiLine"); //$NON-NLS-1$
+		footprints.add(MULTILINE);
 
 		// BOLD_LINE
-		BOLD_LINE = new MultiLineFootprint("Footprint.BoldLines"); //$NON-NLS-1$
-		BOLD_LINE.setStroke(new BasicStroke(2));
-		footprints.add(BOLD_LINE);
+		BOLD_MULTILINE = new MultiLineFootprint("Footprint.BoldMultiLine"); //$NON-NLS-1$
+		BOLD_MULTILINE.setStroke(new BasicStroke(2));
+		footprints.add(BOLD_MULTILINE);
 
 	}
 }

@@ -487,7 +487,7 @@ public class TapeMeasure extends TTrack {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
-		if (isStickMode() && name.equals("transform") && !isStepChangingScale) { //$NON-NLS-1$
+		if (isStickMode() && name.equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM) && !isStepChangingScale) { //$NON-NLS-1$
 			// stretch or squeeze stick to keep constant world length
 			int n = trackerPanel.getFrameNumber();
 			TapeStep step = (TapeStep) getStep(n);
@@ -497,10 +497,10 @@ public class TapeMeasure extends TTrack {
 				keyFrames.add(n);
 			}
 		}
-		if (name.equals("adjusting") && e.getSource() instanceof TrackerPanel) { //$NON-NLS-1$
+		if (name.equals(TPoint.PROPERTY_ADJUSTING) && e.getSource() instanceof TrackerPanel) { //$NON-NLS-1$
 			refreshDataLater = (Boolean) e.getNewValue();
 			if (!refreshDataLater) { // stopped adjusting
-				firePropertyChange("data", null, null); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
 			}
 		}
 		if (name.equals("stepnumber")) { //$NON-NLS-1$
@@ -519,7 +519,7 @@ public class TapeMeasure extends TTrack {
 			angleField.setEnabled(enabled);
 		} else if (isStickMode() && name.equals("fixed_scale") && e.getNewValue() == Boolean.FALSE) { //$NON-NLS-1$
 			setFixedPosition(false);
-		} else if (name.equals("step") || name.equals("steps")) { //$NON-NLS-1$ //$NON-NLS-2$
+		} else if (name.equals(PROPERTY_TTRACK_STEP) || name.equals(PROPERTY_TTRACK_STEPS)) { //$NON-NLS-1$ //$NON-NLS-2$
 			refreshAttachments();
 		} else
 			super.propertyChange(e);
