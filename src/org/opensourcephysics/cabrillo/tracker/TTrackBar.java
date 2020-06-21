@@ -458,9 +458,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 
 		TTrack track = trackButton.getTrack();
 		if (track != null) {
-			track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("color", this); //$NON-NLS-1$
-			track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 			toolbarComponentHeight = trackButton.getPreferredSize().height;
 		} else {
 			CoordAxes axes = trackerPanel.getAxes();
@@ -488,9 +488,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			}
 			trackButton.setTrack(track);
 			// listen to tracks for property changes that affect icon or name
-			track.addPropertyChangeListener("name", this); //$NON-NLS-1$
-			track.addPropertyChangeListener("color", this); //$NON-NLS-1$
-			track.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 			add(trackButton);
 			ArrayList<Component> list = track.getToolbarTrackComponents(trackerPanel);
 			for (Component c : list) {
@@ -587,8 +587,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   }
 
   /**
-   * Responds to the following events: "selectedtrack", "selectedpoint",
-   * "track" from tracker panel, "footprint", "color", "name" from tracks.
+   * Responds to property change events.
    *
    * @param e the property change event
    */
@@ -598,9 +597,9 @@ public void propertyChange(PropertyChangeEvent e) {
     if (name.equals("selectedtrack")) {  // selected track has changed //$NON-NLS-1$
       refresh();
     }
-    else if (name.equals("footprint")  //$NON-NLS-1$
-    		|| name.equals("color") //$NON-NLS-1$
-    		|| name.equals("name")) { //$NON-NLS-1$
+    else if (name.equals(TTrack.PROPERTY_TTRACK_FOOTPRINT)  //$NON-NLS-1$
+    		|| name.equals(TTrack.PROPERTY_TTRACK_COLOR) //$NON-NLS-1$
+    		|| name.equals(TTrack.PROPERTY_TTRACK_NAME)) { //$NON-NLS-1$
       refresh();
     }
     else if (name.equals("selectedpoint")) {  // selected point has changed //$NON-NLS-1$
@@ -612,9 +611,9 @@ public void propertyChange(PropertyChangeEvent e) {
     else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) {  // tracks have been cleared //$NON-NLS-1$
   		for (Integer n: TTrack.activeTracks.keySet()) {
   			TTrack track = TTrack.activeTracks.get(n);
-	  		track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-	      track.removePropertyChangeListener("color", this); //$NON-NLS-1$
-	      track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+	  		track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+	      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+	      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
   		}
   		trackButton.setTrack(null);
       refresh();
@@ -633,9 +632,9 @@ public void propertyChange(PropertyChangeEvent e) {
     trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
     for (Integer n: TTrack.activeTracks.keySet()) {
     	TTrack track = TTrack.activeTracks.get(n);
-      track.removePropertyChangeListener("name", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("color", this); //$NON-NLS-1$
-      track.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+      track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 		}
 		trackButton.setTrack(null);
     trackerPanel = null;

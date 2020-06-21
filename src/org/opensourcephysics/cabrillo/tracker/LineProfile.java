@@ -137,7 +137,7 @@ public class LineProfile extends TTrack {
         spreadField.setIntValue(getSpread());
         spreadField.selectAll();
         spreadField.requestFocusInWindow();
-        firePropertyChange("data", null, LineProfile.this); // to views //$NON-NLS-1$
+        firePropertyChange(PROPERTY_TTRACK_DATA, null, LineProfile.this); // to views //$NON-NLS-1$
       }
     });
     spreadField.addFocusListener(new FocusAdapter() {
@@ -149,7 +149,7 @@ public class LineProfile extends TTrack {
 	public void focusLost(FocusEvent e) {
         setSpread(spreadField.getIntValue());
         spreadField.setIntValue(getSpread());
-        firePropertyChange("data", null, LineProfile.this); // to views //$NON-NLS-1$
+        firePropertyChange(PROPERTY_TTRACK_DATA, null, LineProfile.this); // to views //$NON-NLS-1$
       }
     });
     spreadField.setBorder(fieldBorder);
@@ -556,8 +556,7 @@ public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel)
   }
 
 	/**
-	 * Responds to property change events. LineProfile listens for the following
-	 * events: "stepnumber", "image" and "transform" from TrackerPanel.
+	 * Responds to property change events.
 	 *
 	 * @param e the property change event
 	 */
@@ -573,7 +572,7 @@ public ArrayList<Component> getToolbarTrackComponents(TrackerPanel trackerPanel)
 				invalidateData(Boolean.FALSE);
 				support.firePropertyChange(e); // to view
 				break;
-			case TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM:
+			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 				if (!steps.isEmpty()) { // $NON-NLS-1$
 					int n = trackerPanel.getFrameNumber();
 					LineProfileStep step = (LineProfileStep) steps.getStep(n);

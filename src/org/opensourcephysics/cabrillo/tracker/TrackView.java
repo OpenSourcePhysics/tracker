@@ -72,8 +72,6 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		trackerPanel = null;
 	}
 
-	abstract void refresh(int stepNumber);
-
 	abstract void refresh(int stepNumber, int mode);
 
 	abstract void refreshGUI();

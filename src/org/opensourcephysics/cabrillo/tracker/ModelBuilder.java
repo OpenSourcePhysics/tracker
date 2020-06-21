@@ -288,7 +288,7 @@ public class ModelBuilder extends FunctionTool {
 			boosterDropdown.setEnabled(false); // disabled during refresh to prevent action
 			// refresh boosterDropdown
 			String s = TrackerRes.getString("TrackerPanel.Booster.None"); //$NON-NLS-1$
-			Object[] none = new Object[] { new ShapeIcon(new Rectangle(), 21, 16), null, s };
+			Object[] none = new Object[] { new ShapeIcon(null, 21, 16), null, s };
 			Object[] selected = none;
 			boolean targetExists = false;
 			boosterDropdown.removeAllItems();

@@ -259,7 +259,7 @@ public Step createStep(int n, double x, double y) {
     step.setFirePropertyChangeEvents(true);
     steps.setStep(n, step);
     step.setFootprint(getFootprint());    	
-    firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); //$NON-NLS-1$
+    firePropertyChange(PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, new Integer(n)); //$NON-NLS-1$
     return step;
   }
 
@@ -325,8 +325,7 @@ public void setLocked(boolean locked) {
   }
 
   /**
-   * Responds to property change events. PointMass listens for the following
-   * events: "transform" from TrackerPanel.
+   * Responds to property change events.
    *
    * @param e the property change event
    */
@@ -334,7 +333,7 @@ public void setLocked(boolean locked) {
 public void propertyChange(PropertyChangeEvent e) {
     if (e.getSource() instanceof TrackerPanel) {
       String name = e.getPropertyName();
-			if (name.equals("adjusting")) { //$NON-NLS-1$
+			if (name.equals(TPoint.PROPERTY_ADJUSTING)) { //$NON-NLS-1$
 				refreshDataLater = (Boolean)e.getNewValue();
 				if (!refreshDataLater) {  // stopped adjusting
 					firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$

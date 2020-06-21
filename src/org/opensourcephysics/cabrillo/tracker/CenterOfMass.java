@@ -264,9 +264,7 @@ protected boolean isAutoTrackable() {
   }
   
   /**
-   * Responds to property change events. CenterOfMass responds to the
-   * following events: "track" from tracker panel, "mass" and "step"
-   * from PointMass, "steps" from ParticleModel.
+   * Responds to property change events.
    *
    * @param e the property change event
    */
@@ -281,11 +279,11 @@ public void propertyChange(PropertyChangeEvent e) {
     if (e.getSource() instanceof PointMass) {
       if (name.equals("mass")) //$NON-NLS-1$
         update();
-      else if (name.equals("step")){ //$NON-NLS-1$
+      else if (name.equals(PROPERTY_TTRACK_STEP)){ //$NON-NLS-1$
         int n = ((Integer)e.getNewValue()).intValue();
         update(n, true);
       }
-      else if (name.equals("steps")){ //$NON-NLS-1$
+      else if (name.equals(PROPERTY_TTRACK_STEPS)){ //$NON-NLS-1$
         update();
       }
     }
@@ -325,7 +323,7 @@ public void propertyChange(PropertyChangeEvent e) {
     for (int n = 0; n < length; n++)
       update(n, false);
 	  updateDerivatives();
-	  firePropertyChange("steps", null, null); //$NON-NLS-1$
+	  firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 	  repaint();
     // update inspector, if visible
     if (inspector != null &&

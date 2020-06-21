@@ -282,7 +282,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 					}
 				}
 				if (selectedStepsChanged && stepTrack != null) {
-					stepTrack.firePropertyChange("steps", null, null); //$NON-NLS-1$
+					stepTrack.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, TTrack.HINT_STEPS_SELECTED, null); //$NON-NLS-1$
 				}
 
 				if (step != null)
@@ -312,7 +312,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				}
 				trackerPanel.selectedSteps.clear(); // triggers undoable edit if changed
 				for (TTrack next : tracks) {
-					next.firePropertyChange("steps", null, null); //$NON-NLS-1$
+					next.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 				}
 
 				if (!trackerPanel.isShowCoordinates()) {

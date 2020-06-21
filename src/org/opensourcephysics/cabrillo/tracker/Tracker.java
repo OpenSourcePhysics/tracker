@@ -2123,7 +2123,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 							if (response == JOptionPane.YES_OPTION) {
 								preferredTrackerJar = null;
 							}
-//  					preferredJRE = null;  // reset preferredJRE to the bundled JRE // pig is this needed now?
+//  					preferredJRE = null;  // reset preferredJRE to the bundled JRE // no longer needed?
 							savePreferences();
 						}
 					}

@@ -29,8 +29,6 @@ import java.util.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Point2D;
-import java.awt.image.BufferedImage;
-
 import javax.swing.*;
 import javax.swing.border.Border;
 
@@ -323,7 +321,7 @@ public class RGBRegion extends TTrack {
       trackerPanel.setSelectedPoint(selection);
   		refreshData(data, trackerPanel);
       step.repaint();
-      firePropertyChange("data", null, RGBRegion.this); // to views //$NON-NLS-1$
+      firePropertyChange(PROPERTY_TTRACK_DATA, null, RGBRegion.this); // to views //$NON-NLS-1$
     }     
   }
 
@@ -443,7 +441,7 @@ public Step createStep(int n, double x, double y) {
       keyFrames.add(n);
   		Undo.postTrackEdit(this, currentState);
     }
-    firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$
+    firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, n); //$NON-NLS-1$
     return getStep(n);
   }
 

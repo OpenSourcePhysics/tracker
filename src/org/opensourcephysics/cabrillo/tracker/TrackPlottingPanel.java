@@ -798,7 +798,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					step.erase();
 				}
 				TFrame.repaintT(trackerPanel);
-				track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 			}
 		};
 		selectPointsItem = new JMenuItem();
@@ -1590,7 +1590,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 								steps.add(step);
 							step.erase();
 							TFrame.repaintT(trackerPanel);
-							track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+							track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 						}
 					} else {
 						// set clickedStep so TrackPlottingPanel will select it after displaying video

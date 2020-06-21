@@ -58,7 +58,7 @@ public class ReferenceFrame extends ImageCoordSystem
     setFixedOrigin(false);
     setFixedAngle(coords.isFixedAngle());
     setFixedScale(coords.isFixedScale());
-    coords.addPropertyChangeListener("transform", this); //$NON-NLS-1$
+    coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
     originTrack.addStepListener(this);
     for (int n = 0; n < coords.getLength(); n++) {
       setScaleXY(n, coords.getScaleX(n), coords.getScaleY(n));
@@ -111,18 +111,16 @@ public boolean isLocked() {
   }
 
   /**
-   * Responds to property change events. ReferenceFrame receives the
-   * following events: "step" and "mass" from PointMass (origin), and
-   * "transform" from ImageCoordSystem (angle and scale).
+   * Responds to property change events.
    *
    * @param e the property change event
    */
   @Override
 public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("step") || name.equals("steps")) // from PointMass //$NON-NLS-1$ //$NON-NLS-2$
+    if (name.equals(TTrack.PROPERTY_TTRACK_STEP) || name.equals(TTrack.PROPERTY_TTRACK_STEPS)) // from PointMass //$NON-NLS-1$ //$NON-NLS-2$
       setOrigins();
-    else if (name.equals("transform")) {  // from ImageCoordSystem //$NON-NLS-1$
+    else if (name.equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM)) {  // from ImageCoordSystem //$NON-NLS-1$
       Integer integer = (Integer)e.getNewValue();
       if (integer != null) {
         int n = integer.intValue();
@@ -153,14 +151,14 @@ public void propertyChange(PropertyChangeEvent e) {
    * @return the parent image coordinate system
    */
   public ImageCoordSystem getCoords() {
-    coords.removePropertyChangeListener("transform", this); //$NON-NLS-1$
+    coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
     coords.setFixedAngle(isFixedAngle());
     coords.setFixedScale(isFixedScale());
     for (int n = 0; n < coords.getLength(); n++) {
       coords.setScaleXY(n, getScaleX(n), getScaleY(n));
       coords.setCosineSine(n, getCosine(n),  getSine(n));
     }
-    coords.addPropertyChangeListener("transform", this); //$NON-NLS-1$
+    coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
     return coords;
   }
 

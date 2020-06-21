@@ -236,7 +236,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 							PointMass pointMass = (PointMass) track;
 							pointMass.updateDerivatives();
 						}
-						track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+						track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 						wizard.refreshGUI();
 					}
 				}
@@ -368,7 +368,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				PointMass pointMass = (PointMass) track;
 				pointMass.updateDerivatives();
 			}
-			track.firePropertyChange("steps", null, null); //$NON-NLS-1$
+			track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 		}
 	}
 
@@ -782,9 +782,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	}
 
 	/**
-	 * Responds to property change events. AutoTracker listens for the following
-	 * events: "step" from tracks, "selectedpoint", "selectedtrack", "video" and
-	 * "stepnumber" from TrackerPanel.
+	 * Responds to property change events.
 	 *
 	 * @param e the property change event
 	 */
@@ -862,8 +860,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		if (wizard == null || !wizard.isVisible())
 			return;
 
-		if (name.equals("video") || name.equals("name") //$NON-NLS-1$ //$NON-NLS-2$
-				|| name.equals("color") || name.equals("footprint")) { //$NON-NLS-1$ //$NON-NLS-2$
+		if (name.equals("video") || name.equals(TTrack.PROPERTY_TTRACK_NAME) //$NON-NLS-1$ //$NON-NLS-2$
+				|| name.equals(TTrack.PROPERTY_TTRACK_COLOR) || name.equals(TTrack.PROPERTY_TTRACK_FOOTPRINT)) { //$NON-NLS-1$ //$NON-NLS-2$
 			wizard.refreshGUI();
 		} else if (track == null && name.equals("stepnumber")) { //$NON-NLS-1$
 			wizard.refreshGUI();
@@ -872,7 +870,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		if (track == null || trackerPanel.getVideo() == null) {
 			return;
 		}
-		if (name.equals("step") && wizard.isVisible()) { //$NON-NLS-1$
+		if (name.equals(TTrack.PROPERTY_TTRACK_STEP) && wizard.isVisible()) { //$NON-NLS-1$
 			if (!marking) { // not marked by this autotracker
 				n = ((Integer) e.getNewValue()).intValue();
 				frame = getFrame(n);

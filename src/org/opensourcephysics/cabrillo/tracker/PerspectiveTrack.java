@@ -72,8 +72,8 @@ public class PerspectiveTrack extends TTrack {
     Step step = new PerspectiveStep(this, 0, 0, 0);
     step.setFootprint(getFootprint());
     steps = new StepArray(step);
-    filter.addPropertyChangeListener("color", this); //$NON-NLS-1$
-    filter.addPropertyChangeListener("visible", this); //$NON-NLS-1$
+    filter.addPropertyChangeListener(PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+    filter.addPropertyChangeListener(PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
     filter.addPropertyChangeListener("enabled", this); //$NON-NLS-1$
     filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_TAB, this); //$NON-NLS-1$
     filter.addPropertyChangeListener("cornerlocation", this); //$NON-NLS-1$
@@ -84,8 +84,8 @@ public class PerspectiveTrack extends TTrack {
 	protected void dispose() {
   	super.dispose();
 		filterMap.remove(filter);
-    filter.removePropertyChangeListener("color", this); //$NON-NLS-1$
-    filter.removePropertyChangeListener("visible", this); //$NON-NLS-1$
+    filter.removePropertyChangeListener(PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+    filter.removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
     filter.removePropertyChangeListener("enabled", this); //$NON-NLS-1$
     filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_TAB, this); //$NON-NLS-1$
     filter.removePropertyChangeListener("cornerlocation", this); //$NON-NLS-1$
@@ -105,7 +105,9 @@ public void propertyChange(PropertyChangeEvent e) {
 	  	if (name.equals("color")) { //$NON-NLS-1$
 	  		setColor((Color)e.getNewValue());
 	  	}
-	  	else if (name.equals("enabled") || name.equals(Filter.PROPERTY_FILTER_TAB) || name.equals("visible")) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+	  	else if (name.equals("enabled") || 
+	  			name.equals(Filter.PROPERTY_FILTER_TAB) || 
+	  			name.equals(PROPERTY_TTRACK_VISIBLE)) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	  		if (trackerPanel.getSelectedTrack()==this) {
   				trackerPanel.setSelectedPoint(null);
           trackerPanel.selectedSteps.clear();

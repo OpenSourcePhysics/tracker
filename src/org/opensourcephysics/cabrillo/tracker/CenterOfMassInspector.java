@@ -133,9 +133,9 @@ public void setVisible(boolean vis) {
 			ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
 			for (int i = 0, n = masses.size(); i < n; i++) {
 				PointMass p = masses.get(i);
-				p.removePropertyChangeListener("name", this); //$NON-NLS-1$
-				p.removePropertyChangeListener("color", this); //$NON-NLS-1$
-				p.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
+				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 			}
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
@@ -226,12 +226,12 @@ public void setVisible(boolean vis) {
 		ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
 		for (int i = 0, n = masses.size(); i < n; i++) {
 			PointMass m = masses.get(i);
-			m.removePropertyChangeListener("name", this); //$NON-NLS-1$
-			m.removePropertyChangeListener("color", this); //$NON-NLS-1$
-			m.removePropertyChangeListener("footprint", this); //$NON-NLS-1$
-			m.addPropertyChangeListener("name", this); //$NON-NLS-1$
-			m.addPropertyChangeListener("color", this); //$NON-NLS-1$
-			m.addPropertyChangeListener("footprint", this); //$NON-NLS-1$
+			m.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+			m.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+			m.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+			m.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
+			m.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
+			m.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 			if (m instanceof CenterOfMass)
 				continue; // don't include other cms
 			JCheckBoxMenuItem checkbox = new JCheckBoxMenuItem(m.getName(), m.getFootprint().getIcon(21, 16));

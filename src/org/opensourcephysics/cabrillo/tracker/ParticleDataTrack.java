@@ -136,8 +136,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		defaultFootprint = getFootprint();
 		// set model footprint only if this is the leader
 		if (!(source instanceof ParticleDataTrack)) {
-			modelFootprints = new Footprint[] { MultiLineFootprint.getFootprint("Footprint.Lines"), //$NON-NLS-1$
-					MultiLineFootprint.getFootprint("Footprint.BoldLines") }; //$NON-NLS-1$
+			modelFootprints = new Footprint[] { MultiLineFootprint.getFootprint("Footprint.MultiLine"), //$NON-NLS-1$
+					MultiLineFootprint.getFootprint("Footprint.BoldMultiLine") }; //$NON-NLS-1$
 			modelFootprint = modelFootprints[0];
 		}
 
@@ -1761,7 +1761,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (reset) {
 			setLastValidFrame(-1);
 			refreshSteps();
-			firePropertyChange("steps", null, null); //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 		}
 		invalidWarningShown = true;
 		repaint();

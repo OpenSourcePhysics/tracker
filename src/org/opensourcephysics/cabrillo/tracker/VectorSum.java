@@ -264,9 +264,7 @@ public boolean isDependent() {
   }
 
   /**
-   * Responds to property change events. VectorSum listens for the
-   * following events: "track" from tracker panel, "color", "footprint"
-   * and PROPERTY_TTRACK_STEP from Vector.
+   * Responds to property change events.
    *
    * @param e the property change event
    */

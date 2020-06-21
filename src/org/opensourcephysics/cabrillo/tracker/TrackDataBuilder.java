@@ -867,7 +867,7 @@ public class TrackDataBuilder extends FunctionTool {
 	public void dispose() {
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); //$NON-NLS-1$
-		removePropertyChangeListener("visible", trackerPanel); //$NON-NLS-1$
+		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, trackerPanel); //$NON-NLS-1$
 		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
 		if (autoloadManager != null) {
 			autoloadManager.dispose();

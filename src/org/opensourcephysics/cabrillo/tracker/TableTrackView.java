@@ -283,23 +283,13 @@ public class TableTrackView extends TrackView {
 		}
 	}
 
-	/**
-	 * Refreshes this view.
-	 *
-	 * @param frameNumber the frame number
-	 */
-	@Override
-	public void refresh(int frameNumber) {
-		refresh(frameNumber, DataTable.MODE_UNKNOWN);
-	}
-
 	@Override
 	public void refresh(int frameNumber, int mode) {
 
 		if (!forceRefresh && !isRefreshEnabled() || !parent.isViewPaneVisible())
 			return;
 
-		//OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode));
+		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode));
 		forceRefresh = false;
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$

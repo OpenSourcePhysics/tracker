@@ -102,16 +102,13 @@ public class PlotTrackView extends TrackView {
 	}
 
 	@Override
-	public void refresh(int frameNumber) {
-		refresh(frameNumber, DataTable.MODE_UNKNOWN);
-	}
-	@Override
 	public void refresh(int frameNumber, int mode) {
 		if (!isRefreshEnabled() || !parent.isViewPaneVisible())
 			return;
 	 
-		if (Tracker.timeLogEnabled)
-			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
+//		OSPLog.debug("PlotTrackView refresh type "+refreshType);
+//		if (Tracker.timeLogEnabled)
+//			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		TTrack track = getTrack();
 		if (track == null)
 			return;
@@ -381,7 +378,7 @@ public class PlotTrackView extends TrackView {
 			public void actionPerformed(ActionEvent e) {
 				JMenuItem item = (JMenuItem) e.getSource();
 				setPlotCount(Integer.parseInt(item.getText()));
-				refresh(trackerPanel.getFrameNumber());
+				refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_PLOTCOUNT);
 			}
 		};
 		// create plotCount menuitems

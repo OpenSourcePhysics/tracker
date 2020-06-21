@@ -277,11 +277,11 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		cleanup();
 		// add this listener to tracker panel
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM, this);
+		trackerPanel.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_DATA, this);
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES, this);
+		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
+		trackerPanel.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
 		// add this listener to tracks
 		for (TTrack track : trackerPanel.getTracks()) {
@@ -317,11 +317,11 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		if (trackerPanel == null)
 			return;
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM, this);
+		trackerPanel.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_DATA, this);
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES, this);
+		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
+		trackerPanel.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
 		// remove this listener from tracks
 		for (Integer n : TTrack.activeTracks.keySet()) {
@@ -515,7 +515,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			if (frame != null)
 				frame.repaint();
 			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_TRANSFORM: // coords have changed
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // coords have changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
 				// if track is a particle model, ignore if coords are adjusting
 				if (track instanceof ParticleModel) {
@@ -527,13 +527,13 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				view.refresh(step == null ? trackerPanel.getFrameNumber() : step.getFrameNumber(), DataTable.MODE_TRACK_TRANSFORM);
 			}
 			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_DATA: // data has changed
+		case TTrack.PROPERTY_TTRACK_DATA: // data structure has changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
 				view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_DATA);
 			}
 			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION:
-		case TrackerPanel.PROPERTY_TRACKERPANEL_RADIANANGLES:
+		case TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION: // data function has changed
+		case TFrame.PROPERTY_TFRAME_RADIANANGLES:
 			// angle units have changed
 			// refresh views of all tracks
 			for (TTrack t : trackerPanel.getTracks()) {

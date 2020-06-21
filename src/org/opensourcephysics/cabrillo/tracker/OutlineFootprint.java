@@ -83,7 +83,7 @@ public Icon getIcon(int w, int h) {
     Point[] points = new Point[] {new Point(), new Point(w - scale*2, scale*2 - h)};
     int prevSpread = spread;
     spread = scale;
-    Shape shape = getShape(points);
+    MultiShape shape = getShape(points);
     ShapeIcon icon = new ShapeIcon(shape, w, h);
     icon.setColor(color);
     spread = prevSpread;

@@ -176,7 +176,7 @@ public class Calibration extends TTrack {
 			}
 		}
 		if (success) {
-			firePropertyChange("step", null, n); //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$
 		}
 		return step;
 	}
@@ -642,7 +642,7 @@ public class Calibration extends TTrack {
 				stepValueLabel.setText(e.getNewValue() + ":"); //$NON-NLS-1$
 			}
 			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_LOCKED:
+		case TTrack.PROPERTY_TTRACK_LOCKED:
 			boolean enabled = !isLocked();
 			xField.setEnabled(enabled);
 			yField.setEnabled(enabled);

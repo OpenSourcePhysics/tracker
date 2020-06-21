@@ -224,7 +224,7 @@ public class Protractor extends TTrack {
 	        double theta = angleField.getValue();
 	        step.setProtractorAngle(theta);
           dataValid = false;
-  	    	firePropertyChange("data", null, null); //$NON-NLS-1$
+  	    	firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
       	}
       }
     };
@@ -255,7 +255,7 @@ public class Protractor extends TTrack {
     fixedPosition = fixed;
     if (fixed) { // refresh data and post undo only when fixing
     	dataValid = false;
-    	firePropertyChange("data", null, null); //$NON-NLS-1$
+    	firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
     	Undo.postTrackEdit(this, control);
     }
   }
@@ -294,13 +294,13 @@ public void propertyChange(PropertyChangeEvent e) {
       	}
       }
     }
-    if (name.equals("adjusting") && e.getSource() instanceof TrackerPanel) { //$NON-NLS-1$
+    if (name.equals(TPoint.PROPERTY_ADJUSTING) && e.getSource() instanceof TrackerPanel) { //$NON-NLS-1$
 			refreshDataLater = (Boolean)e.getNewValue();
 			if (!refreshDataLater) {  // stopped adjusting
-	    	firePropertyChange("data", null, null); //$NON-NLS-1$
+	    	firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
 			}
     }
-    else if (name.equals("step") || name.equals("steps")) { //$NON-NLS-1$ //$NON-NLS-2$
+    else if (name.equals(PROPERTY_TTRACK_STEP) || name.equals(PROPERTY_TTRACK_STEPS)) { //$NON-NLS-1$ //$NON-NLS-2$
     	refreshAttachments();
     }
     super.propertyChange(e);

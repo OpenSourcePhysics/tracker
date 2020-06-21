@@ -123,6 +123,8 @@ import org.opensourcephysics.tools.ResourceLoader;
  */
 @SuppressWarnings("serial")
 public class ExportZipDialog extends JDialog implements PropertyChangeListener {
+	
+	private static final String EXPANDED = "expanded";
 
 	static {
 		TFrame.haveExportDialog = true;
@@ -438,7 +440,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = descriptionPanel.getName();
-				descriptionPanel.setName(name == null ? "visible" : null); //$NON-NLS-1$
+				descriptionPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
 				refreshGUI();
 				descriptionButton.requestFocusInWindow();
 			}
@@ -478,7 +480,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = tabsPanel.getName();
-				tabsPanel.setName(name == null ? "visible" : null); //$NON-NLS-1$
+				tabsPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
 				refreshGUI();
 				tabsButton.requestFocusInWindow();
 			}
@@ -531,7 +533,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = videoPanel.getName();
-				videoPanel.setName(name == null ? "visible" : null); //$NON-NLS-1$
+				videoPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
 				refreshGUI();
 				videoButton.requestFocusInWindow();
 			}
@@ -557,7 +559,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = metaPanel.getName();
-				metaPanel.setName(name == null ? "visible" : null); //$NON-NLS-1$
+				metaPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
 				refreshGUI();
 				metaButton.requestFocusInWindow();
 			}
@@ -582,7 +584,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = thumbnailPanel.getName();
-				thumbnailPanel.setName(name == null ? "visible" : null); //$NON-NLS-1$
+				thumbnailPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
 				refreshGUI();
 				thumbButton.requestFocusInWindow();
 			}
@@ -607,7 +609,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = supportFilesPanel.getName();
-				supportFilesPanel.setName(name == null ? "visible" : null); //$NON-NLS-1$
+				supportFilesPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
 				refreshGUI();
 				supportFilesButton.requestFocusInWindow();
 			}
@@ -724,7 +726,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = advancedPanel.getName();
-				advancedPanel.setName(name == null ? "visible" : null); //$NON-NLS-1$
+				advancedPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
 				refreshGUI();
 				advancedButton.requestFocusInWindow();
 			}
@@ -991,7 +993,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				if (source == descriptionLabel)
 					source = descriptionPanel; // workaround
 				String name = source.getName();
-				source.setName(name == null ? "visible" : null); //$NON-NLS-1$
+				source.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
 				refreshGUI();
 				if (source == descriptionPanel)
 					descriptionButton.requestFocusInWindow();
