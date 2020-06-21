@@ -30,6 +30,8 @@ import java.util.*;
 
 import javax.swing.*;
 
+import org.opensourcephysics.display.DataTable;
+
 /**
  * This displays a view of a single track on a TrackerPanel.
  *
@@ -71,6 +73,8 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	}
 
 	abstract void refresh(int stepNumber);
+
+	abstract void refresh(int stepNumber, int mode);
 
 	abstract void refreshGUI();
 
@@ -129,21 +133,21 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		String name = e.getPropertyName();
 		switch (name) {
 		case TTrack.PROPERTY_TTRACK_STEP:
-			refresh((Integer) e.getNewValue());
+			refresh((Integer) e.getNewValue(), DataTable.MODE_TRACK_STEP);
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
 			Step step = trackerPanel.getSelectedStep();
 			TTrack track = getTrack();
 			if (step != null && trackerPanel.getSelectedTrack() == track) {
-				refresh(step.getFrameNumber());
+				refresh(step.getFrameNumber(), DataTable.MODE_TRACK_SELECTEDPOINT);
 				break;
 			}
 			// fall through //
 		case TTrack.PROPERTY_TTRACK_STEPS:
-			refresh(trackerPanel.getFrameNumber());
+			refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STEPS);
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_LOADED:
-			refresh(trackerPanel.getFrameNumber());
+			refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_LOADED);
 			break;
 		}
 	}

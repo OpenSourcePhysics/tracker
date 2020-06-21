@@ -103,6 +103,10 @@ public class PlotTrackView extends TrackView {
 
 	@Override
 	public void refresh(int frameNumber) {
+		refresh(frameNumber, DataTable.MODE_UNKNOWN);
+	}
+	@Override
+	public void refresh(int frameNumber, int mode) {
 		if (!isRefreshEnabled() || !parent.isViewPaneVisible())
 			return;
 	 

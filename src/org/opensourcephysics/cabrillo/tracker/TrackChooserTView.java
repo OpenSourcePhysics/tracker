@@ -48,6 +48,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JTextField;
 
 import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.tools.FontSizer;
@@ -185,9 +186,9 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			selectedTrack = track;
 			Step step = trackerPanel.getSelectedStep();
 			if (step != null && step.getTrack() == track)
-				trackView.refresh(step.getFrameNumber());
+				trackView.refresh(step.getFrameNumber(), DataTable.MODE_TRACK_CHOOSE);
 			else
-				trackView.refresh(trackerPanel.getFrameNumber());
+				trackView.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_CHOOSE);
 			CardLayout layout = (CardLayout) getLayout();
 			layout.show(this, name);
 			TFrame.repaintT(this);
@@ -386,7 +387,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			return;
 		if (track == selectedTrack && tracks.get(dropdown.getSelectedItem()) == track) {
 			// just refresh the selected TrackView
-			getTrackView(selectedTrack).refresh(trackerPanel.getFrameNumber());
+			getTrackView(selectedTrack).refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_SELECT);
 			return;
 		}
 		Iterator<Object> it = tracks.keySet().iterator();
@@ -523,12 +524,12 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 						return;
 				}
 				Step step = track.getStep(trackerPanel.getSelectedPoint(), trackerPanel);
-				view.refresh(step == null ? trackerPanel.getFrameNumber() : step.getFrameNumber());
+				view.refresh(step == null ? trackerPanel.getFrameNumber() : step.getFrameNumber(), DataTable.MODE_TRACK_TRANSFORM);
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_DATA: // data has changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
-				view.refresh(trackerPanel.getFrameNumber());
+				view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_DATA);
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION:
@@ -538,14 +539,14 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			for (TTrack t : trackerPanel.getTracks()) {
 				if ((view = getTrackView(t)) != null) {
 					view.refreshGUI();
-					view.refresh(trackerPanel.getFrameNumber());
+					view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_FUNCTION);
 				}
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			// step number has changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
-				view.refresh(trackerPanel.getFrameNumber());
+				view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STEP);
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:

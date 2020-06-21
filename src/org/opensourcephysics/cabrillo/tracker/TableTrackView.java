@@ -87,6 +87,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DataFunction;
 import org.opensourcephysics.display.DataTable;
@@ -126,15 +127,24 @@ public class TableTrackView extends TrackView {
 	}
 
 	// instance fields
-	protected DatasetManager data;
+	
+	/**
+	 * DataManager for all table data
+	 */
+	private DatasetManager dataTableManager;
+	
+	/**
+	 * DataManager for all track data
+	 */
+	protected DatasetManager trackDataManager;
+	
 	protected JScrollPane columnsScroller;
 	protected TrackDataTable dataTable;
 	protected JCheckBox[] checkBoxes;
-	protected boolean refresh = true;
-	protected Set<String> textColumnsVisible = new TreeSet<String>();
+	
 	private JButton columnsButton, gapsButton;
 	private JPanel columnsPanel;
-	private DatasetManager tableData;
+	
 	private JPopupMenu popup;
 	protected JMenu textColumnMenu, deleteTextColumnMenu, renameTextColumnMenu;
 	protected JMenuItem createTextColumnItem;
@@ -144,20 +154,30 @@ public class TableTrackView extends TrackView {
 	private JMenu copyDataMenu;
 	private JMenuItem copyDataRawItem, copyDataFormattedItem;
 	private JMenu setDelimiterMenu;
-	private ButtonGroup delimiterButtonGroup = new ButtonGroup();
 	private JMenuItem addDelimiterItem, removeDelimiterItem;
 	private JMenuItem copyImageItem, snapshotItem, printItem, helpItem;
+	
+	protected boolean refresh = true;
+
 	private boolean highlightVisible = true, refreshed = false, forceRefresh = false;
-	private ArrayList<Integer> highlightFrames = new ArrayList<Integer>();
-	private ArrayList<Integer> highlightRows = new ArrayList<Integer>();
+	
 	private int leadCol;
-	private Font font = new JTextField().getFont();
-	private TreeSet<Double> selectedIndepVarValues // used when sorting
-			= new TreeSet<Double>();
-	private Map<String, TableCellRenderer> degreeRenderers = new HashMap<String, TableCellRenderer>();
+	
 	private TextColumnTableModel textColumnModel;
 	private TextColumnEditor textColumnEditor;
-	private ArrayList<String> textColumnNames = new ArrayList<String>();
+
+	final private Font font = new JTextField().getFont();
+	final private ButtonGroup delimiterButtonGroup = new ButtonGroup();
+
+	final private ArrayList<Integer> highlightFrames = new ArrayList<Integer>();
+	final private ArrayList<Integer> highlightRows = new ArrayList<Integer>();
+	final private ArrayList<String> textColumnNames = new ArrayList<String>();
+	final protected Set<String> textColumnsVisible = new TreeSet<String>();
+	/**
+	 * used when sorting
+	 */
+	final private TreeSet<Double> selectedIndepVarValues = new TreeSet<Double>();
+	final private Map<String, TableCellRenderer> degreeRenderers = new HashMap<String, TableCellRenderer>();
 
 	/**
 	 * Constructs a TrackTableView of the specified track on the specified tracker
@@ -171,14 +191,16 @@ public class TableTrackView extends TrackView {
 		super(track, panel, view, TView.VIEW_TABLE);
 		track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, this);
 		textColumnNames.addAll(track.getTextColumnNames());
-		// create the DataTable
+		// create the DataTable with two OSPTableModels
+		// (1) our DatasetManager
+		// (2) a text column
+		textColumnModel = new TextColumnTableModel();
 		textColumnEditor = new TextColumnEditor();
 		dataTable = new TrackDataTable();
-		data = track.getData(trackerPanel);
-		tableData = new DatasetManager();
-		tableData.setXPointsLinked(true);
-		dataTable.add(tableData);
-		textColumnModel = new TextColumnTableModel();
+		trackDataManager = track.getData(trackerPanel);
+		dataTableManager = new DatasetManager();
+		dataTableManager.setXPointsLinked(true);
+		dataTable.add(dataTableManager);
 		dataTable.add(textColumnModel);
 		setViewportView(dataTable);
 		dataTable.setPreferredScrollableViewportSize(new Dimension(160, 200));
@@ -268,10 +290,16 @@ public class TableTrackView extends TrackView {
 	 */
 	@Override
 	public void refresh(int frameNumber) {
-		if (!forceRefresh && !isRefreshEnabled())
+		refresh(frameNumber, DataTable.MODE_UNKNOWN);
+	}
+
+	@Override
+	public void refresh(int frameNumber, int mode) {
+
+		if (!forceRefresh && !isRefreshEnabled() || !parent.isViewPaneVisible())
 			return;
-		if (!parent.isViewPaneVisible())
-			return;
+
+		//OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode));
 		forceRefresh = false;
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
@@ -280,88 +308,55 @@ public class TableTrackView extends TrackView {
 		try {
 			track.getData(trackerPanel);
 			// copy datasets into table data based on checkbox states
-			tableData.clear();
-			int colCount = 0;
-			ArrayList<Dataset> datasets = data.getDatasets();
-			dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
+
+			ArrayList<Dataset> datasets = trackDataManager.getDatasets();
 			int count = datasets.size();
+			dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
+			boolean degrees = trackerPanel.getTFrame() != null && !trackerPanel.getTFrame().anglesInRadians;
+
+			dataTableManager.clear();
+			int colCount = 0;
 			for (int i = 0; i < count; i++) {
 				if (checkBoxes[i].isSelected()) {
-					Dataset in = datasets.get(i);
-					String xTitle = in.getXColumnName();
-					String yTitle = in.getYColumnName();
-					boolean yIsAngle = yTitle.startsWith(Tracker.THETA) || yTitle.startsWith(Tracker.OMEGA)
-							|| yTitle.startsWith(Tracker.ALPHA);
-					boolean degrees = trackerPanel.getTFrame() != null && !trackerPanel.getTFrame().anglesInRadians;
-					Dataset local = tableData.getDataset(colCount++);
-					double[] yPoints = in.getYPoints();
-					String tooltip = track.getDataDescription(i + 1) + " "; //$NON-NLS-1$
-					String units = ""; //$NON-NLS-1$
-					if (yIsAngle) { // angle columns
-						if (yTitle.startsWith(Tracker.THETA)) {
-							if (degrees) {
-								units = Tracker.DEGREES;
-								tooltip += TrackerRes.getString("TableTrackView.Degrees.Tooltip"); //$NON-NLS-1$
-							} else {
-								tooltip += TrackerRes.getString("TableTrackView.Radians.Tooltip"); //$NON-NLS-1$
-							}
-						} else if (yTitle.startsWith(Tracker.OMEGA)) {
-							if (degrees) {
-								tooltip += TrackerRes.getString("TableTrackView.DegreesPerSecond.Tooltip"); //$NON-NLS-1$
-							} else {
-								tooltip += TrackerRes.getString("TableTrackView.RadiansPerSecond.Tooltip"); //$NON-NLS-1$
-							}
-						} else if (yTitle.startsWith(Tracker.ALPHA)) {
-							if (degrees) {
-								tooltip += TrackerRes.getString("TableTrackView.DegreesPerSecondSquared.Tooltip"); //$NON-NLS-1$
-							} else {
-								tooltip += TrackerRes.getString("TableTrackView.RadiansPerSecondSquared.Tooltip"); //$NON-NLS-1$
-							}
-						}
-						TableCellRenderer precisionRenderer = dataTable.getPrecisionRenderer(yTitle);
-						if (degrees) {
-							// convert values from radians to degrees
-							for (int k = 0; k < yPoints.length; k++) {
-								if (!Double.isNaN(yPoints[k])) {
-									yPoints[k] *= 180 / Math.PI;
-								}
-							}
-							// set default degrees precision
-							if (precisionRenderer == null) {
-								dataTable.setFormatPattern(yTitle, NumberField.DECIMAL_1_PATTERN);
-								degreeRenderers.put(yTitle, dataTable.getPrecisionRenderer(yTitle));
-							}
-						} else if (precisionRenderer != null) { // radians display
-							if (precisionRenderer == degreeRenderers.get(yTitle)) {
-								dataTable.setFormatPattern(yTitle, null);
-								degreeRenderers.remove(yTitle);
+					OSPLog.debug("TrackTableView checkbox " + i + "  " + checkBoxes[i].getText() + " "
+							+ checkBoxes[i].isSelected());
+					Dataset ds = datasets.get(i);
+					Dataset local = dataTableManager.getDataset(colCount++);
+					String xTitle = ds.getXColumnName();
+					String yTitle = ds.getYColumnName();
+					double[] yPoints = ds.getYPoints();
+					if (setUnitsAndTooltip(yTitle, track.getDataDescription(i + 1), degrees)) {
+						// convert values from radians to degrees
+						for (int k = 0; k < yPoints.length; k++) {
+							if (!Double.isNaN(yPoints[k])) {
+								yPoints[k] *= 180 / Math.PI;
 							}
 						}
 					}
-					if ("".equals(tooltip.trim())) //$NON-NLS-1$
-						tooltip = ""; //$NON-NLS-1$
-					dataTable.setUnits(yTitle, units, tooltip);
-					local.append(in.getXPointsRaw(), yPoints, in.getIndex());
+					local.append(ds.getXPointsRaw(), yPoints, ds.getIndex());
 					local.setXYColumnNames(xTitle, yTitle);
 					local.setYColumnVisible(true);
 				}
 			}
-			for (int i = colCount; i < tableData.getDatasets().size(); i++) {
-				tableData.setYColumnVisible(i, false);
+			for (int i = colCount; i < dataTableManager.getDatasets().size(); i++) {
+				dataTableManager.setYColumnVisible(i, false);
 			}
 			if (colCount == 0) {
 				// show independent variable
 				Dataset in = datasets.get(0);
 				String xTitle = in.getXColumnName();
-				Dataset local = tableData.getDataset(colCount++);
+				Dataset local = dataTableManager.getDataset(colCount++);
 				double[] x = in.getXPointsRaw();
 				local.append(x, x, in.getIndex());
 				local.setXYColumnNames(xTitle, xTitle);
 				local.setYColumnVisible(false);
+				colCount++;
 			}
-			dataTable.refreshTable(DataTable.MODE_FRAME);
+			dataTable.setColumnVisible(dataTableManager, -1, true);
+			dataTable.refreshTable(mode);
 			refreshed = true;
 		} catch (Exception e) {
+			OSPLog.debug("TableTrackView exception " + e);
 		}
 		// set the highlighted rows
 		highlightFrames.clear();
@@ -375,6 +370,52 @@ public class TableTrackView extends TrackView {
 			highlightFrames.add(frameNumber);
 		}
 		setHighlighted(highlightFrames);
+	}
+
+	private boolean setUnitsAndTooltip(String yTitle, String root, boolean degrees) {
+		boolean yIsAngle = yTitle.startsWith(Tracker.THETA) || yTitle.startsWith(Tracker.OMEGA)
+				|| yTitle.startsWith(Tracker.ALPHA);
+		String tooltip = root + " "; //$NON-NLS-1$
+		String units = ""; //$NON-NLS-1$
+		if (yIsAngle) { // angle columns
+			if (yTitle.startsWith(Tracker.THETA)) {
+				if (degrees) {
+					units = Tracker.DEGREES;
+					tooltip += TrackerRes.getString("TableTrackView.Degrees.Tooltip"); //$NON-NLS-1$
+				} else {
+					tooltip += TrackerRes.getString("TableTrackView.Radians.Tooltip"); //$NON-NLS-1$
+				}
+			} else if (yTitle.startsWith(Tracker.OMEGA)) {
+				if (degrees) {
+					tooltip += TrackerRes.getString("TableTrackView.DegreesPerSecond.Tooltip"); //$NON-NLS-1$
+				} else {
+					tooltip += TrackerRes.getString("TableTrackView.RadiansPerSecond.Tooltip"); //$NON-NLS-1$
+				}
+			} else if (yTitle.startsWith(Tracker.ALPHA)) {
+				if (degrees) {
+					tooltip += TrackerRes.getString("TableTrackView.DegreesPerSecondSquared.Tooltip"); //$NON-NLS-1$
+				} else {
+					tooltip += TrackerRes.getString("TableTrackView.RadiansPerSecondSquared.Tooltip"); //$NON-NLS-1$
+				}
+			}
+			TableCellRenderer precisionRenderer = dataTable.getPrecisionRenderer(yTitle);
+			if (degrees) {
+				// set default degrees precision
+				if (precisionRenderer == null) {
+					dataTable.setFormatPattern(yTitle, NumberField.DECIMAL_1_PATTERN);
+					degreeRenderers.put(yTitle, dataTable.getPrecisionRenderer(yTitle));
+				}
+			} else if (precisionRenderer != null) { // radians display
+				if (precisionRenderer == degreeRenderers.get(yTitle)) {
+					dataTable.setFormatPattern(yTitle, null);
+					degreeRenderers.remove(yTitle);
+				}
+			}
+		}
+		if ("".equals(tooltip.trim())) //$NON-NLS-1$
+			tooltip = ""; //$NON-NLS-1$
+		dataTable.setUnits(yTitle, units, tooltip);
+		return yIsAngle && degrees;
 	}
 
 	/**
@@ -392,7 +433,7 @@ public class TableTrackView extends TrackView {
 //    track.dataValid = false; // triggers data refresh
 		track.getData(trackerPanel); // load the current data
 		refreshColumnCheckboxes();
-		refresh(trackerPanel.getFrameNumber());
+		refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_REFRESH);
 	}
 
 	/**
@@ -442,7 +483,7 @@ public class TableTrackView extends TrackView {
 	public boolean isCustomState() {
 		if (!refreshed) {
 			forceRefresh = true;
-			refresh(trackerPanel.getFrameNumber());
+			refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_REFRESH);
 		}
 		// check displayed data columns--default is columns 0 and 1 only
 		int n = checkBoxes.length;
@@ -482,13 +523,13 @@ public class TableTrackView extends TrackView {
 		if (index < checkBoxes.length) {
 			checkBoxes[index].setSelected(visible);
 		}
-		int n = data.getDatasets().size();
+		int n = trackDataManager.getDatasets().size();
 		if (index >= n) {
 			TTrack track = getTrack();
 			String name = track.getTextColumnNames().get(index - n);
 			textColumnsVisible.add(name);
 		}
-		refresh(trackerPanel.getFrameNumber());
+		refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_SETVISIBLE);
 	}
 
 	/**
@@ -509,12 +550,12 @@ public class TableTrackView extends TrackView {
 
 	@Override
 	protected void dispose() {
-		data = null;
+		trackDataManager = null;
 		getTrack().removePropertyChangeListener(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, this); // $NON-NLS-1$
 		setViewportView(null);
 		columnsPanel.removeAll();
-		tableData.clear();
-		tableData = null;
+		dataTableManager.clear();
+		dataTableManager = null;
 		dataTable.dispose();
 		dataTable = null;
 		parent = null;
@@ -769,7 +810,7 @@ public class TableTrackView extends TrackView {
 	 */
 	protected int getRowFromFrame(int frame) {
 		// look for "frame" dataset in data
-		ArrayList<Dataset> temp = data.getDatasets();
+		ArrayList<Dataset> temp = trackDataManager.getDatasets();
 		for (int i = 0; i < temp.size(); i++) {
 			if ("frame".equals(temp.get(i).getYColumnName())) { //$NON-NLS-1$
 				double[] vals = temp.get(i).getYPoints();
@@ -958,7 +999,7 @@ public class TableTrackView extends TrackView {
 				TTrack track = getTrack();
 				FunctionTool tool = trackerPanel.getDataBuilder();
 				FunctionPanel panel = tool.getPanel(track.getName());
-				Dataset dataset = data.getDataset(index);
+				Dataset dataset = trackDataManager.getDataset(index);
 				// next line posts undo edit to FunctionPanel
 				if (dataset instanceof DataFunction)
 					panel.getFunctionEditor().removeObject((DataFunction) dataset, true);
@@ -1264,11 +1305,11 @@ public class TableTrackView extends TrackView {
 	protected void dataToolAction() {
 		TTrack track = getTrack();
 		DatasetManager toSend = new DatasetManager();
-		toSend.setID(data.getID());
+		toSend.setID(trackDataManager.getID());
 		toSend.setName(track.getName());
 		toSend.setXPointsLinked(true);
 		int colCount = 0;
-		ArrayList<Dataset> datasets = data.getDatasets();
+		ArrayList<Dataset> datasets = trackDataManager.getDatasets();
 		// always include linked independent variable first
 		Dataset next = datasets.get(0);
 		XMLControlElement control = new XMLControlElement(next);
@@ -1296,7 +1337,7 @@ public class TableTrackView extends TrackView {
 		DataTool tool = DataTool.getTool();
 		tool.setUseChooser(false);
 		tool.setSaveChangesOnClose(false);
-		DataRefreshTool refresher = DataRefreshTool.getTool(data);
+		DataRefreshTool refresher = DataRefreshTool.getTool(trackDataManager);
 		tool.send(new LocalJob(toSend), refresher);
 		tool.setVisible(true);
 	}
@@ -1313,9 +1354,9 @@ public class TableTrackView extends TrackView {
 		deleteDataFunctionItem.setActionCommand(""); //$NON-NLS-1$
 		// set action command of delete item if data function column selected
 		String colName = dataTable.getColumnName(col);
-		int index = data.getDatasetIndex(colName);
+		int index = trackDataManager.getDatasetIndex(colName);
 		if (index > -1) {
-			Dataset dataset = data.getDataset(index);
+			Dataset dataset = trackDataManager.getDataset(index);
 			if (dataset instanceof DataFunction) {
 				deleteDataFunctionItem.setActionCommand(String.valueOf(index));
 				String s = TrackerRes.getString("TableTrackView.MenuItem.DeleteDataFunction"); //$NON-NLS-1$
@@ -1348,9 +1389,9 @@ public class TableTrackView extends TrackView {
 			deleteDataFunctionItem.setActionCommand(""); //$NON-NLS-1$
 			// set action command of delete item if data function column selected
 			String colName = dataTable.getColumnName(col);
-			int index = data.getDatasetIndex(colName);
+			int index = trackDataManager.getDatasetIndex(colName);
 			if (index > -1) {
-				Dataset dataset = data.getDataset(index);
+				Dataset dataset = trackDataManager.getDataset(index);
 				if (dataset instanceof DataFunction) {
 					deleteDataFunctionItem.setActionCommand(String.valueOf(index));
 					String s = TrackerRes.getString("TableTrackView.MenuItem.DeleteDataFunction"); //$NON-NLS-1$
@@ -1635,7 +1676,7 @@ public class TableTrackView extends TrackView {
 	protected String[] getDataColumnNames() {
 		ArrayList<String> names = new ArrayList<String>();
 		// first add independent variable
-		Dataset dataset = data.getDataset(0);
+		Dataset dataset = trackDataManager.getDataset(0);
 		String name = dataset.getXColumnName();
 		names.add(name);
 		// then add other variables
@@ -1644,15 +1685,15 @@ public class TableTrackView extends TrackView {
 		ArrayList<Integer> added = new ArrayList<Integer>();
 		// first add in preferred order
 		for (int i = 0; i < dataOrder.size(); i++) {
-			dataset = data.getDataset(dataOrder.get(i));
+			dataset = trackDataManager.getDataset(dataOrder.get(i));
 			name = dataset.getYColumnName();
 			names.add(name);
 			added.add(dataOrder.get(i));
 		}
 		// then add any that were missed
-		for (int i = 0; i < data.getDatasets().size(); i++) {
+		for (int i = 0; i < trackDataManager.getDatasets().size(); i++) {
 			if (!added.contains(i)) {
-				dataset = data.getDataset(i);
+				dataset = trackDataManager.getDataset(i);
 				name = dataset.getYColumnName();
 				names.add(name);
 			}
@@ -1669,7 +1710,7 @@ public class TableTrackView extends TrackView {
 		TTrack track = getTrack();
 		JCheckBox[] prev = checkBoxes;
 		// create check box array: one item per dataset plus one per textColumn
-		int datasetCount = data.getDatasets().size();
+		int datasetCount = trackDataManager.getDatasets().size();
 		int textColumnCount = track.getTextColumnNames().size();
 		// keep selected column names
 		ArrayList<String> names = new ArrayList<String>();
@@ -1682,7 +1723,7 @@ public class TableTrackView extends TrackView {
 		checkBoxes = new JCheckBox[datasetCount + textColumnCount];
 		// data column checkboxes
 		for (int i = 0; i < datasetCount; i++) {
-			Dataset dataset = data.getDataset(i);
+			Dataset dataset = trackDataManager.getDataset(i);
 			String name = dataset.getYColumnName();
 			String s = TeXParser.removeSubscripting(name);
 			checkBoxes[i] = new JCheckBox(s);
@@ -1698,7 +1739,7 @@ public class TableTrackView extends TrackView {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					if (refresh)
-						refresh(trackerPanel.getFrameNumber());
+						refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STATE);
 					trackerPanel.changed = true;
 				}
 			});
@@ -1724,7 +1765,7 @@ public class TableTrackView extends TrackView {
 						textColumnsVisible.remove(e.getActionCommand());
 					}
 					if (refresh)
-						refresh(trackerPanel.getFrameNumber());
+						refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STATE);
 					trackerPanel.changed = true;
 				}
 			});
@@ -1767,7 +1808,7 @@ public class TableTrackView extends TrackView {
 
 		@Override
 		public int getRowCount() {
-			return tableData.getRowCount();
+			return dataTableManager.getRowCount();
 		}
 
 		@Override
@@ -1780,10 +1821,10 @@ public class TableTrackView extends TrackView {
 			String columnName = getColumnName(col);
 			TTrack track = getTrack();
 			// convert row to frame number
-			DatasetManager data = track.getData(track.trackerPanel);
-			int index = data.getDatasetIndex("frame"); //$NON-NLS-1$
+			// DatasetManager data = track.getData(track.trackerPanel);
+			int index = trackDataManager.getDatasetIndex("frame"); //$NON-NLS-1$
 			if (index > -1) {
-				double frame = data.getDataset(index).getYPoints()[row];
+				double frame = trackDataManager.getDataset(index).getYPoints()[row];
 				return track.getTextColumnEntry(columnName, (int) frame);
 			}
 			// if no frame numbers defined (eg line profile), use row number
@@ -1802,10 +1843,10 @@ public class TableTrackView extends TrackView {
 			String columnName = getColumnName(col);
 			TTrack track = getTrack();
 			// convert row to frame number
-			DatasetManager data = track.getData(track.trackerPanel);
-			int index = data.getDatasetIndex("frame"); //$NON-NLS-1$
+			// DatasetManager data = track.getData(track.trackerPanel);
+			int index = trackDataManager.getDatasetIndex("frame"); //$NON-NLS-1$
 			if (index > -1) {
-				double frame = data.getDataset(index).getYPoints()[row];
+				double frame = trackDataManager.getDataset(index).getYPoints()[row];
 				if (track.setTextColumnEntry(columnName, (int) frame, (String) value)) {
 					trackerPanel.changed = true;
 				}
@@ -1825,6 +1866,11 @@ public class TableTrackView extends TrackView {
 		@Override
 		public Class<?> getColumnClass(int col) {
 			return String.class;
+		}
+
+		public String toString() {
+			return "TableTrackView.TextColumnTableModel n=" + textColumnNames.size() + " vis="
+					+ textColumnsVisible.size();
 		}
 
 	}
@@ -1993,35 +2039,8 @@ public class TableTrackView extends TrackView {
 
 		@Override
 		public void refreshTable(int mode) {
-			// model for this table assumed to be a SortDecorator
-			// always reset the decorator before changing table structure
-			int col = dataTableModel.getSortedColumn();
-			dataTableModel.resetSort();
-			// save selected rows and columns
-			int[] rows = getSelectedRows();
-			int[] cols = getSelectedColumns();
-			// refresh table
-			super.refreshTable(mode);
-			// sort if needed
-			if (col > -1)
-				sort(col);
-			// restore selected rows and columns
-			for (int i = 0; i < rows.length; i++) {
-				if (rows[i] < getRowCount())
-					addRowSelectionInterval(rows[i], rows[i]);
-			}
-			for (int i = 0; i < cols.length; i++) {
-				if (cols[i] < getColumnCount())
-					addColumnSelectionInterval(cols[i], cols[i]);
-			}
-			// refresh owner toolbar
-			TFrame frame = trackerPanel.getTFrame();
-			if (frame != null) {
-				TViewChooser owner = getOwner();
-				if (owner != null)
-					owner.refreshToolbar();
-			}
-
+			super.refreshTable(mode, true);
+			refreshToolbar();
 		}
 
 		@Override
@@ -2092,4 +2111,11 @@ public class TableTrackView extends TrackView {
 
 	}
 
+	public void refreshToolbar() {
+		if (trackerPanel.getTFrame() != null) {
+			TViewChooser owner = getOwner();
+			if (owner != null)
+				owner.refreshToolbar();
+		}
+	}
 }

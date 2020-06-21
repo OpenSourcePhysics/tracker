@@ -96,7 +96,8 @@ public class MainTView extends JPanel implements TView {
 				lastDim = d;
 				TToolBar.getToolbar(trackerPanel).refreshZoomButton();
 				trackerPanel.eraseAll();
-			OSPLog.debug("MainTView testing no repaint");	//TFrame.repaintT(trackerPanel);
+			OSPLog.debug("MainTView testing no repaint");	
+			//TFrame.repaintT(trackerPanel);
 			}
 		});
 		SwingUtilities.replaceUIActionMap(scrollPane, null);
