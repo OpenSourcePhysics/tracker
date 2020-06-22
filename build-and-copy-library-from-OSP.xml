@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<project name="swingjs-project" default="tosite" basedir="." xmlns:if="ant:if" xmlns:unless="ant:unless">
+
+	<target name="tosite">
+
+		<!-- input directories -->
+
+
+		<!-- location of ant-contrib.jar -->
+		<property name="tools.dir" value="tools" />
+
+		<!-- OSP JS library to copy to site/ -->
+		<property name="osp.swingjs.dir" value="../osp/site/swingjs" />
+
+		<!-- non-Java resources to copy to SwingJS library in site/ -->
+		<property name="resource.dir" value="resources" />
+
+		<!-- non-Java resources to copy to site/ -->
+		<property name="site-resource.dir" value="site-resources" />
+
+		<!-- output directories -->
+
+		<property name="swingjs.dir" value="site/swingjs/" />
+		<property name="site.dir" value="site" />
+		<property name="j2s.dir" value="${site.dir}/swingjs/j2s" />
+
+		<!-- <for  ...> construct needs ant-contrib.jar -->
+		<taskdef resource="net/sf/antcontrib/antlib.xml">
+			<classpath>
+				<pathelement location="${tools.dir}/ant-contrib.jar" />
+			</classpath>
+		</taskdef>
+
+		<!-- transfer resources -->
+
+		<!-- first get resources from OSP project -->
+		<echo> Copying ${osp.swingjs.dir} files into ${swingjs.dir} </echo>
+		<copy todir="${swingjs.dir}">
+			<fileset dir="${osp.swingjs.dir}">
+				<include name="**" />
+			</fileset>
+		</copy>
+
+		<!-- local resources can overwrite osp project resources -->
+		<echo> Copying ${site-resource.dir} files into ${site.dir} </echo>
+		<copy todir="${site.dir}">
+			<fileset dir="${site-resource.dir}" erroronmissingdir="false">
+				<include name="**" />
+			</fileset>
+		</copy>
+
+		<echo> Copying ${resource.dir} files into ${j2s.dir} </echo>
+		<copy todir="${j2s.dir}">
+			<fileset dir="${resource.dir}">
+				<include name="**" />
+			</fileset>
+		</copy>
+
+
+	</target>
+
+
+</project>
