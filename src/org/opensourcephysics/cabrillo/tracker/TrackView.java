@@ -47,6 +47,8 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	protected TrackChooserTView parent;
 	protected int myType;
 
+	protected boolean forceRefresh = false;
+	
 
 	// constructor
 	protected TrackView(TTrack track, TrackerPanel panel, TrackChooserTView view, int myType) {
@@ -131,7 +133,10 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		String name = e.getPropertyName();
 		switch (name) {
 		case TTrack.PROPERTY_TTRACK_STEP:
-			refresh((Integer) e.getNewValue(), DataTable.MODE_TRACK_STEP);
+			if (e.getOldValue() == TTrack.HINT_STEP_ADDED_OR_REMOVED)
+				refresh((Integer) e.getNewValue(), DataTable.MODE_TRACK_STEP);
+			else
+				refresh((Integer) e.getNewValue(), DataTable.MODE_VALUES);
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
 			Step step = trackerPanel.getSelectedStep();

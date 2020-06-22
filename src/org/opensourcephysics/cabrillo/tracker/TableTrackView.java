@@ -159,7 +159,7 @@ public class TableTrackView extends TrackView {
 	
 	protected boolean refresh = true;
 
-	private boolean highlightVisible = true, refreshed = false, forceRefresh = false;
+	private boolean highlightVisible = true, refreshed = false;
 	
 	private int leadCol;
 	
@@ -286,6 +286,8 @@ public class TableTrackView extends TrackView {
 	@Override
 	public void refresh(int frameNumber, int mode) {
 
+		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode));
+
 		if (!forceRefresh && !isRefreshEnabled() || !parent.isViewPaneVisible())
 			return;
 
@@ -296,7 +298,7 @@ public class TableTrackView extends TrackView {
 		dataTable.clearSelection();
 		TTrack track = getTrack();
 		try {
-			track.getData(trackerPanel);
+			//track.getData(trackerPanel);
 			// copy datasets into table data based on checkbox states
 
 			ArrayList<Dataset> datasets = trackDataManager.getDatasets();

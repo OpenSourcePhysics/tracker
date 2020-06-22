@@ -101,6 +101,7 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLProperty;
+import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.BaselineFilter;
@@ -473,7 +474,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		setIgnoreRepaint(false);
 		trackerPanel.changed = false;
-		trackerPanel.refreshTrackData();
+		trackerPanel.refreshTrackData(DataTable.MODE_TAB);
 		refresh();
 
 

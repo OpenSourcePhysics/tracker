@@ -75,6 +75,7 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;
+import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.ClipInspector;
@@ -670,7 +671,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 								}
 							}
 						}
-						trackerPanel.refreshTrackData();
+						trackerPanel.refreshTrackData(DataTable.MODE_REFRESH);
 						trackerPanel.eraseAll();
 						trackerPanel.repaintDirtyRegion();
 					}
@@ -685,7 +686,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						JMenuItem item = (JMenuItem) e.getSource();
 						trackerPanel.setAutoRefresh(item.isSelected());
 						if (trackerPanel.isAutoRefresh()) {
-							trackerPanel.refreshTrackData();
+							trackerPanel.refreshTrackData(DataTable.MODE_REFRESH);
 							trackerPanel.eraseAll();
 							trackerPanel.repaintDirtyRegion();
 						}

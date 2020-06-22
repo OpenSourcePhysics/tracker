@@ -86,6 +86,7 @@ import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.controls.XMLPropertyElement;
 import org.opensourcephysics.display.Data;
+import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;
 import org.opensourcephysics.display.Drawable;
@@ -1854,12 +1855,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Refreshes all data in tracks and views.
 	 */
-	protected void refreshTrackData() {
+	protected void refreshTrackData(int mode) {
 		// turn on autorefresh
-		OSPLog.debug("TrackerPanel.refreshTrackData " + Tracker.allowDataRefresh);
+		OSPLog.debug("TrackerPanel.refreshTrackData " + Tracker.allowDataRefresh + " " + Integer.toHexString(mode));
 		boolean auto = isAutoRefresh;
 		isAutoRefresh = true;
-		firePropertyChange(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, null, null);
+		firePropertyChange(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, null, Integer.valueOf(mode));
 		isAutoRefresh = auto;
 	}
 
@@ -1870,7 +1871,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		TTrackBar.getTrackbar(this).refreshDecimalSeparators();
 
 		// refresh all plot and table views
-		refreshTrackData();
+		refreshTrackData(DataTable.MODE_FORMAT);
 
 		// refresh modelbuilder and databuilder
 		if (modelBuilder != null) {
