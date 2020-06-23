@@ -283,7 +283,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static int preferredFontLevel = 0, preferredFontLevelPlus = 0;
 	static boolean isRadians, isXuggleFast;
 	static boolean warnXuggleError = true;
-	static boolean warnNoVideoEngine = !OSPRuntime.isJS;
+	static boolean warnNoVideoEngine = !isJS;
 	static boolean warnVariableDuration = true;
 	static String[] prelaunchExecutables = new String[0];
 	static Map<String, String[]> autoloadMap = new TreeMap<String, String[]>();
@@ -292,7 +292,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static boolean scrubMouseWheel, centerCalibrationStick, hideLabels;
 	static boolean enableAutofill = true, showGaps = true;
 	static int trailLengthIndex = TToolBar.trailLengths.length - 2;
-	private static boolean declareLocales = !OSPRuntime.isJS;
+	private static boolean declareLocales = !isJS;
 
 	// the only instance field!
 	private TFrame frame;
@@ -374,7 +374,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		setDefaultConfig(getFullConfig());
 		loadPreferences();
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		if (!isJS) /** @j2sNative */
 		{
 			// load current version after a delay to allow video engines to load
 			// and every 24 hours thereafter (if program is left running)
@@ -414,7 +414,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		checkForUpgradeChoices = new ArrayList<String>();
 		checkForUpgradeIntervals = new HashMap<String, Integer>();
 
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		if (!isJS) /** @j2sNative */
 		{
 
 			autoloadDataFunctions();
@@ -570,7 +570,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 * @return URL (with byte[ ] in _streamData if isJS)
 	 */
 	public static URL getClassResource(String resource) {
-//		if (OSPRuntime.isJS) {
+//		if (isJS) {
 		// Ah! Just a problem with full path rather than relative path for classLoader.
 		if (resource.startsWith("resource"))
 			resource = "org/opensourcephysics/cabrillo/tracker/" + resource;
@@ -636,7 +636,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 //		helper = new StateHelper(this);
 //		helper.next(STATE_INIT);
 
-		if (showSplash && !OSPRuntime.isJS) {
+		if (showSplash && !isJS) {
 			// set font level resize and center splash frame
 			FontSizer.setFonts(splash);
 			splash.pack();
@@ -645,7 +645,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			int y = (dim.height - splash.getBounds().height) / 2;
 			splash.setLocation(x, y);
 		}
-		splash.setVisible(showSplash && !OSPRuntime.isJS);
+		splash.setVisible(showSplash && !isJS);
 
 		createFrame();
 		Tracker.setProgress(5);
@@ -716,7 +716,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	protected void onWindowClosing() {
 
-		if (OSPRuntime.isJS) {
+		if (isJS) {
 			System.exit(0);
 			return; // Necessary for SwingJS
 		}
@@ -905,7 +905,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			aboutString += newline + TrackerRes.getString("Tracker.About.TrackerHome") //$NON-NLS-1$
 					+ newline + trackerHome + newline;
 		}
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		if (!isJS) /** @j2sNative */
 		{
 			loadCurrentVersion(true, false);
 			if (newerVersion != null) {
@@ -1042,7 +1042,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			};
 		}
 
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		if (!isJS) /** @j2sNative */
 		{
 			// Tracker README
 			readmeAction = new AbstractAction(TrackerRes.getString("Tracker.Readme") + "...", null) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -1745,7 +1745,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 */
 	protected static String savePreferences() {
 		XMLControl control = new XMLControlElement(new Preferences());
-		if (!OSPRuntime.isJS) /** @j2sNative */ {
+		if (!isJS) /** @j2sNative */ {
 			// save prefs file in current preferences path
 			if (prefsPath != null) {
 				control.write(prefsPath);
@@ -1877,7 +1877,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 */
 	private static boolean initializeJava(String[] args) {
 
-		if (OSPRuntime.isJS) {
+		if (isJS) {
 			originalMemoryRequest = requestedMemorySize;
 			return true;
 		}
@@ -2023,7 +2023,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		}
 
 		final TFrame frame = tracker.getFrame();
-		if (!OSPRuntime.isJS)
+		if (!isJS)
 			frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -2034,7 +2034,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		TTrackBar.refreshMemoryButton();
 
 		// inform user if memory size was reduced
-		if (!OSPRuntime.isJS && originalMemoryRequest > requestedMemorySize) {
+		if (!isJS && originalMemoryRequest > requestedMemorySize) {
 			JOptionPane.showMessageDialog(frame, TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message1") + " " //$NON-NLS-1$ //$NON-NLS-2$
 					+ originalMemoryRequest + "MB\n" + //$NON-NLS-1$
 					TrackerRes.getString("Tracker.Dialog.MemoryReduced.Message2") + " " + requestedMemorySize //$NON-NLS-1$ //$NON-NLS-2$
@@ -2047,7 +2047,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 //    warnNoVideoEngine = false; // for PLATO
 		if (warnNoVideoEngine && !MovieFactory.hasVideoEngine()) {
 			// warn user that there is no working video engine
-			boolean xuggleInstalled = !OSPRuntime.isJS && MovieFactory.hasVideoEngine();
+			boolean xuggleInstalled = !isJS && MovieFactory.hasVideoEngine();
 
 			ArrayList<String> message = new ArrayList<String>();
 			boolean showRelaunchDialog = false;
@@ -2142,7 +2142,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			JOptionPane.showMessageDialog(null, box, TrackerRes.getString("Tracker.Dialog.StarterWarning.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
 		}
-		if (!OSPRuntime.isJS) /** @j2sNative */
+		if (!isJS) /** @j2sNative */
 		{
 
 			final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
@@ -2189,7 +2189,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			memoryTimer.setRepeats(true);
 			memoryTimer.start();
 		}
-		if (OSPRuntime.isJS)
+		if (isJS)
 			frame.setVisible(true);
 	}
 
