@@ -773,6 +773,7 @@ public class TrackerIO extends VideoIO {
 
 			@Override
 			public void run() {
+				TFrame.repaintT(frame);
 				addToLibrary(frame, trzPath);
 			}
 

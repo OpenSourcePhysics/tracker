@@ -286,8 +286,10 @@ public class TableTrackView extends TrackView {
 	@Override
 	public void refresh(int frameNumber, int mode) {
 
-		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode));
+//		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode));
 
+		forceRefresh = true; // for now, at least
+		
 		if (!forceRefresh && !isRefreshEnabled() || !parent.isViewPaneVisible())
 			return;
 
@@ -297,8 +299,9 @@ public class TableTrackView extends TrackView {
 			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		dataTable.clearSelection();
 		TTrack track = getTrack();
+		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + " " + track);
 		try {
-			//track.getData(trackerPanel);
+			trackDataManager = track.getData(trackerPanel);
 			// copy datasets into table data based on checkbox states
 
 			ArrayList<Dataset> datasets = trackDataManager.getDatasets();
@@ -423,7 +426,7 @@ public class TableTrackView extends TrackView {
 //    		TrackerRes.getString("TableTrackView.Button.SkippedFrames.Off")); //$NON-NLS-1$
 		gapsButton.setToolTipText(TrackerRes.getString("TableTrackView.Button.SkippedFrames.ToolTip")); //$NON-NLS-1$
 //    track.dataValid = false; // triggers data refresh
-		track.getData(trackerPanel); // load the current data
+		trackDataManager = track.getData(trackerPanel);
 		refreshColumnCheckboxes();
 		refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_REFRESH);
 	}

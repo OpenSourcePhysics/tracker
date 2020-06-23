@@ -3096,8 +3096,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		}
 
+		// note that TrackerPanel has no child components
+		// DrawingPanel does all the work
 		long t0 = Performance.now(0);
-
 		super.paintComponent(g);
 		showFilterInspectors();
 		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.paintComponent");

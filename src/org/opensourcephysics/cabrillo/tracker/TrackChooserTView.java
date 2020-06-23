@@ -29,6 +29,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -378,6 +379,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 * @param track the track to be selected
 	 */
 	public void setSelectedTrack(TTrack track) {
+		OSPLog.debug("TrackChooser.setSelected " + track);
 		if (track == null) {
 			add(noData, "noData");
 			selectedTrack = null;
@@ -394,6 +396,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		while (it.hasNext()) {
 			Object item = it.next();
 			if (tracks.get(item) == track) {
+				OSPLog.debug("TrackChooser.setSelected found " + track);
 				removeTrackListener(track);
 				addTrackListener(track);
 				// select the track dropdown item
@@ -495,7 +498,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			refresh();
 			frame = trackerPanel.getTFrame();
 			if (frame != null)
-				frame.repaint();
+				TFrame.repaintT(frame);
 			// select a newly added track
 			track = (TTrack) e.getNewValue();
 			if (track != null)
@@ -513,7 +516,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			refresh();
 			frame = trackerPanel.getTFrame();
 			if (frame != null)
-				frame.repaint();
+				TFrame.repaintT(frame);
 			break;
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // coords have changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
@@ -584,5 +587,17 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		}
 		return null;
 	}
+
+	public void paint(Graphics g) {
+		// from TFrame.repaint();
+		super.paint(g);
+	}
+	@Override
+	public void repaint() {
+		// from CardLayout reshape
+		if (trackerPanel != null && trackerPanel.isPaintable())
+			super.repaint();
+	}
+
 
 }
