@@ -109,8 +109,10 @@ import org.opensourcephysics.tools.Launcher;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
+import javajs.async.Assets;
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
+import swingjs.api.JSUtilI;
 
 /**
  * This is the default Tracker application.
@@ -127,6 +129,52 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		XML.setLoader(Preferences.class, new Preferences.Loader());
 	}
 
+	public static JSUtilI jsutil;
+
+	static boolean isJS = /** @j2sNative true ||*/false;
+	
+	static {
+		try {
+			if (isJS) {
+				jsutil = ((JSUtilI) Class.forName("swingjs.JSUtil").newInstance());
+			}
+		} catch (Exception e) {
+			OSPLog.warning("OSPRuntime could not create jsutil");
+		}
+	}
+	
+	static {
+		try {
+			Object val = (isJS ? jsutil.getAppletInfo("assets") : null);
+			if (val == null)
+				val = "DEFAULT";
+			if ((val instanceof String)) {
+				// assets String parameter defined - JavaScript only
+				switch (((String) val).toUpperCase()) {
+				case "DEFAULT":
+					// Java and JavaScript; Eclipse DEFINITELY needs these
+					Assets.add(new Assets.Asset("tracker", "cabrillo-assets.zip", "org/opensourcephysics/cabrillo"));
+					break;
+				case "NONE":
+					// JavaScript only
+					break;
+				default:
+					// JavaScript only
+					Assets.add(val);				
+					break;
+				}
+			} else {
+				Assets.add(val);				
+			}
+		} catch (Throwable e) {
+			OSPLog.warning("Error reading assets path. ");
+			System.err.println("Error reading assets path.");
+		}
+	}
+	
+
+	
+	
 	// define static constants
 	/** tracker version and copyright */
 	public static final String VERSION = "5.1.3"; //$NON-NLS-1$
