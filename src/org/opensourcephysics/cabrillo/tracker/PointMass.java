@@ -797,7 +797,7 @@ public class PointMass extends TTrack {
 		mass = Math.abs(mass);
 		mass = Math.max(mass, MINIMUM_MASS);
 		this.mass = mass;
-		firePropertyChange("mass", null, new Double(mass)); //$NON-NLS-1$
+		firePropertyChange(TTrack.PROPERTY_TTRACK_MASS, null, new Double(mass)); //$NON-NLS-1$
 		invalidateData(this);// to views
 		// store the mass in the data properties
 		if (data != null) {
@@ -1116,7 +1116,7 @@ public class PointMass extends TTrack {
 	@Override
 	protected void dispose() {
 		if (trackerPanel != null) {
-			removePropertyChangeListener("mass", trackerPanel.massChangeListener); //$NON-NLS-1$
+			removePropertyChangeListener(TTrack.PROPERTY_TTRACK_MASS, trackerPanel.massChangeListener); //$NON-NLS-1$
 			if (trackerPanel.dataBuilder != null) {
 				FunctionPanel functionPanel = trackerPanel.dataBuilder.getPanel(getName());
 				if (functionPanel != null) {
