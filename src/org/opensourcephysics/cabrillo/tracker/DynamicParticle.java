@@ -138,9 +138,9 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * Refreshes step positions.
 	 */
 	@Override
-	protected void refreshSteps() {
+	protected void refreshSteps(String why) {
 		if (system == null)
-			super.refreshSteps();
+			super.refreshSteps(why);
 	}
 
 	/**
@@ -605,7 +605,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		if (system != null) {
 			system.refreshSystemParameters();
 			system.setLastValidFrame(-1);
-			system.refreshSteps();
+			system.refreshSteps("DP boost");
 		} else {
 			reset();
 		}
