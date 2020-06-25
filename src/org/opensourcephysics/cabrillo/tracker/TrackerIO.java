@@ -668,7 +668,7 @@ public class TrackerIO extends VideoIO {
 	private static void openTabPath(String path, TrackerPanel existingPanel, TFrame frame, VideoType vidType,
 			ArrayList<String> desktopFiles, Runnable whenDone) {
 		OSPLog.debug("TrackerIO openTabPath " + path); //$NON-NLS-1$
-		new AsyncLoad(path, existingPanel, frame, vidType, desktopFiles, whenDone).execute();//Synchronously(); // for now
+		new AsyncLoad(path, existingPanel, frame, vidType, desktopFiles, whenDone).execute();//executeSynchronously();
 	}
 
 	/**
