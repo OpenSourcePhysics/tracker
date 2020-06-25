@@ -30,6 +30,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -108,6 +109,8 @@ import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.LocalJob;
 import org.opensourcephysics.tools.ToolsRes;
+
+import javajs.async.SwingJSUtils.Performance;
 
 /**
  * This displays a table view of a track on a TrackerPanel.
@@ -293,13 +296,12 @@ public class TableTrackView extends TrackView {
 		if (!forceRefresh && !isRefreshEnabled() || !parent.isViewPaneVisible())
 			return;
 
-		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode));
 		forceRefresh = false;
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		dataTable.clearSelection();
 		TTrack track = getTrack();
-		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + " " + track);
+		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + " track=" + track);
 		try {
 			trackDataManager = track.getData(trackerPanel);
 			// copy datasets into table data based on checkbox states
@@ -313,8 +315,8 @@ public class TableTrackView extends TrackView {
 			int colCount = 0;
 			for (int i = 0; i < count; i++) {
 				if (checkBoxes[i].isSelected()) {
-					OSPLog.debug("TrackTableView checkbox " + i + "  " + checkBoxes[i].getText() + " "
-							+ checkBoxes[i].isSelected());
+//					OSPLog.debug("TrackTableView checkbox " + i + "  " + checkBoxes[i].getText() + " "
+//							+ checkBoxes[i].isSelected());
 					Dataset ds = datasets.get(i);
 					Dataset local = dataTableManager.getDataset(colCount++);
 					String xTitle = ds.getXColumnName();
@@ -2107,6 +2109,9 @@ public class TableTrackView extends TrackView {
 	}
 
 	public void refreshToolbar() {
+			if (OSPRuntime.isJS)
+				return;
+		
 		if (trackerPanel.getTFrame() != null) {
 			TViewChooser owner = getOwner();
 			if (owner != null)
