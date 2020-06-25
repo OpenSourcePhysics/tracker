@@ -1133,7 +1133,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					// refresh steps of pm after setting new ReferenceFrame
 					if (thePM instanceof ParticleModel && wasRefFrame) {
 						((ParticleModel) thePM).setLastValidFrame(-1);
-						((ParticleModel) thePM).refreshSteps();
+						((ParticleModel) thePM).refreshSteps("TP.setReferenceFrame "+ trackName);
 					}
 					setSelectedPoint(null);
 					selectedSteps.clear();
@@ -2598,7 +2598,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			firePropertyChange(TTrack.PROPERTY_TTRACK_LOCKED, null, null); // to tracker frame //$NON-NLS-1$
 			break;
 		case VideoPlayer.PROPERTY_VIDEOPLAYER_PLAYING: // from player //$NON-NLS-1$
-			if (!((Boolean) e.getNewValue()).booleanValue()) {
+			boolean playing = ((Boolean) e.getNewValue()).booleanValue();
+			getTFrame().getToolBar(this).setAllowRefresh(playing);
+			if (!playing) {
 				ArrayList<ParticleModel> list = getDrawables(ParticleModel.class);
 				for (int m = 0, n = list.size(); m < n; m++) {
 					list.get(m).refreshDerivsIfNeeded();
@@ -3099,9 +3101,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// note that TrackerPanel has no child components
 		// DrawingPanel does all the work
 		long t0 = Performance.now(0);
+//		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paintComponent0", Performance.TIME_MARK));
+
 		super.paintComponent(g);
 		showFilterInspectors();
-		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.paintComponent");
+		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.paintComponent1");
 	}
 
 	/**
@@ -3525,13 +3529,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 			try {
 				trackerPanel.frame.holdPainting(true);
-				OSPLog.debug("TrackerPanel.finalizeLoading start");
-
 				Video video = finalizeClip();
-
-				OSPLog.debug(
-						Performance.timeCheckStr("TrackerPanel.finalizeLoading finalizeClip", Performance.TIME_MARK));
-
 				// load and check if a newer Tracker version created this file
 				String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
 				// if ver is null then must be an older version
@@ -3579,28 +3577,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 					}
 				}
-				OSPLog.debug(
-						Performance.timeCheckStr("TrackerPanel.finalizeLoading load metadata", Performance.TIME_MARK));
-
 				// load the clip control
 				XMLControl child = control.getChildControl("clipcontrol"); //$NON-NLS-1$
 				if (child != null) {
 					ClipControl clipControl = trackerPanel.getPlayer().getClipControl();
 					child.loadObject(clipControl);
 				}
-
-				OSPLog.debug(
-						Performance.timeCheckStr("TrackerPanel.finalizeLoading clipControl ", Performance.TIME_MARK));
-
 				// load the toolbar
 				child = control.getChildControl("toolbar"); //$NON-NLS-1$
 				if (child != null) {
 					TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
 					child.loadObject(toolbar);
 				}
-
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading toolbar", Performance.TIME_MARK));
-
 				// load the coords
 				child = control.getChildControl("coords"); //$NON-NLS-1$
 				if (child != null) {
@@ -3609,9 +3597,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					int n = trackerPanel.getFrameNumber();
 					trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
 				}
-
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading coords", Performance.TIME_MARK));
-
 				// load units and unit visibility
 				if (control.getPropertyNamesRaw().contains("length_unit")) { //$NON-NLS-1$
 					trackerPanel.lengthUnit = control.getString("length_unit"); //$NON-NLS-1$
@@ -3638,11 +3623,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 					}
 				}
-
-				OSPLog.debug(
-						Performance.timeCheckStr("TrackerPanel.finalizeLoading number formats", Performance.TIME_MARK));
-
 				// load the tracks
+				OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading.addTrack0");
+				t0 = Performance.now(0);
 				ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
 				if (tracks != null) {
 					for (int i = 0, n = tracks.size(); i < n; i++) {
@@ -3650,8 +3633,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					}
 				}
 
-				OSPLog.debug(
-						Performance.timeCheckStr("TrackerPanel.finalizeLoading load tracks", Performance.TIME_MARK));
+				OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading.addTrack1");
+				t0 = Performance.now(0);
 
 				// load drawing scenes saved in vers 4.11.0+
 				ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
@@ -4275,7 +4258,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 //		String s = /** @j2sNative  Clazz._getStackTrace() || */null;
 
-		OSPLog.debug("TrackerPanel repaint " + (++repaintCount));
+		OSPLog.debug("TrackerPanel repaint id=" + id + " #"  + (++repaintCount) );
 
 		super.repaint(time, x, y, w, h);
 	}
