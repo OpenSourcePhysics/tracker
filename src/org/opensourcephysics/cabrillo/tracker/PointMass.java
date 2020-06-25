@@ -37,6 +37,9 @@ import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionPanel;
+
+import javajs.async.SwingJSUtils.Performance;
+
 import org.opensourcephysics.controls.*;
 
 /**
@@ -1883,12 +1886,18 @@ public class PointMass extends TTrack {
 	protected void updateDerivatives(int startFrame, int stepCount) {
 		if (isEmpty() || refreshDataLater)
 			return;
+		
+		OSPLog.debug(Performance.timeCheckStr("ParticleModel.updateDerivatives0 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
+				Performance.TIME_MARK));
+
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(this.getClass().getSimpleName() + this.hashCode() + " update derivatives " + startFrame //$NON-NLS-1$
 				+ " steps " + stepCount); //$NON-NLS-1$
 		for (int i = tList.size(); --i >= 0;) {
 			updateDerivatives(tList.get(i), startFrame, stepCount);
 		}
+		OSPLog.debug(Performance.timeCheckStr("ParticleModel.updateDerivatives1 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
+				Performance.TIME_MARK));
 	}
 
 	/**
