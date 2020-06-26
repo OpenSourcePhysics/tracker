@@ -1859,7 +1859,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		OSPLog.debug("TrackerPanel.refreshTrackData " + Tracker.allowDataRefresh);
 		boolean auto = isAutoRefresh;
 		isAutoRefresh = true;
-		firePropertyChange(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, null, null);
+		firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // causes full view rebuild
 		isAutoRefresh = auto;
 	}
 
@@ -1870,7 +1870,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		TTrackBar.getTrackbar(this).refreshDecimalSeparators();
 
 		// refresh all plot and table views
-		refreshTrackData();
+		// just repaint--no data change at all
+//		refreshTrackData();
 
 		// refresh modelbuilder and databuilder
 		if (modelBuilder != null) {
