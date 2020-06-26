@@ -920,7 +920,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 */
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " " + name; //$NON-NLS-1$
+		return getClass().getSimpleName() + " " + name + " " + ID; //$NON-NLS-1$
 	}
 
 	@Override

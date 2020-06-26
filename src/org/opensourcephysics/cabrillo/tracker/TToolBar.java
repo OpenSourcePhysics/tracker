@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
 //import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -75,6 +76,8 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.desktop.OSPDesktop;
+import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.ClipInspector;
@@ -670,7 +673,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 								}
 							}
 						}
-						trackerPanel.refreshTrackData();
+						trackerPanel.refreshTrackData(DataTable.MODE_REFRESH);
 						trackerPanel.eraseAll();
 						trackerPanel.repaintDirtyRegion();
 					}
@@ -685,7 +688,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						JMenuItem item = (JMenuItem) e.getSource();
 						trackerPanel.setAutoRefresh(item.isSelected());
 						if (trackerPanel.isAutoRefresh()) {
-							trackerPanel.refreshTrackData();
+							trackerPanel.refreshTrackData(DataTable.MODE_REFRESH);
 							trackerPanel.eraseAll();
 							trackerPanel.repaintDirtyRegion();
 						}
@@ -815,7 +818,14 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	private boolean disposed;
 
 	private int enabledCount;
+	private boolean allowRebuild = true;
 	
+	@Override
+	protected void paintChildren(Graphics g) {
+		if (!OSPRuntime.isJS)
+			super.paintChildren(g);
+		
+	}
 	/**
 	 * Refreshes the GUI using a private singleton timer.
 	 * 
@@ -859,6 +869,15 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		refreshTimer.start();
 	}
 
+	/**
+	 * Not while playing
+	 * 
+	 * @param b
+	 */
+	public void setAllowRefresh(boolean b) {
+		allowRebuild = b;
+	}
+	
 	protected void refreshAsync(boolean refreshTrackProperties) {
 		long t0 = Performance.now(0);
 		OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync", Performance.TIME_MARK));
@@ -866,7 +885,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		int enabledCount = trackerPanel.getEnabledCount();
 		boolean trackerPanelTainted = (enabledCount != this.enabledCount);
 		this.enabledCount = enabledCount;
-		if (trackerPanelTainted) {
+		if (trackerPanelTainted && allowRebuild) {
 			rebuild();
 		}
 		checkEnabled(refreshTrackProperties);

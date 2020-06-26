@@ -163,7 +163,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 			return;
 		}
 		if (trackerPanel.getFrameNumber() > getLastValidFrame()) {
-			refreshSteps();
+			refreshSteps("DyamSys draw");
 		}
 		for (ParticleModel next : getModels()) {
 			next.drawMe(panel, _g);
@@ -504,7 +504,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 				}
 			}
 			setLastValidFrame(-1);
-			refreshSteps();
+			refreshSteps("DynSys.property change transform ");
 		} else
 			super.propertyChange(e);
 		if (name.equals("mass") || name.equals("function")) { //$NON-NLS-1$ //$NON-NLS-2$

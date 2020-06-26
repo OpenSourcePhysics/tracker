@@ -206,7 +206,7 @@ public class DynamicParticlePolar extends DynamicParticle {
 		if (system != null) {
 			system.refreshSystemParameters();
 			system.setLastValidFrame(-1);
-			system.refreshSteps();
+			system.refreshSteps("DPPolar.setParameters");
 		} else {
 			reset();
 		}

@@ -473,6 +473,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * Refreshes the toolbar
 	 */
 	protected void refreshToolbar() {
+		// BH THIS IS A PROBLEM
 		toolbar.removeAll();
 		toolbar.add(chooserButton);
 		if (selectedView != null) {

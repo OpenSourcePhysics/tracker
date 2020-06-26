@@ -86,11 +86,11 @@ abstract public class ParticleModel extends PointMass {
 	protected void setLastValidFrame(int i) {
 		lastValidFrame = i;
 	}
-	
+
 	protected int getLastValidFrame() {
 		return lastValidFrame;
 	}
-	
+
 	/**
 	 * Constructs a ParticleModel.
 	 */
@@ -124,11 +124,16 @@ abstract public class ParticleModel extends PointMass {
 	public void draw(DrawingPanel panel, Graphics _g) {
 		if (!(panel instanceof TrackerPanel) || trackerPanel == null)
 			return;
-		OSPLog.debug("ParticleModel.draw frame " + trackerPanel.getFrameNumber() + "/" + lastValidFrame + " " + this);
+//		OSPLog.debug("ParticleModel.draw frame " + trackerPanel.getFrameNumber() + "/" + lastValidFrame + " " + this);
+		long t0 = Performance.now(0);
+
 		if (isVisible() && trackerPanel.getFrameNumber() > lastValidFrame) {
-			refreshSteps();
+			refreshSteps("draw");
 		}
+		OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.paintComponent-draw-refreshsteps");
+		t0 = Performance.now(0);
 		drawMe(panel, _g);
+		OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.paintComponent-drawme");
 	}
 
 	/**
@@ -223,7 +228,7 @@ abstract public class ParticleModel extends PointMass {
 				trackerPanel.changed = true;
 			setLastValidFrame(-1);
 			break;
-		case TFrame.PROPERTY_TFRAME_TAB: //$NON-NLS-1$
+		case TFrame.PROPERTY_TFRAME_TAB: // $NON-NLS-1$
 			if (modelBuilder != null) {
 				if (trackerPanel != null && e.getNewValue() == trackerPanel && trackerPanel.isModelBuilderVisible) {
 					modelBuilder.setVisible(true);
@@ -251,7 +256,7 @@ abstract public class ParticleModel extends PointMass {
 		case "stepsize": //$NON-NLS-1$
 			setLastValidFrame(-1);
 			break;
-		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: //$NON-NLS-1$
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // $NON-NLS-1$
 			// workaround to prevent infinite loop
 			ImageCoordSystem coords = trackerPanel.getCoords();
 			if (!(coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this)) {
@@ -264,27 +269,27 @@ abstract public class ParticleModel extends PointMass {
 			case "function": //$NON-NLS-1$
 				repaint();
 				break;
-			case TPoint.PROPERTY_ADJUSTING: //$NON-NLS-1$
+			case TPoint.PROPERTY_ADJUSTING: // $NON-NLS-1$
 				refreshStepsLater = (Boolean) e.getNewValue();
 				if (!refreshStepsLater) { // stopped adjusting, so refresh steps
-					refreshSteps();
+					refreshSteps("adjusting");
 				}
 				break;
-			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: //$NON-NLS-1$
+			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // $NON-NLS-1$
 				// workaround to prevent infinite loop
 				ImageCoordSystem coords = trackerPanel.getCoords();
 				if (!(coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this)) {
-					refreshSteps();
+					refreshSteps("transform");
 				}
 				break;
 			case "starttime": //$NON-NLS-1$
 			case "frameduration": //$NON-NLS-1$
 			case "startframe": //$NON-NLS-1$
 				refreshInitialTime();
-				refreshSteps();
+				refreshSteps(name);
 				break;
 			case "stepsize": //$NON-NLS-1$
-				refreshSteps();
+				refreshSteps(name);
 				break;
 			}
 		}
@@ -317,7 +322,7 @@ abstract public class ParticleModel extends PointMass {
 		Parameter massParam = (Parameter) getParamEditor().getObject("m"); //$NON-NLS-1$
 		if (massParam != null && massParam.getValue() != mass) {
 			functionPanel.getParamEditor().setExpression("m", String.valueOf(mass), false); //$NON-NLS-1$
-			refreshSteps();
+			refreshSteps("setMass");
 		}
 	}
 
@@ -429,7 +434,7 @@ abstract public class ParticleModel extends PointMass {
 					setUseDefaultReferenceFrame(!useDefaultRefFrameItem.isSelected());
 					if (ParticleModel.this.trackerPanel.getCoords() instanceof ReferenceFrame) {
 						setLastValidFrame(-1);
-						refreshSteps();
+						refreshSteps("useDefRefFrameItem action");
 					}
 				}
 			});
@@ -438,7 +443,7 @@ abstract public class ParticleModel extends PointMass {
 			stampItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					refreshSteps();
+					refreshSteps("stampItem action");
 					PointMass pm = new PointMass();
 					String proposed = getName() + " " + TrackerRes.getString("ParticleModel.Stamp.Name") + "1"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 					for (TTrack track : ParticleModel.this.trackerPanel.getTracks()) {
@@ -553,9 +558,9 @@ abstract public class ParticleModel extends PointMass {
 		startFrame = n;
 		refreshInitialTime();
 		setLastValidFrame(-1);
-		refreshSteps();
+		refreshSteps("setStartFrame " + n);
 		TFrame.repaintT(trackerPanel);
-		firePropertyChange(PROPERTY_TTRACK_MODELSTART, null, getStartFrame()); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_MODELSTART, null, getStartFrame()); // $NON-NLS-1$
 	}
 
 	/**
@@ -583,10 +588,10 @@ abstract public class ParticleModel extends PointMass {
 		if (n < lastValidFrame) {
 			trimSteps();
 		} else {
-			refreshSteps();
+			refreshSteps("setEndFrame " + endFrame);
 		}
 		TFrame.repaintT(trackerPanel);
-		firePropertyChange(PROPERTY_TTRACK_MODELEND, null, getEndFrame()); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_MODELEND, null, getEndFrame()); // $NON-NLS-1$
 	}
 
 	/**
@@ -642,9 +647,9 @@ abstract public class ParticleModel extends PointMass {
 	@Override
 	protected void dispose() {
 		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); //$NON-NLS-1$
+			trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); // $NON-NLS-1$
 			if (trackerPanel.getTFrame() != null) {
-				trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
+				trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 			}
 		}
 		if (modelBuilder != null) {
@@ -667,6 +672,7 @@ abstract public class ParticleModel extends PointMass {
 	/**
 	 * Gets the next trace positions. Subclasses override to get positions based on
 	 * model. Value is stored in the points field
+	 * 
 	 * @return TODO
 	 */
 	abstract boolean getNextTracePositions();
@@ -681,8 +687,9 @@ abstract public class ParticleModel extends PointMass {
 
 	protected Point2D.Double[] points;
 	protected int myPoint = 0;
-	
-	private ParticleModel[] me = new ParticleModel[] {this};
+
+	private ParticleModel[] me = new ParticleModel[] { this };
+
 	/**
 	 * Gets the particle models associated with this model. By default this model is
 	 * returned.
@@ -719,15 +726,16 @@ abstract public class ParticleModel extends PointMass {
 			refreshing = prev;
 		}
 	}
-	
 
 	protected static int nCalc = 0;
 
 	/**
 	 * Refreshes step positions.
 	 */
-	protected void refreshSteps() {
+	protected void refreshSteps(String why) {
 		locked = true;
+//		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps00 " + why, Performance.TIME_MARK));
+
 		// return if this is an empty dynamic system
 		if (refreshStepsLater || trackerPanel == null
 				|| this instanceof DynamicSystem && ((DynamicSystem) this).particles.length == 0)
@@ -749,9 +757,9 @@ abstract public class ParticleModel extends PointMass {
 			if (lastValidFrame == -1 || end <= lastValidFrame)
 				return;
 		}
+		start = lastValidFrame;
 		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps0 " + start + " " + end + " " + nCalc,
 				Performance.TIME_MARK));
-		start = lastValidFrame;
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(
 					this.getClass().getSimpleName() + this.hashCode() + " refreshing steps " + start + " to " + end); //$NON-NLS-1$ //$NON-NLS-2$
@@ -911,7 +919,7 @@ abstract public class ParticleModel extends PointMass {
 		refreshDerivsLater = false;
 		for (ParticleModel part : getModels()) {
 			part.updateDerivatives();
-			part.firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+			part.firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
 		}
 	}
 
@@ -948,7 +956,7 @@ abstract public class ParticleModel extends PointMass {
 			next.updateDerivatives(end - 2, lastValidFrame - end + 2);
 			// restore state
 			restoreState(end);
-			next.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+			next.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
 			next.locked = true;
 		}
 		setLastValidFrame(end);
@@ -1012,7 +1020,7 @@ abstract public class ParticleModel extends PointMass {
 			modelBuilder.addPanel(getName(), functionPanel);
 			modelBuilder.addPropertyChangeListener(this);
 			if (trackerPanel.getTFrame() != null) {
-				trackerPanel.getTFrame().addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
+				trackerPanel.getTFrame().addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 			}
 			if (getInitEditor().getValues()[0] == 0) {
 				refreshInitialTime();

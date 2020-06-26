@@ -86,6 +86,7 @@ import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.controls.XMLPropertyElement;
 import org.opensourcephysics.display.Data;
+import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;
 import org.opensourcephysics.display.Drawable;
@@ -1132,7 +1133,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					// refresh steps of pm after setting new ReferenceFrame
 					if (thePM instanceof ParticleModel && wasRefFrame) {
 						((ParticleModel) thePM).setLastValidFrame(-1);
-						((ParticleModel) thePM).refreshSteps();
+						((ParticleModel) thePM).refreshSteps("referenceFrame change");
 					}
 					setSelectedPoint(null);
 					selectedSteps.clear();
@@ -1854,7 +1855,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Refreshes all data in tracks and views.
 	 */
-	protected void refreshTrackData() {
+	protected void refreshTrackData(int mode) {
 		// turn on autorefresh
 		OSPLog.debug("TrackerPanel.refreshTrackData " + Tracker.allowDataRefresh);
 		boolean auto = isAutoRefresh;
@@ -1871,7 +1872,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		// refresh all plot and table views
 		// just repaint--no data change at all
-//		refreshTrackData();
+		refreshTrackData(DataTable.MODE_FORMAT);
 
 		// refresh modelbuilder and databuilder
 		if (modelBuilder != null) {

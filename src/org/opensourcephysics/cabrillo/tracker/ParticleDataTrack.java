@@ -295,7 +295,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	/**
 	 * Private constructor for XMLLoader.
 	 * 
-	 * @param data the Data object
+	 * @param pointData the Data object
 	 */
 	private ParticleDataTrack(double[][] coreData, ArrayList<Object[]> pointData) {
 		this(null);
@@ -1760,7 +1760,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		adjustVideoClip();
 		if (reset) {
 			setLastValidFrame(-1);
-			refreshSteps();
+			refreshSteps("ParticleDataTrack");
 			firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 		}
 		invalidWarningShown = true;

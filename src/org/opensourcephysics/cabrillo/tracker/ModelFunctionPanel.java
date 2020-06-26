@@ -178,21 +178,26 @@ protected void dispose() {
 		else super.tabToNext(editor);
 	}
 
-  /**
-   * Listens for property changes "edit" and "function"
-   *
-   * @param e the event
-   */
+	/**
+	 * Listens for property changes "edit" and "function"
+	 *
+	 * @param e the event
+	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		super.propertyChange(e);
-		String name = e.getPropertyName();
- 	  if (e.getSource() == paramEditor && name.equals("edit")) { //$NON-NLS-1$
-	  	initEditor.getTable().selectOnFocus = false;
- 	  } 
- 	  else if (name.equals("angles_in_radians") && model.trackerPanel!=null) {   //$NON-NLS-1$
- 	  	model.trackerPanel.getTFrame().setAnglesInRadians((Boolean)e.getNewValue());
-	  }
+		switch (e.getPropertyName()) {
+		case FunctionEditor.PROPERTY_FUNCTIONEDITOR_EDIT:
+			if (e.getSource() == paramEditor) {
+				initEditor.getTable().selectOnFocus = false;
+			}
+			break;
+		case FunctionEditor.PROPERTY_FUNCTIONEDITOR_ANGLESINRADIANS:
+			if (model.trackerPanel != null) {
+				model.trackerPanel.getTFrame().setAnglesInRadians((Boolean) e.getNewValue());
+				break;
+			}
+		}
 	}
 	
 	@Override

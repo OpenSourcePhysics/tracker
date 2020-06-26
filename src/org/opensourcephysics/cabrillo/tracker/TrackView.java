@@ -30,7 +30,7 @@ import java.util.*;
 
 import javax.swing.*;
 
-import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.display.DataTable;
 
 /**
  * This displays a view of a single track on a TrackerPanel.
@@ -39,12 +39,6 @@ import org.opensourcephysics.controls.OSPLog;
  */
 @SuppressWarnings("serial")
 public abstract class TrackView extends JScrollPane implements PropertyChangeListener {
-	
-	public static final int REFRESH_PLOTCOUNT = -1;
-	public static final int REFRESH_DATA_STRUCTURE = 0;
-	public static final int REFRESH_COLUMNS = 1;
-	public static final int REFRESH_DATA_VALUES = 2;
-	public static final int REFRESH_STEPNUMBER = 3;
 
 	// instance fields
 	private int trackID;
@@ -53,6 +47,8 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	protected TrackChooserTView parent;
 	protected int myType;
 
+	protected boolean forceRefresh = false;
+	
 
 	// constructor
 	protected TrackView(TTrack track, TrackerPanel panel, TrackChooserTView view, int myType) {
@@ -78,7 +74,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		trackerPanel = null;
 	}
 
-	abstract void refresh(int stepNumber, int refreshType);
+	abstract void refresh(int stepNumber, int mode);
 
 	abstract void refreshGUI();
 
@@ -127,40 +123,34 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	}
 
 	/**
-	 * Responds to property change events.
+	 * Responds to property change events. TrackView receives the following events:
+	 * "step" or "steps" from the track.
 	 *
 	 * @param e the property change event
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
-		OSPLog.debug(name+" pig1 ");
 		switch (name) {
 		case TTrack.PROPERTY_TTRACK_STEP:
-			OSPLog.debug(TTrack.PROPERTY_TTRACK_STEP+" pig "+e.getOldValue());
 			if (e.getOldValue() == TTrack.HINT_STEP_ADDED_OR_REMOVED)
-				refresh((Integer) e.getNewValue(), REFRESH_DATA_STRUCTURE);
+				refresh((Integer) e.getNewValue(), DataTable.MODE_TRACK_STEP);
 			else
-				refresh((Integer) e.getNewValue(), REFRESH_DATA_VALUES);
+				refresh((Integer) e.getNewValue(), DataTable.MODE_VALUES);
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
 			Step step = trackerPanel.getSelectedStep();
 			TTrack track = getTrack();
 			if (step != null && trackerPanel.getSelectedTrack() == track) {
-				OSPLog.debug(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT+" pig ");
-				refresh(step.getFrameNumber(), REFRESH_STEPNUMBER);
+				refresh(step.getFrameNumber(), DataTable.MODE_TRACK_SELECTEDPOINT);
 				break;
 			}
 			// fall through //
 		case TTrack.PROPERTY_TTRACK_STEPS:
-			OSPLog.debug(TTrack.PROPERTY_TTRACK_STEPS+" pig2 ");
-			if (e.getOldValue() == TTrack.HINT_STEPS_SELECTED)
-				refresh(trackerPanel.getFrameNumber(), REFRESH_STEPNUMBER);
-			else
-				refresh(trackerPanel.getFrameNumber(), REFRESH_DATA_STRUCTURE);
+			refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STEPS);
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_LOADED:
-			refresh(trackerPanel.getFrameNumber(), REFRESH_DATA_STRUCTURE);
+			refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_LOADED);
 			break;
 		}
 	}

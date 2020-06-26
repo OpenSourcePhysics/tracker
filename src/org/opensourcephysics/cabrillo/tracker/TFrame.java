@@ -57,6 +57,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.function.Function;
 
@@ -101,6 +102,7 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLProperty;
+import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.BaselineFilter;
@@ -289,9 +291,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	@Override
 	public void repaint(long time, int x, int y, int w, int h) {
-		if (!isPaintable())
-			return;
-		OSPLog.debug("TFrame repaint");
+//		if (!isPaintable())
+//			return;
+		OSPLog.debug("TFrame repaint " + x + " " + y + " " + w + " " + h + " " + isPaintable());
 		// TFrame.addTab -> initialize -> TrackerPanel.addTrack -> fire(PROPERTY_TRACKERPANEL_TRACK) 
 		//   -> TViewChooser -> PlotTView -> TFrame.repaint();
 		
@@ -313,7 +315,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			((TrackerPanel) c).clearTainted();
 		}
-		OSPLog.debug("TFrame.repaintT " + c.getClass().getName());
+		OSPLog.debug(Performance.timeCheckStr("TFrame.repaintT " +  c.getClass().getName(),
+				Performance.TIME_MARK));
+	//OSPLog.debug("TFrame.repaintT " + c.getClass().getName());
 		c.repaint();
 	}
 	
@@ -340,7 +344,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	public void addTab(final TrackerPanel trackerPanel, Runnable whenDone) {
 		int tab = getTab(trackerPanel);
-		if (tab>-1) { // tab exists
+		if (tab > -1) { // tab exists
 			String name = trackerPanel.getTitle();
 			synchronized (tabbedPane) {
 				tabbedPane.setTitleAt(tab, name);
@@ -350,10 +354,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setIgnoreRepaint(true);
 			// tab does not already exist
 			// listen for changes that affect tab title
-			trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); //$NON-NLS-1$
-			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); //$NON-NLS-1$
+			trackerPanel.addPropertyChangeListener(VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE, this); // $NON-NLS-1$
+			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
 			// set up trackerPanel to listen for angle format property change
-			addPropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); //$NON-NLS-1$
+			addPropertyChangeListener(PROPERTY_TFRAME_RADIANANGLES, trackerPanel); // $NON-NLS-1$
 			// create the tab
 			// create the tab panel components
 			Tracker.setProgress(30);
@@ -378,12 +382,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// from here on trackerPanel's top level container is this TFrame,
 			// so trackerPanel.getFrame() method will return non-null
 		}
-		
+
 		// handle XMLproperties loaded from trk file, if any:
 		// --customViewsProperty: load custom TViews
-		// --selectedViewTypesProperty: set selected view types (after May 2020) 
+		// --selectedViewTypesProperty: set selected view types (after May 2020)
 		// --selectedViewsProperty: set selected views (legacy pre-2020)
-		
+
 		TViewChooser[] viewChoosers = getViewChoosers(trackerPanel);
 		if (trackerPanel.customViewsProperty != null) {
 			// load views in array TView[chooserIndex][viewtypeIndex]
@@ -404,7 +408,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						if (view != null) {
 							viewControls[j].loadObject(view);
 							viewChoosers[chooserIndex].refresh();
-							viewChoosers[chooserIndex].repaint();	
+							viewChoosers[chooserIndex].repaint();
 //						viewChoosers[chooserIndex].setSelectedViewType(view.getViewType());
 						}
 					}
@@ -412,18 +416,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					e.printStackTrace();
 				}
 			}
-			trackerPanel.customViewsProperty = null;			
+			trackerPanel.customViewsProperty = null;
 		}
 		// select the view types
 		if (trackerPanel.selectedViewTypesProperty != null) {
-			for (Object next: trackerPanel.selectedViewTypesProperty.getPropertyContent()) {
+			for (Object next : trackerPanel.selectedViewTypesProperty.getPropertyContent()) {
 				String viewTypeString = next.toString();
-				// typical next value:  "<property name="array" type="string">{0,1,2,3}</property>"
+				// typical next value: "<property name="array"
+				// type="string">{0,1,2,3}</property>"
 				int n = viewTypeString.indexOf("{");
-				if (n>-1) {
-					viewTypeString = viewTypeString.substring(n+1);
+				if (n > -1) {
+					viewTypeString = viewTypeString.substring(n + 1);
 					try {
-						for (int i = 0; i< viewChoosers.length; i++) {
+						for (int i = 0; i < viewChoosers.length; i++) {
 							// set selected view types of TViewChoosers only if not default (viewType==i)
 							int viewType = Integer.parseInt(viewTypeString.substring(0, 1));
 							if (viewType != i) {
@@ -435,37 +440,39 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						}
 					} catch (NumberFormatException e) {
 						e.printStackTrace();
-					}					
+					}
 				}
 			}
-			trackerPanel.selectedViewTypesProperty = null;			
+			trackerPanel.selectedViewTypesProperty = null;
 		}
 		if (trackerPanel.selectedViewsProperty != null) {
-			Iterator<Object> it = trackerPanel.selectedViewsProperty.getPropertyContent().iterator();
-			int i = -1;
-			while (it.hasNext() && ++i < viewChoosers.length) {
-				XMLProperty next = (XMLProperty) it.next();
+			List<Object> list = trackerPanel.selectedViewsProperty.getPropertyContent();
+			for (int i = 0; i < list.size() && i < viewChoosers.length; i++) {
+				XMLProperty next = (XMLProperty) list.get(i);
 				if (next == null)
 					continue;
 				String viewName = ((String) next.getPropertyContent().get(0)).toLowerCase();
-				// hack to handle POSSIBLE name matches in pre-JS trk (won't work for translated names)
-				int type = viewName.contains("plot")? TView.VIEW_PLOT:
-					viewName.contains("table")? TView.VIEW_TABLE:
-					viewName.contains("world")? TView.VIEW_WORLD:
-					viewName.contains("page")? TView.VIEW_PAGE: 
-					-1;
-				if (type != i) { // don't select default types (viewType==i)
+				// hack to handle POSSIBLE name matches in pre-JS trk (won't work for translated
+				// names)
+				// Spanish here is for car.trz, specifically
+				int type = viewName.contains("diagrama") || viewName.contains("plot") ? TView.VIEW_PLOT
+						: viewName.contains("tabla") || viewName.contains("table") ? TView.VIEW_TABLE
+						: viewName.contains("mundo") || viewName.contains("world") ? TView.VIEW_WORLD
+						: viewName.contains("texto") || viewName.contains("page") ? TView.VIEW_PAGE
+												: -1;
+				// don't select default types (viewType==i)
+				if (type != i) { 
 					viewChoosers[i].setSelectedViewType(type);
 					viewChoosers[i].refresh();
-					viewChoosers[i].repaint();	
+					viewChoosers[i].repaint();
 				}
 			}
 			trackerPanel.selectedViewsProperty = null;
 		}
 		setViews(trackerPanel, viewChoosers);
 		initialize(trackerPanel);
-			
-		JPanel panel = (JPanel)tabbedPane.getComponentAt(tab);
+
+		JPanel panel = (JPanel) tabbedPane.getComponentAt(tab);
 		FontSizer.setFonts(panel);
 		// inform all tracks of current angle display format
 		for (TTrack track : trackerPanel.getTracks()) {
@@ -473,9 +480,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		setIgnoreRepaint(false);
 		trackerPanel.changed = false;
-		trackerPanel.refreshTrackData();
+		trackerPanel.refreshTrackData(DataTable.MODE_TAB);
 		refresh();
-
 
 		if (whenDone != null) {
 			whenDone.run();

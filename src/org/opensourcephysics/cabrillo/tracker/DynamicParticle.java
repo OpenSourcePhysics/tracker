@@ -138,9 +138,9 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * Refreshes step positions.
 	 */
 	@Override
-	protected void refreshSteps() {
+	protected void refreshSteps(String why) {
 		if (system == null)
-			super.refreshSteps();
+			super.refreshSteps(why);
 	}
 
 	/**
@@ -391,8 +391,12 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	protected void getXYForces(double[] cartesianState, double[] ret) {
 		UserFunction[] f = getFunctionEditor().getMainFunctions();
 		// state is {x, vx, y, vy, t}
-		ret[0] = f[0].evaluate(cartesianState);
-		ret[1] = f[1].evaluate(cartesianState);
+		f[0].clear();
+		f[1].clear();
+		ret[0] = f[0].evaluateMyVal(cartesianState);
+		ret[1] = f[1].evaluateMyVal(cartesianState);
+		f[0].clear();
+		f[1].clear();
 		nCalc += 2;
 	}
 	
@@ -601,7 +605,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		if (system != null) {
 			system.refreshSystemParameters();
 			system.setLastValidFrame(-1);
-			system.refreshSteps();
+			system.refreshSteps("DP boost");
 		} else {
 			reset();
 		}
