@@ -1949,9 +1949,13 @@ public class PointMass extends TTrack {
 	 * @param stepCount    the step count
 	 */
 	protected void updateDerivatives(TrackerPanel trackerPanel, int startFrame, int stepCount) {
-		if (trackerPanel instanceof WorldTView && !((WorldTView) trackerPanel).isSelectedView())
-			return;
+		if (trackerPanel instanceof WorldTView) {
+			WorldTView wtv = (WorldTView) trackerPanel;
+			if(!wtv.isSelectedView() ||  !wtv.isViewPaneVisible())
+				return;
+		}
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		OSPLog.debug(trackerPanel.getClass().getSimpleName()+" UpdateDerivatives start "+startFrame+" for steps "+stepCount);
 		// initialize data arrays
 		if (xData.length < steps.array.length) {
 			derivData[1] = xData = new double[steps.array.length + 5];
