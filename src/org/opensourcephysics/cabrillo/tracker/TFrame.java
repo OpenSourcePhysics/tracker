@@ -150,7 +150,6 @@ import javajs.async.SwingJSUtils.StateMachine;
 @SuppressWarnings("serial")
 public class TFrame extends OSPFrame implements PropertyChangeListener {
 
-	
 	static {
 		ToolTipManager.sharedInstance().setDismissDelay(2000);
 	}
@@ -167,15 +166,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			this.trackerPanel = trackerPanel;
 			this.objects = objects;
 		}
-		
+
 		public TrackerPanel getTrackerPanel() {
 			return trackerPanel;
 		}
-		
+
 		public Object[] getObjects() {
 			return objects;
 		}
-		
+
 		@Override
 		public void paintComponent(Graphics g) {
 			if (!isPaintable())
@@ -211,7 +210,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private static final int TFRAME_TOOLBAR = 3;
 	private static final int TFRAME_MENUBAR = 4;
 	private static final int TFRAME_TRACKBAR = 5;
-	
+
 	public static boolean haveExportDialog = false;
 	public static boolean haveThumbnailDialog = false;
 
@@ -240,6 +239,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected PrefsDialog prefsDialog;
 	protected ClipboardListener clipboardListener;
 	protected boolean alwaysListenToClipboard;
+	private String mylang = "en";
+	private JMenu languageMenu;
 
 	/**
 	 * Constructs an empty TFrame.
@@ -294,15 +295,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //		if (!isPaintable())
 //			return;
 		OSPLog.debug("TFrame repaint " + x + " " + y + " " + w + " " + h + " " + isPaintable());
-		// TFrame.addTab -> initialize -> TrackerPanel.addTrack -> fire(PROPERTY_TRACKERPANEL_TRACK) 
-		//   -> TViewChooser -> PlotTView -> TFrame.repaint();
-		
-		
-		// Window.resize -> BorderLayout.layoutContainer -> JRootPane.reshape -> TFrame.repaint()
-		
+		// TFrame.addTab -> initialize -> TrackerPanel.addTrack ->
+		// fire(PROPERTY_TRACKERPANEL_TRACK)
+		// -> TViewChooser -> PlotTView -> TFrame.repaint();
+
+		// Window.resize -> BorderLayout.layoutContainer -> JRootPane.reshape ->
+		// TFrame.repaint()
+
 		super.repaint(time, x, y, w, h);
 	}
-	
+
 	/**
 	 * For optimization, finding out exactly who is repainting.
 	 * 
@@ -315,12 +317,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			((TrackerPanel) c).clearTainted();
 		}
-		OSPLog.debug(Performance.timeCheckStr("TFrame.repaintT " +  c.getClass().getName(),
-				Performance.TIME_MARK));
-	//OSPLog.debug("TFrame.repaintT " + c.getClass().getName());
+		OSPLog.debug(Performance.timeCheckStr("TFrame.repaintT " + c.getClass().getName(), Performance.TIME_MARK));
+		// OSPLog.debug("TFrame.repaintT " + c.getClass().getName());
 		c.repaint();
 	}
-	
+
 	/**
 	 * Swing does not use this method. It's only for AWT.
 	 * 
@@ -335,7 +336,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// RepaintManager.paintDirtyRegions -> TFrame.paint(g)
 		super.paint(g);
 	}
-	
+
 	/**
 	 * Adds a tab that displays the specified tracker panel.
 	 *
@@ -457,11 +458,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				// Spanish here is for car.trz, specifically
 				int type = viewName.contains("diagrama") || viewName.contains("plot") ? TView.VIEW_PLOT
 						: viewName.contains("tabla") || viewName.contains("table") ? TView.VIEW_TABLE
-						: viewName.contains("mundo") || viewName.contains("world") ? TView.VIEW_WORLD
-						: viewName.contains("texto") || viewName.contains("page") ? TView.VIEW_PAGE
+								: viewName.contains("mundo") || viewName.contains("world") ? TView.VIEW_WORLD
+										: viewName.contains("texto") || viewName.contains("page") ? TView.VIEW_PAGE
 												: -1;
 				// don't select default types (viewType==i)
-				if (type != i) { 
+				if (type != i) {
 					viewChoosers[i].setSelectedViewType(type);
 					viewChoosers[i].refresh();
 					viewChoosers[i].repaint();
@@ -491,15 +492,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	/**
 	 * Saves all tabs if user approved. Stops if any is canceled.
 	 * 
-	 * @param whenEachApproved Function to apply to each TrackerPanel unless canceled
-	 * @param whenAllApproved Runnable to run after all have run whenEachApproved
-	 * @param whenCanceled Runnable to run if canceled
+	 * @param whenEachApproved Function to apply to each TrackerPanel unless
+	 *                         canceled
+	 * @param whenAllApproved  Runnable to run after all have run whenEachApproved
+	 * @param whenCanceled     Runnable to run if canceled
 	 */
-	public void saveAllTabs(Function<TrackerPanel, Void> whenEachApproved, 
-			Runnable whenAllApproved, Runnable whenCanceled) {
+	public void saveAllTabs(Function<TrackerPanel, Void> whenEachApproved, Runnable whenAllApproved,
+			Runnable whenCanceled) {
 		// save all tabs in last-to-first order
-		final int[] tab = {getTabCount() - 1};
-		TrackerPanel trackerPanel = getTrackerPanel(tab[0]);		
+		final int[] tab = { getTabCount() - 1 };
+		TrackerPanel trackerPanel = getTrackerPanel(tab[0]);
 		Runnable approved = new Runnable() {
 			@Override
 			public void run() {
@@ -510,14 +512,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				tab[0]--;
 				if (tab[0] > -1) {
 					getTrackerPanel(tab[0]).save(this, whenCanceled);
-				}
-				else if (whenAllApproved != null)
+				} else if (whenAllApproved != null)
 					whenAllApproved.run();
 			}
 		};
 		trackerPanel.save(approved, whenCanceled);
 	}
-	
+
 	protected void relaunchCurrentTabs() {
 		final ArrayList<String> filenames = new ArrayList<String>();
 		saveAllTabs(new Function<TrackerPanel, Void>() {
@@ -539,7 +540,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 				return null;
 			}
-			
+
 		}, new Runnable() {
 			// whenAllApproved
 			@Override
@@ -548,11 +549,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				TrackerStarter.relaunch(args, false);
 				// TrackerStarter exits current VM after relaunching new one
 			}
-			
+
 		}, null); // no action when cancelled
 
 	}
-	
+
 	/**
 	 * Removes all tabs.
 	 */
@@ -565,25 +566,25 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				new TabRemover(trackerPanel).execute();
 				return null;
 			}
-			
+
 		}, null, null); // do nothing when all approved or when canceled
 	}
-	
+
 	/**
 	 * An AsyncSwingWorker to remove a tab.
 	 */
 	class TabRemover extends AsyncSwingWorker {
-		
+
 		TrackerPanel trackerPanel;
 		TTabPanel tabPanel;
-		
+
 		TabRemover(TrackerPanel trackerPanel) {
 			super(null, null, 1, 0, 1);
 			this.trackerPanel = trackerPanel;
 		}
-		
+
 		@Override
-		public void initAsync() {						
+		public void initAsync() {
 			int tab = getTab(trackerPanel);
 			tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
 			// remove the tab immediately
@@ -603,12 +604,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		public void doneAsync() {
 		}
 	}
-	
+
 	/**
 	 * Removes a tracker panel tab.
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @param tabPanel the TTabPanel
+	 * @param tabPanel     the TTabPanel
 	 */
 	public void removeTab(TrackerPanel trackerPanel) {
 		int tab = getTab(trackerPanel);
@@ -628,7 +629,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Finishes removing a tracker panel and it's TTabPanel.
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @param tabPanel the TTabPanel
+	 * @param tabPanel     the TTabPanel
 	 */
 	private void finishRemoveTab(TrackerPanel trackerPanel, TTabPanel tabPanel) {
 		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab start", Performance.TIME_MARK));
@@ -639,7 +640,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //		synchronized (tabbedPane) {
 //			tabbedPane.remove(tabPanel);
 //		}
-		
+
 		// hide the info dialog if removing the currently selected tab
 //		if (tab == getSelectedTab()) {
 //			notesDialog.setVisible(false);
@@ -691,7 +692,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			views[i].dispose();
 		}
 
-		// clean up main view--this is important as it disposes of floating JToolBar videoplayer
+		// clean up main view--this is important as it disposes of floating JToolBar
+		// videoplayer
 		MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 		mainView.dispose();
 		trackerPanel.setScrollPane(null);
@@ -771,7 +773,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			// show defaultMenuBar
 			setJMenuBar(defaultMenuBar);
 		}
-		
+
 //		synchronized (tabbedPane) {
 //			tabbedPane.remove(tabPanel);
 //		}
@@ -911,7 +913,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Sets the views for the specified tracker panel.
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @param viewChoosers     an array of up to 4 TViewChoosers
+	 * @param viewChoosers an array of up to 4 TViewChoosers
 	 */
 	public void setViews(TrackerPanel trackerPanel, TViewChooser[] viewChoosers) {
 		if (viewChoosers == null)
@@ -1016,7 +1018,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	/**
 	 * Determines whether a TViewChooser is visible for the specified tracker panel.
 	 *
-	 * @param index the TViewChooser index
+	 * @param index        the TViewChooser index
 	 * @param trackerPanel the tracker panel
 	 * @return true if it is visible
 	 */
@@ -1112,20 +1114,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		String name = e.getPropertyName();
 		switch (name) {
 		case VideoPanel.PROPERTY_VIDEOPANEL_DATAFILE:
-		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO: // from TrackerPanel //$NON-NLS-1$ 
+		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO: // from TrackerPanel //$NON-NLS-1$
 			trackerPanel = (TrackerPanel) e.getSource();
 			refreshTab(trackerPanel);
 			break;
-		case MovieVideoI.PROPERTY_VIDEO_PROGRESS: // from currently loading (xuggle) video 
+		case MovieVideoI.PROPERTY_VIDEO_PROGRESS: // from currently loading (xuggle) video
 			Object val = e.getNewValue(); // may be null
 			String vidName = XML.forwardSlash((String) e.getOldValue());
-			if (val != null) try {
-				framesLoaded = Integer.parseInt(val.toString());
-				TrackerIO.setProgress(vidName, val.toString(), framesLoaded);
-			} catch (Exception ex) {
-			}
+			if (val != null)
+				try {
+					framesLoaded = Integer.parseInt(val.toString());
+					TrackerIO.setProgress(vidName, val.toString(), framesLoaded);
+				} catch (Exception ex) {
+				}
 			break;
-		case MovieVideoI.PROPERTY_VIDEO_STALLED: // from stalled xuggle video 
+		case MovieVideoI.PROPERTY_VIDEO_STALLED: // from stalled xuggle video
 			String fileName = XML.getName((String) e.getNewValue());
 			String s = TrackerRes.getString("TFrame.Dialog.StalledVideo.Message0") //$NON-NLS-1$
 					+ "\n" + TrackerRes.getString("TFrame.Dialog.StalledVideo.Message1") //$NON-NLS-1$ //$NON-NLS-2$
@@ -1265,7 +1268,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (anglesInRadians == inRadians)
 			return;
 		anglesInRadians = inRadians;
-		firePropertyChange(PROPERTY_TFRAME_RADIANANGLES, null, inRadians); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TFRAME_RADIANANGLES, null, inRadians); // $NON-NLS-1$
 	}
 
 	/**
@@ -1339,7 +1342,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	/**
 	 * Creates the default views of the specified tracker panel.
-	 * @param mainView 
+	 * 
+	 * @param mainView
 	 *
 	 * @param trackerPanel the tracker panel
 	 * @return a TViewChooser[numberOfViews] array.
@@ -1356,11 +1360,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		return new TViewChooser[] { chooser1, chooser2, chooser3, chooser4 };
 	}
 
-	private static final int SPLIT_MAIN   = 0;
-	private static final int SPLIT_RIGHT  = 1;
-	private static final int SPLIT_LEFT   = 2;
+	private static final int SPLIT_MAIN = 0;
+	private static final int SPLIT_RIGHT = 1;
+	private static final int SPLIT_LEFT = 2;
 	private static final int SPLIT_BOTTOM = 3;
-	
+
 	/**
 	 * Gets the split panes for the specified tracker panel.
 	 *
@@ -1591,11 +1595,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (!OSPRuntime.allowSetFonts)
 			return;
 		try {
-			super.setFontLevel(level);			
+			super.setFontLevel(level);
 			if (libraryBrowser != null) {
 				libraryBrowser.setFontLevel(level);
 			}
-			
+
 		} catch (Exception e) {
 		}
 		if (tabbedPane == null)
@@ -1629,7 +1633,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (libraryBrowser != null) {
 			libraryBrowser.setFontLevel(level);
 		}
-		
+
 		FontSizer.setFonts(notesDialog, level);
 		FontSizer.setFonts(OSPLog.getOSPLog(), level);
 		if (Tracker.readmeDialog != null) {
@@ -2054,7 +2058,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		addWindowFocusListener(new WindowAdapter() {
 			@Override
 			public void windowGainedFocus(WindowEvent e) {
-				firePropertyChange(PROPERTY_TFRAME_WINDOWFOCUS, null, null); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TFRAME_WINDOWFOCUS, null, null); // $NON-NLS-1$
 			}
 		});
 		// create notes actions and dialog
@@ -2245,7 +2249,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				if (prefsDialog != null && prefsDialog.isVisible()) {
 					prefsDialog.refreshGUI();
 				}
-				firePropertyChange(PROPERTY_TFRAME_TAB, oldPanel, newPanel); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TFRAME_TAB, oldPanel, newPanel); // $NON-NLS-1$
 			}
 		});
 		closeItem = new JMenuItem();
@@ -2316,14 +2320,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				@Override
 				public void menuSelected(MenuEvent e) {
 					refreshOpenRecentMenu(recentMenu);
-					}
+				}
 
 				@Override
-				public void menuDeselected(MenuEvent e) {}
+				public void menuDeselected(MenuEvent e) {
+				}
 
 				@Override
-				public void menuCanceled(MenuEvent e) {}
-				
+				public void menuCanceled(MenuEvent e) {
+				}
+
 			});
 
 			fileMenu.addSeparator();
@@ -2353,64 +2359,25 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		JMenu editMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Edit")); //$NON-NLS-1$
 		defaultMenuBar.add(editMenu);
 		// language menu
-		JMenu languageMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Language")); //$NON-NLS-1$
+	    languageMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Language")); //$NON-NLS-1$
+	    languageMenu.addMenuListener(new MenuListener() {
+
+			@Override
+			public void menuSelected(MenuEvent e) {
+				setLangMenu(languageMenu);
+			}
+
+			@Override
+			public void menuDeselected(MenuEvent e) {
+			}
+
+			@Override
+			public void menuCanceled(MenuEvent e) {
+			}
+	    	
+	    });
 		editMenu.add(languageMenu);
-		Action languageAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String language = e.getActionCommand();
-				for (int i = 0; i < Tracker.incompleteLocales.length; i++) {
-					if (language.equals(Tracker.incompleteLocales[i][0].toString())) {
-						Locale locale = (Locale) Tracker.incompleteLocales[i][0];
-						String lang = OSPRuntime.getDisplayLanguage(locale);
-						// the following message is purposely not translated
-						JOptionPane.showMessageDialog(TFrame.this,
-								"This translation has not been updated since " + Tracker.incompleteLocales[i][1] //$NON-NLS-1$
-										+ ".\nIf you speak " + lang + " and would like to help translate" //$NON-NLS-1$ //$NON-NLS-2$
-										+ "\nplease contact Douglas Brown at dobrown@cabrillo.edu.", //$NON-NLS-1$
-								"Incomplete Translation: " + lang, //$NON-NLS-1$
-								JOptionPane.WARNING_MESSAGE);
-					}
-				}
-				for (int i = 0; i < Tracker.locales.length; i++) {
-					if (language.equals(Tracker.locales[i].toString())) {
-						TrackerRes.setLocale(Tracker.locales[i]);
-						return;
-					}
-				}
-			}
-		};
-		ButtonGroup languageGroup = new ButtonGroup();
-		for (int i = 0; i < Tracker.locales.length; i++) {
-			String lang = OSPRuntime.getDisplayLanguage(Tracker.locales[i]);
-			// special handling for portuguese BR and PT
-			if (Tracker.locales[i].getLanguage().equals("pt")) { //$NON-NLS-1$
-				lang += " (" + Tracker.locales[i].getCountry() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			JMenuItem item = new JRadioButtonMenuItem(lang);
-			item.setActionCommand(Tracker.locales[i].toString());
-			item.addActionListener(languageAction);
-			languageMenu.add(item);
-			languageGroup.add(item);
-			if (Tracker.locales[i].toString().equals(TrackerRes.locale.toString())) {
-				item.setSelected(true);
-			}
-		}
-		// add "other" language item at end
-		// the following item and message is purposely not translated
-		JMenuItem otherLanguageItem = new JMenuItem("Other"); //$NON-NLS-1$
-		languageMenu.addSeparator();
-		languageMenu.add(otherLanguageItem);
-		otherLanguageItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showMessageDialog(TFrame.this, "Do you speak a language not yet available in Tracker?" //$NON-NLS-1$
-						+ "\nTo learn more about translating Tracker into your language" //$NON-NLS-1$
-						+ "\nplease contact Douglas Brown at dobrown@cabrillo.edu.", //$NON-NLS-1$
-						"New Translation", //$NON-NLS-1$
-						JOptionPane.INFORMATION_MESSAGE);
-			}
-		});
+		checkLocale();
 		// preferences item
 		JMenuItem prefsItem = new JMenuItem(TrackerRes.getString("TActions.Action.Config")); //$NON-NLS-1$
 		prefsItem.addActionListener(new ActionListener() {
@@ -2436,6 +2403,101 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		defaultMenuBar.add(coordsMenu);
 		// help menu
 		defaultMenuBar.add(TMenuBar.getTrackerHelpMenu(null, null));
+	}
+
+	private void checkLocale() {
+		if (TrackerRes.locale != Locale.ENGLISH) {
+			// try for exact match (unlikely)
+			for (int i = 0; i < Tracker.locales.length; i++) {
+				Locale loc = Tracker.locales[i];
+				if (loc.equals(TrackerRes.locale)) {
+					setLanguage(loc.toString());
+					return;
+				}
+			}
+			// match just country
+			for (int i = 0; i < Tracker.locales.length; i++) {
+				Locale loc = Tracker.locales[i];
+				if (loc.getLanguage().equals(TrackerRes.locale.getLanguage())) {
+					setLanguage(loc.getLanguage());
+					return;
+				}
+			}
+		}
+
+	}
+
+	public void setLangMenu(JMenu languageMenu) {
+		Action languageAction = new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setLanguage(e.getActionCommand());
+			}
+		};
+		languageMenu.removeAll();
+		ButtonGroup languageGroup = new ButtonGroup();
+		JMenuItem selected = null;
+		for (int i = 0; i < Tracker.locales.length; i++) {
+			Locale loc = Tracker.locales[i];
+			String lang = OSPRuntime.getDisplayLanguage(loc);
+			String co = loc.getCountry();
+			// special handling for portuguese BR and PT
+			if (co != null && co != "") {
+					lang += " (" + co + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+			} else if (!OSPRuntime.isJS && loc.getLanguage().equals("ko")) {
+				lang = "Korean";// BH characters not working in Java
+			}
+			JMenuItem item = new JRadioButtonMenuItem(lang);
+			item.setActionCommand(loc.toString());
+			item.addActionListener(languageAction);
+			languageMenu.add(item);
+			languageGroup.add(item);
+			if (loc.equals(TrackerRes.locale)) {
+				selected = item;
+			}
+		}
+		// add "other" language item at end
+		// the following item and message is purposely not translated
+		JMenuItem otherLanguageItem = new JMenuItem("Other"); //$NON-NLS-1$
+		languageMenu.addSeparator();
+		languageMenu.add(otherLanguageItem);
+		otherLanguageItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showMessageDialog(TFrame.this, "Do you speak a language not yet available in Tracker?" //$NON-NLS-1$
+						+ "\nTo learn more about translating Tracker into your language" //$NON-NLS-1$
+						+ "\nplease contact Douglas Brown at dobrown@cabrillo.edu.", //$NON-NLS-1$
+						"New Translation", //$NON-NLS-1$
+						JOptionPane.INFORMATION_MESSAGE);
+			}
+		});
+		(selected == null ? languageMenu.getItem(0) : selected).setSelected(true);
+	}
+	
+	protected void setLanguage(String language) {
+		if (language.equals(mylang))
+			return;
+		mylang = language;
+		for (int i = 0; i < Tracker.incompleteLocales.length; i++) {
+			if (language.equals(Tracker.incompleteLocales[i][0].toString())) {
+				Locale locale = (Locale) Tracker.incompleteLocales[i][0];
+				String lang = OSPRuntime.getDisplayLanguage(locale);
+				// the following message is purposely not translated
+				JOptionPane.showMessageDialog(TFrame.this,
+						"This translation has not been updated since " + Tracker.incompleteLocales[i][1] //$NON-NLS-1$
+								+ ".\nIf you speak " + lang + " and would like to help translate" //$NON-NLS-1$ //$NON-NLS-2$
+								+ "\nplease contact Douglas Brown at dobrown@cabrillo.edu.", //$NON-NLS-1$
+						"Incomplete Translation: " + lang, //$NON-NLS-1$
+						JOptionPane.WARNING_MESSAGE);
+				break;
+			}
+		}
+		for (int i = 0; i < Tracker.locales.length; i++) {
+			if (language.equals(Tracker.locales[i].toString())) {
+				TrackerRes.setLocale(Tracker.locales[i]);
+				return;
+			}
+		}
 	}
 
 	/**
@@ -2619,11 +2681,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 				if (res == null) {
 					if (OSPRuntime.isJS) {
-						JOptionPane.showMessageDialog(frame, 
-						"\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
-						+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message")); //$NON-NLS-1$
+						JOptionPane.showMessageDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
+								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message")); //$NON-NLS-1$
 						continue;
-					} else /** @j2sNative */ {
+					} else /** @j2sNative */
+					{
 						int i = JOptionPane.showConfirmDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
 								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message"), //$NON-NLS-1$
 								TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
@@ -2854,10 +2916,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * 
 	 */
 	private int paintHold = 0;
-	
+
 	/**
 	 * Increment/decrement the paintHold counter. Will not decrement below 0.
-	 *  
+	 * 
 	 * @param b true to increment the counter; false to decrement
 	 * 
 	 */
@@ -2875,12 +2937,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * 
 	 */
 	public boolean isPaintable() {
-		return //isVisible() && 
-				paintHold == 0
-				//&& !getIgnoreRepaint()
-				;
+		return // isVisible() &&
+		paintHold == 0
+		// && !getIgnoreRepaint()
+		;
 	}
-	
+
 	/**
 	 * For emergency use only!
 	 * 
@@ -2889,36 +2951,35 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (paintHold != 0) {
 			OSPLog.debug("TFrame.paintHold cleared ");
 		}
-		
+
 		paintHold = 0;
 	}
-	
 
 	/**
 	 * Adds a component to those following this frame. When the frame is displaced
 	 * the component will be displaced equally.
-	 *  
-	 * @param c the component
+	 * 
+	 * @param c   the component
 	 * @param pt0 the initial location of this frame
 	 * 
 	 */
 	public void addFollower(Component c, Point pt0) {
 		addComponentListener(new ComponentAdapter() {
-		    @Override
+			@Override
 			public void componentMoved(ComponentEvent e) {
-		    // determine displacement
-	    	Point fp = getLocation();
-	    	int dx = fp.x - pt0.x;
-	    	int dy = fp.y - pt0.y;
-	    	// set pt0 to current location
-	    	pt0.x = fp.x;
-	    	pt0.y = fp.y;
-	    	// displace c
-	    	Point p = c.getLocation();
-	    	p.x += dx;
-	    	p.y += dy;
-	    	c.setLocation(p);
-	    }
+				// determine displacement
+				Point fp = getLocation();
+				int dx = fp.x - pt0.x;
+				int dy = fp.y - pt0.y;
+				// set pt0 to current location
+				pt0.x = fp.x;
+				pt0.y = fp.y;
+				// displace c
+				Point p = c.getLocation();
+				p.x += dx;
+				p.y += dy;
+				c.setLocation(p);
+			}
 		});
 	}
 
@@ -2945,4 +3006,26 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0);
 		}
 	}
+	
+
+	public static void addMenuListener(JMenu m, Runnable r) {
+		m.addMenuListener(new MenuListener() {
+
+			@Override
+			public void menuSelected(MenuEvent e) {
+				r.run();
+			}
+
+			@Override
+			public void menuDeselected(MenuEvent e) {
+			}
+
+			@Override
+			public void menuCanceled(MenuEvent e) {
+			}
+			
+		});
+	}
+
+
 }

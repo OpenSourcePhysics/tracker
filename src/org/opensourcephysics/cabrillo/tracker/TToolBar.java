@@ -70,6 +70,8 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 
 import org.opensourcephysics.cabrillo.tracker.PageTView.TabView;
 import org.opensourcephysics.controls.OSPLog;
@@ -125,7 +127,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected static Icon pencilOffIcon, pencilOnIcon, pencilOffRolloverIcon, pencilOnRolloverIcon;
 	final protected static NumberFormat zoomFormat = NumberFormat.getNumberInstance();
 
-	//false
+	// false
 	public static final String REFRESH_PAGETVIEW_TABS = "PageTView.tabs";
 	public static final String REFRESH_PAGETVIEW_TITLE = "PageTView.title";
 	public static final String REFRESH_PAGETVIEW_URL = "PageTView.url";
@@ -136,22 +138,21 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected static final String REFRESH__CLIP_SETTINGS_ACTION = "clip settings action";
 	private static final String REFRESH__PROPERTY_VIDEO = "property video";
 	private static final String REFRESH__PROPERTY_SELECTED_TRACK = "property selected track";
-	
-	public static final String REFRESH_PREFS_TRUE = "PrefsDialog"; 
-	public static final String REFRESH_TFRAME_REFRESH_TRUE = "TFrame.refresh"; 
-	protected static final String REFRESH__REFRESH_ACTION_TRUE = "refresh action"; 
-	protected static final String REFRESH__TRAIL_BUTTON_ACTION_TRUE = "trail button action"; 
+
+	public static final String REFRESH_PREFS_TRUE = "PrefsDialog";
+	public static final String REFRESH_TFRAME_REFRESH_TRUE = "TFrame.refresh";
+	protected static final String REFRESH__REFRESH_ACTION_TRUE = "refresh action";
+	protected static final String REFRESH__TRAIL_BUTTON_ACTION_TRUE = "trail button action";
 	protected static final String REFRESH__VSTRETCH_ACTION_TRUE = "vstretch action";
 	protected static final String REFRESH__ASTRETCH_ACTION_TRUE = "astretch action";
 	protected static final String REFRESH__STRETCHOFF_ACTION_TRUE = "stretchoff action";
 	private static final String REFRESH__CREATE_GUI_TRUE = "create gui";
 	private static final String REFRESH__PROPERTY_TRACK_TRUE = "property track";
 	private static final String REFRESH__PROPERTY_CLEAR_TRUE = "property track clear";
-	
 
-	
 	// instance fields
-	/** effectively final */ protected TrackerPanel trackerPanel; // manages & displays track data
+	/** effectively final */
+	protected TrackerPanel trackerPanel; // manages & displays track data
 
 	final protected WindowListener infoListener;
 	final protected JButton openButton, openBrowserButton, saveButton, saveZipButton;
@@ -166,7 +167,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected JPopupMenu newPopup = new JPopupMenu();
 	final protected JPopupMenu selectPopup = new JPopupMenu();
 	final protected JMenu vStretchMenu, aStretchMenu;
-	final protected ButtonGroup vGroup, aGroup;
+	protected ButtonGroup vGroup, aGroup;
 	final protected JMenuItem showTrackControlItem, selectNoneItem, stretchOffItem;
 	final protected JButton notesButton, refreshButton, desktopButton;
 	final protected Component toolbarFiller;
@@ -176,7 +177,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected ArrayList<PageTView.TabData> pageViewTabs = new ArrayList<PageTView.TabData>();
 
 	static {
-		
+
 		newTrackIcon = new ResizableIcon(Tracker.getClassResource("resources/images/poof.gif")); //$NON-NLS-1$
 		trackControlIcon = new ResizableIcon(Tracker.getClassResource("resources/images/track_control.gif")); //$NON-NLS-1$
 		trackControlOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/track_control_on.gif")); //$NON-NLS-1$
@@ -220,7 +221,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				Tracker.getClassResource("resources/images/autotrack_disabled.gif")); //$NON-NLS-1$
 		infoIcon = new ResizableIcon(Tracker.getClassResource("resources/images/info.gif")); //$NON-NLS-1$
 		refreshIcon = new ResizableIcon(Tracker.getClassResource("resources/images/refresh.gif")); //$NON-NLS-1$
-		//oops refreshIcon = new ResizableIcon(Tracker.getClassResource("resources/images/refresh.gif")); //$NON-NLS-1$
+		// oops refreshIcon = new
+		// ResizableIcon(Tracker.getClassResource("resources/images/refresh.gif"));
+		// //$NON-NLS-1$
 		htmlIcon = new ResizableIcon(Tracker.getClassResource("resources/images/html.gif")); //$NON-NLS-1$
 		htmlDisabledIcon = new ResizableIcon(Tracker.getClassResource("resources/images/html_disabled.gif")); //$NON-NLS-1$
 		trailIcons[0] = new ResizableIcon(Tracker.getClassResource("resources/images/trails_off.gif")); //$NON-NLS-1$
@@ -252,12 +255,12 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 */
 	private TToolBar(TrackerPanel panel) {
 		trackerPanel = panel;
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); 
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); 
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); 
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, this); 
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); 
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); 
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, this);
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
 // BH testing final status
 //		createGUI();
 //	}
@@ -526,53 +529,83 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		});
 		// stretch button
 		vStretchMenu = new JMenu();
+		vStretchMenu.addMenuListener(new MenuListener() {
+
+			@Override
+			public void menuSelected(MenuEvent e) {
+				if (vGroup != null)
+					return;
+				vGroup = new ButtonGroup();
+				for (int i = 0; i < stretchValues.length; i++) {
+					String s = String.valueOf(stretchValues[i]);
+					JMenuItem item = new JRadioButtonMenuItem("x" + s); //$NON-NLS-1$
+					if (i == 0)
+						item.setText(TrackerRes.getString("TrackControl.StretchVectors.None")); //$NON-NLS-1$
+					item.setActionCommand(s);
+					item.setSelected(vStretch == stretchValues[i]);
+					item.addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							int n = Integer.parseInt(e.getActionCommand());
+							trackerPanel.setSelectedPoint(null);
+							trackerPanel.selectedSteps.clear();
+							vStretch = n;
+							refresh(REFRESH__VSTRETCH_ACTION_TRUE);
+						}
+					});
+					vGroup.add(item);
+					vStretchMenu.add(item);
+				}
+			}
+
+			@Override
+			public void menuDeselected(MenuEvent e) {
+			}
+
+			@Override
+			public void menuCanceled(MenuEvent e) {
+			}
+
+		});
 		aStretchMenu = new JMenu();
-		// velocity stretch menu
-		ActionListener vListener = new ActionListener() {
+		aStretchMenu.addMenuListener(new MenuListener() {
+
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				int n = Integer.parseInt(e.getActionCommand());
-				trackerPanel.setSelectedPoint(null);
-				trackerPanel.selectedSteps.clear();
-				vStretch = n;
-				refresh(REFRESH__VSTRETCH_ACTION_TRUE);
+			public void menuSelected(MenuEvent e) {
+				if (aGroup != null)
+					return;
+				aGroup = new ButtonGroup();
+				for (int i = 0; i < stretchValues.length; i++) {
+					String s = String.valueOf(stretchValues[i]);
+					JMenuItem item = new JRadioButtonMenuItem("x" + s); //$NON-NLS-1$
+					if (i == 0)
+						item.setText(TrackerRes.getString("TrackControl.StretchVectors.None")); //$NON-NLS-1$
+					item.setActionCommand(s);
+					item.setSelected(aStretch == stretchValues[i]);
+					item.addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							int n = Integer.parseInt(e.getActionCommand());
+							trackerPanel.setSelectedPoint(null);
+							trackerPanel.selectedSteps.clear();
+							aStretch = n;
+							refresh(REFRESH__ASTRETCH_ACTION_TRUE);
+						}
+					});
+					aGroup.add(item);
+					aStretchMenu.add(item);
+				}
 			}
-		};
-		vGroup = new ButtonGroup();
-		for (int i = 0; i < stretchValues.length; i++) {
-			String s = String.valueOf(stretchValues[i]);
-			item = new JRadioButtonMenuItem("x" + s); //$NON-NLS-1$
-			if (i == 0)
-				item.setText(TrackerRes.getString("TrackControl.StretchVectors.None")); //$NON-NLS-1$
-			item.setActionCommand(s);
-			item.setSelected(vStretch == stretchValues[i]);
-			item.addActionListener(vListener);
-			vStretchMenu.add(item);
-			vGroup.add(item);
-		}
-		// acceleration stretch menu
-		ActionListener aListener = new ActionListener() {
+
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				int n = Integer.parseInt(e.getActionCommand());
-				trackerPanel.setSelectedPoint(null);
-				trackerPanel.selectedSteps.clear();
-				aStretch = n;
-				refresh(REFRESH__ASTRETCH_ACTION_TRUE);
+			public void menuDeselected(MenuEvent e) {
 			}
-		};
-		aGroup = new ButtonGroup();
-		for (int i = 0; i < stretchValues.length; i++) {
-			String s = String.valueOf(stretchValues[i]);
-			item = new JRadioButtonMenuItem("x" + s); //$NON-NLS-1$
-			if (i == 0)
-				item.setText(TrackerRes.getString("TrackControl.StretchVectors.None")); //$NON-NLS-1$
-			item.setActionCommand(s);
-			item.setSelected(aStretch == stretchValues[i]);
-			item.addActionListener(aListener);
-			aStretchMenu.add(item);
-			aGroup.add(item);
-		}
+
+			@Override
+			public void menuCanceled(MenuEvent e) {
+			}
+
+		});
 		stretchOffItem = new JMenuItem();
 		stretchOffItem.addActionListener(new ActionListener() {
 			@Override
@@ -640,115 +673,14 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		refreshButton = new TButton(refreshIcon) {
 			@Override
 			protected JPopupMenu getPopup() {
-				JPopupMenu popup = new JPopupMenu();
-				JMenuItem item = new JMenuItem(TrackerRes.getString("TToolbar.Button.Refresh.Popup.RefreshNow")); //$NON-NLS-1$
-				item.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						// offer to clear RGBRegion data that are valid and visible in a view
-						ArrayList<RGBRegion> regions = trackerPanel.getDrawables(RGBRegion.class);
-						ArrayList<RGBRegion> regionsToClear = new ArrayList<RGBRegion>();
-						if (!regions.isEmpty()) {
-							for (RGBRegion next : regions) {
-								if (trackerPanel.isTrackViewDisplayed(next) && next.dataValid) {
-									regionsToClear.add(next);
-								}
-							}
-						}
-						if (!regionsToClear.isEmpty()) {
-							// get user confirmation
-							String list = " "; //$NON-NLS-1$
-							for (RGBRegion next : regionsToClear) {
-								list += next.getName() + ", "; //$NON-NLS-1$
-							}
-							list = list.substring(0, list.length() - 2);
-							int i = JOptionPane.showConfirmDialog(trackerPanel.getTopLevelAncestor(),
-									TrackerRes.getString("TToolBar.Dialog.ClearRGB.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
-							TrackerRes.getString("TToolBar.Dialog.ClearRGB.Message2"), //$NON-NLS-1$
-									TrackerRes.getString("TToolBar.Dialog.ClearRGB.Title") + list, //$NON-NLS-1$
-									JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-							if (i == JOptionPane.YES_OPTION) {
-								for (RGBRegion next : regionsToClear) {
-									next.clearData();
-								}
-							}
-						}
-						trackerPanel.refreshTrackData(DataTable.MODE_REFRESH);
-						trackerPanel.eraseAll();
-						trackerPanel.repaintDirtyRegion();
-					}
-				});
-				popup.add(item);
-				popup.addSeparator();
-				item = new JCheckBoxMenuItem(TrackerRes.getString("TToolbar.Button.Refresh.Popup.AutoRefresh")); //$NON-NLS-1$
-				item.setSelected(trackerPanel.isAutoRefresh());
-				item.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						JMenuItem item = (JMenuItem) e.getSource();
-						trackerPanel.setAutoRefresh(item.isSelected());
-						if (trackerPanel.isAutoRefresh()) {
-							trackerPanel.refreshTrackData(DataTable.MODE_REFRESH);
-							trackerPanel.eraseAll();
-							trackerPanel.repaintDirtyRegion();
-						}
-					}
-				});
-				popup.add(item);
-				FontSizer.setFonts(popup, FontSizer.getLevel());
-				return popup;
+				return getRefreshBtnPopup();
 			}
 
 		};
 		desktopButton = new TButton(htmlIcon) {
 			@Override
 			protected JPopupMenu getPopup() {
-				JPopupMenu popup = new JPopupMenu();
-				if (!trackerPanel.supplementalFilePaths.isEmpty()) {
-					JMenu fileMenu = new JMenu(TrackerRes.getString("TToolbar.Button.Desktop.Menu.OpenFile")); //$NON-NLS-1$
-					popup.add(fileMenu);
-					for (String next : trackerPanel.supplementalFilePaths) {
-						String title = XML.getName(next);
-						String path = next;
-						JMenuItem item = new JMenuItem(title);
-						item.setActionCommand(path);
-						item.setToolTipText(path);
-						item.addActionListener(new ActionListener() {
-							@Override
-							public void actionPerformed(ActionEvent e) {
-								String path = e.getActionCommand();
-								OSPDesktop.displayURL(path);
-							}
-						});
-						fileMenu.add(item);
-					}
-				}
-				if (!pageViewTabs.isEmpty()) {
-					JMenu pageMenu = new JMenu(TrackerRes.getString("TToolbar.Button.Desktop.Menu.OpenPage")); //$NON-NLS-1$
-					popup.add(pageMenu);
-					for (PageTView.TabData next : pageViewTabs) {
-						if (next.url == null)
-							continue;
-						String title = next.title;
-						String path = trackerPanel.pageViewFilePaths.get(next.text);
-						if (path == null) {
-							path = next.url.toExternalForm();
-						}
-						JMenuItem item = new JMenuItem(title);
-						item.setActionCommand(path);
-						item.setToolTipText(path);
-						item.addActionListener(new ActionListener() {
-							@Override
-							public void actionPerformed(ActionEvent e) {
-								String path = e.getActionCommand();
-								OSPDesktop.displayURL(path);
-							}
-						});
-						pageMenu.add(item);
-					}
-				}
-				FontSizer.setFonts(popup, FontSizer.getLevel());
-				return popup;
+				return getDesktopBtnPopup();
 			}
 
 		};
@@ -773,6 +705,115 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		});
 		refresh(REFRESH__CREATE_GUI_TRUE);
 		validate();
+	}
+
+	protected JPopupMenu getDesktopBtnPopup() {
+		JPopupMenu popup = new JPopupMenu();
+		if (!trackerPanel.supplementalFilePaths.isEmpty()) {
+			JMenu fileMenu = new JMenu(TrackerRes.getString("TToolbar.Button.Desktop.Menu.OpenFile")); //$NON-NLS-1$
+			popup.add(fileMenu);
+			for (String next : trackerPanel.supplementalFilePaths) {
+				String title = XML.getName(next);
+				String path = next;
+				JMenuItem item = new JMenuItem(title);
+				item.setActionCommand(path);
+				item.setToolTipText(path);
+				item.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						String path = e.getActionCommand();
+						OSPDesktop.displayURL(path);
+					}
+				});
+				fileMenu.add(item);
+			}
+		}
+		if (!pageViewTabs.isEmpty()) {
+			JMenu pageMenu = new JMenu(TrackerRes.getString("TToolbar.Button.Desktop.Menu.OpenPage")); //$NON-NLS-1$
+			popup.add(pageMenu);
+			for (PageTView.TabData next : pageViewTabs) {
+				if (next.url == null)
+					continue;
+				String title = next.title;
+				String path = trackerPanel.pageViewFilePaths.get(next.text);
+				if (path == null) {
+					path = next.url.toExternalForm();
+				}
+				JMenuItem item = new JMenuItem(title);
+				item.setActionCommand(path);
+				item.setToolTipText(path);
+				item.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						String path = e.getActionCommand();
+						OSPDesktop.displayURL(path);
+					}
+				});
+				pageMenu.add(item);
+			}
+		}
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		return popup;
+	}
+
+	protected JPopupMenu getRefreshBtnPopup() {
+		JPopupMenu popup = new JPopupMenu();
+		JMenuItem item = new JMenuItem(TrackerRes.getString("TToolbar.Button.Refresh.Popup.RefreshNow")); //$NON-NLS-1$
+		item.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// offer to clear RGBRegion data that are valid and visible in a view
+				ArrayList<RGBRegion> regions = trackerPanel.getDrawables(RGBRegion.class);
+				ArrayList<RGBRegion> regionsToClear = new ArrayList<RGBRegion>();
+				if (!regions.isEmpty()) {
+					for (RGBRegion next : regions) {
+						if (trackerPanel.isTrackViewDisplayed(next) && next.dataValid) {
+							regionsToClear.add(next);
+						}
+					}
+				}
+				if (!regionsToClear.isEmpty()) {
+					// get user confirmation
+					String list = " "; //$NON-NLS-1$
+					for (RGBRegion next : regionsToClear) {
+						list += next.getName() + ", "; //$NON-NLS-1$
+					}
+					list = list.substring(0, list.length() - 2);
+					int i = JOptionPane.showConfirmDialog(trackerPanel.getTopLevelAncestor(),
+							TrackerRes.getString("TToolBar.Dialog.ClearRGB.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
+					TrackerRes.getString("TToolBar.Dialog.ClearRGB.Message2"), //$NON-NLS-1$
+							TrackerRes.getString("TToolBar.Dialog.ClearRGB.Title") + list, //$NON-NLS-1$
+							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					if (i == JOptionPane.YES_OPTION) {
+						for (RGBRegion next : regionsToClear) {
+							next.clearData();
+						}
+					}
+				}
+				trackerPanel.refreshTrackData(DataTable.MODE_REFRESH);
+				trackerPanel.eraseAll();
+				trackerPanel.repaintDirtyRegion();
+			}
+		});
+		popup.add(item);
+		popup.addSeparator();
+		item = new JCheckBoxMenuItem(TrackerRes.getString("TToolbar.Button.Refresh.Popup.AutoRefresh")); //$NON-NLS-1$
+		item.setSelected(trackerPanel.isAutoRefresh());
+		item.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JMenuItem item = (JMenuItem) e.getSource();
+				trackerPanel.setAutoRefresh(item.isSelected());
+				if (trackerPanel.isAutoRefresh()) {
+					trackerPanel.refreshTrackData(DataTable.MODE_REFRESH);
+					trackerPanel.eraseAll();
+					trackerPanel.repaintDirtyRegion();
+				}
+			}
+		});
+		popup.add(item);
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		return popup;
 	}
 
 	protected void doNotesAction() {
@@ -819,13 +860,14 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 	private int enabledCount;
 	private boolean allowRebuild = true;
-	
+
 	@Override
 	protected void paintChildren(Graphics g) {
 		if (!OSPRuntime.isJS)
 			super.paintChildren(g);
-		
+
 	}
+
 	/**
 	 * Refreshes the GUI using a private singleton timer.
 	 * 
@@ -837,6 +879,11 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		OSPLog.debug("TToolBar refresh from " + whereFrom);
 		boolean doRefresh = false;
 		switch (whereFrom) {
+		case REFRESH_TFRAME_LOCALE:
+		case REFRESH_TFRAME_LOCALE2:
+			doRefresh = true;
+			aGroup = vGroup = null;
+			break;
 		case REFRESH_PREFS_TRUE:
 		case REFRESH_TFRAME_REFRESH_TRUE:
 		case REFRESH__REFRESH_ACTION_TRUE:
@@ -877,7 +924,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	public void setAllowRefresh(boolean b) {
 		allowRebuild = b;
 	}
-	
+
 	protected void refreshAsync(boolean refreshTrackProperties) {
 		long t0 = Performance.now(0);
 		OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync", Performance.TIME_MARK));
@@ -889,7 +936,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			rebuild();
 		}
 		checkEnabled(refreshTrackProperties);
-		refreshing = false;	
+		refreshing = false;
 		OSPLog.debug("!!! " + Performance.now(t0) + " TToolBar refresh async");
 	}
 
@@ -986,7 +1033,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		OSPLog.debug(Performance.timeCheckStr("TToolBar rebuild", Performance.TIME_MARK));
 
 		validate();
-		
+
 		OSPLog.debug(Performance.timeCheckStr("TToolBar rebuild validate", Performance.TIME_MARK));
 
 		TFrame.repaintT(this);
@@ -999,25 +1046,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		stretchButton.setSelected(vStretch > 1 || aStretch > 1);
 		stretchOffItem.setText(TrackerRes.getString("TToolBar.MenuItem.StretchOff")); //$NON-NLS-1$
 		stretchOffItem.setEnabled(vStretch > 1 || aStretch > 1);
-		// refresh stretch items
-		Enumeration<AbstractButton> en = vGroup.getElements();
-		String s = "" + vStretch;
-		while (en.hasMoreElements()) {
-			AbstractButton next = en.nextElement();
-			if (next.getActionCommand().equals(s)) {
-				next.setSelected(true);
-				break;
-			}
-		}
-		en = aGroup.getElements();
-		s = "" + aStretch;
-		while(en.hasMoreElements()) {
-			AbstractButton next = en.nextElement();
-			if (next.getActionCommand().equals(s)) {
-				next.setSelected(true);
-				break;
-			}
-		}
 		setMenuText();
 		fontSmallerButton.setEnabled(FontSizer.getLevel() > FontSizer.MIN_LEVEL);
 		fontBiggerButton.setEnabled(FontSizer.getLevel() < FontSizer.MAX_LEVEL);
@@ -1029,8 +1057,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		CoordAxes axes = trackerPanel.getAxes();
 		if (axes != null) {
 			axesButton.setSelected(axes.isVisible());
-			axes.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
-			axes.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
+			axes.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+			axes.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 		}
 		ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
 		trackControlButton.setEnabled(!tracks.isEmpty());
@@ -1094,8 +1122,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		}
 		boolean doRepaint = false;
 		for (TTrack track : tracks) {
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); //$NON-NLS-1$
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); // $NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); // $NON-NLS-1$
 			// refresh track display properties from current button states
 			track.setTrailLength(trailLength);
 			track.setTrailVisible(trailButton.isSelected());
@@ -1194,16 +1222,16 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		refreshTimer = null;
 		toolbars.remove(trackerPanel);
 		removeAll();
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); 
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); 
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); 
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, this); 
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); 
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); 
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this);
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this);
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this);
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_MAGNIFICATION, this);
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this);
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this);
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack track = TTrack.activeTracks.get(n);
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); 
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); 
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this);
 		}
 		pageViewTabs.clear();
 		trackerPanel = null;
@@ -1248,8 +1276,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				TTrack track = (TTrack) e.getOldValue();
 				trackerPanel.calibrationTools.remove(track);
 				trackerPanel.visibleTools.remove(track);
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); //$NON-NLS-1$
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); // $NON-NLS-1$
 				if (trackerPanel.visibleTools.isEmpty()) {
 					calibrationButton.setSelected(false);
 				}
@@ -1260,8 +1288,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			for (TTrack track : TTrack.activeTracks.values()) {
 				trackerPanel.calibrationTools.remove(track);
 				trackerPanel.visibleTools.remove(track);
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); //$NON-NLS-1$
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); // $NON-NLS-1$
 			}
 			calibrationButton.setSelected(false);
 			refresh(REFRESH__PROPERTY_CLEAR_TRUE);
@@ -1426,7 +1454,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					popup.addSeparator();
 				popup.add(newToolsMenu);
 			}
-		 	FontSizer.setFonts(popup);
+			FontSizer.setFonts(popup);
 			return popup;
 		}
 
@@ -1662,8 +1690,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			setToolTipText(TrackerRes.getString("TToolbar.Button.TapeVisible.Tooltip")); //$NON-NLS-1$
 			// add PROPERTY_TTRACK_VISIBLE property change listeners to calibration tools
 			for (TTrack track : trackerPanel.calibrationTools) {
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); //$NON-NLS-1$
-				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); //$NON-NLS-1$
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
+				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
 			}
 			// check visibility of tools and state of menu items
 			boolean toolsVisible = false;

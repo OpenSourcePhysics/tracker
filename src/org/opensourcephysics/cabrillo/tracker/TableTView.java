@@ -281,19 +281,18 @@ public void cleanup() {
         }
       });
       // create data function tool action
-      ActionListener dataFunctionListener = new ActionListener() {
-        @Override
-		public void actionPerformed(ActionEvent e) {
-          TTrack track = getSelectedTrack();
-          if (track != null) {
-          	trackerPanel.getDataBuilder().setSelectedPanel(track.getName());
-          	trackerPanel.getDataBuilder().setVisible(true);
-          }
-        }
-      };
       // create define button
       defineButton = new JButton(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
-      defineButton.addActionListener(dataFunctionListener);
+      defineButton.addActionListener(new ActionListener() {
+          @Override
+  		public void actionPerformed(ActionEvent e) {
+            TTrack track = getSelectedTrack();
+            if (track != null) {
+            	trackerPanel.getDataBuilder().setSelectedPanel(track.getName());
+            	trackerPanel.getDataBuilder().setVisible(true);
+            }
+          }
+        });
       defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
       // create text column button
       textColumnButton = new JButton(TrackerRes.getString("TableTrackView.Menu.TextColumn.Text")); //$NON-NLS-1$

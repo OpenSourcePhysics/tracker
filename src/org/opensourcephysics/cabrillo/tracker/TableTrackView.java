@@ -157,7 +157,6 @@ public class TableTrackView extends TrackView {
 	private JMenu copyDataMenu;
 	private JMenuItem copyDataRawItem, copyDataFormattedItem;
 	private JMenu setDelimiterMenu;
-	private JMenuItem addDelimiterItem, removeDelimiterItem;
 	private JMenuItem copyImageItem, snapshotItem, printItem, helpItem;
 	
 	protected boolean refresh = true;
@@ -1051,22 +1050,20 @@ public class TableTrackView extends TrackView {
 			}
 		});
 		copyDataMenu = new JMenu();
-		Action copyRawAction = new AbstractAction() {
+		copyDataRawItem = new JMenuItem(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				TTrack track = getTrack();
 				TrackerIO.copyTable(dataTable, false, track.getName());
 			}
-		};
-		copyDataRawItem = new JMenuItem(copyRawAction);
-		Action copyFormattedAction = new AbstractAction() {
+		});
+		copyDataFormattedItem = new JMenuItem(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				TTrack track = getTrack();
 				TrackerIO.copyTable(dataTable, true, track.getName());
 			}
-		};
-		copyDataFormattedItem = new JMenuItem(copyFormattedAction);
+		});
 		final Action setDelimiterAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1075,46 +1072,97 @@ public class TableTrackView extends TrackView {
 			}
 		};
 		setDelimiterMenu = new JMenu(setDelimiterAction);
-		for (String key : TrackerIO.delimiters.keySet()) {
-			String delimiter = TrackerIO.delimiters.get(key);
-			JMenuItem item = new JRadioButtonMenuItem(key);
-			item.setActionCommand(delimiter);
-			item.addActionListener(setDelimiterAction);
-			delimiterButtonGroup.add(item);
-		}
-		Action addDelimiterAction = new AbstractAction() {
+		TFrame.addMenuListener(setDelimiterMenu, new Runnable() {
+
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				String delimiter = TrackerIO.delimiter;
-				Object response = JOptionPane.showInputDialog(TableTrackView.this,
-						TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Message"), //$NON-NLS-1$
-						TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Title"), //$NON-NLS-1$
-						JOptionPane.PLAIN_MESSAGE, null, null, delimiter);
-				if (response != null) {
-					String s = response.toString();
-					TrackerIO.setDelimiter(s);
-					TrackerIO.addCustomDelimiter(s);
-					refreshGUI();
+			public void run() {
+				for (String key : TrackerIO.delimiters.keySet()) {
+					String delimiter = TrackerIO.delimiters.get(key);
+					JMenuItem item = new JRadioButtonMenuItem(key);
+					item.setActionCommand(delimiter);
+					item.addActionListener(setDelimiterAction);
+					delimiterButtonGroup.add(item);
 				}
-			}
-		};
-		addDelimiterItem = new JMenuItem(addDelimiterAction);
-		Action removeDelimiterAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String[] choices = TrackerIO.customDelimiters.values().toArray(new String[1]);
-				Object response = JOptionPane.showInputDialog(TableTrackView.this,
-						TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Message"), //$NON-NLS-1$
-						TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Title"), //$NON-NLS-1$
-						JOptionPane.PLAIN_MESSAGE, null, choices, null);
-				if (response != null) {
-					String s = response.toString();
-					TrackerIO.removeCustomDelimiter(s);
-					refreshGUI();
+				Action addDelimiterAction = new AbstractAction() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						String delimiter = TrackerIO.delimiter;
+						Object response = JOptionPane.showInputDialog(TableTrackView.this,
+								TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Message"), //$NON-NLS-1$
+								TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Title"), //$NON-NLS-1$
+								JOptionPane.PLAIN_MESSAGE, null, null, delimiter);
+						if (response != null) {
+							String s = response.toString();
+							TrackerIO.setDelimiter(s);
+							TrackerIO.addCustomDelimiter(s);
+							refreshGUI();
+						}
+					}
+				};
+				JMenuItem addDelimiterItem = new JMenuItem(addDelimiterAction);
+				Action removeDelimiterAction = new AbstractAction() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						String[] choices = TrackerIO.customDelimiters.values().toArray(new String[1]);
+						Object response = JOptionPane.showInputDialog(TableTrackView.this,
+								TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Message"), //$NON-NLS-1$
+								TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Title"), //$NON-NLS-1$
+								JOptionPane.PLAIN_MESSAGE, null, choices, null);
+						if (response != null) {
+							String s = response.toString();
+							TrackerIO.removeCustomDelimiter(s);
+							refreshGUI();
+						}
+					}
+				};
+				JMenuItem removeDelimiterItem = new JMenuItem(removeDelimiterAction);
+
+				addDelimiterItem.setText(TrackerRes.getString("TableTrackView.MenuItem.AddDelimiter")); //$NON-NLS-1$
+				removeDelimiterItem.setText(TrackerRes.getString("TableTrackView.MenuItem.RemoveDelimiter")); //$NON-NLS-1$
+				setDelimiterMenu.removeAll();
+				String delimiter = TrackerIO.getDelimiter();
+				// remove all custom delimiter items from button group
+				Enumeration<AbstractButton> en = delimiterButtonGroup.getElements();
+				for (; en.hasMoreElements();) {
+					JMenuItem item = (JMenuItem) en.nextElement();
+					String delim = item.getActionCommand();
+					if (!TrackerIO.delimiters.containsValue(delim))
+						delimiterButtonGroup.remove(item);
 				}
+				// add all button group items to menu
+				en = delimiterButtonGroup.getElements();
+				for (; en.hasMoreElements();) {
+					JMenuItem item = (JMenuItem) en.nextElement();
+					setDelimiterMenu.add(item);
+					if (delimiter.equals(item.getActionCommand()))
+						item.setSelected(true);
+				}
+				// add new custom delimiter items
+				boolean hasCustom = !TrackerIO.customDelimiters.isEmpty();
+				if (hasCustom) {
+					setDelimiterMenu.addSeparator();
+					for (String key : TrackerIO.customDelimiters.keySet()) {
+						JMenuItem item = new JRadioButtonMenuItem(key);
+						item.setActionCommand(TrackerIO.customDelimiters.get(key));
+						item.addActionListener(new AbstractAction() {
+							@Override
+							public void actionPerformed(ActionEvent e) {
+								TrackerIO.setDelimiter(e.getActionCommand());
+							}
+						});
+						delimiterButtonGroup.add(item);
+						setDelimiterMenu.add(item);
+						if (delimiter.equals(item.getActionCommand()))
+							item.setSelected(true);
+					}
+				}
+				setDelimiterMenu.addSeparator();
+				setDelimiterMenu.add(addDelimiterItem);
+				if (hasCustom)
+					setDelimiterMenu.add(removeDelimiterItem);
 			}
-		};
-		removeDelimiterItem = new JMenuItem(removeDelimiterAction);
+			
+		});
 		Action copyImageAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1331,7 +1379,7 @@ public class TableTrackView extends TrackView {
 				next.setXColumnVisible(false);
 			}
 		}
-		DataTool tool = DataTool.getTool();
+		DataTool tool = DataTool.getTool(true);
 		tool.setUseChooser(false);
 		tool.setSaveChangesOnClose(false);
 		DataRefreshTool refresher = DataRefreshTool.getTool(trackDataManager);
@@ -1618,50 +1666,6 @@ public class TableTrackView extends TrackView {
 		copyDataRawItem.setText(TrackerRes.getString("TableTrackView.MenuItem.Unformatted")); //$NON-NLS-1$
 		copyDataFormattedItem.setText(TrackerRes.getString("TableTrackView.MenuItem.Formatted")); //$NON-NLS-1$
 		setDelimiterMenu.setText(TrackerRes.getString("TableTrackView.Menu.SetDelimiter")); //$NON-NLS-1$
-		addDelimiterItem.setText(TrackerRes.getString("TableTrackView.MenuItem.AddDelimiter")); //$NON-NLS-1$
-		removeDelimiterItem.setText(TrackerRes.getString("TableTrackView.MenuItem.RemoveDelimiter")); //$NON-NLS-1$
-		// refresh delimiter menu
-		setDelimiterMenu.removeAll();
-		String delimiter = TrackerIO.getDelimiter();
-		// remove all custom delimiter items from button group
-		Enumeration<AbstractButton> en = delimiterButtonGroup.getElements();
-		for (; en.hasMoreElements();) {
-			JMenuItem item = (JMenuItem) en.nextElement();
-			String delim = item.getActionCommand();
-			if (!TrackerIO.delimiters.containsValue(delim))
-				delimiterButtonGroup.remove(item);
-		}
-		// add all button group items to menu
-		en = delimiterButtonGroup.getElements();
-		for (; en.hasMoreElements();) {
-			JMenuItem item = (JMenuItem) en.nextElement();
-			setDelimiterMenu.add(item);
-			if (delimiter.equals(item.getActionCommand()))
-				item.setSelected(true);
-		}
-		// add new custom delimiter items
-		boolean hasCustom = !TrackerIO.customDelimiters.isEmpty();
-		if (hasCustom) {
-			setDelimiterMenu.addSeparator();
-			for (String key : TrackerIO.customDelimiters.keySet()) {
-				JMenuItem item = new JRadioButtonMenuItem(key);
-				item.setActionCommand(TrackerIO.customDelimiters.get(key));
-				item.addActionListener(new AbstractAction() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						TrackerIO.setDelimiter(e.getActionCommand());
-					}
-				});
-				delimiterButtonGroup.add(item);
-				setDelimiterMenu.add(item);
-				if (delimiter.equals(item.getActionCommand()))
-					item.setSelected(true);
-			}
-		}
-		setDelimiterMenu.addSeparator();
-		setDelimiterMenu.add(addDelimiterItem);
-		if (hasCustom)
-			setDelimiterMenu.add(removeDelimiterItem);
 		return menu;
 	}
 
@@ -1743,7 +1747,7 @@ public class TableTrackView extends TrackView {
 			checkBoxes[i].setOpaque(false);
 		}
 		// text column checkboxes
-		for (int i = datasetCount; i < datasetCount + textColumnCount; i++) {
+		for (int i = datasetCount, n = datasetCount + textColumnCount; i < n; i++) {
 			String name = track.getTextColumnNames().get(i - datasetCount);
 			String s = TeXParser.removeSubscripting(name);
 			checkBoxes[i] = new JCheckBox(s);

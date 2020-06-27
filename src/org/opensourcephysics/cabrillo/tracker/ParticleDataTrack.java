@@ -488,6 +488,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 */
 	protected JMenu getPointMenu(TrackerPanel trackerPanel) {
 		// prepare menu items
+		createMenuIfNecessary();
 		colorItem.setText(TrackerRes.getString("TTrack.MenuItem.Color")); //$NON-NLS-1$
 		footprintMenu.setText(TrackerRes.getString("TTrack.MenuItem.Footprint")); //$NON-NLS-1$
 		velocityMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$

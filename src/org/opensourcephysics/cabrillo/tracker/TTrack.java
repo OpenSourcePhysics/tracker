@@ -1488,8 +1488,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 					((DataFunction) datasets.get(i)).refreshFunctionData();
 				}
 			}
-			DataTool tool = DataTool.getTool();
-			if (trackerPanel != null && tool.isVisible() && tool.getSelectedTab() != null
+			DataTool tool = DataTool.getTool(false);
+			if (trackerPanel != null && tool != null && tool.isVisible() && tool.getSelectedTab() != null
 					&& tool.getSelectedTab().isInterestedIn(data)) {
 				tool.getSelectedTab().refreshData();
 			}
@@ -3612,5 +3612,4 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		// TrackEdit is also used for text column edits
 		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, null); 
 	}
-
 }

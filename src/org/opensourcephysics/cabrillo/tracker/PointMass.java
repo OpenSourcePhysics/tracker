@@ -278,6 +278,7 @@ public class PointMass extends TTrack {
 	protected JLabel massLabel;
 	protected NumberField massField;
 	protected Component mSeparator;
+
 	protected JMenu velocityMenu;
 	protected JMenu accelerationMenu;
 	protected JMenuItem vColorItem;
@@ -291,6 +292,7 @@ public class PointMass extends TTrack {
 	protected JMenuItem autotrackItem;
 	protected JCheckBoxMenuItem vVisibleItem;
 	protected JCheckBoxMenuItem aVisibleItem;
+
 	protected boolean vAtOrigin, aAtOrigin;
 	protected boolean traceVisible = false;
 	protected GeneralPath trace = new GeneralPath();
@@ -2347,6 +2349,8 @@ public class PointMass extends TTrack {
 		if (menu0 == null)
 			return menu;
 
+		createMenuIfNecessary();
+
 		// remove delete item from end
 		if (menu.getItemCount() > 0) {
 			JMenuItem item = menu.getItem(menu.getItemCount() - 1);
@@ -2818,6 +2822,16 @@ public class PointMass extends TTrack {
 		magField.addFocusListener(magAngleFocusListener);
 		angleField.addFocusListener(magAngleFocusListener);
 		mSeparator = Box.createRigidArea(new Dimension(4, 4));
+		
+		
+		//createMenuItems();
+
+	}
+
+	protected void createMenuIfNecessary() {
+		if (vFootprintMenu != null) {
+			return;
+		}
 		autotrackItem = new JMenuItem(TrackerRes.getString("PointMass.MenuItem.Autotrack")); //$NON-NLS-1$
 		autotrackItem.addActionListener(new ActionListener() {
 			@Override
@@ -2929,8 +2943,8 @@ public class PointMass extends TTrack {
 				snapToPosition("a"); //$NON-NLS-1$
 			}
 		});
-
-	}
+	
+}
 
 	/**
 	 * Gets the velocity StepArray for the specified panel.

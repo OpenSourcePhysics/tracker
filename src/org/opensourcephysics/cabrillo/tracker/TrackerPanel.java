@@ -1881,8 +1881,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			dataBuilder.refreshGUI();
 		}
 		// refresh DataTool
-		if (getTFrame() != null && frame.getTrackerPanel(frame.getSelectedTab()) == this) {
-			DataTool.getTool().refreshDecimalSeparators();
+		if (getTFrame() != null && frame.getTrackerPanel(frame.getSelectedTab()) == this
+				&& DataTool.getTool(false) != null) {
+			DataTool.getTool(false).refreshDecimalSeparators();
 		}
 
 		// repaint tracks with readouts
@@ -3730,7 +3731,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 				// load DataTool tabs
 				if (control.getPropertyNamesRaw().contains("datatool_tabs")) { //$NON-NLS-1$
-					DataTool tool = DataTool.getTool();
+					DataTool tool = DataTool.getTool(true);
 					for (XMLProperty prop : control.getPropsRaw()) {
 						if (prop.getPropertyName().equals("datatool_tabs")) { //$NON-NLS-1$
 							for (XMLControl tabControl : prop.getChildControls()) {
@@ -3924,28 +3925,29 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 
 			// save DataTool tabs
-			ArrayList<DataToolTab> tabs = new ArrayList<DataToolTab>();
-			List<DataToolTab> tools = DataTool.getTool().getTabs();
-			for (int i = 0, n = tools.size(); i < n; i++) {
-				DataToolTab tab = tools.get(i);
-				ArrayList<TTrack> tracks = trackerPanel.getTracks();
-				for (TTrack next : tracks) {
-					Data data = next.getData(trackerPanel);
-					if (tab.isOwnedBy(data)) {
-						// prepare tab for saving by setting owner and saving owned column names
-						tab.setOwner(next.getName(), data);
-						for (TTrack tt : trackerPanel.getTracks()) {
-							tab.saveOwnedColumnNames(tt.getName(), tt.getData(trackerPanel));
+			if (DataTool.getTool(false) != null) {
+				ArrayList<DataToolTab> tabs = new ArrayList<DataToolTab>();
+				List<DataToolTab> tools = DataTool.getTool(true).getTabs();
+				for (int i = 0, n = tools.size(); i < n; i++) {
+					DataToolTab tab = tools.get(i);
+					ArrayList<TTrack> tracks = trackerPanel.getTracks();
+					for (TTrack next : tracks) {
+						Data data = next.getData(trackerPanel);
+						if (tab.isOwnedBy(data)) {
+							// prepare tab for saving by setting owner and saving owned column names
+							tab.setOwner(next.getName(), data);
+							for (TTrack tt : trackerPanel.getTracks()) {
+								tab.saveOwnedColumnNames(tt.getName(), tt.getData(trackerPanel));
+							}
+							tabs.add(tab);
 						}
-						tabs.add(tab);
 					}
 				}
+				if (!tabs.isEmpty()) {
+					DataToolTab[] tabArray = tabs.toArray(new DataToolTab[tabs.size()]);
+					control.setValue("datatool_tabs", tabArray); //$NON-NLS-1$
+				}
 			}
-			if (!tabs.isEmpty()) {
-				DataToolTab[] tabArray = tabs.toArray(new DataToolTab[tabs.size()]);
-				control.setValue("datatool_tabs", tabArray); //$NON-NLS-1$
-			}
-
 			// restore XML writing of null final array elements
 			XMLPropertyElement.defaultWriteNullFinalArrayElements = writeNullFinalArrayElements;
 		}

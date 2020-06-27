@@ -25,6 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
@@ -68,17 +69,26 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	protected HighlightableDataset dataset = new HighlightableDataset();
 	protected ArrayList<TTrack> guests = new ArrayList<TTrack>();
 	protected HashMap<TTrack, HighlightableDataset> guestDatasets = new HashMap<TTrack, HighlightableDataset>();
-	protected JRadioButtonMenuItem[] xChoices, yChoices;
-	protected ButtonGroup xGroup, yGroup;
-	protected int xIndex = -1, yIndex = 0;
-	protected JPopupMenu xPopup, yPopup, popup;
+	
+	private int xIndex = -1, yIndex = 0;
+	private String xName, yName;
+	
+	protected JCheckBoxMenuItem linesItem, pointsItem;
+	protected JMenuItem dataToolItem;
+	private JRadioButtonMenuItem[] xChoices, yChoices;
+	private ButtonGroup xGroup, yGroup;
+	
+	protected JPopupMenu xPopup, yPopup;
+	
+	protected JPopupMenu popup;
 	protected Action dataFunctionListener, guestListener;
-	protected JMenuItem copyImageItem, dataBuilderItem, dataToolItem;
+	
+	protected JMenuItem copyImageItem, dataBuilderItem; 
 	protected JMenuItem showXZeroItem, showYZeroItem;
 	protected JMenuItem selectPointsItem, deselectPointsItem;
 	protected JMenuItem algorithmItem, printItem, helpItem, mergeYScalesItem;
-	protected JCheckBoxMenuItem linesItem, pointsItem;
 	protected JMenuItem guestsItem;
+	
 	protected String xLabel, yLabel, title;
 	protected TreeSet<Integer> highlightIndices = new TreeSet<Integer>(); // indices of highlighted points
 	protected ItemListener xListener, yListener;
@@ -92,6 +102,16 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	protected PropertyChangeListener playerListener;
 	protected Step clickedStep;
 	protected TCoordinateStringBuilder coordStringBuilder;
+
+	protected boolean linesItemSelected = true;
+
+	protected boolean pointsItemSelected = true;
+
+	private Map<String, Integer> htVarToItem = new LinkedHashMap<>();
+
+	private int datasetCount;
+
+	boolean selectionEnabled = true;
 
 	/**
 	 * Constructs a TrackPlottingPanel for a track.
@@ -114,24 +134,26 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		xListener = new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
+				if (selectionEnabled && e.getStateChange() == ItemEvent.SELECTED) {
 					JMenuItem item = (JMenuItem) e.getSource();
 					setXVariable(item.getText());
 					plotData();
 					isCustom = true;
 					trackerPanel.changed = true;
+					repaint();
 				}
 			}
 		};
 		yListener = new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
+				if (selectionEnabled && e.getStateChange() == ItemEvent.SELECTED) {
 					JMenuItem item = (JMenuItem) e.getSource();
 					setYVariable(item.getText());
 					plotData();
 					isCustom = true;
 					trackerPanel.changed = true;
+					repaint();
 				}
 			}
 		};
@@ -149,8 +171,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				TFrame.repaintT(TrackPlottingPanel.this);
 			}
 		};
-		// create radio buttons and popups to set x and y variables
-		createVarChoices();
+		// don't create radio buttons and popups to set x and y variables
+		setVariables();
 		// create clickable axes
 		plotAxes = new ClickableAxes(this);
 		setAxes(plotAxes);
@@ -363,7 +385,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			scaleY(list);
 		}
 	}
-
+	
 	/**
 	 * Gets the popup menu.
 	 */
@@ -469,6 +491,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		frame.setVisible(true);
 	}
 
+	
+
 	/**
 	 * Builds the default popup menu for this panel.
 	 */
@@ -484,10 +508,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				}
 			};
 			setPopupMenu(popup);
-			super.buildPopupmenu(); // builds snapshot item
-			// lines menu item
-			linesItem = new JCheckBoxMenuItem();
-			linesItem.setSelected(true);
+			super.buildPopupmenu(); 
+			linesItem = new JCheckBoxMenuItem("lines", linesItemSelected);
+			pointsItem = new JCheckBoxMenuItem("points", pointsItemSelected);	
+			dataToolItem = new JMenuItem("datatool");
+
 			linesItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -500,9 +525,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					TFrame.repaintT(TrackPlottingPanel.this);
 				}
 			});
+			linesItem.setSelected(true);
 			// points menu item
-			pointsItem = new JCheckBoxMenuItem();
-			pointsItem.setSelected(true);
 			pointsItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -523,6 +547,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					TFrame.repaintT(TrackPlottingPanel.this);
 				}
 			});
+			pointsItem.setSelected(true);
 			// showZero menu items
 			showXZeroItem = new JMenuItem();
 			showXZeroItem.addActionListener(new ActionListener() {
@@ -550,138 +575,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				}
 			});
 			// dataTool item
-			dataToolItem = new JMenuItem();
 			dataToolItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					DataTool tool = DataTool.getTool();
-					DataToolTab tab = tool.getTab(data);
-					tool.setUseChooser(false);
-					tool.setSaveChangesOnClose(false);
-					DatasetManager toSend = new DatasetManager();
-					DataRefreshTool refresher = DataRefreshTool.getTool(data);
-					toSend.setID(data.getID());
-					TTrack track = TTrack.getTrack(trackID);
-					toSend.setName(track.getName());
-					int i = 0;
-					// always include linked independent variable first
-					Dataset nextIn = data.getDataset(0);
-					String xColName = nextIn.getXColumnName();
-					XMLControlElement control = new XMLControlElement(nextIn);
-					Dataset nextOut = toSend.getDataset(i++); // first dataset to send
-					control.loadObject(nextOut, true, true); // contains indep var
-					nextOut.setYColumnVisible(false);
-					nextOut.setConnected(false);
-					nextOut.setMarkerShape(Dataset.NO_MARKER);
-					double[] tArray = nextOut.getXPoints();
-					if (!guests.isEmpty()) {
-						// expand tArray by collecting all values in a TreeSet
-						TreeSet<Double> tSet = new TreeSet<Double>();
-						for (double t : tArray) {
-							tSet.add(t);
-						}
-						for (TTrack guest : guests) {
-							DatasetManager guestData = guest.getData(guest.trackerPanel);
-							Dataset nextGuestIn = guestData.getDataset(0);
-							double[] guestTArray = nextGuestIn.getXPoints();
-							for (double t : guestTArray) {
-								tSet.add(t);
-							}
-						}
-						tArray = new double[tSet.size()];
-						Double[] temp = tSet.toArray(new Double[tArray.length]);
-						for (int k = 0; k < tArray.length; k++) {
-							tArray[k] = temp[k];
-						}
-						// finished expanding tArray
-						// pad nextOut with NaNs
-						padDataset(nextOut, tArray);
-					}
-					// add the x and y datasets
-					if (xIndex >= 0) {
-						nextIn = data.getDataset(xIndex);
-						xColName = nextIn.getYColumnName();
-						control = new XMLControlElement(nextIn);
-						nextOut = toSend.getDataset(i++); // second dataset to send (if not indep var)
-						control.loadObject(nextOut, true, true);
-						nextOut.setMarkerColor(track.getColor());
-						nextOut.setLineColor(track.getColor().darker());
-						nextOut.setConnected(true);
-						nextOut.setXColumnVisible(false);
-						if (!guests.isEmpty()) {
-							// pad nextOut with NaNs
-							padDataset(nextOut, tArray);
-						}
-					}
-					nextIn = data.getDataset(yIndex);
-					String yColName = nextIn.getYColumnName();
-					if (yIndex != xIndex) {
-						control = new XMLControlElement(nextIn);
-						nextOut = toSend.getDataset(i++); // next dataset to send
-						control.loadObject(nextOut, true, true);
-						nextOut.setMarkerColor(track.getColor());
-						nextOut.setLineColor(track.getColor().darker());
-						nextOut.setConnected(true);
-						nextOut.setXColumnVisible(false);
-						if (!guests.isEmpty()) {
-							// pad nextOut with NaNs
-							padDataset(nextOut, tArray);
-						}
-					}
-					// if this plot has guests, send their data too
-					for (TTrack guest : guests) {
-						DatasetManager guestData = guest.getData(guest.trackerPanel);
-						refresher.addData(guestData);
-						if (xIndex >= 0) {
-							nextIn = guestData.getDataset(xIndex);
-							control = new XMLControlElement(nextIn);
-							nextOut = toSend.getDataset(i++);
-							control.loadObject(nextOut, true, true);
-							nextOut.setMarkerColor(guest.getColor());
-							nextOut.setLineColor(guest.getColor().darker());
-							nextOut.setConnected(true);
-							nextOut.setXColumnVisible(false);
-							if (tab != null) {
-								String newName = tab.getColumnName(nextOut.getID());
-								if (newName != null) {
-									nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
-								}
-							} else {
-								String newName = nextOut.getYColumnName() + "_{" + guest.getName() + "}"; //$NON-NLS-1$ //$NON-NLS-2$
-								nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
-							}
-							// pad nextOut with NaNs
-							padDataset(nextOut, tArray);
-						}
-						if (yIndex != xIndex) {
-							nextIn = guestData.getDataset(yIndex);
-							control = new XMLControlElement(nextIn);
-							nextOut = toSend.getDataset(i++);
-							control.loadObject(nextOut, true, true);
-							nextOut.setMarkerColor(guest.getColor());
-							nextOut.setLineColor(guest.getColor().darker());
-							nextOut.setConnected(true);
-							nextOut.setXColumnVisible(false);
-							if (tab != null) {
-								String newName = tab.getColumnName(nextOut.getID());
-								if (newName != null) {
-									nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
-								}
-							} else {
-								String newName = nextOut.getYColumnName() + "_{" + guest.getName() + "}"; //$NON-NLS-1$ //$NON-NLS-2$
-								nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
-							}
-							// pad nextOut with NaNs
-							padDataset(nextOut, tArray);
-						}
-					}
-					// get data tool and send it the job
-					tool.send(new LocalJob(toSend), refresher);
-					tab = tool.getTab(toSend);
-					if (tab != null) {
-						tab.setWorkingColumns(xColName, yColName);
-					}
-					tool.setVisible(true);
+					showDataTool();
 				}
 			});
 			// algorithm item
@@ -798,7 +695,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					step.erase();
 				}
 				TFrame.repaintT(trackerPanel);
-				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
 			}
 		};
 		selectPointsItem = new JMenuItem();
@@ -1224,31 +1121,30 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param name the name of the dataset to plot on the x axis
 	 */
 	protected void setXVariable(String name) {
-		if (name == null)
+		if ((name = trimDefined(name)) == null)
 			return;
 		// find the desired menu item
-		for (int i = 0; i < xChoices.length; i++) {
-			String var = xChoices[i].getText();
-			if (name.indexOf(DEFINED_AS) == -1) {
-				// name doesn't include description, so strip from menu item
-				int n = var.indexOf(DEFINED_AS);
-				if (n > -1)
-					var = var.substring(0, n);
-			}
-			if (var.equals(name)) {
-				// set index for plotting
-				xIndex = i - 1; // index -1 is data column 0
-				// select menu radio button if not selected
-				ButtonModel current = xGroup.getSelection();
-				ButtonModel desired = xChoices[i].getModel();
-				if (current == null || current != desired) {
-					xChoices[i].setSelected(true);
-				}
-				break;
-			}
-		}
+		Integer ii = htVarToItem.get(name);
+		if (ii == null) 
+			return;
+		int i = ii.intValue();
+		if (xIndex == i - 1)
+			return;
+		// set index for plotting
+		xIndex = i - 1; // index -1 is data column 0
+		// select menu radio button if not selected
+//		ButtonModel current = xGroup.getSelection();
+//		ButtonModel desired = xChoices[i].getModel();
+//		if (current == null || current != desired) {
+//			xChoices[i].setSelected(true);
+//		}
 		if (plotTrackView != null)
 			plotTrackView.syncXAxesTo(this);
+	}
+
+	private static String trimDefined(String name) {
+		int pt = (name == null ? -1 : name.indexOf(DEFINED_AS));
+		return (pt >= 0 ? name.substring(0, pt) : name);
 	}
 
 	/**
@@ -1257,19 +1153,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @return the name of the x variable
 	 */
 	protected String getXVariable() {
-		if (xChoices == null)
-			return null;
-		// find the selected menu item
-		for (int i = 0; i < xChoices.length; i++) {
-			if (xChoices[i].isSelected()) {
-				String var = xChoices[i].getText();
-				int n = var.indexOf(DEFINED_AS);
-				if (n > -1)
-					var = var.substring(0, n);
-				return var;
-			}
-		}
-		return null;
+		return xName;
 	}
 
 	/**
@@ -1278,51 +1162,26 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param name the name of the dataset to plot on the y axis
 	 */
 	protected void setYVariable(String name) {
-		if (name == null)
+		if ((name = trimDefined(name)) == null)
 			return;
-		// find the desired menu item
-		for (int i = 0; i < yChoices.length; i++) {
-			String var = yChoices[i].getText();
-			if (name.indexOf(DEFINED_AS) == -1) {
-				// name doesn't include description, so strip from menu item
-				int n = var.indexOf(DEFINED_AS);
-				if (n > -1)
-					var = var.substring(0, n);
-			}
-			if (var.equals(name)) {
-				// set index for plotting
-				yIndex = i;
-				// select menu radio button if not selected
-				ButtonModel current = yGroup.getSelection();
-				ButtonModel desired = yChoices[i].getModel();
-				if (current == null || current != desired) {
-					yChoices[i].setSelected(true);
-				}
-				super.setPreferredMinMaxY(Double.NaN, Double.NaN);
-				break;
-			}
-		}
+		yName = name;
+		Integer ii = htVarToItem.get(name);
+		if (ii == null)
+			return;
+		int i = ii.intValue();
+		if (yIndex == i)
+			return;
+		yIndex = i;
+		super.setPreferredMinMaxY(Double.NaN, Double.NaN);
 	}
 
 	/**
 	 * Gets the y variable name.
 	 *
-	 * @return the name of the y variable
+	 * @return the name of the y variable, without the defined information
 	 */
 	protected String getYVariable() {
-		if (yChoices == null)
-			return null;
-		// find the selected menu item
-		for (int i = 0; i < yChoices.length; i++) {
-			if (yChoices[i].isSelected()) {
-				String var = yChoices[i].getText();
-				int n = var.indexOf(DEFINED_AS);
-				if (n > -1)
-					var = var.substring(0, n);
-				return var;
-			}
-		}
-		return null;
+		return yName;
 	}
 
 	/**
@@ -1370,68 +1229,14 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		return sum / count;
 	}
 
-	protected void createVarChoices() {
-		// find the selected menu item
-		int datasetCount = data.getDatasets().size();
-		boolean smaller = yChoices == null ? false : datasetCount < yChoices.length;
-		String xName = getXVariable();
-		String yName = getYVariable();
-		xGroup = new ButtonGroup();
-		yGroup = new ButtonGroup();
+	protected void createXYPopups() {
 		xPopup = new JPopupMenu();
 		yPopup = new JPopupMenu();
-		// create radio buttons and popups to set x and y variables
-		xChoices = new JRadioButtonMenuItem[datasetCount + 1];
-		yChoices = new JRadioButtonMenuItem[datasetCount];
-		TTrack track = TTrack.getTrack(trackID);
-		boolean foundY = false, foundX = false;
-		String name = track.getDataName(0); // linked x-variable
-		name = TeXParser.removeSubscripting(name);
-		if (name == xName)
-			foundX = true;
-		name += DEFINED_AS + track.getDataDescription(0);
-		// add radio button items to array, popup and button group
-		xChoices[0] = new JRadioButtonMenuItem(name);
-		if (foundX) {
-			xChoices[0].setSelected(true);
-			xIndex = -1;
-		}
-		xChoices[0].setFont(font);
-		xChoices[0].setBorder(BorderFactory.createEmptyBorder(1, 0, 2, 0));
-		xChoices[0].addItemListener(xListener);
-		xGroup.add(xChoices[0]);
-		xPopup.add(xChoices[0]);
-		for (int i = 0; i < datasetCount; i++) { // y-variables
-			name = track.getDataName(i + 1);
-			name = TeXParser.removeSubscripting(name);
-			boolean isXVar = name.equals(xName);
-			boolean isYVar = name.equals(yName);
-			foundX = foundX || isXVar;
-			foundY = foundY || isYVar;
-			if (!track.getDataDescription(i + 1).equals("")) //$NON-NLS-1$
-				name += DEFINED_AS + track.getDataDescription(i + 1);
-			xChoices[i + 1] = new JRadioButtonMenuItem(name);
-			if (isXVar) {
-				xChoices[i + 1].setSelected(true);
-				xIndex = i;
-			}
-			xChoices[i + 1].setFont(font);
-			xChoices[i + 1].setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 0));
-			xChoices[i + 1].addItemListener(xListener);
-			xGroup.add(xChoices[i + 1]);
-			xPopup.add(xChoices[i + 1]);
-			yChoices[i] = new JRadioButtonMenuItem(name);
-			if (isYVar) {
-				yChoices[i].setSelected(true);
-				yIndex = i;
-			}
-			yChoices[i].setFont(font);
-			yChoices[i].setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 0));
-			yChoices[i].addItemListener(yListener);
-			yGroup.add(yChoices[i]);
+		createVarItems();
+		for (int i = 0; i < xChoices.length; i++) 
+			xPopup.add(xChoices[i]);
+		for (int i = 0; i < yChoices.length; i++) 
 			yPopup.add(yChoices[i]);
-		}
-		// add define data function items to x and y lists
 		JMenuItem defineItem = new JMenuItem(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
 		defineItem.addActionListener(dataFunctionListener);
 		xPopup.addSeparator();
@@ -1440,15 +1245,84 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		defineItem.addActionListener(dataFunctionListener);
 		yPopup.addSeparator();
 		yPopup.add(defineItem);
+	}
+	
+	protected void createVarItems() {
+		xGroup = new ButtonGroup();
+		yGroup = new ButtonGroup();
+		// create radio buttons and popups to set x and y variables
+		xChoices = new JRadioButtonMenuItem[datasetCount + 1];
+		yChoices = new JRadioButtonMenuItem[datasetCount];
+		TTrack track = TTrack.getTrack(trackID);
+		for (Entry<String, Integer> e : htVarToItem.entrySet()) {
+			String name = e.getKey();
+			int i = e.getValue().intValue();
+			if (!track.getDataDescription(i).equals("")) //$NON-NLS-1$
+				name += DEFINED_AS + track.getDataDescription(i);
+			xChoices[i] = new JRadioButtonMenuItem(name);
+			xChoices[i].setFont(font);
+			xChoices[i].setBorder(BorderFactory.createEmptyBorder(1, 0, 2, 0));
+			xChoices[i].addItemListener(xListener);
+			xGroup.add(xChoices[i]);
+			if (i == 0)
+				continue;
+			i--;
+			yChoices[i] = new JRadioButtonMenuItem(name);
+			yChoices[i].setFont(font);
+			yChoices[i].setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 0));
+			yChoices[i].addItemListener(yListener);
+			yGroup.add(yChoices[i]);
+		}
+	}
+
+	public void updateVarSelection() {
+		// prevent listener actions while setting
+		selectionEnabled = false;
+		xChoices[xIndex + 1].setSelected(true);
+		xChoices[yIndex].setSelected(true);
+		selectionEnabled = true;
+	}
+
+	protected void setVariables() {
+		// find the selected menu item
+		datasetCount = data.getDatasets().size();
+		boolean smaller = yChoices == null ? false : datasetCount < yChoices.length;
+		String xName = getXVariable();
+		String yName = getYVariable();
+		xPopup = yPopup = null;
+		htVarToItem.clear();
+		TTrack track = TTrack.getTrack(trackID);
+		boolean foundY = false, foundX = false;
+		String name = TeXParser.removeSubscripting(track.getDataName(0)); // linked x-variable
+		htVarToItem.put(name,  Integer.valueOf(0));
+		xIndex = -1;
+		if (name == xName)
+			foundX = true;
+		for (int i = 0; i < datasetCount; i++) { // y-variables
+			name = TeXParser.removeSubscripting(track.getDataName(i + 1));
+			boolean isXVar = name.equals(xName);
+			boolean isYVar = name.equals(yName);
+			foundX |= isXVar;
+			foundY |= isYVar;
+			htVarToItem.put(name,  Integer.valueOf(i + 1));
+			if (isXVar) {
+				xIndex = i;
+			}
+			if (isYVar) {
+				yIndex = i;
+				this.yName = yName;
+			}
+		}
+		// add define data function items to x and y lists
 		// check indices
-		if (xIndex >= xChoices.length - 1 || (smaller && !foundX))
+		if (xIndex >= datasetCount || (smaller && !foundX))
 			xIndex = -1;
-		if (yIndex >= yChoices.length || (smaller && !foundY))
+		if (yIndex >= datasetCount || (smaller && !foundY))
 			yIndex = 0;
 		if (!foundX)
-			setXVariable(xChoices[xIndex + 1].getText());
+			setXVariable(xName);
 		if (!foundY)
-			setYVariable(yChoices[yIndex].getText());
+			setYVariable(yName);
 	}
 
 	private void copyProperties(Dataset source, Dataset destination) {
@@ -1506,8 +1380,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 		// Overrides CartesianInteractive method
 		@Override
-		protected javax.swing.JPopupMenu getHorzVariablesPopup() {
+		protected JPopupMenu getHorzVariablesPopup() {
+			if (xPopup == null)
+				createXYPopups();
 			FontSizer.setFonts(xPopup, FontSizer.getLevel());
+			updateVarSelection();
 			return xPopup;
 		}
 
@@ -1519,8 +1396,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 		// Overrides CartesianInteractive method
 		@Override
-		protected javax.swing.JPopupMenu getVertVariablesPopup() {
+		protected JPopupMenu getVertVariablesPopup() {
+			if (yPopup == null)
+				createXYPopups();
 			FontSizer.setFonts(yPopup, FontSizer.getLevel());
+			updateVarSelection();
 			return yPopup;
 		}
 
@@ -1605,7 +1485,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				}
 			} else if (region == CartesianInteractive.INSIDE && e.getClickCount() == 2
 					&& trackerPanel.isEnabled("data.tool")) { //$NON-NLS-1$ // double click
-				dataToolItem.doClick();
+				showDataTool();
 			}
 			if (showCoordinates) {
 				String s = coordinateStrBuilder.getCoordinateString(TrackPlottingPanel.this, e);
@@ -1799,6 +1679,137 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			plot.plotData();
 			return obj;
 		}
+	}
+
+	public void showDataTool() {
+		DataTool tool = DataTool.getTool(true);
+		DataToolTab tab = tool.getTab(data);
+		tool.setUseChooser(false);
+		tool.setSaveChangesOnClose(false);
+		DatasetManager toSend = new DatasetManager();
+		DataRefreshTool refresher = DataRefreshTool.getTool(data);
+		toSend.setID(data.getID());
+		TTrack track = TTrack.getTrack(trackID);
+		toSend.setName(track.getName());
+		int i = 0;
+		// always include linked independent variable first
+		Dataset nextIn = data.getDataset(0);
+		String xColName = nextIn.getXColumnName();
+		XMLControlElement control = new XMLControlElement(nextIn);
+		Dataset nextOut = toSend.getDataset(i++); // first dataset to send
+		control.loadObject(nextOut, true, true); // contains indep var
+		nextOut.setYColumnVisible(false);
+		nextOut.setConnected(false);
+		nextOut.setMarkerShape(Dataset.NO_MARKER);
+		double[] tArray = nextOut.getXPoints();
+		if (!guests.isEmpty()) {
+			// expand tArray by collecting all values in a TreeSet
+			TreeSet<Double> tSet = new TreeSet<Double>();
+			for (double t : tArray) {
+				tSet.add(t);
+			}
+			for (TTrack guest : guests) {
+				DatasetManager guestData = guest.getData(guest.trackerPanel);
+				Dataset nextGuestIn = guestData.getDataset(0);
+				double[] guestTArray = nextGuestIn.getXPoints();
+				for (double t : guestTArray) {
+					tSet.add(t);
+				}
+			}
+			tArray = new double[tSet.size()];
+			Double[] temp = tSet.toArray(new Double[tArray.length]);
+			for (int k = 0; k < tArray.length; k++) {
+				tArray[k] = temp[k];
+			}
+			// finished expanding tArray
+			// pad nextOut with NaNs
+			padDataset(nextOut, tArray);
+		}
+		// add the x and y datasets
+		if (xIndex >= 0) {
+			nextIn = data.getDataset(xIndex);
+			xColName = nextIn.getYColumnName();
+			control = new XMLControlElement(nextIn);
+			nextOut = toSend.getDataset(i++); // second dataset to send (if not indep var)
+			control.loadObject(nextOut, true, true);
+			nextOut.setMarkerColor(track.getColor());
+			nextOut.setLineColor(track.getColor().darker());
+			nextOut.setConnected(true);
+			nextOut.setXColumnVisible(false);
+			if (!guests.isEmpty()) {
+				// pad nextOut with NaNs
+				padDataset(nextOut, tArray);
+			}
+		}
+		nextIn = data.getDataset(yIndex);
+		String yColName = nextIn.getYColumnName();
+		if (yIndex != xIndex) {
+			control = new XMLControlElement(nextIn);
+			nextOut = toSend.getDataset(i++); // next dataset to send
+			control.loadObject(nextOut, true, true);
+			nextOut.setMarkerColor(track.getColor());
+			nextOut.setLineColor(track.getColor().darker());
+			nextOut.setConnected(true);
+			nextOut.setXColumnVisible(false);
+			if (!guests.isEmpty()) {
+				// pad nextOut with NaNs
+				padDataset(nextOut, tArray);
+			}
+		}
+		// if this plot has guests, send their data too
+		for (TTrack guest : guests) {
+			DatasetManager guestData = guest.getData(guest.trackerPanel);
+			refresher.addData(guestData);
+			if (xIndex >= 0) {
+				nextIn = guestData.getDataset(xIndex);
+				control = new XMLControlElement(nextIn);
+				nextOut = toSend.getDataset(i++);
+				control.loadObject(nextOut, true, true);
+				nextOut.setMarkerColor(guest.getColor());
+				nextOut.setLineColor(guest.getColor().darker());
+				nextOut.setConnected(true);
+				nextOut.setXColumnVisible(false);
+				if (tab != null) {
+					String newName = tab.getColumnName(nextOut.getID());
+					if (newName != null) {
+						nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
+					}
+				} else {
+					String newName = nextOut.getYColumnName() + "_{" + guest.getName() + "}"; //$NON-NLS-1$ //$NON-NLS-2$
+					nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
+				}
+				// pad nextOut with NaNs
+				padDataset(nextOut, tArray);
+			}
+			if (yIndex != xIndex) {
+				nextIn = guestData.getDataset(yIndex);
+				control = new XMLControlElement(nextIn);
+				nextOut = toSend.getDataset(i++);
+				control.loadObject(nextOut, true, true);
+				nextOut.setMarkerColor(guest.getColor());
+				nextOut.setLineColor(guest.getColor().darker());
+				nextOut.setConnected(true);
+				nextOut.setXColumnVisible(false);
+				if (tab != null) {
+					String newName = tab.getColumnName(nextOut.getID());
+					if (newName != null) {
+						nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
+					}
+				} else {
+					String newName = nextOut.getYColumnName() + "_{" + guest.getName() + "}"; //$NON-NLS-1$ //$NON-NLS-2$
+					nextOut.setXYColumnNames(nextOut.getXColumnName(), newName);
+				}
+				// pad nextOut with NaNs
+				padDataset(nextOut, tArray);
+			}
+		}
+		// get data tool and send it the job
+		tool.send(new LocalJob(toSend), refresher);
+		tab = tool.getTab(toSend);
+		if (tab != null) {
+			tab.setWorkingColumns(xColName, yColName);
+		}
+		tool.setVisible(true);
 	}
 
 }

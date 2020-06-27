@@ -54,14 +54,13 @@ public class PlotTrackView extends TrackView {
 	protected JButton plotsButton;
 	protected JCheckBox linkCheckBox;
 	protected JPopupMenu popup;
-	protected JRadioButtonMenuItem[] plotCountItems;
-	protected ButtonGroup plotCountGroup;
+	// protected JRadioButtonMenuItem[] plotCountItems;
+	// protected ButtonGroup plotCountGroup;
 	protected boolean highlightVisible = true;
 	protected int defaultPlotCount = 1;
 	private boolean isCustom;
 	protected boolean xAxesLinked;
-	
-
+	private int selectedPlot;
 
 	/**
 	 * Constructs a PlotTrackView for the specified track and trackerPanel.
@@ -83,10 +82,10 @@ public class PlotTrackView extends TrackView {
 			plots[i].setYVariable((String) track.getProperty("yVarPlot" + i)); //$NON-NLS-1$
 			boolean lines = !"false".equals(track.getProperty("connectedPlot" + i)); //$NON-NLS-1$ //$NON-NLS-2$
 			plots[i].dataset.setConnected(lines);
-			plots[i].linesItem.setSelected(lines);
+			plots[i].linesItemSelected = lines;
 			boolean pts = !"false".equals(track.getProperty("pointsPlot" + i)); //$NON-NLS-1$ //$NON-NLS-2$
 			plots[i].dataset.setMarkerShape(pts ? Dataset.SQUARE : Dataset.NO_MARKER);
-			plots[i].pointsItem.setSelected(pts);
+			plots[i].pointsItemSelected = pts;
 			plots[i].dataset.setMarkerColor(track.getColor());
 			Double D = (Double) track.getProperty("yMinPlot" + i); //$NON-NLS-1$
 			if (D != null) {
@@ -98,14 +97,19 @@ public class PlotTrackView extends TrackView {
 			}
 			plots[i].isCustom = false;
 		}
-		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr1 for " + track + " plots=" + plots.length, Performance.TIME_MARK));
+		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr1 for " + track + " plots=" + plots.length,
+				Performance.TIME_MARK));
 	}
 
+	/**
+	 * @param frameNumber
+	 * @param mode        not used in PlotTrackView
+	 */
 	@Override
 	public void refresh(int frameNumber, int mode) {
 		if (!isRefreshEnabled() || !parent.isViewPaneVisible())
 			return;
-	 
+
 //		OSPLog.debug("PlotTrackView refresh type "+refreshType);
 //		if (Tracker.timeLogEnabled)
 //			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
@@ -164,7 +168,7 @@ public class PlotTrackView extends TrackView {
 		track.getData(trackerPanel); // load the current data
 		for (int i = 0; i < plots.length; i++) {
 			boolean custom = plots[i].isCustom;
-			plots[i].createVarChoices();
+			plots[i].setVariables();
 			plots[i].isCustom = custom;
 		}
 	}
@@ -217,7 +221,7 @@ public class PlotTrackView extends TrackView {
 		TTrack track = getTrack();
 		track.trackerPanel.changed = true;
 		plotCount = Math.min(plotCount, plots.length);
-		plotCountItems[plotCount - 1].setSelected(true);
+		selectedPlot = plotCount - 1;
 		mainView.removeAll();
 		mainView.add(plots[0]);
 		for (int i = 1; i < plotCount; i++) {
@@ -261,7 +265,8 @@ public class PlotTrackView extends TrackView {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
-		if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) && e.getNewValue() != null //$NON-NLS-1$ // track added
+		if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) && e.getNewValue() != null // $NON-NLS-1$ // track
+																								// added
 				&& !(e.getSource() instanceof WorldTView)) {
 			for (TrackPlottingPanel plot : getPlots()) {
 				plot.plotAxes.hideScaleSetter();
@@ -372,25 +377,7 @@ public class PlotTrackView extends TrackView {
 		setViewportView(mainView);
 		// create popup menu
 		popup = new JPopupMenu();
-		// make a listener for plot count items
-		ActionListener plotCountSetter = new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JMenuItem item = (JMenuItem) e.getSource();
-				setPlotCount(Integer.parseInt(item.getText()));
-				refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_PLOTCOUNT);
-			}
-		};
-		// create plotCount menuitems
-		plotCountItems = new JRadioButtonMenuItem[plots.length];
-		plotCountGroup = new ButtonGroup();
-		for (int i = 0; i < plots.length; i++) {
-			plotCountItems[i] = new JRadioButtonMenuItem(String.valueOf(i + 1));
-			plotCountItems[i].addActionListener(plotCountSetter);
-			popup.add(plotCountItems[i]);
-			plotCountGroup.add(plotCountItems[i]);
-		}
-		plotCountItems[0].setSelected(true);
+
 		// create link checkbox
 		linkCheckBox = new JCheckBox();
 		linkCheckBox.setOpaque(false);
@@ -418,10 +405,35 @@ public class PlotTrackView extends TrackView {
 			// override getPopup method to return plotcount popup
 			@Override
 			public JPopupMenu getPopup() {
+				rebuildPopup();
 				FontSizer.setFonts(popup, FontSizer.getLevel());
 				return popup;
 			}
 		};
+	}
+
+	private void rebuildPopup() {
+
+		ActionListener plotCountSetter = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JMenuItem item = (JMenuItem) e.getSource();
+				setPlotCount(Integer.parseInt(item.getText()));
+				refresh(trackerPanel.getFrameNumber(), 0);
+			}
+		};
+		// create plotCount menuitems
+
+		JRadioButtonMenuItem[] plotCountItems = new JRadioButtonMenuItem[plots.length];
+		ButtonGroup plotCountGroup = new ButtonGroup();
+		for (int i = 0; i < plots.length; i++) {
+			plotCountItems[i] = new JRadioButtonMenuItem(String.valueOf(i + 1));
+			plotCountItems[i].addActionListener(plotCountSetter);
+			popup.add(plotCountItems[i]);
+			plotCountGroup.add(plotCountItems[i]);
+		}
+		plotCountItems[selectedPlot].setSelected(true);
+
 	}
 
 	/**
@@ -447,7 +459,7 @@ public class PlotTrackView extends TrackView {
 		@Override
 		public void saveObject(XMLControl control, Object obj) {
 			PlotTrackView trackView = (PlotTrackView) obj;
-			control.setValue(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, trackView.getTrack().getName()); //$NON-NLS-1$
+			control.setValue(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, trackView.getTrack().getName()); // $NON-NLS-1$
 			TrackPlottingPanel[] plots = trackView.getPlots();
 			for (int i = 0; i < plots.length; i++) {
 				control.setValue("plot" + i, plots[i]); //$NON-NLS-1$

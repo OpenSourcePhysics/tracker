@@ -88,10 +88,14 @@ public class TrackerRes {
 		res = ResourceLoader.getBundle(
 						"org.opensourcephysics.cabrillo.tracker.resources.tracker",  //$NON-NLS-1$
 						locale);
+		try {
 		org.opensourcephysics.media.core.MediaRes.setLocale(loc);
 		org.opensourcephysics.controls.ControlsRes.setLocale(loc);
 		org.opensourcephysics.tools.ToolsRes.setLocale(loc);
 		support.firePropertyChange(PROPERTY_TRACKERRES_LOCALE, prev, locale); //$NON-NLS-1$
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
   /**
