@@ -48,12 +48,20 @@ public class ParticleDataTrackFunctionPanel extends ModelFunctionPanel {
   	clipControl.addMouseListenerToAll(listener);
   	timeControl = new DataTrackTimeControl(track);
   	timeControl.addMouseListener(listener);
-  	box.remove(paramEditor);
-  	box.remove(functionEditor);
-		box.add(clipControl, 1);
-		box.add(timeControl, 2);
   }
   
+	/**
+	 * Creates the GUI.
+	 */
+	@Override
+	protected void createGUI() {
+		super.createGUI();
+	  	box.remove(paramEditor);
+	  	box.remove(functionEditor);
+			box.add(clipControl, 1);
+			box.add(timeControl, 2);
+	}
+
   /**
    * Sets the custom control panel. This can be any JPanel with GUI elements 
    * to control the external model at its source.
@@ -102,6 +110,8 @@ public class ParticleDataTrackFunctionPanel extends ModelFunctionPanel {
 
   @Override
   protected void refreshInstructions(FunctionEditor source, boolean editing, int selectedColumn) {
+	  if (instructions == null) 
+		  return;
     StyledDocument doc = instructions.getStyledDocument();
     Style style = doc.getStyle("blue");                                                //$NON-NLS-1$
     String s = TrackerRes.getString("ParticleDataTrackFunctionPanel.Instructions.General"); //$NON-NLS-1$

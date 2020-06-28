@@ -741,7 +741,7 @@ abstract public class ParticleModel extends PointMass {
 				|| this instanceof DynamicSystem && ((DynamicSystem) this).particles.length == 0)
 			return;
 		refreshDerivsLater = trackerPanel.getPlayer().getClipControl().isPlaying();
-		trackerPanel.getTFrame().holdPainting(true);
+//		trackerPanel.getTFrame().holdPainting(true);
 		int n = trackerPanel.getFrameNumber();
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 		// determine last frame to be marked (must satisfy both model and clip)
@@ -757,6 +757,7 @@ abstract public class ParticleModel extends PointMass {
 			if (lastValidFrame == -1 || end <= lastValidFrame)
 				return;
 		}
+		trackerPanel.getTFrame().holdPainting(true);
 		start = lastValidFrame;
 		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps0 " + start + " " + end + " " + nCalc,
 				Performance.TIME_MARK));

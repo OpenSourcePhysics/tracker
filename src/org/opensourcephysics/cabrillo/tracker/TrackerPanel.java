@@ -119,6 +119,7 @@ import org.opensourcephysics.tools.DataRefreshTool;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.DataToolTab;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.LocalJob;
@@ -2008,7 +2009,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			dataBuilder = new TrackDataBuilder(this);
 			dataBuilder.setHelpPath("data_builder_help.html"); //$NON-NLS-1$
 			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this);
-			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
+			dataBuilder.addPropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
 			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_VISIBLE, this);
 			dataBuilder.setFontLevel(FontSizer.getLevel());
 		}
@@ -2644,7 +2645,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (getVideo() == null && modelBuilder != null)
 				modelBuilder.refreshSpinners();
 			break;
-		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: // from DataBuilder //$NON-NLS-1$
+		case FunctionEditor.PROPERTY_FUNCTIONTOOL_FUNCTION: // from DataBuilder //$NON-NLS-1$
 			changed = true;
 			firePropertyChange(PROPERTY_TRACKERPANEL_FUNCTION, null, e.getNewValue()); // to views //$NON-NLS-1$
 			break;
@@ -3283,7 +3284,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		if (dataBuilder != null) {
 			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this);
-			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
+			dataBuilder.removePropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
 			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_VISIBLE, this);
 			dataBuilder.dispose();
 			dataBuilder = null;

@@ -40,6 +40,8 @@ public class DynamicFunctionPanel extends ModelFunctionPanel {
 	 */
   @Override
 protected void refreshGUI() {
+	  if (!haveGUI())
+		  return;
   	super.refreshGUI();
   	functionEditor.setBorderTitle(TrackerRes.getString("DynamicFunctionPanel.FunctionEditor.Border.Title")); //$NON-NLS-1$
   }

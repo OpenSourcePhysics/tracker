@@ -41,7 +41,12 @@ import org.opensourcephysics.tools.*;
  */
 public class ModelBuilder extends FunctionTool {
 
+	// data model
+	
 	private TrackerPanel trackerPanel;
+	
+	// GUI
+	
 	private JLabel startFrameLabel, endFrameLabel, boosterLabel;
 	private ModelFrameSpinner startFrameSpinner, endFrameSpinner;
 	private JComboBox<Object> boosterDropdown;
@@ -54,13 +59,19 @@ public class ModelBuilder extends FunctionTool {
 	protected ModelBuilder(TrackerPanel trackerPanel) {
 		super(trackerPanel);
 		this.trackerPanel = trackerPanel;
-
-		// create and set toolbar components
-		createToolbarComponents();
-		setToolbarComponents(new Component[] { startFrameLabel, startFrameSpinner, endFrameLabel, endFrameSpinner,
-				boosterLabel, boosterDropdown });
 	}
 
+	@Override
+	protected void createGUI() {
+		if (haveGUI())
+			return;
+		super.createGUI();
+	    // create and set toolbar components
+	    createToolbarComponents();
+	    setToolbarComponents(new Component[] { startFrameLabel, startFrameSpinner, endFrameLabel, endFrameSpinner,
+	        boosterLabel, boosterDropdown });
+
+	}
 	/**
 	 * Creates the toolbar components.
 	 */
@@ -137,23 +148,29 @@ public class ModelBuilder extends FunctionTool {
 		});
 	}
 
+	@Override 
+	protected void setTitles() {
+	    dropdownTipText = (TrackerRes.getString("TrackerPanel.ModelBuilder.Spinner.Tooltip")); //$NON-NLS-1$
+	    String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$
+	    FunctionPanel panel = getSelectedPanel();
+	    if (panel != null) {
+	      TTrack track = trackerPanel.getTrack(panel.getName());
+	      if (track != null) {
+	        String type = track.getClass().getSimpleName();
+	        title += ": " + TrackerRes.getString(type + ".Builder.Title"); //$NON-NLS-1$ //$NON-NLS-2$
+	      }
+	    }
+	    titleText = title;
+	}
+	
 	/**
 	 * Refreshes the GUI.
 	 */
 	@Override
 	protected void refreshGUI() {
+		if (!haveGUI())
+			return;
 		super.refreshGUI();
-		dropdown.setToolTipText(TrackerRes.getString("TrackerPanel.ModelBuilder.Spinner.Tooltip")); //$NON-NLS-1$
-		String title = TrackerRes.getString("TrackerPanel.ModelBuilder.Title"); //$NON-NLS-1$
-		FunctionPanel panel = getSelectedPanel();
-		if (panel != null) {
-			TTrack track = trackerPanel.getTrack(panel.getName());
-			if (track != null) {
-				String type = track.getClass().getSimpleName();
-				title += ": " + TrackerRes.getString(type + ".Builder.Title"); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-		}
-		setTitle(title);
 		if (boosterDropdown != null) {
 			boosterDropdown.setToolTipText(TrackerRes.getString("TrackerPanel.Dropdown.Booster.Tooltip")); //$NON-NLS-1$
 			boosterLabel.setText(TrackerRes.getString("TrackerPanel.Label.Booster")); //$NON-NLS-1$
@@ -198,9 +215,6 @@ public class ModelBuilder extends FunctionTool {
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
-		if (helpDialog != null) {
-			helpDialog.dispose();
-		}
 		for (String key : panels.keySet()) {
 			FunctionPanel next = panels.get(key);
 			next.setFunctionTool(null);

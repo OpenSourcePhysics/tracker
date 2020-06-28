@@ -65,12 +65,9 @@ public class TrackDataBuilder extends FunctionTool {
 	 */
 	protected TrackDataBuilder(TrackerPanel trackerPanel) {
 		super(trackerPanel);
-		this.trackerPanel = trackerPanel;
-		createButtons();
-		setToolbarComponents(new Component[] { loadButton, saveButton, Box.createHorizontalGlue(), autoloadButton });
-		setHelpPath("data_builder_help.html"); //$NON-NLS-1$
+		this.trackerPanel = trackerPanel;		
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
-		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); //$NON-NLS-1$
+		addPropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); //$NON-NLS-1$
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_VISIBLE, trackerPanel); //$NON-NLS-1$
 		ArrayList<Drawable> nogos = trackerPanel.getSystemDrawables();
 		Iterator<TTrack> it = trackerPanel.getTracks().iterator();
@@ -81,6 +78,14 @@ public class TrackDataBuilder extends FunctionTool {
 			FunctionPanel panel = trackerPanel.createFunctionPanel(track);
 			addPanel(track.getName(), panel);
 		}
+		setHelpPath("data_builder_help.html"); //$NON-NLS-1$		
+	}
+
+	@Override
+	protected void createGUI() {
+		super.createGUI();
+		createButtons();
+		setToolbarComponents(new Component[] { loadButton, saveButton, Box.createHorizontalGlue(), autoloadButton });
 	}
 
 	/**
@@ -417,14 +422,21 @@ public class TrackDataBuilder extends FunctionTool {
 		});
 	}
 
+	
+	@Override
+	protected void setTitles() {
+		dropdownTipText = (TrackerRes.getString("TrackerPanel.DataBuilder.Dropdown.Tooltip")); //$NON-NLS-1$
+		titleText = (TrackerRes.getString("TrackerPanel.DataBuilder.Title")); //$NON-NLS-1$
+	}
+	
 	/**
 	 * Refreshes the GUI.
 	 */
 	@Override
 	protected void refreshGUI() {
+		if (!haveGUI())
+			return;
 		super.refreshGUI();
-		dropdown.setToolTipText(TrackerRes.getString("TrackerPanel.DataBuilder.Dropdown.Tooltip")); //$NON-NLS-1$
-		setTitle(TrackerRes.getString("TrackerPanel.DataBuilder.Title")); //$NON-NLS-1$
 		if (loadButton != null) {
 			FunctionPanel panel = getSelectedPanel();
 			loadButton.setEnabled(panel != null);
@@ -463,13 +475,6 @@ public class TrackDataBuilder extends FunctionTool {
 		autoloadButton.revalidate();
 	}
 
-	@Override
-	public void setVisible(boolean vis) {
-		if (vis) {
-			setFontLevel(FontSizer.getLevel());
-		}
-		super.setVisible(vis);
-	}
 
 	/**
 	 * Adds a FunctionPanel.
@@ -866,14 +871,11 @@ public class TrackDataBuilder extends FunctionTool {
 	@Override
 	public void dispose() {
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
-		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); //$NON-NLS-1$
+		removePropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); //$NON-NLS-1$
 		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, trackerPanel); //$NON-NLS-1$
 		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
 		if (autoloadManager != null) {
 			autoloadManager.dispose();
-		}
-		if (helpDialog != null) {
-			helpDialog.dispose();
 		}
 		for (String key : panels.keySet()) {
 			FunctionPanel next = panels.get(key);
