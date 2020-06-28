@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Paint;
@@ -34,15 +33,12 @@ import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
 import java.awt.Stroke;
-import java.awt.font.FontRenderContext;
 import java.awt.geom.AffineTransform;
 import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-
-import javax.swing.JTextField;
 
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
@@ -59,16 +55,11 @@ import org.opensourcephysics.tools.FontSizer;
 public abstract class Step implements Cloneable {
 
 	// static fields
-	protected static Rectangle hitRect = new Rectangle(-4, -4, 8, 8);
+	protected final static Rectangle hitRect = new Rectangle(-4, -4, 8, 8);
 	protected static Shape selectionShape;
 	protected static Stroke selectionStroke;
-	protected static AffineTransform transform = new AffineTransform();
-	protected static NumberFormat format = NumberFormat.getNumberInstance(Locale.US);
-	protected static Font textLayoutFont = new JTextField().getFont();
-	protected static FontRenderContext frc = new FontRenderContext(null, // no AffineTransform
-			false, // no antialiasing
-			false); // no fractional metrics
-
+	protected final static AffineTransform transform = new AffineTransform();
+	protected final static NumberFormat format = NumberFormat.getNumberInstance(Locale.US);
 	static {
 		selectionStroke = new BasicStroke(2);
 		selectionShape = (Rectangle)hitRect.clone();

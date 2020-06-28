@@ -244,7 +244,7 @@ public void draw(DrawingPanel panel, Graphics _g) {
     Paint gpaint = g.getPaint();
     g.setPaint(footprint.getColor());
     Font gfont = g.getFont();
-    g.setFont(textLayoutFont);
+    g.setFont(TFrame.textLayoutFont);
     // draw the text layout if not editing
     if (!protractor.editing) {
 	    TextLayout layout = textLayouts.get(trackerPanel);
@@ -344,7 +344,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
       rotatorShapes.put(trackerPanel, shapes[5]);
       // get new text layouts
       String s = protractor.angleField.getText();
-      TextLayout layout = new TextLayout(s, textLayoutFont, frc);
+      TextLayout layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
       textLayouts.put(trackerPanel, layout);
       // get layout position (bottom left corner of text)
       p = getLayoutPosition(trackerPanel, layout, vertex);
@@ -364,7 +364,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
         Map<TrackerPanel, Rectangle> lBounds = k==0? layout1Bounds: layout2Bounds;
 	      s = getFormattedLength(end);
 	      s += trackerPanel.getUnits(protractor, Protractor.dataVariables[2+k]);    
-	      layout = new TextLayout(s, textLayoutFont, frc);
+	      layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
 	      layouts.put(trackerPanel, layout);
 	      p = getLayoutPosition(trackerPanel, layout, end);
 	      bounds = lBounds.get(trackerPanel);

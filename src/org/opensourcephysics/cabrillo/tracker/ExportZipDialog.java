@@ -38,7 +38,6 @@ import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.awt.font.FontRenderContext;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
@@ -94,6 +93,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
@@ -291,12 +291,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		formatDropdown.setModel(model);
 		formatDropdown.setSelectedItem(n);
 		// reset label sizes
-		FontRenderContext frc = new FontRenderContext(null, false, false);
 		Font font = titleLabel.getFont();
 		int w = 0;
 		for (Iterator<JLabel> it = labels.iterator(); it.hasNext();) {
 			JLabel next = it.next();
-			Rectangle2D rect = font.getStringBounds(next.getText() + " ", frc); //$NON-NLS-1$
+			Rectangle2D rect = font.getStringBounds(next.getText() + " ", OSPRuntime.frc); //$NON-NLS-1$
 			w = Math.max(w, (int) rect.getWidth() + 1);
 		}
 		int h = titleField.getMinimumSize().height;
@@ -1070,13 +1069,12 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		loadHTMLButton.setToolTipText(TrackerRes.getString("ZipResourceDialog.Tooltip.LoadHTML")); //$NON-NLS-1$
 
 		// set label sizes
-		FontRenderContext frc = new FontRenderContext(null, false, false);
 		Font font = titleLabel.getFont();
 		int w = 0;
 		for (Iterator<JLabel> it = labels.iterator(); it.hasNext();) {
 			JLabel next = it.next();
 			FontSizer.setFonts(next, FontSizer.getLevel());
-			Rectangle2D rect = font.getStringBounds(next.getText() + " ", frc); //$NON-NLS-1$
+			Rectangle2D rect = font.getStringBounds(next.getText() + " ", OSPRuntime.frc); //$NON-NLS-1$
 			w = Math.max(w, (int) rect.getWidth() + 1);
 		}
 		int h = authorField.getMinimumSize().height;

@@ -44,7 +44,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.awt.font.FontRenderContext;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
@@ -180,10 +179,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected static NameDialog nameDialog;
 	protected static int nextID = 1;
 	protected static HashMap<Integer, TTrack> activeTracks = new HashMap<Integer, TTrack>();
-	protected static FontRenderContext frc = new FontRenderContext(null, // no AffineTransform
-			false, // no antialiasing
-			false); // no fractional metrics
-
 	// instance fields
 	protected String name = TrackerRes.getString("TTrack.Name.None"); //$NON-NLS-1$
 	protected String description = ""; //$NON-NLS-1$

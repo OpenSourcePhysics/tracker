@@ -37,6 +37,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableModel;
 
 import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoType;
@@ -316,12 +317,11 @@ public class PropertiesDialog extends JDialog {
   private void setLabelSizes() {
     ArrayList<JLabel> labels = new ArrayList<JLabel>();
     labels.add(authorLabel);
-    labels.add(contactLabel);
-    FontRenderContext frc = new FontRenderContext(null, false, false);                                        
+    labels.add(contactLabel);                                      
     Font font = authorLabel.getFont();
     int w = 0;
     for(JLabel next: labels) {
-      Rectangle2D rect = font.getStringBounds(next.getText()+" ", frc); //$NON-NLS-1$
+      Rectangle2D rect = font.getStringBounds(next.getText()+" ", OSPRuntime.frc); //$NON-NLS-1$
       w = Math.max(w, (int) rect.getWidth()+1);
     }
     Dimension labelSize = new Dimension(w, 20);

@@ -32,6 +32,7 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.Point;
@@ -49,6 +50,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.font.TextLayout;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -80,6 +82,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
@@ -152,6 +155,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	static {
 		ToolTipManager.sharedInstance().setDismissDelay(2000);
+	}
+
+	// preloading for JavaScript
+	
+	public static Font textLayoutFont = new JTextField().getFont();
+
+	static {
+		new TextLayout("X", textLayoutFont, OSPRuntime.frc);
 	}
 
 	// static fields
@@ -1606,7 +1617,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return;
 //		FontSizer.setFonts(tabbedPane, level);
 
-		Step.textLayoutFont = FontSizer.getResizedFont(Step.textLayoutFont, level);
+		textLayoutFont = FontSizer.getResizedFont(textLayoutFont, level);
 
 		for (int i = 0; i < getTabCount(); i++) {
 			TrackerPanel trackerPanel = getTrackerPanel(i);
@@ -2359,8 +2370,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		JMenu editMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Edit")); //$NON-NLS-1$
 		defaultMenuBar.add(editMenu);
 		// language menu
-	    languageMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Language")); //$NON-NLS-1$
-	    languageMenu.addMenuListener(new MenuListener() {
+		languageMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Language")); //$NON-NLS-1$
+		languageMenu.addMenuListener(new MenuListener() {
 
 			@Override
 			public void menuSelected(MenuEvent e) {
@@ -2374,8 +2385,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			@Override
 			public void menuCanceled(MenuEvent e) {
 			}
-	    	
-	    });
+
+		});
 		editMenu.add(languageMenu);
 		checkLocale();
 		// preferences item
@@ -2443,7 +2454,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			String co = loc.getCountry();
 			// special handling for portuguese BR and PT
 			if (co != null && co != "") {
-					lang += " (" + co + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+				lang += " (" + co + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 			} else if (!OSPRuntime.isJS && loc.getLanguage().equals("ko")) {
 				lang = "Korean";// BH characters not working in Java
 			}
@@ -2473,7 +2484,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		});
 		(selected == null ? languageMenu.getItem(0) : selected).setSelected(true);
 	}
-	
+
 	protected void setLanguage(String language) {
 		if (language.equals(mylang))
 			return;
@@ -3006,7 +3017,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0);
 		}
 	}
-	
 
 	public static void addMenuListener(JMenu m, Runnable r) {
 		m.addMenuListener(new MenuListener() {
@@ -3023,9 +3033,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			@Override
 			public void menuCanceled(MenuEvent e) {
 			}
-			
+
 		});
 	}
-
 
 }

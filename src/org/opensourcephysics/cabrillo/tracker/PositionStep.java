@@ -144,7 +144,7 @@ public class PositionStep extends Step {
 				Paint gpaint = g.getPaint();
 				Font gfont = g.getFont();
 				g.setPaint(footprint.getColor());
-				g.setFont(textLayoutFont);
+				g.setFont(TFrame.textLayoutFont);
 				layout.draw(g, p.x, p.y);
 				g.setPaint(gpaint);
 				g.setFont(gfont);
@@ -269,7 +269,7 @@ public class PositionStep extends Step {
 			}
 			if (s.length() == 0)
 				s = " "; //$NON-NLS-1$
-			TextLayout layout = new TextLayout(s, textLayoutFont, frc);
+			TextLayout layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
 			textLayouts.put(trackerPanel, layout);
 			// get layout position (bottom left corner of text)
 			p = getLayoutPosition(trackerPanel);
@@ -417,7 +417,7 @@ public class PositionStep extends Step {
 	 */
 	protected Point getLayoutPosition(TrackerPanel trackerPanel) {
 		Point pt = p.getScreenPosition(trackerPanel);
-		pt.setLocation(pt.x - 4 - textLayoutFont.getSize(), pt.y - 6);
+		pt.setLocation(pt.x - 4 - TFrame.textLayoutFont.getSize(), pt.y - 6);
 		return pt;
 	}
 

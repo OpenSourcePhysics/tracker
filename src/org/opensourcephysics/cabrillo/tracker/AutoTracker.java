@@ -3153,7 +3153,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 
 			// set label sizes
-			FontRenderContext frc = new FontRenderContext(null, false, false);
+			FontRenderContext frc = OSPRuntime.frc;
 			Font font = frameLabel.getFont();
 			int w = 0;
 			Rectangle2D rect = font.getStringBounds(searchLabel.getText() + "   ", frc); //$NON-NLS-1$

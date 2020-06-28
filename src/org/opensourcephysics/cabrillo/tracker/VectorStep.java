@@ -46,6 +46,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
@@ -428,7 +429,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 				Paint gpaint = g.getPaint();
 				Font gfont = g.getFont();
 				g.setPaint(footprint.getColor());
-				g.setFont(textLayoutFont);
+				g.setFont(TFrame.textLayoutFont);
 				layout.draw(g, p.x, p.y);
 				g.setPaint(gpaint);
 				g.setFont(gfont);
@@ -541,7 +542,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 			if (clip.getStepCount() != 1) {
 				s += clip.frameToStep(getFrameNumber());
 			}
-			TextLayout layout = new TextLayout(s, textLayoutFont, frc);
+			TextLayout layout = new TextLayout(s, TFrame.textLayoutFont, OSPRuntime.frc);
 			textLayouts.put(trackerPanel, layout);
 			// get layout position (bottom left corner of text)
 			Point lp = getLayoutPosition(trackerPanel, layout);
