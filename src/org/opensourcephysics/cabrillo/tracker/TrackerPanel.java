@@ -251,14 +251,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public TrackerPanel(Video video) {
 		super(video);
 		id = "TP" + ++ids;
-		popup = new JPopupMenu() {
-			@Override
-			public void setVisible(boolean vis) {
-				super.setVisible(vis);
-				if (!vis)
-					zoomBox.hide();
-			}
-		};
 		zoomBox.setShowUndraggedBox(false);
 		// remove the interactive panel mouse controller
 		removeMouseListener(mouseController);
@@ -1931,6 +1923,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return mainView.getPopupMenu();
 	}
 
+	protected JPopupMenu getPopup() {
+		return (popup != null ? popup: ( popup = new JPopupMenu() {
+			@Override
+			public void setVisible(boolean vis) {
+				if (vis) {
+				} else {
+					zoomBox.hide();
+				}
+				super.setVisible(vis);
+			}
+		}));
+	}
+	
 	/**
 	 * Gets the units dialog.
 	 * 
@@ -2205,7 +2210,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		selectedTrack = getSelectedTrack();
 		int n = getFrameNumber();
 		if (selectedTrack != null) {
-			markable = !(selectedTrack.isStepComplete(n) || selectedTrack.isLocked() || popup.isVisible());
+			markable = !(selectedTrack.isStepComplete(n) || selectedTrack.isLocked() || popup != null && popup.isVisible());
 			marking = markable && (selectedTrack.isMarkByDefault() != invert);
 		}
 		Interactive iad = getTracks().isEmpty() || mouseEvent == null ? null : getInteractive();
@@ -3744,7 +3749,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// Performance.TIME_MARK));
 
 				// set selected track
-				String name = control.getString("selectedtrack"); //$NON-NLS-1$
+				String name = control.getString(PROPERTY_TRACKERPANEL_SELECTEDTRACK); //$NON-NLS-1$
 				trackerPanel.setSelectedTrack(name == null ? null : trackerPanel.getTrack(name));
 
 				// load DataTool tabs
@@ -3882,7 +3887,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// save the selected track
 			TTrack track = trackerPanel.getSelectedTrack();
 			if (track != null) {
-				control.setValue("selectedtrack", track.getName()); //$NON-NLS-1$
+				control.setValue(PROPERTY_TRACKERPANEL_SELECTEDTRACK, track.getName()); //$NON-NLS-1$
 			}
 			// save the drawings and drawing visibility
 			if (PencilDrawer.hasDrawings(trackerPanel)) {
@@ -3981,9 +3986,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			isAutoRefresh = b;
 	}
 
-	public JPopupMenu updatePopup() {
-		MainTView mainTView = getTFrame().getMainView(this);
-		JPopupMenu popup = this.popup;
+	public JPopupMenu updateMainPopup() {
+		JPopupMenu popup = getPopup();
 		try {
 			// see if a track has been clicked
 			Interactive iad = getInteractive();
@@ -4030,7 +4034,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					mainTView.zoomIn(false);
+					getTFrame().getMainView(TrackerPanel.this).zoomIn(false);
 				}
 			});
 			item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ZoomOut")); //$NON-NLS-1$
@@ -4038,7 +4042,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					mainTView.zoomOut(false);
+					getTFrame().getMainView(TrackerPanel.this).zoomOut(false);
 				}
 			});
 			item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ZoomToFit")); //$NON-NLS-1$
@@ -4103,7 +4107,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 						inspector.initialize();
 						inspector.setVisible(true);
-						mainTView.refresh();
+						getTFrame().getMainView(TrackerPanel.this).refresh();
 					}
 				});
 				popup.add(item);

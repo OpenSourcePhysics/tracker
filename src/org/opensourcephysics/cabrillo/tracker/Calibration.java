@@ -86,8 +86,7 @@ public class Calibration extends TTrack {
 	protected int axes = XY_AXES;
 	protected boolean[] isWorldDataValid = new boolean[] { false, false };
 	protected boolean fixedCoordinates = true;
-	protected JCheckBoxMenuItem fixedCoordinatesItem;
-
+	
 	/**
 	 * Constructs a Calibration.
 	 */
@@ -441,6 +440,16 @@ public class Calibration extends TTrack {
 		menu.remove(deleteTrackItem);
 		menu.remove(menu.getMenuComponent(menu.getMenuComponentCount() - 1));
 
+		JCheckBoxMenuItem fixedCoordinatesItem = new JCheckBoxMenuItem(
+				TrackerRes.getString("OffsetOrigin.MenuItem.Fixed")); //$NON-NLS-1$
+		FontSizer.setFont(fixedCoordinatesItem);
+		fixedCoordinatesItem.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				setFixedCoordinates(fixedCoordinatesItem.isSelected());
+			}
+		});
+
 		// add fixed and delete items
 		fixedCoordinatesItem.setText(TrackerRes.getString("OffsetOrigin.MenuItem.Fixed")); //$NON-NLS-1$
 		fixedCoordinatesItem.setSelected(isFixedCoordinates());
@@ -603,7 +612,7 @@ public class Calibration extends TTrack {
 	public void setFontLevel(int level) {
 		super.setFontLevel(level);
 		Object[] objectsToSize = new Object[] { point1MissingLabel, point2MissingLabel, x1Label, y1Label, x1Field,
-				y1Field, axisLabel, fixedCoordinatesItem };
+				y1Field, axisLabel };
 		FontSizer.setFonts(objectsToSize, level);
 	}
 
@@ -745,13 +754,6 @@ public class Calibration extends TTrack {
 	 * Creates the GUI.
 	 */
 	private void createGUI() {
-		fixedCoordinatesItem = new JCheckBoxMenuItem(TrackerRes.getString("OffsetOrigin.MenuItem.Fixed")); //$NON-NLS-1$
-		fixedCoordinatesItem.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				setFixedCoordinates(fixedCoordinatesItem.isSelected());
-			}
-		});
 		// create xy ActionListener and FocusListener
 		ActionListener xyAction = new ActionListener() {
 			@Override

@@ -80,7 +80,9 @@ abstract public class ParticleModel extends PointMass {
 	protected boolean invalidWarningShown, startFrameUndefined;
 	protected int startFrame, endFrame = Integer.MAX_VALUE;
 	protected boolean useDefaultReferenceFrame;
+
 	protected JMenuItem modelBuilderItem, useDefaultRefFrameItem, stampItem;
+	
 	protected PropertyChangeListener massParamListener, timeParamListener;
 
 	protected void setLastValidFrame(int i) {
@@ -245,7 +247,7 @@ abstract public class ParticleModel extends PointMass {
 				trackerPanel.getTFrame().getClipboardListener().processContents(trackerPanel);
 			}
 			break;
-		case "selectedtrack": //$NON-NLS-1$
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK: //$NON-NLS-1$
 			if (e.getNewValue() == this && modelBuilder != null && !modelBuilder.getSelectedName().equals(getName())) {
 				modelBuilder.setSelectedPanel(getName());
 			}

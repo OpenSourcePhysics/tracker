@@ -275,7 +275,7 @@ public class MainTView extends JPanel implements TView {
 		if (Tracker.isZoomInCursor(trackerPanel.getCursor()) || Tracker.isZoomOutCursor(trackerPanel.getCursor())) {
 			return null;
 		}
-		return trackerPanel.updatePopup();
+		return trackerPanel.updateMainPopup();
 	}
 
 	/**

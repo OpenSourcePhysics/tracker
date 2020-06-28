@@ -199,7 +199,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		trackerPanel = panel;
 		trackerPanel.addDrawable(this);
 		trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
@@ -842,7 +842,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 			if (needsRepaint)
 				repaint();
-		} else if (name.equals("selectedtrack") && wizard != null) { //$NON-NLS-1$
+		} else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK) && wizard != null) { //$NON-NLS-1$
 			wizard.refreshGUI();
 		} else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) && e.getOldValue() != null) { //$NON-NLS-1$
 			// track has been deleted
@@ -1163,7 +1163,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	protected void dispose() {
 		trackerPanel.removeDrawable(this);
 		trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); //$NON-NLS-1$
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$

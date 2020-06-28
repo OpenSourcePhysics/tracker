@@ -293,8 +293,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
     trackerPanel = panel;
     trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
     trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
-    trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); //$NON-NLS-1$
+    trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); //$NON-NLS-1$
     createGUI();
     refresh();
     validate();
@@ -594,7 +594,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
   @Override
 public void propertyChange(PropertyChangeEvent e) {
     String name = e.getPropertyName();
-    if (name.equals("selectedtrack")) {  // selected track has changed //$NON-NLS-1$
+    if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK)) {  // selected track has changed //$NON-NLS-1$
       refresh();
     }
     else if (name.equals(TTrack.PROPERTY_TTRACK_FOOTPRINT)  //$NON-NLS-1$
@@ -628,7 +628,7 @@ public void propertyChange(PropertyChangeEvent e) {
     removeAll();
     trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
-    trackerPanel.removePropertyChangeListener("selectedtrack", this); //$NON-NLS-1$
+    trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); //$NON-NLS-1$
     trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
     for (Integer n: TTrack.activeTracks.keySet()) {
     	TTrack track = TTrack.activeTracks.get(n);

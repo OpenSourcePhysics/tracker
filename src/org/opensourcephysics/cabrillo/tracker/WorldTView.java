@@ -77,6 +77,47 @@ public class WorldTView extends TrackerPanel implements TView {
     worldViewLabel = new JLabel();
     worldViewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
     toolbarComponents.add(worldViewLabel);
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (OSPRuntime.isPopupTrigger(e)) {
+					createWorldPopup();
+					popup.show(WorldTView.this, e.getX(), e.getY());
+				}
+			}
+		});
+//		this.addComponentListener(new ComponentAdapter() {
+//			@Override
+//			public void componentResized(ComponentEvent e) {
+//				refresh();
+//			}
+//		});
+	}
+
+	protected void createWorldPopup() {
+		getPopup().removeAll();
+		getMenuItems();
+		if (trackerPanel.isEnabled("edit.copyImage")) { //$NON-NLS-1$
+			copyImageItem.setText(TrackerRes.getString("TMenuBar.Menu.CopyImage")); //$NON-NLS-1$
+			popup.add(copyImageItem);
+			popup.add(snapshotItem);
+		}
+		if (trackerPanel.isEnabled("file.print")) { //$NON-NLS-1$
+			if (popup.getComponentCount() > 0)
+				popup.addSeparator();
+			printItem.setText(TrackerRes.getString("TActions.Action.Print")); //$NON-NLS-1$
+			popup.add(printItem);
+		}
+		if (popup.getComponentCount() > 0)
+			popup.addSeparator();
+		helpItem.setText(TrackerRes.getString("Tracker.Popup.MenuItem.Help")); //$NON-NLS-1$
+		popup.add(helpItem);
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+	}
+
+	protected void getMenuItems() {
+		if (copyImageItem != null)
+			return;
 		// copy image item
 		Action copyImageAction = new AbstractAction() {
 			@Override
@@ -104,38 +145,6 @@ public class WorldTView extends TrackerPanel implements TView {
 				}
 			}
 		});
-		addMouseListener(new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				if (OSPRuntime.isPopupTrigger(e)) {
-					popup.removeAll();
-					if (trackerPanel.isEnabled("edit.copyImage")) { //$NON-NLS-1$
-						copyImageItem.setText(TrackerRes.getString("TMenuBar.Menu.CopyImage")); //$NON-NLS-1$
-						popup.add(copyImageItem);
-						popup.add(snapshotItem);
-					}
-					if (trackerPanel.isEnabled("file.print")) { //$NON-NLS-1$
-						if (popup.getComponentCount() > 0)
-							popup.addSeparator();
-						printItem.setText(TrackerRes.getString("TActions.Action.Print")); //$NON-NLS-1$
-						popup.add(printItem);
-					}
-					if (popup.getComponentCount() > 0)
-						popup.addSeparator();
-					helpItem.setText(TrackerRes.getString("Tracker.Popup.MenuItem.Help")); //$NON-NLS-1$
-					popup.add(helpItem);
-
-					FontSizer.setFonts(popup, FontSizer.getLevel());
-					popup.show(WorldTView.this, e.getX(), e.getY());
-				}
-			}
-		});
-//		this.addComponentListener(new ComponentAdapter() {
-//			@Override
-//			public void componentResized(ComponentEvent e) {
-//				refresh();
-//			}
-//		});
 	}
 
 	/**

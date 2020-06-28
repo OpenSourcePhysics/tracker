@@ -73,21 +73,22 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	private int xIndex = -1, yIndex = 0;
 	private String xName, yName;
 	
+	// GUI (lazy)
+	
+	protected JPopupMenu xPopup, yPopup;
+	protected JPopupMenu popup;
+
 	protected JCheckBoxMenuItem linesItem, pointsItem;
 	protected JMenuItem dataToolItem;
 	private JRadioButtonMenuItem[] xChoices, yChoices;
 	private ButtonGroup xGroup, yGroup;
 	
-	protected JPopupMenu xPopup, yPopup;
-	
-	protected JPopupMenu popup;
 	protected Action dataFunctionListener, guestListener;
-	
-	protected JMenuItem copyImageItem, dataBuilderItem; 
-	protected JMenuItem showXZeroItem, showYZeroItem;
-	protected JMenuItem selectPointsItem, deselectPointsItem;
-	protected JMenuItem algorithmItem, printItem, helpItem, mergeYScalesItem;
-	protected JMenuItem guestsItem;
+	private JMenuItem copyImageItem, dataBuilderItem; 
+	private JMenuItem showXZeroItem, showYZeroItem;
+	private JMenuItem selectPointsItem, deselectPointsItem;
+	private JMenuItem algorithmItem, printItem, helpItem, mergeYScalesItem;
+	private JMenuItem guestsItem;
 	
 	protected String xLabel, yLabel, title;
 	protected TreeSet<Integer> highlightIndices = new TreeSet<Integer>(); // indices of highlighted points
@@ -1810,6 +1811,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			tab.setWorkingColumns(xColName, yColName);
 		}
 		tool.setVisible(true);
+	}
+
+	public void clearPopup() {
+		popup = null;
+		popupmenu = null;
 	}
 
 }

@@ -62,45 +62,45 @@ import org.opensourcephysics.tools.FontSizer;
  */
 public class TableTView extends TrackChooserTView {
 
-  protected static final Icon TABLEVIEW_ICON =  new ImageIcon(
-      Tracker.getClassResource("resources/images/datatable.gif")); //$NON-NLS-1$;
+	protected static final Icon TABLEVIEW_ICON = new ImageIcon(
+			Tracker.getClassResource("resources/images/datatable.gif")); //$NON-NLS-1$ ;
 
-  // instance fields
-  protected JDialog columnsDialog;
-  protected JLabel trackLabel;
-  protected JButton defineButton, closeButton, textColumnButton;
-  protected JPanel buttonPanel;
-  protected boolean dialogVisible;
+	// instance fields
+	protected JDialog columnsDialog;
+	protected JLabel trackLabel;
+	protected JButton defineButton, closeButton, textColumnButton;
+	protected JPanel buttonPanel;
+	protected boolean dialogVisible;
 
-  /**
-   * Constructs a TableTView for the specified tracker panel.
-   *
-   * @param panel the tracker panel
-   */
-  public TableTView(TrackerPanel panel) {
-    super(panel);
-    getColumnsDialog();
-  }
+	/**
+	 * Constructs a TableTView for the specified tracker panel.
+	 *
+	 * @param panel the tracker panel
+	 */
+	public TableTView(TrackerPanel panel) {
+		super(panel);
+		getColumnsDialog();
+	}
 
-  /**
-   * Gets the name of the view
-   *
-   * @return the name of the view
-   */
-  @Override
-public String getViewName() {
-    return TrackerRes.getString("TFrame.View.Table"); //$NON-NLS-1$
-  }
+	/**
+	 * Gets the name of the view
+	 *
+	 * @return the name of the view
+	 */
+	@Override
+	public String getViewName() {
+		return TrackerRes.getString("TFrame.View.Table"); //$NON-NLS-1$
+	}
 
-  /**
-   * Gets the icon for this view
-   *
-   * @return the icon for this view
-   */
-  @Override
-public Icon getViewIcon() {
-    return TABLEVIEW_ICON;
-  }
+	/**
+	 * Gets the icon for this view
+	 *
+	 * @return the icon for this view
+	 */
+	@Override
+	public Icon getViewIcon() {
+		return TABLEVIEW_ICON;
+	}
 
 	/**
 	 * Gets the type of view
@@ -112,308 +112,304 @@ public Icon getViewIcon() {
 		return TView.VIEW_TABLE;
 	}
 
-  /**
-   * Creates a view for the specified track
-   *
-   * @param track the track to be viewed
-   * @return the view of the track
-   */
-  @Override
-protected TrackView createTrackView(TTrack track) {
-  	TableTrackView trackView = new TableTrackView(track, trackerPanel, this);
-    FontSizer.setFonts(trackView); // for resizable icon onl
-    return trackView;
-  }
+	/**
+	 * Creates a view for the specified track
+	 *
+	 * @param track the track to be viewed
+	 * @return the view of the track
+	 */
+	@Override
+	protected TrackView createTrackView(TTrack track) {
+		TableTrackView trackView = new TableTrackView(track, trackerPanel, this);
+		FontSizer.setFonts(trackView); // for resizable icon onl
+		return trackView;
+	}
 
-  /**
-   * Overrides TrackChooserTView method.
-   *
-   * @param track the track to be selected
-   */
-  @Override
-public void setSelectedTrack(TTrack track) {
-  	if (track == null) {
-    	noDataLabel.setText(TrackerRes.getString("TableTView.Label.NoData")); //$NON-NLS-1$
-  	}
-  	super.setSelectedTrack(track);
+	/**
+	 * Overrides TrackChooserTView method.
+	 *
+	 * @param track the track to be selected
+	 */
+	@Override
+	public void setSelectedTrack(TTrack track) {
+		if (track == null) {
+			noDataLabel.setText(TrackerRes.getString("TableTView.Label.NoData")); //$NON-NLS-1$
+		}
+		super.setSelectedTrack(track);
 		// refresh or close the columns dialog
-  	if (columnsDialog == null) {
-  		return;
-  	}
-  	else if (getSelectedTrack() == null) {
-    	columnsDialog.getContentPane().removeAll();    	
-  		columnsDialog.setVisible(false);
-  	}
-  	else if (!columnsDialog.isVisible()) {
-  		return;
-  	}
-  	else showColumnsDialog(getSelectedTrack());
-  }
-  
-  /**
-   * Refreshes the dropdown list and track views.
-   */
-  @Override
-public void refresh() {
-  	super.refresh();
-  	if (columnsDialog == null) return;
-    FontSizer.setFonts(columnsDialog);      
+		if (columnsDialog == null) {
+			return;
+		} else if (getSelectedTrack() == null) {
+			columnsDialog.getContentPane().removeAll();
+			columnsDialog.setVisible(false);
+		} else if (!columnsDialog.isVisible()) {
+			return;
+		} else
+			showColumnsDialog(getSelectedTrack());
+	}
+
+	/**
+	 * Refreshes the dropdown list and track views.
+	 */
+	@Override
+	public void refresh() {
+		super.refresh();
+		if (columnsDialog == null)
+			return;
+		FontSizer.setFonts(columnsDialog);
 		closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
 		defineButton.setText(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
 		defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
-    columnsDialog.setTitle(TrackerRes.getString("TableTView.Dialog.TableColumns.Title")); //$NON-NLS-1$
-    textColumnButton.setText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Text")); //$NON-NLS-1$
-    textColumnButton.setToolTipText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Tooltip")); //$NON-NLS-1$
-  }
-  
-  /**
-   * Displays the dialog box for selecting data columns.
-   *
-   * @param track the track
-   */
-  protected void showColumnsDialog(TTrack track) {
-  	if (getColumnsDialog() == null) return;
-  	// refresh dialog
-  	refreshColumnsDialog(track);
-    Point p0 = new Frame().getLocation();
-    if (columnsDialog.getLocation().x == p0.x) {
-      // center dialog on the screen
-      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-      int x = (dim.width - columnsDialog.getBounds().width) / 2;
-      int y = (dim.height - columnsDialog.getBounds().height) / 2;
-      columnsDialog.setLocation(x, y);
-    }
-    if (!columnsDialog.isVisible()) columnsDialog.setVisible(true);
-  }
+		columnsDialog.setTitle(TrackerRes.getString("TableTView.Dialog.TableColumns.Title")); //$NON-NLS-1$
+		textColumnButton.setText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Text")); //$NON-NLS-1$
+		textColumnButton.setToolTipText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Tooltip")); //$NON-NLS-1$
+	}
 
-  /**
-   * Displays the dialog box for selecting data columns.
-   *
-   * @param track the track
-   */
-  protected void refreshColumnsDialog(TTrack track) {
-  	if (getColumnsDialog()==null) return;
-    Container contentPane = columnsDialog.getContentPane();
-    contentPane.removeAll();
-    trackLabel.setIcon(track.getFootprint().getIcon(21, 16));
-    trackLabel.setText(track.getName());
-    contentPane.add(trackLabel);
-    TableTrackView trackView = (TableTrackView)getTrackView(track);
-    trackView.refreshColumnCheckboxes();
-    contentPane.add(trackView.columnsScroller);
-	  contentPane.add(buttonPanel);
-    FontSizer.setFonts(contentPane);      
-    contentPane.setPreferredSize(null);
-    Dimension dim = contentPane.getPreferredSize();
-    dim.height = Math.min(dim.height, 300);
-    contentPane.setPreferredSize(dim);
-    columnsDialog.pack();
-    textColumnButton.setEnabled(!track.isLocked());
-    columnsDialog.repaint();
-  }
+	/**
+	 * Displays the dialog box for selecting data columns.
+	 *
+	 * @param track the track
+	 */
+	protected void showColumnsDialog(TTrack track) {
+		if (getColumnsDialog() == null)
+			return;
+		// refresh dialog
+		refreshColumnsDialog(track);
+		Point p0 = new Frame().getLocation();
+		if (columnsDialog.getLocation().x == p0.x) {
+			// center dialog on the screen
+			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+			int x = (dim.width - columnsDialog.getBounds().width) / 2;
+			int y = (dim.height - columnsDialog.getBounds().height) / 2;
+			columnsDialog.setLocation(x, y);
+		}
+		if (!columnsDialog.isVisible())
+			columnsDialog.setVisible(true);
+	}
 
-  /**
-   * Responds to property change events. This listens for
-   * events TFrame.PROPERTY_TFRAME_TAB and "function" from FunctionTool.
-   *
-   * @param e the property change event
-   */
-  @Override
-public void propertyChange(PropertyChangeEvent e) {
-    if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
-      if (e.getNewValue() == trackerPanel && this.isVisible()) {
-        if (columnsDialog != null) columnsDialog.setVisible(dialogVisible);
-      }
-      else {
-        boolean vis = dialogVisible;
-        if (columnsDialog != null) columnsDialog.setVisible(false);
-        dialogVisible = vis;
-      }
-    }
-    else if (e.getPropertyName().equals("function")) { //$NON-NLS-1$
-      super.propertyChange(e);
-      TTrack track = getSelectedTrack();
-      if (track!=null && columnsDialog!=null) {
-        refreshColumnsDialog(track);      	
-  	    JViewport port = ((TableTrackView)getTrackView(track)).
-  	    		columnsScroller.getViewport();
-  	    Dimension dim = port.getViewSize();
-  	    int offset = port.getExtentSize().height;
-  	    port.setViewPosition(new Point(0, dim.height-offset));
-      }
-    }
-    else super.propertyChange(e);
-  }
-  
-  /**
-   * Cleans up this view
-   */
-  @Override
-public void cleanup() {
-  	super.cleanup();
-  	if (trackerPanel!=null && trackerPanel.getTFrame()!=null) {
-  		trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
-  	}
-  }
+	/**
+	 * Displays the dialog box for selecting data columns.
+	 *
+	 * @param track the track
+	 */
+	protected void refreshColumnsDialog(TTrack track) {
+		if (getColumnsDialog() == null)
+			return;
+		Container contentPane = columnsDialog.getContentPane();
+		contentPane.removeAll();
+		trackLabel.setIcon(track.getFootprint().getIcon(21, 16));
+		trackLabel.setText(track.getName());
+		contentPane.add(trackLabel);
+		TableTrackView trackView = (TableTrackView) getTrackView(track);
+		trackView.refreshColumnCheckboxes();
+		contentPane.add(trackView.columnsScroller);
+		contentPane.add(buttonPanel);
+		FontSizer.setFonts(contentPane);
+		contentPane.setPreferredSize(null);
+		Dimension dim = contentPane.getPreferredSize();
+		dim.height = Math.min(dim.height, 300);
+		contentPane.setPreferredSize(dim);
+		columnsDialog.pack();
+		textColumnButton.setEnabled(!track.isLocked());
+		columnsDialog.repaint();
+	}
 
-  private JDialog getColumnsDialog() {
-  	TFrame frame = trackerPanel.getTFrame();
-    if (columnsDialog == null && frame != null) {
-      columnsDialog = new JDialog(frame, false) {
-        @Override
-		public void setVisible(boolean vis) {
-          super.setVisible(vis);
-          dialogVisible = vis;
-        }    	    	
-      };
-      columnsDialog.setTitle(TrackerRes.getString("TableTView.Dialog.TableColumns.Title")); //$NON-NLS-1$
-      columnsDialog.setResizable(false);
-      frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
-      JPanel contentPane = new JPanel();
-      contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
-      columnsDialog.setContentPane(contentPane);
-      // create close button
-      closeButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
-      closeButton.addActionListener(new ActionListener() {
-        @Override
-		public void actionPerformed(ActionEvent e) {
-        	columnsDialog.setVisible(false);
-        }
-      });
-      // create data function tool action
-      // create define button
-      defineButton = new JButton(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
-      defineButton.addActionListener(new ActionListener() {
-          @Override
-  		public void actionPerformed(ActionEvent e) {
-            TTrack track = getSelectedTrack();
-            if (track != null) {
-            	trackerPanel.getDataBuilder().setSelectedPanel(track.getName());
-            	trackerPanel.getDataBuilder().setVisible(true);
-            }
-          }
-        });
-      defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
-      // create text column button
-      textColumnButton = new JButton(TrackerRes.getString("TableTrackView.Menu.TextColumn.Text")); //$NON-NLS-1$
-      textColumnButton.setToolTipText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Tooltip")); //$NON-NLS-1$
-      textColumnButton.addActionListener(new ActionListener() {
-        @Override
-		public void actionPerformed(ActionEvent e) {
-        	// show popup menu
-  		    JPopupMenu popup = new JPopupMenu();
-          TableTrackView trackView = (TableTrackView)getTrackView(getSelectedTrack());
-          trackView.getPopup(); // refreshes menu items
-  		    popup.add(trackView.createTextColumnItem);
-  		    if (trackView.deleteTextColumnMenu.getMenuComponentCount()>0) {
-	  		    popup.add(trackView.deleteTextColumnMenu);
-	  		    popup.add(trackView.renameTextColumnMenu);
-  		    }
-        	FontSizer.setFonts(popup, FontSizer.getLevel());
-  		    popup.show(textColumnButton, 0, textColumnButton.getHeight());
-        }
-      });
+	/**
+	 * Responds to property change events. This listens for events
+	 * TFrame.PROPERTY_TFRAME_TAB and "function" from FunctionTool.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { // $NON-NLS-1$
+			if (e.getNewValue() == trackerPanel && this.isVisible()) {
+				if (columnsDialog != null)
+					columnsDialog.setVisible(dialogVisible);
+			} else {
+				boolean vis = dialogVisible;
+				if (columnsDialog != null)
+					columnsDialog.setVisible(false);
+				dialogVisible = vis;
+			}
+		} else if (e.getPropertyName().equals("function")) { //$NON-NLS-1$
+			super.propertyChange(e);
+			TTrack track = getSelectedTrack();
+			if (track != null && columnsDialog != null) {
+				refreshColumnsDialog(track);
+				JViewport port = ((TableTrackView) getTrackView(track)).columnsScroller.getViewport();
+				Dimension dim = port.getViewSize();
+				int offset = port.getExtentSize().height;
+				port.setViewPosition(new Point(0, dim.height - offset));
+			}
+		} else
+			super.propertyChange(e);
+	}
 
-      buttonPanel = new JPanel();
-	    if (trackerPanel.isEnabled("data.builder"))  //$NON-NLS-1$
-	    	buttonPanel.add(defineButton);
-	    if (trackerPanel.isEnabled("text.columns"))  //$NON-NLS-1$
-	    	buttonPanel.add(textColumnButton);
-	    buttonPanel.add(closeButton);
-	    // create track label
-	    trackLabel = new JLabel();
-	    trackLabel.setBorder(BorderFactory.createEmptyBorder(7, 0, 6, 0));
-	    trackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-    }
-    
-    // refresh button panel
-    if (columnsDialog!=null) {    
-	    buttonPanel.removeAll();
-	    if (trackerPanel.isEnabled("data.builder"))  //$NON-NLS-1$
-	    	buttonPanel.add(defineButton);
-	    if (trackerPanel.isEnabled("text.columns"))  //$NON-NLS-1$
-	    	buttonPanel.add(textColumnButton);
-	    buttonPanel.add(closeButton);
-    }
-  	return columnsDialog;
-  }
+	/**
+	 * Cleans up this view
+	 */
+	@Override
+	public void cleanup() {
+		super.cleanup();
+		if (trackerPanel != null && trackerPanel.getTFrame() != null) {
+			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
+		}
+	}
 
-  /**
-   * Returns an XML.ObjectLoader to save and load object data.
-   *
-   * @return the XML.ObjectLoader
-   */
-  public static XML.ObjectLoader getLoader() {
-    return new Loader();
-  }
+	private JDialog getColumnsDialog() {
+		TFrame frame = trackerPanel.getTFrame();
+		if (columnsDialog == null && frame != null) {
+			columnsDialog = new JDialog(frame, false) {
+				@Override
+				public void setVisible(boolean vis) {
+					super.setVisible(vis);
+					dialogVisible = vis;
+				}
+			};
+			columnsDialog.setTitle(TrackerRes.getString("TableTView.Dialog.TableColumns.Title")); //$NON-NLS-1$
+			columnsDialog.setResizable(false);
+			frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
+			JPanel contentPane = new JPanel();
+			contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
+			columnsDialog.setContentPane(contentPane);
+			// create close button
+			closeButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
+			closeButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					columnsDialog.setVisible(false);
+				}
+			});
+			// create data function tool action
+			// create define button
+			defineButton = new JButton(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
+			defineButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					TTrack track = getSelectedTrack();
+					if (track != null) {
+						trackerPanel.getDataBuilder().setSelectedPanel(track.getName());
+						trackerPanel.getDataBuilder().setVisible(true);
+					}
+				}
+			});
+			defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
+			// create text column button
+			textColumnButton = new JButton(TrackerRes.getString("TableTrackView.Menu.TextColumn.Text")); //$NON-NLS-1$
+			textColumnButton.setToolTipText(TrackerRes.getString("TableTrackView.Menu.TextColumn.Tooltip")); //$NON-NLS-1$
+			textColumnButton.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					// show popup menu
+					JPopupMenu popup = new JPopupMenu();
+					TableTrackView trackView = (TableTrackView) getTrackView(getSelectedTrack());
+					trackView.addColumnItems(popup);
+					FontSizer.setFonts(popup, FontSizer.getLevel());
+					popup.show(textColumnButton, 0, textColumnButton.getHeight());
+				}
+			});
 
-  /**
-   * A class to save and load object data.
-   */
-  static class Loader implements XML.ObjectLoader {
+			buttonPanel = new JPanel();
+			if (trackerPanel.isEnabled("data.builder")) //$NON-NLS-1$
+				buttonPanel.add(defineButton);
+			if (trackerPanel.isEnabled("text.columns")) //$NON-NLS-1$
+				buttonPanel.add(textColumnButton);
+			buttonPanel.add(closeButton);
+			// create track label
+			trackLabel = new JLabel();
+			trackLabel.setBorder(BorderFactory.createEmptyBorder(7, 0, 6, 0));
+			trackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+		}
 
-    /**
-     * Saves object data.
-     *
-     * @param control the control to save to
-     * @param obj the TrackerPanel object to save
-     */
-    @Override
-	public void saveObject(XMLControl control, Object obj) {
-      TableTView view = (TableTView)obj;
-      TTrack track = view.getSelectedTrack();
-      if (track != null) { // contains at least one track
-        control.setValue("selected_track", track.getName()); //$NON-NLS-1$
-        // save customized tables
-        ArrayList<TTrack> customized = new ArrayList<TTrack>();
-        Map<TTrack, TrackView> views = view.trackViews;
-        for (TTrack next: views.keySet()) {
-        	if (views.get(next).isCustomState())
-        		customized.add(next);
-        }
-        if (!customized.isEmpty()) {
-        	ArrayList<String[][]> formattedColumns = new ArrayList<String[][]>();
-	        String[][] data = new String[customized.size()][];
-	        Iterator<TTrack> it = customized.iterator();
-	        int i = -1;
-	        while (it.hasNext()) {
-	        	i++;
-	        	track = it.next();
-	          TableTrackView trackView = (TableTrackView)view.getTrackView(track);
-	          String[] columns = trackView.getOrderedVisibleColumns();
-	          data[i] = new String[columns.length+1];
-	          System.arraycopy(columns, 0, data[i], 1, columns.length);
-	          data[i][0] = track.getName();
-	          String[][] formats = trackView.getColumnFormats();
-	          if (formats.length>0) {
-	          	String[][] withName = new String[formats.length][3];
-	          	for (int j=0; j<formats.length; j++) {
-	          		withName[j][0] = track.getName();
-	          		withName[j][1] = formats[j][0];
-	          		withName[j][2] = formats[j][1];
-	          	}
-	          	formattedColumns.add(withName);
-	          }
-	        }
-	        control.setValue("track_columns", data); //$NON-NLS-1$
-	        if (!formattedColumns.isEmpty()) {
-	        	String[][][] patterns = formattedColumns.toArray(new String[0][0][0]);
-		        control.setValue("column_formats", patterns); //$NON-NLS-1$
-	        }
-        }
-      }
-    }
+		// refresh button panel
+		if (columnsDialog != null) {
+			buttonPanel.removeAll();
+			if (trackerPanel.isEnabled("data.builder")) //$NON-NLS-1$
+				buttonPanel.add(defineButton);
+			if (trackerPanel.isEnabled("text.columns")) //$NON-NLS-1$
+				buttonPanel.add(textColumnButton);
+			buttonPanel.add(closeButton);
+		}
+		return columnsDialog;
+	}
 
-    /**
-     * Creates an object.
-     *
-     * @param control the control
-     * @return the newly created object
-     */
-    @Override
-	public Object createObject(XMLControl control){
-      return null;
-    }
+	/**
+	 * Returns an XML.ObjectLoader to save and load object data.
+	 *
+	 * @return the XML.ObjectLoader
+	 */
+	public static XML.ObjectLoader getLoader() {
+		return new Loader();
+	}
+
+	/**
+	 * A class to save and load object data.
+	 */
+	static class Loader implements XML.ObjectLoader {
+
+		/**
+		 * Saves object data.
+		 *
+		 * @param control the control to save to
+		 * @param obj     the TrackerPanel object to save
+		 */
+		@Override
+		public void saveObject(XMLControl control, Object obj) {
+			TableTView view = (TableTView) obj;
+			TTrack track = view.getSelectedTrack();
+			if (track != null) { // contains at least one track
+				control.setValue("selected_track", track.getName()); //$NON-NLS-1$
+				// save customized tables
+				ArrayList<TTrack> customized = new ArrayList<TTrack>();
+				Map<TTrack, TrackView> views = view.trackViews;
+				for (TTrack next : views.keySet()) {
+					if (views.get(next).isCustomState())
+						customized.add(next);
+				}
+				if (!customized.isEmpty()) {
+					ArrayList<String[][]> formattedColumns = new ArrayList<String[][]>();
+					String[][] data = new String[customized.size()][];
+					Iterator<TTrack> it = customized.iterator();
+					int i = -1;
+					while (it.hasNext()) {
+						i++;
+						track = it.next();
+						TableTrackView trackView = (TableTrackView) view.getTrackView(track);
+						String[] columns = trackView.getOrderedVisibleColumns();
+						data[i] = new String[columns.length + 1];
+						System.arraycopy(columns, 0, data[i], 1, columns.length);
+						data[i][0] = track.getName();
+						String[][] formats = trackView.getColumnFormats();
+						if (formats.length > 0) {
+							String[][] withName = new String[formats.length][3];
+							for (int j = 0; j < formats.length; j++) {
+								withName[j][0] = track.getName();
+								withName[j][1] = formats[j][0];
+								withName[j][2] = formats[j][1];
+							}
+							formattedColumns.add(withName);
+						}
+					}
+					control.setValue("track_columns", data); //$NON-NLS-1$
+					if (!formattedColumns.isEmpty()) {
+						String[][][] patterns = formattedColumns.toArray(new String[0][0][0]);
+						control.setValue("column_formats", patterns); //$NON-NLS-1$
+					}
+				}
+			}
+		}
+
+		/**
+		 * Creates an object.
+		 *
+		 * @param control the control
+		 * @return the newly created object
+		 */
+		@Override
+		public Object createObject(XMLControl control) {
+			return null;
+		}
 
 		/**
 		 * Loads an object with data from an XMLControl.
@@ -557,6 +553,10 @@ public void cleanup() {
 			}
 			return obj;
 		}
-  }
+	}
+
+	@Override
+	protected void refreshMenus() {
+	}
 
 }

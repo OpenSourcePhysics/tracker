@@ -31,7 +31,6 @@ import java.util.HashMap;
 
 import javax.swing.JMenu;
 
-import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
@@ -74,10 +73,10 @@ public class PerspectiveTrack extends TTrack {
     steps = new StepArray(step);
     filter.addPropertyChangeListener(PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
     filter.addPropertyChangeListener(PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
-    filter.addPropertyChangeListener("enabled", this); //$NON-NLS-1$
+    filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_ENABLED, this); //$NON-NLS-1$
     filter.addPropertyChangeListener(Filter.PROPERTY_FILTER_TAB, this); //$NON-NLS-1$
-    filter.addPropertyChangeListener("cornerlocation", this); //$NON-NLS-1$
-    filter.addPropertyChangeListener("fixed", this); //$NON-NLS-1$
+    filter.addPropertyChangeListener(PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_CORNERLOCATION, this); //$NON-NLS-1$
+    filter.addPropertyChangeListener(PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_FIXED, this); //$NON-NLS-1$
 	}
 	
   @Override
@@ -86,78 +85,72 @@ public class PerspectiveTrack extends TTrack {
 		filterMap.remove(filter);
     filter.removePropertyChangeListener(PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
     filter.removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
-    filter.removePropertyChangeListener("enabled", this); //$NON-NLS-1$
+    filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_ENABLED, this); //$NON-NLS-1$
     filter.removePropertyChangeListener(Filter.PROPERTY_FILTER_TAB, this); //$NON-NLS-1$
-    filter.removePropertyChangeListener("cornerlocation", this); //$NON-NLS-1$
-    filter.removePropertyChangeListener("fixed", this); //$NON-NLS-1$
+    filter.removePropertyChangeListener(PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_CORNERLOCATION, this); //$NON-NLS-1$
+    filter.removePropertyChangeListener(PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_FIXED, this); //$NON-NLS-1$
   	filter = null;
   }
 
-  /**
-   * Responds to property change events.
-   *
-   * @param e the property change event
-   */
-  @Override
-public void propertyChange(PropertyChangeEvent e) {
-  	String name = e.getPropertyName();
-  	if (e.getSource()==filter) {
-	  	if (name.equals("color")) { //$NON-NLS-1$
-	  		setColor((Color)e.getNewValue());
-	  	}
-	  	else if (name.equals("enabled") || 
-	  			name.equals(Filter.PROPERTY_FILTER_TAB) || 
-	  			name.equals(PROPERTY_TTRACK_VISIBLE)) { //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-	  		if (trackerPanel.getSelectedTrack()==this) {
-  				trackerPanel.setSelectedPoint(null);
-          trackerPanel.selectedSteps.clear();
-	  		}
-	  		boolean visible = filter.hasInspector() && filter.getInspector().isVisible();
-	  		if (visible) {
-	  			trackerPanel.setSelectedTrack(this);
-	  		}
-	  		else {
-	  			trackerPanel.setSelectedTrack(null);  				  			
-	  		}
-	  	}
-	  	else if (name.equals("cornerlocation")) { //$NON-NLS-1$
-	  		PerspectiveFilter.Corner filtercorner = (PerspectiveFilter.Corner)e.getNewValue();
-	  		int i = filter.getCornerIndex(filtercorner);
-	  		int n = trackerPanel.getFrameNumber();
-	  		if (filter.isInputEnabled() && i<4) {
-	  			getStep(n).points[i].setXY(filtercorner.getX(), filtercorner.getY());
-	  		}
-	  	}
-	  	else if (name.equals("fixed")) { //$NON-NLS-1$
-	  		String xml = (String)e.getOldValue();
-		    XMLControl control = new XMLControlElement(xml);		    
-		    Undo.postFilterEdit(trackerPanel, filter, control);
-	  	}
-  	}
-  	if (name.equals("selectedtrack")) { //$NON-NLS-1$
-  		if (e.getNewValue()==this) {
-  			if (filter.hasInspector() && !filter.getInspector().isVisible()) {
-  				filter.getInspector().setVisible(true);
-  			}
-  		}
-  	}
-  	if (name.equals("selectedpoint")) { //$NON-NLS-1$
-  		if (e.getOldValue()!=null && filterState!=null) {
-  			TPoint p = (TPoint)e.getOldValue();
-  			if (p instanceof PerspectiveFilter.Corner) {
-			    XMLControl control = new XMLControlElement(filterState);
-			    Undo.postFilterEdit(trackerPanel, filter, control);
-			    filterState = null;
-  			}
-  		}
-  		if (e.getNewValue()!=null) {
-  			TPoint p = (TPoint)e.getNewValue();
-  			if (p instanceof PerspectiveFilter.Corner && filterState==null) {
-  				filterState = new XMLControlElement(filter).toXML();
-  			}
-  		}
-  	}
-  }
+	/**
+	 * Responds to property change events.
+	 *
+	 * @param e the property change event
+	 */
+	@Override
+	public void propertyChange(PropertyChangeEvent e) {
+		switch (e.getPropertyName()) {
+		case Filter.PROPERTY_FILTER_COLOR:
+			setColor((Color) e.getNewValue());
+			break;
+		case Filter.PROPERTY_FILTER_ENABLED:
+		case Filter.PROPERTY_FILTER_TAB:
+		case PROPERTY_TTRACK_VISIBLE:
+			if (trackerPanel.getSelectedTrack() == this) {
+				trackerPanel.setSelectedPoint(null);
+				trackerPanel.selectedSteps.clear();
+			}
+			boolean visible = filter.hasInspector() && filter.getInspector().isVisible();
+			if (visible) {
+				trackerPanel.setSelectedTrack(this);
+			} else {
+				trackerPanel.setSelectedTrack(null);
+			}
+			break;
+		case PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_FIXED:
+			Undo.postFilterEdit(trackerPanel, filter,  new XMLControlElement((String) e.getOldValue()));
+			break;
+		case PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_CORNERLOCATION:
+			PerspectiveFilter.Corner filtercorner = (PerspectiveFilter.Corner) e.getNewValue();
+			int i = filter.getCornerIndex(filtercorner);
+			int n = trackerPanel.getFrameNumber();
+			if (filter.isInputEnabled() && i < 4) {
+				getStep(n).points[i].setXY(filtercorner.getX(), filtercorner.getY());
+			}
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
+			if (e.getNewValue() == this) {
+				if (filter.hasInspector() && !filter.getInspector().isVisible()) {
+					filter.getInspector().setVisible(true);
+				}
+			}
+		break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
+			if (e.getOldValue() != null && filterState != null) {
+				TPoint p = (TPoint) e.getOldValue();
+				if (p instanceof PerspectiveFilter.Corner) {
+					Undo.postFilterEdit(trackerPanel, filter, new XMLControlElement(filterState));
+					filterState = null;
+				}
+			}
+			if (e.getNewValue() != null) {
+				if (e.getNewValue() instanceof PerspectiveFilter.Corner && filterState == null) {
+					filterState = new XMLControlElement(filter).toXML();
+				}
+			}
+			break;
+		}
+	}
   
   /**
    * Finds the interactive drawable object located at the specified

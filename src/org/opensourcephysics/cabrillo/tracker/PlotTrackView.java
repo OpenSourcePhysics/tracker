@@ -54,8 +54,6 @@ public class PlotTrackView extends TrackView {
 	protected JButton plotsButton;
 	protected JCheckBox linkCheckBox;
 	protected JPopupMenu popup;
-	// protected JRadioButtonMenuItem[] plotCountItems;
-	// protected ButtonGroup plotCountGroup;
 	protected boolean highlightVisible = true;
 	protected int defaultPlotCount = 1;
 	private boolean isCustom;
@@ -272,7 +270,7 @@ public class PlotTrackView extends TrackView {
 				plot.plotAxes.hideScaleSetter();
 			}
 			for (TrackPlottingPanel plot : plots) {
-				plot.buildPopupmenu();
+				plot.clearPopup();
 			}
 		} else if (name.equals("units")) { // from trackerPanel //$NON-NLS-1$
 			for (TrackPlottingPanel plot : plots) {

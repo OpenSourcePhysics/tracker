@@ -254,7 +254,10 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	/**
 	 * Refreshes the menus.
 	 */
-	protected void refreshMenus() {
+	abstract protected void refreshMenus();
+	
+	protected void getMenuItems() {
+		
 	}
 
 	/**

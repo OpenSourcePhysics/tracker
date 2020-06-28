@@ -200,29 +200,14 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected final Point2D.Double[] points = new Point2D.Double[] { new Point2D.Double() };
 	protected ArrayList<Component> toolbarTrackComponents = new ArrayList<Component>();
 	protected ArrayList<Component> toolbarPointComponents = new ArrayList<Component>();
-	protected TextLineLabel xLabel, yLabel, magLabel, angleLabel;
-	protected JLabel tLabel, stepLabel, tValueLabel, stepValueLabel;
-	protected NumberField tField, xField, yField, magField;
-	protected DecimalField angleField;
-	protected NumberField[] positionFields;
 	protected Map<String, NumberField[]> numberFields = new TreeMap<String, NumberField[]>();
-	protected Border fieldBorder;
-	protected Component tSeparator, xSeparator, ySeparator, magSeparator, angleSeparator, stepSeparator;
 	protected boolean autoAdvance;
 	protected boolean markByDefault = false, isMarking = false;
-	protected JCheckBoxMenuItem visibleItem;
-	protected JCheckBoxMenuItem trailVisibleItem;
-	protected JCheckBoxMenuItem markByDefaultItem;
-	protected JCheckBoxMenuItem autoAdvanceItem;
-	protected JCheckBoxMenuItem lockedItem;
-	protected JMenuItem nameItem;
-	protected JMenuItem colorItem;
-	protected JMenu footprintMenu;
+	protected TextLineLabel xLabel, yLabel, magLabel, angleLabel;
+
 	protected ActionListener footprintListener, circleFootprintListener;
-	protected JMenuItem deleteTrackItem, deleteStepItem, clearStepsItem;
-	protected JMenuItem descriptionItem;
-	protected JMenuItem dataBuilderItem;
-	protected JSpinner xSpinner, ySpinner;
+	
+	
 	protected Font labelFont = new Font("arial", Font.PLAIN, 12); //$NON-NLS-1$
 	protected TrackerPanel trackerPanel;
 	protected XMLProperty dataProp;
@@ -250,6 +235,29 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected String[] customNumberFormats;
 	private int ID; // unique ID number
 
+	// GUI
+	protected JLabel tLabel, stepLabel, tValueLabel, stepValueLabel;
+	protected NumberField tField, xField, yField, magField;
+	protected DecimalField angleField;
+	protected NumberField[] positionFields;
+	protected Border fieldBorder;
+	protected JSpinner xSpinner, ySpinner;
+	
+	protected JMenu footprintMenu;
+	
+	protected Component tSeparator, xSeparator, ySeparator, magSeparator, angleSeparator, stepSeparator;
+
+	protected JCheckBoxMenuItem visibleItem;
+	protected JCheckBoxMenuItem trailVisibleItem;
+	protected JCheckBoxMenuItem markByDefaultItem;
+	protected JCheckBoxMenuItem autoAdvanceItem;
+	protected JCheckBoxMenuItem lockedItem;
+	protected JMenuItem nameItem;
+	protected JMenuItem colorItem;
+	protected JMenuItem deleteTrackItem, deleteStepItem, clearStepsItem;
+	protected JMenuItem descriptionItem;
+	protected JMenuItem dataBuilderItem;
+	
 	/**
 	 * Constructs a TTrack.
 	 */
@@ -284,6 +292,13 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		editor = new JSpinner.NumberEditor(ySpinner, "0.00"); //$NON-NLS-1$
 		editor.getTextField().setHorizontalAlignment(SwingConstants.LEFT);
 		ySpinner.setEditor(editor);
+		stepSeparator = Box.createRigidArea(new Dimension(4, 4));
+		tSeparator = Box.createRigidArea(new Dimension(6, 4));
+		xSeparator = Box.createRigidArea(new Dimension(6, 4));
+		ySeparator = Box.createRigidArea(new Dimension(6, 4));
+		magSeparator = Box.createRigidArea(new Dimension(6, 4));
+		angleSeparator = Box.createRigidArea(new Dimension(6, 4));
+
 		// create mouse listeners for fields
 		formatMouseListener = new MouseAdapter() {
 			@Override
@@ -427,151 +442,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		magField.setBorder(fieldBorder);
 		angleField.setBorder(fieldBorder);
 		positionFields = new NumberField[] { xField, yField, magField, angleField };
-		stepSeparator = Box.createRigidArea(new Dimension(4, 4));
-		tSeparator = Box.createRigidArea(new Dimension(6, 4));
-		xSeparator = Box.createRigidArea(new Dimension(6, 4));
-		ySeparator = Box.createRigidArea(new Dimension(6, 4));
-		magSeparator = Box.createRigidArea(new Dimension(6, 4));
-		angleSeparator = Box.createRigidArea(new Dimension(6, 4));
-		// create menu items
-		visibleItem = new JCheckBoxMenuItem();
-		trailVisibleItem = new JCheckBoxMenuItem();
-		autoAdvanceItem = new JCheckBoxMenuItem();
-		markByDefaultItem = new JCheckBoxMenuItem();
-		lockedItem = new JCheckBoxMenuItem();
-		deleteTrackItem = new JMenuItem();
-		deleteStepItem = new JMenuItem();
-		clearStepsItem = new JMenuItem();
-		colorItem = new JMenuItem();
-		colorItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Color color = getColor();
-				Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
-				if (newColor != color) {
-					XMLControl control = new XMLControlElement(new TrackProperties(TTrack.this));
-					setColor(newColor);
-					Undo.postTrackDisplayEdit(TTrack.this, control);
-				}
-			}
-		});
-
-		nameItem = new JMenuItem();
-		nameItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				getNameDialog(TTrack.this).setVisible(true);
-			}
-		});
-		footprintMenu = new JMenu();
-		descriptionItem = new JMenuItem();
-		descriptionItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (trackerPanel != null) {
-					TFrame frame = trackerPanel.getTFrame();
-					if (frame != null) {
-						if (frame.notesDialog.isVisible()) {
-							frame.notesDialog.setVisible(true);
-						} else
-							frame.getToolBar(trackerPanel).notesButton.doClick();
-					}
-				}
-			}
-		});
-		dataBuilderItem = new JMenuItem();
-		dataBuilderItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (trackerPanel != null) {
-					trackerPanel.getDataBuilder().setSelectedPanel(getName());
-					trackerPanel.getDataBuilder().setVisible(true);
-				}
-			}
-		});
-		visibleItem.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				setVisible(visibleItem.isSelected());
-				TTrack.this.repaint();
-			}
-		});
-		trailVisibleItem.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				setTrailVisible(trailVisibleItem.isSelected());
-				if (!TTrack.this.isTrailVisible()) {
-					for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
-						TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
-						Step step = panel.getSelectedStep();
-						if (step != null && step.getTrack() == TTrack.this) {
-							if (!(step.getFrameNumber() == panel.getFrameNumber())) {
-								panel.setSelectedPoint(null);
-								panel.selectedSteps.clear();
-							}
-						}
-					}
-				}
-				TTrack.this.repaint();
-			}
-		});
-		markByDefaultItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setMarkByDefault(markByDefaultItem.isSelected());
-			}
-		});
-		autoAdvanceItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setAutoAdvance(autoAdvanceItem.isSelected());
-			}
-		});
-		lockedItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setLocked(lockedItem.isSelected());
-			}
-		});
-		deleteTrackItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				delete();
-			}
-		});
-		deleteStepItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				trackerPanel.deletePoint(trackerPanel.getSelectedPoint());
-			}
-		});
-		clearStepsItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (isLocked())
-					return;
-				XMLControl control = new XMLControlElement(TTrack.this);
-				for (int n = 0; n < getSteps().length; n++) {
-					steps.setStep(n, null);
-				}
-				for (String columnName : textColumnNames) {
-					textColumnEntries.put(columnName, new String[0]);
-				}
-				Undo.postTrackEdit(TTrack.this, control);
-				if (TTrack.this instanceof PointMass) {
-					PointMass p = (PointMass) TTrack.this;
-					p.updateDerivatives();
-				}
-				AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
-				if (autoTracker != null) {
-					if (autoTracker.getTrack() == TTrack.this)
-						autoTracker.reset();
-					autoTracker.getWizard().setVisible(false);
-				}
-				firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
-				TFrame.repaintT(trackerPanel);
-			}
-		});
 		footprintListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -2212,6 +2082,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		menu.setText(getName("track"));
 		menu.setIcon(getFootprint().getIcon(21, 16));
 		// prepare menu items
+		getMenuItems();
 		visibleItem.setText(TrackerRes.getString("TTrack.MenuItem.Visible")); //$NON-NLS-1$
 		trailVisibleItem.setText(TrackerRes.getString("TTrack.MenuItem.TrailVisible")); //$NON-NLS-1$
 		autoAdvanceItem.setText(TrackerRes.getString("TTrack.MenuItem.Autostep")); //$NON-NLS-1$
@@ -2300,6 +2171,151 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			menu.add(deleteTrackItem);
 		}
 		return menu;
+	}
+
+	protected void getMenuItems() {
+		if (visibleItem != null)
+			return;
+		// create menu items
+		visibleItem = new JCheckBoxMenuItem();
+		trailVisibleItem = new JCheckBoxMenuItem();
+		autoAdvanceItem = new JCheckBoxMenuItem();
+		markByDefaultItem = new JCheckBoxMenuItem();
+		lockedItem = new JCheckBoxMenuItem();
+		deleteTrackItem = new JMenuItem();
+		deleteStepItem = new JMenuItem();
+		clearStepsItem = new JMenuItem();
+		colorItem = new JMenuItem();
+		colorItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Color color = getColor();
+				Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
+				if (newColor != color) {
+					XMLControl control = new XMLControlElement(new TrackProperties(TTrack.this));
+					setColor(newColor);
+					Undo.postTrackDisplayEdit(TTrack.this, control);
+				}
+			}
+		});
+
+		nameItem = new JMenuItem();
+		nameItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				getNameDialog(TTrack.this).setVisible(true);
+			}
+		});
+		footprintMenu = new JMenu();
+		descriptionItem = new JMenuItem();
+		descriptionItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (trackerPanel != null) {
+					TFrame frame = trackerPanel.getTFrame();
+					if (frame != null) {
+						if (frame.notesDialog.isVisible()) {
+							frame.notesDialog.setVisible(true);
+						} else
+							frame.getToolBar(trackerPanel).notesButton.doClick();
+					}
+				}
+			}
+		});
+		dataBuilderItem = new JMenuItem();
+		dataBuilderItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (trackerPanel != null) {
+					trackerPanel.getDataBuilder().setSelectedPanel(getName());
+					trackerPanel.getDataBuilder().setVisible(true);
+				}
+			}
+		});
+		visibleItem.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				setVisible(visibleItem.isSelected());
+				TTrack.this.repaint();
+			}
+		});
+		trailVisibleItem.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				setTrailVisible(trailVisibleItem.isSelected());
+				if (!TTrack.this.isTrailVisible()) {
+					for (int j = 0; j < trackerPanel.panelAndWorldViews.size(); j++) {
+						TrackerPanel panel = trackerPanel.panelAndWorldViews.get(j);
+						Step step = panel.getSelectedStep();
+						if (step != null && step.getTrack() == TTrack.this) {
+							if (!(step.getFrameNumber() == panel.getFrameNumber())) {
+								panel.setSelectedPoint(null);
+								panel.selectedSteps.clear();
+							}
+						}
+					}
+				}
+				TTrack.this.repaint();
+			}
+		});
+		markByDefaultItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setMarkByDefault(markByDefaultItem.isSelected());
+			}
+		});
+		autoAdvanceItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setAutoAdvance(autoAdvanceItem.isSelected());
+			}
+		});
+		lockedItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				setLocked(lockedItem.isSelected());
+			}
+		});
+		deleteTrackItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				delete();
+			}
+		});
+		deleteStepItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				trackerPanel.deletePoint(trackerPanel.getSelectedPoint());
+			}
+		});
+		clearStepsItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (isLocked())
+					return;
+				XMLControl control = new XMLControlElement(TTrack.this);
+				for (int n = 0; n < getSteps().length; n++) {
+					steps.setStep(n, null);
+				}
+				for (String columnName : textColumnNames) {
+					textColumnEntries.put(columnName, new String[0]);
+				}
+				Undo.postTrackEdit(TTrack.this, control);
+				if (TTrack.this instanceof PointMass) {
+					PointMass p = (PointMass) TTrack.this;
+					p.updateDerivatives();
+				}
+				AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
+				if (autoTracker != null) {
+					if (autoTracker.getTrack() == TTrack.this)
+						autoTracker.reset();
+					autoTracker.getWizard().setVisible(false);
+				}
+				firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+				TFrame.repaintT(trackerPanel);
+			}
+		});
+
 	}
 
 	/**

@@ -87,7 +87,6 @@ public class TapeMeasure extends TTrack {
 
 	// instance fields
 	protected boolean fixedPosition = true, fixedLength = true;
-	protected JCheckBoxMenuItem fixedPositionItem, fixedLengthItem;
 	protected boolean editing = false;
 	protected final NumberField inputField;
 	protected JPanel inputPanel;
@@ -101,7 +100,10 @@ public class TapeMeasure extends TTrack {
 	protected JLabel end1Label, end2Label, lengthLabel;
 	protected Footprint[] tapeFootprints, stickFootprints;
 	protected TreeSet<Integer> lengthKeyFrames = new TreeSet<Integer>(); // applies to sticks only
+
+	
 	protected JMenuItem attachmentItem;
+	private JCheckBoxMenuItem fixedPositionItem, fixedLengthItem;
 
 	/**
 	 * Constructs a TapeMeasure.
@@ -230,39 +232,6 @@ public class TapeMeasure extends TTrack {
 				}
 			}
 		};
-		fixedPositionItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
-		fixedPositionItem.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				setFixedPosition(fixedPositionItem.isSelected());
-			}
-		});
-		fixedLengthItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.FixedLength")); //$NON-NLS-1$
-		fixedLengthItem.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				setFixedLength(fixedLengthItem.isSelected());
-			}
-		});
-		attachmentItem = new JMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Attach")); //$NON-NLS-1$
-		attachmentItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ImageCoordSystem coords = TapeMeasure.this.trackerPanel.getCoords();
-				if (TapeMeasure.this.isStickMode() && coords.isFixedScale()) {
-					int result = JOptionPane.showConfirmDialog(TapeMeasure.this.trackerPanel.getTFrame(),
-							TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
-					TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message2"), //$NON-NLS-1$
-							TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Title"), //$NON-NLS-1$
-							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-					if (result != JOptionPane.YES_OPTION)
-						return;
-					coords.setFixedScale(false);
-				}
-				AttachmentDialog control = TapeMeasure.this.trackerPanel.getAttachmentDialog(TapeMeasure.this);
-				control.setVisible(true);
-			}
-		});
 		final FocusListener magFocusListener = new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
@@ -806,6 +775,8 @@ public class TapeMeasure extends TTrack {
 		if (menu0 == null)
 			return menu;
 
+		getMenuItems();
+		
 		lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
 
 		// remove end items and last separator
@@ -848,6 +819,46 @@ public class TapeMeasure extends TTrack {
 		menu.addSeparator();
 		menu.add(deleteTrackItem);
 		return menu;
+	}
+
+	@Override
+	protected void getMenuItems() {
+		if (fixedPositionItem != null)
+			return;
+		super.getMenuItems();
+		fixedPositionItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
+		fixedPositionItem.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				setFixedPosition(fixedPositionItem.isSelected());
+			}
+		});
+		fixedLengthItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.FixedLength")); //$NON-NLS-1$
+		fixedLengthItem.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				setFixedLength(fixedLengthItem.isSelected());
+			}
+		});
+		attachmentItem = new JMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Attach")); //$NON-NLS-1$
+		attachmentItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ImageCoordSystem coords = TapeMeasure.this.trackerPanel.getCoords();
+				if (TapeMeasure.this.isStickMode() && coords.isFixedScale()) {
+					int result = JOptionPane.showConfirmDialog(TapeMeasure.this.trackerPanel.getTFrame(),
+							TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
+					TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Message2"), //$NON-NLS-1$
+							TrackerRes.getString("TapeMeasure.Alert.UnfixScale.Title"), //$NON-NLS-1$
+							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					if (result != JOptionPane.YES_OPTION)
+						return;
+					coords.setFixedScale(false);
+				}
+				AttachmentDialog control = TapeMeasure.this.trackerPanel.getAttachmentDialog(TapeMeasure.this);
+				control.setVisible(true);
+			}
+		});
 	}
 
 	/**

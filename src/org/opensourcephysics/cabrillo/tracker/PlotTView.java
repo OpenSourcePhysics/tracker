@@ -99,7 +99,7 @@ public class PlotTView extends TrackChooserTView {
 		for (TrackView next : trackViews.values()) {
 			PlotTrackView plots = (PlotTrackView) next;
 			for (TrackPlottingPanel panel : plots.plots) {
-				panel.buildPopupmenu();
+				panel.clearPopup();
 			}
 		}
 	}
