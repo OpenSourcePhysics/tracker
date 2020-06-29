@@ -40,6 +40,8 @@ import org.opensourcephysics.display.DataTable;
 @SuppressWarnings("serial")
 public abstract class TrackView extends JScrollPane implements PropertyChangeListener {
 
+	static final String DEFINED_AS = ": "; //$NON-NLS-1$
+
 	// instance fields
 	private int trackID;
 	protected TrackerPanel trackerPanel;
@@ -159,6 +161,11 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		return trackerPanel.isAutoRefresh() 
 				&& trackerPanel.getTFrame().isPaintable()
 				&& parent.isTrackViewDisplayed(getTrack());
+	}
+
+	public static String trimDefined(String name) {
+		int pt = (name == null ? -1 : name.indexOf(DEFINED_AS));
+		return (pt >= 0 ? name.substring(0, pt) : name);
 	}
 
 }

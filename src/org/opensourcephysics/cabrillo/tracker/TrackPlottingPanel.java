@@ -59,9 +59,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		super.repaint();
 	}
 
-	// static fields
-	protected static final String DEFINED_AS = ": "; //$NON-NLS-1$
-
 	// instance fields
 	protected TrackerPanel trackerPanel;
 	protected int trackID;
@@ -1122,7 +1119,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param name the name of the dataset to plot on the x axis
 	 */
 	protected void setXVariable(String name) {
-		if ((name = trimDefined(name)) == null)
+		if ((name = TrackView.trimDefined(name)) == null)
 			return;
 		// find the desired menu item
 		Integer ii = htVarToItem.get(name);
@@ -1143,11 +1140,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			plotTrackView.syncXAxesTo(this);
 	}
 
-	private static String trimDefined(String name) {
-		int pt = (name == null ? -1 : name.indexOf(DEFINED_AS));
-		return (pt >= 0 ? name.substring(0, pt) : name);
-	}
-
 	/**
 	 * Gets the x variable name.
 	 *
@@ -1163,7 +1155,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param name the name of the dataset to plot on the y axis
 	 */
 	protected void setYVariable(String name) {
-		if ((name = trimDefined(name)) == null)
+		if ((name = TrackView.trimDefined(name)) == null)
 			return;
 		yName = name;
 		Integer ii = htVarToItem.get(name);
@@ -1259,7 +1251,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			String name = e.getKey();
 			int i = e.getValue().intValue();
 			if (!track.getDataDescription(i).equals("")) //$NON-NLS-1$
-				name += DEFINED_AS + track.getDataDescription(i);
+				name += TrackView.DEFINED_AS + track.getDataDescription(i);
 			xChoices[i] = new JRadioButtonMenuItem(name);
 			xChoices[i].setFont(font);
 			xChoices[i].setBorder(BorderFactory.createEmptyBorder(1, 0, 2, 0));

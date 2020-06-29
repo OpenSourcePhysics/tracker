@@ -134,8 +134,12 @@ public class TrackerIO extends VideoIO {
 
 	}
 
+	/**
+	 * delimiters
+	 */
 	protected static final String TAB = "\t", SPACE = " ", //$NON-NLS-1$ //$NON-NLS-2$
 			COMMA = ",", SEMICOLON = ";"; //$NON-NLS-1$ //$NON-NLS-2$
+	
 	protected static final Runnable NULL_RUNNABLE = new Runnable() {
 		@Override
 		public void run() {
@@ -143,10 +147,16 @@ public class TrackerIO extends VideoIO {
 	};
 	protected static SingleExtFileFilter zipFileFilter, trkFileFilter, trzFileFilter;
 	protected static SingleExtFileFilter videoAndTrkFileFilter, txtFileFilter, jarFileFilter;
+	
+
+	/**
+	 * TAB, SPACE, COMMA, or SEMICOLON
+	 */
+	protected static Map<String, String> delimiters = new TreeMap<String, String>();
 	protected static String defaultDelimiter = TAB; // tab delimiter by default
 	protected static String delimiter = defaultDelimiter;
-	protected static Map<String, String> delimiters = new TreeMap<String, String>();
 	protected static Map<String, String> customDelimiters = new TreeMap<String, String>();
+
 	protected static boolean isffmpegError = false;
 	protected static TFrame theFrame;
 	protected static PropertyChangeListener ffmpegListener;

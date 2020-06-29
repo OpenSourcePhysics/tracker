@@ -34,6 +34,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -56,7 +57,9 @@ import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
- * This displays table track views selected from a dropdown list.
+ * This displays table track views selected from a dropdown list and maintains
+ * the JDialog for column choosing. It does not maintain the actual table --
+ * that is TableTrackView.
  *
  * @author Douglas Brown
  */
@@ -174,7 +177,7 @@ public class TableTView extends TrackChooserTView {
 		if (getColumnsDialog() == null)
 			return;
 		// refresh dialog
-		refreshColumnsDialog(track);
+		refreshColumnsDialog(track, false);
 		Point p0 = new Frame().getLocation();
 		if (columnsDialog.getLocation().x == p0.x) {
 			// center dialog on the screen
@@ -192,16 +195,18 @@ public class TableTView extends TrackChooserTView {
 	 *
 	 * @param track the track
 	 */
-	protected void refreshColumnsDialog(TTrack track) {
-		if (getColumnsDialog() == null)
+	protected void refreshColumnsDialog(TTrack track, boolean onlyIfVisible) {
+		if (getColumnsDialog() == null || onlyIfVisible && !columnsDialog.isVisible()) {
 			return;
+		}
+		TableTrackView trackView = (TableTrackView) getTrackView(track);
+		trackView.refreshColumnCheckboxes();
+
 		Container contentPane = columnsDialog.getContentPane();
 		contentPane.removeAll();
 		trackLabel.setIcon(track.getFootprint().getIcon(21, 16));
 		trackLabel.setText(track.getName());
 		contentPane.add(trackLabel);
-		TableTrackView trackView = (TableTrackView) getTrackView(track);
-		trackView.refreshColumnCheckboxes();
 		contentPane.add(trackView.columnsScroller);
 		contentPane.add(buttonPanel);
 		FontSizer.setFonts(contentPane);
@@ -236,7 +241,7 @@ public class TableTView extends TrackChooserTView {
 			super.propertyChange(e);
 			TTrack track = getSelectedTrack();
 			if (track != null && columnsDialog != null) {
-				refreshColumnsDialog(track);
+				refreshColumnsDialog(track, true);
 				JViewport port = ((TableTrackView) getTrackView(track)).columnsScroller.getViewport();
 				Dimension dim = port.getViewSize();
 				int offset = port.getExtentSize().height;
@@ -263,6 +268,8 @@ public class TableTView extends TrackChooserTView {
 			columnsDialog = new JDialog(frame, false) {
 				@Override
 				public void setVisible(boolean vis) {
+					if (vis)
+						((TableTrackView) getTrackView(getSelectedTrack())).refreshColumnCheckboxes();
 					super.setVisible(vis);
 					dialogVisible = vis;
 				}
@@ -425,53 +432,64 @@ public class TableTView extends TrackChooserTView {
 			if (data != null) {
 				Map<TTrack, TrackView> views = view.trackViews;
 				for (TTrack track : views.keySet()) {
-					TableTrackView trackView = (TableTrackView) view.getTrackView(track);
-					if (trackView == null)
+					TableTrackView tableView = (TableTrackView) view.getTrackView(track);
+					if (tableView == null)
 						continue;
 					for (int i = 0; i < data.length; i++) {
 						String[] columns = data[i];
 						if (!columns[0].equals(track.getName()))
 							continue;
-						trackView.refresh = false; // prevents refreshes
+						tableView.refresh = false; // prevents refreshes
 						// start by unchecking all checkboxes
-						for (int j = 0; j < trackView.checkBoxes.length; j++) {
-							trackView.checkBoxes[j].setSelected(false);
-							// check for text columns--not managed by the track DatasetManager
-							int n = trackView.trackDataManager.getDatasets().size();
-							if (j >= n) {
-								String name = track.getTextColumnNames().get(j - n);
-								trackView.textColumnsVisible.remove(name);
-							}
-						}
+						tableView.bsCheckBoxes.clear();
+						tableView.textColumnsVisible.clear();
 						// then select checkboxes specified in track_columns
+						Map<String, Integer> htOrder = new HashMap<String, Integer>();
 						for (int j = 1; j < columns.length; j++) {
-							if (columns[j].equals("theta") && track instanceof PointMass) //$NON-NLS-1$
-								columns[j] = "\u03b8" + "r"; //$NON-NLS-1$ //$NON-NLS-2$
-							else if (columns[j].equals("theta")) //$NON-NLS-1$
-								columns[j] = "\u03b8"; //$NON-NLS-1$
-							else if (columns[j].equals("theta_v")) //$NON-NLS-1$
-								columns[j] = "\u03b8" + "v"; //$NON-NLS-1$ //$NON-NLS-2$
-							else if (columns[j].equals("theta_a")) //$NON-NLS-1$
-								columns[j] = "\u03b8" + "a"; //$NON-NLS-1$ //$NON-NLS-2$
-							else if (columns[j].equals("theta_p")) //$NON-NLS-1$
-								columns[j] = "\u03b8" + "p"; //$NON-NLS-1$ //$NON-NLS-2$
-							else if (columns[j].equals("n") && track instanceof PointMass) //$NON-NLS-1$
-								columns[j] = "step"; //$NON-NLS-1$
-							else if (columns[j].equals("KE")) //$NON-NLS-1$
-								columns[j] = "K"; //$NON-NLS-1$
-							else if (columns[j].equals("x-comp")) //$NON-NLS-1$
-								columns[j] = "x"; //$NON-NLS-1$
-							else if (columns[j].equals("y-comp")) //$NON-NLS-1$
-								columns[j] = "y"; //$NON-NLS-1$
-							else if (columns[j].equals("x_tail")) //$NON-NLS-1$
-								columns[j] = "xtail"; //$NON-NLS-1$
-							else if (columns[j].equals("y_tail")) //$NON-NLS-1$
-								columns[j] = "ytail"; //$NON-NLS-1$
-							trackView.setVisible(columns[j], true);
+							String name = columns[j];
+							switch (name) {
+							case "theta":
+								name = (track instanceof PointMass ? "\u03b8r"//$NON-NLS-1$
+										: "\u03b8"); //$NON-NLS-1$
+								break;
+							case "theta_v": //$NON-NLS-1$
+								name = "\u03b8v"; //$NON-NLS-1$ //$NON-NLS-2$
+								break;
+							case "theta_a": //$NON-NLS-1$
+								name = "\u03b8a"; //$NON-NLS-1$ //$NON-NLS-2$
+								break;
+							case "theta_p": //$NON-NLS-1$
+								name = "\u03b8p"; //$NON-NLS-1$ //$NON-NLS-2$
+								break;
+							case "n":
+								if (track instanceof PointMass) // $NON-NLS-1$
+									name = "step"; //$NON-NLS-1$
+								break;
+							case "KE": //$NON-NLS-1$
+								name = "K"; //$NON-NLS-1$
+								break;
+							case "x-comp": //$NON-NLS-1$
+								name = "x"; //$NON-NLS-1$
+								break;
+							case "y-comp": //$NON-NLS-1$
+								name = "y"; //$NON-NLS-1$
+								break;
+							case "x_tail": //$NON-NLS-1$
+								name = "xtail"; //$NON-NLS-1$
+								break;
+							case "y_tail": //$NON-NLS-1$
+								name = "ytail"; //$NON-NLS-1$
+								break;
+							}
+							htOrder.put(name, j);
+							tableView.setVisible(columns[j] = name, true);
 						}
+						
+						// BH? There has to be a much easier way of doing this. 
+						
 						// move columns so the table column order matches the saved track_columns order
 						// get list of checked boxes--doesn't include independent variable
-						String[] checkedBoxes = trackView.getVisibleColumns();
+						String[] checkedBoxes = tableView.getVisibleColumns();
 						// expand to include independent variable
 						String[] visibleColumns = new String[checkedBoxes.length + 1];
 						visibleColumns[0] = track.getDataName(0);
@@ -490,7 +508,7 @@ public class TableTView extends TrackChooserTView {
 							}
 						}
 						// move table columns after table is fully constructed
-						final TableColumnModel model = trackView.dataTable.getColumnModel();
+						final TableColumnModel model = tableView.dataTable.getColumnModel();
 						Runnable runner = new Runnable() {
 							@Override
 							public void run() {
@@ -510,7 +528,7 @@ public class TableTView extends TrackChooserTView {
 							}
 						};
 						SwingUtilities.invokeLater(runner);
-						trackView.refresh = true;
+						tableView.refresh = true;
 					}
 				}
 			}
@@ -541,9 +559,7 @@ public class TableTView extends TrackChooserTView {
 				String[] columns = (String[]) control.getObject("visible_columns"); //$NON-NLS-1$
 				if (columns != null) {
 					trackView.refresh = false; // prevents refreshes
-					for (int i = 0; i < trackView.checkBoxes.length; i++) {
-						trackView.checkBoxes[i].setSelected(false);
-					}
+					trackView.bsCheckBoxes.clear();
 					for (int i = 0; i < columns.length; i++) {
 						trackView.setVisible(columns[i], true);
 					}
