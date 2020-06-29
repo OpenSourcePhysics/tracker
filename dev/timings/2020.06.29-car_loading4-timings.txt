@@ -1,0 +1,1938 @@
+j2sApplet exec testApplet start applet null
+transpiler was unknown now 3.2.9-v1 for java.lang.Class
+swingjs.JSUtil initialized;debug=false
+JSUtil adding known access-control-allow-origin * for domain www.compadre.org/profiles
+JSUtil adding known access-control-allow-origin * for domain www.compadre.org/osp
+JSUtil adding known access-control-allow-origin * for domain https://physlets.org
+JSUtil adding known access-control-allow-origin * for domain www.physlets.org
+swingjs.api.Interface creating instance of swingjs.plaf.HTML5LookAndFeel
+Assets: 92 zip entries found in file:/./cabrillo-assets.zip
+JSToolkit initialized
+swingjs.api.Interface creating instance of swingjs.JSImagekit
+JSApp get parameter: language = null
+JSApp get parameter: name = testApplet
+JSApp get parameter: syncId = 586426552990637
+JSApp initialized
+JSAppletViewer initializing2
+JSGraphicsConfiguration initialized
+swingjs.api.Interface creating instance of swingjs.JSGraphicsEnvironment
+JSGraphicsEnvironment initialized
+swingjs.api.Interface creating instance of swingjs.JSScreenDevice
+JSScreenDevice initialized
+JSAppletViewer thread run1 mode=0 status=0
+JSAppletViewer thread run1 mode=1 status=1
+JSAppletViewer runloader
+JSApp get parameter: main = org.opensourcephysics.cabrillo.tracker.Tracker
+swingjs.api.Interface creating instance of swingjs.JSDummyApplet
+testApplet loaded
+JSAppletViewer thread run1 mode=1 status=76
+testApplet running org.opensourcephysics.cabrillo.tracker.Tracker
+Running main(args) in class org.opensourcephysics.cabrillo.tracker.Tracker
+OSPLog.debug Platform: timer reset            Tracker.main start
+JSGraphics2D pixelRatio is 1.0
+OSPLog.debug ResourceLoader found 1592 properties in
+jar:file:/./cabrillo-assets.zip!/org/opensourcephysics/cabrillo/tracker/resources/tracker.properties
+Assets: 112 zip entries found in file:/./osp-assets.zip
+OSPLog.debug ResourceLoader found 273 properties in
+jar:file:/./osp-assets.zip!/org/opensourcephysics/resources/media/video.properties
+OSPLog.debug ResourceLoader found 97 properties in
+jar:file:/./osp-assets.zip!/org/opensourcephysics/resources/controls/controls_res.properties
+OSPLog installed in System.out and System.err
+OSPLog.debug ResourceLoader found 743 properties in
+jar:file:/./osp-assets.zip!/org/opensourcephysics/resources/tools/tools.properties
+OSPLog.debug StepperClipControl.delay = 10
+OSPLog.debug Platform: timer mark    2.178    2.178    TViewChooser 0
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug Platform: timer mark    2.349    0.171    TViewChooser 1
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug Platform: timer mark    2.406    0.057    TViewChooser 2
+OSPLog.debug StepperClipControl.delay = 10
+OSPLog.debug Platform: timer mark    2.551    0.145    TViewChooser 3
+OSPLog.debug Platform: timer mark    2.583    0.032    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.PageTView
+OSPLog.debug Platform: timer mark    2.584    0.001    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.PageTView
+OSPLog.debug TToolBar refresh from create gui
+OSPLog.debug radio Defaultnull
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug Platform: timer mark    4.233    1.649    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 true
+OSPLog.debug TrackChooser.setSelected CoordAxes axes 1
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug Platform: timer mark    4.259    0.026    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 true
+OSPLog.debug TrackChooser.setSelected CoordAxes axes 1
+OSPLog.debug TToolBar refresh from property track
+OSPLog.debug Platform: timer mark    4.379    0.12    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackControl
+OSPLog.debug TrackerPanel.refreshTrackData true
+OSPLog.debug Platform: timer mark    5.007    0.628    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.WorldTView
+OSPLog.debug Platform: timer mark    5.009    0.002    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackControl
+OSPLog.debug TToolBar refresh from TFrame.refresh
+OSPLog.debug Platform: timer mark    5.016    0.007    TTrackbar.rebuild0
+OSPLog.debug Platform: timer mark    5.068    0.052    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TTrackBar
+OSPLog.debug Platform: timer mark    5.068    0.0    TTrackbar.rebuild1
+OSPLog.debug TFrame repaint 0 0 1024 768 true
+OSPLog.debug MainTView testing no repaint
+OSPLog.debug !!! 43 TrackerPanel.paintComponent
+OSPLog.debug Platform: timer mark    5.631    0.563    TToolBar refreshAsync
+OSPLog.debug Platform: timer mark    6.63    0.999    TToolBar rebuild
+OSPLog.debug Platform: timer mark    7.139    0.509    TToolBar rebuild validate
+OSPLog.debug Platform: timer mark    7.14    0.001    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TToolBar
+OSPLog.debug Platform: timer mark    7.295    0.155    TToolBar refreshAsync tracks
+OSPLog.debug Platform: timer mark    7.306    0.011    TToolBar refreshAsync sortPageView
+OSPLog.debug !!! 1685 TToolBar refresh async
+OSPLog.debug TrackerPanel repaint 1
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug MainTView testing no repaint
+OSPLog.debug TrackerPanel repaint 2
+OSPLog.debug !!! 14 TrackerPanel.paintComponent
+OSPLog.debug MainTView testing no repaint
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug TrackerIO openTabFile /TEMP/car.trz
+OSPLog.debug TrackerIO openTabPath /TEMP/car.trz
+OSPLog.debug Platform: timer mark    24.065    16.759    TrackerPanel.AsyncLoad start /TEMP/car.trz
+OSPLog.debug Platform: timer mark    24.231    0.166    TrackerPanel.AsyncLoad 1 start 0 /TEMP/car.trz
+OSPLog.debug TrackerIO found trk file file:/TEMP/car.trz!/Car in a loop with friction.trk
+OSPLog.debug !!! 58 XMLControlElement.readData org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug Platform: timer mark    24.908    0.677    TrackerPanel.AsyncLoad 1 end 100 /TEMP/car.trz
+OSPLog.debug TrackerIO opening URL file:/TEMP/car.trz!/Car in a loop with friction.trk
+OSPLog.debug TrackerIO openTabPath file:/TEMP/car.trz!/Car in a loop with friction.trk
+OSPLog.debug Platform: timer mark    24.935    0.027    TrackerPanel.AsyncLoad start file:/TEMP/car.trz!/Car in a loop with friction.trk
+OSPLog.debug Platform: timer mark    24.942    0.007    TrackerPanel.AsyncLoad done /TEMP/car.trz
+OSPLog.debug !!! 877 AyncLoad /TEMP/car.trz
+OSPLog.debug !!! 65 XMLControlElement.readData org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug Platform: timer mark    25.13    0.188    TrackerPanel.AsyncLoad 2 start 0 /TEMP/car.trz!/Car in a loop with friction.trk
+OSPLog.debug Platform: timer mark    25.204    0.074    ImageVideo.getImageAtFrame0 0
+OSPLog.debug Platform: timer mark    25.204    0.0    ImageVideo.getImageAtFrame1 0
+OSPLog.debug Platform: timer mark    25.208    0.004    TrackerPanel.finalizeLoading1
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug TrackerPanel.finalizeLoading start
+OSPLog.debug StepperClipControl.delay = 10
+OSPLog.debug VideoPanel.prop videoclip
+OSPLog.debug TToolBar refresh from property video
+OSPLog.debug Platform: timer mark    25.235    0.027    TrackerPanel.finalizeLoading finalizeClip
+OSPLog.debug Platform: timer mark    25.236    0.001    TrackerPanel.finalizeLoading load metadata
+OSPLog.debug Platform: timer mark    25.237    0.001    TrackerPanel.finalizeLoading clipControl
+OSPLog.debug Platform: timer mark    25.239    0.002    TrackerPanel.finalizeLoading toolbar
+OSPLog.debug Platform: timer mark    25.261    0.022    TrackerPanel.finalizeLoading coords
+OSPLog.debug Platform: timer mark    25.261    0.0    TrackerPanel.finalizeLoading number formats
+OSPLog.debug !!! 63 ParticleModel.initializeFunctionPanel
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug Platform: timer mark    25.698    0.437    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 false
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug Platform: timer mark    25.755    0.057    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 false
+OSPLog.debug TToolBar refresh from property track
+OSPLog.debug Platform: timer mark    25.929    0.174    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackControl
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug Platform: timer mark    25.935    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 false
+OSPLog.debug TrackChooser.setSelected CoordAxes ejes 2
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug Platform: timer mark    25.99    0.055    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 false
+OSPLog.debug TrackChooser.setSelected CoordAxes ejes 2
+OSPLog.debug TToolBar refresh from property track
+OSPLog.debug Platform: timer mark    26.171    0.181    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackControl
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug Platform: timer mark    26.179    0.008    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 false
+OSPLog.debug TrackChooser.setSelected Tape Measure
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug Platform: timer mark    26.235    0.056    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 false
+OSPLog.debug TrackChooser.setSelected Tape Measure
+OSPLog.debug TToolBar refresh from property track
+OSPLog.debug Platform: timer mark    26.416    0.181    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackControl
+OSPLog.debug TrackerPanel UpdateDerivatives start 0 for steps 53
+OSPLog.debug ResourceLoader found 170 properties in
+jar:file:/./osp-assets.zip!/org/opensourcephysics/resources/display/display_res.properties
+OSPLog.debug Platform: timer mark    26.594    0.178    PlotTrackView constr0 for PointMass masa A 4
+OSPLog.debug Platform: timer mark    26.685    0.091    PlotTrackView constr1 for PointMass masa A 4 plots=3
+OSPLog.debug TrackChooser.setSelected PointMass masa A 4
+OSPLog.debug TrackChooser.setSelected found PointMass masa A 4
+OSPLog.debug Platform: timer mark    26.712    0.027    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.PlotTView
+OSPLog.debug Platform: timer mark    26.786    0.074    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 false
+OSPLog.debug TrackChooser.setSelected PointMass masa A 4
+OSPLog.debug TableTrackView.refresh 1700 track=PointMass masa A 4
+OSPLog.debug Platform: timer mark    27.311    0.525    DataTable.refreshTable0 5888
+OSPLog.debug >>>>DataTable.refreshTableNow 1700 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    27.317    0.006    DataTable.refreshTable1 1700
+OSPLog.debug TableTrackView.refresh 1700 track=PointMass masa A 4
+OSPLog.debug Platform: timer mark    27.331    0.014    DataTable.refreshTable0 5888
+OSPLog.debug >>>>DataTable.refreshTableNow 1700 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    27.334    0.003    DataTable.refreshTable1 1700
+OSPLog.debug TableTrackView.refresh 1100 track=PointMass masa A 4
+OSPLog.debug Platform: timer mark    27.542    0.208    DataTable.refreshTable0 4352
+OSPLog.debug >>>>DataTable.refreshTableNow 1100 true
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    27.545    0.003    DataTable.refreshTable1 1100
+OSPLog.debug TrackChooser.setSelected PointMass masa A 4
+OSPLog.debug TrackChooser.setSelected found PointMass masa A 4
+OSPLog.debug TableTrackView.refresh 1900 track=PointMass masa A 4
+OSPLog.debug Platform: timer mark    27.596    0.051    DataTable.refreshTable0 6400
+OSPLog.debug >>>>DataTable.refreshTableNow 1900 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    27.599    0.003    DataTable.refreshTable1 1900
+OSPLog.debug Platform: timer mark    27.6    0.001    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TableTView
+OSPLog.debug Platform: timer mark    27.67    0.07    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 false
+OSPLog.debug TrackChooser.setSelected PointMass masa A 4
+OSPLog.debug TableTrackView.refresh 1a00 track=PointMass masa A 4
+OSPLog.debug Platform: timer mark    27.683    0.013    DataTable.refreshTable0 6656
+OSPLog.debug >>>>DataTable.refreshTableNow 1a00 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    27.686    0.003    DataTable.refreshTable1 1a00
+OSPLog.debug TToolBar refresh from property track
+OSPLog.debug Platform: timer mark    27.986    0.3    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackControl
+OSPLog.debug TrackerPanel UpdateDerivatives start 0 for steps 53
+OSPLog.debug Platform: timer mark    28.19    0.204    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackControl
+OSPLog.debug Platform: timer mark    28.231    0.041    PlotTrackView constr0 for DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    28.275    0.044    PlotTrackView constr1 for DynamicParticle modelo A 5 plots=3
+OSPLog.debug TrackChooser.setSelected PointMass masa A 4
+OSPLog.debug Platform: timer mark    28.297    0.022    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 false
+OSPLog.debug TrackChooser.setSelected DynamicParticle modelo A 5
+OSPLog.debug TrackChooser.setSelected found DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    28.301    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.PlotTView
+OSPLog.debug TableTrackView.refresh 1100 track=PointMass masa A 4
+OSPLog.debug Platform: timer mark    28.763    0.462    DataTable.refreshTable0 4352
+OSPLog.debug >>>>DataTable.refreshTableNow 1100 true
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    28.765    0.002    DataTable.refreshTable1 1100
+OSPLog.debug TableTrackView.refresh 1700 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    29.041    0.276    DataTable.refreshTable0 5888
+OSPLog.debug >>>>DataTable.refreshTableNow 1700 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    29.044    0.003    DataTable.refreshTable1 1700
+OSPLog.debug TableTrackView.refresh 1700 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    29.058    0.014    DataTable.refreshTable0 5888
+OSPLog.debug >>>>DataTable.refreshTableNow 1700 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    29.061    0.003    DataTable.refreshTable1 1700
+OSPLog.debug TableTrackView.refresh 1100 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    29.249    0.188    DataTable.refreshTable0 4352
+OSPLog.debug >>>>DataTable.refreshTableNow 1100 true
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    29.251    0.002    DataTable.refreshTable1 1100
+OSPLog.debug TrackChooser.setSelected PointMass masa A 4
+OSPLog.debug TableTrackView.refresh 1a00 track=PointMass masa A 4
+OSPLog.debug Platform: timer mark    29.293    0.042    DataTable.refreshTable0 6656
+OSPLog.debug >>>>DataTable.refreshTableNow 1a00 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    29.296    0.003    DataTable.refreshTable1 1a00
+OSPLog.debug Platform: timer mark    29.298    0.002    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 false
+OSPLog.debug TrackChooser.setSelected DynamicParticle modelo A 5
+OSPLog.debug TrackChooser.setSelected found DynamicParticle modelo A 5
+OSPLog.debug TableTrackView.refresh 1900 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    29.311    0.013    DataTable.refreshTable0 6400
+OSPLog.debug >>>>DataTable.refreshTableNow 1900 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    29.314    0.003    DataTable.refreshTable1 1900
+OSPLog.debug Platform: timer mark    29.315    0.001    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TableTView
+OSPLog.debug TToolBar refresh from property track
+OSPLog.debug Platform: timer mark    29.832    0.517    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackControl
+OSPLog.debug Platform: timer mark    29.836    0.004    TrackerPanel.finalizeLoading load tracks
+OSPLog.debug !!! 4649 TrackerPanel.finalizeLoading
+OSPLog.debug TrackerPanel.finalizeLoading done
+OSPLog.debug TrackChooser.setSelected PointMass masa A 4
+OSPLog.debug TrackChooser.setSelected found PointMass masa A 4
+OSPLog.debug Platform: timer mark    29.879    0.043    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.PlotTView
+OSPLog.debug TrackChooser.setSelected PointMass masa A 4
+OSPLog.debug TrackerPanel.refreshTrackData true
+OSPLog.debug TableTrackView.refresh 1c00 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    33.203    3.324    DataTable.refreshTable0 7168
+OSPLog.debug >>>>DataTable.refreshTableNow 1c00 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    33.206    0.003    DataTable.refreshTable1 1c00
+OSPLog.debug Platform: timer mark    33.361    0.155    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackControl
+OSPLog.debug TToolBar refresh from TFrame.refresh
+OSPLog.debug TToolBar refresh from TFrame.refresh
+OSPLog.debug Platform: timer mark    33.365    0.004    TrackerPanel.AsyncLoad 2 end 100 /TEMP/car.trz!/Car in a loop with friction.trk
+OSPLog.debug TFrame.paintHold cleared
+OSPLog.debug Platform: timer mark    33.933    0.568    TrackerPanel.AsyncLoad done file:/TEMP/car.trz!/Car in a loop with friction.trk
+OSPLog.debug !!! 8999 AyncLoad file:/TEMP/car.trz!/Car in a loop with friction.trk
+OSPLog.debug Platform: timer mark    34.791    0.858    TToolBar refreshAsync
+OSPLog.debug TrackerPanel repaint 3
+OSPLog.debug Platform: timer mark    34.807    0.016    TToolBar refreshAsync tracks
+OSPLog.debug Platform: timer mark    34.808    0.001    TToolBar refreshAsync sortPageView
+OSPLog.debug !!! 22 TToolBar refresh async
+OSPLog.debug Platform: timer mark    34.814    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TFrame
+OSPLog.debug TFrame repaint 0 0 1024 768 true
+OSPLog.debug skipping TrackerIO addToLibrary /TEMP/car.trz
+OSPLog.debug Platform: timer mark    34.95    0.136    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 4
+OSPLog.debug TableTrackView.refresh 8000 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    34.963    0.013    DataTable.refreshTable0 32768
+OSPLog.debug >>>>DataTable.refreshTableNow 8000 false
+OSPLog.debug OSPDataTableModel rebuild values
+OSPLog.debug Platform: timer mark    34.965    0.002    DataTable.refreshTable1 8000
+OSPLog.debug !!! 35 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 52 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 4 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    109.048    74.083    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 5
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 4 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    109.073    0.025    ImageVideo.getImageAtFrame0 1
+OSPLog.debug Platform: timer mark    109.184    0.111    ImageVideo.getImageAtFrame1 1
+OSPLog.debug Platform: timer mark    109.329    0.145    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 6
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    109.392    0.063    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    109.398    0.006    DataTable.refreshTable1 1300
+OSPLog.debug Platform: timer mark    109.411    0.013    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 7
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 8 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    109.642    0.231    ImageVideo.getImageAtFrame0 2
+OSPLog.debug Platform: timer mark    109.695    0.053    ImageVideo.getImageAtFrame1 2
+OSPLog.debug Platform: timer mark    109.707    0.012    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 8
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    109.739    0.032    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    109.743    0.004    DataTable.refreshTable1 1300
+OSPLog.debug Platform: timer mark    109.744    0.001    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 9
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    109.904    0.16    ImageVideo.getImageAtFrame0 3
+OSPLog.debug Platform: timer mark    109.945    0.041    ImageVideo.getImageAtFrame1 3
+OSPLog.debug Platform: timer mark    109.95    0.005    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 10
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    109.983    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    109.986    0.003    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    110.104    0.118    ParticleModel.refreshSteps0 2 3 0
+OSPLog.debug Platform: timer mark    110.238    0.134    ParticleModel.refreshSteps 8000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    110.241    0.003    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 11
+OSPLog.debug !!! 140 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 148 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 7 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    110.287    0.046    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 12
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    110.321    0.034    ImageVideo.getImageAtFrame0 4
+OSPLog.debug Platform: timer mark    110.405    0.084    ImageVideo.getImageAtFrame1 4
+OSPLog.debug Platform: timer mark    110.413    0.008    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 13
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    110.465    0.052    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    110.471    0.006    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    110.623    0.152    ParticleModel.refreshSteps0 3 4 8000
+OSPLog.debug Platform: timer mark    110.716    0.093    ParticleModel.refreshSteps 16000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    110.718    0.002    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 14
+OSPLog.debug !!! 98 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 111 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 7 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    110.768    0.05    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 15
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 6 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    110.786    0.018    ImageVideo.getImageAtFrame0 5
+OSPLog.debug Platform: timer mark    110.822    0.036    ImageVideo.getImageAtFrame1 5
+OSPLog.debug Platform: timer mark    110.828    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 16
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    110.859    0.031    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    110.862    0.003    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    110.977    0.115    ParticleModel.refreshSteps0 4 5 16000
+OSPLog.debug Platform: timer mark    111.065    0.088    ParticleModel.refreshSteps 24000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    111.067    0.002    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 17
+OSPLog.debug !!! 95 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 104 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 7 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    111.115    0.048    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 18
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 0 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 6 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    111.135    0.02    ImageVideo.getImageAtFrame0 6
+OSPLog.debug Platform: timer mark    111.172    0.037    ImageVideo.getImageAtFrame1 6
+OSPLog.debug Platform: timer mark    111.179    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 19
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    111.212    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    111.215    0.003    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    111.326    0.111    ParticleModel.refreshSteps0 5 6 24000
+OSPLog.debug Platform: timer mark    111.413    0.087    ParticleModel.refreshSteps 32000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    111.415    0.002    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 20
+OSPLog.debug !!! 93 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 102 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 9 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    111.465    0.05    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 21
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 6 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    111.483    0.018    ImageVideo.getImageAtFrame0 7
+OSPLog.debug Platform: timer mark    111.516    0.033    ImageVideo.getImageAtFrame1 7
+OSPLog.debug Platform: timer mark    111.522    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 22
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    111.551    0.029    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    111.555    0.004    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    111.671    0.116    ParticleModel.refreshSteps0 6 7 32000
+OSPLog.debug Platform: timer mark    111.758    0.087    ParticleModel.refreshSteps 40000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    111.761    0.003    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 23
+OSPLog.debug !!! 95 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 105 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 7 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    111.811    0.05    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 24
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 6 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    111.83    0.019    ImageVideo.getImageAtFrame0 8
+OSPLog.debug Platform: timer mark    111.862    0.032    ImageVideo.getImageAtFrame1 8
+OSPLog.debug Platform: timer mark    111.868    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 25
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    111.901    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    111.905    0.004    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    112.014    0.109    ParticleModel.refreshSteps0 7 8 40000
+OSPLog.debug Platform: timer mark    112.101    0.087    ParticleModel.refreshSteps 48000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    112.104    0.003    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 26
+OSPLog.debug !!! 93 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 104 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 8 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    112.156    0.052    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 27
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 7 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    112.178    0.022    ImageVideo.getImageAtFrame0 9
+OSPLog.debug Platform: timer mark    112.214    0.036    ImageVideo.getImageAtFrame1 9
+OSPLog.debug Platform: timer mark    112.22    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 28
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    112.252    0.032    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    112.256    0.004    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    112.373    0.117    ParticleModel.refreshSteps0 8 9 48000
+OSPLog.debug Platform: timer mark    112.461    0.088    ParticleModel.refreshSteps 56000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    112.463    0.002    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 29
+OSPLog.debug !!! 94 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 106 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    112.523    0.06    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 30
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    112.555    0.032    ImageVideo.getImageAtFrame0 10
+OSPLog.debug Platform: timer mark    112.577    0.022    ImageVideo.getImageAtFrame1 10
+OSPLog.debug Platform: timer mark    112.582    0.005    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 31
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    112.622    0.04    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    112.629    0.007    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    112.773    0.144    ParticleModel.refreshSteps0 9 10 56000
+OSPLog.debug Platform: timer mark    112.865    0.092    ParticleModel.refreshSteps 64000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    112.868    0.003    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 32
+OSPLog.debug !!! 100 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 113 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 9 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    112.929    0.061    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 33
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 7 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    112.957    0.028    ImageVideo.getImageAtFrame0 11
+OSPLog.debug Platform: timer mark    112.983    0.026    ImageVideo.getImageAtFrame1 11
+OSPLog.debug Platform: timer mark    112.989    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 34
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    113.019    0.03    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    113.023    0.004    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    113.144    0.121    ParticleModel.refreshSteps0 10 11 64000
+OSPLog.debug Platform: timer mark    113.232    0.088    ParticleModel.refreshSteps 72000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    113.234    0.002    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 35
+OSPLog.debug !!! 96 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 109 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    113.294    0.06    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 36
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 7 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    113.316    0.022    ImageVideo.getImageAtFrame0 12
+OSPLog.debug Platform: timer mark    113.343    0.027    ImageVideo.getImageAtFrame1 12
+OSPLog.debug Platform: timer mark    113.348    0.005    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 37
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    113.379    0.031    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    113.383    0.004    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    113.505    0.122    ParticleModel.refreshSteps0 11 12 72000
+OSPLog.debug Platform: timer mark    113.593    0.088    ParticleModel.refreshSteps 80000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    113.596    0.003    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 38
+OSPLog.debug !!! 95 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 106 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    113.655    0.059    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 39
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 7 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    113.679    0.024    ImageVideo.getImageAtFrame0 13
+OSPLog.debug Platform: timer mark    113.705    0.026    ImageVideo.getImageAtFrame1 13
+OSPLog.debug Platform: timer mark    113.712    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 40
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    113.746    0.034    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    113.75    0.004    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    113.865    0.115    ParticleModel.refreshSteps0 12 13 80000
+OSPLog.debug Platform: timer mark    113.956    0.091    ParticleModel.refreshSteps 88000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    113.959    0.003    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 41
+OSPLog.debug !!! 98 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 110 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 8 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    114.018    0.059    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 42
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 8 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    114.044    0.026    ImageVideo.getImageAtFrame0 14
+OSPLog.debug Platform: timer mark    114.099    0.055    ImageVideo.getImageAtFrame1 14
+OSPLog.debug Platform: timer mark    114.108    0.009    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 43
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    114.166    0.058    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    114.172    0.006    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    114.319    0.147    ParticleModel.refreshSteps0 13 14 88000
+OSPLog.debug Platform: timer mark    114.432    0.113    ParticleModel.refreshSteps 96000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    114.435    0.003    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 44
+OSPLog.debug !!! 120 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 135 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    114.498    0.063    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 45
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 9 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    114.524    0.026    ImageVideo.getImageAtFrame0 15
+OSPLog.debug Platform: timer mark    114.551    0.027    ImageVideo.getImageAtFrame1 15
+OSPLog.debug Platform: timer mark    114.557    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 46
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    114.588    0.031    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    114.594    0.006    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    114.711    0.117    ParticleModel.refreshSteps0 14 15 96000
+OSPLog.debug Platform: timer mark    114.797    0.086    ParticleModel.refreshSteps 104000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    114.8    0.003    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 47
+OSPLog.debug !!! 94 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 108 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    114.869    0.069    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 48
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    114.9    0.031    ImageVideo.getImageAtFrame0 16
+OSPLog.debug Platform: timer mark    114.927    0.027    ImageVideo.getImageAtFrame1 16
+OSPLog.debug Platform: timer mark    114.933    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 49
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    114.966    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    114.971    0.005    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    115.085    0.114    ParticleModel.refreshSteps0 15 16 104000
+OSPLog.debug Platform: timer mark    115.175    0.09    ParticleModel.refreshSteps 112000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    115.178    0.003    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 50
+OSPLog.debug !!! 97 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 113 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    115.245    0.067    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 51
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    115.272    0.027    ImageVideo.getImageAtFrame0 17
+OSPLog.debug Platform: timer mark    115.299    0.027    ImageVideo.getImageAtFrame1 17
+OSPLog.debug Platform: timer mark    115.305    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 52
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    115.342    0.037    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    115.35    0.008    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    115.473    0.123    ParticleModel.refreshSteps0 16 17 112000
+OSPLog.debug Platform: timer mark    115.562    0.089    ParticleModel.refreshSteps 120000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    115.565    0.003    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 53
+OSPLog.debug !!! 97 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 110 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    115.632    0.067    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 54
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    115.661    0.029    ImageVideo.getImageAtFrame0 18
+OSPLog.debug Platform: timer mark    115.687    0.026    ImageVideo.getImageAtFrame1 18
+OSPLog.debug Platform: timer mark    115.694    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 55
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    115.73    0.036    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    115.739    0.009    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    115.849    0.11    ParticleModel.refreshSteps0 17 18 120000
+OSPLog.debug Platform: timer mark    115.94    0.091    ParticleModel.refreshSteps 128000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    115.944    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 56
+OSPLog.debug !!! 100 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 112 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    116.012    0.068    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 57
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    116.05    0.038    ImageVideo.getImageAtFrame0 19
+OSPLog.debug Platform: timer mark    116.118    0.068    ImageVideo.getImageAtFrame1 19
+OSPLog.debug Platform: timer mark    116.127    0.009    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 58
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    116.183    0.056    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    116.189    0.006    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    116.342    0.153    ParticleModel.refreshSteps0 18 19 128000
+OSPLog.debug Platform: timer mark    116.441    0.099    ParticleModel.refreshSteps 136000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    116.445    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 59
+OSPLog.debug !!! 110 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 127 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 18 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    116.528    0.083    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 60
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    116.561    0.033    ImageVideo.getImageAtFrame0 20
+OSPLog.debug Platform: timer mark    116.583    0.022    ImageVideo.getImageAtFrame1 20
+OSPLog.debug Platform: timer mark    116.589    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 61
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    116.626    0.037    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    116.632    0.006    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    116.758    0.126    ParticleModel.refreshSteps0 19 20 136000
+OSPLog.debug Platform: timer mark    116.847    0.089    ParticleModel.refreshSteps 144000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    116.851    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 62
+OSPLog.debug !!! 99 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 112 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    116.923    0.072    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 63
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 9 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    116.951    0.028    ImageVideo.getImageAtFrame0 21
+OSPLog.debug Platform: timer mark    116.979    0.028    ImageVideo.getImageAtFrame1 21
+OSPLog.debug Platform: timer mark    116.986    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 64
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    117.017    0.031    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    117.023    0.006    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    117.142    0.119    ParticleModel.refreshSteps0 20 21 144000
+OSPLog.debug Platform: timer mark    117.229    0.087    ParticleModel.refreshSteps 152000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    117.233    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 65
+OSPLog.debug !!! 98 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 111 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    117.304    0.071    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 66
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 9 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    117.339    0.035    ImageVideo.getImageAtFrame0 22
+OSPLog.debug Platform: timer mark    117.369    0.03    ImageVideo.getImageAtFrame1 22
+OSPLog.debug Platform: timer mark    117.376    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 67
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    117.407    0.031    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    117.414    0.007    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    117.523    0.109    ParticleModel.refreshSteps0 21 22 152000
+OSPLog.debug Platform: timer mark    117.613    0.09    ParticleModel.refreshSteps 160000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    117.616    0.003    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 68
+OSPLog.debug !!! 99 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 112 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    117.684    0.068    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 69
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    117.718    0.034    ImageVideo.getImageAtFrame0 23
+OSPLog.debug Platform: timer mark    117.749    0.031    ImageVideo.getImageAtFrame1 23
+OSPLog.debug Platform: timer mark    117.755    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 70
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    117.79    0.035    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    117.797    0.007    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    117.906    0.109    ParticleModel.refreshSteps0 22 23 160000
+OSPLog.debug Platform: timer mark    117.993    0.087    ParticleModel.refreshSteps 168000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    117.997    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 71
+OSPLog.debug !!! 98 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 5 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 112 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    118.068    0.071    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 72
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    118.097    0.029    ImageVideo.getImageAtFrame0 24
+OSPLog.debug Platform: timer mark    118.126    0.029    ImageVideo.getImageAtFrame1 24
+OSPLog.debug Platform: timer mark    118.132    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 73
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    118.165    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    118.17    0.005    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    118.282    0.112    ParticleModel.refreshSteps0 23 24 168000
+OSPLog.debug Platform: timer mark    118.369    0.087    ParticleModel.refreshSteps 176000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    118.374    0.005    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 74
+OSPLog.debug !!! 98 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 110 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    118.446    0.072    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 75
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    118.477    0.031    ImageVideo.getImageAtFrame0 25
+OSPLog.debug Platform: timer mark    118.506    0.029    ImageVideo.getImageAtFrame1 25
+OSPLog.debug Platform: timer mark    118.512    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 76
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    118.552    0.04    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    118.558    0.006    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    118.678    0.12    ParticleModel.refreshSteps0 24 25 176000
+OSPLog.debug Platform: timer mark    118.766    0.088    ParticleModel.refreshSteps 184000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    118.77    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 77
+OSPLog.debug !!! 99 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 111 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    118.839    0.069    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 78
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    118.87    0.031    ImageVideo.getImageAtFrame0 26
+OSPLog.debug Platform: timer mark    118.898    0.028    ImageVideo.getImageAtFrame1 26
+OSPLog.debug Platform: timer mark    118.904    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 79
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    118.939    0.035    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    118.946    0.007    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    119.061    0.115    ParticleModel.refreshSteps0 25 26 184000
+OSPLog.debug Platform: timer mark    119.148    0.087    ParticleModel.refreshSteps 192000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    119.152    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 80
+OSPLog.debug !!! 98 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 113 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 15 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    119.231    0.079    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 81
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    119.266    0.035    ImageVideo.getImageAtFrame0 27
+OSPLog.debug Platform: timer mark    119.295    0.029    ImageVideo.getImageAtFrame1 27
+OSPLog.debug Platform: timer mark    119.301    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 82
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    119.332    0.031    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    119.339    0.007    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    119.45    0.111    ParticleModel.refreshSteps0 26 27 192000
+OSPLog.debug Platform: timer mark    119.536    0.086    ParticleModel.refreshSteps 200000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    119.542    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 83
+OSPLog.debug !!! 98 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 111 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    119.611    0.069    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 84
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    119.642    0.031    ImageVideo.getImageAtFrame0 28
+OSPLog.debug Platform: timer mark    119.671    0.029    ImageVideo.getImageAtFrame1 28
+OSPLog.debug Platform: timer mark    119.677    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 85
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    119.709    0.032    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    119.715    0.006    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    119.827    0.112    ParticleModel.refreshSteps0 27 28 200000
+OSPLog.debug Platform: timer mark    119.918    0.091    ParticleModel.refreshSteps 208000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    119.922    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 86
+OSPLog.debug !!! 102 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 116 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    119.994    0.072    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 87
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 9 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    120.025    0.031    ImageVideo.getImageAtFrame0 29
+OSPLog.debug Platform: timer mark    120.053    0.028    ImageVideo.getImageAtFrame1 29
+OSPLog.debug Platform: timer mark    120.06    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 88
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    120.093    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    120.099    0.006    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    120.213    0.114    ParticleModel.refreshSteps0 28 29 208000
+OSPLog.debug Platform: timer mark    120.301    0.088    ParticleModel.refreshSteps 216000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    120.305    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 89
+OSPLog.debug !!! 99 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 113 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    120.382    0.077    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 90
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    120.412    0.03    ImageVideo.getImageAtFrame0 30
+OSPLog.debug Platform: timer mark    120.434    0.022    ImageVideo.getImageAtFrame1 30
+OSPLog.debug Platform: timer mark    120.441    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 91
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    120.474    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    120.48    0.006    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    120.592    0.112    ParticleModel.refreshSteps0 29 30 216000
+OSPLog.debug Platform: timer mark    120.68    0.088    ParticleModel.refreshSteps 224000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    120.684    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 92
+OSPLog.debug !!! 100 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 113 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    120.755    0.071    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 93
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 14 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 6 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    120.809    0.054    ImageVideo.getImageAtFrame0 31
+OSPLog.debug Platform: timer mark    120.883    0.074    ImageVideo.getImageAtFrame1 31
+OSPLog.debug Platform: timer mark    120.894    0.011    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 94
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    120.969    0.075    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    120.983    0.014    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    121.158    0.175    ParticleModel.refreshSteps0 30 31 224000
+OSPLog.debug Platform: timer mark    121.25    0.092    ParticleModel.refreshSteps 232000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    121.254    0.004    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 95
+OSPLog.debug !!! 106 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 120 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    121.33    0.076    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 96
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    121.362    0.032    ImageVideo.getImageAtFrame0 32
+OSPLog.debug Platform: timer mark    121.388    0.026    ImageVideo.getImageAtFrame1 32
+OSPLog.debug Platform: timer mark    121.395    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 97
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    121.428    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    121.435    0.007    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    121.546    0.111    ParticleModel.refreshSteps0 31 32 232000
+OSPLog.debug Platform: timer mark    121.634    0.088    ParticleModel.refreshSteps 240000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    121.639    0.005    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 98
+OSPLog.debug !!! 100 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 115 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    121.718    0.079    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 99
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    121.75    0.032    ImageVideo.getImageAtFrame0 33
+OSPLog.debug Platform: timer mark    121.778    0.028    ImageVideo.getImageAtFrame1 33
+OSPLog.debug Platform: timer mark    121.785    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 100
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    121.818    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    121.825    0.007    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    121.939    0.114    ParticleModel.refreshSteps0 32 33 240000
+OSPLog.debug Platform: timer mark    122.028    0.089    ParticleModel.refreshSteps 248000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    122.033    0.005    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 101
+OSPLog.debug !!! 102 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 114 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    122.107    0.074    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 102
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    122.143    0.036    ImageVideo.getImageAtFrame0 34
+OSPLog.debug Platform: timer mark    122.171    0.028    ImageVideo.getImageAtFrame1 34
+OSPLog.debug Platform: timer mark    122.178    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 103
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    122.21    0.032    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    122.217    0.007    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    122.327    0.11    ParticleModel.refreshSteps0 33 34 248000
+OSPLog.debug Platform: timer mark    122.414    0.087    ParticleModel.refreshSteps 256000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    122.419    0.005    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 104
+OSPLog.debug !!! 101 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 114 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    122.493    0.074    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 105
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    122.526    0.033    ImageVideo.getImageAtFrame0 35
+OSPLog.debug Platform: timer mark    122.553    0.027    ImageVideo.getImageAtFrame1 35
+OSPLog.debug Platform: timer mark    122.56    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 106
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    122.599    0.039    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    122.608    0.009    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    122.728    0.12    ParticleModel.refreshSteps0 34 35 256000
+OSPLog.debug Platform: timer mark    122.828    0.1    ParticleModel.refreshSteps 264000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    122.833    0.005    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 107
+OSPLog.debug !!! 114 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 128 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    122.911    0.078    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 108
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    122.958    0.047    ImageVideo.getImageAtFrame0 36
+OSPLog.debug Platform: timer mark    123.013    0.055    ImageVideo.getImageAtFrame1 36
+OSPLog.debug Platform: timer mark    123.024    0.011    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 109
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    123.077    0.053    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    123.09    0.013    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    123.244    0.154    ParticleModel.refreshSteps0 35 36 264000
+OSPLog.debug Platform: timer mark    123.338    0.094    ParticleModel.refreshSteps 272000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    123.344    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 110
+OSPLog.debug !!! 110 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 125 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    123.418    0.074    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 111
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    123.452    0.034    ImageVideo.getImageAtFrame0 37
+OSPLog.debug Platform: timer mark    123.48    0.028    ImageVideo.getImageAtFrame1 37
+OSPLog.debug Platform: timer mark    123.487    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 112
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    123.52    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    123.529    0.009    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    123.64    0.111    ParticleModel.refreshSteps0 36 37 272000
+OSPLog.debug Platform: timer mark    123.73    0.09    ParticleModel.refreshSteps 280000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    123.735    0.005    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 113
+OSPLog.debug !!! 104 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 116 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    123.816    0.081    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 114
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    123.85    0.034    ImageVideo.getImageAtFrame0 38
+OSPLog.debug Platform: timer mark    123.878    0.028    ImageVideo.getImageAtFrame1 38
+OSPLog.debug Platform: timer mark    123.885    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 115
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    123.92    0.035    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    123.929    0.009    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    124.045    0.116    ParticleModel.refreshSteps0 37 38 280000
+OSPLog.debug Platform: timer mark    124.133    0.088    ParticleModel.refreshSteps 288000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    124.138    0.005    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 116
+OSPLog.debug !!! 103 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 117 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    124.215    0.077    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 117
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    124.249    0.034    ImageVideo.getImageAtFrame0 39
+OSPLog.debug Platform: timer mark    124.278    0.029    ImageVideo.getImageAtFrame1 39
+OSPLog.debug Platform: timer mark    124.285    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 118
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    124.321    0.036    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    124.332    0.011    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    124.44    0.108    ParticleModel.refreshSteps0 38 39 288000
+OSPLog.debug Platform: timer mark    124.527    0.087    ParticleModel.refreshSteps 296000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    124.533    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 119
+OSPLog.debug !!! 101 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 5 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 117 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    124.615    0.082    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 120
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    124.65    0.035    ImageVideo.getImageAtFrame0 40
+OSPLog.debug Platform: timer mark    124.671    0.021    ImageVideo.getImageAtFrame1 40
+OSPLog.debug Platform: timer mark    124.678    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 121
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    124.712    0.034    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    124.721    0.009    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    124.83    0.109    ParticleModel.refreshSteps0 39 40 296000
+OSPLog.debug Platform: timer mark    124.918    0.088    ParticleModel.refreshSteps 304000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    124.924    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 122
+OSPLog.debug !!! 103 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 117 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    125.002    0.078    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 123
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 16 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    125.052    0.05    ImageVideo.getImageAtFrame0 41
+OSPLog.debug Platform: timer mark    125.103    0.051    ImageVideo.getImageAtFrame1 41
+OSPLog.debug Platform: timer mark    125.114    0.011    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 124
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    125.173    0.059    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    125.183    0.01    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    125.314    0.131    ParticleModel.refreshSteps0 40 41 304000
+OSPLog.debug Platform: timer mark    125.422    0.108    ParticleModel.refreshSteps 312000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    125.428    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 125
+OSPLog.debug !!! 123 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 141 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    125.515    0.087    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 126
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    125.55    0.035    ImageVideo.getImageAtFrame0 42
+OSPLog.debug Platform: timer mark    125.576    0.026    ImageVideo.getImageAtFrame1 42
+OSPLog.debug Platform: timer mark    125.583    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 127
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    125.62    0.037    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    125.63    0.01    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    125.745    0.115    ParticleModel.refreshSteps0 41 42 312000
+OSPLog.debug Platform: timer mark    125.834    0.089    ParticleModel.refreshSteps 320000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    125.84    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 128
+OSPLog.debug !!! 104 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 118 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    125.919    0.079    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 129
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 10 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    125.954    0.035    ImageVideo.getImageAtFrame0 43
+OSPLog.debug Platform: timer mark    125.98    0.026    ImageVideo.getImageAtFrame1 43
+OSPLog.debug Platform: timer mark    125.987    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 130
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    126.02    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    126.029    0.009    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    126.143    0.114    ParticleModel.refreshSteps0 42 43 320000
+OSPLog.debug Platform: timer mark    126.234    0.091    ParticleModel.refreshSteps 328000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    126.241    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 131
+OSPLog.debug !!! 107 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 121 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    126.326    0.085    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 132
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    126.363    0.037    ImageVideo.getImageAtFrame0 44
+OSPLog.debug Platform: timer mark    126.388    0.025    ImageVideo.getImageAtFrame1 44
+OSPLog.debug Platform: timer mark    126.395    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 133
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    126.429    0.034    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    126.439    0.01    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    126.548    0.109    ParticleModel.refreshSteps0 43 44 328000
+OSPLog.debug Platform: timer mark    126.637    0.089    ParticleModel.refreshSteps 336000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    126.643    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 134
+OSPLog.debug !!! 105 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 118 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    126.725    0.082    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 135
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    126.761    0.036    ImageVideo.getImageAtFrame0 45
+OSPLog.debug Platform: timer mark    126.787    0.026    ImageVideo.getImageAtFrame1 45
+OSPLog.debug Platform: timer mark    126.795    0.008    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 136
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    126.829    0.034    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    126.839    0.01    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    126.949    0.11    ParticleModel.refreshSteps0 44 45 336000
+OSPLog.debug Platform: timer mark    127.037    0.088    ParticleModel.refreshSteps 344000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    127.044    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 137
+OSPLog.debug !!! 104 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 118 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 14 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    127.125    0.081    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 138
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    127.161    0.036    ImageVideo.getImageAtFrame0 46
+OSPLog.debug Platform: timer mark    127.187    0.026    ImageVideo.getImageAtFrame1 46
+OSPLog.debug Platform: timer mark    127.195    0.008    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 139
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    127.228    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    127.237    0.009    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    127.348    0.111    ParticleModel.refreshSteps0 45 46 344000
+OSPLog.debug Platform: timer mark    127.445    0.097    ParticleModel.refreshSteps 352000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    127.451    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 140
+OSPLog.debug !!! 113 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 128 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    127.533    0.082    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 141
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 11 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    127.571    0.038    ImageVideo.getImageAtFrame0 47
+OSPLog.debug Platform: timer mark    127.598    0.027    ImageVideo.getImageAtFrame1 47
+OSPLog.debug Platform: timer mark    127.606    0.008    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 142
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    127.639    0.033    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    127.649    0.01    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    127.759    0.11    ParticleModel.refreshSteps0 46 47 352000
+OSPLog.debug Platform: timer mark    127.848    0.089    ParticleModel.refreshSteps 360000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    127.854    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 143
+OSPLog.debug !!! 105 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 119 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    127.937    0.083    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 144
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    127.975    0.038    ImageVideo.getImageAtFrame0 48
+OSPLog.debug Platform: timer mark    128.001    0.026    ImageVideo.getImageAtFrame1 48
+OSPLog.debug Platform: timer mark    128.009    0.008    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 145
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    128.048    0.039    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    128.059    0.011    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    128.168    0.109    ParticleModel.refreshSteps0 47 48 360000
+OSPLog.debug Platform: timer mark    128.258    0.09    ParticleModel.refreshSteps 368000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    128.266    0.008    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 146
+OSPLog.debug !!! 108 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 122 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 13 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    128.35    0.084    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 147
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 4 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 17 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    128.41    0.06    ImageVideo.getImageAtFrame0 49
+OSPLog.debug Platform: timer mark    128.462    0.052    ImageVideo.getImageAtFrame1 49
+OSPLog.debug Platform: timer mark    128.474    0.012    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 148
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    128.534    0.06    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    128.545    0.011    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    128.693    0.148    ParticleModel.refreshSteps0 48 49 368000
+OSPLog.debug Platform: timer mark    128.791    0.098    ParticleModel.refreshSteps 376000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    128.797    0.006    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 149
+OSPLog.debug !!! 116 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 144 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    128.89    0.093    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 150
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    128.929    0.039    ImageVideo.getImageAtFrame0 50
+OSPLog.debug Platform: timer mark    128.951    0.022    ImageVideo.getImageAtFrame1 50
+OSPLog.debug Platform: timer mark    128.959    0.008    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 151
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    128.994    0.035    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    129.005    0.011    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    129.114    0.109    ParticleModel.refreshSteps0 49 50 376000
+OSPLog.debug Platform: timer mark    129.203    0.089    ParticleModel.refreshSteps 384000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    129.21    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 152
+OSPLog.debug !!! 106 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 121 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 3 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 14 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    129.296    0.086    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 153
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    129.334    0.038    ImageVideo.getImageAtFrame0 51
+OSPLog.debug Platform: timer mark    129.358    0.024    ImageVideo.getImageAtFrame1 51
+OSPLog.debug Platform: timer mark    129.366    0.008    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 154
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    129.402    0.036    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    129.413    0.011    DataTable.refreshTable1 1300
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    129.528    0.115    ParticleModel.refreshSteps0 50 51 384000
+OSPLog.debug Platform: timer mark    129.617    0.089    ParticleModel.refreshSteps 392000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    129.624    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 155
+OSPLog.debug !!! 107 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 122 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 1 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 14 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    129.71    0.086    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 156
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug Platform: timer mark    129.749    0.039    ImageVideo.getImageAtFrame0 52
+OSPLog.debug Platform: timer mark    129.774    0.025    ImageVideo.getImageAtFrame1 52
+OSPLog.debug Platform: timer mark    129.783    0.009    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 157
+OSPLog.debug TableTrackView.refresh 1300 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    129.818    0.035    DataTable.refreshTable0 4864
+OSPLog.debug >>>>DataTable.refreshTableNow 1300 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    129.828    0.01    DataTable.refreshTable1 1300
+OSPLog.debug TrackerPanel UpdateDerivatives start 0 for steps 53
+OSPLog.debug Platform: timer mark    129.861    0.033    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 158
+OSPLog.debug Platform: timer mark    129.868    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 159
+OSPLog.debug Platform: timer mark    129.883    0.015    TTrackbar.rebuild0
+OSPLog.debug Platform: timer mark    129.947    0.064    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TTrackBar
+OSPLog.debug Platform: timer mark    129.951    0.004    TTrackbar.rebuild1
+OSPLog.debug TableTrackView.refresh 1500 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    129.983    0.032    DataTable.refreshTable0 5376
+OSPLog.debug >>>>DataTable.refreshTableNow 1500 true
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    129.997    0.014    DataTable.refreshTable1 1500
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug Platform: timer mark    130.318    0.321    ParticleModel.refreshSteps0 51 52 392000
+OSPLog.debug Platform: timer mark    130.409    0.091    ParticleModel.updateDerivatives0 49 tList=2 stepcount=5
+OSPLog.debug TrackerPanel UpdateDerivatives start 49 for steps 5
+OSPLog.debug Platform: timer mark    130.427    0.018    ParticleModel.updateDerivatives1 49 tList=2 stepcount=5
+OSPLog.debug TableTrackView.refresh 8000 track=DynamicParticle modelo A 5
+OSPLog.debug Platform: timer mark    130.456    0.029    DataTable.refreshTable0 32768
+OSPLog.debug >>>>DataTable.refreshTableNow 8000 false
+OSPLog.debug OSPDataTableModel rebuild values
+OSPLog.debug Platform: timer mark    130.467    0.011    DataTable.refreshTable1 8000
+OSPLog.debug Platform: timer mark    130.471    0.004    ParticleModel.refreshSteps 400000
+OSPLog.debug TFrame.paintHold=0
+OSPLog.debug Platform: timer mark    130.478    0.007    TFrame.repaintT org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug TrackerPanel repaint 160
+OSPLog.debug !!! 169 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 5 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 188 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
+OSPLog.debug !!! 12 TrackerPanel.paintComponent
+OSPLog.debug !!! 0 ParticleModel.paintComponent-draw-refreshsteps
+OSPLog.debug !!! 2 ParticleModel.paintComponent-drawme
