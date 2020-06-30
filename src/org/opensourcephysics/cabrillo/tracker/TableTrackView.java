@@ -2099,25 +2099,24 @@ public class TableTrackView extends TrackView {
 		@Override
 		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
 				int row, int col) {
-			Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
 			TTrack track = getTrack();
-			if (track.trackerPanel != null) {
-				String var = textLine.getText();
+			if (track.trackerPanel != null && value instanceof String) {
+				String var = (String) value;//((JLabel) c).getText();//textLine.getText();
 				String units = track.trackerPanel.getUnits(track, var);
-				if (!"".equals(units)) { //$NON-NLS-1$
-					if (OSPRuntime.isMac()) {
-						var = TeXParser.removeSubscripting(var);
-					}
-					var += " (" + units.trim() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
-					if (OSPRuntime.isMac()) {
-						if (c instanceof JLabel) {
-							((JLabel) c).setText(var);
-						}
-					}
-					textLine.setText(var);
+				if (units.length() > 0) {//!"".equals(units)) { //$NON-NLS-1$
+//					if (OSPRuntime.isMac()) {
+//						var = TeXParser.removeSubscripting(var);
+//					}
+					value = var + " (" + units.trim() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+//					if (OSPRuntime.isMac()) {
+					//	if (c instanceof JLabel) {
+						//	((JLabel) c).setText(var);
+						//}
+//					}
+					//textLine.setText(var);
 				}
 			}
-			return c;
+			return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
 		}
 
 	}
