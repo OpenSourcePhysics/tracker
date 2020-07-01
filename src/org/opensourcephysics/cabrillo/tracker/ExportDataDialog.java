@@ -309,11 +309,11 @@ public class ExportDataDialog extends JDialog {
 				String number = " (" + (i + 1) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 				TView view = choosers[i].getSelectedView();
 				if (view.getViewType() == TView.VIEW_TABLE) {
-					TableTView tableView = (TableTView) view;
-					TTrack track = tableView.getSelectedTrack();
+					TableTView tableTView = (TableTView) view;
+					TTrack track = tableTView.getSelectedTrack();
 					if (track != null) {
 						s = track.getName() + number;
-						TableTrackView trackView = (TableTrackView) tableView.getTrackView(track);
+						TableTrackView trackView = (TableTrackView) tableTView.getTrackView(track);
 						trackNames.put(trackView.dataTable, track.getName());
 						tables.put(s, trackView.dataTable);
 						tableDropdown.addItem(s);
