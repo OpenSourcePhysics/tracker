@@ -24,17 +24,30 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 
-import javax.swing.*;
+import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JMenuItem;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
-import org.opensourcephysics.display.*;
+import org.opensourcephysics.display.Dataset;
+import org.opensourcephysics.display.DatasetManager;
+import org.opensourcephysics.display.HighlightableDataset;
 import org.opensourcephysics.tools.FontSizer;
 
 import javajs.async.SwingJSUtils.Performance;
@@ -48,17 +61,32 @@ import javajs.async.SwingJSUtils.Performance;
 public class PlotTrackView extends TrackView {
 
 	// instance fields
+	
+	// data model
+	
 	protected DatasetManager data;
-	protected JComponent mainView; //
-	protected TrackPlottingPanel[] plots = new TrackPlottingPanel[3];
-	protected JButton plotsButton;
-	protected JCheckBox linkCheckBox;
-	protected JPopupMenu popup;
 	protected boolean highlightVisible = true;
 	protected int defaultPlotCount = 1;
 	private boolean isCustom;
 	protected boolean xAxesLinked;
 	private int selectedPlot;
+
+	// GUI
+	
+	private JPanel mainView;
+	protected TrackPlottingPanel[] plots = new TrackPlottingPanel[3];
+
+	/**
+	 * for TrackChooserTView.viewButton
+	 */
+	protected JButton plotsButton;
+
+	/**
+	 * for toolbarComponents
+	 */
+	private JCheckBox linkCheckBox;
+
+	
 
 	/**
 	 * Constructs a PlotTrackView for the specified track and trackerPanel.
@@ -172,17 +200,7 @@ public class PlotTrackView extends TrackView {
 	}
 
 	/**
-	 * Gets the toolbar components
-	 *
-	 * @return an ArrayList of components to be added to a toolbar
-	 */
-	@Override
-	public ArrayList<Component> getToolBarComponents() {
-		return super.getToolBarComponents();
-	}
-
-	/**
-	 * Gets the view button
+	 * Gets the view button for TrackChooserTView
 	 *
 	 * @return the view button
 	 */
@@ -373,9 +391,7 @@ public class PlotTrackView extends TrackView {
 			mainView.add(plots[i]);
 		}
 		setViewportView(mainView);
-		// create popup menu
-		popup = new JPopupMenu();
-
+		
 		// create link checkbox
 		linkCheckBox = new JCheckBox();
 		linkCheckBox.setOpaque(false);
@@ -390,27 +406,22 @@ public class PlotTrackView extends TrackView {
 			// override getMaximumSize method so has same height as chooser button
 			@Override
 			public Dimension getMaximumSize() {
-				Dimension dim = super.getMaximumSize();
-				Dimension min = getMinimumSize();
-				Container c = getParent().getParent();
-				if (c instanceof TViewChooser) {
-					int h = ((TViewChooser) c).chooserButton.getHeight();
-					dim.height = Math.max(h, min.height);
-				}
-				return dim;
+				return TViewChooser.getButtonMaxSize(this, 
+						super.getMaximumSize(), 
+						getMinimumSize().height);
 			}
 
 			// override getPopup method to return plotcount popup
 			@Override
 			public JPopupMenu getPopup() {
-				rebuildPopup();
-				FontSizer.setFonts(popup, FontSizer.getLevel());
-				return popup;
+				JPopupMenu plotsPopup = rebuildPlotsPopup();
+				FontSizer.setFonts(plotsPopup, FontSizer.getLevel());
+				return plotsPopup;
 			}
 		};
 	}
 
-	private void rebuildPopup() {
+	private JPopupMenu rebuildPlotsPopup() {
 
 		ActionListener plotCountSetter = new ActionListener() {
 			@Override
@@ -421,17 +432,17 @@ public class PlotTrackView extends TrackView {
 			}
 		};
 		// create plotCount menuitems
-
 		JRadioButtonMenuItem[] plotCountItems = new JRadioButtonMenuItem[plots.length];
 		ButtonGroup plotCountGroup = new ButtonGroup();
+		JPopupMenu plotsPopup = new JPopupMenu();
 		for (int i = 0; i < plots.length; i++) {
 			plotCountItems[i] = new JRadioButtonMenuItem(String.valueOf(i + 1));
 			plotCountItems[i].addActionListener(plotCountSetter);
-			popup.add(plotCountItems[i]);
+			plotsPopup.add(plotCountItems[i]);
 			plotCountGroup.add(plotCountItems[i]);
 		}
 		plotCountItems[selectedPlot].setSelected(true);
-
+		return plotsPopup;
 	}
 
 	/**
@@ -502,4 +513,22 @@ public class PlotTrackView extends TrackView {
 		}
 	}
 
+	public Dimension getPanelSize() {
+		return mainView.getSize();
+	}
+
+	public BufferedImage exportImage(int w, int h) {		
+		BufferedImage image = (BufferedImage) mainView.createImage(w, h); 
+		if (image == null)
+			return new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2 = image.createGraphics();
+		mainView.paint(g2);
+		g2.dispose();
+		return image;
+	}
+	
+	public int getPlotCount() {
+		return mainView.getComponentCount();
+	}
+	
 }

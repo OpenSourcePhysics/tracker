@@ -2442,7 +2442,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			boolean maximized = false;
 			TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
 			for (int i = 0; i < choosers.length; i++) {
-				if (choosers[i].maximized) {
+				if (choosers[i].isMaximized()) {
 					maximized = true;
 					break;
 				}

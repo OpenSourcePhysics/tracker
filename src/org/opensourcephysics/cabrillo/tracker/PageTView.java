@@ -27,7 +27,6 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -362,14 +361,9 @@ public class PageTView extends JPanel implements TView {
 			// override getMaximumSize method so has same height as chooser button
 			@Override
 			public Dimension getMaximumSize() {
-				Dimension dim = super.getMaximumSize();
-				Dimension min = getMinimumSize();
-				Container c = getParent().getParent();
-				if (c instanceof TViewChooser) {
-					int h = ((TViewChooser) c).chooserButton.getHeight();
-					dim.height = Math.max(h, min.height);
-				}
-				return dim;
+				return TViewChooser.getButtonMaxSize(getParent(), 
+						super.getMaximumSize(), 
+						getMinimumSize().height);
 			}
 
 			@Override

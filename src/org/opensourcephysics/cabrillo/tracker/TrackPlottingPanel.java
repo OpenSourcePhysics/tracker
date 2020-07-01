@@ -405,7 +405,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		algorithmItem.setText(TrackerRes.getString("Popup.MenuItem.Algorithm")); //$NON-NLS-1$
 		helpItem.setText(TrackerRes.getString("Tracker.Popup.MenuItem.Help")); //$NON-NLS-1$
 		guestsItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.Menu.CompareWith") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-		if (plotTrackView.mainView.getComponentCount() > 1) {
+		if (plotTrackView.getPlotCount() > 1) {
 			popupmenu.add(mergeYScalesItem, 3);
 		} else
 			popupmenu.remove(mergeYScalesItem);
@@ -634,11 +634,14 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			mergeYScalesItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					int n = plotTrackView.mainView.getComponentCount();
-					if (n == 2)
+					switch (plotTrackView.getPlotCount()) {
+					case 2:
 						plotTrackView.syncYAxes(plotTrackView.plots[0], plotTrackView.plots[1]);
-					if (n == 3)
+						break;
+					case 3:
 						plotTrackView.syncYAxes(plotTrackView.plots);
+						break;
+					}
 				}
 			});
 		}

@@ -415,7 +415,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					int chooserIndex = Integer.parseInt(index);
 					XMLControl[] viewControls = next.getChildControls();
 					for (int j = 0; j < viewControls.length; j++) {
-						Class<?> viewClass = viewControls[j].getObjectClass();
+						@SuppressWarnings("unchecked")
+						Class<? extends TView> viewClass = (Class<? extends TView>) viewControls[j].getObjectClass();
 						TView view = viewChoosers[chooserIndex].getTView(viewClass);
 						if (view != null) {
 							viewControls[j].loadObject(view);
@@ -1364,11 +1365,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			OSPLog.debug("TFrame allowViews is false");
 			return new TViewChooser[4];
 		}
-		TViewChooser chooser1 = new TViewChooser(trackerPanel, TView.VIEW_PLOT);
-		TViewChooser chooser2 = new TViewChooser(trackerPanel, TView.VIEW_TABLE);
-		TViewChooser chooser3 = new TViewChooser(trackerPanel, TView.VIEW_WORLD);
-		TViewChooser chooser4 = new TViewChooser(trackerPanel, TView.VIEW_PAGE);
-		return new TViewChooser[] { chooser1, chooser2, chooser3, chooser4 };
+		return new TViewChooser[] { 
+				new TViewChooser(trackerPanel, TView.VIEW_PLOT),
+				new TViewChooser(trackerPanel, TView.VIEW_TABLE), 
+				new TViewChooser(trackerPanel, TView.VIEW_WORLD),
+				new TViewChooser(trackerPanel, TView.VIEW_PAGE) 
+		};
 	}
 
 	private static final int SPLIT_MAIN = 0;
@@ -1439,7 +1441,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		return panes;
 	}
 
-	public static void setDefaultWeights(JSplitPane[] panes) {
+	private static void setDefaultWeights(JSplitPane[] panes) {
 		panes[SPLIT_MAIN].setResizeWeight(1.0);
 		panes[SPLIT_RIGHT].setResizeWeight(0.5);
 		panes[SPLIT_LEFT].setResizeWeight(1.0);
@@ -1448,6 +1450,50 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		panes[SPLIT_RIGHT].setOneTouchExpandable(true);
 		panes[SPLIT_LEFT].setOneTouchExpandable(true);
 		panes[SPLIT_BOTTOM].setOneTouchExpandable(true);
+	}
+
+	private int[] dividerLocs = new int[4];
+	private int dividerSize;
+
+	void maximizeChooser(TrackerPanel trackerPanel, int type) {
+		// save divider locations and size
+		for (int j = 0; j < dividerLocs.length; j++) {
+			JSplitPane pane = getSplitPane(trackerPanel, j);
+			dividerLocs[j] = pane.getDividerLocation();
+			if (pane.getDividerSize() > 0)
+				dividerSize = pane.getDividerSize();
+			pane.setDividerSize(0);
+		}
+		switch (type) {
+		case TView.VIEW_PLOT:
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);
+			setDividerLocation(trackerPanel, SPLIT_RIGHT, 1.0);
+			setDividerWeight(trackerPanel, SPLIT_MAIN, 0);
+			setDividerWeight(trackerPanel, SPLIT_RIGHT, 1);
+			break;
+		case TView.VIEW_TABLE:
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);
+			setDividerLocation(trackerPanel, SPLIT_RIGHT, 0.0);
+			break;
+		case TView.VIEW_WORLD:
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
+			setDividerLocation(trackerPanel, SPLIT_LEFT, 0.0);
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 0.0);
+			break;
+		case TView.VIEW_PAGE:
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
+			setDividerLocation(trackerPanel, SPLIT_LEFT, 0.0);
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0);
+		}
+	}
+
+	void restoreChoosers(TrackerPanel trackerPanel) {
+		for (int j = 0; j < dividerLocs.length; j++) {
+			JSplitPane pane = getSplitPane(trackerPanel, j);
+			pane.setDividerSize(dividerSize);
+			setDividerLocation(trackerPanel, j, dividerLocs[j]);
+		}
+		setDefaultWeights(getSplitPanes(trackerPanel));
 	}
 
 	/**
@@ -2992,30 +3038,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				c.setLocation(p);
 			}
 		});
-	}
-
-	public void maximizeChooser(TrackerPanel trackerPanel, int type) {
-		switch (type) {
-		case TView.VIEW_PLOT:
-			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);
-			setDividerLocation(trackerPanel, SPLIT_RIGHT, 1.0);
-			setDividerWeight(trackerPanel, SPLIT_MAIN, 0);
-			setDividerWeight(trackerPanel, SPLIT_RIGHT, 1);
-			break;
-		case TView.VIEW_TABLE:
-			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);
-			setDividerLocation(trackerPanel, SPLIT_RIGHT, 0.0);
-			break;
-		case TView.VIEW_WORLD:
-			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
-			setDividerLocation(trackerPanel, SPLIT_LEFT, 0.0);
-			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 0.0);
-			break;
-		case TView.VIEW_PAGE:
-			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
-			setDividerLocation(trackerPanel, SPLIT_LEFT, 0.0);
-			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0);
-		}
 	}
 
 	public static void addMenuListener(JMenu m, Runnable r) {

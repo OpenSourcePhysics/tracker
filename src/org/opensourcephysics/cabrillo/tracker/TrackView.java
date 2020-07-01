@@ -43,15 +43,21 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	static final String DEFINED_AS = ": "; //$NON-NLS-1$
 
 	// instance fields
-	private int trackID;
 	protected TrackerPanel trackerPanel;
-	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
 	protected TrackChooserTView parent;
+	
+	private int trackID;
 	protected int myType;
 
 	protected boolean forceRefresh = false;
 	
 
+	// toolbarComponents and GUI
+	
+	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
+	private Icon trackIcon;
+
+	
 	// constructor
 	protected TrackView(TTrack track, TrackerPanel panel, TrackChooserTView view, int myType) {
 		trackID = track.getID();
@@ -90,7 +96,9 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	}
 
 	public Icon getIcon() {
-		return getTrack().getIcon(21, 16, "point"); //$NON-NLS-1$
+		if (trackIcon == null)
+			trackIcon = getTrack().getIcon(21, 16, "point");
+		return trackIcon;
 	}
 
 	TTrack getTrack() {
@@ -103,17 +111,17 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	 * @return the TViewChooser. May return null if this is not displayed
 	 */
 	protected TViewChooser getOwner() {
-		// return TViewChooser with this view , if any
 		TFrame frame = trackerPanel.getTFrame();
 		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
 		for (int i = 0; i < choosers.length; i++) {
-			TView tview = choosers[i].getSelectedView();
-			if (tview != null && tview == parent && parent.getTrackView(parent.getSelectedTrack()) == this) {
+			TView tview = (choosers[i] == null ? null : choosers[i].getSelectedView());
+			if (tview == parent && parent.getTrackView(parent.getSelectedTrack()) == this) {
 				return choosers[i];
 			}
 		}
 		return null;
 	}
+
 
 	/**
 	 * Gets toolbar components for toolbar of parent view

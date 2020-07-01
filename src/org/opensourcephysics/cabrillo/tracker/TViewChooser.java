@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
@@ -36,6 +37,7 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -44,7 +46,6 @@ import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.border.Border;
 
@@ -65,34 +66,37 @@ import javajs.async.SwingJSUtils.Performance;
 public class TViewChooser extends JPanel implements PropertyChangeListener {
 
 	// static fields
-	protected final static Icon MAXIMIZE_ICON, RESTORE_ICON;
-	// view icons to show in chooserButton
-	final static Icon[] VIEW_ICONS =
-		{PlotTView.PLOTVIEW_ICON, TableTView.TABLEVIEW_ICON, WorldTView.WORLDVIEW_ICON, PageTView.PAGEVIEW_ICON};
-	// view names for chooserButton are localizable
-	final static String[] VIEW_NAMES =
-		{"TFrame.View.Plot", "TFrame.View.Table", "TFrame.View.World", "TFrame.View.Text"};
 
-	static {
-		MAXIMIZE_ICON = new ResizableIcon(Tracker.getClassResource("resources/images/maximize.gif")); //$NON-NLS-1$
-		RESTORE_ICON = new ResizableIcon(Tracker.getClassResource("resources/images/restore.gif")); //$NON-NLS-1$
-	}
+	protected final static Icon MAXIMIZE_ICON = new ResizableIcon(Tracker.getClassResource("resources/images/maximize.gif")); //$NON-NLS-1$
+	protected final static Icon	RESTORE_ICON = new ResizableIcon(Tracker.getClassResource("resources/images/restore.gif")); //$NON-NLS-1$
 
 	// instance fields
+	
+	// data model
+	
 	protected TrackerPanel trackerPanel;
 	protected TView[] tViews = new TView[4]; // views are null until needed
 	protected TView selectedView;
-	protected JPanel viewPanel;
-	protected JToolBar toolbar;
-	protected JButton chooserButton;
-	protected Component toolbarFiller = Box.createHorizontalGlue();
-	protected JButton maximizeButton;
-	protected JPopupMenu popup = new JPopupMenu();
-	protected int[] dividerLocs = new int[4];
-	protected int dividerSize;
-	protected boolean maximized;
+
+	protected int selectedType = TView.VIEW_UNSET;
 	
-	protected int selectedType = -2;  // type not yet set
+	// GUI
+
+	private JToolBar toolbar;
+	private Component toolbarFiller = Box.createHorizontalGlue();
+	private JButton maximizeButton;
+	private JPanel viewPanel;
+	private JButton chooserButton;
+
+	private boolean maximized;
+	
+	public boolean isMaximized() {
+		return maximized;
+	}
+	
+	// popup menu
+	
+	protected JPopupMenu popup = new JPopupMenu();
 		
 	/**
 	 * Constructs a TViewChooser.
@@ -113,7 +117,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		viewPanel = new JPanel(new CardLayout());
 		viewPanel.setBorder(BorderFactory.createEtchedBorder());
 		add(viewPanel, BorderLayout.CENTER);
-		// toolbar
+		// toolbar along the bottom when maximized, along the top when restored
 		toolbar = new JToolBar();
 		toolbar.setFloatable(false);
 		toolbar.addMouseListener(new MouseAdapter() {
@@ -124,33 +128,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 					maximizeButton.doClick(0);
 				}
 				if (OSPRuntime.isPopupTrigger(e)) {
-					final TView view = getSelectedView();
-					if (view == null)
-						return;
-					JPopupMenu popup = new JPopupMenu();
-					JMenuItem helpItem = new JMenuItem(TrackerRes.getString("Dialog.Button.Help") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-					helpItem.addActionListener(new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							switch(view.getViewType()) {
-							case TView.VIEW_PAGE:
-								trackerPanel.getTFrame().showHelp("textview", 0); //$NON-NLS-1$
-								break;
-							case TView.VIEW_TABLE:
-								trackerPanel.getTFrame().showHelp("datatable", 0); //$NON-NLS-1$
-								break;
-							case TView.VIEW_PLOT:
-								trackerPanel.getTFrame().showHelp("plot", 0); //$NON-NLS-1$
-								break;
-							case TView.VIEW_WORLD:
-								trackerPanel.getTFrame().showHelp("GUI", 0); //$NON-NLS-1$
-								break;
-							}
-						}
-					});
-					popup.add(helpItem);
-					FontSizer.setFonts(popup, FontSizer.getLevel());
-					popup.show(toolbar, e.getX(), e.getY());
+					showToolbarPopup(e.getX(), e.getY());
 				}
 			}
 		});
@@ -160,27 +138,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		chooserButton = new TButton() {
 			@Override
 			protected JPopupMenu getPopup() {
-				// inner popup menu listener class
-				ActionListener listener = new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						// select the view type
-						int i = Integer.parseInt(e.getActionCommand());
-						setSelectedViewType(i);
-					}
-				};
-				// add view items to popup
-				popup.removeAll();
-				JMenuItem item;
-				for (int i = 0; i<VIEW_NAMES.length; i++) {
-					String name = TrackerRes.getString(VIEW_NAMES[i]);
-					item = new JMenuItem(name, new ResizableIcon(VIEW_ICONS[i]));
-					item.setActionCommand("" + i);
-					item.addActionListener(listener);
-					popup.add(item);
-				}
-				FontSizer.setFonts(popup, FontSizer.getLevel());
-				return popup;
+				return getChooserPopup();
 			}
 		};
 		// maximize buttons
@@ -196,12 +154,64 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 					maximize();
 				} else
 					restore();
-				maximizeButton.setSelected(maximized);
 				maximizeButton.setToolTipText(maximized ? TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
 				TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 			}
 		});
 		setSelectedViewType(type);
+	}
+
+	protected void showToolbarPopup(int x, int y) {
+		final TView view = getSelectedView();
+		if (view == null)
+			return;
+		JPopupMenu popup = new JPopupMenu();
+		JMenuItem helpItem = new JMenuItem(TrackerRes.getString("Dialog.Button.Help") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+		helpItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				switch(view.getViewType()) {
+				case TView.VIEW_PAGE:
+					trackerPanel.getTFrame().showHelp("textview", 0); //$NON-NLS-1$
+					break;
+				case TView.VIEW_TABLE:
+					trackerPanel.getTFrame().showHelp("datatable", 0); //$NON-NLS-1$
+					break;
+				case TView.VIEW_PLOT:
+					trackerPanel.getTFrame().showHelp("plot", 0); //$NON-NLS-1$
+					break;
+				case TView.VIEW_WORLD:
+					trackerPanel.getTFrame().showHelp("GUI", 0); //$NON-NLS-1$
+					break;
+				}
+			}
+		});
+		popup.add(helpItem);
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		popup.show(toolbar, x, y);
+	}
+
+	protected JPopupMenu getChooserPopup() {				// inner popup menu listener class
+		ActionListener listener = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// select the view type
+				int i = Integer.parseInt(e.getActionCommand());
+				setSelectedViewType(i);
+			}
+		};
+		// add view items to popup
+		popup.removeAll();
+		JMenuItem item;
+		for (int i = 0; i<TView.VIEW_NAMES.length; i++) {
+			String name = TrackerRes.getString(TView.VIEW_NAMES[i]);
+			item = new JMenuItem(name, new ResizableIcon(TView.VIEW_ICONS[i]));
+			item.setActionCommand("" + i);
+			item.addActionListener(listener);
+			popup.add(item);
+		}
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		return popup;
 	}
 
 	/**
@@ -238,28 +248,24 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * @param c class PlotTView, TableTView, WorldTView, PageTView
 	 * @return the view
 	 */
-	public TView getTView(Class<?> c) {
+	public TView getTView(Class<? extends TView> c) {
 		// look for existing view
 		for (TView view : tViews) {
 			if (view != null && view.getClass() == c)
 				return view;
 		}
 		// create new view
-		if (PlotTView.class == c) {
-			tViews[TView.VIEW_PLOT] = new PlotTView(trackerPanel);
-			return tViews[TView.VIEW_PLOT];
+		if (c == PlotTView.class) {
+			return tViews[TView.VIEW_PLOT] = new PlotTView(trackerPanel);
 		}
-		if (TableTView.class == c) {
-			tViews[TView.VIEW_TABLE] = new TableTView(trackerPanel);
-			return tViews[TView.VIEW_TABLE];
+		if (c == TableTView.class) {
+			return tViews[TView.VIEW_TABLE] = new TableTView(trackerPanel);
 		}
-		if (WorldTView.class == c) {
-			tViews[TView.VIEW_WORLD] = new WorldTView(trackerPanel);
-			return tViews[TView.VIEW_WORLD];
+		if (c == WorldTView.class) {
+			return tViews[TView.VIEW_WORLD] = new WorldTView(trackerPanel);
 		}
-		if (PageTView.class == c) {
-			tViews[TView.VIEW_PAGE] = new PageTView(trackerPanel);
-			return tViews[TView.VIEW_PAGE];
+		if (c == PageTView.class) {
+			return tViews[TView.VIEW_PAGE] = new PageTView(trackerPanel);
 		}
 		return null;
 	}
@@ -312,7 +318,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		chooserButton.setIcon(new ResizableIcon(selectedView.getViewIcon()));
 		// show the view on the viewPanel
 		CardLayout cl = (CardLayout) (viewPanel.getLayout());
-		cl.show(viewPanel, VIEW_NAMES[selectedType]);
+		cl.show(viewPanel, TView.VIEW_NAMES[selectedType]);
 		repaint();
 		// refresh the toolbar
 		refreshToolbar();
@@ -433,14 +439,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			add(toolbar, BorderLayout.SOUTH);
 			toolbar.setFloatable(false);
 		}
-		// save divider locations and size
-		for (int j = 0; j < dividerLocs.length; j++) {
-			JSplitPane pane = frame.getSplitPane(trackerPanel, j);
-			dividerLocs[j] = pane.getDividerLocation();
-			if (pane.getDividerSize() > 0)
-				dividerSize = pane.getDividerSize();
-			pane.setDividerSize(0);
-		}
 		maximized = true;
 		frame.maximizeChooser(trackerPanel, selectedType);
 	}
@@ -460,12 +458,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			mainView.add(player, BorderLayout.SOUTH);
 			player.setFloatable(true);
 		}
-		for (int j = 0; j < dividerLocs.length; j++) {
-			JSplitPane pane = frame.getSplitPane(trackerPanel, j);
-			pane.setDividerSize(dividerSize);
-			frame.setDividerLocation(trackerPanel, j, dividerLocs[j]);
-		}
-		TFrame.setDefaultWeights(frame.getSplitPanes(trackerPanel));
+		frame.restoreChoosers(trackerPanel);
 		maximized = false;
 	}
 
@@ -498,7 +491,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		for (int i = 0; i< 4; i++) {
 			TView view = tViews[i];
 			if (view != null) {
-				viewPanel.add((JComponent) view, VIEW_NAMES[i]);
+				viewPanel.add((JPanel) view, TView.VIEW_NAMES[i]);
 			}
 		}
 		// reselect selected view, if any
@@ -589,7 +582,23 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	
 	@Override
 	public String toString() {
-		return this.getName();
+		return getName();
+	}
+
+	/**
+	 * Adjust maximum size height and width for standard view.
+	 * 
+	 * @param c the parent of the button being checked for maximum size
+	 * @param max default size
+	 * @param minHeight button's minimum height
+	 * @return new Dimension with height based on chooserButton height
+	 */
+	static Dimension getButtonMaxSize(Container c, Dimension max, int minHeight) {
+		while (c != null && !(c instanceof TViewChooser)) {
+			c = c.getParent();
+		}
+		return (c == null ? max 
+				: new Dimension(max.width, Math.max(minHeight, ((TViewChooser) c).chooserButton.getHeight())));
 	}
 
 }

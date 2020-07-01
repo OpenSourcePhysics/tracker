@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.CardLayout;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -65,15 +64,20 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 
 	// instance fields
 	protected TrackerPanel trackerPanel;
-	protected Map<TTrack, TrackView> trackViews; // maps track to its trackView
 	protected Map<Object, TTrack> tracks = new HashMap<Object, TTrack>(); // maps dropdown items to track
-	protected JComboBox<Object> dropdown;
-	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
-	protected boolean refreshing;
+	protected Map<TTrack, TrackView> trackViews; // maps track to its trackView
 	protected TTrack selectedTrack;
-	protected JPanel noData;
-	protected JLabel noDataLabel;
+	protected boolean refreshing;
+
+	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
+	private JComboBox<Object[]> trackComboBox;
+	private JPanel noData;
+	private JLabel noDataLabel;
 	
+	
+	protected void setNodataLabel(String text) {
+		noDataLabel.setText(text);
+	}
 	/**
 	 * Constructs a TrackChooserView for the specified tracker panel.
 	 *
@@ -89,29 +93,22 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		init();
 		setBackground(panel.getBackground());
 		// create combobox with custom renderer for tracks
-		dropdown = new JComboBox<Object>() {
+		trackComboBox = new JComboBox<Object[]>() {
 			// override getMaximumSize method so has same height as chooser button
 			@Override
 			public Dimension getMaximumSize() {
-				Dimension dim = super.getMaximumSize();
-				Dimension preferred = getPreferredSize();
-				dim.width = preferred.width;
-				Dimension min = getMinimumSize();
-				Container c = getParent().getParent();
-				if (c instanceof TViewChooser) {
-					int h = ((TViewChooser) c).chooserButton.getHeight();
-					dim.height = Math.max(h, min.height);
-				}
-				return dim;
+				return TViewChooser.getButtonMaxSize(getParent(),
+						new Dimension(getPreferredSize().width, super.getMaximumSize().height),
+						getMinimumSize().height);
 			}
 		};
-		dropdown.setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 1));
-		toolbarComponents.add(dropdown);
+		trackComboBox.setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 1));
+		toolbarComponents.add(trackComboBox);
 		// custom cell renderer for dropdown items
 		TrackRenderer renderer = new TrackRenderer();
-		dropdown.setRenderer(renderer);
+		trackComboBox.setRenderer(renderer);
 		// add ActionListener to select a track and display its trackview
-		dropdown.addActionListener(new ActionListener() {
+		trackComboBox.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				dropDownAction();
@@ -152,7 +149,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		if (refreshing)
 			return;
 		// show the trackView for the selected track
-		Object item = dropdown.getSelectedItem();
+		Object item = trackComboBox.getSelectedItem();
 		TTrack track = tracks.get(item);
 //if (track==selectedTrack) return;
 		String name = (String) ((Object[]) item)[1];
@@ -221,7 +218,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		Map<TTrack, TrackView> newViews = new HashMap<TTrack, TrackView>();
 		removeAll(); // removes views from card layout
 		tracks.clear();
-		dropdown.removeAllItems();
+		trackComboBox.removeAllItems();
 		for (TTrack track : trackerPanel.getTracks()) {
 			// include only viewable tracks
 			if (!track.isViewable())
@@ -235,8 +232,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			trackView.refreshGUI();
 			newViews.put(track, trackView);
 			String trackName = track.getName("point"); //$NON-NLS-1$
-			Object item = new Object[] { trackView.getIcon(), trackName };
-			dropdown.addItem(item);
+			Object[] item = new Object[] { trackView.getIcon(), trackName };
+			trackComboBox.addItem(item);
 			add(trackView, trackName);
 			tracks.put(item, track);
 		}
@@ -244,11 +241,9 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		trackViews = newViews;
 		// select previously selected track, if any
 		refreshing = false;
-		if (selectedTrack != null && getTrackView(selectedTrack) != null) {
-			setSelectedTrack(selectedTrack);
-		} else
-			setSelectedTrack(defaultTrack);
-		dropdown.setToolTipText(TrackerRes.getString("TrackChooserTView.DropDown.Tooltip")); //$NON-NLS-1$
+		setSelectedTrack(selectedTrack == null || getTrackView(selectedTrack) == null
+				? defaultTrack : selectedTrack);
+		trackComboBox.setToolTipText(TrackerRes.getString("TrackChooserTView.DropDown.Tooltip")); //$NON-NLS-1$
 	}
 
 	/**
@@ -384,13 +379,25 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	public void setSelectedTrack(TTrack track) {
 		OSPLog.debug("TrackChooser.setSelected " + track);
 		if (track == null) {
+			String msg;
+			switch (getViewType()) {
+			case TView.VIEW_TABLE:
+				msg = "TableTView.Label.NoData"; //$NON-NLS-1$
+				noDataLabel.setText(TrackerRes.getString(msg));
+				break;
+			default:
+			case TView.VIEW_PLOT:
+				msg = "PlotTView.Label.NoData"; //$NON-NLS-1$
+				noDataLabel.setText(TrackerRes.getString(msg));
+				break;
+			}
 			add(noData, "noData");
 			selectedTrack = null;
 			return;
 		}
 		if (!track.isViewable() || !trackerPanel.containsTrack(track))
 			return;
-		if (track == selectedTrack && tracks.get(dropdown.getSelectedItem()) == track) {
+		if (track == selectedTrack && tracks.get(trackComboBox.getSelectedItem()) == track) {
 			// just refresh the selected TrackView
 			getTrackView(selectedTrack).refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_SELECT);
 			return;
@@ -403,7 +410,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				removeTrackListener(track);
 				addTrackListener(track);
 				// select the track dropdown item
-				dropdown.setSelectedItem(item);
+				trackComboBox.setSelectedItem(item);
 				break;
 			}
 		}
@@ -430,7 +437,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	/**
 	 * Gets the toolbar components
 	 *
-	 * @return an ArrayList of components to be added to a toolbar
+	 * @return an ArrayList of components to be added to a toolbar at the
+	 * top of the view. This includes View buttton 
 	 */
 	@Override
 	public ArrayList<Component> getToolBarComponents() {
@@ -439,8 +447,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		if (trackView != null) {
 			toolbarComponents.add(trackView.getViewButton());
 		}
-		if (dropdown.getItemCount() > 0) {
-			toolbarComponents.add(dropdown);
+		if (trackComboBox.getItemCount() > 0) {
+			toolbarComponents.add(trackComboBox);
 		}
 		if (trackView != null) {
 			toolbarComponents.addAll(trackView.getToolBarComponents());
@@ -591,10 +599,12 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		return null;
 	}
 
+	@Override
 	public void paint(Graphics g) {
 		// from TFrame.repaint();
 		super.paint(g);
 	}
+	
 	@Override
 	public void repaint() {
 		// from CardLayout reshape

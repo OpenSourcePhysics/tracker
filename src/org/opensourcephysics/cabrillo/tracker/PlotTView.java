@@ -105,19 +105,6 @@ public class PlotTView extends TrackChooserTView {
 	}
 
 	/**
-	 * Overrides TrackChooserTView method.
-	 *
-	 * @param track the track to be selected
-	 */
-	@Override
-	public void setSelectedTrack(TTrack track) {
-		if (track == null) {
-			noDataLabel.setText(TrackerRes.getString("PlotTView.Label.NoData")); //$NON-NLS-1$
-		}
-		super.setSelectedTrack(track);
-	}
-
-	/**
 	 * Returns an XML.ObjectLoader to save and load object data.
 	 *
 	 * @return the XML.ObjectLoader
