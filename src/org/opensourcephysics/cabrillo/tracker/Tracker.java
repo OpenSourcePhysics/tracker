@@ -94,15 +94,19 @@ import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.Dataset;
+import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.mov.MovieFactory;
+import org.opensourcephysics.tools.DataFunctionPanel;
 import org.opensourcephysics.tools.Diagnostics;
 import org.opensourcephysics.tools.DiagnosticsForThreads;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.FunctionEditor;
+import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.LaunchNode;
 import org.opensourcephysics.tools.Launcher;
@@ -121,8 +125,13 @@ import swingjs.api.JSUtilI;
  */
 public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
-	public static boolean allowDataRefresh = true; // !OSPRuntime.isBHTest;
-	public static boolean allowViews = true;//!OSPRuntime.isBHTest;
+	static boolean isJS = /** @j2sNative true || */
+			false;
+
+	public static boolean allowDataFunctionControls = !isJS;
+	
+	public static boolean allowDataRefresh = true;
+	public static boolean allowViews = true;
 	public static boolean allowMenuRefresh = true;
 
 	static {
@@ -131,8 +140,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	public static JSUtilI jsutil;
 
-	static boolean isJS = /** @j2sNative true ||*/false;
-	
 	static {
 		try {
 			if (isJS) {
@@ -142,7 +149,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			OSPLog.warning("OSPRuntime could not create jsutil");
 		}
 	}
-	
+
 	static {
 		try {
 			Object val = (isJS ? jsutil.getAppletInfo("assets") : null);
@@ -160,31 +167,28 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					break;
 				default:
 					// JavaScript only
-					Assets.add(val);				
+					Assets.add(val);
 					break;
 				}
 			} else {
-				Assets.add(val);				
+				Assets.add(val);
 			}
 		} catch (Throwable e) {
 			OSPLog.warning("Error reading assets path. ");
 			System.err.println("Error reading assets path.");
 		}
 	}
-	
 
-	
-	
 	// define static constants
 	/** tracker version and copyright */
 	public static final String VERSION = "5.1.3"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown"; //$NON-NLS-1$
 	/** the tracker icon */
 	public static final ImageIcon TRACKER_ICON = new ImageIcon(
-			Tracker.getClassResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
+			getClassResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
 	/** a larger tracker icon */
 	public static final ImageIcon TRACKER_ICON_256 = new ImageIcon(
-			Tracker.getClassResource("resources/images/tracker_icon_256.png")); //$NON-NLS-1$
+			getClassResource("resources/images/tracker_icon_256.png")); //$NON-NLS-1$
 
 	static final String THETA = TeXParser.parseTeX("$\\theta"); //$NON-NLS-1$
 	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
@@ -267,9 +271,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static Locale defaultLocale;
 	static ArrayList<String> checkForUpgradeChoices;
 	static Map<String, Integer> checkForUpgradeIntervals;
-	static Collection<String> dataFunctionControlStrings = new HashSet<String>();
+
 	static Collection<String> initialAutoloadSearchPaths = new TreeSet<String>();
-	static Map<String, ArrayList<XMLControl>> dataFunctionControls = new TreeMap<String, ArrayList<XMLControl>>();
+
 	static java.io.FileFilter xmlFilter;
 
 	// user-settable preferences saved/loaded by Preferences class
@@ -648,7 +652,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		splash.setVisible(showSplash && !isJS);
 
 		createFrame();
-		Tracker.setProgress(5);
+		setProgress(5);
 		if (names != null) {
 			// parse file names
 			for (int i = 0; i < names.length; i++) {
@@ -676,7 +680,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 						startupHintShown = true;
 						trackerPanel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
 					}
-					Tracker.setProgress(100);
+					setProgress(100);
 				}
 
 			});
@@ -778,7 +782,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					frame.new TabRemover(trackerPanel).execute();
 					return null;
 				}
-				
+
 			}, null, new Runnable() {
 				// if canceled
 				@Override
@@ -788,25 +792,25 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					int op = frame.getDefaultCloseOperation();
 					boolean exit = frame.wishesToExit();
 					frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-					
+
 					// use AsyncSwingWorker to restore frame visibility and DefaultCloseOperation
 					new AsyncSwingWorker(null, null, 2, 0, 1) { // 2 ms delay
-						
+
 						@Override
-						public void initAsync() {						
+						public void initAsync() {
 						}
-				
+
 						@Override
 						public int doInBackgroundAsync(int i) {
 							return 1;
 						}
-				
+
 						@Override
 						public void doneAsync() {
 							frame.setVisible(true);
-							frame.setDefaultCloseOperation(exit? JFrame.EXIT_ON_CLOSE: op);
+							frame.setDefaultCloseOperation(exit ? JFrame.EXIT_ON_CLOSE : op);
 						}
-				
+
 					}.execute();
 				}
 				// frame will always close now
@@ -1313,6 +1317,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	}
 
 	/**
+	 * @j2sIngnore
+	 * 
 	 * Autoloads data functions found in the user home and code base directories.
 	 * This loads DataFunctionPanel XMLControls into a static collection that is
 	 * accessed when need by DataBuilder.
@@ -1745,12 +1751,13 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 */
 	protected static String savePreferences() {
 		XMLControl control = new XMLControlElement(new Preferences());
-		if (!isJS) /** @j2sNative */ {
+		if (!isJS) /** @j2sNative */
+		{
 			// save prefs file in current preferences path
 			if (prefsPath != null) {
 				control.write(prefsPath);
 			}
-	
+
 			// save other existing prefs files
 			for (int i = 0; i < 2; i++) {
 				String fileName = TrackerStarter.PREFS_FILE_NAME;
@@ -1776,7 +1783,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					control.write(prefsFile.getAbsolutePath());
 				}
 			}
-	
+
 			// save current trackerHome and xuggleHome in OSP preferences
 			if (trackerHome != null && new File(trackerHome, "tracker.jar").exists()) { //$NON-NLS-1$
 				OSPRuntime.setPreference("TRACKER_HOME", trackerHome); //$NON-NLS-1$
@@ -1787,9 +1794,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			}
 			OSPRuntime.savePreferences();
 			return prefsPath;
-		}
-		else { // JS
-			// localStorage.setItem("trackerprefs", control.toXML());
+		} else { // JS
+					// localStorage.setItem("trackerprefs", control.toXML());
 		}
 		return null;
 	}
@@ -2602,6 +2608,178 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 //			
 //		
 //		}
+		return false;
+	}
+
+	// dataFunctionControls  
+	
+	// BH ? Allow in SwingJS?
+	
+	static private Collection<String> dataFunctionControlStrings = new HashSet<String>();
+	static private Map<String, ArrayList<XMLControl>> dataFunctionControls = new TreeMap<String, ArrayList<XMLControl>>();
+
+	public static boolean haveDataFunctions() {
+		return (!allowDataFunctionControls ? false : !dataFunctionControlStrings.isEmpty() 
+			|| !dataFunctionControls.isEmpty());
+	}
+
+	/**
+	 * @j2sIgnore
+	 * 
+	 * @param trackType
+	 * @param panel
+	 */
+	public static void loadControlStringObjects(Class<?> trackType, FunctionPanel panel) {
+		// load from Strings read from tracker.prefs (deprecated Dec 2014)
+		for (String xml : Tracker.dataFunctionControlStrings) {
+			XMLControl control = new XMLControlElement(xml);
+			// determine what track type the control is for
+			Class<?> controlTrackType = null;
+			try {
+				controlTrackType = Class.forName(control.getString("description")); //$NON-NLS-1$ );
+			} catch (Exception ex) {
+			}
+
+			if (controlTrackType == trackType) {
+				control.loadObject(panel);
+			}
+		}
+	}
+
+	/**
+	 * @j2sIgnore
+	 * 
+	 * @param reload
+	 */
+	public static void loadControlStrings(Runnable reload) {
+		if (dataFunctionControlStrings.isEmpty())
+			return;
+		// convert and save in user platform-dependent default search directory
+		ArrayList<String> searchPaths = OSPRuntime.getDefaultSearchPaths();
+		final String directory = searchPaths.size() > 0 ? searchPaths.get(0) : null;
+		if (directory != null) {
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					int response = JOptionPane.showConfirmDialog(null,
+							TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message1") //$NON-NLS-1$
+									+ "\n" //$NON-NLS-1$
+									+ TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message2") //$NON-NLS-1$
+									+ "\n\n" //$NON-NLS-1$
+									+ TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message3"), //$NON-NLS-1$
+							TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Title"), //$NON-NLS-1$
+							JOptionPane.YES_NO_OPTION);
+					if (response == JOptionPane.YES_OPTION) {
+						TrackDataBuilder builder = new TrackDataBuilder(new TrackerPanel());
+						int i = 0;
+						for (String next : dataFunctionControlStrings) {
+							XMLControl panelControl = new XMLControlElement(next);
+							DataFunctionPanel panel = new DataFunctionPanel(new DatasetManager());
+							panelControl.loadObject(panel);
+							builder.addPanelWithoutAutoloading("panel" + i, panel); //$NON-NLS-1$
+							i++;
+						}
+						File file = new File(directory, "TrackerConvertedAutoloadFunctions.xml"); //$NON-NLS-1$
+						XMLControl control = new XMLControlElement(builder);
+						control.write(file.getAbsolutePath());
+						dataFunctionControlStrings.clear();
+						reload.run();
+					}
+
+				}
+			});
+		}
+	}
+
+	/**
+	 * @j2sIgnore
+	 * 
+	 * @param trackType
+	 * @param panel
+	 */
+	public static void loadControls(Class<?> trackType, FunctionPanel panel) {
+		for (String path : dataFunctionControls.keySet()) {
+			ArrayList<XMLControl> controls = dataFunctionControls.get(path);
+			for (XMLControl control : controls) {
+				// determine what track type the control is for
+				Class<?> controlTrackType = null;
+				try {
+					controlTrackType = Class.forName(control.getString("description")); //$NON-NLS-1$ );
+				} catch (Exception ex) {
+				}
+
+				if (controlTrackType == trackType) {
+					// copy the control for modification if any functions are autoload_off
+					XMLControl copyControl = new XMLControlElement(control);
+					eliminateExcludedFunctions(copyControl, path);
+					// change duplicate function names without requiring user confirmation
+					FunctionEditor editor = panel.getFunctionEditor();
+					boolean confirmChanges = editor.getConfirmChanges();
+					editor.setConfirmChanges(false);
+					copyControl.loadObject(panel);
+					editor.setConfirmChanges(confirmChanges);
+				}
+			}
+		}
+
+	}
+
+	/**
+	 * 
+	 * @j2sIgnore
+	 * 
+	 * Eliminates excluded function entries from a DataFunctionPanel XMLControl.
+	 * Typical (but incomplete) control:
+	 * 
+	 * <object class="org.opensourcephysics.tools.DataFunctionPanel">
+	 * <property name="description" type=
+	 * "string">org.opensourcephysics.cabrillo.tracker.PointMass</property>
+	 * <property name="functions" type="collection" class="java.util.ArrayList">
+	 * <property name="item" type="array" class="[Ljava.lang.String;">
+	 * <property name="[0]" type="string">Ug</property>
+	 * <property name="[1]" type="string">m*g*y</property> </property> </property>
+	 * <property name="autoload_off_Ug" type="boolean">true</property> </object>
+	 *
+	 * @param panelControl the XMLControl to modify
+	 * @param filePath     the path to the XML file read by the XMLControl
+	 */
+	private static void eliminateExcludedFunctions(XMLControl panelControl, String filePath) {
+		for (XMLProperty functions : panelControl.getPropsRaw()) {
+			if (functions.getPropertyName().equals("functions")) { //$NON-NLS-1$
+				java.util.List<Object> items = functions.getPropertyContent();
+				ArrayList<XMLProperty> toRemove = new ArrayList<XMLProperty>();
+				for (Object child : items) {
+					XMLProperty item = (XMLProperty) child;
+					XMLProperty nameProp = (XMLProperty) item.getPropertyContent().get(0);
+					String functionName = (String) nameProp.getPropertyContent().get(0);
+					if (isFunctionExcluded(filePath, functionName)) {
+						toRemove.add(item);
+					}
+				}
+				for (XMLProperty next : toRemove) {
+					items.remove(next);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Determines if a named function is excluded from autoloading.
+	 *
+	 * @param filePath     the path to the file defining the function
+	 * @param functionName the function name
+	 * @return true if the function is excluded
+	 */
+	private static boolean isFunctionExcluded(String filePath, String functionName) {
+		String[] functions = autoloadMap.get(filePath);
+		if (functions == null)
+			return false;
+		for (String name : functions) {
+			if (name.equals("*")) //$NON-NLS-1$
+				return true;
+			if (name.equals(functionName))
+				return true;
+		}
 		return false;
 	}
 

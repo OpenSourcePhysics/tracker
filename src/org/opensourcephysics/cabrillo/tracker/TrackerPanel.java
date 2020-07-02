@@ -299,7 +299,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				PointMass pm = (PointMass) e.getSource();
-				FunctionPanel panel = dataBuilder.getPanel(pm.getName());
+				FunctionPanel panel =(dataBuilder == null ? null : dataBuilder.getPanel(pm.getName()));
 				if (panel == null)
 					return;
 				ParamEditor paramEditor = panel.getParamEditor();
@@ -313,7 +313,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		//
 		if (!(this instanceof WorldTView)) {
-			getDataBuilder(); // so autoloaded datafunctions are available to tracks
+			if (Tracker.haveDataFunctions())
+				getDataBuilder(); 
+			// so autoloaded datafunctions are available to tracks
+			// and?
 			panelAndWorldViews.add(this);
 		}
 		configure();

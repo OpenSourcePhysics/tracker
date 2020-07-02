@@ -457,9 +457,9 @@ public class TrackDataBuilder extends FunctionTool {
 		if (autoloadButton == null)
 			return;
 		FontSizer.setFonts(new Object[] { loadButton, saveButton, autoloadButton }, level);
-		for (String name : panels.keySet()) {
+		for (String name : trackFunctionPanels.keySet()) {
 			TTrack track = trackerPanel.getTrack(name);
-			FunctionPanel panel = panels.get(name);
+			FunctionPanel panel = trackFunctionPanels.get(name);
 			if (track == null || panel == null)
 				continue;
 			// get new footprint icon, automatically resized to current level
@@ -481,53 +481,19 @@ public class TrackDataBuilder extends FunctionTool {
 	@Override
 	public FunctionPanel addPanel(String name, FunctionPanel panel) {
 		super.addPanel(name, panel);
-
+		if (!Tracker.haveDataFunctions())
+			return panel;
+		
 		// autoload data functions, if any, for this track type
 		Class<?> trackType = null;
 		try {
 			trackType = Class.forName(panel.getDescription());
-		} catch (ClassNotFoundException ex) {
+			Tracker.loadControlStringObjects(trackType, panel);
+			// load from XMLControls autoloaded from XML files in search paths
+			Tracker.loadControls(trackType, panel);
+		} catch (Throwable e) {
+			e.printStackTrace();
 		}
-		// load from Strings read from tracker.prefs (deprecated Dec 2014)
-		for (String xml : Tracker.dataFunctionControlStrings) {
-			XMLControl control = new XMLControlElement(xml);
-			// determine what track type the control is for
-			Class<?> controlTrackType = null;
-			try {
-				controlTrackType = Class.forName(control.getString("description")); //$NON-NLS-1$ );
-			} catch (Exception ex) {
-			}
-
-			if (controlTrackType == trackType) {
-				control.loadObject(panel);
-			}
-		}
-
-		// load from XMLControls autoloaded from XML files in search paths
-		for (String path : Tracker.dataFunctionControls.keySet()) {
-			ArrayList<XMLControl> controls = Tracker.dataFunctionControls.get(path);
-			for (XMLControl control : controls) {
-				// determine what track type the control is for
-				Class<?> controlTrackType = null;
-				try {
-					controlTrackType = Class.forName(control.getString("description")); //$NON-NLS-1$ );
-				} catch (Exception ex) {
-				}
-
-				if (controlTrackType == trackType) {
-					// copy the control for modification if any functions are autoload_off
-					XMLControl copyControl = new XMLControlElement(control);
-					eliminateExcludedFunctions(copyControl, path);
-					// change duplicate function names without requiring user confirmation
-					FunctionEditor editor = panel.getFunctionEditor();
-					boolean confirmChanges = editor.getConfirmChanges();
-					editor.setConfirmChanges(false);
-					copyControl.loadObject(panel);
-					editor.setConfirmChanges(confirmChanges);
-				}
-			}
-		}
-
 		return panel;
 	}
 
@@ -737,62 +703,6 @@ public class TrackDataBuilder extends FunctionTool {
 	}
 
 	/**
-	 * Eliminates excluded function entries from a DataFunctionPanel XMLControl.
-	 * Typical (but incomplete) control:
-	 * 
-	 * <object class="org.opensourcephysics.tools.DataFunctionPanel">
-	 * <property name="description" type=
-	 * "string">org.opensourcephysics.cabrillo.tracker.PointMass</property>
-	 * <property name="functions" type="collection" class="java.util.ArrayList">
-	 * <property name="item" type="array" class="[Ljava.lang.String;">
-	 * <property name="[0]" type="string">Ug</property>
-	 * <property name="[1]" type="string">m*g*y</property> </property> </property>
-	 * <property name="autoload_off_Ug" type="boolean">true</property> </object>
-	 *
-	 * @param panelControl the XMLControl to modify
-	 * @param filePath     the path to the XML file read by the XMLControl
-	 */
-	private void eliminateExcludedFunctions(XMLControl panelControl, String filePath) {
-		for (XMLProperty functions : panelControl.getPropsRaw()) {
-			if (functions.getPropertyName().equals("functions")) { //$NON-NLS-1$
-				java.util.List<Object> items = functions.getPropertyContent();
-				ArrayList<XMLProperty> toRemove = new ArrayList<XMLProperty>();
-				for (Object child : items) {
-					XMLProperty item = (XMLProperty) child;
-					XMLProperty nameProp = (XMLProperty) item.getPropertyContent().get(0);
-					String functionName = (String) nameProp.getPropertyContent().get(0);
-					if (isFunctionExcluded(filePath, functionName)) {
-						toRemove.add(item);
-					}
-				}
-				for (XMLProperty next : toRemove) {
-					items.remove(next);
-				}
-			}
-		}
-	}
-
-	/**
-	 * Determines if a named function is excluded from autoloading.
-	 *
-	 * @param filePath     the path to the file defining the function
-	 * @param functionName the function name
-	 * @return true if the function is excluded
-	 */
-	private boolean isFunctionExcluded(String filePath, String functionName) {
-		String[] functions = Tracker.autoloadMap.get(filePath);
-		if (functions == null)
-			return false;
-		for (String name : functions) {
-			if (name.equals("*")) //$NON-NLS-1$
-				return true;
-			if (name.equals(functionName))
-				return true;
-		}
-		return false;
-	}
-
-	/**
 	 * Gets the autoload manager, creating it the first time called.
 	 * 
 	 * @return the autoload manageer
@@ -806,45 +716,16 @@ public class TrackDataBuilder extends FunctionTool {
 			int x = (dim.width - autoloadManager.getBounds().width) / 2;
 			int y = (dim.height - autoloadManager.getBounds().height) / 2;
 			autoloadManager.setLocation(x, y);
+			
+			if (Tracker.haveDataFunctions())
+				Tracker.loadControlStrings(new Runnable() {
 
-			if (!Tracker.dataFunctionControlStrings.isEmpty()) {
-				// convert and save in user platform-dependent default search directory
-				ArrayList<String> searchPaths = OSPRuntime.getDefaultSearchPaths();
-				final String directory = searchPaths.size() > 0 ? searchPaths.get(0) : null;
-				if (directory != null) {
-					Runnable runner = new Runnable() {
-						@Override
-						public void run() {
-							int response = JOptionPane.showConfirmDialog(TrackDataBuilder.this,
-									TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message1") //$NON-NLS-1$
-											+ "\n" //$NON-NLS-1$
-											+ TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message2") //$NON-NLS-1$
-											+ "\n\n" //$NON-NLS-1$
-											+ TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message3"), //$NON-NLS-1$
-									TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Title"), //$NON-NLS-1$
-									JOptionPane.YES_NO_OPTION);
-							if (response == JOptionPane.YES_OPTION) {
-								TrackDataBuilder builder = new TrackDataBuilder(new TrackerPanel());
-								int i = 0;
-								for (String next : Tracker.dataFunctionControlStrings) {
-									XMLControl panelControl = new XMLControlElement(next);
-									DataFunctionPanel panel = new DataFunctionPanel(new DatasetManager());
-									panelControl.loadObject(panel);
-									builder.addPanelWithoutAutoloading("panel" + i, panel); //$NON-NLS-1$
-									i++;
-								}
-								File file = new File(directory, "TrackerConvertedAutoloadFunctions.xml"); //$NON-NLS-1$
-								XMLControl control = new XMLControlElement(builder);
-								control.write(file.getAbsolutePath());
-								Tracker.dataFunctionControlStrings.clear();
-								autoloadManager.refreshAutoloadData();
-							}
-
-						}
-					};
-					SwingUtilities.invokeLater(runner);
+				@Override
+				public void run() {
+					autoloadManager.refreshAutoloadData();
 				}
-			}
+				
+			});
 		}
 		autoloadManager.setFontLevel(FontSizer.getLevel());
 		return autoloadManager;
@@ -872,8 +753,8 @@ public class TrackDataBuilder extends FunctionTool {
 		if (autoloadManager != null) {
 			autoloadManager.dispose();
 		}
-		for (String key : panels.keySet()) {
-			FunctionPanel next = panels.get(key);
+		for (String key : trackFunctionPanels.keySet()) {
+			FunctionPanel next = trackFunctionPanels.get(key);
 			next.setFunctionTool(null);
 		}
 		clearPanels();
@@ -1024,6 +905,8 @@ public class TrackDataBuilder extends FunctionTool {
 		}
 
 		/**
+		 * will fail in SwingJS 
+		 * 
 		 * Sets the selection state of a file. Note that PART_SELECTED is not an option.
 		 *
 		 * @param filePath the path to the file
@@ -1093,5 +976,6 @@ public class TrackDataBuilder extends FunctionTool {
 		}
 
 	}
+
 
 }

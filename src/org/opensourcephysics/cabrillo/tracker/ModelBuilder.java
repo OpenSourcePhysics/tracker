@@ -34,6 +34,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.tools.*;
 
 /**
@@ -49,8 +50,14 @@ public class ModelBuilder extends FunctionTool {
 	
 	private JLabel startFrameLabel, endFrameLabel, boosterLabel;
 	private ModelFrameSpinner startFrameSpinner, endFrameSpinner;
-	private JComboBox<Object> boosterDropdown;
+	private JComboBox<FTObject> boosterDropdown;
 
+	private static int ntest, ntest1;
+
+	public void validate() {
+		OSPLog.debug("ModelBuilder.validate #" + ++ntest1);
+		super.validate();
+	}
 	/**
 	 * Constructor.
 	 * 
@@ -105,10 +112,9 @@ public class ModelBuilder extends FunctionTool {
 						return;
 					DynamicParticle model = (DynamicParticle) part;
 
-					Object item = boosterDropdown.getSelectedItem();
+					FTObject item = (FTObject) boosterDropdown.getSelectedItem();
 					if (item != null) {
-						Object[] array = (Object[]) item;
-						PointMass target = (PointMass) array[1]; // null if "none" selected
+						PointMass target = (PointMass) item.track; // null if "none" selected
 						model.setBooster(target);
 						if (target != null) {
 							Step step = trackerPanel.getSelectedStep();
@@ -215,8 +221,8 @@ public class ModelBuilder extends FunctionTool {
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); //$NON-NLS-1$
-		for (String key : panels.keySet()) {
-			FunctionPanel next = panels.get(key);
+		for (String key : trackFunctionPanels.keySet()) {
+			FunctionPanel next = trackFunctionPanels.get(key);
 			next.setFunctionTool(null);
 		}
 		clearPanels();
@@ -288,10 +294,19 @@ public class ModelBuilder extends FunctionTool {
 		validate();
 	}
 
+	@Override
+	public void checkGUI() {
+		if (haveGUI())
+			return;
+		super.checkGUI();
+	}
+
 	/**
 	 * Refreshes the booster dropdown.
 	 */
 	protected void refreshBoosterDropdown() {
+		OSPLog.debug("ModelBuilder.refreshBoostrDropdown #" + ++ntest);
+		checkGUI();
 		FunctionPanel panel = getSelectedPanel();
 		DynamicParticle dynamicModel = null;
 		if (panel != null) {
@@ -302,8 +317,8 @@ public class ModelBuilder extends FunctionTool {
 			boosterDropdown.setEnabled(false); // disabled during refresh to prevent action
 			// refresh boosterDropdown
 			String s = TrackerRes.getString("TrackerPanel.Booster.None"); //$NON-NLS-1$
-			Object[] none = new Object[] { new ShapeIcon(null, 21, 16), null, s };
-			Object[] selected = none;
+			FTObject none = new FTObject ( new ShapeIcon(null, 21, 16), (Trackable) null, s );
+			FTObject selected = none;
 			boolean targetExists = false;
 			boosterDropdown.removeAllItems();
 			ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
@@ -315,7 +330,7 @@ public class ModelBuilder extends FunctionTool {
 					continue;
 
 				String name = m.getName();
-				Object[] item = new Object[] { m.getFootprint().getIcon(21, 16), m, name };
+				FTObject item = new FTObject (m.getFootprint().getIcon(21, 16), m, name );
 
 				// check that next is not a dynamic particle being boosted by selected model
 				// or part of a system being boosted by selected model

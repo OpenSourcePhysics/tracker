@@ -50,6 +50,16 @@ public class ModelFunctionPanel extends FunctionPanel {
 		paramEditor.setFunctionEditors(editors);
 	}
 
+	@Override
+	public void checkGUI() {
+		if (haveGUI())
+			return;
+		super.checkGUI();
+		initEditor.checkGUI();
+		paramEditor.checkGUI();
+		functionEditor.checkGUI();
+	}
+
 	/**
 	 * Creates the GUI.
 	 */
@@ -64,6 +74,8 @@ public class ModelFunctionPanel extends FunctionPanel {
 	 */
 	@Override
 	protected void refreshGUI() {
+		if (!haveGUI())
+			return;
 		super.refreshGUI();
 		initEditor.refreshGUI();
 	}
@@ -149,7 +161,8 @@ public class ModelFunctionPanel extends FunctionPanel {
 	@Override
 	protected void clearSelection() {
 		super.clearSelection();
-		initEditor.getTable().clearSelection();
+		if (initEditor != null)
+			initEditor.getTable().clearSelection();
 	}
 
 	/**
