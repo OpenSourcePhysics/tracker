@@ -2585,8 +2585,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			break;
 		case Video.PROPERTY_VIDEO_IMAGE: // from video //$NON-NLS-1$
 			firePropertyChange(PROPERTY_TRACKERPANEL_IMAGE, null, null); // to tracks/views //$NON-NLS-1$
-			Video video = getVideo();
-			TMenuBar.getMenuBar(this).refreshMatSizes(video);
+			checkVideoSize();
 			TFrame.repaintT(this);
 			break;
 		case Video.PROPERTY_VIDEO_FILTERCHANGED: // from video //$NON-NLS-1$
@@ -2633,9 +2632,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 			firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // to views //$NON-NLS-1$
 			firePropertyChange(name, null, name == TPoint.PROPERTY_ADJUSTING ? e.getNewValue() : null); // to
-																														// particle
-																														// models
-																														// //$NON-NLS-1$
+																										// particle
+																										// models
+																										// //$NON-NLS-1$
 			if (getSelectedPoint() != null) {
 				getSelectedPoint().showCoordinates(this);
 				TFrame frame = getTFrame();
@@ -2776,6 +2775,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime("end TrackerPanel property change " + name); //$NON-NLS-1$
+	}
+
+	private void checkVideoSize() {
+		// this was in TToolBar
+		if (TMenuBar.getMenuBar(this).isDefaultVideoSize() && getMat() != null) {
+			Dimension dim = getMat().mat.getSize();
+			Dimension d = video.getImageSize();
+			int vidWidth = d.width;
+			int vidHeight = d.height;
+			if (vidWidth != dim.width || vidHeight != dim.height) {
+				setImageSize(vidWidth, vidHeight);
+			}
+		}
 	}
 
 	/**

@@ -127,7 +127,8 @@ public interface TView extends PropertyChangeListener {
 	default public boolean isViewPaneVisible() {
 		TrackerPanel tp = getTrackerPanel();
 		TFrame tf;
-		if (tp == null || (tf = tp.getTFrame()) == null)
+		if (tp == null || (tf = tp.getTFrame()) == null
+				|| tf.getTabCount() == 0)
 			return false;
 		TView[][] views = tf.getTViews(tp);
 		for (int i = 0; i < views.length; i++) {

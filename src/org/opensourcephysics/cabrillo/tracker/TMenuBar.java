@@ -430,7 +430,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			getFrame().setLangMenu(edit_languageMenu);
 			break;
 		case "edit_size":
-			rebuildEditSizeMenu();
+			rebuildEditMatSizeMenu();
 			break;
 		case "edit_copyData":
 			rebuildEditCopyMenu("data");
@@ -1429,6 +1429,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		// displayed/hidden
 		TreeMap<Integer, TableTrackView> dataViews = getDataViews();
 		edit_copyDataMenu.setEnabled(!dataViews.isEmpty());
+		edit_matSizeMenu.setEnabled(trackerPanel.getVideo() != null);
 
 //		FontSizer.setFonts(editMenu);
 //		editMenu.revalidate();
@@ -1591,13 +1592,15 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		}
 	}
 
-	protected void rebuildEditSizeMenu() {
-		final String[] sizes = new String[] { "320x240", //$NON-NLS-1$
-				"480x360", //$NON-NLS-1$
-				"640x480", //$NON-NLS-1$
-				"800x600", //$NON-NLS-1$
-				"960x720", //$NON-NLS-1$
-				"1280x960" }; //$NON-NLS-1$
+	final static String[] matSizes = new String[] { "320x240", //$NON-NLS-1$
+			"480x360", //$NON-NLS-1$
+			"640x480", //$NON-NLS-1$
+			"800x600", //$NON-NLS-1$
+			"960x720", //$NON-NLS-1$
+			"1280x960" }; //$NON-NLS-1$
+
+	protected void rebuildEditMatSizeMenu() {
+
 		Action matSizeAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -1608,21 +1611,55 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				trackerPanel.setImageSize(w, h);
 			}
 		};
-		matSizeGroup = new ButtonGroup();
 
+		// determine if default size is being used
+		boolean isDefaultSize = isDefaultVideoSize();
+
+		edit_matSizeMenu.removeAll();
+		matSizeGroup = new ButtonGroup();
 		edit_matsize_videoSizeItem = new JRadioButtonMenuItem();
 		edit_matsize_videoSizeItem.setActionCommand("0x0"); //$NON-NLS-1$
 		edit_matsize_videoSizeItem.addActionListener(matSizeAction);
 		matSizeGroup.add(edit_matsize_videoSizeItem);
-		for (int i = 0; i < sizes.length; i++) {
-			JMenuItem item = new JRadioButtonMenuItem(sizes[i]);
-			item.setActionCommand(sizes[i]);
+		for (int i = 0; i < matSizes.length; i++) {
+			JMenuItem item = new JRadioButtonMenuItem(matSizes[i]);
+			item.setActionCommand(matSizes[i]);
 			item.addActionListener(matSizeAction);
 			matSizeGroup.add(item);
 		}
+
+		//boolean isDefaultSize = !videoSizeItemShown || edit_matsize_videoSizeItem.isSelected();
+		Video video = trackerPanel.getVideo();
+		Dimension d = video.getImageSize();
+		int vidWidth = d.width;
+		int vidHeight = d.height;
+		int imageWidth = (int) trackerPanel.getImageWidth();
+		int imageHeight = (int) trackerPanel.getImageHeight();
+		for (Enumeration<AbstractButton> e = matSizeGroup.getElements(); e.hasMoreElements();) {
+			JRadioButtonMenuItem next = (JRadioButtonMenuItem) e.nextElement();
+			String s = next.getActionCommand();
+			int i = s.indexOf("x"); //$NON-NLS-1$
+			int w = Integer.parseInt(s.substring(0, i));
+			int h = Integer.parseInt(s.substring(i + 1));
+			if (w >= vidWidth & h >= vidHeight) {
+				edit_matSizeMenu.add(next);
+				if (next != edit_matsize_videoSizeItem
+						&& next.getActionCommand().equals(edit_matsize_videoSizeItem.getActionCommand())) {
+					edit_matSizeMenu.remove(next);
+				}
+			}
+			if (w == vidWidth && h == vidHeight) {
+				edit_matsize_videoSizeItem.setSelected(true);
+			} else if (w == imageWidth && h == imageHeight) {
+				next.setSelected(true);
+			}
+		}
+		String s = TrackerRes.getString("TMenuBar.Menu.Video"); //$NON-NLS-1$
+		String description = " (" + s.toLowerCase() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+		edit_matsize_videoSizeItem.setText(vidWidth + "x" + vidHeight + description); //$NON-NLS-1$
+		edit_matsize_videoSizeItem.setActionCommand(vidWidth + "x" + vidHeight); //$NON-NLS-1$
 	}
 	
-
 	protected void rebuildEditCopyMenu(String type) {
 		switch (type) {
 		case "data":
@@ -1833,7 +1870,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			if (editMenu.getItemCount() > 0)
 				editMenu.addSeparator();
 			editMenu.add(edit_fontSizeMenu);
-			refreshMatSizes(trackerPanel.getVideo());
+//			refreshMatSizes(trackerPanel.getVideo());
 			if (editMenu.getItemCount() > 0)
 				editMenu.addSeparator();
 			editMenu.add(edit_languageMenu);
@@ -1854,9 +1891,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					edit_deleteTracksMenu.addSeparator();
 				edit_deleteTracksMenu.add(edit_clearTracksItem);
 			}
-
 			refreshTrackNames(MENU_EDIT);
-
 		}
 		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar edit refresh");
 	}
@@ -2790,55 +2825,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		return frame;
 	}
 
-	protected void refreshMatSizes(Video video) {
-		// determine if default size is being used
-		boolean videoSizeItemShown = false;
-		for (Component c : edit_matSizeMenu.getMenuComponents()) {
-			videoSizeItemShown = videoSizeItemShown || c == edit_matsize_videoSizeItem;
-		}
-		boolean isDefaultSize = !videoSizeItemShown || edit_matsize_videoSizeItem.isSelected();
-		edit_matSizeMenu.removeAll();
-		int vidWidth = 1;
-		int vidHeight = 1;
-		if (video != null) {
-			Dimension d = trackerPanel.getVideo().getImageSize();
-			vidWidth = d.width;
-			vidHeight = d.height;
-			String s = TrackerRes.getString("TMenuBar.Menu.Video"); //$NON-NLS-1$
-			String description = " (" + s.toLowerCase() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
-			edit_matsize_videoSizeItem.setText(vidWidth + "x" + vidHeight + description); //$NON-NLS-1$
-			edit_matsize_videoSizeItem.setActionCommand(vidWidth + "x" + vidHeight); //$NON-NLS-1$
-			if (isDefaultSize && trackerPanel != null && trackerPanel.getMat() != null) {
-				Dimension dim = trackerPanel.getMat().mat.getSize();
-				if (vidWidth != dim.width || vidHeight != dim.height) {
-					trackerPanel.setImageSize(vidWidth, vidHeight);
-				}
-			}
-		} else
-			edit_matsize_videoSizeItem.setActionCommand("0x0"); //$NON-NLS-1$
-		int imageWidth = (int) trackerPanel.getImageWidth();
-		int imageHeight = (int) trackerPanel.getImageHeight();
-		for (Enumeration<AbstractButton> e = matSizeGroup.getElements(); e.hasMoreElements();) {
-			JRadioButtonMenuItem next = (JRadioButtonMenuItem) e.nextElement();
-			String s = next.getActionCommand();
-			int i = s.indexOf("x"); //$NON-NLS-1$
-			int w = Integer.parseInt(s.substring(0, i));
-			int h = Integer.parseInt(s.substring(i + 1));
-			if (w >= vidWidth & h >= vidHeight) {
-				edit_matSizeMenu.add(next);
-				if (next != edit_matsize_videoSizeItem
-						&& next.getActionCommand().equals(edit_matsize_videoSizeItem.getActionCommand())) {
-					edit_matSizeMenu.remove(next);
-				}
-			}
-			if (w == vidWidth && h == vidHeight) {
-				edit_matsize_videoSizeItem.setSelected(true);
-			} else if (w == imageWidth && h == imageHeight) {
-				next.setSelected(true);
-			}
-		}
-	}
-
 	public static void refreshPopup(TrackerPanel panel, String item, JPopupMenu menu) {
 		TMenuBar menubar = getMenuBar(panel);
 		if (menubar != null) {
@@ -2887,5 +2873,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	private void addItems(JMenu menu, Component[] items) {
 		for (int i = 0; i < items.length; i++)
 			menu.add(items[i]);
+	}
+
+	public boolean isDefaultVideoSize() {
+		return (edit_matsize_videoSizeItem == null || edit_matsize_videoSizeItem.isSelected());
 	}
 }
