@@ -511,6 +511,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	public void saveAllTabs(Function<TrackerPanel, Void> whenEachApproved, Runnable whenAllApproved,
 			Runnable whenCanceled) {
+		if (!haveVideo()) {
+			if (whenAllApproved != null)
+				whenAllApproved.run();
+			return;
+		}
 		// save all tabs in last-to-first order
 		final int[] tab = { getTabCount() - 1 };
 		TrackerPanel trackerPanel = getTrackerPanel(tab[0]);
