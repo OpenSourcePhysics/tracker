@@ -198,7 +198,10 @@ public class TActions {
 				trackerPanel.selectedSteps.clear();
 				trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 				TFrame frame = trackerPanel.getTFrame();
-				if (frame != null) {
+				if (frame != null) {					
+					if (!frame.haveVideo()) {
+						frame.removeTabNow(0);
+					}
 					frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 					TrackerIO.open(url, frame);
 					frame.setCursor(Cursor.getDefaultCursor());
