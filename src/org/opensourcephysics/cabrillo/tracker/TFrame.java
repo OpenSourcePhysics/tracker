@@ -582,6 +582,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}, null, null); // do nothing when all approved or when canceled
 	}
 
+	
 	/**
 	 * An AsyncSwingWorker to remove a tab.
 	 */
@@ -601,6 +602,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
 			// remove the tab immediately
 			synchronized (tabbedPane) {
+				tabbedPane.remove(tab);
 				tabbedPane.remove(tabPanel);
 			}
 		}
@@ -966,9 +968,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	public TViewChooser[] getViewChoosers(TrackerPanel trackerPanel) {
 		Object[] objects = getObjects(trackerPanel);
-		if (objects == null)
-			return new TViewChooser[4];
-		return (TViewChooser[]) objects[TFRAME_VIEWCHOOSERS];
+		return (objects == null ? 
+				new TViewChooser[4] : (TViewChooser[]) objects[TFRAME_VIEWCHOOSERS]);
 	}
 
 	/**
@@ -993,7 +994,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		TView[][] array = new TView[choosers.length][];
 		if (!customOnly) {
 			for (int i = 0; i < choosers.length; i++) {
-				array[i] = choosers[i].getTViews();
+				array[i] = (choosers[i] == null ? null : choosers[i].getTViews());
 			}
 			return array;
 		}
@@ -1612,6 +1613,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		TrackerPanel selected = getTrackerPanel(getSelectedTab());
 		if (selected != null) {
 			selected.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		}
+		if (!haveVideo()) {
+			removeTabNow(0);
 		}
 		TrackerIO.open(path, TFrame.this);
 //		if (url!=null)
@@ -3059,4 +3063,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		});
 	}
 
+	public boolean haveVideo() {
+		return (getTabCount() > 0 && getTrackerPanel(0).getVideo() != null);
+	}
+
+	public void removeTabNow(int i) {
+		TrackerPanel tp = getTrackerPanel(i);
+		if (tp != null)
+		new TabRemover(tp).executeSynchronously();
+	}
 }

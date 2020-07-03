@@ -48,19 +48,19 @@ import org.opensourcephysics.media.core.VideoFileFilter;
  */
 @SuppressWarnings("serial")
 public class FileDropHandler extends TransferHandler {
-	
-  static final String URI_LIST_MIME_TYPE = "text/uri-list;class=java.lang.String"; //$NON-NLS-1$
-	
-  static FileFilter dataFilter = TrackerIO.trkFileFilter;
+
+	static final String URI_LIST_MIME_TYPE = "text/uri-list;class=java.lang.String"; //$NON-NLS-1$
+
+	static FileFilter dataFilter = TrackerIO.trkFileFilter;
 	static FileFilter videoFilter = new VideoFileFilter();
 	static FileFilter[] imageFilters = new ImageVideoType().getFileFilters();
-	
+
 	TFrame frame;
 	DataFlavor uriListFlavor; // for Linux
 //	List<File> dropList;
 //	Component dropComponent;
-	//DropTargetListener dropListener = new DropListener();
-	
+	// DropTargetListener dropListener = new DropListener();
+
 	/**
 	 * Constructor.
 	 * 
@@ -74,9 +74,9 @@ public class FileDropHandler extends TransferHandler {
 			// not possible - it's java.lang.String
 		}
 	}
-	
+
 	Boolean isDropOK = null;
-	
+
 	@Override
 	public boolean canImport(TransferHandler.TransferSupport support) {
 		if (!support.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
@@ -101,10 +101,9 @@ public class FileDropHandler extends TransferHandler {
 			support.setDropAction(TransferHandler.COPY);
 		return true;
 	}
-  
+
 	private boolean haveVideo(Component c, List<File> dropList) {
-		return (dropList != null && dropList.size() == 1 
-				&& c instanceof TrackerPanel
+		return (dropList != null && dropList.size() == 1 && c instanceof TrackerPanel
 				&& videoFilter.accept(dropList.get(0)));
 	}
 
@@ -129,7 +128,12 @@ public class FileDropHandler extends TransferHandler {
 				}
 			}
 			// load the files
-			for (int j = 0; j < fileList.size(); j++) {
+			int nf = fileList.size();
+			if (nf > 0 && !frame.haveVideo()) {
+					frame.removeTabNow(0);
+			}
+			for (int j = 0; j < nf; j++) {
+
 				final File file = fileList.get(j);
 				OSPRuntime.cacheJSFile(file, true);
 				OSPLog.finest("dropped file: " + file.getAbsolutePath()); //$NON-NLS-1$
@@ -149,7 +153,7 @@ public class FileDropHandler extends TransferHandler {
 						@Override
 						public void run() {
 							TrackerPanel trackerPanel = frame.getTrackerPanel(n);
-							TrackerIO.importVideo(file, trackerPanel, null, null);///TrackerIO.NULL_RUNNABLE);
+							TrackerIO.importVideo(file, trackerPanel, null, null);/// TrackerIO.NULL_RUNNABLE);
 						}
 					};
 					if (TrackerIO.loadInSeparateThread) {
@@ -175,7 +179,7 @@ public class FileDropHandler extends TransferHandler {
 		}
 		return true;
 	}
-  
+
 	/**
 	 * Gets the file list from a Transferable.
 	 * 
@@ -184,14 +188,14 @@ public class FileDropHandler extends TransferHandler {
 	 * @param t the Transferable
 	 * @return a List of files
 	 */
-  @SuppressWarnings("unchecked")
-  private List<File> getFileList(Transferable t) {
-	  try {
-		  return (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
-	  } catch (Exception e) {
-		  return null;
-	  }
-	
+	@SuppressWarnings("unchecked")
+	private List<File> getFileList(Transferable t) {
+		try {
+			return (List<File>) t.getTransferData(DataFlavor.javaFileListFlavor);
+		} catch (Exception e) {
+			return null;
+		}
+
 //    // expected data is a List of Files
 //  	List<File> fileList = null;  	
 //    try {
@@ -205,19 +209,21 @@ public class FileDropHandler extends TransferHandler {
 //    } catch (Exception ex) {
 //    }
 //  	return fileList;
-  }
+	}
 
 	/**
 	 * Returns true if the specified file is an image.
+	 * 
 	 * @param file the File
 	 * @return true if an image
 	 */
-  private boolean isImageFile(File file) {
+	private boolean isImageFile(File file) {
 		for (int i = 0; i < imageFilters.length; i++) {
-			if (imageFilters[i].accept(file)) return true;
+			if (imageFilters[i].accept(file))
+				return true;
 		}
-  	return false;
-  }
+		return false;
+	}
 
 // BH unnecessary since Java 7
 //	/**
@@ -271,4 +277,3 @@ public class FileDropHandler extends TransferHandler {
 //  }
 
 }
-

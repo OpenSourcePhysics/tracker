@@ -706,6 +706,9 @@ public class TrackerIO extends VideoIO {
 					if (file == null) {
 						OSPLog.finer("no file to open"); //$NON-NLS-1$
 					} else {
+						if (!frame.haveVideo()) {
+							frame.removeTabNow(0);
+						}
 						openTabFileAsyncFinally(frame, file, null);
 					}
 					return null;
