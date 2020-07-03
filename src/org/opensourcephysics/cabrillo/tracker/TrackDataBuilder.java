@@ -62,7 +62,7 @@ public class TrackDataBuilder extends FunctionTool {
 	 * @param trackerPanel the TrackerPanel with the tracks
 	 */
 	protected TrackDataBuilder(TrackerPanel trackerPanel) {
-		super(trackerPanel);
+		super(trackerPanel, false, true);
 		this.trackerPanel = trackerPanel;
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); // $NON-NLS-1$
 		addPropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
