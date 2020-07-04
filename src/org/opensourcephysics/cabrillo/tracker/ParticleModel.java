@@ -1057,11 +1057,9 @@ abstract public class ParticleModel extends PointMass {
 			@Override
 			public void propertyChange(PropertyChangeEvent e) {
 				if ("m".equals(e.getOldValue())) { //$NON-NLS-1$
-					if ("m".equals(e.getOldValue())) { //$NON-NLS-1$
-						Parameter param = (Parameter) getParamEditor().getObject("m"); //$NON-NLS-1$
-						if (ParticleModel.super.getMass() != param.getValue()) {
-							setMass(param.getValue());
-						}
+					double m = ((Parameter) getParamEditor().getObject("m")).getValue(); //$NON-NLS-1$
+					if (mass != m) {
+						setMass(m);
 					}
 				}
 			}
@@ -1074,9 +1072,9 @@ abstract public class ParticleModel extends PointMass {
 				if (refreshing)
 					return;
 				if ("t".equals(e.getOldValue()) && trackerPanel != null) { //$NON-NLS-1$
-					Parameter param = (Parameter) getInitEditor().getObject("t"); //$NON-NLS-1$
 					VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-					double timeOffset = param.getValue() * 1000 - clip.getStartTime();
+					double timeOffset = ((Parameter) getInitEditor().getObject("t")).getValue() * 1000
+							- clip.getStartTime();
 					double dt = trackerPanel.getPlayer().getMeanStepDuration();
 					int n = clip.getStartFrameNumber();
 					boolean mustRound = timeOffset % dt > 0;
