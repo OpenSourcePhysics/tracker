@@ -89,6 +89,7 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.Renderable;
+import org.opensourcephysics.media.core.AsyncVideoI;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.MediaRes;
@@ -2117,7 +2118,24 @@ public class TrackerIO extends VideoIO {
 					vidType.getClass().getSimpleName() + " " + vidType.getDescription()); //$NON-NLS-1$
 			if (isCanceled())
 				return 100;
+			if (video instanceof AsyncVideoI) {
+				video.addPropertyChangeListener(AsyncVideoI.PROPERTY_ASYNCVIDEOI_READY, new PropertyChangeListener() {
 
+					@Override
+					public void propertyChange(PropertyChangeEvent evt) {
+						video.removePropertyChangeListener(AsyncVideoI.PROPERTY_ASYNCVIDEOI_READY, this);
+						finalizeVideoLoading(video);
+					}
+					
+				});
+			} else {
+				finalizeVideoLoading(video);
+			}
+			return 100;
+
+		}
+
+		private void finalizeVideoLoading(Video video) {
 			frame.addTab(trackerPanel, null);
 //			if (monitorDialog.isVisible())
 //				monitorDialog.setProgress(95);
@@ -2146,8 +2164,6 @@ public class TrackerIO extends VideoIO {
 			// and include
 			// "don't show
 			// again" button
-			return 100;
-
 		}
 
 		private void doneLoading() {
@@ -2162,7 +2178,7 @@ public class TrackerIO extends VideoIO {
 			
 			trackerPanel.changed = panelChanged;
 			TTrackBar.refreshMemoryButton();
-			if (type == TYPE_PANEL) {
+			if (type == TYPE_PANEL || type == TYPE_VIDEO) {
 				frame.clearHoldPainting();
 				trackerPanel.notifyLoadingComplete();
 //				TFrame.repaintT(trackerPanel);
