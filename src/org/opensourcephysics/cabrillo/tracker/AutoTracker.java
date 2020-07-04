@@ -2116,6 +2116,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		private Timer timer;
 		private boolean ignoreChanges, isPrevValid, prevLookAhead, prevOneD;
 		private int prevEvolution;
+		private boolean refreshPosted;
 
 		/**
 		 * Constructs a Wizard.
@@ -3360,30 +3361,38 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 * Refreshes the template icons.
 		 */
 		protected void refreshIcons() {
+			if (refreshPosted)
+				return;
+			refreshPosted = true;
 			OSPRuntime.postEvent(new Runnable() {
 				@Override
 				public void run() {
-					TTrack track = getTrack();
-					if (getTemplateMatcher() == null || track == null) {
-						templateImageLabel.setIcon(null);
-						matchImageLabel.setIcon(null);
-						return;
-					}
-					int n = trackerPanel.getFrameNumber();
-					FrameData frame = getFrame(n);
-					// set match icon
-					Icon icon = frame.getMatchIcon();
-					matchImageLabel.setIcon(icon);
-					// set template icon
-					icon = frame.getTemplateIcon();
-					if (icon == null) {
-						frame.getTemplateToMatch(); // loads new template and sets template icon
-						icon = frame.getTemplateIcon();
-					}
-					templateImageLabel.setIcon(icon);
+					refreshIconsPosted();
 				}
 			});
 
+		}
+
+		protected void refreshIconsPosted() {
+			refreshPosted = false;
+			TTrack track = getTrack();
+			if (getTemplateMatcher() == null || track == null) {
+				templateImageLabel.setIcon(null);
+				matchImageLabel.setIcon(null);
+				return;
+			}
+			int n = trackerPanel.getFrameNumber();
+			FrameData frame = getFrame(n);
+			// set match icon
+			Icon icon = frame.getMatchIcon();
+			matchImageLabel.setIcon(icon);
+			// set template icon
+			icon = frame.getTemplateIcon();
+			if (icon == null) {
+				frame.getTemplateToMatch(); // loads new template and sets template icon
+				icon = frame.getTemplateIcon();
+			}
+			templateImageLabel.setIcon(icon);
 		}
 
 		/**
@@ -3701,83 +3710,86 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			tf.setDisabledTextColor(fixed ? Color.GRAY.brighter() : Color.BLACK);
 			ignoreChanges = false;
 		}
+		
 
-	}
-
-	/**
-	 * Gets the match data as a delimited string with "columns" for frame number,
-	 * match score, target x and target y.
-	 */
-	protected String getMatchDataString() {
-		// create string buffer to collect match score data
-		StringBuffer buf = new StringBuffer();
-		buf.append(getTrack().getName() + "_" + wizard.pointDropdown.getSelectedItem()); //$NON-NLS-1$
-		buf.append(XML.NEW_LINE);
-		buf.append(TrackerRes.getString("ThumbnailDialog.Label.FrameNumber") + TrackerIO.getDelimiter() //$NON-NLS-1$
-				+ TrackerRes.getString("AutoTracker.Match.Score")); //$NON-NLS-1$
-		String tar = "_" + TrackerRes.getString("AutoTracker.Label.Target").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
-		buf.append(TrackerIO.getDelimiter() + "x" + tar + TrackerIO.getDelimiter() + "y" + tar); //$NON-NLS-1$ //$NON-NLS-2$
-		buf.append(XML.NEW_LINE);
-		Map<Integer, FrameData> frameData = getFrameData();
-		NumberFormat scoreFormat = NumberFormat.getInstance();
-		scoreFormat.setMaximumFractionDigits(1);
-		scoreFormat.setMinimumFractionDigits(1);
-		DecimalFormat xFormat = (DecimalFormat) NumberFormat.getInstance();
-		DecimalFormat yFormat = (DecimalFormat) NumberFormat.getInstance();
-		DataTable table = null;
-		TableCellRenderer xRenderer = null, yRenderer = null;
-		TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
-		TreeMap<Integer, TableTrackView> dataViews = menubar.getDataViews();
-		for (int key : dataViews.keySet()) {
-			TableTrackView view = dataViews.get(key);
-			if (view.getTrack() == getTrack()) {
-				table = view.getDataTable();
-				String pattern = table.getFormatPattern("x"); //$NON-NLS-1$
-				if (pattern == null || pattern.equals("")) { //$NON-NLS-1$
-					xRenderer = table.getDefaultRenderer(Double.class);
-				} else {
-					xFormat.applyPattern(pattern);
-				}
-				pattern = table.getFormatPattern("y"); //$NON-NLS-1$
-				if (pattern == null || pattern.equals("")) { //$NON-NLS-1$
-					yRenderer = table.getDefaultRenderer(Double.class);
-				} else {
-					yFormat.applyPattern(pattern);
-				}
-				break;
-			}
-		}
-		for (Integer i : frameData.keySet()) {
-			FrameData next = frameData.get(i);
-			if (next == null || next.getMatchWidthAndHeight() == null)
-				continue;
-			double score = next.getMatchWidthAndHeight()[1];
-			String value = Double.isInfinite(score) ? String.valueOf(score) : scoreFormat.format(score);
-			buf.append(next.getFrameNumber() + TrackerIO.getDelimiter() + value);
-			TPoint[] pts = next.getMatchPoints();
-			if (pts != null) {
-				TPoint p = pts[0]; // center of the match
-				p = getMatchTarget(p); // target position
-				Point2D pt = p.getWorldPosition(trackerPanel);
-				String xval = xFormat.format(pt.getX());
-				String yval = yFormat.format(pt.getY());
-				if (xRenderer != null) {
-					Component c = xRenderer.getTableCellRendererComponent(table, pt.getX(), false, false, 0, 0);
-					if (c instanceof JLabel) {
-						xval = ((JLabel) c).getText().trim();
-					}
-				}
-				if (yRenderer != null) {
-					Component c = yRenderer.getTableCellRendererComponent(table, pt.getY(), false, false, 0, 0);
-					if (c instanceof JLabel) {
-						yval = ((JLabel) c).getText().trim();
-					}
-				}
-				buf.append(TrackerIO.getDelimiter() + xval + TrackerIO.getDelimiter() + yval);
-			}
+		/**
+		 * Gets the match data as a delimited string with "columns" for frame number,
+		 * match score, target x and target y.
+		 */
+		protected String getMatchDataString() {
+			// create string buffer to collect match score data
+			StringBuffer buf = new StringBuffer();
+			buf.append(getTrack().getName() + "_" + wizard.pointDropdown.getSelectedItem()); //$NON-NLS-1$
 			buf.append(XML.NEW_LINE);
+			buf.append(TrackerRes.getString("ThumbnailDialog.Label.FrameNumber") + TrackerIO.getDelimiter() //$NON-NLS-1$
+					+ TrackerRes.getString("AutoTracker.Match.Score")); //$NON-NLS-1$
+			String tar = "_" + TrackerRes.getString("AutoTracker.Label.Target").toLowerCase(); //$NON-NLS-1$ //$NON-NLS-2$
+			buf.append(TrackerIO.getDelimiter() + "x" + tar + TrackerIO.getDelimiter() + "y" + tar); //$NON-NLS-1$ //$NON-NLS-2$
+			buf.append(XML.NEW_LINE);
+			Map<Integer, FrameData> frameData = getFrameData();
+			NumberFormat scoreFormat = NumberFormat.getInstance();
+			scoreFormat.setMaximumFractionDigits(1);
+			scoreFormat.setMinimumFractionDigits(1);
+			DecimalFormat xFormat = (DecimalFormat) NumberFormat.getInstance();
+			DecimalFormat yFormat = (DecimalFormat) NumberFormat.getInstance();
+			DataTable table = null;
+			TableCellRenderer xRenderer = null, yRenderer = null;
+			TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+			TreeMap<Integer, TableTrackView> dataViews = menubar.getDataViews();
+			for (int key : dataViews.keySet()) {
+				TableTrackView view = dataViews.get(key);
+				if (view.getTrack() == getTrack()) {
+					table = view.getDataTable();
+					String pattern = table.getFormatPattern("x"); //$NON-NLS-1$
+					if (pattern == null || pattern.equals("")) { //$NON-NLS-1$
+						xRenderer = table.getDefaultRenderer(Double.class);
+					} else {
+						xFormat.applyPattern(pattern);
+					}
+					pattern = table.getFormatPattern("y"); //$NON-NLS-1$
+					if (pattern == null || pattern.equals("")) { //$NON-NLS-1$
+						yRenderer = table.getDefaultRenderer(Double.class);
+					} else {
+						yFormat.applyPattern(pattern);
+					}
+					break;
+				}
+			}
+			for (Integer i : frameData.keySet()) {
+				FrameData next = frameData.get(i);
+				if (next == null || next.getMatchWidthAndHeight() == null)
+					continue;
+				double score = next.getMatchWidthAndHeight()[1];
+				String value = Double.isInfinite(score) ? String.valueOf(score) : scoreFormat.format(score);
+				buf.append(next.getFrameNumber() + TrackerIO.getDelimiter() + value);
+				TPoint[] pts = next.getMatchPoints();
+				if (pts != null) {
+					TPoint p = pts[0]; // center of the match
+					p = getMatchTarget(p); // target position
+					Point2D pt = p.getWorldPosition(trackerPanel);
+					String xval = xFormat.format(pt.getX());
+					String yval = yFormat.format(pt.getY());
+					if (xRenderer != null) {
+						Component c = xRenderer.getTableCellRendererComponent(table, pt.getX(), false, false, 0, 0);
+						if (c instanceof JLabel) {
+							xval = ((JLabel) c).getText().trim();
+						}
+					}
+					if (yRenderer != null) {
+						Component c = yRenderer.getTableCellRendererComponent(table, pt.getY(), false, false, 0, 0);
+						if (c instanceof JLabel) {
+							yval = ((JLabel) c).getText().trim();
+						}
+					}
+					buf.append(TrackerIO.getDelimiter() + xval + TrackerIO.getDelimiter() + yval);
+				}
+				buf.append(XML.NEW_LINE);
+			}
+			return buf.toString();
 		}
-		return buf.toString();
+
+
+
 	}
 
 	/**

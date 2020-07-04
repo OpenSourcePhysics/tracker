@@ -77,6 +77,11 @@ public class FileDropHandler extends TransferHandler {
 
 	Boolean isDropOK = null;
 
+	/**
+	 * Check to see that we can import this file. It if is NOT a video-type
+	 * file (mp4, jpg, etc) then set the drop action to COPY rather than MOVE.
+	 * 
+	 */
 	@Override
 	public boolean canImport(TransferHandler.TransferSupport support) {
 		if (!support.isDataFlavorSupported(DataFlavor.javaFileListFlavor))
@@ -129,9 +134,6 @@ public class FileDropHandler extends TransferHandler {
 			}
 			// load the files
 			int nf = fileList.size();
-			if (nf > 0 && !frame.haveVideo()) {
-					frame.removeTabNow(0);
-			}
 			for (int j = 0; j < nf; j++) {
 
 				final File file = fileList.get(j);
@@ -139,6 +141,9 @@ public class FileDropHandler extends TransferHandler {
 				OSPLog.finest("dropped file: " + file.getAbsolutePath()); //$NON-NLS-1$
 				// if dropAction is COPY then open in new tab
 				if (support.getDropAction() == TransferHandler.COPY) {
+					if (nf > 0 && !frame.haveVideo()) {
+						frame.removeTabNow(0);
+					}
 					TrackerIO.openTabFile(file, frame);
 				} else if (targetPanel != null && targetPanel.getVideo() instanceof ImageVideo && isImageFile(file)) {
 					// if targetPanel has image video and file is image, add after current frame
@@ -147,13 +152,13 @@ public class FileDropHandler extends TransferHandler {
 				} else if (targetPanel != null && videoFilter.accept(file)) {
 					// if targetPanel not null and file is video then import
 					// open in separate background thread
-					final TFrame frame = targetPanel.getTFrame();
-					final int n = frame.getTab(targetPanel);
+					// final TFrame frame = targetPanel.getTFrame();
+					// final int n = frame.getTab(targetPanel);
 					Runnable runner = new Runnable() {
 						@Override
 						public void run() {
-							TrackerPanel trackerPanel = frame.getTrackerPanel(n);
-							TrackerIO.importVideo(file, trackerPanel, null, null);/// TrackerIO.NULL_RUNNABLE);
+							// TrackerPanel trackerPanel = frame.getTrackerPanel(n);
+							TrackerIO.importVideo(file, targetPanel, null, null);/// TrackerIO.NULL_RUNNABLE);
 						}
 					};
 					if (TrackerIO.loadInSeparateThread) {

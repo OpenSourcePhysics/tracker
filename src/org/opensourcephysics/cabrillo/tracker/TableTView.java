@@ -81,7 +81,8 @@ public class TableTView extends TrackChooserTView {
 	 */
 	@Override
 	public void removeNotify() {
-		trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
+		if (trackerPanel != null && trackerPanel.getTFrame() != null)
+			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
 		super.removeNotify();
 	}
 
