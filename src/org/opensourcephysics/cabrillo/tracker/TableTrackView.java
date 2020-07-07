@@ -408,7 +408,7 @@ public class TableTrackView extends TrackView {
 				local.setYColumnVisible(false);
 				colCount++;
 			}
-			dataTable.setColumnVisible(dataTableManager, -1, true);
+			dataTable.refreshColumnModel();
 			dataTable.refreshTable(mode);
 			refreshed = true;
 		} catch (Exception e) {
@@ -662,7 +662,8 @@ public class TableTrackView extends TrackView {
 						dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRows.get(0), 0, true));
 					}
 				} catch (Exception e) {
-					// occasionally throws exception during loading!
+				   e.printStackTrace();
+				   // occasionally throws exception during loading!
 				}
 				int cols = dataTable.getColumnCount();
 				dataTable.setColumnSelectionInterval(0, cols - 1);

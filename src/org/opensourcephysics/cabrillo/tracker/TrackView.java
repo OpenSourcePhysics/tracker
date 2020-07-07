@@ -62,7 +62,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	protected TrackView(TTrack track, TrackerPanel panel, TrackChooserTView view, int myType) {
 		trackID = track.getID();
 		this.myType = myType;
-		System.out.println("TrackView adding listener for " + this);
+		//System.out.println("TrackView adding listener for " + this);
 		trackerPanel = panel;
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOADED, this); 
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); 
@@ -75,7 +75,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 			TTrack track = TTrack.activeTracks.get(n);
 			track.removeStepListener(this);
 		}
-		System.out.println("TrackView removing listener for " + this);
+		//System.out.println("TrackView removing listener for " + this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOADED, this); 
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); 
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_UNITS, this); 
