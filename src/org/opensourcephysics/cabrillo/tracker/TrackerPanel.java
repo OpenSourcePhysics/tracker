@@ -3769,26 +3769,26 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				trackerPanel.setSelectedTrack(name == null ? null : trackerPanel.getTrack(name));
 
 				// load DataTool tabs
-				if (control.getPropertyNamesRaw().contains("datatool_tabs")) { //$NON-NLS-1$
-					DataTool tool = DataTool.getTool(true);
-					for (XMLProperty prop : control.getPropsRaw()) {
-						if (prop.getPropertyName().equals("datatool_tabs")) { //$NON-NLS-1$
-							for (XMLControl tabControl : prop.getChildControls()) {
-								// pass the tab control to the DataTool and get back the newly added tab
-								tool.addTabs(tabControl, new Consumer<ArrayList<DataToolTab>>() {
-									// BH 2020.03.25 TODO not tested
-
-									@Override
-									public void accept(ArrayList<DataToolTab> addedTabs) {
-										if (addedTabs != null && !addedTabs.isEmpty())
-											setDataTabs(trackerPanel, addedTabs);
-									}
-
-								});
-							}
-						}
-					}
-				}
+//				if (control.getPropertyNamesRaw().contains("datatool_tabs")) { //$NON-NLS-1$
+//					DataTool tool = DataTool.getTool(true);
+//					for (XMLProperty prop : control.getPropsRaw()) {
+//						if (prop.getPropertyName().equals("datatool_tabs")) { //$NON-NLS-1$
+//							for (XMLControl tabControl : prop.getChildControls()) {
+//								// pass the tab control to the DataTool and get back the newly added tab
+//								tool.addTabs(tabControl, new Consumer<ArrayList<DataToolTab>>() {
+//									// BH 2020.03.25 TODO not tested
+//
+//									@Override
+//									public void accept(ArrayList<DataToolTab> addedTabs) {
+//										if (addedTabs != null && !addedTabs.isEmpty())
+//											setDataTabs(trackerPanel, addedTabs);
+//									}
+//
+//								});
+//							}
+//						}
+//					}
+//				}
 
 				// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading datatool
 				// ", Performance.TIME_MARK));
