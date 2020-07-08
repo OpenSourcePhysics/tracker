@@ -172,8 +172,8 @@ public class TableTrackView extends TrackView {
 	private int leadCol;
 
 	final private Font font = new JTextField().getFont();
-	final private ArrayList<Integer> highlightFrames = new ArrayList<Integer>();
-	final private ArrayList<Integer> highlightRows = new ArrayList<Integer>();
+	final private BitSet highlightFrames = new BitSet();
+	final private BitSet highlightRows = new BitSet(); 
 	final private ArrayList<String> textColumnNames = new ArrayList<String>();
 	final protected Set<String> textColumnsVisible = new TreeSet<String>();
 	final private Map<String, TableCellRenderer> degreeRenderers = new HashMap<String, TableCellRenderer>();
@@ -420,10 +420,10 @@ public class TableTrackView extends TrackView {
 			for (Step step : trackerPanel.selectedSteps) {
 				if (step.getTrack() != this.getTrack())
 					continue;
-				highlightFrames.add(step.getFrameNumber());
+				highlightFrames.set(step.getFrameNumber());
 			}
 		} else {
-			highlightFrames.add(frameNumber);
+			highlightFrames.set(frameNumber);
 		}
 		setHighlighted(highlightFrames);
 	}
@@ -633,17 +633,17 @@ public class TableTrackView extends TrackView {
 	 *
 	 * @param frameNumbers the frame numbers
 	 */
-	protected void setHighlighted(ArrayList<Integer> frameNumbers) {
+	protected void setHighlighted(BitSet frameNumbers) {
 		// assume no highlights
 		if (!highlightVisible)
 			return;
 
 		// get rows to highlight
 		highlightRows.clear();
-		for (int i = 0; i < frameNumbers.size(); i++) {
-			int row = getRowFromFrame(frameNumbers.get(i));
-			if (row < dataTable.getRowCount() && row > -1) {
-				highlightRows.add(row);
+		for (int i = frameNumbers.nextSetBit(0); i >= 0; i = frameNumbers.nextSetBit(i + 1)) {
+			int row = getRowFromFrame(i);
+			if (row >= 0 && row < dataTable.getRowCount()) {
+				highlightRows.set(i);
 			}
 		}
 		// set highlighted rows if found
@@ -655,11 +655,12 @@ public class TableTrackView extends TrackView {
 					return;
 				}
 				try {
-					for (int row : highlightRows) {
-						dataTable.addRowSelectionInterval(row, row);
-					}
-					if (highlightRows.size() == 1) {
-						dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRows.get(0), 0, true));
+					dataTable.selectTableRowsBS(highlightRows, 0);
+//					for (int i = highlightRows.nextSetBit(0); i >= 0; i = highlightRows.nextSetBit(i + 1)) {
+//						dataTable.addRowSelectionInterval(i, row);
+//					}
+					if (highlightRows.cardinality() == 1) {
+						dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRows.nextSetBit(0), 0, true));
 					}
 				} catch (Exception e) {
 				   e.printStackTrace();
