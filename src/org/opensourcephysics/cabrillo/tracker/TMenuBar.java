@@ -223,6 +223,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	private JMenuItem edit_configItem;
 	private JMenu edit_matSizeMenu;
 	private ButtonGroup matSizeGroup;
+	private Action matSizeAction;
 	private JMenu edit_fontSizeMenu;
 	private ButtonGroup fontSizeGroup;
 	private JRadioButtonMenuItem edit_matsize_videoSizeItem;
@@ -1429,7 +1430,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		// displayed/hidden
 		TreeMap<Integer, TableTrackView> dataViews = getDataViews();
 		edit_copyDataMenu.setEnabled(!dataViews.isEmpty());
-		edit_matSizeMenu.setEnabled(trackerPanel.getVideo() != null);
+//		edit_matSizeMenu.setEnabled(trackerPanel.getVideo() != null);
 
 //		FontSizer.setFonts(editMenu);
 //		editMenu.revalidate();
@@ -1579,6 +1580,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 
 		};
+		edit_fontSizeMenu.removeAll();
 		for (int i = 0; i <= Tracker.maxFontLevel; i++) {
 			String s = i == 0 ? TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize") : "+" + i; //$NON-NLS-1$ //$NON-NLS-2$
 			JMenuItem item = new JRadioButtonMenuItem(s);
@@ -1592,55 +1594,103 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		}
 	}
 
-	final static String[] matSizes = new String[] { "320x240", //$NON-NLS-1$
-			"480x360", //$NON-NLS-1$
-			"640x480", //$NON-NLS-1$
-			"800x600", //$NON-NLS-1$
-			"960x720", //$NON-NLS-1$
-			"1280x960" }; //$NON-NLS-1$
-
+	final static String[] baseMatSizes = new String[] 
+			{"480x360", "640x480", "960x720", "1280x960", "1600x1200", "2400x1800"};
+	
 	protected void rebuildEditMatSizeMenu() {
+		OSPLog.debug("pig rebuild matsizes");
 
-		Action matSizeAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String theSize = e.getActionCommand();
-				int i = theSize.indexOf("x"); //$NON-NLS-1$
-				double w = Double.parseDouble(theSize.substring(0, i));
-				double h = Double.parseDouble(theSize.substring(i + 1));
-				trackerPanel.setImageSize(w, h);
+		if (matSizeAction == null) {
+			matSizeAction = new AbstractAction() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					String c = e.getActionCommand();
+					String[] size = c.split("x");
+					double w = Double.parseDouble(size[0]);
+					double h = Double.parseDouble(size[1]);
+					trackerPanel.setImageSize(w, h);
+				}
+			};
+			matSizeGroup = new ButtonGroup();
+			// add edit_matsize_videoSizeItem to group
+			edit_matsize_videoSizeItem = new JRadioButtonMenuItem();
+			edit_matsize_videoSizeItem.setActionCommand("0x0"); //$NON-NLS-1$
+			edit_matsize_videoSizeItem.addActionListener(matSizeAction);
+			matSizeGroup.add(edit_matsize_videoSizeItem);
+			// add base matsize items to group
+			for (int i = 0; i < baseMatSizes.length; i++) {
+				String size = baseMatSizes[i];
+				JMenuItem item = new JRadioButtonMenuItem(size);
+				item.setActionCommand(size);
+				item.addActionListener(matSizeAction);
+				matSizeGroup.add(item);
 			}
-		};
-
-		// determine if default size is being used
-		boolean isDefaultSize = isDefaultVideoSize();
-
-		edit_matSizeMenu.removeAll();
-		matSizeGroup = new ButtonGroup();
-		edit_matsize_videoSizeItem = new JRadioButtonMenuItem();
-		edit_matsize_videoSizeItem.setActionCommand("0x0"); //$NON-NLS-1$
-		edit_matsize_videoSizeItem.addActionListener(matSizeAction);
-		matSizeGroup.add(edit_matsize_videoSizeItem);
-		for (int i = 0; i < matSizes.length; i++) {
-			JMenuItem item = new JRadioButtonMenuItem(matSizes[i]);
-			item.setActionCommand(matSizes[i]);
-			item.addActionListener(matSizeAction);
-			matSizeGroup.add(item);
 		}
+		
+		edit_matSizeMenu.removeAll();
 
-		//boolean isDefaultSize = !videoSizeItemShown || edit_matsize_videoSizeItem.isSelected();
+    int vidWidth = 1;
+    int vidHeight = 1;
+    
+		// if has video, set up videoSizeItem and add extended size items if needed
 		Video video = trackerPanel.getVideo();
-		Dimension d = video.getImageSize();
-		int vidWidth = d.width;
-		int vidHeight = d.height;
+    if (video!=null) {
+			Dimension d = video.getImageSize();
+      vidWidth = d.width;
+      vidHeight = d.height;
+      String s = TrackerRes.getString("TMenuBar.Menu.Video"); //$NON-NLS-1$
+      String description = " ("+s.toLowerCase()+")"; //$NON-NLS-1$ //$NON-NLS-2$
+      String dimensionString = vidWidth + "x" + vidHeight;
+      edit_matsize_videoSizeItem.setText(dimensionString + description); //$NON-NLS-1$
+      edit_matsize_videoSizeItem.setActionCommand(dimensionString); //$NON-NLS-1$
+      
+      // determine largest available size
+      int maxW = 0, maxH = 0;
+  		for (Enumeration<AbstractButton> e = matSizeGroup.getElements(); e.hasMoreElements();) {
+  			AbstractButton next = e.nextElement();
+				String[] size = next.getActionCommand().split("x");
+  			maxW = Math.max(maxW, Integer.parseInt(size[0])); //$NON-NLS-1$
+  			maxH = Math.max(maxH, Integer.parseInt(size[1])); //$NON-NLS-1$
+  		}
+  		
+			// add extended mat sizes to group if needed
+			for (int i = 0; maxW < 2 * vidWidth || maxH < 2 * vidHeight; i++) {
+				int multiplier = (int)Math.pow(2, i);
+				int w = multiplier * 3200;
+				maxW = Math.max(maxW, w);
+				int h = multiplier * 2400;
+				maxH = Math.max(maxH, h);
+				dimensionString = w + "x" + h;
+				JMenuItem item = new JRadioButtonMenuItem(dimensionString);
+				item.setActionCommand(dimensionString);
+				item.addActionListener(matSizeAction);
+				matSizeGroup.add(item);
+				
+				if (maxW < 2 * vidWidth || maxH < 2 * vidHeight) {
+					w = (int)(w * 1.5);
+					maxW = Math.max(maxW, w);
+					h = (int)(h * 1.5);
+					maxH = Math.max(maxH, h);
+					dimensionString = w + "x" + h;
+					item = new JRadioButtonMenuItem(dimensionString);
+					item.setActionCommand(dimensionString);
+					item.addActionListener(matSizeAction);
+					matSizeGroup.add(item);
+				}
+			}
+
+    }
+    else {
+    	edit_matsize_videoSizeItem.setActionCommand("0x0"); //$NON-NLS-1$
+    }
+    
 		int imageWidth = (int) trackerPanel.getImageWidth();
 		int imageHeight = (int) trackerPanel.getImageHeight();
 		for (Enumeration<AbstractButton> e = matSizeGroup.getElements(); e.hasMoreElements();) {
-			JRadioButtonMenuItem next = (JRadioButtonMenuItem) e.nextElement();
-			String s = next.getActionCommand();
-			int i = s.indexOf("x"); //$NON-NLS-1$
-			int w = Integer.parseInt(s.substring(0, i));
-			int h = Integer.parseInt(s.substring(i + 1));
+			AbstractButton next = e.nextElement();
+			String[] size = next.getActionCommand().split("x");
+			int w = Integer.parseInt(size[0]);
+			int h = Integer.parseInt(size[1]);
 			if (w >= vidWidth & h >= vidHeight) {
 				edit_matSizeMenu.add(next);
 				if (next != edit_matsize_videoSizeItem
@@ -1654,10 +1704,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				next.setSelected(true);
 			}
 		}
-		String s = TrackerRes.getString("TMenuBar.Menu.Video"); //$NON-NLS-1$
-		String description = " (" + s.toLowerCase() + ")"; //$NON-NLS-1$ //$NON-NLS-2$
-		edit_matsize_videoSizeItem.setText(vidWidth + "x" + vidHeight + description); //$NON-NLS-1$
-		edit_matsize_videoSizeItem.setActionCommand(vidWidth + "x" + vidHeight); //$NON-NLS-1$
 	}
 	
 	protected void rebuildEditCopyMenu(String type) {
@@ -2875,7 +2921,21 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			menu.add(items[i]);
 	}
 
-	public boolean isDefaultVideoSize() {
-		return (edit_matsize_videoSizeItem == null || edit_matsize_videoSizeItem.isSelected());
+	public void checkMatSize() {
+  	boolean isVideoSize = false;
+  	for (Component c: edit_matSizeMenu.getMenuComponents()) {
+  		if (c == edit_matsize_videoSizeItem && edit_matsize_videoSizeItem.isSelected())
+  			isVideoSize = true;
+  	}
+		if (isVideoSize && trackerPanel.getMat() != null) {
+			Dimension dim = trackerPanel.getMat().mat.getSize();
+			Dimension d = trackerPanel.getVideo().getImageSize();
+			int vidWidth = d.width;
+			int vidHeight = d.height;
+			if (vidWidth != dim.width || vidHeight != dim.height) {
+				trackerPanel.setImageSize(vidWidth, vidHeight);
+			}
+		}
 	}
+
 }

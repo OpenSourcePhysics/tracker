@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -2585,7 +2586,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			break;
 		case Video.PROPERTY_VIDEO_IMAGE: // from video //$NON-NLS-1$
 			firePropertyChange(PROPERTY_TRACKERPANEL_IMAGE, null, null); // to tracks/views //$NON-NLS-1$
-			checkVideoSize();
+			TMenuBar.getMenuBar(this).checkMatSize();
 			TFrame.repaintT(this);
 			break;
 		case Video.PROPERTY_VIDEO_FILTERCHANGED: // from video //$NON-NLS-1$
@@ -2775,19 +2776,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime("end TrackerPanel property change " + name); //$NON-NLS-1$
-	}
-
-	private void checkVideoSize() {
-		// this was in TToolBar
-		if (TMenuBar.getMenuBar(this).isDefaultVideoSize() && getMat() != null) {
-			Dimension dim = getMat().mat.getSize();
-			Dimension d = video.getImageSize();
-			int vidWidth = d.width;
-			int vidHeight = d.height;
-			if (vidWidth != dim.width || vidHeight != dim.height) {
-				setImageSize(vidWidth, vidHeight);
-			}
-		}
 	}
 
 	/**
@@ -4262,7 +4250,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	public void setVideoVisible(boolean visible) {
-		if (video == null)
+		if (video == null || visible == video.isVisible())
 			return;
 		video.setVisible(visible);
 		getPlayer().getClipControl().videoVisible = visible;
