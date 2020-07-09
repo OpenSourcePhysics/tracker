@@ -39,13 +39,11 @@ import org.opensourcephysics.controls.*;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.*;
 import org.opensourcephysics.tools.DataTool;
-import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
 import javajs.async.AsyncSwingWorker;
-import javajs.async.SwingJSUtils.Performance;
 
 /**
  * This creates a map of action name to action for many common tracker actions.
@@ -375,6 +373,7 @@ public class TActions {
 				Video video = trackerPanel.getVideo();
 				if (video == null)
 					return;
+				trackerPanel.setVideoVisible(true);
 				FilterStack filterStack = video.getFilterStack();
 				Filter filter = null;
 				Map<String, Class<? extends Filter>> filterClasses = trackerPanel.getFilters();
@@ -390,8 +389,6 @@ public class TActions {
 						filter.setVideoPanel(trackerPanel);
 						JDialog inspector = filter.getInspector();
 						if (inspector != null) {
-							FontSizer.setFonts(inspector, FontSizer.getLevel());
-							inspector.pack();
 							inspector.setVisible(true);
 						}
 					}
