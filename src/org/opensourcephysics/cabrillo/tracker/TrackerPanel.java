@@ -26,7 +26,6 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -58,7 +57,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -4323,10 +4321,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public void clearTainted() {
 		tainted = false;
 		dirty = null;
-	}
-
-	public void setBounds(int x, int y, int w, int h) {
-		super.setBounds(x, y, w, h);
 	}
 
 }

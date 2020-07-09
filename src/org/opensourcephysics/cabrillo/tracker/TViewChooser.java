@@ -585,6 +585,11 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		return getName();
 	}
 
+	public static TViewChooser getChooserParent(Container c) {
+		while ((c = c.getParent()) != null && !(c instanceof TViewChooser)) {}
+		return (TViewChooser) c;
+	}
+
 	/**
 	 * Adjust maximum size height and width for standard view.
 	 * 
@@ -594,11 +599,19 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * @return new Dimension with height based on chooserButton height
 	 */
 	static Dimension getButtonMaxSize(Container c, Dimension max, int minHeight) {
-		while (c != null && !(c instanceof TViewChooser)) {
-			c = c.getParent();
-		}
+		c = getChooserParent(c);
 		return (c == null ? max 
 				: new Dimension(max.width, Math.max(minHeight, ((TViewChooser) c).chooserButton.getHeight())));
+	}
+
+	/**
+	 * Returns true if this view is selected in it's parent TViewChooser.
+	 * 
+	 * @return true if selected
+	 */
+	public static boolean isSelectedView(TView view) {
+			TViewChooser c = getChooserParent((Container) view);
+			return (c != null && view == c.getSelectedView());
 	}
 
 }

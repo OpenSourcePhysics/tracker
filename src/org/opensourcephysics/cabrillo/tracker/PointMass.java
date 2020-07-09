@@ -1951,7 +1951,7 @@ public class PointMass extends TTrack {
 	protected void updateDerivatives(TrackerPanel trackerPanel, int startFrame, int stepCount) {
 		if (trackerPanel instanceof WorldTView) {
 			WorldTView wtv = (WorldTView) trackerPanel;
-			if(!wtv.isSelectedView() ||  !wtv.isViewPaneVisible())
+			if(!TViewChooser.isSelectedView(wtv) ||  !wtv.isViewPaneVisible())
 				return;
 		}
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();

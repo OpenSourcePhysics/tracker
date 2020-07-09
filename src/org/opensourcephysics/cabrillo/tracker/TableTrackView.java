@@ -356,7 +356,7 @@ public class TableTrackView extends TrackView {
 
 		forceRefresh = true; // for now, at least
 
-		if (!forceRefresh && !isRefreshEnabled() || !parent.isViewPaneVisible())
+		if (!forceRefresh && !isRefreshEnabled() || !viewParent.isViewPaneVisible())
 			return;
 
 		forceRefresh = false;
@@ -624,7 +624,7 @@ public class TableTrackView extends TrackView {
 		dataTableManager = null;
 		dataTable.dispose();
 		dataTable = null;
-		parent = null;
+		viewParent = null;
 		super.dispose();
 	}
 
@@ -776,7 +776,7 @@ public class TableTrackView extends TrackView {
 			// else a text entry was changed
 			// refresh table and column visibility dialog
 			dataTable.refreshTable(DataTable.MODE_COLUMN);
-			if (parent.getViewType() == TView.VIEW_TABLE) {
+			if (viewParent.getViewType() == TView.VIEW_TABLE) {
 				TableTView view = (TableTView) getParent();
 				view.refreshColumnsDialog(track, true);
 			}
@@ -797,17 +797,7 @@ public class TableTrackView extends TrackView {
 	 * Creates a snapshot of this view or its parent TViewChooser, if any.
 	 */
 	public void snapshot() {
-		Component comp = this;
-		Container c = getParent();
-		while (c != null) {
-			if (c instanceof TViewChooser) {
-				comp = c;
-				break;
-			}
-			c = c.getParent();
-		}
-		TrackerIO.ComponentImage ci = new TrackerIO.ComponentImage(comp);
-		BufferedImage image = ci.getImage();
+		BufferedImage image = new TrackerIO.ComponentImage(TViewChooser.getChooserParent(this)).getImage();
 		int w = image.getWidth();
 		int h = image.getHeight();
 		if ((w == 0) || (h == 0)) {
@@ -959,7 +949,7 @@ public class TableTrackView extends TrackView {
 			// override getMaximumSize method so has same height as chooser button
 			@Override
 			public Dimension getMaximumSize() {
-				return TViewChooser.getButtonMaxSize(getParent(), 
+				return TViewChooser.getButtonMaxSize(this, 
 						super.getMaximumSize(), 
 						getMinimumSize().height);
 
@@ -979,7 +969,7 @@ public class TableTrackView extends TrackView {
 			// override getMaximumSize method so has same height as chooser button
 			@Override
 			public Dimension getMaximumSize() {
-				return TViewChooser.getButtonMaxSize(getParent(), 
+				return TViewChooser.getButtonMaxSize(this, 
 						super.getMaximumSize(), 
 						getMinimumSize().height);
 			}
@@ -1394,8 +1384,8 @@ public class TableTrackView extends TrackView {
 				textColumnsVisible.add(name);
 				// refresh table and column visibility dialog
 				dataTable.refreshTable(DataTable.MODE_COLUMN);
-				if (parent.getViewType() == TView.VIEW_TABLE) {
-					((TableTView) parent).refreshColumnsDialog(track, true);
+				if (viewParent.getViewType() == TView.VIEW_TABLE) {
+					((TableTView) viewParent).refreshColumnsDialog(track, true);
 				}
 			}
 		});

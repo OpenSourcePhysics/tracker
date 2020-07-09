@@ -97,7 +97,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			// override getMaximumSize method so has same height as chooser button
 			@Override
 			public Dimension getMaximumSize() {
-				return TViewChooser.getButtonMaxSize(getParent(),
+				return TViewChooser.getButtonMaxSize(this,
 						new Dimension(getPreferredSize().width, super.getMaximumSize().height),
 						getMinimumSize().height);
 			}
@@ -262,10 +262,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 * @return true if this TView is displayed and the track is selected
 	 */
 	protected boolean isTrackViewDisplayed(TTrack track) {
-		if (track != getSelectedTrack())
-			return false;
-		TViewChooser c = (TViewChooser)getParent().getParent();
-		return (this == c.getSelectedView());
+		return (track == getSelectedTrack() && TViewChooser.isSelectedView(this));
 	}
 
 	/**

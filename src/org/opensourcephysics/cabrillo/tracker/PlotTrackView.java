@@ -133,7 +133,7 @@ public class PlotTrackView extends TrackView {
 	 */
 	@Override
 	public void refresh(int frameNumber, int mode) {
-		if (!isRefreshEnabled() || !parent.isViewPaneVisible())
+		if (!isRefreshEnabled() || !viewParent.isViewPaneVisible())
 			return;
 
 //		OSPLog.debug("PlotTrackView refresh type "+refreshType);
@@ -177,7 +177,7 @@ public class PlotTrackView extends TrackView {
 		}
 		plots = null;
 		mainView.removeAll();
-		parent = null;
+		viewParent = null;
 		super.dispose();
 	}
 

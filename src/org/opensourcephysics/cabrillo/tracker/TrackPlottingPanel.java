@@ -24,23 +24,72 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.util.Map.Entry;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Container;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
-import java.lang.reflect.Constructor;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeSet;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
+import javax.swing.JTextField;
+import javax.swing.JViewport;
+import javax.swing.WindowConstants;
 import javax.swing.event.MouseInputAdapter;
 
-import org.opensourcephysics.display.*;
-import org.opensourcephysics.tools.*;
-import org.opensourcephysics.controls.*;
-import org.opensourcephysics.display.axes.*;
-import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.display.Dataset;
+import org.opensourcephysics.display.DatasetManager;
+import org.opensourcephysics.display.DisplayRes;
+import org.opensourcephysics.display.Drawable;
+import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.GUIUtils;
+import org.opensourcephysics.display.HighlightableDataset;
+import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.Measurable;
+import org.opensourcephysics.display.MeasuredImage;
+import org.opensourcephysics.display.OSPFrame;
+import org.opensourcephysics.display.PlottingPanel;
+import org.opensourcephysics.display.TeXParser;
+import org.opensourcephysics.display.axes.CartesianInteractive;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoPlayer;
+import org.opensourcephysics.tools.DataRefreshTool;
+import org.opensourcephysics.tools.DataTool;
+import org.opensourcephysics.tools.DataToolTab;
+import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.Job;
+import org.opensourcephysics.tools.LocalJob;
+import org.opensourcephysics.tools.Tool;
 
 /**
  * This is a plotting panel for a track
@@ -50,6 +99,9 @@ import org.opensourcephysics.media.core.*;
 @SuppressWarnings("serial")
 public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	
+
+	private static final int VAR_NAME_NULL = Integer.MIN_VALUE;
+	private static final int VAR_NOT_FOUND = -2;
 
 	@Override
 	public void repaint() {
@@ -127,48 +179,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		// set new CoordinateStringBuilder
 		coordStringBuilder = new TCoordinateStringBuilder();
 		setCoordinateStringBuilder(coordStringBuilder);
-
-		// make listeners for the button states
-		xListener = new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (selectionEnabled && e.getStateChange() == ItemEvent.SELECTED) {
-					JMenuItem item = (JMenuItem) e.getSource();
-					setXVariable(item.getText());
-					plotData();
-					isCustom = true;
-					trackerPanel.changed = true;
-					repaint();
-				}
-			}
-		};
-		yListener = new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (selectionEnabled && e.getStateChange() == ItemEvent.SELECTED) {
-					JMenuItem item = (JMenuItem) e.getSource();
-					setYVariable(item.getText());
-					plotData();
-					isCustom = true;
-					trackerPanel.changed = true;
-					repaint();
-				}
-			}
-		};
-		playerListener = new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent e) {
-				if (clickedStep == null)
-					return;
-				TPoint pt = clickedStep.getDefaultPoint();
-				plotTrackView.trackerPanel.setSelectedPoint(pt);
-				if (pt != null) {
-					pt.showCoordinates(plotTrackView.trackerPanel);
-				}
-				clickedStep = null;
-				TFrame.repaintT(TrackPlottingPanel.this);
-			}
-		};
 		// don't create radio buttons and popups to set x and y variables
 		setVariables();
 		// create clickable axes
@@ -440,22 +450,14 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		return popupmenu;
 	}
 
+	
+
 	/**
 	 * Creates a snapshot of this plot or, if possible, of the parent TViewChooser.
 	 */
 	@Override
 	public void snapshot() {
-		Component comp = this;
-		Container c = getParent();
-		while (c != null) {
-			if (c instanceof TViewChooser) {
-				comp = c;
-				break;
-			}
-			c = c.getParent();
-		}
-		TrackerIO.ComponentImage ci = new TrackerIO.ComponentImage(comp);
-		BufferedImage image = ci.getImage();
+		BufferedImage image = new TrackerIO.ComponentImage(TViewChooser.getChooserParent(this)).getImage();
 		int w = image.getWidth();
 		int h = image.getHeight();
 		if ((w == 0) || (h == 0)) {
@@ -488,8 +490,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		frame.pack();
 		frame.setVisible(true);
 	}
-
-	
 
 	/**
 	 * Builds the default popup menu for this panel.
@@ -755,18 +755,14 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	@Override
 	protected Rectangle findViewRect() {
 		Rectangle rect = null;
-		Container parent = getParent();
-		while (parent != null) {
-			if (parent instanceof JViewport) {
-				// gets rect in the PlotTrackView.mainPanel space
-				rect = ((JViewport) parent).getViewRect();
-				// transform rect to this plotting panel space
-				Rectangle bounds = getBounds();
-				rect = rect.intersection(bounds);
-				rect.y -= bounds.y;
-				break;
-			}
-			parent = parent.getParent();
+		JViewport c = GUIUtils.getParentViewport(this); 
+		if (c != null) {
+			// gets rect in the PlotTrackView.mainPanel space
+			rect = ((JViewport) c).getViewRect();
+			// transform rect to this plotting panel space
+			Rectangle bounds = getBounds();
+			rect = rect.intersection(bounds);
+			rect.y -= bounds.y;
 		}
 		return rect;
 	}
@@ -1122,25 +1118,21 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param name the name of the dataset to plot on the x axis
 	 */
 	protected void setXVariable(String name) {
-		if ((name = TrackView.trimDefined(name)) == null)
-			return;
-		// find the desired menu item
-		Integer ii = htVarToItem.get(name);
-		if (ii == null) 
-			return;
-		int i = ii.intValue();
-		if (xIndex == i - 1)
-			return;
-		// set index for plotting
-		xIndex = i - 1; // index -1 is data column 0
-		// select menu radio button if not selected
-//		ButtonModel current = xGroup.getSelection();
-//		ButtonModel desired = xChoices[i].getModel();
-//		if (current == null || current != desired) {
-//			xChoices[i].setSelected(true);
-//		}
-		if (plotTrackView != null)
-			plotTrackView.syncXAxesTo(this);
+		int n = getVarIndexFromName(name);
+		switch (n) {
+		case VAR_NAME_NULL:
+			break;
+		case VAR_NOT_FOUND:
+			xName = name;
+			break;
+		default:
+			if (xIndex != n) {
+				xIndex = n;
+				if (plotTrackView != null)
+					plotTrackView.syncXAxesTo(this);
+			}
+			break;
+		}
 	}
 
 	/**
@@ -1158,17 +1150,35 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param name the name of the dataset to plot on the y axis
 	 */
 	protected void setYVariable(String name) {
+		int n = getVarIndexFromName(name);
+		switch (n) {
+		case VAR_NAME_NULL:
+			break;
+		case VAR_NOT_FOUND:
+			yName = name;
+			break;
+		default:
+			if (yIndex != n) {
+				yIndex = n;
+				super.setPreferredMinMaxY(Double.NaN, Double.NaN);
+			}
+			break;
+		}
+	}
+
+	/**
+	 * htVarToItem is set to the Dataset index for both X and Y, with 
+	 * -1 reserved for the independent variable (usually t).
+	 * 
+	 * @param name with or without definition and with or without subscripts
+	 * 
+	 * @return
+	 */
+	private int getVarIndexFromName(String name) {
 		if ((name = TrackView.trimDefined(name)) == null)
-			return;
-		yName = name;
+			return VAR_NAME_NULL;
 		Integer ii = htVarToItem.get(name);
-		if (ii == null)
-			return;
-		int i = ii.intValue();
-		if (yIndex == i)
-			return;
-		yIndex = i;
-		super.setPreferredMinMaxY(Double.NaN, Double.NaN);
+		return (ii == null ? VAR_NOT_FOUND : ii.intValue());
 	}
 
 	/**
@@ -1186,6 +1196,22 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param view the PlotTrackView
 	 */
 	protected void setPlotTrackView(PlotTrackView view) {
+		if (playerListener == null) {
+			playerListener = new PropertyChangeListener() {
+				@Override
+				public void propertyChange(PropertyChangeEvent e) {
+					if (clickedStep == null)
+						return;
+					TPoint pt = clickedStep.getDefaultPoint();
+					plotTrackView.trackerPanel.setSelectedPoint(pt);
+					if (pt != null) {
+						pt.showCoordinates(plotTrackView.trackerPanel);
+					}
+					clickedStep = null;
+					TFrame.repaintT(TrackPlottingPanel.this);
+				}
+			};
+		}
 		plotTrackView = view;
 		VideoPlayer player = plotTrackView.trackerPanel.getPlayer();
 		player.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$
@@ -1194,10 +1220,12 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 	@Override
 	protected void dispose() {
-		VideoPlayer player = plotTrackView.trackerPanel.getPlayer();
-		player.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); //$NON-NLS-1$
+		if (playerListener != null) {
+			plotTrackView.trackerPanel.getPlayer()
+					.removePropertyChangeListener(VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER, playerListener); // $NON-NLS-1$
+		}
 		for (TTrack guest : guests) {
-			guest.removeStepListener(plotTrackView); //$NON-NLS-1$
+			guest.removeStepListener(plotTrackView); // $NON-NLS-1$
 		}
 		guests.clear();
 		guestDatasets.clear();
@@ -1233,17 +1261,46 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			xPopup.add(xChoices[i]);
 		for (int i = 0; i < yChoices.length; i++) 
 			yPopup.add(yChoices[i]);
-		JMenuItem defineItem = new JMenuItem(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
-		defineItem.addActionListener(dataFunctionListener);
+		String def = TrackerRes.getString("TView.Menuitem.Define");
+		JMenuItem item = new JMenuItem(def); //$NON-NLS-1$
+		item.addActionListener(dataFunctionListener);
 		xPopup.addSeparator();
-		xPopup.add(defineItem);
-		defineItem = new JMenuItem(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
-		defineItem.addActionListener(dataFunctionListener);
+		xPopup.add(item);
+		item = new JMenuItem(def); //$NON-NLS-1$
+		item.addActionListener(dataFunctionListener);
 		yPopup.addSeparator();
-		yPopup.add(defineItem);
+		yPopup.add(item);
 	}
 	
 	protected void createVarItems() {
+
+		// make listeners for the button states
+		xListener = new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (selectionEnabled && e.getStateChange() == ItemEvent.SELECTED) {
+					JMenuItem item = (JMenuItem) e.getSource();
+					setXVariable(item.getText());
+					plotData();
+					isCustom = true;
+					trackerPanel.changed = true;
+					repaint();
+				}
+			}
+		};
+		yListener = new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (selectionEnabled && e.getStateChange() == ItemEvent.SELECTED) {
+					JMenuItem item = (JMenuItem) e.getSource();
+					setYVariable(item.getText());
+					plotData();
+					isCustom = true;
+					trackerPanel.changed = true;
+					repaint();
+				}
+			}
+		};
 		xGroup = new ButtonGroup();
 		yGroup = new ButtonGroup();
 		// create radio buttons and popups to set x and y variables
@@ -1252,8 +1309,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		TTrack track = TTrack.getTrack(trackID);
 		for (Entry<String, Integer> e : htVarToItem.entrySet()) {
 			String name = e.getKey();
-			int i = e.getValue().intValue();
-			if (!track.getDataDescription(i).equals("")) //$NON-NLS-1$
+			int i = e.getValue().intValue() + 1;
+			String desc = track.getDataDescription(i);
+			if (desc.length() > 0)
 				name += TrackView.DEFINED_AS + track.getDataDescription(i);
 			xChoices[i] = new JRadioButtonMenuItem(name);
 			xChoices[i].setFont(font);
@@ -1275,7 +1333,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		// prevent listener actions while setting
 		selectionEnabled = false;
 		xChoices[xIndex + 1].setSelected(true);
-		xChoices[yIndex].setSelected(true);
+		yChoices[yIndex].setSelected(true);
 		selectionEnabled = true;
 	}
 
@@ -1290,7 +1348,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		TTrack track = TTrack.getTrack(trackID);
 		boolean foundY = false, foundX = false;
 		String name = TeXParser.removeSubscripting(track.getDataName(0)); // linked x-variable
-		htVarToItem.put(name,  Integer.valueOf(0));
+		htVarToItem.put(name,  Integer.valueOf(-1));
 		xIndex = -1;
 		if (name == xName)
 			foundX = true;
@@ -1298,15 +1356,15 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			name = TeXParser.removeSubscripting(track.getDataName(i + 1));
 			boolean isXVar = name.equals(xName);
 			boolean isYVar = name.equals(yName);
-			foundX |= isXVar;
-			foundY |= isYVar;
-			htVarToItem.put(name,  Integer.valueOf(i + 1));
+			htVarToItem.put(name,  Integer.valueOf(i));
 			if (isXVar) {
 				xIndex = i;
+				foundX = true;
 			}
 			if (isYVar) {
 				yIndex = i;
 				this.yName = yName;
+				foundY = true;
 			}
 		}
 		// add define data function items to x and y lists

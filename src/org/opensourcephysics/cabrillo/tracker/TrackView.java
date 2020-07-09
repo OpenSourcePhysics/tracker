@@ -31,6 +31,7 @@ import java.util.*;
 import javax.swing.*;
 
 import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.TeXParser;
 
 /**
  * This displays a view of a single track on a TrackerPanel.
@@ -44,7 +45,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 
 	// instance fields
 	protected TrackerPanel trackerPanel;
-	protected TrackChooserTView parent;
+	protected TrackChooserTView viewParent;
 	
 	private int trackID;
 	protected int myType;
@@ -67,7 +68,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_LOADED, this); 
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); 
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_UNITS, this); 
-		parent = view;
+		viewParent = view;
 	}
 
 	protected void dispose() {
@@ -115,7 +116,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
 		for (int i = 0; i < choosers.length; i++) {
 			TView tview = (choosers[i] == null ? null : choosers[i].getSelectedView());
-			if (tview == parent && parent.getTrackView(parent.getSelectedTrack()) == this) {
+			if (tview == viewParent && viewParent.getTrackView(viewParent.getSelectedTrack()) == this) {
 				return choosers[i];
 			}
 		}
@@ -168,12 +169,12 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	protected boolean isRefreshEnabled() {
 		return trackerPanel.isAutoRefresh() 
 				&& trackerPanel.getTFrame().isPaintable()
-				&& parent.isTrackViewDisplayed(getTrack());
+				&& viewParent.isTrackViewDisplayed(getTrack());
 	}
 
 	public static String trimDefined(String name) {
 		int pt = (name == null ? -1 : name.indexOf(DEFINED_AS));
-		return (pt >= 0 ? name.substring(0, pt) : name);
+		return TeXParser.removeSubscript(pt >= 0 ? name.substring(0, pt) : name);
 	}
 
 }

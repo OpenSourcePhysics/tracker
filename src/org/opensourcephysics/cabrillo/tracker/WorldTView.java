@@ -448,24 +448,6 @@ public class WorldTView extends TrackerPanel implements TView {
 	}
 
 	/**
-	 * Returns true if this view is selected in it's parent TViewChooser.
-	 * 
-	 * @return true if selected
-	 */
-	protected boolean isSelectedView() {
-		Container c = getParent();
-		while (c != null) {
-			if (c instanceof TViewChooser) {
-				TViewChooser chooser = (TViewChooser) c;
-				if (this == chooser.getSelectedView())
-					return true;
-			}
-			c = c.getParent();
-		}
-		return false;
-	}
-
-	/**
 	 * Returns an XML.ObjectLoader to save and load object data.
 	 *
 	 * @return the XML.ObjectLoader

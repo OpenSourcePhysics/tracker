@@ -28,6 +28,7 @@ import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -99,6 +100,7 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
@@ -2311,15 +2313,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			mouseOverListener = new MouseAdapter() {
 				@Override
 				public void mouseEntered(MouseEvent e) {
-					Component c = (Component) e.getSource();
-					while (c.getParent() != null) {
-						if (c == templateToolbar || c == searchToolbar || c == targetToolbar || c == imageToolbar) {
-							mouseOverObj = c;
-							isInteracting = c == targetToolbar;
-							isInteracting = true;
-							break;
-						}
-						c = c.getParent();
+					JToolBar c = GUIUtils.getParentToolBar((Container) e.getSource());
+					if (c != null) {
+						mouseOverObj = c;
+						isInteracting = c == targetToolbar;
+						isInteracting = true;
 					}
 					if (mouseOverObj == null) {
 						// refresh immediately

@@ -27,7 +27,6 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -94,6 +93,7 @@ import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawableTextLine;
 import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
@@ -3344,8 +3344,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		@Override
 		public void paintComponent(Graphics g) {
 			setPixelScale(); // sets the pixel scale and the world-to-pixel AffineTransform
-			if (OSPRuntime.setRenderingHints) ((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-					RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+			if (OSPRuntime.setRenderingHints)
+				((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+						RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			textLine.draw(this, g);
 			if (w == -1) {
 				// check preferred size and adjust if needed
@@ -3354,13 +3355,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				if (dim.width > w + 4 || dim.width < w + 4) {
 					dim.width = w + 4;
 					setPreferredSize(dim);
-					Container c = getParent();
-					while (c != null) {
-						if (c instanceof TTrackBar) {
-							((TTrackBar) c).refresh();
-							break;
-						}
-					}
+					JToolBar c = GUIUtils.getParentToolBar(this);
+					if (c != null)
+						((TTrackBar) c).refresh();
 				}
 			}
 		}

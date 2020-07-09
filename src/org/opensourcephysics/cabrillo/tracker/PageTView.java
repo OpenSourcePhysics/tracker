@@ -361,7 +361,7 @@ public class PageTView extends JPanel implements TView {
 			// override getMaximumSize method so has same height as chooser button
 			@Override
 			public Dimension getMaximumSize() {
-				return TViewChooser.getButtonMaxSize(getParent(), 
+				return TViewChooser.getButtonMaxSize(this, 
 						super.getMaximumSize(), 
 						getMinimumSize().height);
 			}
