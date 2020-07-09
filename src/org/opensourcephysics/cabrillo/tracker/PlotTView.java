@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import javax.swing.*;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLProperty;
@@ -96,6 +97,8 @@ public class PlotTView extends TrackChooserTView {
 	 */
 	@Override
 	protected void refreshMenus() {
+		if (trackViews == null)
+			return;
 		for (TrackView next : trackViews.values()) {
 			PlotTrackView plots = (PlotTrackView) next;
 			for (TrackPlottingPanel panel : plots.plots) {
@@ -167,14 +170,18 @@ public class PlotTView extends TrackChooserTView {
 				view.setSelectedTrack(track);
 				// following code is for legacy xml only
 				PlotTrackView trackView = (PlotTrackView) view.getTrackView(track);
-				TrackPlottingPanel[] plots = trackView.plots;
-				for (int i = 0; i < plots.length; i++) {
-					XMLControl child = control.getChildControl("plot" + i); //$NON-NLS-1$
-					if (child != null) {
-						child.loadObject(plots[i]);
-					} else {
-						trackView.setPlotCount(Math.max(1, i));
-						break;
+				if (trackView == null) {
+					OSPLog.warning("PlotTView not found for " + track);
+				} else {
+					TrackPlottingPanel[] plots = trackView.plots;
+					for (int i = 0; i < plots.length; i++) {
+						XMLControl child = control.getChildControl("plot" + i); //$NON-NLS-1$
+						if (child != null) {
+							child.loadObject(plots[i]);
+						} else {
+							trackView.setPlotCount(Math.max(1, i));
+							break;
+						}
 					}
 				}
 				// end legacy code
