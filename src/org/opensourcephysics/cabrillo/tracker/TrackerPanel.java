@@ -567,7 +567,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (track == null)
 			return;
 		// BH 2020.07.09 
-		track.initialize(this);
 		userTracks = null;
 		TTrack.activeTracks.put(track.getID(), track);
 		// set trackerPanel property if not yet set
@@ -3658,6 +3657,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				if (tracks != null) {
 					for (int i = 0, n = tracks.size(); i < n; i++) {
 						trackerPanel.addTrack((TTrack) tracks.get(i));
+					}
+					// wait until all tracks are added, then finalize the loading
+					// for those that need it -- CenterOfMass, DyanamicSystem, and VectorSum
+					for (int i = 0, n = tracks.size(); i < n; i++) {
+						((TTrack) tracks.get(i)).initialize(trackerPanel);
 					}
 				}
 
