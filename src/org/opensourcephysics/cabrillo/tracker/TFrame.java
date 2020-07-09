@@ -42,6 +42,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+//import java.awt.event.ComponentListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
@@ -203,6 +204,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public static final String PROPERTY_TFRAME_TAB = "tab";
 	public static final String PROPERTY_TFRAME_RADIANANGLES = "radian_angles";
 	public static final String PROPERTY_TFRAME_WINDOWFOCUS = "windowfocus";
+//	public static final String PROPERTY_TFRAME_RESIZED = "resized";
 
 	protected final static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
 	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
@@ -285,6 +287,26 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		int y = (screenRect.height - dim.height) / 2;
 		setLocation(x, y);
 		TrackerRes.addPropertyChangeListener("locale", this); //$NON-NLS-1$
+		
+//		addComponentListener(new ComponentListener() {
+//			@Override
+//			public void componentResized(ComponentEvent e) {
+//				firePropertyChange(PROPERTY_TFRAME_RESIZED,  null,  null);
+//			}
+//
+//			@Override
+//			public void componentMoved(ComponentEvent e) {
+//			}
+//
+//			@Override
+//			public void componentShown(ComponentEvent e) {
+//			}
+//
+//			@Override
+//			public void componentHidden(ComponentEvent e) {
+//			}
+//
+//		});
 	}
 
 	/**

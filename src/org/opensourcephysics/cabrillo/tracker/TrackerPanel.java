@@ -566,6 +566,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public synchronized void addTrack(TTrack track) {
 		if (track == null)
 			return;
+		// BH 2020.07.09 
+		track.initialize(this);
 		userTracks = null;
 		TTrack.activeTracks.put(track.getID(), track);
 		// set trackerPanel property if not yet set

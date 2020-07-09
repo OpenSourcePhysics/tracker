@@ -119,26 +119,8 @@ public class DynamicSystem extends DynamicParticlePolar {
 	public void draw(DrawingPanel panel, Graphics _g) {
 		if (!(panel instanceof TrackerPanel) || trackerPanel == null)
 			return;
-		// add particles in particleNames
-		if (particleNames.length > 0) {
-			ArrayList<DynamicParticle> toAdd = new ArrayList<DynamicParticle>();
-			ArrayList<DynamicParticle> parts = trackerPanel.getDrawables(DynamicParticle.class);
-			for (int i = 0; i < particleNames.length; i++) {
-				for (DynamicParticle p : parts) {
-					if (p.getName().equals(particleNames[i])) {
-						toAdd.add(p);
-						particleNames[i] = null;
-					}
-				}
-			}
-			setParticles(toAdd.toArray(new DynamicParticle[0]));
-			boolean empty = true;
-			for (String name : particleNames) {
-				empty = name == null && empty;
-			}
-			if (empty)
-				particleNames = new String[0];
-		}
+		if (!initialized)
+			initialize(trackerPanel);
 		getModelBuilder();
 		if (systemInspectorX != Integer.MIN_VALUE && trackerPanel.getTFrame() != null) {
 			// set system inspector position
@@ -167,6 +149,31 @@ public class DynamicSystem extends DynamicParticlePolar {
 		}
 		for (ParticleModel next : getModels()) {
 			next.drawMe(panel, _g);
+		}
+	}
+
+	@Override
+	public void initialize(TrackerPanel trackerPanel) {
+		if (initialized)
+			return;
+		ArrayList<DynamicParticle> toAdd = new ArrayList<DynamicParticle>();
+		ArrayList<DynamicParticle> parts = trackerPanel.getDrawables(DynamicParticle.class);
+		for (int i = 0; i < particleNames.length; i++) {
+			for (DynamicParticle p : parts) {
+				if (p.getName().equals(particleNames[i])) {
+					toAdd.add(p);
+					particleNames[i] = null;
+				}
+			}
+		}
+		setParticles(toAdd.toArray(new DynamicParticle[0]));
+		boolean empty = true;
+		for (String name : particleNames) {
+			empty &= (name == null);
+		}
+		if (empty) {
+			initialized = true;
+			particleNames = new String[0];
 		}
 	}
 
@@ -1056,6 +1063,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 			String[] names = (String[]) control.getObject("particles"); //$NON-NLS-1$
 			if (names != null) {
 				system.particleNames = names;
+				system.initialized = false;
 			}
 			system.systemInspectorX = control.getInt("system_inspector_x"); //$NON-NLS-1$
 			system.systemInspectorY = control.getInt("system_inspector_y"); //$NON-NLS-1$

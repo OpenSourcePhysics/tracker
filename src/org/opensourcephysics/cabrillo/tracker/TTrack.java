@@ -213,6 +213,13 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected XMLProperty dataProp;
 	protected Object[][] constantsLoadedFromXML;
 	protected String[] dataDescriptions;
+	
+	
+	/**
+	 * set false if data needs to be initialized, e.g. CenterOfMass from TRZ
+	 */
+	protected boolean initialized = true;
+	
 	protected boolean dataValid; // true if data is valid
 	protected boolean refreshDataLater;
 	protected int[] preferredColumnOrder;
@@ -3619,5 +3626,17 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); 
 		// TrackEdit is also used for text column edits
 		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, null); 
+	}
+	
+	/**
+	 * Finish up any unfinished loading business that for whatever
+	 * reason was not finished upon loading a track. For example, 
+	 * adding masses to a center-of-mass system, or adding particles
+	 * to a DynamicSystem. 
+	 * 
+	 * @param panel
+	 */
+	public void initialize(TrackerPanel panel) {
+		// for subclasses
 	}
 }

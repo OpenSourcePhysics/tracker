@@ -45,9 +45,13 @@ public class CenterOfMass extends PointMass {
 	
   // instance fields
   protected PointMass[] masses;
-  protected ArrayList<String> massNames = new ArrayList<String>();
+  
+  /**
+   * a temporary indicator that the loaded control has masses that 
+   * need to be updated. 
+   */
+  private ArrayList<String> massNames = new ArrayList<String>();
   protected JMenuItem inspectorItem;
-  protected DatasetManager newData;
   protected CenterOfMassInspector inspector;
 
   /**
@@ -98,26 +102,37 @@ public class CenterOfMass extends PointMass {
 	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
 		// add masses listed in massNames
-		if (!massNames.isEmpty() && panel instanceof TrackerPanel) {
-			TrackerPanel trackerPanel = (TrackerPanel) panel;
-			if (trackerPanel instanceof WorldTView) {
-				trackerPanel = ((WorldTView) trackerPanel).getTrackerPanel();
-			}
-			ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
-			for (int i = 0, n = massNames.size(); i < n; i++) {
-				String name = massNames.get(i);
-				for (int m = 0, nm = masses.size(); m < nm; m++) {
-					PointMass mass = masses.get(m);
-					if (mass.getName().equals(name))
-						addMass(mass);
-				}
-			}
-			massNames.clear();
-		}
+		if (!initialized && panel instanceof TrackerPanel)
+		initialize((TrackerPanel) panel);
 		super.draw(panel, _g);
 	}
 
-  /**
+	@Override
+	public void initialize(TrackerPanel panel) {
+		if (initialized)
+			return;
+		if (panel instanceof WorldTView) {
+			panel = ((WorldTView) panel).getTrackerPanel();
+		}
+		ArrayList<PointMass> masses = panel.getDrawables(PointMass.class);
+		for (int i = 0, n = massNames.size(); i < n; i++) {
+			String name = massNames.get(i);
+			for (int m = 0, nm = masses.size(); m < nm; m++) {
+				PointMass mass = masses.get(m);
+				if (mass.getName().equals(name))
+					addMass(mass);
+			}
+		}
+		massNames.clear();
+		initialized = true;
+
+		// notify here??
+
+	}
+
+
+
+/**
    * Adds a mass to the cm system.
    *
    * @param m the mass
@@ -308,101 +323,96 @@ public void propertyChange(PropertyChangeEvent e) {
 			inspector.dispose();
 	}
 
-  /**
-   * Updates all cm steps.
-   */
-  private void update() {
-    // update mass and count steps
-    mass = 0;
-    int length = getSteps().length;
-    for (int i = 0; i < masses.length; i++) {
-      mass += masses[i].getMass();
-      length = Math.max(length, masses[i].getSteps().length);
-    }
-    // update steps
-    for (int n = 0; n < length; n++)
-      update(n, false);
-	  updateDerivatives();
-	  firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
-	  repaint();
-    // update inspector, if visible
-    if (inspector != null &&
-        inspector.isVisible()) {
-      inspector.updateDisplay();
-    }
-  }
+	/**
+	 * Updates all cm steps.
+	 */
+	private void update() {
+		// update mass and count steps
+		mass = 0;
+		int length = getSteps().length;
+		for (int i = 0; i < masses.length; i++) {
+			mass += masses[i].getMass();
+			length = Math.max(length, masses[i].getSteps().length);
+		}
+		// update steps
+		for (int n = 0; n < length; n++)
+			update(n, false);
+		updateDerivatives();
+		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+		repaint();
+		// update inspector, if visible
+		if (inspector != null && inspector.isVisible()) {
+			inspector.updateDisplay();
+		}
+	}
 
-  /**
-   * Updates the specified cm step.
-   *
-   * @param n the frame number
-   */
-  private void update(int n, boolean firePropertyChange) {
-    if (mass == 0) {   // delete cm step, if any
-    	if (firePropertyChange) {
-	      locked = false;
-	      deleteStep(n);
-    	}
-    	else {
-        steps.setStep(n, null);    		
-    	}
-      locked = true;
-      return;
-    }
-    double x = 0, y = 0; // cm x and y coordinates in imagespace
-    // determine cm step position in imagespace
-    for (int i = 0; i < masses.length; i++) {
-      PositionStep step = (PositionStep)masses[i].getStep(n);
-      if (step == null || !step.valid) {           // if any mass data missing,
-        if (getStep(n) != null) {   // delete existing cm step if any
-        	if (firePropertyChange) {
-    	      locked = false;
-            Step deletedStep = deleteStep(n);
-            repaint(deletedStep);
-        	}
-        	else {
-            steps.setStep(n, null);    		
-        	}
-          locked = true;
-        }
-        return;
-      }
+	/**
+	 * Updates the specified cm step.
+	 *
+	 * @param n the frame number
+	 */
+	private void update(int n, boolean firePropertyChange) {
+		if (mass == 0) { // delete cm step, if any
+			if (firePropertyChange) {
+				locked = false;
+				deleteStep(n);
+			} else {
+				steps.setStep(n, null);
+			}
+			locked = true;
+			return;
+		}
+		double x = 0, y = 0; // cm x and y coordinates in imagespace
+		// determine cm step position in imagespace
+		for (int i = 0; i < masses.length; i++) {
+			PositionStep step = (PositionStep) masses[i].getStep(n);
+			if (step == null || !step.valid) { // if any mass data missing,
+				if (getStep(n) != null) { // delete existing cm step if any
+					if (firePropertyChange) {
+						locked = false;
+						Step deletedStep = deleteStep(n);
+						repaint(deletedStep);
+					} else {
+						steps.setStep(n, null);
+					}
+					locked = true;
+				}
+				return;
+			}
 
-      double m = masses[i].getMass();
-      x += m * step.getPosition().getX();
-      y += m * step.getPosition().getY();
-    }
+			double m = masses[i].getMass();
+			x += m * step.getPosition().getX();
+			y += m * step.getPosition().getY();
+		}
 
-    x /= mass;	// cm x coordinate
-    y /= mass;	// cm y coordinate
+		x /= mass; // cm x coordinate
+		y /= mass; // cm y coordinate
 
-    // create cm step if none exists
-    PositionStep cmStep = (PositionStep)getStep(n);
-    if (cmStep == null) {
-      if (firePropertyChange) {
-	      locked = false;
-      	cmStep = (PositionStep)createStep(n, x, y);
-        repaint(cmStep);
-      }
-      else {
-        cmStep = new PositionStep(this, n, x, y);
-        steps.setStep(n, cmStep);
-        cmStep.setFootprint(getFootprint());
-      }
-    }
-    // or set position of existing cm step
-    else {
-      if (firePropertyChange) {
-        locked = false;
-      	cmStep.getPosition().setXY(x, y);
-      }
-      else {
-      	points[0].setLocation(x, y);
-      	cmStep.getPosition().setPosition(points[0]);
-      }
-    }
-    locked = true;
-  }
+		// create cm step if none exists
+		PositionStep cmStep = (PositionStep) getStep(n);
+		if (cmStep == null) {
+			if (firePropertyChange) {
+				locked = false;
+				cmStep = (PositionStep) createStep(n, x, y);
+				repaint(cmStep);
+			} else {
+				cmStep = new PositionStep(this, n, x, y);
+				steps.setStep(n, cmStep);
+				cmStep.setFootprint(getFootprint());
+			}
+		}
+		// or set position of existing cm step
+		else {
+			if (firePropertyChange) {
+				locked = false;
+				cmStep.getPosition().setXY(x, y);
+			} else {
+				points[0].setLocation(x, y);
+				cmStep.getPosition().setPosition(points[0]);
+			}
+		}
+		locked = true;
+	}
 
   /**
    * Returns a menu with items that control this track.
@@ -546,6 +556,7 @@ public String toString() {
       Iterator<?> it = names.iterator();
       while (it.hasNext()) {
         cm.massNames.add((String)it.next());
+        cm.initialized = false;
       }
       return obj;
     }

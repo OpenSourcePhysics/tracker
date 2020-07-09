@@ -56,6 +56,8 @@ import org.opensourcephysics.tools.FontSizer;
 /**
  * This displays track views selected from a dropdown list. This is an abstract
  * class and cannot be instantiated directly.
+ * 
+ * Subclassed as PlotTView and TableTView
  *
  * @author Douglas Brown
  */

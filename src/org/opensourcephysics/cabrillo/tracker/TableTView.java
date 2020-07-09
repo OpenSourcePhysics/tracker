@@ -81,8 +81,9 @@ public class TableTView extends TrackChooserTView {
 	 */
 	@Override
 	public void removeNotify() {
-		if (trackerPanel != null && trackerPanel.getTFrame() != null)
+		if (trackerPanel != null && trackerPanel.getTFrame() != null) {
 			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); 
+		}
 		super.removeNotify();
 	}
 
@@ -125,7 +126,38 @@ public class TableTView extends TrackChooserTView {
 	@Override
 	protected TrackView createTrackView(TTrack track) {
 		TableTrackView trackView = new TableTrackView(track, trackerPanel, this);
-		FontSizer.setFonts(trackView); // for resizable icon onl
+		FontSizer.setFonts(trackView); // for resizable icon only
+//		
+//		addComponentListener(new ComponentListener() {
+//
+//			@Override
+//			public void componentResized(ComponentEvent e) {
+//				OSPLog.debug("TrackChooserTView " + getBounds());
+//				if (getSelectedTrack() != null && getHeight() > 0) {
+//					DataTable t = ((TableTrackView) getTrackView(selectedTrack))
+//					.getDataTable();
+//					OSPLog.debug("TrackChooserTView " + t);
+//					
+//					//.repaint();
+//				}
+//				//	.refreshTable();
+////				refresh();
+//			}
+//
+//			@Override
+//			public void componentMoved(ComponentEvent e) {
+//			}
+//
+//			@Override
+//			public void componentShown(ComponentEvent e) {
+//			}
+//
+//			@Override
+//			public void componentHidden(ComponentEvent e) {
+//			}
+//			
+//		});
+
 		return trackView;
 	}
 
@@ -167,8 +199,7 @@ public class TableTView extends TrackChooserTView {
 			break;
 		case "function": //$NON-NLS-1$
 			super.propertyChange(e);
-			TTrack track = getSelectedTrack();
-			if (track != null)
+			if (getSelectedTrack() != null)
 				((TableTrackView) getTrackView(selectedTrack)).buildForNewFunction();
 			break;
 		default:
