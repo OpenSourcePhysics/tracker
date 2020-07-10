@@ -1414,9 +1414,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param magnification the desired magnification
 	 */
 	public void setMagnification(double magnification) {
-		if (Double.isNaN(magnification))
-			return;
-		if (magnification == 0)
+		if (magnification == 0 || Double.isNaN(magnification))
 			return;
 		double prevZoom = getMagnification();
 		Dimension prevSize = getPreferredSize();
@@ -1428,7 +1426,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			prevSize.width = p2.x - p1.x;
 			prevSize.height = p2.y - p1.y;
 		}
-		MainTView view = getTFrame() == null ? null : getTFrame().getMainView(this);
 		Dimension d;
 		if (magnification < 0) {
 			d = new Dimension(1, 1);
@@ -1445,11 +1442,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		setPreferredSize(d);
 		firePropertyChange(PROPERTY_TRACKERPANEL_MAGNIFICATION, prevZoom, getMagnification());
 		// scroll and revalidate
+		MainTView view = (getTFrame() == null ? null : getTFrame().getMainView(this));
 		if (view != null) {
-			eraseAll();
 			view.scrollPane.revalidate();
 			// this will fire a full panel repaint
-			view.scrollToZoomCenter(d, prevSize, p1);
+			view.scrollToZoomCenter(getPreferredSize(), prevSize, p1);
+			eraseAll();
 // should not be necessary			TFrame.repaintT(this);
 		}
 		zoomBox.hide();

@@ -48,12 +48,10 @@ import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.swing.AbstractAction;
-import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -173,9 +171,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected Component toolbarFiller;
 	final protected JMenu cloneMenu;
 	final protected ComponentListener clipSettingsDialogListener;
-	final protected JPopupMenu zoomPopup = new JPopupMenu();
 	final protected ArrayList<PageTView.TabData> pageViewTabs = new ArrayList<PageTView.TabData>();
-
+    protected JPopupMenu zoomPopup;
+	
 	static {
 
 		newTrackIcon = new ResizableIcon(Tracker.getClassResource("resources/images/poof.gif")); //$NON-NLS-1$
@@ -247,6 +245,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected int trailLength = trailLengths[Tracker.trailLengthIndex];
 	protected boolean notYetCalibrated = true;
 	protected int toolbarComponentHeight;
+	private AbstractAction zoomAction;
 
 	/**
 	 * TToolBar constructor.
@@ -348,7 +347,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		calibrationButton = new CalibrationButton();
 
 		// zoom button
-		Action zoomAction = new AbstractAction() {
+		zoomAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// set zoom center to center of current viewport
@@ -365,24 +364,11 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				refreshZoomButton();
 			}
 		};
-		JMenuItem item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ToFit")); //$NON-NLS-1$
-		item.setActionCommand("auto"); //$NON-NLS-1$
-		item.addActionListener(zoomAction);
-		zoomPopup.add(item);
-		zoomPopup.addSeparator();
-		for (int i = 0; i < TrackerPanel.ZOOM_LEVELS.length; i++) {
-			int n = (int) (100 * TrackerPanel.ZOOM_LEVELS[i]);
-			String m = String.valueOf(n);
-			item = new JMenuItem(m + "%"); //$NON-NLS-1$
-			item.setActionCommand(m);
-			item.addActionListener(zoomAction);
-			zoomPopup.add(item);
-		}
+		
 		zoomButton = new TButton(zoomIcon) {
 			@Override
 			protected JPopupMenu getPopup() {
-				FontSizer.setFonts(zoomPopup, FontSizer.getLevel());
-				return zoomPopup;
+				return createZoomPopup();
 			}
 		};
 		zoomButton.addMouseListener(new MouseAdapter() {
@@ -390,7 +376,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2) {
 					trackerPanel.setMagnification(-1);
-					zoomPopup.setVisible(false);
+					if (zoomPopup != null)
+						zoomPopup.setVisible(false);
 					refreshZoomButton();
 				}
 			}
@@ -705,6 +692,28 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		});
 		refresh(REFRESH__CREATE_GUI_TRUE);
 		validate();
+	}
+
+	protected JPopupMenu createZoomPopup() {
+		if (zoomPopup == null) {
+			zoomPopup = new JPopupMenu();
+		}
+		zoomPopup.removeAll();
+		JMenuItem item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ToFit")); //$NON-NLS-1$
+		item.setActionCommand("auto"); //$NON-NLS-1$
+		item.addActionListener(zoomAction);
+		zoomPopup.add(item);
+		zoomPopup.addSeparator();
+		for (int i = 0; i < TrackerPanel.ZOOM_LEVELS.length; i++) {
+			int n = (int) (100 * TrackerPanel.ZOOM_LEVELS[i]);
+			String m = String.valueOf(n);
+			item = new JMenuItem(m + "%"); //$NON-NLS-1$
+			item.setActionCommand(m);
+			item.addActionListener(zoomAction);
+			zoomPopup.add(item);
+		}
+		// FontSizer.setFonts(zoomPopup, FontSizer.getLevel());
+		return zoomPopup;
 	}
 
 	protected JPopupMenu getDesktopBtnPopup() {
