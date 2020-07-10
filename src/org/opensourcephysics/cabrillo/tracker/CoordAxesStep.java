@@ -331,7 +331,7 @@ public class CoordAxesStep extends Step {
 	 */
 	class Origin extends TPoint {
 
-		private double lastX, lastY;
+		private double lastX = java.lang.Double.NaN, lastY;
 
 		/**
 		 * Overrides TPoint setXY method.
@@ -372,8 +372,13 @@ public class CoordAxesStep extends Step {
 		@Override
 		public void setAdjusting(boolean adjusting) {
 			boolean wasAdjusting = isAdjusting();
+			if (wasAdjusting == adjusting)
+				return;
 			super.setAdjusting(adjusting);
-			if (wasAdjusting && !adjusting) {
+			if (!wasAdjusting) {
+				lastX = x;
+				lastY = y;
+			} else if (!java.lang.Double.isNaN(lastX)) {
 				setXY(lastX, lastY);
 				TTrack track = getTrack();
 				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, track.trackerPanel.getFrameNumber()); //$NON-NLS-1$
