@@ -617,8 +617,11 @@ public class TableTrackView extends TrackView {
 		trackDataManager = null;
 		getTrack().removePropertyChangeListener(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, this); // $NON-NLS-1$
 		setViewportView(null);
-		if (columnsDialog != null)
+		if (columnsDialog != null) {
+			columnsDialog.setVisible(false);
 			columnsDialog.dispose();
+			columnsDialog = null;
+		}
 		dataTableManager.clear();
 		dataTableManager = null;
 		dataTable.dispose();

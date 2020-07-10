@@ -125,9 +125,6 @@ public class CenterOfMass extends PointMass {
 		}
 		massNames.clear();
 		initialized = true;
-
-		// notify here??
-
 	}
 
 

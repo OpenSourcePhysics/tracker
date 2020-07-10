@@ -567,7 +567,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (track == null)
 			return;
 		// BH 2020.07.09 
-		track.initialize(this);
 		userTracks = null;
 		TTrack.activeTracks.put(track.getID(), track);
 		// set trackerPanel property if not yet set
@@ -1399,9 +1398,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param magnification the desired magnification
 	 */
 	public void setMagnification(double magnification) {
-		if (Double.isNaN(magnification))
-			return;
-		if (magnification == 0)
+		if (magnification == 0 || Double.isNaN(magnification))
 			return;
 		double prevZoom = getMagnification();
 		Dimension prevSize = getPreferredSize();
@@ -1413,7 +1410,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			prevSize.width = p2.x - p1.x;
 			prevSize.height = p2.y - p1.y;
 		}
-		MainTView view = getTFrame() == null ? null : getTFrame().getMainView(this);
 		Dimension d;
 		if (magnification < 0) {
 			d = new Dimension(1, 1);
@@ -1430,11 +1426,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		setPreferredSize(d);
 		firePropertyChange(PROPERTY_TRACKERPANEL_MAGNIFICATION, prevZoom, getMagnification());
 		// scroll and revalidate
+		MainTView view = (getTFrame() == null ? null : getTFrame().getMainView(this));
 		if (view != null) {
-			eraseAll();
 			view.scrollPane.revalidate();
 			// this will fire a full panel repaint
-			view.scrollToZoomCenter(d, prevSize, p1);
+			view.scrollToZoomCenter(getPreferredSize(), prevSize, p1);
+			eraseAll();
 // should not be necessary			TFrame.repaintT(this);
 		}
 		zoomBox.hide();
@@ -3642,6 +3639,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				if (tracks != null) {
 					for (int i = 0, n = tracks.size(); i < n; i++) {
 						trackerPanel.addTrack((TTrack) tracks.get(i));
+					}
+					// wait until all tracks are added, then finalize the loading
+					// for those that need it -- CenterOfMass, DyanamicSystem, and VectorSum
+					for (int i = 0, n = tracks.size(); i < n; i++) {
+						((TTrack) tracks.get(i)).initialize(trackerPanel);
 					}
 				}
 

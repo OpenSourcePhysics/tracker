@@ -297,26 +297,33 @@ public class MainTView extends JPanel implements TView {
 	 *                 scrollPane viewport.
 	 */
 	public void scrollToZoomCenter(Dimension size, Dimension prevSize, Point panelLoc) {
+		if (zoomCenter.x == 0 && zoomCenter.y == 0)
+			return;
 		double xRatio = size.getWidth() / prevSize.getWidth();
 		double yRatio = size.getHeight() / prevSize.getHeight();
 		final Rectangle rect = scrollPane.getViewport().getViewRect();
 		if (prevSize.width < rect.width || prevSize.height < rect.height) {
 			rect.setLocation((int) (-xRatio * panelLoc.x), (int) (-yRatio * panelLoc.y));
 		}
-//    System.out.println("prev size "+prevSize);
-//    System.out.println("size "+size);
-//    System.out.println("initial rect "+rect);
-//    System.out.println("zoomcenter "+zoomCenter);
-//    System.out.println("zoom by "+xRatio+" to "+trackerPanel.getMagnification());
 		double x = rect.x + (xRatio - 1) * zoomCenter.getX();
 		double y = rect.y + (yRatio - 1) * zoomCenter.getY();
 		rect.setLocation((int) x, (int) y);
 		scrollRect.setBounds(rect);
+	    System.out.println("prev size "+prevSize);
+	    System.out.println("size "+size);
+	    System.out.println("initial rect "+rect);
+	    System.out.println("zoomcenter "+zoomCenter);
+	    System.out.println("zoom by "+xRatio+" to "+trackerPanel.getMagnification());
+	    System.out.println("zoom rect "+rect);
+	    System.out.println("zoom viewport "+ scrollPane.getViewport().getViewRect());
 		trackerPanel.scrollRectToVisible(scrollRect);
 		Runnable runner = new Runnable() {
 			@Override
 			public void run() {
 				Rectangle rect = scrollPane.getViewport().getViewRect();
+			    System.out.println("zoom rect1 "+rect);
+			    System.out.println("zoom scrollRect "+ scrollRect);
+		
 				if (!rect.equals(scrollRect)) {
 					trackerPanel.scrollRectToVisible(scrollRect);
 				}

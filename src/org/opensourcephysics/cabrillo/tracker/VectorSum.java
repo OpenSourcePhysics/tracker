@@ -33,6 +33,7 @@ import javax.swing.*;
 
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
+import org.opensourcephysics.cabrillo.tracker.Vector;
 import org.opensourcephysics.controls.*;
 
 /**
@@ -98,23 +99,27 @@ public class VectorSum extends Vector {
 	 */
 	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
-		// add vectors listed in vectorNames (this occurs on initial loading)
-		if (!vectorNames.isEmpty() && panel.getClass().equals(TrackerPanel.class)) {
-			TrackerPanel trackerPanel = (TrackerPanel) panel;
-			for (int i = 0, ni = vectorNames.size(); i < ni; i++) {
-				String name = vectorNames.get(i);
-				ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
-				for (int k = 0, n = list.size(); k < n; k++) {
-					Vector v = list.get(k);
-					if (v.getName().equals(name))
-						addVector(v);
-				}
-			}
-			vectorNames.clear();
-		}
+		if (!initialized)
+			initialize((TrackerPanel) panel);
 		super.draw(panel, _g);
 	}
 
+	@Override
+	public void initialize(TrackerPanel panel) {
+		if (initialized)
+			return;
+		for (int i = 0, ni = vectorNames.size(); i < ni; i++) {
+			String name = vectorNames.get(i);
+			ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
+			for (int k = 0, n = list.size(); k < n; k++) {
+				Vector v = list.get(k);
+				if (v.getName().equals(name))
+					addVector(v);
+			}
+		}
+		vectorNames.clear();
+		initialized = true;
+	}
   /**
    * Finds the interactive drawable object located at the specified
    * pixel position.
