@@ -585,10 +585,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				removeDrawable(getAxes()); // only one axes at a time
 			super.addDrawable(track);
 			moveToBack(track);
-			WorldGrid grid = getGrid();
-			if (grid != null) {
-				moveToBack(grid); // put grid behind axes
-			}
 			TMat mat = getMat();
 			if (mat != null) {
 				moveToBack(mat); // put mat behind grid
@@ -1198,18 +1194,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	public TMat getMat() {
 		ArrayList<TMat> list = getDrawables(TMat.class);
-		if (!list.isEmpty())
-			return list.get(0);
-		return null;
-	}
-
-	/**
-	 * Gets the grid.
-	 *
-	 * @return the first Grid in the drawable list
-	 */
-	public WorldGrid getGrid() {
-		ArrayList<WorldGrid> list = getDrawables(WorldGrid.class);
 		if (!list.isEmpty())
 			return list.get(0);
 		return null;

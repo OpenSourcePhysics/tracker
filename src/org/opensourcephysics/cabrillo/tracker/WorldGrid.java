@@ -29,12 +29,15 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Stroke;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Trackable;
 
@@ -79,6 +82,17 @@ public class WorldGrid implements Trackable {
 			return;
 		Graphics2D g2 = (Graphics2D) g;
 		TrackerPanel trackerPanel = (TrackerPanel) panel;
+		getMark(trackerPanel).draw(g2, false);
+	}
+	
+	protected Mark getMark(TrackerPanel trackerPanel) {
+		// get coords origin
+		int n = trackerPanel.getFrameNumber();
+		double xOrigin = trackerPanel.getCoords().getOriginX(n);
+		double yOrigin = trackerPanel.getCoords().getOriginY(n);
+		double xWorldOrigin = trackerPanel.getCoords().imageToWorldX(n, xOrigin, yOrigin);
+		double yWorldOrigin = trackerPanel.getCoords().imageToWorldY(n, xOrigin, yOrigin);
+		
 		// find world coordinates of corners of the visible trackerPanel view
 		Rectangle rect = trackerPanel.getVisibleRect();
 		for (int i = 0; i < 4; i++) {
@@ -150,11 +164,22 @@ public class WorldGrid implements Trackable {
 					continue;
 				ArrayList<Line2D> lines = isMajor ? dottedLines : dashedLines;
 				double x = i * delta;
+				
+				// lines start at origin so the dash/dot pattern move with the axes
+				// first line
 				Line2D line = new Line2D.Double();
 				lines.add(line);
-				// set line end points to world positions (x, yMin) and (x, yMax)
-				lineEnds[0].setWorldPosition(x, minMaxWorldValues[2], trackerPanel);
+				// set first line end points to world positions (x, yWorldOrigin) and (x, yMin)
+				lineEnds[0].setWorldPosition(x, yWorldOrigin, trackerPanel);
 				lineEnds[1].setWorldPosition(x, minMaxWorldValues[3], trackerPanel);
+				// set Line2D to screen coordinates
+				line.setLine(lineEnds[0].getScreenPosition(trackerPanel), lineEnds[1].getScreenPosition(trackerPanel));
+				
+				// second line
+				line = new Line2D.Double();
+				lines.add(line);
+				// set second end point to world position (x, yMax)
+				lineEnds[1].setWorldPosition(x, minMaxWorldValues[2], trackerPanel);
 				// set Line2D to screen coordinates
 				line.setLine(lineEnds[0].getScreenPosition(trackerPanel), lineEnds[1].getScreenPosition(trackerPanel));
 			}
@@ -168,37 +193,48 @@ public class WorldGrid implements Trackable {
 					continue;
 				ArrayList<Line2D> lines = isMajor ? dottedLines : dashedLines;
 				double y = i * delta;
+				
+				// lines start at origin so the dash/dot pattern move with the axes
+				// first line
 				Line2D line = new Line2D.Double();
 				lines.add(line);
-				// set line end points to world positions (xMin, y) and (xMax, y)
-				lineEnds[0].setWorldPosition(minMaxWorldValues[0], y, trackerPanel);
+				// set first line end points to world positions (x, yWorldOrigin) and (x, yMin)
+				lineEnds[0].setWorldPosition(xWorldOrigin, y, trackerPanel);
+				lineEnds[1].setWorldPosition(minMaxWorldValues[0], y, trackerPanel);
+				// set Line2D to screen coordinates
+				line.setLine(lineEnds[0].getScreenPosition(trackerPanel), lineEnds[1].getScreenPosition(trackerPanel));
+
+				// second line
+				line = new Line2D.Double();
+				lines.add(line);
+				// set second end point to world position (x, yMax)
 				lineEnds[1].setWorldPosition(minMaxWorldValues[1], y, trackerPanel);
 				// set Line2D to screen coordinates
 				line.setLine(lineEnds[0].getScreenPosition(trackerPanel), lineEnds[1].getScreenPosition(trackerPanel));
 			}
-		}
-
-		// prepare to draw lines
-		// save original color and stroke
-		Color color = g2.getColor();
-		Stroke stroke = g2.getStroke();
-
-		// set color and stroke for dashed lines
-		g2.setPaint(lineColor);
-		g2.setStroke(dashed);
-		for (int i = 0; i < dashedLines.size(); i++) {
-			g2.draw(dashedLines.get(i));
-		}
-
-		// set color and stroke for dotted lines
-		g2.setStroke(dotted);
-		for (int i = 0; i < dottedLines.size(); i++) {
-			g2.draw(dottedLines.get(i));
-		}
-
-		// restore original color and stroke
-		g2.setStroke(stroke);
-		g2.setColor(color);
+		}		
+		// assemble multishapes
+		Line2D[] dashLines = dashedLines.toArray(new Line2D[dashedLines.size()]);
+		Stroke[] dashStrokes = new Stroke[dashLines.length];
+		Arrays.fill(dashStrokes, dashed);
+		MultiShape dashMultiShape = new MultiShape(dashLines).andStroke(dashStrokes);
+		Line2D[] dotLines = dottedLines.toArray(new Line2D[dottedLines.size()]);
+		Stroke[] dotStrokes = new Stroke[dotLines.length];
+		Arrays.fill(dotStrokes, dotted);
+		MultiShape dotMultiShape = new MultiShape(dotLines).andStroke(dotStrokes);
+		// return the mark
+		return new Mark() {
+			@Override
+			public void draw(Graphics2D g, boolean highlighted) {
+				Graphics2D g2 = (Graphics2D) g.create();
+				g2.setPaint(lineColor);
+				if (OSPRuntime.setRenderingHints)
+					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				dashMultiShape.draw(g2);
+				dotMultiShape.draw(g2);
+				g2.dispose();
+			}
+		};
 	}
 
 	/**

@@ -465,9 +465,6 @@ public class CoordAxes extends TTrack {
 	@Override
 	protected void setTrackerPanel(TrackerPanel panel) {
 		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addDrawable(grid);
-		}
 	}
 
 	/**
