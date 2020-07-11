@@ -789,6 +789,9 @@ public class TableTrackView extends TrackView {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_UNITS:
 			dataTable.getTableHeader().repaint();
 			break;
+		case TTrack.PROPERTY_TTRACK_STEPS:
+			if (TTrack.HINT_STEPS_SELECTED == e.getOldValue())
+				break;
 		default:
 			super.propertyChange(e);
 			break;
@@ -2010,7 +2013,8 @@ public class TableTrackView extends TrackView {
 		@Override
 		public void refreshTable(int mode) {
 			super.refreshTable(mode, true);
-			refreshToolbar();
+			if (mode == DataTable.MODE_TRACK_STEPS)
+				refreshToolbar();
 		}
 
 		@Override

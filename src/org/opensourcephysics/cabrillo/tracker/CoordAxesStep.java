@@ -248,10 +248,14 @@ public class CoordAxesStep extends Step {
 			}
 			
 			// create mark to draw fillShapes
-			final Color color = footprint.getColor();
-			final MultiShape shape = selectedShape == null? new MultiShape(axesShape).andFill(true)
+			Color color = footprint.getColor();
+			MultiShape shape = selectedShape == null? new MultiShape(axesShape).andFill(true)
 					: new MultiShape(axesShape, selectedShape).andFill(true).andStroke(null, selectionStroke);
 			
+			// create mark to draw grid
+			CoordAxes axes = (CoordAxes)track;
+			Mark gridMark = axes.grid.getMark(trackerPanel);
+
 			mark = new Mark() {
 				@Override
 				public void draw(Graphics2D g, boolean highlighted) {
@@ -259,6 +263,10 @@ public class CoordAxesStep extends Step {
 					g2.setPaint(color);
 					if (OSPRuntime.setRenderingHints)
 						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+					// draw the grid first so axes are on top
+					if (axes.gridVisible) {
+						gridMark.draw(g2, false);
+					}
 					shape.draw(g2);
 					g2.dispose();
 				}

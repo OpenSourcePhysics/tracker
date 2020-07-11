@@ -248,7 +248,7 @@ public MultiShape getShape(Point[] points) {
     	}
     }
     hitShapes[0] = transformedShape;
-    return stroke != null ? new MultiShape(transformedShape)
+    return stroke != null ? new MultiShape(transformedShape).andStroke(stroke)
     		: new MultiShape(transformedShape).andFill(true);
   }
 
