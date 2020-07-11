@@ -154,6 +154,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 					maximize();
 				} else
 					restore();
+				maximizeButton.setSelected(maximized);
 				maximizeButton.setToolTipText(maximized ? TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
 				TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 			}
