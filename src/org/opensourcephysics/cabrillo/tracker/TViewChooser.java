@@ -430,13 +430,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		if (maximized)
 			return;
 		TFrame frame = trackerPanel.getTFrame();
-		MainTView mainView = frame.getMainView(trackerPanel);
-		boolean mainViewHasPlayer = false;
-		for (Component next : mainView.getComponents()) {
-			mainViewHasPlayer = mainViewHasPlayer || next == mainView.getPlayerBar();
-		}
-		if (mainViewHasPlayer) {
-			JToolBar toolbar = mainView.getPlayerBar();
+		JToolBar toolbar = frame.getMainView(trackerPanel).getPlayerBar();
+		if (toolbar.getTopLevelAncestor()==frame) {
 			add(toolbar, BorderLayout.SOUTH);
 			toolbar.setFloatable(false);
 		}
@@ -450,24 +445,21 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	public void restore() {
 		TFrame frame = trackerPanel.getTFrame();
 		MainTView mainView = frame.getMainView(trackerPanel);
-		boolean thisHasPlayer = false;
-		for (Component next : getComponents()) {
-			thisHasPlayer = thisHasPlayer || next == mainView.getPlayerBar();
-		}
-		if (thisHasPlayer) {
-			JToolBar player = mainView.getPlayerBar();
+		JToolBar player = mainView.getPlayerBar();
+		if (player.getParent() == this) {
 			mainView.add(player, BorderLayout.SOUTH);
 			player.setFloatable(true);
 		}
 		frame.restoreChoosers(trackerPanel);
 		maximized = false;
 	}
-
+	
 	/**
 	 * Refreshes the toolbar
 	 */
 	protected void refreshToolbar() {
 		// BH THIS IS A PROBLEM
+		// DB 7/11/20 I added checks to call this only when required
 		toolbar.removeAll();
 		toolbar.add(chooserButton);
 		if (selectedView != null) {
