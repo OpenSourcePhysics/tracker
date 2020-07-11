@@ -76,6 +76,7 @@ import org.opensourcephysics.display.HighlightableDataset;
 import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.Measurable;
 import org.opensourcephysics.display.MeasuredImage;
+import org.opensourcephysics.display.MessageDrawable;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.PlottingPanel;
 import org.opensourcephysics.display.TeXParser;
@@ -753,16 +754,15 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * multiple plots.
 	 */
 	@Override
-	protected Rectangle findViewRect() {
-		Rectangle rect = null;
+	public Rectangle findViewRect() {
+		Rectangle rect = super.findViewRect();
 		JViewport c = GUIUtils.getParentViewport(this); 
 		if (c != null) {
-			// gets rect in the PlotTrackView.mainPanel space
-			rect = ((JViewport) c).getViewRect();
 			// transform rect to this plotting panel space
 			Rectangle bounds = getBounds();
 			rect = rect.intersection(bounds);
 			rect.y -= bounds.y;
+			// TODO check for asJLabels
 		}
 		return rect;
 	}
@@ -1039,7 +1039,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			TTrack track = TTrack.getTrack(trackID);
 			msg = coordStringBuilder.getCoordinateString(track.trackerPanel, x, y);
 		}
-		setMessage(msg, DrawingPanel.BOTTOM_LEFT);
+		setMessage(msg, MessageDrawable.BOTTOM_LEFT);
 	}
 
 	/**
@@ -1496,6 +1496,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				setToolTipText(TrackerRes.getString("TrackPlottingPanel.RightDrag.Hint")); //$NON-NLS-1$
 			else
 				setToolTipText(null);
+			if (messagesAsJLabels)
+				displayCoordinates(e);
+
 //			TFrame.repaintT(TrackPlottingPanel.this);
 		}
 
@@ -1541,10 +1544,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					&& trackerPanel.isEnabled("data.tool")) { //$NON-NLS-1$ // double click
 				showDataTool();
 			}
-			if (showCoordinates) {
-				String s = coordinateStrBuilder.getCoordinateString(TrackPlottingPanel.this, e);
-				messages.setMessage(s, 0); // BL message box
-			}
+			displayCoordinates(e);
 		}
 
 		@Override
@@ -1557,7 +1557,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			if (getInteractive() == null) {
 				if (region != CartesianInteractive.INSIDE) {
 					setMouseCursor(Cursor.getDefaultCursor());
-					setMessage(null, DrawingPanel.BOTTOM_LEFT);
+					setMessage(null, MessageDrawable.BOTTOM_LEFT);
 				} else
 					setMouseCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 			}
@@ -1572,7 +1572,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			if (!(track instanceof LineProfile) && getInteractive() != null)
 				setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			if (getCursor() == Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)) {
-	      messages.setMessage(null, 0);  //BL message box
+	      messages.setMessage(null, MessageDrawable.BOTTOM_LEFT);  //BL message box
 			}
 		}
 
@@ -1607,6 +1607,13 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	public static XML.ObjectLoader getLoader() {
 		return new Loader();
+	}
+
+	public void displayCoordinates(MouseEvent e) {
+		if (showCoordinates) {
+			String s = coordinateStrBuilder.getCoordinateString(TrackPlottingPanel.this, e);
+			messages.setMessage(s, MessageDrawable.BOTTOM_LEFT); // BL message box
+		}
 	}
 
 	/**

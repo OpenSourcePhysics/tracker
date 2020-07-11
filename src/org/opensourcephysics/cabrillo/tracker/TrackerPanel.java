@@ -91,6 +91,7 @@ import org.opensourcephysics.display.DisplayRes;
 import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.MessageDrawable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.AsyncVideoI;
 import org.opensourcephysics.media.core.ClipControl;
@@ -2383,7 +2384,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (selectedPoint != null)
 			selectedPoint.showCoordinates(this);
 		else
-			setMessage("", DrawingPanel.BOTTOM_LEFT); //$NON-NLS-1$
+			setMessage("", MessageDrawable.BOTTOM_LEFT); //$NON-NLS-1$
 		if (selectedStep == null)
 			TFrame.repaintT(this);
 	}
