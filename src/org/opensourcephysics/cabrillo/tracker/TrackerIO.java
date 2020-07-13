@@ -791,7 +791,7 @@ public class TrackerIO extends VideoIO {
 				addToLibrary(frame, trzPath);
 			}
 
-		} : null);
+		} : null); //BH Q: Could be null_runable ? better: add whenDone to this method?
 		
 		// open in separate background thread if flagged
 		run("tabOpener", new Runnable() {
@@ -1940,7 +1940,7 @@ public class TrackerIO extends VideoIO {
 			frame.showTrackControl(trackerPanel);
 			frame.showNotes(trackerPanel);
 			trackerPanel.setIgnoreRepaint(false);
-			frame.refresh();
+//			frame.refresh();
 			if (control.failedToRead()) {
 				JOptionPane.showMessageDialog(trackerPanel.getTFrame(), "\"" + XML.getName(path) + "\" " + //$NON-NLS-1$ //$NON-NLS-2$
 						TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Message"), //$NON-NLS-1$
@@ -2181,6 +2181,7 @@ public class TrackerIO extends VideoIO {
 			if (type == TYPE_PANEL || type == TYPE_VIDEO) {
 				frame.clearHoldPainting();
 				trackerPanel.notifyLoadingComplete();
+				frame.refresh();
 //				TFrame.repaintT(trackerPanel);
 
 			}
