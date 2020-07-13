@@ -791,7 +791,7 @@ public class TrackerIO extends VideoIO {
 				addToLibrary(frame, trzPath);
 			}
 
-		} : null);
+		} : null); //BH Q: Could be null_runable ? better: add whenDone to this method?
 		
 		// open in separate background thread if flagged
 		run("tabOpener", new Runnable() {

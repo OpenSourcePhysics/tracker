@@ -3457,10 +3457,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		 */
 		@Override
 		public void mouseMoved(MouseEvent e) {
-			if (showCoordinates && getSelectedPoint() == null) {
-				String s = coordinateStrBuilder.getCoordinateString(TrackerPanel.this, e);
-				messages.setMessage(s, 0); // BL message box
-			}
 			super.mouseMoved(e);
 		}
 

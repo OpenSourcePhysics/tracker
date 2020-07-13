@@ -70,7 +70,6 @@ import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;
 import org.opensourcephysics.display.Drawable;
-import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.HighlightableDataset;
 import org.opensourcephysics.display.Interactive;
@@ -1496,10 +1495,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				setToolTipText(TrackerRes.getString("TrackPlottingPanel.RightDrag.Hint")); //$NON-NLS-1$
 			else
 				setToolTipText(null);
-			if (messagesAsJLabels)
-				displayCoordinates(e);
-
-//			TFrame.repaintT(TrackPlottingPanel.this);
+			displayCoordinates(e);
 		}
 
 		@Override
@@ -1607,13 +1603,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	public static XML.ObjectLoader getLoader() {
 		return new Loader();
-	}
-
-	public void displayCoordinates(MouseEvent e) {
-		if (showCoordinates) {
-			String s = coordinateStrBuilder.getCoordinateString(TrackPlottingPanel.this, e);
-			messages.setMessage(s, MessageDrawable.BOTTOM_LEFT); // BL message box
-		}
 	}
 
 	/**
