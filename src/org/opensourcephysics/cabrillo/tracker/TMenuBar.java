@@ -1598,7 +1598,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			{"480x360", "640x480", "960x720", "1280x960", "1600x1200", "2400x1800"};
 	
 	protected void rebuildEditMatSizeMenu() {
-		OSPLog.debug("pig rebuild matsizes");
 
 		if (matSizeAction == null) {
 			matSizeAction = new AbstractAction() {

@@ -349,13 +349,15 @@ public class CoordAxes extends TTrack {
 	 * @param visible <code>true</code> to show the grid
 	 */
 	public void setGridVisible(boolean visible) {
-		if (gridVisible == visible || trackerPanel == null)
+		if (gridVisible == visible)
 			return;
 		gridVisible = visible;
 		grid.setVisible(gridVisible);
 		gridCheckbox.setSelected(gridVisible);
-		for (int i = 0; i < trackerPanel.panelAndWorldViews.size(); i++) {
-			trackerPanel.panelAndWorldViews.get(i).repaint();
+		if (trackerPanel != null) {
+			for (int i = 0; i < trackerPanel.panelAndWorldViews.size(); i++) {
+				trackerPanel.panelAndWorldViews.get(i).repaint();
+			}
 		}
 	}
 
