@@ -586,6 +586,8 @@ public class CoordAxes extends TTrack {
 		int n = trackerPanel.getFrameNumber();
 		ImageCoordSystem coords = trackerPanel.getCoords();
 		originLabel.setText(TrackerRes.getString("CoordAxes.Origin.Label")); //$NON-NLS-1$
+		xLabel.setText(dataVariables[0]);
+		yLabel.setText(dataVariables[1]);
 		xField.setToolTipText(TrackerRes.getString("CoordAxes.Origin.Field.Tooltip")); //$NON-NLS-1$
 		yField.setToolTipText(TrackerRes.getString("CoordAxes.Origin.Field.Tooltip")); //$NON-NLS-1$
 		gridCheckbox.setText(TrackerRes.getString("CoordAxes.Checkbox.Grid")); //$NON-NLS-1$
