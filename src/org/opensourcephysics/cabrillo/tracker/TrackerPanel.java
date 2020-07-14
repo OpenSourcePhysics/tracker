@@ -250,6 +250,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	public TrackerPanel(Video video) {
 		super(video);
+		displayCoordsOnMouseMoved = true;
+		
 		id = "TP" + ++ids;
 		zoomBox.setShowUndraggedBox(false);
 		// remove the interactive panel mouse controller
