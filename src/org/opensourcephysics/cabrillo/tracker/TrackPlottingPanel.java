@@ -171,6 +171,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	public TrackPlottingPanel(TTrack track, DatasetManager data) {
 		super(" ", " ", " "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		displayCoordsOnMouseMoved = true;
 		trackerPanel = track.trackerPanel;
 		trackID = track.getID();
 		this.data = data;
@@ -1598,13 +1599,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		}
 	}
 
-	public void displayCoordinates(MouseEvent e) {
-//		if (showCoordinates) {
-//			String s = coordinateStrBuilder.getCoordinateString(TrackPlottingPanel.this, e);
-//			messages.setMessage(s, MessageDrawable.BOTTOM_LEFT); // BL message box
-//		}
-	}	
-	
 	/**
 	 * Returns an XML.ObjectLoader to save and load object data.
 	 *
