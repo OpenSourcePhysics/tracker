@@ -351,7 +351,7 @@ public class RGBRegion extends TTrack {
    */
   @Override
 public void draw(DrawingPanel panel, Graphics _g) {
-  	if (isMarking && !(trackerPanel.getSelectedPoint() instanceof RGBStep.Position))
+  	if (isMarking() && !(trackerPanel.getSelectedPoint() instanceof RGBStep.Position))
   		return;
   	super.draw(panel, _g);
   }

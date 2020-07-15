@@ -351,9 +351,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
 					new Locale("pl"), // polish //$NON-NLS-1$
 					new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$
-					new Locale("pt", "PT"), //$NON-NLS-1$
+					new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$
 					// BH missing PORTUGUESE?
-//			OSPRuntime.PORTUGUESE, // Portugal portuguese
+//			OSPRuntime.PORTUGUESE,
 					new Locale("sk"), // slovak //$NON-NLS-1$
 					new Locale("sl"), // slovenian //$NON-NLS-1$
 					new Locale("sv"), // swedish //$NON-NLS-1$

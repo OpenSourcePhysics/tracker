@@ -450,6 +450,23 @@ protected Mark getMark(TrackerPanel trackerPanel) {
   }
 
   /**
+   * Sets the arm length of this tape.
+   *
+   * @param end the arm end
+   * @param length the desired length
+   */
+  public void setArmLength(TPoint end, double length) {
+    if (protractor.isLocked() || protractor.trackerPanel == null) return;
+    XMLControl state = new XMLControlElement(protractor);
+    // move end to new distance from vertex
+    double dx = length*vertex.cos(end);
+    double dy = -length*vertex.sin(end);
+    end.setXY(vertex.x+dx, vertex.y+dy);
+    repaint();
+		Undo.postTrackEdit(protractor, state);
+  }
+
+  /**
    * Clones this Step.
    *
    * @return a clone of this step
@@ -666,6 +683,7 @@ public String toString() {
      */
     @Override
 	public void setXY(double x, double y) {
+    	OSPLog.debug("pig setXY "+x+", "+y);
       if (getTrack().locked) return;
       // keep distance from vertex >= 2*R
       if (this!=vertex) {
@@ -689,8 +707,8 @@ public String toString() {
       	setLocation(x, y);
       	protractor.keyFrames.add(n);
     	}      
-     repaint();
-      	protractor.invalidateData(protractor);
+      repaint();
+      protractor.invalidateData(protractor);
     }
 
     /**
@@ -700,9 +718,26 @@ public String toString() {
      * @return the containing ProtractorStep frame number
      */
     @Override
-	public int getFrameNumber(VideoPanel vidPanel) {
+    public int getFrameNumber(VideoPanel vidPanel) {
       return n();
     }
+    
+		/**
+		 * Sets the adjusting flag.
+		 *
+		 * @param adjusting true if being dragged
+		 */
+		@Override
+		public void setAdjusting(boolean adjusting) {
+			if (!adjusting && !isAdjusting())
+				return;
+			super.setAdjusting(adjusting);
+			if (!adjusting) {
+				protractor.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n())); // $NON-NLS-1$
+			}
+		}
+
+
     
 //    public void setLocation(double x, double y) {
 //    	super.setLocation(x, y);

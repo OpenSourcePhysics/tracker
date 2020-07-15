@@ -2944,6 +2944,15 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	/**
+	 * Determines if this track is marking.
+	 * 
+	 * @param marking true when marking
+	 */
+	protected boolean isMarking() {
+		return isMarking;
+	}
+
+	/**
 	 * Gets the cursor used for marking new steps.
 	 * 
 	 * @param e the input event triggering this call (may be null)
