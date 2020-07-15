@@ -1125,6 +1125,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			xName = name;
 			break;
 		default:
+			xName = name;
 			if (xIndex != n) {
 				xIndex = n;
 				if (plotTrackView != null)
@@ -1157,6 +1158,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			yName = name;
 			break;
 		default:
+			yName = name;
 			if (yIndex != n) {
 				yIndex = n;
 				super.setPreferredMinMaxY(Double.NaN, Double.NaN);
