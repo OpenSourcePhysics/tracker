@@ -650,7 +650,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Removes a tracker panel tab.
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @param tabPanel     the TTabPanel
 	 */
 	public void removeTab(TrackerPanel trackerPanel) {
 		int tab = getTab(trackerPanel);
@@ -1028,10 +1027,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		// customized views only
 		for (int i = 0; i < choosers.length; i++) {
-			TView[] views = choosers[i].getTViews();
+			TView[] views = choosers[i].getTViews();			
 			for (int j = 0; j < views.length; j++) {
 				TView next = views[i];
-				if (next.isCustomState()) {
+				if (next != null && next.isCustomState()) {
 					if (array[i] == null)
 						array[i] = new TView[4];
 					array[i][j] = next;
