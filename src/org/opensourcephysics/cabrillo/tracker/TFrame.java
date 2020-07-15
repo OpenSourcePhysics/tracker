@@ -650,7 +650,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Removes a tracker panel tab.
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @param tabPanel     the TTabPanel
 	 */
 	public void removeTab(TrackerPanel trackerPanel) {
 		int tab = getTab(trackerPanel);
