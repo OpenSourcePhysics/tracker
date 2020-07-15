@@ -96,7 +96,7 @@ public class TapeMeasure extends TTrack {
 	protected boolean stickMode;
 	protected boolean isStepChangingScale;
 	protected boolean notYetShown = true;
-	protected boolean initialCalibration;
+	protected boolean isAutomarking;
 	protected JLabel end1Label, end2Label, lengthLabel;
 	protected Footprint[] tapeFootprints, stickFootprints;
 	protected TreeSet<Integer> lengthKeyFrames = new TreeSet<Integer>(); // applies to sticks only
@@ -249,6 +249,10 @@ public class TapeMeasure extends TTrack {
 					}
 					step.setTapeLength(magField.getValue());
 					invalidateData(null);
+          if (isFixedPosition())
+          	firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+          else
+          	firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 				}
 			}
 		};
@@ -273,6 +277,10 @@ public class TapeMeasure extends TTrack {
 					step = getKeyStep(step);
 					step.setTapeAngle(angleField.getValue());
 					invalidateData(null);
+          if (isFixedPosition())
+          	firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+          else
+          	firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 					if (!isReadOnly())
 						trackerPanel.getAxes().setVisible(true);
 				}
@@ -378,6 +386,9 @@ public class TapeMeasure extends TTrack {
 	 * @param readOnly <code>true</code> to prevent editing
 	 */
 	public void setReadOnly(boolean readOnly) {
+		if (!readOnly && getStep(0) == null) {
+			isAutomarking = true;
+		}
 		this.readOnly = readOnly;
 		for (Footprint footprint : getFootprints()) {
 			if (footprint instanceof DoubleArrowFootprint) {
@@ -405,6 +416,9 @@ public class TapeMeasure extends TTrack {
 	 *              mode
 	 */
 	public void setStickMode(boolean stick) {
+		if (stick &&  getStep(0) == null) {
+			isAutomarking = true;
+		}
 		stickMode = stick;
 		Color color = getColor();
 		// set footprints and update world lengths
@@ -433,6 +447,11 @@ public class TapeMeasure extends TTrack {
 	 */
 	public boolean isStickMode() {
 		return stickMode;
+	}
+	
+	@Override
+	public boolean isMarkByDefault() {
+		return isAutomarking || super.isMarkByDefault();
 	}
 
 	/**
@@ -550,10 +569,9 @@ public class TapeMeasure extends TTrack {
 			steps = new StepArray(step); // autofill
 			step = (TapeStep) getStep(n); // must do this since line above changes n to 0
 		} else if (step.worldLength == 0) {
-			initialCalibration = true;
 			// always mark step 0 when initializing
 			step = (TapeStep) getStep(0);
-			// set location of end2 and select readout for entering length
+			// set location of end2
 			step.getEnd2().setLocation(x, y);
 			step.worldLength = step.getTapeLength(true);
 			EventQueue.invokeLater(new Runnable() {
@@ -562,15 +580,17 @@ public class TapeMeasure extends TTrack {
 					trackerPanel.setSelectedPoint(null);
 				}
 			});
-			final TapeStep theStep = step;
-			Timer timer = new Timer(400, new AbstractAction() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					setEditing(true, theStep);
-				}
-			});
-			timer.setRepeats(false);
-			timer.start();
+			isAutomarking = false;
+			
+//			final TapeStep theStep = step;
+//			Timer timer = new Timer(400, new AbstractAction() {
+//				@Override
+//				public void actionPerformed(ActionEvent e) {
+//					setEditing(true, theStep);
+//				}
+//			});
+//			timer.setRepeats(false);
+//			timer.start();
 		} else {
 			TPoint[] pts = step.getPoints();
 			TPoint p = trackerPanel == null ? null : trackerPanel.getSelectedPoint();
@@ -902,18 +922,18 @@ public class TapeMeasure extends TTrack {
 			end2Label.setText(s + " 2: " + unmarked); //$NON-NLS-1$
 			end2Label.setForeground(Color.red.darker());
 			list.add(end2Label);
-		} else if (initialCalibration) {
-			end1Label.setText(s + " 1: " + TrackerRes.getString("TapeMeasure.Label.Marked")); //$NON-NLS-1$ //$NON-NLS-2$
-			end1Label.setForeground(Color.green.darker());
-			list.add(end1Label);
-			list.add(magSeparator);
-			end2Label.setText(s + " 2: " + TrackerRes.getString("TapeMeasure.Label.Marked")); //$NON-NLS-1$ //$NON-NLS-2$
-			end2Label.setForeground(Color.green.darker());
-			list.add(end2Label);
-			list.add(tSeparator);
-			lengthLabel.setText(TrackerRes.getString("TapeMeasure.Label.EnterLength.Text")); //$NON-NLS-1$
-			lengthLabel.setForeground(Color.red.darker());
-			list.add(lengthLabel);
+//		} else if (initialCalibration) {
+//			end1Label.setText(s + " 1: " + TrackerRes.getString("TapeMeasure.Label.Marked")); //$NON-NLS-1$ //$NON-NLS-2$
+//			end1Label.setForeground(Color.green.darker());
+//			list.add(end1Label);
+//			list.add(magSeparator);
+//			end2Label.setText(s + " 2: " + TrackerRes.getString("TapeMeasure.Label.Marked")); //$NON-NLS-1$ //$NON-NLS-2$
+//			end2Label.setForeground(Color.green.darker());
+//			list.add(end2Label);
+//			list.add(tSeparator);
+//			lengthLabel.setText(TrackerRes.getString("TapeMeasure.Label.EnterLength.Text")); //$NON-NLS-1$
+//			lengthLabel.setForeground(Color.red.darker());
+//			list.add(lengthLabel);
 		} else {
 			list.add(stepLabel);
 			list.add(stepValueLabel);
@@ -1295,7 +1315,6 @@ public class TapeMeasure extends TTrack {
 					invalidateData(null);
 					trackerPanel.revalidate();
 					TFrame.repaintT(trackerPanel);
-					initialCalibration = false;
 					TTrackBar.getTrackbar(trackerPanel).refresh();
 				}
 			}

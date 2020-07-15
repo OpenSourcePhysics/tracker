@@ -172,7 +172,7 @@ public class Protractor extends TTrack {
         }
       }
       @Override
-	public void mouseClicked(MouseEvent e) {
+      public void mouseClicked(MouseEvent e) {
         if (isLocked()) return;
         int n = trackerPanel.getFrameNumber();
         ProtractorStep step = (ProtractorStep)getStep(n);
@@ -199,21 +199,21 @@ public class Protractor extends TTrack {
     fixedItem = new JCheckBoxMenuItem(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
     fixedItem.addItemListener(new ItemListener() {
       @Override
-	public void itemStateChanged(ItemEvent e) {
+      public void itemStateChanged(ItemEvent e) {
         setFixed(fixedItem.isSelected());
       }
     });
   	attachmentItem = new JMenuItem(TrackerRes.getString("MeasuringTool.MenuItem.Attach")); //$NON-NLS-1$
   	attachmentItem.addActionListener(new ActionListener() {
       @Override
-	public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {
       	AttachmentDialog control = trackerPanel.getAttachmentDialog(Protractor.this);
       	control.setVisible(true);
       }
     });
     final FocusListener arcFocusListener = new FocusAdapter() {
       @Override
-	public void focusLost(FocusEvent e) {
+      public void focusLost(FocusEvent e) {
       	if (angleField.getBackground() == Color.yellow) {
 	        int n = trackerPanel.getFrameNumber();
 	        ProtractorStep step = (ProtractorStep)getStep(n);
@@ -222,20 +222,64 @@ public class Protractor extends TTrack {
 	        }
 	        step = getKeyStep(step);
 	        double theta = angleField.getValue();
-	        step.setProtractorAngle(theta);
-          dataValid = false;
-  	    	firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
+	        if (theta != step.getProtractorAngle()) {
+		        step.setProtractorAngle(theta);
+	          dataValid = false;
+	          if (isFixed())
+	          	firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+	          else
+	          	firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
+	  	    	trackerPanel.repaint();
+	        }
       	}
       }
     };
     angleField.addFocusListener(arcFocusListener);
     angleField.addActionListener(new ActionListener() {
       @Override
-	public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {
       	arcFocusListener.focusLost(null);
       	angleField.requestFocusInWindow();
       }
     });
+    
+    final FocusListener lengthFocusListener = new FocusAdapter() {
+      @Override
+      public void focusLost(FocusEvent e) {
+      	NumberField field = (NumberField)e.getSource();
+      	OSPLog.debug("pig focus lost ");
+        int n = trackerPanel.getFrameNumber();
+        ProtractorStep step = (ProtractorStep)getStep(n);
+        if (!isFixed()) {
+        	keyFrames.add(n);
+        }
+        step = getKeyStep(step);
+        double length = field.getValue();
+        TPoint end = field == xField? step.end1: step.end2;
+        if (length != step.getArmLength(end)) {
+        	step.setArmLength(end, length);
+          dataValid = false;
+          if (isFixed())
+          	firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+          else
+          	firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
+  	    	trackerPanel.repaint();
+        }
+      }
+    };
+    ActionListener lengthAction = new ActionListener() {
+      @Override
+      public void actionPerformed(ActionEvent e) {
+      	NumberField field = (NumberField)e.getSource();
+      	lengthFocusListener.focusLost(new FocusEvent(field, FocusEvent.FOCUS_LOST));
+      	field.requestFocusInWindow();
+      }
+    };
+    xField.addFocusListener(lengthFocusListener);
+    xField.addActionListener(lengthAction);
+    yField.addFocusListener(lengthFocusListener);
+    yField.addActionListener(lengthAction);
+
   }
 
   /**

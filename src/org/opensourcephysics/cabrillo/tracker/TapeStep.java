@@ -231,7 +231,7 @@ public class TapeStep extends Step {
 	public TPoint getDefaultPoint() {
 		if (worldLength == 0)
 			return handle;
-		if (tape.initialCalibration)
+		if (tape.isAutomarking)
 			return points[1];
 		TPoint p = tape.trackerPanel.getSelectedPoint();
 		if (p == points[0])
@@ -787,14 +787,21 @@ public class TapeStep extends Step {
 		 */
 		@Override
 		public void setAdjusting(boolean adjusting) {
+			boolean wasAdjusting = isAdjusting();
 			if (tape.isStickMode()) {
-				boolean wasAdjusting = isAdjusting();
 				super.setAdjusting(adjusting);
 				if (wasAdjusting && !adjusting) {
 					setXY(lastX, lastY);
 				}
 			} else
 				super.setAdjusting(adjusting);
+			
+			if (wasAdjusting && !adjusting) {
+	      if (tape.isFixedPosition())
+	      	tape.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+	      else
+	      	tape.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
+			}
 		}
 
 		@Override
