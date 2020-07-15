@@ -3038,7 +3038,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					((PointMass) track).updateDerivatives(startFrame, stepCount);
 
 				}
-				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
+				track.notifySteps();
 			}
 		}
 		selectedSteps.clear();
@@ -4204,7 +4204,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			setSelectedPoint(null);
 		}
 		for (TTrack track : changedTracks) {
-			track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
+			track.notifySteps();
 		}
 	}
 

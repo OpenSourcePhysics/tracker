@@ -397,10 +397,10 @@ public class DynamicSystem extends DynamicParticlePolar {
 			modelBuilder.refreshDropdown(null);
 		if (n == 0 && steps != noSteps) {
 			steps = noSteps;
-			firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+			notifySteps();
 		} else if (n > 0 && steps != realSteps) {
 			steps = realSteps;
-			firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+			notifySteps();
 		}
 		setLastValidFrame(-1);
 		repaint();

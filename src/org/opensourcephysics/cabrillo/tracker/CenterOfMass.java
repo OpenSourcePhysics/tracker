@@ -335,7 +335,7 @@ public void propertyChange(PropertyChangeEvent e) {
 		for (int n = 0; n < length; n++)
 			update(n, false);
 		updateDerivatives();
-		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+		notifySteps();
 		repaint();
 		// update inspector, if visible
 		if (inspector != null && inspector.isVisible()) {

@@ -111,7 +111,7 @@ public class AnalyticParticle extends ParticleModel {
 				}
 				traceX = new double[0];
 				traceY = new double[0];
-				firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+				notifySteps();
 				return;
 			}
 			// find first frame included in both model and clip

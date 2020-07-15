@@ -669,7 +669,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			}
 		} else if (addTabIfEmpty) {
 			// add an empty tab if requested
-			TrackerPanel trackerPanel = new TrackerPanel();
+			TrackerPanel trackerPanel = frame.getCleanTrackerPanel();
 			frame.addTab(trackerPanel, new Runnable() {
 
 				@Override

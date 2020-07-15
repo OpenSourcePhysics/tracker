@@ -1762,7 +1762,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (reset) {
 			setLastValidFrame(-1);
 			refreshSteps("ParticleDataTrack");
-			firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+			notifySteps();
 		}
 		invalidWarningShown = true;
 		repaint();

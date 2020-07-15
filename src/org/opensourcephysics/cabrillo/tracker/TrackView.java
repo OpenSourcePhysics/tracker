@@ -141,29 +141,32 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
+		int stepNumber = Integer.MIN_VALUE;
+		int mode = 0;
 		String name = e.getPropertyName();
 		switch (name) {
 		case TTrack.PROPERTY_TTRACK_STEP:
-			if (e.getOldValue() == TTrack.HINT_STEP_ADDED_OR_REMOVED)
-				refresh((Integer) e.getNewValue(), DataTable.MODE_TRACK_STEP);
-			else
-				refresh((Integer) e.getNewValue(), DataTable.MODE_VALUES);
+			stepNumber = (Integer) e.getNewValue();
+			mode = (e.getOldValue() == TTrack.HINT_STEP_ADDED_OR_REMOVED 
+					? DataTable.MODE_TRACK_STEP : DataTable.MODE_VALUES);
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
 			Step step = trackerPanel.getSelectedStep();
 			TTrack track = getTrack();
 			if (step != null && trackerPanel.getSelectedTrack() == track) {
-				refresh(step.getFrameNumber(), DataTable.MODE_TRACK_SELECTEDPOINT);
+				stepNumber = step.getFrameNumber();
+				mode = DataTable.MODE_TRACK_SELECTEDPOINT;
 				break;
 			}
 			// fall through //
 		case TTrack.PROPERTY_TTRACK_STEPS:
-			refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STEPS);
+			mode = DataTable.MODE_TRACK_STEPS;
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_LOADED:
-			refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_LOADED);
+			mode = DataTable.MODE_TRACK_LOADED;
 			break;
 		}
+		refresh(stepNumber == Integer.MIN_VALUE ? trackerPanel.getFrameNumber() : stepNumber, mode);
 	}
 
 	protected boolean isRefreshEnabled() {

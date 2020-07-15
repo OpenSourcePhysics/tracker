@@ -226,7 +226,7 @@ public class Protractor extends TTrack {
 		        step.setProtractorAngle(theta);
 	          dataValid = false;
 	          if (isFixed())
-	          	firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+	        	  notifySteps();
 	          else
 	          	firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 	  	    	trackerPanel.repaint();
@@ -260,7 +260,7 @@ public class Protractor extends TTrack {
         	step.setArmLength(end, length);
           dataValid = false;
           if (isFixed())
-          	firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+        	  notifySteps();
           else
           	firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
   	    	trackerPanel.repaint();

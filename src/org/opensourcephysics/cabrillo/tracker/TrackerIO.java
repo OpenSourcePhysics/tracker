@@ -707,7 +707,7 @@ public class TrackerIO extends VideoIO {
 					if (file == null) {
 						OSPLog.finer("no file to open"); //$NON-NLS-1$
 					} else {
-						if (!frame.haveVideo()) {
+						if (!frame.haveContent()) {
 							frame.removeTabNow(0);
 						}
 						openTabFileAsyncFinally(frame, file, null);
@@ -735,25 +735,6 @@ public class TrackerIO extends VideoIO {
 		});
 	}
 	
-	/**
-	 * Returns a clean TrackerPanel.
-	 * Uses the blank untitled TrackerPanel in frame tab 0 if it is unchanged
-	 *
-	 * @param frame
-	 * @return a clean TrackerPanel.
-	 */
-	static private TrackerPanel getCleanTrackerPanel(TFrame frame) {
-		if (frame.getTabCount() > 0) {
-			TrackerPanel existingPanel = frame.getTrackerPanel(0);
-			String title = frame.tabbedPane.getTitleAt(0);
-			if (title.equals(TrackerRes.getString("TrackerPanel.NewTab.Name")) //$NON-NLS-1$
-			&& !existingPanel.changed) {
-				return existingPanel;
-			}
-		}
-		return new TrackerPanel();
-	}
-
 	/**
 	 * Loads data or a video from a specified url into a new TrackerPanel.
 	 *
@@ -1808,7 +1789,7 @@ public class TrackerIO extends VideoIO {
 			if (!ResourceLoader.isHTTP(path))
 				path = nonURIPath;
 
-			trackerPanel = existingPanel == null ? getCleanTrackerPanel(frame) : existingPanel;
+			trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel);
 
 			panelChanged = trackerPanel.changed;
 //			// create progress monitor

@@ -141,7 +141,7 @@ public class FileDropHandler extends TransferHandler {
 				OSPLog.finest("dropped file: " + file.getAbsolutePath()); //$NON-NLS-1$
 				// if dropAction is COPY then open in new tab
 				if (support.getDropAction() == TransferHandler.COPY) {
-					if (nf > 0 && !frame.haveVideo()) {
+					if (nf > 0 && !frame.haveContent()) {
 						frame.removeTabNow(0);
 					}
 					TrackerIO.openTabFile(file, frame);

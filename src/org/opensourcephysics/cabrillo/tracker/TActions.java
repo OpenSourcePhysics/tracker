@@ -197,7 +197,7 @@ public class TActions {
 				trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 				TFrame frame = trackerPanel.getTFrame();
 				if (frame != null) {					
-					if (!frame.haveVideo()) {
+					if (!frame.haveContent()) {
 						frame.removeTabNow(0);
 					}
 					frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));

@@ -62,7 +62,6 @@ import javax.swing.JViewport;
 import javax.swing.WindowConstants;
 import javax.swing.event.MouseInputAdapter;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -400,10 +399,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	@Override
 	public JPopupMenu getPopupMenu() {
-		OSPLog.debug("TrackPlottingPanel.getPopupMenu " + Tracker.allowMenuRefresh);
 		if (!Tracker.allowMenuRefresh)
-			return null;
-		
+			return null;		
 		mergeYScalesItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.MenuItem.MergeYAxes")); //$NON-NLS-1$
 		linesItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.MenuItem.Lines")); //$NON-NLS-1$
 		pointsItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.MenuItem.Points")); //$NON-NLS-1$
@@ -697,7 +694,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					step.erase();
 				}
 				TFrame.repaintT(trackerPanel);
-				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+				track.notifySteps();
 			}
 		};
 		selectPointsItem = new JMenuItem();
@@ -998,8 +995,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			xMean = getMean(xData.getYPoints());
 		// append data to dataset
 		Double x = null, y = null;
-		if (xMean != Double.NaN) {
-			int n = yData.getRowCount();
+		int n;
+		if (xMean != Double.NaN && (n = yData.getRowCount()) > 0) {
+			if(false)return;
 			for (int i = 0; i < n; i++) {
 				y = (Double) yData.getValueAt(i, 1);
 				if (xIndex == -1)
@@ -1524,7 +1522,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 								steps.add(step);
 							step.erase();
 							TFrame.repaintT(trackerPanel);
-							track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+							track.notifySteps();
 						}
 					} else {
 						// set clickedStep so TrackPlottingPanel will select it after displaying video

@@ -187,8 +187,8 @@ public class DynamicParticle extends ParticleModel implements ODE {
 					}
 					models[i].traceX = new double[0];
 					models[i].traceY = new double[0];
-					models[i].firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
 				}
+				notifySteps();
 				return;
 			}
 			// find first frame included in both model and clip

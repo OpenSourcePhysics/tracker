@@ -312,7 +312,7 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				}
 				trackerPanel.selectedSteps.clear(); // triggers undoable edit if changed
 				for (TTrack next : tracks) {
-					next.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+					next.notifySteps();
 				}
 
 				if (!trackerPanel.isShowCoordinates()) {

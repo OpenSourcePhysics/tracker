@@ -250,7 +250,7 @@ public class TapeMeasure extends TTrack {
 					step.setTapeLength(magField.getValue());
 					invalidateData(null);
           if (isFixedPosition())
-          	firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+        	  notifySteps();
           else
           	firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 				}
@@ -278,7 +278,7 @@ public class TapeMeasure extends TTrack {
 					step.setTapeAngle(angleField.getValue());
 					invalidateData(null);
           if (isFixedPosition())
-          	firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
+        	  notifySteps();
           else
           	firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 					if (!isReadOnly())

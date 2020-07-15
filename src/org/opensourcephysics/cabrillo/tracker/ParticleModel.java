@@ -126,10 +126,11 @@ abstract public class ParticleModel extends PointMass {
 	public void draw(DrawingPanel panel, Graphics _g) {
 		if (!(panel instanceof TrackerPanel) || trackerPanel == null)
 			return;
-//		OSPLog.debug("ParticleModel.draw frame " + trackerPanel.getFrameNumber() + "/" + lastValidFrame + " " + this);
+		OSPLog.debug("ParticleModel.draw frame " + trackerPanel.getFrameNumber() + "/" + lastValidFrame + " " + isVisible() );
 		long t0 = Performance.now(0);
 
-		if (isVisible() && trackerPanel.getFrameNumber() > lastValidFrame) {
+		int fn = trackerPanel.getFrameNumber();
+		if (isVisible() && fn > lastValidFrame) {
 			refreshSteps("draw");
 		}
 		OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.paintComponent-draw-refreshsteps");
@@ -736,7 +737,7 @@ abstract public class ParticleModel extends PointMass {
 	 */
 	protected void refreshSteps(String why) {
 		locked = true;
-//		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps00 " + why, Performance.TIME_MARK));
+		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps00 " + why, Performance.TIME_MARK));
 
 		// return if this is an empty dynamic system
 		if (refreshStepsLater || trackerPanel == null
@@ -876,11 +877,8 @@ abstract public class ParticleModel extends PointMass {
 				model.vTailsToOriginItem.doClick();
 			if (model.aAtOrigin)
 				model.aTailsToOriginItem.doClick();
-			if (!refreshDerivsLater) {
-				if (singleStep)
+			if (!refreshDerivsLater && singleStep) {
 					model.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n));
-				else
-					model.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
 			}
 			// erase refreshed steps
 			for (int i = start + 1; i <= end; i++) {
@@ -890,9 +888,21 @@ abstract public class ParticleModel extends PointMass {
 			}
 			model.locked = true;
 		}
+		
 		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps " + nCalc, Performance.TIME_MARK));
 		trackerPanel.getTFrame().holdPainting(false);
+		if (!refreshDerivsLater && !singleStep) {
+			notifySteps();
+		}
 		TFrame.repaintT(trackerPanel);
+	}
+
+	public void notifySteps() {
+		ParticleModel[] models = getModels();
+		for (int m = 0, n = models.length - 1; m < n; m++) {
+			models[m].notifySteps();
+		}
+		super.notifySteps();
 	}
 
 	/**
@@ -922,8 +932,8 @@ abstract public class ParticleModel extends PointMass {
 		refreshDerivsLater = false;
 		for (ParticleModel part : getModels()) {
 			part.updateDerivatives();
-			part.firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
 		}
+		notifySteps();
 	}
 
 	/**
@@ -959,9 +969,9 @@ abstract public class ParticleModel extends PointMass {
 			next.updateDerivatives(end - 2, lastValidFrame - end + 2);
 			// restore state
 			restoreState(end);
-			next.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null); // $NON-NLS-1$
 			next.locked = true;
 		}
+		notifySteps();
 		setLastValidFrame(end);
 		repaint();
 //		TFrame.repaintT(trackerPanel);

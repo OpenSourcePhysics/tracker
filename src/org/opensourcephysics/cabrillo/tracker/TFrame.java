@@ -592,7 +592,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Removes all tabs.
 	 */
 	public void removeAllTabs() {
-		if (!haveVideo()) {
+		if (!haveContent()) {
 			removeTabNow(0);
 			return;
 		}
@@ -1642,7 +1642,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (selected != null) {
 			selected.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		}
-		if (!haveVideo()) {
+		if (!haveContent()) {
 			removeTabNow(0);
 		}
 		TrackerIO.open(path, TFrame.this);
@@ -3091,9 +3091,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		});
 	}
 
-	public boolean haveVideo() {
-		return (getTabCount() > 0 && getTrackerPanel(0).getVideo() != null);
+	public boolean haveContent() {
+		return (getTabCount() > 0 && (getTrackerPanel(0).changed
+				|| !tabbedPane.getTitleAt(0).equals(TrackerRes.getString("TrackerPanel.NewTab.Name")))); //$NON-NLS-1$
 	}
+	
+	/**
+	 * Returns a clean TrackerPanel.
+	 * Uses the blank untitled TrackerPanel in frame tab 0 if it is unchanged
+	 *
+	 * @return a clean TrackerPanel.
+	 */
+	TrackerPanel getCleanTrackerPanel() {
+		return (getTabCount() == 0 || haveContent() ? new TrackerPanel() : getTrackerPanel(0));
+	}
+
 
 	public void removeTabNow(int i) {
 		TrackerPanel tp = getTrackerPanel(i);

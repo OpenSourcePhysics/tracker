@@ -2318,7 +2318,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 						autoTracker.reset();
 					autoTracker.getWizard().setVisible(false);
 				}
-				firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+				notifySteps();
 				TFrame.repaintT(trackerPanel);
 			}
 		});
@@ -3632,7 +3632,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	public void notifyUndoLoaded() {
-		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); 
+		notifySteps(); 
 		// TrackEdit is also used for text column edits
 		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, null); 
 	}
@@ -3648,4 +3648,11 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public void initialize(TrackerPanel panel) {
 		// for subclasses
 	}
+
+	public void notifySteps() {
+		// this call will update TrackPlottingPanel
+		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
+	}
+
+
 }

@@ -896,7 +896,7 @@ public class PointMass extends TTrack {
 			algorithm = type;
 			refreshDataLater = false;
 			updateDerivatives();
-			firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+			notifySteps();
 		}
 	}
 
@@ -1014,7 +1014,7 @@ public class PointMass extends TTrack {
 		}
 		refreshDataLater = false;
 		updateDerivatives();
-		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+		notifySteps();
 		// post undoable edit if changes made
 		if (changed) {
 			Undo.postTrackEdit(this, control);
@@ -1069,7 +1069,7 @@ public class PointMass extends TTrack {
 		refreshDataLater = !refreshData;
 		if (refreshData)
 			updateDerivatives(firstStep, lastStep - firstStep);
-		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null); //$NON-NLS-1$
+		notifySteps();
 		// post undoable edit if changes made
 		if (changed) {
 			Undo.postTrackEdit(this, control);
