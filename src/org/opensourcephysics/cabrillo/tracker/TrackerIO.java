@@ -1209,24 +1209,29 @@ public class TrackerIO extends VideoIO {
 
 			@Override
 			public void run() {
-				File[] files = getChooserFilesAsync("export file", null); //$NON-NLS-1$
-				if (files == null) {
-					return;
-				}
-				File file = files[0];
-				if (!defaultXMLExt.equals(getExtension(file))) {
-					String filename = XML.stripExtension(file.getPath());
-					file = new File(filename + "." + defaultXMLExt); //$NON-NLS-1$
-				}
-				if (!canWrite(file))
-					return;
-				try {
-					Writer writer = new FileWriter(file);
-					control.write(writer);
-					return;// file;
-				} catch (IOException ex) {
-					ex.printStackTrace();
-				}
+				getChooserFilesAsync("export file", new Function<File[], Void>() {
+
+					@Override
+					public Void apply(File[] files) {
+								if (files == null) {
+							return null;
+						}
+						File file = files[0];
+						if (!defaultXMLExt.equals(getExtension(file))) {
+							String filename = XML.stripExtension(file.getPath());
+							file = new File(filename + "." + defaultXMLExt); //$NON-NLS-1$
+						}
+						if (canWrite(file))
+						try {
+							Writer writer = new FileWriter(file);
+							control.write(writer);
+						} catch (IOException ex) {
+							ex.printStackTrace();
+						}
+						return null;
+					}
+					
+				});
 			}
 		});
 	}
