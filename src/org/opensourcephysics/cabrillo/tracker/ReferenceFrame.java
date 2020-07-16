@@ -56,12 +56,12 @@ public class ReferenceFrame extends ImageCoordSystem
     this.coords = coords;
     ignoreUpdateRequests = true;
     setFixedOrigin(false);
-    setFixedAngle(coords.isFixedAngle());
     setFixedScale(coords.isFixedScale());
     coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
     originTrack.addStepListener(this);
+    boolean doScale = true;
     for (int i = 0, n = coords.getLength(); i < n; i++) {
-      setScaleXY(i, coords.getScaleX(i), coords.getScaleY(i));
+    	doScale = doScale && setScaleXY(i, coords.getScaleX(i), coords.getScaleY(i));
       setCosineSine(i, coords.getCosine(i),  coords.getSine(i));
     }
     setOrigins();
@@ -154,8 +154,9 @@ public void propertyChange(PropertyChangeEvent e) {
     coords.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
     coords.setFixedAngle(isFixedAngle());
     coords.setFixedScale(isFixedScale());
+    boolean doScale = true;
     for (int n = 0; n < coords.getLength(); n++) {
-      coords.setScaleXY(n, getScaleX(n), getScaleY(n));
+      doScale = doScale && coords.setScaleXY(n, getScaleX(n), getScaleY(n));
       coords.setCosineSine(n, getCosine(n),  getSine(n));
     }
     coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$

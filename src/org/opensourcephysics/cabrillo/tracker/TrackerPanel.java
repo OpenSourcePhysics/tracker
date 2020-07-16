@@ -1146,7 +1146,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 			}
 		};
-		new Thread(runner).start();
+		runner.run();
+//		new Thread(runner).start();
 //    if (pm != null) {
 //      ImageCoordSystem coords = getCoords();
 //      boolean wasRefFrame = coords instanceof ReferenceFrame;

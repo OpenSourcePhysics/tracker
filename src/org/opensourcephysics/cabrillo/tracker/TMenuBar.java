@@ -187,7 +187,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	private JMenuItem file_saveItem;
 	private JMenuItem file_saveAsItem;
 	private JMenuItem file_saveZipAsItem;
-//	private JMenuItem saveVideoAsItem;
+	private JMenuItem saveVideoAsItem;
 	private JMenuItem file_saveTabsetAsItem;
 	private JMenu file_importMenu;
 	private JMenuItem file_import_videoItem;
@@ -651,7 +651,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// save zip item
 			file_saveZipAsItem = new JMenuItem(actions.get("saveZip")); //$NON-NLS-1$
 			// saveVideoAs item
-//			saveVideoAsItem = new JMenuItem(actions.get("saveVideo")); //$NON-NLS-1$
+			saveVideoAsItem = new JMenuItem(actions.get("saveVideo")); //$NON-NLS-1$
 			// saveTabset item
 			file_saveTabsetAsItem = new JMenuItem(actions.get("saveTabsetAs")); //$NON-NLS-1$
 			fileMenu.addSeparator();
@@ -1396,6 +1396,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 
 	protected void setupEditMenu() {
 
+		refreshTracks(MENU_EDIT);
 		// enable deleteSelectedPoint item if a selection exists
 		Step step = trackerPanel.getSelectedStep();
 		TTrack track = trackerPanel.getSelectedTrack();
@@ -1503,9 +1504,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 						fileMenu.add(file_saveItem);
 					if (trackerPanel.isEnabled("file.saveAs")) { //$NON-NLS-1$
 						fileMenu.add(file_saveAsItem);
-//	      if (trackerPanel.getVideo()!=null) {
-//	      	fileMenu.add(saveVideoAsItem);
-//	      }
+						if (trackerPanel.getVideo() != null) {
+							fileMenu.add(saveVideoAsItem);
+						}
 						fileMenu.add(file_saveZipAsItem);
 						fileMenu.add(file_saveTabsetAsItem);
 					}
@@ -1864,9 +1865,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				}
 			}
 
-			edit_deleteTracksMenu.removeAll();
-			edit_deleteTracksMenu.add(edit_delTracks_deleteSelectedPointItem);
-			edit_deleteTracksMenu.addSeparator();
 			edit_deleteTracksMenu.setEnabled(hasTracks);
 
 			// delete and clear menus
@@ -1910,14 +1908,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (opening) {
 			setupEditMenu();
 			// clearTracksItem enabled only when there are tracks
-			ArrayList<TTrack> userTracks = trackerPanel.getUserTracks();
-			boolean hasTracks = !userTracks.isEmpty();
-			edit_clearTracksItem.setEnabled(hasTracks);
-			if (trackerPanel.isEnabled("edit.clear")) { //$NON-NLS-1$
-				if (edit_deleteTracksMenu.getItemCount() > 0)
-					edit_deleteTracksMenu.addSeparator();
-				edit_deleteTracksMenu.add(edit_clearTracksItem);
-			}
 			refreshTrackNames(MENU_EDIT);
 		}
 		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar edit refresh");
@@ -1955,13 +1945,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				coordsMenu.add(coords_refFrameMenu);
 			}
 
-			// clear the ref frame menu and button group
-			coords_refFrameMenu.removeAll();
-			Enumeration<AbstractButton> e = coords_refFrameGroup.getElements();
-			while (e.hasMoreElements()) {
-				coords_refFrameGroup.remove(e.nextElement());
-			}
-
 			// update coords menu items
 			ImageCoordSystem coords = trackerPanel.getCoords();
 			boolean defaultCoords = !(coords instanceof ReferenceFrame);
@@ -1984,11 +1967,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			coords_fixedScaleItem.setEnabled(defaultCoords && !coords.isLocked() && !stickAttached);
 			coords_refFrameMenu.setEnabled(!coords.isLocked());
 			// add default reference frame item
-			coords_refFrameGroup.add(coords_defaultRefFrameItem);
-			coords_refFrameMenu.add(coords_defaultRefFrameItem);
-			PointMass originTrack = getOriginTrack();
-			if (originTrack == null)
-				coords_defaultRefFrameItem.setSelected(true);
+			refreshTracks(MENU_COORDS);
 			FontSizer.setMenuFonts(coordsMenu);
 			if (coordsMenu.getItemCount() == 0) {
 				coordsMenu.add(coords_emptyCoordsItem);
@@ -2190,6 +2169,68 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 
 	}
 
+	protected void refreshTracks(int menu) {
+
+		ArrayList<TTrack> userTracks = trackerPanel.getUserTracks();
+		int n = userTracks.size();
+		PointMass originTrack = null;
+		switch (menu) {
+		case MENU_COORDS:
+			originTrack = getOriginTrack();
+			coords_refFrameMenu.removeAll();
+			Enumeration<AbstractButton> e = coords_refFrameGroup.getElements();
+			while (e.hasMoreElements()) {
+				coords_refFrameGroup.remove(e.nextElement());
+			}
+			coords_refFrameMenu.add(coords_defaultRefFrameItem);
+			coords_refFrameGroup.add(coords_defaultRefFrameItem);
+			coords_defaultRefFrameItem.setSelected(originTrack == null);
+			break;
+		case MENU_EDIT:
+			edit_deleteTracksMenu.removeAll();
+			edit_deleteTracksMenu.add(edit_delTracks_deleteSelectedPointItem);
+			edit_deleteTracksMenu.addSeparator();
+			edit_clearTracksItem.setEnabled(n > 0);
+			break;
+		}
+		for (int i = 0; i < n; i++) {
+			TTrack track = userTracks.get(i);
+			String trackName = track.getName("track"); //$NON-NLS-1$
+
+			switch (menu) {
+			case MENU_COORDS:
+				if (track instanceof PointMass) {
+					JRadioButtonMenuItem item = new JRadioButtonMenuItem(trackName);
+					item.addActionListener(actions.get("refFrame")); //$NON-NLS-1$
+					coords_refFrameGroup.add(item);
+					coords_refFrameMenu.add(item);
+					if (track == originTrack)
+						item.setSelected(true);
+				}
+				break;
+			case MENU_EDIT:
+				JMenuItem item = new JMenuItem(trackName);
+				item.setName("track");
+				item.setIcon(track.getIcon(21, 16, "track")); //$NON-NLS-1$
+				item.addActionListener(actions.get("deleteTrack")); //$NON-NLS-1$
+				item.setEnabled(!track.isLocked() || track.isDependent());
+				edit_deleteTracksMenu.add(item);
+				break;
+			}
+		}
+		switch (menu) {
+		case MENU_COORDS:
+			break;
+		case MENU_EDIT:
+			edit_clearTracksItem.setEnabled(n > 0);
+			if (trackerPanel.isEnabled("edit.clear") //$NON-NLS-1$
+					& n > 0) {
+				edit_deleteTracksMenu.addSeparator();
+				edit_deleteTracksMenu.add(edit_clearTracksItem);
+			}
+			break;
+		}
+	}
 	protected void refreshTrackMenu(boolean opening, JPopupMenu target) {
 
 		// long t0 = Performance.now(0);
@@ -2212,47 +2253,20 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			if (hasTracks && trackMenu.getItemCount() > 0)
 				trackMenu.addSeparator();
 
-			PointMass originTrack = getOriginTrack();
-
 			// for each track
 			for (int i = 0, n = userTracks.size(); i < n; i++) {
 				track = userTracks.get(i);
 				String trackName = track.getName("track"); //$NON-NLS-1$
-				// add delete item to edit menu for each track
-				JMenuItem item = new JMenuItem(trackName);
-				item.setName("track");
-				item.setIcon(track.getIcon(21, 16, "track")); //$NON-NLS-1$
-				item.addActionListener(actions.get("deleteTrack")); //$NON-NLS-1$
-				item.setEnabled(!track.isLocked() || track.isDependent());
-				edit_deleteTracksMenu.add(item);
-
 				// add item to clone menu for each track
-				item = new JMenuItem(trackName);
+				JMenuItem item = new JMenuItem(trackName);
 				item.setName("track");
 				item.setIcon(track.getIcon(21, 16, "track")); //$NON-NLS-1$
 				item.addActionListener(actions.get("cloneTrack")); //$NON-NLS-1$
 				track_cloneMenu.add(item);
-
-				// if track is point mass, add reference frame menu items
-				if (track instanceof PointMass) {
-					item = new JRadioButtonMenuItem(trackName);
-					item.addActionListener(actions.get("refFrame")); //$NON-NLS-1$
-					coords_refFrameGroup.add(item);
-					coords_refFrameMenu.add(item);
-					if (track == originTrack)
-						item.setSelected(true);
-				}
-			}
-
-			for (int i = 0, n = userTracks.size(); i < n; i++) {
-				track = userTracks.get(i);
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
-
 				// add each track's submenu to track menu
-
 				trackMenu.add(createTrackMenu(track));
-
 			}
 			// add axes and calibration tools to track menu
 			if (trackerPanel.isEnabled("button.axes") //$NON-NLS-1$
