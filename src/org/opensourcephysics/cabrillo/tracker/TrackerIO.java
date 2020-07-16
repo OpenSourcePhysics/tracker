@@ -884,32 +884,34 @@ public class TrackerIO extends VideoIO {
 				if (files == null) {
 					return null;
 				}
-				File file = files[0];
-				OSPLog.fine("importing from " + file); //$NON-NLS-1$
-				XMLControlElement control = new XMLControlElement(file.getAbsolutePath());
-				Class<?> type = control.getObjectClass();
-				if (TrackerPanel.class.equals(type)) {
-					// choose the elements and load the tracker panel
-					choose(trackerPanel, control, false, new Runnable() {
-
-						@Override
-						public void run() {
-							trackerPanel.changed = true;
-							control.loadObject(trackerPanel);
-						}
-
-					});
-				} else {
-					JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
-							TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Message") //$NON-NLS-1$
-									+ " " + XML.getName(XML.getAbsolutePath(file)), //$NON-NLS-1$
-							TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Title"), //$NON-NLS-1$
-							JOptionPane.WARNING_MESSAGE);
-					return null;
-				}
-				TTrackBar.refreshMemoryButton();
+				importFileAction(trackerPanel, files[0]);
 				return null;
-			}}); //$NON-NLS-1$
+			}});
+	}
+
+	protected static void importFileAction(TrackerPanel trackerPanel, File file) {
+		OSPLog.fine("importing from " + file); //$NON-NLS-1$
+		XMLControlElement control = new XMLControlElement(file.getAbsolutePath());
+		Class<?> type = control.getObjectClass();
+		if (TrackerPanel.class.equals(type)) {
+			// choose the elements and load the tracker panel
+			choose(trackerPanel, control, false, new Runnable() {
+
+				@Override
+				public void run() {
+					trackerPanel.changed = true;
+					control.loadObject(trackerPanel);
+				}
+
+			});
+			TTrackBar.refreshMemoryButton();
+		} else {
+			JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+					TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Message") //$NON-NLS-1$
+							+ " " + XML.getName(XML.getAbsolutePath(file)), //$NON-NLS-1$
+					TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Title"), //$NON-NLS-1$
+					JOptionPane.WARNING_MESSAGE);
+		}
 	}
 
 	/**
