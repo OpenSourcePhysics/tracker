@@ -65,9 +65,9 @@
   	
   	  we do this separately, as we want it done last 
   	
-  	-->
 
   	<unzip src="${swingjs.zip}" dest="${site.dir}/" overwrite="true"/>  	
+  	-->
 
  	<!-- transfer resources -->
 
