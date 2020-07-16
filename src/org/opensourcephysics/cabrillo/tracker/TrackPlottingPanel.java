@@ -1093,9 +1093,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	@Override
 	public boolean requestFocusInWindow() {
-		if (plotAxes.getScaleSetter().isVisible())
-			return false;
-		return super.requestFocusInWindow();
+		return plotAxes.getScaleSetter().isVisible() && super.requestFocusInWindow();
 	}
 
 	/**

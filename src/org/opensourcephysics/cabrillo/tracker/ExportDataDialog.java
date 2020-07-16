@@ -94,9 +94,10 @@ public class ExportDataDialog extends JDialog {
 	public static ExportDataDialog getDialog(TrackerPanel panel) {
 		if (dataExporter == null) {
 			dataExporter = new ExportDataDialog(panel);
+		} else {
+			dataExporter.trackerPanel = panel;
+			dataExporter.refreshGUI();
 		}
-		dataExporter.trackerPanel = panel;
-		dataExporter.refreshGUI();
 		return dataExporter;
 	}
 

@@ -60,9 +60,9 @@ public class ReferenceFrame extends ImageCoordSystem
     setFixedScale(coords.isFixedScale());
     coords.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
     originTrack.addStepListener(this);
-    for (int n = 0; n < coords.getLength(); n++) {
-      setScaleXY(n, coords.getScaleX(n), coords.getScaleY(n));
-      setCosineSine(n, coords.getCosine(n),  coords.getSine(n));
+    for (int i = 0, n = coords.getLength(); i < n; i++) {
+      setScaleXY(i, coords.getScaleX(i), coords.getScaleY(i));
+      setCosineSine(i, coords.getCosine(i),  coords.getSine(i));
     }
     setOrigins();
     lockEnabled = true;
@@ -179,8 +179,9 @@ public void propertyChange(PropertyChangeEvent e) {
     // find starting origin position
     double x = coords.getOriginX(0); // in case origin is empty
     double y = coords.getOriginY(0);
-    for (int n = 0; n < coords.getLength(); n++) {
-      Step step = originTrack.getStep(n);
+    int n = coords.getLength();
+    for (int i = 0; i < n; i++) {
+      Step step = originTrack.getStep(i);
       if (step != null) {
         TPoint p = ((PositionStep)step).getPosition();
         x = p.getX();
@@ -189,14 +190,14 @@ public void propertyChange(PropertyChangeEvent e) {
       }
     }
     // set coord system origins
-    for (int n = 0; n < coords.getLength(); n++) {
-      Step step = originTrack.getStep(n);
+    for (int i = 0; i < n; i++) {
+      Step step = originTrack.getStep(i);
       if (step != null) {
         TPoint p = ((PositionStep)step).getPosition();
         x = p.getX();
         y = p.getY();
       }
-      setOriginXY(n, x, y);
+      setOriginXY(i, x, y);
     }
     firePropChange = true;
     // fire property change for overall updates
