@@ -231,7 +231,7 @@ public class TapeStep extends Step {
 	public TPoint getDefaultPoint() {
 		if (worldLength == 0)
 			return handle;
-		if (tape.isAutomarking)
+		if (tape.isCalibrator)
 			return points[1];
 		TPoint p = tape.trackerPanel.getSelectedPoint();
 		if (p == points[0])
@@ -710,8 +710,6 @@ public class TapeStep extends Step {
 
 	class Tip extends TPoint {
 
-		private double lastX, lastY;
-
 		/**
 		 * Constructs a Tip with specified image coordinates.
 		 *
@@ -733,8 +731,8 @@ public class TapeStep extends Step {
 			if (getTrack().locked)
 				return;
 			if (tape.isStickMode() && isAdjusting()) {
-				lastX = x;
-				lastY = y;
+				prevX = x;
+				prevY = y;
 			}
 
 			if (tape.isFixedPosition()) {
@@ -790,8 +788,8 @@ public class TapeStep extends Step {
 			boolean wasAdjusting = isAdjusting();
 			if (tape.isStickMode()) {
 				super.setAdjusting(adjusting);
-				if (wasAdjusting && !adjusting) {
-					setXY(lastX, lastY);
+				if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
+					setXY(prevX, prevY);
 				}
 			} else
 				super.setAdjusting(adjusting);

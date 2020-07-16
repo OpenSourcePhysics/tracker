@@ -339,8 +339,6 @@ public class CoordAxesStep extends Step {
 	 */
 	class Origin extends TPoint {
 
-		private double lastX = java.lang.Double.NaN, lastY;
-
 		/**
 		 * Overrides TPoint setXY method.
 		 *
@@ -353,8 +351,8 @@ public class CoordAxesStep extends Step {
 			if (track.isLocked())
 				return;
 			if (isAdjusting()) {
-				lastX = x;
-				lastY = y;
+				prevX = x;
+				prevY = y;
 			}
 			super.setXY(x, y);
 			TrackerPanel panel = track.trackerPanel;
@@ -384,10 +382,10 @@ public class CoordAxesStep extends Step {
 				return;
 			super.setAdjusting(adjusting);
 			if (!wasAdjusting) {
-				lastX = x;
-				lastY = y;
-			} else if (!java.lang.Double.isNaN(lastX)) {
-				setXY(lastX, lastY);
+				prevX = x;
+				prevY = y;
+			} else if (!java.lang.Double.isNaN(prevX)) {
+				setXY(prevX, prevY);
 				TTrack track = getTrack();
 				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, track.trackerPanel.getFrameNumber()); //$NON-NLS-1$
 			}
@@ -402,7 +400,6 @@ public class CoordAxesStep extends Step {
 		// instance fields
 		private double angleIncrement = 0;
 		protected Point2D.Double p = new Point2D.Double();
-		private double lastX, lastY;
 
 		/**
 		 * Overrides TPoint setXY method to set the angle of the x axis.
@@ -431,8 +428,8 @@ public class CoordAxesStep extends Step {
 				y = origin.getY() + d * Math.sin(theta);
 			}
 			if (isAdjusting()) {
-				lastX = x;
-				lastY = y;
+				prevX = x;
+				prevY = y;
 			}
 			super.setXY(x, y);
 			double cos = origin.cos(this);
@@ -502,8 +499,8 @@ public class CoordAxesStep extends Step {
 		public void setAdjusting(boolean adjusting) {
 			boolean wasAdjusting = isAdjusting();
 			super.setAdjusting(adjusting);
-			if (wasAdjusting && !adjusting) {
-				setXY(lastX, lastY);
+			if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
+				setXY(prevX, prevY);
 			}
 		}
 	}

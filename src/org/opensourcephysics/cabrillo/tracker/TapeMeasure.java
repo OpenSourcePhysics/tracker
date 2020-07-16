@@ -96,7 +96,7 @@ public class TapeMeasure extends TTrack {
 	protected boolean stickMode;
 	protected boolean isStepChangingScale;
 	protected boolean notYetShown = true;
-	protected boolean isAutomarking;
+	protected boolean isIncomplete, isCalibrator;
 	protected JLabel end1Label, end2Label, lengthLabel;
 	protected Footprint[] tapeFootprints, stickFootprints;
 	protected TreeSet<Integer> lengthKeyFrames = new TreeSet<Integer>(); // applies to sticks only
@@ -386,9 +386,6 @@ public class TapeMeasure extends TTrack {
 	 * @param readOnly <code>true</code> to prevent editing
 	 */
 	public void setReadOnly(boolean readOnly) {
-		if (!readOnly && getStep(0) == null) {
-			isAutomarking = true;
-		}
 		this.readOnly = readOnly;
 		for (Footprint footprint : getFootprints()) {
 			if (footprint instanceof DoubleArrowFootprint) {
@@ -416,9 +413,6 @@ public class TapeMeasure extends TTrack {
 	 *              mode
 	 */
 	public void setStickMode(boolean stick) {
-		if (stick &&  getStep(0) == null) {
-			isAutomarking = true;
-		}
 		stickMode = stick;
 		Color color = getColor();
 		// set footprints and update world lengths
@@ -451,7 +445,8 @@ public class TapeMeasure extends TTrack {
 	
 	@Override
 	public boolean isMarkByDefault() {
-		return isAutomarking || super.isMarkByDefault();
+		boolean incomplete = getStep(0) == null || isIncomplete;
+		return (isCalibrator && incomplete) || super.isMarkByDefault();
 	}
 
 	/**
@@ -561,13 +556,16 @@ public class TapeMeasure extends TTrack {
 	@Override
 	public Step createStep(int n, double x, double y) {
 		TapeStep step = (TapeStep) getStep(n);
+		isIncomplete = false;
 		if (step == null) {
 			// create new step of length zero
 			step = new TapeStep(this, n, x, y, x, y);
-			step.worldLength = step.getTapeLength(true);
+//			step.worldLength = step.getTapeLength(true); // sets to zero
+			step.worldLength = 0; // sets to zero
 			step.setFootprint(getFootprint());
 			steps = new StepArray(step); // autofill
 			step = (TapeStep) getStep(n); // must do this since line above changes n to 0
+			isIncomplete = true;
 		} else if (step.worldLength == 0) {
 			// always mark step 0 when initializing
 			step = (TapeStep) getStep(0);
@@ -580,7 +578,6 @@ public class TapeMeasure extends TTrack {
 					trackerPanel.setSelectedPoint(null);
 				}
 			});
-			isAutomarking = false;
 			
 //			final TapeStep theStep = step;
 //			Timer timer = new Timer(400, new AbstractAction() {

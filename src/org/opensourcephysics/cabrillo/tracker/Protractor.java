@@ -247,7 +247,6 @@ public class Protractor extends TTrack {
       @Override
       public void focusLost(FocusEvent e) {
       	NumberField field = (NumberField)e.getSource();
-      	OSPLog.debug("pig focus lost ");
         int n = trackerPanel.getFrameNumber();
         ProtractorStep step = (ProtractorStep)getStep(n);
         if (!isFixed()) {

@@ -413,6 +413,11 @@ public void setFontLevel(int level) {
     FontSizer.setFonts(objectsToSize, level);
   }
 
+	@Override
+	public boolean isMarkByDefault() {
+		return getStep(0) == null || super.isMarkByDefault();
+	}
+
   /**
    * Overrides Object toString method.
    *
