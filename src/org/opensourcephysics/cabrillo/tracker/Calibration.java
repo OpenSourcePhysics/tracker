@@ -636,6 +636,13 @@ public class Calibration extends TTrack {
 		return numberFields;
 	}
 
+	@Override
+	public boolean isMarkByDefault() {
+		Step step = getStep(0);
+		boolean incomplete = step == null || step.getPoints()[1] == null;
+		return incomplete || super.isMarkByDefault();
+	}
+
 	/**
 	 * Responds to property change events. Overrides TTrack method.
 	 *

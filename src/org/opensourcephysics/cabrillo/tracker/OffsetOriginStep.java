@@ -187,8 +187,6 @@ public String toString() {
    * A class to represent the position of the offset origin.
    */
   public class Position extends TPoint {
-
-    private double lastX, lastY;
     
     /**
      * Constructs a position with specified image coordinates,
@@ -219,8 +217,8 @@ public String toString() {
 	public void setXY(double x, double y) {
       if (getTrack().isLocked()) return;
       if (isAdjusting()) {
-      	lastX = x;
-      	lastY = y;
+      	prevX = x;
+      	prevY = y;
       }
       double dx = x - getX();
       double dy = y - getY();
@@ -248,8 +246,8 @@ public String toString() {
 	public void setAdjusting(boolean adjusting) {
     	boolean wasAdjusting = isAdjusting();
     	super.setAdjusting(adjusting);
-    	if (wasAdjusting && !adjusting) {
-    		setXY(lastX, lastY);
+    	if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
+    		setXY(prevX, prevY);
     		getTrack().firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$
     	}
     }

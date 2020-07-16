@@ -683,7 +683,6 @@ public String toString() {
      */
     @Override
 	public void setXY(double x, double y) {
-    	OSPLog.debug("pig setXY "+x+", "+y);
       if (getTrack().locked) return;
       // keep distance from vertex >= 2*R
       if (this!=vertex) {

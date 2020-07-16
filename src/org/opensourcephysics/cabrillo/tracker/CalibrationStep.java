@@ -426,8 +426,6 @@ public String toString() {
    */
   public class Position extends TPoint {
 
-    private double lastX, lastY;
-    
     /**
      * Constructs a position with specified image coordinates,
      * and transforms those coordinates to set the world coordinates.
@@ -473,8 +471,8 @@ public String toString() {
         return;
       }
       if (isAdjusting()) {
-      	lastX = x;
-      	lastY = y;
+      	prevX = x;
+      	prevY = y;
       }
       double dx = x - getX();
       double dy = y - getY();
@@ -534,8 +532,8 @@ public String toString() {
 	public void setAdjusting(boolean adjusting) {
     	boolean wasAdjusting = isAdjusting();
     	super.setAdjusting(adjusting);
-    	if (wasAdjusting && !adjusting) {
-    		setXY(lastX, lastY);
+    	if (wasAdjusting && !adjusting && !java.lang.Double.isNaN(prevX)) {
+    		setXY(prevX, prevY);
     		getTrack().firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$
     	}
     }

@@ -1479,6 +1479,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						TapeMeasure track = new TapeMeasure();
 						track.setColor(Color.BLUE);
 						track.setStickMode(true);
+						track.isCalibrator = true;
 						// assign a default name
 						String name = TrackerRes.getString("CalibrationStick.New.Name"); //$NON-NLS-1$
 						int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
@@ -1518,6 +1519,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						TapeMeasure track = new TapeMeasure();
 						track.setColor(Color.BLUE);
 						track.setReadOnly(false);
+						track.isCalibrator = true;
 						// assign a default name
 						String name = TrackerRes.getString("CalibrationTapeMeasure.New.Name"); //$NON-NLS-1$
 						int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
