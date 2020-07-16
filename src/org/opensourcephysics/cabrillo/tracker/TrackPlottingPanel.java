@@ -656,45 +656,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		Action selectAction = new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// find limits of zoom box
-				Rectangle rect = zoomBox.reportZoom();
-				double x = pixToX(rect.x);
-				double x2 = pixToX(rect.x + rect.width);
-				double y = pixToY(rect.y + rect.height);
-				double y2 = pixToY(rect.y);
-				double xmin = Math.min(x, x2);
-				double xmax = Math.max(x, x2);
-				double ymin = Math.min(y, y2);
-				double ymax = Math.max(y, y2);
-				// look for all points in the dataset that fall within limits
-				double[] xPoints = dataset.getXPointsRaw();
-				double[] yPoints = dataset.getYPointsRaw();
-				int len = dataset.getIndex();
-				TTrack track = TTrack.getTrack(trackID);
-				TreeSet<Integer> frames = new TreeSet<Integer>();
-				for (int i = 0; i < len; i++) {
-					if (Double.isNaN(xPoints[i]) || Double.isNaN(yPoints[i]))
-						continue;
-					if (xPoints[i] >= xmin && xPoints[i] <= xmax && yPoints[i] >= ymin && yPoints[i] <= ymax) {
-						// found one: add its frame number to frames set
-						int frame = track.getFrameForData(getXLabel(), getYLabel(),
-								new double[] { xPoints[i], yPoints[i] });
-						if (frame >= 0) {
-							frames.add(frame);
-						}
-					}
-				}
-				// add or remove steps from selectedSteps
-				for (int frame : frames) {
-					Step step = track.getStep(frame);
-					if (e.getSource() == selectPointsItem)
-						trackerPanel.selectedSteps.add(step);
-					else
-						trackerPanel.selectedSteps.remove(step);
-					step.erase();
-				}
-				TFrame.repaintT(trackerPanel);
-				track.notifySteps();
+				selectAction(e.getSource());
 			}
 		};
 		selectPointsItem = new JMenuItem();
@@ -746,21 +708,60 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		popupmenu.add(helpItem);
 	}
 
+	protected void selectAction(Object source) {
+		// find limits of zoom box
+		Rectangle rect = zoomBox.reportZoom();
+		double x = pixToX(rect.x);
+		double x2 = pixToX(rect.x + rect.width);
+		double y = pixToY(rect.y + rect.height);
+		double y2 = pixToY(rect.y);
+		double xmin = Math.min(x, x2);
+		double xmax = Math.max(x, x2);
+		double ymin = Math.min(y, y2);
+		double ymax = Math.max(y, y2);
+		// look for all points in the dataset that fall within limits
+		double[] xPoints = dataset.getXPointsRaw();
+		double[] yPoints = dataset.getYPointsRaw();
+		int len = dataset.getIndex();
+		TTrack track = TTrack.getTrack(trackID);
+		TreeSet<Integer> frames = new TreeSet<Integer>();
+		for (int i = 0; i < len; i++) {
+			if (Double.isNaN(xPoints[i]) || Double.isNaN(yPoints[i]))
+				continue;
+			if (xPoints[i] >= xmin && xPoints[i] <= xmax && yPoints[i] >= ymin && yPoints[i] <= ymax) {
+				// found one: add its frame number to frames set
+				int frame = track.getFrameForData(getXLabel(), getYLabel(),
+						new double[] { xPoints[i], yPoints[i] });
+				if (frame >= 0) {
+					frames.add(frame);
+				}
+			}
+		}
+		// add or remove steps from selectedSteps
+		for (int frame : frames) {
+			Step step = track.getStep(frame);
+			if (source == selectPointsItem)
+				trackerPanel.selectedSteps.add(step);
+			else
+				trackerPanel.selectedSteps.remove(step);
+			step.erase();
+		}
+		TFrame.repaintT(trackerPanel);
+		track.notifySteps();
+	}
+
 	/**
 	 * Overrides DrawingPanel method to prevent changes to glassPanel and deal with
 	 * multiple plots.
 	 */
 	@Override
 	public Rectangle findViewRect() {
-		Rectangle rect = super.findViewRect();
-		JViewport c = GUIUtils.getParentViewport(this); 
-		if (c != null) {
-			// transform rect to this plotting panel space
-			Rectangle bounds = getBounds();
-			rect = rect.intersection(bounds);
-			rect.y -= bounds.y;
-			// TODO check for asJLabels
-		}
+		JViewport c = GUIUtils.getParentViewport(this);
+		Rectangle rect = (c == null ? super.findViewRect() : c.getViewRect());
+		// transform rect to this plotting panel space
+		Rectangle bounds = getBounds();
+		rect = rect.intersection(bounds);
+		rect.y -= bounds.y;
 		return rect;
 	}
 
@@ -1036,8 +1037,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			double y = dataset.getYPoints()[index];
 			TTrack track = TTrack.getTrack(trackID);
 			msg = coordStringBuilder.getCoordinateString(track.trackerPanel, x, y);
+			setMessage(msg, MessageDrawable.BOTTOM_LEFT);
 		}
-		setMessage(msg, MessageDrawable.BOTTOM_LEFT);
 	}
 
 	/**
@@ -1676,30 +1677,42 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			vars[1] = control.getString("y_var"); //$NON-NLS-1$
 			// convert legacy variable names
 			TTrack track = TTrack.getTrack(plot.trackID);
+			boolean isPointMass = (track instanceof PointMass);
 			for (int i = 0; i < 2; i++) {
 				if (vars[i] != null) {
-					if (vars[i].equals("theta") && track instanceof PointMass) //$NON-NLS-1$
-						vars[i] = "\u03b8" + "r"; //$NON-NLS-1$ //$NON-NLS-2$
-					else if (vars[i].equals("theta")) //$NON-NLS-1$
-						vars[i] = "\u03b8"; //$NON-NLS-1$
-					else if (vars[i].equals("theta_v")) //$NON-NLS-1$
-						vars[i] = "\u03b8" + "v"; //$NON-NLS-1$ //$NON-NLS-2$
-					else if (vars[i].equals("theta_a")) //$NON-NLS-1$
-						vars[i] = "\u03b8" + "a"; //$NON-NLS-1$ //$NON-NLS-2$
-					else if (vars[i].equals("theta_p")) //$NON-NLS-1$
-						vars[i] = "\u03b8" + "p"; //$NON-NLS-1$ //$NON-NLS-2$
-					else if (vars[i].equals("n") && track instanceof PointMass) //$NON-NLS-1$
-						vars[i] = "step"; //$NON-NLS-1$
-					else if (vars[i].equals("KE")) //$NON-NLS-1$
+					switch (vars[i]) {
+					case "theta":
+						vars[i] = (isPointMass ? "\u03b8r" : "\u03b8"); //$NON-NLS-1$ $NON-NLS-2$
+						break;
+					case "theta_v": //$NON-NLS-1$
+						vars[i] = "\u03b8v"; //$NON-NLS-1$ 
+						break;
+					case "theta_a": //$NON-NLS-1$
+						vars[i] = "\u03b8a"; //$NON-NLS-1$ 
+						break;
+					case "theta_p": //$NON-NLS-1$
+						vars[i] = "\u03b8p"; //$NON-NLS-1$
+						break;
+					case "n":
+						if (isPointMass)
+							vars[i] = "step"; //$NON-NLS-1$
+						break;
+					case "KE": //$NON-NLS-1$
 						vars[i] = "K"; //$NON-NLS-1$
-					else if (vars[i].equals("x-comp")) //$NON-NLS-1$
+						break;
+					case "x-comp": //$NON-NLS-1$
 						vars[i] = "x"; //$NON-NLS-1$
-					else if (vars[i].equals("y-comp")) //$NON-NLS-1$
+						break;
+					case "y-comp": //$NON-NLS-1$
 						vars[i] = "y"; //$NON-NLS-1$
-					else if (vars[i].equals("x_tail")) //$NON-NLS-1$
+						break;
+					case "x_tail": //$NON-NLS-1$
 						vars[i] = "xtail"; //$NON-NLS-1$
-					else if (vars[i].equals("y_tail")) //$NON-NLS-1$
+						break;
+					case "y_tail": //$NON-NLS-1$
 						vars[i] = "ytail"; //$NON-NLS-1$
+						break;
+					}
 				}
 			}
 			plot.setXVariable(vars[0]);

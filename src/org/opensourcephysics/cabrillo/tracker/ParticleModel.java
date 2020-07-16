@@ -111,7 +111,7 @@ abstract public class ParticleModel extends PointMass {
 		setName(TrackerRes.getString("ParticleModel.New.Name")); //$NON-NLS-1$
 		long t0 = Performance.now(0);
 		initializeFunctionPanel();
-		OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.initializeFunctionPanel");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.initializeFunctionPanel");
 		// set initial hint
 		hint = TrackerRes.getString("ParticleModel.Hint"); //$NON-NLS-1$
 	}
@@ -126,17 +126,17 @@ abstract public class ParticleModel extends PointMass {
 	public void draw(DrawingPanel panel, Graphics _g) {
 		if (!(panel instanceof TrackerPanel) || trackerPanel == null)
 			return;
-		OSPLog.debug("ParticleModel.draw frame " + trackerPanel.getFrameNumber() + "/" + lastValidFrame + " " + isVisible() );
+		//OSPLog.debug("ParticleModel.draw frame " + trackerPanel.getFrameNumber() + "/" + lastValidFrame + " " + isVisible() );
 		long t0 = Performance.now(0);
 
 		int fn = trackerPanel.getFrameNumber();
 		if (isVisible() && fn > lastValidFrame) {
 			refreshSteps("draw");
 		}
-		OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.paintComponent-draw-refreshsteps");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.paintComponent-draw-refreshsteps");
 		t0 = Performance.now(0);
 		drawMe(panel, _g);
-		OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.paintComponent-drawme");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.paintComponent-drawme");
 	}
 
 	/**
