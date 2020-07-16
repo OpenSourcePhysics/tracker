@@ -112,7 +112,6 @@ import javajs.async.SwingJSUtils.Performance;
  *
  * @author Douglas Brown
  */
-@SuppressWarnings("serial")
 public class TrackerIO extends VideoIO {
 
 	public interface TrackerMonitor {
@@ -421,9 +420,10 @@ public class TrackerIO extends VideoIO {
 			@Override
 			public void run() {
 				if (processFiles != null) {
+					File[] files = chooser.getSelectedFiles();
 					File file = chooser.getSelectedFile();
 					resetChooser.run();
-					processFiles.apply(new File[] { file });
+					processFiles.apply(files != null ? files : file != null ? new File[] { file } : null);
 				}
 			}
 
@@ -440,16 +440,19 @@ public class TrackerIO extends VideoIO {
 			}
 
 		};
+
 		File ret = null;
 		boolean isSave = false;
-		if (type.toLowerCase().equals("open")) { //$NON-NLS-1$
+		switch (type.toLowerCase()) {
+		case "open": //$NON-NLS-1$
 			chooser.setMultiSelectionEnabled(false);
 			chooser.setAcceptAllFileFilterUsed(true);
 			chooser.addChoosableFileFilter(videoAndTrkFileFilter);
 			chooser.setFileFilter(videoAndTrkFileFilter);
 			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title")); //$NON-NLS-1$
 			chooser.showOpenDialog(null, okOpen, resetChooser);
-		} else if (type.toLowerCase().equals("open trk")) { //$NON-NLS-1$
+			break;
+		case "open trk": //$NON-NLS-1$
 			// open tracker file
 			chooser.setMultiSelectionEnabled(false);
 			chooser.setAccessory(null);
@@ -458,31 +461,43 @@ public class TrackerIO extends VideoIO {
 			chooser.setFileFilter(trkFileFilter);
 			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title")); //$NON-NLS-1$
 			chooser.showOpenDialog(null, okOpen, resetChooser);
-		} else if (type.toLowerCase().equals("open any")) { //$NON-NLS-1$
+			break;
+		case "open any": //$NON-NLS-1$
 			// open any file
 			chooser.setMultiSelectionEnabled(false);
 			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title")); //$NON-NLS-1$
 			chooser.showOpenDialog(null, okOpen, resetChooser);
-		} else if (type.toLowerCase().equals("open video")) { // open video //$NON-NLS-1$
+			break;
+		case "open video": // open video //$NON-NLS-1$
 			chooser.setMultiSelectionEnabled(false);
 			chooser.setAcceptAllFileFilterUsed(true);
 			chooser.addChoosableFileFilter(videoFileFilter);
 			chooser.setFileFilter(videoFileFilter);
 			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Open.Title")); //$NON-NLS-1$
 			chooser.showOpenDialog(null, okOpen, resetChooser);
-		} else if (type.toLowerCase().equals("open data")) { // open text data file //$NON-NLS-1$
+			break;
+		case "open data": // open text data file //$NON-NLS-1$
 			chooser.setMultiSelectionEnabled(false);
 			chooser.setAcceptAllFileFilterUsed(true);
 			chooser.addChoosableFileFilter(txtFileFilter);
 			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenData.Title")); //$NON-NLS-1$
 			chooser.showOpenDialog(null, okOpen, resetChooser);
-		} else if (type.toLowerCase().equals("open ejs")) { // open ejs //$NON-NLS-1$
+			break;
+		case "open ejs": // open ejs //$NON-NLS-1$
 			chooser.setMultiSelectionEnabled(false);
 			chooser.setAcceptAllFileFilterUsed(true);
 			chooser.addChoosableFileFilter(jarFileFilter);
 			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.OpenEJS.Title")); //$NON-NLS-1$
 			chooser.showOpenDialog(null, okOpen, resetChooser);
-		} else if (type.toLowerCase().equals("import file")) { //$NON-NLS-1$
+			break;
+		case "insert images": //$NON-NLS-1$
+			chooser.setMultiSelectionEnabled(true);
+			chooser.setAcceptAllFileFilterUsed(false);
+			chooser.addChoosableFileFilter(imageFileFilter);
+			chooser.setSelectedFile(new File("")); //$NON-NLS-1$
+			chooser.showOpenDialog(null, okOpen, resetChooser);
+			break;
+		case "import file": //$NON-NLS-1$
 			// import elements from a tracker file
 			chooser.setAccessory(null);
 			chooser.setMultiSelectionEnabled(false);
@@ -491,7 +506,8 @@ public class TrackerIO extends VideoIO {
 			chooser.setFileFilter(trkFileFilter);
 			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Import.Title")); //$NON-NLS-1$
 			chooser.showOpenDialog(null, okOpen, resetChooser);
-		} else if (type.toLowerCase().equals("export file")) { //$NON-NLS-1$
+			break;
+		case "export file": //$NON-NLS-1$
 			// export elements to a tracker file
 			isSave = true;
 			chooser.setAccessory(null);
@@ -501,13 +517,18 @@ public class TrackerIO extends VideoIO {
 			chooser.setFileFilter(trkFileFilter);
 			chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.Export.Title")); //$NON-NLS-1$
 			chooser.showSaveDialog(null, okSave, resetChooser);
-		} else if (type.toLowerCase().equals("save")) { // save a file //$NON-NLS-1$
+			break;
+		case "save": // save a file //$NON-NLS-1$
 			isSave = true;
 			chooser.setAccessory(null);
+			// note this sets no file filters but does include acceptAll
+			// also sets file name to "untitled"
+			chooser.setSelectedFile(new File(MediaRes.getString("VideoIO.FileName.Untitled") + "." + defaultXMLExt)); //$NON-NLS-1$ $NON-NLS-2$
 			// note this sets no file filters nor title
 			chooser.setMultiSelectionEnabled(false);
 			chooser.showSaveDialog(null, okSave, resetChooser);
-		} else if (type.toLowerCase().equals("save tabset")) { //$NON-NLS-1$
+			break;
+		case "save tabset": //$NON-NLS-1$
 			isSave = true;
 			// save a tabset file
 			chooser.setAccessory(null);
@@ -535,8 +556,9 @@ public class TrackerIO extends VideoIO {
 			}, resetChooser);
 			ret = (processFiles != null || chooser.getSelectedOption() != JFileChooser.APPROVE_OPTION ? null
 					: fixXML(chooser));
-		} else {
-			return getChooserFilesAsync(type, processFiles);
+			break;
+		default:
+			return VideoIO.getChooserFilesAsync(type, processFiles);
 		}
 		ret = processChoose(chooser, ret, processFiles != null);
 		if (processFiles == null) {
@@ -853,38 +875,41 @@ public class TrackerIO extends VideoIO {
 	 * The user selects the elements to import with a ListChooser.
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @return the file
 	 */
-	public static File importFile(TrackerPanel trackerPanel) {
-		File[] files = getChooserFiles("import file"); //$NON-NLS-1$
-		if (files == null) {
-			return null;
-		}
-		File file = files[0];
-		OSPLog.fine("importing from " + file); //$NON-NLS-1$
-		XMLControlElement control = new XMLControlElement(file.getAbsolutePath());
-		Class<?> type = control.getObjectClass();
-		if (TrackerPanel.class.equals(type)) {
-			// choose the elements and load the tracker panel
-			choose(trackerPanel, control, false, new Runnable() {
+	public static void importFile(TrackerPanel trackerPanel) {
+		getChooserFilesAsync("import file", new Function<File[], Void>(){
 
-				@Override
-				public void run() {
-					trackerPanel.changed = true;
-					control.loadObject(trackerPanel);
+			@Override
+			public Void apply(File[] files) {
+				if (files == null) {
+					return null;
 				}
+				File file = files[0];
+				OSPLog.fine("importing from " + file); //$NON-NLS-1$
+				XMLControlElement control = new XMLControlElement(file.getAbsolutePath());
+				Class<?> type = control.getObjectClass();
+				if (TrackerPanel.class.equals(type)) {
+					// choose the elements and load the tracker panel
+					choose(trackerPanel, control, false, new Runnable() {
 
-			});
-		} else {
-			JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
-					TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Message") //$NON-NLS-1$
-							+ " " + XML.getName(XML.getAbsolutePath(file)), //$NON-NLS-1$
-					TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Title"), //$NON-NLS-1$
-					JOptionPane.WARNING_MESSAGE);
-			return null;
-		}
-		TTrackBar.refreshMemoryButton();
-		return file;
+						@Override
+						public void run() {
+							trackerPanel.changed = true;
+							control.loadObject(trackerPanel);
+						}
+
+					});
+				} else {
+					JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
+							TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Message") //$NON-NLS-1$
+									+ " " + XML.getName(XML.getAbsolutePath(file)), //$NON-NLS-1$
+							TrackerRes.getString("TrackerPanel.Dialog.LoadFailed.Title"), //$NON-NLS-1$
+							JOptionPane.WARNING_MESSAGE);
+					return null;
+				}
+				TTrackBar.refreshMemoryButton();
+				return null;
+			}}); //$NON-NLS-1$
 	}
 
 	/**
@@ -1091,11 +1116,24 @@ public class TrackerIO extends VideoIO {
 	 * @param startIndex   the insertion index
 	 * @return an array of inserted files
 	 */
-	public static File[] insertImagesIntoVideo(TrackerPanel trackerPanel, int startIndex) {
+	public static void insertImagesIntoVideo(TrackerPanel trackerPanel, int startIndex) {
 		JFileChooser chooser = getChooser();
 		chooser.setDialogTitle(TrackerRes.getString("TrackerIO.Dialog.AddImage.Title")); //$NON-NLS-1$
-		File[] files = getChooserFiles("insert image"); //$NON-NLS-1$
-		return insertImagesIntoVideo(files, trackerPanel, startIndex);
+		getChooserFilesAsync("insert images", new Function<File[], Void>(){
+
+			@Override
+			public Void apply(File[] files) {
+				if (files == null || files.length == 0)
+					return null;
+				String[] paths = new String[files.length];
+				for (int i = 0; i < paths.length; i++) {
+					paths[i] = files[i].getPath();
+				}
+				Undo.postImageVideoEdit(trackerPanel, paths, startIndex, trackerPanel.getPlayer().getStepNumber(),
+						true);
+				insertImagesIntoVideo(files, trackerPanel, startIndex);
+				return null;
+			}});
 	}
 
 	/**
@@ -1169,7 +1207,7 @@ public class TrackerIO extends VideoIO {
 
 			@Override
 			public void run() {
-				File[] files = getChooserFiles("export file"); //$NON-NLS-1$
+				File[] files = getChooserFilesAsync("export file", null); //$NON-NLS-1$
 				if (files == null) {
 					return;
 				}
@@ -1853,16 +1891,16 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private int openTabPathPanel(int progress) {
-			XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
-			if (child != null) {
-				int count = child.getInt("video_framecount"); //$NON-NLS-1$
-				child = child.getChildControl("video"); //$NON-NLS-1$
-				if (child != null) {
-					String vidPath = child.getString("path"); //$NON-NLS-1$
+//			XMLControl child = control.getChildControl("videoclip"); //$NON-NLS-1$
+//			if (child != null) {
+//				int count = child.getInt("video_framecount"); //$NON-NLS-1$
+//				child = child.getChildControl("video"); //$NON-NLS-1$
+//				if (child != null) {
+//					String vidPath = child.getString("path"); //$NON-NLS-1$
 //					monitorDialog.setName(vidPath);
 //					monitorDialog.setFrameCount(count);
-				}
-			}
+//				}
+//			}
 
 			trackerPanel = (TrackerPanel) control.loadObject(trackerPanel, (Object) frame);
 			trackerPanel.setIgnoreRepaint(true);

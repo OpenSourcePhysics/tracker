@@ -69,6 +69,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class ThumbnailDialog extends JDialog {
 
 	static {
@@ -176,7 +177,7 @@ public class ThumbnailDialog extends JDialog {
 			chooser.setDialogTitle(TrackerRes.getString("ThumbnailDialog.Chooser.SaveThumbnail.Title")); //$NON-NLS-1$
 			String tabName = XML.stripExtension(trackerPanel.getTitle());
 			chooser.setSelectedFile(new File(tabName + "_thumbnail." + format)); //$NON-NLS-1$
-			File[] files = TrackerIO.getChooserFiles("save"); //$NON-NLS-1$
+			File[] files = TrackerIO.getChooserFilesAsync("save", null); //$NON-NLS-1$
 			chooser.removePropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, fileChooserListener);
 			if (files == null || files.length == 0)
 				return null;

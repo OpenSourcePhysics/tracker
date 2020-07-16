@@ -648,10 +648,13 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					chooser.setFileFilter(LaunchBuilder.getPDFFilter());
 				}
 
-				File[] files = TrackerIO.getChooserFilesAsync("open any", new Function<File[], Void>() { //$NON-NLS-1$
+				TrackerIO.getChooserFilesAsync("open any", new Function<File[], Void>() { //$NON-NLS-1$
 
 					@Override
 					public Void apply(File[] files) {
+						recentAddFilesFilter = chooser.getFileFilter();
+						chooser.removeChoosableFileFilter(LaunchBuilder.getHTMLFilter());
+						chooser.removeChoosableFileFilter(LaunchBuilder.getPDFFilter());
 						if (files == null) {
 							return null;
 						}
@@ -664,11 +667,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					}
 
 				});
-				recentAddFilesFilter = chooser.getFileFilter();
-				chooser.removeChoosableFileFilter(LaunchBuilder.getHTMLFilter());
-				chooser.removeChoosableFileFilter(LaunchBuilder.getPDFFilter());
-				if (files == null)
-					return; // cancelled by user
 			}
 		});
 		removeButton = new TButton();
@@ -1813,23 +1811,18 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		}
 
 		// define the target filename and create empty zip list
-		final ArrayList<File> zipList = defineTarget();
+		ArrayList<File> zipList = defineTarget();
 		if (zipList == null)
 			return;
 		setVisible(false);
 
 		// use separate thread to add files to the ziplist and create the TRZ file
-		Runnable runner = new Runnable() {
+		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				String thumbPath = addThumbnail(zipList);
-				addHTMLInfo(thumbPath, zipList);
-				addVideosAndTRKs(zipList);
-				addFiles(zipList);
-				saveZip(zipList);
+				saveZipAction(zipList);
 			}
-		};
-		new Thread(runner).start();
+		}).start();
 	}
 
 	/**
@@ -1847,8 +1840,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			Timer timer = new Timer(1000, new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					File temp = new File(getTempDirectory());
-					ResourceLoader.deleteFile(temp);
+					ResourceLoader.deleteFile(new File(getTempDirectory()));
 				}
 			});
 			timer.setRepeats(false);
@@ -1918,18 +1910,20 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * Writes a thumbnail image to the temp directory and adds it to the zip list.
 	 * 
 	 * @param zipList the list of files to be zipped
-	 * @return the absolute path to the image, or null if failed
 	 */
-	private String addThumbnail(ArrayList<File> zipList) {
+	private void saveZipAction(ArrayList<File> zipList) {
 		// use ThumbnailDialog to write image to temp folder and add to zip list
 		ThumbnailDialog dialog = ThumbnailDialog.getDialog(trackerPanel, false);
 		String ext = dialog.getFormat();
 		String thumbPath = getTempDirectory() + targetName + "_thumbnail." + ext; //$NON-NLS-1$
 		File thumbnail = dialog.saveThumbnail(thumbPath);
 		if (thumbnail == null)
-			return null;
+			return;
 		zipList.add(thumbnail);
-		return thumbPath;
+		addHTMLInfo(thumbPath, zipList);
+		addVideosAndTRKs(zipList);
+		addFiles(zipList);
+		saveZip(zipList);
 	}
 
 	/**

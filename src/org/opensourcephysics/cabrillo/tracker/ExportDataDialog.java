@@ -24,18 +24,39 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.GridLayout;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.HashMap;
+import java.util.function.Function;
 
-import javax.swing.*;
-import javax.swing.border.*;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.ListCellRenderer;
+import javax.swing.border.Border;
 
 import org.opensourcephysics.controls.ControlsRes;
 import org.opensourcephysics.controls.XML;
@@ -126,40 +147,7 @@ public class ExportDataDialog extends JDialog {
 			public void itemStateChanged(ItemEvent e) {
 				if (refreshing)
 					return;
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					Object selected = delimiterDropdown.getSelectedItem();
-					boolean isAdd = selected.equals(TrackerRes.getString("ExportDataDialog.Delimiter.Add")); //$NON-NLS-1$
-					boolean isRemove = selected.equals(TrackerRes.getString("ExportDataDialog.Delimiter.Remove")); //$NON-NLS-1$
-					String delimiter = TrackerIO.getDelimiter();
-					if (isAdd) {
-						Object response = JOptionPane.showInputDialog(ExportDataDialog.this,
-								TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Message"), //$NON-NLS-1$
-								TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Title"), //$NON-NLS-1$
-								JOptionPane.PLAIN_MESSAGE, null, null, delimiter);
-						if (response != null && !"".equals(response.toString())) { //$NON-NLS-1$
-							String s = response.toString();
-							TrackerIO.setDelimiter(s);
-							TrackerIO.addCustomDelimiter(s);
-						}
-						refreshGUI();
-					} else if (isRemove) {
-						String[] choices = TrackerIO.customDelimiters.values().toArray(new String[1]);
-						Object response = JOptionPane.showInputDialog(ExportDataDialog.this,
-								TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Message"), //$NON-NLS-1$
-								TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Title"), //$NON-NLS-1$
-								JOptionPane.PLAIN_MESSAGE, null, choices, null);
-						if (response != null) {
-							String s = response.toString();
-							TrackerIO.removeCustomDelimiter(s);
-						}
-						refreshGUI();
-					} else {
-						if (TrackerIO.delimiters.keySet().contains(selected))
-							TrackerIO.setDelimiter(TrackerIO.delimiters.get(selected));
-						else if (TrackerIO.customDelimiters.keySet().contains(selected))
-							TrackerIO.setDelimiter(TrackerIO.customDelimiters.get(selected));
-					}
-				}
+				delimiterAction();
 			}
 		});
 		delimiterDropdown.setRenderer(new SeparatorRenderer(delimiterDropdown.getRenderer()));
@@ -192,36 +180,14 @@ public class ExportDataDialog extends JDialog {
 				chooser.setAcceptAllFileFilterUsed(true);
 				chooser.setDialogTitle(TrackerRes.getString("ExportDataDialog.Chooser.SaveData.Title")); //$NON-NLS-1$
 				chooser.setSelectedFile(new File("")); //$NON-NLS-1$
-				File[] files = TrackerIO.getChooserFiles("save"); //$NON-NLS-1$
-				if (files == null || files.length == 0)
-					return;
-				DataTable table = tables.get(tableDropdown.getSelectedItem());
-				boolean asFormatted = formatDropdown.getSelectedItem()
-						.equals(TrackerRes.getString("TableTrackView.MenuItem.Formatted")); //$NON-NLS-1$
-				boolean allCells = contentDropdown.getSelectedItem()
-						.equals(TrackerRes.getString("ExportDataDialog.Content.AllCells")); //$NON-NLS-1$
-				String trackName = trackNames.get(table) + XML.NEW_LINE;
-				trackName = trackName.replace(' ', '_');
-				if (allCells) {
-					// get current selection state
-					int[] selectedRows = table.getSelectedRows();
-					int[] selectedCols = table.getSelectedColumns();
-					// select all
-					table.selectAll();
-					// get data and write to output file
-					StringBuffer buf = TrackerIO.getData(table, asFormatted);
-					write(files[0], trackName + buf.toString());
-					// restore previous selection state
-					table.clearSelection();
-					for (int row : selectedRows)
-						table.addRowSelectionInterval(row, row);
-					for (int col : selectedCols)
-						table.addColumnSelectionInterval(col, col);
-				} else {
-					// get data and write to output file
-					StringBuffer buf = TrackerIO.getData(table, asFormatted);
-					write(files[0], trackName + buf.toString());
-				}
+				TrackerIO.getChooserFilesAsync("save", new Function<File[], Void>() { // $NON-NLS-1$
+
+					@Override
+					public Void apply(File[] files) {
+						saveAsAction(files);
+						return null;
+					}
+				}); 
 			}
 		});
 		closeButton = new JButton();
@@ -237,6 +203,73 @@ public class ExportDataDialog extends JDialog {
 		contentPane.add(buttonbar, BorderLayout.SOUTH);
 		buttonbar.add(saveAsButton);
 		buttonbar.add(closeButton);
+	}
+
+	protected void delimiterAction() {
+		Object selected = delimiterDropdown.getSelectedItem();
+		boolean isAdd = selected.equals(TrackerRes.getString("ExportDataDialog.Delimiter.Add")); //$NON-NLS-1$
+		boolean isRemove = selected.equals(TrackerRes.getString("ExportDataDialog.Delimiter.Remove")); //$NON-NLS-1$
+		String delimiter = TrackerIO.getDelimiter();
+		if (isAdd) {
+			Object response = JOptionPane.showInputDialog(ExportDataDialog.this,
+					TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Message"), //$NON-NLS-1$
+					TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Title"), //$NON-NLS-1$
+					JOptionPane.PLAIN_MESSAGE, null, null, delimiter);
+			if (response != null && !"".equals(response.toString())) { //$NON-NLS-1$
+				String s = response.toString();
+				TrackerIO.setDelimiter(s);
+				TrackerIO.addCustomDelimiter(s);
+			}
+			refreshGUI();
+		} else if (isRemove) {
+			String[] choices = TrackerIO.customDelimiters.values().toArray(new String[1]);
+			Object response = JOptionPane.showInputDialog(ExportDataDialog.this,
+					TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Message"), //$NON-NLS-1$
+					TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Title"), //$NON-NLS-1$
+					JOptionPane.PLAIN_MESSAGE, null, choices, null);
+			if (response != null) {
+				String s = response.toString();
+				TrackerIO.removeCustomDelimiter(s);
+			}
+			refreshGUI();
+		} else {
+			if (TrackerIO.delimiters.keySet().contains(selected))
+				TrackerIO.setDelimiter(TrackerIO.delimiters.get(selected));
+			else if (TrackerIO.customDelimiters.keySet().contains(selected))
+				TrackerIO.setDelimiter(TrackerIO.customDelimiters.get(selected));
+		}
+	}
+
+	protected void saveAsAction(File[] files) {
+		if (files == null || files.length == 0)
+			return;
+		DataTable table = tables.get(tableDropdown.getSelectedItem());
+		boolean asFormatted = formatDropdown.getSelectedItem()
+				.equals(TrackerRes.getString("TableTrackView.MenuItem.Formatted")); //$NON-NLS-1$
+		boolean allCells = contentDropdown.getSelectedItem()
+				.equals(TrackerRes.getString("ExportDataDialog.Content.AllCells")); //$NON-NLS-1$
+		String trackName = trackNames.get(table) + XML.NEW_LINE;
+		trackName = trackName.replace(' ', '_');
+		if (allCells) {
+			// get current selection state
+			int[] selectedRows = table.getSelectedRows();
+			int[] selectedCols = table.getSelectedColumns();
+			// select all
+			table.selectAll();
+			// get data and write to output file
+			StringBuffer buf = TrackerIO.getData(table, asFormatted);
+			write(files[0], trackName + buf.toString());
+			// restore previous selection state
+			table.clearSelection();
+			for (int row : selectedRows)
+				table.addRowSelectionInterval(row, row);
+			for (int col : selectedCols)
+				table.addColumnSelectionInterval(col, col);
+		} else {
+			// get data and write to output file
+			StringBuffer buf = TrackerIO.getData(table, asFormatted);
+			write(files[0], trackName + buf.toString());
+		}
 	}
 
 	/**

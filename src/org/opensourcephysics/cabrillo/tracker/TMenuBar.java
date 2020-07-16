@@ -1016,34 +1016,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		addImageAfterItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				int n = trackerPanel.getFrameNumber();
-				int step = trackerPanel.getPlayer().getStepNumber();
-				java.io.File[] files = TrackerIO.insertImagesIntoVideo(trackerPanel, n + 1);
-				if (files != null) {
-					String[] paths = new String[files.length];
-					for (int i = 0; i < paths.length; i++) {
-						paths[i] = files[i].getPath();
-					}
-					Undo.postImageVideoEdit(trackerPanel, paths, n + 1, step, true);
-				}
-				refresh("menuItem.addAfter");
+				TrackerIO.insertImagesIntoVideo(trackerPanel,  trackerPanel.getFrameNumber() + 1);
+//				refresh("menuItem.addAfter");
 			}
 		});
 		addImageBeforeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.AddBefore")); //$NON-NLS-1$
 		addImageBeforeItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				int n = trackerPanel.getFrameNumber();
-				int step = trackerPanel.getPlayer().getStepNumber();
-				java.io.File[] files = TrackerIO.insertImagesIntoVideo(trackerPanel, n);
-				if (files != null) {
-					String[] paths = new String[files.length];
-					for (int i = 0; i < paths.length; i++) {
-						paths[i] = files[i].getPath();
-					}
-					Undo.postImageVideoEdit(trackerPanel, paths, n, step, true);
-				}
-				refresh("menuItem.addBefore");
+				TrackerIO.insertImagesIntoVideo(trackerPanel, trackerPanel.getFrameNumber());
+//				refresh("menuItem.addBefore");
 			}
 		});
 		video_importImageMenu.add(addImageBeforeItem);

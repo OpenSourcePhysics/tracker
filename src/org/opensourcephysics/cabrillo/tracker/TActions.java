@@ -833,6 +833,7 @@ public class TActions {
 	}
 	
 	
+	@SuppressWarnings("serial")
 	private static AbstractAction getAsyncAction(Action a, boolean useSeparateThread) {
 		Object nameObj = a.getValue(Action.NAME);
 		String name = nameObj == null? null: nameObj.toString();
