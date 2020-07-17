@@ -20,15 +20,12 @@ import javax.swing.JFileChooser;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.SwingUtilities;
-
 import org.opensourcephysics.controls.ListChooser;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
-import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.AbstractAutoloadManager;
@@ -39,8 +36,6 @@ import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.Parameter;
 import org.opensourcephysics.tools.ToolsRes;
-import org.opensourcephysics.tools.TristateCheckBox;
-
 import javajs.async.AsyncDialog;
 import javajs.async.AsyncFileChooser;
 
@@ -788,6 +783,13 @@ public class TrackDataBuilder extends FunctionTool {
 		public void setVisible(boolean vis) {
 			super.setVisible(vis);
 			if (!vis) {
+				Tracker.autoloadDataFunctions();
+				Tracker.savePreferences();
+				// reload autoloaded functions into existing panels
+				for (String name : getPanelNames()) {
+					DataFunctionPanel panel = (DataFunctionPanel) getPanel(name);
+					addPanel(name, panel);
+				}				
 				// save non-default search paths in Tracker.preferredAutoloadSearchPaths
 				Collection<String> searchPaths = getSearchPaths();
 				Collection<String> defaultPaths = Tracker.getDefaultAutoloadSearchPaths();
@@ -832,118 +834,37 @@ public class TrackDataBuilder extends FunctionTool {
 			return trackName;
 		}
 
-		/**
-		 * Sets the selection state of a function.
-		 *
-		 * @param filePath the path to the file defining the function
-		 * @param function the function {name, expression, optional descriptor}
-		 * @param select   true to select the function
-		 */
-		@Override
-		protected void setFunctionSelected(String filePath, String[] function, boolean select) {
+//		@Override
+//		protected void setFunctionSelected(String filePath, String[] function, boolean select) {
+//			super.setFunctionSelected(filePath, function, select);
+//			Tracker.autoloadDataFunctions();			
+//			// reload autoloaded functions into existing panels
+//			for (String name : getPanelNames()) {
+//				DataFunctionPanel panel = (DataFunctionPanel) getPanel(name);
+//				addPanel(name, panel);
+//			}
+//
+//		}
 
-			String[] oldExclusions = Tracker.autoloadMap.get(filePath);
-			String[] newExclusions = null;
-			if (!select) {
-				// create or add entry to newExclusions
-				if (oldExclusions == null) {
-					newExclusions = new String[] { function[0] };
-				} else {
-					int n = oldExclusions.length;
-					newExclusions = new String[n + 1];
-					System.arraycopy(oldExclusions, 0, newExclusions, 0, n);
-					newExclusions[n] = function[0];
-				}
-			} else if (oldExclusions != null) {
-				// remove entry
-				int n = oldExclusions.length;
-				if (n > 1) {
-					ArrayList<String> exclusions = new ArrayList<String>();
-					for (String f : oldExclusions) {
-						if (f.equals(function[0]))
-							continue;
-						exclusions.add(f);
-					}
-					newExclusions = exclusions.toArray(new String[exclusions.size()]);
-				}
-			}
-
-			Tracker.autoloadMap.remove(filePath);
-			if (newExclusions != null) {
-				Tracker.autoloadMap.put(filePath, newExclusions);
-			}
-
-			Tracker.autoloadDataFunctions();
-			refreshAutoloadData();
-			// reload autoloaded functions into existing panels
-			for (String name : getPanelNames()) {
-				DataFunctionPanel panel = (DataFunctionPanel) getPanel(name);
-				addPanel(name, panel);
-			}
-
-		}
-
-		/**
-		 * Gets the selection state of a function.
-		 *
-		 * @param filePath the path to the file defining the function
-		 * @param function the function {name, expression, optional descriptor}
-		 * @return true if the function is selected
-		 */
-		@Override
-		protected boolean isFunctionSelected(String filePath, String[] function) {
-			String[] functions = Tracker.autoloadMap.get(filePath);
-			if (functions == null)
-				return true;
-			for (String name : functions) {
-				if (name.equals("*")) //$NON-NLS-1$
-					return false;
-				if (name.equals(function[0]))
-					return false;
-			}
-			return true;
-		}
-
-		/**
-		 * will fail in SwingJS 
-		 * 
-		 * Sets the selection state of a file. Note that PART_SELECTED is not an option.
-		 *
-		 * @param filePath the path to the file
-		 * @param select   true/false to select/deselect the file and all its functions
-		 */
-		@Override
-		protected void setFileSelected(String filePath, boolean select) {
-			Tracker.autoloadMap.remove(filePath);
-			if (!select) {
-				String[] function = new String[] { "*" }; //$NON-NLS-1$
-				Tracker.autoloadMap.put(filePath, function);
-			}
-			Tracker.autoloadDataFunctions();
-			refreshAutoloadData();
-			// reload autoloaded functions into existing panels
-			for (String name : getPanelNames()) {
-				DataFunctionPanel panel = (DataFunctionPanel) getPanel(name);
-				addPanel(name, panel);
-			}
-		}
-
-		/**
-		 * Gets the selection state of a file.
-		 *
-		 * @param filePath the path to the file
-		 * @return TristateCheckBox.SELECTED, NOT_SELECTED or PART_SELECTED
-		 */
-		@Override
-		protected TristateCheckBox.State getFileSelectionState(String filePath) {
-			String[] functions = Tracker.autoloadMap.get(filePath);
-			if (functions == null)
-				return TristateCheckBox.SELECTED;
-			if (functions[0].equals("*")) //$NON-NLS-1$
-				return TristateCheckBox.NOT_SELECTED;
-			return TristateCheckBox.PART_SELECTED;
-		}
-
+//		/**
+//		 * will fail in SwingJS 
+//		 * 
+//		 * Sets the selection state of a file.
+//		 *
+//		 * @param filePath the path to the file
+//		 * @param select   true/false to select/deselect the file and all its functions
+//		 */
+//		@Override
+//		protected void setFileSelected(String filePath, boolean select) {
+//			super.setFileSelected(filePath, select);			
+//			Tracker.autoloadDataFunctions();
+//			// reload autoloaded functions into existing panels
+//			for (String name : getPanelNames()) {
+//				DataFunctionPanel panel = (DataFunctionPanel) getPanel(name);
+//				addPanel(name, panel);
+//			}
+//		}
+//
 		/**
 		 * Refreshes the autoload data.
 		 */
@@ -973,6 +894,11 @@ public class TrackDataBuilder extends FunctionTool {
 				}
 			}
 			return paths;
+		}
+
+		@Override
+		protected Map<String, String[]> getExclusionsMap() {
+			return Tracker.autoloadMap;
 		}
 
 	}
