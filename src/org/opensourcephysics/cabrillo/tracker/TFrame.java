@@ -629,6 +629,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
 			// remove the tab immediately
 			synchronized (tabbedPane) {
+				trackerPanel.trackControl.dispose();
 				tabbedPane.remove(tab);
 				tabbedPane.remove(tabPanel);
 			}
@@ -717,7 +718,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		removePropertyChangeListener("radian_angles", trackerPanel); //$NON-NLS-1$
 
 		// dispose of the track control, clip inspector and player bar
-		TrackControl.getControl(trackerPanel).dispose();
+//		TrackControl.getControl(trackerPanel).dispose();
 		ClipInspector ci = trackerPanel.getPlayer().getVideoClip().getClipInspector();
 		if (ci != null) {
 			ci.dispose();
@@ -741,7 +742,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 		// clear the drawables AFTER disposing of main view
 		ArrayList<TTrack> tracks = trackerPanel.getTracks();
-		trackerPanel.clear();
+		trackerPanel.clear(false);
 		for (TTrack track : tracks) {
 			track.dispose();
 		}

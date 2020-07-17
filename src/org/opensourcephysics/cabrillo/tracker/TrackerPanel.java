@@ -352,7 +352,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			Undo.postVideoReplace(this, state);
 		}
 		TMat mat = getMat();
-		if (mat != null)
+		if (mat != null && newVideo != null)
 			mat.refresh();
 		if (modelBuilder != null) {
 			modelBuilder.refreshSpinners();
@@ -1010,22 +1010,26 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * Overrides VideoPanel clear method.
 	 */
 	@Override
-	public synchronized void clear() {
+	public void clear() {
+		clear(true);
+	}
+	
+	synchronized void clear(boolean andSetCoords) {
 		long t0 = Performance.now(0);
 		setSelectedTrack(null);
 		selectedPoint = null;
 		ArrayList<TTrack> list = getTracks();
-		for (int i = 0, n = list.size(); i < n; i++) {
-			TTrack track = list.get(i);
-			removeMyListenerFrom(track);
-			// handle case when track is the origin of current reference frame
-			ImageCoordSystem coords = getCoords();
-			if (coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == track) {
-				// set coords to underlying coords
-				coords = ((ReferenceFrame) coords).getCoords();
-				setCoords(coords);
+			for (int i = 0, n = list.size(); i < n; i++) {
+				TTrack track = list.get(i);
+				removeMyListenerFrom(track);
+				// handle case when track is the origin of current reference frame
+				ImageCoordSystem coords = getCoords();
+				if (andSetCoords && coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == track) {
+					// set coords to underlying coords
+					coords = ((ReferenceFrame) coords).getCoords();
+					setCoords(coords);
+				}
 			}
-		}
 		TMat mat = getMat();
 		if (mat != null) {
 			mat.cleanup();
@@ -1093,8 +1097,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				firePropertyChange(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, null, null);
 			} catch (Exception e) {
 			}
-		} else
+		} else {
+			// BH note that video.setCoords will loop around and fire ImageCoordSystem.PROPERTY_COORDS_TRANSFORM itself
 			video.setCoords(_coords);
+		}
 	}
 
 	/**
@@ -3093,11 +3099,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		}
 
-		long t0 = Performance.now(0);
+//		long t0 = Performance.now(0);
 
-		super.paintComponent(g);
+		 OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paintComp 0",
+		 Performance.TIME_MARK));
+
+		 super.paintComponent(g);
 		showFilterInspectors();
-		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.paintComponent");
+//		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.paintComponent");
+//		 OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paintCOmp 1",
+//		 Performance.TIME_MARK));
 	}
 
 	/**

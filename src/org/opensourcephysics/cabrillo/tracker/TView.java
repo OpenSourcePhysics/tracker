@@ -48,12 +48,11 @@ public interface TView extends PropertyChangeListener {
 	int VIEW_PAGE = 3;
 
 	// view icons to show in chooserButton
-	Icon[] VIEW_ICONS =
-		{PlotTView.PLOTVIEW_ICON, TableTView.TABLEVIEW_ICON, WorldTView.WORLDVIEW_ICON, PageTView.PAGEVIEW_ICON};
+	Icon[] VIEW_ICONS = { PlotTView.PLOTVIEW_ICON, TableTView.TABLEVIEW_ICON, WorldTView.WORLDVIEW_ICON,
+			PageTView.PAGEVIEW_ICON };
 
 	// view names for chooserButton are localizable
-	String[] VIEW_NAMES =
-		{"TFrame.View.Plot", "TFrame.View.Table", "TFrame.View.World", "TFrame.View.Text"};
+	String[] VIEW_NAMES = { "TFrame.View.Plot", "TFrame.View.Table", "TFrame.View.World", "TFrame.View.Text" };
 
 	/**
 	 * Initializes the view
@@ -127,16 +126,16 @@ public interface TView extends PropertyChangeListener {
 	default public boolean isViewPaneVisible() {
 		TrackerPanel tp = getTrackerPanel();
 		TFrame tf;
-		if (tp == null || (tf = tp.getTFrame()) == null
-				|| tf.getTabCount() == 0)
+		if (tp == null || (tf = tp.getTFrame()) == null || tf.getTabCount() == 0)
 			return false;
 		TView[][] views = tf.getTViews(tp);
 		for (int i = 0; i < views.length; i++) {
-			for (int j = 0; j < views[i].length; j++) {
-				if (views[i][j] == this) {
-					return tf.isViewPaneVisible(i, tp);
+			if (views[i] != null)
+				for (int j = 0; j < views[i].length; j++) {
+					if (views[i][j] == this) {
+						return tf.isViewPaneVisible(i, tp);
+					}
 				}
-			}			
 		}
 		return false;
 	}

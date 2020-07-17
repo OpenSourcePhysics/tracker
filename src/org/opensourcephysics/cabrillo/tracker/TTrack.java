@@ -2406,7 +2406,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * Repaints all steps on all panels.
 	 */
 	public void repaint() {
-		if (trackerPanel == null)
+		if (trackerPanel == null || !trackerPanel.isPaintable())
 			return;
 		remark();
 		for (int i = 0; i < trackerPanel.panelAndWorldViews.size(); i++) {
