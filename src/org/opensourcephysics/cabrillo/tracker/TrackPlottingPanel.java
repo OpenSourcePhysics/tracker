@@ -181,9 +181,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		setCoordinateStringBuilder(coordStringBuilder);
 		// don't create radio buttons and popups to set x and y variables
 		setVariables();
-		// create clickable axes
-		plotAxes = new ClickableAxes(this);
-		setAxes(plotAxes);
 
 		// add plotMouseListener
 		mouseListener = new PlotMouseListener();
@@ -231,6 +228,12 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		});
 	}
 
+	@Override 
+	protected void initAxes() {
+		// create clickable axes
+		setAxes(plotAxes = new ClickableAxes(this));
+	}
+	
 	@Override
 	public void send(Job job, Tool replyTo) {
 		XMLControlElement control = new XMLControlElement();

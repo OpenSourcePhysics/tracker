@@ -1,0 +1,177 @@
+[ after adding check for TrackerPanel.isPaintable() in PointMass.repaint() - second run -- all files loaded - 9.2 sec ]
+
+j2sApplet DnD kind=file type=application/tracker name=FallingToastRotationAboutCenterOfMass.trz size=5675485
+JSDnD[] drop for FrameUI target null
+JSDnD drop for FrameUI offset 365 167
+OSPLog.debug TrackerIO openTabFile /TEMP/FallingToastRotationAboutCenterOfMass.trz
+OSPLog.debug TrackerIO openTabPath /TEMP/FallingToastRotationAboutCenterOfMass.trz
+OSPLog.debug Platform: timer mark    257.504    13.061    TrackerPanel.AsyncLoad start /TEMP/FallingToastRotationAboutCenterOfMass.trz
+
+
+JSTFUI create 100% testApplet_FormattedTextFieldUI_1453_1501
+OSPLog.debug StepperClipControl.delay = 10
+OSPLog.debug VideoPlayer.updateSlider slider6 0 9
+OSPLog.debug Platform: timer mark    257.728    0.224    TrackerPanel.AsyncLoad 1 start 0 /TEMP/FallingToastRotationAboutCenterOfMass.trz
+OSPLog.debug TrackerIO found trk file file:/TEMP/FallingToastRotationAboutCenterOfMass.trz!/FallingToastRoationAboutCenterOfMass.trk
+OSPLog.debug !!! 52 XMLControlElement.readData org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug Platform: timer mark    257.799    0.071    TrackerPanel.AsyncLoad 1 end 100 /TEMP/FallingToastRotationAboutCenterOfMass.trz
+OSPLog.debug TrackerIO opening URL file:/TEMP/FallingToastRotationAboutCenterOfMass.trz!/FallingToastRoationAboutCenterOfMass.trk
+OSPLog.debug TrackerIO openTabPath file:/TEMP/FallingToastRotationAboutCenterOfMass.trz!/FallingToastRoationAboutCenterOfMass.trk
+OSPLog.debug Platform: timer mark    257.809    0.01    TrackerPanel.AsyncLoad start file:/TEMP/FallingToastRotationAboutCenterOfMass.trz!/FallingToastRoationAboutCenterOfMass.trk
+OSPLog.debug Platform: timer mark    257.811    0.002    TrackerPanel.AsyncLoad done /TEMP/FallingToastRotationAboutCenterOfMass.trz
+OSPLog.debug !!! 305 AyncLoad /TEMP/FallingToastRotationAboutCenterOfMass.trz
+JSTFUI create 100% testApplet_FormattedTextFieldUI_1482_1531
+OSPLog.debug StepperClipControl.delay = 10
+OSPLog.debug VideoPlayer.updateSlider slider7 0 9
+OSPLog.debug !!! 33 XMLControlElement.readData org.opensourcephysics.cabrillo.tracker.TrackerPanel
+OSPLog.debug Platform: timer mark    258.021    0.21    TrackerPanel.AsyncLoad 2 start 0 /TEMP/FallingToastRotationAboutCenterOfMass.trz!/FallingToastRoationAboutCenterOfMass.trk
+OSPLog.debug Platform: timer mark    258.031    0.01    ImageVideo.getImageAtFrame0 0
+OSPLog.debug Platform: timer mark    258.032    0.001    ImageVideo.getImageAtFrame1 0
+OSPLog.debug Platform: timer mark    258.034    0.002    TrackerPanel.finalizeLoading1
+OSPLog.debug TFrame.paintHold=1
+OSPLog.debug TrackerPanel.finalizeLoading start
+OSPLog.debug StepperClipControl.delay = 10
+OSPLog.debug VideoPlayer.updateSlider slider7 0 135
+OSPLog.debug VideoPanel.prop videoclip
+OSPLog.debug Platform: timer mark    258.039    0.005    TrackerPanel.finalizeLoading finalizeClip
+OSPLog.debug Platform: timer mark    258.039    0.0    TrackerPanel.finalizeLoading load metadata
+OSPLog.debug Platform: timer mark    258.04    0.001    TrackerPanel.finalizeLoading clipControl
+OSPLog.debug TToolBar refresh from create gui
+OSPLog.debug Platform: timer mark    258.309    0.269    TrackerPanel.finalizeLoading toolbar
+OSPLog.debug Platform: timer mark    258.31    0.001    TrackerPanel.finalizeLoading coords
+OSPLog.debug Platform: timer mark    258.311    0.001    TrackerPanel.finalizeLoading number formats
+OSPLog.debug TToolBar refresh from property track
+OSPLog.debug TToolBar refresh from property track
+OSPLog.debug TToolBar refresh from property track
+OSPLog.debug TToolBar refresh from property track
+OSPLog.debug TToolBar refresh from property track
+OSPLog.debug Platform: timer mark    259.726    1.415    TrackerPanel.finalizeLoading load tracks
+
+
+OSPLog.debug TToolBar refresh from property selected track
+OSPLog.debug !!! 1719 TrackerPanel.finalizeLoading
+OSPLog.debug TrackerPanel.finalizeLoading done
+OSPLog.debug Platform: timer mark    259.778    0.052    TViewChooser 0
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug Platform: timer mark    259.809    0.031    PlotTrackView constr0 for PointMass masa A 9
+OSPLog.debug PointMass masa A updateDerivatives start 0 for steps 136
+OSPLog.debug Platform: timer mark    259.874    0.065    PlotTrackView constr1 for PointMass masa A 9 plots=3
+OSPLog.debug Platform: timer mark    259.883    0.009    PlotTrackView constr0 for PointMass masa B 10
+OSPLog.debug PointMass masa B updateDerivatives start 0 for steps 136
+OSPLog.debug Platform: timer mark    259.937    0.054    PlotTrackView constr1 for PointMass masa B 10 plots=3
+OSPLog.debug Platform: timer mark    259.947    0.01    PlotTrackView constr0 for Center Of Mass
+OSPLog.debug PointMass cm A updateDerivatives start 0 for steps 136
+OSPLog.debug Platform: timer mark    260.013    0.066    PlotTrackView constr1 for Center Of Mass plots=3
+OSPLog.debug TrackChooser.setSelected PointMass masa A 9
+OSPLog.debug TrackChooser.setSelected found PointMass masa A 9
+OSPLog.debug Platform: timer mark    260.036    0.023    TViewChooser 1
+OSPLog.debug TrackChooser.setSelected null
+OSPLog.debug TrackChooser.setSelected PointMass masa A 9
+OSPLog.debug TrackChooser.setSelected found PointMass masa A 9
+OSPLog.debug Platform: timer mark    260.144    0.108    TViewChooser 2
+JSTFUI create 100% testApplet_FormattedTextFieldUI_2157_2168
+OSPLog.debug StepperClipControl.delay = 10
+OSPLog.debug VideoPlayer.updateSlider slider8 0 9
+OSPLog.debug Platform: timer mark    260.231    0.087    TViewChooser 3
+OSPLog.debug TToolBar refresh from create gui
+OSPLog.debug TrackChooser.setSelected PointMass masa B 10
+OSPLog.debug TrackChooser.setSelected found PointMass masa B 10
+OSPLog.debug TrackChooser.setSelected PointMass masa B 10
+OSPLog.debug TrackChooser.setSelected found PointMass masa B 10
+OSPLog.debug TrackChooser.setSelected Center Of Mass
+OSPLog.debug TrackChooser.setSelected PointMass masa B 10
+OSPLog.debug TrackChooser.setSelected found PointMass masa B 10
+OSPLog.debug TrackChooser.setSelected Center Of Mass
+OSPLog.debug TableTrackView.refresh 1100 track=PointMass masa A 9
+OSPLog.debug Platform: timer mark    260.945    0.714    DataTable.refreshTable0 4352
+OSPLog.debug >>>>DataTable.refreshTableNow 1100 true
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    260.947    0.002    DataTable.refreshTable1 1100
+OSPLog.debug TableTrackView.refresh 1100 track=PointMass masa B 10
+OSPLog.debug Platform: timer mark    260.949    0.002    DataTable.refreshTable0 4352
+OSPLog.debug >>>>DataTable.refreshTableNow 1100 true
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    260.95    0.001    DataTable.refreshTable1 1100
+OSPLog.debug TableTrackView.refresh 1100 track=Center Of Mass
+OSPLog.debug Platform: timer mark    260.952    0.002    DataTable.refreshTable0 4352
+OSPLog.debug >>>>DataTable.refreshTableNow 1100 true
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    260.953    0.001    DataTable.refreshTable1 1100
+OSPLog.debug TrackChooser.setSelected PointMass masa A 9
+OSPLog.debug TableTrackView.refresh 1a00 track=PointMass masa A 9
+OSPLog.debug Platform: timer mark    260.955    0.002    DataTable.refreshTable0 6656
+OSPLog.debug >>>>DataTable.refreshTableNow 1a00 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    260.956    0.001    DataTable.refreshTable1 1a00
+OSPLog.debug TrackChooser.setSelected PointMass masa B 10
+OSPLog.debug TrackChooser.setSelected found PointMass masa B 10
+OSPLog.debug TableTrackView.refresh 1900 track=PointMass masa B 10
+OSPLog.debug Platform: timer mark    260.958    0.002    DataTable.refreshTable0 6400
+OSPLog.debug >>>>DataTable.refreshTableNow 1900 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    260.959    0.001    DataTable.refreshTable1 1900
+OSPLog.debug TableTrackView.refresh 1100 track=PointMass masa A 9
+OSPLog.debug Platform: timer mark    260.974    0.015    DataTable.refreshTable0 4352
+OSPLog.debug >>>>DataTable.refreshTableNow 1100 true
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    260.975    0.001    DataTable.refreshTable1 1100
+OSPLog.debug TableTrackView.refresh 1100 track=PointMass masa B 10
+OSPLog.debug Platform: timer mark    260.977    0.002    DataTable.refreshTable0 4352
+OSPLog.debug >>>>DataTable.refreshTableNow 1100 true
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    260.979    0.002    DataTable.refreshTable1 1100
+OSPLog.debug TableTrackView.refresh 1100 track=Center Of Mass
+OSPLog.debug Platform: timer mark    260.981    0.002    DataTable.refreshTable0 4352
+OSPLog.debug >>>>DataTable.refreshTableNow 1100 true
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    260.982    0.001    DataTable.refreshTable1 1100
+OSPLog.debug TrackChooser.setSelected PointMass masa B 10
+OSPLog.debug TrackChooser.setSelected found PointMass masa B 10
+OSPLog.debug TableTrackView.refresh 1900 track=PointMass masa B 10
+OSPLog.debug Platform: timer mark    260.985    0.003    DataTable.refreshTable0 6400
+OSPLog.debug >>>>DataTable.refreshTableNow 1900 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    260.986    0.001    DataTable.refreshTable1 1900
+OSPLog.debug TrackChooser.setSelected Center Of Mass
+OSPLog.debug TrackChooser.setSelected Center Of Mass
+OSPLog.debug TrackChooser.setSelected Center Of Mass
+OSPLog.debug TrackChooser.setSelected Center Of Mass
+OSPLog.debug TrackerPanel.refreshTrackData true
+OSPLog.debug TableTrackView.refresh 1c00 track=PointMass masa B 10
+OSPLog.debug Platform: timer mark    262.345    1.359    DataTable.refreshTable0 7168
+OSPLog.debug >>>>DataTable.refreshTableNow 1c00 false
+OSPLog.debug OSPDataTableModel rebuild track
+OSPLog.debug Platform: timer mark    262.347    0.002    DataTable.refreshTable1 1c00
+OSPLog.debug TToolBar refresh from TFrame.refresh
+OSPLog.debug Platform: timer mark    262.351    0.004    TrackerPanel.AsyncLoad 2 end 100 /TEMP/FallingToastRotationAboutCenterOfMass.trz!/FallingToastRoationAboutCenterOfMass.trk
+OSPLog.debug MainTView testing no repaint
+OSPLog.debug TFrame.paintHold cleared
+
+
+OSPLog.debug TToolBar refresh from TFrame.refresh
+OSPLog.debug Platform: timer mark    262.758    0.407    TTrackbar.rebuild0
+JSTFUI create 1.000 kg testApplet_TextFieldUI_1716_1739
+OSPLog.debug Platform: timer mark    262.835    0.077    TTrackbar.rebuild1
+OSPLog.debug Platform: timer mark    262.836    0.001    TrackerPanel.AsyncLoad done file:/TEMP/FallingToastRotationAboutCenterOfMass.trz!/FallingToastRoationAboutCenterOfMass.trk
+OSPLog.debug !!! 5027 AyncLoad file:/TEMP/FallingToastRotationAboutCenterOfMass.trz!/FallingToastRoationAboutCenterOfMass.trk
+OSPLog.debug Platform: timer mark    262.949    0.113    TToolBar refreshAsync
+OSPLog.debug Platform: timer mark    263.252    0.303    TToolBar rebuild
+OSPLog.debug Platform: timer mark    263.252    0.0    TToolBar rebuild validate
+OSPLog.debug Platform: timer mark    263.345    0.093    TToolBar refreshAsync tracks
+OSPLog.debug Platform: timer mark    263.351    0.006    TToolBar refreshAsync sortPageView
+OSPLog.debug !!! 403 TToolBar refresh async
+OSPLog.debug Platform: timer mark    263.556    0.205    TrackerPanel.paintComp 0
+OSPLog.debug MainTView testing no repaint
+OSPLog.debug TFrame repaint 0 0 1024 592 true
+OSPLog.debug skipping TrackerIO addToLibrary /TEMP/FallingToastRotationAboutCenterOfMass.trz
+OSPLog.debug Platform: timer mark    263.9    0.344    TrackerPanel.paintComp 0
+OSPLog.debug Platform: timer mark    264.083    0.183    TToolBar refreshAsync
+OSPLog.debug Platform: timer mark    265.001    0.918    TToolBar rebuild
+OSPLog.debug Platform: timer mark    265.422    0.421    TToolBar rebuild validate
+OSPLog.debug TrackerPanel repaint 3
+OSPLog.debug Platform: timer mark    265.53    0.108    TToolBar refreshAsync tracks
+OSPLog.debug Platform: timer mark    265.537    0.007    TToolBar refreshAsync sortPageView
+OSPLog.debug !!! 1455 TToolBar refresh async
+OSPLog.debug Platform: timer mark    266.72    1.183    TrackerPanel.paintComp 0
+OSPLog.debug MainTView testing no repaint
+JSTFUI create 0 testApplet_TextFieldUI_2342_2443

@@ -2011,7 +2011,7 @@ public class TableTrackView extends TrackView {
 		}
 
 		@Override
-		public void refreshTable(int mode) {
+		public void refreshTable(int mode) {			
 			super.refreshTable(mode, true);
 			if (mode == DataTable.MODE_TRACK_STEPS)
 				refreshToolbar();
