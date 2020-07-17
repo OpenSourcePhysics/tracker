@@ -144,7 +144,7 @@ public class TrackControl extends JDialog
 			if (!frame.isVisible())
 				return;
 			Point p = frame.getLocationOnScreen();
-			setLocation(p.x + frame.getWidth() / 2 - getWidth() / 2, p.y + 30);
+			setLocation(p.x + frame.getWidth() / 2 - getWidth() / 2, p.y + 90);
 			positioned = true;
 		}
 		if (vis && trackCount == 0 && !isEmpty())
