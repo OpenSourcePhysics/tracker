@@ -998,7 +998,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		Double x = null, y = null;
 		int n;
 		if (xMean != Double.NaN && (n = yData.getRowCount()) > 0) {
-			if(false)return;
+			if(false)return; // pig why??
 			for (int i = 0; i < n; i++) {
 				y = (Double) yData.getValueAt(i, 1);
 				if (xIndex == -1)
