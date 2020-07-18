@@ -55,7 +55,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	protected double[] state = new double[5]; // {x, vx, y, vy, t}
 	protected double[] initialState = new double[5]; // {x, vx, y, vy, t}
 	protected ODESolver solver = new RK4(this);
-	protected int iterationsPerStep = 100;
+	protected int iterationsPerStep = 10;
 	protected DynamicSystem system;
 	protected HashMap<Integer, double[]> frameStates = new HashMap<Integer, double[]>();
 	protected ModelBooster modelBooster = new ModelBooster();

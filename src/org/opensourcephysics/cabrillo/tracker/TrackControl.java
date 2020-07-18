@@ -64,7 +64,7 @@ public class TrackControl extends JDialog
   protected JToolBar[] trackBars = new JToolBar[0];
   protected boolean positioned = false;
   protected int trackCount;
-  protected boolean isVisible = true;
+  protected boolean isVisible;
   protected KeyListener shiftKeyListener;
 
   protected Point pt0;
@@ -288,11 +288,11 @@ public void dispose() {
     FontSizer.setFonts(this);
     pack();
    TFrame.repaintT(this);
-   setVisible(isVisible && trackCount > 0);
-   if (trackCount == 0)
-	   isVisible = true;
-   //if (trackCount==0)
-//    	setVisible(false);
+//   setVisible(isVisible && trackCount > 0);
+//   if (trackCount == 0)
+//	   isVisible = true;
+   if (trackCount==0)
+    	setVisible(false);
     TFrame frame = trackerPanel.getTFrame();
     if (frame != null) {
       frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
