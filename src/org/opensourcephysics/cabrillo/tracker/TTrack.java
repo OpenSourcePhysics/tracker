@@ -2976,7 +2976,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			}
 		}
 		steps = null;
-		setTrackerPanel(null);
+		setTrackerPanelWithListeners(null);
 	}
 
 	/**
@@ -3697,6 +3697,19 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public void notifySteps() {
 		// this call will update TrackPlottingPanel
 		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
+	}
+
+	public void setTrackerPanelWithListeners(TrackerPanel panel) {
+		if (trackerPanel != null) {
+			trackerPanel.removePropertyChangeListener(this);
+		}
+		trackerPanel = panel;
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(this);
+		}
+
+		// TODO Auto-generated method stub
+		
 	}
 
 

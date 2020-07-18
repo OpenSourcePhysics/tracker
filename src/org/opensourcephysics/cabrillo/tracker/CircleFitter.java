@@ -1170,13 +1170,7 @@ public class CircleFitter extends TTrack {
 
 	@Override
 	protected void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(this);
-		}
-		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener(this);
-		}
+		setTrackerPanelWithListeners(panel);
 		setFixed(isFixed());
 	}
 

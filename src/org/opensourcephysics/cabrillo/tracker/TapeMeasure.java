@@ -1057,13 +1057,8 @@ public class TapeMeasure extends InputTrack {
 	 */
 	@Override
 	protected void setTrackerPanel(TrackerPanel panel) {
+		setTrackerPanelWithListeners(panel);
 		if (trackerPanel != null) {
-			trackerPanel.removeMouseListener(editListener);
-			trackerPanel.removePropertyChangeListener(this);
-		}
-		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addMouseListener(editListener);
 			boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
 			setFixedPosition(isFixedPosition() && canBeFixed);
 		}

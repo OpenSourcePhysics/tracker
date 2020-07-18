@@ -694,18 +694,7 @@ public class Protractor extends InputTrack {
 	 */
 	@Override
 	protected void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {
-			trackerPanel.removeMouseListener(editListener);
-//			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
-			trackerPanel.removePropertyChangeListener(this);
-
-		}
-		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addMouseListener(editListener);
-// BH already full listener			trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
-			trackerPanel.addPropertyChangeListener(this);
-		}
+		setTrackerPanelWithListeners(panel);
 		setFixedPosition(isFixedPosition());
 	}
 
