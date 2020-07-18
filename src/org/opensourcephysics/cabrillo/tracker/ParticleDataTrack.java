@@ -1075,7 +1075,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			next.setLastValidFrame(-1);
 		}
 		TFrame.repaintT(trackerPanel);
-		firePropertyChange("startframe", null, getStartFrame()); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_DATATRACK_STARTFRAME, null, getStartFrame()); //$NON-NLS-1$
 		if (trackerPanel != null) {
 			trackerPanel.getModelBuilder().refreshSpinners();
 			int stepNum = clip.frameToStep(startFrame);

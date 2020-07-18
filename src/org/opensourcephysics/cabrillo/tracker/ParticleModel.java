@@ -23,23 +23,49 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.text.NumberFormat;
-import java.util.*;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 
-import javax.swing.*;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
-import org.opensourcephysics.media.core.*;
-import org.opensourcephysics.controls.*;
+import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.tools.*;
+import org.opensourcephysics.media.core.ClipControl;
+import org.opensourcephysics.media.core.DataTrack;
+import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.Trackable;
+import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.tools.FunctionEditor;
+import org.opensourcephysics.tools.FunctionTool;
+import org.opensourcephysics.tools.InitialValueEditor;
+import org.opensourcephysics.tools.ParamEditor;
+import org.opensourcephysics.tools.Parameter;
+import org.opensourcephysics.tools.UserFunction;
+import org.opensourcephysics.tools.UserFunctionEditor;
 
 import javajs.async.SwingJSUtils.Performance;
 
@@ -82,7 +108,7 @@ abstract public class ParticleModel extends PointMass {
 	protected boolean useDefaultReferenceFrame;
 
 	protected JMenuItem modelBuilderItem, useDefaultRefFrameItem, stampItem;
-	
+
 	protected PropertyChangeListener massParamListener, timeParamListener;
 
 	protected void setLastValidFrame(int i) {
@@ -111,7 +137,8 @@ abstract public class ParticleModel extends PointMass {
 		setName(TrackerRes.getString("ParticleModel.New.Name")); //$NON-NLS-1$
 		long t0 = Performance.now(0);
 		initializeFunctionPanel();
-		//OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.initializeFunctionPanel");
+		// OSPLog.debug("!!! " + Performance.now(t0) + "
+		// ParticleModel.initializeFunctionPanel");
 		// set initial hint
 		hint = TrackerRes.getString("ParticleModel.Hint"); //$NON-NLS-1$
 	}
@@ -126,17 +153,20 @@ abstract public class ParticleModel extends PointMass {
 	public void draw(DrawingPanel panel, Graphics _g) {
 		if (!(panel instanceof TrackerPanel) || trackerPanel == null)
 			return;
-		//OSPLog.debug("ParticleModel.draw frame " + trackerPanel.getFrameNumber() + "/" + lastValidFrame + " " + isVisible() );
+		// OSPLog.debug("ParticleModel.draw frame " + trackerPanel.getFrameNumber() +
+		// "/" + lastValidFrame + " " + isVisible() );
 		long t0 = Performance.now(0);
 
 		int fn = trackerPanel.getFrameNumber();
 		if (isVisible() && fn > lastValidFrame) {
 			refreshSteps("draw");
 		}
-		//OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.paintComponent-draw-refreshsteps");
+		// OSPLog.debug("!!! " + Performance.now(t0) + "
+		// ParticleModel.paintComponent-draw-refreshsteps");
 		t0 = Performance.now(0);
 		drawMe(panel, _g);
-		//OSPLog.debug("!!! " + Performance.now(t0) + " ParticleModel.paintComponent-drawme");
+		// OSPLog.debug("!!! " + Performance.now(t0) + "
+		// ParticleModel.paintComponent-drawme");
 	}
 
 	/**
@@ -223,13 +253,15 @@ abstract public class ParticleModel extends PointMass {
 		super.propertyChange(e);
 		if (trackerPanel == null)
 			return;
+		boolean dorefresh = (!refreshing && isModelsVisible());
+		String resetMe = null;
 		String name = e.getPropertyName();
 		switch (name) {
 //		System.out.println(name);
-		case "function":
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION:
 			if (!loading)
 				trackerPanel.changed = true;
-			setLastValidFrame(-1);
+			resetMe = "repaint";
 			break;
 		case TFrame.PROPERTY_TFRAME_TAB: // $NON-NLS-1$
 			if (modelBuilder != null) {
@@ -248,52 +280,57 @@ abstract public class ParticleModel extends PointMass {
 				trackerPanel.getTFrame().getClipboardListener().processContents(trackerPanel);
 			}
 			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK: //$NON-NLS-1$
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
 			if (e.getNewValue() == this && modelBuilder != null && !modelBuilder.getSelectedName().equals(getName())) {
 				modelBuilder.setSelectedPanel(getName());
 			}
 			break;
-		case "starttime": //$NON-NLS-1$
-		case "frameduration": //$NON-NLS-1$
-		case "startframe": //$NON-NLS-1$
-		case "stepsize": //$NON-NLS-1$
-			setLastValidFrame(-1);
+		case VideoClip.PROPERTY_VIDEOCLIP_STARTTIME:
+		case ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION:
+		case DataTrack.PROPERTY_DATATRACK_STARTFRAME:
+			resetMe = "time";
+			break;
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE:
+			resetMe = "refresh";
+			break;
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT:
+			// no reset to -1
+			if (dorefresh) {
+				refreshInitialTime();
+				refreshSteps(name);
+			}
 			break;
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // $NON-NLS-1$
 			// workaround to prevent infinite loop
 			ImageCoordSystem coords = trackerPanel.getCoords();
 			if (!(coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this)) {
-				setLastValidFrame(-1);
+				resetMe = "refresh";
+			}
+			break;
+		case Trackable.PROPERTY_ADJUSTING: // $NON-NLS-1$
+			if (dorefresh) {
+				refreshStepsLater = (Boolean) e.getNewValue();
+				if (!refreshStepsLater) { // stopped adjusting, so refresh steps
+					refreshSteps(name);
+				}
 			}
 			break;
 		}
-		if (!refreshing && isModelsVisible()) {
-			switch (name) {
-			case "function": //$NON-NLS-1$
-				repaint();
-				break;
-			case TPoint.PROPERTY_ADJUSTING: // $NON-NLS-1$
-				refreshStepsLater = (Boolean) e.getNewValue();
-				if (!refreshStepsLater) { // stopped adjusting, so refresh steps
-					refreshSteps("adjusting");
+		if (resetMe != null) {
+			setLastValidFrame(-1);
+			if (dorefresh) {
+				switch (resetMe) {
+				case "repaint":
+					repaint();
+					break;
+				case "refresh":
+					refreshSteps(name);
+					break;
+				case "time":
+					refreshInitialTime();
+					refreshSteps(name);
+					break;
 				}
-				break;
-			case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // $NON-NLS-1$
-				// workaround to prevent infinite loop
-				ImageCoordSystem coords = trackerPanel.getCoords();
-				if (!(coords instanceof ReferenceFrame && ((ReferenceFrame) coords).getOriginTrack() == this)) {
-					refreshSteps("transform");
-				}
-				break;
-			case "starttime": //$NON-NLS-1$
-			case "frameduration": //$NON-NLS-1$
-			case "startframe": //$NON-NLS-1$
-				refreshInitialTime();
-				refreshSteps(name);
-				break;
-			case "stepsize": //$NON-NLS-1$
-				refreshSteps(name);
-				break;
 			}
 		}
 	}
@@ -878,7 +915,7 @@ abstract public class ParticleModel extends PointMass {
 			if (model.aAtOrigin)
 				model.aTailsToOriginItem.doClick();
 			if (!refreshDerivsLater && singleStep) {
-					model.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n));
+				model.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n));
 			}
 			// erase refreshed steps
 			for (int i = start + 1; i <= end; i++) {
@@ -888,7 +925,7 @@ abstract public class ParticleModel extends PointMass {
 			}
 			model.locked = true;
 		}
-		
+
 		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps " + nCalc, Performance.TIME_MARK));
 		trackerPanel.getTFrame().holdPainting(false);
 		if (!refreshDerivsLater && !singleStep) {

@@ -105,6 +105,7 @@ import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.PerspectiveFilter;
 import org.opensourcephysics.media.core.SumFilter;
 import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoGrabber;
@@ -119,7 +120,6 @@ import org.opensourcephysics.tools.DataRefreshTool;
 import org.opensourcephysics.tools.DataTool;
 import org.opensourcephysics.tools.DataToolTab;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.LocalJob;
@@ -652,7 +652,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			super.addDrawable(track);
 		}
 
-		// all tracks handled below
+		// all tracks handle all TrackerPanel events
 		addPropertyChangeListener(track); // track listens for all properties
 		track.addListener(this);
 		// update track control and dataBuilder
@@ -2009,7 +2009,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			dataBuilder = new TrackDataBuilder(this);
 			dataBuilder.setHelpPath("data_builder_help.html"); //$NON-NLS-1$
 			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this);
-			dataBuilder.addPropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
+			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
 			dataBuilder.addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_VISIBLE, this);
 			dataBuilder.setFontLevel(FontSizer.getLevel());
 		}
@@ -2611,7 +2611,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE: // from videoClip //$NON-NLS-1$
 		case VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT: // from videoClip //$NON-NLS-1$
 		case VideoClip.PROPERTY_VIDEOCLIP_STARTTIME: // from videoClip //$NON-NLS-1$
-		case TPoint.PROPERTY_ADJUSTING: // from videoClip //$NON-NLS-1$
+		case Trackable.PROPERTY_ADJUSTING: // from videoClip //$NON-NLS-1$
 		case ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION: {// from clipControl //$NON-NLS-1$
 			changed = true;
 			if (modelBuilder != null)
@@ -2623,7 +2623,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				getVideo().setProperty("measure", null); //$NON-NLS-1$
 			}
 			firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // to views //$NON-NLS-1$
-			firePropertyChange(name, null, name == TPoint.PROPERTY_ADJUSTING ? e.getNewValue() : null); // to
+			firePropertyChange(name, null, name == Trackable.PROPERTY_ADJUSTING ? e.getNewValue() : null); // to
 																										// particle
 																										// models
 																										// //$NON-NLS-1$
@@ -2644,7 +2644,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (getVideo() == null && modelBuilder != null)
 				modelBuilder.refreshSpinners();
 			break;
-		case FunctionEditor.PROPERTY_FUNCTIONTOOL_FUNCTION: // from DataBuilder //$NON-NLS-1$
+		case FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION: // from DataBuilder //$NON-NLS-1$
 			changed = true;
 			firePropertyChange(PROPERTY_TRACKERPANEL_FUNCTION, null, e.getNewValue()); // to views //$NON-NLS-1$
 			break;
@@ -3289,7 +3289,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		if (dataBuilder != null) {
 			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_PANEL, this);
-			dataBuilder.removePropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
+			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, this);
 			dataBuilder.removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_VISIBLE, this);
 			dataBuilder.dispose();
 			dataBuilder = null;

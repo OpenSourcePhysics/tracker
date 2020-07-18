@@ -333,7 +333,7 @@ public void setLocked(boolean locked) {
 public void propertyChange(PropertyChangeEvent e) {
     if (e.getSource() instanceof TrackerPanel) {
       String name = e.getPropertyName();
-			if (name.equals(TPoint.PROPERTY_ADJUSTING)) { //$NON-NLS-1$
+			if (name.equals(Trackable.PROPERTY_ADJUSTING)) { //$NON-NLS-1$
 				refreshDataLater = (Boolean)e.getNewValue();
 				if (!refreshDataLater) {  // stopped adjusting
 					firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
