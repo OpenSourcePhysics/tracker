@@ -31,7 +31,6 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.AbstractAutoloadManager;
 import org.opensourcephysics.tools.DataFunctionPanel;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.Parameter;
@@ -60,7 +59,7 @@ public class TrackDataBuilder extends FunctionTool {
 		super(trackerPanel, false, true);
 		this.trackerPanel = trackerPanel;
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); // $NON-NLS-1$
-		addPropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
+		addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_VISIBLE, trackerPanel); // $NON-NLS-1$
 		ArrayList<Drawable> nogos = trackerPanel.getSystemDrawables();
 		Iterator<TTrack> it = trackerPanel.getTracks().iterator();
@@ -742,7 +741,7 @@ public class TrackDataBuilder extends FunctionTool {
 	@Override
 	public void dispose() {
 		removePropertyChangeListener(PROPERTY_FUNCTIONTOOL_PANEL, trackerPanel); // $NON-NLS-1$
-		removePropertyChangeListener(FunctionEditor.PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
+		removePropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
 		removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, trackerPanel); // $NON-NLS-1$
 		ToolsRes.removePropertyChangeListener("locale", this); //$NON-NLS-1$
 		if (autoloadManager != null) {

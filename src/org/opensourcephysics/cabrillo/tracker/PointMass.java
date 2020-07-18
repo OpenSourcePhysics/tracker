@@ -2321,7 +2321,7 @@ public class PointMass extends TTrack {
 						warning.setVisible(true);
 				}
 				break;
-			case TPoint.PROPERTY_ADJUSTING:
+			case Trackable.PROPERTY_ADJUSTING:
 				refreshDataLater = (Boolean) e.getNewValue();
 				if (!refreshDataLater) { // stopped adjusting
 					updateDerivatives();

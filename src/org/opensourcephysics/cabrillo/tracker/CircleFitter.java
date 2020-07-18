@@ -434,28 +434,34 @@ public class CircleFitter extends TTrack {
 
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		if (trackerPanel.getSelectedTrack() == this) {
-			if (name.equals("stepnumber")) { //$NON-NLS-1$
-				TTrackBar.getTrackbar(trackerPanel).refresh();
-			} else if (name.equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM)) { //$NON-NLS-1$
-				refreshFields(trackerPanel.getFrameNumber());
+		// events are via TrackerPanel
+		boolean isSelectedTrack = (trackerPanel.getSelectedTrack() == this);
+		switch (e.getPropertyName()) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
+			if (isSelectedTrack) {
+					TTrackBar.getTrackbar(trackerPanel).refresh();
 			}
-		}
-		if (name.equalsIgnoreCase("startframe") //$NON-NLS-1$
-				|| name.equalsIgnoreCase("stepcount") //$NON-NLS-1$
-				|| name.equalsIgnoreCase("stepsize") //$NON-NLS-1$
-				|| name.equalsIgnoreCase(PROPERTY_TTRACK_STEP) //$NON-NLS-1$
-				|| name.equalsIgnoreCase(PROPERTY_TTRACK_STEPS)) { //$NON-NLS-1$
-
+		break;
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
+			if (isSelectedTrack) {
+					refreshFields(trackerPanel.getFrameNumber());
+			}
+			break;
+		case VideoClip.PROPERTY_VIDEOCLIP_STARTFRAME:
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT:
+		case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE:
+		case PROPERTY_TTRACK_STEP:
+		case PROPERTY_TTRACK_STEPS:
 			if (attachments != null) {
 				refreshAttachments();
 			}
-		} else if (name.equals(TPoint.PROPERTY_ADJUSTING)) { //$NON-NLS-1$
+			break;
+		case Trackable.PROPERTY_ADJUSTING:
 			refreshDataLater = (Boolean) e.getNewValue();
 			if (!refreshDataLater) { // stopped adjusting
-				firePropertyChange(PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_DATA, null, null);
 			}
+			break;
 		}
 		super.propertyChange(e);
 	}
@@ -619,21 +625,6 @@ public class CircleFitter extends TTrack {
 	 *
 	 * @return true if attached
 	 */
-	public boolean isAttached() {
-		TTrack[] attachments = getAttachments();
-		for (int i = 0; i < attachments.length; i++) {
-			if (attachments[i] != null) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Determines if this is attached to one or more tracks.
-	 *
-	 * @return true if attached
-	 */
 	public boolean isNoPoints(int frameNumber) {
 		if (!isRelativeFrameNumbers)
 			return false;
@@ -714,30 +705,35 @@ public class CircleFitter extends TTrack {
 		return n;
 	}
 
+	protected int getAttachmentLength() {
+		// Variable number here. 
+		return (attachments == null || attachments.length == 0 || attachToSteps ? 1 : attachments.length);
+	}
+	
 	@Override
 	public TTrack[] getAttachments() {
 		// check existing attachments array and modify if necessary
-		if (attachments == null || attachments.length == 0) {
-			attachments = new TTrack[1];
-		}
-
+		super.getAttachments();
 		if (attachToSteps) {
 			if (attachmentForSteps == null) {
 				attachmentForSteps = new TTrack[] { attachments[0] };
 			}
 			return attachmentForSteps;
 		}
-
 		boolean ready = true;
-		for (int i = 0; i < attachments.length; i++) {
-			ready = ready && ((i < attachments.length - 1 && attachments[i] != null)
-					|| (i >= attachments.length - 1 && attachments[i] == null));
+		// Check that all attachments are non-null except the last, 
+		// and that the last is null
+		for (int i = attachments.length, inew = i - 1; --i >= 0;) {
+			if ((i < inew) == (attachments[i] == null)) {
+				ready = false;
+				break;
+			}
 		}
 		if (ready)
 			return attachments;
 
 		// eliminate null attachments
-		for (int i = attachments.length - 1; i >= 0; i--) {
+		for (int i = attachments.length; --i >= 0;) {
 			if (attachments[i] == null) {
 				TTrack[] newAttachments = new TTrack[attachments.length - 1];
 				System.arraycopy(attachments, 0, newAttachments, 0, i);
@@ -746,7 +742,7 @@ public class CircleFitter extends TTrack {
 			}
 		}
 
-		// include "new" element
+		// include "new" element if not attached to steps
 		if (attachments.length == 0) {
 			attachments = new TTrack[1];
 		} else if (!attachToSteps) {
@@ -778,7 +774,8 @@ public class CircleFitter extends TTrack {
 	}
 
 	/**
-	 * Refreshes the attachments for this track. This manages attached data points
+	 * Refreshes the attachments for this track. 
+	 *This manages attached data points
 	 * (dataPoints[1]) and ignores marked data points (dataPoints[0])
 	 */
 	@Override
@@ -1017,14 +1014,7 @@ public class CircleFitter extends TTrack {
 		clearPointsItem.setEnabled(!isLocked());
 		fixedItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
 		fixedItem.setSelected(isFixed());
-		boolean noAttachments = true;
-		if (attachments != null) {
-			for (TTrack next : attachments) {
-				if (next != null)
-					noAttachments = false;
-			}
-		}
-		fixedItem.setEnabled(attachments == null || noAttachments);
+		fixedItem.setEnabled(attachments == null || !isAttached());
 
 		// add attachment item and separator at beginning
 		menu.insert(attachmentItem, 0);
@@ -1180,15 +1170,7 @@ public class CircleFitter extends TTrack {
 
 	@Override
 	protected void setTrackerPanel(TrackerPanel panel) {
-		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(
-					TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this); //$NON-NLS-1$
-		}
-		super.setTrackerPanel(panel);
-		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener(
-					TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this); //$NON-NLS-1$
-		}
+		setTrackerPanelWithListeners(panel);
 		setFixed(isFixed());
 	}
 
@@ -1278,7 +1260,7 @@ public class CircleFitter extends TTrack {
 		boolean changed = false;
 		// refresh attached data points if attached to steps and not relative frame
 		// numbers
-		if (isAttached() && attachToSteps && !isRelativeFrameNumbers) {
+		if (attachToSteps && !isRelativeFrameNumbers && isAttached()) {
 			int firstFrame = trackerPanel.getPlayer().getVideoClip().stepToFrame(0);
 			CircleFitterStep keyStep = (CircleFitterStep) steps.getStep(firstFrame);
 			if (keyStep != step) {

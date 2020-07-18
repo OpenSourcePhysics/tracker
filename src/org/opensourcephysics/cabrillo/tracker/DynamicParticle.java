@@ -650,7 +650,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 
 			String propName = e.getPropertyName();
 
-			if (propName.equals(TPoint.PROPERTY_ADJUSTING)) { //$NON-NLS-1$
+			if (propName.equals(Trackable.PROPERTY_ADJUSTING)) { //$NON-NLS-1$
 				adjusting = (Boolean) e.getNewValue();
 				// change property to PROPERTY_TTRACK_STEPS so update will be triggered below when adjusting
 				// is false

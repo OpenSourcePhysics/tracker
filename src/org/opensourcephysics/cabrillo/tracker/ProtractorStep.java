@@ -39,6 +39,7 @@ import org.opensourcephysics.controls.*;
  *
  * @author Douglas Brown
  */
+@SuppressWarnings("serial")
 public class ProtractorStep extends Step {
 	
   protected static AffineTransform transform = new AffineTransform();
@@ -512,7 +513,7 @@ public String toString() {
    * @return the frame number
    */
   public int n() {
-    if (protractor.isFixed() && protractor.trackerPanel != null)
+    if (protractor.isFixedPosition() && protractor.trackerPanel != null)
       return protractor.trackerPanel.getFrameNumber();
     return n;
   }
@@ -611,7 +612,7 @@ public String toString() {
       double dy = y - getY();
       setLocation(x, y);
       
-      if (protractor.isFixed()) { // set properties of step 0
+      if (protractor.isFixedPosition()) { // set properties of step 0
       	ProtractorStep step = (ProtractorStep)protractor.steps.getStep(0);
         step.vertex.setLocation(vertex.getX() + dx, vertex.getY() + dy);
         step.end2.setLocation(end2.getX() + dx, end2.getY() + dy);
@@ -695,7 +696,7 @@ public String toString() {
 		      }
 	      }
       }
-      if (protractor.isFixed()) {
+      if (protractor.isFixedPosition()) {
       	ProtractorStep step = (ProtractorStep)protractor.steps.getStep(0);
       	TPoint target = this==end1? step.end1: this==end2? step.end2: step.vertex;
       	target.setLocation(x, y); // set property of step 0
@@ -776,7 +777,7 @@ public String toString() {
       double midline = line1Angle+arc/2;
       transform.setToRotation(midline-theta, vertex.x, vertex.y);
       
-      if (protractor.isFixed()) {
+      if (protractor.isFixedPosition()) {
       	ProtractorStep step = (ProtractorStep)protractor.steps.getStep(0);
         transform.transform(step.end1, step.end1);
         transform.transform(step.end2, step.end2);

@@ -1922,12 +1922,28 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		return true;
 	}
 
+	protected int getAttachmentLength() {
+		return 0;
+	}
+	
 	/**
-	 * Returns the array of attachments for this track. May return null.
+	 * Returns the array of attachments for this track. Returns null
+	 * only if the specified number of attachments == 0.
 	 * 
 	 * @return the attachments array
 	 */
 	public TTrack[] getAttachments() {
+		int n = getAttachmentLength();
+		if (n > 0) {
+			if (attachments == null) {
+				attachments = new TTrack[n];
+			}
+			if (attachments.length < n) {
+				TTrack[] newAttachments = new TTrack[n];
+				System.arraycopy(attachments, 0, newAttachments, 0, attachments.length);
+				attachments = newAttachments;
+			}
+		}
 		return attachments;
 	}
 
@@ -1995,24 +2011,49 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	/**
+	 * Determines if all attachments are non-null
+	 * 
+	 * @return true if the expected attachment count is 0 or all attached[i] are
+	 *         non-null.
+	 */
+	protected boolean checkAttachments() {
+		int n = getAttachmentLength();
+		if (n > 0) {
+			TTrack[] attached = getAttachments();
+			for (int i = 0; i < n; i++) {
+				if (attached[i] == null)
+					return false;
+			}
+		}
+		return true;
+	}
+	
+	/**
+	 * Determines if this is attached to one or more tracks.
+	 *
+	 * @return true if attached
+	 */
+	public boolean isAttached() {
+		TTrack[] attachments = getAttachments();
+		for (int i = 0; i < attachments.length; i++) {
+			if (attachments[i] != null) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+	/**
 	 * Refreshes the attachments for this track.
 	 */
 	protected void refreshAttachments() {
-		if (attachments == null || attachments.length == 0)
+		if (attachments == null || getAttachmentLength() == 0)
 			return;
 
 		// unfix the track if it has attachments
-		boolean hasAttachments = false;
-		for (int i = 0; i < attachments.length; i++) {
-			hasAttachments = hasAttachments || attachments[i] != null;
-		}
-		if (hasAttachments) {
-			if (this instanceof TapeMeasure) {
-				((TapeMeasure) this).setFixedPosition(false);
-			} else if (this instanceof Protractor) {
-				((Protractor) this).setFixed(false);
-			}
-		}
+		if (checkAttachments())
+			setFixedPosition(false);
 
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 		for (int i = 0; i < attachments.length; i++) {
@@ -2051,6 +2092,10 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 
 		TTrackBar.getTrackbar(trackerPanel).refresh();
 //	refreshFields(trackerPanel.getFrameNumber());
+	}
+
+	protected void setFixedPosition(boolean b) {
+		// see TapeMeasure and Protractor
 	}
 
 	/**
@@ -2931,7 +2976,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			}
 		}
 		steps = null;
-		setTrackerPanel(null);
+		setTrackerPanelWithListeners(null);
 	}
 
 	/**
@@ -3652,6 +3697,19 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public void notifySteps() {
 		// this call will update TrackPlottingPanel
 		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
+	}
+
+	public void setTrackerPanelWithListeners(TrackerPanel panel) {
+		if (trackerPanel != null) {
+			trackerPanel.removePropertyChangeListener(this);
+		}
+		trackerPanel = panel;
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(this);
+		}
+
+		// TODO Auto-generated method stub
+		
 	}
 
 

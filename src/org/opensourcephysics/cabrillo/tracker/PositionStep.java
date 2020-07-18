@@ -404,7 +404,7 @@ public class PositionStep extends Step {
 				m.updateDerivatives(n);
 				m.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 			}
-			m.firePropertyChange(TPoint.PROPERTY_ADJUSTING, null, adjusting); // $NON-NLS-1$
+			m.firePropertyChange(Trackable.PROPERTY_ADJUSTING, null, adjusting); // $NON-NLS-1$
 		}
 
 	}
