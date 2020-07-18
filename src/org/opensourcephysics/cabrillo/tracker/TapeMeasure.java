@@ -24,12 +24,9 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -38,25 +35,18 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 
-import javax.swing.BorderFactory;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.border.Border;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
@@ -68,6 +58,7 @@ import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
@@ -79,7 +70,7 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-public class TapeMeasure extends TTrack {
+public class TapeMeasure extends InputTrack {
 
 	// static constants
 	protected static final double MIN_LENGTH = 1.0E-30;
@@ -117,12 +108,7 @@ public class TapeMeasure extends TTrack {
 	}
 
 	// instance fields
-	protected boolean fixedPosition = true, fixedLength = true;
-	protected boolean editing = false;
-	protected final NumberField inputField;
-	//protected JPanel inputPanel;
-	protected NumberFormat format;
-	protected MouseListener editListener;
+	protected boolean fixedLength = true;
 	protected boolean readOnly;
 	protected boolean stickMode;
 	protected boolean isStepChangingScale;
@@ -167,26 +153,6 @@ public class TapeMeasure extends TTrack {
 		// set initial hint
 		partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
 		hint = TrackerRes.getString("TapeMeasure.Hint"); //$NON-NLS-1$
-		// create input field and panel
-		inputField = new TrackNumberField() {
-			@Override
-			public void setFixedPattern(String pattern) {
-				super.setFixedPattern(pattern);
-				setValue(magField.getValue());
-				// repaint current step
-				int n = trackerPanel.getFrameNumber();
-				TapeStep tape = ((TapeStep) getStep(n));
-				if (tape != null) {
-					tape.repaint();
-				}
-			}
-
-		};
-		inputField.setBorder(null);
-		format = inputField.getFormat();
-//		inputPanel = new JPanel(null);
-//		inputPanel.setOpaque(false);
-//		inputPanel.add(inputField);
 		// eliminate minimum of magField
 		magField.setMinValue(Double.NaN);
 		end1Label = new JLabel();
@@ -197,37 +163,6 @@ public class TapeMeasure extends TTrack {
 		lengthLabel.setBorder(xLabel.getBorder());
 		keyFrames.add(0);
 		lengthKeyFrames.add(0);
-		// add inputField action listener to exit editing mode
-		inputField.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				stopEditing();
-			}
-		});
-		// add inputField focus listener
-		inputField.addFocusListener(new FocusAdapter() {
-			@Override
-			public void focusGained(FocusEvent e) {
-				inputField.selectAll();
-			}
-
-			@Override
-			public void focusLost(FocusEvent e) {
-				stopEditing();
-			}
-		});
-		// add mouse listener to toggle editing mode
-		editListener = new MouseAdapter() {
-			@Override
-			public void mousePressed(MouseEvent e) {
-				stopEditing();
-			}
-
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				mouseClickedAction(e.getPoint());
-			}
-		};
 		final FocusListener magFocusListener = new FocusAdapter() {
 			@Override
 			public void focusLost(FocusEvent e) {
@@ -238,7 +173,7 @@ public class TapeMeasure extends TTrack {
 						keyFrames.add(n);
 					TapeStep step = (TapeStep) getStep(n);
 					// replace with key frame step
-					step = getKeyStep(step);
+					step = (TapeStep) getKeyStep(step);
 					String rawText = magField.getText();
 					if (!TapeMeasure.this.isReadOnly()) {
 						checkLengthUnits(rawText);
@@ -270,7 +205,7 @@ public class TapeMeasure extends TTrack {
 						keyFrames.add(n);
 					TapeStep step = (TapeStep) getStep(n);
 					// replace with key frame step
-					step = getKeyStep(step);
+					step = (TapeStep) getKeyStep(step);
 					step.setTapeAngle(angleField.getValue());
 					invalidateData(null);
 					if (isFixedPosition())
@@ -292,44 +227,13 @@ public class TapeMeasure extends TTrack {
 		});
 	}
 
-	protected void stopEditing() {
-		if (editing)
-			setEditing(false, (TapeStep) getStep(trackerPanel.getFrameNumber()), null);
-	}
-
-	protected void mouseClickedAction(Point pt) {
-		if (isLocked())
-			return;
-		int n = trackerPanel.getFrameNumber();
-		TapeStep step = (TapeStep) getStep(n);
-		if (step == null)
-			return;
-		Rectangle bounds = step.layoutBounds.get(trackerPanel);
-		if (bounds != null && bounds.contains(pt)) {
-			// readout was clicked
-			TTrack[] attached = getAttachments();
-			int attachmentCount = 0;
-			for (int i = 0; i < attached.length; i++) {
-				if (attached[i] != null) {
-					attachmentCount++;
-					if (attachmentCount == 2) {
-						// select the tape
-						trackerPanel.setSelectedTrack(this);
-						return;
-					}
-				}
-			}
-			setEditing(true, step, pt);
-		}
-	}
-
 	/**
 	 * Sets the fixed position property. When it is fixed, it's ends are in the same
 	 * position at all times.
 	 *
 	 * @param fixed <code>true</code> to fix the position
 	 */
-	public void setFixedPosition(boolean fixed) {
+	protected void setFixedPosition(boolean fixed) {
 		if (fixedPosition == fixed)
 			return;
 		XMLControl control = new XMLControlElement(this);
@@ -496,24 +400,28 @@ public class TapeMeasure extends TTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		if (isStickMode() && name.equals(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM) && !isStepChangingScale) { // $NON-NLS-1$
-			// stretch or squeeze stick to keep constant world length
-			int n = trackerPanel.getFrameNumber();
-			TapeStep step = (TapeStep) getStep(n);
-			if (step != null)
-				step.adjustTipsToLength();
-			if (!isFixedPosition()) {
-				keyFrames.add(n);
+		switch (e.getPropertyName()) {
+		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
+			if (isStickMode() && !isStepChangingScale) { 
+				// stretch or squeeze stick to keep constant world length
+				int n = trackerPanel.getFrameNumber();
+				TapeStep step = (TapeStep) getStep(n);
+				if (step != null)
+					step.adjustTipsToLength();
+				if (!isFixedPosition()) {
+					keyFrames.add(n);
+				}
 			}
-		}
-		if (name.equals(TPoint.PROPERTY_ADJUSTING) && e.getSource() instanceof TrackerPanel) { // $NON-NLS-1$
+			break;
+		case Trackable.PROPERTY_ADJUSTING:
+			if (e.getSource() instanceof TrackerPanel) { // $NON-NLS-1$
 			refreshDataLater = (Boolean) e.getNewValue();
 			if (!refreshDataLater) { // stopped adjusting
 				firePropertyChange(PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
 			}
-		}
-		if (name.equals("stepnumber")) { //$NON-NLS-1$
+			}
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			if (trackerPanel.getSelectedTrack() == this) {
 				TapeStep step = (TapeStep) getStep(trackerPanel.getFrameNumber());
 				if (step != null)
@@ -523,17 +431,24 @@ public class TapeMeasure extends TTrack {
 				angleField.setEnabled(enabled);
 				stepValueLabel.setText(e.getNewValue() + ":"); //$NON-NLS-1$
 			}
-		} else if (name.equals("locked")) { //$NON-NLS-1$
+			break;
+		case PROPERTY_TTRACK_LOCKED:
 			boolean enabled = isFieldsEnabled();
 			magField.setEnabled(enabled);
 			angleField.setEnabled(enabled);
-		} else if (isStickMode() && name.equals("fixed_scale") && e.getNewValue() == Boolean.FALSE) { //$NON-NLS-1$
-			setFixedPosition(false);
-		} else if (name.equals(PROPERTY_TTRACK_STEP) || name.equals(PROPERTY_TTRACK_STEPS)) { // $NON-NLS-1$
-																								// //$NON-NLS-2$
+			break;
+		case ImageCoordSystem.PROPERTY_COORDS_FIXEDSCALE:
+			if (isStickMode() && e.getNewValue() == Boolean.FALSE) {
+				setFixedPosition(false);
+			}
+			break;
+		case PROPERTY_TTRACK_STEP:
+		case PROPERTY_TTRACK_STEPS:
 			refreshAttachments();
-		} else
+			break;
+		default:
 			super.propertyChange(e);
+		}
 	}
 
 	/**
@@ -546,16 +461,6 @@ public class TapeMeasure extends TTrack {
 		super.setVisible(visible);
 		if (visible)
 			notYetShown = false;
-	}
-
-	/**
-	 * Overrides TTrack setTrailVisible method to keep trails hidden.
-	 *
-	 * @param visible ignored
-	 */
-	@Override
-	public void setTrailVisible(boolean visible) {
-		/** empty block */
 	}
 
 	/**
@@ -688,30 +593,6 @@ public class TapeMeasure extends TTrack {
 	}
 
 	/**
-	 * Overrides TTrack deleteStep method to prevent deletion.
-	 *
-	 * @param n the frame number
-	 * @return the deleted step
-	 */
-	@Override
-	public Step deleteStep(int n) {
-		return null;
-	}
-
-	/**
-	 * Overrides TTrack getStep method to provide fixedTape behavior.
-	 *
-	 * @param n the frame number
-	 * @return the step
-	 */
-	@Override
-	public Step getStep(int n) {
-		TapeStep step = (TapeStep) steps.getStep(n);
-		refreshStep(step);
-		return step;
-	}
-
-	/**
 	 * Gets the length of the steps created by this track.
 	 *
 	 * @return the footprint length
@@ -759,22 +640,10 @@ public class TapeMeasure extends TTrack {
 	 */
 	@Override
 	protected boolean isAutoTrackable() {
-		int n = trackerPanel.getFrameNumber();
-		TapeStep step = (TapeStep) getStep(n);
+		TapeStep step = (TapeStep) getStep(trackerPanel.getFrameNumber());
 		if (step == null || step.worldLength == 0)
 			return false;
 		return true;
-	}
-
-	/**
-	 * Determines if the given point index is autotrackable.
-	 *
-	 * @param pointIndex the points[] index
-	 * @return true if autotrackable
-	 */
-	@Override
-	protected boolean isAutoTrackable(int pointIndex) {
-		return isAutoTrackable() && pointIndex < 2;
 	}
 
 	/**
@@ -787,24 +656,6 @@ public class TapeMeasure extends TTrack {
 	protected String getTargetDescription(int pointIndex) {
 		String s = TrackerRes.getString("Calibration.Point.Name"); //$NON-NLS-1$
 		return s + " " + (pointIndex + 1); //$NON-NLS-1$
-	}
-
-	/**
-	 * Returns the array of attachments for this track.
-	 * 
-	 * @return the attachments array
-	 */
-	@Override
-	public TTrack[] getAttachments() {
-		if (attachments == null) {
-			attachments = new TTrack[2];
-		}
-		if (attachments.length < 2) {
-			TTrack[] newAttachments = new TTrack[2];
-			System.arraycopy(attachments, 0, newAttachments, 0, attachments.length);
-			attachments = newAttachments;
-		}
-		return attachments;
 	}
 
 	/**
@@ -833,15 +684,8 @@ public class TapeMeasure extends TTrack {
 		fixedPositionItem.setSelected(isFixedPosition());
 		TapeStep step = (TapeStep) steps.getStep(0);
 		boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
-		boolean hasAttachments = attachments != null;
-		if (hasAttachments) {
-			hasAttachments = false;
-			for (TTrack next : attachments) {
-				hasAttachments = hasAttachments || next != null;
-			}
-		}
 		// put fixed position item after locked item
-		fixedPositionItem.setEnabled(canBeFixed && !hasAttachments && step != null && step.worldLength > 0);
+		fixedPositionItem.setEnabled(canBeFixed && step != null && step.worldLength > 0 && !isAttached());
 		for (int i = 0; i < menu.getItemCount(); i++) {
 			if (menu.getItem(i) == lockedItem) {
 				menu.insert(fixedPositionItem, i + 1);
@@ -1215,7 +1059,7 @@ public class TapeMeasure extends TTrack {
 	protected void setTrackerPanel(TrackerPanel panel) {
 		if (trackerPanel != null) {
 			trackerPanel.removeMouseListener(editListener);
-			trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
 		}
 		super.setTrackerPanel(panel);
 		if (trackerPanel != null) {
@@ -1235,122 +1079,6 @@ public class TapeMeasure extends TTrack {
 				refreshStep(step);
 				step.worldLength = step.getTapeLength(true);
 			}
-		}
-	}
-
-	/**
-	 * Refreshes a step by setting it equal to the previous keyframe step.
-	 *
-	 * @param step the step to refresh
-	 */
-	protected void refreshStep(TapeStep step) {
-		if (step == null)
-			return;
-		int positionKey = 0, lengthKey = 0;
-		for (int i : keyFrames) {
-			if (i <= step.n)
-				positionKey = i;
-		}
-		for (int i : lengthKeyFrames) {
-			if (i <= step.n)
-				lengthKey = i;
-		}
-		// compare step with keyStep
-		boolean different = false;
-		boolean changed = false;
-		// check position
-		TapeStep keyStep = (TapeStep) steps.getStep(isFixedPosition() ? 0 : positionKey);
-		different = keyStep.getEnd1().x != step.getEnd1().x || keyStep.getEnd1().y != step.getEnd1().y
-				|| keyStep.getEnd2().x != step.getEnd2().x || keyStep.getEnd2().y != step.getEnd2().y;
-		if (different) {
-			step.getEnd1().setLocation(keyStep.getEnd1());
-			step.getEnd2().setLocation(keyStep.getEnd2());
-			changed = true;
-		}
-
-		// check length only if in stick mode
-		if (isStickMode() || step.worldLength == 0) {
-			keyStep = (TapeStep) steps.getStep(isFixedLength() ? 0 : lengthKey);
-			different = keyStep.worldLength != step.worldLength;
-			if (different) {
-				step.worldLength = keyStep.worldLength;
-				changed = true;
-			}
-		}
-		// erase step if changed
-		if (changed) {
-			step.erase();
-		}
-	}
-
-	/**
-	 * Sets the editing flag.
-	 *
-	 * @param edit   <code>true</code> to edit the scale
-	 * @param target the tape step that handles the edit process
-	 * @param pt TODO
-	 */
-	private void setEditing(boolean edit, TapeStep target, Point pt) {
-		editing = edit;
-		if ((readOnly || isStickMode()) && !editing) {
-			// if not fixed, add target frame to key frames
-			if (!isFixedPosition())
-				keyFrames.add(target.n);
-			// replace target with key frame step
-			target = getKeyStep(target);
-		}
-		final TapeStep step = target;
-		Runnable runner = new Runnable() {
-			@Override
-			public void run() {
-				setEditAction(step, pt);
-			}
-		};
-		EventQueue.invokeLater(runner);
-	}
-
-	protected void setEditAction(TapeStep step, Point pt) {
-		String rawText = inputField.getText();
-		if (editing) {
-			trackerPanel.setSelectedTrack(this);
-			FontSizer.setFonts(inputField, FontSizer.getLevel());
-			inputField.setForeground(footprint.getColor());
-			inputField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
-			Dimension d = inputField.getPreferredSize();
-			Rectangle bounds = step.layoutBounds.get(trackerPanel);
-//			
-//			bounds.grow(3, 3);
-//			bounds.setLocation(bounds.x + 1, bounds.y);
-//			for (Component c : trackerPanel.getComponents()) {
-//				if (c == trackerPanel.noData) {
-//					bounds.setLocation(bounds.x, bounds.y - c.getHeight());
-//				}
-//			}
-			inputField.setBounds(bounds.x, bounds.y - 5, d.width, d.height);
-			trackerPanel.add(inputField);
-			Border space = BorderFactory.createEmptyBorder(0, 1, 1, 0);
-			Color color = getFootprint().getColor();
-			Border line = BorderFactory.createLineBorder(color);
-			inputField.setBorder(BorderFactory.createCompoundBorder(line, space));
-			inputField.setValue(step.getTapeLength(!isStickMode()));
-			//trackerPanel.revalidate();
-			//TFrame.repaintT(trackerPanel);
-			inputField.requestFocus();
-		} else { // end editing
-			step.drawLayoutBounds = false;
-			if (!this.isReadOnly()) {
-				checkLengthUnits(rawText);
-			}
-			if (step.worldLength > 0) {
-				step.setTapeLength(inputField.getValue());
-				step.repaint(trackerPanel);
-			}
-			inputField.setSigFigs(4);
-			trackerPanel.remove(inputField);
-			invalidateData(null);
-			trackerPanel.revalidate();
-			TFrame.repaintT(trackerPanel);
-			TTrackBar.getTrackbar(trackerPanel).refresh();
 		}
 	}
 
@@ -1380,23 +1108,6 @@ public class TapeMeasure extends TTrack {
 
 	}
 
-	/**
-	 * Returns the key step for a given step. The key step defines the positions of
-	 * the tape ends.
-	 * 
-	 * @param step the step
-	 * @return the key step
-	 */
-	private TapeStep getKeyStep(TapeStep step) {
-		int key = 0;
-		if (!this.isFixedPosition()) {
-			for (int i : keyFrames) {
-				if (i <= step.n)
-					key = i;
-			}
-		}
-		return (TapeStep) getStep(key);
-	}
 
 	/**
 	 * Displays the world coordinates of the currently selected step.
@@ -1429,7 +1140,102 @@ public class TapeMeasure extends TTrack {
 		return true;
 	}
 
+	
+	//__________________________ InputTrack ___________________________
+	
+	
+	/**
+	 * Refreshes a step by setting it equal to the previous keyframe step.
+	 *
+	 * @param step the step to refresh
+	 */
+	@Override
+	protected void refreshStep(Step step) {
+		if (step == null)
+			return;
+		int positionKey = 0, lengthKey = 0;
+		for (int i : keyFrames) {
+			if (i <= step.n)
+				positionKey = i;
+		}
+		for (int i : lengthKeyFrames) {
+			if (i <= step.n)
+				lengthKey = i;
+		}
+		// compare step with keyStep
+		boolean different = false;
+		boolean changed = false;
+		// check position
+		TapeStep t = (TapeStep) step;
+		TapeStep k = (TapeStep) steps.getStep(isFixedPosition() ? 0 : positionKey);
+		different = k.getEnd1().x != t.getEnd1().x || k.getEnd1().y != t.getEnd1().y
+				|| k.getEnd2().x != t.getEnd2().x || k.getEnd2().y != t.getEnd2().y;
+		if (different) {
+			t.getEnd1().setLocation(k.getEnd1());
+			t.getEnd2().setLocation(k.getEnd2());
+			changed = true;
+		}
+
+		// check length only if in stick mode
+		if (isStickMode() || t.worldLength == 0) {
+			k = (TapeStep) steps.getStep(isFixedLength() ? 0 : lengthKey);
+			different = k.worldLength != t.worldLength;
+			if (different) {
+				t.worldLength = k.worldLength;
+				changed = true;
+			}
+		}
+		// erase step if changed
+		if (changed) {
+			t.erase();
+		}
+	}
+
+	@SuppressWarnings("serial")
+	@Override
+	protected NumberField createInputField() {
+		return new TrackNumberField() {
+			@Override
+			public void setFixedPattern(String pattern) {
+				super.setFixedPattern(pattern);
+				setMagValue();
+			}
+
+		};
+	}
+	
+	@Override
+	protected Rectangle getLayoutBounds(Step step) {
+		return ((TapeStep) step).layoutBounds.get(trackerPanel);
+	}
+
+	@Override
+	protected boolean checkKeyFrame() {
+		return (!editing && (readOnly || isStickMode()));
+	}
+
+	@Override
+	protected void endEditing(Step step) {
+		TapeStep t = (TapeStep) step;
+		t.drawLayoutBounds = false;
+		if (!this.isReadOnly()) {
+			checkLengthUnits(inputField.getText());
+		}
+		if (t.worldLength > 0) {
+			t.setTapeLength(inputField.getValue());
+			t.repaint(trackerPanel);
+		}
+		inputField.setSigFigs(4);
+	}
+
+	@Override
+	protected void setInputValue(Step step) {
+		inputField.setValue(((TapeStep) step).getTapeLength(!isStickMode()));
+		inputField.setUnits(trackerPanel.getUnits(this, dataVariables[1]));
+	}
+
 //__________________________ static methods ___________________________
+
 
 	/**
 	 * Returns an ObjectLoader to save and load data for this class.
@@ -1598,4 +1404,5 @@ public class TapeMeasure extends TTrack {
 			return obj;
 		}
 	}
+
 }
