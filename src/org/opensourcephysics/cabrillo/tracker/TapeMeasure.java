@@ -1059,7 +1059,7 @@ public class TapeMeasure extends InputTrack {
 	protected void setTrackerPanel(TrackerPanel panel) {
 		if (trackerPanel != null) {
 			trackerPanel.removeMouseListener(editListener);
-			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
+			trackerPanel.removePropertyChangeListener(this);
 		}
 		super.setTrackerPanel(panel);
 		if (trackerPanel != null) {
