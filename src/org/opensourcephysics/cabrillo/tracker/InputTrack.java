@@ -17,6 +17,8 @@ import java.text.NumberFormat;
 import javax.swing.BorderFactory;
 import javax.swing.border.Border;
 
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -121,6 +123,46 @@ public abstract class InputTrack extends TTrack {
 	 */
 	public boolean isFixedPosition() {
 		return fixedPosition;
+	}
+
+	/**
+	 * Sets the fixed property. When fixed, it has the same position at all times.
+	 *
+	 * @param fixed <code>true</code> to fix
+	 */
+	@Override
+	protected void setFixedPosition(boolean fixed) {
+		if (fixedPosition == fixed)
+			return;
+		if (trackerPanel == null)
+			return;
+			
+		trackerPanel.changed = true;
+		
+		XMLControl control = new XMLControlElement(this); // pre-change state
+		
+		// if newly unfixed, no change to steps or keyframes
+		if (!fixed) {
+			fixedPosition = false;
+			return;
+		}
+		
+		// if newly fixed, current step becomes all
+		int n = trackerPanel.getFrameNumber();
+		steps = new StepArray(getStep(n));
+		erase();
+
+		fixedPosition = true; // set this AFTER getStep(n)
+		
+		// reset the single keyframe to frame 0
+		keyFrames.clear();
+		keyFrames.add(0);
+		
+		Undo.postTrackEdit(this, control);
+		dataValid = false;
+		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null);
+		erase();
+		TFrame.repaintT(trackerPanel);
 	}
 
 

@@ -228,51 +228,6 @@ public class TapeMeasure extends InputTrack {
 	}
 
 	/**
-	 * Sets the fixed position property. When it is fixed, it's ends are in the same
-	 * position at all times.
-	 *
-	 * @param fixed <code>true</code> to fix the position
-	 */
-	protected void setFixedPosition(boolean fixed) {
-		if (fixedPosition == fixed)
-			return;
-		XMLControl control = new XMLControlElement(this);
-		boolean hasSteps = false;
-		if (trackerPanel != null) {
-			int n = trackerPanel.getFrameNumber();
-			trackerPanel.changed = true;
-			TapeStep keyStep = (TapeStep) getStep(n);
-			for (int i = 0; i < steps.array.length; i++) {
-				TapeStep step = (TapeStep) steps.getStep(i);
-				if (step == null || keyStep == null)
-					continue;
-				step.getEnd1().setLocation(keyStep.getEnd1());
-				step.getEnd2().setLocation(keyStep.getEnd2());
-				hasSteps = true;
-			}
-			TFrame.repaintT(trackerPanel);
-		}
-		if (fixed) {
-			keyFrames.clear();
-			keyFrames.add(0);
-			invalidateData(null);
-			erase();
-		}
-		fixedPosition = fixed;
-		if (hasSteps)
-			Undo.postTrackEdit(this, control);
-	}
-
-	/**
-	 * Gets the fixed position property.
-	 *
-	 * @return <code>true</code> if position is fixed
-	 */
-	public boolean isFixedPosition() {
-		return fixedPosition;
-	}
-
-	/**
 	 * Sets the fixed length property. When it is fixed, it has the same world
 	 * length at all times. Applies to sticks only.
 	 *
@@ -491,6 +446,7 @@ public class TapeMeasure extends InputTrack {
 		TapeStep step = (TapeStep) getStep(n);
 		isIncomplete = false;
 		if (step == null) {
+			isIncomplete = true;
 			// create new step of length zero
 			step = new TapeStep(this, n, x, y, x, y);
 //			step.worldLength = step.getTapeLength(true); // sets to zero
@@ -498,7 +454,6 @@ public class TapeMeasure extends InputTrack {
 			step.setFootprint(getFootprint());
 			steps = new StepArray(step); // autofill
 			step = (TapeStep) getStep(n); // must do this since line above changes n to 0
-			isIncomplete = true;
 		} else if (step.worldLength == 0) {
 			// always mark step 0 when initializing
 			step = (TapeStep) getStep(0);
@@ -556,8 +511,14 @@ public class TapeMeasure extends InputTrack {
 			step.setFootprint(getFootprint());
 			steps = new StepArray(step); // autofill
 		} else {
-			step.getEnd1().setLocation(x1, y1);
-			step.getEnd2().setLocation(x2, y2);
+			if (isIncomplete) {
+				step.getEnd2().setLocation(x2, y2);
+				repaint();
+			}
+			else {
+				step.getEnd1().setLocation(x1, y1);
+				step.getEnd2().setLocation(x2, y2);
+			}
 		}
 		keyFrames.add(n);
 		return step;

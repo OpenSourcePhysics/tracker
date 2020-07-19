@@ -46,7 +46,6 @@ import javax.swing.JPopupMenu;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
-import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
@@ -215,31 +214,6 @@ public class Protractor extends InputTrack {
 		yField.addFocusListener(lengthFocusListener);
 		yField.addActionListener(lengthAction);
 
-	}
-
-	/**
-	 * Sets the fixed property. When fixed, it has the same position at all times.
-	 *
-	 * @param fixed <code>true</code> to fix
-	 */
-	protected void setFixedPosition(boolean fixed) {
-		if (fixedPosition == fixed)
-			return;
-		XMLControl control = new XMLControlElement(this);
-		if (trackerPanel != null) {
-			trackerPanel.changed = true;
-			int n = trackerPanel.getFrameNumber();
-			steps = new StepArray(getStep(n));
-			TFrame.repaintT(trackerPanel);
-		}
-		// BH Q: Why is this so different from TapeMeasure?
-		fixedPosition = fixed;
-		if (fixed) { // refresh data and post undo only when fixing
-			dataValid = false;
-			// BH??? not in TapeMeasure???
-			firePropertyChange(PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
-			Undo.postTrackEdit(this, control);
-		}
 	}
 
 	/**

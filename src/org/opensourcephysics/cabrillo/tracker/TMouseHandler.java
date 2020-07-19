@@ -117,11 +117,20 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			iad = trackerPanel.getInteractive();
 			boolean invertCursor = e.isShiftDown();
 			marking = trackerPanel.setCursorForMarking(invertCursor, e);
+			OSPLog.debug("pig "+marking);
 			if (selectedTrack != null && marking != selectedTrack.isMarking) {
 				selectedTrack.setMarking(marking);
 			}
 			if (marking) {
 				iad = null;
+				if (selectedTrack != null && selectedTrack instanceof TapeMeasure) {
+					TapeMeasure tape = (TapeMeasure)selectedTrack;
+					if (tape.isIncomplete) {
+						// this call refreshes the position of end2 but leaves tape incomplete
+						tape.createStep(frameNumber, 0, 0, 
+								trackerPanel.getMouseX(), trackerPanel.getMouseY());
+					}
+				} 
 			}
 			if (selectedTrack != null) {
 				if (autoTracker != null && autoTracker.getWizard().isVisible() && autoTracker.getTrack() == selectedTrack) {
