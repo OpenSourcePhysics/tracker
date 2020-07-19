@@ -1076,7 +1076,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		case 1:
 			return locs[0] < 0.95 && locs[1] < 0.95;
 		case 2:
-			return locs[2] < 0.95 && locs[3] < 0.95;
+			return locs[2] < 0.92 && locs[3] < 0.95; // BH was 0.95, but on my machine this is 0.926
 		case 3:
 			return locs[2] < 0.95 && locs[3] > 0.05;
 		}
