@@ -193,9 +193,13 @@ public class TableTView extends TrackChooserTView {
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
 		case TFrame.PROPERTY_TFRAME_TAB:
-			if (e.getNewValue() != null)
-				dialogLastVisible = ((TableTrackView) getTrackView(selectedTrack))
-						.setDialogVisible(e.getNewValue() == trackerPanel && isVisible(), dialogLastVisible);
+			if (e.getNewValue() != null) {
+				TableTrackView trackview = (TableTrackView) getTrackView(selectedTrack);
+				if (trackview != null) {
+					dialogLastVisible = trackview.setDialogVisible(
+							e.getNewValue() == trackerPanel && isVisible(), dialogLastVisible);
+				}
+			}
 			break;
 		case "function": //$NON-NLS-1$
 			super.propertyChange(e);

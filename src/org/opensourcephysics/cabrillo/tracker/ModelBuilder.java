@@ -51,8 +51,13 @@ public class ModelBuilder extends FunctionTool {
 	private JLabel startFrameLabel, endFrameLabel, boosterLabel;
 	private ModelFrameSpinner startFrameSpinner, endFrameSpinner;
 	private JComboBox<FTObject> boosterDropdown;
+	private JComboBox<String> solverDropdown;
 
 	private static int ntest, ntest1;
+	private static String[] solverClassNames = {
+			"org.opensourcephysics.numerics.RK4", 
+			"org.opensourcephysics.numerics.Euler", 
+			"org.opensourcephysics.numerics.Ralston2"};
 
 	public void validate() {
 		OSPLog.debug("ModelBuilder.validate #" + ++ntest1);
@@ -77,7 +82,6 @@ public class ModelBuilder extends FunctionTool {
 	    createToolbarComponents();
 	    setToolbarComponents(new Component[] { startFrameLabel, startFrameSpinner, endFrameLabel, endFrameSpinner,
 	        boosterLabel, boosterDropdown });
-
 	}
 	/**
 	 * Creates the toolbar components.
@@ -133,6 +137,34 @@ public class ModelBuilder extends FunctionTool {
 		DropdownRenderer renderer = new DropdownRenderer();
 		boosterDropdown.setRenderer(renderer);
 		refreshBoosterDropdown();
+		
+		// create solver dropdown
+		String[] solverShortNames = new String[solverClassNames.length];
+		for (int i = 0; i < solverShortNames.length; i++) {
+			int n = "org.opensourcephysics.numerics.".length();
+			solverShortNames[i] = solverClassNames[i].substring(n);
+		}
+		solverDropdown = new JComboBox<String>(solverShortNames);
+		solverDropdown.setBorder(BorderFactory.createEmptyBorder(0, 0, 1, 0));
+		solverDropdown.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (!solverDropdown.isEnabled() || solverDropdown.getSelectedIndex() < 0)
+					return;
+				ModelFunctionPanel modelpanel = (ModelFunctionPanel)getSelectedPanel();
+				int i = solverDropdown.getSelectedIndex();
+				String solver = solverClassNames[solverDropdown.getSelectedIndex()];
+				if (solver != null && modelpanel.model instanceof DynamicParticle) {
+					DynamicParticle dyna = (DynamicParticle)modelpanel.model;
+					try { // load the solver class
+						Class<?> solverClass = Class.forName(solver);
+						dyna.setSolver(solverClass);
+					} catch (Exception ex2) {
+						/** empty block */
+					}
+				}
+			}
+		});
 
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
 
@@ -186,6 +218,14 @@ public class ModelBuilder extends FunctionTool {
 			endFrameSpinner.setToolTipText(TrackerRes.getString("TrackerPanel.Spinner.ModelEnd.Tooltip")); //$NON-NLS-1$
 			refreshBoosterDropdown();
 		}
+//		if (selectedPanel != null) {
+//			ModelFunctionPanel modelpanel = (ModelFunctionPanel)selectedPanel;
+//			if (modelpanel.model instanceof DynamicParticle) {
+//				dropdownbar.add(solverDropdown);
+//			} else {
+//				dropdownbar.remove(solverDropdown);
+//			}
+//		}
 	}
 
 	@Override

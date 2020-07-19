@@ -173,7 +173,8 @@ public abstract class InputTrack extends TTrack {
 					key = i;
 			}
 		}
-		return getStep(key);
+		// return key step directly--no refreshing
+		return super.getStep(key);
 	}
 
 	/**
