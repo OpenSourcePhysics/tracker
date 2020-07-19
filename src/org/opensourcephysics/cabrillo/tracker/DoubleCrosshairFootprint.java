@@ -25,6 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
+import java.awt.geom.Rectangle2D;
 
 import javax.swing.Icon;
 
@@ -129,10 +130,53 @@ public MultiShape getShape(Point[] points) {
     Point p1 = points[0];
     Point p2 = points[1];
     int scale = FontSizer.getIntegerFactor();
+    
+    
+//    // for line shapes
+//    float d = (float)p1.distance(p2); // distance between ends
+//    float center = d/2; // center point
+//    float l = Math.max(d - scale*2*(size+3), size); // line length
+//    
+//    // set up crosshair end shapes
+//    transform.setToTranslation(p1.x, p1.y);
+//    if (scale>1) {
+//    	transform.scale(scale, scale);
+//    }
+//    Shape target1 = transform.createTransformedShape(targetShape);    
+//    hitShapes[0] = transform.createTransformedShape(hitShape); // end1
+//    transform.setToTranslation(p2.x, p2.y);
+//    if (scale>1) {
+//    	transform.scale(scale, scale);
+//    }
+//    Shape target2 = transform.createTransformedShape(targetShape);
+//    hitShapes[1] = transform.createTransformedShape(hitShape); // end2
+//    
+//    double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);
+//    if (Double.isNaN(theta)) {
+//    	theta = 0;
+//    }
+//    transform.setToRotation(theta, p2.x, p2.y);
+//    transform.translate(p2.x, p2.y);
+//    
+//  	// set up line shapes
+//    float f = 0.45f; // hit shape is 90% of line length
+//    path.reset();
+//    path.moveTo(center - f*l, 0);
+//    path.lineTo(center + f*l, 0);
+//    hitShapes[2] = transform.createTransformedShape(path); // line  
+//    
+//    path.reset();
+//    path.moveTo(center - l/2, 0);
+//    path.lineTo(center + l/2, 0);
+//    Shape line = transform.createTransformedShape(path);
+    
+    // float code above, double code below
+    
     // for line shapes
-    float d = (float)p1.distance(p2); // distance between ends
-    float center = d/2; // center point
-    float l = Math.max(d - scale*2*(size+3), size); // line length
+    double d = p1.distance(p2); // distance between ends
+    double center = d/2; // center point
+    double setback = size + 6; // pixel space between line and crosshair
+    double l = Math.max(d - scale*2*setback, size); // line length
     
     // set up crosshair end shapes
     transform.setToTranslation(p1.x, p1.y);
@@ -156,7 +200,7 @@ public MultiShape getShape(Point[] points) {
     transform.translate(p2.x, p2.y);
     
   	// set up line shapes
-    float f = 0.45f; // hit shape is 90% of line length
+    double f = 0.45; // hit shape is 90% of line length
     path.reset();
     path.moveTo(center - f*l, 0);
     path.lineTo(center + f*l, 0);
@@ -166,6 +210,21 @@ public MultiShape getShape(Point[] points) {
     path.moveTo(center - l/2, 0);
     path.lineTo(center + l/2, 0);
     Shape line = transform.createTransformedShape(path);
+
+//    Rectangle2D rect0 = hitShapes[0].getBounds2D();
+//    Rectangle2D rect1 = hitShapes[1].getBounds2D();
+//    double x0 = rect0.getCenterX();
+//    double y0 = rect0.getCenterY();
+//    double x1 = rect1.getCenterX();
+//    double y1 = rect1.getCenterY();
+//    double dx = x1 - x0;
+//    double dy = y1 - y0;
+//    double shortenByFraction = setback / Math.sqrt(dx*dx + dy*dy);
+//    
+//    path.moveTo(x0 + shortenByFraction * dx, y0 + shortenByFraction * dy);
+//    path.lineTo(x0 + (1-shortenByFraction) * dx, y0 + (1-shortenByFraction) * dy);
+//    Shape line = (Shape)path.clone();
+    
     
     // set up stroke
   	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
