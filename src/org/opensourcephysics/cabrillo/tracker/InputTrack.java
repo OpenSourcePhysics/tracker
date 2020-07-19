@@ -90,6 +90,18 @@ public abstract class InputTrack extends TTrack {
 		};
 	}
 
+	@Override
+	public void setTrackerPanel(TrackerPanel panel) {
+		if (trackerPanel != null) {
+			trackerPanel.removeMouseListener(editListener);
+		}
+		setTrackerPanelWithListeners(panel);
+		if (trackerPanel != null) {
+			trackerPanel.addMouseListener(editListener);
+		}
+	}
+	
+
 	protected void setEditAction(Step step, Point pt) {
 		if (editing) {
 			trackerPanel.setSelectedTrack(this);
@@ -254,7 +266,7 @@ public abstract class InputTrack extends TTrack {
 	protected boolean isAutoTrackable(int pointIndex) {
 		return isAutoTrackable() && pointIndex < getAttachmentLength();
 	}
-	
+
 
 
 }

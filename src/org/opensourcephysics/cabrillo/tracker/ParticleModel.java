@@ -650,7 +650,7 @@ abstract public class ParticleModel extends PointMass {
 	 * @param panel the TrackerPanel
 	 */
 	@Override
-	protected void setTrackerPanel(TrackerPanel panel) {
+	public void setTrackerPanel(TrackerPanel panel) {
 		super.setTrackerPanel(panel);
 		if (panel != null) {
 			if (startFrameUndefined) {

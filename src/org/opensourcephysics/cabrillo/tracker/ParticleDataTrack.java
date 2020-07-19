@@ -1172,7 +1172,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	}
 
 	@Override
-	protected void setTrackerPanel(TrackerPanel panel) {
+	public void setTrackerPanel(TrackerPanel panel) {
 		if (panel == null && trackerPanel != null) {
 			trackerPanel.getTFrame().checkClipboardListener();
 		}
