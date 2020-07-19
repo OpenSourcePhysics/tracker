@@ -404,11 +404,12 @@ public class TapeStep extends Step {
 				worldLength = length;
 			}
 		}
-		double scaleX = factor * tape.trackerPanel.getCoords().getScaleX(n);
-		double scaleY = factor * tape.trackerPanel.getCoords().getScaleY(n);
+		ImageCoordSystem coords = tape.trackerPanel.getCoords();
+		double scaleX = factor * coords.getScaleX(n);
+		double scaleY = factor * coords.getScaleY(n);
 		XMLControl coordsControl = new XMLControlElement(tape.trackerPanel.getCoords());
 		tape.isStepChangingScale = true;
-		tape.trackerPanel.getCoords().setScaleXY(n, scaleX, scaleY);
+		coords.setScaleXY(n, scaleX, scaleY);
 		tape.isStepChangingScale = false;
 		if (tape.isStickMode()) {
 			Undo.postTrackAndCoordsEdit(tape, trackControl, coordsControl);

@@ -207,6 +207,8 @@ public abstract class Step implements Cloneable {
 	 * Erases this on all tracker panels.
 	 */
 	public void erase() {
+		if (marks.isEmpty())
+			return;
 		Iterator<TrackerPanel> it = marks.keySet().iterator();
 		while (it.hasNext())
 			erase(it.next());
@@ -216,6 +218,8 @@ public abstract class Step implements Cloneable {
 	 * Remarks this on all tracker panels.
 	 */
 	public void remark() {
+		if (marks.isEmpty())
+			return;
 		Iterator<TrackerPanel> it = marks.keySet().iterator();
 		while (it.hasNext())
 			remark(it.next());

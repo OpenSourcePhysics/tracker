@@ -107,9 +107,11 @@ public abstract class InputTrack extends TTrack {
 			trackerPanel.setSelectedTrack(this);
 			FontSizer.setFonts(inputField, FontSizer.getLevel());
 			inputField.setForeground(footprint.getColor());
+			inputField.setValue(magField.getValue());
 			Dimension d = inputField.getPreferredSize();
 			Rectangle bounds = getLayoutBounds(step);
-			inputField.setBounds(bounds.x, bounds.y - 5, d.width, d.height);
+			System.out.println("InputTrack " + d + " " + inputField.getValue() + " " + inputField.getText());
+			inputField.setBounds(bounds.x, bounds.y - 5, Math.max(50, d.width), d.height);
 			trackerPanel.add(inputField);
 			Border space = BorderFactory.createEmptyBorder(0, 1, 1, 0);
 			Color color = getFootprint().getColor();
