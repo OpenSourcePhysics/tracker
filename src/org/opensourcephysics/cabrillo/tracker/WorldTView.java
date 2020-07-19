@@ -46,15 +46,14 @@ import org.opensourcephysics.controls.XMLControl;
 @SuppressWarnings("serial")
 public class WorldTView extends TrackerPanel implements TView {
 
-  protected static final Icon WORLDVIEW_ICON =  new ImageIcon(
-      Tracker.getClassResource("resources/images/axes.gif")); //$NON-NLS-1$;
+	protected static final Icon WORLDVIEW_ICON = new ImageIcon(Tracker.getClassResource("resources/images/axes.gif")); //$NON-NLS-1$ ;
 
 	// instance fields
 	protected TrackerPanel trackerPanel;
 	protected JMenuItem copyImageItem;
 	protected JMenuItem printItem;
 	protected JMenuItem helpItem;
-  protected JLabel worldViewLabel;
+	protected JLabel worldViewLabel;
 	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
 
 	/**
@@ -74,9 +73,9 @@ public class WorldTView extends TrackerPanel implements TView {
 		setShowCoordinates(false);
 		trackerPanel.panelAndWorldViews.add(this);
 		// world view button
-    worldViewLabel = new JLabel();
-    worldViewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
-    toolbarComponents.add(worldViewLabel);
+		worldViewLabel = new JLabel();
+		worldViewLabel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 0));
+		toolbarComponents.add(worldViewLabel);
 		addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
@@ -152,18 +151,20 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	@Override
 	public void refresh() {
-  	worldViewLabel.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
+		if (!isViewPaneVisible())
+			return;
+		worldViewLabel.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
 		// axes & tape items
 		CoordAxes axes = trackerPanel.getAxes();
 		if (axes != null) {
-			axes.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
-			axes.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
+			axes.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+			axes.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 		}
 		if (!trackerPanel.calibrationTools.isEmpty()) {
 			for (TTrack next : trackerPanel.getTracks()) {
 				if (trackerPanel.calibrationTools.contains(next)) {
-					next.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
-					next.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
+					next.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
+					next.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 				}
 			}
 		}
@@ -186,13 +187,13 @@ public class WorldTView extends TrackerPanel implements TView {
 		cleanup();
 		// add this view to tracker panel listeners
 		// note "track" and "clear" not needed since forwarded from TViewChooser
-		trackerPanel.addPropertyChangeListener(PROPERTY_TRACKERPANEL_SIZE, this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(PROPERTY_TRACKERPANEL_SIZE, this); // $NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("image", this); //$NON-NLS-1$
 		trackerPanel.addPropertyChangeListener("videoVisible", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); // $NON-NLS-1$
 		// add this view to track listeners
 		for (TTrack track : trackerPanel.getTracks()) {
 			track.addPropertyChangeListener("color", this); //$NON-NLS-1$
@@ -205,13 +206,13 @@ public class WorldTView extends TrackerPanel implements TView {
 	@Override
 	public void cleanup() {
 		// remove this listener from tracker panel
-		trackerPanel.removePropertyChangeListener(PROPERTY_TRACKERPANEL_SIZE, this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(PROPERTY_TRACKERPANEL_SIZE, this); // $NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(ImageCoordSystem.PROPERTY_COORDS_TRANSFORM, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("image", this); //$NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("videoVisible", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); // $NON-NLS-1$
 		// remove this listener from tracks
 		for (Integer n : TTrack.activeTracks.keySet()) {
 			TTrack track = TTrack.activeTracks.get(n);
@@ -296,7 +297,7 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	@Override
 	public Icon getViewIcon() {
-    return WORLDVIEW_ICON;
+		return WORLDVIEW_ICON;
 	}
 
 	/**
@@ -316,7 +317,7 @@ public class WorldTView extends TrackerPanel implements TView {
 	 */
 	@Override
 	public ArrayList<Component> getToolBarComponents() {
-  	worldViewLabel.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
+		worldViewLabel.setText(TrackerRes.getString("WorldTView.Button.World")); //$NON-NLS-1$
 		return toolbarComponents;
 	}
 
@@ -331,15 +332,15 @@ public class WorldTView extends TrackerPanel implements TView {
 		if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK)) { // track has been added or removed //$NON-NLS-1$
 			if (e.getOldValue() != null) { // track removed
 				TTrack removed = (TTrack) e.getOldValue();
-				removed.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-				removed.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
+				removed.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
+				removed.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 			}
 			refresh();
 		} else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) { // tracks have been cleared //$NON-NLS-1$
 			for (Integer n : TTrack.activeTracks.keySet()) {
 				TTrack track = TTrack.activeTracks.get(n);
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); //$NON-NLS-1$
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 			}
 			refresh();
 		} else if (name.equals("stepnumber") || // stepnumber has changed //$NON-NLS-1$

@@ -1169,7 +1169,7 @@ public class CircleFitter extends TTrack {
 //__________________________ protected methods ________________________
 
 	@Override
-	protected void setTrackerPanel(TrackerPanel panel) {
+	public void setTrackerPanel(TrackerPanel panel) {
 		setTrackerPanelWithListeners(panel);
 		setFixed(isFixed());
 	}

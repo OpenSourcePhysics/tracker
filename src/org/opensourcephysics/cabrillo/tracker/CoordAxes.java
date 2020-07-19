@@ -464,11 +464,6 @@ public class CoordAxes extends TTrack {
 //  	return null;
 	}
 
-	@Override
-	protected void setTrackerPanel(TrackerPanel panel) {
-		super.setTrackerPanel(panel);
-	}
-
 	/**
 	 * Used by autoTracker to mark a step at a match target position.
 	 * 

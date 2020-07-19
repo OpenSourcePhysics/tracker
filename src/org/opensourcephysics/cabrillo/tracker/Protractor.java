@@ -667,8 +667,8 @@ public class Protractor extends InputTrack {
 	 * @param panel the TrackerPanel
 	 */
 	@Override
-	protected void setTrackerPanel(TrackerPanel panel) {
-		setTrackerPanelWithListeners(panel);
+	public void setTrackerPanel(TrackerPanel panel) {
+		super.setTrackerPanel(panel);
 		setFixedPosition(isFixedPosition());
 	}
 

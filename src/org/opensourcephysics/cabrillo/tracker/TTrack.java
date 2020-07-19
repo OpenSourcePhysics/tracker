@@ -2900,7 +2900,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 *
 	 * @param panel the TrackerPanel
 	 */
-	protected void setTrackerPanel(TrackerPanel panel) {
+	public void setTrackerPanel(TrackerPanel panel) {
 		trackerPanel = panel;
 	}
 
@@ -3699,6 +3699,11 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
 	}
 
+	/**
+	 * BH Not at all clear that this is necessary. It was in just 
+	 * CircleFitter, Protractor, and TapeMeasure
+	 * @param panel
+	 */
 	public void setTrackerPanelWithListeners(TrackerPanel panel) {
 		if (trackerPanel != null) {
 			trackerPanel.removePropertyChangeListener(this);
@@ -3707,9 +3712,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		if (trackerPanel != null) {
 			trackerPanel.addPropertyChangeListener(this);
 		}
-
-		// TODO Auto-generated method stub
-		
 	}
 
 
