@@ -688,7 +688,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	}
 
 	/**
-	 * Gets the frame.
+	 * Gets the frame with alias for JavaScript
+	 *
+	 * @j2sAlias getFrame
 	 *
 	 * @return the frame
 	 */
