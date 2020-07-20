@@ -186,7 +186,7 @@ public class CircleFitter extends TTrack {
 		});
 
 		clickToMarkLabel = new JLabel();
-		clickToMarkLabel.setForeground(Color.red.darker());
+		clickToMarkLabel.setForeground(Color.green.darker());
 
 		// create actions, listeners, labels and fields for data points
 		final Action dataPointAction = new AbstractAction() {
@@ -850,7 +850,7 @@ public class CircleFitter extends TTrack {
 							refreshingAttachments = false;
 							return;
 						}
-						Step targetStep = getStep(n);
+						Step targetStep = targetTrack.getStep(n);
 						CircleFitterStep step = (CircleFitterStep) steps.getStep(n); // no refresh
 						DataPoint p = step.getDataPoint(1, i); // may return null
 						if (targetStep == null) {
@@ -919,7 +919,7 @@ public class CircleFitter extends TTrack {
 							refreshingAttachments = false;
 							return;
 						}
-						Step targetStep = getStep(frame);
+						Step targetStep = targetTrack.getStep(frame);
 						int dataPointIndex = frame - in;
 						DataPoint p = circleStep.getDataPoint(1, dataPointIndex); // may be null
 
@@ -992,7 +992,7 @@ public class CircleFitter extends TTrack {
 		}
 
 		TTrackBar.getTrackbar(trackerPanel).refresh();
-		repaint();
+		erase();
 		invalidateData(this);
 		refreshingAttachments = false;
 		if (loadingAttachments) {

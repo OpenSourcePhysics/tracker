@@ -117,7 +117,6 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			iad = trackerPanel.getInteractive();
 			boolean invertCursor = e.isShiftDown();
 			marking = trackerPanel.setCursorForMarking(invertCursor, e);
-			OSPLog.debug("pig "+marking);
 			if (selectedTrack != null && marking != selectedTrack.isMarking) {
 				selectedTrack.setMarking(marking);
 			}

@@ -31,6 +31,7 @@ import java.awt.geom.*;
 
 import javax.swing.SwingUtilities;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;

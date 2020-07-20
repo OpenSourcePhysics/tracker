@@ -4013,6 +4013,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						popup = track.getMenu(this, new JMenu()).getPopupMenu();
 					}
 					selectedStep = prev;
+					getZoomBox().setVisible(false);
 					return popup;
 				}
 			} else if (iad instanceof TTrack) {
@@ -4025,6 +4026,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				} else {
 					popup = track.getMenu(this, null).getPopupMenu();
 				}
+				getZoomBox().setVisible(false);
 				return popup;
 			}
 			// video or non-track TPoint was clicked

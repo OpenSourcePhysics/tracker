@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -47,6 +48,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.Timer;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
@@ -467,15 +469,15 @@ public class TapeMeasure extends InputTrack {
 				}
 			});
 
-//			final TapeStep theStep = step;
-//			Timer timer = new Timer(400, new AbstractAction() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					setEditing(true, theStep);
-//				}
-//			});
-//			timer.setRepeats(false);
-//			timer.start();
+			final TapeStep theStep = step;
+			Timer timer = new Timer(100, new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					setEditing(true, theStep, null);
+				}
+			});
+			timer.setRepeats(false);
+			timer.start();
 		} else {
 			TPoint[] pts = step.getPoints();
 			TPoint p = trackerPanel == null ? null : trackerPanel.getSelectedPoint();
@@ -740,18 +742,21 @@ public class TapeMeasure extends InputTrack {
 		boolean complete = exists && step.worldLength > 0;
 		String s = TrackerRes.getString("TapeMeasure.End.Name"); //$NON-NLS-1$
 		String unmarked = TrackerRes.getString("TTrack.Label.Unmarked"); //$NON-NLS-1$
+		unmarked = isStickMode()?
+			TrackerRes.getString("TapeMeasure.Label.UnmarkedStick"):			
+			TrackerRes.getString("TapeMeasure.Label.UnmarkedTape"); //$NON-NLS-1$
 		if (!exists) {
-			end1Label.setText(s + " 1: " + unmarked); //$NON-NLS-1$
-			end1Label.setForeground(Color.red.darker());
-			list.add(end1Label);
-		} else if (!complete) {
-			end1Label.setText(s + " 1: " + TrackerRes.getString("TapeMeasure.Label.Marked")); //$NON-NLS-1$ //$NON-NLS-2$
+			end1Label.setText(unmarked); //$NON-NLS-1$
 			end1Label.setForeground(Color.green.darker());
 			list.add(end1Label);
-			list.add(magSeparator);
-			end2Label.setText(s + " 2: " + unmarked); //$NON-NLS-1$
-			end2Label.setForeground(Color.red.darker());
-			list.add(end2Label);
+		} else if (!complete) {
+			end1Label.setText(unmarked); //$NON-NLS-1$ //$NON-NLS-2$
+			end1Label.setForeground(Color.green.darker());
+			list.add(end1Label);
+//			list.add(magSeparator);
+//			end2Label.setText(s + " 2: " + unmarked); //$NON-NLS-1$
+//			end2Label.setForeground(Color.red.darker());
+//			list.add(end2Label);
 //		} else if (initialCalibration) {
 //			end1Label.setText(s + " 1: " + TrackerRes.getString("TapeMeasure.Label.Marked")); //$NON-NLS-1$ //$NON-NLS-2$
 //			end1Label.setForeground(Color.green.darker());
