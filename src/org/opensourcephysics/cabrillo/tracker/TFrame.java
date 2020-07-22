@@ -2131,7 +2131,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						maximizeView(panel, maximizedView);
 					} else {
 						saveCurrentDividerLocations(panel);
-	//					restoreViews(panel);
+						restoreViews(panel);
 					}
 				}
 			}
