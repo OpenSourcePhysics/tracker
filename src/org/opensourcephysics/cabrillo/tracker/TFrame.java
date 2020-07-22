@@ -109,6 +109,7 @@ import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.js.JSUtil;
 import org.opensourcephysics.media.core.BaselineFilter;
 import org.opensourcephysics.media.core.BrightnessFilter;
 import org.opensourcephysics.media.core.ClipInspector;
@@ -309,6 +310,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //			}
 //
 //		});
+		if(JSUtil.isJS) {// WC: place Tracker higher in html page.
+			Point p=this.getLocation();
+			this.setLocation(p.x, 50);
+		}
 	}
 
 	/**
