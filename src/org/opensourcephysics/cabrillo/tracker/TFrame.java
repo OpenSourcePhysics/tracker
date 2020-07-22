@@ -2148,18 +2148,18 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	private void createGUI() {
 		this.addComponentListener(new ComponentAdapter() {
-      @Override
+			@Override
 			public void componentResized(ComponentEvent e) {
-        TrackerPanel panel = getTrackerPanel(getSelectedTab());
-        if (panel != null) {
-    			if (maximizedView > -1) {
-    				maximizeView(panel, maximizedView);
-    			}
-    			else {
-    				restoreViews(panel);
-    			}
-        }
-      }
+				TrackerPanel panel = getTrackerPanel(getSelectedTab());
+				if (panel != null) {
+					if (maximizedView > -1) {
+						maximizeView(panel, maximizedView);
+					} else {
+						saveCurrentDividerLocations(panel);
+	//					restoreViews(panel);
+					}
+				}
+			}
 		});
 		// add focus listener to notify ParticleDataTracks and other listeners
 		addWindowFocusListener(new WindowAdapter() {
