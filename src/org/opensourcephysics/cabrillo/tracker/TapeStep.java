@@ -245,9 +245,7 @@ public class TapeStep extends Step {
 	 */
 	@Override
 	public TPoint getDefaultPoint() {
-		if (worldLength == 0)
-			return handle;
-		if (tape.isCalibrator)
+		if (tape.isIncomplete)
 			return points[1];
 		TPoint p = tape.trackerPanel.getSelectedPoint();
 		if (p == points[0])
@@ -269,7 +267,7 @@ public class TapeStep extends Step {
 		TPoint selection = null;
 		if (mark == null) {
 			// adjust tips if stick mode
-			if (tape.isStickMode()) {
+			if (tape.isStickMode() && !tape.isIncomplete) {
 				adjustTipsToLength();
 			}
 			selection = trackerPanel.getSelectedPoint();
@@ -312,7 +310,7 @@ public class TapeStep extends Step {
 			end2Shapes.put(trackerPanel, shapes[1]);
 			shaftShapes.put(trackerPanel, shapes[2]);
 			// get new text layout
-			double tapeLength = getTapeLength(!tape.isStickMode());
+			double tapeLength = getTapeLength(!tape.isStickMode() || tape.isIncomplete);
 			String s = tape.getFormattedLength(tapeLength);
 			s += trackerPanel.getUnits(tape, TapeMeasure.dataVariables[1]);
 

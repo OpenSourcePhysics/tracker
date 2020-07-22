@@ -44,6 +44,7 @@ public class AnalyticParticle extends ParticleModel {
 	 * Constructor.
 	 */
 	public AnalyticParticle() {
+		points = new Point2D.Double[] { new Point2D.Double() };
 	}
 
 	/**

@@ -109,6 +109,7 @@ import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.js.JSUtil;
 import org.opensourcephysics.media.core.BaselineFilter;
 import org.opensourcephysics.media.core.BrightnessFilter;
 import org.opensourcephysics.media.core.ClipInspector;
@@ -209,6 +210,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected final static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
 	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
 	protected final static Color yellow = new Color(255, 255, 105);
+	final static int defaultDividerSize = 8;
 
 	// instance fields
 	private JToolBar playerBar;
@@ -254,6 +256,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected boolean alwaysListenToClipboard;
 	private String mylang = "en";
 	private JMenu languageMenu;
+	private int maximizedView = -1;
 
 	/**
 	 * Constructs an empty TFrame.
@@ -307,6 +310,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //			}
 //
 //		});
+		if(JSUtil.isJS) {// WC: place Tracker higher in html page.
+			Point p=this.getLocation();
+			this.setLocation(p.x, 50);
+		}
 	}
 
 	/**
@@ -1113,14 +1120,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 	}
 
-	public void setDividerWeight(TrackerPanel trackerPanel, int paneIndex, double wt) {
-		JSplitPane[] panes = getSplitPanes(trackerPanel);
-		if (paneIndex < panes.length) {
-			panes[paneIndex].setResizeWeight(wt);
-			validate();
-		}
-	}
-
 	/**
 	 * Gets a splitpane for a tracker panel
 	 *
@@ -1420,111 +1419,116 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		JSplitPane[] panes = new JSplitPane[4];
 		panes[SPLIT_MAIN] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) { // right pane
-			// override setDividerLocation to update Window menu item
-			@Override
-			public void setDividerLocation(int loc) {
-				int cur = getDividerLocation();
-				int max = getMaximumDividerLocation();
-				if (loc == max) {
-					// BH 2020.02.09 Java bug here.
-					// super.setDividerLocation(double) will call this method again, infinitely.
-					// here I substitute the result of double location 1.0 to not trigger that.
-					// Probably not caught in Java because Java can return a location > max,
-					// actually (987 > 983),
-					// which is probably a Java bug.
-					// super.setDividerLocation(1.0);
-					super.setDividerLocation(getWidth() - getDividerSize());
-				} else if (loc != cur)
-					super.setDividerLocation(loc);
-			}
+//			@Override
+//			public void setDividerLocation(int loc) {
+//				int cur = getDividerLocation();
+//				int max = getMaximumDividerLocation();
+//				if (loc == max) {
+//					// BH 2020.02.09 Java bug here.
+//					// super.setDividerLocation(double) will call this method again, infinitely.
+//					// here I substitute the result of double location 1.0 to not trigger that.
+//					// Probably not caught in Java because Java can return a location > max,
+//					// actually (987 > 983),
+//					// which is probably a Java bug.
+//					// super.setDividerLocation(1.0);
+//					super.setDividerLocation(getWidth() - getDividerSize());
+//				} else if (loc != cur)
+//					super.setDividerLocation(loc);
+//			}
 		};
 		panes[SPLIT_RIGHT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // plot/table split
 		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT) { // bottom pane
-			@Override
-			public void setDividerLocation(int loc) {
-				int cur = getDividerLocation();
-				int max = getMaximumDividerLocation();
-				if (loc == max) {
-					// BH 2020.02.09 Java bug here.
-					// super.setDividerLocation(double) will call this method again, infinitely.
-					// here I substitute the result of double location 1.0 to not trigger that.
-					// super.setDividerLocation(1.0);
-					super.setDividerLocation(getHeight() - getDividerSize());
-				} else if (loc != cur)
-					super.setDividerLocation(loc);
-			}
+//			@Override
+//			public void setDividerLocation(int loc) {
+//		    OSPLog.debug("pig set divider loc "+loc);
+//				int cur = getDividerLocation();
+//				int max = getMaximumDividerLocation();
+//				if (loc == max) {
+//					// BH 2020.02.09 Java bug here.
+//					// super.setDividerLocation(double) will call this method again, infinitely.
+//					// here I substitute the result of double location 1.0 to not trigger that.
+//					// super.setDividerLocation(1.0);
+//					super.setDividerLocation(getHeight() - getDividerSize());
+//				} else if (loc != cur)
+//					super.setDividerLocation(loc);
+//			}
 		};
 		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) { // world/html
-			@Override
-			public void setDividerLocation(int loc) {
-				int cur = getDividerLocation();
-				int min = getMinimumDividerLocation();
-				if (loc == min) {
-					if (cur != 0)
-						super.setDividerLocation(0);
-				} else if (loc != cur)
-					super.setDividerLocation(loc);
-			}
+//			@Override
+//			public void setDividerLocation(int loc) {
+//				int cur = getDividerLocation();
+//				int min = getMinimumDividerLocation();
+//				if (loc == min) {
+//					if (cur != 0)
+//						super.setDividerLocation(0);
+//				} else if (loc != cur)
+//					super.setDividerLocation(loc);
+//			}
 		};
 		setDefaultWeights(panes);
 		return panes;
 	}
 
 	private static void setDefaultWeights(JSplitPane[] panes) {
-		panes[SPLIT_MAIN].setResizeWeight(1.0);
-		panes[SPLIT_RIGHT].setResizeWeight(0.5);
-		panes[SPLIT_LEFT].setResizeWeight(1.0);
-		panes[SPLIT_BOTTOM].setResizeWeight(0.5);
-		panes[SPLIT_MAIN].setOneTouchExpandable(true);
-		panes[SPLIT_RIGHT].setOneTouchExpandable(true);
-		panes[SPLIT_LEFT].setOneTouchExpandable(true);
-		panes[SPLIT_BOTTOM].setOneTouchExpandable(true);
+		panes[SPLIT_MAIN].setDividerSize(defaultDividerSize);
+		panes[SPLIT_RIGHT].setDividerSize(defaultDividerSize);
+		panes[SPLIT_LEFT].setDividerSize(defaultDividerSize);
+		panes[SPLIT_BOTTOM].setDividerSize(defaultDividerSize);
+		panes[SPLIT_MAIN].setResizeWeight(1.0); // right pane fixed, trackerPanel expands
+		panes[SPLIT_RIGHT].setResizeWeight(0.5); // plot and table share extra space
+		panes[SPLIT_LEFT].setResizeWeight(1.0);  // bottom panel fixed, trackerPanel expands
+		panes[SPLIT_BOTTOM].setResizeWeight(0.5); // bottom view share extra space
+//		panes[SPLIT_MAIN].setOneTouchExpandable(true);
+//		panes[SPLIT_RIGHT].setOneTouchExpandable(true);
+//		panes[SPLIT_LEFT].setOneTouchExpandable(true);
+//		panes[SPLIT_BOTTOM].setOneTouchExpandable(true);
 	}
 
-	private int[] dividerLocs = new int[4];
-	private int dividerSize;
-
-	void maximizeChooser(TrackerPanel trackerPanel, int type) {
-		// save divider locations and size
-		for (int j = 0; j < dividerLocs.length; j++) {
-			JSplitPane pane = getSplitPane(trackerPanel, j);
-			dividerLocs[j] = pane.getDividerLocation();
-			if (pane.getDividerSize() > 0)
-				dividerSize = pane.getDividerSize();
-			pane.setDividerSize(0);
+	void maximizeView(TrackerPanel trackerPanel, int viewPosition) {
+		maximizedView = viewPosition;
+		JSplitPane[] panes = getSplitPanes(trackerPanel);
+		for (int i = 0; i < panes.length; i++) {
+			panes[i].setDividerSize(0);
 		}
-		switch (type) {
-		case TView.VIEW_PLOT:
+		switch (viewPosition) {
+		case TView.VIEW_PLOT: // right upper
 			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);
 			setDividerLocation(trackerPanel, SPLIT_RIGHT, 1.0);
-			setDividerWeight(trackerPanel, SPLIT_MAIN, 0);
-			setDividerWeight(trackerPanel, SPLIT_RIGHT, 1);
 			break;
-		case TView.VIEW_TABLE:
+		case TView.VIEW_TABLE: // right lower
 			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);
 			setDividerLocation(trackerPanel, SPLIT_RIGHT, 0.0);
 			break;
-		case TView.VIEW_WORLD:
+		case TView.VIEW_WORLD: // bottom right
 			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
 			setDividerLocation(trackerPanel, SPLIT_LEFT, 0.0);
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 0.0);
 			break;
-		case TView.VIEW_PAGE:
+		case TView.VIEW_PAGE: // bottom left
 			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
 			setDividerLocation(trackerPanel, SPLIT_LEFT, 0.0);
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0);
 		}
 	}
-
-	void restoreChoosers(TrackerPanel trackerPanel) {
-		for (int j = 0; j < dividerLocs.length; j++) {
-			JSplitPane pane = getSplitPane(trackerPanel, j);
-			pane.setDividerSize(dividerSize);
-			setDividerLocation(trackerPanel, j, dividerLocs[j]);
+	
+	void saveCurrentDividerLocations(TrackerPanel trackerPanel) {
+		for (int i = 0; i < trackerPanel.dividerFractions.length; i++) {
+			JSplitPane pane = getSplitPane(trackerPanel, i);
+			int max = pane.getMaximumDividerLocation();
+			int cur = Math.min(pane.getDividerLocation(), max); // sometimes cur > max !!??
+			trackerPanel.dividerFractions[i] = 1.0 * cur / max;
 		}
-		setDefaultWeights(getSplitPanes(trackerPanel));
+
 	}
 
+	void restoreViews(TrackerPanel trackerPanel) {
+		for (int i = 0; i < trackerPanel.dividerFractions.length; i++) {
+			setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
+		}
+		setDefaultWeights(getSplitPanes(trackerPanel));
+		maximizedView = -1;
+	}
+	
 	/**
 	 * Gets the toolbar for the specified tracker panel.
 	 *
@@ -2143,6 +2147,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Creates the GUI.
 	 */
 	private void createGUI() {
+		this.addComponentListener(new ComponentAdapter() {
+      @Override
+			public void componentResized(ComponentEvent e) {
+        TrackerPanel panel = getTrackerPanel(getSelectedTab());
+        if (panel != null) {
+    			if (maximizedView > -1) {
+    				maximizeView(panel, maximizedView);
+    			}
+    			else {
+    				restoreViews(panel);
+    			}
+        }
+      }
+		});
 		// add focus listener to notify ParticleDataTracks and other listeners
 		addWindowFocusListener(new WindowAdapter() {
 			@Override
@@ -2651,6 +2669,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			int loc = (int) (.5 * defaultRightDivider * max);
 			pane = getSplitPane(trackerPanel, 3);
 			pane.setDividerLocation(loc);
+			saveCurrentDividerLocations(trackerPanel);
 		}
 		validate(); // after setting divider locations
 		// set track control location

@@ -230,6 +230,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected boolean unitsVisible = true; // visible by default
 	protected TCoordinateStringBuilder coordStringBuilder;
 	protected ArrayList<TrackerPanel> panelAndWorldViews = new ArrayList<TrackerPanel>();
+	protected double[] dividerFractions = new double[4];
 
 	public String id;
 	private static int ids;
@@ -4013,6 +4014,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						popup = track.getMenu(this, new JMenu()).getPopupMenu();
 					}
 					selectedStep = prev;
+					getZoomBox().setVisible(false);
 					return popup;
 				}
 			} else if (iad instanceof TTrack) {
@@ -4025,6 +4027,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				} else {
 					popup = track.getMenu(this, null).getPopupMenu();
 				}
+				getZoomBox().setVisible(false);
 				return popup;
 			}
 			// video or non-track TPoint was clicked

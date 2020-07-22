@@ -122,6 +122,14 @@ public class TMouseHandler implements InteractiveMouseHandler {
 			}
 			if (marking) {
 				iad = null;
+				if (selectedTrack != null && selectedTrack instanceof TapeMeasure) {
+					TapeMeasure tape = (TapeMeasure)selectedTrack;
+					if (tape.isIncomplete) {
+						// this call refreshes the position of end2 but leaves tape incomplete
+						tape.createStep(frameNumber, 0, 0, 
+								trackerPanel.getMouseX(), trackerPanel.getMouseY());
+					}
+				} 
 			}
 			if (selectedTrack != null) {
 				if (autoTracker != null && autoTracker.getWizard().isVisible() && autoTracker.getTrack() == selectedTrack) {

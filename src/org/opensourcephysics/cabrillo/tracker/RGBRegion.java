@@ -199,7 +199,8 @@ public class RGBRegion extends TTrack {
    *
    * @param fixed <code>true</code> to fix the position
    */
-  public void setFixedPosition(boolean fixed) {
+  @Override
+	public void setFixedPosition(boolean fixed) {
   	if (fixedPosition == fixed) return;
     if (steps.isEmpty()) {
       fixedPosition = fixed;
@@ -239,7 +240,12 @@ public class RGBRegion extends TTrack {
     return fixedPosition;
   }
 
-  /**
+	@Override
+	protected String getTargetDescription(int pointIndex) {
+		return TrackerRes.getString("PointMass.Position.Name"); //$NON-NLS-1$
+	}
+
+	/**
    * Sets the fixed radius property. When fixed, it has the same
    * radius at all times.
    *

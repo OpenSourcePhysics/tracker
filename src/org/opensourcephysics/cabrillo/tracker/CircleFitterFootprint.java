@@ -36,6 +36,7 @@ import java.util.HashSet;
 
 import javax.swing.Icon;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -318,12 +319,14 @@ public MultiShape getShape(Point[] points) {
 	      		line.setLine(x-len/slope, y-len, x+len/slope, y+len);	      		
 	      	}
       	}
-		    drawMe.addDrawShape(line, null);
+    		transform.setToIdentity();
+		    drawMe.addDrawShape(transform.createTransformedShape(line), null);
     	}
     	else { // standard case
 	    	// circle
+    		transform.setToIdentity();
 	      circle.setFrameFromCenter(center.x, center.y, center.x+radius, center.y+radius);
-		    drawMe.addDrawShape(circle, null);
+		    drawMe.addDrawShape(transform.createTransformedShape(circle), null);
 	    
 	    	// center
 	      transform.setToTranslation(points[0].x, points[0].y);

@@ -27,6 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.EventQueue;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -47,6 +48,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.Timer;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
@@ -225,51 +227,6 @@ public class TapeMeasure extends InputTrack {
 				angleField.requestFocusInWindow();
 			}
 		});
-	}
-
-	/**
-	 * Sets the fixed position property. When it is fixed, it's ends are in the same
-	 * position at all times.
-	 *
-	 * @param fixed <code>true</code> to fix the position
-	 */
-	protected void setFixedPosition(boolean fixed) {
-		if (fixedPosition == fixed)
-			return;
-		XMLControl control = new XMLControlElement(this);
-		boolean hasSteps = false;
-		if (trackerPanel != null) {
-			int n = trackerPanel.getFrameNumber();
-			trackerPanel.changed = true;
-			TapeStep keyStep = (TapeStep) getStep(n);
-			for (int i = 0; i < steps.array.length; i++) {
-				TapeStep step = (TapeStep) steps.getStep(i);
-				if (step == null || keyStep == null)
-					continue;
-				step.getEnd1().setLocation(keyStep.getEnd1());
-				step.getEnd2().setLocation(keyStep.getEnd2());
-				hasSteps = true;
-			}
-			TFrame.repaintT(trackerPanel);
-		}
-		if (fixed) {
-			keyFrames.clear();
-			keyFrames.add(0);
-			invalidateData(null);
-			erase();
-		}
-		fixedPosition = fixed;
-		if (hasSteps)
-			Undo.postTrackEdit(this, control);
-	}
-
-	/**
-	 * Gets the fixed position property.
-	 *
-	 * @return <code>true</code> if position is fixed
-	 */
-	public boolean isFixedPosition() {
-		return fixedPosition;
 	}
 
 	/**
@@ -491,6 +448,7 @@ public class TapeMeasure extends InputTrack {
 		TapeStep step = (TapeStep) getStep(n);
 		isIncomplete = false;
 		if (step == null) {
+			isIncomplete = true;
 			// create new step of length zero
 			step = new TapeStep(this, n, x, y, x, y);
 //			step.worldLength = step.getTapeLength(true); // sets to zero
@@ -498,7 +456,6 @@ public class TapeMeasure extends InputTrack {
 			step.setFootprint(getFootprint());
 			steps = new StepArray(step); // autofill
 			step = (TapeStep) getStep(n); // must do this since line above changes n to 0
-			isIncomplete = true;
 		} else if (step.worldLength == 0) {
 			// always mark step 0 when initializing
 			step = (TapeStep) getStep(0);
@@ -512,15 +469,15 @@ public class TapeMeasure extends InputTrack {
 				}
 			});
 
-//			final TapeStep theStep = step;
-//			Timer timer = new Timer(400, new AbstractAction() {
-//				@Override
-//				public void actionPerformed(ActionEvent e) {
-//					setEditing(true, theStep);
-//				}
-//			});
-//			timer.setRepeats(false);
-//			timer.start();
+			final TapeStep theStep = step;
+			Timer timer = new Timer(100, new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					setEditing(true, theStep, null);
+				}
+			});
+			timer.setRepeats(false);
+			timer.start();
 		} else {
 			TPoint[] pts = step.getPoints();
 			TPoint p = trackerPanel == null ? null : trackerPanel.getSelectedPoint();
@@ -556,8 +513,14 @@ public class TapeMeasure extends InputTrack {
 			step.setFootprint(getFootprint());
 			steps = new StepArray(step); // autofill
 		} else {
-			step.getEnd1().setLocation(x1, y1);
-			step.getEnd2().setLocation(x2, y2);
+			if (isIncomplete) {
+				step.getEnd2().setLocation(x2, y2);
+				repaint();
+			}
+			else {
+				step.getEnd1().setLocation(x1, y1);
+				step.getEnd2().setLocation(x2, y2);
+			}
 		}
 		keyFrames.add(n);
 		return step;
@@ -779,18 +742,21 @@ public class TapeMeasure extends InputTrack {
 		boolean complete = exists && step.worldLength > 0;
 		String s = TrackerRes.getString("TapeMeasure.End.Name"); //$NON-NLS-1$
 		String unmarked = TrackerRes.getString("TTrack.Label.Unmarked"); //$NON-NLS-1$
+		unmarked = isStickMode()?
+			TrackerRes.getString("TapeMeasure.Label.UnmarkedStick"):			
+			TrackerRes.getString("TapeMeasure.Label.UnmarkedTape"); //$NON-NLS-1$
 		if (!exists) {
-			end1Label.setText(s + " 1: " + unmarked); //$NON-NLS-1$
-			end1Label.setForeground(Color.red.darker());
-			list.add(end1Label);
-		} else if (!complete) {
-			end1Label.setText(s + " 1: " + TrackerRes.getString("TapeMeasure.Label.Marked")); //$NON-NLS-1$ //$NON-NLS-2$
+			end1Label.setText(unmarked); //$NON-NLS-1$
 			end1Label.setForeground(Color.green.darker());
 			list.add(end1Label);
-			list.add(magSeparator);
-			end2Label.setText(s + " 2: " + unmarked); //$NON-NLS-1$
-			end2Label.setForeground(Color.red.darker());
-			list.add(end2Label);
+		} else if (!complete) {
+			end1Label.setText(unmarked); //$NON-NLS-1$ //$NON-NLS-2$
+			end1Label.setForeground(Color.green.darker());
+			list.add(end1Label);
+//			list.add(magSeparator);
+//			end2Label.setText(s + " 2: " + unmarked); //$NON-NLS-1$
+//			end2Label.setForeground(Color.red.darker());
+//			list.add(end2Label);
 //		} else if (initialCalibration) {
 //			end1Label.setText(s + " 1: " + TrackerRes.getString("TapeMeasure.Label.Marked")); //$NON-NLS-1$ //$NON-NLS-2$
 //			end1Label.setForeground(Color.green.darker());
