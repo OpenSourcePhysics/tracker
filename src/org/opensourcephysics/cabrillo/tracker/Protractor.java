@@ -669,7 +669,8 @@ public class Protractor extends InputTrack {
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
 		super.setTrackerPanel(panel);
-		setFixedPosition(isFixedPosition());
+		if (panel != null)
+			setFixedPosition(isFixedPosition());
 	}
 
 	/**

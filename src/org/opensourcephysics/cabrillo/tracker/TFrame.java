@@ -59,6 +59,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -1140,7 +1141,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	public MainTView getMainView(TrackerPanel trackerPanel) {
 		Object[] objects = getObjects(trackerPanel);
-		return (objects == null ? new MainTView(trackerPanel) : (MainTView) objects[TFRAME_MAINVIEW]);
+		MainTView mainview = objects == null ? 
+				new MainTView(trackerPanel) : 
+				(MainTView) objects[TFRAME_MAINVIEW];
+		return mainview;
 	}
 
 	/**
@@ -1418,54 +1422,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return (JSplitPane[]) objects[TFRAME_SPLITPANES];
 		}
 		JSplitPane[] panes = new JSplitPane[4];
-		panes[SPLIT_MAIN] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) { // right pane
-//			@Override
-//			public void setDividerLocation(int loc) {
-//				int cur = getDividerLocation();
-//				int max = getMaximumDividerLocation();
-//				if (loc == max) {
-//					// BH 2020.02.09 Java bug here.
-//					// super.setDividerLocation(double) will call this method again, infinitely.
-//					// here I substitute the result of double location 1.0 to not trigger that.
-//					// Probably not caught in Java because Java can return a location > max,
-//					// actually (987 > 983),
-//					// which is probably a Java bug.
-//					// super.setDividerLocation(1.0);
-//					super.setDividerLocation(getWidth() - getDividerSize());
-//				} else if (loc != cur)
-//					super.setDividerLocation(loc);
-//			}
-		};
+		panes[SPLIT_MAIN] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); // right pane
 		panes[SPLIT_RIGHT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // plot/table split
-		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT) { // bottom pane
-//			@Override
-//			public void setDividerLocation(int loc) {
-//		    OSPLog.debug("pig set divider loc "+loc);
-//				int cur = getDividerLocation();
-//				int max = getMaximumDividerLocation();
-//				if (loc == max) {
-//					// BH 2020.02.09 Java bug here.
-//					// super.setDividerLocation(double) will call this method again, infinitely.
-//					// here I substitute the result of double location 1.0 to not trigger that.
-//					// super.setDividerLocation(1.0);
-//					super.setDividerLocation(getHeight() - getDividerSize());
-//				} else if (loc != cur)
-//					super.setDividerLocation(loc);
-//			}
-		};
-		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) { // world/html
-//			@Override
-//			public void setDividerLocation(int loc) {
-//				int cur = getDividerLocation();
-//				int min = getMinimumDividerLocation();
-//				if (loc == min) {
-//					if (cur != 0)
-//						super.setDividerLocation(0);
-//				} else if (loc != cur)
-//					super.setDividerLocation(loc);
-//			}
-		};
+		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // bottom pane
+		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); // world/html
 		setDefaultWeights(panes);
+		MouseAdapter splitPaneListener = new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				saveCurrentDividerLocations(trackerPanel);
+			}
+		};
+		panes[SPLIT_MAIN].addMouseListener(splitPaneListener);
+		panes[SPLIT_RIGHT].addMouseListener(splitPaneListener);
+		panes[SPLIT_LEFT].addMouseListener(splitPaneListener);
+		panes[SPLIT_BOTTOM].addMouseListener(splitPaneListener);
 		return panes;
 	}
 
@@ -1512,13 +1483,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 	
 	void saveCurrentDividerLocations(TrackerPanel trackerPanel) {
+		if (maximizedView > -1)
+			return;
 		for (int i = 0; i < trackerPanel.dividerFractions.length; i++) {
 			JSplitPane pane = getSplitPane(trackerPanel, i);
 			int max = pane.getMaximumDividerLocation();
 			int cur = Math.min(pane.getDividerLocation(), max); // sometimes cur > max !!??
-			trackerPanel.dividerFractions[i] = 1.0 * cur / max;
+			double fraction = 1.0 * cur / max;
+			fraction = fraction < .05 && (i == 1 || i == 3)? 0: fraction;
+			fraction = fraction > 0.95? 1: fraction;
+			trackerPanel.dividerFractions[i] = fraction;
 		}
-
 	}
 
 	void restoreViews(TrackerPanel trackerPanel) {

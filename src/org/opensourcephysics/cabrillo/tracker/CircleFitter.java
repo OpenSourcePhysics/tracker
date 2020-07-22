@@ -1171,8 +1171,9 @@ public class CircleFitter extends TTrack {
 
 	@Override
 	public void setTrackerPanel(TrackerPanel panel) {
-		setTrackerPanelWithListeners(panel);
-		setFixed(isFixed());
+		super.setTrackerPanel(panel);
+		if (panel != null)
+			setFixed(isFixed());
 	}
 
 	@Override

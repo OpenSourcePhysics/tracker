@@ -2901,7 +2901,15 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @param panel the TrackerPanel
 	 */
 	public void setTrackerPanel(TrackerPanel panel) {
+		// track listens to trackerPanel
+		// DB but should be more carefully controlled
+		if (trackerPanel != null) {
+			trackerPanel.removePropertyChangeListener(this); // pig
+		}
 		trackerPanel = panel;
+		if (trackerPanel != null) {
+			trackerPanel.addPropertyChangeListener(this);
+		}
 	}
 
 	/**
@@ -2976,7 +2984,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			}
 		}
 		steps = null;
-		setTrackerPanelWithListeners(null);
+		setTrackerPanel(null);
 	}
 
 	/**
@@ -3698,21 +3706,5 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		// this call will update TrackPlottingPanel
 		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
 	}
-
-	/**
-	 * BH Not at all clear that this is necessary. It was in just 
-	 * CircleFitter, Protractor, and TapeMeasure
-	 * @param panel
-	 */
-	public void setTrackerPanelWithListeners(TrackerPanel panel) {
-		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(this);
-		}
-		trackerPanel = panel;
-		if (trackerPanel != null) {
-			trackerPanel.addPropertyChangeListener(this);
-		}
-	}
-
 
 }
