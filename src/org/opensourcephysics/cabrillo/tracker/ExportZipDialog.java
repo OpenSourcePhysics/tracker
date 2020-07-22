@@ -1835,7 +1835,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		File target = new File(getZIPTarget());
 		if (JarTool.compress(zipList, target, null)) {
 			// offer to open the newly created zip file
-			openZip(target.getAbsolutePath());
+			openNewZip(target.getAbsolutePath());
 			// delete temp directory after short delay
 			Timer timer = new Timer(1000, new ActionListener() {
 				@Override
@@ -2490,7 +2490,10 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 *
 	 * @param path the path to the zip file
 	 */
-	private void openZip(final String path) {
+	private void openNewZip(final String path) {
+		// BH Can't reload a saved file in SwingJS
+		if (OSPRuntime.isJS)
+			return;		
 		Runnable runner1 = new Runnable() {
 			@Override
 			public void run() {
