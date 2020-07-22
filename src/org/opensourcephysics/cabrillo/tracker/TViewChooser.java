@@ -430,13 +430,21 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		if (maximized)
 			return;
 		TFrame frame = trackerPanel.getTFrame();
+		// save divider locations and size
+		frame.saveCurrentDividerLocations(trackerPanel);
 		JToolBar toolbar = frame.getMainView(trackerPanel).getPlayerBar();
 		if (toolbar.getTopLevelAncestor()==frame) {
 			add(toolbar, BorderLayout.SOUTH);
 			toolbar.setFloatable(false);
 		}
 		maximized = true;
-		frame.maximizeChooser(trackerPanel, selectedType);
+		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
+		for (int i = 0; i < choosers.length; i++) {
+			if (choosers[i] == this) {
+				frame.maximizeView(trackerPanel, i);
+				break;
+			}
+		}
 	}
 
 	/**
@@ -450,7 +458,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			mainView.add(player, BorderLayout.SOUTH);
 			player.setFloatable(true);
 		}
-		frame.restoreChoosers(trackerPanel);
+		frame.restoreViews(trackerPanel);
 		maximized = false;
 	}
 	

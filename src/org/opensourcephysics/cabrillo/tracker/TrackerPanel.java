@@ -230,6 +230,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected boolean unitsVisible = true; // visible by default
 	protected TCoordinateStringBuilder coordStringBuilder;
 	protected ArrayList<TrackerPanel> panelAndWorldViews = new ArrayList<TrackerPanel>();
+	protected double[] dividerFractions = new double[4];
 
 	public String id;
 	private static int ids;

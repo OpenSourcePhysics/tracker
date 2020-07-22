@@ -296,8 +296,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	// window menu
 	private JMenu windowMenu;
 	private JMenuItem window_restoreItem;
-	private JCheckBoxMenuItem window_rightPaneItem;
-	private JCheckBoxMenuItem window_bottomPaneItem;
+	protected JCheckBoxMenuItem window_rightPaneItem;
+	protected JCheckBoxMenuItem window_bottomPaneItem;
 	private JMenuItem window_trackControlItem;
 	private JMenuItem window_notesItem;
 	private JMenuItem window_dataBuilderItem;
@@ -1214,6 +1214,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					} else {
 						pane.setDividerLocation(1.0);
 					}
+					getFrame().saveCurrentDividerLocations(trackerPanel);
 				}
 			}
 		});
@@ -1229,6 +1230,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					} else {
 						pane.setDividerLocation(1.0);
 					}
+					getFrame().saveCurrentDividerLocations(trackerPanel);
 				}
 			}
 		});
@@ -2502,7 +2504,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		max = pane.getMaximumDividerLocation();
 		cur = pane.getDividerLocation();
 		loc = 1.0 * cur / max;
-		window_bottomPaneItem.setSelected(loc < .99);
+		window_bottomPaneItem.setSelected(loc < .95);
 		TrackControl tc = TrackControl.getControl(trackerPanel);
 		window_trackControlItem.setSelected(tc.isVisible());
 		window_trackControlItem.setEnabled(!tc.isEmpty());

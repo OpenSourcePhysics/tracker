@@ -705,6 +705,7 @@ public class CircleFitter extends TTrack {
 		return n;
 	}
 
+	@Override
 	protected int getAttachmentLength() {
 		// Variable number here. 
 		return (attachments == null || attachments.length == 0 || attachToSteps ? 1 : attachments.length);
