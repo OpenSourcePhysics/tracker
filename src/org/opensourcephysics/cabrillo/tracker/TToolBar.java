@@ -1227,7 +1227,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 */
 	public void dispose() {
 		disposed = true;
-		refreshTimer.stop();
+		if (refreshTimer != null)
+			refreshTimer.stop();
 		refreshTimer = null;
 		toolbars.remove(trackerPanel);
 		removeAll();

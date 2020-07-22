@@ -4258,7 +4258,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	public boolean isPaintable() {
-		if (!isVisible() || getHeight() <= 0 || getIgnoreRepaint() || getTFrame() == null || !frame.isPaintable()) {
+		if (getTopLevelAncestor() == null || !isVisible() || getHeight() <= 0 || getIgnoreRepaint() || getTFrame() == null || !frame.isPaintable()) {
 			return false;
 		}
 		return true;

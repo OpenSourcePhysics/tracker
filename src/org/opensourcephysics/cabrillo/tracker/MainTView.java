@@ -604,8 +604,4 @@ public class MainTView extends JPanel implements TView {
 		return TView.VIEW_MAIN;
 	}
 
-	@Override
-	public Dimension getMinimumSize() {
-		return new Dimension(700,500); // BH ??? 
-	}
 }
