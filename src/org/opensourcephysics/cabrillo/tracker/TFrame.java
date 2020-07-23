@@ -100,6 +100,8 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.plaf.basic.BasicSplitPaneDivider;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.text.Document;
 
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
@@ -1428,15 +1430,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); // world/html
 		setDefaultWeights(panes);
 		MouseAdapter splitPaneListener = new MouseAdapter() {
+//			@Override
+//			public void mouseEntered(MouseEvent e) {
+//				saveCurrentDividerLocations(trackerPanel);
+//			}
 			@Override
-			public void mouseEntered(MouseEvent e) {
+			public void mouseReleased(MouseEvent e) {
 				saveCurrentDividerLocations(trackerPanel);
+				restoreViews(trackerPanel);
 			}
 		};
-		panes[SPLIT_MAIN].addMouseListener(splitPaneListener);
-		panes[SPLIT_RIGHT].addMouseListener(splitPaneListener);
-		panes[SPLIT_LEFT].addMouseListener(splitPaneListener);
-		panes[SPLIT_BOTTOM].addMouseListener(splitPaneListener);
+		for (int i = 0; i < panes.length; i++) {
+			BasicSplitPaneUI ui = (BasicSplitPaneUI)panes[i].getUI();
+			ui.getDivider().addMouseListener(splitPaneListener);			
+		}
 		return panes;
 	}
 
@@ -1449,10 +1456,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		panes[SPLIT_RIGHT].setResizeWeight(0.5); // plot and table share extra space
 		panes[SPLIT_LEFT].setResizeWeight(1.0);  // bottom panel fixed, trackerPanel expands
 		panes[SPLIT_BOTTOM].setResizeWeight(0.5); // bottom view share extra space
-//		panes[SPLIT_MAIN].setOneTouchExpandable(true);
-//		panes[SPLIT_RIGHT].setOneTouchExpandable(true);
-//		panes[SPLIT_LEFT].setOneTouchExpandable(true);
-//		panes[SPLIT_BOTTOM].setOneTouchExpandable(true);
+		panes[SPLIT_MAIN].setOneTouchExpandable(true);
+		panes[SPLIT_RIGHT].setOneTouchExpandable(true);
+		panes[SPLIT_LEFT].setOneTouchExpandable(true);
+		panes[SPLIT_BOTTOM].setOneTouchExpandable(true);
 	}
 
 	void maximizeView(TrackerPanel trackerPanel, int viewPosition) {
@@ -2639,12 +2646,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setDividerLocation(trackerPanel, 2, defaultBottomDivider); // becomes previous
 			setDividerLocation(trackerPanel, 2, 1.0);
 			setDividerLocation(trackerPanel, 3, 1.0); // becomes previous
-			JSplitPane pane = getSplitPane(trackerPanel, 0);
-			int max = pane.getMaximumDividerLocation();
-			int loc = (int) (.5 * defaultRightDivider * max);
-			pane = getSplitPane(trackerPanel, 3);
-			pane.setDividerLocation(loc);
-			saveCurrentDividerLocations(trackerPanel);
+			setDividerLocation(trackerPanel, 3, 0.5);
+//			JSplitPane pane = getSplitPane(trackerPanel, 0);
+//			int max = pane.getMaximumDividerLocation();
+//			int loc = (int) (.5 * defaultRightDivider * max);
+//			pane = getSplitPane(trackerPanel, 3);
+//			pane.setDividerLocation(loc);
 		}
 		validate(); // after setting divider locations
 		// set track control location
@@ -2664,6 +2671,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.setInitialFormatPatterns();
 		Tracker.setProgress(90);
 		TMenuBar.getMenuBar(trackerPanel).setAllowRefresh(true);
+		saveCurrentDividerLocations(trackerPanel);
 	}
 
 	/**
@@ -2985,8 +2993,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			@Override
 			public void run() {
 				setSelectedTab(newPanel);
-				JSplitPane pane = getSplitPane(newPanel, 0);
-				pane.setDividerLocation(defaultRightDivider);
 				refresh();
 			}
 
