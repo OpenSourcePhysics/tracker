@@ -59,7 +59,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -100,7 +99,6 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.plaf.basic.BasicSplitPaneDivider;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.text.Document;
 
@@ -213,7 +211,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected final static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
 	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
 	protected final static Color yellow = new Color(255, 255, 105);
-	final static int defaultDividerSize = 8;
+	final static int defaultDividerSize = 10;
+	final static double minDividerOffset = 0.07;
 
 	// instance fields
 	private JToolBar playerBar;
@@ -1430,14 +1429,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); // world/html
 		setDefaultWeights(panes);
 		MouseAdapter splitPaneListener = new MouseAdapter() {
-//			@Override
-//			public void mouseEntered(MouseEvent e) {
-//				saveCurrentDividerLocations(trackerPanel);
-//			}
 			@Override
 			public void mouseReleased(MouseEvent e) {
 				saveCurrentDividerLocations(trackerPanel);
-				restoreViews(trackerPanel);
+				// set location of splitpanes with dividerFraction 0 or 1
+				for (int i = 0; i < panes.length; i++) {
+					if (trackerPanel.dividerFractions[i] == 0 || trackerPanel.dividerFractions[i] == 1) {
+						setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
+						break;
+					}
+				}
 			}
 		};
 		for (int i = 0; i < panes.length; i++) {
@@ -1497,8 +1498,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			int max = pane.getMaximumDividerLocation();
 			int cur = Math.min(pane.getDividerLocation(), max); // sometimes cur > max !!??
 			double fraction = 1.0 * cur / max;
-			fraction = fraction < .05 && (i == 1 || i == 3)? 0: fraction;
-			fraction = fraction > 0.95? 1: fraction;
+			fraction = fraction < minDividerOffset && (i == 1 || i == 3)? 0: fraction;
+			fraction = fraction > 1-minDividerOffset? 1: fraction;
 			trackerPanel.dividerFractions[i] = fraction;
 		}
 	}
