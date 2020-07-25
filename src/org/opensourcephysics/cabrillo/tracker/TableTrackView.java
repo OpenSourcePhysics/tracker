@@ -137,12 +137,12 @@ public class TableTrackView extends TrackView {
 	/**
 	 * DataManager for all track data -- ALL columns
 	 */
-	private DatasetManager trackDataManager;
+	protected DatasetManager trackDataManager;
 
 	/**
 	 * DataManager for all table data -- just the VISIBLE columns
 	 */
-	private DatasetManager dataTableManager;
+	protected DatasetManager dataTableManager;
 
 	// internal column model
 	
@@ -150,17 +150,17 @@ public class TableTrackView extends TrackView {
 	 * primary indicator of visibility; shared with TableTView.Loader
 	 * 
 	 */
-	BitSet bsCheckBoxes = new BitSet();
+	protected BitSet bsCheckBoxes = new BitSet();
 	
-	private int colCount;
-	private int datasetCount;
+	protected int colCount;
+	protected int datasetCount;
 	private Map<String, Integer> htNames;
 	private String[] aNames;
 
 	/**
 	 * set to false during loading
 	 */
-	private boolean refreshing = true;
+	protected boolean refreshing = true;
 	
 	public void setRefreshing(boolean b) {
 		refreshing = b;		
@@ -172,15 +172,16 @@ public class TableTrackView extends TrackView {
 
 	final private Font font = new JTextField().getFont();
 	final private BitSet highlightFrames = new BitSet();
-	final private BitSet highlightRows = new BitSet(); 
-	final private ArrayList<String> textColumnNames = new ArrayList<String>();
-	final protected Set<String> textColumnsVisible = new TreeSet<String>();
 	final private Map<String, TableCellRenderer> degreeRenderers = new HashMap<String, TableCellRenderer>();
-	
+
+	final protected BitSet highlightRows = new BitSet(); 
+	final protected ArrayList<String> textColumnNames = new ArrayList<String>();
+	final protected Set<String> textColumnsVisible = new TreeSet<String>();
+
 	/**
 	 * used when sorting
 	 */
-	final private TreeSet<Double> selectedIndepVarValues = new TreeSet<Double>();
+	final protected TreeSet<Double> selectedIndepVarValues = new TreeSet<Double>();
 	
 
 	// GUI
@@ -194,13 +195,12 @@ public class TableTrackView extends TrackView {
 	 * the JTable
 	 */
 	protected TrackDataTable dataTable;
-	private TextColumnTableModel textColumnModel;
-	private TextColumnEditor textColumnEditor;
+	protected TextColumnEditor textColumnEditor;
 
 	/**
 	 * for super.toolbarComponents 
 	 */
-	private JButton columnsDialogButton, gapsButton;
+	protected JButton columnsDialogButton, gapsButton;
 	
 	private ColumnsDialog columnsDialog;
 
@@ -234,7 +234,7 @@ public class TableTrackView extends TrackView {
 		// create the DataTable with two OSPTableModels
 		// (1) our DatasetManager
 		// (2) a text column
-		textColumnModel = new TextColumnTableModel();
+		TextColumnTableModel textColumnModel = new TextColumnTableModel();
 		textColumnEditor = new TextColumnEditor();
 		dataTable = new TrackDataTable();
 		trackDataManager = track.getData(trackerPanel);
@@ -665,8 +665,9 @@ public class TableTrackView extends TrackView {
 						dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRows.nextSetBit(0), 0, true));
 					}
 				} catch (Exception e) {
+					   // occasionally throws exception during loading or playing?
+					// during playing because the highlighted rows can be set to far
 				   e.printStackTrace();
-				   // occasionally throws exception during loading!
 				}
 				int cols = dataTable.getColumnCount();
 				dataTable.setColumnSelectionInterval(0, cols - 1);
