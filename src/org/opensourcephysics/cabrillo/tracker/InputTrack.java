@@ -97,7 +97,7 @@ public abstract class InputTrack extends TTrack {
 		if (trackerPanel != null) {
 			trackerPanel.removeMouseListener(editListener);
 		}
-		setTrackerPanelWithListeners(panel);
+		super.setTrackerPanel(panel);
 		if (trackerPanel != null) {
 			trackerPanel.addMouseListener(editListener);
 		}

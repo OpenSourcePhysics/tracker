@@ -653,9 +653,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			super.addDrawable(track);
 		}
 
-		// all tracks handle all TrackerPanel events
-		addPropertyChangeListener(track); // track listens for all properties
-		track.addListener(this);
+		// DB TTrack.setTrackerPanel() now responsible for adding the track to this listeners		
+		// here we add this to the track listeners
+		track.addListener(this); // pig
+		if (this == track.trackerPanel) {
+		}
+		
 		// update track control and dataBuilder
 		if (trackControl != null && trackControl.isVisible())
 			trackControl.refresh();
