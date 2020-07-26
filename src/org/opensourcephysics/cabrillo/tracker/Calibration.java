@@ -46,33 +46,56 @@ import org.opensourcephysics.controls.*;
  */
 public class Calibration extends TTrack {
 
+	@Override
+	public String[] getFormatVariables() {
+		return formatVariables;
+	}
+	
+	
+	@Override
+	public Map<String, String[]> getFormatMap() {
+		return formatMap;
+	}
+
+	@Override
+	public Map<String, String> getFormatDescMap() {
+		return formatDescriptionMap;
+	}
+
+	@Override
+	public String getVarDimsImpl(String variable) {
+	  		return "L";		 //$NON-NLS-1$
+	}
+
+	@Override
+	public String getBaseType() {
+		return "Calibration";
+	}
+
+
 	// static fields
 	protected static final int XY_AXES = 0;
 	protected static final int X_AXIS = 1;
 	protected static final int Y_AXIS = 2;
-	protected static String[] dataVariables;
-	protected static String[] formatVariables; // used by NumberFormatSetter
-	protected static Map<String, ArrayList<String>> formatMap;
-	protected static Map<String, String> formatDescriptionMap;
+	protected static final String[] dataVariables;
+	protected static final String[] formatVariables; // used by NumberFormatSetter
+	protected static final Map<String, String[]> formatMap;
+	protected static final Map<String, String> formatDescriptionMap;
 
 	static {
 		dataVariables = new String[] { "x_{1}", "y_{1}", "x_{2}", "y_{2}" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		formatVariables = new String[] { "xy" }; //$NON-NLS-1$
 
 		// assemble format map
-		formatMap = new HashMap<String, ArrayList<String>>();
-		ArrayList<String> list = new ArrayList<String>();
-		list.add(dataVariables[0]);
-		list.add(dataVariables[1]);
-		list.add(dataVariables[2]);
-		list.add(dataVariables[3]);
-		formatMap.put(formatVariables[0], list);
+		formatMap = new HashMap<>();
+		formatMap.put("xy", dataVariables);
 
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
 		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("CircleFitter.Description.Positions")); //$NON-NLS-1$
-
 	}
+
+	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, null);
 
 	// instance fields
 	protected NumberField x1Field, y1Field;

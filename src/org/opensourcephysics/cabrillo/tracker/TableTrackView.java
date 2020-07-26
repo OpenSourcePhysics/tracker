@@ -317,7 +317,7 @@ public class TableTrackView extends TrackView {
 			setVisible(1, true);
 		}
 		// set the default number formats, if any
-		Class<? extends TTrack> trackType = NumberFormatDialog.getTrackType(track);
+		String trackType = track.getBaseType();
 		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(trackType);
 		DataTable table = getDataTable();
 		for (String name : patterns.keySet()) {
@@ -351,7 +351,7 @@ public class TableTrackView extends TrackView {
 
 		// main entry point for a new or revised track -- from TrackChooserTView
 
-//		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode));
+		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + "  "+ frameNumber + " " + isRefreshEnabled());
 
 		forceRefresh = true; // for now, at least
 
@@ -408,7 +408,8 @@ public class TableTrackView extends TrackView {
 				colCount++;
 			}
 			dataTable.refreshColumnModel();
-			dataTable.refreshTable(mode);
+			if (isRefreshEnabled())
+				dataTable.refreshTable(mode);
 			refreshed = true;
 		} catch (Exception e) {
 			OSPLog.debug("TableTrackView exception " + e);
@@ -637,14 +638,15 @@ public class TableTrackView extends TrackView {
 	 */
 	protected void setHighlighted(BitSet frameNumbers) {
 		// assume no highlights
-		if (!highlightVisible)
+		int n = dataTable.getRowCount();
+		if (!highlightVisible || n == 0)
 			return;
 
 		// get rows to highlight
 		highlightRows.clear();
 		for (int i = frameNumbers.nextSetBit(0); i >= 0; i = frameNumbers.nextSetBit(i + 1)) {
 			int row = getRowFromFrame(i);
-			if (row >= 0 && row < dataTable.getRowCount()) {
+			if (row >= 0 && row < n) {
 				highlightRows.set(i);
 			}
 		}
@@ -653,7 +655,7 @@ public class TableTrackView extends TrackView {
 			@Override
 			public synchronized void run() {
 				dataTable.clearSelection();
-				if (highlightRows.isEmpty()) {
+				if (highlightRows.isEmpty() || !isRefreshEnabled()) {
 					return;
 				}
 				try {
@@ -749,6 +751,7 @@ public class TableTrackView extends TrackView {
 			if (columnsDialog != null && e.getNewValue() == track) {
 				refreshColumnDialog(track, true);
 			}
+			// allow super
 			break;
 		case TTrack.PROPERTY_TTRACK_TEXTCOLUMN:
 			// look for added and removed column names
@@ -786,17 +789,17 @@ public class TableTrackView extends TrackView {
 			// update local list of names
 			textColumnNames.clear();
 			textColumnNames.addAll(track.getTextColumnNames());
-			break;
+			return;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_UNITS:
 			dataTable.getTableHeader().repaint();
-			break;
+			return;
 		case TTrack.PROPERTY_TTRACK_STEPS:
 			if (TTrack.HINT_STEPS_SELECTED == e.getOldValue())
-				break;
+				return;
 		default:
-			super.propertyChange(e);
 			break;
 		}
+		super.propertyChange(e);
 	}
 
 	/**
@@ -869,16 +872,14 @@ public class TableTrackView extends TrackView {
 	 */
 	protected int getRowFromFrame(int frame) {
 		// look for "frame" dataset in data
-		ArrayList<Dataset> temp = trackDataManager.getDatasets();
-		for (int i = 0; i < temp.size(); i++) {
-			if ("frame".equals(temp.get(i).getYColumnName())) { //$NON-NLS-1$
-				double[] vals = temp.get(i).getYPoints();
+		Dataset frames = trackDataManager.getFrameDataset();
+		if (frames != null) {
+				double[] vals = frames.getYPoints();
 				for (int j = 0; j < vals.length; j++) {
 					if (vals[j] == frame) {
 						return dataTable.getSortedRow(j);
 					}
 				}
-			}
 		}
 		return -1;
 	}
@@ -1310,9 +1311,8 @@ public class TableTrackView extends TrackView {
 					String name = dataTable.getColumnName(selected[i]);
 					selectedNames[i] = name;
 				}
-				NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, getTrack(),
-						selectedNames);
-				dialog.setVisible(true);
+				NumberFormatDialog.getNumberFormatDialog(trackerPanel, getTrack(),
+						selectedNames).setVisible(true);
 			}
 		});
 		showUnitsItem = new JMenuItem();

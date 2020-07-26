@@ -83,21 +83,56 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected static JButton testButton;
 	protected static javax.swing.Timer testTimer;
 	protected static boolean showOutOfMemoryDialog = true;
-	private static JTextField sizingField = new JTextField();
+	private final static JTextField sizingField = new JTextField("1234567");
+
+	static {
+		smallSelectIcon = new ResizableIcon(new ImageIcon(Tracker.getClassResource("resources/images/small_select.gif"))); //$NON-NLS-1$
+
+		/** @j2sIgnore */
+		{
+			setJava();
+		}
+	}
+
 
 	// instance fields
 	protected TrackerPanel trackerPanel; // manages & displays track data
-	protected Component toolbarEnd;
+	protected final Component toolbarEnd = Box.createHorizontalGlue();
 	protected int toolbarComponentHeight, numberFieldWidth;
 	protected TButton trackButton;
 	protected TButton selectButton;
 	protected JLabel emptyLabel = new JLabel();
 	protected JPopupMenu selectPopup = new JPopupMenu();
 
-	static {
-		smallSelectIcon = new ImageIcon(Tracker.getClassResource("resources/images/small_select.gif")); //$NON-NLS-1$
-		smallSelectIcon = new ResizableIcon(smallSelectIcon);
-		if (!OSPRuntime.isJS && Tracker.testOn) {
+	/**
+	 * Gets the trackbar for the specified tracker panel.
+	 *
+	 * @param panel the tracker panel
+	 * @return the trackbar
+	 */
+	public static synchronized TTrackBar getTrackbar(TrackerPanel panel) {
+		TTrackBar trackbar = trackbars.get(panel);
+		if (trackbar == null) {
+			trackbar = new TTrackBar(panel);
+			trackbars.put(panel, trackbar);
+		}
+		return trackbar;
+	}
+
+	/**
+	 * @j2sIgnore
+	 */
+	private static void setJava() {
+		OSPLog.getOSPLog().addPropertyChangeListener("error", new PropertyChangeListener() { //$NON-NLS-1$
+			@Override
+			public void propertyChange(PropertyChangeEvent e) {
+				int type = Integer.parseInt(e.getNewValue().toString());
+				if (type == OSPLog.OUT_OF_MEMORY_ERROR) {
+					outOfMemory = true;
+				}
+			}
+		});
+		if (Tracker.testOn) {
 			testButton = new JButton("test"); //$NON-NLS-1$
 			testButton.addActionListener(new ActionListener() {
 				@Override
@@ -145,148 +180,121 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				}
 			});
 		}
-		if (!OSPRuntime.isJS) /** @j2sNative */
-		{
-			memoryButton = new TButton() {
-				@Override
-				public JPopupMenu getPopup() {
-					JPopupMenu popup = new JPopupMenu();
-					JMenuItem memoryItem = new JMenuItem(TrackerRes.getString("TTrackBar.Memory.Menu.SetSize")); //$NON-NLS-1$
-					popup.add(memoryItem);
-					memoryItem.addActionListener(new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							TFrame frame = (TFrame) memoryButton.getTopLevelAncestor();
-							Object response = JOptionPane.showInputDialog(frame,
-									TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
-									TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
-									JOptionPane.PLAIN_MESSAGE, null, null, String.valueOf(Tracker.preferredMemorySize));
-							if (response != null && !"".equals(response.toString())) { //$NON-NLS-1$
-								String s = response.toString();
-								try {
-									double d = Double.parseDouble(s);
-									d = Math.rint(d);
-									int n = (int) d;
-									if (n < 0)
-										n = -1; // default
-									else
-										n = Math.max(n, 32); // not less than 32MB
-									if (n != Tracker.preferredMemorySize) {
-										Tracker.preferredMemorySize = n;
-										int ans = JOptionPane.showConfirmDialog(frame,
-												TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"), //$NON-NLS-1$
-												TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
-												JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-										if (ans == JOptionPane.YES_OPTION) {
 
-											Tracker.savePreferences();
-											frame.relaunchCurrentTabs();
-										}
-									}
-								} catch (Exception ex) {
-								}
-							}
-						}
-					});
-					FontSizer.setFonts(popup, FontSizer.getLevel());
-					return popup;
-				}
-			};
-			Font font = memoryButton.getFont();
-			memoryButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
-			memoryButton.addMouseListener(new MouseAdapter() {
-				@Override
-				public void mouseEntered(MouseEvent e) {
-					refreshMemoryButton();
-				}
-			});
-			Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
-			Border line = BorderFactory.createLineBorder(Color.GRAY);
-			memoryButton.setBorder(BorderFactory.createCompoundBorder(line, space));
-			newVersionButton = new TButton() {
-				@Override
-				public JPopupMenu getPopup() {
-					JPopupMenu popup = new JPopupMenu();
-					JMenuItem upgradeItem = new JMenuItem(TrackerRes.getString("TTrackBar.Popup.MenuItem.Upgrade")); //$NON-NLS-1$
-					popup.add(upgradeItem);
-					upgradeItem.addActionListener(new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							final TFrame frame = (TFrame) newVersionButton.getTopLevelAncestor();
-							new Upgrader(frame).upgrade();
-						}
-					});
-
-					JMenuItem learnMoreItem = new JMenuItem(
-							TrackerRes.getString("TTrackBar.Popup.MenuItem.LearnMore") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-					popup.add(learnMoreItem);
-					learnMoreItem.addActionListener(new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							// go to Tracker change log
-							String websiteurl = "https://" + Tracker.trackerWebsite + "/change_log.html"; //$NON-NLS-1$ //$NON-NLS-2$
-							OSPDesktop.displayURL(websiteurl);
-						}
-					});
-					JMenuItem homePageItem = new JMenuItem(
-							TrackerRes.getString("TTrackBar.Popup.MenuItem.TrackerHomePage") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-					popup.add(homePageItem);
-					homePageItem.addActionListener(new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							// go to Tracker web site
-							String websiteurl = "https://" + Tracker.trackerWebsite; //$NON-NLS-1$
-							OSPDesktop.displayURL(websiteurl);
-						}
-					});
-					JMenuItem ignoreItem = new JMenuItem(TrackerRes.getString("TTrackBar.Popup.MenuItem.Ignore")); //$NON-NLS-1$
-					popup.add(ignoreItem);
-					ignoreItem.addActionListener(new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							Tracker.newerVersion = null;
-							Tracker.lastMillisChecked = System.currentTimeMillis();
-							TFrame frame = (TFrame) newVersionButton.getTopLevelAncestor();
-							if (frame != null && frame.getSelectedTab() > -1) {
-								TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-								TTrackBar trackbar = trackbars.get(trackerPanel);
-								trackbar.refresh();
-							}
-						}
-					});
-					FontSizer.setFonts(popup, FontSizer.getLevel());
-					return popup;
-				}
-			};
-			newVersionButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
-			newVersionButton.setForeground(Color.GREEN.darker());
-			newVersionButton.setBorder(BorderFactory.createCompoundBorder(line, space));
-
-		}
-		OSPLog.getOSPLog().addPropertyChangeListener("error", new PropertyChangeListener() { //$NON-NLS-1$
+		memoryButton = new TButton() {
 			@Override
-			public void propertyChange(PropertyChangeEvent e) {
-				int type = Integer.parseInt(e.getNewValue().toString());
-				if (type == OSPLog.OUT_OF_MEMORY_ERROR) {
-					outOfMemory = true;
-				}
+			public JPopupMenu getPopup() {
+				JPopupMenu popup = new JPopupMenu();
+				JMenuItem memoryItem = new JMenuItem(TrackerRes.getString("TTrackBar.Memory.Menu.SetSize")); //$NON-NLS-1$
+				popup.add(memoryItem);
+				memoryItem.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						TFrame frame = (TFrame) memoryButton.getTopLevelAncestor();
+						Object response = JOptionPane.showInputDialog(frame,
+								TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
+								TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
+								JOptionPane.PLAIN_MESSAGE, null, null, String.valueOf(Tracker.preferredMemorySize));
+						if (response != null && !"".equals(response.toString())) { //$NON-NLS-1$
+							String s = response.toString();
+							try {
+								double d = Double.parseDouble(s);
+								d = Math.rint(d);
+								int n = (int) d;
+								if (n < 0)
+									n = -1; // default
+								else
+									n = Math.max(n, 32); // not less than 32MB
+								if (n != Tracker.preferredMemorySize) {
+									Tracker.preferredMemorySize = n;
+									int ans = JOptionPane.showConfirmDialog(frame,
+											TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Message"), //$NON-NLS-1$
+											TrackerRes.getString("TTrackBar.Dialog.Memory.Relaunch.Title"), //$NON-NLS-1$
+											JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+									if (ans == JOptionPane.YES_OPTION) {
+
+										Tracker.savePreferences();
+										frame.relaunchCurrentTabs();
+									}
+								}
+							} catch (Exception ex) {
+							}
+						}
+					}
+				});
+				FontSizer.setFonts(popup, FontSizer.getLevel());
+				return popup;
+			}
+		};
+		Font font = memoryButton.getFont();
+		memoryButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
+		memoryButton.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				refreshMemoryButton();
 			}
 		});
-	}
+		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
+		Border line = BorderFactory.createLineBorder(Color.GRAY);
+		memoryButton.setBorder(BorderFactory.createCompoundBorder(line, space));
+		newVersionButton = new TButton() {
+			@Override
+			public JPopupMenu getPopup() {
+				JPopupMenu popup = new JPopupMenu();
+				JMenuItem upgradeItem = new JMenuItem(TrackerRes.getString("TTrackBar.Popup.MenuItem.Upgrade")); //$NON-NLS-1$
+				popup.add(upgradeItem);
+				upgradeItem.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						final TFrame frame = (TFrame) newVersionButton.getTopLevelAncestor();
+						new Upgrader(frame).upgrade();
+					}
+				});
 
-	/**
-	 * Gets the trackbar for the specified tracker panel.
-	 *
-	 * @param panel the tracker panel
-	 * @return the trackbar
-	 */
-	public static synchronized TTrackBar getTrackbar(TrackerPanel panel) {
-		TTrackBar trackbar = trackbars.get(panel);
-		if (trackbar == null) {
-			trackbar = new TTrackBar(panel);
-			trackbars.put(panel, trackbar);
-		}
-		return trackbar;
+				JMenuItem learnMoreItem = new JMenuItem(
+						TrackerRes.getString("TTrackBar.Popup.MenuItem.LearnMore") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+				popup.add(learnMoreItem);
+				learnMoreItem.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						// go to Tracker change log
+						String websiteurl = "https://" + Tracker.trackerWebsite + "/change_log.html"; //$NON-NLS-1$ //$NON-NLS-2$
+						OSPDesktop.displayURL(websiteurl);
+					}
+				});
+				JMenuItem homePageItem = new JMenuItem(
+						TrackerRes.getString("TTrackBar.Popup.MenuItem.TrackerHomePage") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+				popup.add(homePageItem);
+				homePageItem.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						// go to Tracker web site
+						String websiteurl = "https://" + Tracker.trackerWebsite; //$NON-NLS-1$
+						OSPDesktop.displayURL(websiteurl);
+					}
+				});
+				JMenuItem ignoreItem = new JMenuItem(TrackerRes.getString("TTrackBar.Popup.MenuItem.Ignore")); //$NON-NLS-1$
+				popup.add(ignoreItem);
+				ignoreItem.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						Tracker.newerVersion = null;
+						Tracker.lastMillisChecked = System.currentTimeMillis();
+						TFrame frame = (TFrame) newVersionButton.getTopLevelAncestor();
+						if (frame != null && frame.getSelectedTab() > -1) {
+							TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+							TTrackBar trackbar = trackbars.get(trackerPanel);
+							trackbar.refresh();
+						}
+					}
+				});
+				FontSizer.setFonts(popup, FontSizer.getLevel());
+				return popup;
+			}
+		};
+		newVersionButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
+		newVersionButton.setForeground(Color.GREEN.darker());
+		newVersionButton.setBorder(BorderFactory.createCompoundBorder(line, space));
 	}
 
 	/**
@@ -297,7 +305,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	public void setFontLevel(int level) {
 		Object[] objectsToSize = new Object[] { newVersionButton, trackButton, sizingField, memoryButton, testButton };
 		FontSizer.setFonts(objectsToSize, level);
-		sizingField.setText("1234567"); //$NON-NLS-1$
 		numberFieldWidth = sizingField.getPreferredSize().width;
 	}
 
@@ -314,7 +321,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); // $NON-NLS-1$
 		createGUI();
 		refresh();
-		validate();
+//		validate();
 	}
 
 	@Override
@@ -378,7 +385,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		Border line = BorderFactory.createLineBorder(Color.GRAY);
 		trackButton.setBorder(BorderFactory.createCompoundBorder(line, space));
 		// create horizontal glue for right end of toolbar
-		toolbarEnd = Box.createHorizontalGlue();
 	}
 
 	/**
@@ -448,8 +454,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected void refresh() {
 		if (!trackerPanel.isPaintable())
 			return;
-		if (Tracker.timeLogEnabled)
-			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh"); //$NON-NLS-1$
 		if (OSPRuntime.isJS || SwingUtilities.isEventDispatchThread()) {
 			rebuild();
 		} else {
@@ -464,25 +468,24 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	}
 
 	protected void rebuild() {
-		sizingField.setText("1234567"); //$NON-NLS-1$
 		numberFieldWidth = sizingField.getPreferredSize().width;
 		selectButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SelectTrack.Tooltip")); //$NON-NLS-1$
 		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild0", Performance.TIME_MARK));
 
+		removeAll();
 		TTrack track = trackButton.getTrack();
-		if (track != null) {
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
-			toolbarComponentHeight = trackButton.getPreferredSize().height;
-		} else {
+		if (track == null) {
 			CoordAxes axes = trackerPanel.getAxes();
 			if (axes != null) {
 				trackButton.setTrack(axes);
 				toolbarComponentHeight = trackButton.getPreferredSize().height;
 			}
+		} else {
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
+			toolbarComponentHeight = trackButton.getPreferredSize().height;
 		}
-		removeAll();
 		Dimension dime = new Dimension(toolbarComponentHeight, toolbarComponentHeight);
 		selectButton.setPreferredSize(dime);
 		selectButton.setMaximumSize(dime);
@@ -508,19 +511,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			ArrayList<Component> list = track.getToolbarTrackComponents(trackerPanel);
 			for (Component c : list) {
 				if (c instanceof JComponent && !(c instanceof JButton) && !(c instanceof JCheckBox)) {
-					JComponent jc = (JComponent) c;
-					int w = jc.getPreferredSize().width;
-					jc.setMaximumSize(null);
-					jc.setPreferredSize(null);
-					Dimension dim = jc.getPreferredSize();
-					dim.height = toolbarComponentHeight;
-					if (jc instanceof NumberField) {
-						dim.width = Math.max(numberFieldWidth, dim.width);
-					} else if (jc instanceof TextLineLabel) {
-						dim.width = w;
-					}
-					jc.setPreferredSize(dim);
-					jc.setMaximumSize(dim);
+					updateSize((JComponent) c);
 				}
 				add(c);
 			}
@@ -531,30 +522,18 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				list = track.getToolbarPointComponents(trackerPanel, p);
 				for (Component c : list) {
 					if (c instanceof JComponent && !(c instanceof JButton)) {
-						JComponent jc = (JComponent) c;
-						int w = jc.getPreferredSize().width;
-						jc.setMaximumSize(null);
-						jc.setPreferredSize(null);
-						Dimension dim = jc.getPreferredSize();
-						dim.height = toolbarComponentHeight;
-						if (jc instanceof NumberField) {
-							dim.width = Math.max(numberFieldWidth, dim.width);
-						} else if (jc instanceof TextLineLabel) {
-							dim.width = w;
-						}
-						jc.setPreferredSize(dim);
-						jc.setMaximumSize(dim);
+						updateSize((JComponent) c);
 					}
 					add(c);
 				}
 			}
 		}
 		add(toolbarEnd);
-		if (testButton != null) {
-			add(testButton);
-		}
 		if (!OSPRuntime.isJS) /** @j2sNative */
 		{
+			if (testButton != null) {
+				add(testButton);
+			}
 			if (Tracker.newerVersion != null) {
 				String s = TrackerRes.getString("TTrackBar.Button.Version"); //$NON-NLS-1$
 				newVersionButton.setText(s + " " + Tracker.newerVersion); //$NON-NLS-1$
@@ -564,9 +543,25 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			// refreshMemoryButton();
 			add(memoryButton);
 		}
+		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild1 " + trackerPanel.getName(), Performance.TIME_MARK));
 		revalidate();
+		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild-revalidate " + (track == null ? null : track.getName()), Performance.TIME_MARK));
 		TFrame.repaintT(this);
-		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild1", Performance.TIME_MARK));
+	}
+
+	private void updateSize(JComponent jc) {
+		int w = jc.getPreferredSize().width;
+		jc.setMaximumSize(null);
+		jc.setPreferredSize(null);
+		Dimension dim = jc.getPreferredSize();
+		dim.height = toolbarComponentHeight;
+		if (jc instanceof NumberField) {
+			dim.width = Math.max(numberFieldWidth, dim.width);
+		} else if (jc instanceof TextLineLabel) {
+			dim.width = w;
+		}
+		jc.setPreferredSize(dim);
+		jc.setMaximumSize(dim);
 	}
 
 	/**
@@ -607,19 +602,25 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
-		if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK)) { // selected track has changed //$NON-NLS-1$
+		switch (e.getPropertyName()) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
 			refresh();
-		} else if (name.equals(TTrack.PROPERTY_TTRACK_FOOTPRINT) // $NON-NLS-1$
-				|| name.equals(TTrack.PROPERTY_TTRACK_COLOR) // $NON-NLS-1$
-				|| name.equals(TTrack.PROPERTY_TTRACK_NAME)) { // $NON-NLS-1$
+			break;
+		case TTrack.PROPERTY_TTRACK_FOOTPRINT:
+		case TTrack.PROPERTY_TTRACK_COLOR:
+		case TTrack.PROPERTY_TTRACK_NAME:
 			refresh();
-		} else if (name.equals("selectedpoint")) { // selected point has changed //$NON-NLS-1$
+			break;
+		case "selectedpoint":
+			// selected point has changed 
 			refresh();
-		} else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK)) { // tracks have been added or removed
-																			// //$NON-NLS-1$
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+			// tracks have been added or removed
 			refresh();
-		} else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) { // tracks have been cleared //$NON-NLS-1$
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
+			// tracks have been cleared 
 			for (Integer n : TTrack.activeTracks.keySet()) {
 				TTrack track = TTrack.activeTracks.get(n);
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
@@ -628,6 +629,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			}
 			trackButton.setTrack(null);
 			refresh();
+			break;
 		}
 	}
 

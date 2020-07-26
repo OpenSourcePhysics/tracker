@@ -54,56 +54,95 @@ import org.opensourcephysics.controls.*;
  */
 public class CircleFitter extends TTrack {
 
-	protected static int maxDataPointCount = 50;
-	protected static String[] dataVariables;
-	protected static String[] fieldVariables; // associated with number fields
-	protected static String[] formatVariables; // used by NumberFormatSetter
-	protected static Map<String, ArrayList<String>> formatMap;
-	protected static Map<String, String> formatDescriptionMap;
+	@Override
+	public String[] getFormatVariables() {
+		return formatVariables;
+	}
+	
+	@Override
+	public Map<String, String[]> getFormatMap() {
+		return formatMap;
+	}
+		
+	@Override
+	public Map<String, String> getFormatDescMap() {
+		return formatDescriptionMap;
+	}
+
+	@Override
+	public String getBaseType() {
+		return "CircleFitter";
+	}
+
+	@Override
+	public String getVarDimsImpl(String variable) {
+		String[] vars = dataVariables;
+		String[] names = formatVariables;
+		if (names[1].equals(variable) // xy
+				|| names[2].equals(variable) // R 
+				|| vars[1].equals(variable)
+				|| vars[2].equals(variable) 
+				|| vars[3].equals(variable) 
+				|| vars[6].equals(variable)
+				|| vars[7].equals(variable)) {
+			return "L"; //$NON-NLS-1$
+		}
+		if (vars[4].equals(variable) 
+				|| vars[5].equals(variable) 
+				|| vars[8].equals(variable)) {
+			return "I"; //$NON-NLS-1$
+		}
+		return null;
+	}
+	
+	protected final static int maxDataPointCount = 50;
+	
+	protected final static String[] dataVariables;
+	protected final static String[] fieldVariables; // associated with number fields
+	protected final static String[] formatVariables; // used by NumberFormatSetter
+	protected final static Map<String, String[]> formatMap;
+	protected final static Map<String, String> formatDescriptionMap;
 
 	static {
 		String center = TrackerRes.getString("CircleFitter.Data.Center") + "}"; //$NON-NLS-1$ //$NON-NLS-2$
 		String selected = TrackerRes.getString("TTrack.Selected.Hint") + "}"; //$NON-NLS-1$ //$NON-NLS-2$
 		String points = TrackerRes.getString("CircleFitter.Data.PointCount"); //$NON-NLS-1$
-		ArrayList<String> names = new ArrayList<String>();
-		names.add("t"); //$NON-NLS-1$ 0
-		names.add("x_{" + center); //$NON-NLS-1$ 1
-		names.add("y_{" + center); //$NON-NLS-1$ 2
-		names.add("R"); //$NON-NLS-1$ 3
-		names.add("step"); //$NON-NLS-1$ 4
-		names.add("frame"); //$NON-NLS-1$ 5
-		names.add("x_{" + selected); //$NON-NLS-1$ 6
-		names.add("y_{" + selected); //$NON-NLS-1$ 7
-		names.add(points); // 8
-		dataVariables = names.toArray(new String[names.size()]);
+		
+		dataVariables = new String[] {
+				"t", //$NON-NLS-1$ 0
+				"x_{" + center, //$NON-NLS-1$ 1
+				"y_{" + center, //$NON-NLS-1$ 2
+				"R", //$NON-NLS-1$ 3
+				"step", //$NON-NLS-1$ 4
+				"frame", //$NON-NLS-1$ 5
+				"x_{" + selected, //$NON-NLS-1$ 6
+				"y_{" + selected, //$NON-NLS-1$ 7
+				points, // 8
+			};
 
-		names.clear();
-		names.add(dataVariables[0]); // 0
-		names.add(dataVariables[1]); // 1
-		names.add(dataVariables[2]); // 2
-		names.add(dataVariables[3]); // 3
-		names.add(dataVariables[6]); // 6
-		names.add(dataVariables[7]); // 7
-		fieldVariables = names.toArray(new String[names.size()]);
+		fieldVariables = new String[] {
+				"t", //$NON-NLS-1$ 0
+				"x_{" + center, //$NON-NLS-1$ 1
+				"y_{" + center, //$NON-NLS-1$ 2
+				"R", //$NON-NLS-1$ 3
+				"x_{" + selected, //$NON-NLS-1$ 6
+				"y_{" + selected, //$NON-NLS-1$ 7
+			};
 
 		formatVariables = new String[] { "t", "xy", "R" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 
 		// assemble format map
-		formatMap = new HashMap<String, ArrayList<String>>();
-		ArrayList<String> list = new ArrayList<String>();
-		list.add(dataVariables[0]);
-		formatMap.put(formatVariables[0], list);
-
-		list = new ArrayList<String>();
-		list.add(dataVariables[1]);
-		list.add(dataVariables[2]);
-		list.add(dataVariables[6]);
-		list.add(dataVariables[7]);
-		formatMap.put(formatVariables[1], list);
-
-		list = new ArrayList<String>();
-		list.add(dataVariables[3]);
-		formatMap.put(formatVariables[2], list);
+		formatMap = new HashMap<>();
+		formatMap.put("t", new String[] {"t"});
+		formatMap.put("xy", new String[] {
+				"x_{" + center, //$NON-NLS-1$ 1
+				"y_{" + center, //$NON-NLS-1$ 2
+				"x_{" + selected, //$NON-NLS-1$ 6
+				"y_{" + selected, //$NON-NLS-1$ 7
+		});
+		formatMap.put("R", new String[] {
+				"R", //$NON-NLS-1$ 3
+		});
 
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
@@ -112,6 +151,8 @@ public class CircleFitter extends TTrack {
 		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("CircleFitter.Label.Radius")); //$NON-NLS-1$
 
 	}
+
+	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, null); // no new field vars
 
 	// instance fields
 	protected boolean fixedPosition = true;

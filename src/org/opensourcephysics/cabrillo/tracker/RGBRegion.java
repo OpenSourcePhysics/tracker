@@ -45,14 +45,51 @@ import org.opensourcephysics.controls.*;
  */
 public class RGBRegion extends TTrack {
 
+	@Override
+	public String[] getFormatVariables() {
+		return formatVariables;
+	}
+	
+	@Override
+	public Map<String, String[]> getFormatMap() {
+		return formatMap;
+	}
+
+	@Override
+	public Map<String, String> getFormatDescMap() {
+		return formatDescriptionMap;
+	}
+	
+	@Override
+	public String getBaseType() {
+		return "RGBRegion";
+	}
+
+	@Override
+	public String getVarDimsImpl(String variable) {
+		String[] vars = dataVariables;
+		String[] names = formatVariables;
+		if (names[1].equals(variable) || vars[1].equals(variable) || vars[2].equals(variable)) {
+			return "L"; //$NON-NLS-1$
+		}
+		if (vars[7].equals(variable) || vars[8].equals(variable) || vars[9].equals(variable)) {
+			return "I"; //$NON-NLS-1$
+		}
+		if (names[2].equals(variable) || names[3].equals(variable) || vars[3].equals(variable)
+				|| vars[4].equals(variable) || vars[5].equals(variable) || vars[6].equals(variable)) {
+			return "C"; //$NON-NLS-1$
+		}
+		return null;
+	}
+
   // static fields
-  protected static int defaultRadius = 10;
-  protected static int defaultMaxRadius = 100;
-  protected static String[]	dataVariables;
-  protected static String[] fieldVariables; // associated with number fields
-  protected static String[] formatVariables; // used by NumberFormatSetter
-  protected static Map<String, ArrayList<String>> formatMap;
-  protected static Map<String, String> formatDescriptionMap;
+  protected final static int defaultRadius = 10;
+  protected final static int defaultMaxRadius = 100;
+  protected final static String[]	dataVariables;
+  protected final static String[] fieldVariables; // associated with number fields
+  protected final static String[] formatVariables; // used by NumberFormatSetter
+  protected final static Map<String, String[]> formatMap;
+  protected final static Map<String, String> formatDescriptionMap;
 
   static {
   	dataVariables = new String[] {"t", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -61,25 +98,11 @@ public class RGBRegion extends TTrack {
   	formatVariables = new String[] {"t", "xy", "RGB", "luma"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
   	
   	// assemble format map
-		formatMap = new HashMap<String, ArrayList<String>>();		
-		ArrayList<String> list = new ArrayList<String>();
-		list.add(dataVariables[0]); 
-		formatMap.put(formatVariables[0], list);
-		
-		list = new ArrayList<String>();
-		list.add(dataVariables[1]); 
-		list.add(dataVariables[2]); 
-		formatMap.put(formatVariables[1], list);
-		
-		list = new ArrayList<String>();
-		list.add(dataVariables[3]); 
-		list.add(dataVariables[4]); 
-		list.add(dataVariables[5]); 
-		formatMap.put(formatVariables[2], list);
-		
-		list = new ArrayList<String>();
-		list.add(dataVariables[6]); 
-		formatMap.put(formatVariables[3], list);
+		formatMap = new HashMap<>();		
+		formatMap.put("t", new String[] {"t"});
+		formatMap.put("xy", new String[] {"x", "y"});
+		formatMap.put("RGB", new String[] {"R", "G", "B" });
+		formatMap.put("luma", new String[] {"luma"});
 		
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
@@ -89,6 +112,8 @@ public class RGBRegion extends TTrack {
 		formatDescriptionMap.put(formatVariables[3], TrackerRes.getString("LineProfile.Data.Brightness")); //$NON-NLS-1$ 
 
   }
+
+	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, null); // no new field vars
 
   // instance fields
   protected boolean fixedPosition = true; // region has same position at all times
@@ -1128,5 +1153,6 @@ public String toString() {
       return obj;
     }
   }
+
 }
 

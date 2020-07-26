@@ -747,9 +747,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		edit_formatsItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				TTrack track = trackerPanel.getSelectedTrack();
-				NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, track, null);
-				dialog.setVisible(true);
+				NumberFormatDialog.getNumberFormatDialog(trackerPanel, trackerPanel.getSelectedTrack(), null).setVisible(true);
 			}
 		});
 		edit_unitsItem = new JMenuItem(TrackerRes.getString("Popup.MenuItem.Units") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
