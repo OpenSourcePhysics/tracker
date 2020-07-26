@@ -59,7 +59,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -100,6 +99,7 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.text.Document;
 
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
@@ -211,7 +211,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected final static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
 	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
 	protected final static Color yellow = new Color(255, 255, 105);
-	final static int defaultDividerSize = 8;
+	final static int defaultDividerSize = 10;
+	final static double minDividerOffset = 0.07;
 
 	// instance fields
 	private JToolBar playerBar;
@@ -529,6 +530,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (whenDone != null) {
 			whenDone.run();
 		}
+		
+		// DB 7/26/20 added this as a hack to fully close bottom views--not yet tested in JS
+		Timer timer = new Timer(500, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				saveCurrentDividerLocations(trackerPanel);
+				restoreViews(trackerPanel);
+			}
+		});
+		timer.setRepeats(false);
+		timer.start();
 	}
 
 	/**
@@ -1429,14 +1441,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		setDefaultWeights(panes);
 		MouseAdapter splitPaneListener = new MouseAdapter() {
 			@Override
-			public void mouseEntered(MouseEvent e) {
+			public void mouseReleased(MouseEvent e) {
 				saveCurrentDividerLocations(trackerPanel);
+				// set location of splitpanes with dividerFraction 0 or 1
+				for (int i = 0; i < panes.length; i++) {
+					if (trackerPanel.dividerFractions[i] == 0 || trackerPanel.dividerFractions[i] == 1) {
+						setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
+						break;
+					}
+				}
 			}
 		};
-		panes[SPLIT_MAIN].addMouseListener(splitPaneListener);
-		panes[SPLIT_RIGHT].addMouseListener(splitPaneListener);
-		panes[SPLIT_LEFT].addMouseListener(splitPaneListener);
-		panes[SPLIT_BOTTOM].addMouseListener(splitPaneListener);
+		for (int i = 0; i < panes.length; i++) {
+			BasicSplitPaneUI ui = (BasicSplitPaneUI)panes[i].getUI();
+			ui.getDivider().addMouseListener(splitPaneListener);			
+		}
 		return panes;
 	}
 
@@ -1449,10 +1468,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		panes[SPLIT_RIGHT].setResizeWeight(0.5); // plot and table share extra space
 		panes[SPLIT_LEFT].setResizeWeight(1.0);  // bottom panel fixed, trackerPanel expands
 		panes[SPLIT_BOTTOM].setResizeWeight(0.5); // bottom view share extra space
-//		panes[SPLIT_MAIN].setOneTouchExpandable(true);
-//		panes[SPLIT_RIGHT].setOneTouchExpandable(true);
-//		panes[SPLIT_LEFT].setOneTouchExpandable(true);
-//		panes[SPLIT_BOTTOM].setOneTouchExpandable(true);
+		panes[SPLIT_MAIN].setOneTouchExpandable(true);
+		panes[SPLIT_RIGHT].setOneTouchExpandable(true);
+		panes[SPLIT_LEFT].setOneTouchExpandable(true);
+		panes[SPLIT_BOTTOM].setOneTouchExpandable(true);
 	}
 
 	void maximizeView(TrackerPanel trackerPanel, int viewPosition) {
@@ -1490,8 +1509,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			int max = pane.getMaximumDividerLocation();
 			int cur = Math.min(pane.getDividerLocation(), max); // sometimes cur > max !!??
 			double fraction = 1.0 * cur / max;
-			fraction = fraction < .05 && (i == 1 || i == 3)? 0: fraction;
-			fraction = fraction > 0.95? 1: fraction;
+			fraction = fraction < minDividerOffset && (i == 1 || i == 3)? 0: fraction;
+			fraction = fraction > 1-minDividerOffset? 1: fraction;
 			trackerPanel.dividerFractions[i] = fraction;
 		}
 	}
@@ -2639,12 +2658,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setDividerLocation(trackerPanel, 2, defaultBottomDivider); // becomes previous
 			setDividerLocation(trackerPanel, 2, 1.0);
 			setDividerLocation(trackerPanel, 3, 1.0); // becomes previous
-			JSplitPane pane = getSplitPane(trackerPanel, 0);
-			int max = pane.getMaximumDividerLocation();
-			int loc = (int) (.5 * defaultRightDivider * max);
-			pane = getSplitPane(trackerPanel, 3);
-			pane.setDividerLocation(loc);
-			saveCurrentDividerLocations(trackerPanel);
+			setDividerLocation(trackerPanel, 3, 0.5);
+//			JSplitPane pane = getSplitPane(trackerPanel, 0);
+//			int max = pane.getMaximumDividerLocation();
+//			int loc = (int) (.5 * defaultRightDivider * max);
+//			pane = getSplitPane(trackerPanel, 3);
+//			pane.setDividerLocation(loc);
 		}
 		validate(); // after setting divider locations
 		// set track control location
@@ -2664,6 +2683,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.setInitialFormatPatterns();
 		Tracker.setProgress(90);
 		TMenuBar.getMenuBar(trackerPanel).setAllowRefresh(true);
+		saveCurrentDividerLocations(trackerPanel);
 	}
 
 	/**
@@ -2985,8 +3005,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			@Override
 			public void run() {
 				setSelectedTab(newPanel);
-				JSplitPane pane = getSplitPane(newPanel, 0);
-				pane.setDividerLocation(defaultRightDivider);
 				refresh();
 			}
 

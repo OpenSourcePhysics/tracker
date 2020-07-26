@@ -675,8 +675,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 				@Override
 				public void run() {
-					JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
-					pane.setDividerLocation(frame.defaultRightDivider);
+//					JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
+//					pane.setDividerLocation(frame.defaultRightDivider);
 					if (showHints) {
 						startupHintShown = true;
 						trackerPanel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
