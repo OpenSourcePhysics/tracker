@@ -530,6 +530,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (whenDone != null) {
 			whenDone.run();
 		}
+		
+		// DB 7/26/20 added this as a hack to fully close bottom views--not yet tested in JS
+		Timer timer = new Timer(500, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				saveCurrentDividerLocations(trackerPanel);
+				restoreViews(trackerPanel);
+			}
+		});
+		timer.setRepeats(false);
+		timer.start();
 	}
 
 	/**
