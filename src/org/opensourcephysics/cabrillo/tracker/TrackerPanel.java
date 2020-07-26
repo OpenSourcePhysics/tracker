@@ -735,19 +735,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		DatasetManager data = track.getData(this);
 		FunctionPanel panel = new DataFunctionPanel(data);
 		panel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
-		Class<?> type = track.getClass();
-		if (PointMass.class.isAssignableFrom(type))
-			panel.setDescription(PointMass.class.getName());
-		else if (Vector.class.isAssignableFrom(type))
-			panel.setDescription(Vector.class.getName());
-		else if (RGBRegion.class.isAssignableFrom(type))
-			panel.setDescription(RGBRegion.class.getName());
-		else if (LineProfile.class.isAssignableFrom(type))
-			panel.setDescription(LineProfile.class.getName());
-		else
-			panel.setDescription(type.getName());
 		final ParamEditor paramEditor = panel.getParamEditor();
-		if (track instanceof PointMass) {
+		// Check for PointMass and Vector, which might be subclassed
+		switch(track.getBaseType()) {
+		case "PointMass":
+			panel.setDescription(PointMass.class.getName());
 			PointMass pm = (PointMass) track;
 			Parameter param = (Parameter) paramEditor.getObject("m"); //$NON-NLS-1$
 			if (param == null) {
@@ -758,6 +750,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			param.setNameEditable(false); // mass name not editable
 			paramEditor.addPropertyChangeListener("edit", massParamListener); //$NON-NLS-1$
 			pm.addPropertyChangeListener("mass", massChangeListener); //$NON-NLS-1$
+			break;
+		case "Vector":
+			panel.setDescription(Vector.class.getName());
+		break;
+// BH - unnecessary - these are not subclassed
+//		case "RGBRegion":
+//			panel.setDescription(RGBRegion.class.getName());
+//			break;
+//		case "LineProfile":
+//			panel.setDescription(LineProfile.class.getName());
+//			break;
+		default:
+			panel.setDescription(track.getClass().getName());
+			break;
 		}
 		return panel;
 	}
