@@ -1330,6 +1330,16 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			// refresh track data
 			refreshData(data, trackerPanel);
 			// check for newly loaded dataFunctions
+			if (constantsLoadedFromXML != null) {
+				for (int i = 0; i < constantsLoadedFromXML.length; i++) {
+					String name = (String) constantsLoadedFromXML[i][0];
+					double val = (Double) constantsLoadedFromXML[i][1];
+					String expression = (String) constantsLoadedFromXML[i][2];
+					String desc = constantsLoadedFromXML[i].length < 4 ? null : (String) constantsLoadedFromXML[i][3];
+					data.setConstant(name, val, expression, desc);
+				}
+				constantsLoadedFromXML = null;
+			}
 			if (dataProp != null) {
 				XMLControl[] children = dataProp.getChildControls();
 				outer: for (int i = 0; i < children.length; i++) {
@@ -1346,16 +1356,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 					data.addDataset(f);
 				}
 				dataProp = null;
-			}
-			if (constantsLoadedFromXML != null) {
-				for (int i = 0; i < constantsLoadedFromXML.length; i++) {
-					String name = (String) constantsLoadedFromXML[i][0];
-					double val = (Double) constantsLoadedFromXML[i][1];
-					String expression = (String) constantsLoadedFromXML[i][2];
-					String desc = constantsLoadedFromXML[i].length < 4 ? null : (String) constantsLoadedFromXML[i][3];
-					data.setConstant(name, val, expression, desc);
-				}
-				constantsLoadedFromXML = null;
 			}
 			// refresh dataFunctions
 			ArrayList<Dataset> datasets = data.getDatasets();
