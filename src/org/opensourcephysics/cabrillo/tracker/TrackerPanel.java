@@ -1729,7 +1729,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		case "A/TT":
 			TFrame frame = getTFrame();
 			String angUnit = frame != null && frame.anglesInRadians ? "" : Tracker.DEGREES; //$NON-NLS-1$
-			sp = sp + angUnit + "/" + timeUnit + sq; //$NON-NLS-1$
+			return sp + angUnit + "/" + timeUnit + sq; //$NON-NLS-1$
 		}
 		return ""; //$NON-NLS-1$
 	}
