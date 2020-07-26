@@ -267,6 +267,7 @@ java/security/PrivilegedExceptionAction.js
 java/text/AttributedCharacterIterator.js
 java/text/Bidi.js
 java/text/CharacterIterator.js
+java/text/DateFormat.js
 java/text/DateFormatSymbols.js
 java/text/DecimalFormat.js
 java/text/DecimalFormatSymbols.js
@@ -276,6 +277,7 @@ java/text/FieldPosition.js
 java/text/Format.js
 java/text/NumberFormat.js
 java/text/ParsePosition.js
+java/text/SimpleDateFormat.js
 java/text/spi/BreakIteratorProvider.js
 java/text/spi/CollatorProvider.js
 java/text/spi/DateFormatProvider.js
@@ -686,6 +688,7 @@ javax/xml/parsers/DocumentBuilderFactory.js
 javax/xml/parsers/FactoryFinder.js
 javax/xml/parsers/ParserConfigurationException.js
 javax/xml/parsers/SecuritySupport.js
+org/opensourcephysics/analysis/FourierSinCosAnalysis.js
 org/opensourcephysics/cabrillo/tracker/ArrowFootprint.js
 org/opensourcephysics/cabrillo/tracker/AutoTracker.js
 org/opensourcephysics/cabrillo/tracker/BounceDerivatives.js
@@ -788,6 +791,8 @@ org/opensourcephysics/controls/XMLPropertyElement.js
 org/opensourcephysics/desktop/OSPDesktop.js
 org/opensourcephysics/display/AppFrame.js
 org/opensourcephysics/display/CellBorder.js
+org/opensourcephysics/display/ColorIcon.js
+org/opensourcephysics/display/ComplexDataset.js
 org/opensourcephysics/display/Data.js
 org/opensourcephysics/display/DataTable.js
 org/opensourcephysics/display/DataTableModel.js
@@ -880,10 +885,13 @@ org/opensourcephysics/media/mov/MovieFactory.js
 org/opensourcephysics/media/mov/MovieVideoI.js
 org/opensourcephysics/media/mov/MovieVideoType.js
 org/opensourcephysics/numerics/AbstractODESolver.js
+org/opensourcephysics/numerics/FFT.js
+org/opensourcephysics/numerics/FFTReal.js
 org/opensourcephysics/numerics/Function.js
 org/opensourcephysics/numerics/FunctionTransform.js
 org/opensourcephysics/numerics/HessianMinimize.js
 org/opensourcephysics/numerics/InvertibleFunction.js
+org/opensourcephysics/numerics/LUPDecomposition.js
 org/opensourcephysics/numerics/LevenbergMarquardt.js
 org/opensourcephysics/numerics/LogBase10Function.js
 org/opensourcephysics/numerics/MathExpParser.js
@@ -922,6 +930,7 @@ org/opensourcephysics/tools/Diagnostics.js
 org/opensourcephysics/tools/FitBuilder.js
 org/opensourcephysics/tools/FitFunctionPanel.js
 org/opensourcephysics/tools/FontSizer.js
+org/opensourcephysics/tools/FourierPanel.js
 org/opensourcephysics/tools/FunctionEditor.js
 org/opensourcephysics/tools/FunctionPanel.js
 org/opensourcephysics/tools/FunctionTool.js
@@ -1053,12 +1062,14 @@ sun/util/calendar/CalendarUtils.js
 sun/util/calendar/Gregorian.js
 sun/util/calendar/ZoneInfo.js
 sun/util/locale/BaseLocale.js
+sun/util/locale/LanguageTag.js
 sun/util/locale/LocaleUtils.js
 sun/util/locale/provider/AuxLocaleProviderAdapter.js
 sun/util/locale/provider/AvailableLanguageTags.js
 sun/util/locale/provider/CalendarDataProviderImpl.js
 sun/util/locale/provider/CalendarDataUtility.js
 sun/util/locale/provider/CalendarProviderImpl.js
+sun/util/locale/provider/DateFormatProviderImpl.js
 sun/util/locale/provider/JRELocaleProviderAdapter.js
 sun/util/locale/provider/LocaleDataMetaInfo.js
 sun/util/locale/provider/LocaleNameProviderImpl.js
