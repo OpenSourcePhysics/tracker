@@ -1480,7 +1480,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						TapeMeasure track = new TapeMeasure();
 						track.setColor(Color.BLUE);
 						track.setStickMode(true);
-						track.isCalibrator = true;
+						double scale = trackerPanel.getCoords().getScaleX(0);
+						track.setCalibrator(scale == 1.0? 1.0: null);
 						// assign a default name
 						String name = TrackerRes.getString("CalibrationStick.New.Name"); //$NON-NLS-1$
 						int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
@@ -1503,7 +1504,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 							int ypix = rect.y + rect.height / 2;
 							double x = trackerPanel.pixToX(xpix);
 							double y = trackerPanel.pixToY(ypix);
-							track.createStep(0, x - 50, y, x + 50, y); // length 100 image units
+							track.createStep(0, x - 100, y - 20, x + 100, y - 20); // length 200 image units
 						}
 
 						trackerPanel.setSelectedTrack(track);
@@ -1520,7 +1521,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						TapeMeasure track = new TapeMeasure();
 						track.setColor(Color.BLUE);
 						track.setReadOnly(false);
-						track.isCalibrator = true;
+						track.setCalibrator(null);
 						// assign a default name
 						String name = TrackerRes.getString("CalibrationTapeMeasure.New.Name"); //$NON-NLS-1$
 						int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
@@ -1543,7 +1544,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 							int ypix = rect.y + rect.height / 2;
 							double x = trackerPanel.pixToX(xpix);
 							double y = trackerPanel.pixToY(ypix);
-							track.createStep(0, x - 50, y, x + 50, y); // length 100 image units
+							track.createStep(0, x - 100, y + 20, x + 100, y + 20); // length 200 image units
 						}
 
 						trackerPanel.setSelectedTrack(track);

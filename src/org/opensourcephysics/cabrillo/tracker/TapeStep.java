@@ -193,6 +193,10 @@ public class TapeStep extends Step {
 			drawLayout = true;
 			hit = tape;
 		}
+		if (hit == null && tape.ruler.isVisible() && tape.ruler.getHitShape(n).intersects(hitRect)) {
+//			tape.ruler.getHandle().setScreenPosition(xpix, ypix, trackerPanel);
+			hit = tape.ruler.getHandle();
+		}
 		if (drawLayout != drawLayoutBounds) {
 			drawLayoutBounds = drawLayout;
 			repaint(trackerPanel);
@@ -220,7 +224,7 @@ public class TapeStep extends Step {
 		getMark(trackerPanel).draw(g, false);
 		Paint gpaint = g.getPaint();
 		g.setPaint(footprint.getColor());
-		// draw the text layout unless editing
+		// draw the text layout unless editing or ruler is displayed
 		if (!tape.editing) {
 			TextLayout layout = textLayouts.get(trackerPanel);
 			Rectangle2D bounds = layout.getBounds();
@@ -231,7 +235,7 @@ public class TapeStep extends Step {
 			g.setFont(gfont);
 			if (drawLayoutBounds && tape.isFieldsEnabled()) {
 				Rectangle rect = layoutBounds.get(trackerPanel);
-				g.drawRect(rect.x - 2, rect.y - 3, rect.width + 5, rect.height + 5);
+				g.drawRect(rect.x - 2, rect.y - 3, rect.width + 6, rect.height + 5);
 			}
 		}
 		g.setPaint(gpaint);
@@ -271,6 +275,9 @@ public class TapeStep extends Step {
 				adjustTipsToLength();
 			}
 			selection = trackerPanel.getSelectedPoint();
+			// create mark to draw ruler
+			Mark rulerMark = tape.ruler.getMark(trackerPanel);
+
 			// get screen points
 			Point p = null;
 			for (int i = 0; i < points.length; i++) {
@@ -278,11 +285,23 @@ public class TapeStep extends Step {
 				if (selection == points[i])
 					p = screenPoints[i];
 			}
+			if (p == null && selection == tape.ruler.getHandle()) {
+				p = selection.getScreenPosition(trackerPanel);
+			}
 			// create mark
-			mark = footprint.getMark(screenPoints);
-			if (p != null) {
-				final Color color = footprint.getColor();
-				final Mark stepMark = mark;
+			Mark tapeMark = footprint.getMark(screenPoints);
+			mark = new Mark() {
+				@Override
+				public void draw(Graphics2D g, boolean highlighted) {
+					tapeMark.draw(g, false);
+					if (tape.ruler.isVisible()) {
+						rulerMark.draw(g, false);
+					}
+				}
+			};
+			if (p != null && selection != tape.ruler.getHandle()) {
+				Color color = footprint.getColor();
+				Mark stepMark = mark;
 				transform.setToTranslation(p.x, p.y);
 				int scale = FontSizer.getIntegerFactor();
 				if (scale > 1) {
@@ -309,8 +328,12 @@ public class TapeStep extends Step {
 			end1Shapes.put(trackerPanel, shapes[0]);
 			end2Shapes.put(trackerPanel, shapes[1]);
 			shaftShapes.put(trackerPanel, shapes[2]);
+			
 			// get new text layout
 			double tapeLength = getTapeLength(!tape.isStickMode() || tape.isIncomplete);
+			if (tape.calibrationLength != null) {
+				tapeLength = tape.calibrationLength;
+			}
 			String s = tape.getFormattedLength(tapeLength);
 			s += trackerPanel.getUnits(tape, TapeMeasure.dataVariables[1]);
 
@@ -624,11 +647,10 @@ public class TapeStep extends Step {
 	 *
 	 * @param trackerPanel the tracker panel
 	 * @param layout       the text layout
+	 * @param p optional screen point, uses tape center if null
 	 * @return the screen position point
 	 */
 	private Point getLayoutPosition(TrackerPanel trackerPanel, Rectangle2D bounds) {
-		middle.center(end1, end2);
-		Point p = middle.getScreenPosition(trackerPanel);
 		double w = bounds.getWidth();
 		double h = bounds.getHeight();
 		endPoint1.setLocation(end1);
@@ -641,14 +663,18 @@ public class TapeStep extends Step {
 			at.transform(endPoint2, endPoint2);
 			endPoint2.y = -endPoint2.y;
 		}
-		double cos = endPoint2.cos(endPoint1);
-		double sin = endPoint2.sin(endPoint1);
-		double d = 6 + Math.abs(w * sin / 2) + Math.abs(h * cos / 2);
-		if (cos >= 0) { // first/fourth quadrants
-			p.setLocation((int) (p.x - d * sin - w / 2), (int) (p.y - d * cos + h / 2));
-		} else { // second/third quadrants
-			p.setLocation((int) (p.x + d * sin - w / 2), (int) (p.y + d * cos + h / 2));
+		if (tape.ruler.isVisible()) {
+			return tape.ruler.getLayoutPosition(trackerPanel, bounds, endPoint1, endPoint2);
 		}
+		double cos = endPoint1.cos(endPoint2);
+		double sin = endPoint1.sin(endPoint2);
+		double halfwsin = w * sin / 2;
+		double halfhcos = h * cos / 2;
+		double d = Math.sqrt((halfwsin*halfwsin) + (halfhcos*halfhcos)) + 8; 
+		// draw relative to center of tape
+		middle.center(end1, end2);
+		Point p = middle.getScreenPosition(trackerPanel);
+		p.setLocation((int) (p.x - d * sin - w / 2), (int) (p.y - d * cos + h / 2));
 		return p;
 	}
 
@@ -777,6 +803,7 @@ public class TapeStep extends Step {
 				tape.isStepChangingScale = true;
 				tape.trackerPanel.getCoords().setScaleXY(n, scaleX, scaleY);
 				tape.isStepChangingScale = false;
+				// refresh other 
 			}
 			tape.invalidateData(tape);
 			repaint();
