@@ -83,12 +83,14 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.event.SwingPropertyChangeSupport;
 
+import org.opensourcephysics.cabrillo.tracker.TableTrackView.TrackDataTable;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.display.DataFunction;
+import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawableTextLine;
@@ -124,7 +126,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public static final String PROPERTY_TTRACK_NAME = "name"; //$NON-NLS-1$
 	public static final String PROPERTY_TTRACK_STEP = "step"; //$NON-NLS-1$
 	public static final String PROPERTY_TTRACK_STEPS = "steps"; //$NON-NLS-1$
-	
+
 	public static final String PROPERTY_TTRACK_VISIBLE = "visible"; //$NON-NLS-1$
 	public static final String PROPERTY_TTRACK_DATA = "data"; //$NON-NLS-1$
 	public static final String PROPERTY_TTRACK_COLOR = "color"; //$NON-NLS-1$
@@ -132,30 +134,30 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public static final String PROPERTY_TTRACK_LOCKED = "locked"; //$NON-NLS-1$
 
 	public static final String PROPERTY_TTRACK_TEXTCOLUMN = "text_column"; //$NON-NLS-1$
-			
+
 	public static final Integer HINT_STEP_ADDED_OR_REMOVED = -2;
 	public static final Integer HINT_STEPS_SELECTED = -3;
 
 	public void addListener(PropertyChangeListener c) {
-		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c); 
-		addPropertyChangeListener(PROPERTY_TTRACK_MASS, c); 
-		addPropertyChangeListener(PROPERTY_TTRACK_NAME, c); 
-		addPropertyChangeListener(PROPERTY_TTRACK_MODELEND, c); 
-		addPropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c); 
+		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);
+		addPropertyChangeListener(PROPERTY_TTRACK_MASS, c);
+		addPropertyChangeListener(PROPERTY_TTRACK_NAME, c);
+		addPropertyChangeListener(PROPERTY_TTRACK_MODELEND, c);
+		addPropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c);
 		addStepListener(c);
-		
+
 	}
 
 	public void removeListener(PropertyChangeListener c) {
-		removePropertyChangeListener(PROPERTY_TTRACK_DATA, c); 
-		removePropertyChangeListener(PROPERTY_TTRACK_MASS, c); 
-		removePropertyChangeListener(PROPERTY_TTRACK_NAME, c); 
-		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c); 
-		removePropertyChangeListener(PROPERTY_TTRACK_MODELEND, c); 
-		removePropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c); 
+		removePropertyChangeListener(PROPERTY_TTRACK_DATA, c);
+		removePropertyChangeListener(PROPERTY_TTRACK_MASS, c);
+		removePropertyChangeListener(PROPERTY_TTRACK_NAME, c);
+		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);
+		removePropertyChangeListener(PROPERTY_TTRACK_MODELEND, c);
+		removePropertyChangeListener(PROPERTY_TTRACK_MODELSTART, c);
 		removeStepListener(c);
 		// these three are not in add?
-		removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, c); //$NON-NLS-1$
+		removePropertyChangeListener(PROPERTY_TTRACK_VISIBLE, c); // $NON-NLS-1$
 		removePropertyChangeListener("stepnumber", c); //$NON-NLS-1$
 		removePropertyChangeListener("image", c); //$NON-NLS-1$
 	}
@@ -184,7 +186,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected String description = ""; //$NON-NLS-1$
 	protected boolean visible = true;
 	protected boolean trailVisible = false;
-	protected int trailLength; // controls trail length
+	protected int trailLength = 0; // controls trail length
 	protected boolean locked = false;
 	protected boolean enabled = true;
 	protected boolean viewable = true; // determines whether Views include this track
@@ -206,20 +208,18 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected TextLineLabel xLabel, yLabel, magLabel, angleLabel;
 
 	protected ActionListener footprintListener, circleFootprintListener;
-	
-	
+
 	protected Font labelFont = new Font("arial", Font.PLAIN, 12); //$NON-NLS-1$
 	protected TrackerPanel trackerPanel;
 	protected XMLProperty dataProp;
 	protected Object[][] constantsLoadedFromXML;
 	protected String[] dataDescriptions;
-	
-	
+
 	/**
 	 * set false if data needs to be initialized, e.g. CenterOfMass from TRZ
 	 */
 	protected boolean initialized = true;
-	
+
 	protected boolean dataValid; // true if data is valid
 	protected boolean refreshDataLater;
 	protected int[] preferredColumnOrder;
@@ -249,9 +249,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected NumberField[] positionFields;
 	protected Border fieldBorder;
 	protected JSpinner xSpinner, ySpinner;
-	
+
 	protected JMenu footprintMenu;
-	
+
 	protected Component tSeparator, xSeparator, ySeparator, magSeparator, angleSeparator, stepSeparator;
 
 	protected JCheckBoxMenuItem visibleItem;
@@ -264,7 +264,10 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected JMenuItem deleteTrackItem, deleteStepItem, clearStepsItem;
 	protected JMenuItem descriptionItem;
 	protected JMenuItem dataBuilderItem;
-	
+	protected final static Map<String, TreeMap<String, String>> defaultFormatPatterns = new HashMap<>();
+	protected final static String[] baseTrackTypes = new String[] { "Calibaration", "CircleFitter", "CoordAxes",
+			"LineProfile", "OffsetOrigin", "PointMass", "Protractor", "RGBRegion", "TapeMeasure", "Vector" };
+
 	/**
 	 * Constructs a TTrack.
 	 */
@@ -311,116 +314,16 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				if (OSPRuntime.isPopupTrigger(e)) {
-					NumberField field = (NumberField) e.getSource();
-					String[] fieldName = null;
-					boolean hasUnits = false;
-					for (String name : getNumberFields().keySet()) {
-						if (numberFields.get(name)[0] == field) {
-							fieldName = new String[] { name };
-							String s = NumberFormatDialog.getVariableDimensions(TTrack.this.getClass(), name);
-							hasUnits = s.contains("L") || s.contains("M") || s.contains("T"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-							break;
-						}
-					}
-					JPopupMenu popup = new JPopupMenu();
-					if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
-						JMenu numberMenu = new JMenu(TrackerRes.getString("Popup.Menu.Numbers")); //$NON-NLS-1$
-						popup.add(numberMenu);
-						if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
-							JMenuItem item = new JMenuItem();
-							final String[] selected = fieldName;
-							item.addActionListener(new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel,
-											TTrack.this, selected);
-									dialog.setVisible(true);
-								}
-							});
-							item.setText(TrackerRes.getString("Popup.MenuItem.Formats") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-							numberMenu.add(item);
-						}
-
-						if (hasUnits && trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$
-							JMenuItem item = new JMenuItem();
-							item.addActionListener(new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									UnitsDialog dialog = trackerPanel.getUnitsDialog();
-									dialog.setVisible(true);
-								}
-							});
-							item.setText(TrackerRes.getString("Popup.MenuItem.Units") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-							numberMenu.add(item);
-						}
-					}
-					boolean hasLengthUnit = trackerPanel.lengthUnit != null;
-					boolean hasMassUnit = trackerPanel.massUnit != null;
-					if (hasLengthUnit && hasMassUnit) {
-						JMenuItem item = new JMenuItem();
-						final boolean vis = trackerPanel.isUnitsVisible();
-						item.addActionListener(new ActionListener() {
-							@Override
-							public void actionPerformed(ActionEvent e) {
-								trackerPanel.setUnitsVisible(!vis);
-							}
-						});
-						item.setText(vis ? TrackerRes.getString("TTrack.MenuItem.HideUnits") : //$NON-NLS-1$
-						TrackerRes.getString("TTrack.MenuItem.ShowUnits")); //$NON-NLS-1$
-						if (popup.getComponentCount() > 0)
-							popup.addSeparator();
-						popup.add(item);
-					}
-
-					FontSizer.setFonts(popup, FontSizer.getLevel());
-					popup.show(field, 0, field.getHeight());
+					showFormatPopup((NumberField) e.getSource());
 				}
 			}
 		};
 		formatAngleMouseListener = new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
+				// BH Q: How can e be null here?
 				if (e == null || OSPRuntime.isPopupTrigger(e)) {
-					NumberField field = e == null ? angleField : (NumberField) e.getSource();
-					String fieldName = null;
-					for (String name : getNumberFields().keySet()) {
-						if (numberFields.get(name)[0] == e.getSource()) {
-							fieldName = name;
-							break;
-						}
-					}
-					JPopupMenu popup = new JPopupMenu();
-					JMenuItem item = new JMenuItem();
-					final boolean radians = field.getConversionFactor() == 1;
-					item.addActionListener(new ActionListener() {
-						@Override
-						public void actionPerformed(ActionEvent e) {
-							TFrame frame = trackerPanel.getTFrame();
-							frame.setAnglesInRadians(!radians);
-						}
-					});
-					item.setText(radians ? TrackerRes.getString("TTrack.AngleField.Popup.Degrees") : //$NON-NLS-1$
-					TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
-					popup.add(item);
-					popup.addSeparator();
-
-					if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
-						item = new JMenuItem();
-						final String[] selected = new String[] { fieldName };
-						item.addActionListener(new ActionListener() {
-							@Override
-							public void actionPerformed(ActionEvent e) {
-								NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel,
-										TTrack.this, selected);
-								dialog.setVisible(true);
-							}
-						});
-						item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
-						popup.add(item);
-					}
-
-					FontSizer.setFonts(popup, FontSizer.getLevel());
-					popup.show(field, 0, angleField.getHeight());
+					showAnglePopup(e == null ? angleField : (NumberField) e.getSource());
 				}
 			}
 		};
@@ -469,6 +372,109 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			}
 		};
 
+	}
+
+	protected void showAnglePopup(NumberField field) {
+		String fieldName = null;
+		for (String name : getNumberFields().keySet()) {
+			if (numberFields.get(name)[0] == field) {
+				fieldName = name;
+				break;
+			}
+		}
+		JPopupMenu popup = new JPopupMenu();
+		JMenuItem item = new JMenuItem();
+		final boolean radians = field.getConversionFactor() == 1;
+		item.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				TFrame frame = trackerPanel.getTFrame();
+				frame.setAnglesInRadians(!radians);
+			}
+		});
+		item.setText(radians ? TrackerRes.getString("TTrack.AngleField.Popup.Degrees") : //$NON-NLS-1$
+				TrackerRes.getString("TTrack.AngleField.Popup.Radians")); //$NON-NLS-1$
+		popup.add(item);
+		popup.addSeparator();
+
+		if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
+			item = new JMenuItem();
+			final String[] selected = new String[] { fieldName };
+			item.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					NumberFormatDialog.getNumberFormatDialog(trackerPanel, TTrack.this, selected).setVisible(true);
+				}
+			});
+			item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$
+			popup.add(item);
+		}
+
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		popup.show(field, 0, angleField.getHeight());
+	}
+
+	protected void showFormatPopup(NumberField field) {
+		String[] fieldName = null;
+		boolean hasUnits = false;
+		for (String name : getNumberFields().keySet()) {
+			if (numberFields.get(name)[0] == field) {
+				fieldName = new String[] { name };
+				String s = getVariableDimensions(this, name);
+				hasUnits = s.contains("L") || s.contains("M") || s.contains("T"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				break;
+			}
+		}
+		JPopupMenu popup = new JPopupMenu();
+		if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
+			JMenu numberMenu = new JMenu(TrackerRes.getString("Popup.Menu.Numbers")); //$NON-NLS-1$
+			popup.add(numberMenu);
+			if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
+				JMenuItem item = new JMenuItem();
+				final String[] selected = fieldName;
+				item.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						NumberFormatDialog.getNumberFormatDialog(trackerPanel, TTrack.this, selected).setVisible(true);
+					}
+				});
+				item.setText(TrackerRes.getString("Popup.MenuItem.Formats") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+				numberMenu.add(item);
+			}
+
+			if (hasUnits && trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$
+				JMenuItem item = new JMenuItem();
+				item.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						UnitsDialog dialog = trackerPanel.getUnitsDialog();
+						dialog.setVisible(true);
+					}
+				});
+				item.setText(TrackerRes.getString("Popup.MenuItem.Units") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+				numberMenu.add(item);
+			}
+		}
+		boolean hasLengthUnit = trackerPanel.lengthUnit != null;
+		boolean hasMassUnit = trackerPanel.massUnit != null;
+		if (hasLengthUnit && hasMassUnit) {
+			JMenuItem item = new JMenuItem();
+			final boolean vis = trackerPanel.isUnitsVisible();
+			item.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					trackerPanel.setUnitsVisible(!vis);
+				}
+			});
+			item.setText(vis ? TrackerRes.getString("TTrack.MenuItem.HideUnits") : //$NON-NLS-1$
+					TrackerRes.getString("TTrack.MenuItem.ShowUnits")); //$NON-NLS-1$
+			if (popup.getComponentCount() > 0)
+				popup.addSeparator();
+			popup.add(item);
+		}
+
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+		popup.show(field, 0, field.getHeight());
 	}
 
 	/**
@@ -578,7 +584,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 */
 	public void setLocked(boolean locked) {
 		this.locked = locked;
-		firePropertyChange(TTrack.PROPERTY_TTRACK_LOCKED, null, new Boolean(locked)); //$NON-NLS-1$
+		firePropertyChange(TTrack.PROPERTY_TTRACK_LOCKED, null, new Boolean(locked)); // $NON-NLS-1$
 	}
 
 	/**
@@ -664,7 +670,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				}
 			}
 		}
-		firePropertyChange(TTrack.PROPERTY_TTRACK_COLOR, null, color); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_COLOR, null, color); // $NON-NLS-1$
 	}
 
 	/**
@@ -761,7 +767,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 					trackerPanel.modelBuilder.refreshBoosterDropdown();
 				}
 			}
-			firePropertyChange(TTrack.PROPERTY_TTRACK_NAME, prevName, name); //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TTRACK_NAME, prevName, name); // $NON-NLS-1$
 		}
 	}
 
@@ -948,7 +954,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 						}
 					}
 				}
-				firePropertyChange(TTrack.PROPERTY_TTRACK_FOOTPRINT, null, footprint); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_FOOTPRINT, null, footprint); // $NON-NLS-1$
 				return;
 			}
 		}
@@ -1058,7 +1064,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				}
 			}
 			Undo.postTrackEdit(this, control);
-			firePropertyChange(PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, new Integer(n)); //$NON-NLS-1$
+			firePropertyChange(PROPERTY_TTRACK_STEP, HINT_STEP_ADDED_OR_REMOVED, new Integer(n)); // $NON-NLS-1$
 		}
 		return step;
 	}
@@ -1301,9 +1307,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @param level the desired font level
 	 */
 	public void setFontLevel(int level) {
-		Object[] objectsToSize = new Object[] { 
-				tLabel,
-				xLabel, yLabel, magLabel, angleLabel, stepLabel, tValueLabel,
+		Object[] objectsToSize = new Object[] { tLabel, xLabel, yLabel, magLabel, angleLabel, stepLabel, tValueLabel,
 				stepValueLabel, tField, xField, yField, magField, angleField };
 		FontSizer.setFonts(objectsToSize);
 	}
@@ -1472,37 +1476,42 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		if (dataFrames.isEmpty() || data.getDatasets().isEmpty())
 			return -1;
 		Dataset dataset = data.getDataset(0);
+		double x = xyValues[0];
 		if (xVar.equals(dataset.getXColumnName())) {
+			int nf = dataFrames.size();
 			// for independent variable, ignore yVar
-			double[] vals = dataset.getXPoints();
-			for (int i = 0; i < vals.length; i++) {
-				if (xyValues[0] == vals[i]) {
-					return i < dataFrames.size() ? dataFrames.get(i).intValue() : -1;
+			double[] vals = dataset.getXPointsRaw();
+			for (int i = 0, n = dataset.getIndex(); i < n; i++) {
+				if (x == vals[i]) {
+					return (i < nf ? dataFrames.get(i).intValue() : -1);
 				}
 			}
-		} else {
-			// not independent variable, so find match in xVar dataset
-			int n = data.getDatasetIndex(xVar);
-			if (n > -1) {
-				dataset = data.getDataset(n);
-				double[] xVals = dataset.getYPoints();
-				for (int i = 0; i < xVals.length; i++) {
-					if (xyValues[0] == xVals[i]) {
-						// found matching value
-						int frame = i < dataFrames.size() ? dataFrames.get(i).intValue() : -1;
-						// if yVar value is given, verify it matches as well
-						if (yVar != null && xyValues.length > 1) {
-							n = data.getDatasetIndex(yVar);
-							dataset = data.getDataset(n);
-							double[] yVals = dataset.getYPoints();
-							// if y value doesn't also match, reject and continue searching
-							if (xyValues[1] != yVals[i]) {
-								continue;
-							}
-						}
-						return frame;
+			return -1;
+		}
+		// not independent variable, so find match in xVar dataset
+		int index = data.getDatasetIndex(xVar);
+		if (index < 0) {
+			return -1;
+		}
+		dataset = data.getDataset(index);
+		double[] xVals = dataset.getYPointsRaw();
+		double[] yVals = null;
+		double y = (yVar == null ? Double.NaN : xyValues[1]);
+		for (int i = 0, n = dataset.getIndex(); i < n; i++) {
+			if (x == xVals[i]) {
+				// found matching value
+				int frame = (i < dataFrames.size() ? dataFrames.get(i).intValue() : -1);
+				// if yVar value is given, verify it matches as well
+				if (yVar != null) {
+					if (yVals == null) {
+						yVals = data.getDataset(data.getDatasetIndex(yVar)).getYPoints();
+					}
+					// if y value doesn't also match, reject and continue searching
+					if (y != yVals[i]) {
+						continue;
 					}
 				}
+				return frame;
 			}
 		}
 		return -1;
@@ -1535,185 +1544,50 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	/**
-	 * Gets a list of data variables for a given track type.
-	 * 
-	 * @return an ArrayList of names. May be empty.
-	 */
-	protected static ArrayList<String> getDataVariables(Class<? extends TTrack> trackType) {
-		String[] vars = new String[0];
-		if (PointMass.class.isAssignableFrom(trackType)) {
-			vars = PointMass.dataVariables;
-		}
-		if (Vector.class.isAssignableFrom(trackType)) {
-			vars = Vector.dataVariables;
-		}
-		if (LineProfile.class.isAssignableFrom(trackType)) {
-			vars = LineProfile.dataVariables;
-		}
-		if (RGBRegion.class.isAssignableFrom(trackType)) {
-			vars = RGBRegion.dataVariables;
-		}
-		if (TapeMeasure.class.isAssignableFrom(trackType)) {
-			vars = TapeMeasure.dataVariables;
-		}
-		if (Protractor.class.isAssignableFrom(trackType)) {
-			vars = Protractor.dataVariables;
-		}
-		if (CircleFitter.class.isAssignableFrom(trackType)) {
-			vars = CircleFitter.dataVariables;
-		}
-		if (Calibration.class.isAssignableFrom(trackType)) {
-			vars = Calibration.dataVariables;
-		}
-		if (OffsetOrigin.class.isAssignableFrom(trackType)) {
-			vars = OffsetOrigin.dataVariables;
-		}
-		if (CoordAxes.class.isAssignableFrom(trackType)) {
-			vars = CoordAxes.dataVariables;
-		}
-		ArrayList<String> list = new ArrayList<String>();
-		for (String var : vars) {
-			list.add(var);
-		}
-		return list;
-	}
-
-	/**
-	 * Gets a list of number field variables for a given track type.
-	 * 
-	 * @return an ArrayList of names. May be empty.
-	 */
-	protected static ArrayList<String> getNumberFieldVariables(Class<? extends TTrack> trackType) {
-		String[] vars = new String[0];
-		if (PointMass.class.isAssignableFrom(trackType)) {
-			vars = PointMass.fieldVariables;
-		}
-		if (Vector.class.isAssignableFrom(trackType)) {
-			vars = Vector.fieldVariables;
-		}
-		if (LineProfile.class.isAssignableFrom(trackType)) {
-			vars = LineProfile.fieldVariables;
-		}
-		if (RGBRegion.class.isAssignableFrom(trackType)) {
-			vars = RGBRegion.fieldVariables;
-		}
-		if (TapeMeasure.class.isAssignableFrom(trackType)) {
-			vars = TapeMeasure.formatVariables; // not an error--same variables
-		}
-		if (Protractor.class.isAssignableFrom(trackType)) {
-			vars = Protractor.fieldVariables;
-		}
-		if (CircleFitter.class.isAssignableFrom(trackType)) {
-			vars = CircleFitter.fieldVariables;
-		}
-		if (Calibration.class.isAssignableFrom(trackType)) {
-			vars = Calibration.dataVariables; // not an error--same variables
-		}
-		if (OffsetOrigin.class.isAssignableFrom(trackType)) {
-			vars = OffsetOrigin.dataVariables; // not an error--same variables
-		}
-		if (CoordAxes.class.isAssignableFrom(trackType)) {
-			vars = CoordAxes.dataVariables; // not an error--same variables
-		}
-		ArrayList<String> list = new ArrayList<String>();
-		for (String var : vars) {
-			list.add(var);
-		}
-		return list;
-	}
-
-	/**
 	 * Gets a list of all variable names for a given track type.
 	 * 
 	 * @return an ArrayList of names. May be empty.
 	 */
-	protected static ArrayList<String> getAllVariables(Class<? extends TTrack> trackType) {
+	protected static ArrayList<String> getAllVariables(String trackType) {
+		if (trackType != null)
+			switch (trackType) {
+			case "Calibration":
+				return Calibration.allVariables;
+			case "CircleFitter":
+				return CircleFitter.allVariables;
+			case "CoordAxes":
+				return CoordAxes.allVariables;
+			case "LineProfile":
+				return LineProfile.allVariables;
+			case "OffsetOrigin":
+				return OffsetOrigin.allVariables;
+			case "PointMass":
+				return PointMass.allVariables;
+			case "Protractor":
+				return Protractor.allVariables;
+			case "RGBRegion":
+				return RGBRegion.allVariables;
+			case "TapeMeasure":
+				return TapeMeasure.allVariables;
+			case "Vector":
+				return Vector.allVariables;
+			}
+		return NOVARA;
+	}
+
+	protected static ArrayList<String> createAllVariables(String[] datavars, String[] fieldvars) {
 		ArrayList<String> list = new ArrayList<String>();
-		list.addAll(getDataVariables(trackType));
-		for (String next : getNumberFieldVariables(trackType)) {
-			if (!list.contains(next)) {
+		if (datavars != null)
+			for (String next : datavars) {
 				list.add(next);
 			}
-		}
+		if (fieldvars != null)
+			for (String next : fieldvars) {
+				if (!list.contains(next)) {
+					list.add(next);
+				}
+			}
 		return list;
-	}
-
-	/**
-	 * Gets a list of formatter display names for a given track type.
-	 * 
-	 * @return an array of names. May be empty.
-	 */
-	protected static String[] getFormatterDisplayNames(Class<? extends TTrack> trackType) {
-		if (PointMass.class.isAssignableFrom(trackType)) {
-			return PointMass.formatVariables;
-		}
-		if (Vector.class.isAssignableFrom(trackType)) {
-			return Vector.formatVariables;
-		}
-		if (LineProfile.class.isAssignableFrom(trackType)) {
-			return LineProfile.formatVariables;
-		}
-		if (RGBRegion.class.isAssignableFrom(trackType)) {
-			return RGBRegion.formatVariables;
-		}
-		if (TapeMeasure.class.isAssignableFrom(trackType)) {
-			return TapeMeasure.formatVariables;
-		}
-		if (Protractor.class.isAssignableFrom(trackType)) {
-			return Protractor.formatVariables;
-		}
-		if (CircleFitter.class.isAssignableFrom(trackType)) {
-			return CircleFitter.formatVariables;
-		}
-		if (Calibration.class.isAssignableFrom(trackType)) {
-			return Calibration.formatVariables;
-		}
-		if (OffsetOrigin.class.isAssignableFrom(trackType)) {
-			return OffsetOrigin.formatVariables;
-		}
-		if (CoordAxes.class.isAssignableFrom(trackType)) {
-			return CoordAxes.formatVariables;
-		}
-		return new String[0];
-	}
-
-	/**
-	 * Gets a map of formatter names to variables for a given track type.
-	 * 
-	 * @return a Map<String, ArrayList<String>>. May be empty.
-	 */
-	protected static Map<String, ArrayList<String>> getFormatterMap(Class<? extends TTrack> trackType) {
-		if (PointMass.class.isAssignableFrom(trackType)) {
-			return PointMass.formatMap;
-		}
-		if (Vector.class.isAssignableFrom(trackType)) {
-			return Vector.formatMap;
-		}
-		if (LineProfile.class.isAssignableFrom(trackType)) {
-			return LineProfile.formatMap;
-		}
-		if (RGBRegion.class.isAssignableFrom(trackType)) {
-			return RGBRegion.formatMap;
-		}
-		if (TapeMeasure.class.isAssignableFrom(trackType)) {
-			return TapeMeasure.formatMap;
-		}
-		if (Protractor.class.isAssignableFrom(trackType)) {
-			return Protractor.formatMap;
-		}
-		if (CircleFitter.class.isAssignableFrom(trackType)) {
-			return CircleFitter.formatMap;
-		}
-		if (Calibration.class.isAssignableFrom(trackType)) {
-			return Calibration.formatMap;
-		}
-		if (OffsetOrigin.class.isAssignableFrom(trackType)) {
-			return OffsetOrigin.formatMap;
-		}
-		if (CoordAxes.class.isAssignableFrom(trackType)) {
-			return CoordAxes.formatMap;
-		}
-		return new HashMap<String, ArrayList<String>>();
 	}
 
 	/**
@@ -1722,48 +1596,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * 
 	 * @return an array of variables. May be null.
 	 */
-	protected static ArrayList<String> getVariablesFromFormatterDisplayName(Class<? extends TTrack> trackType,
-			String formatterDisplayName) {
-		return getFormatterMap(trackType).get(formatterDisplayName);
-	}
-
-	/**
-	 * Gets a map of formatter names to descriptions for a given track type.
-	 * 
-	 * @return a Map<String, String>. May be empty.
-	 */
-	protected static Map<String, String> getFormatterDescriptionMap(Class<? extends TTrack> trackType) {
-		if (PointMass.class.isAssignableFrom(trackType)) {
-			return PointMass.formatDescriptionMap;
-		}
-		if (Vector.class.isAssignableFrom(trackType)) {
-			return Vector.formatDescriptionMap;
-		}
-		if (LineProfile.class.isAssignableFrom(trackType)) {
-			return LineProfile.formatDescriptionMap;
-		}
-		if (RGBRegion.class.isAssignableFrom(trackType)) {
-			return RGBRegion.formatDescriptionMap;
-		}
-		if (TapeMeasure.class.isAssignableFrom(trackType)) {
-			return TapeMeasure.formatDescriptionMap;
-		}
-		if (Protractor.class.isAssignableFrom(trackType)) {
-			return Protractor.formatDescriptionMap;
-		}
-		if (CircleFitter.class.isAssignableFrom(trackType)) {
-			return CircleFitter.formatDescriptionMap;
-		}
-		if (Calibration.class.isAssignableFrom(trackType)) {
-			return Calibration.formatDescriptionMap;
-		}
-		if (OffsetOrigin.class.isAssignableFrom(trackType)) {
-			return OffsetOrigin.formatDescriptionMap;
-		}
-		if (CoordAxes.class.isAssignableFrom(trackType)) {
-			return CoordAxes.formatDescriptionMap;
-		}
-		return new HashMap<String, String>();
+	protected String[] getVariablesFromFormatterDisplayName(String name) {
+		return getFormatMap().get(name);
 	}
 
 	/**
@@ -1795,7 +1629,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		textColumnEntries.put(name, new String[0]);
 		Undo.postTrackEdit(this, control);
 		trackerPanel.changed = true;
-		this.firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, name); 
+		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, name);
 		return true;
 	}
 
@@ -1816,7 +1650,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				textColumnNames.remove(name);
 				Undo.postTrackEdit(this, control);
 				trackerPanel.changed = true;
-				firePropertyChange(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, name, null); //$NON-NLS-1$
+				firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, name, null); // $NON-NLS-1$
 				return true;
 			}
 		}
@@ -1854,7 +1688,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			}
 		}
 		trackerPanel.changed = true;
-		this.firePropertyChange(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, name, newName); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, name, newName); // $NON-NLS-1$
 		return true;
 	}
 
@@ -1918,17 +1752,17 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		entries[frameNumber] = text;
 		Undo.postTrackEdit(this, control);
 		trackerPanel.changed = true;
-		firePropertyChange(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, null, null); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, null); // $NON-NLS-1$
 		return true;
 	}
 
 	protected int getAttachmentLength() {
 		return 0;
 	}
-	
+
 	/**
-	 * Returns the array of attachments for this track. Returns null
-	 * only if the specified number of attachments == 0.
+	 * Returns the array of attachments for this track. Returns null only if the
+	 * specified number of attachments == 0.
 	 * 
 	 * @return the attachments array
 	 */
@@ -2027,7 +1861,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Determines if this is attached to one or more tracks.
 	 *
@@ -2042,7 +1876,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		}
 		return false;
 	}
-
 
 	/**
 	 * Refreshes the attachments for this track.
@@ -2059,8 +1892,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		for (int i = 0; i < attachments.length; i++) {
 			TTrack targetTrack = attachments[i];
 			if (targetTrack != null) {
-				targetTrack.removeStepListener(this); //$NON-NLS-1$
-				targetTrack.addStepListener(this); //$NON-NLS-1$
+				targetTrack.removeStepListener(this); // $NON-NLS-1$
+				targetTrack.addStepListener(this); // $NON-NLS-1$
 				// attach/detach points
 				for (int n = clip.getStartFrameNumber(); n <= clip.getEndFrameNumber(); n++) {
 					Step targetStep = targetTrack.getStep(n);
@@ -2103,7 +1936,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * method and add track-specific menu items.
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @param menu the menu. If null, a dynamic menu is returned that adds items only when selected 
+	 * @param menu         the menu. If null, a dynamic menu is returned that adds
+	 *                     items only when selected
 	 * @return a menu
 	 */
 	public JMenu getMenu(TrackerPanel trackerPanel, JMenu menu) {
@@ -2127,7 +1961,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				@Override
 				public void menuCanceled(MenuEvent e) {
 				}
-				
+
 			});
 			return menu0;
 		}
@@ -2255,7 +2089,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		nameItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				getNameDialog(TTrack.this).setVisible(true);
+				getNameDialog().setVisible(true);
 			}
 		});
 		footprintMenu = new JMenu();
@@ -2809,7 +2643,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			case VideoPanel.PROPERTY_VIDEOPANEL_IMAGESPACE:
 				erase(trackerPanel);
 				break;
-			case TTrack.PROPERTY_TTRACK_DATA:
+			case PROPERTY_TTRACK_DATA:
 				dataValid = false;
 				break;
 			case TFrame.PROPERTY_TFRAME_RADIANANGLES:
@@ -2969,8 +2803,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			for (int i = 0; i < attachments.length; i++) {
 				TTrack targetTrack = attachments[i];
 				if (targetTrack != null) {
-					targetTrack.removePropertyChangeListener(PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
-					targetTrack.removePropertyChangeListener(PROPERTY_TTRACK_STEPS, this); //$NON-NLS-1$
+					targetTrack.removePropertyChangeListener(PROPERTY_TTRACK_STEP, this); // $NON-NLS-1$
+					targetTrack.removePropertyChangeListener(PROPERTY_TTRACK_STEPS, this); // $NON-NLS-1$
 				}
 				attachments[i] = null;
 			}
@@ -3532,7 +3366,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			if (track.isLocked())
 				control.setValue("locked", track.isLocked()); //$NON-NLS-1$
 			// number formats
-			String[] customPatterns = NumberFormatDialog.getCustomFormatPatterns(track);
+			String[] customPatterns = track.getCustomFormatPatterns();
 			if (customPatterns.length > 0) {
 				control.setValue("number_formats", customPatterns); //$NON-NLS-1$
 			}
@@ -3625,6 +3459,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				track.setFootprint(s.trim());
 			// visible and trail
 			track.setVisible(control.getBoolean("visible")); //$NON-NLS-1$
+			track.setTrailLength(TToolBar.defTrailLength);
 			track.setTrailVisible(control.getBoolean("trail")); //$NON-NLS-1$
 			// number formats
 			track.customNumberFormats = (String[]) control.getObject("number_formats"); //$NON-NLS-1$
@@ -3661,16 +3496,16 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		}
 	}
 
-	protected static NameDialog getNameDialog(TTrack track) {
-		if (nameDialog == null && track.trackerPanel != null) {
-			nameDialog = new NameDialog(track.trackerPanel);
+	protected NameDialog getNameDialog() {
+		if (nameDialog == null) {
+			nameDialog = new NameDialog(trackerPanel);
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			int x = (dim.width - nameDialog.getBounds().width) / 2;
 			int y = (dim.height - nameDialog.getBounds().height) / 2;
 			nameDialog.setLocation(x, y);
 		}
 		// prepare dialog
-		nameDialog.setTrack(track);
+		nameDialog.setTrack(this);
 		return nameDialog;
 	}
 
@@ -3685,16 +3520,15 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	public void notifyUndoLoaded() {
-		notifySteps(); 
+		notifySteps();
 		// TrackEdit is also used for text column edits
-		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, null); 
+		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, null);
 	}
-	
+
 	/**
-	 * Finish up any unfinished loading business that for whatever
-	 * reason was not finished upon loading a track. For example, 
-	 * adding masses to a center-of-mass system, or adding particles
-	 * to a DynamicSystem. 
+	 * Finish up any unfinished loading business that for whatever reason was not
+	 * finished upon loading a track. For example, adding masses to a center-of-mass
+	 * system, or adding particles to a DynamicSystem.
 	 * 
 	 * @param panel
 	 */
@@ -3704,7 +3538,294 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 
 	public void notifySteps() {
 		// this call will update TrackPlottingPanel
-		firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
+		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null);
+	}
+
+	protected final static Map<String, String[]> NOMAP = new HashMap<>();
+	protected final static Map<String, String> NOMAPS = new HashMap<>();
+	protected final static String[] NOVARS = new String[0];
+	protected final static ArrayList<String> NOVARA = new ArrayList<String>();
+
+	abstract public Map<String, String[]> getFormatMap();
+
+	abstract public Map<String, String> getFormatDescMap();
+
+	abstract public String[] getFormatVariables();
+
+	abstract public String getVarDimsImpl(String variable);
+
+	abstract public String getBaseType();
+
+	/**
+	 * Gets a DataTable associated with a specified track.
+	 *
+	 * @param track the track
+	 * @return the DataTable
+	 */
+	private TrackDataTable getDataTable() {
+		ArrayList<TableTrackView> tableViews = getTableViews();
+		TableTrackView view;
+		return (tableViews.isEmpty() || (view = tableViews.get(0)) == null ? null : view.getDataTable());
+	}
+
+	/**
+	 * Gets the custom format patterns for a specified track for
+	 * TTrack.Loader.saveObject
+	 *
+	 * @param track the track
+	 * @return array with variable names and custom patterns
+	 */
+	protected String[] getCustomFormatPatterns() {
+		if (trackerPanel == null)
+			return new String[0];
+		String[] patterns = getFormatPatterns();
+		TreeMap<String, String> defaultPatterns = trackerPanel.getFormatPatterns(getBaseType());
+		ArrayList<String> customPatterns = new ArrayList<String>();
+		for (int i = 0; i < patterns.length - 1; i = i + 2) {
+			String name = patterns[i];
+			String pattern = defaultPatterns.get(name) == null ? "" : defaultPatterns.get(name); //$NON-NLS-1$
+			if (!pattern.equals(patterns[i + 1])) {
+				customPatterns.add(name);
+				customPatterns.add(patterns[i + 1]);
+			}
+		}
+		return customPatterns.toArray(new String[customPatterns.size()]);
+	}
+
+	/**
+	 * Gets all table views for a specified track.
+	 *
+	 * @param track the track
+	 * @return ArrayList of table views
+	 */
+	private ArrayList<TableTrackView> getTableViews() {
+		ArrayList<TableTrackView> tableTrackViews = new ArrayList<TableTrackView>();
+		TFrame frame;
+		if (trackerPanel == null || (frame = trackerPanel.getTFrame()) == null) {
+			return tableTrackViews;
+		}
+		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
+		for (int i = 0; i < choosers.length; i++) {
+			if (choosers[i] == null)
+				continue;
+			TableTView tableView = (TableTView) choosers[i].getView(TView.VIEW_TABLE);
+			if (tableView != null) {
+				tableTrackViews.add((TableTrackView) tableView.getTrackView(this));
+			}
+		}
+		return tableTrackViews;
+	}
+
+	/**
+	 * Gets the format patterns for a specified track.
+	 *
+	 * @param track the track
+	 * @return array with variable names and patterns
+	 */
+	public String[] getFormatPatterns() {
+		ArrayList<String> patterns = new ArrayList<String>();
+		for (String name : getAllVariables(getBaseType())) {
+			patterns.add(name);
+			patterns.add(getFormatPattern(name));
+		}
+		return patterns.toArray(new String[patterns.size()]);
+	}
+
+	/**
+	 * Sets the format pattern for a specified track and name. Name may point to
+	 * multiple variables.
+	 *
+	 * @param track   the track
+	 * @param name    the name
+	 * @param pattern the pattern
+	 * @return true if the pattern was changed
+	 */
+	protected boolean setFormatPattern(String name, String pattern) {
+		boolean changed = false;
+		// set pattern for variables identified by the name, if any
+		String[] vars = getVariablesFromFormatterDisplayName(name);
+		if (vars != null) {
+			for (String var : vars) {
+				changed = setFormatPatternForVariable(var, pattern) || changed;
+			}
+			return changed;
+		} else
+			return setFormatPatternForVariable(name, pattern);
+	}
+
+	/**
+	 * Sets the format pattern for a specified track and single variable.
+	 *
+	 * @param track   the track
+	 * @param var     the variable
+	 * @param pattern the pattern
+	 * @return true if the pattern was changed
+	 */
+	private boolean setFormatPatternForVariable(String var, String pattern) {
+		boolean changed = false;
+		boolean found = false;
+		if (isViewable()) {
+			found = true;
+			// set pattern in track tables
+			ArrayList<TableTrackView> tableViews = getTableViews();
+			for (TableTrackView view : tableViews) {
+				if (view == null)
+					continue;
+				DataTable table = view.getDataTable();
+				if (!table.getFormatPattern(var).equals(pattern)) {
+					table.setFormatPattern(var, pattern);
+					changed = true;
+				}
+			}
+		}
+		// set pattern in track NumberFields
+		Map<String, NumberField[]> fieldMap = getNumberFields();
+		NumberField[] fields = fieldMap.get(var);
+		if (fields != null) {
+			found = true;
+			for (NumberField field : fields) {
+				if (!field.getFixedPattern().equals(pattern)) {
+					field.setFixedPattern(pattern);
+					changed = true;
+				}
+			}
+		}
+		if (!found) {
+			if (!pattern.equals(getProperty(var))) {
+				setProperty(var, pattern);
+				changed = true;
+			}
+		}
+		if (changed && (var.equals("x") || var.equals("y")) //$NON-NLS-1$ //$NON-NLS-2$
+				&& trackerPanel != null && trackerPanel.getSelectedTrack() == this) {
+			trackerPanel.coordStringBuilder.setUnitsAndPatterns(this, "x", "y"); //$NON-NLS-1$ //$NON-NLS-2$
+			if (trackerPanel.getSelectedPoint() != null) {
+				trackerPanel.getSelectedPoint().showCoordinates(trackerPanel);
+			}
+		}
+		return changed;
+	}
+
+	/**
+	 * Gets the format pattern for a specified track and variable.
+	 *
+	 * @param track the track
+	 * @param name  the variable name
+	 * @return the pattern
+	 */
+	protected String getFormatPattern(String name) {
+		String val, type = getBaseType();
+
+		// change formatter display name to variable if needed
+		if (!getAllVariables(type).contains(name)) {
+			String[] vars = getVariablesFromFormatterDisplayName(name);
+			if (vars != null && vars.length > 0) {
+				name = vars[0];
+			}
+		}
+
+		// get pattern from track NumberField if possible
+		NumberField[] fields = getNumberFields().get(name);
+		if (fields != null && fields.length > 0) {
+			return fields[0].getFixedPattern();
+		}
+
+		// get pattern from table if no NumberField
+		DataTable table = getDataTable();
+		if (table != null && (val = table.getFormatPattern(name)) != null) {
+			return val;
+		}
+
+		// get pattern from track properties
+		if ((val = (String) getProperty(name)) != null) {
+			return val;
+		}
+
+		// get pattern for track type
+
+		// look in trackerPanel formatPatterns
+		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(type);
+		if ((val = patterns.get(name)) != null) {
+			return val;
+		}
+
+		// look in defaultFormatPatterns
+		patterns = getDefaultFormatPatterns(type);
+		if (patterns != null && (val = patterns.get(name)) != null) {
+			return val;
+		}
+
+		return ""; //$NON-NLS-1$
+	}
+
+	private static TreeMap<String, String> getDefaultFormatPatterns(String type) {
+		TreeMap<String, String> patterns = defaultFormatPatterns.get(type);
+		if (patterns != null)
+			return patterns;
+		patterns = new TreeMap<String, String>();
+		boolean isLine = (type == "LineProfile");
+		boolean isRGB = (isLine || type == "RGBRegion");
+		boolean isStep = ("RGBRegion,PointMass,Vector,Protractor,CircleFitter,TapeMeasure".indexOf(type) >= 0);
+		boolean isCircle = type == "CircleFitter";
+		if (isStep) {
+			patterns.put("t", NumberField.DECIMAL_3_PATTERN); //$NON-NLS-1$
+			patterns.put("step", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+			patterns.put("frame", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+		}
+		if (isLine) {
+			patterns.put("n", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+		}
+		if (isRGB) {
+			patterns.put("pixels", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+			patterns.put("R", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+			patterns.put("G", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+			patterns.put("B", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+			patterns.put("luma", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+		}
+		if (isCircle) {
+			String var = TrackerRes.getString("CircleFitter.Data.PointCount"); //$NON-NLS-1$
+			patterns.put(var, NumberField.INTEGER_PATTERN);
+		}
+		defaultFormatPatterns.put(type, patterns);
+		return patterns;
+	}
+
+	/**
+	 * Determines the unit dimensions associated with a given track variable.
+	 * Dimensions include L (length), T (time), M (mass), A (angle), I (integer), P
+	 * (pixels), C (color 8 bit). Dimensions are often combinations of MLT. May
+	 * return null.
+	 * 
+	 * @param type     the track type
+	 * @param variable the variable name
+	 * @return the dimensions or null if unknown
+	 */
+	public static String getVariableDimensions(TTrack track, String variable) {
+		if (variable.startsWith(Tracker.THETA)) {
+			return "A"; //$NON-NLS-1$
+		}
+		if (variable.equals("t")) { //$NON-NLS-1$
+			return "T"; //$NON-NLS-1$
+		}
+		return track.getVarDimsImpl(variable);
+	}
+
+	public void setInitialFormatPatterns(TrackerPanel trackerPanel) {
+		// set default NumberField format patterns
+		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(getBaseType());
+		for (String name : patterns.keySet()) {
+			setFormatPattern(name, patterns.get(name));
+		}
+		// set custom formats AFTER setting default patterns
+		if (customNumberFormats != null) {
+			getData(trackerPanel);
+			for (int i = 0; i < customNumberFormats.length - 1; i = i + 2) {
+				String name = customNumberFormats[i];
+				String pattern = customNumberFormats[i + 1];
+				setFormatPattern(name, pattern);
+			}
+			customNumberFormats = null;
+		}
 	}
 
 }

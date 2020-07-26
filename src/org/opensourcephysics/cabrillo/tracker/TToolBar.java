@@ -125,6 +125,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected static Icon pencilOffIcon, pencilOnIcon, pencilOffRolloverIcon, pencilOnRolloverIcon;
 	final protected static NumberFormat zoomFormat = NumberFormat.getNumberInstance();
 
+	public static int defTrailLength = trailLengths[Tracker.trailLengthIndex];
+
 	// false
 	public static final String REFRESH_PAGETVIEW_TABS = "PageTView.tabs";
 	public static final String REFRESH_PAGETVIEW_TITLE = "PageTView.title";
@@ -242,7 +244,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 	protected boolean refreshing; // true when refreshing toolbar
 	protected int vStretch = 1, aStretch = 1;
-	protected int trailLength = trailLengths[Tracker.trailLengthIndex];
+	protected int trailLength = defTrailLength;
 	protected boolean notYetCalibrated = true;
 	protected int toolbarComponentHeight;
 	private AbstractAction zoomAction;

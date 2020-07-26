@@ -49,6 +49,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.Timer;
+
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -73,40 +75,69 @@ import org.opensourcephysics.tools.FontSizer;
  */
 public class TapeMeasure extends InputTrack {
 
+	@Override
+	public String[] getFormatVariables() {
+		return formatVariables;
+	}
+	
+	@Override
+	public Map<String,String[]> getFormatMap() {
+		return formatMap;
+	}
+	
+	@Override
+	public Map<String, String> getFormatDescMap() {
+		return formatDescriptionMap;
+	}
+	
+	@Override
+	public String getBaseType() {
+		return "TapeMeasure";
+	}
+
+	@Override
+	public String getVarDimsImpl(String variable) {
+	  	String[] vars = dataVariables;
+	  	String[] names = formatVariables;
+	  		if (names[1].equals(variable) 
+	  				// same || vars[1].equals(variable)
+	  				) {
+	  			return "L"; //$NON-NLS-1$
+	  		}  		
+	  		if (vars[3].equals(variable) || vars[4].equals(variable)) {
+	  			return "I"; //$NON-NLS-1$
+	  		}  		
+		return null;
+	}
+
 	// static constants
 	protected static final double MIN_LENGTH = 1.0E-30;
 	@SuppressWarnings("javadoc")
 	public static final float[] BROKEN_LINE = new float[] { 10, 1 };
-	protected static String[] dataVariables;
-	protected static String[] formatVariables; // also used for fieldVariables
-	protected static Map<String, ArrayList<String>> formatMap;
-	protected static Map<String, String> formatDescriptionMap;
+
+	protected static final String[] dataVariables;
+	protected static final String[] formatVariables; // also used for fieldVariables
+	protected static final Map<String, String[]> formatMap;
+	protected static final Map<String, String> formatDescriptionMap;
 
 	static {
 		dataVariables = new String[] { "t", "L", Tracker.THETA, "step", "frame" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		formatVariables = new String[] { "t", "L", Tracker.THETA }; //$NON-NLS-1$ //$NON-NLS-2$
 
 		// assemble format map
-		formatMap = new HashMap<String, ArrayList<String>>();
-		ArrayList<String> list = new ArrayList<String>();
-		list.add(dataVariables[0]);
-		formatMap.put(formatVariables[0], list);
-
-		list = new ArrayList<String>();
-		list.add(dataVariables[1]);
-		formatMap.put(formatVariables[1], list);
-
-		list = new ArrayList<String>();
-		list.add(dataVariables[2]);
-		formatMap.put(formatVariables[2], list);
+		formatMap = new HashMap<>();
+		formatMap.put("t", new String[] {"t"});
+		formatMap.put("L", new String[] {"L"});
+		formatMap.put(Tracker.THETA, new String[] {Tracker.THETA});
 
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
 		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$
 		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("TapeMeasure.Label.Length")); //$NON-NLS-1$
 		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("TapeMeasure.Label.TapeAngle")); //$NON-NLS-1$
-
 	}
+
+	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, null); // no field vars
 
 	// instance fields
 	protected boolean fixedLength = true;
@@ -1006,9 +1037,8 @@ public class TapeMeasure extends InputTrack {
 				item.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel,
-								TapeMeasure.this, selected);
-						dialog.setVisible(true);
+						NumberFormatDialog.getNumberFormatDialog(trackerPanel,
+								TapeMeasure.this, selected).setVisible(true);
 					}
 				});
 				item.setText(TrackerRes.getString("Popup.MenuItem.Formats") + "..."); //$NON-NLS-1$ //$NON-NLS-2$

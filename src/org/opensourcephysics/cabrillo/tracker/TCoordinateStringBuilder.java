@@ -76,8 +76,8 @@ public class TCoordinateStringBuilder
   	if (track==null || track.trackerPanel==null) return;
     xField.setUnits(track.trackerPanel.getUnits(track, xVar));    
     yField.setUnits(track.trackerPanel.getUnits(track, yVar));
-    xField.setFixedPattern(NumberFormatDialog.getFormatPattern(track, xVar));
-    yField.setFixedPattern(NumberFormatDialog.getFormatPattern(track, yVar));
+    xField.setFixedPattern(track.getFormatPattern(xVar));
+    yField.setFixedPattern(track.getFormatPattern(yVar));
   }
 
   @Override

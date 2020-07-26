@@ -63,35 +63,58 @@ import org.opensourcephysics.media.core.VideoPlayer;
  */
 public class Protractor extends InputTrack {
 
+	@Override
+	public String[] getFormatVariables() {
+		return formatVariables;
+	}
+
+	@Override
+	public Map<String, String[]> getFormatMap() {
+		return formatMap;
+	}
+
+	@Override
+	public Map<String, String> getFormatDescMap() {
+		return formatDescriptionMap;
+	}
+
+	@Override
+	public String getBaseType() {
+		return "Protractor";
+	}
+
+	@Override
+	public String getVarDimsImpl(String variable) {
+		String[] vars = dataVariables;
+		String[] names = formatVariables;
+		if (names[1].equals(variable) || vars[2].equals(variable) || vars[3].equals(variable)) {
+			return "L"; //$NON-NLS-1$
+		}
+		if (vars[4].equals(variable) || vars[5].equals(variable)) {
+			return "I"; //$NON-NLS-1$
+		}
+		return null;
+	}
+
 	// static fields
-	protected static String[] dataVariables;
-	protected static String[] fieldVariables;
-	protected static String[] formatVariables;
-	protected static Map<String, ArrayList<String>> formatMap;
-	protected static Map<String, String> formatDescriptionMap;
+	protected static final String[] dataVariables;
+	protected static final String[] fieldVariables;
+	protected static final String[] formatVariables;
+	protected static final Map<String, String[]> formatMap;
+	protected static final Map<String, String> formatDescriptionMap;
 
 	static {
 		dataVariables = new String[] { "t", Tracker.THETA, "L_{1}", "L_{2}", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				"step", "frame", Tracker.THETA + "_{rot}" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		fieldVariables = new String[] { "t", Tracker.THETA, "L_{1}", "L_{2}" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		fieldVariables = dataVariables; // $NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		formatVariables = new String[] { "t", "L", Tracker.THETA }; //$NON-NLS-1$ //$NON-NLS-2$
 
 		// assemble format map
-		formatMap = new HashMap<String, ArrayList<String>>();
+		formatMap = new HashMap<>();
 
-		ArrayList<String> list = new ArrayList<String>();
-		list.add(dataVariables[0]);
-		formatMap.put(formatVariables[0], list);
-
-		list = new ArrayList<String>();
-		list.add(dataVariables[2]);
-		list.add(dataVariables[3]);
-		formatMap.put(formatVariables[1], list);
-
-		list = new ArrayList<String>();
-		list.add(dataVariables[1]);
-		list.add(dataVariables[6]);
-		formatMap.put(formatVariables[2], list);
+		formatMap.put("t", new String[] { "t" });
+		formatMap.put("L", new String[] { "L_{1}", "L_{2}" });
+		formatMap.put(Tracker.THETA, new String[] { Tracker.THETA, Tracker.THETA + "_{rot}" });
 
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
@@ -100,6 +123,8 @@ public class Protractor extends InputTrack {
 		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("Vector.Data.Description.4")); //$NON-NLS-1$
 
 	}
+
+	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, null); // no new field vars
 
 	// instance fields
 	protected JCheckBoxMenuItem fixedItem;
@@ -461,10 +486,9 @@ public class Protractor extends InputTrack {
 	@Override
 	public String getAttachmentDescription(int n) {
 		// end1 is "base", end2 is "arm"
-		return TrackerRes.getString(
-				n == 0 ? "AttachmentInspector.Label.Vertex" : //$NON-NLS-1$
+		return TrackerRes.getString(n == 0 ? "AttachmentInspector.Label.Vertex" : //$NON-NLS-1$
 				n == 1 ? "Protractor.Attachment.Arm" : //$NON-NLS-1$
-						 "Protractor.Attachment.Base"); //$NON-NLS-1$
+						"Protractor.Attachment.Base"); //$NON-NLS-1$
 	}
 
 	/**
@@ -647,9 +671,8 @@ public class Protractor extends InputTrack {
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					TrackerPanel tp = Protractor.this.trackerPanel;
-					NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(tp, Protractor.this, selected);
-					dialog.setVisible(true);
+					NumberFormatDialog.getNumberFormatDialog(Protractor.this.trackerPanel, Protractor.this, selected)
+							.setVisible(true);
 				}
 			});
 			item.setText(TrackerRes.getString("TTrack.MenuItem.NumberFormat")); //$NON-NLS-1$

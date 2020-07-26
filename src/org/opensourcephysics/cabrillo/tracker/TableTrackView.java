@@ -137,12 +137,12 @@ public class TableTrackView extends TrackView {
 	/**
 	 * DataManager for all track data -- ALL columns
 	 */
-	private DatasetManager trackDataManager;
+	protected DatasetManager trackDataManager;
 
 	/**
 	 * DataManager for all table data -- just the VISIBLE columns
 	 */
-	private DatasetManager dataTableManager;
+	protected DatasetManager dataTableManager;
 
 	// internal column model
 	
@@ -150,17 +150,17 @@ public class TableTrackView extends TrackView {
 	 * primary indicator of visibility; shared with TableTView.Loader
 	 * 
 	 */
-	BitSet bsCheckBoxes = new BitSet();
+	protected BitSet bsCheckBoxes = new BitSet();
 	
-	private int colCount;
-	private int datasetCount;
+	protected int colCount;
+	protected int datasetCount;
 	private Map<String, Integer> htNames;
 	private String[] aNames;
 
 	/**
 	 * set to false during loading
 	 */
-	private boolean refreshing = true;
+	protected boolean refreshing = true;
 	
 	public void setRefreshing(boolean b) {
 		refreshing = b;		
@@ -172,15 +172,16 @@ public class TableTrackView extends TrackView {
 
 	final private Font font = new JTextField().getFont();
 	final private BitSet highlightFrames = new BitSet();
-	final private BitSet highlightRows = new BitSet(); 
-	final private ArrayList<String> textColumnNames = new ArrayList<String>();
-	final protected Set<String> textColumnsVisible = new TreeSet<String>();
 	final private Map<String, TableCellRenderer> degreeRenderers = new HashMap<String, TableCellRenderer>();
-	
+
+	final protected BitSet highlightRows = new BitSet(); 
+	final protected ArrayList<String> textColumnNames = new ArrayList<String>();
+	final protected Set<String> textColumnsVisible = new TreeSet<String>();
+
 	/**
 	 * used when sorting
 	 */
-	final private TreeSet<Double> selectedIndepVarValues = new TreeSet<Double>();
+	final protected TreeSet<Double> selectedIndepVarValues = new TreeSet<Double>();
 	
 
 	// GUI
@@ -194,13 +195,12 @@ public class TableTrackView extends TrackView {
 	 * the JTable
 	 */
 	protected TrackDataTable dataTable;
-	private TextColumnTableModel textColumnModel;
-	private TextColumnEditor textColumnEditor;
+	protected TextColumnEditor textColumnEditor;
 
 	/**
 	 * for super.toolbarComponents 
 	 */
-	private JButton columnsDialogButton, gapsButton;
+	protected JButton columnsDialogButton, gapsButton;
 	
 	private ColumnsDialog columnsDialog;
 
@@ -234,7 +234,7 @@ public class TableTrackView extends TrackView {
 		// create the DataTable with two OSPTableModels
 		// (1) our DatasetManager
 		// (2) a text column
-		textColumnModel = new TextColumnTableModel();
+		TextColumnTableModel textColumnModel = new TextColumnTableModel();
 		textColumnEditor = new TextColumnEditor();
 		dataTable = new TrackDataTable();
 		trackDataManager = track.getData(trackerPanel);
@@ -317,7 +317,7 @@ public class TableTrackView extends TrackView {
 			setVisible(1, true);
 		}
 		// set the default number formats, if any
-		Class<? extends TTrack> trackType = NumberFormatDialog.getTrackType(track);
+		String trackType = track.getBaseType();
 		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(trackType);
 		DataTable table = getDataTable();
 		for (String name : patterns.keySet()) {
@@ -351,7 +351,7 @@ public class TableTrackView extends TrackView {
 
 		// main entry point for a new or revised track -- from TrackChooserTView
 
-//		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode));
+		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + "  "+ frameNumber + " " + isRefreshEnabled());
 
 		forceRefresh = true; // for now, at least
 
@@ -408,7 +408,8 @@ public class TableTrackView extends TrackView {
 				colCount++;
 			}
 			dataTable.refreshColumnModel();
-			dataTable.refreshTable(mode);
+			if (isRefreshEnabled())
+				dataTable.refreshTable(mode);
 			refreshed = true;
 		} catch (Exception e) {
 			OSPLog.debug("TableTrackView exception " + e);
@@ -637,14 +638,15 @@ public class TableTrackView extends TrackView {
 	 */
 	protected void setHighlighted(BitSet frameNumbers) {
 		// assume no highlights
-		if (!highlightVisible)
+		int n = dataTable.getRowCount();
+		if (!highlightVisible || n == 0)
 			return;
 
 		// get rows to highlight
 		highlightRows.clear();
 		for (int i = frameNumbers.nextSetBit(0); i >= 0; i = frameNumbers.nextSetBit(i + 1)) {
 			int row = getRowFromFrame(i);
-			if (row >= 0 && row < dataTable.getRowCount()) {
+			if (row >= 0 && row < n) {
 				highlightRows.set(i);
 			}
 		}
@@ -653,7 +655,7 @@ public class TableTrackView extends TrackView {
 			@Override
 			public synchronized void run() {
 				dataTable.clearSelection();
-				if (highlightRows.isEmpty()) {
+				if (highlightRows.isEmpty() || !isRefreshEnabled()) {
 					return;
 				}
 				try {
@@ -665,8 +667,9 @@ public class TableTrackView extends TrackView {
 						dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRows.nextSetBit(0), 0, true));
 					}
 				} catch (Exception e) {
+					   // occasionally throws exception during loading or playing?
+					// during playing because the highlighted rows can be set to far
 				   e.printStackTrace();
-				   // occasionally throws exception during loading!
 				}
 				int cols = dataTable.getColumnCount();
 				dataTable.setColumnSelectionInterval(0, cols - 1);
@@ -748,6 +751,7 @@ public class TableTrackView extends TrackView {
 			if (columnsDialog != null && e.getNewValue() == track) {
 				refreshColumnDialog(track, true);
 			}
+			// allow super
 			break;
 		case TTrack.PROPERTY_TTRACK_TEXTCOLUMN:
 			// look for added and removed column names
@@ -785,17 +789,17 @@ public class TableTrackView extends TrackView {
 			// update local list of names
 			textColumnNames.clear();
 			textColumnNames.addAll(track.getTextColumnNames());
-			break;
+			return;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_UNITS:
 			dataTable.getTableHeader().repaint();
-			break;
+			return;
 		case TTrack.PROPERTY_TTRACK_STEPS:
 			if (TTrack.HINT_STEPS_SELECTED == e.getOldValue())
-				break;
+				return;
 		default:
-			super.propertyChange(e);
 			break;
 		}
+		super.propertyChange(e);
 	}
 
 	/**
@@ -868,16 +872,14 @@ public class TableTrackView extends TrackView {
 	 */
 	protected int getRowFromFrame(int frame) {
 		// look for "frame" dataset in data
-		ArrayList<Dataset> temp = trackDataManager.getDatasets();
-		for (int i = 0; i < temp.size(); i++) {
-			if ("frame".equals(temp.get(i).getYColumnName())) { //$NON-NLS-1$
-				double[] vals = temp.get(i).getYPoints();
+		Dataset frames = trackDataManager.getFrameDataset();
+		if (frames != null) {
+				double[] vals = frames.getYPoints();
 				for (int j = 0; j < vals.length; j++) {
 					if (vals[j] == frame) {
 						return dataTable.getSortedRow(j);
 					}
 				}
-			}
 		}
 		return -1;
 	}
@@ -1309,9 +1311,8 @@ public class TableTrackView extends TrackView {
 					String name = dataTable.getColumnName(selected[i]);
 					selectedNames[i] = name;
 				}
-				NumberFormatDialog dialog = NumberFormatDialog.getNumberFormatDialog(trackerPanel, getTrack(),
-						selectedNames);
-				dialog.setVisible(true);
+				NumberFormatDialog.getNumberFormatDialog(trackerPanel, getTrack(),
+						selectedNames).setVisible(true);
 			}
 		});
 		showUnitsItem = new JMenuItem();

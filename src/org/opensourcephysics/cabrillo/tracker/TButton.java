@@ -155,27 +155,26 @@ public class TButton extends JButton {
 		setSelectedIcon(on);
   }
   
-  /**
-   * Sets the track associated with this button.
-   *
-   * @param track the track
-   */
-  public void setTrack(TTrack track) {
-  	if (track!=null) {
-	  	trackID = track.getID();
-		  setIcon(track.getIcon(21, 16, context));
-		  setText(track.getName(context)); 
-		  setToolTipText(TrackerRes.getString("TButton.Track.ToolTip") //$NON-NLS-1$
-		  		+" "+track.getName(context));  //$NON-NLS-1$
-		  FontSizer.setFont(this);
-  	}
-  	else {
-  		trackID = -1;
-		  setIcon(null);
-		  setText(" "); //$NON-NLS-1$
-		  setToolTipText(null);
-  	}
-  }
+	/**
+	 * Sets the track associated with this button.
+	 *
+	 * @param track the track
+	 */
+	public void setTrack(TTrack track) {
+		if (track == null) {
+			trackID = -1;
+			setIcon(null);
+			setText(" "); //$NON-NLS-1$
+			setToolTipText(null);
+		} else {
+			trackID = track.getID();
+			setIcon(track.getIcon(21, 16, context));
+			setText(track.getName(context));
+			setToolTipText(TrackerRes.getString("TButton.Track.ToolTip") //$NON-NLS-1$
+					+ " " + track.getName(context)); //$NON-NLS-1$
+			FontSizer.setFont(this);
+		}
+	}
   
   /**
    * Gets the track associated with this button.

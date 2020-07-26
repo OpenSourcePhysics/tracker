@@ -44,14 +44,52 @@ import org.opensourcephysics.controls.*;
  */
 public class LineProfile extends TTrack {
 
-  // static constants
+	@Override
+	public String[] getFormatVariables() {
+		return formatVariables;
+	}
+	
+
+	@Override
+	public Map<String, String[]> getFormatMap() {
+		return formatMap;
+	}
+
+	@Override
+	public Map<String, String> getFormatDescMap() {
+		return formatDescriptionMap;
+	}
+
+	@Override
+	public String getBaseType() {
+		return "LineProfile";
+	}
+
+	@Override
+	public String getVarDimsImpl(String variable) {
+	  	String[] vars = dataVariables;
+	  	String[] names = formatVariables;
+	  		if (vars[0].equals(variable) || vars[7].equals(variable)) {
+	  			return "I"; //$NON-NLS-1$
+	  		}  		
+	  		if (names[0].equals(variable) || vars[1].equals(variable) || vars[2].equals(variable)) {
+	  			return "L"; //$NON-NLS-1$
+	  		}  		
+	  		if (names[1].equals(variable) || names[2].equals(variable) || vars[3].equals(variable) 
+	  				|| vars[4].equals(variable) || vars[5].equals(variable) || vars[6].equals(variable)) {
+	  			return "C"; //$NON-NLS-1$
+	  		}  		
+		return null;
+	}
+
+	// static constants
   /** The maximum allowed spread */
   public static final int MAX_SPREAD = 100;
-  protected static String[]	dataVariables;
-  protected static String[]	fieldVariables;
-  protected static String[]	formatVariables;
-  protected static Map<String, ArrayList<String>> formatMap;
-  protected static Map<String, String> formatDescriptionMap;
+  protected final static String[]	dataVariables;
+  protected final static String[]	fieldVariables;
+  protected final static String[]	formatVariables;
+  protected final static Map<String, String[]> formatMap;
+  protected final static Map<String, String> formatDescriptionMap;
 
   static {
   	dataVariables = new String[] {"n", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -60,22 +98,10 @@ public class LineProfile extends TTrack {
   	formatVariables = new String[] {"xy", "RGB", "luma"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   	
 		// assemble format map
-		formatMap = new HashMap<String, ArrayList<String>>();
-		
-		ArrayList<String> list = new ArrayList<String>();
-		list.add(dataVariables[1]); 
-		list.add(dataVariables[2]); 
-		formatMap.put(formatVariables[0], list);
-		
-		list = new ArrayList<String>();
-		list.add(dataVariables[3]); 
-		list.add(dataVariables[4]); 
-		list.add(dataVariables[5]); 
-		formatMap.put(formatVariables[1], list);
-		
-		list = new ArrayList<String>();
-		list.add(dataVariables[6]); 
-		formatMap.put(formatVariables[2], list);
+		formatMap = new HashMap<>();		
+		formatMap.put("xy", new String[] {"x", "y"});
+		formatMap.put("RGB", new String[] {"R", "G", "B" });
+		formatMap.put("luma", new String[] {"luma"});
 		
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
@@ -84,6 +110,8 @@ public class LineProfile extends TTrack {
 		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("LineProfile.Data.Brightness")); //$NON-NLS-1$ 
 
   }
+
+	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, null); // no field vars
 
   // instance fields
   protected boolean fixedLine = true; // line is the same at all times
@@ -782,5 +810,6 @@ public String toString() {
       return obj;
     }
   }
+
 }
 

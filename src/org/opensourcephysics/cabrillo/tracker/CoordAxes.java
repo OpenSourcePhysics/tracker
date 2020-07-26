@@ -70,26 +70,56 @@ import org.opensourcephysics.tools.FontSizer;
  */
 public class CoordAxes extends TTrack {
 
-	protected static Icon gridOptionsIcon;
-	protected static String[] dataVariables;
-	protected static String[] formatVariables; // used by NumberFormatSetter
-	protected static Map<String, ArrayList<String>> formatMap;
-	protected static Map<String, String> formatDescriptionMap;
+	@Override
+	public String[] getFormatVariables() {
+		return formatVariables;
+	}
+
+	@Override
+	public Map<String, String[]> getFormatMap() {
+		return formatMap;
+	}
+
+	@Override
+	public Map<String, String> getFormatDescMap() {
+		return formatDescriptionMap;
+	}
+
+	@Override
+	public String getBaseType() {
+		return "CoordAxes";
+	}
+
+	@Override
+	public String getVarDimsImpl(String variable) {
+		return "P";
+//		
+//		String[] vars = dataVariables;
+//		String[] names = formatVariables;
+//		
+//		if (vars[0].equals(variable) || vars[0].equals(variable) || names[0].equals(variable)) {
+//			// pixel coordinates
+//			return "P"; //$NON-NLS-1$
+//		}
+//		return null;
+	}
+
+	protected final static Icon gridOptionsIcon = new ResizableIcon(
+			new ImageIcon(Tracker.getClassResource("resources/images/restore.gif"))); //$NON-NLS-1$
+
+	protected final static String[] dataVariables;
+	protected final static String[] formatVariables; // used by NumberFormatSetter
+	protected final static Map<String, String[]> formatMap;
+	protected final static Map<String, String> formatDescriptionMap;
 
 	static {
 		dataVariables = new String[] { "x", "y", Tracker.THETA }; //$NON-NLS-1$ //$NON-NLS-2$
 		formatVariables = new String[] { "pixel", Tracker.THETA }; //$NON-NLS-1$
 
 		// assemble format map
-		formatMap = new HashMap<String, ArrayList<String>>();
-		ArrayList<String> list = new ArrayList<String>();
-		list.add(dataVariables[0]);
-		list.add(dataVariables[1]);
-		formatMap.put(formatVariables[0], list);
-
-		list = new ArrayList<String>();
-		list.add(dataVariables[2]);
-		formatMap.put(formatVariables[1], list);
+		formatMap = new HashMap<>();
+		formatMap.put("pixel", new String[] { "x", "y" });
+		formatMap.put(Tracker.THETA, new String[] { Tracker.THETA });
 
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
@@ -98,6 +128,8 @@ public class CoordAxes extends TTrack {
 
 	}
 
+	protected final static ArrayList<String> allVariables = createAllVariables(dataVariables, null);
+
 	protected boolean notyetShown = true;
 	protected JLabel originLabel;
 	protected WorldGrid grid;
@@ -105,11 +137,6 @@ public class CoordAxes extends TTrack {
 	protected TButton gridButton;
 	protected Component gridSeparator;
 	protected boolean gridVisible;
-
-	static {
-		gridOptionsIcon = new ImageIcon(Tracker.getClassResource("resources/images/restore.gif")); //$NON-NLS-1$
-		gridOptionsIcon = new ResizableIcon(gridOptionsIcon);
-	}
 
 	/**
 	 * Constructs a CoordAxes.
@@ -488,7 +515,7 @@ public class CoordAxes extends TTrack {
 			TPoint handle = ((CoordAxesStep) getStep(0)).getHandle();
 			handle.setXY(x, y);
 		}
-		firePropertyChange(PROPERTY_TTRACK_STEP, null, n); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_STEP, null, n); // $NON-NLS-1$
 		return getMarkedPoint(n, getTargetIndex());
 	}
 

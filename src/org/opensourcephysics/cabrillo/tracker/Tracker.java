@@ -96,6 +96,7 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.GUIUtils;
+import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.Video;
@@ -697,6 +698,41 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	public TFrame getFrame() {
 		return frame;
 	}
+	
+  /**
+   * OSP API to get the main program frame.
+   * 
+   *  @j2sAlias getMainFrame
+   * 
+   * @return OSPFrame
+   */
+  public OSPFrame getMainFrame() {
+    return frame;
+  }
+  
+  /**
+   * OSP API to get the main Tracker frame size. 
+   * 
+   * @j2sAlias getMainFrameSize
+   * 
+   */
+  public int[] getMainFrameSize(){
+ 	 Dimension d=frame.getSize();
+ 	 return new int[] {d.width,d.height};
+  }
+  
+  /**
+   * OSP API to get the main Tracker frame location. 
+   * 
+   * @j2sAlias getMainFrameLocation
+   * 
+   */
+  public int[] getMainFrameLocation(){
+ 	 Point d=frame.getLocation();
+ 	 return new int[] {d.x,d.y};
+  }
+
+
 
 	/**
 	 * Creates the TFrame.
@@ -2015,8 +2051,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		if (args == null || args.length == 0)
 			tracker = new Tracker();
 		else
-			tracker = new Tracker(args, true, true, null);
-
+		  tracker = new Tracker(args, true, true, null);
+		OSPRuntime.setAppClass(tracker); 
 		if (OSPRuntime.isMac()) {
 			// instantiate the OSXServices class by reflection
 			System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Tracker"); //$NON-NLS-1$ //$NON-NLS-2$
