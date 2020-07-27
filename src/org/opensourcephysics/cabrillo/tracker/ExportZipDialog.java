@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
@@ -110,6 +111,8 @@ import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
+
+import javajs.async.AsyncFileChooser;
 
 /**
  * A dialog for exporting/saving Tracker ZIP files. Steps are: 1. create temp
@@ -1962,7 +1965,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	private boolean addHTMLInfo(String thumbPath, ArrayList<File> zipList) {
 		// see if HTML info resource is defined in htmlField
 		Resource res = ResourceLoader.getResource(htmlField.getText().trim());
-		if (res == null) {
+		if (res == null && !OSPRuntime.isJS) {
 			// look for HTML info resource in target directory
 			File[] files = new File(targetDirectory).listFiles();
 			boolean added = false;
@@ -2540,7 +2543,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 */
 	protected ArrayList<File> defineTarget() {
 		// show file chooser to get directory and zip name
-		JFileChooser chooser = TrackerIO.getChooser();
+		AsyncFileChooser chooser = TrackerIO.getChooser();
 		chooser.setDialogTitle(TrackerRes.getString("ZipResourceDialog.FileChooser.SaveZip.Title")); //$NON-NLS-1$
 		chooser.setAcceptAllFileFilterUsed(false);
 		chooser.addChoosableFileFilter(TrackerIO.trzFileFilter);
@@ -2649,8 +2652,12 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		return getTempDirectory() + imageSubdirectory + "/"; //$NON-NLS-1$
 	}
 
+	private String tempDir;
+	
 	private String getTempDirectory() {
-		return targetDirectory + targetName + "_temp/"; //$NON-NLS-1$
+			if (tempDir == null)
+				tempDir = new File(System.getProperty("java.io.tmpdir"), "tracker" + new Random().nextInt()).toString() + "/";
+			return tempDir;
 	}
 
 	protected class VideoListener implements PropertyChangeListener {
