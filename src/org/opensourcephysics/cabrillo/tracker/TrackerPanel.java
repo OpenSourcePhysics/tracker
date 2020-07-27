@@ -1858,7 +1858,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	protected void refreshTrackData(int mode) {
 		// turn on autorefresh
-		OSPLog.debug("TrackerPanel.refreshTrackData " + Tracker.allowDataRefresh);
+		//OSPLog.debug("TrackerPanel.refreshTrackData " + Tracker.allowDataRefresh);
 		boolean auto = isAutoRefresh;
 		isAutoRefresh = true;
 		firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // causes full view rebuild
@@ -1921,7 +1921,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public JPopupMenu getPopupMenu() {
-		OSPLog.debug("TrackerPanel.getPopupMenu " + Tracker.allowMenuRefresh);
+		//OSPLog.debug("TrackerPanel.getPopupMenu " + Tracker.allowMenuRefresh);
 		if (!Tracker.allowMenuRefresh)
 			return null;
 
@@ -3112,8 +3112,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 //		long t0 = Performance.now(0);
 
-		 OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paintComp 0",
-		 Performance.TIME_MARK));
+		 //OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paintComp 0",
+		 //Performance.TIME_MARK));
 
 		 super.paintComponent(g);
 		showFilterInspectors();
@@ -4320,7 +4320,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 //		String s = /** @j2sNative  Clazz._getStackTrace() || */null;
 
-		OSPLog.debug("TrackerPanel repaint " + (++repaintCount));
+//		OSPLog.debug("TrackerPanel repaint " + (++repaintCount));
 
 		super.repaint(time, x, y, w, h);
 	}
