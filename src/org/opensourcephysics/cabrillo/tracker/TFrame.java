@@ -42,6 +42,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 //import java.awt.event.ComponentListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -243,7 +244,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected Launcher helpLauncher;
 	protected JDialog dataToolDialog;
 	protected TrackerPanel prevPanel;
-	protected double defaultRightDivider = 0.7;
+	protected double defaultMainDivider = 21/(21.0 + 13.0); // fibonacci 8/(7 + 8)
+	protected double defaultRightDivider = 13/(13.0 + 8.0); // fibonacci 7/(7 + 6)
 	protected double defaultBottomDivider = 0.5;
 	protected FileDropHandler fileDropHandler;
 	protected Action openRecentAction;
@@ -292,27 +294,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		int y = (screenRect.height - dim.height) / 2;
 		setLocation(x, y);
 		TrackerRes.addPropertyChangeListener("locale", this); //$NON-NLS-1$
-		
-//		addComponentListener(new ComponentListener() {
-//			@Override
-//			public void componentResized(ComponentEvent e) {
-//				firePropertyChange(PROPERTY_TFRAME_RESIZED,  null,  null);
-//			}
-//
-//			@Override
-//			public void componentMoved(ComponentEvent e) {
-//			}
-//
-//			@Override
-//			public void componentShown(ComponentEvent e) {
-//			}
-//
-//			@Override
-//			public void componentHidden(ComponentEvent e) {
-//			}
-//
-//		});
-		if(JSUtil.isJS) {// WC: place Tracker higher in html page.
+				if(JSUtil.isJS) {// WC: place Tracker higher in html page.
 			Point p=this.getLocation();
 			this.setLocation(p.x, 50);
 		}
@@ -336,7 +318,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void repaint(long time, int x, int y, int w, int h) {
 //		if (!isPaintable())
 //			return;
-		OSPLog.debug("TFrame repaint " + x + " " + y + " " + w + " " + h + " " + isPaintable());
+		//OSPLog.debug("TFrame repaint " + x + " " + y + " " + w + " " + h + " " + isPaintable());
 		// TFrame.addTab -> initialize -> TrackerPanel.addTrack ->
 		// fire(PROPERTY_TRACKERPANEL_TRACK)
 		// -> TViewChooser -> PlotTView -> TFrame.repaint();
@@ -530,17 +512,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (whenDone != null) {
 			whenDone.run();
 		}
-		
-		// DB 7/26/20 added this as a hack to fully close bottom views--not yet tested in JS
-		Timer timer = new Timer(500, new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				saveCurrentDividerLocations(trackerPanel);
-				restoreViews(trackerPanel);
-			}
-		});
-		timer.setRepeats(false);
-		timer.start();
+//		
+//		// DB 7/26/20 added this as a hack to fully close bottom views--not yet tested in JS
+//		Timer timer = new Timer(500, new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				saveCurrentDividerLocations(trackerPanel);
+//				restoreViews(trackerPanel);
+//			}
+//		});
+//		timer.setRepeats(false);
+//		timer.start();
 	}
 
 	/**
@@ -1108,13 +1090,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 *
 	 * @param trackerPanel the tracker panel
 	 * @param paneIndex    the index of the split pane
-	 * @param loc          the desired relative divider location
+	 * @param loc          the desired fractional divider location
 	 */
 	public void setDividerLocation(TrackerPanel trackerPanel, int paneIndex, double loc) {
 		JSplitPane[] panes = getSplitPanes(trackerPanel);
 		if (paneIndex < panes.length) {
-			panes[paneIndex].setDividerLocation(loc);
-			validate();
+			panes[paneIndex].setDividerLocation(loc);			
 		}
 	}
 
@@ -1129,7 +1110,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		JSplitPane[] panes = getSplitPanes(trackerPanel);
 		if (paneIndex < panes.length) {
 			panes[paneIndex].setDividerLocation(loc);
-			validate();
 		}
 	}
 
@@ -1295,6 +1275,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				comps[comps.length - 1] = Box.createHorizontalStrut(4);
 				helpLauncher.setNavbarRightEndComponents(comps);
 			}
+			break;
+		default:
+			if (e.getSource() instanceof JSplitPane) {
+				JSplitPane p = (JSplitPane) e.getSource();
+				if (p.getName() == "LEFT(2)") {
+				OSPLog.debug(p.getName() + " " 
+				+ e.getPropertyName() + " " 
+						+ e.getOldValue() + " "
+				+ e.getNewValue() + " max=" + p.getMaximumDividerLocation()
+				+ " " + (1.0 * p.getDividerLocation() / p.getMaximumDividerLocation()));
+				}
+			}
+			break;
 		}
 	}
 
@@ -1436,8 +1429,25 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		JSplitPane[] panes = new JSplitPane[4];
 		panes[SPLIT_MAIN] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); // right pane
 		panes[SPLIT_RIGHT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // plot/table split
-		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // bottom pane
-		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); // world/html
+		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT) {
+			public void setDividerLocation(int loc) {
+				OSPLog.debug("left-setloc " + loc + 
+						" " +  panes[SPLIT_LEFT].getResizeWeight());
+				super.setDividerLocation(loc);
+			}
+		}; // bottom pane
+		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) {
+			public Dimension getMinimumSize() {
+				return new Dimension(0,0);
+			}
+		}; // world/html
+		panes[SPLIT_MAIN].setName("MAIN(0)");
+		panes[SPLIT_RIGHT].setName("RIGHT(1)");
+		panes[SPLIT_LEFT].setName("LEFT(2)");
+		panes[SPLIT_BOTTOM].setName("BOTTOM(3)");
+		for (int i = 0; i < 4; i++)
+			panes[i].addPropertyChangeListener(this);
+		
 		setDefaultWeights(panes);
 		MouseAdapter splitPaneListener = new MouseAdapter() {
 			@Override
@@ -1445,10 +1455,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				saveCurrentDividerLocations(trackerPanel);
 				// set location of splitpanes with dividerFraction 0 or 1
 				for (int i = 0; i < panes.length; i++) {
-					if (trackerPanel.dividerFractions[i] == 0 || trackerPanel.dividerFractions[i] == 1) {
-						setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
-						break;
-					}
+					System.out.println(i + " dl=" + panes[i].getDividerLocation() + " " + 
+							panes[i].getMaximumDividerLocation() 
+							+ " rw=" +
+							panes[i].getResizeWeight() + " df=" + trackerPanel.dividerFractions[i]);
+//					if (trackerPanel.dividerFractions[i] == 0 || trackerPanel.dividerFractions[i] == 1) {
+//						setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
+//						break;
+//					}
 				}
 			}
 		};
@@ -2144,15 +2158,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		this.addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentResized(ComponentEvent e) {
-				TrackerPanel panel = getTrackerPanel(getSelectedTab());
-				if (panel != null) {
-					if (maximizedView > -1) {
-						maximizeView(panel, maximizedView);
-					} else {
-						saveCurrentDividerLocations(panel);
-						restoreViews(panel);
-					}
-				}
+				frameResized();
 			}
 		});
 		// add focus listener to notify ParticleDataTracks and other listeners
@@ -2378,6 +2384,18 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 			}
 		});
+	}
+
+	protected void frameResized() {
+		TrackerPanel panel = getTrackerPanel(getSelectedTab());
+		if (panel != null) {
+			if (maximizedView > -1) {
+				maximizeView(panel, maximizedView);
+			} else {
+				saveCurrentDividerLocations(panel);
+//				restoreViews(panel);
+			}
+		}
 	}
 
 	private void createDefaultMenuBar() {
@@ -2652,13 +2670,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			trackerPanel.dividerLocs = null;
 		} else {
-			setDividerLocation(trackerPanel, 0, 1.0); // becomes previous
-			setDividerLocation(trackerPanel, 0, defaultRightDivider);
-			setDividerLocation(trackerPanel, 1, 0.5);
-			setDividerLocation(trackerPanel, 2, defaultBottomDivider); // becomes previous
-			setDividerLocation(trackerPanel, 2, 1.0);
-			setDividerLocation(trackerPanel, 3, 1.0); // becomes previous
-			setDividerLocation(trackerPanel, 3, 0.5);
+			//setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0); // becomes previous
+			setDividerLocation(trackerPanel, SPLIT_MAIN, defaultMainDivider);
+			setDividerLocation(trackerPanel, SPLIT_RIGHT, defaultRightDivider);
+			//setDividerLocation(trackerPanel, SPLIT_LEFT, defaultBottomDivider); // becomes previous
+			setDividerLocation(trackerPanel, SPLIT_LEFT, 1.0);
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0); // becomes previous
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, defaultBottomDivider);
 //			JSplitPane pane = getSplitPane(trackerPanel, 0);
 //			int max = pane.getMaximumDividerLocation();
 //			int loc = (int) (.5 * defaultRightDivider * max);
