@@ -1277,16 +1277,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			break;
 		default:
-			if (e.getSource() instanceof JSplitPane) {
-				JSplitPane p = (JSplitPane) e.getSource();
-				if (p.getName() == "LEFT(2)") {
-				OSPLog.debug(p.getName() + " " 
-				+ e.getPropertyName() + " " 
-						+ e.getOldValue() + " "
-				+ e.getNewValue() + " max=" + p.getMaximumDividerLocation()
-				+ " " + (1.0 * p.getDividerLocation() / p.getMaximumDividerLocation()));
-				}
-			}
+//			if (e.getSource() instanceof JSplitPane) {
+//				JSplitPane p = (JSplitPane) e.getSource();
+//				if (p.getName() == "LEFT(2)") {
+//				OSPLog.debug(p.getName() + " " 
+//				+ e.getPropertyName() + " " 
+//						+ e.getOldValue() + " "
+//				+ e.getNewValue() + " max=" + p.getMaximumDividerLocation()
+//				+ " " + (1.0 * p.getDividerLocation() / p.getMaximumDividerLocation()));
+//				}
+//			}
 			break;
 		}
 	}
@@ -1429,13 +1429,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		JSplitPane[] panes = new JSplitPane[4];
 		panes[SPLIT_MAIN] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); // right pane
 		panes[SPLIT_RIGHT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // plot/table split
-		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT) {
-			public void setDividerLocation(int loc) {
-				OSPLog.debug("left-setloc " + loc + 
-						" " +  panes[SPLIT_LEFT].getResizeWeight());
-				super.setDividerLocation(loc);
-			}
-		}; // bottom pane
+		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT) 
+//		{
+//			public void setDividerLocation(int loc) {
+//				OSPLog.debug("left-setloc " + loc + 
+//						" " +  panes[SPLIT_LEFT].getResizeWeight());
+//				super.setDividerLocation(loc);
+//			}
+//		}
+		; // bottom pane
 		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) {
 			public Dimension getMinimumSize() {
 				return new Dimension(0,0);
@@ -1445,31 +1447,31 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		panes[SPLIT_RIGHT].setName("RIGHT(1)");
 		panes[SPLIT_LEFT].setName("LEFT(2)");
 		panes[SPLIT_BOTTOM].setName("BOTTOM(3)");
-		for (int i = 0; i < 4; i++)
-			panes[i].addPropertyChangeListener(this);
+//		for (int i = 0; i < 4; i++)
+//			panes[i].addPropertyChangeListener(this);
 		
 		setDefaultWeights(panes);
-		MouseAdapter splitPaneListener = new MouseAdapter() {
-			@Override
-			public void mouseReleased(MouseEvent e) {
-				saveCurrentDividerLocations(trackerPanel);
-				// set location of splitpanes with dividerFraction 0 or 1
-				for (int i = 0; i < panes.length; i++) {
-					System.out.println(i + " dl=" + panes[i].getDividerLocation() + " " + 
-							panes[i].getMaximumDividerLocation() 
-							+ " rw=" +
-							panes[i].getResizeWeight() + " df=" + trackerPanel.dividerFractions[i]);
-//					if (trackerPanel.dividerFractions[i] == 0 || trackerPanel.dividerFractions[i] == 1) {
-//						setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
-//						break;
-//					}
-				}
-			}
-		};
-		for (int i = 0; i < panes.length; i++) {
-			BasicSplitPaneUI ui = (BasicSplitPaneUI)panes[i].getUI();
-			ui.getDivider().addMouseListener(splitPaneListener);			
-		}
+//		MouseAdapter splitPaneListener = new MouseAdapter() {
+//			@Override
+//			public void mouseReleased(MouseEvent e) {
+//				saveCurrentDividerLocations(trackerPanel);
+//				// set location of splitpanes with dividerFraction 0 or 1
+//				for (int i = 0; i < panes.length; i++) {
+//					System.out.println(i + " dl=" + panes[i].getDividerLocation() + " " + 
+//							panes[i].getMaximumDividerLocation() 
+//							+ " rw=" +
+//							panes[i].getResizeWeight() + " df=" + trackerPanel.dividerFractions[i]);
+////					if (trackerPanel.dividerFractions[i] == 0 || trackerPanel.dividerFractions[i] == 1) {
+////						setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
+////						break;
+////					}
+//				}
+//			}
+//		};
+//		for (int i = 0; i < panes.length; i++) {
+//			BasicSplitPaneUI ui = (BasicSplitPaneUI)panes[i].getUI();
+//			ui.getDivider().addMouseListener(splitPaneListener);			
+//		}
 		return panes;
 	}
 
