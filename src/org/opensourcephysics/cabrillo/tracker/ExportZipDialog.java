@@ -206,9 +206,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 						} else if (!createTarget(path, target)) {
 							return;
 						}
-						if (!zipList.contains(target)) {
-							zipList.add(target);
-						}
+						zipList.add(target);
 					}
 				}
 			}
@@ -235,19 +233,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 						if (control.getObjectClassName().endsWith("ImageVideo")) { //$NON-NLS-1$
 							String[] paths = (String[]) control.getObject("paths"); //$NON-NLS-1$
 							for (String path : paths) {
-								File file = new File(path);
-								if (!zipList.contains(file)) {
-									zipList.add(file);
-								}
+								zipList.add(new File(path));
 							}
 						}
 						xmlFile.delete();
 					}
 				}
 				// add to ziplist unless it is a duplicate
-				if (!zipList.contains(trkFile)) {
-					zipList.add(trkFile);
-				}
+				zipList.add(trkFile);
 			}
 
 			// create and modify TrackerPanel XMLControl
@@ -276,12 +269,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			}
 
 			// write XMLControl to TRK file and add to zipList
-			trkPath = control.write(trkPath);
-			File trkFile = new File(trkPath);
 			// add to ziplist unless it is a duplicate
-			if (!zipList.contains(trkFile)) {
-				zipList.add(trkFile);
-			}
+			zipList.add(new File(control.write(trkPath)));
 			nextExport(zipList);
 		}
 
@@ -2094,9 +2083,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		if (!"".equals(htmlSubdirectory)) { //$NON-NLS-1$
 			htmlTarget = htmlTarget.getParentFile();
 		}
-
-		if (!zipList.contains(htmlTarget))
-			zipList.add(htmlTarget);
+		zipList.add(htmlTarget);
 		return true;
 	}
 
@@ -2491,8 +2478,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					path = XML.getPathRelativeTo(imageTarget.getAbsolutePath(), getHTMLDirectory());
 					html = substitutePathInText(html, next, path, pre, post);
 				}
-				if (!zipList.contains(imageDir))
-					zipList.add(imageDir);
+				zipList.add(imageDir);
 			}
 
 			// if local stylesheet is found, copy it
@@ -2519,9 +2505,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				if (!"".equals(htmlSubdirectory)) { //$NON-NLS-1$
 					htmlTarget = htmlTarget.getParentFile();
 				}
-
-				if (!zipList.contains(htmlTarget))
-					zipList.add(htmlTarget);
+				zipList.add(htmlTarget);
 				return relPath;
 			} catch (Exception exc) {
 				exc.printStackTrace();
@@ -2677,7 +2661,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 
 		// clear target video and return empty list
 		targetVideo = null;
-		return new ArrayList<File>();
+		return new ArrayList<File>() {
+			@Override
+			public boolean add(File f) {
+				if (!contains(f))
+					super.add(f);
+				return true;
+			}
+		};
 	}
 
 	private String getTRKTarget(String tabTitle, ArrayList<String> existingTabTitles) {
