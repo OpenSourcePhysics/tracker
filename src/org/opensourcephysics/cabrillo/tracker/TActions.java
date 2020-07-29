@@ -154,7 +154,7 @@ public class TActions {
 		};
 		actions.put("paste", pasteAction); //$NON-NLS-1$
 		// open
-		Icon icon = new ResizableIcon(Tracker.getClassResource("resources/images/open.gif")); //$NON-NLS-1$
+		Icon icon = Tracker.getResourceIcon("open.gif", true); //$NON-NLS-1$
 		final AbstractAction openAction = new AbstractAction(TrackerRes.getString("TActions.Action.Open"), icon) { //$NON-NLS-1$
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -208,7 +208,7 @@ public class TActions {
 		};
 		actions.put("openURL", openURLAction); //$NON-NLS-1$
 		// openBrowser
-		icon = new ResizableIcon(Tracker.getClassResource("resources/images/open_catalog.gif")); //$NON-NLS-1$
+		icon = Tracker.getResourceIcon("open_catalog.gif", true); //$NON-NLS-1$
 		final AbstractAction openBrowserAction = new AbstractAction(TrackerRes.getString("TActions.Action.OpenBrowser"), //$NON-NLS-1$
 				icon) {
 			@Override
@@ -270,7 +270,7 @@ public class TActions {
 		};
 		actions.put("importData", importDataAction); //$NON-NLS-1$
 		// save current tab
-		icon = new ResizableIcon(Tracker.getClassResource("resources/images/save.gif")); //$NON-NLS-1$
+		icon = Tracker.getResourceIcon("save.gif", true); //$NON-NLS-1$
 		AbstractAction saveAction = new AbstractAction(TrackerRes.getString("TActions.Action.Save"), icon) { //$NON-NLS-1$
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -289,7 +289,7 @@ public class TActions {
 		};
 		actions.put("saveAs", saveAsAction); //$NON-NLS-1$
 		// save zip resource
-		icon = new ResizableIcon(Tracker.getClassResource("resources/images/save_zip.gif")); //$NON-NLS-1$
+		icon = Tracker.getResourceIcon("save_zip.gif", true); //$NON-NLS-1$
 		AbstractAction saveZipAction = new AbstractAction(TrackerRes.getString("TActions.Action.SaveZip") + "...", //$NON-NLS-1$ //$NON-NLS-2$
 				icon) {
 			@Override
@@ -345,7 +345,7 @@ public class TActions {
 		};
 		actions.put("config", configAction); //$NON-NLS-1$
 		// axesVisible
-		icon = new ResizableIcon(Tracker.getClassResource("resources/images/axes.gif")); //$NON-NLS-1$
+		icon = Tracker.getResourceIcon("axes.gif", true); //$NON-NLS-1$
 		AbstractAction axesVisibleAction = new AbstractAction(TrackerRes.getString("TActions.Action.AxesVisible"), //$NON-NLS-1$
 				icon) {
 			@Override

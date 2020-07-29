@@ -46,7 +46,7 @@ import org.opensourcephysics.controls.XMLControl;
 @SuppressWarnings("serial")
 public class WorldTView extends TrackerPanel implements TView {
 
-	protected static final Icon WORLDVIEW_ICON = new ImageIcon(Tracker.getClassResource("resources/images/axes.gif")); //$NON-NLS-1$ ;
+	protected static final Icon WORLDVIEW_ICON = Tracker.getResourceIcon("axes.gif", false); //$NON-NLS-1$ ;
 
 	// instance fields
 	protected TrackerPanel trackerPanel;

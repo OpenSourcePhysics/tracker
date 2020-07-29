@@ -102,8 +102,7 @@ import javajs.async.AsyncFileChooser;
  */
 public class PageTView extends JPanel implements TView {
 
-  protected static final Icon PAGEVIEW_ICON =  new ImageIcon(
-      Tracker.getClassResource("resources/images/html.gif")); //$NON-NLS-1$;
+  protected static final Icon PAGEVIEW_ICON =  Tracker.getResourceIcon("html.gif", false); //$NON-NLS-1$;
 
 	// instance fields
 	protected TrackerPanel trackerPanel;

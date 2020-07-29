@@ -58,16 +58,13 @@ public class TMouseHandler implements InteractiveMouseHandler {
   Dimension dim = new Dimension();
   
   static {
-    ImageIcon icon = new ImageIcon(
-        Tracker.getClassResource("resources/images/creatept.gif")); //$NON-NLS-1$
+    ImageIcon icon = (ImageIcon) Tracker.getResourceIcon("creatept.gif", false); //$NON-NLS-1$
     markPointCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(8, 8), 
     		TrackerRes.getString("Tracker.Cursor.Crosshair.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$  	
-    icon = new ImageIcon(
-        Tracker.getClassResource("resources/images/autotrack.gif")); //$NON-NLS-1$
+    icon = (ImageIcon) Tracker.getResourceIcon("autotrack.gif", false); //$NON-NLS-1$
     autoTrackCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(9, 9), 
     		TrackerRes.getString("PointMass.Cursor.Autotrack.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$ 
-    icon = new ImageIcon(
-        Tracker.getClassResource("resources/images/autotrack_mark.gif")); //$NON-NLS-1$
+    icon = (ImageIcon) Tracker.getResourceIcon("autotrack_mark.gif", false); //$NON-NLS-1$
     autoTrackMarkCursor = GUIUtils.createCustomCursor(icon.getImage(), new Point(9, 9), 
     		TrackerRes.getString("Tracker.Cursor.Autotrack.Keyframe.Description"), Cursor.MOVE_CURSOR); //$NON-NLS-1$  	
   }

@@ -98,6 +98,7 @@ import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoIO;
@@ -184,12 +185,17 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	/** tracker version and copyright */
 	public static final String VERSION = "5.1.3"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown"; //$NON-NLS-1$
+	
+	public static Icon getResourceIcon(String img, boolean resizable) {
+		URL url = Tracker.getClassResource("resources/images/" + img);
+		return (resizable ? new ResizableIcon(url) : new ImageIcon(url));
+	}
+
+
 	/** the tracker icon */
-	public static final ImageIcon TRACKER_ICON = new ImageIcon(
-			getClassResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
+	public static final ImageIcon TRACKER_ICON = (ImageIcon) getResourceIcon("tracker_icon_32.png", false); //$NON-NLS-1$
 	/** a larger tracker icon */
-	public static final ImageIcon TRACKER_ICON_256 = new ImageIcon(
-			getClassResource("resources/images/tracker_icon_256.png")); //$NON-NLS-1$
+	public static final ImageIcon TRACKER_ICON_256 = (ImageIcon) getResourceIcon("tracker_icon_256.png", false); //$NON-NLS-1$
 
 	static final String THETA = TeXParser.parseTeX("$\\theta"); //$NON-NLS-1$
 	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$

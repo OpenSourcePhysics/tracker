@@ -104,8 +104,7 @@ public class CoordAxes extends TTrack {
 //		return null;
 	}
 
-	protected final static Icon gridOptionsIcon = new ResizableIcon(
-			new ImageIcon(Tracker.getClassResource("resources/images/restore.gif"))); //$NON-NLS-1$
+	protected final static Icon gridOptionsIcon = Tracker.getResourceIcon("restore.gif", true); //$NON-NLS-1$
 
 	protected final static String[] dataVariables;
 	protected final static String[] formatVariables; // used by NumberFormatSetter

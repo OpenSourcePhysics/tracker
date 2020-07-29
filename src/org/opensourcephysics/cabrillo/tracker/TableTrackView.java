@@ -129,8 +129,8 @@ public class TableTrackView extends TrackView {
 
 	// static fields
 	static final String DEFINED_AS = ": "; //$NON-NLS-1$
-	static final Icon skipsOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/skips_on.gif")); //$NON-NLS-1$
-	static final Icon skipsOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/skips_off.gif")); //$NON-NLS-1$
+	static final Icon skipsOffIcon = Tracker.getResourceIcon("skips_on.gif", true); //$NON-NLS-1$
+	static final Icon skipsOnIcon = Tracker.getResourceIcon("skips_off.gif", true); //$NON-NLS-1$
 
 	// data model
 

@@ -400,8 +400,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * Creates the visible components of this dialog.
 	 */
 	private void createGUI() {
-		String path = "/org/opensourcephysics/cabrillo/tracker/resources/images/open.gif"; //$NON-NLS-1$
-		openIcon = new ResizableIcon(new ImageIcon(this.getClass().getResource(path)));
+		openIcon = Tracker.getResourceIcon("open.gif", true);
 		Color color = UIManager.getColor("Label.disabledForeground"); //$NON-NLS-1$
 		if (color != null)
 			UIManager.put("ComboBox.disabledForeground", color); //$NON-NLS-1$
@@ -2561,9 +2560,10 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			chooser.resetChoosableFileFilters();
 			return null;
 		}
-
+		// Note that 
 		// check that target is not currently open in Tracker--can't overwrite open TRZ
-		if (chooserFile.exists()) {
+		if (!OSPRuntime.isJS 
+				&& chooserFile.exists()) {
 			for (int i = 0; i < frame.getTabCount(); i++) {
 				String path = frame.getTrackerPanel(i).openedFromPath;
 				if (path != null && path.equals(XML.forwardSlash(chooserFile.getPath()))) {

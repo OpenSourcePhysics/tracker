@@ -2421,7 +2421,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (!OSPRuntime.isApplet) {
 			fileMenu.addSeparator();
 			// open file item
-			Icon icon = new ImageIcon(Tracker.getClassResource("resources/images/open.gif")); //$NON-NLS-1$
+			Icon icon = Tracker.getResourceIcon("open.gif",false); //$NON-NLS-1$
 			JMenuItem openItem = new JMenuItem(TrackerRes.getString("TActions.Action.Open"), icon); //$NON-NLS-1$
 			openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
 			openItem.addActionListener(new ActionListener() {
@@ -2455,7 +2455,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 			fileMenu.addSeparator();
 			// openBrowser item
-			icon = new ImageIcon(Tracker.getClassResource("resources/images/open_catalog.gif")); //$NON-NLS-1$
+			icon = Tracker.getResourceIcon("open_catalog.gif", false); //$NON-NLS-1$
 			JMenuItem openBrowserItem = new JMenuItem(TrackerRes.getString("TActions.Action.OpenBrowser"), icon); //$NON-NLS-1$
 			openBrowserItem.addActionListener(new ActionListener() {
 				@Override

@@ -645,7 +645,7 @@ public class PrefsDialog extends JDialog {
 		Border buttonBorder = BorderFactory.createEtchedBorder();
 		Border space = BorderFactory.createEmptyBorder(2, 2, 2, 2);
 		buttonBorder = BorderFactory.createCompoundBorder(buttonBorder, space);
-		Icon openFileIcon = new ImageIcon(Tracker.getClassResource("resources/images/open.gif")); //$NON-NLS-1$
+		Icon openFileIcon = Tracker.getResourceIcon("open.gif", false); //$NON-NLS-1$
 
 		// runtime pane--only for Java
 		if (!OSPRuntime.isJS && !Tracker.testOn) {

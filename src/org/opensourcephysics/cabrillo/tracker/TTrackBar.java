@@ -86,7 +86,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	private final static JTextField sizingField = new JTextField("1234567");
 
 	static {
-		smallSelectIcon = new ResizableIcon(new ImageIcon(Tracker.getClassResource("resources/images/small_select.gif"))); //$NON-NLS-1$
+		smallSelectIcon = Tracker.getResourceIcon("small_select.gif", true); //$NON-NLS-1$
 
 		/** @j2sIgnore */
 		{
