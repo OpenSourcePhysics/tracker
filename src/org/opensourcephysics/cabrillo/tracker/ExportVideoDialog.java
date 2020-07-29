@@ -141,7 +141,7 @@ public class ExportVideoDialog extends JDialog {
 		return formatDropdown.getSelectedItem();
 	}
 
-	protected String exportFullSizeVideo(String filePath) {
+	protected String exportFullSizeVideo(String filePath, String trkPath) {
 		if (trackerPanel.getVideo() == null) {
 			return null;
 		}
@@ -154,9 +154,9 @@ public class ExportVideoDialog extends JDialog {
 		}
 		sizeDropdown.setSelectedIndex(0);
 		// render
-		VideoType format = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
+		VideoType videoType = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 		Dimension size = sizes.get(sizeDropdown.getSelectedItem());
-		render(format, size, false, filePath);
+		render(videoType, size, false, filePath, trkPath);
 		return savedFilePath;
 	}
 
@@ -284,7 +284,7 @@ public class ExportVideoDialog extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				VideoType format = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 				Dimension size = sizes.get(sizeDropdown.getSelectedItem());
-				render(format, size, true, null);
+				render(format, size, true, null, null);
 			}
 		});
 		closeButton = new JButton();
@@ -640,12 +640,13 @@ public class ExportVideoDialog extends JDialog {
 	 * specified in the constructor. The completed video is saved to a file chosen
 	 * by the user.
 	 * 
-	 * @param format         the format
+	 * @param videoType         the format
 	 * @param size           the size
 	 * @param showOpenDialog true to display a dialog offering to open the newly
 	 *                       saved video
+	 * @param trkPath 
 	 */
-	private void render(VideoType format, final Dimension size, final boolean showOpenDialog, String filePath) {
+	private void render(VideoType videoType, final Dimension size, final boolean showOpenDialog, String filePath, String trkPath) {
 		setVisible(false);
 		savedFilePath = null;
 		// prepare selected view to produce desired images
@@ -689,7 +690,7 @@ public class ExportVideoDialog extends JDialog {
 		final ClipControl playControl = player.getClipControl();
 		final VideoClip clip = playControl.getVideoClip();
 		final int taskLength = clip.getStepCount() + 1; // for monitor
-		final VideoRecorder recorder = format.getRecorder();
+		final VideoRecorder recorder = videoType.getRecorder();
 		double duration = player.getMeanStepDuration();
 		if (contentDropdown.getSelectedIndex() == 3)
 			duration = duration / 2;

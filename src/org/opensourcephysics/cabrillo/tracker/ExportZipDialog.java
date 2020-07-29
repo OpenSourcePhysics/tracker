@@ -141,6 +141,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		private ExportVideoDialog exporter;
 		private String trkPath;
 		private String name;
+		private String vidDir;
 
 		protected Export(ArrayList<File> zipList, String name, TrackerPanel panel, String originalPath, String target,
 				ExportVideoDialog exporter) {
@@ -158,6 +159,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			OSPRuntime.showStatus("Exporting  " + (name == null ? "tab" : name));
 			// set the waiting flag
 			// render the video (also sets VideoIO preferred extension to this one)
+			vidDir = getTempDirectory() + videoSubdirectory;
 			if (exporter != null) {
 				String extension = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem()).getDefaultExtension();
 				target = getVideoTarget(XML.getName(trkPath), extension);
@@ -166,7 +168,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				listener = new PropertyChangeListener() {
 					@Override
 					public void propertyChange(PropertyChangeEvent e) {
-						trkPath = target = null; // set path to null if video_cancelled
+						target = null; // set path to null if video_cancelled
 						exporter.removePropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOSAVED,
 								listener); // $NON-NLS-1$
 						exporter.removePropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOCANCELED,
@@ -183,14 +185,13 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				};
 				exporter.addPropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOSAVED, listener); // $NON-NLS-1$
 				exporter.addPropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOCANCELED, listener); // $NON-NLS-1$
-				exporter.exportFullSizeVideo(target);
+				exporter.exportFullSizeVideo(target, trkPath);
 				return;
 			}
 			// if image video, then copy/extract additional image files
 			Video vid = panel.getVideo();
 			if (vid instanceof ImageVideo) {
 				ImageVideo imageVid = (ImageVideo) vid;
-				String vidDir = getTempDirectory() + videoSubdirectory;
 				String[] paths = imageVid.getValidPaths();
 				// first path is originalPath relative to base
 				int n = originalPath.indexOf(XML.getName(paths[0]));
@@ -222,7 +223,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				if (!"".equals(videoSubdirectory)) { //$NON-NLS-1$
 					// delete XML file, if any, from video directory
 					File xmlFile = null;
-					for (File next : trkFile.getParentFile().listFiles()) {
+					for (File next : new File(target).getParentFile().listFiles()) {
 						if (next.getName().endsWith(".xml") && next.getName().startsWith(targetName)) { //$NON-NLS-1$
 							xmlFile = next;
 							break;
@@ -232,8 +233,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 						XMLControl control = new XMLControlElement(xmlFile);
 						if (control.getObjectClassName().endsWith("ImageVideo")) { //$NON-NLS-1$
 							String[] paths = (String[]) control.getObject("paths"); //$NON-NLS-1$
+							String base = control.getBasepath();
+							if (base == null)
+								base = vidDir;
 							for (String path : paths) {
-								zipList.add(new File(path));
+								zipList.add(new File(vidDir + File.separator + path));
 							}
 						}
 						xmlFile.delete();
@@ -247,7 +251,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			XMLControl control = new XMLControlElement(panel);
 			// modify video path, clip settings of XMLControl
 			if (exporter != null) {
-				modifyControlForClip(panel, control, target, trkPath);
+				modifyControlForClip(control);
 			} else if (panel.getVideo() != null) {
 				XMLControl videoControl = control.getChildControl("videoclip").getChildControl("video"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (videoControl != null) {
@@ -273,6 +277,276 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			zipList.add(new File(control.write(trkPath)));
 			nextExport(zipList);
 		}
+		
+		/**
+		 * Modifies a TrackerPanel XMLControl to work with a trimmed video clip.
+		 * 
+		 * @param control  the XMLControl to be modified
+		 */
+		private void modifyControlForClip(XMLControl control) {
+			VideoPlayer player = panel.getPlayer();
+
+			// videoclip--convert frame count, start frame, step size and frame shift but
+			// not start time or step count
+			XMLControl clipXMLControl = control.getChildControl("videoclip"); //$NON-NLS-1$
+			VideoClip realClip = player.getVideoClip();
+			clipXMLControl.setValue("video_framecount", clipXMLControl.getInt("stepcount")); //$NON-NLS-1$ //$NON-NLS-2$
+			clipXMLControl.setValue("startframe", 0); //$NON-NLS-1$
+			clipXMLControl.setValue("stepsize", 1); //$NON-NLS-1$
+//	    clipXMLControl.setValue("frameshift", 0); //$NON-NLS-1$
+			if (target != null) {
+				// modify videoControl with correct video type, and add delta_t for image videos
+				VideoType videoType = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
+				String trkDir = getTempDirectory();
+				String relPath = XML.getPathRelativeTo(target, trkDir);
+				
+				Video newVideo = videoType.getVideo(XML.getName(target), vidDir);
+				clipXMLControl.setValue("video", newVideo); //$NON-NLS-1$
+
+				XMLControl videoControl = clipXMLControl.getChildControl("video"); //$NON-NLS-1$
+				if (videoControl != null) {
+					videoControl.setValue("path", relPath); //$NON-NLS-1$
+					videoControl.setValue("filters", null); //$NON-NLS-1$
+					if (videoType instanceof ImageVideoType) {
+						videoControl.setValue("paths", null); //$NON-NLS-1$ // eliminates unneeded full list of image files
+						videoControl.setValue("delta_t", player.getMeanStepDuration()); //$NON-NLS-1$
+
+					}
+				}
+			}
+
+			// clipcontrol
+			XMLControl clipControlControl = control.getChildControl("clipcontrol"); //$NON-NLS-1$
+			clipControlControl.setValue("delta_t", player.getMeanStepDuration()); //$NON-NLS-1$
+			clipControlControl.setValue("frame", 0); //$NON-NLS-1$
+
+			// imageCoordSystem
+			XMLControl coordsControl = control.getChildControl("coords"); //$NON-NLS-1$
+			Object array = coordsControl.getObject("framedata"); //$NON-NLS-1$
+			ImageCoordSystem.FrameData[] coordKeyFrames = (ImageCoordSystem.FrameData[]) array;
+			Map<Integer, Integer> newFrameNumbers = new TreeMap<Integer, Integer>();
+
+			int newFrameNum = 0;
+			for (int i = 0; i < coordKeyFrames.length; i++) {
+				if (coordKeyFrames[i] == null)
+					continue;
+				if (i >= realClip.getEndFrameNumber())
+					break;
+				newFrameNum = Math.max(realClip.frameToStep(i), 0);
+				if (i > realClip.getStartFrameNumber() && !realClip.includesFrame(i))
+					newFrameNum++;
+				newFrameNumbers.put(newFrameNum, i);
+			}
+			ImageCoordSystem.FrameData[] newKeyFrames = new ImageCoordSystem.FrameData[newFrameNum + 1];
+			for (Integer k : newFrameNumbers.keySet()) {
+				newKeyFrames[k] = coordKeyFrames[newFrameNumbers.get(k)];
+			}
+			coordsControl.setValue("framedata", newKeyFrames); //$NON-NLS-1$
+
+			// tracks
+			// first remove bad models, if any
+			if (!badModels.isEmpty()) {
+				ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
+				for (Iterator<?> it = tracks.iterator(); it.hasNext();) {
+					TTrack track = (TTrack) it.next();
+					if (badModels.contains(track)) {
+						it.remove();
+					}
+				}
+				control.setValue("tracks", tracks); //$NON-NLS-1$
+			}
+			// then modify frame references in track XMLcontrols
+			for (XMLProperty next : control.getPropsRaw()) {
+				XMLProperty prop = (XMLProperty) next;
+				if (prop.getPropertyName().equals("tracks")) { //$NON-NLS-1$
+					for (Object obj : prop.getPropertyContent()) {
+						// every item is an XMLProperty
+						XMLProperty item = (XMLProperty) obj;
+						// the content of each item is the track control
+						XMLControl trackControl = (XMLControl) item.getPropertyContent().get(0);
+						Class<?> trackType = trackControl.getObjectClass();
+						if (PointMass.class.equals(trackType)) {
+							array = trackControl.getObject("framedata"); //$NON-NLS-1$
+							PointMass.FrameData[] pointMassKeyFrames = (PointMass.FrameData[]) array;
+							newFrameNumbers.clear();
+							newFrameNum = 0;
+							for (int i = 0; i < pointMassKeyFrames.length; i++) {
+								if (pointMassKeyFrames[i] == null || !realClip.includesFrame(i))
+									continue;
+								newFrameNum = realClip.frameToStep(i); // new frame number equals step number
+								newFrameNumbers.put(newFrameNum, i);
+							}
+							PointMass.FrameData[] newKeys = new PointMass.FrameData[newFrameNum + 1];
+							for (Integer k : newFrameNumbers.keySet()) {
+								newKeys[k] = pointMassKeyFrames[newFrameNumbers.get(k)];
+							}
+							trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
+						}
+
+						else if (Vector.class.isAssignableFrom(trackType)) {
+							array = trackControl.getObject("framedata"); //$NON-NLS-1$
+							Vector.FrameData[] vectorKeyFrames = (Vector.FrameData[]) array;
+							newFrameNumbers.clear();
+							newFrameNum = 0;
+							for (int i = 0; i < vectorKeyFrames.length; i++) {
+								if (vectorKeyFrames[i] == null || !realClip.includesFrame(i))
+									continue;
+								newFrameNum = realClip.frameToStep(i);
+								newFrameNumbers.put(newFrameNum, i);
+							}
+							Vector.FrameData[] newKeys = new Vector.FrameData[newFrameNum + 1];
+							for (Integer k : newFrameNumbers.keySet()) {
+								newKeys[k] = vectorKeyFrames[newFrameNumbers.get(k)];
+								newKeys[k].independent = newKeys[k].xc != 0 || newKeys[k].yc != 0;
+							}
+							trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
+						}
+
+						else if (ParticleModel.class.isAssignableFrom(trackType)) {
+							int frameNum = trackControl.getInt("start_frame"); //$NON-NLS-1$
+							if (frameNum > 0) {
+								int newStartFrameNum = realClip.frameToStep(frameNum);
+								// start frame should round up
+								if (frameNum > realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
+									newStartFrameNum++;
+								trackControl.setValue("start_frame", newStartFrameNum); //$NON-NLS-1$
+							}
+							frameNum = trackControl.getInt("end_frame"); //$NON-NLS-1$
+							if (frameNum > 0) {
+								int newEndFrameNum = realClip.frameToStep(frameNum);
+								// end frame should round down
+								trackControl.setValue("end_frame", newEndFrameNum); //$NON-NLS-1$
+							}
+						}
+
+						else if (Calibration.class.equals(trackType) || OffsetOrigin.class.equals(trackType)) {
+							array = trackControl.getObject("world_coordinates"); //$NON-NLS-1$
+							double[][] calKeyFrames = (double[][]) array;
+							newFrameNumbers.clear();
+							newFrameNum = 0;
+							for (int i = 0; i < calKeyFrames.length; i++) {
+								if (calKeyFrames[i] == null)
+									continue;
+								newFrameNum = realClip.frameToStep(i);
+								newFrameNumbers.put(newFrameNum, i);
+							}
+							double[][] newKeys = new double[newFrameNum + 1][];
+							for (Integer k : newFrameNumbers.keySet()) {
+								newKeys[k] = calKeyFrames[newFrameNumbers.get(k)];
+							}
+							trackControl.setValue("world_coordinates", newKeys); //$NON-NLS-1$
+						}
+
+						else if (CircleFitter.class.equals(trackType)) {
+							int frameNum = trackControl.getInt("absolute_start"); //$NON-NLS-1$
+							if (frameNum > 0) {
+								int newStartFrameNum = realClip.frameToStep(frameNum);
+								// start frame should round up
+								if (frameNum > realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
+									newStartFrameNum++;
+								trackControl.setValue("absolute_start", newStartFrameNum); //$NON-NLS-1$
+							}
+							frameNum = trackControl.getInt("absolute_end"); //$NON-NLS-1$
+							if (frameNum > 0) {
+								int newEndFrameNum = realClip.frameToStep(frameNum);
+								// end frame should round down
+								trackControl.setValue("absolute_end", newEndFrameNum); //$NON-NLS-1$
+							}
+							// change and trim keyframe numbers
+							array = trackControl.getObject("framedata"); //$NON-NLS-1$
+							double[][] keyFrameData = (double[][]) array;
+							ArrayList<double[]> newKeyFrameData = new ArrayList<double[]>();
+							newFrameNumbers.clear();
+							newFrameNum = 0;
+							for (int i = 0; i < keyFrameData.length; i++) {
+								if (keyFrameData[i] == null)
+									continue;
+								double[] stepData = keyFrameData[i];
+								int keyFrameNum = (int) stepData[0];
+								newFrameNum = realClip.frameToStep(keyFrameNum);
+								if (newFrameNum > realClip.getLastFrameNumber()
+										|| newFrameNum < realClip.getFirstFrameNumber())
+									continue;
+								// change frame number in step data and add to the new key frame data
+								stepData[0] = newFrameNum;
+								newKeyFrameData.add(stepData);
+//	    	        	newFrameNumbers.put(newFrameNum, i);  // maps to stepData index       	
+							}
+//	    	        double[][] newKeys = new double[newFrameNum+1][];
+//	    	        for (Integer k: newFrameNumbers.keySet()) {
+//	    	        	double[] stepData = keyFrameData[newFrameNumbers.get(k)];
+//	    	        	newKeys[k] = keyFrameData[newFrameNumbers.get(k)];
+//	    	        }
+							double[][] newKeyData = newKeyFrameData.toArray(new double[newKeyFrameData.size()][]);
+							trackControl.setValue("framedata", newKeyData); //$NON-NLS-1$
+						}
+
+						else if (TapeMeasure.class.equals(trackType)) {
+							array = trackControl.getObject("framedata"); //$NON-NLS-1$
+							TapeMeasure.FrameData[] tapeKeyFrames = (TapeMeasure.FrameData[]) array;
+							if (tapeKeyFrames.length > 0) {
+								newFrameNumbers.clear();
+								newFrameNum = 0;
+								int newKeysLength = 0;
+								int nonNullIndex = 0;
+								for (int i = 0; i <= realClip.getEndFrameNumber(); i++) {
+									if (i < tapeKeyFrames.length && tapeKeyFrames[i] != null) {
+										nonNullIndex = i;
+									}
+									if (!realClip.includesFrame(i))
+										continue;
+									newFrameNum = realClip.frameToStep(i); // new frame number equals step number
+									if (nonNullIndex > -1) {
+										newFrameNumbers.put(newFrameNum, nonNullIndex);
+										newKeysLength = newFrameNum + 1;
+										nonNullIndex = -1;
+									} else if (i < tapeKeyFrames.length) {
+										newFrameNumbers.put(newFrameNum, i);
+										newKeysLength = newFrameNum + 1;
+									}
+								}
+								TapeMeasure.FrameData[] newKeys = new TapeMeasure.FrameData[newKeysLength];
+								for (Integer k : newFrameNumbers.keySet()) {
+									newKeys[k] = tapeKeyFrames[newFrameNumbers.get(k)];
+								}
+								trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
+							}
+						}
+
+						else if (Protractor.class.equals(trackType)) {
+							array = trackControl.getObject("framedata"); //$NON-NLS-1$
+							double[][] protractorData = (double[][]) array;
+							newFrameNumbers.clear();
+							newFrameNum = 0;
+							int nonNullIndex = 0;
+							for (int i = 0; i < protractorData.length; i++) {
+								if (i > realClip.getEndFrameNumber())
+									break;
+								if (protractorData[i] != null) {
+									nonNullIndex = i;
+								}
+								if (!realClip.includesFrame(i))
+									continue;
+								newFrameNum = realClip.frameToStep(i); // new frame number equals step number
+								if (nonNullIndex > -1) {
+									newFrameNumbers.put(newFrameNum, nonNullIndex);
+									nonNullIndex = -1;
+								} else {
+									newFrameNumbers.put(newFrameNum, i);
+								}
+							}
+							double[][] newKeys = new double[newFrameNum + 1][];
+							for (Integer k : newFrameNumbers.keySet()) {
+								newKeys[k] = protractorData[newFrameNumbers.get(k)];
+							}
+							trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
+						}
+					}
+				}
+
+			}
+		}
+
 
 	}
 
@@ -2087,272 +2361,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		return true;
 	}
 
-	/**
-	 * Modifies a TrackerPanel XMLControl to work with a trimmed video clip.
-	 * 
-	 * @param toModify  the XMLControl to be modified
-	 * @param videoPath the exported video path (may be null)
-	 */
-	private void modifyControlForClip(TrackerPanel tPanel, XMLControl toModify, String videoPath, String trkPath) {
-		VideoPlayer player = tPanel.getPlayer();
-
-		// videoclip--convert frame count, start frame, step size and frame shift but
-		// not start time or step count
-		XMLControl clipXMLControl = toModify.getChildControl("videoclip"); //$NON-NLS-1$
-		VideoClip realClip = player.getVideoClip();
-		clipXMLControl.setValue("video_framecount", clipXMLControl.getInt("stepcount")); //$NON-NLS-1$ //$NON-NLS-2$
-		clipXMLControl.setValue("startframe", 0); //$NON-NLS-1$
-		clipXMLControl.setValue("stepsize", 1); //$NON-NLS-1$
-//    clipXMLControl.setValue("frameshift", 0); //$NON-NLS-1$
-		if (videoPath != null) {
-			// modify videoControl with correct video type, and add delta_t for image videos
-			VideoType format = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
-			Video newVideo = format.getVideo(videoPath);
-			clipXMLControl.setValue("video", newVideo); //$NON-NLS-1$
-
-			XMLControl videoControl = clipXMLControl.getChildControl("video"); //$NON-NLS-1$
-			if (videoControl != null) {
-				videoControl.setValue("path", XML.getPathRelativeTo(videoPath, XML.getDirectoryPath(trkPath))); //$NON-NLS-1$
-				videoControl.setValue("filters", null); //$NON-NLS-1$
-				if (format instanceof ImageVideoType) {
-					videoControl.setValue("paths", null); //$NON-NLS-1$ // eliminates unneeded full list of image files
-					videoControl.setValue("delta_t", player.getMeanStepDuration()); //$NON-NLS-1$
-
-				}
-			}
-		}
-
-		// clipcontrol
-		XMLControl clipControlControl = toModify.getChildControl("clipcontrol"); //$NON-NLS-1$
-		clipControlControl.setValue("delta_t", player.getMeanStepDuration()); //$NON-NLS-1$
-		clipControlControl.setValue("frame", 0); //$NON-NLS-1$
-
-		// imageCoordSystem
-		XMLControl coordsControl = toModify.getChildControl("coords"); //$NON-NLS-1$
-		Object array = coordsControl.getObject("framedata"); //$NON-NLS-1$
-		ImageCoordSystem.FrameData[] coordKeyFrames = (ImageCoordSystem.FrameData[]) array;
-		Map<Integer, Integer> newFrameNumbers = new TreeMap<Integer, Integer>();
-
-		int newFrameNum = 0;
-		for (int i = 0; i < coordKeyFrames.length; i++) {
-			if (coordKeyFrames[i] == null)
-				continue;
-			if (i >= realClip.getEndFrameNumber())
-				break;
-			newFrameNum = Math.max(realClip.frameToStep(i), 0);
-			if (i > realClip.getStartFrameNumber() && !realClip.includesFrame(i))
-				newFrameNum++;
-			newFrameNumbers.put(newFrameNum, i);
-		}
-		ImageCoordSystem.FrameData[] newKeyFrames = new ImageCoordSystem.FrameData[newFrameNum + 1];
-		for (Integer k : newFrameNumbers.keySet()) {
-			newKeyFrames[k] = coordKeyFrames[newFrameNumbers.get(k)];
-		}
-		coordsControl.setValue("framedata", newKeyFrames); //$NON-NLS-1$
-
-		// tracks
-		// first remove bad models, if any
-		if (!badModels.isEmpty()) {
-			ArrayList<?> tracks = ArrayList.class.cast(toModify.getObject("tracks")); //$NON-NLS-1$
-			for (Iterator<?> it = tracks.iterator(); it.hasNext();) {
-				TTrack track = (TTrack) it.next();
-				if (badModels.contains(track)) {
-					it.remove();
-				}
-			}
-			toModify.setValue("tracks", tracks); //$NON-NLS-1$
-		}
-		// then modify frame references in track XMLcontrols
-		for (XMLProperty next : toModify.getPropsRaw()) {
-			XMLProperty prop = (XMLProperty) next;
-			if (prop.getPropertyName().equals("tracks")) { //$NON-NLS-1$
-				for (Object obj : prop.getPropertyContent()) {
-					// every item is an XMLProperty
-					XMLProperty item = (XMLProperty) obj;
-					// the content of each item is the track control
-					XMLControl trackControl = (XMLControl) item.getPropertyContent().get(0);
-					Class<?> trackType = trackControl.getObjectClass();
-					if (PointMass.class.equals(trackType)) {
-						array = trackControl.getObject("framedata"); //$NON-NLS-1$
-						PointMass.FrameData[] pointMassKeyFrames = (PointMass.FrameData[]) array;
-						newFrameNumbers.clear();
-						newFrameNum = 0;
-						for (int i = 0; i < pointMassKeyFrames.length; i++) {
-							if (pointMassKeyFrames[i] == null || !realClip.includesFrame(i))
-								continue;
-							newFrameNum = realClip.frameToStep(i); // new frame number equals step number
-							newFrameNumbers.put(newFrameNum, i);
-						}
-						PointMass.FrameData[] newKeys = new PointMass.FrameData[newFrameNum + 1];
-						for (Integer k : newFrameNumbers.keySet()) {
-							newKeys[k] = pointMassKeyFrames[newFrameNumbers.get(k)];
-						}
-						trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
-					}
-
-					else if (Vector.class.isAssignableFrom(trackType)) {
-						array = trackControl.getObject("framedata"); //$NON-NLS-1$
-						Vector.FrameData[] vectorKeyFrames = (Vector.FrameData[]) array;
-						newFrameNumbers.clear();
-						newFrameNum = 0;
-						for (int i = 0; i < vectorKeyFrames.length; i++) {
-							if (vectorKeyFrames[i] == null || !realClip.includesFrame(i))
-								continue;
-							newFrameNum = realClip.frameToStep(i);
-							newFrameNumbers.put(newFrameNum, i);
-						}
-						Vector.FrameData[] newKeys = new Vector.FrameData[newFrameNum + 1];
-						for (Integer k : newFrameNumbers.keySet()) {
-							newKeys[k] = vectorKeyFrames[newFrameNumbers.get(k)];
-							newKeys[k].independent = newKeys[k].xc != 0 || newKeys[k].yc != 0;
-						}
-						trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
-					}
-
-					else if (ParticleModel.class.isAssignableFrom(trackType)) {
-						int frameNum = trackControl.getInt("start_frame"); //$NON-NLS-1$
-						if (frameNum > 0) {
-							int newStartFrameNum = realClip.frameToStep(frameNum);
-							// start frame should round up
-							if (frameNum > realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
-								newStartFrameNum++;
-							trackControl.setValue("start_frame", newStartFrameNum); //$NON-NLS-1$
-						}
-						frameNum = trackControl.getInt("end_frame"); //$NON-NLS-1$
-						if (frameNum > 0) {
-							int newEndFrameNum = realClip.frameToStep(frameNum);
-							// end frame should round down
-							trackControl.setValue("end_frame", newEndFrameNum); //$NON-NLS-1$
-						}
-					}
-
-					else if (Calibration.class.equals(trackType) || OffsetOrigin.class.equals(trackType)) {
-						array = trackControl.getObject("world_coordinates"); //$NON-NLS-1$
-						double[][] calKeyFrames = (double[][]) array;
-						newFrameNumbers.clear();
-						newFrameNum = 0;
-						for (int i = 0; i < calKeyFrames.length; i++) {
-							if (calKeyFrames[i] == null)
-								continue;
-							newFrameNum = realClip.frameToStep(i);
-							newFrameNumbers.put(newFrameNum, i);
-						}
-						double[][] newKeys = new double[newFrameNum + 1][];
-						for (Integer k : newFrameNumbers.keySet()) {
-							newKeys[k] = calKeyFrames[newFrameNumbers.get(k)];
-						}
-						trackControl.setValue("world_coordinates", newKeys); //$NON-NLS-1$
-					}
-
-					else if (CircleFitter.class.equals(trackType)) {
-						int frameNum = trackControl.getInt("absolute_start"); //$NON-NLS-1$
-						if (frameNum > 0) {
-							int newStartFrameNum = realClip.frameToStep(frameNum);
-							// start frame should round up
-							if (frameNum > realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
-								newStartFrameNum++;
-							trackControl.setValue("absolute_start", newStartFrameNum); //$NON-NLS-1$
-						}
-						frameNum = trackControl.getInt("absolute_end"); //$NON-NLS-1$
-						if (frameNum > 0) {
-							int newEndFrameNum = realClip.frameToStep(frameNum);
-							// end frame should round down
-							trackControl.setValue("absolute_end", newEndFrameNum); //$NON-NLS-1$
-						}
-						// change and trim keyframe numbers
-						array = trackControl.getObject("framedata"); //$NON-NLS-1$
-						double[][] keyFrameData = (double[][]) array;
-						ArrayList<double[]> newKeyFrameData = new ArrayList<double[]>();
-						newFrameNumbers.clear();
-						newFrameNum = 0;
-						for (int i = 0; i < keyFrameData.length; i++) {
-							if (keyFrameData[i] == null)
-								continue;
-							double[] stepData = keyFrameData[i];
-							int keyFrameNum = (int) stepData[0];
-							newFrameNum = realClip.frameToStep(keyFrameNum);
-							if (newFrameNum > realClip.getLastFrameNumber()
-									|| newFrameNum < realClip.getFirstFrameNumber())
-								continue;
-							// change frame number in step data and add to the new key frame data
-							stepData[0] = newFrameNum;
-							newKeyFrameData.add(stepData);
-//    	        	newFrameNumbers.put(newFrameNum, i);  // maps to stepData index       	
-						}
-//    	        double[][] newKeys = new double[newFrameNum+1][];
-//    	        for (Integer k: newFrameNumbers.keySet()) {
-//    	        	double[] stepData = keyFrameData[newFrameNumbers.get(k)];
-//    	        	newKeys[k] = keyFrameData[newFrameNumbers.get(k)];
-//    	        }
-						double[][] newKeyData = newKeyFrameData.toArray(new double[newKeyFrameData.size()][]);
-						trackControl.setValue("framedata", newKeyData); //$NON-NLS-1$
-					}
-
-					else if (TapeMeasure.class.equals(trackType)) {
-						array = trackControl.getObject("framedata"); //$NON-NLS-1$
-						TapeMeasure.FrameData[] tapeKeyFrames = (TapeMeasure.FrameData[]) array;
-						if (tapeKeyFrames.length > 0) {
-							newFrameNumbers.clear();
-							newFrameNum = 0;
-							int newKeysLength = 0;
-							int nonNullIndex = 0;
-							for (int i = 0; i <= realClip.getEndFrameNumber(); i++) {
-								if (i < tapeKeyFrames.length && tapeKeyFrames[i] != null) {
-									nonNullIndex = i;
-								}
-								if (!realClip.includesFrame(i))
-									continue;
-								newFrameNum = realClip.frameToStep(i); // new frame number equals step number
-								if (nonNullIndex > -1) {
-									newFrameNumbers.put(newFrameNum, nonNullIndex);
-									newKeysLength = newFrameNum + 1;
-									nonNullIndex = -1;
-								} else if (i < tapeKeyFrames.length) {
-									newFrameNumbers.put(newFrameNum, i);
-									newKeysLength = newFrameNum + 1;
-								}
-							}
-							TapeMeasure.FrameData[] newKeys = new TapeMeasure.FrameData[newKeysLength];
-							for (Integer k : newFrameNumbers.keySet()) {
-								newKeys[k] = tapeKeyFrames[newFrameNumbers.get(k)];
-							}
-							trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
-						}
-					}
-
-					else if (Protractor.class.equals(trackType)) {
-						array = trackControl.getObject("framedata"); //$NON-NLS-1$
-						double[][] protractorData = (double[][]) array;
-						newFrameNumbers.clear();
-						newFrameNum = 0;
-						int nonNullIndex = 0;
-						for (int i = 0; i < protractorData.length; i++) {
-							if (i > realClip.getEndFrameNumber())
-								break;
-							if (protractorData[i] != null) {
-								nonNullIndex = i;
-							}
-							if (!realClip.includesFrame(i))
-								continue;
-							newFrameNum = realClip.frameToStep(i); // new frame number equals step number
-							if (nonNullIndex > -1) {
-								newFrameNumbers.put(newFrameNum, nonNullIndex);
-								nonNullIndex = -1;
-							} else {
-								newFrameNumbers.put(newFrameNum, i);
-							}
-						}
-						double[][] newKeys = new double[newFrameNum + 1][];
-						for (Integer k : newFrameNumbers.keySet()) {
-							newKeys[k] = protractorData[newFrameNumbers.get(k)];
-						}
-						trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
-					}
-				}
-			}
-
-		}
-	}
 
 	/**
 	 * Returns a list of particle models with start frames not included in the video
@@ -2723,7 +2731,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals("video_saved") && target != null) { //$NON-NLS-1$
+			if (e.getPropertyName().equals(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOSAVED) && target != null) { //$NON-NLS-1$
 				// event's new value is saved file name (differ from original target name for
 				// image videos)
 				targetVideo = e.getNewValue().toString();
