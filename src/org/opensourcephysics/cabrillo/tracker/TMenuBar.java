@@ -614,7 +614,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			file_export_videoItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					ExportVideoDialog exporter = ExportVideoDialog.getDialog(trackerPanel);
+					ExportVideoDialog exporter = ExportVideoDialog.getVideoDialog(trackerPanel);
 					exporter.setVisible(true);
 				}
 			});

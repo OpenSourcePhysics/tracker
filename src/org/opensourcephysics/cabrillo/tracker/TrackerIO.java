@@ -61,6 +61,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
 
@@ -273,6 +274,14 @@ public class TrackerIO extends VideoIO {
 		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Comma"), COMMA); //$NON-NLS-1$
 		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Semicolon"), SEMICOLON); //$NON-NLS-1$
 	}
+
+	protected static TreeSet<String> videoFormatDescriptions // alphabetical
+	= new TreeSet<>();
+
+	protected static HashMap<String, VideoType> videoFormats // name to VideoType
+	= new HashMap<>();
+
+	public static String selectedVideoFormat;
 
 	/**
 	 * private constructor to prevent instantiation
@@ -2467,5 +2476,37 @@ public class TrackerIO extends VideoIO {
 				break;
 			}
 		}
+	}
+
+	protected static Object[] getVideoFormats() {
+		return videoFormatDescriptions.toArray();
+	}
+
+	/**
+	 * Refreshes the format set.
+	 */
+	public static void refreshVideoFormats() {
+		videoFormats.clear();
+		videoFormatDescriptions.clear();
+		// eliminate xuggle types if VideoIO engine is NONE
+		for (VideoType next : getVideoTypes(true)) {
+			String desc = next.getDescription();
+			videoFormats.put(desc, next);
+			videoFormatDescriptions.add(desc);
+		}
+	}
+
+	public static String getVideoFormat(String preferredExtension) {
+		String selected = selectedVideoFormat;
+		boolean hasSelected = false;
+		String preferred = null;
+		for (String format : videoFormatDescriptions) {
+			if (format.equals(selected))
+				hasSelected = true;
+			if (preferred == null && format.contains("." + preferredExtension)) { //$NON-NLS-1$
+				preferred = format;
+			}
+		}
+		return (preferred == null && hasSelected ? selected : preferred);
 	}
 }

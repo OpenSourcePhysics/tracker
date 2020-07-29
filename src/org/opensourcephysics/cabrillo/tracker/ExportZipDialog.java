@@ -90,6 +90,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.text.JTextComponent;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -104,6 +105,7 @@ import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.core.VideoType;
+import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.JarTool;
 import org.opensourcephysics.tools.LaunchBuilder;
@@ -125,8 +127,188 @@ import javajs.async.AsyncFileChooser;
  * @author Douglas Brown
  */
 @SuppressWarnings("serial")
+
 public class ExportZipDialog extends JDialog implements PropertyChangeListener {
-	
+
+	private class Export {
+		private TrackerPanel panel;
+		private String target;
+
+		private boolean useExporter;
+		private String originalPath;
+		private ArrayList<File> zipList;
+		private PropertyChangeListener listener;
+		private ExportVideoDialog exporter;
+		private String trkPath;
+		private String name;
+
+		protected Export(ArrayList<File> zipList, String name, TrackerPanel panel, String originalPath, String target,
+				ExportVideoDialog exporter) {
+			this.name = name;
+			this.zipList = zipList;
+			this.panel = panel;
+			this.originalPath = originalPath;
+			this.target = target;
+			this.trkPath = target;
+			this.exporter = exporter;
+			
+		}
+
+		protected void export() {
+			OSPRuntime.showStatus("Exporting  " + (name == null ? "tab" : name));
+			// set the waiting flag
+			// render the video (also sets VideoIO preferred extension to this one)
+			if (exporter != null) {
+				String extension = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem()).getDefaultExtension();
+				target = getVideoTarget(XML.getName(trkPath), extension);
+				exporter.setTrackerPanel(panel);
+				exporter.setFormat((String) formatDropdown.getSelectedItem());
+				listener = new PropertyChangeListener() {
+					@Override
+					public void propertyChange(PropertyChangeEvent e) {
+						trkPath = target = null; // set path to null if video_cancelled
+						exporter.removePropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOSAVED,
+								listener); // $NON-NLS-1$
+						exporter.removePropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOCANCELED,
+								listener); // $NON-NLS-1$
+						if (e.getPropertyName().equals(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOSAVED)) { // $NON-NLS-1$
+							// videoPath is new value from event (different from original path for image
+							// videos)
+							target = e.getNewValue().toString();
+							finalizeExport();
+						} else {
+							exportCanceled();
+						}
+					}
+				};
+				exporter.addPropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOSAVED, listener); // $NON-NLS-1$
+				exporter.addPropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOCANCELED, listener); // $NON-NLS-1$
+				exporter.exportFullSizeVideo(target);
+				return;
+			}
+			// if image video, then copy/extract additional image files
+			Video vid = panel.getVideo();
+			if (vid instanceof ImageVideo) {
+				ImageVideo imageVid = (ImageVideo) vid;
+				String vidDir = getTempDirectory() + videoSubdirectory;
+				String[] paths = imageVid.getValidPaths();
+				// first path is originalPath relative to base
+				int n = originalPath.indexOf(XML.getName(paths[0]));
+				if (n > 0) {
+					String base = originalPath.substring(0, n);
+					for (String path : paths) {
+						String name = XML.getName(path);
+						path = base + name;
+						String vidPath = vidDir + File.separator + name;
+						File target = new File(vidPath); // $NON-NLS-1$
+						if (path.equals(originalPath)) {
+							this.target = videoSubdirectory + "/" + name;
+						} else if (!createTarget(path, target)) {
+							return;
+						}
+						if (!zipList.contains(target)) {
+							zipList.add(target);
+						}
+					}
+				}
+			}
+			finalizeExport();
+		}
+
+		protected void finalizeExport() {
+			// video should be ready at this point
+			// add video file(s) to ziplist
+			if (trkPath != null) {
+				File trkFile = new File(trkPath);
+				// deal with image videos
+				if (!"".equals(videoSubdirectory)) { //$NON-NLS-1$
+					// delete XML file, if any, from video directory
+					File xmlFile = null;
+					for (File next : trkFile.getParentFile().listFiles()) {
+						if (next.getName().endsWith(".xml") && next.getName().startsWith(targetName)) { //$NON-NLS-1$
+							xmlFile = next;
+							break;
+						}
+					}
+					if (xmlFile != null) {
+						XMLControl control = new XMLControlElement(xmlFile);
+						if (control.getObjectClassName().endsWith("ImageVideo")) { //$NON-NLS-1$
+							String[] paths = (String[]) control.getObject("paths"); //$NON-NLS-1$
+							for (String path : paths) {
+								File file = new File(path);
+								if (!zipList.contains(file)) {
+									zipList.add(file);
+								}
+							}
+						}
+						xmlFile.delete();
+					}
+				}
+				// add to ziplist unless it is a duplicate
+				if (!zipList.contains(trkFile)) {
+					zipList.add(trkFile);
+				}
+			}
+
+			// create and modify TrackerPanel XMLControl
+			XMLControl control = new XMLControlElement(panel);
+			// modify video path, clip settings of XMLControl
+			if (exporter != null) {
+				modifyControlForClip(panel, control, target, trkPath);
+			} else if (panel.getVideo() != null) {
+				XMLControl videoControl = control.getChildControl("videoclip").getChildControl("video"); //$NON-NLS-1$ //$NON-NLS-2$
+				if (videoControl != null) {
+					videoControl.setValue("path", target); //$NON-NLS-1$
+				}
+			}
+
+			// add local HTML files to zipList and modify XMLControl accordingly
+			ArrayList<String> htmlPaths = getHTMLPaths(control);
+			if (!htmlPaths.isEmpty()) {
+				String xml = control.toXML();
+				for (String nextHTMLPath : htmlPaths) {
+					String path = copyAndAddHTMLPage(nextHTMLPath, zipList);
+					if (path != null) {
+						xml = substitutePathInText(xml, nextHTMLPath, path, ">", "<"); //$NON-NLS-1$ //$NON-NLS-2$
+					}
+				}
+				control = new XMLControlElement(xml);
+			}
+
+			// write XMLControl to TRK file and add to zipList
+			trkPath = control.write(trkPath);
+			File trkFile = new File(trkPath);
+			// add to ziplist unless it is a duplicate
+			if (!zipList.contains(trkFile)) {
+				zipList.add(trkFile);
+			}
+			nextExport(zipList);
+		}
+
+	}
+
+	protected void nextExport(ArrayList<File> zipList) {
+		if (exportIterator.hasNext()) {
+			new Thread(new Runnable() {
+
+				@Override
+				public void run() {
+					exportIterator.next().export();
+				}
+
+			}).start();
+			return;
+		}
+		exportIterator = null;
+		addFiles(zipList);
+		saveZip(zipList);
+	}
+
+	protected void exportCanceled() {
+		exportIterator = null;
+		OSPLog.debug("Export canceled");
+	}
+
 	private static final String EXPANDED = "expanded";
 
 	static {
@@ -178,10 +360,12 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	protected FileFilter recentAddFilesFilter;
 	protected VideoListener videoExportListener;
 	protected XMLControl control;
-	protected boolean addThumbnail = true, isWaitingForVideo = false;
+	protected boolean addThumbnail = true;
 	protected ArrayList<ParticleModel> badModels; // particle models with start frames not included in clip
 	protected String videoIOPreferredExtension;
 	protected boolean isVisible;
+	private Iterator<TrackerPanel> panelIterator;
+	private Iterator<Export> exportIterator;
 
 	/**
 	 * Returns an ExportZipDialog for a TrackerPanel.
@@ -196,10 +380,9 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			dialog = new ExportZipDialog(panel);
 			zipDialogs.put(panel, dialog);
 			dialog.setResizable(false);
-			dialog.frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, dialog); //$NON-NLS-1$
+			dialog.frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, dialog); // $NON-NLS-1$
 			dialog.setFontLevel(FontSizer.getLevel());
 			dialog.control = new XMLControlElement(panel);
-			dialog.videoExporter = ExportVideoDialog.getDialog(panel);
 			dialog.addThumbnail = true;
 			dialog.htmlField.setText(dialog.htmlField.getDefaultText());
 			dialog.htmlField.setForeground(dialog.htmlField.getEmptyForeground());
@@ -335,7 +518,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
+		if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { // $NON-NLS-1$
 			if (e.getNewValue() == trackerPanel) {
 				setVisible(isVisible);
 			} else if (e.getNewValue() == null && e.getOldValue() == trackerPanel) {
@@ -358,7 +541,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		ExportZipDialog dialog = zipDialogs.remove(panel);
 		if (dialog != null) {
 			dialog.setVisible(false);
-			dialog.frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, dialog); //$NON-NLS-1$
+			dialog.frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, dialog); // $NON-NLS-1$
 			dialog.trackerPanel = null;
 		}
 	}
@@ -386,7 +569,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		super(panel.getTFrame(), false);
 		trackerPanel = panel;
 		frame = panel.getTFrame();
-		videoExporter = ExportVideoDialog.getDialog(panel);
+//		videoExporter = ExportVideoDialog.getDialog(panel);
 		createGUI();
 		refreshGUI();
 		// center dialog on the screen
@@ -441,7 +624,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = descriptionPanel.getName();
-				descriptionPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
+				descriptionPanel.setName(name == null ? EXPANDED : null); // $NON-NLS-1$
 				refreshGUI();
 				descriptionButton.requestFocusInWindow();
 			}
@@ -481,7 +664,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = tabsPanel.getName();
-				tabsPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
+				tabsPanel.setName(name == null ? EXPANDED : null); // $NON-NLS-1$
 				refreshGUI();
 				tabsButton.requestFocusInWindow();
 			}
@@ -503,7 +686,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				trimToClip = clipCheckbox.isSelected();
 			}
 		});
-		formatDropdown = new JComboBox<Object>(videoExporter.getFormats()) {
+		formatDropdown = new JComboBox<Object>(TrackerIO.getVideoFormats()) {
 			@Override
 			public Dimension getPreferredSize() {
 				Dimension dim = super.getPreferredSize();
@@ -534,7 +717,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = videoPanel.getName();
-				videoPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
+				videoPanel.setName(name == null ? EXPANDED : null); // $NON-NLS-1$
 				refreshGUI();
 				videoButton.requestFocusInWindow();
 			}
@@ -560,7 +743,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = metaPanel.getName();
-				metaPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
+				metaPanel.setName(name == null ? EXPANDED : null); // $NON-NLS-1$
 				refreshGUI();
 				metaButton.requestFocusInWindow();
 			}
@@ -585,7 +768,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = thumbnailPanel.getName();
-				thumbnailPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
+				thumbnailPanel.setName(name == null ? EXPANDED : null); // $NON-NLS-1$
 				refreshGUI();
 				thumbButton.requestFocusInWindow();
 			}
@@ -610,7 +793,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = supportFilesPanel.getName();
-				supportFilesPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
+				supportFilesPanel.setName(name == null ? EXPANDED : null); // $NON-NLS-1$
 				refreshGUI();
 				supportFilesButton.requestFocusInWindow();
 			}
@@ -725,7 +908,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String name = advancedPanel.getName();
-				advancedPanel.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
+				advancedPanel.setName(name == null ? EXPANDED : null); // $NON-NLS-1$
 				refreshGUI();
 				advancedButton.requestFocusInWindow();
 			}
@@ -992,7 +1175,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				if (source == descriptionLabel)
 					source = descriptionPanel; // workaround
 				String name = source.getName();
-				source.setName(name == null ? EXPANDED : null); //$NON-NLS-1$
+				source.setName(name == null ? EXPANDED : null); // $NON-NLS-1$
 				refreshGUI();
 				if (source == descriptionPanel)
 					descriptionButton.requestFocusInWindow();
@@ -1327,7 +1510,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		if (!clipCheckbox.isEnabled()) { // no videos
 			info = TrackerRes.getString("ExportZipDialog.Border.Title.None"); //$NON-NLS-1$
 		} else {
-			VideoType format = ExportVideoDialog.formats.get(formatDropdown.getSelectedItem());
+			VideoType format = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 			if (format != null) {
 				String ext = format.getDefaultExtension();
 				info = (clipCheckbox.isSelected()
@@ -1507,13 +1690,13 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * Refreshes the format dropdown.
 	 */
 	private void refreshFormatDropdown() {
-		ExportVideoDialog.refreshFormats();
-		videoExporter.refreshFormatDropdown(preferredExtension);
+		TrackerIO.refreshVideoFormats();
+		String selected = TrackerIO.getVideoFormat(preferredExtension);
 		formatDropdown.removeAllItems();
-		for (Object format : videoExporter.getFormats()) {
+		for (Object format : TrackerIO.getVideoFormats()) {
 			formatDropdown.addItem(format);
 		}
-		formatDropdown.setSelectedItem(videoExporter.getFormat());
+		formatDropdown.setSelectedItem(selected);
 	}
 
 	/**
@@ -1566,190 +1749,73 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	 * @param zipList the list of files to be zipped
 	 */
 	private void addVideosAndTRKs(final ArrayList<File> zipList) {
-		isWaitingForVideo = false;
-		final String[] videoPath = new String[1];
-		videoExporter.setFormat(formatDropdown.getSelectedItem());
-		final PropertyChangeListener listener = new PropertyChangeListener() {
-			@Override
-			public void propertyChange(PropertyChangeEvent e) {
-				videoPath[0] = null; // set path to null if video_cancelled
-				if (e.getPropertyName().equals("video_saved")) { //$NON-NLS-1$
-					// videoPath is new value from event (different from original path for image
-					// videos)
-					videoPath[0] = e.getNewValue().toString();
-				}
-				isWaitingForVideo = false;
-			}
-		};
-		videoExporter.addPropertyChangeListener("video_saved", listener); //$NON-NLS-1$
-		videoExporter.addPropertyChangeListener("video_cancelled", listener); //$NON-NLS-1$
 		// save VideoIO preferred export format
 		videoIOPreferredExtension = VideoIO.getPreferredExportExtension();
 
 		// process TrackerPanels according to checkbox status
-		int selectedTabCount = 0;
+		int nTabs = 0;
 		for (int i = 0; i < tabCheckboxes.size(); i++) {
 			if (tabCheckboxes.get(i).isSelected())
-				selectedTabCount++;
+				nTabs++;
 		}
 		// collect trkPaths to prevent duplicate path names
-		ArrayList<String> trkPaths = new ArrayList<String>();
+		ArrayList<String> trkPaths = new ArrayList<>();
+		ArrayList<Export> exports = new ArrayList<>();
 		for (int i = 0; i < tabCheckboxes.size(); i++) {
 			JCheckBox box = tabCheckboxes.get(i);
 			if (!box.isSelected())
 				continue;
-			TrackerPanel nextTrackerPanel = frame.getTrackerPanel(i);
-			if (nextTrackerPanel == null)
-				continue;
-
+			TrackerPanel panel = frame.getTrackerPanel(i);
+			if (panel == null)
+				return;
 			// get tab title to add to video and TRK names
-			String tabTitle = i >= tabTitleFields.size() ? null : tabTitleFields.get(i).getText().trim();
-			if ("".equals(tabTitle) && selectedTabCount == 1) { //$NON-NLS-1$
+			String tabTitle = (i >= tabTitleFields.size() ? null : tabTitleFields.get(i).getText().trim());
+			if ("".equals(tabTitle) && nTabs == 1) { //$NON-NLS-1$
 				tabTitle = titleField.getText().trim();
 			}
 			String trkPath = getTRKTarget(tabTitle, trkPaths);
+			String originalPath = null;
+			ExportVideoDialog exporter = null;
+			String videoDir = null;
 
 			// export or copy video, if any
-			Video vid = nextTrackerPanel.getVideo();
-			if (vid != null && clipCheckbox.isSelected()) {
-				// export video clip using videoExporter
-				videoExporter.setTrackerPanel(nextTrackerPanel);
-				// define the path for the exported video
-				VideoType format = ExportVideoDialog.formats.get(formatDropdown.getSelectedItem());
-				String extension = format.getDefaultExtension();
-				videoPath[0] = getVideoTarget(XML.getName(trkPath), extension);
-				// set the waiting flag
-				isWaitingForVideo = true;
-				// render the video (also sets VideoIO preferred extension to this one)
-				videoExporter.exportFullSizeVideo(videoPath[0]);
-			} else { // original or no video
-				if (vid != null && vid.getProperty("absolutePath") != null) { //$NON-NLS-1$
-					String originalPath = (String) vid.getProperty("absolutePath"); //$NON-NLS-1$
+			Video vid = panel.getVideo();
+			if (vid != null) {
+				originalPath = (String) vid.getProperty("absolutePath"); //$NON-NLS-1$
+				if (clipCheckbox.isSelected()) {
+					// export video clip using videoExporter
+					// define the path for the exported video
+					if (videoExporter == null)
+						videoExporter = ExportVideoDialog.getVideoDialog(panel);
+					exporter = videoExporter;
+				} else if (originalPath != null) { // $NON-NLS-1$
 					// copy or extract original video to target directory
 					String vidDir = getTempDirectory() + videoSubdirectory;
-					videoPath[0] = vidDir + "/" + XML.getName(originalPath); //$NON-NLS-1$
+					String path = vidDir + File.separator + XML.getName(originalPath); //$NON-NLS-1$
 					// check if target video file already exists
-					boolean videoexists = new File(videoPath[0]).exists();
+					boolean videoexists = new File(path).exists();
 					if (!videoexists) {
 						new File(vidDir).mkdirs();
-						if (!copyOrExtractFile(originalPath, new File(videoPath[0]))) {
-							javax.swing.JOptionPane.showMessageDialog(ExportZipDialog.this,
-									TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Message"), //$NON-NLS-1$
-									TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Title"), //$NON-NLS-1$
-									javax.swing.JOptionPane.ERROR_MESSAGE);
-							return;
-						}
-					}
-					// if image video, then copy/extract additional image files
-					if (vid instanceof ImageVideo) {
-						ImageVideo imageVid = (ImageVideo) vid;
-						String[] paths = imageVid.getValidPaths();
-						// first path is originalPath relative to base
-						int n = originalPath.indexOf(XML.getName(paths[0]));
-						if (n > 0) {
-							String base = originalPath.substring(0, n);
-							for (String path : paths) {
-								String name = XML.getName(path);
-								path = base + name;
-								if (path.equals(originalPath))
-									continue;
-								File target = new File(vidDir + "/" + name); //$NON-NLS-1$
-								if (!copyOrExtractFile(path, target)) {
-									javax.swing.JOptionPane.showMessageDialog(ExportZipDialog.this,
-											TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Message"), //$NON-NLS-1$
-											TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Title"), //$NON-NLS-1$
-											javax.swing.JOptionPane.ERROR_MESSAGE);
-									return;
-								}
-								if (!zipList.contains(target)) {
-									zipList.add(target);
-								}
-							}
-						}
+						if (!createTarget(originalPath, new File(path)))
+								return;
 					}
 				}
-			} // end setting up video
-
-			// wait for video to be ready--when isWaitingForVideo is false
-			while (isWaitingForVideo) {
-				try {
-					Thread.sleep(100);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
 			}
-			// video should be ready at this point
-			// add video file(s) to ziplist
-			if (videoPath[0] != null) {
-				File videoFile = new File(videoPath[0]);
-				// deal with image videos
-				if (!"".equals(videoSubdirectory)) { //$NON-NLS-1$
-					// delete XML file, if any, from video directory
-					File xmlFile = null;
-					for (File next : videoFile.getParentFile().listFiles()) {
-						if (next.getName().endsWith(".xml") && next.getName().startsWith(targetName)) { //$NON-NLS-1$
-							xmlFile = next;
-							break;
-						}
-					}
-					if (xmlFile != null) {
-						XMLControl control = new XMLControlElement(xmlFile);
-						if (control.getObjectClassName().endsWith("ImageVideo")) { //$NON-NLS-1$
-							String[] paths = (String[]) control.getObject("paths"); //$NON-NLS-1$
-							for (String path : paths) {
-								File file = new File(path);
-								if (!zipList.contains(file)) {
-									zipList.add(file);
-								}
-							}
-						}
-						xmlFile.delete();
-					}
-				}
-				// add to ziplist unless it is a duplicate
-				if (!zipList.contains(videoFile)) {
-					zipList.add(videoFile);
-				}
-			}
-
-			// create and modify TrackerPanel XMLControl
-			XMLControl control = new XMLControlElement(nextTrackerPanel);
-			// modify video path, clip settings of XMLControl
-			if (clipCheckbox.isSelected()) {
-				modifyControlForClip(nextTrackerPanel, control, videoPath[0], trkPath);
-			} else if (nextTrackerPanel.getVideo() != null) {
-				XMLControl videoControl = control.getChildControl("videoclip").getChildControl("video"); //$NON-NLS-1$ //$NON-NLS-2$
-				if (videoControl != null) {
-					videoControl.setValue("path", XML.getPathRelativeTo(videoPath[0], getTempDirectory())); //$NON-NLS-1$
-				}
-			}
-
-			// add local HTML files to zipList and modify XMLControl accordingly
-			ArrayList<String> htmlPaths = getHTMLPaths(control);
-			if (!htmlPaths.isEmpty()) {
-				String xml = control.toXML();
-				for (String nextHTMLPath : htmlPaths) {
-					String path = copyAndAddHTMLPage(nextHTMLPath, zipList);
-					if (path != null) {
-						xml = substitutePathInText(xml, nextHTMLPath, path, ">", "<"); //$NON-NLS-1$ //$NON-NLS-2$
-					}
-				}
-				control = new XMLControlElement(xml);
-			}
-
-			// write XMLControl to TRK file and add to zipList
-			trkPath = control.write(trkPath);
-			File trkFile = new File(trkPath);
-			// add to ziplist unless it is a duplicate
-			if (!zipList.contains(trkFile)) {
-				zipList.add(trkFile);
-			}
-
-		} // end of nextTrackerPanel
-
-		videoExporter.removePropertyChangeListener("video_saved", listener); //$NON-NLS-1$
-		videoExporter.removePropertyChangeListener("video_cancelled", listener); //$NON-NLS-1$
+			exports.add(new Export(zipList, tabTitle, panel, originalPath, trkPath, exporter));
+		}
+		exportIterator = exports.iterator();
 	}
+
+	protected boolean createTarget(String path, File target) {
+		if (copyOrExtractFile(path, target))
+			return true;
+		javax.swing.JOptionPane.showMessageDialog(ExportZipDialog.this,
+				TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Message"), //$NON-NLS-1$
+				TrackerRes.getString("ZipResourceDialog.Dialog.ExportFailed.Title"), //$NON-NLS-1$
+				javax.swing.JOptionPane.ERROR_MESSAGE);
+		return false;
+	}
+
 
 	/**
 	 * Adds "added files" to the zip list
@@ -1924,8 +1990,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		zipList.add(thumbnail);
 		addHTMLInfo(thumbPath, zipList);
 		addVideosAndTRKs(zipList);
-		addFiles(zipList);
-		saveZip(zipList);
+		nextExport(zipList);
 	}
 
 	/**
@@ -2054,7 +2119,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 //    clipXMLControl.setValue("frameshift", 0); //$NON-NLS-1$
 		if (videoPath != null) {
 			// modify videoControl with correct video type, and add delta_t for image videos
-			VideoType format = ExportVideoDialog.formats.get(formatDropdown.getSelectedItem());
+			VideoType format = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 			Video newVideo = format.getVideo(videoPath);
 			clipXMLControl.setValue("video", newVideo); //$NON-NLS-1$
 
@@ -2112,172 +2177,140 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		}
 		// then modify frame references in track XMLcontrols
 		for (XMLProperty next : toModify.getPropsRaw()) {
-				XMLProperty prop = (XMLProperty) next;
-				if (prop.getPropertyName().equals("tracks")) { //$NON-NLS-1$
-					for (Object obj : prop.getPropertyContent()) {
-						// every item is an XMLProperty
-						XMLProperty item = (XMLProperty) obj;
-						// the content of each item is the track control
-						XMLControl trackControl = (XMLControl) item.getPropertyContent().get(0);
-						Class<?> trackType = trackControl.getObjectClass();
-						if (PointMass.class.equals(trackType)) {
-							array = trackControl.getObject("framedata"); //$NON-NLS-1$
-							PointMass.FrameData[] pointMassKeyFrames = (PointMass.FrameData[]) array;
-							newFrameNumbers.clear();
-							newFrameNum = 0;
-							for (int i = 0; i < pointMassKeyFrames.length; i++) {
-								if (pointMassKeyFrames[i] == null || !realClip.includesFrame(i))
-									continue;
-								newFrameNum = realClip.frameToStep(i); // new frame number equals step number
-								newFrameNumbers.put(newFrameNum, i);
-							}
-							PointMass.FrameData[] newKeys = new PointMass.FrameData[newFrameNum + 1];
-							for (Integer k : newFrameNumbers.keySet()) {
-								newKeys[k] = pointMassKeyFrames[newFrameNumbers.get(k)];
-							}
-							trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
+			XMLProperty prop = (XMLProperty) next;
+			if (prop.getPropertyName().equals("tracks")) { //$NON-NLS-1$
+				for (Object obj : prop.getPropertyContent()) {
+					// every item is an XMLProperty
+					XMLProperty item = (XMLProperty) obj;
+					// the content of each item is the track control
+					XMLControl trackControl = (XMLControl) item.getPropertyContent().get(0);
+					Class<?> trackType = trackControl.getObjectClass();
+					if (PointMass.class.equals(trackType)) {
+						array = trackControl.getObject("framedata"); //$NON-NLS-1$
+						PointMass.FrameData[] pointMassKeyFrames = (PointMass.FrameData[]) array;
+						newFrameNumbers.clear();
+						newFrameNum = 0;
+						for (int i = 0; i < pointMassKeyFrames.length; i++) {
+							if (pointMassKeyFrames[i] == null || !realClip.includesFrame(i))
+								continue;
+							newFrameNum = realClip.frameToStep(i); // new frame number equals step number
+							newFrameNumbers.put(newFrameNum, i);
 						}
-
-						else if (Vector.class.isAssignableFrom(trackType)) {
-							array = trackControl.getObject("framedata"); //$NON-NLS-1$
-							Vector.FrameData[] vectorKeyFrames = (Vector.FrameData[]) array;
-							newFrameNumbers.clear();
-							newFrameNum = 0;
-							for (int i = 0; i < vectorKeyFrames.length; i++) {
-								if (vectorKeyFrames[i] == null || !realClip.includesFrame(i))
-									continue;
-								newFrameNum = realClip.frameToStep(i);
-								newFrameNumbers.put(newFrameNum, i);
-							}
-							Vector.FrameData[] newKeys = new Vector.FrameData[newFrameNum + 1];
-							for (Integer k : newFrameNumbers.keySet()) {
-								newKeys[k] = vectorKeyFrames[newFrameNumbers.get(k)];
-								newKeys[k].independent = newKeys[k].xc != 0 || newKeys[k].yc != 0;
-							}
-							trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
+						PointMass.FrameData[] newKeys = new PointMass.FrameData[newFrameNum + 1];
+						for (Integer k : newFrameNumbers.keySet()) {
+							newKeys[k] = pointMassKeyFrames[newFrameNumbers.get(k)];
 						}
+						trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
+					}
 
-						else if (ParticleModel.class.isAssignableFrom(trackType)) {
-							int frameNum = trackControl.getInt("start_frame"); //$NON-NLS-1$
-							if (frameNum > 0) {
-								int newStartFrameNum = realClip.frameToStep(frameNum);
-								// start frame should round up
-								if (frameNum > realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
-									newStartFrameNum++;
-								trackControl.setValue("start_frame", newStartFrameNum); //$NON-NLS-1$
-							}
-							frameNum = trackControl.getInt("end_frame"); //$NON-NLS-1$
-							if (frameNum > 0) {
-								int newEndFrameNum = realClip.frameToStep(frameNum);
-								// end frame should round down
-								trackControl.setValue("end_frame", newEndFrameNum); //$NON-NLS-1$
-							}
+					else if (Vector.class.isAssignableFrom(trackType)) {
+						array = trackControl.getObject("framedata"); //$NON-NLS-1$
+						Vector.FrameData[] vectorKeyFrames = (Vector.FrameData[]) array;
+						newFrameNumbers.clear();
+						newFrameNum = 0;
+						for (int i = 0; i < vectorKeyFrames.length; i++) {
+							if (vectorKeyFrames[i] == null || !realClip.includesFrame(i))
+								continue;
+							newFrameNum = realClip.frameToStep(i);
+							newFrameNumbers.put(newFrameNum, i);
 						}
-
-						else if (Calibration.class.equals(trackType) || OffsetOrigin.class.equals(trackType)) {
-							array = trackControl.getObject("world_coordinates"); //$NON-NLS-1$
-							double[][] calKeyFrames = (double[][]) array;
-							newFrameNumbers.clear();
-							newFrameNum = 0;
-							for (int i = 0; i < calKeyFrames.length; i++) {
-								if (calKeyFrames[i] == null)
-									continue;
-								newFrameNum = realClip.frameToStep(i);
-								newFrameNumbers.put(newFrameNum, i);
-							}
-							double[][] newKeys = new double[newFrameNum + 1][];
-							for (Integer k : newFrameNumbers.keySet()) {
-								newKeys[k] = calKeyFrames[newFrameNumbers.get(k)];
-							}
-							trackControl.setValue("world_coordinates", newKeys); //$NON-NLS-1$
+						Vector.FrameData[] newKeys = new Vector.FrameData[newFrameNum + 1];
+						for (Integer k : newFrameNumbers.keySet()) {
+							newKeys[k] = vectorKeyFrames[newFrameNumbers.get(k)];
+							newKeys[k].independent = newKeys[k].xc != 0 || newKeys[k].yc != 0;
 						}
+						trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
+					}
 
-						else if (CircleFitter.class.equals(trackType)) {
-							int frameNum = trackControl.getInt("absolute_start"); //$NON-NLS-1$
-							if (frameNum > 0) {
-								int newStartFrameNum = realClip.frameToStep(frameNum);
-								// start frame should round up
-								if (frameNum > realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
-									newStartFrameNum++;
-								trackControl.setValue("absolute_start", newStartFrameNum); //$NON-NLS-1$
-							}
-							frameNum = trackControl.getInt("absolute_end"); //$NON-NLS-1$
-							if (frameNum > 0) {
-								int newEndFrameNum = realClip.frameToStep(frameNum);
-								// end frame should round down
-								trackControl.setValue("absolute_end", newEndFrameNum); //$NON-NLS-1$
-							}
-							// change and trim keyframe numbers
-							array = trackControl.getObject("framedata"); //$NON-NLS-1$
-							double[][] keyFrameData = (double[][]) array;
-							ArrayList<double[]> newKeyFrameData = new ArrayList<double[]>();
-							newFrameNumbers.clear();
-							newFrameNum = 0;
-							for (int i = 0; i < keyFrameData.length; i++) {
-								if (keyFrameData[i] == null)
-									continue;
-								double[] stepData = keyFrameData[i];
-								int keyFrameNum = (int) stepData[0];
-								newFrameNum = realClip.frameToStep(keyFrameNum);
-								if (newFrameNum > realClip.getLastFrameNumber()
-										|| newFrameNum < realClip.getFirstFrameNumber())
-									continue;
-								// change frame number in step data and add to the new key frame data
-								stepData[0] = newFrameNum;
-								newKeyFrameData.add(stepData);
+					else if (ParticleModel.class.isAssignableFrom(trackType)) {
+						int frameNum = trackControl.getInt("start_frame"); //$NON-NLS-1$
+						if (frameNum > 0) {
+							int newStartFrameNum = realClip.frameToStep(frameNum);
+							// start frame should round up
+							if (frameNum > realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
+								newStartFrameNum++;
+							trackControl.setValue("start_frame", newStartFrameNum); //$NON-NLS-1$
+						}
+						frameNum = trackControl.getInt("end_frame"); //$NON-NLS-1$
+						if (frameNum > 0) {
+							int newEndFrameNum = realClip.frameToStep(frameNum);
+							// end frame should round down
+							trackControl.setValue("end_frame", newEndFrameNum); //$NON-NLS-1$
+						}
+					}
+
+					else if (Calibration.class.equals(trackType) || OffsetOrigin.class.equals(trackType)) {
+						array = trackControl.getObject("world_coordinates"); //$NON-NLS-1$
+						double[][] calKeyFrames = (double[][]) array;
+						newFrameNumbers.clear();
+						newFrameNum = 0;
+						for (int i = 0; i < calKeyFrames.length; i++) {
+							if (calKeyFrames[i] == null)
+								continue;
+							newFrameNum = realClip.frameToStep(i);
+							newFrameNumbers.put(newFrameNum, i);
+						}
+						double[][] newKeys = new double[newFrameNum + 1][];
+						for (Integer k : newFrameNumbers.keySet()) {
+							newKeys[k] = calKeyFrames[newFrameNumbers.get(k)];
+						}
+						trackControl.setValue("world_coordinates", newKeys); //$NON-NLS-1$
+					}
+
+					else if (CircleFitter.class.equals(trackType)) {
+						int frameNum = trackControl.getInt("absolute_start"); //$NON-NLS-1$
+						if (frameNum > 0) {
+							int newStartFrameNum = realClip.frameToStep(frameNum);
+							// start frame should round up
+							if (frameNum > realClip.getStartFrameNumber() && !realClip.includesFrame(frameNum))
+								newStartFrameNum++;
+							trackControl.setValue("absolute_start", newStartFrameNum); //$NON-NLS-1$
+						}
+						frameNum = trackControl.getInt("absolute_end"); //$NON-NLS-1$
+						if (frameNum > 0) {
+							int newEndFrameNum = realClip.frameToStep(frameNum);
+							// end frame should round down
+							trackControl.setValue("absolute_end", newEndFrameNum); //$NON-NLS-1$
+						}
+						// change and trim keyframe numbers
+						array = trackControl.getObject("framedata"); //$NON-NLS-1$
+						double[][] keyFrameData = (double[][]) array;
+						ArrayList<double[]> newKeyFrameData = new ArrayList<double[]>();
+						newFrameNumbers.clear();
+						newFrameNum = 0;
+						for (int i = 0; i < keyFrameData.length; i++) {
+							if (keyFrameData[i] == null)
+								continue;
+							double[] stepData = keyFrameData[i];
+							int keyFrameNum = (int) stepData[0];
+							newFrameNum = realClip.frameToStep(keyFrameNum);
+							if (newFrameNum > realClip.getLastFrameNumber()
+									|| newFrameNum < realClip.getFirstFrameNumber())
+								continue;
+							// change frame number in step data and add to the new key frame data
+							stepData[0] = newFrameNum;
+							newKeyFrameData.add(stepData);
 //    	        	newFrameNumbers.put(newFrameNum, i);  // maps to stepData index       	
-							}
+						}
 //    	        double[][] newKeys = new double[newFrameNum+1][];
 //    	        for (Integer k: newFrameNumbers.keySet()) {
 //    	        	double[] stepData = keyFrameData[newFrameNumbers.get(k)];
 //    	        	newKeys[k] = keyFrameData[newFrameNumbers.get(k)];
 //    	        }
-							double[][] newKeyData = newKeyFrameData.toArray(new double[newKeyFrameData.size()][]);
-							trackControl.setValue("framedata", newKeyData); //$NON-NLS-1$
-						}
+						double[][] newKeyData = newKeyFrameData.toArray(new double[newKeyFrameData.size()][]);
+						trackControl.setValue("framedata", newKeyData); //$NON-NLS-1$
+					}
 
-						else if (TapeMeasure.class.equals(trackType)) {
-							array = trackControl.getObject("framedata"); //$NON-NLS-1$
-							TapeMeasure.FrameData[] tapeKeyFrames = (TapeMeasure.FrameData[]) array;
-							if (tapeKeyFrames.length > 0) {
-								newFrameNumbers.clear();
-								newFrameNum = 0;
-								int newKeysLength = 0;
-								int nonNullIndex = 0;
-								for (int i = 0; i <= realClip.getEndFrameNumber(); i++) {
-									if (i < tapeKeyFrames.length && tapeKeyFrames[i] != null) {
-										nonNullIndex = i;
-									}
-									if (!realClip.includesFrame(i))
-										continue;
-									newFrameNum = realClip.frameToStep(i); // new frame number equals step number
-									if (nonNullIndex > -1) {
-										newFrameNumbers.put(newFrameNum, nonNullIndex);
-										newKeysLength = newFrameNum + 1;
-										nonNullIndex = -1;
-									} else if (i < tapeKeyFrames.length) {
-										newFrameNumbers.put(newFrameNum, i);
-										newKeysLength = newFrameNum + 1;
-									}
-								}
-								TapeMeasure.FrameData[] newKeys = new TapeMeasure.FrameData[newKeysLength];
-								for (Integer k : newFrameNumbers.keySet()) {
-									newKeys[k] = tapeKeyFrames[newFrameNumbers.get(k)];
-								}
-								trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
-							}
-						}
-
-						else if (Protractor.class.equals(trackType)) {
-							array = trackControl.getObject("framedata"); //$NON-NLS-1$
-							double[][] protractorData = (double[][]) array;
+					else if (TapeMeasure.class.equals(trackType)) {
+						array = trackControl.getObject("framedata"); //$NON-NLS-1$
+						TapeMeasure.FrameData[] tapeKeyFrames = (TapeMeasure.FrameData[]) array;
+						if (tapeKeyFrames.length > 0) {
 							newFrameNumbers.clear();
 							newFrameNum = 0;
+							int newKeysLength = 0;
 							int nonNullIndex = 0;
-							for (int i = 0; i < protractorData.length; i++) {
-								if (i > realClip.getEndFrameNumber())
-									break;
-								if (protractorData[i] != null) {
+							for (int i = 0; i <= realClip.getEndFrameNumber(); i++) {
+								if (i < tapeKeyFrames.length && tapeKeyFrames[i] != null) {
 									nonNullIndex = i;
 								}
 								if (!realClip.includesFrame(i))
@@ -2285,19 +2318,51 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 								newFrameNum = realClip.frameToStep(i); // new frame number equals step number
 								if (nonNullIndex > -1) {
 									newFrameNumbers.put(newFrameNum, nonNullIndex);
+									newKeysLength = newFrameNum + 1;
 									nonNullIndex = -1;
-								} else {
+								} else if (i < tapeKeyFrames.length) {
 									newFrameNumbers.put(newFrameNum, i);
+									newKeysLength = newFrameNum + 1;
 								}
 							}
-							double[][] newKeys = new double[newFrameNum + 1][];
+							TapeMeasure.FrameData[] newKeys = new TapeMeasure.FrameData[newKeysLength];
 							for (Integer k : newFrameNumbers.keySet()) {
-								newKeys[k] = protractorData[newFrameNumbers.get(k)];
+								newKeys[k] = tapeKeyFrames[newFrameNumbers.get(k)];
 							}
 							trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
 						}
 					}
+
+					else if (Protractor.class.equals(trackType)) {
+						array = trackControl.getObject("framedata"); //$NON-NLS-1$
+						double[][] protractorData = (double[][]) array;
+						newFrameNumbers.clear();
+						newFrameNum = 0;
+						int nonNullIndex = 0;
+						for (int i = 0; i < protractorData.length; i++) {
+							if (i > realClip.getEndFrameNumber())
+								break;
+							if (protractorData[i] != null) {
+								nonNullIndex = i;
+							}
+							if (!realClip.includesFrame(i))
+								continue;
+							newFrameNum = realClip.frameToStep(i); // new frame number equals step number
+							if (nonNullIndex > -1) {
+								newFrameNumbers.put(newFrameNum, nonNullIndex);
+								nonNullIndex = -1;
+							} else {
+								newFrameNumbers.put(newFrameNum, i);
+							}
+						}
+						double[][] newKeys = new double[newFrameNum + 1][];
+						for (Integer k : newFrameNumbers.keySet()) {
+							newKeys[k] = protractorData[newFrameNumbers.get(k)];
+						}
+						trackControl.setValue("framedata", newKeys); //$NON-NLS-1$
+					}
 				}
+			}
 
 		}
 	}
@@ -2313,11 +2378,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			JCheckBox box = tabCheckboxes.get(i);
 			if (!box.isSelected())
 				continue;
-			TrackerPanel nextTrackerPanel = frame.getTrackerPanel(i);
-			if (nextTrackerPanel == null)
+			TrackerPanel panel = frame.getTrackerPanel(i);
+			if (panel == null)
 				continue;
-			VideoClip clip = nextTrackerPanel.getPlayer().getVideoClip();
-			ArrayList<ParticleModel> models = nextTrackerPanel.getDrawables(ParticleModel.class);
+			VideoClip clip = panel.getPlayer().getVideoClip();
+			ArrayList<ParticleModel> models = panel.getDrawables(ParticleModel.class);
 			for (Iterator<ParticleModel> it = models.iterator(); it.hasNext();) {
 				ParticleModel model = it.next();
 				if (clip.includesFrame(model.getStartFrame())) {
@@ -2495,7 +2560,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	private void openNewZip(final String path) {
 		// BH Can't reload a saved file in SwingJS
 		if (OSPRuntime.isJS)
-			return;		
+			return;
 		Runnable runner1 = new Runnable() {
 			@Override
 			public void run() {
@@ -2560,10 +2625,9 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			chooser.resetChoosableFileFilters();
 			return null;
 		}
-		// Note that 
+		// Note that
 		// check that target is not currently open in Tracker--can't overwrite open TRZ
-		if (!OSPRuntime.isJS 
-				&& chooserFile.exists()) {
+		if (!OSPRuntime.isJS && chooserFile.exists()) {
 			for (int i = 0; i < frame.getTabCount(); i++) {
 				String path = frame.getTrackerPanel(i).openedFromPath;
 				if (path != null && path.equals(XML.forwardSlash(chooserFile.getPath()))) {
@@ -2618,10 +2682,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 
 	private String getTRKTarget(String tabTitle, ArrayList<String> existingTabTitles) {
 		String path = null;
+		String tempDir = getTempDirectory();
 		if (tabTitle == null || "".equals(tabTitle.trim())) { //$NON-NLS-1$
-			path = getTempDirectory() + targetName;
+			path = tempDir + targetName;
 		} else {
-			path = getTempDirectory() + targetName + "_" + tabTitle; //$NON-NLS-1$
+			path = tempDir + targetName + "_" + tabTitle; //$NON-NLS-1$
 		}
 		int append = 0;
 		int len = path.length();
@@ -2637,7 +2702,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		String vidDir = getTempDirectory() + videoSubdirectory;
 		new File(vidDir).mkdirs();
 		String videoName = XML.stripExtension(trkName) + "." + extension; //$NON-NLS-1$
-		return vidDir + "/" + videoName; //$NON-NLS-1$
+		return vidDir + File.separator + videoName; //$NON-NLS-1$
 	}
 
 	private String getZIPTarget() {
@@ -2653,11 +2718,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	}
 
 	private String tempDir;
-	
 	private String getTempDirectory() {
-			if (tempDir == null)
-				tempDir = new File(System.getProperty("java.io.tmpdir"), "tracker" + new Random().nextInt()).toString() + "/";
-			return tempDir;
+		if (tempDir == null)
+			tempDir = new File(System.getProperty("java.io.tmpdir"), "tracker" + new Random().nextInt()).toString()
+					+ File.separator;
+		return tempDir;
 	}
 
 	protected class VideoListener implements PropertyChangeListener {
@@ -2917,8 +2982,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	public static void thumbnailDialogClosed(TrackerPanel trackerPanel) {
 		ExportZipDialog d = getDialog(trackerPanel);
 		if (d.isVisible) {
-	  		d.refreshThumbnailGUI();
-	  	}
+			d.refreshThumbnailGUI();
+		}
 	}
 
 }
