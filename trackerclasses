@@ -773,6 +773,7 @@ org/opensourcephysics/cabrillo/tracker/Undo.js
 org/opensourcephysics/cabrillo/tracker/Vector.js
 org/opensourcephysics/cabrillo/tracker/VectorStep.js
 org/opensourcephysics/cabrillo/tracker/WorldGrid.js
+org/opensourcephysics/cabrillo/tracker/WorldRuler.js
 org/opensourcephysics/cabrillo/tracker/WorldTView.js
 org/opensourcephysics/cabrillo/tracker/deploy/TrackerJarFilter.js
 org/opensourcephysics/cabrillo/tracker/deploy/TrackerStarter.js
@@ -794,6 +795,7 @@ org/opensourcephysics/display/CellBorder.js
 org/opensourcephysics/display/ColorIcon.js
 org/opensourcephysics/display/ComplexDataset.js
 org/opensourcephysics/display/Data.js
+org/opensourcephysics/display/DataFunction.js
 org/opensourcephysics/display/DataTable.js
 org/opensourcephysics/display/DataTableModel.js
 org/opensourcephysics/display/Dataset.js
@@ -1143,6 +1145,7 @@ swingjs/jzlib/StaticTree.js
 swingjs/jzlib/Tree.js
 swingjs/jzlib/ZStream.js
 swingjs/plaf/BasicArrowButton.js
+swingjs/plaf/BasicComboBoxEditor.js
 swingjs/plaf/BasicComboBoxRenderer.js
 swingjs/plaf/BasicHTML.js
 swingjs/plaf/ButtonListener.js
