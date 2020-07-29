@@ -1974,10 +1974,10 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		String ext = dialog.getFormat();
 		String thumbPath = getTempDirectory() + targetName + "_thumbnail." + ext; //$NON-NLS-1$
 		File thumbnail = dialog.saveThumbnail(thumbPath);
-		if (thumbnail == null)
-			return;
-		zipList.add(thumbnail);
-		addHTMLInfo(thumbPath, zipList);
+		if (thumbnail != null) {
+			zipList.add(thumbnail);
+			addHTMLInfo(thumbPath, zipList);
+		}
 		addVideosAndTRKs(zipList);
 		nextExport(zipList);
 	}
