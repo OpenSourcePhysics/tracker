@@ -536,7 +536,9 @@ public class TrackerIO extends VideoIO {
 			// note this sets no file filters nor title
 			chooser.setMultiSelectionEnabled(false);
 			if (processFiles == null) {
-				chooser.showSaveDialog(null);
+				int result= chooser.showSaveDialog(null);
+				if (result != JFileChooser.APPROVE_OPTION)
+					return null;
 				File f = chooser.getSelectedFile();
 				// no, don't reset the chooser resetChooser.run();
 				return (f == null ? null : new File[] {f});
