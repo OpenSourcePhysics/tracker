@@ -535,6 +535,12 @@ public class TrackerIO extends VideoIO {
 			chooser.setSelectedFile(new File(MediaRes.getString("VideoIO.FileName.Untitled") + "." + defaultXMLExt)); //$NON-NLS-1$ $NON-NLS-2$
 			// note this sets no file filters nor title
 			chooser.setMultiSelectionEnabled(false);
+			if (processFiles == null) {
+				chooser.showSaveDialog(null);
+				File f = chooser.getSelectedFile();
+				// no, don't reset the chooser resetChooser.run();
+				return (f == null ? null : new File[] {f});
+			}
 			chooser.showSaveDialog(null, okSave, resetChooser);
 			break;
 		case "save tabset": //$NON-NLS-1$
