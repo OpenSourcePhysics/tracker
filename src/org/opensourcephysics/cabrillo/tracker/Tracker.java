@@ -162,7 +162,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				switch (((String) val).toUpperCase()) {
 				case "DEFAULT":
 					// Java and JavaScript; Eclipse DEFINITELY needs these
-					Assets.add(new Assets.Asset("tracker", "cabrillo-assets.zip", "org/opensourcephysics/cabrillo"));
+					//Assets.add(new Assets.Asset("tracker", "cabrillo-assets.zip", "org/opensourcephysics/cabrillo"));
+					Assets.add(new Assets.Asset("tracker", "tracker-assets.zip", "org/opensourcephysics"));
 					break;
 				case "NONE":
 					// JavaScript only
