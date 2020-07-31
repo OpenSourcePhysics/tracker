@@ -940,54 +940,51 @@ public class TapeMeasure extends InputTrack {
 	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
 		if (refreshDataLater || trackerPanel == null || data == null)
 			return;
-		dataFrames.clear();
+//		Dataset length = data.getDataset(count++);
+//		Dataset angle = data.getDataset(count++);
+//		Dataset stepNum = data.getDataset(count++);
+//		Dataset frameNum = data.getDataset(count++);
+//		String time = dataVariables[0];
+//		if (!length.getColumnName(0).equals(time)) { // not yet initialized
+//			length.setXYColumnNames(time, dataVariables[1]);
+//			angle.setXYColumnNames(time, dataVariables[2]);
+//			stepNum.setXYColumnNames(time, dataVariables[3]);
+//			frameNum.setXYColumnNames(time, dataVariables[4]);
+//		} else
+//			for (int i = 0; i < count; i++) {
+//				data.getDataset(i).clear();
+//			}
+//		dataDescriptions = new String[count + 1];
+//		for (int i = 0; i < dataDescriptions.length; i++) {
+//			dataDescriptions[i] = TrackerRes.getString("TapeMeasure.Data.Description." + i); //$NON-NLS-1$
+//		}
+
 		// get the datasets
-		int count = 0;
-		Dataset length = data.getDataset(count++);
-		Dataset angle = data.getDataset(count++);
-		Dataset stepNum = data.getDataset(count++);
-		Dataset frameNum = data.getDataset(count++);
 		// assign column names to the datasets
-		String time = dataVariables[0];
-		if (!length.getColumnName(0).equals(time)) { // not yet initialized
-			length.setXYColumnNames(time, dataVariables[1]);
-			angle.setXYColumnNames(time, dataVariables[2]);
-			stepNum.setXYColumnNames(time, dataVariables[3]);
-			frameNum.setXYColumnNames(time, dataVariables[4]);
-		} else
-			for (int i = 0; i < count; i++) {
-				data.getDataset(i).clear();
-			}
 		// fill dataDescriptions array
-		dataDescriptions = new String[count + 1];
-		for (int i = 0; i < dataDescriptions.length; i++) {
-			dataDescriptions[i] = TrackerRes.getString("TapeMeasure.Data.Description." + i); //$NON-NLS-1$
-		}
+		int count = 4;
 		// look thru steps and get data for those included in clip
 		VideoPlayer player = trackerPanel.getPlayer();
 		VideoClip clip = player.getVideoClip();
 		int len = clip.getStepCount();
-		double[][] validData = new double[data.getDatasets().size() + 1][len];
-		for (int n = 0; n < len; n++) {
-			int frame = clip.stepToFrame(n);
-			TapeStep next = (TapeStep) getStep(frame);
-			if (next == null)
+		double[][] validData = new double[count + 1][len];
+		dataFrames.clear();
+		for (int i = 0; i < len; i++) {
+			int frame = clip.stepToFrame(i);
+			TapeStep step = (TapeStep) getStep(frame);
+			if (step == null)
 				continue;
-			next.dataVisible = true;
+			step.dataVisible = true;
 			// get the step number and time
-			double t = player.getStepTime(n) / 1000.0;
-			validData[0][n] = t;
-			validData[1][n] = next.getTapeLength(true);
-			validData[2][n] = next.getTapeAngle();
-			validData[3][n] = n;
-			validData[4][n] = frame;
+			double t = player.getStepTime(i) / 1000.0;
+			validData[0][i] = step.getTapeLength(true);
+			validData[1][i] = step.getTapeAngle();
+			validData[2][i] = i;
+			validData[3][i] = frame;
+			validData[4][i] = t;
 			dataFrames.add(frame);
 		}
-		// append the data to the data set
-		length.append(validData[0], validData[1]);
-		angle.append(validData[0], validData[2]);
-		stepNum.append(validData[0], validData[3]);
-		frameNum.append(validData[0], validData[4]);
+		clearColumns(data, count, dataVariables, "TapeMeasure.Data.Description.", validData, len);
 	}
 
 	/**

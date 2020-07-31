@@ -492,7 +492,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		DatasetManager data = target.getData(trackerPanel);
 
 		// determine the dataset index for the specified frame number
-		Dataset ds = data.getDataset(data.getDatasetIndex("frame")); //$NON-NLS-1$
+		Dataset ds = data.getFrameDataset();
 		int index = -1;
 		double[] frames = ds.getYPoints();
 		for (int i = 0; i < frames.length; i++) {

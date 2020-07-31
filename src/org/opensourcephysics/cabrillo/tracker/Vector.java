@@ -388,48 +388,31 @@ public class Vector extends TTrack {
 		VideoClip clip = player.getVideoClip();
 		ImageCoordSystem coords = trackerPanel.getCoords();
 		// define the datasets
-		int count = 0;
-		Dataset xComp = data.getDataset(count++);
-		Dataset yComp = data.getDataset(count++);
-		Dataset mag = data.getDataset(count++);
-		Dataset ang = data.getDataset(count++);
-		Dataset xTail = data.getDataset(count++);
-		Dataset yTail = data.getDataset(count++);
-		Dataset stepNum = data.getDataset(count++);
-		Dataset frameNum = data.getDataset(count++);
-		// assign column names to the datasets
-		if (xComp.getColumnName(0).equals("x")) { // not yet initialized //$NON-NLS-1$
-			String time = dataVariables[0];
-			xComp.setXYColumnNames(time, dataVariables[1]);
-			yComp.setXYColumnNames(time, dataVariables[2]);
-			mag.setXYColumnNames(time, dataVariables[3]);
-			ang.setXYColumnNames(time, dataVariables[4]);
-			xTail.setXYColumnNames(time, dataVariables[5]);
-			yTail.setXYColumnNames(time, dataVariables[6]);
-			stepNum.setXYColumnNames(time, dataVariables[7]);
-			frameNum.setXYColumnNames(time, dataVariables[8]);
-		} else
-			for (int i = 0; i < count; i++) {
-				data.getDataset(i).clear();
-			}
-		// fill dataDescriptions array
-		dataDescriptions = new String[count + 1];
-		for (int i = 0; i < dataDescriptions.length; i++) {
-			dataDescriptions[i] = TrackerRes.getString("Vector.Data.Description." + i); //$NON-NLS-1$
-		}
+//		Dataset xComp = data.getDataset(count++);
+//		Dataset yComp = data.getDataset(count++);
+//		Dataset mag = data.getDataset(count++);
+//		Dataset ang = data.getDataset(count++);
+//		Dataset xTail = data.getDataset(count++);
+//		Dataset yTail = data.getDataset(count++);
+//		Dataset stepNum = data.getDataset(count++);
+//		Dataset frameNum = data.getDataset(count++);
+		int count = 8;
 		// get data at each non-null step included in the videoclip
 		Step[] stepArray = getSteps();
-		for (int n = 0; n < stepArray.length; n++) {
-			if (stepArray[n] == null)
-				continue;
-			VectorStep step = (VectorStep) stepArray[n];
+		int len = stepArray.length;
+		double[][] validData = new double[count + 1][len];
+		int pt = 0;
+		for (int i = 0; i < len; i++) {
 			// get the frame number of the step
-			int frame = step.getFrameNumber();
 			// check that the frame is included in the clip
-			if (!clip.includesFrame(frame))
+			// check that the time > 0
+			int frame, stepNumber;
+			VectorStep step = (VectorStep) stepArray[i];
+			if (step == null
+					|| clip.includesFrame(frame = step.getFrameNumber())
+					|| player.getStepTime(stepNumber = clip.frameToStep(frame)) >= 0
+					)
 				continue;
-			// get the step number and time
-			int stepNumber = clip.frameToStep(frame);
 			double t = player.getStepTime(stepNumber) / 1000.0;
 			if (t < 0)
 				continue; // indicates the time is unknown
@@ -438,19 +421,21 @@ public class Vector extends TTrack {
 			double ycomp = step.getYComponent();
 			double wxc = coords.imageToWorldXComponent(frame, xcomp, ycomp);
 			double wyc = coords.imageToWorldYComponent(frame, xcomp, ycomp);
-			// append the data to the data sets
-			xComp.append(t, wxc);
-			yComp.append(t, wyc);
-			mag.append(t, Math.sqrt(wxc * wxc + wyc * wyc));
-			ang.append(t, Math.atan2(wyc, wxc));
-			// get the tail data
 			Point2D tailPosition = step.getTail().getWorldPosition(trackerPanel);
-			xTail.append(t, tailPosition.getX());
-			yTail.append(t, tailPosition.getY());
-			stepNum.append(t, stepNumber);
-			frameNum.append(t, frame);
-			dataFrames.add(new Integer(frame));
+			// append the data to the data sets
+			validData[0][pt] = wxc; // x
+			validData[1][pt] = wyc; // y
+			validData[2][pt] = Math.sqrt(wxc * wxc + wyc * wyc); // mag
+			validData[3][pt] = Math.atan2(wyc, wxc); // ang
+			validData[4][pt] = tailPosition.getX(); // xTail
+			validData[5][pt] = tailPosition.getY(); // yTail
+			validData[6][pt] = stepNumber; // step
+			validData[7][pt] = frame; // frame
+			validData[8][pt] = t;
+			dataFrames.add(frame);
+			pt++;
 		}
+		clearColumns(data, count, dataVariables, "Vector.Data.Description.", validData, pt);
 	}
 
 	/**

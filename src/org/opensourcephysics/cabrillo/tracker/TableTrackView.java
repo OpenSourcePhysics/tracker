@@ -654,6 +654,7 @@ public class TableTrackView extends TrackView {
 		OSPRuntime.postEvent(new Runnable() {
 			@Override
 			public synchronized void run() {
+				System.out.println("TableTrackView highlightrows " + highlightRows);
 				dataTable.clearSelection();
 				if (highlightRows.isEmpty() || !isRefreshEnabled()) {
 					return;
@@ -664,7 +665,7 @@ public class TableTrackView extends TrackView {
 //						dataTable.addRowSelectionInterval(i, row);
 //					}
 					if (highlightRows.cardinality() == 1) {
-						dataTable.scrollRectToVisible(dataTable.getCellRect(highlightRows.nextSetBit(0), 0, true));
+						dataTable.scrollRowToVisible(highlightRows.nextSetBit(0));
 					}
 				} catch (Exception e) {
 					   // occasionally throws exception during loading or playing?
@@ -875,7 +876,7 @@ public class TableTrackView extends TrackView {
 		Dataset frames = trackDataManager.getFrameDataset();
 		if (frames != null) {
 				double[] vals = frames.getYPoints();
-				for (int j = 0; j < vals.length; j++) {
+				for (int j = vals.length; --j >= 0;) {
 					if (vals[j] == frame) {
 						return dataTable.getSortedRow(j);
 					}
@@ -1795,9 +1796,9 @@ public class TableTrackView extends TrackView {
 			TTrack track = getTrack();
 			// convert row to frame number
 			// DatasetManager data = track.getData(track.trackerPanel);
-			int index = trackDataManager.getDatasetIndex("frame"); //$NON-NLS-1$
-			if (index > -1) {
-				double frame = trackDataManager.getDataset(index).getYPoints()[row];
+			Dataset frameSet = trackDataManager.getFrameDataset(); //$NON-NLS-1$
+			if (frameSet != null) {
+				double frame = frameSet.getYPoints()[row];
 				return track.getTextColumnEntry(columnName, (int) frame);
 			}
 			// if no frame numbers defined (eg line profile), use row number
@@ -1817,9 +1818,9 @@ public class TableTrackView extends TrackView {
 			TTrack track = getTrack();
 			// convert row to frame number
 			// DatasetManager data = track.getData(track.trackerPanel);
-			int index = trackDataManager.getDatasetIndex("frame"); //$NON-NLS-1$
-			if (index > -1) {
-				double frame = trackDataManager.getDataset(index).getYPoints()[row];
+			Dataset frameSet = trackDataManager.getFrameDataset(); //$NON-NLS-1$
+			if (frameSet != null) {
+				double frame = frameSet.getYPoints()[row];
 				if (track.setTextColumnEntry(columnName, (int) frame, (String) value)) {
 					trackerPanel.changed = true;
 				}

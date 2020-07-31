@@ -1236,62 +1236,47 @@ public class CircleFitter extends TTrack {
 	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
 		if (refreshDataLater || trackerPanel == null || data == null)
 			return;
-		dataFrames.clear();
 		// get the datasets: radius, x_center, y_center, step, frame, datapoints
-		int count = 0;
-		Dataset x_center = data.getDataset(count++);
-		Dataset y_center = data.getDataset(count++);
-		Dataset r = data.getDataset(count++);
-		Dataset dataCount = data.getDataset(count++);
-		Dataset stepNum = data.getDataset(count++);
-		Dataset frameNum = data.getDataset(count++);
-		// assign column names to the datasets
-		String time = dataVariables[0];
-		if (!x_center.getColumnName(0).equals(time)) { // not yet initialized
-			x_center.setXYColumnNames(time, dataVariables[1]);
-			y_center.setXYColumnNames(time, dataVariables[2]);
-			r.setXYColumnNames(time, dataVariables[3]);
-			stepNum.setXYColumnNames(time, dataVariables[4]);
-			frameNum.setXYColumnNames(time, dataVariables[5]);
-			dataCount.setXYColumnNames(time, dataVariables[8]);
-		} else
-			for (int i = 0; i < count; i++) {
-				data.getDataset(i).clear();
-			}
-		// fill dataDescriptions array
-		dataDescriptions = new String[count + 1];
-		for (int i = 0; i < dataDescriptions.length; i++) {
-			dataDescriptions[i] = TrackerRes.getString("CircleFitter.Data.Description." + i); //$NON-NLS-1$
-		}
 		// look thru steps and get data for those included in clip
+		// assign column names to the datasets
+//		Dataset x_center = data.getDataset(0);
+//		Dataset y_center = data.getDataset(1);
+//		Dataset r = data.getDataset(2);
+//		Dataset dataCount = data.getDataset(3);
+//		Dataset stepNum = data.getDataset(4);
+//		Dataset frameNum = data.getDataset(5);
+		int count = 6;
+		String time = dataVariables[0];
+		if (data.getDataset(0).getColumnName(0).equals(time)) { // not yet initialized
+			data.setXYColumnNames(0, time, dataVariables[1]); // x_center
+			data.setXYColumnNames(1, time, dataVariables[2]); // y_center
+			data.setXYColumnNames(2, time, dataVariables[3]); // r
+			data.setXYColumnNames(3, time, dataVariables[8]); // dataCount   NOTE!
+			data.setXYColumnNames(4, time, dataVariables[4]); // step
+			data.setXYColumnNames(5, time, dataVariables[5]); // frame
+		}
 		VideoPlayer player = trackerPanel.getPlayer();
 		VideoClip clip = player.getVideoClip();
 		int len = clip.getStepCount();
-		double[][] validData = new double[data.getDatasets().size() + 1][len];
-		for (int n = 0; n < len; n++) {
-			int frame = clip.stepToFrame(n);
-			CircleFitterStep next = (CircleFitterStep) getStep(frame);
-			next.dataVisible = true;
-			// get the step number and time
-			double t = player.getStepTime(n) / 1000.0;
-			validData[0][n] = t;
-			Point2D center = next.getWorldCenter();
-			validData[1][n] = center == null ? Double.NaN : center.getX();
-			validData[2][n] = center == null ? Double.NaN : center.getY();
-			double radius = next.getWorldRadius();
-			validData[3][n] = radius;
-			validData[4][n] = n;
-			validData[5][n] = frame;
-			validData[6][n] = next.getValidDataPoints().size();
+		double[][] validData = new double[count + 1][len];
+		dataFrames.clear();
+		for (int i = 0; i < len; i++) {
+			int frame = clip.stepToFrame(i);
+			CircleFitterStep step = (CircleFitterStep) getStep(frame);
+			step.dataVisible = true;
+			double t = player.getStepTime(i) / 1000.0;
+			Point2D center = step.getWorldCenter();
+			validData[0][i] = center == null ? Double.NaN : center.getX();
+			validData[1][i] = center == null ? Double.NaN : center.getY();
+			validData[2][i] = step.getWorldRadius();
+			validData[3][i] = step.getValidDataPoints().size();
+			validData[4][i] = i;
+			validData[5][i] = frame;
+			validData[6][i] = t;
 			dataFrames.add(frame);
 		}
-		// append the data to the data set
-		x_center.append(validData[0], validData[1]);
-		y_center.append(validData[0], validData[2]);
-		r.append(validData[0], validData[3]);
-		stepNum.append(validData[0], validData[4]);
-		frameNum.append(validData[0], validData[5]);
-		dataCount.append(validData[0], validData[6]);
+		// don't mess with these assignments
+		clearColumns(data, count, null, "CircleFitter.Data.Description.", validData, len);
 	}
 
 	/**

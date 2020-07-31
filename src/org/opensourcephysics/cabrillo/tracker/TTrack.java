@@ -3828,4 +3828,30 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		}
 	}
 
+	protected void clearColumns(DatasetManager data, int count, String[] dataVariables, String desc,
+			double[][] validData, int len) {
+		String v0 = (dataVariables == null ? null : dataVariables[0]);
+		if (v0 == null || data.getDataset(0).getColumnName(0).equals(v0)) { 
+			for (int i = 0; i < count; i++) {
+				data.getDataset(i).clear();
+			}
+		} else {
+			// not yet initialized
+			for (int i = 0; i < count; i++)
+				data.setXYColumnNames(i, v0, dataVariables[i + 1]);
+		}
+		dataDescriptions = new String[count + 1];
+		if (desc != null) {
+			for (int i = 0; i <= count; i++) {
+				dataDescriptions[i] = TrackerRes.getString(desc + i); // $NON-NLS-1$
+			}
+		}
+		if (validData != null) {
+			double[] t = validData[count];
+			for (int i = 0; i < count; i++) {
+				data.getDataset(i).append(t, validData[i], len);
+			}
+		}
+	}
+
 }
