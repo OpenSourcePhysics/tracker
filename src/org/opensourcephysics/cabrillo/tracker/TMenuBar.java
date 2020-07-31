@@ -627,8 +627,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			file_export_thumbnailItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					ThumbnailDialog exporter = ThumbnailDialog.getDialog(trackerPanel, true);
-					exporter.setVisible(true);
+					ThumbnailDialog.getDialog(trackerPanel, true).setVisible(true);
 				}
 			});
 			file_exportMenu.add(file_export_thumbnailItem);

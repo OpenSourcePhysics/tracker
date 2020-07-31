@@ -96,7 +96,6 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.ImageVideoType;
@@ -105,7 +104,6 @@ import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.core.VideoType;
-import org.opensourcephysics.media.mov.MovieVideoI;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.JarTool;
 import org.opensourcephysics.tools.LaunchBuilder;
@@ -130,17 +128,26 @@ import javajs.async.AsyncFileChooser;
 
 public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 
+	/**
+	 * A class to contain the export operation for a specific file, particularly
+	 * useful for asynchronous operation.
+	 * 
+	 * @author hansonr
+	 *
+	 */
 	private class Export {
 		private TrackerPanel panel;
-		private String target;
 
-		private boolean useExporter;
-		private String originalPath;
-		private ArrayList<File> zipList;
-		private PropertyChangeListener listener;
-		private ExportVideoDialog exporter;
-		private String trkPath;
 		private String name;
+		private String originalPath;
+		private String target;
+		private String trkPath;
+
+		private ArrayList<File> zipList;
+
+		private ExportVideoDialog exporter;
+		private PropertyChangeListener listener;
+		
 		private String vidDir;
 
 		protected Export(ArrayList<File> zipList, String name, TrackerPanel panel, String originalPath, String target,
@@ -152,7 +159,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			this.target = target;
 			this.trkPath = target;
 			this.exporter = exporter;
-			
 		}
 
 		protected void export() {
@@ -277,11 +283,11 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			zipList.add(new File(control.write(trkPath)));
 			nextExport(zipList);
 		}
-		
+
 		/**
 		 * Modifies a TrackerPanel XMLControl to work with a trimmed video clip.
 		 * 
-		 * @param control  the XMLControl to be modified
+		 * @param control the XMLControl to be modified
 		 */
 		private void modifyControlForClip(XMLControl control) {
 			VideoPlayer player = panel.getPlayer();
@@ -299,7 +305,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				VideoType videoType = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 				String trkDir = getTempDirectory();
 				String relPath = XML.getPathRelativeTo(target, trkDir);
-				
+
 				Video newVideo = videoType.getVideo(XML.getName(target), vidDir);
 				clipXMLControl.setValue("video", newVideo); //$NON-NLS-1$
 
@@ -308,7 +314,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					videoControl.setValue("path", relPath); //$NON-NLS-1$
 					videoControl.setValue("filters", null); //$NON-NLS-1$
 					if (videoType instanceof ImageVideoType) {
-						videoControl.setValue("paths", null); //$NON-NLS-1$ // eliminates unneeded full list of image files
+						videoControl.setValue("paths", null); //$NON-NLS-1$ // eliminates unneeded full list of image
+																// files
 						videoControl.setValue("delta_t", player.getMeanStepDuration()); //$NON-NLS-1$
 
 					}
@@ -547,7 +554,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			}
 		}
 
-
 	}
 
 	protected void nextExport(ArrayList<File> zipList) {
@@ -627,8 +633,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	protected ArrayList<ParticleModel> badModels; // particle models with start frames not included in clip
 	protected String videoIOPreferredExtension;
 	protected boolean isVisible;
-	private Iterator<TrackerPanel> panelIterator;
 	private Iterator<Export> exportIterator;
+	private File lastTRZ = new File("");
 
 	/**
 	 * Returns an ExportZipDialog for a TrackerPanel.
@@ -2054,13 +2060,13 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				} else if (originalPath != null) { // $NON-NLS-1$
 					// copy or extract original video to target directory
 					String vidDir = getTempDirectory() + videoSubdirectory;
-					String path = vidDir + File.separator + XML.getName(originalPath); //$NON-NLS-1$
+					String path = vidDir + File.separator + XML.getName(originalPath); // $NON-NLS-1$
 					// check if target video file already exists
 					boolean videoexists = new File(path).exists();
 					if (!videoexists) {
 						new File(vidDir).mkdirs();
 						if (!createTarget(originalPath, new File(path)))
-								return;
+							return;
 					}
 				}
 			}
@@ -2078,7 +2084,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				javax.swing.JOptionPane.ERROR_MESSAGE);
 		return false;
 	}
-
 
 	/**
 	 * Adds "added files" to the zip list
@@ -2361,7 +2366,6 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		return true;
 	}
 
-
 	/**
 	 * Returns a list of particle models with start frames not included in the video
 	 * clips. These models cannot be exported.
@@ -2610,13 +2614,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 //    }
 		chooser.setAccessory(null);
 		chooser.setMultiSelectionEnabled(false);
+		chooser.setSelectedFile(lastTRZ);
 		int result = chooser.showSaveDialog(null);
-		File chooserFile = chooser.getSelectedFile();
 		if (result != JFileChooser.APPROVE_OPTION) {
-			chooser.setSelectedFile(new File("")); //$NON-NLS-1$
+			chooser.setSelectedFile(lastTRZ = new File("")); //$NON-NLS-1$
 			chooser.resetChoosableFileFilters();
 			return null;
 		}
+		File chooserFile = lastTRZ = chooser.getSelectedFile();
 		// Note that
 		// check that target is not currently open in Tracker--can't overwrite open TRZ
 		if (!OSPRuntime.isJS && chooserFile.exists()) {
@@ -2701,7 +2706,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		String vidDir = getTempDirectory() + videoSubdirectory;
 		new File(vidDir).mkdirs();
 		String videoName = XML.stripExtension(trkName) + "." + extension; //$NON-NLS-1$
-		return vidDir + File.separator + videoName; //$NON-NLS-1$
+		return vidDir + File.separator + videoName; // $NON-NLS-1$
 	}
 
 	private String getZIPTarget() {
@@ -2717,6 +2722,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 	}
 
 	private String tempDir;
+
 	private String getTempDirectory() {
 		if (tempDir == null)
 			tempDir = new File(System.getProperty("java.io.tmpdir"), "tracker" + new Random().nextInt()).toString()
@@ -2731,7 +2737,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOSAVED) && target != null) { //$NON-NLS-1$
+			if (e.getPropertyName().equals(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOSAVED) && target != null) { // $NON-NLS-1$
 				// event's new value is saved file name (differ from original target name for
 				// image videos)
 				targetVideo = e.getNewValue().toString();
