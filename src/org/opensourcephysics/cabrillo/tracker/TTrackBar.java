@@ -454,16 +454,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected void refresh() {
 		if (!trackerPanel.isPaintable())
 			return;
-		if (OSPRuntime.isJS || SwingUtilities.isEventDispatchThread()) {
+		OSPRuntime.postEvent(() -> {
 			rebuild();
-		} else {
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					rebuild();
-				}
-			});
-		}
+		});
 
 	}
 

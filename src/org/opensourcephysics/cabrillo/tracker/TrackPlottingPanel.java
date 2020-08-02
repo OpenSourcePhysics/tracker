@@ -42,6 +42,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -139,7 +140,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	private JMenuItem guestsItem;
 	
 	protected String xLabel, yLabel, title;
-	protected TreeSet<Integer> highlightIndices = new TreeSet<Integer>(); // indices of highlighted points
 	protected ItemListener xListener, yListener;
 	protected PlotTrackView plotTrackView;
 	protected boolean isCustom;
@@ -161,6 +161,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	private int datasetCount;
 
 	boolean selectionEnabled = true;
+	final public BitSet bsHighlight = new BitSet();
 
 	/**
 	 * Constructs a TrackPlottingPanel for a track.
@@ -948,18 +949,14 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		}
 
 		// refresh highlighted indices
-		dataset.clearHighlights();
-		for (int n : highlightIndices) {
-			dataset.setHighlighted(n, true);
-		}
+		dataset.setHighlights(bsHighlight);
 
 		// refresh plot coordinates
 		int plotIndex = -1;
-		if (highlightIndices.size() == 1) {
-			plotIndex = highlightIndices.toArray(new Integer[1])[0];
+		if (bsHighlight.cardinality() == 1) {
+			plotIndex = bsHighlight.nextSetBit(0);
 		}
 		showPlotCoordinates(plotIndex);
-// done in setMessage		TFrame.repaintT(this);
 	}
 
 	/**
@@ -1098,18 +1095,18 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		return plotAxes.getScaleSetter().isVisible() && super.requestFocusInWindow();
 	}
 
-	/**
-	 * Adds a highlight for the specified frame number.
-	 *
-	 * @param frameNumber the frame number
-	 */
-	protected void addHighlight(int frameNumber) {
-		// add data index to highlightIndices if found
-		TTrack track = TTrack.getTrack(trackID);
-		int index = track.getDataIndex(frameNumber);
-		if (index > -1)
-			highlightIndices.add(index);
-	}
+// BH note that all other highlights use frameNumber directly, not getDataIndex	
+//	/**
+//	 * Adds a highlight for the specified frame number.
+//	 *
+//	 * @param frameNumber the frame number
+//	 */
+//	protected void addHighlight(int frameNumber) {
+//		// add data index to highlightIndices if found
+//		int index = TTrack.getTrack(trackID).getDataIndex(frameNumber);
+//		if (index > -1)
+//			bsHighlight.set(index);
+//	}
 
 	/**
 	 * Sets the x variable by name.
@@ -1879,6 +1876,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	public void clearPopup() {
 		popup = null;
 		popupmenu = null;
+	}
+
+	public void setHighlights(BitSet highlightFrames) {
+		bsHighlight.clear();
+		bsHighlight.or(highlightFrames);
 	}
 
 }

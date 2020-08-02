@@ -90,6 +90,7 @@ import javax.swing.SpinnerListModel;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.event.ChangeEvent;
@@ -845,7 +846,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					}
 				}
 				if (active && !paused) { // actively tracking
-					OSPRuntime.postEvent(stepper);
+					SwingUtilities.invokeLater(stepper);
 				} else if (stepping) { // user set the frame number, so stop stepping
 					stop(true, false);
 				} else {
@@ -3106,11 +3107,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 * Refreshes the titles and labels.
 		 */
 		protected void refreshStrings() {
-			OSPRuntime.postEvent(new Runnable() {
-				@Override
-				public void run() {
-					refreshStringsAsync();
-				}
+			SwingUtilities.invokeLater(() -> {
+				refreshStringsAsync();
 			});
 		}
 
@@ -3186,11 +3184,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 * Refreshes the buttons and layout.
 		 */
 		protected void refreshButtons() {
-			OSPRuntime.postEvent(new Runnable() {
-				@Override
-				public void run() {
-					refreshButtonsAsync();
-				}
+			SwingUtilities.invokeLater(() -> {
+				refreshButtonsAsync();
 			});
 		}
 
@@ -3287,11 +3282,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			TTrack track = getTrack();
 			if (track != null && this.isVisible())
 				track.setMarkByDefault(false);
-			OSPRuntime.postEvent(new Runnable() {
-				@Override
-				public void run() {
-					refreshGUIAsync();
-				}
+			SwingUtilities.invokeLater(() -> {
+				refreshGUIAsync();
 			});
 		}
 
@@ -3359,11 +3351,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				pointDropdown.setSelectedItem(toSelect);
 			}
 			pointDropdown.setName(""); //$NON-NLS-1$
-			OSPRuntime.postEvent(new Runnable() {
-				@Override
-				public void run() {
-					startButton.requestFocusInWindow();
-				}
+			SwingUtilities.invokeLater(() -> {
+				startButton.requestFocusInWindow();
 			});
 		}
 
@@ -3374,11 +3363,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			if (refreshPosted)
 				return;
 			refreshPosted = true;
-			OSPRuntime.postEvent(new Runnable() {
-				@Override
-				public void run() {
-					refreshIconsPosted();
-				}
+			SwingUtilities.invokeLater(() -> {
+				refreshIconsPosted();
 			});
 
 		}
@@ -3411,26 +3397,23 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 * @param keyFrame the key frame with the template matcher
 		 */
 		protected void replaceIcons(final KeyFrame keyFrame) {
-			OSPRuntime.postEvent(new Runnable() {
-				@Override
-				public void run() {
-					TTrack track = getTrack();
-					if (trackerPanel.getVideo() == null || track == null) {
-						templateImageLabel.setIcon(null);
-						matchImageLabel.setIcon(null);
-						return;
-					}
-					keyFrame.setTemplateMatcher(null); // triggers creation of new matcher
-					TemplateMatcher matcher = getTemplateMatcher(); // creates new matcher
-					if (matcher != null) {
-						// initialize keyFrame and matcher
-						keyFrame.setTemplate(matcher); // also sets template icon
-						Icon icon = keyFrame.getTemplateIcon();
-						keyFrame.setMatchIcon(icon);
-						matchImageLabel.setIcon(icon);
-						templateImageLabel.setIcon(icon);
-						pack();
-					}
+			SwingUtilities.invokeLater(() -> {
+				TTrack track = getTrack();
+				if (trackerPanel.getVideo() == null || track == null) {
+					templateImageLabel.setIcon(null);
+					matchImageLabel.setIcon(null);
+					return;
+				}
+				keyFrame.setTemplateMatcher(null); // triggers creation of new matcher
+				TemplateMatcher matcher = getTemplateMatcher(); // creates new matcher
+				if (matcher != null) {
+					// initialize keyFrame and matcher
+					keyFrame.setTemplate(matcher); // also sets template icon
+					Icon icon = keyFrame.getTemplateIcon();
+					keyFrame.setMatchIcon(icon);
+					matchImageLabel.setIcon(icon);
+					templateImageLabel.setIcon(icon);
+					pack();
 				}
 			});
 

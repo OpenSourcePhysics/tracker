@@ -54,6 +54,9 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 
 	protected boolean forceRefresh = false;
 	
+	protected boolean highlightVisible = true;
+	final protected BitSet highlightFrames = new BitSet();
+	final protected BitSet highlightRows = new BitSet(); 
 
 	// toolbarComponents and GUI
 	
@@ -61,6 +64,8 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	private Icon trackIcon;
 
 	protected int myID;
+
+	protected boolean clipAdjusting;
 
 	
 	// constructor
@@ -182,6 +187,48 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	public static String trimDefined(String name) {
 		int pt = (name == null ? -1 : name.indexOf(DEFINED_AS));
 		return TeXParser.removeSubscript(pt >= 0 ? name.substring(0, pt) : name);
+	}
+
+	/**
+	 * The user is adjusting the clip using the carets under the VideoPlayer slider.
+	 * Minimize the amount of updates.
+	 * 
+	 * @param frameNo
+	 * @param adjusting
+	 */
+	public void setClipAdjusting(int frameNo, boolean adjusting) {
+		clipAdjusting = adjusting;
+		if (!adjusting) {
+			// Columns will not have changed, but we need a full rewrite of the rows.
+			// Give the sytem a chance to propagate all the property changes
+			// before updating.
+			SwingUtilities.invokeLater(() -> {
+				refresh(frameNo, DataTable.MODE_UPDATE_ROWS);
+			});
+		}
+	}
+	
+	boolean isClipAdjusting() {
+		return clipAdjusting;
+	}
+
+	/**
+	 * While this is sufficient for PlotTrackView, TableTrackView will
+	 * still have to convert this to row numbers;
+	 * 
+	 * @param frameNumber
+	 */
+	public void highlightFrames(int frameNumber) {
+		highlightFrames.clear();
+		if (trackerPanel.selectedSteps.size() > 0) {
+			for (Step step : trackerPanel.selectedSteps) {
+				if (step.getTrack() != this.getTrack())
+					continue;
+				highlightFrames.set(step.getFrameNumber());
+			}
+		} else {
+			highlightFrames.set(frameNumber);
+		}
 	}
 
 }

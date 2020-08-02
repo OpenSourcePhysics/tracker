@@ -774,7 +774,7 @@ abstract public class ParticleModel extends PointMass {
 	 */
 	protected void refreshSteps(String why) {
 		locked = true;
-		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps00 " + why, Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps00 " + why, Performance.TIME_MARK));
 
 		// return if this is an empty dynamic system
 		if (refreshStepsLater || trackerPanel == null
@@ -799,8 +799,8 @@ abstract public class ParticleModel extends PointMass {
 		}
 		trackerPanel.getTFrame().holdPainting(true);
 		start = lastValidFrame;
-		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps0 " + start + " " + end + " " + nCalc,
-				Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps0 " + start + " " + end + " " + nCalc,
+		//		Performance.TIME_MARK));
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(
 					this.getClass().getSimpleName() + this.hashCode() + " refreshing steps " + start + " to " + end); //$NON-NLS-1$ //$NON-NLS-2$
@@ -926,7 +926,7 @@ abstract public class ParticleModel extends PointMass {
 			model.locked = true;
 		}
 
-		OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps " + nCalc, Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps " + nCalc, Performance.TIME_MARK));
 		trackerPanel.getTFrame().holdPainting(false);
 		if (!refreshDerivsLater && !singleStep) {
 			notifySteps();

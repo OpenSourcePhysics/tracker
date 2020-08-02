@@ -2008,9 +2008,9 @@ public class PointMass extends TTrack {
 		if (isEmpty() || refreshDataLater)
 			return;
 
-		OSPLog.debug(Performance.timeCheckStr(
-				"ParticleModel.updateDerivatives0 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
-				Performance.TIME_MARK));
+//		OSPLog.debug(Performance.timeCheckStr(
+//				"ParticleModel.updateDerivatives0 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
+//				Performance.TIME_MARK));
 
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(this.getClass().getSimpleName() + this.hashCode() + " update derivatives " + startFrame //$NON-NLS-1$
@@ -2018,9 +2018,9 @@ public class PointMass extends TTrack {
 		for (int i = tList.size(); --i >= 0;) {
 			updateDerivatives(tList.get(i), startFrame, stepCount);
 		}
-		OSPLog.debug(Performance.timeCheckStr(
-				"ParticleModel.updateDerivatives1 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
-				Performance.TIME_MARK));
+//		OSPLog.debug(Performance.timeCheckStr(
+//				"ParticleModel.updateDerivatives1 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
+//				Performance.TIME_MARK));
 	}
 
 	/**
@@ -2077,7 +2077,7 @@ public class PointMass extends TTrack {
 		}
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 
-		OSPLog.debug("PointMass " + name + " updateDerivatives start " + startFrame + " for steps " + stepCount);
+//		OSPLog.debug("PointMass " + name + " updateDerivatives start " + startFrame + " for steps " + stepCount);
 
 		// initialize data arrays
 		if (xData.length < steps.array.length) {

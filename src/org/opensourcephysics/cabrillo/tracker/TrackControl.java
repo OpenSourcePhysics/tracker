@@ -24,7 +24,6 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Point;
@@ -66,9 +65,6 @@ public class TrackControl extends JDialog
   protected int trackCount;
   protected boolean isVisible;
   protected KeyListener shiftKeyListener;
-
-  protected Point pt0;
-
   
   /**
    * Gets the track control for the specified tracker panel.
@@ -124,8 +120,7 @@ public class TrackControl extends JDialog
     trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); //$NON-NLS-1$
 //    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
     TFrame frame = trackerPanel.getTFrame();
-	pt0 = frame.getLocation();
-	frame.addFollower((Component) this, pt0);
+	frame.addFollower(this, null);
   }
 
 	@Override

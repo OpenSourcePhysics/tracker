@@ -105,7 +105,6 @@ import org.opensourcephysics.display.DisplayRes;
 import org.opensourcephysics.display.MeasuredImage;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.VideoClip;
@@ -166,15 +165,12 @@ public class TableTrackView extends TrackView {
 		refreshing = b;		
 	}
 
-	private boolean highlightVisible = true;
 	private boolean refreshed = false;
 	private int leadCol;
 
 	final private Font font = new JTextField().getFont();
-	final private BitSet highlightFrames = new BitSet();
 	final private Map<String, TableCellRenderer> degreeRenderers = new HashMap<String, TableCellRenderer>();
 
-	final protected BitSet highlightRows = new BitSet(); 
 	final protected ArrayList<String> textColumnNames = new ArrayList<String>();
 	final protected Set<String> textColumnsVisible = new TreeSet<String>();
 
@@ -349,6 +345,8 @@ public class TableTrackView extends TrackView {
 	@Override
 	public void refresh(int frameNumber, int mode) {
 
+		if (isClipAdjusting())
+			return;
 		// main entry point for a new or revised track -- from TrackChooserTView
 
 		forceRefresh = true; // for now, at least
@@ -356,7 +354,7 @@ public class TableTrackView extends TrackView {
 		if (!forceRefresh && !isRefreshEnabled() || !viewParent.isViewPaneVisible())
 			return;
 
-		OSPLog.debug("TableTrackView.refresh " + myID + " " + Integer.toHexString(mode) + "  "+ frameNumber + " " + isRefreshEnabled() + " " + trackerPanel.getPlayer().getStepNumber());
+		//OSPLog.debug("TableTrackView.refresh " + myID + " " + Integer.toHexString(mode) + "  "+ frameNumber + " " + isRefreshEnabled() + " " + trackerPanel.getPlayer().getStepNumber());
 
 
 		forceRefresh = false;
@@ -364,7 +362,7 @@ public class TableTrackView extends TrackView {
 			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		dataTable.clearSelection();
 		TTrack track = getTrack();
-		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + " track=" + track);
+		//OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + " track=" + track);
 		try {
 			trackDataManager = track.getData(trackerPanel);
 			// copy datasets into table data based on checkbox states
@@ -415,18 +413,7 @@ public class TableTrackView extends TrackView {
 		} catch (Exception e) {
 			OSPLog.debug("TableTrackView exception " + e);
 		}
-		// set the highlighted rows
-		highlightFrames.clear();
-		if (trackerPanel.selectedSteps.size() > 0) {
-			for (Step step : trackerPanel.selectedSteps) {
-				if (step.getTrack() != this.getTrack())
-					continue;
-				highlightFrames.set(step.getFrameNumber());
-			}
-		} else {
-			highlightFrames.set(frameNumber);
-		}
-		setHighlighted(highlightFrames);
+		highlightTableRows(frameNumber);
 	}
 
 	private boolean setUnitsAndTooltip(String yTitle, String root, boolean degrees) {
@@ -633,29 +620,26 @@ public class TableTrackView extends TrackView {
 	}
 
 	/**
-	 * Sets the highlighted frame numbers.
+	 * Highlight the table rows based on frame numbers.
 	 *
 	 * @param frameNumbers the frame numbers
 	 */
-	protected void setHighlighted(BitSet frameNumbers) {
+	private void highlightTableRows(int frameNumber) {
+		highlightFrames(frameNumber);
 		// assume no highlights
-		int n = dataTable.getRowCount();
-		if (!highlightVisible || n == 0)
-			return;
-
-		// get rows to highlight
 		highlightRows.clear();
-		for (int i = frameNumbers.nextSetBit(0); i >= 0; i = frameNumbers.nextSetBit(i + 1)) {
-			int row = getRowFromFrame(i);
-			if (row >= 0 && row < n) {
-				highlightRows.set(i);
-			}
+		if (!highlightVisible || dataTable.getRowCount() == 0)
+			return;
+		Dataset frames = trackDataManager.getFrameDataset();
+		if (frames != null) {
+				double[] vals = frames.getYPoints();
+				for (int j = vals.length; --j >= 0;) {
+					if (highlightFrames.get((int) vals[j]))
+						highlightRows.set(dataTable.getSortedRow(j));
+				}
 		}
 		// set highlighted rows if found
-		OSPRuntime.postEvent(new Runnable() {
-			@Override
-			public synchronized void run() {
-				System.out.println("TableTrackView highlightrows " + highlightRows);
+//		SwingUtilities.invokeLater(() -> {
 				dataTable.clearSelection();
 				if (highlightRows.isEmpty() || !isRefreshEnabled()) {
 					return;
@@ -675,8 +659,7 @@ public class TableTrackView extends TrackView {
 				}
 				int cols = dataTable.getColumnCount();
 				dataTable.setColumnSelectionInterval(0, cols - 1);
-			}
-		});
+//		});
 
 	}
 
@@ -864,26 +847,6 @@ public class TableTrackView extends TrackView {
 		String xVar = track.data.getDataset(0).getXColumnName();
 		int frameNum = track.getFrameForData(xVar, null, new double[] { val });
 		return frameNum;
-	}
-
-	/**
-	 * Gets the view row for a given frame number. Returns -1 if none found.
-	 *
-	 * @param row the table row
-	 * @return the frame number
-	 */
-	protected int getRowFromFrame(int frame) {
-		// look for "frame" dataset in data
-		Dataset frames = trackDataManager.getFrameDataset();
-		if (frames != null) {
-				double[] vals = frames.getYPoints();
-				for (int j = vals.length; --j >= 0;) {
-					if (vals[j] == frame) {
-						return dataTable.getSortedRow(j);
-					}
-				}
-		}
-		return -1;
 	}
 
 	/**
@@ -2206,6 +2169,7 @@ public class TableTrackView extends TrackView {
 		}
 
 		private void createGUI() {
+			((TFrame)getOwner()).addFollower(this, null);
 			haveGUI = true;
 			columnsPanel = new JPanel();
 			columnsPanel.setBackground(Color.WHITE);

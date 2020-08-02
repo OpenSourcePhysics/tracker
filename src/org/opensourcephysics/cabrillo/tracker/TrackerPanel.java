@@ -2211,7 +2211,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @return true if marking (ie next mouse click will mark a TPoint)
 	 */
 	protected boolean setCursorForMarking(boolean invert, InputEvent e) {
-		if (Tracker.isZoomInCursor(getCursor()) || Tracker.isZoomOutCursor(getCursor()))
+		if (isClipAdjusting() 
+				|| Tracker.isZoomInCursor(getCursor()) || Tracker.isZoomOutCursor(getCursor()))
 			return false;
 		boolean markable = false;
 		boolean marking = false;
@@ -2284,6 +2285,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return marking;
 	}
 	
+	private boolean isClipAdjusting() {
+		return (getPlayer() != null && getPlayer().getVideoClip().isAdjusting());
+	}
+
 	/**
 	 * Handles keypress events for selected points.
 	 *
@@ -4293,7 +4298,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	public boolean isPaintable() {
-		if (getTopLevelAncestor() == null || !isVisible() || getHeight() <= 0 || getIgnoreRepaint() || getTFrame() == null || !frame.isPaintable()) {
+		if (getTopLevelAncestor() == null 
+				|| !isVisible() 
+				|| getHeight() <= 0 
+				|| getIgnoreRepaint() 
+				|| getTFrame() == null 
+				|| !frame.isPaintable()
+				|| isClipAdjusting()) {
 			return false;
 		}
 		return true;

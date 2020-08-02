@@ -64,6 +64,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -482,11 +483,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// OSPLog.debug("TMenuBar.refresh skipping " + whereFrom );
 			return;
 		}
-		OSPRuntime.postEvent(new Runnable() {
-			@Override
-			public synchronized void run() {
-				refreshAll(whereFrom);
-			}
+		SwingUtilities.invokeLater(() -> {
+			refreshAll(whereFrom);
 		});
 	}
 

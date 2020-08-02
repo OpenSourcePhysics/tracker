@@ -1517,22 +1517,25 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		return -1;
 	}
 
-	/**
-	 * Gets the data index for a specified frame.
-	 *
-	 * @param frameNumber the frame number
-	 * @return the data index, or -1 if not found
-	 */
-	public int getDataIndex(int frameNumber) {
-		if (!data.getDatasets().isEmpty()) {
-			// find data index
-			for (int i = 0; i < dataFrames.size(); i++) {
-				if (frameNumber == dataFrames.get(i))
-					return i;
-			}
-		}
-		return -1;
-	}
+//	/**
+//	 * BH: never called -- if it is, then we have a problem in TrackPlottingPanel,
+//	 * because that would be the only place that makes this distinction.
+//	 * 
+//	 * Gets the data index for a specified frame.
+//	 *
+//	 * @param frameNumber the frame number
+//	 * @return the data index, or -1 if not found
+//	 */
+//	public int getDataIndex(int frameNumber) {
+//		if (!data.getDatasets().isEmpty()) {
+//			// find data index
+//			for (int i = 0; i < dataFrames.size(); i++) {
+//				if (frameNumber == dataFrames.get(i))
+//					return i;
+//			}
+//		}
+//		return -1;
+//	}
 
 	/**
 	 * Gets a map of number fields by name.

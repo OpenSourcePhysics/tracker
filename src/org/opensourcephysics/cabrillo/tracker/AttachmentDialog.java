@@ -71,7 +71,6 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	protected IntegerField startField, countField;
 	protected JLabel startLabel, countLabel;
 	protected boolean refreshing;
-	private Point pt0;
 
 	/**
 	 * Constructs an AttachmentDialog.
@@ -88,8 +87,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); // $NON-NLS-1$
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		TFrame frame = trackerPanel.getTFrame();
-		pt0 = frame.getLocation();
-		frame.addFollower(this, pt0);
+		frame.addFollower(this, null);
 		frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 		refreshGUI();
 	}

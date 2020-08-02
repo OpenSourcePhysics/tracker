@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumnModel;
 

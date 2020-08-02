@@ -42,15 +42,12 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.HighlightableDataset;
 import org.opensourcephysics.tools.FontSizer;
-
-import javajs.async.SwingJSUtils.Performance;
 
 /**
  * This displays plot views of a track.
@@ -65,7 +62,6 @@ public class PlotTrackView extends TrackView {
 	// data model
 	
 	protected DatasetManager data;
-	protected boolean highlightVisible = true;
 	protected int defaultPlotCount = 1;
 	private boolean isCustom;
 	protected boolean xAxesLinked;
@@ -96,14 +92,14 @@ public class PlotTrackView extends TrackView {
 	 */
 	public PlotTrackView(TTrack track, TrackerPanel panel, PlotTView view) {
 		super(track, panel, view, TView.VIEW_PLOT);
-		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr0 for " + track, Performance.TIME_MARK));
+//		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr0 for " + track, Performance.TIME_MARK));
 		// get the track data object (DatasetManager)
 		data = track.getData(trackerPanel);
 		// create the GUI
 		createGUI();
 		// set the track-specified initial plot properties
+		highlightVisible = !"false".equals(track.getProperty("highlights")); //$NON-NLS-1$ //$NON-NLS-2$
 		for (int i = 0; i < plots.length; i++) {
-			highlightVisible = !"false".equals(track.getProperty("highlights")); //$NON-NLS-1$ //$NON-NLS-2$
 			plots[i].setXVariable((String) track.getProperty("xVarPlot" + i)); //$NON-NLS-1$
 			plots[i].setYVariable((String) track.getProperty("yVarPlot" + i)); //$NON-NLS-1$
 			boolean lines = !"false".equals(track.getProperty("connectedPlot" + i)); //$NON-NLS-1$ //$NON-NLS-2$
@@ -123,8 +119,8 @@ public class PlotTrackView extends TrackView {
 			}
 			plots[i].isCustom = false;
 		}
-		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr1 for " + track + " plots=" + plots.length,
-				Performance.TIME_MARK));
+//		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr1 for " + track + " plots=" + plots.length,
+//				Performance.TIME_MARK));
 	}
 
 	/**
@@ -133,37 +129,22 @@ public class PlotTrackView extends TrackView {
 	 */
 	@Override
 	public void refresh(int frameNumber, int mode) {
-		if (!isRefreshEnabled() || !viewParent.isViewPaneVisible())
-			return;
-
-//		OSPLog.debug("PlotTrackView refresh type "+refreshType);
-//		if (Tracker.timeLogEnabled)
-//			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
-		TTrack track = getTrack();
-		if (track == null)
+		TTrack track;
+		if (!isRefreshEnabled() 
+				|| !viewParent.isViewPaneVisible()
+				|| (track = getTrack()) == null)
 			return;
 		track.getData(trackerPanel);
+		boolean haveSelection = (trackerPanel.selectedSteps.size() > 0);
+		Color trackColor = track.getColor();
+		Color mc = (trackColor.equals(Color.WHITE) ? Color.GRAY : trackColor);
+		Color hc = (haveSelection ? trackColor : Color.GRAY);
+		highlightFrames(frameNumber);
 		for (int i = 0; i < plots.length; i++) {
 			HighlightableDataset data = plots[i].getDataset();
-			data.setMarkerColor(track.getColor());
-			if (track.getColor().equals(Color.WHITE)) {
-				data.setMarkerColor(Color.GRAY);
-			}
-			// set up highlights
-			plots[i].highlightIndices.clear();
-			if (highlightVisible) {
-				if (trackerPanel.selectedSteps.size() > 0) {
-					data.setHighlightColor(track.getColor());
-					for (Step step : trackerPanel.selectedSteps) {
-						if (step.getTrack() != this.getTrack())
-							continue;
-						plots[i].addHighlight(step.getFrameNumber());
-					}
-				} else {
-					data.setHighlightColor(Color.GRAY);
-					plots[i].addHighlight(frameNumber);
-				}
-			}
+			data.setMarkerColor(mc);
+			data.setHighlightColor(hc);
+			plots[i].setHighlights(highlightFrames);
 			plots[i].plotData();
 		}
 		mainView.repaint();

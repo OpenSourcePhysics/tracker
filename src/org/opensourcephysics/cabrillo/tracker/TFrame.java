@@ -30,7 +30,6 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -42,7 +41,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 //import java.awt.event.ComponentListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -70,7 +68,6 @@ import javax.swing.Action;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
@@ -100,7 +97,6 @@ import javax.swing.event.HyperlinkListener;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.text.Document;
 
 import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
@@ -1976,16 +1972,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	protected void showTrackControl(final TrackerPanel panel) {
 		if (panel.getUserTracks().size() > 0) {
-			Runnable runner = new Runnable() {
-				@Override
-				public void run() {
-					TrackControl tc = TrackControl.getControl(panel);
-					if (tc.positioned && !tc.isEmpty()) {
-						tc.setVisible(true);
-					}
+			SwingUtilities.invokeLater(() -> {
+				TrackControl tc = TrackControl.getControl(panel);
+				if (tc.positioned && !tc.isEmpty()) {
+					tc.setVisible(true);
 				}
-			};
-			EventQueue.invokeLater(runner);
+			});
 		}
 	}
 
@@ -1996,20 +1988,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	protected void showNotes(final TrackerPanel panel) {
 		final JButton button = getToolBar(panel).notesButton;
-		Runnable runner = new Runnable() {
-			@Override
-			public void run() {
-				TTrack track = panel.getSelectedTrack();
-				if (!panel.hideDescriptionWhenLoaded && ((track != null && track.getDescription() != null
-						&& !track.getDescription().trim().equals("")) || //$NON-NLS-1$
-				(track == null && panel.getDescription() != null && !panel.getDescription().trim().equals("")))) { //$NON-NLS-1$
-					if (!button.isSelected())
-						button.doClick();
-				} else if (button.isSelected())
+		SwingUtilities.invokeLater(() -> {
+			TTrack track = panel.getSelectedTrack();
+			if (!panel.hideDescriptionWhenLoaded
+					&& ((track != null && track.getDescription() != null && !track.getDescription().trim().equals("")) //$NON-NLS-1$
+							|| (track == null && panel.getDescription() != null && !panel.getDescription().trim().equals("")))) { //$NON-NLS-1$
+				if (!button.isSelected())
 					button.doClick();
-			}
-		};
-		EventQueue.invokeLater(runner);
+			} else if (button.isSelected())
+				button.doClick();
+		});
 	}
 
 //  /**
@@ -2113,44 +2101,38 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	protected void checkClipboardListener() {
 		// do we need clipboard listener?
-		Runnable runner = new Runnable() {
-			@Override
-			public void run() {
-				boolean needListener = alwaysListenToClipboard;
-				if (!needListener) {
-					// do any pasted data tracks exist?
-					try {
-						for (int i = 0; i < getTabCount(); i++) {
-							TrackerPanel trackerPanel = getTrackerPanel(i);
-							ArrayList<DataTrack> list = trackerPanel.getDrawables(DataTrack.class);
-							// do any tracks have null source?
-							for (int m = 0, n = list.size(); m < n; m++) {
-								DataTrack next = list.get(m);
-								if (next.getSource() == null) {
-									// null source, so data is pasted
-									needListener = true;
-									break;
-								}
+		SwingUtilities.invokeLater(() -> {
+			boolean needListener = alwaysListenToClipboard;
+			if (!needListener) {
+				// do any pasted data tracks exist?
+				try {
+					for (int i = 0; i < getTabCount(); i++) {
+						TrackerPanel trackerPanel = getTrackerPanel(i);
+						ArrayList<DataTrack> list = trackerPanel.getDrawables(DataTrack.class);
+						// do any tracks have null source?
+						for (int m = 0, n = list.size(); m < n; m++) {
+							DataTrack next = list.get(m);
+							if (next.getSource() == null) {
+								// null source, so data is pasted
+								needListener = true;
+								break;
 							}
 						}
-					} catch (Exception ex) {
 					}
-				}
-
-				if (needListener) {
-					getClipboardListener();
-				} else {
-					if (clipboardListener == null)
-						return;
-					// end existing listener
-					clipboardListener.end();
-					clipboardListener = null;
+				} catch (Exception ex) {
 				}
 			}
-		};
-//  	new Thread(runner).start();
-		SwingUtilities.invokeLater(runner);
 
+			if (needListener) {
+				getClipboardListener();
+			} else {
+				if (clipboardListener == null)
+					return;
+				// end existing listener
+				clipboardListener.end();
+				clipboardListener = null;
+			}
+		});
 	}
 
 	/**
@@ -3046,7 +3028,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	public void holdPainting(boolean b) {
 		paintHold += (b ? 1 : paintHold > 0 ? -1 : 0);
-		OSPLog.debug("TFrame.paintHold=" + paintHold);
+//		OSPLog.debug("TFrame.paintHold=" + paintHold);
 //		if (b || paintHold == 0)
 //			tabbedPane.setVisible(!b);
 	}
@@ -3084,7 +3066,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param pt0 the initial location of this frame
 	 * 
 	 */
-	public void addFollower(Component c, Point pt0) {
+	public void addFollower(Component c, Point ignored) {
+		Point pt0 = getLocation();
 		addComponentListener(new ComponentAdapter() {
 			@Override
 			public void componentMoved(ComponentEvent e) {
