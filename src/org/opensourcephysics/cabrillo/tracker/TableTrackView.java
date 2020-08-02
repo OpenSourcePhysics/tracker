@@ -351,12 +351,13 @@ public class TableTrackView extends TrackView {
 
 		// main entry point for a new or revised track -- from TrackChooserTView
 
-		OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + "  "+ frameNumber + " " + isRefreshEnabled());
-
 		forceRefresh = true; // for now, at least
 
 		if (!forceRefresh && !isRefreshEnabled() || !viewParent.isViewPaneVisible())
 			return;
+
+		OSPLog.debug("TableTrackView.refresh " + myID + " " + Integer.toHexString(mode) + "  "+ frameNumber + " " + isRefreshEnabled() + " " + trackerPanel.getPlayer().getStepNumber());
+
 
 		forceRefresh = false;
 		if (Tracker.timeLogEnabled)

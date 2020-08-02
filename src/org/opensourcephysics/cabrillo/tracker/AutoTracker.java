@@ -200,12 +200,12 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	public AutoTracker(TrackerPanel panel) {
 		trackerPanel = panel;
 		trackerPanel.addDrawable(this);
-		trackerPanel.addPropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("video", this); //$NON-NLS-1$
-		trackerPanel.addPropertyChangeListener("stepnumber", this); //$NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); // $NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); // $NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO, this); // $NON-NLS-1$
+		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this); // $NON-NLS-1$
 		stepper = new Runnable() {
 			@Override
 			public void run() {
@@ -268,19 +268,19 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		if (track == newTrack)
 			return;
 		if (track != null) {
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this); // $NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
+			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
 		}
 		track = newTrack;
 		if (track != null) {
 			trackID = track.getID();
 			trackerPanel.setSelectedTrack(track);
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this); //$NON-NLS-1$
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
-			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_STEP, this); // $NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
+			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
 			track.setVisible(true);
 			int n = trackerPanel.getFrameNumber();
 			FrameData frame = getFrame(n);
@@ -790,124 +790,134 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		String name = e.getPropertyName();
 		TTrack track = getTrack();
 		int n = trackerPanel.getFrameNumber();
 		FrameData frame = getFrame(n);
 		KeyFrame keyFrame = frame.getKeyFrame();
-
-		if (name.equals("selectedpoint")) { //$NON-NLS-1$
-			boolean needsRepaint = false;
-			TPoint prev = (TPoint) e.getOldValue();
-			if (wizard.isVisible()) {
-				if (prev instanceof Corner && keyFrame != null) {
-					needsRepaint = true;
-					// restore corner positions
-					Shape mask = keyFrame.getMask();
-					if (mask instanceof Ellipse2D.Double) {
-						Ellipse2D.Double circle = (Ellipse2D.Double) mask;
-						maskCorner.x = maskCenter.x + circle.width / (2 * cornerFactor);
-						maskCorner.y = maskCenter.y + circle.height / (2 * cornerFactor);
-					}
-					searchCorner.x = searchRect2D.getMaxX();
-					searchCorner.y = searchRect2D.getMaxY();
-				} else if (prev instanceof Handle || prev instanceof Target) {
-					needsRepaint = true;
+		boolean haveWizard = (wizard != null && wizard.isVisible());
+		boolean haveVideo = (track != null && trackerPanel.getVideo() != null);
+		switch (e.getPropertyName()) {
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
+			selectedPointChanged((TPoint) e.getOldValue(), (TPoint) e.getNewValue(), track, keyFrame, frame);
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK:
+			if (wizard != null)
+				wizard.refreshGUI();
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
+			if (e.getOldValue() != null) {
+				// track has been deleted
+				TTrack deletedTrack = (TTrack) e.getOldValue();
+				trackFrameData.remove(deletedTrack);
+				if (deletedTrack == track) {
+					setTrack(null);
 				}
 			}
-			Step step = trackerPanel.getSelectedStep();
-			TPoint next = (TPoint) e.getNewValue();
-			if (next == maskHandle || next == maskCorner || next == searchHandle || next == searchCorner
-					|| (keyFrame != null && next == keyFrame.getTarget())) {
-				trackerPanel.setSelectedTrack(track);
-				needsRepaint = true;
-			} else if (next != null && step != null && step.getTrack() == track) {
-				int i = step.getPointIndex(next);
-				if (i > -1 && i != track.getTargetIndex()) {
-					track.setTargetIndex(i);
-
-					// get frame for new index and reposition search points and mask
-					frame = getFrame(n);
-					TPoint[] searchPts = frame.getSearchPoints(true);
-					if (searchPts != null)
-						setSearchPoints(searchPts[0], searchPts[1]);
-
-					keyFrame = frame.getKeyFrame();
-					if (keyFrame != null) {
-						maskCenter.setLocation(keyFrame.getMaskPoints()[0]);
-						maskCorner.setLocation(keyFrame.getMaskPoints()[1]);
-					}
-
-					wizard.refreshGUI();
-					needsRepaint = true;
-				}
-			}
-			if (needsRepaint)
-				repaint();
-		} else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK) && wizard != null) { //$NON-NLS-1$
-			wizard.refreshGUI();
-		} else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK) && e.getOldValue() != null) { //$NON-NLS-1$
-			// track has been deleted
-			TTrack deletedTrack = (TTrack) e.getOldValue();
-			trackFrameData.remove(deletedTrack);
-			if (deletedTrack == track) {
-				setTrack(null);
-			}
-		} else if (name.equals(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR)) { //$NON-NLS-1$
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR: 
 			// tracks have been cleared
 			trackFrameData.clear();
 			setTrack(null);
-		}
-
-		if (wizard == null || !wizard.isVisible())
-			return;
-
-		if (name.equals("video") || name.equals(TTrack.PROPERTY_TTRACK_NAME) //$NON-NLS-1$ //$NON-NLS-2$
-				|| name.equals(TTrack.PROPERTY_TTRACK_COLOR) || name.equals(TTrack.PROPERTY_TTRACK_FOOTPRINT)) { //$NON-NLS-1$ //$NON-NLS-2$
-			wizard.refreshGUI();
-		} else if (track == null && name.equals("stepnumber")) { //$NON-NLS-1$
-			wizard.refreshGUI();
-		}
-
-		if (track == null || trackerPanel.getVideo() == null) {
-			return;
-		}
-		if (name.equals(TTrack.PROPERTY_TTRACK_STEP) && wizard.isVisible()) { //$NON-NLS-1$
-			if (!marking) { // not marked by this autotracker
-				n = ((Integer) e.getNewValue()).intValue();
-				frame = getFrame(n);
-				frame.decided = true; // point dragged by user?
-				if (track.getStep(n) == null) { // step was deleted
-					frame.clear();
-				} else if (!frame.isKeyFrame()) { // step was marked or moved
-					frame.setMatchIcon(null);
-					paused = false;
-				}
-			}
-			wizard.refreshGUI();
-			marking = false;
-		} else if (name.equals("stepnumber")) { //$NON-NLS-1$
-			TPoint[] searchPts = frame.getSearchPoints(true);
-			if (searchPts != null)
-				setSearchPoints(searchPts[0], searchPts[1]);
-			else if (lookAhead && keyFrame != null) {
-				TPoint prediction = getPredictedMatchTarget(n);
-				if (prediction != null) {
-					setSearchPoints(getMatchCenter(prediction), null);
-					// save search center and corner points
-					TPoint[] pts = new TPoint[] { new TPoint(searchCenter), new TPoint(searchCorner) };
-					frame.setSearchPoints(pts);
-				} else {
-					repaint();
-				}
-			}
-			if (active && !paused) { // actively tracking
-				OSPRuntime.postEvent(stepper);
-			} else if (stepping) { // user set the frame number, so stop stepping
-				stop(true, false);
-			} else
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
+		case TTrack.PROPERTY_TTRACK_NAME:
+		case TTrack.PROPERTY_TTRACK_COLOR:
+		case TTrack.PROPERTY_TTRACK_FOOTPRINT:
+			if (haveWizard)
 				wizard.refreshGUI();
+			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
+			if (track == null && haveWizard)
+				wizard.refreshGUI();
+			if (haveVideo && haveWizard) {
+				TPoint[] searchPts = frame.getSearchPoints(true);
+				if (searchPts != null)
+					setSearchPoints(searchPts[0], searchPts[1]);
+				else if (lookAhead && keyFrame != null) {
+					TPoint prediction = getPredictedMatchTarget(n);
+					if (prediction != null) {
+						setSearchPoints(getMatchCenter(prediction), null);
+						// save search center and corner points
+						TPoint[] pts = new TPoint[] { new TPoint(searchCenter), new TPoint(searchCorner) };
+						frame.setSearchPoints(pts);
+					} else {
+						repaint();
+					}
+				}
+				if (active && !paused) { // actively tracking
+					OSPRuntime.postEvent(stepper);
+				} else if (stepping) { // user set the frame number, so stop stepping
+					stop(true, false);
+				} else {
+					wizard.refreshGUI();
+				}
+			}
+			break;
+		case TTrack.PROPERTY_TTRACK_STEP:
+			if (haveVideo && haveWizard) {
+				if (!marking) { // not marked by this autotracker
+					n = ((Integer) e.getNewValue()).intValue();
+					frame = getFrame(n);
+					frame.decided = true; // point dragged by user?
+					if (track.getStep(n) == null) { // step was deleted
+						frame.clear();
+					} else if (!frame.isKeyFrame()) { // step was marked or moved
+						frame.setMatchIcon(null);
+						paused = false;
+					}
+				}
+				wizard.refreshGUI();
+				marking = false;
+			}
+			break;
 		}
+	}
+
+	private void selectedPointChanged(TPoint prev, TPoint next, TTrack track, KeyFrame keyFrame, FrameData frame) {
+		boolean needsRepaint = false;
+		if (wizard.isVisible()) {
+			if (prev instanceof Corner && keyFrame != null) {
+				needsRepaint = true;
+				// restore corner positions
+				Shape mask = keyFrame.getMask();
+				if (mask instanceof Ellipse2D.Double) {
+					Ellipse2D.Double circle = (Ellipse2D.Double) mask;
+					maskCorner.x = maskCenter.x + circle.width / (2 * cornerFactor);
+					maskCorner.y = maskCenter.y + circle.height / (2 * cornerFactor);
+				}
+				searchCorner.x = searchRect2D.getMaxX();
+				searchCorner.y = searchRect2D.getMaxY();
+			} else if (prev instanceof Handle || prev instanceof Target) {
+				needsRepaint = true;
+			}
+		}
+		Step step = trackerPanel.getSelectedStep();
+		if (next == maskHandle || next == maskCorner || next == searchHandle || next == searchCorner
+				|| (keyFrame != null && next == keyFrame.getTarget())) {
+			trackerPanel.setSelectedTrack(track);
+			needsRepaint = true;
+		} else if (next != null && step != null && step.getTrack() == track) {
+			int i = step.getPointIndex(next);
+			if (i > -1 && i != track.getTargetIndex()) {
+				track.setTargetIndex(i);
+
+				// get frame for new index and reposition search points and mask
+				TPoint[] searchPts = frame.getSearchPoints(true);
+				if (searchPts != null)
+					setSearchPoints(searchPts[0], searchPts[1]);
+
+				keyFrame = frame.getKeyFrame();
+				if (keyFrame != null) {
+					maskCenter.setLocation(keyFrame.getMaskPoints()[0]);
+					maskCorner.setLocation(keyFrame.getMaskPoints()[1]);
+				}
+
+				wizard.refreshGUI();
+				needsRepaint = true;
+			}
+		}
+		if (needsRepaint)
+			repaint();
 	}
 
 	// implements Interactive & Measurable methods
@@ -1145,7 +1155,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	 */
 	protected void erase() {
 		if (mark != null)
-			trackerPanel.addDirtyRegion(null);//mark.getBounds(false)); // old bounds
+			trackerPanel.addDirtyRegion(null);// mark.getBounds(false)); // old bounds
 		mark = null;
 	}
 
@@ -1155,7 +1165,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	protected void repaint() {
 		erase();
 		if (getMark() != null)
-			trackerPanel.addDirtyRegion(null);//mark.getBounds(false)); // new bounds
+			trackerPanel.addDirtyRegion(null);// mark.getBounds(false)); // new bounds
 		trackerPanel.repaintDirtyRegion();
 	}
 
@@ -1165,9 +1175,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 	protected void dispose() {
 		trackerPanel.removeDrawable(this);
 		trackerPanel.removePropertyChangeListener("selectedpoint", this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); //$NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); // $NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("video", this); //$NON-NLS-1$
 		trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
 		setTrack(null);
@@ -1269,7 +1279,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				selectionMark = new Mark() {
 					@Override
 					public void draw(Graphics2D g, boolean highlighted) {
-						if (OSPRuntime.setRenderingHints) 
+						if (OSPRuntime.setRenderingHints)
 							g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 						Stroke gstroke = g.getStroke();
 						g.setStroke(solidBold);
@@ -1289,7 +1299,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					Paint gpaint = g.getPaint();
 					Color c = track.getFootprint().getColor();
 					g.setPaint(c);
-					if (OSPRuntime.setRenderingHints) g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+					if (OSPRuntime.setRenderingHints)
+						g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 					BasicStroke stroke = (BasicStroke) g.getStroke();
 					int n = trackerPanel.getFrameNumber();
 					FrameData frame = getFrame(n);
@@ -1621,7 +1632,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				} else {
 					derivatives1[i][0] = x;
 					derivatives1[i][1] = y;
-					
+
 				}
 			}
 			return derivatives1;
@@ -1645,7 +1656,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				} else {
 					derivatives2[i][0] = x;
 					derivatives2[i][1] = y;
-					
+
 				}
 			}
 			return derivatives2;
@@ -1670,7 +1681,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				} else {
 					derivatives3[i][0] = x;
 					derivatives3[i][1] = y;
-					
+
 				}
 			}
 			return derivatives3;
@@ -2130,13 +2141,14 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		}
 
 		/**
-		 * Responds to property change events. This listens for TFrame.PROPERTY_TFRAME_TAB.
+		 * Responds to property change events. This listens for
+		 * TFrame.PROPERTY_TFRAME_TAB.
 		 *
 		 * @param e the property change event
 		 */
 		@Override
 		public void propertyChange(PropertyChangeEvent e) {
-			if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { //$NON-NLS-1$
+			if (e.getPropertyName().equals(TFrame.PROPERTY_TFRAME_TAB)) { // $NON-NLS-1$
 				// this tab has been selected or deselected
 				if (trackerPanel != null && e.getNewValue() == trackerPanel) { // selected
 					setVisible(isVisible);
@@ -2223,7 +2235,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 
 		@Override
 		public void dispose() {
-			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
+			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 			timer.stop();
 			timer = null;
 			trackerPanel = null;
@@ -2248,7 +2260,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		protected void createGUI() {
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
-				frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
+				frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); // $NON-NLS-1$
 			}
 //      setResizable(false);
 			KeyListener kl = new KeyAdapter() {
@@ -3289,8 +3301,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			refreshDropdowns();
 			refreshStrings();
 			refreshIcons();
-				refreshButtons();
-				refreshInfo();
+			refreshButtons();
+			refreshInfo();
 			refreshDrawingFlags();
 			pack();
 			if (textPaneSize == null)
@@ -3708,7 +3720,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			tf.setDisabledTextColor(fixed ? Color.GRAY.brighter() : Color.BLACK);
 			ignoreChanges = false;
 		}
-		
 
 		/**
 		 * Gets the match data as a delimited string with "columns" for frame number,
@@ -3785,8 +3796,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 			return buf.toString();
 		}
-
-
 
 	}
 

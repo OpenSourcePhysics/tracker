@@ -766,7 +766,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	protected void onWindowClosing() {
 
 		if (isJS) {
-			System.exit(0);
+			exit();
 			return; // Necessary for SwingJS
 		}
 
@@ -817,8 +817,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		// exit the system if frame wishes to exit
 		if (doClose) {
-			System.exit(0);
+			exit();
 		} else {
+			// use else here for SwingJS.
 			// remove the tabs but don't close if canceled
 			frame.saveAllTabs(new Function<TrackerPanel, Void>() {
 				// for each approved, remove tab
@@ -861,6 +862,11 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				// frame will always close now
 			});
 		}
+	}
+
+	public static void exit() {
+		OSPRuntime.exit();
+		System.exit(0);
 	}
 
 	/**

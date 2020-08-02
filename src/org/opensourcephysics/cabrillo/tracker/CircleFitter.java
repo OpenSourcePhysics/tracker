@@ -497,7 +497,7 @@ public class CircleFitter extends TTrack {
 				refreshAttachments();
 			}
 			break;
-		case Trackable.PROPERTY_ADJUSTING:
+		case Trackable.PROPERTY_ADJUSTING: // VideoClip
 			refreshDataLater = (Boolean) e.getNewValue();
 			if (!refreshDataLater) { // stopped adjusting
 				firePropertyChange(PROPERTY_TTRACK_DATA, null, null);

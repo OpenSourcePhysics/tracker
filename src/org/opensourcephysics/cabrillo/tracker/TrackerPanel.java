@@ -2485,6 +2485,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		boolean doSnap = false;
+		boolean isAdjusting = false;
 		String name = e.getPropertyName();
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(getClass().getSimpleName() + hashCode() + " property change " + name); //$NON-NLS-1$
@@ -2618,11 +2619,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 			}
 			break;
+		case Trackable.PROPERTY_ADJUSTING: // from videoClip //$NON-NLS-1$
+			isAdjusting = true;
 		case VideoClip.PROPERTY_VIDEOCLIP_STARTFRAME: // from videoClip //$NON-NLS-1$
 		case VideoClip.PROPERTY_VIDEOCLIP_STEPSIZE: // from videoClip //$NON-NLS-1$
 		case VideoClip.PROPERTY_VIDEOCLIP_STEPCOUNT: // from videoClip //$NON-NLS-1$
 		case VideoClip.PROPERTY_VIDEOCLIP_STARTTIME: // from videoClip //$NON-NLS-1$
-		case Trackable.PROPERTY_ADJUSTING: // from videoClip //$NON-NLS-1$
 		case ClipControl.PROPERTY_CLIPCONTROL_FRAMEDURATION: {// from clipControl //$NON-NLS-1$
 			changed = true;
 			if (modelBuilder != null)
@@ -2633,11 +2635,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (getVideo() != null) {
 				getVideo().setProperty("measure", null); //$NON-NLS-1$
 			}
-			firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // to views //$NON-NLS-1$
-			firePropertyChange(name, null, name == Trackable.PROPERTY_ADJUSTING ? e.getNewValue() : null); // to
-																										// particle
-																										// models
-																										// //$NON-NLS-1$
+			// BH added e.newValue  (Boolean.TRUE or Boolean.FALSE)
+			firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, e.getOldValue(), isAdjusting ? e.getNewValue() : null); // to views //$NON-NLS-1$
+			// to particle models
+			firePropertyChange(name, e.getSource(), name == Trackable.PROPERTY_ADJUSTING ? e.getNewValue() : null); 
 			if (getSelectedPoint() != null) {
 				getSelectedPoint().showCoordinates(this);
 				TFrame frame = getTFrame();

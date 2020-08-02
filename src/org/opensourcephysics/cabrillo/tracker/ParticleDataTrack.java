@@ -62,6 +62,7 @@ import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoPlayer;
@@ -78,6 +79,11 @@ import org.opensourcephysics.tools.ResourceLoader;
  * @author Douglas Brown
  */
 public class ParticleDataTrack extends ParticleModel implements DataTrack {
+
+	/**
+	 * no listeners?
+	 */
+	public final String PROPERTY_PARTICLEDATATRACK_DATACLIP = "dataclip";
 
 	private static String startupFootprint = "CircleFootprint.FilledCircle#5 outline"; //$NON-NLS-1$
 
@@ -327,7 +333,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (trackerPanel != null) {
 			trackerPanel.setSelectedPoint(null);
 			trackerPanel.selectedSteps.clear();
-			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, this); //$NON-NLS-1$
+			trackerPanel.getTFrame().removePropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, this); // $NON-NLS-1$
 
 			// handle case when this is the origin of current reference frame
 			ImageCoordSystem coords = trackerPanel.getCoords();
@@ -573,64 +579,61 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			autoPasteCheckbox.setOpaque(false);
 			autoPasteCheckbox.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 0));
 			autoPasteCheckbox.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					setAutoPasteEnabled(autoPasteCheckbox.isSelected());
-					if (ParticleDataTrack.this.trackerPanel == null)
-						return;
-					TFrame frame = ParticleDataTrack.this.trackerPanel.getTFrame();
-					if (frame == null)
-						return;
-					if (isAutoPasteEnabled()) {
-						ClipboardListener clipboardListener = frame.getClipboardListener();
-						Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-						Transferable data = clipboard.getContents(null);
-						if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-							try {
-								String s = (String) data.getTransferData(DataFlavor.stringFlavor);
-								if (ParticleDataTrack.getImportableDataName(s) != null) {
-									clipboardListener.processContents(data);
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		setAutoPasteEnabled(autoPasteCheckbox.isSelected());
+		if (ParticleDataTrack.this.trackerPanel == null)
+			return;
+		TFrame frame = ParticleDataTrack.this.trackerPanel.getTFrame();
+		if (frame == null)
+			return;
+		if (isAutoPasteEnabled()) {
+			ClipboardListener clipboardListener = frame.getClipboardListener();
+			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+			Transferable data = clipboard.getContents(null);
+			if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+				try {
+					String s = (String) data.getTransferData(DataFlavor.stringFlavor);
+					if (ParticleDataTrack.getImportableDataName(s) != null) {
+						clipboardListener.processContents(data);
 //		        	    Action paste = TActions.getAction("paste", ParticleDataTrack.this.trackerPanel); //$NON-NLS-1$
 //		        			paste.actionPerformed(null);
-								}
-							} catch (Exception ex) {
-							}
-						}
-						getLeader().prevDataString = getLeader().pendingDataString;
-						getLeader().reloadButton.setEnabled(false);
-						TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel).refresh();
-
 					}
+				} catch (Exception ex) {
+				}
+			}
+			getLeader().prevDataString = getLeader().pendingDataString;
+			getLeader().reloadButton.setEnabled(false);
+			TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel).refresh();
+
+		}
 
 //		    	else if (frame.clipboardListener!=null && !frame.clipboardListener.hasAutoPasteTargets()) {
 //		    		frame.clipboardListener.end();
 //		    		frame.clipboardListener = null;
 //		    	}
-					if (ParticleDataTrack.this.trackerPanel.getSelectedTrack() == ParticleDataTrack.this) {
-						TTrackBar trackbar = TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel);
-						trackbar.refresh();
-					}
-				}
-			});
+		if (ParticleDataTrack.this.trackerPanel.getSelectedTrack() == ParticleDataTrack.this) {
+			TTrackBar trackbar = TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel);
+			trackbar.refresh();
 		}
-		getLeader().reloadButton
-				.setText(getLeader().dataSource == null ? TrackerRes.getString("ParticleDataTrack.Button.Paste.Text") : //$NON-NLS-1$
-						TrackerRes.getString("ParticleDataTrack.Button.Reload.Text")); //$NON-NLS-1$
-		ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
-		if (trackerPanel.getSelectedPoint() == null) {
-			list.remove(massLabel);
-			list.remove(massField);
-			if (getSource() == null) { // data was pasted
-				autoPasteCheckbox.setText(TrackerRes.getString("TMenuBar.MenuItem.AutoPasteData.Text")); //$NON-NLS-1$
-				autoPasteCheckbox.setSelected(isAutoPasteEnabled());
-				list.add(autoPasteCheckbox);
-				list.add(mSeparator);
-			}
-			if (getLeader().reloadButton.isEnabled()) {
-				list.add(getLeader().reloadButton);
-			}
+	}});}getLeader().reloadButton.setText(getLeader().dataSource==null?TrackerRes.getString("ParticleDataTrack.Button.Paste.Text"): //$NON-NLS-1$
+	TrackerRes.getString("ParticleDataTrack.Button.Reload.Text")); //$NON-NLS-1$
+
+	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);if(trackerPanel.getSelectedPoint()==null)
+	{
+		list.remove(massLabel);
+		list.remove(massField);
+		if (getSource() == null) { // data was pasted
+			autoPasteCheckbox.setText(TrackerRes.getString("TMenuBar.MenuItem.AutoPasteData.Text")); //$NON-NLS-1$
+			autoPasteCheckbox.setSelected(isAutoPasteEnabled());
+			list.add(autoPasteCheckbox);
+			list.add(mSeparator);
 		}
-		return list;
+		if (getLeader().reloadButton.isEnabled()) {
+			list.add(getLeader().reloadButton);
+		}
+	}return list;
 	}
 
 	/**
@@ -716,7 +719,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			next.name = fullName;
 		}
 		if (changed) {
-			firePropertyChange(TTrack.PROPERTY_TTRACK_NAME, null, null); //$NON-NLS-1$
+			firePropertyChange(TTrack.PROPERTY_TTRACK_NAME, null, null); // $NON-NLS-1$
 		}
 	}
 
@@ -811,7 +814,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public void setColor(Color color) {
 		super.setColor(color);
 		if (getLeader() != this) {
-			getLeader().firePropertyChange(TTrack.PROPERTY_TTRACK_COLOR, null, color); //$NON-NLS-1$
+			getLeader().firePropertyChange(TTrack.PROPERTY_TTRACK_COLOR, null, color); // $NON-NLS-1$
 		}
 	}
 
@@ -823,7 +826,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public void setLineColor(Color color) {
 		if (getLeader() == this) {
 			modelFootprint.setColor(color);
-			firePropertyChange(TTrack.PROPERTY_TTRACK_COLOR, null, color); //$NON-NLS-1$
+			firePropertyChange(TTrack.PROPERTY_TTRACK_COLOR, null, color); // $NON-NLS-1$
 			erase();
 			if (trackerPanel != null) {
 				TFrame.repaintT(trackerPanel);
@@ -835,7 +838,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	public void setFootprint(String name) {
 		super.setFootprint(name);
 		if (getLeader() != this) {
-			getLeader().firePropertyChange(TTrack.PROPERTY_TTRACK_FOOTPRINT, null, getLeader().footprint); //$NON-NLS-1$
+			getLeader().firePropertyChange(TTrack.PROPERTY_TTRACK_FOOTPRINT, null, getLeader().footprint); // $NON-NLS-1$
 		}
 	}
 
@@ -1075,7 +1078,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			next.setLastValidFrame(-1);
 		}
 		TFrame.repaintT(trackerPanel);
-		firePropertyChange(PROPERTY_DATATRACK_STARTFRAME, null, getStartFrame()); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_DATATRACK_STARTFRAME, null, getStartFrame()); // $NON-NLS-1$
 		if (trackerPanel != null) {
 			trackerPanel.getModelBuilder().refreshSpinners();
 			int stepNum = clip.frameToStep(startFrame);
@@ -1197,25 +1200,28 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		super.propertyChange(e);
-		// listen for changes to the video
-		if (e.getPropertyName() == "video") { //$NON-NLS-1$
+		switch (e.getPropertyName()) {
+		case DataClip.PROPERTY_DATACLIP_CLIPLENGTH:
+		case DataClip.PROPERTY_DATACLIP_STARTINDEX:
+		case DataClip.PROPERTY_DATACLIP_CLIPSTRIDE:
+		case DataClip.PROPERTY_DATACLIP_CLIPADJUSTING:
+			refreshInitialTime();
+			adjustVideoClip();
+			firePropertyChange(PROPERTY_PARTICLEDATATRACK_DATACLIP, null, null); //$NON-NLS-1$
+			setLastValidFrame(-1);
+			repaint();
+			return;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
+			// listen for changes to the video
 			firePropertyChange("videoclip", null, null); //$NON-NLS-1$
 			setLastValidFrame(-1);
 			repaint();
-		}
-		// listen for changes to the dataclip
-		else if (e.getSource() == dataClip) {
-			refreshInitialTime();
-			adjustVideoClip();
-			firePropertyChange("dataclip", null, null); //$NON-NLS-1$
-			setLastValidFrame(-1);
-			repaint();
-		}
-		// listen for clipboard changes
-		else if (e.getPropertyName() == TFrame.PROPERTY_TFRAME_WINDOWFOCUS && trackerPanel != null //$NON-NLS-1$
-				&& trackerPanel.getTFrame() != null && trackerPanel == trackerPanel.getTFrame()
-						.getTrackerPanel(trackerPanel.getTFrame().getSelectedTab())) {
-			if (this == getLeader()) {
+			break;
+		case TFrame.PROPERTY_TFRAME_WINDOWFOCUS:
+			TFrame frame = (TFrame) e.getSource();
+			// listen for clipboard changes
+			if (trackerPanel != null && trackerPanel == frame.getTrackerPanel(frame.getSelectedTab())
+					&& this == getLeader()) {
 				// get current data string and compare with previous
 				String dataString = null;
 				if (dataSource == null) { // data was pasted
@@ -1234,6 +1240,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					setPendingDataString(dataString);
 				}
 			}
+			break;
 		}
 	}
 
@@ -1274,7 +1281,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		while (useDefault && coords instanceof ReferenceFrame) {
 			coords = ((ReferenceFrame) coords).getCoords();
 		}
-		
+
 		Point2D.Double point = points[myPoint];
 
 		// get data index and firstFrameInVideoClip
@@ -1757,7 +1764,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		yData = data[1];
 		tData = data.length > 2 ? data[2] : null;
 		getDataClip().setDataLength(data[0].length);
-		firePropertyChange("dataclip", null, dataClip); //$NON-NLS-1$
+		firePropertyChange(PROPERTY_PARTICLEDATATRACK_DATACLIP, null, dataClip);
 		adjustVideoClip();
 		if (reset) {
 			setLastValidFrame(-1);

@@ -2654,7 +2654,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	/**
-	 * Adds a PropertyChangeListener.
+	 * Adds a PropertyChangeListener. -- never called? BH!
 	 *
 	 * @param listener the object requesting property change notification
 	 */

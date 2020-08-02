@@ -43,6 +43,8 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 
 	static final String DEFINED_AS = ": "; //$NON-NLS-1$
 
+	static int TVID = 0;
+	
 	// instance fields
 	protected TrackerPanel trackerPanel;
 	protected TrackChooserTView viewParent;
@@ -58,10 +60,13 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
 	private Icon trackIcon;
 
+	protected int myID;
+
 	
 	// constructor
 	protected TrackView(TTrack track, TrackerPanel panel, TrackChooserTView view, int myType) {
 		trackID = track.getID();
+		myID = ++TVID;
 		this.myType = myType;
 		//System.out.println("TrackView adding listener for " + this);
 		trackerPanel = panel;

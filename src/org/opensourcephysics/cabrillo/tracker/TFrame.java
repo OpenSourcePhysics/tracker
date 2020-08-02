@@ -2471,7 +2471,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			exitItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					System.exit(0);
+					Tracker.exit();
 				}
 			});
 			fileMenu.add(exitItem);
