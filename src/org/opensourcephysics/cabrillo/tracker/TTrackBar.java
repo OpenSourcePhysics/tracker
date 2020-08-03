@@ -86,7 +86,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	private final static JTextField sizingField = new JTextField("1234567");
 
 	static {
-		smallSelectIcon = new ResizableIcon(new ImageIcon(Tracker.getClassResource("resources/images/small_select.gif"))); //$NON-NLS-1$
+		smallSelectIcon = Tracker.getResourceIcon("small_select.gif", true); //$NON-NLS-1$
 
 		/** @j2sIgnore */
 		{
@@ -454,16 +454,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected void refresh() {
 		if (!trackerPanel.isPaintable())
 			return;
-		if (OSPRuntime.isJS || SwingUtilities.isEventDispatchThread()) {
+		OSPRuntime.postEvent(() -> {
 			rebuild();
-		} else {
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					rebuild();
-				}
-			});
-		}
+		});
 
 	}
 

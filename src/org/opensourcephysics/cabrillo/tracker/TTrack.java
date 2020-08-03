@@ -1517,22 +1517,25 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		return -1;
 	}
 
-	/**
-	 * Gets the data index for a specified frame.
-	 *
-	 * @param frameNumber the frame number
-	 * @return the data index, or -1 if not found
-	 */
-	public int getDataIndex(int frameNumber) {
-		if (!data.getDatasets().isEmpty()) {
-			// find data index
-			for (int i = 0; i < dataFrames.size(); i++) {
-				if (frameNumber == dataFrames.get(i))
-					return i;
-			}
-		}
-		return -1;
-	}
+//	/**
+//	 * BH: never called -- if it is, then we have a problem in TrackPlottingPanel,
+//	 * because that would be the only place that makes this distinction.
+//	 * 
+//	 * Gets the data index for a specified frame.
+//	 *
+//	 * @param frameNumber the frame number
+//	 * @return the data index, or -1 if not found
+//	 */
+//	public int getDataIndex(int frameNumber) {
+//		if (!data.getDatasets().isEmpty()) {
+//			// find data index
+//			for (int i = 0; i < dataFrames.size(); i++) {
+//				if (frameNumber == dataFrames.get(i))
+//					return i;
+//			}
+//		}
+//		return -1;
+//	}
 
 	/**
 	 * Gets a map of number fields by name.
@@ -2654,7 +2657,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	/**
-	 * Adds a PropertyChangeListener.
+	 * Adds a PropertyChangeListener. -- never called? BH!
 	 *
 	 * @param listener the object requesting property change notification
 	 */
@@ -3825,6 +3828,32 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				setFormatPattern(name, pattern);
 			}
 			customNumberFormats = null;
+		}
+	}
+
+	protected void clearColumns(DatasetManager data, int count, String[] dataVariables, String desc,
+			double[][] validData, int len) {
+		String v0 = (dataVariables == null ? null : dataVariables[0]);
+		if (v0 == null || data.getDataset(0).getColumnName(0).equals(v0)) { 
+			for (int i = 0; i < count; i++) {
+				data.getDataset(i).clear();
+			}
+		} else {
+			// not yet initialized
+			for (int i = 0; i < count; i++)
+				data.setXYColumnNames(i, v0, dataVariables[i + 1]);
+		}
+		dataDescriptions = new String[count + 1];
+		if (desc != null) {
+			for (int i = 0; i <= count; i++) {
+				dataDescriptions[i] = TrackerRes.getString(desc + i); // $NON-NLS-1$
+			}
+		}
+		if (validData != null) {
+			double[] t = validData[count];
+			for (int i = 0; i < count; i++) {
+				data.getDataset(i).append(t, validData[i], len);
+			}
 		}
 	}
 

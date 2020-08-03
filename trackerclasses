@@ -169,6 +169,7 @@ java/beans/PropertyChangeEvent.js
 java/beans/PropertyChangeListener.js
 java/beans/PropertyChangeSupport.js
 java/io/BufferedInputStream.js
+java/io/BufferedOutputStream.js
 java/io/BufferedReader.js
 java/io/BufferedWriter.js
 java/io/ByteArrayInputStream.js
@@ -182,6 +183,7 @@ java/io/FileFilter.js
 java/io/FileInputStream.js
 java/io/FileOutputStream.js
 java/io/FileSystem.js
+java/io/FileWriter.js
 java/io/FilenameFilter.js
 java/io/FilterInputStream.js
 java/io/FilterOutputStream.js
@@ -212,7 +214,9 @@ java/lang/Thread.js
 java/lang/ThreadGroup.js
 java/lang/ThreadLocal.js
 java/lang/management/ManagementFactory.js
+java/lang/ref/Reference.js
 java/lang/ref/ReferenceQueue.js
+java/lang/ref/WeakReference.js
 java/lang/reflect/AccessibleObject.js
 java/lang/reflect/AnnotatedElement.js
 java/lang/reflect/Array.js
@@ -389,6 +393,7 @@ java/util/zip/InflaterInputStream.js
 java/util/zip/ZipConstants.js
 java/util/zip/ZipEntry.js
 java/util/zip/ZipInputStream.js
+java/util/zip/ZipOutputStream.js
 javajs/api/GenericImageEncoder.js
 javajs/api/GenericLineReader.js
 javajs/api/GenericOutputChannel.js
@@ -401,7 +406,11 @@ javajs/async/AsyncFileChooser.js
 javajs/async/AsyncSwingWorker.js
 javajs/async/SwingJSUtils.js
 javajs/img/CRCEncoder.js
+javajs/img/DCT.js
+javajs/img/Huffman.js
 javajs/img/ImageEncoder.js
+javajs/img/JpegObj.js
+javajs/img/JpgEncoder.js
 javajs/img/PngEncoder.js
 javajs/util/AU.js
 javajs/util/AjaxURLConnection.js
@@ -584,6 +593,8 @@ javax/swing/event/TreeWillExpandListener.js
 javax/swing/event/UndoableEditEvent.js
 javax/swing/event/UndoableEditListener.js
 javax/swing/filechooser/FileFilter.js
+javax/swing/filechooser/FileSystemView.js
+javax/swing/filechooser/GenericFileSystemView.js
 javax/swing/plaf/ActionMapUIResource.js
 javax/swing/plaf/BorderUIResource.js
 javax/swing/plaf/ColorUIResource.js
@@ -773,6 +784,7 @@ org/opensourcephysics/cabrillo/tracker/Undo.js
 org/opensourcephysics/cabrillo/tracker/Vector.js
 org/opensourcephysics/cabrillo/tracker/VectorStep.js
 org/opensourcephysics/cabrillo/tracker/WorldGrid.js
+org/opensourcephysics/cabrillo/tracker/WorldRuler.js
 org/opensourcephysics/cabrillo/tracker/WorldTView.js
 org/opensourcephysics/cabrillo/tracker/deploy/TrackerJarFilter.js
 org/opensourcephysics/cabrillo/tracker/deploy/TrackerStarter.js
@@ -780,6 +792,7 @@ org/opensourcephysics/controls/ConsoleLevel.js
 org/opensourcephysics/controls/Control.js
 org/opensourcephysics/controls/ControlsRes.js
 org/opensourcephysics/controls/Cryptic.js
+org/opensourcephysics/controls/ListChooser.js
 org/opensourcephysics/controls/OSPLog.js
 org/opensourcephysics/controls/XML.js
 org/opensourcephysics/controls/XMLControl.js
@@ -794,6 +807,7 @@ org/opensourcephysics/display/CellBorder.js
 org/opensourcephysics/display/ColorIcon.js
 org/opensourcephysics/display/ComplexDataset.js
 org/opensourcephysics/display/Data.js
+org/opensourcephysics/display/DataFunction.js
 org/opensourcephysics/display/DataTable.js
 org/opensourcephysics/display/DataTableModel.js
 org/opensourcephysics/display/Dataset.js
@@ -850,6 +864,7 @@ org/opensourcephysics/media/core/GhostFilter.js
 org/opensourcephysics/media/core/GrayScaleFilter.js
 org/opensourcephysics/media/core/ImageCoordSystem.js
 org/opensourcephysics/media/core/ImageVideo.js
+org/opensourcephysics/media/core/ImageVideoRecorder.js
 org/opensourcephysics/media/core/ImageVideoType.js
 org/opensourcephysics/media/core/InteractiveImage.js
 org/opensourcephysics/media/core/MediaRes.js
@@ -861,6 +876,7 @@ org/opensourcephysics/media/core/RadialDistortionFilter.js
 org/opensourcephysics/media/core/ResizeFilter.js
 org/opensourcephysics/media/core/RotateFilter.js
 org/opensourcephysics/media/core/ScientificField.js
+org/opensourcephysics/media/core/ScratchVideoRecorder.js
 org/opensourcephysics/media/core/StepperClipControl.js
 org/opensourcephysics/media/core/StrobeFilter.js
 org/opensourcephysics/media/core/SumFilter.js
@@ -876,9 +892,16 @@ org/opensourcephysics/media/core/VideoGrabber.js
 org/opensourcephysics/media/core/VideoIO.js
 org/opensourcephysics/media/core/VideoPanel.js
 org/opensourcephysics/media/core/VideoPlayer.js
+org/opensourcephysics/media/core/VideoRecorder.js
 org/opensourcephysics/media/core/VideoType.js
 org/opensourcephysics/media/core/XYCoordinateStringBuilder.js
+org/opensourcephysics/media/gif/AnimatedGifEncoder.js
+org/opensourcephysics/media/gif/GifDecoder.js
+org/opensourcephysics/media/gif/GifVideo.js
+org/opensourcephysics/media/gif/GifVideoRecorder.js
 org/opensourcephysics/media/gif/GifVideoType.js
+org/opensourcephysics/media/gif/LZWEncoder.js
+org/opensourcephysics/media/gif/NeuQuant.js
 org/opensourcephysics/media/mov/JSMovieVideo.js
 org/opensourcephysics/media/mov/JSMovieVideoType.js
 org/opensourcephysics/media/mov/MovieFactory.js
@@ -937,6 +960,7 @@ org/opensourcephysics/tools/FunctionTool.js
 org/opensourcephysics/tools/InitialValueEditor.js
 org/opensourcephysics/tools/JMultiLineToolTip.js
 org/opensourcephysics/tools/JREFinder.js
+org/opensourcephysics/tools/JarTool.js
 org/opensourcephysics/tools/Job.js
 org/opensourcephysics/tools/JobManager.js
 org/opensourcephysics/tools/KnownFunction.js
@@ -1121,6 +1145,8 @@ swingjs/api/js/JQueryObject.js
 swingjs/api/js/JSFunction.js
 swingjs/api/js/JSInterface.js
 swingjs/image/JSImageWriter.js
+swingjs/image/JpgImageWriteParam.js
+swingjs/image/JpgImageWriter.js
 swingjs/image/PngImageWriteParam.js
 swingjs/image/PngImageWriter.js
 swingjs/jquery/JQueryUI.js
@@ -1143,6 +1169,7 @@ swingjs/jzlib/StaticTree.js
 swingjs/jzlib/Tree.js
 swingjs/jzlib/ZStream.js
 swingjs/plaf/BasicArrowButton.js
+swingjs/plaf/BasicComboBoxEditor.js
 swingjs/plaf/BasicComboBoxRenderer.js
 swingjs/plaf/BasicHTML.js
 swingjs/plaf/ButtonListener.js

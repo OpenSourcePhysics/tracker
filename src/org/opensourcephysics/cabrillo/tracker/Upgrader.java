@@ -197,7 +197,7 @@ public class Upgrader {
 										exit.actionPerformed(null);
 									}
 									else {
-										System.exit(0);
+										Tracker.exit();
 									}
 								}
 								else {
@@ -446,7 +446,7 @@ public class Upgrader {
 					    			exit.actionPerformed(null);
 					    		}
 					    		else {
-					    			System.exit(0);
+					    			Tracker.exit();
 					    		}
   	  	    		
   	  	    		}
@@ -588,7 +588,7 @@ public class Upgrader {
 								exit.actionPerformed(null);
 							}
 							else {
-								System.exit(0);
+								Tracker.exit();
 							}
   	    		}
   	    		else {

@@ -541,7 +541,7 @@ public class TrackDataBuilder extends FunctionTool {
 				});
 		listChooser.setSeparator(" = "); //$NON-NLS-1$
 		// choose the elements and save
-		listChooser.choose(choices, names, expressions, selected);
+		listChooser.choose(choices, names, expressions, null, selected, null);
 
 	}
 
@@ -692,7 +692,7 @@ public class TrackDataBuilder extends FunctionTool {
 				});
 		listChooser.setSeparator(" = "); //$NON-NLS-1$
 		// choose the elements and save
-		listChooser.choose(choices, names, expressions, trackTypes, selected);
+		listChooser.choose(choices, names, expressions, trackTypes, selected, null);
 
 	}
 

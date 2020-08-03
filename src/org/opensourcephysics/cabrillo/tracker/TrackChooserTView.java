@@ -537,12 +537,28 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 						return;
 				}
 				Step step = track.getStep(trackerPanel.getSelectedPoint(), trackerPanel);
-				view.refresh(step == null ? trackerPanel.getFrameNumber() : step.getFrameNumber(), DataTable.MODE_TRACK_TRANSFORM);
+				view.refresh(step == null ? trackerPanel.getFrameNumber() : step.getFrameNumber(),
+						DataTable.MODE_TRACK_TRANSFORM);
 			}
 			break;
-		case TTrack.PROPERTY_TTRACK_DATA: // data structure has changed
+		case TTrack.PROPERTY_TTRACK_DATA:
+			// data structure has changed
+			// or clip has been changed (VideoPlayer)
+			view = null;
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
-				view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_DATA);
+				int frameNo = trackerPanel.getFrameNumber();
+				if (e.getNewValue() == Boolean.FALSE) {
+					// VideoClip is telling us user has released the mouse
+					view.setClipAdjusting(frameNo, false);
+					// This ensures one final refresh and selection; a hack
+					view.refresh(frameNo, DataTable.MODE_REFRESH);
+				} else if (e.getNewValue() == Boolean.TRUE) {
+					view.setClipAdjusting(frameNo, true);
+					// if TRUE, then this is a mouse drag on a slider caret - no need to refresh
+					// table
+				} else {
+					view.refresh(frameNo, DataTable.MODE_TRACK_DATA);
+				}
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION: // data function has changed

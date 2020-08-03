@@ -71,6 +71,8 @@ import org.opensourcephysics.tools.FontSizer;
 @SuppressWarnings("serial")
 public class ExportDataDialog extends JDialog {
 
+	protected static File lastTXT = new File("");
+
 	protected static ExportDataDialog dataExporter; // singleton
 
 	// instance fields
@@ -178,14 +180,13 @@ public class ExportDataDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JFileChooser chooser = TrackerIO.getChooser();
-				chooser.setAcceptAllFileFilterUsed(true);
-				chooser.setDialogTitle(TrackerRes.getString("ExportDataDialog.Chooser.SaveData.Title")); //$NON-NLS-1$
-				chooser.setSelectedFile(new File("")); //$NON-NLS-1$
-				TrackerIO.getChooserFilesAsync("save", new Function<File[], Void>() { // $NON-NLS-1$
+				chooser.setSelectedFile(lastTXT); //$NON-NLS-1$
+				TrackerIO.getChooserFilesAsync("save data", new Function<File[], Void>() { // $NON-NLS-1$
 
 					@Override
 					public Void apply(File[] files) {
-						saveAsAction(files);
+						if (files != null && files.length > 0 && files[0] != null)
+							saveAsAction(lastTXT = files[0]);
 						return null;
 					}
 				}); 
@@ -241,9 +242,7 @@ public class ExportDataDialog extends JDialog {
 		}
 	}
 
-	protected void saveAsAction(File[] files) {
-		if (files == null || files.length == 0)
-			return;
+	protected void saveAsAction(File file) {
 		DataTable table = tables.get(tableDropdown.getSelectedItem());
 		boolean asFormatted = formatDropdown.getSelectedItem()
 				.equals(TrackerRes.getString("TableTrackView.MenuItem.Formatted")); //$NON-NLS-1$
@@ -259,7 +258,7 @@ public class ExportDataDialog extends JDialog {
 			table.selectAll();
 			// get data and write to output file
 			StringBuffer buf = TrackerIO.getData(table, asFormatted);
-			write(files[0], trackName + buf.toString());
+			write(file, trackName + buf.toString());
 			// restore previous selection state
 			table.clearSelection();
 			for (int row : selectedRows)
@@ -269,7 +268,7 @@ public class ExportDataDialog extends JDialog {
 		} else {
 			// get data and write to output file
 			StringBuffer buf = TrackerIO.getData(table, asFormatted);
-			write(files[0], trackName + buf.toString());
+			write(file, trackName + buf.toString());
 		}
 	}
 

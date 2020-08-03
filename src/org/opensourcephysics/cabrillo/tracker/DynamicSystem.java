@@ -75,6 +75,35 @@ public class DynamicSystem extends DynamicParticlePolar {
 	protected TreeMap<Integer, double[]> relativeStates = new TreeMap<Integer, double[]>();
 	protected boolean refreshing = false;
 
+	protected final static String[] dataVariables = new String[] {
+			 "t",	// 0  //$NON-NLS-1$
+			 "x",	// 1  //$NON-NLS-1$
+			 "y",	// 2  //$NON-NLS-1$
+			 "r",	// 3  //$NON-NLS-1$
+			 "$\\theta$_{r}",	// 4  //$NON-NLS-1$
+			 "v_{x}",	// 5  //$NON-NLS-1$
+			 "v_{y}",	// 6  //$NON-NLS-1$
+			 "v",	// 7  //$NON-NLS-1$
+			 "$\\theta$_{v}",	// 8  //$NON-NLS-1$
+			 "a_{x}",	// 9  //$NON-NLS-1$
+			 "a_{y}",	// 10  //$NON-NLS-1$
+			 "a",	// 11  //$NON-NLS-1$
+			 "$\\theta$_{a}",	// 12  //$NON-NLS-1$
+			 "$\\theta$",	// 13  //$NON-NLS-1$
+			 "$\\omega$",	// 14  //$NON-NLS-1$
+			 "$\\alpha$",	// 15  //$NON-NLS-1$
+			 "step",	// 16  //$NON-NLS-1$
+			 "frame",	// 17  //$NON-NLS-1$
+			 "p_{x}",	// 18  //$NON-NLS-1$
+			 "p_{y}",	// 19  //$NON-NLS-1$
+			 "p",	// 20  //$NON-NLS-1$
+			 "$\\theta$_{p}",	// 21  //$NON-NLS-1$
+			 "r_{rel}",	// 22  //$NON-NLS-1$
+			 "$\\theta$_{rel}",	// 23  //$NON-NLS-1$
+			 "vr_{rel}",	// 24  //$NON-NLS-1$
+			 "$\\omega$_{rel}",	// 25  //$NON-NLS-1$
+	};
+
 	/**
 	 * No-arg constructor.
 	 */
@@ -568,132 +597,96 @@ public class DynamicSystem extends DynamicParticlePolar {
 	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
 		if (refreshDataLater || trackerPanel == null || data == null)
 			return;
-		int count = 25; // number of datasets
-		if (data.getDataset(0).getColumnName(0).equals("x")) { //$NON-NLS-1$
-			// assign column names to the datasets
-			String timeVar = "t"; //$NON-NLS-1$
-			data.getDataset(0).setXYColumnNames(timeVar, "x"); //$NON-NLS-1$
-			data.getDataset(1).setXYColumnNames(timeVar, "y"); //$NON-NLS-1$
-			data.getDataset(2).setXYColumnNames(timeVar, "r"); //$NON-NLS-1$
-			data.getDataset(3).setXYColumnNames(timeVar, "$\\theta$_{r}"); //$NON-NLS-1$
-			data.getDataset(4).setXYColumnNames(timeVar, "v_{x}"); //$NON-NLS-1$
-			data.getDataset(5).setXYColumnNames(timeVar, "v_{y}"); //$NON-NLS-1$
-			data.getDataset(6).setXYColumnNames(timeVar, "v"); //$NON-NLS-1$
-			data.getDataset(7).setXYColumnNames(timeVar, "$\\theta$_{v}"); //$NON-NLS-1$
-			data.getDataset(8).setXYColumnNames(timeVar, "a_{x}"); //$NON-NLS-1$
-			data.getDataset(9).setXYColumnNames(timeVar, "a_{y}"); //$NON-NLS-1$
-			data.getDataset(10).setXYColumnNames(timeVar, "a"); //$NON-NLS-1$
-			data.getDataset(11).setXYColumnNames(timeVar, "$\\theta$_{a}"); //$NON-NLS-1$
-			data.getDataset(12).setXYColumnNames(timeVar, "$\\theta$"); //$NON-NLS-1$
-			data.getDataset(13).setXYColumnNames(timeVar, "$\\omega$"); //$NON-NLS-1$
-			data.getDataset(14).setXYColumnNames(timeVar, "$\\alpha$"); //$NON-NLS-1$
-			data.getDataset(15).setXYColumnNames(timeVar, "step"); //$NON-NLS-1$
-			data.getDataset(16).setXYColumnNames(timeVar, "frame"); //$NON-NLS-1$
-			data.getDataset(17).setXYColumnNames(timeVar, "p_{x}"); //$NON-NLS-1$
-			data.getDataset(18).setXYColumnNames(timeVar, "p_{y}"); //$NON-NLS-1$
-			data.getDataset(19).setXYColumnNames(timeVar, "p"); //$NON-NLS-1$
-			data.getDataset(20).setXYColumnNames(timeVar, "$\\theta$_{p}"); //$NON-NLS-1$
-			data.getDataset(21).setXYColumnNames(timeVar, "r_{rel}"); //$NON-NLS-1$
-			data.getDataset(22).setXYColumnNames(timeVar, "$\\theta$_{rel}"); //$NON-NLS-1$
-			data.getDataset(23).setXYColumnNames(timeVar, "vr_{rel}"); //$NON-NLS-1$
-			data.getDataset(24).setXYColumnNames(timeVar, "$\\omega$_{rel}"); //$NON-NLS-1$
-		}
-		// fill dataDescriptions array
-		dataDescriptions = new String[count + 1];
-		for (int i = 0; i < count - 3; i++) {
-			dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description." + i); //$NON-NLS-1$
-		}
-		for (int i = 0; i < 4; i++) {
-			dataDescriptions[count - 3 + i] = TrackerRes.getString("DynamicSystem.Data.Description." + i); //$NON-NLS-1$
-		}
+		int count = 25; // number of datasets		
 		// get the rotational data
 		Object[] rotationData = getRotationData();
 		double[] theta_data = (double[]) rotationData[0];
 		double[] omega_data = (double[]) rotationData[1];
 		double[] alpha_data = (double[]) rotationData[2];
 		// clear datasets
-		dataFrames.clear();
-		for (int i = 0; i < count; i++) {
-			data.getDataset(i).clear();
-		}
 		// get data at each non-null position step in the videoclip
 		VideoPlayer player = trackerPanel.getPlayer();
 		VideoClip clip = player.getVideoClip();
 		double dt = player.getMeanStepDuration() / 1000.0;
 		ImageCoordSystem coords = trackerPanel.getCoords();
 		Step[] stepArray = getSteps();
-		for (int n = 0; n < stepArray.length; n++) {
-			if (stepArray[n] == null || !clip.includesFrame(n))
+		int pt = 0;
+		int len = stepArray.length;
+		double[][] validData = new double[count + 1][len];
+		dataFrames.clear();
+		for (int i = 0; i < len; i++) {
+			if (stepArray[i] == null || !clip.includesFrame(i))
 				continue;
-			int stepNumber = clip.frameToStep(n);
+			int stepNumber = clip.frameToStep(i);
 			double t = player.getStepTime(stepNumber) / 1000.0;
 			// assemble the data values for this step
-			double[] vals = new double[count];
-			TPoint p = ((PositionStep) stepArray[n]).getPosition();
-			Point2D pt = p.getWorldPosition(trackerPanel);
-			vals[0] = pt.getX(); // x
-			vals[1] = pt.getY(); // y
-			vals[2] = pt.distance(0, 0); // mag
-			vals[3] = Math.atan2(pt.getY(), pt.getX()); // ang between +/-pi
-			vals[4] = Double.NaN; // vx
-			vals[5] = Double.NaN; // vy
-			vals[6] = Double.NaN; // vmag
-			vals[7] = Double.NaN; // vang
-			vals[8] = Double.NaN; // ax
-			vals[9] = Double.NaN; // ay
-			vals[10] = Double.NaN; // amag
-			vals[11] = Double.NaN; // aang
-			vals[12] = theta_data[n]; // theta
-			vals[13] = omega_data[n] / dt; // omega
-			vals[14] = alpha_data[n] / (dt * dt); // alpha
-			vals[15] = stepNumber; // step
-			vals[16] = n; // frame
-			vals[17] = Double.NaN; // px
-			vals[18] = Double.NaN; // py
-			vals[19] = Double.NaN; // pmag
-			vals[20] = Double.NaN; // pang
-			vals[21] = Double.NaN; // r_rel
-			vals[22] = Double.NaN; // theta_rel
-			vals[23] = Double.NaN; // vr_rel
-			vals[24] = Double.NaN; // omega_rel
-			if (particles.length == 2) {
-				double[] relState = relativeStates.get(n); // {r, vr, theta, omega, t}
-				if (relState != null) {
-					vals[21] = relState[0]; // r_rel
-					vals[22] = relState[2]; // theta_rel
-					vals[23] = relState[1]; // vr_rel
-					vals[24] = relState[3]; // omega_rel
-				}
-			}
-			VectorStep veloc = getVelocity(n, trackerPanel);
-			if (veloc != null) {
+			TPoint p = ((PositionStep) stepArray[i]).getPosition();
+			Point2D wp = p.getWorldPosition(trackerPanel);
+			validData[0][pt] = wp.getX(); // x
+			validData[1][pt] = wp.getY(); // y
+			validData[2][pt] = wp.distance(0, 0); // mag
+			validData[3][pt] = Math.atan2(wp.getY(), wp.getX()); // ang between +/-pi
+			validData[12][pt] = theta_data[i]; // theta
+			validData[13][pt] = omega_data[i] / dt; // omega
+			validData[14][pt] = alpha_data[i] / (dt * dt); // alpha
+			validData[15][pt] = stepNumber; // step
+			validData[16][pt] = i; // frame
+			VectorStep veloc = getVelocity(i, trackerPanel);
+			if (veloc == null) {
+				validData[4][pt] = Double.NaN; // vx
+				validData[5][pt] = Double.NaN; // vy
+				validData[6][pt] = Double.NaN; // vmag
+				validData[7][pt] = Double.NaN; // vang
+				validData[17][pt] = Double.NaN; // px
+				validData[18][pt] = Double.NaN; // py
+				validData[19][pt] = Double.NaN; // pmag
+				validData[20][pt] = Double.NaN; // pang
+			} else {
 				double imageX = veloc.getXComponent();
 				double imageY = veloc.getYComponent();
-				vals[4] = coords.imageToWorldXComponent(n, imageX, imageY) / dt;
-				vals[5] = coords.imageToWorldYComponent(n, imageX, imageY) / dt;
-				double vsquared = vals[4] * vals[4] + vals[5] * vals[5];
-				vals[6] = Math.sqrt(vsquared);
-				vals[7] = Math.atan2(vals[5], vals[4]);
+				double x = validData[4][pt] = coords.imageToWorldXComponent(i, imageX, imageY) / dt;
+				double y = validData[5][pt] = coords.imageToWorldYComponent(i, imageX, imageY) / dt;
+				double r = validData[6][pt] = Math.sqrt(x * x + y * y);
+				double slope = validData[7][pt] = Math.atan2(y, x);
 				double mass = getMass();
-				vals[17] = mass * vals[4];
-				vals[18] = mass * vals[5];
-				vals[19] = mass * vals[6];
-				vals[20] = mass * vals[7];
+				validData[17][pt] = mass * x;
+				validData[18][pt] = mass * y;
+				validData[19][pt] = mass * r;
+				validData[20][pt] = mass * slope;
 			}
-			VectorStep accel = getAcceleration(n, trackerPanel);
-			if (accel != null) {
+			VectorStep accel = getAcceleration(i, trackerPanel);
+			if (accel == null) {
+				validData[8][pt] = Double.NaN; // ax
+				validData[9][pt] = Double.NaN; // ay
+				validData[10][pt] = Double.NaN; // amag
+				validData[11][pt] = Double.NaN; // aang
+			} else {
 				double imageX = accel.getXComponent();
 				double imageY = accel.getYComponent();
-				vals[8] = coords.imageToWorldXComponent(n, imageX, imageY) / (dt * dt);
-				vals[9] = coords.imageToWorldYComponent(n, imageX, imageY) / (dt * dt);
-				vals[10] = Math.sqrt(vals[8] * vals[8] + vals[9] * vals[9]);
-				vals[11] = Math.atan2(vals[9], vals[8]);
+				double x = validData[8][pt] = coords.imageToWorldXComponent(i, imageX, imageY) / (dt * dt);
+				double y = validData[9][pt] = coords.imageToWorldYComponent(i, imageX, imageY) / (dt * dt);
+				validData[10][pt] = Math.sqrt(x * x + y * y);
+				validData[11][pt] = Math.atan2(y, x);
 			}
-			// append points to datasets
-			for (int i = 0; i < count; i++) {
-				data.getDataset(i).append(t, vals[i]);
+			double[] relState;
+			if (particles.length == 2 && (relState = relativeStates.get(i)) != null) {
+				validData[21][pt] = relState[0]; // r_rel
+				validData[22][pt] = relState[2]; // theta_rel
+				validData[23][pt] = relState[1]; // vr_rel
+				validData[24][pt] = relState[3]; // omega_rel
+			} else {
+				validData[21][pt] = Double.NaN; // r_rel
+				validData[22][pt] = Double.NaN; // theta_rel
+				validData[23][pt] = Double.NaN; // vr_rel
+				validData[24][pt] = Double.NaN; // omega_rel
 			}
-			dataFrames.add(n);
+			validData[count][pt] = t;
+			dataFrames.add(i);
+			pt++;
+		}
+		clearColumns(data, count, dataVariables, "PointMass.Data.Description.", validData, pt);
+		for (int i0 = count - 3, i = i0; i < count; i++) {
+			dataDescriptions[i] = TrackerRes.getString("DynamicSystem.Data.Description." + (i - i0)); //$NON-NLS-1$
 		}
 		// store the mass in the data properties
 		Double m = getMass();

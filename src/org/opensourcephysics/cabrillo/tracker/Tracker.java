@@ -98,6 +98,7 @@ import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoIO;
@@ -161,7 +162,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				switch (((String) val).toUpperCase()) {
 				case "DEFAULT":
 					// Java and JavaScript; Eclipse DEFINITELY needs these
-					Assets.add(new Assets.Asset("tracker", "cabrillo-assets.zip", "org/opensourcephysics/cabrillo"));
+					//Assets.add(new Assets.Asset("tracker", "cabrillo-assets.zip", "org/opensourcephysics/cabrillo"));
+					Assets.add(new Assets.Asset("tracker", "tracker-assets.zip", "org/opensourcephysics"));
 					break;
 				case "NONE":
 					// JavaScript only
@@ -184,12 +186,17 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	/** tracker version and copyright */
 	public static final String VERSION = "5.1.3"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown"; //$NON-NLS-1$
+	
+	public static Icon getResourceIcon(String img, boolean resizable) {
+		URL url = Tracker.getClassResource("resources/images/" + img);
+		return (resizable ? new ResizableIcon(url) : new ImageIcon(url));
+	}
+
+
 	/** the tracker icon */
-	public static final ImageIcon TRACKER_ICON = new ImageIcon(
-			getClassResource("resources/images/tracker_icon_32.png")); //$NON-NLS-1$
+	public static final ImageIcon TRACKER_ICON = (ImageIcon) getResourceIcon("tracker_icon_32.png", false); //$NON-NLS-1$
 	/** a larger tracker icon */
-	public static final ImageIcon TRACKER_ICON_256 = new ImageIcon(
-			getClassResource("resources/images/tracker_icon_256.png")); //$NON-NLS-1$
+	public static final ImageIcon TRACKER_ICON_256 = (ImageIcon) getResourceIcon("tracker_icon_256.png", false); //$NON-NLS-1$
 
 	static final String THETA = TeXParser.parseTeX("$\\theta"); //$NON-NLS-1$
 	static final String OMEGA = TeXParser.parseTeX("$\\omega"); //$NON-NLS-1$
@@ -759,7 +766,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	protected void onWindowClosing() {
 
 		if (isJS) {
-			System.exit(0);
+			exit();
 			return; // Necessary for SwingJS
 		}
 
@@ -810,8 +817,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		// exit the system if frame wishes to exit
 		if (doClose) {
-			System.exit(0);
+			exit();
 		} else {
+			// use else here for SwingJS.
 			// remove the tabs but don't close if canceled
 			frame.saveAllTabs(new Function<TrackerPanel, Void>() {
 				// for each approved, remove tab
@@ -854,6 +862,11 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				// frame will always close now
 			});
 		}
+	}
+
+	public static void exit() {
+		OSPRuntime.exit();
+		System.exit(0);
 	}
 
 	/**

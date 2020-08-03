@@ -178,67 +178,59 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	
 	static {
 
-		newTrackIcon = new ResizableIcon(Tracker.getClassResource("resources/images/poof.gif")); //$NON-NLS-1$
-		trackControlIcon = new ResizableIcon(Tracker.getClassResource("resources/images/track_control.gif")); //$NON-NLS-1$
-		trackControlOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/track_control_on.gif")); //$NON-NLS-1$
-		trackControlDisabledIcon = new ResizableIcon(
-				Tracker.getClassResource("resources/images/track_control_disabled.gif")); //$NON-NLS-1$
-		zoomIcon = new ResizableIcon(Tracker.getClassResource("resources/images/zoom.gif")); //$NON-NLS-1$
-		clipOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/clip_off.gif")); //$NON-NLS-1$
-		clipOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/clip_on.gif")); //$NON-NLS-1$
-		axesOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/axes.gif")); //$NON-NLS-1$
-		axesOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/axes_on.gif")); //$NON-NLS-1$
-		calibrationToolsOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/calibration_tool.gif")); //$NON-NLS-1$
-		calibrationToolsOnIcon = new ResizableIcon(
-				Tracker.getClassResource("resources/images/calibration_tool_on.gif")); //$NON-NLS-1$
-		calibrationToolsOffRolloverIcon = new ResizableIcon(
-				Tracker.getClassResource("resources/images/calibration_tool_rollover.gif")); //$NON-NLS-1$
-		calibrationToolsOnRolloverIcon = new ResizableIcon(
-				Tracker.getClassResource("resources/images/calibration_tool_on_rollover.gif")); //$NON-NLS-1$
-		pointsOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/positions.gif")); //$NON-NLS-1$
-		pointsOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/positions_on.gif")); //$NON-NLS-1$
-		velocOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/velocities.gif")); //$NON-NLS-1$
-		velocOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/velocities_on.gif")); //$NON-NLS-1$
-		accelOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/accel.gif")); //$NON-NLS-1$
-		accelOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/accel_on.gif")); //$NON-NLS-1$
-		traceOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/trace.gif")); //$NON-NLS-1$
-		traceOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/trace_on.gif")); //$NON-NLS-1$
-		labelsOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/labels.gif")); //$NON-NLS-1$
-		labelsOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/labels_on.gif")); //$NON-NLS-1$
-		stretchOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/stretch.gif")); //$NON-NLS-1$
-		stretchOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/stretch_on.gif")); //$NON-NLS-1$
-		xmassOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/x_mass.gif")); //$NON-NLS-1$
-		xmassOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/x_mass_on.gif")); //$NON-NLS-1$
-		fontSmallerIcon = new ResizableIcon(Tracker.getClassResource("resources/images/font_smaller.gif")); //$NON-NLS-1$
-		fontBiggerIcon = new ResizableIcon(Tracker.getClassResource("resources/images/font_bigger.gif")); //$NON-NLS-1$
-		fontSmallerDisabledIcon = new ResizableIcon(
-				Tracker.getClassResource("resources/images/font_smaller_disabled.gif")); //$NON-NLS-1$
-		fontBiggerDisabledIcon = new ResizableIcon(
-				Tracker.getClassResource("resources/images/font_bigger_disabled.gif")); //$NON-NLS-1$
-		autotrackerOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/autotrack_off.gif")); //$NON-NLS-1$
-		autotrackerOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/autotrack_on.gif")); //$NON-NLS-1$
-		autotrackerDisabledIcon = new ResizableIcon(
-				Tracker.getClassResource("resources/images/autotrack_disabled.gif")); //$NON-NLS-1$
-		infoIcon = new ResizableIcon(Tracker.getClassResource("resources/images/info.gif")); //$NON-NLS-1$
-		refreshIcon = new ResizableIcon(Tracker.getClassResource("resources/images/refresh.gif")); //$NON-NLS-1$
+		newTrackIcon = Tracker.getResourceIcon("poof.gif", true); //$NON-NLS-1$
+		trackControlIcon = Tracker.getResourceIcon("track_control.gif", true); //$NON-NLS-1$
+		trackControlOnIcon = Tracker.getResourceIcon("track_control_on.gif", true); //$NON-NLS-1$
+		trackControlDisabledIcon = Tracker.getResourceIcon("track_control_disabled.gif", true); //$NON-NLS-1$
+		zoomIcon = Tracker.getResourceIcon("zoom.gif", true); //$NON-NLS-1$
+		clipOffIcon = Tracker.getResourceIcon("clip_off.gif", true); //$NON-NLS-1$
+		clipOnIcon = Tracker.getResourceIcon("clip_on.gif", true); //$NON-NLS-1$
+		axesOffIcon = Tracker.getResourceIcon("axes.gif", true); //$NON-NLS-1$
+		axesOnIcon = Tracker.getResourceIcon("axes_on.gif", true); //$NON-NLS-1$
+		calibrationToolsOffIcon = Tracker.getResourceIcon("calibration_tool.gif", true); //$NON-NLS-1$
+		calibrationToolsOnIcon = Tracker.getResourceIcon("calibration_tool_on.gif", true); //$NON-NLS-1$
+		calibrationToolsOffRolloverIcon = Tracker.getResourceIcon("calibration_tool_rollover.gif", true); //$NON-NLS-1$
+		calibrationToolsOnRolloverIcon = Tracker.getResourceIcon("calibration_tool_on_rollover.gif", true); //$NON-NLS-1$
+		pointsOffIcon = Tracker.getResourceIcon("positions.gif", true); //$NON-NLS-1$
+		pointsOnIcon = Tracker.getResourceIcon("positions_on.gif", true); //$NON-NLS-1$
+		velocOffIcon = Tracker.getResourceIcon("velocities.gif", true); //$NON-NLS-1$
+		velocOnIcon = Tracker.getResourceIcon("velocities_on.gif", true); //$NON-NLS-1$
+		accelOffIcon = Tracker.getResourceIcon("accel.gif", true); //$NON-NLS-1$
+		accelOnIcon = Tracker.getResourceIcon("accel_on.gif", true); //$NON-NLS-1$
+		traceOffIcon = Tracker.getResourceIcon("trace.gif", true); //$NON-NLS-1$
+		traceOnIcon = Tracker.getResourceIcon("trace_on.gif", true); //$NON-NLS-1$
+		labelsOffIcon = Tracker.getResourceIcon("labels.gif", true); //$NON-NLS-1$
+		labelsOnIcon = Tracker.getResourceIcon("labels_on.gif", true); //$NON-NLS-1$
+		stretchOffIcon = Tracker.getResourceIcon("stretch.gif", true); //$NON-NLS-1$
+		stretchOnIcon = Tracker.getResourceIcon("stretch_on.gif", true); //$NON-NLS-1$
+		xmassOffIcon = Tracker.getResourceIcon("x_mass.gif", true); //$NON-NLS-1$
+		xmassOnIcon = Tracker.getResourceIcon("x_mass_on.gif", true); //$NON-NLS-1$
+		fontSmallerIcon = Tracker.getResourceIcon("font_smaller.gif", true); //$NON-NLS-1$
+		fontBiggerIcon = Tracker.getResourceIcon("font_bigger.gif", true); //$NON-NLS-1$
+		fontSmallerDisabledIcon = Tracker.getResourceIcon("font_smaller_disabled.gif", true); //$NON-NLS-1$
+		fontBiggerDisabledIcon = Tracker.getResourceIcon("font_bigger_disabled.gif", true); //$NON-NLS-1$
+		autotrackerOffIcon = Tracker.getResourceIcon("autotrack_off.gif", true); //$NON-NLS-1$
+		autotrackerOnIcon = Tracker.getResourceIcon("autotrack_on.gif", true); //$NON-NLS-1$
+		autotrackerDisabledIcon = Tracker.getResourceIcon("autotrack_disabled.gif", true); //$NON-NLS-1$
+		infoIcon = Tracker.getResourceIcon("info.gif", true); //$NON-NLS-1$
+		refreshIcon = Tracker.getResourceIcon("refresh.gif", true); //$NON-NLS-1$
 		// oops refreshIcon = new
 		// ResizableIcon(Tracker.getClassResource("resources/images/refresh.gif"));
 		// //$NON-NLS-1$
-		htmlIcon = new ResizableIcon(Tracker.getClassResource("resources/images/html.gif")); //$NON-NLS-1$
-		htmlDisabledIcon = new ResizableIcon(Tracker.getClassResource("resources/images/html_disabled.gif")); //$NON-NLS-1$
-		trailIcons[0] = new ResizableIcon(Tracker.getClassResource("resources/images/trails_off.gif")); //$NON-NLS-1$
-		trailIcons[1] = new ResizableIcon(Tracker.getClassResource("resources/images/trails_1.gif")); //$NON-NLS-1$
-		trailIcons[2] = new ResizableIcon(Tracker.getClassResource("resources/images/trails_2.gif")); //$NON-NLS-1$
-		trailIcons[3] = new ResizableIcon(Tracker.getClassResource("resources/images/trails_on.gif")); //$NON-NLS-1$
-		separatorIcon = new ResizableIcon(Tracker.getClassResource("resources/images/separator.gif")); //$NON-NLS-1$
-		checkboxOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/box_unchecked.gif")); //$NON-NLS-1$
-		checkboxOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/box_checked.gif")); //$NON-NLS-1$
-		checkboxOnDisabledIcon = new ResizableIcon(
-				Tracker.getClassResource("resources/images/box_checked_disabled.gif")); //$NON-NLS-1$
-		pencilOffIcon = new ResizableIcon(Tracker.getClassResource("resources/images/pencil_off.gif")); //$NON-NLS-1$
-		pencilOnIcon = new ResizableIcon(Tracker.getClassResource("resources/images/pencil_on.gif")); //$NON-NLS-1$
-		pencilOffRolloverIcon = new ResizableIcon(Tracker.getClassResource("resources/images/pencil_off_rollover.gif")); //$NON-NLS-1$
-		pencilOnRolloverIcon = new ResizableIcon(Tracker.getClassResource("resources/images/pencil_on_rollover.gif")); //$NON-NLS-1$
+		htmlIcon = Tracker.getResourceIcon("html.gif", true); //$NON-NLS-1$
+		htmlDisabledIcon = Tracker.getResourceIcon("html_disabled.gif", true); //$NON-NLS-1$
+		trailIcons[0] = Tracker.getResourceIcon("trails_off.gif", true); //$NON-NLS-1$
+		trailIcons[1] = Tracker.getResourceIcon("trails_1.gif", true); //$NON-NLS-1$
+		trailIcons[2] = Tracker.getResourceIcon("trails_2.gif", true); //$NON-NLS-1$
+		trailIcons[3] = Tracker.getResourceIcon("trails_on.gif", true); //$NON-NLS-1$
+		separatorIcon = Tracker.getResourceIcon("separator.gif", true); //$NON-NLS-1$
+		checkboxOffIcon = Tracker.getResourceIcon("box_unchecked.gif", true); //$NON-NLS-1$
+		checkboxOnIcon = Tracker.getResourceIcon("box_checked.gif", true); //$NON-NLS-1$
+		checkboxOnDisabledIcon = (ResizableIcon) Tracker.getResourceIcon("box_checked_disabled.gif", true); //$NON-NLS-1$
+		pencilOffIcon = Tracker.getResourceIcon("pencil_off.gif", true); //$NON-NLS-1$
+		pencilOnIcon = Tracker.getResourceIcon("pencil_on.gif", true); //$NON-NLS-1$
+		pencilOffRolloverIcon = Tracker.getResourceIcon("pencil_off_rollover.gif", true); //$NON-NLS-1$
+		pencilOnRolloverIcon = Tracker.getResourceIcon("pencil_on_rollover.gif", true); //$NON-NLS-1$
 		zoomFormat.setMaximumFractionDigits(0);
 	}
 

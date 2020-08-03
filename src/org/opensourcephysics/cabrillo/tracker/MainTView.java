@@ -96,7 +96,7 @@ public class MainTView extends JPanel implements TView {
 				lastDim = d;
 				TToolBar.getToolbar(trackerPanel).refreshZoomButton();
 				trackerPanel.eraseAll();
-			OSPLog.debug("MainTView testing no repaint");	
+			//OSPLog.debug("MainTView testing no repaint");	
 			//TFrame.repaintT(trackerPanel);
 			}
 		});
@@ -442,7 +442,7 @@ public class MainTView extends JPanel implements TView {
 	 */
 	@Override
 	public Icon getViewIcon() {
-		return new ImageIcon(Tracker.getClassResource("resources/images/video_on.gif")); //$NON-NLS-1$
+		return Tracker.getResourceIcon("video_on.gif", false); //$NON-NLS-1$
 	}
 
 	/**

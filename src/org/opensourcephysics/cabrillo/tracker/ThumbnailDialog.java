@@ -166,7 +166,6 @@ public class ThumbnailDialog extends JDialog {
 		String format = formatNames[i];
 		if (filePath == null) {
 			JFileChooser chooser = TrackerIO.getChooser();
-			chooser.setAcceptAllFileFilterUsed(false);
 			for (FileFilter filter : chooser.getChoosableFileFilters())
 				chooser.removeChoosableFileFilter(filter);
 			for (VideoFileFilter filter : fileFilters) {
@@ -174,10 +173,9 @@ public class ThumbnailDialog extends JDialog {
 			}
 			chooser.setFileFilter(fileFilters[i]);
 			chooser.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, fileChooserListener);
-			chooser.setDialogTitle(TrackerRes.getString("ThumbnailDialog.Chooser.SaveThumbnail.Title")); //$NON-NLS-1$
 			String tabName = XML.stripExtension(trackerPanel.getTitle());
 			chooser.setSelectedFile(new File(tabName + "_thumbnail." + format)); //$NON-NLS-1$
-			File[] files = TrackerIO.getChooserFilesAsync("save", null); //$NON-NLS-1$
+			File[] files = TrackerIO.getChooserFilesAsync("save thumbnail", null); //$NON-NLS-1$
 			chooser.removePropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, fileChooserListener);
 			if (files == null || files.length == 0)
 				return null;

@@ -574,112 +574,84 @@ public int getFootprintLength() {
     dataHidden = true;
   }
   	
-  /**
-   * Refreshes the data.
-   *
-   * @param data the DatasetManager
-   * @param trackerPanel the tracker panel
-   */
-  @Override
-protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
-    if (refreshDataLater || trackerPanel == null || data == null) return;
-    dataFrames.clear();
-  	// get valid step at current frameNumber
-    int frame = trackerPanel.getFrameNumber();
-    Step step = getStep(frame);
-    if (step != null) {
-    	((RGBStep)step).getRGBData(trackerPanel);
-    }
-    // get the datasets
-    int count = 0;
-    Dataset x = data.getDataset(count++);
-    Dataset y = data.getDataset(count++);
-    Dataset r = data.getDataset(count++);
-    Dataset g = data.getDataset(count++);
-    Dataset b = data.getDataset(count++);
-    Dataset luma = data.getDataset(count++);
-    Dataset pixels = data.getDataset(count++);
-    Dataset stepNum = data.getDataset(count++);
-    Dataset frameNum = data.getDataset(count++);
-    // assign column names to the datasets
-    String time = dataVariables[0]; 
-    if (!x.getColumnName(0).equals(time)) { // not yet initialized
-	    x.setXYColumnNames(time, dataVariables[1]); 
-	    y.setXYColumnNames(time, dataVariables[2]); 
-	    r.setXYColumnNames(time, dataVariables[3]); 
-	    g.setXYColumnNames(time, dataVariables[4]); 
-	    b.setXYColumnNames(time, dataVariables[5]); 
-	    luma.setXYColumnNames(time, dataVariables[6]); 
-	    pixels.setXYColumnNames(time, dataVariables[7]); 
-	    stepNum.setXYColumnNames(time, dataVariables[8]); 
-	    frameNum.setXYColumnNames(time, dataVariables[9]); 
-    }
-    else for (int i = 0; i < count; i++) {
-    	data.getDataset(i).clear();
-    }
-    // fill dataDescriptions array
-    dataDescriptions = new String[count+1];
-    for (int i = 0; i < dataDescriptions.length; i++) {
-      dataDescriptions[i] = TrackerRes.getString("RGBRegion.Data.Description."+i); //$NON-NLS-1$
-    }
-    // look thru steps and find valid ones (data valid and included in clip)
-    Step[] stepArray = getSteps();
-    validSteps.clear();
-    VideoPlayer player = trackerPanel.getPlayer();
-    VideoClip clip = player.getVideoClip();
-    for (int n = 0; n < stepArray.length; n++) {
-    	RGBStep next = (RGBStep)stepArray[n];
-      if (next == null || !next.dataValid
-      			|| next.getRGBData(trackerPanel) == null) 
-      	continue;
-      // get the frame number of the step
-      TPoint p = next.getPosition();
-      int stepFrame = p.getFrameNumber(trackerPanel);
-      // step is valid if frame is included in the clip
-      if (clip.includesFrame(stepFrame)) {
-      	validSteps.add(next);
-      }
-      else next.dataVisible = false;
-    }
-    RGBStep[] valid = validSteps.toArray(new RGBStep[0]);
-	  int len = valid.length;
-	  // get the valid data
-	  double[][] validData = new double[10][len];
-	  for (int n = 0; n < len; n++) {
-	    // get the rgb data for the step
-	    double[] rgb = valid[n].getRGBData(trackerPanel);	
-	    // get the frame number of the step
-	    TPoint p = valid[n].getPosition();
-	    int stepFrame = p.getFrameNumber(trackerPanel);
-	    dataFrames.add(new Integer(stepFrame));
-	    // get the step number and time
-	    int stepNumber = clip.frameToStep(stepFrame);
-	    double t = player.getStepTime(stepNumber)/1000.0;
-	    // get the world position for the step
-	    Point2D pt = p.getWorldPosition(trackerPanel);
-	    // put data in validData array
-		  for (int j = 2; j < 7; j++) {
-				validData[j][n] = rgb[j-2];
-		  }
-			validData[0][n] = pt.getX();
-			validData[1][n] = pt.getY();
-			validData[7][n] = stepNumber;
-			validData[8][n] = stepFrame;
-			validData[9][n] = t;
-	  }
-    // append the data to the data set
-    x.append(validData[9], validData[0]);
-    y.append(validData[9], validData[1]);
-    r.append(validData[9], validData[2]);
-    g.append(validData[9], validData[3]);
-    b.append(validData[9], validData[4]);
-    luma.append(validData[9], validData[5]);
-    pixels.append(validData[9], validData[6]);
-    stepNum.append(validData[9], validData[7]);
-    frameNum.append(validData[9], validData[8]);
-  }
+	/**
+	 * Refreshes the data.
+	 *
+	 * @param data         the DatasetManager
+	 * @param trackerPanel the tracker panel
+	 */
+	@Override
+	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
+		if (refreshDataLater || trackerPanel == null || data == null)
+			return;
+		dataFrames.clear();
+		// get valid step at current frameNumber
+		int frame = trackerPanel.getFrameNumber();
+		Step step = getStep(frame);
+		if (step != null) {
+			((RGBStep) step).getRGBData(trackerPanel);
+		}
+		// get the datasets
+		int count = 9;
+//    Dataset x = data.getDataset(count++);
+//    Dataset y = data.getDataset(count++);
+//    Dataset r = data.getDataset(count++);
+//    Dataset g = data.getDataset(count++);
+//    Dataset b = data.getDataset(count++);
+//    Dataset luma = data.getDataset(count++);
+//    Dataset pixels = data.getDataset(count++);
+//    Dataset stepNum = data.getDataset(count++);
+//    Dataset frameNum = data.getDataset(count++);
+		// assign column names to the datasets
+		// fill dataDescriptions array
+		// look thru steps and find valid ones (data valid and included in clip)
+		Step[] stepArray = getSteps();
+		validSteps.clear();
+		VideoPlayer player = trackerPanel.getPlayer();
+		VideoClip clip = player.getVideoClip();
+		for (int n = 0; n < stepArray.length; n++) {
+			RGBStep next = (RGBStep) stepArray[n];
+			if (next == null || !next.dataValid || next.getRGBData(trackerPanel) == null)
+				continue;
+			// get the frame number of the step
+			TPoint p = next.getPosition();
+			int stepFrame = p.getFrameNumber(trackerPanel);
+			// step is valid if frame is included in the clip
+			if (clip.includesFrame(stepFrame)) {
+				validSteps.add(next);
+			} else
+				next.dataVisible = false;
+		}
+		RGBStep[] valid = validSteps.toArray(new RGBStep[0]);
+		int len = valid.length;
+		double[][] validData = new double[count + 1][len];
+		// get the valid data
+		for (int i = 0; i < len; i++) {
+			// get the rgb data for the step
+			double[] rgb = valid[i].getRGBData(trackerPanel);
+			// get the frame number of the step
+			TPoint p = valid[i].getPosition();
+			int stepFrame = p.getFrameNumber(trackerPanel);
+			dataFrames.add(new Integer(stepFrame));
+			// get the step number and time
+			int stepNumber = clip.frameToStep(stepFrame);
+			double t = player.getStepTime(stepNumber) / 1000.0;
+			// get the world position for the step
+			Point2D pt = p.getWorldPosition(trackerPanel);
+			// put data in validData array
+			validData[0][i] = pt.getX();
+			validData[1][i] = pt.getY();
+			for (int j = 2; j < 7; j++) {
+				validData[j][i] = rgb[j - 2];
+			}
+			validData[7][i] = stepNumber;
+			validData[8][i] = stepFrame;
+			validData[9][i] = t;
+		}
+		clearColumns(data, count, dataVariables, "RGBRegion.Data.Description.", validData, len);
+	}
 
-  /**
+/**
    * Overrides TTrack getMenu method.
    *
    * @param trackerPanel the tracker panel

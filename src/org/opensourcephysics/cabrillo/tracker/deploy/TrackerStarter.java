@@ -599,7 +599,7 @@ public class TrackerStarter {
 		}
 		writeUserLog();
 		writeCodeBaseLog();
-		System.exit(0);
+		Tracker.exit();
 	}
 
 	/**
@@ -973,7 +973,7 @@ public class TrackerStarter {
 						} catch (InterruptedException e) {
 						}
 					}					
-					System.exit(0);
+					Tracker.exit();
 				}
 			});
 			exitThread.setDaemon(true);
@@ -1026,7 +1026,7 @@ public class TrackerStarter {
 		}
 		else {
 			// should never get here--exits via timer
-			System.exit(0);
+			Tracker.exit();
 		}
 	}
 

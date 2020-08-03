@@ -44,7 +44,6 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.TreeSet;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -84,12 +83,8 @@ import org.opensourcephysics.tools.FontSizer;
 @SuppressWarnings("serial")
 public class ExportVideoDialog extends JDialog {
 
-	protected static ExportVideoDialog videoExporter; // singleton
-	protected static HashMap<Object, VideoType> formats // name to VideoType
-			= new HashMap<Object, VideoType>();
-	protected static TreeSet<String> formatDescriptions // alphabetical
-			= new TreeSet<String>();
-
+	protected static final String PROPERTY_EXPORTVIDEO_VIDEOSAVED = "video_saved";
+	protected static final String PROPERTY_EXPORTVIDEO_VIDEOCANCELED = "video_cancelled";
 	// instance fields
 	protected TrackerPanel trackerPanel;
 	protected JButton saveAsButton, closeButton;
@@ -107,6 +102,7 @@ public class ExportVideoDialog extends JDialog {
 	protected PropertyChangeListener listener;
 	protected boolean oddFirst = true;
 	protected Object prevContentItem;
+	protected static ExportVideoDialog videoExporter; // singleton
 
 	/**
 	 * Returns the singleton ExportVideoDialog for a specified TrackerPanel.
@@ -114,9 +110,9 @@ public class ExportVideoDialog extends JDialog {
 	 * @param panel the TrackerPanel
 	 * @return the ExportVideoDialog
 	 */
-	public static ExportVideoDialog getDialog(TrackerPanel panel) {
+	public static ExportVideoDialog getVideoDialog(TrackerPanel panel) {
 		// refresh formats before instantiating
-		refreshFormats();
+		TrackerIO.refreshVideoFormats();
 
 		if (videoExporter == null) {
 			videoExporter = new ExportVideoDialog(panel);
@@ -125,31 +121,15 @@ public class ExportVideoDialog extends JDialog {
 
 		// refresh format dropdown
 		videoExporter.refreshFormatDropdown(VideoIO.getPreferredExportExtension());
-
 		videoExporter.setTrackerPanel(panel);
 		return videoExporter;
 	}
 
-	/**
-	 * Refreshes the format set.
-	 */
-	public static void refreshFormats() {
-		formats.clear();
-		formatDescriptions.clear();
-		// eliminate xuggle types if VideoIO engine is NONE
-		for (VideoType next : VideoIO.getVideoTypes(true)) {
-			formats.put(next.getDescription(), next);
-			formatDescriptions.add(next.getDescription());
-		}
-	}
-
-	protected Object[] getFormats() {
-		return formatDescriptions.toArray();
-	}
-
-	protected void setFormat(Object format) {
-		if (format != null)
+	protected void setFormat(String format) {
+		if (format != null) {
 			formatDropdown.setSelectedItem(format);
+			TrackerIO.selectedVideoFormat = format;
+		}
 	}
 
 	/**
@@ -161,7 +141,7 @@ public class ExportVideoDialog extends JDialog {
 		return formatDropdown.getSelectedItem();
 	}
 
-	protected String exportFullSizeVideo(String filePath) {
+	protected String exportFullSizeVideo(String filePath, String trkPath) {
 		if (trackerPanel.getVideo() == null) {
 			return null;
 		}
@@ -174,9 +154,9 @@ public class ExportVideoDialog extends JDialog {
 		}
 		sizeDropdown.setSelectedIndex(0);
 		// render
-		VideoType format = formats.get(formatDropdown.getSelectedItem());
+		VideoType videoType = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 		Dimension size = sizes.get(sizeDropdown.getSelectedItem());
-		render(format, size, false, filePath);
+		render(videoType, size, false, filePath, trkPath);
 		return savedFilePath;
 	}
 
@@ -215,12 +195,14 @@ public class ExportVideoDialog extends JDialog {
 		sizes = new HashMap<Object, Dimension>();
 		sizePanel = Box.createVerticalBox();
 		sizeDropdown = new JComboBox<String>();
+		sizeDropdown.setName("ExportVideo.size");
 		sizePanel.add(sizeDropdown);
 
 		// view panel
 		views = new HashMap<Object, JComponent>();
 		viewPanel = new JPanel(new GridLayout(0, 1));
 		viewDropdown = new JComboBox<>();
+		viewDropdown.setName("ExportVideo.view");
 		viewPanel.add(viewDropdown);
 		viewDropdown.addItemListener(new ItemListener() {
 			@Override
@@ -235,6 +217,7 @@ public class ExportVideoDialog extends JDialog {
 		// content panel
 		contentPanel = new JPanel(new GridLayout(0, 1));
 		contentDropdown = new JComboBox<>();
+		contentDropdown.setName("ExportVideo.content");
 		contentPanel.add(contentDropdown);
 		contentDropdown.addItemListener(new ItemListener() {
 			@Override
@@ -281,6 +264,8 @@ public class ExportVideoDialog extends JDialog {
 		// format panel
 		formatPanel = new JPanel(new GridLayout(0, 1));
 		formatDropdown = new JComboBox<>();
+		formatDropdown.setName("ExportVideo.format");
+
 		formatPanel.add(formatDropdown);
 
 		// assemble
@@ -297,9 +282,9 @@ public class ExportVideoDialog extends JDialog {
 		saveAsButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				VideoType format = formats.get(formatDropdown.getSelectedItem());
+				VideoType format = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 				Dimension size = sizes.get(sizeDropdown.getSelectedItem());
-				render(format, size, true, null);
+				render(format, size, true, null, null);
 			}
 		});
 		closeButton = new JButton();
@@ -559,22 +544,12 @@ public class ExportVideoDialog extends JDialog {
 	 * @param preferredExtension the preferred video file extension
 	 */
 	public void refreshFormatDropdown(String preferredExtension) {
-		Object selected = formatDropdown.getSelectedItem();
-		boolean hasSelected = false;
-		Object preferred = null;
+		String selected = TrackerIO.getVideoFormat(preferredExtension);
 		formatDropdown.removeAllItems();
-		String[] formats = formatDescriptions.toArray(new String[0]);
-		for (String format : formats) {
+		for (String format : TrackerIO.videoFormatDescriptions) {
 			formatDropdown.addItem(format);
-			if (format.equals(selected))
-				hasSelected = true;
-			if (preferred == null && format.contains("." + preferredExtension)) { //$NON-NLS-1$
-				preferred = format;
-			}
 		}
-		if (preferred != null)
-			setFormat(preferred);
-		else if (hasSelected)
+		if (selected != null)
 			setFormat(selected);
 	}
 
@@ -665,12 +640,13 @@ public class ExportVideoDialog extends JDialog {
 	 * specified in the constructor. The completed video is saved to a file chosen
 	 * by the user.
 	 * 
-	 * @param format         the format
+	 * @param videoType         the format
 	 * @param size           the size
 	 * @param showOpenDialog true to display a dialog offering to open the newly
 	 *                       saved video
+	 * @param trkPath 
 	 */
-	private void render(VideoType format, final Dimension size, final boolean showOpenDialog, String filePath) {
+	private void render(VideoType videoType, final Dimension size, final boolean showOpenDialog, String filePath, String trkPath) {
 		setVisible(false);
 		savedFilePath = null;
 		// prepare selected view to produce desired images
@@ -714,7 +690,7 @@ public class ExportVideoDialog extends JDialog {
 		final ClipControl playControl = player.getClipControl();
 		final VideoClip clip = playControl.getVideoClip();
 		final int taskLength = clip.getStepCount() + 1; // for monitor
-		final VideoRecorder recorder = format.getRecorder();
+		final VideoRecorder recorder = videoType.getRecorder();
 		double duration = player.getMeanStepDuration();
 		if (contentDropdown.getSelectedIndex() == 3)
 			duration = duration / 2;
@@ -784,83 +760,16 @@ public class ExportVideoDialog extends JDialog {
 					Runnable runner = new Runnable() {
 						@Override
 						public void run() {
-							if (monitor.isCanceled()) {
-								firePropertyChange("video_cancelled", null, null); //$NON-NLS-1$
-								monitor.close();
-								playControl.removePropertyChangeListener("stepnumber", listener); //$NON-NLS-1$
-								// restore original magnification and video visibility
-								trackerPanel.setMagnification(magnification);
-								setVideoVisible(videoIsVisible);
-								player.setEnabled(true);
-								recorder.reset();
-								return;
+							boolean done = (playControl.getStepNumber() == clip.getStepCount() - 1);
+							if (!monitor.isCanceled()) {
+								monitor.setNote(String
+										.format(TrackerRes.getString("TActions.SaveClipAs.ProgressMonitor.Progress") //$NON-NLS-1$
+												+ " %d%%.\n", progress * 100 / taskLength));
+								monitor.setProgress(done ? progress + 1 : progress);								
 							}
-							if (playControl.getStepNumber() == clip.getStepCount() - 1)
-								playControl.removePropertyChangeListener("stepnumber", listener); //$NON-NLS-1$
-							monitor.setProgress(progress);
-							String message = String
-									.format(TrackerRes.getString("TActions.SaveClipAs.ProgressMonitor.Progress") //$NON-NLS-1$
-											+ " %d%%.\n", progress * 100 / taskLength); //$NON-NLS-1$
-							monitor.setNote(message);
-							// paint the view and add frame
-//	          	theView.paintImmediately(theView.getBounds());
-							try {
-								for (BufferedImage image : getNextImages(size)) {
-									recorder.addFrame(image);
-								}
-								System.gc();
-								// if done, save video
-								if (playControl.getStepNumber() == clip.getStepCount() - 1) {
-									savedFilePath = recorder.saveVideo();
-									monitor.setProgress(progress + 1);
-									recorder.reset();
-									// restore original magnification and video visibility
-									trackerPanel.setMagnification(magnification);
-									setVideoVisible(videoIsVisible);
-									player.setEnabled(true);
-									// set VideoIO preferred export format to this one (ie most recent)
-									String extension = XML.getExtension(savedFilePath);
-									VideoIO.setPreferredExportExtension(extension);
-									final TFrame frame = trackerPanel.getTFrame();
-									if (showOpenDialog) {
-										int response = javax.swing.JOptionPane.showConfirmDialog(frame,
-												TrackerRes.getString("ExportVideoDialog.Complete.Message1") //$NON-NLS-1$
-														+ " " + XML.getName(savedFilePath) + XML.NEW_LINE //$NON-NLS-1$
-														+ TrackerRes.getString("ExportVideoDialog.Complete.Message2"), //$NON-NLS-1$
-												TrackerRes.getString("ExportVideoDialog.Complete.Title"), //$NON-NLS-1$
-												javax.swing.JOptionPane.YES_NO_OPTION,
-												javax.swing.JOptionPane.QUESTION_MESSAGE);
-										if (response == javax.swing.JOptionPane.YES_OPTION) {
-											frame.loadedFiles.remove(savedFilePath);
-											final File file = new File(savedFilePath);
-											Runnable runner = new Runnable() {
-												@Override
-												public void run() {
-													TrackerIO.openTabFile(file, frame);
-												}
-											};
-											SwingUtilities.invokeLater(runner);
-										}
-									}
-									firePropertyChange("video_saved", null, savedFilePath); //$NON-NLS-1$
-								}
-								// else step to next frame
-								else {
-									playControl.step();
-								}
-							} catch (Exception ex) {
-								JOptionPane.showMessageDialog(trackerPanel, ex, "Exception saving video: ", //$NON-NLS-1$
-										JOptionPane.WARNING_MESSAGE);
-								monitor.close();
-								playControl.removePropertyChangeListener("stepnumber", listener); //$NON-NLS-1$
-								// restore original magnification and video visibility
-								trackerPanel.setMagnification(magnification);
-								setVideoVisible(videoIsVisible);
-								player.setEnabled(true);
-								recorder.reset();
-								return;
-							}
+							setProgress(monitor, playControl, player, recorder, videoIsVisible, clip, size, magnification, done, showOpenDialog);
 						}
+
 					};
 					EventQueue.invokeLater(runner);
 				}
@@ -893,6 +802,79 @@ public class ExportVideoDialog extends JDialog {
 			// if video is not at step 0, set step number to 0
 			else
 				playControl.setStepNumber(0);
+		}
+	}
+
+	protected void setProgress(ProgressMonitor monitor, ClipControl playControl, VideoPlayer player, VideoRecorder recorder, boolean videoIsVisible, VideoClip clip, Dimension size, double magnification, boolean done, boolean showOpenDialog) {
+		if (monitor.isCanceled()) {
+			firePropertyChange(PROPERTY_EXPORTVIDEO_VIDEOCANCELED, null, null); //$NON-NLS-1$
+			monitor.close();
+			playControl.removePropertyChangeListener("stepnumber", listener); //$NON-NLS-1$
+			// restore original magnification and video visibility
+			trackerPanel.setMagnification(magnification);
+			setVideoVisible(videoIsVisible);
+			player.setEnabled(true);
+			recorder.reset();
+			return;
+		}
+		if (done)
+			playControl.removePropertyChangeListener("stepnumber", listener); //$NON-NLS-1$
+		// paint the view and add frame
+//theView.paintImmediately(theView.getBounds());
+		try {
+			for (BufferedImage image : getNextImages(size)) {
+				recorder.addFrame(image);
+			}
+			System.gc();
+			// if done, save video
+			if (done) {
+				savedFilePath = recorder.saveVideo();
+				recorder.reset();
+				// restore original magnification and video visibility
+				trackerPanel.setMagnification(magnification);
+				setVideoVisible(videoIsVisible);
+				player.setEnabled(true);
+				// set VideoIO preferred export format to this one (ie most recent)
+				String extension = XML.getExtension(savedFilePath);
+				VideoIO.setPreferredExportExtension(extension);
+				final TFrame frame = trackerPanel.getTFrame();
+				if (showOpenDialog) {
+					int response = javax.swing.JOptionPane.showConfirmDialog(frame,
+							TrackerRes.getString("ExportVideoDialog.Complete.Message1") //$NON-NLS-1$
+									+ " " + XML.getName(savedFilePath) + XML.NEW_LINE //$NON-NLS-1$
+									+ TrackerRes.getString("ExportVideoDialog.Complete.Message2"), //$NON-NLS-1$
+							TrackerRes.getString("ExportVideoDialog.Complete.Title"), //$NON-NLS-1$
+							javax.swing.JOptionPane.YES_NO_OPTION,
+							javax.swing.JOptionPane.QUESTION_MESSAGE);
+					if (response == javax.swing.JOptionPane.YES_OPTION) {
+						frame.loadedFiles.remove(savedFilePath);
+						final File file = new File(savedFilePath);
+						Runnable runner = new Runnable() {
+							@Override
+							public void run() {
+								TrackerIO.openTabFile(file, frame);
+							}
+						};
+						SwingUtilities.invokeLater(runner);
+					}
+				}
+				firePropertyChange(PROPERTY_EXPORTVIDEO_VIDEOSAVED, null, savedFilePath); //$NON-NLS-1$
+			}
+			// else step to next frame
+			else {
+				playControl.step();
+			}
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(trackerPanel, ex, "Exception saving video: ", //$NON-NLS-1$
+					JOptionPane.WARNING_MESSAGE);
+			monitor.close();
+			playControl.removePropertyChangeListener("stepnumber", listener); //$NON-NLS-1$
+			// restore original magnification and video visibility
+			trackerPanel.setMagnification(magnification);
+			setVideoVisible(videoIsVisible);
+			player.setEnabled(true);
+			recorder.reset();
+			return;
 		}
 	}
 

@@ -410,42 +410,23 @@ public class Protractor extends InputTrack {
 	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
 		if (refreshDataLater || trackerPanel == null || data == null)
 			return;
-		dataFrames.clear();
 		// get the datasets
-		int count = 0;
-		Dataset angle = data.getDataset(count++);
-		Dataset arm1Length = data.getDataset(count++);
-		Dataset arm2Length = data.getDataset(count++);
-		Dataset stepNum = data.getDataset(count++);
-		Dataset frameNum = data.getDataset(count++);
-		Dataset rotationAngle = data.getDataset(count++);
+//		Dataset angle = data.getDataset(count++);
+//		Dataset arm1Length = data.getDataset(count++);
+//		Dataset arm2Length = data.getDataset(count++);
+//		Dataset stepNum = data.getDataset(count++);
+//		Dataset frameNum = data.getDataset(count++);
+//		Dataset rotationAngle = data.getDataset(count++);
 		// assign column names to the datasets
-		String time = dataVariables[0];
-		if (!angle.getColumnName(0).equals(time)) { // not yet initialized
-			angle.setXYColumnNames(time, dataVariables[1]);
-			arm1Length.setXYColumnNames(time, dataVariables[2]);
-			arm2Length.setXYColumnNames(time, dataVariables[3]);
-			stepNum.setXYColumnNames(time, dataVariables[4]);
-			frameNum.setXYColumnNames(time, dataVariables[5]);
-			rotationAngle.setXYColumnNames(time, dataVariables[6]);
-		} else {
-			for (int i = 0; i < count; i++) {
-				data.getDataset(i).clear();
-			}
-		}
-		// fill dataDescriptions array
-		dataDescriptions = new String[count + 1];
-		for (int i = 0; i < dataDescriptions.length; i++) {
-			dataDescriptions[i] = TrackerRes.getString("Protractor.Data.Description." + i); //$NON-NLS-1$
-		}
-		// look thru steps and get data for those included in clip
+		int count = 6;
+		dataFrames.clear();
 		VideoPlayer player = trackerPanel.getPlayer();
 		VideoClip clip = player.getVideoClip();
 		int len = clip.getStepCount();
 		double[][] validData = new double[data.getDatasets().size() + 1][len];
 		double rotation = 0, prevAngle = 0;
-		for (int n = 0; n < len; n++) {
-			int frame = clip.stepToFrame(n);
+		for (int i = 0; i < len; i++) {
+			int frame = clip.stepToFrame(i);
 			ProtractorStep next = (ProtractorStep) getStep(frame);
 			next.dataVisible = true;
 			// determine the cumulative rotation angle
@@ -457,24 +438,18 @@ public class Protractor extends InputTrack {
 				delta -= 2 * Math.PI;
 			rotation += delta;
 			// get the step number and time
-			double t = player.getStepTime(n) / 1000.0;
-			validData[0][n] = t;
-			validData[1][n] = theta;
-			validData[2][n] = next.getArmLength(next.end1);
-			validData[3][n] = next.getArmLength(next.end2);
-			validData[4][n] = n;
-			validData[5][n] = frame;
-			validData[6][n] = rotation;
+			double t = player.getStepTime(i) / 1000.0;
+			validData[0][i] = theta;
+			validData[1][i] = next.getArmLength(next.end1);
+			validData[2][i] = next.getArmLength(next.end2);
+			validData[3][i] = i;
+			validData[4][i] = frame;
+			validData[5][i] = rotation;
+			validData[6][i] = t;
 			dataFrames.add(frame);
 			prevAngle = theta;
 		}
-		// append the data to the data set
-		angle.append(validData[0], validData[1]);
-		arm1Length.append(validData[0], validData[2]);
-		arm2Length.append(validData[0], validData[3]);
-		stepNum.append(validData[0], validData[4]);
-		frameNum.append(validData[0], validData[5]);
-		rotationAngle.append(validData[0], validData[6]);
+		clearColumns(data, count, dataVariables, "Protractor.Data.Description.", validData, len);
 	}
 
 	/**

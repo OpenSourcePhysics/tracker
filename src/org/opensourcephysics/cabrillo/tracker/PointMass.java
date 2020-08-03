@@ -1272,43 +1272,18 @@ public class PointMass extends TTrack {
 	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
 		if (refreshDataLater || trackerPanel == null || data == null)
 			return;
-		int baseCount = 24;
-		int count = baseCount; // number of datasets
+		int count = 24; // number of datasets
 		if (!getClass().equals(CenterOfMass.class) && !getClass().equals(DynamicSystem.class)) {
-			count++; // extra dataset for KE
-		}
-		if (data.getDataset(0).getColumnName(0).equals("x")) { //$NON-NLS-1$
-			// assign column names to the datasets
-			String timeVar = dataVariables[0];
-			for (int i = 0; i < baseCount; i++) {
-				data.getDataset(i).setXYColumnNames(timeVar, dataVariables[i + 1]);
-			}
-			if (count > baseCount) {
-				data.getDataset(baseCount).setXYColumnNames(timeVar, dataVariables[baseCount + 1]);
-			}
+			count = 25; // extra dataset for KE
 		}
 		// create preferred column order
 		if (preferredColumnOrder == null) {
-			if (count == baseCount)
+			if (count == 24)
 				preferredColumnOrder = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 17, 18, 19, 20, 12, 13, 14 };
 			else
-				preferredColumnOrder = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 17, 18, 19, 20, 12, 13, 14,
-						baseCount };
+				preferredColumnOrder = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 17, 18, 19, 20, 12, 13, 14, 24 };
 		}
 		// fill dataDescriptions array
-		dataDescriptions = new String[count + 1];
-		for (int i = 0; i < dataDescriptions.length; i++) {
-			if (i < 22)
-				dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description." + i); //$NON-NLS-1$
-			else if (i == 22)
-				dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.PixelX"); //$NON-NLS-1$
-			else if (i == 23)
-				dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.PixelY"); //$NON-NLS-1$
-			else if (i == 24)
-				dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.PathLength"); //$NON-NLS-1$
-			else
-				dataDescriptions[i] = TrackerRes.getString("PointMass.Data.Description.22"); //$NON-NLS-1$
-		}
 		// get the rotational data
 		Object[] rotationData = getRotationData();
 		double[] theta_data = (double[]) rotationData[0];
@@ -1316,39 +1291,40 @@ public class PointMass extends TTrack {
 		double[] alpha_data = (double[]) rotationData[2];
 		// clear datasets
 		dataFrames.clear();
-		for (int i = 0; i < count; i++) {
-			data.getDataset(i).clear();
-		}
 		skippedSteps.clear();
-		Point2D prevPt = null;
-		double pathlength = 0; // total path length
 		// get data at each non-null position step in the videoclip
 		VideoPlayer player = trackerPanel.getPlayer();
 		VideoClip clip = player.getVideoClip();
 		ImageCoordSystem coords = trackerPanel.getCoords();
 		Step[] stepArray = getSteps();
 		Step curStep = null, prevNonNullStep = null;
-		for (int n = 0; n < stepArray.length; n++) {
-			curStep = stepArray[n];
+		int len = stepArray.length;
+		double[][] validData = new double[count + 1][len];
+		int pt = 0;
+		double ke = Double.NaN;
+		Point2D prevPt = null;
+		double pathlength = 0; // total path length
+		for (int i = 0; i < len; i++) {
+			curStep = stepArray[i];
 			if (curStep == null) {
-				keyFrames.remove(n);
+				keyFrames.remove(i);
 				continue;
 			}
 
-			boolean inFrame = clip.includesFrame(n);
+			boolean inFrame = clip.includesFrame(i);
 			if (!inFrame)
 				continue;
 
-			int curStepNum = clip.frameToStep(n);
+			int curStepNum = clip.frameToStep(i);
 			if (prevNonNullStep != null) {
 				int prevStepNum = clip.frameToStep(prevNonNullStep.n);
-				for (int i = prevStepNum + 1; i < curStepNum; i++) {
-					skippedSteps.add(i);
+				for (int j = prevStepNum + 1; j < curStepNum; j++) {
+					skippedSteps.add(j);
 				}
 			}
 			prevNonNullStep = curStep;
 
-			int stepNumber = clip.frameToStep(n);
+			int stepNumber = clip.frameToStep(i);
 			double t = player.getStepTime(stepNumber) / 1000.0;
 			double tf = player.getStepTime(stepNumber + vDerivSpill) / 1000.0;
 			double to = player.getStepTime(stepNumber - vDerivSpill) / 1000.0;
@@ -1357,73 +1333,93 @@ public class PointMass extends TTrack {
 			to = player.getStepTime(stepNumber - aDerivSpill) / 1000.0;
 			double dt_a2 = (tf - to) * (tf - to) / (4 * aDerivSpill * aDerivSpill);
 			// assemble the data values for this step
-			double[] vals = new double[count];
-			TPoint p = ((PositionStep) stepArray[n]).getPosition();
-			Point2D pt = p.getWorldPosition(trackerPanel);
-			vals[0] = pt.getX(); // x
-			vals[1] = pt.getY(); // y
-			vals[2] = pt.distance(0, 0); // mag
-			vals[3] = Math.atan2(pt.getY(), pt.getX()); // ang between +/-pi
-			vals[4] = Double.NaN; // vx
-			vals[5] = Double.NaN; // vy
-			vals[6] = Double.NaN; // vmag
-			vals[7] = Double.NaN; // vang
-			vals[8] = Double.NaN; // ax
-			vals[9] = Double.NaN; // ay
-			vals[10] = Double.NaN; // amag
-			vals[11] = Double.NaN; // aang
-			vals[12] = theta_data[n]; // theta
-			vals[13] = omega_data[n] / dt_v; // omega
-			vals[14] = alpha_data[n] / dt_a2; // alpha
-			vals[15] = stepNumber; // step
-			vals[16] = n; // frame
-			vals[17] = Double.NaN; // px
-			vals[18] = Double.NaN; // py
-			vals[19] = Double.NaN; // pmag
-			vals[20] = Double.NaN; // pang
-			vals[21] = p.x; // pixel x
-			vals[22] = p.y; // pixel y
-			// for vals[23] (pathlength) see below
-			if (count > baseCount)
-				vals[baseCount] = Double.NaN; // KE
-			VectorStep veloc = getVelocity(n, trackerPanel);
-			if (veloc != null) {
+			TPoint p = ((PositionStep) stepArray[i]).getPosition();
+			Point2D wp = p.getWorldPosition(trackerPanel);
+			double x = validData[0][pt] = wp.getX(); // x
+			double y = validData[1][pt] = wp.getY(); // y
+			double r = validData[2][pt] = Math.sqrt(x * x + y * y); // mag
+			double slope = validData[3][pt] = Math.atan2(y, x); // ang between +/-pi
+			validData[12][pt] = theta_data[i]; // theta
+			validData[13][pt] = omega_data[i] / dt_v; // omega
+			validData[14][pt] = alpha_data[i] / dt_a2; // alpha
+			validData[15][pt] = stepNumber; // step
+			validData[16][pt] = i; // frame
+			
+			VectorStep veloc = getVelocity(i, trackerPanel);
+			if (veloc == null) {
+				validData[4][pt] = Double.NaN; // vx
+				validData[5][pt] = Double.NaN; // vy
+				validData[6][pt] = Double.NaN; // vmag
+				validData[7][pt] = Double.NaN; // vang
+				validData[17][pt] = Double.NaN; // px
+				validData[18][pt] = Double.NaN; // py
+				validData[19][pt] = Double.NaN; // pmag
+				validData[20][pt] = Double.NaN; // pang
+			} else {
 				double imageX = veloc.getXComponent();
 				double imageY = veloc.getYComponent();
-				vals[4] = coords.imageToWorldXComponent(n, imageX, imageY) / dt_v;
-				vals[5] = coords.imageToWorldYComponent(n, imageX, imageY) / dt_v;
-				double vsquared = vals[4] * vals[4] + vals[5] * vals[5];
-				vals[6] = Math.sqrt(vsquared);
-				vals[7] = Math.atan2(vals[5], vals[4]);
+				x = validData[4][pt] = coords.imageToWorldXComponent(i, imageX, imageY) / dt_v;
+				y = validData[5][pt] = coords.imageToWorldYComponent(i, imageX, imageY) / dt_v;
+			    double v2 = x * x + y * y;
+			    r = validData[6][pt] = Math.sqrt(v2);
+				slope = validData[7][pt] = Math.atan2(y, x);
 				double mass = getMass();
-				vals[17] = mass * vals[4];
-				vals[18] = mass * vals[5];
-				vals[19] = mass * vals[6];
-				vals[20] = mass * vals[7];
-				if (count > baseCount)
-					vals[baseCount] = 0.5 * mass * vsquared;
+				validData[17][pt] = mass * x;
+				validData[18][pt] = mass * y;
+				validData[19][pt] = mass * r;
+				validData[20][pt] = mass * slope;
+				ke = 0.5 * mass * v2;
 			}
-			VectorStep accel = getAcceleration(n, trackerPanel);
-			if (accel != null) {
+			VectorStep accel = getAcceleration(i, trackerPanel);
+			if (accel == null) {
+				validData[8][pt] = Double.NaN; // ax
+				validData[9][pt] = Double.NaN; // ay
+				validData[10][pt] = Double.NaN; // amag
+				validData[11][pt] = Double.NaN; // aang
+			} else {
 				double imageX = accel.getXComponent();
 				double imageY = accel.getYComponent();
-				vals[8] = coords.imageToWorldXComponent(n, imageX, imageY) / dt_a2;
-				vals[9] = coords.imageToWorldYComponent(n, imageX, imageY) / dt_a2;
-				vals[10] = Math.sqrt(vals[8] * vals[8] + vals[9] * vals[9]);
-				vals[11] = Math.atan2(vals[9], vals[8]);
+				x = validData[8][pt] = coords.imageToWorldXComponent(i, imageX, imageY) / dt_a2;
+				y = validData[9][pt] = coords.imageToWorldYComponent(i, imageX, imageY) / dt_a2;
+				validData[10][pt] = Math.sqrt(x * x + y * y);
+				validData[11][pt] = Math.atan2(y, x);
 			}
-			// path length
+			validData[21][pt] = p.x; // pixel x
+			validData[22][pt] = p.y; // pixel y
 			if (prevPt != null) {
-				pathlength += prevPt.distance(pt);
+				pathlength += prevPt.distance(wp);
 			}
-			vals[23] = pathlength;
-			prevPt = pt;
-			// append points to datasets
-			for (int i = 0; i < count; i++) {
-				data.getDataset(i).append(t, vals[i]);
-			}
-			dataFrames.add(new Integer(n));
+			prevPt = wp;
+			validData[23][pt] = pathlength;
+			if (count == 25)
+				validData[24][pt] = ke;
+			validData[count][pt] = t;
+			dataFrames.add(i);
+			pt++;
 		}
+		clearColumns(data, count, dataVariables, null, validData, pt);
+		for (int i = count + 1; --i >= 0;) {
+			String s;
+			switch (i) {
+			default:
+				s = "PointMass.Data.Description." + i; //$NON-NLS-1$
+			break;
+			case 22:
+				s = "PointMass.Data.Description.PixelX"; //$NON-NLS-1$
+			break;
+			case 23:
+				s = "PointMass.Data.Description.PixelY"; //$NON-NLS-1$
+				break;
+			case 24:
+				s = "PointMass.Data.Description.PathLength"; //$NON-NLS-1$
+				break;
+			case 25:
+				s = "PointMass.Data.Description.22"; //$NON-NLS-1$
+				break;
+			}
+			dataDescriptions[i] = TrackerRes.getString(s); //$NON-NLS-1$			
+		}
+		
 		// store the mass in the data properties
 		Double m = getMass();
 		String desc = TrackerRes.getString("ParticleModel.Parameter.Mass.Description"); //$NON-NLS-1$
@@ -2012,9 +2008,9 @@ public class PointMass extends TTrack {
 		if (isEmpty() || refreshDataLater)
 			return;
 
-		OSPLog.debug(Performance.timeCheckStr(
-				"ParticleModel.updateDerivatives0 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
-				Performance.TIME_MARK));
+//		OSPLog.debug(Performance.timeCheckStr(
+//				"ParticleModel.updateDerivatives0 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
+//				Performance.TIME_MARK));
 
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(this.getClass().getSimpleName() + this.hashCode() + " update derivatives " + startFrame //$NON-NLS-1$
@@ -2022,9 +2018,9 @@ public class PointMass extends TTrack {
 		for (int i = tList.size(); --i >= 0;) {
 			updateDerivatives(tList.get(i), startFrame, stepCount);
 		}
-		OSPLog.debug(Performance.timeCheckStr(
-				"ParticleModel.updateDerivatives1 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
-				Performance.TIME_MARK));
+//		OSPLog.debug(Performance.timeCheckStr(
+//				"ParticleModel.updateDerivatives1 " + startFrame + " tList=" + tList.size() + " stepcount=" + stepCount,
+//				Performance.TIME_MARK));
 	}
 
 	/**
@@ -2081,7 +2077,7 @@ public class PointMass extends TTrack {
 		}
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 
-		OSPLog.debug("PointMass " + name + " updateDerivatives start " + startFrame + " for steps " + stepCount);
+//		OSPLog.debug("PointMass " + name + " updateDerivatives start " + startFrame + " for steps " + stepCount);
 
 		// initialize data arrays
 		if (xData.length < steps.array.length) {

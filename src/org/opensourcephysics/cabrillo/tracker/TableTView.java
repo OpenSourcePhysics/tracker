@@ -31,7 +31,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumnModel;
 
@@ -50,8 +49,7 @@ import org.opensourcephysics.tools.FontSizer;
  */
 public class TableTView extends TrackChooserTView {
 
-	protected static final Icon TABLEVIEW_ICON = new ImageIcon(
-			Tracker.getClassResource("resources/images/datatable.gif")); //$NON-NLS-1$ ;
+	protected static final Icon TABLEVIEW_ICON = Tracker.getResourceIcon("datatable.gif", false); //$NON-NLS-1$ ;
 	private boolean dialogLastVisible;
 
 	// instance fields
