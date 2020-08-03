@@ -173,8 +173,6 @@ public class TapeMeasure extends InputTrack {
 		setProperty("tableVar0", "0"); //$NON-NLS-1$ //$NON-NLS-2$
 		setProperty("tableVar1", "1"); //$NON-NLS-1$ //$NON-NLS-2$
 
-		ruler = new WorldRuler(this);
-
 		// set up footprint choices and color
 		tapeFootprints = new Footprint[] { LineFootprint.getFootprint("Footprint.DoubleArrow"), //$NON-NLS-1$
 				LineFootprint.getFootprint("Footprint.BoldDoubleArrow"), //$NON-NLS-1$
@@ -182,10 +180,15 @@ public class TapeMeasure extends InputTrack {
 				LineFootprint.getFootprint("Footprint.BoldLine") }; //$NON-NLS-1$
 		stickFootprints = new Footprint[] { LineFootprint.getFootprint("Footprint.BoldDoubleTarget"), //$NON-NLS-1$
 				LineFootprint.getFootprint("Footprint.DoubleTarget") }; //$NON-NLS-1$
-		setColor(defaultColors[0]);
 		setViewable(false);
-		setStickMode(false); // sets up footprints
+		setStickMode(false); // sets up footprint
 		setReadOnly(false); // sets up dashed array
+		
+		// create ruler AFTER setting footprints
+		ruler = new WorldRuler(this);
+		// set color AFTER creating ruler
+		setColor(defaultColors[0]);
+		
 		// set initial hint
 		partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
 		hint = TrackerRes.getString("TapeMeasure.Hint"); //$NON-NLS-1$
@@ -269,6 +272,12 @@ public class TapeMeasure extends InputTrack {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				ruler.setVisible(rulerCheckbox.isSelected());
+				Footprint fp = ruler.isVisible()? ruler.getFootprint(): footprint;
+				fp.setColor(getColor());
+				Step[] stepArray = steps.array;
+				for (int j = 0; j < stepArray.length; j++)
+					if (stepArray[j] != null)
+						stepArray[j].setFootprint(fp);					
 				repaint();
 			}
 		});
@@ -347,7 +356,7 @@ public class TapeMeasure extends InputTrack {
 	 */
 	public void setStickMode(boolean stick) {
 		stickMode = stick;
-		Color color = getColor();
+//		Color color = getColor();
 		// set footprints and update world lengths
 		if (isStickMode()) {
 			setFootprints(stickFootprints);
@@ -355,7 +364,10 @@ public class TapeMeasure extends InputTrack {
 			setFootprints(tapeFootprints);
 		}
 		defaultFootprint = getFootprint();
-		setColor(color);
+		if (ruler != null) {
+			ruler.setStrokeWidth(defaultFootprint.getStroke().getLineWidth());
+		}
+//		setColor(color);
 		// set tip edit triggers
 		for (Step step : getSteps()) {
 			if (step != null) {
@@ -645,6 +657,22 @@ public class TapeMeasure extends InputTrack {
 	@Override
 	public int getFootprintLength() {
 		return 2;
+	}
+	
+	@Override
+	public void setFootprint(String name) {
+		super.setFootprint(name);
+		
+		if (ruler != null && ruler.isVisible()) {
+			ruler.setStrokeWidth(footprint.getStroke().getLineWidth());
+			Footprint footprint = ruler.getFootprint();
+			footprint.setColor(getColor());
+			Step[] stepArray = steps.array;
+			for (int j = 0; j < stepArray.length; j++)
+				if (stepArray[j] != null)
+					stepArray[j].setFootprint(footprint);					
+		}
+		repaint();
 	}
 
 	/**
