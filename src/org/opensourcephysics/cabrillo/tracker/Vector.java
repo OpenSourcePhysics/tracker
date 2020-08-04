@@ -524,7 +524,7 @@ public class Vector extends TTrack {
 	public void setVectorsVisible(TrackerPanel panel, boolean visible) {
 		if (visible == isVectorsVisible(panel))
 			return;
-		visMap.put(panel, new Boolean(visible));
+		visMap.put(panel, Boolean.valueOf(visible));
 		if (!visible) {
 			Step step = panel.getSelectedStep();
 			if (step != null && step == getStep(step.getFrameNumber())) {
@@ -546,7 +546,7 @@ public class Vector extends TTrack {
 		}
 		Boolean vis = visMap.get(trackerPanel);
 		if (vis == null) {
-			vis = new Boolean(true); // vectors are visible by default
+			vis = Boolean.valueOf(true); // vectors are visible by default
 			visMap.put(trackerPanel, vis);
 		}
 		return vis.booleanValue();

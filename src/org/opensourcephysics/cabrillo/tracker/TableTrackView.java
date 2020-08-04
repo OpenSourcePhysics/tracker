@@ -126,6 +126,20 @@ import org.opensourcephysics.tools.ToolsRes;
 @SuppressWarnings("serial")
 public class TableTrackView extends TrackView {
 
+	
+//    protected JViewport createViewport() 
+//    {
+//    	return new JViewport() {
+//    		
+//    	    public void setViewPosition(Point p)
+//    	    {
+//    	    	if (p.y > 0)System.out.println("TableTrackView.setViewPosition " + p);
+//    	    	super.setViewPosition(p);
+//    	    }
+//
+//    	};
+//    }
+    
 	// static fields
 	static final String DEFINED_AS = ": "; //$NON-NLS-1$
 	static final Icon skipsOffIcon = Tracker.getResourceIcon("skips_on.gif", true); //$NON-NLS-1$

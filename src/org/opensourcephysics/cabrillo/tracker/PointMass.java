@@ -1673,7 +1673,7 @@ public class PointMass extends TTrack {
 	public void setVVisible(TrackerPanel trackerPanel, boolean visible) {
 		if (visible == isVVisible(trackerPanel))
 			return;
-		vVisMap.put(trackerPanel.id, new Boolean(visible));
+		vVisMap.put(trackerPanel.id, Boolean.valueOf(visible));
 //    if (visible) updateDerivatives();
 		if (!visible) {
 			Step step = trackerPanel.getSelectedStep();
@@ -1698,7 +1698,7 @@ public class PointMass extends TTrack {
 		}
 		Boolean vis = vVisMap.get(trackerPanel.id);
 		if (vis == null) {
-			vis = new Boolean(false); // not visible by default
+			vis = Boolean.valueOf(false); // not visible by default
 			vVisMap.put(trackerPanel.id, vis);
 		}
 		return vis.booleanValue();
@@ -1751,7 +1751,7 @@ public class PointMass extends TTrack {
 		Boolean vis = xVisMap.get(trackerPanel.id);
 		if (vis != null && vis.booleanValue() == visible)
 			return;
-		xVisMap.put(trackerPanel.id, new Boolean(visible));
+		xVisMap.put(trackerPanel.id, Boolean.valueOf(visible));
 		if (!visible) {
 			Step step = trackerPanel.getSelectedStep();
 			if (step != null && step == getStep(step.getFrameNumber())) {
@@ -1775,7 +1775,7 @@ public class PointMass extends TTrack {
 		}
 		Boolean vis = xVisMap.get(trackerPanel.id);
 		if (vis == null) {
-			vis = new Boolean(true); // positions are visible by default
+			vis = Boolean.valueOf(true); // positions are visible by default
 			xVisMap.put(trackerPanel.id, vis);
 		}
 		return vis.booleanValue();
@@ -1830,7 +1830,7 @@ public class PointMass extends TTrack {
 	public void setAVisible(TrackerPanel trackerPanel, boolean visible) {
 		if (visible == isAVisible(trackerPanel))
 			return;
-		aVisMap.put(trackerPanel.id, new Boolean(visible));
+		aVisMap.put(trackerPanel.id, Boolean.valueOf(visible));
 //    if (visible) updateDerivatives();
 		if (!visible) {
 			Step step = trackerPanel.getSelectedStep();
@@ -1855,7 +1855,7 @@ public class PointMass extends TTrack {
 		}
 		Boolean vis = aVisMap.get(trackerPanel.id);
 		if (vis == null) {
-			vis = new Boolean(false); // not visible by default
+			vis = Boolean.valueOf(false); // not visible by default
 			aVisMap.put(trackerPanel.id, vis);
 		}
 		return vis.booleanValue();
