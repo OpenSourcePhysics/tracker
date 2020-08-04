@@ -193,8 +193,7 @@ public class TapeStep extends Step {
 			drawLayout = true;
 			hit = tape;
 		}
-		if (hit == null && tape.ruler.isVisible() && tape.ruler.getHitShape(n).intersects(hitRect)) {
-//			tape.ruler.getHandle().setScreenPosition(xpix, ypix, trackerPanel);
+		if (hit == null && tape.ruler.isVisible() && tape.ruler.getHitLine(n).intersects(hitRect)) {
 			hit = tape.ruler.getHandle();
 		}
 		if (drawLayout != drawLayoutBounds) {
@@ -224,18 +223,16 @@ public class TapeStep extends Step {
 		getMark(trackerPanel).draw(g, false);
 		Paint gpaint = g.getPaint();
 		g.setPaint(footprint.getColor());
-		// draw the text layout unless editing or ruler is displayed
+		// draw the text layout unless editing
 		if (!tape.editing) {
 			TextLayout layout = textLayouts.get(trackerPanel);
-			Rectangle2D bounds = layout.getBounds();
-			Point p = getLayoutPosition(trackerPanel, bounds);
+			Rectangle bounds = layoutBounds.get(trackerPanel);
 			Font gfont = g.getFont();
 			g.setFont(TFrame.textLayoutFont);
-			layout.draw(g, p.x, p.y);
+			layout.draw(g, bounds.x, bounds.y + bounds.height);
 			g.setFont(gfont);
 			if (drawLayoutBounds && tape.isFieldsEnabled()) {
-				Rectangle rect = layoutBounds.get(trackerPanel);
-				g.drawRect(rect.x - 2, rect.y - 3, rect.width + 6, rect.height + 5);
+				g.drawRect(bounds.x - 2, bounds.y - 3, bounds.width + 6, bounds.height + 5);
 			}
 		}
 		g.setPaint(gpaint);
@@ -294,7 +291,7 @@ public class TapeStep extends Step {
 				@Override
 				public void draw(Graphics2D g, boolean highlighted) {
 					tapeMark.draw(g, false);
-					if (tape.ruler.isVisible()) {
+					if (tape.ruler.isVisible() && rulerMark != null) {
 						rulerMark.draw(g, false);
 					}
 				}
@@ -663,9 +660,6 @@ public class TapeStep extends Step {
 			at.transform(endPoint2, endPoint2);
 			endPoint2.y = -endPoint2.y;
 		}
-		if (tape.ruler.isVisible()) {
-			return tape.ruler.getLayoutPosition(trackerPanel, bounds, endPoint1, endPoint2);
-		}
 		double cos = endPoint1.cos(endPoint2);
 		double sin = endPoint1.sin(endPoint2);
 		double halfwsin = w * sin / 2;
@@ -674,7 +668,10 @@ public class TapeStep extends Step {
 		// draw relative to center of tape
 		middle.center(end1, end2);
 		Point p = middle.getScreenPosition(trackerPanel);
-		p.setLocation((int) (p.x - d * sin - w / 2), (int) (p.y - d * cos + h / 2));
+		// draw below tape
+		p.setLocation((int) (p.x + d * sin - w / 2), (int) (p.y + d * cos + h / 2));
+		// draw above tape
+//		p.setLocation((int) (p.x - d * sin - w / 2), (int) (p.y - d * cos + h / 2));
 		return p;
 	}
 
