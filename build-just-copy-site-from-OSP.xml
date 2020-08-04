@@ -10,8 +10,11 @@
   	<!-- location of ant-contrib.jar -->
   	<property name="tools.dir" value = "tools" />
 
+  	<property name="osp" value = "../osp" />
+    <property name="osp.bin" value="${osp}/bin" />  
+    <property name="osp.swingjs.dir" value="${osp}/site/swingjs" />  
+  	
  	<!-- OSP JS library to copy to site/ -->
-    <property name="osp.swingjs.dir" value="../osp/site/swingjs" />  
   	
   		<!-- output directories -->
 
@@ -31,7 +34,19 @@
       	<include name="**"/>
   	</fileset>
     </copy>
-  	 
+
+ 	<!-- assets to bin/ -->
+
+ 	<echo> Copying project *.zip and ${osp.bin} files into bin </echo>
+  	<copy todir="bin">
+      <fileset dir="${osp.bin}">
+      	<include name="*.zip"/>
+  	</fileset>
+        <fileset dir="">
+        	<include name="*.zip"/>
+    	</fileset>
+    </copy>
+
   	
 </target>
 	
