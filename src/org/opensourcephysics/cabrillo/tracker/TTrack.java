@@ -483,9 +483,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @param visible <code>true</code> to show this track
 	 */
 	public void setVisible(boolean visible) {
-		Boolean prev = new Boolean(this.visible);
+		Boolean prev = Boolean.valueOf(this.visible);
 		this.visible = visible;
-		firePropertyChange(PROPERTY_TTRACK_VISIBLE, prev, new Boolean(visible)); // $NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_VISIBLE, prev, Boolean.valueOf(visible)); // $NON-NLS-1$
 		if (trackerPanel != null)
 			TFrame.repaintT(trackerPanel);
 	}
@@ -584,7 +584,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 */
 	public void setLocked(boolean locked) {
 		this.locked = locked;
-		firePropertyChange(TTrack.PROPERTY_TTRACK_LOCKED, null, new Boolean(locked)); // $NON-NLS-1$
+		firePropertyChange(TTrack.PROPERTY_TTRACK_LOCKED, null, Boolean.valueOf(locked)); // $NON-NLS-1$
 	}
 
 	/**
