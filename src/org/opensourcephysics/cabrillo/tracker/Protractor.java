@@ -46,7 +46,6 @@ import javax.swing.JPopupMenu;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
-import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
@@ -261,12 +260,10 @@ public class Protractor extends InputTrack {
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
-			if (isSelectedTrack) {
-				TPoint p = trackerPanel.getSelectedPoint();
-				if (!(p instanceof ProtractorStep.Rotator)) {
-					ProtractorStep step = (ProtractorStep) getStep(trackerPanel.getFrameNumber());
-					step.arcHighlight = null;
-				}
+			TPoint p = trackerPanel.getSelectedPoint();
+			if (!(p instanceof ProtractorStep.Rotator)) {
+				ProtractorStep step = (ProtractorStep) getStep(trackerPanel.getFrameNumber());
+				step.arcHighlight = null;
 			}
 			break;
 		case Trackable.PROPERTY_ADJUSTING: // via TrackerPanel
@@ -423,7 +420,7 @@ public class Protractor extends InputTrack {
 		VideoPlayer player = trackerPanel.getPlayer();
 		VideoClip clip = player.getVideoClip();
 		int len = clip.getStepCount();
-		double[][] validData = new double[data.getDatasets().size() + 1][len];
+		double[][] validData = new double[count + 1][len];
 		double rotation = 0, prevAngle = 0;
 		for (int i = 0; i < len; i++) {
 			int frame = clip.stepToFrame(i);

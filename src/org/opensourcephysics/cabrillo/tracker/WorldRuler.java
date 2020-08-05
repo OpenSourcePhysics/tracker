@@ -33,7 +33,6 @@ import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
-import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
@@ -44,10 +43,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.tools.FontSizer;
 
 /**
  * This draws ruled lines and labels for a tape measure.
@@ -58,22 +58,24 @@ public class WorldRuler {
 	
 	private static final int DEFAULT_RULER_WIDTH = 20;
 	private static final float[] DASHED_LINE = new float[] { 3, 9 };
-	private static final int RULER_LABEL_GAP = 10, RULER_TAPE_GAP = 1;
+	private static final int RULER_LABEL_GAP = 10, RULER_TAPE_GAP = 4;
 	private static final int MAX_RULER_WIDTH = 200;
+	private static final int MIN_RULER_LABEL_SPACING = 50;
 	private static final int MIN_INSET_PER_LEVEL = 5;
 	private static final int NUMBER_OF_LEVELS = 3;
 	private static final double MAX_RULER_LINE_SPACING = 100;
 	private static final double DEFAULT_RULER_LINE_SPACING = 8;
 	private static final double MIN_RULER_LINE_SPACING = 5;
 	private static final int DEFAULT_DROPEND_SIZE = 12;
-	
+	private static final int DEFAULT_LABEL_GAP = 10;
 
 	private TapeMeasure tape;
 	private ArrayList<ArrayList<Line2D>> lines;
+	private BasicStroke[] baseStrokes;
 	private BasicStroke[] strokes;
 	private Color[] colors = new Color[NUMBER_OF_LEVELS];
 	private MultiShape[] multiShapes = new MultiShape[NUMBER_OF_LEVELS];
-	private ArrayList<TextMark> textMarks;
+	private ArrayList<LabelMark> labelMarks;
 	private Handle handle;
 	private TPoint[] lineEnds;
 	private BasicStroke dashedStroke;
@@ -83,9 +85,11 @@ public class WorldRuler {
 	protected double rulerLineSpacing = DEFAULT_RULER_LINE_SPACING;
 	private int insetPerLevel = MIN_INSET_PER_LEVEL;
 	private AffineTransform transform = new AffineTransform();
+	private AffineTransform flipTransform = new AffineTransform();
   private HashMap<Integer, Line2D> hitLines = new HashMap<Integer, Line2D>();
 	protected Footprint[] footprints;
 	private int dropEndSize = DEFAULT_DROPEND_SIZE;
+	private int labelGap = DEFAULT_LABEL_GAP;
 	protected DecimalFormat format = (DecimalFormat) NumberFormat.getInstance();
 	private Double previousDistFromLineEnd;
 	private double previousLineSpacing, previousAngle;
@@ -100,7 +104,7 @@ public class WorldRuler {
 		handle = new Handle();
 		lineEnds = new TPoint[] {new TPoint(), new TPoint()};
 		lines = new ArrayList<ArrayList<Line2D>>();
-		textMarks =  new ArrayList<TextMark>();
+		labelMarks =  new ArrayList<LabelMark>();
 		for (int i = 0; i < NUMBER_OF_LEVELS; i++) {
 			lines.add(new ArrayList<Line2D>());
 		}
@@ -118,23 +122,23 @@ public class WorldRuler {
 	protected Mark getMark(TrackerPanel trackerPanel) {
 		if (trackerPanel instanceof WorldTView)
 			return null;
+		refreshStrokes();
 		// get ends and length of the tape
 		int n = trackerPanel.getFrameNumber();
-		TPoint pt1 = tape.getStep(n).getPoints()[0];
-		TPoint pt2 = tape.getStep(n).getPoints()[1];
-		double length = pt1.distance(pt2);
+		TPoint pt0 = tape.getStep(n).getPoints()[0];
+		TPoint pt1 = tape.getStep(n).getPoints()[1];
+		double length = pt0.distance(pt1);
+		double tapeSin = pt0.sin(pt1);
+		double tapeCos = pt0.cos(pt1);
+		Point screen0 = pt0.getScreenPosition(trackerPanel);
 		Point screen1 = pt1.getScreenPosition(trackerPanel);
-		Point screen2 = pt2.getScreenPosition(trackerPanel);
-		double screenLength = screen1.distance(screen2);
+		double screenLength = screen0.distance(screen1);
+		Point2D world0 = pt0.getWorldPosition(trackerPanel);
 		Point2D world1 = pt1.getWorldPosition(trackerPanel);
-		Point2D world2 = pt2.getWorldPosition(trackerPanel);
-		double worldLength = world1.distance(world2);
+		double worldLength = world0.distance(world1);
 
 		// make a first approximation for world delta between lines
 		double zoomFactor = trackerPanel.getXPixPerUnit();
-//		if (trackerPanel instanceof WorldTView) {
-//			zoomFactor = ((WorldTView)trackerPanel).getTrackerPanel().getXPixPerUnit();
-//		}
 		double delta = rulerLineSpacing / (zoomFactor * tape.trackerPanel.getCoords().getScaleX(n));
 
 		// find power of ten
@@ -158,77 +162,94 @@ public class WorldRuler {
 		for (int i = 0; i < lines.size(); i++) {
 			lines.get(i).clear();
 		}
-		textMarks.clear();
+		labelMarks.clear();
 		int inset = rulerWidth > 0? insetPerLevel: -insetPerLevel;
 		int gap = rulerWidth > 0? RULER_TAPE_GAP: -RULER_TAPE_GAP;
 		
 
 		double minRulerMarking = majorSpacing * delta;
+		double coordsCos = tape.trackerPanel.getCoords().getCosine(n);
+		double coordsSin = tape.trackerPanel.getCoords().getSine(n);
+		int prevLabelIndex = 0;
+		double factor = FontSizer.getFactor();
 		// create vertical ruler lines, then rotate
 		int lineCount = (int) Math.round(worldLength / delta) + 1;
-		OSPLog.debug("pig "+worldLength+"  "+delta+"  "+worldLength / delta+"   "+lineCount);
 		for (int i = 0; i < lineCount; i++) {
 			int level = i % majorSpacing == 0? 0: i % halfSpacing == 0? 1: 2;
 			if (lineCount-1 < majorSpacing && level > 0) {
 				level--;
 				minRulerMarking = halfSpacing * delta;				
 			}
-			ArrayList<Line2D> drawLines = lines.get(level);
-			double lineLength = rulerWidth - inset*level;
 			
-			double cos = tape.trackerPanel.getCoords().getCosine(n);
-			double sin = tape.trackerPanel.getCoords().getSine(n);
-			double x = world1.getX() + i * delta * cos;
-			double y = world1.getY() - i * delta * sin;
+			ArrayList<Line2D> drawLines = lines.get(level);
+			double lineLength = rulerWidth - inset*level; // negative for downward lines			
+			double x = world0.getX() + i * delta * coordsCos;
+			double y = world0.getY() - i * delta * coordsSin;
 			
 			Line2D line = new Line2D.Double();
 			drawLines.add(line);
 			lineEnds[0].setWorldPosition(x, y, trackerPanel);
 			Point base = lineEnds[0].getScreenPosition(trackerPanel);
 			// draw drop end at 0 if not a stick
-			double bottom = i == 0 && !tape.isStickMode()? base.y +dropEndSize: base.y - gap;
+			int drop = rulerWidth > 0? dropEndSize: -dropEndSize;
+			double bottom = i == 0 && !tape.isStickMode()? base.y + drop: base.y - gap;
 			line.setLine(base.x, bottom, base.x, base.y - gap - lineLength);
+			
+			// create the labelMark for major lines--BEFORE drawing second drop end
+			if (level == 0) {				
+				double screenDelta = (i - prevLabelIndex) * delta * screenLength / worldLength;
+				if (i == 0 || screenDelta > factor * MIN_RULER_LABEL_SPACING) {
+					String s = getFormattedLength(i * delta, minRulerMarking);
+					s += trackerPanel.getUnits(tape, TapeMeasure.dataVariables[1]);
+					double offset = rulerWidth > 0? 
+							gap + lineLength + factor * labelGap: 
+							gap + lineLength - factor * labelGap;
+					LabelMark label = new LabelMark(s, base.x, base.y - offset);
+					if (tapeCos < 0)
+						label.flip = true;
+					labelMarks.add(label);
+					prevLabelIndex = i;
+				}
+			}		
 			
 			// if not stick, draw second drop end
 			if (i == lineCount - 1 && !tape.isStickMode()) {
 				line = new Line2D.Double();
 				lines.get(0).add(line);
-				x = world1.getX() + worldLength * cos;
-				y = world1.getY() - worldLength * sin;
+				x = world0.getX() + worldLength * coordsCos;
+				y = world0.getY() - worldLength * coordsSin;
 				lineEnds[0].setWorldPosition(x, y, trackerPanel);
 				base = lineEnds[0].getScreenPosition(trackerPanel);
-				line.setLine(base.x, base.y +dropEndSize, base.x, base.y);
+				line.setLine(base.x, base.y + drop, base.x, base.y);
 			}
 			
-			// create the textMark to label the major lines
-			if (level == 0) {
-				String s = getFormattedLength(i * delta, minRulerMarking);
-				s += trackerPanel.getUnits(tape, TapeMeasure.dataVariables[1]);
-				textMarks.add(new TextMark(s, base.x, base.y - gap - lineLength - 10));
-			}			
 		}
 		// set up hit line to produce unrotated MultiShape for drawing with rotation
 		Line2D hitLine = getHitLine(n);
 		double hitDistScreen = rulerWidth >= 0? 
 				RULER_TAPE_GAP + rulerWidth:
 				rulerWidth - RULER_TAPE_GAP;
-		lineEnds[0].setWorldPosition(world1.getX(), world1.getY(), trackerPanel);
+		lineEnds[0].setWorldPosition(world0.getX(), world0.getY(), trackerPanel);
 		Point base = lineEnds[0].getScreenPosition(trackerPanel);
 		hitLine.setLine(base.x, base.y - hitDistScreen, base.x + screenLength, base.y - hitDistScreen);
 		Shape hitDrawshape = (Shape)hitLine.clone();
 					
 		// rotate around screen position of end 1
-		Point p = pt1.getScreenPosition(trackerPanel);
-		double theta = pt1.angle(pt2);
+		Point p = pt0.getScreenPosition(trackerPanel);
+		double theta = pt0.angle(pt1);
 		transform.setToRotation(theta, p.x, p.y);		
 
 		// set lineEnds for handle
-		double sin = pt1.sin(pt2);
-		double cos = pt1.cos(pt2);
 		double hitDist = hitDistScreen * length / screenLength;
-		lineEnds[0].setLocation(pt1.x - hitDist * sin, pt1.y - hitDist * cos);
-		lineEnds[1].setLocation(pt2.x - hitDist * sin, pt2.y - hitDist * cos);
+		lineEnds[0].setLocation(pt0.x - hitDist * tapeSin, pt0.y - hitDist * tapeCos);
+		lineEnds[1].setLocation(pt1.x - hitDist * tapeSin, pt1.y - hitDist * tapeCos);
 		hitLine.setLine(lineEnds[0].getScreenPosition(trackerPanel), lineEnds[1].getScreenPosition(trackerPanel));
+		
+//		// set up end hit lines
+//		hitLine = getEndHitLine(n, 0);
+//		lineEnds[0].setLocation(pt0.x, pt0.y);
+//		lineEnds[1].setLocation(pt0.x - hitDist * tapeSin, pt2.y - hitDist * tapeCos);
+//		hitLine.setLine(screen1.x, screen1.y, screen1.x, screen1.y + dropEndSize);
 		
 		// assemble multishapes
 		for (int i = 0; i < lines.size(); i++) {
@@ -260,8 +281,8 @@ public class WorldRuler {
 				AffineTransform t = g2.getTransform();
 				t.concatenate(transform);
 				g2.setTransform(t);
-				for (int i = 0; i < textMarks.size(); i++) {
-					textMarks.get(i).draw(g2);
+				for (int i = 0; i < labelMarks.size(); i++) {
+					labelMarks.get(i).draw(g2);
 				}
 				g2.dispose();
 			}
@@ -292,6 +313,22 @@ public class WorldRuler {
 		return hitLine;
 	}
 	
+//	/**
+//	 * Gets an end hit line.
+//	 *
+//	 * @param frameNumber the frame number
+//	 * @param end 0 or 1
+//	 * @return a Line2D
+//	 */
+//	public Line2D getEndHitLine(int frameNumber, int end) {
+//		Line2D[] hitLines = endHitLines.get(frameNumber);
+//		if (hitLines == null) {
+//			hitLines = new Line2D[] {new Line2D.Double(), new Line2D.Double()};
+//			endHitLines.put(frameNumber, hitLines);
+//		}
+//		return hitLines[end];
+//	}
+	
 	/**
 	 * Sets the active flag. When true, the hitLine is drawn
 	 *
@@ -307,11 +344,12 @@ public class WorldRuler {
 	 * @param width the desired width
 	 */
 	public void setStrokeWidth(float width) {
-		strokes = new BasicStroke[] {new BasicStroke(width), new BasicStroke(width), new BasicStroke(width)};
+		baseStrokes = new BasicStroke[] {new BasicStroke(width), new BasicStroke(width), new BasicStroke(width)};
 		dashedStroke = new BasicStroke(width, 
 				BasicStroke.CAP_BUTT, 
 				BasicStroke.JOIN_MITER, 
-				8, DASHED_LINE, 0);		
+				8, DASHED_LINE, 0);
+		strokes = new BasicStroke[baseStrokes.length];
 	}
 
 	/**
@@ -320,7 +358,23 @@ public class WorldRuler {
 	 * @return the width
 	 */
 	public float getStrokeWidth() {
-		return strokes[0].getLineWidth();
+		return baseStrokes[0].getLineWidth();
+	}
+
+	/**
+	 * Refreshes the strokes.
+	 */
+	public void refreshStrokes() {
+		int scale = FontSizer.getIntegerFactor();
+		if (strokes[0] == null || strokes[0].getLineWidth() != scale * baseStrokes[0].getLineWidth()) {
+			for (int i = 0; i < strokes.length; i++) {
+				strokes[i] = new BasicStroke(scale * baseStrokes[i].getLineWidth());
+			}
+			dashedStroke = new BasicStroke(scale * baseStrokes[0].getLineWidth(), 
+					BasicStroke.CAP_BUTT, 
+					BasicStroke.JOIN_MITER, 
+					8, DASHED_LINE, 0);		
+		}
 	}
 
 	/**
@@ -330,6 +384,9 @@ public class WorldRuler {
 	 */
 	public void setRulerWidth(double width) {
 		int minWidth = NUMBER_OF_LEVELS * MIN_INSET_PER_LEVEL;
+		// add hysteresis to prevent too much jumping
+		if (Math.abs(width) < minWidth)
+			return;
 		rulerWidth = width >= 0? 
 				Math.max(Math.min(width, MAX_RULER_WIDTH), minWidth): 
 				Math.min(Math.max(width, -MAX_RULER_WIDTH), -minWidth);
@@ -463,6 +520,18 @@ public class WorldRuler {
 		}
 		return format.format(length);
 	}
+	
+	public Interactive findInteractive(TrackerPanel trackerPanel, Rectangle hitRect) {
+		Interactive hit = null;
+		int n = trackerPanel.getFrameNumber();
+		if (getHitLine(n).intersects(hitRect)) {
+			hit = getHandle();
+		}
+//		if (hit == null && getEndHitLine(n, 0).intersects(hitRect)) {
+//			hit = tape.getStep(n).getPoints()[0];
+//		}
+		return hit;
+	}
 
 	/**
 	 * Gets TextLayout screen position. Unlike most positions, this one refers to
@@ -595,23 +664,32 @@ public class WorldRuler {
 	 	}
 	}
 	
-	// ______________________ inner TextMark class ________________________
+	// ______________________ inner LabelMark class ________________________
 
-	class TextMark {
+	class LabelMark {
 		int x, y;
 		String text;
+		boolean flip;
 		
-		TextMark(String s, int x, double y) {
+		LabelMark(String s, int x, double y) {
 			text = s;
 			this.x = x;
 			this.y = (int)y;
 		}
 		
 		void draw(Graphics2D g) {
-	    FontMetrics metrics = g.getFontMetrics();
+			Graphics2D g2 = (Graphics2D) g.create();
+	    FontMetrics metrics = g2.getFontMetrics();
 	    int x1 = x - metrics.stringWidth(text) / 2;
 	    int y1 = y - metrics.getHeight() / 2 + metrics.getAscent();
-	    g.drawString(text, x1, y1);
+	    if (flip) {
+	  		flipTransform.setToRotation(Math.PI, x, y);		
+				AffineTransform t = g2.getTransform();
+				t.concatenate(flipTransform);
+				g2.setTransform(t);
+	    }
+	    g2.drawString(text, x1, y1);
+	    g2.dispose();
 		}
 	}
 

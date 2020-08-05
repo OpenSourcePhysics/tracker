@@ -144,6 +144,8 @@ public class DoubleArrowFootprint extends LineFootprint {
 					baseStroke.getDashArray(), baseStroke.getDashPhase());
 			headStroke = new BasicStroke(lineWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8, null,
 					stroke.getDashPhase());
+			rotatorStroke = new BasicStroke(lineWidth, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8,
+          WIDE_DOTTED_LINE, stroke.getDashPhase());  
 		}
 		// set up tip hitShape using full length
 		synchronized (path) {
@@ -165,10 +167,13 @@ public class DoubleArrowFootprint extends LineFootprint {
 			// set up shaft hitShape
 			float center = d / 2; // center point
 			float l = d - 2 * tipL; // center section length
-			path.reset();
-			path.moveTo(center - 0.45f * l, 0);
-			path.lineTo(center + 0.45f * l, 0);
-			hitShapes[2] = transform.createTransformedShape(path); // for shaft
+			hitLine.setLine(center - 0.3 * l, 0, center + 0.3 * l, 0);
+			hitShapes[2] = transform.createTransformedShape(hitLine); // for line		
+			hitLine.setLine(center + 0.35 * l, 0, center + 0.45 * l, 0);
+			hitShapes[3] = transform.createTransformedShape(hitLine); // for rotator
+			hitLine.setLine(center - 0.45 * l, 0, center - 0.35 * l, 0);
+			hitShapes[4] = transform.createTransformedShape(hitLine); // for rotator
+
 			// if open head, shorten d to account for the width of the stroke
 			// see Java 2D API Graphics, by VJ Hardy (Sun, 2000) page 147
 //			float w = openHead? (float) (lineWidth * 1.58) - 1: 0;

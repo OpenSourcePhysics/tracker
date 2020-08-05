@@ -49,12 +49,9 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.Timer;
-
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
-import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
@@ -223,6 +220,8 @@ public class TapeMeasure extends InputTrack {
 						notifySteps();
 					else
 						firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
+					if (trackerPanel.getSelectedPoint() instanceof TapeStep.Rotator)
+						trackerPanel.setSelectedPoint(null);
 				}
 			}
 		};
@@ -245,7 +244,7 @@ public class TapeMeasure extends InputTrack {
 					TapeStep step = (TapeStep) getStep(n);
 					// replace with key frame step
 					step = (TapeStep) getKeyStep(step);
-					step.setTapeAngle(angleField.getValue());
+					step.setTapeAngle(angleField.getValue(), false); // will adjust axes tilt if a calibrator
 					invalidateData(null);
 					if (isFixedPosition())
 						notifySteps();
@@ -253,6 +252,8 @@ public class TapeMeasure extends InputTrack {
 						firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 					if (!isReadOnly())
 						trackerPanel.getAxes().setVisible(true);
+					if (trackerPanel.getSelectedPoint() instanceof TapeStep.Rotator)
+						trackerPanel.setSelectedPoint(null);
 				}
 			}
 		};
@@ -471,6 +472,9 @@ public class TapeMeasure extends InputTrack {
 		case PROPERTY_TTRACK_STEPS:
 			refreshAttachments();
 			break;
+		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
+				TapeStep step = (TapeStep) getStep(trackerPanel.getFrameNumber());
+				step.rotatorShape = null;
 		default:
 			super.propertyChange(e);
 		}
@@ -932,6 +936,9 @@ public class TapeMeasure extends InputTrack {
 			} else if (ia instanceof TapeStep.Handle) {
 				partName = TrackerRes.getString("TapeMeasure.Handle.Name"); //$NON-NLS-1$
 				hint = TrackerRes.getString("TapeMeasure.Handle.Hint"); //$NON-NLS-1$
+			} else if (ia instanceof TapeStep.Rotator) {
+				partName = TrackerRes.getString("TapeMeasure.Rotator.Name"); //$NON-NLS-1$
+				hint = TrackerRes.getString("TapeMeasure.Rotator.Hint"); //$NON-NLS-1$
 			} else if (ia == ruler.getHandle()) {
 				partName = TrackerRes.getString("TapeMeasure.Ruler.Name"); //$NON-NLS-1$
 				hint = TrackerRes.getString("TapeMeasure.Ruler.Hint"); //$NON-NLS-1$
@@ -1353,6 +1360,7 @@ public class TapeMeasure extends InputTrack {
 			control.setValue("worldlengths", lengths); //$NON-NLS-1$
 			if (tape.ruler.isVisible()) {
 				control.setValue("rulerwidth", tape.ruler.getRulerWidth()); //$NON-NLS-1$
+				control.setValue("rulerspacing", tape.ruler.getLineSpacing()); //$NON-NLS-1$
 			}
 		}
 
@@ -1411,9 +1419,11 @@ public class TapeMeasure extends InputTrack {
 			// load fixed length
 			if (control.getPropertyNamesRaw().contains("fixedlength")) //$NON-NLS-1$
 				tape.fixedLength = control.getBoolean("fixedlength"); //$NON-NLS-1$
+			// load ruler properties
 			if (control.getPropertyNamesRaw().contains("rulerwidth")) { //$NON-NLS-1$
 				tape.ruler.setVisible(true);
 				tape.ruler.setRulerWidth(control.getDouble("rulerwidth")); //$NON-NLS-1$
+				tape.ruler.setLineSpacing(control.getDouble("rulerspacing")); //$NON-NLS-1$
 			}
 			// load readOnly
 			tape.setReadOnly(control.getBoolean("readonly")); //$NON-NLS-1$

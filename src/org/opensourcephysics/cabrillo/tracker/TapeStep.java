@@ -32,6 +32,7 @@ import java.awt.Paint;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
+import java.awt.Stroke;
 import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
@@ -64,10 +65,9 @@ public class TapeStep extends Step {
 
 	// instance fields
 	protected TapeMeasure tape;
-	protected TPoint end1;
-	protected TPoint end2;
-	protected TPoint middle;
+	protected TPoint end1, end2, middle;
 	protected Handle handle;
+	protected Rotator rotator0, rotator1;
 	protected double worldLength;
 	protected double xAxisToTapeAngle, tapeAngle;
 	protected boolean endsEnabled = true;
@@ -76,8 +76,11 @@ public class TapeStep extends Step {
 	protected Map<TrackerPanel, Shape> end1Shapes = new HashMap<TrackerPanel, Shape>();
 	protected Map<TrackerPanel, Shape> end2Shapes = new HashMap<TrackerPanel, Shape>();
 	protected Map<TrackerPanel, Shape> shaftShapes = new HashMap<TrackerPanel, Shape>();
+	protected Map<TrackerPanel, Shape[]> rotatorShapes = new HashMap<TrackerPanel, Shape[]>();
 	protected Map<TrackerPanel, TextLayout> textLayouts = new HashMap<TrackerPanel, TextLayout>();
 	protected Map<TrackerPanel, Rectangle> layoutBounds = new HashMap<TrackerPanel, Rectangle>();
+  protected MultiShape rotatorShape;
+  protected Shape selectedShape;
 
 	/**
 	 * Constructs a TapeStep with specified end point coordinates in image space.
@@ -97,9 +100,11 @@ public class TapeStep extends Step {
 		end2 = new Tip(x2, y2);
 		end2.setTrackEditTrigger(true);
 		middle = new TPoint(x1, y1); // used for layout position
+		rotator0 = new Rotator();
+		rotator1 = new Rotator();
 		handle = new Handle((x1 + x2) / 2, (y1 + y2) / 2);
 		handle.setTrackEditTrigger(true);
-		points = new TPoint[] { end1, end2, handle, middle };
+		points = new TPoint[] { end1, end2, handle, middle, rotator0, rotator1 };
 		screenPoints = new Point[getLength()];
 	}
 
@@ -175,6 +180,7 @@ public class TapeStep extends Step {
 		boolean drawLayout = false;
 		Shape hitShape;
 		Interactive hit = null;
+		// look for ends
 		if (endsEnabled) {
 			hitShape = end1Shapes.get(trackerPanel);
 			if (hitShape != null && hitShape.intersects(hitRect))
@@ -183,27 +189,62 @@ public class TapeStep extends Step {
 			if (hit == null && hitShape != null && hitShape.intersects(hitRect))
 				hit = end2;
 		}
+		// look for shaft
 		hitShape = shaftShapes.get(trackerPanel);
 		if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
 			hit = handle;
+		}	
+		// look for rotator
+		Shape[] rotatorHitShapes = rotatorShapes.get(trackerPanel);
+		if (hit == null && rotatorHitShapes != null) {
+			if (rotatorHitShapes[0].intersects(hitRect)) {
+				hit = rotator0;
+			}
+			else if (rotatorHitShapes[1].intersects(hitRect)) {
+				hit = rotator1;
+			}
 		}
+    if (hit == null && selectedShape != null && selectedShape.intersects(hitRect)) {
+    	if (trackerPanel.getSelectedPoint()==rotator0)
+    		hit = rotator0;
+    	else if (trackerPanel.getSelectedPoint()==rotator1)
+    		hit = rotator1;
+    }
+		// create rotatorShape if hit is rotator
+    if ((hit==rotator0 || hit==rotator1) && trackerPanel.getSelectedPoint()!=hit && footprint!=null) {
+      ((Rotator)hit).setScreenCoords(xpix, ypix);
+  		int whichRotator = hit==rotator0? 0: 1;
+      rotatorShape = ((LineFootprint)footprint).getRotatorShape(
+      		middle.getScreenPosition(trackerPanel),
+      		getRotatorAnchor(whichRotator, trackerPanel), 
+      		null);
+      repaint(trackerPanel);
+    }   
+    // clear rotatorShape shape when no longer needed
+    if (hit==null && rotatorShape!=null && 
+    		trackerPanel.getSelectedPoint()!=rotator0 &&
+    		trackerPanel.getSelectedPoint()!=rotator1) {
+    	rotatorShape = null;
+      repaint(trackerPanel);
+    }
 		Rectangle layoutRect = layoutBounds.get(trackerPanel);
 		if (hit == null && layoutRect != null && layoutRect.intersects(hitRect)) {
 //      drawLayout = !tape.readOnly;
 			drawLayout = true;
 			hit = tape;
 		}
-		if (hit == null && tape.ruler.isVisible() && tape.ruler.getHitLine(n).intersects(hitRect)) {
-			hit = tape.ruler.getHandle();
+		if (hit == null && tape.ruler.isVisible()) {
+			hit = tape.ruler.findInteractive(trackerPanel, hitRect);
 		}
 		if (drawLayout != drawLayoutBounds) {
 			drawLayoutBounds = drawLayout;
 			repaint(trackerPanel);
 		}
-
-		if (end1.isAttached() && (hit == end1 || hit == handle))
+		// check for attached ends which cannot be dragged
+		// pig not working
+		if (end1.isAttached() && (hit == end1 || hit == handle || hit == rotator0))
 			return null;
-		if (end2.isAttached() && (hit == end2 || hit == handle))
+		if (end2.isAttached() && (hit == end2 || hit == handle || hit == rotator0))
 			return null;
 
 		return hit;
@@ -285,7 +326,16 @@ public class TapeStep extends Step {
 			if (p == null && selection == tape.ruler.getHandle()) {
 				p = selection.getScreenPosition(trackerPanel);
 			}
-			// create mark
+      // refresh rotatorShape
+      if (selection==rotator0 || selection==rotator1) {  
+      	int whichRotator = selection==rotator0? 0: 1;
+      	rotatorShape = ((LineFootprint)footprint).getRotatorShape(
+      			screenPoints[3],
+      			screenPoints[whichRotator], 
+      			screenPoints[4 + whichRotator]);
+      }
+
+			// create footprint mark
 			Mark tapeMark = footprint.getMark(screenPoints);
 			mark = new Mark() {
 				@Override
@@ -293,6 +343,10 @@ public class TapeStep extends Step {
 					tapeMark.draw(g, false);
 					if (tape.ruler.isVisible() && rulerMark != null) {
 						rulerMark.draw(g, false);
+					}
+					if (rotatorShape != null) {
+						g.setColor(tape.getColor());
+						rotatorShape.draw(g);
 					}
 				}
 			};
@@ -304,17 +358,20 @@ public class TapeStep extends Step {
 				if (scale > 1) {
 					transform.scale(scale, scale);
 				}
-				MultiShape selectedShape = new MultiShape(transform.createTransformedShape(selectionShape))
-						.andStroke(selectionStroke);
+				selectedShape = transform.createTransformedShape(selectionShape);
 				mark = new Mark() {
 					@Override
 					public void draw(Graphics2D g, boolean highlighted) {
 						stepMark.draw(g, false);
-						Paint gpaint = g.getPaint();
-						g.setPaint(color);
-						if (selectedShape != null)
-							selectedShape.draw(g);
-						g.setPaint(gpaint);
+            if (selectedShape != null) {
+	 						Paint gpaint = g.getPaint();
+	 						Stroke gstroke = g.getStroke();
+  						g.setPaint(color);
+  						g.setStroke(selectionStroke);
+  						g.draw(selectedShape);
+  						g.setStroke(gstroke);
+							g.setPaint(gpaint);
+            }
 					}
 				};
 			}
@@ -325,6 +382,9 @@ public class TapeStep extends Step {
 			end1Shapes.put(trackerPanel, shapes[0]);
 			end2Shapes.put(trackerPanel, shapes[1]);
 			shaftShapes.put(trackerPanel, shapes[2]);
+			if (shapes.length > 4 && shapes[3] != null && shapes[4] != null) {
+				rotatorShapes.put(trackerPanel, new Shape[] {shapes[3], shapes[4]});
+			}
 			
 			// get new text layout
 			double tapeLength = getTapeLength(!tape.isStickMode() || tape.isIncomplete);
@@ -441,17 +501,19 @@ public class TapeStep extends Step {
 	 * Sets the world angle of this tape.
 	 *
 	 * @param theta the angle in radians
+	 * @param readOnlyNoUndoEdit true to force read-only (non-calibrator) behavior
 	 */
-	public void setTapeAngle(double theta) {
+	public void setTapeAngle(double theta, boolean readOnlyNoUndoEdit) {
 		if (tape.isLocked() || tape.trackerPanel == null)
 			return;
 
-		if (tape.isReadOnly()) {
+		if (readOnlyNoUndoEdit || tape.isReadOnly()) {
 			XMLControl trackControl = new XMLControlElement(tape);
 			xAxisToTapeAngle = theta;
 			adjustTipsToAngle();
 			tape.repaint(this);
-			Undo.postTrackEdit(tape, trackControl);
+			if (!readOnlyNoUndoEdit)
+				Undo.postTrackEdit(tape, trackControl);
 			return;
 		}
 
@@ -476,12 +538,15 @@ public class TapeStep extends Step {
 			step.points[1] = step.end2 = step.new Tip(end2.getX(), end2.getY());
 			step.points[2] = step.handle = step.new Handle(handle.getX(), handle.getY());
 			step.points[3] = step.middle = new TPoint(middle.getX(), middle.getY());
+			step.points[4] = step.rotator0 = new Rotator();
+			step.points[5] = step.rotator1 = new Rotator();
 			step.end1.setTrackEditTrigger(true);
 			step.end2.setTrackEditTrigger(true);
 			step.handle.setTrackEditTrigger(true);
 			step.end1Shapes = new HashMap<TrackerPanel, Shape>();
 			step.end2Shapes = new HashMap<TrackerPanel, Shape>();
 			step.shaftShapes = new HashMap<TrackerPanel, Shape>();
+			step.rotatorShapes = new HashMap<TrackerPanel, Shape[]>();
 			step.textLayouts = new HashMap<TrackerPanel, TextLayout>();
 			step.layoutBounds = new HashMap<TrackerPanel, Rectangle>();
 			step.worldLength = worldLength;
@@ -509,7 +574,7 @@ public class TapeStep extends Step {
 	 * @return the length of the points array
 	 */
 	public static int getLength() {
-		return 4;
+		return 6;
 	}
 
 	// __________________________ private and protected methods
@@ -668,11 +733,19 @@ public class TapeStep extends Step {
 		// draw relative to center of tape
 		middle.center(end1, end2);
 		Point p = middle.getScreenPosition(trackerPanel);
+		if (tape.ruler != null && tape.ruler.isVisible() && tape.ruler.getRulerWidth() > 0)
 		// draw below tape
-		p.setLocation((int) (p.x + d * sin - w / 2), (int) (p.y + d * cos + h / 2));
+			p.setLocation((int) (p.x + d * sin - w / 2), (int) (p.y + d * cos + h / 2));
+		else
 		// draw above tape
-//		p.setLocation((int) (p.x - d * sin - w / 2), (int) (p.y - d * cos + h / 2));
+			p.setLocation((int) (p.x - d * sin - w / 2), (int) (p.y - d * cos + h / 2));
 		return p;
+	}
+	
+	private Point getRotatorAnchor(int i, TrackerPanel trackerPanel) {
+		Shape[] rotatorHitShapes = rotatorShapes.get(trackerPanel);		
+		Rectangle bounds = rotatorHitShapes[i].getBounds();
+		return new Point((int) bounds.getCenterX(), (int) bounds.getCenterY());
 	}
 
 	// ______________________ inner Handle class ________________________
@@ -714,6 +787,7 @@ public class TapeStep extends Step {
 				end2.setLocation(end2.getX() + dx, end2.getY() + dy);
 				tape.keyFrames.add(n);
 			}
+			
 			repaint();
 		}
 
@@ -758,12 +832,6 @@ public class TapeStep extends Step {
 			super(x, y);
 		}
 
-		/**
-		 * Overrides TPoint setXY method.
-		 *
-		 * @param x the x coordinate
-		 * @param y the y coordinate
-		 */
 		@Override
 		public void setXY(double x, double y) {
 			if (getTrack().locked)
@@ -806,22 +874,11 @@ public class TapeStep extends Step {
 			repaint();
 		}
 
-		/**
-		 * Overrides TPoint getFrameNumber method.
-		 *
-		 * @param vidPanel the video panel drawing the step
-		 * @return the containing TapeStep frame number
-		 */
 		@Override
 		public int getFrameNumber(VideoPanel vidPanel) {
 			return n;
 		}
 
-		/**
-		 * Overrides TPoint method.
-		 *
-		 * @param adjusting true if being dragged
-		 */
 		@Override
 		public void setAdjusting(boolean adjusting) {
 			boolean wasAdjusting = isAdjusting();
@@ -846,6 +903,62 @@ public class TapeStep extends Step {
 			return tape.isStickMode();
 		}
 
+	}
+
+	// ______________________ inner Rotator class ________________________
+
+	class Rotator extends TPoint {
+		
+  	TPoint pt = new TPoint(); // for setting screen position
+
+		/**
+		 * Constructor
+		 */
+		public Rotator() {
+			super();
+      setTrackEditTrigger(true);
+		}
+
+		@Override
+		public void setXY(double x, double y) {
+			if (getTrack().locked)
+				return;
+			setLocation(x, y);
+			double theta = this == rotator1? middle.angle(this): this.angle(middle);
+			theta += tape.trackerPanel.getCoords().getAngle(n);
+			setTapeAngle(-theta, true); // never adjust axes tilt
+			tape.invalidateData(tape);
+			repaint();
+		}
+
+		@Override
+		public int getFrameNumber(VideoPanel vidPanel) {
+			return n;
+		}
+
+		@Override
+		public void setAdjusting(boolean adjusting) {
+			boolean wasAdjusting = isAdjusting();
+			super.setAdjusting(adjusting);			
+			if (wasAdjusting && !adjusting) {
+	      if (tape.isFixedPosition())
+	      	tape.notifySteps();
+	      else
+	      	tape.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
+			}
+		}
+
+		/**
+		 * Sets screen coordinates without using setXY().
+		 *
+		 * @param x
+		 * @param y
+		 */
+    protected void setScreenCoords(int x, int y) {
+    	pt.setScreenPosition(x, y, tape.trackerPanel);
+    	this.setLocation(pt);
+    }
+    
 	}
 
 	/**

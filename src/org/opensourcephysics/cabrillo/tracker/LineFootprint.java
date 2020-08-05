@@ -34,8 +34,10 @@ import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Stroke;
 import java.awt.geom.AffineTransform;
+import java.awt.geom.Arc2D;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -52,6 +54,10 @@ import org.opensourcephysics.tools.FontSizer;
  */
 public class LineFootprint implements Footprint, Cloneable {
 
+  private static MultiShape arrowhead;
+  private static Arc2D arc = new Arc2D.Double(Arc2D.OPEN);
+  protected static Line2D hitLine = new Line2D.Double();
+  
 	// instance fields
 	protected String name;
 	protected MultiShape highlight;
@@ -61,7 +67,18 @@ public class LineFootprint implements Footprint, Cloneable {
 	protected Color color = Color.black;
 	protected GeneralPath path = new GeneralPath();
 	protected Line2D line = new Line2D.Double();
-	protected Shape[] hitShapes = new Shape[3];
+	protected Shape[] hitShapes = new Shape[5];
+	protected BasicStroke rotatorStroke;
+	
+	static {
+  	BasicStroke stroke = new BasicStroke(1);
+  	
+  	GeneralPath path = new GeneralPath();
+  	path.moveTo(-6, 3);
+  	path.lineTo(0, 0);
+  	path.lineTo(-6, -3);
+  	arrowhead = new MultiShape(path).andStroke(stroke);
+	}
 
 	/**
 	 * Constructs a LineFootprint.
@@ -155,7 +172,6 @@ public class LineFootprint implements Footprint, Cloneable {
 	@Override
 	public Mark getMark(Point[] points) {
 		MultiShape shape = getShape(points);
-		MultiShape hilight = highlight;
 		return new Mark() {
 
 			@Override
@@ -168,8 +184,8 @@ public class LineFootprint implements Footprint, Cloneable {
 					g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 				shape.draw(g);
-				if (highlighted && hilight != null) {
-					hilight.draw(g);
+				if (highlighted && highlight != null) {
+					highlight.draw(g);
 				}
 				g.setColor(gcolor);
 				g.setStroke(gstroke);
@@ -261,10 +277,7 @@ public class LineFootprint implements Footprint, Cloneable {
 	 */
 	@Override
 	public MultiShape getShape(Point[] points) {
-		int scale = FontSizer.getIntegerFactor();
-		if (stroke == null || stroke.getLineWidth() != scale * baseStroke.getLineWidth()) {
-			stroke = new BasicStroke(scale * baseStroke.getLineWidth());
-		}
+		checkStrokes();
 		float lineWidth = stroke.getLineWidth();
 		Point p1 = points[0];
 		Point p2 = points[1];
@@ -278,7 +291,15 @@ public class LineFootprint implements Footprint, Cloneable {
 		hitShapes[0] = new Rectangle(p1.x - 1, p1.y - 1, 2, 2); // for p1
 		hitShapes[1] = new Rectangle(p2.x - 1, p2.y - 1, 2, 2); // for p2
 		line.setLine(p1, p2);
-		hitShapes[2] = (Line2D.Double) line.clone(); // for line
+
+		double center = d / 2; // center point
+		hitLine.setLine(center - 0.3 * d, 0, center + 0.3 * d, 0);
+		hitShapes[2] = transform.createTransformedShape(hitLine); // for line		
+		hitLine.setLine(center + 0.35 * d, 0, center + 0.45 * d, 0);
+		hitShapes[3] = transform.createTransformedShape(hitLine); // for rotator0
+		hitLine.setLine(center - 0.45 * d, 0, center - 0.35 * d, 0);
+		hitShapes[4] = transform.createTransformedShape(hitLine); // for rotator1
+		
 		// set up draw shape
 		synchronized (path) {
 			path.reset();
@@ -290,15 +311,73 @@ public class LineFootprint implements Footprint, Cloneable {
 		}
 		return new MultiShape(transform.createTransformedShape(path)).andFill(true);
 	}
+	
+  /**
+   * Gets a rotator shape.
+   *
+   * @param axis the screen point of middle
+   * @param anchor the screen point of the anchor on the shaft
+   * @param rotator the screen point of the rotator 
+   * 
+   * @return the rotator shape
+   */
+  public MultiShape getRotatorShape(Point axis, Point anchor, Point rotator) {
+  	if (rotator == null) {
+			int scale = FontSizer.getIntegerFactor();
+	  	double r = 15 * scale;
+	  	double ang = 50; // degrees to either side
+	  	double arrowAngleOffset = 10;
+	  	double d = axis.distance(anchor);
+	  	double sin = -(anchor.y - axis.y) / d;
+	  	double cos = (anchor.x - axis.x) / d;
+	  	double theta = 180 * Math.atan2(sin, cos) / Math.PI;
+	  	arc.setArcByCenter(anchor.x - r * cos, anchor.y + r * sin, r, theta - ang, 2 * ang, Arc2D.OPEN);
+	  	MultiShape toDraw = new MultiShape(arc).andStroke(stroke);
+	  	// add arrow at arc ends
+	    Point2D pt = arc.getEndPoint();
+	    double rotationAngle = Math.PI * (theta + ang - arrowAngleOffset) / 180 + Math.PI/2;
+	    transform.setToRotation(-rotationAngle, pt.getX(), pt.getY());
+	    transform.translate(pt.getX(), pt.getY());
+	    if (scale>1) {
+	    	transform.scale(scale, scale);
+	    }
+	    toDraw.addFillShape(arrowhead.transform(transform));
+	    pt = arc.getStartPoint();
+	    rotationAngle = Math.PI * (theta - ang + arrowAngleOffset) / 180 - Math.PI/2;
+	    transform.setToRotation(-rotationAngle, pt.getX(), pt.getY());
+	    transform.translate(pt.getX(), pt.getY());
+	    if (scale>1) {
+	    	transform.scale(scale, scale);
+	    }
+	    toDraw.addFillShape(arrowhead.transform(transform));
+	  	return toDraw;
+  	}
+  	
+	  Line2D line = new Line2D.Double(anchor.x, anchor.y, rotator.x, rotator.y);
+	  return new MultiShape(line).andStroke(rotatorStroke);
+  }
+
+  protected void checkStrokes() {
+		int scale = FontSizer.getIntegerFactor();
+		if (stroke == null || stroke.getLineWidth() != scale * baseStroke.getLineWidth()) {
+			stroke = new BasicStroke(scale * baseStroke.getLineWidth());
+			rotatorStroke = new BasicStroke(stroke.getLineWidth(),
+          BasicStroke.CAP_BUTT,
+          BasicStroke.JOIN_MITER,
+          8,
+          WIDE_DOTTED_LINE,
+          stroke.getDashPhase());  
+		}
+  }
 
 	// static fields
 	private static Collection<LineFootprint> footprints = new HashSet<LineFootprint>();
 
 	// static constants
-	/** A dashed line pattern */
 	public static final float[] DASHED_LINE = new float[] { 10, 4 };
-	/** A dotted line pattern */
 	public static final float[] DOTTED_LINE = new float[] { 2, 1 };
+	public static final float[] WIDE_DOTTED_LINE = new float[] {1, 6};
+
 	private static final LineFootprint LINE;
 	private static final LineFootprint BOLD_LINE;
 	private static final LineFootprint OUTLINE;
