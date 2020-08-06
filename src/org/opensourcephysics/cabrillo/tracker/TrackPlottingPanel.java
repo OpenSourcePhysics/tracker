@@ -354,7 +354,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * @param guest the track
 	 */
 	public void addGuest(TTrack guest) {
-		if (guests.contains(guest))
+		if (guest == null || guests.contains(guest))
 			return;
 		guests.add(guest);
 		isCustom = true;
