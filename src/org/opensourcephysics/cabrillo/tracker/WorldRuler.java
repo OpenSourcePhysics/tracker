@@ -93,6 +93,7 @@ public class WorldRuler {
 	protected DecimalFormat format = (DecimalFormat) NumberFormat.getInstance();
 	private Double previousDistFromLineEnd;
 	private double previousLineSpacing, previousAngle;
+	private int prevSigFigs = 0;
 
 	/**
 	 * Constructor.
@@ -123,6 +124,7 @@ public class WorldRuler {
 		if (trackerPanel instanceof WorldTView)
 			return null;
 		refreshStrokes();
+		format.setDecimalFormatSymbols(OSPRuntime.getDecimalFormatSymbols());
 		// get ends and length of the tape
 		int n = trackerPanel.getFrameNumber();
 		TPoint pt0 = tape.getStep(n).getPoints()[0];
@@ -487,16 +489,6 @@ public class WorldRuler {
 	}
 
 	/**
-	 * Gets the format.
-	 *
-	 * @return the format
-	 */
-	public DecimalFormat getFormat() {
-		format.setDecimalFormatSymbols(OSPRuntime.getDecimalFormatSymbols());
-		return format;
-	}
-
-	/**
 	 * Formats the specified length.
 	 *
 	 * @param length the value to format
@@ -504,20 +496,28 @@ public class WorldRuler {
 	 * @return the formatted length string
 	 */
 	public String getFormattedLength(double length, double min) {
-		int sigfigs = min >= 1? 0: min >= .1? 1: min >= .01? 2: 3;
-		switch (sigfigs) {
-		case 0:
-			format.applyPattern(NumberField.INTEGER_PATTERN);
-			break;
-		case 1:
-			format.applyPattern(NumberField.DECIMAL_1_PATTERN);
-			break;
-		case 2:
-			format.applyPattern(NumberField.DECIMAL_2_PATTERN);
-			break;
-		default:
-			format.applyPattern(NumberField.DECIMAL_3_PATTERN);
+		if (length == 0)
+			return "0";
+		int sigfigs = min >= 1000? 4: min >= 1? 0: min >= .1? 1: min >= .01? 2: min >= .001? 3: 4;
+		if (prevSigFigs != sigfigs) {
+			switch (sigfigs) {
+			case 0:
+				format.applyPattern(NumberField.INTEGER_PATTERN);
+				break;
+			case 1:
+				format.applyPattern(NumberField.DECIMAL_1_PATTERN);
+				break;
+			case 2:
+				format.applyPattern(NumberField.DECIMAL_2_PATTERN);
+				break;
+			case 3:
+				format.applyPattern(NumberField.DECIMAL_3_PATTERN);
+				break;
+			default:
+				format.applyPattern("0E0");
+			}
 		}
+		prevSigFigs = sigfigs;
 		return format.format(length);
 	}
 	

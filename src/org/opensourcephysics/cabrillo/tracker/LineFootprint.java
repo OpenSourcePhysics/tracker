@@ -44,6 +44,7 @@ import java.util.Iterator;
 
 import javax.swing.Icon;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -54,7 +55,7 @@ import org.opensourcephysics.tools.FontSizer;
  */
 public class LineFootprint implements Footprint, Cloneable {
 
-  private static MultiShape arrowhead;
+  private static Shape arrowhead;
   private static Arc2D arc = new Arc2D.Double(Arc2D.OPEN);
   protected static Line2D hitLine = new Line2D.Double();
   
@@ -71,13 +72,12 @@ public class LineFootprint implements Footprint, Cloneable {
 	protected BasicStroke rotatorStroke;
 	
 	static {
-  	BasicStroke stroke = new BasicStroke(1);
   	
   	GeneralPath path = new GeneralPath();
   	path.moveTo(-6, 3);
   	path.lineTo(0, 0);
   	path.lineTo(-6, -3);
-  	arrowhead = new MultiShape(path).andStroke(stroke);
+  	arrowhead = path;
 	}
 
 	/**
@@ -341,7 +341,7 @@ public class LineFootprint implements Footprint, Cloneable {
 	    if (scale>1) {
 	    	transform.scale(scale, scale);
 	    }
-	    toDraw.addFillShape(arrowhead.transform(transform));
+	    toDraw.addDrawShape(transform.createTransformedShape(arrowhead), stroke);
 	    pt = arc.getStartPoint();
 	    rotationAngle = Math.PI * (theta - ang + arrowAngleOffset) / 180 - Math.PI/2;
 	    transform.setToRotation(-rotationAngle, pt.getX(), pt.getY());
@@ -349,10 +349,11 @@ public class LineFootprint implements Footprint, Cloneable {
 	    if (scale>1) {
 	    	transform.scale(scale, scale);
 	    }
-	    toDraw.addFillShape(arrowhead.transform(transform));
+	    toDraw.addDrawShape(transform.createTransformedShape(arrowhead), stroke);
+	    OSPLog.debug("pig getting null rotator shape");
 	  	return toDraw;
   	}
-  	
+    OSPLog.debug("pig getting rotator shape for "+rotator);  	
 	  Line2D line = new Line2D.Double(anchor.x, anchor.y, rotator.x, rotator.y);
 	  return new MultiShape(line).andStroke(rotatorStroke);
   }

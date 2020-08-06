@@ -49,6 +49,8 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -425,6 +427,7 @@ public class TapeMeasure extends InputTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
+		OSPLog.debug("pig "+e.getPropertyName());
 		switch (e.getPropertyName()) {
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 			if (isStickMode() && !isStepChangingScale) { 
@@ -474,7 +477,8 @@ public class TapeMeasure extends InputTrack {
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
 				TapeStep step = (TapeStep) getStep(trackerPanel.getFrameNumber());
-				step.rotatorShape = null;
+				step.rotatorDrawShapes[0] = null;
+				step.rotatorDrawShapes[1] = null;
 		default:
 			super.propertyChange(e);
 		}
