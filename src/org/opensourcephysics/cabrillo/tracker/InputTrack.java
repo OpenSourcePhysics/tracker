@@ -271,17 +271,19 @@ public abstract class InputTrack extends TTrack {
 		if (isLocked())
 			return;
 		int n = trackerPanel.getFrameNumber();
-		TapeStep step = (TapeStep) getStep(n);
-		if (step == null)
-			return;
-		Rectangle bounds = step.layoutBounds.get(trackerPanel);
-		if (bounds != null && bounds.contains(pt)) {
-			// readout was clicked
-			if (checkAttachments()) {
-				trackerPanel.setSelectedTrack(this);
+		if (this instanceof TapeMeasure) {
+			TapeStep step = (TapeStep) getStep(n);
+			if (step == null)
 				return;
+			Rectangle bounds = step.layoutBounds.get(trackerPanel);
+			if (bounds != null && bounds.contains(pt)) {
+				// readout was clicked
+				if (isFullyAttached()) {
+					trackerPanel.setSelectedTrack(this);
+					return;
+				}
+				setEditing(true, step, pt);
 			}
-			setEditing(true, step, pt);
 		}
 	}
 
