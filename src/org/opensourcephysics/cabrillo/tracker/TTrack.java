@@ -1850,10 +1850,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	/**
 	 * Determines if all attachments are non-null
 	 * 
-	 * @return true if the expected attachment count is 0 or all attached[i] are
-	 *         non-null.
+	 * @return true if all attachments are non-null.
 	 */
-	protected boolean checkAttachments() {
+	protected boolean isFullyAttached() {
 		int n = getAttachmentLength();
 		if (n > 0) {
 			TTrack[] attached = getAttachments();
@@ -1888,7 +1887,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			return;
 
 		// unfix the track if it has attachments
-		if (checkAttachments())
+		if (isAttached())
 			setFixedPosition(false);
 
 		VideoClip clip = trackerPanel.getPlayer().getVideoClip();

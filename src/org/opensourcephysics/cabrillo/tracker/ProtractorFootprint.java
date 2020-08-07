@@ -49,7 +49,7 @@ public class ProtractorFootprint implements Footprint, Cloneable {
 
 	// static constants
   @SuppressWarnings("javadoc")
-	public static final float[] DOTTED_LINE = new float[] {1, 6};
+	public static final float[] DOTTED_LINE = new float[] {2, 6};
 	public static final float[] STIPPLED_LINE = new float[] {2, 2};
   private static final ProtractorFootprint CIRCLE_3, CIRCLE_5, 
   		CIRCLE_3_BOLD, CIRCLE_5_BOLD;

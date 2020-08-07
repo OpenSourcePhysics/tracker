@@ -50,7 +50,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -246,7 +245,7 @@ public class TapeMeasure extends InputTrack {
 					TapeStep step = (TapeStep) getStep(n);
 					// replace with key frame step
 					step = (TapeStep) getKeyStep(step);
-					step.setTapeAngle(angleField.getValue(), false); // will adjust axes tilt if a calibrator
+					step.setTapeAngle(angleField.getValue());
 					invalidateData(null);
 					if (isFixedPosition())
 						notifySteps();
@@ -254,8 +253,6 @@ public class TapeMeasure extends InputTrack {
 						firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 					if (!isReadOnly())
 						trackerPanel.getAxes().setVisible(true);
-					if (trackerPanel.getSelectedPoint() instanceof TapeStep.Rotator)
-						trackerPanel.setSelectedPoint(null);
 				}
 			}
 		};
@@ -427,7 +424,6 @@ public class TapeMeasure extends InputTrack {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
-		OSPLog.debug("pig "+e.getPropertyName());
 		switch (e.getPropertyName()) {
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
 			if (isStickMode() && !isStepChangingScale) { 
@@ -750,13 +746,13 @@ public class TapeMeasure extends InputTrack {
 		menu.remove(deleteTrackItem);
 		menu.remove(menu.getMenuComponent(menu.getMenuComponentCount() - 1));
 
-		// add items
+		// add items		
+		// put fixed position item after locked item
+		boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
+		TapeStep step = (TapeStep) steps.getStep(0);
+		fixedPositionItem.setEnabled(canBeFixed && step != null && step.worldLength > 0 && !isAttached());
 		fixedPositionItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
 		fixedPositionItem.setSelected(isFixedPosition());
-		TapeStep step = (TapeStep) steps.getStep(0);
-		boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
-		// put fixed position item after locked item
-		fixedPositionItem.setEnabled(canBeFixed && step != null && step.worldLength > 0 && !isAttached());
 		for (int i = 0; i < menu.getItemCount(); i++) {
 			if (menu.getItem(i) == lockedItem) {
 				menu.insert(fixedPositionItem, i + 1);
@@ -953,7 +949,7 @@ public class TapeMeasure extends InputTrack {
 				else
 					hint = TrackerRes.getString("TapeMeasure.Readout.Magnitude.Hint"); //$NON-NLS-1$
 			}
-			return ia;
+			return isLocked()? null: ia;
 		}
 		return null;
 	}
@@ -1239,12 +1235,14 @@ public class TapeMeasure extends InputTrack {
 		// check position
 		TapeStep t = (TapeStep) step;
 		TapeStep k = (TapeStep) steps.getStep(isFixedPosition() ? 0 : positionKey);
-		different = k.getEnd1().x != t.getEnd1().x || k.getEnd1().y != t.getEnd1().y
-				|| k.getEnd2().x != t.getEnd2().x || k.getEnd2().y != t.getEnd2().y;
-		if (different) {
-			t.getEnd1().setLocation(k.getEnd1());
-			t.getEnd2().setLocation(k.getEnd2());
-			changed = true;
+		if (k != t) {
+			different = k.getEnd1().x != t.getEnd1().x || k.getEnd1().y != t.getEnd1().y
+					|| k.getEnd2().x != t.getEnd2().x || k.getEnd2().y != t.getEnd2().y;
+			if (different) {
+				t.getEnd1().setLocation(k.getEnd1());
+				t.getEnd2().setLocation(k.getEnd2());
+				changed = true;
+			}
 		}
 
 		// check length only if in stick mode

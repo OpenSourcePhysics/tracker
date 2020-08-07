@@ -44,7 +44,6 @@ import java.util.Iterator;
 
 import javax.swing.Icon;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -315,21 +314,22 @@ public class LineFootprint implements Footprint, Cloneable {
   /**
    * Gets a rotator shape.
    *
-   * @param axis the screen point of middle
+   * @param center the screen point of line center
    * @param anchor the screen point of the anchor on the shaft
    * @param rotator the screen point of the rotator 
    * 
    * @return the rotator shape
    */
-  public MultiShape getRotatorShape(Point axis, Point anchor, Point rotator) {
+  public MultiShape getRotatorShape(Point center, Point anchor, Point rotator) {
+  	// if rotator is null, draw arc at anchor
   	if (rotator == null) {
 			int scale = FontSizer.getIntegerFactor();
 	  	double r = 15 * scale;
 	  	double ang = 50; // degrees to either side
 	  	double arrowAngleOffset = 10;
-	  	double d = axis.distance(anchor);
-	  	double sin = -(anchor.y - axis.y) / d;
-	  	double cos = (anchor.x - axis.x) / d;
+	  	double d = center.distance(anchor);
+	  	double sin = -(anchor.y - center.y) / d;
+	  	double cos = (anchor.x - center.x) / d;
 	  	double theta = 180 * Math.atan2(sin, cos) / Math.PI;
 	  	arc.setArcByCenter(anchor.x - r * cos, anchor.y + r * sin, r, theta - ang, 2 * ang, Arc2D.OPEN);
 	  	MultiShape toDraw = new MultiShape(arc).andStroke(stroke);
@@ -350,12 +350,14 @@ public class LineFootprint implements Footprint, Cloneable {
 	    	transform.scale(scale, scale);
 	    }
 	    toDraw.addDrawShape(transform.createTransformedShape(arrowhead), stroke);
-	    OSPLog.debug("pig getting null rotator shape");
 	  	return toDraw;
   	}
-    OSPLog.debug("pig getting rotator shape for "+rotator);  	
-	  Line2D line = new Line2D.Double(anchor.x, anchor.y, rotator.x, rotator.y);
-	  return new MultiShape(line).andStroke(rotatorStroke);
+  	// if rotator is non-null, draw dotted line from end to rotator if outside the line
+  	if (rotator.distanceSq(center) > anchor.distanceSq(center)) {
+		  Line2D line = new Line2D.Double(anchor.x, anchor.y, rotator.x, rotator.y);
+		  return new MultiShape(line).andStroke(rotatorStroke);
+  	}
+  	return null;
   }
 
   protected void checkStrokes() {
@@ -377,7 +379,7 @@ public class LineFootprint implements Footprint, Cloneable {
 	// static constants
 	public static final float[] DASHED_LINE = new float[] { 10, 4 };
 	public static final float[] DOTTED_LINE = new float[] { 2, 1 };
-	public static final float[] WIDE_DOTTED_LINE = new float[] {1, 6};
+	public static final float[] WIDE_DOTTED_LINE = new float[] {2, 6};
 
 	private static final LineFootprint LINE;
 	private static final LineFootprint BOLD_LINE;

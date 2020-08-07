@@ -1955,8 +1955,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			ArrayList<TapeMeasure> tapes = trackerPanel.getDrawables(TapeMeasure.class);
 			for (int i = 0, n = tapes.size(); i < n; i++) {
 				TapeMeasure tape = tapes.get(i);
-				if (tape.isStickMode() && tape.attachments != null
-						&& (tape.attachments[0] != null || tape.attachments[1] != null)) {
+				if (tape.isStickMode() && tape.isAttached()) {
 					stickAttached = true;
 					break;
 				}

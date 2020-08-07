@@ -459,8 +459,8 @@ public class Protractor extends InputTrack {
 	public String getAttachmentDescription(int n) {
 		// end1 is "base", end2 is "arm"
 		return TrackerRes.getString(n == 0 ? "AttachmentInspector.Label.Vertex" : //$NON-NLS-1$
-				n == 1 ? "Protractor.Attachment.Arm" : //$NON-NLS-1$
-						"Protractor.Attachment.Base"); //$NON-NLS-1$
+				n == 1 ? "Protractor.Attachment.Base" : //$NON-NLS-1$
+						"Protractor.Attachment.Arm"); //$NON-NLS-1$
 	}
 
 	/**
@@ -478,14 +478,7 @@ public class Protractor extends InputTrack {
 //    lockedItem.setEnabled(!trackerPanel.getCoords().isLocked());
 		fixedItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
 		fixedItem.setSelected(isFixedPosition());
-		boolean hasAttachments = attachments != null;
-		if (hasAttachments) {
-			hasAttachments = false;
-			for (TTrack next : attachments) {
-				hasAttachments = hasAttachments || next != null;
-			}
-		}
-		fixedItem.setEnabled(!hasAttachments);
+		fixedItem.setEnabled(!isAttached());
 
 //    // remove end items and last separator
 //    menu.remove(deleteTrackItem);
@@ -532,7 +525,7 @@ public class Protractor extends InputTrack {
 		int n = clip.frameToStep(trackerPanel.getFrameNumber());
 		stepValueLabel.setText(n + ":"); //$NON-NLS-1$
 
-		angleField.setEnabled(!checkAttachments() && !isLocked());
+		angleField.setEnabled(!isFullyAttached() && !isLocked());
 
 		list.add(stepSeparator);
 		list.add(stepLabel);
@@ -591,7 +584,7 @@ public class Protractor extends InputTrack {
 				hint = TrackerRes.getString("Protractor.Readout.Hint"); //$NON-NLS-1$
 				trackerPanel.setMessage(getMessage());
 			}
-			return ia;
+			return isLocked()? null: ia;
 		}
 		return null;
 	}

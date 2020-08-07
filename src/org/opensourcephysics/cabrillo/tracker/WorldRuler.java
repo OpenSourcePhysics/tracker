@@ -57,7 +57,7 @@ import org.opensourcephysics.tools.FontSizer;
 public class WorldRuler {
 	
 	private static final int DEFAULT_RULER_WIDTH = 20;
-	private static final float[] DASHED_LINE = new float[] { 3, 9 };
+	private static final float[] DASHED_LINE = new float[] { 4, 8 };
 	private static final int RULER_LABEL_GAP = 10, RULER_TAPE_GAP = 4;
 	private static final int MAX_RULER_WIDTH = 200;
 	private static final int MIN_RULER_LABEL_SPACING = 50;
@@ -120,13 +120,12 @@ public class WorldRuler {
 	 * 
 	 * @param trackerPanel the panel to draw on
 	 */
-	protected Mark getMark(TrackerPanel trackerPanel) {
+	protected Mark getMark(TrackerPanel trackerPanel, int n) {
 		if (trackerPanel instanceof WorldTView)
 			return null;
 		refreshStrokes();
 		format.setDecimalFormatSymbols(OSPRuntime.getDecimalFormatSymbols());
 		// get ends and length of the tape
-		int n = trackerPanel.getFrameNumber();
 		TPoint pt0 = tape.getStep(n).getPoints()[0];
 		TPoint pt1 = tape.getStep(n).getPoints()[1];
 		double length = pt0.distance(pt1);
@@ -192,9 +191,10 @@ public class WorldRuler {
 			drawLines.add(line);
 			lineEnds[0].setWorldPosition(x, y, trackerPanel);
 			Point base = lineEnds[0].getScreenPosition(trackerPanel);
-			// draw drop end at 0 if not a stick
+			// draw drop end at 0 if tape footprint is a line
+			boolean isLineFootprint = tape.getFootprint().getClass() == LineFootprint.class;
 			int drop = rulerWidth > 0? dropEndSize: -dropEndSize;
-			double bottom = i == 0 && !tape.isStickMode()? base.y + drop: base.y - gap;
+			double bottom = i == 0 && isLineFootprint? base.y + drop: base.y - gap;
 			line.setLine(base.x, bottom, base.x, base.y - gap - lineLength);
 			
 			// create the labelMark for major lines--BEFORE drawing second drop end
@@ -214,8 +214,8 @@ public class WorldRuler {
 				}
 			}		
 			
-			// if not stick, draw second drop end
-			if (i == lineCount - 1 && !tape.isStickMode()) {
+			// if line footprint, draw second drop end
+			if (i == lineCount - 1 && isLineFootprint) {
 				line = new Line2D.Double();
 				lines.get(0).add(line);
 				x = world0.getX() + worldLength * coordsCos;
@@ -247,12 +247,6 @@ public class WorldRuler {
 		lineEnds[1].setLocation(pt1.x - hitDist * tapeSin, pt1.y - hitDist * tapeCos);
 		hitLine.setLine(lineEnds[0].getScreenPosition(trackerPanel), lineEnds[1].getScreenPosition(trackerPanel));
 		
-//		// set up end hit lines
-//		hitLine = getEndHitLine(n, 0);
-//		lineEnds[0].setLocation(pt0.x, pt0.y);
-//		lineEnds[1].setLocation(pt0.x - hitDist * tapeSin, pt2.y - hitDist * tapeCos);
-//		hitLine.setLine(screen1.x, screen1.y, screen1.x, screen1.y + dropEndSize);
-		
 		// assemble multishapes
 		for (int i = 0; i < lines.size(); i++) {
 			ArrayList<Line2D> drawLines = lines.get(i);
@@ -263,7 +257,9 @@ public class WorldRuler {
 		}
 
 		MultiShape hitMultiShape = new MultiShape(hitDrawshape).andStroke(dashedStroke).transform(transform);
-		
+		MultiShape[] myShapes = Arrays.copyOf(multiShapes, multiShapes.length);
+		AffineTransform myTransform = new AffineTransform(transform);
+		LabelMark[] myLabels = labelMarks.toArray(new LabelMark[labelMarks.size()]);
 		// return the mark
 		return new Mark() {
 			@Override
@@ -271,9 +267,9 @@ public class WorldRuler {
 				Graphics2D g2 = (Graphics2D) g.create();
 				if (OSPRuntime.setRenderingHints)
 					g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-				for (int i = 0; i < multiShapes.length; i++) {
+				for (int i = 0; i < myShapes.length; i++) {
 					g2.setPaint(colors[i]);
-					multiShapes[i].draw(g2);
+					myShapes[i].draw(g2);
 				}
 				g2.setPaint(colors[0]);
 				if (active) {
@@ -281,10 +277,10 @@ public class WorldRuler {
 				}
 				// draw text marks
 				AffineTransform t = g2.getTransform();
-				t.concatenate(transform);
+				t.concatenate(myTransform);
 				g2.setTransform(t);
-				for (int i = 0; i < labelMarks.size(); i++) {
-					labelMarks.get(i).draw(g2);
+				for (int i = 0; i < myLabels.length; i++) {
+					myLabels[i].draw(g2);
 				}
 				g2.dispose();
 			}
@@ -315,29 +311,13 @@ public class WorldRuler {
 		return hitLine;
 	}
 	
-//	/**
-//	 * Gets an end hit line.
-//	 *
-//	 * @param frameNumber the frame number
-//	 * @param end 0 or 1
-//	 * @return a Line2D
-//	 */
-//	public Line2D getEndHitLine(int frameNumber, int end) {
-//		Line2D[] hitLines = endHitLines.get(frameNumber);
-//		if (hitLines == null) {
-//			hitLines = new Line2D[] {new Line2D.Double(), new Line2D.Double()};
-//			endHitLines.put(frameNumber, hitLines);
-//		}
-//		return hitLines[end];
-//	}
-	
 	/**
 	 * Sets the active flag. When true, the hitLine is drawn
 	 *
 	 * @param active true to draw the hitline
 	 */
 	protected void setActive(boolean active) {
-		this.active = active;
+		this.active = active && !tape.isLocked();
 	}
 	
 	/**
@@ -484,8 +464,9 @@ public class WorldRuler {
 	}
 	
 	public Footprint getFootprint() {
-		return tape.isStickMode()? tape.getFootprint(): 
-			getStrokeWidth() == 1? footprints[0]: footprints[1];
+//		return tape.isStickMode()? tape.getFootprint(): 
+//			getStrokeWidth() == 1? footprints[0]: footprints[1];
+		return tape.getFootprint();
 	}
 
 	/**
