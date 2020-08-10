@@ -41,8 +41,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
 
-import javax.swing.BorderFactory;
-import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -147,8 +145,6 @@ public class TapeMeasure extends InputTrack {
 	protected JLabel end1Label, end2Label, lengthLabel;
 	protected Footprint[] tapeFootprints, stickFootprints;
 	protected TreeSet<Integer> lengthKeyFrames = new TreeSet<Integer>(); // applies to sticks only
-	protected WorldRuler ruler;
-	protected JCheckBox rulerCheckbox;
 	protected JMenuItem attachmentItem;
 	protected JCheckBoxMenuItem fixedPositionItem, fixedLengthItem;
 	protected Double calibrationLength;
@@ -181,12 +177,11 @@ public class TapeMeasure extends InputTrack {
 		setViewable(false);
 		setStickMode(false); // sets up footprint
 		setReadOnly(false); // sets up dashed array
-		
-		// create ruler AFTER setting footprints
-		ruler = new WorldRuler(this);
-		// set color AFTER creating ruler
 		setColor(defaultColors[0]);
 		
+//		// create ruler AFTER setting footprints and color
+//		ruler = new WorldRuler(this);
+//		
 		// set initial hint
 		partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$
 		hint = TrackerRes.getString("TapeMeasure.Hint"); //$NON-NLS-1$
@@ -264,23 +259,6 @@ public class TapeMeasure extends InputTrack {
 				angleField.requestFocusInWindow();
 			}
 		});
-		rulerCheckbox = new JCheckBox();
-		rulerCheckbox.setBorder(BorderFactory.createEmptyBorder());
-		rulerCheckbox.setOpaque(false);
-		rulerCheckbox.setSelected(ruler.isVisible());
-		rulerCheckbox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				ruler.setVisible(rulerCheckbox.isSelected());
-				Footprint fp = ruler.isVisible()? ruler.getFootprint(): footprint;
-				fp.setColor(getColor());
-				Step[] stepArray = steps.array;
-				for (int j = 0; j < stepArray.length; j++)
-					if (stepArray[j] != null)
-						stepArray[j].setFootprint(fp);					
-				repaint();
-			}
-		});
 	}
 
 	/**
@@ -356,7 +334,6 @@ public class TapeMeasure extends InputTrack {
 	 */
 	public void setStickMode(boolean stick) {
 		stickMode = stick;
-//		Color color = getColor();
 		// set footprints and update world lengths
 		if (isStickMode()) {
 			setFootprints(stickFootprints);
@@ -367,7 +344,6 @@ public class TapeMeasure extends InputTrack {
 		if (ruler != null) {
 			ruler.setStrokeWidth(defaultFootprint.getStroke().getLineWidth());
 		}
-//		setColor(color);
 		// set tip edit triggers
 		for (Step step : getSteps()) {
 			if (step != null) {
@@ -490,12 +466,6 @@ public class TapeMeasure extends InputTrack {
 		super.setVisible(visible);
 		if (visible)
 			notYetShown = false;
-	}
-
-	@Override
-	public void setColor(Color color) {
-		super.setColor(color);
-		ruler.setColor(getColor());
 	}
 
 	/**
@@ -663,22 +633,6 @@ public class TapeMeasure extends InputTrack {
 		return 2;
 	}
 	
-	@Override
-	public void setFootprint(String name) {
-		super.setFootprint(name);
-		
-		if (ruler != null && ruler.isVisible()) {
-			ruler.setStrokeWidth(footprint.getStroke().getLineWidth());
-			Footprint footprint = ruler.getFootprint();
-			footprint.setColor(getColor());
-			Step[] stepArray = steps.array;
-			for (int j = 0; j < stepArray.length; j++)
-				if (stepArray[j] != null)
-					stepArray[j].setFootprint(footprint);					
-		}
-		repaint();
-	}
-
 	/**
 	 * Formats the specified length value.
 	 *
@@ -856,9 +810,9 @@ public class TapeMeasure extends InputTrack {
 			end1Label.setForeground(Color.green.darker());
 			list.add(end1Label);
 		} else {
-			rulerCheckbox.setText(TrackerRes.getString("TapeMeasure.Checkbox.Ruler")); //$NON-NLS-1$
-			rulerCheckbox.setToolTipText(TrackerRes.getString("TapeMeasure.Checkbox.Ruler.Tooltip")); //$NON-NLS-1$
-			rulerCheckbox.setSelected(ruler.isVisible());
+			rulerCheckbox.setText(TrackerRes.getString("InputTrack.Checkbox.Ruler")); //$NON-NLS-1$
+			rulerCheckbox.setToolTipText(TrackerRes.getString("InputTrack.Checkbox.Ruler.Tooltip")); //$NON-NLS-1$
+			rulerCheckbox.setSelected(ruler != null && ruler.isVisible());
 			list.add(rulerCheckbox);
 
 			list.add(stepLabel);
@@ -902,7 +856,9 @@ public class TapeMeasure extends InputTrack {
 			TPoint[] pts = step.points;
 			TPoint p = trackerPanel.getSelectedPoint();
 			Interactive ia = step.findInteractive(trackerPanel, xpix, ypix);
-			ruler.setActive(ia == ruler.getHandle());
+			if (ruler != null && ruler.isVisible()) {
+				ruler.setHitShapeVisible(ia == ruler.getHandle() || p == ruler.getHandle());
+			}
 			if (step.worldLength == 0) {
 				if (ia instanceof TapeStep.Tip || ia instanceof TapeStep.Handle) {
 					ia = step.handle;
@@ -939,7 +895,7 @@ public class TapeMeasure extends InputTrack {
 			} else if (ia instanceof TapeStep.Rotator) {
 				partName = TrackerRes.getString("TapeMeasure.Rotator.Name"); //$NON-NLS-1$
 				hint = TrackerRes.getString("TapeMeasure.Rotator.Hint"); //$NON-NLS-1$
-			} else if (ia == ruler.getHandle()) {
+			} else if (ruler != null && ia == ruler.getHandle()) {
 				partName = TrackerRes.getString("TapeMeasure.Ruler.Name"); //$NON-NLS-1$
 				hint = TrackerRes.getString("TapeMeasure.Ruler.Hint"); //$NON-NLS-1$
 			} else if (ia == this) {
@@ -952,17 +908,6 @@ public class TapeMeasure extends InputTrack {
 			return isLocked()? null: ia;
 		}
 		return null;
-	}
-
-	@Override
-	public Step getStep(TPoint point, TrackerPanel trackerPanel) {
-		if (point == null)
-			return null;
-		Step step = super.getStep(point, trackerPanel);
-		if (step == null && ruler.isVisible() && point == ruler.getHandle()) {
-			step = getStep(trackerPanel.getFrameNumber());
-		}
-		return step;
 	}
 
 	/**
@@ -1117,7 +1062,6 @@ public class TapeMeasure extends InputTrack {
 		super.setFontLevel(level);
 		Object[] objectsToSize = new Object[] { end1Label, end2Label, lengthLabel };
 		FontSizer.setFonts(objectsToSize);
-		FontSizer.setFont(rulerCheckbox);
 	}
 
 //__________________________ protected and private methods _______________________
@@ -1210,6 +1154,12 @@ public class TapeMeasure extends InputTrack {
 	
 	//__________________________ InputTrack ___________________________
 	
+	@Override
+	protected Ruler getRuler() {
+		if (ruler == null)
+			ruler = new WorldRuler(this);
+		return ruler;
+	}
 	
 	/**
 	 * Refreshes a step by setting it equal to the previous keyframe step.
@@ -1360,8 +1310,8 @@ public class TapeMeasure extends InputTrack {
 				lengths[n] = ((TapeStep) steps[n]).worldLength;
 			}
 			control.setValue("worldlengths", lengths); //$NON-NLS-1$
-			if (tape.ruler.isVisible()) {
-				control.setValue("rulerwidth", tape.ruler.getRulerWidth()); //$NON-NLS-1$
+			if (tape.ruler != null && tape.ruler.isVisible()) {
+				control.setValue("rulersize", tape.ruler.getRulerSize()); //$NON-NLS-1$
 				control.setValue("rulerspacing", tape.ruler.getLineSpacing()); //$NON-NLS-1$
 			}
 		}
@@ -1422,9 +1372,9 @@ public class TapeMeasure extends InputTrack {
 			if (control.getPropertyNamesRaw().contains("fixedlength")) //$NON-NLS-1$
 				tape.fixedLength = control.getBoolean("fixedlength"); //$NON-NLS-1$
 			// load ruler properties
-			if (control.getPropertyNamesRaw().contains("rulerwidth")) { //$NON-NLS-1$
-				tape.ruler.setVisible(true);
-				tape.ruler.setRulerWidth(control.getDouble("rulerwidth")); //$NON-NLS-1$
+			if (control.getPropertyNamesRaw().contains("rulersize")) { //$NON-NLS-1$
+				tape.getRuler().setVisible(true);
+				tape.ruler.setRulerSize(control.getDouble("rulersize")); //$NON-NLS-1$
 				tape.ruler.setLineSpacing(control.getDouble("rulerspacing")); //$NON-NLS-1$
 			}
 			// load readOnly

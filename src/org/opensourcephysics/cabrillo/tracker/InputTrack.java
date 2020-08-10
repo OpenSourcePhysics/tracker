@@ -15,11 +15,13 @@ import java.awt.event.MouseListener;
 import java.text.NumberFormat;
 
 import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
 import javax.swing.border.Border;
 
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.media.core.NumberField;
+import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -50,6 +52,8 @@ public abstract class InputTrack extends TTrack {
 	
 	protected boolean editing;
 	protected boolean fixedPosition = true;
+	protected Ruler ruler;
+	protected JCheckBox rulerCheckbox;
 
 	public InputTrack() {
 		inputField = createInputField();
@@ -90,6 +94,16 @@ public abstract class InputTrack extends TTrack {
 				mouseClickedAction(e.getPoint());
 			}
 		};
+		rulerCheckbox = new JCheckBox();
+		rulerCheckbox.setBorder(BorderFactory.createEmptyBorder());
+		rulerCheckbox.setOpaque(false);
+		rulerCheckbox.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				getRuler().setVisible(rulerCheckbox.isSelected());
+				repaint();
+			}
+		});
 	}
 
 	@Override
@@ -103,6 +117,46 @@ public abstract class InputTrack extends TTrack {
 		}
 	}
 	
+	@Override
+	public void setFootprint(String name) {
+		super.setFootprint(name);		
+		if (ruler != null && ruler.isVisible()) {
+			ruler.setStrokeWidth(footprint.getStroke().getLineWidth());
+		}
+	}
+	
+	@Override
+	public void setColor(Color color) {
+		super.setColor(color);
+		if (ruler != null)
+			ruler.setColor(getColor());
+	}
+	
+	@Override
+	public Step getStep(TPoint point, TrackerPanel trackerPanel) {
+		if (point == null)
+			return null;
+		Step step = super.getStep(point, trackerPanel);
+		if (step == null && ruler != null && ruler.isVisible() && point == ruler.getHandle()) {
+			step = getStep(trackerPanel.getFrameNumber());
+		}
+		return step;
+	}
+
+	@Override
+	public void setFontLevel(int level) {
+		super.setFontLevel(level);
+		FontSizer.setFont(rulerCheckbox);
+	}
+	
+	/**
+	 * Gets the Ruler. Subclasses override to return the appropriate Ruler type.
+	 *
+	 * @return the Ruler
+	 */
+	protected Ruler getRuler() {
+		return null;
+	}
 
 	protected void setEditAction(Step step, Point pt) {
 		if (editing) {
@@ -131,7 +185,7 @@ public abstract class InputTrack extends TTrack {
 	}
 
 	/**
-	 * Gets the fixed property.
+	 * Gets the fixed position property.
 	 *
 	 * @return <code>true</code> if fixed
 	 */

@@ -30,7 +30,6 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.*;
 import org.opensourcephysics.media.core.*;
 
@@ -297,9 +296,12 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				if (p instanceof AutoTracker.Handle) {
 					((AutoTracker.Handle) p).setScreenLocation(e.getX(), e.getY(), trackerPanel);
 				}
+				else if (p instanceof Ruler.Handle) {
+					((Ruler.Handle) p).setScreenLocation(e.getX(), e.getY(), trackerPanel);
+				}
 				if (p != null) {
-					p.showCoordinates(trackerPanel);
 					p.setAdjusting(true);
+					p.showCoordinates(trackerPanel);
 				}
 				trackerPanel.setSelectedPoint(p);
 				if (p instanceof Step.Handle) {

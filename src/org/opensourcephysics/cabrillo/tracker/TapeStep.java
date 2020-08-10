@@ -24,7 +24,6 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -39,6 +38,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -180,7 +180,6 @@ public class TapeStep extends Step {
 		boolean drawLayout = false;
 		Shape hitShape;
 		Interactive hit = null;
-		boolean needsRepaint = false;
 		// look for ends
 		if (endsEnabled) {
 			hitShape = end1Shapes.get(trackerPanel);
@@ -230,20 +229,17 @@ public class TapeStep extends Step {
     	rotatorDrawShapes[1] = null;
     }
 		Rectangle layoutRect = layoutBounds.get(trackerPanel);
-		if (hit == null && layoutRect != null && layoutRect.intersects(hitRect)) {
-//      drawLayout = !tape.readOnly;
+		if (hit == null && !tape.readOnly && layoutRect != null && layoutRect.intersects(hitRect)) {
 			drawLayout = true;
 			hit = tape;
 		}
-		if (hit == null && tape.ruler.isVisible()) {
+		if (hit == null && tape.ruler != null && tape.ruler.isVisible()) {
 			hit = tape.ruler.findInteractive(trackerPanel, hitRect);
 		}
 		if (drawLayout != drawLayoutBounds) {
 			drawLayoutBounds = drawLayout;
-      needsRepaint = true;			
 		}
-		if (needsRepaint)
-			repaint(trackerPanel);
+
 		// check for attached ends which cannot be dragged
 		if (end1.isAttached() && (hit == end1 || hit == handle || hit == rotator1))
 			return null;
@@ -309,15 +305,16 @@ public class TapeStep extends Step {
 	@Override
 	protected Mark getMark(TrackerPanel trackerPanel) {
 		Mark mark = marks.get(trackerPanel);
-		TPoint selection = null;
 		if (mark == null) {
+      boolean isWorldView = trackerPanel instanceof WorldTView;
 			// adjust tips if stick mode
 			if (tape.isStickMode() && !tape.isIncomplete) {
 				adjustTipsToLength();
 			}
-			selection = trackerPanel.getSelectedPoint();
+			TPoint selection = trackerPanel.getSelectedPoint();
+			
 			// create mark to draw ruler
-			Mark rulerMark = tape.ruler.isVisible()? tape.ruler.getMark(trackerPanel, n): null;
+			Mark rulerMark = tape.ruler != null && tape.ruler.isVisible()? tape.ruler.getMark(trackerPanel, n): null;
 
 			// get screen points
 			Point p = null;
@@ -326,7 +323,7 @@ public class TapeStep extends Step {
 				if (selection == points[i])
 					p = screenPoints[i];
 			}
-			if (p == null && selection == tape.ruler.getHandle()) {
+			if (p == null && tape.ruler != null && selection == tape.ruler.getHandle()) {
 				p = selection.getScreenPosition(trackerPanel);
 			}
       // refresh rotatorShape
@@ -340,46 +337,46 @@ public class TapeStep extends Step {
 
 			// create footprint mark
 			Mark tapeMark = footprint.getMark(screenPoints);
+			OSPLog.debug("pig tapestep getMark "+p);
+			
+      if (!isWorldView) {
+			  if (p != null) {
+			    transform.setToTranslation(p.x, p.y);
+			    int scale = FontSizer.getIntegerFactor();
+			    if (scale>1) {
+			    	transform.scale(scale, scale);
+			    }
+			    selectedShape = transform.createTransformedShape(selectionShape);
+			  }
+			  else
+			  	selectedShape = null;
+      }
+		 
 			mark = new Mark() {
 				@Override
 				public void draw(Graphics2D g, boolean highlighted) {
+					Paint gpaint = g.getPaint();
+					Stroke gstroke = g.getStroke();
 					tapeMark.draw(g, false);
 					if (rulerMark != null) {
 						rulerMark.draw(g, false);
 					}
+		      if (selectedShape != null) {
+						g.setPaint(footprint.getColor());
+						g.setStroke(selectionStroke);
+						g.draw(selectedShape);
+		      }
 					for (int i = 0; i < rotatorDrawShapes.length; i++) {
 						if (rotatorDrawShapes[i] != null && !tape.isLocked()) {
 							g.setColor(tape.getColor());
 							rotatorDrawShapes[i].draw(g);
 						}
 					}
+					g.setStroke(gstroke);
+					g.setPaint(gpaint);
 				}
 			};
-			if (p != null && selection != tape.ruler.getHandle()) {
-				Color color = footprint.getColor();
-				Mark stepMark = mark;
-				transform.setToTranslation(p.x, p.y);
-				int scale = FontSizer.getIntegerFactor();
-				if (scale > 1) {
-					transform.scale(scale, scale);
-				}
-				selectedShape = transform.createTransformedShape(selectionShape);
-				mark = new Mark() {
-					@Override
-					public void draw(Graphics2D g, boolean highlighted) {
-						stepMark.draw(g, false);
-            if (selectedShape != null) {
-	 						Paint gpaint = g.getPaint();
-	 						Stroke gstroke = g.getStroke();
-  						g.setPaint(color);
-  						g.setStroke(selectionStroke);
-  						g.draw(selectedShape);
-  						g.setStroke(gstroke);
-							g.setPaint(gpaint);
-            }
-					}
-				};
-			}
+			
 			marks.put(trackerPanel, mark);
 
 			// get new hit shapes
@@ -767,10 +764,11 @@ public class TapeStep extends Step {
 		double halfwsin = w * sin / 2;
 		double halfhcos = h * cos / 2;
 		double d = Math.sqrt((halfwsin*halfwsin) + (halfhcos*halfhcos)) + 8; 
+		OSPLog.debug("pig tape d "+d);
 		// draw relative to center of tape
 		middle.center(end1, end2);
 		Point p = middle.getScreenPosition(trackerPanel);
-		if (tape.ruler != null && tape.ruler.isVisible() && tape.ruler.getRulerWidth() > 0)
+		if (tape.ruler != null && tape.ruler.isVisible() && tape.ruler.getRulerSize() > 0)
 		// draw below tape
 			p.setLocation((int) (p.x + d * sin - w / 2), (int) (p.y + d * cos + h / 2));
 		else

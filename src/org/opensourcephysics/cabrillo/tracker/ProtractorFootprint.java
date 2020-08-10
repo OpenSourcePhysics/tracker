@@ -74,6 +74,7 @@ public class ProtractorFootprint implements Footprint, Cloneable {
 	protected Shape circle;
 	protected int radius;
   private Stroke arcStroke, arcAdjustStroke, armStroke;
+  private boolean isArcVisible;
 
   /**
    * Constructs a ProtractorFootprint.
@@ -88,45 +89,23 @@ public class ProtractorFootprint implements Footprint, Cloneable {
   	setStroke(new BasicStroke());
   }
 
-  /**
-   * Gets the name of this footprint.
-   *
-   * @return the name
-   */
   @Override
-public String getName() {
+  public String getName() {
     return name;
   }
 
-  /**
-   * Gets the display name of the footprint.
-   *
-   * @return the localized display name
-   */
   @Override
-public String getDisplayName() {
+  public String getDisplayName() {
   	return TrackerRes.getString(name);
   }
 
-  /**
-   * Gets the minimum point array length required by this footprint.
-   *
-   * @return the length
-   */
   @Override
-public int getLength() {
+  public int getLength() {
     return 3;
   }
 
-  /**
-   * Gets the icon.
-   *
-   * @param w width of the icon
-   * @param h height of the icon
-   * @return the icon
-   */
   @Override
-public Icon getIcon(int w, int h) {
+  public Icon getIcon(int w, int h) {
     int scale = FontSizer.getIntegerFactor();
     w *= scale;
     h *= scale;
@@ -155,16 +134,9 @@ public Icon getIcon(int w, int h) {
     return icon;
   }
 
-  /**
-   * Gets the footprint mark.
-   *
-   * @param points a Point array
-   * @return the mark
-   */
   @Override
-public Mark getMark(Point[] points) {
-    final MultiShape shape = getShape(points);
-    final Color color = this.color;
+  public Mark getMark(Point[] points) {
+    MultiShape shape = getShape(points);
     return new Mark() {
       @Override
       public void draw(Graphics2D g, boolean highlighted) {
@@ -181,23 +153,13 @@ public Mark getMark(Point[] points) {
     };
   }
 
-  /**
-   * Gets the hit shapes {vertex, end1, end2, line1, line2, rotator}.
-   *
-   * @return the hit shapes
-   */
   @Override
-public Shape[] getHitShapes() {
+  public Shape[] getHitShapes() {
     return hitShapes;
   }
 
-  /**
-   * Sets the stroke.
-   *
-   * @param stroke the desired stroke
-   */
   @Override
-public void setStroke(BasicStroke stroke) {
+  public void setStroke(BasicStroke stroke) {
     if (stroke == null) return;
     baseStroke = new BasicStroke(stroke.getLineWidth(),
                                   BasicStroke.CAP_BUTT,
@@ -219,34 +181,23 @@ public void setStroke(BasicStroke stroke) {
         stroke.getDashPhase());  
    }
 
-  /**
-   * Gets the stroke.
-   *
-   * @return the stroke
-   */
   @Override
-public BasicStroke getStroke() {
+  public BasicStroke getStroke() {
     return baseStroke;
   }
 
-  /**
-   * Sets the color.
-   *
-   * @param color the desired color
-   */
   @Override
-public void setColor(Color color) {
+  public void setColor(Color color) {
     this.color = color;
   }
 
-  /**
-   * Gets the color.
-   *
-   * @return the color
-   */
   @Override
   public Color getColor() {
     return color;
+  }
+  
+  public void setArcVisible(boolean vis) {
+  	isArcVisible = vis;
   }
   
   /**
@@ -326,7 +277,7 @@ public MultiShape getShape(Point[] points) {
     MultiShape drawMe = new MultiShape();
     
     // set up line shapes
-    line1.setLine(vertex, end1); // "fixed" x-axis: angles measured ccw from this
+    line1.setLine(vertex, end1); // "fixed" x-axis base: angles measured ccw from this
     double d1 = vertex.distance(end1);
     if (d1>1) adjustLineLength(line1, 1, (d1-r)/d1);
     drawMe.addDrawShape((Line2D)line1.clone(), null);
@@ -363,22 +314,24 @@ public MultiShape getShape(Point[] points) {
     	transform.scale(scale, scale);
     }
     Shape arcShape = transform.createTransformedShape(arc);
-    drawMe.addDrawShape(arcShape, arcStroke);
-    
-    // arrowhead where arc hits line2
-    if (Math.abs(degrees)>10) {
-	    double xDot = vertex.getX() + scale*arcRadius*(end2.getX()-vertex.getX())/d2;
-	    double yDot = vertex.getY() + scale*arcRadius*(end2.getY()-vertex.getY())/d2;
-	    double angle = -theta2-Math.PI/2;
-	    if (degrees<0)
-	    	angle += Math.PI;
-	    transform.setToRotation(angle, xDot, yDot);
-	    transform.translate(xDot, yDot);
-	    if (scale>1) {
-	    	transform.scale(scale, scale);
+    if (isArcVisible) {
+	    drawMe.addDrawShape(arcShape, arcStroke);
+	    
+	    // arrowhead where arc hits line2
+	    if (Math.abs(degrees)>10) {
+		    double xDot = vertex.getX() + scale*arcRadius*(end2.getX()-vertex.getX())/d2;
+		    double yDot = vertex.getY() + scale*arcRadius*(end2.getY()-vertex.getY())/d2;
+		    double angle = -theta2-Math.PI/2;
+		    if (degrees<0)
+		    	angle += Math.PI;
+		    transform.setToRotation(angle, xDot, yDot);
+		    transform.translate(xDot, yDot);
+		    if (scale>1) {
+		    	transform.scale(scale, scale);
+		    }
+		    Shape arrowShape = arrowhead.transform(transform);
+		    drawMe.addFillShape(arrowShape);
 	    }
-	    Shape arrowShape = arrowhead.transform(transform);
-	    drawMe.addFillShape(arrowShape);
     }
     
     // hit shapes    

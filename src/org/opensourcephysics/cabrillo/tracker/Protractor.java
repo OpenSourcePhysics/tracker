@@ -144,6 +144,9 @@ public class Protractor extends InputTrack {
 		defaultFootprint = getFootprint();
 		setColor(defaultColors[0]);
 
+//		// create ruler AFTER setting footprints and color
+//		ruler = new AngleRuler(this);
+//
 		// assign default table variables
 		setProperty("tableVar0", "0"); //$NON-NLS-1$ //$NON-NLS-2$
 
@@ -181,7 +184,7 @@ public class Protractor extends InputTrack {
 					}
 					step = (ProtractorStep) getKeyStep(step);
 					double theta = angleField.getValue();
-					if (theta != step.getProtractorAngle()) {
+					if (theta != step.getProtractorAngle(false)) {
 						step.setProtractorAngle(theta);
 						dataValid = false;
 						if (isFixedPosition())
@@ -252,18 +255,10 @@ public class Protractor extends InputTrack {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			if (isSelectedTrack) {
 				ProtractorStep step = (ProtractorStep) getStep(trackerPanel.getFrameNumber());
-				step.getProtractorAngle(); // refreshes angle field
+				step.getProtractorAngle(true); // refreshes angle field
 				step.getFormattedLength(step.end1); // refreshes x field
 				step.getFormattedLength(step.end2); // refreshes y field
-				step.arcHighlight = null;
 				stepValueLabel.setText(e.getNewValue() + ":"); //$NON-NLS-1$
-			}
-			break;
-		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
-			TPoint p = trackerPanel.getSelectedPoint();
-			if (!(p instanceof ProtractorStep.Rotator)) {
-				ProtractorStep step = (ProtractorStep) getStep(trackerPanel.getFrameNumber());
-				step.arcHighlight = null;
 			}
 			break;
 		case Trackable.PROPERTY_ADJUSTING: // via TrackerPanel
@@ -427,7 +422,7 @@ public class Protractor extends InputTrack {
 			ProtractorStep next = (ProtractorStep) getStep(frame);
 			next.dataVisible = true;
 			// determine the cumulative rotation angle
-			double theta = next.getProtractorAngle();
+			double theta = next.getProtractorAngle(false);
 			double delta = theta - prevAngle;
 			if (delta < -Math.PI)
 				delta += 2 * Math.PI;
@@ -527,6 +522,10 @@ public class Protractor extends InputTrack {
 
 		angleField.setEnabled(!isFullyAttached() && !isLocked());
 
+		rulerCheckbox.setText(TrackerRes.getString("InputTrack.Checkbox.Ruler")); //$NON-NLS-1$
+		rulerCheckbox.setToolTipText(TrackerRes.getString("InputTrack.Checkbox.Ruler.Tooltip")); //$NON-NLS-1$
+		rulerCheckbox.setSelected(ruler != null && ruler.isVisible());
+		list.add(rulerCheckbox);
 		list.add(stepSeparator);
 		list.add(stepLabel);
 		list.add(stepValueLabel);
@@ -677,6 +676,13 @@ public class Protractor extends InputTrack {
 
 	// __________________________ InputTrack ___________________________
 
+	@Override
+	protected Ruler getRuler() {
+		if (ruler == null)
+			ruler = new AngleRuler(this);
+		return ruler;
+	}
+
 	/**
 	 * Refreshes a step by setting it equal to a keyframe step.
 	 *
@@ -733,7 +739,7 @@ public class Protractor extends InputTrack {
 
 	@Override
 	protected void setInputValue(Step step) {
-		inputField.setValue(((ProtractorStep) step).getProtractorAngle());
+		inputField.setValue(((ProtractorStep) step).getProtractorAngle(false));
 	}
 
 //__________________________ static methods ___________________________
@@ -786,6 +792,7 @@ public class Protractor extends InputTrack {
 				data[n] = stepData;
 			}
 			control.setValue("framedata", data); //$NON-NLS-1$
+			control.setValue("ruler_visible", protractor.ruler != null && protractor.ruler.isVisible()); //$NON-NLS-1$
 		}
 
 		/**
@@ -827,6 +834,11 @@ public class Protractor extends InputTrack {
 				tapeStep.vertex.setLocation(data[n][4], data[n][5]);
 				tapeStep.erase();
 			}
+			// load ruler properties
+			if (control.getPropertyNamesRaw().contains("ruler_visible")) { //$NON-NLS-1$
+				protractor.getRuler().setVisible(true);
+			}
+
 			protractor.setLocked(locked);
 			return obj;
 		}

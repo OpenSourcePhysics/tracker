@@ -54,9 +54,9 @@ public class ProtractorStep extends Step {
   protected Handle handle;
   protected Rotator rotator;
   protected double line1Angle, line2Angle; // in radians
-  protected boolean endsEnabled = true;
+  protected boolean endsEnabled = true, drawArcCircle;
   protected boolean drawLayoutBounds, drawLayout1, drawLayout2;
-  protected MultiShape vertexCircle, arcHighlight;
+  protected MultiShape vertexCircle;
   protected Map<TrackerPanel, Shape> vertexShapes = new HashMap<TrackerPanel, Shape>();
   protected Map<TrackerPanel, Shape> end1Shapes = new HashMap<TrackerPanel, Shape>();
   protected Map<TrackerPanel, Shape> end2Shapes = new HashMap<TrackerPanel, Shape>();
@@ -137,6 +137,7 @@ public void setFootprint(Footprint footprint) {
 public Interactive findInteractive(
          DrawingPanel panel, int xpix, int ypix) {
     TrackerPanel trackerPanel = (TrackerPanel)panel;
+    boolean isWorldView = panel instanceof WorldTView;
     setHitRectCenter(xpix, ypix);
     Shape hitShape;
     Interactive hit = null;
@@ -146,29 +147,28 @@ public Interactive findInteractive(
     		&& protractor.getFootprint() instanceof ProtractorFootprint) {
     	footprint = (ProtractorFootprint)protractor.getFootprint();
     }
+    boolean isRulerVisible = protractor.ruler != null && protractor.ruler.isVisible();
     if (endsEnabled) {
       hitShape = vertexShapes.get(trackerPanel);
       if (!vertex.isAttached() && hitShape != null && hitShape.intersects(hitRect)) {
       	hit = vertex;
       	if (vertexCircle==null && footprint!=null) {
       		vertexCircle = footprint.getCircleShape(vertex.getScreenPosition(trackerPanel));
-  	      repaint(trackerPanel);
       	}
       }
       // clear vertex highlight shape when no longer needed
       if (hit==null && vertexCircle!=null) {
       	vertexCircle = null;
-        repaint(trackerPanel);
       }
       hitShape = end1Shapes.get(trackerPanel);
       if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
         hit = end1;
-        draw1 = true;
+        draw1 = !isRulerVisible;
       }
       hitShape = end2Shapes.get(trackerPanel);
       if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       	hit = end2;
-      	draw2 = true;
+      	draw2 = !isRulerVisible;
       }
     }
     hitShape = rotatorShapes.get(trackerPanel);
@@ -176,53 +176,36 @@ public Interactive findInteractive(
       hit = rotator;
     }
     if (hit == null && trackerPanel.getSelectedPoint()==rotator 
-    		&& selectedShape.intersects(hitRect)) {
+    		&& selectedShape != null && selectedShape.intersects(hitRect)) {
       hit = rotator;
     }
-    if (hit==rotator && trackerPanel.getSelectedPoint()!=rotator && footprint!=null) {
+    if (hit==rotator && trackerPanel.getSelectedPoint()!=rotator && !isWorldView) {
       rotator.setScreenCoords(xpix, ypix);
-      Point p1 = vertex.getScreenPosition(trackerPanel);
-  		arcHighlight = footprint.getArcAdjustShape(p1, null);
-      repaint(trackerPanel);
     }
-    // clear arc highlight shape when no longer needed
-    if (hit==null && arcHighlight!=null && trackerPanel.getSelectedPoint()!=rotator) {
-    	arcHighlight = null;
-      repaint(trackerPanel);
-    }
+    drawArcCircle = hit==rotator || trackerPanel.getSelectedPoint()==rotator;
     hitShape = line1Shapes.get(trackerPanel);
     if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       hit = handle;
       handle.setHandleEnd(end1);
-      draw1 = true;
     }
     hitShape = line2Shapes.get(trackerPanel);
     if (hit == null && hitShape != null && hitShape.intersects(hitRect)) {
       hit = handle;
       handle.setHandleEnd(end2);
-      draw2 = true;
     }
+		if (hit == null && protractor.ruler != null && protractor.ruler.isVisible()) {
+			hit = protractor.ruler.findInteractive(trackerPanel, hitRect);
+		}
     Rectangle layoutRect = layoutBounds.get(trackerPanel);
     if (hit == null && layoutRect != null 
     		&& layoutRect.intersects(hitRect)) {
       drawLayout = true;
       hit = protractor;
     }
-    boolean needsRepaint = false;
-    if (drawLayout != drawLayoutBounds) {
-    	drawLayoutBounds = drawLayout;
-    	needsRepaint = true;
-    }
-    if (draw1 != drawLayout1) {
-    	drawLayout1 = draw1;
-    	needsRepaint = true;
-    }
-    if (draw2 != drawLayout2) {
-    	drawLayout2 = draw2;
-    	needsRepaint = true;
-    }
-    if (needsRepaint) repaint(trackerPanel);
-
+    drawLayoutBounds = drawLayout;
+    drawLayout1 = draw1;
+    drawLayout2 = draw2;
+ 
   	if (end1.isAttached() && (hit==end1 || hit==handle || hit==rotator)) return null;
   	if (end2.isAttached() && (hit==end2 || hit==handle || hit==rotator)) return null;
   	if (vertex.isAttached() && (hit==vertex || hit==handle)) return null;
@@ -240,39 +223,38 @@ public Interactive findInteractive(
 public void draw(DrawingPanel panel, Graphics _g) {
     // draw the mark
     TrackerPanel trackerPanel = (TrackerPanel)panel;
+    boolean isWorldView = panel instanceof WorldTView;
     Graphics2D g = (Graphics2D)_g;
     getMark(trackerPanel).draw(g, false);
     Paint gpaint = g.getPaint();
     g.setPaint(footprint.getColor());
     Font gfont = g.getFont();
     g.setFont(TFrame.textLayoutFont);
-    // draw the text layout if not editing
-    if (!protractor.editing) {
+    // draw the text layout if not editing and not world view
+    if (!protractor.editing && !isWorldView) {
 	    TextLayout layout = textLayouts.get(trackerPanel);
-	    Point p = getLayoutPosition(trackerPanel, layout, vertex);
-	    layout.draw(g, p.x, p.y);
-      if (drawLayoutBounds) {
-		  	Rectangle rect = layoutBounds.get(trackerPanel);
-		  	g.drawRect(rect.x-2, rect.y-3, rect.width+5, rect.height+5);
-      }
+			Rectangle bounds = layoutBounds.get(trackerPanel);
+			g.setFont(TFrame.textLayoutFont);
+			layout.draw(g, bounds.x, bounds.y + bounds.height);
+			g.setFont(gfont);
+			if (drawLayoutBounds) {
+				g.drawRect(bounds.x - 2, bounds.y - 3, bounds.width + 6, bounds.height + 5);
+			}
     }
     // draw the vertex circle only if vertex not selected
   	if (trackerPanel.getSelectedPoint()==vertex)
   		vertexCircle = null;
-    if (vertexCircle!=null) {
+    if (vertexCircle!=null && !isWorldView) {
     	vertexCircle.draw(g);
-    }
-    if (arcHighlight!=null) {
-    	arcHighlight.draw(g);
     }
     
     // draw arm length layouts if visible
-    if (drawLayout1) {
+    if (drawLayout1 && !isWorldView) {
 	    TextLayout layout = textLayouts1.get(trackerPanel);
 	    Point p = getLayoutPosition(trackerPanel, layout, end1);
 	    layout.draw(g, p.x, p.y);
     }
-    if (drawLayout2) {
+    if (drawLayout2 && !isWorldView) {
 	    TextLayout layout = textLayouts2.get(trackerPanel);
 	    Point p = getLayoutPosition(trackerPanel, layout, end2);
 	    layout.draw(g, p.x, p.y);
@@ -291,48 +273,67 @@ public void draw(DrawingPanel panel, Graphics _g) {
   @Override
 protected Mark getMark(TrackerPanel trackerPanel) {
     Mark mark = marks.get(trackerPanel);
-    TPoint selection = null;
     if (mark == null) {
-      getProtractorAngle(); // updates angle display
-      selection = trackerPanel.getSelectedPoint();
+      getProtractorAngle(true); // updates angle display
+      ProtractorFootprint pFootprint = (ProtractorFootprint)footprint;
+      TPoint selection = trackerPanel.getSelectedPoint();
+      boolean isWorldView = trackerPanel instanceof WorldTView;
+      
       // get screen points
       Point p = null;
       for (int i = 0; i < points.length; i++) {
         screenPoints[i] = points[i].getScreenPosition(trackerPanel);
         if (selection==points[i]) p = screenPoints[i];
       }
-      // refresh arc highlight
-      if (selection==rotator) {
-	      	arcHighlight = ((ProtractorFootprint)footprint).getArcAdjustShape(
-	      			screenPoints[0], screenPoints[4]);
+			
+			// create mark to draw ruler
+			Mark rulerMark = protractor.ruler != null && protractor.ruler.isVisible()? 
+					protractor.ruler.getMark(trackerPanel, n): null;
+      
+      // create footprint mark
+			pFootprint.setArcVisible(!isWorldView);
+      Mark stepMark = pFootprint.getMark(screenPoints);
+      
+      // create arcCircle
+      MultiShape arcCircle = isWorldView? null:
+      	selection==rotator? pFootprint.getArcAdjustShape(screenPoints[0], screenPoints[4]):
+      	pFootprint.getArcAdjustShape(screenPoints[0], null);
+      
+      // create selectedShape if point is selected
+      if (!isWorldView) {
+	      if (p != null) {
+	        transform.setToTranslation(p.x, p.y);
+	        int scale = FontSizer.getIntegerFactor();
+	        if (scale>1) {
+	        	transform.scale(scale, scale);
+	        }
+	        selectedShape = transform.createTransformedShape(selectionShape);
+	      }
+	      else
+	      	selectedShape = null;
       }
-      // create mark
-      mark = footprint.getMark(screenPoints);
-      if (p != null) {
-        final Color color = footprint.getColor();
-        final Mark stepMark = mark;
-        transform.setToTranslation(p.x, p.y);
-        int scale = FontSizer.getIntegerFactor();
-        if (scale>1) {
-        	transform.scale(scale, scale);
-        }
-        selectedShape = transform.createTransformedShape(selectionShape);
-        mark = new Mark() {
-          @Override
-          public void draw(Graphics2D g, boolean highlighted) {
-            stepMark.draw(g, false);
-            if (selectedShape != null) {
-  						Paint gpaint = g.getPaint();
-  						Stroke gstroke = g.getStroke();
-  						g.setPaint(color);
-  						g.setStroke(selectionStroke);
-  						g.draw(selectedShape);
-  						g.setPaint(gpaint);
-  						g.setStroke(gstroke);
-            }
+      
+      mark = new Mark() {
+        @Override
+        public void draw(Graphics2D g, boolean highlighted) {
+          stepMark.draw(g, false);
+					Paint gpaint = g.getPaint();
+					Stroke gstroke = g.getStroke();
+					g.setPaint(footprint.getColor());
+					if (rulerMark != null) {
+						rulerMark.draw(g, false);
+					}
+					if (arcCircle != null && drawArcCircle) {
+						arcCircle.draw(g);
+					}
+          if (selectedShape != null && !isWorldView) {
+						g.setStroke(selectionStroke);
+						g.draw(selectedShape);
           }
-        };
-      }
+					g.setPaint(gpaint);
+					g.setStroke(gstroke);
+        }
+      };
       marks.put(trackerPanel, mark);
       
       // get new hit shapes
@@ -403,15 +404,16 @@ protected Mark getMark(TrackerPanel trackerPanel) {
   /**
    * Gets the protractor angle. 
    *
+   * @param refreshField true to refresh the protractor angleField
    * @return the angle in radians
    */
-  public double getProtractorAngle() {
+  public double getProtractorAngle(boolean refreshField) {
     line1Angle = -vertex.angle(end1);
     line2Angle = -vertex.angle(end2);
     double theta = line2Angle-line1Angle;
     if (theta > Math.PI) theta -= 2*Math.PI;
     if (theta < -Math.PI) theta += 2*Math.PI;
-    if (protractor.trackerPanel.getFrameNumber()==n) {
+    if (refreshField && protractor.trackerPanel.getFrameNumber()==n) {
     	protractor.angleField.setValue(theta);
     }
     return theta;
@@ -436,7 +438,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
   }
 
   /**
-   * Gets the world length of arm 1. 
+   * Gets the world length of the base or arm. 
    * 
    * @param end TPoint end1 or end2
    * @return the length in world units
@@ -540,36 +542,28 @@ public String toString() {
    */
   private Point getLayoutPosition(TrackerPanel trackerPanel,
                                   TextLayout layout, TPoint end) {
-    int scale = FontSizer.getIntegerFactor();
+    double scale = FontSizer.getFactor();
+    Rectangle2D bounds = layout.getBounds();
+    double w = bounds.getWidth();
+    double h = bounds.getHeight();
   	if (end==vertex) {
 	    Point p = vertex.getScreenPosition(trackerPanel);
-	    Rectangle2D bounds = layout.getBounds();
-	    double w = bounds.getWidth();
-	    double h = bounds.getHeight();
-	    double angle = (line1Angle+line2Angle)/2;
-	    if (Math.abs(line1Angle-line2Angle)>Math.PI)
-	    	angle += Math.PI;
-	    double sin = -Math.sin(angle);
-	    double cos = -Math.cos(angle);
-	    double d = scale*24;
-		  p.setLocation((int)(p.x + d*cos - w/2), (int)(p.y - d*sin + h/2));
+	    double angle = line1Angle - Math.PI / 2;
+	    double sin = Math.sin(angle);
+	    double cos = Math.cos(angle);
+			double halfhsin = h * sin / 2;
+			double halfwcos = w * cos / 2;
+			double d = Math.sqrt((halfhsin*halfhsin) + (halfwcos*halfwcos)) + 8; 
+			if (protractor.ruler != null && protractor.ruler.isVisible() && getProtractorAngle(false) < 0) 
+				p.setLocation((int)(p.x - d*cos - w/2), (int)(p.y + d*sin + h/2));
+			else
+				p.setLocation((int)(p.x + d*cos - w/2), (int)(p.y - d*sin + h/2));
 	    return p;
   	}
     middle.center(end, vertex);
     Point p = middle.getScreenPosition(trackerPanel);
-    Rectangle2D bounds = layout.getBounds();
-    double w = bounds.getWidth();
-    double h = bounds.getHeight();
     endPoint1.setLocation(end);
     endPoint2.setLocation(vertex);
-    // the following code is to determine the position on a world view
-    if (!trackerPanel.isDrawingInImageSpace()) {
-    	AffineTransform at = trackerPanel.getCoords().getToWorldTransform(n);
-    	at.transform(endPoint1, endPoint1);
-    	endPoint1.y = -endPoint1.y;
-    	at.transform(endPoint2, endPoint2);
-    	endPoint2.y = -endPoint2.y;
-    }
     double cos = endPoint2.cos(endPoint1);
     double sin = endPoint2.sin(endPoint1);
     double d = scale*6 + Math.abs(w*sin/2) + Math.abs(h*cos/2);
@@ -790,17 +784,17 @@ public String toString() {
       	protractor.keyFrames.add(n);
     	}      
       
-      // show arc highlight shape
-      ProtractorFootprint footprint = null;
-      if (protractor.getFootprint()!=null 
-      		&& protractor.getFootprint() instanceof ProtractorFootprint) {
-      	footprint = (ProtractorFootprint)protractor.getFootprint();
-      	TTrack track = getTrack();
-	  		Point p1 = vertex.getScreenPosition(track.trackerPanel);
-	  		Point p2 = this.getScreenPosition(track.trackerPanel);
-	  		arcHighlight = footprint.getArcAdjustShape(p1, p2);
-	  		repaint();
-      }
+//      // show arc highlight shape
+//      ProtractorFootprint footprint = null;
+//      if (protractor.getFootprint()!=null 
+//      		&& protractor.getFootprint() instanceof ProtractorFootprint) {
+//      	footprint = (ProtractorFootprint)protractor.getFootprint();
+//      	TTrack track = getTrack();
+//	  		Point p1 = vertex.getScreenPosition(track.trackerPanel);
+//	  		Point p2 = this.getScreenPosition(track.trackerPanel);
+//	  		arcHighlight = footprint.getArcAdjustShape(p1, p2);
+//      }
+      getTrack().getStep(n).repaint();
     }
 
     /**
