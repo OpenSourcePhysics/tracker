@@ -1040,7 +1040,8 @@ public class TableTrackView extends TrackView {
 			}
 		};
 		ActionMap am = dataTable.getActionMap();
-		am.put(im.get(k), newAction);
+		OSPRuntime.setOSPAction(im, k, "copy", am, newAction);
+//		am.put(im.get(k), newAction);
 		// override the pageUp and pageDown behaviors
 		k = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0);
 		newAction = new AbstractAction() {
@@ -1051,6 +1052,7 @@ public class TableTrackView extends TrackView {
 				trackerPanel.getPlayer().back();
 			}
 		};
+		OSPRuntime.setOSPAction(im,  k,  "scrollUpChangeSelection", am, newAction);
 		am.put(im.get(k), newAction);
 		k = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, KeyEvent.SHIFT_DOWN_MASK);
 		newAction = new AbstractAction() {
@@ -1062,7 +1064,8 @@ public class TableTrackView extends TrackView {
 				trackerPanel.getPlayer().setStepNumber(n);
 			}
 		};
-		am.put(im.get(k), newAction);
+		OSPRuntime.setOSPAction(im,  k,  "scrollUpExtendSelection", am, newAction);
+
 		k = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0);
 		newAction = new AbstractAction() {
 			@Override
@@ -1072,7 +1075,7 @@ public class TableTrackView extends TrackView {
 				trackerPanel.getPlayer().step();
 			}
 		};
-		am.put(im.get(k), newAction);
+		OSPRuntime.setOSPAction(im, k, "scrollDownChangeSelection", am, newAction);
 		k = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, KeyEvent.SHIFT_DOWN_MASK);
 		newAction = new AbstractAction() {
 			@Override
@@ -1083,7 +1086,7 @@ public class TableTrackView extends TrackView {
 				trackerPanel.getPlayer().setStepNumber(n);
 			}
 		};
-		am.put(im.get(k), newAction);
+		OSPRuntime.setOSPAction(im, k, "scrollDownExtendSelection", am, newAction);
 		k = KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0);
 		newAction = new AbstractAction() {
 			@Override
@@ -1093,7 +1096,8 @@ public class TableTrackView extends TrackView {
 				trackerPanel.getPlayer().setStepNumber(0);
 			}
 		};
-		am.put(im.get(k), newAction);
+		OSPRuntime.setOSPAction(im, k, "selectFirstColumn", am, newAction);
+
 		k = KeyStroke.getKeyStroke(KeyEvent.VK_END, 0);
 		newAction = new AbstractAction() {
 			@Override
@@ -1104,7 +1108,7 @@ public class TableTrackView extends TrackView {
 				trackerPanel.getPlayer().setStepNumber(clip.getStepCount() - 1);
 			}
 		};
-		am.put(im.get(k), newAction);
+		OSPRuntime.setOSPAction(im, k, "selectLastColumn", am, newAction);
 	}
 
 	public void dataToolAction() {

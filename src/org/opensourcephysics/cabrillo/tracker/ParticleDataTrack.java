@@ -560,14 +560,16 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					int tab = frame.getSelectedTab();
 					TrackerPanel panel = frame.getTrackerPanel(tab);
 					if (panel != null) {
-						if (getLeader().dataSource == null) { // data is pasted
-							TActions.getAction("paste", panel).actionPerformed(null); //$NON-NLS-1$
-						} else if (getLeader().dataSource instanceof String) { // data is from a file
-							panel.importData(getLeader().dataSource.toString(), null);
-						}
-						getLeader().prevDataString = getLeader().pendingDataString;
+						Runnable whenDone = () ->{getLeader().prevDataString = getLeader().pendingDataString;
 						getLeader().reloadButton.setEnabled(false);
 						TTrackBar.getTrackbar(panel).refresh();
+						};
+						if (getLeader().dataSource == null) { // data is pasted
+							TActions.getAction("paste", panel).actionPerformed(null); //$NON-NLS-1$
+							whenDone.run();
+						} else if (getLeader().dataSource instanceof String) { // data is from a file
+							panel.importDataAsync(getLeader().dataSource.toString(), null, whenDone);
+						}
 					}
 				}
 			});

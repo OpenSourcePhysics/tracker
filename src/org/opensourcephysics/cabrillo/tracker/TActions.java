@@ -144,7 +144,7 @@ public class TActions {
 				if (!TrackerIO.pasteXML(trackerPanel)) {
 					// pasting XML failed, so try to paste data
 					String dataString = DataTool.paste();
-					trackerPanel.importData(dataString, null); // returns DataTrack if successful
+					trackerPanel.importDataAsync(dataString, null, null); // returns DataTrack if successful
 				}
 			}
 		});
@@ -691,25 +691,20 @@ public class TActions {
 		// new DataTrack from text file item
 		actions.put("dataTrack",  //$NON-NLS-1$
 				new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// choose file and import data
-				TrackerIO.getChooserFilesAsync("open data", //$NON-NLS-1$
-		new Function<File[], Void>() { //$NON-NLS-1$
-
 					@Override
-					public Void apply(File[] files) {
-						if (files == null) {
-							return null;
-						}
-						String filePath = files[0].getAbsolutePath();
-						trackerPanel.importData(filePath, null);
-						return null;
+					public void actionPerformed(ActionEvent e) {
+						// choose file and import data
+						TrackerIO.getChooserFilesAsync("open data", //$NON-NLS-1$
+								(files) -> {
+										if (files == null) {
+											return null;
+										}
+										String filePath = files[0].getAbsolutePath();
+										trackerPanel.importDataAsync(filePath, null, null);
+										return null;
+								});
 					}
-
-				});
-			}
-		}); 
+				}); 
 		
 		// new (read-only) tape measure
 		actions.put("tape",  //$NON-NLS-1$

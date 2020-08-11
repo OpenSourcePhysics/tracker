@@ -49,7 +49,6 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -165,9 +164,7 @@ public class TrackerIO extends VideoIO {
 	static {
 		if (!OSPRuntime.isJS) /** @j2sNative */
 		{
-			ffmpegListener = new PropertyChangeListener() {
-				@Override
-				public void propertyChange(PropertyChangeEvent e) {
+			ffmpegListener = (e) -> {
 					if (e.getPropertyName().equals("ffmpeg_error")) { //$NON-NLS-1$
 						if (!isffmpegError) { // first error thrown
 							isffmpegError = true;
@@ -215,12 +212,9 @@ public class TrackerIO extends VideoIO {
 							JButton dontShowAgainButton = new JButton(
 									TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
 							dontShowAgainButton.setForeground(new Color(0, 0, 102));
-							dontShowAgainButton.addActionListener(new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									Tracker.warnXuggleError = false;
-									dialog.setVisible(false);
-								}
+							dontShowAgainButton.addActionListener((ee) -> {
+								Tracker.warnXuggleError = false;
+								dialog.setVisible(false);
 							});
 							JPanel buttonbar = new JPanel();
 							buttonbar.add(dontShowAgainButton);
@@ -238,7 +232,6 @@ public class TrackerIO extends VideoIO {
 							dialog.setVisible(true);
 						}
 					}
-				}
 			};
 			OSPLog.getOSPLog().addPropertyChangeListener(ffmpegListener);
 		}

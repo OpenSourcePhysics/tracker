@@ -35,7 +35,6 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -188,6 +187,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	
 	public static Icon getResourceIcon(String img, boolean resizable) {
 		URL url = Tracker.getClassResource("resources/images/" + img);
+		if (url == null)  {
+			OSPLog.debug("Tracker.getResourceIcon was null for " + img);
+		}
 		return (resizable ? new ResizableIcon(url) : new ImageIcon(url));
 	}
 
@@ -389,21 +391,14 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		{
 			// load current version after a delay to allow video engines to load
 			// and every 24 hours thereafter (if program is left running)
-			Timer timer = new Timer(86400000, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					Runnable runner = new Runnable() {
-						@Override
-						public void run() {
-							checkedForNewerVersion = false;
-							loadCurrentVersion(false, true);
-						}
-					};
-					Thread opener = new Thread(runner);
-					opener.setPriority(Thread.NORM_PRIORITY);
-					opener.setDaemon(true);
-					opener.start();
-				}
+			Timer timer = new Timer(86400000, (e) -> {
+				Thread opener = new Thread(() -> {
+					checkedForNewerVersion = false;
+					loadCurrentVersion(false, true);
+				});
+				opener.setPriority(Thread.NORM_PRIORITY);
+				opener.setDaemon(true);
+				opener.start();
 			});
 			timer.setInitialDelay(10000);
 			timer.setRepeats(true);
@@ -539,26 +534,19 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 		// create pdf help button
 		pdfHelpButton = new JButton(TrackerRes.getString("Tracker.Button.PDFHelp")); //$NON-NLS-1$
-		pdfHelpButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					java.net.URL url = new java.net.URL("https://" + trackerWebsite + pdfHelpPath); //$NON-NLS-1$
-					org.opensourcephysics.desktop.OSPDesktop.displayURL(url.toString());
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
+		pdfHelpButton.addActionListener((e) -> {
+			try {
+				java.net.URL url = new java.net.URL("https://" + trackerWebsite + pdfHelpPath); //$NON-NLS-1$
+				org.opensourcephysics.desktop.OSPDesktop.displayURL(url.toString());
+			} catch (Exception ex) {
+				ex.printStackTrace();
 			}
 		});
 
 		// find Java VMs in background thread so they are ready when needed
-		Runnable runner = new Runnable() {
-			@Override
-			public void run() {
-				JREFinder.getFinder().getJREs(32);
-			}
-		};
-		new Thread(runner).start();
+		new Thread(() -> {
+			JREFinder.getFinder().getJREs(32);
+		}).start();
 	}
 
 	/**
@@ -621,13 +609,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	public Tracker(Video video) {
 		createFrame();
 		// add a tracker panel with the video
-		frame.addTab(new TrackerPanel(video), new Runnable() {
-
-			@Override
-			public void run() {
-				// just to allow this to be asynchronous
-			}
-		});
+		frame.addTab(new TrackerPanel(video), () ->{});
 	}
 
 	/**
@@ -677,10 +659,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		} else if (addTabIfEmpty) {
 			// add an empty tab if requested
 			TrackerPanel trackerPanel = frame.getCleanTrackerPanel();
-			frame.addTab(trackerPanel, new Runnable() {
-
-				@Override
-				public void run() {
+			frame.addTab(trackerPanel, () -> {
 //					JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
 //					pane.setDividerLocation(frame.defaultRightDivider);
 					if (showHints) {
@@ -688,8 +667,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 						trackerPanel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
 					}
 					setProgress(100);
-				}
-
 			});
 		}
 	}
@@ -801,15 +778,11 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				final int op = frame.getDefaultCloseOperation();
 				final boolean exit = frame.wishesToExit();
 				frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-				Runnable runner = new Runnable() {
-					@Override
-					public void run() {
-						if (exit)
-							frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-						frame.setDefaultCloseOperation(op);
-					}
-				};
-				EventQueue.invokeLater(runner);
+				EventQueue.invokeLater(() -> {
+					if (exit)
+						frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+					frame.setDefaultCloseOperation(op);
+				});
 				return;
 			}
 		}
@@ -828,10 +801,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					return null;
 				}
 
-			}, null, new Runnable() {
+			}, null, () -> {
 				// if canceled
-				@Override
-				public void run() {
 					// exiting is canceled so temporarily change close operation
 					// to DO_NOTHING before the frame finishes closing
 					int op = frame.getDefaultCloseOperation();
@@ -857,7 +828,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 						}
 
 					}.execute();
-				}
 				// frame will always close now
 			});
 		}
@@ -2063,8 +2033,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		if (args == null || args.length == 0)
 			tracker = new Tracker();
 		else
-		  tracker = new Tracker(args, true, true, null);
-		OSPRuntime.setAppClass(tracker); 
+			tracker = new Tracker(args, true, true, null);
+		OSPRuntime.setAppClass(tracker);
 		if (OSPRuntime.isMac()) {
 			// instantiate the OSXServices class by reflection
 			System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Tracker"); //$NON-NLS-1$ //$NON-NLS-2$
@@ -2101,6 +2071,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		}
 
 //    warnNoVideoEngine = false; // for PLATO
+
 		if (warnNoVideoEngine && !MovieFactory.hasVideoEngine()) {
 			// warn user that there is no working video engine
 			boolean xuggleInstalled = !isJS && MovieFactory.hasVideoEngine();
@@ -2148,11 +2119,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			// add "don't show again" checkbox
 			box.add(new JLabel("  ")); //$NON-NLS-1$
 			final JCheckBox checkbox = new JCheckBox(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox")); //$NON-NLS-1$
-			checkbox.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					warnNoVideoEngine = !checkbox.isSelected();
-				}
+			checkbox.addActionListener((e) -> {
+				warnNoVideoEngine = !checkbox.isSelected();
 			});
 			box.add(checkbox);
 			box.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
@@ -2166,15 +2134,10 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 						JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE, null, options, options[0]);
 				if (response == 0) {
 					// use prefs dialog to switch to 32-bit VM/default engine and relaunch
-					Runnable launcher = new Runnable() {
-						@Override
-						public void run() {
-							PrefsDialog prefs = frame.getPrefsDialog();
-							prefs.relaunch32Bit();
-						}
-					};
-					SwingUtilities.invokeLater(launcher);
-
+					SwingUtilities.invokeLater(() -> {
+						PrefsDialog prefs = frame.getPrefsDialog();
+						prefs.relaunch32Bit();
+					});
 				}
 			} else {
 				JOptionPane.showMessageDialog(frame, box, TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Title"), //$NON-NLS-1$
@@ -2203,44 +2166,37 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 			final String newVersionURL = System.getenv(TrackerStarter.TRACKER_NEW_VERSION);
 			if (newVersionURL != null) {
-				Timer timer = new Timer(2000, new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						if (OSPRuntime.isWindows()) {
-							File target = new File(trackerHome, "tracker.jar"); //$NON-NLS-1$
-							ResourceLoader.download(newVersionURL, target, true);
+				Timer timer = new Timer(2000, (e) -> {
+					if (OSPRuntime.isWindows()) {
+						File target = new File(trackerHome, "tracker.jar"); //$NON-NLS-1$
+						ResourceLoader.download(newVersionURL, target, true);
+					}
+					// check preferences: if not default tracker.jar, ask user to change to default
+					if (preferredTrackerJar != null && !"tracker.jar".equals(preferredTrackerJar)) { //$NON-NLS-1$
+						String prefVers = preferredTrackerJar.substring(8, preferredTrackerJar.lastIndexOf(".")); //$NON-NLS-1$
+						String s1 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message1") //$NON-NLS-1$
+								+ " " //$NON-NLS-1$
+								+ VERSION;
+						String s2 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message2") //$NON-NLS-1$
+								+ " " //$NON-NLS-1$
+								+ prefVers;
+						String s3 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message3"); //$NON-NLS-1$
+						String title = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Title"); //$NON-NLS-1$
+						int response = JOptionPane.showConfirmDialog(null, s1 + XML.NEW_LINE + s2 + XML.NEW_LINE + s3,
+								title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+						if (response == JOptionPane.YES_OPTION) {
+							preferredTrackerJar = null;
 						}
-						// check preferences: if not default tracker.jar, ask user to change to default
-						if (preferredTrackerJar != null && !"tracker.jar".equals(preferredTrackerJar)) { //$NON-NLS-1$
-							String prefVers = preferredTrackerJar.substring(8, preferredTrackerJar.lastIndexOf(".")); //$NON-NLS-1$
-							String s1 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message1") //$NON-NLS-1$
-									+ " " //$NON-NLS-1$
-									+ VERSION;
-							String s2 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message2") //$NON-NLS-1$
-									+ " " //$NON-NLS-1$
-									+ prefVers;
-							String s3 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message3"); //$NON-NLS-1$
-							String title = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Title"); //$NON-NLS-1$
-							int response = JOptionPane.showConfirmDialog(null,
-									s1 + XML.NEW_LINE + s2 + XML.NEW_LINE + s3, title, JOptionPane.YES_NO_OPTION,
-									JOptionPane.QUESTION_MESSAGE);
-							if (response == JOptionPane.YES_OPTION) {
-								preferredTrackerJar = null;
-							}
 //  					preferredJRE = null;  // reset preferredJRE to the bundled JRE // no longer needed?
-							savePreferences();
-						}
+						savePreferences();
 					}
 				});
 				timer.setRepeats(false);
 				timer.start();
 			}
 
-			Timer memoryTimer = new Timer(5000, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
+			Timer memoryTimer = new Timer(5000, (e) -> {
 					TTrackBar.refreshMemoryButton();
-				}
 			});
 			memoryTimer.setRepeats(true);
 			memoryTimer.start();
@@ -2708,34 +2664,30 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		ArrayList<String> searchPaths = OSPRuntime.getDefaultSearchPaths();
 		final String directory = searchPaths.size() > 0 ? searchPaths.get(0) : null;
 		if (directory != null) {
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					int response = JOptionPane.showConfirmDialog(null,
-							TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message1") //$NON-NLS-1$
-									+ "\n" //$NON-NLS-1$
-									+ TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message2") //$NON-NLS-1$
-									+ "\n\n" //$NON-NLS-1$
-									+ TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message3"), //$NON-NLS-1$
-							TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Title"), //$NON-NLS-1$
-							JOptionPane.YES_NO_OPTION);
-					if (response == JOptionPane.YES_OPTION) {
-						TrackDataBuilder builder = new TrackDataBuilder(new TrackerPanel());
-						int i = 0;
-						for (String next : dataFunctionControlStrings) {
-							XMLControl panelControl = new XMLControlElement(next);
-							DataFunctionPanel panel = new DataFunctionPanel(new DatasetManager());
-							panelControl.loadObject(panel);
-							builder.addPanelWithoutAutoloading("panel" + i, panel); //$NON-NLS-1$
-							i++;
-						}
-						File file = new File(directory, "TrackerConvertedAutoloadFunctions.xml"); //$NON-NLS-1$
-						XMLControl control = new XMLControlElement(builder);
-						control.write(file.getAbsolutePath());
-						dataFunctionControlStrings.clear();
-						reload.run();
+			SwingUtilities.invokeLater(() -> {
+				int response = JOptionPane.showConfirmDialog(null,
+						TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message1") //$NON-NLS-1$
+								+ "\n" //$NON-NLS-1$
+								+ TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message2") //$NON-NLS-1$
+								+ "\n\n" //$NON-NLS-1$
+								+ TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Message3"), //$NON-NLS-1$
+						TrackerRes.getString("TrackDataBuilder.Dialog.ConvertAutoload.Title"), //$NON-NLS-1$
+						JOptionPane.YES_NO_OPTION);
+				if (response == JOptionPane.YES_OPTION) {
+					TrackDataBuilder builder = new TrackDataBuilder(new TrackerPanel());
+					int i = 0;
+					for (String next : dataFunctionControlStrings) {
+						XMLControl panelControl = new XMLControlElement(next);
+						DataFunctionPanel panel = new DataFunctionPanel(new DatasetManager());
+						panelControl.loadObject(panel);
+						builder.addPanelWithoutAutoloading("panel" + i, panel); //$NON-NLS-1$
+						i++;
 					}
-
+					File file = new File(directory, "TrackerConvertedAutoloadFunctions.xml"); //$NON-NLS-1$
+					XMLControl control = new XMLControlElement(builder);
+					control.write(file.getAbsolutePath());
+					dataFunctionControlStrings.clear();
+					reload.run();
 				}
 			});
 		}

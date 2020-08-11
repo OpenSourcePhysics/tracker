@@ -1758,24 +1758,39 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
+	 * See importDataAsync
+	 * 
+	 * @param dataString
+	 * @param source
+	 */
+	@Deprecated
+	protected void importData(String dataString, Object source) {
+		importDataAsync(dataString, source, null);
+	}
+	
+	/**
 	 * Imports Data from a data string (delimited fields) into a DataTrack. The data
 	 * string must be parsable by DataTool. If the string is a path, an attempt is
 	 * made to get the data string with ResourceLoader.
+	 * 
+	 * Optionally asynchronous
 	 * 
 	 * Source object (model) may be String path, JPanel controlPanel, Tool tool, etc
 	 * 
 	 * @param dataString delimited fields parsable by DataTool, or a path to a
 	 *                   Resource
 	 * @param source     the data source (may be null)
+	 * @param whenDone  Runnable to run when complete
 	 * @return the DataTrack with the Data (may return null)
 	 */
-	protected DataTrack importData(String dataString, Object source) {
+	public void importDataAsync(String dataString, Object source, Runnable whenDone) {
+		
 		if (dataString == null) {
 			// inform user
 			JOptionPane.showMessageDialog(frame, TrackerRes.getString("TrackerPanel.Dialog.NoData.Message"), //$NON-NLS-1$
 					TrackerRes.getString("TrackerPanel.Dialog.NoData.Title"), //$NON-NLS-1$
 					JOptionPane.WARNING_MESSAGE);
-			return null;
+			return;
 		}
 		// if dataString is parsable data, parse and import it
 		DatasetManager data = DataTool.parseData(dataString, null);
@@ -1785,13 +1800,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				ParticleDataTrack pdt = (ParticleDataTrack) dt;
 				pdt.prevDataString = dataString;
 			}
-			return dt;
+			return;
 		}
 
 		// assume dataString is a resource path, read the resource and call this again
 		// with path as source
 		String path = dataString;
-		return importData(ResourceLoader.getString(path), path);
+		importDataAsync(ResourceLoader.getString(path), path, whenDone);
 	}
 
 	/**
@@ -4370,5 +4385,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		tainted = false;
 		dirty = null;
 	}
+
 
 }
