@@ -282,9 +282,9 @@ public class AngleRuler extends Ruler {
 	}
 	
 	private boolean isLabelFlipped(double angle) {
-		angle = angle < -Math.PI? angle + 2 * Math.PI: angle;
+		angle = angle < -Math.PI? angle + 2 * Math.PI: angle > Math.PI? angle - 2 * Math.PI: angle;
 		double offset = 0.1; // about 6 degrees
-		return !(angle > -offset && angle < Math.PI + offset);
+		return (angle < -offset && angle > -Math.PI + offset);
 	}
 	
 }
