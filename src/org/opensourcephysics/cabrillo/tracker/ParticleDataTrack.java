@@ -59,10 +59,10 @@ import org.opensourcephysics.display.Data;
 import org.opensourcephysics.display.DataClip;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.ImageCoordSystem;
-import org.opensourcephysics.media.core.Trackable;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoPlayer;
@@ -79,6 +79,9 @@ import org.opensourcephysics.tools.ResourceLoader;
  * @author Douglas Brown
  */
 public class ParticleDataTrack extends ParticleModel implements DataTrack {
+
+	private static final int DATA_CHECK_ONLY = 0;
+	private static final int DATA_COPY = 1;
 
 	/**
 	 * no listeners?
@@ -560,9 +563,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					int tab = frame.getSelectedTab();
 					TrackerPanel panel = frame.getTrackerPanel(tab);
 					if (panel != null) {
-						Runnable whenDone = () ->{getLeader().prevDataString = getLeader().pendingDataString;
-						getLeader().reloadButton.setEnabled(false);
-						TTrackBar.getTrackbar(panel).refresh();
+						Runnable whenDone = () -> {
+							getLeader().prevDataString = getLeader().pendingDataString;
+							getLeader().reloadButton.setEnabled(false);
+							TTrackBar.getTrackbar(panel).refresh();
 						};
 						if (getLeader().dataSource == null) { // data is pasted
 							TActions.getAction("paste", panel).actionPerformed(null); //$NON-NLS-1$
@@ -573,69 +577,74 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					}
 				}
 			});
-			frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, getLeader()); //$NON-NLS-1$
+			frame.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_WINDOWFOCUS, getLeader()); // $NON-NLS-1$
 		}
-		if (autoPasteCheckbox == null) {
+		if (autoPasteCheckbox == null && OSPRuntime.allowAutopaste) {
 			// also create autoPasteCheckbox
 			autoPasteCheckbox = new JCheckBox();
 			autoPasteCheckbox.setOpaque(false);
 			autoPasteCheckbox.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 0));
 			autoPasteCheckbox.addActionListener(new ActionListener() {
 
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		setAutoPasteEnabled(autoPasteCheckbox.isSelected());
-		if (ParticleDataTrack.this.trackerPanel == null)
-			return;
-		TFrame frame = ParticleDataTrack.this.trackerPanel.getTFrame();
-		if (frame == null)
-			return;
-		if (isAutoPasteEnabled()) {
-			ClipboardListener clipboardListener = frame.getClipboardListener();
-			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-			Transferable data = clipboard.getContents(null);
-			if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-				try {
-					String s = (String) data.getTransferData(DataFlavor.stringFlavor);
-					if (ParticleDataTrack.getImportableDataName(s) != null) {
-						clipboardListener.processContents(data);
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					setAutoPasteEnabled(autoPasteCheckbox.isSelected());
+					if (ParticleDataTrack.this.trackerPanel == null)
+						return;
+					TFrame frame = ParticleDataTrack.this.trackerPanel.getTFrame();
+					if (frame == null)
+						return;
+					if (isAutoPasteEnabled()) {
+						ClipboardListener clipboardListener = frame.getClipboardListener();
+						Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+						Transferable data = clipboard.getContents(null);
+						if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+							try {
+								String s = (String) data.getTransferData(DataFlavor.stringFlavor);
+								if (ParticleDataTrack.getImportableDataName(s) != null) {
+									clipboardListener.processContents(data);
 //		        	    Action paste = TActions.getAction("paste", ParticleDataTrack.this.trackerPanel); //$NON-NLS-1$
 //		        			paste.actionPerformed(null);
-					}
-				} catch (Exception ex) {
-				}
-			}
-			getLeader().prevDataString = getLeader().pendingDataString;
-			getLeader().reloadButton.setEnabled(false);
-			TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel).refresh();
+								}
+							} catch (Exception ex) {
+							}
+						}
+						getLeader().prevDataString = getLeader().pendingDataString;
+						getLeader().reloadButton.setEnabled(false);
+						TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel).refresh();
 
-		}
+					}
 
 //		    	else if (frame.clipboardListener!=null && !frame.clipboardListener.hasAutoPasteTargets()) {
 //		    		frame.clipboardListener.end();
 //		    		frame.clipboardListener = null;
 //		    	}
-		if (ParticleDataTrack.this.trackerPanel.getSelectedTrack() == ParticleDataTrack.this) {
-			TTrackBar trackbar = TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel);
-			trackbar.refresh();
+					if (ParticleDataTrack.this.trackerPanel.getSelectedTrack() == ParticleDataTrack.this) {
+						TTrackBar trackbar = TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel);
+						trackbar.refresh();
+					}
+				}
+			});
 		}
-	}});}getLeader().reloadButton.setText(getLeader().dataSource==null?TrackerRes.getString("ParticleDataTrack.Button.Paste.Text"): //$NON-NLS-1$
-	TrackerRes.getString("ParticleDataTrack.Button.Reload.Text")); //$NON-NLS-1$
+		getLeader().reloadButton
+				.setText(getLeader().dataSource == null ? TrackerRes.getString("ParticleDataTrack.Button.Paste.Text") : //$NON-NLS-1$
+						TrackerRes.getString("ParticleDataTrack.Button.Reload.Text")); //$NON-NLS-1$
 
-	ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);if(trackerPanel.getSelectedPoint()==null)
-	{
-		list.remove(massLabel);
-		list.remove(massField);
-		if (getSource() == null) { // data was pasted
-			autoPasteCheckbox.setText(TrackerRes.getString("TMenuBar.MenuItem.AutoPasteData.Text")); //$NON-NLS-1$
-			autoPasteCheckbox.setSelected(isAutoPasteEnabled());
-			list.add(autoPasteCheckbox);
-			list.add(mSeparator);
+		ArrayList<Component> list = super.getToolbarTrackComponents(trackerPanel);
+		if (trackerPanel.getSelectedPoint() == null) {
+			list.remove(massLabel);
+			list.remove(massField);
+			if (getSource() == null && OSPRuntime.allowAutopaste) { // data was pasted
+				autoPasteCheckbox.setText(TrackerRes.getString("TMenuBar.MenuItem.AutoPasteData.Text")); //$NON-NLS-1$
+				autoPasteCheckbox.setSelected(isAutoPasteEnabled());
+				list.add(autoPasteCheckbox);
+				list.add(mSeparator);
+			}
+			if (getLeader().reloadButton.isEnabled()) {
+				list.add(getLeader().reloadButton);
+			}
 		}
-		if (getLeader().reloadButton.isEnabled()) {
-			list.add(getLeader().reloadButton);
-		}
-	}return list;
+		return list;
 	}
 
 	/**
@@ -865,34 +874,33 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 */
 	public void setData(Data data) throws Exception {
 		OSPLog.finer("Setting new data"); //$NON-NLS-1$
-
 		// the following line throws an exception if (x, y) data is not found
-		ArrayList<Object[]> pointData = getPointData(data);
+		ArrayList<Object[]> pointData = getPointData(data, DATA_COPY);
 		sourceData = data;
 
 		// save current time array for comparison
 		double[] tPrev = tData;
 		// set core {x,y,t} data for the leader (this)
-		Object[] coreData = pointData.get(0);
-		setPointName(coreData[0].toString());
-		double[][] xyArray = (double[][]) coreData[1];
+		Object[] xyData = pointData.get(0);
+		setPointName((String) xyData[0]);
+		double[] xData = (double[]) xyData[1];
+		double[] yData = (double[]) xyData[1];
 		double[] timeArray = getTimeData(data);
-		if (timeArray != null && xyArray[0].length != timeArray.length) {
+		if (timeArray != null && xData.length != timeArray.length) {
 			throw new Exception("Time data has incorrect array length"); //$NON-NLS-1$
 		}
 
-		double[][] coreArray = new double[][] { xyArray[0], xyArray[1], timeArray };
-		setCoreData(coreArray, true);
+		setCoreData(new double[][] { xData, yData, timeArray }, true);
 
 		// set {x,y} for additional points
 		for (int i = 1; i < pointData.size(); i++) {
 			// get the new data
-			Object[] next = pointData.get(i);
-			coreArray = (double[][]) next[1];
-
+			xyData = pointData.get(i);
+			xData = (double[]) xyData[1];
+			yData = (double[]) xyData[2];
 			// if needed, create new track
 			if (i > morePoints.size()) {
-				ParticleDataTrack target = new ParticleDataTrack(next, this);
+				ParticleDataTrack target = new ParticleDataTrack(xyData, this);
 				target.setTrackerPanel(trackerPanel);
 				if (trackerPanel != null) {
 					trackerPanel.addTrack(target);
@@ -900,9 +908,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			} else {
 				ParticleDataTrack target = morePoints.get(i - 1);
 				// set target's data
-				target.setCoreData(coreArray, true);
+				target.setCoreData(new double[][] { xData, yData }, true);
 				// set target's pointName
-				target.setPointName(next[0].toString());
+				target.setPointName((String) xyData[0]);
 			}
 		}
 		// delete surplus points, last one first
@@ -1209,7 +1217,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		case DataClip.PROPERTY_DATACLIP_CLIPADJUSTING:
 			refreshInitialTime();
 			adjustVideoClip();
-			firePropertyChange(PROPERTY_PARTICLEDATATRACK_DATACLIP, null, null); //$NON-NLS-1$
+			firePropertyChange(PROPERTY_PARTICLEDATATRACK_DATACLIP, null, null); // $NON-NLS-1$
 			setLastValidFrame(-1);
 			repaint();
 			return;
@@ -1359,15 +1367,15 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @throws Exception if (x, y) data not found
 	 */
 	public void appendData(Data data) throws Exception {
-		// following line throws exception if (x, y) not found
-		ArrayList<Object[]> pointData = getPointData(data);
-
 		sourceData = data;
-		Object[] coreData = pointData.get(0);
-		double[][] xyArray = (double[][]) coreData[1];
+		// following line throws exception if (x, y) not found
+		ArrayList<Object[]> pointData = getPointData(data, DATA_COPY);
+		Object[] xyData = pointData.get(0);
+		double[] x = (double[]) xyData[1];
+		double[] y = (double[]) xyData[2];
 		double[][] oldData = getDataArray();
 		int n = oldData[0].length;
-		if (xyArray[0].length <= n) {
+		if (x.length <= n) {
 			// inform user that no new data was found
 			TFrame frame = trackerPanel != null ? trackerPanel.getTFrame() : null;
 			JOptionPane.showMessageDialog(frame, TrackerRes.getString("ParticleDataTrack.Dialog.NoNewData.Message"), //$NON-NLS-1$
@@ -1376,23 +1384,19 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			return;
 		}
 		double[] timeArray = getTimeData(data); // may be null
-		double[][] newData = new double[][] { xyArray[0], xyArray[1], timeArray };
-		for (int i = 0; i < newData.length; i++) {
+		double[][] newData = new double[][] { x, y, timeArray };
+		for (int i = 0; i < 3; i++) {
 			if (newData[i] != null && oldData[i] != null) {
 				System.arraycopy(oldData[i], 0, newData[i], 0, n);
 			}
 		}
 		setCoreData(newData, false);
-
 		// append values to other points
 		int len = Math.min(pointData.size() - 1, morePoints.size());
 		for (int i = 0; i < len; i++) {
-			ParticleDataTrack target = morePoints.get(i);
-			// get the new data
-			Object[] next = pointData.get(i + 1);
-			xyArray = (double[][]) next[1];
 			// set target's data
-			target.setCoreData(xyArray, true);
+			xyData = pointData.get(i + 1);
+			morePoints.get(i).setCoreData(new double[][] { (double[]) xyData[1], (double[]) xyData[2] }, true);
 		}
 
 	}
@@ -1443,13 +1447,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (manager == null)
 			return null;
 		try {
-			getPointData(manager); // throws exception if no (x, y) data defined
-			String name = manager.getName();
-			if (name.trim().equals("")) { //$NON-NLS-1$
-				name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
+			if (getPointData(manager, DATA_CHECK_ONLY) != null) {
+				String name = manager.getName();
+				if (name.trim().equals("")) { //$NON-NLS-1$
+					name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
+				}
+				name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
+				return name;
 			}
-			name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
-			return name;
 		} catch (Exception e) {
 //			return null;
 		}
@@ -1569,156 +1574,156 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * Gets named (x, y) point data from a Data object.
 	 * 
 	 * @param data the Data object
+	 * @param mode DATA_COPY, DATA_CHECKONLY,
 	 * @return list of Object[] {String name, double[2][] xyData}
 	 * @throws Exception if (x, y) data not defined, empty or inconsistent
 	 */
-	private static ArrayList<Object[]> getPointData(Data data) throws Exception {
-		if (data == null)
-			throw new Exception("Data is null"); //$NON-NLS-1$
-		ArrayList<Dataset> datasets = data.getDatasets();
-		if (datasets == null)
-			throw new Exception("Data contains no datasets"); //$NON-NLS-1$
-
+	private static ArrayList<Object[]> getPointData(Data data, int mode) throws Exception {
 		ArrayList<Object[]> results = new ArrayList<Object[]>();
+		if (data == null) {
+			if (mode == DATA_CHECK_ONLY)
+				return null;
+			throw new Exception("Data is null"); //$NON-NLS-1$
+		}
+		ArrayList<Dataset> datasets = data.getDatasets();
+		if (datasets == null) {
+			if (mode == DATA_CHECK_ONLY)
+				return null;
+			throw new Exception("Data contains no datasets"); //$NON-NLS-1$
+		}
 //		boolean foundX = false, foundY = false;
 		String colName = null;
-		Dataset prevDataset = null;
+		Dataset prevDataset = null, xset = null, yset = null;
+		char x = 'x', y = 'y';
 		for (Dataset dataset : datasets) {
 			// look for columns with paired xy names
-			double[][] xy = new double[2][];
-			if (xy[0] == null && dataset.getXColumnName().toLowerCase().startsWith("x")) { //$NON-NLS-1$
-				colName = dataset.getXColumnName().substring(1).trim();
-				xy[0] = dataset.getXPoints();
-			} else if (xy[0] == null && dataset.getYColumnName().toLowerCase().startsWith("x")) { //$NON-NLS-1$
-				colName = dataset.getYColumnName().substring(1).trim();
-				xy[0] = dataset.getYPoints();
-			} else if (xy[0] == null && dataset.getXColumnName().toLowerCase().endsWith("x")) { //$NON-NLS-1$
-				colName = dataset.getXColumnName().substring(0, dataset.getXColumnName().length() - 1).trim();
-				xy[0] = dataset.getXPoints();
-			} else if (xy[0] == null && dataset.getYColumnName().toLowerCase().endsWith("x")) { //$NON-NLS-1$
-				colName = dataset.getYColumnName().substring(0, dataset.getYColumnName().length() - 1).trim();
-				xy[0] = dataset.getYPoints();
+			String xname = dataset.getXColumnName();
+			String yname = dataset.getYColumnName();
+			String xlc, ylc;
+			if (xset == null) {
+				if ((xlc = xname.toLowerCase()).startsWith("x")) { //$NON-NLS-1$
+					colName = xname.substring(1).trim();
+					xset = dataset;
+				} else if ((ylc = yname.toLowerCase()).startsWith("x")) { //$NON-NLS-1$
+					x = 'y';
+					colName = yname.substring(1).trim();
+					xset = dataset;
+				} else if (xlc.endsWith("x")) { //$NON-NLS-1$
+					colName = xname.substring(0, xname.length() - 1).trim();
+					xset = dataset;
+				} else if (ylc.endsWith("x")) { //$NON-NLS-1$
+					x = 'y';
+					colName = yname.substring(0, yname.length() - 1).trim();
+					xset = dataset;
+				}
 			}
-			if (xy[1] == null && dataset.getXColumnName().toLowerCase().startsWith("y")) { //$NON-NLS-1$
-				if (colName == null) {
-					xy[1] = dataset.getXPoints();
-					colName = dataset.getXColumnName().substring(1).trim();
-				} else if (dataset.getXColumnName().substring(1).trim().equals(colName)) {
-					// match
-					xy[1] = dataset.getXPoints();
+			if (yset == null) {
+				if ((xlc = xname.toLowerCase()).startsWith("y")) { //$NON-NLS-1$
+					if (colName == null) {
+						y = 'x';
+						colName = xname.substring(1).trim();
+					} else if (xname.substring(1).trim().equals(colName)) {
+						y = 'x';
+					} else {
+						colName = null;
+					}
+				} else if ((ylc = yname.toLowerCase()).startsWith("y")) { //$NON-NLS-1$
+					if (colName == null) {
+						colName = yname.substring(1).trim();
+					} else if (!yname.substring(1).trim().equals(colName)) {
+						colName = null;
+					}
+				} else if (xlc.endsWith("y")) { //$NON-NLS-1$
+					if (colName == null) {
+						y = 'x';
+						colName = xname.substring(0, xname.length() - 1).trim();
+					} else if (xname.substring(0, xname.length() - 1).trim().equals(colName)) {
+						y = 'x';
+					} else {
+						colName = null;
+					}
+				} else if (ylc.endsWith("y")) { //$NON-NLS-1$
+					if (colName == null) {
+						colName = yname.substring(0, yname.length() - 1).trim();
+					} else if (!yname.substring(0, yname.length() - 1).trim().equals(colName)) {
+						colName = null;
+					}
 				}
-			} else if (xy[1] == null && dataset.getYColumnName().toLowerCase().startsWith("y")) { //$NON-NLS-1$
-				if (colName == null) {
-					colName = dataset.getYColumnName().substring(1).trim();
-					xy[1] = dataset.getYPoints();
-				} else if (dataset.getYColumnName().substring(1).trim().equals(colName)) {
-					// match
-					xy[1] = dataset.getYPoints();
-				}
-			} else if (xy[1] == null && dataset.getXColumnName().toLowerCase().endsWith("y")) { //$NON-NLS-1$
-				if (colName == null) {
-					xy[1] = dataset.getXPoints();
-					colName = dataset.getXColumnName().substring(0, dataset.getXColumnName().length() - 1).trim();
-				} else if (dataset.getXColumnName().substring(0, dataset.getXColumnName().length() - 1).trim()
-						.equals(colName)) {
-					// match
-					xy[1] = dataset.getXPoints();
-				}
-			} else if (xy[1] == null && dataset.getYColumnName().toLowerCase().endsWith("y")) { //$NON-NLS-1$
-				if (colName == null) {
-					colName = dataset.getYColumnName().substring(0, dataset.getYColumnName().length() - 1).trim();
-					xy[1] = dataset.getYPoints();
-				} else if (dataset.getYColumnName().substring(0, dataset.getYColumnName().length() - 1).trim()
-						.equals(colName)) {
-					// match
-					xy[1] = dataset.getYPoints();
-				}
+				if (colName != null)
+					yset = dataset;
 			}
 
-			// if all data are present, add to results and continue to next dataset
-			if (xy[0] != null && xy[1] != null && colName != null) {
-				results.add(new Object[] { colName, xy });
-				colName = null;
+			if (colName == null) {
+				// continue looking with no previous dataset
+				prevDataset = null;
 				continue;
 			}
-
-			// not all data is present
-			if (colName != null && prevDataset != null) { // partial data is present, so look at previous dataset
-				if (xy[0] == null && prevDataset.getXColumnName().toLowerCase().startsWith("x") //$NON-NLS-1$
-						&& prevDataset.getXColumnName().substring(1).trim().equals(colName)) {
-					xy[0] = prevDataset.getXPoints();
-				} else if (xy[0] == null && prevDataset.getYColumnName().toLowerCase().startsWith("x") //$NON-NLS-1$
-						&& prevDataset.getYColumnName().substring(1).trim().equals(colName)) {
-					xy[0] = prevDataset.getYPoints();
-				} else if (xy[0] == null && prevDataset.getXColumnName().toLowerCase().endsWith("x") //$NON-NLS-1$
-						&& prevDataset.getXColumnName().substring(0, prevDataset.getXColumnName().length() - 1).trim()
-								.equals(colName)) {
-					xy[0] = prevDataset.getXPoints();
-				} else if (xy[0] == null && prevDataset.getYColumnName().toLowerCase().endsWith("x") //$NON-NLS-1$
-						&& prevDataset.getYColumnName().substring(0, prevDataset.getYColumnName().length() - 1).trim()
-								.equals(colName)) {
-					xy[0] = prevDataset.getYPoints();
-				}
-				if (xy[1] == null && prevDataset.getXColumnName().toLowerCase().startsWith("y") //$NON-NLS-1$
-						&& prevDataset.getXColumnName().substring(1).trim().equals(colName)) {
-					xy[1] = prevDataset.getXPoints();
-				} else if (xy[1] == null && prevDataset.getYColumnName().toLowerCase().startsWith("y") //$NON-NLS-1$
-						&& prevDataset.getYColumnName().substring(1).trim().equals(colName)) {
-					xy[1] = prevDataset.getYPoints();
-				} else if (xy[1] == null && prevDataset.getXColumnName().toLowerCase().endsWith("y") //$NON-NLS-1$
-						&& prevDataset.getXColumnName().substring(0, prevDataset.getXColumnName().length() - 1).trim()
-								.equals(colName)) {
-					xy[1] = prevDataset.getXPoints();
-				} else if (xy[1] == null && prevDataset.getYColumnName().toLowerCase().endsWith("y") //$NON-NLS-1$
-						&& prevDataset.getYColumnName().substring(0, prevDataset.getYColumnName().length() - 1).trim()
-								.equals(colName)) {
-					xy[1] = prevDataset.getYPoints();
-				}
+			// we found at least one of xset or yset here
+			if (xset == null || yset == null) {
+				prevDataset = dataset;
+				continue;
 			}
-
-			prevDataset = dataset;
-			// if all data are present, add to results
-			if (xy[0] != null && xy[1] != null && colName != null) {
-				colName = colName.replaceAll("_", " ").trim(); //$NON-NLS-1$ //$NON-NLS-2$
-				results.add(new Object[] { colName, xy });
-				prevDataset = null;
+			if (xset == prevDataset || yset == prevDataset) {
+				// this and previous dataset
+				// BH I don't know why this was only in the case of previous datasets
+				colName = colName.replace('_', ' ').trim(); // $NON-NLS-1$ //$NON-NLS-2$
+			} else if (xset != dataset || yset != dataset) {
+				// one is not from this or the prevous dataset -- clear it
+				if (xset != dataset)
+					xset = null;
+				else
+					yset = null;
+				// continue with this dataset as the previous dataset,
+				// looking for the one we are missing and keeping this column name
+				prevDataset = dataset;
+				continue;
 			}
-
+			if (xset.getIndex() != yset.getIndex()) {
+				if (mode == DATA_CHECK_ONLY) 
+					return null;
+				throw new Exception("X and Y data have different array lengths"); //$NON-NLS-1$
+			}
+			if (mode == DATA_CHECK_ONLY)
+				return results;
+			// copy data
+			double[] dx = (x == 'x' ? xset.getXPoints()	: xset.getYPoints());
+			double[] dy = (y == 'x' ? yset.getXPoints() : yset.getYPoints());
+			results.add(new Object[] { colName, dx, dy });
+			prevDataset = null;
 			colName = null;
 		} // end for loop
 
 		// if no paired datasets are found check for unnamed data
 		if (results.isEmpty()) {
-			double[][] xy = new double[2][];
+			xset = yset = null;
 			for (Dataset dataset : datasets) {
-				if (xy[0] == null && dataset.getYColumnName().equals("?")) { //$NON-NLS-1$
-					xy[0] = dataset.getYPoints();
-				} else if (xy[0] != null && xy[1] == null && dataset.getYColumnName().equals("?")) { //$NON-NLS-1$
-					xy[1] = dataset.getYPoints();
+				if (!dataset.getYColumnName().equals("?")) //$NON-NLS-1$
+					continue;
+				if (xset == null) {
+					xset = dataset;
+				} else {
+					yset = dataset;
 					break;
 				}
 			}
 			// if all data are present, add to results
-			if (xy[0] != null && xy[1] != null) {
-				colName = ""; //$NON-NLS-1$
-				results.add(new Object[] { colName, xy });
+			if (xset != null && yset != null) {
+				if (xset.getIndex() != yset.getIndex()) {
+					if (mode == DATA_CHECK_ONLY) 
+						return null;
+					throw new Exception("X and Y data have different array lengths"); //$NON-NLS-1$
+				}
+				if (mode != DATA_CHECK_ONLY) {
+					// copy data
+					double[] dx = (x == 'x' ? xset.getXPoints()	: xset.getYPoints());
+					double[] dy = (y == 'x' ? yset.getXPoints() : yset.getYPoints());
+					results.add(new Object[] { "", dx, dy });
+				}
 			}
 		}
-
-		if (results.isEmpty()) {
+		if (results.isEmpty() && mode != DATA_CHECK_ONLY) {
 			throw new Exception("Position data (x, y) not defined"); //$NON-NLS-1$
 		}
-		// check first data array for matching data length, etc
-		Object[] result = results.get(0);
-		double[][] dataArray = (double[][]) result[1];
-
-		if (dataArray[0].length == 0 || dataArray[1].length == 0) {
-			throw new Exception("Position data is empty"); //$NON-NLS-1$
-		}
-		if (dataArray[0].length != dataArray[1].length) {
-			throw new Exception("X and Y data have different array lengths"); //$NON-NLS-1$
-		}
-
 		return results;
 	}
 

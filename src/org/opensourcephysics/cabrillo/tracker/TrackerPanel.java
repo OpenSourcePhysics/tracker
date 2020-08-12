@@ -1780,11 +1780,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param dataString delimited fields parsable by DataTool, or a path to a
 	 *                   Resource
 	 * @param source     the data source (may be null)
-	 * @param whenDone  Runnable to run when complete
+	 * @param whenDone   Runnable to run when complete
 	 * @return the DataTrack with the Data (may return null)
 	 */
 	public void importDataAsync(String dataString, Object source, Runnable whenDone) {
-		
 		if (dataString == null) {
 			// inform user
 			JOptionPane.showMessageDialog(frame, TrackerRes.getString("TrackerPanel.Dialog.NoData.Message"), //$NON-NLS-1$
@@ -1794,19 +1793,20 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		// if dataString is parsable data, parse and import it
 		DatasetManager data = DataTool.parseData(dataString, null);
-		if (data != null) {
-			DataTrack dt = importData(data, source);
-			if (dt instanceof ParticleDataTrack) {
-				ParticleDataTrack pdt = (ParticleDataTrack) dt;
-				pdt.prevDataString = dataString;
-			}
+		if (data == null) {
+
+			// assume dataString is a resource path, read the resource and call this again
+			// with path as source
+			String path = dataString;
+			importDataAsync(ResourceLoader.getString(path), path, whenDone);
 			return;
 		}
-
-		// assume dataString is a resource path, read the resource and call this again
-		// with path as source
-		String path = dataString;
-		importDataAsync(ResourceLoader.getString(path), path, whenDone);
+		DataTrack dt = importData(data, source);
+		if (dt instanceof ParticleDataTrack) {
+			((ParticleDataTrack) dt).prevDataString = dataString;
+		}
+		if (whenDone != null)
+			whenDone.run();
 	}
 
 	/**
@@ -1845,13 +1845,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				dataTrack.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null);
 				dataTrack.getModelBuilder().setVisible(true);
 				final ParticleDataTrack target = dataTrack;
-				final Runnable runner = new Runnable() {
-					@Override
-					public void run() {
+				EventQueue.invokeLater(() -> {
 						target.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null);
-					}
-				};
-				EventQueue.invokeLater(runner);
+				});
 			} else {
 				// set data for existing DataTrack
 				dataTrack.setData(data);
