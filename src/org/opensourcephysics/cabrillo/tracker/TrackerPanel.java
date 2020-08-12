@@ -1773,7 +1773,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * string must be parsable by DataTool. If the string is a path, an attempt is
 	 * made to get the data string with ResourceLoader.
 	 * 
-	 * Optionally asynchronous
+	 * Optionally asynchronous (required async for JavaScript)
 	 * 
 	 * Source object (model) may be String path, JPanel controlPanel, Tool tool, etc
 	 * 

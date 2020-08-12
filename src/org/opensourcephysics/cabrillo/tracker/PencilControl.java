@@ -627,11 +627,9 @@ public class PencilControl extends JDialog {
   	  int last = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
   	  // scene start frame can't be less than clip start frame
   	  selectedScene.startframe = Math.max(first, selectedScene.startframe);
-  		SpinnerNumberModel model = new SpinnerNumberModel(selectedScene.startframe, first, last, 1); // init, min, max, step
-  		startFrameSpinner.setModel(model);
+  		startFrameSpinner.setModel(new SpinnerNumberModel(selectedScene.startframe, first, last, 1));
   		int end = selectedScene.endframe==Integer.MAX_VALUE? last: selectedScene.endframe;
-  		model = new SpinnerNumberModel(end, selectedScene.startframe, last, 1); // init, min, max, step
-  		endFrameSpinner.setModel(model);
+  		endFrameSpinner.setModel(new SpinnerNumberModel(end, selectedScene.startframe, last, 1));
   		heavyCheckbox.setSelected(selectedScene.isHeavy());
   		drawer.color = selectedScene.getCaption().color;
 			fontSizeSpinner.setValue(selectedScene.getCaption().getFont().getSize());

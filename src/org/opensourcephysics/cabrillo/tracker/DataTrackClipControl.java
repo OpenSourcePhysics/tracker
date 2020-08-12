@@ -33,6 +33,7 @@ import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPanel;
+import org.opensourcephysics.numerics.Util;
 
 @SuppressWarnings("serial")
 public class DataTrackClipControl extends JPanel implements PropertyChangeListener {
@@ -81,8 +82,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   	dataStrideLabel.setBorder(BorderFactory.createEmptyBorder());
   	
   	// create spinners
-    SpinnerModel spinModel = new SpinnerNumberModel(0, 0, 20, 1);
-    videoInSpinner = new MySpinner(spinModel);
+    videoInSpinner = new MySpinner(new SpinnerNumberModel(0, 0, 20, 1));
     ChangeListener listener = new ChangeListener() {
       @Override
 	public void stateChanged(ChangeEvent e) {
@@ -97,10 +97,8 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
         videoInSpinner.requestFocusInWindow();
       }
   	};
-  	videoInSpinner.addChangeListener(listener);
-  	
-    spinModel = new SpinnerNumberModel(0, 0, 20, 1);
-    dataInSpinner = new MySpinner(spinModel);
+  	videoInSpinner.addChangeListener(listener);  	
+    dataInSpinner = new MySpinner(new SpinnerNumberModel(0, 0, 20, 1));
     listener = new ChangeListener() {
       @Override
 	public void stateChanged(ChangeEvent e) {
@@ -116,10 +114,8 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
       }
   	};
   	dataInSpinner.addChangeListener(listener);
-
   	
-    spinModel = new SpinnerNumberModel(1, 1, 20, 1);
-    dataClipLengthSpinner = new MySpinner(spinModel);
+    dataClipLengthSpinner = new MySpinner(new SpinnerNumberModel(1, 1, 20, 1));
     listener = new ChangeListener() {
       @Override
 	public void stateChanged(ChangeEvent e) {
@@ -136,8 +132,7 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
   	};
   	dataClipLengthSpinner.addChangeListener(listener);
 
-    spinModel = new SpinnerNumberModel(1, 1, 10, 1);
-    dataStrideSpinner = new MySpinner(spinModel);
+    dataStrideSpinner = new MySpinner(new SpinnerNumberModel(1, 1, 10, 1));
     listener = new ChangeListener() {
       @Override
 	public void stateChanged(ChangeEvent e) {
@@ -204,43 +199,39 @@ public class DataTrackClipControl extends JPanel implements PropertyChangeListen
 	 * Refreshes the spinners.
 	 */
 	protected void refreshSpinners() {
-    VideoPanel vidPanel = dataTrack.getVideoPanel();
-    if (vidPanel==null) return;
-    
+		VideoPanel vidPanel = dataTrack.getVideoPanel();
+		if (vidPanel == null)
+			return;
+
 		DataClip dataClip = dataTrack.getDataClip();
 		VideoClip videoClip = vidPanel.getPlayer().getVideoClip();
-    
+
 		// data start index
 		int clipLength = dataClip.getClipLength();
 		int dataLength = dataClip.getDataLength();
-		int max = Math.max(0, dataLength-1);
-    SpinnerModel spinModel = new SpinnerNumberModel(dataClip.getStartIndex(), 0, max, 1);
-    dataInSpinner.setModel(spinModel);
-    // data stride
-    max = Math.max(1, dataLength-1);
-    max = Math.max(max, dataClip.getStride());
-    spinModel = new SpinnerNumberModel(dataClip.getStride(), 1, max, 1);
-    dataStrideSpinner.setModel(spinModel);
-    if (videoClip!=null) {
-    	// video start frame
-  		int first = videoClip.getFirstFrameNumber();
-  		int last = videoClip.getLastFrameNumber();
-  		int startFrame = dataTrack.getStartFrame();
-  		
-  		startFrame = Math.max(startFrame, first);
-  		startFrame = Math.min(startFrame, last);
-      spinModel = new SpinnerNumberModel(startFrame, first, last, 1);
-      videoInSpinner.setModel(spinModel);
-    }
-    // frame count (clip length)
-    max = Math.max(1, dataLength);
-    spinModel = new SpinnerNumberModel(clipLength, 1, max, 1);
-    dataClipLengthSpinner.setModel(spinModel);
-    Container c = this.getTopLevelAncestor();
-    if (c instanceof ModelBuilder) {
-    	ModelBuilder builder = (ModelBuilder)c;
-    	builder.refreshSpinners();
-    }
+		int max = Math.max(0, dataLength - 1);
+		Util.newSpinnerNumberModel(dataInSpinner, dataClip.getStartIndex(), 0, max, 1);
+		// data stride
+		max = Math.max(1, dataLength - 1);
+		max = Math.max(max, dataClip.getStride());
+		Util.newSpinnerNumberModel(dataStrideSpinner, dataClip.getStride(), 1, max, 1);
+		if (videoClip != null) {
+			// video start frame
+			int first = videoClip.getFirstFrameNumber();
+			int last = videoClip.getLastFrameNumber();
+			int startFrame = dataTrack.getStartFrame();
+
+			startFrame = Math.max(startFrame, first);
+			startFrame = Math.min(startFrame, last);
+			Util.newSpinnerNumberModel(videoInSpinner, startFrame, first, last, 1);
+		}
+		// frame count (clip length)
+		max = Math.max(1, dataLength);
+		Util.newSpinnerNumberModel(dataClipLengthSpinner, clipLength, 1, max, 1);
+		Container c = this.getTopLevelAncestor();
+		if (c instanceof ModelBuilder) {
+			((ModelBuilder) c).refreshSpinners();
+		}
 	}
 
 	/**

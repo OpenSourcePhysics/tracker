@@ -58,7 +58,6 @@ import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
@@ -868,8 +867,7 @@ public class PrefsDialog extends JDialog {
 					refreshTextFields();
 				}
 			};
-			SpinnerModel model = new SpinnerNumberModel(0, 0, 6, 1);
-			runSpinner = new JSpinner(model);
+			runSpinner = new JSpinner(new SpinnerNumberModel(0, 0, 6, 1));
 			JSpinner.NumberEditor editor = new JSpinner.NumberEditor(runSpinner);
 			runSpinner.setEditor(editor);
 			runSpinner.addChangeListener(new ChangeListener() {

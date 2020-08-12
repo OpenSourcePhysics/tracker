@@ -94,10 +94,8 @@ public class ModelBuilder extends FunctionTool {
 		endFrameLabel.setBorder(BorderFactory.createEmptyBorder(0, 8, 0, 2));
 		int first = trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
 		int last = trackerPanel.getPlayer().getVideoClip().getLastFrameNumber();
-		SpinnerNumberModel model = new SpinnerNumberModel(first, first, last, 1); // init, min, max, step
-		startFrameSpinner = new ModelFrameSpinner(model);
-		model = new SpinnerNumberModel(last, first, last, 1); // init, min, max, step
-		endFrameSpinner = new ModelFrameSpinner(model);
+		startFrameSpinner = new ModelFrameSpinner(new SpinnerNumberModel(first, first, last, 1));
+		endFrameSpinner = new ModelFrameSpinner(new SpinnerNumberModel(last, first, last, 1));
 
 		// create booster label and dropdown
 		boosterLabel = new JLabel();

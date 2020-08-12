@@ -2542,9 +2542,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			evolveRateLabel = new JLabel();
 			evolveRateLabel.setOpaque(false);
 			evolveRateLabel.addMouseListener(mouseOverListener);
-
-			SpinnerModel model = new SpinnerNumberModel(defaultEvolveRate, 0, maxEvolveRate, maxEvolveRate / 20);
-			evolveSpinner = new TallSpinner(model, trackDropdown);
+			evolveSpinner = new TallSpinner(new SpinnerNumberModel(defaultEvolveRate, 0, maxEvolveRate, maxEvolveRate / 20), trackDropdown);
 			for (int i = 0; i < evolveSpinner.getComponentCount(); i++)
 				evolveSpinner.getComponent(i).addMouseListener(mouseOverListener);
 			JFormattedTextField tf = ((JSpinner.DefaultEditor) evolveSpinner.getEditor()).getTextField();
@@ -2590,8 +2588,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			acceptLabel = new JLabel();
 			acceptLabel.setOpaque(false);
 			acceptLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
-			model = new SpinnerNumberModel(goodMatch, possibleMatch, 10, 1);
-			acceptSpinner = new TallSpinner(model, trackDropdown);
+			acceptSpinner = new TallSpinner(new SpinnerNumberModel(goodMatch, possibleMatch, 10, 1), trackDropdown);
 			for (int i = 0; i < acceptSpinner.getComponentCount(); i++)
 				acceptSpinner.getComponent(i).addMouseListener(mouseOverListener);
 			tf = ((JSpinner.DefaultEditor) acceptSpinner.getEditor()).getTextField();

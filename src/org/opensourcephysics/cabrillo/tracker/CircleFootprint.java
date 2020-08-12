@@ -458,8 +458,7 @@ public MultiShape getShape(Point[] points) {
       spinnerLabel = new JLabel(TrackerRes.getString("CircleFootprint.Dialog.Label.Radius")); //$NON-NLS-1$
       spinnerLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 0));
       upper.add(spinnerLabel);
-      SpinnerModel model = new SpinnerNumberModel(3, 3, 100, 1);
-      spinner = new JSpinner(model);
+      spinner = new JSpinner(new SpinnerNumberModel(3, 3, 100, 1));
       JFormattedTextField tf = ((JSpinner.DefaultEditor)spinner.getEditor()).getTextField();
     	tf.setEnabled(false);
     	tf.setDisabledTextColor(Color.BLACK);
