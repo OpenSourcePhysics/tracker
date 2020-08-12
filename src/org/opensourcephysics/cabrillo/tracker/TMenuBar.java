@@ -1107,9 +1107,13 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		video_pasteFilterItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				Filter filter = (Filter) new XMLControlElement(DataTool.paste()).loadObject(null);
-				trackerPanel.getVideo().getFilterStack().addFilter(filter);
-				filter.setVideoPanel(trackerPanel);
+				OSPRuntime.paste((s) -> {
+					if (s != null) {
+						Filter filter = (Filter) new XMLControlElement(s).loadObject(null);
+						trackerPanel.getVideo().getFilterStack().addFilter(filter);
+						filter.setVideoPanel(trackerPanel);
+					}
+				});
 			}
 		});
 		video_clearFiltersItem = video_filtersMenu.add(actions.get("clearFilters")); //$NON-NLS-1$
@@ -1338,24 +1342,26 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 
 		// enable pasteFilterItem if VideoFilter xml on clipboard
 		// DB this only needs checking when clipboard contents have changed
-		boolean filterOnClipboard = false;
-		String pasteFilterText = TrackerRes.getString("TActions.Action.Paste"); //$NON-NLS-1$
-		String xml = DataTool.paste();
-		if (xml != null && xml.contains("<?xml")) { //$NON-NLS-1$
-			XMLControl control = new XMLControlElement(xml);
-			filterOnClipboard = Filter.class.isAssignableFrom(control.getObjectClass());
-			if (filterOnClipboard) {
-				String filterName = control.getObjectClass().getSimpleName();
-				int i = filterName.indexOf("Filter"); //$NON-NLS-1$
-				if (i > 0 && i < filterName.length() - 1) {
-					filterName = filterName.substring(0, i);
+		
+		OSPRuntime.paste((xml) -> {
+			boolean filterOnClipboard = false;
+			String pasteFilterText = TrackerRes.getString("TActions.Action.Paste"); //$NON-NLS-1$
+			if (xml != null && xml.contains("<?xml")) { //$NON-NLS-1$
+				XMLControl control = new XMLControlElement(xml);
+				filterOnClipboard = Filter.class.isAssignableFrom(control.getObjectClass());
+				if (filterOnClipboard) {
+					String filterName = control.getObjectClass().getSimpleName();
+					int i = filterName.indexOf("Filter"); //$NON-NLS-1$
+					if (i > 0 && i < filterName.length() - 1) {
+						filterName = filterName.substring(0, i);
+					}
+					filterName = MediaRes.getString("VideoFilter." + filterName); //$NON-NLS-1$
+					pasteFilterText += " " + filterName; //$NON-NLS-1$
 				}
-				filterName = MediaRes.getString("VideoFilter." + filterName); //$NON-NLS-1$
-				pasteFilterText += " " + filterName; //$NON-NLS-1$
 			}
-		}
-		video_pasteFilterItem.setEnabled(filterOnClipboard);
-		video_pasteFilterItem.setText(pasteFilterText);
+			video_pasteFilterItem.setEnabled(filterOnClipboard);
+			video_pasteFilterItem.setText(pasteFilterText);
+		});
 
 		// refresh video filters menu
 		// DB this only changes when a video filter is added or removed
@@ -2136,31 +2142,24 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		String paste = actions.get("paste").getValue(Action.NAME).toString(); //$NON-NLS-1$
 		edit_pasteItem.setText(paste);
 		edit_pasteItem.setEnabled(false);
-		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-		Transferable data = clipboard.getContents(null);
-		if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-			try {
-				String s = (String) data.getTransferData(DataFlavor.stringFlavor);
-				XMLControlElement control = new XMLControlElement();
-				control.readXML(s);
-				Class<?> type = control.getObjectClass();
-				if (control.failedToRead() && ParticleDataTrack.getImportableDataName(s) != null) {
-					paste = TrackerRes.getString("ParticleDataTrack.Button.Paste.Text"); //$NON-NLS-1$
-					edit_pasteItem.setEnabled(true);
-					edit_pasteItem.setText(paste);
-				} else if (TTrack.class.isAssignableFrom(type)) {
-					String name = control.getString("name"); //$NON-NLS-1$
-					edit_pasteItem.setEnabled(true);
-					edit_pasteItem.setText(paste + " " + name); //$NON-NLS-1$
-				} else if (ImageCoordSystem.class.isAssignableFrom(type)) {
-					edit_pasteItem.setEnabled(true);
-					edit_pasteItem.setText(paste + " " + TrackerRes.getString("TMenuBar.MenuItem.Coords")); //$NON-NLS-1$ //$NON-NLS-2$
-				} else if (VideoClip.class.isAssignableFrom(type)) {
-					edit_pasteItem.setEnabled(true);
-					edit_pasteItem.setText(paste + " " + TrackerRes.getString("TMenuBar.MenuItem.VideoClip")); //$NON-NLS-1$ //$NON-NLS-2$
-				}
-			} catch (Exception ex) {
-			}
+		String s = OSPRuntime.paste(null);
+		XMLControlElement control = new XMLControlElement();
+		control.readXML(s);
+		Class<?> type = control.getObjectClass();
+		if (control.failedToRead() && ParticleDataTrack.getImportableDataName(s) != null) {
+			paste = TrackerRes.getString("ParticleDataTrack.Button.Paste.Text"); //$NON-NLS-1$
+			edit_pasteItem.setEnabled(true);
+			edit_pasteItem.setText(paste);
+		} else if (TTrack.class.isAssignableFrom(type)) {
+			String name = control.getString("name"); //$NON-NLS-1$
+			edit_pasteItem.setEnabled(true);
+			edit_pasteItem.setText(paste + " " + name); //$NON-NLS-1$
+		} else if (ImageCoordSystem.class.isAssignableFrom(type)) {
+			edit_pasteItem.setEnabled(true);
+			edit_pasteItem.setText(paste + " " + TrackerRes.getString("TMenuBar.MenuItem.Coords")); //$NON-NLS-1$ //$NON-NLS-2$
+		} else if (VideoClip.class.isAssignableFrom(type)) {
+			edit_pasteItem.setEnabled(true);
+			edit_pasteItem.setText(paste + " " + TrackerRes.getString("TMenuBar.MenuItem.VideoClip")); //$NON-NLS-1$ //$NON-NLS-2$
 		}
 
 	}
@@ -2327,15 +2326,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// disable newDataTrackPasteItem unless pastable data is on the clipboard
 			// DB this only needs checking when clipboard contents have changed
 			track_newDataTrackPasteItem.setEnabled(false);
-			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-			Transferable data = clipboard.getContents(null);
-			if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-				try {
-					String s = (String) data.getTransferData(DataFlavor.stringFlavor);
-					track_newDataTrackPasteItem.setEnabled(ParticleDataTrack.getImportableDataName(s) != null);
-				} catch (Exception ex) {
-				}
-			}
+			String s = OSPRuntime.paste(null);
+			if (s != null) 
+				track_newDataTrackPasteItem.setEnabled(ParticleDataTrack.getImportableDataName(s) != null);
 			refreshTrackNames(MENU_TRACK);
 		}
 

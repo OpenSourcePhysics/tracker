@@ -4382,5 +4382,49 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		dirty = null;
 	}
 
+	public void processPaste(String dataString) throws Exception {
+		DataTrack dt = ParticleDataTrack.getTrackForDataString(dataString, this);
+		// if track exists with the same data string, return
+		if (dt != null) {
+			// clipboard data has already been pasted
+			return;
+		}
+		// parse the data and find data track
+		DatasetManager data = DataTool.parseData(dataString, null);
+		if (data != null) {
+			String dataName = data.getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$ ;
+			boolean foundMatch = false;
+			ArrayList<DataTrack> dataTracks = this.getDrawables(DataTrack.class);
+			for (DataTrack next : dataTracks) {
+				if (!(next instanceof ParticleDataTrack))
+					continue;
+				ParticleDataTrack track = (ParticleDataTrack) next;
+				String trackName = track.getName("model"); //$NON-NLS-1$
+				if (trackName.equals(dataName) || ("".equals(dataName) && //$NON-NLS-1$
+						trackName.equals(TrackerRes.getString("ParticleDataTrack.New.Name")))) { //$NON-NLS-1$
+					// found the data track
+					foundMatch = true;
+					if (track.isAutoPasteEnabled()) {
+						// set new data immediately
+						track.setData(data);
+						track.prevDataString = dataString;
+					} else {
+						// set pending data
+						track.setPendingDataString(dataString);
+					}
+					break;
+				}
+			}
+			// if no matching track was found then create new track
+			if (!foundMatch && frame.alwaysListenToClipboard) {
+				dt = this.importData(data, null);
+				if (dt != null && dt instanceof ParticleDataTrack) {
+					ParticleDataTrack track = (ParticleDataTrack) dt;
+					track.prevDataString = track.pendingDataString = dataString;
+				}
+			}
+		}
+	}
+
 
 }

@@ -136,18 +136,17 @@ public class TActions {
 			}
 		}, true));
 		
-		// pastexml
+		// pastexml or data 
 		actions.put("paste", //$NON-NLS-1$
-		new AbstractAction(TrackerRes.getString("TActions.Action.Paste")) { //$NON-NLS-1$
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!TrackerIO.pasteXML(trackerPanel)) {
-					// pasting XML failed, so try to paste data
-					String dataString = DataTool.paste();
-					trackerPanel.importDataAsync(dataString, null, null); // returns DataTrack if successful
-				}
-			}
-		});
+				new AbstractAction(TrackerRes.getString("TActions.Action.Paste")) { //$NON-NLS-1$
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						TrackerIO.pasteXML(trackerPanel, (dataString) -> {
+							if (dataString != null)
+								trackerPanel.importDataAsync(dataString, null, null);
+						});
+					}
+				});
 		
 		// open
 		actions.put("open", //$NON-NLS-1$
@@ -796,11 +795,11 @@ public class TActions {
 					// create XMLControl of track, assign new name, and copy to clipboard
 					XMLControl control = new XMLControlElement(track);
 					control.setValue("name", name + n); //$NON-NLS-1$
-					StringSelection data = new StringSelection(control.toXML());
-					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-					clipboard.setContents(data, data);
+					//StringSelection data = new StringSelection(control.toXML());
+//					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+//					clipboard.setContents(data, data);
 					// now paste
-					TrackerIO.pasteXML(trackerPanel);
+					TrackerIO.pasteXMLAction(trackerPanel, control.toXML());
 				}
 			}
 		}, true));

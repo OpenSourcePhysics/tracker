@@ -596,18 +596,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 						return;
 					if (isAutoPasteEnabled()) {
 						ClipboardListener clipboardListener = frame.getClipboardListener();
-						Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-						Transferable data = clipboard.getContents(null);
-						if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-							try {
-								String s = (String) data.getTransferData(DataFlavor.stringFlavor);
+						String s = OSPRuntime.paste(null);
+						if (s != null) {
 								if (ParticleDataTrack.getImportableDataName(s) != null) {
-									clipboardListener.processContents(data);
-//		        	    Action paste = TActions.getAction("paste", ParticleDataTrack.this.trackerPanel); //$NON-NLS-1$
-//		        			paste.actionPerformed(null);
+									try {
+										clipboardListener.processContents(s);
+									} catch (Exception e1) {
+									}
 								}
-							} catch (Exception ex) {
-							}
 						}
 						getLeader().prevDataString = getLeader().pendingDataString;
 						getLeader().reloadButton.setEnabled(false);
@@ -1235,13 +1231,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				// get current data string and compare with previous
 				String dataString = null;
 				if (dataSource == null) { // data was pasted
-					Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-					Transferable data = clipboard.getContents(null);
-					if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-						try {
-							dataString = (String) data.getTransferData(DataFlavor.stringFlavor);
-						} catch (Exception ex) {
-						}
+					if (OSPRuntime.allowAutopaste) {
+						dataString = OSPRuntime.paste(null);
 					}
 				} else if (dataSource instanceof String) { // data loaded from a file
 					dataString = ResourceLoader.getString(dataSource.toString());
@@ -1478,17 +1469,17 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		return null;
 	}
 
-	protected static boolean isImportableClipboard(Clipboard clipboard) {
-		Transferable data = clipboard.getContents(null);
-		if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-			try {
-				String s = (String) data.getTransferData(DataFlavor.stringFlavor);
-				return getImportableDataName(s) != null;
-			} catch (Exception e) {
-			}
-		}
-		return false;
-	}
+//	protected static boolean isImportableClipboard(Clipboard clipboard) {
+//		Transferable data = clipboard.getContents(null);
+//		if (data != null && data.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+//			try {
+//				String s = (String) data.getTransferData(DataFlavor.stringFlavor);
+//				return getImportableDataName(s) != null;
+//			} catch (Exception e) {
+//			}
+//		}
+//		return false;
+//	}
 
 	protected static ParticleDataTrack getTrackForDataString(String dataString, TrackerPanel trackerPanel) {
 		if (dataString == null)
