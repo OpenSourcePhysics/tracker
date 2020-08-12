@@ -2089,7 +2089,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return the ClipboardListener
 	 */
 	protected ClipboardListener getClipboardListener() {
-		if (clipboardListener == null) {
+		if (clipboardListener == null && OSPRuntime.allowAutopaste) {
 			clipboardListener = new ClipboardListener(this);
 			clipboardListener.start();
 		}
