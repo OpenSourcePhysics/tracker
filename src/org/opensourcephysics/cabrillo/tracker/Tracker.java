@@ -2053,7 +2053,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			frame.setVisible(true);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		LaunchNode node = Launcher.activeNode;
+		LaunchNode node = OSPRuntime.activeNode;
 		if (node != null) {
 			frame.setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
 		}
