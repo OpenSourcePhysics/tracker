@@ -61,7 +61,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
 
@@ -1309,64 +1308,6 @@ public class TrackerIO extends VideoIO {
 		StringSelection data = new StringSelection(control.toXML());
 		Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 		clipboard.setContents(data, data);
-	}
-
-	/**
-	 * Pastes a new object into the specified tracker panel from an xml string on
-	 * the system clipboard.
-	 *
-	 * @param trackerPanel the tracker panel
-	 */
-	public static void pasteXML(TrackerPanel trackerPanel, Consumer<String> whenDone) {
-			OSPRuntime.paste((data) -> {
-				whenDone.accept(pasteXMLAction(trackerPanel, data));			
-			});
-	}
-
-	/**
-	 * 
-	 * @param trackerPanel
-	 * @param data
-	 * @return null if consumed, String data if not
-	 */
-	static String pasteXMLAction(TrackerPanel trackerPanel, String data) {
-		try {
-			XMLControl control = new XMLControlElement();
-			control.readXML(data);
-			Class<?> type = control.getObjectClass();
-			if (control.failedToRead() || type == null) {
-				return data;
-			}
-			if (TTrack.class.isAssignableFrom(type)) {
-				TTrack track = (TTrack) control.loadObject(null);
-				if (track != null) {
-					trackerPanel.addTrack(track);
-					trackerPanel.setSelectedTrack(track);
-					return null;
-				}
-			} else if (VideoClip.class.isAssignableFrom(type)) {
-				VideoClip clip = (VideoClip) control.loadObject(null);
-				if (clip != null) {
-					VideoClip prev = trackerPanel.getPlayer().getVideoClip();
-					XMLControl state = new XMLControlElement(prev);
-					// make new XMLControl with no stored object
-					state = new XMLControlElement(state.toXML());
-					trackerPanel.getPlayer().setVideoClip(clip);
-					Undo.postVideoReplace(trackerPanel, state);
-					return null;
-				}
-			} else if (ImageCoordSystem.class.isAssignableFrom(type)) {
-				XMLControl state = new XMLControlElement(trackerPanel.getCoords());
-				control.loadObject(trackerPanel.getCoords());
-				Undo.postCoordsEdit(trackerPanel, state);
-				return null;
-			} else if (TrackerPanel.class.isAssignableFrom(type)) {
-				control.loadObject(trackerPanel);
-				return null;
-			}
-		} catch (Exception ex) {
-		}
-		return data;
 	}
 
 	/**

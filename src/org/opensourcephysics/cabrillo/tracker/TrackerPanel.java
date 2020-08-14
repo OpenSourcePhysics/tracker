@@ -1844,9 +1844,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				dataTrack.setStartFrame(videoClip.getStartFrameNumber());
 				dataTrack.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null);
 				dataTrack.getModelBuilder().setVisible(true);
-				final ParticleDataTrack target = dataTrack;
+				final ParticleDataTrack dt = dataTrack;
 				EventQueue.invokeLater(() -> {
-						target.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null);
+						dt.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null);
 				});
 			} else {
 				// set data for existing DataTrack
