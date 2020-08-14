@@ -1360,8 +1360,7 @@ public class TrackerIO extends VideoIO {
 				control.loadObject(trackerPanel.getCoords());
 				Undo.postCoordsEdit(trackerPanel, state);
 				return null;
-			}
-			if (TrackerPanel.class.isAssignableFrom(type)) {
+			} else if (TrackerPanel.class.isAssignableFrom(type)) {
 				control.loadObject(trackerPanel);
 				return null;
 			}
