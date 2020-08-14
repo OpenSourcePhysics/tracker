@@ -125,6 +125,7 @@ java/awt/font/TextAttribute.js
 java/awt/font/TextLayout.js
 java/awt/font/TextLine.js
 java/awt/geom/AffineTransform.js
+java/awt/geom/Arc2D.js
 java/awt/geom/Area.js
 java/awt/geom/AreaIterator.js
 java/awt/geom/Dimension2D.js
