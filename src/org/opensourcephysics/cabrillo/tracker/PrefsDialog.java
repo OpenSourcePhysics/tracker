@@ -2152,12 +2152,7 @@ public class PrefsDialog extends JDialog {
         	name += " r="+props[0]; //$NON-NLS-1$
 				}
 				setText(name);
-				Icon icon = fp.getIcon(21, 16);
-				int factor = FontSizer.getIntegerFactor();
-				if (icon instanceof ResizableIcon) {
-					((ResizableIcon)icon).resize(factor);
-				}
-				setIcon(icon);
+				setIcon(fp.getIcon(21, 16));
 			}
 			return this;
     }

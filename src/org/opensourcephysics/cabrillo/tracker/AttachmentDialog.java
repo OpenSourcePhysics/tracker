@@ -737,10 +737,6 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 				TTrack track = (TTrack) val;
 				setText(track.getName());
 				Icon icon = track == dummyMass ? new ResizableIcon(dummyIcon) : track.getFootprint().getIcon(21, 16);
-				int factor = FontSizer.getIntegerFactor();
-				if (icon instanceof ResizableIcon) {
-					((ResizableIcon) icon).resize(factor);
-				}
 				setIcon(icon);
 			}
 			return this;
