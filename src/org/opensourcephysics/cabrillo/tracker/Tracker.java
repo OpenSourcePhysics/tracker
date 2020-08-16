@@ -246,7 +246,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static boolean xuggleCopied;
 	static String[] mainArgs;
 	static JFrame splash;
-	public static Icon trackerLogoIcon, ospLogoIcon;
+	public static Icon trackerLogoIcon;
 	static JProgressBar progressBar;
 	static String counterPath = "https://physlets.org/tracker/counter/counter.php?"; //$NON-NLS-1$
 	static String latestVersion; // last version for which user has been informed
@@ -328,15 +328,11 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 //    System.setProperty("apple.laf.useScreenMenuBar", "true");
 //    System.setProperty("com.apple.mrj.application.apple.menu.about.name", "Tracker");
 
-		// get logo icons with ResourceLoader so launch jar file is identified
-		String imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/tracker_logo.png"; //$NON-NLS-1$
-		trackerLogoIcon = getIcon(imageFile);
-		imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/osp_logo_url.png"; //$NON-NLS-1$
-		ospLogoIcon = getIcon(imageFile);
+		// get logo icon for splash screen--no need for resizable
+		trackerLogoIcon = getResourceIcon("tracker_logo.png", false);
 
 		// create grab cursor
-		imageFile = "/org/opensourcephysics/cabrillo/tracker/resources/images/grab.gif"; //$NON-NLS-1$
-		Image grab = ((ImageIcon) getIcon(imageFile)).getImage();
+		Image grab = ((ImageIcon) getResourceIcon("grab.gif", false)).getImage();
 		grabCursor = GUIUtils.createCustomCursor(grab, new Point(14, 10), "Grab", Cursor.HAND_CURSOR); //$NON-NLS-1$
 
 		// create static objects AFTER they are defined above
@@ -547,18 +543,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		new Thread(() -> {
 			JREFinder.getFinder().getJREs(32);
 		}).start();
-	}
-
-	/**
-	 * Get an icon, possible retrieving the image from images.zip
-	 * 
-	 * allow ResourceLoader to check for an image in images.zip
-	 * 
-	 * @param imagePath an absolute path in Tracker or OSP
-	 * @return an image from
-	 */
-	public static Icon getIcon(String imagePath) {
-		return ResourceLoader.getIcon(imagePath);
 	}
 
 	/**
