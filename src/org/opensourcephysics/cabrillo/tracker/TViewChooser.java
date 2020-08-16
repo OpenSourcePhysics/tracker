@@ -206,7 +206,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		JMenuItem item;
 		for (int i = 0; i<TView.VIEW_NAMES.length; i++) {
 			String name = TrackerRes.getString(TView.VIEW_NAMES[i]);
-			item = new JMenuItem(name, new ResizableIcon(TView.VIEW_ICONS[i]));
+			item = new JMenuItem(name, TView.VIEW_ICONS[i]);
 			item.setActionCommand("" + i);
 			item.addActionListener(listener);
 			popup.add(item);
@@ -316,7 +316,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		}
 		selectedView.refresh();
 		// put icon in button
-		chooserButton.setIcon(new ResizableIcon(selectedView.getViewIcon()));
+		chooserButton.setIcon(selectedView.getViewIcon());
 		// show the view on the viewPanel
 		CardLayout cl = (CardLayout) (viewPanel.getLayout());
 		cl.show(viewPanel, TView.VIEW_NAMES[selectedType]);

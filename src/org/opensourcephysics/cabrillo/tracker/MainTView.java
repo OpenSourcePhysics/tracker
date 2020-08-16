@@ -442,7 +442,7 @@ public class MainTView extends JPanel implements TView {
 	 */
 	@Override
 	public Icon getViewIcon() {
-		return Tracker.getResourceIcon("video_on.gif", false); //$NON-NLS-1$
+		return Tracker.getResourceIcon("video_on.gif", true); //$NON-NLS-1$
 	}
 
 	/**
