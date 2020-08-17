@@ -183,7 +183,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	// define static constants
 	/** tracker version and copyright */
 	public static final String VERSION = "5.1.3"; //$NON-NLS-1$
-	public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown"; //$NON-NLS-1$
+	public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown, Robert Hanson"; //$NON-NLS-1$
 	
 	/**
 	 * Gets an icon from a class resource image.
@@ -195,6 +195,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		URL url = Tracker.getClassResource("resources/images/" + imageName);
 		if (url == null)  {
 			OSPLog.debug("Tracker.getResourceIcon was null for " + imageName);
+			return null;
 		}
 		return (resizable ? new ResizableIcon(url) : new ImageIcon(url));
 	}

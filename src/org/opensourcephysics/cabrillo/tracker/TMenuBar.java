@@ -37,7 +37,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -2030,6 +2029,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (opening) {
 			setupVideoMenu();
 		}
+		FontSizer.setMenuFonts(videoMenu);
 
 		// OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar video refresh");
 
@@ -2231,6 +2231,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				track_newDataTrackPasteItem.setEnabled(ParticleDataTrack.getImportableDataName(s) != null);
 			refreshTrackNames(MENU_TRACK);
 		}
+		FontSizer.setMenuFonts(trackMenu);
 
 		// OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar track refresh");
 
