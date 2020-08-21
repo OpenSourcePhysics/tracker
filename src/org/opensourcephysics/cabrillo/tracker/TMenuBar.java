@@ -211,7 +211,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	private JMenu edit_copyImageMenu;
 	private JMenuItem edit_copyMainViewImageItem;
 	private JMenuItem edit_copyFrameImageItem;
-	private JMenuItem[] edit_copyViewImageItems = new JMenuItem[0];
+	private JMenuItem[] edit_copyViewImageItems;
 	private JMenu edit_copyObjectMenu;
 	private JMenuItem edit_pasteItem;
 	private JCheckBoxMenuItem edit_autopasteCheckbox;
@@ -700,6 +700,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		edit_copyImageMenu.addMenuListener(this);
 		// copy object menu
 		edit_copyObjectMenu = new JMenu();
+		edit_copyObjectMenu.setName("edit_copyObject");
+		edit_copyObjectMenu.addMenuListener(this);
 
 		// delete selected point item
 		edit_delTracks_deleteSelectedPointItem = new JMenuItem(
@@ -1246,9 +1248,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		video_pasteImageMenu.setEnabled(b);
 		video_pasteImageItem.setEnabled(b);
 
-		// enable pasteFilterItem if VideoFilter xml on clipboard
-		// DB this only needs checking when clipboard contents have changed
-		
+		// enable pasteFilterItem if clipboard contains VideoFilter xml
 		OSPRuntime.paste((xml) -> {
 			boolean filterOnClipboard = false;
 			String pasteFilterText = TrackerRes.getString("TActions.Action.Paste"); //$NON-NLS-1$
@@ -1270,7 +1270,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		});
 
 		// refresh video filters menu
-		// DB this only changes when a video filter is added or removed
 		Video video = trackerPanel.getVideo();
 		if (video != null) {
 			boolean vis = trackerPanel.getPlayer().getClipControl().videoVisible;
@@ -1621,26 +1620,19 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				}
 			}
 		break;
-		case "image":
-			
-			edit_copyFrameImageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CopyFrame")); //$NON-NLS-1$
+		
+		case "image":	
+			TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
+			if (edit_copyFrameImageItem == null) {
+				edit_copyFrameImageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CopyFrame")); //$NON-NLS-1$
 			edit_copyFrameImageItem.addActionListener((e) -> {
-					Component c = trackerPanel.getTFrame();
-					new TrackerIO.ComponentImage(c).copyToClipboard();
-			});
-			edit_copyMainViewImageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CopyMainView") + " (0)"); //$NON-NLS-1$ //$NON-NLS-2$
+						Component c = trackerPanel.getTFrame();
+						new TrackerIO.ComponentImage(c).copyToClipboard();
+				});
+				edit_copyMainViewImageItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CopyMainView") + " (0)"); //$NON-NLS-1$ //$NON-NLS-2$
 			edit_copyMainViewImageItem.addActionListener((e) -> {
-					new TrackerIO.ComponentImage(trackerPanel).copyToClipboard();
-			});
-			edit_copyImageMenu.add(edit_copyMainViewImageItem);
-
-			// refresh copyImage menu--include only open views
-			// DB copyImageMenu needs refresh only when a view has been
-			// opened/closed/changed
-			edit_copyImageMenu.remove(edit_copyFrameImageItem);
-			final TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
-			// check that array size is correct and if not, make new menu items
-			if (edit_copyViewImageItems.length != choosers.length) {
+						new TrackerIO.ComponentImage(trackerPanel).copyToClipboard();
+				});
 				Action copyView = new AbstractAction() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -1651,11 +1643,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				edit_copyViewImageItems = new JMenuItem[choosers.length];
 				for (int i = 0; i < choosers.length; i++) {
 					edit_copyViewImageItems[i] = new JMenuItem();
-					String command = String.valueOf(i);
-					edit_copyViewImageItems[i].setActionCommand(command);
+					edit_copyViewImageItems[i].setActionCommand(String.valueOf(i));
 					edit_copyViewImageItems[i].setAction(copyView);
 				}
 			}
+
+			edit_copyImageMenu.removeAll();
+			// add menu item for main view
+			edit_copyImageMenu.add(edit_copyMainViewImageItem);
 			// add menu items for open views
 			for (int i = 0; i < choosers.length; i++) {
 				if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
@@ -1670,8 +1665,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					edit_copyImageMenu.remove(edit_copyViewImageItems[i]);
 				}
 			}
+			// add menu item for frame
 			edit_copyImageMenu.add(edit_copyFrameImageItem);
 			break;
+			
 		case "object":
 			edit_copyObjectMenu.removeAll();
 			Action copyObjectAction = new AbstractAction() {
@@ -2032,6 +2029,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (opening) {
 			setupVideoMenu();
 		}
+		FontSizer.setMenuFonts(videoMenu);
 
 		// OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar video refresh");
 
@@ -2045,10 +2043,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		String s = OSPRuntime.paste(null);
 		if (s == null)
 			return;
-		XMLControlElement control = new XMLControlElement();
-		control.readXML(s);
+		XMLControlElement control = new XMLControlElement(s);
+//		control.readXML(s);
 		Class<?> type = control.getObjectClass();
 		if (control.failedToRead() && ParticleDataTrack.getImportableDataName(s) != null) {
+			// clipboard contains pastable data
 			paste = TrackerRes.getString("ParticleDataTrack.Button.Paste.Text"); //$NON-NLS-1$
 			edit_pasteItem.setEnabled(true);
 			edit_pasteItem.setText(paste);
@@ -2226,13 +2225,13 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 
 			// disable newDataTrackPasteItem unless pastable data is on the clipboard
-			// DB this only needs checking when clipboard contents have changed
 			track_newDataTrackPasteItem.setEnabled(false);
 			String s = OSPRuntime.paste(null);
 			if (s != null) 
 				track_newDataTrackPasteItem.setEnabled(ParticleDataTrack.getImportableDataName(s) != null);
 			refreshTrackNames(MENU_TRACK);
 		}
+		FontSizer.setMenuFonts(trackMenu);
 
 		// OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar track refresh");
 

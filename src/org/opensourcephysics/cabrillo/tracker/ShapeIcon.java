@@ -138,6 +138,8 @@ public int getIconHeight() {
    */
   @Override
 public void paintIcon(Component c, Graphics _g, int x, int y) {
+  	if (shape == null && decoration == null)
+  		return;
     Graphics2D g = (Graphics2D)_g.create();
     AffineTransform at = AffineTransform.getTranslateInstance(
                          x + offsetX, y + offsetY);

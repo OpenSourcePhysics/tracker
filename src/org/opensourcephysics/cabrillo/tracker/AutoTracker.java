@@ -152,12 +152,9 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		format.setMinimumIntegerDigits(1);
 		format.setMinimumFractionDigits(1);
 		format.setMaximumFractionDigits(1);
-		String path = "/org/opensourcephysics/cabrillo/tracker/resources/images/green_light.gif"; //$NON-NLS-1$
-		searchIcon = Tracker.getIcon(path);
-		path = "/org/opensourcephysics/cabrillo/tracker/resources/images/red_light.gif"; //$NON-NLS-1$
-		stopIcon = Tracker.getIcon(path);
-		path = "/org/opensourcephysics/cabrillo/tracker/resources/images/gray_light.gif"; //$NON-NLS-1$
-		graySearchIcon = Tracker.getIcon(path);
+		searchIcon = Tracker.getResourceIcon("green_light.gif", true);
+		stopIcon = Tracker.getResourceIcon("red_light.gif", true);
+		graySearchIcon = Tracker.getResourceIcon("gray_light.gif", true);
 	}
 
 	// instance fields

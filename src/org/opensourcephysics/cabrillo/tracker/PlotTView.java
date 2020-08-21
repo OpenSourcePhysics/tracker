@@ -39,7 +39,7 @@ import org.opensourcephysics.controls.XMLProperty;
 @SuppressWarnings("serial")
 public class PlotTView extends TrackChooserTView {
 
-  protected static final Icon PLOTVIEW_ICON =  Tracker.getResourceIcon("plot.gif", false); //$NON-NLS-1$;
+  protected static final Icon PLOTVIEW_ICON =  Tracker.getResourceIcon("plot.gif", true); //$NON-NLS-1$;
 
 	/**
 	 * Constructs a TrackChooserView for the specified tracker panel.

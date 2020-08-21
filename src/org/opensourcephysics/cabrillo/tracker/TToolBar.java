@@ -1724,7 +1724,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				return null;
 			refresh();
 			FontSizer.setFonts(popup);
-			checkboxOnDisabledIcon.resize(FontSizer.getIntegerFactor());
 			return popup;
 		}
 

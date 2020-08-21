@@ -644,7 +644,7 @@ public class PrefsDialog extends JDialog {
 		Border buttonBorder = BorderFactory.createEtchedBorder();
 		Border space = BorderFactory.createEmptyBorder(2, 2, 2, 2);
 		buttonBorder = BorderFactory.createCompoundBorder(buttonBorder, space);
-		Icon openFileIcon = Tracker.getResourceIcon("open.gif", false); //$NON-NLS-1$
+		Icon openFileIcon = Tracker.getResourceIcon("open.gif", true); //$NON-NLS-1$
 
 		// runtime pane--only for Java
 		if (!OSPRuntime.isJS && !Tracker.testOn) {
@@ -2152,12 +2152,7 @@ public class PrefsDialog extends JDialog {
         	name += " r="+props[0]; //$NON-NLS-1$
 				}
 				setText(name);
-				Icon icon = fp.getIcon(21, 16);
-				int factor = FontSizer.getIntegerFactor();
-				if (icon instanceof ResizableIcon) {
-					((ResizableIcon)icon).resize(factor);
-				}
-				setIcon(icon);
+				setIcon(fp.getIcon(21, 16));
 			}
 			return this;
     }
