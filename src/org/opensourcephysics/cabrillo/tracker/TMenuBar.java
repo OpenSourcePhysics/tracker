@@ -2043,6 +2043,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		edit_pasteItem.setText(paste);
 		edit_pasteItem.setEnabled(false);
 		String s = OSPRuntime.paste(null);
+		if (s == null)
+			return;
 		XMLControlElement control = new XMLControlElement();
 		control.readXML(s);
 		Class<?> type = control.getObjectClass();
