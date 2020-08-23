@@ -61,7 +61,10 @@ import javax.swing.border.Border;
 import org.opensourcephysics.controls.ControlsRes;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.tools.FontSizer;
+
+import javajs.async.AsyncDialog;
 
 /**
  * A dialog for exporting videos from a TrackerPanel.
@@ -213,10 +216,10 @@ public class ExportDataDialog extends JDialog {
 		boolean isRemove = selected.equals(TrackerRes.getString("ExportDataDialog.Delimiter.Remove")); //$NON-NLS-1$
 		String delimiter = TrackerIO.getDelimiter();
 		if (isAdd) {
-			Object response = JOptionPane.showInputDialog(ExportDataDialog.this,
+			String response = GUIUtils.showInputDialog(ExportDataDialog.this,
 					TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Message"), //$NON-NLS-1$
 					TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Title"), //$NON-NLS-1$
-					JOptionPane.PLAIN_MESSAGE, null, null, delimiter);
+					JOptionPane.PLAIN_MESSAGE, delimiter);
 			if (response != null && !"".equals(response.toString())) { //$NON-NLS-1$
 				String s = response.toString();
 				TrackerIO.setDelimiter(s);
@@ -225,15 +228,16 @@ public class ExportDataDialog extends JDialog {
 			refreshGUI();
 		} else if (isRemove) {
 			String[] choices = TrackerIO.customDelimiters.values().toArray(new String[1]);
-			Object response = JOptionPane.showInputDialog(ExportDataDialog.this,
+			new AsyncDialog().showInputDialog(ExportDataDialog.this,
 					TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Message"), //$NON-NLS-1$
 					TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Title"), //$NON-NLS-1$
-					JOptionPane.PLAIN_MESSAGE, null, choices, null);
-			if (response != null) {
-				String s = response.toString();
-				TrackerIO.removeCustomDelimiter(s);
-			}
-			refreshGUI();
+					JOptionPane.PLAIN_MESSAGE, null, choices, null, (e) -> {
+						String s = e.getActionCommand();
+						if (s != null) {
+							TrackerIO.removeCustomDelimiter(s);
+						}
+						refreshGUI();		
+					});
 		} else {
 			if (TrackerIO.delimiters.keySet().contains(selected))
 				TrackerIO.setDelimiter(TrackerIO.delimiters.get(selected));

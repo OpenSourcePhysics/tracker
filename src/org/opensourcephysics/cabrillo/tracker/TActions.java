@@ -45,6 +45,7 @@ import javax.swing.JOptionPane;
 
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
@@ -175,12 +176,12 @@ public class TActions {
 				new AbstractAction(TrackerRes.getString("TActions.Action.OpenURL")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						Object input = JOptionPane.showInputDialog(trackerPanel.getTFrame(),
+						String input = GUIUtils.showInputDialog(trackerPanel.getTFrame(),
 								TrackerRes.getString("TActions.Dialog.OpenURL.Message") //$NON-NLS-1$
 										+ ":                             ", //$NON-NLS-1$
 								TrackerRes.getString("TActions.Dialog.OpenURL.Title"), //$NON-NLS-1$
-								JOptionPane.PLAIN_MESSAGE, null, null, null);
-						if (input == null || input.toString().trim().equals("")) { //$NON-NLS-1$
+								JOptionPane.PLAIN_MESSAGE, null);
+						if (input == null || input.trim().equals("")) { //$NON-NLS-1$
 							return;
 						}
 						Resource res = ResourceLoader.getResource(input.toString().trim());
