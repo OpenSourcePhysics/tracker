@@ -376,22 +376,9 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 * @param track the track to be selected
 	 */
 	public void setSelectedTrack(TTrack track) {
-		OSPLog.debug("TrackChooser.setSelected " + track);
+		OSPLog.debug("TrackChooserTView.setSelected " + track);
 		if (track == null) {
-			String msg;
-			switch (getViewType()) {
-			case TView.VIEW_TABLE:
-				msg = "TableTView.Label.NoData"; //$NON-NLS-1$
-				noDataLabel.setText(TrackerRes.getString(msg));
-				break;
-			default:
-			case TView.VIEW_PLOT:
-				msg = "PlotTView.Label.NoData"; //$NON-NLS-1$
-				noDataLabel.setText(TrackerRes.getString(msg));
-				break;
-			}
-			add(noData, "noData");
-			selectedTrack = null;
+			setNoData();
 			return;
 		}
 		if (!track.isViewable() || !trackerPanel.containsTrack(track))
@@ -415,6 +402,22 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		}
 	}
 
+	private void setNoData() {
+		String msg;
+		switch (getViewType()) {
+		case TView.VIEW_TABLE:
+			msg = "TableTView.Label.NoData"; //$NON-NLS-1$
+			noDataLabel.setText(TrackerRes.getString(msg));
+			break;
+		default:
+		case TView.VIEW_PLOT:
+			msg = "PlotTView.Label.NoData"; //$NON-NLS-1$
+			noDataLabel.setText(TrackerRes.getString(msg));
+			break;
+		}
+		add(noData, "noData");
+		selectedTrack = null;
+	}
 	/**
 	 * Gets the track view for the specified track
 	 *

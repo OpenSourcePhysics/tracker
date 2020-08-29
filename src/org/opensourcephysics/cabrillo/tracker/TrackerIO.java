@@ -1662,13 +1662,13 @@ public class TrackerIO extends VideoIO {
 
 			if (type == TYPE_ZIP)
 				frame.holdPainting(true);
-			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad start " + path, Performance.TIME_MARK));
+			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad start " + path, Performance.TIME_MARK));
 			t0 = Performance.now(0);
 		}
 
 		@Override
 		public int doInBackgroundAsync(int progress) {
-			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad " + type + " start " + progress + " " + path,
+			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad " + type + " start " + progress + " " + path,
 					Performance.TIME_MARK));
 			switch (type) {
 			case TYPE_ZIP:
@@ -1686,7 +1686,7 @@ public class TrackerIO extends VideoIO {
 			default:
 				return 100;
 			}
-			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad " + type + " end " + progress + " " + path,
+			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad " + type + " end " + progress + " " + path,
 					Performance.TIME_MARK));
 			return progress;
 		}
@@ -1734,7 +1734,7 @@ public class TrackerIO extends VideoIO {
 				return;
 			}
 			// load data from zip, trz or trk file
-			if (zipFileFilter.accept(testFile, false) || trzFileFilter.accept(testFile, false)) {
+			if (path.indexOf("&Attachment=") >= 0 || zipFileFilter.accept(testFile, false) || trzFileFilter.accept(testFile, false)) {
 				type = TYPE_ZIP;
 				return;
 			}
@@ -1867,7 +1867,7 @@ public class TrackerIO extends VideoIO {
 			boolean isWebPath = ResourceLoader.isHTTP(path);
 			if (isWebPath) {
 				File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
-				if (localFile != null && OSPRuntime.unzipFiles) {
+				if (localFile != null) {
 					// set path to downloaded file
 					path = localFile.toURI().toString();
 					OSPLog.debug("TrackerIO downloaded zip file: " + path); //$NON-NLS-1$
@@ -2092,7 +2092,7 @@ public class TrackerIO extends VideoIO {
 
 			}
 
-			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.AsyncLoad done " + path, Performance.TIME_MARK));
+			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad done " + path, Performance.TIME_MARK));
 			OSPLog.debug("!!! " + Performance.now(t0) + " AyncLoad " + path);
 
 			if (whenDone == null) {

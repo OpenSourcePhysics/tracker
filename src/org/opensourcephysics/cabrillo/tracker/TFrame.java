@@ -105,6 +105,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLProperty;
 import org.opensourcephysics.display.DataTable;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.js.JSUtil;
@@ -534,6 +535,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// save all tabs in last-to-first order
 		final int[] tab = { getTabCount() - 1 };
 		TrackerPanel trackerPanel = getTrackerPanel(tab[0]);
+		if (trackerPanel == null)
+			return;
 		Runnable approved = new Runnable() {
 			@Override
 			public void run() {
@@ -3126,5 +3129,29 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		TrackerPanel tp = getTrackerPanel(i);
 		if (tp != null)
 		new TabRemover(tp).executeSynchronously();
+	}
+
+	private String lastExperiment = "";
+
+	/**
+	 * Replace any open tabs with a single tab loaded with the given path.
+	 * JavaScript only?
+	 * 
+	 * Called from Tracker (for JavaScript) and TMenuBar (for testing in Java)
+	 * 
+	 * @param path
+	 * @author Bob Hanson
+	 */
+	public void loadExperimentURL(String path) {
+		if (path == null && (path = GUIUtils.showInputDialog(this, "Load Experiment", "Load Experiment",
+				JOptionPane.QUESTION_MESSAGE, lastExperiment)) == null)
+			return;
+		if (getTabCount() > 0)
+			removeAllTabs();
+		try {
+			TrackerIO.open(path, this);
+		} catch (Throwable t) {
+			removeAllTabs();
+		}
 	}
 }

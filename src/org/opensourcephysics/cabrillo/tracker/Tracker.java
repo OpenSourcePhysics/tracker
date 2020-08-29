@@ -661,6 +661,19 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			});
 		}
 	}
+	
+	/**
+	 * Replace any open tabs with a single tab loaded with the given path.
+	 * JavaScript only?
+	 * 
+	 * @j2sAlias loadExperimentURL
+	 * 
+	 * @param path
+	 * @author Bob Hanson
+	 */
+	public void loadExperimentURL(String path) {
+		getFrame().loadExperimentURL(path);
+	}
 
 	/**
 	 * Gets the frame with alias for JavaScript
