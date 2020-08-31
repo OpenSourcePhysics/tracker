@@ -1734,7 +1734,7 @@ public class TrackerIO extends VideoIO {
 				return;
 			}
 			// load data from zip, trz or trk file
-			if (path.indexOf("&Attachment=") >= 0 || zipFileFilter.accept(testFile, false) || trzFileFilter.accept(testFile, false)) {
+			if (path.indexOf("&TrackerSet=") >= 0 || zipFileFilter.accept(testFile, false) || trzFileFilter.accept(testFile, false)) {
 				type = TYPE_ZIP;
 				return;
 			}
@@ -1976,12 +1976,11 @@ public class TrackerIO extends VideoIO {
 				// open tempfiles on the desktop
 				if (OSPRuntime.skipDisplayOfPDF) {
 				} else {
-					Runnable displayURLRunner = () -> {
-							for (String path : tempFiles) {
-								OSPDesktop.displayURL(path);
-							}
-					};
-					Thread displayURLOpener = new Thread(displayURLRunner);
+					Thread displayURLOpener = new Thread(() -> {
+						for (String relpath : tempFiles) {
+								OSPDesktop.displayURL(OSPRuntime.unzipFiles ? relpath : path + "!/" + relpath);
+						}
+					});
 					displayURLOpener.setName("displayURLOpener");
 					displayURLOpener.start();
 				}
