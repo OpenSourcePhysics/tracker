@@ -320,7 +320,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); // $NON-NLS-1$
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); // $NON-NLS-1$
 		createGUI();
-		refresh();
+//		refresh();
 //		validate();
 	}
 
