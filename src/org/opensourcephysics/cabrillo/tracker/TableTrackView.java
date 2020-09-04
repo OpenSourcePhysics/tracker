@@ -102,6 +102,7 @@ import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.MeasuredImage;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
@@ -115,6 +116,8 @@ import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.LocalJob;
 import org.opensourcephysics.tools.ToolsRes;
+
+import javajs.async.AsyncDialog;
 
 /**
  * A JScrollPane that presents a table view of a track on a TrackerPanel. 
@@ -1440,12 +1443,12 @@ public class TableTrackView extends TrackView {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String delimiter = TrackerIO.delimiter;
-				Object response = JOptionPane.showInputDialog(TableTrackView.this,
+				String response = GUIUtils.showInputDialog(TableTrackView.this,
 						TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Message"), //$NON-NLS-1$
 						TrackerRes.getString("TableTrackView.Dialog.CustomDelimiter.Title"), //$NON-NLS-1$
-						JOptionPane.PLAIN_MESSAGE, null, null, delimiter);
+						JOptionPane.PLAIN_MESSAGE, delimiter);
 				if (response != null) {
-					String s = response.toString();
+					String s = response;
 					TrackerIO.setDelimiter(s);
 					TrackerIO.addCustomDelimiter(s);
 					refreshGUI();
@@ -1457,15 +1460,18 @@ public class TableTrackView extends TrackView {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String[] choices = TrackerIO.customDelimiters.values().toArray(new String[1]);
-				Object response = JOptionPane.showInputDialog(TableTrackView.this,
+				new AsyncDialog().showInputDialog(TableTrackView.this,
 						TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Message"), //$NON-NLS-1$
 						TrackerRes.getString("TableTrackView.Dialog.RemoveDelimiter.Title"), //$NON-NLS-1$
-						JOptionPane.PLAIN_MESSAGE, null, choices, null);
-				if (response != null) {
-					String s = response.toString();
-					TrackerIO.removeCustomDelimiter(s);
-					refreshGUI();
-				}
+						JOptionPane.PLAIN_MESSAGE, null, choices, null, (ee) -> {
+							String response = ee.getActionCommand();
+							if (response != null) {
+								String s = response.toString();
+								TrackerIO.removeCustomDelimiter(s);
+								refreshGUI();
+							}
+
+						});
 			}
 		};
 		JMenuItem removeDelimiterItem = new JMenuItem(removeDelimiterAction);
@@ -1649,24 +1655,24 @@ public class TableTrackView extends TrackView {
 	protected String getUniqueColumnName(String previous, boolean tryAgain) {
 		if (previous == null)
 			previous = ""; //$NON-NLS-1$
-		Object input = null;
+		String input = null;
 		TTrack track = getTrack();
 		if (tryAgain) {
-			input = JOptionPane.showInputDialog(track.trackerPanel.getTFrame(),
+			input = GUIUtils.showInputDialog(track.trackerPanel.getTFrame(),
 					TrackerRes.getString("TableTrackView.Dialog.NameColumn.TryAgain") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
 							TrackerRes.getString("TableTrackView.Dialog.NameColumn.Message"), //$NON-NLS-1$
 					TrackerRes.getString("TableTrackView.Dialog.NameColumn.Title"), //$NON-NLS-1$
-					JOptionPane.WARNING_MESSAGE, null, null, previous);
+					JOptionPane.WARNING_MESSAGE, previous);
 		} else {
-			input = JOptionPane.showInputDialog(track.trackerPanel.getTFrame(),
+			input = GUIUtils.showInputDialog(track.trackerPanel.getTFrame(),
 					TrackerRes.getString("TableTrackView.Dialog.NameColumn.Message"), //$NON-NLS-1$
 					TrackerRes.getString("TableTrackView.Dialog.NameColumn.Title"), //$NON-NLS-1$
-					JOptionPane.QUESTION_MESSAGE, null, null, previous);
+					JOptionPane.QUESTION_MESSAGE, previous);
 		}
 		if (input == null) {
 			return null;
 		}
-		String name = ((String) input).trim();
+		String name = input.trim();
 		if (name.equals(previous))
 			return name;
 		// check name for uniqueness

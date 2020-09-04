@@ -59,6 +59,7 @@ import javax.swing.border.Border;
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.desktop.OSPDesktop;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.NumberField;
@@ -191,12 +192,12 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						TFrame frame = (TFrame) memoryButton.getTopLevelAncestor();
-						Object response = JOptionPane.showInputDialog(frame,
+						String response = GUIUtils.showInputDialog(frame,
 								TrackerRes.getString("TTrackBar.Dialog.SetMemory.Message"), //$NON-NLS-1$
 								TrackerRes.getString("TTrackBar.Dialog.SetMemory.Title"), //$NON-NLS-1$
-								JOptionPane.PLAIN_MESSAGE, null, null, String.valueOf(Tracker.preferredMemorySize));
-						if (response != null && !"".equals(response.toString())) { //$NON-NLS-1$
-							String s = response.toString();
+								JOptionPane.PLAIN_MESSAGE, String.valueOf(Tracker.preferredMemorySize));
+						if (response != null && !"".equals(response)) { //$NON-NLS-1$
+							String s = response;
 							try {
 								double d = Double.parseDouble(s);
 								d = Math.rint(d);

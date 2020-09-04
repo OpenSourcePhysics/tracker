@@ -165,6 +165,7 @@ java/awt/peer/FramePeer.js
 java/awt/peer/KeyboardFocusManagerPeer.js
 java/awt/peer/LightweightPeer.js
 java/awt/peer/WindowPeer.js
+java/awt/print/Printable.js
 java/beans/ChangeListenerMap.js
 java/beans/PropertyChangeEvent.js
 java/beans/PropertyChangeListener.js
@@ -366,6 +367,7 @@ java/util/concurrent/locks/AbstractQueuedSynchronizer.js
 java/util/concurrent/locks/Condition.js
 java/util/concurrent/locks/Lock.js
 java/util/concurrent/locks/ReentrantLock.js
+java/util/function/Consumer.js
 java/util/function/Function.js
 java/util/logging/ConsoleHandler.js
 java/util/logging/ErrorManager.js
@@ -460,6 +462,7 @@ javax/swing/ComboBoxModel.js
 javax/swing/ComponentInputMap.js
 javax/swing/DefaultBoundedRangeModel.js
 javax/swing/DefaultButtonModel.js
+javax/swing/DefaultCellEditor.js
 javax/swing/DefaultComboBoxModel.js
 javax/swing/DefaultListCellRenderer.js
 javax/swing/DefaultListModel.js
@@ -475,6 +478,7 @@ javax/swing/JApplet.js
 javax/swing/JButton.js
 javax/swing/JCheckBox.js
 javax/swing/JCheckBoxMenuItem.js
+javax/swing/JColorChooser.js
 javax/swing/JComboBox.js
 javax/swing/JComponent.js
 javax/swing/JDialog.js
@@ -534,6 +538,7 @@ javax/swing/Scrollable.js
 javax/swing/SingleSelectionModel.js
 javax/swing/SizeRequirements.js
 javax/swing/SortingFocusTraversalPolicy.js
+javax/swing/SpinnerListModel.js
 javax/swing/SpinnerModel.js
 javax/swing/SpinnerNumberModel.js
 javax/swing/SwingConstants.js
@@ -558,6 +563,18 @@ javax/swing/border/EtchedBorder.js
 javax/swing/border/LineBorder.js
 javax/swing/border/MatteBorder.js
 javax/swing/border/TitledBorder.js
+javax/swing/colorchooser/AbstractColorChooserPanel.js
+javax/swing/colorchooser/CenterLayout.js
+javax/swing/colorchooser/ColorChooserComponentFactory.js
+javax/swing/colorchooser/ColorSelectionModel.js
+javax/swing/colorchooser/DefaultColorSelectionModel.js
+javax/swing/colorchooser/DefaultPreviewPanel.js
+javax/swing/colorchooser/DefaultRGBChooserPanel.js
+javax/swing/colorchooser/DefaultSwatchChooserPanel.js
+javax/swing/colorchooser/MainSwatchPanel.js
+javax/swing/colorchooser/RecentSwatchPanel.js
+javax/swing/colorchooser/SmartGridLayout.js
+javax/swing/colorchooser/SwatchPanel.js
 javax/swing/event/AncestorEvent.js
 javax/swing/event/AncestorListener.js
 javax/swing/event/CaretEvent.js
@@ -684,6 +701,7 @@ javax/swing/tree/DefaultTreeSelectionModel.js
 javax/swing/tree/MutableTreeNode.js
 javax/swing/tree/PathPlaceHolder.js
 javax/swing/tree/RowMapper.js
+javax/swing/tree/TreeCellEditor.js
 javax/swing/tree/TreeCellRenderer.js
 javax/swing/tree/TreeModel.js
 javax/swing/tree/TreeNode.js
@@ -828,6 +846,7 @@ org/opensourcephysics/display/InteractiveMouseHandler.js
 org/opensourcephysics/display/InteractivePanel.js
 org/opensourcephysics/display/LogMeasurable.js
 org/opensourcephysics/display/Measurable.js
+org/opensourcephysics/display/MeasuredImage.js
 org/opensourcephysics/display/MessageDrawable.js
 org/opensourcephysics/display/OSPFrame.js
 org/opensourcephysics/display/OSPRuntime.js
@@ -848,6 +867,7 @@ org/opensourcephysics/display/axes/CartesianType1.js
 org/opensourcephysics/display/axes/CoordinateStringBuilder.js
 org/opensourcephysics/display/axes/DrawableAxes.js
 org/opensourcephysics/display/dialogs/DialogsRes.js
+org/opensourcephysics/frames/ImageFrame.js
 org/opensourcephysics/js/JSUtil.js
 org/opensourcephysics/media/core/AsyncVideoI.js
 org/opensourcephysics/media/core/BaselineFilter.js
@@ -909,6 +929,7 @@ org/opensourcephysics/media/mov/MovieFactory.js
 org/opensourcephysics/media/mov/MovieVideoI.js
 org/opensourcephysics/media/mov/MovieVideoType.js
 org/opensourcephysics/numerics/AbstractODESolver.js
+org/opensourcephysics/numerics/ArrayLib.js
 org/opensourcephysics/numerics/FFT.js
 org/opensourcephysics/numerics/FFTReal.js
 org/opensourcephysics/numerics/Function.js
@@ -1175,6 +1196,7 @@ swingjs/plaf/BasicComboBoxRenderer.js
 swingjs/plaf/BasicHTML.js
 swingjs/plaf/ButtonListener.js
 swingjs/plaf/CellHolder.js
+swingjs/plaf/CenterLayout.js
 swingjs/plaf/DefaultMenuLayout.js
 swingjs/plaf/HTML5LookAndFeel.js
 swingjs/plaf/JSAppletUI.js
@@ -1182,6 +1204,7 @@ swingjs/plaf/JSBoxUI.js
 swingjs/plaf/JSButtonUI.js
 swingjs/plaf/JSCheckBoxMenuItemUI.js
 swingjs/plaf/JSCheckBoxUI.js
+swingjs/plaf/JSColorChooserUI.js
 swingjs/plaf/JSComboBoxUI.js
 swingjs/plaf/JSComboPopupList.js
 swingjs/plaf/JSComponentUI.js

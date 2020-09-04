@@ -310,6 +310,7 @@ public class TableTView extends TrackChooserTView {
 			String[][] data = (String[][]) control.getObject("track_columns"); //$NON-NLS-1$
 			if (data != null) {
 				Map<TTrack, TrackView> views = view.trackViews;
+				if (views != null)
 				for (TTrack track : views.keySet()) {
 					TableTrackView tableView = (TableTrackView) view.getTrackView(track);
 					if (tableView == null)

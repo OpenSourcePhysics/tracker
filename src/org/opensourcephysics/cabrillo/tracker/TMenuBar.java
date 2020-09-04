@@ -176,6 +176,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	// file menu
 	private JMenu fileMenu;
 	private JMenuItem file_newTabItem;
+	private JMenuItem file_replaceTabItem;
 	private JMenuItem file_openItem;
 	private JMenuItem file_openBrowserItem;
 
@@ -570,15 +571,20 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		add(helpMenu);
 	}
 
+	private static boolean testing = true;
+	
 	private void createFileMenu(int keyMask) {
 		fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File"));
 		fileMenu.setName("file");
 		fileMenu.addMenuListener(this);
 		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
+			if (testing) {
+				file_replaceTabItem = new JMenuItem("Replace Tab"); // TODO TrackerRes.getString("TMenuBar.Menu.ReplaceTab")
+				file_replaceTabItem.addActionListener((e)-> {frame.loadExperimentURL(null);});
+			}
 			// new tab item
 			file_newTabItem = new JMenuItem(actions.get("newTab"));
 			file_newTabItem.setAccelerator(KeyStroke.getKeyStroke('N', keyMask));
-			fileMenu.addSeparator();
 			// open item
 			file_openItem = new JMenuItem(actions.get("open")); //$NON-NLS-1$
 			file_openItem.setAccelerator(KeyStroke.getKeyStroke('O', keyMask));
@@ -599,7 +605,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// close and close all items
 			file_closeItem = new JMenuItem(actions.get("close")); //$NON-NLS-1$
 			file_closeAllItem = new JMenuItem(actions.get("closeAll")); //$NON-NLS-1$
-			fileMenu.addSeparator();
 			// export menu
 			file_exportMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Export")); //$NON-NLS-1$
 			// export zip item
@@ -629,7 +634,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					exporter.setVisible(true);
 			});
 			file_exportMenu.add(file_export_dataItem);
-			fileMenu.addSeparator();
 			// save item
 			file_saveItem = new JMenuItem(actions.get("save")); //$NON-NLS-1$
 			file_saveItem.setAccelerator(KeyStroke.getKeyStroke('S', keyMask));
@@ -641,7 +645,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			saveVideoAsItem = new JMenuItem(actions.get("saveVideo")); //$NON-NLS-1$
 			// saveTabset item
 			file_saveTabsetAsItem = new JMenuItem(actions.get("saveTabsetAs")); //$NON-NLS-1$
-			fileMenu.addSeparator();
 		}
 		// properties item
 		file_propertiesItem = new JMenuItem(actions.get("properties")); //$NON-NLS-1$
@@ -1378,11 +1381,13 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				name = " \"" + name + "\""; //$NON-NLS-1$ //$NON-NLS-2$
 				file_closeItem.setText(TrackerRes.getString("TActions.Action.Close") + name); //$NON-NLS-1$
 				file_saveItem.setText(TrackerRes.getString("TActions.Action.Save") + name); //$NON-NLS-1$
-			}
-			if (org.opensourcephysics.display.OSPRuntime.applet == null) {
 				if (trackerPanel.isEnabled("file.new")) { //$NON-NLS-1$
 					fileMenu.add(file_newTabItem);
 				}
+				if (file_replaceTabItem != null) {
+					fileMenu.add(file_replaceTabItem);
+				}
+
 				if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
 					if (fileMenu.getItemCount() > 0)
 						fileMenu.addSeparator();
@@ -2644,9 +2649,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		actions.clear();
 		actions = null;
 		TActions.actionMaps.remove(trackerPanel);
-		for (int i = 0; i < edit_copyViewImageItems.length; i++) {
-			edit_copyViewImageItems[i] = null;
-		}
+		if (edit_copyViewImageItems != null)
+			for (int i = 0; i < edit_copyViewImageItems.length; i++) {
+				edit_copyViewImageItems[i] = null;
+			}
 		trackerPanel = null;
 	}
 

@@ -1,0 +1,18 @@
+TrackerStarter version 5.1.3  14:30:02  Aug 19 2020
+
+ - relaunch initiated by Tracker
+ - TrackerStarter running in jre: /Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home/jre
+ - launching with main arguments: null
+ - osp.prefs XUGGLE_HOME: /Applications/Tracker.app/Contents/Xuggle
+ - using xugglehome: /Applications/Tracker.app/Contents/Xuggle
+ - loading starter preferences from: /Users/wochristian/.tracker.prefs
+ - system property PREFERRED_TRACKER_JAR = /Users/wochristian/Dropbox (Davidson College)/GitHubOSP/tracker/distribution/tracker.jar
+ - no preferred or bundled java VM, using default
+ - system property PREFERRED_MEMORY_SIZE = 256
+ - preferred memory size: 256 MB
+ - setting TRACKER_HOME = /Users/wochristian/Dropbox (Davidson College)/GitHubOSP/tracker/distribution
+ - setting XUGGLE_HOME = /Applications/Tracker.app/Contents/Xuggle
+ - setting DYLD_LIBRARY_PATH = /Applications/Tracker.app/Contents/Xuggle/lib:
+ - executing command: /Library/Java/JavaVirtualMachines/jdk1.8.0_201.jdk/Contents/Home/jre/bin/java -Xms32m -Xmx256m -Xdock:name=Tracker -jar /Users/wochristian/Dropbox (Davidson College)/GitHubOSP/tracker/distribution/tracker.jar 
+ - writing user start log to /Users/wochristian/Library/Application Support/OSP/tracker_start.log
+ - writing code base start log /Users/wochristian/Dropbox (Davidson College)/GitHubOSP/tracker/distribution/tracker_start.log
