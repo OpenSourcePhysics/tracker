@@ -321,10 +321,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		//
 		if (!(this instanceof WorldTView)) {
-			if (Tracker.haveDataFunctions())
-				getDataBuilder(); 
-			// so autoloaded datafunctions are available to tracks
-			// and?
+			// don't getDataBuilder before adding to TFrame
+//			if (Tracker.haveDataFunctions())
+//				getDataBuilder(); 
+//			// so autoloaded datafunctions are available to tracks
 			panelAndWorldViews.add(this);
 		}
 		configure();
