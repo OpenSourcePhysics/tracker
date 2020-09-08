@@ -109,7 +109,6 @@ import org.opensourcephysics.tools.FunctionEditor;
 import org.opensourcephysics.tools.FunctionPanel;
 import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.LaunchNode;
-import org.opensourcephysics.tools.Launcher;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -182,7 +181,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.1.3"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20200908"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2020 Douglas Brown, Robert Hanson"; //$NON-NLS-1$
 	
 	/**
@@ -216,7 +215,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	// for testing
 	public static boolean timeLogEnabled = false;
-	static boolean testOn = true;
+	static boolean testOn = false;
 	static String testString;
 
 	// define static fields
@@ -507,10 +506,11 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		Box center = Box.createVerticalBox();
 		center.add(helpLabel);
 		center.add(progressPanel);
-		contentPane.add(center, BorderLayout.CENTER);
+//		contentPane.add(center, BorderLayout.CENTER);
 
 		// version south
-		String vers = author + "   " + osp + "   Ver " + VERSION; //$NON-NLS-1$ //$NON-NLS-2$
+//		String vers = author + "   " + osp + "   Ver " + VERSION; //$NON-NLS-1$ //$NON-NLS-2$
+		String vers = "Ver " + VERSION; //$NON-NLS-1$ //$NON-NLS-2$
 		if (VERSION.length() > 7 || testOn)
 			vers += " BETA"; //$NON-NLS-1$
 		JLabel versionLabel = new JLabel(vers);
