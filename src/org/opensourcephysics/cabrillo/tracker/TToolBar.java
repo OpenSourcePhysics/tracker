@@ -948,6 +948,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		labelsMenuItem.setSelected(labelsButton.isSelected());
 		xMassMenuItem.setSelected(xMassButton.isSelected());
 		
+		FontSizer.setFonts(eyePopup);
 		return eyePopup;
 	}
 
@@ -1128,7 +1129,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		add(toolbarFiller);
 		if (trackerPanel.isEnabled("button.drawing")) //$NON-NLS-1$
 			add(drawingButton);
-		add(desktopButton);
+		if (!pageViewTabs.isEmpty() || !trackerPanel.supplementalFilePaths.isEmpty())
+			add(desktopButton);
 		add(notesButton);
 		add(refreshButton);
 
