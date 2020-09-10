@@ -66,6 +66,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToolBar;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.MenuEvent;
@@ -107,6 +108,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected static Icon axesOffIcon, axesOnIcon;
 	final protected static Icon calibrationToolsOffIcon, calibrationToolsOnIcon;
 	final protected static Icon calibrationToolsOffRolloverIcon, calibrationToolsOnRolloverIcon;
+	final protected static Icon eyeIcon;
 	final protected static Icon pointsOffIcon, pointsOnIcon;
 	final protected static Icon velocOffIcon, velocOnIcon;
 	final protected static Icon accelOffIcon, accelOnIcon;
@@ -161,11 +163,16 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected CalibrationButton calibrationButton;
 	final protected DrawingButton drawingButton;
 	final protected JButton axesButton, zoomButton, autotrackerButton;
-	final protected JButton traceVisButton, pVisButton, vVisButton, aVisButton;
-	final protected JButton xMassButton, trailButton, labelsButton, stretchButton;
+	final protected TButton eyeButton;
+	final protected TButton traceVisButton, pVisButton, vVisButton, aVisButton;
+	final protected TButton xMassButton, trailButton, labelsButton, stretchButton;
+	 protected JMenuItem pathVisMenuItem, pVisMenuItem, vVisMenuItem, aVisMenuItem;
+	 protected JMenuItem xMassMenuItem, labelsMenuItem;
+	 protected JMenu trailsMenu, stretchMenu;
 	final protected JButton fontSmallerButton, fontBiggerButton;
 	final protected JPopupMenu newPopup = new JPopupMenu();
 	final protected JPopupMenu selectPopup = new JPopupMenu();
+	final protected JPopupMenu eyePopup = new JPopupMenu();
 	final protected JMenu vStretchMenu, aStretchMenu;
 	protected ButtonGroup vGroup, aGroup;
 	final protected JMenuItem showTrackControlItem, selectNoneItem, stretchOffItem;
@@ -191,6 +198,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		calibrationToolsOnIcon = Tracker.getResourceIcon("calibration_tool_on.gif", true); //$NON-NLS-1$
 		calibrationToolsOffRolloverIcon = Tracker.getResourceIcon("calibration_tool_rollover.gif", true); //$NON-NLS-1$
 		calibrationToolsOnRolloverIcon = Tracker.getResourceIcon("calibration_tool_on_rollover.gif", true); //$NON-NLS-1$
+		eyeIcon = Tracker.getResourceIcon("eye.gif", true); //$NON-NLS-1$
 		pointsOffIcon = Tracker.getResourceIcon("positions.gif", true); //$NON-NLS-1$
 		pointsOnIcon = Tracker.getResourceIcon("positions_on.gif", true); //$NON-NLS-1$
 		velocOffIcon = Tracker.getResourceIcon("velocities.gif", true); //$NON-NLS-1$
@@ -235,6 +243,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	}
 
 	protected boolean refreshing; // true when refreshing toolbar
+	protected boolean useEyeButton = true;
 	protected int vStretch = 1, aStretch = 1;
 	protected int trailLength = defTrailLength;
 	protected boolean notYetCalibrated = true;
@@ -603,6 +612,14 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 		};
 
+		// eye button
+		eyeButton = new TButton(eyeIcon) {
+
+			@Override
+			protected JPopupMenu getPopup() {
+				return refreshEyePopup();
+			}
+		};
 		// font buttons
 		fontSmallerButton = new TButton(fontSmallerIcon);
 		fontBiggerButton = new TButton(fontBiggerIcon);
@@ -822,6 +839,118 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		double zoom = trackerPanel.getMagnification() * 100;
 		zoomButton.setText(zoomFormat.format(zoom) + "%"); //$NON-NLS-1$
 	}
+	
+	protected JPopupMenu refreshEyePopup() {
+		if (pathVisMenuItem == null) {
+			int gap = 6;
+			
+			pathVisMenuItem = new JCheckBoxMenuItem(traceOffIcon);
+			pathVisMenuItem.addActionListener((e) -> {
+				traceVisButton.setSelected(!traceVisButton.isSelected());
+				refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
+			});
+			pathVisMenuItem.setIconTextGap(gap);
+			eyePopup.add(pathVisMenuItem);
+			
+			pVisMenuItem = new JCheckBoxMenuItem(pointsOffIcon);
+			pVisMenuItem.addActionListener((e) -> {
+				pVisButton.setSelected(!pVisButton.isSelected());
+				refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
+			});
+			pVisMenuItem.setIconTextGap(gap);
+			eyePopup.add(pVisMenuItem);
+			
+			vVisMenuItem = new JCheckBoxMenuItem(velocOffIcon);
+			vVisMenuItem.addActionListener((e) -> {
+				vVisButton.setSelected(!vVisButton.isSelected());
+				refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
+			});
+			vVisMenuItem.setIconTextGap(gap);
+			eyePopup.add(vVisMenuItem);
+			
+			aVisMenuItem = new JCheckBoxMenuItem(accelOffIcon);
+			aVisMenuItem.addActionListener((e) -> {
+				aVisButton.setSelected(!aVisButton.isSelected());
+				refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
+			});
+			aVisMenuItem.setIconTextGap(gap);
+			eyePopup.add(aVisMenuItem);
+
+			eyePopup.addSeparator();
+
+			trailsMenu = new JMenu();
+			trailsMenu.setIconTextGap(gap);
+			JPopupMenu trailPopup = trailButton.getPopup();
+			int n = trailPopup.getComponentCount();
+			for (int i = 0; i < n; i++) {
+				trailsMenu.add(trailPopup.getComponent(0));				
+			}
+			eyePopup.add(trailsMenu);
+			
+			labelsMenuItem = new JCheckBoxMenuItem(labelsOffIcon);
+			labelsMenuItem.addActionListener((e) -> {
+				labelsButton.setSelected(!labelsButton.isSelected());
+				refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
+			});
+			labelsMenuItem.setIconTextGap(gap);
+			eyePopup.add(labelsMenuItem);
+			
+			eyePopup.addSeparator();
+			
+			stretchMenu = new JMenu();
+			stretchMenu.setIcon(stretchOffIcon);
+			stretchMenu.setIconTextGap(gap);
+			eyePopup.add(stretchMenu);
+			
+			xMassMenuItem = new JCheckBoxMenuItem(xmassOffIcon);
+			xMassMenuItem.addActionListener((e) -> {
+				xMassButton.setSelected(!xMassButton.isSelected());
+				refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
+			});
+			xMassMenuItem.setIconTextGap(gap);
+			eyePopup.add(xMassMenuItem);			
+		}
+		
+		// refresh text strings
+		pathVisMenuItem.setText(TrackerRes.getString("TToolBar.Menuitem.Paths.Text"));
+		pVisMenuItem.setText(TrackerRes.getString("TToolBar.Menuitem.Positions.Text"));
+		vVisMenuItem.setText(xMassButton.isSelected()?
+				TrackerRes.getString("TToolBar.Menuitem.Veloc.Text.P"):
+				TrackerRes.getString("TToolBar.Menuitem.Veloc.Text.V"));
+		aVisMenuItem.setText(xMassButton.isSelected()?
+				TrackerRes.getString("TToolBar.Menuitem.Accel.Text.F"):
+				TrackerRes.getString("TToolBar.Menuitem.Accel.Text.A"));
+		trailsMenu.setText(TrackerRes.getString("TToolBar.Menu.Trails.Text"));
+		labelsMenuItem.setText(TrackerRes.getString("TToolBar.Menuitem.Labels.Text"));
+		stretchMenu.setText(TrackerRes.getString("TToolBar.Menu.Stretch.Text"));
+		xMassMenuItem.setText(TrackerRes.getString("TToolBar.Menuitem.Xmass.Text"));
+		
+		// refresh stretch and trails menus
+		if (stretchMenu.getMenuComponentCount() != 4) {
+			stretchMenu.removeAll();
+			stretchMenu.add(vStretchMenu);
+			stretchMenu.add(aStretchMenu);
+			stretchMenu.addSeparator();
+			stretchMenu.add(stretchOffItem);
+		}
+		for (int i = 0; i < trailLengths.length; i++) {
+			if (trailLength == trailLengths[i]) {
+				trailsMenu.setIcon(trailIcons[i]);
+				break;
+			}
+		}
+		
+		// refresh selection state to match buttons
+		pathVisMenuItem.setSelected(traceVisButton.isSelected());
+		pVisMenuItem.setSelected(pVisButton.isSelected());
+		vVisMenuItem.setSelected(vVisButton.isSelected());
+		aVisMenuItem.setSelected(aVisButton.isSelected());
+		labelsMenuItem.setSelected(labelsButton.isSelected());
+		xMassMenuItem.setSelected(xMassButton.isSelected());
+		
+		return eyePopup;
+	}
+
 
 	private Timer refreshTimer;
 
@@ -957,35 +1086,41 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		add(getSeparator());
 		add(zoomButton);
 		add(getSeparator());
-		if (trackerPanel.isEnabled("button.trails") //$NON-NLS-1$
-				|| trackerPanel.isEnabled("button.labels")) { //$NON-NLS-1$
-			if (trackerPanel.isEnabled("button.trails")) //$NON-NLS-1$
-				add(trailButton);
-			if (trackerPanel.isEnabled("button.labels")) //$NON-NLS-1$
-				add(labelsButton);
+		if (useEyeButton) {
+			add(eyeButton);
 			add(getSeparator());
 		}
-		if (trackerPanel.isEnabled("button.path") //$NON-NLS-1$
-				|| trackerPanel.isEnabled("button.x") //$NON-NLS-1$
-				|| trackerPanel.isEnabled("button.v") //$NON-NLS-1$
-				|| trackerPanel.isEnabled("button.a")) {//$NON-NLS-1$
-			if (trackerPanel.isEnabled("button.path")) //$NON-NLS-1$
-				add(traceVisButton);
-			if (trackerPanel.isEnabled("button.x")) //$NON-NLS-1$
-				add(pVisButton);
-			if (trackerPanel.isEnabled("button.v")) //$NON-NLS-1$
-				add(vVisButton);
-			if (trackerPanel.isEnabled("button.a")) //$NON-NLS-1$
-				add(aVisButton);
-			add(getSeparator());
-		}
-		if (trackerPanel.isEnabled("button.stretch") //$NON-NLS-1$
-				|| trackerPanel.isEnabled("button.xMass")) { //$NON-NLS-1$
-			if (trackerPanel.isEnabled("button.stretch")) //$NON-NLS-1$
-				add(stretchButton);
-			if (trackerPanel.isEnabled("button.xMass")) //$NON-NLS-1$
-				add(xMassButton);
-			add(getSeparator());
+		else {
+			if (trackerPanel.isEnabled("button.trails") //$NON-NLS-1$
+					|| trackerPanel.isEnabled("button.labels")) { //$NON-NLS-1$
+				if (trackerPanel.isEnabled("button.trails")) //$NON-NLS-1$
+					add(trailButton);
+				if (trackerPanel.isEnabled("button.labels")) //$NON-NLS-1$
+					add(labelsButton);
+				add(getSeparator());
+			}
+			if (trackerPanel.isEnabled("button.path") //$NON-NLS-1$
+					|| trackerPanel.isEnabled("button.x") //$NON-NLS-1$
+					|| trackerPanel.isEnabled("button.v") //$NON-NLS-1$
+					|| trackerPanel.isEnabled("button.a")) {//$NON-NLS-1$
+				if (trackerPanel.isEnabled("button.path")) //$NON-NLS-1$
+					add(traceVisButton);
+				if (trackerPanel.isEnabled("button.x")) //$NON-NLS-1$
+					add(pVisButton);
+				if (trackerPanel.isEnabled("button.v")) //$NON-NLS-1$
+					add(vVisButton);
+				if (trackerPanel.isEnabled("button.a")) //$NON-NLS-1$
+					add(aVisButton);
+				add(getSeparator());
+			}
+			if (trackerPanel.isEnabled("button.stretch") //$NON-NLS-1$
+					|| trackerPanel.isEnabled("button.xMass")) { //$NON-NLS-1$
+				if (trackerPanel.isEnabled("button.stretch")) //$NON-NLS-1$
+					add(stretchButton);
+				if (trackerPanel.isEnabled("button.xMass")) //$NON-NLS-1$
+					add(xMassButton);
+				add(getSeparator());
+			}
 		}
 		add(fontSmallerButton);
 		add(fontBiggerButton);
