@@ -2511,7 +2511,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		case AsyncVideoI.PROPERTY_ASYNCVIDEOI_READY:
 			super.propertyChange(e);
 			getTFrame().holdPainting(false);
-			TFrame.repaintT(this);
+			notifyLoadingComplete();
+//			TFrame.repaintT(this);
 			break;
 		case TTrack.PROPERTY_TTRACK_STEP:
 		case TTrack.PROPERTY_TTRACK_STEPS: // from tracks/steps //$NON-NLS-1$
