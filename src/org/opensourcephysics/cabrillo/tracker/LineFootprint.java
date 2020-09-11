@@ -171,6 +171,7 @@ public class LineFootprint implements Footprint, Cloneable {
 	@Override
 	public Mark getMark(Point[] points) {
 		MultiShape shape = getShape(points);
+		MultiShape hilite = getHighlightShape();
 		return new Mark() {
 
 			@Override
@@ -183,8 +184,8 @@ public class LineFootprint implements Footprint, Cloneable {
 					g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 				shape.draw(g);
-				if (highlighted && highlight != null) {
-					highlight.draw(g);
+				if (highlighted && hilite != null) {
+					hilite.draw(g);
 				}
 				g.setColor(gcolor);
 				g.setStroke(gstroke);
@@ -311,7 +312,21 @@ public class LineFootprint implements Footprint, Cloneable {
 		return new MultiShape(transform.createTransformedShape(path)).andFill(true);
 	}
 	
-  /**
+	/**
+	 * Gets the highlight shape of this footprint. This should be called immediately
+	 * following getShape() as the highlight is created there.
+	 *
+	 * @return the shape
+	 */
+	public MultiShape getHighlightShape() {
+		if (highlight != null) {
+			return new MultiShape(highlight);
+		}
+		return null;
+	}
+
+		
+	/**
    * Gets a rotator shape.
    *
    * @param center the screen point of line center
