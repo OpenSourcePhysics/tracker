@@ -47,6 +47,7 @@ import org.opensourcephysics.tools.ResourceLoader;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.BitSet;
 
 /**
  * A dialog for viewing and setting document properties and metadata.
@@ -208,7 +209,7 @@ public class PropertiesDialog extends JDialog {
 		    fps = frameRate==0? "": format.format(frameRate)+" ";	 //$NON-NLS-1$ //$NON-NLS-2$
 		    if (frameRate>0)
 		    	fps += TrackerRes.getString("TActions.Dialog.AboutVideo.FramesPerSecond"); //$NON-NLS-1$
-		    ArrayList<Integer> badFrames = TrackerIO.findBadVideoFrames(trackerPanel, TrackerIO.defaultBadFrameTolerance, 
+		    BitSet badFrames = TrackerIO.findBadVideoFrames(trackerPanel, TrackerIO.defaultBadFrameTolerance, 
       			false, false, false); // don't show dialog, just get bad frames
 		    if (!badFrames.isEmpty()) {
 		    	fps += " ("+TrackerRes.getString("TActions.Dialog.AboutVideo.FramesPerSecond.NotConstant")+")"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
