@@ -64,6 +64,8 @@ import org.opensourcephysics.tools.FontSizer;
 @SuppressWarnings("serial")
 public abstract class TrackChooserTView extends JPanel implements TView {
 
+	protected static int viewPanelID;
+	
 	// instance fields
 	protected TrackerPanel trackerPanel;
 	protected Map<Object, TTrack> tracks = new HashMap<Object, TTrack>(); // maps dropdown items to track
@@ -75,6 +77,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	private JComboBox<Object[]> trackComboBox;
 	private JPanel noData;
 	private JLabel noDataLabel;
+
+	private int id;
 	
 	
 	protected void setNodataLabel(String text) {
@@ -87,6 +91,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 */
 	protected TrackChooserTView(TrackerPanel panel) {
 		super(new CardLayout());
+		id = ++viewPanelID;
 		if (panel == null) {
 			// just a place-holder 
 			return;
@@ -189,19 +194,18 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				trackView.refresh(step.getFrameNumber(), DataTable.MODE_TRACK_CHOOSE);
 			else
 				trackView.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_CHOOSE);
-			CardLayout layout = (CardLayout) getLayout();
-			layout.show(this, name);
-			TFrame.repaintT(this);
+//			((CardLayout) getLayout()).show(this, name);
+//			TFrame.repaintT(this);
 			firePropertyChange(TView.PROPERTY_TVIEW_TRACKVIEW, trackView, prevView);
 			// inform track views
 			PropertyChangeEvent event = new PropertyChangeEvent(this, TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
 					null, track);
 			Iterator<TTrack> it = trackViews.keySet().iterator();
 			while (it.hasNext()) {
-				TTrack nextTrack = it.next();
-				TrackView next = trackViews.get(nextTrack);
-				next.propertyChange(event);
+				trackViews.get(it.next()).propertyChange(event);
 			}
+			((CardLayout) getLayout()).show(this, name);
+			TFrame.repaintT(this);
 		}
 	}
 
@@ -376,23 +380,31 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 * @param track the track to be selected
 	 */
 	public void setSelectedTrack(TTrack track) {
-		OSPLog.debug("TrackChooserTView.setSelected " + track);
 		if (track == null) {
 			setNoData();
 			return;
 		}
-		if (!track.isViewable() || !trackerPanel.containsTrack(track))
+		if (!trackerPanel.containsTrack(track))
 			return;
+		
+		if (!track.isViewable()) {
+			selectedTrack = track;
+			return;
+		}
+		
+
 		if (track == selectedTrack && tracks.get(trackComboBox.getSelectedItem()) == track) {
 			// just refresh the selected TrackView
 			getTrackView(selectedTrack).refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_SELECT);
 			return;
 		}
 		Iterator<Object> it = tracks.keySet().iterator();
-		while (it.hasNext()) {
+		if (!it.hasNext()) {
+			selectedTrack = track;			
+		}
+ 		while (it.hasNext()) {
 			Object item = it.next();
 			if (tracks.get(item) == track) {
-				OSPLog.debug("TrackChooser.setSelected found " + track);
 				removeTrackListener(track);
 				addTrackListener(track);
 				// select the track dropdown item
@@ -630,5 +642,12 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			super.repaint();
 	}
 
+	
+	@Override
+	public String toString() {
+		return "["+ getClass().getSimpleName() + " " + id +" selected=" + selectedTrack 
+				+ " views=" + (trackViews == null ? 0 : trackViews.size()) 
+				+ " tracks=" + tracks.size() + "]";
+	}
 
 }

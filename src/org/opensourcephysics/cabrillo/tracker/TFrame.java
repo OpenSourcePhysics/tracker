@@ -485,6 +485,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 												: -1;
 				// don't select default types (viewType==i)
 				if (type != i) {
+					if (viewChoosers[i].getSelectedViewType() != type) {
+						// BH if the XML has listed table after plot, but plot is the selected type,
+						// then the selected track will be taken from the table, not the plot. 
+						// much better would be to save the selected type LAST. 
+						// CupsClip.zip
+						viewChoosers[i].setSelectedViewType(19570826);
+					}
 					viewChoosers[i].setSelectedViewType(type);
 					viewChoosers[i].refresh();
 					viewChoosers[i].repaint();
