@@ -181,7 +181,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20200910"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20200912"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2020 D Brown, R Hanson, W Christian"; //$NON-NLS-1$
 	
 	/**
@@ -212,6 +212,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static final String SQUARED = "\u00b2"; //$NON-NLS-1$
 	static final String DOT = "\u00b7"; //$NON-NLS-1$
 	static final Level DEFAULT_LOG_LEVEL = ConsoleLevel.OUT_CONSOLE;
+	static final int DEFAULT_TRAIL_LENGTH_INDEX = 2;
 
 	// for testing
 	public static boolean timeLogEnabled = false;
@@ -310,7 +311,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static boolean markAtCurrentFrame = true;
 	static boolean scrubMouseWheel, centerCalibrationStick, hideLabels;
 	static boolean enableAutofill = true, showGaps = true;
-	static int trailLengthIndex = TToolBar.trailLengths.length - 2;
+	static int preferredTrailLengthIndex = DEFAULT_TRAIL_LENGTH_INDEX;
 	private static boolean declareLocales = !isJS;
 
 	// the only instance field!
@@ -2376,8 +2377,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					control.setValue("show_gaps", showGaps); //$NON-NLS-1$
 				if (!enableAutofill) // true by default
 					control.setValue("enable_autofill", enableAutofill); //$NON-NLS-1$
-				if (trailLengthIndex != TToolBar.trailLengths.length - 2)
-					control.setValue("trail_length", TToolBar.trailLengthNames[trailLengthIndex]); //$NON-NLS-1$
+				if (preferredTrailLengthIndex != DEFAULT_TRAIL_LENGTH_INDEX)
+					control.setValue("trail_length", TToolBar.trailLengthNames[preferredTrailLengthIndex]); //$NON-NLS-1$
 				if (centerCalibrationStick) // false by default
 					control.setValue("center_stick", centerCalibrationStick); //$NON-NLS-1$
 				if (isXuggleFast) // false by default
@@ -2508,7 +2509,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					String name = control.getString("trail_length"); //$NON-NLS-1$
 					for (int i = 0; i < TToolBar.trailLengthNames.length; i++) {
 						if (TToolBar.trailLengthNames[i].equals(name))
-							trailLengthIndex = i;
+							preferredTrailLengthIndex = i;
 					}
 				}
 				if (control.getPropertyNamesRaw().contains("warn_no_engine")) //$NON-NLS-1$

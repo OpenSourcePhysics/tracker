@@ -337,7 +337,6 @@ public class TapeStep extends Step {
 
 			// create footprint mark
 			Mark tapeMark = footprint.getMark(screenPoints);
-			OSPLog.debug("pig tapestep getMark "+p);
 			
       if (!isWorldView) {
 			  if (p != null) {
@@ -764,7 +763,6 @@ public class TapeStep extends Step {
 		double halfwsin = w * sin / 2;
 		double halfhcos = h * cos / 2;
 		double d = Math.sqrt((halfwsin*halfwsin) + (halfhcos*halfhcos)) + 8; 
-		OSPLog.debug("pig tape d "+d);
 		// draw relative to center of tape
 		middle.center(end1, end2);
 		Point p = middle.getScreenPosition(trackerPanel);
