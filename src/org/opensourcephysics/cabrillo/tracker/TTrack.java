@@ -3461,7 +3461,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				track.setFootprint(s.trim());
 			// visible and trail
 			track.setVisible(control.getBoolean("visible")); //$NON-NLS-1$
-			track.setTrailLength(TToolBar.defTrailLength);
+			track.setTrailLength(TToolBar.trailLengths[Tracker.preferredTrailLengthIndex]);
 			track.setTrailVisible(control.getBoolean("trail")); //$NON-NLS-1$
 			// number formats
 			track.customNumberFormats = (String[]) control.getObject("number_formats"); //$NON-NLS-1$

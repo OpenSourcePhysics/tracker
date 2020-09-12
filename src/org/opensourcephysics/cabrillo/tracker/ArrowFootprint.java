@@ -139,6 +139,7 @@ public Icon getIcon(int w, int h) {
    */
   @Override
 public synchronized MultiShape getShape(Point[] points) {
+  	highlight = null;  // will create new  one below
     Point p1 = points[0];
     Point p2 = points[1];
     if (points.length>3) {
