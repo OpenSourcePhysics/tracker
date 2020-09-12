@@ -450,7 +450,6 @@ public class TActions {
 						TFrame frame = trackerPanel.getTFrame();
 						if (frame != null) {
 							// save tabs in try/catch block so always closes
-							// pig
 //					try {
 //						int[] i = {0};
 //						TrackerPanel panel = frame.getTrackerPanel(i[0]);

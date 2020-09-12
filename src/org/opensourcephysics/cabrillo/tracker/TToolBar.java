@@ -127,9 +127,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected static Icon pencilOffIcon, pencilOnIcon, pencilOffRolloverIcon, pencilOnRolloverIcon;
 	final protected static NumberFormat zoomFormat = NumberFormat.getNumberInstance();
 
-	public static int defTrailLength = trailLengths[Tracker.trailLengthIndex];
-
-	// false
 	public static final String REFRESH_PAGETVIEW_TABS = "PageTView.tabs";
 	public static final String REFRESH_PAGETVIEW_TITLE = "PageTView.title";
 	public static final String REFRESH_PAGETVIEW_URL = "PageTView.url";
@@ -166,9 +163,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected TButton eyeButton;
 	final protected TButton traceVisButton, pVisButton, vVisButton, aVisButton;
 	final protected TButton xMassButton, trailButton, labelsButton, stretchButton;
-	 protected JMenuItem pathVisMenuItem, pVisMenuItem, vVisMenuItem, aVisMenuItem;
-	 protected JMenuItem xMassMenuItem, labelsMenuItem;
-	 protected JMenu trailsMenu, stretchMenu;
+	protected JMenuItem pathVisMenuItem, pVisMenuItem, vVisMenuItem, aVisMenuItem;
+	protected JMenuItem xMassMenuItem, labelsMenuItem;
+	protected JMenu trailsMenu, stretchMenu;
 	final protected JButton fontSmallerButton, fontBiggerButton;
 	final protected JPopupMenu newPopup = new JPopupMenu();
 	final protected JPopupMenu selectPopup = new JPopupMenu();
@@ -245,7 +242,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected boolean refreshing; // true when refreshing toolbar
 	protected boolean useEyeButton = true;
 	protected int vStretch = 1, aStretch = 1;
-	protected int trailLength = defTrailLength;
+	protected int trailLengthIndex = Tracker.preferredTrailLengthIndex;
 	protected boolean notYetCalibrated = true;
 	protected int toolbarComponentHeight;
 	private AbstractAction zoomAction;
@@ -435,7 +432,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				JButton button = (JButton) e.getSource();
 				button.setSelected(!button.isSelected());
-				refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
+				if (useEyeButton)
+					refreshTracks(); // no need to refresh toolbar, only tracks
+				else
+					refresh(TToolBar.REFRESH__REFRESH_ACTION_TRUE);
 			}
 		};
 		// p visible button
@@ -461,34 +461,33 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						int n = Integer.parseInt(e.getActionCommand());
-						trailLength = trailLengths[n];
-						trailButton.setSelected(trailLength != 1);
+						trailLengthIndex = Integer.parseInt(e.getActionCommand());
+						trailButton.setSelected(trailLengthIndex != 0);
 						refresh(REFRESH__TRAIL_BUTTON_ACTION_TRUE);
 						TFrame.repaintT(trackerPanel);
 					}
 				};
 				ButtonGroup group = new ButtonGroup();
 				JMenuItem item = new JRadioButtonMenuItem(TrackerRes.getString("TrackControl.TrailMenu.NoTrail")); //$NON-NLS-1$
-				item.setSelected(trailLength == trailLengths[0]);
+				item.setSelected(trailLengthIndex == 0);
 				item.setActionCommand(String.valueOf(0));
 				item.addActionListener(listener);
 				popup.add(item);
 				group.add(item);
 				item = new JRadioButtonMenuItem(TrackerRes.getString("TrackControl.TrailMenu.ShortTrail")); //$NON-NLS-1$
-				item.setSelected(trailLength == trailLengths[1]);
+				item.setSelected(trailLengthIndex == 1);
 				item.setActionCommand(String.valueOf(1));
 				item.addActionListener(listener);
 				popup.add(item);
 				group.add(item);
 				item = new JRadioButtonMenuItem(TrackerRes.getString("TrackControl.TrailMenu.LongTrail")); //$NON-NLS-1$
-				item.setSelected(trailLength == trailLengths[2]);
+				item.setSelected(trailLengthIndex == 2);
 				item.setActionCommand(String.valueOf(2));
 				item.addActionListener(listener);
 				popup.add(item);
 				group.add(item);
 				item = new JRadioButtonMenuItem(TrackerRes.getString("TrackControl.TrailMenu.FullTrail")); //$NON-NLS-1$
-				item.setSelected(trailLength == trailLengths[3]);
+				item.setSelected(trailLengthIndex == 3);
 				item.setActionCommand(String.valueOf(3));
 				item.addActionListener(listener);
 				popup.add(item);
@@ -933,12 +932,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			stretchMenu.addSeparator();
 			stretchMenu.add(stretchOffItem);
 		}
-		for (int i = 0; i < trailLengths.length; i++) {
-			if (trailLength == trailLengths[i]) {
-				trailsMenu.setIcon(trailIcons[i]);
-				break;
-			}
-		}
+		trailsMenu.setIcon(trailIcons[trailLengthIndex]);
 		
 		// refresh selection state to match buttons
 		pathVisMenuItem.setSelected(traceVisButton.isSelected());
@@ -1179,13 +1173,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			pt.showCoordinates(trackerPanel);
 
 		// set trails icon
-		for (int i = trailLengths.length; --i >= 0;) {
-			if (trailLength == trailLengths[i]) {
-				if (trailIcons[i] != trailButton.getIcon())
-					trailButton.setIcon(trailIcons[i]);
-				FontSizer.setFont(trailButton);
-				break;
-			}
+		if (trailIcons[trailLengthIndex] != trailButton.getIcon()) {
+			trailButton.setIcon(trailIcons[trailLengthIndex]);
+			FontSizer.setFont(trailButton);
 		}
 
 		// refresh pageViewTabs list
@@ -1231,7 +1221,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); // $NON-NLS-1$
 			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); // $NON-NLS-1$
 			// refresh track display properties from current button states
-			track.setTrailLength(trailLength);
+			track.setTrailLength(trailLengths[trailLengthIndex]);
 			track.setTrailVisible(trailButton.isSelected());
 			if (track instanceof PointMass) {
 				PointMass p = (PointMass) track;
@@ -1267,6 +1257,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					}
 				}
 				doRepaint = true;
+				track.erase();
 //				if (false)
 //					p.repaint();
 			} else if (track instanceof Vector) {
@@ -1280,6 +1271,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					}
 				}
 				doRepaint = true;
+				track.erase();
 //				if (false)
 //					v.repaint();
 			}
@@ -1468,7 +1460,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			control.setValue("acceleration", toolbar.aVisButton.isSelected()); //$NON-NLS-1$
 			control.setValue("labels", toolbar.labelsButton.isSelected()); //$NON-NLS-1$
 			control.setValue("multiply_by_mass", toolbar.xMassButton.isSelected()); //$NON-NLS-1$
-			control.setValue("trail_length", toolbar.trailLength); //$NON-NLS-1$
+			control.setValue("trail_length", toolbar.trailLengths[toolbar.trailLengthIndex]); //$NON-NLS-1$
 			control.setValue("stretch", toolbar.vStretch); //$NON-NLS-1$
 			control.setValue("stretch_acceleration", toolbar.aStretch); //$NON-NLS-1$
 		}
@@ -1502,13 +1494,28 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			toolbar.aVisButton.setSelected(control.getBoolean("acceleration")); //$NON-NLS-1$
 			toolbar.labelsButton.setSelected(control.getBoolean("labels")); //$NON-NLS-1$
 			toolbar.xMassButton.setSelected(control.getBoolean("multiply_by_mass")); //$NON-NLS-1$
-			toolbar.trailLength = control.getInt("trail_length"); //$NON-NLS-1$
+			toolbar.setTrailLength(control.getInt("trail_length")); //$NON-NLS-1$
 			toolbar.vStretch = control.getInt("stretch"); //$NON-NLS-1$
 			if (control.getPropertyNamesRaw().contains("stretch_acceleration")) { //$NON-NLS-1$
 				toolbar.aStretch = control.getInt("stretch_acceleration"); //$NON-NLS-1$
 			} else
 				toolbar.aStretch = toolbar.vStretch;
 			return obj;
+		}
+	}
+	
+	private void setTrailLength(int length) {
+		if (length == Integer.MIN_VALUE) // may occur if no xml property
+			return;
+		//  { 1, 4, 15, 0 }
+		if (length <= 0 || length > trailLengths[trailLengths.length - 2]) {
+			trailLengthIndex = trailLengths.length - 1;
+		}
+		else for (int i = 0; i < trailLengths.length - 1; i++) {
+			if (trailLengths[i] >= length) {
+				trailLengthIndex = i;
+				break;
+			}
 		}
 	}
 

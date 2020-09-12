@@ -1548,7 +1548,7 @@ public class PrefsDialog extends JDialog {
 		prevCenterCalibrationStick = Tracker.centerCalibrationStick;
 		prevAutofill = Tracker.enableAutofill;
 		prevShowGaps = Tracker.showGaps;
-		prevTrailLengthIndex = Tracker.trailLengthIndex;
+		prevTrailLengthIndex = Tracker.preferredTrailLengthIndex;
 		prevPointmassFootprint = Tracker.preferredPointMassFootprint;
   }
   
@@ -1577,7 +1577,7 @@ public class PrefsDialog extends JDialog {
 		Tracker.centerCalibrationStick = prevCenterCalibrationStick;
 		Tracker.enableAutofill = prevAutofill;
 		Tracker.showGaps = prevShowGaps;
-		Tracker.trailLengthIndex = prevTrailLengthIndex;
+		Tracker.preferredTrailLengthIndex = prevTrailLengthIndex;
 		ResourceLoader.setOSPCache(prevCache);
 		Tracker.checkForUpgradeInterval = prevUpgradeInterval;
 		if (!OSPRuntime.isJS && !Tracker.testOn) {
@@ -1821,12 +1821,11 @@ public class PrefsDialog extends JDialog {
 
 		Tracker.showGaps = showGapsCheckbox.isSelected();
 		if (trailLengthDropdown != null) {
-			Tracker.trailLengthIndex = trailLengthDropdown.getSelectedIndex();
+			Tracker.preferredTrailLengthIndex = trailLengthDropdown.getSelectedIndex();
 			// refresh the toolbar
 			if (trackerPanel!=null) {
 				TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
-				toolbar.trailLength = TToolBar.trailLengths[Tracker.trailLengthIndex];
-		  	toolbar.trailButton.setSelected(toolbar.trailLength!=1);		
+		  	toolbar.trailButton.setSelected(toolbar.trailLengthIndex != 0);		
 				toolbar.refresh(TToolBar.REFRESH_PREFS_TRUE);
 			}
 	  }
@@ -1927,7 +1926,7 @@ public class PrefsDialog extends JDialog {
 
 		// trail length
 		if (trailLengthDropdown != null)
-			trailLengthDropdown.setSelectedIndex(Tracker.trailLengthIndex);
+			trailLengthDropdown.setSelectedIndex(Tracker.preferredTrailLengthIndex);
 
 		// log level
 		int selected = 0;
