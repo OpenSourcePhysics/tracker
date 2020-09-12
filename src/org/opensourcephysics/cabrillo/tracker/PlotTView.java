@@ -24,6 +24,8 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.util.HashMap;
+
 import javax.swing.*;
 
 import org.opensourcephysics.controls.OSPLog;
@@ -144,7 +146,7 @@ public class PlotTView extends TrackChooserTView {
 		}
 
 		/**
-		 * Creates an object.
+		 * Don't do this immediately.
 		 *
 		 * @param control the control
 		 * @return the newly created object
@@ -196,8 +198,12 @@ public class PlotTView extends TrackChooserTView {
 						String trackName = controls[j].getString(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK); // $NON-NLS-1$
 						track = view.getTrack(trackName);
 						if (track != null) {
-							PlotTrackView trackView = (PlotTrackView) view.getTrackView(track);
-							controls[j].loadObject(trackView);
+							if (track.getName().indexOf("cup 7") >= 0)
+								System.out.println("PlotTView temp");
+							TrackView v = view.getTrackView(track);
+							if (v == null)
+								v = view.addTrackView(track);
+							controls[j].loadObject(v);
 						}
 					}
 					break;
@@ -205,5 +211,20 @@ public class PlotTView extends TrackChooserTView {
 			}
 			return obj;
 		}
+	}
+
+	/**
+	 * BH this is necessary so that loadObject can add the parameters that
+	 * are given in a TRZ file, such as CupsClip.zip
+	 * 
+	 * @param track
+	 * @return
+	 */
+	public TrackView addTrackView(TTrack track) {
+		TrackView v = createTrackView(track);
+		if (trackViews == null)
+			trackViews = new HashMap<TTrack, TrackView>();
+		trackViews.put(track, v);
+		return v;
 	}
 }
