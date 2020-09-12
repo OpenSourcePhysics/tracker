@@ -103,6 +103,7 @@ import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
+import javajs.async.AsyncDialog;
 import javajs.async.AsyncFileChooser;
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
@@ -1037,12 +1038,14 @@ public class TrackerIO extends VideoIO {
 			String close = TrackerRes.getString("Dialog.Button.OK"); //$NON-NLS-1$
 			String dontShow = TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Checkbox"); //$NON-NLS-1$
 			String[] buttons = showSetDefaultButton ? new String[] { dontShow, close } : new String[] { close };
-			int response = JOptionPane.showOptionDialog(theFrame, message,
+			new AsyncDialog().showOptionDialog(theFrame, message,
 					TrackerRes.getString("TrackerIO.Dialog.DurationVaries.Title"), //$NON-NLS-1$
-					JOptionPane.YES_NO_OPTION, messageType, null, buttons, close);
-			if (response >= 0 && response < buttons.length && buttons[response].equals(dontShow)) {
-				Tracker.warnVariableDuration = false;
-			}
+					JOptionPane.YES_NO_OPTION, messageType, null, buttons, close, (e)-> {
+						int response = e.getID();
+						if (response >= 0 && response < buttons.length && buttons[response].equals(dontShow)) {
+							Tracker.warnVariableDuration = false;						
+						}
+					});
 		}
 		return outliers;
 	}
