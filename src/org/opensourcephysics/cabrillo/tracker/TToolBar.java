@@ -1263,15 +1263,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			} else if (track instanceof Vector) {
 				Vector v = (Vector) track;
 				v.setLabelsVisible(labelsButton.isSelected());
-				Footprint[] footprints = v.getFootprints();
-				for (int i = 0; i < footprints.length; i++) {
-					if (footprints[i] instanceof ArrowFootprint) {
-						ArrowFootprint arrow = (ArrowFootprint) footprints[i];
-						arrow.setStretch(vStretch);
-					}
-				}
 				doRepaint = true;
-				track.erase();
 //				if (false)
 //					v.repaint();
 			}
