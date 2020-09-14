@@ -3168,6 +3168,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			removeAllTabs();
 		}
 	}
+	
+	/**
+	 * From FileDropHandler
+	 * 
+	 * @param fileList
+	 * @param targetPanel
+	 * @return
+	 */
 
 	public boolean loadFiles(List<File> fileList, TrackerPanel targetPanel) {
 		try {
