@@ -409,8 +409,8 @@ public class Vector extends TTrack {
 			int frame, stepNumber;
 			VectorStep step = (VectorStep) stepArray[i];
 			if (step == null
-					|| clip.includesFrame(frame = step.getFrameNumber())
-					|| player.getStepTime(stepNumber = clip.frameToStep(frame)) >= 0
+					|| !clip.includesFrame(frame = step.getFrameNumber())
+					|| player.getStepTime(stepNumber = clip.frameToStep(frame)) < 0
 					)
 				continue;
 			double t = player.getStepTime(stepNumber) / 1000.0;
