@@ -366,7 +366,8 @@ public class PlotTrackView extends TrackView {
 		mainView.setDoubleBuffered(true);
 		mainView.setLayout(new BoxLayout(mainView, BoxLayout.Y_AXIS));
 		for (int i = 0; i < plots.length; i++) {
-			plots[i] = createPlotPanel();
+			if (plots[i] == null)
+				plots[i] = createPlotPanel();
 		}
 		for (int i = 0; i < defaultPlotCount; i++) {
 			mainView.add(plots[i]);
@@ -511,5 +512,5 @@ public class PlotTrackView extends TrackView {
 	public int getPlotCount() {
 		return mainView.getComponentCount();
 	}
-	
+
 }

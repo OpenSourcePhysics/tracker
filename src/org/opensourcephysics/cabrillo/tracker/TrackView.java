@@ -231,4 +231,9 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "[" + getClass().getSimpleName() + " " + getTrack().getName() + " " + viewParent + " ]";
+	}
+
 }

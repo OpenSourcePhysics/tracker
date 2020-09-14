@@ -63,6 +63,7 @@ import javax.swing.JViewport;
 import javax.swing.WindowConstants;
 import javax.swing.event.MouseInputAdapter;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -182,6 +183,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		setCoordinateStringBuilder(coordStringBuilder);
 		// don't create radio buttons and popups to set x and y variables
 		setVariables();
+
 
 		// add plotMouseListener
 		mouseListener = new PlotMouseListener();
@@ -1883,4 +1885,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		bsHighlight.or(highlightFrames);
 	}
 
+	@Override
+	public String toString() {
+		return "[TrackPlottingPanel " + id + " " + TTrack.getTrack(trackID).getName() + " " + yName + " vs. " + xName + " ]"; 
+	}
 }

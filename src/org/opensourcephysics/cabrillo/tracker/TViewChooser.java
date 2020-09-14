@@ -37,6 +37,7 @@ import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -97,6 +98,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	// popup menu
 	
 	protected JPopupMenu popup = new JPopupMenu();
+	private boolean ignoreSelectedTrack;
 		
 	/**
 	 * Constructs a TViewChooser.
@@ -300,23 +302,31 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		trackerPanel.changed = true;
 		TTrack selectedTrack = null;
 		// clean up previously selected view
+		boolean istview = (selectedView instanceof TrackChooserTView);
+		if (istview) {
+			selectedTrack = ((TrackChooserTView) view).getSelectedTrack();
+		}
 		if (selectedView != null) {
 			selectedView.cleanup();
 			((Component) selectedView).removePropertyChangeListener(TView.PROPERTY_TVIEW_TRACKVIEW, this);
-			if (selectedView instanceof TrackChooserTView) {
+			// if switching selection, keep track same
+			if (istview && !ignoreSelectedTrack) {
 				selectedTrack = ((TrackChooserTView) selectedView).getSelectedTrack();
 			}
+			ignoreSelectedTrack = false;
 		}
 		selectedView = view; // cannot be null
+		
+
 		// initialize and refresh newly selected view
-		selectedView.init();
-		((Component) selectedView).addPropertyChangeListener(TView.PROPERTY_TVIEW_TRACKVIEW, this);
-		if (selectedView instanceof TrackChooserTView) {
-			((TrackChooserTView) selectedView).setSelectedTrack(selectedTrack);
+		view.init();
+		((Component) view).addPropertyChangeListener(TView.PROPERTY_TVIEW_TRACKVIEW, this);
+		if (istview) {
+			((TrackChooserTView) view).setSelectedTrack(selectedTrack);
 		}
-		selectedView.refresh();
+		view.refresh();
 		// put icon in button
-		chooserButton.setIcon(selectedView.getViewIcon());
+		chooserButton.setIcon(view.getViewIcon());
 		// show the view on the viewPanel
 		CardLayout cl = (CardLayout) (viewPanel.getLayout());
 		cl.show(viewPanel, TView.VIEW_NAMES[selectedType]);
@@ -332,8 +342,14 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * @param type int
 	 */
 	public void setSelectedViewType(int type) {
-		if (type<0 || type>3 || type==selectedType) 
+		if (type == 19570826) {
+			ignoreSelectedTrack = true;
 			return;
+		}
+		if (type<0 || type>3 || type==selectedType)  {
+			ignoreSelectedTrack = false;
+			return;
+		}
 		selectedType = type;
 		
 		TView view = tViews[type];
@@ -355,6 +371,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			tViews[type] = view;
 			refreshViewPanel();
 		}
+		if (((Component)view).getParent() == null)
+			refreshViewPanel();
 		setSelectedView(view);
 	}
 
@@ -583,7 +601,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	
 	@Override
 	public String toString() {
-		return getName();
+		return getName() + " " + Arrays.toString(tViews);
 	}
 
 	public static TViewChooser getChooserParent(Container c) {

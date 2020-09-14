@@ -767,6 +767,7 @@ org/opensourcephysics/cabrillo/tracker/PositionVectorFootprint.js
 org/opensourcephysics/cabrillo/tracker/Protractor.js
 org/opensourcephysics/cabrillo/tracker/RGBRegion.js
 org/opensourcephysics/cabrillo/tracker/ReferenceFrame.js
+org/opensourcephysics/cabrillo/tracker/Ruler.js
 org/opensourcephysics/cabrillo/tracker/SecondDerivative.js
 org/opensourcephysics/cabrillo/tracker/ShapeIcon.js
 org/opensourcephysics/cabrillo/tracker/Step.js
