@@ -61,7 +61,7 @@ public abstract class TrackView extends JScrollPane implements PropertyChangeLis
 	// toolbarComponents and GUI
 	
 	protected ArrayList<Component> toolbarComponents = new ArrayList<Component>();
-	private Icon trackIcon;
+	protected Icon trackIcon;
 
 	protected int myID;
 
