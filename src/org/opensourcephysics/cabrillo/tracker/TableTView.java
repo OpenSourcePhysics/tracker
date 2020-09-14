@@ -311,125 +311,126 @@ public class TableTView extends TrackChooserTView {
 			if (data != null) {
 				Map<TTrack, TrackView> views = view.trackViews;
 				if (views != null)
-				for (TTrack track : views.keySet()) {
-					TableTrackView tableView = (TableTrackView) view.getTrackView(track);
-					if (tableView == null)
-						continue;
-					for (int i = 0; i < data.length; i++) {
-						String[] columns = data[i];
-						if (!columns[0].equals(track.getName()))
+					for (TTrack track : views.keySet()) {
+						TableTrackView tableView = (TableTrackView) view.getTrackView(track);
+						if (tableView == null)
 							continue;
-						tableView.setRefreshing(false); // prevents refreshes
-						// start by unchecking all checkboxes
-						tableView.bsCheckBoxes.clear();
-						tableView.textColumnsVisible.clear();
-						// then select checkboxes specified in track_columns
-						Map<String, Integer> htOrder = new HashMap<String, Integer>();
-						for (int j = 1; j < columns.length; j++) {
-							String name = columns[j];
-							switch (name) {
-							case "theta":
-								name = (track instanceof PointMass ? "\u03b8r"//$NON-NLS-1$
-										: "\u03b8"); //$NON-NLS-1$
-								break;
-							case "theta_v": //$NON-NLS-1$
-								name = "\u03b8v"; //$NON-NLS-1$ //$NON-NLS-2$
-								break;
-							case "theta_a": //$NON-NLS-1$
-								name = "\u03b8a"; //$NON-NLS-1$ //$NON-NLS-2$
-								break;
-							case "theta_p": //$NON-NLS-1$
-								name = "\u03b8p"; //$NON-NLS-1$ //$NON-NLS-2$
-								break;
-							case "n":
-								if (track instanceof PointMass) // $NON-NLS-1$
-									name = "step"; //$NON-NLS-1$
-								break;
-							case "KE": //$NON-NLS-1$
-								name = "K"; //$NON-NLS-1$
-								break;
-							case "x-comp": //$NON-NLS-1$
-								name = "x"; //$NON-NLS-1$
-								break;
-							case "y-comp": //$NON-NLS-1$
-								name = "y"; //$NON-NLS-1$
-								break;
-							case "x_tail": //$NON-NLS-1$
-								name = "xtail"; //$NON-NLS-1$
-								break;
-							case "y_tail": //$NON-NLS-1$
-								name = "ytail"; //$NON-NLS-1$
-								break;
-							}
-							htOrder.put(name, j);
-							tableView.setVisible(columns[j] = name, true);
-						}
-						
-						// BH? There has to be a much easier way of doing this. 
-						
-						// move columns so the table column order matches the saved track_columns order
-						// get list of checked boxes--doesn't include independent variable
-						String[] checkedBoxes = tableView.getVisibleColumns();
-						// expand to include independent variable
-						String[] visibleColumns = new String[checkedBoxes.length + 1];
-						visibleColumns[0] = track.getDataName(0);
-						System.arraycopy(checkedBoxes, 0, visibleColumns, 1, checkedBoxes.length);
-						// create desiredOrder from track_columns array by omitting track name
-						String[] desiredOrder = new String[columns.length - 1];
-						System.arraycopy(columns, 1, desiredOrder, 0, desiredOrder.length);
-						// convert desiredOrder names to desiredIndexes
-						final int[] desiredIndexes = new int[desiredOrder.length];
-						for (int k = 0; k < desiredOrder.length; k++) {
-							String name = desiredOrder[k];
-							for (int g = 0; g < visibleColumns.length; g++) {
-								if (visibleColumns[g].equals(name)) {
-									desiredIndexes[k] = g;
+						for (int i = 0; i < data.length; i++) {
+							String[] columns = data[i];
+							if (!columns[0].equals(track.getName()))
+								continue;
+							tableView.setRefreshing(false); // prevents refreshes
+							// start by unchecking all checkboxes
+							tableView.bsCheckBoxes.clear();
+							tableView.textColumnsVisible.clear();
+							// then select checkboxes specified in track_columns
+							Map<String, Integer> htOrder = new HashMap<String, Integer>();
+							for (int j = 1; j < columns.length; j++) {
+								String name = columns[j];
+								switch (name) {
+								case "theta":
+									name = (track instanceof PointMass ? "\u03b8r"//$NON-NLS-1$
+											: "\u03b8"); //$NON-NLS-1$
+									break;
+								case "theta_v": //$NON-NLS-1$
+									name = "\u03b8v"; //$NON-NLS-1$ //$NON-NLS-2$
+									break;
+								case "theta_a": //$NON-NLS-1$
+									name = "\u03b8a"; //$NON-NLS-1$ //$NON-NLS-2$
+									break;
+								case "theta_p": //$NON-NLS-1$
+									name = "\u03b8p"; //$NON-NLS-1$ //$NON-NLS-2$
+									break;
+								case "n":
+									if (track instanceof PointMass) // $NON-NLS-1$
+										name = "step"; //$NON-NLS-1$
+									break;
+								case "KE": //$NON-NLS-1$
+									name = "K"; //$NON-NLS-1$
+									break;
+								case "x-comp": //$NON-NLS-1$
+									name = "x"; //$NON-NLS-1$
+									break;
+								case "y-comp": //$NON-NLS-1$
+									name = "y"; //$NON-NLS-1$
+									break;
+								case "x_tail": //$NON-NLS-1$
+									name = "xtail"; //$NON-NLS-1$
+									break;
+								case "y_tail": //$NON-NLS-1$
+									name = "ytail"; //$NON-NLS-1$
+									break;
 								}
+								htOrder.put(name, j);
+								tableView.setVisible(columns[j] = name, true);
 							}
-						}
-						// move table columns after table is fully constructed
-						final TableColumnModel model = tableView.dataTable.getColumnModel();
-						Runnable runner = new Runnable() {
-							@Override
-							public void run() {
-								outer: for (int targetIndex = 0; targetIndex < desiredIndexes.length; targetIndex++) {
-									// find column with modelIndex and move to targetIndex
-									for (int k = 0; k < desiredIndexes.length; k++) {
-										if (model.getColumn(k).getModelIndex() == desiredIndexes[targetIndex]) {
-											try {
-												model.moveColumn(k, targetIndex);
-											} catch (Exception e) {
-											}
-											continue outer;
-										}
+
+							// BH? There has to be a much easier way of doing this.
+
+							// move columns so the table column order matches the saved track_columns order
+							// get list of checked boxes--doesn't include independent variable
+							String[] checkedBoxes = tableView.getVisibleColumns();
+							// expand to include independent variable
+							String[] visibleColumns = new String[checkedBoxes.length + 1];
+							visibleColumns[0] = track.getDataName(0);
+							System.arraycopy(checkedBoxes, 0, visibleColumns, 1, checkedBoxes.length);
+							// create desiredOrder from track_columns array by omitting track name
+							String[] desiredOrder = new String[columns.length - 1];
+							System.arraycopy(columns, 1, desiredOrder, 0, desiredOrder.length);
+							// convert desiredOrder names to desiredIndexes
+							final int[] desiredIndexes = new int[desiredOrder.length];
+							for (int k = 0; k < desiredOrder.length; k++) {
+								String name = desiredOrder[k];
+								for (int g = 0; g < visibleColumns.length; g++) {
+									if (visibleColumns[g].equals(name)) {
+										desiredIndexes[k] = g;
 									}
 								}
-
 							}
-						};
-						SwingUtilities.invokeLater(runner);
-						tableView.setRefreshing(true);
+							// move table columns after table is fully constructed
+							final TableColumnModel model = tableView.dataTable.getColumnModel();
+							Runnable runner = new Runnable() {
+								@Override
+								public void run() {
+									outer: for (int targetIndex = 0; targetIndex < desiredIndexes.length; targetIndex++) {
+										// find column with modelIndex and move to targetIndex
+										for (int k = 0; k < desiredIndexes.length; k++) {
+											if (model.getColumn(k).getModelIndex() == desiredIndexes[targetIndex]) {
+												try {
+													model.moveColumn(k, targetIndex);
+												} catch (Exception e) {
+												}
+												continue outer;
+											}
+										}
+									}
+
+								}
+							};
+							SwingUtilities.invokeLater(runner);
+							tableView.setRefreshing(true);
+						}
 					}
-				}
 			}
 			String[][][] formats = (String[][][]) control.getObject("column_formats"); //$NON-NLS-1$
 			if (formats != null) {
 				Map<TTrack, TrackView> views = view.trackViews;
-				for (TTrack track : views.keySet()) {
-					TableTrackView tableView = (TableTrackView) view.getTrackView(track);
-					if (tableView == null)
-						continue;
-					for (int i = 0; i < formats.length; i++) {
-						String[][] patterns = formats[i];
-						if (!patterns[0][0].equals(track.getName()))
+				if (views != null)
+					for (TTrack track : views.keySet()) {
+						TableTrackView tableView = (TableTrackView) view.getTrackView(track);
+						if (tableView == null)
 							continue;
-						tableView.setRefreshing(false); // prevents refreshes
-						for (int j = 0; j < patterns.length; j++) {
-							tableView.dataTable.setFormatPattern(patterns[j][1], patterns[j][2]);
+						for (int i = 0; i < formats.length; i++) {
+							String[][] patterns = formats[i];
+							if (!patterns[0][0].equals(track.getName()))
+								continue;
+							tableView.setRefreshing(false); // prevents refreshes
+							for (int j = 0; j < patterns.length; j++) {
+								tableView.dataTable.setFormatPattern(patterns[j][1], patterns[j][2]);
+							}
+							tableView.setRefreshing(true);
 						}
-						tableView.setRefreshing(true);
 					}
-				}
 			}
 			TTrack track = view.getTrack(control.getString("selected_track")); //$NON-NLS-1$
 			if (track != null) {
