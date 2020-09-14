@@ -1794,7 +1794,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				libraryBrowser.addPropertyChangeListener(LibraryBrowser.PROPERTY_LIBRARY_TARGET,
 						new PropertyChangeListener() { // $NON-NLS-1$
 							@Override
-							public void propertyChange(PropertyChangeEvent e) {
+								public void propertyChange(PropertyChangeEvent e) {
+								// Call from LibraryBrowser when an item is selected
 								openLibraryResource((LibraryResource) e.getNewValue());
 								TFrame.this.requestFocus();
 							}
@@ -1847,8 +1848,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			if (!accept) {
 				for (String ext : VideoIO.getVideoExtensions()) {
 					accept |= lcTarget.endsWith("." + ext); //$NON-NLS-1$
-					if (accept)
-						break;
+					if (accept) {
+						loadVideo(target, true);
+						return;
+					}
 				}
 			}
 			if (accept) {
@@ -3156,8 +3159,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				JOptionPane.QUESTION_MESSAGE, lastExperiment)) == null)
 			return;
 		if (TrackerIO.isVideo(new File(path))) {
-			// a video or a directory containing images
-			TrackerIO.importVideo(path, getTrackerPanel(getSelectedTab()), null, null);
+			loadVideo(path, false);
 			return;
 		}		
 		if (getTabCount() > 0)
@@ -3169,6 +3171,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 	}
 	
+	void loadVideo(String path, boolean asNewTab) {
+		// a video or a directory containing images
+		if (asNewTab)
+			addTrackerPane(false);
+		File localFile = ResourceLoader.download(path, null, true);		
+		TrackerIO.importVideo(localFile, getTrackerPanel(getSelectedTab()), null, null);
+	}
+
 	/**
 	 * From FileDropHandler
 	 * 
