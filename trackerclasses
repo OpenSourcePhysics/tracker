@@ -723,9 +723,11 @@ org/opensourcephysics/cabrillo/tracker/ArrowFootprint.js
 org/opensourcephysics/cabrillo/tracker/AutoTracker.js
 org/opensourcephysics/cabrillo/tracker/BounceDerivatives.js
 org/opensourcephysics/cabrillo/tracker/Calibration.js
+org/opensourcephysics/cabrillo/tracker/CalibrationStep.js
 org/opensourcephysics/cabrillo/tracker/CenterOfMass.js
 org/opensourcephysics/cabrillo/tracker/CircleFitter.js
 org/opensourcephysics/cabrillo/tracker/CircleFootprint.js
+org/opensourcephysics/cabrillo/tracker/Configuration.js
 org/opensourcephysics/cabrillo/tracker/CoordAxes.js
 org/opensourcephysics/cabrillo/tracker/CoordAxesStep.js
 org/opensourcephysics/cabrillo/tracker/Derivative.js
@@ -744,6 +746,7 @@ org/opensourcephysics/cabrillo/tracker/Footprint.js
 org/opensourcephysics/cabrillo/tracker/InputTrack.js
 org/opensourcephysics/cabrillo/tracker/LineFootprint.js
 org/opensourcephysics/cabrillo/tracker/LineProfile.js
+org/opensourcephysics/cabrillo/tracker/LineProfileStep.js
 org/opensourcephysics/cabrillo/tracker/MainTView.js
 org/opensourcephysics/cabrillo/tracker/Mark.js
 org/opensourcephysics/cabrillo/tracker/ModelBuilder.js
@@ -803,6 +806,7 @@ org/opensourcephysics/cabrillo/tracker/TrackerRes.js
 org/opensourcephysics/cabrillo/tracker/Undo.js
 org/opensourcephysics/cabrillo/tracker/Vector.js
 org/opensourcephysics/cabrillo/tracker/VectorStep.js
+org/opensourcephysics/cabrillo/tracker/VectorSum.js
 org/opensourcephysics/cabrillo/tracker/WorldGrid.js
 org/opensourcephysics/cabrillo/tracker/WorldRuler.js
 org/opensourcephysics/cabrillo/tracker/WorldTView.js
@@ -888,6 +892,7 @@ org/opensourcephysics/media/core/ImageCoordSystem.js
 org/opensourcephysics/media/core/ImageVideo.js
 org/opensourcephysics/media/core/ImageVideoRecorder.js
 org/opensourcephysics/media/core/ImageVideoType.js
+org/opensourcephysics/media/core/IntegerField.js 
 org/opensourcephysics/media/core/InteractiveImage.js
 org/opensourcephysics/media/core/MediaRes.js
 org/opensourcephysics/media/core/NegativeFilter.js

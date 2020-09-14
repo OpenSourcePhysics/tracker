@@ -58,6 +58,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -93,9 +94,11 @@ import org.opensourcephysics.display.Renderable;
 import org.opensourcephysics.media.core.AsyncVideoI;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
+import org.opensourcephysics.media.core.ImageVideoType;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
+import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.tools.FontSizer;
@@ -943,6 +946,13 @@ public class TrackerIO extends VideoIO {
 	 */
 	public static void importVideo(File file, TrackerPanel trackerPanel, VideoType vidType, Runnable whenDone) {
 		String path = XML.getAbsolutePath(file);
+		OSPLog.debug("TrackerIO importing file: " + path); //$NON-NLS-1$
+		TFrame frame = trackerPanel.getTFrame();
+		frame.loadedFiles.clear();
+		openTabPath(path, trackerPanel, frame, vidType, null, whenDone);
+	}
+
+	public static void importVideo(String path, TrackerPanel trackerPanel, VideoType vidType, Runnable whenDone) {
 		OSPLog.debug("TrackerIO importing file: " + path); //$NON-NLS-1$
 		TFrame frame = trackerPanel.getTFrame();
 		frame.loadedFiles.clear();
@@ -2378,4 +2388,37 @@ public class TrackerIO extends VideoIO {
 		}
 		return (preferred == null && hasSelected ? selected : preferred);
 	}
+	
+	private static FileFilter[] imageFilters;
+
+	private static FileFilter videoFilter;
+
+	public static boolean haveVideo(List<File> files) {
+		return (files != null && files.size() == 1 && isVideo(files.get(0)));
+	}
+
+
+	/**
+	 * Returns true if the specified file is an image.
+	 * 
+	 * @param file the File
+	 * @return true if an image
+	 */
+	public static boolean isImageFile(File file) {
+		if (imageFilters == null)
+			imageFilters = new ImageVideoType().getFileFilters();
+		for (int i = 0; i < imageFilters.length; i++) {
+			if (imageFilters[i].accept(file))
+				return true;
+		}
+		return false;
+	}
+
+	public static boolean isVideo(File f) {
+		if (videoFilter == null)
+			videoFilter = new VideoFileFilter();
+		return videoFilter.accept(f);
+	}
+
+
 }

@@ -117,6 +117,7 @@ import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.DeinterlaceFilter;
 import org.opensourcephysics.media.core.GhostFilter;
 import org.opensourcephysics.media.core.GrayScaleFilter;
+import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.NegativeFilter;
 import org.opensourcephysics.media.core.PerspectiveFilter;
@@ -1445,6 +1446,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //		}
 		; // bottom pane
 		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) {
+			@Override
 			public Dimension getMinimumSize() {
 				return new Dimension(0,0);
 			}
@@ -1792,7 +1794,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				libraryBrowser.addPropertyChangeListener(LibraryBrowser.PROPERTY_LIBRARY_TARGET,
 						new PropertyChangeListener() { // $NON-NLS-1$
 							@Override
-							public void propertyChange(PropertyChangeEvent e) {
+								public void propertyChange(PropertyChangeEvent e) {
+								// Call from LibraryBrowser when an item is selected
 								openLibraryResource((LibraryResource) e.getNewValue());
 								TFrame.this.requestFocus();
 							}
@@ -1845,8 +1848,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			if (!accept) {
 				for (String ext : VideoIO.getVideoExtensions()) {
 					accept |= lcTarget.endsWith("." + ext); //$NON-NLS-1$
-					if (accept)
-						break;
+					if (accept) {
+						loadVideo(target, true);
+						return;
+					}
 				}
 			}
 			if (accept) {
@@ -3153,6 +3158,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (path == null && (path = GUIUtils.showInputDialog(this, "Load Experiment", "Load Experiment",
 				JOptionPane.QUESTION_MESSAGE, lastExperiment)) == null)
 			return;
+		if (TrackerIO.isVideo(new File(path))) {
+			loadVideo(path, false);
+			return;
+		}		
 		if (getTabCount() > 0)
 			removeAllTabs();
 		try {
@@ -3160,5 +3169,88 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		} catch (Throwable t) {
 			removeAllTabs();
 		}
+	}
+	
+	void loadVideo(String path, boolean asNewTab) {
+		// a video or a directory containing images
+		if (asNewTab)
+			addTrackerPane(false);
+		File localFile = ResourceLoader.download(path, null, true);		
+		TrackerIO.importVideo(localFile, getTrackerPanel(getSelectedTab()), null, null);
+	}
+
+	/**
+	 * From FileDropHandler
+	 * 
+	 * @param fileList
+	 * @param targetPanel
+	 * @return
+	 */
+
+	public boolean loadFiles(List<File> fileList, TrackerPanel targetPanel) {
+		try {
+			// define frameNumber for insertions
+			// load the files
+			int frameNumber = -1;
+			int nf = fileList.size();
+			for (int j = 0; j < nf; j++) {
+				final File file = fileList.get(j);
+				OSPRuntime.cacheJSFile(file, true);
+				OSPLog.debug("file to load: " + file.getAbsolutePath()); //$NON-NLS-1$
+				if (!TrackerIO.haveVideo(fileList)) {
+					// could be a video file or a directory of images
+					if (nf > 0 && !haveContent()) {
+						removeTabNow(0);
+					}
+					TrackerIO.openTabFile(file, this);
+				} else if (targetPanel != null) {
+					if (targetPanel.getVideo() instanceof ImageVideo && TrackerIO.isImageFile(file)) {
+						if (frameNumber < 0) {
+							frameNumber = 0;
+							targetPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+							setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+							if (targetPanel.getVideo() != null) {
+								frameNumber = targetPanel.getVideo().getFrameNumber();
+							}
+						}
+						// if targetPanel has image video and file is image, add after current frame
+						File[] added = TrackerIO.insertImagesIntoVideo(new File[] { file }, targetPanel,
+								frameNumber + 1);
+						frameNumber += added.length;
+					} else {
+						// if targetPanel not null and file is video then import
+						// open in separate background thread
+						// final TFrame frame = targetPanel.getTFrame();
+						// final int n = frame.getTab(targetPanel);
+						Runnable runner = new Runnable() {
+							@Override
+							public void run() {
+								// TrackerPanel trackerPanel = frame.getTrackerPanel(n);
+								TrackerIO.importVideo(file, targetPanel, null, null);/// TrackerIO.NULL_RUNNABLE);
+							}
+						};
+						if (TrackerIO.loadInSeparateThread) {
+							Thread opener = new Thread(runner);
+							opener.setPriority(Thread.NORM_PRIORITY);
+							opener.setDaemon(true);
+							opener.start();
+						} else {
+							runner.run();
+						}
+					}
+				} else {
+					// else inform user that file is not acceptable
+					JOptionPane.showMessageDialog(this, "\"" + file.getName() + "\" " //$NON-NLS-1$ //$NON-NLS-2$
+							+ TrackerRes.getString("FileDropHandler.Dialog.BadFile.Message"), //$NON-NLS-1$
+							TrackerRes.getString("FileDropHandler.Dialog.BadFile.Title"), //$NON-NLS-1$
+							JOptionPane.WARNING_MESSAGE);
+				}
+			}
+		} catch (Exception e) {
+			return false;
+		} finally {
+			setCursor(Cursor.getDefaultCursor());
+		}
+		return true;
 	}
 }
