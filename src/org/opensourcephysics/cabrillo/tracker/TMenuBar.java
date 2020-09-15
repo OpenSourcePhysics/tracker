@@ -2722,7 +2722,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 						for (Step step : track.getSteps()) {
 							if (step != null) {
 								TableTrackView trackView = (TableTrackView) tableView.getTrackView(track);
-								dataViews.put(i + 1, trackView);
+								if (trackView != null)
+									dataViews.put(i + 1, trackView);
 							}
 						}
 					}
