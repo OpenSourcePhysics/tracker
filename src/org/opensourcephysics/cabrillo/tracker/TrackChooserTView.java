@@ -590,7 +590,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			// step number has changed
 			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
-				view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STEP);
+				view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_HIGHLIGHT);
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
