@@ -405,6 +405,7 @@ javajs/api/JSFunction.js
 javajs/api/JSONEncodable.js
 javajs/api/ZInputStream.js
 javajs/async/Assets.js
+javajs/async/AsyncDialog.js
 javajs/async/AsyncFileChooser.js
 javajs/async/AsyncSwingWorker.js
 javajs/async/SwingJSUtils.js
