@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<!DOCTYPE project>
+<project name="build-tracker-jar" default="tracker_jar_and_assets" basedir=".\">
+	<property name="workspace" value="..\" />
+	<property name="src_osp" value="${workspace}/osp/src" />
+	<property name="src_video" value="${workspace}/video-engines/src" />
+	<property name="src_tracker" value="${workspace}/tracker/src" />
+	<property name="tracker-assets" value="${workspace}/tracker/resources/tracker-assets.zip" />
+	<property name="build" value="build-tracker" />
+	<property name="classes" value="${build}/classes" />
+	<property name="output" value="${build}/output" />
+	<property name="author" value="D Brown, R Hanson, W Christian" />
+	<property name="libraries" value="${workspace}/tracker/libraries" />
+	<path id="xuggle.jar" location="${libraries}/xuggle-xuggler.jar"/>
+
+	<tstamp>
+		<format property="buildtime.isoformat" pattern="MMM dd yyyy"/>
+		<format property="date" pattern="yyyyMMdd"/>
+	</tstamp>
+
+	<!--help: list important targets-->
+	<target name="help">
+		<echo>clean: removes old build files</echo>
+		<echo>init: creates the build directories</echo>
+		<echo>compile: compiles the OSP and Tracker libraries</echo>
+		<echo>tracker_jar: creates the tracker.jar file</echo>
+		<echo>docs: creates javadoc documentation</echo>
+	</target>
+
+	<!--clean: delete the build directory-->
+	<target name="clean">
+		<delete dir="${build}"/>
+	</target>
+
+	<!--init: create the build directory-->
+	<target name="init">
+		<mkdir dir="${build}"/>
+		<delete dir="${output}"/>
+	</target>
+
+	<!--compile: clean and recompile the source files-->
+	<target name="compile" depends="init">
+		<delete dir="${classes}/meta-inf"/>
+		<delete dir="${classes}"/>
+		<mkdir dir="${classes}"/>
+		<mkdir dir="${classes}/meta-inf"/>
+		<javac srcdir="${src_osp}" destdir="${classes}" source="1.8" debug="true" debuglevel="lines,vars,source" includeantruntime="false">
+			<compilerarg value="-Xlint:-serial"/>
+		</javac>
+		<copy todir="${classes}/org/opensourcephysics/resources">
+			<fileset dir="${src_osp}/org/opensourcephysics/resources"/>
+		</copy>
+		<javac srcdir="${src_video}" destdir="${classes}" source="1.8" debug="true" debuglevel="lines,vars,source" includeantruntime="false">
+			<compilerarg value="-Xlint:-serial"/>
+			<classpath refid="xuggle.jar"/>
+		</javac>
+		<copy todir="${classes}/org/opensourcephysics/resources">
+			<fileset dir="${src_video}/org/opensourcephysics/resources"/>
+		</copy>
+		<javac srcdir="${src_tracker}" destdir="${classes}" source="1.8" debug="true" debuglevel="lines,vars,source" includeantruntime="false">
+			<compilerarg value="-Xlint:-serial"/>
+		</javac>
+		<copy todir="${classes}/org/opensourcephysics/cabrillo/tracker/resources">
+			<fileset dir="${src_tracker}/org/opensourcephysics/cabrillo/tracker/resources"/>
+		</copy>
+	</target>
+
+	<!--tracker_jar_and_assets: create the tracker.jar file and copy assets-->
+	<target name="tracker_jar_and_assets" depends="compile">
+		<delete dir="${output}"/>
+		<mkdir dir="${output}"/>
+		<copy file="${tracker-assets}" todir="${output}"/>
+		<manifest file="${classes}/meta-inf/TRACKER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.Tracker"/>
+			<attribute name="Class-Path" value=". ffmpeg/ffmpeg-4.0.jar ffmpeg/bridj-0.7-SNAPSHOT.jar xuggle-xuggler.jar logback-classic.jar logback-core.jar slf4j-api.jar"/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker-5.9.${date}.jar" basedir="${classes}" manifest="${classes}/meta-inf/TRACKER.mf" includes="
+			**/epsgraphics/,
+            **/controls/,
+            **/javajs/,
+            **/js/,
+            **/opensourcephysics/davidson/,
+            **/display/,
+            **/ejs/EjsRes.class,
+            **/numerics/,
+            **/tools/,
+			**/media/,
+			**/tracker/,
+            **/demo/,
+            **/opensourcephysics/resources/">
+		</jar>
+	</target>
+
+</project>
+
+
+
