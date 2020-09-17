@@ -37,7 +37,7 @@ import javax.swing.*;
  * @author Douglas Brown
  */
 public interface TView extends PropertyChangeListener {
-
+	
 	String PROPERTY_TVIEW_TRACKVIEW = "trackview";
 
 	int VIEW_UNSET = -2;

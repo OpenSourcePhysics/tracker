@@ -753,7 +753,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			step.erase();
 		}
 		TFrame.repaintT(trackerPanel);
-		track.notifySteps();
+		track.fireStepsChanged();
 	}
 
 	/**
@@ -1524,7 +1524,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 								steps.add(step);
 							step.erase();
 							TFrame.repaintT(trackerPanel);
-							track.notifySteps();
+							track.fireStepsChanged();
 						}
 					} else {
 						// set clickedStep so TrackPlottingPanel will select it after displaying video

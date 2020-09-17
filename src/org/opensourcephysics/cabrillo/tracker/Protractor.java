@@ -188,7 +188,7 @@ public class Protractor extends InputTrack {
 						step.setProtractorAngle(theta);
 						dataValid = false;
 						if (isFixedPosition())
-							notifySteps();
+							fireStepsChanged();
 						else
 							firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n));
 						trackerPanel.repaint();
@@ -221,7 +221,7 @@ public class Protractor extends InputTrack {
 					step.setArmLength(end, length);
 					dataValid = false;
 					if (isFixedPosition())
-						notifySteps();
+						fireStepsChanged();
 					else
 						firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 					trackerPanel.repaint();

@@ -1305,7 +1305,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return;
 //    Tracker.setProgress(100);
 		// dispose of splash automatically after short time
-		Timer timer = new Timer(1500, new ActionListener() {
+		Timer timer = new Timer(1000, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Tracker.splash.dispose();

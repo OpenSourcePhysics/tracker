@@ -213,7 +213,7 @@ public class TapeMeasure extends InputTrack {
 					step.setTapeLength(magField.getValue());
 					invalidateData(null);
 					if (isFixedPosition())
-						notifySteps();
+						fireStepsChanged();
 					else
 						firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 					if (trackerPanel.getSelectedPoint() instanceof TapeStep.Rotator)
@@ -243,7 +243,7 @@ public class TapeMeasure extends InputTrack {
 					step.setTapeAngle(angleField.getValue());
 					invalidateData(null);
 					if (isFixedPosition())
-						notifySteps();
+						fireStepsChanged();
 					else
 						firePropertyChange(PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 					if (!isReadOnly())

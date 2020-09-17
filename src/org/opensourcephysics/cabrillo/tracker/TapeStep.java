@@ -925,7 +925,7 @@ public class TapeStep extends Step {
 			
 			if (wasAdjusting && !adjusting) {
 	      if (tape.isFixedPosition())
-	      	tape.notifySteps();
+	      	tape.fireStepsChanged();
 	      else
 	      	tape.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 			}
@@ -978,7 +978,7 @@ public class TapeStep extends Step {
 			super.setAdjusting(adjusting);			
 			if (wasAdjusting && !adjusting) {
 	      if (tape.isFixedPosition())
-	      	tape.notifySteps();
+	      	tape.fireStepsChanged();
 	      else
 	      	tape.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
 			}

@@ -398,9 +398,11 @@ public class Undo {
 	protected class TrackEdit extends TEdit {
 
 		String trackName, trackType;
+		boolean isTextColumn = false;
 
 		private TrackEdit(TTrack track, XMLControl control) {
 			super(track.trackerPanel, track, control);
+			isTextColumn = control.getBoolean("isTextColumn");
 			trackName = track.getName();
 			String s = track.getClass().getSimpleName();
 			trackType = TrackerRes.getString(s + ".Name"); //$NON-NLS-1$
@@ -415,9 +417,16 @@ public class Undo {
 			TTrack track = panel.getTrack(trackName);
 			if (track == null)
 				return;
+			// pig turn off refreshing until finished
+			TrackChooserTView.ignoreRefresh = true;
 			control.loadObject(track);
 			track.erase();
-			track.notifyUndoLoaded();
+			TrackChooserTView.ignoreRefresh = false;
+			if (isTextColumn)
+				track.firePropertyChange(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, null, null);
+			else
+				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
+//			track.notifyUndoLoaded();
 		}
 
 		@Override

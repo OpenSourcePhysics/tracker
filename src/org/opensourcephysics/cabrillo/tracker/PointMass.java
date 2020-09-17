@@ -1015,7 +1015,7 @@ public class PointMass extends TTrack {
 			algorithm = type;
 			refreshDataLater = false;
 			updateDerivatives();
-			notifySteps();
+			fireStepsChanged();
 		}
 	}
 
@@ -1133,7 +1133,7 @@ public class PointMass extends TTrack {
 		}
 		refreshDataLater = false;
 		updateDerivatives();
-		notifySteps();
+		fireStepsChanged();
 		// post undoable edit if changes made
 		if (changed) {
 			Undo.postTrackEdit(this, control);
@@ -1188,7 +1188,7 @@ public class PointMass extends TTrack {
 		refreshDataLater = !refreshData;
 		if (refreshData)
 			updateDerivatives(firstStep, lastStep - firstStep);
-		notifySteps();
+		fireStepsChanged();
 		// post undoable edit if changes made
 		if (changed) {
 			Undo.postTrackEdit(this, control);

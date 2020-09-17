@@ -335,7 +335,7 @@ public void propertyChange(PropertyChangeEvent e) {
 		for (int n = 0; n < length; n++)
 			update(n, false);
 		updateDerivatives();
-		notifySteps();
+		fireStepsChanged();
 		repaint();
 		// update inspector, if visible
 		if (inspector != null && inspector.isVisible()) {

@@ -928,17 +928,17 @@ abstract public class ParticleModel extends PointMass {
 		//OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps " + nCalc, Performance.TIME_MARK));
 		trackerPanel.getTFrame().holdPainting(false);
 		if (!refreshDerivsLater && !singleStep) {
-			notifySteps();
+			fireStepsChanged();
 		}
 		TFrame.repaintT(trackerPanel);
 	}
 
-	public void notifySteps() {
+	public void fireStepsChanged() {
 		ParticleModel[] models = getModels();
 		for (int m = 0, n = models.length - 1; m < n; m++) {
-			models[m].notifySteps();
+			models[m].fireStepsChanged();
 		}
-		super.notifySteps();
+		super.fireStepsChanged();
 	}
 
 	/**
@@ -969,7 +969,7 @@ abstract public class ParticleModel extends PointMass {
 		for (ParticleModel part : getModels()) {
 			part.updateDerivatives();
 		}
-		notifySteps();
+		fireStepsChanged();
 	}
 
 	/**
@@ -1007,7 +1007,7 @@ abstract public class ParticleModel extends PointMass {
 			restoreState(end);
 			next.locked = true;
 		}
-		notifySteps();
+		fireStepsChanged();
 		setLastValidFrame(end);
 		repaint();
 //		TFrame.repaintT(trackerPanel);

@@ -236,7 +236,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 							PointMass pointMass = (PointMass) track;
 							pointMass.updateDerivatives();
 						}
-						track.notifySteps();
+						track.fireStepsChanged();
 						wizard.refreshGUI();
 					}
 				}
@@ -368,7 +368,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				PointMass pointMass = (PointMass) track;
 				pointMass.updateDerivatives();
 			}
-			track.notifySteps();
+			track.fireStepsChanged();
 		}
 	}
 

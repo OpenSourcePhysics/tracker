@@ -64,6 +64,7 @@ import org.opensourcephysics.tools.FontSizer;
 @SuppressWarnings("serial")
 public abstract class TrackChooserTView extends JPanel implements TView {
 
+	public static boolean ignoreRefresh = false;
 	protected static int viewPanelID;
 	
 	// instance fields
@@ -504,6 +505,8 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 */
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
+		if (ignoreRefresh)
+			return;
 		TTrack track;
 		TFrame frame;
 		TrackView view;

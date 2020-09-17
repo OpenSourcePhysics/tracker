@@ -181,7 +181,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20200915"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20200916"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2020 D Brown, R Hanson, W Christian"; //$NON-NLS-1$
 	
 	/**
@@ -1163,7 +1163,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			};
 
 			// about Xuggle--only if xuggle resources present
-			if (MovieFactory.xuggleIsPresent) {
+			if (true || MovieFactory.xuggleIsPresent) {
 				aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
@@ -1886,13 +1886,14 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 //		for (String next: vars) {
 //			OSPLog.warning("Environment variable "+next+": "+System.getenv(next)); //$NON-NLS-1$ //$NON-NLS-2$
 //		}
-
+//
 //  	Map<String, String> map = System.getenv();
 //  	for (String key: map.keySet()) {
 //  		System.out.println("environment "+key+" = "+map.get(key));
+//			OSPLog.config("Environment variable "+key+": "+map.get(key)); //$NON-NLS-1$ //$NON-NLS-2$
 //  	}
 //  	for (Object key: System.getProperties().keySet()) {
-//  		System.out.println("property "+key+" = "+System.getProperties().get(key));
+//  		OSPLog.config("property "+key+" = "+System.getProperties().get(key));
 //  	}
 
 		// determine if this is tracker.jar (Tracker main class)

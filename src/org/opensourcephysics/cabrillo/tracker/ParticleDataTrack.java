@@ -1769,7 +1769,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		if (reset) {
 			setLastValidFrame(-1);
 			refreshSteps("ParticleDataTrack");
-			notifySteps();
+			fireStepsChanged();
 		}
 		invalidWarningShown = true;
 		repaint();

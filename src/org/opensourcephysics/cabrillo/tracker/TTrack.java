@@ -1628,6 +1628,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				return false;
 		}
 		XMLControl control = new XMLControlElement(this);
+		control.setValue("isTextColumn", true);
 		textColumnNames.add(name);
 		textColumnEntries.put(name, new String[0]);
 		Undo.postTrackEdit(this, control);
@@ -2199,7 +2200,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 						autoTracker.reset();
 					autoTracker.getWizard().setVisible(false);
 				}
-				notifySteps();
+				fireStepsChanged();
 				TFrame.repaintT(trackerPanel);
 			}
 		});
@@ -3521,12 +3522,12 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			firePropertyChange(PROPERTY_TTRACK_DATA, null, newValue == Boolean.TRUE ? null : newValue);
 	}
 
-	public void notifyUndoLoaded() {
-		notifySteps();
-		// TrackEdit is also used for text column edits
-		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, null);
-	}
-
+//	public void notifyUndoLoaded() {
+//		notifySteps();
+//		// TrackEdit is also used for text column edits
+//		firePropertyChange(PROPERTY_TTRACK_TEXTCOLUMN, null, null);
+//	}
+//
 	/**
 	 * Finish up any unfinished loading business that for whatever reason was not
 	 * finished upon loading a track. For example, adding masses to a center-of-mass
@@ -3538,7 +3539,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		// for subclasses
 	}
 
-	public void notifySteps() {
+	public void fireStepsChanged() {
 		// this call will update TrackPlottingPanel
 		firePropertyChange(PROPERTY_TTRACK_STEPS, null, null);
 	}
