@@ -417,7 +417,7 @@ public class Undo {
 			TTrack track = panel.getTrack(trackName);
 			if (track == null)
 				return;
-			// pig turn off refreshing until finished
+			// turn off view refreshing until finished
 			TrackChooserTView.ignoreRefresh = true;
 			control.loadObject(track);
 			track.erase();

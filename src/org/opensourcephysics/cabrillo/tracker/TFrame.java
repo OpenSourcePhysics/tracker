@@ -1796,7 +1796,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 							@Override
 								public void propertyChange(PropertyChangeEvent e) {
 								// Call from LibraryBrowser when an item is selected
-								openLibraryResource((LibraryResource) e.getNewValue());
+								if (LibraryBrowser.HINT_LOAD_RESOURCE == e.getOldValue())
+									openLibraryResource((LibraryResource) e.getNewValue());
+								else if (LibraryBrowser.HINT_DOWNLOAD_RESOURCE == e.getOldValue()) {
+									File file = (File)e.getNewValue();
+									if (file.exists()) {
+										TrackerIO.open(file.getPath(), TFrame.this);
+									}
+								}
 								TFrame.this.requestFocus();
 							}
 						});

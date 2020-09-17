@@ -660,7 +660,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		// DB TTrack.setTrackerPanel() now responsible for adding the track to this (TrackerPanel) listeners		
 		// here we add this TrackerPanel to the track listeners
-		track.addListener(this); // pig
+		track.addListener(this);
 		if (this == track.trackerPanel) {
 		}
 		

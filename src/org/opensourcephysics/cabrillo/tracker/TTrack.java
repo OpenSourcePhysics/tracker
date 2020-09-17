@@ -2741,7 +2741,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		// track listens to trackerPanel
 		// DB but should be more carefully controlled
 		if (trackerPanel != null) {
-			trackerPanel.removePropertyChangeListener(this); // pig
+			trackerPanel.removePropertyChangeListener(this);
 		}
 		trackerPanel = panel;
 		if (trackerPanel != null) {
