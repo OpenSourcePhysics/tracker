@@ -2048,14 +2048,19 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		String s = OSPRuntime.paste(null);
 		if (s == null)
 			return;
-		XMLControlElement control = new XMLControlElement(s);
-//		control.readXML(s);
-		Class<?> type = control.getObjectClass();
-		if (control.failedToRead() && ParticleDataTrack.getImportableDataName(s) != null) {
-			// clipboard contains pastable data
-			paste = TrackerRes.getString("ParticleDataTrack.Button.Paste.Text"); //$NON-NLS-1$
-			edit_pasteItem.setEnabled(true);
-			edit_pasteItem.setText(paste);
+		Class<?> type = null;
+		XMLControlElement control = null;
+		if (s.startsWith("<?xml")) {
+			control = new XMLControlElement(s);
+			type = control.failedToRead()? null: control.getObjectClass();
+		}
+		if (type == null) {
+			if (ParticleDataTrack.getImportableDataName(s) != null) {
+				// clipboard contains pastable data
+				paste = TrackerRes.getString("ParticleDataTrack.Button.Paste.Text"); //$NON-NLS-1$
+				edit_pasteItem.setEnabled(true);
+				edit_pasteItem.setText(paste);
+			}
 		} else if (TTrack.class.isAssignableFrom(type)) {
 			String name = control.getString("name"); //$NON-NLS-1$
 			edit_pasteItem.setEnabled(true);
