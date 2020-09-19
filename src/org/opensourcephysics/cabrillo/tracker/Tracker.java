@@ -924,9 +924,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		// typical beta version 4.10.0170514
 		if (vers.length() > 7 || testOn)
 			vers += " BETA"; //$NON-NLS-1$
-		//String date = OSPRuntime.getLaunchJarBuildDate();
-		String date = OSPRuntime.COMPILE_DATE;
-		if (date != null) vers = vers + "\nCompiled on " + date; //$NON-NLS-1$
+		String date = OSPRuntime.getLaunchJarBuildDate();
+		if (date != null) vers = vers + "\njar manifest date " + date; //$NON-NLS-1$
 		
 		if(isJS) {
 			vers += "\n\nJavaScript transcription created using the\n" + "java2script/SwingJS framework developed at\n"
