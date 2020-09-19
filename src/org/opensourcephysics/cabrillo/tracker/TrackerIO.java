@@ -617,34 +617,6 @@ public class TrackerIO extends VideoIO {
 	}
 
 	/**
-	 * Determines if a file can be written. If the file exists, the user is prompted
-	 * for approval to overwrite.
-	 *
-	 * @param file the file to check
-	 * @return true if the file can be written
-	 */
-	public static boolean canWrite(File file) {
-		if (OSPRuntime.isJS)
-			return true;
-		if (file.exists() && !file.canWrite()) {
-			JOptionPane.showMessageDialog(null, ControlsRes.getString("Dialog.ReadOnly.Message"), //$NON-NLS-1$
-					ControlsRes.getString("Dialog.ReadOnly.Title"), //$NON-NLS-1$
-					JOptionPane.PLAIN_MESSAGE);
-			return false;
-		}
-		if (file.exists()) {
-			int selected = JOptionPane.showConfirmDialog(null, "\"" + file.getName() + "\" " //$NON-NLS-1$ //$NON-NLS-2$
-					+ TrackerRes.getString("TrackerIO.Dialog.ReplaceFile.Message"), //$NON-NLS-1$
-					TrackerRes.getString("TrackerIO.Dialog.ReplaceFile.Title"), //$NON-NLS-1$
-					JOptionPane.YES_NO_OPTION);
-			if (selected != JOptionPane.YES_OPTION) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	/**
 	 * Returns a video from a specified path. May return null. Overrides VideoIO
 	 * method.
 	 *
@@ -2056,6 +2028,7 @@ public class TrackerIO extends VideoIO {
 
 		private void finalizeVideoLoading(Video video) {
 			frame.addTab(trackerPanel, null);
+			OSPLog.warning("pig1"); //$NON-NLS-1$
 //			if (monitorDialog.isVisible())
 //				monitorDialog.setProgress(95);
 			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
@@ -2063,6 +2036,7 @@ public class TrackerIO extends VideoIO {
 			// BH ?? TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_BEFORESETVIDEO);
 			trackerPanel.setVideo(video);
 			// panel is changed if video imported into existing trackerPanel
+			OSPLog.warning("pig2"); //$NON-NLS-1$
 			panelChanged = existingPanel != null;
 			if (video.getFrameCount() == 1) {
 				trackerPanel.getPlayer().getVideoClip().setStepCount(10);
