@@ -124,6 +124,13 @@ import swingjs.api.JSUtilI;
  */
 public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
+	/**
+	 * Ensure that OSP is loaded already, enabling all reasources and setting J2S parameters
+	 * such as allowed AJAX databases.
+	 * 
+	 */
+	static boolean ospLoaded = OSPRuntime.allowAsyncURL;
+	
 	static boolean isJS = /** @j2sNative true || */
 			false;
 
