@@ -189,7 +189,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	// define static constants
 	/** tracker version and copyright */
 	public static final String VERSION = "5.9.20200918"; //$NON-NLS-1$
-	public static final String COPYRIGHT = "Copyright (c) 2020 D Brown, R Hanson, W Christian"; //$NON-NLS-1$
+	public static final String COPYRIGHT = "Copyright (c) 2020 D. Brown, R. Hanson, W. Christian"; //$NON-NLS-1$
 	
 	/**
 	 * Gets an icon from a class resource image.
@@ -924,10 +924,15 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		// typical beta version 4.10.0170514
 		if (vers.length() > 7 || testOn)
 			vers += " BETA"; //$NON-NLS-1$
-		String date = OSPRuntime.getLaunchJarBuildDate();
-		if (date != null)
-			vers = vers + "   " + date; //$NON-NLS-1$
-		String aboutString = "Tracker " //$NON-NLS-1$
+		//String date = OSPRuntime.getLaunchJarBuildDate();
+		String date = OSPRuntime.COMPILE_DATE;
+		if (date != null) vers = vers + "\nCompiled on " + date; //$NON-NLS-1$
+		
+		if(isJS) {
+			vers += "\n\nJavaScript transcription created using the\n" + "java2script/SwingJS framework developed at\n"
+					+ "St. Olaf College.\n";
+		}
+		String aboutString = "Version " //$NON-NLS-1$
 				+ vers + newline + COPYRIGHT + newline + "https://" + trackerWebsite + newline + newline //$NON-NLS-1$
 				+ TrackerRes.getString("Tracker.About.ProjectOf") + newline //$NON-NLS-1$
 				+ "Open Source Physics" + newline //$NON-NLS-1$
