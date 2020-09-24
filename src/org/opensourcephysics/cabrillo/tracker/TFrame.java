@@ -1795,9 +1795,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						new PropertyChangeListener() { // $NON-NLS-1$
 							@Override
 								public void propertyChange(PropertyChangeEvent e) {
-								// Call from LibraryBrowser when an item is selected
+								// if HINT_LOAD_RESOURCE, then e.getNewValue() is LibraryResource to load
 								if (LibraryBrowser.HINT_LOAD_RESOURCE == e.getOldValue())
 									openLibraryResource((LibraryResource) e.getNewValue());
+								// if HINT_DOWNLOAD_RESOURCE, then e.getNewValue() is downloaded File to load
 								else if (LibraryBrowser.HINT_DOWNLOAD_RESOURCE == e.getOldValue()) {
 									File file = (File)e.getNewValue();
 									if (file.exists()) {
@@ -1849,9 +1850,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 
 			String lcTarget = target.toLowerCase();
-			boolean accept = lcTarget.endsWith(".trk") //$NON-NLS-1$
-					|| lcTarget.endsWith(".zip") //$NON-NLS-1$
-					|| lcTarget.endsWith(".trz"); //$NON-NLS-1$
+			boolean accept = lcTarget.endsWith(".trz") //$NON-NLS-1$
+					|| lcTarget.endsWith(".trk") //$NON-NLS-1$
+					|| lcTarget.endsWith(".zip"); //$NON-NLS-1$
 			if (!accept) {
 				for (String ext : VideoIO.getVideoExtensions()) {
 					accept |= lcTarget.endsWith("." + ext); //$NON-NLS-1$

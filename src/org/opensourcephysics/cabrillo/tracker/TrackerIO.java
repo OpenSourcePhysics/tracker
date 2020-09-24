@@ -2028,7 +2028,6 @@ public class TrackerIO extends VideoIO {
 
 		private void finalizeVideoLoading(Video video) {
 			frame.addTab(trackerPanel, null);
-			OSPLog.warning("pig1"); //$NON-NLS-1$
 //			if (monitorDialog.isVisible())
 //				monitorDialog.setProgress(95);
 			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
@@ -2036,7 +2035,6 @@ public class TrackerIO extends VideoIO {
 			// BH ?? TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_BEFORESETVIDEO);
 			trackerPanel.setVideo(video);
 			// panel is changed if video imported into existing trackerPanel
-			OSPLog.warning("pig2"); //$NON-NLS-1$
 			panelChanged = existingPanel != null;
 			if (video.getFrameCount() == 1) {
 				trackerPanel.getPlayer().getVideoClip().setStepCount(10);
