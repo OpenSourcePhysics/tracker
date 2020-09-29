@@ -690,7 +690,11 @@ public class TrackerIO extends VideoIO {
 
 		// open all files in Tracker
 		run("openTabPath", () -> {
-				openTabPath(path, null, frame, vidType, null, NULL_RUNNABLE);
+				openTabPath(path, null, frame, vidType, null, () -> {
+					if (trzFileFilter.accept(new File(path), false)
+							&& !path.contains("/OSP/Cache/"))
+						addToLibrary(frame, path);
+				});
 			});
 	}
 
@@ -718,22 +722,25 @@ public class TrackerIO extends VideoIO {
 	 * @param desktopFiles supplemental HTML and PDF files to load on the desktop
 	 * @param trzPath      path to TRZ file, if that is the source
 	 */
-	public static void openCollection(final Collection<String> uriPaths, final TFrame frame,
+	public static void openAll(final Collection<String> uriPaths, final TFrame frame,
 			final ArrayList<String> desktopFiles, String trzPath) {
 		if (uriPaths == null || uriPaths.isEmpty()) {
 			return;
 		}
 		frame.loadedFiles.clear();
-		Runnable whenDone = (trzPath != null ? () -> {
-				TFrame.repaintT(frame);
-				addToLibrary(frame, trzPath);
-			} : null); // BH Q: Could be null_runable ? better: add whenDone to this method?
+//		Runnable whenDone = (trzPath != null ? () -> {
+//				TFrame.repaintT(frame);
+//				if (!trzPath.contains("/OSP/Cache/") && !ResourceLoader.isHTTP(trzPath)) {
+//					OSPLog.debug("TrackerIO adding to library " + trzPath); //$NON-NLS-1$
+//					addToLibrary(frame, trzPath);
+//				}
+//			} : null); // BH Q: Could be null_runable ? better: add whenDone to this method?
 
 		// open in separate background thread if flagged
 		run("tabOpener", () -> {
 				for (String uriPath : uriPaths) {
 					OSPLog.debug("TrackerIO opening URL " + uriPath); //$NON-NLS-1$
-					openTabPath(uriPath, null, frame, null, desktopFiles, whenDone);
+					openTabPath(uriPath, null, frame, null, desktopFiles, null);
 				}
 		});
 	}
@@ -760,13 +767,14 @@ public class TrackerIO extends VideoIO {
 		frame.loadedFiles.clear();
 		OSPLog.debug("TrackerIO open " + path); //$NON-NLS-1$
 		openTabPath(path, null, frame, null, null, () -> {
-				if (trzFileFilter.accept(new File(path), false))
-					addToLibrary(frame, path);
+			if (trzFileFilter.accept(new File(path), false)
+					&& !ResourceLoader.isHTTP(path) && !path.contains("/OSP/Cache/"))
+				addToLibrary(frame, path);
 		});
 	}
 
 	private static void addToLibrary(TFrame frame, String path) {
-		// also open TRZ files in library browser
+		// add local non-cached TRZ files to library browser recent collection
 		// BH! Q: this was effectively TRUE -- "any directory is OK" why?
 
 		if (!OSPRuntime.autoAddLibrary) {
@@ -1973,8 +1981,8 @@ public class TrackerIO extends VideoIO {
 			}
 			// load trk files into Tracker
 			if (!isCanceled()) {
-				openCollection(trkFiles, frame, tempFiles, path); // this also adds tempFile paths to trackerPanel
-				// add TRZ, ZIP and JAR paths to recent files
+				openAll(trkFiles, frame, tempFiles, path); // this also adds tempFile paths to trackerPanel
+				// add path to recent files
 				Tracker.addRecent(nonURIPath, false); // add at beginning
 				return 100;
 			}

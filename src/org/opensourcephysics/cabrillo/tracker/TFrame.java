@@ -1638,27 +1638,29 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	protected void doRecentFiles(String path) {
 		URL url = null;
-		File file = new File(path);
-		if (!file.exists()) {
-			int n = path.indexOf("!"); //$NON-NLS-1$
-			if (n >= 0 && !(file = new File(path.substring(0, n))).exists()) {
-				try {
-					url = new URL(path);
-				} catch (MalformedURLException e1) {
+		if (!ResourceLoader.isHTTP(path)) {
+			File file = new File(path);
+			if (!file.exists()) {
+				int n = path.indexOf("!"); //$NON-NLS-1$
+				if (n >= 0 && !(file = new File(path.substring(0, n))).exists()) {
+					try {
+						url = new URL(path);
+					} catch (MalformedURLException e1) {
+					}
 				}
 			}
-		}
-		if (!file.exists() && url == null) {
-			Tracker.recentFiles.remove(path);
-			int n = getSelectedTab();
-			if (n >= 0) {
-				TMenuBar.refreshMenus(getTrackerPanel(n), TMenuBar.REFRESH_TFRAME_OPENRECENT);
+			if (!file.exists() && url == null) {
+				Tracker.recentFiles.remove(path);
+				int n = getSelectedTab();
+				if (n >= 0) {
+					TMenuBar.refreshMenus(getTrackerPanel(n), TMenuBar.REFRESH_TFRAME_OPENRECENT);
+				}
+				JOptionPane.showMessageDialog(TFrame.this, TrackerRes.getString("TFrame.Dialog.FileNotFound.Message") //$NON-NLS-1$
+						+ "\n" + MediaRes.getString("VideoIO.Dialog.Label.Path") + ": " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+						+ path, TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
+						JOptionPane.WARNING_MESSAGE);
+				return;
 			}
-			JOptionPane.showMessageDialog(TFrame.this, TrackerRes.getString("TFrame.Dialog.FileNotFound.Message") //$NON-NLS-1$
-					+ "\n" + MediaRes.getString("VideoIO.Dialog.Label.Path") + ": " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					+ path, TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
-					JOptionPane.WARNING_MESSAGE);
-			return;
 		}
 		TrackerPanel selected = getTrackerPanel(getSelectedTab());
 		if (selected != null) {
@@ -1783,9 +1785,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (libraryBrowser == null) {
 			try {
 				LibraryComPADRE.desiredOSPType = "Tracker"; //$NON-NLS-1$
+				
 //    	JDialog dialog = new JDialog(this, false);
-				libraryBrowser = LibraryBrowser.getBrowser(null);
 //    	libraryBrowser = LibraryBrowser.getBrowser(dialog);
+				libraryBrowser = LibraryBrowser.getBrowser(null);
+
 				libraryBrowser.addOSPLibrary(LibraryBrowser.TRACKER_LIBRARY);
 				libraryBrowser.addOSPLibrary(LibraryBrowser.SHARED_LIBRARY);
 				libraryBrowser
@@ -1875,7 +1879,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 				ArrayList<String> uriPaths = new ArrayList<String>();
 				uriPaths.add(target);
-				TrackerIO.openCollection(uriPaths, TFrame.this, null, null);
+				TrackerIO.openAll(uriPaths, TFrame.this, null, null);
 			}
 		} finally {
 			libraryBrowser.setCursor(Cursor.getDefaultCursor());
