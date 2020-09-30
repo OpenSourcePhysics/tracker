@@ -139,8 +139,8 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		private TrackerPanel panel;
 
 		private String name;
-		private String originalPath;
-		private String target;
+		private String originalVideoPath;
+		private String videoTarget;
 		private String trkPath;
 
 		private ArrayList<File> zipList;
@@ -150,14 +150,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		
 		private String vidDir;
 
-		protected Export(ArrayList<File> zipList, String name, TrackerPanel panel, String originalPath, String target,
-				ExportVideoDialog exporter) {
+		protected Export(ArrayList<File> zipList, String name, TrackerPanel panel, String originalPath, 
+				String trkPath, String videoTarget, ExportVideoDialog exporter) {
 			this.name = name;
 			this.zipList = zipList;
 			this.panel = panel;
-			this.originalPath = originalPath;
-			this.target = target;
-			this.trkPath = target;
+			this.originalVideoPath = originalPath;
+			this.videoTarget = videoTarget;
+			this.trkPath = trkPath;
 			this.exporter = exporter;
 		}
 
@@ -168,13 +168,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			vidDir = getTempDirectory() + videoSubdirectory;
 			if (exporter != null) {
 				String extension = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem()).getDefaultExtension();
-				target = getVideoTarget(XML.getName(trkPath), extension);
+				videoTarget = getVideoTarget(XML.getName(trkPath), extension);
 				exporter.setTrackerPanel(panel);
 				exporter.setFormat((String) formatDropdown.getSelectedItem());
+				// listen for cancel or saved events
 				listener = new PropertyChangeListener() {
 					@Override
 					public void propertyChange(PropertyChangeEvent e) {
-						target = null; // set path to null if video_cancelled
+						videoTarget = null; // set videoTarget to null if video_cancelled
 						exporter.removePropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOSAVED,
 								listener); // $NON-NLS-1$
 						exporter.removePropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOCANCELED,
@@ -182,7 +183,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 						if (e.getPropertyName().equals(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOSAVED)) { // $NON-NLS-1$
 							// videoPath is new value from event (different from original path for image
 							// videos)
-							target = e.getNewValue().toString();
+							videoTarget = e.getNewValue().toString();
 							finalizeExport();
 						} else {
 							exportCanceled();
@@ -191,25 +192,26 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 				};
 				exporter.addPropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOSAVED, listener); // $NON-NLS-1$
 				exporter.addPropertyChangeListener(ExportVideoDialog.PROPERTY_EXPORTVIDEO_VIDEOCANCELED, listener); // $NON-NLS-1$
-				exporter.exportFullSizeVideo(target, trkPath);
+				exporter.exportFullSizeVideo(videoTarget, trkPath);
 				return;
 			}
+			
 			// if image video, then copy/extract additional image files
 			Video vid = panel.getVideo();
 			if (vid instanceof ImageVideo) {
 				ImageVideo imageVid = (ImageVideo) vid;
 				String[] paths = imageVid.getValidPaths();
 				// first path is originalPath relative to base
-				int n = originalPath.indexOf(XML.getName(paths[0]));
+				int n = originalVideoPath.indexOf(XML.getName(paths[0]));
 				if (n > 0) {
-					String base = originalPath.substring(0, n);
+					String base = originalVideoPath.substring(0, n);
 					for (String path : paths) {
 						String name = XML.getName(path);
 						path = base + name;
 						String vidPath = vidDir + File.separator + name;
 						File target = new File(vidPath); // $NON-NLS-1$
-						if (path.equals(originalPath)) {
-							this.target = videoSubdirectory + "/" + name;
+						if (path.equals(originalVideoPath)) {
+							videoTarget = videoSubdirectory + File.separator + name;
 						} else if (!createTarget(path, target)) {
 							return;
 						}
@@ -223,34 +225,32 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 		protected void finalizeExport() {
 			// video should be ready at this point
 			// add video file(s) to ziplist
-			if (trkPath != null) {
-				File trkFile = new File(trkPath);
-				// deal with image videos
-				if (!"".equals(videoSubdirectory)) { //$NON-NLS-1$
-					// delete XML file, if any, from video directory
-					File xmlFile = null;
-					for (File next : new File(target).getParentFile().listFiles()) {
-						if (next.getName().endsWith(".xml") && next.getName().startsWith(targetName)) { //$NON-NLS-1$
-							xmlFile = next;
-							break;
-						}
-					}
-					if (xmlFile != null) {
-						XMLControl control = new XMLControlElement(xmlFile);
-						if (control.getObjectClassName().endsWith("ImageVideo")) { //$NON-NLS-1$
-							String[] paths = (String[]) control.getObject("paths"); //$NON-NLS-1$
-							String base = control.getBasepath();
-							if (base == null)
-								base = vidDir;
-							for (String path : paths) {
-								zipList.add(new File(vidDir + File.separator + path));
-							}
-						}
-						xmlFile.delete();
+			File vidFile = new File(getTempDirectory() + videoTarget);
+			zipList.add(vidFile);
+			
+			// deal with image videos
+			if (!"".equals(videoSubdirectory)) { //$NON-NLS-1$
+				// delete XML file, if any, from video directory
+				File xmlFile = null;
+				for (File next : new File(vidDir).listFiles()) {
+					if (next.getName().endsWith(".xml") && next.getName().startsWith(targetName)) { //$NON-NLS-1$
+						xmlFile = next;
+						break;
 					}
 				}
-				// add to ziplist unless it is a duplicate
-				zipList.add(trkFile);
+				if (xmlFile != null) {
+					XMLControl control = new XMLControlElement(xmlFile);
+					if (control.getObjectClassName().endsWith("ImageVideo")) { //$NON-NLS-1$
+						String[] paths = (String[]) control.getObject("paths"); //$NON-NLS-1$
+						String base = control.getBasepath();
+						if (base == null)
+							base = vidDir;
+						for (String path : paths) {
+							zipList.add(new File(vidDir + File.separator + path));
+						}
+					}
+					xmlFile.delete();
+				}
 			}
 
 			// create and modify TrackerPanel XMLControl
@@ -261,7 +261,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			} else if (panel.getVideo() != null) {
 				XMLControl videoControl = control.getChildControl("videoclip").getChildControl("video"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (videoControl != null) {
-					videoControl.setValue("path", target); //$NON-NLS-1$
+					videoControl.setValue("path", XML.forwardSlash(videoTarget)); //$NON-NLS-1$
 				}
 			}
 
@@ -300,13 +300,13 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			clipXMLControl.setValue("startframe", 0); //$NON-NLS-1$
 			clipXMLControl.setValue("stepsize", 1); //$NON-NLS-1$
 //	    clipXMLControl.setValue("frameshift", 0); //$NON-NLS-1$
-			if (target != null) {
+			if (videoTarget != null) {
 				// modify videoControl with correct video type, and add delta_t for image videos
 				VideoType videoType = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 				String trkDir = getTempDirectory();
-				String relPath = XML.getPathRelativeTo(target, trkDir);
+				String relPath = XML.getPathRelativeTo(videoTarget, trkDir);
 
-				Video newVideo = videoType.getVideo(XML.getName(target), vidDir);
+				Video newVideo = videoType.getVideo(XML.getName(videoTarget), vidDir);
 				clipXMLControl.setValue("video", newVideo); //$NON-NLS-1$
 
 				XMLControl videoControl = clipXMLControl.getChildControl("video"); //$NON-NLS-1$
@@ -2045,7 +2045,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			String trkPath = getTRKTarget(tabTitle, trkPaths);
 			String originalPath = null;
 			ExportVideoDialog exporter = null;
-			String videoDir = null;
+			String videoPath = null;
 
 			// export or copy video, if any
 			Video vid = panel.getVideo();
@@ -2059,18 +2059,18 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 					exporter = videoExporter;
 				} else if (originalPath != null) { // $NON-NLS-1$
 					// copy or extract original video to target directory
-					String vidDir = getTempDirectory() + videoSubdirectory;
-					String path = vidDir + File.separator + XML.getName(originalPath); // $NON-NLS-1$
+					videoPath = videoSubdirectory + File.separator + XML.getName(originalPath);
+					String tempPath = getTempDirectory() + videoPath; // $NON-NLS-1$
 					// check if target video file already exists
-					boolean videoexists = new File(path).exists();
+					boolean videoexists = new File(tempPath).exists();
 					if (!videoexists) {
-						new File(vidDir).mkdirs();
-						if (!createTarget(originalPath, new File(path)))
+						new File(getTempDirectory() + videoSubdirectory).mkdirs();
+						if (!createTarget(originalPath, new File(tempPath)))
 							return;
 					}
 				}
 			}
-			exports.add(new Export(zipList, tabTitle, panel, originalPath, trkPath, exporter));
+			exports.add(new Export(zipList, tabTitle, panel, originalPath, trkPath, videoPath, exporter));
 		}
 		exportIterator = exports.iterator();
 	}
