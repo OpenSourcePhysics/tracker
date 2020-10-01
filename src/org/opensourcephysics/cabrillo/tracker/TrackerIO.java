@@ -945,14 +945,15 @@ public class TrackerIO extends VideoIO {
 	 * @param trackerPanel         the TrackerPanel to check
 	 * @param tolerance            the unacceptable variation limit
 	 * @param showDialog           true to display the results in a dialog
-	 * @param onlyIfFound          true to display the dialog only if problems are
-	 *                             found
+	 * @param onlyIfFound          true to display the dialog only if problems are found
 	 * @param showSetDefaultButton true to show the "Don't show again" button
 	 * @return a BitSet indicating frames with odd durations
 	 */
 	public static BitSet findBadVideoFrames(TrackerPanel trackerPanel, double tolerance, boolean showDialog,
 			boolean onlyIfFound, boolean showSetDefaultButton) {
 		BitSet outliers = new BitSet();
+//		if (OSPRuntime.isJS)
+//			return outliers;
 		Video video = trackerPanel.getVideo();
 		if (video == null)
 			return outliers;
@@ -2058,11 +2059,7 @@ public class TrackerIO extends VideoIO {
 			// check for video frames with durations that vary by 20% from average
 			if (Tracker.warnVariableDuration)
 				findBadVideoFrames(trackerPanel, defaultBadFrameTolerance, true, true, true);
-			// show dialog only if
-			// bad frames found,
-			// and include
-			// "don't show
-			// again" button
+			// show dialog only if bad frames found, and include "don't show again" button
 		}
 
 		private void doneLoading() {

@@ -188,7 +188,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20200929"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20201001"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2020 D. Brown, R. Hanson, W. Christian"; //$NON-NLS-1$
 	
 	/**
@@ -1173,8 +1173,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 				}
 			};
 
-			// about Xuggle--only if xuggle resources present
-			if (true || MovieFactory.xuggleIsPresent) {
+			// about Xuggle--only if xuggle resources present?
+			if (MovieFactory.xuggleIsPresent || true) {
 				aboutXuggleAction = new AbstractAction(TrackerRes.getString("Tracker.Action.AboutXuggle"), null) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
