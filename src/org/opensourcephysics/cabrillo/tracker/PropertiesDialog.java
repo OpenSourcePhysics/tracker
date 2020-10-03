@@ -107,7 +107,8 @@ public class PropertiesDialog extends JDialog {
   @Override
   public void setVisible(boolean vis) {
   	super.setVisible(vis);
-  	dispose();
+  	if (!OSPRuntime.isJS)
+  		dispose();
   }
   
 //_____________________________ private methods ____________________________
