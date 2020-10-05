@@ -1800,8 +1800,22 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 							@Override
 								public void propertyChange(PropertyChangeEvent e) {
 								// if HINT_LOAD_RESOURCE, then e.getNewValue() is LibraryResource to load
-								if (LibraryBrowser.HINT_LOAD_RESOURCE == e.getOldValue())
-									openLibraryResource((LibraryResource) e.getNewValue());
+								if (LibraryBrowser.HINT_LOAD_RESOURCE == e.getOldValue()) {
+									LibraryResource record = (LibraryResource)e.getNewValue();
+									libraryBrowser.setMessage("Loading "+record.getName(), Color.YELLOW);
+									openLibraryResource((LibraryResource) e.getNewValue(), () -> {
+										Timer timer = new Timer(300, (ev) -> {
+											libraryBrowser.setMessage(null, null);
+											TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
+											if (trackerPanel != null) {
+//												Toolkit.getDefaultToolkit().beep();
+												repaintT(trackerPanel);
+											}
+										});
+										timer.setRepeats(false);
+										timer.start();
+									});
+								}
 								// if HINT_DOWNLOAD_RESOURCE, then e.getNewValue() is downloaded File to load
 								else if (LibraryBrowser.HINT_DOWNLOAD_RESOURCE == e.getOldValue()) {
 									File file = (File)e.getNewValue();
@@ -1832,7 +1846,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		return libraryBrowser;
 	}
 
-	protected void openLibraryResource(LibraryResource record) {
+	protected void openLibraryResource(LibraryResource record, Runnable whenDone) {
 		libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		try {
 			String target = XML.getResolvedPath(record.getTarget(), record.getBasePath());
@@ -1879,7 +1893,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 				ArrayList<String> uriPaths = new ArrayList<String>();
 				uriPaths.add(target);
-				TrackerIO.openAll(uriPaths, TFrame.this, null, null);
+				TrackerIO.openAll(uriPaths, TFrame.this, null, null, whenDone);
 			}
 		} finally {
 			libraryBrowser.setCursor(Cursor.getDefaultCursor());

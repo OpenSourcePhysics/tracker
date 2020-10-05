@@ -723,7 +723,7 @@ public class TrackerIO extends VideoIO {
 	 * @param trzPath      path to TRZ file, if that is the source
 	 */
 	public static void openAll(final Collection<String> uriPaths, final TFrame frame,
-			final ArrayList<String> desktopFiles, String trzPath) {
+			final ArrayList<String> desktopFiles, String trzPath, Runnable whenDone) {
 		if (uriPaths == null || uriPaths.isEmpty()) {
 			return;
 		}
@@ -740,7 +740,7 @@ public class TrackerIO extends VideoIO {
 		run("tabOpener", () -> {
 				for (String uriPath : uriPaths) {
 					OSPLog.debug("TrackerIO opening URL " + uriPath); //$NON-NLS-1$
-					openTabPath(uriPath, null, frame, null, desktopFiles, null);
+					openTabPath(uriPath, null, frame, null, desktopFiles, whenDone);
 				}
 		});
 	}
@@ -1877,6 +1877,15 @@ public class TrackerIO extends VideoIO {
 
 			// sort the zip file contents
 			Map<String, ZipEntry> contents = ResourceLoader.getZipContents(path);
+			// first determine baseName shared by thumbnail, html and (usually) zip file
+			// eg example.trz, example_info.html, example_thumbnail.png
+			String baseName = XML.stripExtension(name);  // first guess: filename
+			for (String next : contents.keySet()) {
+				if (next.indexOf("_thumbnail") > -1) {
+					String thumb = XML.getName(next);
+					baseName = thumb.substring(0, thumb.indexOf("_thumbnail"));
+				}
+			}
 			for (String next : contents.keySet()) {
 				if (next.endsWith(".trk")) { //$NON-NLS-1$
 					String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
@@ -1885,8 +1894,7 @@ public class TrackerIO extends VideoIO {
 				} else if (next.endsWith(".pdf")) { //$NON-NLS-1$
 					pdfFiles.add(next);
 				} else if (next.endsWith(".html") || next.endsWith(".htm")) { //$NON-NLS-1$ //$NON-NLS-2$
-					// handle HTML info files (name "<zipname>_info")
-					String baseName = XML.stripExtension(name);
+					// handle HTML info files (name "<basename>_info")
 					String nextName = XML.getName(next);
 					if (XML.stripExtension(nextName).equals(baseName + "_info")) { //$NON-NLS-1$
 						continue;
@@ -1982,7 +1990,8 @@ public class TrackerIO extends VideoIO {
 			}
 			// load trk files into Tracker
 			if (!isCanceled()) {
-				openAll(trkFiles, frame, tempFiles, path); // this also adds tempFile paths to trackerPanel
+				openAll(trkFiles, frame, tempFiles, path, whenDone);
+				whenDone = null;
 				// add path to recent files
 				Tracker.addRecent(nonURIPath, false); // add at beginning
 				return 100;
