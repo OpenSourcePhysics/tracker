@@ -321,6 +321,11 @@ public class WorldTView extends TrackerPanel implements TView {
 		return toolbarComponents;
 	}
 
+	@Override
+	public void refreshPopup(JPopupMenu popup) {
+		// does nothing
+	}
+
 	/**
 	 * Responds to property change events.
 	 *

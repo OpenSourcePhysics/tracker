@@ -522,15 +522,15 @@ public class TableTrackView extends TrackView {
 	 */
 	@Override
 	public ArrayList<Component> getToolBarComponents() {
-		toolbarComponents.remove(gapsButton);
-		// determine if track has gaps
-		TTrack track = getTrack();
-		if (track instanceof PointMass) {
-			PointMass p = (PointMass) track;
-			if (p.getGapCount() > 0 || p.skippedSteps.size() > 0) {
-				toolbarComponents.add(gapsButton);
-			}
-		}
+//		toolbarComponents.remove(gapsButton);
+//		// determine if track has gaps
+//		TTrack track = getTrack();
+//		if (track instanceof PointMass) {
+//			PointMass p = (PointMass) track;
+//			if (p.getGapCount() > 0 || p.skippedSteps.size() > 0) {
+//				toolbarComponents.add(gapsButton);
+//			}
+//		}
 		return toolbarComponents;
 	}
 
@@ -1719,6 +1719,46 @@ public class TableTrackView extends TrackView {
 		copyDataFormattedItem.setText(TrackerRes.getString("TableTrackView.MenuItem.Formatted")); //$NON-NLS-1$
 		setDelimiterMenu.setText(TrackerRes.getString("TableTrackView.Menu.SetDelimiter")); //$NON-NLS-1$
 		return menu;
+	}
+	
+	/**
+	 * Refreshes a popup menu with data gap items.
+	 *
+	 * @param popup the popup to refresh
+	 */
+	protected void refreshToolbarPopup(JPopupMenu popup) {
+		JCheckBoxMenuItem item = new JCheckBoxMenuItem(
+				TrackerRes.getString("TableTrackView.MenuItem.Gaps.GapsVisible")); //$NON-NLS-1$
+		item.setSelected(gapsButton.isSelected());
+		item.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				gapsButton.setSelected(!gapsButton.isSelected());
+				dataTable.skippedFramesRenderer.setVisible(gapsButton.isSelected());
+				if (gapsButton.isSelected()) {
+					dataTable.resetSort();
+				}
+				dataTable.repaint();
+				dataTable.getTableHeader().resizeAndRepaint();
+			}
+		});
+		popup.add(item);
+		if (Tracker.enableAutofill) {
+			item = new JCheckBoxMenuItem(TrackerRes.getString("TableTrackView.MenuItem.Gaps.AutoFill")); //$NON-NLS-1$
+			item.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					PointMass p = (PointMass) TableTrackView.this.getTrack();
+					p.setAutoFill(!p.isAutofill);
+					p.repaint();
+				}
+			});
+			PointMass p = (PointMass) TableTrackView.this.getTrack();
+			item.setSelected(p.isAutofill);
+			popup.add(item);
+			
+			popup.addSeparator();
+		}
 	}
 
 	/**

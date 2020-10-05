@@ -471,6 +471,11 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		return toolbarComponents;
 	}
 
+	@Override
+	public void refreshPopup(JPopupMenu popup) {
+		// does nothing
+	}
+
 	/**
 	 * Returns true if this view is in a custom state.
 	 *

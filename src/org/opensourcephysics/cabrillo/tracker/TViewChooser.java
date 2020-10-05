@@ -169,6 +169,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		if (view == null)
 			return;
 		JPopupMenu popup = new JPopupMenu();
+		view.refreshPopup(popup);
+
 		JMenuItem helpItem = new JMenuItem(TrackerRes.getString("Dialog.Button.Help") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
 		helpItem.addActionListener(new ActionListener() {
 			@Override

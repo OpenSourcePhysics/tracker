@@ -110,6 +110,13 @@ public interface TView extends PropertyChangeListener {
 	public ArrayList<Component> getToolBarComponents();
 
 	/**
+	 * Refreshes a popup menu by adding items to it
+	 *
+	 * @param popup the popup to refresh
+	 */
+	public void refreshPopup(JPopupMenu popup);
+
+	/**
 	 * Returns true if this view is in a custom state.
 	 *
 	 * @return false

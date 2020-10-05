@@ -603,5 +603,11 @@ public class MainTView extends JPanel implements TView {
 	public int getViewType() {
 		return TView.VIEW_MAIN;
 	}
+	
+	@Override
+	public void refreshPopup(JPopupMenu popup) {
+		// does nothing
+	}
+
 
 }

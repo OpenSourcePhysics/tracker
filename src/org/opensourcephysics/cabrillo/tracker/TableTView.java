@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import javax.swing.Icon;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumnModel;
 
@@ -113,6 +114,15 @@ public class TableTView extends TrackChooserTView {
 	@Override
 	public int getViewType() {
 		return TView.VIEW_TABLE;
+	}
+
+	@Override
+	public void refreshPopup(JPopupMenu popup) {
+		// pass to selected TableTrackView
+		TableTrackView trackview = (TableTrackView) getTrackView(selectedTrack);
+		if (trackview != null) {
+			trackview.refreshToolbarPopup(popup);
+		}
 	}
 
 	/**
