@@ -107,6 +107,7 @@ import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.JarTool;
 import org.opensourcephysics.tools.LaunchBuilder;
+import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
@@ -1982,7 +1983,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			titleField.setText(title);
 			titleField.setBackground(Color.white);
 		}
-		ArrayList<String[]> metadata = TrackerIO.getMetadataFromHTML(html);
+		ArrayList<String[]> metadata = LibraryBrowser.getMetadataFromHTML(html);
 		for (int i = metadata.size() - 1; i >= 0; i--) {
 			// go backwards so if multiple authors, first one in the list is only one
 			// changed
@@ -2782,7 +2783,7 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			newTitle = "<title>" + newTitle + "</title>"; //$NON-NLS-1$ //$NON-NLS-2$
 			htmlCode = htmlCode.replace(title, newTitle);
 		}
-		ArrayList<String[]> metadata = TrackerIO.getMetadataFromHTML(htmlCode);
+		ArrayList<String[]> metadata = LibraryBrowser.getMetadataFromHTML(htmlCode);
 		for (String type : LibraryResource.META_TYPES) {
 			String newValue = type.equals(LibraryResource.META_AUTHOR) ? authorField.getText().trim()
 					: type.equals(LibraryResource.META_CONTACT) ? contactField.getText().trim()

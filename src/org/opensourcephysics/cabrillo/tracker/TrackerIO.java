@@ -80,7 +80,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.filechooser.FileFilter;
 
-import org.opensourcephysics.controls.ControlsRes;
 import org.opensourcephysics.controls.ListChooser;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
@@ -102,6 +101,7 @@ import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
@@ -1813,7 +1813,7 @@ public class TrackerIO extends VideoIO {
 
 				String html = ResourceLoader.getString(parent + "!/html/" + parentName + "_info.html"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (html != null) {
-					ArrayList<String[]> metadata = getMetadataFromHTML(html);
+					ArrayList<String[]> metadata = LibraryBrowser.getMetadataFromHTML(html);
 					for (int i = 0; i < metadata.size(); i++) {
 						String[] meta = metadata.get(i);
 						String key = meta[0];
@@ -2295,34 +2295,6 @@ public class TrackerIO extends VideoIO {
 			}
 		}
 		monitors.clear();
-	}
-
-	/**
-	 * Returns the metadata, if any, defined in HTML code
-	 * 
-	 * @param htmlCode the HTML code
-	 * @return a Map containing metadata names to values found in the code
-	 */
-	public static ArrayList<String[]> getMetadataFromHTML(String htmlCode) {
-		ArrayList<String[]> results = new ArrayList<String[]>();
-		if (htmlCode == null)
-			return results;
-		String[] parts = htmlCode.split("<meta name=\""); //$NON-NLS-1$
-		for (int i = 1; i < parts.length; i++) { // ignore parts[0]
-			// parse metadata and add to array
-			int n = parts[i].indexOf("\">"); //$NON-NLS-1$
-			if (n > -1) {
-				parts[i] = parts[i].substring(0, n);
-				String divider = "\" content=\""; //$NON-NLS-1$
-				String[] subparts = parts[i].split(divider);
-				if (subparts.length > 1) {
-					String name = subparts[0];
-					String value = subparts[1];
-					results.add(new String[] { name, value });
-				}
-			}
-		}
-		return results;
 	}
 
 	static void setProgress(String name, String string, int framesLoaded) {
