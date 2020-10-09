@@ -54,7 +54,6 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 import javajs.async.SwingJSUtils.Performance;

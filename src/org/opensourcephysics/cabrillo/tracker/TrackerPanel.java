@@ -2988,11 +2988,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		OSPLog.finer(getClass().getSimpleName() + " recycled by garbage collector"); //$NON-NLS-1$
 	}
 
-	protected void addCalibrationTool(String name, TTrack tool) {
-		calibrationTools.add(tool);
-		addTrack(tool);
-	}
-
+//	protected void addCalibrationTool(String name, TTrack tool) {
+//		calibrationTools.add(tool);
+//		addTrack(tool);
+//	}
+//
 	protected BufferedImage renderMat() {
 		if (renderedImage == null || renderedImage.getWidth() != getWidth()
 				|| renderedImage.getHeight() != getHeight()) {
