@@ -1804,11 +1804,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 									LibraryResource record = (LibraryResource)e.getNewValue();
 									libraryBrowser.setMessage("Loading "+record.getName(), Color.YELLOW);
 									openLibraryResource((LibraryResource) e.getNewValue(), () -> {
-										Timer timer = new Timer(300, (ev) -> {
+										Timer timer = new Timer(500, (ev) -> {
 											libraryBrowser.setMessage(null, null);
 											TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
 											if (trackerPanel != null) {
 //												Toolkit.getDefaultToolkit().beep();
+												trackerPanel.changed = false;
 												repaintT(trackerPanel);
 											}
 										});
@@ -1875,7 +1876,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				for (String ext : VideoIO.getVideoExtensions()) {
 					accept |= lcTarget.endsWith("." + ext); //$NON-NLS-1$
 					if (accept) {
-						loadVideo(target, true);
+						loadVideo(target, true, whenDone); // pass along whenDone
 						return;
 					}
 				}
@@ -2437,7 +2438,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		newItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				TFrame.this.addTrackerPane(false);
+				addTrackerPane(false, null);
 			}
 		});
 		fileMenu.add(newItem);
@@ -3039,15 +3040,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	}
 
-	public void addTrackerPane(boolean changedState) {
+	public void addTrackerPane(boolean changedState, Runnable whenDone) {
 		TrackerPanel newPanel = new TrackerPanel();
-		if (!changedState)
-			newPanel.changed = false;
 		addTab(newPanel, new Runnable() {
 
 			@Override
 			public void run() {
 				setSelectedTab(newPanel);
+				if (!changedState)
+					newPanel.changed = false;
+				if (whenDone != null)
+					whenDone.run();
 				refresh();
 			}
 
@@ -3185,7 +3188,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				JOptionPane.QUESTION_MESSAGE, lastExperiment)) == null)
 			return;
 		if (TrackerIO.isVideo(new File(path))) {
-			loadVideo(path, false);
+			loadVideo(path, false, null); // imports video into current tab
 			return;
 		}		
 		if (getTabCount() > 0)
@@ -3197,12 +3200,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 	}
 	
-	void loadVideo(String path, boolean asNewTab) {
-		// a video or a directory containing images
+	/**
+	 * Loads (imports) a video file or image stack into a tab.
+	 * Tab may be a new tab or the currently selected tab.
+	 * 
+	 * @param path path to the video
+	 * @param asNewTab true to load into a new tab
+	 * @param whenDone optional Runnable
+	 */
+	void loadVideo(String path, boolean asNewTab, Runnable whenDone) {
+		// load a video file or a directory containing images
+		File localFile = ResourceLoader.download(path, null, false);
 		if (asNewTab)
-			addTrackerPane(false);
-		File localFile = ResourceLoader.download(path, null, true);		
-		TrackerIO.importVideo(localFile, getTrackerPanel(getSelectedTab()), null, null);
+			addTrackerPane(false, () -> {
+				TrackerIO.importVideo(localFile, getTrackerPanel(getSelectedTab()), null, whenDone);				
+			});
+		else {
+			TrackerIO.importVideo(localFile, getTrackerPanel(getSelectedTab()), null, whenDone);							
+		}
 	}
 
 	/**
@@ -3212,7 +3227,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param targetPanel
 	 * @return
 	 */
-
 	public boolean loadFiles(List<File> fileList, TrackerPanel targetPanel) {
 		try {
 			// define frameNumber for insertions
@@ -3230,7 +3244,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						removeTabNow(0);
 					}
 					TrackerIO.openTabFile(file, this);
-				} else if (targetPanel != null) {
+				} else if (targetPanel != null ) {
 					// import video
 					if (targetPanel.getVideo() instanceof ImageVideo && TrackerIO.isImageFile(file)) {
 						if (frameNumber < 0) {
