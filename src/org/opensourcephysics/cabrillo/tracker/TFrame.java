@@ -3223,13 +3223,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				final File file = fileList.get(j);
 				OSPRuntime.cacheJSFile(file, true);
 				OSPLog.debug("file to load: " + file.getAbsolutePath()); //$NON-NLS-1$
-				if (!TrackerIO.haveVideo(fileList)) {
+				// load a new tab unless file is video and there is a trackerPanel to import it
+				if (targetPanel == null || !TrackerIO.haveVideo(fileList)) {
 					// could be a video file or a directory of images
 					if (nf > 0 && !haveContent()) {
 						removeTabNow(0);
 					}
 					TrackerIO.openTabFile(file, this);
 				} else if (targetPanel != null) {
+					// import video
 					if (targetPanel.getVideo() instanceof ImageVideo && TrackerIO.isImageFile(file)) {
 						if (frameNumber < 0) {
 							frameNumber = 0;
