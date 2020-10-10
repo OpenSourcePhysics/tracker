@@ -956,15 +956,27 @@ public class TapeStep extends Step {
 		public void setXY(double x, double y) {
 			if (getTrack().locked)
 				return;
-			if (!tape.isFixedPosition()) {
+//			TapeStep step = tape.isFixedPosition()? (TapeStep) tape.steps.getStep(0): TapeStep.this;
+			setLocation(x, y);
+			if (tape.isFixedPosition()) {
+				// first set properties of step 0
+				TapeStep step = (TapeStep) tape.steps.getStep(0);
+				Rotator rotator = this == rotator1? step.rotator1: step.rotator2;
+				rotator.setLocation(x, y);
+				double theta = this == rotator1?  rotator.angle(step.end2): step.end1.angle(rotator);
+				theta += tape.trackerPanel.getCoords().getAngle(0);
+				step.setTapeAngle(-theta, this == rotator1? step.end2: step.end1);
+				step.erase();
+//				tape.refreshStep(TapeStep.this); // sets properties of this step
+			} else {
+				double theta = this == rotator1?  this.angle(end2): end1.angle(this);
+				theta += tape.trackerPanel.getCoords().getAngle(n);
+				setTapeAngle(-theta, this == rotator1? end2: end1);
 				tape.keyFrames.add(n);
 			}
-			setLocation(x, y);
-			double theta = this == rotator1?  this.angle(end2): end1.angle(this);
-			theta += tape.trackerPanel.getCoords().getAngle(n);
-			setTapeAngle(-theta, this == rotator1? end2: end1);
+			
+			erase();
 			tape.invalidateData(tape);
-			TapeStep.this.erase();
 		}
 
 		@Override

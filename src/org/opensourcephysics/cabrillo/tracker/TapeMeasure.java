@@ -505,14 +505,18 @@ public class TapeMeasure extends InputTrack {
 			steps = new StepArray(step); // autofill
 			step = (TapeStep) getStep(n); // must do this since line above changes n to 0
 		} else if (step.worldLength == 0) {
-			// always mark step 0 when initializing
-			step = (TapeStep) getStep(0);
+			TapeStep step0 = (TapeStep) getStep(0);
+			// mark both target step and step 0 when initializing
+			TapeStep targetStep = trackerPanel.getCoords().isFixedScale()? step0: (TapeStep) getStep(n);
 			// set location of end2
-			step.getEnd2().setLocation(x, y);
-			step.worldLength = step.getTapeLength(true);
+			targetStep.getEnd2().setLocation(x, y);
+			step0.getEnd2().setLocation(x, y); // this establishes the initial ANGLE of the tape
+			// set world length of step 0 since initially all will have same value
+			double worldLen = targetStep.getTapeLength(true);
+			step0.worldLength = worldLen;
 			if (calibrationLength != null) {
 				// update coords
-				step.setTapeLength(calibrationLength);
+				targetStep.setTapeLength(calibrationLength);
 				calibrationLength = null;
 			}
 			EventQueue.invokeLater(new Runnable() {
@@ -702,11 +706,12 @@ public class TapeMeasure extends InputTrack {
 
 		// add items		
 		// put fixed position item after locked item
-		boolean canBeFixed = !isStickMode() || trackerPanel.getCoords().isFixedScale();
+		boolean fixedScale = trackerPanel.getCoords().isFixedScale();
+		boolean canBeFixed = fixedScale || !isStickMode();
 		TapeStep step = (TapeStep) steps.getStep(0);
 		fixedPositionItem.setEnabled(canBeFixed && step != null && step.worldLength > 0 && !isAttached());
 		fixedPositionItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
-		fixedPositionItem.setSelected(isFixedPosition());
+		fixedPositionItem.setSelected(isFixedPosition() && fixedScale);
 		for (int i = 0; i < menu.getItemCount(); i++) {
 			if (menu.getItem(i) == lockedItem) {
 				menu.insert(fixedPositionItem, i + 1);
@@ -1168,7 +1173,7 @@ public class TapeMeasure extends InputTrack {
 	 */
 	@Override
 	protected void refreshStep(Step step) {
-		if (step == null)
+		if (step == null || isIncomplete)
 			return;
 		int positionKey = 0, lengthKey = 0;
 		for (int i : keyFrames) {
@@ -1186,8 +1191,10 @@ public class TapeMeasure extends InputTrack {
 		TapeStep t = (TapeStep) step;
 		TapeStep k = (TapeStep) steps.getStep(isFixedPosition() ? 0 : positionKey);
 		if (k != t) {
-			different = k.getEnd1().x != t.getEnd1().x || k.getEnd1().y != t.getEnd1().y
-					|| k.getEnd2().x != t.getEnd2().x || k.getEnd2().y != t.getEnd2().y;
+			different = (int)(1000000*k.getEnd1().x) != (int)(1000000*t.getEnd1().x) 
+					|| (int)(1000000*k.getEnd1().y) != (int)(1000000*t.getEnd1().y)
+					|| (int)(1000000*k.getEnd2().x) != (int)(1000000*t.getEnd2().x) 
+					|| (int)(1000000*k.getEnd2().y) != (int)(1000000*t.getEnd2().y);
 			if (different) {
 				t.getEnd1().setLocation(k.getEnd1());
 				t.getEnd2().setLocation(k.getEnd2());
