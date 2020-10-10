@@ -130,7 +130,7 @@ public class TActions {
 					public void actionPerformed(ActionEvent e) {
 						TFrame frame = trackerPanel.getTFrame();
 						if (frame != null) {
-							frame.addTrackerPane(true);
+							frame.addTrackerPane(true, null);
 						}
 					}
 				}, true));
