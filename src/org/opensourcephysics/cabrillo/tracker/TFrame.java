@@ -108,7 +108,6 @@ import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.js.JSUtil;
 import org.opensourcephysics.media.core.BaselineFilter;
 import org.opensourcephysics.media.core.BrightnessFilter;
 import org.opensourcephysics.media.core.ClipInspector;
@@ -292,7 +291,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		int y = (screenRect.height - dim.height) / 2;
 		setLocation(x, y);
 		TrackerRes.addPropertyChangeListener("locale", this); //$NON-NLS-1$
-				if(JSUtil.isJS) {// WC: place Tracker higher in html page.
+				if(OSPRuntime.isJS2) {// WC: place Tracker higher in html page.
 			Point p=this.getLocation();
 			this.setLocation(p.x, 50);
 		}

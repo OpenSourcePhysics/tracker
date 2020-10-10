@@ -427,9 +427,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param desc a description
 	 */
 	public void setDescription(String desc) {
-		if (desc == null)
-			desc = ""; //$NON-NLS-1$
-		description = desc;
+		description = (desc == null ? "" : desc);
 	}
 
 	/**
@@ -3571,6 +3569,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				String desc = control.getString("description"); //$NON-NLS-1$
 				if (desc != null) {
 					trackerPanel.setDescription(desc);
+					trackerPanel.getTFrame().showNotes(trackerPanel);
 				}
 				// load the metadata
 				trackerPanel.author = control.getString("author"); //$NON-NLS-1$
