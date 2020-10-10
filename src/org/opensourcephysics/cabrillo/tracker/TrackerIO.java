@@ -1842,7 +1842,8 @@ public class TrackerIO extends VideoIO {
 //				monitorDialog.setProgress(90);
 			frame.setSelectedTab(trackerPanel);
 			frame.showTrackControl(trackerPanel);
-			frame.showNotes(trackerPanel);
+			// BH ah, but asynchronous load may not have been completed yet.
+//			frame.showNotes(trackerPanel);
 			trackerPanel.setIgnoreRepaint(false);
 //			frame.refresh();
 			if (control.failedToRead()) {
