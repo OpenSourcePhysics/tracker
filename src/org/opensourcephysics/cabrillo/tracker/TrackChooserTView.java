@@ -385,15 +385,9 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			setNoData();
 			return;
 		}
-		if (!trackerPanel.containsTrack(track))
+		if (!trackerPanel.containsTrack(track) || !track.isViewable())
 			return;
 		
-		if (!track.isViewable()) {
-			selectedTrack = track;
-			return;
-		}
-		
-
 		if (track == selectedTrack && tracks.get(trackComboBox.getSelectedItem()) == track) {
 			// just refresh the selected TrackView
 			getTrackView(selectedTrack).refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_SELECT);
