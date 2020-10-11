@@ -704,11 +704,11 @@ public class TapeMeasure extends InputTrack {
 		menu.remove(deleteTrackItem);
 		menu.remove(menu.getMenuComponent(menu.getMenuComponentCount() - 1));
 
+		TapeStep step = (TapeStep) steps.getStep(0);
 		// add items		
 		// put fixed position item after locked item
 		boolean fixedScale = trackerPanel.getCoords().isFixedScale();
-		boolean canBeFixed = fixedScale || !isStickMode();
-		TapeStep step = (TapeStep) steps.getStep(0);
+		boolean canBeFixed = !lockedItem.isSelected() && (fixedScale || !isStickMode());
 		fixedPositionItem.setEnabled(canBeFixed && step != null && step.worldLength > 0 && !isAttached());
 		fixedPositionItem.setText(TrackerRes.getString("TapeMeasure.MenuItem.Fixed")); //$NON-NLS-1$
 		fixedPositionItem.setSelected(isFixedPosition() && fixedScale);
