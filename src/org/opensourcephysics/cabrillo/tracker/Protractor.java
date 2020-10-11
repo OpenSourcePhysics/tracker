@@ -730,7 +730,7 @@ public class Protractor extends InputTrack {
 	}
 
 	@Override
-	protected void endEditing(Step step) {
+	protected void endEditing(Step step, String rawText) {
 		ProtractorStep p = (ProtractorStep) step;
 		p.drawLayoutBounds = false;
 		p.setProtractorAngle(inputField.getValue());

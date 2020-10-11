@@ -18,6 +18,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.border.Border;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.media.core.NumberField;
@@ -38,7 +39,7 @@ public abstract class InputTrack extends TTrack {
 
 	abstract protected NumberField createInputField();
 
-	abstract protected void endEditing(Step step);
+	abstract protected void endEditing(Step step, String rawText);
 
 	abstract protected Rectangle getLayoutBounds(Step step);
 
@@ -158,7 +159,7 @@ public abstract class InputTrack extends TTrack {
 		return null;
 	}
 
-	protected void setEditAction(Step step, Point pt) {
+	protected void setEditAction(Step step, Point pt, String rawText) {
 		if (editing) {
 			trackerPanel.setSelectedTrack(this);
 			FontSizer.setFonts(inputField, FontSizer.getLevel());
@@ -167,7 +168,7 @@ public abstract class InputTrack extends TTrack {
 			Dimension d = inputField.getPreferredSize();
 			Rectangle bounds = getLayoutBounds(step);
 			System.out.println("InputTrack " + d + " " + inputField.getValue() + " " + inputField.getText());
-			inputField.setBounds(bounds.x, bounds.y - 5, Math.max(50, d.width), d.height);
+			inputField.setBounds(bounds.x - 2, bounds.y - 5, Math.max(50, d.width), d.height);
 			trackerPanel.add(inputField);
 			Border space = BorderFactory.createEmptyBorder(0, 1, 1, 0);
 			Color color = getFootprint().getColor();
@@ -176,7 +177,7 @@ public abstract class InputTrack extends TTrack {
 			setInputValue(step);
 			inputField.requestFocus();
 		} else { // end editing
-			endEditing(step);
+			endEditing(step, rawText);
 			trackerPanel.remove(inputField);
 			invalidateData(null);
 			TFrame.repaintT(trackerPanel);
@@ -297,6 +298,7 @@ public abstract class InputTrack extends TTrack {
 	 */
 	protected void setEditing(boolean edit, Step target, Point pt) {
 		editing = edit;
+		String rawText = inputField.getText();
 		if (checkKeyFrame()) {
 			// if not fixed, add target frame to key frames
 			if (!isFixedPosition())
@@ -309,7 +311,7 @@ public abstract class InputTrack extends TTrack {
 
 			@Override
 			public void run() {
-				setEditAction(step, pt);
+				setEditAction(step, pt, rawText);
 			}
 
 		};

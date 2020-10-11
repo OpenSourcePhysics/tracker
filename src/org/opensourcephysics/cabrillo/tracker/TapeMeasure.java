@@ -1241,11 +1241,12 @@ public class TapeMeasure extends InputTrack {
 	}
 
 	@Override
-	protected void endEditing(Step step) {
+	protected void endEditing(Step step, String rawText) {
+		// pass in raw text from InputField since changes before this is called
 		TapeStep t = (TapeStep) step;
 		t.drawLayoutBounds = false;
 		if (!this.isReadOnly()) {
-			checkLengthUnits(inputField.getText());
+			checkLengthUnits(rawText);
 		}
 		if (t.worldLength > 0) {
 			t.setTapeLength(inputField.getValue());
