@@ -3208,6 +3208,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param whenDone optional Runnable
 	 */
 	void loadVideo(String path, boolean asNewTab, Runnable whenDone) {
+		if (path.toLowerCase().endsWith("mp4")
+				&& !VideoIO.isLoadableMP4(path, () -> {
+					Toolkit.getDefaultToolkit().beep();
+				})) {
+			return;
+		}
+					
 		// load a video file or a directory containing images
 		File localFile = ResourceLoader.download(path, null, false);
 		if (asNewTab)
@@ -3294,4 +3301,5 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		return true;
 	}
+	
 }

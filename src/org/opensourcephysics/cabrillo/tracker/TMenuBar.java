@@ -1393,7 +1393,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 						fileMenu.addSeparator();
 					fileMenu.add(file_openItem);
 //	    fileMenu.add(openURLItem);
-					fileMenu.add(file_openRecentMenu);
+					if (!OSPRuntime.isJS)
+						fileMenu.add(file_openRecentMenu);
 				}
 				boolean showLib = trackerPanel.isEnabled("file.open") || trackerPanel.isEnabled("file.export"); //$NON-NLS-1$ //$NON-NLS-2$
 				if (showLib && trackerPanel.isEnabled("file.library")) { //$NON-NLS-1$
@@ -1804,9 +1805,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			if (editMenu.getItemCount() > 0)
 				editMenu.addSeparator();
 			editMenu.add(edit_languageMenu);
-			if (editMenu.getItemCount() > 0)
-				editMenu.addSeparator();
-			editMenu.add(edit_configItem);
+			if (!OSPRuntime.isJS) {
+				if (editMenu.getItemCount() > 0)
+					editMenu.addSeparator();
+				editMenu.add(edit_configItem);
+			}
 			FontSizer.setMenuFonts(editMenu);
 			setMenuTainted(MENU_EDIT, false);
 		}
