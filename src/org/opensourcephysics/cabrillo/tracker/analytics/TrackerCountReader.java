@@ -17,6 +17,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.net.URL;
+import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -34,7 +35,6 @@ import org.opensourcephysics.tools.Resource;
  * Reads accumulated counts on the Tracker server.
  *
  * @author Doug Brown
- * @version 1.0
  */
 public class TrackerCountReader extends JFrame {
 	
@@ -47,7 +47,8 @@ public class TrackerCountReader extends JFrame {
 	private String downloadPHPPath = "https://physlets.org/tracker/installers/download.php?file="; //$NON-NLS-1$
 	private String[] actions = {"read launch counts", "read downloads", "version", "list launch log failures", "list download failures",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
 			"clear launch log failures", "clear download failures", "test launch log", "test downloads"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-	private String[] versions = {"all", "5.1.3",   //$NON-NLS-1$//$NON-NLS-2$
+	private String[] versions = {"all", "5.", "4.",  //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			"5.1.5", "5.1.4", "5.1.3",   //$NON-NLS-1$//$NON-NLS-2$ //$NON-NLS-3$ 
 			"5.1.2", "5.1.1", "5.1.0", "5.0.7", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 			"5.0.6", "5.0.5", "5.0.4", "5.0.3", "5.0.2", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ 
 			"5.0.1", "5.0.0", "4.11.0", "4.10.0", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
@@ -55,7 +56,7 @@ public class TrackerCountReader extends JFrame {
 			"4.93", "4.92", "4.91", "4.90"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] OSs = {"all", "windows", "osx", "linux"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 	private String[] engines = {"all", "Xuggle", "none"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
-	JComboBox<String> actionDropdown, versionDropdown, osDropdown, engineDropdown;
+	JComboBox actionDropdown, versionDropdown, osDropdown, engineDropdown;
 	JLabel actionLabel, versionLabel, osLabel, engineLabel;
 
 	JTextArea textArea;
@@ -72,10 +73,10 @@ public class TrackerCountReader extends JFrame {
 		osLabel = new JLabel("OS"); //$NON-NLS-1$
 		engineLabel = new JLabel("Engine"); //$NON-NLS-1$
 		
-		actionDropdown = new JComboBox<>(actions);
-		versionDropdown = new JComboBox<>(versions);
-		osDropdown = new JComboBox<>(OSs);
-		engineDropdown = new JComboBox<>(engines);
+		actionDropdown = new JComboBox(actions);
+		versionDropdown = new JComboBox(versions);
+		osDropdown = new JComboBox(OSs);
+		engineDropdown = new JComboBox(engines);
 		actionDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
 		versionDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
 		osDropdown.setBorder(BorderFactory.createEmptyBorder(1, 4, 1, 4));
@@ -103,7 +104,6 @@ public class TrackerCountReader extends JFrame {
 		
 		sendButton = new JButton("Send"); //$NON-NLS-1$
 		sendButton.addActionListener(new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (textArea.getForeground().equals(Color.RED.darker())) {
 					String text = textArea.getText().trim();
@@ -150,10 +150,24 @@ public class TrackerCountReader extends JFrame {
 					}
 					else { // action is "read..." or "test..."
 						if (versionDropdown.getSelectedItem().equals("all")) { //$NON-NLS-1$
-							ver = new String[versions.length-1];
-							for (int i=0; i<ver.length; i++) {
-								ver[i] = versions[i+1];
+							ArrayList<String> vers = new ArrayList<String>();
+							for (int i=0; i<versions.length; i++) {
+								if (versions[i].length() >= 4) {
+									vers.add(versions[i]);
+								}
 							}
+							ver = vers.toArray(new String[vers.size()]);
+						}
+						else if (versionDropdown.getSelectedItem().equals("4.") //$NON-NLS-1$
+								|| versionDropdown.getSelectedItem().equals("5.")) { //$NON-NLS-1$
+							ArrayList<String> vers = new ArrayList<String>();
+							String s = versionDropdown.getSelectedItem().toString();
+							for (int i=0; i<versions.length; i++) {
+								if (versions[i].startsWith(s) && !versions[i].equals(s)) {
+									vers.add(versions[i]);
+								}
+							}
+							ver = vers.toArray(new String[vers.size()]);
 						}
 						else {
 							ver = new String[] {versionDropdown.getSelectedItem().toString()};
@@ -199,8 +213,7 @@ public class TrackerCountReader extends JFrame {
 		
 		textArea = new JTextArea();
 		textArea.addKeyListener(new KeyAdapter() {
-      @Override
-	public void keyPressed(KeyEvent e) {
+      public void keyPressed(KeyEvent e) {
       	textArea.setForeground(Color.RED.darker());
       }
     });
@@ -235,7 +248,19 @@ public class TrackerCountReader extends JFrame {
 					// typical Tracker-4.9.8-linux-32bit-installer.run
 					// typical Tracker-4.9.8-linux-64bit-installer.run
 					String osname = os[j];
-					String ext = osname.equals("windows")? ".exe": osname.equals("osx")? ".zip": ".run"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+					String ext = osname.equals("windows")? ".exe": osname.equals("osx")? ".dmg": ".run"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$
+					if (osname.equals("osx")) { // change ext to "zip" for versions earlier than 5.1.3 //$NON-NLS-1$
+						// if index of version 5.1.3 is smaller than index of  then i must be older version
+						for (int k=0; k<versions.length; k++) {
+							if (versions[k].equals(ver[i])) {
+								break;
+							}
+							if (versions[k].equals("5.1.3")) { //$NON-NLS-1$
+								ext = ".zip"; //$NON-NLS-1$
+								break;
+							}
+						}
+					}
 					if (osname.equals("linux")) { //$NON-NLS-1$
 						osname = "linux-32bit"; //$NON-NLS-1$
 					}
