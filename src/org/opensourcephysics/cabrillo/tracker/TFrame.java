@@ -141,6 +141,8 @@ import org.opensourcephysics.tools.LibraryResource;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
+import javajs.async.AsyncDialog;
+import javajs.async.AsyncFileChooser;
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
 import javajs.async.SwingJSUtils.StateHelper;
@@ -3208,10 +3210,43 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param whenDone optional Runnable
 	 */
 	void loadVideo(String path, boolean asNewTab, Runnable whenDone) {
-		if (path.toLowerCase().endsWith("mp4")
-				&& !VideoIO.isLoadableMP4(path, () -> {
-					Toolkit.getDefaultToolkit().beep();
-				})) {
+		if ((path.toLowerCase().endsWith("mp4") || Tracker.testOn)
+				&& !VideoIO.isLoadableMP4(path, new Function<String, Void>() {
+					@Override
+					public Void apply(String codec) {
+						if (libraryBrowser != null) 
+							libraryBrowser.setMessage(null, null);
+						new AsyncDialog().showConfirmDialog(null, 
+							"Codec \""+codec+"\" is unsupported.\nDo you wish to download?", 
+							"Unsupported Codec", 
+							JOptionPane.YES_NO_OPTION, 
+							(ev) -> {
+							  int sel = ev.getID();
+								switch (sel) {
+								case JOptionPane.YES_OPTION:
+									// choose file and save resource
+									String name = XML.getName(path);
+									VideoIO.getChooserFilesAsync("save video "+name, //$NON-NLS-1$
+											(files) -> {
+												if (VideoIO.getChooser().getSelectedOption() != AsyncFileChooser.APPROVE_OPTION
+														|| files == null) {
+													return null;
+												}
+												String filePath = files[0].getAbsolutePath();
+												try {
+													File file = ResourceLoader.copyURLtoFile(path, filePath);
+												} catch (IOException e1) {
+													System.err.println("Failed to download urlPath="+path);
+													e1.printStackTrace();
+												}
+												return null;
+											});
+									break;
+								}
+							});	
+							return null;
+						}
+					})) {
 			return;
 		}
 					
