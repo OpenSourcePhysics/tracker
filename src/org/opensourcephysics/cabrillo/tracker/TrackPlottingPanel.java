@@ -43,6 +43,7 @@ import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -897,6 +898,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * Plots the data.
 	 */
 	protected void plotData() {
+		OSPLog.debug("TrackPlottingPanel plotData " + toString());
 		removeDrawables(Dataset.class);
 		// refresh the plot titles and determine if angles are being plotted
 		Dataset xData;
@@ -908,11 +910,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			xData = data.getDataset(xIndex);
 		Dataset yData = data.getDataset(yIndex);
 		TTrack track = TTrack.getTrack(trackID);
-		String xTitle;
-		if (xIndex == -1)
-			xTitle = xData.getColumnName(0);
-		else
-			xTitle = xData.getColumnName(1);
+		String xTitle = xData.getColumnName(xIndex >= 0 ? 1 : 0);
 		String yTitle = yData.getColumnName(1);
 		setTitle(track.getName() + " (" + xTitle + ", " + yTitle + ")"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		setXLabel(xTitle);
@@ -935,17 +933,17 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		// first eliminate any guests that may have been deleted
 		for (Iterator<TTrack> it = guests.iterator(); it.hasNext();) {
 			// check if guest still exists in tracker panel
-			TTrack next = it.next();
-			if (next != null && trackerPanel.getTrack(next.getName()) == null) {
+			track = it.next();
+			if (track != null && trackerPanel.getTrack(track.getName()) == null) {
 				it.remove();
 			}
 		}
 		// now plot guests
-		for (TTrack next : guests) {
-			DatasetManager nextData = next.getData(next.trackerPanel);
-			HighlightableDataset nextDataset = guestDatasets.get(next);
-			nextDataset.setMarkerColor(next.getColor());
-			nextDataset.setHighlightColor(next.getColor());
+		for (TTrack nextTrack : guests) {
+			DatasetManager nextData = nextTrack.getData(nextTrack.trackerPanel);
+			HighlightableDataset nextDataset = guestDatasets.get(nextTrack);
+			nextDataset.setMarkerColor(nextTrack.getColor());
+			nextDataset.setHighlightColor(nextTrack.getColor());
 			refreshDataset(nextDataset, nextData, xIsAngle, yIsAngle, degrees);
 			addDrawable(nextDataset);
 		}
@@ -972,6 +970,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	protected void refreshDataset(HighlightableDataset hds, DatasetManager manager, boolean xIsAngle, boolean yIsAngle,
 			boolean degrees) {
+
 		// get the dataset for the current x and y indices
 		// assign quasi-unique ID to dataset based on data and indices
 		int id = manager.hashCode() & 0xffff;
@@ -982,48 +981,45 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 		// clear and refill dataset with x- and y-axis variables
 		hds.clear();
-		Dataset xData;
 		// xIndex == -1 indicates x column variable (same for all datasets)
 		// xIndex >= 0 indicates y column variable of specified dataset
-		if (xIndex == -1)
-			xData = manager.getDataset(0);
-		else
-			xData = manager.getDataset(xIndex);
+		Dataset xData = manager.getDataset(xIndex >= 0 ? xIndex : 0);
 		Dataset yData = manager.getDataset(yIndex);
 		xData.setYColumnVisible(true);
 		yData.setYColumnVisible(true);
+		int xcol = (xIndex >= 0 ? 1 : 0);
 		// use x mean value for filler points (y = Double.NaN)
-		double xMean = getMean(xData.getXPoints());
-		if (xIndex > -1)
-			xMean = getMean(xData.getYPoints());
+		double xMean = getMean(xcol == 1 ? xData.getYPoints() : xData.getXPoints());
 		// append data to dataset
-		Double x = null, y = null;
 		int n;
-		if (xMean != Double.NaN && (n = yData.getRowCount()) > 0) {
-			for (int i = 0; i < n; i++) {
-				y = (Double) yData.getValueAt(i, 1);
-				if (xIndex == -1)
-					x = (Double) xData.getValueAt(i, 0);
-				else
-					x = (Double) xData.getValueAt(i, 1);
-				if (x != null && y != null) {
-					if (xIsAngle && degrees) {
-						x *= 180 / Math.PI;
-					}
-					if (yIsAngle && degrees) {
-						y *= 180 / Math.PI;
-					}
-					hds.append(x, y);
-				} else if (x != null) {
-					if (xIsAngle && degrees) {
-						x *= 180 / Math.PI;
-					}
-					hds.append(x.doubleValue(), Double.NaN);
-				} else {
-					hds.append(xMean, Double.NaN);
+		// x == x here means !Double.isNaN(x);
+		if (xMean != xMean || (n = yData.getRowCount()) == 0)
+			return;
+		
+		long t0 = System.currentTimeMillis();
+		OSPLog.debug("TrackPlottingPanel refreshDataSet " + toString() + " " + xIndex + " " + yIndex + " t0=" + t0);
+
+		double[] _x = new double[n];
+		double[] _y = new double[n];
+		for (int i = 0; i < n; i++) {
+			double x = xData.getValueAt(i, xcol);
+			double y = yData.getValueAt(i, 1);
+			if (x == x) {
+				if (xIsAngle && degrees) {
+					x *= 180 / Math.PI;
 				}
+				if (y == y && yIsAngle && degrees) {
+					y *= 180 / Math.PI;
+				}
+			} else {
+				x = xMean;
+				y = Double.NaN;
 			}
+			_x[i] = x;
+			_y[i] = y;
 		}
+		hds.append(_x, _y);
+		OSPLog.debug("TrackPlottingPanel refreshDataSet2 " + (System.currentTimeMillis() - t0));
 	}
 
 	/**

@@ -253,7 +253,7 @@ public class TableTrackView extends TrackView {
 		trackDataManager = track.getData(trackerPanel);
 		dataTableManager = new DatasetManager();
 		dataTableManager.setXPointsLinked(true);
-		dataTable.add(dataTableManager);
+		dataTable.add(dataTableManager.model);
 		dataTable.add(textColumnModel);
 		setViewportView(dataTable);
 		dataTable.setPreferredScrollableViewportSize(new Dimension(160, 200));

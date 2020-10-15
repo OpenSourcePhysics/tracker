@@ -504,28 +504,13 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		if (index == -1)
 			return null;
 
-		double[] state = new double[5]; // {x, vx, y, vy, t}
-		// x
-		ds = data.getDataset(data.getDatasetIndex("x")); //$NON-NLS-1$
-		Object val = ds.getValueAt(index, 1);
-		state[0] = val == null ? Double.NaN : (Double) val;
-		// vx
-		ds = data.getDataset(data.getDatasetIndex("v_{x}")); //$NON-NLS-1$
-		val = ds.getValueAt(index, 1);
-		state[1] = val == null ? Double.NaN : (Double) val;
-		// y
-		ds = data.getDataset(data.getDatasetIndex("y")); //$NON-NLS-1$
-		val = ds.getValueAt(index, 1);
-		state[2] = val == null ? Double.NaN : (Double) val;
-		// vy
-		ds = data.getDataset(data.getDatasetIndex("v_{y}")); //$NON-NLS-1$
-		val = ds.getValueAt(index, 1);
-		state[3] = val == null ? Double.NaN : (Double) val;
-		// t
-		val = ds.getValueAt(index, 0);
-		state[4] = val == null ? Double.NaN : (Double) val;
-
-		return state;
+		return new double[] {
+				data.get("x", index, 1), //$NON-NLS-1$
+				data.get("v_{x}", index, 1), //$NON-NLS-1$
+				data.get("y", index, 1), //$NON-NLS-1$
+				data.get("v_{y}", index, 1), //$NON-NLS-1$
+				data.get("t", index, 0) //$NON-NLS-1$
+		};
 	}
 
 	/**
