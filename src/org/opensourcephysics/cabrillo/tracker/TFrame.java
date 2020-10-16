@@ -3211,40 +3211,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	void loadVideo(String path, boolean asNewTab, Runnable whenDone) {
 		if ((path.toLowerCase().endsWith("mp4") || Tracker.testOn)
-				&& !VideoIO.isLoadableMP4(path, (codec) -> {
-						if (libraryBrowser != null) 
-							libraryBrowser.setMessage(null, null);
-						new AsyncDialog().showConfirmDialog(null, 
-							"Codec \""+codec+"\" is unsupported.\nDo you wish to download?", 
-							"Unsupported Codec", 
-							JOptionPane.YES_NO_OPTION, 
-							(ev) -> {
-							  int sel = ev.getID();
-								switch (sel) {
-								case JOptionPane.YES_OPTION:
-									// choose file and save resource
-									String name = XML.getName(path);
-									VideoIO.getChooserFilesAsync("save video "+name, //$NON-NLS-1$
-											(files) -> {
-												if (VideoIO.getChooser().getSelectedOption() != AsyncFileChooser.APPROVE_OPTION
-														|| files == null) {
-													return null;
-												}
-												String filePath = files[0].getAbsolutePath();
-												try {
-													File file = ResourceLoader.copyURLtoFile(path, filePath);
-												} catch (IOException e1) {
-													System.err.println("Failed to download urlPath="+path);
-													e1.printStackTrace();
-												}
-												return null;
-											});
-									break;
-								}
-							});	
-							return null;
-						})
-					) {
+				&& !VideoIO.isLoadableMP4(path, (codec) -> { failToLoadVideo(path, codec);})) {
 			return;
 		}
 					
@@ -3257,6 +3224,36 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		else {
 			TrackerIO.importVideo(localFile, getTrackerPanel(getSelectedTab()), null, whenDone);							
 		}
+	}
+
+	private void failToLoadVideo(String path, String codec) {
+		if (libraryBrowser != null)
+			libraryBrowser.setMessage(null, null);
+		new AsyncDialog().showConfirmDialog(null, "Codec \"" + codec + "\" is unsupported.\nDo you wish to download?",
+				"Unsupported Codec", JOptionPane.YES_NO_OPTION, (ev) -> {
+					int sel = ev.getID();
+					switch (sel) {
+					case JOptionPane.YES_OPTION:
+						// choose file and save resource
+						String name = XML.getName(path);
+						VideoIO.getChooserFilesAsync("save video " + name, //$NON-NLS-1$
+								(files) -> {
+									if (VideoIO.getChooser().getSelectedOption() != AsyncFileChooser.APPROVE_OPTION
+											|| files == null) {
+										return null;
+									}
+									String filePath = files[0].getAbsolutePath();
+									try {
+										File file = ResourceLoader.copyURLtoFile(path, filePath);
+									} catch (IOException e1) {
+										System.err.println("Failed to download urlPath=" + path);
+										e1.printStackTrace();
+									}
+									return null;
+								});
+						break;
+					}
+				});
 	}
 
 	/**
