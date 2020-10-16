@@ -3211,9 +3211,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	void loadVideo(String path, boolean asNewTab, Runnable whenDone) {
 		if ((path.toLowerCase().endsWith("mp4") || Tracker.testOn)
-				&& !VideoIO.isLoadableMP4(path, new Function<String, Void>() {
-					@Override
-					public Void apply(String codec) {
+				&& !VideoIO.isLoadableMP4(path, (codec) -> {
 						if (libraryBrowser != null) 
 							libraryBrowser.setMessage(null, null);
 						new AsyncDialog().showConfirmDialog(null, 
@@ -3245,8 +3243,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 								}
 							});	
 							return null;
-						}
-					})) {
+						})
+					) {
 			return;
 		}
 					
