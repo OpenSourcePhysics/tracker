@@ -931,22 +931,23 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 		// refresh guest datasets
 		// first eliminate any guests that may have been deleted
-	      ArrayList<TTrack> tracks = trackerPanel.getTracks();
-		for (Iterator<TTrack> it = guests.iterator(); it.hasNext();) {
-			// check if guest still exists in tracker panel
-			track = it.next();
-			if (track != null && trackerPanel.getTrack(track.getName(), tracks) == null) {
-				it.remove();
+		if (!guests.isEmpty()) {
+			ArrayList<TTrack> tracks = trackerPanel.getTracks();
+			for (Iterator<TTrack> it = guests.iterator(); it.hasNext();) {
+				// check if guest still exists in tracker panel
+				if ((track = it.next()) != null && trackerPanel.getTrack(track.getName(), tracks) == null) {
+					it.remove();
+				}
 			}
-		}
-		// now plot guests
-		for (TTrack nextTrack : guests) {
-			DatasetManager nextData = nextTrack.getData(nextTrack.trackerPanel);
-			HighlightableDataset nextDataset = guestDatasets.get(nextTrack);
-			nextDataset.setMarkerColor(nextTrack.getColor());
-			nextDataset.setHighlightColor(nextTrack.getColor());
-			refreshDataset(nextDataset, nextData, xIsAngle, yIsAngle, degrees);
-			addDrawable(nextDataset);
+			// now plot guests
+			for (TTrack nextTrack : guests) {
+				DatasetManager nextData = nextTrack.getData(nextTrack.trackerPanel);
+				HighlightableDataset nextDataset = guestDatasets.get(nextTrack);
+				nextDataset.setMarkerColor(nextTrack.getColor());
+				nextDataset.setHighlightColor(nextTrack.getColor());
+				refreshDataset(nextDataset, nextData, xIsAngle, yIsAngle, degrees);
+				addDrawable(nextDataset);
+			}
 		}
 
 		// refresh highlighted indices
