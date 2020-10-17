@@ -657,7 +657,7 @@ public class CircleFitter extends TTrack {
 		attachmentNames = null;
 		properties.clear();
 		worldBounds.clear();
-		data = null;
+		dataManager = null;
 		setTrackerPanel(null);
 	}
 

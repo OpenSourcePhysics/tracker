@@ -412,7 +412,7 @@ public class NumberFormatDialog extends JDialog {
 			}
 			// add names of data functions found in track data
 			DatasetManager data = track.getData(track.trackerPanel);
-			for (int i = 0; i < data.getDatasets().size(); i++) {
+			for (int i = 0, n = data.getDatasetsRaw().size(); i < n; i++) {
 				Dataset dataset = data.getDataset(i);
 				if (!(dataset instanceof DataFunction))
 					continue;

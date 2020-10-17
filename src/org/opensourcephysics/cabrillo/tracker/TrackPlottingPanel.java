@@ -929,24 +929,30 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		// add dataset to this plot panel
 		addDrawable(dataset);
 
-		// refresh guest datasets
-		// first eliminate any guests that may have been deleted
-		if (!guests.isEmpty()) {
+		int n = guests.size();
+		if (n > 0) {
+			// refresh guest datasets
+			// first eliminate any guests that may have been deleted
 			ArrayList<TTrack> tracks = trackerPanel.getTracks();
-			for (Iterator<TTrack> it = guests.iterator(); it.hasNext();) {
+			// BH count down for removal
+			for (int i = n; --i >= 0;) {
 				// check if guest still exists in tracker panel
-				if ((track = it.next()) != null && trackerPanel.getTrack(track.getName(), tracks) == null) {
-					it.remove();
+				if ((track = guests.get(i)) != null && trackerPanel.getTrack(track.getName(), tracks) == null) {
+					guests.remove(i);
+					n--;
 				}
 			}
-			// now plot guests
-			for (TTrack nextTrack : guests) {
-				DatasetManager nextData = nextTrack.getData(nextTrack.trackerPanel);
-				HighlightableDataset nextDataset = guestDatasets.get(nextTrack);
-				nextDataset.setMarkerColor(nextTrack.getColor());
-				nextDataset.setHighlightColor(nextTrack.getColor());
-				refreshDataset(nextDataset, nextData, xIsAngle, yIsAngle, degrees);
-				addDrawable(nextDataset);
+			// now add drawables for guests
+			if (n > 0) {
+				DatasetManager manager = track.getData(track.trackerPanel);
+				for (int i = 0; i < n; i++) {
+					track = guests.get(i);
+					HighlightableDataset dataset = guestDatasets.get(track);
+					dataset.setMarkerColor(track.getColor());
+					dataset.setHighlightColor(track.getColor());
+					refreshDataset(dataset, manager, xIsAngle, yIsAngle, degrees);
+					addDrawable(dataset);
+				}
 			}
 		}
 
@@ -1337,7 +1343,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 	protected void setVariables() {
 		// find the selected menu item
-		datasetCount = data.getDatasets().size();
+		datasetCount = data.getDatasetsRaw().size();
 		boolean smaller = yChoices == null ? false : datasetCount < yChoices.length;
 		String xName = getXVariable();
 		String yName = getYVariable();

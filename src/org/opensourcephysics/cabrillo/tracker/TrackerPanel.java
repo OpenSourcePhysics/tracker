@@ -1790,8 +1790,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		}
 		// if dataString is parsable data, parse and import it
-		DatasetManager data = DataTool.parseData(dataString, null);
-		if (data == null) {
+		DatasetManager datasetManager = DataTool.parseData(dataString, null);
+		if (datasetManager == null) {
 
 			// assume dataString is a resource path, read the resource and call this again
 			// with path as source
@@ -1799,7 +1799,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			importDataAsync(ResourceLoader.getString(path), path, whenDone);
 			return;
 		}
-		DataTrack dt = importData(data, source);
+		DataTrack dt = importDatasetManager(datasetManager, source);
 		if (dt instanceof ParticleDataTrack) {
 			((ParticleDataTrack) dt).prevDataString = dataString;
 		}
@@ -1808,7 +1808,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
-	 * Imports Data from a source into a DataTrack. Data must include "x" and "y"
+	 * Imports DatasetManager from a source into a DataTrack. Data must include "x" and "y"
 	 * columns (may be unnamed), may include "t". DataTrack is the first one found
 	 * that matches the Data name or ID. If none found, a new DataTrack is created.
 	 * Source object (model) may be String path, JPanel controlPanel, Tool tool,
@@ -1820,9 +1820,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public DataTrack importData(Data data, Object source) {
+		return importDatasetManager((DatasetManager) data, source);
+	}
+
+	private DataTrack importDatasetManager(DatasetManager data, Object source) {
 		if (data == null)
 			return null;
-
 		// find DataTrack with matching name or ID
 		ParticleDataTrack dataTrack = ParticleDataTrack.getTrackForData(data, this);
 
@@ -1861,6 +1864,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		return dataTrack;
 	}
+
 
 	/**
 	 * Refreshes all data in tracks and views.
@@ -3892,7 +3896,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// save the selected track
 			TTrack track = trackerPanel.getSelectedTrack();
 			if (track != null) {
-				control.setValue(PROPERTY_TRACKERPANEL_SELECTEDTRACK, track.getName()); //$NON-NLS-1$
+				control.setValue(PROPERTY_TRACKERPANEL_SELECTEDTRACK, track.getName()); // $NON-NLS-1$
 			}
 			// save the drawings and drawing visibility
 			if (PencilDrawer.hasDrawings(trackerPanel)) {
@@ -3956,24 +3960,27 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (DataTool.getTool(false) != null) {
 				ArrayList<DataToolTab> tabs = new ArrayList<DataToolTab>();
 				List<DataToolTab> tools = DataTool.getTool(true).getTabs();
-				for (int i = 0, n = tools.size(); i < n; i++) {
-					DataToolTab tab = tools.get(i);
+				int n = tools.size();
+				if (n > 0) {
 					ArrayList<TTrack> tracks = trackerPanel.getTracks();
-					for (TTrack next : tracks) {
-						Data data = next.getData(trackerPanel);
-						if (tab.isOwnedBy(data)) {
-							// prepare tab for saving by setting owner and saving owned column names
-							tab.setOwner(next.getName(), data);
-							for (TTrack tt : trackerPanel.getTracks()) {
-								tab.saveOwnedColumnNames(tt.getName(), tt.getData(trackerPanel));
+					for (int i = 0; i < n; i++) {
+						DataToolTab tab = tools.get(i);
+						for (TTrack next : tracks) {
+							DatasetManager data = next.getData(trackerPanel);
+							if (tab.isOwnedBy(data)) {
+								// prepare tab for saving by setting owner and saving owned column names
+								tab.setOwner(next.getName(), data);
+								for (TTrack tt : tracks) {
+									tab.saveOwnedColumnNames(tt.getName(), tt.getData(trackerPanel));
+								}
+								tabs.add(tab);
 							}
-							tabs.add(tab);
 						}
 					}
-				}
-				if (!tabs.isEmpty()) {
-					DataToolTab[] tabArray = tabs.toArray(new DataToolTab[tabs.size()]);
-					control.setValue("datatool_tabs", tabArray); //$NON-NLS-1$
+					if (!tabs.isEmpty()) {
+						DataToolTab[] tabArray = tabs.toArray(new DataToolTab[tabs.size()]);
+						control.setValue("datatool_tabs", tabArray); //$NON-NLS-1$
+					}
 				}
 			}
 			// restore XML writing of null final array elements
@@ -4390,9 +4397,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return;
 		}
 		// parse the data and find data track
-		DatasetManager data = DataTool.parseData(dataString, null);
-		if (data != null) {
-			String dataName = data.getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$ ;
+		DatasetManager datasetManager = DataTool.parseData(dataString, null);
+		if (datasetManager != null) {
+			String dataName = datasetManager.getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$ ;
 			boolean foundMatch = false;
 			ArrayList<DataTrack> dataTracks = this.getDrawables(DataTrack.class);
 			for (DataTrack next : dataTracks) {
@@ -4406,7 +4413,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					foundMatch = true;
 					if (track.isAutoPasteEnabled()) {
 						// set new data immediately
-						track.setData(data);
+						track.setData(datasetManager);
 						track.prevDataString = dataString;
 					} else {
 						// set pending data
@@ -4417,7 +4424,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 			// if no matching track was found then create new track
 			if (!foundMatch && frame.alwaysListenToClipboard) {
-				dt = this.importData(data, null);
+				dt = importDatasetManager(datasetManager, null);
 				if (dt != null && dt instanceof ParticleDataTrack) {
 					ParticleDataTrack track = (ParticleDataTrack) dt;
 					track.prevDataString = track.pendingDataString = dataString;
