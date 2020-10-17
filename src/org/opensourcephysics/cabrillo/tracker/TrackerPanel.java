@@ -547,19 +547,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return tracks;
 	}
 
+	public TTrack getTrack(String name) {
+		return getTrack(name, getTracks());
+	}
 	/**
 	 * Gets the first track with the specified name
 	 *
 	 * @param name the name of the track
 	 * @return the track
 	 */
-	public TTrack getTrack(String name) {
-		ArrayList<TTrack> list = getTracks();
+	public TTrack getTrack(String name, ArrayList<TTrack> list) {
 		for (int it = 0, n = list.size(); it < n; it++) {
 			TTrack track = list.get(it);
-			if (track.getName().equals(name))
-				return track;
-			if (track.getName("track").equals(name)) //$NON-NLS-1$
+			if (track.getName().equals(name) || track.getName("track").equals(name)) //$NON-NLS-1$
 				return track;
 		}
 		return null;

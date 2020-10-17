@@ -931,10 +931,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 		// refresh guest datasets
 		// first eliminate any guests that may have been deleted
+	      ArrayList<TTrack> tracks = trackerPanel.getTracks();
 		for (Iterator<TTrack> it = guests.iterator(); it.hasNext();) {
 			// check if guest still exists in tracker panel
 			track = it.next();
-			if (track != null && trackerPanel.getTrack(track.getName()) == null) {
+			if (track != null && trackerPanel.getTrack(track.getName(), tracks) == null) {
 				it.remove();
 			}
 		}
@@ -1730,8 +1731,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			String[] guestnames = (String[]) control.getObject("guests"); //$NON-NLS-1$
 			if (guestnames != null) {
 				TrackerPanel trackerPanel = plot.trackerPanel;
+				ArrayList<TTrack> tracks = trackerPanel.getTracks();
 				for (String name : guestnames) {
-					TTrack guest = trackerPanel.getTrack(name);
+					TTrack guest = trackerPanel.getTrack(name, tracks);
 					plot.addGuest(guest);
 				}
 			}

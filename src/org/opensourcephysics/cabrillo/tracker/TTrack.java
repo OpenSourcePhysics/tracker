@@ -1804,18 +1804,29 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected boolean loadAttachmentsFromNames(boolean refresh) {
 		// if track attachmentNames is not null then find tracks and populate
 		// attachments
-		if (attachmentNames == null)
+		int n;
+		if (attachmentNames == null || (n = attachmentNames.length) == 0)
 			return false;
-
 		boolean foundAll = true;
-		TTrack[] temp = new TTrack[attachmentNames.length];
-		for (int i = 0; i < attachmentNames.length; i++) {
-			TTrack track = trackerPanel.getTrack(attachmentNames[i]);
-			if (track != null) {
-				temp[i] = track;
-			} else if (attachmentNames[i] != null) {
+		TTrack[] temp = new TTrack[n];
+	    ArrayList<TTrack> tracks = trackerPanel.getTracks();
+		for (int i = 0; i < n; i++) {
+			// BH 2020.10.17 OK? 
+			String name = attachmentNames[i];
+			if (name == null)
+				continue;
+			TTrack track = trackerPanel.getTrack(name, tracks);
+			if (track == null) {
 				foundAll = false;
+				break;
 			}
+			temp[i] = track;
+//			TTrack track = trackerPanel.getTrack(attachmentNames[i]);
+//			if (track != null) {
+//				temp[i] = track;
+//			} else if (attachmentNames[i] != null) {
+//				foundAll = false;
+//			}
 		}
 		if (foundAll) {
 			attachments = temp;
@@ -2360,7 +2371,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
 		loadAttachmentsFromNames(true);
-		if (!(panel instanceof TrackerPanel) || !visible)
+		if (!visible || !(panel instanceof TrackerPanel))
 			return;
 		TrackerPanel trackerPanel = (TrackerPanel) panel;
 		Graphics2D g = (Graphics2D) _g;

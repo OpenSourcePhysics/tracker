@@ -24,6 +24,7 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 
 import org.opensourcephysics.controls.XML;
@@ -269,36 +270,42 @@ public class StepSet extends HashSet<Step> {
       return null;
     }
 
-    /**
-     * Loads an object with data from an XMLControl.
-     *
-     * @param control the control
-     * @param obj the object
-     * @return the loaded object
-     */
-    @Override
-	public Object loadObject(XMLControl control, Object obj) {
-      StepSet steps = (StepSet) obj;
-      String[][] stepsData = (String[][])control.getObject("steps"); //$NON-NLS-1$
-      TrackerPanel panel = steps.trackerPanel;
-      for (String[] next: stepsData) {
-      	TTrack track = panel.getTrack(next[0]);
-      	if (track!=null) {
-      		int n = Integer.parseInt(next[1]);
-      		Step step = track.getStep(n);
-      		if (step!=null) {
-      			String xml = next[2];
-            if(xml.indexOf(XML.CDATA_PRE)!=-1) {
-            	xml = xml.substring(xml.indexOf(XML.CDATA_PRE)+XML.CDATA_PRE.length(), xml.indexOf(XML.CDATA_POST));
-            }
-      			XMLControl stepControl = new XMLControlElement(xml);
-      			stepControl.loadObject(step);
-      			step.erase();
-      		}
-      	}
-      }
-    	return obj;
-    }
+		/**
+		 * Loads an object with data from an XMLControl.
+		 *
+		 * @param control the control
+		 * @param obj     the object
+		 * @return the loaded object
+		 */
+		@Override
+		public Object loadObject(XMLControl control, Object obj) {
+			StepSet steps = (StepSet) obj;
+			String[][] stepsData = (String[][]) control.getObject("steps"); //$NON-NLS-1$
+			TrackerPanel panel = steps.trackerPanel;
+			int ns = stepsData.length;
+			if (ns > 0) {
+				ArrayList<TTrack> tracks = panel.getTracks();
+				for (int i = 0; i < ns; i++) {
+					String[] next = stepsData[i];
+					TTrack track = panel.getTrack(next[0], tracks);
+					if (track != null) {
+						int n = Integer.parseInt(next[1]);
+						Step step = track.getStep(n);
+						if (step != null) {
+							String xml = next[2];
+							if (xml.indexOf(XML.CDATA_PRE) != -1) {
+								xml = xml.substring(xml.indexOf(XML.CDATA_PRE) + XML.CDATA_PRE.length(),
+										xml.indexOf(XML.CDATA_POST));
+							}
+							XMLControl stepControl = new XMLControlElement(xml);
+							stepControl.loadObject(step);
+							step.erase();
+						}
+					}
+				}
+			}
+			return obj;
+		}
   }
 
 }

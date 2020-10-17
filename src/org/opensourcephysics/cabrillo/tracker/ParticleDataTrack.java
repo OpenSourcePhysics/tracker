@@ -1502,12 +1502,13 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
 		}
 		name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
-		TTrack track = trackerPanel.getTrack(name);
+		ArrayList<TTrack> tracks = trackerPanel.getTracks();
+		TTrack track = trackerPanel.getTrack(name, tracks);
 		// if name collisions occur, look for modified name
 		int i = 1;
 		while (track != null && track.getClass() != ParticleDataTrack.class) {
 			String nextName = getNextName(name, i++);
-			track = trackerPanel.getTrack(nextName);
+			track = trackerPanel.getTrack(nextName, tracks);
 			if (track == null || track.getClass() == ParticleDataTrack.class) {
 				// stop looking and set new data name
 				Class<?> type = data.getClass();
