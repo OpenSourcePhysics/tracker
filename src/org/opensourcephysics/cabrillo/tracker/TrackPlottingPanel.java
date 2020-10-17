@@ -116,7 +116,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	// instance fields
 	protected TrackerPanel trackerPanel;
 	protected int trackID;
-	protected DatasetManager data;
+	protected DatasetManager datasetManager;
 	protected HighlightableDataset dataset = new HighlightableDataset();
 	protected ArrayList<TTrack> guests = new ArrayList<TTrack>();
 	protected HashMap<TTrack, HighlightableDataset> guestDatasets = new HashMap<TTrack, HighlightableDataset>();
@@ -176,7 +176,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		displayCoordsOnMouseMoved = true;
 		trackerPanel = track.trackerPanel;
 		trackID = track.getID();
-		this.data = data;
+		this.datasetManager = data;
 		dataset.setConnected(true);
 		dataset.setMarkerShape(Dataset.SQUARE);
 		// set new CoordinateStringBuilder
@@ -905,10 +905,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		// xIndex == -1 indicates x column variable (same for all datasets)
 		// xIndex >= 0 indicates y column variable of specified dataset
 		if (xIndex == -1)
-			xData = data.getDataset(0);
+			xData = datasetManager.getDataset(0);
 		else
-			xData = data.getDataset(xIndex);
-		Dataset yData = data.getDataset(yIndex);
+			xData = datasetManager.getDataset(xIndex);
+		Dataset yData = datasetManager.getDataset(yIndex);
 		TTrack track = TTrack.getTrack(trackID);
 		String xTitle = xData.getColumnName(xIndex >= 0 ? 1 : 0);
 		String yTitle = yData.getColumnName(1);
@@ -925,7 +925,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		// refresh the coordStringBuilder
 		coordStringBuilder.setUnitsAndPatterns(track, xTitle, yTitle);
 		// refresh the main dataset
-		refreshDataset(dataset, data, xIsAngle, yIsAngle, degrees);
+		refreshDataset(dataset, datasetManager, xIsAngle, yIsAngle, degrees);
 		// add dataset to this plot panel
 		addDrawable(dataset);
 
@@ -1233,7 +1233,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		}
 		guests.clear();
 		guestDatasets.clear();
-		data = null;
+		datasetManager = null;
 		plotTrackView = null;
 		trackerPanel = null;
 	}
@@ -1343,7 +1343,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 	protected void setVariables() {
 		// find the selected menu item
-		datasetCount = data.getDatasetsRaw().size();
+		datasetCount = datasetManager.getDatasetsRaw().size();
 		boolean smaller = yChoices == null ? false : datasetCount < yChoices.length;
 		String xName = getXVariable();
 		String yName = getYVariable();
@@ -1751,17 +1751,17 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 	public void showDataTool() {
 		DataTool tool = DataTool.getTool(true);
-		DataToolTab tab = tool.getTab(data);
+		DataToolTab tab = tool.getTab(datasetManager);
 		tool.setUseChooser(false);
 		tool.setSaveChangesOnClose(false);
 		DatasetManager toSend = new DatasetManager();
-		DataRefreshTool refresher = DataRefreshTool.getTool(data);
-		toSend.setID(data.getID());
+		DataRefreshTool refresher = DataRefreshTool.getTool(datasetManager);
+		toSend.setID(datasetManager.getID());
 		TTrack track = TTrack.getTrack(trackID);
 		toSend.setName(track.getName());
 		int i = 0;
 		// always include linked independent variable first
-		Dataset nextIn = data.getDataset(0);
+		Dataset nextIn = datasetManager.getDataset(0);
 		String xColName = nextIn.getXColumnName();
 		XMLControlElement control = new XMLControlElement(nextIn);
 		Dataset nextOut = toSend.getDataset(i++); // first dataset to send
@@ -1795,7 +1795,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		}
 		// add the x and y datasets
 		if (xIndex >= 0) {
-			nextIn = data.getDataset(xIndex);
+			nextIn = datasetManager.getDataset(xIndex);
 			xColName = nextIn.getYColumnName();
 			control = new XMLControlElement(nextIn);
 			nextOut = toSend.getDataset(i++); // second dataset to send (if not indep var)
@@ -1809,7 +1809,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				padDataset(nextOut, tArray);
 			}
 		}
-		nextIn = data.getDataset(yIndex);
+		nextIn = datasetManager.getDataset(yIndex);
 		String yColName = nextIn.getYColumnName();
 		if (yIndex != xIndex) {
 			control = new XMLControlElement(nextIn);
