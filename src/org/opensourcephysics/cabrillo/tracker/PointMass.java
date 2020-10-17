@@ -924,10 +924,10 @@ public class PointMass extends TTrack {
 		firePropertyChange(TTrack.PROPERTY_TTRACK_MASS, null, new Double(mass)); // $NON-NLS-1$
 		invalidateData(this);// to views
 		// store the mass in the data properties
-		if (dataManager != null) {
+		if (datasetManager != null) {
 			Double m = getMass();
 			String desc = TrackerRes.getString("ParticleModel.Parameter.Mass.Description"); //$NON-NLS-1$
-			dataManager.setConstant("m", m, m.toString(), desc); //$NON-NLS-1$
+			datasetManager.setConstant("m", m, m.toString(), desc); //$NON-NLS-1$
 		}
 	}
 

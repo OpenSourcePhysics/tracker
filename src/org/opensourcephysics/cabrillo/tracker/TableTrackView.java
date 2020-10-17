@@ -861,7 +861,7 @@ public class TableTrackView extends TrackView {
 		// get value of independent variable at row
 		double val = getIndepVarValueAtRow(row);
 		TTrack track = getTrack();
-		String xVar = track.dataManager.getDataset(0).getXColumnName();
+		String xVar = track.datasetManager.getDataset(0).getXColumnName();
 		int frameNum = track.getFrameForData(xVar, null, new double[] { val });
 		return frameNum;
 	}
