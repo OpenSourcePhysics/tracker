@@ -449,15 +449,18 @@ public class TrackDataBuilder extends FunctionTool {
 		if (autoloadButton == null)
 			return;
 		FontSizer.setFonts(new Object[] { loadButton, saveButton, autoloadButton }, level);
-		for (String name : trackFunctionPanels.keySet()) {
-			TTrack track = trackerPanel.getTrack(name);
-			FunctionPanel panel = trackFunctionPanels.get(name);
-			if (track == null || panel == null)
-				continue;
-			// get new footprint icon, automatically resized to current level
-			panel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
+		if (!trackFunctionPanels.isEmpty()) {
+			ArrayList<TTrack> tracks = trackerPanel.getTracks();
+			FunctionPanel panel;
+			TTrack track;
+			for (String name : trackFunctionPanels.keySet()) {
+				if ((panel = trackFunctionPanels.get(name)) != null
+						&& (track = trackerPanel.getTrack(name, tracks)) != null) {
+					// get new footprint icon, automatically resized to current level
+					panel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
+				}
+			}
 		}
-
 		super.setFontLevel(level);
 		validate();
 		autoloadButton.revalidate();

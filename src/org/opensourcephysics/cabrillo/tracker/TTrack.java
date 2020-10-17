@@ -197,7 +197,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected StepArray steps = new StepArray();
 	protected PropertyChangeSupport support;
 	protected HashMap<String, Object> properties = new HashMap<String, Object>();
-	protected DatasetManager data;
+	protected DatasetManager datasetManager;
 	protected HashMap<TrackerPanel, double[]> worldBounds = new HashMap<TrackerPanel, double[]>();
 	protected final Point2D.Double[] points = new Point2D.Double[] { new Point2D.Double() };
 	protected ArrayList<Component> toolbarTrackComponents = new ArrayList<Component>();
@@ -1319,16 +1319,16 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @return the DatasetManager
 	 */
 	public DatasetManager getData(TrackerPanel trackerPanel) {
-		if (data == null) {
-			data = new DatasetManager(true);
-			data.setSorted(true);
+		if (datasetManager == null) {
+			datasetManager = new DatasetManager(true);
+			datasetManager.setSorted(true);
 		}
 		if (refreshDataLater)
-			return data;
+			return datasetManager;
 		if (!dataValid) {
 			dataValid = true;
 			// refresh track data
-			refreshData(data, trackerPanel);
+			refreshData(datasetManager, trackerPanel);
 			// check for newly loaded dataFunctions
 			if (constantsLoadedFromXML != null) {
 				for (int i = 0; i < constantsLoadedFromXML.length; i++) {
@@ -1336,7 +1336,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 					double val = (Double) constantsLoadedFromXML[i][1];
 					String expression = (String) constantsLoadedFromXML[i][2];
 					String desc = constantsLoadedFromXML[i].length < 4 ? null : (String) constantsLoadedFromXML[i][3];
-					data.setConstant(name, val, expression, desc);
+					datasetManager.setConstant(name, val, expression, desc);
 				}
 				constantsLoadedFromXML = null;
 			}
@@ -1345,20 +1345,20 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				outer: for (int i = 0; i < children.length; i++) {
 					// compare function name with existing datasets to avoid duplications
 					String name = children[i].getString("function_name"); //$NON-NLS-1$
-					for (Dataset next : data.getDatasets()) {
+					for (Dataset next : datasetManager.getDatasetsRaw()) {
 						if (next instanceof DataFunction && next.getYColumnName().equals(name)) {
 							continue outer;
 						}
 					}
-					DataFunction f = new DataFunction(data);
+					DataFunction f = new DataFunction(datasetManager);
 					children[i].loadObject(f);
 					f.setXColumnVisible(false);
-					data.addDataset(f);
+					datasetManager.addDataset(f);
 				}
 				dataProp = null;
 			}
 			// refresh dataFunctions
-			ArrayList<Dataset> datasets = data.getDatasets();
+			ArrayList<Dataset> datasets = datasetManager.getDatasetsRaw();
 			for (int i = 0; i < datasets.size(); i++) {
 				if (datasets.get(i) instanceof DataFunction) {
 					((DataFunction) datasets.get(i)).refreshFunctionData();
@@ -1366,11 +1366,11 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			}
 			DataTool tool = DataTool.getTool(false);
 			if (trackerPanel != null && tool != null && tool.isVisible() && tool.getSelectedTab() != null
-					&& tool.getSelectedTab().isInterestedIn(data)) {
+					&& tool.getSelectedTab().isInterestedIn(datasetManager)) {
 				tool.getSelectedTab().refreshData();
 			}
 		}
-		return data;
+		return datasetManager;
 	}
 
 	/**
@@ -1406,10 +1406,10 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 */
 	public String getDataName(int index) {
 		if (index == 0) { // shared x-variable
-			return data.getDataset(0).getXColumnName();
+			return datasetManager.getDataset(0).getXColumnName();
 		}
-		if (index < data.getDatasets().size() + 1) {
-			return data.getDataset(index - 1).getYColumnName();
+		if (index < datasetManager.getDatasetsRaw().size() + 1) {
+			return datasetManager.getDataset(index - 1).getYColumnName();
 		}
 		return null;
 	}
@@ -1426,7 +1426,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		if (dataDescriptions == null)
 			return ""; //$NON-NLS-1$
 		if (index >= dataDescriptions.length) {
-			ArrayList<Dataset> datasets = data.getDatasets();
+			ArrayList<Dataset> datasets = datasetManager.getDatasetsRaw();
 			index--;
 			if (index < datasets.size() && datasets.get(index) instanceof DataFunction) {
 				String desc = datasets.get(index).getYColumnDescription();
@@ -1446,17 +1446,17 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 */
 	public ArrayList<Integer> getPreferredDataOrder() {
 		ArrayList<Integer> orderedData = new ArrayList<Integer>();
-		ArrayList<Dataset> datasets = data.getDatasets();
+		int n = datasetManager.getDatasetsRaw().size();
 		if (preferredColumnOrder != null) {
 			// first add preferred indices
 			for (int i = 0; i < preferredColumnOrder.length; i++) {
 				if (!orderedData.contains(preferredColumnOrder[i]) // prevent duplicates
-						&& preferredColumnOrder[i] < datasets.size()) // prevent invalid indices
+						&& preferredColumnOrder[i] < n) // prevent invalid indices
 					orderedData.add(preferredColumnOrder[i]);
 			}
 		}
 		// add indices not yet in array
-		for (int i = 0; i < datasets.size(); i++) {
+		for (int i = 0; i < n; i++) {
 			if (!orderedData.contains(i)) {
 				orderedData.add(i);
 			}
@@ -1473,9 +1473,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @return the frame number, or -1 if not found
 	 */
 	public int getFrameForData(String xVar, String yVar, double[] xyValues) {
-		if (dataFrames.isEmpty() || data.getDatasets().isEmpty())
+		if (dataFrames.isEmpty() || datasetManager.getDatasetsRaw().isEmpty())
 			return -1;
-		Dataset dataset = data.getDataset(0);
+		Dataset dataset = datasetManager.getDataset(0);
 		double x = xyValues[0];
 		if (xVar.equals(dataset.getXColumnName())) {
 			int nf = dataFrames.size();
@@ -1489,11 +1489,11 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			return -1;
 		}
 		// not independent variable, so find match in xVar dataset
-		int index = data.getDatasetIndex(xVar);
+		int index = datasetManager.getDatasetIndex(xVar);
 		if (index < 0) {
 			return -1;
 		}
-		dataset = data.getDataset(index);
+		dataset = datasetManager.getDataset(index);
 		double[] xVals = dataset.getYPointsRaw();
 		double[] yVals = null;
 		double y = (yVar == null ? Double.NaN : xyValues[1]);
@@ -1504,7 +1504,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				// if yVar value is given, verify it matches as well
 				if (yVar != null) {
 					if (yVals == null) {
-						yVals = data.getDataset(data.getDatasetIndex(yVar)).getYPoints();
+						yVals = datasetManager.getDataset(datasetManager.getDatasetIndex(yVar)).getYPoints();
 					}
 					// if y value doesn't also match, reject and continue searching
 					if (y != yVals[i]) {
@@ -1804,18 +1804,29 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected boolean loadAttachmentsFromNames(boolean refresh) {
 		// if track attachmentNames is not null then find tracks and populate
 		// attachments
-		if (attachmentNames == null)
+		int n;
+		if (attachmentNames == null || (n = attachmentNames.length) == 0)
 			return false;
-
 		boolean foundAll = true;
-		TTrack[] temp = new TTrack[attachmentNames.length];
-		for (int i = 0; i < attachmentNames.length; i++) {
-			TTrack track = trackerPanel.getTrack(attachmentNames[i]);
-			if (track != null) {
-				temp[i] = track;
-			} else if (attachmentNames[i] != null) {
+		TTrack[] temp = new TTrack[n];
+	    ArrayList<TTrack> tracks = trackerPanel.getTracks();
+		for (int i = 0; i < n; i++) {
+			// BH 2020.10.17 OK? 
+			String name = attachmentNames[i];
+			if (name == null)
+				continue;
+			TTrack track = trackerPanel.getTrack(name, tracks);
+			if (track == null) {
 				foundAll = false;
+				break;
 			}
+			temp[i] = track;
+//			TTrack track = trackerPanel.getTrack(attachmentNames[i]);
+//			if (track != null) {
+//				temp[i] = track;
+//			} else if (attachmentNames[i] != null) {
+//				foundAll = false;
+//			}
 		}
 		if (foundAll) {
 			attachments = temp;
@@ -2360,7 +2371,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	@Override
 	public void draw(DrawingPanel panel, Graphics _g) {
 		loadAttachmentsFromNames(true);
-		if (!(panel instanceof TrackerPanel) || !visible)
+		if (!visible || !(panel instanceof TrackerPanel))
 			return;
 		TrackerPanel trackerPanel = (TrackerPanel) panel;
 		Graphics2D g = (Graphics2D) _g;
@@ -2801,7 +2812,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected void dispose() {
 		properties.clear();
 		worldBounds.clear();
-		data = null;
+		datasetManager = null;
 		if (attachments != null) {
 			for (int i = 0; i < attachments.length; i++) {
 				TTrack targetTrack = attachments[i];
@@ -3385,19 +3396,20 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			}
 			// data functions
 			if (track.trackerPanel != null) {
-				DatasetManager data = track.getData(track.trackerPanel);
-				Iterator<Dataset> it = data.getDatasets().iterator();
 				ArrayList<Dataset> list = new ArrayList<Dataset>();
-				while (it.hasNext()) {
-					Dataset dataset = it.next();
+				DatasetManager data = track.getData(track.trackerPanel);
+				ArrayList<Dataset> datasets = data.getDatasetsRaw();
+				for (int i = 0, n = datasets.size(); i < n; i++) {
+					Dataset dataset = datasets.get(i);
 					if (dataset instanceof DataFunction) {
 						list.add(dataset);
 					}
 				}
 				if (!list.isEmpty()) {
-					String[] names = data.getConstantNames();
-					if (names.length > 0) {
-						Object[][] paramArray = new Object[names.length][4];
+					ArrayList<String> names = data.getConstantNames();
+					int n = names.size();
+					if (n > 0) {
+						Object[][] paramArray = new Object[n][4];
 						int i = 0;
 						for (String key : names) {
 							paramArray[i][0] = key;

@@ -61,7 +61,7 @@ public class PlotTrackView extends TrackView {
 	
 	// data model
 	
-	protected DatasetManager data;
+	protected DatasetManager datasetManager;
 	protected int defaultPlotCount = 1;
 	private boolean isCustom;
 	protected boolean xAxesLinked;
@@ -94,7 +94,7 @@ public class PlotTrackView extends TrackView {
 		super(track, panel, view, TView.VIEW_PLOT);
 //		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr0 for " + track, Performance.TIME_MARK));
 		// get the track data object (DatasetManager)
-		data = track.getData(trackerPanel);
+		datasetManager = track.getData(trackerPanel);
 		// create the GUI
 		createGUI();
 		// set the track-specified initial plot properties
@@ -152,7 +152,7 @@ public class PlotTrackView extends TrackView {
 
 	@Override
 	protected void dispose() {
-		data = null;
+		datasetManager = null;
 		for (TrackPlottingPanel next : plots) {
 			next.dispose();
 		}
@@ -347,7 +347,7 @@ public class PlotTrackView extends TrackView {
 	 */
 	private TrackPlottingPanel createPlotPanel() {
 		TTrack track = getTrack();
-		TrackPlottingPanel plotPanel = new TrackPlottingPanel(track, data);
+		TrackPlottingPanel plotPanel = new TrackPlottingPanel(track, datasetManager);
 		plotPanel.enableInspector(true);
 		plotPanel.setAutoscaleX(true);
 		plotPanel.setAutoscaleY(true);

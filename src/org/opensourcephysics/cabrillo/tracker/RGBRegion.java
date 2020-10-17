@@ -247,7 +247,7 @@ public class RGBRegion extends TTrack {
   		keyFrames.clear();
 	    keyFrames.add(0);
   		clearData();
-  		refreshData(data, trackerPanel);
+  		refreshData(datasetManager, trackerPanel);
   		firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
     }
     if (!loading) {
@@ -298,7 +298,7 @@ public class RGBRegion extends TTrack {
 	    radiusKeyFrames.clear();
 	    radiusKeyFrames.add(0);
   		clearData();
-  		refreshData(data, trackerPanel);
+  		refreshData(datasetManager, trackerPanel);
   		firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); //$NON-NLS-1$
     }
     if (!loading) {
@@ -350,7 +350,7 @@ public class RGBRegion extends TTrack {
     	}      
     	Undo.postStepEdit(step, state);
       trackerPanel.setSelectedPoint(selection);
-  		refreshData(data, trackerPanel);
+  		refreshData(datasetManager, trackerPanel);
       step.repaint();
       firePropertyChange(PROPERTY_TTRACK_DATA, null, RGBRegion.this); // to views //$NON-NLS-1$
     }     
@@ -548,10 +548,10 @@ public int getFootprintLength() {
    * Clears the data.
    */
   protected void clearData() {
-  	if (data == null) return;
+  	if (datasetManager == null) return;
   	// clear each dataset
     for (int i = 0; i < 7; i++) {
-    	Dataset next = data.getDataset(i);
+    	Dataset next = datasetManager.getDataset(i);
     	next.clear();
     }
     Step[] steps = getSteps();

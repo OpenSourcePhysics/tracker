@@ -3220,14 +3220,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	void loadVideo(String path, boolean asNewTab, Runnable whenDone) {
 		if ((path.toLowerCase().endsWith("mp4"))
-				&& !VideoIO.isLoadableMP4(path, new Function<String, Void>() {
-					@Override
-					public Void apply(String codec) {
-						if (libraryBrowser != null) 
-							libraryBrowser.setMessage(null, null);
-						VideoIO.handleUnsupportedVideo(path, "mp4", codec);
-						return null;
-					}
+				&& !VideoIO.isLoadableMP4(path, (codec) -> {
+					if (libraryBrowser != null) 
+						libraryBrowser.setMessage(null, null);
+					VideoIO.handleUnsupportedVideo(path, "mp4", codec);
 				})) 
 			return;
 					

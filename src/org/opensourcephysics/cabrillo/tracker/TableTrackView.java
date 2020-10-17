@@ -340,7 +340,7 @@ public class TableTrackView extends TrackView {
 
 	private void setNameMaps() {
 		htNames = new LinkedHashMap<>();
-		ArrayList<Dataset> sets = trackDataManager.getDatasets();
+		ArrayList<Dataset> sets = trackDataManager.getDatasetsRaw();
 		ArrayList<String> textSet = textColumnNames;
 		datasetCount = sets.size();
 		colCount = datasetCount + textSet.size();
@@ -384,7 +384,7 @@ public class TableTrackView extends TrackView {
 			trackDataManager = track.getData(trackerPanel);
 			// copy datasets into table data based on checkbox states
 
-			ArrayList<Dataset> datasets = trackDataManager.getDatasets();
+			ArrayList<Dataset> datasets = trackDataManager.getDatasetsRaw();
 			int count = datasets.size();
 			dataTable.setUnits(datasets.get(0).getXColumnName(), "", track.getDataDescription(0)); //$NON-NLS-1$
 			boolean degrees = trackerPanel.getTFrame() != null && !trackerPanel.getTFrame().anglesInRadians;
@@ -409,7 +409,7 @@ public class TableTrackView extends TrackView {
 				local.setXYColumnNames(xTitle, yTitle);
 				local.setYColumnVisible(true);
 			}
-			for (int i = colCount; i < dataTableManager.getDatasets().size(); i++) {
+			for (int i = colCount; i < dataTableManager.getDatasetsRaw().size(); i++) {
 				dataTableManager.setYColumnVisible(i, false);
 			}
 			if (colCount == 0) {
@@ -587,7 +587,7 @@ public class TableTrackView extends TrackView {
 //		if (index < checkBoxes.length) {
 //			checkBoxes[index].setSelected(visible);
 //		}
-		int n = trackDataManager.getDatasets().size();
+		int n = trackDataManager.getDatasetsRaw().size();
 		if (index >= n) {
 			TTrack track = getTrack();
 			String name = track.getTextColumnNames().get(index - n);
@@ -861,7 +861,7 @@ public class TableTrackView extends TrackView {
 		// get value of independent variable at row
 		double val = getIndepVarValueAtRow(row);
 		TTrack track = getTrack();
-		String xVar = track.data.getDataset(0).getXColumnName();
+		String xVar = track.datasetManager.getDataset(0).getXColumnName();
 		int frameNum = track.getFrameForData(xVar, null, new double[] { val });
 		return frameNum;
 	}
@@ -1121,7 +1121,7 @@ public class TableTrackView extends TrackView {
 		toSend.setName(track.getName());
 		toSend.setXPointsLinked(true);
 		int colCount = 0;
-		ArrayList<Dataset> datasets = trackDataManager.getDatasets();
+		ArrayList<Dataset> datasets = trackDataManager.getDatasetsRaw();
 		// always include linked independent variable first
 		Dataset next = datasets.get(0);
 		XMLControlElement control = new XMLControlElement(next);
@@ -1773,17 +1773,18 @@ public class TableTrackView extends TrackView {
 		// then add other variables
 		TTrack track = getTrack();
 		ArrayList<Integer> dataOrder = track.getPreferredDataOrder();
-		ArrayList<Integer> added = new ArrayList<Integer>();
+		BitSet added = new BitSet();
 		// first add in preferred order
 		for (int i = 0; i < dataOrder.size(); i++) {
-			dataset = trackDataManager.getDataset(dataOrder.get(i));
+			int oi = dataOrder.get(i).intValue();
+			dataset = trackDataManager.getDataset(oi);
 			name = dataset.getYColumnName();
 			names.add(name);
-			added.add(dataOrder.get(i));
+			added.set(oi);
 		}
 		// then add any that were missed
-		for (int i = 0; i < trackDataManager.getDatasets().size(); i++) {
-			if (!added.contains(i)) {
+		for (int i = 0; i < trackDataManager.getDatasetsRaw().size(); i++) {
+			if (!added.get(i)) {
 				dataset = trackDataManager.getDataset(i);
 				name = dataset.getYColumnName();
 				names.add(name);

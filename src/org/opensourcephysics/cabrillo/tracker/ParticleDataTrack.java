@@ -91,7 +91,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	private static String startupFootprint = "CircleFootprint.FilledCircle#5 outline"; //$NON-NLS-1$
 
 	private DataClip dataClip;
-	private Data sourceData;
+	private DatasetManager sourceData;
 	private double[] xData = { 0 }, yData = { 0 }, tData = { 0 };
 	private int stepCounter;
 	private Object dataSource; // may be ParticleDataTrack leader
@@ -117,7 +117,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @param source the data source object (null if data is pasted)
 	 * @throws Exception if the data does not define x and y-datasets
 	 */
-	public ParticleDataTrack(Data data, Object source) throws Exception {
+	public ParticleDataTrack(DatasetManager data, Object source) throws Exception {
 		this(source);
 		getDataClip().addPropertyChangeListener(this);
 		String name = data.getName();
@@ -867,14 +867,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * Sets the Data. Data must define columns "x" and "y". If time data is
 	 * included, it is assumed to be in seconds.
 	 * 
-	 * @param data the Data object
+	 * @param manager the Data object
 	 * @throws Exception if the data does not define x and y-columns
 	 */
-	public void setData(Data data) throws Exception {
+	public void setData(DatasetManager manager) throws Exception {
 		OSPLog.finer("Setting new data"); //$NON-NLS-1$
 		// the following line throws an exception if (x, y) data is not found
-		ArrayList<Object[]> pointData = getPointData(data, DATA_COPY);
-		sourceData = data;
+		ArrayList<Object[]> pointData = getPointData(manager, DATA_COPY);
+		sourceData = manager;
 
 		// save current time array for comparison
 		double[] tPrev = tData;
@@ -883,7 +883,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		setPointName((String) xyData[0]);
 		double[] xData = (double[]) xyData[1];
 		double[] yData = (double[]) xyData[1];
-		double[] timeArray = getTimeData(data);
+		double[] timeArray = getTimeData(manager);
 		if (timeArray != null && xData.length != timeArray.length) {
 			throw new Exception("Time data has incorrect array length"); //$NON-NLS-1$
 		}
@@ -1306,7 +1306,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				PositionStep step = createPositionStep(this, i, point.x, point.y);
 				step.setFootprint(getFootprint());
 				steps.setStep(i, step);
-				refreshData(data, trackerPanel, firstFrameInVideoClip, 1);
+				refreshData(datasetManager, trackerPanel, firstFrameInVideoClip, 1);
 			}
 		}
 
@@ -1323,7 +1323,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	@Override
 	public void setData(Data data, Object source) throws Exception {
-		setData(data);
+		setData((DatasetManager) data);
 		setSource(source);
 	}
 
@@ -1356,13 +1356,15 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	/**
 	 * Informs this track that values have been appended to the Data.
 	 * 
-	 * @param data Data containing newly appended values
+	 * not referenced
+	 * 
+	 * @param manager Data containing newly appended values
 	 * @throws Exception if (x, y) data not found
 	 */
-	public void appendData(Data data) throws Exception {
-		sourceData = data;
+	public void appendData(DatasetManager manager) throws Exception {
+		sourceData = manager;
 		// following line throws exception if (x, y) not found
-		ArrayList<Object[]> pointData = getPointData(data, DATA_COPY);
+		ArrayList<Object[]> pointData = getPointData(manager, DATA_COPY);
 		Object[] xyData = pointData.get(0);
 		double[] x = (double[]) xyData[1];
 		double[] y = (double[]) xyData[2];
@@ -1376,7 +1378,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-		double[] timeArray = getTimeData(data); // may be null
+		double[] timeArray = getTimeData(manager); // may be null
 		double[][] newData = new double[][] { x, y, timeArray };
 		for (int i = 0; i < 3; i++) {
 			if (newData[i] != null && oldData[i] != null) {
@@ -1400,8 +1402,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @param data the Data object
 	 * @return the t array, or null if none found
 	 */
-	private static double[] getTimeData(Data data) {
-		ArrayList<Dataset> datasets = data.getDatasets();
+	private static double[] getTimeData(DatasetManager data) {
+		ArrayList<Dataset> datasets = data.getDatasetsRaw();
 		for (Dataset dataset : datasets) {
 			// look at x-column
 			String s = dataset.getXColumnName().toLowerCase();
@@ -1495,19 +1497,20 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		return null;
 	}
 
-	protected static ParticleDataTrack getTrackForData(Data data, TrackerPanel trackerPanel) {
+	protected static ParticleDataTrack getTrackForData(DatasetManager data, TrackerPanel trackerPanel) {
 		// find DataTrack with matching name
 		String name = data.getName();
 		if (name == null || name.trim().equals("")) { //$NON-NLS-1$
 			name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
 		}
 		name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
-		TTrack track = trackerPanel.getTrack(name);
+		ArrayList<TTrack> tracks = trackerPanel.getTracks();
+		TTrack track = trackerPanel.getTrack(name, tracks);
 		// if name collisions occur, look for modified name
 		int i = 1;
 		while (track != null && track.getClass() != ParticleDataTrack.class) {
 			String nextName = getNextName(name, i++);
-			track = trackerPanel.getTrack(nextName);
+			track = trackerPanel.getTrack(nextName, tracks);
 			if (track == null || track.getClass() == ParticleDataTrack.class) {
 				// stop looking and set new data name
 				Class<?> type = data.getClass();
@@ -1571,14 +1574,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @return list of Object[] {String name, double[2][] xyData}
 	 * @throws Exception if (x, y) data not defined, empty or inconsistent
 	 */
-	private static ArrayList<Object[]> getPointData(Data data, int mode) throws Exception {
+	private static ArrayList<Object[]> getPointData(DatasetManager data, int mode) throws Exception {
 		ArrayList<Object[]> results = new ArrayList<Object[]>();
 		if (data == null) {
 			if (mode == DATA_CHECK_ONLY)
 				return null;
 			throw new Exception("Data is null"); //$NON-NLS-1$
 		}
-		ArrayList<Dataset> datasets = data.getDatasets();
+		ArrayList<Dataset> datasets = data.getDatasetsRaw();
 		if (datasets == null) {
 			if (mode == DATA_CHECK_ONLY)
 				return null;
@@ -1672,14 +1675,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				continue;
 			}
 			if (xset.getIndex() != yset.getIndex()) {
-				if (mode == DATA_CHECK_ONLY) 
+				if (mode == DATA_CHECK_ONLY)
 					return null;
 				throw new Exception("X and Y data have different array lengths"); //$NON-NLS-1$
 			}
 			if (mode == DATA_CHECK_ONLY)
 				return results;
 			// copy data
-			double[] dx = (x == 'x' ? xset.getXPoints()	: xset.getYPoints());
+			double[] dx = (x == 'x' ? xset.getXPoints() : xset.getYPoints());
 			double[] dy = (y == 'x' ? yset.getXPoints() : yset.getYPoints());
 			results.add(new Object[] { colName, dx, dy });
 			prevDataset = null;
@@ -1702,13 +1705,13 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			// if all data are present, add to results
 			if (xset != null && yset != null) {
 				if (xset.getIndex() != yset.getIndex()) {
-					if (mode == DATA_CHECK_ONLY) 
+					if (mode == DATA_CHECK_ONLY)
 						return null;
 					throw new Exception("X and Y data have different array lengths"); //$NON-NLS-1$
 				}
 				if (mode != DATA_CHECK_ONLY) {
 					// copy data
-					double[] dx = (x == 'x' ? xset.getXPoints()	: xset.getYPoints());
+					double[] dx = (x == 'x' ? xset.getXPoints() : xset.getYPoints());
 					double[] dy = (y == 'x' ? yset.getXPoints() : yset.getYPoints());
 					results.add(new Object[] { "", dx, dy });
 				}
