@@ -671,9 +671,9 @@ public class TrackerIO extends VideoIO {
 					if (f == null) {
 						OSPLog.finer("no file to open"); //$NON-NLS-1$
 					} else {
-						if (!frame.haveContent()) {
-							frame.removeTabNow(0);
-						}
+//						if (!frame.haveContent()) {
+//							frame.removeTabNow(0);
+//						}
 						openTabFileAsyncFinally(frame, f, null);
 					}
 					return null;
@@ -687,10 +687,16 @@ public class TrackerIO extends VideoIO {
 		frame.loadedFiles.clear();
 		final String path = XML.getAbsolutePath(file);
 		final VideoType vidType = selectedType;
+		TrackerPanel existingPanel = null;
+		if (!frame.haveContent()) {
+			existingPanel = frame.getTrackerPanel(0);
+//			frame.removeTabNow(0);
+		}
+		final TrackerPanel trackerPanel = existingPanel;
 
 		// open all files in Tracker
 		run("openTabPath", () -> {
-				openTabPath(path, null, frame, vidType, null, () -> {
+				openTabPath(path, trackerPanel, frame, vidType, null, () -> {
 					if (trzFileFilter.accept(new File(path), false)
 							&& !path.contains("/OSP/Cache/"))
 						addToLibrary(frame, path);
@@ -766,7 +772,11 @@ public class TrackerIO extends VideoIO {
 	public static void open(final String path, final TFrame frame) {
 		frame.loadedFiles.clear();
 		OSPLog.debug("TrackerIO open " + path); //$NON-NLS-1$
-		openTabPath(path, null, frame, null, null, () -> {
+		TrackerPanel existingPanel = null;
+		if (!frame.haveContent()) {
+			existingPanel = frame.getTrackerPanel(0);
+		}
+		openTabPath(path, existingPanel, frame, null, null, () -> {
 			if (trzFileFilter.accept(new File(path), false)
 					&& !ResourceLoader.isHTTP(path) && !path.contains("/OSP/Cache/"))
 				addToLibrary(frame, path);
@@ -1635,6 +1645,7 @@ public class TrackerIO extends VideoIO {
 		private static final int TYPE_PANEL = 2;
 		private static final int TYPE_FRAME = 3;
 		private static final int TYPE_VIDEO = 4;
+		private static final int TYPE_UNSUPPORTED_VIDEO = 5;
 
 		private int type = TYPE_UNK;
 		private int frameCount;
@@ -1678,6 +1689,8 @@ public class TrackerIO extends VideoIO {
 			case TYPE_VIDEO:
 				progress = openTabPathVideo(progress);
 				break;
+			case TYPE_UNSUPPORTED_VIDEO:
+				VideoIO.handleUnsupportedVideo(path, XML.getExtension(path), null);
 			default:
 				return 100;
 			}
@@ -1732,6 +1745,13 @@ public class TrackerIO extends VideoIO {
 			if (path.indexOf("&TrackerSet=") >= 0 || zipFileFilter.accept(testFile, false) || trzFileFilter.accept(testFile, false)) {
 				type = TYPE_ZIP;
 				return;
+			}
+			// check for unsupported video type
+			for (String ext : VideoIO.KNOWN_VIDEO_EXTENSIONS) {
+				if (path.endsWith("." + ext)) {
+					type = TYPE_UNSUPPORTED_VIDEO;
+					return;
+				}
 			}
 
 			// load data from TRK file
