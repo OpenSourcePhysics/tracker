@@ -617,10 +617,9 @@ public class TrackerIO extends VideoIO {
 	}
 
 	/**
-	 * Returns a video from a specified path. May return null. Overrides VideoIO
-	 * method.
+	 * Returns a video from a specified path. May return null.
 	 *
-	 * @param path    the path
+	 * @param path the path
 	 * @param vidType a requested video type (may be null)
 	 * @return the video
 	 */
@@ -1690,7 +1689,7 @@ public class TrackerIO extends VideoIO {
 				progress = openTabPathVideo(progress);
 				break;
 			case TYPE_UNSUPPORTED_VIDEO:
-				VideoIO.handleUnsupportedVideo(path, XML.getExtension(path), null);
+				VideoIO.handleUnsupportedVideo(path, XML.getExtension(path), null, trackerPanel);
 			default:
 				return 100;
 			}
@@ -2021,6 +2020,13 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private int openTabPathVideo(int progress) {
+			// check for unsupported MP4 videos
+			if ((path.toLowerCase().endsWith("mp4"))
+					&& !VideoIO.isLoadableMP4(path, (codec) -> {
+						VideoIO.handleUnsupportedVideo(path, "mp4", codec, trackerPanel);
+					})) 
+				return 100;
+			
 			trackerPanel.setTFrame(frame);
 			OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
 			// download web videos to the OSP cache

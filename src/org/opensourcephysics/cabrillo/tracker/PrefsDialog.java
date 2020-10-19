@@ -91,7 +91,6 @@ import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.IntegerField;
 import org.opensourcephysics.media.mov.MovieFactory;
 import org.opensourcephysics.tools.FontSizer;
@@ -2056,7 +2055,7 @@ public class PrefsDialog extends JDialog {
   /**
    * Relaunches after changing preferred VM to 32-bit
    */
-  protected void relaunch32Bit() {
+  public void relaunch32Bit() {
   	relaunching = true;
 		vm32Button.setSelected(true); // also sets default video engine
   }

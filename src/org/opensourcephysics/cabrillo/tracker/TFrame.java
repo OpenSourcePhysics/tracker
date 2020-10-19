@@ -1901,7 +1901,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					if (lcTarget.endsWith("." + ext)) {
 						if (libraryBrowser != null) 
 							libraryBrowser.setMessage(null, null);
-						VideoIO.handleUnsupportedVideo(path, ext, null);
+						VideoIO.handleUnsupportedVideo(path, ext, null, getTrackerPanel(getSelectedTab()));
 						return;
 					}
 				}				
@@ -3223,7 +3223,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				&& !VideoIO.isLoadableMP4(path, (codec) -> {
 					if (libraryBrowser != null) 
 						libraryBrowser.setMessage(null, null);
-					VideoIO.handleUnsupportedVideo(path, "mp4", codec);
+					VideoIO.handleUnsupportedVideo(path, "mp4", codec, null);
 				})) 
 			return;
 					
@@ -3258,9 +3258,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				// load a new tab unless file is video and there is a trackerPanel to import it
 				if (targetPanel == null || !TrackerIO.haveVideo(fileList)) {
 					// could be a video file or a directory of images
-					if (nf > 0 && !haveContent()) {
-						removeTabNow(0);
-					}
+					// DB don't remove tab until we know if loading will likely succeed
+//					if (nf > 0 && !haveContent()) {
+//						removeTabNow(0);
+//					}
 					TrackerIO.openTabFile(file, this);
 				} else if (targetPanel != null ) {
 					// import video
