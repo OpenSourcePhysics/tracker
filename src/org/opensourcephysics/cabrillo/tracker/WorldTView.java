@@ -387,9 +387,9 @@ public class WorldTView extends TrackerPanel implements TView {
 			list.remove(mat);
 			list.add(0, mat);
 		}
-		// remove noData message if trackerPanel is not empty
-		if (!trackerPanel.isEmpty)
-			remove(noData);
+//		// remove noData message if trackerPanel is not empty
+//		if (!trackerPanel.isEmpty)
+//			remove(noData);
 		return list;
 	}
 

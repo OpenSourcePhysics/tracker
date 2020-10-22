@@ -2707,12 +2707,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			trackerPanel.dividerLocs = null;
 		} else {
 			//setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0); // becomes previous
+			
 			setDividerLocation(trackerPanel, SPLIT_MAIN, defaultMainDivider);
 			setDividerLocation(trackerPanel, SPLIT_RIGHT, defaultRightDivider);
+			
 			//setDividerLocation(trackerPanel, SPLIT_LEFT, defaultBottomDivider); // becomes previous
+			
 			setDividerLocation(trackerPanel, SPLIT_LEFT, 1.0);
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0); // becomes previous
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, defaultBottomDivider);
+			
 //			JSplitPane pane = getSplitPane(trackerPanel, 0);
 //			int max = pane.getMaximumDividerLocation();
 //			int loc = (int) (.5 * defaultRightDivider * max);
