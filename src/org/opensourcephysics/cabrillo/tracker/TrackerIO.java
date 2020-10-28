@@ -2042,7 +2042,17 @@ public class TrackerIO extends VideoIO {
 			// attempt to load video
 			Video video = getTrackerVideo(path, vidType);
 //			monitorDialog.stop();
-			if (video == null || isCanceled()) {
+			if (isCanceled()) {
+				cancelAsync();
+				// monitorDialog.close();
+				return 100;
+			}
+			if (video == null) {
+				// unable to load video
+				if (frame.libraryBrowser != null) 
+					frame.libraryBrowser.setMessage(null, null);
+				String codec = VideoIO.getVideoCodec(path);
+				VideoIO.handleUnsupportedVideo(path, XML.getExtension(path), codec, trackerPanel);
 				cancelAsync();
 				// monitorDialog.close();
 				return 100;
@@ -2077,6 +2087,7 @@ public class TrackerIO extends VideoIO {
 //				monitorDialog.setProgress(95);
 			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
 			pane.setDividerLocation(frame.defaultRightDivider);
+
 			// BH ?? TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_BEFORESETVIDEO);
 			trackerPanel.setVideo(video);
 			// panel is changed if video imported into existing trackerPanel

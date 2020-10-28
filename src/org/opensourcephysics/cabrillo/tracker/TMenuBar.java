@@ -1900,7 +1900,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	protected void refreshVideoMenu(boolean opening) {
 
 		// long t0 = Performance.now(0);
-
 		if (isTainted(MENU_VIDEO)) {
 			Video video = trackerPanel.getVideo();
 			boolean hasVideo = (video != null);

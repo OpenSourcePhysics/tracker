@@ -30,7 +30,6 @@ import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
-import java.awt.Font;
 //import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -61,18 +60,15 @@ import java.util.TreeSet;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextField;
 import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -272,7 +268,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		setCoordinateStringBuilder(coordStringBuilder);
 
 		// set fonts of message boxes and noDataLabels
-		Font font = new JTextField().getFont();
+//		Font font = new JTextField().getFont();
 
 		badNameLabel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 //		Box box = Box.createVerticalBox();
@@ -4341,7 +4337,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		super.repaint();
 	}
 
-	private static int repaintCount = 0;
+//	private static int repaintCount = 0;
 
 	/**
 	 * All repaints funnel through this method

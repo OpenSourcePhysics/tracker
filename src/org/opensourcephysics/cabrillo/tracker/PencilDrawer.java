@@ -316,10 +316,10 @@ public class PencilDrawer {
 	}
 		
   /**
-   * Gets the scene at a given frame number. May return null.
+   * Gets the scene with a given caption. May return null.
    * 
-   * @param frame the frame number
-   * @return the earliest scene that starts at the frame or whose range includes the frame
+   * @param caption a PencilCaption
+   * @return the earliest scene with the caption, if any
    */
 	protected PencilScene getSceneWithCaption(PencilCaption caption) {
 		for (PencilScene scene: scenes) {

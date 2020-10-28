@@ -3303,13 +3303,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 							runner.run();
 						}
 					}
-				} else {
-					// else inform user that file is not acceptable
-					JOptionPane.showMessageDialog(this, "\"" + file.getName() + "\" " //$NON-NLS-1$ //$NON-NLS-2$
-							+ TrackerRes.getString("FileDropHandler.Dialog.BadFile.Message"), //$NON-NLS-1$
-							TrackerRes.getString("FileDropHandler.Dialog.BadFile.Title"), //$NON-NLS-1$
-							JOptionPane.WARNING_MESSAGE);
-				}
+				} 
+//				else {
+//					// else inform user that file is not acceptable
+//					JOptionPane.showMessageDialog(this, "\"" + file.getName() + "\" " //$NON-NLS-1$ //$NON-NLS-2$
+//							+ TrackerRes.getString("FileDropHandler.Dialog.BadFile.Message"), //$NON-NLS-1$
+//							TrackerRes.getString("FileDropHandler.Dialog.BadFile.Title"), //$NON-NLS-1$
+//							JOptionPane.WARNING_MESSAGE);
+//				}
 			}
 		} catch (Exception e) {
 			return false;

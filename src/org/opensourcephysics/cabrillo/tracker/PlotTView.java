@@ -28,7 +28,6 @@ import java.util.HashMap;
 
 import javax.swing.*;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLProperty;
@@ -171,9 +170,7 @@ public class PlotTView extends TrackChooserTView {
 				view.setSelectedTrack(track);
 				// following code is for legacy xml only
 				PlotTrackView trackView = (PlotTrackView) view.getTrackView(track);
-				if (trackView == null) {
-					OSPLog.warning("PlotTView not found for " + track);
-				} else {
+				if (trackView != null) {
 					TrackPlottingPanel[] plots = trackView.plots;
 					for (int i = 0; i < plots.length; i++) {
 						XMLControl child = control.getChildControl("plot" + i); //$NON-NLS-1$
