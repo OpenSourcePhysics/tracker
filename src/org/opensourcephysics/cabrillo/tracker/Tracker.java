@@ -188,7 +188,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20201028"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20201030"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2020 D. Brown, R. Hanson, W. Christian"; //$NON-NLS-1$
 	
 	/**
@@ -316,7 +316,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	static Map<String, String[]> autoloadMap = new TreeMap<String, String[]>();
 	static String[] preferredAutoloadSearchPaths;
 	static boolean markAtCurrentFrame = true;
-	static boolean scrubMouseWheel, centerCalibrationStick, hideLabels;
+	static boolean scrubMouseWheel, centerCalibrationStick = true, hideLabels;
 	static boolean enableAutofill = true, showGaps = true;
 	static int preferredTrailLengthIndex = DEFAULT_TRAIL_LENGTH_INDEX;
 	private static boolean declareLocales = !isJS;
@@ -2391,7 +2391,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					control.setValue("enable_autofill", enableAutofill); //$NON-NLS-1$
 				if (preferredTrailLengthIndex != DEFAULT_TRAIL_LENGTH_INDEX)
 					control.setValue("trail_length", TToolBar.trailLengthNames[preferredTrailLengthIndex]); //$NON-NLS-1$
-				if (centerCalibrationStick) // false by default
+				if (!centerCalibrationStick) // true by default
 					control.setValue("center_stick", centerCalibrationStick); //$NON-NLS-1$
 				if (isXuggleFast) // false by default
 					control.setValue("xuggle_fast", isXuggleFast); //$NON-NLS-1$
@@ -2515,7 +2515,8 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					enableAutofill = control.getBoolean("enable_autofill"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("show_gaps")) //$NON-NLS-1$
 					showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
-				centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
+				if (control.getPropertyNamesRaw().contains("center_stick")) //$NON-NLS-1$
+					centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
 				isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("trail_length")) { //$NON-NLS-1$
 					String name = control.getString("trail_length"); //$NON-NLS-1$

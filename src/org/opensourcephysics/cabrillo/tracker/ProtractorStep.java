@@ -470,6 +470,20 @@ protected Mark getMark(TrackerPanel trackerPanel) {
   }
 
   /**
+   * Moves the protractor so the vertex is at the specified position.
+   *
+   * @param x
+   * @param y
+   */
+  protected void moveVertexTo(double x, double y) {
+    if (protractor.isLocked() || protractor.trackerPanel == null) return;
+    // determine how far to move
+    double dx = x - vertex.x;
+    double dy = y - vertex.y;
+    handle.setXY(handle.x + dx, handle.y + dy);
+  }
+
+  /**
    * Clones this Step.
    *
    * @return a clone of this step

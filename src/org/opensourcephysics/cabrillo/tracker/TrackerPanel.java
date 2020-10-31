@@ -208,7 +208,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected boolean isModelBuilderVisible;
 	protected boolean isShiftKeyDown, isControlKeyDown;
 	protected ArrayList<TTrack> calibrationTools = new ArrayList<TTrack>();
-	protected Set<TTrack> visibleTools = new HashSet<TTrack>();
+	protected Set<TTrack> visibleCalibrationTools = new HashSet<TTrack>();
+	protected Set<TTrack> measuringTools = new HashSet<TTrack>();
+	protected Set<TTrack> visibleMeasuringTools = new HashSet<TTrack>();
 	protected String author, contact;
 	protected AutoTracker autoTracker;
 	protected DerivativeAlgorithmDialog algorithmDialog;
@@ -512,6 +514,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		ArrayList<TTrack> tracks = getTracks();
 		tracks.remove(getAxes());
 		tracks.removeAll(calibrationTools);
+		tracks.removeAll(measuringTools);
 		tracks.removeAll(getDrawables(PerspectiveTrack.class));
 
 		// remove child ParticleDataTracks
@@ -597,18 +600,32 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			showTrackControl = false;
 			super.addDrawable(track);
 		}
-		// special case: calibration tape or stick
-		else if (track instanceof TapeMeasure && !((TapeMeasure) track).isReadOnly()) {
+		// special case: tape measure
+		else if (track instanceof TapeMeasure) {
 			showTrackControl = false;
-			calibrationTools.add(track);
-			visibleTools.add(track);
+			TapeMeasure tape = (TapeMeasure) track;
+			if (!tape.isReadOnly()) { // calibration tape or stick
+				calibrationTools.add(tape);
+				visibleCalibrationTools.add(tape);
+			}
+			else { // tape measure
+				measuringTools.add(tape);
+				visibleMeasuringTools.add(tape);
+			}
 			super.addDrawable(track);
 		}
 		// special case: offset origin or calibration points
 		else if (track instanceof OffsetOrigin || track instanceof Calibration) {
 			showTrackControl = false;
 			calibrationTools.add(track);
-			visibleTools.add(track);
+			visibleCalibrationTools.add(track);
+			super.addDrawable(track);
+		}
+		// special case: protractor or circlefitter
+		else if (track instanceof Protractor || track instanceof CircleFitter) {
+			showTrackControl = false;
+			measuringTools.add(track);
+			visibleMeasuringTools.add(track);
 			super.addDrawable(track);
 		}
 		// special case: perspective track
@@ -652,7 +669,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			super.addDrawable(track);
 		}
 
-		// DB TTrack.setTrackerPanel() now responsible for adding the track to this (TrackerPanel) listeners		
+		// DB TTrack.setTrackerPanel() now responsible for adding the track to this TrackerPanel's listeners		
 		// here we add this TrackerPanel to the track listeners
 		track.addListener(this);
 		if (this == track.trackerPanel) {

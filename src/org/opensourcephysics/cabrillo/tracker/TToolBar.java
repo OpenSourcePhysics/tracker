@@ -66,7 +66,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JToolBar;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.event.MenuEvent;
@@ -108,7 +107,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected static Icon axesOffIcon, axesOnIcon;
 	final protected static Icon calibrationToolsOffIcon, calibrationToolsOnIcon;
 	final protected static Icon calibrationToolsOffRolloverIcon, calibrationToolsOnRolloverIcon;
-	final protected static Icon eyeIcon;
+	final protected static Icon eyeIcon, rulerIcon, rulerOnIcon;
+	final protected static Icon rulerRolloverIcon, rulerOnRolloverIcon;
 	final protected static Icon pointsOffIcon, pointsOnIcon;
 	final protected static Icon velocOffIcon, velocOnIcon;
 	final protected static Icon accelOffIcon, accelOnIcon;
@@ -158,6 +158,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected TButton newTrackButton;
 	final protected JButton trackControlButton, clipSettingsButton;
 	final protected CalibrationButton calibrationButton;
+	final protected RulerButton rulerButton;
 	final protected DrawingButton drawingButton;
 	final protected JButton axesButton, zoomButton, autotrackerButton;
 	final protected TButton eyeButton;
@@ -196,6 +197,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		calibrationToolsOffRolloverIcon = Tracker.getResourceIcon("calibration_tool_rollover.gif", true); //$NON-NLS-1$
 		calibrationToolsOnRolloverIcon = Tracker.getResourceIcon("calibration_tool_on_rollover.gif", true); //$NON-NLS-1$
 		eyeIcon = Tracker.getResourceIcon("eye.gif", true); //$NON-NLS-1$
+		rulerIcon = Tracker.getResourceIcon("ruler.gif", true); //$NON-NLS-1$
+		rulerOnIcon = Tracker.getResourceIcon("ruler_on.gif", true); //$NON-NLS-1$
+		rulerRolloverIcon = Tracker.getResourceIcon("ruler_rollover.gif", true); //$NON-NLS-1$
+		rulerOnRolloverIcon = Tracker.getResourceIcon("ruler_on_rollover.gif", true); //$NON-NLS-1$
 		pointsOffIcon = Tracker.getResourceIcon("positions.gif", true); //$NON-NLS-1$
 		pointsOnIcon = Tracker.getResourceIcon("positions_on.gif", true); //$NON-NLS-1$
 		velocOffIcon = Tracker.getResourceIcon("velocities.gif", true); //$NON-NLS-1$
@@ -619,6 +624,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				return refreshEyePopup();
 			}
 		};
+		// ruler button
+		rulerButton = new RulerButton();
 		// font buttons
 		fontSmallerButton = new TButton(fontSmallerIcon);
 		fontBiggerButton = new TButton(fontBiggerIcon);
@@ -1070,10 +1077,11 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			add(axesButton);
 			addSeparator = true;
 		}
+		add(rulerButton);
 		if (addSeparator)
 			add(getSeparator());
 		if (trackerPanel.isCreateTracksEnabled()) {
-			add(newTrackButton);
+//			add(newTrackButton);
 		}
 		add(trackControlButton);
 		if (trackerPanel.isEnabled("track.autotrack")) //$NON-NLS-1$
@@ -1142,6 +1150,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	private void checkEnabled(boolean refreshTracks) {
 		refreshZoomButton();
 		calibrationButton.refresh();
+		rulerButton.refresh();
 		drawingButton.refresh();
 		stretchButton.setSelected(vStretch > 1 || aStretch > 1);
 		stretchOffItem.setText(TrackerRes.getString("TToolBar.MenuItem.StretchOff")); //$NON-NLS-1$
@@ -1297,6 +1306,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		traceVisButton.setToolTipText(TrackerRes.getString("TrackControl.Button.Trace.ToolTip")); //$NON-NLS-1$
 		newTrackButton.setText(TrackerRes.getString("TrackControl.Button.NewTrack")); //$NON-NLS-1$
 		newTrackButton.setToolTipText(TrackerRes.getString("TrackControl.Button.NewTrack.ToolTip")); //$NON-NLS-1$
+		eyeButton.setToolTipText(TrackerRes.getString("TToolbar.Button.Eye.Tooltip")); //$NON-NLS-1$
 		trackControlButton.setToolTipText(TrackerRes.getString("TToolBar.Button.TrackControl.Tooltip")); //$NON-NLS-1$
 		autotrackerButton.setToolTipText(TrackerRes.getString("TToolBar.Button.AutoTracker.Tooltip")); //$NON-NLS-1$
 		fontSmallerButton.setToolTipText(TrackerRes.getString("TrackControl.Button.FontSmaller.ToolTip")); //$NON-NLS-1$
@@ -1342,6 +1352,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
+		OSPLog.debug("pig property "+name);
 		switch (name) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
 		case TTrack.PROPERTY_TTRACK_LOCKED:
@@ -1361,16 +1372,19 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				axesButton.setSelected(trackerPanel.getAxes().isVisible());
 			} else {
 				calibrationButton.refresh();
+				rulerButton.refresh();
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
 			if (e.getOldValue() != null) { // track has been removed
 				TTrack track = (TTrack) e.getOldValue();
 				trackerPanel.calibrationTools.remove(track);
-				trackerPanel.visibleTools.remove(track);
+				trackerPanel.visibleCalibrationTools.remove(track);
+				trackerPanel.measuringTools.remove(track);
+				trackerPanel.visibleMeasuringTools.remove(track);
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); // $NON-NLS-1$
-				if (trackerPanel.visibleTools.isEmpty()) {
+				if (trackerPanel.visibleCalibrationTools.isEmpty()) {
 					calibrationButton.setSelected(false);
 				}
 			}
@@ -1379,7 +1393,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR:
 			for (TTrack track : TTrack.activeTracks.values()) {
 				trackerPanel.calibrationTools.remove(track);
-				trackerPanel.visibleTools.remove(track);
+				trackerPanel.visibleCalibrationTools.remove(track);
+				trackerPanel.measuringTools.remove(track);
+				trackerPanel.visibleMeasuringTools.remove(track);
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this); // $NON-NLS-1$
 			}
@@ -1452,7 +1468,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			control.setValue("acceleration", toolbar.aVisButton.isSelected()); //$NON-NLS-1$
 			control.setValue("labels", toolbar.labelsButton.isSelected()); //$NON-NLS-1$
 			control.setValue("multiply_by_mass", toolbar.xMassButton.isSelected()); //$NON-NLS-1$
-			control.setValue("trail_length", toolbar.trailLengths[toolbar.trailLengthIndex]); //$NON-NLS-1$
+			control.setValue("trail_length", TToolBar.trailLengths[toolbar.trailLengthIndex]); //$NON-NLS-1$
 			control.setValue("stretch", toolbar.vStretch); //$NON-NLS-1$
 			control.setValue("stretch_acceleration", toolbar.aStretch); //$NON-NLS-1$
 		}
@@ -1534,7 +1550,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					int w = calibrationToolsOffRolloverIcon.getIconWidth();
 					int dw = calibrationButton.getWidth() - w;
 					// show popup if right side of button clicked or if no tools selected
-					showPopup = e.getX() > (18 + dw / 2) || trackerPanel.visibleTools.isEmpty();
+					showPopup = e.getX() > (18 + dw / 2) || trackerPanel.visibleCalibrationTools.isEmpty();
 				}
 			});
 			addActionListener(this);
@@ -1555,7 +1571,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			JMenuItem item;
 			for (TTrack track : trackerPanel.calibrationTools) {
 				item = new JCheckBoxMenuItem(track.getName());
-				item.setSelected(trackerPanel.visibleTools.contains(track));
+				item.setSelected(trackerPanel.visibleCalibrationTools.contains(track));
 				item.setActionCommand(track.getName());
 				item.addActionListener(this);
 				popup.add(item);
@@ -1592,7 +1608,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						calibrationButton.setSelected(true);
 
 						// show all tools in visibleTools list
-						for (TTrack next : trackerPanel.visibleTools) {
+						for (TTrack next : trackerPanel.visibleCalibrationTools) {
 							showCalibrationTool(next);
 						}
 
@@ -1613,42 +1629,42 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				newToolsMenu.add(item);
 			}
 
-			if (trackerPanel.isEnabled("calibration.tape")) { //$NON-NLS-1$
-				item = new JMenuItem(TrackerRes.getString("CalibrationTapeMeasure.Name")); //$NON-NLS-1$
-				item.addActionListener((e) -> {
-						TapeMeasure track = new TapeMeasure();
-						track.setColor(Color.BLUE);
-						track.setReadOnly(false);
-						track.setCalibrator(null);
-						// assign a default name
-						String name = TrackerRes.getString("CalibrationTapeMeasure.New.Name"); //$NON-NLS-1$
-						int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
-						String letter = TrackerPanel.alphabet.substring(i, i + 1);
-						track.setName(name + " " + letter); //$NON-NLS-1$
-						trackerPanel.addTrack(track);
-						calibrationButton.setSelected(true);
-
-						// show all tools in visibleTools list
-						for (TTrack next : trackerPanel.visibleTools) {
-							showCalibrationTool(next);
-						}
-
-						// mark immediately if preferred
-						if (Tracker.centerCalibrationStick) {
-							// place at center of viewport
-							MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
-							Rectangle rect = mainView.scrollPane.getViewport().getViewRect();
-							int xpix = rect.x + rect.width / 2;
-							int ypix = rect.y + rect.height / 2;
-							double x = trackerPanel.pixToX(xpix);
-							double y = trackerPanel.pixToY(ypix);
-							track.createStep(0, x - 100, y + 20, x + 100, y + 20); // length 200 image units
-						}
-
-						trackerPanel.setSelectedTrack(track);
-				});
-				newToolsMenu.add(item);
-			}
+//			if (trackerPanel.isEnabled("calibration.tape")) { //$NON-NLS-1$
+//				item = new JMenuItem(TrackerRes.getString("CalibrationTapeMeasure.Name")); //$NON-NLS-1$
+//				item.addActionListener((e) -> {
+//						TapeMeasure track = new TapeMeasure();
+//						track.setColor(Color.BLUE);
+//						track.setReadOnly(false);
+//						track.setCalibrator(null);
+//						// assign a default name
+//						String name = TrackerRes.getString("CalibrationTapeMeasure.New.Name"); //$NON-NLS-1$
+//						int i = trackerPanel.getAlphabetIndex(name, " "); //$NON-NLS-1$
+//						String letter = TrackerPanel.alphabet.substring(i, i + 1);
+//						track.setName(name + " " + letter); //$NON-NLS-1$
+//						trackerPanel.addTrack(track);
+//						calibrationButton.setSelected(true);
+//
+//						// show all tools in visibleTools list
+//						for (TTrack next : trackerPanel.visibleCalibrationTools) {
+//							showCalibrationTool(next);
+//						}
+//
+//						// mark immediately if preferred
+//						if (Tracker.centerCalibrationStick) {
+//							// place at center of viewport
+//							MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
+//							Rectangle rect = mainView.scrollPane.getViewport().getViewRect();
+//							int xpix = rect.x + rect.width / 2;
+//							int ypix = rect.y + rect.height / 2;
+//							double x = trackerPanel.pixToX(xpix);
+//							double y = trackerPanel.pixToY(ypix);
+//							track.createStep(0, x - 100, y + 20, x + 100, y + 20); // length 200 image units
+//						}
+//
+//						trackerPanel.setSelectedTrack(track);
+//				});
+//				newToolsMenu.add(item);
+//			}
 
 			if (trackerPanel.isEnabled("calibration.points")) { //$NON-NLS-1$
 				item = new JMenuItem(TrackerRes.getString("Calibration.Name")); //$NON-NLS-1$
@@ -1663,7 +1679,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						trackerPanel.addTrack(track);
 						calibrationButton.setSelected(true);
 						// show all tools in visibleTools list
-						for (TTrack next : trackerPanel.visibleTools) {
+						for (TTrack next : trackerPanel.visibleCalibrationTools) {
 							showCalibrationTool(next);
 						}
 						trackerPanel.setSelectedTrack(track);
@@ -1685,7 +1701,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 						trackerPanel.addTrack(track);
 						calibrationButton.setSelected(true);
 						// show all tools in visibleTools list
-						for (TTrack next : trackerPanel.visibleTools) {
+						for (TTrack next : trackerPanel.visibleCalibrationTools) {
 							showCalibrationTool(next);
 						}
 						trackerPanel.setSelectedTrack(track);
@@ -1713,7 +1729,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				if (!calibrationButton.isSelected()) {
 					calibrationButton.setSelected(true);
 					// show tools in visibleTools list
-					for (TTrack track : trackerPanel.visibleTools) {
+					for (TTrack track : trackerPanel.visibleCalibrationTools) {
 						showCalibrationTool(track);
 					}
 				} else {
@@ -1732,17 +1748,17 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				for (TTrack track : trackerPanel.calibrationTools) {
 					if (e.getActionCommand().equals(track.getName())) {
 						if (source.isSelected()) {
-							trackerPanel.visibleTools.add(track);
+							trackerPanel.visibleCalibrationTools.add(track);
 							calibrationButton.setSelected(true);
 							// show only tools in visibleTools
-							for (TTrack next : trackerPanel.visibleTools) {
+							for (TTrack next : trackerPanel.visibleCalibrationTools) {
 								showCalibrationTool(next);
 							}
 						} else {
 							hideCalibrationTool(track);
-							trackerPanel.visibleTools.remove(track);
+							trackerPanel.visibleCalibrationTools.remove(track);
 							boolean toolsVisible = false;
-							for (TTrack next : trackerPanel.visibleTools) {
+							for (TTrack next : trackerPanel.visibleCalibrationTools) {
 								toolsVisible = toolsVisible || next.isVisible();
 							}
 							calibrationButton.setSelected(toolsVisible);
@@ -1810,6 +1826,164 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		}
 
 	} // end calibration button
+	
+	/**
+	 * A button to manage the creation and visibility of measuring tools.
+	 */
+	protected class RulerButton extends TButton implements ActionListener {
+
+		boolean showPopup;
+		JPopupMenu popup = new JPopupMenu();
+
+		/**
+		 * Constructor.
+		 */
+		private RulerButton() {
+			setIcons(rulerIcon, rulerOnIcon);
+			setRolloverIcon(rulerRolloverIcon);
+			setRolloverSelectedIcon(rulerOnRolloverIcon);
+			// mouse listener to distinguish between popup and tool visibility actions
+			addMouseListener(new MouseAdapter() {
+
+				@Override
+				public void mousePressed(MouseEvent e) {
+					int w = rulerRolloverIcon.getIconWidth();
+					int dw = rulerButton.getWidth() - w;
+					// show popup if right side of button clicked or if no tools selected
+					showPopup = e.getX() > (18 + dw / 2) || trackerPanel.measuringTools.isEmpty();
+				}
+			});
+			addActionListener(this);
+		}
+
+		/**
+		 * @return the popup, or null if the right side of this button was clicked
+		 */
+
+		@Override
+		protected JPopupMenu getPopup() {
+			if (!showPopup)
+				return null;
+			// rebuild popup menu
+			popup.removeAll();
+			JMenuItem item;
+			for (TTrack track : trackerPanel.measuringTools) {
+				item = new JCheckBoxMenuItem(track.getName());
+				item.setSelected(trackerPanel.visibleMeasuringTools.contains(track));
+				item.setActionCommand(track.getName());
+				item.addActionListener(this);
+				popup.add(item);
+			}
+			// new tools menu
+			JMenu newToolsMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.NewTrack")); //$NON-NLS-1$
+			TMenuBar.refreshMeasuringToolsMenu(trackerPanel, newToolsMenu);
+			if (newToolsMenu.getItemCount() > 0) {
+				if (!trackerPanel.visibleMeasuringTools.isEmpty())
+					popup.addSeparator();
+				popup.add(newToolsMenu);
+			}
+			FontSizer.setFonts(popup);
+			return popup;
+		}
+
+		/**
+		 * Responds to action events from both this button and the popup items.
+		 *
+		 * @param e the action event
+		 */
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			if (e.getSource() == rulerButton) { // button action: show/hide tools
+				if (showPopup)
+					return;
+				trackerPanel.setSelectedPoint(null);
+				trackerPanel.selectedSteps.clear();
+				trackerPanel.hideMouseBox();
+				if (!rulerButton.isSelected()) {
+					rulerButton.setSelected(true);
+					// show tools in visibleMeasuringTools list
+					for (TTrack track : trackerPanel.visibleMeasuringTools) {
+						showMeasuringTool(track);
+					}
+				} else {
+					rulerButton.setSelected(false);
+					// hide all tools
+					for (TTrack track : trackerPanel.measuringTools) {
+						hideMeasuringTool(track);
+					}
+				}
+				TFrame.repaintT(trackerPanel);
+			} 
+			else { // menuItem action
+				// see which item changed and show/hide corresponding tool
+				trackerPanel.setSelectedPoint(null);
+				trackerPanel.selectedSteps.clear();
+				JMenuItem source = (JMenuItem) e.getSource();
+				for (TTrack track : trackerPanel.measuringTools) {
+					if (e.getActionCommand().equals(track.getName())) {
+						if (source.isSelected()) {
+							trackerPanel.visibleMeasuringTools.add(track);
+							// show only tools in visibleTools
+							for (TTrack next : trackerPanel.visibleMeasuringTools) {
+								showMeasuringTool(next);
+							}
+						} else {
+							hideMeasuringTool(track);
+							trackerPanel.visibleMeasuringTools.remove(track);
+						}
+					}
+				}
+			}
+			refresh();
+		}
+
+		/**
+		 * Shows a measuring tool.
+		 *
+		 * @param track a measuring tool
+		 */
+		void showMeasuringTool(TTrack track) {
+			track.erase();
+			track.setVisible(true);
+		}
+
+		/**
+		 * Hides a measuring tool.
+		 *
+		 * @param track
+		 */
+		void hideMeasuringTool(TTrack track) {
+			track.setVisible(false);
+			if (trackerPanel.getSelectedTrack() == track) {
+				trackerPanel.setSelectedTrack(null);
+			}
+		}
+
+		/**
+		 * Refreshes this button.
+		 */
+		void refresh() {
+			setToolTipText(TrackerRes.getString("TToolbar.Button.RulerVisible.Tooltip")); //$NON-NLS-1$
+			// add PROPERTY_TTRACK_VISIBLE property change listeners to measuring tools
+			for (TTrack track : trackerPanel.measuringTools) {
+				track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
+				track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, TToolBar.this); // $NON-NLS-1$
+			}
+			// check visibility of tools
+			boolean toolsVisible = false;
+			for (TTrack track : trackerPanel.measuringTools) {
+				if (track.isVisible()) {
+					trackerPanel.visibleMeasuringTools.add(track);
+					toolsVisible = true;
+				}
+			}
+			setSelected(toolsVisible);
+		}
+
+	} // end ruler button
+
+	
 	/**
 	 * A button to manage the visibility of the pencil scenes and control dialog
 	 */

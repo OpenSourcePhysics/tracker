@@ -2182,37 +2182,37 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					|| trackerPanel.isEnabled("calibration.tape") //$NON-NLS-1$
 					|| trackerPanel.isEnabled("calibration.points") //$NON-NLS-1$
 					|| trackerPanel.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
-				boolean needsSeparator = trackMenu.getItemCount() > 0;
+//				boolean needsSeparator = trackMenu.getItemCount() > 0;
 				if (axes != null && trackerPanel.isEnabled("button.axes")) { //$NON-NLS-1$
 					track = axes;
 					track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 					track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_LOCKED, this);
 //					trackMenu.add(createTrackMenu(track));
 				}
-				if (!trackerPanel.calibrationTools.isEmpty()) {
-					for (TTrack next : trackerPanel.getTracks()) {
-						if (trackerPanel.calibrationTools.contains(next)) {
-							if (next instanceof TapeMeasure) {
-								TapeMeasure tape = (TapeMeasure) next;
-								if (tape.isStickMode() && !trackerPanel.isEnabled("calibration.stick")) //$NON-NLS-1$
-									continue;
-								if (!tape.isStickMode() && !trackerPanel.isEnabled("calibration.tape")) //$NON-NLS-1$
-									continue;
-							}
-							if (next instanceof Calibration && !trackerPanel.isEnabled("calibration.points")) //$NON-NLS-1$
-								continue;
-							if (next instanceof OffsetOrigin && !trackerPanel.isEnabled("calibration.offsetOrigin")) //$NON-NLS-1$
-								continue;
-							next.removePropertyChangeListener("locked", this); //$NON-NLS-1$
-							next.addPropertyChangeListener("locked", this); //$NON-NLS-1$
-							if (needsSeparator) {
-								trackMenu.addSeparator();
-								needsSeparator = false;
-							}
-							trackMenu.add(createTrackMenu(next));
-						}
-					}
-				}
+//				if (!trackerPanel.calibrationTools.isEmpty()) {
+//					for (TTrack next : trackerPanel.getTracks()) {
+//						if (trackerPanel.calibrationTools.contains(next)) {
+//							if (next instanceof TapeMeasure) {
+//								TapeMeasure tape = (TapeMeasure) next;
+//								if (tape.isStickMode() && !trackerPanel.isEnabled("calibration.stick")) //$NON-NLS-1$
+//									continue;
+//								if (!tape.isStickMode() && !trackerPanel.isEnabled("calibration.tape")) //$NON-NLS-1$
+//									continue;
+//							}
+//							if (next instanceof Calibration && !trackerPanel.isEnabled("calibration.points")) //$NON-NLS-1$
+//								continue;
+//							if (next instanceof OffsetOrigin && !trackerPanel.isEnabled("calibration.offsetOrigin")) //$NON-NLS-1$
+//								continue;
+//							next.removePropertyChangeListener("locked", this); //$NON-NLS-1$
+//							next.addPropertyChangeListener("locked", this); //$NON-NLS-1$
+//							if (needsSeparator) {
+//								trackMenu.addSeparator();
+//								needsSeparator = false;
+//							}
+//							trackMenu.add(createTrackMenu(next));
+//						}
+//					}
+//				}
 			}
 			if (trackMenu.getItemCount() == 0) {
 				trackMenu.add(track_emptyTracksItem);
@@ -2357,13 +2357,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				if (menu.getItemCount() > 0)
 					menu.addSeparator();
 				menu.add(track_measuringToolsMenu);
-				track_measuringToolsMenu.removeAll();
-				if (p.isEnabled("new.tapeMeasure")) //$NON-NLS-1$
-					track_measuringToolsMenu.add(track_newTapeItem);
-				if (p.isEnabled("new.protractor")) //$NON-NLS-1$
-					track_measuringToolsMenu.add(track_newProtractorItem);
-				if (p.isEnabled("new.circleFitter")) //$NON-NLS-1$
-					track_measuringToolsMenu.add(track_newCircleFitterItem);
+				refreshMeasuringToolsMenu(track_measuringToolsMenu);
+//				track_measuringToolsMenu.removeAll();
+//				if (trackerPanel.isEnabled("new.tapeMeasure")) //$NON-NLS-1$
+//					track_measuringToolsMenu.add(track_newTapeItem);
+//				if (trackerPanel.isEnabled("new.protractor")) //$NON-NLS-1$
+//					track_measuringToolsMenu.add(track_newProtractorItem);
+//				if (trackerPanel.isEnabled("new.circleFitter")) //$NON-NLS-1$
+//					track_measuringToolsMenu.add(track_newCircleFitterItem);
 			}
 			// calibration tools menu
 			if (p.isEnabled("calibration.stick") //$NON-NLS-1$
@@ -2757,8 +2758,14 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				menubar.refreshMainTViewPopup(menu);
 			}
 		}
+		
 	}
 
+	public static void refreshMeasuringToolsMenu(TrackerPanel panel, JMenu menu) {
+		TMenuBar menubar = getMenuBar(panel);
+		if (menubar != null)
+			menubar.refreshMeasuringToolsMenu(menu);	
+	}
 	/**
 	 * Refreshes and returns the toolbar Create button popup menu.
 	 *
@@ -2789,6 +2796,16 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		addItems(popupTracksMenu, tracksMenuItems);
 		popup.addSeparator();
 		popup.add(popupTracksMenu);
+	}
+
+	private void refreshMeasuringToolsMenu(JMenu menu) {
+		menu.removeAll();
+		if (trackerPanel.isEnabled("new.tapeMeasure")) //$NON-NLS-1$
+			menu.add(track_newTapeItem);
+		if (trackerPanel.isEnabled("new.protractor")) //$NON-NLS-1$
+			menu.add(track_newProtractorItem);
+		if (trackerPanel.isEnabled("new.circleFitter")) //$NON-NLS-1$
+			menu.add(track_newCircleFitterItem);
 	}
 
 	private void addItems(JMenu menu, Component[] items) {

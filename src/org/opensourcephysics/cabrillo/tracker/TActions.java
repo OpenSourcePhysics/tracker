@@ -50,6 +50,7 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
 import org.opensourcephysics.media.core.ImageCoordSystem;
+import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.FunctionTool;
@@ -714,6 +715,7 @@ public class TActions {
 						TapeMeasure tape = new TapeMeasure();
 						tape.setReadOnly(true);
 						tape.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
+						tape.getRuler().setVisible(true);
 						// place tape at center of viewport
 						MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
 						Rectangle rect = mainView.scrollPane.getViewport().getViewRect();
@@ -736,17 +738,23 @@ public class TActions {
 					public void actionPerformed(ActionEvent e) {
 						Protractor protractor = new Protractor();
 						protractor.setDefaultNameAndColor(trackerPanel, " "); //$NON-NLS-1$
+						protractor.getRuler().setVisible(true);
 						trackerPanel.addTrack(protractor);
-						// place protractor at center of viewport
+						// place vertex of protractor at center of viewport
 						MainTView mainView = trackerPanel.getTFrame().getMainView(trackerPanel);
 						Rectangle rect = mainView.scrollPane.getViewport().getViewRect();
 						int xpix = rect.x + rect.width / 2;
 						int ypix = rect.y + rect.height / 2;
 						double x = trackerPanel.pixToX(xpix);
 						double y = trackerPanel.pixToY(ypix);
+						// if origin is nearby, center on it instead
+						TPoint origin = trackerPanel.getAxes().getOrigin();
+						if (Math.abs(origin.x - x) < 20 && Math.abs(origin.y - y) < 20) {
+							x = origin.x;
+							y = origin.y;
+						}
 						ProtractorStep step = (ProtractorStep) protractor.getStep(0);
-						double h = Math.abs(step.end1.y - step.end2.y);
-						step.handle.setXY(x, y + h / 2);
+						step.moveVertexTo(x, y);
 						trackerPanel.setSelectedPoint(null);
 						trackerPanel.selectedSteps.clear();
 						trackerPanel.setSelectedTrack(protractor);
