@@ -1353,7 +1353,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	@Override
 	public void propertyChange(PropertyChangeEvent e) {
 		String name = e.getPropertyName();
-		OSPLog.debug("pig property "+name);
 		switch (name) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_VIDEO:
 		case TTrack.PROPERTY_TTRACK_LOCKED:
