@@ -1247,7 +1247,7 @@ public class CircleFitter extends TTrack {
 //		Dataset frameNum = data.getDataset(5);
 		int count = 6;
 		String time = dataVariables[0];
-		if (data.getDataset(0).getColumnName(0).equals(time)) { // not yet initialized
+		if (!data.getDataset(0).getColumnName(0).equals(time)) { // not yet initialized
 			data.setXYColumnNames(0, time, dataVariables[1]); // x_center
 			data.setXYColumnNames(1, time, dataVariables[2]); // y_center
 			data.setXYColumnNames(2, time, dataVariables[3]); // r
