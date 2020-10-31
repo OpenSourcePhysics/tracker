@@ -693,10 +693,11 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	}
 
 	protected JPopupMenu createZoomPopup() {
-		if (zoomPopup == null) {
-			zoomPopup = new JPopupMenu();
-		}
-		zoomPopup.removeAll();
+//		if (zoomPopup == null) {
+//			zoomPopup = new JPopupMenu();
+//		}
+//		zoomPopup.removeAll();
+		zoomPopup = new JPopupMenu();
 		JMenuItem item = new JMenuItem(TrackerRes.getString("MainTView.Popup.MenuItem.ToFit")); //$NON-NLS-1$
 		item.setActionCommand("auto"); //$NON-NLS-1$
 		item.addActionListener(zoomAction);
@@ -710,7 +711,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			item.addActionListener(zoomAction);
 			zoomPopup.add(item);
 		}
-		// FontSizer.setFonts(zoomPopup, FontSizer.getLevel());
+		FontSizer.setFonts(zoomPopup, FontSizer.getLevel());
 		return zoomPopup;
 	}
 
@@ -1533,7 +1534,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected class CalibrationButton extends TButton implements ActionListener {
 
 		boolean showPopup;
-		JPopupMenu popup = new JPopupMenu();
 
 		/**
 		 * Constructor.
@@ -1567,7 +1567,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			if (!showPopup)
 				return null;
 			// rebuild popup menu
-			popup.removeAll();
+			JPopupMenu popup = new JPopupMenu();
 			JMenuItem item;
 			for (TTrack track : trackerPanel.calibrationTools) {
 				item = new JCheckBoxMenuItem(track.getName());
@@ -1833,7 +1833,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected class RulerButton extends TButton implements ActionListener {
 
 		boolean showPopup;
-		JPopupMenu popup = new JPopupMenu();
 
 		/**
 		 * Constructor.
@@ -1864,8 +1863,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		protected JPopupMenu getPopup() {
 			if (!showPopup)
 				return null;
-			// rebuild popup menu
-			popup.removeAll();
+
+			JPopupMenu popup = new JPopupMenu();
 			JMenuItem item;
 			for (TTrack track : trackerPanel.measuringTools) {
 				item = new JCheckBoxMenuItem(track.getName());
