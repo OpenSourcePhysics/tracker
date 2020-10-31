@@ -31,7 +31,6 @@ import java.awt.geom.*;
 
 import javax.swing.SwingUtilities;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -737,6 +736,19 @@ public class CircleFitterStep extends Step {
 				circleFitter.trackerPanel.changed = true;
 			}
 		}
+		
+		@Override
+		public void setAdjusting(boolean adjusting) {
+			if (!adjusting && !isAdjusting())
+				return;
+			super.setAdjusting(adjusting);
+			TTrack m = getTrack();
+			if (!adjusting) {
+				m.firePropertyChange(TTrack.PROPERTY_TTRACK_STEP, null, new Integer(n)); // $NON-NLS-1$
+			}
+//			m.firePropertyChange(Trackable.PROPERTY_ADJUSTING, m, adjusting); // $NON-NLS-1$
+		}
+
 
 		@Override
 		public void setScreenPosition(int x, int y, VideoPanel vidPanel, InputEvent e) {
