@@ -1945,6 +1945,13 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		void showMeasuringTool(TTrack track) {
 			track.erase();
 			track.setVisible(true);
+			if (track instanceof CircleFitter) {
+				CircleFitter fitter = (CircleFitter)track;
+				CircleFitterStep step = (CircleFitterStep) fitter.getStep(0);
+				if (step.getValidDataPoints().size() < 3) {
+					trackerPanel.setSelectedTrack(track);
+				}
+			}
 		}
 
 		/**
