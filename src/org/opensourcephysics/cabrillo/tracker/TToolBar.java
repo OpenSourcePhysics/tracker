@@ -100,7 +100,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected static Map<TrackerPanel, TToolBar> toolbars = new HashMap<TrackerPanel, TToolBar>();
 	final protected static int[] trailLengths = { 1, 4, 15, 0 };
 	final protected static String[] trailLengthNames = { "none", "short", "long", "full" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-	final protected static Icon newTrackIcon;
+	final protected static Icon newTrackIcon, pointmassOffIcon, pointmassOnIcon;
 	final protected static Icon trackControlIcon, trackControlOnIcon, trackControlDisabledIcon;
 	final protected static Icon zoomIcon;
 	final protected static Icon clipOffIcon, clipOnIcon;
@@ -184,6 +184,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	static {
 
 		newTrackIcon = Tracker.getResourceIcon("poof.gif", true); //$NON-NLS-1$
+		pointmassOffIcon = Tracker.getResourceIcon("track_off.gif", true); //$NON-NLS-1$
+		pointmassOnIcon = Tracker.getResourceIcon("track_on.gif", true); //$NON-NLS-1$
 		trackControlIcon = Tracker.getResourceIcon("track_control.gif", true); //$NON-NLS-1$
 		trackControlOnIcon = Tracker.getResourceIcon("track_control_on.gif", true); //$NON-NLS-1$
 		trackControlDisabledIcon = Tracker.getResourceIcon("track_control_disabled.gif", true); //$NON-NLS-1$
@@ -388,7 +390,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		});
 
 		// new track button
-		newTrackButton = new TButton(newTrackIcon) {
+		newTrackButton = new TButton(pointmassOffIcon) {
 
 			@Override
 			protected JPopupMenu getPopup() {
@@ -397,11 +399,17 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 		};
 		// track control button
-		trackControlButton = new TButton(trackControlIcon, trackControlOnIcon);
-		trackControlButton.setDisabledIcon(trackControlDisabledIcon);
+		trackControlButton = new TButton(pointmassOffIcon, pointmassOnIcon);
+//		trackControlButton.setDisabledIcon(trackControlDisabledIcon);
 		trackControlButton.addActionListener((e) -> {
 				TrackControl tc = TrackControl.getControl(trackerPanel);
-				tc.setVisible(!tc.isVisible());
+				boolean vis = !tc.isVisible();
+				if (!tc.positioned && vis) {
+					Point p = trackControlButton.getLocationOnScreen();
+					tc.setLocation(p.x, p.y + trackControlButton.getHeight());
+					tc.positioned = true;
+				}
+				tc.setVisible(vis);
 		});
 		// autotracker button
 		autotrackerButton = new TButton(autotrackerOffIcon, autotrackerOnIcon);
@@ -1170,8 +1178,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			axes.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 			axes.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_VISIBLE, this); // $NON-NLS-1$
 		}
-		ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
-		trackControlButton.setEnabled(!tracks.isEmpty());
+//		ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
+//		trackControlButton.setEnabled(!tracks.isEmpty());
+		trackControlButton.setEnabled(true);
 		autotrackerButton.setEnabled(trackerPanel.getVideo() != null);
 		// refresh all tracks
 		if (refreshTracks) {

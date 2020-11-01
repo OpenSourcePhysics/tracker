@@ -105,6 +105,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	static final String POPUPMENU_TFRAME_BOTTOM = "TFrame.bottom";
 	static final String POPUPMENU_TFRAME_RIGHT = "TFrame.right";
 	static final String POPUPMENU_MAINTVIEW_POPUP = "MainTView.popup";
+	static final String POPUPMENU_TRACKCONTROL_TRACKS = "TrackControl.tracks";
 
 	/*
 	 * tainting:
@@ -2140,7 +2141,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		}
 	}
 	protected void refreshTrackMenu(boolean opening, JPopupMenu target) {
-
 		// long t0 = Performance.now(0);
 
 		ArrayList<TTrack> userTracks = trackerPanel.getUserTracks();
@@ -2152,7 +2152,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// refresh track menu
 			trackMenu.removeAll();
 			track_cloneMenu.removeAll();
-			enabledCount = refreshTracksCreateMenu(track_createMenu, enabledCount);
+			enabledCount = refreshTracksCreateMenu(track_createMenu, enabledCount, false);
 			if (track_createMenu.getItemCount() > 0)
 				trackMenu.add(track_createMenu);
 			if (hasTracks && trackerPanel.isEnabled("new.clone")) //$NON-NLS-1$
@@ -2292,9 +2292,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		return ++j;
 	}
 
-	private int refreshTracksCreateMenu(JMenu menu, int enabledCount) {
+	private int refreshTracksCreateMenu(JMenu menu, int enabledCount, boolean userTracksOnly) {
 		TrackerPanel p = trackerPanel;
-		if (p.getEnabledCount() != enabledCount || menu.getMenuComponentCount() == 0) {
+		if (p.getEnabledCount() != enabledCount || menu.getComponentCount() == 0) {
 			enabledCount = p.getEnabledCount();
 			// refresh new tracks menu
 			menu.removeAll();
@@ -2351,33 +2351,28 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					track_newDataTrackMenu.add(track_dataTrackHelpItem);
 				}
 			}
-			if (p.isEnabled("new.tapeMeasure") || //$NON-NLS-1$
-					p.isEnabled("new.protractor") || //$NON-NLS-1$
-					p.isEnabled("new.circleFitter")) { //$NON-NLS-1$
-				if (menu.getItemCount() > 0)
-					menu.addSeparator();
-				menu.add(track_measuringToolsMenu);
-				refreshMeasuringToolsMenu(track_measuringToolsMenu);
-//				track_measuringToolsMenu.removeAll();
-//				if (trackerPanel.isEnabled("new.tapeMeasure")) //$NON-NLS-1$
-//					track_measuringToolsMenu.add(track_newTapeItem);
-//				if (trackerPanel.isEnabled("new.protractor")) //$NON-NLS-1$
-//					track_measuringToolsMenu.add(track_newProtractorItem);
-//				if (trackerPanel.isEnabled("new.circleFitter")) //$NON-NLS-1$
-//					track_measuringToolsMenu.add(track_newCircleFitterItem);
-			}
-			// calibration tools menu
-			if (p.isEnabled("calibration.stick") //$NON-NLS-1$
-					|| p.isEnabled("calibration.tape") //$NON-NLS-1$
-					|| p.isEnabled("calibration.points") //$NON-NLS-1$
-					|| p.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
-				if (menu.getItemCount() > 0)
-					menu.addSeparator();
-				TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
-				TToolBar.CalibrationButton calibrationButton = toolbar.calibrationButton;
-				JMenu calibrationToolsMenu = calibrationButton.getCalibrationToolsMenu();
-				calibrationToolsMenu.setText(TrackerRes.getString("TMenuBar.Menu.CalibrationTools")); //$NON-NLS-1$
-				menu.add(calibrationToolsMenu);
+			if (!userTracksOnly) {
+				if (p.isEnabled("new.tapeMeasure") || //$NON-NLS-1$
+						p.isEnabled("new.protractor") || //$NON-NLS-1$
+						p.isEnabled("new.circleFitter")) { //$NON-NLS-1$
+					if (menu.getItemCount() > 0)
+						menu.addSeparator();
+					menu.add(track_measuringToolsMenu);
+					refreshMeasuringToolsMenu(track_measuringToolsMenu);
+				}
+				// calibration tools menu
+				if (p.isEnabled("calibration.stick") //$NON-NLS-1$
+						|| p.isEnabled("calibration.tape") //$NON-NLS-1$
+						|| p.isEnabled("calibration.points") //$NON-NLS-1$
+						|| p.isEnabled("calibration.offsetOrigin")) { //$NON-NLS-1$
+					if (menu.getItemCount() > 0)
+						menu.addSeparator();
+					TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
+					TToolBar.CalibrationButton calibrationButton = toolbar.calibrationButton;
+					JMenu calibrationToolsMenu = calibrationButton.getCalibrationToolsMenu();
+					calibrationToolsMenu.setText(TrackerRes.getString("TMenuBar.Menu.CalibrationTools")); //$NON-NLS-1$
+					menu.add(calibrationToolsMenu);
+				}
 			}
 		}
 		return enabledCount;
@@ -2754,6 +2749,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			case POPUPMENU_TTOOLBAR_TRACKS:
 				menubar.refreshTracksPopup(menu);
 				return;
+			case POPUPMENU_TRACKCONTROL_TRACKS:
+				menubar.refreshTrackControlPopup(menu);
+				menubar.setMenuTainted(MENU_TRACK, true);
+				return;
 			case POPUPMENU_MAINTVIEW_POPUP:
 				menubar.refreshMainTViewPopup(menu);
 			}
@@ -2766,6 +2765,27 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (menubar != null)
 			menubar.refreshMeasuringToolsMenu(menu);	
 	}
+	
+	/**
+	 * Refreshes and returns the toolbar Create button popup menu.
+	 *
+	 * @return the popup
+	 */
+	protected JPopupMenu refreshTrackControlPopup(JPopupMenu popup) {
+		JMenu menu = new JMenu();
+		refreshTracksCreateMenu(menu, enabledCount, true);
+		FontSizer.setMenuFonts(menu);
+		int n = menu.getPopupMenu().getComponentCount();
+		popup.removeAll();
+		for (int i = 0; i < n; i++) {
+			// always get index 0 since they are being removed from top
+			Component item = menu.getPopupMenu().getComponent(0);
+			if (item != null)
+				popup.add(item);			
+		}
+		return popup;
+	}
+
 	/**
 	 * Refreshes and returns the toolbar Create button popup menu.
 	 *

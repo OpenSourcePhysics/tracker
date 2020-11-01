@@ -65,6 +65,7 @@ public class TrackControl extends JDialog
   protected int trackCount;
   protected boolean isVisible;
   protected KeyListener shiftKeyListener;
+  protected TButton newTrackButton;
   
   /**
    * Gets the track control for the specified tracker panel.
@@ -96,7 +97,7 @@ public class TrackControl extends JDialog
     shiftKeyListener = new KeyAdapter() {
     	// transfers focus to trackerPanel for marking
       @Override
-	public void keyPressed(KeyEvent e) {
+      public void keyPressed(KeyEvent e) {
         if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
         	trackerPanel.requestFocus();
         	trackerPanel.requestFocusInWindow();
@@ -109,6 +110,15 @@ public class TrackControl extends JDialog
         }
       }
     };
+		newTrackButton = new TButton() {
+
+			@Override
+			protected JPopupMenu getPopup() {
+				TMenuBar.refreshPopup(trackerPanel, TMenuBar.POPUPMENU_TRACKCONTROL_TRACKS, popup);
+				TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+				return popup;
+			}
+		};
     setResizable(false);
     pack();
     popup = new JPopupMenu();
@@ -120,7 +130,7 @@ public class TrackControl extends JDialog
     trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this); //$NON-NLS-1$
 //    trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
     TFrame frame = trackerPanel.getTFrame();
-	frame.addFollower(this, null);
+    frame.addFollower(this, null);
   }
 
 	@Override
@@ -229,9 +239,10 @@ public void dispose() {
    * @return true if empty
    */
   public boolean isEmpty() {
-    if (trackCount>0) return false;
-    ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
-    return tracks.isEmpty();
+  	return false;
+//    if (trackCount>0) return false;
+//    ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
+//    return tracks.isEmpty();
   }
 
   /**
@@ -240,12 +251,13 @@ public void dispose() {
   protected void refresh() {
   	if (trackerPanel==null) return;
     setTitle(TrackerRes.getString("TrackControl.Name")); //$NON-NLS-1$
+
     int perbar = 4;
     ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
     for (int i = 0; i < trackBars.length; i++) {
       trackBars[i].removeAll();
     }
-    int barCount = (tracks.size()+perbar-1)/perbar;
+    int barCount = 1 + tracks.size()/perbar;
     trackBarPanel.removeAll();
 		trackBarPanel.setLayout(new GridLayout(barCount, 1));
     if (barCount > trackBars.length) {
@@ -260,12 +272,19 @@ public void dispose() {
     for (int i = 0; i < barCount; i++) {
     	trackBarPanel.add(trackBars[i]);
     }
+    
+    // add new track button first
+		newTrackButton.setText(TrackerRes.getString("TMenuBar.MenuItem.NewTrack")); //$NON-NLS-1$
+		newTrackButton.setToolTipText(TrackerRes.getString("TrackControl.Button.NewTrack.ToolTip")); //$NON-NLS-1$
+		FontSizer.setFont(newTrackButton);
+    trackBars[0].add(newTrackButton);
+    
     // add listeners to all tracks and count the mass tracks
     trackCount = 0;
     TTrack track = null;
     Iterator<TTrack> it = tracks.iterator();
     while (it.hasNext()) {
-    	int barIndex = trackCount/perbar;
+    	int barIndex = (trackCount+1) / perbar;
       track = it.next();
       // listen to tracks for property changes that affect icon or name
       track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
@@ -286,8 +305,8 @@ public void dispose() {
 //   setVisible(isVisible && trackCount > 0);
 //   if (trackCount == 0)
 //	   isVisible = true;
-   if (trackCount==0)
-    	setVisible(false);
+//   if (trackCount==0)
+//    	setVisible(false);
     TFrame frame = trackerPanel.getTFrame();
     if (frame != null) {
       frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
