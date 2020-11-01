@@ -115,7 +115,6 @@ public class TrackControl extends JDialog
 			@Override
 			protected JPopupMenu getPopup() {
 				TMenuBar.refreshPopup(trackerPanel, TMenuBar.POPUPMENU_TRACKCONTROL_TRACKS, popup);
-				TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
 				return popup;
 			}
 		};
