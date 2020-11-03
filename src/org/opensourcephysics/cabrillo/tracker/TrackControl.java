@@ -37,12 +37,14 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import javax.swing.ImageIcon;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
 
 import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -250,6 +252,13 @@ public void dispose() {
   protected void refresh() {
   	if (trackerPanel==null) return;
     setTitle(TrackerRes.getString("TrackControl.Name")); //$NON-NLS-1$
+    if (TToolBar.pointmassOffIcon instanceof ResizableIcon) {
+    	ResizableIcon icon = (ResizableIcon) TToolBar.pointmassOffIcon;
+    	if (icon.getBaseIcon() instanceof ImageIcon) {
+    		ImageIcon imgIcon = (ImageIcon) icon.getBaseIcon();
+    		setIconImage(imgIcon.getImage());
+    	};
+    }
 
     int perbar = 4;
     ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
