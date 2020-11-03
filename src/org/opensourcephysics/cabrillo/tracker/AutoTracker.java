@@ -244,14 +244,6 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 		};
 		wizard = new Wizard();
-		// place near top right corner of frame
-		Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
-		TFrame frame = trackerPanel.getTFrame();
-		Point frameLoc = frame.getLocationOnScreen();
-		int w = wizard.getWidth() + 8;
-		int x = Math.min(screen.width - w, frameLoc.x + frame.getWidth() - w);
-		int y = trackerPanel.getLocationOnScreen().y;
-		wizard.setLocation(x, y);
 	}
 
 	/**
@@ -364,6 +356,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		wizard.refreshGUI();
 		if (update) {
 			TTrack track = getTrack();
+			if (track == null)
+				return;
 			if (track instanceof PointMass) {
 				PointMass pointMass = (PointMass) track;
 				pointMass.updateDerivatives();
@@ -1180,8 +1174,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		trackerPanel.removePropertyChangeListener("stepnumber", this); //$NON-NLS-1$
 		setTrack(null);
 		trackFrameData.clear();
-		wizard.dispose();
 		trackerPanel.autoTracker = null;
+		wizard.dispose();
 		trackerPanel = null;
 	}
 
@@ -1985,6 +1979,16 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			return null;
 		}
 
+		boolean hasKeyFrames() {
+			Map<Integer, FrameData> frameData = getFrameData();
+			for (Integer i : frameData.keySet()) {
+				FrameData frame = frameData.get(i);
+				if (frame.isKeyFrame())
+					return true;
+			}
+			return false;
+		}
+
 		int getIndex() {
 			return index;
 		}
@@ -2128,6 +2132,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		private boolean ignoreChanges, isPrevValid, prevLookAhead, prevOneD;
 		private int prevEvolution;
 		private boolean refreshPosted;
+		protected boolean isPositioned;
 
 		/**
 		 * Constructs a Wizard.
@@ -2135,7 +2140,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		public Wizard() {
 			super(trackerPanel.getTFrame(), false);
 			createGUI();
-			pack();
+//			pack();
 		}
 
 		/**
@@ -2186,8 +2191,26 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 				TTrack track = trackerPanel.getSelectedTrack();
 				if (track != null)
 					setTrack(track);
+				refreshGUI();
+				if (!isPositioned) {
+					Timer timer = new Timer(10, (e) -> {
+						// refreshGUI a second time before positioning
+						textPaneSize = null;
+						refreshGUI();
+						// place near top right corner of frame
+						Dimension screen = Toolkit.getDefaultToolkit().getScreenSize();
+						TFrame frame = trackerPanel.getTFrame();
+						Point frameLoc = frame.getLocationOnScreen();
+						int w = wizard.getWidth() + 8;
+						int x = Math.min(screen.width - w, frameLoc.x + frame.getWidth() - w);
+						int y = trackerPanel.getLocationOnScreen().y;
+						setLocation(x, y);
+						isPositioned = true;
+					});
+					timer.setRepeats(false);
+					timer.start();					
+				}
 			}
-			refreshGUI();
 		}
 
 		/**
@@ -2323,10 +2346,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			mouseOverListener = new MouseAdapter() {
 				@Override
 				public void mouseEntered(MouseEvent e) {
-					JToolBar c = GUIUtils.getParentToolBar((Container) e.getSource());
+					JToolBar c = GUIUtils.getParentOrSelfToolBar((Container) e.getSource());
 					if (c != null) {
 						mouseOverObj = c;
-						isInteracting = c == targetToolbar;
+//						isInteracting = c == targetToolbar;
 						isInteracting = true;
 					}
 					if (mouseOverObj == null) {
@@ -2507,6 +2530,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			frameLabel = new JLabel();
 			frameLabel.setOpaque(false);
 			frameLabel.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
+			frameLabel.addMouseListener(mouseOverListener);
 
 			templateImageLabel = new JLabel();
 			templateImageLabel.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 6));
@@ -2700,6 +2724,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					if (item != null) {
 						stop(true, false);
 						TTrack track = getTrack();
+						if (track == null) 
+							return;
 						track.setTargetIndex(item);
 						int n = trackerPanel.getFrameNumber();
 						FrameData frame = getFrame(n);
@@ -3075,7 +3101,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			contentPane.add(center, BorderLayout.CENTER);
 			contentPane.add(south, BorderLayout.SOUTH);
 
-			refreshGUI();
+//			refreshGUI();
 		}
 
 		/**
@@ -3140,20 +3166,18 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					.setText(frame.getMatchIcon() == null ? null : TrackerRes.getString("AutoTracker.Label.Match")); //$NON-NLS-1$
 			templateImageLabel.setText(keyFrame == null ? null : TrackerRes.getString("AutoTracker.Label.Template")); //$NON-NLS-1$
 
-			if (trackerPanel.getVideo() != null) {
-				boolean running = stepping && !paused;
-				startButton.setIcon(stepping ? stopIcon : searchIcon);
-				startButton.setText(stepping ? TrackerRes.getString("AutoTracker.Wizard.Button.Stop") : //$NON-NLS-1$
-						TrackerRes.getString("AutoTracker.Wizard.Button.Search")); //$NON-NLS-1$
-				startButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.Search.Tooltip")); //$NON-NLS-1$
-				FontSizer.setFont(startButton);
-				searchThisButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis")); //$NON-NLS-1$
-				searchThisButton.setEnabled(!running);
-				searchThisButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis.Tooltip")); //$NON-NLS-1$
-				searchNextButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext")); //$NON-NLS-1$
-				searchNextButton.setEnabled(!running);
-				searchNextButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext.Tooltip")); //$NON-NLS-1$
-			}
+			boolean running = stepping && !paused;
+			startButton.setIcon(stepping ? stopIcon : searchIcon);
+			startButton.setText(stepping ? TrackerRes.getString("AutoTracker.Wizard.Button.Stop") : //$NON-NLS-1$
+					TrackerRes.getString("AutoTracker.Wizard.Button.Search")); //$NON-NLS-1$
+			startButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.Search.Tooltip")); //$NON-NLS-1$
+			FontSizer.setFont(startButton);
+			searchThisButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis")); //$NON-NLS-1$
+			searchThisButton.setEnabled(!running);
+			searchThisButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchThis.Tooltip")); //$NON-NLS-1$
+			searchNextButton.setText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext")); //$NON-NLS-1$
+			searchNextButton.setEnabled(!running);
+			searchNextButton.setToolTipText(TrackerRes.getString("AutoTracker.Wizard.Button.SearchNext.Tooltip")); //$NON-NLS-1$
 
 			// set label sizes
 			FontRenderContext frc = OSPRuntime.frc;
@@ -3232,7 +3256,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 
 			deleteButton.setEnabled(deleteButtonEnabled);
-			keyFrameButton.setEnabled(keyFrame != null);
+			keyFrameButton.setEnabled(frame.hasKeyFrames());
 
 			// rebuild followup panel
 			followupPanel.removeAll();
@@ -3291,8 +3315,10 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			refreshInfo();
 			refreshDrawingFlags();
 			pack();
-			if (textPaneSize == null)
+			if (textPaneSize == null) {
 				refreshTextPaneSize();
+				pack();
+			}
 		}
 
 		/**

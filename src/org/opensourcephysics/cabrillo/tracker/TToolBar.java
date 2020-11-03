@@ -424,18 +424,18 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		autotrackerButton.addActionListener((e) -> {
 				autotrackerButton.setSelected(!autotrackerButton.isSelected());
 				AutoTracker autoTracker = trackerPanel.getAutoTracker(true);
-				if (autoTracker.getTrack() == null) {
-					TTrack track = trackerPanel.getSelectedTrack();
-					if (track == null) {
-						for (TTrack next : trackerPanel.getTracks()) {
-							if (!next.isAutoTrackable())
-								continue;
-							track = next;
-							break;
-						}
-					}
-					autoTracker.setTrack(track);
-				}
+//				if (autoTracker.getTrack() == null) {
+//					TTrack track = trackerPanel.getSelectedTrack();
+//					if (track == null) {
+//						for (TTrack next : trackerPanel.getTracks()) {
+//							if (!next.isAutoTrackable())
+//								continue;
+//							track = next;
+//							break;
+//						}
+//					}
+//					autoTracker.setTrack(track);
+//				}
 				autoTracker.getWizard().setVisible(autotrackerButton.isSelected());
 				TFrame.repaintT(trackerPanel);
 		});
@@ -1181,7 +1181,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 //		ArrayList<TTrack> tracks = trackerPanel.getUserTracks();
 //		trackControlButton.setEnabled(!tracks.isEmpty());
 		trackControlButton.setEnabled(true);
-		autotrackerButton.setEnabled(trackerPanel.getVideo() != null);
+//		autotrackerButton.setEnabled(trackerPanel.getVideo() != null);
 		// refresh all tracks
 		if (refreshTracks) {
 			refreshTracks();

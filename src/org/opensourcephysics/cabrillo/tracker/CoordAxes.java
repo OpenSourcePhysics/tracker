@@ -41,7 +41,6 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -56,7 +55,6 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
-import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
@@ -364,6 +362,11 @@ public class CoordAxes extends TTrack {
 			notyetShown = false;
 			if (grid != null)
 				grid.setVisible(gridVisible);
+			if (trackerPanel != null && 
+					trackerPanel.autoTracker != null && 
+					trackerPanel.autoTracker.getTrack() == null) {
+				trackerPanel.autoTracker.setTrack(this);
+			}
 		} else if (grid != null) {
 			grid.setVisible(false);
 		}

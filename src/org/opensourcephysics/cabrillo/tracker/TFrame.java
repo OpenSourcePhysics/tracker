@@ -2544,18 +2544,18 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		editMenu.addSeparator();
 		editMenu.add(prefsItem);
 
-		// video menu
-		JMenu videoMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Video")); //$NON-NLS-1$
-		videoMenu.setEnabled(false);
-		defaultMenuBar.add(videoMenu);
-		// tracks menu
-		JMenu tracksMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Tracks")); //$NON-NLS-1$
-		tracksMenu.setEnabled(false);
-		defaultMenuBar.add(tracksMenu);
-		// coords menu
-		JMenu coordsMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Coords")); //$NON-NLS-1$
-		coordsMenu.setEnabled(false);
-		defaultMenuBar.add(coordsMenu);
+//		// video menu
+//		JMenu videoMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Video")); //$NON-NLS-1$
+//		videoMenu.setEnabled(false);
+//		defaultMenuBar.add(videoMenu);
+//		// tracks menu
+//		JMenu tracksMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Tracks")); //$NON-NLS-1$
+//		tracksMenu.setEnabled(false);
+//		defaultMenuBar.add(tracksMenu);
+//		// coords menu
+//		JMenu coordsMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.Coords")); //$NON-NLS-1$
+//		coordsMenu.setEnabled(false);
+//		defaultMenuBar.add(coordsMenu);
 		// help menu
 		defaultMenuBar.add(TMenuBar.getTrackerHelpMenu(null, null));
 	}
