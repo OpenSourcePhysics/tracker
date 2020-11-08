@@ -2227,9 +2227,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			setFontLevel(pointDropdown);
 			if (trackerPanel == null)
 				return;
-			refreshStrings(); // also resets label sizes
-//			pack();
-
+			textPaneSize = null;  // forces recalculation
+			refreshGUI(); // also resets label sizes
 		}
 
 		private void setFontLevel(JComboBox<Object> next) {
@@ -3317,7 +3316,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			pack();
 			if (textPaneSize == null) {
 				refreshTextPaneSize();
-				pack();
+				pack(); // pack again with new textPanelSize
 			}
 		}
 
