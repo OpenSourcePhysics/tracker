@@ -216,7 +216,7 @@ public class CoordAxesStep extends Step {
 			origin.setLocation(x, y);
 			// get default axes shape and handle hit shape (positive x-axis)
 			Point p0 = screenPoints[0] = origin.getScreenPosition(trackerPanel);
-			MultiShape axesShape = footprint.getShape(screenPoints);
+			MultiShape axesShape = footprint.getShape(screenPoints, FontSizer.getIntegerFactor());
 			path.reset();
 			path.moveTo(p0.x + 15, p0.y);
 			path.lineTo(p0.x + 500, p0.y);

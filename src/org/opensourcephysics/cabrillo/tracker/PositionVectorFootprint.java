@@ -27,7 +27,7 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.*;
 import java.awt.geom.*;
 
-import javax.swing.Icon;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * A PositionVectorFootprint returns a vector shape for a Point[] of length 2,
@@ -59,9 +59,9 @@ public class PositionVectorFootprint extends PointShapeFootprint {
    * @return the fill shape
    */
   @Override
-public MultiShape getShape(Point[] points) {
-  	super.getShape(points); // this sets up hitShapes[] at vector tip
-    return arrow.getShape(points);
+public MultiShape getShape(Point[] points, int scale) {
+  	super.getShape(points, scale); // this sets up hitShapes[] at vector tip
+    return arrow.getShape(points, scale);
   }
 
   /**
@@ -72,7 +72,7 @@ public MultiShape getShape(Point[] points) {
    * @return the icon
    */
   @Override
-public Icon getIcon(int w, int h) {
+public ResizableIcon getIcon(int w, int h) {
   	arrow.setColor(color);
     return arrow.getIcon(w, h);
   }

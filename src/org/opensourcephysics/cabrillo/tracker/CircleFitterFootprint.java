@@ -34,10 +34,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
-import javax.swing.Icon;
-
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -136,26 +134,23 @@ public int getLength() {
    * @return the icon
    */
   @Override
-public Icon getIcon(int w, int h) {  	
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
-  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
-  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
+public ResizableIcon getIcon(int w, int h) {  	
+  	if (stroke==null || stroke.getLineWidth()!=baseStroke.getLineWidth()) {
+  		stroke = new BasicStroke(baseStroke.getLineWidth());
   	}
     MultiShape drawShape = new MultiShape();
     if (drawCircle) {
-	    iconArc.setArc(0, 0, scale*20, scale*20, 200, 140, Arc2D.OPEN);
+	    iconArc.setArc(0, 0, 20, 20, 200, 140, Arc2D.OPEN);
 	  	drawShape.addDrawShape((Arc2D)iconArc.clone(), stroke);
     }
     int r = markerSize/2;
-    circle.setFrameFromCenter(scale*10, scale*20, scale*(10+r), scale*(20+r));
+    circle.setFrameFromCenter(10, 20, 10+r, 20+r);
   	drawShape.addDrawShape((Ellipse2D)circle.clone(), stroke);
   	transform.setToTranslation(0, 10);
   	drawShape = drawShape.transform(transform);
     ShapeIcon icon = new ShapeIcon(drawShape, w, h);
     icon.setColor(color);
-    return icon;
+    return new ResizableIcon(icon);
   }
 
   /**
@@ -166,7 +161,7 @@ public Icon getIcon(int w, int h) {
    */
   @Override
 public Mark getMark(Point[] points) {
-    final MultiShape shape = getShape(points);
+    final MultiShape shape = getShape(points, FontSizer.getIntegerFactor());
     final Color color = this.color;
     return new Mark() {
       @Override
@@ -285,11 +280,10 @@ public Color getColor() {
    * @return the shape
    */
   @Override
-public MultiShape getShape(Point[] points) {
+public MultiShape getShape(Point[] points, int scale) {
     Point center = points[0];
     Point edge = points[1];
     hitShapes.clear();
-    int scale = FontSizer.getIntegerFactor();
   	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
   		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
   	}

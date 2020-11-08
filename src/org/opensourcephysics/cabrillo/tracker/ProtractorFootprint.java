@@ -33,9 +33,8 @@ import java.awt.geom.Line2D;
 import java.util.Collection;
 import java.util.HashSet;
 
-import javax.swing.Icon;
-
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -105,15 +104,12 @@ public class ProtractorFootprint implements Footprint, Cloneable {
   }
 
   @Override
-  public Icon getIcon(int w, int h) {
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
-    transform.setToScale(scale, scale);
+  public ResizableIcon getIcon(int w, int h) {
+    transform.setToScale(1, 1);
     Shape shape = transform.createTransformedShape(circle);
-  	if (stroke==null || stroke.getLineWidth()!=scale*baseStroke.getLineWidth()) {
-  		stroke = new BasicStroke(scale*baseStroke.getLineWidth());
-  		arcStroke = new BasicStroke(scale);
+  	if (stroke==null || stroke.getLineWidth()!=baseStroke.getLineWidth()) {
+  		stroke = new BasicStroke(baseStroke.getLineWidth());
+  		arcStroke = new BasicStroke(1);
       arcAdjustStroke = new BasicStroke(stroke.getLineWidth(),
           BasicStroke.CAP_BUTT,
           BasicStroke.JOIN_MITER,
@@ -122,21 +118,21 @@ public class ProtractorFootprint implements Footprint, Cloneable {
           stroke.getDashPhase());  
   	}
     MultiShape drawShape = new MultiShape(shape).andStroke(stroke);
-    double x0 = scale*(radius+2)-w;
-    double y0 = h-scale*(radius+2);
+    double x0 = (radius+2)-w;
+    double y0 = h-(radius+2);
     double d = Math.sqrt(x0*x0+y0*y0);
-    double x1 = x0*scale*radius/d;
-    double y1 = y0*scale*radius/d;
+    double x1 = x0*radius/d;
+    double y1 = y0*radius/d;
     drawShape.addDrawShape(new Line2D.Double(x0, y0, x1, y1), stroke);
     drawShape.addDrawShape(new Line2D.Double(x0, y0, radius-2, y0), stroke);
     ShapeIcon icon = new ShapeIcon(drawShape, w, h);
     icon.setColor(color);
-    return icon;
+    return new ResizableIcon(icon);
   }
 
   @Override
   public Mark getMark(Point[] points) {
-    MultiShape shape = getShape(points);
+    MultiShape shape = getShape(points, FontSizer.getIntegerFactor());
     return new Mark() {
       @Override
       public void draw(Graphics2D g, boolean highlighted) {
@@ -249,11 +245,10 @@ public class ProtractorFootprint implements Footprint, Cloneable {
    * @return the shape
    */
   @Override
-public MultiShape getShape(Point[] points) {
+public MultiShape getShape(Point[] points, int scale) {
     Point vertex = points[0];
     Point end1 = points[1];
     Point end2 = points[2];
-    int scale = FontSizer.getIntegerFactor();
     int r = scale*circle.getBounds().width/2;
     
     // set up strokes

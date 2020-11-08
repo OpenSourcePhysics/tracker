@@ -28,12 +28,9 @@ package org.opensourcephysics.cabrillo.tracker;
 import java.awt.BasicStroke;
 import java.awt.Point;
 import java.awt.Shape;
-import java.awt.geom.Area;
 import java.awt.geom.Line2D;
 import java.util.Collection;
 import java.util.HashSet;
-
-import org.opensourcephysics.tools.FontSizer;
 
 /**
  * A MultiLineFootprint returns a set of line segments for a Point array of any
@@ -102,8 +99,7 @@ public class MultiLineFootprint extends LineFootprint {
 	 * @return the shape
 	 */
 	@Override
-	public MultiShape getShape(Point[] points) {
-		int scale = FontSizer.getIntegerFactor();
+	public MultiShape getShape(Point[] points, int scale) {
 		if (stroke == null || stroke.getLineWidth() != scale * baseStroke.getLineWidth()) {
 			stroke = new BasicStroke(scale * baseStroke.getLineWidth());
 		}

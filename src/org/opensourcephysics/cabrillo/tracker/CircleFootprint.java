@@ -34,6 +34,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -147,13 +148,10 @@ public int getLength() {
    * @return the icon
    */
   @Override
-public Icon getIcon(int w, int h) {
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
+public ResizableIcon getIcon(int w, int h) {
   	int realRadius = r;
   	setRadius(outlined? 5: 6);
-    MultiShape shape = getShape(new Point[] {new Point()});
+    MultiShape shape = getShape(new Point[] {new Point()}, 1);
     MultiShape decor = null;
     if (spotted) {
       decor = new MultiShape(spot).andFill(true);    	
@@ -167,7 +165,7 @@ public Icon getIcon(int w, int h) {
     ShapeIcon icon = new ShapeIcon(shape, decor, w, h);
     icon.setColor(color, highlightColor);
   	setRadius(realRadius);
-    return icon;
+    return new ResizableIcon(icon);
   }
 
   /**
@@ -178,7 +176,7 @@ public Icon getIcon(int w, int h) {
    */
   @Override
 public Mark getMark(Point[] points) {
-    final MultiShape shape = getShape(points);
+    final MultiShape shape = getShape(points, FontSizer.getIntegerFactor());
     final Shape outline = this.outline;
     final Shape highlight = this.highlight;
     final Shape spot = this.spot;
@@ -391,10 +389,9 @@ public Color getColor() {
    * @return the draw shape
    */
   @Override
-public MultiShape getShape(Point[] points) {
+public MultiShape getShape(Point[] points, int scale) {
     Point p = points[0];
     transform.setToTranslation(p.x, p.y);
-    int scale = FontSizer.getIntegerFactor();
     if (scale>1) {
     	transform.scale(scale, scale);
     }

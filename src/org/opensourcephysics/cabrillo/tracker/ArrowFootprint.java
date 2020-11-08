@@ -28,9 +28,7 @@ import java.awt.BasicStroke;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Shape;
-import javax.swing.Icon;
-
-import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * An ArrowFootprint returns an arrow shape for a Point array of length 2.
@@ -119,16 +117,13 @@ public class ArrowFootprint extends LineFootprint {
    * @return the icon
    */
   @Override
-public Icon getIcon(int w, int h) {
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
+public ResizableIcon getIcon(int w, int h) {
     Point[] points = new Point[] {new Point(), new Point(w - 2, 2 - h)};
-    MultiShape shape = getShape(points);
+    MultiShape shape = getShape(points, 1);
     ShapeIcon icon = new ShapeIcon(shape, w, h);
     icon.setColor(color);
 		icon.setStroke(stroke);
-    return icon;
+    return new ResizableIcon(icon);
   }
 
   /**
@@ -138,7 +133,7 @@ public Icon getIcon(int w, int h) {
    * @return the shape
    */
   @Override
-public synchronized MultiShape getShape(Point[] points) {
+public synchronized MultiShape getShape(Point[] points, int scale) {
   	highlight = null;  // will create new  one below
     Point p1 = points[0];
     Point p2 = points[1];
@@ -149,7 +144,6 @@ public synchronized MultiShape getShape(Point[] points) {
     
     transform.setToRotation(theta, p1.x, p1.y);
     transform.translate(p1.x, p1.y);
-    int scale = FontSizer.getIntegerFactor();
     if (scale>1) {
     	transform.scale(scale, scale);
     }

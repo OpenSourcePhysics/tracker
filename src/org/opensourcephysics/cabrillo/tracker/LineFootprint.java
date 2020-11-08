@@ -42,9 +42,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 
-import javax.swing.Icon;
-
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
 /**
@@ -150,16 +149,13 @@ public class LineFootprint implements Footprint, Cloneable {
 	 * @return the icon
 	 */
 	@Override
-	public Icon getIcon(int w, int h) {
-		int scale = FontSizer.getIntegerFactor();
-		w *= scale;
-		h *= scale;
+	public ResizableIcon getIcon(int w, int h) {
 		Point[] points = new Point[] { new Point(), new Point(w - 2, 2 - h) };
-		MultiShape shape = getShape(points);
+		MultiShape shape = getShape(points, 1);
 		ShapeIcon icon = new ShapeIcon(shape, w, h);
 		icon.setColor(color);
 		icon.setStroke(stroke);
-		return icon;
+		return new ResizableIcon(icon);
 	}
 
 	/**
@@ -170,7 +166,7 @@ public class LineFootprint implements Footprint, Cloneable {
 	 */
 	@Override
 	public Mark getMark(Point[] points) {
-		MultiShape shape = getShape(points);
+		MultiShape shape = getShape(points, FontSizer.getIntegerFactor());
 		MultiShape hilite = getHighlightShape();
 		return new Mark() {
 
@@ -276,7 +272,7 @@ public class LineFootprint implements Footprint, Cloneable {
 	 * @return the shape
 	 */
 	@Override
-	public MultiShape getShape(Point[] points) {
+	public MultiShape getShape(Point[] points, int scale) {
 		checkStrokes();
 		float lineWidth = stroke.getLineWidth();
 		Point p1 = points[0];

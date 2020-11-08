@@ -135,7 +135,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
         shape = new MultiShape(transform.createTransformedShape(selectionShape)).andStroke(selectionStroke);
       }
       else { // point is not selected
-        shape = footprint.getShape(new Point[] {pt});
+        shape = footprint.getShape(new Point[] {pt}, FontSizer.getIntegerFactor());
       }
       // create mark
       Color color = footprint.getColor();

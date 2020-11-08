@@ -490,13 +490,17 @@ public class LineProfile extends TTrack {
 		// assign column names to the datasets
 
 		int count = 7;
-		// get data from current line profile step if video is visible
-		if (trackerPanel.getVideo() == null || !trackerPanel.getVideo().isVisible())
-			return;
-		LineProfileStep step = (LineProfileStep) getStep(trackerPanel.getPlayer().getFrameNumber());
 		double[][] validData;
-		if (step == null || (validData = step.getProfileData(trackerPanel)) == null)
-			return;
+		// get data from current line profile step if video is visible
+		if (trackerPanel.getVideo() == null || !trackerPanel.getVideo().isVisible()) {
+			validData = new double[count+1][0]; // empty data
+		}
+		else {
+			LineProfileStep step = (LineProfileStep) getStep(trackerPanel.getPlayer().getFrameNumber());
+			if (step == null || (validData = step.getProfileData(trackerPanel)) == null)
+				validData = new double[count+1][0]; // empty data
+		}
+
 		// append the data to the data set
 		clearColumns(data, 7, dataVariables, "LineProfile.Data.Description.", validData, validData[0].length);
 	}

@@ -25,9 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
-import javax.swing.Icon;
-
-import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * A double crosshair footprint for a Point array of length 2.
@@ -83,16 +81,13 @@ public class DoubleCrosshairFootprint extends LineFootprint {
    * @return the icon
    */
   @Override
-public Icon getIcon(int w, int h) {
-		int scale = FontSizer.getIntegerFactor();
-		w *= scale;
-		h *= scale;
+public ResizableIcon getIcon(int w, int h) {
 		Point[] points = new Point[] { new Point(), new Point(w - 2, 2 - h) };
-		MultiShape shape = getShape(points, false);
+		MultiShape shape = getShape(points, false, 1);
 		ShapeIcon icon = new ShapeIcon(shape, w, h);
 		icon.setColor(color);
 		icon.setStroke(stroke);
-    return icon;
+    return new ResizableIcon(icon);
   }
 
   /**
@@ -113,8 +108,8 @@ public void setStroke(BasicStroke stroke) {
    * @return the shape
    */
   @Override
-public MultiShape getShape(Point[] points) {
-    return getShape(points, true);
+public MultiShape getShape(Point[] points, int scale) {
+    return getShape(points, true, scale);
   }
   
   /**
@@ -124,10 +119,9 @@ public MultiShape getShape(Point[] points) {
    * @param bothEnds true to draw both ends (single end used for icon)
    * @return the shape
    */
-  private MultiShape getShape(Point[] points, boolean bothEnds) {
+  private MultiShape getShape(Point[] points, boolean bothEnds, int scale) {
     Point p1 = points[0];
     Point p2 = points[1];
-    int scale = FontSizer.getIntegerFactor();
        
     // for line shapes
     float d = (float)p1.distance(p2); // distance between ends

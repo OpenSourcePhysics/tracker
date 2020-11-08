@@ -242,7 +242,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected JDialog dataToolDialog;
 	protected TrackerPanel prevPanel;
 	protected double defaultMainDivider = 21/(21.0 + 13.0); // fibonacci 8/(7 + 8)
-	protected double defaultRightDivider = 13/(13.0 + 8.0); // fibonacci 7/(7 + 6)
+//	protected double defaultRightDivider = 13/(13.0 + 8.0); // fibonacci 7/(7 + 6)
+	protected double defaultRightDivider = 0.57;
 	protected double defaultBottomDivider = 0.5;
 	protected FileDropHandler fileDropHandler;
 	protected Action openRecentAction;
@@ -1838,7 +1839,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //      int x = (dim.width - dialog.getBounds().width) / 2;
 //      int y = (dim.height - dialog.getBounds().height) / 2;
 //      dialog.setLocation(x, y);
-
+				libraryBrowser.setVisible(false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -2627,6 +2628,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 		});
 		(selected == null ? languageMenu.getItem(0) : selected).setSelected(true);
+		FontSizer.setMenuFonts(languageMenu);
 	}
 
 	protected void setLanguage(String language) {

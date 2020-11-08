@@ -25,9 +25,7 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
-import javax.swing.Icon;
-
-import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * An DoubleArrowFootprint returns a double arrow shape for a Point array of
@@ -60,15 +58,12 @@ public class DoubleArrowFootprint extends LineFootprint {
 	 * @return the icon
 	 */
 	@Override
-	public Icon getIcon(int w, int h) {
-		int scale = FontSizer.getIntegerFactor();
-		w *= scale;
-		h *= scale;
+	public ResizableIcon getIcon(int w, int h) {
 		Point[] points = new Point[] { new Point(), new Point(w - 2, 2 - h) };
-		MultiShape shape = getShape(points, false);
+		MultiShape shape = getShape(points, false, 1);
 		ShapeIcon icon = new ShapeIcon(shape, w, h);
 		icon.setColor(color);
-		return icon;
+		return new ResizableIcon(icon);
 	}
 
 	/**
@@ -112,8 +107,8 @@ public class DoubleArrowFootprint extends LineFootprint {
 	 * @return the shape
 	 */
 	@Override
-	public MultiShape getShape(Point[] points) {
-		return getShape(points, true);
+	public MultiShape getShape(Point[] points, int scale) {
+		return getShape(points, true, scale);
 	}
 
 	/**
@@ -123,7 +118,7 @@ public class DoubleArrowFootprint extends LineFootprint {
 	 * @param bothEnds true to draw both ends
 	 * @return the shape
 	 */
-	private MultiShape getShape(Point[] points, boolean bothEnds) {
+	private MultiShape getShape(Point[] points, boolean bothEnds, int scale) {
 		Point p1 = points[0];
 		Point p2 = points[1];
 		double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);
@@ -131,7 +126,6 @@ public class DoubleArrowFootprint extends LineFootprint {
 		transform.translate(p2.x, p2.y);
 		float d = (float) p1.distance(p2); // length of the line
 		// set arrowhead dimensions and stroke
-		int scale = FontSizer.getIntegerFactor();
 		int tipL = tipLength * scale;
 		if (bothEnds)
 			tipL = Math.min(tipL, Math.round(d / 2 - 3));

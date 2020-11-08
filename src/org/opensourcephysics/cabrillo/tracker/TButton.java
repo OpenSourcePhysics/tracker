@@ -200,5 +200,14 @@ public class TButton extends JButton {
 		}
 		return null;
 	}
+	
+	protected void showPopup() {
+		popup = getPopup();
+		if (popup != null) {
+			hidePopup = true;
+			popup.show(TButton.this, 0, TButton.this.getHeight());
+		}
+		
+	}
 
 }

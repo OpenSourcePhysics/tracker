@@ -26,9 +26,7 @@ package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
 
-import javax.swing.*;
-
-import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.display.ResizableIcon;
 
 /**
  * An OutlineFootprint returns an outline shape for a Point array of length 2.
@@ -76,18 +74,15 @@ public class OutlineFootprint extends LineFootprint {
    * @return the icon
    */
   @Override
-public Icon getIcon(int w, int h) {
-    int scale = FontSizer.getIntegerFactor();
-    w *= scale;
-    h *= scale;
-    Point[] points = new Point[] {new Point(), new Point(w - scale*2, scale*2 - h)};
+public ResizableIcon getIcon(int w, int h) {
+    Point[] points = new Point[] {new Point(), new Point(w - 2, 2 - h)};
     int prevSpread = spread;
-    spread = scale;
-    MultiShape shape = getShape(points);
+    spread = 1;
+    MultiShape shape = getShape(points, 1);
     ShapeIcon icon = new ShapeIcon(shape, w, h);
     icon.setColor(color);
     spread = prevSpread;
-    return icon;
+    return new ResizableIcon(icon);
   }
 
   /**
@@ -107,7 +102,7 @@ public void setStroke(BasicStroke stroke) {
    * @return the draw shape
    */
   @Override
-public MultiShape getShape(Point[] points) {
+public MultiShape getShape(Point[] points, int scale) {
     Point p1 = points[0];
     Point p2 = points[1];
     double theta = Math.atan2(p1.y - p2.y, p1.x - p2.x);
@@ -127,7 +122,7 @@ public MultiShape getShape(Point[] points) {
     int w = Math.min(spread + 1, 4);
     path.moveTo(d/2, w);
     path.lineTo(d/2, -w);
-    int scale = FontSizer.getIntegerFactor();
+
     // centerline
     if (getSpread() > 4 +2*scale) {
       path.moveTo(0, 0);

@@ -418,7 +418,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 //			// process of rebuilding the menu.
 //			OSPRuntime.jsutil.setUIEnabled(this, false);
 //		}
-
 		switch (((JMenu) e.getSource()).getName()) {
 		case "file":
 			refreshFileMenu(true);
@@ -1490,6 +1489,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				item.setSelected(true);
 			}
 		}
+		FontSizer.setMenuFonts(edit_fontSizeMenu);
 	}
 
 	final static String[] baseMatSizes = new String[] 
@@ -1601,6 +1601,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				next.setSelected(true);
 			}
 		}
+		FontSizer.setMenuFonts(edit_matSizeMenu);
+
 	}
 	
 	protected void rebuildEditCopyMenu(String type) {
@@ -1626,6 +1628,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					menu.setText(text + " (" + key + ")"); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 			}
+			FontSizer.setMenuFonts(edit_copyDataMenu);
 		break;
 		
 		case "image":	
@@ -1674,6 +1677,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 			// add menu item for frame
 			edit_copyImageMenu.add(edit_copyFrameImageItem);
+			FontSizer.setMenuFonts(edit_copyImageMenu);
 			break;
 			
 		case "object":
@@ -1711,6 +1715,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				item.addActionListener(copyObjectAction);
 				edit_copyObjectMenu.add(item);
 			}
+			FontSizer.setMenuFonts(edit_copyObjectMenu);
 			break;
 		}
 	}
@@ -2129,6 +2134,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		}
 		switch (menu) {
 		case MENU_COORDS:
+			FontSizer.setMenuFonts(coords_refFrameMenu);
 			break;
 		case MENU_EDIT:
 			edit_clearTracksItem.setEnabled(n > 0);
@@ -2137,6 +2143,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				edit_deleteTracksMenu.addSeparator();
 				edit_deleteTracksMenu.add(edit_clearTracksItem);
 			}
+			FontSizer.setMenuFonts(edit_deleteTracksMenu);
 			break;
 		}
 	}

@@ -309,7 +309,7 @@ public void dispose() {
     }
     FontSizer.setFonts(this);
     pack();
-   TFrame.repaintT(this);
+    TFrame.repaintT(this);
 //   setVisible(isVisible && trackCount > 0);
 //   if (trackCount == 0)
 //	   isVisible = true;

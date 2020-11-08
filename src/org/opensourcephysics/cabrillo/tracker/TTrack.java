@@ -1966,6 +1966,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				public void menuSelected(MenuEvent e) {
 					menu0.removeAll();
 					getMenu(trackerPanel, menu0);
+					FontSizer.setMenuFonts(menu0);
 				}
 
 				@Override

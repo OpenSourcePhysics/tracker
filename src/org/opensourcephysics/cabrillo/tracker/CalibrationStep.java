@@ -142,7 +142,7 @@ protected Mark getMark(TrackerPanel trackerPanel) {
           shapes[i] = new MultiShape(transform.createTransformedShape(selectionShape)).andStroke(selectionStroke);
         }
         else { // point not selected
-          shapes[i] = footprint.getShape(new Point[] {p});
+          shapes[i] = footprint.getShape(new Point[] {p}, FontSizer.getIntegerFactor());
         }
       }
       // create mark
