@@ -305,7 +305,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		// clean up previously selected view
 		boolean istview = (selectedView instanceof TrackChooserTView);
 		if (istview) {
-			selectedTrack = ((TrackChooserTView) view).getSelectedTrack();
+			selectedTrack = ((TrackChooserTView) selectedView).getSelectedTrack();
 		}
 		if (selectedView != null) {
 			selectedView.cleanup();
@@ -322,8 +322,8 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		// initialize and refresh newly selected view
 		view.init();
 		((Component) view).addPropertyChangeListener(TView.PROPERTY_TVIEW_TRACKVIEW, this);
-		if (istview) {
-			((TrackChooserTView) view).setSelectedTrack(selectedTrack);
+		if (selectedView instanceof TrackChooserTView) {
+			((TrackChooserTView) selectedView).setSelectedTrack(selectedTrack);
 		}
 		view.refresh();
 		// put icon in button

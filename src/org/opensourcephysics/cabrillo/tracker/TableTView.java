@@ -169,16 +169,16 @@ public class TableTView extends TrackChooserTView {
 		return trackView;
 	}
 
-	/**
-	 * Overrides TrackChooserTView method.
-	 *
-	 * @param track the track to be selected
-	 */
-	@Override
-	public void setSelectedTrack(TTrack track) {
-		super.setSelectedTrack(track);
-		refreshColumnsDialog(track, true);
-	}
+//	/**
+//	 * Overrides TrackChooserTView method.
+//	 *
+//	 * @param track the track to be selected
+//	 */
+//	@Override
+//	public void setSelectedTrack(TTrack track) {
+//		super.setSelectedTrack(track);
+////		refreshColumnsDialog(track, true);
+//	}
 
 	/**
 	 * Displays the dialog box for selecting data columns.

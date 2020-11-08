@@ -597,9 +597,10 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE:
 			// video image has changed
-//			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null) {
-//				view.refresh(trackerPanel.getFrameNumber());
-//			}
+			if ((track = getSelectedTrack()) != null && (view = getTrackView(track)) != null
+					&& (track instanceof LineProfile || track instanceof RGBRegion)) {
+				view.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STEPS);
+			}
 			break;
 		case TTrack.PROPERTY_TTRACK_COLOR:
 		case TTrack.PROPERTY_TTRACK_NAME:

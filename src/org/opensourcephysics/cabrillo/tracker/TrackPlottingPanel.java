@@ -406,7 +406,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	@Override
 	public JPopupMenu getPopupMenu() {
 		if (!Tracker.allowMenuRefresh)
-			return null;		
+			return null;	
+		if (popupmenu == null) {
+			buildPopupMenu();
+		}
 		mergeYScalesItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.MenuItem.MergeYAxes")); //$NON-NLS-1$
 		linesItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.MenuItem.Lines")); //$NON-NLS-1$
 		pointsItem.setText(TrackerRes.getString("TrackPlottingPanel.Popup.MenuItem.Points")); //$NON-NLS-1$
@@ -499,7 +502,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * Builds the default popup menu for this panel.
 	 */
 	@Override
-	protected void buildPopupmenu() {
+	protected void buildPopupMenu() {
 		if (popup == null) {
 			popup = new JPopupMenu() {
 				@Override
@@ -510,7 +513,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				}
 			};
 			setPopupMenu(popup);
-			super.buildPopupmenu(); 
+			super.buildPopupMenu(); 
 			linesItem = new JCheckBoxMenuItem("lines", linesItemSelected);
 			pointsItem = new JCheckBoxMenuItem("points", pointsItemSelected);	
 			dataToolItem = new JMenuItem("datatool");

@@ -29,10 +29,8 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.Point;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -62,7 +60,6 @@ import javax.swing.AbstractCellEditor;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.InputMap;
@@ -172,6 +169,7 @@ public class TableTrackView extends TrackView {
 	protected int datasetCount;
 	private Map<String, Integer> htNames;
 	private String[] aNames;
+	private boolean dialogLastVisible;
 
 	/**
 	 * set to false during loading
@@ -590,11 +588,14 @@ public class TableTrackView extends TrackView {
 		int n = trackDataManager.getDatasetsRaw().size();
 		if (index >= n) {
 			TTrack track = getTrack();
-			String name = track.getTextColumnNames().get(index - n);
-			if (visible)
-				textColumnsVisible.add(name);
-			else
-				textColumnsVisible.remove(name); // BH? missing?
+			ArrayList<String> columnNames = track.getTextColumnNames();
+			if (columnNames.size() > index - n) {
+				String name = track.getTextColumnNames().get(index - n);
+				if (visible)
+					textColumnsVisible.add(name);
+				else
+					textColumnsVisible.remove(name); // BH? missing?
+			}
 		}
 		refresh(trackerPanel.getFrameNumber(), DataTable.MODE_COL_SETVISIBLE);
 	}
@@ -750,8 +751,9 @@ public class TableTrackView extends TrackView {
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_LOADED:
 		case TrackerPanel.PROPERTY_TRACKERPANEL_TRACK:
-			if (columnsDialog != null && e.getNewValue() == track) {
-				refreshColumnDialog(track, true);
+			if (columnsDialog != null) {
+//				refreshColumnDialog(track, true);
+				dialogLastVisible = setDialogVisible(e.getNewValue() == track, dialogLastVisible);
 			}
 			// allow super
 			break;
@@ -947,7 +949,7 @@ public class TableTrackView extends TrackView {
 		columnsDialogButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				getOrCreateColumnsDialog(getTrack()).showDialog();
+				getOrCreateColumnsDialog(getTrack()).showOrHideDialog();
 			}
 		});
 		// create column list
@@ -1112,6 +1114,7 @@ public class TableTrackView extends TrackView {
 			}
 		};
 		OSPRuntime.setOSPAction(im, k, "selectLastColumn", am, newAction);
+		FontSizer.setFont(columnsDialogButton);
 	}
 
 	public void dataToolAction() {
@@ -2118,11 +2121,11 @@ public class TableTrackView extends TrackView {
 	public void refreshToolbar() {
 		if (OSPRuntime.isJS)
 			return;
-
 		if (trackerPanel.getTFrame() != null) {
 			TViewChooser owner = getOwner();
-			if (owner != null)
+			if (owner != null) {
 				owner.refreshToolbar();
+			}
 		}
 	}
 
@@ -2164,7 +2167,7 @@ public class TableTrackView extends TrackView {
 		if (onlyIfVisible && columnsDialog == null || !columnsDialog.isVisible())
 			return;
 		getOrCreateColumnsDialog(track);
-		columnsDialog.showDialog();
+//		columnsDialog.showOrHideDialog();
 	}
 
 	
@@ -2174,7 +2177,7 @@ public class TableTrackView extends TrackView {
 				columnsDialog.setVisible(dialogLastVisible);
 			return dialogLastVisible;
 		} else {
-			boolean vis = dialogVisible;
+			boolean vis = columnsDialog.isVisible();
 			if (columnsDialog != null)
 				columnsDialog.setVisible(false);
 			return vis;
@@ -2201,6 +2204,7 @@ public class TableTrackView extends TrackView {
 		private JPanel buttonPanel;
 
 		private TTrack track;
+		private boolean isPositioned;
 
 		@Override
 		public void setVisible(boolean vis) {
@@ -2244,9 +2248,8 @@ public class TableTrackView extends TrackView {
 			javax.swing.border.Border etched = BorderFactory.createEtchedBorder();
 			columnsScroller.setBorder(BorderFactory.createCompoundBorder(empty, etched));
 			// button to open column selection dialog box
-			setResizable(false);
-			JPanel contentPane = new JPanel();
-			contentPane.setLayout(new BoxLayout(contentPane, BoxLayout.PAGE_AXIS));
+//			setResizable(false);
+			JPanel contentPane = new JPanel(new BorderLayout());
 			setContentPane(contentPane);
 			// create close button
 			closeButton = new JButton(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
@@ -2284,12 +2287,12 @@ public class TableTrackView extends TrackView {
 			});
 
 			buttonPanel = new JPanel();
-			// will be filled in below
+			// will be populated below
 			
 			// create track label
 			trackLabel = new JLabel();
-			trackLabel.setBorder(BorderFactory.createEmptyBorder(7, 0, 6, 0));
-			trackLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+			trackLabel.setBorder(BorderFactory.createEmptyBorder(7, 0, 7, 0));
+			trackLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		}
 
 		private void refreshButtonPanel() {
@@ -2305,7 +2308,9 @@ public class TableTrackView extends TrackView {
 		private void refreshGUI() {
 			if (!haveGUI)
 				return;
-			FontSizer.setFonts(this);
+			FontSizer.setFonts(buttonPanel);
+			FontSizer.setFonts(columnsPanel);
+			FontSizer.setFonts(trackLabel);
 			closeButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$
 			defineButton.setText(TrackerRes.getString("TView.Menuitem.Define")); //$NON-NLS-1$
 			defineButton.setToolTipText(TrackerRes.getString("Button.Define.Tooltip")); //$NON-NLS-1$
@@ -2334,8 +2339,8 @@ public class TableTrackView extends TrackView {
 					checkBoxes[i].setToolTipText(track.getDataDescription(i + 1));
 					checkBoxes[i].addActionListener(cbActionListener);
 					checkBoxes[i].setOpaque(false);
+					checkBoxes[i].setFont(font);
 				}
-				checkBoxes[i].setFont(font);
 				checkBoxes[i].setSelected(bsCheckBoxes.get(i));
 				checkBoxes[i].setName(name);
 				checkBoxes[i].setText(TeXParser.removeSubscripting(name));
@@ -2376,29 +2381,24 @@ public class TableTrackView extends TrackView {
 			add(trackLabel, BorderLayout.NORTH);
 			add(columnsScroller, BorderLayout.CENTER);
 			add(buttonPanel, BorderLayout.SOUTH);
-			Dimension dim = getContentPane().getPreferredSize();
-			getContentPane().setPreferredSize(new Dimension(dim.width, Math.min(dim.height, 300)));
+//			Dimension dim = getContentPane().getPreferredSize();
+//			getContentPane().setPreferredSize(new Dimension(dim.width, Math.min(dim.height, 300)));
 			pack();		
 //			repaint();			
 		}
 
 		/**
-		 * Displays the dialog box for selecting data columns.
-		 *
-		 * @param track the track
+		 * Toggles the dialog visibility.
 		 */
-		protected void showDialog() {
-			// refresh dialog
-			Point p0 = new Frame().getLocation();
-			if (getLocation().x == p0.x) {
-				// center dialog on the screen
-				Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-				int x = (dim.width - getBounds().width) / 2;
-				int y = (dim.height - getBounds().height) / 2;
-				setLocation(x, y);
+		protected void showOrHideDialog() {
+			if (!isPositioned) {
+				isPositioned = true;
+				// position dialog immediately below columnsDialogButton
+				Point p = columnsDialogButton.getLocationOnScreen();
+				int h = columnsDialogButton.getHeight();
+				setLocation(p.x, p.y + h);
 			}
-			if (!isVisible())
-				setVisible(true);
+			setVisible(!isVisible());
 		}
 
 		@Override
