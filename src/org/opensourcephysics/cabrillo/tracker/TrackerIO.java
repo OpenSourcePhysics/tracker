@@ -161,7 +161,17 @@ public class TrackerIO extends VideoIO {
 	protected static boolean isffmpegError = false;
 	protected static TFrame theFrame;
 	protected static PropertyChangeListener ffmpegListener;
-	protected static boolean loadInSeparateThread = true;
+	private static boolean loadInSeparateThread = true;
+	
+	public static boolean isLoadInSeparateThread() {
+		return loadInSeparateThread;
+	}
+	
+	public static void setLoadInSeparateThread(String why, boolean b) {
+	  loadInSeparateThread = b;
+	  OSPLog.debug("TrackerIO set loading " + loadInSeparateThread + " for " + why);
+	}
+	
 	private static Set<TrackerMonitor> monitors = new HashSet<>();
 	protected static double defaultBadFrameTolerance = 0.2;
 	protected static boolean dataCopiedToClipboard;
@@ -673,16 +683,16 @@ public class TrackerIO extends VideoIO {
 //						if (!frame.haveContent()) {
 //							frame.removeTabNow(0);
 //						}
-						openTabFileAsyncFinally(frame, f, null);
+						openTabFileAsyncFinally(frame, f, null, whenDone);
 					}
 					return null;
 			});
 		} else {
-			openTabFileAsyncFinally(frame, file, null);
+			openTabFileAsyncFinally(frame, file, null, whenDone);
 		}
 	}
 
-	static protected void openTabFileAsyncFinally(TFrame frame, File file, VideoType selectedType) {
+	static protected void openTabFileAsyncFinally(TFrame frame, File file, VideoType selectedType, Runnable whenDone) {
 		frame.loadedFiles.clear();
 		final String path = XML.getAbsolutePath(file);
 		final VideoType vidType = selectedType;
@@ -745,12 +755,20 @@ public class TrackerIO extends VideoIO {
 		run("tabOpener", () -> {
 				for (String uriPath : uriPaths) {
 					OSPLog.debug("TrackerIO opening URL " + uriPath); //$NON-NLS-1$
-					openTabPath(uriPath, null, frame, null, desktopFiles, whenDone);
+					openTabPath(uriPath, null, frame, null, desktopFiles, null);
 				}
+				if (whenDone != null)
+					whenDone.run();
 		});
 	}
 
-	private static void run(String name, Runnable r) {
+	/**
+	 * Called by open-addToLibrary, importVideo, openAllCollection, openTabFileAsyncFinally
+	 * @param name
+	 * @param r
+	 */
+	static void run(String name, Runnable r) {
+		OSPLog.debug("TrackerIO run loading " + loadInSeparateThread + " for " + name);
 		if (loadInSeparateThread) {
 			Thread t = new Thread(r);
 			t.setName(name);
@@ -1986,6 +2004,7 @@ public class TrackerIO extends VideoIO {
 					for (File next : files) {
 						next.deleteOnExit();
 						// add PDF/HTML/other files to tempFiles
+						System.out.println(next);
 						String relPath = XML.getPathRelativeTo(next.getPath(), temp.getPath());
 						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath) || otherFiles.contains(relPath)) {
 							String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());

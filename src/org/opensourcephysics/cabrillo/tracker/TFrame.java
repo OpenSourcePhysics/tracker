@@ -2823,8 +2823,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			FileFilter videoFilter = new VideoFileFilter();
 			String base = control.getString("basepath"); //$NON-NLS-1$
 			File dataFile = null;
-			boolean prev = TrackerIO.loadInSeparateThread;
-			TrackerIO.loadInSeparateThread = false;
+			boolean prev = TrackerIO.isLoadInSeparateThread();
+			TrackerIO.setLoadInSeparateThread("TFrame.loadObject0", false);
 			for (String[] next : tabs) {
 				File file = null;
 				Resource res = null;
@@ -2873,7 +2873,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					TrackerIO.openTabFile(file, frame);
 				}
 			}
-			TrackerIO.loadInSeparateThread = prev;
+			TrackerIO.setLoadInSeparateThread("TFrame.loadObject1", prev);
 			return loadObjectFinally(frame, dataFile, null);
 		}
 
@@ -2965,9 +2965,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				this.base = control.getString("basepath"); //$NON-NLS-1$
 				this.tabs = tabs;
 				videoFilter = new VideoFileFilter();
-				wasLoadThread = TrackerIO.loadInSeparateThread;
+				wasLoadThread = TrackerIO.isLoadInSeparateThread();
 				stateHelper = new StateHelper(this);
-				TrackerIO.loadInSeparateThread = false;
+				TrackerIO.setLoadInSeparateThread("TFrame.State0", false);
 			}
 
 			public void start() {
@@ -3031,7 +3031,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						// } // end for
 						break;
 					case STATE_DONE:
-						TrackerIO.loadInSeparateThread = wasLoadThread;
+						TrackerIO.setLoadInSeparateThread("TFrame.State1", wasLoadThread);
 						loadObjectFinally(frame, dataFile, whenDone);
 						break;
 					default:
@@ -3294,14 +3294,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 								TrackerIO.importVideo(file, targetPanel, null, null);/// TrackerIO.NULL_RUNNABLE);
 							}
 						};
-						if (TrackerIO.loadInSeparateThread) {
-							Thread opener = new Thread(runner);
-							opener.setPriority(Thread.NORM_PRIORITY);
-							opener.setDaemon(true);
-							opener.start();
-						} else {
-							runner.run();
-						}
+						TrackerIO.run("TFrame.loadFiles", runner); 
 					}
 				} 
 //				else {
