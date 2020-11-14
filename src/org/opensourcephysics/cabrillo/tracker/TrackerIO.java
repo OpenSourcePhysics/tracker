@@ -1922,8 +1922,9 @@ public class TrackerIO extends VideoIO {
 					// add non-info html files to list
 					htmlFiles.add(next);
 				}
-				// collect other files in top directory except thumbnails
-				else if (next.indexOf("thumbnail") == -1 && next.indexOf("/") == -1) { //$NON-NLS-1$ //$NON-NLS-2$
+				// collect other files in top directory except thumbnails and videos
+				else if (next.indexOf("thumbnail") == -1 && next.indexOf("/") == -1
+						&& !isKnownVideoExtension(next)) { //$NON-NLS-1$ //$NON-NLS-2$
 					String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
 					OSPLog.debug("TrackerIO found other file " + s); //$NON-NLS-1$
 					otherFiles.add(next);
