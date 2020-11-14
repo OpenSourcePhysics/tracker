@@ -219,8 +219,9 @@ public class TActions {
 					public void actionPerformed(ActionEvent e) {
 						TFrame frame = trackerPanel.getTFrame();
 						if (frame != null) {
-							boolean isVisible = frame.getLibraryBrowser().isVisible();
-							frame.getLibraryBrowser().setVisible(!isVisible);
+//							boolean isVisible = frame.getLibraryBrowser().isVisible();
+//							frame.getLibraryBrowser().setVisible(!isVisible);
+							frame.getLibraryBrowser().setVisible(true);
 						}
 					}
 				}, true));
