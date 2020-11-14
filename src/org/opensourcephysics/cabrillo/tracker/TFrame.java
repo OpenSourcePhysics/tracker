@@ -292,7 +292,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		int y = (screenRect.height - dim.height) / 2;
 		setLocation(x, y);
 		TrackerRes.addPropertyChangeListener("locale", this); //$NON-NLS-1$
-				if(OSPRuntime.isJS2) {// WC: place Tracker higher in html page.
+		if(OSPRuntime.isJS) {// WC: place Tracker higher in html page.
 			Point p=this.getLocation();
 			this.setLocation(p.x, 50);
 		}
@@ -1852,7 +1852,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		try {
 			String target = XML.getResolvedPath(record.getTarget(), record.getBasePath());
 			target = ResourceLoader.getURIPath(target);
-
+			
 			// download comPADRE targets to osp cache
 			if (target.indexOf("document/ServeFile.cfm?") > -1) { //$NON-NLS-1$
 				String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
@@ -1869,9 +1869,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 
 			String lcTarget = target.toLowerCase();
-			boolean accept = lcTarget.endsWith(".trz") //$NON-NLS-1$
-					|| lcTarget.endsWith(".trk") //$NON-NLS-1$
-					|| lcTarget.endsWith(".zip"); //$NON-NLS-1$
+			boolean accept = ResourceLoader.isJarZipTrz(lcTarget,  false);
 			if (!accept) {
 				for (String ext : VideoIO.getVideoExtensions()) {
 					accept |= lcTarget.endsWith("." + ext); //$NON-NLS-1$
