@@ -2177,8 +2177,8 @@ public class TableTrackView extends TrackView {
 				columnsDialog.setVisible(dialogLastVisible);
 			return dialogLastVisible;
 		} else {
-			boolean vis = columnsDialog.isVisible();
-			if (columnsDialog != null)
+			boolean vis = (columnsDialog != null && columnsDialog.isVisible());
+			if (vis)
 				columnsDialog.setVisible(false);
 			return vis;
 		}
