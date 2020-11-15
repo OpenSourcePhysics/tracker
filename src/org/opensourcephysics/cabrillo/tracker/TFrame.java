@@ -1802,10 +1802,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 								// if HINT_LOAD_RESOURCE, then e.getNewValue() is LibraryResource to load
 								if (LibraryBrowser.HINT_LOAD_RESOURCE == e.getOldValue()) {
 									LibraryResource record = (LibraryResource)e.getNewValue();
-									libraryBrowser.setMessage("Loading "+record.getName(), Color.YELLOW);
+									String abort = "\" [click here to cancel]";
+									libraryBrowser.setMessage("Loading \""+record.getName() + abort, Color.YELLOW);
+									libraryBrowser.setComandButtonEnabled(false);
 									openLibraryResource((LibraryResource) e.getNewValue(), () -> {
 										Timer timer = new Timer(500, (ev) -> {
 											libraryBrowser.setMessage(null, null);
+											libraryBrowser.setComandButtonEnabled(true);
 											TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
 											if (trackerPanel != null) {
 //												Toolkit.getDefaultToolkit().beep();
