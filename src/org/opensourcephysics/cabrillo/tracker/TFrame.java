@@ -108,23 +108,10 @@ import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.media.core.BaselineFilter;
-import org.opensourcephysics.media.core.BrightnessFilter;
 import org.opensourcephysics.media.core.ClipInspector;
-import org.opensourcephysics.media.core.DarkGhostFilter;
 import org.opensourcephysics.media.core.DataTrack;
-import org.opensourcephysics.media.core.DeinterlaceFilter;
-import org.opensourcephysics.media.core.GhostFilter;
-import org.opensourcephysics.media.core.GrayScaleFilter;
 import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.MediaRes;
-import org.opensourcephysics.media.core.NegativeFilter;
-import org.opensourcephysics.media.core.PerspectiveFilter;
-import org.opensourcephysics.media.core.RadialDistortionFilter;
-import org.opensourcephysics.media.core.ResizeFilter;
-import org.opensourcephysics.media.core.RotateFilter;
-import org.opensourcephysics.media.core.StrobeFilter;
-import org.opensourcephysics.media.core.SumFilter;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
@@ -2665,39 +2652,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	private void initialize(TrackerPanel trackerPanel) {
 		TMenuBar.getMenuBar(trackerPanel).setAllowRefresh(false);
-		// add a background mat if none exists
-		if (trackerPanel.getMat() == null) {
-			trackerPanel.addDrawable(new TMat(trackerPanel)); // constructor adds mat to panel
-		}
-		// add coordinate axes if none exists
-		if (trackerPanel.getAxes() == null) {
-			Tracker.setProgress(81);
-			CoordAxes axes = new CoordAxes();
-			axes.setVisible(false);
-			trackerPanel.addTrack(axes);
-		}
-		// add video filters to the tracker panel
-		trackerPanel.addFilter(DeinterlaceFilter.class);
-		trackerPanel.addFilter(GhostFilter.class);
-		trackerPanel.addFilter(StrobeFilter.class);
-		trackerPanel.addFilter(DarkGhostFilter.class);
-		trackerPanel.addFilter(NegativeFilter.class);
-		trackerPanel.addFilter(GrayScaleFilter.class);
-		trackerPanel.addFilter(BrightnessFilter.class);
-		trackerPanel.addFilter(BaselineFilter.class);
-		trackerPanel.addFilter(SumFilter.class);
-		trackerPanel.addFilter(ResizeFilter.class);
-		trackerPanel.addFilter(RotateFilter.class);
-		trackerPanel.addFilter(PerspectiveFilter.class);
-		trackerPanel.addFilter(RadialDistortionFilter.class);
-		// set mouse handler
-		trackerPanel.mouseHandler = new TMouseHandler();
-		trackerPanel.setInteractiveMouseHandler(trackerPanel.mouseHandler);
-		// set file drop handler
-		trackerPanel.setTransferHandler(fileDropHandler);
+		Tracker.setProgress(81);
+		trackerPanel.initialize(fileDropHandler);
 		// set divider locations
-		validate(); // in advance of setting divider locations
-		if (trackerPanel.dividerLocs != null) {
+		// validate in advance of setting divider locations
+		// to ensure dividers are set properly
+		validate(); 
+		if (trackerPanel.dividerLocs == null) {
+			setDividerLocation(trackerPanel, SPLIT_MAIN, defaultMainDivider);
+			setDividerLocation(trackerPanel, SPLIT_RIGHT, defaultRightDivider);
+			setDividerLocation(trackerPanel, SPLIT_LEFT, 1.0);
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0); // becomes previous
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, defaultBottomDivider);
+		} else {
 			int w = 0;
 			for (int i = 0; i < trackerPanel.dividerLocs.length; i++) {
 				JSplitPane pane = getSplitPane(trackerPanel, i);
@@ -2708,40 +2675,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				pane.setDividerLocation(loc);
 			}
 			trackerPanel.dividerLocs = null;
-		} else {
-			//setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0); // becomes previous
-			
-			setDividerLocation(trackerPanel, SPLIT_MAIN, defaultMainDivider);
-			setDividerLocation(trackerPanel, SPLIT_RIGHT, defaultRightDivider);
-			
-			//setDividerLocation(trackerPanel, SPLIT_LEFT, defaultBottomDivider); // becomes previous
-			
-			setDividerLocation(trackerPanel, SPLIT_LEFT, 1.0);
-			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0); // becomes previous
-			setDividerLocation(trackerPanel, SPLIT_BOTTOM, defaultBottomDivider);
-			
-//			JSplitPane pane = getSplitPane(trackerPanel, 0);
-//			int max = pane.getMaximumDividerLocation();
-//			int loc = (int) (.5 * defaultRightDivider * max);
-//			pane = getSplitPane(trackerPanel, 3);
-//			pane.setDividerLocation(loc);
 		}
 		validate(); // after setting divider locations
-		// set track control location
-		if (trackerPanel.trackControlX != Integer.MIN_VALUE) {
-			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
-			TrackControl tc = TrackControl.getControl(trackerPanel);
-			int x = Math.max(getLocation().x + trackerPanel.trackControlX, 0);
-			x = Math.min(x, dim.width - tc.getWidth());
-			int y = Math.max(getLocation().y + trackerPanel.trackControlY, 0);
-			y = Math.min(y, dim.height - tc.getHeight());
-			tc.setLocation(x, y);
-			tc.positioned = true;
-		}
-		// show filter inspectors
-		trackerPanel.showFilterInspectors();
-		// set initial format patterns for existing tracks
-		trackerPanel.setInitialFormatPatterns();
+		trackerPanel.initialize(null);
 		Tracker.setProgress(90);
 		TMenuBar.getMenuBar(trackerPanel).setAllowRefresh(true);
 		saveCurrentDividerLocations(trackerPanel);

@@ -184,7 +184,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.202011113"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20201115"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
 	
 	/**
