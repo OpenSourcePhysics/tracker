@@ -429,6 +429,7 @@ javajs/util/OC.js
 javajs/util/PT.js
 javajs/util/Rdr.js
 javajs/util/SB.js
+javajs/util/VideoReader.js
 javajs/util/ZipTools.js
 javax/accessibility/Accessible.js
 javax/imageio/IIOImage.js
@@ -759,6 +760,8 @@ org/opensourcephysics/cabrillo/tracker/OutlineFootprint.js
 org/opensourcephysics/cabrillo/tracker/PageTView.js
 org/opensourcephysics/cabrillo/tracker/ParticleDataTrack.js
 org/opensourcephysics/cabrillo/tracker/ParticleModel.js
+org/opensourcephysics/cabrillo/tracker/PencilCaption.js
+org/opensourcephysics/cabrillo/tracker/PencilControl.js
 org/opensourcephysics/cabrillo/tracker/PencilDrawer.js
 org/opensourcephysics/cabrillo/tracker/PencilScene.js
 org/opensourcephysics/cabrillo/tracker/PerspectiveTrack.js
@@ -768,7 +771,9 @@ org/opensourcephysics/cabrillo/tracker/PointMass.js
 org/opensourcephysics/cabrillo/tracker/PointShapeFootprint.js
 org/opensourcephysics/cabrillo/tracker/PositionStep.js
 org/opensourcephysics/cabrillo/tracker/PositionVectorFootprint.js
+org/opensourcephysics/cabrillo/tracker/PropertiesDialog.js
 org/opensourcephysics/cabrillo/tracker/Protractor.js
+org/opensourcephysics/cabrillo/tracker/ProtractorFootprint.js
 org/opensourcephysics/cabrillo/tracker/RGBRegion.js
 org/opensourcephysics/cabrillo/tracker/ReferenceFrame.js
 org/opensourcephysics/cabrillo/tracker/Ruler.js
@@ -850,6 +855,7 @@ org/opensourcephysics/display/HighlightableDataset.js
 org/opensourcephysics/display/Interactive.js
 org/opensourcephysics/display/InteractiveMouseHandler.js
 org/opensourcephysics/display/InteractivePanel.js
+org/opensourcephysics/display/InteractiveTextLine.js
 org/opensourcephysics/display/LogMeasurable.js
 org/opensourcephysics/display/Measurable.js
 org/opensourcephysics/display/MeasuredImage.js
@@ -879,6 +885,7 @@ org/opensourcephysics/media/core/AsyncVideoI.js
 org/opensourcephysics/media/core/BaselineFilter.js
 org/opensourcephysics/media/core/BrightnessFilter.js
 org/opensourcephysics/media/core/ClipControl.js
+org/opensourcephysics/media/core/ClipInspector.js
 org/opensourcephysics/media/core/DarkGhostFilter.js
 org/opensourcephysics/media/core/DataTrack.js
 org/opensourcephysics/media/core/DecimalField.js
@@ -1268,3 +1275,16 @@ swingjs/xml/JSXMLElement.js
 swingjs/xml/JSXMLNode.js
 swingjs/xml/JSXMLNodeList.js
 swingjs/xml/JSXMLText.js
+
+org/opensourcephysics/cabrillo/tracker/HelpFinder.js
+org/opensourcephysics/controls/OSPControlTable.js
+org/opensourcephysics/controls/XMLTable.js
+org/opensourcephysics/controls/XMLTableInspector.js
+org/opensourcephysics/controls/XMLTableModel.js
+org/opensourcephysics/display/AbstractInteractive.js
+org/opensourcephysics/display/InteractiveShape.js
+org/opensourcephysics/tools/EjsTool.js
+org/opensourcephysics/tools/LaunchNode.js
+org/opensourcephysics/tools/LaunchPanel.js
+org/opensourcephysics/tools/LaunchRes.js
+org/opensourcephysics/tools/LauncherUndo.js
