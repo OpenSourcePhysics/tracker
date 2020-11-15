@@ -90,15 +90,26 @@ import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.MessageDrawable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.AsyncVideoI;
+import org.opensourcephysics.media.core.BaselineFilter;
+import org.opensourcephysics.media.core.BrightnessFilter;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.ClipInspector;
+import org.opensourcephysics.media.core.DarkGhostFilter;
 import org.opensourcephysics.media.core.DataTrack;
+import org.opensourcephysics.media.core.DeinterlaceFilter;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
+import org.opensourcephysics.media.core.GhostFilter;
+import org.opensourcephysics.media.core.GrayScaleFilter;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.MediaRes;
+import org.opensourcephysics.media.core.NegativeFilter;
 import org.opensourcephysics.media.core.PerspectiveFilter;
+import org.opensourcephysics.media.core.RadialDistortionFilter;
+import org.opensourcephysics.media.core.ResizeFilter;
+import org.opensourcephysics.media.core.RotateFilter;
+import org.opensourcephysics.media.core.StrobeFilter;
 import org.opensourcephysics.media.core.SumFilter;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Trackable;
@@ -3544,59 +3555,133 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		 */
 		@Override
 		public Object loadObject(XMLControl control, Object obj) {
-			return super.loadObject(control, obj);
+			// load the video clip
+			TrackerPanel trackerPanel = (TrackerPanel) obj;	
+			// BH adds early setting of frame.
+			trackerPanel.frame = (TFrame) ((XMLControlElement) control).getData();
+			trackerPanel.frame.holdPainting(true);
+			// load the dividers
+			trackerPanel.dividerLocs = (double[]) control.getObject("dividers"); //$NON-NLS-1$
+			// load the track control location
+			trackerPanel.trackControlX = control.getInt("track_control_x"); //$NON-NLS-1$
+			trackerPanel.trackControlY = control.getInt("track_control_y"); //$NON-NLS-1$
+			// load the info dialog location
+			trackerPanel.infoX = control.getInt("info_x"); //$NON-NLS-1$
+			trackerPanel.infoY = control.getInt("info_y"); //$NON-NLS-1$
+			// load the image size
+			if (control.getPropertyNamesRaw().contains("width")) { //$NON-NLS-1$
+				trackerPanel.setImageWidth(control.getDouble("width")); //$NON-NLS-1$
+			}
+			if (control.getPropertyNamesRaw().contains("height")) { //$NON-NLS-1$
+				trackerPanel.setImageHeight(control.getDouble("height")); //$NON-NLS-1$
+			}
+			// load the zoom center and magnification
+			trackerPanel.setMagnification(control.getDouble("magnification")); //$NON-NLS-1$
+			if (control.getPropertyNamesRaw().contains("center_x")) { //$NON-NLS-1$
+				int x = control.getInt("center_x"); //$NON-NLS-1$
+				int y = control.getInt("center_y"); //$NON-NLS-1$
+				trackerPanel.zoomCenter = new Point(x, y);
+			}
+			// load and check if a newer Tracker version created this file
+			String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
+			// if ver is null then must be an older version
+			if (fileVersion != null && !OSPRuntime.isJS) {
+				int result = 0;
+				try {
+					result = Tracker.compareVersions(fileVersion, Tracker.VERSION);
+				} catch (Exception e) {
+				}
+				if (result > 0) { // file is newer version than Tracker
+					JOptionPane.showMessageDialog(trackerPanel,
+							TrackerRes.getString("TrackerPanel.Dialog.Version.Message1") //$NON-NLS-1$
+									+ " " + fileVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
+									+ TrackerRes.getString("TrackerPanel.Dialog.Version.Message2") //$NON-NLS-1$
+									+ "\n" + TrackerRes.getString("TrackerPanel.Dialog.Version.Message3") //$NON-NLS-1$ //$NON-NLS-2$
+									+ " (" + Tracker.VERSION + ")." //$NON-NLS-1$ //$NON-NLS-2$
+									+ "\n\n" + TrackerRes.getString("TrackerPanel.Dialog.Version.Message4") //$NON-NLS-1$ //$NON-NLS-2$
+									+ " https://" + Tracker.trackerWebsite + ".", //$NON-NLS-1$ //$NON-NLS-2$
+							TrackerRes.getString("TrackerPanel.Dialog.Version.Title"), //$NON-NLS-1$
+							JOptionPane.INFORMATION_MESSAGE);
+				}
+			}
+			// load the description
+			trackerPanel.hideDescriptionWhenLoaded = control.getBoolean("hide_description"); //$NON-NLS-1$
+			String desc = control.getString("description"); //$NON-NLS-1$
+			if (desc != null) {
+				trackerPanel.setDescription(desc);
+				trackerPanel.getTFrame().showNotes(trackerPanel);
+			}
+			// load the metadata
+			trackerPanel.author = control.getString("author"); //$NON-NLS-1$
+			trackerPanel.contact = control.getString("contact"); //$NON-NLS-1$
+
+			// load units and unit visibility
+			if (control.getPropertyNamesRaw().contains("length_unit")) { //$NON-NLS-1$
+				trackerPanel.lengthUnit = control.getString("length_unit"); //$NON-NLS-1$
+			}
+			if (control.getPropertyNamesRaw().contains("mass_unit")) { //$NON-NLS-1$
+				trackerPanel.massUnit = control.getString("mass_unit"); //$NON-NLS-1$
+			}
+			if (control.getPropertyNamesRaw().contains("units_visible")) { //$NON-NLS-1$
+				trackerPanel.unitsVisible = control.getBoolean("units_visible"); //$NON-NLS-1$
+			}
+
+			// load custom number formats
+			String[][] patterns = (String[][]) control.getObject("number_formats"); //$NON-NLS-1$
+			if (patterns != null) {
+				for (int ip = 0; ip < patterns.length; ip++) {
+					String[] next = patterns[ip];
+					TreeMap<String, String> patternMap = trackerPanel.getFormatPatterns(next[0]);
+					for (int i = 1; i < next.length - 1; i = i + 2) {
+						patternMap.put(next[i], next[i + 1]);
+					}
+				}
+			}
+			// load the configuration
+			Configuration config = (Configuration) control.getObject("configuration"); //$NON-NLS-1$
+			if (config != null) {
+				trackerPanel.enabled = config.enabled;
+			}
+
+			// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading ref and
+			// config ", Performance.TIME_MARK));
+
+			// load the selected_views property
+			List<XMLProperty> props = control.getPropsRaw();
+			trackerPanel.selectedViewsProperty = null;
+			trackerPanel.customViewsProperty = null;
+			for (int n = 0, i = props.size(); --i >= 0 && n < 2;) {
+				XMLProperty prop = props.get(i);
+				switch (prop.getPropertyName()) {
+				case "selected_views":
+					trackerPanel.selectedViewsProperty = prop;
+					n++;
+					break;
+				case "selected_view_types":
+					trackerPanel.selectedViewTypesProperty = prop;
+					n++;
+					break;
+				case "views":
+					trackerPanel.customViewsProperty = prop;
+					n++;
+					break;
+				}
+			}
+
+			super.loadObject(control, obj);
+			return trackerPanel;
 		}
 
 		@SuppressWarnings("unchecked")
 		@Override
 		public void finalizeLoading() {
-			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
-			// BH adds early setting of frame.
-			trackerPanel.frame = (TFrame) ((XMLControlElement) control).getData();
 			long t0 = Performance.now(0);
 			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
-
+			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
 			try {
-				trackerPanel.frame.holdPainting(true);
 				OSPLog.debug("TrackerPanel.finalizeLoading start");
-
+				XMLControl child;
 				Video video = finalizeClip();
-
-				OSPLog.debug(
-						Performance.timeCheckStr("TrackerPanel.finalizeLoading finalizeClip", Performance.TIME_MARK));
-
-				// load and check if a newer Tracker version created this file
-				String fileVersion = control.getString("semantic_version"); //$NON-NLS-1$
-				// if ver is null then must be an older version
-				if (fileVersion != null && !OSPRuntime.isJS) {
-					int result = 0;
-					try {
-						result = Tracker.compareVersions(fileVersion, Tracker.VERSION);
-					} catch (Exception e) {
-					}
-					if (result > 0) { // file is newer version than Tracker
-						JOptionPane.showMessageDialog(videoPanel,
-								TrackerRes.getString("TrackerPanel.Dialog.Version.Message1") //$NON-NLS-1$
-										+ " " + fileVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
-										+ TrackerRes.getString("TrackerPanel.Dialog.Version.Message2") //$NON-NLS-1$
-										+ "\n" + TrackerRes.getString("TrackerPanel.Dialog.Version.Message3") //$NON-NLS-1$ //$NON-NLS-2$
-										+ " (" + Tracker.VERSION + ")." //$NON-NLS-1$ //$NON-NLS-2$
-										+ "\n\n" + TrackerRes.getString("TrackerPanel.Dialog.Version.Message4") //$NON-NLS-1$ //$NON-NLS-2$
-										+ " https://" + Tracker.trackerWebsite + ".", //$NON-NLS-1$ //$NON-NLS-2$
-								TrackerRes.getString("TrackerPanel.Dialog.Version.Title"), //$NON-NLS-1$
-								JOptionPane.INFORMATION_MESSAGE);
-					}
-				}
-				// load the description
-				trackerPanel.hideDescriptionWhenLoaded = control.getBoolean("hide_description"); //$NON-NLS-1$
-				String desc = control.getString("description"); //$NON-NLS-1$
-				if (desc != null) {
-					trackerPanel.setDescription(desc);
-					trackerPanel.getTFrame().showNotes(trackerPanel);
-				}
-				// load the metadata
-				trackerPanel.author = control.getString("author"); //$NON-NLS-1$
-				trackerPanel.contact = control.getString("contact"); //$NON-NLS-1$
 				if (video != null) {
 					FilterStack stack = video.getFilterStack();
 					ArrayList<Filter> filters = stack.getFilters();
@@ -3614,13 +3699,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					}
 				}
 				OSPLog.debug(
-						Performance.timeCheckStr("TrackerPanel.finalizeLoading load metadata", Performance.TIME_MARK));
+						Performance.timeCheckStr("TrackerPanel.finalizeLoading finalizeClip", Performance.TIME_MARK));
+
 
 				// load the clip control
-				XMLControl child = control.getChildControl("clipcontrol"); //$NON-NLS-1$
+				child = control.getChildControl("clipcontrol"); //$NON-NLS-1$
 				if (child != null) {
-					ClipControl clipControl = trackerPanel.getPlayer().getClipControl();
-					child.loadObject(clipControl);
+					child.loadObject(trackerPanel.getPlayer().getClipControl());
 				}
 
 				OSPLog.debug(
@@ -3643,34 +3728,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					int n = trackerPanel.getFrameNumber();
 					trackerPanel.getSnapPoint().setXY(coords.getOriginX(n), coords.getOriginY(n));
 				}
-
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading coords", Performance.TIME_MARK));
-
-				// load units and unit visibility
-				if (control.getPropertyNamesRaw().contains("length_unit")) { //$NON-NLS-1$
-					trackerPanel.lengthUnit = control.getString("length_unit"); //$NON-NLS-1$
-				}
-				if (control.getPropertyNamesRaw().contains("mass_unit")) { //$NON-NLS-1$
-					trackerPanel.massUnit = control.getString("mass_unit"); //$NON-NLS-1$
-				}
-				if (control.getPropertyNamesRaw().contains("units_visible")) { //$NON-NLS-1$
-					trackerPanel.unitsVisible = control.getBoolean("units_visible"); //$NON-NLS-1$
-				}
-
-				// load custom number formats
-				String[][] patterns = (String[][]) control.getObject("number_formats"); //$NON-NLS-1$
-				if (patterns != null) {
-					for (int ip = 0; ip < patterns.length; ip++) {
-						String[] next = patterns[ip];
-						TreeMap<String, String> patternMap = trackerPanel.getFormatPatterns(next[0]);
-						for (int i = 1; i < next.length - 1; i = i + 2) {
-							patternMap.put(next[i], next[i + 1]);
-						}
-					}
-				}
-
-				OSPLog.debug(
-						Performance.timeCheckStr("TrackerPanel.finalizeLoading number formats", Performance.TIME_MARK));
 
 				// load the tracks
 				ArrayList<?> tracks = ArrayList.class.cast(control.getObject("tracks")); //$NON-NLS-1$
@@ -3716,94 +3773,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				if (rfName != null) {
 					trackerPanel.setReferenceFrame(rfName);
 				}
-				// load the configuration
-				Configuration config = (Configuration) control.getObject("configuration"); //$NON-NLS-1$
-				if (config != null) {
-					trackerPanel.enabled = config.enabled;
-				}
-
-				// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading ref and
-				// config ", Performance.TIME_MARK));
-
-				// load the selected_views property
-				List<XMLProperty> props = control.getPropsRaw();
-				trackerPanel.selectedViewsProperty = null;
-				trackerPanel.customViewsProperty = null;
-				for (int n = 0, i = props.size(); --i >= 0 && n < 2;) {
-					XMLProperty prop = props.get(i);
-					switch (prop.getPropertyName()) {
-					case "selected_views":
-						trackerPanel.selectedViewsProperty = prop;
-						n++;
-						break;
-					case "selected_view_types":
-						trackerPanel.selectedViewTypesProperty = prop;
-						n++;
-						break;
-					case "views":
-						trackerPanel.customViewsProperty = prop;
-						n++;
-						break;
-					}
-				}
-
-				// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading props ",
-				// Performance.TIME_MARK));
-
-				// load the dividers
-				trackerPanel.dividerLocs = (double[]) control.getObject("dividers"); //$NON-NLS-1$
-				// load the track control location
-				trackerPanel.trackControlX = control.getInt("track_control_x"); //$NON-NLS-1$
-				trackerPanel.trackControlY = control.getInt("track_control_y"); //$NON-NLS-1$
-				// load the info dialog location
-				trackerPanel.infoX = control.getInt("info_x"); //$NON-NLS-1$
-				trackerPanel.infoY = control.getInt("info_y"); //$NON-NLS-1$
-				// load the image size
-				if (control.getPropertyNamesRaw().contains("width")) { //$NON-NLS-1$
-					trackerPanel.setImageWidth(control.getDouble("width")); //$NON-NLS-1$
-				}
-				if (control.getPropertyNamesRaw().contains("height")) { //$NON-NLS-1$
-					trackerPanel.setImageHeight(control.getDouble("height")); //$NON-NLS-1$
-				}
-				// load the zoom center and magnification
-				trackerPanel.setMagnification(control.getDouble("magnification")); //$NON-NLS-1$
-				if (control.getPropertyNamesRaw().contains("center_x")) { //$NON-NLS-1$
-					int x = control.getInt("center_x"); //$NON-NLS-1$
-					int y = control.getInt("center_y"); //$NON-NLS-1$
-					trackerPanel.zoomCenter = new Point(x, y);
-				}
-
-				// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading misc ",
-				// Performance.TIME_MARK));
-
 				// set selected track
 				String name = control.getString(PROPERTY_TRACKERPANEL_SELECTEDTRACK); //$NON-NLS-1$
 				trackerPanel.setSelectedTrack(name == null ? null : trackerPanel.getTrack(name));
-
-				// load DataTool tabs
-//				if (control.getPropertyNamesRaw().contains("datatool_tabs")) { //$NON-NLS-1$
-//					DataTool tool = DataTool.getTool(true);
-//					for (XMLProperty prop : control.getPropsRaw()) {
-//						if (prop.getPropertyName().equals("datatool_tabs")) { //$NON-NLS-1$
-//							for (XMLControl tabControl : prop.getChildControls()) {
-//								// pass the tab control to the DataTool and get back the newly added tab
-//								tool.addTabs(tabControl, new Consumer<ArrayList<DataToolTab>>() {
-//									// BH 2020.03.25 TODO not tested
-//
-//									@Override
-//									public void accept(ArrayList<DataToolTab> addedTabs) {
-//										if (addedTabs != null && !addedTabs.isEmpty())
-//											setDataTabs(trackerPanel, addedTabs);
-//									}
-//
-//								});
-//							}
-//						}
-//					}
-//				}
-
-				// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading datatool
-				// ", Performance.TIME_MARK));
 
 			} finally {
 				OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
@@ -4450,6 +4422,55 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				}
 			}
 		}
+	}
+
+	public void initialize(FileDropHandler fileDropHandler) {
+		if (fileDropHandler == null) {
+			// phase II, after setting of dividers
+			// set track control location
+			if (trackControlX != Integer.MIN_VALUE) {
+				Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+				TrackControl tc = TrackControl.getControl(this);
+				int x = Math.max(getLocation().x + trackControlX, 0);
+				x = Math.min(x, dim.width - tc.getWidth());
+				int y = Math.max(getLocation().y + trackControlY, 0);
+				y = Math.min(y, dim.height - tc.getHeight());
+				tc.setLocation(x, y);
+				tc.positioned = true;
+			}
+			setTransferHandler(fileDropHandler);
+			setInteractiveMouseHandler(mouseHandler = new TMouseHandler());
+			// show filter inspectors
+			showFilterInspectors();
+			// set initial format patterns for existing tracks
+			setInitialFormatPatterns();
+			return;
+		}
+		// phase I
+		// add a background mat if none exists
+		if (getMat() == null) {
+			addDrawable(new TMat(this)); // constructor adds mat to panel
+		}
+		// add coordinate axes if none exists
+		if (getAxes() == null) {
+			CoordAxes axes = new CoordAxes();
+			axes.setVisible(false);
+			addTrack(axes);
+		}
+		// add video filters to the tracker panel
+		addFilter(DeinterlaceFilter.class);
+		addFilter(GhostFilter.class);
+		addFilter(StrobeFilter.class);
+		addFilter(DarkGhostFilter.class);
+		addFilter(NegativeFilter.class);
+		addFilter(GrayScaleFilter.class);
+		addFilter(BrightnessFilter.class);
+		addFilter(BaselineFilter.class);
+		addFilter(SumFilter.class);
+		addFilter(ResizeFilter.class);
+		addFilter(RotateFilter.class);
+		addFilter(PerspectiveFilter.class);
+		addFilter(RadialDistortionFilter.class);
 	}
 
 
