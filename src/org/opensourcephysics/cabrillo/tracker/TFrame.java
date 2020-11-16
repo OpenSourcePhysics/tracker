@@ -1860,32 +1860,42 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 
 			String lcTarget = target.toLowerCase();
-			boolean accept = ResourceLoader.isJarZipTrz(lcTarget,  false);
-			if (!accept) {
-				for (String ext : VideoIO.getVideoExtensions()) {
-					accept |= lcTarget.endsWith("." + ext); //$NON-NLS-1$
-					if (accept) {
-						loadVideo(target, true, whenDone); // pass along whenDone
-						return;
-					}
+			if (lcTarget.endsWith(".trk")) {
+				try {
+					TrackerIO.open(target, this);
+				} catch (Throwable t) {
 				}
+				return;
 			}
-			if (accept) {
-//	libraryBrowser.setVisible(false);
-				Resource res = ResourceLoader.getResourceZipURLsOK(target);
-				if (res == null) {
-					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
-					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
-							TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
-							JOptionPane.WARNING_MESSAGE);
-					libraryBrowser.setVisible(true);
-					return;
-				}
-				ArrayList<String> uriPaths = new ArrayList<String>();
-				uriPaths.add(target);
-				TrackerIO.openAll(uriPaths, TFrame.this, null, null, whenDone);
+			if (TrackerIO.isVideo(new File(target))) {
+				loadVideo(target, true, whenDone);
+				return;
 			}
-			else {
+//			if (!ResourceLoader.isJarZipTrz(lcTarget,  false)) {
+//				for (String ext : VideoIO.getVideoExtensions()) {
+//					if (lcTarget.endsWith("." + ext)) {
+//						loadVideo(target, true, whenDone); // pass along whenDone
+//						return;
+//					}
+//				}
+//			}
+			// BH 2020.11.15  accept cannot be true here.
+//			if (accept) {
+////	libraryBrowser.setVisible(false);
+//				Resource res = ResourceLoader.getResourceZipURLsOK(target);
+//				if (res == null) {
+//					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
+//					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
+//							TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
+//							JOptionPane.WARNING_MESSAGE);
+//					libraryBrowser.setVisible(true);
+//					return;
+//				}
+//				ArrayList<String> uriPaths = new ArrayList<String>();
+//				uriPaths.add(target);
+//				TrackerIO.openAll(uriPaths, TFrame.this, null, null, whenDone);
+//			}
+//			else {
 				String path = target;
 				for (String ext : VideoIO.KNOWN_VIDEO_EXTENSIONS) {
 					if (lcTarget.endsWith("." + ext)) {
@@ -1895,7 +1905,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						return;
 					}
 				}				
-			}
+//			}
 		} finally {
 			libraryBrowser.setCursor(Cursor.getDefaultCursor());
 		}
