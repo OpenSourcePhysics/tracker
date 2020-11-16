@@ -652,7 +652,7 @@ public class TrackerIO extends VideoIO {
 	 * @param desktopFiles  a list of HTML and/or PDF files to open on the desktop
 	 *                      (may be null)
 	 */
-	private static void openTabPath(String path, TrackerPanel existingPanel, TFrame frame, VideoType vidType,
+	private static void openTabPathAsync(String path, TrackerPanel existingPanel, TFrame frame, VideoType vidType,
 			ArrayList<String> desktopFiles, Runnable whenDone) {
 		OSPLog.debug("TrackerIO openTabPath " + path); //$NON-NLS-1$
 		new AsyncLoad(path, existingPanel, frame, vidType, desktopFiles, whenDone).execute();// executeSynchronously();
@@ -705,7 +705,7 @@ public class TrackerIO extends VideoIO {
 
 		// open all files in Tracker
 		run("openTabPath", () -> {
-				openTabPath(path, trackerPanel, frame, vidType, null, () -> {
+				openTabPathAsync(path, trackerPanel, frame, vidType, null, () -> {
 					if (trzFileFilter.accept(new File(path), false)
 							&& !path.contains("/OSP/Cache/"))
 						addToLibrary(frame, path);
@@ -719,13 +719,12 @@ public class TrackerIO extends VideoIO {
 	 * @param url   the url to be loaded
 	 * @param frame the frame for the TrackerPanel
 	 */
-	public static void open(URL url, final TFrame frame) {
-		if (url == null) {
-			return;
-		}
-		final String path = url.toExternalForm();
+	public static void open(URL url, TFrame frame) {
+		if (url != null) {
+			String path = url.toExternalForm();
 		OSPLog.debug("TrackerIO opening URL"); //$NON-NLS-1$
 		open(path, frame);
+	}
 	}
 
 	/**
@@ -755,7 +754,7 @@ public class TrackerIO extends VideoIO {
 		run("tabOpener", () -> {
 				for (String uriPath : uriPaths) {
 					OSPLog.debug("TrackerIO opening URL " + uriPath); //$NON-NLS-1$
-					openTabPath(uriPath, null, frame, null, desktopFiles, whenDone);
+					openTabPathAsync(uriPath, null, frame, null, desktopFiles, whenDone);
 				}
 		});
 	}
@@ -791,7 +790,7 @@ public class TrackerIO extends VideoIO {
 		if (!frame.haveContent()) {
 			existingPanel = frame.getTrackerPanel(0);
 		}
-		openTabPath(path, existingPanel, frame, null, null, () -> {
+		openTabPathAsync(path, existingPanel, frame, null, null, () -> {
 			if (trzFileFilter.accept(new File(path), false)
 					&& !ResourceLoader.isHTTP(path) && !path.contains("/OSP/Cache/"))
 				addToLibrary(frame, path);
@@ -954,14 +953,14 @@ public class TrackerIO extends VideoIO {
 		OSPLog.debug("TrackerIO importing file: " + path); //$NON-NLS-1$
 		TFrame frame = trackerPanel.getTFrame();
 		frame.loadedFiles.clear();
-		openTabPath(path, trackerPanel, frame, vidType, null, whenDone);
+		openTabPathAsync(path, trackerPanel, frame, vidType, null, whenDone);
 	}
 
 	public static void importVideo(String path, TrackerPanel trackerPanel, VideoType vidType, Runnable whenDone) {
 		OSPLog.debug("TrackerIO importing file: " + path); //$NON-NLS-1$
 		TFrame frame = trackerPanel.getTFrame();
 		frame.loadedFiles.clear();
-		openTabPath(path, trackerPanel, frame, vidType, null, whenDone);
+		openTabPathAsync(path, trackerPanel, frame, vidType, null, whenDone);
 	}
 
 	/**
