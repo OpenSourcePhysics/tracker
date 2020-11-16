@@ -125,6 +125,8 @@ import org.opensourcephysics.tools.Launcher.HTMLPane;
 import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.LibraryComPADRE;
 import org.opensourcephysics.tools.LibraryResource;
+import org.opensourcephysics.tools.LibraryTreeNode;
+import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -957,6 +959,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (viewChoosers == null)
 			viewChoosers = new TViewChooser[0];
 		int tab = getTab(trackerPanel);
+		if (tab == -1) return;
 		TTabPanel panel = (TTabPanel) tabbedPane.getComponentAt(tab);
 		panel.removeAll();
 		Object[] objects = panel.getObjects();
@@ -1792,13 +1795,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 									String abort = "\" [click here to cancel]";
 									libraryBrowser.setMessage("Loading \""+record.getName() + abort, Color.YELLOW);
 									libraryBrowser.setComandButtonEnabled(false);
+									libraryBrowser.setAlwaysOnTop(true);
 									openLibraryResource((LibraryResource) e.getNewValue(), () -> {
-										Timer timer = new Timer(500, (ev) -> {
-											libraryBrowser.setMessage(null, null);
+										Timer timer = new Timer(200, (ev) -> {
+											libraryBrowser.setAlwaysOnTop(false);
+											TFrame.this.requestFocus();
+											LibraryTreePanel treePanel = libraryBrowser.getSelectedTreePanel();
+											LibraryTreeNode node = treePanel.getSelectedNode();
+											libraryBrowser.setMessage(node == null? null: node.getToolTip(), null);
 											libraryBrowser.setComandButtonEnabled(true);
 											TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
 											if (trackerPanel != null) {
-//												Toolkit.getDefaultToolkit().beep();
 												trackerPanel.changed = false;
 												repaintT(trackerPanel);
 											}
@@ -1814,7 +1821,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 										TrackerIO.open(file.getPath(), TFrame.this);
 									}
 								}
-								TFrame.this.requestFocus();
 							}
 						});
 				LibraryBrowser.fireHelpEvent = true;

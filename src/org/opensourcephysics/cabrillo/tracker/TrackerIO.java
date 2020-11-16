@@ -755,10 +755,8 @@ public class TrackerIO extends VideoIO {
 		run("tabOpener", () -> {
 				for (String uriPath : uriPaths) {
 					OSPLog.debug("TrackerIO opening URL " + uriPath); //$NON-NLS-1$
-					openTabPath(uriPath, null, frame, null, desktopFiles, null);
+					openTabPath(uriPath, null, frame, null, desktopFiles, whenDone);
 				}
-				if (whenDone != null)
-					whenDone.run();
 		});
 	}
 
