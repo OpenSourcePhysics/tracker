@@ -1656,7 +1656,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //		if (!haveContent()) {
 //			removeTabNow(0);
 //		}
-		TrackerIO.open(path, TFrame.this);
+		TrackerIO.open(path, this);
 //		if (url!=null)
 //		TrackerIO.open(url, TFrame.this);
 //		else 
@@ -1789,13 +1789,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 								// if HINT_LOAD_RESOURCE, then e.getNewValue() is LibraryResource to load
 								if (LibraryBrowser.HINT_LOAD_RESOURCE == e.getOldValue()) {
 									LibraryResource record = (LibraryResource)e.getNewValue();
-									String abort = "\" [click here to cancel]";
-									libraryBrowser.setMessage("Loading \""+record.getName() + abort, Color.YELLOW);
+									String abort = "[click here to cancel]";
+									libraryBrowser.setMessage("Loading \""+record.getName() + "\"" + abort, Color.YELLOW);
 									libraryBrowser.setComandButtonEnabled(false);
 									openLibraryResource((LibraryResource) e.getNewValue(), () -> {
 										Timer timer = new Timer(500, (ev) -> {
-											libraryBrowser.setMessage(null, null);
-											libraryBrowser.setComandButtonEnabled(true);
+											libraryBrowser.setCanceled(false);
 											TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
 											if (trackerPanel != null) {
 //												Toolkit.getDefaultToolkit().beep();
@@ -1862,13 +1861,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			String lcTarget = target.toLowerCase();
 			if (lcTarget.endsWith(".trk")) {
 				try {
-					TrackerIO.open(target, this);
+					TrackerIO.openAsync(target, this, whenDone);
+					whenDone = null;
 				} catch (Throwable t) {
 				}
 				return;
 			}
 			if (TrackerIO.isVideo(new File(target))) {
 				loadVideo(target, true, whenDone);
+				whenDone = null;
 				return;
 			}
 //			if (!ResourceLoader.isJarZipTrz(lcTarget,  false)) {
@@ -1908,6 +1909,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //			}
 		} finally {
 			libraryBrowser.setCursor(Cursor.getDefaultCursor());
+			if (whenDone != null)
+				whenDone.run();
 		}
 	}
 

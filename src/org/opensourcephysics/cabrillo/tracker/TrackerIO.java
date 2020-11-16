@@ -719,13 +719,12 @@ public class TrackerIO extends VideoIO {
 	 * @param url   the url to be loaded
 	 * @param frame the frame for the TrackerPanel
 	 */
-	public static void open(URL url, final TFrame frame) {
-		if (url == null) {
-			return;
+	public static void open(URL url, TFrame frame) {
+		if (url != null) {
+			String path = url.toExternalForm();
+			OSPLog.debug("TrackerIO opening URL"); //$NON-NLS-1$
+			open(path, frame);
 		}
-		final String path = url.toExternalForm();
-		OSPLog.debug("TrackerIO opening URL"); //$NON-NLS-1$
-		open(path, frame);
 	}
 
 	/**
@@ -786,7 +785,10 @@ public class TrackerIO extends VideoIO {
 	 * @param path  the path
 	 * @param frame the frame for the TrackerPanel
 	 */
-	public static void open(final String path, final TFrame frame) {
+	public static void open(String path, TFrame frame) {
+		openAsync(path, frame, null);
+	}
+	public static void openAsync(String path, TFrame frame, Runnable whenDone) {
 		frame.loadedFiles.clear();
 		OSPLog.debug("TrackerIO open " + path); //$NON-NLS-1$
 		TrackerPanel existingPanel = null;
@@ -795,8 +797,11 @@ public class TrackerIO extends VideoIO {
 		}
 		openTabPath(path, existingPanel, frame, null, null, () -> {
 			if (trzFileFilter.accept(new File(path), false)
-					&& !ResourceLoader.isHTTP(path) && !path.contains("/OSP/Cache/"))
+					&& !ResourceLoader.isHTTP(path) && !path.contains("/OSP/Cache/")) {
 				addToLibrary(frame, path);
+			}
+			if (whenDone != null)
+				whenDone.run();
 		});
 	}
 
