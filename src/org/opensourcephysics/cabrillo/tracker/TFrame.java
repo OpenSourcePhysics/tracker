@@ -1840,9 +1840,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected void openLibraryResource(LibraryResource record, Runnable whenDone) {
 		libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		try {
-			String target = XML.getResolvedPath(record.getTarget(), record.getBasePath());
-			target = ResourceLoader.getURIPath(target);
-			
+			String target = record.getAbsoluteTarget();
+			if (!ResourceLoader.isHTTP(target)) {
+				target = ResourceLoader.getURIPath(XML.getResolvedPath(record.getTarget(), record.getBasePath()));
+			}			
 			// download comPADRE targets to osp cache
 			if (target.indexOf("document/ServeFile.cfm?") > -1) { //$NON-NLS-1$
 				String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
