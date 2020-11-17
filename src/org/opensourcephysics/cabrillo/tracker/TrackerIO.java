@@ -722,43 +722,9 @@ public class TrackerIO extends VideoIO {
 	public static void open(URL url, TFrame frame) {
 		if (url != null) {
 			String path = url.toExternalForm();
-		OSPLog.debug("TrackerIO opening URL"); //$NON-NLS-1$
-		open(path, frame);
-	}
-	}
-
-	/**
-	 * Loads a set of trk, trz, zip, or video files into one or more new
-	 * TrackerPanels (tabs).
-	 *
-	 * @param uriPaths     an array of URL paths to be loaded
-	 * @param frame        the frame for the TrackerPanels
-	 * @param desktopFiles supplemental HTML and PDF files to load on the desktop
-	 * @param trzPath      path to TRZ file, if that is the source
-	 */
-	public static void openAll(final Collection<String> uriPaths, final TFrame frame,
-			final ArrayList<String> desktopFiles, String trzPath, Runnable whenDone) {
-		if (uriPaths == null || uriPaths.isEmpty()) {
-			return;
+			OSPLog.debug("TrackerIO opening URL"); //$NON-NLS-1$
+			open(path, frame);
 		}
-		frame.loadedFiles.clear();
-//		Runnable whenDone = (trzPath != null ? () -> {
-//				TFrame.repaintT(frame);
-//				if (!trzPath.contains("/OSP/Cache/") && !ResourceLoader.isHTTP(trzPath)) {
-//					OSPLog.debug("TrackerIO adding to library " + trzPath); //$NON-NLS-1$
-//					addToLibrary(frame, trzPath);
-//				}
-//			} : null); // BH Q: Could be null_runable ? better: add whenDone to this method?
-
-		// open in separate background thread if flagged
-		run("tabOpener", () -> {
-				for (String uriPath : uriPaths) {
-					OSPLog.debug("TrackerIO opening URL " + uriPath); //$NON-NLS-1$
-					openTabPathAsync(uriPath, null, frame, null, desktopFiles, null);
-				}
-				if (whenDone != null)
-					whenDone.run();
-		});
 	}
 
 	/**
@@ -791,10 +757,7 @@ public class TrackerIO extends VideoIO {
 	public static void openAsync(String path, TFrame frame, Runnable whenDone) {
 		frame.loadedFiles.clear();
 		OSPLog.debug("TrackerIO open " + path); //$NON-NLS-1$
-		TrackerPanel existingPanel = null;
-		if (!frame.haveContent()) {
-			existingPanel = frame.getTrackerPanel(0);
-		}
+		TrackerPanel existingPanel = (frame.haveContent() ? null : frame.getTrackerPanel(0));
 		openTabPathAsync(path, existingPanel, frame, null, null, () -> {
 			if (trzFileFilter.accept(new File(path), false)
 					&& !ResourceLoader.isHTTP(path) && !path.contains("/OSP/Cache/")) {
@@ -802,6 +765,40 @@ public class TrackerIO extends VideoIO {
 			}
 			if (whenDone != null)
 				whenDone.run();
+		});
+	}
+
+	/**
+	 * Loads a set of trk, trz, zip, or video files into one or more new
+	 * TrackerPanels (tabs).
+	 *
+	 * @param uriPaths     an array of URL paths to be loaded
+	 * @param frame        the frame for the TrackerPanels
+	 * @param desktopFiles supplemental HTML and PDF files to load on the desktop
+	 * @param trzPath      path to TRZ file, if that is the source -- BH: Not used
+	 */
+	public static void openAll(final Collection<String> uriPaths, final TFrame frame,
+			final ArrayList<String> desktopFiles, String trzPath, Runnable whenDone) {
+		if (uriPaths == null || uriPaths.isEmpty()) {
+			return;
+		}
+		frame.loadedFiles.clear();
+//		Runnable whenDone = (trzPath != null ? () -> {
+//				TFrame.repaintT(frame);
+//				if (!trzPath.contains("/OSP/Cache/") && !ResourceLoader.isHTTP(trzPath)) {
+//					OSPLog.debug("TrackerIO adding to library " + trzPath); //$NON-NLS-1$
+//					addToLibrary(frame, trzPath);
+//				}
+//			} : null); // BH Q: Could be null_runable ? better: add whenDone to this method?
+
+		// open in separate background thread if flagged
+		run("tabOpener", () -> {
+				for (String uriPath : uriPaths) {
+					OSPLog.debug("TrackerIO opening URL " + uriPath); //$NON-NLS-1$
+					openTabPathAsync(uriPath, null, frame, null, desktopFiles, null);
+				}
+				if (whenDone != null)
+					whenDone.run();
 		});
 	}
 

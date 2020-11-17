@@ -1844,7 +1844,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			String target = record.getAbsoluteTarget();
 			if (!ResourceLoader.isHTTP(target)) {
 				target = ResourceLoader.getURIPath(XML.getResolvedPath(record.getTarget(), record.getBasePath()));
-			}			
+			}
 			// download comPADRE targets to osp cache
 			if (target.indexOf("document/ServeFile.cfm?") > -1) { //$NON-NLS-1$
 				String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
@@ -1861,54 +1861,47 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 
 			String lcTarget = target.toLowerCase();
-			if (lcTarget.endsWith(".trk") || ResourceLoader.isJarZipTrz(lcTarget, false)) {
+			boolean accept = (lcTarget.endsWith(".trk") || ResourceLoader.isJarZipTrz(lcTarget, false));
+			if (!accept) {
+				if (TrackerIO.isVideo(new File(target))) {
+					loadVideo(target, true, whenDone);
+					whenDone = null;
+					return;
+				}
+			}
+			if (accept) {
+				if (ResourceLoader.getResourceZipURLsOK(target) == null) {
+					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
+					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
+							TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
+							JOptionPane.WARNING_MESSAGE);
+					libraryBrowser.setVisible(true);
+					return;
+				}
 				try {
-					TrackerIO.openAsync(target, this, whenDone);
+//					TrackerIO.openAsync(target, this, whenDone);
+
+// BH: Doug, is there a reason to use openAll here?	Is it because we do NOT want to add these to recent files?
+					
+					ArrayList<String> uriPaths = new ArrayList<String>();
+					uriPaths.add(target);
+					TrackerIO.openAll(uriPaths, this, null, null, whenDone);
+
 					whenDone = null;
 				} catch (Throwable t) {
 				}
 				return;
 			}
-			if (TrackerIO.isVideo(new File(target))) {
-				loadVideo(target, true, whenDone);
-				whenDone = null;
-				return;
+			String path = target;
+			for (String ext : VideoIO.KNOWN_VIDEO_EXTENSIONS) {
+				if (lcTarget.endsWith("." + ext)) {
+					if (libraryBrowser != null)
+						libraryBrowser.setMessage(null, null);
+					VideoIO.handleUnsupportedVideo(path, ext, null, getTrackerPanel(getSelectedTab()),
+							"TFrame known video ext");
+					return;
+				}
 			}
-//			if (!ResourceLoader.isJarZipTrz(lcTarget,  false)) {
-//				for (String ext : VideoIO.getVideoExtensions()) {
-//					if (lcTarget.endsWith("." + ext)) {
-//						loadVideo(target, true, whenDone); // pass along whenDone
-//						return;
-//					}
-//				}
-//			}
-			// BH 2020.11.15  accept cannot be true here.
-//			if (accept) {
-////	libraryBrowser.setVisible(false);
-//				Resource res = ResourceLoader.getResourceZipURLsOK(target);
-//				if (res == null) {
-//					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
-//					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
-//							TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
-//							JOptionPane.WARNING_MESSAGE);
-//					libraryBrowser.setVisible(true);
-//					return;
-//				}
-//				ArrayList<String> uriPaths = new ArrayList<String>();
-//				uriPaths.add(target);
-//				TrackerIO.openAll(uriPaths, TFrame.this, null, null, whenDone);
-//			}
-//			else {
-				String path = target;
-				for (String ext : VideoIO.KNOWN_VIDEO_EXTENSIONS) {
-					if (lcTarget.endsWith("." + ext)) {
-						if (libraryBrowser != null) 
-							libraryBrowser.setMessage(null, null);
-						VideoIO.handleUnsupportedVideo(path, ext, null, getTrackerPanel(getSelectedTab()), "TFrame known video ext");
-						return;
-					}
-				}				
-//			}
 		} finally {
 			libraryBrowser.setCursor(Cursor.getDefaultCursor());
 			if (whenDone != null)
