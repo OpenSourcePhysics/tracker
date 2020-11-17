@@ -1859,7 +1859,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 
 			String lcTarget = target.toLowerCase();
-			if (lcTarget.endsWith(".trk")) {
+			if (lcTarget.endsWith(".trk") || ResourceLoader.isJarZipTrz(lcTarget, false)) {
 				try {
 					TrackerIO.openAsync(target, this, whenDone);
 					whenDone = null;
@@ -3176,14 +3176,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param whenDone optional Runnable
 	 */
 	void loadVideo(String path, boolean asNewTab, Runnable whenDone) {
-		if ((path.toLowerCase().endsWith("mp4"))
-				&& !VideoIO.isLoadableMP4(path, (codec) -> {
-					if (libraryBrowser != null) 
-						libraryBrowser.setMessage(null, null);
-					VideoIO.handleUnsupportedVideo(path, "mp4", codec, null);
-				})) 
-			return;
-					
+		if (!VideoIO.checkMP4(path, libraryBrowser))
+			return;					
 		// load a video file or a directory containing images
 		File localFile = ResourceLoader.download(path, null, false);
 		if (asNewTab)

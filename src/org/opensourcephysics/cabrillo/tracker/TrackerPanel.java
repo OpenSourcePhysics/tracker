@@ -4438,7 +4438,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				tc.setLocation(x, y);
 				tc.positioned = true;
 			}
-			setTransferHandler(fileDropHandler);
 			setInteractiveMouseHandler(mouseHandler = new TMouseHandler());
 			// show filter inspectors
 			showFilterInspectors();
@@ -4448,6 +4447,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 		// phase I
 		// add a background mat if none exists
+		setTransferHandler(fileDropHandler);
 		if (getMat() == null) {
 			addDrawable(new TMat(this)); // constructor adds mat to panel
 		}
