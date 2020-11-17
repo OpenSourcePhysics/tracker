@@ -722,9 +722,9 @@ public class TrackerIO extends VideoIO {
 	public static void open(URL url, TFrame frame) {
 		if (url != null) {
 			String path = url.toExternalForm();
-			OSPLog.debug("TrackerIO opening URL"); //$NON-NLS-1$
-			open(path, frame);
-		}
+		OSPLog.debug("TrackerIO opening URL"); //$NON-NLS-1$
+		open(path, frame);
+	}
 	}
 
 	/**
