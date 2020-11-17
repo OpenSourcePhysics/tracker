@@ -1904,7 +1904,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					if (lcTarget.endsWith("." + ext)) {
 						if (libraryBrowser != null) 
 							libraryBrowser.setMessage(null, null);
-						VideoIO.handleUnsupportedVideo(path, ext, null, getTrackerPanel(getSelectedTab()));
+						VideoIO.handleUnsupportedVideo(path, ext, null, getTrackerPanel(getSelectedTab()), "TFrame known video ext");
 						return;
 					}
 				}				

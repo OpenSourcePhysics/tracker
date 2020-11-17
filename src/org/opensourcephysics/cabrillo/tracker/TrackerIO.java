@@ -1712,7 +1712,7 @@ public class TrackerIO extends VideoIO {
 				progress = openTabPathVideo(progress);
 				break;
 			case TYPE_UNSUPPORTED_VIDEO:
-				VideoIO.handleUnsupportedVideo(path, XML.getExtension(path), null, trackerPanel);
+				VideoIO.handleUnsupportedVideo(path, XML.getExtension(path), null, trackerPanel, "TrackerIO.unsupp video-asyncLoad");
 			default:
 				return 100;
 			}
@@ -2048,7 +2048,7 @@ public class TrackerIO extends VideoIO {
 			// check for unsupported MP4 videos
 			if ((path.toLowerCase().endsWith("mp4"))
 					&& !VideoIO.isLoadableMP4(path, (codec) -> {
-						VideoIO.handleUnsupportedVideo(path, "mp4", codec, trackerPanel);
+						VideoIO.handleUnsupportedVideo(path, "mp4", codec, trackerPanel, "TrackerIO.asyncLoad");
 					})) 
 				return 100;
 			
@@ -2077,7 +2077,7 @@ public class TrackerIO extends VideoIO {
 				if (frame.libraryBrowser != null) 
 					frame.libraryBrowser.setMessage(null, null);
 				String codec = VideoIO.getVideoCodec(path);
-				VideoIO.handleUnsupportedVideo(path, XML.getExtension(path), codec, trackerPanel);
+				VideoIO.handleUnsupportedVideo(path, XML.getExtension(path), codec, trackerPanel, "OpenTabPathVideo null video");
 				cancelAsync();
 				// monitorDialog.close();
 				return 100;
