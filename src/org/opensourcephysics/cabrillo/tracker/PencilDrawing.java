@@ -49,9 +49,9 @@ import org.opensourcephysics.display.Measurable;
  */
 public class PencilDrawing implements Drawable, Measurable {
 	
-	protected static final int STYLE_TRAIL = 0;
-	protected static final int STYLE_ARROW = 1;
-	protected static final int STYLE_ELLIPSE = 2;
+	protected static final int STYLE_ARROW = 0;
+	protected static final int STYLE_ELLIPSE = 1;
+	protected static final int STYLE_TRAIL = 2;
 	protected static final int MAX_LENGTH = 80;
 	protected static final int MIN_LENGTH = 10;
 	
@@ -125,7 +125,7 @@ public class PencilDrawing implements Drawable, Measurable {
    * @param newStyle one of the defined styles
    */
 	public void setStyle(int newStyle) {
-		if (newStyle < 0 || newStyle > STYLE_ELLIPSE)
+		if (newStyle < 0 || newStyle > 2)
 			return;
 		style = newStyle;
 	}

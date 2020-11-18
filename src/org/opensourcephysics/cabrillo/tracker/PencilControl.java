@@ -505,9 +505,9 @@ public class PencilControl extends JDialog {
 		// add undo/redo buttons to north panel
 		Box sideBox = Box.createVerticalBox();
 		northPanel.add(sideBox, BorderLayout.EAST);
-		sideBox.add(trailButton);
 		sideBox.add(arrowButton);
 		sideBox.add(ellipseButton);
+		sideBox.add(trailButton);
 		sideBox.add(Box.createVerticalGlue());
 		sideBox.add(undoButton);
 		sideBox.add(redoButton);
@@ -635,6 +635,7 @@ public class PencilControl extends JDialog {
 		undoButton.setToolTipText(undoManager.getUndoPresentationName());
 		redoButton.setToolTipText(undoManager.getRedoPresentationName());
 		// enable/disable components
+		
 		boolean enabled = selectedScene!=null;
 		drawingLabel.setEnabled(enabled);
 		toLabel.setEnabled(enabled);
@@ -650,6 +651,7 @@ public class PencilControl extends JDialog {
 		redoButton.setEnabled(undoManager.canRedo());
 		clearAllButton.setEnabled(!drawer.scenes.isEmpty());
 		sceneDropdown.setEnabled(!drawer.scenes.isEmpty());
+		newSceneButton.setEnabled(selectedScene==null || !selectedScene.getDrawings().isEmpty());
 		if (enabled) {
 			repaintCanvas();
   	  int first = trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();
