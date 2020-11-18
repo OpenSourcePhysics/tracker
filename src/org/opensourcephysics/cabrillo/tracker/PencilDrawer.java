@@ -72,6 +72,7 @@ public class PencilDrawer {
   ArrayList<PencilScene> scenes = new ArrayList<PencilScene>();
   Color color = colors[0][0];
   PencilControl drawingControl;
+  int style;
   
   /**
    * Constructs a PencilDrawer.
@@ -172,6 +173,11 @@ public class PencilDrawer {
 		}
 		PencilDrawing drawing = new PencilDrawing(color);
 		drawing.setStroke(scene.isHeavy()? heavyStroke: lightStroke);
+		drawing.setStyle(style);
+		if (style == PencilDrawing.STYLE_ARROW) {
+			int w = trackerPanel.getMat().mat.width;
+			drawing.setArrowheadLength(w/30);
+		}
 		scene.getDrawings().add(drawing);
 		return drawing;
 	}
@@ -381,7 +387,7 @@ public class PencilDrawer {
       case InteractivePanel.MOUSE_PRESSED:
        	newDrawing = addNewDrawingtoSelectedScene();
         // selected scene always exists at this point
-       	newDrawing.addPoint(trackerPanel.getMouseX(), trackerPanel.getMouseY());
+       	newDrawing.markPoint(trackerPanel.getMouseX(), trackerPanel.getMouseY());
         trackerPanel.setMouseCursor(getPencilCursor());
     		if (Tracker.showHints) {
     			trackerPanel.setMessage(TrackerRes.getString("PencilDrawer.Hint")); //$NON-NLS-1$
@@ -390,8 +396,8 @@ public class PencilDrawer {
 
       case InteractivePanel.MOUSE_DRAGGED:
       	if (newDrawing==null) break;
-      	newDrawing.addPoint(trackerPanel.getMouseX(), trackerPanel.getMouseY());
-      	TFrame.repaintT(trackerPanel);
+      	newDrawing.markPoint(trackerPanel.getMouseX(), trackerPanel.getMouseY());
+    		TFrame.repaintT(trackerPanel);
         trackerPanel.setMouseCursor(getPencilCursor());
         break;
 
@@ -399,7 +405,7 @@ public class PencilDrawer {
       	if (newDrawing!=null) {
       		// always remove new drawing
       		getSelectedScene().getDrawings().remove(newDrawing);
-	      	if (newDrawing.getNumberOfPoints()<=1) {
+	      	if (newDrawing.getPointCount() <= 1) {
 	      		// don't restore drawing with a single point
 	      		TFrame.repaintT(trackerPanel);
 	      	}

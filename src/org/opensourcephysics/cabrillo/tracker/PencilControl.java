@@ -83,6 +83,9 @@ public class PencilControl extends JDialog {
 	
 	static PencilScene dummyScene = new PencilScene();
   static Icon undoIcon, redoIcon, undoDisabledIcon, redoDisabledIcon;
+  static Icon trailIcon, trailSelectedIcon;
+  static Icon arrowIcon, arrowSelectedIcon;
+  static Icon ellipseIcon, ellipseSelectedIcon;
   private static Color lightgrey = new Color(230, 230, 230);
 
   static {
@@ -90,6 +93,12 @@ public class PencilControl extends JDialog {
   	redoIcon =  Tracker.getResourceIcon("redo.gif", true); //$NON-NLS-1$
   	undoDisabledIcon =  Tracker.getResourceIcon("undo_disabled.gif", true); //$NON-NLS-1$
   	redoDisabledIcon =  Tracker.getResourceIcon("redo_disabled.gif", true); //$NON-NLS-1$
+  	trailIcon =  Tracker.getResourceIcon("freeform.gif", true); //$NON-NLS-1$
+  	trailSelectedIcon =  Tracker.getResourceIcon("freeform_selected.gif", true); //$NON-NLS-1$
+  	arrowIcon =  Tracker.getResourceIcon("arrow.gif", true); //$NON-NLS-1$
+  	arrowSelectedIcon =  Tracker.getResourceIcon("arrow_selected.gif", true); //$NON-NLS-1$
+  	ellipseIcon =  Tracker.getResourceIcon("ellipse.gif", true); //$NON-NLS-1$
+  	ellipseSelectedIcon =  Tracker.getResourceIcon("ellipse_selected.gif", true); //$NON-NLS-1$
   }
   	
 	private PencilDrawer drawer;
@@ -102,6 +111,7 @@ public class PencilControl extends JDialog {
   private JTextField captionField;
   private JButton newSceneButton, deleteSceneButton;
   private JButton undoButton, redoButton, clearAllButton, closeButton, helpButton;
+  private JButton trailButton, arrowButton, ellipseButton;
   private ColorButton[][] colorButtons;
   private Dimension canvasSize = new Dimension(120, 90);
   private boolean refreshing;
@@ -230,44 +240,51 @@ public class PencilControl extends JDialog {
 			} 			
 		});
 		
-		undoButton = new JButton(undoIcon) {
-  		@Override
-      public Dimension getPreferredSize() {
-				Dimension dim = super.getPreferredSize();
-		    dim.width = (int)(2*buttonWidth*FontSizer.getFactor());
-	      return dim;
-      }    	
-		};
+		undoButton = new SideButton(undoIcon);
 		undoButton.setDisabledIcon(undoDisabledIcon);
 		undoButton.addActionListener(new ActionListener() {
       @Override
-	public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {
       	undoManager.undo();
     		refreshGUI();
       }
     });  		
 		
-		redoButton = new JButton(redoIcon) {
-  		@Override
-      public Dimension getPreferredSize() {
-				Dimension dim = super.getPreferredSize();
-		    dim.width = (int)(2*buttonWidth*FontSizer.getFactor());
-	      return dim;
-      }    	
-		};
+		redoButton = new SideButton(redoIcon);
 		redoButton.setDisabledIcon(redoDisabledIcon);
 		redoButton.addActionListener(new ActionListener() {
       @Override
-	public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {
       	undoManager.redo();
     		refreshGUI();
       }
     });  		
 		
+		trailButton = new SideButton(trailIcon);
+		trailButton.setSelectedIcon(trailSelectedIcon);
+		trailButton.addActionListener( (e) -> {
+			drawer.style = PencilDrawing.STYLE_TRAIL;
+			refreshStyleButtons();
+    });  		
+		
+		arrowButton = new SideButton(arrowIcon);
+		arrowButton.setSelectedIcon(arrowSelectedIcon);
+		arrowButton.addActionListener( (e) -> {
+			drawer.style = PencilDrawing.STYLE_ARROW;
+			refreshStyleButtons();
+    });  		
+		
+		ellipseButton = new SideButton(ellipseIcon);
+		ellipseButton.setSelectedIcon(ellipseSelectedIcon);
+		ellipseButton.addActionListener( (e) -> {
+			drawer.style = PencilDrawing.STYLE_ELLIPSE;
+			refreshStyleButtons();
+    });  		
+		
 		clearAllButton = new JButton();
 		clearAllButton.addActionListener(new ActionListener() {
       @Override
-	public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {
       	if (PencilDrawer.hasDrawings(trackerPanel)) {
       		postClearEdit(drawer.scenes);
       	}
@@ -486,11 +503,14 @@ public class PencilControl extends JDialog {
 		northPanel.add(colorBox, BorderLayout.WEST);
 		
 		// add undo/redo buttons to north panel
-		Box undoBox = Box.createVerticalBox();
-		northPanel.add(undoBox, BorderLayout.EAST);
-		undoBox.add(undoButton);
-		undoBox.add(redoButton);
-		undoBox.add(Box.createVerticalGlue());
+		Box sideBox = Box.createVerticalBox();
+		northPanel.add(sideBox, BorderLayout.EAST);
+		sideBox.add(trailButton);
+		sideBox.add(arrowButton);
+		sideBox.add(ellipseButton);
+		sideBox.add(Box.createVerticalGlue());
+		sideBox.add(undoButton);
+		sideBox.add(redoButton);
 		
 		// center panel
 		JPanel centerPanel = new JPanel();
@@ -575,6 +595,15 @@ public class PencilControl extends JDialog {
   	ClearEdit edit = new ClearEdit(scenes);
 		undoSupport.postEdit(edit);
   }
+  
+  /**
+   * Refreshes the GUI.
+   */
+	protected void refreshStyleButtons() {
+		trailButton.setSelected(drawer.style == PencilDrawing.STYLE_TRAIL);
+		arrowButton.setSelected(drawer.style == PencilDrawing.STYLE_ARROW);
+		ellipseButton.setSelected(drawer.style == PencilDrawing.STYLE_ELLIPSE);
+	}
 	
   /**
    * Refreshes the GUI.
@@ -660,9 +689,10 @@ public class PencilControl extends JDialog {
      	sceneDropdown.addItem(dummyScene);
     	sceneDropdown.setSelectedItem(dummyScene);
     }
+    refreshStyleButtons();
 		refreshing = false;
 		pack();
-   repaint();
+		repaint();
 	}
 	
   /**
@@ -742,7 +772,24 @@ public class PencilControl extends JDialog {
   }
 	
   /**
-   * A button inner class to manage pencil colors.
+   * A button class for the right side panel.
+   */
+  private class SideButton extends JButton {
+  	
+  	public SideButton(Icon icon) {
+  		super(icon);
+  	}
+  	
+		@Override
+    public Dimension getPreferredSize() {
+			Dimension dim = super.getPreferredSize();
+	    dim.width = (int)(2*buttonWidth*FontSizer.getFactor());
+      return dim;
+    }    	
+  }
+	
+  /**
+   * A button class to manage pencil colors.
    */
   private class ColorButton extends JButton implements ActionListener {
   	
