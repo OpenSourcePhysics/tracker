@@ -330,6 +330,7 @@ public class PencilControl extends JDialog {
       	if (refreshing || selectedScene==null) return;
       	selectedScene.setHeavy(heavyCheckbox.isSelected());
       	TFrame.repaintT(trackerPanel);
+    		trackerPanel.changed = true;
       	repaintCanvas();
 			} 			
 		});
@@ -338,11 +339,12 @@ public class PencilControl extends JDialog {
 		startFrameSpinner = new JSpinner();
 		startFrameSpinner.addChangeListener(new ChangeListener() {
       @Override
-	public void stateChanged(ChangeEvent e) {
+      public void stateChanged(ChangeEvent e) {
       	if (selectedScene==null) return;
       	selectedScene.setStartFrame((Integer)startFrameSpinner.getValue());
       	Collections.sort(drawer.scenes);
       	TFrame.repaintT(trackerPanel);
+    		trackerPanel.changed = true;
       	refreshGUI();
       }
     }); 
@@ -350,11 +352,12 @@ public class PencilControl extends JDialog {
 		endFrameSpinner = new JSpinner();
 		endFrameSpinner.addChangeListener(new ChangeListener() {
       @Override
-	public void stateChanged(ChangeEvent e) {
+      public void stateChanged(ChangeEvent e) {
       	if (selectedScene==null) return;
       	selectedScene.setEndFrame((Integer)endFrameSpinner.getValue());
       	Collections.sort(drawer.scenes);
       	TFrame.repaintT(trackerPanel);
+    		trackerPanel.changed = true;
       	refreshGUI();
       }
     });
@@ -364,7 +367,7 @@ public class PencilControl extends JDialog {
 		((JSpinner.DefaultEditor)fontSizeSpinner.getEditor()).getTextField().setEditable(false);
 		fontSizeSpinner.addChangeListener(new ChangeListener() {
       @Override
-	public void stateChanged(ChangeEvent e) {
+      public void stateChanged(ChangeEvent e) {
       	if (selectedScene.getCaption()==null) return;
       	if (refreshing) return;
       	Font font = selectedScene.getCaption().getFont();
@@ -372,6 +375,7 @@ public class PencilControl extends JDialog {
       	font = font.deriveFont(size);
       	selectedScene.getCaption().setFont(font);
       	TFrame.repaintT(trackerPanel);
+    		trackerPanel.changed = true;
       	repaintCanvas();
       }
     });
@@ -388,7 +392,7 @@ public class PencilControl extends JDialog {
 		sceneDropdown.setRenderer(new SceneDropdownRenderer());
 		sceneDropdown.addActionListener(new ActionListener() {
       @Override
-	public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {
       	if (refreshing) return;
       	PencilScene scene = (PencilScene)sceneDropdown.getSelectedItem();
       	if (scene==dummyScene) return;
@@ -404,7 +408,7 @@ public class PencilControl extends JDialog {
 		captionField = new JTextField(16);
 		captionField.addKeyListener(new KeyAdapter() {
       @Override
-	public void keyReleased(KeyEvent e) {
+      public void keyReleased(KeyEvent e) {
       	if (e.getKeyCode()==KeyEvent.VK_ENTER) return;
       	String text = captionField.getText();
       	if (!selectedScene.isCaptionPositioned && !"".equals(text.trim())) { //$NON-NLS-1$
@@ -420,14 +424,13 @@ public class PencilControl extends JDialog {
         	caption.setText(text);       	
         	caption.color = drawer.color;
         	selectedScene.isCaptionPositioned = true;
-        	trackerPanel.changed = true;
   			}
       	else {
       		selectedScene.getCaption().setText(text);
-        	trackerPanel.changed = true;
       	}
       	captionField.setBackground(Color.YELLOW);
       	refreshGUI();
+      	trackerPanel.changed = true;
       	TFrame.repaintT(trackerPanel);
       }
     });
@@ -829,6 +832,7 @@ public class PencilControl extends JDialog {
 			if (drawer.getSelectedScene()!=null) {
 				drawer.getSelectedScene().setColor(color);
 				TFrame.repaintT(trackerPanel);
+				trackerPanel.changed = true;
 			}
 			refreshGUI();
       trackerPanel.setMouseCursor(drawer.getPencilCursor());
