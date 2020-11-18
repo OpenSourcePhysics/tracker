@@ -1812,8 +1812,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 								// if HINT_DOWNLOAD_RESOURCE, then e.getNewValue() is downloaded File to load
 								else if (LibraryBrowser.HINT_DOWNLOAD_RESOURCE == e.getOldValue()) {
 									File file = (File)e.getNewValue();
-									if (file.exists()) {
-										TrackerIO.open(file.getPath(), TFrame.this);
+									if (file != null && file.exists()) {
+//										TrackerIO.open(file.getPath(), TFrame.this);
 									}
 								}
 							}
