@@ -3123,8 +3123,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 *
 	 * @return a clean TrackerPanel.
 	 */
-	TrackerPanel getCleanTrackerPanel() {
-		return (getTabCount() == 0 || haveContent() ? new TrackerPanel() : getTrackerPanel(0));
+	synchronized TrackerPanel getCleanTrackerPanel() {
+		if (getTabCount() == 0 || haveContent())
+			return new TrackerPanel();
+		TrackerPanel panel = getTrackerPanel(0);
+		panel.changed = true;
+		return panel;
 	}
 
 
