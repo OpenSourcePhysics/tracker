@@ -62,6 +62,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 
 import org.opensourcephysics.controls.XML;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.DeinterlaceFilter;
 import org.opensourcephysics.media.core.ImageVideoRecorder;
@@ -284,7 +285,7 @@ public class ExportVideoDialog extends JDialog {
 			public void actionPerformed(ActionEvent e) {
 				VideoType format = TrackerIO.videoFormats.get(formatDropdown.getSelectedItem());
 				Dimension size = sizes.get(sizeDropdown.getSelectedItem());
-				render(format, size, true, null, null);
+				render(format, size, !OSPRuntime.isJS, null, null);
 			}
 		});
 		closeButton = new JButton();
@@ -646,13 +647,13 @@ public class ExportVideoDialog extends JDialog {
 	 *                       saved video
 	 * @param trkPath 
 	 */
-	private void render(VideoType videoType, final Dimension size, final boolean showOpenDialog, String filePath, String trkPath) {
+	private void render(VideoType videoType, Dimension size, boolean showOpenDialog, String filePath, String trkPath) {
 		setVisible(false);
 		savedFilePath = null;
 		// prepare selected view to produce desired images
-		final Video video = trackerPanel.getVideo();
-		final boolean videoIsVisible = video != null && video.isVisible();
-		final double magnification = trackerPanel.getMagnification();
+		Video video = trackerPanel.getVideo();
+		boolean videoIsVisible = video != null && video.isVisible();
+		double magnification = trackerPanel.getMagnification();
 		JComponent view = views.get(viewDropdown.getSelectedItem());
 		if (view == trackerPanel && contentDropdown.getSelectedIndex() != 1) { // includes graphics
 			// change magnification if needed
@@ -684,13 +685,13 @@ public class ExportVideoDialog extends JDialog {
 
 		}
 		// prepare the player, etc
-		final VideoPlayer player = trackerPanel.getPlayer();
+		VideoPlayer player = trackerPanel.getPlayer();
 		player.stop();
 		player.setEnabled(false);
-		final ClipControl playControl = player.getClipControl();
-		final VideoClip clip = playControl.getVideoClip();
-		final int taskLength = clip.getStepCount() + 1; // for monitor
-		final VideoRecorder recorder = videoType.getRecorder();
+		ClipControl playControl = player.getClipControl();
+		VideoClip clip = playControl.getVideoClip();
+		int taskLength = clip.getStepCount() + 1; // for monitor
+		VideoRecorder recorder = videoType.getRecorder();
 		double duration = player.getMeanStepDuration();
 		if (contentDropdown.getSelectedIndex() == 3)
 			duration = duration / 2;
@@ -744,19 +745,19 @@ public class ExportVideoDialog extends JDialog {
 		else {
 			// create progress monitor
 			String description = XML.getName(recorder.getFileName());
-			final ProgressMonitor monitor = new ProgressMonitor(trackerPanel.getTFrame(),
+			ProgressMonitor monitor = new ProgressMonitor(trackerPanel.getTFrame(),
 					TrackerRes.getString("TActions.SaveClipAs.ProgressMonitor.Message") //$NON-NLS-1$
 							+ " " + description, //$NON-NLS-1$
 					"", 0, taskLength); //$NON-NLS-1$
 			monitor.setMillisToPopup(2000);
 			monitor.setProgress(1);
-//			final JComponent theView = view;
+//			JComponent theView = view;
 
 			// create "stepnumber" PropertyChangeListener to add frames
 			listener = new PropertyChangeListener() {
 				@Override
 				public void propertyChange(PropertyChangeEvent e) {
-					final int progress = ((Integer) e.getNewValue()).intValue() + 1;
+					int progress = ((Integer) e.getNewValue()).intValue() + 1;
 					Runnable runner = new Runnable() {
 						@Override
 						public void run() {
@@ -837,7 +838,7 @@ public class ExportVideoDialog extends JDialog {
 				// set VideoIO preferred export format to this one (ie most recent)
 				String extension = XML.getExtension(savedFilePath);
 				VideoIO.setPreferredExportExtension(extension);
-				final TFrame frame = trackerPanel.getTFrame();
+				TFrame frame = trackerPanel.getTFrame();
 				if (showOpenDialog) {
 					int response = javax.swing.JOptionPane.showConfirmDialog(frame,
 							TrackerRes.getString("ExportVideoDialog.Complete.Message1") //$NON-NLS-1$
@@ -848,11 +849,11 @@ public class ExportVideoDialog extends JDialog {
 							javax.swing.JOptionPane.QUESTION_MESSAGE);
 					if (response == javax.swing.JOptionPane.YES_OPTION) {
 						frame.loadedFiles.remove(savedFilePath);
-						final File file = new File(savedFilePath);
+						File file = new File(savedFilePath);
 						Runnable runner = new Runnable() {
 							@Override
 							public void run() {
-								TrackerIO.openTabFile(file, frame);
+								TrackerIO.openFileFromDialog(file, frame, TrackerIO.NULL_RUNNABLE);
 							}
 						};
 						SwingUtilities.invokeLater(runner);

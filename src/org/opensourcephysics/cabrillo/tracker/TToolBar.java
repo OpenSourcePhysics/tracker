@@ -829,7 +829,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 	protected void doNotesAction() {
 		TFrame frame = trackerPanel.getTFrame();
-		if (frame != null && frame.getTrackerPanel(frame.getSelectedTab()) == trackerPanel) {
+		if (frame != null && frame.getSelectedPanel() == trackerPanel) {
 			frame.notesDialog.removeWindowListener(infoListener);
 			frame.notesDialog.addWindowListener(infoListener);
 			// position info dialog if first time shown

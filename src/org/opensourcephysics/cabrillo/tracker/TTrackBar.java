@@ -136,7 +136,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					final TFrame frame = (TFrame) testButton.getTopLevelAncestor();
-					if (frame != null && frame.getSelectedTab() > -1) {
+					if (frame != null && frame.getSelectedPanel() != null) {
 						if (testTimer == null) {
 							testTimer = new Timer(500, new ActionListener() {
 								@Override
@@ -298,10 +298,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 						Tracker.newerVersion = null;
 						Tracker.lastMillisChecked = System.currentTimeMillis();
 						TFrame frame = (TFrame) newVersionButton.getTopLevelAncestor();
-						if (frame != null && frame.getSelectedTab() > -1) {
-							TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-							TTrackBar trackbar = trackbars.get(trackerPanel);
-							trackbar.refresh();
+						TrackerPanel trackerPanel = (frame == null ? null : frame.getSelectedPanel());
+						if (trackerPanel != null) {
+							trackbars.get(trackerPanel).refresh();
 						}
 					}
 				});
