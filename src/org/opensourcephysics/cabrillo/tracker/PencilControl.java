@@ -70,6 +70,7 @@ import javax.swing.undo.UndoableEditSupport;
 
 import org.opensourcephysics.display.ColorIcon;
 import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.tools.FontSizer;
 
@@ -210,12 +211,9 @@ public class PencilControl extends JDialog {
         return dim;
       }    	
 		};
-		newSceneButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				drawer.addNewScene();
-				refreshGUI();
-			} 			
+		newSceneButton.addActionListener( (e) -> {
+			drawer.addNewScene();
+			refreshGUI();			
 		});
 
 		deleteSceneButton = new JButton() {
@@ -227,87 +225,64 @@ public class PencilControl extends JDialog {
       }    	
 
 		};
-		deleteSceneButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				boolean isEmpty = selectedScene.getDrawings().isEmpty()
-						&& "".equals(selectedScene.getCaption().getText()); //$NON-NLS-1$
-				drawer.removeScene(selectedScene);
-				if (!isEmpty) {
-					postDeletionEdit(selectedScene);
-				}
-				setSelectedScene(drawer.getSceneAtFrame(trackerPanel.getFrameNumber()));
-			} 			
+		deleteSceneButton.addActionListener( (e) -> {
+			boolean isEmpty = selectedScene.getDrawings().isEmpty()
+					&& "".equals(selectedScene.getCaption().getText()); //$NON-NLS-1$
+			drawer.removeScene(selectedScene);
+			if (!isEmpty) {
+				postDeletionEdit(selectedScene);
+			}
+			setSelectedScene(drawer.getSceneAtFrame(trackerPanel.getFrameNumber()));			
 		});
 		
 		undoButton = new SideButton(undoIcon);
-		undoButton.setDisabledIcon(undoDisabledIcon);
-		undoButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-      	undoManager.undo();
-    		refreshGUI();
-      }
+		undoButton.addActionListener( (e) -> {
+    	undoManager.undo();
+  		refreshGUI();
     });  		
 		
 		redoButton = new SideButton(redoIcon);
-		redoButton.setDisabledIcon(redoDisabledIcon);
-		redoButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-      	undoManager.redo();
-    		refreshGUI();
-      }
+		redoButton.addActionListener( (e) -> {
+    	undoManager.redo();
+  		refreshGUI();
     });  		
 		
 		trailButton = new SideButton(trailIcon);
-		trailButton.setSelectedIcon(trailSelectedIcon);
 		trailButton.addActionListener( (e) -> {
 			drawer.style = PencilDrawing.STYLE_TRAIL;
 			refreshStyleButtons();
     });  		
 		
 		arrowButton = new SideButton(arrowIcon);
-		arrowButton.setSelectedIcon(arrowSelectedIcon);
 		arrowButton.addActionListener( (e) -> {
 			drawer.style = PencilDrawing.STYLE_ARROW;
 			refreshStyleButtons();
     });  		
 		
 		ellipseButton = new SideButton(ellipseIcon);
-		ellipseButton.setSelectedIcon(ellipseSelectedIcon);
 		ellipseButton.addActionListener( (e) -> {
 			drawer.style = PencilDrawing.STYLE_ELLIPSE;
 			refreshStyleButtons();
     });  		
 		
 		clearAllButton = new JButton();
-		clearAllButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-      	if (PencilDrawer.hasDrawings(trackerPanel)) {
-      		postClearEdit(drawer.scenes);
-      	}
-      	drawer.clearScenes();
-      	setSelectedScene(null);
-    		refreshGUI();
-      }
+		clearAllButton.addActionListener( (e) -> {
+    	if (PencilDrawer.hasDrawings(trackerPanel)) {
+    		postClearEdit(drawer.scenes);
+    	}
+    	drawer.clearScenes();
+    	setSelectedScene(null);
+  		refreshGUI();
     });
 		
 		closeButton = new JButton();
-		closeButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				setVisible(false);
-			} 			
+		closeButton.addActionListener( (e) -> {
+			setVisible(false);			
 		});
 		
 		helpButton = new JButton();
-		helpButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-        trackerPanel.getTFrame().showHelp("drawings", 0); //$NON-NLS-1$
-			} 			
+		helpButton.addActionListener( (e) -> {
+      trackerPanel.getTFrame().showHelp("drawings", 0); //$NON-NLS-1$ 			
 		});
 		
 		// create pencilButtons AFTER undoButton
@@ -324,60 +299,48 @@ public class PencilControl extends JDialog {
 		
 		// create checkbox
 		heavyCheckbox = new JCheckBox();
-		heavyCheckbox.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-      	if (refreshing || selectedScene==null) return;
-      	selectedScene.setHeavy(heavyCheckbox.isSelected());
-      	TFrame.repaintT(trackerPanel);
-    		trackerPanel.changed = true;
-      	repaintCanvas();
-			} 			
+		heavyCheckbox.addActionListener( (e) -> {
+    	if (refreshing || selectedScene==null) return;
+    	selectedScene.setHeavy(heavyCheckbox.isSelected());
+    	TFrame.repaintT(trackerPanel);
+  		trackerPanel.changed = true;
+    	repaintCanvas();			
 		});
 				
 		// create spinners
 		startFrameSpinner = new JSpinner();
-		startFrameSpinner.addChangeListener(new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent e) {
-      	if (selectedScene==null) return;
-      	selectedScene.setStartFrame((Integer)startFrameSpinner.getValue());
-      	Collections.sort(drawer.scenes);
-      	TFrame.repaintT(trackerPanel);
-    		trackerPanel.changed = true;
-      	refreshGUI();
-      }
+		startFrameSpinner.addChangeListener( (e) -> {
+    	if (selectedScene==null) return;
+    	selectedScene.setStartFrame((Integer)startFrameSpinner.getValue());
+    	Collections.sort(drawer.scenes);
+    	TFrame.repaintT(trackerPanel);
+  		trackerPanel.changed = true;
+    	refreshGUI();
     }); 
 		
 		endFrameSpinner = new JSpinner();
-		endFrameSpinner.addChangeListener(new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent e) {
-      	if (selectedScene==null) return;
-      	selectedScene.setEndFrame((Integer)endFrameSpinner.getValue());
-      	Collections.sort(drawer.scenes);
-      	TFrame.repaintT(trackerPanel);
-    		trackerPanel.changed = true;
-      	refreshGUI();
-      }
+		endFrameSpinner.addChangeListener( (e) -> {
+    	if (selectedScene==null) return;
+    	selectedScene.setEndFrame((Integer)endFrameSpinner.getValue());
+    	Collections.sort(drawer.scenes);
+    	TFrame.repaintT(trackerPanel);
+  		trackerPanel.changed = true;
+    	refreshGUI();
     });
 		
 		int defaultFontSize = PencilCaption.baseFont.getSize();
 		fontSizeSpinner = new JSpinner(new SpinnerNumberModel(defaultFontSize, 12, 98, 2));
 		((JSpinner.DefaultEditor)fontSizeSpinner.getEditor()).getTextField().setEditable(false);
-		fontSizeSpinner.addChangeListener(new ChangeListener() {
-      @Override
-      public void stateChanged(ChangeEvent e) {
-      	if (selectedScene.getCaption()==null) return;
-      	if (refreshing) return;
-      	Font font = selectedScene.getCaption().getFont();
-      	float size = (Integer)fontSizeSpinner.getValue();
-      	font = font.deriveFont(size);
-      	selectedScene.getCaption().setFont(font);
-      	TFrame.repaintT(trackerPanel);
-    		trackerPanel.changed = true;
-      	repaintCanvas();
-      }
+		fontSizeSpinner.addChangeListener( (e) -> {
+    	if (selectedScene.getCaption()==null) return;
+    	if (refreshing) return;
+    	Font font = selectedScene.getCaption().getFont();
+    	float size = (Integer)fontSizeSpinner.getValue();
+    	font = font.deriveFont(size);
+    	selectedScene.getCaption().setFont(font);
+    	TFrame.repaintT(trackerPanel);
+  		trackerPanel.changed = true;
+    	repaintCanvas();
     });
 		
 		// create dropdown
@@ -390,18 +353,15 @@ public class PencilControl extends JDialog {
       }    	
 		};
 		sceneDropdown.setRenderer(new SceneDropdownRenderer());
-		sceneDropdown.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-      	if (refreshing) return;
-      	PencilScene scene = (PencilScene)sceneDropdown.getSelectedItem();
-      	if (scene==dummyScene) return;
-      	setSelectedScene(scene);
-      	if (selectedScene!=null) {
-      		goToScene(selectedScene);
-      	}
-      	captionField.requestFocusInWindow();
-      }
+		sceneDropdown.addActionListener( (e) -> {
+    	if (refreshing) return;
+    	PencilScene scene = (PencilScene)sceneDropdown.getSelectedItem();
+    	if (scene==dummyScene) return;
+    	setSelectedScene(scene);
+    	if (selectedScene!=null) {
+    		goToScene(selectedScene);
+    	}
+    	captionField.requestFocusInWindow();
     });
 		
 		// create caption field
@@ -603,9 +563,9 @@ public class PencilControl extends JDialog {
    * Refreshes the GUI.
    */
 	protected void refreshStyleButtons() {
-		trailButton.setSelected(drawer.style == PencilDrawing.STYLE_TRAIL);
-		arrowButton.setSelected(drawer.style == PencilDrawing.STYLE_ARROW);
-		ellipseButton.setSelected(drawer.style == PencilDrawing.STYLE_ELLIPSE);
+		trailButton.setIcon(drawer.style == PencilDrawing.STYLE_TRAIL? trailSelectedIcon: trailIcon);
+		arrowButton.setIcon(drawer.style == PencilDrawing.STYLE_ARROW? arrowSelectedIcon: arrowIcon);
+		ellipseButton.setIcon(drawer.style == PencilDrawing.STYLE_ELLIPSE? ellipseSelectedIcon: ellipseIcon);
 	}
 	
   /**
@@ -652,6 +612,8 @@ public class PencilControl extends JDialog {
 		captionField.setEnabled(enabled);
 		undoButton.setEnabled(undoManager.canUndo());
 		redoButton.setEnabled(undoManager.canRedo());
+		undoButton.setIcon(undoManager.canUndo()? undoIcon: undoDisabledIcon);
+		redoButton.setIcon(undoManager.canRedo()? redoIcon: redoDisabledIcon);
 		clearAllButton.setEnabled(!drawer.scenes.isEmpty());
 		sceneDropdown.setEnabled(!drawer.scenes.isEmpty());
 		newSceneButton.setEnabled(selectedScene==null || !selectedScene.getDrawings().isEmpty());
