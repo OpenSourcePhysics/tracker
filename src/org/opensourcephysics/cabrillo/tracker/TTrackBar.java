@@ -62,7 +62,6 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.tools.FontSizer;
-
 import javajs.async.SwingJSUtils.Performance;
 
 /**
@@ -82,6 +81,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected static javax.swing.Timer testTimer;
 	protected static boolean showOutOfMemoryDialog = true;
 	private final static JTextField sizingField = new JTextField("1234567");
+	static int testIndex;
 
 	static {
 		smallSelectIcon = Tracker.getResourceIcon("small_select.gif", true); //$NON-NLS-1$
@@ -142,7 +142,26 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
-									
+//									long t0 = Performance.now(0);
+//									String url = "https://iwant2study.org/lookangejss/02_newtonianmechanics_7gravity/trz/angrybirdtracking.trz";
+//									String filePath = "D:/Documents/Tracker/testing/angry"+testIndex+".trz";
+//									OSPLog.debug("testIndex " + testIndex);
+//									if (testIndex % 2 == 0) {
+//										OSPLog.debug("copying to " + filePath);
+//										try {
+//											ResourceLoader.copyURLtoFile(url, filePath);
+//										} catch (IOException e1) {
+//											// TODO Auto-generated catch block
+//											e1.printStackTrace();
+//										}
+//									}
+//									else {
+//										OSPLog.debug("downloading to " + filePath);
+//										ResourceLoader.download(url, new File(filePath), true);
+//									}
+//									testIndex++;
+//									OSPLog.debug("finished " + filePath +" in "+ Performance.now(t0));
+
 //		    	      	TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		 
 //		    	      	TrackControl.getControl(trackerPanel).refresh();
 //		    	      	TTrack track = trackerPanel.getSelectedTrack();

@@ -188,7 +188,7 @@ public class TableTrackView extends TrackView {
 
 	final protected ArrayList<String> textColumnNames = new ArrayList<String>();
 	final protected Set<String> textColumnsVisible = new TreeSet<String>();
-
+	
 	/**
 	 * used when sorting
 	 */
@@ -207,6 +207,7 @@ public class TableTrackView extends TrackView {
 	 */
 	protected TrackDataTable dataTable;
 	protected TextColumnEditor textColumnEditor;
+	protected TextColumnTableModel textColumnModel;
 
 	/**
 	 * for super.toolbarComponents 
@@ -244,8 +245,8 @@ public class TableTrackView extends TrackView {
 		textColumnNames.addAll(track.getTextColumnNames());
 		// create the DataTable with two OSPTableModels
 		// (1) our DatasetManager
-		// (2) a text column
-		TextColumnTableModel textColumnModel = new TextColumnTableModel();
+		// (2) a text column model
+		textColumnModel = new TextColumnTableModel();
 		textColumnEditor = new TextColumnEditor();
 		dataTable = new TrackDataTable();
 		trackDataManager = track.getData(trackerPanel);
@@ -309,7 +310,7 @@ public class TableTrackView extends TrackView {
 		});
 		setToolTipText(ToolsRes.getString("DataToolTab.Scroller.Tooltip")); //$NON-NLS-1$
 		highlightVisible = !(track instanceof LineProfile);
-		setNameMaps();
+		refreshNameMaps();
 
 		// create the GUI
 		createGUI();
@@ -336,7 +337,7 @@ public class TableTrackView extends TrackView {
 		}
 	}
 
-	private void setNameMaps() {
+	private void refreshNameMaps() {
 		htNames = new LinkedHashMap<>();
 		ArrayList<Dataset> sets = trackDataManager.getDatasetsRaw();
 		ArrayList<String> textSet = textColumnNames;
@@ -582,21 +583,6 @@ public class TableTrackView extends TrackView {
 	 */
 	public void setVisible(int index, boolean visible) {
 		bsCheckBoxes.set(index, visible);
-//		if (index < checkBoxes.length) {
-//			checkBoxes[index].setSelected(visible);
-//		}
-		int n = trackDataManager.getDatasetsRaw().size();
-		if (index >= n) {
-			TTrack track = getTrack();
-			ArrayList<String> columnNames = track.getTextColumnNames();
-			if (columnNames.size() > index - n) {
-				String name = track.getTextColumnNames().get(index - n);
-				if (visible)
-					textColumnsVisible.add(name);
-				else
-					textColumnsVisible.remove(name); // BH? missing?
-			}
-		}
 		refresh(trackerPanel.getFrameNumber(), DataTable.MODE_COL_SETVISIBLE);
 	}
 
@@ -607,16 +593,17 @@ public class TableTrackView extends TrackView {
 	 * @param visible <code>true</code> to show the column in the table
 	 */
 	public void setVisible(String name, boolean visible) {
-//		for (int i = 0; i < checkBoxes.length; i++) {
-//			String s = checkBoxes[i].getActionCommand();
-//			if (s.equals(name) || TeXParser.removeSubscripting(s).equals(name)) {
-//				setVisible(i, visible);
-//				break;
-//			}
-//		}
 		Integer i = htNames.get(name);
-		if (i != null)
+		if (i != null) {
+			if (i >= trackDataManager.getDatasetsRaw().size()) {
+				if (visible)
+					textColumnsVisible.add(name);
+				else
+					textColumnsVisible.remove(name);
+			}
+			// call setVisible(int,boolean) AFTER above since it calls refresh
 			setVisible(i.intValue(), visible);
+		}
 	}
 
 	@Override
@@ -769,20 +756,28 @@ public class TableTrackView extends TrackView {
 				if (!track.getTextColumnNames().contains(name))
 					removed = name;
 			}
+			// update local list of names
+			textColumnNames.clear();
+			textColumnNames.addAll(track.getTextColumnNames());
+			
+			// remove BEFORE refreshMapNames() so setVisible will succeed
+			if (removed != null && added == null) {
+				setVisible(removed, false);
+			}
+			
+			refreshNameMaps();
+
 			if (added != null && removed != null) {
-				// name changed
+				// name change only--replace in textColumnsVisible if visible
 				if (textColumnsVisible.contains(removed)) {
 					textColumnsVisible.remove(removed);
 					textColumnsVisible.add(added);
 				}
 			}
-//  		else if (added!=null) {
-//  			// new column is visible by default
-//    		textColumnsVisible.add(added);    			
-//  		}
-			else if (removed != null) {
-				textColumnsVisible.remove(removed);
-			}
+  		else if (added!=null) {
+  			// new column is visible by default
+				setVisible(added, true);
+  		}
 			// else a text entry was changed
 			// refresh table and column visibility dialog
 			dataTable.refreshTable(DataTable.MODE_COLUMN);
@@ -790,9 +785,7 @@ public class TableTrackView extends TrackView {
 				TableTView view = (TableTView) getParent();
 				view.refreshColumnsDialog(track, true);
 			}
-			// update local list of names
-			textColumnNames.clear();
-			textColumnNames.addAll(track.getTextColumnNames());
+			buildForNewFunction();
 			return;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_UNITS:
 			dataTable.getTableHeader().repaint();
@@ -1374,9 +1367,8 @@ public class TableTrackView extends TrackView {
 			public void actionPerformed(ActionEvent e) {
 				String name = getUniqueColumnName(null, false);
 				TTrack track = getTrack();
-				track.addTextColumn(name);
+				track.addTextColumn(name); // track fires property change
 				// new column is visible by default
-				textColumnsVisible.add(name);
 				// refresh table and column visibility dialog
 				dataTable.refreshTable(DataTable.MODE_COLUMN);
 				if (viewParent.getViewType() == TView.VIEW_TABLE) {
@@ -1578,12 +1570,13 @@ public class TableTrackView extends TrackView {
 		// textColumnMenu
 		if (trackerPanel.isEnabled("text.columns")) { //$NON-NLS-1$
 			textColumnMenu.removeAll();
+			deleteTextColumnMenu.removeAll();
+			renameTextColumnMenu.removeAll();
 			if (popup.getComponentCount() > 0)
 				popup.addSeparator();
 			popup.add(textColumnMenu);
 			textColumnMenu.add(createTextColumnItem);
 			if (track.getTextColumnNames().size() > 0) {
-				deleteTextColumnMenu.removeAll();
 				textColumnMenu.add(deleteTextColumnMenu);
 				for (String next : track.getTextColumnNames()) {
 					JMenuItem item = new JMenuItem(next);
@@ -1597,7 +1590,6 @@ public class TableTrackView extends TrackView {
 						}
 					});
 				}
-				renameTextColumnMenu.removeAll();
 				textColumnMenu.add(renameTextColumnMenu);
 				for (String next : track.getTextColumnNames()) {
 					JMenuItem item = new JMenuItem(next);
@@ -2186,8 +2178,10 @@ public class TableTrackView extends TrackView {
 
 	public void buildForNewFunction() {
 		if (columnsDialog != null) {
-			columnsDialog.refreshState();
+			columnsDialog.refreshCheckboxes();
 			columnsDialog.setPortPosition();
+			columnsDialog.revalidate();
+			columnsDialog.repaint();
 		}
 	}
 
@@ -2209,7 +2203,7 @@ public class TableTrackView extends TrackView {
 		@Override
 		public void setVisible(boolean vis) {
 			if (vis) {
-				refreshState();
+				refreshCheckboxes();
 			}
 			super.setVisible(vis);
 		}
@@ -2230,7 +2224,19 @@ public class TableTrackView extends TrackView {
 		}
 
 		private void doCheckBoxAction(int i) {
-			bsCheckBoxes.set(i, checkBoxes[i].isSelected());
+			boolean add = checkBoxes[i].isSelected();
+			String name = checkBoxes[i].getText();
+			bsCheckBoxes.set(i, add);
+			// if name is a text column, add/remove to textColumnsVisible
+			for (String next : getTrack().getTextColumnNames()) {
+				if (next.equals(name)) {
+					if (add)
+						textColumnsVisible.add(name);
+					else
+						textColumnsVisible.remove(name);
+					break;
+				}
+			}
 			trackerPanel.changed = true;
 			if (refreshing)
 				TableTrackView.this.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_STATE);
@@ -2322,7 +2328,7 @@ public class TableTrackView extends TrackView {
 		/**
 		 * Refreshes the column visibility checkboxes.
 		 */
-		private void refreshState() {
+		private void refreshCheckboxes() {
 			if (!haveGUI) 
 				createGUI();
 			refreshButtonPanel();
@@ -2374,7 +2380,7 @@ public class TableTrackView extends TrackView {
 			this.track = track;
 			setResizable(true);
 			getContentPane().removeAll();
-			refreshState();
+			refreshCheckboxes();
 			trackLabel.setIcon(track.getFootprint().getIcon(21, 16));
 			trackLabel.setText(track.getName());
 			textColumnButton.setEnabled(!track.isLocked());
@@ -2393,10 +2399,10 @@ public class TableTrackView extends TrackView {
 		protected void showOrHideDialog() {
 			if (!isPositioned) {
 				isPositioned = true;
-				// position dialog immediately below columnsDialogButton
+				// position dialog immediately to left of columnsDialogButton
 				Point p = columnsDialogButton.getLocationOnScreen();
-				int h = columnsDialogButton.getHeight();
-				setLocation(p.x, p.y + h);
+				int w = getWidth();
+				setLocation(p.x - w, p.y);
 			}
 			setVisible(!isVisible());
 		}

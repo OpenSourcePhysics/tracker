@@ -410,13 +410,13 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					tc.positioned = true;
 				}
 				tc.setVisible(vis);
-				if (vis && trackerPanel.getUserTracks().isEmpty()) {
-					Timer timer = new Timer(200, (ev) -> {
-						tc.newTrackButton.showPopup();
-					});
-					timer.setRepeats(false);
-					timer.start();
-				}
+//				if (vis && trackerPanel.getUserTracks().isEmpty()) {
+//					Timer timer = new Timer(200, (ev) -> {
+//						tc.newTrackButton.showPopup();
+//					});
+//					timer.setRepeats(false);
+//					timer.start();
+//				}
 		});
 		// autotracker button
 		autotrackerButton = new TButton(autotrackerOffIcon, autotrackerOnIcon);
