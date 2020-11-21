@@ -3108,6 +3108,8 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		 */
 		protected void refreshTextPaneSize() {
 			textPaneSize = null;
+			if (OSPRuntime.isJS)
+				return;
 			followupPanel.removeAll();
 			followupPanel.add(acceptButton);
 			textPane.setText(getTemplateInstructions());
@@ -3314,7 +3316,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			refreshInfo();
 			refreshDrawingFlags();
 			pack();
-			if (textPaneSize == null) {
+			if (textPaneSize == null && !OSPRuntime.isJS) {
 				refreshTextPaneSize();
 				pack(); // pack again with new textPanelSize
 			}
