@@ -1319,7 +1319,7 @@ public class TrackerIO extends VideoIO {
 					names.add(children[i].getPropertyName());
 					originals.add(children[i]);
 				}
-			} else if (prop.getPropertyType() == "object") { //$NON-NLS-1$
+			} else if (prop.getPropertyType() == XMLProperty.TYPE_OBJECT) { //$NON-NLS-1$
 				primitives.add(prop);
 			}
 		}
