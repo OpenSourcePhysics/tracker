@@ -1319,7 +1319,7 @@ public class TrackerIO extends VideoIO {
 					names.add(children[i].getPropertyName());
 					originals.add(children[i]);
 				}
-			} else if (!prop.getPropertyType().equals("object")) { //$NON-NLS-1$
+			} else if (prop.getPropertyType() == "object") { //$NON-NLS-1$
 				primitives.add(prop);
 			}
 		}
@@ -2022,7 +2022,7 @@ public class TrackerIO extends VideoIO {
 						String className = XMLControlElement.getClassName(data);
 						if (className.endsWith("TrackerPanel")) { //$NON-NLS-1$
 							if (haveHTML)
-								findPageViewFiles(new XMLControlElement(next), pageViewTabs);
+								findPageViewFiles(new XMLControlElement(data), pageViewTabs);
 						} else if (trkForTFrame == null && className.endsWith("TFrame")) { //$NON-NLS-1$
 							trkForTFrame = next;
 						}
