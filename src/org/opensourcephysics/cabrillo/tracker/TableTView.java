@@ -35,7 +35,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumnModel;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DataTable;
@@ -264,8 +263,9 @@ public class TableTView extends TrackChooserTView {
 				ArrayList<TTrack> customized = new ArrayList<TTrack>();
 				Map<TTrack, TrackView> views = view.trackViews;
 				for (TTrack next : views.keySet()) {
-					if (views.get(next).isCustomState())
+					if (views.get(next).isCustomState()) {
 						customized.add(next);
+					}
 				}
 				if (!customized.isEmpty()) {
 					ArrayList<String[][]> formattedColumns = new ArrayList<String[][]>();
@@ -325,21 +325,18 @@ public class TableTView extends TrackChooserTView {
 			if (data != null) {
 				Map<TTrack, TrackView> views = view.trackViews;
 				if (views == null) {
-					OSPLog.debug("pigggggggggggggggggg refreshing new TableTView "+view.hashCode());
-					
-					// brand new view has not been refreshed?
+					// new view has never been refreshed
 					view.refresh();
 					views = view.trackViews;
 				}
 				if (views != null)
-					OSPLog.debug("pigggggggggggggggggg loading TableTView "+view.hashCode());
 					for (TTrack track : views.keySet()) {
 						TableTrackView tableView = (TableTrackView) view.getTrackView(track);
 						if (tableView == null)
 							continue;
 						for (int i = 0; i < data.length; i++) {
 							String[] columns = data[i];
-							if (!columns[0].equals(track.getName()))
+							if (columns == null || columns[0] == null || !columns[0].equals(track.getName()))
 								continue;
 							tableView.setRefreshing(false); // prevents refreshes
 							// start by unchecking all checkboxes
@@ -457,6 +454,7 @@ public class TableTView extends TrackChooserTView {
 			TTrack track = view.getTrack(control.getString("selected_track")); //$NON-NLS-1$
 			if (track != null) {
 				view.setSelectedTrack(track);
+
 				// code below for legacy files??
 				TableTrackView trackView = (TableTrackView) view.getTrackView(track);
 				String[] columns = (String[]) control.getObject("visible_columns"); //$NON-NLS-1$

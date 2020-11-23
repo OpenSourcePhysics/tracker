@@ -553,8 +553,9 @@ public class TableTrackView extends TrackView {
 			refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_REFRESH);
 		}
 		// check displayed data columns--default is columns 0 and 1 only
-		if (!bsCheckBoxes.get(0) || !bsCheckBoxes.get(1) || bsCheckBoxes.cardinality() > 2)
+		if (!bsCheckBoxes.get(0) || !bsCheckBoxes.get(1) || bsCheckBoxes.cardinality() > 2) {
 			return true;
+		}
 
 		// ignore formatting since now handled by NumberFormatSetter
 //  	if (dataTable.getFormattedColumnNames().length>0)
@@ -563,8 +564,9 @@ public class TableTrackView extends TrackView {
 		// check for reordered columns
 		TableColumnModel model = dataTable.getColumnModel();
 		int count = model.getColumnCount();
-		if (count == 0)
-			return true; // should never happen...
+		if (count == 0) {
+			return false; // should never happen except for new views
+		}
 		int index = model.getColumn(0).getModelIndex();
 		for (int i = 1; i < count; i++) {
 			if (model.getColumn(i).getModelIndex() < index) {

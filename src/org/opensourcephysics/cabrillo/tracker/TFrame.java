@@ -1048,7 +1048,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		for (int i = 0; i < choosers.length; i++) {
 			TView[] views = choosers[i].getTViews();			
 			for (int j = 0; j < views.length; j++) {
-				TView next = views[i];
+				TView next = views[j];
 				if (next != null && next.isCustomState()) {
 					if (array[i] == null)
 						array[i] = new TView[4];
