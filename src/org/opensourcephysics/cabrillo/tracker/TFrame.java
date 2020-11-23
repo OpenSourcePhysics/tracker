@@ -125,6 +125,7 @@ import org.opensourcephysics.tools.Launcher.HTMLPane;
 import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.LibraryComPADRE;
 import org.opensourcephysics.tools.LibraryResource;
+import org.opensourcephysics.tools.LibraryTreePanel;
 import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -805,7 +806,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			((TTrackBar) objects[TFRAME_TRACKBAR]).refresh();
 			playerBar = ((MainTView) objects[TFRAME_MAINVIEW]).getPlayerBar();
 			Container frame = playerBar.getTopLevelAncestor();
-			if (frame != null && frame != TFrame.this)
+			if (frame != null && frame != this)
 				frame.setVisible(true);
 		} else {
 			// show defaultMenuBar
@@ -909,6 +910,26 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public TrackerPanel getTrackerPanel(int tab) {
 		return (tab < 0 || tab >= tabbedPane.getTabCount() ? null
 				: ((TTabPanel) tabbedPane.getComponentAt(tab)).getTrackerPanel());
+	}
+
+	/**
+	 * Gets the panel of the selected tab, if a tab is selected.
+	 * @return the selected panel or null if no tab is selected
+	 */
+	public TrackerPanel getSelectedPanel() {
+		return getTrackerPanel(getSelectedTab());
+	}
+
+	public void addTrackerPanel(boolean changedState, Runnable whenDone) {
+		TrackerPanel newPanel = new TrackerPanel();
+		addTab(newPanel, () -> {
+			setSelectedTab(newPanel);
+			if (!changedState)
+				newPanel.changed = false;
+			if (whenDone != null)
+				whenDone.run();
+			refresh();
+		});
 	}
 
 	public Object[] getObjects(int tab) {
@@ -1201,7 +1222,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				TTrackBar trackbar = (TTrackBar) objects[TFRAME_TRACKBAR];
 				trackbar.refresh();
 			}
-			trackerPanel = getTrackerPanel(getSelectedTab());
+			trackerPanel = getSelectedPanel();
 			if (trackerPanel != null) {
 				// replace current menubar
 				TMenuBar menuBar = getMenuBar(trackerPanel);
@@ -1321,7 +1342,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return the preferences dialog
 	 */
 	public PrefsDialog getPrefsDialog() {
-		TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
+		TrackerPanel trackerPanel = getSelectedPanel();
 		if (prefsDialog != null) {
 			if (prefsDialog.trackerPanel != trackerPanel) {
 				prefsDialog.trackerPanel = trackerPanel;
@@ -1329,7 +1350,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 		} else {
 			// create PrefsDialog
-			prefsDialog = new PrefsDialog(trackerPanel, TFrame.this);
+			prefsDialog = new PrefsDialog(trackerPanel, this);
 			// center on screen
 			Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 			int x = (dim.width - prefsDialog.getBounds().width) / 2;
@@ -1639,40 +1660,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			if (!file.exists() && url == null) {
 				Tracker.recentFiles.remove(path);
-				int n = getSelectedTab();
-				if (n >= 0) {
-					TMenuBar.refreshMenus(getTrackerPanel(n), TMenuBar.REFRESH_TFRAME_OPENRECENT);
+				TrackerPanel panel = getSelectedPanel();
+				if (panel != null) {
+					TMenuBar.refreshMenus(panel, TMenuBar.REFRESH_TFRAME_OPENRECENT);
 				}
-				JOptionPane.showMessageDialog(TFrame.this, TrackerRes.getString("TFrame.Dialog.FileNotFound.Message") //$NON-NLS-1$
+				JOptionPane.showMessageDialog(this, TrackerRes.getString("TFrame.Dialog.FileNotFound.Message") //$NON-NLS-1$
 						+ "\n" + MediaRes.getString("VideoIO.Dialog.Label.Path") + ": " //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 						+ path, TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
 						JOptionPane.WARNING_MESSAGE);
 				return;
 			}
 		}
-		TrackerPanel selected = getTrackerPanel(getSelectedTab());
-		if (selected != null) {
-			selected.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		}
-//		if (!haveContent()) {
-//			removeTabNow(0);
-//		}
-		TrackerIO.open(path, this);
-//		if (url!=null)
-//		TrackerIO.open(url, TFrame.this);
-//		else 
-//		TrackerIO.open(file, TFrame.this);
-		setCursor(Cursor.getDefaultCursor());
+		doOpenURL(path);
 	}
 
 	/**
 	 * Refreshes the GUI.
 	 */
 	public void refresh() {
-		int i = getSelectedTab();
-		if (i < 0)
+		TrackerPanel trackerPanel = getSelectedPanel();
+		if (trackerPanel == null)
 			return;
-		TrackerPanel trackerPanel = getTrackerPanel(i);
 		getMenuBar(trackerPanel).refresh(TMenuBar.REFRESH_TFRAME_REFRESH);
 		getToolBar(trackerPanel).refresh(TToolBar.REFRESH_TFRAME_REFRESH_TRUE);
 		getTrackBar(trackerPanel).refresh();
@@ -1789,25 +1797,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 								public void propertyChange(PropertyChangeEvent e) {
 								// if HINT_LOAD_RESOURCE, then e.getNewValue() is LibraryResource to load
 								if (LibraryBrowser.HINT_LOAD_RESOURCE == e.getOldValue()) {
-									LibraryResource record = (LibraryResource)e.getNewValue();
-									String abort = "[click here to cancel]";
-									libraryBrowser.setMessage("Loading \""+record.getName() + "\"" + abort, Color.YELLOW);
-									libraryBrowser.setComandButtonEnabled(false);
-									libraryBrowser.setAlwaysOnTop(true);
-									openLibraryResource((LibraryResource) e.getNewValue(), () -> {
-										Timer timer = new Timer(200, (ev) -> {
-											libraryBrowser.setCanceled(false);
-											libraryBrowser.setAlwaysOnTop(false);
-											TFrame.this.requestFocus();	
-											TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
-											if (trackerPanel != null) {
-												trackerPanel.changed = false;
-												repaintT(trackerPanel);
-											}
-										});
-										timer.setRepeats(false);
-										timer.start();
-									});
+									loadLibraryRecord((LibraryResource)e.getNewValue());
 								}
 								// if HINT_DOWNLOAD_RESOURCE, then e.getNewValue() is downloaded File to load
 								else if (LibraryBrowser.HINT_DOWNLOAD_RESOURCE == e.getOldValue()) {
@@ -1836,77 +1826,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 		}
 		return libraryBrowser;
-	}
-
-	protected void openLibraryResource(LibraryResource record, Runnable whenDone) {
-		libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		try {
-			String target = record.getAbsoluteTarget();
-			if (!ResourceLoader.isHTTP(target)) {
-				target = ResourceLoader.getURIPath(XML.getResolvedPath(record.getTarget(), record.getBasePath()));
-			}
-			// download comPADRE targets to osp cache
-			if (target.indexOf("document/ServeFile.cfm?") > -1) { //$NON-NLS-1$
-				String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
-				try {
-					File file = ResourceLoader.downloadToOSPCache(target, fileName, false);
-					target = file.toURI().toString();
-				} catch (Exception ex) {
-					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
-					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + record.getName() + "\"", //$NON-NLS-1$ //$NON-NLS-2$
-							TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
-							JOptionPane.WARNING_MESSAGE);
-					return;
-				}
-			}
-
-			String lcTarget = target.toLowerCase();
-			boolean accept = (lcTarget.endsWith(".trk") || ResourceLoader.isJarZipTrz(lcTarget, false));
-			if (!accept) {
-				if (TrackerIO.isVideo(new File(target))) {
-					loadVideo(target, true, whenDone);
-					whenDone = null;
-					return;
-				}
-			}
-			if (accept) {
-				if (ResourceLoader.getResourceZipURLsOK(target) == null) {
-					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
-					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
-							TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
-							JOptionPane.WARNING_MESSAGE);
-					libraryBrowser.setVisible(true);
-					return;
-				}
-				try {
-//					TrackerIO.openAsync(target, this, whenDone);
-
-// BH: Doug, is there a reason to use openAll here?	Is it because we do NOT want to add these to recent files?
-					
-					ArrayList<String> uriPaths = new ArrayList<String>();
-					uriPaths.add(target);
-					TrackerIO.openAll(uriPaths, this, null, null, whenDone);
-
-					whenDone = null;
-				} catch (Throwable t) {
-				}
-				return;
-			}
-			String path = target;
-			for (String ext : VideoIO.KNOWN_VIDEO_EXTENSIONS) {
-				if (lcTarget.endsWith("." + ext)) {
-					if (libraryBrowser != null)
-						libraryBrowser.setMessage(null, null);
-					VideoIO.handleUnsupportedVideo(path, ext, null, getTrackerPanel(getSelectedTab()),
-							"TFrame known video ext");
-					return;
-				}
-			}
-		} finally {
-			libraryBrowser.setCursor(Cursor.getDefaultCursor());
-			if (whenDone != null)
-				whenDone.run();
-		}
 	}
 
 	/**
@@ -2209,8 +2128,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				if (notesTextPane.getBackground() == Color.WHITE)
 					return;
 				String desc = notesTextPane.getText();
-				if (getSelectedTab() > -1 && notesDialog.getName() != "canceled") { //$NON-NLS-1$
-					TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
+				TrackerPanel trackerPanel = getSelectedPanel();
+				if (trackerPanel != null && notesDialog.getName() != "canceled") { //$NON-NLS-1$
 					trackerPanel.changed = true;
 					TTrack track = trackerPanel.getTrack(notesDialog.getName());
 					if (track != null && !desc.equals(track.getDescription())) {
@@ -2231,10 +2150,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			public void setVisible(boolean vis) {
 				super.setVisible(vis);
 
-				if (getSelectedTab() > -1) {
-					TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
-					TToolBar toolbar = getToolBar(trackerPanel);
-					toolbar.notesButton.setSelected(vis);
+				TrackerPanel trackerPanel = getSelectedPanel();
+				if (trackerPanel != null) {
+					getToolBar(trackerPanel).notesButton.setSelected(vis);
 				}
 			}
 		};
@@ -2255,7 +2173,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		notesTextPane.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
+				TrackerPanel trackerPanel = getSelectedPanel();
 				if (!trackerPanel.isEnabled("notes.edit")) //$NON-NLS-1$
 					return;
 				notesTextPane.setBackground(yellow);
@@ -2278,7 +2196,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		displayWhenLoadedCheckbox.addActionListener(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				TrackerPanel trackerPanel = getTrackerPanel(getSelectedTab());
+				TrackerPanel trackerPanel = getSelectedPanel();
 				if (trackerPanel != null) {
 					trackerPanel.hideDescriptionWhenLoaded = !displayWhenLoadedCheckbox.isSelected();
 				}
@@ -2314,100 +2232,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		tabbedPane.addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
-				TrackerPanel newPanel = null;
-				TrackerPanel oldPanel = prevPanel;
-
-				// hide exportZipDialog
-				if (haveExportDialog && ExportVideoDialog.videoExporter != null) {
-					ExportVideoDialog.videoExporter.trackerPanel = null;
-				}
-				if (haveThumbnailDialog && ThumbnailDialog.thumbnailDialog != null) {
-					ThumbnailDialog.thumbnailDialog.trackerPanel = null;
-				}
-				// update prefsDialog
-				if (prefsDialog != null) {
-					prefsDialog.trackerPanel = null;
-				}
-				// clean up items associated with old panel
-				if (playerBar != null) {
-					Container frame = playerBar.getTopLevelAncestor();
-					if (frame != null && frame != TFrame.this)
-						frame.setVisible(false);
-				}
-				if (prevPanel != null) {
-					if (prevPanel.dataBuilder != null) {
-						boolean vis = prevPanel.dataToolVisible;
-						prevPanel.dataBuilder.setVisible(false);
-						prevPanel.dataToolVisible = vis;
-					}
-					if (prevPanel.getPlayer() != null) {
-						ClipInspector ci = prevPanel.getPlayer().getVideoClip().getClipInspector();
-						if (ci != null)
-							ci.setVisible(false);
-					}
-					Video vid = prevPanel.getVideo();
-					if (vid != null) {
-						vid.getFilterStack().setInspectorsVisible(false);
-					}
-				}
-				// refresh current tab items
-				Object[] objects = getObjects(tabbedPane.getSelectedIndex());
-				if (objects == null) {
-					// show defaultMenuBar
-					setJMenuBar(defaultMenuBar);
-				} else {
-					MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
-					newPanel = mainView.getTrackerPanel();
-					prevPanel = newPanel;
-					// update prefsDialog
-					if (prefsDialog != null) {
-						prefsDialog.trackerPanel = newPanel;
-					}
-					// refresh the notes dialog and button
-					newPanel.refreshNotesDialog();
-					JButton notesButton = getToolBar(newPanel).notesButton;
-					notesButton.setSelected(notesDialog.isVisible());
-					// refresh trackbar
-					((TTrackBar) objects[TFRAME_TRACKBAR]).refresh();
-					// refresh and replace menu bar
-					TMenuBar menubar = (TMenuBar) objects[TFRAME_MENUBAR];
-
-//          menubar.refresh();
-					setJMenuBar(menubar);
-					// show floating player
-					playerBar = mainView.getPlayerBar();
-					Container frame = playerBar.getTopLevelAncestor();
-					if (frame != null && frame != TFrame.this)
-						frame.setVisible(true);
-					if (newPanel.dataBuilder != null)
-						newPanel.dataBuilder.setVisible(newPanel.dataToolVisible);
-					Video vid = newPanel.getVideo();
-					if (vid != null) {
-						vid.getFilterStack().setInspectorsVisible(true);
-					}
-				}
-				// update prefsDialog
-				if (prefsDialog != null && prefsDialog.isVisible()) {
-					prefsDialog.refreshGUI();
-				}
-				firePropertyChange(PROPERTY_TFRAME_TAB, oldPanel, newPanel); // $NON-NLS-1$
+				doTabStateChanged();
 			}
 		});
 		closeItem = new JMenuItem();
 		closeItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				removeTab(getTrackerPanel(getSelectedTab()));
+				removeTab(getSelectedPanel());
 			}
 		});
 		popup.add(closeItem);
 		tabbedPane.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent e) {
-				int i = getSelectedTab();
-				if (i < 0)
-					return;
-				TrackerPanel panel = getTrackerPanel(i);
+				TrackerPanel panel = getSelectedPanel();
 				if (panel == null || !panel.isEnabled("file.close")) //$NON-NLS-1$
 					return;
 				if (OSPRuntime.isPopupTrigger(e)) {
@@ -2420,8 +2259,88 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		});
 	}
 
+	protected void doTabStateChanged() {
+		TrackerPanel newPanel = null;
+		TrackerPanel oldPanel = prevPanel;
+
+		// hide exportZipDialog
+		if (haveExportDialog && ExportVideoDialog.videoExporter != null) {
+			ExportVideoDialog.videoExporter.trackerPanel = null;
+		}
+		if (haveThumbnailDialog && ThumbnailDialog.thumbnailDialog != null) {
+			ThumbnailDialog.thumbnailDialog.trackerPanel = null;
+		}
+		// update prefsDialog
+		if (prefsDialog != null) {
+			prefsDialog.trackerPanel = null;
+		}
+		// clean up items associated with old panel
+		if (playerBar != null) {
+			Container frame = playerBar.getTopLevelAncestor();
+			if (frame != null && frame != this)
+				frame.setVisible(false);
+		}
+		if (prevPanel != null) {
+			if (prevPanel.dataBuilder != null) {
+				boolean vis = prevPanel.dataToolVisible;
+				prevPanel.dataBuilder.setVisible(false);
+				prevPanel.dataToolVisible = vis;
+			}
+			if (prevPanel.getPlayer() != null) {
+				ClipInspector ci = prevPanel.getPlayer().getVideoClip().getClipInspector();
+				if (ci != null)
+					ci.setVisible(false);
+			}
+			Video vid = prevPanel.getVideo();
+			if (vid != null) {
+				vid.getFilterStack().setInspectorsVisible(false);
+			}
+		}
+		// refresh current tab items
+		Object[] objects = getObjects(tabbedPane.getSelectedIndex());
+		if (objects == null) {
+			// show defaultMenuBar
+			setJMenuBar(defaultMenuBar);
+		} else {
+			MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
+			newPanel = mainView.getTrackerPanel();
+			prevPanel = newPanel;
+			// update prefsDialog
+			if (prefsDialog != null) {
+				prefsDialog.trackerPanel = newPanel;
+			}
+			// refresh the notes dialog and button
+			newPanel.refreshNotesDialog();
+			JButton notesButton = getToolBar(newPanel).notesButton;
+			notesButton.setSelected(notesDialog.isVisible());
+			// refresh trackbar
+			((TTrackBar) objects[TFRAME_TRACKBAR]).refresh();
+			// refresh and replace menu bar
+			TMenuBar menubar = (TMenuBar) objects[TFRAME_MENUBAR];
+
+//  menubar.refresh();
+			setJMenuBar(menubar);
+			// show floating player
+			playerBar = mainView.getPlayerBar();
+			Container frame = playerBar.getTopLevelAncestor();
+			if (frame != null && frame != this)
+				frame.setVisible(true);
+			if (newPanel.dataBuilder != null)
+				newPanel.dataBuilder.setVisible(newPanel.dataToolVisible);
+			Video vid = newPanel.getVideo();
+			if (vid != null) {
+				vid.getFilterStack().setInspectorsVisible(true);
+			}
+		}
+		// update prefsDialog
+		if (prefsDialog != null && prefsDialog.isVisible()) {
+			prefsDialog.refreshGUI();
+		}
+		firePropertyChange(PROPERTY_TFRAME_TAB, oldPanel, newPanel); // $NON-NLS-1$
+	}
+
 	protected void frameResized() {
-		TrackerPanel panel = getTrackerPanel(getSelectedTab());
+		TrackerPanel panel = getSelectedPanel();
 		if (panel != null) {
 			if (maximizedView > -1) {
 				maximizeView(panel, maximizedView);
@@ -2446,7 +2365,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		newItem.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				addTrackerPane(false, null);
+				addTrackerPanel(false, null);
 			}
 		});
 		fileMenu.add(newItem);
@@ -2459,9 +2378,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			openItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					TFrame.this.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-					TrackerIO.openTabFile((File) null, TFrame.this);
-					TFrame.this.setCursor(Cursor.getDefaultCursor());
+					doOpenFileFromDialog();
 				}
 			});
 			fileMenu.add(openItem);
@@ -2637,7 +2554,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				Locale locale = (Locale) Tracker.incompleteLocales[i][0];
 				String lang = OSPRuntime.getDisplayLanguage(locale);
 				// the following message is purposely not translated
-				JOptionPane.showMessageDialog(TFrame.this,
+				JOptionPane.showMessageDialog(this,
 						"This translation has not been updated since " + Tracker.incompleteLocales[i][1] //$NON-NLS-1$
 								+ ".\nIf you speak " + lang + " and would like to help translate" //$NON-NLS-1$ //$NON-NLS-2$
 								+ "\nplease contact Douglas Brown at dobrown@cabrillo.edu.", //$NON-NLS-1$
@@ -2690,333 +2607,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		Tracker.setProgress(90);
 		TMenuBar.getMenuBar(trackerPanel).setAllowRefresh(true);
 		saveCurrentDividerLocations(trackerPanel);
-	}
-
-	/**
-	 * Returns an ObjectLoader to save and load data for this class.
-	 *
-	 * @return the object loader
-	 */
-	public static XML.ObjectLoader getLoader() {
-		return new Loader();
-	}
-
-	/**
-	 * A class to save and load data for this class.
-	 */
-	static class Loader implements XML.ObjectLoader {
-
-		/**
-		 * Saves an object's data to an XMLControl.
-		 *
-		 * @param control the control to save to
-		 * @param obj     the object to save
-		 */
-		@Override
-		public void saveObject(XMLControl control, Object obj) {
-			TFrame frame = (TFrame) obj;
-			// save tabs with data files or unchanged videos
-			// save both relative paths (relative to tabsetFile) and absolute paths
-			String relativeTo = frame.tabsetFile != null ? XML.getDirectoryPath(XML.getAbsolutePath(frame.tabsetFile))
-					: XML.getUserDirectory();
-			relativeTo = XML.forwardSlash(relativeTo);
-			ArrayList<String[]> pathList = new ArrayList<String[]>();
-			for (int i = 0; i < frame.getTabCount(); i++) {
-				TrackerPanel trackerPanel = frame.getTrackerPanel(i);
-				File file = trackerPanel.getDataFile();
-				if (file != null) {
-					String path = XML.getAbsolutePath(file);
-					String relativePath = XML.getPathRelativeTo(path, relativeTo);
-					pathList.add(new String[] { path, relativePath });
-				} else {
-					Video video = trackerPanel.getVideo();
-					if (!trackerPanel.changed && video != null) {
-						String path = (String) video.getProperty("absolutePath"); //$NON-NLS-1$
-						if (path != null) {
-							path = XML.forwardSlash(path);
-							String relativePath = XML.getPathRelativeTo(path, relativeTo);
-							pathList.add(new String[] { path, relativePath });
-						}
-					}
-				}
-			}
-			String[][] paths = pathList.toArray(new String[0][0]);
-			control.setValue("tabs", paths); //$NON-NLS-1$
-		}
-
-		/**
-		 * Creates a new object. This returns null--must load an existing TFrame.
-		 *
-		 * @param control the XMLControl with the object data
-		 * @return the newly created object
-		 */
-		@Override
-		public Object createObject(XMLControl control) {
-			return null;
-		}
-
-		/**
-		 * Loads an object with data from an XMLControl synchronously
-		 *
-		 * @param control the control
-		 * @param obj     the object
-		 * @return the loaded object
-		 */
-		@Override
-		public Object loadObject(XMLControl control, Object obj) {
-			TFrame frame = (TFrame) obj;
-			String[][] tabs = (String[][]) control.getObject("tabs"); //$NON-NLS-1$
-			if (tabs == null)
-				return loadObjectFinally(frame, null, null);
-			FileFilter videoFilter = new VideoFileFilter();
-			String base = control.getString("basepath"); //$NON-NLS-1$
-			File dataFile = null;
-			boolean prev = TrackerIO.isLoadInSeparateThread();
-			TrackerIO.setLoadInSeparateThread("TFrame.loadObject0", false);
-			for (String[] next : tabs) {
-				File file = null;
-				Resource res = null;
-				if (base != null) {
-					file = new File(base, next[1]); // next[1] is relative path
-					res = ResourceLoader.getResource(file.getPath());
-				}
-				if (res == null) {
-					file = new File(XML.getUserDirectory(), next[1]);
-					res = ResourceLoader.getResource(file.getPath());
-				}
-				if (res == null && next[0] != null) {
-					file = new File(next[0]); // next[0] is absolute path
-					res = ResourceLoader.getResource(file.getPath());
-				}
-				if (res == null) {
-					if (OSPRuntime.isJS) {
-						JOptionPane.showMessageDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
-								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message")); //$NON-NLS-1$
-						continue;
-					} else /** @j2sNative */
-					{
-						int i = JOptionPane.showConfirmDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
-								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message"), //$NON-NLS-1$
-								TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
-								JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-						if (i == JOptionPane.YES_OPTION) {
-							TrackerIO.getChooser().setSelectedFile(file);
-							@SuppressWarnings("deprecation")
-							java.io.File[] files = TrackerIO.getChooserFiles("open"); //$NON-NLS-1$
-							if (files != null) {
-								file = files[0];
-							} else {
-								continue;
-							}
-						} else {
-							continue;
-						}
-					}
-				}
-				// BH! but if the file is set in the prev block, res is still null. So this will
-				// not work?
-				if (res != null && !videoFilter.accept(file)) {
-					if (dataFile == null)
-						dataFile = file;
-					TrackerIO.openTabFile(file, frame);
-				}
-			}
-			TrackerIO.setLoadInSeparateThread("TFrame.loadObject1", prev);
-			return loadObjectFinally(frame, dataFile, null);
-		}
-
-		/**
-		 * Just the tail end of loadObject
-		 * 
-		 * @param frame
-		 * @param dataFile
-		 * @param whenDone
-		 * @return
-		 */
-		protected TFrame loadObjectFinally(TFrame frame, File dataFile, Function<Object, Void> whenDone) {
-			int n = frame.getTab(dataFile);
-			OSPLog.finest("selecting first tabset tab at index " + n); //$NON-NLS-1$
-			frame.setSelectedTab(n);
-			if (whenDone != null)
-				whenDone.apply(frame);
-			return frame;
-		}
-
-		// BH 2020.04.16 just a sketch; not implemented yet.
-
-		/**
-		 * The same as above, just asynchronous (untested).
-		 * 
-		 * @param control
-		 * @param frame
-		 * @param whenDone
-		 */
-		public synchronized void loadObjectAsync(XMLControl control, TFrame frame, Function<Object, Void> whenDone) {
-			Object tabs = control.getObject("tabs"); //$NON-NLS-1$
-			if (tabs == null) {
-				loadObjectFinally(frame, null, whenDone);
-				return;
-			}
-			new State(control, frame, whenDone, (String[][]) tabs).start();
-		}
-
-		/**
-		 * The essential SwingJS state machine works in Java and JavaScript and consists
-		 * of:
-		 * 
-		 * 1) a set of all possible states (as final static int) Typically, these are
-		 * INIT, LOOP (or NEXT), and DONE, but they could be far more complex.
-		 * 
-		 * 2) a set of final and nonfinal fields that persist only as long as the state
-		 * exists.
-		 * 
-		 * 3) at least one loop defining the course of actions for the state.
-		 * 
-		 * Action starts with starting of a StateHelper dedicated to this State. When
-		 * complete, you can provide a "whenDone" Function or Runnable. Or configure it
-		 * any way you want.
-		 * 
-		 * Action can be interrupted (reversibly) any time by calling
-		 * stateHelper.interrupt().
-		 * 
-		 * Action can be made synchronous or restarted using stateHelper.next(STATE_XXX)
-		 * or asynchronous using stateHelper.delayedState(ms, STATE_XXX).
-		 * 
-		 * @author hansonr
-		 *
-		 */
-		private class State implements StateMachine {
-
-			// possible states
-
-			final static int STATE_IDLE = -1; // used sometimes for animation holds; not used in this class
-
-			final static int STATE_INIT = 0;
-			final static int STATE_NEXT = 1;
-			final static int STATE_DONE = 2;
-
-			private final StateHelper stateHelper;
-			private final TFrame frame;
-			private final String[][] tabs;
-			private final String base;
-			private final VideoFileFilter videoFilter;
-			private final boolean wasLoadThread;
-			private final Function<Object, Void> whenDone;
-
-			private int index;
-			private File dataFile;
-
-			public State(XMLControl control, TFrame frame, Function<Object, Void> whenDone, String[][] tabs) {
-
-				this.whenDone = whenDone;
-				this.frame = frame;
-				this.base = control.getString("basepath"); //$NON-NLS-1$
-				this.tabs = tabs;
-				videoFilter = new VideoFileFilter();
-				wasLoadThread = TrackerIO.isLoadInSeparateThread();
-				stateHelper = new StateHelper(this);
-				TrackerIO.setLoadInSeparateThread("TFrame.State0", false);
-			}
-
-			public void start() {
-				stateHelper.next(STATE_INIT);
-
-			}
-
-			@Override
-			public synchronized boolean stateLoop() {
-
-				while (stateHelper.isAlive()) {
-					switch (stateHelper.getState()) {
-					case STATE_INIT:
-						index = 0;
-						stateHelper.setState(STATE_NEXT);
-						continue;
-					case STATE_NEXT:
-						// for (String[] next : tabs) {
-						if (index >= tabs.length)
-							return stateHelper.next(STATE_DONE);
-						String[] next = tabs[index];
-						File file = null;
-						Resource res = null;
-						if (base != null) {
-							file = new File(base, next[1]); // next[1] is relative path
-							res = ResourceLoader.getResource(file.getPath());
-						}
-						if (res == null) {
-							file = new File(XML.getUserDirectory(), next[1]);
-							res = ResourceLoader.getResource(file.getPath());
-						}
-						if (res == null && next[0] != null) {
-							file = new File(next[0]); // next[0] is absolute path
-							res = ResourceLoader.getResource(file.getPath());
-						}
-						if (res != null) {
-							processResource(res, file);
-							continue; // STATE_NEXT
-						}
-						int i = JOptionPane.showConfirmDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
-								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message"), //$NON-NLS-1$
-								TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
-								JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-						if (i != JOptionPane.YES_OPTION) {
-							continue;
-						}
-						TrackerIO.getChooser().setSelectedFile(file);
-						TrackerIO.getChooserFilesAsync("open", new Function<File[], Void>() {
-
-							@Override
-							public Void apply(File[] files) {
-								if (files != null) {
-									File file = files[0];
-									// BH makes more sense to me...
-									processResource(null, file);
-								}
-								stateHelper.next(STATE_NEXT);
-								return null;
-							}
-						});
-						// } // end for
-						break;
-					case STATE_DONE:
-						TrackerIO.setLoadInSeparateThread("TFrame.State1", wasLoadThread);
-						loadObjectFinally(frame, dataFile, whenDone);
-						break;
-					default:
-					case STATE_IDLE:
-						break;
-					}
-				}
-				return false;
-			}
-
-			private void processResource(Resource res, File file) {
-				if (res != null && !videoFilter.accept(file)) {
-					if (dataFile == null)
-						dataFile = file;
-					TrackerIO.openTabFile(file, frame);
-				}
-			}
-
-		}
-
-	}
-
-	public void addTrackerPane(boolean changedState, Runnable whenDone) {
-		TrackerPanel newPanel = new TrackerPanel();
-		addTab(newPanel, new Runnable() {
-
-			@Override
-			public void run() {
-				setSelectedTab(newPanel);
-				if (!changedState)
-					newPanel.changed = false;
-				if (whenDone != null)
-					whenDone.run();
-				refresh();
-			}
-
-		});
 	}
 
 	/**
@@ -3112,11 +2702,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		});
 	}
 
-	public boolean haveContent() {
+	/**
+	 * @return true if there is at least one tab and it is not changed and it has the default title
+	 */
+    boolean haveContent() {
 		return (getTabCount() > 0 && (getTrackerPanel(0).changed
 				|| !tabbedPane.getTitleAt(0).equals(TrackerRes.getString("TrackerPanel.NewTab.Name")))); //$NON-NLS-1$
 	}
-	
+
 	/**
 	 * Returns a clean TrackerPanel.
 	 * Uses the blank untitled TrackerPanel in frame tab 0 if it is unchanged
@@ -3127,10 +2720,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (getTabCount() == 0 || haveContent())
 			return new TrackerPanel();
 		TrackerPanel panel = getTrackerPanel(0);
-		panel.changed = true;
+//		panel.changed = true;
 		return panel;
 	}
 
+	/**
+	 * Remove the first tab if it is empty and there are more than n tabs  (0 or 1)
+	 */
+	public void removeEmptyTab(int n) {
+//		if (getTabCount() > n && !haveContent())
+//			removeTabNow(0);
+	}
 
 	public void removeTabNow(int i) {
 		TrackerPanel tp = getTrackerPanel(i);
@@ -3139,6 +2739,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	private String lastExperiment = "";
+	
+	/**
+	 * runnable for when loadObject is complete, from TrackerIO
+	 */
+	public Function<List<String>, Void> whenObjectLoadingComplete;
 
 	/**
 	 * Replace any open tabs with a single tab loaded with the given path.
@@ -3160,14 +2765,152 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (getTabCount() > 0)
 			removeAllTabs();
 		try {
-			TrackerIO.open(path, this);
+			doOpenURL(path);
 		} catch (Throwable t) {
 			removeAllTabs();
 		}
 	}
 	
+	protected void loadLibraryRecord(LibraryResource record) {
+		String abort = "[click here to cancel]";
+		libraryBrowser.setMessage("Loading \""+record.getName() + "\"" + abort, Color.YELLOW);
+		libraryBrowser.setComandButtonEnabled(false);
+		libraryBrowser.setAlwaysOnTop(true);
+		openLibraryResource(record, () -> {
+			TrackerPanel trackerPanel = getSelectedPanel();
+			Timer timer = new Timer(200, (ev) -> {
+				libraryBrowser.setCanceled(false);
+				libraryBrowser.setAlwaysOnTop(false);
+				requestFocus();	
+				if (trackerPanel != null) {
+					trackerPanel.changed = false;
+					repaintT(trackerPanel);
+				}
+			});
+			timer.setRepeats(false);
+			timer.start();
+		});
+	}
+	
+	public void openLibraryResource(LibraryResource record, Runnable whenDone) {
+		libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		try {
+			String target = record.getAbsoluteTarget();
+			if (!ResourceLoader.isHTTP(target)) {
+				target = ResourceLoader.getURIPath(XML.getResolvedPath(record.getTarget(), record.getBasePath()));
+			}
+			// download comPADRE targets to osp cache
+			if (target.indexOf("document/ServeFile.cfm?") > -1) { //$NON-NLS-1$
+				String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
+				try {
+					File file = ResourceLoader.downloadToOSPCache(target, fileName, false);
+					target = file.toURI().toString();
+				} catch (Exception ex) {
+					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
+					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + record.getName() + "\"", //$NON-NLS-1$ //$NON-NLS-2$
+							TrackerRes.getString("TFrame.Dialog.LibraryError.Title"), //$NON-NLS-1$
+							JOptionPane.WARNING_MESSAGE);
+					return;
+				}
+			}
+
+			String lcTarget = target.toLowerCase();
+			boolean accept = (lcTarget.endsWith(".trk") || ResourceLoader.isJarZipTrz(lcTarget, false));
+			if (!accept) {
+				if (TrackerIO.isVideo(new File(target))) {
+					loadVideo(target, true, whenDone);
+					whenDone = null;
+					return;
+				}
+			}
+			if (accept) {
+				if (ResourceLoader.getResourceZipURLsOK(target) == null) {
+					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
+					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
+							TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Title"), //$NON-NLS-1$
+							JOptionPane.WARNING_MESSAGE);
+					libraryBrowser.setVisible(true);
+					return;
+				}
+				try {
+//					TrackerIO.openAsync(target, this, whenDone);
+
+// BH: Doug, is there a reason to use openAll here?	Is it because we do NOT want to add these to recent files?
+					
+					ArrayList<String> uriPaths = new ArrayList<String>();
+					uriPaths.add(target);
+					TrackerIO.openFromLibrary(uriPaths, this, whenDone);
+					whenDone = null;
+				} catch (Throwable t) {
+				}
+				return;
+			}
+			String path = target;
+			for (String ext : VideoIO.KNOWN_VIDEO_EXTENSIONS) {
+				if (lcTarget.endsWith("." + ext)) {
+					if (libraryBrowser != null)
+						libraryBrowser.setMessage(null, null);
+					VideoIO.handleUnsupportedVideo(path, ext, null, getSelectedPanel(),
+							"TFrame known video ext");
+					return;
+				}
+			}
+		} finally {
+			libraryBrowser.setCursor(Cursor.getDefaultCursor());
+			if (whenDone != null)
+				whenDone.run();
+		}
+	}
+
 	/**
-	 * Loads (imports) a video file or image stack into a tab.
+	 * Java only; from ExportVideoDialog
+	 * 
+	 * @param path
+	 */
+	public void doOpenExportedAndUpdateLibrary(String path) {
+		loadedFiles.remove(path);
+		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		TrackerIO.openFileFromDialog(new File(path), this, () -> {
+			// open the TR Z in the Library Browser
+			setCursor(Cursor.getDefaultCursor());
+			libraryBrowser.open(path);
+			libraryBrowser.setVisible(true);
+			Timer timer = new Timer(1000, (e) -> {
+				LibraryTreePanel treePanel = libraryBrowser.getSelectedTreePanel();
+				if (treePanel != null) {
+					treePanel.refreshSelectedNode();
+				}
+			});
+			timer.setRepeats(false);
+			timer.start();
+		});
+	}
+
+	
+	public void doOpenFileFromDialog() {
+		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		TrackerIO.openFileFromDialog(null, this, () -> {
+			setCursor(Cursor.getDefaultCursor());
+		});
+	}
+
+	public void doOpenURL(String url) {
+		TrackerPanel selected = getSelectedPanel();
+		if (selected != null) {
+			selected.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		}
+		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		TrackerIO.openURL(url, this, () -> {
+			setCursor(Cursor.getDefaultCursor());
+			if (selected != null) {
+				selected.setMouseCursor(Cursor.getDefaultCursor());
+			}
+		});
+	}
+
+
+	/**
+	 * Loads (imports) a video file or image stack into a tab after caching its contents locally.
 	 * Tab may be a new tab or the currently selected tab.
 	 * 
 	 * @param path path to the video
@@ -3175,88 +2918,349 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param whenDone optional Runnable
 	 */
 	void loadVideo(String path, boolean asNewTab, Runnable whenDone) {
+		// from loadExperimentURL and openLibraryResource actions
 		if (!VideoIO.checkMP4(path, libraryBrowser))
 			return;					
 		// load a video file or a directory containing images
 		File localFile = ResourceLoader.download(path, null, false);
+		TrackerPanel panel = getSelectedPanel();
+		Runnable importer = new Runnable() {
+			@Override
+			public void run() {
+				TrackerIO.importVideo(XML.getAbsolutePath(localFile), panel, whenDone);							
+			}		
+		};
 		if (asNewTab)
-			addTrackerPane(false, () -> {
-				TrackerIO.importVideo(localFile, getTrackerPanel(getSelectedTab()), null, whenDone);				
-			});
+			addTrackerPanel(false, importer);
 		else {
-			TrackerIO.importVideo(localFile, getTrackerPanel(getSelectedTab()), null, whenDone);							
+			importer.run();
 		}
 	}
 
 	/**
-	 * From FileDropHandler
-	 * 
-	 * @param fileList
-	 * @param targetPanel
-	 * @return
+	 * Returns an ObjectLoader to save and load data for this class.
+	 *
+	 * @return the object loader
 	 */
-	public boolean loadFiles(List<File> fileList, TrackerPanel targetPanel) {
-		try {
-			// define frameNumber for insertions
-			// load the files
-			int frameNumber = -1;
-			int nf = fileList.size();
-			for (int j = 0; j < nf; j++) {
-				final File file = fileList.get(j);
-				OSPRuntime.cacheJSFile(file, true);
-				OSPLog.debug("file to load: " + file.getAbsolutePath()); //$NON-NLS-1$
-				// load a new tab unless file is video and there is a trackerPanel to import it
-				if (targetPanel == null || !TrackerIO.haveVideo(fileList)) {
-					// could be a video file or a directory of images
-					// DB don't remove tab until we know if loading will likely succeed
-//					if (nf > 0 && !haveContent()) {
-//						removeTabNow(0);
-//					}
-					TrackerIO.openTabFile(file, this);
-				} else if (targetPanel != null ) {
-					// import video
-					if (targetPanel.getVideo() instanceof ImageVideo && TrackerIO.isImageFile(file)) {
-						if (frameNumber < 0) {
-							frameNumber = 0;
-							targetPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-							setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-							if (targetPanel.getVideo() != null) {
-								frameNumber = targetPanel.getVideo().getFrameNumber();
-							}
-						}
-						// if targetPanel has image video and file is image, add after current frame
-						File[] added = TrackerIO.insertImagesIntoVideo(new File[] { file }, targetPanel,
-								frameNumber + 1);
-						frameNumber += added.length;
-					} else {
-						// if targetPanel not null and file is video then import
-						// open in separate background thread
-						// final TFrame frame = targetPanel.getTFrame();
-						// final int n = frame.getTab(targetPanel);
-						Runnable runner = new Runnable() {
-							@Override
-							public void run() {
-								// TrackerPanel trackerPanel = frame.getTrackerPanel(n);
-								TrackerIO.importVideo(file, targetPanel, null, null);/// TrackerIO.NULL_RUNNABLE);
-							}
-						};
-						TrackerIO.run("TFrame.loadFiles", runner); 
-					}
-				} 
-//				else {
-//					// else inform user that file is not acceptable
-//					JOptionPane.showMessageDialog(this, "\"" + file.getName() + "\" " //$NON-NLS-1$ //$NON-NLS-2$
-//							+ TrackerRes.getString("FileDropHandler.Dialog.BadFile.Message"), //$NON-NLS-1$
-//							TrackerRes.getString("FileDropHandler.Dialog.BadFile.Title"), //$NON-NLS-1$
-//							JOptionPane.WARNING_MESSAGE);
-//				}
-			}
-		} catch (Exception e) {
-			return false;
-		} finally {
-			setCursor(Cursor.getDefaultCursor());
-		}
-		return true;
+	public static XML.ObjectLoader getLoader() {
+		return new Loader();
 	}
-	
+
+	/**
+	 * A class to save and load data for this class.
+	 */
+	static class Loader implements XML.ObjectLoader {
+
+		/**
+		 * Saves an object's data to an XMLControl.
+		 *
+		 * @param control the control to save to
+		 * @param obj     the object to save
+		 */
+		@Override
+		public void saveObject(XMLControl control, Object obj) {
+			TFrame frame = (TFrame) obj;
+			// save tabs with data files or unchanged videos
+			// save both relative paths (relative to tabsetFile) and absolute paths
+			String relativeTo = frame.tabsetFile != null ? XML.getDirectoryPath(XML.getAbsolutePath(frame.tabsetFile))
+					: XML.getUserDirectory();
+			relativeTo = XML.forwardSlash(relativeTo);
+			ArrayList<String[]> pathList = new ArrayList<String[]>();
+			for (int i = 0; i < frame.getTabCount(); i++) {
+				TrackerPanel trackerPanel = frame.getTrackerPanel(i);
+				File file = trackerPanel.getDataFile();
+				if (file != null) {
+					String path = XML.getAbsolutePath(file);
+					String relativePath = XML.getPathRelativeTo(path, relativeTo);
+					pathList.add(new String[] { path, relativePath });
+				} else {
+					Video video = trackerPanel.getVideo();
+					if (!trackerPanel.changed && video != null) {
+						String path = (String) video.getProperty("absolutePath"); //$NON-NLS-1$
+						if (path != null) {
+							path = XML.forwardSlash(path);
+							String relativePath = XML.getPathRelativeTo(path, relativeTo);
+							pathList.add(new String[] { path, relativePath });
+						}
+					}
+				}
+			}
+			String[][] paths = pathList.toArray(new String[0][0]);
+			control.setValue("tabs", paths); //$NON-NLS-1$
+		}
+
+		/**
+		 * Creates a new object. This returns null--must load an existing TFrame.
+		 *
+		 * @param control the XMLControl with the object data
+		 * @return the newly created object
+		 */
+		@Override
+		public Object createObject(XMLControl control) {
+			return null;
+		}
+
+		/**
+		 * Loads an object with data from an XMLControl synchronously
+		 *
+		 * @param control the control
+		 * @param obj     the object
+		 * @return the loaded object
+		 */
+		@Override
+		public Object loadObject(XMLControl control, Object obj) {
+			TFrame frame = (TFrame) obj;
+			String[][] tabs = (String[][]) control.getObject("tabs"); //$NON-NLS-1$
+			if (tabs == null)
+				return loadObjectFinally(frame, null);
+			FileFilter videoFilter = new VideoFileFilter();
+			String base = control.getString("basepath"); //$NON-NLS-1$
+			File dataFile = null;
+//			boolean prev = TrackerIO.isLoadInSeparateThread();
+//			TrackerIO.setLoadInSeparateThread("TFrame.loadObject0", false);
+			List<String> files = new ArrayList<>();
+			for (String[] next : tabs) {
+				File file = null;
+				Resource res = null;
+				if (base != null) {
+					file = new File(base, next[1]); // next[1] is relative path
+					res = ResourceLoader.getResource(file.getPath());
+				}
+				if (res == null) {
+					file = new File(XML.getUserDirectory(), next[1]);
+					res = ResourceLoader.getResource(file.getPath());
+				}
+				if (res == null && next[0] != null) {
+					file = new File(next[0]); // next[0] is absolute path
+					res = ResourceLoader.getResource(file.getPath());
+				}
+				if (res == null) {
+					if (OSPRuntime.isJS) {
+						JOptionPane.showMessageDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
+								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message")); //$NON-NLS-1$
+						continue;
+					} else /** @j2sNative */
+					{
+						int i = JOptionPane.showConfirmDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
+								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message"), //$NON-NLS-1$
+								TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
+								JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+						if (i == JOptionPane.YES_OPTION) {
+							TrackerIO.getChooser().setSelectedFile(file);
+							@SuppressWarnings("deprecation")
+							java.io.File[] a = TrackerIO.getChooserFiles("open"); //$NON-NLS-1$
+							if (a != null) {
+								file = a[0];
+							} else {
+								continue;
+							}
+						} else {
+							continue;
+						}
+					}
+				}
+				// BH! but if the file is set in the prev block, res is still null. So this will
+				// not work?
+				if (res != null && !videoFilter.accept(file)) {
+					if (dataFile == null)
+						dataFile = file;
+					files.add(XML.getAbsolutePath(file));
+				}
+			}
+			File file0 = dataFile;
+			if (frame.whenObjectLoadingComplete != null) {
+				files.add(0, XML.getAbsolutePath(dataFile));
+				frame.whenObjectLoadingComplete.apply(files);
+				frame.whenObjectLoadingComplete = null;
+				return frame;
+			}
+			TrackerIO.openFiles(frame, files, () -> {
+				loadObjectFinally(frame, file0);
+			});
+//			TrackerIO.setLoadInSeparateThread("TFrame.loadObject1", prev);
+			return frame;
+		}
+
+		/**
+		 * Just the tail end of loadObject
+		 * 
+		 * @param frame
+		 * @param dataFile
+		 * @return
+		 */
+		protected TFrame loadObjectFinally(TFrame frame, File dataFile) {
+			if (frame.whenObjectLoadingComplete != null) {
+				frame.whenObjectLoadingComplete.apply(new ArrayList<>());
+				frame.whenObjectLoadingComplete = null;
+			}
+			frame.setSelectedTab(dataFile);
+			return frame;
+		}
+
+		// BH 2020.04.16 just a sketch; not implemented yet.
+
+//		/**
+//		 * The same as above, just asynchronous (untested).
+//		 * 
+//		 * @param control
+//		 * @param frame
+//		 * @param whenDone
+//		 */
+//		public synchronized void loadObjectAsync(XMLControl control, TFrame frame, Function<Object, Void> whenDone) {
+//			Object tabs = control.getObject("tabs"); //$NON-NLS-1$
+//			if (tabs == null) {
+//				loadObjectFinally(frame, null, whenDone);
+//				return;
+//			}
+//			new State(control, frame, whenDone, (String[][]) tabs).start();
+//		}
+//
+//		/**
+//		 * The essential SwingJS state machine works in Java and JavaScript and consists
+//		 * of:
+//		 * 
+//		 * 1) a set of all possible states (as final static int) Typically, these are
+//		 * INIT, LOOP (or NEXT), and DONE, but they could be far more complex.
+//		 * 
+//		 * 2) a set of final and nonfinal fields that persist only as long as the state
+//		 * exists.
+//		 * 
+//		 * 3) at least one loop defining the course of actions for the state.
+//		 * 
+//		 * Action starts with starting of a StateHelper dedicated to this State. When
+//		 * complete, you can provide a "whenDone" Function or Runnable. Or configure it
+//		 * any way you want.
+//		 * 
+//		 * Action can be interrupted (reversibly) any time by calling
+//		 * stateHelper.interrupt().
+//		 * 
+//		 * Action can be made synchronous or restarted using stateHelper.next(STATE_XXX)
+//		 * or asynchronous using stateHelper.delayedState(ms, STATE_XXX).
+//		 * 
+//		 * @author hansonr
+//		 *
+//		 */
+//		private class State implements StateMachine {
+//
+//			// possible states
+//
+//			final static int STATE_IDLE = -1; // used sometimes for animation holds; not used in this class
+//
+//			final static int STATE_INIT = 0;
+//			final static int STATE_NEXT = 1;
+//			final static int STATE_DONE = 2;
+//
+//			private final StateHelper stateHelper;
+//			private final TFrame frame;
+//			private final String[][] tabs;
+//			private final String base;
+//			private final VideoFileFilter videoFilter;
+//			private final boolean wasLoadThread;
+//			private final Function<Object, Void> whenDone;
+//
+//			private int index;
+//			private File dataFile;
+//
+//			public State(XMLControl control, TFrame frame, Function<Object, Void> whenDone, String[][] tabs) {
+//
+//				this.whenDone = whenDone;
+//				this.frame = frame;
+//				this.base = control.getString("basepath"); //$NON-NLS-1$
+//				this.tabs = tabs;
+//				videoFilter = new VideoFileFilter();
+//				wasLoadThread = TrackerIO.isLoadInSeparateThread();
+//				stateHelper = new StateHelper(this);
+//				TrackerIO.setLoadInSeparateThread("TFrame.State0", false);
+//			}
+//
+//			public void start() {
+//				stateHelper.next(STATE_INIT);
+//
+//			}
+//
+//			@Override
+//			public synchronized boolean stateLoop() {
+//
+//				while (stateHelper.isAlive()) {
+//					switch (stateHelper.getState()) {
+//					case STATE_INIT:
+//						index = 0;
+//						stateHelper.setState(STATE_NEXT);
+//						continue;
+//					case STATE_NEXT:
+//						// for (String[] next : tabs) {
+//						if (index >= tabs.length)
+//							return stateHelper.next(STATE_DONE);
+//						String[] next = tabs[index];
+//						File file = null;
+//						Resource res = null;
+//						if (base != null) {
+//							file = new File(base, next[1]); // next[1] is relative path
+//							res = ResourceLoader.getResource(file.getPath());
+//						}
+//						if (res == null) {
+//							file = new File(XML.getUserDirectory(), next[1]);
+//							res = ResourceLoader.getResource(file.getPath());
+//						}
+//						if (res == null && next[0] != null) {
+//							file = new File(next[0]); // next[0] is absolute path
+//							res = ResourceLoader.getResource(file.getPath());
+//						}
+//						if (res != null) {
+//							processResource(res, file);
+//							continue; // STATE_NEXT
+//						}
+//						int i = JOptionPane.showConfirmDialog(frame, "\"" + next[1] + "\" " //$NON-NLS-1$ //$NON-NLS-2$
+//								+ MediaRes.getString("VideoClip.Dialog.VideoNotFound.Message"), //$NON-NLS-1$
+//								TrackerRes.getString("TFrame.Dialog.FileNotFound.Title"), //$NON-NLS-1$
+//								JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+//						if (i != JOptionPane.YES_OPTION) {
+//							continue;
+//						}
+//						TrackerIO.getChooser().setSelectedFile(file);
+//						TrackerIO.getChooserFilesAsync("open", new Function<File[], Void>() {
+//
+//							@Override
+//							public Void apply(File[] files) {
+//								if (files != null) {
+//									File file = files[0];
+//									// BH makes more sense to me...
+//									processResource(null, file);
+//								}
+//								stateHelper.next(STATE_NEXT);
+//								return null;
+//							}
+//						});
+//						// } // end for
+//						break;
+//					case STATE_DONE:
+//						TrackerIO.setLoadInSeparateThread("TFrame.State1", wasLoadThread);
+//						loadObjectFinally(frame, dataFile, whenDone);
+//						break;
+//					default:
+//					case STATE_IDLE:
+//						break;
+//					}
+//				}
+//				return false;
+//			}
+//
+//			private void processResource(Resource res, File file) {
+//				if (res != null && !videoFilter.accept(file)) {
+//					if (dataFile == null)
+//						dataFile = file;
+//					TrackerIO.openTabFileAsync(file, frame, null);
+//				}
+//			}
+//
+//		}
+
+	}
+
+	public void setSelectedTab(File dataFile) {
+		int n = getTab(dataFile);
+		OSPLog.finest("TFrame selecting first tabset tab at index " + n); //$NON-NLS-1$
+		setSelectedTab(n);
+	}
+
 }

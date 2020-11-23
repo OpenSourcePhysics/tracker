@@ -77,7 +77,7 @@ public class FileDropHandler extends TransferHandler {
 
 	@Override
 	public boolean importData(TransferHandler.TransferSupport support) {
-		return (canImport(support) && frame.loadFiles(getFileList(support.getTransferable()),
+		return (canImport(support) && TrackerIO.loadFiles(frame, getFileList(support.getTransferable()),
 				support.getComponent() instanceof TrackerPanel ? (TrackerPanel) support.getComponent() : null));
 	}
 

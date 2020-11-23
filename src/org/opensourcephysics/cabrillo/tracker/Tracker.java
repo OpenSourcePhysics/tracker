@@ -649,7 +649,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					rootXMLPath = names[i].substring(0, names[i].lastIndexOf("/") + 1); //$NON-NLS-1$
 					OSPLog.fine("Setting rootPath: " + rootXMLPath); //$NON-NLS-1$
 				}
-				TrackerIO.open(names[i], frame);
+				frame.doOpenURL(names[i]);
 			}
 		} else if (addTabIfEmpty) {
 			// add an empty tab if requested
@@ -1616,7 +1616,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			for (int i = 0, n = frames.length; i < n; i++) {
 				if (frames[i] instanceof TFrame) {
 					tFrame = (TFrame) frames[i];
-					TrackerPanel trackerPanel = tFrame.getTrackerPanel(tFrame.getSelectedTab());
+					TrackerPanel trackerPanel = tFrame.getSelectedPanel();
 					if (trackerPanel != null) {
 						TTrackBar trackbar = TTrackBar.getTrackbar(trackerPanel);
 						trackbar.refresh();

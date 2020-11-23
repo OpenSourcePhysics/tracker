@@ -2560,9 +2560,8 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				Container c = helpMenu.getTopLevelAncestor();
 				if (c instanceof TFrame) {
 					TFrame frame = (TFrame) c;
-					int tab = frame.getSelectedTab();
-					if (tab > -1) {
-						TrackerPanel panel = frame.getTrackerPanel(tab);
+					TrackerPanel panel = frame.getSelectedPanel();
+					if (panel != null) {
 						panel.setCursorForMarking(false, null);
 						TView[][] views = frame.getTViews(panel);
 						for (TView[] next : views) {

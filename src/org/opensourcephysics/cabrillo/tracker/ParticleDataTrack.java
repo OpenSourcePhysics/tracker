@@ -562,8 +562,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			getLeader().reloadButton.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					int tab = frame.getSelectedTab();
-					TrackerPanel panel = frame.getTrackerPanel(tab);
+					TrackerPanel panel = frame.getSelectedPanel();
 					if (panel != null) {
 						Runnable whenDone = () -> {
 							getLeader().prevDataString = getLeader().pendingDataString;
@@ -1228,7 +1227,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		case TFrame.PROPERTY_TFRAME_WINDOWFOCUS:
 			TFrame frame = (TFrame) e.getSource();
 			// listen for clipboard changes
-			if (trackerPanel != null && trackerPanel == frame.getTrackerPanel(frame.getSelectedTab())
+			if (trackerPanel != null && trackerPanel == frame.getSelectedPanel()
 					&& this == getLeader()) {
 				// get current data string and compare with previous
 				String dataString = null;

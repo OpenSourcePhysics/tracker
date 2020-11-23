@@ -191,10 +191,9 @@ public class Upgrader {
   	  	    			Tracker.preferredTrackerJar = null;
   	  	    			Tracker.savePreferences();
   	  	    			// exit Tracker
-									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+									TrackerPanel trackerPanel = frame.getSelectedPanel();
 									if (trackerPanel!=null) {
-										Action exit = TActions.getAction("exit", trackerPanel); //$NON-NLS-1$
-										exit.actionPerformed(null);
+										TActions.getAction("exit", trackerPanel).actionPerformed(null); //$NON-NLS-1$
 									}
 									else {
 										Tracker.exit();
@@ -440,7 +439,7 @@ public class Upgrader {
 		      	      p.waitFor();
 		      	        
 		    	    		// exit Tracker
-					    		TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+					    		TrackerPanel trackerPanel = frame.getSelectedPanel();
 					    		if (trackerPanel!=null) {
 					    			Action exit = TActions.getAction("exit", trackerPanel); //$NON-NLS-1$
 					    			exit.actionPerformed(null);
@@ -582,7 +581,7 @@ public class Upgrader {
 //	            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 //	            clipboard.setContents(data, data);
 
-							TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+							TrackerPanel trackerPanel = frame.getSelectedPanel();
 							if (trackerPanel!=null) {
 								Action exit = TActions.getAction("exit", trackerPanel); //$NON-NLS-1$
 								exit.actionPerformed(null);

@@ -131,7 +131,7 @@ public class TActions {
 					public void actionPerformed(ActionEvent e) {
 						TFrame frame = trackerPanel.getTFrame();
 						if (frame != null) {
-							frame.addTrackerPane(true, null);
+							frame.addTrackerPanel(true, null);
 						}
 					}
 				}, true));
@@ -164,10 +164,7 @@ public class TActions {
 						trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 						TFrame frame = trackerPanel.getTFrame();
 						if (frame != null) {
-							frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-							TrackerIO.openTabFileAsync((File) null, frame, () -> {
-								frame.setCursor(Cursor.getDefaultCursor());
-							});
+							frame.doOpenFileFromDialog();
 						}
 					}
 				});
@@ -194,18 +191,13 @@ public class TActions {
 									JOptionPane.ERROR_MESSAGE);
 							return;
 						}
-						URL url = res.getURL();
 						trackerPanel.setSelectedPoint(null);
 						trackerPanel.selectedSteps.clear();
 						trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 						TFrame frame = trackerPanel.getTFrame();
 						if (frame != null) {
-							if (!frame.haveContent()) {
-								frame.removeTabNow(0);
-							}
-							frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-							TrackerIO.open(url, frame);
-							frame.setCursor(Cursor.getDefaultCursor());
+							frame.removeEmptyTab(0);
+							frame.doOpenURL(res.getURL().toExternalForm());
 						}
 					}
 				});

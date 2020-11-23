@@ -3812,7 +3812,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * (pixels), C (color 8 bit). Dimensions are often combinations of MLT. May
 	 * return null.
 	 * 
-	 * @param type     the track type
+	 * @param track the track
 	 * @param variable the variable name
 	 * @return the dimensions or null if unknown
 	 */

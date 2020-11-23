@@ -2568,26 +2568,10 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 						TrackerRes.getString("ZipResourceDialog.Complete.Title"), //$NON-NLS-1$
 						javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.QUESTION_MESSAGE);
 				if (response == javax.swing.JOptionPane.YES_OPTION) {
-					frame.loadedFiles.remove(path);
 					Runnable runner = new Runnable() {
 						@Override
 						public void run() {
-							// open the TRZ in a Tracker tab
-							TrackerIO.openTabFile(new File(path), frame);
-							// open the TRZ in the Library Browser
-							frame.getLibraryBrowser().open(path);
-							frame.getLibraryBrowser().setVisible(true);
-							Timer timer = new Timer(1000, new ActionListener() {
-								@Override
-								public void actionPerformed(ActionEvent e) {
-									LibraryTreePanel treePanel = frame.getLibraryBrowser().getSelectedTreePanel();
-									if (treePanel != null) {
-										treePanel.refreshSelectedNode();
-									}
-								}
-							});
-							timer.setRepeats(false);
-							timer.start();
+							frame.doOpenExportedAndUpdateLibrary(path);
 						}
 					};
 					SwingUtilities.invokeLater(runner);

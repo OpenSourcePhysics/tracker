@@ -1926,7 +1926,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			dataBuilder.refreshGUI();
 		}
 		// refresh DataTool
-		if (getTFrame() != null && frame.getTrackerPanel(frame.getSelectedTab()) == this
+		if (getTFrame() != null && frame.getSelectedPanel() == this
 				&& DataTool.getTool(false) != null) {
 			DataTool.getTool(false).refreshDecimalSeparators();
 		}
@@ -2108,7 +2108,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			frame.notesTextPane.setBackground(Color.WHITE);
 			frame.cancelNotesDialogButton.setEnabled(false);
 			frame.closeNotesDialogButton.setEnabled(true);
-			TrackerPanel panel = frame.getTrackerPanel(frame.getSelectedTab());
+			TrackerPanel panel = frame.getSelectedPanel();
 			frame.displayWhenLoadedCheckbox.setEnabled(panel != null);
 			if (panel != null) {
 				frame.displayWhenLoadedCheckbox.setSelected(!panel.hideDescriptionWhenLoaded);

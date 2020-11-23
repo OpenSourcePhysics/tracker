@@ -133,7 +133,7 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 		if (dataString != null) {
 			TrackerPanel trackerPanel;
 			if (targetPanel == null) {
-				trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+				trackerPanel = frame.getSelectedPanel();
 			} else {
 				trackerPanel = targetPanel;
 				targetPanel = null;
