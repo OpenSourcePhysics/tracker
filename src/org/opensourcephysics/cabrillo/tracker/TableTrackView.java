@@ -337,7 +337,7 @@ public class TableTrackView extends TrackView {
 		}
 	}
 
-	private void refreshNameMaps() {
+	protected void refreshNameMaps() {
 		htNames = new LinkedHashMap<>();
 		ArrayList<Dataset> sets = trackDataManager.getDatasetsRaw();
 		ArrayList<String> textSet = textColumnNames;
@@ -553,7 +553,7 @@ public class TableTrackView extends TrackView {
 			refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_REFRESH);
 		}
 		// check displayed data columns--default is columns 0 and 1 only
-		if (!bsCheckBoxes.get(0) || !bsCheckBoxes.get(1))
+		if (!bsCheckBoxes.get(0) || !bsCheckBoxes.get(1) || bsCheckBoxes.cardinality() > 2)
 			return true;
 
 		// ignore formatting since now handled by NumberFormatSetter
@@ -756,7 +756,11 @@ public class TableTrackView extends TrackView {
 				if (!track.getTextColumnNames().contains(name))
 					removed = name;
 			}
-			// update local list of names
+			if (added==null && removed==null) {
+				// a text entry was changed
+				return;
+			}
+			// update local list of text column names
 			textColumnNames.clear();
 			textColumnNames.addAll(track.getTextColumnNames());
 			
@@ -778,7 +782,6 @@ public class TableTrackView extends TrackView {
   			// new column is visible by default
 				setVisible(added, true);
   		}
-			// else a text entry was changed
 			// refresh table and column visibility dialog
 			dataTable.refreshTable(DataTable.MODE_COLUMN);
 			if (viewParent.getViewType() == TView.VIEW_TABLE) {

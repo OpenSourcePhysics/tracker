@@ -35,6 +35,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumnModel;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DataTable;
@@ -209,10 +210,13 @@ public class TableTView extends TrackChooserTView {
 				}
 			}
 			break;
-		case "function": //$NON-NLS-1$
+		case TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION: //$NON-NLS-1$
 			super.propertyChange(e);
-			if (getSelectedTrack() != null)
-				((TableTrackView) getTrackView(selectedTrack)).buildForNewFunction();
+			if (getSelectedTrack() != null) {
+				TableTrackView trackView = (TableTrackView) getTrackView(selectedTrack);
+				trackView.refreshNameMaps();
+				trackView.buildForNewFunction();
+			}
 			break;
 		default:
 			super.propertyChange(e);
@@ -320,7 +324,15 @@ public class TableTView extends TrackChooserTView {
 			String[][] data = (String[][]) control.getObject("track_columns"); //$NON-NLS-1$
 			if (data != null) {
 				Map<TTrack, TrackView> views = view.trackViews;
+				if (views == null) {
+					OSPLog.debug("pigggggggggggggggggg refreshing new TableTView "+view.hashCode());
+					
+					// brand new view has not been refreshed?
+					view.refresh();
+					views = view.trackViews;
+				}
 				if (views != null)
+					OSPLog.debug("pigggggggggggggggggg loading TableTView "+view.hashCode());
 					for (TTrack track : views.keySet()) {
 						TableTrackView tableView = (TableTrackView) view.getTrackView(track);
 						if (tableView == null)

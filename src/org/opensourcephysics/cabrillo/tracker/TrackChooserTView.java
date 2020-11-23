@@ -477,16 +477,16 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 */
 	@Override
 	public boolean isCustomState() {
-		if (tracks.size() > 1) {
-			// custom state if selected track is not the first in trackerPanel
-			for (TTrack track : trackerPanel.getUserTracks()) {
-				if (!track.isViewable())
-					continue;
-				if (track != selectedTrack)
-					return true;
-				break;
-			}
-		}
+//		if (tracks.size() > 1) {
+//			// custom state if selected track is not the first in trackerPanel
+//			for (TTrack track : trackerPanel.getUserTracks()) {
+//				if (!track.isViewable())
+//					continue;
+//				if (track != selectedTrack)
+//					return true;
+//				break;
+//			}
+//		}
 		for (Iterator<TTrack> it = trackViews.keySet().iterator(); it.hasNext();) {
 			TrackView view = trackViews.get(it.next());
 			if (view.isCustomState())

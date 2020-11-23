@@ -62,7 +62,6 @@ import javax.swing.JOptionPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -80,8 +79,6 @@ import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.FunctionPanel;
-
-import javajs.async.SwingJSUtils.Performance;
 
 /**
  * A PointMass tracks the position, velocity and acceleration of a point mass.
