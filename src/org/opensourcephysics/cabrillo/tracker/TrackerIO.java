@@ -1897,7 +1897,7 @@ public class TrackerIO extends VideoIO {
 					Performance.TIME_MARK));
 			if (progress == 100) {
 				if (paths.size() > 0) {
-					path = name = paths.remove(0);
+					path = paths.remove(0);
 					if (setupLoader())
 						progress = 0;
 				} else {
@@ -2089,7 +2089,7 @@ public class TrackerIO extends VideoIO {
 				}
 			}
 			// load trk files into Tracker
-			if (!isCanceled()) {
+			if (!isCanceled() && path == name) {
 				// add path to recent files
 				Tracker.addRecent(nonURIPath, false); // add at beginning
 				paths.addAll(trkFiles);
