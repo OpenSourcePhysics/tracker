@@ -2089,9 +2089,10 @@ public class TrackerIO extends VideoIO {
 				}
 			}
 			// load trk files into Tracker
-			if (!isCanceled() && path == name) {
+			if (!isCanceled()) {
 				// add path to recent files
-				Tracker.addRecent(nonURIPath, false); // add at beginning
+				if (path == name)
+					Tracker.addRecent(nonURIPath, false); // add at beginning
 				paths.addAll(trkFiles);
 				desktopFiles.addAll(tempFiles);
 			}
