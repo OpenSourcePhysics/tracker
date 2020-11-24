@@ -117,7 +117,6 @@ import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoGrabber;
 import org.opensourcephysics.media.core.VideoIO;
-import org.opensourcephysics.media.core.VideoIO.FinalizableLoader;
 import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoPlayer;
 import org.opensourcephysics.media.core.XYCoordinateStringBuilder;
@@ -3535,7 +3534,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * A class to save and load object data.
 	 */
-	static class Loader extends VideoPanel.Loader implements XML.ObjectLoader, FinalizableLoader {
+	static class Loader extends VideoPanel.Loader implements XML.ObjectLoader {
+
+		/**
+		 * Returns an ObjectLoader to save and load data for this class.
+		 *
+		 * @return the object loader
+		 */
+		public static XML.ObjectLoader getLoader() {
+			return new Loader();
+		}
 
 		/**
 		 * Creates an object.
