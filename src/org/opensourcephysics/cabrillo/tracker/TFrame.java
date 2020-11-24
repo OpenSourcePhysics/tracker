@@ -110,7 +110,6 @@ import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.DataTrack;
-import org.opensourcephysics.media.core.ImageVideo;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoFileFilter;
@@ -131,8 +130,6 @@ import org.opensourcephysics.tools.ResourceLoader;
 
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
-import javajs.async.SwingJSUtils.StateHelper;
-import javajs.async.SwingJSUtils.StateMachine;
 
 /**
  * This is the main frame for Tracker.
@@ -505,17 +502,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (whenDone != null) {
 			whenDone.run();
 		}
-//		
-//		// DB 7/26/20 added this as a hack to fully close bottom views--not yet tested in JS
-//		Timer timer = new Timer(500, new ActionListener() {
-//			@Override
-//			public void actionPerformed(ActionEvent e) {
-//				saveCurrentDividerLocations(trackerPanel);
-//				restoreViews(trackerPanel);
-//			}
-//		});
-//		timer.setRepeats(false);
-//		timer.start();
+		
+		Timer timer = new Timer(100, new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// DB getDataBuilder to autoload data functions from external files
+				trackerPanel.getDataBuilder();
+			}
+		});
+		timer.setRepeats(false);
+		timer.start();
 	}
 
 	/**
