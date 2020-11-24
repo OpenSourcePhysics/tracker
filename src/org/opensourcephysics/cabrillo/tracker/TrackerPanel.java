@@ -3660,14 +3660,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading ref and
 			// config ", Performance.TIME_MARK));
 
-			// load the selected_views property
+			// load the selected_& custom views properties
 			List<XMLProperty> props = control.getPropsRaw();
 			trackerPanel.selectedViewsProperty = null;
 			trackerPanel.customViewsProperty = null;
 			for (int n = 0, i = props.size(); --i >= 0 && n < 2;) {
+				// n < 2 since "selected_views" & "selected_view_types" should never BOTH exist
 				XMLProperty prop = props.get(i);
 				switch (prop.getPropertyName()) {
-				case "selected_views":
+				case "selected_views": 
 					trackerPanel.selectedViewsProperty = prop;
 					n++;
 					break;
@@ -4443,12 +4444,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (fileDropHandler == null) {
 			// phase II, after setting of dividers
 			// set track control location
-			if (trackControlX != Integer.MIN_VALUE) {
+			if (trackControlX != Integer.MIN_VALUE) {				
 				Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 				TrackControl tc = TrackControl.getControl(this);
-				int x = Math.max(getLocation().x + trackControlX, 0);
+				int x = Math.max(getTFrame().getLocation().x + trackControlX, 0);
 				x = Math.min(x, dim.width - tc.getWidth());
-				int y = Math.max(getLocation().y + trackControlY, 0);
+				int y = Math.max(getTFrame().getLocation().y + trackControlY, 0);
 				y = Math.min(y, dim.height - tc.getHeight());
 				tc.setLocation(x, y);
 				tc.positioned = true;

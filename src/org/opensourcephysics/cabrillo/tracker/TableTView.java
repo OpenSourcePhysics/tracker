@@ -209,10 +209,13 @@ public class TableTView extends TrackChooserTView {
 				}
 			}
 			break;
-		case "function": //$NON-NLS-1$
+		case TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION: //$NON-NLS-1$
 			super.propertyChange(e);
-			if (getSelectedTrack() != null)
-				((TableTrackView) getTrackView(selectedTrack)).buildForNewFunction();
+			if (getSelectedTrack() != null) {
+				TableTrackView trackView = (TableTrackView) getTrackView(selectedTrack);
+				trackView.refreshNameMaps();
+				trackView.buildForNewFunction();
+			}
 			break;
 		default:
 			super.propertyChange(e);
@@ -260,8 +263,9 @@ public class TableTView extends TrackChooserTView {
 				ArrayList<TTrack> customized = new ArrayList<TTrack>();
 				Map<TTrack, TrackView> views = view.trackViews;
 				for (TTrack next : views.keySet()) {
-					if (views.get(next).isCustomState())
+					if (views.get(next).isCustomState()) {
 						customized.add(next);
+					}
 				}
 				if (!customized.isEmpty()) {
 					ArrayList<String[][]> formattedColumns = new ArrayList<String[][]>();
@@ -320,6 +324,11 @@ public class TableTView extends TrackChooserTView {
 			String[][] data = (String[][]) control.getObject("track_columns"); //$NON-NLS-1$
 			if (data != null) {
 				Map<TTrack, TrackView> views = view.trackViews;
+				if (views == null) {
+					// new view has never been refreshed
+					view.refresh();
+					views = view.trackViews;
+				}
 				if (views != null)
 					for (TTrack track : views.keySet()) {
 						TableTrackView tableView = (TableTrackView) view.getTrackView(track);
@@ -327,7 +336,7 @@ public class TableTView extends TrackChooserTView {
 							continue;
 						for (int i = 0; i < data.length; i++) {
 							String[] columns = data[i];
-							if (!columns[0].equals(track.getName()))
+							if (columns == null || columns[0] == null || !columns[0].equals(track.getName()))
 								continue;
 							tableView.setRefreshing(false); // prevents refreshes
 							// start by unchecking all checkboxes
@@ -445,6 +454,7 @@ public class TableTView extends TrackChooserTView {
 			TTrack track = view.getTrack(control.getString("selected_track")); //$NON-NLS-1$
 			if (track != null) {
 				view.setSelectedTrack(track);
+
 				// code below for legacy files??
 				TableTrackView trackView = (TableTrackView) view.getTrackView(track);
 				String[] columns = (String[]) control.getObject("visible_columns"); //$NON-NLS-1$
