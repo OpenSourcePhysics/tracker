@@ -2540,7 +2540,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		TTrack track;
 		switch (name) {
 		case Video.PROPERTY_VIDEO_SIZE:
+			super.propertyChange(e);
+			getTFrame().holdPainting(false);
+			break;
 		case AsyncVideoI.PROPERTY_ASYNCVIDEOI_READY:
+			if (loader == null || ((Loader) loader).clip.getVideo() != e.getSource()) {
+				return;
+			}
 			super.propertyChange(e);
 			getTFrame().holdPainting(false);
 			notifyLoadingComplete();
@@ -3675,6 +3681,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		@SuppressWarnings("unchecked")
 		@Override
 		public void finalizeLoading() {
+			videoPanel.setLoader(null);
 			long t0 = Performance.now(0);
 			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
 			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;

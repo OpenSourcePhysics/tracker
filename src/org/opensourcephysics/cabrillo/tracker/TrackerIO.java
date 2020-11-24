@@ -2273,35 +2273,37 @@ public class TrackerIO extends VideoIO {
 
 		private void doneLoading() {
 //			monitorDialog.close();
-			String path = XML.forwardSlash(rawPath);
-			if (xmlPath != null && !xmlPath.contains(".zip!") && //$NON-NLS-1$
-					!xmlPath.contains(".trz!") && //$NON-NLS-1$
-					!xmlPath.contains(".jar!")) { //$NON-NLS-1$
-				path = XML.forwardSlash(xmlPath);
-				Tracker.addRecent(ResourceLoader.getNonURIPath(path), false); // add at beginning
-			}
+			if (this.path == name) {
+				String path = XML.forwardSlash(rawPath);
+				if (xmlPath != null && !xmlPath.contains(".zip!") && //$NON-NLS-1$
+						!xmlPath.contains(".trz!") && //$NON-NLS-1$
+						!xmlPath.contains(".jar!")) { //$NON-NLS-1$
+					path = XML.forwardSlash(xmlPath);
+					Tracker.addRecent(ResourceLoader.getNonURIPath(path), false); // add at beginning
+				}
 
-			TTrackBar.refreshMemoryButton();
+				TTrackBar.refreshMemoryButton();
 
-			switch (type) {
-			case TYPE_VIDEO: 
-				trackerPanel.changed = panelChanged;
-				// fall through
-			case TYPE_TRK:
-				frame.clearHoldPainting();
-				trackerPanel.notifyLoadingComplete();
-				frame.refresh();
+				switch (type) {
+				case TYPE_VIDEO:
+					trackerPanel.changed = panelChanged;
+					// fall through
+				case TYPE_TRK:
+					frame.clearHoldPainting();
+					trackerPanel.notifyLoadingComplete();
+					frame.refresh();
 //				TFrame.repaintT(trackerPanel);
 
-			}
+				}
 
+			}
 			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad done " + path, Performance.TIME_MARK));
 			OSPLog.debug("!!! " + Performance.now(t0) + " AyncLoad " + path);
 
 			if (whenDone == null) {
 			} else {
 				SwingUtilities.invokeLater(() -> {
-						whenDone.run();
+					whenDone.run();
 				});
 
 			}
