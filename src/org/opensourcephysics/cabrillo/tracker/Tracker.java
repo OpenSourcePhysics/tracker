@@ -128,6 +128,9 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	// enabling all resources and setting J2S parameters
 	// such as allowed AJAX databases.
 
+	
+	public static boolean doHoldRepaint = false; //BH testing 
+
 	public static boolean allowDataFunctionControls = !OSPRuntime.isJS;
 	
 	public static boolean allowDataRefresh = true;
@@ -2637,7 +2640,6 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	
 	static private Collection<String> dataFunctionControlStrings = new HashSet<String>();
 	static private Map<String, ArrayList<XMLControl>> dataFunctionControls = new TreeMap<String, ArrayList<XMLControl>>();
-
 
 	public static boolean haveDataFunctions() {
 		return (!allowDataFunctionControls ? false : !dataFunctionControlStrings.isEmpty() 

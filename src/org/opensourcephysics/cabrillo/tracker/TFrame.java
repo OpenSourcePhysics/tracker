@@ -2619,7 +2619,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * 
 	 */
 	public void holdPainting(boolean b) {
-		paintHold += (b ? 1 : paintHold > 0 ? -1 : 0);
+		if (!Tracker.doHoldRepaint)
+			return;
+			paintHold += (b ? 1 : paintHold > 0 ? -1 : 0);
 //		OSPLog.debug("TFrame.paintHold=" + paintHold);
 //		if (b || paintHold == 0)
 //			tabbedPane.setVisible(!b);

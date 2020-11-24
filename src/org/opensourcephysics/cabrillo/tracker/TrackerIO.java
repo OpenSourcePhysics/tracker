@@ -98,6 +98,7 @@ import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
+import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoType;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LibraryBrowser;
@@ -1718,7 +1719,7 @@ public class TrackerIO extends VideoIO {
 
 	}
 
-	private static class AsyncLoader extends AsyncSwingWorker implements TrackerMonitor {
+	static class AsyncLoader extends AsyncSwingWorker implements TrackerMonitor {
 
 		private final List<String> paths;
 		private final TrackerPanel existingPanel;
@@ -1748,6 +1749,7 @@ public class TrackerIO extends VideoIO {
 		private boolean stopped; // BH TODO
 		private String xmlPath;
 		private Runnable whenDone;
+		private List<VideoPanel> panelList = new ArrayList<>();
 
 		/**
 		 * 
@@ -1779,7 +1781,6 @@ public class TrackerIO extends VideoIO {
 			trackerPanel = null;
 			title = null;
 			stopped = false;
-			rawPath = null;
 			panelChanged = false;
 			nonURIPath = null;
 			frameCount = 0;
@@ -1911,7 +1912,10 @@ public class TrackerIO extends VideoIO {
 
 		@Override
 		public void doneAsync() {
-			doneLoading();
+			
+			if (this.path == name) {
+				doneLoading();
+			}
 		}
 
 		private int loadFrame(int progress) {
@@ -2110,8 +2114,8 @@ public class TrackerIO extends VideoIO {
 //					monitorDialog.setFrameCount(count);
 //				}
 //			}
-
-			trackerPanel = (TrackerPanel) control.loadObject(trackerPanel, (Object) frame);
+			panelList.add(trackerPanel);
+			trackerPanel = (TrackerPanel) control.loadObject(trackerPanel, this);
 			trackerPanel.setIgnoreRepaint(true);
 
 			// find page view files and add to TrackerPanel.pageViewFilePaths
@@ -2120,9 +2124,7 @@ public class TrackerIO extends VideoIO {
 			while (desktopFiles.size() > 0) {
 				trackerPanel.supplementalFilePaths.add(desktopFiles.remove(0));
 			}
-			boolean isZippedTRK = xmlPath != null
-					&& (xmlPath.contains(".zip!") || xmlPath.contains(".trz!") || xmlPath.contains(".jar!")); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			if (isZippedTRK) {
+			if (ResourceLoader.isJarZipTrz(xmlPath,  true)) {
 				String parent = xmlPath.substring(0, xmlPath.indexOf("!")); //$NON-NLS-1$
 				parent = ResourceLoader.getNonURIPath(parent); // strip protocol
 				String parentName = XML.stripExtension(XML.getName(parent));
@@ -2269,32 +2271,27 @@ public class TrackerIO extends VideoIO {
 			if (Tracker.warnVariableDuration)
 				findBadVideoFrames(trackerPanel, defaultBadFrameTolerance, true, true, true);
 			// show dialog only if bad frames found, and include "don't show again" button
+			if (panelList.size() == 0 && paths.size() == 1)
+				doneLoading();
 		}
 
 		private void doneLoading() {
 //			monitorDialog.close();
-			if (this.path == name) {
-				String path = XML.forwardSlash(rawPath);
-				if (xmlPath != null && !xmlPath.contains(".zip!") && //$NON-NLS-1$
-						!xmlPath.contains(".trz!") && //$NON-NLS-1$
-						!xmlPath.contains(".jar!")) { //$NON-NLS-1$
-					path = XML.forwardSlash(xmlPath);
-					Tracker.addRecent(ResourceLoader.getNonURIPath(path), false); // add at beginning
-				}
+			if (xmlPath != null && !ResourceLoader.isJarZipTrz(xmlPath,  true)) { //$NON-NLS-1$
+				Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(xmlPath)), false); // add at beginning
+			}
 
-				TTrackBar.refreshMemoryButton();
+			TTrackBar.refreshMemoryButton();
 
-				switch (type) {
-				case TYPE_VIDEO:
-					trackerPanel.changed = panelChanged;
-					// fall through
-				case TYPE_TRK:
-					frame.clearHoldPainting();
-					trackerPanel.notifyLoadingComplete();
-					frame.refresh();
+			switch (type) {
+			case TYPE_VIDEO:
+				trackerPanel.changed = panelChanged;
+				// fall through
+			case TYPE_TRK:
+				frame.clearHoldPainting();
+				trackerPanel.notifyLoadingComplete();
+				frame.refresh();
 //				TFrame.repaintT(trackerPanel);
-
-				}
 
 			}
 			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad done " + path, Performance.TIME_MARK));
@@ -2351,6 +2348,14 @@ public class TrackerIO extends VideoIO {
 		@Override
 		public void setTitle(String title) {
 			this.title = title;
+		}
+
+		public TFrame getFrame() {
+			return frame;
+		}
+
+		public void checkDone(VideoPanel trackerPanel) {
+			panelList.remove(trackerPanel);
 		}
 	}
 

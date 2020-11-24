@@ -74,6 +74,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.cabrillo.tracker.AutoTracker.Wizard;
+import org.opensourcephysics.cabrillo.tracker.TrackerIO.AsyncLoader;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
@@ -2541,6 +2542,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		case Video.PROPERTY_VIDEO_SIZE:
 			super.propertyChange(e);
 			getTFrame().holdPainting(false);
+			notifyLoadingComplete();
 			break;
 		case AsyncVideoI.PROPERTY_ASYNCVIDEOI_READY:
 			if (loader == null || ((Loader) loader).clip.getVideo() != e.getSource()) {
@@ -3545,6 +3547,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			return new Loader();
 		}
 
+		private AsyncLoader asyncloader;
+
 		/**
 		 * Creates an object.
 		 *
@@ -3572,7 +3576,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// load the video clip
 			TrackerPanel trackerPanel = (TrackerPanel) obj;	
 			// BH adds early setting of frame.
-			trackerPanel.frame = (TFrame) ((XMLControlElement) control).getData();
+			asyncloader = (AsyncLoader) ((XMLControlElement) control).getData();
+			trackerPanel.frame = asyncloader.getFrame();
 			trackerPanel.frame.holdPainting(true);
 			// load the dividers
 			trackerPanel.dividerLocs = (double[]) control.getObject("dividers"); //$NON-NLS-1$
@@ -3797,6 +3802,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
 				OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
+			if (asyncloader != null)
+				asyncloader.checkDone(trackerPanel);
 		}
 
 		protected void setDataTabs(TrackerPanel trackerPanel, ArrayList<DataToolTab> addedTabs) {
