@@ -621,11 +621,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			int tab = getTab(trackerPanel);
 			tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
 			// remove the tab immediately
-			synchronized (tabbedPane) {
+			// BH 2020.11.24 thread lock
+			//synchronized (tabbedPane) {
 				trackerPanel.trackControl.dispose();
 				tabbedPane.remove(tab);
 				tabbedPane.remove(tabPanel);
-			}
+			//}
 		}
 
 		@Override

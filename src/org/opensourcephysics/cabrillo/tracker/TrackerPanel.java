@@ -3802,8 +3802,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
 				OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
-			if (asyncloader != null)
-				asyncloader.checkDone(trackerPanel);
+			if (asyncloader != null) {
+				asyncloader.finalized(trackerPanel);
+				asyncloader = null;
+			}
 		}
 
 		protected void setDataTabs(TrackerPanel trackerPanel, ArrayList<DataToolTab> addedTabs) {
