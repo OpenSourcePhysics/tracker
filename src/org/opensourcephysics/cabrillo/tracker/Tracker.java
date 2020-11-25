@@ -129,7 +129,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	// such as allowed AJAX databases.
 
 	
-	public static boolean doHoldRepaint = false; //BH testing 
+	public static boolean doHoldRepaint = true; //BH testing if false
 
 	public static boolean allowDataFunctionControls = !OSPRuntime.isJS;
 	

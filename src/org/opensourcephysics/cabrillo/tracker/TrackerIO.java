@@ -1741,13 +1741,13 @@ public class TrackerIO extends VideoIO {
 		private String rawPath;
 		private String nonURIPath;
 		private XMLControlElement control;
-		private String path;
+		private String path, path0;
 		private int type = TYPE_UNK;
 		private int frameCount;
 		private String name;
 		private String title; // BH TODO
 		private boolean stopped; // BH TODO
-		private String xmlPath;
+		private String xmlPath, xmlPath0;
 		private Runnable whenDone;
 		private List<VideoPanel> panelList = new ArrayList<>();
 
@@ -1760,7 +1760,7 @@ public class TrackerIO extends VideoIO {
 		 */
 		public AsyncLoader(List<String> paths, TrackerPanel existingPanel, TFrame frame, Runnable whenDone) {
 			super(frame, paths.get(0), (whenDone == null ? 0 : 10), 0, 100);
-			path = name = paths.remove(0);
+			path = path0 = name = paths.remove(0);
 			this.paths = paths;
 			isAsync = (delayMillis > 0);
 			this.existingPanel = existingPanel;
@@ -1808,10 +1808,11 @@ public class TrackerIO extends VideoIO {
 //			monitorDialog.setVisible(true);
 //			monitors.add(monitorDialog);
 
-			File testFile = new File(XML.getName(path));
-			
 			// load data from zip or trz file
-			if (path.indexOf("&TrackerSet=") >= 0 || zipFileFilter.accept(testFile, false) || trzFileFilter.accept(testFile, false)) {
+			
+			boolean isTRZ = ResourceLoader.isJarZipTrz(path, false);
+			
+			if (isTRZ || path.indexOf("&TrackerSet=") >= 0) {
 				type = TYPE_TRZ;
 				trackerPanel = frame.getCleanTrackerPanel();
 				frame.holdPainting(true);
@@ -1822,6 +1823,7 @@ public class TrackerIO extends VideoIO {
 			// BH note - this file is not likely to exist without its pathname.
 			// changed to just check extensions, not if directory (which requires an
 			// existence check)
+			File testFile = new File(XML.getName(path));			
 			if (videoFileFilter.accept(testFile, false)) {
 				type = TYPE_VIDEO;
 				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel);
@@ -1840,6 +1842,8 @@ public class TrackerIO extends VideoIO {
 			// load data from TRK file
 			control = new XMLControlElement();
 			xmlPath = control.read(path);
+			if (path.equals(path0))
+				xmlPath0 = xmlPath;
 			if (isCanceled()) {
 				cancelAsync();
 				return false;
@@ -1913,14 +1917,15 @@ public class TrackerIO extends VideoIO {
 		@Override
 		public void doneAsync() {
 			
-			if (this.path == name) {
+			if (path.equals(path0)) {
 				doneLoading();
 			}
 		}
 
 		private int loadFrame(int progress) {
 			// loadObject will initiate its own loader.
-			Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(rawPath)), false); // add at beginning
+			
+//			Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(rawPath)), false); // add at beginning
 			frame.whenObjectLoadingComplete = new Function<List<String>, Void>() {
 
 				@Override
@@ -2095,7 +2100,7 @@ public class TrackerIO extends VideoIO {
 			// load trk files into Tracker
 			if (!isCanceled()) {
 				// add path to recent files
-				if (path == name)
+				if (path.equals(path0))
 					Tracker.addRecent(nonURIPath, false); // add at beginning
 				paths.addAll(trkFiles);
 				desktopFiles.addAll(tempFiles);
@@ -2176,7 +2181,17 @@ public class TrackerIO extends VideoIO {
 						TrackerRes.getString("TrackerIO.Dialog.ReadFailed.Title"), //$NON-NLS-1$
 						JOptionPane.WARNING_MESSAGE);
 			}
+
+			checkDone(false);
+			
 			return 100;
+		}
+
+		void checkDone(boolean b) {
+			if (b == (trackerPanel.getVideo() instanceof AsyncVideoI)) {
+				if (panelList.size() == 0 && paths.size() == 0)
+					doneLoading();
+			}
 		}
 
 		private int loadVideo(int progress) {
@@ -2191,8 +2206,7 @@ public class TrackerIO extends VideoIO {
 			OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
 			// download web videos to the OSP cache
 			if (ResourceLoader.isHTTP(path)) {
-				String name = XML.getName(path);
-				name = ResourceLoader.getNonURIPath(name);
+				String name = ResourceLoader.getNonURIPath(XML.getName(path));
 				File localFile = ResourceLoader.downloadToOSPCache(path, name, false);
 				if (localFile != null) {
 					path = localFile.toURI().toString();
@@ -2271,14 +2285,19 @@ public class TrackerIO extends VideoIO {
 			if (Tracker.warnVariableDuration)
 				findBadVideoFrames(trackerPanel, defaultBadFrameTolerance, true, true, true);
 			// show dialog only if bad frames found, and include "don't show again" button
-			if (panelList.size() == 0 && paths.size() == 1)
+		}
+
+		public void finalized(VideoPanel trackerPanel) {
+			panelList.remove(trackerPanel);
+			if (panelList.size() == 0 && paths.size() == 0 && trackerPanel.getVideo() instanceof AsyncVideoI) {
 				doneLoading();
+			}
 		}
 
 		private void doneLoading() {
 //			monitorDialog.close();
-			if (xmlPath != null && !ResourceLoader.isJarZipTrz(xmlPath,  true)) { //$NON-NLS-1$
-				Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(xmlPath)), false); // add at beginning
+			if (xmlPath0 != null && !ResourceLoader.isJarZipTrz(xmlPath0,  true)) { //$NON-NLS-1$
+				Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(xmlPath0)), false); // add at beginning
 			}
 
 			TTrackBar.refreshMemoryButton();
@@ -2354,9 +2373,6 @@ public class TrackerIO extends VideoIO {
 			return frame;
 		}
 
-		public void checkDone(VideoPanel trackerPanel) {
-			panelList.remove(trackerPanel);
-		}
 	}
 
 //	static class MonitorDialog extends JDialog implements TrackerMonitor {

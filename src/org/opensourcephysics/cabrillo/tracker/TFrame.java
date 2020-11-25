@@ -337,6 +337,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public static void repaintT(Component c) {
 		if (c instanceof TrackerPanel) {
 			if (!((TrackerPanel) c).isPaintable()) {
+//				System.out.println("TFrame.repaintT not");
+				((TrackerPanel) c).isPaintable();
 				return;
 			}
 			((TrackerPanel) c).clearTainted();
@@ -638,6 +640,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			int tab = getTab(trackerPanel);
 			tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
 			// remove the tab immediately
+			// BH 2020.11.24 thread lock
 			synchronized (tabbedPane) {
 				trackerPanel.trackControl.dispose();
 				tabbedPane.remove(tab);
@@ -2392,6 +2395,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			prefsDialog.refreshGUI();
 		}
 		firePropertyChange(PROPERTY_TFRAME_TAB, oldPanel, newPanel); // $NON-NLS-1$
+		// BH added 2020.11.24
+		clearHoldPainting();
+		repaintT(newPanel);
 	}
 
 	protected void frameResized() {
@@ -2677,6 +2683,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (!Tracker.doHoldRepaint)
 			return;
 			paintHold += (b ? 1 : paintHold > 0 ? -1 : 0);
+			//System.out.println("TFrame.paintHold " + paintHold);
 //		OSPLog.debug("TFrame.paintHold=" + paintHold);
 //		if (b || paintHold == 0)
 //			tabbedPane.setVisible(!b);
@@ -2689,6 +2696,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * 
 	 */
 	public boolean isPaintable() {
+		//System.out.println("TFrame.isPaintable " + paintHold);
+
 		return // isVisible() &&
 		paintHold == 0
 		// && !getIgnoreRepaint()
@@ -2703,7 +2712,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (paintHold != 0) {
 			OSPLog.debug("TFrame.paintHold cleared ");
 		}
-
 		paintHold = 0;
 	}
 
