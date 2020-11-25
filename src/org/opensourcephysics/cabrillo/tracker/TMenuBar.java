@@ -2722,7 +2722,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			return dataViews;
 		TViewChooser[] choosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
 		for (int i = 0; i < choosers.length; i++) {
-			if (trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
+			if (choosers[i] != null && trackerPanel.getTFrame().isViewPaneVisible(i, trackerPanel)) {
 				TView tview = choosers[i].getSelectedView();
 				if (tview != null && tview.getViewType() == TView.VIEW_TABLE) {
 					TableTView tableView = (TableTView) tview;
