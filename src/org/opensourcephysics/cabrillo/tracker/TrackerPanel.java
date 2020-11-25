@@ -3152,8 +3152,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public void paintComponent(Graphics g) {
-		if (!isPaintable())
+		if (!isPaintable()) {
+//			System.out.println("TrackerPanel not paintable");
 			return;
+		}
 
 		// BH moved this up, because why paint if you are going to paint again?
 		if (zoomCenter != null && isShowing() && getTFrame() != null && scrollPane != null) {
@@ -4337,7 +4339,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				|| getHeight() <= 0 
 				|| getIgnoreRepaint() 
 				|| getTFrame() == null 
-				|| !frame.isPaintable()
+				|| !frame.isPaintable() // BH generally the problem
 				|| isClipAdjusting()) {
 			return false;
 		}

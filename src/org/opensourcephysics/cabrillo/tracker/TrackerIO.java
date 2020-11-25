@@ -1924,7 +1924,8 @@ public class TrackerIO extends VideoIO {
 
 		private int loadFrame(int progress) {
 			// loadObject will initiate its own loader.
-			Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(rawPath)), false); // add at beginning
+			
+//			Tracker.addRecent(ResourceLoader.getNonURIPath(XML.forwardSlash(rawPath)), false); // add at beginning
 			frame.whenObjectLoadingComplete = new Function<List<String>, Void>() {
 
 				@Override
