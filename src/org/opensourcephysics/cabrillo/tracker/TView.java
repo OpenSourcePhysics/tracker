@@ -40,12 +40,12 @@ public interface TView extends PropertyChangeListener {
 	
 	String PROPERTY_TVIEW_TRACKVIEW = "trackview";
 
-	int VIEW_UNSET = -2;
-	int VIEW_MAIN = -1;
+	int VIEW_UNSET = -1;
 	int VIEW_PLOT = 0;
 	int VIEW_TABLE = 1;
 	int VIEW_WORLD = 2;
 	int VIEW_PAGE = 3;
+	int VIEW_MAIN = 4;
 
 	// view icons to show in chooserButton
 	Icon[] VIEW_ICONS = { PlotTView.PLOTVIEW_ICON, TableTView.TABLEVIEW_ICON, WorldTView.WORLDVIEW_ICON,

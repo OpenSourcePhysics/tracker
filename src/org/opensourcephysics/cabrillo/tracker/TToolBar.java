@@ -1080,6 +1080,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			if (getComponentCount() > 0)
 				add(getSeparator());
 		}
+		// pig for testing
+		if (TTrackBar.testButton != null)
+			add(TTrackBar.testButton);
 		boolean addSeparator = false;
 		if (trackerPanel.isEnabled("button.clipSettings")) {//$NON-NLS-1$
 			add(clipSettingsButton);

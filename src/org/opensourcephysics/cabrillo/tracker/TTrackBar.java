@@ -49,6 +49,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
+import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.Timer;
@@ -84,7 +85,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	static int testIndex;
 
 	static {
-		smallSelectIcon = Tracker.getResourceIcon("small_select.gif", true); //$NON-NLS-1$
+//		smallSelectIcon = Tracker.getResourceIcon("small_select.gif", true); //$NON-NLS-1$
+		smallSelectIcon = Tracker.getResourceIcon("select_track.gif", true); //$NON-NLS-1$
 
 		/** @j2sIgnore */
 		{
@@ -98,6 +100,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected final Component toolbarEnd = Box.createHorizontalGlue();
 	protected int toolbarComponentHeight, numberFieldWidth;
 	protected TButton trackButton;
+	private JButton maximizeButton;
 	protected TButton selectButton;
 	protected JLabel emptyLabel = new JLabel();
 	protected JPopupMenu selectPopup = new JPopupMenu();
@@ -142,6 +145,31 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
+									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		 
+									JSplitPane[] panes = frame.getSplitPanes(trackerPanel);
+									TViewChooser[] viewChoosers = frame.getViewChoosers(trackerPanel);
+									if (testIndex++ % 2 == 0) {
+										// set vertical layout
+										panes[0].setDividerSize(0);
+										panes[2].setDividerSize(TFrame.defaultDividerSize);
+										frame.setDividerLocation(trackerPanel, 0, 1.0);
+										int max = panes[0].getMaximumDividerLocation();
+										frame.setDividerLocation(trackerPanel, 2, 0.55);
+										frame.setDividerLocation(trackerPanel, 3, (int)(0.5*max));
+										viewChoosers[2].setSelectedViewType(TView.VIEW_TABLE);
+										viewChoosers[3].setSelectedViewType(TView.VIEW_PLOT);
+									}
+									else {
+										// set horizontal layout
+										panes[0].setDividerSize(TFrame.defaultDividerSize);
+										panes[2].setDividerSize(0);
+										frame.setDividerLocation(trackerPanel, 0, 0.7);
+										frame.setDividerLocation(trackerPanel, 1, 0.7);
+										frame.setDividerLocation(trackerPanel, 2, 1.0);
+										viewChoosers[0].setSelectedViewType(TView.VIEW_PLOT);
+										viewChoosers[1].setSelectedViewType(TView.VIEW_TABLE);
+									}
+									
 //									long t0 = Performance.now(0);
 //									String url = "https://iwant2study.org/lookangejss/02_newtonianmechanics_7gravity/trz/angrybirdtracking.trz";
 //									String filePath = "D:/Documents/Tracker/testing/angry"+testIndex+".trz";
@@ -361,8 +389,23 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	 * Creates the GUI.
 	 */
 	protected void createGUI() {
+		// mouselistener for testing
+		addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					maximizeButton.doClick(0);
+//					TFrame frame = trackerPanel.getTFrame();
+//					if (frame.maximizedView < 0)
+//						frame.maximizeView(trackerPanel, 4);
+//					else 
+//						frame.restoreViews(trackerPanel);
+				}
+			}
+		});
+
 		setFloatable(false);
-		setBorder(BorderFactory.createEmptyBorder(3, 0, 2, 0));
+//		setBorder(BorderFactory.createEmptyBorder(3, 0, 2, 0));
 		// select button
 		selectButton = new TButton(smallSelectIcon) {
 			@Override
@@ -397,9 +440,34 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		};
 		trackButton.setOpaque(false);
 		emptyLabel.setOpaque(false);
-		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
-		Border line = BorderFactory.createLineBorder(Color.GRAY);
-		trackButton.setBorder(BorderFactory.createCompoundBorder(line, space));
+		
+		// maximize button
+		Border empty = BorderFactory.createEmptyBorder(7, 3, 7, 3);
+		Border etched = BorderFactory.createEtchedBorder();
+		maximizeButton = new TButton(TViewChooser.MAXIMIZE_ICON, TViewChooser.RESTORE_ICON);
+		maximizeButton.setBorder(BorderFactory.createCompoundBorder(etched, empty));
+		maximizeButton.setToolTipText(TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
+		maximizeButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				TFrame frame = trackerPanel.getTFrame();
+				boolean maximize = frame.maximizedView < 0;
+				if (maximize)
+					frame.maximizeView(trackerPanel, TView.VIEW_MAIN);
+				else 
+					frame.restoreViews(trackerPanel);
+				maximizeButton.setSelected(maximize);
+				if (OSPRuntime.isJS) {
+					maximizeButton.setIcon(maximize? TViewChooser.RESTORE_ICON: TViewChooser.MAXIMIZE_ICON);
+				}
+				maximizeButton.setToolTipText(maximize ? TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
+					TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
+			}
+		});
+
+//		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
+//		Border line = BorderFactory.createLineBorder(Color.GRAY);
+//		trackButton.setBorder(BorderFactory.createCompoundBorder(line, space));
 		// create horizontal glue for right end of toolbar
 	}
 
@@ -495,9 +563,11 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
 			toolbarComponentHeight = trackButton.getPreferredSize().height;
 		}
-		Dimension dime = new Dimension(toolbarComponentHeight, toolbarComponentHeight);
-		selectButton.setPreferredSize(dime);
-		selectButton.setMaximumSize(dime);
+		// pig for testing
+		toolbarComponentHeight = selectButton.getPreferredSize().height;
+//		Dimension dime = new Dimension(toolbarComponentHeight, toolbarComponentHeight);
+//		selectButton.setPreferredSize(dime);
+//		selectButton.setMaximumSize(dime);
 		add(selectButton);
 		trackButton.context = "track"; //$NON-NLS-1$
 		track = trackerPanel.getSelectedTrack();
@@ -541,7 +611,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		if (!OSPRuntime.isJS) /** @j2sNative */
 		{
 			if (testButton != null) {
-				add(testButton);
+				// pig for testing
+//				add(testButton);
 			}
 			if (Tracker.newerVersion != null) {
 				String s = TrackerRes.getString("TTrackBar.Button.Version"); //$NON-NLS-1$
@@ -550,8 +621,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			}
 			memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
 			// refreshMemoryButton();
-			add(memoryButton);
+//			add(memoryButton); // pig for testing
 		}
+		add(maximizeButton);
 		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild1 " + trackerPanel.getName(), Performance.TIME_MARK));
 		revalidate();
 		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild-revalidate " + (track == null ? null : track.getName()), Performance.TIME_MARK));

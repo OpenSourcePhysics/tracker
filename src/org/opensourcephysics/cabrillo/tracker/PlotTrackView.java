@@ -42,6 +42,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 
+import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.Dataset;
@@ -57,12 +58,10 @@ import org.opensourcephysics.tools.FontSizer;
 @SuppressWarnings("serial")
 public class PlotTrackView extends TrackView {
 
-	// instance fields
+	private static final int DEFAULT_PLOT_COUNT = 2;
 	
-	// data model
-	
+	// data model	
 	protected DatasetManager datasetManager;
-	protected int defaultPlotCount = 1;
 	private boolean isCustom;
 	protected boolean xAxesLinked;
 	private int selectedPlot;
@@ -121,6 +120,9 @@ public class PlotTrackView extends TrackView {
 		}
 //		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr1 for " + track + " plots=" + plots.length,
 //				Performance.TIME_MARK));
+//		selectedPlot = DEFAULT_PLOT_COUNT - 1;
+		setPlotCount(DEFAULT_PLOT_COUNT);
+		refresh(trackerPanel.getFrameNumber(), 0);
 	}
 
 	/**
@@ -198,7 +200,7 @@ public class PlotTrackView extends TrackView {
 	@Override
 	public boolean isCustomState() {
 		int n = mainView.getComponentCount();
-		if (isCustom || n != defaultPlotCount)
+		if (isCustom || n != DEFAULT_PLOT_COUNT)
 			return true;
 		for (int i = 0; i < n; i++) {
 			if (plots[i].isCustom)
@@ -213,8 +215,10 @@ public class PlotTrackView extends TrackView {
 	 * @param plotCount the number of plot panels desired
 	 */
 	public void setPlotCount(int plotCount) {
+		OSPLog.debug("pig setting plot count "+plotCount);
 		if (plotCount == mainView.getComponentCount())
 			return;
+		OSPLog.debug("pig2 setting plot count "+plotCount);
 		TTrack track = getTrack();
 		track.trackerPanel.changed = true;
 		plotCount = Math.min(plotCount, plots.length);
@@ -369,9 +373,10 @@ public class PlotTrackView extends TrackView {
 			if (plots[i] == null)
 				plots[i] = createPlotPanel();
 		}
-		for (int i = 0; i < defaultPlotCount; i++) {
-			mainView.add(plots[i]);
-		}
+		// set plot count to default after completing GUI
+//		for (int i = 0; i < DEFAULT_PLOT_COUNT; i++) {
+//			mainView.add(plots[i]);
+//		}
 		setViewportView(mainView);
 		
 		// create link checkbox

@@ -58,6 +58,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -157,6 +158,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 		private Object[] objects;
 		private TrackerPanel trackerPanel;
+		Box toolbarBox;
 
 		public TTabPanel(TrackerPanel trackerPanel, Object[] objects) {
 			super(new BorderLayout());
@@ -170,6 +172,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 		public Object[] getObjects() {
 			return objects;
+		}
+		
+		public void setToolbarVisible(boolean vis) {
+			if (toolbarBox ==  null) {
+				toolbarBox = Box.createVerticalBox();
+				toolbarBox.add((JToolBar) objects[TFRAME_TOOLBAR]);
+//				toolbarBox.add((TTrackBar) objects[TFRAME_TRACKBAR]);
+			}
+			if (vis) {
+				add(toolbarBox, BorderLayout.NORTH);
+			}
+			else {
+				remove(toolbarBox);
+			}
 		}
 
 		@Override
@@ -226,8 +242,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected Launcher helpLauncher;
 	protected JDialog dataToolDialog;
 	protected TrackerPanel prevPanel;
-	protected double defaultMainDivider = 21/(21.0 + 13.0); // fibonacci 8/(7 + 8)
+//	protected double defaultMainDivider = 21/(21.0 + 13.0); // fibonacci 8/(7 + 8)
 //	protected double defaultRightDivider = 13/(13.0 + 8.0); // fibonacci 7/(7 + 6)
+	protected double defaultMainDivider = 0.67;
 	protected double defaultRightDivider = 0.57;
 	protected double defaultBottomDivider = 0.5;
 	protected FileDropHandler fileDropHandler;
@@ -243,7 +260,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected boolean alwaysListenToClipboard;
 	private String mylang = "en";
 	private JMenu languageMenu;
-	private int maximizedView = -1;
+	protected int maximizedView = -1;
 
 	/**
 	 * Constructs an empty TFrame.
@@ -996,10 +1013,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		panes[SPLIT_BOTTOM].setRightComponent(choosers[TView.VIEW_WORLD]);
 		panes[SPLIT_BOTTOM].setLeftComponent(choosers[TView.VIEW_PAGE]);
 		// add toolbars at north position
-		Box north = Box.createVerticalBox();
-		north.add((JToolBar) objects[TFRAME_TOOLBAR]);
-		north.add((TTrackBar) objects[TFRAME_TRACKBAR]);
-		panel.add(north, BorderLayout.NORTH);
+		panel.setToolbarVisible(true);
+//		Box north = Box.createVerticalBox();
+//		north.add((JToolBar) objects[TFRAME_TOOLBAR]);
+//		north.add((TTrackBar) objects[TFRAME_TRACKBAR]);
+//		panel.add(north, BorderLayout.NORTH);
 	}
 
 	/**
@@ -1439,23 +1457,42 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return (JSplitPane[]) objects[TFRAME_SPLITPANES];
 		}
 		JSplitPane[] panes = new JSplitPane[4];
-		panes[SPLIT_MAIN] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); // right pane
-		panes[SPLIT_RIGHT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // plot/table split
-		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT) 
+		panes[SPLIT_MAIN] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) // left/right split
 //		{
 //			public void setDividerLocation(int loc) {
-//				OSPLog.debug("left-setloc " + loc + 
-//						" " +  panes[SPLIT_LEFT].getResizeWeight());
+//				OSPLog.debug("pig main (left/right) loc " + loc);
 //				super.setDividerLocation(loc);
 //			}
 //		}
-		; // bottom pane
-		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) {
+		; 
+		panes[SPLIT_RIGHT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT)  // plot/table split
+//		{
+//			public void setDividerLocation(int loc) {
+//				OSPLog.debug("pig right (plot/table) loc " + loc);
+//				super.setDividerLocation(loc);
+//			}
+//		}
+		; 
+		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT) // video/bottom split
+//		{
+//			public void setDividerLocation(int loc) {
+//				OSPLog.debug("pig left (video/bottom) loc " + loc);
+//				super.setDividerLocation(loc);
+//			}
+//		}
+		; 
+		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) // page/world split
+		{
 			@Override
 			public Dimension getMinimumSize() {
 				return new Dimension(0,0);
 			}
-		}; // world/html
+//			@Override
+//			public void setDividerLocation(int location) {
+//				super.setDividerLocation(location);
+//				OSPLog.debug("pig bottom (page/world) loc " + location);
+//			}
+		}; 
 		panes[SPLIT_MAIN].setName("MAIN(0)");
 		panes[SPLIT_RIGHT].setName("RIGHT(1)");
 		panes[SPLIT_LEFT].setName("LEFT(2)");
@@ -1525,18 +1562,33 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			break;
 		case TView.VIEW_PAGE: // bottom left
 			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
+			int max = panes[0].getMaximumDividerLocation();
 			setDividerLocation(trackerPanel, SPLIT_LEFT, 0.0);
-			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0);
+//			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0);
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, max);
+			break;
+		case TView.VIEW_MAIN: // main video view
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
+			setDividerLocation(trackerPanel, SPLIT_LEFT, 1.0);
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 0.0);			
 		}
+//		int tab = getTab(trackerPanel);
+//		if (tab == -1) return;
+//		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
+//		tabPanel.setToolbarVisible(false);	
+//		tabPanel.revalidate();
 	}
 	
 	void saveCurrentDividerLocations(TrackerPanel trackerPanel) {
 		if (maximizedView > -1)
 			return;
+		if (trackerPanel.dividerLocs == null)
+			trackerPanel.dividerLocs =  new double[4];
 		for (int i = 0; i < trackerPanel.dividerFractions.length; i++) {
 			JSplitPane pane = getSplitPane(trackerPanel, i);
 			int max = pane.getMaximumDividerLocation();
 			int cur = Math.min(pane.getDividerLocation(), max); // sometimes cur > max !!??
+			trackerPanel.dividerLocs[i] = cur;
 			double fraction = 1.0 * cur / max;
 			fraction = fraction < minDividerOffset && (i == 1 || i == 3)? 0: fraction;
 			fraction = fraction > 1-minDividerOffset? 1: fraction;
@@ -1546,10 +1598,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	void restoreViews(TrackerPanel trackerPanel) {
 		for (int i = 0; i < trackerPanel.dividerFractions.length; i++) {
-			setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
+			if (trackerPanel.dividerLocs == null)
+				setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
+			else
+				setDividerLocation(trackerPanel, i, (int)trackerPanel.dividerLocs[i]);
 		}
 		setDefaultWeights(getSplitPanes(trackerPanel));
 		maximizedView = -1;
+//		int tab = getTab(trackerPanel);
+//		if (tab == -1) return;
+//		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
+//		tabPanel.setToolbarVisible(true);	
 	}
 	
 	/**
@@ -2336,14 +2395,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	protected void frameResized() {
-		TrackerPanel panel = getSelectedPanel();
-		if (panel != null) {
-			if (maximizedView > -1) {
-				maximizeView(panel, maximizedView);
-			} else {
-				saveCurrentDividerLocations(panel);
-//				restoreViews(panel);
-			}
+		TrackerPanel trackerPanel = getSelectedPanel();
+		if (trackerPanel != null && maximizedView > -1) {
+			maximizeView(trackerPanel, maximizedView);
+			trackerPanel.dividerLocs = null;				
 		}
 	}
 

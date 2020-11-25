@@ -142,7 +142,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 				return getChooserPopup();
 			}
 		};
-		// maximize buttons
+		// maximize button
 		Border empty = BorderFactory.createEmptyBorder(7, 3, 7, 3);
 		Border etched = BorderFactory.createEtchedBorder();
 		maximizeButton = new TButton(MAXIMIZE_ICON, RESTORE_ICON);
@@ -156,6 +156,9 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 				} else
 					restore();
 				maximizeButton.setSelected(maximized);
+				if (OSPRuntime.isJS) {
+					maximizeButton.setIcon(maximized? RESTORE_ICON: MAXIMIZE_ICON);
+				}
 				maximizeButton.setToolTipText(maximized ? TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
 				TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 			}
@@ -347,13 +350,19 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			ignoreSelectedTrack = true;
 			return;
 		}
-		if (type<0 || type>3 || type==selectedType)  {
+		if (type<0 || type>3)  {
 			ignoreSelectedTrack = false;
+			return;
+		}
+		TView view = tViews[type];
+		if (type==selectedType)  {
+			ignoreSelectedTrack = false;
+			if (view != null)
+				view.refresh();
 			return;
 		}
 		selectedType = type;
 		
-		TView view = tViews[type];
 		if (view == null) {
 			// create new TView
 			switch (type) {
@@ -374,6 +383,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		}
 		if (((Component)view).getParent() == null)
 			refreshViewPanel();
+		view.refresh();
 		setSelectedView(view);
 	}
 
@@ -451,10 +461,9 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		TFrame frame = trackerPanel.getTFrame();
 		// save divider locations and size
 		frame.saveCurrentDividerLocations(trackerPanel);
-		JToolBar toolbar = frame.getMainView(trackerPanel).getPlayerBar();
-		if (toolbar.getTopLevelAncestor()==frame) {
-			add(toolbar, BorderLayout.SOUTH);
-			toolbar.setFloatable(false);
+		JToolBar player = frame.getMainView(trackerPanel).getPlayerBar();
+		if (player.getTopLevelAncestor()==frame) {
+			add(player, BorderLayout.SOUTH);
 		}
 		maximized = true;
 		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
@@ -475,7 +484,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		JToolBar player = mainView.getPlayerBar();
 		if (player.getParent() == this) {
 			mainView.add(player, BorderLayout.SOUTH);
-			player.setFloatable(true);
 		}
 		frame.restoreViews(trackerPanel);
 		maximized = false;
