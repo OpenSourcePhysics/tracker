@@ -126,21 +126,21 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	 * Bob Hanson 2020.05.22
 	 */
 
-	private final static int MENU_FILE = 1 << 0;
-	private final static int MENU_EDIT = 1 << 1;
-	private final static int MENU_VIDEO = 1 << 2;
-	private final static int MENU_COORDS = 1 << 3;
-	private final static int MENU_TRACK = 1 << 4;
-	private final static int MENU_WINDOW = 1 << 5;
-	private final static int MENU_HELP = 1 << 6;
-	private final static int MENU_ALL = 0b1111111;
+	protected final static int MENU_FILE = 1 << 0;
+	protected final static int MENU_EDIT = 1 << 1;
+	protected final static int MENU_VIDEO = 1 << 2;
+	protected final static int MENU_COORDS = 1 << 3;
+	protected final static int MENU_TRACK = 1 << 4;
+	protected final static int MENU_WINDOW = 1 << 5;
+	protected final static int MENU_HELP = 1 << 6;
+	protected final static int MENU_ALL = 0b1111111;
 	private int status = 0;
 
 	private boolean isTainted(int id) {
 		return ((status & id) == id);
 	}
 
-	private void setMenuTainted(int id, boolean taint) {
+	protected void setMenuTainted(int id, boolean taint) {
 		if (taint) {
 			if (id == MENU_ALL)
 				status = MENU_ALL;
@@ -1140,7 +1140,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					} else {
 						pane.setDividerLocation(1.0);
 					}
-					getFrame().saveCurrentDividerLocations(trackerPanel);
+//					getFrame().saveCurrentDividerLocations(trackerPanel);
 				}
 		});
 		// bottom Pane item
@@ -1153,7 +1153,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					} else {
 						pane.setDividerLocation(1.0);
 					}
-					getFrame().saveCurrentDividerLocations(trackerPanel);
+//					getFrame().saveCurrentDividerLocations(trackerPanel);
 				}
 		});
 		// trackControlItem
@@ -2420,15 +2420,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// OSPLog.debug("TMenuBar window menu rebuild");
 			// rebuild window menu
 			windowMenu.removeAll();
-			boolean maximized = false;
-			TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
-			for (int i = 0; i < choosers.length; i++) {
-				if (choosers[i].isMaximized()) {
-					maximized = true;
-					break;
-				}
-			}
-			if (maximized) {
+			if (frame.maximizedView >= 0) {
 				windowMenu.add(window_restoreItem);
 			} else {
 				windowMenu.add(window_rightPaneItem);

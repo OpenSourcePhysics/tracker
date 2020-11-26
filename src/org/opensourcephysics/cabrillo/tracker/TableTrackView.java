@@ -944,6 +944,8 @@ public class TableTrackView extends TrackView {
 
 			}
 		};
+		columnsDialogButton.setIcon(TViewChooser.DOWN_ARROW_ICON);
+		columnsDialogButton.setHorizontalTextPosition(SwingConstants.LEADING);
 		columnsDialogButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

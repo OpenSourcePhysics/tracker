@@ -55,7 +55,6 @@ import java.util.Iterator;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JEditorPane;
@@ -434,6 +433,8 @@ public class PageTView extends JPanel implements TView {
 				return popup;
 			}
 		};
+		pageButton.setIcon(TViewChooser.DOWN_ARROW_ICON);
+		pageButton.setHorizontalTextPosition(SwingConstants.LEADING);
 		// create tabTitleLabel
 		tabTitleLabel = new JLabel();
 		tabTitleLabel.setOpaque(false);

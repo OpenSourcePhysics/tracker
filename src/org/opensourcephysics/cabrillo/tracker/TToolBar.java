@@ -1062,6 +1062,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	private void rebuild() {
 		// assemble buttons
 		removeAll();
+
+		if (TTrackBar.testButton != null)
+			add(TTrackBar.testButton);
+		
 		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
 			if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
 				add(openButton);
@@ -1080,9 +1084,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			if (getComponentCount() > 0)
 				add(getSeparator());
 		}
-		// pig for testing
-		if (TTrackBar.testButton != null)
-			add(TTrackBar.testButton);
 		boolean addSeparator = false;
 		if (trackerPanel.isEnabled("button.clipSettings")) {//$NON-NLS-1$
 			add(clipSettingsButton);

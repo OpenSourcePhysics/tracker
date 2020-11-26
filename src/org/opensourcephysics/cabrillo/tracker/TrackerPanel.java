@@ -2147,16 +2147,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * Restores the views to a non-maximized state.
 	 */
 	protected void restoreViews() {
-		// find maximized view and restore
 		TFrame frame = getTFrame();
 		if (frame != null) {
-			TViewChooser[] choosers = frame.getViewChoosers(this);
-			for (int i = 0; i < choosers.length; i++) {
-				if (choosers[i].isMaximized()) {
-					choosers[i].restore();
-					break;
-				}
-			}
+			frame.restoreViews(this);
 		}
 	}
 

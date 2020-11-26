@@ -77,7 +77,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected static Map<TrackerPanel, TTrackBar> trackbars = new HashMap<TrackerPanel, TTrackBar>();
 	protected static JButton memoryButton, newVersionButton;
 	protected static boolean outOfMemory = false;
-	protected static Icon smallSelectIcon;
+	protected static Icon selectTrackIcon;
 	protected static JButton testButton;
 	protected static javax.swing.Timer testTimer;
 	protected static boolean showOutOfMemoryDialog = true;
@@ -85,9 +85,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	static int testIndex;
 
 	static {
-//		smallSelectIcon = Tracker.getResourceIcon("small_select.gif", true); //$NON-NLS-1$
-		smallSelectIcon = Tracker.getResourceIcon("select_track.gif", true); //$NON-NLS-1$
-
+		selectTrackIcon = Tracker.getResourceIcon("select_track.gif", true); //$NON-NLS-1$
 		/** @j2sIgnore */
 		{
 			setJava();
@@ -407,7 +405,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		setFloatable(false);
 //		setBorder(BorderFactory.createEmptyBorder(3, 0, 2, 0));
 		// select button
-		selectButton = new TButton(smallSelectIcon) {
+		selectButton = new TButton(selectTrackIcon) {
 			@Override
 			protected JPopupMenu getPopup() {
 				return getSelectTrackPopup();
@@ -452,10 +450,12 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				TFrame frame = trackerPanel.getTFrame();
 				boolean maximize = frame.maximizedView < 0;
-				if (maximize)
+				if (maximize) {
+					frame.saveCurrentDividerLocations(trackerPanel);
 					frame.maximizeView(trackerPanel, TView.VIEW_MAIN);
-				else 
+				} else {
 					frame.restoreViews(trackerPanel);
+				}
 				maximizeButton.setSelected(maximize);
 				if (OSPRuntime.isJS) {
 					maximizeButton.setIcon(maximize? TViewChooser.RESTORE_ICON: TViewChooser.MAXIMIZE_ICON);
@@ -555,19 +555,14 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			CoordAxes axes = trackerPanel.getAxes();
 			if (axes != null) {
 				trackButton.setTrack(axes);
-				toolbarComponentHeight = trackButton.getPreferredSize().height;
 			}
 		} else {
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); // $NON-NLS-1$
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
-			toolbarComponentHeight = trackButton.getPreferredSize().height;
 		}
-		// pig for testing
 		toolbarComponentHeight = selectButton.getPreferredSize().height;
-//		Dimension dime = new Dimension(toolbarComponentHeight, toolbarComponentHeight);
-//		selectButton.setPreferredSize(dime);
-//		selectButton.setMaximumSize(dime);
+
 		add(selectButton);
 		trackButton.context = "track"; //$NON-NLS-1$
 		track = trackerPanel.getSelectedTrack();
@@ -611,7 +606,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		if (!OSPRuntime.isJS) /** @j2sNative */
 		{
 			if (testButton != null) {
-				// pig for testing
 //				add(testButton);
 			}
 			if (Tracker.newerVersion != null) {

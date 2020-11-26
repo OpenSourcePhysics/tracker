@@ -41,7 +41,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-//import java.awt.event.ComponentListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
@@ -58,7 +57,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -1460,71 +1458,22 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return (JSplitPane[]) objects[TFRAME_SPLITPANES];
 		}
 		JSplitPane[] panes = new JSplitPane[4];
-		panes[SPLIT_MAIN] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) // left/right split
-//		{
-//			public void setDividerLocation(int loc) {
-//				OSPLog.debug("pig main (left/right) loc " + loc);
-//				super.setDividerLocation(loc);
-//			}
-//		}
-		; 
-		panes[SPLIT_RIGHT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT)  // plot/table split
-//		{
-//			public void setDividerLocation(int loc) {
-//				OSPLog.debug("pig right (plot/table) loc " + loc);
-//				super.setDividerLocation(loc);
-//			}
-//		}
-		; 
-		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT) // video/bottom split
-//		{
-//			public void setDividerLocation(int loc) {
-//				OSPLog.debug("pig left (video/bottom) loc " + loc);
-//				super.setDividerLocation(loc);
-//			}
-//		}
-		; 
+		panes[SPLIT_MAIN] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); // left/right split 
+		panes[SPLIT_RIGHT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT);  // plot/table split
+		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // video/bottom split
 		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) // page/world split
 		{
 			@Override
 			public Dimension getMinimumSize() {
 				return new Dimension(0,0);
 			}
-//			@Override
-//			public void setDividerLocation(int location) {
-//				super.setDividerLocation(location);
-//				OSPLog.debug("pig bottom (page/world) loc " + location);
-//			}
 		}; 
 		panes[SPLIT_MAIN].setName("MAIN(0)");
 		panes[SPLIT_RIGHT].setName("RIGHT(1)");
 		panes[SPLIT_LEFT].setName("LEFT(2)");
 		panes[SPLIT_BOTTOM].setName("BOTTOM(3)");
-//		for (int i = 0; i < 4; i++)
-//			panes[i].addPropertyChangeListener(this);
-		
+
 		setDefaultWeights(panes);
-//		MouseAdapter splitPaneListener = new MouseAdapter() {
-//			@Override
-//			public void mouseReleased(MouseEvent e) {
-//				saveCurrentDividerLocations(trackerPanel);
-//				// set location of splitpanes with dividerFraction 0 or 1
-//				for (int i = 0; i < panes.length; i++) {
-//					System.out.println(i + " dl=" + panes[i].getDividerLocation() + " " + 
-//							panes[i].getMaximumDividerLocation() 
-//							+ " rw=" +
-//							panes[i].getResizeWeight() + " df=" + trackerPanel.dividerFractions[i]);
-////					if (trackerPanel.dividerFractions[i] == 0 || trackerPanel.dividerFractions[i] == 1) {
-////						setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
-////						break;
-////					}
-//				}
-//			}
-//		};
-//		for (int i = 0; i < panes.length; i++) {
-//			BasicSplitPaneUI ui = (BasicSplitPaneUI)panes[i].getUI();
-//			ui.getDivider().addMouseListener(splitPaneListener);			
-//		}
 		return panes;
 	}
 
@@ -1575,6 +1524,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setDividerLocation(trackerPanel, SPLIT_LEFT, 1.0);
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 0.0);			
 		}
+		TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+		menubar.setMenuTainted(TMenuBar.MENU_WINDOW, true);
 //		int tab = getTab(trackerPanel);
 //		if (tab == -1) return;
 //		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
@@ -1600,6 +1551,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	void restoreViews(TrackerPanel trackerPanel) {
+		if (maximizedView < 0)
+			return;
 		for (int i = 0; i < trackerPanel.dividerFractions.length; i++) {
 			if (trackerPanel.dividerLocs == null)
 				setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
@@ -1608,6 +1561,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		setDefaultWeights(getSplitPanes(trackerPanel));
 		maximizedView = -1;
+		TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
+		menubar.setMenuTainted(TMenuBar.MENU_WINDOW, true);
 //		int tab = getTab(trackerPanel);
 //		if (tab == -1) return;
 //		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
@@ -2663,7 +2618,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.initialize(null);
 		Tracker.setProgress(90);
 		TMenuBar.getMenuBar(trackerPanel).setAllowRefresh(true);
-		saveCurrentDividerLocations(trackerPanel);
+//		saveCurrentDividerLocations(trackerPanel);
 	}
 
 	/**

@@ -40,9 +40,9 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.Dataset;
@@ -215,10 +215,8 @@ public class PlotTrackView extends TrackView {
 	 * @param plotCount the number of plot panels desired
 	 */
 	public void setPlotCount(int plotCount) {
-		OSPLog.debug("pig setting plot count "+plotCount);
 		if (plotCount == mainView.getComponentCount())
 			return;
-		OSPLog.debug("pig2 setting plot count "+plotCount);
 		TTrack track = getTrack();
 		track.trackerPanel.changed = true;
 		plotCount = Math.min(plotCount, plots.length);
@@ -406,6 +404,8 @@ public class PlotTrackView extends TrackView {
 				return plotsPopup;
 			}
 		};
+		plotsButton.setIcon(TViewChooser.DOWN_ARROW_ICON);
+		plotsButton.setHorizontalTextPosition(SwingConstants.LEADING);
 	}
 
 	private JPopupMenu rebuildPlotsPopup() {

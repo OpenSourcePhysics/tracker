@@ -42,7 +42,6 @@ import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 
 import javax.swing.Icon;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -103,7 +102,7 @@ public class MainTView extends JPanel implements TView {
 		SwingUtilities.replaceUIActionMap(scrollPane, null);
 		add(scrollPane, BorderLayout.CENTER);
 		
-		// add trackbar north pig?
+		// add trackbar north
 		TTrackBar trackbar = TTrackBar.getTrackbar(trackerPanel);
 		add(trackbar, BorderLayout.NORTH);
 
