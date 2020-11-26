@@ -88,11 +88,9 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	private JButton maximizeButton;
 	private JPanel viewPanel;
 	private JButton chooserButton;
-
-	private boolean maximized;
 	
 	public boolean isMaximized() {
-		return maximized;
+		return trackerPanel.getTFrame() != null && trackerPanel.getTFrame().maximizedView >= 0;
 	}
 	
 	// popup menu
@@ -152,6 +150,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		maximizeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				boolean maximized = isMaximized();
 				if (!maximized) {
 					maximize();
 				} else
@@ -457,7 +456,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * Maximizes this chooser and its views.
 	 */
 	public void maximize() {
-		if (maximized)
+		if (isMaximized())
 			return;
 		TFrame frame = trackerPanel.getTFrame();
 		// save divider locations and size
@@ -466,7 +465,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		if (player.getTopLevelAncestor()==frame) {
 			add(player, BorderLayout.SOUTH);
 		}
-		maximized = true;
 		TViewChooser[] choosers = frame.getViewChoosers(trackerPanel);
 		for (int i = 0; i < choosers.length; i++) {
 			if (choosers[i] == this) {
@@ -487,7 +485,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			mainView.add(player, BorderLayout.SOUTH);
 		}
 		frame.restoreViews(trackerPanel);
-		maximized = false;
 	}
 	
 	/**
