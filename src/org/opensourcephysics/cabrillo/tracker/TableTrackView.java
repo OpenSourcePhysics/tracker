@@ -142,8 +142,8 @@ public class TableTrackView extends TrackView {
     
 	// static fields
 	static final String DEFINED_AS = ": "; //$NON-NLS-1$
-	static final Icon skipsOffIcon = Tracker.getResourceIcon("skips_on.gif", true); //$NON-NLS-1$
-	static final Icon skipsOnIcon = Tracker.getResourceIcon("skips_off.gif", true); //$NON-NLS-1$
+	static final Icon SKIPS_ON_ICON = Tracker.getResourceIcon("skips_on.gif", true); //$NON-NLS-1$
+	static final Icon SKIPS_OFF_ICON = Tracker.getResourceIcon("skips_off.gif", true); //$NON-NLS-1$
 
 	// data model
 
@@ -498,7 +498,21 @@ public class TableTrackView extends TrackView {
 		if (columnsDialog == null || !columnsDialog.isVisible())
 			return;
 		columnsDialog.refreshGUI();
+		// determine if track has gaps
 
+	}
+	
+	private void refreshGapsButton() {
+		TTrack track = getTrack();
+		if (track instanceof PointMass) {
+			PointMass p = (PointMass) track;
+			boolean hasGaps = p.getGapCount() > 0 || p.skippedSteps.size() > 0;
+			gapsButton.setIcon(!hasGaps? null: 
+				gapsButton.isSelected()? SKIPS_ON_ICON: 
+				SKIPS_OFF_ICON);
+			gapsButton.setEnabled(hasGaps);
+		}
+		
 	}
 
 	/**
@@ -519,15 +533,7 @@ public class TableTrackView extends TrackView {
 	 */
 	@Override
 	public ArrayList<Component> getToolBarComponents() {
-//		toolbarComponents.remove(gapsButton);
-//		// determine if track has gaps
-//		TTrack track = getTrack();
-//		if (track instanceof PointMass) {
-//			PointMass p = (PointMass) track;
-//			if (p.getGapCount() > 0 || p.skippedSteps.size() > 0) {
-//				toolbarComponents.add(gapsButton);
-//			}
-//		}
+		toolbarComponents.add(gapsButton);
 		return toolbarComponents;
 	}
 
@@ -795,7 +801,11 @@ public class TableTrackView extends TrackView {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_UNITS:
 			dataTable.getTableHeader().repaint();
 			return;
+		case TTrack.PROPERTY_TTRACK_STEP:
 		case TTrack.PROPERTY_TTRACK_STEPS:
+			if (TTrack.HINT_STEP_ADDED_OR_REMOVED == e.getOldValue()) {
+				refreshGapsButton();				
+			}
 			if (TTrack.HINT_STEPS_SELECTED == e.getOldValue())
 				return;
 		default:
@@ -979,6 +989,7 @@ public class TableTrackView extends TrackView {
 						if (gapsButton.isSelected()) {
 							dataTable.resetSort();
 						}
+						refreshGapsButton();
 						dataTable.repaint();
 						dataTable.getTableHeader().resizeAndRepaint();
 					}
@@ -1004,7 +1015,7 @@ public class TableTrackView extends TrackView {
 			}
 
 		};
-		gapsButton.setText(TrackerRes.getString("TableTrackView.Button.Gaps.Text")); //$NON-NLS-1$
+//		gapsButton.setText(TrackerRes.getString("TableTrackView.Button.Gaps.Text")); //$NON-NLS-1$
 		gapsButton.setSelected(Tracker.showGaps);
 
 		// create popup and add menu items

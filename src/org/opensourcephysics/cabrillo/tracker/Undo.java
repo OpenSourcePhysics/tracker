@@ -425,7 +425,7 @@ public class Undo {
 			if (isTextColumn)
 				track.firePropertyChange(TTrack.PROPERTY_TTRACK_TEXTCOLUMN, null, null);
 			else
-				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, null, null);
+				track.firePropertyChange(TTrack.PROPERTY_TTRACK_STEPS, TTrack.HINT_STEP_ADDED_OR_REMOVED, null);
 //			track.notifyUndoLoaded();
 		}
 

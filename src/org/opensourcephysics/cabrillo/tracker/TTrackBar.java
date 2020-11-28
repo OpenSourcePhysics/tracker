@@ -98,7 +98,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected final Component toolbarEnd = Box.createHorizontalGlue();
 	protected int toolbarComponentHeight, numberFieldWidth;
 	protected TButton trackButton;
-	private JButton maximizeButton;
+	protected JButton maximizeButton;
 	protected TButton selectButton;
 	protected JLabel emptyLabel = new JLabel();
 	protected JPopupMenu selectPopup = new JPopupMenu();
@@ -470,7 +470,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 //		trackButton.setBorder(BorderFactory.createCompoundBorder(line, space));
 		// create horizontal glue for right end of toolbar
 	}
-
+	
 	/**
 	 * Refreshes and returns the "select track" popup menu.
 	 *

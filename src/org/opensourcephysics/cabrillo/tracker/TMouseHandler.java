@@ -169,11 +169,13 @@ public class TMouseHandler implements InteractiveMouseHandler {
 //	          	}
 					} else {
 						boolean newStep = step == null;
+						if (selectedTrack instanceof PointMass) {
+							selectedTrack.keyFrames.add(frameNumber);
+						}
 						step = selectedTrack.createStep(frameNumber, trackerPanel.getMouseX(),
 								trackerPanel.getMouseY());
 						if (selectedTrack instanceof PointMass) {
 							PointMass m = (PointMass) selectedTrack;
-							m.keyFrames.add(frameNumber);
 							if (m.isAutofill()) {
 								m.markInterpolatedSteps((PositionStep) step, true);
 							}

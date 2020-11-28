@@ -150,20 +150,24 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		maximizeButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				boolean maximized = isMaximized();
-				if (!maximized) {
+				if (!isMaximized()) {
 					maximize();
 				} else
 					restore();
-				maximizeButton.setSelected(maximized);
-				if (OSPRuntime.isJS) {
-					maximizeButton.setIcon(maximized? RESTORE_ICON: MAXIMIZE_ICON);
-				}
-				maximizeButton.setToolTipText(maximized ? TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
-				TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 			}
 		});
 		setSelectedViewType(type);
+	}
+	
+	private void refreshMaximizeButton() {
+		boolean maximized = isMaximized();
+		maximizeButton.setSelected(maximized);
+		if (OSPRuntime.isJS) {
+			maximizeButton.setIcon(maximized? RESTORE_ICON: MAXIMIZE_ICON);
+		}
+		maximizeButton.setToolTipText(maximized ? 
+				TrackerRes.getString("TViewChooser.Restore.Tooltip") : //$NON-NLS-1$
+				TrackerRes.getString("TViewChooser.Maximize.Tooltip")); //$NON-NLS-1$
 	}
 
 	protected void showToolbarPopup(int x, int y) {
@@ -472,6 +476,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 				break;
 			}
 		}
+		refreshMaximizeButton();
 	}
 
 	/**
@@ -485,6 +490,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			mainView.add(player, BorderLayout.SOUTH);
 		}
 		frame.restoreViews(trackerPanel);
+		refreshMaximizeButton();
 	}
 	
 	/**

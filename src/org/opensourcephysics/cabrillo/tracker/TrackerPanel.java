@@ -2147,9 +2147,21 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * Restores the views to a non-maximized state.
 	 */
 	protected void restoreViews() {
+
 		TFrame frame = getTFrame();
 		if (frame != null) {
-			frame.restoreViews(this);
+			int n = frame.maximizedView;
+			if (n < 0)
+				return;
+			if (n == TView.VIEW_MAIN) {
+				TTrackBar trackbar = TTrackBar.getTrackbar(this);
+				trackbar.maximizeButton.doClick(0);
+			}
+			else {
+				TViewChooser viewChooser = frame.getViewChoosers(this)[n];
+				viewChooser.restore();				
+			}
+//			frame.restoreViews(this);
 		}
 	}
 
@@ -2383,9 +2395,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		if (e.getKeyCode() == KeyEvent.VK_DELETE) {
 			// delete selected steps
-			deleteSelectedSteps();
 			if (selectedPoint != null && selectingPanel == this) {
 				deletePoint(selectedPoint);
+			}
+			else {
+				deleteSelectedSteps();				
 			}
 			return;
 		}

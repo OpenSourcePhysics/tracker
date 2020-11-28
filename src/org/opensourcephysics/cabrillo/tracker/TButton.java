@@ -52,6 +52,8 @@ public class TButton extends JButton {
     addMouseListener(new MouseAdapter() {
     	@Override
 		public void mouseEntered(MouseEvent e) {
+    		if (!TButton.this.isEnabled()) 
+    			return;
     		setBorderPainted(true);
         hidePopup = popup!=null && popup.isVisible();
         TTrack track = getTrack();
@@ -86,6 +88,8 @@ public class TButton extends JButton {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
+    		if (!TButton.this.isEnabled()) 
+    			return;
 				popup = getPopup();
 				if (popup != null) {
 					if (e.getClickCount() == 2)

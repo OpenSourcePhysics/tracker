@@ -563,8 +563,8 @@ public class PointMass extends TTrack {
 	 */
 	@Override
 	public Step deleteStep(int n) {
-		keyFrames.remove(n); // keyFrames are manually or auto-marked steps
 		Step step = super.deleteStep(n);
+		keyFrames.remove(n); // keyFrames are manually or auto-marked steps
 		if (step != null)
 			updateDerivatives(n);
 		deleteAutoTrackerStep(n);
@@ -2811,6 +2811,13 @@ public class PointMass extends TTrack {
 				p.setAccelerationFootprint(p.getAccelerationFootprints()[0].getName());
 
 			// load step data
+			int[] keys = (int[]) control.getObject("keyFrames"); //$NON-NLS-1$
+			if (keys != null) {
+				p.keyFrames.clear();
+				for (int i : keys) {
+					p.keyFrames.add(i);
+				}
+			}
 			FrameData[] data = (FrameData[]) control.getObject("framedata"); //$NON-NLS-1$
 			if (data != null) {
 				for (int n = 0; n < data.length; n++) {
@@ -2837,13 +2844,6 @@ public class PointMass extends TTrack {
 				p.updateDerivatives();
 				// BH! don't set dataValid = false???
 				p.fireDataButDontInvalidateIt();
-			}
-			int[] keys = (int[]) control.getObject("keyFrames"); //$NON-NLS-1$
-			if (keys != null) {
-				p.keyFrames.clear();
-				for (int i : keys) {
-					p.keyFrames.add(i);
-				}
 			}
 			p.setLocked(locked);
 			return obj;
