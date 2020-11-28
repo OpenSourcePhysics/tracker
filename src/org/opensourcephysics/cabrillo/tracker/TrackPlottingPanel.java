@@ -42,6 +42,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -162,7 +163,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	private int datasetCount;
 
 	boolean selectionEnabled = true;
-	final public BitSet bsHighlight = new BitSet();
+	final public BitSet bsFrameHighlights = new BitSet();
 
 	/**
 	 * Constructs a TrackPlottingPanel for a track.
@@ -958,13 +959,23 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			}
 		}
 
+		if (track instanceof LineProfile)
+			return; // no highlights on line profile plots since not frame-based data
+		
 		// refresh highlighted indices
-		dataset.setHighlights(bsHighlight);
+		BitSet shifted = bsFrameHighlights;
+		if (!track.dataFrames.isEmpty()) {
+		// shift relative to bsFrameHighlights if start frame > 0
+			int startFrame = track.dataFrames.get(0);
+			shifted = BitSet.valueOf(Arrays.stream(
+					bsFrameHighlights.toLongArray()).map(v -> v >> startFrame).toArray());
+		}
+		dataset.setHighlights(shifted);			
 
 		// refresh plot coordinates
 		int plotIndex = -1;
-		if (bsHighlight.cardinality() == 1) {
-			plotIndex = bsHighlight.nextSetBit(0);
+		if (shifted.cardinality() == 1) {
+			plotIndex = shifted.nextSetBit(0);
 		}
 		showPlotCoordinates(plotIndex);
 	}
@@ -1888,8 +1899,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	}
 
 	public void setHighlights(BitSet highlightFrames) {
-		bsHighlight.clear();
-		bsHighlight.or(highlightFrames);
+		bsFrameHighlights.clear();
+		bsFrameHighlights.or(highlightFrames);
 	}
 
 	@Override

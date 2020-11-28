@@ -63,6 +63,7 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.tools.FontSizer;
+
 import javajs.async.SwingJSUtils.Performance;
 
 /**
@@ -143,7 +144,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
-									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());		 
+									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());									
 									JSplitPane[] panes = frame.getSplitPanes(trackerPanel);
 									TViewChooser[] viewChoosers = frame.getViewChoosers(trackerPanel);
 									if (testIndex++ % 2 == 0) {

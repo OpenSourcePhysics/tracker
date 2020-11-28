@@ -194,11 +194,11 @@ public class CircleFitter extends TTrack {
 		setProperty("tableVar2", "2"); //$NON-NLS-1$ //$NON-NLS-2$
 		// assign default plot variables
 		setProperty("xVarPlot0", dataVariables[0]); //$NON-NLS-1$
-		setProperty("yVarPlot0", dataVariables[1]); //$NON-NLS-1$
+		setProperty("yVarPlot0", dataVariables[3]); //$NON-NLS-1$
 		setProperty("xVarPlot1", dataVariables[0]); //$NON-NLS-1$
-		setProperty("yVarPlot1", dataVariables[2]); //$NON-NLS-1$
+		setProperty("yVarPlot1", dataVariables[1]); //$NON-NLS-1$
 		setProperty("xVarPlot2", dataVariables[0]); //$NON-NLS-1$
-		setProperty("yVarPlot2", dataVariables[3]); //$NON-NLS-1$
+		setProperty("yVarPlot2", dataVariables[2]); //$NON-NLS-1$
 
 		// set initial hint
 		partName = TrackerRes.getString("TTrack.Selected.Hint"); //$NON-NLS-1$

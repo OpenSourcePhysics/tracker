@@ -58,8 +58,6 @@ import org.opensourcephysics.tools.FontSizer;
 @SuppressWarnings("serial")
 public class PlotTrackView extends TrackView {
 
-	private static final int DEFAULT_PLOT_COUNT = 2;
-	
 	// data model	
 	protected DatasetManager datasetManager;
 	private boolean isCustom;
@@ -121,7 +119,7 @@ public class PlotTrackView extends TrackView {
 //		OSPLog.debug(Performance.timeCheckStr("PlotTrackView constr1 for " + track + " plots=" + plots.length,
 //				Performance.TIME_MARK));
 //		selectedPlot = DEFAULT_PLOT_COUNT - 1;
-		setPlotCount(DEFAULT_PLOT_COUNT);
+		setPlotCount(getDefaultPlotCount());
 		refresh(trackerPanel.getFrameNumber(), 0);
 	}
 
@@ -200,7 +198,7 @@ public class PlotTrackView extends TrackView {
 	@Override
 	public boolean isCustomState() {
 		int n = mainView.getComponentCount();
-		if (isCustom || n != DEFAULT_PLOT_COUNT)
+		if (isCustom || n != getDefaultPlotCount())
 			return true;
 		for (int i = 0; i < n; i++) {
 			if (plots[i].isCustom)
@@ -208,6 +206,14 @@ public class PlotTrackView extends TrackView {
 		}
 		return false;
 	}
+	
+	private int getDefaultPlotCount() {
+		TTrack track = getTrack();
+		return track instanceof LineProfile || track instanceof RGBRegion
+				 || track instanceof CircleFitter || track instanceof Protractor? 1: 2;
+	}
+
+
 
 	/**
 	 * Sets the number of plots.
