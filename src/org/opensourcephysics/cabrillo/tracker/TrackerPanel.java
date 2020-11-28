@@ -889,9 +889,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 									break;
 								}
 							}
-							// if file != null, falls through to NO_OPTION
-						case JOptionPane.NO_OPTION:
 							changed = false;
+							if (whenSaved != null)
+								whenSaved.run();
+							break;
+						case JOptionPane.NO_OPTION:
 							if (whenSaved != null)
 								whenSaved.run();
 							break;

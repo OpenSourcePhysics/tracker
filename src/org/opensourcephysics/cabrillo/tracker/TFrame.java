@@ -333,6 +333,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param c
 	 */
 	public static void repaintT(Component c) {
+		if (c == null)
+			return;
 		if (c instanceof TrackerPanel) {
 			if (!((TrackerPanel) c).isPaintable()) {
 //				System.out.println("TFrame.repaintT not");
@@ -606,17 +608,20 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			removeTabNow(0);
 			return;
 		}
-	
-		saveAllTabs(new Function<TrackerPanel, Void>() {
-
-			@Override
-			public Void apply(TrackerPanel trackerPanel) {
-				// remove tab asynchronously
-				new TabRemover(trackerPanel).execute();
+		ArrayList<TrackerPanel> panels = new ArrayList<TrackerPanel>();
+		saveAllTabs(
+			(trackerPanel) -> {
+				// when each approved, add to list
+				panels.add(trackerPanel);
 				return null;
-			}
-
-		}, null, null); // do nothing when all approved or when canceled
+			}, 
+			() -> {
+				// when all approved remove tabs synchronously
+				for (int i = 0; i < panels.size(); i++) {		
+					new TabRemover(panels.get(i)).executeSynchronously();
+				}
+			}, 
+			null);
 	}
 
 	
@@ -831,7 +836,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //			tabbedPane.remove(tabPanel);
 //		}
 
-		OSPLog.debug("!!! " + Performance.now(t0) + " TFrame.removeTab");
+		OSPLog.debug("!!! " + Performance.now(t0) + " finished TFrame.removeTab");
 //		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab end", Performance.TIME_MARK));
 
 	}
