@@ -34,9 +34,6 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -79,7 +76,6 @@ import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.ResizableIcon;
-import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.ClipInspector;
 import org.opensourcephysics.media.core.MediaRes;
 import org.opensourcephysics.media.core.TPoint;
@@ -134,7 +130,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	public static final String REFRESH_TFRAME_LOCALE = "TFrame.locale";
 	public static final String REFRESH_TFRAME_LOCALE2 = "TFrame.locale2 ??";
 	protected static final String REFRESH__CLIP_SETTINGS_HIDDEN = "clip settings hidden";
-	protected static final String REFRESH__CLIP_SETTINGS_ACTION = "clip settings action";
+	protected static final String REFRESH__CLIP_SETTINGS_SHOWN = "clip settings shown";
 	private static final String REFRESH__PROPERTY_VIDEO = "property video";
 	private static final String REFRESH__PROPERTY_SELECTED_TRACK = "property selected track";
 
@@ -177,7 +173,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected JButton notesButton, refreshButton, desktopButton;
 	final protected Component toolbarFiller;
 	final protected JMenu cloneMenu;
-	final protected ComponentListener clipSettingsDialogListener;
 	final protected ArrayList<PageTView.TabData> pageViewTabs = new ArrayList<PageTView.TabData>();
 	protected JPopupMenu zoomPopup;
 
@@ -307,40 +302,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				SwingUtilities.invokeLater(runner);
 		});
 		// clip settings button
-		clipSettingsDialogListener = new ComponentAdapter() {
-
-			@Override
-			public void componentHidden(ComponentEvent e) {
-				refresh(REFRESH__CLIP_SETTINGS_HIDDEN);
-			}
-		};
 		clipSettingsButton = new TButton(clipOffIcon, clipOnIcon);
 		clipSettingsButton.addActionListener((e) -> {
-				VideoClip clip = trackerPanel.getPlayer().getVideoClip();
-				ClipControl clipControl = trackerPanel.getPlayer().getClipControl();
-				TFrame frame = trackerPanel.getTFrame();
-				ClipInspector inspector = clip.getClipInspector(clipControl, frame);
-				if (inspector.isVisible()) {
-					inspector.setVisible(false);
-					return;
-				}
-				FontSizer.setFonts(inspector, FontSizer.getLevel());
-				inspector.pack();
-				Point p0 = new JFrame().getLocation();
-				Point loc = inspector.getLocation();
-				if ((loc.x == p0.x) && (loc.y == p0.y)) {
-					// center inspector on the main view
-					Rectangle rect = trackerPanel.getVisibleRect();
-					Point p = frame.getMainView(trackerPanel).scrollPane.getLocationOnScreen();
-					int x = p.x + (rect.width - inspector.getBounds().width) / 2;
-					int y = p.y + (rect.height - inspector.getBounds().height) / 2;
-					inspector.setLocation(x, y);
-				}
-				inspector.initialize();
-				inspector.removeComponentListener(clipSettingsDialogListener);
-				inspector.addComponentListener(clipSettingsDialogListener);
-				inspector.setVisible(true);
-				refresh(TToolBar.REFRESH__CLIP_SETTINGS_ACTION);
+				trackerPanel.setClipSettingsVisible(null); // toggles visibility
 		});
 		// axes button
 		axesButton = new TButton(axesOffIcon, axesOnIcon);

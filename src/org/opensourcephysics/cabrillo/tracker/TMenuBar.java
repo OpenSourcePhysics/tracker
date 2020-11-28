@@ -240,6 +240,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	private JMenuItem video_clearFiltersItem;
 	private JMenuItem video_openVideoItem;
 	private JMenuItem video_closeVideoItem;
+	private JMenuItem video_clipSettingsItem;
 	private JMenu video_pasteImageMenu;
 	private JMenuItem video_pasteImageItem;
 	private JMenuItem video_pasteReplaceItem;
@@ -955,6 +956,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		// open and close video items
 		video_openVideoItem = videoMenu.add(actions.get("openVideo")); //$NON-NLS-1$
 		video_closeVideoItem = videoMenu.add(actions.get("closeVideo")); //$NON-NLS-1$
+		
+		// clip settings item
+		video_clipSettingsItem = new JMenuItem(MediaRes.getString("ClipInspector.Title") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+		video_clipSettingsItem.addActionListener((e) -> {
+			trackerPanel.setClipSettingsVisible(true);
+		});
 
 		// goTo item
 		video_goToItem = new JMenuItem(MediaRes.getString("VideoPlayer.Readout.Menu.GoTo") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1928,6 +1935,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			if (videoMenu.getItemCount() > 0)
 				videoMenu.addSeparator();
 
+			videoMenu.add(video_clipSettingsItem);
 			videoMenu.add(video_goToItem);
 			videoMenu.addSeparator();
 

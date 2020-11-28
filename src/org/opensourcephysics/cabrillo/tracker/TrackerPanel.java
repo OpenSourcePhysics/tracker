@@ -38,6 +38,9 @@ import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -1543,6 +1546,48 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		eraseAll();
 		TFrame.repaintT(this);
 		firePropertyChange(PROPERTY_TRACKERPANEL_SIZE, null, null);
+	}
+
+	/**
+	 * Sets the visibility of the clip settings dialog.
+	 *
+	 * @param vis null to toggle visibility, otherwise usual true/false
+	 */
+	public ClipInspector setClipSettingsVisible(Boolean vis) {
+		VideoClip clip = getPlayer().getVideoClip();
+		ClipControl clipControl = getPlayer().getClipControl();
+		TFrame frame = getTFrame();
+		ClipInspector inspector = clip.getClipInspector(clipControl, frame);
+		if ((vis == null || vis == Boolean.FALSE) && inspector.isVisible()) {
+			inspector.setVisible(false);
+			return inspector;
+		}
+		if (vis == Boolean.FALSE) {
+			return inspector;
+		}
+		FontSizer.setFonts(inspector, FontSizer.getLevel());
+		inspector.pack();
+		TToolBar toolbar = TToolBar.getToolbar(this);
+		if (!inspector.isPositioned) {
+			inspector.isPositioned = true;
+			// center inspector on the main view
+			Rectangle rect = getVisibleRect();
+			Point p = frame.getMainView(this).scrollPane.getLocationOnScreen();
+			int x = p.x + (rect.width - inspector.getBounds().width) / 2;
+			int y = p.y + (rect.height - inspector.getBounds().height) / 2;
+			inspector.setLocation(x, y);	
+			ComponentListener clipSettingsListener = new ComponentAdapter() {
+				@Override
+				public void componentHidden(ComponentEvent e) {
+					toolbar.refresh(TToolBar.REFRESH__CLIP_SETTINGS_HIDDEN);
+				}
+			};
+			inspector.addComponentListener(clipSettingsListener);
+		}
+		inspector.initialize();
+		inspector.setVisible(true);
+		toolbar.refresh(TToolBar.REFRESH__CLIP_SETTINGS_SHOWN);
+		return inspector;
 	}
 
 	/**
