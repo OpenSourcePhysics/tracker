@@ -1738,38 +1738,39 @@ public class TableTrackView extends TrackView {
 	 * @param popup the popup to refresh
 	 */
 	protected void refreshToolbarPopup(JPopupMenu popup) {
-		JCheckBoxMenuItem item = new JCheckBoxMenuItem(
-				TrackerRes.getString("TableTrackView.MenuItem.Gaps.GapsVisible")); //$NON-NLS-1$
-		item.setSelected(gapsButton.isSelected());
-		item.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				gapsButton.setSelected(!gapsButton.isSelected());
-				dataTable.skippedFramesRenderer.setVisible(gapsButton.isSelected());
-				if (gapsButton.isSelected()) {
-					dataTable.resetSort();
-				}
-				dataTable.repaint();
-				dataTable.getTableHeader().resizeAndRepaint();
-			}
-		});
-		popup.add(item);
-		if (Tracker.enableAutofill) {
-			item = new JCheckBoxMenuItem(TrackerRes.getString("TableTrackView.MenuItem.Gaps.AutoFill")); //$NON-NLS-1$
-			item.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					PointMass p = (PointMass) TableTrackView.this.getTrack();
-					p.setAutoFill(!p.isAutofill);
-					p.repaint();
-				}
-			});
-			PointMass p = (PointMass) TableTrackView.this.getTrack();
-			item.setSelected(p.isAutofill);
-			popup.add(item);
-			
-			popup.addSeparator();
-		}
+		
+//		JCheckBoxMenuItem item = new JCheckBoxMenuItem(
+//				TrackerRes.getString("TableTrackView.MenuItem.Gaps.GapsVisible")); //$NON-NLS-1$
+//		item.setSelected(gapsButton.isSelected());
+//		item.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				gapsButton.setSelected(!gapsButton.isSelected());
+//				dataTable.skippedFramesRenderer.setVisible(gapsButton.isSelected());
+//				if (gapsButton.isSelected()) {
+//					dataTable.resetSort();
+//				}
+//				dataTable.repaint();
+//				dataTable.getTableHeader().resizeAndRepaint();
+//			}
+//		});
+//		popup.add(item);
+//		if (Tracker.enableAutofill) {
+//			item = new JCheckBoxMenuItem(TrackerRes.getString("TableTrackView.MenuItem.Gaps.AutoFill")); //$NON-NLS-1$
+//			item.addActionListener(new ActionListener() {
+//				@Override
+//				public void actionPerformed(ActionEvent e) {
+//					PointMass p = (PointMass) TableTrackView.this.getTrack();
+//					p.setAutoFill(!p.isAutofill);
+//					p.repaint();
+//				}
+//			});
+//			PointMass p = (PointMass) TableTrackView.this.getTrack();
+//			item.setSelected(p.isAutofill);
+//			popup.add(item);
+//			
+//			popup.addSeparator();
+//		}
 	}
 
 	/**
