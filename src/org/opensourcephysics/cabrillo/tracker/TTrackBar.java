@@ -87,6 +87,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 
 	static {
 		selectTrackIcon = Tracker.getResourceIcon("select_track.gif", true); //$NON-NLS-1$
+		setTestOn(Tracker.testOn);
 		/** @j2sIgnore */
 		{
 			setJava();
@@ -118,21 +119,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		}
 		return trackbar;
 	}
-
-	/**
-	 * @j2sIgnore
-	 */
-	private static void setJava() {
-		OSPLog.getOSPLog().addPropertyChangeListener("error", new PropertyChangeListener() { //$NON-NLS-1$
-			@Override
-			public void propertyChange(PropertyChangeEvent e) {
-				int type = Integer.parseInt(e.getNewValue().toString());
-				if (type == OSPLog.OUT_OF_MEMORY_ERROR) {
-					outOfMemory = true;
-				}
-			}
-		});
-		if (Tracker.testOn) {
+	
+	private static void setTestOn(boolean on) {
+		if (on) {
 			testButton = new JButton("test"); //$NON-NLS-1$
 			testButton.addActionListener(new ActionListener() {
 				@Override
@@ -224,6 +213,22 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				}
 			});
 		}
+
+	}
+
+	/**
+	 * @j2sIgnore
+	 */
+	private static void setJava() {
+		OSPLog.getOSPLog().addPropertyChangeListener("error", new PropertyChangeListener() { //$NON-NLS-1$
+			@Override
+			public void propertyChange(PropertyChangeEvent e) {
+				int type = Integer.parseInt(e.getNewValue().toString());
+				if (type == OSPLog.OUT_OF_MEMORY_ERROR) {
+					outOfMemory = true;
+				}
+			}
+		});
 
 		memoryButton = new TButton() {
 			@Override
