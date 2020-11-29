@@ -3748,7 +3748,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 
 		// get pattern from table if no NumberField
 		DataTable table = getDataTable();
-		if (table != null && (val = table.getFormatPattern(name)) != null) {
+		if (table != null && (val = table.getFormatPattern(name)) != null
+				&& !"".equals(val.trim())) {
 			return val;
 		}
 
@@ -3774,14 +3775,14 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		return ""; //$NON-NLS-1$
 	}
 
-	private static TreeMap<String, String> getDefaultFormatPatterns(String type) {
+	protected static TreeMap<String, String> getDefaultFormatPatterns(String type) {
 		TreeMap<String, String> patterns = defaultFormatPatterns.get(type);
 		if (patterns != null)
 			return patterns;
 		patterns = new TreeMap<String, String>();
 		boolean isLine = (type == "LineProfile");
 		boolean isRGB = (isLine || type == "RGBRegion");
-		boolean isStep = ("RGBRegion,PointMass,Vector,Protractor,CircleFitter,TapeMeasure".indexOf(type) >= 0);
+		boolean isStep = ("CenterOfMass,RGBRegion,PointMass,Vector,Protractor,CircleFitter,TapeMeasure".indexOf(type) >= 0);
 		boolean isCircle = type == "CircleFitter";
 		if (isStep) {
 			patterns.put("t", NumberField.DECIMAL_3_PATTERN); //$NON-NLS-1$

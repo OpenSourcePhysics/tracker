@@ -3295,7 +3295,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			patterns = new TreeMap<String, String>();
 			formatPatterns.put(trackType, patterns);
 			// initialize with default patterns
-			TreeMap<String, String> defaultPatterns = TTrack.defaultFormatPatterns.get(trackType);
+			TreeMap<String, String> defaultPatterns = TTrack.getDefaultFormatPatterns(trackType);
 			if (defaultPatterns != null) {
 				patterns.putAll(defaultPatterns);
 			}
