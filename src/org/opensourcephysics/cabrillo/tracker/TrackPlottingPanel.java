@@ -967,8 +967,8 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		if (!track.dataFrames.isEmpty()) {
 		// shift relative to bsFrameHighlights if start frame > 0
 			int startFrame = track.dataFrames.get(0);
-			shifted = BitSet.valueOf(Arrays.stream(
-					bsFrameHighlights.toLongArray()).map(v -> v >> startFrame).toArray());
+//			shifted = BitSet.valueOf(Arrays.stream(
+//					bsFrameHighlights.toLongArray()).map(v -> v >> startFrame).toArray());
 		}
 		dataset.setHighlights(shifted);			
 
