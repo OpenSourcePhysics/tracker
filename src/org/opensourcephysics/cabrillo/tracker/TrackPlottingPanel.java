@@ -965,10 +965,14 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		// refresh highlighted indices
 		BitSet shifted = bsFrameHighlights;
 		if (!track.dataFrames.isEmpty()) {
-		// shift relative to bsFrameHighlights if start frame > 0
+			// shift relative to bsFrameHighlights if start frame > 0
 			int startFrame = track.dataFrames.get(0);
-//			shifted = BitSet.valueOf(Arrays.stream(
-//					bsFrameHighlights.toLongArray()).map(v -> v >> startFrame).toArray());
+			if (startFrame > 0) {
+				shifted = new BitSet();
+				for (int i = bsFrameHighlights.nextSetBit(0); i >= startFrame; i = bsFrameHighlights.nextSetBit(i + 1)) {
+				   shifted.set(i - startFrame);
+				}
+			}
 		}
 		dataset.setHighlights(shifted);			
 
