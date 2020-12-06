@@ -96,7 +96,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	// popup menu
 	
 	protected JPopupMenu popup = new JPopupMenu();
-	private boolean ignoreSelectedTrack;
+	protected boolean ignoreSelectedTrack;
 		
 	/**
 	 * Constructs a TViewChooser.
@@ -304,21 +304,29 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 *
 	 * @param view the view to select
 	 */
-	public void setSelectedView(TView view) {
+	public void setSelectedView(TView view, boolean newView) {
 		if (view == null || selectedView == view)
 			return;
+
+		if (newView) {
+			// determine type of view
+			selectedType = view instanceof PlotTView? TView.VIEW_PLOT:
+					view instanceof TableTView? TView.VIEW_TABLE:
+					view instanceof WorldTView? TView.VIEW_WORLD:
+					TView.VIEW_PAGE;
+			tViews[selectedType] = view;
+			refreshViewPanel();
+		}
+
 		trackerPanel.changed = true;
 		TTrack selectedTrack = null;
 		// clean up previously selected view
-		boolean istview = (selectedView instanceof TrackChooserTView);
-		if (istview) {
-			selectedTrack = ((TrackChooserTView) selectedView).getSelectedTrack();
-		}
 		if (selectedView != null) {
 			selectedView.cleanup();
 			((Component) selectedView).removePropertyChangeListener(TView.PROPERTY_TVIEW_TRACKVIEW, this);
 			// if switching selection, keep track same
-			if (istview && !ignoreSelectedTrack) {
+			boolean isTrackChooser = (selectedView instanceof TrackChooserTView);
+			if (isTrackChooser && !ignoreSelectedTrack) {
 				selectedTrack = ((TrackChooserTView) selectedView).getSelectedTrack();
 			}
 			ignoreSelectedTrack = false;
@@ -329,7 +337,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		// initialize and refresh newly selected view
 		view.init();
 		((Component) view).addPropertyChangeListener(TView.PROPERTY_TVIEW_TRACKVIEW, this);
-		if (selectedView instanceof TrackChooserTView) {
+		if (selectedTrack != null && selectedView instanceof TrackChooserTView) {
 			((TrackChooserTView) selectedView).setSelectedTrack(selectedTrack);
 		}
 		view.refresh();
@@ -350,10 +358,6 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 	 * @param type int
 	 */
 	public void setSelectedViewType(int type) {
-		if (type == 19570826) {
-			ignoreSelectedTrack = true;
-			return;
-		}
 		if (type<0 || type>3)  {
 			ignoreSelectedTrack = false;
 			return;
@@ -361,25 +365,26 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		TView view = tViews[type];
 		if (type==selectedType)  {
 			ignoreSelectedTrack = false;
-			if (view != null)
+			if (view != null) {
 				view.refresh();
-			return;
+				return;
+			}
 		}
 		selectedType = type;
 		
 		if (view == null) {
 			// create new TView
 			switch (type) {
-			case 0: 
+			case TView.VIEW_PLOT: 
 				view = new PlotTView(trackerPanel);
 				break;
-			case 1:
+			case TView.VIEW_TABLE:
 				view = new TableTView(trackerPanel);
 				break;
-			case 2: 
+			case TView.VIEW_WORLD: 
 				view = new WorldTView(trackerPanel);
 				break;
-			case 3:
+			case TView.VIEW_PAGE:
 				view = new PageTView(trackerPanel);
 			}
 			tViews[type] = view;
@@ -388,7 +393,34 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		if (((Component)view).getParent() == null)
 			refreshViewPanel();
 		view.refresh();
-		setSelectedView(view);
+		setSelectedView(view, false);
+	}
+
+	/**
+	 * Removes a view of a specified type
+	 *
+	 * @param type one of the TView viewType constants
+	 * @return the removed view, if any
+	 */
+	public TView removeViewType(int viewType) {
+		TView view = null;
+		if (viewType > -1 && viewType < 4) {
+			view = tViews[viewType];
+			tViews[viewType] = null;
+			if (viewType == selectedType) {
+				selectedView = null;
+				TViewChooser[] viewChoosers = trackerPanel.getTFrame().getViewChoosers(trackerPanel);
+				for (int i = 0; i < viewChoosers.length; i++) {
+					if (viewChoosers[i] == this) {
+						setSelectedViewType(i);
+						break;
+					}
+				}				
+				
+			}
+			refreshViewPanel();
+		}
+		return view;
 	}
 
 	/**
@@ -526,9 +558,12 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 				viewPanel.add((JPanel) view, TView.VIEW_NAMES[i]);
 			}
 		}
-		// reselect selected view, if any
-		if (selectedView != null)
-			setSelectedView(selectedView);
+		// repaint selected view, if any
+		if (selectedView != null) {
+			repaint();
+//			// refresh the toolbar
+//			refreshToolbar();
+		}
 		// otherwise select the current type
 		else 
 			setSelectedViewType(selectedType);
@@ -584,7 +619,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 			TViewChooser chooser = (TViewChooser) obj;
 			TView view = (TView) control.getObject("selected_view"); //$NON-NLS-1$
 			if (view != null) {
-				chooser.setSelectedView(view);
+				chooser.setSelectedView(view, true);
 			}
 			return obj;
 		}

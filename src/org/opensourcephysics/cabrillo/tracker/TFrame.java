@@ -225,8 +225,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private static final int TFRAME_MENUBAR = 4;
 	private static final int TFRAME_TRACKBAR = 5;
 
+	protected static double DEFAULT_MAIN_DIVIDER = 0.7;
+	protected static double DEFAULT_RIGHT_DIVIDER = 0.65;
+	protected static double DEFAULT_BOTTOM_DIVIDER = 0.55;
+
 	public static boolean haveExportDialog = false;
 	public static boolean haveThumbnailDialog = false;
+	protected static boolean isPortraitMode = false;
 
 //	private Map<JPanel, Object[]> panelObjects = new HashMap<JPanel, Object[]>();
 	protected JTabbedPane tabbedPane;
@@ -242,9 +247,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected TrackerPanel prevPanel;
 //	protected double defaultMainDivider = 21/(21.0 + 13.0); // fibonacci 8/(7 + 8)
 //	protected double defaultRightDivider = 13/(13.0 + 8.0); // fibonacci 7/(7 + 6)
-	protected double defaultMainDivider = 0.67;
-	protected double defaultRightDivider = 0.57;
-	protected double defaultBottomDivider = 0.5;
 	protected FileDropHandler fileDropHandler;
 	protected Action openRecentAction;
 	protected boolean splashing = true;
@@ -457,9 +459,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					viewTypeString = viewTypeString.substring(n + 1);
 					try {
 						for (int i = 0; i < viewChoosers.length; i++) {
-							// set selected view types of TViewChoosers only if not default (viewType==i)
-							int viewType = Integer.parseInt(viewTypeString.substring(0, 1));
-							if (viewType != i) {
+							// set selected view types of TViewChoosers only if not current type
+							int desiredType = Integer.parseInt(viewTypeString.substring(0, 1));
+							int currentType = viewChoosers[i].getSelectedViewType();
+							if (desiredType != currentType) {
 								viewChoosers[i].setSelectedViewType(Integer.parseInt(viewTypeString.substring(0, 1)));
 								viewChoosers[i].refresh();
 								viewChoosers[i].repaint();
@@ -495,7 +498,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						// then the selected track will be taken from the table, not the plot. 
 						// much better would be to save the selected type LAST. 
 						// CupsClip.zip
-						viewChoosers[i].setSelectedViewType(19570826);
+						viewChoosers[i].ignoreSelectedTrack = true;
 					}
 					viewChoosers[i].setSelectedViewType(type);
 					viewChoosers[i].refresh();
@@ -517,6 +520,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.changed = false;
 		trackerPanel.refreshTrackData(DataTable.MODE_TAB);
 		refresh();
+		if (isPortraitMode && !isViewPaneVisible(3, trackerPanel))
+			moveSideViewsToBottom(trackerPanel);
 
 		if (whenDone != null) {
 			whenDone.run();
@@ -527,6 +532,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			public void actionPerformed(ActionEvent e) {
 				// DB getDataBuilder to autoload data functions from external files
 				trackerPanel.getDataBuilder();
+//				moveSideViewsToBottom(trackerPanel);
 			}
 		});
 		timer.setRepeats(false);
@@ -1036,6 +1042,59 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		Object[] objects = getObjects(trackerPanel);
 		return (objects == null ? 
 				new TViewChooser[4] : (TViewChooser[]) objects[TFRAME_VIEWCHOOSERS]);
+	}
+	
+	/**
+	 * Swaps the TViewChooser positions for a tracker panel. Positions may be
+	 * 0: upper right
+	 * 1: lower right
+	 * 2: bottom right
+	 * 3: bottom left
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @param i a position
+	 * @param j a position
+	 */
+	protected void swapViews(TrackerPanel trackerPanel, int i, int j) {
+		if (i == j || i < 0 || i > 3 || j < 0 || j > 3)
+			return;
+		TViewChooser[] viewChoosers = getViewChoosers(trackerPanel);
+		TViewChooser chooser = viewChoosers[i];
+		viewChoosers[i] = viewChoosers[j];
+		viewChoosers[j] = chooser;
+		setViews(trackerPanel, viewChoosers);
+	}
+	
+	protected void moveSideViewsToBottom(TrackerPanel trackerPanel) {
+		// swap viewChoosers
+		swapViews(trackerPanel, 0, 3);
+		swapViews(trackerPanel, 1, 2);
+	
+		// set divider properties
+		JSplitPane[] panes = getSplitPanes(trackerPanel);
+//		panes[0].setDividerSize(0);
+//		panes[2].setDividerSize(TFrame.defaultDividerSize);
+		setDividerLocation(trackerPanel, 0, 1.0);
+		int max = panes[0].getMaximumDividerLocation();
+		setDividerLocation(trackerPanel, 2, TFrame.DEFAULT_BOTTOM_DIVIDER);
+		// center the bottom divider
+		SwingUtilities.invokeLater(() -> {
+			setDividerLocation(trackerPanel, 3, (int)(0.5*max));
+		});
+	}
+
+	protected void moveBottomViewsToSide(TrackerPanel trackerPanel) {
+		// swap viewChoosers
+		swapViews(trackerPanel, 0, 3);
+		swapViews(trackerPanel, 1, 2);
+	
+		// set divider properties
+		JSplitPane[] panes = getSplitPanes(trackerPanel);
+//		panes[0].setDividerSize(TFrame.defaultDividerSize);
+//		panes[2].setDividerSize(0);
+		setDividerLocation(trackerPanel, 0, TFrame.DEFAULT_MAIN_DIVIDER);
+		setDividerLocation(trackerPanel, 1, TFrame.DEFAULT_RIGHT_DIVIDER);
+		setDividerLocation(trackerPanel, 2, 1.0);
 	}
 
 	/**
@@ -2602,11 +2661,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// to ensure dividers are set properly
 		validate(); 
 		if (trackerPanel.dividerLocs == null) {
-			setDividerLocation(trackerPanel, SPLIT_MAIN, defaultMainDivider);
-			setDividerLocation(trackerPanel, SPLIT_RIGHT, defaultRightDivider);
+			setDividerLocation(trackerPanel, SPLIT_MAIN, DEFAULT_MAIN_DIVIDER);
+			setDividerLocation(trackerPanel, SPLIT_RIGHT, DEFAULT_RIGHT_DIVIDER);
 			setDividerLocation(trackerPanel, SPLIT_LEFT, 1.0);
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0); // becomes previous
-			setDividerLocation(trackerPanel, SPLIT_BOTTOM, defaultBottomDivider);
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, DEFAULT_BOTTOM_DIVIDER);
 		} else {
 			int w = 0;
 			for (int i = 0; i < trackerPanel.dividerLocs.length; i++) {
@@ -2741,6 +2800,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (getTabCount() == 0 || haveContent())
 			return new TrackerPanel();
 		TrackerPanel panel = getTrackerPanel(0);
+		JSplitPane[] panes = getSplitPanes(panel);
+		setDefaultWeights(panes);
 //		panel.changed = true;
 		return panel;
 	}

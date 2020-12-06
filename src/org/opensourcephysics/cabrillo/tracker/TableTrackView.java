@@ -712,7 +712,10 @@ public class TableTrackView extends TrackView {
 		System.arraycopy(dependentVars, 0, columnNames, 1, dependentVars.length);
 		// create array of names in table order
 		String[] ordered = new String[columnNames.length];
-		for (int i = 0; i < ordered.length; i++) {
+		if (columnNames.length == 1) {
+			ordered[0] = columnNames[0];
+		}
+		else for (int i = 0; i < ordered.length; i++) {
 			if (i >= modelIndexes.length || modelIndexes[i] >= columnNames.length)
 				continue;
 			ordered[i] = columnNames[modelIndexes[i]];

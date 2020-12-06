@@ -2264,7 +2264,7 @@ public class TrackerIO extends VideoIO {
 //			if (monitorDialog.isVisible())
 //				monitorDialog.setProgress(95);
 			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
-			pane.setDividerLocation(frame.defaultRightDivider);
+			pane.setDividerLocation(TFrame.DEFAULT_RIGHT_DIVIDER);
 
 			// BH ?? TMenuBar.refreshMenus(trackerPanel, TMenuBar.REFRESH_BEFORESETVIDEO);
 			trackerPanel.setVideo(video);

@@ -57,6 +57,8 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.controls.OSPLog;
+import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
@@ -134,28 +136,13 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
 									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());									
-									JSplitPane[] panes = frame.getSplitPanes(trackerPanel);
-									TViewChooser[] viewChoosers = frame.getViewChoosers(trackerPanel);
-									if (testIndex++ % 2 == 0) {
-										// set vertical layout
-										panes[0].setDividerSize(0);
-										panes[2].setDividerSize(TFrame.defaultDividerSize);
-										frame.setDividerLocation(trackerPanel, 0, 1.0);
-										int max = panes[0].getMaximumDividerLocation();
-										frame.setDividerLocation(trackerPanel, 2, 0.55);
-										frame.setDividerLocation(trackerPanel, 3, (int)(0.5*max));
-										viewChoosers[2].setSelectedViewType(TView.VIEW_TABLE);
-										viewChoosers[3].setSelectedViewType(TView.VIEW_PLOT);
+									if (!frame.isViewPaneVisible(3, trackerPanel)) {
+										frame.moveSideViewsToBottom(trackerPanel);
+										TFrame.isPortraitMode = true;
 									}
 									else {
-										// set horizontal layout
-										panes[0].setDividerSize(TFrame.defaultDividerSize);
-										panes[2].setDividerSize(0);
-										frame.setDividerLocation(trackerPanel, 0, 0.7);
-										frame.setDividerLocation(trackerPanel, 1, 0.7);
-										frame.setDividerLocation(trackerPanel, 2, 1.0);
-										viewChoosers[0].setSelectedViewType(TView.VIEW_PLOT);
-										viewChoosers[1].setSelectedViewType(TView.VIEW_TABLE);
+										frame.moveBottomViewsToSide(trackerPanel);
+										TFrame.isPortraitMode = true;
 									}
 									
 //									long t0 = Performance.now(0);
