@@ -135,15 +135,12 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
-									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());									
-									if (!frame.isViewPaneVisible(3, trackerPanel)) {
-										frame.moveSideViewsToBottom(trackerPanel);
-										TFrame.isPortraitMode = true;
-									}
-									else {
-										frame.moveBottomViewsToSide(trackerPanel);
-										TFrame.isPortraitMode = true;
-									}
+									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+									boolean allViews = testIndex % 2 != 0;
+									boolean portrait = (testIndex/2) % 2 == 0;
+									frame.arrangeViews(trackerPanel, portrait, allViews);
+									TFrame.isPortraitLayout = portrait;
+									testIndex++;
 									
 //									long t0 = Performance.now(0);
 //									String url = "https://iwant2study.org/lookangejss/02_newtonianmechanics_7gravity/trz/angrybirdtracking.trz";

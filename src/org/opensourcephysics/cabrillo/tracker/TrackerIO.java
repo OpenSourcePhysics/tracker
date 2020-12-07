@@ -1877,6 +1877,8 @@ public class TrackerIO extends VideoIO {
 		}
 		@Override
 		public int doInBackgroundAsync(int progress) {
+			if (frame.libraryBrowser != null && frame.libraryBrowser.isCancelled())
+				return 100;
 			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad " + type + " start " + progress + " " + paths,
 					Performance.TIME_MARK));
 			// type is set in setupLoader, from initAsync()

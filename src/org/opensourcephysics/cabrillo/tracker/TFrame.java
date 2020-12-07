@@ -225,13 +225,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private static final int TFRAME_MENUBAR = 4;
 	private static final int TFRAME_TRACKBAR = 5;
 
-	protected static double DEFAULT_MAIN_DIVIDER = 0.7;
-	protected static double DEFAULT_RIGHT_DIVIDER = 0.65;
-	protected static double DEFAULT_BOTTOM_DIVIDER = 0.55;
+	protected static double DEFAULT_MAIN_DIVIDER = 0.67;
+	protected static double DEFAULT_RIGHT_DIVIDER = 0.57;
+	protected static double DEFAULT_BOTTOM_DIVIDER = 0.57;
 
 	public static boolean haveExportDialog = false;
 	public static boolean haveThumbnailDialog = false;
-	protected static boolean isPortraitMode = false;
+	protected static boolean isPortraitLayout = false;
 
 //	private Map<JPanel, Object[]> panelObjects = new HashMap<JPanel, Object[]>();
 	protected JTabbedPane tabbedPane;
@@ -507,7 +507,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			trackerPanel.selectedViewsProperty = null;
 		}
-		setViews(trackerPanel, viewChoosers);
+		setViews(trackerPanel, viewChoosers, null);
 		initialize(trackerPanel);
 
 		JPanel panel = (JPanel) tabbedPane.getComponentAt(tab);
@@ -520,8 +520,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		trackerPanel.changed = false;
 		trackerPanel.refreshTrackData(DataTable.MODE_TAB);
 		refresh();
-		if (isPortraitMode && !isViewPaneVisible(3, trackerPanel))
-			moveSideViewsToBottom(trackerPanel);
+		if (isPortraitLayout)
+			arrangeViews(trackerPanel, true, isViewPaneVisible(3, trackerPanel));
 
 		if (whenDone != null) {
 			whenDone.run();
@@ -998,8 +998,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 *
 	 * @param trackerPanel the tracker panel
 	 * @param viewChoosers an array of up to 4 TViewChoosers
+	 * @param order an optional array that defines non-default view positions 
 	 */
-	public void setViews(TrackerPanel trackerPanel, TViewChooser[] viewChoosers) {
+	public void setViews(TrackerPanel trackerPanel, TViewChooser[] viewChoosers, int[] order) {
 		if (viewChoosers == null)
 			viewChoosers = new TViewChooser[0];
 		int tab = getTab(trackerPanel);
@@ -1020,10 +1021,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		panes[SPLIT_MAIN].setRightComponent(panes[SPLIT_RIGHT]);
 		panes[SPLIT_LEFT].setTopComponent(mainView);
 		panes[SPLIT_LEFT].setBottomComponent(panes[SPLIT_BOTTOM]);
-		panes[SPLIT_RIGHT].setTopComponent(choosers[TView.VIEW_PLOT]);
-		panes[SPLIT_RIGHT].setBottomComponent(choosers[TView.VIEW_TABLE]);
-		panes[SPLIT_BOTTOM].setRightComponent(choosers[TView.VIEW_WORLD]);
-		panes[SPLIT_BOTTOM].setLeftComponent(choosers[TView.VIEW_PAGE]);
+		if (order == null || order.length != viewChoosers.length) {
+			panes[SPLIT_RIGHT].setTopComponent(choosers[TView.VIEW_PLOT]);
+			panes[SPLIT_RIGHT].setBottomComponent(choosers[TView.VIEW_TABLE]);
+			panes[SPLIT_BOTTOM].setRightComponent(choosers[TView.VIEW_WORLD]);
+			panes[SPLIT_BOTTOM].setLeftComponent(choosers[TView.VIEW_PAGE]);
+		}
+		else {
+			panes[SPLIT_RIGHT].setTopComponent(choosers[order[TView.VIEW_PLOT]]);
+			panes[SPLIT_RIGHT].setBottomComponent(choosers[order[TView.VIEW_TABLE]]);
+			panes[SPLIT_BOTTOM].setRightComponent(choosers[order[TView.VIEW_WORLD]]);
+			panes[SPLIT_BOTTOM].setLeftComponent(choosers[order[TView.VIEW_PAGE]]);
+			
+		}
 		// add toolbars at north position
 		panel.setToolbarVisible(true);
 //		Box north = Box.createVerticalBox();
@@ -1045,56 +1055,64 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 	
 	/**
-	 * Swaps the TViewChooser positions for a tracker panel. Positions may be
-	 * 0: upper right
-	 * 1: lower right
-	 * 2: bottom right
-	 * 3: bottom left
+	 * Swaps the view positions for a tracker panel. 
+	 * View positions: 0 upper side, 1 lower side, 2 bottom right, 3 bottom left
 	 *
 	 * @param trackerPanel the tracker panel
 	 * @param i a position
 	 * @param j a position
 	 */
-	protected void swapViews(TrackerPanel trackerPanel, int i, int j) {
+	private void swapViews(TrackerPanel trackerPanel, int i, int j) {
 		if (i == j || i < 0 || i > 3 || j < 0 || j > 3)
 			return;
 		TViewChooser[] viewChoosers = getViewChoosers(trackerPanel);
 		TViewChooser chooser = viewChoosers[i];
 		viewChoosers[i] = viewChoosers[j];
 		viewChoosers[j] = chooser;
-		setViews(trackerPanel, viewChoosers);
 	}
 	
-	protected void moveSideViewsToBottom(TrackerPanel trackerPanel) {
-		// swap viewChoosers
-		swapViews(trackerPanel, 0, 3);
-		swapViews(trackerPanel, 1, 2);
-	
+	/**
+	 * Swaps the side and bottom views.
+	 *
+	 * @param trackerPanel the tracker panel
+	 */
+	private void swapSideAndBottomViews(TrackerPanel trackerPanel) {
+		saveCurrentDividerLocations(trackerPanel);
+		setViews(trackerPanel, getViewChoosers(trackerPanel), new int[] {3, 2, 1, 0});
+		restoreViews(trackerPanel);
+	}
+		
+	protected void arrangeViews(TrackerPanel trackerPanel, boolean isPortrait, boolean showAll) {
+		// set view order
+		int[] order = isPortrait?  new int[] {3, 2, 1, 0}:  null;
+		setViews(trackerPanel, getViewChoosers(trackerPanel), order);
+		
 		// set divider properties
 		JSplitPane[] panes = getSplitPanes(trackerPanel);
-//		panes[0].setDividerSize(0);
-//		panes[2].setDividerSize(TFrame.defaultDividerSize);
-		setDividerLocation(trackerPanel, 0, 1.0);
 		int max = panes[0].getMaximumDividerLocation();
-		setDividerLocation(trackerPanel, 2, TFrame.DEFAULT_BOTTOM_DIVIDER);
-		// center the bottom divider
-		SwingUtilities.invokeLater(() -> {
-			setDividerLocation(trackerPanel, 3, (int)(0.5*max));
-		});
-	}
-
-	protected void moveBottomViewsToSide(TrackerPanel trackerPanel) {
-		// swap viewChoosers
-		swapViews(trackerPanel, 0, 3);
-		swapViews(trackerPanel, 1, 2);
+		if (isPortrait) {
+			// portrait
+			setDividerLocation(trackerPanel, 0, showAll? TFrame.DEFAULT_MAIN_DIVIDER: 1.0);
+			setDividerLocation(trackerPanel, 1, TFrame.DEFAULT_RIGHT_DIVIDER);
+			setDividerLocation(trackerPanel, 2, TFrame.DEFAULT_BOTTOM_DIVIDER);
+			// center the bottom divider
+			SwingUtilities.invokeLater(() -> {
+				setDividerLocation(trackerPanel, 3, 0.5);
+			});			
+		}
+		else {
+			// landscape
+			setDividerLocation(trackerPanel, 0, TFrame.DEFAULT_MAIN_DIVIDER);
+			setDividerLocation(trackerPanel, 1, TFrame.DEFAULT_RIGHT_DIVIDER);
+			setDividerLocation(trackerPanel, 2, showAll? TFrame.DEFAULT_BOTTOM_DIVIDER: 1.0);
+			// center the bottom divider
+			SwingUtilities.invokeLater(() -> {
+				setDividerLocation(trackerPanel, 3, 0.5);
+			});			
+		}
 	
-		// set divider properties
-		JSplitPane[] panes = getSplitPanes(trackerPanel);
 //		panes[0].setDividerSize(TFrame.defaultDividerSize);
 //		panes[2].setDividerSize(0);
-		setDividerLocation(trackerPanel, 0, TFrame.DEFAULT_MAIN_DIVIDER);
-		setDividerLocation(trackerPanel, 1, TFrame.DEFAULT_RIGHT_DIVIDER);
-		setDividerLocation(trackerPanel, 2, 1.0);
 	}
 
 	/**
@@ -1154,9 +1172,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	/**
-	 * Determines whether a TViewChooser is visible for the specified tracker panel.
+	 * Determines whether a view pane is visible for the specified tracker panel tab.
 	 *
-	 * @param index        the TViewChooser index
+	 * @param index the view position index 
 	 * @param trackerPanel the tracker panel
 	 * @return true if it is visible
 	 */
@@ -1615,8 +1633,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	void restoreViews(TrackerPanel trackerPanel) {
-		if (maximizedView < 0)
-			return;
+//		if (maximizedView < 0)
+//			return;
 		for (int i = 0; i < trackerPanel.dividerFractions.length; i++) {
 			if (trackerPanel.dividerLocs == null)
 				setDividerLocation(trackerPanel, i, trackerPanel.dividerFractions[i]);
@@ -2858,6 +2876,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		libraryBrowser.setMessage("Loading \""+record.getName() + "\"" + abort, Color.YELLOW);
 		libraryBrowser.setComandButtonEnabled(false);
 		libraryBrowser.setAlwaysOnTop(true);
+		libraryBrowser.setCanceled(true);
 		openLibraryResource(record, () -> {
 			TrackerPanel trackerPanel = getSelectedPanel();
 			Timer timer = new Timer(200, (ev) -> {
@@ -2887,6 +2906,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				try {
 					File file = ResourceLoader.downloadToOSPCache(target, fileName, false);
 					target = file.toURI().toString();
+					if (libraryBrowser.isCancelled())
+						return;
 				} catch (Exception ex) {
 					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
 					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + record.getName() + "\"", //$NON-NLS-1$ //$NON-NLS-2$
