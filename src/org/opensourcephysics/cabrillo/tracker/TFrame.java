@@ -1038,10 +1038,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 		// add toolbars at north position
 		panel.setToolbarVisible(true);
-//		Box north = Box.createVerticalBox();
-//		north.add((JToolBar) objects[TFRAME_TOOLBAR]);
-//		north.add((TTrackBar) objects[TFRAME_TRACKBAR]);
-//		panel.add(north, BorderLayout.NORTH);
 	}
 
 	/**
@@ -1057,47 +1053,25 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 	
 	/**
-	 * Swaps the view positions for a tracker panel. 
-	 * View positions: 0 upper side, 1 lower side, 2 bottom right, 3 bottom left
-	 *
+	 * Arranges the views for a tracker panel, placing default views under or beside the video
+	 * and displaying non-default views if desired.
+	 * 
 	 * @param trackerPanel the tracker panel
-	 * @param i a position
-	 * @param j a position
+	 * @param isPortrait true to show default views below video
+	 * @param showAll true to show all views
 	 */
-	private void swapViews(TrackerPanel trackerPanel, int i, int j) {
-		if (i == j || i < 0 || i > 3 || j < 0 || j > 3)
-			return;
-		TViewChooser[] viewChoosers = getViewChoosers(trackerPanel);
-		TViewChooser chooser = viewChoosers[i];
-		viewChoosers[i] = viewChoosers[j];
-		viewChoosers[j] = chooser;
-	}
-	
-	/**
-	 * Swaps the side and bottom views.
-	 *
-	 * @param trackerPanel the tracker panel
-	 */
-	private void swapSideAndBottomViews(TrackerPanel trackerPanel) {
-		saveCurrentDividerLocations(trackerPanel);
-		setViews(trackerPanel, getViewChoosers(trackerPanel), new int[] {3, 2, 1, 0});
-		restoreViews(trackerPanel);
-	}
-		
-	protected void arrangeViews(TrackerPanel trackerPanel, boolean isPortrait, boolean showAll) {
+	public void arrangeViews(TrackerPanel trackerPanel, boolean isPortrait, boolean showAll) {
 		// set view order
 		int[] order = isPortrait?  new int[] {3, 2, 1, 0}:  null;
 		setViews(trackerPanel, getViewChoosers(trackerPanel), order);
 		
 		// set divider properties
-		JSplitPane[] panes = getSplitPanes(trackerPanel);
-		int max = panes[0].getMaximumDividerLocation();
 		if (isPortrait) {
 			// portrait
 			setDividerLocation(trackerPanel, 0, showAll? TFrame.DEFAULT_MAIN_DIVIDER: 1.0);
 			setDividerLocation(trackerPanel, 1, TFrame.DEFAULT_RIGHT_DIVIDER);
 			setDividerLocation(trackerPanel, 2, TFrame.DEFAULT_BOTTOM_DIVIDER);
-			// center the bottom divider
+			// center the bottom divider--delay needed in Java for correct placement
 			SwingUtilities.invokeLater(() -> {
 				setDividerLocation(trackerPanel, 3, 0.5);
 			});			
@@ -1107,7 +1081,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setDividerLocation(trackerPanel, 0, TFrame.DEFAULT_MAIN_DIVIDER);
 			setDividerLocation(trackerPanel, 1, TFrame.DEFAULT_RIGHT_DIVIDER);
 			setDividerLocation(trackerPanel, 2, showAll? TFrame.DEFAULT_BOTTOM_DIVIDER: 1.0);
-			// center the bottom divider
+			// center the bottom divider--delay needed in Java for correct placement
 			SwingUtilities.invokeLater(() -> {
 				setDividerLocation(trackerPanel, 3, 0.5);
 			});			
