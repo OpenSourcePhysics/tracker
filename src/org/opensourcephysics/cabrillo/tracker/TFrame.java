@@ -275,6 +275,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		createGUI();
 		// size and position this frame
 		pack();
+		Rectangle rect = getBounds();
+		isPortraitLayout = rect.height > rect.width;
 
 		// set transfer handler on tabbedPane
 		fileDropHandler = new FileDropHandler(this);
@@ -2439,10 +2441,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	protected void frameResized() {
 		TrackerPanel trackerPanel = getSelectedPanel();
-		if (trackerPanel != null && maximizedView > -1) {
+		if (trackerPanel == null)
+			return;
+		if (maximizedView > -1) {
 			maximizeView(trackerPanel, maximizedView);
-			trackerPanel.dividerLocs = null;				
+			trackerPanel.dividerLocs = null;
+			return;
 		}
+		// determine if dimensions are portrait or landscape
+		Rectangle rect = getBounds();
+		isPortraitLayout = rect.height > rect.width;
+		boolean allShown = isViewPaneVisible(0, trackerPanel) && isViewPaneVisible(3, trackerPanel);
+		if (!allShown)
+			arrangeViews(trackerPanel, isPortraitLayout, false);
 	}
 
 	private void createDefaultMenuBar() {
