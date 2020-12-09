@@ -279,6 +279,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //		 */
 
 		Map<String, Object> map = new HashMap<>();
+		
+		map.put("-adaptable", true);
+
+		
 		if (args == null || args.length == 0)
 			return map;
 		for (int i = 0; i < args.length; i++) {
@@ -288,6 +292,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			int i1 = i;
 			try {
 				switch (arg) {
+				case "-adaptable":
+					args[i] = null;
+					map.put("-adaptable", true);
+					break;
 				case "-bounds":
 					args[i] = null;
 					i1 = i + 4;
@@ -359,6 +367,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private void init(Map<String, Object> options) {
 		if (options == null)
 			options = new HashMap<>();
+		boolean isAdaptable = (OSPRuntime.isJS && options.get("-adaptable") != null);
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");
@@ -376,6 +385,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		Rectangle screenRect = e.getMaximumWindowBounds();
 		setMaximizedBounds(screenRect);
 		// process -bounds or -dim option
+		
+		if (isAdaptable) {
+			bounds = getAdaptiveBounds(true);
+		} 
 		if (bounds == null) {
 			if (dim == null) {
 				double extra = FontSizer.getFactor(Tracker.preferredFontLevel) - 1;
@@ -408,6 +421,54 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 
+    class Screen {
+		int availWidth;
+		int availHeight;
+		int width;
+		int height;
+		int colorDepth;
+		int pixelDepth;
+		int top;
+		int left;
+		int availTop;
+		int availLeft;		
+	}
+	
+	@SuppressWarnings("unused")
+	private Rectangle getAdaptiveBounds(boolean isInit) {
+		Screen scr = /** @j2sNative screen || */
+				null;
+		int w = (int) (0.9 * scr.availWidth);
+		int margin = (int) (0.05 * scr.availWidth);
+		int h = (int) (0.8 * (scr.availHeight - 80));
+		Rectangle rect = new Rectangle(margin, 80, w, h);
+		if (isInit) {
+			Runnable onOrient = new Runnable() {
+
+				@Override
+				public void run() {
+					getAdaptiveBounds(false);
+				}
+				
+			};
+
+			// startup
+			/**
+			 * @j2sNative window.addEventListener(window.onorientationchange ?
+			 *            "orientationchange" : "resize", function() { 
+			 *                 onOrient.run$();
+			 *             },
+			 *            false);
+			 */
+		} else {
+			setBounds(rect);
+			validate();
+			repaint();
+		}
+		return rect;
+	}
+
+
 	/**
 	 * All repaints funnel through this method
 	 * 
@@ -416,7 +477,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void repaint(long time, int x, int y, int w, int h) {
 //		if (!isPaintable())
 //			return;
-		//OSPLog.debug("TFrame repaint " + x + " " + y + " " + w + " " + h + " " + isPaintable());
+		OSPLog.debug("TFrame repaint " + x + " " + y + " " + w + " " + h + " " + isPaintable());
 		// TFrame.addTab -> initialize -> TrackerPanel.addTrack ->
 		// fire(PROPERTY_TRACKERPANEL_TRACK)
 		// -> TViewChooser -> PlotTView -> TFrame.repaint();
@@ -443,7 +504,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			((TrackerPanel) c).clearTainted();
 		}
-		//OSPLog.debug(Performance.timeCheckStr("TFrame.repaintT " + c.getClass().getName(), Performance.TIME_MARK));
+		OSPLog.debug(Performance.timeCheckStr("TFrame.repaintT " + c.getClass().getSimpleName(), Performance.TIME_MARK));
 		// OSPLog.debug("TFrame.repaintT " + c.getClass().getName());
 		c.repaint();
 	}
@@ -459,7 +520,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	@Override
 	public void paint(Graphics g) {
+		if (!isShowing())
+			return;
 		// RepaintManager.paintDirtyRegions -> TFrame.paint(g)
+		OSPLog.debug("TFrame.paint");
 		super.paint(g);
 	}
 
