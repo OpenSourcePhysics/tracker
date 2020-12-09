@@ -1624,8 +1624,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 					tFrame = (TFrame) frames[i];
 					TrackerPanel trackerPanel = tFrame.getSelectedPanel();
 					if (trackerPanel != null) {
-						TTrackBar trackbar = TTrackBar.getTrackbar(trackerPanel);
-						trackbar.refresh();
+						TTrackBar.getTrackbar(trackerPanel).refresh();
 					}
 				}
 			}

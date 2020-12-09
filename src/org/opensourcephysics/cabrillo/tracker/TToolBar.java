@@ -1271,6 +1271,12 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 		}
 	}
+	
+	@Override
+	public void paint(Graphics g) {
+		System.out.println("TToolbar.paint");
+		super.paint(g);
+	}
 
 	private void setMenuText() {
 		vStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$

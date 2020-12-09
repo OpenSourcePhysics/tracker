@@ -28,6 +28,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -69,8 +70,8 @@ import org.opensourcephysics.tools.FontSizer;
 import javajs.async.SwingJSUtils.Performance;
 
 /**
- * This is a toolbar that display selected track properties as well as memory
- * and upgrade monitors/buttons.
+ * This is a toolbar that display selected track properties in the NORTH
+ * section of a TrackerPanel.
  *
  * @author Douglas Brown
  */
@@ -611,9 +612,13 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild1 " + trackerPanel.getName(), Performance.TIME_MARK));
 		revalidate();
 		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild-revalidate " + (track == null ? null : track.getName()), Performance.TIME_MARK));
-		TFrame.repaintT(this);
+		//TFrame.repaintT(this);
 	}
 
+	public void paint(Graphics g) {
+		System.out.println("TTrackBar paint");
+		super.paint(g);
+	}
 	private void updateSize(JComponent jc) {
 		int w = jc.getPreferredSize().width;
 		jc.setMaximumSize(null);

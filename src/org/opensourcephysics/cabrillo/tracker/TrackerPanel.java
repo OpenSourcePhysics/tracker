@@ -2201,8 +2201,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (n < 0)
 				return;
 			if (n == TView.VIEW_MAIN) {
-				TTrackBar trackbar = TTrackBar.getTrackbar(this);
-				trackbar.maximizeButton.doClick(0);
+				TTrackBar.getTrackbar(this).maximizeButton.doClick(0);
 			}
 			else {
 				TViewChooser viewChooser = frame.getViewChoosers(this)[n];
@@ -4400,6 +4399,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return true;
 	}
 
+	public void paint(Graphics g) {
+		System.out.println("TrackerPanel.paint");
+		super.paint(g);
+	}
 	@Override
 	public void repaint() {
 		if (!isPaintable())

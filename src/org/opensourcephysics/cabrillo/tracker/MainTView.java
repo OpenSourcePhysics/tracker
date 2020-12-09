@@ -103,8 +103,7 @@ public class MainTView extends JPanel implements TView {
 		add(scrollPane, BorderLayout.CENTER);
 		
 		// add trackbar north
-		TTrackBar trackbar = TTrackBar.getTrackbar(trackerPanel);
-		add(trackbar, BorderLayout.NORTH);
+		add(TTrackBar.getTrackbar(trackerPanel), BorderLayout.NORTH);
 
 		// add player to the playerBar
 		playerBar = new JToolBar();
