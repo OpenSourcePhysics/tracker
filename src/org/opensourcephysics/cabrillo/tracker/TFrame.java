@@ -274,7 +274,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	static Map<String, Object> parseArgs(String[] args) {
 //		/** testing only
 //		 * @j2sNative 
-//		  args = ["-bounds", 100, 100, 600, 400]
+//		  args = ["-bounds", 100, 100, 600.66666, 400.3333]
 //		  //args = "-bounds 100 100 600 400".split(" ")
 //		 */
 
@@ -310,6 +310,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				i = i1;
 			}
 		}
+		System.out.println("Tracker.parseArgs: " + map);
 		return map;
 	}
 
