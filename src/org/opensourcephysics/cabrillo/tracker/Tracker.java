@@ -605,18 +605,19 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	 * @param video the video
 	 */
 	public Tracker(Video video) {
-		createFrame();
-		// add a tracker panel with the video
-		frame.addTab(new TrackerPanel(video), () ->{});
+		Map<String, Object> options = new HashMap<>();
+		options.put("-video", video);
+		createFrame(options);
 	}
 
 	/**
 	 * Constructs Tracker and loads the named TRK or TRZ files.
 	 *
-	 * @param names      an array of TRK, video or TRZ file names
+	 * @param args       -bounds x y w h, -dim w h, list of TRK, video or TRZ file
+	 *                   names
 	 * @param whenLoaded
 	 */
-	private Tracker(String[] names, boolean addTabIfEmpty, boolean showSplash, Runnable whenLoaded) {
+	private Tracker(String[] args, boolean addTabIfEmpty, boolean showSplash, Runnable whenLoaded) {
 
 		// BH SwingJS This next call was originally a part of a static { } block.
 		// but that does not work in JavaScript, because when the class is first loaded
@@ -638,33 +639,35 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 		}
 		splash.setVisible(showSplash && !OSPRuntime.isJS);
 
-		createFrame();
+		createFrame(TFrame.parseArgs(args));
 		setProgress(5);
-		if (names != null) {
+		if (args != null) {
 			// parse file names
-			for (int i = 0; i < names.length; i++) {
-				if (names[i] == null)
+			for (int i = 0; i < args.length; i++) {
+				if (args[i] == null)
 					continue;
 				// set default root path to path of first .trk or .trz file opened
-				if ((names[i].endsWith(".trk") || names[i].endsWith(".trz")) //$NON-NLS-1$ //$NON-NLS-2$
-						&& names[i].indexOf("/") != -1 //$NON-NLS-1$
+				if ((args[i].endsWith(".trk") || args[i].endsWith(".trz")) //$NON-NLS-1$ //$NON-NLS-2$
+						&& args[i].indexOf("/") != -1 //$NON-NLS-1$
 						&& rootXMLPath.equals("")) { //$NON-NLS-1$
-					rootXMLPath = names[i].substring(0, names[i].lastIndexOf("/") + 1); //$NON-NLS-1$
+					rootXMLPath = args[i].substring(0, args[i].lastIndexOf("/") + 1); //$NON-NLS-1$
 					OSPLog.fine("Setting rootPath: " + rootXMLPath); //$NON-NLS-1$
 				}
-				frame.doOpenURL(names[i]);
+				frame.doOpenURL(args[i]);
+				addTabIfEmpty = false;
 			}
-		} else if (addTabIfEmpty) {
+		}
+		if (addTabIfEmpty) {
 			// add an empty tab if requested
 			TrackerPanel trackerPanel = frame.getCleanTrackerPanel();
 			frame.addTab(trackerPanel, () -> {
 //					JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
 //					pane.setDividerLocation(frame.defaultRightDivider);
-					if (showHints) {
-						startupHintShown = true;
-						trackerPanel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
-					}
-					setProgress(100);
+				if (showHints) {
+					startupHintShown = true;
+					trackerPanel.setMessage(TrackerRes.getString("Tracker.Startup.Hint")); //$NON-NLS-1$
+				}
+				setProgress(100);
 			});
 		}
 	}
@@ -731,14 +734,14 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	/**
 	 * Creates the TFrame.
 	 */
-	private void createFrame() {
+	private void createFrame(Map<String, Object> options) {
 		// create actions
 		createActions();
 		OSPRuntime.setLookAndFeel(true, lookAndFeel);
-		frame = new TFrame();
+		frame = new TFrame(options);
 		Diagnostics.setDialogOwner(frame);
 		// set up the Java VM exit mechanism when used as application
-		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
+		if (OSPRuntime.applet == null) {
 			frame.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
@@ -1945,9 +1948,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 			// determine if relaunch is needed
 			boolean isRelaunch = args != null && args.length > 0 && "relaunch".equals(args[args.length - 1]); //$NON-NLS-1$
 			if (isRelaunch) {
-				String[] newargs = new String[args.length - 1];
-				System.arraycopy(args, 0, newargs, 0, newargs.length);
-				args = newargs;
+				args[args.length - 1] = null;
 			} else {
 				// versions 4.87+ use environment variable to indicate relaunch
 				String s = System.getenv(TrackerStarter.TRACKER_RELAUNCH);
@@ -2045,11 +2046,7 @@ public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
 	private static void start(String[] args) {
 		FontSizer.setLevel(preferredFontLevel + preferredFontLevelPlus);
 		Dataset.maxPointsMultiplier = 6; // increase max points in dataset
-		Tracker tracker = null;
-		if (args == null || args.length == 0)
-			tracker = new Tracker();
-		else
-			tracker = new Tracker(args, true, true, null);
+		Tracker tracker = new Tracker(args, true, true, null);
 		OSPRuntime.setAppClass(tracker);
 		if (OSPRuntime.isMac()) {
 			// instantiate the OSXServices class by reflection

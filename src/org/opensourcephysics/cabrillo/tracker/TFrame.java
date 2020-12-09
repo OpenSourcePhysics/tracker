@@ -57,9 +57,11 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Function;
 
 import javax.swing.AbstractAction;
@@ -263,54 +265,147 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected int maximizedView = -1;
 
 	/**
+	 * Create a map of known arguments, setting any found arguments to null.
+	 * Integer arguments are stringified and rounded in case JavaScript is passing numbers.
+	 * 
+	 * @param args
+	 * @return HashMap
+	 */
+	static Map<String, Object> parseArgs(String[] args) {
+//		/** testing only
+//		 * @j2sNative 
+//		  args = ["-bounds", 100, 100, 600, 400]
+//		  //args = "-bounds 100 100 600 400".split(" ")
+//		 */
+
+		Map<String, Object> map = new HashMap<>();
+		if (args == null || args.length == 0)
+			return map;
+		for (int i = 0; i < args.length; i++) {
+			String arg = args[i]; 
+			if (arg == null)
+				continue;
+			int i1 = i;
+			try {
+				switch (arg) {
+				case "-bounds":
+					args[i] = null;
+					i1 = i + 4;
+					int bx = getIntArg(args, ++i); 
+					int by = getIntArg(args, ++i);
+					int bw = getIntArg(args, ++i);
+					int bh = getIntArg(args, ++i);
+					map.put("-bounds", new Rectangle(bx, by, bw, bh));
+					break;
+				case "-dim":
+					args[i] = null;
+					i1 = i + 2;
+					int w = getIntArg(args, ++i);
+					int h = getIntArg(args, ++i);
+					map.put("-dim", new Dimension(w, h));
+					break;
+				}
+			} catch (NumberFormatException e) {
+				System.err.println("Tracker: Could not parse argument " + arg);
+				i = i1;
+			}
+		}
+		return map;
+	}
+
+
+	private static int getIntArg(String[] args, int i) throws NumberFormatException {
+		String a = args[i];
+		args[i] = null;
+		/**
+		 * @j2sNative return a|0;
+		 */
+		{
+			return Integer.parseInt(a);
+		}
+	}
+
+
+	/**
 	 * Constructs an empty TFrame.
 	 */
 	public TFrame() {
 		super("Tracker"); //$NON-NLS-1$
-		setName("Tracker"); //$NON-NLS-1$
-		if (Tracker.TRACKER_ICON != null)
-			setIconImage(Tracker.TRACKER_ICON.getImage());
-		// set default close operation
-		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
-		createGUI();
-		// size and position this frame
-		pack();
-		Rectangle rect = getBounds();
-		isPortraitLayout = rect.height > rect.width;
-
-		// set transfer handler on tabbedPane
-		fileDropHandler = new FileDropHandler(this);
-		tabbedPane.setTransferHandler(fileDropHandler);
-
-		// set size and limit maximized size so taskbar not covered
-		GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		Rectangle screenRect = e.getMaximumWindowBounds();
-		setMaximizedBounds(screenRect);
-		double extra = FontSizer.getFactor(Tracker.preferredFontLevel) - 1;
-		int w = Math.min(screenRect.width, (int) (1024 + extra * 800));
-		int h = Math.min(screenRect.height, 3 * w / 4);
-		Dimension dim = new Dimension(w, h);
-		setSize(dim);
-		// center frame on the screen
-		int x = (screenRect.width - dim.width) / 2;
-		int y = (screenRect.height - dim.height) / 2;
-		setLocation(x, y);
-		TrackerRes.addPropertyChangeListener("locale", this); //$NON-NLS-1$
-		if(OSPRuntime.isJS) {// WC: place Tracker higher in html page.
-			Point p=this.getLocation();
-			this.setLocation(p.x, 50);
-		}
+		init(null);
 	}
-
+	
 	/**
 	 * Constructs a TFrame with the specified tracker panel.
 	 *
 	 * @param trackerPanel the tracker panel
 	 */
 	public TFrame(TrackerPanel trackerPanel) {
-		this();
-		addTab(trackerPanel, null);
+		super("Tracker"); //$NON-NLS-1$
+		Map<String, Object> options = new HashMap<>();
+		options.put("-panel", trackerPanel);
+		init(options);
 	}
+
+	/**
+	 * 
+	 * @param options include optional -dim Dimension [-video Video | -panel TrackerPanel]
+	 */
+	public TFrame(Map<String, Object> options) {
+		super("Tracker"); //$NON-NLS-1$
+		init(options);
+	}
+	
+	private void init(Map<String, Object> options) {
+		if (options == null)
+			options = new HashMap<>();
+		Dimension dim = (Dimension) options.get("-dim");
+		Rectangle bounds = (Rectangle) options.get("-bounds");
+		Video video = (Video) options.get("-video");
+		TrackerPanel panel = (video != null ? new TrackerPanel(video) : (TrackerPanel) options.get("-panel"));
+
+		setName("Tracker"); //$NON-NLS-1$
+		if (Tracker.TRACKER_ICON != null)
+			setIconImage(Tracker.TRACKER_ICON.getImage());
+		// set default close operation
+		setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
+		TrackerRes.addPropertyChangeListener("locale", this); //$NON-NLS-1$
+
+		// set size and limit maximized size so taskbar not covered
+		GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		Rectangle screenRect = e.getMaximumWindowBounds();
+		setMaximizedBounds(screenRect);
+		// process -bounds or -dim option
+		if (bounds == null) {
+			if (dim == null) {
+				double extra = FontSizer.getFactor(Tracker.preferredFontLevel) - 1;
+				int w = Math.min(screenRect.width, (int) (1024 + extra * 800));
+				int h = Math.min(screenRect.height, 3 * w / 4);
+				dim = new Dimension(w, h);
+			}
+			// center frame on the screen
+			int x = (screenRect.width - dim.width) / 2;
+			int y = (OSPRuntime.isJS ? 50 : (screenRect.height - dim.height) / 2);
+			// WC: place Tracker higher in html page.
+			bounds = new Rectangle(x, y, dim.width, dim.height);
+		} else {
+			dim = new Dimension(bounds.width, bounds.height);
+		}
+		createGUI();
+		setPreferredSize(dim);
+		pack();
+		setLocation(bounds.x, bounds.y);
+		Rectangle rect = getBounds();
+		isPortraitLayout = rect.height > rect.width;
+
+		// set transfer handler on tabbedPane
+		fileDropHandler = new FileDropHandler(this);
+
+		tabbedPane.setTransferHandler(fileDropHandler);
+		if (panel != null) {
+			addTab(panel, () -> {});
+		}
+	}
+
 
 	/**
 	 * All repaints funnel through this method
