@@ -381,8 +381,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		TrackerRes.addPropertyChangeListener("locale", this); //$NON-NLS-1$
 
 		// set size and limit maximized size so taskbar not covered
-		GraphicsEnvironment e = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		Rectangle screenRect = e.getMaximumWindowBounds();
+		Rectangle screenRect = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
 		setMaximizedBounds(screenRect);
 		// process -bounds or -dim option
 		
@@ -421,26 +420,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 
-    class Screen {
-		int availWidth;
-		int availHeight;
-		int width;
-		int height;
-		int colorDepth;
-		int pixelDepth;
-		int top;
-		int left;
-		int availTop;
-		int availLeft;		
-	}
-	
 	@SuppressWarnings("unused")
 	private Rectangle getAdaptiveBounds(boolean isInit) {
-		Screen scr = /** @j2sNative screen || */
-				null;
-		int w = (int) (0.9 * scr.availWidth);
-		int margin = (int) (0.05 * scr.availWidth);
-		int h = (int) (0.8 * (scr.availHeight - 80));
+		Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
+		int w = (int) (0.9 * dim.width);
+		int margin = (int) (0.05 * dim.width);
+		int h = (int) (0.8 * (dim.height - 80));
 		Rectangle rect = new Rectangle(margin, 80, w, h);
 		if (isInit) {
 			Runnable onOrient = new Runnable() {
