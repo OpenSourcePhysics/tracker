@@ -392,8 +392,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (bounds == null) {
 			if (dim == null) {
 				double extra = FontSizer.getFactor(Tracker.preferredFontLevel) - 1;
-				int w = Math.min(screenRect.width, (int) (1024 + extra * 800));
-				int h = Math.min(screenRect.height, 3 * w / 4);
+				int w = (int) Math.min(screenRect.width*0.9, (1024 + extra * 800));
+				int h = (int) Math.min(screenRect.height*0.9, 3 * w / 4);
 				dim = new Dimension(w, h);
 			}
 			// center frame on the screen
