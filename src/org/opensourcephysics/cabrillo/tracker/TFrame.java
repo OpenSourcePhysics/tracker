@@ -3021,7 +3021,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		libraryBrowser.setMessage("Loading \""+record.getName() + "\"" + abort, Color.YELLOW);
 		libraryBrowser.setComandButtonEnabled(false);
 		libraryBrowser.setAlwaysOnTop(true);
-		libraryBrowser.setCanceled(false);
+//		libraryBrowser.setCanceled(false);
 		openLibraryResource(record, () -> {
 			TrackerPanel trackerPanel = getSelectedPanel();
 			Timer timer = new Timer(200, (ev) -> {
