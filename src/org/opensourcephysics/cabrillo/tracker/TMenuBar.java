@@ -578,7 +578,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File"));
 		fileMenu.setName("file");
 		fileMenu.addMenuListener(this);
-		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
+		if (!OSPRuntime.isApplet) {
 			if (testing) {
 				file_replaceTabItem = new JMenuItem("Replace Tab"); // TODO TrackerRes.getString("TMenuBar.Menu.ReplaceTab")
 				file_replaceTabItem.addActionListener((e)-> {frame.loadExperimentURL(null);});
@@ -660,9 +660,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 //			}
 //		});
 		// exit item
-		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
+		if (!OSPRuntime.isApplet) {
 			file_exitItem = new JMenuItem(actions.get("exit")); //$NON-NLS-1$
 			file_exitItem.setAccelerator(KeyStroke.getKeyStroke('Q', keyMask));
+			file_exitItem.addActionListener((a) ->{
+				Tracker.exit();
+			});
 		}
 		add(fileMenu);
 	}
@@ -1381,7 +1384,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (isTainted(MENU_FILE)) {
 			// refresh file menu
 			fileMenu.removeAll();
-			if (org.opensourcephysics.display.OSPRuntime.applet == null) {
+			if (!OSPRuntime.isApplet) {
 				// update save and close items
 				file_saveItem.setEnabled(trackerPanel.getDataFile() != null);
 				String name = trackerPanel.getTitle();
@@ -1451,7 +1454,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				fileMenu.add(file_printFrameItem);
 			}
 			// exit menu always added except in applets
-			if (org.opensourcephysics.display.OSPRuntime.applet == null) {
+			if (!OSPRuntime.isApplet) {
 				if (fileMenu.getItemCount() > 0)
 					fileMenu.addSeparator();
 				fileMenu.add(file_exitItem);
@@ -1920,7 +1923,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// import video item at top
 			boolean importEnabled = trackerPanel.isEnabled("video.import") //$NON-NLS-1$
 					|| trackerPanel.isEnabled("video.open"); //$NON-NLS-1$
-			if (importEnabled && org.opensourcephysics.display.OSPRuntime.applet == null) {
+			if (importEnabled && !OSPRuntime.isApplet) {
 				if (hasVideo)
 					video_openVideoItem.setText(TrackerRes.getString("TMenuBar.MenuItem.Replace")); //$NON-NLS-1$
 				else
