@@ -1030,7 +1030,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		if (TTrackBar.testButton != null)
 			add(TTrackBar.testButton);
 		
-		if (org.opensourcephysics.display.OSPRuntime.applet == null) {
+		if (!OSPRuntime.isApplet) {
 			if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
 				add(openButton);
 			}

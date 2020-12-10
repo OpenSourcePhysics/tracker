@@ -742,7 +742,7 @@ public class Tracker implements StateMachine {
 		frame = new TFrame(options);
 		Diagnostics.setDialogOwner(frame);
 		// set up the Java VM exit mechanism when used as application
-		if (OSPRuntime.applet == null) {
+		if (!OSPRuntime.isApplet) {
 			frame.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
