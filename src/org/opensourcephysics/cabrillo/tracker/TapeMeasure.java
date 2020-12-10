@@ -862,7 +862,13 @@ public class TapeMeasure extends InputTrack {
 			TPoint p = trackerPanel.getSelectedPoint();
 			Interactive ia = step.findInteractive(trackerPanel, xpix, ypix);
 			if (ruler != null && ruler.isVisible()) {
-				ruler.setHitShapeVisible(ia == ruler.getHandle() || p == ruler.getHandle());
+				boolean b = (ia == ruler.getHandle() || p == ruler.getHandle());
+				if (ruler.hitShapeVisible != b) {
+					ruler.setHitShapeVisible(b);
+					// BH 2020.12.10 repaint is necessary because just setting the message label
+					// does not trigger a panel repaint in JavaScript (by design)
+					TFrame.repaintT(trackerPanel);
+				}
 			}
 			if (step.worldLength == 0) {
 				if (ia instanceof TapeStep.Tip || ia instanceof TapeStep.Handle) {
