@@ -3039,18 +3039,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 	
 	public void openLibraryResource(LibraryResource record, Runnable whenDone) {
-		libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		try {
+			libraryBrowser.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			String target = record.getAbsoluteTarget();
 			if (!ResourceLoader.isHTTP(target)) {
 				target = ResourceLoader.getURIPath(XML.getResolvedPath(record.getTarget(), record.getBasePath()));
 			}
 			// download comPADRE targets to osp cache
-			if (target.indexOf("document/ServeFile.cfm?") > -1) { //$NON-NLS-1$
+			if (target.indexOf("document/ServeFile.cfm?") >= 0) { //$NON-NLS-1$
 				String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
 				try {
-					File file = ResourceLoader.downloadToOSPCache(target, fileName, false);
-					target = file.toURI().toString();
+					target = ResourceLoader.downloadToOSPCache(target, fileName, false).toURI().toString();
 					if (libraryBrowser.isCancelled())
 						return;
 				} catch (Exception ex) {
@@ -3063,15 +3062,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 
 			String lcTarget = target.toLowerCase();
-			boolean accept = (lcTarget.endsWith(".trk") || ResourceLoader.isJarZipTrz(lcTarget, false));
-			if (!accept) {
-				if (TrackerIO.isVideo(new File(target))) {
-					loadVideo(target, true, whenDone);
-					whenDone = null;
-					return;
-				}
-			}
-			if (accept) {
+			if (lcTarget.endsWith(".trk") || ResourceLoader.isJarZipTrz(lcTarget, false)) {
 				if (ResourceLoader.getResourceZipURLsOK(target) == null) {
 					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.FileNotFound.Message"); //$NON-NLS-1$
 					JOptionPane.showMessageDialog(libraryBrowser, s + " \"" + XML.getName(target) + "\"", //$NON-NLS-1$ //$NON-NLS-2$
@@ -3081,10 +3072,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					return;
 				}
 				try {
-//					TrackerIO.openAsync(target, this, whenDone);
-
-// BH: Doug, is there a reason to use openAll here?	Is it because we do NOT want to add these to recent files?
-					
 					ArrayList<String> uriPaths = new ArrayList<String>();
 					uriPaths.add(target);
 					TrackerIO.openFromLibrary(uriPaths, this, whenDone);
@@ -3093,13 +3080,17 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				}
 				return;
 			}
+			if (TrackerIO.isVideo(new File(target))) {
+				loadVideo(target, true, whenDone);
+				whenDone = null;
+				return;
+			}
 			String path = target;
 			for (String ext : VideoIO.KNOWN_VIDEO_EXTENSIONS) {
 				if (lcTarget.endsWith("." + ext)) {
 					if (libraryBrowser != null)
 						libraryBrowser.setMessage(null, null);
-					VideoIO.handleUnsupportedVideo(path, ext, null, getSelectedPanel(),
-							"TFrame known video ext");
+					VideoIO.handleUnsupportedVideo(path, ext, null, getSelectedPanel(), "TFrame known video ext");
 					return;
 				}
 			}

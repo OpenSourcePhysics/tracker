@@ -115,6 +115,7 @@ import org.opensourcephysics.tools.ResourceLoader;
 import javajs.async.Assets;
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
+import javajs.async.SwingJSUtils.StateMachine;
 import swingjs.api.JSUtilI;
 
 /**
@@ -122,7 +123,7 @@ import swingjs.api.JSUtilI;
  *
  * @author Douglas Brown
  */
-public class Tracker implements javajs.async.SwingJSUtils.StateMachine {
+public class Tracker implements StateMachine {
 
 	// This static call to OSPRuntime Ensure that OSP is loaded already, 
 	// enabling all resources and setting J2S parameters
