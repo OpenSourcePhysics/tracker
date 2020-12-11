@@ -176,6 +176,7 @@ public class CircleFitter extends TTrack {
 	 */
 	@SuppressWarnings("serial")
 	public CircleFitter() {
+		super(TYPE_CIRCLEFITTER);
 		defaultColors = new Color[] { new Color(0, 140, 40) };
 		// assign a default name
 		setName(TrackerRes.getString("CircleFitter.New.Name")); //$NON-NLS-1$

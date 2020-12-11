@@ -2403,12 +2403,11 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 						return;
 					Object[] item = (Object[]) trackDropdown.getSelectedItem();
 					if (item != null) {
-						for (TTrack next : trackerPanel.getTracks()) {
-							if (item[1].equals(next.getName())) {
+						TTrack t = trackerPanel.getTrackByName(TTrack.class,(String) item[1]);
+						if (t != null) {
 								stop(true, false);
-								setTrack(next);
+								setTrack(t);
 								refreshGUI();
-							}
 						}
 					}
 				}
@@ -3331,7 +3330,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			trackDropdown.setName("refresh"); //$NON-NLS-1$
 			trackDropdown.removeAllItems();
 			TTrack track = getTrack();
-			for (TTrack next : trackerPanel.getTracks()) {
+			for (TTrack next : trackerPanel.getTracksTemp()) {
 				if (!next.isAutoTrackable())
 					continue;
 				Icon icon = next.getFootprint().getIcon(21, 16);
@@ -3341,6 +3340,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 					toSelect = item;
 				}
 			}
+			trackerPanel.clearTemp();
 			if (track == null) {
 				Object[] emptyItem = new Object[] { null, "           " }; //$NON-NLS-1$
 				trackDropdown.insertItemAt(emptyItem, 0);

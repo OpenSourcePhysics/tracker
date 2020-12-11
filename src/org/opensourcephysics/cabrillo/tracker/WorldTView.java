@@ -380,7 +380,8 @@ public class WorldTView extends TrackerPanel implements TView {
 		ArrayList<Drawable> list = trackerPanel.getDrawables();
 		list.addAll(super.getDrawables());
 		// remove PencilScenes
-		list.removeAll(trackerPanel.getDrawables(PencilScene.class));
+		list.removeAll(trackerPanel.getDrawablesTemp(PencilScene.class));
+		trackerPanel.clearTemp();
 		// put mat behind everything
 		TMat mat = trackerPanel.getMat();
 		if (mat != null && list.get(0) != mat) {

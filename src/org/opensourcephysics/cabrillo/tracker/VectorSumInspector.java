@@ -113,13 +113,14 @@ public void setVisible(boolean vis) {
 		checkboxPanel.removeAll();
 		if (trackerPanel != null) {
 			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-			ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
+			ArrayList<Vector> list = trackerPanel.getDrawablesTemp(Vector.class);
 			for (int k = 0, n = list.size(); k < n; k++) {
 				Vector v = list.get(k);
 				v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
 				v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
 				v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 			}
+			list.clear();
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
 				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
@@ -157,7 +158,7 @@ public void propertyChange(PropertyChangeEvent e) {
 				+ " \"" + sum.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
 		// make checkboxes for all vectors (but not vector sums) in tracker panel
 		checkboxPanel.removeAll();
-		ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
+		ArrayList<Vector> list = trackerPanel.getDrawablesTemp(Vector.class);
 		for (int k = 0, n = list.size(); k < n; k++) {
 			Vector v = list.get(k);
 			v.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
@@ -176,6 +177,7 @@ public void propertyChange(PropertyChangeEvent e) {
 			checkbox.addActionListener(listener);
 			checkboxPanel.add(checkbox);
 		}
+		list.clear();
 		FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
 		pack();
 		TFrame.repaintT(this);
@@ -256,14 +258,6 @@ public void propertyChange(PropertyChangeEvent e) {
 	 * @return the vector
 	 */
 	private Vector getVector(String name) {
-		if (trackerPanel != null) {
-			ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
-			for (int k = 0, n = list.size(); k < n; k++) {
-				Vector v = list.get(k);
-				if (v.getName() == name)
-					return v;
-			}
-		}
-		return null;
+		return (trackerPanel == null ? null : trackerPanel.getTrackByName(Vector.class, name));
 	}
 }

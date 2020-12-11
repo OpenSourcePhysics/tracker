@@ -38,6 +38,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -98,7 +99,7 @@ public class NumberFormatDialog extends JDialog {
 	java.text.DecimalFormat testFormat;
 	String[] displayedNames = new String[0];
 	Map<String, String> realNames = new HashMap<String, String>();
-	HashMap<String, TreeMap<String, String>> prevDefaultPatterns = new HashMap<String, TreeMap<String, String>>();
+	@SuppressWarnings("unchecked")
 	Map<TTrack, TreeMap<String, String>> prevTrackPatterns = new HashMap<TTrack, TreeMap<String, String>>();
 	JPanel variablePanel, applyToPanel, unitsPanel, decimalSeparatorPanel;
 	JList<String> variableList = new JList<String>();
@@ -149,10 +150,11 @@ public class NumberFormatDialog extends JDialog {
 			if (tracks.size() > 0) {
 				track = tracks.get(0);
 			} else {
-				tracks = trackerPanel.getTracks();
+				tracks = trackerPanel.getTracksTemp();
 				if (tracks.size() > 0) {
 					track = tracks.get(0);
 				}
+				trackerPanel.clearTemp();
 			}
 		}
 		if (track != null) {
@@ -472,24 +474,17 @@ public class NumberFormatDialog extends JDialog {
 	 */
 	private void savePrevious() {
 		// save previous default patterns for all types
-		TreeMap<String, String> patterns;
-		for (String type : TTrack.baseTrackTypes) {
-			TreeMap<String, String> prevPatterns = new TreeMap<String, String>();
-			patterns = trackerPanel.getFormatPatterns(type);
-			prevPatterns.putAll(patterns);
-			prevDefaultPatterns.put(type, prevPatterns);
-		}
-
+		TTrack.savePatterns(trackerPanel);
 		// save previous patterns for all tracks
 		prevTrackPatterns.clear();
-		ArrayList<TTrack> tracks = trackerPanel.getTracks();
-		for (TTrack next : tracks) {
-			patterns = new TreeMap<String, String>();
-			for (String name : TTrack.getAllVariables(next.getBaseType())) {
-				patterns.put(name, next.getFormatPattern(name));
+		for (TTrack next : trackerPanel.getTracksTemp()) {
+			TreeMap<String, String> patterns = new TreeMap<String, String>();
+			for (String name : TTrack.getAllVariables(next.ttype)) {
+				patterns.put(name, next.getVarFormatPattern(name));
 			}
 			prevTrackPatterns.put(next, patterns);
 		}
+		trackerPanel.clearTemp();
 		prevAnglesInRadians = trackerPanel.getTFrame().anglesInRadians;
 		prevDecimalSeparator = OSPRuntime.getPreferredDecimalSeparator();
 		formatsChanged = false;
@@ -508,16 +503,15 @@ public class NumberFormatDialog extends JDialog {
 		if (dimensionButton.isSelected()) {
 			// apply to all variables with the same unit dimensions
 			String dimensions = TTrack.getVariableDimensions(track, displayName);
-			String known = "";
+			BitSet known = new BitSet();
 			if (dimensions != null) {
 				// apply to trackerPanel.formatPatterns for future tracks
-				ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
+				ArrayList<TTrack> tracks = track.trackerPanel.getTracksTemp();
 				for (TTrack t : tracks) {
-					String type = t.getBaseType();
-					if (known.indexOf(type) >= 0)
+					if (known.get(t.ttype))
 						continue;
-					known += type;
-					TreeMap<String, String> patterns = track.trackerPanel.getFormatPatterns(type);
+					known.set(t.ttype);
+					TreeMap<String, String> patterns = track.trackerPanel.getFormatPatterns(t.ttype);
 					for (String nextName : patterns.keySet()) {
 						if (dimensions.equals(TTrack.getVariableDimensions(t, nextName))) {
 							if (!pattern.equals(patterns.get(nextName))) {
@@ -542,6 +536,7 @@ public class NumberFormatDialog extends JDialog {
 						formatsChanged = true;
 					}
 				}
+				trackerPanel.clearTemp();
 			} else { // null dimensions
 						// apply to this track
 				if (track.setFormatPattern(displayName, pattern)) {
@@ -574,7 +569,7 @@ public class NumberFormatDialog extends JDialog {
 				}
 			}
 			// set pattern in trackerPanel.formatPatterns
-			TreeMap<String, String> patterns = track.trackerPanel.getFormatPatterns(track.getBaseType());
+			TreeMap<String, String> patterns = track.trackerPanel.getFormatPatterns(track.ttype);
 			patterns.put(displayName, pattern);
 		} else if (track.setFormatPattern(displayName, pattern)) {
 			track.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
@@ -619,21 +614,17 @@ public class NumberFormatDialog extends JDialog {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				TTrack track = TTrack.getTrack(trackID);
-
+				
 				// reset default patterns in trackerPanel.formatPatterns
-				TreeMap<String, String> patterns, prevPatterns;
-				for (String type : TTrack.baseTrackTypes) {
-					prevPatterns = prevDefaultPatterns.get(type);
-					trackerPanel.formatPatterns.put(type, prevPatterns);
-				}
+				TTrack.restorePatterns(trackerPanel);
 
 				// reset track formats
 				ArrayList<TTrack> tracks = track.trackerPanel.getTracks();
 				for (TTrack next : tracks) {
-					patterns = prevTrackPatterns.get(next);
+					TreeMap<String, String> patterns = prevTrackPatterns.get(next);
 					if (patterns != null) {
 						boolean fireEvent = false;
-						ArrayList<String> names = TTrack.getAllVariables(next.getBaseType());
+						ArrayList<String> names = TTrack.getAllVariables(next.ttype);
 						for (String name : names) {
 							fireEvent = next.setFormatPattern(name, patterns.get(name)) || fireEvent;
 							if (fireEvent) {
@@ -695,11 +686,10 @@ public class NumberFormatDialog extends JDialog {
 					return;
 				Object[] item = (Object[]) trackDropdown.getSelectedItem();
 				if (item != null) {
-					for (TTrack next : trackerPanel.getTracks()) {
-						if (item[1].equals(next.getName())) {
-							setTrack(next);
-							refreshGUI();
-						}
+					TTrack t = trackerPanel.getTrackByName(TTrack.class, (String) item[1]);
+					if (t != null) {
+						setTrack(t);
+						refreshGUI();
 					}
 				}
 			}
@@ -928,7 +918,7 @@ public class NumberFormatDialog extends JDialog {
 		trackDropdown.setName("refresh"); //$NON-NLS-1$
 		trackDropdown.removeAllItems();
 		TTrack track = TTrack.getTrack(trackID);
-		for (TTrack next : trackerPanel.getTracks()) {
+		for (TTrack next : trackerPanel.getTracksTemp()) {
 			Icon icon = next.getFootprint().getIcon(21, 16);
 			Object[] item = new Object[] { icon, next.getName() };
 			trackDropdown.addItem(item);
@@ -936,6 +926,7 @@ public class NumberFormatDialog extends JDialog {
 				toSelect = item;
 			}
 		}
+		trackerPanel.clearTemp();
 		if (toSelect == null) {
 			Object[] emptyItem = new Object[] { null, "           " }; //$NON-NLS-1$
 			trackDropdown.insertItemAt(emptyItem, 0);
@@ -959,21 +950,21 @@ public class NumberFormatDialog extends JDialog {
 			showNumberFormatAndSample("", false); //$NON-NLS-1$
 		} else if (selectedIndices.length == 1) {
 			String name = realNames.get(displayedNames[selectedIndices[0]]);
-			String pattern = track.getFormatPattern(name);
+			String pattern = track.getVarFormatPattern(name);
 			boolean degrees = name.startsWith(Tracker.THETA) && !track.trackerPanel.getTFrame().anglesInRadians;
 			showNumberFormatAndSample(pattern, degrees);
 		} else {
 			// do all selected indices have same pattern?
 			String name = realNames.get(displayedNames[selectedIndices[0]]);
 			boolean degrees = name.startsWith(Tracker.THETA) && !track.trackerPanel.getTFrame().anglesInRadians;
-			String pattern = track.getFormatPattern(name);
+			String pattern = track.getVarFormatPattern(name);
 			if (degrees && (pattern == null || "".equals(pattern))) { //$NON-NLS-1$
 				pattern = NumberField.DECIMAL_1_PATTERN;
 			}
 			for (int i = 1; i < selectedIndices.length; i++) {
 				name = realNames.get(displayedNames[selectedIndices[i]]);
 				degrees = degrees && name.startsWith(Tracker.THETA);
-				String selectedPattern = track.getFormatPattern(name);
+				String selectedPattern = track.getVarFormatPattern(name);
 				if (degrees && (selectedPattern == null || "".equals(selectedPattern))) { //$NON-NLS-1$
 					selectedPattern = NumberField.DECIMAL_1_PATTERN;
 				}

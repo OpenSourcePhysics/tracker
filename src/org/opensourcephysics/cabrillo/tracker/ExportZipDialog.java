@@ -2382,13 +2382,14 @@ public class ExportZipDialog extends JDialog implements PropertyChangeListener {
 			if (panel == null)
 				continue;
 			VideoClip clip = panel.getPlayer().getVideoClip();
-			ArrayList<ParticleModel> models = panel.getDrawables(ParticleModel.class);
+			ArrayList<ParticleModel> models = panel.getDrawablesTemp(ParticleModel.class);
 			for (Iterator<ParticleModel> it = models.iterator(); it.hasNext();) {
 				ParticleModel model = it.next();
 				if (clip.includesFrame(model.getStartFrame())) {
 					it.remove();
 				}
 			}
+			models.clear();
 			allModels.addAll(models);
 		}
 		return allModels;

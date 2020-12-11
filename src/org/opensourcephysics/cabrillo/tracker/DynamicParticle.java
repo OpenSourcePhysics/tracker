@@ -79,14 +79,10 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	public void draw(DrawingPanel panel, Graphics _g) {
 		// if a booster is named, set the booster to the named point mass
 		if (boosterName != null && panel instanceof TrackerPanel) {
-			ArrayList<PointMass> masses = ((TrackerPanel) panel).getDrawables(PointMass.class);
-			for (int i = 0, n = masses.size(); i < n; i++) {
-				PointMass m = masses.get(i);
-				if (m.getName().equals(boosterName)) {
-					setBooster(m);
-					boosterName = null;
-					break;
-				}
+			PointMass m = ((TrackerPanel) panel).getTrackByName(PointMass.class, boosterName);
+			if (m != null) {
+				setBooster(m);
+				boosterName = null;
 			}
 		}
 		// if this is part of a system, then the system draws it

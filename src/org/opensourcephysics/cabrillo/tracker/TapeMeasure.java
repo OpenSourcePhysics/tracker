@@ -75,17 +75,17 @@ public class TapeMeasure extends InputTrack {
 	public String[] getFormatVariables() {
 		return formatVariables;
 	}
-	
+
 	@Override
-	public Map<String,String[]> getFormatMap() {
+	public Map<String, String[]> getFormatMap() {
 		return formatMap;
 	}
-	
+
 	@Override
 	public Map<String, String> getFormatDescMap() {
 		return formatDescriptionMap;
 	}
-	
+
 	@Override
 	public String getBaseType() {
 		return "TapeMeasure";
@@ -93,16 +93,16 @@ public class TapeMeasure extends InputTrack {
 
 	@Override
 	public String getVarDimsImpl(String variable) {
-	  	String[] vars = dataVariables;
-	  	String[] names = formatVariables;
-	  		if (names[1].equals(variable) 
-	  				// same || vars[1].equals(variable)
-	  				) {
-	  			return "L"; //$NON-NLS-1$
-	  		}  		
-	  		if (vars[3].equals(variable) || vars[4].equals(variable)) {
-	  			return "I"; //$NON-NLS-1$
-	  		}  		
+		String[] vars = dataVariables;
+		String[] names = formatVariables;
+		if (names[1].equals(variable)
+		// same || vars[1].equals(variable)
+		) {
+			return "L"; //$NON-NLS-1$
+		}
+		if (vars[3].equals(variable) || vars[4].equals(variable)) {
+			return "I"; //$NON-NLS-1$
+		}
 		return null;
 	}
 
@@ -122,9 +122,9 @@ public class TapeMeasure extends InputTrack {
 
 		// assemble format map
 		formatMap = new HashMap<>();
-		formatMap.put("t", new String[] {"t"});
-		formatMap.put("L", new String[] {"L"});
-		formatMap.put(Tracker.THETA, new String[] {Tracker.THETA});
+		formatMap.put("t", new String[] { "t" });
+		formatMap.put("L", new String[] { "L" });
+		formatMap.put(Tracker.THETA, new String[] { Tracker.THETA });
 
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
@@ -153,6 +153,7 @@ public class TapeMeasure extends InputTrack {
 	 * Constructs a TapeMeasure.
 	 */
 	public TapeMeasure() {
+		super(TYPE_TAPEMEASURE);
 		// assign a default name
 		setName(TrackerRes.getString("TapeMeasure.New.Name")); //$NON-NLS-1$
 		defaultColors = new Color[] { new Color(204, 0, 0) };
@@ -178,7 +179,7 @@ public class TapeMeasure extends InputTrack {
 		setStickMode(false); // sets up footprint
 		setReadOnly(false); // sets up dashed array
 		setColor(defaultColors[0]);
-		
+
 //		// create ruler AFTER setting footprints and color
 //		ruler = new WorldRuler(this);
 //		
@@ -367,7 +368,8 @@ public class TapeMeasure extends InputTrack {
 	/**
 	 * Sets this to be a calibration tape or stick.
 	 *
-	 * @param worldLength the initial length of a calibration stick (ignored by tape)
+	 * @param worldLength the initial length of a calibration stick (ignored by
+	 *                    tape)
 	 */
 	public void setCalibrator(Double worldLength) {
 		isCalibrator = true;
@@ -402,7 +404,7 @@ public class TapeMeasure extends InputTrack {
 	public void propertyChange(PropertyChangeEvent e) {
 		switch (e.getPropertyName()) {
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
-			if (isStickMode() && !isStepChangingScale) { 
+			if (isStickMode() && !isStepChangingScale) {
 				// stretch or squeeze stick to keep constant world length
 				int n = trackerPanel.getFrameNumber();
 				TapeStep step = (TapeStep) getStep(n);
@@ -416,10 +418,10 @@ public class TapeMeasure extends InputTrack {
 			break;
 		case Trackable.PROPERTY_ADJUSTING:
 			if (e.getSource() instanceof TrackerPanel) { // $NON-NLS-1$
-			refreshDataLater = (Boolean) e.getNewValue();
-			if (!refreshDataLater) { // stopped adjusting
-				firePropertyChange(PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
-			}
+				refreshDataLater = (Boolean) e.getNewValue();
+				if (!refreshDataLater) { // stopped adjusting
+					firePropertyChange(PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
+				}
 			}
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
@@ -448,9 +450,9 @@ public class TapeMeasure extends InputTrack {
 			refreshAttachments();
 			break;
 		case TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT:
-				TapeStep step = (TapeStep) getStep(trackerPanel.getFrameNumber());
-				step.rotatorDrawShapes[0] = null;
-				step.rotatorDrawShapes[1] = null;
+			TapeStep step = (TapeStep) getStep(trackerPanel.getFrameNumber());
+			step.rotatorDrawShapes[0] = null;
+			step.rotatorDrawShapes[1] = null;
 		default:
 			super.propertyChange(e);
 		}
@@ -507,7 +509,7 @@ public class TapeMeasure extends InputTrack {
 		} else if (step.worldLength == 0) {
 			TapeStep step0 = (TapeStep) getStep(0);
 			// mark both target step and step 0 when initializing
-			TapeStep targetStep = trackerPanel.getCoords().isFixedScale()? step0: (TapeStep) getStep(n);
+			TapeStep targetStep = trackerPanel.getCoords().isFixedScale() ? step0 : (TapeStep) getStep(n);
 			// set location of end2
 			targetStep.getEnd2().setLocation(x, y);
 			step0.getEnd2().setLocation(x, y); // this establishes the initial ANGLE of the tape
@@ -578,8 +580,7 @@ public class TapeMeasure extends InputTrack {
 			if (isIncomplete) {
 				step.getEnd2().setLocation(x2, y2);
 				repaint();
-			}
-			else {
+			} else {
 				step.getEnd1().setLocation(x1, y1);
 				step.getEnd2().setLocation(x2, y2);
 			}
@@ -636,7 +637,7 @@ public class TapeMeasure extends InputTrack {
 	public int getFootprintLength() {
 		return 2;
 	}
-	
+
 	/**
 	 * Formats the specified length value.
 	 *
@@ -705,7 +706,7 @@ public class TapeMeasure extends InputTrack {
 		menu.remove(menu.getMenuComponent(menu.getMenuComponentCount() - 1));
 
 		TapeStep step = (TapeStep) steps.getStep(0);
-		// add items		
+		// add items
 		// put fixed position item after locked item
 		boolean fixedScale = trackerPanel.getCoords().isFixedScale();
 		boolean canBeFixed = !lockedItem.isSelected() && (fixedScale || !isStickMode());
@@ -803,15 +804,14 @@ public class TapeMeasure extends InputTrack {
 		// add world coordinate fields and labels
 		boolean exists = step != null;
 		boolean complete = exists && step.worldLength > 0;
-		String unmarked = isStickMode()?
-			TrackerRes.getString("TapeMeasure.Label.UnmarkedStick"):			
-			TrackerRes.getString("TapeMeasure.Label.UnmarkedTape"); //$NON-NLS-1$
+		String unmarked = isStickMode() ? TrackerRes.getString("TapeMeasure.Label.UnmarkedStick")
+				: TrackerRes.getString("TapeMeasure.Label.UnmarkedTape"); //$NON-NLS-1$
 		if (!exists) {
-			end1Label.setText(unmarked); //$NON-NLS-1$
+			end1Label.setText(unmarked); // $NON-NLS-1$
 			end1Label.setForeground(Color.green.darker());
 			list.add(end1Label);
 		} else if (!complete) {
-			end1Label.setText(unmarked); //$NON-NLS-1$ //$NON-NLS-2$
+			end1Label.setText(unmarked); // $NON-NLS-1$ //$NON-NLS-2$
 			end1Label.setForeground(Color.green.darker());
 			list.add(end1Label);
 		} else {
@@ -916,7 +916,7 @@ public class TapeMeasure extends InputTrack {
 				else
 					hint = TrackerRes.getString("TapeMeasure.Readout.Magnitude.Hint"); //$NON-NLS-1$
 			}
-			return isLocked()? null: ia;
+			return isLocked() ? null : ia;
 		}
 		return null;
 	}
@@ -1025,8 +1025,8 @@ public class TapeMeasure extends InputTrack {
 				item.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						NumberFormatDialog.getNumberFormatDialog(trackerPanel,
-								TapeMeasure.this, selected).setVisible(true);
+						NumberFormatDialog.getNumberFormatDialog(trackerPanel, TapeMeasure.this, selected)
+								.setVisible(true);
 					}
 				});
 				item.setText(TrackerRes.getString("Popup.MenuItem.Formats") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
@@ -1130,7 +1130,6 @@ public class TapeMeasure extends InputTrack {
 
 	}
 
-
 	/**
 	 * Displays the world coordinates of the currently selected step.
 	 */
@@ -1162,16 +1161,15 @@ public class TapeMeasure extends InputTrack {
 		return true;
 	}
 
-	
-	//__________________________ InputTrack ___________________________
-	
+	// __________________________ InputTrack ___________________________
+
 	@Override
 	protected Ruler getRuler() {
 		if (ruler == null)
 			ruler = new WorldRuler(this);
 		return ruler;
 	}
-	
+
 	/**
 	 * Refreshes a step by setting it equal to the previous keyframe step.
 	 *
@@ -1197,10 +1195,10 @@ public class TapeMeasure extends InputTrack {
 		TapeStep t = (TapeStep) step;
 		TapeStep k = (TapeStep) steps.getStep(isFixedPosition() ? 0 : positionKey);
 		if (k != t) {
-			different = (int)(1000000*k.getEnd1().x) != (int)(1000000*t.getEnd1().x) 
-					|| (int)(1000000*k.getEnd1().y) != (int)(1000000*t.getEnd1().y)
-					|| (int)(1000000*k.getEnd2().x) != (int)(1000000*t.getEnd2().x) 
-					|| (int)(1000000*k.getEnd2().y) != (int)(1000000*t.getEnd2().y);
+			different = (int) (1000000 * k.getEnd1().x) != (int) (1000000 * t.getEnd1().x)
+					|| (int) (1000000 * k.getEnd1().y) != (int) (1000000 * t.getEnd1().y)
+					|| (int) (1000000 * k.getEnd2().x) != (int) (1000000 * t.getEnd2().x)
+					|| (int) (1000000 * k.getEnd2().y) != (int) (1000000 * t.getEnd2().y);
 			if (different) {
 				t.getEnd1().setLocation(k.getEnd1());
 				t.getEnd2().setLocation(k.getEnd2());
@@ -1235,7 +1233,7 @@ public class TapeMeasure extends InputTrack {
 
 		};
 	}
-	
+
 	@Override
 	protected Rectangle getLayoutBounds(Step step) {
 		return ((TapeStep) step).layoutBounds.get(trackerPanel);
@@ -1268,7 +1266,6 @@ public class TapeMeasure extends InputTrack {
 	}
 
 //__________________________ static methods ___________________________
-
 
 	/**
 	 * Returns an ObjectLoader to save and load data for this class.

@@ -60,6 +60,7 @@ public class PerspectiveTrack extends TTrack {
 	 * @param filter the filter
 	 */
 	public PerspectiveTrack(PerspectiveFilter filter) {
+		super(TYPE_PERSPECTIVE);
 		this.filter = filter;
 		filterMap.put(filter, this);
 		this.viewable = false;
@@ -68,8 +69,7 @@ public class PerspectiveTrack extends TTrack {
 		c.setSpotShown(false);
 		c.setAlpha(0);
 		setFootprints(new Footprint[] { c });
-		String letter = alphabet.substring(n, n + 1);
-		setName(MediaRes.getString("Filter.Perspective.Title").toLowerCase() + " " + letter); //$NON-NLS-1$ //$NON-NLS-2$
+		setName(MediaRes.getString("Filter.Perspective.Title").toLowerCase() + " " + String.valueOf((char) (65 + n))); //$NON-NLS-1$ //$NON-NLS-2$
 		Step step = new PerspectiveStep(this, 0, 0, 0);
 		step.setFootprint(getFootprint());
 		steps = new StepArray(step);

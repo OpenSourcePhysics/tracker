@@ -447,10 +447,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		TTrack track = TTrack.getTrack(trackID);
 		Class<? extends TTrack> type = track instanceof PointMass ? PointMass.class
 				: track instanceof Vector ? Vector.class : track.getClass();
-		ArrayList<? extends TTrack> tracks = trackerPanel.getDrawables(type);
+		ArrayList<? extends TTrack> tracks = trackerPanel.getDrawablesTemp(type);
 		tracks.removeAll(trackerPanel.calibrationTools);
 		tracks.remove(track);
 		guestsItem.setEnabled(!tracks.isEmpty());
+		tracks.clear();
 		FontSizer.setFonts(popup, FontSizer.getLevel());
 
 		// disable algorithmItem if not point mass track
@@ -945,6 +946,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					n--;
 				}
 			}
+			tracks.clear();
 			// now add drawables for guests
 			if (n > 0) {
 				DatasetManager manager = track.getData(track.trackerPanel);

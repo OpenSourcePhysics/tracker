@@ -133,6 +133,7 @@ public class Protractor extends InputTrack {
 	 * Constructs a Protractor.
 	 */
 	public Protractor() {
+		super(TYPE_PROTRACTOR);
 		defaultColors = new Color[] { new Color(0, 140, 40) };
 		// assign a default name
 		setName(TrackerRes.getString("Protractor.New.Name")); //$NON-NLS-1$

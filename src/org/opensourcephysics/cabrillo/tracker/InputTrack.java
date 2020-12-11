@@ -56,7 +56,8 @@ public abstract class InputTrack extends TTrack {
 	protected Ruler ruler;
 	protected JCheckBox rulerCheckbox;
 
-	public InputTrack() {
+	public InputTrack(int type) {
+		super(type);
 		inputField = createInputField();
 		inputField.setBorder(null);
 		format = inputField.getFormat();

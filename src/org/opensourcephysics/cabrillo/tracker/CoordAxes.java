@@ -140,6 +140,7 @@ public class CoordAxes extends TTrack {
 	 */
 	@SuppressWarnings("serial")
 	public CoordAxes() {
+		super(TYPE_COORDAXES);
 		defaultColors = new Color[] { new Color(200, 0, 200) };
 		setName(TrackerRes.getString("CoordAxes.New.Name")); //$NON-NLS-1$
 		// set up footprint choices and color

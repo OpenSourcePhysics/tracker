@@ -138,9 +138,8 @@ public class Vector extends TTrack {
 	/**
 	 * Constructs a Vector.
 	 */
-	@SuppressWarnings("serial")
 	public Vector() {
-		super();
+		super(TYPE_VECTOR);
 		defaultColors = new Color[] { Color.magenta, Color.cyan, Color.blue, Color.red };
 		// set up footprint choices
 		setFootprints(new Footprint[] { LineFootprint.getFootprint("Footprint.BoldArrow"), //$NON-NLS-1$

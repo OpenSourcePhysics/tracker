@@ -135,13 +135,14 @@ public void setVisible(boolean vis) {
 	public void dispose() {
 		if (trackerPanel != null) {
 			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-			ArrayList<DynamicParticle> list = trackerPanel.getDrawables(DynamicParticle.class);
+			ArrayList<DynamicParticle> list = trackerPanel.getDrawablesTemp(DynamicParticle.class);
 			for (int i = 0, ni = list.size(); i < ni; i++) {
 				DynamicParticle p = list.get(ni);
 				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
 				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
 				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 			}
+			list.clear();
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
 				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
@@ -167,7 +168,7 @@ public void setVisible(boolean vis) {
 				JPopupMenu popup = new JPopupMenu();
 				boolean hasPopupItems = false;
 				JMenu cloneMenu = new JMenu(TrackerRes.getString("TMenuBar.MenuItem.Clone")); //$NON-NLS-1$
-				ArrayList<DynamicParticle> list = trackerPanel.getDrawables(DynamicParticle.class);
+				ArrayList<DynamicParticle> list = trackerPanel.getDrawablesTemp(DynamicParticle.class);
 				for (int i = 0, ni = list.size(); i < ni; i++) {
 					DynamicParticle p = list.get(ni);
 					if (p instanceof DynamicSystem)
@@ -210,6 +211,7 @@ public void setVisible(boolean vis) {
 					});
 					popup.add(item);
 				}
+				list.clear();
 				if (hasPopupItems)
 					popup.addSeparator();
 				JMenu newMenu = new JMenu(TrackerRes.getString("TrackControl.Button.NewTrack")) { //$NON-NLS-1$
@@ -379,13 +381,7 @@ public void setVisible(boolean vis) {
 	 * @return the particle
 	 */
 	private DynamicParticle getParticle(String name) {
-		ArrayList<DynamicParticle> list = trackerPanel.getDrawables(DynamicParticle.class);
-		for (int i = 0, ni = list.size(); i < ni; i++) {
-			DynamicParticle p = list.get(ni);
-			if (p.getName().equals(name))
-				return p;
-		}
-		return null;
+		return trackerPanel.getTrackByName(DynamicParticle.class, name);
 	}
 
   /**

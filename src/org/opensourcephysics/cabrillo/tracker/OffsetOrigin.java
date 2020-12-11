@@ -100,6 +100,7 @@ public class OffsetOrigin extends TTrack {
 	 * Constructs an OffsetOrigin.
 	 */
 	public OffsetOrigin() {
+		super(TYPE_OFFSETORIGIN);
 		defaultColors = new Color[] { Color.cyan, Color.magenta, Color.yellow.darker() };
 		// set up footprint choices and color
 		setFootprints(new Footprint[] { PointShapeFootprint.getFootprint("Footprint.BoldCrosshair"), //$NON-NLS-1$

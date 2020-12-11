@@ -329,11 +329,10 @@ public class TableTrackView extends TrackView {
 			setVisible(1, true);
 		}
 		// set the default number formats, if any
-		String trackType = track.getBaseType();
-		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(trackType);
+		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(track.ttype);
 		DataTable table = getDataTable();
-		for (String name : patterns.keySet()) {
-			table.setFormatPattern(name, patterns.get(name));
+		for (Entry<String, String> e : patterns.entrySet()) {
+			table.setFormatPattern(e.getKey(), e.getValue());
 		}
 	}
 

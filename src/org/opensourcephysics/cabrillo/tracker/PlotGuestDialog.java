@@ -143,7 +143,7 @@ public class PlotGuestDialog extends JDialog {
     // make checkboxes for all similar tracks in trackerPanel
     Class<? extends TTrack> type = track instanceof PointMass? PointMass.class:
     	track instanceof Vector? Vector.class: track.getClass();
-    ArrayList<? extends TTrack> tracks = trackerPanel.getDrawables(type);
+    ArrayList<? extends TTrack> tracks = trackerPanel.getDrawablesTemp(type);
     tracks.removeAll(trackerPanel.calibrationTools);
     tracks.remove(track);
     int tracksPerColumn = 8;
@@ -176,6 +176,7 @@ public class PlotGuestDialog extends JDialog {
         }
       }
     }
+    tracks.clear();
     
     if (checkboxPanel.getComponentCount()<cols) {
     	// add last box and pad its bottom if not the first

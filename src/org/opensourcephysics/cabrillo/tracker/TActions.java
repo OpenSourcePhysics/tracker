@@ -486,7 +486,7 @@ public class TActions {
 							trackerPanel.getPlayer().setStepNumber(0);
 						}
 						// offer to add new mass if single cm exists
-						ArrayList<CenterOfMass> list = trackerPanel.getDrawables(CenterOfMass.class);
+						ArrayList<CenterOfMass> list = trackerPanel.getDrawablesTemp(CenterOfMass.class);
 						if (list.size() == 1) {
 							CenterOfMass cm = list.get(0);
 							int result = JOptionPane.showConfirmDialog(trackerPanel,
@@ -500,6 +500,7 @@ public class TActions {
 								cm.addMass(pointMass);
 							}
 						}
+						list.clear();
 					}
 				}, true));
 
@@ -851,9 +852,10 @@ public class TActions {
 		}
 		// increment digit if necessary
 		Set<String> names = new HashSet<String>();
-		for (TTrack next : trackerPanel.getTracks()) {
+		for (TTrack next : trackerPanel.getTracksTemp()) {
 			names.add(next.getName());
 		}
+		trackerPanel.clearTemp();
 		try {
 			while (names.contains(name + n)) {
 				n++;
@@ -921,14 +923,13 @@ public class TActions {
 		ArrayList<String> xml = new ArrayList<String>();
 		boolean locked = false;
 		ArrayList<org.opensourcephysics.display.Drawable> keepers = trackerPanel.getSystemDrawables();
-		Iterator<TTrack> it = trackerPanel.getTracks().iterator();
-		while (it.hasNext()) {
-			TTrack track = it.next();
+		for (TTrack track : trackerPanel.getTracksTemp()) {
 			if (keepers.contains(track))
 				continue;
 			xml.add(new XMLControlElement(track).toXML());
 			locked = locked || (track.isLocked() && !track.isDependent());
 		}
+		trackerPanel.clearTemp();
 		if (locked) {
 			int i = JOptionPane.showConfirmDialog(trackerPanel,
 					TrackerRes.getString("TActions.Dialog.DeleteLockedTracks.Message"), //$NON-NLS-1$
@@ -937,6 +938,7 @@ public class TActions {
 			if (i != 0)
 				return;
 		}
+		
 		// post edit and clear tracks
 		Undo.postTrackClear(trackerPanel, xml);
 		trackerPanel.clearTracks();

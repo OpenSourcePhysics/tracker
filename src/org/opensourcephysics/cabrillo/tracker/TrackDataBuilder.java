@@ -62,14 +62,13 @@ public class TrackDataBuilder extends FunctionTool {
 		addPropertyChangeListener(FunctionTool.PROPERTY_FUNCTIONTOOL_FUNCTION, trackerPanel); // $NON-NLS-1$
 		addPropertyChangeListener(PROPERTY_FUNCTIONTOOL_VISIBLE, trackerPanel); // $NON-NLS-1$
 		ArrayList<Drawable> nogos = trackerPanel.getSystemDrawables();
-		Iterator<TTrack> it = trackerPanel.getTracks().iterator();
-		while (it.hasNext()) {
-			TTrack track = it.next();
+		for (TTrack track : trackerPanel.getTracksTemp()) {
 			if (nogos.contains(track))
 				continue;
 			FunctionPanel panel = trackerPanel.createFunctionPanel(track);
 			addPanel(track.getName(), panel);
 		}
+		trackerPanel.clearTemp();
 		setHelpPath("data_builder_help.html"); //$NON-NLS-1$
 	}
 
@@ -450,7 +449,7 @@ public class TrackDataBuilder extends FunctionTool {
 			return;
 		FontSizer.setFonts(new Object[] { loadButton, saveButton, autoloadButton }, level);
 		if (!trackFunctionPanels.isEmpty()) {
-			ArrayList<TTrack> tracks = trackerPanel.getTracks();
+			ArrayList<TTrack> tracks = trackerPanel.getTracksTemp();
 			FunctionPanel panel;
 			TTrack track;
 			for (String name : trackFunctionPanels.keySet()) {
@@ -460,6 +459,7 @@ public class TrackDataBuilder extends FunctionTool {
 					panel.setIcon(track.getIcon(21, 16, "point")); //$NON-NLS-1$
 				}
 			}
+			tracks.clear();
 		}
 		super.setFontLevel(level);
 		validate();

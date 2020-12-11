@@ -1717,7 +1717,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			item.addActionListener(copyObjectAction);
 			edit_copyObjectMenu.add(item);
 			// copy track items
-			for (TTrack next : trackerPanel.getTracks()) {
+			for (TTrack next : trackerPanel.getTracksTemp()) {
 				if (next == trackerPanel.getAxes() || next instanceof PerspectiveTrack)
 					continue;
 				item = new JMenuItem(next.getName());
@@ -1725,6 +1725,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				item.addActionListener(copyObjectAction);
 				edit_copyObjectMenu.add(item);
 			}
+			trackerPanel.clearTemp();
 			FontSizer.setMenuFonts(edit_copyObjectMenu);
 			break;
 		}
@@ -1879,7 +1880,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			coords_fixedOriginItem.setEnabled(defaultCoords && !coords.isLocked());
 			coords_fixedAngleItem.setEnabled(defaultCoords && !coords.isLocked());
 			boolean stickAttached = false;
-			ArrayList<TapeMeasure> tapes = trackerPanel.getDrawables(TapeMeasure.class);
+			ArrayList<TapeMeasure> tapes = trackerPanel.getDrawablesTemp(TapeMeasure.class);
 			for (int i = 0, n = tapes.size(); i < n; i++) {
 				TapeMeasure tape = tapes.get(i);
 				if (tape.isStickMode() && tape.isAttached()) {
@@ -1887,6 +1888,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 					break;
 				}
 			}
+			tapes.clear();
 			coords_fixedScaleItem.setEnabled(defaultCoords && !coords.isLocked() && !stickAttached);
 			coords_refFrameMenu.setEnabled(!coords.isLocked());
 			// add default reference frame item

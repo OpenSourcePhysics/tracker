@@ -428,7 +428,7 @@ public class PointMass extends TTrack {
 	 * @param mass the mass
 	 */
 	public PointMass(double mass) {
-		super();
+		super(TYPE_POINTMASS);
 		defaultColors = new Color[] { Color.red, Color.cyan, Color.magenta, new Color(153, 153, 255) };
 		Footprint[] fp = new Footprint[footprintNames.length];
 		for (int i = 0; i < fp.length; i++) {

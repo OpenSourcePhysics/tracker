@@ -186,7 +186,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 		if (initialized)
 			return;
 		ArrayList<DynamicParticle> toAdd = new ArrayList<DynamicParticle>();
-		ArrayList<DynamicParticle> parts = trackerPanel.getDrawables(DynamicParticle.class);
+		ArrayList<DynamicParticle> parts = trackerPanel.getDrawablesTemp(DynamicParticle.class);
 		for (int i = 0; i < particleNames.length; i++) {
 			for (DynamicParticle p : parts) {
 				if (p.getName().equals(particleNames[i])) {
@@ -195,6 +195,7 @@ public class DynamicSystem extends DynamicParticlePolar {
 				}
 			}
 		}
+		parts.clear();
 		setParticles(toAdd.toArray(new DynamicParticle[0]));
 		boolean empty = true;
 		for (String name : particleNames) {

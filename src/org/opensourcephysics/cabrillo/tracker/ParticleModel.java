@@ -232,9 +232,10 @@ abstract public class ParticleModel extends PointMass {
 	public void delete() {
 		FunctionTool modelBuilder = null;
 		if (trackerPanel != null && trackerPanel.modelBuilder != null) {
-			ArrayList<ParticleModel> list = trackerPanel.getDrawables(ParticleModel.class);
+			ArrayList<ParticleModel> list = trackerPanel.getDrawablesTemp(ParticleModel.class);
 			if (list.size() == 1)
 				modelBuilder = trackerPanel.modelBuilder;
+			list.clear();
 		}
 		super.delete();
 		if (modelBuilder != null) {
@@ -482,30 +483,7 @@ abstract public class ParticleModel extends PointMass {
 			stampItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					refreshSteps("stampItem action");
-					PointMass pm = new PointMass();
-					String proposed = getName() + " " + TrackerRes.getString("ParticleModel.Stamp.Name") + "1"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-					for (TTrack track : ParticleModel.this.trackerPanel.getTracks()) {
-						if (proposed.equals(track.getName())) {
-							try {
-								int n = Integer.parseInt(proposed.substring(proposed.length() - 1));
-								proposed = proposed.substring(0, proposed.length() - 1) + (n + 1);
-							} catch (NumberFormatException ex) {
-								continue;
-							}
-						}
-					}
-					pm.setName(proposed);
-					pm.setColor(getColor().darker());
-					ParticleModel.this.trackerPanel.addTrack(pm);
-					for (Step step : getSteps()) {
-						if (step == null)
-							continue;
-						TPoint pt = step.getPoints()[0];
-						int n = pt.getFrameNumber(ParticleModel.this.trackerPanel);
-						pm.createStep(n, pt.x, pt.y);
-					}
-					TFrame.repaintT(trackerPanel);
+					doStamp();
 				}
 			});
 		}
@@ -561,6 +539,34 @@ abstract public class ParticleModel extends PointMass {
 			prevItem = item;
 		}
 		return menu;
+	}
+
+	protected void doStamp() {
+		refreshSteps("stampItem action");
+		PointMass pm = new PointMass();
+		String proposed = getName() + " " + TrackerRes.getString("ParticleModel.Stamp.Name") + "1"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		for (TTrack track : trackerPanel.getTracksTemp()) {
+			if (proposed.equals(track.getName())) {
+				try {
+					int n = Integer.parseInt(proposed.substring(proposed.length() - 1));
+					proposed = proposed.substring(0, proposed.length() - 1) + (n + 1);
+				} catch (NumberFormatException ex) {
+					continue;
+				}
+			}
+		}
+		trackerPanel.clearTemp();
+		pm.setName(proposed);
+		pm.setColor(getColor().darker());
+		trackerPanel.addTrack(pm);
+		for (Step step : getSteps()) {
+			if (step == null)
+				continue;
+			TPoint pt = step.getPoints()[0];
+			int n = pt.getFrameNumber(trackerPanel);
+			pm.createStep(n, pt.x, pt.y);
+		}
+		TFrame.repaintT(trackerPanel);
 	}
 
 	/**

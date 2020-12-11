@@ -660,9 +660,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		JPanel panel = (JPanel) tabbedPane.getComponentAt(tab);
 		FontSizer.setFonts(panel);
 		// inform all tracks of current angle display format
-		for (TTrack track : trackerPanel.getTracks()) {
+		for (TTrack track : trackerPanel.getTracksTemp()) {
 			track.setAnglesInRadians(anglesInRadians);
 		}
+		trackerPanel.clearTemp();
 		setIgnoreRepaint(false);
 		trackerPanel.changed = false;
 		trackerPanel.refreshTrackData(DataTable.MODE_TAB);
@@ -2293,7 +2294,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				try {
 					for (int i = 0; i < getTabCount(); i++) {
 						TrackerPanel trackerPanel = getTrackerPanel(i);
-						ArrayList<DataTrack> list = trackerPanel.getDrawables(DataTrack.class);
+						ArrayList<DataTrack> list = trackerPanel.getDrawablesTemp(DataTrack.class);
 						// do any tracks have null source?
 						for (int m = 0, n = list.size(); m < n; m++) {
 							DataTrack next = list.get(m);
@@ -2303,6 +2304,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 								break;
 							}
 						}
+						list.clear();
 					}
 				} catch (Exception ex) {
 				}

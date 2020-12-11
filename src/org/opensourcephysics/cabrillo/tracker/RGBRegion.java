@@ -132,7 +132,7 @@ public class RGBRegion extends TTrack {
    * Constructs a RGBRegion.
    */
   public RGBRegion() {
-    super();
+    super(TYPE_RGBREGION);
 		defaultColors = new Color[] {Color.magenta};
     // assign a default name
     setName(TrackerRes.getString("RGBRegion.New.Name")); //$NON-NLS-1$

@@ -114,7 +114,7 @@ public class CenterOfMass extends PointMass {
 		if (panel instanceof WorldTView) {
 			panel = ((WorldTView) panel).getTrackerPanel();
 		}
-		ArrayList<PointMass> masses = panel.getDrawables(PointMass.class);
+		ArrayList<PointMass> masses = panel.getDrawablesTemp(PointMass.class);
 		for (int i = 0, n = massNames.size(); i < n; i++) {
 			String name = massNames.get(i);
 			for (int m = 0, nm = masses.size(); m < nm; m++) {
@@ -123,6 +123,7 @@ public class CenterOfMass extends PointMass {
 					addMass(mass);
 			}
 		}
+		masses.clear();
 		massNames.clear();
 		initialized = true;
 	}

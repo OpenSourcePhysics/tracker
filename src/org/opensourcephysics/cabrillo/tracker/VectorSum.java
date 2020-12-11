@@ -110,12 +110,9 @@ public class VectorSum extends Vector {
 			return;
 		for (int i = 0, ni = vectorNames.size(); i < ni; i++) {
 			String name = vectorNames.get(i);
-			ArrayList<Vector> list = trackerPanel.getDrawables(Vector.class);
-			for (int k = 0, n = list.size(); k < n; k++) {
-				Vector v = list.get(k);
-				if (v.getName().equals(name))
-					addVector(v);
-			}
+			Vector v = trackerPanel.getTrackByName(Vector.class, name);
+			if (v != null)
+				addVector(v);
 		}
 		vectorNames.clear();
 		initialized = true;

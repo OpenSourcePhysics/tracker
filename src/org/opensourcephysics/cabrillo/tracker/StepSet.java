@@ -284,7 +284,7 @@ public class StepSet extends HashSet<Step> {
 			TrackerPanel panel = steps.trackerPanel;
 			int ns = stepsData.length;
 			if (ns > 0) {
-				ArrayList<TTrack> tracks = panel.getTracks();
+				ArrayList<TTrack> tracks = panel.getTracksTemp();
 				for (int i = 0; i < ns; i++) {
 					String[] next = stepsData[i];
 					TTrack track = panel.getTrack(next[0], tracks);
@@ -303,6 +303,7 @@ public class StepSet extends HashSet<Step> {
 						}
 					}
 				}
+				tracks.clear();
 			}
 			return obj;
 		}

@@ -128,7 +128,7 @@ public class LineProfile extends TTrack {
 	 * Constructs a LineProfile.
 	 */
 	public LineProfile() {
-		super();
+		super(TYPE_LINEPROFILE);
 		defaultColors = new Color[] { Color.magenta };
 		// assign a default name
 		setName(TrackerRes.getString("LineProfile.New.Name")); //$NON-NLS-1$

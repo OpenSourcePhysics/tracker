@@ -281,10 +281,10 @@ public class PencilScene implements Trackable, Comparable<PencilScene>, Interact
 	@Override
 	public Interactive findInteractive(DrawingPanel panel, int xpix, int ypix) {
 		Interactive ia = caption.findInteractive(panel, xpix, ypix);
-		if (ia!=null) {
-	    if (Tracker.showHints && trackerPanel!=null) {
-	  		trackerPanel.setMessage(TrackerRes.getString("PencilCaption.Hint")); //$NON-NLS-1$
-	    }
+		if (ia != null) {
+			if (Tracker.showHints && trackerPanel != null) {
+				trackerPanel.setMessage(TrackerRes.getString("PencilCaption.Hint")); //$NON-NLS-1$
+			}
 			return ia;
 		}
 		return null;

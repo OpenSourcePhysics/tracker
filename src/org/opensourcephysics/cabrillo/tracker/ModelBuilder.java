@@ -359,12 +359,10 @@ public class ModelBuilder extends FunctionTool {
 			FTObject selected = none;
 			boolean targetExists = false;
 			boosterDropdown.removeAllItems();
-			ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
+			ArrayList<PointMass> masses = trackerPanel.getDrawablesTemp(PointMass.class);
 			outer: for (int i = 0, n = masses.size(); i < n; i++) {
 				PointMass m = masses.get(i);
-				if (m == model)
-					continue;
-				if (m instanceof DynamicSystem)
+				if (m == model || m instanceof DynamicSystem)
 					continue;
 
 				String name = m.getName();
@@ -404,6 +402,7 @@ public class ModelBuilder extends FunctionTool {
 				}
 				boosterDropdown.addItem(item);
 			}
+			masses.clear();
 			boosterDropdown.addItem(none);
 			boosterDropdown.setSelectedItem(selected);
 			if (dynamicModel != null && !targetExists) {

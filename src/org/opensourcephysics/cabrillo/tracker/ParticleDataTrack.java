@@ -29,9 +29,6 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.AffineTransform;
@@ -60,6 +57,7 @@ import org.opensourcephysics.display.DataClip;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.ImageCoordSystem;
@@ -97,7 +95,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	private Object dataSource; // may be ParticleDataTrack leader
 	private boolean useDataTime;
 	protected String pointName = "", modelName = ""; //$NON-NLS-1$ //$NON-NLS-2$
-	private ArrayList<ParticleDataTrack> morePoints = new ArrayList<ParticleDataTrack>();
+	protected ArrayList<ParticleDataTrack> morePoints = new ArrayList<ParticleDataTrack>();
 	private JMenu pointsMenu, linesMenu, allFootprintsMenu;
 	private JButton reloadButton;
 	private JMenuItem allColorItem, lineColorItem;
@@ -157,62 +155,21 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		allFootprintsListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				String footprintName = e.getActionCommand();
-				if (getFootprint().getName().equals(footprintName))
-					return;
-
-				XMLControl control = new XMLControlElement(new TrackProperties(ParticleDataTrack.this));
-
-				// set footprint
-				for (ParticleDataTrack next : allPoints()) {
-					next.setFootprint(footprintName);
-					next.erase();
-				}
-				// post edit
-				Undo.postTrackDisplayEdit(ParticleDataTrack.this, control);
-				TFrame.repaintT(trackerPanel);
+				doAllFoot(e.getActionCommand());
 			}
 		};
 		allCircleFootprintsListener = new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-
-				XMLControl control = new XMLControlElement(new TrackProperties(ParticleDataTrack.this));
-
-				// set footprint
-				String footprintName = e.getActionCommand();
-				for (ParticleDataTrack next : allPoints()) {
-					next.setFootprint(footprintName);
-				}
-
-				// set circle properties
-				CircleFootprint cfp = (CircleFootprint) getFootprint();
-				cfp.showProperties(ParticleDataTrack.this);
-				for (ParticleDataTrack next : allPoints()) {
-					CircleFootprint cf = (CircleFootprint) next.getFootprint();
-					cf.setProperties(cfp.getProperties());
-					next.erase();
-				}
-				// post edit
-				Undo.postTrackDisplayEdit(ParticleDataTrack.this, control);
-				TFrame.repaintT(trackerPanel);
+				doAllCircle(e.getActionCommand());
 			}
 		};
 
 		allColorItem = new JMenuItem();
 		allColorItem.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				Color color = getColor();
-				Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
-				if (newColor != color) {
-					XMLControl control = new XMLControlElement(new TrackProperties(ParticleDataTrack.this));
-					for (ParticleDataTrack next : allPoints()) {
-						next.setColor(newColor);
-					}
-					getLeader().setLineColor(newColor);
-					Undo.postTrackDisplayEdit(ParticleDataTrack.this, control);
-				}
+			public void actionPerformed(ActionEvent de) {
+				doAllColor();
 			}
 		});
 		lineColorItem = new JMenuItem();
@@ -274,6 +231,61 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		});
 		allFootprintsMenu = new JMenu();
 
+	}
+
+	protected void doAllColor() {
+		Color color = getColor();
+		Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
+		if (newColor != color) {
+			XMLControl control = new XMLControlElement(new TrackProperties(this));
+			setColor(newColor);
+			for (ParticleDataTrack next : morePoints) {				
+				next.setColor(newColor);
+			}
+			getLeader().setLineColor(newColor);
+			Undo.postTrackDisplayEdit(this, control);
+		}
+	}
+
+	protected void doAllCircle(String footprintName) {
+		XMLControl control = new XMLControlElement(new TrackProperties(this));
+
+		// set footprint
+		setFootprint(footprintName);
+		for (ParticleDataTrack next : morePoints) {
+			next.setFootprint(footprintName);
+		}
+
+		// set circle properties
+		CircleFootprint cfp = (CircleFootprint) getFootprint();
+		cfp.showProperties(this);
+		erase();
+		for (ParticleDataTrack next : morePoints) {
+			CircleFootprint cf = (CircleFootprint) next.getFootprint();
+			cf.setProperties(cfp.getProperties());
+			next.erase();
+		}
+		// post edit
+		Undo.postTrackDisplayEdit(this, control);
+		TFrame.repaintT(trackerPanel);
+	}
+
+	protected void doAllFoot(String footprintName) {
+		if (getFootprint().getName().equals(footprintName))
+			return;
+
+		XMLControl control = new XMLControlElement(new TrackProperties(this));
+
+		// set footprint
+		setFootprint(footprintName);
+		erase();
+		for (ParticleDataTrack next : morePoints) {
+			next.setFootprint(footprintName);
+			next.erase();
+		}
+		// post edit
+		Undo.postTrackDisplayEdit(this, control);
+		TFrame.repaintT(trackerPanel);
 	}
 
 	/**
@@ -416,15 +428,14 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		pointsMenu.setText(TrackerRes.getString("ParticleDataTrack.Menu.Points")); //$NON-NLS-1$
 		pointsMenu.removeAll();
 		// add point menus
-		ArrayList<ParticleDataTrack> points = allPoints();
-		for (ParticleDataTrack next : points) {
-			JMenu pointMenu = next.getPointMenu(trackerPanel);
-			pointsMenu.add(pointMenu);
+		pointsMenu.add(getPointMenu(trackerPanel));
+		for (ParticleDataTrack next : morePoints) {
+			pointsMenu.add(next.getPointMenu(trackerPanel));
 		}
 
 		// refresh lines menu
 		refreshing = true;
-		if (points.size() > 1) {
+		if (morePoints.size() > 0) {
 			lineColorItem.setText(TrackerRes.getString("TTrack.MenuItem.Color")); //$NON-NLS-1$
 			linesVisibleCheckbox.setText(visibleItem.getText());
 			linesVisibleCheckbox.setSelected(modelFootprintVisible);
@@ -440,7 +451,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			linesMenu.addSeparator();
 			linesMenu.add(linesVisibleCheckbox);
 			linesMenu.add(linesBoldCheckbox);
-			if (points.size() > 2) {
+			if (morePoints.size() > 1) {
 				linesMenu.add(linesClosedCheckbox);
 			}
 		}
@@ -477,7 +488,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		menu.add(allFootprintsMenu);
 		menu.addSeparator();
 		menu.add(pointsMenu);
-		if (points.size() > 1) {
+		if (morePoints.size() > 0) {
 			menu.add(linesMenu);
 		}
 		menu.addSeparator();
@@ -528,13 +539,16 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 		// for other contexts, return combination icon
 		ArrayList<ShapeIcon> shapeIcons = new ArrayList<ShapeIcon>();
-		for (TTrack track : getLeader().allPoints()) {
-			Icon icon = track.getFootprint().getIcon(w, h);
-			if (icon instanceof ShapeIcon) {
-				shapeIcons.add((ShapeIcon) icon);
-			}
+		ParticleDataTrack l = getLeader();
+		addShapeIcons(l, shapeIcons, w, h);
+		for (TTrack track : l.morePoints) {
+			addShapeIcons(track, shapeIcons, w, h);
 		}
 		return new ComboIcon(shapeIcons);
+	}
+
+	private void addShapeIcons(TTrack track, ArrayList<ShapeIcon> shapeIcons, int w, int h) {
+		shapeIcons.add((ShapeIcon) track.getFootprint().getIcon(w, h).getBaseIcon());
 	}
 
 	@Override
@@ -589,37 +603,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					setAutoPasteEnabled(autoPasteCheckbox.isSelected());
-					if (ParticleDataTrack.this.trackerPanel == null)
-						return;
-					TFrame frame = ParticleDataTrack.this.trackerPanel.getTFrame();
-					if (frame == null)
-						return;
-					if (isAutoPasteEnabled()) {
-						ClipboardListener clipboardListener = frame.getClipboardListener();
-						String s = OSPRuntime.paste(null);
-						if (s != null) {
-								if (ParticleDataTrack.getImportableDataName(s) != null) {
-									try {
-										clipboardListener.processContents(s);
-									} catch (Exception e1) {
-									}
-								}
-						}
-						getLeader().prevDataString = getLeader().pendingDataString;
-						getLeader().reloadButton.setEnabled(false);
-						TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel).refresh();
-
-					}
-
-//		    	else if (frame.clipboardListener!=null && !frame.clipboardListener.hasAutoPasteTargets()) {
-//		    		frame.clipboardListener.end();
-//		    		frame.clipboardListener = null;
-//		    	}
-					if (ParticleDataTrack.this.trackerPanel.getSelectedTrack() == ParticleDataTrack.this) {
-						TTrackBar trackbar = TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel);
-						trackbar.refresh();
-					}
+					doAutoPaste();
 				}
 			});
 		}
@@ -642,6 +626,40 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 		}
 		return list;
+	}
+
+	protected void doAutoPaste() {
+		setAutoPasteEnabled(autoPasteCheckbox.isSelected());
+		if (trackerPanel == null)
+			return;
+		TFrame frame = trackerPanel.getTFrame();
+		if (frame == null)
+			return;
+		if (isAutoPasteEnabled()) {
+			ClipboardListener clipboardListener = frame.getClipboardListener();
+			String s = OSPRuntime.paste(null);
+			if (s != null) {
+					if (getImportableDataName(s) != null) {
+						try {
+							clipboardListener.processContents(s);
+						} catch (Exception e1) {
+						}
+					}
+			}
+			getLeader().prevDataString = getLeader().pendingDataString;
+			getLeader().reloadButton.setEnabled(false);
+			TTrackBar.getTrackbar(trackerPanel).refresh();
+
+		}
+
+//	else if (frame.clipboardListener!=null && !frame.clipboardListener.hasAutoPasteTargets()) {
+//		frame.clipboardListener.end();
+//		frame.clipboardListener = null;
+//	}
+		if (ParticleDataTrack.this.trackerPanel.getSelectedTrack() == ParticleDataTrack.this) {
+			TTrackBar trackbar = TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel);
+			trackbar.refresh();
+		}
 	}
 
 	/**
@@ -671,33 +689,19 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @return the point name
 	 */
 	protected String getPointName() {
-		if (pointName == null) {
-			pointName = ""; //$NON-NLS-1$
-		}
-		if ("".equals(pointName)) { //$NON-NLS-1$
-			ArrayList<ParticleDataTrack> pts = getLeader().allPoints();
-			if (pts.size() > 1) {
-				for (int i = 0; i < pts.size(); i++) {
-					if (pts.get(i) == this) {
-						pointName = alphabet.substring(i, i + 1);
-					}
-				}
-			}
+		if (pointName == null || pointName.length() == 0) {
+			pointName = getLeader().getPointChar(this);
 		}
 		// count duplicates
-		int count = 0, i = 0;
-		for (ParticleDataTrack next : getLeader().allPoints()) {
-			if (pointName.equals(next.pointName)) {
-				count++;
-				if (next == this) {
-					i = count;
-				}
+		ParticleDataTrack l = getLeader();
+		int count = (pointName.equals(l.pointName) ? 1 : 0);
+		int i = (count == 1 && l == this ? 1 : 0);
+		for (ParticleDataTrack next : l.morePoints) {
+			if (pointName.equals(next.pointName) && (++count > 0) && next == this) {
+				i = count;
 			}
 		}
-		if (count > 1) {
-			return pointName + " " + i; //$NON-NLS-1$
-		}
-		return pointName;
+		return (count > 1 ? pointName + " " + i : pointName);
 	}
 
 	/**
@@ -720,10 +724,13 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 		}
 		pointName = newName;
-		boolean changed = false;
-		for (ParticleDataTrack next : getLeader().allPoints()) {
-			String fullName = next.getFullName();
-			changed = changed || !fullName.equals(next.name);
+		ParticleDataTrack l = getLeader();
+		String fullName = l.getFullName();
+		boolean changed = !fullName.equals(l.name);
+		l.name = fullName;
+		for (ParticleDataTrack next : l.morePoints) {
+			fullName = next.getFullName();
+			changed |= !fullName.equals(next.name);
 			next.name = fullName;
 		}
 		if (changed) {
@@ -731,18 +738,22 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		}
 	}
 
-	/**
-	 * Gets a list of all points in this track.
-	 * 
-	 * @return the points
-	 */
-	protected ArrayList<ParticleDataTrack> allPoints() {
-		ArrayList<ParticleDataTrack> points = new ArrayList<ParticleDataTrack>();
-		points.add(this);
-		if (morePoints != null) {
-			points.addAll(morePoints);
-		}
-		return points;
+//	/**
+//	 * Gets a list of all points in this track.
+//	 * 
+//	 * @return the points
+//	 */
+//	private ArrayList<ParticleDataTrack> allPoints() {
+//		ArrayList<ParticleDataTrack> points = new ArrayList<ParticleDataTrack>();
+//		points.add(this);
+//		if (morePoints.size() != 0) {
+//			points.addAll(morePoints);
+//		}
+//		return points;
+//	}
+	
+	private String getPointChar(ParticleDataTrack track) {
+		return (track == this ? "A" : String.valueOf((char) (66 + morePoints.indexOf(track))));
 	}
 
 	/**
@@ -751,16 +762,17 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @param colors array of colors
 	 */
 	protected void setAllColors(Color[] colors) {
-		ArrayList<ParticleDataTrack> points = allPoints();
 		// array length may not match points size if new data has been loaded
-		int len = Math.min(points.size(), colors.length - 1);
+		int len = Math.min(morePoints.size() + 1, colors.length - 1);
+		setColor(colors[0]);
 		for (int i = 0; i < len; i++) {
-			points.get(i).setColor(colors[i]);
+			morePoints.get(i).setColor(colors[i + 1]);
 		}
 		// set the color of all model footprints so changing to/from bold always shows
 		// correct color
+		Color c = colors[colors.length - 1];
 		for (int i = 0; i < modelFootprints.length; i++) {
-			modelFootprints[i].setColor(colors[colors.length - 1]);
+			modelFootprints[i].setColor(c);
 		}
 		erase();
 		TFrame.repaintT(trackerPanel);
@@ -772,11 +784,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @param footprints array of footprints
 	 */
 	protected void setAllFootprints(String[] footprints) {
-		ArrayList<ParticleDataTrack> points = allPoints();
 		// array length may not match points size if new data has been loaded
-		int len = Math.min(points.size(), footprints.length - 1);
+		int len = Math.min(morePoints.size() + 1, footprints.length - 1);
+		setFootprint(footprints[0]);
 		for (int i = 0; i < len; i++) {
-			points.get(i).setFootprint(footprints[i]);
+			morePoints.get(i).setFootprint(footprints[i + 1]);
 		}
 		setModelFootprint(footprints[footprints.length - 1]);
 		erase();
@@ -811,7 +823,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				return;
 			modelName = newName;
 			// set name of all points
-			for (ParticleDataTrack next : allPoints()) {
+			name = getFullName();
+			for (ParticleDataTrack next : morePoints) {
 				next.name = next.getFullName();
 			}
 		}
@@ -856,10 +869,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @return the leader (may be this track)
 	 */
 	public ParticleDataTrack getLeader() {
-		if (dataSource instanceof ParticleDataTrack) {
-			return (ParticleDataTrack) dataSource;
-		}
-		return this;
+		return (dataSource instanceof ParticleDataTrack
+				? (ParticleDataTrack) dataSource : this);
 	}
 
 	/**
@@ -916,7 +927,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			next.delete(false); // don't post undoable edit
 		}
 		// reset point names of all tracks to refresh full names
-		for (ParticleDataTrack next : allPoints()) {
+		setPointName(pointName);
+		for (ParticleDataTrack next : morePoints) {
 			next.setPointName(next.pointName);
 		}
 		// check for changed time data
@@ -1251,8 +1263,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		boolean dataChanged = modelName.equals(dataName) && !dataString.equals(prevDataString);
 		pendingDataString = dataString;
 		reloadButton.setEnabled(dataChanged);
-		if (trackerPanel.getSelectedTrack() instanceof ParticleDataTrack
-				&& allPoints().contains(trackerPanel.getSelectedTrack())) {
+		TTrack strack = trackerPanel.getSelectedTrack();
+		if (strack instanceof ParticleDataTrack 
+				&& (this == strack || morePoints.contains(strack))) {
 			TTrackBar.getTrackbar(trackerPanel).refresh();
 		}
 	}
@@ -1487,13 +1500,17 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	protected static ParticleDataTrack getTrackForDataString(String dataString, TrackerPanel trackerPanel) {
 		if (dataString == null)
 			return null;
-		ArrayList<ParticleDataTrack> list = trackerPanel.getDrawables(ParticleDataTrack.class);
+		ArrayList<ParticleDataTrack> list = trackerPanel.getDrawablesTemp(ParticleDataTrack.class);
+		ParticleDataTrack ret = null;
 		for (int m = 0, n = list.size(); m < n; m++) {
 			ParticleDataTrack track = list.get(m);
-			if (dataString.equals(track.prevDataString))
-				return track;
+			if (dataString.equals(track.prevDataString)) {
+				ret = track;
+				break;
+			}
 		}
-		return null;
+		list.clear();
+		return ret;
 	}
 
 	protected static ParticleDataTrack getTrackForData(DatasetManager data, TrackerPanel trackerPanel) {
@@ -1503,7 +1520,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			name = TrackerRes.getString("ParticleDataTrack.New.Name"); //$NON-NLS-1$
 		}
 		name = name.replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$
-		ArrayList<TTrack> tracks = trackerPanel.getTracks();
+		ArrayList<TTrack> tracks = trackerPanel.getTracksTemp();
 		TTrack track = trackerPanel.getTrack(name, tracks);
 		// if name collisions occur, look for modified name
 		int i = 1;
@@ -1521,11 +1538,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				}
 			}
 		}
-
 		// if not found by name, check for matching ID
 		if (track == null) {
 			int id = data.getID();
-			ArrayList<ParticleDataTrack> list = trackerPanel.getDrawables(ParticleDataTrack.class);
+			ArrayList<ParticleDataTrack> list = trackerPanel.getDrawablesTemp(ParticleDataTrack.class);
 			for (int m = 0, n = list.size(); m < n; m++) {
 				ParticleDataTrack model = list.get(m);
 				Data existingData = model.getData();
@@ -1535,6 +1551,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				}
 			}
 		}
+		tracks.clear(); // same as list
 		return (ParticleDataTrack) track;
 	}
 

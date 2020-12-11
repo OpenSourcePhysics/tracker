@@ -130,13 +130,14 @@ public void setVisible(boolean vis) {
 		checkboxPanel.removeAll();
 		if (trackerPanel != null) {
 			trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); //$NON-NLS-1$
-			ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
+			ArrayList<PointMass> masses = trackerPanel.getDrawablesTemp(PointMass.class);
 			for (int i = 0, n = masses.size(); i < n; i++) {
 				PointMass p = masses.get(i);
 				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
 				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$
 				p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); //$NON-NLS-1$
 			}
+			masses.clear();
 			TFrame frame = trackerPanel.getTFrame();
 			if (frame != null) {
 				frame.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_TAB, this); //$NON-NLS-1$
@@ -206,13 +207,7 @@ public void setVisible(boolean vis) {
    * @return the point mass
    */
   private PointMass getPointMass(String name) {
-	  
-    ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
-	for (int i = 0, n = masses.size(); i < n; i++) {
-		PointMass m = masses.get(i);
-      if (m.getName() == name) return m;
-    }
-    return null;
+	return trackerPanel.getTrackByName(PointMass.class, name);
   }
 
 	/**
@@ -223,7 +218,7 @@ public void setVisible(boolean vis) {
 				+ " \"" + cm.getName() + "\""); //$NON-NLS-1$ //$NON-NLS-2$
 		// make checkboxes for all point masses in tracker panel
 		checkboxPanel.removeAll();
-		ArrayList<PointMass> masses = trackerPanel.getDrawables(PointMass.class);
+		ArrayList<PointMass> masses = trackerPanel.getDrawablesTemp(PointMass.class);
 		for (int i = 0, n = masses.size(); i < n; i++) {
 			PointMass m = masses.get(i);
 			m.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
@@ -241,6 +236,7 @@ public void setVisible(boolean vis) {
 			checkbox.addActionListener(listener);
 			checkboxPanel.add(checkbox);
 		}
+		masses.clear();
 		FontSizer.setFonts(checkboxPanel, FontSizer.getLevel());
 		pack();
 		TFrame.repaintT(this);

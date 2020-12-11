@@ -116,7 +116,6 @@ import org.opensourcephysics.tools.FontSizer;
  *
  * @author Douglas Brown
  */
-@SuppressWarnings("serial")
 public abstract class TTrack implements Interactive, Trackable, PropertyChangeListener {
 
 	public static final String PROPERTY_TTRACK_FOOTPRINT = "footprint"; //$NON-NLS-1$
@@ -172,7 +171,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		removePropertyChangeListener(PROPERTY_TTRACK_STEPS, c);
 	}
 
-	protected static String alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"; //$NON-NLS-1$
+	final public int ttype; 
+	
 	protected static JDialog skippedStepWarningDialog;
 	protected static JTextPane skippedStepWarningTextpane;
 	protected static JCheckBox skippedStepWarningCheckbox;
@@ -264,14 +264,72 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected JMenuItem deleteTrackItem, deleteStepItem, clearStepsItem;
 	protected JMenuItem descriptionItem;
 	protected JMenuItem dataBuilderItem;
-	protected final static Map<String, TreeMap<String, String>> defaultFormatPatterns = new HashMap<>();
-	protected final static String[] baseTrackTypes = new String[] { "Calibaration", "CircleFitter", "CoordAxes",
-			"LineProfile", "OffsetOrigin", "PointMass", "Protractor", "RGBRegion", "TapeMeasure", "Vector" };
+	/**
+	 * PointMass and Vector are base types for their subtypes; 
+	 * all others are their own type 
+	 */
+	private final static String[] baseTrackTypes = new String[] { 
+		"Calibaration", // 0
+		"CircleFitter", // 1
+		"CoordAxes",    // 2
+		"LineProfile",  // 3
+		"OffsetOrigin", // 4
+		"PointMass",    // 5 includes CenterOfMass and ParticleModels (Analytical, Dynamic, and ParticleDataTrack
+		"Protractor",   // 6
+		"RGBRegion",    // 7
+		"TapeMeasure",  // 8
+		"Vector",       // 9 includes VectorSum
+		"Perspective"   // 10 for completeness
+	};
+	
+	public static String getBaseTrackName(int ttype) {
+		return (ttype >= 0 ? baseTrackTypes[ttype] : null);
+	}
 
+	@SuppressWarnings("unchecked")
+	private final static TreeMap<String, String>[] defaultFormatPatterns = new TreeMap[baseTrackTypes.length];
+	
+	public static TreeMap<String, String>[] getDefaultFormatPatterns() {
+		return defaultFormatPatterns;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private final static TreeMap<String, String>[] prevDefaultPatterns = new TreeMap[baseTrackTypes.length];
+
+	public static void savePatterns(TrackerPanel panel) {
+		for (int ttype = baseTrackTypes.length; --ttype >= 0;) {
+			TreeMap<String, String> prevPatterns = new TreeMap<String, String>();
+			prevPatterns.putAll(panel.getFormatPatterns(ttype));
+			prevDefaultPatterns[ttype] = prevPatterns;
+		}
+	}
+
+	public static void restorePatterns(TrackerPanel panel) {
+		TreeMap<String, String>[] patterns = panel.formatPatterns;
+		for (int ttype = baseTrackTypes.length; --ttype >= 0;) {
+			patterns[ttype] = prevDefaultPatterns[ttype];
+		}
+	}
+
+	public final static int TYPE_UNKNOWN      = -1;
+	public final static int TYPE_CALIBRATION  = 0;
+	public final static int TYPE_CIRCLEFITTER = 1;
+	public final static int TYPE_COORDAXES    = 2;
+	public final static int TYPE_LINEPROFILE  = 3;
+	public final static int TYPE_OFFSETORIGIN = 4;
+	public final static int TYPE_POINTMASS    = 5;
+	public final static int TYPE_PROTRACTOR   = 6;
+	public final static int TYPE_RGBREGION    = 7;
+	public final static int TYPE_TAPEMEASURE  = 8;
+	public final static int TYPE_VECTOR       = 9;
+	public final static int TYPE_PERSPECTIVE  = 10;
+	
 	/**
 	 * Constructs a TTrack.
+	 * @param type 
 	 */
-	protected TTrack() {
+	protected TTrack(int ttype) {
+		this.ttype = ttype;
 		ID = nextID++;
 		support = new SwingPropertyChangeSupport(this);
 		// create toolbar components
@@ -584,7 +642,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 */
 	public void setLocked(boolean locked) {
 		this.locked = locked;
-		firePropertyChange(TTrack.PROPERTY_TTRACK_LOCKED, null, Boolean.valueOf(locked)); // $NON-NLS-1$
+		firePropertyChange(PROPERTY_TTRACK_LOCKED, null, Boolean.valueOf(locked)); // $NON-NLS-1$
 	}
 
 	/**
@@ -1517,26 +1575,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		return -1;
 	}
 
-//	/**
-//	 * BH: never called -- if it is, then we have a problem in TrackPlottingPanel,
-//	 * because that would be the only place that makes this distinction.
-//	 * 
-//	 * Gets the data index for a specified frame.
-//	 *
-//	 * @param frameNumber the frame number
-//	 * @return the data index, or -1 if not found
-//	 */
-//	public int getDataIndex(int frameNumber) {
-//		if (!data.getDatasets().isEmpty()) {
-//			// find data index
-//			for (int i = 0; i < dataFrames.size(); i++) {
-//				if (frameNumber == dataFrames.get(i))
-//					return i;
-//			}
-//		}
-//		return -1;
-//	}
-
 	/**
 	 * Gets a map of number fields by name.
 	 * 
@@ -1551,31 +1589,40 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * 
 	 * @return an ArrayList of names. May be empty.
 	 */
-	protected static ArrayList<String> getAllVariables(String trackType) {
-		if (trackType != null)
-			switch (trackType) {
-			case "Calibration":
+	protected static ArrayList<String> getAllVariables(int ttype) {
+			switch (ttype) {
+			case TYPE_CALIBRATION:
 				return Calibration.allVariables;
-			case "CircleFitter":
+			case TYPE_CIRCLEFITTER:
 				return CircleFitter.allVariables;
-			case "CoordAxes":
+			case TYPE_COORDAXES:
 				return CoordAxes.allVariables;
-			case "LineProfile":
+			case TYPE_LINEPROFILE:
 				return LineProfile.allVariables;
-			case "OffsetOrigin":
+			case TYPE_OFFSETORIGIN:
 				return OffsetOrigin.allVariables;
-			case "PointMass":
+			case TYPE_POINTMASS:
 				return PointMass.allVariables;
-			case "Protractor":
+			case TYPE_PROTRACTOR:
 				return Protractor.allVariables;
-			case "RGBRegion":
+			case TYPE_RGBREGION:
 				return RGBRegion.allVariables;
-			case "TapeMeasure":
+			case TYPE_TAPEMEASURE:
 				return TapeMeasure.allVariables;
-			case "Vector":
+			case TYPE_VECTOR:
 				return Vector.allVariables;
+			default:
+			case TYPE_PERSPECTIVE:
+				return NOVARA;
 			}
-		return NOVARA;
+	}
+
+	public static int getBaseTypeInt(String type) {
+		type = type.substring(type.lastIndexOf(".") + 1);
+		for (int i = baseTrackTypes.length; --i >= 0;)
+			if (baseTrackTypes[i].equals(type))
+				return i;
+		return TYPE_UNKNOWN;
 	}
 
 	protected static ArrayList<String> createAllVariables(String[] datavars, String[] fieldvars) {
@@ -1809,7 +1856,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			return false;
 		boolean foundAll = true;
 		TTrack[] temp = new TTrack[n];
-	    ArrayList<TTrack> tracks = trackerPanel.getTracks();
+	    ArrayList<TTrack> tracks = trackerPanel.getTracksTemp();
 		for (int i = 0; i < n; i++) {
 			// BH 2020.10.17 OK? 
 			String name = attachmentNames[i];
@@ -1828,6 +1875,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 //				foundAll = false;
 //			}
 		}
+		tracks.clear();
 		if (foundAll) {
 			attachments = temp;
 			attachmentNames = null;
@@ -3595,7 +3643,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		if (trackerPanel == null)
 			return new String[0];
 		String[] patterns = getFormatPatterns();
-		TreeMap<String, String> defaultPatterns = trackerPanel.getFormatPatterns(getBaseType());
+		TreeMap<String, String> defaultPatterns = trackerPanel.getFormatPatterns(ttype);
 		ArrayList<String> customPatterns = new ArrayList<String>();
 		for (int i = 0; i < patterns.length - 1; i = i + 2) {
 			String name = patterns[i];
@@ -3640,9 +3688,9 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 */
 	public String[] getFormatPatterns() {
 		ArrayList<String> patterns = new ArrayList<String>();
-		for (String name : getAllVariables(getBaseType())) {
+		for (String name : getAllVariables(ttype)) {
 			patterns.add(name);
-			patterns.add(getFormatPattern(name));
+			patterns.add(getVarFormatPattern(name));
 		}
 		return patterns.toArray(new String[patterns.size()]);
 	}
@@ -3729,11 +3777,10 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @param name  the variable name
 	 * @return the pattern
 	 */
-	protected String getFormatPattern(String name) {
-		String val, type = getBaseType();
-
+	protected String getVarFormatPattern(String name) {
+		String val;
 		// change formatter display name to variable if needed
-		if (!getAllVariables(type).contains(name)) {
+		if (!getAllVariables(ttype).contains(name)) {
 			String[] vars = getVariablesFromFormatterDisplayName(name);
 			if (vars != null && vars.length > 0) {
 				name = vars[0];
@@ -3761,13 +3808,13 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		// get pattern for track type
 
 		// look in trackerPanel formatPatterns
-		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(type);
+		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(ttype);
 		if ((val = patterns.get(name)) != null) {
 			return val;
 		}
 
 		// look in defaultFormatPatterns
-		patterns = getDefaultFormatPatterns(type);
+		patterns = getDefaultFormatPatterns(ttype);
 		if (patterns != null && (val = patterns.get(name)) != null) {
 			return val;
 		}
@@ -3775,35 +3822,40 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		return ""; //$NON-NLS-1$
 	}
 
-	protected static TreeMap<String, String> getDefaultFormatPatterns(String type) {
-		TreeMap<String, String> patterns = defaultFormatPatterns.get(type);
+	protected static TreeMap<String, String> getDefaultFormatPatterns(int ttype) {
+		TreeMap<String, String> patterns = defaultFormatPatterns[ttype];
 		if (patterns != null)
 			return patterns;
 		patterns = new TreeMap<String, String>();
-		boolean isLine = (type == "LineProfile");
-		boolean isRGB = (isLine || type == "RGBRegion");
-		boolean isStep = ("CenterOfMass,RGBRegion,PointMass,Vector,Protractor,CircleFitter,TapeMeasure".indexOf(type) >= 0);
-		boolean isCircle = type == "CircleFitter";
-		if (isStep) {
+		defaultFormatPatterns[ttype] = patterns;
+		switch (ttype) {
+		case TYPE_CIRCLEFITTER:
+			patterns.put(TrackerRes.getString("CircleFitter.Data.PointCount"), NumberField.INTEGER_PATTERN);
+			// fall through
+		case TYPE_POINTMASS:
+		case TYPE_PROTRACTOR:
+		case TYPE_RGBREGION:
+		case TYPE_TAPEMEASURE:
+		case TYPE_VECTOR:
+			// steps
 			patterns.put("t", NumberField.DECIMAL_3_PATTERN); //$NON-NLS-1$
 			patterns.put("step", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
 			patterns.put("frame", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
+			break;
 		}
-		if (isLine) {
+		// some cross-over here, so we do two switches
+		switch (ttype) {
+		case TYPE_LINEPROFILE:
 			patterns.put("n", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
-		}
-		if (isRGB) {
+			// fall through
+		case TYPE_RGBREGION:
 			patterns.put("pixels", NumberField.INTEGER_PATTERN); //$NON-NLS-1$
 			patterns.put("R", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
 			patterns.put("G", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
 			patterns.put("B", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
 			patterns.put("luma", NumberField.DECIMAL_1_PATTERN); //$NON-NLS-1$
+			break;
 		}
-		if (isCircle) {
-			String var = TrackerRes.getString("CircleFitter.Data.PointCount"); //$NON-NLS-1$
-			patterns.put(var, NumberField.INTEGER_PATTERN);
-		}
-		defaultFormatPatterns.put(type, patterns);
 		return patterns;
 	}
 
@@ -3829,7 +3881,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 
 	public void setInitialFormatPatterns(TrackerPanel trackerPanel) {
 		// set default NumberField format patterns
-		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(getBaseType());
+		TreeMap<String, String> patterns = trackerPanel.getFormatPatterns(ttype);
 		for (String name : patterns.keySet()) {
 			setFormatPattern(name, patterns.get(name));
 		}

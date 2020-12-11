@@ -237,7 +237,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected StepSet selectedSteps = new StepSet(this);
 	protected boolean hideDescriptionWhenLoaded;
 	protected PropertyChangeListener massParamListener, massChangeListener;
-	protected Map<String, TreeMap<String, String>> formatPatterns = new HashMap<>();
+	@SuppressWarnings("unchecked")
+	protected TreeMap<String, String>[] formatPatterns = new TreeMap[TTrack.getDefaultFormatPatterns().length];
 	protected String lengthUnit = "m", massUnit = "kg", timeUnit = "s"; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 	protected boolean unitsVisible = true; // visible by default
 	protected TCoordinateStringBuilder coordStringBuilder;
@@ -508,6 +509,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 	}
 
+	int BHtest;
 	/**
 	 * Gets a list of TTracks being drawn on this panel.
 	 *
@@ -515,6 +517,15 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	public ArrayList<TTrack> getTracks() {
 		return getDrawables(TTrack.class);
+	}
+
+	/**
+	 * Gets a list of TTracks being drawn on this panel.
+	 *
+	 * @return a list of tracks
+	 */
+	public ArrayList<TTrack> getTracksTemp() {
+		return getDrawablesTemp(TTrack.class);
 	}
 
 	/**
@@ -529,16 +540,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		tracks.remove(getAxes());
 		tracks.removeAll(calibrationTools);
 		tracks.removeAll(measuringTools);
-		tracks.removeAll(getDrawables(PerspectiveTrack.class));
+		tracks.removeAll(getDrawablesTemp(PerspectiveTrack.class));
 
 		// remove child ParticleDataTracks
-		ArrayList<ParticleDataTrack> list = getDrawables(ParticleDataTrack.class);
+		ArrayList<ParticleDataTrack> list = getDrawablesTemp(ParticleDataTrack.class);
 		for (int m = 0, n = list.size(); m < n; m++) {
 			ParticleDataTrack track = list.get(m);
 			if (track.getLeader() != track) {
 				tracks.remove(track);
 			}
 		}
+		list.clear();
 		return userTracks = tracks;
 	}
 
@@ -550,18 +562,21 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public ArrayList<TTrack> getTracksToSave() {
 		// remove child ParticleDataTracks
 		ArrayList<TTrack> tracks = getTracks();
-		ArrayList<ParticleDataTrack> list = getDrawables(ParticleDataTrack.class);
+		ArrayList<ParticleDataTrack> list = getDrawablesTemp(ParticleDataTrack.class);
 		for (int m = 0, n = list.size(); m < n; m++) {
 			ParticleDataTrack track = list.get(m);
 			if (track.getLeader() != track) {
 				tracks.remove(track);
 			}
 		}
+		list.clear();
 		return tracks;
 	}
 
 	public TTrack getTrack(String name) {
-		return getTrack(name, getTracks());
+		TTrack t = getTrack(name, getTracksTemp());
+		clearTemp();
+		return t;
 	}
 	/**
 	 * Gets the first track with the specified name
@@ -651,13 +666,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		else if (track instanceof ParticleDataTrack) {
 			super.addDrawable(track);
 			final ParticleDataTrack dt = (ParticleDataTrack) track;
-			if (dt.allPoints().size() > 1) {
+			if (dt.morePoints.size() > 0) {
 				Runnable runner = new Runnable() {
 					@Override
 					public void run() {
-						for (ParticleDataTrack child : dt.allPoints()) {
-							if (child == dt)
-								continue;
+						for (ParticleDataTrack child : dt.morePoints) {
 							addTrack(child);
 						}
 						TFrame frame = getTFrame();
@@ -799,7 +812,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param track the track to remove
 	 */
 	public synchronized void removeTrack(TTrack track) {
-		if (!getDrawables(track.getClass()).contains(track))
+		if (getTrackByName(track.getClass(), track.getName()) == null)
 			return;
 		userTracks = null;
 		removeMyListenerFrom(track);
@@ -838,13 +851,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @return <code>true</code> if this contains the track
 	 */
 	public boolean containsTrack(TTrack track) {
-		ArrayList<TTrack> list = getTracks();
+		ArrayList<TTrack> list = getTracksTemp();
+		boolean ret = false;;
 		for (int it = 0, n = list.size(); it < n; it++) {
 			TTrack next = list.get(it);
-			if (track == next)
-				return true;
+			if (track == next) {
+				ret = true;
+				break;
+			}
 		}
-		return false;
+		clearTemp();
+		return ret;
 	}
 
 	/**
@@ -1158,16 +1175,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param trackName the name of a point mass
 	 */
 	public void setReferenceFrame(String trackName) {
-		PointMass pm = null;
-		ArrayList<PointMass> list = getDrawables(PointMass.class);
-		for (int i = 0, n = list.size(); i < n; i++) {
-			PointMass m = list.get(i);
-			if (m.getName().equals(trackName)) {
-				pm = m;
-				break;
-			}
-		}
-		final PointMass thePM = pm;
+		PointMass thePM = getTrackByName(PointMass.class, trackName);
 		Runnable runner = new Runnable() {
 			@Override
 			public void run() {
@@ -1238,10 +1246,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @return the CoordAxes
 	 */
 	public CoordAxes getAxes() {
-		ArrayList<CoordAxes> list = getDrawables(CoordAxes.class);
-		if (!list.isEmpty())
-			return list.get(0);
-		return null;
+		return getFirstDrawable(CoordAxes.class);
 	}
 
 	/**
@@ -1250,10 +1255,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @return the first TMat in the drawable list
 	 */
 	public TMat getMat() {
-		ArrayList<TMat> list = getDrawables(TMat.class);
-		if (!list.isEmpty())
-			return list.get(0);
-		return null;
+		return getFirstDrawable(TMat.class);
 	}
 
 	/**
@@ -1318,7 +1320,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (point != null) {
 				// find associated step
 				Step step = null;
-				ArrayList<TTrack> list = getTracks();
+				ArrayList<TTrack> list = getTracksTemp();
 				for (int it = 0, n = list.size(); it < n; it++) {
 					TTrack track = list.get(it);
 					step = track.getStep(point, this);
@@ -1327,6 +1329,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						break;
 					}
 				}
+				list.clear();
 			}
 			if (newStepSelected) {
 				firePropertyChange(PROPERTY_TRACKERPANEL_SELECTEDPOINT, prevPoint, point);
@@ -1911,8 +1914,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// create a new DataTrack if none exists
 			if (dataTrack == null) {
 				dataTrack = new ParticleDataTrack(data, source);
-				int i = getDrawables(PointMass.class).size();
-				dataTrack.setColorToDefault(i);
+				dataTrack.setColorToDefault(getDrawablesTemp(PointMass.class).size());
+				clearTemp();
 				addTrack(dataTrack);
 				setSelectedPoint(null);
 				selectedSteps.clear();
@@ -1979,14 +1982,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 
 		// repaint tracks with readouts
-		ArrayList<TapeMeasure> tapes = getDrawables(TapeMeasure.class);
+		ArrayList<TapeMeasure> tapes = getDrawablesTemp(TapeMeasure.class);
 
 		for (int i = 0, n = tapes.size(); i < n; i++) {
 			TapeMeasure tape = tapes.get(i);
 			tape.inputField.getFormat(); // sets decimal separator
 			tape.repaint(this);
 		}
-		ArrayList<Protractor> prots = getDrawables(Protractor.class);
+		ArrayList<Protractor> prots = getDrawablesTemp(Protractor.class);
 		for (int i = 0, n = prots.size(); i < n; i++) {
 			Protractor p = prots.get(i);
 			p.inputField.getFormat(); // sets decimal separator
@@ -1994,6 +1997,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			p.yField.getFormat(); // sets decimal separator
 			p.repaint(this);
 		}
+		prots.clear(); // same as tapes
 
 	}
 
@@ -2178,12 +2182,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			String letter = alphabet.substring(i, i + 1);
 			String proposed = name + connector + letter;
 			boolean isTaken = false;
-			ArrayList<TTrack> list = getTracks();
+			ArrayList<TTrack> list = getTracksTemp();
 			for (int it = 0, n = list.size(); it < n; it++) {
 				TTrack track = list.get(it);
 				String nextName = track.getName();
 				isTaken = isTaken || proposed.equals(nextName);
 			}
+			clearTemp();
 			if (!isTaken)
 				return i;
 		}
@@ -2316,7 +2321,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			markable = !(selectedTrack.isStepComplete(n) || selectedTrack.isLocked() || popup != null && popup.isVisible());
 			marking = markable && (selectedTrack.isMarkByDefault() != invert);
 		}
-		Interactive iad = getTracks().isEmpty() || mouseEvent == null ? null : getInteractive();
+		Interactive iad = getTracksTemp().isEmpty() || mouseEvent == null ? null : getInteractive();
+		clearTemp();
 		if (marking) {
 			setMouseCursor(selectedTrack.getMarkingCursor(e));
 			if (Tracker.showHints) {
@@ -2339,7 +2345,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		} else if (iad instanceof TPoint) {
 			setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			// identify associated track and display its hint
-			ArrayList<TTrack> list = getTracks();
+			ArrayList<TTrack> list = getTracksTemp();
 			for (int it = 0, ni = list.size(); it < ni; it++) {
 				TTrack track = list.get(it);
 				Step step = track.getStep((TPoint) iad, this);
@@ -2348,6 +2354,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					break;
 				}
 			}
+			clearTemp();
 		} else { // no point selected
 			setMouseCursor(Cursor.getDefaultCursor());
 			// display selected track hint
@@ -2722,10 +2729,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			break;
 		case VideoPlayer.PROPERTY_VIDEOPLAYER_PLAYING: // from player //$NON-NLS-1$
 			if (!((Boolean) e.getNewValue()).booleanValue()) {
-				ArrayList<ParticleModel> list = getDrawables(ParticleModel.class);
+				ArrayList<ParticleModel> list = getDrawablesTemp(ParticleModel.class);
 				for (int m = 0, n = list.size(); m < n; m++) {
 					list.get(m).refreshDerivsIfNeeded();
 				}
+				list.clear();
 			}
 			break;
 		case Trackable.PROPERTY_ADJUSTING: // from videoClip //$NON-NLS-1$
@@ -3055,18 +3063,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	public Interactive getInteractive() {
 		mEvent = mouseEvent; // to provide visibility to Tracker package
-		Interactive iad = null;
+		Interactive o = null;
 		TTrack track = getSelectedTrack();
-		if (track != null && this.getCursor() == track.getMarkingCursor(mEvent))
-			return null;
-		if (track != null && (track.isDependent() || track == getAxes())) {
-			iad = getAxes().findInteractive(this, mouseEvent.getX(), mouseEvent.getY());
-		}
-		if (iad == null && track != null && track != getAxes() && !calibrationTools.contains(track)) {
-			iad = track.findInteractive(this, mouseEvent.getX(), mouseEvent.getY());
-		}
-		if (iad != null)
-			return iad;
+		if (track != null && (getCursor() == track.getMarkingCursor(mEvent)
+				|| (track.isDependent() || track == getAxes())
+						&& (o = getAxes().findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null
+				|| track != getAxes() && !calibrationTools.contains(track)
+						&& (o = track.findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null))
+			return o;
 		return super.getInteractive();
 	}
 
@@ -3288,18 +3292,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 * @param trackType the track type
 	 * @return a map of variable name to pattern
 	 */
-	protected TreeMap<String, String> getFormatPatterns(String trackType) {
-		TreeMap<String, String> patterns = formatPatterns.get(trackType);
+	protected TreeMap<String, String> getFormatPatterns(int ttype) {
+		TreeMap<String, String> patterns = formatPatterns[ttype];
 		if (patterns == null) {
 			patterns = new TreeMap<String, String>();
-			formatPatterns.put(trackType, patterns);
+			formatPatterns[ttype] = patterns;
 			// initialize with default patterns
-			TreeMap<String, String> defaultPatterns = TTrack.getDefaultFormatPatterns(trackType);
+			TreeMap<String, String> defaultPatterns = TTrack.getDefaultFormatPatterns(ttype);
 			if (defaultPatterns != null) {
 				patterns.putAll(defaultPatterns);
 			}
 			// initialize for additional trackType variables
-			ArrayList<String> vars = TTrack.getAllVariables(trackType);
+			ArrayList<String> vars = TTrack.getAllVariables(ttype);
 			for (int i = 0, n = vars.size(); i < n; i++) {
 				String v = vars.get(i);
 				if (!patterns.containsKey(v)) {
@@ -3320,10 +3324,11 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 //		for (int i = 0, n = types.length; i < n; i++) {
 //			getFormatPatterns(types[i]);
 //		}
-		ArrayList<TTrack> list = getTracks();
+		ArrayList<TTrack> list = getTracksTemp();
 		for (int it = 0, n = list.size(); it < n; it++) {
 			list.get(it).setInitialFormatPatterns(this);
 		}
+		list.clear();
 	}
 
 
@@ -3705,9 +3710,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (patterns != null) {
 				for (int ip = 0; ip < patterns.length; ip++) {
 					String[] next = patterns[ip];
-					TreeMap<String, String> patternMap = trackerPanel.getFormatPatterns(next[0]);
-					for (int i = 1; i < next.length - 1; i = i + 2) {
-						patternMap.put(next[i], next[i + 1]);
+					int ttype = TTrack.getBaseTypeInt(next[0]);
+					if (ttype < 0)
+						continue;
+					TreeMap<String, String> patternMap = trackerPanel.getFormatPatterns(ttype);
+					for (int i = 1; i < next.length;) {
+						patternMap.put(next[i++], next[i++]);
 					}
 				}
 			}
@@ -3953,7 +3961,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 			control.setValue("coords", coords); //$NON-NLS-1$
 			// save custom number formats
-			String[][] customPatterns = trackerPanel.getCustomFormatPatterns();
+			String[][] customPatterns = getSaveCustomFormatPatterns(trackerPanel);
 			if (customPatterns.length > 0) {
 				control.setValue("number_formats", customPatterns); //$NON-NLS-1$
 			}
@@ -4057,60 +4065,66 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// restore XML writing of null final array elements
 			XMLPropertyElement.defaultWriteNullFinalArrayElements = writeNullFinalArrayElements;
 		}
+		
+		/**
+		 * Gets the custom format patterns for a specified TrackerPanel for
+		 * TrackerPanel.Loader.saveObject
+		 *
+		 * @return array of arrays with variable names and custom patterns
+		 */
+		private static String[][] getSaveCustomFormatPatterns(TrackerPanel panel) {
+			String path = PointMass.class.getName();
+			path = path.substring(0, path.lastIndexOf(".") + 1);
+			ArrayList<String[]> formats = new ArrayList<String[]>();
+			// look at all track types defined in defaultFormatPatterns
+			TreeMap<String, String>[] dpatterns = TTrack.getDefaultFormatPatterns();
+			for (int ttype = 0, n = dpatterns.length; ttype < n; ttype++) {
+				TreeMap<String, String> defaultPatterns = dpatterns[ttype];
+				if (defaultPatterns == null)
+					continue;
+				TreeMap<String, String> patterns = panel.getFormatPatterns(ttype);
+				ArrayList<String> customPatterns = new ArrayList<String>();
+				String type = TTrack.getBaseTrackName(ttype);
+				for (String name : defaultPatterns.keySet()) {
+					String defaultPattern = defaultPatterns.get(name);
+					String pattern = patterns.get(name);
+					if (!defaultPattern.equals(pattern)) {
+						if (customPatterns.isEmpty()) {
+							customPatterns.add(path + type);
+						}
+						customPatterns.add(name);
+						customPatterns.add(pattern == null ? "" : pattern); //$NON-NLS-1$
+					}
+				}
+				for (String name : patterns.keySet()) {
+					String defaultPattern = defaultPatterns.get(name);
+					if (defaultPattern == null) {
+						defaultPattern = ""; //$NON-NLS-1$
+					}
+					String pattern = patterns.get(name);
+					if (!pattern.equals(defaultPattern) && !customPatterns.contains(name)) {
+						if (customPatterns.isEmpty()) {
+							customPatterns.add(path + type);
+						}
+						customPatterns.add(name);
+						customPatterns.add(pattern);
+					}
+				}
+				if (!customPatterns.isEmpty()) {
+					formats.add(customPatterns.toArray(new String[customPatterns.size()]));
+				}
+			}
+			return formats.toArray(new String[formats.size()][]);
+		}
+
+
+
 
 	}
 
 	public boolean isAutoRefresh() {
 		return isAutoRefresh && Tracker.allowDataRefresh;
 	}
-
-	/**
-	 * Gets the custom format patterns for a specified TrackerPanel for
-	 * TrackerPanel.Loader.saveObject
-	 *
-	 * @return array of arrays with variable names and custom patterns
-	 */
-	protected String[][] getCustomFormatPatterns() {
-		String path = PointMass.class.getName();
-		path = path.substring(0, path.lastIndexOf(".") + 1);
-		ArrayList<String[]> formats = new ArrayList<String[]>();
-		// look at all track types defined in defaultFormatPatterns
-		for (String type : TTrack.defaultFormatPatterns.keySet()) {
-			TreeMap<String, String> defaultPatterns = TTrack.defaultFormatPatterns.get(type);
-			TreeMap<String, String> patterns = getFormatPatterns(type);
-			ArrayList<String> customPatterns = new ArrayList<String>();
-			for (String name : defaultPatterns.keySet()) {
-				String defaultPattern = defaultPatterns.get(name);
-				String pattern = patterns.get(name);
-				if (!defaultPattern.equals(pattern)) {
-					if (customPatterns.isEmpty()) {
-						customPatterns.add(path + type);
-					}
-					customPatterns.add(name);
-					customPatterns.add(pattern == null ? "" : pattern); //$NON-NLS-1$
-				}
-			}
-			for (String name : patterns.keySet()) {
-				String defaultPattern = defaultPatterns.get(name);
-				if (defaultPattern == null) {
-					defaultPattern = ""; //$NON-NLS-1$
-				}
-				String pattern = patterns.get(name);
-				if (!pattern.equals(defaultPattern) && !customPatterns.contains(name)) {
-					if (customPatterns.isEmpty()) {
-						customPatterns.add(path + type);
-					}
-					customPatterns.add(name);
-					customPatterns.add(pattern);
-				}
-			}
-			if (!customPatterns.isEmpty()) {
-				formats.add(customPatterns.toArray(new String[customPatterns.size()]));
-			}
-		}
-		return formats.toArray(new String[formats.size()][]);
-	}
-
 
 	public void setAutoRefresh(boolean b) {
 		if (Tracker.allowDataRefresh)
@@ -4127,13 +4141,14 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				TPoint p = (TPoint) iad;
 				TTrack track = null;
 				Step step = null;
-				Iterator<TTrack> it = getTracks().iterator();
-				while (it.hasNext()) {
-					track = it.next();
-					step = track.getStep(p, this);
-					if (step != null)
+				for (TTrack t: getTracksTemp()) {
+					step = t.getStep(p, this);
+					if (step != null) {
+						track = t;
 						break;
+					}
 				}
+				clearTemp();
 				if (step != null) { // found clicked track
 					Step prev = selectedStep;
 					selectedStep = step;
@@ -4476,7 +4491,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (datasetManager != null) {
 			String dataName = datasetManager.getName().replaceAll("_", " "); //$NON-NLS-1$ //$NON-NLS-2$ ;
 			boolean foundMatch = false;
-			ArrayList<DataTrack> dataTracks = this.getDrawables(DataTrack.class);
+			ArrayList<DataTrack> dataTracks = this.getDrawablesTemp(DataTrack.class);
 			for (DataTrack next : dataTracks) {
 				if (!(next instanceof ParticleDataTrack))
 					continue;
@@ -4497,6 +4512,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 					break;
 				}
 			}
+			dataTracks.clear();
 			// if no matching track was found then create new track
 			if (!foundMatch && frame.alwaysListenToClipboard) {
 				dt = importDatasetManager(datasetManager, null);
@@ -4555,6 +4571,32 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		addFilter(RotateFilter.class);
 		addFilter(PerspectiveFilter.class);
 		addFilter(RadialDistortionFilter.class);
+	}
+
+	private ArrayList<Drawable> tempA; 
+	@SuppressWarnings("unchecked")
+	public <T extends Drawable> ArrayList<T> getDrawablesTemp(Class<T> type) {
+		if (tempA == null)
+			tempA = new ArrayList<>();
+		tempA.clear();
+		return (type == null ? null : getDrawables(type, true, null, (ArrayList<T>) tempA));
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T extends TTrack> T getTrackByName(Class<T> type, String name) {
+		synchronized (drawableList) {
+			for (int i = 0, n = drawableList.size(); i < n; i++) {
+				Drawable d = drawableList.get(i);
+				if (type.isInstance(d) && name.equals(((TTrack)d).getName())) {
+					return (T) d;
+				}
+			}
+			return null;
+		}
+	}
+
+	public void clearTemp() {
+		tempA.clear();
 	}
 
 

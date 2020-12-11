@@ -365,10 +365,11 @@ public class MainTView extends JPanel implements TView {
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
 		// add this listener to tracks
-		for (TTrack track : trackerPanel.getTracks()) {
+		for (TTrack track : trackerPanel.getTracksTemp()) {
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 			track.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); // $NON-NLS-1$
 		}
+		trackerPanel.clearTemp();
 	}
 
 	/**

@@ -66,55 +66,56 @@ public class MultiPositionStep extends PositionStep {
 //    }
 //  }
 //
-  /**
-   * Overrides Step getMark method.
-   *
-   * @param trackerPanel the tracker panel
-   * @return the mark
-   */
-  @Override
-protected Mark getMark(TrackerPanel trackerPanel) {
-    Mark mark = marks.get(trackerPanel);
-    if (mark == null) {
-    	Mark aMark = null;
-    	if (dataTrack.modelFootprintVisible) {
-		    // get mark from modelFootprint
-		    ArrayList<ParticleDataTrack> tracks = dataTrack.allPoints();
-		    TPoint[] points = new TPoint[tracks.size()];
-		    for (int i=0; i<points.length; i++) {
-		    	ParticleDataTrack next = tracks.get(i);
-		    	Step step = next.getStep(this.getFrameNumber());
-		    	points[i] = step==null? null: step.getPoints()[0];
-		    }
-		    Point[] screenPoints = new Point[points.length];
-		    for (int i = 0; i < points.length; i++) {
-		    	if (points[i]==null || Double.isNaN(points[i].x) || Double.isNaN(points[i].y)) {
-		    		screenPoints[i] = null;
-		    	}
-		    	else 
-		    		screenPoints[i] = points[i].getScreenPosition(trackerPanel);
-		    }
-		    aMark = dataTrack.getModelFootprint().getMark(screenPoints);
-    	}
-      final Mark modelMark = aMark;
-      final Mark positionMark = super.getMark(trackerPanel);
-      
-      mark = new Mark() {
-        @Override
-        public void draw(Graphics2D g, boolean highlighted) {
-        	if (!valid) {
-        		return;
-        	}
-          if (modelMark!=null) modelMark.draw(g, highlighted);
-          positionMark.draw(g, highlighted);
-        }
-      };
-      marks.put(trackerPanel, mark);
-    }
-    return mark;
-  }
+	/**
+	 * Overrides Step getMark method.
+	 *
+	 * @param trackerPanel the tracker panel
+	 * @return the mark
+	 */
+	@Override
+	protected Mark getMark(TrackerPanel trackerPanel) {
+		Mark mark = marks.get(trackerPanel);
+		if (mark == null) {
+			Mark aMark = null;
+			if (dataTrack.modelFootprintVisible) {
+				// get mark from modelFootprint
+				ArrayList<ParticleDataTrack> tracks = dataTrack.morePoints;
+				int n = tracks.size() + 1;
+				Point[] screenPoints = new Point[n];
+				int fn = getFrameNumber();
+				screenPoints[0] = getScreenPoint(trackerPanel, fn, dataTrack);
+				for (int i = 1; i < n; i++) {
+					screenPoints[i] = getScreenPoint(trackerPanel, fn, tracks.get(i - 1));
+				}
+				aMark = dataTrack.getModelFootprint().getMark(screenPoints);
+			}
+			final Mark modelMark = aMark;
+			final Mark positionMark = super.getMark(trackerPanel);
 
-  /**
+			mark = new Mark() {
+				@Override
+				public void draw(Graphics2D g, boolean highlighted) {
+					if (!valid) {
+						return;
+					}
+					if (modelMark != null)
+						modelMark.draw(g, highlighted);
+					positionMark.draw(g, highlighted);
+				}
+			};
+			marks.put(trackerPanel, mark);
+		}
+		return mark;
+	}
+
+	private static Point getScreenPoint(TrackerPanel panel, int n, ParticleDataTrack next) {
+		Step step = next.getStep(n);
+		TPoint p = (step == null ? null : step.getPoints()[0]);
+		return (p == null || Double.isNaN(p.x) || Double.isNaN(p.y) 
+				? null : p.getScreenPosition(panel));
+	}
+
+/**
    * Clones this Step.
    *
    * @return a cloned step

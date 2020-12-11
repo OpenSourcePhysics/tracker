@@ -461,7 +461,7 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 			// can't attach calibration stick to models--creates circular dependency
 			TapeMeasure tape = (TapeMeasure) measuringTool;
 			if (tape.isStickMode()) {
-				masses.removeAll(trackerPanel.getDrawables(ParticleModel.class));
+				masses.removeAll(trackerPanel.getDrawablesTemp(ParticleModel.class));
 			}
 		}
 		for (TTrack p : masses) {
@@ -473,14 +473,14 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 		rendererDropdown.setModel(new AttachmentComboBoxModel());
 		FontSizer.setFonts(editorDropdown, FontSizer.getLevel());
 		editorDropdown.setModel(new AttachmentComboBoxModel());
-
 		FontSizer.setFonts(measuringToolDropdown, FontSizer.getLevel());
 		java.util.Vector<TTrack> tools = new java.util.Vector<TTrack>();
-		for (TTrack track : trackerPanel.getTracks()) {
+		for (TTrack track : trackerPanel.getTracksTemp()) {
 			if (track instanceof TapeMeasure || track instanceof Protractor || track instanceof CircleFitter) {
 				tools.add(track);
 			}
 		}
+		trackerPanel.clearTemp();
 		for (TTrack p : tools) {
 			p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_NAME, this); //$NON-NLS-1$
 			p.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_COLOR, this); //$NON-NLS-1$

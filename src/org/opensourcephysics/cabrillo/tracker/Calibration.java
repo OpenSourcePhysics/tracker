@@ -114,6 +114,7 @@ public class Calibration extends TTrack {
 	 * Constructs a Calibration.
 	 */
 	public Calibration() {
+		super(TYPE_CALIBRATION);
 		// set up footprint choices and color
 		setFootprints(new Footprint[] { PointShapeFootprint.getFootprint("Footprint.BoldCrosshair"), //$NON-NLS-1$
 				PointShapeFootprint.getFootprint("Footprint.Crosshair") }); //$NON-NLS-1$

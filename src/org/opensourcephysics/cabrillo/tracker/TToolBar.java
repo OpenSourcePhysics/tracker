@@ -742,37 +742,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		JPopupMenu popup = new JPopupMenu();
 		JMenuItem item = new JMenuItem(TrackerRes.getString("TToolbar.Button.Refresh.Popup.RefreshNow")); //$NON-NLS-1$
 		item.addActionListener((e) -> {
-				// offer to clear RGBRegion data that are valid and visible in a view
-				ArrayList<RGBRegion> regions = trackerPanel.getDrawables(RGBRegion.class);
-				ArrayList<RGBRegion> regionsToClear = new ArrayList<RGBRegion>();
-				if (!regions.isEmpty()) {
-					for (RGBRegion next : regions) {
-						if (trackerPanel.isTrackViewDisplayed(next) && next.dataValid) {
-							regionsToClear.add(next);
-						}
-					}
-				}
-				if (!regionsToClear.isEmpty()) {
-					// get user confirmation
-					String list = " "; //$NON-NLS-1$
-					for (RGBRegion next : regionsToClear) {
-						list += next.getName() + ", "; //$NON-NLS-1$
-					}
-					list = list.substring(0, list.length() - 2);
-					int i = JOptionPane.showConfirmDialog(trackerPanel.getTopLevelAncestor(),
-							TrackerRes.getString("TToolBar.Dialog.ClearRGB.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
-					TrackerRes.getString("TToolBar.Dialog.ClearRGB.Message2"), //$NON-NLS-1$
-							TrackerRes.getString("TToolBar.Dialog.ClearRGB.Title") + list, //$NON-NLS-1$
-							JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-					if (i == JOptionPane.YES_OPTION) {
-						for (RGBRegion next : regionsToClear) {
-							next.clearData();
-						}
-					}
-				}
-				trackerPanel.refreshTrackData(DataTable.MODE_REFRESH);
-				trackerPanel.eraseAll();
-				trackerPanel.repaintDirtyRegion();
+			doRefreshPopup();
 		});
 		popup.add(item);
 		popup.addSeparator();
@@ -789,6 +759,41 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		popup.add(item);
 		FontSizer.setFonts(popup, FontSizer.getLevel());
 		return popup;
+	}
+
+	protected void doRefreshPopup() {
+		// offer to clear RGBRegion data that are valid and visible in a view
+		ArrayList<RGBRegion> regions = trackerPanel.getDrawablesTemp(RGBRegion.class);
+		ArrayList<RGBRegion> regionsToClear = new ArrayList<RGBRegion>();
+		if (!regions.isEmpty()) {
+			for (RGBRegion next : regions) {
+				if (trackerPanel.isTrackViewDisplayed(next) && next.dataValid) {
+					regionsToClear.add(next);
+				}
+			}
+		}
+		regions.clear();
+		if (!regionsToClear.isEmpty()) {
+			// get user confirmation
+			String list = " "; //$NON-NLS-1$
+			for (RGBRegion next : regionsToClear) {
+				list += next.getName() + ", "; //$NON-NLS-1$
+			}
+			list = list.substring(0, list.length() - 2);
+			int i = JOptionPane.showConfirmDialog(trackerPanel.getTopLevelAncestor(),
+					TrackerRes.getString("TToolBar.Dialog.ClearRGB.Message1") + "\n" + //$NON-NLS-1$ //$NON-NLS-2$
+			TrackerRes.getString("TToolBar.Dialog.ClearRGB.Message2"), //$NON-NLS-1$
+					TrackerRes.getString("TToolBar.Dialog.ClearRGB.Title") + list, //$NON-NLS-1$
+					JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+			if (i == JOptionPane.YES_OPTION) {
+				for (RGBRegion next : regionsToClear) {
+					next.clearData();
+				}
+			}
+		}
+		trackerPanel.refreshTrackData(DataTable.MODE_REFRESH);
+		trackerPanel.eraseAll();
+		trackerPanel.repaintDirtyRegion();
 	}
 
 	protected void doNotesAction() {

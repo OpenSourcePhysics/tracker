@@ -238,13 +238,15 @@ public class TMouseHandler implements InteractiveMouseHandler {
 				// find associated step and track
 				Step step = null;
 				TTrack stepTrack = null;
-				for (TTrack track : trackerPanel.getTracks()) {
+				for (TTrack track : trackerPanel.getTracksTemp()) {
 					step = track.getStep(p, trackerPanel);
 					if (step != null) {
 						stepTrack = track;
 						break;
 					}
 				}
+				trackerPanel.clearTemp();
+
 
 				// if control-down, manage trackerPanel.selectedSteps
 				boolean isStepSelected = trackerPanel.selectedSteps.contains(step);

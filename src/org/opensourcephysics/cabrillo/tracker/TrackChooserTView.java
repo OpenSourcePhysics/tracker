@@ -226,7 +226,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		removeAll(); // removes views from card layout
 		tracks.clear();
 		trackComboBox.removeAllItems();
-		for (TTrack track : trackerPanel.getTracks()) {
+		for (TTrack track : trackerPanel.getTracksTemp()) {
 			// include only viewable tracks
 			if (!track.isViewable())
 				continue;
@@ -244,6 +244,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			add(trackView, trackName);
 			tracks.put(item, track);
 		}
+		trackerPanel.clearTemp();
 		validate();
 		trackViews = newViews;
 		// select previously selected track, if any
@@ -287,9 +288,10 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		trackerPanel.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
 		// add this listener to tracks
-		for (TTrack track : trackerPanel.getTracks()) {
+		for (TTrack track : trackerPanel.getTracksTemp()) {
 			addTrackListener(track);
 		}
+		trackerPanel.clearTemp();
 	}
 
 	private void addTrackListener(TTrack track) {
@@ -629,11 +631,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 	 * @return the track
 	 */
 	protected TTrack getTrack(String name) {
-		for (TTrack track : trackerPanel.getTracks()) {
-			if (track.getName().equals(name))
-				return track;
-		}
-		return null;
+		return trackerPanel.getTrackByName(TTrack.class, name);
 	}
 
 	@Override
