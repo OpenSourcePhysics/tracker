@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Tracker JS</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" type="text/css" href="physletsJS.css" />
+	<script src="compadre.js"></script>
+	<script src="swingjs/swingjs2.js"></script>
+	<script>
+		let mainFrame = undefined;
+		if (!self.SwingJS) alert('swingjs2.js was not found. It needs to be in swingjs folder in the same directory as ' +
+			document.location.href);
+
+		function initApp() {
+			if (!org.opensourcephysics.cabrillo.tracker.Tracker) {
+				alert("Tracker class not found.");
+				return; //Tracker was not found.
+			}
+			window.addEventListener('resize', centerApp);
+			centerApp();
+		}
+
+		function centerApp() {
+			let trackerWidth=parseInt(0.9*window.innerWidth,10);    // 90% 
+			let trackerMargin=parseInt(0.05*window.innerWidth,10);  //5%
+		    let trackerHeight=parseInt(0.8*(window.innerHeight-80),10);
+			Tracker.app.getMainFrame().setBounds$I$I$I$I(trackerMargin, 80,trackerWidth, trackerHeight);
+			document.getElementById("myText").style.top= trackerHeight+100 + "px";
+		}
+
+		function loadExperiment(expURL) {
+			Tracker.app.loadExperimentURL(expURL);
+		}
+
+		TrackerInfo = {
+			code: null,
+			main: "org.opensourcephysics.cabrillo.tracker.Tracker",
+			core: "_tracker",
+			resourceZip: "misc-assets.zip",
+			assets: { name: "tracker", zipPath: "tracker-assets.zip", classPaths: ["org/opensourcephysics"] },
+			width: 850,
+			height: 550,
+			readyFunction: initApp,
+			j2sPath: 'swingjs/j2s',
+			console: 'none'
+		}
+	</script>
+</head>
+
+<body>
+	<h1>JavaScript Tracker Mobile (Beta)</h1>
+	<script>
+		SwingJS.getApplet('Tracker', TrackerInfo);
+	</script>
+
+	<div id="myText"  style="position:absolute;left:10px;top:850px;">
+
+		<h2>Description</h2>
+		<p>
+			Tracker is a free video analysis and modeling tool built on the Open Source Physics (OSP) framework. It is designed to be used in education and is supported by the AAPT-ComPADRE National
+			Science Digital Library. If you're new to Tracker, please see <a
+				href="https://physlets.org/tracker/help/frameset.html">Help Getting Started</a> for a step-by step beginner's guide or <a
+				href="https://www.youtube.com/watch?v=La3H7JywgX0">Getting Started with Tracker</a> for a video tutorial before using the JavaScript version of Tracker.  Additional information
+				about Tracker is available on the main <a
+				href="https://physlets.org/tracker/">Tracker website</a>.
+			</p>
+
+			<p>	Note that users can reposition the JavaScript Tracker window by dragging the title bar and that the window can be resized by dragging the lower right hand corner.</p>
+		
+		</p>
+		<h2>Bug Reports</h2>
+		<ul>
+			<li>Use the  <a href="https://forms.gle/uSA2Q8Ev3bMGFK596">JavaScript Tracker Bug Report</a> form to report bugs with the JavaScript version of Tracker.</li>
+			<li>Use the  <a href="https://www.compadre.org/osp/bulletinboard/ForumDetails.cfm?FID=57">OSP Tracker Discussion</a> forum for all other Tracker related questions or feedback.  
+				We welcome questions about how to use Tracker, suggestions for additional Tracker features, and bug reports related to the Java version of Tracker.</li>
+		</ul>
+
+		<h2>Video Clip Formats and Tracker Experiments</h2>
+		<p>
+			JavaScript Tracker  supports video clips in the following formats:
+			<ul>
+				<li>Image stacks consisting of *.jpeg images numbered sequentially.  For example:  car00.jpg, car01.jpg, car02.jpg ........ </li>
+				<li>Video types supported by the HTML 5 &#x3008;video&#x3009; element, such as mp4 or webm.</li>
+			</ul>
+			Tracker Experiment files are special Tracker zip (e.g., *.trz files) archives that contain video clips, Tracker xml data files (e.g., *.trk files) and supplemental documents, such as PDF files.
+			Experiment files that contain older video formats, such as *.qt or *.avi, can be loaded into Tracker but they will not display any video.  
+			Users will need to convert older formats into a supported format using a third-party program, such as <a href="https://cloudconvert.com/mp4-converter">Cloud Convert.</a>.
+		</p>
+
+		<p>Click on the links below to test the JavaScript implementation of Tracker on your computer.
+			<ul>
+				<li><a href="javascript:loadExperiment('examples/CarInLoop.trz')">Car In Loop loaded from this server.</a></li>
+				<li><a href="javascript:loadExperiment('examples/FallingToast.trz')">Falling Toast loaded from this server</a></li>
+				<li><a
+					href="javascript:loadExperiment('https://www.compadre.org/osp/document/ServeFile.cfm?ID=15022&DocID=5059&TrackerSet=1')">Toy Car in Loop loaded from ComPADRE.</a></li>
+				<li><a
+				href="javascript:loadExperiment('https://www.compadre.org/osp/document/ServeFile.cfm?ID=15021&DocID=5058&TrackerSet=1')">Falling Toast loaded from ComPADRE</a></li>
+			</ul>
+		</p>
+
+		<p>Users can download trz files or mp4 video clips to the desktop and then use the File options in the main menu to open or import them into Tracker.  
+		<ul>
+			<li><a href="examples/CarInLoop.trz"> Toy car in loop Tracker Experiment file</a> </li>
+			<li><a href="examples/FallingToast.trz"> Falling toast Tracker Experiment file</a> </li>
+			<li><a href="examples/jmoljana.mp4"> Molecular dynamics mp4 video clip</a> </li>
+		</ul>
+		Another way to Tracker Experiment files or video clips into Tracker is to drag and drop them from the desktop onto the Tracker window. 
+		</p>
+
+		<p>
+		 Finally, users can use the Tracker library browser to import Tracker video experiments from various digital libraries, such as the OSP Collection on the AAPT-ComPADRE library -- 
+		 provided that the video clip in the *.trz file is encoded in a supported format.
+		</p>
+		<h2>Credits</h2>
+		<p>
+			The Tracker Java program was written by Doug Brown at Cabrillo College using portions of the the Open Source
+			Physics code library developed by Wolfgang Christian at Davidson College. Tracker was later converted from
+			Java to JavaScript by Doug Brown, Wolfgang Christian and Robert Hanson using the <a
+				href="https://chemapps.stolaf.edu/swingjs/site/swingjs/examples/about.html">SwingJS </a> system
+			developed by Hanson and his students at St. Olaf College.
+		</p>
+	</div>
+</body>
+
+</html>
