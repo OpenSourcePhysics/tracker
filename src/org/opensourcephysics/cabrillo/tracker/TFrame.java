@@ -2987,6 +2987,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @author Bob Hanson
 	 */
 	public void loadExperimentURL(String path) {
+		if(!path.startsWith("http")) { // assume path is relative to html page
+			String base=OSPRuntime.getDocbase();;
+			path=base+path;
+			OSPLog.fine("Loading Tracker experiment path="+path);
+		}
 		if (path == null && (path = GUIUtils.showInputDialog(this, "Load Experiment", "Load Experiment",
 				JOptionPane.QUESTION_MESSAGE, lastExperiment)) == null)
 			return;
