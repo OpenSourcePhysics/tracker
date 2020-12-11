@@ -1538,6 +1538,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				}
 			}
 		}
+		tracks.clear();
 		// if not found by name, check for matching ID
 		if (track == null) {
 			int id = data.getID();
@@ -1550,8 +1551,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					break;
 				}
 			}
+			list.clear();
 		}
-		tracks.clear(); // same as list
 		return (ParticleDataTrack) track;
 	}
 

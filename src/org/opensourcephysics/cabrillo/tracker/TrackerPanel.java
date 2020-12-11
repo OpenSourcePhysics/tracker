@@ -1983,12 +1983,12 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 		// repaint tracks with readouts
 		ArrayList<TapeMeasure> tapes = getDrawablesTemp(TapeMeasure.class);
-
 		for (int i = 0, n = tapes.size(); i < n; i++) {
 			TapeMeasure tape = tapes.get(i);
 			tape.inputField.getFormat(); // sets decimal separator
 			tape.repaint(this);
 		}
+		tapes.clear();
 		ArrayList<Protractor> prots = getDrawablesTemp(Protractor.class);
 		for (int i = 0, n = prots.size(); i < n; i++) {
 			Protractor p = prots.get(i);
@@ -1997,8 +1997,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			p.yField.getFormat(); // sets decimal separator
 			p.repaint(this);
 		}
-		prots.clear(); // same as tapes
-
+		prots.clear();
 	}
 
 	/**
@@ -4578,7 +4577,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public <T extends Drawable> ArrayList<T> getDrawablesTemp(Class<T> type) {
 		if (tempA == null)
 			tempA = new ArrayList<>();
-		tempA.clear();
+		if (!tempA.isEmpty()) {
+			System.out.println("TP DANGER WILL ROBINSON");
+			tempA.clear();
+		}
 		return (type == null ? null : getDrawables(type, true, null, (ArrayList<T>) tempA));
 	}
 
