@@ -134,6 +134,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @param source the data source
 	 */
 	private ParticleDataTrack(Object source) {
+		super();
 		dataSource = source;
 		points = new Point2D.Double[] { new Point2D.Double() };
 		tracePtsPerStep = 1;
@@ -233,6 +234,59 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	}
 
+	/**
+	 * Private constructor for making additional point tracks.
+	 * 
+	 * @param data   Object[] {String name, double[2][] xyData}
+	 * @param parent the parent
+	 */
+	private ParticleDataTrack(Object[] data, ParticleDataTrack parent) {
+		this(parent);
+		parent.morePoints.add(this);
+		dataClip = parent.getDataClip();
+		getDataClip().addPropertyChangeListener(this);
+		setPointName(data[0].toString());
+		setColor(parent.getColor());
+		Footprint f = parent.getFootprint();
+		String fname = f.getName();
+		setFootprint(fname);
+		if (f instanceof CircleFootprint) {
+			CircleFootprint cf = (CircleFootprint) f;
+			CircleFootprint cfnew = (CircleFootprint) getFootprint();
+			cfnew.setProperties(cf.getProperties());
+		}
+		double[][] xyData = (double[][]) data[1];
+		setCoreData(xyData, true);
+	}
+
+	/**
+	 * Private constructor for XMLLoader.
+	 * 
+	 * @param pointData the Data object
+	 */
+	private ParticleDataTrack(double[][] coreData, ArrayList<Object[]> pointData) {
+		this(null);
+		getDataClip().addPropertyChangeListener(this);
+		try {
+			setCoreData(coreData, true);
+		} catch (Exception e) {
+		}
+
+		for (int i = 0; i < pointData.size(); i++) {
+			// get the new data
+			Object[] next = pointData.get(i);
+			double[][] xyArray = (double[][]) next[1];
+			ParticleDataTrack target = new ParticleDataTrack(next, this);
+			target.setTrackerPanel(trackerPanel);
+			if (trackerPanel != null) {
+				trackerPanel.addTrack(target);
+			}
+
+			// set target's data
+			target.setCoreData(xyArray, true);
+		}
+	}
+
 	protected void doAllColor() {
 		Color color = getColor();
 		Color newColor = chooseColor(color, TrackerRes.getString("TTrack.Dialog.Color.Title")); //$NON-NLS-1$
@@ -286,59 +340,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		// post edit
 		Undo.postTrackDisplayEdit(this, control);
 		TFrame.repaintT(trackerPanel);
-	}
-
-	/**
-	 * Private constructor for making additional point tracks.
-	 * 
-	 * @param data   Object[] {String name, double[2][] xyData}
-	 * @param parent the parent
-	 */
-	private ParticleDataTrack(Object[] data, ParticleDataTrack parent) {
-		this(parent);
-		parent.morePoints.add(this);
-		dataClip = parent.getDataClip();
-		getDataClip().addPropertyChangeListener(this);
-		setPointName(data[0].toString());
-		setColor(parent.getColor());
-		Footprint f = parent.getFootprint();
-		String fname = f.getName();
-		setFootprint(fname);
-		if (f instanceof CircleFootprint) {
-			CircleFootprint cf = (CircleFootprint) f;
-			CircleFootprint cfnew = (CircleFootprint) getFootprint();
-			cfnew.setProperties(cf.getProperties());
-		}
-		double[][] xyData = (double[][]) data[1];
-		setCoreData(xyData, true);
-	}
-
-	/**
-	 * Private constructor for XMLLoader.
-	 * 
-	 * @param pointData the Data object
-	 */
-	private ParticleDataTrack(double[][] coreData, ArrayList<Object[]> pointData) {
-		this(null);
-		getDataClip().addPropertyChangeListener(this);
-		try {
-			setCoreData(coreData, true);
-		} catch (Exception e) {
-		}
-
-		for (int i = 0; i < pointData.size(); i++) {
-			// get the new data
-			Object[] next = pointData.get(i);
-			double[][] xyArray = (double[][]) next[1];
-			ParticleDataTrack target = new ParticleDataTrack(next, this);
-			target.setTrackerPanel(trackerPanel);
-			if (trackerPanel != null) {
-				trackerPanel.addTrack(target);
-			}
-
-			// set target's data
-			target.setCoreData(xyArray, true);
-		}
 	}
 
 	@Override
@@ -696,7 +697,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		ParticleDataTrack l = getLeader();
 		int count = (pointName.equals(l.pointName) ? 1 : 0);
 		int i = (count == 1 && l == this ? 1 : 0);
-		if (l.morePoints != null) {
+		if (l.morePoints == null) {
+			// may be called during superconstructor
+		} else {
 			for (ParticleDataTrack next : l.morePoints) {
 				if (pointName.equals(next.pointName) && (++count > 0) && next == this) {
 					i = count;
