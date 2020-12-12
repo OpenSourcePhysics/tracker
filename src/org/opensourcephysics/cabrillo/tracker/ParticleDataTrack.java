@@ -893,10 +893,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		// save current time array for comparison
 		double[] tPrev = tData;
 		// set core {x,y,t} data for the leader (this)
-		Object[] xyData = pointData.get(0);
-		setPointName((String) xyData[0]);
-		double[] xData = (double[]) xyData[1];
-		double[] yData = (double[]) xyData[1];
+		Object[] nextPointData = pointData.get(0);
+		setPointName((String) nextPointData[0]);
+		double[][] xyData = (double[][]) nextPointData[1];
+		double[] xData = xyData[0];
+		double[] yData = xyData[1];
 		double[] timeArray = getTimeData(manager);
 		if (timeArray != null && xData.length != timeArray.length) {
 			throw new Exception("Time data has incorrect array length"); //$NON-NLS-1$
@@ -907,12 +908,13 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		// set {x,y} for additional points
 		for (int i = 1; i < pointData.size(); i++) {
 			// get the new data
-			xyData = pointData.get(i);
-			xData = (double[]) xyData[1];
-			yData = (double[]) xyData[2];
+			nextPointData = pointData.get(i);
+			xyData = (double[][]) nextPointData[1];
+			xData = xyData[0];
+			yData = xyData[1];
 			// if needed, create new track
 			if (i > morePoints.size()) {
-				ParticleDataTrack target = new ParticleDataTrack(xyData, this);
+				ParticleDataTrack target = new ParticleDataTrack(nextPointData, this);
 				target.setTrackerPanel(trackerPanel);
 				if (trackerPanel != null) {
 					trackerPanel.addTrack(target);
@@ -922,7 +924,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				// set target's data
 				target.setCoreData(new double[][] { xData, yData }, true);
 				// set target's pointName
-				target.setPointName((String) xyData[0]);
+				target.setPointName((String) nextPointData[0]);
 			}
 		}
 		// delete surplus points, last one first
@@ -1381,9 +1383,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		sourceData = manager;
 		// following line throws exception if (x, y) not found
 		ArrayList<Object[]> pointData = getPointData(manager, DATA_COPY);
-		Object[] xyData = pointData.get(0);
-		double[] x = (double[]) xyData[1];
-		double[] y = (double[]) xyData[2];
+		Object[] nextPointData = pointData.get(0);
+		double[][] xyData = (double[][]) nextPointData[1];
+		double[] x = xyData[0];
+		double[] y = xyData[1];
 		double[][] oldData = getDataArray();
 		int n = oldData[0].length;
 		if (x.length <= n) {
@@ -1406,8 +1409,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		int len = Math.min(pointData.size() - 1, morePoints.size());
 		for (int i = 0; i < len; i++) {
 			// set target's data
-			xyData = pointData.get(i + 1);
-			morePoints.get(i).setCoreData(new double[][] { (double[]) xyData[1], (double[]) xyData[2] }, true);
+			nextPointData = pointData.get(i + 1);
+			morePoints.get(i).setCoreData(new double[][] { (double[]) nextPointData[1], (double[]) nextPointData[2] }, true);
 		}
 
 	}
@@ -1608,93 +1611,166 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				return null;
 			throw new Exception("Data contains no datasets"); //$NON-NLS-1$
 		}
-//		boolean foundX = false, foundY = false;
-		String colName = null;
-		Dataset prevDataset = null, xset = null, yset = null;
+		boolean xIsX = true, yIsY = true;
+		String xColName, yColName, colName = null;
+		Dataset xset = null, yset = null;
 		char x = 'x', y = 'y';
 		for (Dataset dataset : datasets) {
 			// look for columns with paired xy names
 			String xname = dataset.getXColumnName();
 			String yname = dataset.getYColumnName();
-			String xlc, ylc;
-			if (xset == null) {
-				if ((xlc = xname.toLowerCase()).startsWith("x")) { //$NON-NLS-1$
-					colName = xname.substring(1).trim();
-					xset = dataset;
-				} else if ((ylc = yname.toLowerCase()).startsWith("x")) { //$NON-NLS-1$
-					x = 'y';
-					colName = yname.substring(1).trim();
-					xset = dataset;
-				} else if (xlc.endsWith("x")) { //$NON-NLS-1$
-					colName = xname.substring(0, xname.length() - 1).trim();
-					xset = dataset;
-				} else if (ylc.endsWith("x")) { //$NON-NLS-1$
-					x = 'y';
-					colName = yname.substring(0, yname.length() - 1).trim();
-					xset = dataset;
-				}
+			String xlc = xname.toLowerCase();
+			String ylc = yname.toLowerCase();
+			
+			// look for x and y column candidates
+			xColName = yColName = null;
+			if (xlc.startsWith("x")) { //$NON-NLS-1$
+				xColName = xname.substring(1).trim();
+			} else if (ylc.startsWith("x")) { //$NON-NLS-1$
+				xColName = yname.substring(1).trim();
+				xIsX = false;
+			} else if (xlc.endsWith("x")) { //$NON-NLS-1$
+				xColName = xname.substring(0, xname.length() - 1).trim();
+			} else if (ylc.endsWith("x")) { //$NON-NLS-1$
+				xColName = yname.substring(0, yname.length() - 1).trim();
+				xIsX = false;
 			}
-			if (yset == null) {
-				if ((xlc = xname.toLowerCase()).startsWith("y")) { //$NON-NLS-1$
-					if (colName == null) {
-						y = 'x';
-						colName = xname.substring(1).trim();
-					} else if (xname.substring(1).trim().equals(colName)) {
-						y = 'x';
-					} else {
-						colName = null;
-					}
-				} else if ((ylc = yname.toLowerCase()).startsWith("y")) { //$NON-NLS-1$
-					if (colName == null) {
-						colName = yname.substring(1).trim();
-					} else if (!yname.substring(1).trim().equals(colName)) {
-						colName = null;
-					}
-				} else if (xlc.endsWith("y")) { //$NON-NLS-1$
-					if (colName == null) {
-						y = 'x';
-						colName = xname.substring(0, xname.length() - 1).trim();
-					} else if (xname.substring(0, xname.length() - 1).trim().equals(colName)) {
-						y = 'x';
-					} else {
-						colName = null;
-					}
-				} else if (ylc.endsWith("y")) { //$NON-NLS-1$
-					if (colName == null) {
-						colName = yname.substring(0, yname.length() - 1).trim();
-					} else if (!yname.substring(0, yname.length() - 1).trim().equals(colName)) {
-						colName = null;
-					}
-				}
-				if (colName != null)
+			if (xlc.startsWith("y")) { //$NON-NLS-1$
+				yColName = xname.substring(1).trim();
+				yIsY = false;
+			} else if (ylc.startsWith("y")) { //$NON-NLS-1$
+				yColName = yname.substring(1).trim();
+			} else if (xlc.endsWith("y")) { //$NON-NLS-1$
+				yColName = xname.substring(0, xname.length() - 1).trim();
+				yIsY = false;
+			} else if (ylc.endsWith("y")) { //$NON-NLS-1$
+				yColName = yname.substring(0, yname.length() - 1).trim();
+			}
+			
+			// if no candidates, continue
+			if (xColName == null && yColName == null)
+				continue;
+			
+			// compare candidates with existing xset and yset if any
+			if (colName == null) { // starting fresh
+				if (xColName != null && yColName == null) { // xset only
+					colName = xColName;
+					xset = dataset;
+					x = xIsX? 'x': 'y';					
+				} else if (xColName == null && yColName != null) { // yset only
+					colName = yColName;
 					yset = dataset;
+					y = yIsY? 'y': 'x';
+				} else if (!xColName.equals(yColName)) { // both but mismatched: keep y only
+					colName = yColName;
+					yset = dataset;
+					y = yIsY? 'y': 'x';
+				} else { // both found
+					colName = xColName;
+					xset = dataset;
+					yset = dataset;
+					x = xIsX? 'x': 'y';
+					y = yIsY? 'y': 'x';
+				}				
 			}
+			else { // colName previously found but either xset or yset is null
+				if (xset == null && colName.equals(xColName)) {
+					xset = dataset;
+					x = xIsX? 'x': 'y';
+				} else if (yset == null && colName.equals(yColName)) {
+					yset = dataset;
+					y = yIsY? 'y': 'x';
+				}	else { // matching dataset not found so start over
+					xset = yset = null;
+					if (xColName != null) {
+						colName = xColName;						
+						xset = dataset;
+						x = xIsX? 'x': 'y';
+					}
+					else {
+						colName = yColName;						
+						yset = dataset;
+						y = yIsY? 'y': 'x';
+					}
+				}
+			}
+			
+//			if (xset == null) {
+//				if (xlc.startsWith("x")) { //$NON-NLS-1$
+//					if (colName == null) {
+//						colName = xname.substring(1).trim();
+//						xset = dataset;
+//					} else if (xname.substring(1).trim().equals(colName)) {
+//						xset = dataset;
+//					} else {
+//						colName = null;  // mismatched names 
+//					}
+//				} else if ((ylc = yname.toLowerCase()).startsWith("x")) { //$NON-NLS-1$
+//					x = 'y';
+//					colName = yname.substring(1).trim();
+//					xset = dataset;
+//				} else if (xlc.endsWith("x")) { //$NON-NLS-1$
+//					colName = xname.substring(0, xname.length() - 1).trim();
+//					xset = dataset;
+//				} else if (ylc.endsWith("x")) { //$NON-NLS-1$
+//					x = 'y';
+//					colName = yname.substring(0, yname.length() - 1).trim();
+//					xset = dataset;
+//				}
+//			}
+//			if (yset == null) {
+//				if ((xlc = xname.toLowerCase()).startsWith("y")) { //$NON-NLS-1$
+//					if (colName == null) {
+//						yset = dataset;
+//						y = 'x';
+//						colName = xname.substring(1).trim();
+//					} else if (xname.substring(1).trim().equals(colName)) {
+//						y = 'x';
+//						yset = dataset;
+//					} else {
+//						colName = null;
+//					}
+//				} else if ((ylc = yname.toLowerCase()).startsWith("y")) { //$NON-NLS-1$
+//					if (colName == null) {
+//						colName = yname.substring(1).trim();
+//						yset = dataset;
+//					} else if (yname.substring(1).trim().equals(colName)) {
+//						yset = dataset;
+//					} else {
+//						colName = null;
+//					}
+//				} else if (xlc.endsWith("y")) { //$NON-NLS-1$
+//					if (colName == null) {
+//						y = 'x';
+//						colName = xname.substring(0, xname.length() - 1).trim();
+//					} else if (xname.substring(0, xname.length() - 1).trim().equals(colName)) {
+//						y = 'x';
+//					} else {
+//						colName = null;
+//					}
+//				} else if (ylc.endsWith("y")) { //$NON-NLS-1$
+//					if (colName == null) {
+//						colName = yname.substring(0, yname.length() - 1).trim();
+//					} else if (!yname.substring(0, yname.length() - 1).trim().equals(colName)) {
+//						colName = null;
+//					}
+//				}
+//			}
 
-			if (colName == null) {
-				// continue looking with no previous dataset
-				prevDataset = null;
-				continue;
-			}
-			// we found at least one of xset or yset here
+//			if (colName == null) {  // nothing found
+//				// continue looking with no previous dataset
+//				prevDataset = null;
+//				continue;
+//			}
+			
+			// continue if not yet complete
 			if (xset == null || yset == null) {
-				prevDataset = dataset;
 				continue;
 			}
-			if (xset == prevDataset || yset == prevDataset) {
-				// this and previous dataset
-				// BH I don't know why this was only in the case of previous datasets
-				colName = colName.replace('_', ' ').trim(); // $NON-NLS-1$ //$NON-NLS-2$
-			} else if (xset != dataset || yset != dataset) {
-				// one is not from this or the prevous dataset -- clear it
-				if (xset != dataset)
-					xset = null;
-				else
-					yset = null;
-				// continue with this dataset as the previous dataset,
-				// looking for the one we are missing and keeping this column name
-				prevDataset = dataset;
-				continue;
-			}
+			
+			// we have complete xy set
+			colName = colName.replace('_', ' ').trim(); // $NON-NLS-1$ //$NON-NLS-2$
+			// require equal length xy arrays
 			if (xset.getIndex() != yset.getIndex()) {
 				if (mode == DATA_CHECK_ONLY)
 					return null;
@@ -1702,11 +1778,12 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			}
 			if (mode == DATA_CHECK_ONLY)
 				return results;
-			// copy data
-			double[] dx = (x == 'x' ? xset.getXPoints() : xset.getYPoints());
-			double[] dy = (y == 'x' ? yset.getXPoints() : yset.getYPoints());
-			results.add(new Object[] { colName, dx, dy });
-			prevDataset = null;
+			// add data to results
+			double[][] xyData = new double[2][];
+			xyData[0] = (x == 'x' ? xset.getXPoints() : xset.getYPoints()); 
+			xyData[1] = (y == 'x' ? yset.getXPoints() : yset.getYPoints()); 
+			results.add(new Object[] {colName, xyData});
+			xset = yset = null;
 			colName = null;
 		} // end for loop
 
@@ -1730,22 +1807,24 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 						return null;
 					throw new Exception("X and Y data have different array lengths"); //$NON-NLS-1$
 				}
-				if (mode != DATA_CHECK_ONLY) {
-					// copy data
-					double[] dx = (x == 'x' ? xset.getXPoints() : xset.getYPoints());
-					double[] dy = (y == 'x' ? yset.getXPoints() : yset.getYPoints());
-					results.add(new Object[] { "", dx, dy });
-				}
+				if (mode == DATA_CHECK_ONLY)
+					return results;
+				// add data to results
+				double[][] xyData = new double[2][];
+				xyData[0] = (x == 'x' ? xset.getXPoints() : xset.getYPoints()); 
+				xyData[1] = (y == 'x' ? yset.getXPoints() : yset.getYPoints()); 
+				results.add(new Object[] {colName, xyData});
 			}
 		}
-		if (results.isEmpty() && mode != DATA_CHECK_ONLY) {
+		if (results.isEmpty()) {
+			if (mode == DATA_CHECK_ONLY)
+				return null;
 			throw new Exception("Position data (x, y) not defined"); //$NON-NLS-1$
 		}
 		return results;
 	}
 
-	// ___________________________________ private methods
-	// ____________________________
+	// ____________________ private methods ____________________________
 
 	/**
 	 * This adds the initial time parameter to the function panel.
