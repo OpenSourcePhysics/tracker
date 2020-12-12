@@ -280,9 +280,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 		Map<String, Object> map = new HashMap<>();
 		
-		map.put("-adaptable", true);
-
-		
 		if (args == null || args.length == 0)
 			return map;
 		for (int i = 0; i < args.length; i++) {
