@@ -696,9 +696,11 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 		ParticleDataTrack l = getLeader();
 		int count = (pointName.equals(l.pointName) ? 1 : 0);
 		int i = (count == 1 && l == this ? 1 : 0);
-		for (ParticleDataTrack next : l.morePoints) {
-			if (pointName.equals(next.pointName) && (++count > 0) && next == this) {
-				i = count;
+		if (l.morePoints != null) {
+			for (ParticleDataTrack next : l.morePoints) {
+				if (pointName.equals(next.pointName) && (++count > 0) && next == this) {
+					i = count;
+				}
 			}
 		}
 		return (count > 1 ? pointName + " " + i : pointName);
@@ -816,6 +818,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 
 	@Override
 	public void setName(String newName) {
+		if (morePoints == null) // not yet fully constructed
+			return;
 		// set the model name if this is the leader
 		if (getLeader() == this) {
 			// ignore if newName equals current full name
@@ -869,7 +873,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @return the leader (may be this track)
 	 */
 	public ParticleDataTrack getLeader() {
-		return (dataSource instanceof ParticleDataTrack
+		return (dataSource != null && dataSource instanceof ParticleDataTrack
 				? (ParticleDataTrack) dataSource : this);
 	}
 
