@@ -53,7 +53,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -1921,6 +1920,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (data == null)
 			return null;
 		// find DataTrack with matching name or ID
+		
 		ParticleDataTrack dataTrack = ParticleDataTrack.getTrackForData(data, this);
 
 		// load data into DataTrack
@@ -4514,9 +4514,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						// set new data immediately
 						track.setData(datasetManager);
 						track.prevDataString = dataString;
-					} else {
-						// set pending data
-						track.setPendingDataString(dataString);
 					}
 					break;
 				}
@@ -4527,7 +4524,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				dt = importDatasetManager(datasetManager, null);
 				if (dt != null && dt instanceof ParticleDataTrack) {
 					ParticleDataTrack track = (ParticleDataTrack) dt;
-					track.prevDataString = track.pendingDataString = dataString;
+					track.prevDataString = dataString;
 				}
 			}
 		}

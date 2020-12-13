@@ -223,7 +223,7 @@ public class Tracker implements StateMachine {
 
 	// for testing
 	public static boolean timeLogEnabled = false;
-	static boolean testOn = true;
+	static boolean testOn = false;
 	static String testString;
 
 	// define static fields
