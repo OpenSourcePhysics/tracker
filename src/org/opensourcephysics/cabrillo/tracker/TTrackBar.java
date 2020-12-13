@@ -50,7 +50,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.Timer;
@@ -58,8 +57,6 @@ import javax.swing.border.Border;
 
 import org.opensourcephysics.cabrillo.tracker.TTrack.TextLineLabel;
 import org.opensourcephysics.controls.OSPLog;
-import org.opensourcephysics.controls.XMLControl;
-import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
@@ -417,7 +414,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 					}
 					// else return leader's menu
 					ParticleDataTrack dt = ((ParticleDataTrack) track).getLeader();
-					JMenu trackMenu = dt.getMenu(track.trackerPanel, null);
+					JMenu trackMenu = dt.getMenu(track.trackerPanel, new JMenu());
 					FontSizer.setFonts(trackMenu, FontSizer.getLevel());
 					return trackMenu.getPopupMenu();
 				}
