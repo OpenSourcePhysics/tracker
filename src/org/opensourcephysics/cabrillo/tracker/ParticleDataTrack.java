@@ -57,7 +57,6 @@ import org.opensourcephysics.display.DataClip;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.ClipControl;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.media.core.ImageCoordSystem;
@@ -1676,7 +1675,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					y = yIsY? 'y': 'x';
 				}				
 			}
-			else { // colName previously found but either xset or yset is null
+			else { // colName previously found and either xset or yset is non-null
 				if (xset == null && colName.equals(xColName)) {
 					xset = dataset;
 					x = xIsX? 'x': 'y';
@@ -1773,15 +1772,18 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 			
 			// we have complete xy set
 			colName = colName.replace('_', ' ').trim(); // $NON-NLS-1$ //$NON-NLS-2$
+			
 			// require equal length xy arrays
 			if (xset.getIndex() != yset.getIndex()) {
 				if (mode == DATA_CHECK_ONLY)
 					return null;
 				throw new Exception("X and Y data have different array lengths"); //$NON-NLS-1$
 			}
+			
 			if (mode == DATA_CHECK_ONLY)
 				return results;
-			// add data to results
+			
+			// add data to results and continue
 			double[][] xyData = new double[2][];
 			xyData[0] = (x == 'x' ? xset.getXPoints() : xset.getYPoints()); 
 			xyData[1] = (y == 'x' ? yset.getXPoints() : yset.getYPoints()); 
@@ -1814,8 +1816,8 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 					return results;
 				// add data to results
 				double[][] xyData = new double[2][];
-				xyData[0] = (x == 'x' ? xset.getXPoints() : xset.getYPoints()); 
-				xyData[1] = (y == 'x' ? yset.getXPoints() : yset.getYPoints()); 
+				xyData[0] = xset.getYPoints(); 
+				xyData[1] = yset.getYPoints(); 
 				results.add(new Object[] {colName, xyData});
 			}
 		}
