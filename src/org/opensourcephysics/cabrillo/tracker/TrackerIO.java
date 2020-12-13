@@ -2204,7 +2204,7 @@ public class TrackerIO extends VideoIO {
 					})) 
 				return 100;
 			
-			trackerPanel.setTFrame(frame);
+			//trackerPanel.setTFrame(frame);
 			OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
 			// download web videos to the OSP cache
 			if (ResourceLoader.isHTTP(path)) {

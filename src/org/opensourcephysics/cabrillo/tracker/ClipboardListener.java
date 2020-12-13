@@ -30,6 +30,7 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.util.ArrayList;
 import org.opensourcephysics.display.DatasetManager;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.DataTrack;
 import org.opensourcephysics.tools.DataTool;
 
@@ -120,11 +121,11 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 			return;
 		}
 		// if no String data on the clipboard, return
-		if (t == null || !t.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+		if (t == null) {
 			return;
 		}
 		try {
-			processContents((String) t.getTransferData(DataFlavor.stringFlavor));
+			processContents((String) t.getTransferData(OSPRuntime.isJS ? DataFlavor.plainTextFlavor : DataFlavor.stringFlavor));
 		} catch (Exception ex) {
 		}
 	}
