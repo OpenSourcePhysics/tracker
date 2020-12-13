@@ -1907,6 +1907,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (data == null)
 			return null;
 		// find DataTrack with matching name or ID
+		
 		ParticleDataTrack dataTrack = ParticleDataTrack.getTrackForData(data, this);
 
 		// load data into DataTrack

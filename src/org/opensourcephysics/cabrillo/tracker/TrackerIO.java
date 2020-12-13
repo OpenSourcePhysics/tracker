@@ -100,6 +100,7 @@ import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoType;
+import org.opensourcephysics.media.core.VideoIO.SingleExtFileFilter;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.LibraryResource;
@@ -149,6 +150,7 @@ public class TrackerIO extends VideoIO {
 
 	protected static SingleExtFileFilter zipFileFilter, trkFileFilter, trzFileFilter;
 	protected static SingleExtFileFilter videoAndTrkFileFilter, txtFileFilter, jarFileFilter;
+	protected static SingleExtFileFilter delimitedTextFileFilter;
 
 	/**
 	 * TAB, SPACE, COMMA, or SEMICOLON
@@ -274,6 +276,16 @@ public class TrackerIO extends VideoIO {
 			}
 		};
 
+		delimitedTextFileFilter = new SingleExtFileFilter(null, "Delimited Text Files") { //$NON-NLS-1$
+			@Override
+			public boolean accept(File f, boolean checkDir) {
+				String ext = VideoIO.getExtension(f); 
+				return (checkDir && f.isDirectory()
+						|| "txt".equalsIgnoreCase(ext) //$NON-NLS-1$
+						|| "csv".equalsIgnoreCase(ext));  //$NON-NLS-1$
+			}
+
+		};
 		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Tab"), TAB); //$NON-NLS-1$
 		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Space"), SPACE); //$NON-NLS-1$
 		delimiters.put(TrackerRes.getString("TrackerIO.Delimiter.Comma"), COMMA); //$NON-NLS-1$
@@ -641,17 +653,22 @@ public class TrackerIO extends VideoIO {
 			// load the files
 			int frameNumber = -1;
 			int nf = fileList.size();
-			boolean haveOneVideo = (fileList.size() == 1 && isVideo(fileList.get(0)));
+			boolean haveOneVideo = nf == 1 && isVideo(fileList.get(0));
+			boolean haveOneData = nf == 1 && delimitedTextFileFilter.accept(fileList.get(0), false);
 			for (int j = 0; j < nf; j++) {
 				final File file = fileList.get(j);
 				OSPRuntime.cacheJSFile(file, true);
 				OSPLog.debug("file to load: " + file.getAbsolutePath()); //$NON-NLS-1$
-				// load a new tab unless file is video and there is a trackerPanel to import it
-				if (!haveOneVideo) {
-					// could be a video file or a directory of images
+				// load a new tab unless file is video or delimited text
+				// and there is a trackerPanel to import it
+				if (!haveOneVideo && !haveOneData) {
+					// could be TRK, TRZ, directory of images, etc
 					list.add(XML.getAbsolutePath(file));
 				} else if (targetPanel == null) {
 					list.add(XML.getAbsolutePath(file));
+				} else if (haveOneData) {
+					// pig import data file;
+					targetPanel.importDataAsync(XML.getAbsolutePath(file), null, null);
 				} else {
 					// import video
 					if (targetPanel.getVideo() instanceof ImageVideo && isImageFile(file)) {
@@ -1735,6 +1752,7 @@ public class TrackerIO extends VideoIO {
 		private static final int TYPE_FRAME = 3;
 		private static final int TYPE_VIDEO = 4;
 		private static final int TYPE_UNSUPPORTED_VIDEO = 5;
+		private static final int TYPE_TEXT = 6;
 
 		private boolean panelChanged;
 		private TrackerPanel trackerPanel;
@@ -1838,7 +1856,15 @@ public class TrackerIO extends VideoIO {
 					return true;
 				}
 			}
-
+			
+			// check for text data files
+			if (delimitedTextFileFilter.accept(testFile, false)) {
+				type = TYPE_TEXT;
+				trackerPanel = (existingPanel == null ? frame.getCleanTrackerPanel() : existingPanel);
+				panelChanged = trackerPanel.changed;
+				return true;
+			}
+			
 			// load data from TRK file
 			control = new XMLControlElement();
 			xmlPath = control.read(path);
@@ -1897,6 +1923,9 @@ public class TrackerIO extends VideoIO {
 				break;
 			case TYPE_UNSUPPORTED_VIDEO:
 				VideoIO.handleUnsupportedVideo(path, XML.getExtension(path), null, trackerPanel, "TrackerIO.unsupp video-asyncLoad");
+			case TYPE_TEXT:
+				progress = loadData(progress);
+				break;
 			default:
 				return 100;
 			}
@@ -2194,6 +2223,13 @@ public class TrackerIO extends VideoIO {
 				if (panelList.size() == 0 && paths.size() == 0)
 					doneLoading();
 			}
+		}
+		
+		private int loadData(int progress) {
+			frame.addTab(trackerPanel, null);
+			frame.setSelectedTab(trackerPanel);
+			trackerPanel.importDataAsync(path, null, null);
+			return 100;
 		}
 
 		private int loadVideo(int progress) {
