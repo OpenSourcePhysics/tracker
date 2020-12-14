@@ -62,7 +62,7 @@ public class WorldTView extends TrackerPanel implements TView {
 	 * @param panel the tracker panel to be viewed
 	 */
 	public WorldTView(TrackerPanel panel) {
-		super(null);
+		super(panel.frame);
 		trackerPanel = panel;
 		if (panel == null)
 			return;

@@ -691,7 +691,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		});
 		// paste items
 		edit_pasteItem = editMenu.add(actions.get("paste")); //$NON-NLS-1$
-		edit_pasteItem.setAccelerator(KeyStroke.getKeyStroke('V', keyMask));
+		if (!OSPRuntime.isJS) {
+			// FireFox must handle CTRL-V specially for JPanel div
+			edit_pasteItem.setAccelerator(KeyStroke.getKeyStroke('V', keyMask));
+		}
 		editMenu.addSeparator();
 		// autopaste checkbox
 		edit_autopasteCheckbox = new JCheckBoxMenuItem(TrackerRes.getString("TMenuBar.Checkbox.Autopaste")); //$NON-NLS-1$

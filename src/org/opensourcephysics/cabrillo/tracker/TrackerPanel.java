@@ -195,7 +195,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected JPopupMenu popup;
 	protected Set<String> enabled; // enabled GUI features (subset of full_config)
 	protected TPoint snapPoint; // used for origin snap
-	private TFrame frame;
+	protected TFrame frame;
 	protected BufferedImage renderedImage, matImage; // for video recording
 	protected XMLControl currentState, currentCoords, currentSteps;
 	protected TPoint pointState = new TPoint();
@@ -257,8 +257,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	/**
 	 * Constructs a blank TrackerPanel with a player.
 	 */
+	public TrackerPanel(TFrame frame) {
+		super(null);
+		this.frame = frame;
+		setGUI();
+	}
+
+	/**
+	 * Constructs a blank TrackerPanel with a player.
+	 */
 	public TrackerPanel() {
-		this(null);
+		super(null);
+		setGUI();
 	}
 
 	/**
@@ -268,6 +278,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	public TrackerPanel(Video video) {
 		super(video);
+		setGUI();
+	}
+	
+	private void setGUI() {
 		displayCoordsOnMouseMoved = true;
 		
 		id = "TP" + ++ids;
@@ -4413,10 +4427,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return true;
 	}
 
-	public void paint(Graphics g) {
-		System.out.println("TrackerPanel.paint");
-		super.paint(g);
-	}
 	@Override
 	public void repaint() {
 		if (!isPaintable())
@@ -4598,5 +4608,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		tempA.clear();
 	}
 
+
+	@Override
+	public void addNotify() {
+		super.addNotify();
+		if (OSPRuntime.isJS) {
+			OSPRuntime.setJSClipboardPasteListener(this, frame.getDataDropHandler());
+		}
+	}
+	
+	@Override
+	public void paint(Graphics g) {
+		System.out.println("TrackerPanel.paint");
+		super.paint(g);
+	}
 
 }
