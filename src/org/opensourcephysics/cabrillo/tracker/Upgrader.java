@@ -441,8 +441,7 @@ public class Upgrader {
 		    	    		// exit Tracker
 					    		TrackerPanel trackerPanel = frame.getSelectedPanel();
 					    		if (trackerPanel!=null) {
-					    			Action exit = TActions.getAction("exit", trackerPanel); //$NON-NLS-1$
-					    			exit.actionPerformed(null);
+					    			TActions.getAction("exit", trackerPanel).actionPerformed(null);
 					    		}
 					    		else {
 					    			Tracker.exit();
@@ -583,8 +582,7 @@ public class Upgrader {
 
 							TrackerPanel trackerPanel = frame.getSelectedPanel();
 							if (trackerPanel!=null) {
-								Action exit = TActions.getAction("exit", trackerPanel); //$NON-NLS-1$
-								exit.actionPerformed(null);
+								TActions.getAction("exit", trackerPanel).actionPerformed(null);
 							}
 							else {
 								Tracker.exit();
