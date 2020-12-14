@@ -415,7 +415,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// set transfer handler on tabbedPane
 		fileDropHandler = new FileDropHandler(this);
 		// set transfer handler for CTRL-V paste
-		dataDropHandler = new DataDropHandler();
 		tabbedPane.setTransferHandler(fileDropHandler);
 		if (panel != null) {
 			addTab(panel, () -> {});
@@ -2810,7 +2809,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	DataDropHandler getDataDropHandler() {
-		return dataDropHandler;
+		return (dataDropHandler == null ? (dataDropHandler = new DataDropHandler()) : dataDropHandler);
 	}
 
 	/**
