@@ -90,9 +90,10 @@ public class AutoTracker implements Trackable, PropertyChangeListener {
 	private static int defaultEvolveRate = AutoTrackerOptions.maxEvolveRate / 5;
 	private static Icon searchIcon, stopIcon, graySearchIcon;
 	private static double[] defaultSearchSize = {40, 40};
-	static boolean neverPause = true;
+	static boolean neverPause = true; // TODO: to core, make not static
 
 	static {
+		//TODO: can it be moved to initialization of static members?
 		dotted = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8, DOTTED_LINE, 0);
 		dashed = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8, DASHED_LINE, 0);
 		selectionShape = solidBold.createStrokedShape(hitRect);
@@ -2567,6 +2568,7 @@ public class AutoTracker implements Trackable, PropertyChangeListener {
 			StringBuffer buf = new StringBuffer();
 			buf.append(TrackerRes.getString("AutoTracker.Info.Frame") + " " + n); //$NON-NLS-1$ //$NON-NLS-2$
 			switch (code) {
+				//TODO: enum for codes, remove magic numbers
 				case 0: // keyframe
 					textPane.setForeground(Color.blue);
 					buf.append(" ("); //$NON-NLS-1$
@@ -2805,6 +2807,7 @@ public class AutoTracker implements Trackable, PropertyChangeListener {
 
 	}
 
+	//TODO: move to a separate class in the same package
 	protected class TrackerPanelControl implements AutoTrackerControl {
 
 		@Override
