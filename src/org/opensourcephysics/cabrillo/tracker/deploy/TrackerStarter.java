@@ -819,7 +819,10 @@ public class TrackerStarter {
 
 		// prepare to execute the command
 		ProcessBuilder builder = new ProcessBuilder(cmd);
-		
+
+		builder.redirectErrorStream(true);
+		builder.redirectOutput(new File(trackerHome,"tracker_output.log"));
+
 		// set environment variables for new process
 		Map<String, String> env = builder.environment();
 //		String portVar = "TRACKER_PORT"; //$NON-NLS-1$
