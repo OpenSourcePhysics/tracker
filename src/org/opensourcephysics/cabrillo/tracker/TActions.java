@@ -117,7 +117,7 @@ public class TActions {
 						null) {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						clearTracks(trackerPanel);
+						trackerPanel.checkAndClearTracks();
 					}
 				});
 
@@ -140,11 +140,7 @@ public class TActions {
 					@Override
 					public void actionPerformed(ActionEvent e) {
 						OSPRuntime.paste((data) -> {
-							if (data == null)
-								return;
-							String dataString = pasteXMLAction(trackerPanel, data);
-							if (dataString != null)
-								trackerPanel.importDataAsync(dataString, null, null);
+							trackerPanel.doPaste(data);
 						});
 
 					}
@@ -836,109 +832,7 @@ public class TActions {
 	}
 
 	protected static void cloneAction(TrackerPanel trackerPanel, String name) {
-		TTrack track = trackerPanel.getTrack(name);
-		if (track == null)
-			return;
-		// add digit to end of name
-		int n = 1;
-		try {
-			String number = name.substring(name.length() - 1);
-			n = Integer.parseInt(number) + 1;
-			name = name.substring(0, name.length() - 1);
-		} catch (Exception ex) {
-		}
-		// increment digit if necessary
-		Set<String> names = new HashSet<String>();
-		for (TTrack next : trackerPanel.getTracksTemp()) {
-			names.add(next.getName());
-		}
-		trackerPanel.clearTemp();
-		try {
-			while (names.contains(name + n)) {
-				n++;
-			}
-		} catch (Exception ex) {
-		}
-		// create XMLControl of track, assign new name, and copy to clipboard
-		XMLControl control = new XMLControlElement(track);
-		control.setValue("name", name + n); //$NON-NLS-1$
-		// StringSelection data = new StringSelection(control.toXML());
-//			Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-//			clipboard.setContents(data, data);
-		// now paste
-		pasteXMLAction(trackerPanel, control.toXML());
-	}
-
-	/**
-	 * 
-	 * @param trackerPanel
-	 * @param data
-	 * @return null if consumed, String data if not
-	 */
-	static String pasteXMLAction(TrackerPanel trackerPanel, String data) {
-		try {
-			XMLControl control = new XMLControlElement();
-			control.readXML(data);
-			Class<?> type = control.getObjectClass();
-			if (type == null || control.failedToRead()) {
-				return data;
-			}
-			if (TrackerPanel.class.isAssignableFrom(type)) {
-				control.loadObject(trackerPanel);
-				return null;
-			}
-			if (ImageCoordSystem.class.isAssignableFrom(type)) {
-				XMLControl state = new XMLControlElement(trackerPanel.getCoords());
-				control.loadObject(trackerPanel.getCoords());
-				Undo.postCoordsEdit(trackerPanel, state);
-				return null;
-			}
-			Object o = control.loadObject(null);
-			if (o instanceof TTrack) {
-				TTrack track = (TTrack) o;
-				trackerPanel.addTrack(track);
-				trackerPanel.setSelectedTrack(track);
-				return null;
-			}
-			if (o instanceof VideoClip) {
-				VideoClip clip = (VideoClip) o;
-				VideoClip prev = trackerPanel.getPlayer().getVideoClip();
-				XMLControl state = new XMLControlElement(prev);
-				// make new XMLControl with no stored object
-				state = new XMLControlElement(state.toXML());
-				trackerPanel.getPlayer().setVideoClip(clip);
-				Undo.postVideoReplace(trackerPanel, state);
-				return null;
-			}
-		} catch (Exception ex) {
-		}
-		return data;
-	}
-
-	protected static void clearTracks(TrackerPanel trackerPanel) {
-		// check for locked tracks and get list of xml strings for undoableEdit
-		ArrayList<String> xml = new ArrayList<String>();
-		boolean locked = false;
-		ArrayList<org.opensourcephysics.display.Drawable> keepers = trackerPanel.getSystemDrawables();
-		for (TTrack track : trackerPanel.getTracksTemp()) {
-			if (keepers.contains(track))
-				continue;
-			xml.add(new XMLControlElement(track).toXML());
-			locked = locked || (track.isLocked() && !track.isDependent());
-		}
-		trackerPanel.clearTemp();
-		if (locked) {
-			int i = JOptionPane.showConfirmDialog(trackerPanel,
-					TrackerRes.getString("TActions.Dialog.DeleteLockedTracks.Message"), //$NON-NLS-1$
-					TrackerRes.getString("TActions.Dialog.DeleteLockedTracks.Title"), //$NON-NLS-1$
-					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-			if (i != 0)
-				return;
-		}
-		
-		// post edit and clear tracks
-		Undo.postTrackClear(trackerPanel, xml);
-		trackerPanel.clearTracks();
+		trackerPanel.cloneNamed(name);
 	}
 
 	@SuppressWarnings("serial")

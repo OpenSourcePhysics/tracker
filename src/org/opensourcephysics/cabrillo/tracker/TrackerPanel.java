@@ -4623,4 +4623,117 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		super.paint(g);
 	}
 
+	public void doPaste(String data) {
+		if (data != null && !pasteXML(data))
+			importDataAsync(data, null, null);
+	}
+
+	public void cloneNamed(String name) {
+		TTrack track = getTrack(name);
+		if (track == null)
+			return;
+		// add digit to end of name
+		int n = 1;
+		try {
+			String number = name.substring(name.length() - 1);
+			n = Integer.parseInt(number) + 1;
+			name = name.substring(0, name.length() - 1);
+		} catch (Exception ex) {
+		}
+		// increment digit if necessary
+		Set<String> names = new HashSet<String>();
+		for (TTrack next : getTracksTemp()) {
+			names.add(next.getName());
+		}
+		clearTemp();
+		try {
+			while (names.contains(name + n)) {
+				n++;
+			}
+		} catch (Exception ex) {
+		}
+		// create XMLControl of track, assign new name, and copy to clipboard
+		XMLControl control = new XMLControlElement(track);
+		control.setValue("name", name + n); //$NON-NLS-1$
+		// now paste
+		pasteXML(control.toXML());
+	}
+
+	/**
+	 * Try to read data as XML, returning true if successful.
+	 * 
+	 * @param data
+	 * @return true if successfully read as XML.
+	 */
+	private boolean pasteXML(String data) {
+		try {
+			XMLControl control = new XMLControlElement();
+			control.readXML(data);
+			Class<?> type = control.getObjectClass();
+			if (type == null || control.failedToRead()) {
+				return false;
+			}
+			if (TrackerPanel.class.isAssignableFrom(type)) {
+				control.loadObject(this);
+				return true;
+			}
+			if (ImageCoordSystem.class.isAssignableFrom(type)) {
+				XMLControl state = new XMLControlElement(getCoords());
+				control.loadObject(getCoords());
+				Undo.postCoordsEdit(this, state);
+				return true;
+			}
+			Object o = control.loadObject(null);
+			if (o instanceof TTrack) {
+				TTrack track = (TTrack) o;
+				addTrack(track);
+				setSelectedTrack(track);
+				return true;
+			}
+			if (o instanceof VideoClip) {
+				VideoClip clip = (VideoClip) o;
+				VideoClip prev = getPlayer().getVideoClip();
+				XMLControl state = new XMLControlElement(prev);
+				// make new XMLControl with no stored object
+				state = new XMLControlElement(state.toXML());
+				getPlayer().setVideoClip(clip);
+				Undo.postVideoReplace(this, state);
+				return true;
+			}
+		} catch (Exception ex) {
+		}
+		return false;
+	}
+
+	/**
+	 * Check for locked tracks and get list of xml strings for undoableEdit.
+	 * 
+	 * From clearTracks action.
+	 */
+	public void checkAndClearTracks() {
+		ArrayList<String> xml = new ArrayList<String>();
+		boolean locked = false;
+		ArrayList<org.opensourcephysics.display.Drawable> keepers = getSystemDrawables();
+		for (TTrack track : getTracksTemp()) {
+			if (keepers.contains(track))
+				continue;
+			xml.add(new XMLControlElement(track).toXML());
+			locked = locked || (track.isLocked() && !track.isDependent());
+		}
+		clearTemp();
+		if (locked) {
+			int i = JOptionPane.showConfirmDialog(this,
+					TrackerRes.getString("TActions.Dialog.DeleteLockedTracks.Message"), //$NON-NLS-1$
+					TrackerRes.getString("TActions.Dialog.DeleteLockedTracks.Title"), //$NON-NLS-1$
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if (i != 0)
+				return;
+		}
+		
+		// post edit and clear tracks
+		Undo.postTrackClear(this, xml);
+		clearTracks();
+	}
+
+
 }

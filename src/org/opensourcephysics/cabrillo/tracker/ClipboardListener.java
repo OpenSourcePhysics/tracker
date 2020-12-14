@@ -105,8 +105,7 @@ class ClipboardListener extends Thread implements ClipboardOwner {
 	 */
 	public void processContents(TrackerPanel target) {
 		targetPanel = target;
-		Transferable contents = sysClip.getContents(this);
-		processContents(contents);
+		processContents(sysClip.getContents(this));
 	}
 
 	/**
