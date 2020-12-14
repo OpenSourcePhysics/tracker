@@ -37,6 +37,8 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -71,6 +73,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -90,6 +93,7 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.ToolTipManager;
+import javax.swing.TransferHandler;
 import javax.swing.WindowConstants;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -411,7 +415,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// set transfer handler on tabbedPane
 		fileDropHandler = new FileDropHandler(this);
 		// set transfer handler for CTRL-V paste
-		dataDropHandler = new DataDropHandler(this);
+		dataDropHandler = new DataDropHandler();
 		tabbedPane.setTransferHandler(fileDropHandler);
 		if (panel != null) {
 			addTab(panel, () -> {});
@@ -3508,4 +3512,23 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		setSelectedTab(n);
 	}
 
+	public class DataDropHandler extends TransferHandler {
+
+		DataFlavor df = DataFlavor.plainTextFlavor;
+		@Override
+		public boolean canImport(TransferHandler.TransferSupport support) {
+			 return (support.getTransferable().isDataFlavorSupported(df));
+		}
+
+		@Override
+		public boolean importData(JComponent comp, Transferable t) {
+			try {
+				getSelectedPanel().importDataAsync((String) t.getTransferData(df), null, null);
+				return true;
+			} catch (Exception e) {
+				return false;
+			}
+		}
+
+	}
 }
