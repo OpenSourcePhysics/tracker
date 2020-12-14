@@ -167,31 +167,7 @@ public class TActions {
 				new AbstractAction(TrackerRes.getString("TActions.Action.OpenURL")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						String input = GUIUtils.showInputDialog(trackerPanel.getTFrame(),
-								TrackerRes.getString("TActions.Dialog.OpenURL.Message") //$NON-NLS-1$
-										+ ":                             ", //$NON-NLS-1$
-								TrackerRes.getString("TActions.Dialog.OpenURL.Title"), //$NON-NLS-1$
-								JOptionPane.PLAIN_MESSAGE, null);
-						if (input == null || input.trim().equals("")) { //$NON-NLS-1$
-							return;
-						}
-						Resource res = ResourceLoader.getResource(input.toString().trim());
-						if (res == null || res.getURL() == null) {
-							JOptionPane.showMessageDialog(trackerPanel.getTFrame(),
-									TrackerRes.getString("TActions.Dialog.URLResourceNotFound.Message") //$NON-NLS-1$
-											+ "\n\"" + input.toString().trim() + "\"", //$NON-NLS-1$ //$NON-NLS-2$
-									TrackerRes.getString("TActions.Dialog.URLResourceNotFound.Title"), //$NON-NLS-1$
-									JOptionPane.ERROR_MESSAGE);
-							return;
-						}
-						trackerPanel.setSelectedPoint(null);
-						trackerPanel.selectedSteps.clear();
-						trackerPanel.setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-						TFrame frame = trackerPanel.getTFrame();
-						if (frame != null) {
-							frame.removeEmptyTab(0);
-							frame.doOpenURL(res.getURL().toExternalForm());
-						}
+						trackerPanel.openURLFromDialog();
 					}
 				});
 
@@ -358,19 +334,7 @@ public class TActions {
 				) {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						CoordAxes axes = trackerPanel.getAxes();
-						if (axes == null)
-							return;
-						boolean visible = !axes.isVisible();
-						axes.setVisible(visible);
-						trackerPanel.setSelectedPoint(null);
-						trackerPanel.selectedSteps.clear();
-						trackerPanel.hideMouseBox();
-						if (visible && trackerPanel.getSelectedTrack() == null)
-							trackerPanel.setSelectedTrack(axes);
-						else if (!visible && trackerPanel.getSelectedTrack() == axes)
-							trackerPanel.setSelectedTrack(null);
-//				TFrame.repaintT(trackerPanel);
+						trackerPanel.toggleAxesVisible();
 					}
 				});
 
@@ -379,30 +343,7 @@ public class TActions {
 				getAsyncAction(new AbstractAction() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						Video video = trackerPanel.getVideo();
-						if (video == null)
-							return;
-						trackerPanel.setVideoVisible(true);
-						FilterStack filterStack = video.getFilterStack();
-						Filter filter = null;
-						Map<String, Class<? extends Filter>> filterClasses = trackerPanel.getFilters();
-						Class<? extends Filter> filterClass = filterClasses.get(e.getActionCommand());
-						if (filterClass != null) {
-							try {
-								filter = filterClass.newInstance();
-							} catch (Exception ex) {
-								ex.printStackTrace();
-							}
-							if (filter != null) {
-								filterStack.addFilter(filter);
-								filter.setVideoPanel(trackerPanel);
-								JDialog inspector = filter.getInspector();
-								if (inspector != null) {
-									inspector.setVisible(true);
-								}
-							}
-						}
-						TFrame.repaintT(trackerPanel);
+						trackerPanel.addVideoFilter(e.getActionCommand());
 					}
 				}, true));
 
@@ -677,24 +618,6 @@ public class TActions {
 					}
 				}, true));
 
-		// new DataTrack from text file item
-		actions.put("dataTrack", //$NON-NLS-1$
-				new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						// choose file and import data
-						TrackerIO.getChooserFilesAsync("open data", //$NON-NLS-1$
-								(files) -> {
-									if (files == null) {
-										return null;
-									}
-									String filePath = files[0].getAbsolutePath();
-									trackerPanel.importDataAsync(filePath, null, null);
-									return null;
-								});
-					}
-				});
-
 		// new (read-only) tape measure
 		actions.put("tape", //$NON-NLS-1$
 				getAsyncAction(new AbstractAction(TrackerRes.getString("TapeMeasure.Name"), null) {//$NON-NLS-1$
@@ -794,6 +717,24 @@ public class TActions {
 								Undo.postFilterClear(trackerPanel, xml);
 							}
 						}
+					}
+				});
+
+		// new DataTrack from text file item
+		actions.put("dataTrack", //$NON-NLS-1$
+				new AbstractAction(TrackerRes.getString("ParticleDataTrack.Name"), null) { //$NON-NLS-1$
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						// choose file and import data
+						TrackerIO.getChooserFilesAsync("open data", //$NON-NLS-1$
+								(files) -> {
+									if (files == null) {
+										return null;
+									}
+									String filePath = files[0].getAbsolutePath();
+									trackerPanel.importDataAsync(filePath, null, null);
+									return null;
+								});
 					}
 				});
 

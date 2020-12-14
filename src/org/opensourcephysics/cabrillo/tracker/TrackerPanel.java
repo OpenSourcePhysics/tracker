@@ -89,6 +89,7 @@ import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DisplayRes;
 import org.opensourcephysics.display.Drawable;
 import org.opensourcephysics.display.DrawingPanel;
+import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.Interactive;
 import org.opensourcephysics.display.MessageDrawable;
 import org.opensourcephysics.display.OSPRuntime;
@@ -134,6 +135,7 @@ import org.opensourcephysics.tools.FunctionTool;
 import org.opensourcephysics.tools.LocalJob;
 import org.opensourcephysics.tools.ParamEditor;
 import org.opensourcephysics.tools.Parameter;
+import org.opensourcephysics.tools.Resource;
 import org.opensourcephysics.tools.ResourceLoader;
 import org.opensourcephysics.tools.VideoCaptureTool;
 
@@ -4733,6 +4735,79 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// post edit and clear tracks
 		Undo.postTrackClear(this, xml);
 		clearTracks();
+	}
+
+	public void openURLFromDialog() {
+		String input = GUIUtils.showInputDialog(getTFrame(),
+				TrackerRes.getString("TActions.Dialog.OpenURL.Message") //$NON-NLS-1$
+						+ ":                             ", //$NON-NLS-1$
+				TrackerRes.getString("TActions.Dialog.OpenURL.Title"), //$NON-NLS-1$
+				JOptionPane.PLAIN_MESSAGE, null);
+		if (input == null || input.trim().equals("")) { //$NON-NLS-1$
+			return;
+		}
+		Resource res = ResourceLoader.getResource(input.toString().trim());
+		if (res == null || res.getURL() == null) {
+			JOptionPane.showMessageDialog(getTFrame(),
+					TrackerRes.getString("TActions.Dialog.URLResourceNotFound.Message") //$NON-NLS-1$
+							+ "\n\"" + input.toString().trim() + "\"", //$NON-NLS-1$ //$NON-NLS-2$
+					TrackerRes.getString("TActions.Dialog.URLResourceNotFound.Title"), //$NON-NLS-1$
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		setSelectedPoint(null);
+		selectedSteps.clear();
+		setMouseCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		TFrame frame = getTFrame();
+		if (frame != null) {
+			frame.removeEmptyTab(0);
+			frame.doOpenURL(res.getURL().toExternalForm());
+		}
+	}
+
+	public void toggleAxesVisible() {
+		CoordAxes axes = getAxes();
+		if (axes == null)
+			return;
+		boolean visible = !axes.isVisible();
+		axes.setVisible(visible);
+		setSelectedPoint(null);
+		selectedSteps.clear();
+		hideMouseBox();
+		if (visible) {
+			if (getSelectedTrack() == null)
+				setSelectedTrack(axes);
+		} else {
+			if (getSelectedTrack() == axes)
+				setSelectedTrack(null);		
+		}
+	}
+
+	public void addVideoFilter(String type) {
+		Video video = getVideo();
+		if (video == null)
+			return;
+		setVideoVisible(true);
+		FilterStack filterStack = video.getFilterStack();
+		Filter filter = null;
+		Map<String, Class<? extends Filter>> filterClasses = getFilters();
+		Class<? extends Filter> filterClass = filterClasses.get(type);
+		if (filterClass != null) {
+			try {
+				filter = filterClass.newInstance();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+			if (filter != null) {
+				filterStack.addFilter(filter);
+				filter.setVideoPanel(this);
+				JDialog inspector = filter.getInspector();
+				if (inspector != null) {
+					inspector.setVisible(true);
+				}
+			}
+			TFrame.repaintT(this);
+		}
 	}
 
 
