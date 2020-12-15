@@ -219,9 +219,9 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				Color c = mlf.getColor();
 				boolean closed = mlf.isClosed();
 				if (linesBoldCheckbox.isSelected()) {
-					getLeader().setModelFootprint("Footprint.BoldLines" + "#" + closed); //$NON-NLS-1$ //$NON-NLS-2$
+					getLeader().setModelFootprint("Footprint.BoldMultiLine" + "#" + closed); //$NON-NLS-1$ //$NON-NLS-2$
 				} else {
-					getLeader().setModelFootprint("Footprint.Lines" + "#" + closed); //$NON-NLS-1$ //$NON-NLS-2$
+					getLeader().setModelFootprint("Footprint.MultiLine" + "#" + closed); //$NON-NLS-1$ //$NON-NLS-2$
 				}
 				getModelFootprint().setColor(c);
 				erase();
