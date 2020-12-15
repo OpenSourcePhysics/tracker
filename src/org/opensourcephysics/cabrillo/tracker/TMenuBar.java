@@ -663,9 +663,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		if (!OSPRuntime.isApplet) {
 			file_exitItem = new JMenuItem(actions.get("exit")); //$NON-NLS-1$
 			file_exitItem.setAccelerator(KeyStroke.getKeyStroke('Q', keyMask));
-			file_exitItem.addActionListener((a) ->{
-				Tracker.exit();
-			});
+//			file_exitItem.addActionListener((a) ->{
+//				Tracker.exit();
+//			});
 		}
 		add(fileMenu);
 	}

@@ -765,10 +765,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return;
 		}
 		ArrayList<TrackerPanel> panels = new ArrayList<TrackerPanel>();
+		boolean[] cancelled = new boolean[] {false};
 		saveAllTabs(
 			(trackerPanel) -> {
 				// when each approved, add to list
-				panels.add(trackerPanel);
+				if (!cancelled[0])
+					panels.add(trackerPanel);
 				return null;
 			}, 
 			() -> {
@@ -777,7 +779,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 					new TabRemover(panels.get(i)).executeSynchronously();
 				}
 			}, 
-			null);
+			() -> {
+				// if cancelled
+				cancelled[0] = true;
+				panels.clear();
+			});
 	}
 
 	
@@ -1542,8 +1548,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 	}
 
-	private boolean firstVisible = true;
-	
 	@Override
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
@@ -3003,7 +3007,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @author Bob Hanson
 	 */
 	public void loadExperimentURL(String path) {
-		if(!path.startsWith("http")) { // assume path is relative to html page
+		if(path != null && !path.startsWith("http")) { // assume path is relative to html page
 			path = "https://./" + path;
 //			String base=OSPRuntime.getDocbase();;
 //			path=base+path;

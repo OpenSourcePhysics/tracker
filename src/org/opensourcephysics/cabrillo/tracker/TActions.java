@@ -378,28 +378,10 @@ public class TActions {
 					public void actionPerformed(ActionEvent e) {
 						TFrame frame = trackerPanel.getTFrame();
 						if (frame != null) {
-							// save tabs in try/catch block so always closes
-//					try {
-//						int[] i = {0};
-//						TrackerPanel panel = frame.getTrackerPanel(i[0]);
-//						if (panel == null)
-//							System.exit(0);
-//						
-//						Runnable whenSaved = new Runnable() {
-//							@Override
-//							public void run() {
-//								i[0]++;
-//								TrackerPanel panel = frame.getTrackerPanel(i[0]);
-//								if (panel != null)
-//									panel.save(whenSaved, null);
-//								else 
-//									System.exit(0);
-//							}
-//						};
-//						panel.save(whenSaved, null);
-//					} catch (Exception ex) {
-//						System.exit(0);
-//					}
+							if (frame.getTabCount() > 0)
+								frame.removeAllTabs();
+							if (frame.getTabCount() == 0)
+								System.exit(0);
 						}
 					}
 				});
