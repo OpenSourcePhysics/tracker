@@ -29,31 +29,20 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
-import javax.swing.JDialog;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 
-import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
-import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
-import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Video;
-import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.FunctionTool;
-import org.opensourcephysics.tools.Resource;
-import org.opensourcephysics.tools.ResourceLoader;
-
 import javajs.async.AsyncSwingWorker;
 
 /**
