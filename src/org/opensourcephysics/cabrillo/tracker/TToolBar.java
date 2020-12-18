@@ -1031,9 +1031,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	private void rebuild() {
 		// assemble buttons
 		removeAll();
-
-		if (TTrackBar.testButton != null)
-			add(TTrackBar.testButton);
 		
 		if (!OSPRuntime.isApplet) {
 			if (trackerPanel.isEnabled("file.open")) { //$NON-NLS-1$
@@ -1127,6 +1124,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			add(desktopButton);
 		add(notesButton);
 		add(refreshButton);
+
+		if (TTrackBar.testButton != null)
+			add(TTrackBar.testButton);
 
 //		FontSizer.setFont(newTrackButton);
 //		FontSizer.setFont(zoomButton);

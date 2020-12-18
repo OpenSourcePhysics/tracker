@@ -63,6 +63,8 @@ import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.tools.FontSizer;
+import org.opensourcephysics.tools.LibraryBrowser;
+import org.opensourcephysics.tools.ResourceLoader;
 
 import javajs.async.SwingJSUtils.Performance;
 
@@ -133,12 +135,13 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
-									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-									boolean allViews = testIndex % 2 != 0;
-									boolean portrait = (testIndex/2) % 2 == 0;
-									frame.arrangeViews(trackerPanel, portrait, allViews);
-									TFrame.isPortraitLayout = portrait;
-									testIndex++;
+									
+//									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+//									boolean allViews = testIndex % 2 != 0;
+//									boolean portrait = (testIndex/2) % 2 == 0;
+//									frame.arrangeViews(trackerPanel, portrait, allViews);
+//									TFrame.isPortraitLayout = portrait;
+//									testIndex++;
 									
 //									long t0 = Performance.now(0);
 //									String url = "https://iwant2study.org/lookangejss/02_newtonianmechanics_7gravity/trz/angrybirdtracking.trz";

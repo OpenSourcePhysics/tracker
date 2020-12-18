@@ -100,7 +100,6 @@ import org.opensourcephysics.media.core.VideoFileFilter;
 import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.media.core.VideoPanel;
 import org.opensourcephysics.media.core.VideoType;
-import org.opensourcephysics.media.core.VideoIO.SingleExtFileFilter;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.LibraryResource;
@@ -667,7 +666,7 @@ public class TrackerIO extends VideoIO {
 				} else if (targetPanel == null) {
 					list.add(XML.getAbsolutePath(file));
 				} else if (haveOneData) {
-					// pig import data file;
+					// import data file;
 					targetPanel.importDataAsync(XML.getAbsolutePath(file), null, null);
 				} else {
 					// import video

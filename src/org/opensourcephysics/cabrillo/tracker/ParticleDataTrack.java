@@ -653,7 +653,6 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 				}
 			}
 			else if (getSource() instanceof String) {
-				// pig
 				trackerPanel.importDataAsync(getSource().toString(), null, null);
 			}
 //			getLeader().prevDataString = getLeader().pendingDataString;
