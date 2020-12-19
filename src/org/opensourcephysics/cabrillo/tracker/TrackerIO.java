@@ -1807,7 +1807,7 @@ public class TrackerIO extends VideoIO {
 			path = ResourceLoader.getURIPath(path);
 			isffmpegError = false;
 			theFrame = frame;
-			setCanceled(false);
+//			setCanceled(false);
 			// prevent circular references when loading tabsets
 			nonURIPath = ResourceLoader.getNonURIPath(path);
 			if (rawPath.startsWith("//") && nonURIPath.startsWith("/") && !nonURIPath.startsWith("//")) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
@@ -1900,10 +1900,13 @@ public class TrackerIO extends VideoIO {
 			cancelAsync();
 			return false;
 		}
+		
 		@Override
 		public int doInBackgroundAsync(int progress) {
-			if (frame.libraryBrowser != null && frame.libraryBrowser.isCancelled())
+			if (isCanceled()) {
+				cancelAsync();
 				return 100;
+			}
 			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad " + type + " start " + progress + " " + paths,
 					Performance.TIME_MARK));
 			// type is set in setupLoader, from initAsync()
@@ -2194,8 +2197,10 @@ public class TrackerIO extends VideoIO {
 
 //			if (monitorDialog.isVisible())
 //				monitorDialog.setProgress(80);
-			if (isCanceled())
+			if (isCanceled()) {
+				cancelAsync();
 				return 100;
+			}
 			frame.addTab(trackerPanel, null);
 //			if (monitorDialog.isVisible())
 //				monitorDialog.setProgress(90);
@@ -2277,8 +2282,6 @@ public class TrackerIO extends VideoIO {
 			VideoType vidType = (VideoType) video.getProperty("video_type"); //$NON-NLS-1$
 			OSPLog.finer(video.getProperty("path") + " opened as " + //$NON-NLS-1$ //$NON-NLS-2$
 					vidType.getClass().getSimpleName() + " " + vidType.getDescription()); //$NON-NLS-1$
-			if (isCanceled())
-				return 100;
 			if (video instanceof AsyncVideoI) {
 				video.addPropertyChangeListener(AsyncVideoI.PROPERTY_ASYNCVIDEOI_READY, new PropertyChangeListener() {
 
@@ -2578,7 +2581,7 @@ public class TrackerIO extends VideoIO {
 			}
 		}
 	}
-
+	
 	protected static Object[] getVideoFormats() {
 		return videoFormatDescriptions.toArray();
 	}

@@ -2029,9 +2029,18 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 								public void propertyChange(PropertyChangeEvent e) {
 								// if HINT_LOAD_RESOURCE, then e.getNewValue() is LibraryResource to load
 								if (LibraryBrowser.HINT_LOAD_RESOURCE == e.getOldValue()) {
-									loadLibraryRecord((LibraryResource)e.getNewValue());
+									LibraryResource record = (LibraryResource)e.getNewValue();
+									String abort = "[click here to cancel]";
+									libraryBrowser.setMessage("Loading \""+record.getName() + "\"" + abort, Color.YELLOW);
+									libraryBrowser.setComandButtonEnabled(false);
+
+									// invoke later so libraryBrowser message can refresh
+									SwingUtilities.invokeLater(() -> {
+										loadLibraryRecord(record);
+									});
+
 								}
-								// if HINT_DOWNLOAD_RESOURCE, then e.getNewValue() is downloaded File to load
+								// if HINT_DOWNLOAD_RESOURCE, then e.getNewValue() is downloaded File
 								else if (LibraryBrowser.HINT_DOWNLOAD_RESOURCE == e.getOldValue()) {
 									File file = (File)e.getNewValue();
 									if (file != null && file.exists()) {
@@ -3029,17 +3038,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		}
 	}
 	
-	protected void loadLibraryRecord(LibraryResource record) {
-		String abort = "[click here to cancel]";
-		libraryBrowser.setMessage("Loading \""+record.getName() + "\"" + abort, Color.YELLOW);
-		libraryBrowser.setComandButtonEnabled(false);
-		libraryBrowser.setAlwaysOnTop(true);
-//		libraryBrowser.setCanceled(false);
+	protected void loadLibraryRecord(LibraryResource record) {	
 		openLibraryResource(record, () -> {
 			TrackerPanel trackerPanel = getSelectedPanel();
 			Timer timer = new Timer(200, (ev) -> {
-				libraryBrowser.setCanceled(false);
-				libraryBrowser.setAlwaysOnTop(false);
+				libraryBrowser.doneLoading();
 				requestFocus();	
 				if (trackerPanel != null) {
 					trackerPanel.changed = false;
@@ -3063,7 +3066,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				String fileName = record.getProperty("download_filename"); //$NON-NLS-1$
 				try {
 					target = ResourceLoader.downloadToOSPCache(target, fileName, false).toURI().toString();
-					if (libraryBrowser.isCancelled())
+					if (VideoIO.isCanceled())
 						return;
 				} catch (Exception ex) {
 					String s = TrackerRes.getString("TFrame.Dialog.LibraryError.Message"); //$NON-NLS-1$
