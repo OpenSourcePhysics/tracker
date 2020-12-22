@@ -171,6 +171,11 @@ public class PlotTrackView extends TrackView {
 		linkCheckBox.setToolTipText(TrackerRes.getString("PlotTrackView.Checkbox.Synchronize.Tooltip")); //$NON-NLS-1$
 		plotsButton.setText(TrackerRes.getString("PlotTrackView.Button.PlotCount")); //$NON-NLS-1$
 		plotsButton.setToolTipText(TrackerRes.getString("PlotTrackView.Button.PlotCount.ToolTip")); //$NON-NLS-1$
+// BH: still no luck here. Some very obscure CSS oddity that causes an image less than 6(?) pixels high to 
+//     not center vertically.  
+		plotsButton.setVerticalAlignment(SwingConstants.CENTER);
+		plotsButton.setHorizontalTextPosition(SwingConstants.LEADING);
+		plotsButton.setHorizontalAlignment(SwingConstants.LEFT);
 		TTrack track = getTrack();
 		track.getData(trackerPanel); // load the current data
 		for (int i = 0; i < plots.length; i++) {
@@ -411,7 +416,11 @@ public class PlotTrackView extends TrackView {
 			}
 		};
 		plotsButton.setIcon(TViewChooser.DOWN_ARROW_ICON);
-		plotsButton.setHorizontalTextPosition(SwingConstants.LEADING);
+		plotsButton.setHorizontalTextPosition(SwingConstants.LEFT);
+		plotsButton.setHorizontalAlignment(SwingConstants.LEFT);
+		plotsButton.setVerticalTextPosition(SwingConstants.CENTER);
+		plotsButton.setVerticalAlignment(SwingConstants.TOP);
+
 	}
 
 	private JPopupMenu rebuildPlotsPopup() {
