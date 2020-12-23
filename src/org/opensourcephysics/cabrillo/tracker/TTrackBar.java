@@ -35,6 +35,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -62,6 +63,7 @@ import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
+import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.FontSizer;
 import org.opensourcephysics.tools.LibraryBrowser;
 import org.opensourcephysics.tools.ResourceLoader;
@@ -135,8 +137,18 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
+									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+									PasteDataDialog dialog = new PasteDataDialog(trackerPanel);
+									dialog.setVisible(true);
 									
-//									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
+//									AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
+//									java.awt.image.BufferedImage image = autoTracker.getTemplateMatcher().getTemplate();
+//									String filePath = "D:/Documents/Tracker/testing/pig_template.gif";
+//									if (testIndex++ == 0)
+//										VideoIO.writeImageFile(image, filePath);
+//									image = ResourceLoader.getBufferedImage(filePath, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+//									autoTracker.getTemplateMatcher().setTemplate(image);
+									
 //									boolean allViews = testIndex % 2 != 0;
 //									boolean portrait = (testIndex/2) % 2 == 0;
 //									frame.arrangeViews(trackerPanel, portrait, allViews);
