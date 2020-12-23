@@ -25,33 +25,12 @@
 package org.opensourcephysics.cabrillo.tracker;
 
 import java.awt.*;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
-import java.awt.event.*;
-import java.awt.font.FontRenderContext;
-import java.awt.geom.Rectangle2D;
-
 import javax.swing.*;
-import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableModel;
-
-import org.opensourcephysics.controls.XML;
-import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.media.core.Video;
-import org.opensourcephysics.media.core.VideoClip;
-import org.opensourcephysics.media.core.VideoType;
-import org.opensourcephysics.media.mov.MovieVideoI;
+import javax.swing.border.Border;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.LibraryBrowser;
-import org.opensourcephysics.tools.ResourceLoader;
-
-import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.BitSet;
 
 /**
- * A dialog for viewing and setting document properties and metadata.
+ * A dialog for pasting delimited text data in JS.
  *
  * @author Douglas Brown
  */
@@ -59,6 +38,7 @@ public class PasteDataDialog extends JDialog {
 	
   protected TrackerPanel trackerPanel;
 	protected JButton okButton, cancelButton;
+	protected JTextArea messageArea;
   protected JTextArea textArea;
   protected JLabel label;
   
@@ -86,51 +66,62 @@ public class PasteDataDialog extends JDialog {
 		FontSizer.setFonts(this, level);
   }
   
-  @Override
-  public void setVisible(boolean vis) {
-  	super.setVisible(vis);
-//  	if (!OSPRuntime.isJS)
-//  		dispose();
-  }
-  
 //_____________________________ private methods ____________________________
 
   /**
    * Creates the visible components of this panel.
    */
   private void createGUI() {
-  	setTitle(TrackerRes.getString("PropertiesDialog.Title")); //$NON-NLS-1$
     JPanel contentPane = new JPanel(new BorderLayout());
     setContentPane(contentPane);
-    textArea = new JTextArea(20, 30);
+    
+    messageArea = new JTextArea();
+    messageArea.setEditable(false);
+    Border empty = BorderFactory.createEmptyBorder(2, 4, 2, 4);
+    Border etched = BorderFactory.createEtchedBorder();
+    messageArea.setBorder(BorderFactory.createCompoundBorder(etched, empty));
+    messageArea.setBackground(contentPane.getBackground());
+    messageArea.setForeground(Color.black);
+    contentPane.add(messageArea, BorderLayout.NORTH);
+    
+    textArea = new JTextArea(15, 30);
+    textArea.setBorder(empty);
+    textArea.setFont(new Font("monospaced", Font.PLAIN, textArea.getFont().getSize()));
     JScrollPane scroller = new JScrollPane(textArea);
     contentPane.add(scroller, BorderLayout.CENTER);
     
     // create buttons
-    okButton = new JButton(TrackerRes.getString("Dialog.Button.OK")); //$NON-NLS-1$
+    okButton = new JButton();
     okButton.setForeground(new Color(0, 0, 102));
-    okButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-      	String data = textArea.getText();
-        setVisible(false);
-        trackerPanel.doPaste(data);
-      }
+    okButton.addActionListener( (e) -> {
+    	String data = textArea.getText();
+//      setVisible(false);
+      trackerPanel.doPaste(data);
     });
-    cancelButton = new JButton(TrackerRes.getString("Dialog.Button.Cancel")); //$NON-NLS-1$
+    cancelButton = new JButton();
     cancelButton.setForeground(new Color(0, 0, 102));
-    cancelButton.addActionListener(new ActionListener() {
-      @Override
-      public void actionPerformed(ActionEvent e) {
-        setVisible(false);
-      }
+    cancelButton.addActionListener( (e) -> {
+       setVisible(false);
     });
     // create buttonbar at bottom
     JPanel buttonbar = new JPanel();
     buttonbar.setBorder(BorderFactory.createEmptyBorder(1, 0, 3, 0));
-    contentPane.add(buttonbar, BorderLayout.SOUTH);
     buttonbar.add(okButton);
     buttonbar.add(cancelButton);
+    contentPane.add(buttonbar, BorderLayout.SOUTH);
+    refreshGUI();
+  }
+  
+  /**
+   * Refreshes the visible components of this panel.
+   */
+  protected void refreshGUI() {
+  	setTitle(TrackerRes.getString("PasteDataDialog.Title")); //$NON-NLS-1$
+    okButton.setText(TrackerRes.getString("Dialog.Button.Apply")); //$NON-NLS-1$
+    cancelButton.setText(TrackerRes.getString("Dialog.Button.Close")); //$NON-NLS-1$ 
+    String s = TrackerRes.getString("PasteDataDialog.Message1");
+    s += "\n" + TrackerRes.getString("PasteDataDialog.Message2");
+    messageArea.setText(s);
   }
   
   

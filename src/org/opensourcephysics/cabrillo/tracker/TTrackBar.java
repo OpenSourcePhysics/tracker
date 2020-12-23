@@ -137,9 +137,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 								@Override
 								public void actionPerformed(ActionEvent e) {
 									// test action goes here
-									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
-									PasteDataDialog dialog = new PasteDataDialog(trackerPanel);
-									dialog.setVisible(true);
+//									TrackerPanel trackerPanel = frame.getTrackerPanel(frame.getSelectedTab());
 									
 //									AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
 //									java.awt.image.BufferedImage image = autoTracker.getTemplateMatcher().getTemplate();

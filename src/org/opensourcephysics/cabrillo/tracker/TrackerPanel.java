@@ -232,6 +232,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	protected AttachmentDialog attachmentDialog;
 	protected PlotGuestDialog guestsDialog;
 	protected UnitsDialog unitsDialog;
+	protected PasteDataDialog pasteDataDialog;
 	private boolean isAutoRefresh = true;
 	protected TreeSet<String> supplementalFilePaths = new TreeSet<String>(); // HTML/PDF URI paths
 	protected Map<String, String> pageViewFilePaths = new HashMap<String, String>();
@@ -2094,6 +2095,19 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			attachmentDialog.setMeasuringTool(track);
 		}
 		return attachmentDialog;
+	}
+
+	/**
+	 * Gets the PasteDataDialog for pasting data into TrackerJS.
+	 * 
+	 * @return the PasteDataDialog
+	 */
+	public PasteDataDialog getPasteDataDialog() {
+		if (pasteDataDialog == null) {
+			pasteDataDialog = new PasteDataDialog(this);
+		}
+		pasteDataDialog.setFontLevel(FontSizer.getLevel());
+		return pasteDataDialog;
 	}
 
 	/**

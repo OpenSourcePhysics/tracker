@@ -43,6 +43,7 @@ import org.opensourcephysics.media.core.FilterStack;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Video;
 import org.opensourcephysics.tools.FunctionTool;
+
 import javajs.async.AsyncSwingWorker;
 
 /**
@@ -128,7 +129,12 @@ public class TActions {
 				new AbstractAction(TrackerRes.getString("TActions.Action.Paste")) { //$NON-NLS-1$
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						OSPRuntime.paste((data) -> {
+						if (OSPRuntime.isJS) {
+							PasteDataDialog dialog = trackerPanel.getPasteDataDialog();
+							dialog.setVisible(true);																
+						}
+						else
+							OSPRuntime.paste((data) -> {
 							trackerPanel.doPaste(data);
 						});
 

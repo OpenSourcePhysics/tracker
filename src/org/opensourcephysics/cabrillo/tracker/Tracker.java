@@ -188,7 +188,7 @@ public class Tracker implements StateMachine {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20201222"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20201223"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
 	
 	/**
@@ -223,7 +223,7 @@ public class Tracker implements StateMachine {
 
 	// for testing
 	public static boolean timeLogEnabled = false;
-	static boolean testOn = true;
+	static boolean testOn = false;
 	static String testString;
 
 	// define static fields

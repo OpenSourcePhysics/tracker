@@ -2012,8 +2012,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 
 				@Override
 				public void menuSelected(MenuEvent e) {
-					if (visibleItem != null)
-						return;
+//					if (visibleItem != null)
+//						return;
 					menu0.removeAll();
 					getMenu(trackerPanel, menu0);
 					FontSizer.setMenuFonts(menu0);

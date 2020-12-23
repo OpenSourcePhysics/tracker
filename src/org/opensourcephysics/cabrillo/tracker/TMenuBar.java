@@ -2260,10 +2260,12 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			}
 
 			// disable newDataTrackPasteItem unless pastable data is on the clipboard
-			track_newDataTrackPasteItem.setEnabled(false);
-			String s = OSPRuntime.paste(null);
-			if (s != null) 
-				track_newDataTrackPasteItem.setEnabled(ParticleDataTrack.getImportableDataName(s) != null);
+			track_newDataTrackPasteItem.setEnabled(OSPRuntime.isJS);
+			if (!OSPRuntime.isJS) {
+				String s = OSPRuntime.paste(null);
+				if (s != null) 
+					track_newDataTrackPasteItem.setEnabled(ParticleDataTrack.getImportableDataName(s) != null);
+				}
 			refreshTrackNames(MENU_TRACK);
 		}
 		FontSizer.setMenuFonts(trackMenu);
