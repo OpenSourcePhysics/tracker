@@ -54,6 +54,7 @@ import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.ImageCoordSystem;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
@@ -867,7 +868,8 @@ public class TapeMeasure extends InputTrack {
 					ruler.setHitShapeVisible(b);
 					// BH 2020.12.10 repaint is necessary because just setting the message label
 					// does not trigger a panel repaint in JavaScript (by design)
-					TFrame.repaintT(trackerPanel);
+					if (OSPRuntime.isJS)
+						TFrame.repaintT(trackerPanel);
 				}
 			}
 			if (step.worldLength == 0) {
@@ -906,6 +908,9 @@ public class TapeMeasure extends InputTrack {
 			} else if (ia instanceof TapeStep.Rotator) {
 				partName = TrackerRes.getString("TapeMeasure.Rotator.Name"); //$NON-NLS-1$
 				hint = TrackerRes.getString("TapeMeasure.Rotator.Hint"); //$NON-NLS-1$
+				// DB 2020.12.26 repaint is required in JavaScript?
+				if (OSPRuntime.isJS)
+					TFrame.repaintT(trackerPanel);
 			} else if (ruler != null && ia == ruler.getHandle()) {
 				partName = TrackerRes.getString("TapeMeasure.Ruler.Name"); //$NON-NLS-1$
 				hint = TrackerRes.getString("TapeMeasure.Ruler.Hint"); //$NON-NLS-1$
