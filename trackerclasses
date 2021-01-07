@@ -881,6 +881,7 @@ org/opensourcephysics/display/Data.js
 org/opensourcephysics/display/DataFunction.js
 org/opensourcephysics/display/DataTable.js
 org/opensourcephysics/display/DataTableModel.js
+org/opensourcephysics/display/DataClip.js
 org/opensourcephysics/display/Dataset.js
 org/opensourcephysics/display/DatasetManager.js
 org/opensourcephysics/display/Dimensioned.js
