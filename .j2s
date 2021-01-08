@@ -10,7 +10,7 @@ j2s.site.directory=site
 # uncomment j2s.* lines to process:
 
 # a semicolon-separated list of package-level file paths to be excluded
-#j2s.excluded.paths=test;testng
+j2s.excluded.paths=org/opensourcephysics/media/xuggle
 
 # output file name for logging methods declared - delete the file to regenerate a listing 
 #j2s.log.methods.declared=methodsDeclared.csv
