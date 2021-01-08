@@ -119,6 +119,9 @@ import javajs.async.SwingJSUtils.Performance;
  */
 public class TrackerIO extends VideoIO {
 
+	static final String[] XUGGLE_VIDEO_EXTENSIONS = 
+		{"mov", "flv", "mp4", "wmv", "avi" };
+
 	public interface TrackerMonitor {
 
 		void stop();
@@ -770,7 +773,7 @@ public class TrackerIO extends VideoIO {
 		if (path != null && (path.contains("/OSP/Cache/") || !trzFileFilter.accept(new File(path), false)))
 			path = null;
 		String path0 = path;
-		startLoading(files, null, frame, () -> {
+		startLoading(files, null, frame, null, () -> {
 			if (path0 != null)
 				addToLibrary(frame, path0);
 		});
@@ -786,7 +789,7 @@ public class TrackerIO extends VideoIO {
 	 *                      (may be null)
 	 */
 	private static void startLoading(List<String> paths, TrackerPanel existingPanel, TFrame frame,
-		  Runnable whenDone) {
+		  LibraryBrowser libraryBrowser, Runnable whenDone) {
 		// importVideo 
 		// openFromLibary
 		// ..TFrame.openLibraryResource
@@ -797,7 +800,7 @@ public class TrackerIO extends VideoIO {
 		// openURL
 		// ..TFrame.doOpenURL
 		OSPLog.debug("TrackerIO openTabPathAsync " + paths); //$NON-NLS-1$
-		new AsyncLoader(paths, existingPanel, frame, whenDone).execute();
+		new AsyncLoader(paths, existingPanel, frame, libraryBrowser, whenDone).execute();
 	}
 
 	
@@ -848,7 +851,7 @@ public class TrackerIO extends VideoIO {
 		// TFrame.doOpenURL
 		frame.loadedFiles.clear();
 		OSPLog.debug("TrackerIO open " + path); //$NON-NLS-1$
-		startLoading(listOf(path), null, frame, () -> {
+		startLoading(listOf(path), null, frame, null, () -> {
 			if (trzFileFilter.accept(new File(path), false)
 					&& !ResourceLoader.isHTTP(path) && !path.contains("/OSP/Cache/")) {
 				addToLibrary(frame, path);
@@ -881,7 +884,7 @@ public class TrackerIO extends VideoIO {
 
 		// open in separate background thread if flagged
 			// from TFrame.openLibaryResource
-		startLoading(uriPaths, null, frame, whenDone);
+		startLoading(uriPaths, null, frame, frame.libraryBrowser, whenDone);
 	}
 
 	private static void addToLibrary(TFrame frame, String path) {
@@ -1044,7 +1047,7 @@ public class TrackerIO extends VideoIO {
 		OSPLog.debug("TrackerIO importing file: " + path); //$NON-NLS-1$
 		TFrame frame = trackerPanel.getTFrame();
 		frame.loadedFiles.clear();
-		startLoading(listOf(path), trackerPanel, frame, whenDone);
+		startLoading(listOf(path), trackerPanel, frame, null, whenDone);
 	}
 
 	static List<String> listOf(String path) {
@@ -1768,6 +1771,7 @@ public class TrackerIO extends VideoIO {
 		private Runnable whenDone;
 		private List<VideoPanel> panelList = new ArrayList<>();
 
+		private LibraryBrowser libraryBrowser;
 		/**
 		 * 
 		 * @param paths  or more paths to load in sequence
@@ -1775,13 +1779,14 @@ public class TrackerIO extends VideoIO {
 		 * @param frame
 		 * @param whenDone
 		 */
-		public AsyncLoader(List<String> paths, TrackerPanel existingPanel, TFrame frame, Runnable whenDone) {
+		public AsyncLoader(List<String> paths, TrackerPanel existingPanel, TFrame frame, LibraryBrowser libraryBrowser, Runnable whenDone) {
 			super(frame, paths.get(0), (whenDone == null ? 0 : 10), 0, 100);
 			path = path0 = name = paths.remove(0);
 			this.paths = paths;
 			isAsync = (delayMillis > 0);
 			this.existingPanel = existingPanel;
 			this.frame = frame;
+			this.libraryBrowser = libraryBrowser;
 			this.whenDone = whenDone;
 			monitors.add(this);
 			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad start " + paths, Performance.TIME_MARK));
@@ -1925,6 +1930,7 @@ public class TrackerIO extends VideoIO {
 				break;
 			case TYPE_UNSUPPORTED_VIDEO:
 				VideoIO.handleUnsupportedVideo(path, XML.getExtension(path), null, trackerPanel, "TrackerIO.unsupp video-asyncLoad");
+				return 100;
 			case TYPE_TEXT:
 				progress = loadData(progress);
 				break;
@@ -2238,10 +2244,7 @@ public class TrackerIO extends VideoIO {
 
 		private int loadVideo(int progress) {
 			// check for unsupported MP4 videos
-			if ((path.toLowerCase().endsWith("mp4"))
-					&& !VideoIO.isLoadableMP4(path, (codec) -> {
-						VideoIO.handleUnsupportedVideo(path, "mp4", codec, trackerPanel, "TrackerIO.asyncLoad");
-					})) 
+			if (!checkMP4(path, libraryBrowser, trackerPanel))
 				return 100;
 			
 			//trackerPanel.setTFrame(frame);

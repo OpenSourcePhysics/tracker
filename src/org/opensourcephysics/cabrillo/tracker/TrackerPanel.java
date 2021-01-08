@@ -4824,5 +4824,29 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		}
 	}
 
-
+	/**
+	 * @j2sIgnore
+	 */
+	@Override
+	protected void offerReloadVM(String ext, String message) {
+		// used to be in VideoIO, so messages are of that type here.
+		for (int i = 0; i < TrackerIO.XUGGLE_VIDEO_EXTENSIONS.length; i++) {
+			if (TrackerIO.XUGGLE_VIDEO_EXTENSIONS[i].equals(ext)) {
+				message += "<br><br>" + MediaRes.getString("VideoIO.Dialog.WrongVM.Message.Fix1");
+				message += "<br>" + MediaRes.getString("VideoIO.Dialog.WrongVM.Message.Fix2");
+				message += "<br><br>" + MediaRes.getString("VideoIO.Dialog.WrongVM.Message.Restart");
+				if (JOptionPane.showConfirmDialog(null, new VideoIO.EditorPaneMessage(message),
+						MediaRes.getString("VideoIO.Dialog.UnsupportedVideo.Title"),
+						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
+					// relaunch in 32-bit VM using Tracker PrefsDialog by reflection
+					SwingUtilities.invokeLater(() -> {
+						try {
+							frame.getPrefsDialog().relaunch32Bit();
+						} catch (Exception e) {
+						}
+					});
+				}
+			}
+		}
+	}
 }

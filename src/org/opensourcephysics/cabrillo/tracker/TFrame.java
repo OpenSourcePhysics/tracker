@@ -3026,7 +3026,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				JOptionPane.QUESTION_MESSAGE, lastExperiment)) == null)
 			return;
 		if (TrackerIO.isVideo(new File(path))) {
-			loadVideo(path, false, null); // imports video into current tab
+			loadVideo(path, false, null, null); // imports video into current tab
 			return;
 		}		
 		if (getTabCount() > 0)
@@ -3097,7 +3097,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				return;
 			}
 			if (TrackerIO.isVideo(new File(target))) {
-				loadVideo(target, true, whenDone);
+				loadVideo(target, true, libraryBrowser, whenDone);
 				whenDone = null;
 				return;
 			}
@@ -3172,13 +3172,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param asNewTab true to load into a new tab
 	 * @param whenDone optional Runnable
 	 */
-	void loadVideo(String path, boolean asNewTab, Runnable whenDone) {
+	void loadVideo(String path, boolean asNewTab, LibraryBrowser libraryBrowser, Runnable whenDone) {
 		// from loadExperimentURL and openLibraryResource actions
-		if (!VideoIO.checkMP4(path, libraryBrowser))
+		TrackerPanel panel = getSelectedPanel();
+		if (!VideoIO.checkMP4(path, libraryBrowser, panel))
 			return;					
 		// load a video file or a directory containing images
 		File localFile = ResourceLoader.download(path, null, false);
-		TrackerPanel panel = getSelectedPanel();
 		Runnable importer = new Runnable() {
 			@Override
 			public void run() {
