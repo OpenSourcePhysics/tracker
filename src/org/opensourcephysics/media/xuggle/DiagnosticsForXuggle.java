@@ -48,7 +48,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 	static String requester;
 
 	static { // added by W. Christian
-		if (!OSPRuntime.isJS) {
+		if (false && !OSPRuntime.isJS) {
 			vmBitness = OSPRuntime.getVMBitness();
 
 			// get code base and and XUGGLE_HOME
@@ -335,6 +335,23 @@ public class DiagnosticsForXuggle extends Diagnostics {
 	 * @return status code
 	 */
 	public static int getStatusCode() {
+		
+//		if (true) {
+//			
+//			try {
+//				IContainer.make(); // throws exception if xuggle not available
+//				return 0;
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			} catch (Error er) {
+//				er.printStackTrace();
+//			}
+//			
+//			return 7;
+//			
+//		}
+//		
+		
 		codeBaseJars = getXuggleJarFiles(codeBase);
 		javaExtensionJars = getJavaExtensionJars();
 		pathEnvironment = OSPRuntime.isWindows() ? "Path" //$NON-NLS-1$
@@ -346,7 +363,9 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			IContainer.make(); // throws exception if xuggle not available
 			return 0;
 		} catch (Exception e) {
+			e.printStackTrace();
 		} catch (Error er) {
+			er.printStackTrace();
 		}
 
 		// DB this doesn't work until XuggleVideo class has been loaded

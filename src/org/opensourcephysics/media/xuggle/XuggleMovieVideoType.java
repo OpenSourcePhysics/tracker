@@ -102,8 +102,7 @@ public boolean isType(Video video) {
 	public Video getVideo(String name, String basePath) {
 		XuggleVideo video;
 		try {
-			video = new XuggleVideo();
-			video.init(XML.getResolvedPath(name, basePath));
+			video = new XuggleVideo(XML.getResolvedPath(name, basePath));
 			video.setProperty("video_type", this); //$NON-NLS-1$
 		} catch (IOException ex) {
 			OSPLog.fine(getDescription() + ": " + ex.getMessage()); //$NON-NLS-1$
