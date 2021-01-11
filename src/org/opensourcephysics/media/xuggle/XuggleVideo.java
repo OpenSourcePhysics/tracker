@@ -239,6 +239,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 		}
 		OSPLog.finest("Xuggle video loading " + path + " local?: " + isLocal); //$NON-NLS-1$ //$NON-NLS-2$
 		failDetectTimer.start();
+		frameCount = -1;
 		String err = openContainer();
 		if (err != null) {
 			dispose();
