@@ -232,6 +232,7 @@ java/net/HttpURLConnection.js
 java/net/JarURLConnection.js
 java/net/MalformedURLException.js
 java/net/Parts.js
+java/net/UnknownHostException.js
 java/net/URI.js
 java/net/URISyntaxException.js
 java/net/URL.js
