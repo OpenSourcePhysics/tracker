@@ -2692,6 +2692,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			changed = true;
 			break;
 		case VideoPlayer.PROPERTY_VIDEOPLAYER_STEPNUMBER: // from videoPlayer //$NON-NLS-1$
+			// overrides VideoPanel repaint
 			setSelectedPoint(null);
 			selectedSteps.clear();
 			if (getVideo() != null && !getVideo().getFilterStack().isEmpty()) {
@@ -2719,7 +2720,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			// show crosshair cursor if shift key down or automarking
 			boolean invertCursor = isShiftKeyDown;
 			setCursorForMarking(invertCursor, null);
-
 			firePropertyChange(PROPERTY_TRACKERPANEL_STEPNUMBER, null, e.getNewValue()); // to views //$NON-NLS-1$
 			doSnap = true;
 			break;
@@ -2798,7 +2798,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			TFrame.repaintT(this);
 		}
 			break;
-		case "framecount": //$NON-NLS-1$
+		case VideoClip.PROPERTY_VIDEOCLIP_FRAMECOUNT: //$NON-NLS-1$
 			if (getVideo() == null && modelBuilder != null)
 				modelBuilder.refreshSpinners();
 			break;
@@ -2870,7 +2870,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			setSelectedPoint(null);
 			selectedSteps.clear();
 			break;
-		case "perspective": //$NON-NLS-1$
+		case PerspectiveFilter.PROPERTY_PERSPECTIVEFILTER_PERSPECTIVE: //$NON-NLS-1$
 			if (e.getNewValue() != null) {
 				PerspectiveFilter filt = (PerspectiveFilter) e.getNewValue();
 				track = new PerspectiveTrack(filt);

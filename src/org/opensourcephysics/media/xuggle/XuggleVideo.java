@@ -36,8 +36,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
@@ -394,21 +392,19 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 	 */
 	@Override
 	public void setFrameNumber(int n) {
-		if (n == getFrameNumber())
+		if (n == frameNumber)
 			return;
 		super.setFrameNumber(n);
-		int i = getFrameNumber();
-		BufferedImage bi = getImage(i);
-		if (bi != null) {
-			rawImage = bi;
-			isValidImage = false;
-			isValidFilteredImage = false;
-			firePropertyChange(Video.PROPERTY_VIDEO_FRAMENUMBER, null, new Integer(getFrameNumber()));
-			if (isPlaying()) {
-				SwingUtilities.invokeLater(() -> {
-					continuePlaying();
-				});
-			}
+		BufferedImage bi = getImage(n = getFrameNumber());
+		if (bi == null)
+			return;
+		rawImage = bi;
+		invalidateVideoAndFilter();
+		notifyFrame(n, false);
+		if (isPlaying()) {
+			SwingUtilities.invokeLater(() -> {
+				continuePlaying();
+			});
 		}
 	}
 
@@ -437,6 +433,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 	}
 
 	/**
+	 * not called
+	 * 
 	 * Sets the frame number to (nearly) a desired time in milliseconds.
 	 *
 	 * @param millis the desired time in milliseconds
@@ -616,7 +614,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 	/**
 	 * Plays the next time-appropriate frame at the current rate.
 	 */
-	private void continuePlaying() {
+	protected void continuePlaying() {
 		int n = getFrameNumber();
 		if (n < getEndFrameNumber()) {
 			long elapsedTime = System.currentTimeMillis() - systemStartPlayTime;
