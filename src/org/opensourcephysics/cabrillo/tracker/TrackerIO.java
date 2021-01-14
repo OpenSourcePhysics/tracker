@@ -2139,7 +2139,7 @@ public class TrackerIO extends VideoIO {
 			// load trk files into Tracker
 			if (!isCanceled()) {
 				// add path to recent files
-				if (path.equals(path0))
+				if (path0.equals(nonURIPath))
 					Tracker.addRecent(nonURIPath, false); // add at beginning
 				paths.addAll(trkFiles);
 				desktopFiles.addAll(tempFiles);

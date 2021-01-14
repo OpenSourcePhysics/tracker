@@ -3,6 +3,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="libraries/xuggle-xuggler.jar"/>
+	<!-- classpathentry kind="lib" path="libraries/xuggle-xuggler-5.6-GPL.jar"/ -->
 	<classpathentry combineaccessrules="false" kind="src" path="/osp"/>
 	<!-- classpathentry combineaccessrules="false" kind="src" path="/osp-video-engines"/ -->
 	<!-- classpathentry kind="src" path="src2"/ -->
