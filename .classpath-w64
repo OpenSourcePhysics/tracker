@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- class path for Mac or 32-bit Windows, using xuggle-xuggler.jar (with Win32 DLL dependencies) -->
+<!-- class path for 64-bit Windows, using xuggle-xuggler-w64.jar (no DLL dependencies) -->
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="libraries/xuggle-xuggler.jar"/>
-	<!-- classpathentry kind="lib" path="libraries/xuggle-xuggler-w64.jar"/ -->
+	<!--  classpathentry kind="lib" path="libraries/xuggle-xuggler.jar"/   -->
+	<classpathentry kind="lib" path="libraries/xuggle-xuggler-w64.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/osp"/>
 	<!-- classpathentry combineaccessrules="false" kind="src" path="/osp-video-engines"/ -->
 	<!-- classpathentry kind="src" path="src2"/ -->
 	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
-".classpath-w64"
