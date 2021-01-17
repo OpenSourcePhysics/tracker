@@ -167,18 +167,6 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 	 */
 	private boolean haveBFrames;	
 
-	/**
-	 * a cache of images for fast recall; always all incomplete images and 
-	 * up to CACHE_MAX images total
-	 */
-	private BufferedImage[] imageCache;
-
-	/**
-	 * for debugging, 0, meaning "just the incomplete frames";
-	 * for general purposes, up to CACHE_MAX images.
-	 */
-	private static final int CACHE_MAX = 0;
-
 	private int streamIndex = -1;
 	private long keyTS0 = Long.MIN_VALUE;
 	private long keyTS1 = Long.MIN_VALUE;
@@ -696,7 +684,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 			videoDecoder = container.getStream(streamIndex).getStreamCoder();
 			timebase = container.getStream(streamIndex).getTimeBase().copy();
 		}
-		if (videoDecoder.open() < 0) {
+		if (videoDecoder.open(null, null) < 0) {
 			return "unable to open video decoder in " + path;
 		}
 		newPicture();
@@ -783,15 +771,15 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 		aspects = new DoubleArray(frameCount, 1);
 	}
 
-	/**
-	 * Determines if a packet is a key packet.
-	 *
-	 * @param packet the packet
-	 * @return true if packet is a key in the video stream
-	 */
-	private boolean isKeyPacket() {
-		return (isCurrentStream() && packet.isKeyPacket());
-	}
+//	/**
+//	 * Determines if a packet is a key packet.
+//	 *
+//	 * @param packet the packet
+//	 * @return true if packet is a key in the video stream
+//	 */
+//	private boolean isKeyPacket() {
+//		return (isCurrentStream() && packet.isKeyPacket());
+//	}
 
 	/**
 	 * Determines if a packet is a video packet.
@@ -897,19 +885,19 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 		return (n + firstDisplayPacket) % frameCount;
 	}
 
-	/**
-	 * Gets the frame number for a specified timestamp.
-	 *
-	 * @param timeStamp the timestamp in stream timebase units
-	 * @return the frame number, or -1 if not found
-	 */
-	private int getContainerFrame(long timeStamp) {
-		for (int i = 0; i < frameCount; i++) {
-			if (packetTimeStamps[i] == timeStamp)
-				return i;
-		}
-		return -1;
-	}
+//	/**
+//	 * Gets the frame number for a specified timestamp.
+//	 *
+//	 * @param timeStamp the timestamp in stream timebase units
+//	 * @return the frame number, or -1 if not found
+//	 */
+//	private int getContainerFrame(long timeStamp) {
+//		for (int i = 0; i < frameCount; i++) {
+//			if (packetTimeStamps[i] == timeStamp)
+//				return i;
+//		}
+//		return -1;
+//	}
 
 	/**
 	 * Gets the BufferedImage for a specified Tracker video frame.
@@ -921,12 +909,12 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 		if (frameNumber < 0 || frameNumber >= frameCount)
 			return null;
 		int xuggleFrame = frameNumberToContainerFrame(frameNumber);
-		BufferedImage bi = (xuggleFrame < imageCache.length ? imageCache[xuggleFrame]
-				: loadPicture(frameNumber, xuggleFrame) ? getBufferedImage() : null);
+		BufferedImage bi = getCachedImage(xuggleFrame);
+		if (bi == null)
+			bi = (loadPicture(frameNumber, xuggleFrame) ? getBufferedImage() : null);
 		//dumpImage(frameNumber, bi, "");
 		return bi;
 	}
-
 	
 	IVideoPicture newPic;
 
