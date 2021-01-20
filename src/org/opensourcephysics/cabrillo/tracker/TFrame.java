@@ -417,7 +417,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// set transfer handler for CTRL-V paste
 		tabbedPane.setTransferHandler(fileDropHandler);
 		if (panel != null) {
-			addTab(panel, () -> {});
+			addTab(panel, ADD_NOSELECT | ADD_REFRESH, () -> {});
 		}
 	}
 
@@ -518,9 +518,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * Adds a tab that displays the specified tracker panel.
 	 *
 	 * @param trackerPanel the tracker panel
+	 * @param addMode ADD_SELECT | ADD_REFRESH
 	 * @param whenDone
 	 */
-	public void addTab(final TrackerPanel trackerPanel, Runnable whenDone) {
+	public void addTab(final TrackerPanel trackerPanel, int addMode, Runnable whenDone) {
 		int tab = getTab(trackerPanel);
 		if (tab > -1) { // tab exists
 			String name = trackerPanel.getTitle();
@@ -549,11 +550,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			objects[TFRAME_MENUBAR] = getMenuBar(trackerPanel);
 			objects[TFRAME_TRACKBAR] = getTrackBar(trackerPanel);
 			// put the components into the tabs map
-			TTabPanel panel = new TTabPanel(trackerPanel, objects);
+			TTabPanel tabPanel = new TTabPanel(trackerPanel, objects);
 			// add the tab
 			String name = trackerPanel.getTitle();
 			synchronized (tabbedPane) {
-				tabbedPane.addTab(name, panel);
+				tabbedPane.addTab(name, tabPanel);
 				tab = getTab(trackerPanel);
 				tabbedPane.setToolTipTextAt(tab, trackerPanel.getToolTipPath());
 			}
@@ -669,7 +670,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		setIgnoreRepaint(false);
 		trackerPanel.changed = false;
 		trackerPanel.refreshTrackData(DataTable.MODE_TAB);
-		refresh();
+		if ((addMode & ADD_SELECT) != 0)
+			setSelectedTab(trackerPanel);
+		if ((addMode & ADD_REFRESH) != 0)
+			refresh();
 		if (isPortraitLayout)
 			arrangeViews(trackerPanel, true, isViewPaneVisible(3, trackerPanel));
 
@@ -1103,13 +1107,13 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	public void addTrackerPanel(boolean changedState, Runnable whenDone) {
 		TrackerPanel newPanel = new TrackerPanel(this);
-		addTab(newPanel, () -> {
-			setSelectedTab(newPanel);
+		addTab(newPanel, ADD_SELECT | ADD_NOREFRESH, () -> {
 			if (!changedState)
 				newPanel.changed = false;
-			if (whenDone != null)
+			if (whenDone == null)
+				refresh();
+			else
 				whenDone.run();
-			refresh();
 		});
 	}
 
@@ -1156,6 +1160,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	private final static int[] standardOrder = new int[] { 0, 1, 2, 3 };
 	private final static int[] portraitOrder = new int[] { 3, 2, 1, 0 };
+	
+	public static final int ADD_NOREFRESH = 0;
+	public static final int ADD_NOSELECT = 0;
+	public static final int ADD_SELECT = 1;
+	public static final int ADD_REFRESH = 2;
 	
 	/**
 	 * Sets the views for the specified tracker panel.
@@ -3174,15 +3183,14 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	void loadVideo(String path, boolean asNewTab, LibraryBrowser libraryBrowser, Runnable whenDone) {
 		// from loadExperimentURL and openLibraryResource actions
-		TrackerPanel panel = getSelectedPanel();
-		if (!VideoIO.checkMP4(path, libraryBrowser, panel))
+		if (!VideoIO.checkMP4(path, libraryBrowser, getSelectedPanel()))
 			return;					
 		// load a video file or a directory containing images
 		File localFile = ResourceLoader.download(path, null, false);
 		Runnable importer = new Runnable() {
 			@Override
 			public void run() {
-				TrackerIO.importVideo(XML.getAbsolutePath(localFile), panel, whenDone);							
+				TrackerIO.importVideo(XML.getAbsolutePath(localFile), getSelectedPanel(), whenDone);							
 			}		
 		};
 		if (asNewTab)

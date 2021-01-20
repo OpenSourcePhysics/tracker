@@ -661,7 +661,7 @@ public class Tracker implements StateMachine {
 		if (addTabIfEmpty) {
 			// add an empty tab if requested
 			TrackerPanel trackerPanel = frame.getCleanTrackerPanel();
-			frame.addTab(trackerPanel, () -> {
+			frame.addTab(trackerPanel, TFrame.ADD_NOSELECT | TFrame.ADD_REFRESH, () -> {
 //					JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
 //					pane.setDividerLocation(frame.defaultRightDivider);
 				if (showHints) {

@@ -2207,10 +2207,9 @@ public class TrackerIO extends VideoIO {
 				cancelAsync();
 				return 100;
 			}
-			frame.addTab(trackerPanel, null);
+			frame.addTab(trackerPanel, TFrame.ADD_SELECT | TFrame.ADD_NOREFRESH, null);
 //			if (monitorDialog.isVisible())
 //				monitorDialog.setProgress(90);
-			frame.setSelectedTab(trackerPanel);
 			frame.showTrackControl(trackerPanel);
 			// BH ah, but asynchronous load may not have been completed yet.
 //			frame.showNotes(trackerPanel);
@@ -2236,8 +2235,8 @@ public class TrackerIO extends VideoIO {
 		}
 		
 		private int loadData(int progress) {
-			frame.addTab(trackerPanel, null);
-			frame.setSelectedTab(trackerPanel);
+			// was refresh
+			frame.addTab(trackerPanel, TFrame.ADD_SELECT | TFrame.ADD_NOREFRESH, null);
 			trackerPanel.importDataAsync(path, null, null);
 			return 100;
 		}
@@ -2303,7 +2302,7 @@ public class TrackerIO extends VideoIO {
 		}
 
 		private void finalizeVideoLoading(Video video) {
-			frame.addTab(trackerPanel, null);
+			frame.addTab(trackerPanel, TFrame.ADD_NOSELECT | TFrame.ADD_NOREFRESH, null);
 //			if (monitorDialog.isVisible())
 //				monitorDialog.setProgress(95);
 			JSplitPane pane = frame.getSplitPane(trackerPanel, 0);
