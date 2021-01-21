@@ -108,7 +108,7 @@ public class TViewChooser extends JPanel implements PropertyChangeListener {
 		super(new BorderLayout());
 		setName("TViewChooser " + type);
 		// don't set selectedType here--it is set in setSelectedViewType()
-		OSPLog.debug(Performance.timeCheckStr("TViewChooser " + type, Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TViewChooser " + type, Performance.TIME_MARK));
 
 		trackerPanel = panel;
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$

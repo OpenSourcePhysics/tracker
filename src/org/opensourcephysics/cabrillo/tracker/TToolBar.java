@@ -962,9 +962,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 * @param refreshTrackProperties true to refresh the track display properties
 	 */
 	protected synchronized void refresh(String whereFrom) {
-		if (disposed || !trackerPanel.isPaintable())
+		if (disposed || trackerPanel.getTFrame().hasPaintHold())
 			return;
-		OSPLog.debug("TToolBar refresh from " + whereFrom);
+		System.out.println("TToolBar refresh from " + whereFrom);
 		boolean doRefresh = false;
 		switch (whereFrom) {
 		case REFRESH_TFRAME_LOCALE:
@@ -1015,7 +1015,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 	protected void refreshAsync(boolean refreshTrackProperties) {
 		long t0 = Performance.now(0);
-		OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync", Performance.TIME_MARK));
 		refreshing = true; // signals listeners that items are being refreshed (not implemented)
 		int enabledCount = trackerPanel.getEnabledCount();
 		boolean trackerPanelTainted = (enabledCount != this.enabledCount);
@@ -1025,7 +1025,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		}
 		checkEnabled(refreshTrackProperties);
 		refreshing = false;
-		OSPLog.debug("!!! " + Performance.now(t0) + " TToolBar refresh async");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " TToolBar refresh async");
 	}
 
 	private void rebuild() {
@@ -1130,11 +1130,11 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 //		FontSizer.setFont(newTrackButton);
 //		FontSizer.setFont(zoomButton);
-		OSPLog.debug(Performance.timeCheckStr("TToolBar rebuild", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TToolBar rebuild", Performance.TIME_MARK));
 
 		validate();
 
-		OSPLog.debug(Performance.timeCheckStr("TToolBar rebuild validate", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TToolBar rebuild validate", Performance.TIME_MARK));
 
 		TFrame.repaintT(this);
 	}
@@ -1169,7 +1169,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		if (refreshTracks) {
 			refreshTracks();
 		}
-		OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync tracks", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync tracks", Performance.TIME_MARK));
 		TPoint pt = trackerPanel.getSelectedPoint();
 		if (pt != null)
 			pt.showCoordinates(trackerPanel);
@@ -1201,7 +1201,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 			sortPageViewTabs();
 		}
-		OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync sortPageView", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync sortPageView", Performance.TIME_MARK));
 
 		boolean hasPageURLs = !pageViewTabs.isEmpty();
 		desktopButton.setEnabled(hasPageURLs || !trackerPanel.supplementalFilePaths.isEmpty());
@@ -1279,6 +1279,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	
 	@Override
 	public void paint(Graphics g) {
+		if (!trackerPanel.isPaintable())
+			return;
 		System.out.println("TToolbar.paint");
 		super.paint(g);
 	}

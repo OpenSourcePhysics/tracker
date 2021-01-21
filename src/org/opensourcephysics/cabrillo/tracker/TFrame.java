@@ -209,7 +209,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public static final String PROPERTY_TFRAME_TAB = "tab";
 	public static final String PROPERTY_TFRAME_RADIANANGLES = "radian_angles";
 	public static final String PROPERTY_TFRAME_WINDOWFOCUS = "windowfocus";
-//	public static final String PROPERTY_TFRAME_RESIZED = "resized";
 
 	protected final static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
 	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
@@ -251,8 +250,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected Launcher helpLauncher;
 	protected JDialog dataToolDialog;
 	protected TrackerPanel prevPanel;
-//	protected double defaultMainDivider = 21/(21.0 + 13.0); // fibonacci 8/(7 + 8)
-//	protected double defaultRightDivider = 13/(13.0 + 8.0); // fibonacci 7/(7 + 6)
 	protected FileDropHandler fileDropHandler;
 	protected Action openRecentAction;
 	protected boolean splashing = true;
@@ -277,12 +274,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return HashMap
 	 */
 	static Map<String, Object> parseArgs(String[] args) {
-//		/** testing only
-//		 * @j2sNative 
-//		  args = ["-bounds", 100, 100, 600.66666, 400.3333]
-//		  //args = "-bounds 100 100 600 400".split(" ")
-//		 */
-
 		Map<String, Object> map = new HashMap<>();
 		
 		if (args == null || args.length == 0)
@@ -462,8 +453,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	@Override
 	public void repaint(long time, int x, int y, int w, int h) {
-//		if (!isPaintable())
-//			return;
+		if (!isPaintable())
+			return;
 		OSPLog.debug("TFrame repaint " + x + " " + y + " " + w + " " + h + " " + isPaintable());
 		// TFrame.addTab -> initialize -> TrackerPanel.addTrack ->
 		// fire(PROPERTY_TRACKERPANEL_TRACK)
@@ -1230,8 +1221,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			break;
 			
 		}
-		if (nc != null)
-			System.out.println("checking " + where + " " + nc);	
+//		if (nc != null)
+//			System.out.println("checking " + where + " " + nc);	
 	}
 
 
@@ -2903,12 +2894,16 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * 
 	 */
 	public boolean isPaintable() {
-		//System.out.println("TFrame.isPaintable " + paintHold);
+//		System.out.println("TFrame.isPaintable " + paintHold + " " + isVisible() + " " + !getIgnoreRepaint());
 
-		return // isVisible() &&
+		return isVisible() &&
 		paintHold == 0
-		// && !getIgnoreRepaint()
+		 && !getIgnoreRepaint()
 		;
+	}
+
+	public boolean hasPaintHold() {
+		return paintHold != 0;
 	}
 
 	/**

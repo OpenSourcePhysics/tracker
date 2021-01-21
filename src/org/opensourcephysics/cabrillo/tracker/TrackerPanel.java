@@ -2745,7 +2745,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			break;
 		case Video.PROPERTY_VIDEO_VIDEOVISIBLE: // from video //$NON-NLS-1$
 			firePropertyChange(PROPERTY_TRACKERPANEL_VIDEOVISIBLE, null, null); // to views //$NON-NLS-1$
-			TFrame.repaintT(this);
+//bh test			TFrame.repaintT(this);
 			break;
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM: // from coords //$NON-NLS-1$
 			changed = true;
@@ -4635,7 +4635,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	
 	@Override
 	public void paint(Graphics g) {
-		System.out.println("TrackerPanel.paint");
+		if (OSPRuntime.isJS)
+			System.out.println("TrackerPanel.paint");
 		super.paint(g);
 	}
 
