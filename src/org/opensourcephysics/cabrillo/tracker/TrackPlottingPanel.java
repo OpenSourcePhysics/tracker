@@ -902,7 +902,6 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * Plots the data.
 	 */
 	protected void plotData() {
-		OSPLog.debug("TrackPlottingPanel plotData " + toString());
 		removeDrawables(Dataset.class);
 		// refresh the plot titles and determine if angles are being plotted
 		Dataset xData;
@@ -965,23 +964,26 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			return; // no highlights on line profile plots since not frame-based data
 		
 		// refresh highlighted indices
-		BitSet shifted = bsFrameHighlights;
+		BitSet bsSteps = bsFrameHighlights;
 		if (!track.dataFrames.isEmpty()) {
 			// shift relative to bsFrameHighlights if start frame > 0
 			int startFrame = track.dataFrames.get(0);
+			int framesPerStep = (track.dataFrames.size() > 1 ? track.dataFrames.get(1) - startFrame : 1);
 			if (startFrame > 0) {
-				shifted = new BitSet();
-				for (int i = bsFrameHighlights.nextSetBit(0); i >= startFrame; i = bsFrameHighlights.nextSetBit(i + 1)) {
-				   shifted.set(i - startFrame);
+				bsSteps = new BitSet();
+				for (int i = bsFrameHighlights.nextSetBit(0); i >= 0; i = bsFrameHighlights.nextSetBit(i + 1)) {
+				   int pt = (i - startFrame) / framesPerStep;
+				   if (pt >= 0)
+					   bsSteps.set(pt);
 				}
 			}
 		}
-		dataset.setHighlights(shifted);			
+		dataset.setHighlights(bsSteps);			
 
 		// refresh plot coordinates
 		int plotIndex = -1;
-		if (shifted.cardinality() == 1) {
-			plotIndex = shifted.nextSetBit(0);
+		if (bsSteps.cardinality() == 1) {
+			plotIndex = bsSteps.nextSetBit(0);
 		}
 		showPlotCoordinates(plotIndex);
 	}
@@ -1024,7 +1026,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			return;
 		
 		long t0 = System.currentTimeMillis();
-		OSPLog.debug("TrackPlottingPanel refreshDataSet " + toString() + " " + xIndex + " " + yIndex + " t0=" + t0);
+		//OSPLog.debug("TrackPlottingPanel refreshDataSet " + toString() + " " + xIndex + " " + yIndex + " t0=" + t0);
 
 		double[] _x = new double[n];
 		double[] _y = new double[n];
@@ -1046,7 +1048,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			_y[i] = y;
 		}
 		hds.append(_x, _y);
-		OSPLog.debug("TrackPlottingPanel refreshDataSet2 " + (System.currentTimeMillis() - t0));
+		//OSPLog.debug("TrackPlottingPanel refreshDataSet2 " + (System.currentTimeMillis() - t0));
 	}
 
 	/**
