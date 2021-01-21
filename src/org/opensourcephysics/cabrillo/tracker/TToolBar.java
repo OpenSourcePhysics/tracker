@@ -962,7 +962,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	 * @param refreshTrackProperties true to refresh the track display properties
 	 */
 	protected synchronized void refresh(String whereFrom) {
-		if (disposed || trackerPanel.getTFrame().hasPaintHold())
+		if (disposed || trackerPanel.getTFrame().hasPaintHold() || !Tracker.allowToolbarRefresh)
 			return;
 		System.out.println("TToolBar refresh from " + whereFrom);
 		boolean doRefresh = false;

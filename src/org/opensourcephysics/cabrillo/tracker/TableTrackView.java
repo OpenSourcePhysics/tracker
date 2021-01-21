@@ -2436,4 +2436,8 @@ public class TableTrackView extends TrackView {
 
 	}
 
+	protected boolean isRefreshEnabled() {
+		return super.isRefreshEnabled() && Tracker.allowTableRefresh;
+	}
+
 }

@@ -476,14 +476,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return;
 		if (c instanceof TrackerPanel) {
 			if (!((TrackerPanel) c).isPaintable()) {
-//				System.out.println("TFrame.repaintT not");
-				((TrackerPanel) c).isPaintable();
 				return;
 			}
 			((TrackerPanel) c).clearTainted();
 		}
-		OSPLog.debug(Performance.timeCheckStr("TFrame.repaintT " + c.getClass().getSimpleName(), Performance.TIME_MARK));
-		// OSPLog.debug("TFrame.repaintT " + c.getClass().getName());
+		//OSPLog.debug(Performance.timeCheckStr("TFrame.repaintT " + c.getClass().getSimpleName(), Performance.TIME_MARK));
 		c.repaint();
 	}
 

@@ -501,6 +501,7 @@ public class WorldTView extends TrackerPanel implements TView {
 		public Object loadObject(XMLControl control, Object obj) {
 			return obj;
 		}
+	
 	}
 
 }

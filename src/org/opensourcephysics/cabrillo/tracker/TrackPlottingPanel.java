@@ -902,6 +902,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 * Plots the data.
 	 */
 	protected void plotData() {
+		
 		removeDrawables(Dataset.class);
 		// refresh the plot titles and determine if angles are being plotted
 		Dataset xData;
@@ -986,6 +987,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			plotIndex = bsSteps.nextSetBit(0);
 		}
 		showPlotCoordinates(plotIndex);
+
 	}
 
 	/**

@@ -548,7 +548,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected void rebuild() {
 		numberFieldWidth = sizingField.getPreferredSize().width;
 		selectButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SelectTrack.Tooltip")); //$NON-NLS-1$
-		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild0", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild0", Performance.TIME_MARK));
 
 		removeAll();
 		TTrack track = trackButton.getTrack();
@@ -619,9 +619,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 //			add(memoryButton); // pig for testing
 		}
 		add(maximizeButton);
-		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild1 " + trackerPanel.getName(), Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild1 " + trackerPanel.getName(), Performance.TIME_MARK));
 		revalidate();
-		OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild-revalidate " + (track == null ? null : track.getName()), Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild-revalidate " + (track == null ? null : track.getName()), Performance.TIME_MARK));
 		//TFrame.repaintT(this);
 	}
 

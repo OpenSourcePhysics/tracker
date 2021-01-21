@@ -533,4 +533,9 @@ public class PlotTrackView extends TrackView {
 		return mainView.getComponentCount();
 	}
 
+	protected boolean isRefreshEnabled() {
+		return super.isRefreshEnabled() && Tracker.allowPlotRefresh;
+	}
+
+
 }

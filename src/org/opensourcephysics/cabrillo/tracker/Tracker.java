@@ -134,9 +134,12 @@ public class Tracker implements StateMachine {
 
 	public static boolean allowDataFunctionControls = !OSPRuntime.isJS;
 	
+	public static boolean allowTableRefresh = true;
+	public static boolean allowPlotRefresh = true; //this was the killer -- Firefox with ctx.save/restore
 	public static boolean allowDataRefresh = true;
 	public static boolean allowViews = true;
 	public static boolean allowMenuRefresh = true;
+	public static boolean allowToolbarRefresh = true;
 
 	public static boolean loadTabsInSeparateThread = !OSPRuntime.isJS;
 

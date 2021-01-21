@@ -3811,28 +3811,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 					}
 				}
-				OSPLog.debug(
-						Performance.timeCheckStr("TrackerPanel.finalizeLoading finalizeClip", Performance.TIME_MARK));
-
-
 				// load the clip control
 				child = control.getChildControl("clipcontrol"); //$NON-NLS-1$
 				if (child != null) {
 					child.loadObject(trackerPanel.getPlayer().getClipControl());
 				}
-
-				OSPLog.debug(
-						Performance.timeCheckStr("TrackerPanel.finalizeLoading clipControl ", Performance.TIME_MARK));
-
 				// load the toolbar
 				child = control.getChildControl("toolbar"); //$NON-NLS-1$
 				if (child != null) {
 					TToolBar toolbar = TToolBar.getToolbar(trackerPanel);
 					child.loadObject(toolbar);
 				}
-
-				OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading toolbar", Performance.TIME_MARK));
-
 				// load the coords
 				child = control.getChildControl("coords"); //$NON-NLS-1$
 				if (child != null) {
@@ -3854,10 +3843,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						((TTrack) tracks.get(i)).initialize(trackerPanel);
 					}
 				}
-
-				OSPLog.debug(
-						Performance.timeCheckStr("TrackerPanel.finalizeLoading load tracks", Performance.TIME_MARK));
-
 				// load drawing scenes saved in vers 4.11.0+
 				ArrayList<PencilScene> scenes = (ArrayList<PencilScene>) control.getObject("drawing_scenes"); //$NON-NLS-1$
 				if (scenes != null) {
@@ -4635,9 +4620,13 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	
 	@Override
 	public void paint(Graphics g) {
-		if (OSPRuntime.isJS)
-			System.out.println("TrackerPanel.paint");
+//		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paint " + getClass().getName(),
+//		Performance.TIME_MARK));
+//		if (OSPRuntime.isJS)
+//			System.out.println("TrackerPanel.paint");
 		super.paint(g);
+//		OSPLog.debug(Performance.timeCheckStr("TrackerPanel.paint " + getClass().getName(),
+//		Performance.TIME_MARK));
 	}
 
 	public void doPaste(String data) {
