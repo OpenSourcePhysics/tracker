@@ -360,9 +360,13 @@ public class TableTrackView extends TrackView {
 	@Override
 	public void refresh(int frameNumber, int mode) {
 
+		if (mode == DataTable.MODE_TRACK_CHOOSE) {
+			FontSizer.setFonts(columnsDialogButton);
+			FontSizer.setFonts(gapsButton);
+		}
 		if (isClipAdjusting())
 			return;
-		// main entry point for a new or revised track -- from TrackChooserTView
+		// main entry point for a new or revised track -- from TrackChooserTView 
 
 		forceRefresh = true; // for now, at least
 

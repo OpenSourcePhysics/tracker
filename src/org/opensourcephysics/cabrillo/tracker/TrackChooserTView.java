@@ -195,8 +195,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 				trackView.refresh(step.getFrameNumber(), DataTable.MODE_TRACK_CHOOSE);
 			else
 				trackView.refresh(trackerPanel.getFrameNumber(), DataTable.MODE_TRACK_CHOOSE);
-//			((CardLayout) getLayout()).show(this, name);
-//			TFrame.repaintT(this);
+
 			firePropertyChange(TView.PROPERTY_TVIEW_TRACKVIEW, trackView, prevView);
 			// inform track views
 			PropertyChangeEvent event = new PropertyChangeEvent(this, TrackerPanel.PROPERTY_TRACKERPANEL_TRACK,
@@ -205,6 +204,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 			while (it.hasNext()) {
 				trackViews.get(it.next()).propertyChange(event);
 			}
+
 			((CardLayout) getLayout()).show(this, name);
 			TFrame.repaintT(this);
 		}

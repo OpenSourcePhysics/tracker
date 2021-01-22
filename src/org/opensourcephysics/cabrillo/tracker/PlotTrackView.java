@@ -45,6 +45,7 @@ import javax.swing.SwingUtilities;
 
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
+import org.opensourcephysics.display.DataTable;
 import org.opensourcephysics.display.Dataset;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.HighlightableDataset;
@@ -125,10 +126,14 @@ public class PlotTrackView extends TrackView {
 
 	/**
 	 * @param frameNumber
-	 * @param mode        not used in PlotTrackView
+	 * @param mode 
 	 */
 	@Override
 	public void refresh(int frameNumber, int mode) {
+		if (mode == DataTable.MODE_TRACK_CHOOSE) {
+			FontSizer.setFonts(plotsButton);
+			FontSizer.setFonts(linkCheckBox);
+		}
 		TTrack track;
 		if (!isRefreshEnabled() 
 				|| !viewParent.isViewPaneVisible()
