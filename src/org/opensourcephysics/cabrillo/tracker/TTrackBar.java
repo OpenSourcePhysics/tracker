@@ -35,7 +35,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -63,12 +62,7 @@ import org.opensourcephysics.display.GUIUtils;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
-import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.FontSizer;
-import org.opensourcephysics.tools.LibraryBrowser;
-import org.opensourcephysics.tools.ResourceLoader;
-
-import javajs.async.SwingJSUtils.Performance;
 
 /**
  * This is a toolbar that display selected track properties in the NORTH
@@ -141,7 +135,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 									
 //									AutoTracker autoTracker = trackerPanel.getAutoTracker(false);
 //									java.awt.image.BufferedImage image = autoTracker.getTemplateMatcher().getTemplate();
-//									String filePath = "D:/Documents/Tracker/testing/pig_template.gif";
+//									String filePath = "D:/Documents/Tracker/testing/template.gif";
 //									if (testIndex++ == 0)
 //										VideoIO.writeImageFile(image, filePath);
 //									image = ResourceLoader.getBufferedImage(filePath, java.awt.image.BufferedImage.TYPE_INT_ARGB);
@@ -535,7 +529,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 
 	/**
 	 * Refreshes the GUI.
-	 */
+	 */ 
 	protected void refresh() {
 		if (!trackerPanel.isPaintable())
 			return;

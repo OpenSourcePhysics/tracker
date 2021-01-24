@@ -213,15 +213,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected final static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
 	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
 	protected final static Color yellow = new Color(255, 255, 105);
-	final static int defaultDividerSize = 10;
-	final static double minDividerOffset = 0.07;
-
-	// instance fields
-	private JToolBar playerBar;
-	private JPopupMenu popup = new JPopupMenu();
-	private JMenuItem closeItem;
-	private JMenuBar defaultMenuBar;
-	private JMenu recentMenu;
+	private final static int defaultDividerSize = 10;
+	private final static double minDividerOffset = 0.07;
 
 	private static final int TFRAME_MAINVIEW = 0;
 	private static final int TFRAME_VIEWCHOOSERS = 1;
@@ -229,15 +222,25 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private static final int TFRAME_TOOLBAR = 3;
 	private static final int TFRAME_MENUBAR = 4;
 	private static final int TFRAME_TRACKBAR = 5;
+	
+	private static final int DEFAULT_VIEWS = 0;
+	private static final int OTHER_VIEWS = 1;
 
 	protected static double DEFAULT_MAIN_DIVIDER = 0.67;
 	protected static double DEFAULT_RIGHT_DIVIDER = 0.57;
-	protected static double DEFAULT_BOTTOM_DIVIDER = 0.57;
+	protected static double DEFAULT_LEFT_DIVIDER = 0.57;
+	protected static double DEFAULT_BOTTOM_DIVIDER = 0.50;
 
 	public static boolean haveExportDialog = false;
 	public static boolean haveThumbnailDialog = false;
-	protected static boolean isPortraitLayout = false;
+	
 
+	// instance fields
+	private JToolBar playerBar;
+	private JPopupMenu popup = new JPopupMenu();
+	private JMenuItem closeItem;
+	private JMenuBar defaultMenuBar;
+	private JMenu recentMenu;
 //	private Map<JPanel, Object[]> panelObjects = new HashMap<JPanel, Object[]>();
 	protected JTabbedPane tabbedPane;
 	protected JTextPane notesTextPane;
@@ -261,6 +264,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected PrefsDialog prefsDialog;
 	protected ClipboardListener clipboardListener;
 	protected boolean alwaysListenToClipboard;
+	protected boolean isPortraitLayout, isLayoutChanged, isLayoutAdaptive;
 	private String mylang = "en";
 	private JMenu languageMenu;
 	protected int maximizedView = -1;
@@ -285,9 +289,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			int i1 = i;
 			try {
 				switch (arg) {
-				case "-adaptable":
+				case "-adaptive":
 					args[i] = null;
-					map.put("-adaptable", true);
+					map.put("-adaptive", true);
 					break;
 				case "-bounds":
 					args[i] = null;
@@ -360,7 +364,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private void init(Map<String, Object> options) {
 		if (options == null)
 			options = new HashMap<>();
-		boolean isAdaptable = (OSPRuntime.isJS && options.get("-adaptable") != null);
+		isLayoutAdaptive = OSPRuntime.isJS && options.get("-adaptive") != null;
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");
@@ -378,7 +382,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		setMaximizedBounds(screenRect);
 		// process -bounds or -dim option
 		
-		if (isAdaptable) {
+		if (isLayoutAdaptive) {
 			bounds = getAdaptiveBounds(true);
 		} 
 		if (bounds == null) {
@@ -645,7 +649,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			}
 			trackerPanel.selectedViewsProperty = null;
 		}
-		setViews(trackerPanel, viewChoosers);
+		placeViews(trackerPanel, viewChoosers);
 		initialize(trackerPanel);
 
 		JPanel panel = (JPanel) tabbedPane.getComponentAt(tab);
@@ -662,8 +666,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			setSelectedTab(trackerPanel);
 		if ((addMode & ADD_REFRESH) != 0)
 			refresh();
-		if (isPortraitLayout)
-			arrangeViews(trackerPanel, true, isViewPaneVisible(3, trackerPanel));
 
 		if (whenDone != null) {
 			whenDone.run();
@@ -672,9 +674,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		Timer timer = new Timer(100, new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// DB getDataBuilder to autoload data functions from external files
+				// TTrackBar will only refresh after TFrame is visible
+				TTrackBar.getTrackbar(trackerPanel).refresh();
+				// DB following line needed to autoload data functions from external files
 				trackerPanel.getDataBuilder();
-//				moveSideViewsToBottom(trackerPanel);
 			}
 		});
 		timer.setRepeats(false);
@@ -1141,13 +1144,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		tabbedPane.setTitleAt(tab, title);
 	}
 
-	private static final int SPLIT_TOP    = 0;
-	private static final int SPLIT_RIGHT  = 1;
-	private static final int SPLIT_LEFT   = 2;
-	private static final int SPLIT_BOTTOM = 3;
+	protected static final int SPLIT_MAIN    = 0;
+	protected static final int SPLIT_RIGHT  = 1;
+	protected static final int SPLIT_LEFT   = 2;
+	protected static final int SPLIT_BOTTOM = 3;
 
-	private final static int[] standardOrder = new int[] { 0, 1, 2, 3 };
-	private final static int[] portraitOrder = new int[] { 3, 2, 1, 0 };
+	// position orders for TViewChoosers
+	protected final static int[] DEFAULT_ORDER = new int[] { 0, 1, 2, 3 };
+	protected final static int[] PORTRAIT_VIEW_ORDER = new int[] { 3, 2, 1, 0 };
+	protected final static int[] PORTRAIT_DIVIDER_ORDER = new int[] { 2, 3, 0, 1 };
 	
 	public static final int ADD_NOREFRESH = 0;
 	public static final int ADD_NOSELECT = 0;
@@ -1155,16 +1160,15 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public static final int ADD_REFRESH = 2;
 	
 	/**
-	 * Sets the views for the specified tracker panel.
+	 * Places the views in an appropriate order for the specified trackerPanel.
 	 *
-	 * @param trackerPanel the tracker panel
+	 * @param trackerPanel the trackerPanel
 	 * @param viewChoosers an array of up to 4 TViewChoosers
-	 * @param order an optional array that defines non-default view positions 
 	 */
-	public void setViews(TrackerPanel trackerPanel, TViewChooser[] viewChoosers) {
+	public void placeViews(TrackerPanel trackerPanel, TViewChooser[] viewChoosers) {
 		if (viewChoosers == null)
 			viewChoosers = new TViewChooser[0];
-		int[] order = (isPortraitLayout ? portraitOrder : standardOrder);
+		int[] order = isPortraitLayout() ? PORTRAIT_VIEW_ORDER : DEFAULT_ORDER;
 		int tab = getTab(trackerPanel);
 		if (tab == -1) return;
 		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
@@ -1175,21 +1179,21 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				choosers[i] = viewChoosers[i];
 		}
 		if (order == null || order.length != viewChoosers.length) {
-			order = standardOrder;
+			order = DEFAULT_ORDER;
 		}
 			
 		MainTView mainView = (MainTView) objects[TFRAME_MAINVIEW];
 		JSplitPane[] panes = (JSplitPane[]) objects[TFRAME_SPLITPANES];
 		
-		if (((BorderLayout)tabPanel.getLayout()).getLayoutComponent(BorderLayout.CENTER) != panes[SPLIT_TOP]) {
+		if (((BorderLayout)tabPanel.getLayout()).getLayoutComponent(BorderLayout.CENTER) != panes[SPLIT_MAIN]) {
 			tabPanel.removeAll();
-			tabPanel.add(panes[SPLIT_TOP], BorderLayout.CENTER);
+			tabPanel.add(panes[SPLIT_MAIN], BorderLayout.CENTER);
 		}
-		addPaneSafely(panes[SPLIT_TOP], SPLIT_LEFT, panes[SPLIT_LEFT]);
-		addPaneSafely(panes[SPLIT_TOP], SPLIT_RIGHT, panes[SPLIT_RIGHT]);
-		addPaneSafely(panes[SPLIT_LEFT], SPLIT_TOP, mainView);
+		addPaneSafely(panes[SPLIT_MAIN], SPLIT_LEFT, panes[SPLIT_LEFT]);
+		addPaneSafely(panes[SPLIT_MAIN], SPLIT_RIGHT, panes[SPLIT_RIGHT]);
+		addPaneSafely(panes[SPLIT_LEFT], SPLIT_MAIN, mainView);
 		addPaneSafely(panes[SPLIT_LEFT], SPLIT_BOTTOM, panes[SPLIT_BOTTOM]);
-		addPaneSafely(panes[SPLIT_RIGHT], SPLIT_TOP, choosers[order[TView.VIEW_PLOT]]);
+		addPaneSafely(panes[SPLIT_RIGHT], SPLIT_MAIN, choosers[order[TView.VIEW_PLOT]]);
 		addPaneSafely(panes[SPLIT_RIGHT], SPLIT_BOTTOM, choosers[order[TView.VIEW_TABLE]]);
 		addPaneSafely(panes[SPLIT_BOTTOM], SPLIT_RIGHT, choosers[order[TView.VIEW_WORLD]]);
 		addPaneSafely(panes[SPLIT_BOTTOM], SPLIT_LEFT, choosers[order[TView.VIEW_PAGE]]);
@@ -1200,7 +1204,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private void addPaneSafely(JSplitPane pane, int where, Component c) {
 		Component nc = null;
 		switch (where) {
-		case SPLIT_TOP:
+		case SPLIT_MAIN:
 			if (pane.getTopComponent() != c)
 				pane.setTopComponent(nc = c);
 			break;
@@ -1236,23 +1240,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 	
 	/**
-	 * Arranges the views for a tracker panel, placing default views under or beside
-	 * the video and displaying non-default views if desired.
+	 * Arranges the views for a tracker panel, showing default views under or beside
+	 * the video and the opposite for non-default views.
 	 * 
 	 * @param trackerPanel the tracker panel
-	 * @param isPortrait   true to show default views below video
-	 * @param showAll      true to show all views
+	 * @param showDefaultViews   true to show default views
+	 * @param showOtherViews      true to show non-default views
 	 */
-	public void arrangeViews(TrackerPanel trackerPanel, boolean isPortrait, boolean showAll) {
-		// set view order
-		setViews(trackerPanel, getViewChoosers(trackerPanel));
-		// set divider properties
-		setDividerLocation(trackerPanel, SPLIT_TOP, !isPortrait || showAll ? TFrame.DEFAULT_MAIN_DIVIDER : 1.0);
-		setDividerLocation(trackerPanel, SPLIT_RIGHT, TFrame.DEFAULT_RIGHT_DIVIDER);
-		setDividerLocation(trackerPanel, SPLIT_LEFT, isPortrait || showAll ? TFrame.DEFAULT_BOTTOM_DIVIDER : 1.0);
-		// center the bottom divider--delay needed in Java for correct placement
+	public void arrangeViews(TrackerPanel trackerPanel, boolean showDefaultViews, boolean showOtherViews) {
+		if (!isLayoutAdaptive)
+			return;
+		// place views in the right locations
+		placeViews(trackerPanel, getViewChoosers(trackerPanel));
+		// set divider properties according to visibility specified
+		boolean showRight = (!isPortraitLayout && showDefaultViews) || (isPortraitLayout && showOtherViews);
+		setDividerLocation(trackerPanel, SPLIT_MAIN, showRight ? DEFAULT_MAIN_DIVIDER : 1.0);
+		setDividerLocation(trackerPanel, SPLIT_RIGHT, DEFAULT_RIGHT_DIVIDER);
+		boolean showBottom = (!isPortraitLayout && showOtherViews) || (isPortraitLayout && showDefaultViews);
+		setDividerLocation(trackerPanel, SPLIT_LEFT, showBottom ? DEFAULT_LEFT_DIVIDER : 1.0);
+		// bottom divider--delay needed in Java for correct placement
 		SwingUtilities.invokeLater(() -> {
-			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 0.5);
+			setDividerLocation(trackerPanel, SPLIT_BOTTOM, DEFAULT_BOTTOM_DIVIDER);
 		});
 	}
 
@@ -1313,10 +1321,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	/**
-	 * Determines whether a view pane is visible for the specified tracker panel tab.
+	 * Determines whether a view pane is visible for the specified trackerPanel tab.
 	 *
 	 * @param index the view position index 
-	 * @param trackerPanel the tracker panel
+	 * @param trackerPanel the trackerPanel
 	 * @return true if it is visible
 	 */
 	public boolean isViewPaneVisible(int index, TrackerPanel trackerPanel) {
@@ -1337,6 +1345,27 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return locs[2] < 0.95 && locs[3] > 0.05;
 		}
 		return false;
+	}
+
+	/**
+	 * Determines whether the specified views are visible in a trackerPanel tab.
+	 * Views may be DEFAULT_VIEWS (TViewChoosers[0/1]) or OTHER_VIEWS (TViewChoosers[2/3])
+	 * 
+	 * @param whichViews DEFAULT_VIEWS or OTHER_VIEWS
+	 * @param trackerPanel the trackerPanel
+	 * @return true if views are visible
+	 */
+	public boolean areViewsVisible(int whichViews, TrackerPanel trackerPanel) {
+		boolean standardLayout = getSplitPane(trackerPanel, 1).getTopComponent() == getViewChoosers(trackerPanel)[0];
+		int splitPaneIndex = whichViews == DEFAULT_VIEWS && standardLayout? 
+				0: whichViews == OTHER_VIEWS && !standardLayout? 
+				0:
+				2;
+		JSplitPane pane = getSplitPane(trackerPanel, splitPaneIndex);
+		int max = pane.getMaximumDividerLocation();
+		int cur = pane.getDividerLocation();
+		double loc = 1.0 * cur / max;
+		return splitPaneIndex == 0? loc < 0.95: loc < 0.92;
 	}
 
 	/**
@@ -1676,7 +1705,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			return (JSplitPane[]) objects[TFRAME_SPLITPANES];
 		}
 		JSplitPane[] panes = new JSplitPane[4];
-		panes[SPLIT_TOP] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); // left/right split 
+		panes[SPLIT_MAIN] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT); // left/right split 
 		panes[SPLIT_RIGHT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT);  // plot/table split
 		panes[SPLIT_LEFT] = new JSplitPane(JSplitPane.VERTICAL_SPLIT); // video/bottom split
 		panes[SPLIT_BOTTOM] = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT) // page/world split
@@ -1686,7 +1715,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				return new Dimension(0,0);
 			}
 		}; 
-		panes[SPLIT_TOP].setName("TOP(0)");
+		panes[SPLIT_MAIN].setName("TOP(0)");
 		panes[SPLIT_RIGHT].setName("RIGHT(1)");
 		panes[SPLIT_LEFT].setName("LEFT(2)");
 		panes[SPLIT_BOTTOM].setName("BOTTOM(3)");
@@ -1695,7 +1724,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	private static void setDefaultWeights(JSplitPane[] panes) {
-		setDefaultWeight(panes[SPLIT_TOP], 1.0);
+		setDefaultWeight(panes[SPLIT_MAIN], 1.0);
 		setDefaultWeight(panes[SPLIT_RIGHT], 0.5); // right shared, trackerPanel expands
 		setDefaultWeight(panes[SPLIT_LEFT], 1.0);
 		setDefaultWeight(panes[SPLIT_BOTTOM], 0.5); // bottom shared, trackerPanel expands
@@ -1708,35 +1737,40 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 
-	void maximizeView(TrackerPanel trackerPanel, int viewPosition) {
-		maximizedView = viewPosition;
+	void maximizeView(TrackerPanel trackerPanel, int viewIndex) {
+		maximizedView = viewIndex;
 		JSplitPane[] panes = getSplitPanes(trackerPanel);
 		for (int i = 0; i < panes.length; i++) {
 			panes[i].setDividerSize(0);
 		}
+		int[] order = (isPortraitLayout ? PORTRAIT_VIEW_ORDER : DEFAULT_ORDER);
+		int viewPosition = viewIndex < order.length? order[viewIndex]: viewIndex;
 		switch (viewPosition) {
 		case TView.VIEW_PLOT: // right upper
-			setDividerLocation(trackerPanel, SPLIT_TOP, 0.0);
+			panes[SPLIT_RIGHT].setResizeWeight(1); 
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);
 			setDividerLocation(trackerPanel, SPLIT_RIGHT, 1.0);
 			break;
 		case TView.VIEW_TABLE: // right lower
-			setDividerLocation(trackerPanel, SPLIT_TOP, 0.0);
+			panes[SPLIT_RIGHT].setResizeWeight(0); 
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 0.0);
 			setDividerLocation(trackerPanel, SPLIT_RIGHT, 0.0);
 			break;
 		case TView.VIEW_WORLD: // bottom right
-			setDividerLocation(trackerPanel, SPLIT_TOP, 1.0);
+			panes[SPLIT_BOTTOM].setResizeWeight(0); 
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
 			setDividerLocation(trackerPanel, SPLIT_LEFT, 0.0);
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 0.0);
 			break;
 		case TView.VIEW_PAGE: // bottom left
-			setDividerLocation(trackerPanel, SPLIT_TOP, 1.0);
+			panes[SPLIT_BOTTOM].setResizeWeight(1); 
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
 			int max = panes[0].getMaximumDividerLocation();
 			setDividerLocation(trackerPanel, SPLIT_LEFT, 0.0);
-//			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0);
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, max);
 			break;
 		case TView.VIEW_MAIN: // main video view
-			setDividerLocation(trackerPanel, SPLIT_TOP, 1.0);
+			setDividerLocation(trackerPanel, SPLIT_MAIN, 1.0);
 			setDividerLocation(trackerPanel, SPLIT_LEFT, 1.0);
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 0.0);			
 		}
@@ -1779,6 +1813,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		maximizedView = -1;
 		TMenuBar menubar = TMenuBar.getMenuBar(trackerPanel);
 		menubar.setMenuTainted(TMenuBar.MENU_WINDOW, true);
+		if (isLayoutChanged) {
+			frameResized();
+		}
+
 //		int tab = getTab(trackerPanel);
 //		if (tab == -1) return;
 //		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
@@ -2583,19 +2621,26 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	protected void frameResized() {
 		TrackerPanel trackerPanel = getSelectedPanel();
-		if (trackerPanel == null)
+		if (!isLayoutAdaptive || trackerPanel == null)
 			return;
+		Rectangle rect = getBounds();
+		isLayoutChanged = isPortraitLayout != (rect.height > rect.width);
 		if (maximizedView > -1) {
 			maximizeView(trackerPanel, maximizedView);
 			trackerPanel.dividerLocs = null;
 			return;
 		}
-		// determine if dimensions are portrait or landscape
-		Rectangle rect = getBounds();
-		isPortraitLayout = rect.height > rect.width;
-		boolean allShown = isViewPaneVisible(0, trackerPanel) && isViewPaneVisible(3, trackerPanel);
-		if (!allShown)
-			arrangeViews(trackerPanel, isPortraitLayout, false);
+		if (isLayoutChanged) {
+			// determine if dimensions are portrait or landscape and arrange views
+			isPortraitLayout = rect.height > rect.width;
+			for (int i = 0; i < getTabCount(); i++) {
+				trackerPanel = getTrackerPanel(i);
+				boolean defaultViewsVisible = areViewsVisible(DEFAULT_VIEWS, trackerPanel);
+				boolean moreViewsVisible = areViewsVisible(OTHER_VIEWS, trackerPanel);
+				arrangeViews(trackerPanel, defaultViewsVisible, moreViewsVisible);
+			}
+		}
+		isLayoutChanged = false;
 	}
 
 	private void createDefaultMenuBar() {
@@ -2836,21 +2881,24 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// validate in advance of setting divider locations
 		// to ensure dividers are set properly
 		validate(); 
+		boolean portrait = isPortraitLayout();
 		if (trackerPanel.dividerLocs == null) {
-			setDividerLocation(trackerPanel, SPLIT_TOP, DEFAULT_MAIN_DIVIDER);
+			setDividerLocation(trackerPanel, SPLIT_MAIN, portrait? 1.0: DEFAULT_MAIN_DIVIDER);
 			setDividerLocation(trackerPanel, SPLIT_RIGHT, DEFAULT_RIGHT_DIVIDER);
-			setDividerLocation(trackerPanel, SPLIT_LEFT, 1.0);
-			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0); // becomes previous
+			setDividerLocation(trackerPanel, SPLIT_LEFT, portrait? DEFAULT_LEFT_DIVIDER: 1.0);
+//			setDividerLocation(trackerPanel, SPLIT_BOTTOM, 1.0); // becomes previous
 			setDividerLocation(trackerPanel, SPLIT_BOTTOM, DEFAULT_BOTTOM_DIVIDER);
 		} else {
 			int w = 0;
-			for (int i = 0; i < trackerPanel.dividerLocs.length; i++) {
+			int[] order = portrait ? PORTRAIT_DIVIDER_ORDER : DEFAULT_ORDER;
+			for (int i = 0; i < order.length; i++) {
 				JSplitPane pane = getSplitPane(trackerPanel, i);
-				if (i == 0)
+				if (i == SPLIT_MAIN)
 					w = pane.getMaximumDividerLocation();
-				int max = i == 3 ? w : pane.getMaximumDividerLocation();
-				int loc = (int) (trackerPanel.dividerLocs[i] * max);
-				pane.setDividerLocation(loc);
+				int max = i == SPLIT_BOTTOM ? w : pane.getMaximumDividerLocation();
+				double loc = trackerPanel.dividerLocs[order[i]];
+				loc = getConvertedDividerLoc(i, loc);
+				pane.setDividerLocation((int) (loc * max));
 			}
 			trackerPanel.dividerLocs = null;
 		}
@@ -2859,6 +2907,33 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		Tracker.setProgress(90);
 		TMenuBar.getMenuBar(trackerPanel).setAllowRefresh(true);
 //		saveCurrentDividerLocations(trackerPanel);
+	}
+	
+	protected boolean isPortraitLayout() {
+		return isLayoutAdaptive && isPortraitLayout;
+	}
+	
+	/**
+	 * Converts and returns converted divider location (0.0 <= loc <= 1.0).
+	 * No conversion is made if not portrait layout.
+	 * 
+	 * @param splitPaneIndex 0-3
+	 * @param loc the divider loc
+	 * @return the converted divider loc
+	 */
+	protected double getConvertedDividerLoc(int splitPaneIndex, double loc) {
+		if (isPortraitLayout())
+			switch(splitPaneIndex) {
+			case SPLIT_MAIN:
+				return loc > 0.92? 1.0: DEFAULT_MAIN_DIVIDER;
+			case SPLIT_RIGHT:
+				return loc > 0.92? 1.0: loc < 0.08? 0.0: DEFAULT_RIGHT_DIVIDER;
+			case SPLIT_LEFT:
+				return loc > 0.92? 1.0: DEFAULT_LEFT_DIVIDER;
+			case SPLIT_BOTTOM:
+				return loc > 0.92? 1.0: loc < 0.08? 0.0: DEFAULT_BOTTOM_DIVIDER;
+			}
+		return loc;
 	}
 
 	/**

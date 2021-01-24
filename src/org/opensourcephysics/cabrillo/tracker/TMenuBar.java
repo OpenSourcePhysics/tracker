@@ -1163,7 +1163,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				if (getFrame() != null) {
 					JSplitPane pane = frame.getSplitPane(trackerPanel, 2);
 					if (window_bottomPaneItem.isSelected()) {
-						pane.setDividerLocation(TFrame.DEFAULT_BOTTOM_DIVIDER);
+						pane.setDividerLocation(TFrame.DEFAULT_LEFT_DIVIDER);
 					} else {
 						pane.setDividerLocation(1.0);
 					}
