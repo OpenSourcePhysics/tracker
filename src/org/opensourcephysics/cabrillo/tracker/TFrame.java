@@ -436,8 +436,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 			// startup
 			/**
-			 * @j2sNative window.addEventListener(window.onorientationchange ?
-			 *            "orientationchange" : "resize", function() { 
+			 * @j2sNative window.addEventListener("orientationchange", function() { 
 			 *                 onOrient.run$();
 			 *             },
 			 *            false);
