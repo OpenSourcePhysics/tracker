@@ -2077,6 +2077,8 @@ public class PointMass extends TTrack {
 //		OSPLog.debug("PointMass " + name + " updateDerivatives start " + startFrame + " for steps " + stepCount);
 
 		// initialize data arrays
+		if (derivData[2] == null)
+			derivData[2] = yData;
 		if (xData.length < steps.array.length) {
 			derivData[1] = xData = new double[steps.array.length + 5];
 			derivData[2] = yData = new double[steps.array.length + 5];
@@ -2215,9 +2217,10 @@ public class PointMass extends TTrack {
 	 */
 	protected Object[] getRotationData() {
 		// initialize data arrays once, for all panels
+		derivData[2] = null;
 		if (xData.length < steps.array.length) {
 			derivData[1] = xData = new double[steps.array.length + 5];
-			derivData[2] = yData = new double[steps.array.length + 5];
+			yData = new double[steps.array.length + 5];
 			derivData[3] = validData = new boolean[steps.array.length + 5];
 		}
 		for (int i = 0; i < steps.array.length; i++)
@@ -2245,7 +2248,6 @@ public class PointMass extends TTrack {
 				rotation += delta;
 				prevAngle = angle;
 				xData[n] = rotation;
-				yData[n] = 0; // ignored
 				validData[n] = true;
 			} else
 				xData[n] = Double.NaN;
@@ -2308,7 +2310,7 @@ public class PointMass extends TTrack {
 				rotation += delta;
 				prevAngle = angle;
 				xData[n] = rotation;
-				yData[n] = 0; // ignored
+//				yData[n] = 0; // ignored
 				validData[n] = true;
 			} else
 				xData[n] = Double.NaN;

@@ -49,6 +49,7 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.display.DatasetManager;
 import org.opensourcephysics.display.DrawingPanel;
 import org.opensourcephysics.display.Interactive;
+import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
 import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.Trackable;
@@ -92,6 +93,12 @@ public class Protractor extends InputTrack {
 		if (vars[4].equals(variable) || vars[5].equals(variable)) {
 			return "I"; //$NON-NLS-1$
 		}
+		if (vars[7].equals(variable)) { // omega
+			return "A/T"; //$NON-NLS-1$
+		}
+		if (vars[8].equals(variable)) { // alpha
+			return "A/TT"; //$NON-NLS-1$
+		}
 		return null;
 	}
 
@@ -103,10 +110,23 @@ public class Protractor extends InputTrack {
 	protected static final Map<String, String> formatDescriptionMap;
 
 	static {
-		dataVariables = new String[] { "t", Tracker.THETA, "L_{1}", "L_{2}", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				"step", "frame", Tracker.THETA + "_{rot}" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+		dataVariables = new String[] { 
+				"t", 
+				Tracker.THETA, 
+				"L_{1}", 
+				"L_{2}", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+				"step", 
+				"frame", 
+				Tracker.THETA + "_{rot}",
+				TeXParser.parseTeX("$\\omega$"), //$NON-NLS-1$
+				TeXParser.parseTeX("$\\alpha$")}; //$NON-NLS-1$
 		fieldVariables = dataVariables; // $NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		formatVariables = new String[] { "t", "L", Tracker.THETA }; //$NON-NLS-1$ //$NON-NLS-2$
+		formatVariables = new String[] { 
+				"t", 
+				"L", 
+				Tracker.THETA,
+				TeXParser.parseTeX("$\\omega$"), //$NON-NLS-1$ 8
+				TeXParser.parseTeX("$\\alpha$")}; //$NON-NLS-1$ //$NON-NLS-2$
 
 		// assemble format map
 		formatMap = new HashMap<>();
@@ -128,6 +148,14 @@ public class Protractor extends InputTrack {
 	// instance fields
 	protected JCheckBoxMenuItem fixedItem;
 	protected JMenuItem attachmentItem;
+	// for derivatives
+	protected int firstDerivSpill = 1;
+	protected int secondDerivSpill = 2;
+	protected int[] params = new int[4];
+	protected double[] rotationAngle = new double[5];
+//	protected double[] alpha = new double[5];
+	protected boolean[] validData = new boolean[5];
+	protected Object[] derivData = new Object[] { params, rotationAngle, null, validData };
 
 	/**
 	 * Constructs a Protractor.
@@ -403,6 +431,7 @@ public class Protractor extends InputTrack {
 	protected void refreshData(DatasetManager data, TrackerPanel trackerPanel) {
 		if (refreshDataLater || trackerPanel == null || data == null)
 			return;
+
 		// get the datasets
 //		Dataset angle = data.getDataset(count++);
 //		Dataset arm1Length = data.getDataset(count++);
@@ -411,25 +440,25 @@ public class Protractor extends InputTrack {
 //		Dataset frameNum = data.getDataset(count++);
 //		Dataset rotationAngle = data.getDataset(count++);
 		// assign column names to the datasets
-		int count = 6;
+		int count = dataVariables.length - 1;
 		dataFrames.clear();
 		VideoPlayer player = trackerPanel.getPlayer();
 		VideoClip clip = player.getVideoClip();
 		int len = clip.getStepCount();
 		double[][] validData = new double[count + 1][len];
-		double rotation = 0, prevAngle = 0;
+//		double rotation = 0, prevAngle = 0;
 		for (int i = 0; i < len; i++) {
 			int frame = clip.stepToFrame(i);
 			ProtractorStep next = (ProtractorStep) getStep(frame);
 			next.dataVisible = true;
-			// determine the cumulative rotation angle
 			double theta = next.getProtractorAngle(false);
-			double delta = theta - prevAngle;
-			if (delta < -Math.PI)
-				delta += 2 * Math.PI;
-			else if (delta > Math.PI)
-				delta -= 2 * Math.PI;
-			rotation += delta;
+//			// determine the cumulative rotation angle
+//			double delta = theta - prevAngle;
+//			if (delta < -Math.PI)
+//				delta += 2 * Math.PI;
+//			else if (delta > Math.PI)
+//				delta -= 2 * Math.PI;
+//			rotation += delta;
 			// get the step number and time
 			double t = player.getStepTime(i) / 1000.0;
 			validData[0][i] = theta;
@@ -437,13 +466,84 @@ public class Protractor extends InputTrack {
 			validData[2][i] = next.getArmLength(next.end2);
 			validData[3][i] = i;
 			validData[4][i] = frame;
-			validData[5][i] = rotation;
-			validData[6][i] = t;
+//			validData[5][i] = rotation;
+			validData[8][i] = t;
 			dataFrames.add(frame);
-			prevAngle = theta;
+//			prevAngle = theta;
+		}
+		// get the rotational data
+		Object[] rotationData = getRotationData();
+		double[] theta = (double[]) rotationData[0];
+		double[] omega = (double[]) rotationData[1];
+		double[] alpha = (double[]) rotationData[2];
+		double dt = player.getMeanStepDuration() / 1000;
+		for (int i = 0; i < len; i++) {
+			validData[5][i] = theta[clip.stepToFrame(i)];
+			validData[6][i] = omega[clip.stepToFrame(i)] / dt;
+			validData[7][i] = alpha[clip.stepToFrame(i)] / (dt * dt);
 		}
 		clearColumns(data, count, dataVariables, "Protractor.Data.Description.", validData, len);
 	}
+	
+	/**
+	 * Gets the rotational data.
+	 * 
+	 * @return Object[] {theta, omega, alpha}
+	 */
+	protected Object[] getRotationData() {
+		// initialize data arrays once, for all panels
+		if (rotationAngle.length < steps.array.length) {
+			derivData[1] = rotationAngle = new double[steps.array.length + 5];
+			derivData[3] = validData = new boolean[steps.array.length + 5];
+		}
+		for (int i = 0; i < validData.length; i++)
+			validData[i] = false;
+		// set up derivative parameters
+		VideoClip clip = trackerPanel.getPlayer().getVideoClip();
+		params[1] = clip.getStartFrameNumber();
+		params[2] = clip.getStepSize();
+		params[3] = clip.getStepCount();
+		// set up angular position data
+		Step[] stepArray = steps.array;
+		double rotation = 0;
+		double prevAngle = 0;
+		for (int n = 0; n < stepArray.length; n++) {
+			if (stepArray[n] != null && clip.includesFrame(n)) {
+				ProtractorStep next = (ProtractorStep) stepArray[n];
+				
+				double theta = next.getProtractorAngle(false);
+				double delta = theta - prevAngle;
+				if (delta < -Math.PI)
+					delta += 2 * Math.PI;
+				else if (delta > Math.PI)
+					delta -= 2 * Math.PI;
+				rotation += delta;
+				prevAngle = theta;
+				rotationAngle[n] = rotation;
+				validData[n] = true;
+			} else
+				rotationAngle[n] = Double.NaN;
+		}
+		// unlock track while updating
+		boolean isLocked = locked; // save for later restoration
+		locked = false;
+
+		// evaluate first derivative
+		params[0] = firstDerivSpill; // spill
+		Object[] result = PointMass.vDeriv.evaluate(derivData);
+		double[] omega = (double[]) result[0];
+
+		// evaluate second derivative
+		params[0] = secondDerivSpill; // spill
+		result = PointMass.aDeriv.evaluate(derivData);
+		double[] alpha = (double[]) result[2];
+
+		// restore locked state
+		locked = isLocked;
+		return new Object[] { rotationAngle, omega, alpha };
+	}
+
+
 
 	/**
 	 * Returns the description of a particular attachment point.
