@@ -223,6 +223,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected boolean dataValid; // true if data is valid
 	protected boolean refreshDataLater;
 	protected int[] preferredColumnOrder;
+	// dataFrames lists frame numbers included in the current data
 	protected ArrayList<Integer> dataFrames = new ArrayList<Integer>();
 	protected String partName, hint;
 	protected int stepSizeWhenFirstMarked;

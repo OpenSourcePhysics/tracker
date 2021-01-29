@@ -970,7 +970,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			// shift relative to bsFrameHighlights if start frame > 0
 			int startFrame = track.dataFrames.get(0);
 			int framesPerStep = (track.dataFrames.size() > 1 ? track.dataFrames.get(1) - startFrame : 1);
-			if (startFrame > 0) {
+			if (startFrame > 0 || framesPerStep > 1) {
 				bsSteps = new BitSet();
 				for (int i = bsFrameHighlights.nextSetBit(0); i >= 0; i = bsFrameHighlights.nextSetBit(i + 1)) {
 				   int pt = (i - startFrame) / framesPerStep;
