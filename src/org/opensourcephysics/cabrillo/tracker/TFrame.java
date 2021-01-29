@@ -210,11 +210,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public static final String PROPERTY_TFRAME_RADIANANGLES = "radian_angles";
 	public static final String PROPERTY_TFRAME_WINDOWFOCUS = "windowfocus";
 
-	protected final static String helpPath = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
-	protected final static String helpPathWeb = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
-	protected final static Color yellow = new Color(255, 255, 105);
-	private final static int defaultDividerSize = 10;
-	private final static double minDividerOffset = 0.07;
+	protected final static String HELP_PATH = "/org/opensourcephysics/cabrillo/tracker/resources/help/"; //$NON-NLS-1$
+	protected final static String WEB_HELP_PATH = "https://physlets.org/tracker/help/"; //$NON-NLS-1$
+	protected final static Color YELLOW = new Color(255, 255, 105);
+	private final static int DEFAULT_DIVIDER_SIZE = 10;
+	private final static double MIN_DIVIDER_OFFSET = 0.07;
 
 	private static final int TFRAME_MAINVIEW = 0;
 	private static final int TFRAME_VIEWCHOOSERS = 1;
@@ -226,11 +226,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	private static final int DEFAULT_VIEWS = 0;
 	private static final int OTHER_VIEWS = 1;
 
-	protected static double DEFAULT_MAIN_DIVIDER = 0.67;
-	protected static double DEFAULT_RIGHT_DIVIDER = 0.57;
-	protected static double DEFAULT_LEFT_DIVIDER = 0.57;
-	protected static double DEFAULT_BOTTOM_DIVIDER = 0.50;
+	protected static final double DEFAULT_MAIN_DIVIDER = 0.67;
+	protected static final double DEFAULT_RIGHT_DIVIDER = 0.57;
+	protected static final double DEFAULT_LEFT_DIVIDER = 0.57;
+	protected static final double DEFAULT_BOTTOM_DIVIDER = 0.50;
 
+	private static boolean isPortraitLayout, isLayoutChanged, isLayoutAdaptive;
 	public static boolean haveExportDialog = false;
 	public static boolean haveThumbnailDialog = false;
 	
@@ -264,7 +265,6 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected PrefsDialog prefsDialog;
 	protected ClipboardListener clipboardListener;
 	protected boolean alwaysListenToClipboard;
-	protected boolean isPortraitLayout, isLayoutChanged, isLayoutAdaptive;
 	private String mylang = "en";
 	private JMenu languageMenu;
 	protected int maximizedView = -1;
@@ -365,6 +365,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (options == null)
 			options = new HashMap<>();
 		isLayoutAdaptive = OSPRuntime.isJS && options.get("-adaptive") != null;
+//		isLayoutAdaptive = true; // pig for testing
 		Dimension dim = (Dimension) options.get("-dim");
 		Rectangle bounds = (Rectangle) options.get("-bounds");
 		Video video = (Video) options.get("-video");
@@ -1730,7 +1731,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	private static void setDefaultWeight(JSplitPane pane, double d) {
-		pane.setDividerSize(defaultDividerSize);
+		pane.setDividerSize(DEFAULT_DIVIDER_SIZE);
 		pane.setResizeWeight(d); 
 		pane.setOneTouchExpandable(true);
 	}
@@ -1742,7 +1743,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		for (int i = 0; i < panes.length; i++) {
 			panes[i].setDividerSize(0);
 		}
-		int[] order = (isPortraitLayout ? PORTRAIT_VIEW_ORDER : DEFAULT_ORDER);
+		int[] order = (isPortraitLayout() ? PORTRAIT_VIEW_ORDER : DEFAULT_ORDER);
 		int viewPosition = viewIndex < order.length? order[viewIndex]: viewIndex;
 		switch (viewPosition) {
 		case TView.VIEW_PLOT: // right upper
@@ -1793,8 +1794,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			int cur = Math.min(pane.getDividerLocation(), max); // sometimes cur > max !!??
 			trackerPanel.dividerLocs[i] = cur;
 			double fraction = 1.0 * cur / max;
-			fraction = fraction < minDividerOffset && (i == 1 || i == 3)? 0: fraction;
-			fraction = fraction > 1-minDividerOffset? 1: fraction;
+			fraction = fraction < MIN_DIVIDER_OFFSET && (i == 1 || i == 3)? 0: fraction;
+			fraction = fraction > 1-MIN_DIVIDER_OFFSET? 1: fraction;
 			trackerPanel.dividerFractions[i] = fraction;
 		}
 	}
@@ -2127,7 +2128,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	protected Component getHelpDialog() {
 		if (helpDialog == null) {
 			helpDialog = new JDialog(this, TrackerRes.getString("TFrame.Dialog.Help.Title"), false); //$NON-NLS-1$
-			String help_path = helpPath + "help_set.xml"; //$NON-NLS-1$
+			String help_path = HELP_PATH + "help_set.xml"; //$NON-NLS-1$
 //      String lang = TrackerRes.locale.getLanguage();
 //      String webHelp = helpPathWeb+"help_"+lang+"/help_set.xml"; //$NON-NLS-1$ //$NON-NLS-2$
 //      Resource res = ResourceLoader.getResource(webHelp);
@@ -2452,7 +2453,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				TrackerPanel trackerPanel = getSelectedPanel();
 				if (!trackerPanel.isEnabled("notes.edit")) //$NON-NLS-1$
 					return;
-				notesTextPane.setBackground(yellow);
+				notesTextPane.setBackground(YELLOW);
 				closeNotesDialogButton.setText(TrackerRes.getString("PrefsDialog.Button.Save")); //$NON-NLS-1$
 				cancelNotesDialogButton.setEnabled(true);
 			}
@@ -2908,7 +2909,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //		saveCurrentDividerLocations(trackerPanel);
 	}
 	
-	protected boolean isPortraitLayout() {
+	protected static boolean isPortraitLayout() {
 		return isLayoutAdaptive && isPortraitLayout;
 	}
 	

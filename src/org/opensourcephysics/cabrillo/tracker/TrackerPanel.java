@@ -4009,7 +4009,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				// save the split pane dividers
 				double[] dividerLocations = new double[4];
 				int w = 0;
-				int[] order = frame.isPortraitLayout() ? TFrame.PORTRAIT_DIVIDER_ORDER : TFrame.DEFAULT_ORDER;
+				int[] order = TFrame.isPortraitLayout() ? TFrame.PORTRAIT_DIVIDER_ORDER : TFrame.DEFAULT_ORDER;
 				for (int i = 0; i < dividerLocations.length; i++) {
 					JSplitPane pane = frame.getSplitPane(trackerPanel, i);
 					if (i == TFrame.SPLIT_MAIN)

@@ -140,7 +140,8 @@ public interface TView extends PropertyChangeListener {
 			if (views[i] != null)
 				for (int j = 0; j < views[i].length; j++) {
 					if (views[i][j] == this) {
-						return tf.isViewPaneVisible(i, tp);
+						int[] order = (TFrame.isPortraitLayout() ? TFrame.PORTRAIT_VIEW_ORDER : TFrame.DEFAULT_ORDER);
+						return tf.isViewPaneVisible(order[i], tp);
 					}
 				}
 		}
