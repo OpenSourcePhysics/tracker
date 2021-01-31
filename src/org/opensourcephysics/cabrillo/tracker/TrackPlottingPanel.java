@@ -42,7 +42,6 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,7 +63,6 @@ import javax.swing.JViewport;
 import javax.swing.WindowConstants;
 import javax.swing.event.MouseInputAdapter;
 
-import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
@@ -193,8 +191,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				TrackerPanel panel = plotTrackView.trackerPanel;
-				VideoPlayer player = panel.getPlayer();
+				VideoPlayer player = trackerPanel.getPlayer();
 				if (!player.isEnabled())
 					return;
 				switch (e.getKeyCode()) {
@@ -220,10 +217,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					player.setStepNumber(clip.getStepCount() - 1);
 					break;
 				case KeyEvent.VK_DELETE: // delete selected steps
-					panel.deleteSelectedSteps();
-					if (panel.selectedPoint != null
-							&& panel.selectingPanel == panel) {
-						panel.deletePoint(panel.selectedPoint);
+					trackerPanel.deleteSelectedSteps();
+					if (trackerPanel.selectedPoint != null
+							&& trackerPanel.selectingPanel == trackerPanel) {
+						trackerPanel.deletePoint(trackerPanel.selectedPoint);
 					}
 					return;
 
@@ -967,15 +964,21 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		// refresh highlighted indices
 		BitSet bsSteps = bsFrameHighlights;
 		if (!track.dataFrames.isEmpty()) {
-			// shift relative to bsFrameHighlights if start frame > 0
-			int startFrame = track.dataFrames.get(0);
-			int framesPerStep = (track.dataFrames.size() > 1 ? track.dataFrames.get(1) - startFrame : 1);
-			if (startFrame > 0 || framesPerStep > 1) {
+			int frameNum = bsSteps.nextSetBit(0);
+			if (bsSteps.cardinality() != 1 || 
+					track.dataFrames.size() <= frameNum || 
+					track.dataFrames.get(frameNum) != frameNum) {
 				bsSteps = new BitSet();
-				for (int i = bsFrameHighlights.nextSetBit(0); i >= 0; i = bsFrameHighlights.nextSetBit(i + 1)) {
-				   int pt = (i - startFrame) / framesPerStep;
-				   if (pt >= 0)
-					   bsSteps.set(pt);
+				int dataIndex = 0;
+				int end = track.dataFrames.size();
+				outer: for (; frameNum >= 0; frameNum = bsFrameHighlights.nextSetBit(frameNum + 1)) {
+					for (; dataIndex < end; dataIndex++) {
+						int k = track.dataFrames.get(dataIndex);
+						if (k == frameNum) {
+							bsSteps.set(dataIndex);
+							continue outer;
+						}
+					}
 				}
 			}
 		}
