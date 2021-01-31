@@ -812,8 +812,9 @@ public class TableTrackView extends TrackView {
 			if (TTrack.HINT_STEP_ADDED_OR_REMOVED == e.getOldValue()) {
 				refreshGapsButton();				
 			}
-			if (TTrack.HINT_STEPS_SELECTED == e.getOldValue())
-				return;
+			// commented out so TrackView will fire event to select table rows
+//			if (TTrack.HINT_STEPS_SELECTED == e.getOldValue())
+//				return;
 		default:
 			break;
 		}
