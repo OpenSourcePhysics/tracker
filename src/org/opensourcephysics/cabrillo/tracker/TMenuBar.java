@@ -562,9 +562,9 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		int keyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
 		createFileMenu(keyMask);
 		createEditMenu(keyMask);
-		createCoordsMenu(keyMask);
 		createVideoMenu(keyMask);
 		createTracksMenu(keyMask);
+		createCoordsMenu(keyMask);
 		createWindowMenu(keyMask);
 
 		// help menu
