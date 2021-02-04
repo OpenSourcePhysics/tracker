@@ -191,7 +191,7 @@ public class Tracker implements StateMachine {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20210124"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20210131"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
 	
 	/**

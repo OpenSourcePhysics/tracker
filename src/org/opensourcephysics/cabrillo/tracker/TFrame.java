@@ -2065,9 +2065,11 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 								// if HINT_LOAD_RESOURCE, then e.getNewValue() is LibraryResource to load
 								if (LibraryBrowser.HINT_LOAD_RESOURCE == e.getOldValue()) {
 									LibraryResource record = (LibraryResource)e.getNewValue();
-									String abort = "[click here to cancel]";
-									libraryBrowser.setMessage("Loading \""+record.getName() + "\"" + abort, Color.YELLOW);
+									String toCancel = " ["+TrackerRes.getString("TFrame.LibraryBrowser.Message.Cancel")+"]";
+									String loading = " "+TrackerRes.getString("Tracker.Splash.Loading")+" \"";
+									libraryBrowser.setMessage(loading + record.getName() + "\"" + toCancel, Color.YELLOW);
 									libraryBrowser.setComandButtonEnabled(false);
+									VideoIO.setCanceled(false);
 
 									// invoke later so libraryBrowser message can refresh
 									SwingUtilities.invokeLater(() -> {
