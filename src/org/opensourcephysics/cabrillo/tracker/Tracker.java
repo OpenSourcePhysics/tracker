@@ -292,8 +292,8 @@ public class Tracker implements StateMachine {
 	static int requestedMemorySize = -1, originalMemoryRequest = 0;
 	static long lastMillisChecked;
 	static int maxFontLevel = 6;
-	protected static Locale[] locales;
-	protected static Object[][] incompleteLocales;
+	private static Locale[] locales;
+	static Object[][] incompleteLocales;
 	static Locale defaultLocale;
 	static ArrayList<String> checkForUpgradeChoices;
 	static Map<String, Integer> checkForUpgradeIntervals;
@@ -322,7 +322,8 @@ public class Tracker implements StateMachine {
 	static boolean scrubMouseWheel, centerCalibrationStick = true, hideLabels;
 	static boolean enableAutofill = true, showGaps = true;
 	static int preferredTrailLengthIndex = DEFAULT_TRAIL_LENGTH_INDEX;
-	private static boolean declareLocales = !OSPRuntime.isJS;
+
+	private static boolean declareLocales = true;//!OSPRuntime.isJS;
 
 	// the only instance field!
 	private TFrame frame;
@@ -354,47 +355,9 @@ public class Tracker implements StateMachine {
 
 		// create static objects AFTER they are defined above
 
-		if (declareLocales) {
-			locales = new Locale[] { Locale.ENGLISH, // SwingJS -- only this one is declared statically
-					new Locale("ar"), // arabic //$NON-NLS-1$
-					new Locale("cs"), // czech //$NON-NLS-1$
-					new Locale("da"), // danish //$NON-NLS-1$
-					new Locale("de"), // Locale.GERMAN,
-					new Locale("el", "GR"), // greek //$NON-NLS-1$ //$NON-NLS-2$
-					new Locale("es"), // spanish //$NON-NLS-1$
-					new Locale("fi"), // finnish //$NON-NLS-1$
-					new Locale("fr"), // Locale.FRENCH,
-					new Locale("hu", "HU"), // hungarian //$NON-NLS-1$ //$NON-NLS-2$
-					new Locale("in"), // indonesian //$NON-NLS-1$
-					new Locale("it"), // Locale.ITALIAN,
-					new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
-					new Locale("ko"), // korean //$NON-NLS-1$
-					new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$
-					new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
-					new Locale("pl"), // polish //$NON-NLS-1$
-					new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$
-					new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$
-					// BH missing PORTUGUESE?
-//			OSPRuntime.PORTUGUESE,
-					new Locale("sk"), // slovak //$NON-NLS-1$
-					new Locale("sl"), // slovenian //$NON-NLS-1$
-					new Locale("sv"), // swedish //$NON-NLS-1$
-					new Locale("th", "TH"), // Thailand thai //$NON-NLS-1$ //$NON-NLS-2$
-					new Locale("tr"), // turkish //$NON-NLS-1$
-//			new Locale("uk"), // ukrainian //$NON-NLS-1$
-					new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
-					new Locale("zh", "CN"), // Locale.CHINA, // simplified chinese
-					new Locale("zh", "TW"), // Locale.TAIWAN // traditional chinese
-			};
-			// pig last updated March 2018
-			incompleteLocales = new Object[][] { { new Locale("cs"), "2013" }, // czech //$NON-NLS-1$ //$NON-NLS-2$
-					{ new Locale("fi"), "2013" }, // finnish //$NON-NLS-1$ //$NON-NLS-2$
-					{ new Locale("sk"), "2011" }, // slovak //$NON-NLS-1$ //$NON-NLS-2$
-					{ new Locale("in"), "2013" } };// indonesian //$NON-NLS-1$ //$NON-NLS-2$
-
-		} else {
-			locales = new Locale[] { Locale.ENGLISH, // SwingJS -- only this one is declared statically
-			};
+		if (!declareLocales) {
+			// old SwingJS?
+			locales = new Locale[] { Locale.ENGLISH };
 			incompleteLocales = new Object[][] {};
 		}
 
@@ -561,6 +524,49 @@ public class Tracker implements StateMachine {
 		new Thread(() -> {
 			JREFinder.getFinder().getJREs(32);
 		}).start();
+	}
+
+	public static Locale[] getLocales() {
+		if (locales != null)
+			return locales;
+		locales = new Locale[] { Locale.ENGLISH, // SwingJS -- only this one is declared statically
+				new Locale("ar"), // arabic //$NON-NLS-1$
+				new Locale("cs"), // czech //$NON-NLS-1$
+				new Locale("da"), // danish //$NON-NLS-1$
+				new Locale("de"), // Locale.GERMAN,
+				new Locale("el", "GR"), // greek //$NON-NLS-1$ //$NON-NLS-2$
+				new Locale("es"), // spanish //$NON-NLS-1$
+				new Locale("fi"), // finnish //$NON-NLS-1$
+				new Locale("fr"), // Locale.FRENCH,
+				new Locale("hu", "HU"), // hungarian //$NON-NLS-1$ //$NON-NLS-2$
+				new Locale("in"), // indonesian //$NON-NLS-1$
+				new Locale("it"), // Locale.ITALIAN,
+				new Locale("iw", "IL"), // hebrew //$NON-NLS-1$ //$NON-NLS-2$
+				new Locale("ko"), // korean //$NON-NLS-1$
+				new Locale("ms", "MY"), // malaysian //$NON-NLS-1$ //$NON-NLS-2$
+				new Locale("nl", "NL"), // dutch //$NON-NLS-1$ //$NON-NLS-2$
+				new Locale("pl"), // polish //$NON-NLS-1$
+				new Locale("pt", "BR"), // Brazil portuguese //$NON-NLS-1$ //$NON-NLS-2$
+				new Locale("pt", "PT"), // Portugal portuguese //$NON-NLS-1$
+				// BH missing PORTUGUESE?
+//		OSPRuntime.PORTUGUESE,
+				new Locale("sk"), // slovak //$NON-NLS-1$
+				new Locale("sl"), // slovenian //$NON-NLS-1$
+				new Locale("sv"), // swedish //$NON-NLS-1$
+				new Locale("th", "TH"), // Thailand thai //$NON-NLS-1$ //$NON-NLS-2$
+				new Locale("tr"), // turkish //$NON-NLS-1$
+//		new Locale("uk"), // ukrainian //$NON-NLS-1$
+				new Locale("vi", "VN"), // vietnamese //$NON-NLS-1$ //$NON-NLS-2$
+				new Locale("zh", "CN"), // Locale.CHINA, // simplified chinese
+				new Locale("zh", "TW"), // Locale.TAIWAN // traditional chinese
+		};
+		// pig last updated March 2018
+		incompleteLocales = new Object[][] { { new Locale("cs"), "2013" }, // czech //$NON-NLS-1$ //$NON-NLS-2$
+				{ new Locale("fi"), "2013" }, // finnish //$NON-NLS-1$ //$NON-NLS-2$
+				{ new Locale("sk"), "2011" }, // slovak //$NON-NLS-1$ //$NON-NLS-2$
+				{ new Locale("in"), "2013" } };// indonesian //$NON-NLS-1$ //$NON-NLS-2$
+
+		return locales;
 	}
 
 	/**
@@ -1488,7 +1494,8 @@ public class Tracker implements StateMachine {
 		if (localeName == null) {
 			Locale.setDefault(defaultLocale);
 			preferredLocale = null;
-		} else
+		} else {
+			getLocales();
 			for (Locale locale : locales) {
 				if (locale.toString().equals(localeName)) {
 					Locale.setDefault(locale);
@@ -1496,6 +1503,7 @@ public class Tracker implements StateMachine {
 					break;
 				}
 			}
+		}
 		// set the default decimal separator
 		char separator = new DecimalFormat().getDecimalFormatSymbols().getDecimalSeparator();
 		// deal with special case pt_PT

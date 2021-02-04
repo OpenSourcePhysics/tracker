@@ -2768,18 +2768,19 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	}
 
 	private void checkLocale() {
-		if (TrackerRes.locale != Locale.ENGLISH) {
+		if (TrackerRes.locale != Locale.ENGLISH && TrackerRes.locale != Locale.US) {
 			// try for exact match (unlikely)
-			for (int i = 0; i < Tracker.locales.length; i++) {
-				Locale loc = Tracker.locales[i];
+			Locale[] locales = Tracker.getLocales();
+			for (int i = 0; i < locales.length; i++) {
+				Locale loc = locales[i];
 				if (loc.equals(TrackerRes.locale)) {
 					setLanguage(loc.toString());
 					return;
 				}
 			}
 			// match just country
-			for (int i = 0; i < Tracker.locales.length; i++) {
-				Locale loc = Tracker.locales[i];
+			for (int i = 0; i < locales.length; i++) {
+				Locale loc = locales[i];
 				if (loc.getLanguage().equals(TrackerRes.locale.getLanguage())) {
 					setLanguage(loc.getLanguage());
 					return;
@@ -2799,8 +2800,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		languageMenu.removeAll();
 		ButtonGroup languageGroup = new ButtonGroup();
 		JMenuItem selected = null;
-		for (int i = 0; i < Tracker.locales.length; i++) {
-			Locale loc = Tracker.locales[i];
+		Locale[] locales = Tracker.getLocales();
+		for (int i = 0; i < locales.length; i++) {
+			Locale loc = locales[i];
 			String lang = OSPRuntime.getDisplayLanguage(loc);
 			String co = loc.getCountry();
 			// special handling for portuguese BR and PT
@@ -2841,6 +2843,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (language.equals(mylang))
 			return;
 		mylang = language;
+		Locale[] locales = Tracker.getLocales();
 		for (int i = 0; i < Tracker.incompleteLocales.length; i++) {
 			if (language.equals(Tracker.incompleteLocales[i][0].toString())) {
 				Locale locale = (Locale) Tracker.incompleteLocales[i][0];
@@ -2855,9 +2858,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 				break;
 			}
 		}
-		for (int i = 0; i < Tracker.locales.length; i++) {
-			if (language.equals(Tracker.locales[i].toString())) {
-				TrackerRes.setLocale(Tracker.locales[i]);
+		
+		for (int i = 0; i < locales.length; i++) {
+			if (language.equals(locales[i].toString())) {
+				TrackerRes.setLocale(locales[i]);
 				return;
 			}
 		}

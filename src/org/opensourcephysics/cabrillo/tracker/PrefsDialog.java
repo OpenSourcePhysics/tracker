@@ -441,7 +441,7 @@ public class PrefsDialog extends JDialog {
 		languageDropdown = new JComboBox<String>();
 		languageDropdown.addItem(TrackerRes.getString("PrefsDialog.Language.Default")); //$NON-NLS-1$
 		int index = 0, selectedIndex = 0;
-		for (Locale next : Tracker.locales) {
+		for (Locale next : Tracker.getLocales()) {
 			index++;
 			String s = OSPRuntime.getDisplayLanguage(next);
 			// special handling for portuguese BR and PT
@@ -461,7 +461,7 @@ public class PrefsDialog extends JDialog {
 				if (index == 0)
 					Tracker.setPreferredLocale(null);
 				else {
-					Tracker.setPreferredLocale(Tracker.locales[index - 1].toString());
+					Tracker.setPreferredLocale(Tracker.getLocales()[index - 1].toString());
 				}
 			}
 		});
@@ -1891,8 +1891,9 @@ public class PrefsDialog extends JDialog {
 		hintsCheckbox.setSelected(Tracker.showHintsByDefault);
 		// locale
 		int index = 0;
-		for (int i = 0; i < Tracker.locales.length; i++) {
-			Locale next = Tracker.locales[i];
+		Locale[] locales = Tracker.getLocales();
+		for (int i = 0; i < locales.length; i++) {
+			Locale next = locales[i];
 			if (next.equals(Locale.getDefault())) {
 				index = i + 1;
 				break;
