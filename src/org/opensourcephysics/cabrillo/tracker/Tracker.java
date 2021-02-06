@@ -123,12 +123,13 @@ import swingjs.api.JSUtilI;
  *
  * @author Douglas Brown
  */
-public class Tracker implements StateMachine {
+public class Tracker {
 
 	// This static call to OSPRuntime Ensure that OSP is loaded already, 
 	// enabling all resources and setting J2S parameters
 	// such as allowed AJAX databases.
 
+	public static final String TRACKER_TEST_URL = null;
 	
 	public static boolean doHoldRepaint = true; //BH testing if false
 
@@ -1585,8 +1586,10 @@ public class Tracker implements StateMachine {
 	 * @param logToFile      true to log in to the PHP counter
 	 */
 	protected static void loadCurrentVersion(boolean ignoreInterval, boolean logToFile) {
-		if (ResourceLoader.TRACKER_TEST_URL == null
-				|| !ResourceLoader.isURLAvailable(ResourceLoader.TRACKER_TEST_URL)) {
+		if (OSPRuntime.isJS
+				|| TRACKER_TEST_URL == null
+				|| !ResourceLoader.isURLAvailable(TRACKER_TEST_URL)
+				) {
 			return;
 		}
 		if (checkedForNewerVersion)
@@ -2623,21 +2626,6 @@ public class Tracker implements StateMachine {
 				return obj;
 			}
 		}
-	}
-
-//	private final static int STATE_INIT = 0;
-//	private final static int STATE_DONE = 9999;
-//	private final int stateDelay = 1;
-	// private StateHelper helper;
-
-	@Override
-	public boolean stateLoop() {
-//		switch (helper.getState()) {
-//		case STATE_INIT:
-//			
-//		
-//		}
-		return false;
 	}
 
 	// dataFunctionControls  
