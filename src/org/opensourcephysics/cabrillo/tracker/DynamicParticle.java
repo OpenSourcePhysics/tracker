@@ -505,7 +505,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 				data.get("v_{x}", index, 1), //$NON-NLS-1$
 				data.get("y", index, 1), //$NON-NLS-1$
 				data.get("v_{y}", index, 1), //$NON-NLS-1$
-				data.get("t", index, 0) //$NON-NLS-1$
+				data.getValueAt(index, 0) //$NON-NLS-1$
 		};
 	}
 
