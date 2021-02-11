@@ -589,6 +589,7 @@ javax/swing/event/ChangeListener.js
 javax/swing/event/DocumentEvent.js
 javax/swing/event/DocumentListener.js
 javax/swing/event/EventListenerList.js
+javax/swing/event/HyperlinkEvent.js
 javax/swing/event/HyperlinkListener.js
 javax/swing/event/ListDataEvent.js
 javax/swing/event/ListDataListener.js
