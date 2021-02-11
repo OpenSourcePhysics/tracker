@@ -38,6 +38,16 @@ import org.opensourcephysics.controls.*;
  * @version 1.0
  */
 public class DynamicParticlePolar extends DynamicParticle {
+	
+	
+	final static protected String[] polarVars = new String[] { "r", "vr", //$NON-NLS-1$ //$NON-NLS-2$
+			FunctionEditor.THETA, FunctionEditor.OMEGA, "t" }; //$NON-NLS-1$
+
+	protected String[] getBoostVars() {
+		return polarVars;
+	}
+
+
 
 	/**
 	 * Gets the initial state {x, vx, y, vy, t}.
@@ -76,11 +86,11 @@ public class DynamicParticlePolar extends DynamicParticle {
 		// cartesianState is {x, vx, y, vy, t}
 		UserFunction[] f = getFunctionEditor().getMainFunctions();
 		// get polar state {r, vr, theta, omega, t} to evaluate polar functions
-		double[] polarState = getPolarState(cartesianState);
-		double fr = f[0].evaluate(polarState);
-		double ftheta = f[1].evaluate(polarState);
-		double cos = Math.cos(polarState[2]);
-		double sin = Math.sin(polarState[2]);
+		ret = getPolarState(cartesianState, ret);
+		double fr = f[0].evaluate(ret);
+		double ftheta = f[1].evaluate(ret);
+		double cos = Math.cos(ret[2]);
+		double sin = Math.sin(ret[2]);
 		ret[0] = (fr * cos - ftheta * sin);
 		ret[1] = (fr * sin + ftheta * cos);
 	}
@@ -95,16 +105,14 @@ public class DynamicParticlePolar extends DynamicParticle {
 		functionPanel = new DynamicFunctionPanel(functionEditor, this);
 		// create main force functions
 		UserFunction[] uf = new UserFunction[2];
-		String[] funcVars = new String[] { "r", "vr", //$NON-NLS-1$ //$NON-NLS-2$
-				FunctionEditor.THETA, FunctionEditor.OMEGA, "t" }; //$NON-NLS-1$
 		uf[0] = new UserFunction("fr"); //$NON-NLS-1$
 		uf[0].setNameEditable(false);
-		uf[0].setExpression("0", funcVars); //$NON-NLS-1$
+		uf[0].setExpression("0", polarVars); //$NON-NLS-1$
 		uf[0].setDescription(TrackerRes.getString("DynamicParticle.ForceFunction.R.Description")); //$NON-NLS-1$
 		String s = "f" + FunctionEditor.THETA; //$NON-NLS-1$
 		uf[1] = new UserFunction(s);
 		uf[1].setNameEditable(false);
-		uf[1].setExpression("0", funcVars); //$NON-NLS-1$
+		uf[1].setExpression("0", polarVars); //$NON-NLS-1$
 		uf[1].setDescription(TrackerRes.getString("DynamicParticle.ForceFunction.Theta.Description")); //$NON-NLS-1$
 		functionEditor.setMainFunctions(uf);
 		// create mass and initial time parameters
@@ -137,11 +145,13 @@ public class DynamicParticlePolar extends DynamicParticle {
 	 * t}, both relative to the origin.
 	 * 
 	 * @param state the cartesian state
-	 * @return the polar state
+	 * @param ret the temp return array; may be state
+	 * @return the polar state in ret
 	 */
-	protected double[] getPolarState(double[] state) {
+	protected double[] getPolarState(double[] state, double[] ret) {
+		if (state == null)
+			return null;
 		// state is {x, vx, y, vy, t}
-		double[] polarState = new double[5];
 		double dx = state[0];
 		double dy = state[2];
 		double vx = state[1];
@@ -152,66 +162,66 @@ public class DynamicParticlePolar extends DynamicParticle {
 		double vang = Math.atan2(vy, vx);
 		double dang = vang - rang;
 		// polar state is {r, vr, theta, omega, t}
-		polarState[0] = r; // r
-		polarState[1] = r == 0 ? v : v * Math.cos(dang); // vr
-		polarState[2] = r == 0 ? vang : rang; // theta
-		polarState[3] = r == 0 ? 0 : v * Math.sin(dang) / r; // omega
-		polarState[4] = state[4]; // t
-		return polarState;
+		ret[0] = r; // r
+		ret[1] = r == 0 ? v : v * Math.cos(dang); // vr
+		ret[2] = r == 0 ? vang : rang; // theta
+		ret[3] = r == 0 ? 0 : v * Math.sin(dang) / r; // omega
+		ret[4] = state[4];
+		return ret;
 	}
 
-	/**
-	 * Sets the initial conditions to those of the booster.
-	 */
 	@Override
-	protected void boost() {
-		if (this instanceof DynamicSystem) {
-			return;
-		}
-		if (modelBooster == null || modelBooster.booster == null)
-			return;
-
-		int frameNumber = getStartFrame();
-		double[] state = getCartesianState(modelBooster.booster, frameNumber); // {x, vx, y, vy, t}
-
-		if (state == null)
-			return;
-		double[] polarState = getPolarState(state);
-		// polar is {r, vr, theta, omega, t}
-
-		Parameter[] params = getInitEditor().getParameters();
-		for (int i = 0; i < params.length; i++) {
-			Parameter param = params[i];
-			String name = param.getName();
-			double value = Double.NaN; // default
-
-			if (name.equals("r")) //$NON-NLS-1$
-				value = polarState[0];
-			else if (name.equals("vr")) //$NON-NLS-1$
-				value = polarState[1];
-			else if (name.equals(FunctionEditor.THETA))
-				value = polarState[2];
-			else if (name.equals(FunctionEditor.OMEGA))
-				value = polarState[3];
-
-			// replace parameter with new one if not null
-			if (!Double.isNaN(value)) {
-				Parameter newParam = new Parameter(name, String.valueOf(value));
-				newParam.setDescription(param.getDescription());
-				newParam.setNameEditable(false);
-				params[i] = newParam;
-			}
-		}
-		getInitEditor().setParameters(params);
-		if (system != null) {
-			system.refreshSystemParameters();
-			system.setLastValidFrame(-1);
-			system.refreshSteps("DPPolar.setParameters");
-		} else {
-			reset();
-		}
-		repaint();
+	protected double[] getBoostState(PointMass target, int frameNumber) {
+		// both of these will be temp
+		return getPolarState(super.getBoostState(target, frameNumber), temp);
 	}
+
+// BH integrated into DynamicParticle	
+//	/**
+//	 * Sets the initial conditions to those of the booster.
+//	 */
+//	@Override
+//	protected void boost() {
+//		if (modelBooster == null || modelBooster.booster == null)
+//			return;
+//
+//		Parameter[] params = getInitEditor().getParameters();
+//		
+//		state = getState();
+//		// polar is {r, vr, theta, omega, t}
+//
+//		for (int i = 0; i < params.length; i++) {
+//			Parameter param = params[i];
+//			String name = param.getName();
+//			double value = Double.NaN; // default
+//
+//			if (name.equals("r")) //$NON-NLS-1$
+//				value = polarState[0];
+//			else if (name.equals("vr")) //$NON-NLS-1$
+//				value = polarState[1];
+//			else if (name.equals(FunctionEditor.THETA))
+//				value = polarState[2];
+//			else if (name.equals(FunctionEditor.OMEGA))
+//				value = polarState[3];
+//
+//			// replace parameter with new one if not null
+//			if (!Double.isNaN(value)) {
+//				Parameter newParam = new Parameter(name, String.valueOf(value));
+//				newParam.setDescription(param.getDescription());
+//				newParam.setNameEditable(false);
+//				params[i] = newParam;
+//			}
+//		}
+//		getInitEditor().setParameters(params);
+//		if (system != null) {
+//			system.refreshSystemParameters();
+//			system.setLastValidFrame(-1);
+//			system.refreshSteps("DPPolar.setParameters");
+//		} else {
+//			reset();
+//		}
+//		repaint();
+//	}
 
 	/**
 	 * Returns an ObjectLoader to save and load data for this class.
