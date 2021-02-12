@@ -41,7 +41,7 @@ import org.opensourcephysics.media.core.Trackable;
  *
  * @author Douglas Brown
  */
-public class PencilScene implements Trackable, Comparable<PencilScene>, Interactive {
+public class PencilScene implements Interactive, Trackable, Comparable<PencilScene> {
 		
 	private PencilCaption caption;
 	private ArrayList<PencilDrawing> drawings = new ArrayList<PencilDrawing>();
