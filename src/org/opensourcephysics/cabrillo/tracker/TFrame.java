@@ -881,7 +881,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// clean up mouse handler
 		if (trackerPanel.mouseHandler != null) {
 			trackerPanel.mouseHandler.selectedTrack = null;
-			trackerPanel.mouseHandler.p = null;
+			trackerPanel.mouseHandler.selectedPoint = null;
 			trackerPanel.mouseHandler.iad = null;
 		}
 		// clear filter classes
