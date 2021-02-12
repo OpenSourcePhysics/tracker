@@ -1061,7 +1061,8 @@ public class TapeMeasure extends InputTrack {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					trackerPanel.setUnitsVisible(!vis);
-					TTrackBar.getTrackbar(trackerPanel).refresh();
+					trackerPanel.refreshTrackBar();
+//					TTrackBar.getTrackbar(trackerPanel).refresh();
 					Step step = getStep(trackerPanel.getFrameNumber());
 					step.repaint();
 				}

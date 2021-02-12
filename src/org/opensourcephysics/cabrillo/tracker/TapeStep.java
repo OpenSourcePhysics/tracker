@@ -740,8 +740,7 @@ public class TapeStep extends Step {
 	 * the lower left corner of the text.
 	 *
 	 * @param trackerPanel the tracker panel
-	 * @param layout       the text layout
-	 * @param p optional screen point, uses tape center if null
+	 * @param bounds TODO
 	 * @return the screen position point
 	 */
 	private Point getLayoutPosition(TrackerPanel trackerPanel, Rectangle2D bounds) {

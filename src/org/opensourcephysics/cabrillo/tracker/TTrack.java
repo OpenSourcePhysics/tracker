@@ -816,7 +816,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		if (newName != null && !newName.trim().equals("")) { //$NON-NLS-1$
 			String prevName = name;
 			name = newName;
-			this.repaint();
+			repaint();
 			if (trackerPanel != null) {
 				trackerPanel.changed = true;
 				if (trackerPanel.dataBuilder != null) {
@@ -1985,8 +1985,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				}
 			}
 		}
-
-		TTrackBar.getTrackbar(trackerPanel).refresh();
+		trackerPanel.refreshTrackBar();
+//		TTrackBar.getTrackbar(trackerPanel).refresh();
 //	refreshFields(trackerPanel.getFrameNumber());
 	}
 
@@ -2188,7 +2188,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				setVisible(visibleItem.isSelected());
-				TTrack.this.repaint();
+				repaint();
 			}
 		});
 		trailVisibleItem.addItemListener(new ItemListener() {
@@ -2912,11 +2912,23 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @return the marking cursor
 	 */
 	protected Cursor getMarkingCursor(InputEvent e) {
+		switch (getMarkingCursorType(e)) {
+		case TMouseHandler.STATE_AUTO:
+			return TMouseHandler.autoTrackCursor;
+		case TMouseHandler.STATE_AUTOMARK:
+			return TMouseHandler.autoTrackMarkCursor;
+		case TMouseHandler.STATE_MARK:
+		default:
+			return TMouseHandler.markPointCursor;
+		}
+	}
+
+	int getMarkingCursorType(InputEvent e) {
 		if (e != null && TMouseHandler.isAutoTrackTrigger(e) && trackerPanel.getVideo() != null
 				&& isAutoTrackable(getTargetIndex())) {
 			Step step = getStep(trackerPanel.getFrameNumber());
 			if (step == null || step.getPoints()[step.getPoints().length - 1] == null) {
-				return TMouseHandler.autoTrackMarkCursor;
+				return TMouseHandler.STATE_AUTOMARK;
 			}
 
 			if (this instanceof CoordAxes || this instanceof PerspectiveTrack || this instanceof TapeMeasure
@@ -2927,14 +2939,12 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 					int n = trackerPanel.getFrameNumber();
 					AutoTracker.KeyFrame key = autoTracker.getFrame(n).getKeyFrame();
 					if (key == null)
-						return TMouseHandler.autoTrackMarkCursor;
+						return TMouseHandler.STATE_AUTOMARK;
 				}
 			}
-
-			return TMouseHandler.autoTrackCursor;
+			return TMouseHandler.STATE_AUTO;
 		}
-
-		return TMouseHandler.markPointCursor;
+		return TMouseHandler.STATE_MARK;
 	}
 
 	protected void createWarningDialog() {
@@ -3317,6 +3327,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 						RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			textLine.draw(this, g);
+			// BH ouch! adjusting size while painting??
 			if (w == -1) {
 				// check preferred size and adjust if needed
 				w = textLine.getWidth(g);

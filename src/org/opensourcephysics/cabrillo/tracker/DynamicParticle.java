@@ -49,9 +49,11 @@ import org.opensourcephysics.display.DrawingPanel;
  */
 public class DynamicParticle extends ParticleModel implements ODE {
 
+	
 	// instance fields
 	protected boolean inSystem; // used only when loading
 	protected String boosterName; // used only when loading
+	final static protected String[] cartVars = new String[] {"x", "vx", "y", "vy", "t" };
 	protected double[] state = new double[5]; // {x, vx, y, vy, t}
 	protected double[] initialState = new double[5]; // {x, vx, y, vy, t}
 	protected ODESolver solver = new RK4(this);
@@ -60,6 +62,9 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	protected HashMap<Integer, double[]> frameStates = new HashMap<Integer, double[]>();
 	protected ModelBooster modelBooster = new ModelBooster();
 
+	protected String[] getBoostVars() {
+		return cartVars;
+	}
 	/**
 	 * Constructor
 	 */
@@ -271,7 +276,7 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		return false;
 	}
 
-	private double[] temp = new double[2];
+	protected double[] temp = new double[5];
 	
 	/**
 	 * Gets the rate {vx, ax, vy, ay, 1} based on a specified state {x, vx, y, vy,
@@ -484,29 +489,23 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	 * @return the state, or null if the point mass is not marked at the frame
 	 *         number
 	 */
-	protected double[] getCartesianState(PointMass target, int frameNumber) {
+	protected double[] getBoostState(PointMass target, int frameNumber) {
 		DatasetManager data = target.getData(trackerPanel);
 
 		// determine the dataset index for the specified frame number
 		Dataset ds = data.getFrameDataset();
-		int index = -1;
 		double[] frames = ds.getYPoints();
-		for (int i = 0; i < frames.length; i++) {
+		for (int i = 0, n = frames.length; i < n; i++) {
 			if (frames[i] == frameNumber) {
-				index = i;
-				break;
+				temp[0] = data.get("x", i, 1); //$NON-NLS-1$
+				temp[1] = data.get("v_{x}", i, 1); //$NON-NLS-1$
+				temp[2] = data.get("y", i, 1); //$NON-NLS-1$
+				temp[3] = data.get("v_{y}", i, 1); //$NON-NLS-1$
+				temp[4] = data.getValueAt(i, 0); // $NON-NLS-1$
+				return temp;
 			}
 		}
-		if (index == -1)
-			return null;
-
-		return new double[] {
-				data.get("x", index, 1), //$NON-NLS-1$
-				data.get("v_{x}", index, 1), //$NON-NLS-1$
-				data.get("y", index, 1), //$NON-NLS-1$
-				data.get("v_{y}", index, 1), //$NON-NLS-1$
-				data.get("t", index, 0) //$NON-NLS-1$
-		};
+		return null;
 	}
 
 	/**
@@ -553,33 +552,25 @@ public class DynamicParticle extends ParticleModel implements ODE {
 	protected void boost() {
 		if (modelBooster == null || modelBooster.booster == null)
 			return;
-
-		int frameNumber = getStartFrame();
-		double[] state = getCartesianState(modelBooster.booster, frameNumber); // {x, vx, y, vy, t}
+		double[] state = getBoostState(modelBooster.booster, getStartFrame()); // {x, vx, y, vy, t}
 		if (state == null)
 			return;
 
 		Parameter[] params = getInitEditor().getParameters();
+		String[] boostVars = getBoostVars();
 		for (int i = 0; i < params.length; i++) {
 			Parameter param = params[i];
 			String name = param.getName();
-			double value = Double.NaN; // default
-
-			if (name.equals("x")) //$NON-NLS-1$
-				value = state[0];
-			else if (name.equals("vx")) //$NON-NLS-1$
-				value = state[1];
-			else if (name.equals("y")) //$NON-NLS-1$
-				value = state[2];
-			else if (name.equals("vy")) //$NON-NLS-1$
-				value = state[3];
-
-			// replace parameter with new one if not null
-			if (!Double.isNaN(value)) {
-				Parameter newParam = new Parameter(name, String.valueOf(value));
-				newParam.setDescription(param.getDescription());
-				newParam.setNameEditable(false);
-				params[i] = newParam;
+			for (int j = 0; j < 4; j++) {
+				if (name.equals(boostVars[j])) {
+					double value = state[j]; // default
+					if (!Double.isNaN(value)) {
+						Parameter newParam = params[i] = new Parameter(name, String.valueOf(value));
+						newParam.setDescription(param.getDescription());
+						newParam.setNameEditable(false);
+					}
+					break;
+				}
 			}
 		}
 		getInitEditor().setParameters(params);

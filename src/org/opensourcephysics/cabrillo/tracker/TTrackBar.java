@@ -352,11 +352,11 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	 */
 	private TTrackBar(TrackerPanel panel) {
 		trackerPanel = panel;
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); // $NON-NLS-1$
-		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); // $NON-NLS-1$
-		createGUI();
+		panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK, this); // $NON-NLS-1$
+		panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_CLEAR, this); // $NON-NLS-1$
+		panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDTRACK, this); // $NON-NLS-1$
+		panel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_SELECTEDPOINT, this); // $NON-NLS-1$
+//		createGUI();
 //		refresh();
 //		validate();
 	}
@@ -533,19 +533,25 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	 * Refreshes the GUI.
 	 */ 
 	protected void refresh() {
-		if (!trackerPanel.isPaintable())
+		// check to see if a build has already been done since the last refresh request
+		if (!trackerPanel.isPaintable() || buildRequested)
 			return;
+		if (selectButton == null)
+			createGUI();
+		//System.out.println("TTrackBar refresh");
+		buildRequested = true;
 		OSPRuntime.postEvent(() -> {
 			rebuild();
 		});
 
 	}
 
+	private boolean buildRequested;
+
 	protected void rebuild() {
+		buildRequested = false;
 		numberFieldWidth = sizingField.getPreferredSize().width;
 		selectButton.setToolTipText(TrackerRes.getString("TToolBar.Button.SelectTrack.Tooltip")); //$NON-NLS-1$
-		//OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild0", Performance.TIME_MARK));
-
 		removeAll();
 		TTrack track = trackButton.getTrack();
 		if (track == null) {
@@ -559,8 +565,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			track.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FOOTPRINT, this); // $NON-NLS-1$
 		}
 		toolbarComponentHeight = selectButton.getPreferredSize().height;
-
 		add(selectButton);
+		selectButton.setForeground(Color.red);
 		trackButton.context = "track"; //$NON-NLS-1$
 		track = trackerPanel.getSelectedTrack();
 		if (track != null && !(track instanceof PerspectiveTrack)) {
@@ -615,14 +621,26 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			add(memoryButton); // pig for testing
 		}
 		add(maximizeButton);
-		//OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild1 " + trackerPanel.getName(), Performance.TIME_MARK));
 		revalidate();
-		//OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild-revalidate " + (track == null ? null : track.getName()), Performance.TIME_MARK));
-		//TFrame.repaintT(this);
+		TFrame.repaintT(this);
 	}
 
+//	public Component add(Component c) {
+//		//System.out.println("TTrackBar adding " + c);
+//		return super.add(c);
+//	}
+//	
+//	public void remove(Component c) {
+//		System.out.println("TTrackBar removing " + c);
+//		super.remove(c);
+//	}
+
 	public void paint(Graphics g) {
-		System.out.println("TTrackBar paint");
+		if (selectButton == null) {
+			// this happens once before the frame is ready
+			return;
+		}
+		//System.out.println("TTrackBar paint");
 		super.paint(g);
 	}
 	private void updateSize(JComponent jc) {

@@ -2024,6 +2024,7 @@ public class TrackerIO extends VideoIO {
 				if (next.indexOf("_thumbnail") > -1) {
 					String thumb = XML.getName(next);
 					baseName = thumb.substring(0, thumb.indexOf("_thumbnail"));
+					break;
 				}
 			}
 			for (String next : contents.keySet()) {

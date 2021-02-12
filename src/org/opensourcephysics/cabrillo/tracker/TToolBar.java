@@ -495,7 +495,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 				refreshAction.actionPerformed(e);
 				TTrack track = trackerPanel.getSelectedTrack();
 				if (track instanceof PointMass) {
-					trackerPanel.getTFrame().getTrackBar(trackerPanel).refresh();
+					trackerPanel.refreshTrackBar();
+					//trackerPanel.getTFrame().getTrackBar(trackerPanel).refresh();
 				}
 		});
 		// stretch button
@@ -964,7 +965,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected synchronized void refresh(String whereFrom) {
 		if (disposed || trackerPanel.getTFrame().hasPaintHold() || !Tracker.allowToolbarRefresh)
 			return;
-		System.out.println("TToolBar refresh from " + whereFrom);
 		boolean doRefresh = false;
 		switch (whereFrom) {
 		case REFRESH_TFRAME_LOCALE:
@@ -994,8 +994,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (!disposed)
+				if (!disposed) {
+					System.out.println("TToolBar refreshAsync from " + whereFrom);
 					refreshAsync(refreshTrackProperties);
+				}
 				refreshTimer = null;
 			}
 
@@ -1279,7 +1281,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	
 	@Override
 	public void paint(Graphics g) {
-		if (!trackerPanel.isPaintable())
+		if (!trackerPanel.isPaintable() || getComponentCount() == 0)
 			return;
 		System.out.println("TToolbar.paint");
 		super.paint(g);

@@ -115,7 +115,6 @@ import org.opensourcephysics.tools.ResourceLoader;
 import javajs.async.Assets;
 import javajs.async.AsyncSwingWorker;
 import javajs.async.SwingJSUtils.Performance;
-import javajs.async.SwingJSUtils.StateMachine;
 import swingjs.api.JSUtilI;
 
 /**
@@ -123,12 +122,13 @@ import swingjs.api.JSUtilI;
  *
  * @author Douglas Brown
  */
-public class Tracker implements StateMachine {
+public class Tracker {
 
 	// This static call to OSPRuntime Ensure that OSP is loaded already, 
 	// enabling all resources and setting J2S parameters
 	// such as allowed AJAX databases.
 
+	public static final String TRACKER_TEST_URL = null;
 	
 	public static boolean doHoldRepaint = true; //BH testing if false
 
@@ -191,7 +191,7 @@ public class Tracker implements StateMachine {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20210204"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20210212"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
 	
 	/**
@@ -1564,7 +1564,8 @@ public class Tracker implements StateMachine {
 		checkedForNewerVersion = false;
 		loadCurrentVersion(true, false);
 		if (trackerPanel != null)
-			TTrackBar.getTrackbar(trackerPanel).refresh();
+			trackerPanel.refreshTrackBar();
+			//TTrackBar.getTrackbar(trackerPanel).refresh();
 		String message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
 		if (Tracker.newerVersion != null) { // new version available
 			message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
@@ -1585,11 +1586,12 @@ public class Tracker implements StateMachine {
 	 * @param logToFile      true to log in to the PHP counter
 	 */
 	protected static void loadCurrentVersion(boolean ignoreInterval, boolean logToFile) {
-		// pig
-//		if (ResourceLoader.TRACKER_TEST_URL == null
-//				|| !ResourceLoader.isURLAvailable(ResourceLoader.TRACKER_TEST_URL)) {
-//			return;
-//		}
+		if (OSPRuntime.isJS
+				|| TRACKER_TEST_URL == null
+				|| !ResourceLoader.isURLAvailable(TRACKER_TEST_URL)
+				) {
+			return;
+		}
 		if (checkedForNewerVersion)
 			return;
 		checkedForNewerVersion = true;
@@ -1635,7 +1637,8 @@ public class Tracker implements StateMachine {
 					tFrame = (TFrame) frames[i];
 					TrackerPanel trackerPanel = tFrame.getSelectedPanel();
 					if (trackerPanel != null) {
-						TTrackBar.getTrackbar(trackerPanel).refresh();
+						trackerPanel.refreshTrackBar();
+						//TTrackBar.getTrackbar(trackerPanel).refresh();
 					}
 				}
 			}
@@ -2624,21 +2627,6 @@ public class Tracker implements StateMachine {
 				return obj;
 			}
 		}
-	}
-
-//	private final static int STATE_INIT = 0;
-//	private final static int STATE_DONE = 9999;
-//	private final int stateDelay = 1;
-	// private StateHelper helper;
-
-	@Override
-	public boolean stateLoop() {
-//		switch (helper.getState()) {
-//		case STATE_INIT:
-//			
-//		
-//		}
-		return false;
 	}
 
 	// dataFunctionControls  

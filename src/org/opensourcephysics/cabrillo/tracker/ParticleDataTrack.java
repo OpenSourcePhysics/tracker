@@ -660,9 +660,10 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 //			TTrackBar.getTrackbar(trackerPanel).refresh();
 		}
 
-		if (ParticleDataTrack.this.trackerPanel.getSelectedTrack() == ParticleDataTrack.this) {
-			TTrackBar trackbar = TTrackBar.getTrackbar(ParticleDataTrack.this.trackerPanel);
-			trackbar.refresh();
+		if (trackerPanel.getSelectedTrack() == ParticleDataTrack.this) {
+			trackerPanel.refreshTrackBar();
+			//TTrackBar trackbar = TTrackBar.getTrackbar(trackerPanel);
+			//trackbar.refresh();
 		}
 	}
 

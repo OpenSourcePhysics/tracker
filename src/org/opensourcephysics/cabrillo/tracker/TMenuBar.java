@@ -2638,11 +2638,11 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		} // end diagnostics menu
 
 		helpMenu.addSeparator();
-		JMenuItem checkForUpgradeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CheckForUpgrade.Text")); //$NON-NLS-1$
-		checkForUpgradeItem.addActionListener((e) -> {
-				Tracker.showUpgradeStatus(trackerPanel);
-		});
 		if (!OSPRuntime.isJS) {
+		    JMenuItem checkForUpgradeItem = new JMenuItem(TrackerRes.getString("TMenuBar.MenuItem.CheckForUpgrade.Text")); //$NON-NLS-1$
+		    checkForUpgradeItem.addActionListener((e) -> {
+		        Tracker.showUpgradeStatus(trackerPanel);
+		    });
 			helpMenu.add(checkForUpgradeItem);
 		}
 

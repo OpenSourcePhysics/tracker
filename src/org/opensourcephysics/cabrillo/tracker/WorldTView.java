@@ -420,6 +420,11 @@ public class WorldTView extends TrackerPanel implements TView {
 		return trackerPanel.getCoords();
 	}
 
+	@Override
+	protected boolean unTracked() {
+		return false;
+	}
+
 //  /**
 //   * Overrides TrackerPanel repaintDirtyRegion method. WorldView requires
 //   * a full repaint every time since it autoscales.
