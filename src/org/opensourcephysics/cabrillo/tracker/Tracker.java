@@ -191,7 +191,7 @@ public class Tracker implements StateMachine {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20210131"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20210204"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
 	
 	/**
@@ -1585,10 +1585,11 @@ public class Tracker implements StateMachine {
 	 * @param logToFile      true to log in to the PHP counter
 	 */
 	protected static void loadCurrentVersion(boolean ignoreInterval, boolean logToFile) {
-		if (ResourceLoader.TRACKER_TEST_URL == null
-				|| !ResourceLoader.isURLAvailable(ResourceLoader.TRACKER_TEST_URL)) {
-			return;
-		}
+		// pig
+//		if (ResourceLoader.TRACKER_TEST_URL == null
+//				|| !ResourceLoader.isURLAvailable(ResourceLoader.TRACKER_TEST_URL)) {
+//			return;
+//		}
 		if (checkedForNewerVersion)
 			return;
 		checkedForNewerVersion = true;
