@@ -461,7 +461,7 @@ public class VectorStep extends Step implements PropertyChangeListener {
 				this.repaint();
 			}
 			// alt or shift down to select tip of very short vectors
-			if (!trackerPanel.mEvent.isAltDown() && !trackerPanel.mEvent.isShiftDown())
+			if (!trackerPanel.getMouseEvent().isAltDown() && !trackerPanel.getMouseEvent().isShiftDown())
 				return handle;
 		}
 		if (tipEnabled) {

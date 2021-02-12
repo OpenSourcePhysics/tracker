@@ -326,8 +326,9 @@ public class CircleFitter extends TTrack {
 					invalidateData(this);
 					if (trackerPanel != null) {
 						trackerPanel.changed = true;
+						trackerPanel.refreshTrackBar();
 					}
-					TTrackBar.getTrackbar(trackerPanel).refresh();
+					//TTrackBar.getTrackbar(trackerPanel).refresh();
 					Undo.postTrackEdit(CircleFitter.this, control);
 				}
 			}
@@ -481,7 +482,8 @@ public class CircleFitter extends TTrack {
 		switch (e.getPropertyName()) {
 		case TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER:
 			if (isSelectedTrack) {
-					TTrackBar.getTrackbar(trackerPanel).refresh();
+				trackerPanel.refreshTrackBar();
+//					TTrackBar.getTrackbar(trackerPanel).refresh();
 			}
 		break;
 		case ImageCoordSystem.PROPERTY_COORDS_TRANSFORM:
@@ -1033,8 +1035,8 @@ public class CircleFitter extends TTrack {
 			CircleFitterStep step = (CircleFitterStep) steps.getStep(n);
 			step.refreshCircle();
 		}
-
-		TTrackBar.getTrackbar(trackerPanel).refresh();
+		trackerPanel.refreshTrackBar();
+		//TTrackBar.getTrackbar(trackerPanel).refresh();
 		erase();
 		invalidateData(this);
 		refreshingAttachments = false;

@@ -816,7 +816,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 		if (newName != null && !newName.trim().equals("")) { //$NON-NLS-1$
 			String prevName = name;
 			name = newName;
-			this.repaint();
+			repaint();
 			if (trackerPanel != null) {
 				trackerPanel.changed = true;
 				if (trackerPanel.dataBuilder != null) {
@@ -1985,8 +1985,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				}
 			}
 		}
-
-		TTrackBar.getTrackbar(trackerPanel).refresh();
+		trackerPanel.refreshTrackBar();
+//		TTrackBar.getTrackbar(trackerPanel).refresh();
 //	refreshFields(trackerPanel.getFrameNumber());
 	}
 
@@ -2188,7 +2188,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				setVisible(visibleItem.isSelected());
-				TTrack.this.repaint();
+				repaint();
 			}
 		});
 		trailVisibleItem.addItemListener(new ItemListener() {
@@ -3317,6 +3317,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 				((Graphics2D) g).setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
 						RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 			textLine.draw(this, g);
+			// BH ouch! adjusting size while painting??
 			if (w == -1) {
 				// check preferred size and adjust if needed
 				w = textLine.getWidth(g);

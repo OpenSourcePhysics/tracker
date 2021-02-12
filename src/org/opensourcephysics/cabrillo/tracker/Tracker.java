@@ -1565,7 +1565,8 @@ public class Tracker {
 		checkedForNewerVersion = false;
 		loadCurrentVersion(true, false);
 		if (trackerPanel != null)
-			TTrackBar.getTrackbar(trackerPanel).refresh();
+			trackerPanel.refreshTrackBar();
+			//TTrackBar.getTrackbar(trackerPanel).refresh();
 		String message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
 		if (Tracker.newerVersion != null) { // new version available
 			message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
@@ -1637,7 +1638,8 @@ public class Tracker {
 					tFrame = (TFrame) frames[i];
 					TrackerPanel trackerPanel = tFrame.getSelectedPanel();
 					if (trackerPanel != null) {
-						TTrackBar.getTrackbar(trackerPanel).refresh();
+						trackerPanel.refreshTrackBar();
+						//TTrackBar.getTrackbar(trackerPanel).refresh();
 					}
 				}
 			}

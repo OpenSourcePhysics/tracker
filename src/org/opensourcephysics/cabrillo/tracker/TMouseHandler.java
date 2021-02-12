@@ -217,7 +217,8 @@ public class TMouseHandler implements InteractiveMouseHandler {
 						}
 					}
 					autoTracker.addKeyFrame(target, trackerPanel.getMouseX(), trackerPanel.getMouseY());
-					TTrackBar.getTrackbar(trackerPanel).refresh();
+					trackerPanel.refreshTrackBar();
+					//TTrackBar.getTrackbar(trackerPanel).refresh();
 				}
 
 				if (step != null && !autotrackTrigger) {

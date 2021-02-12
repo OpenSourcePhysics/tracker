@@ -460,7 +460,8 @@ public class Undo {
 			XMLControl control = new XMLControlElement(xml);
 			control.loadObject(step);
 			step.erase();
-			TTrackBar.getTrackbar(panel).refresh();
+			panel.refreshTrackBar();
+			//TTrackBar.getTrackbar(panel).refresh();
 		}
 
 		@Override

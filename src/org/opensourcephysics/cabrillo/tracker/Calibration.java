@@ -862,7 +862,8 @@ public class Calibration extends TTrack {
 				}
 				setAxisType(i);
 				if (trackerPanel != null) {
-					trackerPanel.getTFrame().getTrackBar(trackerPanel).refresh();
+					trackerPanel.refreshTrackBar();
+					//trackerPanel.getTFrame().getTrackBar(trackerPanel).refresh();
 				}
 			}
 		};

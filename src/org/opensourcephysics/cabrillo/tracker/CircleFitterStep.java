@@ -125,7 +125,8 @@ public class CircleFitterStep extends Step {
 			if (circleFitter.trackerPanel != null) {
 				circleFitter.trackerPanel.changed = true;
 			}
-			TTrackBar.getTrackbar(circleFitter.trackerPanel).refresh();
+			circleFitter.trackerPanel.refreshTrackBar();
+			//TTrackBar.getTrackbar(circleFitter.trackerPanel).refresh();
 			Undo.postStepEdit(this, control);
 		}
 	}
@@ -189,7 +190,8 @@ public class CircleFitterStep extends Step {
 		}
 		circleFitter.trackerPanel.setSelectedPoint(null);
 		circleFitter.trackerPanel.selectedSteps.clear();
-		TTrackBar.getTrackbar(circleFitter.trackerPanel).refresh();
+		circleFitter.trackerPanel.refreshTrackBar();
+		//TTrackBar.getTrackbar(circleFitter.trackerPanel).refresh();
 		repaint();
 	}
 

@@ -514,6 +514,8 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param whenDone
 	 */
 	public void addTab(final TrackerPanel trackerPanel, int addMode, Runnable whenDone) {
+		boolean doSelect = ((addMode & ADD_SELECT) != 0);
+		boolean doRefresh = ((addMode & ADD_REFRESH) != 0);
 		int tab = getTab(trackerPanel);
 		if (tab > -1) { // tab exists
 			String name = trackerPanel.getTitle();
@@ -662,9 +664,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		setIgnoreRepaint(false);
 		trackerPanel.changed = false;
 		trackerPanel.refreshTrackData(DataTable.MODE_TAB);
-		if ((addMode & ADD_SELECT) != 0)
+		if (doSelect)
 			setSelectedTab(trackerPanel);
-		if ((addMode & ADD_REFRESH) != 0)
+		if (doRefresh)
 			refresh();
 
 		if (whenDone != null) {
@@ -675,7 +677,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// TTrackBar will only refresh after TFrame is visible
-				TTrackBar.getTrackbar(trackerPanel).refresh();
+				if (doRefresh)
+					trackerPanel.refreshTrackBar();
+					//TTrackBar.getTrackbar(trackerPanel).refresh();
 				// DB following line needed to autoload data functions from external files
 				trackerPanel.getDataBuilder();
 			}

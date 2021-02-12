@@ -182,7 +182,8 @@ public abstract class InputTrack extends TTrack {
 			trackerPanel.remove(inputField);
 			invalidateData(null);
 			TFrame.repaintT(trackerPanel);
-			TTrackBar.getTrackbar(trackerPanel).refresh();
+			trackerPanel.refreshTrackBar();
+			//TTrackBar.getTrackbar(trackerPanel).refresh();
 		}
 	}
 
