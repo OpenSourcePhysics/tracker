@@ -473,7 +473,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	 */
 	protected JPopupMenu getSelectTrackPopup() {
 		selectPopup.removeAll();
-		// add calibration tools and axes at end
+		// add measuring tools, calibration tools and axes at end
 //    final CoordAxes axes = trackerPanel.getAxes();
 		final ActionListener listener = new ActionListener() {
 			@Override
@@ -482,7 +482,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				TTrack track = trackerPanel.getTrack(item.getText());
 				if (track == null)
 					return;
-				if (trackerPanel.calibrationTools.contains(track) || track == trackerPanel.getAxes()) {
+				if (trackerPanel.calibrationTools.contains(track) || 
+						trackerPanel.measuringTools.contains(track) || 
+						track == trackerPanel.getAxes()) {
 					track.setVisible(true);
 				}
 				trackerPanel.setSelectedTrack(track);
@@ -610,7 +612,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			}
 			memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
 			// refreshMemoryButton();
-//			add(memoryButton); // pig for testing
+			add(memoryButton); // pig for testing
 		}
 		add(maximizeButton);
 		//OSPLog.debug(Performance.timeCheckStr("TTrackbar.rebuild1 " + trackerPanel.getName(), Performance.TIME_MARK));
