@@ -525,6 +525,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	int BHtest;
+	private int cursorType;
 	/**
 	 * Gets a list of TTracks being drawn on this panel.
 	 *
@@ -1284,6 +1285,17 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return snapPoint;
 	}
 
+	public void setCursor(Cursor c) {
+		if (c == TMouseHandler.autoTrackCursor)
+			cursorType = TMouseHandler.STATE_AUTO;
+		else if (c == TMouseHandler.autoTrackMarkCursor)
+			cursorType = TMouseHandler.STATE_AUTOMARK;
+		else if (c == TMouseHandler.markPointCursor)
+			cursorType = TMouseHandler.STATE_MARK;
+		else 
+			cursorType = 0;
+		super.setCursor(c);
+	}
 	/**
 	 * Sets the selected track.
 	 *
@@ -2272,7 +2284,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 						}
 					}
 				} else if (e.getKeyCode() == KeyEvent.VK_ENTER && selectedTrack != null
-						&& getCursor() == selectedTrack.getMarkingCursor(e) && getFrameNumber() > 0) {
+						&& cursorType == selectedTrack.getMarkingCursorType(e) && getFrameNumber() > 0) {
 					int n = getFrameNumber();
 					Step step = selectedTrack.getStep(n - 1);
 					if (step != null) {
@@ -3098,14 +3110,18 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	 */
 	@Override
 	public Interactive getInteractive() {
-		Interactive o = null;
 		TTrack track = getSelectedTrack();
-		if (track != null && (getCursor() == track.getMarkingCursor(mouseEvent)
-				|| (track.isDependent() || track == getAxes())
-						&& (o = getAxes().findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null
-				|| track != getAxes() && !calibrationTools.contains(track)
-						&& (o = track.findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null))
-			return o;
+		boolean isMarking = (track != null && cursorType == track.getMarkingCursorType(mouseEvent));
+		if (track != null) {
+			Interactive o = null;
+			if (isMarking
+					|| (track.isDependent() || track == getAxes())
+							&& (o = getAxes().findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null
+					|| track != getAxes() && !calibrationTools.contains(track)
+							&& (o = track.findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null) {
+				return o;
+			}
+		}
 		return super.getInteractive();
 	}
 
@@ -3245,7 +3261,6 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	@Override
 	public void paintComponent(Graphics g) {
 		if (!isPaintable()) {
-//			System.out.println("TrackerPanel not paintable");
 			return;
 		}
 

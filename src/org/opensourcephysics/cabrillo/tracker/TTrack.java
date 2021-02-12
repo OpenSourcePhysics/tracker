@@ -2912,11 +2912,23 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	 * @return the marking cursor
 	 */
 	protected Cursor getMarkingCursor(InputEvent e) {
+		switch (getMarkingCursorType(e)) {
+		case TMouseHandler.STATE_AUTO:
+			return TMouseHandler.autoTrackCursor;
+		case TMouseHandler.STATE_AUTOMARK:
+			return TMouseHandler.autoTrackMarkCursor;
+		case TMouseHandler.STATE_MARK:
+		default:
+			return TMouseHandler.markPointCursor;
+		}
+	}
+
+	int getMarkingCursorType(InputEvent e) {
 		if (e != null && TMouseHandler.isAutoTrackTrigger(e) && trackerPanel.getVideo() != null
 				&& isAutoTrackable(getTargetIndex())) {
 			Step step = getStep(trackerPanel.getFrameNumber());
 			if (step == null || step.getPoints()[step.getPoints().length - 1] == null) {
-				return TMouseHandler.autoTrackMarkCursor;
+				return TMouseHandler.STATE_AUTOMARK;
 			}
 
 			if (this instanceof CoordAxes || this instanceof PerspectiveTrack || this instanceof TapeMeasure
@@ -2927,14 +2939,12 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 					int n = trackerPanel.getFrameNumber();
 					AutoTracker.KeyFrame key = autoTracker.getFrame(n).getKeyFrame();
 					if (key == null)
-						return TMouseHandler.autoTrackMarkCursor;
+						return TMouseHandler.STATE_AUTOMARK;
 				}
 			}
-
-			return TMouseHandler.autoTrackCursor;
+			return TMouseHandler.STATE_AUTO;
 		}
-
-		return TMouseHandler.markPointCursor;
+		return TMouseHandler.STATE_MARK;
 	}
 
 	protected void createWarningDialog() {
