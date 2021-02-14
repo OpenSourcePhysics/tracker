@@ -112,7 +112,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected static Icon labelsOffIcon, labelsOnIcon;
 	final protected static Icon stretchOffIcon, stretchOnIcon;
 	final protected static Icon xmassOffIcon, xmassOnIcon;
-	final protected static Icon fontSmallerIcon, fontBiggerIcon, fontSmallerDisabledIcon, fontBiggerDisabledIcon;
+	final protected static Icon fontSizeIcon;
 	final protected static Icon autotrackerOffIcon, autotrackerOnIcon, autotrackerDisabledIcon;
 	final protected static Icon infoIcon, refreshIcon, htmlIcon, htmlDisabledIcon;
 	final protected static Icon[] trailIcons = new Icon[4];
@@ -163,7 +163,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected JMenuItem pathVisMenuItem, pVisMenuItem, vVisMenuItem, aVisMenuItem;
 	protected JMenuItem xMassMenuItem, labelsMenuItem;
 	protected JMenu trailsMenu, stretchMenu;
-	final protected JButton fontSmallerButton, fontBiggerButton;
+	final protected JButton fontSizeButton;
 	final protected JPopupMenu newPopup = new JPopupMenu();
 	final protected JPopupMenu selectPopup = new JPopupMenu();
 	final protected JPopupMenu eyePopup = new JPopupMenu();
@@ -212,10 +212,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		stretchOnIcon = Tracker.getResourceIcon("stretch_on.gif", true); //$NON-NLS-1$
 		xmassOffIcon = Tracker.getResourceIcon("x_mass.gif", true); //$NON-NLS-1$
 		xmassOnIcon = Tracker.getResourceIcon("x_mass_on.gif", true); //$NON-NLS-1$
-		fontSmallerIcon = Tracker.getResourceIcon("font_smaller.gif", true); //$NON-NLS-1$
-		fontBiggerIcon = Tracker.getResourceIcon("font_bigger.gif", true); //$NON-NLS-1$
-		fontSmallerDisabledIcon = Tracker.getResourceIcon("font_smaller_disabled.gif", true); //$NON-NLS-1$
-		fontBiggerDisabledIcon = Tracker.getResourceIcon("font_bigger_disabled.gif", true); //$NON-NLS-1$
+		fontSizeIcon = Tracker.getResourceIcon("font_size.gif", true); //$NON-NLS-1$
 		autotrackerOffIcon = Tracker.getResourceIcon("autotrack_off.gif", true); //$NON-NLS-1$
 		autotrackerOnIcon = Tracker.getResourceIcon("autotrack_on.gif", true); //$NON-NLS-1$
 		autotrackerDisabledIcon = Tracker.getResourceIcon("autotrack_disabled.gif", true); //$NON-NLS-1$
@@ -609,23 +606,28 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		};
 		// ruler button
 		rulerButton = new RulerButton();
-		// font buttons
-		fontSmallerButton = new TButton(fontSmallerIcon);
-		fontBiggerButton = new TButton(fontBiggerIcon);
-		fontSmallerButton.setDisabledIcon(fontSmallerDisabledIcon);
-		fontSmallerButton.addActionListener((e) -> {
-				int i = FontSizer.getLevel();
-				FontSizer.setLevel(i - 1);
-				fontSmallerButton.setEnabled(FontSizer.getLevel() > FontSizer.MIN_LEVEL);
-				fontBiggerButton.setEnabled(FontSizer.getLevel() < FontSizer.MAX_LEVEL);
-		});
-		fontBiggerButton.setDisabledIcon(fontBiggerDisabledIcon);
-		fontBiggerButton.addActionListener((e) -> {
-				int i = FontSizer.getLevel();
-				FontSizer.setLevel(i + 1);
-				fontSmallerButton.setEnabled(FontSizer.getLevel() > FontSizer.MIN_LEVEL);
-				fontBiggerButton.setEnabled(FontSizer.getLevel() < FontSizer.MAX_LEVEL);
-		});
+		// font size button
+		fontSizeButton = new TButton(fontSizeIcon) {
+			@Override
+			protected JPopupMenu getPopup() {
+				JPopupMenu popup = new JPopupMenu();
+				for (int i = 0; i <= Tracker.maxFontLevel; i++) {
+					String s = TrackerRes.getString("TMenuBar.Menu.FontSize");
+					JMenuItem item = new JMenuItem(s);
+					FontSizer.setFonts(item, i);
+					int n = i;
+					item.addActionListener((e) -> {
+						FontSizer.setLevel(n);
+					});
+					popup.add(item);
+					if (i == FontSizer.getLevel()) {
+						item.setForeground(Color.green.darker());
+					}
+				}
+				return popup;
+			}
+
+		};
 
 		// horizontal glue for right end of toolbar
 		toolbarFiller = Box.createHorizontalGlue();
@@ -1068,7 +1070,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			add(axesButton);
 			addSeparator = true;
 		}
-		add(rulerButton);
 		if (addSeparator)
 			add(getSeparator());
 		if (trackerPanel.isCreateTracksEnabled()) {
@@ -1078,11 +1079,9 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		if (trackerPanel.isEnabled("track.autotrack")) //$NON-NLS-1$
 			add(autotrackerButton);
 		add(getSeparator());
-		add(zoomButton);
-		add(getSeparator());
 		if (useEyeButton) {
 			add(eyeButton);
-			add(getSeparator());
+			add(rulerButton);
 		}
 		else {
 			if (trackerPanel.isEnabled("button.trails") //$NON-NLS-1$
@@ -1115,9 +1114,11 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					add(xMassButton);
 				add(getSeparator());
 			}
+			add(rulerButton);
 		}
-		add(fontSmallerButton);
-		add(fontBiggerButton);
+		add(getSeparator());
+		add(zoomButton);
+		add(fontSizeButton);
 		add(getSeparator());
 		add(toolbarFiller);
 		if (trackerPanel.isEnabled("button.drawing")) //$NON-NLS-1$
@@ -1125,6 +1126,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		if (!pageViewTabs.isEmpty() || !trackerPanel.supplementalFilePaths.isEmpty())
 			add(desktopButton);
 		add(notesButton);
+		if (!OSPRuntime.isJS) {
+			add(getSeparator());
+			add(TTrackBar.memoryButton);
+		}
 		add(refreshButton);
 
 		if (TTrackBar.testButton != null)
@@ -1150,8 +1155,6 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		stretchOffItem.setText(TrackerRes.getString("TToolBar.MenuItem.StretchOff")); //$NON-NLS-1$
 		stretchOffItem.setEnabled(vStretch > 1 || aStretch > 1);
 		setMenuText();
-		fontSmallerButton.setEnabled(FontSizer.getLevel() > FontSizer.MIN_LEVEL);
-		fontBiggerButton.setEnabled(FontSizer.getLevel() < FontSizer.MAX_LEVEL);
 		if (trackerPanel.getPlayer() != null) {
 			VideoClip clip = trackerPanel.getPlayer().getVideoClip();
 			ClipInspector inspector = clip.getClipInspector();
@@ -1312,8 +1315,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		eyeButton.setToolTipText(TrackerRes.getString("TToolbar.Button.Eye.Tooltip")); //$NON-NLS-1$
 		trackControlButton.setToolTipText(TrackerRes.getString("TToolBar.Button.TrackControl.Tooltip")); //$NON-NLS-1$
 		autotrackerButton.setToolTipText(TrackerRes.getString("TToolBar.Button.AutoTracker.Tooltip")); //$NON-NLS-1$
-		fontSmallerButton.setToolTipText(TrackerRes.getString("TrackControl.Button.FontSmaller.ToolTip")); //$NON-NLS-1$
-		fontBiggerButton.setToolTipText(TrackerRes.getString("TrackControl.Button.FontBigger.ToolTip")); //$NON-NLS-1$
+		fontSizeButton.setToolTipText(TrackerRes.getString("TToolBar.Button.FontSize.ToolTip")); //$NON-NLS-1$
 	}
 
 	/**

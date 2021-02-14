@@ -76,7 +76,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected static Map<TrackerPanel, TTrackBar> trackbars = new HashMap<TrackerPanel, TTrackBar>();
 	protected static JButton memoryButton, newVersionButton;
 	protected static boolean outOfMemory = false;
-	protected static Icon selectTrackIcon;
+	protected static Icon selectTrackIcon, memoryIcon, redMemoryIcon;
 	protected static JButton testButton;
 	protected static javax.swing.Timer testTimer;
 	protected static boolean showOutOfMemoryDialog = true;
@@ -85,6 +85,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 
 	static {
 		selectTrackIcon = Tracker.getResourceIcon("select_track.gif", true); //$NON-NLS-1$
+		memoryIcon = Tracker.getResourceIcon("memory.gif", true); //$NON-NLS-1$
+		redMemoryIcon = Tracker.getResourceIcon("memory_red.gif", true); //$NON-NLS-1$
 		setTestOn(Tracker.testOn);
 		/** @j2sIgnore */
 		{
@@ -219,7 +221,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			}
 		});
 
-		memoryButton = new TButton() {
+		memoryButton = new TButton(memoryIcon) {
 			@Override
 			public JPopupMenu getPopup() {
 				JPopupMenu popup = new JPopupMenu();
@@ -274,7 +276,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		});
 		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
 		Border line = BorderFactory.createLineBorder(Color.GRAY);
-		memoryButton.setBorder(BorderFactory.createCompoundBorder(line, space));
+//		memoryButton.setBorder(BorderFactory.createCompoundBorder(line, space));
 		newVersionButton = new TButton() {
 			@Override
 			public JPopupMenu getPopup() {
@@ -616,9 +618,6 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				newVersionButton.setText(s + " " + Tracker.newerVersion); //$NON-NLS-1$
 				add(newVersionButton);
 			}
-			memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
-			// refreshMemoryButton();
-			add(memoryButton); // pig for testing
 		}
 		add(maximizeButton);
 		revalidate();
@@ -769,9 +768,10 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		}
 		String mem = TrackerRes.getString("TTrackBar.Button.Memory") + " "; //$NON-NLS-1$ //$NON-NLS-2$
 		String of = TrackerRes.getString("DynamicSystem.Parameter.Of") + " "; //$NON-NLS-1$ //$NON-NLS-2$
-		memoryButton.setText(mem + cur + "MB " + of + max + "MB"); //$NON-NLS-1$ //$NON-NLS-2$
+		memoryButton.setToolTipText(mem + cur + "MB " + of + max + "MB"); //$NON-NLS-1$ //$NON-NLS-2$
+//		memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
 		double used = ((double) cur) / max;
-		memoryButton.setForeground(used > 0.8 ? Color.red : Color.black);
+		memoryButton.setIcon(used > 0.8 ? redMemoryIcon : memoryIcon);
 	}
 
 }

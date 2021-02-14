@@ -24,6 +24,7 @@
  */
 package org.opensourcephysics.cabrillo.tracker;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
@@ -227,7 +228,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	private ButtonGroup matSizeGroup;
 	private Action matSizeAction;
 	private JMenu edit_fontSizeMenu;
-	private ButtonGroup fontSizeGroup;
 	private JRadioButtonMenuItem edit_matsize_videoSizeItem;
 	private JMenu edit_languageMenu;
 	// video menu
@@ -427,7 +427,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			refreshEditMenu(true);
 			break;
 		case "edit_font":
-			rebuildEditFontMenu();
+			rebuildEditFontSizeMenu();
 			break;
 		case "edit_lang":
 			getFrame().setLangMenu(edit_languageMenu);
@@ -1481,29 +1481,21 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		// OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar file refresh");
 	}
 
-	protected void rebuildEditFontMenu() {
-		fontSizeGroup = new ButtonGroup();
-		Action fontSizeAction = new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int i = Integer.parseInt(e.getActionCommand());
-				FontSizer.setLevel(i);
-			}
-
-		};
+	protected void rebuildEditFontSizeMenu() {
 		edit_fontSizeMenu.removeAll();
 		for (int i = 0; i <= Tracker.maxFontLevel; i++) {
-			String s = i == 0 ? TrackerRes.getString("TMenuBar.MenuItem.DefaultFontSize") : "+" + i; //$NON-NLS-1$ //$NON-NLS-2$
-			JMenuItem item = new JRadioButtonMenuItem(s);
-			item.addActionListener(fontSizeAction);
-			item.setActionCommand(String.valueOf(i));
+			String s = TrackerRes.getString("TMenuBar.Menu.FontSize");
+			JMenuItem item = new JMenuItem(s);
+			FontSizer.setFonts(item, i);
+			int n = i;
+			item.addActionListener((e) -> {
+				FontSizer.setLevel(n);
+			});
 			edit_fontSizeMenu.add(item);
-			fontSizeGroup.add(item);
 			if (i == FontSizer.getLevel()) {
-				item.setSelected(true);
+				item.setForeground(Color.green.darker());
 			}
 		}
-		FontSizer.setMenuFonts(edit_fontSizeMenu);
 	}
 
 	final static String[] baseMatSizes = new String[] 
