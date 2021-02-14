@@ -133,6 +133,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	protected static final String REFRESH__CLIP_SETTINGS_SHOWN = "clip settings shown";
 	private static final String REFRESH__PROPERTY_VIDEO = "property video";
 	private static final String REFRESH__PROPERTY_SELECTED_TRACK = "property selected track";
+	protected static final String REFRESH__NEW_VERSION = "new version";
 
 	public static final String REFRESH_PREFS_TRUE = "PrefsDialog";
 	public static final String REFRESH_TFRAME_REFRESH_TRUE = "TFrame.refresh";
@@ -1121,6 +1122,11 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		add(fontSizeButton);
 		add(getSeparator());
 		add(toolbarFiller);
+		if (Tracker.newerVersion != null) {
+			String s = TrackerRes.getString("TTrackBar.Button.Version"); //$NON-NLS-1$
+			TTrackBar.newVersionButton.setText(s + " " + Tracker.newerVersion); //$NON-NLS-1$
+			add(TTrackBar.newVersionButton);
+		}
 		if (trackerPanel.isEnabled("button.drawing")) //$NON-NLS-1$
 			add(drawingButton);
 		if (!pageViewTabs.isEmpty() || !trackerPanel.supplementalFilePaths.isEmpty())

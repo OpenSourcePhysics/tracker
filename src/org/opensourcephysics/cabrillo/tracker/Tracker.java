@@ -128,7 +128,7 @@ public class Tracker {
 	// enabling all resources and setting J2S parameters
 	// such as allowed AJAX databases.
 
-	public static final String TRACKER_TEST_URL = null;
+	public static final String TRACKER_TEST_URL = "https://physlets.org/tracker/counter/counter.php";
 	
 	public static boolean doHoldRepaint = true; //BH testing if false
 
@@ -227,7 +227,7 @@ public class Tracker {
 	// for testing
 	public static boolean timeLogEnabled = false;
 	static boolean testOn = false;
-	static String testString;
+	static String testString = "6.0.0";
 
 	// define static fields
 	static String trackerHome;
@@ -370,7 +370,7 @@ public class Tracker {
 			Timer timer = new Timer(86400000, (e) -> {
 				Thread opener = new Thread(() -> {
 					checkedForNewerVersion = false;
-					loadCurrentVersion(false, true);
+					loadCurrentVersion(false, true, true);
 				});
 				opener.setPriority(Thread.NORM_PRIORITY);
 				opener.setDaemon(true);
@@ -868,6 +868,7 @@ public class Tracker {
 	 * @return 0 if equal, 1 if ver1>ver2, -1 if ver1<ver2
 	 */
 	public static int compareVersions(String ver1, String ver2) {
+		System.out.println("piggggggggggggggggg versions "+ver1+" and "+ver2);
 		// deal with null values
 		if (ver1 == null || ver2 == null) {
 			return 0;
@@ -931,11 +932,11 @@ public class Tracker {
 	public static void showAboutTracker() {
 		String newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
 		String vers = VERSION;
-		// typical beta version 4.10.0170514
+		// typical beta version 5.2.20200314
 		if (vers.length() > 7 || testOn)
 			vers += " BETA"; //$NON-NLS-1$
 		String date = OSPRuntime.getLaunchJarBuildDate();
-		if (date != null) vers = vers + "\njar manifest date " + date; //$NON-NLS-1$
+		if (date != null) vers = vers + "\nBuild date " + date; //$NON-NLS-1$
 		
 		if(OSPRuntime.isJS) {
 			vers += "\n\nJavaScript transcription created using the\n" + "java2script/SwingJS framework developed at\n"
@@ -943,7 +944,7 @@ public class Tracker {
 		}
 		String aboutString = "Version " //$NON-NLS-1$
 				+ vers + newline + COPYRIGHT + newline + "https://" + trackerWebsite + newline + newline //$NON-NLS-1$
-				+ TrackerRes.getString("Tracker.About.ProjectOf") + newline //$NON-NLS-1$
+				+ TrackerRes.getString("Tracker.About.ProjectOf") + " " //$NON-NLS-1$
 				+ "Open Source Physics" + newline //$NON-NLS-1$
 				+ "www.compadre.org/osp" + newline; //$NON-NLS-1$
 		String translator = TrackerRes.getString("Tracker.About.Translator"); //$NON-NLS-1$
@@ -957,12 +958,12 @@ public class Tracker {
 		}
 		if (!OSPRuntime.isJS) /** @j2sNative */
 		{
-			loadCurrentVersion(true, false);
+			loadCurrentVersion(true, false, false);
 			if (newerVersion != null) {
 				aboutString += newline + TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
 						+ " " + newerVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
 						+ TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message2") //$NON-NLS-1$
-						+ newline + "https://" + trackerWebsite + newline; //$NON-NLS-1$
+						+ newline; //$NON-NLS-1$
 			} else {
 				aboutString += newline + TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
 			}
@@ -1562,20 +1563,22 @@ public class Tracker {
 	 */
 	protected static void showUpgradeStatus(TrackerPanel trackerPanel) {
 		checkedForNewerVersion = false;
-		loadCurrentVersion(true, false);
-		if (trackerPanel != null)
-			trackerPanel.refreshTrackBar();
+		boolean userInformed = loadCurrentVersion(true, false, true);
+//		if (trackerPanel != null)
+//			trackerPanel.refreshTrackBar();
 			//TTrackBar.getTrackbar(trackerPanel).refresh();
-		String message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
-		if (Tracker.newerVersion != null) { // new version available
-			message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
-					+ " " + Tracker.newerVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
-					+ TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message2") //$NON-NLS-1$
-					+ XML.NEW_LINE + "https://" + trackerWebsite; //$NON-NLS-1$
+		if (!userInformed) {
+			String message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.None.Message"); //$NON-NLS-1$
+			if (Tracker.newerVersion != null) { // new version available
+				message = TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message1") //$NON-NLS-1$
+						+ " " + Tracker.newerVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
+						+ TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Message2") //$NON-NLS-1$
+						+ XML.NEW_LINE + "https://" + trackerWebsite; //$NON-NLS-1$
+			}
+			TFrame frame = trackerPanel == null ? null : trackerPanel.getTFrame();
+			JOptionPane.showMessageDialog(frame, message, TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Title"), //$NON-NLS-1$
+					JOptionPane.INFORMATION_MESSAGE);
 		}
-		TFrame frame = trackerPanel == null ? null : trackerPanel.getTFrame();
-		JOptionPane.showMessageDialog(frame, message, TrackerRes.getString("PrefsDialog.Dialog.NewVersion.Title"), //$NON-NLS-1$
-				JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	/**
@@ -1584,16 +1587,18 @@ public class Tracker {
 	 * 
 	 * @param ignoreInterval true to load/compare immediately
 	 * @param logToFile      true to log in to the PHP counter
+	 * @param dialogOK true to notify user if newer version available
+	 * @return true if a newer version is found and user informed 
 	 */
-	protected static void loadCurrentVersion(boolean ignoreInterval, boolean logToFile) {
+	protected static boolean loadCurrentVersion(boolean ignoreInterval, boolean logToFile, boolean dialogOK) {
 		if (OSPRuntime.isJS
 				|| TRACKER_TEST_URL == null
 				|| !ResourceLoader.isURLAvailable(TRACKER_TEST_URL)
 				) {
-			return;
+			return false;
 		}
 		if (checkedForNewerVersion)
-			return;
+			return false;
 		checkedForNewerVersion = true;
 
 		// check to see how much time has passed
@@ -1614,7 +1619,7 @@ public class Tracker {
 			// check to see if upgrade interval has passed
 			double interval = checkForUpgradeInterval == 0 ? 0.0833 : checkForUpgradeInterval;
 			if (days < interval) {
-				return;
+				return false;
 			}
 		}
 
@@ -1637,20 +1642,21 @@ public class Tracker {
 					tFrame = (TFrame) frames[i];
 					TrackerPanel trackerPanel = tFrame.getSelectedPanel();
 					if (trackerPanel != null) {
-						trackerPanel.refreshTrackBar();
-						//TTrackBar.getTrackbar(trackerPanel).refresh();
+						trackerPanel.taintEnabled();
+						TToolBar.getToolbar(trackerPanel).refresh(TToolBar.REFRESH__NEW_VERSION);
+//						trackerPanel.refreshTrackBar();
 					}
 				}
 			}
 			// show dialog if this is a first-time-seen upgrade version
-//	    if (testOn) latestVersion = null; // for testing only
+	    if (testOn) latestVersion = null; // pig for testing only
 			String testVersion = latestVersion == null ? VERSION : latestVersion;
 			result = 0;
 			try {
 				result = compareVersions(newVersion, testVersion);
 			} catch (Exception e) {
 			}
-			if (result == 1 && tFrame != null) {
+			if (result == 1 && tFrame != null && dialogOK) {
 				Object[] options = new Object[] { TrackerRes.getString("Tracker.Dialog.NewVersion.Button.Upgrade"), //$NON-NLS-1$
 						TrackerRes.getString("TTrackBar.Popup.MenuItem.LearnMore"), //$NON-NLS-1$
 						TrackerRes.getString("Tracker.Dialog.NewVersion.Button.Later") }; //$NON-NLS-1$
@@ -1684,8 +1690,10 @@ public class Tracker {
 				if (checkbox.isSelected()) {
 					latestVersion = newVersion;
 				}
+				return true;
 			}
 		}
+		return false;
 	}
 
 	/**
