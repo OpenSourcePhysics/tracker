@@ -525,6 +525,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					});
 					vGroup.add(item);
 					vStretchMenu.add(item);
+					FontSizer.setMenuFonts(vStretchMenu);
 				}
 			}
 
@@ -564,6 +565,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 					});
 					aGroup.add(item);
 					aStretchMenu.add(item);
+					FontSizer.setMenuFonts(aStretchMenu);
 				}
 			}
 
