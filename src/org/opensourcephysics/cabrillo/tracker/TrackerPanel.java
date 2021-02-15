@@ -1285,6 +1285,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		return snapPoint;
 	}
 
+	@Override
 	public void setCursor(Cursor c) {
 		if (c == TMouseHandler.autoTrackCursor)
 			cursorType = TMouseHandler.STATE_AUTO;

@@ -76,7 +76,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	protected static Map<TrackerPanel, TTrackBar> trackbars = new HashMap<TrackerPanel, TTrackBar>();
 	protected static JButton memoryButton, newVersionButton;
 	protected static boolean outOfMemory = false;
-	protected static Icon selectTrackIcon;
+	protected static Icon selectTrackIcon, memoryIcon, redMemoryIcon;
 	protected static JButton testButton;
 	protected static javax.swing.Timer testTimer;
 	protected static boolean showOutOfMemoryDialog = true;
@@ -85,6 +85,8 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 
 	static {
 		selectTrackIcon = Tracker.getResourceIcon("select_track.gif", true); //$NON-NLS-1$
+		memoryIcon = Tracker.getResourceIcon("memory.gif", true); //$NON-NLS-1$
+		redMemoryIcon = Tracker.getResourceIcon("memory_red.gif", true); //$NON-NLS-1$
 		setTestOn(Tracker.testOn);
 		/** @j2sIgnore */
 		{
@@ -204,6 +206,63 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		}
 
 	}
+	
+	/**
+	 * @j2sIgnore
+	 */
+	protected static void buildUpgradePopup(JPopupMenu popup) {
+		JMenuItem upgradeItem = new JMenuItem(TrackerRes.getString("TTrackBar.Popup.MenuItem.Upgrade")); //$NON-NLS-1$
+		popup.add(upgradeItem);
+		upgradeItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				final TFrame frame = (TFrame) newVersionButton.getTopLevelAncestor();
+				new Upgrader(frame).upgrade();
+			}
+		});
+
+		JMenuItem learnMoreItem = new JMenuItem(
+				TrackerRes.getString("TTrackBar.Popup.MenuItem.LearnMore") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+		popup.add(learnMoreItem);
+		learnMoreItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// go to Tracker change log
+				String websiteurl = "https://" + Tracker.trackerWebsite + "/change_log.html"; //$NON-NLS-1$ //$NON-NLS-2$
+				OSPDesktop.displayURL(websiteurl);
+			}
+		});
+		JMenuItem homePageItem = new JMenuItem(
+				TrackerRes.getString("TTrackBar.Popup.MenuItem.TrackerHomePage") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
+		popup.add(homePageItem);
+		homePageItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// go to Tracker web site
+				String websiteurl = "https://" + Tracker.trackerWebsite; //$NON-NLS-1$
+				OSPDesktop.displayURL(websiteurl);
+			}
+		});
+		JMenuItem ignoreItem = new JMenuItem(TrackerRes.getString("TTrackBar.Popup.MenuItem.Ignore")); //$NON-NLS-1$
+		popup.add(ignoreItem);
+		ignoreItem.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Tracker.checkedForNewerVersion = false;
+				Tracker.newerVersion = null;
+				Tracker.lastMillisChecked = System.currentTimeMillis();
+				TFrame frame = (TFrame) newVersionButton.getTopLevelAncestor();
+				TrackerPanel trackerPanel = (frame == null ? null : frame.getSelectedPanel());
+				if (trackerPanel != null) {
+					trackerPanel.taintEnabled();
+					TToolBar.getToolbar(trackerPanel).refresh(TToolBar.REFRESH__NEW_VERSION);
+				}
+			}
+		});
+		FontSizer.setFonts(popup, FontSizer.getLevel());
+
+	}
+
 
 	/**
 	 * @j2sIgnore
@@ -219,7 +278,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			}
 		});
 
-		memoryButton = new TButton() {
+		memoryButton = new TButton(memoryIcon) {
 			@Override
 			public JPopupMenu getPopup() {
 				JPopupMenu popup = new JPopupMenu();
@@ -272,66 +331,25 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				refreshMemoryButton();
 			}
 		});
-		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
-		Border line = BorderFactory.createLineBorder(Color.GRAY);
-		memoryButton.setBorder(BorderFactory.createCompoundBorder(line, space));
+//		Border space = BorderFactory.createEmptyBorder(1, 4, 1, 4);
+//		Border line = BorderFactory.createLineBorder(Color.GRAY);
+//		memoryButton.setBorder(BorderFactory.createCompoundBorder(line, space));
 		newVersionButton = new TButton() {
 			@Override
 			public JPopupMenu getPopup() {
-				JPopupMenu popup = new JPopupMenu();
-				JMenuItem upgradeItem = new JMenuItem(TrackerRes.getString("TTrackBar.Popup.MenuItem.Upgrade")); //$NON-NLS-1$
-				popup.add(upgradeItem);
-				upgradeItem.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						final TFrame frame = (TFrame) newVersionButton.getTopLevelAncestor();
-						new Upgrader(frame).upgrade();
-					}
-				});
-
-				JMenuItem learnMoreItem = new JMenuItem(
-						TrackerRes.getString("TTrackBar.Popup.MenuItem.LearnMore") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-				popup.add(learnMoreItem);
-				learnMoreItem.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						// go to Tracker change log
-						String websiteurl = "https://" + Tracker.trackerWebsite + "/change_log.html"; //$NON-NLS-1$ //$NON-NLS-2$
-						OSPDesktop.displayURL(websiteurl);
-					}
-				});
-				JMenuItem homePageItem = new JMenuItem(
-						TrackerRes.getString("TTrackBar.Popup.MenuItem.TrackerHomePage") + "..."); //$NON-NLS-1$ //$NON-NLS-2$
-				popup.add(homePageItem);
-				homePageItem.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						// go to Tracker web site
-						String websiteurl = "https://" + Tracker.trackerWebsite; //$NON-NLS-1$
-						OSPDesktop.displayURL(websiteurl);
-					}
-				});
-				JMenuItem ignoreItem = new JMenuItem(TrackerRes.getString("TTrackBar.Popup.MenuItem.Ignore")); //$NON-NLS-1$
-				popup.add(ignoreItem);
-				ignoreItem.addActionListener(new ActionListener() {
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						Tracker.newerVersion = null;
-						Tracker.lastMillisChecked = System.currentTimeMillis();
-						TFrame frame = (TFrame) newVersionButton.getTopLevelAncestor();
-						TrackerPanel trackerPanel = (frame == null ? null : frame.getSelectedPanel());
-						if (trackerPanel != null) {
-							trackbars.get(trackerPanel).refresh();
-						}
-					}
-				});
-				FontSizer.setFonts(popup, FontSizer.getLevel());
+				JPopupMenu popup = new JPopupMenu();				
+				/**
+				 * @j2sNative
+				 */
+				{
+					buildUpgradePopup(popup);
+				}
 				return popup;
 			}
 		};
 		newVersionButton.setFont(font.deriveFont(Font.PLAIN, font.getSize() - 1));
 		newVersionButton.setForeground(Color.GREEN.darker());
-		newVersionButton.setBorder(BorderFactory.createCompoundBorder(line, space));
+//		newVersionButton.setBorder(BorderFactory.createCompoundBorder(line, space));
 	}
 
 	/**
@@ -473,7 +491,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 	 */
 	protected JPopupMenu getSelectTrackPopup() {
 		selectPopup.removeAll();
-		// add calibration tools and axes at end
+		// add measuring tools, calibration tools and axes at end
 //    final CoordAxes axes = trackerPanel.getAxes();
 		final ActionListener listener = new ActionListener() {
 			@Override
@@ -482,7 +500,9 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 				TTrack track = trackerPanel.getTrack(item.getText());
 				if (track == null)
 					return;
-				if (trackerPanel.calibrationTools.contains(track) || track == trackerPanel.getAxes()) {
+				if (trackerPanel.calibrationTools.contains(track) || 
+						trackerPanel.measuringTools.contains(track) || 
+						track == trackerPanel.getAxes()) {
 					track.setVisible(true);
 				}
 				trackerPanel.setSelectedTrack(track);
@@ -609,14 +629,11 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 			if (testButton != null) {
 //				add(testButton);
 			}
-			if (Tracker.newerVersion != null) {
-				String s = TrackerRes.getString("TTrackBar.Button.Version"); //$NON-NLS-1$
-				newVersionButton.setText(s + " " + Tracker.newerVersion); //$NON-NLS-1$
-				add(newVersionButton);
-			}
-			memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
-			// refreshMemoryButton();
-//			add(memoryButton); // pig for testing
+//			if (Tracker.newerVersion != null) {
+//				String s = TrackerRes.getString("TTrackBar.Button.Version"); //$NON-NLS-1$
+//				newVersionButton.setText(s + " " + Tracker.newerVersion); //$NON-NLS-1$
+//				add(newVersionButton);
+//			}
 		}
 		add(maximizeButton);
 		revalidate();
@@ -633,6 +650,7 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 //		super.remove(c);
 //	}
 
+	@Override
 	public void paint(Graphics g) {
 		if (selectButton == null) {
 			// this happens once before the frame is ready
@@ -767,9 +785,10 @@ public class TTrackBar extends JToolBar implements PropertyChangeListener {
 		}
 		String mem = TrackerRes.getString("TTrackBar.Button.Memory") + " "; //$NON-NLS-1$ //$NON-NLS-2$
 		String of = TrackerRes.getString("DynamicSystem.Parameter.Of") + " "; //$NON-NLS-1$ //$NON-NLS-2$
-		memoryButton.setText(mem + cur + "MB " + of + max + "MB"); //$NON-NLS-1$ //$NON-NLS-2$
+		memoryButton.setToolTipText(mem + cur + "MB " + of + max + "MB"); //$NON-NLS-1$ //$NON-NLS-2$
+//		memoryButton.setToolTipText(TrackerRes.getString("TTrackBar.Button.Memory.Tooltip")); //$NON-NLS-1$
 		double used = ((double) cur) / max;
-		memoryButton.setForeground(used > 0.8 ? Color.red : Color.black);
+		memoryButton.setIcon(used > 0.8 ? redMemoryIcon : memoryIcon);
 	}
 
 }
