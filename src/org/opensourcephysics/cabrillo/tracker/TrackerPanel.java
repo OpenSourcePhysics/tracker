@@ -2015,16 +2015,16 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		ArrayList<TapeMeasure> tapes = getDrawablesTemp(TapeMeasure.class);
 		for (int i = 0, n = tapes.size(); i < n; i++) {
 			TapeMeasure tape = tapes.get(i);
-			tape.inputField.getFormat(); // sets decimal separator
+			//tape.inputField.getFormat(); // sets decimal separator
 			tape.repaint(this);
 		}
 		tapes.clear();
 		ArrayList<Protractor> prots = getDrawablesTemp(Protractor.class);
 		for (int i = 0, n = prots.size(); i < n; i++) {
 			Protractor p = prots.get(i);
-			p.inputField.getFormat(); // sets decimal separator
-			p.xField.getFormat(); // sets decimal separator
-			p.yField.getFormat(); // sets decimal separator
+//			p.inputField.getFormat(); // sets decimal separator
+//			p.xField.getFormat(); // sets decimal separator
+//			p.yField.getFormat(); // sets decimal separator
 			p.repaint(this);
 		}
 		prots.clear();

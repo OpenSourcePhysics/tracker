@@ -64,10 +64,10 @@ public class TCoordinateStringBuilder
   @Override
 	public String getCoordinateString(VideoPanel vidPanel, double x, double y) {
     xField.setFormatFor(x);
-    String xStr = xField.getFormat().format(x);
+    String xStr = xField.format(x);
     if(xField.getUnits()!=null) xStr += xField.getUnits();
     yField.setFormatFor(y);
-    String yStr = yField.getFormat().format(y);
+    String yStr = yField.format(y);
     if(yField.getUnits()!=null) yStr += yField.getUnits();
   	return xLabel+xStr+yLabel+yStr;
   }

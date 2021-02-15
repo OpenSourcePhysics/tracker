@@ -509,9 +509,9 @@ public class AttachmentDialog extends JDialog implements PropertyChangeListener 
 	 */
 	protected void refreshFieldsAndButtons(CircleFitter fitter) {
 		if (fitter.attachToSteps && fitter.isRelativeFrameNumbers) {
-			startField.getFormat().applyPattern("+#;-#"); //$NON-NLS-1$
+			startField.applyPattern("+#;-#"); //$NON-NLS-1$
 		} else {
-			startField.getFormat().applyPattern("#;-#"); //$NON-NLS-1$
+			startField.applyPattern("#;-#"); //$NON-NLS-1$
 		}
 		int min = fitter.isRelativeFrameNumbers ? 1 - trackerPanel.getPlayer().getVideoClip().getFrameCount()
 				: trackerPanel.getPlayer().getVideoClip().getFirstFrameNumber();

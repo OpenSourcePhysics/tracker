@@ -48,7 +48,7 @@ public abstract class InputTrack extends TTrack {
 	abstract protected void setInputValue(Step step);
 
 	protected NumberField inputField;
-	protected NumberFormat format;
+	//protected NumberFormat format;
 	protected MouseListener editListener;
 	
 	protected boolean editing;
@@ -60,7 +60,7 @@ public abstract class InputTrack extends TTrack {
 		super(type);
 		inputField = createInputField();
 		inputField.setBorder(null);
-		format = inputField.getFormat();
+		//format = inputField.getFormat();
 //			inputPanel = new JPanel(null);
 //			inputPanel.setOpaque(false);
 //			inputPanel.add(inputField);
