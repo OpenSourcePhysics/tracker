@@ -76,6 +76,7 @@ import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.desktop.OSPDesktop;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.display.ResizableIcon;
 import org.opensourcephysics.media.core.Filter;
 import org.opensourcephysics.media.core.FilterStack;
 import org.opensourcephysics.media.core.ImageCoordSystem;
@@ -1484,8 +1485,10 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	protected void rebuildEditFontSizeMenu() {
 		edit_fontSizeMenu.removeAll();
 		for (int i = 0; i <= Tracker.maxFontLevel; i++) {
-			String s = TrackerRes.getString("TMenuBar.Menu.FontSize");
-			JMenuItem item = new JMenuItem(s);
+			String s = TrackerRes.getString("TMenuBar.MenuItem.Font");
+			ResizableIcon icon = (ResizableIcon) Tracker.getResourceIcon("zoom.gif", true); //$NON-NLS-1$
+			icon.setFixedSizeFactor(FontSizer.getIntegerFactor(i));
+			JMenuItem item = new JMenuItem(s, icon);
 			FontSizer.setFonts(item, i);
 			int n = i;
 			item.addActionListener((e) -> {

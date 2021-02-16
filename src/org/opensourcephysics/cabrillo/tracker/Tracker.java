@@ -191,7 +191,7 @@ public class Tracker {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20210214"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20210216"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
 	
 	/**
@@ -868,7 +868,6 @@ public class Tracker {
 	 * @return 0 if equal, 1 if ver1>ver2, -1 if ver1<ver2
 	 */
 	public static int compareVersions(String ver1, String ver2) {
-		System.out.println("piggggggggggggggggg versions "+ver1+" and "+ver2);
 		// deal with null values
 		if (ver1 == null || ver2 == null) {
 			return 0;
@@ -1649,7 +1648,7 @@ public class Tracker {
 				}
 			}
 			// show dialog if this is a first-time-seen upgrade version
-	    if (testOn) latestVersion = null; // pig for testing only
+//	    if (testOn) latestVersion = null; // pig for testing only
 			String testVersion = latestVersion == null ? VERSION : latestVersion;
 			result = 0;
 			try {

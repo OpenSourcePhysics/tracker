@@ -2097,12 +2097,12 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 						showHelp("library", 0); //$NON-NLS-1$
 					}
 				});
-				libraryBrowser.setFontLevel(FontSizer.getLevel());
+//				libraryBrowser.setFontLevel(FontSizer.getLevel());
 //      Dimension dim = Toolkit.getDefaultToolkit().getScreenSize();
 //      int x = (dim.width - dialog.getBounds().width) / 2;
 //      int y = (dim.height - dialog.getBounds().height) / 2;
 //      dialog.setLocation(x, y);
-				libraryBrowser.setVisible(false);
+//				libraryBrowser.setVisible(false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

@@ -1898,7 +1898,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 		}
 
 		void setEvolvedIcon(Icon icon) {
-//			evolvedIcon = icon; // pig
+//			evolvedIcon = icon; // pig DB 2-16-21 don't display evolved and key icons for now
 		}
 
 		/**

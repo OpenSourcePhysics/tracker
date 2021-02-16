@@ -119,7 +119,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	final protected static int[] stretchValues = new int[] { 1, 2, 3, 4, 6, 8, 12, 16, 24, 32 };
 	final protected static Icon separatorIcon;
 	final protected static Icon checkboxOffIcon, checkboxOnIcon;
-	final protected static ResizableIcon checkboxOnDisabledIcon;
+	final protected static Icon checkboxOnDisabledIcon;
 	final protected static Icon pencilOffIcon, pencilOnIcon, pencilOffRolloverIcon, pencilOnRolloverIcon;
 	final protected static NumberFormat zoomFormat = NumberFormat.getNumberInstance();
 
@@ -615,8 +615,10 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			protected JPopupMenu getPopup() {
 				JPopupMenu popup = new JPopupMenu();
 				for (int i = 0; i <= Tracker.maxFontLevel; i++) {
-					String s = TrackerRes.getString("TMenuBar.Menu.FontSize");
-					JMenuItem item = new JMenuItem(s);
+					String s = TrackerRes.getString("TMenuBar.MenuItem.Font");
+					ResizableIcon icon = (ResizableIcon) Tracker.getResourceIcon("zoom.gif", true); //$NON-NLS-1$
+					icon.setFixedSizeFactor(FontSizer.getIntegerFactor(i));
+					JMenuItem item = new JMenuItem(s, icon);
 					FontSizer.setFonts(item, i);
 					int n = i;
 					item.addActionListener((e) -> {
