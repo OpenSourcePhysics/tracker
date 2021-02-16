@@ -394,8 +394,8 @@ public class CircleFitter extends TTrack {
 					}
 					// add the coordinates after the point description
 
-					s += " (" + xDataField.getFormat().format(worldPt.getX()) //$NON-NLS-1$
-							+ ", " + yDataField.getFormat().format(worldPt.getY()) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
+					s += " (" + xDataField.format(worldPt.getX()) //$NON-NLS-1$
+							+ ", " + yDataField.format(worldPt.getY()) + ")"; //$NON-NLS-1$ //$NON-NLS-2$
 					JMenuItem item = new JMenuItem(s);
 					item.setActionCommand(String.valueOf(i));
 					item.addActionListener(selector);

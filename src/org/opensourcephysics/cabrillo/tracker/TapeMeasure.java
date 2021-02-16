@@ -647,7 +647,7 @@ public class TapeMeasure extends InputTrack {
 	 */
 	public String getFormattedLength(double length) {
 		inputField.setFormatFor(length);
-		return format.format(length);
+		return inputField.format(length);
 	}
 
 	/**

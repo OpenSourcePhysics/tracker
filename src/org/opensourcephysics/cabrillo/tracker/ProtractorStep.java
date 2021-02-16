@@ -394,11 +394,11 @@ protected Mark getMark(TrackerPanel trackerPanel) {
     if (protractor.trackerPanel.getFrameNumber()==n) {
 	  	NumberField field = end==end1? getTrack().xField: getTrack().yField;
 	    field.setValue(length);
-	    return field.getFormat().format(length);
+	    return field.format(length);
     }
     formatField.setFixedPattern(getTrack().xField.getFixedPattern());
     formatField.setFormatFor(length);
-    return formatField.getFormat().format(length);
+    return formatField.format(length);
   }
 
   /**
