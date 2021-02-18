@@ -1843,7 +1843,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	}
 
 	/**
-	 * Returns true if mouse coordinates are displayed. Overrides VideoPanel method
+	 * Returns true if mouse coordinates are displayed. Overrides DrawingPanel method
 	 * to report false if a point is selected.
 	 *
 	 * @return <code>true</code> if mouse coordinates are displayed

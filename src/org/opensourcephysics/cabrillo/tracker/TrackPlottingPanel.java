@@ -171,7 +171,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	 */
 	public TrackPlottingPanel(TTrack track, DatasetManager data) {
 		super(" ", " ", " "); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-		displayCoordsOnMouseMoved = true;
+		displayCoordsOnMouseMoved = false;
 		trackerPanel = track.trackerPanel;
 		trackID = track.getID();
 		this.datasetManager = data;
@@ -1030,7 +1030,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 		if (xMean != xMean || (n = yData.getRowCount()) == 0)
 			return;
 		
-		long t0 = System.currentTimeMillis();
+//		long t0 = System.currentTimeMillis();
 		//OSPLog.debug("TrackPlottingPanel refreshDataSet " + toString() + " " + xIndex + " " + yIndex + " t0=" + t0);
 
 		double[] _x = new double[n];
@@ -1126,7 +1126,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 	public boolean requestFocusInWindow() {
 		return plotAxes.getScaleSetter().isVisible() && super.requestFocusInWindow();
 	}
-
+	
 // BH note that all other highlights use frameNumber directly, not getDataIndex	
 //	/**
 //	 * Adds a highlight for the specified frame number.
@@ -1490,6 +1490,15 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 
 	}
 
+	@Override
+	public boolean isShowCoordinates() {
+//		boolean inside = region == CartesianInteractive.INSIDE
+//				&& getCursor() == Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+		boolean inside = mouseListener.region == CartesianInteractive.INSIDE;
+		boolean stepSelected = plotTrackView.trackerPanel.selectedSteps.size() == 1;
+		return inside && !stepSelected && showCoordinates;
+	}
+
 	/**
 	 * A Mouse Listener that selects data points and displays the Data Tool.
 	 */
@@ -1520,13 +1529,22 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 				iad = getInteractive();
 			Point p = e.getPoint();
 			region = getRegion(p);
-			setShowCoordinates(region == CartesianInteractive.INSIDE
-					&& getCursor() == Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-			if (region == CartesianInteractive.INSIDE)
+//			setShowCoordinates(region == CartesianInteractive.INSIDE
+//					&& getCursor() == Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+		
+			if (region == CartesianInteractive.INSIDE) {
 				setToolTipText(TrackerRes.getString("TrackPlottingPanel.RightDrag.Hint")); //$NON-NLS-1$
-			else
+				if (isShowCoordinates()) {
+					if (iad == dataset)
+						showPlotCoordinates(dataset.getHitIndex());
+					else
+						displayCoordinates(e);
+				}
+			} else {
 				setToolTipText(null);
-			displayCoordinates(e);
+				if (plotTrackView.trackerPanel.selectedSteps.size() != 1)
+					messages.setMessage(null, 0);
+			}
 		}
 
 		@Override
@@ -1544,10 +1562,10 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 						new double[] { dataset.getX(), dataset.getY() });
 				if (frame > -1) {
 					Step step = track.getStep(frame);
+					StepSet steps = plotTrackView.trackerPanel.selectedSteps;
 					if (e.isControlDown()) {
 						// add or remove step
 						if (step != null) {
-							StepSet steps = plotTrackView.trackerPanel.selectedSteps;
 							if (steps.contains(step))
 								steps.remove(step);
 							else
@@ -1556,14 +1574,24 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 							TFrame.repaintT(trackerPanel);
 							track.fireStepsChanged();
 						}
-					} else {
-						// set clickedStep so TrackPlottingPanel will select it after displaying video
-						// frame
-						clickedStep = step;
-						// set video frame to selected data point frame
+					} else if (step != null ){
 						VideoPlayer player = plotTrackView.trackerPanel.getPlayer();
-						int stepNumber = player.getVideoClip().frameToStep(frame);
-						player.setStepNumber(stepNumber);
+						if (player.getFrameNumber() == frame) {
+							TPoint pt = step.getDefaultPoint();
+							plotTrackView.trackerPanel.setSelectedPoint(pt);
+							if (pt != null) {
+								pt.showCoordinates(plotTrackView.trackerPanel);
+							}
+							step.erase();
+							TFrame.repaintT(trackerPanel);
+							track.fireStepsChanged();							
+						}
+						else {
+							// set clickedStep so TrackPlottingPanel will select it later
+							clickedStep = step;
+							int stepNumber = player.getVideoClip().frameToStep(frame);
+							player.setStepNumber(stepNumber);
+						}
 					}
 					return;
 				}
@@ -1571,7 +1599,7 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 					&& trackerPanel.isEnabled("data.tool")) { //$NON-NLS-1$ // double click
 				showDataTool();
 			}
-			displayCoordinates(e);
+//			displayCoordinates(e);
 		}
 
 		@Override
@@ -1580,11 +1608,11 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			mouseAction = MOUSE_DRAGGED;
 			Point p = e.getPoint();
 			region = getRegion(p);
-			setShowCoordinates(region == CartesianInteractive.INSIDE);
 			if (getInteractive() == null) {
 				if (region != CartesianInteractive.INSIDE) {
 					setMouseCursor(Cursor.getDefaultCursor());
-					setMessage(null, MessageDrawable.BOTTOM_LEFT);
+					if (isShowCoordinates())
+						setMessage(null, MessageDrawable.BOTTOM_LEFT);
 				} else
 					setMouseCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 			}
@@ -1598,9 +1626,9 @@ public class TrackPlottingPanel extends PlottingPanel implements Tool {
 			TTrack track = TTrack.getTrack(trackID);
 			if (!(track instanceof LineProfile) && getInteractive() != null)
 				setMouseCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			if (getCursor() == Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)) {
-	      messages.setMessage(null, MessageDrawable.BOTTOM_LEFT);  //BL message box
-			}
+//			if (getCursor() == Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR)) {
+//	      messages.setMessage(null, MessageDrawable.BOTTOM_LEFT);  //BL message box
+//			}
 		}
 
 		@Override

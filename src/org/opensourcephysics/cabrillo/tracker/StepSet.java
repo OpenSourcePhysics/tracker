@@ -67,8 +67,10 @@ public class StepSet extends HashSet<Step> {
 		if (!(step instanceof PositionStep)) return false;
     boolean added = super.add(step);
     isModified = added;
+    if (!added)
+    	return false;
 
-    if (added && !removedSteps.contains(step)) {
+    if (!removedSteps.contains(step)) {
 	    // add initial step state to stepStates
     	String xml = new XMLControlElement(step).toXML();
     	String[] data = {step.getTrack().getName(), String.valueOf(step.getFrameNumber()), xml};
@@ -87,7 +89,13 @@ public class StepSet extends HashSet<Step> {
   			trackUndoXML = new XMLControlElement(track).toXML();
   		}
     }
-    return added;
+  	if (this.size() == 1) {
+  		PositionStep stepp = (PositionStep)this.toArray(new Step[1])[0];
+  		trackerPanel.setSelectedPoint(stepp.getPoints()[0]);
+  	}
+  	else if (this.size() > 1)
+  		trackerPanel.setSelectedPoint(null);
+  	return true;
   }
 	
   /**
@@ -124,7 +132,10 @@ public class StepSet extends HashSet<Step> {
     		trackerPanel.setSelectedPoint(null);    		
         trackerPanel.selectedSteps.clear();
     	}
-    	if (this.isEmpty()) {
+    	if (this.size() == 1) {
+    		stepp = (PositionStep)this.toArray(new Step[1])[0];
+    		trackerPanel.setSelectedPoint(stepp.getPoints()[0]);
+    	} else if (this.isEmpty()) {
     		clear();
     	}
     }

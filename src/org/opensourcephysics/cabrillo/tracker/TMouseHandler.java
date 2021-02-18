@@ -347,8 +347,8 @@ private void selectPoint(TrackerPanel trackerPanel, MouseEvent e) {
 		if (selectedPoint != null) {
 			selectedPoint.setAdjusting(true);
 			selectedPoint.showCoordinates(trackerPanel);
+			trackerPanel.setSelectedPoint(selectedPoint);
 		}
-		trackerPanel.setSelectedPoint(selectedPoint);
 		if (selectedPoint instanceof Step.Handle) {
 			((Step.Handle) selectedPoint).setPositionOnLine(e.getX(), e.getY(), trackerPanel);
 		}
