@@ -355,9 +355,11 @@ private void selectPoint(TrackerPanel trackerPanel, MouseEvent e) {
 	}
 
 private void markPoint(TrackerPanel trackerPanel, MouseEvent e, AutoTracker autoTracker) {
-		AutoTracker.KeyFrame keyFrame = getActiveKeyFrame(autoTracker);
 		iad = null;
-		boolean autotrackTrigger = isAutoTrackTrigger(e) && selectedTrack.isAutoTrackable();
+		boolean autotrackTrigger = isAutoTrackTrigger(e) && 
+				selectedTrack.isAutoTrackable() &&
+				trackerPanel.getVideo() != null;
+		AutoTracker.KeyFrame keyFrame = autotrackTrigger? getActiveKeyFrame(autoTracker): null;
 		// create step
 		frameNumber = trackerPanel.getFrameNumber();
 		Step step = selectedTrack.getStep(frameNumber); // may be null for point mass, offset origin,

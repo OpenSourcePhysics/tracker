@@ -82,8 +82,6 @@ import org.opensourcephysics.media.core.TPoint;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.FontSizer;
 
-import javajs.async.SwingJSUtils.Performance;
-
 /**
  * This is the main toolbar for Tracker.
  *
@@ -1023,7 +1021,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	}
 
 	protected void refreshAsync(boolean refreshTrackProperties) {
-		long t0 = Performance.now(0);
+//		long t0 = Performance.now(0);
 		//OSPLog.debug(Performance.timeCheckStr("TToolBar refreshAsync", Performance.TIME_MARK));
 		refreshing = true; // signals listeners that items are being refreshed (not implemented)
 		int enabledCount = trackerPanel.getEnabledCount();
@@ -1834,8 +1832,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			}
 			if (notYetCalibrated && toolsVisible) {
 				notYetCalibrated = false;
-				setSelected(true);
 			}
+			setSelected(toolsVisible);
 		}
 
 	} // end calibration button
