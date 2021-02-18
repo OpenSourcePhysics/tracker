@@ -905,6 +905,7 @@ org/opensourcephysics/display/LogMeasurable.js
 org/opensourcephysics/display/Measurable.js
 org/opensourcephysics/display/MeasuredImage.js
 org/opensourcephysics/display/MessageDrawable.js
+org/opensourcephysics/display/OSPButton.js
 org/opensourcephysics/display/OSPFrame.js
 org/opensourcephysics/display/OSPRuntime.js
 org/opensourcephysics/display/PlottingPanel.js
