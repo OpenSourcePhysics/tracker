@@ -574,7 +574,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 		add(helpMenu);
 	}
 
-	private static boolean testing = true;
+	private static boolean testing = false;
 	
 	private void createFileMenu(int keyMask) {
 		fileMenu = new JMenu(TrackerRes.getString("TMenuBar.Menu.File"));
