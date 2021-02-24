@@ -1055,7 +1055,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @return the tab index
 	 */
 	public int getSelectedTab() {
-		return tabbedPane.getSelectedIndex();
+		return tabbedPane == null? -1: tabbedPane.getSelectedIndex();
 	}
 
 	/**
