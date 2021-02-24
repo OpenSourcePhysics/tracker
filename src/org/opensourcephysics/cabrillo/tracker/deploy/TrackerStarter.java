@@ -26,6 +26,7 @@ package org.opensourcephysics.cabrillo.tracker.deploy;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -49,6 +50,7 @@ import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
+import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -70,15 +72,15 @@ public class TrackerStarter {
 	public static final String LOG_FILE_NAME = "tracker_start.log"; //$NON-NLS-1$
   public static final int DEFAULT_MEMORY_SIZE = 256;
 	public static final String PREFS_FILE_NAME = "tracker.prefs"; //$NON-NLS-1$
-  
+	  
 	static String newline = "\n"; //$NON-NLS-1$
 	static String encoding = "UTF-8"; //$NON-NLS-1$
 	static String exceptions = ""; //$NON-NLS-1$
 	static String xuggleWarning, ffmpegWarning, starterWarning;
-	static String trackerHome, userHome, javaHome, xuggleHome, ffmpegHome, userDocuments;
+	static String trackerHome, userHome, javaHome, xuggleHome, userDocuments;
 	static String startLogPath;
 	static FilenameFilter trackerJarFilter = new TrackerJarFilter();
-	static File codeBaseDir, starterJarFile;
+	static File codeBaseDir, starterJarFile, xuggleServerJar, xuggleJar;
 	static String launchVersionString;
 	static String trackerJarPath;
 	static int memorySize, preferredMemorySize;
@@ -95,6 +97,7 @@ public class TrackerStarter {
 	static Thread launchThread, exitThread;
 	static boolean abortExit;
 	static int exitCounter = 0;
+	static String xuggleServerJarName = "xuggle-xuggler-server-all";
 	
 	static {
 		// identify codeBaseDir
@@ -119,7 +122,7 @@ public class TrackerStarter {
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
 		}
 		}
-		// get user home, java home and xuggle home
+		// get user home, java home and user documents
 		try {
 			userHome = OSPRuntime.getUserHome();
 			javaHome = System.getProperty("java.home"); //$NON-NLS-1$
@@ -238,6 +241,26 @@ public class TrackerStarter {
 		// find Xuggle home
 		try {
 			xuggleHome = findXuggleHome(trackerHome, true);
+			if (xuggleHome != null) {
+				// check for xuggle 3.4 jar and/or xuggle server in xugglehome
+				xuggleJar = new File(trackerHome, "xuggle-xuggler.jar");
+				xuggleServerJar = new File(trackerHome, xuggleServerJarName+".jar");
+
+				File[] jars = new File(xuggleHome).listFiles(new FileFilter() {
+
+					@Override
+					public boolean accept(File file) {
+						return file.getName().startsWith(xuggleServerJarName);
+					}				
+				});
+				if (jars.length > 0) {
+					if (copyXuggleJarTo(jars[0], xuggleServerJar)) {
+						logMessage("using xuggle server: " + jars[0].getName()); //$NON-NLS-1$
+					}
+				}
+
+			}
+
 		} catch (Exception ex) {
 			exceptions += ex.getClass().getSimpleName()
 					+ ": " + ex.getMessage() + newline; //$NON-NLS-1$
@@ -492,6 +515,16 @@ public class TrackerStarter {
 		if (writeToLog) logMessage("using xugglehome: " + xuggleHome); //$NON-NLS-1$
 		return xuggleHome;
 	}
+	
+	/**
+	 * Returns the Xuggle server jar (version 5.7+), if any
+	 * 
+	 * @return the xuggle server jar
+	 */
+	public static File getXuggleServerJar() {
+		return xuggleServerJar;
+	}
+
 	
 	/**
 	 * Finds the bundled Java vm, if any.
@@ -828,6 +861,22 @@ public class TrackerStarter {
 		throw new NullPointerException("No Tracker jar files found in " + jarHome); //$NON-NLS-1$
 		}
 	}
+	
+	/**
+	 * Copies a Xuggle jar to a target file. Does nothing if the directory
+	 * already contains a target of the same size.
+	 *
+	 * @param xuggleJar the jar to copy
+	 * @param target the target file
+	 * @return true if the target file exists and is up to date
+	 */
+	private static boolean copyXuggleJarTo(File xuggleJar, File target) {
+		long fileLength = xuggleJar.length();
+		if (!target.exists() || target.length() != fileLength) {
+			return VideoIO.copyFile(xuggleJar, target);
+		}
+		return true; // target exists and is same size 
+	}
 
 	/**
 	 * Launches the specified tracker jar with a list of arguments
@@ -900,34 +949,44 @@ public class TrackerStarter {
 			env.put("TRACKER_HOME", trackerHome); //$NON-NLS-1$ 
 			logMessage("setting TRACKER_HOME = " + trackerHome); //$NON-NLS-1$
 		}
-		if (xuggleHome!=null && new File(xuggleHome).exists()) {
+		if (xuggleHome!=null) {
 			env.put("XUGGLE_HOME", xuggleHome); //$NON-NLS-1$ 
 			logMessage("setting XUGGLE_HOME = " + xuggleHome); //$NON-NLS-1$
-
-			String pathEnvironment = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
-				OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
 			
+			// set XUGGLE_SERVER if exists
+			if (xuggleServerJar.exists()) {
+				env.put("XUGGLE_SERVER", "true"); //$NON-NLS-1$ 
+				logMessage("setting XUGGLE_SERVER = true"); //$NON-NLS-1$
+			} 
+			
+			// set path, etc, if xuggle 3.4 is present
 			String subdir = OSPRuntime.isWindows()? "bin": "lib"; //$NON-NLS-1$ //$NON-NLS-2$
-			String xugglePath = xuggleHome+File.separator+subdir;
-			if (new File(xugglePath).exists()) {
-				// get current PATH
-				String pathValue = env.get(pathEnvironment);
-				if (pathValue==null) pathValue = ""; //$NON-NLS-1$
+			if (xuggleJar.exists() && new File(xuggleHome, subdir).exists()) {
+
+				String pathEnvironment = OSPRuntime.isWindows()? "Path":  //$NON-NLS-1$
+					OSPRuntime.isMac()? "DYLD_LIBRARY_PATH": "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
 				
-				// add xuggle path at beginning of current PATH
-				if (!pathValue.startsWith(xugglePath)) {
-					pathValue = xugglePath+File.pathSeparator+pathValue;
-				}
-				
-				env.put(pathEnvironment, pathValue);
-				logMessage("setting "+pathEnvironment+" = " + pathValue); //$NON-NLS-1$ //$NON-NLS-2$
-			}			
+				String xugglePath = xuggleHome+File.separator+subdir;
+				if (new File(xugglePath).exists()) {
+					// get current PATH
+					String pathValue = env.get(pathEnvironment);
+					if (pathValue==null) pathValue = ""; //$NON-NLS-1$
+					
+					// add xuggle path at beginning of current PATH
+					if (!pathValue.startsWith(xugglePath)) {
+						pathValue = xugglePath+File.pathSeparator+pathValue;
+					}
+					
+					env.put(pathEnvironment, pathValue);
+					logMessage("added to "+pathEnvironment+": " + xugglePath); //$NON-NLS-1$ //$NON-NLS-2$
+				}			
+			}
 		}
 		
-		if (ffmpegHome!=null && new File(ffmpegHome).exists()) {
-			env.put("FFMPEG_HOME", ffmpegHome); //$NON-NLS-1$ 
-			logMessage("setting FFMPEG_HOME = " + ffmpegHome); //$NON-NLS-1$
-		}
+//		if (ffmpegHome!=null && new File(ffmpegHome).exists()) {
+//			env.put("FFMPEG_HOME", ffmpegHome); //$NON-NLS-1$ 
+//			logMessage("setting FFMPEG_HOME = " + ffmpegHome); //$NON-NLS-1$
+//		}
 		
 		// add TRACKER_RELAUNCH to process environment if relaunching
 		if (relaunching) {

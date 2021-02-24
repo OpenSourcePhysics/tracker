@@ -360,16 +360,17 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 		};
 		// track control button
 		trackControlButton = new TButton(pointmassOffIcon, pointmassOnIcon);
-//		trackControlButton.setDisabledIcon(trackControlDisabledIcon);
+//		trackControlButton = new TButton(newTrackIcon, newTrackIcon);
 		trackControlButton.addActionListener((e) -> {
 				TrackControl tc = TrackControl.getControl(trackerPanel);
 				boolean vis = !tc.isVisible();
-				if (!tc.positioned && vis) {
+				if (!tc.positioned) {
 					Point p = trackControlButton.getLocationOnScreen();
 					tc.setLocation(p.x, p.y + trackControlButton.getHeight());
 					tc.positioned = true;
 				}
 				tc.setVisible(vis);
+				
 //				if (vis && trackerPanel.getUserTracks().isEmpty()) {
 //					Timer timer = new Timer(200, (ev) -> {
 //						tc.newTrackButton.showPopup();
@@ -1299,6 +1300,8 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	}
 
 	private void setMenuText() {
+//		trackControlButton.setText(TrackerRes.getString("TrackControl.Button.NewTrack")); //$NON-NLS-1$
+		trackControlButton.setText(TrackerRes.getString("Undo.Description.Track")); //$NON-NLS-1$
 		vStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Velocity")); //$NON-NLS-1$
 		aStretchMenu.setText(TrackerRes.getString("PointMass.MenuItem.Acceleration")); //$NON-NLS-1$
 		openButton.setToolTipText(TrackerRes.getString("TToolBar.Button.Open.Tooltip")); //$NON-NLS-1$

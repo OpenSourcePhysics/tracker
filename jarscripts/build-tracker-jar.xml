@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!DOCTYPE project>
-<project name="build-tracker-jar" default="tracker_jar_copy_bin" basedir=".\">
+<project name="build-tracker-jar" default="tracker_both" basedir=".\">
 	<property name="workspace" value="../../" />
 	<property name="trackerdir" value="${workspace}/tracker" />
 	<property name="src_osp" value="${workspace}/osp/src" />
@@ -101,7 +101,6 @@
             	*.xml, 
             	*.prefs, 
             	*.txt" />
-            <fileset dir="${workspace}/video-engines/bin" />
 		</copy>
 		<copy todir="${temp}/org/opensourcephysics/resources">
 			<fileset dir="${src_osp}/org/opensourcephysics/resources"/>
@@ -139,6 +138,57 @@
 			**/media/,
 			**/tracker/,
             **/opensourcephysics/resources/" 
+        	excludes="**/html/, **/*.zip, **/*.mp4">
+		</jar>
+		<delete dir="${temp}"/>
+	</target>
+
+	<!--tracker_both: copy bin and create tracker jar and tracker_starter.jar from temp directory-->
+    <target name="tracker_both" depends="copy_bin">
+		<copy file="${tracker-assets}" todir="${output}"/>
+		<manifest file="${temp}/meta-inf/TRACKER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.Tracker"/>
+			<attribute name="Class-Path" value=". xuggle-xuggler-server-all.jar"/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker-5.9.${date}.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKER.mf" 
+			includes="
+			**/epsgraphics/,
+            **/controls/,
+            **/javajs/,
+            **/js/,
+            **/analysis/,
+            **/display/,
+            **/desktop/,
+            **/ejs/EjsRes.class,
+            **/numerics/,
+            **/tools/,
+			**/media/,
+			**/tracker/,
+            **/opensourcephysics/resources/" 
+        	excludes="**/html/, **/*.zip, **/*.mp4">
+		</jar>
+		<manifest file="${temp}/meta-inf/TRACKERSTARTER.mf">
+			<attribute name="Built-By" value="${author}"/>
+			<attribute name="Build-Date" value="${buildtime.isoformat}"/>
+			<attribute name="Main-Class" value="org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter"/>
+			<attribute name="Class-Path" value="."/>
+			<attribute name="permissions" value="all-permissions"/>
+		</manifest >
+		<jar jarfile="${output}/tracker_starter.jar" basedir="${temp}" manifest="${temp}/meta-inf/TRACKERSTARTER.mf" 
+			includes="
+			**/epsgraphics/,
+            **/controls/,
+            **/javajs/,
+            **/analysis/,
+            **/display/,
+            **/desktop/,
+            **/numerics/,
+            **/tools/,
+			**/media/,
+			**/tracker/" 
         	excludes="**/html/, **/*.zip, **/*.mp4">
 		</jar>
 		<delete dir="${temp}"/>

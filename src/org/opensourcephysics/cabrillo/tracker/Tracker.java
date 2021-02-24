@@ -191,7 +191,7 @@ public class Tracker {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20210220"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20210223"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
 	
 	/**
@@ -227,7 +227,7 @@ public class Tracker {
 	// for testing
 	public static boolean timeLogEnabled = false;
 	static boolean testOn = false;
-	static String testString = "6.0.0";
+	static String testString;
 
 	// define static fields
 	static String trackerHome;
@@ -2006,7 +2006,7 @@ public class Tracker {
 				boolean needsMemory = requestedMemorySize > 10 && (currentMemory < 9 * requestedMemorySize / 10
 						|| currentMemory > 11 * requestedMemorySize / 10);
 
-				// check environment
+				// check environment if using xuggle 3.4
 				boolean needsEnvironment = false;
 				try {
 					// BH SwingJS just avoiding unnecessary exception triggering
@@ -2022,13 +2022,16 @@ public class Tracker {
 								needsEnvironment = true;
 							} else {
 								if (xuggleDir != null) {
-									String subdir = OSPRuntime.isWindows() ? "bin" : "lib"; //$NON-NLS-1$ //$NON-NLS-2$
-									String xugglePath = xuggleDir + File.separator + subdir;
-									String pathName = OSPRuntime.isWindows() ? "Path" : //$NON-NLS-1$
-											OSPRuntime.isMac() ? "DYLD_LIBRARY_PATH" : "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
-									String pathEnv = System.getenv(pathName);
-									if (pathEnv == null || !pathEnv.contains(xugglePath)) {
-										needsEnvironment = true;
+									String xuggleServer = System.getenv("XUGGLE_SERVER"); //$NON-NLS-1$
+									if (xuggleServer == null) {
+										String subdir = OSPRuntime.isWindows() ? "bin" : "lib"; //$NON-NLS-1$ //$NON-NLS-2$
+										String xugglePath = xuggleDir + File.separator + subdir;
+										String pathName = OSPRuntime.isWindows() ? "Path" : //$NON-NLS-1$
+												OSPRuntime.isMac() ? "DYLD_LIBRARY_PATH" : "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
+										String pathEnv = System.getenv(pathName);
+										if (pathEnv == null || !pathEnv.contains(xugglePath)) {
+											needsEnvironment = true;
+										}
 									}
 								}
 							}
@@ -2040,6 +2043,7 @@ public class Tracker {
 
 				// attempt to relaunch if needed
 				if (isTrackerJar && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
+
 					mainArgs = args;
 					if (requestedMemorySize <= 10) {
 						requestedMemorySize = TrackerStarter.DEFAULT_MEMORY_SIZE;
