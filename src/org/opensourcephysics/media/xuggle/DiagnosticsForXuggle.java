@@ -154,7 +154,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 				OSPLog.config(pathEnvironment + " = " + pathValue); //$NON-NLS-1$
 			}
 		}
-		else if (xuggleHome != null) { // newer Xuggle
+		else if (false && xuggleHome != null) { // newer Xuggle
 			
 			File[] xuggleJars = new File(xuggleHome).listFiles(new FileFilter() {
 
