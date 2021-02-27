@@ -60,7 +60,7 @@ public class ModelBuilder extends FunctionTool {
 			"org.opensourcephysics.numerics.Ralston2"};
 
 	public void validate() {
-		OSPLog.debug("ModelBuilder.validate #" + ++ntest1);
+		//OSPLog.debug("ModelBuilder.validate #" + ++ntest1);
 		super.validate();
 	}
 	/**
@@ -343,7 +343,7 @@ public class ModelBuilder extends FunctionTool {
 	 * Refreshes the booster dropdown.
 	 */
 	protected void refreshBoosterDropdown() {
-		OSPLog.debug("ModelBuilder.refreshBoostrDropdown #" + ++ntest);
+		//OSPLog.debug("ModelBuilder.refreshBoostrDropdown #" + ++ntest);
 		checkGUI();
 		FunctionPanel panel = getSelectedPanel();
 		DynamicParticle dynamicModel = null;

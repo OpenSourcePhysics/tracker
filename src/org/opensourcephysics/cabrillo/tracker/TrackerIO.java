@@ -660,7 +660,7 @@ public class TrackerIO extends VideoIO {
 			for (int j = 0; j < nf; j++) {
 				final File file = fileList.get(j);
 				OSPRuntime.cacheJSFile(file, true);
-				OSPLog.debug("file to load: " + file.getAbsolutePath()); //$NON-NLS-1$
+				//OSPLog.debug("file to load: " + file.getAbsolutePath()); //$NON-NLS-1$
 				// load a new tab unless file is video or delimited text
 				// and there is a trackerPanel to import it
 				if (!haveOneVideo && !haveOneData) {
@@ -735,7 +735,7 @@ public class TrackerIO extends VideoIO {
 		// TFrame.doOpenFileFromDialog()
 		// TFrame.doOpenExportedAndUpdateLibrary (Java only)
 		// ExportVideoDialog (Java only)
-		OSPLog.debug("TrackerIO openTabFileAsync " + file); //$NON-NLS-1$
+		//OSPLog.debug("TrackerIO openTabFileAsync " + file); //$NON-NLS-1$
 		if (file == null) {
 			getChooserFilesAsync("open", (files) -> {
 					File f = null;
@@ -799,7 +799,7 @@ public class TrackerIO extends VideoIO {
 		// ..TrackerIO.openFileFromDialog
 		// openURL
 		// ..TFrame.doOpenURL
-		OSPLog.debug("TrackerIO openTabPathAsync " + paths); //$NON-NLS-1$
+		//OSPLog.debug("TrackerIO openTabPathAsync " + paths); //$NON-NLS-1$
 		new AsyncLoader(paths, existingPanel, frame, libraryBrowser, whenDone).execute();
 	}
 
@@ -825,7 +825,7 @@ public class TrackerIO extends VideoIO {
 	 * @param r
 	 */
 	static void run(String name, Runnable r) {
-		OSPLog.debug("TrackerIO run loading " + loadInSeparateThread + " for " + name);
+		//OSPLog.debug("TrackerIO run loading " + loadInSeparateThread + " for " + name);
 		if (loadInSeparateThread) {
 			Thread t = new Thread(r);
 			t.setName(name);
@@ -850,7 +850,7 @@ public class TrackerIO extends VideoIO {
 	public static void openURL(String path, TFrame frame, Runnable whenDone) {
 		// TFrame.doOpenURL
 		frame.loadedFiles.clear();
-		OSPLog.debug("TrackerIO open " + path); //$NON-NLS-1$
+		//OSPLog.debug("TrackerIO open " + path); //$NON-NLS-1$
 		startLoading(listOf(path), null, frame, null, () -> {
 			if (trzFileFilter.accept(new File(path), false)
 					&& !ResourceLoader.isHTTP(path) && !path.contains("/OSP/Cache/")) {
@@ -892,7 +892,7 @@ public class TrackerIO extends VideoIO {
 		// BH! Q: this was effectively TRUE -- "any directory is OK" why?
 
 		if (!OSPRuntime.autoAddLibrary) {
-			OSPLog.debug("skipping TrackerIO addToLibrary " + path); //$NON-NLS-1$
+			//OSPLog.debug("skipping TrackerIO addToLibrary " + path); //$NON-NLS-1$
 			return;
 		}
 
@@ -1044,7 +1044,7 @@ public class TrackerIO extends VideoIO {
 //	}
 
 	public static void importVideo(String path, TrackerPanel trackerPanel, Runnable whenDone) {
-		OSPLog.debug("TrackerIO importing file: " + path); //$NON-NLS-1$
+		//OSPLog.debug("TrackerIO importing file: " + path); //$NON-NLS-1$
 		TFrame frame = trackerPanel.getTFrame();
 		frame.loadedFiles.clear();
 		startLoading(listOf(path), trackerPanel, frame, null, whenDone);
@@ -1093,7 +1093,7 @@ public class TrackerIO extends VideoIO {
 			if (err > tolerance) {
 				videoDurMS -= durMS;
 				outliers.set(i);
-				OSPLog.debug("Frame " + i +" duration " + durMS + " outlier for average " + frameDur);
+				//OSPLog.debug("Frame " + i +" duration " + durMS + " outlier for average " + frameDur);
 				// restart
 				i = -1;
 			}
@@ -1789,7 +1789,7 @@ public class TrackerIO extends VideoIO {
 			this.libraryBrowser = libraryBrowser;
 			this.whenDone = whenDone;
 			monitors.add(this);
-			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad start " + paths, Performance.TIME_MARK));
+			//OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad start " + paths, Performance.TIME_MARK));
 			t0 = Performance.now(0);
 		}
 
@@ -1808,7 +1808,7 @@ public class TrackerIO extends VideoIO {
 			frameCount = 0;
 			control = null;
 			rawPath = path;
-			OSPLog.debug("TrackerIO.AsyncLoader: " + path);			
+//			OSPLog.debug("TrackerIO.AsyncLoader: " + path);			
 			path = ResourceLoader.getURIPath(path);
 			isffmpegError = false;
 			theFrame = frame;
@@ -1818,7 +1818,7 @@ public class TrackerIO extends VideoIO {
 			if (rawPath.startsWith("//") && nonURIPath.startsWith("/") && !nonURIPath.startsWith("//")) //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 				nonURIPath = "/" + nonURIPath; //$NON-NLS-1$
 			if (frame.loadedFiles.contains(nonURIPath)) {
-				OSPLog.debug("TrackerIO path already loaded " + nonURIPath); //$NON-NLS-1$
+//				OSPLog.debug("TrackerIO path already loaded " + nonURIPath); //$NON-NLS-1$
 				return false;
 			}
 			frame.loadedFiles.add(nonURIPath);
@@ -1912,8 +1912,8 @@ public class TrackerIO extends VideoIO {
 				cancelAsync();
 				return 100;
 			}
-			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad " + type + " start " + progress + " " + paths,
-					Performance.TIME_MARK));
+//			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad " + type + " start " + progress + " " + paths,
+//					Performance.TIME_MARK));
 			// type is set in setupLoader, from initAsync()
 			switch (type) {
 			case TYPE_FRAME:
@@ -2030,7 +2030,6 @@ public class TrackerIO extends VideoIO {
 			for (String next : contents.keySet()) {
 				if (next.endsWith(".trk")) { //$NON-NLS-1$
 					String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
-					OSPLog.debug("TrackerIO found trk file " + s); //$NON-NLS-1$
 					trkFiles.add(s);
 				} else if (next.endsWith(".pdf")) { //$NON-NLS-1$
 					pdfFiles.add(next);
@@ -2047,7 +2046,6 @@ public class TrackerIO extends VideoIO {
 				else if (next.indexOf("thumbnail") == -1 && next.indexOf("/") == -1
 						&& !isKnownVideoExtension(next)) { //$NON-NLS-1$ //$NON-NLS-2$
 					String s = ResourceLoader.getURIPath(path + "!/" + next); //$NON-NLS-1$
-					OSPLog.debug("TrackerIO found other file " + s); //$NON-NLS-1$
 					otherFiles.add(next);
 				}
 			}
@@ -2248,7 +2246,7 @@ public class TrackerIO extends VideoIO {
 				return 100;
 			
 			//trackerPanel.setTFrame(frame);
-			OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
+//			OSPLog.debug("TrackerIO opening video path " + path); //$NON-NLS-1$
 			// download web videos to the OSP cache
 			if (ResourceLoader.isHTTP(path)) {
 				String name = ResourceLoader.getNonURIPath(XML.getName(path));
@@ -2356,8 +2354,8 @@ public class TrackerIO extends VideoIO {
 //				TFrame.repaintT(trackerPanel);
 
 			}
-			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad done " + path, Performance.TIME_MARK));
-			OSPLog.debug("!!! " + Performance.now(t0) + " AyncLoad " + path);
+//			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad done " + path, Performance.TIME_MARK));
+//			OSPLog.debug("!!! " + Performance.now(t0) + " AyncLoad " + path);
 
 			if (whenDone == null) {
 			} else {

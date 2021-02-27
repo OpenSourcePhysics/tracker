@@ -459,7 +459,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	public void repaint(long time, int x, int y, int w, int h) {
 		if (!isPaintable())
 			return;
-		OSPLog.debug("TFrame repaint " + x + " " + y + " " + w + " " + h + " " + isPaintable());
+		//OSPLog.debug("TFrame repaint " + x + " " + y + " " + w + " " + h + " " + isPaintable());
 		// TFrame.addTab -> initialize -> TrackerPanel.addTrack ->
 		// fire(PROPERTY_TRACKERPANEL_TRACK)
 		// -> TViewChooser -> PlotTView -> TFrame.repaint();
@@ -502,7 +502,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		if (!isShowing())
 			return;
 		// RepaintManager.paintDirtyRegions -> TFrame.paint(g)
-		OSPLog.debug("TFrame.paint");
+		//OSPLog.debug("TFrame.paint");
 		super.paint(g);
 	}
 
@@ -850,7 +850,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * @param tabPanel     the TTabPanel
 	 */
 	private void finishRemoveTab(TrackerPanel trackerPanel, TTabPanel tabPanel) {
-		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab start", Performance.TIME_MARK));
+//		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab start", Performance.TIME_MARK));
 		long t0 = Performance.now(0);
 
 //		TTabPanel tabPanel = (TTabPanel) tabbedPane.getComponentAt(tab);
@@ -976,10 +976,10 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 		// change menubar and show floating player of newly selected tab, if any
 		TTabPanel panel = (TTabPanel) tabbedPane.getSelectedComponent();
 		if (panel == null) {
-			OSPLog.debug("!!! " + Performance.now(t0) + " TFrame.removeTab");
+			//OSPLog.debug("!!! " + Performance.now(t0) + " TFrame.removeTab");
 			return;
 		}
-		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab 8", Performance.TIME_MARK));
+		//OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab 8", Performance.TIME_MARK));
 		objects = panel.getObjects();
 		if (objects != null) {
 			setJMenuBar((JMenuBar) objects[TFRAME_MENUBAR]);
@@ -997,7 +997,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 //			tabbedPane.remove(tabPanel);
 //		}
 
-		OSPLog.debug("!!! " + Performance.now(t0) + " finished TFrame.removeTab");
+//		OSPLog.debug("!!! " + Performance.now(t0) + " finished TFrame.removeTab");
 //		OSPLog.debug(Performance.timeCheckStr("TFrame.removeTab end", Performance.TIME_MARK));
 
 	}
@@ -1686,7 +1686,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 */
 	private static TViewChooser[] createTViews(TrackerPanel trackerPanel) {
 		if (!Tracker.allowViews) {
-			OSPLog.debug("TFrame allowViews is false");
+			//OSPLog.debug("TFrame allowViews is false");
 			return new TViewChooser[4];
 		}
 		return new TViewChooser[] { 
@@ -2993,9 +2993,9 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 	 * 
 	 */
 	public void clearHoldPainting() {
-		if (paintHold != 0) {
-			OSPLog.debug("TFrame.paintHold cleared ");
-		}
+//		if (paintHold != 0) {
+//			OSPLog.debug("TFrame.paintHold cleared ");
+//		}
 		paintHold = 0;
 	}
 

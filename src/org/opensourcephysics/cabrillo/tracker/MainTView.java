@@ -272,7 +272,7 @@ public class MainTView extends JPanel implements TView {
 	 * @return the popup menu
 	 */
 	JPopupMenu getPopupMenu() {
-		OSPLog.debug("MainTView.getPopupMenu " + Tracker.allowMenuRefresh);
+		//OSPLog.debug("MainTView.getPopupMenu " + Tracker.allowMenuRefresh);
 		if (!Tracker.allowMenuRefresh)
 			return null;
 
