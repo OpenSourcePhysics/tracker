@@ -3113,15 +3113,26 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 	public Interactive getInteractive() {
 		TTrack track = getSelectedTrack();
 		boolean isMarking = (track != null && cursorType == track.getMarkingCursorType(mouseEvent));
+		if (isMarking)
+			return null;
 		if (track != null) {
 			Interactive o = null;
-			if (isMarking
-					|| (track.isDependent() || track == getAxes())
-							&& (o = getAxes().findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null
-					|| track != getAxes() && !calibrationTools.contains(track)
-							&& (o = track.findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null) {
+			// check selected track first unless it's a calibration tool
+			if (track != getAxes() && !calibrationTools.contains(track)
+					&& (o = track.findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null) {
 				return o;
 			}
+			if ((track.isDependent() || track == getAxes())
+							&& (o = getAxes().findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null) {
+				return o;
+			}
+//			if (isMarking
+//					|| (track.isDependent() || track == getAxes())
+//							&& (o = getAxes().findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null
+//					|| track != getAxes() && !calibrationTools.contains(track)
+//							&& (o = track.findInteractive(this, mouseEvent.getX(), mouseEvent.getY())) != null) {
+//				return o;
+//			}
 		}
 		return super.getInteractive();
 	}
