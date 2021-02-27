@@ -2124,8 +2124,7 @@ public class TrackerIO extends VideoIO {
 					tempFiles.addAll(otherFiles);
 				}
 				// open tempfiles on the desktop
-				if (OSPRuntime.skipDisplayOfPDF) {
-				} else {
+				if (!OSPRuntime.skipDisplayOfPDF) {
 					Thread displayURLOpener = new Thread(() -> {
 						for (String relpath : tempFiles) {
 								OSPDesktop.displayURL(OSPRuntime.unzipFiles ? relpath : path + "!/" + relpath);
