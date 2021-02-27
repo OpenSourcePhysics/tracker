@@ -485,7 +485,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// OSPLog.debug("TMenuBar.refresh skipping " + whereFrom );
 			return;
 		}
-	    System.out.println("TMenuBar refresh");
+	    //System.out.println("TMenuBar refresh");
 		SwingUtilities.invokeLater(() -> {
 			refreshAll(whereFrom);
 		});

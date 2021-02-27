@@ -1001,7 +1001,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (!disposed) {
-					System.out.println("TToolBar refreshAsync from " + whereFrom);
+					//System.out.println("TToolBar refreshAsync from " + whereFrom);
 					refreshAsync(refreshTrackProperties);
 				}
 				refreshTimer = null;
@@ -1295,7 +1295,7 @@ public class TToolBar extends JToolBar implements PropertyChangeListener {
 	public void paint(Graphics g) {
 		if (!trackerPanel.isPaintable() || getComponentCount() == 0)
 			return;
-		System.out.println("TToolbar.paint");
+		//System.out.println("TToolbar.paint");
 		super.paint(g);
 	}
 
