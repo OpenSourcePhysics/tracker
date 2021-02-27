@@ -4621,7 +4621,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (tempA == null)
 			tempA = new ArrayList<>();
 		if (!tempA.isEmpty()) {
-			System.out.println("TP DANGER WILL ROBINSON");
+			//System.out.println("TP DANGER WILL ROBINSON");
 			tempA.clear();
 		}
 		return (type == null ? null : getDrawables(type, true, null, (ArrayList<T>) tempA));

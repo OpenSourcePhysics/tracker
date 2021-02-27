@@ -749,7 +749,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 			String ii = "00" + i;
 			File outputfile = new File(DEBUG_DIR + froot + ii.substring(ii.length() - 2) + ".png");
 			ImageIO.write(bi, "png", outputfile);
-			System.out.println(outputfile + " created");
+			System.out.println("XuggleVideo " + outputfile + " created");
 		} catch (IOException e) {
 		}
 

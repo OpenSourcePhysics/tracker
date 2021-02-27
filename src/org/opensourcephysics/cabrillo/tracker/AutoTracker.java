@@ -2301,7 +2301,7 @@ public class AutoTracker implements Interactive, Trackable, PropertyChangeListen
 			}
 			DefaultComboBoxModel<Object> model = new DefaultComboBoxModel<Object>(items);
 			next.setModel(model);
-			System.out.println(">AutoTracker " + next.getName() + "<" + " " + next.getSelectedIndex());
+			//System.out.println(">AutoTracker " + next.getName() + "<" + " " + next.getSelectedIndex());
 			// BH 2020.02.09 Java bug this was "n" where n was the integer index
 			// but Java needs an Object here, not an index.
 			// Now that it is functioning, a second bug showed up in the action listener
