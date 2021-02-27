@@ -16,6 +16,7 @@ import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
+import org.opensourcephysics.cabrillo.tracker.deploy.TrackerStarter;
 import org.opensourcephysics.controls.OSPLog;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.display.OSPRuntime;
@@ -97,7 +98,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			if (codeBaseJars[0] == null || codeBaseJars[0].length() < XUGGLE_34_SIZE) { // Xuggle version 3.4
 			
 				// log xuggle home jars
-				File[] xuggleJars = getXuggleJarFiles(xuggleHome + "/share/java/jars"); //$NON-NLS-1$
+				File[] xuggleJars = getXuggleJarFiles(xuggleHome); //$NON-NLS-1$ // pig not right yet--need to find latest version
 				boolean hasAllHomeJars = xuggleJars[0] != null;
 				for (int i = 1; i < xuggleJars.length; i++) {
 					hasAllHomeJars = hasAllHomeJars && xuggleJars[i] != null;
@@ -154,7 +155,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 				OSPLog.config(pathEnvironment + " = " + pathValue); //$NON-NLS-1$
 			}
 		}
-		else if (false && xuggleHome != null) { // newer Xuggle
+//		else if (xuggleHome != null) { // newer Xuggle
 			
 			File[] xuggleJars = new File(xuggleHome).listFiles(new FileFilter() {
 
@@ -214,7 +215,8 @@ public class DiagnosticsForXuggle extends Diagnostics {
 //			OSPLog.config(fileData);
 //
 //			OSPLog.config(pathEnvironment + " = " + pathValue); //$NON-NLS-1$
-		}
+
+//		}
 		
 		// display appropriate dialog
 		if (status == 0) { // xuggle working correctly
@@ -426,9 +428,9 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			IContainer.make(); // throws exception if xuggle not available
 			return 0;
 		} catch (Exception e) {
-			e.printStackTrace();
+//			e.printStackTrace();
 		} catch (Error er) {
-			er.printStackTrace();
+//			er.printStackTrace();
 		}
 
 		// DB this doesn't work until XuggleVideo class has been loaded
@@ -550,8 +552,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			}
 			break;
 
-		case 3: // XUGGLE_HOME incomplete: missing or bad xuggle jars in
-				// XUGGLE_HOME/share/java/jars
+		case 3: // XUGGLE_HOME incomplete: missing or bad xuggle jar in XUGGLE_HOME
 			message.add(XuggleRes.getString("Xuggle.Dialog.BadXuggle.Message")); //$NON-NLS-1$
 			message.add(XuggleRes.getString("Xuggle.Dialog.IncompleteXuggle.Message1")); //$NON-NLS-1$
 			if (REQUEST_TRACKER.equals(requester)) {
@@ -583,7 +584,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 					missingJars += xuggleJarNames[i];
 				}
 			}
-			String source = XML.forwardSlash(xuggleHome) + "/share/java/jars"; //$NON-NLS-1$
+			String source = XML.forwardSlash(xuggleHome); //$NON-NLS-1$
 			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.NotWorking.Message")); //$NON-NLS-1$
 			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.Missing.Message")); //$NON-NLS-1$
 			message.add(" "); //$NON-NLS-1$
@@ -605,7 +606,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 					missingJars += xuggleJarNames[i];
 				}
 			}
-			source = XML.forwardSlash(xuggleHome) + "/share/java/jars"; //$NON-NLS-1$
+			source = XML.forwardSlash(xuggleHome); //$NON-NLS-1$
 			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.NotWorking.Message")); //$NON-NLS-1$
 			message.add(XuggleRes.getString("Xuggle.Dialog.NeedJars.Mismatched.Message")); //$NON-NLS-1$
 			message.add(" "); //$NON-NLS-1$
@@ -699,10 +700,21 @@ public class DiagnosticsForXuggle extends Diagnostics {
 		if (xuggleHome == null) {
 			return null;
 		}
-		File xuggleJar = new File(xuggleHome + "/share/java/jars/xuggle-xuggler.jar"); //$NON-NLS-1$
-		if (xuggleJar.exists()) {
-			return xuggleJar;
+
+		File[] jars = new File(xuggleHome).listFiles(new FileFilter() {
+
+			@Override
+			public boolean accept(File file) {
+				return file.getName().startsWith(TrackerStarter.xuggleServerJarName);
+			}				
+		});
+		if (jars.length > 0) {
+			return jars[0]; //$NON-NLS-1$
 		}
+//		File xuggleJar = new File(xuggleHome + "/xuggle-xuggler.jar"); //$NON-NLS-1$
+//		if (xuggleJar.exists()) {
+//			return xuggleJar;
+//		}
 		return null;
 	}
 

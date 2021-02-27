@@ -160,7 +160,7 @@ public class Tracker {
 	}
 
 	static {
-		try {
+		if(OSPRuntime.isJS)try {
 			Object val = (OSPRuntime.isJS ? jsutil.getAppletInfo("assets") : null);
 			if (val == null)
 				val = "DEFAULT";
@@ -191,7 +191,7 @@ public class Tracker {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20210224"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20210226"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
 	
 	/**
