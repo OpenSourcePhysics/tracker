@@ -485,7 +485,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// OSPLog.debug("TMenuBar.refresh skipping " + whereFrom );
 			return;
 		}
-	    System.out.println("TMenuBar refresh");
+	    //System.out.println("TMenuBar refresh");
 		SwingUtilities.invokeLater(() -> {
 			refreshAll(whereFrom);
 		});
@@ -1834,7 +1834,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 			// clearTracksItem enabled only when there are tracks
 			refreshTrackNames(MENU_EDIT);
 		}
-		OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar edit refresh");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar edit refresh");
 	}
 
 	protected void refreshCoordsMenu(boolean opening) {

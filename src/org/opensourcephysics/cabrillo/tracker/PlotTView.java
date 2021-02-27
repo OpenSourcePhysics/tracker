@@ -195,8 +195,6 @@ public class PlotTView extends TrackChooserTView {
 						String trackName = controls[j].getString(TrackerPanel.PROPERTY_TRACKERPANEL_TRACK); // $NON-NLS-1$
 						track = view.getTrack(trackName);
 						if (track != null) {
-							if (track.getName().indexOf("cup 7") >= 0)
-								System.out.println("PlotTView temp");
 							TrackView v = view.getTrackView(track);
 							if (v == null)
 								v = view.addTrackView(track);

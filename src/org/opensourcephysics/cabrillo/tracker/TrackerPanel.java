@@ -1132,7 +1132,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			TTrack.activeTracks.remove(track.getID());
 		}
 		changed = true;
-		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.clear");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.clear");
 	}
 
 	/**
@@ -3521,7 +3521,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		// OSPLog.debug(Performance.timeCheckStr("TrackerPanel.dispose removeall",
 		// Performance.TIME_MARK));
 
-		OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.dispose");
+		//OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.dispose");
 	}
 
 	/**
@@ -3822,10 +3822,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		public void finalizeLoading() {
 			videoPanel.setLoader(null);
 			long t0 = Performance.now(0);
-			OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
+			//OSPLog.debug(Performance.timeCheckStr("TrackerPanel.finalizeLoading1", Performance.TIME_MARK));
 			TrackerPanel trackerPanel = (TrackerPanel) videoPanel;
 			try {
-				OSPLog.debug("TrackerPanel.finalizeLoading start");
+				//OSPLog.debug("TrackerPanel.finalizeLoading start");
 				XMLControl child;
 				Video video = finalizeClip();
 				if (video != null) {
@@ -3909,8 +3909,8 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				trackerPanel.setSelectedTrack(name == null ? null : trackerPanel.getTrack(name));
 
 			} finally {
-				OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
-				OSPLog.debug("TrackerPanel.finalizeLoading done");
+				//OSPLog.debug("!!! " + Performance.now(t0) + " TrackerPanel.finalizeLoading");
+				//OSPLog.debug("TrackerPanel.finalizeLoading done");
 			}
 			if (asyncloader != null) {
 				asyncloader.finalized(trackerPanel);
@@ -4621,7 +4621,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 		if (tempA == null)
 			tempA = new ArrayList<>();
 		if (!tempA.isEmpty()) {
-			System.out.println("TP DANGER WILL ROBINSON");
+			//System.out.println("TP DANGER WILL ROBINSON");
 			tempA.clear();
 		}
 		return (type == null ? null : getDrawables(type, true, null, (ArrayList<T>) tempA));

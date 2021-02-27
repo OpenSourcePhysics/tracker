@@ -892,7 +892,7 @@ public class ParticleDataTrack extends ParticleModel implements DataTrack {
 	 * @throws Exception if the data does not define x and y-columns
 	 */
 	public void setData(DatasetManager manager) throws Exception {
-		OSPLog.finer("Setting new data"); //$NON-NLS-1$
+		//OSPLog.finer("Setting new data"); //$NON-NLS-1$
 		// the following line throws an exception if (x, y) data is not found
 		ArrayList<Object[]> pointData = getPointData(manager, DATA_COPY);
 		sourceData = manager;

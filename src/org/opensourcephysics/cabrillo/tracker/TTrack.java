@@ -434,13 +434,6 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	protected void showAnglePopup(NumberField field) {
-		String fieldName = null;
-		for (String name : getNumberFields().keySet()) {
-			if (numberFields.get(name)[0] == field) {
-				fieldName = name;
-				break;
-			}
-		}
 		JPopupMenu popup = new JPopupMenu();
 		JMenuItem item = new JMenuItem();
 		final boolean radians = field.getConversionFactor() == 1;
@@ -458,7 +451,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 
 		if (trackerPanel.isEnabled("number.formats")) { //$NON-NLS-1$
 			item = new JMenuItem();
-			final String[] selected = new String[] { fieldName };
+			final String[] selected = new String[] { getNumberFieldName0(field) };
 			item.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -476,13 +469,11 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	protected void showFormatPopup(NumberField field) {
 		String[] fieldName = null;
 		boolean hasUnits = false;
-		for (String name : getNumberFields().keySet()) {
-			if (numberFields.get(name)[0] == field) {
+		String name = getNumberFieldName0(field);
+		if (name != null) {
 				fieldName = new String[] { name };
 				String s = getVariableDimensions(this, name);
 				hasUnits = s.contains("L") || s.contains("M") || s.contains("T"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				break;
-			}
 		}
 		JPopupMenu popup = new JPopupMenu();
 		if (trackerPanel.isEnabled("number.formats") || trackerPanel.isEnabled("number.units")) { //$NON-NLS-1$ //$NON-NLS-2$
@@ -534,6 +525,15 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 
 		FontSizer.setFonts(popup, FontSizer.getLevel());
 		popup.show(field, 0, field.getHeight());
+	}
+
+	private String getNumberFieldName0(NumberField field) {
+		for (String name : getNumberFields().keySet()) {
+			if (numberFields.get(name)[0] == field) {
+				return name;
+			}
+		}
+		return null;
 	}
 
 	/**

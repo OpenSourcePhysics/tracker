@@ -378,17 +378,18 @@ public class XuggleVideoRecorder extends ScratchVideoRecorder {
 	
 	  List<ID> codecs = format.getOutputCodecsSupported();
 	  if (codecs.isEmpty())
-	    System.out.println("no supported codecs for "+name); //$NON-NLS-1$
+	    System.out.println("XuggleVideoRecorder unsupported codecs for "+name); //$NON-NLS-1$
 	  else {
-	    System.out.println(name+" ("+format+") supports following codecs:"); //$NON-NLS-1$ //$NON-NLS-2$
+	    System.out.print("XuggleVideoRecorder " + name+" ("+format+") supports following codecs:"); //$NON-NLS-1$ //$NON-NLS-2$
 	    for(ID id : codecs) {
 	      if (id != null) {
 	        ICodec codec = ICodec.findEncodingCodec(id);
 	        if (codec != null) {
-	          System.out.println(codec);
+	          System.out.print(codec + " ");
 	        }
 	      }
 	    }
+	    System.out.println("");
 	  }
 	}
 	

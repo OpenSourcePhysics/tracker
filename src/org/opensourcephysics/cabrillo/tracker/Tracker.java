@@ -203,7 +203,7 @@ public class Tracker {
 	public static Icon getResourceIcon(String imageName, boolean resizable) {
 		URL url = Tracker.getClassResource("resources/images/" + imageName);
 		if (url == null)  {
-			OSPLog.debug("Tracker.getResourceIcon was null for " + imageName);
+			//OSPLog.debug("Tracker.getResourceIcon was null for " + imageName);
 			return null;
 		}
 		return (resizable ? new ResizableIcon(url) : new ImageIcon(url));

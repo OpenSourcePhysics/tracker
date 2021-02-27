@@ -168,7 +168,7 @@ public abstract class InputTrack extends TTrack {
 			inputField.setValue(magField.getValue());
 			Dimension d = inputField.getPreferredSize();
 			Rectangle bounds = getLayoutBounds(step);
-			System.out.println("InputTrack " + d + " " + inputField.getValue() + " " + inputField.getText());
+			//System.out.println("InputTrack " + d + " " + inputField.getValue() + " " + inputField.getText());
 			inputField.setBounds(bounds.x - 2, bounds.y - 5, Math.max(50, d.width), d.height);
 			trackerPanel.add(inputField);
 			Border space = BorderFactory.createEmptyBorder(0, 1, 1, 0);

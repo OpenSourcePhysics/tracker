@@ -249,7 +249,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 		// null;
 		// first pass
 		int containerFrame = 0;
-		System.out.println("not completed: " + firstDisplayPacket);
+		//System.out.println("not completed: " + firstDisplayPacket);
 		while (container.readNextPacket(packet) >= 0) {
 			if (VideoIO.isCanceled()) {
 				failDetectTimer.stop();
@@ -282,8 +282,8 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 				
 				//dumpImage(containerFrame, getBufferedImage(), "C");
 				
-				System.out.println(" frame " + containerFrame + " dts=" + dts + " kts=" + keyTimeStamp + " "
-						+ packet.getFormattedTimeStamp() + " " + picture.getFormattedTimeStamp());
+//				System.out.println(" frame " + containerFrame + " dts=" + dts + " kts=" + keyTimeStamp + " "
+//						+ packet.getFormattedTimeStamp() + " " + picture.getFormattedTimeStamp());
 				packetTimeStamps[containerFrame] = dts;
 				keyTimeStamps[containerFrame] = keyTimeStamp;
 				seconds.add((dts - keyTS0) * timebase.getValue());
@@ -339,7 +339,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 		seekToStart();
 		loadPictureFromNextPacket();
 		//debugCache();
-		System.out.println("OK");
+//		System.out.println("OK");
 	}
 
     void debugCache() {
@@ -671,7 +671,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 				// get the type of stream from the coder's codec type
 				if (coder.getCodecType().equals(ICodec.Type.CODEC_TYPE_VIDEO)) {
 					streamIndex = i;
-					System.out.println("XuggleVideo Stream index set to " + i);
+					//System.out.println("XuggleVideo Stream index set to " + i);
 					videoDecoder = coder;
 					timebase = nextStream.getTimeBase().copy();
 					break;
@@ -749,7 +749,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 			String ii = "00" + i;
 			File outputfile = new File(DEBUG_DIR + froot + ii.substring(ii.length() - 2) + ".png");
 			ImageIO.write(bi, "png", outputfile);
-			System.out.println(outputfile + " created");
+			System.out.println("XuggleVideo " + outputfile + " created");
 		} catch (IOException e) {
 		}
 
