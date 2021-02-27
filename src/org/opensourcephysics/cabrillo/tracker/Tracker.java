@@ -191,7 +191,7 @@ public class Tracker {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20210226"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20210227"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
 	
 	/**
@@ -577,14 +577,13 @@ public class Tracker {
 	 * @return URL (with byte[ ] in _streamData if OSPRuntime.isJS)
 	 */
 	public static URL getClassResource(String resource) {
-//		if (OSPRuntime.isJS) {
-		// Ah! Just a problem with full path rather than relative path for classLoader.
-		if (resource.startsWith("resource"))
-			resource = "org/opensourcephysics/cabrillo/tracker/" + resource;
-		return ResourceLoader.getAssetURL(resource);
-//		} else {
-//			return Tracker.class.getResource(resource);
-//		}
+		if (OSPRuntime.isJS) {
+			// Ah! Just a problem with full path rather than relative path for classLoader.
+			if (resource.startsWith("resource"))
+				resource = "org/opensourcephysics/cabrillo/tracker/" + resource;
+			return ResourceLoader.getAssetURL(resource);
+		} else 
+			return Tracker.class.getResource(resource);
 	}
 
 	/**
