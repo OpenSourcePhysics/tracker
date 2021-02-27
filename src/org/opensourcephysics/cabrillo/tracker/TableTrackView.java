@@ -105,6 +105,7 @@ import org.opensourcephysics.display.OSPFrame;
 import org.opensourcephysics.display.OSPRuntime;
 import org.opensourcephysics.display.TeXParser;
 import org.opensourcephysics.media.core.NumberField;
+import org.opensourcephysics.media.core.NumberField.NumberFormatter;
 import org.opensourcephysics.media.core.VideoClip;
 import org.opensourcephysics.tools.DataRefreshTool;
 import org.opensourcephysics.tools.DataTool;
@@ -117,8 +118,8 @@ import org.opensourcephysics.tools.ToolsRes;
 import javajs.async.AsyncDialog;
 
 /**
- * A JScrollPane that presents a table view of a track on a TrackerPanel. 
- * The class maintains the table as well as the associated column views JDialog.
+ * A JScrollPane that presents a table view of a track on a TrackerPanel. The
+ * class maintains the table as well as the associated column views JDialog.
  *
  * @author Douglas Brown
  * @author John Welch
@@ -126,7 +127,6 @@ import javajs.async.AsyncDialog;
 @SuppressWarnings("serial")
 public class TableTrackView extends TrackView {
 
-	
 //    protected JViewport createViewport() 
 //    {
 //    	return new JViewport() {
@@ -139,7 +139,7 @@ public class TableTrackView extends TrackView {
 //
 //    	};
 //    }
-    
+
 	// static fields
 	static final String DEFINED_AS = ": "; //$NON-NLS-1$
 	static final Icon SKIPS_ON_ICON = Tracker.getResourceIcon("skips_on.gif", true); //$NON-NLS-1$
@@ -158,13 +158,13 @@ public class TableTrackView extends TrackView {
 	protected DatasetManager dataTableManager;
 
 	// internal column model
-	
+
 	/**
 	 * primary indicator of visibility; shared with TableTView.Loader
 	 * 
 	 */
 	protected BitSet bsCheckBoxes = new BitSet();
-	
+
 	protected int colCount;
 	protected int datasetCount;
 	private Map<String, Integer> htNames;
@@ -175,9 +175,9 @@ public class TableTrackView extends TrackView {
 	 * set to false during loading
 	 */
 	protected boolean refreshing = true;
-	
+
 	public void setRefreshing(boolean b) {
-		refreshing = b;		
+		refreshing = b;
 	}
 
 	private boolean refreshed = false;
@@ -188,12 +188,11 @@ public class TableTrackView extends TrackView {
 
 	final protected ArrayList<String> textColumnNames = new ArrayList<String>();
 	final protected Set<String> textColumnsVisible = new TreeSet<String>();
-	
+
 	/**
 	 * used when sorting
 	 */
 	final protected TreeSet<Double> selectedIndepVarValues = new TreeSet<Double>();
-	
 
 	// GUI
 
@@ -201,7 +200,7 @@ public class TableTrackView extends TrackView {
 	 * initially false; set to true once createGUI() has run
 	 */
 	private boolean haveMenuItems;
-		
+
 	/**
 	 * the JTable
 	 */
@@ -210,12 +209,11 @@ public class TableTrackView extends TrackView {
 	protected TextColumnTableModel textColumnModel;
 
 	/**
-	 * for super.toolbarComponents 
+	 * for super.toolbarComponents
 	 */
 	protected JButton columnsDialogButton, gapsButton;
-	
-	private ColumnsDialog columnsDialog;
 
+	private ColumnsDialog columnsDialog;
 
 	// popup GUI (lazy)
 
@@ -229,7 +227,6 @@ public class TableTrackView extends TrackView {
 	private JMenuItem copyDataRawItem, copyDataFormattedItem;
 	private JMenu setDelimiterMenu;
 	private JMenuItem copyImageItem, snapshotItem, printItem, helpItem;
-
 
 	/**
 	 * Constructs a TrackTableView of the specified track on the specified tracker
@@ -366,22 +363,24 @@ public class TableTrackView extends TrackView {
 		}
 		if (isClipAdjusting())
 			return;
-		// main entry point for a new or revised track -- from TrackChooserTView 
+		// main entry point for a new or revised track -- from TrackChooserTView
 
 		forceRefresh = true; // for now, at least
 
 		if (!forceRefresh && !isRefreshEnabled() || !viewParent.isViewPaneVisible())
 			return;
 
-		//OSPLog.debug("TableTrackView.refresh " + myID + " " + Integer.toHexString(mode) + "  "+ frameNumber + " " + isRefreshEnabled() + " " + trackerPanel.getPlayer().getStepNumber());
-
+		// OSPLog.debug("TableTrackView.refresh " + myID + " " +
+		// Integer.toHexString(mode) + " "+ frameNumber + " " + isRefreshEnabled() + " "
+		// + trackerPanel.getPlayer().getStepNumber());
 
 		forceRefresh = false;
 		if (Tracker.timeLogEnabled)
 			Tracker.logTime(getClass().getSimpleName() + hashCode() + " refresh " + frameNumber); //$NON-NLS-1$
 		dataTable.clearSelection();
 		TTrack track = getTrack();
-		//OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + " track=" + track);
+		// OSPLog.debug("TableTrackView.refresh " + Integer.toHexString(mode) + "
+		// track=" + track);
 		try {
 			trackDataManager = track.getData(trackerPanel);
 			// copy datasets into table data based on checkbox states
@@ -504,18 +503,16 @@ public class TableTrackView extends TrackView {
 		// determine if track has gaps
 
 	}
-	
+
 	private void refreshGapsButton() {
 		TTrack track = getTrack();
 		if (track instanceof PointMass) {
 			PointMass p = (PointMass) track;
 			boolean hasGaps = p.getGapCount() > 0 || p.skippedSteps.size() > 0;
-			gapsButton.setIcon(!hasGaps? null: 
-				gapsButton.isSelected()? SKIPS_ON_ICON: 
-				SKIPS_OFF_ICON);
+			gapsButton.setIcon(!hasGaps ? null : gapsButton.isSelected() ? SKIPS_ON_ICON : SKIPS_OFF_ICON);
 			gapsButton.setEnabled(hasGaps);
 		}
-		
+
 	}
 
 	/**
@@ -648,33 +645,33 @@ public class TableTrackView extends TrackView {
 			return;
 		Dataset frames = trackDataManager.getFrameDataset();
 		if (frames != null) {
-				double[] vals = frames.getYPoints();
-				for (int j = vals.length; --j >= 0;) {
-					if (highlightFrames.get((int) vals[j]))
-						highlightRows.set(dataTable.getSortedRow(j));
-				}
+			double[] vals = frames.getYPoints();
+			for (int j = vals.length; --j >= 0;) {
+				if (highlightFrames.get((int) vals[j]))
+					highlightRows.set(dataTable.getSortedRow(j));
+			}
 		}
 		// set highlighted rows if found
 //		SwingUtilities.invokeLater(() -> {
-				dataTable.clearSelection();
-				if (highlightRows.isEmpty() || !isRefreshEnabled()) {
-					return;
-				}
-				try {
-					dataTable.selectTableRowsBS(highlightRows, 0);
+		dataTable.clearSelection();
+		if (highlightRows.isEmpty() || !isRefreshEnabled()) {
+			return;
+		}
+		try {
+			dataTable.selectTableRowsBS(highlightRows, 0);
 //					for (int i = highlightRows.nextSetBit(0); i >= 0; i = highlightRows.nextSetBit(i + 1)) {
 //						dataTable.addRowSelectionInterval(i, row);
 //					}
-					if (highlightRows.cardinality() == 1) {
-						dataTable.scrollRowToVisible(highlightRows.nextSetBit(0));
-					}
-				} catch (Exception e) {
-					   // occasionally throws exception during loading or playing?
-					// during playing because the highlighted rows can be set to far
-				   e.printStackTrace();
-				}
-				int cols = dataTable.getColumnCount();
-				dataTable.setColumnSelectionInterval(0, cols - 1);
+			if (highlightRows.cardinality() == 1) {
+				dataTable.scrollRowToVisible(highlightRows.nextSetBit(0));
+			}
+		} catch (Exception e) {
+			// occasionally throws exception during loading or playing?
+			// during playing because the highlighted rows can be set to far
+			e.printStackTrace();
+		}
+		int cols = dataTable.getColumnCount();
+		dataTable.setColumnSelectionInterval(0, cols - 1);
 //		});
 
 	}
@@ -717,12 +714,12 @@ public class TableTrackView extends TrackView {
 		String[] ordered = new String[columnNames.length];
 		if (columnNames.length == 1) {
 			ordered[0] = columnNames[0];
-		}
-		else for (int i = 0; i < ordered.length; i++) {
-			if (i >= modelIndexes.length || modelIndexes[i] >= columnNames.length)
-				continue;
-			ordered[i] = columnNames[modelIndexes[i]];
-		}
+		} else
+			for (int i = 0; i < ordered.length; i++) {
+				if (i >= modelIndexes.length || modelIndexes[i] >= columnNames.length)
+					continue;
+				ordered[i] = columnNames[modelIndexes[i]];
+			}
 		return ordered;
 	}
 
@@ -770,19 +767,19 @@ public class TableTrackView extends TrackView {
 				if (!track.getTextColumnNames().contains(name))
 					removed = name;
 			}
-			if (added==null && removed==null) {
+			if (added == null && removed == null) {
 				// a text entry was changed
 				return;
 			}
 			// update local list of text column names
 			textColumnNames.clear();
 			textColumnNames.addAll(track.getTextColumnNames());
-			
+
 			// remove BEFORE refreshMapNames() so setVisible will succeed
 			if (removed != null && added == null) {
 				setVisible(removed, false);
 			}
-			
+
 			refreshNameMaps();
 
 			if (added != null && removed != null) {
@@ -791,11 +788,10 @@ public class TableTrackView extends TrackView {
 					textColumnsVisible.remove(removed);
 					textColumnsVisible.add(added);
 				}
-			}
-  		else if (added!=null) {
-  			// new column is visible by default
+			} else if (added != null) {
+				// new column is visible by default
 				setVisible(added, true);
-  		}
+			}
 			// refresh table and column visibility dialog
 			dataTable.refreshTable(DataTable.MODE_COLUMN);
 			if (viewParent.getViewType() == TView.VIEW_TABLE) {
@@ -810,7 +806,7 @@ public class TableTrackView extends TrackView {
 		case TTrack.PROPERTY_TTRACK_STEP:
 		case TTrack.PROPERTY_TTRACK_STEPS:
 			if (TTrack.HINT_STEP_ADDED_OR_REMOVED == e.getOldValue()) {
-				refreshGapsButton();				
+				refreshGapsButton();
 			}
 			// commented out so TrackView will fire event to select table rows
 //			if (TTrack.HINT_STEPS_SELECTED == e.getOldValue())
@@ -955,9 +951,7 @@ public class TableTrackView extends TrackView {
 			// override getMaximumSize method so has same height as chooser button
 			@Override
 			public Dimension getMaximumSize() {
-				return TViewChooser.getButtonMaxSize(this, 
-						super.getMaximumSize(), 
-						getMinimumSize().height);
+				return TViewChooser.getButtonMaxSize(this, super.getMaximumSize(), getMinimumSize().height);
 
 			}
 		};
@@ -977,9 +971,7 @@ public class TableTrackView extends TrackView {
 			// override getMaximumSize method so has same height as chooser button
 			@Override
 			public Dimension getMaximumSize() {
-				return TViewChooser.getButtonMaxSize(this, 
-						super.getMaximumSize(), 
-						getMinimumSize().height);
+				return TViewChooser.getButtonMaxSize(this, super.getMaximumSize(), getMinimumSize().height);
 			}
 
 			@Override
@@ -1075,7 +1067,7 @@ public class TableTrackView extends TrackView {
 				trackerPanel.getPlayer().back();
 			}
 		};
-		OSPRuntime.setOSPAction(im,  k,  "scrollUpChangeSelection", am, newAction);
+		OSPRuntime.setOSPAction(im, k, "scrollUpChangeSelection", am, newAction);
 		am.put(im.get(k), newAction);
 		k = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, KeyEvent.SHIFT_DOWN_MASK);
 		newAction = new AbstractAction() {
@@ -1087,7 +1079,7 @@ public class TableTrackView extends TrackView {
 				trackerPanel.getPlayer().setStepNumber(n);
 			}
 		};
-		OSPRuntime.setOSPAction(im,  k,  "scrollUpExtendSelection", am, newAction);
+		OSPRuntime.setOSPAction(im, k, "scrollUpExtendSelection", am, newAction);
 
 		k = KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0);
 		newAction = new AbstractAction() {
@@ -1318,8 +1310,7 @@ public class TableTrackView extends TrackView {
 					String name = dataTable.getColumnName(selected[i]);
 					selectedNames[i] = name;
 				}
-				NumberFormatDialog.getNumberFormatDialog(trackerPanel, getTrack(),
-						selectedNames).setVisible(true);
+				NumberFormatDialog.getNumberFormatDialog(trackerPanel, getTrack(), selectedNames).setVisible(true);
 			}
 		});
 		showUnitsItem = new JMenuItem();
@@ -1450,7 +1441,7 @@ public class TableTrackView extends TrackView {
 	}
 
 	protected void setupDelimiterMenu(Action setDelimiterAction) {
-	    ButtonGroup delimiterButtonGroup = new ButtonGroup();
+		ButtonGroup delimiterButtonGroup = new ButtonGroup();
 
 		for (String key : TrackerIO.delimiters.keySet()) {
 			String delimiter = TrackerIO.delimiters.get(key);
@@ -1738,14 +1729,14 @@ public class TableTrackView extends TrackView {
 		setDelimiterMenu.setText(TrackerRes.getString("TableTrackView.Menu.SetDelimiter")); //$NON-NLS-1$
 		return menu;
 	}
-	
+
 	/**
 	 * Refreshes a popup menu with data gap items.
 	 *
 	 * @param popup the popup to refresh
 	 */
 	protected void refreshToolbarPopup(JPopupMenu popup) {
-		
+
 //		JCheckBoxMenuItem item = new JCheckBoxMenuItem(
 //				TrackerRes.getString("TableTrackView.MenuItem.Gaps.GapsVisible")); //$NON-NLS-1$
 //		item.setSelected(gapsButton.isSelected());
@@ -1846,7 +1837,7 @@ public class TableTrackView extends TrackView {
 			TTrack track = getTrack();
 			// convert row to frame number
 			// DatasetManager data = track.getData(track.trackerPanel);
-			Dataset frameSet = trackDataManager.getFrameDataset(); //$NON-NLS-1$
+			Dataset frameSet = trackDataManager.getFrameDataset(); // $NON-NLS-1$
 			if (frameSet != null) {
 				double frame = frameSet.getYPoints()[row];
 				return track.getTextColumnEntry(columnName, (int) frame);
@@ -1868,7 +1859,7 @@ public class TableTrackView extends TrackView {
 			TTrack track = getTrack();
 			// convert row to frame number
 			// DatasetManager data = track.getData(track.trackerPanel);
-			Dataset frameSet = trackDataManager.getFrameDataset(); //$NON-NLS-1$
+			Dataset frameSet = trackDataManager.getFrameDataset(); // $NON-NLS-1$
 			if (frameSet != null) {
 				double frame = frameSet.getYPoints()[row];
 				if (track.setTextColumnEntry(columnName, (int) frame, (String) value)) {
@@ -1970,12 +1961,13 @@ public class TableTrackView extends TrackView {
 	}
 
 	// the default table cell renderer when no PrecisionRenderer is used
-	class NumberFieldRenderer extends NumberField implements TableCellRenderer {
+	class NumberRenderer implements TableCellRenderer {
 
 		DefaultTableCellRenderer defaultRenderer;
+		NumberFormatter nf = new NumberField.NumberFormatter(false);
 
-		public NumberFieldRenderer() {
-			super(1);
+		public NumberRenderer() {
+			// super(1);
 			defaultRenderer = new DefaultTableCellRenderer();
 			defaultRenderer.setHorizontalAlignment(SwingConstants.RIGHT);
 		}
@@ -1987,8 +1979,7 @@ public class TableTrackView extends TrackView {
 					column);
 			if (value instanceof Double && c instanceof JLabel) {
 				// show number as formatted by this NumberField
-				setValue((Double) value);
-				((JLabel) c).setText(getText());
+				((JLabel) c).setText(nf.getText(((Double) value).doubleValue()));
 			}
 			return c;
 		}
@@ -2049,7 +2040,7 @@ public class TableTrackView extends TrackView {
 
 	class TrackDataTable extends DataTable {
 
-		NumberFieldRenderer numberFieldRenderer = new NumberFieldRenderer();
+		NumberRenderer numberFieldRenderer = new NumberRenderer();
 		SkippedFramesRenderer skippedFramesRenderer = new SkippedFramesRenderer();
 
 		TrackDataTable() {
@@ -2063,7 +2054,7 @@ public class TableTrackView extends TrackView {
 		}
 
 		@Override
-		public void refreshTable(int mode) {			
+		public void refreshTable(int mode) {
 			super.refreshTable(mode, true);
 			if (mode == DataTable.MODE_TRACK_STEPS)
 				refreshToolbar();
@@ -2082,10 +2073,13 @@ public class TableTrackView extends TrackView {
 
 		@Override
 		public TableCellRenderer getDefaultRenderer(Class<?> type) {
-			if (type.isAssignableFrom(Double.class)) {
-				return numberFieldRenderer;
-			}
-			return super.getDefaultRenderer(type);
+//			if (type.isAssignableFrom(Double.class)) {
+//				return numberFieldRenderer;
+//			}
+//			return super.getDefaultRenderer(type);
+			// BH only Double, Number, and Object are assignable from Double.class
+			return (type == Double.class || type == Number.class || type == Object.class ? numberFieldRenderer
+					: super.getDefaultRenderer(type));
 		}
 
 		@Override
@@ -2169,12 +2163,12 @@ public class TableTrackView extends TrackView {
 			else if (columnsDialog.track != track)
 				columnsDialog.rebuild(track);
 			else
-				columnsDialog.refreshButtonPanel();				
+				columnsDialog.refreshButtonPanel();
 		}
 		return columnsDialog;
 	}
 
-	public void refreshColumnDialog(TTrack track, boolean onlyIfVisible) {			
+	public void refreshColumnDialog(TTrack track, boolean onlyIfVisible) {
 		if (track == null) {
 			if (columnsDialog != null) {
 				columnsDialog.getContentPane().removeAll();
@@ -2188,7 +2182,6 @@ public class TableTrackView extends TrackView {
 //		columnsDialog.showOrHideDialog();
 	}
 
-	
 	public boolean setDialogVisible(boolean dialogVisible, boolean dialogLastVisible) {
 		if (dialogVisible) {
 			if (columnsDialog != null)
@@ -2270,7 +2263,7 @@ public class TableTrackView extends TrackView {
 		}
 
 		private void createGUI() {
-			((TFrame)getOwner()).addFollower(this, null);
+			((TFrame) getOwner()).addFollower(this, null);
 			haveGUI = true;
 			columnsPanel = new JPanel();
 			columnsPanel.setBackground(Color.WHITE);
@@ -2320,7 +2313,7 @@ public class TableTrackView extends TrackView {
 
 			buttonPanel = new JPanel();
 			// will be populated below
-			
+
 			// create track label
 			trackLabel = new JLabel();
 			trackLabel.setBorder(BorderFactory.createEmptyBorder(7, 0, 7, 0));
@@ -2355,7 +2348,7 @@ public class TableTrackView extends TrackView {
 		 * Refreshes the column visibility checkboxes.
 		 */
 		private void refreshCheckboxes() {
-			if (!haveGUI) 
+			if (!haveGUI)
 				createGUI();
 			refreshButtonPanel();
 			if (checkBoxes == null || colCount > checkBoxes.length)
@@ -2415,7 +2408,7 @@ public class TableTrackView extends TrackView {
 			add(buttonPanel, BorderLayout.SOUTH);
 //			Dimension dim = getContentPane().getPreferredSize();
 //			getContentPane().setPreferredSize(new Dimension(dim.width, Math.min(dim.height, 300)));
-			pack();		
+			pack();
 //			repaint();			
 		}
 
@@ -2441,6 +2434,7 @@ public class TableTrackView extends TrackView {
 
 	}
 
+	@Override
 	protected boolean isRefreshEnabled() {
 		return super.isRefreshEnabled() && Tracker.allowTableRefresh;
 	}

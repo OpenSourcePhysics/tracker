@@ -1937,8 +1937,8 @@ public class TrackerIO extends VideoIO {
 			default:
 				return 100;
 			}
-			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad " + type + " end " + progress + " " + path,
-					Performance.TIME_MARK));
+//			OSPLog.debug(Performance.timeCheckStr("TrackerIO.asyncLoad " + type + " end " + progress + " " + path,
+//					Performance.TIME_MARK));
 			if (progress == 100) {
 				if (paths.size() > 0) {
 					path = paths.remove(0);
@@ -2111,7 +2111,7 @@ public class TrackerIO extends VideoIO {
 					for (File next : files) {
 						next.deleteOnExit();
 						// add PDF/HTML/other files to tempFiles
-						System.out.println(next);
+						//System.out.println(next);
 						String relPath = XML.getPathRelativeTo(next.getPath(), temp.getPath());
 						if (pdfFiles.contains(relPath) || htmlFiles.contains(relPath) || otherFiles.contains(relPath)) {
 							String tempPath = ResourceLoader.getURIPath(next.getAbsolutePath());
