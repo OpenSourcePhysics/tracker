@@ -160,7 +160,7 @@ public class Tracker {
 	}
 
 	static {
-		try {
+		if(OSPRuntime.isJS)try {
 			Object val = (OSPRuntime.isJS ? jsutil.getAppletInfo("assets") : null);
 			if (val == null)
 				val = "DEFAULT";

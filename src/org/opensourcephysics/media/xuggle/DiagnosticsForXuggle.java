@@ -727,9 +727,6 @@ public class DiagnosticsForXuggle extends Diagnostics {
 	 */
 	public static boolean copyXuggleJarsTo(File dir) {
 		// return false; // pig
-//		if (xuggleHome == null || dir == null) {
-//			return false;
-//		}
 		if (xuggleHome == null || dir == null) {
 			return false;
 		}
