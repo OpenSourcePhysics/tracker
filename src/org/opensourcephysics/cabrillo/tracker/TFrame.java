@@ -3599,7 +3599,7 @@ public class TFrame extends OSPFrame implements PropertyChangeListener {
 
 	public void setSelectedTab(File dataFile) {
 		int n = getTab(dataFile);
-		OSPLog.finest("TFrame selecting first tabset tab at index " + n); //$NON-NLS-1$
+		//OSPLog.finest("TFrame selecting first tabset tab at index " + n); //$NON-NLS-1$
 		setSelectedTab(n);
 	}
 

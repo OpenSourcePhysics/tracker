@@ -2283,8 +2283,8 @@ public class TrackerIO extends VideoIO {
 			// if (monitorDialog.isVisible())
 			// monitorDialog.setProgress(85);
 			VideoType vidType = (VideoType) video.getProperty("video_type"); //$NON-NLS-1$
-			OSPLog.finer(video.getProperty("path") + " opened as " + //$NON-NLS-1$ //$NON-NLS-2$
-					vidType.getClass().getSimpleName() + " " + vidType.getDescription()); //$NON-NLS-1$
+//			OSPLog.finer(video.getProperty("path") + " opened as " + //$NON-NLS-1$ //$NON-NLS-2$
+//					vidType.getClass().getSimpleName() + " " + vidType.getDescription()); //$NON-NLS-1$
 			if (video instanceof AsyncVideoI) {
 				video.addPropertyChangeListener(AsyncVideoI.PROPERTY_ASYNCVIDEOI_READY, new PropertyChangeListener() {
 
