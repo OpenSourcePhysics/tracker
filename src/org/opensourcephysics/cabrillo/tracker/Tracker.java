@@ -198,7 +198,7 @@ public class Tracker {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20210227"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20210228"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
 	
 	/**
@@ -583,7 +583,7 @@ public class Tracker {
 	 * @return URL (with byte[ ] in _streamData if OSPRuntime.isJS)
 	 */
 	public static URL getClassResource(String resource) {
-		return ResourceLoader.getClassResource("org/opensourcephysics/cabrillo/tracker/" + resource, Tracker.class);
+		return ResourceLoader.createClassResource("org/opensourcephysics/cabrillo/tracker/" + resource, Tracker.class).getURL();
 	}
 
 	/**
