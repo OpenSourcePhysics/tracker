@@ -172,7 +172,11 @@ public class Tracker {
 						// Java and JavaScript; Eclipse DEFINITELY needs these
 						// Assets.add(new Assets.Asset("tracker", "cabrillo-assets.zip",
 						// "org/opensourcephysics/cabrillo"));
-						Assets.add(new Assets.Asset("tracker", "tracker-assets.zip", "org/opensourcephysics"));
+						String zipPath = "tracker-assets.zip";
+						if (!OSPRuntime.isJS) {
+							zipPath = Tracker.class.getClassLoader().getResource(zipPath).toString();
+						}
+						Assets.add(new Assets.Asset("tracker", zipPath, "org/opensourcephysics"));
 						break;
 					case "NONE":
 						// JavaScript only
