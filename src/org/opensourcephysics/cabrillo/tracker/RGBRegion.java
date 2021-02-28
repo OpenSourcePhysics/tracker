@@ -75,8 +75,9 @@ public class RGBRegion extends TTrack {
 		if (vars[7].equals(variable) || vars[8].equals(variable) || vars[9].equals(variable)) {
 			return "I"; //$NON-NLS-1$
 		}
-		if (names[2].equals(variable) || names[3].equals(variable) || vars[3].equals(variable)
-				|| vars[4].equals(variable) || vars[5].equals(variable) || vars[6].equals(variable)) {
+		if (names[2].equals(variable) || vars[3].equals(variable)
+				|| vars[4].equals(variable) || vars[5].equals(variable) || vars[6].equals(variable)
+				|| vars[10].equals(variable) || vars[11].equals(variable) || vars[12].equals(variable)) {
 			return "C"; //$NON-NLS-1$
 		}
 		return null;
@@ -93,23 +94,23 @@ public class RGBRegion extends TTrack {
 
   static {
   	dataVariables = new String[] {"t", "x", "y", "R", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-  			"G", "B", "luma", "pixels", "step", "frame"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+  			"G", "B", "luma", "pixels", "step", "frame", //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ //$NON-NLS-5$ //$NON-NLS-6$
+  			"Rsd", "Gsd", "Bsd" }; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
   	fieldVariables = new String[] {"t", "x", "y"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ 
-  	formatVariables = new String[] {"t", "xy", "RGB", "luma"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
+  	formatVariables = new String[] {"t", "xy", "RGB"}; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$ 
   	
   	// assemble format map
 		formatMap = new HashMap<>();		
 		formatMap.put("t", new String[] {"t"});
 		formatMap.put("xy", new String[] {"x", "y"});
-		formatMap.put("RGB", new String[] {"R", "G", "B" });
-		formatMap.put("luma", new String[] {"luma"});
+		formatMap.put("RGB", new String[] {"R", "G", "B", "luma", "Rsd", "Gsd", "Bsd" });
 		
 		// assemble format description map
 		formatDescriptionMap = new HashMap<String, String>();
 		formatDescriptionMap.put(formatVariables[0], TrackerRes.getString("PointMass.Data.Description.0")); //$NON-NLS-1$ 
 		formatDescriptionMap.put(formatVariables[1], TrackerRes.getString("PointMass.Position.Name")); //$NON-NLS-1$ 
 		formatDescriptionMap.put(formatVariables[2], TrackerRes.getString("LineProfile.Description.RGB")); //$NON-NLS-1$ 
-		formatDescriptionMap.put(formatVariables[3], TrackerRes.getString("LineProfile.Data.Brightness")); //$NON-NLS-1$ 
+//		formatDescriptionMap.put(formatVariables[3], TrackerRes.getString("LineProfile.Data.Brightness")); //$NON-NLS-1$ 
 
   }
 
@@ -592,7 +593,7 @@ public int getFootprintLength() {
 			((RGBStep) step).getRGBData(trackerPanel);
 		}
 		// get the datasets
-		int count = 9;
+		int count = 12;
 //    Dataset x = data.getDataset(count++);
 //    Dataset y = data.getDataset(count++);
 //    Dataset r = data.getDataset(count++);
@@ -646,7 +647,10 @@ public int getFootprintLength() {
 			}
 			validData[7][i] = stepNumber;
 			validData[8][i] = stepFrame;
-			validData[9][i] = t;
+			for (int j = 9; j < 12; j++) {
+				validData[j][i] = rgb[j - 4];
+			}
+			validData[12][i] = t;
 		}
 		clearColumns(data, count, dataVariables, "RGBRegion.Data.Description.", validData, len);
 	}
