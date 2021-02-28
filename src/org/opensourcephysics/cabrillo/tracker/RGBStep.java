@@ -52,7 +52,7 @@ public class RGBStep extends Step {
   protected RGBRegion rgbRegion;
   protected int radius;
   protected Map<TrackerPanel, Shape> hitShapes = new HashMap<TrackerPanel, Shape>();
-	protected double[] rgbData = new double[5];
+	protected double[] rgbData = new double[8];
 	protected boolean dataValid = false;
 	protected BasicStroke stroke;
 
@@ -214,7 +214,7 @@ public Object clone() {
       step.points[0] = step.position = step.new Position(
       			position.getX(), position.getY());
       step.position.setStepEditTrigger(true);
-      step.rgbData = new double[5];
+      step.rgbData = new double[8];
       step.dataValid = false;
     }
     return step;
@@ -259,7 +259,7 @@ public String toString() {
         Point2D centerPt = new Point2D.Double();
 	      try {
 	        int[] pixels = new int[h*w];
-	        int n = 0, r = 0, g = 0, b = 0;
+	        int n = 0, r = 0, g = 0, b = 0, r2 = 0, g2 = 0, b2 = 0;
 	        // fill pixels array with pixel data
 	        image.getRaster().getDataElements(x0, y0, w, h, pixels);
 	        // step thru pixels horizontally
@@ -271,21 +271,33 @@ public String toString() {
 	          	if (region.contains(centerPt)) {
 		            int pixel = pixels[i + j*w];
 		            n++; // pixel count
-		            r += (pixel >> 16) & 0xff; // red
-		            g += (pixel >> 8) & 0xff; // green
-		            b += (pixel) & 0xff; // blue
+		            int rp = (pixel >> 16) & 0xff; // red
+		            r += rp;
+		            r2 += rp * rp;
+		            int gp = (pixel >> 8) & 0xff; // green
+		            g += gp;
+		            g2 += gp * gp;
+		            int bp = (pixel) & 0xff; // blue
+		            b += bp;
+		            b2 += bp * bp;
 	          	}
 	          }
 	        }
 	        if (n == 0) return null;
 	        double rMean = 1.0*r/n;
+	        double rSD = n == 1? null: Math.sqrt((r2 - r*rMean) / (n - 1));
 	        double gMean = 1.0*g/n;
+	        double gSD = n == 1? null: Math.sqrt((g2 - g*gMean) / (n - 1));
 	        double bMean = 1.0*b/n;
+	        double bSD = n == 1? null: Math.sqrt((b2 - b*bMean) / (n - 1));
 	        rgbData[0] = rMean;
 	        rgbData[1] = gMean;
 	        rgbData[2] = bMean;
 	        rgbData[3] = RGBRegion.getLuma(rMean, gMean, bMean);
 	        rgbData[4] = n;
+	        rgbData[5] = rSD;
+	        rgbData[6] = gSD;
+	        rgbData[7] = bSD;
 	  	    dataValid = true;
 	      } catch(ArrayIndexOutOfBoundsException ex) {return null;}
 	    }
