@@ -140,7 +140,7 @@ public class Tracker {
 	public static boolean allowViews = true;
 	public static boolean allowMenuRefresh = true;
 	public static boolean allowToolbarRefresh = true;
-
+	
 	public static boolean loadTabsInSeparateThread = !OSPRuntime.isJS;
 
 	static {
@@ -160,32 +160,35 @@ public class Tracker {
 	}
 
 	static {
-		if(OSPRuntime.isJS)try {
-			Object val = (OSPRuntime.isJS ? jsutil.getAppletInfo("assets") : null);
-			if (val == null)
-				val = "DEFAULT";
-			if ((val instanceof String)) {
-				// assets String parameter defined - JavaScript only
-				switch (((String) val).toUpperCase()) {
-				case "DEFAULT":
-					// Java and JavaScript; Eclipse DEFINITELY needs these
-					//Assets.add(new Assets.Asset("tracker", "cabrillo-assets.zip", "org/opensourcephysics/cabrillo"));
-					Assets.add(new Assets.Asset("tracker", "tracker-assets.zip", "org/opensourcephysics"));
-					break;
-				case "NONE":
-					// JavaScript only
-					break;
-				default:
-					// JavaScript only
+		if (OSPRuntime.useZipAssets) {
+			try {
+				Object val = (OSPRuntime.isJS ? jsutil.getAppletInfo("assets") : null);
+				if (val == null)
+					val = "DEFAULT";
+				if ((val instanceof String)) {
+					// assets String parameter defined - JavaScript only
+					switch (((String) val).toUpperCase()) {
+					case "DEFAULT":
+						// Java and JavaScript; Eclipse DEFINITELY needs these
+						// Assets.add(new Assets.Asset("tracker", "cabrillo-assets.zip",
+						// "org/opensourcephysics/cabrillo"));
+						Assets.add(new Assets.Asset("tracker", "tracker-assets.zip", "org/opensourcephysics"));
+						break;
+					case "NONE":
+						// JavaScript only
+						break;
+					default:
+						// JavaScript only
+						Assets.add(val);
+						break;
+					}
+				} else {
 					Assets.add(val);
-					break;
 				}
-			} else {
-				Assets.add(val);
+			} catch (Throwable e) {
+				OSPLog.warning("Error reading assets path. ");
+				System.err.println("Error reading assets path.");
 			}
-		} catch (Throwable e) {
-			OSPLog.warning("Error reading assets path. ");
-			System.err.println("Error reading assets path.");
 		}
 	}
 
@@ -203,7 +206,7 @@ public class Tracker {
 	public static Icon getResourceIcon(String imageName, boolean resizable) {
 		URL url = getClassResource("resources/images/" + imageName);
 		if (url == null)  {
-			//OSPLog.debug("Tracker.getResourceIcon was null for " + imageName);
+			OSPLog.debug("Tracker.getResourceIcon was null for " + imageName);
 			return null;
 		}
 		return (resizable ? new ResizableIcon(url) : new ImageIcon(url));
@@ -570,14 +573,13 @@ public class Tracker {
 	}
 
 	/**
-	 * If JavaScript and an image, get an image from images.zip, or standard
-	 * Class.getResource() if not.
+	 * If JavaScript, look in an asset zip file; if not, use Tracker.class.getResource() if not.
 	 * 
 	 * @param resource "resources/...."
 	 * @return URL (with byte[ ] in _streamData if OSPRuntime.isJS)
 	 */
 	public static URL getClassResource(String resource) {
-		return ResourceLoader.getClassResource(OSPRuntime.isJS ? "org/opensourcephysics/cabrillo/tracker/" + resource : resource, Tracker.class);
+		return ResourceLoader.getClassResource("org/opensourcephysics/cabrillo/tracker/" + resource, Tracker.class);
 	}
 
 	/**
