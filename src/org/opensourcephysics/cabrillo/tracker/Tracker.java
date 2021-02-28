@@ -140,7 +140,7 @@ public class Tracker {
 	public static boolean allowViews = true;
 	public static boolean allowMenuRefresh = true;
 	public static boolean allowToolbarRefresh = true;
-
+	
 	public static boolean loadTabsInSeparateThread = !OSPRuntime.isJS;
 
 	static {
@@ -160,32 +160,35 @@ public class Tracker {
 	}
 
 	static {
-		if(OSPRuntime.isJS)try {
-			Object val = (OSPRuntime.isJS ? jsutil.getAppletInfo("assets") : null);
-			if (val == null)
-				val = "DEFAULT";
-			if ((val instanceof String)) {
-				// assets String parameter defined - JavaScript only
-				switch (((String) val).toUpperCase()) {
-				case "DEFAULT":
-					// Java and JavaScript; Eclipse DEFINITELY needs these
-					//Assets.add(new Assets.Asset("tracker", "cabrillo-assets.zip", "org/opensourcephysics/cabrillo"));
-					Assets.add(new Assets.Asset("tracker", "tracker-assets.zip", "org/opensourcephysics"));
-					break;
-				case "NONE":
-					// JavaScript only
-					break;
-				default:
-					// JavaScript only
+		if (OSPRuntime.useZipAssets) {
+			try {
+				Object val = (OSPRuntime.isJS ? jsutil.getAppletInfo("assets") : null);
+				if (val == null)
+					val = "DEFAULT";
+				if ((val instanceof String)) {
+					// assets String parameter defined - JavaScript only
+					switch (((String) val).toUpperCase()) {
+					case "DEFAULT":
+						// Java and JavaScript; Eclipse DEFINITELY needs these
+						// Assets.add(new Assets.Asset("tracker", "cabrillo-assets.zip",
+						// "org/opensourcephysics/cabrillo"));
+						Assets.add(new Assets.Asset("tracker", "tracker-assets.zip", "org/opensourcephysics"));
+						break;
+					case "NONE":
+						// JavaScript only
+						break;
+					default:
+						// JavaScript only
+						Assets.add(val);
+						break;
+					}
+				} else {
 					Assets.add(val);
-					break;
 				}
-			} else {
-				Assets.add(val);
+			} catch (Throwable e) {
+				OSPLog.warning("Error reading assets path. ");
+				System.err.println("Error reading assets path.");
 			}
-		} catch (Throwable e) {
-			OSPLog.warning("Error reading assets path. ");
-			System.err.println("Error reading assets path.");
 		}
 	}
 
@@ -201,9 +204,9 @@ public class Tracker {
 	 * @param resizable true to return a ResizableIcon, otherwise returns ImageIcon
 	 */
 	public static Icon getResourceIcon(String imageName, boolean resizable) {
-		URL url = Tracker.getClassResource("resources/images/" + imageName);
+		URL url = getClassResource("resources/images/" + imageName);
 		if (url == null)  {
-			//OSPLog.debug("Tracker.getResourceIcon was null for " + imageName);
+			OSPLog.debug("Tracker.getResourceIcon was null for " + imageName);
 			return null;
 		}
 		return (resizable ? new ResizableIcon(url) : new ImageIcon(url));
@@ -570,20 +573,13 @@ public class Tracker {
 	}
 
 	/**
-	 * If JavaScript and an image, get an image from images.zip, or standard
-	 * Class.getResource() if not.
+	 * If JavaScript, look in an asset zip file; if not, use Tracker.class.getResource() if not.
 	 * 
-	 * @param resource "resources/...." or "/org/opensourcephysics/resources/...."
+	 * @param resource "resources/...."
 	 * @return URL (with byte[ ] in _streamData if OSPRuntime.isJS)
 	 */
 	public static URL getClassResource(String resource) {
-		if (OSPRuntime.isJS) {
-			// Ah! Just a problem with full path rather than relative path for classLoader.
-			if (resource.startsWith("resource"))
-				resource = "org/opensourcephysics/cabrillo/tracker/" + resource;
-			return ResourceLoader.getAssetURL(resource);
-		} else 
-			return Tracker.class.getResource(resource);
+		return ResourceLoader.getClassResource("org/opensourcephysics/cabrillo/tracker/" + resource, Tracker.class);
 	}
 
 	/**
@@ -950,7 +946,7 @@ public class Tracker {
 			aboutString += newline + TrackerRes.getString("Tracker.About.TranslationBy") //$NON-NLS-1$
 					+ " " + translator + newline; //$NON-NLS-1$
 		}
-		if (Tracker.trackerHome != null) {
+		if (trackerHome != null) {
 			aboutString += newline + TrackerRes.getString("Tracker.About.TrackerHome") //$NON-NLS-1$
 					+ newline + trackerHome + newline;
 		}
