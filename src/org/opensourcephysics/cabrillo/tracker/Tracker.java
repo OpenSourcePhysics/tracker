@@ -201,7 +201,7 @@ public class Tracker {
 	 * @param resizable true to return a ResizableIcon, otherwise returns ImageIcon
 	 */
 	public static Icon getResourceIcon(String imageName, boolean resizable) {
-		URL url = Tracker.getClassResource("resources/images/" + imageName);
+		URL url = getClassResource("resources/images/" + imageName);
 		if (url == null)  {
 			//OSPLog.debug("Tracker.getResourceIcon was null for " + imageName);
 			return null;
@@ -573,17 +573,11 @@ public class Tracker {
 	 * If JavaScript and an image, get an image from images.zip, or standard
 	 * Class.getResource() if not.
 	 * 
-	 * @param resource "resources/...." or "/org/opensourcephysics/resources/...."
+	 * @param resource "resources/...."
 	 * @return URL (with byte[ ] in _streamData if OSPRuntime.isJS)
 	 */
 	public static URL getClassResource(String resource) {
-		if (OSPRuntime.isJS) {
-			// Ah! Just a problem with full path rather than relative path for classLoader.
-			if (resource.startsWith("resource"))
-				resource = "org/opensourcephysics/cabrillo/tracker/" + resource;
-			return ResourceLoader.getAssetURL(resource);
-		} else 
-			return Tracker.class.getResource(resource);
+		return ResourceLoader.getClassResource(OSPRuntime.isJS ? "org/opensourcephysics/cabrillo/tracker/" + resource : resource, Tracker.class);
 	}
 
 	/**
@@ -950,7 +944,7 @@ public class Tracker {
 			aboutString += newline + TrackerRes.getString("Tracker.About.TranslationBy") //$NON-NLS-1$
 					+ " " + translator + newline; //$NON-NLS-1$
 		}
-		if (Tracker.trackerHome != null) {
+		if (trackerHome != null) {
 			aboutString += newline + TrackerRes.getString("Tracker.About.TrackerHome") //$NON-NLS-1$
 					+ newline + trackerHome + newline;
 		}
