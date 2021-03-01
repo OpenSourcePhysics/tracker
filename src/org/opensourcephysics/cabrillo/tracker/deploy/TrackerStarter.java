@@ -706,12 +706,30 @@ public class TrackerStarter {
 				}
 			}
 			if (preferredVM==null) {
-					// look for bundled jre
+				// look for bundled jre
 				bundledVM = findBundledVM();
-				if (bundledVM != null) {
+				boolean usesXuggleServer = launchVersionString != null;
+				if (usesXuggleServer) {
+					Tracker.Version ver = new Tracker.Version(launchVersionString);
+//					usesXuggleServer = ver.compareTo(new Tracker.Version("6.0.0")) >= 0;					
+					usesXuggleServer = ver.compareTo(new Tracker.Version("5.9.20210301")) >= 0;					
+				}
+				// if xuggle server is present and bundledVM is 32-bit, use default 64-bit
+				if (getXuggleServerJar() != null && usesXuggleServer &&
+						(bundledVM == null || JREFinder.getFinder().is32BitVM(bundledVM))) {
+					File vm = JREFinder.getFinder().getDefaultJRE(64, trackerHome, true);
+					if (vm != null) {						
+						File javaFile = OSPRuntime.getJavaFile(vm.getPath());
+						if (javaFile!=null) {
+							logMessage("no preferred java VM, using default 64-bit VM: "+vm.getPath()); //$NON-NLS-1$
+							javaCommand = XML.stripExtension(javaFile.getPath());
+						}
+					}
+				}
+				else if (bundledVM != null) {
 					File javaFile = OSPRuntime.getJavaFile(bundledVM);
 					if (javaFile!=null) {
-						preferredVM = bundledVM;
+//						preferredVM = bundledVM;
 						logMessage("no preferred java VM, using bundled VM: "+bundledVM); //$NON-NLS-1$
 						javaCommand = XML.stripExtension(javaFile.getPath());
 					}
