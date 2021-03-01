@@ -90,7 +90,7 @@ public boolean isType(Video video) {
   /**
    * Opens a named video as a XuggleVideo. Overrrides MovieVideoType.
    *
-   * @param name the name of the video
+   * @param path the path to the video
    * @return a new Xuggle video
    */
 	@Override
