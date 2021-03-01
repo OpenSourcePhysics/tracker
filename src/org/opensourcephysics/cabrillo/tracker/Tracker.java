@@ -583,7 +583,7 @@ public class Tracker {
 	 * @return URL (with byte[ ] in _streamData if OSPRuntime.isJS)
 	 */
 	public static URL getClassResource(String resource) {
-		return ResourceLoader.createClassResource("org/opensourcephysics/cabrillo/tracker/" + resource, Tracker.class).getURL();
+		return ResourceLoader.getClassResource("org/opensourcephysics/cabrillo/tracker/" + resource, Tracker.class);
 	}
 
 	/**
