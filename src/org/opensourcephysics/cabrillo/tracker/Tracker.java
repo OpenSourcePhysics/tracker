@@ -161,7 +161,7 @@ public class Tracker {
 
 	static {
 		Assets.setDebugging(true);
-		// if we set this to "osp", then osp-assets.zip will never be used
+		// Option 1: if we set this to "osp", then osp-assets.zip will never be used
 		// otherwise, as it is now, osp-assets will be used for all org/opensourcephysics/resources assets
 		OSPRuntime.addAssets("tracker", "tracker-assets.zip", "org/opensourcephysics");
 		// Option 2: adds "cabrillo" to only load tracker assets from tracker-assets.zip and still use osp-assets.zip for others
