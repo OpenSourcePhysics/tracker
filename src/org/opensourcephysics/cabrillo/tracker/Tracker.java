@@ -160,40 +160,7 @@ public class Tracker {
 	}
 
 	static {
-		if (OSPRuntime.useZipAssets) {
-			try {
-				Object val = (OSPRuntime.isJS ? jsutil.getAppletInfo("assets") : null);
-				if (val == null)
-					val = "DEFAULT";
-				if ((val instanceof String)) {
-					// assets String parameter defined - JavaScript only
-					switch (((String) val).toUpperCase()) {
-					case "DEFAULT":
-						// Java and JavaScript; Eclipse DEFINITELY needs these
-						// Assets.add(new Assets.Asset("tracker", "cabrillo-assets.zip",
-						// "org/opensourcephysics/cabrillo"));
-						String zipPath = "tracker-assets.zip";
-						if (!OSPRuntime.isJS) {
-							zipPath = Tracker.class.getClassLoader().getResource(zipPath).toString();
-						}
-						Assets.add(new Assets.Asset("tracker", zipPath, "org/opensourcephysics"));
-						break;
-					case "NONE":
-						// JavaScript only
-						break;
-					default:
-						// JavaScript only
-						Assets.add(val);
-						break;
-					}
-				} else {
-					Assets.add(val);
-				}
-			} catch (Throwable e) {
-				OSPLog.warning("Error reading assets path. ");
-				System.err.println("Error reading assets path.");
-			}
-		}
+		OSPRuntime.addAssets("tracker", "tracker-assets.zip", "org/opensourcephysics");
 	}
 
 	// define static constants
