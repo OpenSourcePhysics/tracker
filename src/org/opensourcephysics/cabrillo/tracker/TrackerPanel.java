@@ -4870,10 +4870,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 				if (JOptionPane.showConfirmDialog(null, new VideoIO.EditorPaneMessage(message),
 						MediaRes.getString("VideoIO.Dialog.UnsupportedVideo.Title"),
 						JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-					// relaunch in 32-bit VM using Tracker PrefsDialog by reflection
+					// relaunch in 64-bit VM using Tracker PrefsDialog by reflection
 					SwingUtilities.invokeLater(() -> {
 						try {
-							frame.getPrefsDialog().relaunch32Bit();
+							frame.getPrefsDialog().relaunch64Bit();
 						} catch (Exception e) {
 						}
 					});

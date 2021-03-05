@@ -171,7 +171,7 @@ public class Tracker {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20210301"; //$NON-NLS-1$
+	public static final String VERSION = "5.9.20210305"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
 	
 	/**
@@ -2105,8 +2105,8 @@ public class Tracker {
 				message.add(TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message")); //$NON-NLS-1$
 			}
 
-			// engines installed on Windows but running in 64-bit VM
-			else if (OSPRuntime.isWindows() && OSPRuntime.getVMBitness() == 64) {
+			// engines installed on Windows but running in 32-bit VM
+			else if (OSPRuntime.isWindows() && OSPRuntime.getVMBitness() == 32) {
 				message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message1")); //$NON-NLS-1$
 				message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message2")); //$NON-NLS-1$
 				message.add(" "); //$NON-NLS-1$
@@ -2135,7 +2135,7 @@ public class Tracker {
 			box.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0));
 
 			if (showRelaunchDialog) {
-				// provide immediate way to change to 32-bit VM and relaunch
+				// provide immediate way to change to 64-bit VM and relaunch
 				Object[] options = new Object[] { TrackerRes.getString("Tracker.Dialog.Button.RelaunchNow"), //$NON-NLS-1$
 						TrackerRes.getString("Tracker.Dialog.Button.ContinueWithoutEngine") }; //$NON-NLS-1$
 				int response = JOptionPane.showOptionDialog(frame, box,
@@ -2145,7 +2145,7 @@ public class Tracker {
 					// use prefs dialog to switch to 32-bit VM/default engine and relaunch
 					SwingUtilities.invokeLater(() -> {
 						PrefsDialog prefs = frame.getPrefsDialog();
-						prefs.relaunch32Bit();
+						prefs.relaunch64Bit();
 					});
 				}
 			} else {
