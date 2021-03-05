@@ -2021,11 +2021,11 @@ public class PrefsDialog extends JDialog {
   }
   
   /**
-   * Relaunches after changing preferred VM to 32-bit
+   * Relaunches after changing preferred VM to 64-bit
    */
-  public void relaunch32Bit() {
+  public void relaunch64Bit() {
   	relaunching = true;
-		vm32Button.setSelected(true); // also sets default video engine
+		vm64Button.setSelected(true); // also sets default video engine??
   }
   
   /**

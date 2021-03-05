@@ -306,6 +306,7 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	private JMenuItem window_notesItem;
 	private JMenuItem window_dataBuilderItem;
 	private JMenuItem window_dataToolItem;
+	private JMenuItem[] tabItems;
 	// help menu
 	private JMenu helpMenu;
 
@@ -2407,7 +2408,6 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 	 * @param trackerPanel the TrackerPanel
 	 */
 	public void refreshWindowMenu(boolean opening) {
-
 		// long t0 = Performance.now(0);
 
 		TFrame frame = trackerPanel.getTFrame();
@@ -2451,24 +2451,28 @@ public class TMenuBar extends JMenuBar implements PropertyChangeListener, MenuLi
 				if (trackerPanel.isEnabled("data.tool")) //$NON-NLS-1$
 					windowMenu.add(window_dataToolItem);
 			}
-			JMenuItem tabItem = null;
-			for (int i = 0, n = frame.getTabCount(); i < n; i++) {
+			tabItems = new JMenuItem[frame.getTabCount()];
+			for (int i = 0; i < tabItems.length; i++) {
 				if (i == 0)
 					windowMenu.addSeparator();
-				tabItem = new JRadioButtonMenuItem(frame.getTabTitle(i));
-				tabItem.setActionCommand(String.valueOf(i));
-				tabItem.setSelected(i == frame.getSelectedTab());
-				tabItem.addActionListener((e) -> {
+				tabItems[i] = new JRadioButtonMenuItem(frame.getTabTitle(i));
+				tabItems[i].setActionCommand(String.valueOf(i));
+				tabItems[i].setSelected(i == frame.getSelectedTab());
+				tabItems[i].addActionListener((e) -> {
 						int j = Integer.parseInt(e.getActionCommand());
 						frame.setSelectedTab(j);
 				});
-				windowMenu.add(tabItem);
+				windowMenu.add(tabItems[i]);
 			}
-			if (frame.getTabCount() == 1 && tabItem != null) {
-				tabItem.setEnabled(false);
+			if (frame.getTabCount() == 1) {
+				tabItems[0].setEnabled(false);
 			}
 			FontSizer.setMenuFonts(windowMenu);
 			setMenuTainted(MENU_WINDOW, false);
+		}
+		// select tab item for selected tab AFTER rebuilding if needed
+		for (int i = 0; i < tabItems.length; i++) {
+			tabItems[i].setSelected(i == frame.getSelectedTab());
 		}
 
 		// OSPLog.debug("!!! " + Performance.now(t0) + " TMenuBar window refresh");
