@@ -173,7 +173,7 @@ public class XuggleVideo extends VideoAdapter implements SmoothPlayable {
 
 	private long systemStartPlayTime;
 	private double frameStartPlayTime;
-	private boolean playSmoothly = true;
+	private boolean playSmoothly = false;
 	private boolean isLocal;
 	
 

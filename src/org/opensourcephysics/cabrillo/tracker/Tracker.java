@@ -2385,8 +2385,8 @@ public class Tracker {
 					control.setValue("trail_length", TToolBar.trailLengthNames[preferredTrailLengthIndex]); //$NON-NLS-1$
 				if (!centerCalibrationStick) // true by default
 					control.setValue("center_stick", centerCalibrationStick); //$NON-NLS-1$
-				if (isXuggleFast) // false by default
-					control.setValue("xuggle_fast", isXuggleFast); //$NON-NLS-1$
+				if (!isXuggleFast) // true by default
+					control.setValue("xuggle_smooth", true); //$NON-NLS-1$
 				if (!warnNoVideoEngine) // true by default
 					control.setValue("warn_no_engine", warnNoVideoEngine); //$NON-NLS-1$
 				if (!warnVariableDuration) // true by default
@@ -2509,7 +2509,7 @@ public class Tracker {
 					showGaps = control.getBoolean("show_gaps"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("center_stick")) //$NON-NLS-1$
 					centerCalibrationStick = control.getBoolean("center_stick"); //$NON-NLS-1$
-				isXuggleFast = control.getBoolean("xuggle_fast"); //$NON-NLS-1$
+				isXuggleFast = !control.getBoolean("xuggle_smooth"); //$NON-NLS-1$
 				if (control.getPropertyNamesRaw().contains("trail_length")) { //$NON-NLS-1$
 					String name = control.getString("trail_length"); //$NON-NLS-1$
 					for (int i = 0; i < TToolBar.trailLengthNames.length; i++) {
