@@ -171,8 +171,9 @@ public class Tracker {
 
 	// define static constants
 	/** tracker version and copyright */
-	public static final String VERSION = "5.9.20210305"; //$NON-NLS-1$
-	public static final String COPYRIGHT = "Copyright (c) 2021 D. Brown, W. Christian, R. Hanson"; //$NON-NLS-1$
+	// DB switch to using OSPRuntime.VERSION
+//	public static final String VERSION = "5.9.20210307"; //$NON-NLS-1$
+	public static final String COPYRIGHT = "Copyright (c) 2021 D Brown, W Christian, R Hanson"; //$NON-NLS-1$
 	
 	/**
 	 * Gets an icon from a class resource image.
@@ -463,9 +464,9 @@ public class Tracker {
 //		contentPane.add(center, BorderLayout.CENTER);
 
 		// version south
-//		String vers = author + "   " + osp + "   Ver " + VERSION; //$NON-NLS-1$ //$NON-NLS-2$
-		String vers = "Ver " + VERSION; //$NON-NLS-1$ //$NON-NLS-2$
-		if (VERSION.length() > 7 || testOn)
+//		String vers = author + "   " + osp + "   Ver " + OSPRuntime.VERSION; //$NON-NLS-1$ //$NON-NLS-2$
+		String vers = "Ver " + OSPRuntime.VERSION; //$NON-NLS-1$ //$NON-NLS-2$
+		if (OSPRuntime.VERSION.length() > 7 || testOn)
 			vers += " BETA"; //$NON-NLS-1$
 		JLabel versionLabel = new JLabel(vers);
 		versionLabel.setForeground(darkblue);
@@ -902,7 +903,7 @@ public class Tracker {
 	 */
 	public static void showAboutTracker() {
 		String newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-		String vers = VERSION;
+		String vers = OSPRuntime.VERSION;
 		// typical beta version 5.2.20200314
 		if (vers.length() > 7 || testOn)
 			vers += " BETA"; //$NON-NLS-1$
@@ -1601,7 +1602,7 @@ public class Tracker {
 		}
 		int result = 0;
 		try {
-			result = compareVersions(newVersion, VERSION);
+			result = compareVersions(newVersion, OSPRuntime.VERSION);
 		} catch (Exception e) {
 		}
 		if (result > 0) { // newer version available
@@ -1621,7 +1622,7 @@ public class Tracker {
 			}
 			// show dialog if this is a first-time-seen upgrade version
 //	    if (testOn) latestVersion = null; // pig for testing only
-			String testVersion = latestVersion == null ? VERSION : latestVersion;
+			String testVersion = latestVersion == null ? OSPRuntime.VERSION : latestVersion;
 			result = 0;
 			try {
 				result = compareVersions(newVersion, testVersion);
@@ -1690,7 +1691,7 @@ public class Tracker {
 			if (os.indexOf("windows") > -1) { //$NON-NLS-1$
 				os = "windows"; //$NON-NLS-1$
 			}
-			page = "log_" + VERSION + "_" + os + "_" + engine; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			page = "log_" + OSPRuntime.VERSION + "_" + os + "_" + engine; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 			if (!"".equals(language)) { //$NON-NLS-1$
 				if (!"".equals(country)) { //$NON-NLS-1$
 					language += "-" + country; //$NON-NLS-1$
@@ -1717,7 +1718,7 @@ public class Tracker {
 			return version;
 		} catch (Exception e) {
 		}
-		return VERSION;
+		return OSPRuntime.VERSION;
 	}
 
 	/**
@@ -2185,7 +2186,7 @@ public class Tracker {
 						String prefVers = preferredTrackerJar.substring(8, preferredTrackerJar.lastIndexOf(".")); //$NON-NLS-1$
 						String s1 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message1") //$NON-NLS-1$
 								+ " " //$NON-NLS-1$
-								+ VERSION;
+								+ OSPRuntime.VERSION;
 						String s2 = TrackerRes.getString("Tracker.Dialog.ChangePrefVersionAfterUpgrade.Message2") //$NON-NLS-1$
 								+ " " //$NON-NLS-1$
 								+ prefVers;
@@ -2268,73 +2269,6 @@ public class Tracker {
 		recentFilesSize = Math.max(max, 0);
 		while (recentFiles.size() > recentFilesSize) {
 			recentFiles.remove(recentFiles.size() - 1);
-		}
-	}
-
-	/**
-	 * A class to compare version strings.
-	 */
-	public static class Version implements Comparable<Version> {
-		String ver;
-
-		/**
-		 * Constructor
-		 * 
-		 * @param version the version string
-		 */
-		public Version(String version) {
-			ver = version;
-		}
-
-		public boolean isValid() {
-			String[] v = this.ver.trim().split("\\."); //$NON-NLS-1$
-			if (v.length >= 2 && v.length <= 4) {
-				for (int i = 0; i < v.length; i++) {
-					try {
-						Integer.parseInt(v[i].trim());
-					} catch (Exception ex) {
-						return false;
-					}
-				}
-				return true;
-			}
-			return false;
-		}
-
-		@Override
-		public int compareTo(Version o) {
-			// typical newer semantic version "4.9.10" or "5.0.7.190518"
-			// typical older version "4.97"
-
-			// split at decimal points
-			String[] v1 = this.ver.trim().split("\\."); //$NON-NLS-1$
-			String[] v2 = o.ver.trim().split("\\."); //$NON-NLS-1$
-			// newer semantic version arrays have length 3 or 4--truncate to 3
-			// older version arrays have length 2
-			if (v1.length == 4) {
-				v1 = new String[] { v1[0], v1[1], v1[2] };
-			}
-			if (v2.length == 4) {
-				v2 = new String[] { v2[0], v2[1], v2[2] };
-			}
-
-			if (v2.length > v1.length) {
-				// v1 is older version, v2 is newer
-				return -1;
-			}
-			if (v1.length > v2.length) {
-				// v2 is older version, v1 is newer
-				return 1;
-			}
-			// both arrays have the same length
-			for (int i = 0; i < v1.length; i++) {
-				if (Integer.parseInt(v1[i]) < Integer.parseInt(v2[i])) {
-					return -1;
-				} else if (Integer.parseInt(v1[i]) > Integer.parseInt(v2[i])) {
-					return 1;
-				}
-			}
-			return 0;
 		}
 	}
 

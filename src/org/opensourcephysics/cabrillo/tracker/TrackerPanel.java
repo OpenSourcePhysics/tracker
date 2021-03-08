@@ -3729,7 +3729,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			if (fileVersion != null && !OSPRuntime.isJS) {
 				int result = 0;
 				try {
-					result = Tracker.compareVersions(fileVersion, Tracker.VERSION);
+					result = Tracker.compareVersions(fileVersion, OSPRuntime.VERSION);
 				} catch (Exception e) {
 				}
 				if (result > 0) { // file is newer version than Tracker
@@ -3738,7 +3738,7 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 									+ " " + fileVersion + " " //$NON-NLS-1$ //$NON-NLS-2$
 									+ TrackerRes.getString("TrackerPanel.Dialog.Version.Message2") //$NON-NLS-1$
 									+ "\n" + TrackerRes.getString("TrackerPanel.Dialog.Version.Message3") //$NON-NLS-1$ //$NON-NLS-2$
-									+ " (" + Tracker.VERSION + ")." //$NON-NLS-1$ //$NON-NLS-2$
+									+ " (" + OSPRuntime.VERSION + ")." //$NON-NLS-1$ //$NON-NLS-2$
 									+ "\n\n" + TrackerRes.getString("TrackerPanel.Dialog.Version.Message4") //$NON-NLS-1$ //$NON-NLS-2$
 									+ " https://" + Tracker.trackerWebsite + ".", //$NON-NLS-1$ //$NON-NLS-2$
 							TrackerRes.getString("TrackerPanel.Dialog.Version.Title"), //$NON-NLS-1$
@@ -3966,9 +3966,9 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 
 			TrackerPanel trackerPanel = (TrackerPanel) obj;
 			// save the version
-//      control.setValue("version", Tracker.VERSION); //$NON-NLS-1$
+//      control.setValue("version", OSPRuntime.VERSION); //$NON-NLS-1$
 			// changed to semantic version June 15 2017
-			control.setValue("semantic_version", Tracker.VERSION); //$NON-NLS-1$
+			control.setValue("semantic_version", OSPRuntime.VERSION); //$NON-NLS-1$
 			// save the image size
 			control.setValue("width", trackerPanel.getImageWidth()); //$NON-NLS-1$
 			control.setValue("height", trackerPanel.getImageHeight()); //$NON-NLS-1$

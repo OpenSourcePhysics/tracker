@@ -45,12 +45,10 @@ import java.nio.charset.Charset;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-import org.opensourcephysics.cabrillo.tracker.Tracker;
 import org.opensourcephysics.controls.XML;
 import org.opensourcephysics.controls.XMLControl;
 import org.opensourcephysics.controls.XMLControlElement;
 import org.opensourcephysics.display.OSPRuntime;
-import org.opensourcephysics.media.core.VideoIO;
 import org.opensourcephysics.tools.JREFinder;
 import org.opensourcephysics.tools.ResourceLoader;
 
@@ -81,7 +79,7 @@ public class TrackerStarter {
 	static String startLogPath;
 	static FilenameFilter trackerJarFilter = new TrackerJarFilter();
 	static File codeBaseDir, starterJarFile, xuggleServerJar, xuggleJar;
-	static String launchVersionString;
+	static String preferredVersionString;
 	static String trackerJarPath;
 	static int memorySize, preferredMemorySize;
 	static String[] executables;
@@ -254,6 +252,13 @@ public class TrackerStarter {
 					}				
 				});
 				if (jars.length > 0) {
+//					if (jars.length > 1) {
+//						// find the latest from alphabetical order
+//						TreeSet<String> names = new TreeSet<String>();
+//						for (int i = 0; i < jars.length; i++) {
+//							names.add(jars[i].getName());
+//						}
+//					}
 					if (copyXuggleJarTo(jars[0], xuggleServerJar)) {
 						logMessage("using xuggle server: " + jars[0].getName()); //$NON-NLS-1$
 					}
@@ -577,7 +582,7 @@ public class TrackerStarter {
 									+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
 									+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
 									+ "Problems:" + newline + exceptions, //$NON-NLS-1$
-							"TrackerStarter Vers " + Tracker.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
+							"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 							JOptionPane.ERROR_MESSAGE);
 		} else {
 			if (trackerHome == null) {
@@ -595,7 +600,7 @@ public class TrackerStarter {
 											+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
 											+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
 											+ "Problems:" + newline + exceptions, //$NON-NLS-1$
-									"TrackerStarter Vers " + Tracker.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
+									"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 									JOptionPane.ERROR_MESSAGE);
 				} else {
 					JOptionPane
@@ -608,7 +613,7 @@ public class TrackerStarter {
 											+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
 											+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
 											+ "Problems:" + newline + exceptions, //$NON-NLS-1$
-									"TrackerStarter Vers " + Tracker.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
+									"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 									JOptionPane.ERROR_MESSAGE);
 				}
 			} else {
@@ -625,14 +630,15 @@ public class TrackerStarter {
 										+ "For trouble-shooting or to download the latest installer," + newline //$NON-NLS-1$
 										+ "please see http://physlets.org/tracker/." + newline + newline //$NON-NLS-1$
 										+ "Problems:" + newline + exceptions, //$NON-NLS-1$
-								"TrackerStarter Vers " + Tracker.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
+								"TrackerStarter Vers " + OSPRuntime.VERSION + ": Error Starting Tracker", //$NON-NLS-1$ //$NON-NLS-2$
 								JOptionPane.ERROR_MESSAGE);
 			}
 
 		}
 		writeUserLog();
 		writeCodeBaseLog();
-		Tracker.exit();
+		OSPRuntime.exit();
+		System.exit(0);
 	}
 
 	/**
@@ -659,40 +665,56 @@ public class TrackerStarter {
 			// preferred tracker jar
 			String systemProperty = System.getProperty(PREFERRED_TRACKER_JAR);
 
-			if (jar==null && systemProperty!=null) {
+			if (systemProperty!=null) {
 				loaded = true;
 				trackerJarPath = systemProperty;
 				jar = XML.getName(trackerJarPath);
 				logMessage("system property "+PREFERRED_TRACKER_JAR+" = " + systemProperty); //$NON-NLS-1$ //$NON-NLS-2$
 			}
-			else if (jar==null && prefsXMLControl.getPropertyNamesRaw().contains("tracker_jar")) { //$NON-NLS-1$
+			else if (prefsXMLControl.getPropertyNamesRaw().contains("tracker_jar")) { //$NON-NLS-1$
 				loaded = true;
 				jar = prefsXMLControl.getString("tracker_jar"); //$NON-NLS-1$
 			}
 
-			if (jar!=null && !jar.equals("tracker.jar")) { //$NON-NLS-1$
-				int dot = jar.indexOf(".jar"); //$NON-NLS-1$
-				String ver = jar.substring(8, dot);
-				String versionStr = ver;
-    		int n = ver.toLowerCase().indexOf(snapshot);
-    		if (n>-1) {
-    			ver = ver.substring(0, n);
-    		}
-				if (new Tracker.Version(ver).isValid()) {
-					launchVersionString = versionStr;
-					logMessage("preferred version: " + launchVersionString); //$NON-NLS-1$
-				} 
+			String versionStr = OSPRuntime.VERSION; // default is current version
+			if (jar!=null) { 
+				if (!jar.equals("tracker.jar")) { //$NON-NLS-1$
+					int dot = jar.indexOf(".jar"); //$NON-NLS-1$
+					String ver = jar.substring(8, dot);
+					versionStr = ver;
+	    		int n = ver.toLowerCase().indexOf(snapshot);
+	    		if (n>-1) {
+	    			ver = ver.substring(0, n);
+	    		}
+					if (new OSPRuntime.Version(ver).isValid()) {
+						preferredVersionString = versionStr;
+						logMessage("preferred version: " + preferredVersionString); //$NON-NLS-1$
+					} 
+					else {
+						logMessage("version number not valid: " + ver); //$NON-NLS-1$
+					}
+				}
 				else {
-					logMessage("version number not valid: " + ver); //$NON-NLS-1$
+					logMessage("no preferred Tracker version, using default"); //$NON-NLS-1$
 				}
 			}
+			
+			logMessage(preferredVersionString == null?
+					"launching tracker.jar (assumed version "+versionStr+")": //$NON-NLS-1$
+			"launching Tracker version "+preferredVersionString); //$NON-NLS-1$
 
-
+			OSPRuntime.Version ver = new OSPRuntime.Version(versionStr);
+			boolean usesXuggleServer = ver.compareTo(new OSPRuntime.Version("5.9.2")) >= 0;
 			// preferred java vm
 			preferredVM = null;
 			if (prefsXMLControl.getPropertyNamesRaw().contains("java_vm")) { //$NON-NLS-1$
 				loaded = true;
 				preferredVM = prefsXMLControl.getString("java_vm"); //$NON-NLS-1$
+			}
+			// if xuggle server is present and bundledVM is 32-bit, use default 64-bit
+			if (getXuggleServerJar() != null && usesXuggleServer &&
+					preferredVM != null && JREFinder.getFinder().is32BitVM(preferredVM)) {
+				preferredVM = null;
 			}
 			if (preferredVM!=null) {
 				logMessage("preferred java VM: " + preferredVM); //$NON-NLS-1$
@@ -708,12 +730,6 @@ public class TrackerStarter {
 			if (preferredVM==null) {
 				// look for bundled jre
 				bundledVM = findBundledVM();
-				boolean usesXuggleServer = launchVersionString != null;
-				if (usesXuggleServer) {
-					Tracker.Version ver = new Tracker.Version(launchVersionString);
-//					usesXuggleServer = ver.compareTo(new Tracker.Version("6.0.0")) >= 0;					
-					usesXuggleServer = ver.compareTo(new Tracker.Version("5.9.20210301")) >= 0;					
-				}
 				// if xuggle server is present and bundledVM is 32-bit, use default 64-bit
 				if (getXuggleServerJar() != null && usesXuggleServer &&
 						(bundledVM == null || JREFinder.getFinder().is32BitVM(bundledVM))) {
@@ -831,7 +847,7 @@ public class TrackerStarter {
 				logMessage(s.substring(0, s.length() - 2));
 				String defaultJar = null;
 				String numberedJar = null;
-				Tracker.Version newestVersion = null;
+				OSPRuntime.Version newestVersion = null;
 				for (int i = 0; i < fileNames.length; i++) {
 					if ("tracker.jar".equals(fileNames[i].toLowerCase())) {//$NON-NLS-1$
 						defaultJar = fileNames[i];
@@ -845,9 +861,9 @@ public class TrackerStarter {
 		    			vers = vers.substring(0, n);
 		    		}
 
-		    		Tracker.Version v = new Tracker.Version(vers);
+		    		OSPRuntime.Version v = new OSPRuntime.Version(vers);
 						if (v.isValid()) {
-							if (versionStr.equals(launchVersionString)) {
+							if (versionStr.equals(preferredVersionString)) {
 								File file = new File(jarHome, fileNames[i]);
 								logMessage("using tracker jar: " + file.getAbsolutePath()); //$NON-NLS-1$
 								return file.getAbsolutePath();
@@ -891,7 +907,7 @@ public class TrackerStarter {
 	private static boolean copyXuggleJarTo(File xuggleJar, File target) {
 		long fileLength = xuggleJar.length();
 		if (!target.exists() || target.length() != fileLength) {
-			return VideoIO.copyFile(xuggleJar, target);
+			return ResourceLoader.copyAllFiles(xuggleJar, target);
 		}
 		return true; // target exists and is same size 
 	}
@@ -1068,7 +1084,8 @@ public class TrackerStarter {
 						} catch (InterruptedException e) {
 						}
 					}					
-					Tracker.exit();
+					OSPRuntime.exit();
+					System.exit(0);
 				}
 			});
 			exitThread.setDaemon(true);
@@ -1121,7 +1138,8 @@ public class TrackerStarter {
 		}
 		else {
 			// should never get here--exits via timer
-			Tracker.exit();
+			OSPRuntime.exit();
+			System.exit(0);
 		}
 	}
 
@@ -1169,7 +1187,7 @@ public class TrackerStarter {
 		if (!logText.startsWith("TrackerStarter")) { //$NON-NLS-1$
 			SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss  MMM dd yyyy"); //$NON-NLS-1$
 			Calendar cal = Calendar.getInstance();
-			logText = "TrackerStarter version " + Tracker.VERSION + "  " //$NON-NLS-1$ //$NON-NLS-2$
+			logText = "TrackerStarter version " + OSPRuntime.VERSION + "  " //$NON-NLS-1$ //$NON-NLS-2$
 					+ sdf.format(cal.getTime()) + newline + newline + logText;
 		}		
 	}

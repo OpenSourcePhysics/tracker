@@ -150,7 +150,7 @@ public class PrefsDialog extends JDialog {
   protected JRadioButton markStickEndsButton, centerStickButton;
   protected JRadioButton xuggleFastButton, xuggleSlowButton;
   protected JRadioButton defaultDecimalButton, periodDecimalButton, commaDecimalButton;
-  protected Tracker.Version[] trackerVersions;
+  protected OSPRuntime.Version[] trackerVersions;
   protected boolean relaunching, refreshing;
   
   // previous values
@@ -248,7 +248,7 @@ public class PrefsDialog extends JDialog {
    */
   private void findTrackerJars() {
   	if (Tracker.trackerHome==null || codeBaseDir==null) {
-			trackerVersions = new Tracker.Version[] {new Tracker.Version("0")}; //$NON-NLS-1$
+			trackerVersions = new OSPRuntime.Version[] {new OSPRuntime.Version("0")}; //$NON-NLS-1$
   		return;
   	}
 		String jarHome = OSPRuntime.isMac()? 
@@ -256,16 +256,16 @@ public class PrefsDialog extends JDialog {
 		File dir = new File(jarHome);
 		String[] fileNames = dir.list(trackerJarFilter);
 		if (fileNames!=null && fileNames.length>0) {
-			TreeSet<Tracker.Version> versions = new TreeSet<Tracker.Version>();
+			TreeSet<OSPRuntime.Version> versions = new TreeSet<OSPRuntime.Version>();
 			for (int i=0; i<fileNames.length; i++) {
 				if ("tracker.jar".equals(fileNames[i].toLowerCase())) {//$NON-NLS-1$
-					versions.add(new Tracker.Version("0")); //$NON-NLS-1$
+					versions.add(new OSPRuntime.Version("0")); //$NON-NLS-1$
 				}
 				else {					
-					versions.add(new Tracker.Version(fileNames[i].substring(8, fileNames[i].length()-4)));
+					versions.add(new OSPRuntime.Version(fileNames[i].substring(8, fileNames[i].length()-4)));
 				}
 			}
-			trackerVersions = versions.toArray(new Tracker.Version[versions.size()]);
+			trackerVersions = versions.toArray(new OSPRuntime.Version[versions.size()]);
 		}
   }
  
@@ -661,7 +661,7 @@ public class PrefsDialog extends JDialog {
 			int preferred = 0;
 			versionDropdown = new JComboBox<String>();
 			for (int i = 0; i < trackerVersions.length; i++) {
-				String next = trackerVersions[i].ver;
+				String next = trackerVersions[i].toString();
 				if (next.equals("0")) { //$NON-NLS-1$
 					String s = TrackerRes.getString("PrefsDialog.Version.Default"); //$NON-NLS-1$
 					versionDropdown.addItem(s);
@@ -691,7 +691,8 @@ public class PrefsDialog extends JDialog {
 			versionSubPanel.add(versionDropdown);
 	
 			// jre subpanel
-			JPanel jreSubPanel = new JPanel(new BorderLayout());
+//			JPanel jreSubPanel = new JPanel(new BorderLayout());
+			JPanel jreSubPanel = new JPanel();
 			box.add(jreSubPanel);
 			jreSubPanel.setBackground(color);
 			jreSubPanelBorder = BorderFactory.createTitledBorder(TrackerRes.getString("PrefsDialog.JRE.BorderTitle")); //$NON-NLS-1$
@@ -699,10 +700,10 @@ public class PrefsDialog extends JDialog {
 	
 			JPanel jreNorthPanel = new JPanel();
 			jreNorthPanel.setBackground(color);
-			jreSubPanel.add(jreNorthPanel, BorderLayout.NORTH);
+//			jreSubPanel.add(jreNorthPanel, BorderLayout.NORTH);
 			JPanel jreSouthPanel = new JPanel();
 			jreSouthPanel.setBackground(color);
-			jreSubPanel.add(jreSouthPanel, BorderLayout.SOUTH);
+//			jreSubPanel.add(jreSouthPanel, BorderLayout.SOUTH);
 	
 			int vmBitness = OSPRuntime.getVMBitness();
 			vm32Button = new JRadioButton();
@@ -733,10 +734,11 @@ public class PrefsDialog extends JDialog {
 					refreshJREDropdown(64);
 				}
 			});
-			jreNorthPanel.add(vm64Button);
+//			jreNorthPanel.add(vm64Button);
 	
 			jreDropdown = new JComboBox<String>();
-			jreSouthPanel.add(jreDropdown);
+//			jreSouthPanel.add(jreDropdown);
+			jreSubPanel.add(jreDropdown);
 			refreshJREDropdown(vmBitness);
 	
 			// memory subpanel
@@ -1697,8 +1699,7 @@ public class PrefsDialog extends JDialog {
 			  	    	availableJREPaths.add(jrePath);
 			  	    	jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"), 0); //$NON-NLS-1$			  	    	
 		  	    	}
-		  	    	else if (defaultVM!=null && jrePath.equals(defaultVM.getPath())
-		  	    			&& !(vmBitness==64 && OSPRuntime.isWindows())) {
+		  	    	else if (defaultVM!=null && jrePath.equals(defaultVM.getPath())) {
 			  	    	availableJREPaths.add(jrePath);
 			  	    	jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.LatestJRE"), 0); //$NON-NLS-1$			  	    	
 			  	    	jreDropdown.addItem(jrePath); // duplicate latest
