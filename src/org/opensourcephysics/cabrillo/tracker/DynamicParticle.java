@@ -736,4 +736,9 @@ public class DynamicParticle extends ParticleModel implements ODE {
 		}
 	}
 
+	protected void holdPainting(boolean b) {
+		// don't hold?
+	}
+
+
 }
