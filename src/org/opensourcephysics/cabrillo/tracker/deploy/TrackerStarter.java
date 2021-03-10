@@ -388,13 +388,22 @@ public class TrackerStarter {
 						logMessage("TRACKER_HOME directory no longer exists"); //$NON-NLS-1$
 				}
 			}
+			
+			// if not found, check OSP preferences
+			if (trackerHome==null) {
+				trackerHome = (String)OSPRuntime.getPreference("TRACKER_HOME"); //$NON-NLS-1$
+				if (writeToLog) logMessage("osp.prefs TRACKER_HOME: " + trackerHome); //$NON-NLS-1$
+				if (trackerHome!=null && !fileExists(trackerHome)) {
+					trackerHome = null;
+					if (writeToLog) logMessage("TRACKER_HOME directory no longer exists"); //$NON-NLS-1$
+				}	
+			}
 
-			// BH more graceful to return null here
-//		if (trackerHome == null)
-//			throw new NullPointerException("trackerhome not found"); //$NON-NLS-1$
 			if (writeToLog)
 				logMessage("using trackerhome: " + trackerHome); //$NON-NLS-1$
 		}
+		
+		// BH more graceful to return null here
 		return trackerHome;
 	}
 	
@@ -542,7 +551,7 @@ public class TrackerStarter {
 		
 		File jre = null;
 		if (OSPRuntime.isWindows()) {
-			jre = JREFinder.getFinder().getDefaultJRE(32, trackerHome, false);
+			jre = JREFinder.getFinder().getDefaultJRE(64, trackerHome, false);
 		}
 		else if (OSPRuntime.isMac()) {
 			File home = new File(trackerHome);
@@ -695,23 +704,19 @@ public class TrackerStarter {
 					}
 				}
 				else {
-					logMessage("no preferred Tracker version, using default"); //$NON-NLS-1$
+					logMessage("no preferred Tracker version, using default tracker.jar (ver "+versionStr+"?)"); //$NON-NLS-1$
 				}
 			}
 			
-			logMessage(preferredVersionString == null?
-					"launching tracker.jar (assumed version "+versionStr+")": //$NON-NLS-1$
-			"launching Tracker version "+preferredVersionString); //$NON-NLS-1$
-
+			// preferred java vm
 			OSPRuntime.Version ver = new OSPRuntime.Version(versionStr);
 			boolean usesXuggleServer = ver.compareTo(new OSPRuntime.Version("5.9.2")) >= 0;
-			// preferred java vm
 			preferredVM = null;
 			if (prefsXMLControl.getPropertyNamesRaw().contains("java_vm")) { //$NON-NLS-1$
 				loaded = true;
 				preferredVM = prefsXMLControl.getString("java_vm"); //$NON-NLS-1$
 			}
-			// if xuggle server is present and bundledVM is 32-bit, use default 64-bit
+			// if using xuggle server and preferredVM is 32-bit, set preferredVM to null
 			if (getXuggleServerJar() != null && usesXuggleServer &&
 					preferredVM != null && JREFinder.getFinder().is32BitVM(preferredVM)) {
 				preferredVM = null;
@@ -746,7 +751,7 @@ public class TrackerStarter {
 					File javaFile = OSPRuntime.getJavaFile(bundledVM);
 					if (javaFile!=null) {
 //						preferredVM = bundledVM;
-						logMessage("no preferred java VM, using bundled VM: "+bundledVM); //$NON-NLS-1$
+						logMessage("no preferred java VM, using bundled: "+bundledVM); //$NON-NLS-1$
 						javaCommand = XML.stripExtension(javaFile.getPath());
 					}
 				} 

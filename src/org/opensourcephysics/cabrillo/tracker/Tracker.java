@@ -1938,7 +1938,7 @@ public class Tracker {
 				}
 
 			}
-			// determine if relaunch is needed
+			// determine if this is a relaunch or if relaunch is needed
 			boolean isRelaunch = args != null && args.length > 0 && "relaunch".equals(args[args.length - 1]); //$NON-NLS-1$
 			if (isRelaunch) {
 				args[args.length - 1] = null;
@@ -1955,17 +1955,27 @@ public class Tracker {
 			long currentMemory = memory.getHeapMemoryUsage().getMax() / (1024 * 1024);
 
 			if (!isRelaunch) {
-				String javaCommand = System.getProperty("java.home"); //$NON-NLS-1$
-				javaCommand = XML.forwardSlash(javaCommand) + "/bin/java"; //$NON-NLS-1$
-				String javaPath = preferredJRE;
-				if (javaPath != null) {
-					File javaFile = OSPRuntime.getJavaFile(javaPath);
-					if (javaFile != null) {
-						javaPath = XML.stripExtension(XML.forwardSlash(javaFile.getPath()));
-					} else
-						javaPath = null;
+				// should never run in 32-bit VM
+				if (JREFinder.getFinder().is32BitVM(preferredJRE))
+					preferredJRE = null;
+				boolean needsJavaVM = OSPRuntime.getVMBitness() == 32;
+				if (!needsJavaVM) {
+					String javaCommand = System.getProperty("java.home"); //$NON-NLS-1$
+					javaCommand = XML.forwardSlash(javaCommand) + "/bin/java"; //$NON-NLS-1$
+					String javaPath = preferredJRE;
+					if (javaPath != null) {
+						if (JREFinder.getFinder().is32BitVM(javaPath))
+							javaPath = null;
+						else {
+						File javaFile = OSPRuntime.getJavaFile(javaPath);
+						if (javaFile != null) {
+							javaPath = XML.stripExtension(XML.forwardSlash(javaFile.getPath()));
+						} else
+							javaPath = null;
+						}
+					}
+					needsJavaVM = javaPath != null && !javaCommand.equals(javaPath);
 				}
-				boolean needsJavaVM = javaPath != null && !javaCommand.equals(javaPath);
 
 				// update video engine resources
 				boolean updated = updateResources();
@@ -1979,7 +1989,6 @@ public class Tracker {
 				boolean needsMemory = requestedMemorySize > 10 && (currentMemory < 9 * requestedMemorySize / 10
 						|| currentMemory > 11 * requestedMemorySize / 10);
 
-				// check environment if using xuggle 3.4
 				boolean needsEnvironment = false;
 				try {
 					// BH SwingJS just avoiding unnecessary exception triggering
@@ -1988,27 +1997,28 @@ public class Tracker {
 						String trackerEnv = System.getenv("TRACKER_HOME"); //$NON-NLS-1$
 						if (trackerDir != null && !trackerDir.equals(trackerEnv)) {
 							needsEnvironment = true;
-						} else {
-							String xuggleDir = TrackerStarter.findXuggleHome(trackerDir, false);
-							String xuggleEnv = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
-							if (xuggleDir != null && !xuggleDir.equals(xuggleEnv)) {
-								needsEnvironment = true;
-							} else {
-								if (xuggleDir != null) {
-									String xuggleServer = System.getenv("XUGGLE_SERVER"); //$NON-NLS-1$
-									if (xuggleServer == null) {
-										String subdir = OSPRuntime.isWindows() ? "bin" : "lib"; //$NON-NLS-1$ //$NON-NLS-2$
-										String xugglePath = xuggleDir + File.separator + subdir;
-										String pathName = OSPRuntime.isWindows() ? "Path" : //$NON-NLS-1$
-												OSPRuntime.isMac() ? "DYLD_LIBRARY_PATH" : "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
-										String pathEnv = System.getenv(pathName);
-										if (pathEnv == null || !pathEnv.contains(xugglePath)) {
-											needsEnvironment = true;
-										}
-									}
-								}
-							}
-						}
+						} 
+//						else {
+//							String xuggleDir = TrackerStarter.findXuggleHome(trackerDir, false);
+//							String xuggleEnv = System.getenv("XUGGLE_HOME"); //$NON-NLS-1$
+//							if (xuggleDir != null && !xuggleDir.equals(xuggleEnv)) {
+//								needsEnvironment = true;
+//							} else {
+//								if (xuggleDir != null) {
+//									String xuggleServer = System.getenv("XUGGLE_SERVER"); //$NON-NLS-1$
+//									if (xuggleServer == null) {
+//										String subdir = OSPRuntime.isWindows() ? "bin" : "lib"; //$NON-NLS-1$ //$NON-NLS-2$
+//										String xugglePath = xuggleDir + File.separator + subdir;
+//										String pathName = OSPRuntime.isWindows() ? "Path" : //$NON-NLS-1$
+//												OSPRuntime.isMac() ? "DYLD_LIBRARY_PATH" : "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
+//										String pathEnv = System.getenv(pathName);
+//										if (pathEnv == null || !pathEnv.contains(xugglePath)) {
+//											needsEnvironment = true;
+//										}
+//									}
+//								}
+//							}
+//						}
 					}
 
 				} catch (Exception e) {
@@ -2097,14 +2107,14 @@ public class Tracker {
 				message.add(TrackerRes.getString("Tracker.Dialog.NoVideoEngine.Message3")); //$NON-NLS-1$
 			}
 
-			// engines installed on Windows but no 32-bit VM
-			else if (OSPRuntime.isWindows() && JREFinder.getFinder().getDefaultJRE(32, trackerHome, true) == null) {
-				message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message1")); //$NON-NLS-1$
-				message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message2")); //$NON-NLS-1$
-				message.add(" "); //$NON-NLS-1$
-				message.add(TrackerRes.getString("Tracker.Dialog.Install32BitVM.Message")); //$NON-NLS-1$
-				message.add(TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message")); //$NON-NLS-1$
-			}
+//			// engines installed on Windows but no 32-bit VM
+//			else if (OSPRuntime.isWindows() && JREFinder.getFinder().getDefaultJRE(32, trackerHome, true) == null) {
+//				message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message1")); //$NON-NLS-1$
+//				message.add(TrackerRes.getString("Tracker.Dialog.SwitchTo32BitVM.Message2")); //$NON-NLS-1$
+//				message.add(" "); //$NON-NLS-1$
+//				message.add(TrackerRes.getString("Tracker.Dialog.Install32BitVM.Message")); //$NON-NLS-1$
+//				message.add(TrackerRes.getString("PrefsDialog.Dialog.No32bitVM.Message")); //$NON-NLS-1$
+//			}
 
 			// engines installed on Windows but running in 32-bit VM
 			else if (OSPRuntime.isWindows() && OSPRuntime.getVMBitness() == 32) {
