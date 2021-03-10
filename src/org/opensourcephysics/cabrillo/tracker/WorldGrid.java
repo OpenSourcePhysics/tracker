@@ -66,11 +66,6 @@ public class WorldGrid implements Trackable {
 	private Color lineColor = defaultColor;
 	private boolean visible;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param panel a TrackerPanel
-	 */
 	public WorldGrid() {
 		dashed = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8, DASHED_LINE, 0);
 		dotted = new BasicStroke(2, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 8, DOTTED_LINE, 0);
