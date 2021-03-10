@@ -156,9 +156,8 @@ abstract public class ParticleModel extends PointMass {
 		// "/" + lastValidFrame + " " + isVisible() );
 		long t0 = Performance.now(0);
 
-		int fn = trackerPanel.getFrameNumber();
-		if (isVisible() && fn > lastValidFrame) {
-			refreshSteps("draw");
+		if (isVisible() && trackerPanel.getFrameNumber() > lastValidFrame) {
+				refreshSteps("draw");
 		}
 		// OSPLog.debug("!!! " + Performance.now(t0) + "
 		// ParticleModel.paintComponent-draw-refreshsteps");
@@ -802,7 +801,7 @@ abstract public class ParticleModel extends PointMass {
 			if (lastValidFrame == -1 || end <= lastValidFrame)
 				return;
 		}
-		trackerPanel.getTFrame().holdPainting(true);
+		holdPainting(true);
 		start = lastValidFrame;
 		//OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps0 " + start + " " + end + " " + nCalc,
 		//		Performance.TIME_MARK));
@@ -849,18 +848,13 @@ abstract public class ParticleModel extends PointMass {
 				boolean valid = Math.abs(points[j].x) < xLimit && Math.abs(points[j].y) < yLimit;
 				if (!valid && !invalidWarningShown) {
 					invalidWarningShown = true;
-					Runnable runner = new Runnable() { // avoids deadlock?
-						@Override
-						public void run() {
-//            		if (invalidWarningShown) return;
-							JOptionPane.showMessageDialog(trackerPanel,
-									TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message1") + XML.NEW_LINE //$NON-NLS-1$
-											+ TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message2"), //$NON-NLS-1$
-									TrackerRes.getString("ParticleModel.Dialog.Offscreen.Title"), //$NON-NLS-1$
-									JOptionPane.WARNING_MESSAGE);
-						}
-					};
-					SwingUtilities.invokeLater(runner);
+					SwingUtilities.invokeLater(() -> {
+						JOptionPane.showMessageDialog(trackerPanel,
+								TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message1") + XML.NEW_LINE //$NON-NLS-1$
+										+ TrackerRes.getString("ParticleModel.Dialog.Offscreen.Message2"), //$NON-NLS-1$
+								TrackerRes.getString("ParticleModel.Dialog.Offscreen.Title"), //$NON-NLS-1$
+								JOptionPane.WARNING_MESSAGE);
+					});
 				}
 				models[j].traceX[models[j].prevX.length + i] = valid ? points[j].x : Double.NaN;
 				models[j].traceY[models[j].prevY.length + i] = valid ? points[j].y : Double.NaN;
@@ -932,11 +926,15 @@ abstract public class ParticleModel extends PointMass {
 		}
 
 		//OSPLog.debug(Performance.timeCheckStr("ParticleModel.refreshSteps " + nCalc, Performance.TIME_MARK));
-		trackerPanel.getTFrame().holdPainting(false);
+		holdPainting(false);
 		if (!refreshDerivsLater && !singleStep) {
 			fireStepsChanged();
 		}
 		TFrame.repaintT(trackerPanel);
+	}
+
+	protected void holdPainting(boolean b) {
+		trackerPanel.getTFrame().holdPainting(b);
 	}
 
 	public void fireStepsChanged() {
