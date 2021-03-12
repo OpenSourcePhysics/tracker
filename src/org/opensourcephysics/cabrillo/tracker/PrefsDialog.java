@@ -1697,7 +1697,7 @@ public class PrefsDialog extends JDialog {
 		  	    	String jrePath = next.getPath();
 		  	    	if (bundledVM!=null && jrePath.equals(bundledVM)) {
 			  	    	availableJREPaths.add(jrePath);
-			  	    	jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE"), 0); //$NON-NLS-1$			  	    	
+			  	    	jreDropdown.insertItemAt(TrackerRes.getString("PrefsDialog.JREDropdown.BundledJRE") + " "+jrePath, 0); //$NON-NLS-1$			  	    	
 		  	    	}
 		  	    	else if (defaultVM!=null && jrePath.equals(defaultVM.getPath())) {
 			  	    	availableJREPaths.add(jrePath);
