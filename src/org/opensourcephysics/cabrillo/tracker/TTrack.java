@@ -125,6 +125,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public static final String PROPERTY_TTRACK_NAME = "name"; //$NON-NLS-1$
 	public static final String PROPERTY_TTRACK_STEP = "step"; //$NON-NLS-1$
 	public static final String PROPERTY_TTRACK_STEPS = "steps"; //$NON-NLS-1$
+	public static final String PROPERTY_TTRACK_FORMAT = "format"; //$NON-NLS-1$
 
 	public static final String PROPERTY_TTRACK_VISIBLE = "visible"; //$NON-NLS-1$
 	public static final String PROPERTY_TTRACK_DATA = "data"; //$NON-NLS-1$
@@ -138,6 +139,7 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	public static final Integer HINT_STEPS_SELECTED = -3;
 
 	public void addListener(PropertyChangeListener c) {
+		addPropertyChangeListener(PROPERTY_TTRACK_FORMAT, c);
 		addPropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);
 		addPropertyChangeListener(PROPERTY_TTRACK_MASS, c);
 		addPropertyChangeListener(PROPERTY_TTRACK_NAME, c);
@@ -148,7 +150,8 @@ public abstract class TTrack implements Interactive, Trackable, PropertyChangeLi
 	}
 
 	public void removeListener(PropertyChangeListener c) {
-		removePropertyChangeListener(PROPERTY_TTRACK_DATA, c);
+//		removePropertyChangeListener(PROPERTY_TTRACK_DATA, c);
+		removePropertyChangeListener(PROPERTY_TTRACK_FORMAT, c);
 		removePropertyChangeListener(PROPERTY_TTRACK_MASS, c);
 		removePropertyChangeListener(PROPERTY_TTRACK_NAME, c);
 		removePropertyChangeListener(PROPERTY_TTRACK_FOOTPRINT, c);

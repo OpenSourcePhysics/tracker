@@ -68,6 +68,7 @@ public class TrackerStarter {
 	public static final String TRACKER_RELAUNCH = "TRACKER_RELAUNCH"; //$NON-NLS-1$	
 	public static final String TRACKER_NEW_VERSION = "TRACKER_NEW_VERSION"; //$NON-NLS-1$	
 	public static final String LOG_FILE_NAME = "tracker_start.log"; //$NON-NLS-1$
+	public static final String LOG_DIAGNOSTICS_NAME = "tracker_start_diagnostics.log"; //$NON-NLS-1$
   public static final int DEFAULT_MEMORY_SIZE = 256;
 	public static final String PREFS_FILE_NAME = "tracker.prefs"; //$NON-NLS-1$
 	  
@@ -95,7 +96,8 @@ public class TrackerStarter {
 	static Thread launchThread, exitThread;
 	static boolean abortExit;
 	static int exitCounter = 0;
-	public static final String xuggleServerJarName = "xuggle-xuggler-server-all";
+	public static final String XUGGLE_SERVER_NAME = "xuggle-xuggler-server-all";
+	public static final String XUGGLE_SUPPORT_NAME = "slf4j-api";
 	
 	static {
 		// identify codeBaseDir
@@ -242,25 +244,26 @@ public class TrackerStarter {
 			if (xuggleHome != null) {
 				// check for xuggle 3.4 jar and/or xuggle server in xugglehome
 				xuggleJar = new File(trackerHome, "xuggle-xuggler.jar");
-				xuggleServerJar = new File(trackerHome, xuggleServerJarName+".jar");
+				
+				xuggleServerJar = new File(trackerHome, XUGGLE_SERVER_NAME+".jar");
 
 				File[] jars = new File(xuggleHome).listFiles(new FileFilter() {
 
 					@Override
 					public boolean accept(File file) {
-						return file.getName().startsWith(xuggleServerJarName);
+						return file.getName().startsWith(XUGGLE_SERVER_NAME)
+								|| file.getName().startsWith(XUGGLE_SUPPORT_NAME);
 					}				
 				});
-				if (jars.length > 0) {
-//					if (jars.length > 1) {
-//						// find the latest from alphabetical order
-//						TreeSet<String> names = new TreeSet<String>();
-//						for (int i = 0; i < jars.length; i++) {
-//							names.add(jars[i].getName());
-//						}
-//					}
-					if (copyXuggleJarTo(jars[0], xuggleServerJar)) {
-						logMessage("using xuggle server: " + jars[0].getName()); //$NON-NLS-1$
+				if (jars.length ==2) {
+					for (int i = 0; i < jars.length; i++) {
+						if (jars[i].getName().startsWith(XUGGLE_SUPPORT_NAME)) {
+							File file = new File(trackerHome, XUGGLE_SUPPORT_NAME+".jar");
+							copyXuggleJarTo(jars[i], file);
+						}
+						else if (copyXuggleJarTo(jars[i], xuggleServerJar)) {
+							logMessage("using xuggle server: " + jars[i].getName()); //$NON-NLS-1$
+						}						
 					}
 				}
 
@@ -319,7 +322,7 @@ public class TrackerStarter {
 		Runnable runner = new Runnable() {
 			@Override
 			public void run() {
-				logText = ""; //$NON-NLS-1$
+//				logText = ""; //$NON-NLS-1$
 				logMessage("relaunch initiated by Tracker"); //$NON-NLS-1$
 				launchTracker(args);
 			}
@@ -334,8 +337,12 @@ public class TrackerStarter {
 	 * @param writeToLog true to write the results to the start log
 	 */
 	public static String findTrackerHome(boolean writeToLog) {// throws Exception {
-		if (trackerHome != null || OSPRuntime.isJS)
+		if (trackerHome != null || OSPRuntime.isJS) {
+			if (writeToLog) {
+				logMessage("using trackerhome: " + trackerHome); //$NON-NLS-1$
+			}
 			return trackerHome;
+		}
 
 		/**
 		 * Java only; transpiler may ignore
@@ -645,7 +652,7 @@ public class TrackerStarter {
 
 		}
 		writeUserLog();
-		writeCodeBaseLog();
+		writeCodeBaseLog(LOG_FILE_NAME);
 		OSPRuntime.exit();
 		System.exit(0);
 	}
@@ -704,7 +711,7 @@ public class TrackerStarter {
 					}
 				}
 				else {
-					logMessage("no preferred Tracker version, using default tracker.jar (ver "+versionStr+"?)"); //$NON-NLS-1$
+					logMessage("tracker.jar presumed to be version "+versionStr); //$NON-NLS-1$
 				}
 			}
 			
@@ -894,7 +901,7 @@ public class TrackerStarter {
 			File file = new File(jarHome, jarPath);
 			if (file.exists()) {
 				logMessage("using tracker jar: " + file.getAbsolutePath()); //$NON-NLS-1$
-				return file.getAbsolutePath();
+				return XML.forwardSlash(file.getAbsolutePath());
 			}
 		}
 		throw new NullPointerException("No Tracker jar files found in " + jarHome); //$NON-NLS-1$
@@ -1065,14 +1072,14 @@ public class TrackerStarter {
 		}
 		logMessage("executing command: " + message); //$NON-NLS-1$ 
 
+		// write codeBase tracker_start log
+		writeCodeBaseLog(LOG_FILE_NAME);
+
 		// write the user tracker_start log and set environment variable
 		startLogPath = writeUserLog();
 		if (startLogPath!=null)
 			env.put("START_LOG", startLogPath); //$NON-NLS-1$
 		
-		// write codeBase tracker_start log
-		writeCodeBaseLog();
-
 		// start exit thread that waits a second before exiting 
 		// to give time to start the new process
 		exitCounter = 0;
@@ -1197,11 +1204,11 @@ public class TrackerStarter {
 		}		
 	}
 
-	private static void writeCodeBaseLog() {
+	private static void writeCodeBaseLog(String fileName) {
 		// writes log file to codeBaseDir 
 		if (codeBaseDir!=null && codeBaseDir.canWrite()) {
 			addLogHeader();
-			File file = new File(codeBaseDir, LOG_FILE_NAME);
+			File file = new File(codeBaseDir, fileName);
 			logMessage("writing code base start log "+file.getAbsolutePath()); //$NON-NLS-1$
 			try {
 				FileOutputStream stream = new FileOutputStream(file);
@@ -1212,7 +1219,11 @@ public class TrackerStarter {
 				writer.flush();
 				writer.close();
 			} catch (IOException ex) {
+				logMessage("exception writing code base start log (access denied?)"); //$NON-NLS-1$
 			}
+		}
+		else {
+			logMessage("unable to write code base start log"); //$NON-NLS-1$
 		}
 	}
 
@@ -1232,7 +1243,7 @@ public class TrackerStarter {
 		return false;
 	}
 
-	private static void logMessage(String message) {
+	public static void logMessage(String message) {
 		if (log) {
 			logText += " - " + message + newline; //$NON-NLS-1$
 		}

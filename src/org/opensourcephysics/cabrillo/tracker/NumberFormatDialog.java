@@ -82,6 +82,8 @@ import org.opensourcephysics.tools.FontSizer;
  */
 @SuppressWarnings("serial")
 public class NumberFormatDialog extends JDialog {
+	
+	
 
 	// static fields
 	protected static String noPattern = TrackerRes.getString("NumberFormatSetter.NoPattern"); //$NON-NLS-1$
@@ -532,7 +534,7 @@ public class NumberFormatDialog extends JDialog {
 						}
 					}
 					if (trackChanged) {
-						t.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
+//						t.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
 						formatsChanged = true;
 					}
 				}
@@ -540,7 +542,7 @@ public class NumberFormatDialog extends JDialog {
 			} else { // null dimensions
 						// apply to this track
 				if (track.setFormatPattern(displayName, pattern)) {
-					track.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
+//					track.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
 					formatsChanged = true;
 				}
 				// apply to all other tracks with variable of same name and null dimensions
@@ -549,7 +551,7 @@ public class NumberFormatDialog extends JDialog {
 					for (String var : getDisplayNames(t)) {
 						if (var.equals(displayName) && TTrack.getVariableDimensions(t, displayName) == null) {
 							if (t.setFormatPattern(displayName, pattern)) {
-								t.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
+//								t.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
 								formatsChanged = true;
 							}
 						}
@@ -564,7 +566,7 @@ public class NumberFormatDialog extends JDialog {
 				if (t.getBaseType() != trackType)
 					continue;
 				if (t.setFormatPattern(displayName, pattern)) {
-					t.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
+//					t.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
 					formatsChanged = true;
 				}
 			}
@@ -572,12 +574,14 @@ public class NumberFormatDialog extends JDialog {
 			TreeMap<String, String> patterns = track.trackerPanel.getFormatPatterns(track.ttype);
 			patterns.put(displayName, pattern);
 		} else if (track.setFormatPattern(displayName, pattern)) {
-			track.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
+//			track.firePropertyChange(TTrack.PROPERTY_TTRACK_DATA, null, null); // $NON-NLS-1$
 			formatsChanged = true;
 		}
 		if (!wasChanged && formatsChanged) {
 			refreshGUI();
 		}
+		if (formatsChanged)
+			track.firePropertyChange(TTrack.PROPERTY_TTRACK_FORMAT, null, null); // $NON-NLS-1$			
 	}
 
 	/**

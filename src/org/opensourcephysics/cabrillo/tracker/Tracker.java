@@ -171,7 +171,7 @@ public class Tracker {
 
 	// define static constants
 	/** tracker version and copyright */
-	// DB switch to using OSPRuntime.VERSION
+	// 3/09/21: abandon Tracker.VERSION for OSPRuntime.VERSION for smaller tracker_starter.jar
 //	public static final String VERSION = "5.9.20210307"; //$NON-NLS-1$
 	public static final String COPYRIGHT = "Copyright (c) 2021 D Brown, W Christian, R Hanson"; //$NON-NLS-1$
 	
@@ -2026,6 +2026,10 @@ public class Tracker {
 
 				// attempt to relaunch if needed
 				if (isTrackerJar && (needsJavaVM || needsMemory || needsEnvironment || updated)) {
+					TrackerStarter.logMessage("relaunch required"); //$NON-NLS-1$
+					TrackerStarter.logMessage("needs Java VM? " + needsJavaVM); //$NON-NLS-1$
+					TrackerStarter.logMessage("needs memory? " + needsMemory); //$NON-NLS-1$
+					TrackerStarter.logMessage("needs environment? " + needsEnvironment); //$NON-NLS-1$
 
 					mainArgs = args;
 					if (requestedMemorySize <= 10) {

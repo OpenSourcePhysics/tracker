@@ -285,6 +285,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
 		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
+		trackerPanel.addPropertyChangeListener(TTrack.PROPERTY_TTRACK_FORMAT, this);
 		trackerPanel.addPropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
 		trackerPanel.addPropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
 		// add this listener to tracks
@@ -326,6 +327,7 @@ public abstract class TrackChooserTView extends JPanel implements TView {
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_STEPNUMBER, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_IMAGE, this);
 		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_DATA, this);
+		trackerPanel.removePropertyChangeListener(TTrack.PROPERTY_TTRACK_FORMAT, this);
 		trackerPanel.removePropertyChangeListener(TFrame.PROPERTY_TFRAME_RADIANANGLES, this);
 		trackerPanel.removePropertyChangeListener(TrackerPanel.PROPERTY_TRACKERPANEL_FUNCTION, this);
 		// remove this listener from tracks

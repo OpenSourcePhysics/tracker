@@ -2872,6 +2872,10 @@ public class TrackerPanel extends VideoPanel implements Scrollable {
 			}
 		}
 			break;
+		case TTrack.PROPERTY_TTRACK_FORMAT: { // data format has changed
+			firePropertyChange(TTrack.PROPERTY_TTRACK_FORMAT, null, null); // to views //$NON-NLS-1$
+		}
+			break;
 		case TFrame.PROPERTY_TFRAME_RADIANANGLES: // angle format has changed //$NON-NLS-1$
 			firePropertyChange(TFrame.PROPERTY_TFRAME_RADIANANGLES, null, e.getNewValue()); // to tracks //$NON-NLS-1$
 			break;
