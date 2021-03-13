@@ -36,17 +36,13 @@ import com.xuggle.xuggler.IContainer;
 public class DiagnosticsForXuggle extends Diagnostics {
 
 	@SuppressWarnings("javadoc")
-	public static final String XUGGLE_INSTALLER_URL = "https://www.compadre.org/osp/items/detail.cfm?ID=11606"; //$NON-NLS-1$
 	public static final String REQUEST_TRACKER = "Tracker"; //$NON-NLS-1$
-	public static final long XUGGLE_34_SIZE = 100000; // little bigger than true size (.35MB)
 
 	static String newline = System.getProperty("line.separator", "\n"); //$NON-NLS-1$ //$NON-NLS-2$
-//	static String[] xuggleJarNames = new String[] { "xuggle-xuggler.jar", "logback-core.jar", //$NON-NLS-1$ //$NON-NLS-2$
-//			"logback-classic.jar", "slf4j-api.jar" }; //$NON-NLS-1$ //$NON-NLS-2$
-	static String[] xuggleJarNames = new String[] { "xuggle-xuggler-server-all.jar" }; //$NON-NLS-1$
+	static String[] xuggleJarNames = new String[] { "xuggle-xuggler-server-all.jar", "slf4j-api.jar" }; //$NON-NLS-1$
 	static int vmBitness;
-	static String codeBase, xuggleHome, javaExtDirectory;
-	static File[] codeBaseJars, xuggleHomeJars, javaExtensionJars;
+	static String codeBase, xuggleHome;
+	static File[] codeBaseJars, xuggleHomeJars;
 	static String pathEnvironment, pathValue;
 	static String requester;
 
@@ -68,7 +64,6 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			}
 
 			xuggleHomeJars = new File[xuggleJarNames.length];
-			javaExtensionJars = new File[xuggleJarNames.length];
 			codeBaseJars = new File[xuggleJarNames.length];
 		}
 	}
@@ -83,6 +78,16 @@ public class DiagnosticsForXuggle extends Diagnostics {
 	public static void aboutXuggle() {
 
 		int status = getStatusCode();
+//	 * 0 working correctly 
+//	 * 1 not installed (XUGGLE_HOME==null, no xuggle jar in code base) 
+//	 * 2 can't find xuggle home (XUGGLE_HOME==null but xuggle jar found in code base) 
+//	 * 3 XUGGLE_HOME incomplete: missing xuggle jar in XUGGLE_HOME 
+//	 * 4 unused 
+//	 * 5 XUGGLE_HOME OK, but no xuggle jars or mismatched in code base 
+//	 * 6 unused
+//	 * 7 XUGGLE_HOME OK, but wrong Java VM bitness 
+//	 * -1 none of the above
+		
 
 		if (OSPLog.getLevelValue() <= Level.CONFIG.intValue()) {
 			OSPLog.config("status code = " + status); //$NON-NLS-1$
@@ -95,129 +100,50 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			String bitness = "(" + vmBitness + "-bit): "; //$NON-NLS-1$ //$NON-NLS-2$
 			OSPLog.config("Java VM " + bitness + javaHome); //$NON-NLS-1$
 
-			if (codeBaseJars[0] == null || codeBaseJars[0].length() < XUGGLE_34_SIZE) { // Xuggle version 3.4
-			
-				// log xuggle home jars
-				File[] xuggleJars = getXuggleJarFiles(xuggleHome); //$NON-NLS-1$ // pig not right yet--need to find latest version
-				boolean hasAllHomeJars = xuggleJars[0] != null;
-				for (int i = 1; i < xuggleJars.length; i++) {
-					hasAllHomeJars = hasAllHomeJars && xuggleJars[i] != null;
-				}
-				SimpleDateFormat sdf = new SimpleDateFormat();
-				String[] jarDates = new String[xuggleJarNames.length];
-				for (int i = 0; i < jarDates.length; i++) {
-					jarDates[i] = xuggleJars[i] == null ? "" : " modified " + sdf.format(xuggleJars[i].lastModified()); //$NON-NLS-1$ //$NON-NLS-2$
-				}
-				String[] jarSizes = new String[xuggleJarNames.length];
-				for (int i = 0; i < jarSizes.length; i++) {
-					jarSizes[i] = xuggleJars[i] == null ? "" : " (file size " + (xuggleJars[i].length() / 1024) + "kB) "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				}
-				String fileData = "Xuggle home files: "; //$NON-NLS-1$
-				for (int i = 0; i < jarSizes.length; i++) {
-					if (i > 0)
-						fileData += ", "; //$NON-NLS-1$
-					fileData += xuggleJarNames[i] + " " + jarSizes[i] + xuggleJars[i] + jarDates[i]; //$NON-NLS-1$
-				}
-				OSPLog.config(fileData);
-	
-				// log codeBase jars
-				xuggleJars = getXuggleJarFiles(codeBase);
-				for (int i = 0; i < jarDates.length; i++) {
-					jarDates[i] = xuggleJars[i] == null ? "" : " modified " + sdf.format(xuggleJars[i].lastModified()); //$NON-NLS-1$ //$NON-NLS-2$
-				}
-				for (int i = 0; i < jarSizes.length; i++) {
-					jarSizes[i] = xuggleJars[i] == null ? "" : " (file size " + (xuggleJars[i].length() / 1024) + "kB) "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				}
-				fileData = "Code base files: "; //$NON-NLS-1$
-				for (int i = 0; i < jarSizes.length; i++) {
-					if (i > 0)
-						fileData += ", "; //$NON-NLS-1$
-					fileData += xuggleJarNames[i] + " " + jarSizes[i] + xuggleJars[i] + jarDates[i]; //$NON-NLS-1$
-				}
-				OSPLog.config(fileData);
-	
-				// log extension jars
-				xuggleJars = getJavaExtensionJars();
-				for (int i = 0; i < jarDates.length; i++) {
-					jarDates[i] = xuggleJars[i] == null ? "" : " modified " + sdf.format(xuggleJars[i].lastModified()); //$NON-NLS-1$ //$NON-NLS-2$
-				}
-				for (int i = 0; i < jarSizes.length; i++) {
-					jarSizes[i] = xuggleJars[i] == null ? "" : " (file size " + (xuggleJars[i].length() / 1024) + "kB) "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-				}
-				fileData = "Java extension files: "; //$NON-NLS-1$
-				for (int i = 0; i < jarSizes.length; i++) {
-					if (i > 0)
-						fileData += ", "; //$NON-NLS-1$
-					fileData += xuggleJarNames[i] + " " + jarSizes[i] + xuggleJars[i] + jarDates[i]; //$NON-NLS-1$
-				}
-				OSPLog.config(fileData);
-	
-				OSPLog.config(pathEnvironment + " = " + pathValue); //$NON-NLS-1$
-			}
-		}
-//		else if (xuggleHome != null) { // newer Xuggle
+		if (xuggleHome != null) {
 			
 			File[] xuggleJars = new File(xuggleHome).listFiles(new FileFilter() {
 
 				@Override
 				public boolean accept(File file) {
-					return file.getName().startsWith("xuggle-xuggler");
+					return file.getName().startsWith("xuggle-xuggler") ||
+							file.getName().equals("slf4j-api.jar");
 				}				
 			});
 			// log xuggle home jars
-			SimpleDateFormat sdf = new SimpleDateFormat();
+			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 			String[] jarDates = new String[xuggleJarNames.length];
-			for (int i = 0; i < jarDates.length; i++) {
-				jarDates[i] = xuggleJars[i] == null ? "" : " modified " + sdf.format(xuggleJars[i].lastModified()); //$NON-NLS-1$ //$NON-NLS-2$
-			}
 			String[] jarSizes = new String[xuggleJarNames.length];
-			for (int i = 0; i < Math.min(jarSizes.length, xuggleJars.length); i++) {
-				jarSizes[i] = xuggleJars[i] == null ? "" : " (file size " + (xuggleJars[i].length() / 1024) + "kB) "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			}
 			String fileData = "Xuggle home files: "; //$NON-NLS-1$
+			for (int i = 0; i < jarDates.length; i++) {
+				jarDates[i] = xuggleJars[i] == null ? "" : " (modified " + sdf.format(xuggleJars[i].lastModified()); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			for (int i = 0; i < Math.min(jarSizes.length, xuggleJars.length); i++) {
+				jarSizes[i] = xuggleJars[i] == null ? ")" : ", size " + (xuggleJars[i].length() / 1024) + "kB) "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			}
 			for (int i = 0; i < jarSizes.length; i++) {
 				if (i > 0)
 					fileData += ", "; //$NON-NLS-1$
-				fileData += xuggleJarNames[i] + " " + jarSizes[i] + xuggleJars[i] + jarDates[i]; //$NON-NLS-1$
+				fileData += xuggleJars[i] == null? "null": xuggleJars[i].getName() + jarDates[i] + jarSizes[i]; //$NON-NLS-1$
 			}
 			OSPLog.config(fileData);
 
 			// log codeBase jars
 			xuggleJars = getXuggleJarFiles(codeBase);
-			for (int i = 0; i < jarDates.length; i++) {
-				jarDates[i] = xuggleJars[i] == null ? "" : " modified " + sdf.format(xuggleJars[i].lastModified()); //$NON-NLS-1$ //$NON-NLS-2$
-			}
-			for (int i = 0; i < jarSizes.length; i++) {
-				jarSizes[i] = xuggleJars[i] == null ? "" : " (file size " + (xuggleJars[i].length() / 1024) + "kB) "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-			}
 			fileData = "Code base files: "; //$NON-NLS-1$
+			for (int i = 0; i < jarDates.length; i++) {
+				jarDates[i] = xuggleJars[i] == null ? "" : " (modified " + sdf.format(xuggleJars[i].lastModified()); //$NON-NLS-1$ //$NON-NLS-2$
+			}
+			for (int i = 0; i < Math.min(jarSizes.length, xuggleJars.length); i++) {
+				jarSizes[i] = xuggleJars[i] == null ? ")" : ", size " + (xuggleJars[i].length() / 1024) + "kB) "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
+			}
 			for (int i = 0; i < jarSizes.length; i++) {
 				if (i > 0)
 					fileData += ", "; //$NON-NLS-1$
-				fileData += xuggleJarNames[i] + " " + jarSizes[i] + xuggleJars[i] + jarDates[i]; //$NON-NLS-1$
+				fileData += xuggleJars[i] == null? xuggleJarNames[i] + " NOT FOUND": xuggleJars[i].getName() + jarDates[i] + jarSizes[i]; //$NON-NLS-1$
 			}
 			OSPLog.config(fileData);
 
-//			// log extension jars
-//			xuggleJars = getJavaExtensionJars();
-//			for (int i = 0; i < jarDates.length; i++) {
-//				jarDates[i] = xuggleJars[i] == null ? "" : " modified " + sdf.format(xuggleJars[i].lastModified()); //$NON-NLS-1$ //$NON-NLS-2$
-//			}
-//			for (int i = 0; i < jarSizes.length; i++) {
-//				jarSizes[i] = xuggleJars[i] == null ? "" : " (file size " + (xuggleJars[i].length() / 1024) + "kB) "; //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
-//			}
-//			fileData = "Java extension files: "; //$NON-NLS-1$
-//			for (int i = 0; i < jarSizes.length; i++) {
-//				if (i > 0)
-//					fileData += ", "; //$NON-NLS-1$
-//				fileData += xuggleJarNames[i] + " " + jarSizes[i] + xuggleJars[i] + jarDates[i]; //$NON-NLS-1$
-//			}
-//			OSPLog.config(fileData);
-//
-//			OSPLog.config(pathEnvironment + " = " + pathValue); //$NON-NLS-1$
-
-//		}
-		
 		// display appropriate dialog
 		if (status == 0) { // xuggle working correctly
 			String fileInfo = newline;
@@ -265,7 +191,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 				}
 			}
 			boolean showCopyJarsQuestionForTracker = false;
-			if (status == 5 && "Tracker".equals(requester) && dialogOwner != null) { //$NON-NLS-1$
+			if (status == 5 && REQUEST_TRACKER.equals(requester) && dialogOwner != null) { //$NON-NLS-1$
 				showCopyJarsQuestionForTracker = true;
 			}
 			if (showPrefsQuestionForTracker) {
@@ -304,6 +230,8 @@ public class DiagnosticsForXuggle extends Diagnostics {
 				JOptionPane.showMessageDialog(dialogOwner, box, XuggleRes.getString("Xuggle.Dialog.BadXuggle.Title"), //$NON-NLS-1$
 						JOptionPane.WARNING_MESSAGE);
 			}
+		}
+		}
 		}
 
 	}
@@ -345,55 +273,15 @@ public class DiagnosticsForXuggle extends Diagnostics {
 	}
 
 	/**
-	 * Gets the xuggle jar files in the current VM extensions. Always returns the
-	 * array, but individual elements may be null.
-	 * 
-	 * @return the array of jar files found
-	 */
-	public static File[] getJavaExtensionJars() {
-
-		File[] xuggleFiles = new File[xuggleJarNames.length];
-
-		// look for xuggle jars in system extensions directories
-		String extFolders = XML.forwardSlash(System.getProperty("java.ext.dirs")); //$NON-NLS-1$
-		String separator = System.getProperty("path.separator"); //$NON-NLS-1$
-		int n = extFolders.indexOf(separator);
-		if (n == -1) { // no separators, so single path
-			javaExtDirectory = extFolders;
-			xuggleFiles = getXuggleJarFiles(extFolders);
-			if (xuggleFiles[0] != null) {
-				return xuggleFiles;
-			}
-		} else {
-			String dir = extFolders;
-			javaExtDirectory = null;
-			while (xuggleFiles[0] == null && n > -1) {
-				dir = extFolders.substring(0, n);
-				if (javaExtDirectory == null)
-					javaExtDirectory = dir; // first one in list by default
-				extFolders = extFolders.substring(n + 1);
-				xuggleFiles = getXuggleJarFiles(dir);
-				if (xuggleFiles[0] != null) {
-					javaExtDirectory = dir;
-					return xuggleFiles;
-				}
-				n = extFolders.indexOf(separator);
-			}
-		}
-
-		return xuggleFiles;
-	}
-
-	/**
 	 * Gets a status code that identifies the current state of the Xuggle video
 	 * engine. Codes are: 
 	 * 0 working correctly 
-	 * 1 not installed (XUGGLE_HOME==null, no xuggle jar in code base and extensions) 
-	 * 2 can't find xuggle home (XUGGLE_HOME==null but xuggle jar found in code base and/or extensions) 
+	 * 1 not installed (XUGGLE_HOME==null, no xuggle jar in code base) 
+	 * 2 can't find xuggle home (XUGGLE_HOME==null but xuggle jar found in code base) 
 	 * 3 XUGGLE_HOME incomplete: missing xuggle jar in XUGGLE_HOME 
-	 * 4 XUGGLE_HOME OK, but incorrect "PATH", "DYLD_LIBRARY_PATH", or "LD_LIBRARY_PATH" 
-	 * 5 XUGGLE_HOME OK, but no xuggle jars in code base or extensions 
-	 * 6 XUGGLE_HOME OK, but mismatched xuggle versions in code base or extensions 
+	 * 4 unused. was XUGGLE_HOME OK, but incorrect "PATH", "DYLD_LIBRARY_PATH", or "LD_LIBRARY_PATH" 
+	 * 5 XUGGLE_HOME OK, but no xuggle jars in code base 
+	 * 6 XUGGLE_HOME OK, but mismatched xuggle versions in code base
 	 * 7 XUGGLE_HOME OK, but wrong Java VM bitness 
 	 * -1 none of the above
 	 * 
@@ -401,24 +289,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 	 */
 	public static int getStatusCode() {
 		
-//		if (true) {
-//			
-//			try {
-//				IContainer.make(); // throws exception if xuggle not available
-//				return 0;
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//			} catch (Error er) {
-//				er.printStackTrace();
-//			}
-//			
-//			return 7;
-//			
-//		}
-//		
-		
 		codeBaseJars = getXuggleJarFiles(codeBase);
-		javaExtensionJars = getJavaExtensionJars();
 		pathEnvironment = OSPRuntime.isWindows() ? "Path" //$NON-NLS-1$
 				: OSPRuntime.isMac() ? "DYLD_LIBRARY_PATH" : "LD_LIBRARY_PATH"; //$NON-NLS-1$ //$NON-NLS-2$
 		pathValue = System.getenv(pathEnvironment);
@@ -433,26 +304,13 @@ public class DiagnosticsForXuggle extends Diagnostics {
 //			er.printStackTrace();
 		}
 
-		// DB this doesn't work until XuggleVideo class has been loaded
-//		if (VideoIO.getVideoType(MovieFactory.ENGINE_XUGGLE, "mp4")!=null) //$NON-NLS-1$
-//			return 0;
-
-//		// return 8 if Xuggle version 5.4 is installed
-//		if (guessXuggleVersion() == 5.4)
-//			return 8;
-//
-		boolean completeExt = javaExtensionJars[0] != null;
-		for (int i = 1; i < javaExtensionJars.length; i++) {
-			completeExt = completeExt && javaExtensionJars[i] != null;
-		}
-
 		boolean completeCodeBase = codeBaseJars[0] != null;
 		for (int i = 1; i < codeBaseJars.length; i++) {
 			completeCodeBase = completeCodeBase && codeBaseJars[i] != null;
 		}
 
 		if (xuggleHome == null) {
-			return completeExt ? 2 : completeCodeBase ? 2 : 1;
+			return completeCodeBase ? 2 : 1;
 		}
 
 		// get xuggle home jars
@@ -473,35 +331,18 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			return 3; // no xuggle jars in XUGGLE_HOME
 
 		// from this point on XUGGLE_HOME is OK
-		if (!completeExt && !completeCodeBase)
-			return 5; // no xuggle jars in code base or extensions
+		if (!completeCodeBase)
+			return 5; // no xuggle jars in code base
 
-		// from here on either code base or extension jars are complete
-		File loadableJar = completeExt ? javaExtensionJars[0] : codeBaseJars[0];
-		long homeLength = xuggleHomeJars[0].length();
-		boolean mismatched = homeLength != loadableJar.length();
+		// code base files mismatched?
+		boolean mismatched = xuggleHomeJars[0].length() != codeBaseJars[0].length();
 		if (mismatched)
-			return 6; // mismatched xuggle versions in code base or extensions
+			return 5; // mismatched xuggle jars in code base--treat as 5
 
-		if (homeLength < XUGGLE_34_SIZE) { // Xuggle version 3.4
-			String folder = OSPRuntime.isWindows() ? "/bin" : "/lib"; //$NON-NLS-1$ //$NON-NLS-2$
-			String xuggleLib = XML.forwardSlash(xuggleHome + folder);
-			if (XML.forwardSlash(pathValue).indexOf(xuggleLib) == -1)
-				return 4; // incorrect "PATH", "DYLD_LIBRARY_PATH", or "LD_LIBRARY_PATH"
-			// Xuggle 3.4 requires 32-bit Java VM on Windows
-			if (vmBitness == 64 && OSPRuntime.isWindows())
-				return 7;
-		}
-		else {
-			// new Xuggle requires 64-bit Java VM on Windows
-			if (vmBitness == 32 && OSPRuntime.isWindows())
-				return 7;
-			
-		}
-		// all Xuggle versions require 64-bit VM on OSX
-		if (vmBitness == 32 && OSPRuntime.isMac())
+		// Xuggle requires 64-bit VM
+		if (vmBitness == 32)
 			return 7;
-
+			
 		return -1;
 	}
 
@@ -529,9 +370,6 @@ public class DiagnosticsForXuggle extends Diagnostics {
 				message.add(" "); //$NON-NLS-1$
 				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.TrackerInstallerPath.Message")); //$NON-NLS-1$
 				message.add(Diagnostics.TRACKER_INSTALLER_URL);
-			} else {
-				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.Message.InstallerPath")); //$NON-NLS-1$
-				message.add(XUGGLE_INSTALLER_URL);
 			}
 			break;
 
@@ -544,11 +382,6 @@ public class DiagnosticsForXuggle extends Diagnostics {
 				message.add(" "); //$NON-NLS-1$
 				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.TrackerInstallerPath.Message")); //$NON-NLS-1$
 				message.add(Diagnostics.TRACKER_INSTALLER_URL);
-			} else {
-				message.add(XuggleRes.getString("Xuggle.Dialog.NoXuggleHome.Message2")); //$NON-NLS-1$
-				message.add(" "); //$NON-NLS-1$
-				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.Message.InstallerPath")); //$NON-NLS-1$
-				message.add(XUGGLE_INSTALLER_URL);
 			}
 			break;
 
@@ -560,11 +393,6 @@ public class DiagnosticsForXuggle extends Diagnostics {
 				message.add(" "); //$NON-NLS-1$
 				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.TrackerInstallerPath.Message")); //$NON-NLS-1$
 				message.add(Diagnostics.TRACKER_INSTALLER_URL);
-			} else {
-				message.add(XuggleRes.getString("Xuggle.Dialog.IncompleteXuggle.Message2")); //$NON-NLS-1$
-				message.add(" "); //$NON-NLS-1$
-				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.Message.InstallerPath")); //$NON-NLS-1$
-				message.add(XUGGLE_INSTALLER_URL);
 			}
 			break;
 
@@ -575,10 +403,10 @@ public class DiagnosticsForXuggle extends Diagnostics {
 					+ XuggleRes.getString("Xuggle.Dialog.MissingEnvironmentVariable.Message2")); //$NON-NLS-1$
 			break;
 
-		case 5: // XUGGLE_HOME OK, but no xuggle jars in code base or extensions
+		case 5: // XUGGLE_HOME OK, but no xuggle jars in code base
 			String missingJars = ""; //$NON-NLS-1$
 			for (int i = 0; i < xuggleJarNames.length; i++) {
-				if (javaExtensionJars[i] == null) {
+				if (codeBaseJars[i] == null) {
 					if (missingJars.length() > 1)
 						missingJars += ", "; //$NON-NLS-1$
 					missingJars += xuggleJarNames[i];
@@ -597,10 +425,10 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			message.add(XuggleRes.getString("Xuggle.Dialog.TargetDirectory.Message") + " " + codeBase); //$NON-NLS-1$ //$NON-NLS-2$
 			break;
 
-		case 6: // XUGGLE_HOME OK, but mismatched xuggle versions in code base or extensions
+		case 6: // XUGGLE_HOME OK, but mismatched xuggle versions in code base
 			missingJars = ""; //$NON-NLS-1$
 			for (int i = 0; i < xuggleJarNames.length; i++) {
-				if (javaExtensionJars[i] == null) {
+				if (codeBaseJars[i] == null) {
 					if (missingJars.length() > 1)
 						missingJars += ", "; //$NON-NLS-1$
 					missingJars += xuggleJarNames[i];
@@ -637,17 +465,17 @@ public class DiagnosticsForXuggle extends Diagnostics {
 		default: // none of the above
 			message.add(XuggleRes.getString("Xuggle.Dialog.BadXuggle.Message")); //$NON-NLS-1$
 			message.add(XuggleRes.getString("Xuggle.Dialog.UnknownProblem.Message")); //$NON-NLS-1$
-			if (REQUEST_TRACKER.equals(requester)) {
-				message.add(XuggleRes.getString("Xuggle.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
-				message.add(" "); //$NON-NLS-1$
-				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.TrackerInstallerPath.Message")); //$NON-NLS-1$
-				message.add(Diagnostics.TRACKER_INSTALLER_URL);
-			} else {
-				message.add(XuggleRes.getString("Xuggle.Dialog.NoXuggleHome.Message2")); //$NON-NLS-1$
-				message.add(" "); //$NON-NLS-1$
-				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.Message.InstallerPath")); //$NON-NLS-1$
-				message.add(XUGGLE_INSTALLER_URL);
-			}
+//			if (REQUEST_TRACKER.equals(requester)) {
+//				message.add(XuggleRes.getString("Xuggle.Dialog.ReplaceXuggle.Message3")); //$NON-NLS-1$
+//				message.add(" "); //$NON-NLS-1$
+//				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.TrackerInstallerPath.Message")); //$NON-NLS-1$
+//				message.add(Diagnostics.TRACKER_INSTALLER_URL);
+//			} else {
+//				message.add(XuggleRes.getString("Xuggle.Dialog.NoXuggleHome.Message2")); //$NON-NLS-1$
+//				message.add(" "); //$NON-NLS-1$
+//				message.add(XuggleRes.getString("Xuggle.Dialog.AboutXuggle.Message.InstallerPath")); //$NON-NLS-1$
+//				message.add(XUGGLE_INSTALLER_URL);
+//			}
 
 		}
 
@@ -705,7 +533,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 
 			@Override
 			public boolean accept(File file) {
-				return file.getName().startsWith(TrackerStarter.xuggleServerJarName);
+				return file.getName().startsWith(TrackerStarter.XUGGLE_SERVER_NAME);
 			}				
 		});
 		if (jars.length > 0) {
@@ -719,8 +547,8 @@ public class DiagnosticsForXuggle extends Diagnostics {
 	}
 
 	/**
-	 * Copies Xuggle jar files to a target directory. Does nothing if the directory
-	 * already contains a xuggle-xuggler.jar of the same size.
+	 * Copies Xuggle jar files to a target directory. Does nothing if the target
+	 * files exist and are the same size.
 	 *
 	 * @param dir the directory
 	 * @return true if jars are copied
@@ -731,22 +559,25 @@ public class DiagnosticsForXuggle extends Diagnostics {
 			return false;
 		}
 		File xuggleJarDir = new File(xuggleHome); //$NON-NLS-1$
-		File xuggleFile = new File(xuggleJarDir, xuggleJarNames[0]);
-		long fileLength = xuggleFile.length();
-		File target = new File(dir, xuggleJarNames[0]);
-		// copy xuggle jars
-		if (!target.exists() || target.length() != fileLength) {
-			for (String next : xuggleJarNames) {
-				xuggleFile = new File(xuggleJarDir, next);
-				target = new File(dir, next);
-				if (!VideoIO.copyFile(xuggleFile, target)) {
-					return false;
-				}
+		File[] xuggleJars = xuggleJarDir.listFiles(new FileFilter() {
+
+			@Override
+			public boolean accept(File file) {
+				return file.getName().startsWith(XML.stripExtension(xuggleJarNames[0]));
+			}				
+		});
+		boolean copied = false;
+		// todo: if more than one in XuggleJars, get latest
+		for (int i = 0; i < xuggleJarNames.length; i++) {
+			File xuggleFile = i == 0? xuggleJars[0]: new File(xuggleJarDir, xuggleJarNames[i]);
+			long fileLength = xuggleFile.length();
+			File target = new File(dir, xuggleJarNames[i]);
+			// copy jar
+			if (!target.exists() || target.length() != fileLength) {
+				copied = VideoIO.copyFile(xuggleFile, target) || copied;
 			}
-			// all jars were copied
-			return true;
 		}
-		return false;
+		return copied;
 	}
 
 	/**
@@ -755,7 +586,7 @@ public class DiagnosticsForXuggle extends Diagnostics {
 	 * @param args ignored
 	 */
 	public static void main(String[] args) {
-		System.out.println(getXuggleVersion());
-		aboutXuggle();
+		System.out.println(getXuggleVersion());		
+		aboutXuggle("Tracker");
 	}
 }
