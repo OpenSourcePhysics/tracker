@@ -216,6 +216,7 @@ public class ModelBuilder extends FunctionTool {
 			endFrameSpinner.setToolTipText(TrackerRes.getString("TrackerPanel.Spinner.ModelEnd.Tooltip")); //$NON-NLS-1$
 			refreshBoosterDropdown();
 		}
+		setTitles();
 //		if (selectedPanel != null) {
 //			ModelFunctionPanel modelpanel = (ModelFunctionPanel)selectedPanel;
 //			if (modelpanel.model instanceof DynamicParticle) {
