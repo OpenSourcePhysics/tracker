@@ -693,6 +693,7 @@ public class TrackerStarter {
 			}
 
 			String versionStr = OSPRuntime.VERSION; // default is current version
+			boolean useDefaultTrackerJar = jar == null;
 			if (jar!=null) { 
 				if (!jar.equals("tracker.jar")) { //$NON-NLS-1$
 					int dot = jar.indexOf(".jar"); //$NON-NLS-1$
@@ -704,15 +705,18 @@ public class TrackerStarter {
 	    		}
 					if (new OSPRuntime.Version(ver).isValid()) {
 						preferredVersionString = versionStr;
-						logMessage("preferred version: " + preferredVersionString); //$NON-NLS-1$
-					} 
+						logMessage("preferred Tracker version: " + preferredVersionString); //$NON-NLS-1$
+						useDefaultTrackerJar = false;					} 
 					else {
 						logMessage("version number not valid: " + ver); //$NON-NLS-1$
 					}
 				}
 				else {
-					logMessage("tracker.jar presumed to be version "+versionStr); //$NON-NLS-1$
+					logMessage("preferred Tracker version: tracker.jar (presumed "+versionStr+")"); //$NON-NLS-1$				
 				}
+			}
+			if (useDefaultTrackerJar) {
+				logMessage("no preferred Tracker version, using tracker.jar (presumed "+versionStr+")"); //$NON-NLS-1$				
 			}
 			
 			// preferred java vm
